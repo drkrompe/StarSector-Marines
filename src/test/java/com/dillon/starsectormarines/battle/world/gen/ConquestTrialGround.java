@@ -108,6 +108,8 @@ public final class ConquestTrialGround {
         PointOfInterest keepRoom = c.pois.get(1);
         TacticalNode objective = compound(TacticalNode.Kind.ARMORY, objectiveRoom, 60, objectiveGarrison);
         TacticalNode keep = compound(TacticalNode.Kind.COMMAND_POST, keepRoom, 80, keepGarrison);
+        // The compounds' sandbagged doors face the landing, as a generated base's do.
+        CompoundPreparedGround.layForSites(c, List.of(objective, keep), LANE_X, LANDING_Y);
         List<TacticalNode> sites = new ArrayList<>();
         sites.add(new TacticalNode(TacticalNode.Kind.BEACHHEAD, LANE_X, LANDING_Y,
                 LANE_X - 20, LANDING_Y - 10, LANE_X + 20, LANDING_Y + 12, Faction.MARINE, 20, 0));

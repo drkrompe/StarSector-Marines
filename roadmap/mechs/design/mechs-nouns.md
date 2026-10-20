@@ -408,6 +408,12 @@ increasing an encounter's total armored threat.
   only — the torso still twists onto the fight — so the legs and their armour
   point where the player put them while the guns keep working. It lasts while
   the mech stands: the next route it walks, a new order, or a cancel ends it.
+  A click on a garrisonable is not a move: one its side believes is enemy-held
+  is an assault, one its side mans a **guard**, which holds a cell beside the
+  place with the hips on the believed threat while nothing is in its sights
+  (`ai-nouns.md`, machine assault and machine guard). A guard is the one order a
+  commander may also give a lance of its own side; a player's order on the
+  chassis outranks it.
 - A **Defend Area order** is a persistent, battle-local tactical assignment for
   one whole battle lance. Its clicked center resolves to reachable ground and
   owns a circular twenty-cell-radius zone. Every live lance member positions

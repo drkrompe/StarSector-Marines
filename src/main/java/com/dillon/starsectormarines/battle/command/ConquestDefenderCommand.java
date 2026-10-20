@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.IntBinaryOperator;
 
 /**
  * Defender-side Conquest command: faction-honest first contact mobilizes a
@@ -129,8 +130,15 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     private float[] threatSeenFront = new float[0];
     private volatile ConquestFrontSnapshot frontSnapshot;
     private final GarrisonDirector garrisons = new GarrisonDirector();
+    /** Which free lance stands guard by which manned place (`garrisonables.md`, machine guard). */
+    private final MachineGuardDirector machineGuards = new MachineGuardDirector();
+    /** Guards the last plan attached and stood down, ordered in {@link #afterCommit}. */
+    private List<MachineGuardDirector.Attach> guardsToOrder = List.of();
+    private List<Integer> guardsToStandDown = List.of();
     /** Alarms on this side's own forts: the pressure kept up while nobody can see the attack ({@link PlaceAlarms}). */
     private final PlaceAlarms alarms = new PlaceAlarms();
+    /** The counter-attack on a fort this side has lost or is losing, with the reserve held for it ({@link FortCounterattack}). */
+    private final FortCounterattack counter = new FortCounterattack();
     /** A rallied squad whose current track post lies within this many cells (Chebyshev) of its area's new staging cell keeps it. */
     private static final int RALLY_KEEP_CELLS = 8;
     /** Plans between attempts to stage for an area once no patrol could be found for it. */
@@ -346,6 +354,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     @Override
     public CommandPlan<ConquestFrontSnapshot> plan(ConquestCommandFrame frame) {
         structures = frame.facts().structures();
+        turnedForts = FortCounterattack.isEnabled() ? FortCounterattack.turned(faction(), structures) : Map.of();
         CommanderInfluenceSnapshot influence = frame.influence();
         if (influence != null) {
             alarms.update(frame.tick(), faction(), structures, new PlaceAlarms.Reading() {
@@ -361,11 +370,15 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         }
 
         GarrisonableRegistry places = frame.facts().garrisonables();
+        compoundsThisPlan = frame.facts().compounds();
         boolean reactive = reactiveManning(places, influence);
         List<GarrisonDirector.Garrison> held = new ArrayList<>();
         Map<Integer, PlanningSquad> heldSquads = new TreeMap<>();
         List<PlanningSquad> candidates = new ArrayList<>();
         Map<Integer, PlanningSquad> staged = new TreeMap<>();
+        // The counter-attack's squads (its reserve, its muster, its launched group): out of every other assignment.
+        Map<Integer, PlanningSquad> countering = new TreeMap<>();
+        boolean counterOn = FortCounterattack.isEnabled();
         boolean flowOn = influence != null;
         flowNote = "";
         planCount++;
@@ -376,6 +389,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         rallyRedirects = 0;
         Map<Integer, PlanningSquad> allSquads = new TreeMap<>();
         Map<Integer, SquadDirective> directives = new TreeMap<>();
+        Map<Integer, PlanningSquad> guarding = new TreeMap<>();
+        List<PlanningSquad> contactMachines = new ArrayList<>();
         for (CommandSquadState state : frame.squads()) {
             PlanningSquad squad = new PlanningSquad(state);
             allSquads.put(squad.id, squad);
@@ -388,6 +403,11 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 directives.put(squad.id, directive(squad, home, home, reason));
                 continue;
             }
+            if (counterOn && counter.claims(squad.id) && !hasHigherAuthority(squad)) {
+                stagers.remove(squad.id);
+                countering.put(squad.id, squad);
+                continue;
+            }
             if (reactive && !hasHigherAuthority(squad)) {
                 GarrisonDirector.Garrison garrison = garrisonOf(squad, places);
                 if (garrison != null) {
@@ -396,6 +416,11 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                     heldSquads.put(squad.id, squad);
                     continue;
                 }
+            }
+            if (machineGuards.holds(squad.id) && !hasHigherAuthority(squad)) {
+                // A lance standing guard by a manned place answers to the guard, not to this pulse's response.
+                guarding.put(squad.id, squad);
+                continue;
             }
             StagePost post = flowOn && !hasHigherAuthority(squad) ? stagers.get(squad.id) : null;
             if (post != null) {
@@ -407,7 +432,12 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 }
                 stagers.remove(squad.id);
             }
+            if (keepsInside(squad, influence)) {
+                directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_GARRISONABLE_FALL_BACK));
+                continue;
+            }
             if (squad.localContact) {
+                if (squad.machine) contactMachines.add(squad);
                 clearMissionRally(squad);
                 directives.put(squad.id, directive(squad, home, home,
                         AssignmentReason.DEFENDER_LOCAL_CONTACT));
@@ -443,7 +473,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             entry.setValue(steadyRallies.steady(entry.getKey(), entry.getValue(), frame.tick()));
         }
 
-        int mobileReserve = mobileReserveFor(candidates.size());
+        int mobileReserve = counterOn ? counterReserve(candidates.size()) : mobileReserveFor(candidates.size());
         int responseBudget = candidates.size() - mobileReserve;
         Set<Integer> selected = new HashSet<>();
         List<Threat> activeThreats = Arrays.stream(threats)
@@ -461,6 +491,13 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             if (choice != null) assignResponse(choice, threat.track,
                     directives, selected);
         }
+        // The counter-attack masses after every threatened track has its picket and before any track has a second.
+        List<String> counterNotes = List.of();
+        if (counterOn) {
+            counterNotes = planCounterattack(frame, influence, candidates, countering, selected, directives);
+            mobileReserve = counterReserve(candidates.size());
+            responseBudget = candidates.size() - mobileReserve;
+        }
         // Concentration follows, up to each track's own share of the budget.
         for (Threat threat : activeThreats) {
             while (selected.size() < responseBudget
@@ -477,6 +514,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         // Manning a pressed place outranks staging: it takes the free or waiting squads that can arrive in time, and
         // flow then posts what is left (counting the squads just sent as manned) behind whatever is still unanswered.
         if (reactive) manGarrisonables(places, frame.topology(), candidates, staged, allSquads, selected, justReleased, directives);
+        planMachineGuards(reactive ? places : null, candidates, contactMachines, selected, guarding, allSquads, directives);
         if (flowOn) {
             flowToPressure(influence, reactive ? places : null, frame.topology(), frame.perspective(), held,
                     candidates, staged, allSquads, selected, justReleased, directives);
@@ -499,14 +537,104 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 frame, allSquads, directives, threats);
         return new CommandPlan<>(faction(), strategyId(), phase.name(), frame.tick(),
                 influence != null ? influence.updatedTick() : -1,
-                candidates.size() + stagedOutside(candidates),
-                candidates.size() - selected.size() + stagers.size(),
-                summaries(activeThreats.size(), responseBudget, mobileReserve, structureNotes, flowNote, alarms.describe()),
+                candidates.size() + stagedOutside(candidates) + countering.size(),
+                candidates.size() - selected.size() + stagers.size() + counter.heldInReserve(),
+                summaries(activeThreats.size(), responseBudget, mobileReserve, structureNotes, counterNotes, flowNote,
+                        alarms.describe()),
                 proposals, detail);
     }
 
+    /**
+     * The machine guard's commander half: stands each guarding lance by its place or stands it down, then attaches a
+     * free lance to a manned, pressed place nobody guards, by {@link MachineGuardDirector}'s laws. A lance is free when it
+     * is in the pool and this pulse gave it nothing (no track response, no structure task); a lance in local contact is
+     * offered too, for a place near its fight. The orders are given in {@link #afterCommit}.
+     */
+    private void planMachineGuards(GarrisonableRegistry places, List<PlanningSquad> candidates,
+                                   List<PlanningSquad> contactMachines, Set<Integer> selected,
+                                   Map<Integer, PlanningSquad> guarding, Map<Integer, PlanningSquad> allSquads,
+                                   Map<Integer, SquadDirective> directives) {
+        List<MachineGuardDirector.Place> manned = places == null ? List.of()
+                : mannedPlaces(places, allSquads, directives, garrisons.hotPlaces());
+        IntBinaryOperator placeAt = places == null ? (x, y) -> -1 : places::idAt;
+        Map<Integer, MachineGuardDirector.Machine> lances = new TreeMap<>();
+        for (PlanningSquad squad : guarding.values()) lances.put(squad.id, machineOf(squad));
+        List<Integer> down = machineGuards.review(lances, manned, placeAt);
+        for (int id : down) {
+            // A lance standing down from a guard is a reserve again; one taken by other work keeps that work's directive.
+            PlanningSquad squad = guarding.remove(id);
+            if (squad == null) continue;
+            int home = homeTrack(squad);
+            directives.put(id, directive(squad, home, home, AssignmentReason.DEFENDER_RESERVE_HOLD));
+        }
+        for (PlanningSquad squad : guarding.values()) {
+            int home = homeTrack(squad);
+            directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_MACHINE_GUARD));
+        }
+        List<MachineGuardDirector.Machine> free = new ArrayList<>();
+        for (PlanningSquad squad : candidates) {
+            if (squad.machine && !selected.contains(squad.id)) free.add(machineOf(squad));
+        }
+        for (PlanningSquad squad : contactMachines) {
+            free.add(new MachineGuardDirector.Machine(squad.id, squad.anchorCellX, squad.anchorCellY,
+                    squad.aliveMembers, squad.originalMembers, true));
+        }
+        int machineSquads = 0;
+        for (PlanningSquad squad : allSquads.values()) if (squad.machine && squad.aliveMembers > 0) machineSquads++;
+        List<MachineGuardDirector.Attach> sent = machineGuards.attach(free, manned, machineSquads, placeAt);
+        for (MachineGuardDirector.Attach attach : sent) {
+            PlanningSquad squad = allSquads.get(attach.squadId());
+            int home = homeTrack(squad);
+            directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_MACHINE_GUARD));
+            selected.add(squad.id);
+        }
+        guardsToOrder = sent;
+        guardsToStandDown = down;
+    }
+
+    /**
+     * The places this side mans after this pulse's manning: every run a squad is ordered to man and is not falling
+     * back from, the pressed ones first in the director's own order (most pressed first), then the rest by id.
+     */
+    static List<MachineGuardDirector.Place> mannedPlaces(GarrisonableRegistry places, Map<Integer, PlanningSquad> squads,
+                                                         Map<Integer, SquadDirective> directives, int[] hotPlaces) {
+        Set<Integer> mannedIds = new TreeSet<>();
+        for (PlanningSquad squad : squads.values()) {
+            if (squad.aliveMembers <= 0 || squad.machine || squad.assignedObjective == null
+                    || !squad.assignedObjective.isGarrison()) continue;
+            SquadDirective directive = directives.get(squad.id);
+            if (directive != null && directive.reason() == AssignmentReason.DEFENDER_GARRISONABLE_FALL_BACK) continue;
+            int place = places.idAt(squad.assignedObjective.targetCellX(), squad.assignedObjective.targetCellY());
+            if (place >= 0) mannedIds.add(place);
+        }
+        return MachineGuardDirector.manned(mannedIds, hotPlaces, places);
+    }
+
+    private static MachineGuardDirector.Machine machineOf(PlanningSquad squad) {
+        return new MachineGuardDirector.Machine(squad.id, squad.anchorCellX, squad.anchorCellY,
+                squad.aliveMembers, squad.originalMembers);
+    }
+
+    /** Gives the machine guards the plan attached, and stands down the ones it ended. */
+    @Override
+    public void afterCommit(CommandEffects effects) {
+        for (int squadId : guardsToStandDown) effects.standDownGuard(squadId);
+        for (MachineGuardDirector.Attach attach : guardsToOrder) {
+            if (effects.guardPlace(faction(), attach.squadId(), attach.cellX(), attach.cellY()) == 0) {
+                machineGuards.forget(attach.squadId());
+            }
+        }
+        guardsToOrder = List.of();
+        guardsToStandDown = List.of();
+    }
+
+    /** Lances standing guard by a manned place; for evidence. */
+    int machineGuardCount() {
+        return machineGuards.count();
+    }
+
     private static List<String> summaries(Object threats, Object budget, Object reserve, List<String> structureNotes,
-                                          String flowNote, String alarmNote) {
+                                          List<String> counterNotes, String flowNote, String alarmNote) {
         List<String> out = new ArrayList<>();
         if (!flowNote.isEmpty()) out.add(flowNote);
         if (!alarmNote.isEmpty()) out.add("place alarms: " + alarmNote);
@@ -514,6 +642,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         out.add("response budget=" + budget);
         out.add("held reserve=" + reserve);
         out.addAll(structureNotes);
+        out.addAll(counterNotes);
         return out;
     }
 
@@ -585,6 +714,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         for (CommanderContact contact : influence.contacts()) {
             int track = trackLayout.trackForCell(contact.cellX(), contact.cellY());
             if (track < 0 || track >= threats.length) continue;
+            // A turned fort's ground is the counter-attack's question: the track response does not rally into it.
+            if (onTurnedGround(contact)) continue;
             Threat threat = threats[track];
             threat.contacts++;
             int forward = Math.round(trackLayout.forwardCoordinate(
@@ -609,6 +740,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         // An alarmed fort threatens its own track, so the reserve answers an attack nobody can see into.
         for (DefenceStructureFact aspect : structures) {
             if (!aspect.ofFort() || aspect.originalHolder() != faction() || !alarms.alarmed(aspect.fortId())) continue;
+            if (turnedForts.containsKey(aspect.fortId())) continue;
             int track = trackLayout.trackForCell(aspect.cellX(), aspect.cellY());
             if (track < 0 || track >= threats.length) continue;
             Threat threat = threats[track];
@@ -809,6 +941,17 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
 
     /** The ground-defence structures this side knew of at the start of the current plan. */
     private List<DefenceStructureFact> structures = List.of();
+    /** This plan's own forts whose critical aspect is lost, by id, with their centres ({@link FortCounterattack#turned}). */
+    private Map<Integer, int[]> turnedForts = Map.of();
+
+    /**
+     * Whether a believed contact stands on a turned fort's ground. That ground is the counter-attack's question: the
+     * track response does not rally into it, flow does not stage toward it and its belt is not manned, so a lost fort is
+     * never fed squad by squad.
+     */
+    private boolean onTurnedGround(CommanderContact contact) {
+        return !turnedForts.isEmpty() && FortCounterattack.onTurnedGround(turnedForts, contact.cellX(), contact.cellY());
+    }
 
     private boolean hasHigherAuthority(PlanningSquad squad) {
         return squad.originalDirective != null
@@ -893,6 +1036,30 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
      * shown carrying the order is still counted. The place is found again by its centre cell on the current index, so a
      * run renumbered or shortened by shelling is followed; a place that is gone releases a squad free to move.
      */
+    /** Largest circle of the area defence a squad driven off a compound's apron holds inside the building. UNTUNED. */
+    static final int INSIDE_RADIUS_CELLS = 6;
+
+    /** The compounds this plan was made against, for the fall back from an apron into its building. */
+    private List<ConquestCommandFacts.Compound> compoundsThisPlan = List.of();
+
+    /** Plans a squad that fell back inside a compound stays there once its building is quiet. UNTUNED. */
+    static final int INSIDE_COOL_PLANS = 8;
+
+    /** A squad driven off a compound's apron into the building it fronts: the order it holds there and the building. */
+    private static final class Inside {
+        final ObjectiveAssignment order;
+        final TacticalNode building;
+        int quietPlans;
+
+        Inside(ObjectiveAssignment order, TacticalNode building) {
+            this.order = order;
+            this.building = building;
+        }
+    }
+
+    /** Squads holding inside a compound after falling back off its apron, by squad id. */
+    private final Map<Integer, Inside> insideFallBacks = new TreeMap<>();
+
     private GarrisonDirector.Garrison garrisonOf(PlanningSquad squad, GarrisonableRegistry places) {
         ObjectiveAssignment order = squad.assignedObjective;
         int cellX;
@@ -940,9 +1107,13 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             contactScratch[2 * count + 1] = contact.cellY();
             count++;
         }
-        Set<Integer> releasing = new HashSet<>(garrisons.evaluate(places, (bx, by) -> placePressure(influence, bx, by),
-                contactScratch, count, held));
+        Set<Integer> releasing = new HashSet<>(garrisons.evaluate(places, new GarrisonDirector.Pressure() {
+            @Override public float hostileAt(int bx, int by) { return influence.hostileAt(bx, by); }
+            @Override public float floorAt(int bx, int by) { return alarms.floorAt(bx, by); }
+        }, contactScratch, count, held));
         Set<Integer> fallingBack = new HashSet<>(garrisons.fallingBack());
+        Map<Integer, Integer> shiftedTo = new HashMap<>();
+        for (GarrisonDirector.Shift shift : garrisons.shifting()) shiftedTo.put(shift.squadId(), shift.to());
         for (GarrisonDirector.Garrison garrison : held) {
             PlanningSquad squad = heldSquads.get(garrison.squadId());
             int home = homeTrack(squad);
@@ -963,13 +1134,19 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 justReleased.add(squad.id);
                 continue;
             }
-            int place = garrison.garrisonable();
-            ObjectiveAssignment order = ObjectiveAssignment.defendRun(squad.id, places.centreX(place),
-                    places.centreY(place), places.radius(place), place);
+            // A garrison shifting onto the next stretch of its run keeps its assignment; only the stretch moves.
+            int place = shiftedTo.getOrDefault(squad.id, garrison.garrisonable());
+            ObjectiveAssignment order = runOrder(squad.id, place, places);
             if (!order.equals(squad.assignedObjective)) squad.assignedObjective = order;
             directives.put(squad.id, directive(squad, home, home, squad.localContact
                     ? AssignmentReason.DEFENDER_LOCAL_CONTACT : AssignmentReason.DEFENDER_GARRISONABLE_STAND));
         }
+    }
+
+    /** The order that mans a stretch: an area defence on its circle, its claims kept to the stretch's run. */
+    private static ObjectiveAssignment runOrder(int squadId, int place, GarrisonableRegistry places) {
+        return ObjectiveAssignment.defendRun(squadId, places.centreX(place), places.centreY(place),
+                places.radius(place), places.runOf(place));
     }
 
     /**
@@ -994,6 +1171,41 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         ObjectiveAssignment order = squad.assignedObjective;
         return order != null && order.kind() == AssignmentKind.DEFEND_AREA
                 && order.targetCellX() == post.order.targetCellX() && order.targetCellY() == post.order.targetCellY();
+    }
+
+    /**
+     * Whether a squad that fell back off a compound's apron still holds inside the building: while it carries the order
+     * it was given there, the marines have not taken the compound, and the building has not been quiet for
+     * {@link #INSIDE_COOL_PLANS} plans (never released in a fight). A squad that stops holding is forgotten and planned
+     * like any other patrol.
+     */
+    private boolean keepsInside(PlanningSquad squad, CommanderInfluenceSnapshot influence) {
+        Inside inside = insideFallBacks.get(squad.id);
+        if (inside == null) return false;
+        if (!inside.order.equals(squad.assignedObjective)) {
+            insideFallBacks.remove(squad.id);
+            return false;
+        }
+        boolean lost = false;
+        for (ConquestCommandFacts.Compound compound : compoundsThisPlan) {
+            if (compound.node() == inside.building) lost = compound.state() == CompoundService.CompoundState.MARINE_HELD;
+        }
+        boolean quiet = influence == null || placePressure(influence,
+                inside.building.anchorX / influence.blockSize(), inside.building.anchorY / influence.blockSize())
+                < GarrisonDirector.RELEASE_PRESSURE;
+        inside.quietPlans = quiet && !squad.localContact ? inside.quietPlans + 1 : 0;
+        if (lost || inside.quietPlans >= INSIDE_COOL_PLANS) {
+            insideFallBacks.remove(squad.id);
+            squad.assignedObjective = null;
+            return false;
+        }
+        return true;
+    }
+
+    /** Whether this order is the one a squad was given inside a compound when it fell back off the apron. */
+    private boolean isInsideFallBack(PlanningSquad squad) {
+        Inside inside = insideFallBacks.get(squad.id);
+        return inside != null && inside.order.equals(squad.assignedObjective);
     }
 
     /** The works (lowest cell) of each fort this side holds, by fort id. */
@@ -1031,6 +1243,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         int count = 0;
         for (CommanderContact contact : influence.contacts()) {
             if (contact.confidence() * contact.strength() < GarrisonDirector.MIN_CONTACT_WEIGHT) continue;
+            if (onTurnedGround(contact)) continue;
             int bx = Math.min(bw - 1, Math.max(0, contact.cellX() / size));
             int by = Math.min(bh - 1, Math.max(0, contact.cellY() / size));
             int block = by * bw + bx;
@@ -1048,6 +1261,9 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         for (int[] alarmed : alarms.alarmedBlocks()) {
             int bx = Math.min(bw - 1, Math.max(0, alarmed[0]));
             int by = Math.min(bh - 1, Math.max(0, alarmed[1]));
+            if (!turnedForts.isEmpty() && FortCounterattack.onTurnedGround(turnedForts,
+                    influence.blockWorldX(bx) + influence.blockWorldWidth(bx) / 2,
+                    influence.blockWorldY(by) + influence.blockWorldHeight(by) / 2)) continue;
             int block = by * bw + bx;
             if (flowStamp[block] == flowGeneration) continue;
             flowStamp[block] = flowGeneration;
@@ -1086,6 +1302,10 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
 
     /** Forgets waiting patrols whose squad is gone. */
     private void dropDeadStagers(Map<Integer, PlanningSquad> allSquads) {
+        insideFallBacks.keySet().removeIf(id -> {
+            PlanningSquad squad = allSquads.get(id);
+            return squad == null || squad.aliveMembers <= 0;
+        });
         stagers.keySet().removeIf(id -> {
             PlanningSquad squad = allSquads.get(id);
             return squad == null || squad.aliveMembers <= 0;
@@ -1346,14 +1566,26 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
 
     /**
      * Where a garrison whose ground is lost withdraws to: an area defence at the doorstep of the nearest standing work
-     * of the same fort this side holds, or {@code null} when the place belongs to no fort or no work of it stands, in
-     * which case the squad is released to the pool instead. Squad-tier movement under the commander's authority; the
+     * of the same fort this side holds; for a compound's apron, an area defence inside the compound's own building while the
+     * marines have not taken it; or {@code null} when the place belongs to neither or nothing of it stands, in which
+     * case the squad is released to the pool instead. Squad-tier movement under the commander's authority; the
      * order is the ordinary area defence.
      */
     private ObjectiveAssignment fallBackPost(PlanningSquad squad, int place, GarrisonableRegistry places,
                                              CommandTopology topology, Faction perspective) {
         int fort = places.fortId(place);
-        if (fort < 0) return null;
+        if (fort < 0) {
+            // A compound's apron is the layer in front of its building: driven off it, the squad goes inside and holds
+            // it, while its own side still does.
+            ConquestCommandFacts.Compound compound = CompoundGround.frontedBy(places, place, compoundsThisPlan);
+            if (compound == null || compound.state() == CompoundService.CompoundState.MARINE_HELD) return null;
+            TacticalNode building = compound.node();
+            int radius = Math.max(2, Math.min(INSIDE_RADIUS_CELLS,
+                    Math.min(building.right - building.left, building.bottom - building.top) / 2));
+            ObjectiveAssignment inside = ObjectiveAssignment.defendArea(squad.id, building.anchorX, building.anchorY, radius);
+            insideFallBacks.put(squad.id, new Inside(inside, building));
+            return inside;
+        }
         DefenceStructureFact works = null;
         long best = Long.MAX_VALUE;
         for (DefenceStructureFact structure : structures) {
@@ -1399,7 +1631,17 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         for (PlanningSquad squad : staged.values()) {
             free.add(new GarrisonDirector.Free(squad.id, squad.anchorCellX, squad.anchorCellY, true, squad.aliveMembers, squad.originalMembers));
         }
+        // The counter-attack's reserve above the law's share may man its own fort's belt, and nothing else.
+        Set<Integer> lent = new HashSet<>(counter.lendable());
+        for (int id : lent) {
+            PlanningSquad squad = allSquads.get(id);
+            if (squad == null || squad.crew || squad.machine) continue;
+            free.add(new GarrisonDirector.Free(squad.id, squad.anchorCellX, squad.anchorCellY, true, squad.aliveMembers, squad.originalMembers));
+        }
+        int counterFort = counter.fortId();
         List<GarrisonDirector.Man> sent = garrisons.assign(free, (squadId, place) -> {
+            if (turnedForts.containsKey(places.fortId(place))) return false;
+            if (lent.contains(squadId) && places.fortId(place) != counterFort) return false;
             PlanningSquad squad = allSquads.get(squadId);
             int x = places.centreX(place);
             int y = places.centreY(place);
@@ -1416,8 +1658,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         });
         for (GarrisonDirector.Man man : sent) {
             PlanningSquad squad = allSquads.get(man.squadId());
-            squad.assignedObjective = ObjectiveAssignment.defendRun(squad.id, places.centreX(man.garrisonable()),
-                    places.centreY(man.garrisonable()), places.radius(man.garrisonable()), man.garrisonable());
+            if (lent.contains(squad.id)) counter.lend(squad.id);
+            squad.assignedObjective = runOrder(squad.id, man.garrisonable(), places);
             int home = homeTrack(squad);
             directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_GARRISONABLE_MAN));
             selected.add(squad.id);
@@ -1430,6 +1672,94 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             }
         }
         return sent;
+    }
+
+    /**
+     * The reserve the track response keeps with the counter-attack on: while the counter-attack's reserve waits, it is
+     * part of the reserve law's share rather than in addition to it; once a group is mustering or launched, the response
+     * keeps the law's share of what is left.
+     */
+    private int counterReserve(int candidateCount) {
+        int held = counter.heldInReserve();
+        if (held == 0) return mobileReserveFor(candidateCount);
+        return Math.max(0, mobileReserveFor(candidateCount + held) - held);
+    }
+
+    /**
+     * One pulse of the counter-attack ({@link FortCounterattack}): offers it the squads it holds and the free patrols the
+     * tracks' pickets left, takes back what it recruits and releases, and writes its orders. Recruits leave the candidate
+     * list; released squads join it, free for the rest of this plan.
+     */
+    private List<String> planCounterattack(ConquestCommandFrame frame, CommanderInfluenceSnapshot influence,
+                                           List<PlanningSquad> candidates, Map<Integer, PlanningSquad> countering,
+                                           Set<Integer> selected, Map<Integer, SquadDirective> directives) {
+        List<FortCounterattack.Body> members = new ArrayList<>();
+        for (PlanningSquad squad : countering.values()) members.add(counterBody(squad));
+        List<FortCounterattack.Body> free = new ArrayList<>();
+        Map<Integer, PlanningSquad> byId = new HashMap<>();
+        for (PlanningSquad squad : candidates) {
+            if (selected.contains(squad.id) || squad.crew) continue;
+            free.add(counterBody(squad));
+            byId.put(squad.id, squad);
+        }
+        List<int[]> hostiles = new ArrayList<>();
+        if (influence != null) {
+            for (CommanderContact contact : influence.contacts()) {
+                if (contact.structure() || contact.confidence() * contact.strength() < GarrisonDirector.MIN_CONTACT_WEIGHT) {
+                    continue;
+                }
+                hostiles.add(new int[]{contact.cellX(), contact.cellY()});
+            }
+        }
+        int pool = candidates.size() + countering.size();
+        FortCounterattack.Result result = counter.plan(frame.tick(), frame.perspective(), structures, alarms::alarmed,
+                keepCell(frame), hostiles, members, free, mobileReserveFor(pool), pool, frame.topology());
+        for (int id : result.recruited()) {
+            PlanningSquad squad = byId.get(id);
+            candidates.remove(squad);
+            countering.put(id, squad);
+        }
+        for (int id : result.released()) {
+            PlanningSquad squad = countering.remove(id);
+            if (squad == null) continue;
+            // The staging post was the counter-attack's; a squad given back holds nothing of it.
+            if (squad.assignedObjective != null && squad.assignedObjective.kind() == AssignmentKind.DEFEND_AREA
+                    && !squad.assignedObjective.isGarrison()) {
+                squad.assignedObjective = null;
+            }
+            candidates.add(squad);
+        }
+        for (PlanningSquad squad : countering.values()) {
+            FortCounterattack.Order order = result.orders().get(squad.id);
+            int home = homeTrack(squad);
+            if (order == null) {
+                directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_COUNTERATTACK_RESERVE));
+                continue;
+            }
+            squad.assignedObjective = order.assignment();
+            directives.put(squad.id, directive(squad, home, home, switch (order.stage()) {
+                case RESERVE -> AssignmentReason.DEFENDER_COUNTERATTACK_RESERVE;
+                case MUSTER -> AssignmentReason.DEFENDER_COUNTERATTACK_MUSTER;
+                case LAUNCHED -> AssignmentReason.DEFENDER_COUNTERATTACK_LAUNCH;
+            }));
+        }
+        return result.notes();
+    }
+
+    private static FortCounterattack.Body counterBody(PlanningSquad squad) {
+        return new FortCounterattack.Body(squad.id, squad.anchorCellX, squad.anchorCellY, squad.aliveMembers,
+                squad.originalMembers, squad.machine, squad.demolition, squad.localContact, squad.assignedObjective);
+    }
+
+    /** The keep's capture cell while this side still holds it, or {@code null}. */
+    private static int[] keepCell(ConquestCommandFrame frame) {
+        for (ConquestCommandFacts.Compound compound : frame.facts().compounds()) {
+            if (compound.node().kind == TacticalNode.Kind.COMMAND_POST
+                    && compound.state() != CompoundService.CompoundState.MARINE_HELD) {
+                return new int[]{compound.captureCellX(), compound.captureCellY()};
+            }
+        }
+        return null;
     }
 
     /**
@@ -1449,8 +1779,11 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                     squad.demolition));
         }
         Set<Integer> tasked = new HashSet<>();
+        // A fort whose critical aspect is lost is the counter-attack's to retake, in proportion or not at all.
+        List<DefenceStructureFact> work = FortCounterattack.isEnabled()
+                ? FortCounterattack.withheld(frame.perspective(), structures) : structures;
         for (DefenceStructureTactics.Task task : DefenceStructureTactics.plan(
-                frame.perspective(), structures, offered, frame.topology())) {
+                frame.perspective(), work, offered, frame.topology())) {
             PlanningSquad squad = candidateById(candidates, task.squadId());
             squad.assignedObjective = task.assignment();
             int home = homeTrack(squad);
@@ -1623,6 +1956,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                     && planned.assignedObjective.kind() != AssignmentKind.DEFEND_TRACK
                     && !planned.assignedObjective.isGarrison()
                     && !isStagePost(planned)
+                    && !counter.claims(squadId)
+                    && !isInsideFallBack(planned)
                     && !DefenceStructureTactics.isTask(planned.assignedObjective, structures)) {
                 proposals.add(CommandProposal.retain(squadId,
                         CommandAuthority.MISSION_COMMAND, reason));

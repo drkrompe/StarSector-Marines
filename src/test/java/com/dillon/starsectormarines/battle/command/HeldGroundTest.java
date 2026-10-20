@@ -121,6 +121,19 @@ class HeldGroundTest {
     }
 
     @Test
+    void groundHeldByAnotherTitleIsMannedWithNoFortTaken() {
+        // Trench 2 fronts no fort the side holds; the caller answers that it holds it anyway, as it does the apron at
+        // the door of a compound it has taken.
+        press(2, GarrisonDirector.START_PRESSURE);
+        pulse(List.of(), 2);
+        List<HeldGround.Body> near = new ArrayList<>();
+        for (int i = 0; i < 6; i++) near.add(new HeldGround.Body(200 + i, 105 + 3 * i, 14, 105 + 3 * i, 14, 6, 6, false, null));
+        List<HeldGround.Sent> sent = hold.man(registry, near, 2, Set.of(), place -> place == 2, ANYWHERE);
+        assertEquals(1, sent.size());
+        assertEquals(2, sent.get(0).garrisonable());
+    }
+
+    @Test
     void aQuietTakenFortSendsNobody() {
         pulse(List.of());
         assertTrue(hold.man(registry, lanePool(6), 2, Set.of(7), ANYWHERE).isEmpty());

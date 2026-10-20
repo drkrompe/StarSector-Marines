@@ -1,6 +1,6 @@
 """Select every part's faces on the clean build and render each source part alone.
 
-  blender --background --factory-startup --python render_parts.py [-- --group g[,g]] [--only part,part]
+  blender --background --factory-startup --python render_parts.py [-- --group g[,g]] [--only part,part] [--samples N]
 
 Needs the hull's clean geometry build (hull.py BLEND; the Second Wind's is
 build/geom/second-wind-geometry.blend, rebuild.sh step 1, imported, never edited). Selection runs over every group's
@@ -32,6 +32,8 @@ import hull as H
 
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 ONLY = argv[argv.index('--only') + 1].split(',') if '--only' in argv else None
+# The shaded guide's Cycles samples (default 64); a render-queue light job passes 16.
+GUIDE_SAMPLES = int(argv[argv.index('--samples') + 1]) if '--samples' in argv else 64
 GROUPS = P.group_arg(argv)
 MINE = P.parts_in(GROUPS)
 DATA = H.DIR  # the hull's folder: its tables, art and outputs (hull.py)
@@ -177,7 +179,9 @@ def save(arr, path):
 
 
 # SURF_GUIDE_SAMPLES (opt-in): a cheaper lit guide for a queued light job; unset keeps 64.
-GUIDE_SAMPLES = int(os.environ.get('SURF_GUIDE_SAMPLES', 64))
+# An explicit --samples wins over it.
+if '--samples' not in argv:
+    GUIDE_SAMPLES = int(os.environ.get('SURF_GUIDE_SAMPLES', 64))
 bg = np.array(P.BACKGROUND, np.float32) / 255
 for part in MINE:
     if P.source_part(part) != part or (ONLY and part not in ONLY):

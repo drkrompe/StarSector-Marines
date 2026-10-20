@@ -10,6 +10,7 @@
     python battle_blockout.py --rerender      # render every frame even if a finished one is on disk
     python battle_blockout.py --root DIR      # put run folders under DIR (a render-queue job's {work})
     python battle_blockout.py --date D        # the review folder's date, when the run starts (default today)
+    python battle_blockout.py --stage-only    # build and pose the scene in Blender, render nothing (a pre-flight)
 
 A frame already finished in the run folder (its PNG, its labels, and the same samples and source)
 is not rendered again, so a job stopped part-way resumes where it stopped. Pass --run with a fixed
@@ -58,7 +59,7 @@ def build_file(f):
 
 
 def build_manifest(f):
-    return json.loads((BUILDS / f['dir'] / 'manifest.json').read_text())
+    return json.loads((BUILDS / f['dir'] / f.get('manifest', 'manifest.json')).read_text())
 W, H = 1920, 1080
 
 # Asharu and the orbit. Asharu's real size is not given anywhere in the game or the story; a
@@ -626,8 +627,11 @@ def blender_main(cfg):
                 continue
             eng.append((Vector(e.get('mouth') or e['location']), Vector(e.get('axis') or e['exhaust_direction']),
                         e.get('radius') or e['mouth_radius'], e.get('style', 'LOW_TECH')))
-        knobs = ({k['name']: m['control']['saved_pose'].get(k['name'], 0.0) for k in m['control']['knobs']}
-                 if ctl and 'control' in m else {})
+        knobs = {}
+        if ctl and 'control' in m:      # knobs: a list of {name, ...}, or a dict of name -> description
+            ks = m['control'].get('knobs') or []
+            pose = m['control'].get('saved_pose') or {}
+            knobs = {n: pose.get(n, 0.0) for n in (ks if isinstance(ks, dict) else [k['name'] for k in ks])}
         return dict(coll=coll, fx=fx, mpu=m['metres_per_unit'], engines=eng, length_m=f['length_m'], ctl=ctl,
                     knobs=knobs)
 
@@ -1112,6 +1116,9 @@ def blender_main(cfg):
             labels[kf] = lab
         else:
             labels[kf] = roster_sheet(kf)
+        if cfg.get('stage_only'):                 # --stage-only: build and pose every hull, render nothing
+            print('ASHARU staged', kf, flush=True)
+            continue
         partial = raw / f'{kf}.partial'           # not *.png, so a queue's frame count never counts it
         scene.render.use_file_extension = False
         scene.render.filepath = str(partial)
@@ -1426,7 +1433,7 @@ def mounts(key, state=None):
         f = roster.FINISHED[fin]
         man = build_manifest(f)
         mpu = man['metres_per_unit']
-        rows = man.get('turrets') or []
+        rows = list(man.get('turrets') or []) + list(man.get('launchers') or [])   # some builds list launchers apart
         for w in man.get('weapon_slots', []) + man.get('weapons', []):
             rows.append(w)
         for t in rows if isinstance(rows, list) else []:
@@ -1440,7 +1447,8 @@ def mounts(key, state=None):
             arc = t.get('arc_deg', t.get('arc', 360))
             kind = 'hardpoint' if t.get('mount') == 'HARDPOINT' else 'turret'
             pos = [v * mpu for v in at] + [0] * (3 - len(at))
-            out.append((pos, rest, arc, kind, muzzle_of(t, mpu, pos)))
+            launcher = t.get('kind') == 'launcher' or 'missile' in str(t.get('type', '')).lower()
+            out.append((pos, rest, arc, kind, muzzle_of(t, mpu, pos), launcher))
     else:
         spec = roster.game_spec(m['game'])
         _, length_px, _ = roster.sprite_stats(spec['sprite'])
@@ -1448,7 +1456,7 @@ def mounts(key, state=None):
         for w in spec['weapons']:
             pos = [w['location'][0] * mpu, w['location'][1] * mpu, 0.0]
             out.append((pos, w['angle'], w['arc'], 'hardpoint' if w['mount'] == 'HARDPOINT' else 'turret',
-                        ('m', pos)))
+                        ('m', pos), w.get('type') in ('MISSILE', 'COMPOSITE', 'SYNERGY', 'UNIVERSAL')))
     return out
 
 
@@ -1467,7 +1475,8 @@ def bearing(kf):
         d = [sb[i] - sa[i] for i in range(3)]
         loc = [sum(R[j][i] * d[j] for j in range(3)) for i in range(3)]     # world -> shooter frame
         best = None
-        for pos, rest, arc, kind, muzzle in mounts(a, states.get(a)):
+        for pos, rest, arc, kind, muzzle, launcher in mounts(a, states.get(a)):
+            fits = launcher == (fx[0] == 'missiles')      # missiles from a launcher, tracers from a gun, when one bears
             v = [loc[i] - pos[i] for i in range(3)]
             h = math.hypot(v[0], v[1])
             el = math.degrees(math.atan2(v[2], h))
@@ -1481,8 +1490,8 @@ def bearing(kf):
                 in_az = abs(off) <= arc / 2 or el >= 75
                 ok = in_az and GUN_ELEVATION[0] <= el <= GUN_ELEVATION[1]
                 miss = max(0.0, GUN_ELEVATION[0] - el, abs(off) - arc / 2 if el < 75 else 0)
-            if best is None or (ok, -miss) > (best[0], -best[1]):
-                best = (ok, miss, kind, el, off, muzzle)
+            if best is None or (ok, fits, -miss) > (best[0], best[6], -best[1]):
+                best = (ok, miss, kind, el, off, muzzle, fits)
         tgt_el = math.degrees(math.atan2(loc[2], math.hypot(loc[0], loc[1])))
         rows.append((fx[0], a, b, best, tgt_el))
     return rows
@@ -1505,6 +1514,12 @@ def main():
         started.write_text(opt('--date', date.today().isoformat()))   # a queue round pins one date
     run_date = started.read_text().strip()
     samples = int(opt('--samples', 48))
+    if '--stage-only' in argv:      # the whole Blender scene build for these frames, CPU only, nothing written
+        from blender_path import BLENDER
+        env = dict(os.environ, ASHARU_CFG=json.dumps(dict(out=str(run), frames=frames, samples=1, stage_only=True)))
+        subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python-exit-code', '1',
+                               '--python', __file__], env=env)
+        return
     if '--skip-render' not in argv:
         todo = [kf for kf in frames if '--rerender' in argv or not finished(run / 'raw', kf, samples)]
         done = [kf for kf in frames if kf not in todo]

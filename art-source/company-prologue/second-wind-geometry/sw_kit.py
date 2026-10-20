@@ -5,8 +5,43 @@ downward ray-cast onto the evaluated main hull. Coordinates are hull-local,
 +X bow, +Y port, +Z dorsal.
 """
 import math
+import re
+import sys
+from pathlib import Path
 import bpy
 from mathutils import Vector
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent/'ship-detail-kit'))
+from ship_detail_kit import segments  # noqa: E402  (the shared segment rule)
+
+# Lamp, light, lens and display names: these carry emission and stay sharp-edged.
+LIGHT_NAME = re.compile(r'(?<![a-z])(lamps?|lights?|lit|lens(es)?|beacons?|glow|strips?|displays?|annunciators?)(?![a-z])', re.I)
+
+# Metres per hull unit (build_reference.METRES_PER_UNIT sets it); the segment rule reads it.
+MPU = 0.65
+
+
+def sides(radius, n=0):
+    """Sides a round of `radius` hull units needs under the shared segment rule
+    (ship-detail-guide.md, Edge treatment: chord within 5 mm of the arc), at least n."""
+    return max(n, segments(radius*MPU))
+
+
+def angle_bevel(obj, width, segments=1, angle=30.0):
+    """Angle-limited edge chamfer that leaves a round's own segment edges alone;
+    hardened normals keep the faces beside it flat."""
+    b = obj.modifiers.new('Manufactured edge radii', 'BEVEL')
+    b.width, b.segments, b.limit_method = width, segments, 'ANGLE'
+    b.angle_limit, b.harden_normals = math.radians(angle), True
+    return obj
+
+
+def smooth(obj, angle=35.0):
+    """Shade a curved body smooth, keeping edges sharper than `angle` degrees sharp."""
+    me = obj.data
+    me.shade_smooth()
+    me.set_sharp_from_angle(angle=math.radians(angle))
+    return obj
 
 
 def material(name, color, metallic=0.0, roughness=.65, emission=None):
@@ -83,13 +118,27 @@ class Kit:
         return self.finish(obj, name, mat, bevel)
 
     def cylinder(self, name, loc, radius, depth, mat, axis='Z', vertices=32, bevel=.15):
+        """A round by the segment rule, its wall smooth-shaded and its rims kept sharp;
+        the bevel rounds the rims only (angle-limited), not the wall's own facets.
+        Six-sided bolt heads keep six sides; turret mounts keep the turret pass's counts."""
+        if vertices != 6 and not name.startswith('Turret '):
+            vertices = sides(radius, vertices)
         bpy.ops.mesh.primitive_cylinder_add(vertices=vertices, radius=radius, depth=depth, location=loc)
         obj = bpy.context.object
         if axis == 'X':
             obj.rotation_euler[1] = math.pi / 2
         elif axis == 'Y':
             obj.rotation_euler[0] = math.pi / 2
-        return self.finish(obj, name, mat, bevel)
+        if name.startswith('Turret '):
+            return self.finish(obj, name, mat, bevel)
+        smooth(obj)
+        self.finish(obj, name, mat, bevel)
+        for m in obj.modifiers:
+            if m.type == 'BEVEL':
+                m.limit_method, m.angle_limit = 'ANGLE', math.radians(30)
+            elif m.type == 'WEIGHTED_NORMAL':
+                m.keep_sharp = True
+        return obj
 
     def mesh(self, name, verts, faces, mat, smooth=False, bevel=0):
         """Arbitrary polygon solid, for chamfered or sloped shapes boxes cannot make."""

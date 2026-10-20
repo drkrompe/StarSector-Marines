@@ -42,6 +42,20 @@ import java.util.Set;
  * pressure until {@link #EN_ROUTE_DWELL_PULSES} cool pulses, since a march abandoned halfway is wasted; one that has
  * been closing for {@link #MAX_EN_ROUTE_PULSES} pulses without arriving is given back regardless.
  *
+ * <p><b>Stretches.</b> A garrisonable is a stretch of a run ({@link GarrisonableRegistry}). Where runs are cut, a place
+ * is priced by belief only while a believed contact is within the registry's reach of it (it was woken this pulse):
+ * the influence field spreads a company's weight across most of a fort, and a stretch nobody is near reads that spread
+ * rather than an attack. A woken stretch reads belief over its own blocks and its neighbours', so the stretch an attack
+ * is coming along the trench toward is manned before the attack is on it; of stretches pressed alike, the one whose own
+ * blocks are pressed most is served first. A shift is read on own blocks alone: the squad follows the attack onto the
+ * stretch it now faces. A fort's alarm floor holds the stretches of a fort only while belief has woken none of them:
+ * an unseen attack keeps what the fort holds, and once the attack is seen anywhere on the fort, belief says which
+ * stretches it presses. A squad arrived on a stretch that has fallen below the manning level, beside an unmanned
+ * stretch of the same run pressed to it, {@link #shifting shifts} onto the neighbour instead of waiting out the dwell
+ * and being given back: squad-tier movement under the assignment it holds, not a new send, and not counted against the
+ * per-pulse budget. With stretches switched off every run is one place and the pricing is the old one, block by block
+ * over belief and floor alike.
+ *
  * <p><b>Fall back.</b> A squad on its place when an enemy is believed inside the run within
  * {@link #BREACH_RANGE_CELLS} of it (a report at the far end of a long run is somebody else's stretch, and a cell
  * beside the run is not inside it), or that is no longer at {@link #usefulFloor useful strength}, is reported by
@@ -98,6 +112,8 @@ final class GarrisonDirector {
     static final int NO_POSITION = Integer.MIN_VALUE;
     /** A believed contact lighter than this (confidence times strength) wakes nothing: a works crew, a fading report. */
     static final float MIN_CONTACT_WEIGHT = 0.5f;
+    /** Pulses after a shift before the same squad may shift again, so a wavering attack does not walk it to and fro. UNTUNED. */
+    static final int SHIFT_COOLDOWN_PULSES = 4;
 
     /**
      * Fewest living members at which a squad raised at {@code originalMembers} is still a garrison: half its starting
@@ -109,10 +125,18 @@ final class GarrisonDirector {
         return Math.max(MIN_GARRISON_MEMBERS, established - established / 2);
     }
 
-    /** Believed hostile pressure at an influence block. */
+    /**
+     * Believed hostile pressure at an influence block, and the floor the side's own alarms keep under it. Where runs are
+     * cut into stretches the two are read apart (see the class comment); otherwise a block reads the greater of them.
+     */
     @FunctionalInterface
     interface Pressure {
         float hostileAt(int blockX, int blockY);
+
+        /** The alarm floor on the block; none by default. */
+        default float floorAt(int blockX, int blockY) {
+            return 0f;
+        }
     }
 
     /** Whether a free squad may be sent to a garrisonable (reachable, in reach of its track). */
@@ -175,6 +199,9 @@ final class GarrisonDirector {
     /** A squad to send to a garrisonable. */
     record Man(int squadId, int garrisonable) { }
 
+    /** A garrison moving from its stretch to the neighbouring one of the same run the attack has moved onto. */
+    record Shift(int squadId, int from, int to) { }
+
     private record Pending(int cellX, int cellY, int pulsesLeft) { }
 
     private final Map<Integer, Integer> cool = new HashMap<>();
@@ -184,11 +211,18 @@ final class GarrisonDirector {
     /** Breached places (by packed centre cell) and the pulses left before they may be manned again. */
     private final Map<Long, Integer> lockout = new HashMap<>();
     private final List<Integer> fallBack = new ArrayList<>();
+    private final List<Shift> shifts = new ArrayList<>();
+    /** The pulse ({@link #generation}) each squad last shifted on; only squads that have shifted appear. */
+    private final Map<Integer, Integer> shiftedAt = new HashMap<>();
+    /** Forts (by id) and fortless runs (by {@code -1 - run}) with a place woken this pulse. */
+    private final Set<Integer> wokenGroups = new HashSet<>();
 
     private GarrisonableRegistry bound;
     private int[] placeStamp = new int[0];
     private int[] pressureStamp = new int[0];
     private float[] pressureOf = new float[0];
+    /** Belief on a stretch's own blocks alone, beside {@link #pressureOf}: which of several equally pressed stretches faces the attack. */
+    private float[] ownOf = new float[0];
     private int[] blockStamp = new int[0];
     private int generation;
 
@@ -199,6 +233,8 @@ final class GarrisonDirector {
     private int hotCount;
     private int[] warm = new int[0];
     private int warmCount;
+    private int[] woken = new int[0];
+    private int wokenCount;
     private final Map<Integer, Integer> have = new HashMap<>();
     private int considered;
     private int blockReads;
@@ -223,6 +259,7 @@ final class GarrisonDirector {
     void forget(int squadId) {
         pending.remove(squadId);
         closing.remove(squadId);
+        shiftedAt.remove(squadId);
     }
 
     /** How many orders await adoption; for tests and evidence. */
@@ -233,6 +270,14 @@ final class GarrisonDirector {
     /** Squads {@link #evaluate} found on a breached or depleted place: withdraw them to the works, or release them with none. */
     List<Integer> fallingBack() {
         return fallBack;
+    }
+
+    /**
+     * Garrisons {@link #evaluate} moved onto a neighbouring stretch: give each squad the order for its new stretch. They
+     * are neither released nor falling back, and they count as manning the new stretch from this pulse.
+     */
+    List<Shift> shifting() {
+        return shifts;
     }
 
     /**
@@ -291,11 +336,14 @@ final class GarrisonDirector {
         warmCount = 0;
         have.clear();
         fallBack.clear();
+        shifts.clear();
+        wokenGroups.clear();
         pulseRegistry = registry;
         pulseField = field;
         ageOrders();
 
         int contactBlocks = 0;
+        wokenCount = 0;
         int bw = registry.blockWidth();
         int bh = registry.blockHeight();
         int size = registry.blockSize();
@@ -309,15 +357,22 @@ final class GarrisonDirector {
             for (int g : registry.near(bx, by)) {
                 if (placeStamp[g] == generation) continue;
                 placeStamp[g] = generation;
-                float price = pressure(g);
-                if (price >= FLOW_PRESSURE) {
-                    if (warmCount == warm.length) warm = Arrays.copyOf(warm, Math.max(4, warm.length * 2));
-                    warm[warmCount++] = g;
-                }
-                if (price >= START_PRESSURE) {
-                    if (hotCount == hot.length) hot = Arrays.copyOf(hot, Math.max(4, hot.length * 2));
-                    hot[hotCount++] = g;
-                }
+                wokenGroups.add(group(registry, g));
+                if (wokenCount == woken.length) woken = Arrays.copyOf(woken, Math.max(4, woken.length * 2));
+                woken[wokenCount++] = g;
+            }
+        }
+        // Priced only once every woken place is known: whether a fort's alarm floor stands depends on all of them.
+        for (int i = 0; i < wokenCount; i++) {
+            int g = woken[i];
+            float price = pressure(g);
+            if (price >= FLOW_PRESSURE) {
+                if (warmCount == warm.length) warm = Arrays.copyOf(warm, Math.max(4, warm.length * 2));
+                warm[warmCount++] = g;
+            }
+            if (price >= START_PRESSURE) {
+                if (hotCount == hot.length) hot = Arrays.copyOf(hot, Math.max(4, hot.length * 2));
+                hot[hotCount++] = g;
             }
         }
 
@@ -325,17 +380,21 @@ final class GarrisonDirector {
         // Believed contacts standing in a manned run, by run. One cell read per contact, and only while some place is held.
         Map<Integer, List<Integer>> inRun = Map.of();
         if (!held.isEmpty() && contactCount > 0) {
+            // By run, not by stretch: an enemy in the trench a few cells along, past the stretch's end, is still in it.
             Set<Integer> heldRuns = new HashSet<>();
-            for (Garrison squad : held) heldRuns.add(squad.garrisonable());
+            for (Garrison squad : held) heldRuns.add(registry.runOf(squad.garrisonable()));
             inRun = new HashMap<>();
             for (int i = 0; i < contactCount; i++) {
                 breachReads++;
-                int run = registry.idAt(contactXY[2 * i], contactXY[2 * i + 1]);
+                int place = registry.idAt(contactXY[2 * i], contactXY[2 * i + 1]);
+                int run = place < 0 ? -1 : registry.runOf(place);
                 if (run >= 0 && heldRuns.contains(run)) inRun.computeIfAbsent(run, k -> new ArrayList<>()).add(i);
             }
         }
 
         Set<Integer> present = new HashSet<>();
+        Set<Integer> manned = new HashSet<>();
+        for (Garrison squad : held) manned.add(squad.garrisonable());
         List<Garrison> ordered = new ArrayList<>(held);
         ordered.sort(Comparator.comparingInt(Garrison::garrisonable).thenComparingInt(Garrison::squadId));
         List<Integer> release = new ArrayList<>();
@@ -344,7 +403,7 @@ final class GarrisonDirector {
             int g = ordered.get(from).garrisonable();
             int to = from;
             while (to < ordered.size() && ordered.get(to).garrisonable() == g) to++;
-            List<Integer> inside = inRun.get(g);
+            List<Integer> inside = inRun.get(registry.runOf(g));
             boolean lockPlace = false;
             int cooled = 0;
             if (pressure(g) >= RELEASE_PRESSURE) {
@@ -356,13 +415,21 @@ final class GarrisonDirector {
             for (int i = from; i < to; i++) {
                 Garrison squad = ordered.get(i);
                 present.add(squad.squadId());
-                boolean overrun = inside != null && overrunBy(squad, inside, contactXY);
+                boolean overrun = inside != null && overrunBy(squad, inside, contactXY, registry);
                 if (overrun) lockPlace = true;
                 boolean lost = overrun || !squad.useful();
                 if (squad.arrived()) {
                     closing.remove(squad.squadId());
+                    int onto = lost || !squad.releasable() ? -1 : shiftTarget(squad.squadId(), g, manned);
                     if (lost) {
                         fallBack.add(squad.squadId());
+                        stays--;
+                    } else if (onto >= 0) {
+                        shifts.add(new Shift(squad.squadId(), g, onto));
+                        shiftedAt.put(squad.squadId(), generation);
+                        manned.add(onto);
+                        have.merge(onto, 1, Integer::sum);
+                        cool.remove(onto);
                         stays--;
                     } else if (cooled >= DWELL_PULSES && squad.releasable()) {
                         release.add(squad.squadId());
@@ -382,10 +449,11 @@ final class GarrisonDirector {
             }
             if (lockPlace) lockout.put(pack(registry.centreX(g), registry.centreY(g)), BREACH_LOCKOUT_PULSES);
             if (stays == 0) cool.remove(g);
-            if (stays > 0) have.put(g, stays);
+            if (stays > 0) have.merge(g, stays, Integer::sum);
             from = to;
         }
         closing.keySet().retainAll(present);
+        shiftedAt.keySet().retainAll(present);
         release.sort(Integer::compare);
         fallBack.sort(Integer::compare);
 
@@ -394,6 +462,7 @@ final class GarrisonDirector {
             profile.recordCount(TickInnerProfile.Bucket.GARRISON_CONTACT_BLOCK, contactBlocks);
             profile.recordCount(TickInnerProfile.Bucket.GARRISON_RELEASE, release.size());
             profile.recordCount(TickInnerProfile.Bucket.GARRISON_FALL_BACK, fallBack.size());
+            profile.recordCount(TickInnerProfile.Bucket.GARRISON_SHIFT, shifts.size());
             profile.recordCount(TickInnerProfile.Bucket.GARRISON_HOLD_EN_ROUTE, deferred);
             profile.recordCount(TickInnerProfile.Bucket.GARRISON_BREACH_READ, breachReads);
             profile.record(TickInnerProfile.Bucket.GARRISON_EVAL, System.nanoTime() - started);
@@ -491,10 +560,23 @@ final class GarrisonDirector {
         return out;
     }
 
-    /** Whether this squad is overrun: a squad still closing by any contact in the run, an arrived one by one near it. */
-    private static boolean overrunBy(Garrison squad, List<Integer> inside, int[] contactXY) {
-        if (!squad.arrived() || squad.cellX() == NO_POSITION) return true;
-        for (int ci : inside) if (near(squad, contactXY[2 * ci], contactXY[2 * ci + 1])) return true;
+    /**
+     * Whether this squad is overrun: an arrived one by a contact in its run near it; one still closing by any contact in
+     * its run, or, where runs are cut, only by one in the stretch it is bound for or a neighbour of it, since an enemy
+     * elsewhere on a long belt is pressing somebody else's stretch.
+     */
+    private static boolean overrunBy(Garrison squad, List<Integer> inside, int[] contactXY, GarrisonableRegistry registry) {
+        if (squad.arrived() && squad.cellX() != NO_POSITION) {
+            for (int ci : inside) if (near(squad, contactXY[2 * ci], contactXY[2 * ci + 1])) return true;
+            return false;
+        }
+        if (!registry.stretched()) return true;
+        int g = squad.garrisonable();
+        for (int ci : inside) {
+            int at = registry.idAt(contactXY[2 * ci], contactXY[2 * ci + 1]);
+            if (at == g) return true;
+            for (int n : registry.neighbours(g)) if (at == n) return true;
+        }
         return false;
     }
 
@@ -566,26 +648,97 @@ final class GarrisonDirector {
         return ((long) y << 32) | (x & 0xffffffffL);
     }
 
-    /** Hot places by pressure descending, then id. */
+    /**
+     * Hot places by pressure descending, then (a stretch reads its neighbours' belief, so several along a run can tie) by
+     * pressure on its own blocks descending, the one facing the attack first, then id.
+     */
     private void sortHot() {
         Integer[] boxed = new Integer[hotCount];
         for (int i = 0; i < hotCount; i++) boxed[i] = hot[i];
-        Arrays.sort(boxed, Comparator.<Integer>comparingDouble(g -> -pressureOf[g]).thenComparingInt(g -> g));
+        Arrays.sort(boxed, Comparator.<Integer>comparingDouble(g -> -pressureOf[g])
+                .thenComparingDouble(g -> -ownOf[g]).thenComparingInt(g -> g));
         for (int i = 0; i < hotCount; i++) hot[i] = boxed[i];
     }
 
-    /** The place's believed pressure: the highest of its covered blocks, read once per pulse. */
+    /**
+     * The place's pressure, read once per pulse; what presses the place's own blocks is left in {@link #ownOf}. Over runs
+     * the two are one: the highest of its covered blocks, each the greater of belief and floor. Over stretches: its own
+     * reading is its belief, only if it was woken this pulse, and its floor, only if nothing of its fort (or, outside a
+     * fort, of its run) was; its pressure is that or belief over its neighbours' blocks (the stretch either side along
+     * the run), so the stretch an attack is coming along the trench toward is manned before the attack is on it.
+     */
     private float pressure(int g) {
         if (pressureStamp[g] == generation) return pressureOf[g];
         considered++;
         float best = 0f;
+        float own = 0f;
         int bw = pulseRegistry.blockWidth();
-        for (int block : pulseRegistry.coveredBlocks(g)) {
-            blockReads++;
-            best = Math.max(best, pulseField.hostileAt(block % bw, block / bw));
+        if (!pulseRegistry.stretched()) {
+            for (int block : pulseRegistry.coveredBlocks(g)) {
+                blockReads++;
+                int bx = block % bw;
+                int by = block / bw;
+                best = Math.max(best, Math.max(pulseField.hostileAt(bx, by), pulseField.floorAt(bx, by)));
+            }
+            own = best;
+        } else {
+            boolean believed = placeStamp[g] == generation;
+            boolean floored = !wokenGroups.contains(group(pulseRegistry, g));
+            for (int block : pulseRegistry.coveredBlocks(g)) {
+                if (!believed && !floored) break;
+                blockReads++;
+                int bx = block % bw;
+                int by = block / bw;
+                if (believed) best = Math.max(best, pulseField.hostileAt(bx, by));
+                if (floored) best = Math.max(best, pulseField.floorAt(bx, by));
+            }
+            own = best;
+            // The attack along the trench: belief on the neighbouring stretches presses this one too.
+            if (believed) {
+                for (int n : pulseRegistry.neighbours(g)) {
+                    for (int block : pulseRegistry.coveredBlocks(n)) {
+                        blockReads++;
+                        best = Math.max(best, pulseField.hostileAt(block % bw, block / bw));
+                    }
+                }
+            }
         }
         pressureStamp[g] = generation;
         pressureOf[g] = best;
+        ownOf[g] = own;
+        return best;
+    }
+
+    /** What a place's alarm floor is decided over: its fort, or, outside one, its own run. */
+    private static int group(GarrisonableRegistry registry, int g) {
+        int fort = registry.fortId(g);
+        return fort >= 0 ? fort : -1 - registry.runOf(g);
+    }
+
+    /**
+     * The neighbouring stretch a squad arrived on {@code g} should shift onto this pulse, or -1: only where runs are cut,
+     * {@code g} is below the manning level, the neighbour is at it, nobody mans or is bound for it, it is not locked out
+     * after a breach, and the squad has not shifted in the last {@link #SHIFT_COOLDOWN_PULSES}. Both read on their own
+     * blocks: the squad follows the attack onto the stretch it now faces. The most pressed neighbour, ties to the lower id.
+     */
+    private int shiftTarget(int squadId, int g, Set<Integer> manned) {
+        if (!pulseRegistry.stretched()) return -1;
+        pressure(g);
+        if (ownOf[g] >= START_PRESSURE) return -1;
+        Integer last = shiftedAt.get(squadId);
+        if (last != null && generation - last < SHIFT_COOLDOWN_PULSES) return -1;
+        int best = -1;
+        float bestPrice = 0f;
+        for (int t : pulseRegistry.neighbours(g)) {
+            if (manned.contains(t) || lockedOut(pulseRegistry.centreX(t), pulseRegistry.centreY(t))) continue;
+            pressure(t);
+            float price = ownOf[t];
+            if (price < START_PRESSURE) continue;
+            if (best < 0 || price > bestPrice) {
+                best = t;
+                bestPrice = price;
+            }
+        }
         return best;
     }
 
@@ -598,6 +751,7 @@ final class GarrisonDirector {
         placeStamp = new int[registry.count()];
         pressureStamp = new int[registry.count()];
         pressureOf = new float[registry.count()];
+        ownOf = new float[registry.count()];
         blockStamp = new int[registry.blockWidth() * registry.blockHeight()];
         generation = 0;
     }

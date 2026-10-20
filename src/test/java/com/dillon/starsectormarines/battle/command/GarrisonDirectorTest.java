@@ -181,9 +181,10 @@ class GarrisonDirectorTest {
         evaluate(List.of(), 0);
         assertEquals(1, director.assign(patrols(8), always()).size());
 
-        // a 30-cell run does ask
+        // a 32-cell stretch (two rows of trench, one stretch long) does ask
         props.clear();
-        trench(10, 39, 12);
+        trench(10, 25, 12);
+        trench(10, 25, 13);
         registry = GarrisonableRegistry.build(FightingPositionIndex.build(W, H, props, (x, y) -> true),
                 W, H, BLOCK, new int[0]);
         director = new GarrisonDirector();
@@ -235,9 +236,9 @@ class GarrisonDirectorTest {
         pressure(1, 0f);
         for (int pulse = 1; pulse < GarrisonDirector.DWELL_PULSES; pulse++) evaluate(held);
 
-        // a pulse at a level between release and start: held, and the count starts over
+        // a pulse at a level between release and start, with a believed contact near to make it: held, and the count starts over
         pressure(1, (GarrisonDirector.RELEASE_PRESSURE + GarrisonDirector.START_PRESSURE) / 2f);
-        assertTrue(evaluate(held).isEmpty());
+        assertTrue(evaluate(held, 1).isEmpty());
         pressure(1, 0f);
         for (int pulse = 1; pulse < GarrisonDirector.DWELL_PULSES; pulse++) {
             assertTrue(evaluate(held).isEmpty(), "the dwell restarted, so pulse " + pulse + " still holds");
@@ -578,6 +579,138 @@ class GarrisonDirectorTest {
 
         assertEquals(List.of(7), released, "a march into a breached run is abandoned");
         assertTrue(director.lockedOut(registry.centreX(1), registry.centreY(1)));
+    }
+
+    @Test
+    void aStretchNobodyIsNearCoolsThoughTheFieldStillPressesIt() {
+        // The field reads 9 across place 1, but the only believed contact is at place 0, beyond reach of it.
+        pressure(1, 9f);
+        List<Garrison> held = List.of(new Garrison(7, 1, true));
+        for (int pulse = 1; pulse < GarrisonDirector.DWELL_PULSES; pulse++) {
+            assertTrue(evaluate(held, 0).isEmpty(), "pulse " + pulse + " of the dwell holds");
+        }
+        assertEquals(List.of(7), evaluate(held, 0), "nobody is believed near it: given back after the dwell");
+
+        GarrisonableRegistry whole = GarrisonableRegistry.build(FightingPositionIndex.build(W, H, props, (x, y) -> true),
+                W, H, BLOCK, new int[0], false);
+        GarrisonDirector old = new GarrisonDirector();
+        for (int pulse = 0; pulse < 2 * GarrisonDirector.DWELL_PULSES; pulse++) {
+            assertTrue(old.evaluate(whole, pressureField(), contactAt(0), 1, held).isEmpty(),
+                    "over whole runs the field alone holds it, as it always did");
+        }
+    }
+
+    @Test
+    void aFortsAlarmFloorHoldsItsStretchesOnlyWhileBeliefHasWokenNoneOfThem() {
+        registry = GarrisonableRegistry.build(FightingPositionIndex.build(W, H, props, (x, y) -> true),
+                W, H, BLOCK, new int[]{5, 50, 12});
+        assertEquals(5, registry.fortId(0));
+        assertEquals(5, registry.fortId(1));
+        pressure(1, 5f);
+        GarrisonDirector.Pressure withFloor = new GarrisonDirector.Pressure() {
+            @Override public float hostileAt(int bx, int by) { return field.getOrDefault(by * BW + bx, 0f); }
+            @Override public float floorAt(int bx, int by) { return GarrisonDirector.START_PRESSURE; }
+        };
+        List<Garrison> held = List.of(new Garrison(7, 0, true), new Garrison(8, 1, true));
+        for (int pulse = 0; pulse < 2 * GarrisonDirector.DWELL_PULSES; pulse++) {
+            assertTrue(director.evaluate(registry, withFloor, new int[0], 0, held).isEmpty(),
+                    "an unseen attack: the alarm holds every stretch of the fort");
+        }
+        List<Integer> released = List.of();
+        for (int pulse = 0; pulse < GarrisonDirector.DWELL_PULSES; pulse++) {
+            released = director.evaluate(registry, withFloor, new int[]{registry.centreX(1), 14}, 1, held);
+        }
+        assertEquals(List.of(7), released, "seen at stretch 1, so stretch 0 is cool; stretch 1 is held by belief");
+    }
+
+    /**
+     * A 64-cell trench along y 12, cut into four 16-cell stretches (x 10..25, 26..41, 42..57, 58..73); the squad stands
+     * on the first, and believed pressure lies on blocks 4 and 5 (x 32..47).
+     */
+    private void longTrench() {
+        props.clear();
+        trench(10, 73, 12);
+        registry = GarrisonableRegistry.build(FightingPositionIndex.build(W, H, props, (x, y) -> true),
+                W, H, BLOCK, new int[0]);
+        field.clear();
+        // The attack faces the next stretch along (x 26..41, blocks 3 to 5), not the squad's own (blocks 1 to 3).
+        field.put(BW + 4, 6f);
+        field.put(BW + 5, 6f);
+    }
+
+    @Test
+    void aGarrisonShiftsOntoTheNeighbouringStretchTheAttackHasMovedTo() {
+        longTrench();
+        int from = registry.idAt(15, 12);
+        int to = registry.idAt(34, 12);
+        assertEquals(4, registry.count());
+        assertArrayEquals(new int[]{to}, Arrays.stream(registry.neighbours(from)).filter(n -> n == to).toArray());
+        List<Garrison> held = List.of(new Garrison(7, from, true, true, 8, 15, 12));
+
+        List<Integer> released = director.evaluate(registry, pressureField(), new int[]{52, 12}, 1, held);
+
+        assertTrue(released.isEmpty());
+        assertTrue(director.fallingBack().isEmpty());
+        assertEquals(List.of(new GarrisonDirector.Shift(7, from, to)), director.shifting());
+        assertTrue(director.isManned(to), "it counts as manning the new stretch at once");
+        assertTrue(director.assign(patrols(6), always()).stream().noneMatch(m -> m.garrisonable() == to),
+                "so nobody else is sent to it");
+        assertEquals(1, profile.countOf(TickInnerProfile.Bucket.GARRISON_SHIFT));
+    }
+
+    @Test
+    void noShiftWhileInAFightOntoAMannedStretchOrOverWholeRuns() {
+        longTrench();
+        int from = registry.idAt(15, 12);
+        int to = registry.idAt(34, 12);
+        director.evaluate(registry, pressureField(), new int[]{52, 12}, 1,
+                List.of(new Garrison(7, from, false, true, 8, 15, 12)));
+        assertTrue(director.shifting().isEmpty(), "a squad in a fight stays where it fights");
+
+        director = new GarrisonDirector();
+        director.evaluate(registry, pressureField(), new int[]{52, 12}, 1,
+                List.of(new Garrison(7, from, true, true, 8, 15, 12), new Garrison(8, to, true, true, 8, 34, 12)));
+        assertTrue(director.shifting().isEmpty(), "the neighbour already has its garrison");
+
+        GarrisonableRegistry whole = GarrisonableRegistry.build(registry.source(), W, H, BLOCK, new int[0], false);
+        director = new GarrisonDirector();
+        director.evaluate(whole, pressureField(), new int[]{52, 12}, 1,
+                List.of(new Garrison(7, 0, true, true, 8, 15, 12)));
+        assertTrue(director.shifting().isEmpty(), "a whole run has no neighbour to shift to");
+    }
+
+    @Test
+    void aGarrisonThatHasJustShiftedDoesNotShiftAgainAtOnce() {
+        longTrench();
+        int from = registry.idAt(15, 12);
+        int to = registry.idAt(34, 12);
+        int beyond = registry.idAt(50, 12);
+        director.evaluate(registry, pressureField(), new int[]{52, 12}, 1,
+                List.of(new Garrison(7, from, true, true, 8, 15, 12)));
+        // The attack moves on at once: arrived on the new stretch, the squad still waits out its cooldown.
+        field.clear();
+        field.put(BW + 6, 6f);
+        field.put(BW + 7, 6f);
+        director.evaluate(registry, pressureField(), new int[]{66, 12}, 1,
+                List.of(new Garrison(7, to, true, true, 8, 34, 12)));
+        assertTrue(director.shifting().isEmpty());
+        for (int pulse = 2; pulse < GarrisonDirector.SHIFT_COOLDOWN_PULSES; pulse++) {
+            director.evaluate(registry, pressureField(), new int[]{66, 12}, 1,
+                    List.of(new Garrison(7, to, false, true, 8, 34, 12)));
+        }
+        director.evaluate(registry, pressureField(), new int[]{66, 12}, 1,
+                List.of(new Garrison(7, to, true, true, 8, 34, 12)));
+        assertEquals(List.of(new GarrisonDirector.Shift(7, to, beyond)), director.shifting());
+    }
+
+    @Test
+    void anEnemyInTheNextStretchOfTheRunIsABreach() {
+        longTrench();
+        int from = registry.idAt(15, 12);
+        assertTrue(registry.idAt(28, 12) != from);
+        director.evaluate(registry, pressureField(), new int[]{28, 12}, 1,
+                List.of(new Garrison(7, from, true, true, 8, 20, 12)));
+        assertEquals(List.of(7), director.fallingBack(), "eight cells along the same trench, past the stretch's end");
     }
 
     private int lastBlockReads() {

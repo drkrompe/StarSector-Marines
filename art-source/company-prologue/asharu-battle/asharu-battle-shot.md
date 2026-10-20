@@ -221,7 +221,7 @@ Colossus 108 m, Onslaught 301 m.
 |---|---|---|---|---|
 | Falcon (P) | flagship, light cruiser | 174 m | 1.6 Colossus; 0.6 Onslaught | **finished** (accepted by the owner; faded red kept) |
 | Colossus Mk.III | the prize ship: tries for the Colossus, takes the Tarsus | 110 m | the Colossus's twin | **finished** (accepted by the owner); grapples from stowed to clamped, fitted to the Tarsus |
-| Manticore (P) | long-range destroyer that breaks the screen | 91 m (0.59 m/u; 95 m across the pods) | 0.85 Colossus | hull in owner review; stand-in at its published size |
+| Manticore (P) | long-range destroyer that breaks the screen | 91 m (0.59 m/u; 95 m across the pods) | 0.85 Colossus | **finished** (textured; no shield yet) |
 | Buffalo Mk.II x2 | destroyers | 87 m (est.) | 0.8 Colossus | stand-in |
 | Wolf (P) x2 | fast frigates that cut the column | 70 m (size not settled) | 1.15 Hounds | **finished** |
 | Hound (P) x2 | frigates | 61 m | the reference | **finished** (pirate state of the Hound) |
@@ -405,15 +405,15 @@ or by the render queue as a drive input (`queue_jobs.py`), pinned by its blend's
 | Colossus | `colossus/139e8b8b6` | `colossus` | finished |
 | Shepherd "Morrow" | `shepherd/c85fb19b6` | `shepherd` | finished (close-shot rebuild; dark glazing, 27 lit lamps, blue ring unlit) |
 | Lasher x3 | `lasher-independent/0cb9d83` (`lasher.blend`) | `lasher-independent` | finished (kit rebuild); awaiting the owner's review |
-| Hound | `hound-independent/0cb9d83` | `hound-independent` | **accepted** (kit rebuild: chaingun muzzle moved aft) |
-| Hound (P) x2 | `hound-p/0cb9d83` | `hound-p` | **accepted** (kit rebuild) |
+| Hound | `hound-independent/5cb098e10` | `hound-independent` | **accepted** (close-shot rebuild; wheelhouse, mast and ramp lamps unlit) |
+| Hound (P) x2 | `hound-p/5cb098e10` | `hound-p` | **accepted** (close-shot rebuild; wheelhouse, mast and ramp lamps unlit) |
 | Kite (P) x2 | `kite-p/0cb9d83` | `kite-p` | **accepted** (kit rebuild: hammer, swarmer as a row of four) |
 | Falcon (P) | `falcon-p/06784b46f` | `falcon-p` | **accepted** (close-shot rebuild; bridge glazing now dark glass, so S10 loses that glow) |
 | Colossus Mk.III | `colossus-mk3/005c3b11b` | `colossus-mk3` | **accepted** |
 | Phaeton | `phaeton/e9ab52297` `intact/` and `destroyed/` | `phaeton`, `phaeton-destroyed` | **accepted** (both states, including the eight-blast cook-off) |
 | Tarsus | `tarsus/2e7d396fc` `clean/` and `boarded/` | `tarsus`, `tarsus-boarded` | **accepted** (owner, 2026-10-20) |
-| Wolf (P) x2, merchant Wolf | `wolf-p/f60641f63`, `wolf/f60641f63` | `wolf-p`, `wolf` | finished; size not settled (70 m); textured builds with effects are due |
-| Manticore (P) | none yet: the final is due | none: a stand-in at its published 91 m (0.59 m/u) | |
+| Wolf (P) x2, merchant Wolf | `wolf-p/968fc1a01`, `wolf/968fc1a01` (`manifest-merchant.json`) | `wolf-p`, `wolf` | **accepted** (textured, with effects; lift jets idle); size not settled (70 m) |
+| Manticore (P) | `manticore-p/056e05c26` | `manticore-p` | **accepted** (textured final; Hellbore and two Harpoon pods; no RCS, lens glow or shield yet) |
 
 Shots leave from the muzzle of the mount that bears (`--check`'s choice), read from each build's
 current muzzle data (positions, or anchors found in the blend), so a kit rebuild that moves a
@@ -440,11 +440,13 @@ To check a scene without rendering, run `python battle_blockout.py --check`; `py
 
 - **Posted:** round 6 (`review/cinematic-asharu-battle/2026-10-19_round6-colossus-mk3_windows`) is the latest run.
 - **Round 7** (r7c) was queued from a flat inputs folder on the Windows worktree.
-- **Round 8 (2026-10-20): the newest builds.** The kit rebuilds at `0cb9d83` (Lasher, both
-  Hounds, Kite (P), Falcon (P), Shepherd) replace the earlier builds, and shots now leave from
-  the bearing mount's muzzle. `--check` is clean: all 22 tracers and missiles bear. Queued as two
-  review jobs (the cook-off k3 alone; k3b, k4, r1, r2 together) with `--run r8`, frame resume and
-  drive inputs pinned by sha256. They need the Starsector install, so they run on Windows.
+- **Round 8 (2026-10-20): the newest builds.** The Lasher and Kite (P) kit rebuilds
+  (`0cb9d83`), the close-shot rebuilds of both Hounds, the Falcon (P) and the Shepherd (dark
+  glazing, fewer lit lamps), the textured Wolfs, and the textured Manticore (P) final, which
+  replaces her stand-in.
+  Shots now leave from the bearing mount's muzzle, and missiles from a launcher when one bears. `--check` is clean: all 22 tracers and missiles bear. Queued as five
+  single-frame review jobs (k3, k3b, k4, r1, r2) with `--run r8b`, frame resume and
+  drive inputs pinned by sha256. Either machine may take a frame; both have the Starsector install.
 - **Render cost** of `--frames k3,k3b,k4,r1,r2 --samples 48`, extrapolated from quarter-size and
   half-size samples on the RTX 3080 (k3b was not sampled):
   - k3 (S6) is nearly all of it. The cook-off's volumes scale linearly with pixels times samples:
@@ -498,7 +500,6 @@ new shots draw on:
   - the Mk.III on her side for a broadside before she takes the Tarsus.
 - **Open hull questions:**
   - the Wolf's size, 70 m;
-  - the Manticore (P) hull review.
 - A short animated pass of S6, to judge the whole cook-off rather than one still.
 
 - Asharu's size, the 250 km orbit and the low sun.

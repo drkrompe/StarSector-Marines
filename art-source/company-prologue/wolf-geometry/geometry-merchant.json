@@ -387,7 +387,7 @@
           43.4,
           55.5
         ],
-        "half_width": 3.7,
+        "half_width": 4.1,
         "z": [
           -6.5,
           8.4
@@ -1112,7 +1112,7 @@
     "anchors_collection": "WOLF | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'WOLF'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 335199,
+    "triangles": 405795,
     "objects": 503,
     "materials": [
       "Missile body 0.1395,0.1534,0.1357",

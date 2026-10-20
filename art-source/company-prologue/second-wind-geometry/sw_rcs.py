@@ -98,6 +98,8 @@ class Geo:
         points, first and last on the axis (radius 0). mats[i] is the material
         of the band between profile points i and i+1."""
         base, axis = V(base), V(axis).normalized()
+        if sides != 6:      # hex bolt heads keep six; rounds take the shared segment rule
+            sides = sw_kit.sides(max(r for _, r in profile), sides)
         e1, e2 = basis(axis)
         def ring(d, r):
             return [base+axis*d+(e1*math.cos(math.tau*(k+turn)/sides)+e2*math.sin(math.tau*(k+turn)/sides))*r

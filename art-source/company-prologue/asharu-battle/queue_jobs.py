@@ -43,7 +43,7 @@ def inputs():
         src = DRIVE / f['drive']
         out.append({'kind': 'drive', 'from': '{drive}/' + f['drive'],
                     'to': '{checkout}/build/asharu-battle/builds/' + f['dir'],
-                    'sha256': {name: sha256(src / name) for name in (f['file'], 'manifest.json')}})
+                    'sha256': {name: sha256(src / name) for name in (f['file'], f.get('manifest', 'manifest.json'))}})
     return out
 
 

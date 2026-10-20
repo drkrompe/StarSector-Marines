@@ -28,6 +28,9 @@ public final class ShipKeys {
      */
     public static final GenKey<ShuttleType> SHIPS_BOATS = GenKey.of("shipsBoats");
 
+    /** Where this hull keeps her rooms, when she has been drawn; absent for every generic deck. Read by {@code RoomPlacementStage}. */
+    public static final GenKey<DeckArrangement> DECK_ARRANGEMENT = GenKey.of("deckArrangement");
+
     /** Placed compartments and the rooms that could not be fitted. Produced by {@code RoomPlacementStage}. */
     public static final GenKey<DeckGraph> DECK_GRAPH = GenKey.of("deckGraph");
 

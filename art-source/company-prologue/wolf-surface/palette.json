@@ -5,9 +5,9 @@
   "crimson": {
    "pixels": 122472,
    "mean": [
-    35.15,
-    26.93,
-    13.58
+    35.6,
+    25.1,
+    13.8
    ],
    "std": [
     8.0,
@@ -20,16 +20,21 @@
     50.07
    ],
    "mean_srgb": [
-    127.3,
-    64.2,
-    62.3
+    126.2,
+    66.8,
+    62.9
    ],
    "std_measured": [
     11.51,
     5.02,
     3.1
    ],
-   "note": "spread owned: shading and edge contamination on the reference inflate it"
+   "note": "mean owned: the Colossus Mk.III pirate red, so the pirate fleet matches; spread owned: shading and edge contamination on the reference inflate it",
+   "mean_measured": [
+    35.15,
+    26.93,
+    13.58
+   ]
   },
   "grey": {
    "pixels": 187516,

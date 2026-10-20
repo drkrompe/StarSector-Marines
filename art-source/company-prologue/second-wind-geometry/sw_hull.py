@@ -186,10 +186,11 @@ def subtract(obj, cutter):
     bpy.data.objects.remove(cutter, do_unlink=True)
 
 
-def crisp(obj, width=.18):
+def crisp(obj, width=.18, angle=30):
     # One-segment chamfer on hard edges only: a highlight line, not a radius.
     b = obj.modifiers.new('Plate edge chamfer', 'BEVEL')
     b.width, b.segments, b.limit_method = width, 1, 'ANGLE'
+    b.angle_limit = math.radians(angle)
     return obj
 
 
@@ -204,7 +205,9 @@ def faceted(kit, name, plan, profile, mat, facets=None, xs=None, proud=0):
                  ('Fore frame', Vector((xs[1],0,0)), Vector((1,0,0)), None)]
     for fname, point, normal, span in cuts:
         plane_cut(ob, fname, point, normal, span)
-    return crisp(ob)
+    # Above 45 deg: a chamfer on the lip's 45-deg course or a plan corner would split
+    # it into two shallow creases that read as a coarse curve (ship-detail-guide.md).
+    return crisp(ob, angle=50)
 
 
 def build_shell(kit):

@@ -217,6 +217,7 @@ import com.dillon.starsectormarines.battle.mech.MechLocomotionSystem;
 import com.dillon.starsectormarines.battle.mech.MechTurretSystem;
 import com.dillon.starsectormarines.battle.mech.MechSectionFxSystem;
 import com.dillon.starsectormarines.battle.assault.MachineAssaults;
+import com.dillon.starsectormarines.battle.assault.MachineGuards;
 import com.dillon.starsectormarines.battle.breach.WallBreachSystem;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -1324,6 +1325,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         turretFire.setShooterAccuracy(new HullPivot(rosterService.convoy()));
         groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
         groundSystem.setAssaultPlanner((vehicle, cellX, cellY) -> MachineAssaults.planVehicle(this, vehicle, cellX, cellY));
+        groundSystem.setGuardPlanner((vehicle, cellX, cellY) -> MachineGuards.planVehicle(this, vehicle, cellX, cellY));
         groundSystem.setSpotting(new SideObservers(rosterService.convoy(), rosterService, unitIndex, grid, scoutSight,
                 (side, x, y) -> commsSees(side, x, y)));
         rosterService.airTargets().setDestructionSink(airSystem::destroyAircraft);
@@ -3284,6 +3286,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // deboarded militia join the roster between ticks, not mid-loop.
         // Standing assaults on garrisonables end or aim their turrets, from the side's beliefs, first.
         MachineAssaults.tickVehicles(this);
+        MachineGuards.tickVehicles(this);
         groundSystem.tick(TICK_DT, directControl.controlledVehicleId(), directControl.intent());
         tickProfile.lap(TickProfile.Phase.GROUND_SYSTEM);
         // Ballistic-round impact clock — a resolved round's damage/hit-response

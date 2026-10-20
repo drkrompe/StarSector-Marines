@@ -7,16 +7,18 @@ import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.IntPredicate;
 
 /**
  * A side holding ground it has taken (`garrisonables.md`, Decided direction): the fighting-position runs of the forts
- * it holds are manned in answer to its own believed counter-attack pressure, through the same assignment tier the
+ * it holds, and the prepared ground at the doors of compounds it has taken, are manned in answer to its own believed counter-attack pressure, through the same assignment tier the
  * defender's reactive manning uses ({@link GarrisonDirector}) and under the same laws: belief only, hysteresis with a
  * dwell, pickets before massing, the useful-strength floor, an arrival bound, fall back to the fort's works on a breach,
  * release when the pressure passes, candidates found through the registry's block index and a bounded number sent per
@@ -158,6 +160,8 @@ final class HeldGround {
         List<Decision> out = new ArrayList<>();
         Set<Integer> releasing = new HashSet<>(director.evaluate(places, field, contactXY, contactCount, held));
         Set<Integer> fallingBack = new HashSet<>(director.fallingBack());
+        Map<Integer, Integer> shiftedTo = new HashMap<>();
+        for (GarrisonDirector.Shift shift : director.shifting()) shiftedTo.put(shift.squadId(), shift.to());
         for (GarrisonDirector.Garrison garrison : held) {
             int id = garrison.squadId();
             Body body = bodies.get(id);
@@ -182,7 +186,9 @@ final class HeldGround {
                 out.add(new Decision(id, Verdict.RELEASE, null));
                 continue;
             }
-            out.add(new Decision(id, Verdict.STAND, runOrder(id, garrison.garrisonable(), places)));
+            // A holder shifting onto the next stretch of its run stands there instead: the same hold, moved along.
+            out.add(new Decision(id, Verdict.STAND,
+                    runOrder(id, shiftedTo.getOrDefault(id, garrison.garrisonable()), places)));
         }
         return out;
     }
@@ -194,7 +200,17 @@ final class HeldGround {
      * @param free free squads in a stable order, none holding or sent
      */
     List<Sent> man(GarrisonableRegistry places, List<Body> free, int budget, Set<Integer> heldForts, Reach reach) {
-        if (budget <= 0 || heldForts.isEmpty() || free.isEmpty()) {
+        return man(places, free, budget, heldForts, null, reach);
+    }
+
+    /**
+     * As {@link #man(GarrisonableRegistry, List, int, Set, Reach)}, with taken ground that is no fort's belt as well:
+     * {@code heldElsewhere} answers for a place the caller holds by another title, such as the prepared ground at the
+     * door of a compound it has taken. {@code null} offers nothing beyond the forts.
+     */
+    List<Sent> man(GarrisonableRegistry places, List<Body> free, int budget, Set<Integer> heldForts,
+                   IntPredicate heldElsewhere, Reach reach) {
+        if (budget <= 0 || (heldForts.isEmpty() && heldElsewhere == null) || free.isEmpty()) {
             // The director's pulse is still closed out, so its per-pulse state does not leak into the next one.
             director.assign(List.of(), (s, g) -> false, null, 0);
             return List.of();
@@ -207,7 +223,8 @@ final class HeldGround {
                     body.alive(), body.original()));
         }
         List<GarrisonDirector.Man> men = director.assign(offered, (squadId, place) -> {
-            if (!heldForts.contains(places.fortId(place))) return false;
+            if (!heldForts.contains(places.fortId(place))
+                    && (heldElsewhere == null || !heldElsewhere.test(place))) return false;
             Body body = byId.get(squadId);
             int x = places.centreX(place);
             int y = places.centreY(place);
@@ -227,7 +244,7 @@ final class HeldGround {
 
     private static ObjectiveAssignment runOrder(int squadId, int place, GarrisonableRegistry places) {
         return ObjectiveAssignment.defendRun(squadId, places.centreX(place), places.centreY(place),
-                places.radius(place), place);
+                places.radius(place), places.runOf(place));
     }
 
     /**

@@ -122,6 +122,11 @@ public class GroundSystem {
         moveOrderSystem.setAssaultPlanner(planner);
     }
 
+    /** How a click is told apart from a move when it lands on a garrisonable the hull's own side mans. */
+    public void setGuardPlanner(VehicleMoveOrderSystem.GuardPlanner planner) {
+        moveOrderSystem.setGuardPlanner(planner);
+    }
+
     /** Gives bladed hulls the blade that opens ground ahead of them. */
     public void setBlade(DozerBlade blade) { controlSystem.setBlade(blade); }
 

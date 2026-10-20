@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — a machine clicked onto a garrisonable its side believes is enemy-held assaults it by fire from a stand-off and never enters; see machine assault under "Fighting positions".
+Updated: 2026-10-20 — the counter-attack reserve forms at first contact and lends to its own belt; the defender counter-attacks a lost fort in proportion or not at all (`FortCounterattack`, scene `fort-counterattack`), and a turned fort's ground is the counter-attack's alone; a machine sent to a garrisonable its own side mans stands guard beside it as heavy support, by the player's click or a commander's bounded attachment (see machine guard under "Fighting positions"). Earlier: a machine clicked onto a garrisonable its side believes is enemy-held assaults it by fire from a stand-off and never enters.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2010,11 +2010,12 @@ refresh and installed-weapon fire continue during the walk. Reaching the cell
 removes the override before ordinary unit execution continues on the same tick;
 broken-morale survival suspends it, while a hard withdrawal invalidates it. The
 request therefore supplies neither a squad assignment nor a hostile target and
-never changes the knowledge available to the squad. The one exception is a
-click on a garrisonable the side believes is enemy-held, which is an assault
-rather than a move: it holds the stand-off instead of releasing on arrival and
-directs fire from the side's reports (see machine assault under fighting
-positions).
+never changes the knowledge available to the squad. The exceptions are a click
+on a garrisonable the side believes is enemy-held, which is an assault rather
+than a move: it holds the stand-off instead of releasing on arrival and directs
+fire from the side's reports (see machine assault under fighting positions); and
+a click on one the side mans, which is a guard: it holds a cell beside the place
+facing the believed threat (see machine guard there).
 
 Direct control of one Marine temporarily transfers that exact body's movement,
 facing, and primary-fire intent to player input. The body remains a living squad
@@ -2137,15 +2138,23 @@ except for one token picket: a small garrison on the belt nest nearest the main
 gate. It is the fort's
 eyes and somebody in the works when it is rushed; an empty belt with the
 defenders held at the keep never saw an attack at all.
-The defender commander reads its own hostile influence at the blocks each
-fighting-position run covers, and when a run is pressed it sends a free patrol
-to hold it: an area defence whose claims stay on that run, so it is the same
-order a player's occupy gives and no new kind. Every pressed run gets a squad
+The place a commander mans is a **stretch** of a run, not the whole run: a run
+a squad's frontage long is one stretch, and a longer one (a fort's belt round
+the corners of its works) is cut along its length into several, each with its
+own posts, blocks and pressure (`garrisonables.md`). The defender commander
+reads its own hostile influence at the blocks each stretch covers, but only
+where a believed contact is within reach of the stretch, since the field's
+spread alone carries an attack's weight across most of a fort; when a stretch is
+pressed it sends a free patrol to hold it: an area defence on the stretch whose
+claims stay on its run, so it is the same order a player's occupy gives and no
+new kind. Every pressed stretch gets a squad
 before any gets a second, one free patrol stays in reserve, and only a bounded
 number are sent per pulse. Manning starts above one pressure level and is
 released below a lower one after a dwell, never while the squad is in a fight;
-the released squad returns to the patrol pool. Belief only: the pressure is the
-defender's own picture.
+the released squad returns to the patrol pool. A garrison whose stretch has gone
+quiet beside an unmanned neighbour of the same run the attack now presses shifts
+onto it instead of being released: squad-tier movement under the assignment it
+holds. Belief only: the pressure is the defender's own picture.
 
 A commander also keeps **place alarms** on its own forts. Belief alone loses an
 attack inside the walls or one that killed the picket, so pressure fades and the
@@ -2155,9 +2164,20 @@ aspect being taken or lost, a rise in its own losses on the fort's ground, or
 pressure on it at the manning level. A trigger raises the alarm, which keeps a
 pressure floor on the fort's blocks that fades with a long half-life and is
 refreshed by each new trigger: conflict retained on ground the commander holds
-to matter, and nowhere else. A fort whose every aspect is held by the enemy is a
+to matter, and nowhere else. The floor holds a fort's stretches only while
+belief has woken none of them: an unseen attack keeps what the fort holds, and
+once the attack is seen anywhere on the fort, belief says which stretches it
+presses and the rest cool. A fort whose every aspect is held by the enemy is a
 **lost cause**; its alarm is dropped, so squads are no longer fed into it
-piecemeal, and retaking it is the structure planner's question.
+piecemeal, and retaking it is the structure planner's question. Its answer is a
+**counter-attack** (`conquest-command.md`, Defender command): from the moment a
+fort's most critical aspect falls, its ground — a turned fort, lost cause or
+not — is the counter-attack's alone. The track response does not rally into it,
+flow does not stage toward it, its belt is not manned and no single squad is sent
+to retake it; the commander retakes it in proportion, as one push, or not at all.
+Its reserve forms behind a fort the defender holds from the battle's first
+believed contact, and what it holds above the reserve law's share may man that
+fort's own pressed belt and do nothing else.
 
 A belt squad is sent only if it can arrive in time, and one still closing is not
 recalled by a lull. Pressure also draws free patrols toward the pressed area,
@@ -2167,15 +2187,28 @@ an area with something to man goes to its staging cell, and manning takes the
 area's own reserved patrols first, then the roving pool above its reserve floor. A manned run with an enemy
 believed inside it, or a garrison too small to hold it, falls back to the works
 of the fort it belongs to if the side still holds them, else returns to the pool;
-a breached run is not re-manned for a while. A squad is sent to man a run only at
+a breached stretch is not re-manned for a while. A squad is sent to man a stretch only at
 useful strength (half the strength it started with, never fewer than two), and a breach is a believed enemy on the run itself near the
-squad, not one beside the run or at its far end. The scene `reactive-belt` plays the whole cycle on a production
+squad (in its stretch or a few cells along the same trench), not one beside the run or at its far end. The scene `reactive-belt` plays the whole cycle on a production
 fort: a quiet belt left empty, a pressed stretch manned on the pulse its pressure
-is believed, dug in and given back after the attack passes, and a breached
-garrison falling back to the works.
+is believed, dug in and given back after the attack passes, a breached
+garrison falling back to the works, and an attack that moves round the fort
+answered at the stretch it moved to while the stretch it left is given back.
+
+A compound's sandbagged door (`mapgen-nouns.md`, prepared ground) is the same
+kind of place and is manned the same way: its two-man lookout stands behind the
+bags from the first tick and the rest of the apron is empty until the commander
+believes it pressed. It is the layer in front of its building, so a garrison
+driven off it falls back inside the building the apron fronts and holds it as an
+area defence, never released in a fight, until the building has been quiet for a
+while or the marines have taken the compound; then it returns to the pool. A
+place fronts a compound when it stands within a few cells of the compound
+building's box and is no fort's belt (`CompoundGround`). The scene
+`compound-apron` plays it: a quiet apron empty, a pressed one manned and dug in,
+a breached garrison inside its barracks.
 
 The attacker holds what it takes by the same assignment: the belt of a fort it
-has taken is manned from its lane pool while it believes a counter-attack near
+has taken, and the apron at the door of a compound it has taken, is manned from its lane pool while it believes a counter-attack near
 it, never from a company or a capture, never more than a quarter of the lane
 pool at once, and never in the convergence phases. Only a believed mover, not a
 nest left standing, presses taken ground (`garrisonables.md`, holding taken
@@ -2207,7 +2240,8 @@ believed threat packs into the position rather than spreading across the circle.
 An ordinary ground click on prepared ground is an **occupy** order: the same
 defend-area context, with its claims confined to the run under the click so a
 better-covered trench elsewhere in the circle cannot pull the squad away from
-the one the player pointed at. It is contextual in the way a click inside an
+the one the player pointed at. The circle round the click already says where on
+the run, so the click holds a stretch by construction and is not cut again. It is contextual in the way a click inside an
 uncaptured compound is, and that compound still wins — a sandbag apron at an
 objective's door does not turn securing it into holding the apron. An explicit
 defend-area click on a trench remains an ordinary defend area, and Mechs never
@@ -2293,13 +2327,63 @@ believed left in it. A trench has no walls to bring down; it is assaulted by
 direct fire alone. The scene `machine-assault` is the acceptance
 (`MachineAssaults`).
 
+**Machines guard the places their side mans.** The same click on a run or held
+place the machine's own **side mans** — somebody of the side standing in it, or
+an infantry squad of the side ordered to it (an occupy or hold order, or a
+commander's order to man it) — and does not believe enemy-held is a **guard**,
+and the cursor says GUARD, heavy support, in the friendly colour; an unarmed
+hull only moves, and a place believed to hold an enemy is still an assault. A
+run is guarded by the **stretch** under the click, the run's cells within twelve
+of it, so a lance sent to the garrison at a fort's gate stands at the gate rather
+than at the far corner of the belt. A guard stands on a **guard cell**: connected
+to the machine, three to seven cells outside the footprint and inside its reach,
+never on prepared ground (the posts are infantry's), and never in the
+**garrison's lanes** — the band in front of the place along the threat axis, as
+wide as the place plus two cells — preferring a clear line of fire to a point
+twelve cells past the place's front, then a cell abreast of the front edge so it
+sees past the place rather than over it, then a nearer ring; a lance's members
+keep apart. The **threat axis** is the side's belief: from the place toward the
+contacts its squads hold within 48 cells of it, nearer ones weighing more, and
+with none the way the machine was going, since it came up from its own ground.
+The order owns the machine's locomotion as an assault does, but names no target:
+its own targeting and doctrine engage whatever approaches, a turret keeps its
+own pick. While nothing is in its sights a mech holds its hips on the axis and an
+idle gun rests along it, so the front armour and the weapons point where the
+attack is believed to come from. Every three seconds the axis is read again, and
+a mech whose threat has swung round the place by more than 45 degrees moves to a
+cell chosen for the new one; a hull keeps its ground and turns its gun. A cell
+the chassis cannot route to is set aside and another chosen, five times at most.
+The guard ends five seconds after the side last manned the place, so a garrison
+that leaves or dies takes its guard with it, and on a new order, a withdrawal, a
+crippled chassis, a disarmed hull or direct control. The scene `machine-guard` is
+the acceptance (`MachineGuards`).
+
+A commander gives the same guard to a lance of its own side
+(`MachineGuardDirector`, `CommandEffects.guardPlace`), and a player's order on a
+chassis outranks it. The director knows nothing of which side it serves: given
+the places the side mans this pulse, which of them are pressed to the manning
+start level, and the side's free lances, it attaches at most one lance a pulse to
+a manned, pressed place nobody guards, one lance a place, never more at once than
+half the side's lances rounded up and never more than two, and only a useful
+lance (half the chassis it started with) that can arrive within the manning
+arrival bound. A lance already fighting is offered only for a place within 48
+cells of it, where its fight is plausibly the garrison's. A guard stands down when
+its place is no longer manned, has stayed below the start level for the manning
+dwell, its lance falls below useful strength, or the lance is taken up by other
+work. The defender offers lances its pool left without a track response or a
+structure task; the attacker holding taken ground offers lances the muster, the
+capture pass and the holders left, keeps a guarding lance in the pool so a
+company that recruits it or a capture that commits it takes it, and stands every
+guard down in the convergence phases. No side fields armed vehicles under a
+commander, so the commanders' guards are lances.
+
 **A player's squad may opt into reactive manning: the GARRISON stance.** It is a
 per-squad switch on the order bar (`[G] GARRISON`, and the `G` key), never a
 default, and infantry only. The stance is a standing permission, not an order:
 a squad in it acts only while it carries no player order. It watches a ring the
 size of a defend area round its **anchor** — where it stood when the stance was
 turned on, or when a player order it carried ended — and mans the
-fighting-position run or held building inside the ring that its side believes
+stretch of fighting-position run or held building inside the ring that its side believes
 most pressed, by the commander's own law (`garrisonables.md`): the defender's
 start and release levels and dwell, never released in a fight, never sent below
 useful strength, a breach near it a fall back with that place left alone for a

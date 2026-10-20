@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-20
 
+Updated: 2026-10-20 — conquest-trial reports the defender's fort counter-attack.
+
 Per-mission matrices, fixture fields and report contents for `gradlew.bat commanderEvidence -Pmission=<mission>`. How to run the task, the mission list, replay count, parallelism and snapshot flags stay in `CLAUDE.md` (Build & deploy); read this when you need one mission's details. Text is moved verbatim from `CLAUDE.md`; "Fixture fields match Relief" and similar refer to the sections below.
 
 ## Relief
@@ -173,7 +175,13 @@ the old default), which shows freezes a bigger force hides. A fixture may set
 `risk`, and optional `airDefence` (true stamps the fort's anti-air yard). Use it for a commander
 question; the city map is unfinished. Each fixture's fighting-position block carries a
 `DEFENDER garrison focus` line: belt-garrison samples taken while the company
-stands at a fort and how many of them have no marine within thirty cells, how
+stands at a fort and how many of them have no marine within thirty cells, split
+into those in a fight, those with a believed contact that near, those still
+marching (and of those, marching to an order cell a marine is near: to the
+fight), with the nearest believed contact in fifteen-cell bins; the **stranded**
+share (arrived on a stretch no marine is near, or marching to one) is the
+garrison-placement reading. Also stretch shifts (a garrison order moved to another
+stretch of its run), how
 often a rallied squad's post moved and how often it moved back to the one before,
 and the defender's marches (a new order cell thirty or more cells off) with
 those of a thousand ticks or more, arrivals and members lost on the way. A `MARINE holds taken ground` line (and `attackerHold` in
@@ -181,6 +189,10 @@ those of a thousand ticks or more, arrivals and members lost on the way. A `MARI
 won back, and how the attacker held its belt: manning orders, holder
 squad-samples, the most at once, dug-in member-samples and fall backs;
 `-Dbattle.conquest.attackerHoldsGround=false` is its control.
+A `DEFENDER counter-attacks its lost fort` line (and `counterattack` in `summary.json`) counts the
+defender's counter-attack reserves, musters and launches (squads and strength at each launch against
+the strength it believed it needed), retakes, failed attempts and forts abandoned, with the first tick
+of each; `-Dbattle.conquest.fortCounterattack=false` is its control.
 
 ## Conquest fixtures and fort control
 

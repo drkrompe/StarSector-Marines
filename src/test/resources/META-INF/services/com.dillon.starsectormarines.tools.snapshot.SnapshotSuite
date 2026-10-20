@@ -219,3 +219,5 @@ com.dillon.starsectormarines.battle.vehicle.DozerBreachSceneSnapshotSuite
 com.dillon.starsectormarines.ops.TankVariantsSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.HoverLineSceneSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.DamageDollSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.bsp.CompoundPreparedGroundSnapshotSuite
+com.dillon.starsectormarines.battle.command.CompoundApronSceneSnapshotSuite
