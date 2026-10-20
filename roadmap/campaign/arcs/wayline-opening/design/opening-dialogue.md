@@ -4,7 +4,7 @@ Status: SHIPPED — the campaign-start and first-contract dialogue register, and
 
 Written: 2026-10-14
 
-Updated: 2026-10-20 — Relief's ore-dust cover story: the company rides up on Wayline's truck; turn 4, Sabine's briefing and Mara's first radio turn re-recorded.
+Updated: 2026-10-20 — One story path for every start port: the fallback-port variants are retired and Nessa's lines play everywhere.
 
 ## How to read this script
 
@@ -29,8 +29,11 @@ Castle, Nessa and the founding field commander's canon. **PUBLIC**, **HIDDEN** a
 ## Owner calls
 
 1. **Nessa and Mara are sisters.** Castle hears of Wayline through Nessa; the yard
-   visit carries the bridge. Players starting at a fallback port never meet Nessa,
-   so every line that depends on the relationship is Jangala-only.
+   visit carries the bridge. There is one story for every start port (owner,
+   2026-10-20): a start that lands at a fallback port because Jangala is
+   unavailable still meets Nessa, and Castle's, Nessa's and Mara's lines say
+   Jangala. Only course, objective, Intel and mission text that names a place
+   uses the port actually chosen.
 2. **The founding field commander came off the Claim, and so did her squad.** She
    commanded the mine's escort section; twelve of them stayed with her. She is
    renamed **Sabine Hale** so she cannot be confused with Mara in
@@ -286,28 +289,24 @@ New — Castle
 
 **SOMEWHERE TO DOCK**
 
-`openingCompanyPrologueCorvusHasWorkingYardsAndRegularTraffic` (Jangala)
+`openingCompanyPrologueCorvusHasWorkingYardsAndRegularTraffic`
 > Corvus has working yards, steady freight and Hegemony patrols crawling across
 > the navigation display. Castle scrolls past the public yard listings to a
 > private address: Nessa Venn, Jangala. The last message in the thread is years
 > old and ends in the middle of an argument. Castle reads it twice before she
 > starts a new one.
 
-`openingCompanyPrologueCastleSearchesThePortListingsForSomewhere` (fallback)
+`openingCompanyPrologueCastleSearchesThePortListingsForSomewhere` (no port)
 > Castle works down the port listings for anywhere that will berth a civilian
 > hull and has a yard that can actually do the work. Half of them want a deposit
 > just to reply. A published berth and a working yard are worth more than anyone's
 > promise.
 
-`openingCompanyPrologueNessaVennWeRanOreTogetherBefore` — Castle (Jangala)
+`openingCompanyPrologueNessaVennWeRanOreTogetherBefore` — Castle (no arrival cinematic)
 > Nessa Venn. We ran ore together before she settled into the yards on Jangala.
 > Once spent three days towing my dead freighter home and swore she'd cut me loose
 > at every buoy. Never did. She'll have opinions about this ship. Let me talk
 > first.
-
-`openingCompanyPrologueHasAWorkingYardIDonT` — Castle (fallback)
-> {0} has a working yard. I don't know a soul there. We ask for a berth and a
-> written estimate, and we keep our story short.
 
 `openingCompanyPrologueNoAnswerFromAYardWeCan` — Castle (no port)
 > No yard in reach is answering. I'll keep trying. We didn't come all this way to
@@ -344,14 +343,10 @@ part then a payment part
 > {0}Then we get a boat flying and Sabine's people aboard her. After that...
 > well. We might actually be a company, Commander.
 
-`openingCompanyPrologueNessaSentAnEstimateCalledTheJob` (Jangala)
+`openingCompanyPrologueNessaSentAnEstimateCalledTheJob`
 > Nessa sent an estimate. She called the job "ambitious" twice, which beats
 > "scrap." Five thousand for the conversion, and she's found room in her stores
 > for ours.
-
-`openingCompanyPrologueWeLlGetTheYardAtTo` (fallback)
-> The yard at {0} will do the conversion. Five thousand, if they hold to the
-> estimate.
 
 `openingCompanyPrologueWeLlFindABerthThenBunks` (no port)
 > We find a berth. Then bunks, a workshop, and someone who can tell us which of
@@ -396,8 +391,8 @@ work: the bill, the runway it leaves, the road up, and the cover story. Page 1's
 Next pays and installs; after that the pages are a straight click-through. There
 is no Skip or "Return to port" on these pages, and Back is off on pages 1 and 2, so
 the bill cannot be reached again once it is paid. Each Next button carries the
-Commander's reply. A non-Jangala yard plays pages 1 and 2 only, with Nessa's name
-taken out.
+Commander's reply. Second Wind's conversion plays all four pages, with Nessa, at
+whichever port the start chose.
 
 The figures (owner, 2026-10-20) are stated in days of runway, not rescaled. The
 story's daily board-and-berth burn for the forty-five aboard is about 21.34
@@ -451,7 +446,7 @@ Commander (Next): *We'll need to make a living somehow.*
 
 The figures box reads the live account and works the days out from it.
 
-**Page 3 — THE ROAD UP** (`yard-road`, Jangala only)
+**Page 3 — THE ROAD UP** (`yard-road`)
 > Nessa's racks are half empty. Most of her parts come up the Wayline road from the
 > highland depots, and raiders have held that road for a month. The drivers'
 > cooperative that runs it has lost its director, a third of its trucks and most of
@@ -474,7 +469,7 @@ Castle:
 
 Commander (Next): *Then we roll the dice. Find us a way in.*
 
-**Page 4 — ORE DUST** (`yard-ore-dust`, Jangala only)
+**Page 4 — ORE DUST** (`yard-ore-dust`)
 
 Castle:
 > Our papers say visitors. Visitors berth, eat and spend. They don't work, not for
@@ -500,12 +495,12 @@ The last page's objective line points at Marine operations and the prepaid depot
 Any later conversion, and the planet menu's own yard entry, still report in the
 interaction panel:
 
-`openingCompanyYardCMDNessaVennMetUsAtTheBerth` — Castle (Jangala)
+`openingCompanyYardCMDNessaVennMetUsAtTheBerth` — Castle (Second Wind)
 > Nessa met us at the berth. Took one look at the patch under the collar and asked
 > if I'd done it myself. I said I'd supervised. She remembers what that means.
 > Here's her estimate, Commander. She held to it.
 
-`openingCompanyYardCMDTheYardCanMakeRoomForBunks` — Castle (fallback)
+`openingCompanyYardCMDTheYardCanMakeRoomForBunks` — Castle (any other Cerberus)
 > The yard will clear space for bunks and a workshop. I asked them to leave the
 > compartments that still hold pressure alone. Look the estimate over, Commander.
 > We only get to do this once.
@@ -514,13 +509,13 @@ interaction panel:
 > I've kept this payment apart since we left the Claim. It doesn't touch the
 > ship's account. Shuttle parts and the squad's kit are paid as well.
 
-`openingCompanyYardCMDTheYardHasFinishedEighteenMorePlaces` — Castle (fallback
+`openingCompanyYardCMDTheYardHasFinishedEighteenMorePlaces` — Castle (every
 completion)
 > The yard's done. Eighteen more berths, a proper command fit and a workshop
 > gantry, for twenty-five units of hold we're going to miss. It's permanent work,
 > Commander. No taking it back.
 
-`openingCompanyYardCMDNessaSaysSheLlKeepTheOld` — Castle (Jangala completion)
+`openingCompanyYardCMDNessaSaysSheLlKeepTheOld` — Castle (Second Wind completion)
 > Nessa's hanging the old pressure seals on her office wall. Says I have a
 > reputation to keep up. She stayed for the pressure test herself and left it off
 > the bill. Don't mention it. She'll deny it.
@@ -622,7 +617,7 @@ Counterattack's briefing, with no airworthy boat, adds: "The depot is the
 company's first ferry job. Repair our first Hermes on the Boat Deck."
 
 The conversion line names no figure; the yard page states it. It says "the
-yard", not "Nessa", because a fallback start never meets her.
+yard", not "Nessa".
 
 ## 4 — Sabine
 

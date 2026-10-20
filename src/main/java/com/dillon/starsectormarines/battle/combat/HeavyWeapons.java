@@ -48,6 +48,12 @@ public class HeavyWeapons {
      * point beside or behind it.
      */
     static final float MIN_POINT_AIM_HULL_WIDTHS = 1.5f;
+    /**
+     * A pilot cannot lob an arcing rack's salvo at a point nearer the chassis centre than this many cells (or the
+     * weapon's own authored minimum, where larger): the trigger is refused and the HUD reads TOO CLOSE, rather than
+     * the salvo coming down on the mech that threw it.
+     */
+    public static final float MIN_MANUAL_ARC_RANGE_CELLS = 8f;
 
     private final UnitRosterService roster;
     private final NavigationGrid grid;
@@ -167,6 +173,7 @@ public class HeavyWeapons {
         boolean hit;
         ShotEndpoint.Endpoint ep;
         if (manual) {
+            if (tooClose(mount, (float) Math.hypot(aim.x() - centreX, aim.y() - centreY))) return false;
             PointFireAim target = withStandoff(aim, centreX, centreY, standoffCells(loadout));
             float dx = target.x() - centreX;
             float dy = target.y() - centreY;
@@ -195,6 +202,21 @@ public class HeavyWeapons {
         if (mount == null) return false;
         WeaponDef weapon = mount.weaponDef();
         return Float.isFinite(weapon.range) && weapon.range > 0f;
+    }
+
+    /**
+     * The nearest point, in cells from the chassis centre, a pilot may aim this mount at: zero for a flat-fire
+     * mount, {@link #MIN_MANUAL_ARC_RANGE_CELLS} or the weapon's authored minimum for an arcing rack.
+     */
+    public static float manualMinRangeCells(MechWeaponMount mount) {
+        if (!supportsPointFire(mount)) return 0f;
+        float authored = Math.max(0f, mount.weaponDef().minRange);
+        return firesFlat(mount) ? authored : Math.max(authored, MIN_MANUAL_ARC_RANGE_CELLS);
+    }
+
+    /** Whether a pilot's point {@code distance} cells from the chassis centre is inside this mount's minimum. */
+    public static boolean tooClose(MechWeaponMount mount, float distance) {
+        return Float.isFinite(distance) && distance < manualMinRangeCells(mount);
     }
 
     /** A flat-trajectory mount, whose round flies a lane to the point rather than arcing over it. */
@@ -325,6 +347,7 @@ public class HeavyWeapons {
         float centreX = roster.world().renderX(shooter);
         float centreY = roster.world().renderY(shooter);
         if (!loadout.isPointAimedAt(aim, centreX, centreY, hipFacing)) return false;
+        if (manual && tooClose(mount, (float) Math.hypot(aim.x() - centreX, aim.y() - centreY))) return false;
         PointFireAim target = withStandoff(aim, centreX, centreY, standoffCells(loadout));
         MechHardpointGeometry.Point muzzle = muzzle(shooter, mount, MechHardpointGeometry.nextReleaseIndex(mount));
         if (!target.validFrom(muzzle.x(), muzzle.y())) return false;

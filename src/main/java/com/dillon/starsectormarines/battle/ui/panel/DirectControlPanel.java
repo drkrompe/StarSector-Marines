@@ -68,7 +68,7 @@ public final class DirectControlPanel implements HudPanel {
 
     /**
      * Where a thrown rocket or LRM salvo will land: orange inside every covered mount's range, red past it,
-     * where the disk grows faster than distance.
+     * where the disk grows faster than distance, and red inside an arcing rack's minimum, where it will not fire.
      */
     private static void scatterRing(BattleSimulation sim, long id, float aimCellX, float aimCellY,
                                     float aimX, float aimY, float cellPx, float alpha) {
@@ -78,7 +78,7 @@ public final class DirectControlPanel implements HudPanel {
         if (ring == null) return;
         float r = ring.radiusCells() * cellPx;
         if (r < 4f) return;
-        HudDraw.ring(aimX, aimY, r, ring.beyondRange() ? DANGER_AREA : MISSILES_AREA, alpha * 0.8f, RING_SEGMENTS, 1.5f);
+        HudDraw.ring(aimX, aimY, r, ring.warning() ? DANGER_AREA : MISSILES_AREA, alpha * 0.8f, RING_SEGMENTS, 1.5f);
     }
 
     /**

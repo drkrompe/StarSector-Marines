@@ -125,6 +125,21 @@ class MechPointFireTest {
     }
 
     @Test
+    void anLrmRackRefusesAPointInsideItsMinimumWithoutSpendingWhileRocketsStillFire() {
+        Fixture f = new Fixture(null, MechWeaponComponent.SRM_5, MechWeaponComponent.LRM_5);
+        MechWeaponMount srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
+        MechWeaponMount lrm = f.loadout.mount(MechMountSlot.RIGHT_SHOULDER);
+        float flux = f.loadout.flux.value();
+        f.fire(new PointFireAim(20.5f, 20.5f + HeavyWeapons.MIN_MANUAL_ARC_RANGE_CELLS - 1f));
+        assertEquals(lrm.component.ammoCapacity, lrm.ammo);
+        assertEquals(0f, lrm.cycleRemaining);
+        assertEquals(0, lrm.burstRemaining);
+        assertEquals(srm.component.ammoCapacity - 1, srm.ammo, "the rocket rack on the same button still fires");
+        assertTrue(f.loadout.flux.value() - flux <= srm.component.fluxPerTrigger() + 1e-4f,
+                "the refused rack reserves no flux");
+    }
+
+    @Test
     void closePointsFireEveryBarrelConvergingAheadOfTheChassis() {
         // A point just ahead of the centre, and one a few cells off to the side, used to fail the
         // per-muzzle alignment check on the laterally offset barrels and drop half of every burst.

@@ -1283,8 +1283,10 @@ disabled freighter home despite repeated threats to leave her behind; their fami
 barbs and her attention to the repairs carry that relationship into the yard visit.
 This personal help is not a promise of Hegemony protection. Harker's Claim and Nessa
 are authored backstory, not new sector entities or additional mission prerequisites.
-The prologue uses the actual accessible
-destination and adjusts its copy if Jangala is unavailable. Its final action plots
+There is one story for every start port (owner, 2026-10-20): when the start
+lands elsewhere because Jangala is unavailable, Castle, Nessa and Mara still speak
+of Jangala, and only the course, objective, Intel and mission text that names a
+place uses the actual accessible destination. Its final action plots
 that course and returns to the campaign. The Intel log retains the origin and
 next real preparation instruction. Page progress and explicit completion or skip
 survive saves; ordinary starts and pre-prologue saves do not opt in on load.
@@ -1304,8 +1306,8 @@ The Cerberus opening names **Mercenary Company Conversion** explicitly and direc
 the player to Marine operations in the planet menu, not the vanilla Refit picker.
 At an accessible planetary port that entry opens the founding conversion first as
 a four-page storybook on the prologue's retained document and custom visual host:
-the bill, paid by page 1's Next; the runway the account leaves; and, at Jangala, the
-road up and the ore-dust papers that send the company to work (`opening-dialogue.md`
+the bill, paid by page 1's Next; the runway the account leaves; the
+road up; and the ore-dust papers that send the company to work (`opening-dialogue.md`
 §2). Nothing is spent before that Next. After it the pages are a straight
 click-through with no exit control, and Back never returns to the paid bill. The order buys +18
 personnel places and trades away 25 cargo; the remaining damaged rooms, second

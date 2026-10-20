@@ -33,7 +33,7 @@ final class BattleDirectControlStatus {
 
     enum Carrier { NONE, MARINE, MECH, VEHICLE, WARSHIP, TENDER }
     enum FireKind { SINGLE, BURST, PACKET, INDIRECT }
-    enum WeaponState { BURST, CYCLING, LOADED, EMPTY }
+    enum WeaponState { BURST, CYCLING, LOADED, EMPTY, TOO_CLOSE }
     enum AmmoUnit { UNTRACKED, ROUNDS, TRIGGER_PACKS }
 
     record Snapshot(long entityId, String name, Carrier carrier, Durability durability,
@@ -126,12 +126,20 @@ final class BattleDirectControlStatus {
 
     /**
      * {@code trigger} names the mouse button(s) that fire this weapon: {@code L}, {@code R}, {@code LR}
-     * or empty when none does.
+     * or empty when none does. {@code tooClose} is a cursor inside the mount's manual minimum range, where
+     * its trigger is refused.
      */
     record WeaponStatus(int number, String slotKey, String name, Behavior behavior,
                         boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
                         int burstRemaining, float burstSeconds, Ammo ammo,
-                        boolean fluxBlocked, String mechanism, String trigger) {
+                        boolean fluxBlocked, String mechanism, String trigger, boolean tooClose) {
+        WeaponStatus(int number, String slotKey, String name, Behavior behavior,
+                     boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
+                     int burstRemaining, float burstSeconds, Ammo ammo,
+                     boolean fluxBlocked, String mechanism, String trigger) {
+            this(number, slotKey, name, behavior, directEligible, cooldownSeconds,
+                    cycleDurationSeconds, burstRemaining, burstSeconds, ammo, fluxBlocked, mechanism, trigger, false);
+        }
         WeaponStatus(int number, String slotKey, String name, Behavior behavior,
                      boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
                      int burstRemaining, float burstSeconds, Ammo ammo) {
@@ -150,6 +158,7 @@ final class BattleDirectControlStatus {
             if (ammo.unit() != AmmoUnit.UNTRACKED && !ammo.unlimited() && ammo.remaining() <= 0) {
                 return WeaponState.EMPTY;
             }
+            if (tooClose) return WeaponState.TOO_CLOSE;
             return cooldownSeconds > 0f ? WeaponState.CYCLING : WeaponState.LOADED;
         }
 
@@ -183,7 +192,7 @@ final class BattleDirectControlStatus {
         if (world.hasMechLoadout(id)) {
             return new Snapshot(id, name, Carrier.MECH, durability,
                     mechWeapons(world.mechLoadout(id).mounts(), world.mechLoadout(id).flux,
-                    sim.directControl().selectedWeapon()), List.of(),
+                    sim.directControl().selectedWeapon(), aimDistance(sim, id)), List.of(),
                     MarineSprint.EMPTY, new MechFluxStatus(world.mechLoadout(id).flux.value(),
                     world.mechLoadout(id).flux.venting(),
                     world.mechLoadout(id).flux.capacity()));
@@ -258,6 +267,19 @@ final class BattleDirectControlStatus {
     }
 
     static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux, int selection) {
+        return mechWeapons(mounts, flux, selection, Float.NaN);
+    }
+
+    /** The cursor's distance from the chassis centre, or NaN without a finite aim. */
+    private static float aimDistance(BattleSimulation sim, long id) {
+        var intent = sim.directControl().intent();
+        if (!Float.isFinite(intent.aimX()) || !Float.isFinite(intent.aimY())) return Float.NaN;
+        return (float) Math.hypot(intent.aimX() - sim.world().renderX(id), intent.aimY() - sim.world().renderY(id));
+    }
+
+    /** {@code aimDistance} is the cursor's distance from the chassis centre; NaN reads as no cursor. */
+    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux, int selection,
+                                          float aimDistance) {
         List<WeaponStatus> weapons = new ArrayList<>();
         for (MechWeaponMount mount : mounts) {
             if (mount == null) continue;
@@ -269,7 +291,8 @@ final class BattleDirectControlStatus {
                     new Ammo(mount.ammo, mount.component.ammoCapacity, AmmoUnit.TRIGGER_PACKS,
                             mount.component.ammoCapacity < 0),
                     !flux.permits(mount.component.fluxPerTrigger(), false), mount.component.cycleLabel(),
-                    MechFireGroups.badge(mounts, selection, mount)));
+                    MechFireGroups.badge(mounts, selection, mount),
+                    HeavyWeapons.tooClose(mount, aimDistance)));
         }
         weapons.sort(Comparator.comparingInt(WeaponStatus::number));
         return List.copyOf(weapons);
