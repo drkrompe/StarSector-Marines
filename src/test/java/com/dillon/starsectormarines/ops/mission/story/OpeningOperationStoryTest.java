@@ -5,12 +5,16 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 import com.dillon.starsectormarines.ops.Client;
+import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.dillon.starsectormarines.ops.RiskLevel;
+import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.fs.starfarer.api.campaign.RepLevel;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -41,8 +45,12 @@ class OpeningOperationStoryTest {
         assertEquals(RiskLevel.LOW, mission.risk);
         assertTrue(mission.flavor.contains("checkpoint"));
         assertTrue(mission.flavor.contains("Wayline"));
-        assertEquals(2, mission.requiredDrops);
+        // The company rides up on Wayline's truck: only the employer's militia shuttle flies.
+        assertEquals(1, mission.requiredDrops);
         assertEquals(1, mission.employerShuttles);
+        assertEquals(MarineArrivalPolicy.SECURED_GROUND, mission.marineArrivalPolicy);
+        assertTrue(DetachmentResolver.hasRequiredTransport(mission, List.of()));
+        assertEquals(1, DetachmentResolver.buildShuttleManifest(mission, List.of()).size());
         assertTrue(mission.clientFighterSupport.isEmpty());
         assertTrue(mission.enemyFighterSupport.isEmpty());
 

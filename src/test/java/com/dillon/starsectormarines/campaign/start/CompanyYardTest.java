@@ -161,7 +161,9 @@ class CompanyYardTest {
             assertNotNull(CompanyYard.install(ship, market));
             assertFalse(installed[0]);
             assertEquals(startingCash, credits.get());
-            assertEquals(protectedStart ? 5000 : 0, CompanyYard.reservedCredits(ship));
+            assertEquals(protectedStart ? FoundingReserve.CREDITS : 0, CompanyYard.reservedCredits(ship));
+            assertEquals(protectedStart ? 0 : MercenaryCompanyConversion.CREDIT_COST, CompanyYard.cashCost(ship),
+                    "Castle's chits and the waived pressure test cover the whole estimate");
             Map<String, Object> localData = new HashMap<>();
             MemoryAPI memory = stub(MemoryAPI.class, Map.of("set", (Function<Object[], Object>) a -> {
                 localData.put((String) a[0], a[1]); return null;
@@ -193,7 +195,7 @@ class CompanyYardTest {
             assertTrue(installed[0]);
             assertFalse(CerberusCompanyStart.conversionRequired());
             assertFalse(CompanyYardCMD.openRequired(dialog, Map.of(MemKeys.LOCAL, memory)));
-            assertEquals(protectedStart ? 0 : 10000, credits.get());
+            assertEquals(protectedStart ? 0 : startingCash - MercenaryCompanyConversion.CREDIT_COST, credits.get());
             assertEquals(0, CompanyYard.reservedCredits(ship));
             PreparationDepot depot = CerberusCompanyStart.accessibleDepot();
             assertNotNull(depot);
@@ -202,7 +204,7 @@ class CompanyYardTest {
             CerberusCompanyStart.establishDepot(ship, market);
             assertSame(depot, CerberusCompanyStart.depot());
             assertEquals(0, depot.available("metals"));
-            assertEquals(protectedStart ? 0 : 10000, credits.get());
+            assertEquals(protectedStart ? 0 : startingCash - MercenaryCompanyConversion.CREDIT_COST, credits.get());
             assertEquals(protectedStart, depot.protectedStock());
             uiMethods.clear();
             assertNull(CerberusCompanyStart.accessibleDepot());

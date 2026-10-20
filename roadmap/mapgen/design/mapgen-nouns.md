@@ -821,7 +821,9 @@ forward revetment leaves the center of the road and its rear open.
 The landscape uses edge ridges around its road mouths and rear
 compound, leaving the inspection frontage open. Three freight berths occupy
 two concrete banks beside the through-road: the employer uses the southern
-stand, while both company stands share the northern apron. Offset supply
+stand, while both company stands share the northern apron. The story chapter's
+company starts between them beside a parked Wayline hauler; both cells are
+published constants and validated against the gate with the other places. Offset supply
 stores and T-shaped workshops replace the peripheral rectangular shells;
 the relay interior and gate remain mission-owned places. Inspection parking,
 receiving freight and relay-service equipment have real blocking footprints,

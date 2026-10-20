@@ -44,6 +44,21 @@ Gimbal (turret_gimbal.py)
   measured, the faces added, and parts that meet only when elevated, and with
   --json writes every anchor for a drift comparison.
 
+Close-view detail
+  Owner, 2026-10-20: "getting the rough shape right, but need to add detail". Every
+  turret and hardpoint has to hold up in a close view. Two floors live in Mesh: a
+  lathe of 18 or more sides (a round part) is segmented so no facet is longer than
+  ROUND_CHORD_M (0.22 m) round its rim, up to ROUND_MAX; fewer sides mean plates on
+  purpose (a ten-plate dome, hex bolts) and are kept. Every box or cylinder left
+  without a bevel gets EDGE_BEVEL_M (0.035 m); bevel=-1 keeps an edge dead sharp;
+  cutters are left alone. On top of that every hand builder was rebuilt so no bare
+  primitive stands alone: chamfered lofts and glacis prisms for masses, stepped
+  lathes for round parts, grooves and recesses cut in, and real fittings (hinged
+  hatches, bolted bearings and flanges, clamps, feeds, louvres, rams). Anchors,
+  trunnions and extra-dict keys did not move (check_gimbal.py --json against the
+  earlier build); turrets are about 1.5-3x the faces they were (the Devastator,
+  the largest, about 32k).
+
 What a turret gives a shot
   - Train: rotate the pivot (the hull's own empty) about its local Z.
   - Elevate: rotate '<prefix> elevation' about its local Y (negative lifts).
@@ -255,6 +270,15 @@ Hardpoints (fixed mounts)
     an ammunition box; one muzzle on the cluster's axis;
   - harpoonpod (Manticore (P) WS 004/005): two launch troughs with front hoops and
     a magazine block, a Harpoon in each on 'missile 1-2'.
+  - heavyblaster (merchant Wolf WS 004): a capacitor housing on a sled, cells in a
+    roof trough, armoured power cables, a field coil in a yoke and an oval emitter
+    head with its lens at the fire point;
+  - harpoon (merchant Wolf WS 005/006): a three-lane open rack on a bed, rails rising
+    into guide posts, a Harpoon in each lane on 'missile 1-3'.
+  check_hardpoints.py, run in a built .blend (or imported, clashes()), finds a fixed
+  mount that clips its hull: any hardpoint vertex inside another solid deeper than a
+  tolerance. It is the fixed-mount counterpart of a hull's turret arc sweep; the
+  Lasher's build fails on any clip.
   Mesh.prism's glacis (inset up to z2) used to come out flat (the new roof had no
   normal when it was inset); glacis=True gives the true slope. It is opt-in so
   turrets tuned to the flat roofs do not change; the new hardpoints use it.

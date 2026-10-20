@@ -1,14 +1,14 @@
-Status: DRAFT (proposal, awaiting the owner)
+Status: ACTIVE (part 1 approved and on by default; part 2 held)
 Written: 2026-10-20
-Updated: 2026-10-20 — round 2: staggered journeys after the owner's note on round 1
+Updated: 2026-10-20 — owner approved round 2 ("Yard review: Looks good"); K9_ORIGINS is now the default
 
 # Yard vehicles: where the ground crew comes from, and a working port
 
-Two parts, each behind its own switch, off by default, so `main` renders the approved C4 and C5
-unchanged until the owner passes them. `yard_vehicle_plan.py` draws the plan of part 1 (start, journey,
+Two parts, each behind its own switch. Part 1 was approved on 2026-10-20 and is on by default
+(`K9_ORIGINS=0` is the control that restores the old roll-in); part 2 is held, off by default. `yard_vehicle_plan.py` draws the plan of part 1 (start, journey,
 holds and parked spot of every Kilo Nine vehicle, shipped against proposed) to `build/c4x/k9-vehicle-plan.png`.
 
-## Part 1: the Kilo Nine crew at work (`K9_ORIGINS=1`)
+## Part 1: the Kilo Nine crew at work (`K9_ORIGINS`, default on)
 
 Shipped, the tug, crew carrier and bowser hop to stand-offs on open dirt at C4 10.4-13.4 s and roll
 in from there. Nothing explains where they came from, the tug comes out through the hangar wall (no
