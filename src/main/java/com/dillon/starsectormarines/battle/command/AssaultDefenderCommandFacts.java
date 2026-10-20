@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command;
 
+import com.dillon.starsectormarines.battle.world.gen.HeldPlaces;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -49,7 +50,7 @@ public final class AssaultDefenderCommandFacts {
         if (tacticalMap != null) {
             List<TacticalNode> nodes = tacticalMap.all();
             for (TacticalNode node : nodes) {
-                if (node.defaultGuard != Faction.DEFENDER) continue;
+                if (node.defaultGuard != Faction.DEFENDER || HeldPlaces.isUnposted(node)) continue;
                 int area = layout.sectorForCell(node.anchorX, node.anchorY);
                 if (area < 0) continue;
                 int[] rally = resolveRally(node, layout.sectors().get(area),

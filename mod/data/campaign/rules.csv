@@ -1,6 +1,6 @@
 id,trigger,conditions,script,text,options,notes
 marineOpsAddOption,PopulateOptions,"$hasMarket
-$menuState == main",,,30:marineOpsOpen:Marine operations,Adds 'Marine operations' to the planet menu when interacting with a populated market
+$menuState == main",MarineOpsCMD gate,,30:marineOpsOpen:Marine operations,Adds 'Marine operations' to the planet menu when interacting with a populated market
 marineOpsOpenSel,DialogOptionSelected,$option == marineOpsOpen,MarineOpsCMD open,,,Opens the Marine Ops full-canvas custom dialog
 captainDiscoveryPostSalvage,PostSalvagePerform,$starsectorMarinesCaptainCandidatePending,CaptainDiscoveryCMD show,,,Presents a recovered captain after vanilla loot closes
 captainDiscoveryAccept,DialogOptionSelected,$option == starsectorMarinesCaptainAccept,CaptainDiscoveryCMD accept,,,Admits the recovered captain if a roster berth remains
@@ -8,7 +8,7 @@ captainDiscoveryDecline,DialogOptionSelected,$option == starsectorMarinesCaptain
 captainDiscoveryLater,DialogOptionSelected,$option == starsectorMarinesCaptainLater,CaptainDiscoveryCMD later,,,Keeps the available candidate for Personnel review
 captainDiscoveryDone,DialogOptionSelected,$option == starsectorMarinesCaptainDone,CaptainDiscoveryCMD done,,,Closes the retained salvage interaction after resolution
 marineOpsStorySite,PopulateOptions,"$market.isPlanetConditionMarketOnly
-MarineOpsCMD storySite",,,30:marineOpsOpen:Marine operations,Current Wayline story site on an unpopulated world
+MarineOpsCMD storySite",MarineOpsCMD gate,,30:marineOpsOpen:Marine operations,Current Wayline story site on an unpopulated world
 smCerberusChoice,AddNewGameChoices,,"SetTooltip smCerberusStart ""Leave Harker's Claim aboard Second Wind, a Cerberus held together by the people who flew her out. No licence, no patron, four hundred and seventy-three credits. Build a mercenary company from nothing.""",,"6:smCerberusStart:Commander of the Second Wind (Marines story start)",
 smCerberusSelected,NewGameOptionSelected,$option == smCerberusStart,NGCAddShip sm_second_wind_start,"The operator's last ore carrier left Harker's Claim with the administrators, the payroll and the good medical stores. Your people left later, in a Cerberus the mine had spent eleven years stripping for parts. Someone painted SECOND WIND over the registry. Somewhere between the locks and the jump point, they started calling you Commander. You have 473 credits, a yard payment Castle will not let anyone touch, twelve unpaid escorts who stayed, and a name on Jangala. This start replaces the Galatia tutorial with the Second Wind prologue and company preparation.","0:smCerberusNormal:Normal
 1:smCerberusEasy:Easy",

@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — The Second Wind prologue is seven pages, each turned on the Commander's answer; Castle's saved credits pay for the yard.
+Updated: 2026-10-20 — while the Second Wind is away (stored, or in a yard after a loss), Company HQ and planet Marine operations are closed and say how to get her back; the prologue is seven pages, and Castle's saved credits pay for the yard.
 
 ## Purpose
 
@@ -1389,6 +1389,15 @@ eligibility and exact reviewed complement are rechecked at payment. Deferring,
 insufficient funds and stale review change nothing. Surviving boats remain ordinary
 owned assets, and destroyed replacements receive no story refund or free respawn.
 The hull's saved adapters remain with Second Wind through company transfers.
+
+**While the Second Wind is away the company has no home to open.** She is never
+lost for good (`ship-interiors-nouns.md`), but while the company lives aboard her
+and she is out of the fleet - in storage, or in a yard after a loss - the Marines
+button answers with Castle's instructions instead of Company HQ: where she is,
+how many yard days are left, what the yard will charge, and that docking there (or
+taking her out of storage) brings the company home. The planet menu keeps
+Marine operations listed but disabled, with the same instructions as its tooltip.
+A company that has moved to another hull is not gated by her absence.
 
 Delivery ends with Castle directing the player to the real PLATING and DRIVE controls;
 no additional purchase is required. The conversation overlays the room and owns input

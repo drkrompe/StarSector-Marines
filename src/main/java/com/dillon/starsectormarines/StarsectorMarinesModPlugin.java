@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines;
 
+import com.dillon.starsectormarines.campaign.start.SecondWindKeeper;
+import com.fs.starfarer.api.campaign.CampaignEventListener;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.ops.AgreusArcCampaign;
 import com.dillon.starsectormarines.ops.CompanyManagementGuide;
@@ -64,6 +66,7 @@ import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.comm.IntelManagerAPI;
 import org.apache.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 public class StarsectorMarinesModPlugin extends BaseModPlugin {
@@ -165,6 +168,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         deliverPendingAgreusAwards();
         ensureCaptainDiscoverySalvageListener();
         ensureCompanyShipLossListener();
+        SecondWindKeeper.install(Global.getSector());
         ensureFactionEquipmentMarketStock();
         ensurePlayerEventPresenter();
         CompanyProloguePresenter.install();
@@ -240,8 +244,13 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
      */
     private static void ensureCompanyShipLossListener() {
         SectorAPI sector = Global.getSector();
+        // Engagement reports go only to the sector's own event listeners; one held by the listener
+        // manager never hears a battle. Older saves never held it at all (it was added transient).
         sector.getListenerManager().removeListenerOfClass(CompanyShipLossListener.class);
-        sector.getListenerManager().addListener(new CompanyShipLossListener(), true);
+        for (CampaignEventListener listener : new ArrayList<>(sector.getAllListeners())) {
+            if (listener instanceof CompanyShipLossListener) sector.removeListener(listener);
+        }
+        sector.addTransientListener(new CompanyShipLossListener());
         LOG.info("Starsector Marines: company ship loss listener registered");
     }
 
