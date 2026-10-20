@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED; live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-20 — Preparation no longer repairs the Hermes; the first-lift lesson after Relief draws its stores. Live acceptance remains.
+Updated: 2026-10-20 — The founding yard is a four-page storybook (bill, runway, road up, ore dust); start funds 473, estimate 4,986, Castle's reserve 4,862 with the pressure test waived. The first Hermes waits for the first-lift lesson after Relief. Live acceptance remains.
 
 ## Outcome
 
@@ -29,15 +29,16 @@ owns its first-berth recovery and three paid repairs.
 The Cerberus begins with one working Hermes berth and a reserved damaged second bay;
 `cerberus-bay-restoration.md` owns its later paid repair. Extra beds do not mint boats.
 It remains a frigate and combat freighter. Installation is a reviewed planetary
-yard order costing 5,000 credits, not automatic designation or a free space refit.
+yard order costing 4,986 credits, not automatic designation or a free space refit.
 It installs a permanent hullmod on the actual owned variant; duplicate orders are
 refused without charging. No new boat or mech is awarded by the conversion.
 
 Starting logistics must cover the conversion and the existing preparation recipes
 without overloading the fleet or requiring a shopping detour. Travel supplies are
 separate from the workshop bill. The player chose one Cerberus and a staged planetary
-consignment, with no support freighter. The start supplies 500 spendable credits,
-a separate 5,000-credit reserve usable only for the original ship's conversion, minimum
+consignment, with no support freighter. The start supplies 473 spendable credits,
+a separate 4,862-credit reserve usable only for the original ship's conversion (the
+yard waives the estimate's 124-credit pressure test when it pays), minimum
 crew plus five, 25 travel supplies and up to 40 fuel. The first successful conversion
 of this start's ship establishes a finite depot at that planet: 30 metals, 8 heavy
 machinery, 56 supplies, 12 Marines and 24 food, derived from the real Hermes and
@@ -52,7 +53,7 @@ cannot replenish it. Ordinary starts receive no depot.
 ## Acceptance
 
 - Required conversion is named explicitly as Mercenary Company Conversion, a
-  5,000-credit planetary yard order. Marine operations opens its review directly
+  4,986-credit planetary yard order. Marine operations opens its review directly
   while docked before conversion; vanilla Refit is not the installation route.
 - Opening preparation and Sabine induction have no Later or Escape dismissal.
   Return to campaign remains available for travel or resupply, with the required
@@ -76,10 +77,11 @@ cannot replenish it. Ordinary starts receive no depot.
 - Castle's memories and the crew's belongings suggest their history; navigation
   instructions stay in the UI and Intel. Nessa's personal yard dialogue belongs
   only to the original Second Wind conversion on Jangala.
-- Review all eight production pages and the founding-yard inspection, order and
-  completion at 1920x1080 and 100% scale through the `company-prologue` snapshot
-  suite. Show the battered hull and usable bunks without implying all rooms have
-  been restored. Live host dismissal and save/load remain open.
+- Review all eight production pages and the four founding-yard storybook pages
+  (`opening-dialogue.md` §2) at 1920x1080 and 100% scale through the
+  `company-prologue` snapshot suite. Page 1's Next is the only install; the pages
+  have no exit control, and Back is off on pages 1 and 2. Live host dismissal and
+  save/load remain open.
 - Refuse installation in space, on stations, at inaccessible or nonworking ports,
   on incompatible/mothballed/unowned hulls, after installation, and without funds.
 - Failed orders change neither credits nor variant. Successful work persists and

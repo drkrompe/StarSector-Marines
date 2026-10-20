@@ -1256,7 +1256,7 @@ parallel organization or another inventory economy.
 ## Cerberus founding start and planetary stores
 
 The optional Cerberus company start is selected through vanilla character creation.
-It gives the player one unconverted Cerberus, 500 spendable credits and travel reserves;
+It gives the player one unconverted Cerberus, 473 spendable credits and travel reserves;
 it neither designates the vessel nor awards a shuttle, squad, mech or specialty.
 The hull starts as the wreck the story describes: a Cerberus (D) carrying a full
 wreck's five d-mods and only two Vulcans in its small mounts, the guns nobody stripped.
@@ -1270,9 +1270,10 @@ worthless as the colony's supplies ran out. They restored a grounded Cerberus; t
 earned command by organizing the escape, while Castle supplied port and convoy
 logistics experience. Earlier player biography remains open. Pooled savings and
 Castle's finite prepaid consignment explain the starting means. Castle holds the
-5,000-credit conversion payment separately from the fleet account, usable only for
-the original ship's yard conversion. Spending the fleet account down to zero cannot
-prevent that order. The reserve is consumed once, never refunded as cash or renewed
+4,862-credit conversion payment (her chits) separately from the fleet account, usable only for
+the original ship's yard conversion. It falls short of the 4,986 estimate by exactly
+the pressure test, which the yard waives whenever the reserve pays, so spending the
+fleet account down to zero cannot prevent that order. The reserve is consumed once, never refunded as cash or renewed
 on load; existing campaigns keep their original funds and payment rules. Civilian crew keep
 the ship running; trained Marines must still be mustered through preparation.
 
@@ -1295,21 +1296,21 @@ sealed industrial EVA suits; boarding takes place inside a pressurized loading d
 Exterior views use an upscaled vanilla Cerberus sprite as their identity reference.
 Runtime art is full-frame 1200x800 JPEG; larger masters and reference art stay outside `mod/`.
 
-A reviewed 5,000-credit yard order installs the permanent Mercenary Company
+A reviewed 4,986-credit yard order installs the permanent Mercenary Company
 Conversion on the owned, active hull. Company designation still uses the ordinary
 preparation preflight and resumes Sabine, squad founding and assignment.
 
 The Cerberus opening names **Mercenary Company Conversion** explicitly and directs
 the player to Marine operations in the planet menu, not the vanilla Refit picker.
-At an accessible planetary port that entry opens the actual 5,000-credit conversion
-review first, using the prologue's retained document and custom visual host.
-Inspection, reviewed order and completion pair Castle's account with makeshift
-sleeping space, the battered hull and newly fitted bunks. The order buys +18
+At an accessible planetary port that entry opens the founding conversion first as
+a four-page storybook on the prologue's retained document and custom visual host:
+the bill, paid by page 1's Next; the runway the account leaves; and, at Jangala, the
+road up and the ore-dust papers that send the company to work (`opening-dialogue.md`
+§2). Nothing is spent before that Next. After it the pages are a straight
+click-through with no exit control, and Back never returns to the paid bill. The order buys +18
 personnel places and trades away 25 cargo; the remaining damaged rooms, second
-bay and Mech Lab stay damaged. Castle refers to Engineering's survey in character.
-The planet interaction remains alive as the docking and depot authority, and
-Return to port restores its ordinary menu. It spends nothing until Install
-conversion is confirmed. Until the
+bay and Mech Lab stay damaged. The planet interaction remains alive as the docking
+and depot authority, and its ordinary menu returns when the storybook closes. Until the
 founding conversion is installed, no alternative hull can bypass company designation.
 
 A `PreparationDepot` is a finite prepaid consignment at the planet that converted

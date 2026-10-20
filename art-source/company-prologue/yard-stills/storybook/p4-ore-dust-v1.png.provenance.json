@@ -1,0 +1,75 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15a6b-e5f7-7083-92da-61d8d30b47c0",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15a6b-e5f7-7083-92da-61d8d30b47c0\\call_5e09f29889874e28891e9a050b9f0e8f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\yard-stills\\storybook\\p4-ore-dust-v1.png",
+    "sha256": "b61489968d46282a0d538e768c6c7c8966b92248a62be4c726cb05750fc1ff41",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\yard-stills\\storybook\\p4-ore-dust-v1.prompt.txt",
+  "promptSha256": "1e0e962f2eb5363c738030b2ca4d81cc7ba687bc6052194b06736d0d67dded6c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: the real Second Wind's port flank and open cargo bay, camera and hull fixed\nImage 2: Place and light only: Kilo Nine yard in daylight; not the camera\nImage 3: Vehicle identity only: Wayline hauler cab design and livery, top-down; not a pose\nImage 4: Costume and identity: Sabine Hale and her section's field jackets\n\nUse case: sketch-to-render. One landscape 1536x1024 (3:2) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, rust-orange plate, humid hazy daylight, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 900x600. No legible text, letters or numbers, logos, watermarks, border or interface.\n\nReference roles:\n- Reference 1 is the GEOMETRY AUTHORITY for the ship: a render of the real Second Wind's port flank, looking up at her from the ground, with her side cargo bay open (the dark rectangular opening left of centre) and the big armoured drum of the drive pod to its right. Keep the camera, her exact shape, the bay opening, every panel and patch and her rust-orange and gunmetal livery. Do not move, resize, add or remove hull parts. Everything below and around the hull is empty in the render: paint it.\n- Reference 2 is PLACE AND LIGHT: Kilo Nine, the small private repair yard at the jungle-world spaceport of Jangala, where the ship stands in her cradle in hazy late-morning daylight, with yellow scaffolding, gravel and jungle. Light the hull with that same high hazy sun, not the render's lighting. Do not copy its camera.\n- Reference 3 is VEHICLE IDENTITY: the Wayline freight hauler's cab, seen from above: a boxy angular olive-drab cab with amber marker lights and a dark windscreen, rust-orange frame rails and yellow-black hazard stripes. Top-down sprite, not a pose.\n- Reference 4 is COSTUME AND IDENTITY for Sabine Hale and her escort section: slate-blue and charcoal armoured field jackets, no helmets. Sabine herself has short dark auburn hair.\n\nPaint around the ship: open sky with haze above, the yard's gravel and stained concrete below her, a scaffold tower at one edge, jungle canopy and port cranes faint in the distance. A steel loading ramp runs down from the open cargo bay to the ground.\n\nTHE POINT OF THE PICTURE, in the lower half, mid-distance and fully readable: a Wayline hauler (olive cab, reference 3) pulling a long OPEN FLATBED trailer is parked beside the ramp, the flatbed broadside to the viewer. The flatbed is EMPTY except for one single small sealed sack of grey ore dust, about the size of a loaf of bread, sitting in the exact middle of the long bare deck, lashed down with far too many heavy cargo straps, all of them pulled tight over that one little sack. It must read at a glance: a whole truck for one small sack.\nAround the truck, about a dozen soldiers of the escort section (reference 4) are climbing up onto the flatbed and sitting along its edges with their rifles, kit bags and water cans, as if the cargo needs a whole section to guard it. Sabine stands at the tailgate with a rifle slung, counting them aboard. Up at the top of the ramp, in the bay, a small figure in a dark olive duty jacket watches with her arms folded. Everyone is small at this distance; faces are not the subject. Nobody is in the near foreground.\n\nMood: a straight-faced joke. Practical, unglamorous, a little defiant. Everyone is completely serious about the sack.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\story-stills\\guides\\p5-port-bay.png",
+      "sha256": "277c9614b052ab31e547f3ff54cc5f41fdf9e7b5a9f9fb6e76216059673e6429",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Geometry authority: the real Second Wind's port flank and open cargo bay, camera and hull fixed"
+    },
+    {
+      "path": "art-source\\company-prologue\\yard-stills\\yard-hull-bg-v3.png",
+      "sha256": "1f8345b161b4568d7d10fb531be0d9860ea0a6b946e5a6b3cbb46fa0218af9da",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Place and light only: Kilo Nine yard in daylight; not the camera"
+    },
+    {
+      "path": "mod\\graphics\\battle\\vehicles\\wayline-hauler.png",
+      "sha256": "ab8bd67863c46815025dd6f39642b30308d514dbc90ae181d612b9d35d5b5427",
+      "dimensions": [
+        2048,
+        384
+      ],
+      "mode": "RGBA",
+      "role": "Vehicle identity only: Wayline hauler cab design and livery, top-down; not a pose"
+    },
+    {
+      "path": "art-source\\portraits\\sabine-hale.master.png",
+      "sha256": "008daeb37fe8bd34c80fa135130bfe7e1525edc485a5b0933f31cc42a5947dea",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Costume and identity: Sabine Hale and her section's field jackets"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the fixed ship geometry and the oversized escort for the tiny sack."
+  ],
+  "usage": {
+    "input_tokens": 62696,
+    "cached_input_tokens": 32000,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1033,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 78.1
+}

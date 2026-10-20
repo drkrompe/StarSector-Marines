@@ -1,4 +1,4 @@
-<template props="heading,caption,note,skipLabel,title,narrative,dialogue,portrait,image,page,manifest,reserve,destination,nextLabel,nextDisabled,backDisabled,next,back,skip">
+<template props="heading,caption,note,skipLabel,title,narrative,dialogue,portrait,image,page,manifest,reserve,destination,nextLabel,nextDisabled,backDisabled,next,back,skip,skipClasses">
   <div id="prologue-root" class="prologue-root">
     <div id="prologue-header" class="prologue-header console-header">
       <div id="prologue-heading" class="label title">{heading}</div>
@@ -28,7 +28,7 @@
         </div>
       </div>
     </div>
-    <div id="prologue-footer" class="prologue-footer"><div id="prologue-note" class="label tone-muted prologue-note">{note}</div><button id="prologue-skip" class="prologue-skip" onclick="{skip}">{skipLabel}</button></div>
+    <div id="prologue-footer" class="prologue-footer"><div id="prologue-note" class="label tone-muted prologue-note">{note}</div><button id="prologue-skip" class="{skipClasses}" onclick="{skip}">{skipLabel}</button></div>
   </div>
 </template>
 <style>
@@ -54,4 +54,6 @@
 .prologue-footer { flex-direction: row; height: 42px; align-items: center; gap: 16px; }
 .prologue-note { flex-grow: 1; white-space: normal; }
 .prologue-skip { white-space: normal; width: 200px; height: 38px; text-align: center; border-width: 1px; }
+/* A flow with no way out but through (the yard storybook) keeps the slot and drops the control. */
+.prologue-skip.prologue-skip-off { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
 </style>

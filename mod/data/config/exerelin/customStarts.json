@@ -4,7 +4,7 @@
 			"id":"sm_secondWind",
 			"name":"Commander of the Second Wind (Marines story start)",
 			"difficulty":"Normal",
-			"desc":"Leave Harker's Claim aboard Second Wind, a Cerberus held together by the people who flew her out. No licence, no patron, five hundred credits. Build a mercenary company from nothing.",
+			"desc":"Leave Harker's Claim aboard Second Wind, a Cerberus held together by the people who flew her out. No licence, no patron, four hundred and seventy-three credits. Build a mercenary company from nothing.",
 			"className":"com.dillon.starsectormarines.campaign.nexerelin.SecondWindNexStart",
 			"randomSector":-1
 		}

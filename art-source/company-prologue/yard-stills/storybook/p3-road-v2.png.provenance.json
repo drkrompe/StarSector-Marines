@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15a6d-725a-7322-b415-1cadd7bce872",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15a6d-725a-7322-b415-1cadd7bce872\\call_c144a7b484a64dada8b605ebbaef8c2f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\yard-stills\\storybook\\p3-road-v2.png",
+    "sha256": "bbd875a73632ebc190bad79101be14bb4c2c02867fa79390db2025ddc098b312",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\yard-stills\\storybook\\p3-road-v2.prompt.txt",
+  "promptSha256": "7bf931fa82c0fdb5b1d453ef595276fc84eb966e4d7888483125999d38849894",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target and layout authority: keep everything but the racks and Mara's jacket\nImage 2: Identity only: Mara Venn's jacket, hair and headset, seen from behind\n\nOne landscape 1536x1024 (3:2) cinematic story illustration for a mature industrial science-fiction game: a careful edit of reference 1. Restrained realistic hand-painted finish matching reference 1 exactly. No legible text, letters or numbers, logos, watermarks, border or interface.\n\nReference roles:\n- Reference 1 is the EDIT TARGET and layout authority. Keep EXACTLY its camera, frame, light and everything outside the racks: the open roller door, the shot-up Wayline hauler, the seated driver, the standing woman, the yard, the jungle, the hills, the switchback road and the smoke on it.\n- Reference 2 is IDENTITY ONLY for the standing woman, Mara Venn, seen from behind: her scuffed charcoal work jacket with a rust-orange collar, dark brown loose short ponytail and single-ear headset.\n\nChange only two things:\n1. The tall steel parts racks on the left and right, inside the store, must read at a glance as HALF EMPTY: a yard that cannot get parts. Clear about half of the bays entirely: bare dusty steel shelves with clean pale rectangles in the dust where parts used to sit, and blank paper tags still hanging from the empty bays on string. The few parts that remain (pump housings, seal rings, a coil drum) are spread thin, one or two to a shelf. Also clear most of the crates from the near floor, leaving the floor open and swept.\n2. Dress the standing woman as in reference 2: a charcoal work jacket with a rust-orange collar instead of the grey overalls; her pose, size and place stay the same, back to the viewer, one hand on the shot-up cab door.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\yard-stills\\storybook\\p3-road-v1.png",
+      "sha256": "d1da7e046503460fcf3b3a36f6c9a2bf55d985df86237cd725a137d6bfe92cbb",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Edit target and layout authority: keep everything but the racks and Mara's jacket"
+    },
+    {
+      "path": "art-source\\portraits\\mara-venn.master.png",
+      "sha256": "81d62c09fe53397799c149233b03eca89d24f7e54b5d63d12f39f982040d5eb7",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity only: Mara Venn's jacket, hair and headset, seen from behind"
+    }
+  ],
+  "agentMessages": [
+    "I’ll make the two requested edits, preserving the composition and everything else in reference 1."
+  ],
+  "usage": {
+    "input_tokens": 53743,
+    "cached_input_tokens": 27776,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 460,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 110.8
+}

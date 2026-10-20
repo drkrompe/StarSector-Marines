@@ -41,6 +41,9 @@ import bpy
 from mathutils import Vector
 from cl_kit import loft_x, octagon, revolve_x, material, inset
 import cl_hull
+# Bolt studs, revolves, rods, bent rails, the RCS quad and the work-lamp housing: the shared kit's.
+from ship_detail_kit import (studs as _studs, revolve_at as _revolve_z, rod as _rod, revolve_dir as _revolve_dir,
+                             join as _join, bent_rail as _rail, rcs_quad as _rcs_quad, lamp_housing as _lamp_housing)
 
 # (x, y, width, angle) exactly as colossus.ship lists them.
 ENGINES = [(-124, 64, 15, 180), (-124, 56, 15, 180), (-124, 49, 15, 180),
@@ -151,48 +154,6 @@ def _skin(kit, name, secs, grow, clip, mat, bevel=.08):
         b = skin.modifiers.new('Plate edge chamfer', 'BEVEL')
         b.width, b.segments, b.limit_method = bevel, 1, 'ANGLE'
     return skin
-
-
-def _studs(kit, name, points, axis, r, h, mat, n=6):
-    """Bolt heads: one mesh of short n-gon prisms at points, standing along axis ('X'|'Y'|'Z', sign)."""
-    ax, sign = axis
-    verts, faces = [], []
-    for p in points:
-        base = len(verts)
-        for lvl in (0, h*sign):
-            for k in range(n):
-                a = 2*math.pi*k/n
-                c, s = r*math.cos(a), r*math.sin(a)
-                if ax == 'Z':
-                    verts.append((p[0]+c, p[1]+s, p[2]+lvl))
-                elif ax == 'Y':
-                    verts.append((p[0]+c, p[1]+lvl, p[2]+s))
-                else:
-                    verts.append((p[0]+lvl, p[1]+c, p[2]+s))
-        faces.append(tuple(base+k for k in range(n)))
-        faces.append(tuple(base+n+k for k in range(n)))
-        faces += [(base+k, base+(k+1) % n, base+n+(k+1) % n, base+n+k) for k in range(n)]
-    return kit.mesh(name, verts, faces, mat)
-
-
-def _revolve_z(kit, name, profile, cx, cy, z, mat, n=24):
-    """Closed (r, dz) outline revolved about a vertical axis at (cx, cy, z)."""
-    verts = [(cx+r*math.cos(2*math.pi*i/n), cy+r*math.sin(2*math.pi*i/n), z+dz) for r, dz in profile for i in range(n)]
-    m = len(profile)
-    faces = []
-    for a in range(m):
-        b = (a+1) % m
-        faces += [(a*n+i, a*n+(i+1) % n, b*n+(i+1) % n, b*n+i) for i in range(n)]
-    return kit.mesh(name, verts, faces, mat)
-
-
-def _rod(kit, name, p0, p1, r, mat, n=8):
-    p0, p1 = Vector(p0), Vector(p1)
-    d = p1-p0
-    bpy.ops.mesh.primitive_cylinder_add(vertices=n, radius=r, depth=d.length, location=(p0+p1)/2)
-    ob = bpy.context.object
-    ob.rotation_euler = d.to_track_quat('Z', 'Y').to_euler()
-    return kit.finish(ob, name, mat, 0)
 
 
 def _top(kit, x, y):
@@ -345,24 +306,6 @@ HUMP_REL = (52.0, 74.0)
 HUMP_TOP = 27.0
 
 
-def _revolve_dir(kit, name, profile, origin, axis, mat, n=24, bevel=0):
-    """Closed (t, r) outline revolved about the line origin + t*axis."""
-    o, a = Vector(origin), Vector(axis).normalized()
-    u = a.cross(Vector((0, 0, 1)) if abs(a.z) < .9 else Vector((1, 0, 0))).normalized()
-    w = a.cross(u)
-    verts = []
-    for t, r in profile:
-        for i in range(n):
-            ang = 2*math.pi*(i+.5)/n
-            verts.append(tuple(o+a*t+u*(r*math.cos(ang))+w*(r*math.sin(ang))))
-    m = len(profile)
-    faces = []
-    for p in range(m):
-        q = (p+1) % m
-        faces += [(p*n+i, p*n+(i+1) % n, q*n+(i+1) % n, q*n+i) for i in range(n)]
-    return kit.mesh(name, verts, faces, mat, bevel)
-
-
 def _wall_strip(kit, name, s, x0, x1, z0, z1, d0, d1, mat, bevel=.1, taper=1.2):
     """A strip lofted along the outboard wall from x0 aft to x1, wall offset d0..d1 (rel y), z0..z1."""
     xs = [x0, x0-taper]+[x for x, *_ in ENVELOPE if x1+taper < x < x0-taper]+[x1+taper, x1]
@@ -382,47 +325,6 @@ def _hit(ob, x, y, top=60):
     ev = ob.evaluated_get(bpy.context.evaluated_depsgraph_get())
     hit, p, _, _ = ev.ray_cast(ev.matrix_world.inverted() @ Vector((x, y, top)), Vector((0, 0, -1)))
     return (ev.matrix_world @ p).z if hit else None
-
-
-def _join(parts, name):
-    bpy.ops.object.select_all(action='DESELECT')
-    for p in parts:
-        p.select_set(True)
-    bpy.context.view_layer.objects.active = parts[0]
-    bpy.ops.object.join()
-    ob = bpy.context.view_layer.objects.active
-    ob.name = ob.data.name = name
-    return ob
-
-
-def _rail(kit, name, pts, r, mat, n=8):
-    """A bent bar through pts: one rod per leg, gathered into one object."""
-    return _join([_rod(kit, name+' leg', p, q, r, mat, n) for p, q in zip(pts, pts[1:])], name)
-
-
-def _rcs_quad(kit, name, x, y, z, out, fore_sign, mats):
-    """A low-tech RCS quad: pedestal, bolted housing and four bells (fore/aft, outboard, up, down-slant)."""
-    _revolve_z(kit, name+' pedestal', [(0, -1.5), (1.15, -1.5), (1.15, .2), (.9, .45), (0, .45)], x, y, z,
-               kit.steel, n=24)
-    hz = z+1.3
-    _block(kit, name+' housing', x-1.2, x+1.2, y-1.2, y+1.2, z+.3, z+2.3, kit.pale, .18)
-    _studs(kit, name+' housing bolts', [(x+dx, y+dy, z+2.3) for dx in (-.85, .85) for dy in (-.85, .85)],
-           ('Z', 1), .13, .14, kit.steel)
-    dirs = [(fore_sign, 0, 0), (0, out, 0), (0, 0, 1), (0, out*.7, -.7)]
-    for k, d in enumerate(dirs, 1):
-        dv = Vector(d).normalized()
-        base = Vector((x, y, hz))+Vector((dv.x*1.15, dv.y*1.15, dv.z*1.0))
-        _revolve_dir(kit, f'{name} bell {k}', [(0, 0), (0, .32), (.25, .3), (.85, .55), (.85, .45), (.3, .2), (.3, 0)],
-                     base, dv, kit.steel if k % 2 else mats['lip'], n=16)
-
-
-def _lamp_housing(kit, name, x, y, z, aim, mat_lens):
-    """An unlit work-lamp housing on a bracket, its lens facing along aim (no lights layer)."""
-    a = Vector(aim).normalized()
-    _rod(kit, name+' bracket', (x, y, z-.2), (x, y, z+1.0), .14, kit.steel, n=8)
-    p = Vector((x, y, z+1.3))
-    _revolve_dir(kit, name+' housing', [(-.55, 0), (-.55, .38), (-.2, .5), (.25, .5), (.25, 0)], p, a, kit.steel, n=20)
-    _revolve_dir(kit, name+' lens', [(.2, 0), (.2, .42), (.32, .42), (.32, 0)], p, a, mat_lens, n=20)
 
 
 def tug(kit, side, s, mats, secs, casing, ys, by0, by1):
