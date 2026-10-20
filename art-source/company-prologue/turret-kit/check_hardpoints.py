@@ -25,6 +25,7 @@ def clashes(tol=.15, scene=None):
     scene = scene or bpy.context.scene
     bpy.context.view_layer.update()
     dg = bpy.context.evaluated_depsgraph_get()
+    fx = {o for c in bpy.data.collections if c.name.startswith('SWFX') for o in c.all_objects}
     mounts = {}
     for ob in scene.objects:
         # A kit hardpoint is '<prefix> hardpoint <key>' on a mount empty whose own name starts
@@ -35,12 +36,13 @@ def clashes(tol=.15, scene=None):
             prefix = ob.name.split(' hardpoint ')[0]
             if ob.parent.name.startswith(prefix+' '):
                 m = ob.parent
-                mounts.setdefault(m.name, set()).update(m.children_recursive)
+                mounts.setdefault(m.name, set()).update(c for c in m.children_recursive if c not in fx)
     weapon = set().union(*mounts.values()) if mounts else set()
     solids = {}
-    fx = {o for c in bpy.data.collections if c.name.startswith('SWFX') for o in c.all_objects}
     for ob in scene.objects:
-        if ob.type != 'MESH' or ob in weapon or ob in fx:   # the effects kit's flashes wrap muzzles by design
+        if ob.type != 'MESH' or ob in weapon or ob in fx:   # the effects kit's flashes wrap muzzles by design,
+            # and are neither hull nor weapon (they ride the muzzle anchors, so a mount's
+            # children include them too)
             continue
         ev = ob.evaluated_get(dg)
         me = ev.to_mesh()

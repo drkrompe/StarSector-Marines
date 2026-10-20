@@ -162,6 +162,12 @@ public record ConquestFrontSnapshot(
         DEFENCE_STRUCTURE_RETAKE,
         /** A squad detached to stand to at this side's own ground-defence structure while it is being pressed. */
         DEFENCE_STRUCTURE_DEFEND,
+        /** The reserve share of the defender's pool, held at a staging cell behind a fort under assault for its counter-attack. */
+        DEFENDER_COUNTERATTACK_RESERVE,
+        /** A squad gathering at the staging cell for a counter-attack on a fort the defender has lost or is losing. */
+        DEFENDER_COUNTERATTACK_MUSTER,
+        /** A squad of a counter-attack launched as one push at a lost fort's critical aspect. */
+        DEFENDER_COUNTERATTACK_LAUNCH,
         /** A squad held at the landing while an assault company musters, so the foothold stays held. */
         MUSTER_FOOTHOLD,
         /** A squad gathering at the company rally point for an objective one squad cannot take. */
