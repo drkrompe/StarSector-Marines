@@ -54,7 +54,7 @@ public final class SecondWindBuyBackScreen extends MissionFlowMlxScreen {
         props.put("heading", Strings.get("secondWindBuyBackHeading"));
         props.put("page", "");
         props.put("portrait", CompanyManagementGuide.portrait());
-        props.put("image", CompanyPrologueScreen.image(market ? "yard-chits" : "yard-hull"));
+        props.put("image", CompanyPrologueScreen.image(market ? "buyback-open-market" : "buyback-towed-in"));
         props.put("title", Strings.get(market ? "secondWindBuyBackMarketTitle" : "secondWindBuyBackBattleTitle"));
         props.put("caption", Strings.get(market ? "secondWindBuyBackMarketCaption" : "secondWindBuyBackBattleCaption"));
         props.put("narrative", Strings.format(switch (cause) {
