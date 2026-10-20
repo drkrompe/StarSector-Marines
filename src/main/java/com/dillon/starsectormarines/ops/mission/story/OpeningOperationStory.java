@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.mission.story;
 
+import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.MissionType;
@@ -51,13 +52,19 @@ public final class OpeningOperationStory implements StoryMissionDef {
                     + "Eliminate the depot guards; expect a reserve inside. The employer provides one shuttle. "
                     + "Independent freight crews pool their security funds for jobs like this.";
         } : WaylineArc.briefing(kind, planet);
-        int playerSorties = kind == OpeningOperationKind.RELIEF ? 1 : 2;
-        return Mission.builder()
+        // The story chapter's company rides up on Wayline's truck as its ore dust's escort and starts ashore;
+        // only the employer's militia shuttle flies. The repeatable posting still needs company lift.
+        boolean groundStart = !recurring && kind == OpeningOperationKind.RELIEF;
+        int playerSorties = groundStart ? 0 : kind == OpeningOperationKind.RELIEF ? 1 : 2;
+        Mission.Builder builder = Mission.builder()
                 .id(id).name(recurring ? kind.recurringName : kind.displayName)
                 .type(MissionType.ASSAULT).source(recurring ? MissionSource.RECURRING : MissionSource.STORY)
                 .payout(kind.payout).risk(RiskLevel.LOW)
-                .requirements("Company lift for " + playerSorties + (playerSorties == 1 ? " sortie" : " sorties"))
+                .requirements(groundStart ? "Company rides up with the Wayline consignment; no company lift needed"
+                        : "Company lift for " + playerSorties + (playerSorties == 1 ? " sortie" : " sorties"))
                 .flavor(flavor).mapPosition(0.12f + random.nextFloat() * 0.76f, 0.12f + random.nextFloat() * 0.76f)
-                .requiredDrops(playerSorties + 1).employerShuttles(1).targetPlanetName(planet).build();
+                .requiredDrops(playerSorties + 1).employerShuttles(1).targetPlanetName(planet);
+        if (groundStart) builder.marineArrivalPolicy(MarineArrivalPolicy.SECURED_GROUND);
+        return builder.build();
     }
 }
