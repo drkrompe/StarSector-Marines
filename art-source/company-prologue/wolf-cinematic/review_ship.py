@@ -61,6 +61,11 @@ VIEWS = {
     'bow-quarter': (42, 20, 54, Vector((42, 0, 1))),
     'launcher-detail': (38, 24, 26, Vector((12, 20, 4))),
     'pd-detail': (-40, 30, 30, Vector((-13.6, 12.4, 6))),
+    # Round 7 detail pass: the bridge and its roof fittings, the drive section's radiators,
+    # louvres and RCS, and the belly (sensor blister, docking collar and lights, keel).
+    'bridge-detail': (40, 26, 32, Vector((35, 0, 7))),
+    'drive-detail': (-58, 30, 42, Vector((-24, 5, 3))),
+    'ventral-quarter': (50, -30, 128, T0),
 }
 # The close Asharu shot: (azimuth from +X toward +Y, elevation, metres, lens mm).
 SHOTS = {'asharu-s9': (55, 16, 670.0, 28.0)}
