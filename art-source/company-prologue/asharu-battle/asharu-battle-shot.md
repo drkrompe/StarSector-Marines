@@ -395,22 +395,29 @@ No further hulls are to be ordered from this blockout unless the owner asks
 The Mule, Buffalo, Dram and Buffalo Mk.II stay stand-ins, because they are only
 seen at a distance.
 
-| Hull | Build (Drive `builds/...`) | Copy into `build/asharu-battle/inputs/` as | State |
-|---|---|---|---|
-| Colossus | `colossus/139e8b8b6` | `colossus.blend`, `colossus-manifest.json` | finished |
-| Shepherd "Morrow" | `shepherd/5860eae2b` | `shepherd.blend`, `shepherd-manifest.json` | finished |
-| Lasher x3 | `lasher-independent/7805d3b` (`lasher.blend`) | `lasher-independent.blend`, `lasher-independent-manifest.json` | finished; awaiting the owner's review |
-| Hound | `hound-independent/1e91821` | `hound-independent-clean.blend`, `hound-independent-manifest.json` | **accepted** |
-| Hound (P) x2 | `hound-p/33114de` | `hound-p-pirate.blend`, `hound-p-manifest.json` | **accepted** |
-| Kite (P) x2 | `kite-p/a48f8757b` | `kite-p.blend`, `kite-p-manifest.json` | **accepted** |
-| Falcon (P) | `falcon-p/0044413fc` | `falcon-p.blend`, `falcon-p-manifest.json` | **accepted** |
-| Colossus Mk.III | `colossus-mk3/005c3b11b` | `colossus-mk3.blend`, `colossus-mk3-manifest.json` | **accepted** |
-| Phaeton | `phaeton/e9ab52297` `intact/` and `destroyed/` | `phaeton.blend` + `phaeton-manifest.json`; `phaeton-destroyed.blend` + `phaeton-destroyed-manifest.json` | **accepted** (both states, including the eight-blast cook-off) |
-| Tarsus | `tarsus/2e7d396fc` `clean/` and `boarded/` (both `tarsus.blend`) | `tarsus.blend` + `tarsus-manifest.json`; `tarsus-boarded.blend` + `tarsus-boarded-manifest.json` | **accepted** (owner, 2026-10-20) |
-| Wolf (P) x2, merchant Wolf | `wolf-p/f60641f63`, `wolf/f60641f63` | `wolf-p.blend`, `wolf-p-manifest.json`; `wolf.blend`, `wolf-manifest.json` | finished; size not settled (70 m); a turret clash check may update the build |
-| Manticore (P) | none yet: the hull is in the owner's review | none: a stand-in at its published 91 m (0.59 m/u) | effects pass and Drive build come after acceptance |
+Each build is one Drive folder, copied whole to `build/asharu-battle/builds/<folder>/` by hand,
+or by the render queue as a drive input (`queue_jobs.py`), pinned by its blend's sha256.
+`roster.FINISHED` holds the same list; change both together. Round 8 (2026-10-20) moved the
+`0cb9d83` rebuilds in.
 
-Each manifest is the build folder's `manifest.json`, renamed as shown. When a build changes, update its row here and its `roster.FINISHED` entry.
+| Hull | Build (Drive `builds/...`) | Local folder | State |
+|---|---|---|---|
+| Colossus | `colossus/139e8b8b6` | `colossus` | finished |
+| Shepherd "Morrow" | `shepherd/0cb9d83` | `shepherd` | finished (kit rebuild) |
+| Lasher x3 | `lasher-independent/0cb9d83` (`lasher.blend`) | `lasher-independent` | finished (kit rebuild); awaiting the owner's review |
+| Hound | `hound-independent/0cb9d83` | `hound-independent` | **accepted** (kit rebuild: chaingun muzzle moved aft) |
+| Hound (P) x2 | `hound-p/0cb9d83` | `hound-p` | **accepted** (kit rebuild) |
+| Kite (P) x2 | `kite-p/0cb9d83` | `kite-p` | **accepted** (kit rebuild: hammer, swarmer as a row of four) |
+| Falcon (P) | `falcon-p/0cb9d83` | `falcon-p` | **accepted** (kit rebuild: swarmer and annihilator muzzles) |
+| Colossus Mk.III | `colossus-mk3/005c3b11b` | `colossus-mk3` | **accepted** |
+| Phaeton | `phaeton/e9ab52297` `intact/` and `destroyed/` | `phaeton`, `phaeton-destroyed` | **accepted** (both states, including the eight-blast cook-off) |
+| Tarsus | `tarsus/2e7d396fc` `clean/` and `boarded/` | `tarsus`, `tarsus-boarded` | **accepted** (owner, 2026-10-20) |
+| Wolf (P) x2, merchant Wolf | `wolf-p/f60641f63`, `wolf/f60641f63` | `wolf-p`, `wolf` | finished; size not settled (70 m); textured builds with effects are due |
+| Manticore (P) | none yet: the final is due | none: a stand-in at its published 91 m (0.59 m/u) | |
+
+Shots leave from the muzzle of the mount that bears (`--check`'s choice), read from each build's
+current muzzle data (positions, or anchors found in the blend), so a kit rebuild that moves a
+muzzle moves the shot with it.
 
 ## Blockout
 
@@ -432,15 +439,12 @@ To check a scene without rendering, run `python battle_blockout.py --check`; `py
 ## Where it stands, and the next step
 
 - **Posted:** round 6 (`review/cinematic-asharu-battle/2026-10-19_round6-colossus-mk3_windows`) is the latest run.
-- **Round 7 is in code but not rendered.** It brings:
-  - the accepted Phaeton cook-off in S6;
-  - the rolls that let the guns bear, in S6, S7 and S8-S9;
-  - the reshaped Wolf and the round 2 Tarsus;
-  - the Manticore (P) at 91 m.
-- **Staged on Windows (2026-10-20):**
-  - Every build in the table is copied into `build/asharu-battle/inputs/`. The Colossus is
-    `colossus/139e8b8b6` (coordinator's call: the newest build; Asharu needs no front shields).
-  - `--check` is clean: all 11 tracers and missiles bear. No staging change was needed.
+- **Round 7** (r7c) was queued from a flat inputs folder on the Windows worktree.
+- **Round 8 (2026-10-20): the newest builds.** The kit rebuilds at `0cb9d83` (Lasher, both
+  Hounds, Kite (P), Falcon (P), Shepherd) replace the earlier builds, and shots now leave from
+  the bearing mount's muzzle. `--check` is clean: all 22 tracers and missiles bear. Queued as two
+  review jobs (the cook-off k3 alone; k3b, k4, r1, r2 together) with `--run r8`, frame resume and
+  drive inputs pinned by sha256. They need the Starsector install, so they run on Windows.
 - **Render cost** of `--frames k3,k3b,k4,r1,r2 --samples 48`, extrapolated from quarter-size and
   half-size samples on the RTX 3080 (k3b was not sampled):
   - k3 (S6) is nearly all of it. The cook-off's volumes scale linearly with pixels times samples:
@@ -459,10 +463,9 @@ To check a scene without rendering, run `python battle_blockout.py --check`; `py
   key frames (k3c S6b, k3d S6c, k3e S6d, k4b S9b), all of whose shots bear, plus a voiced cast.
   About 2 minutes.
 - **Next step:**
-  1. Settle the staging on the layout sheets, including the four new shots.
-  2. Then render the set above, by night, through the owner.
-  3. Post with `--what round7-gunnery-cookoff`, then prune.
-  4. S10 (k5) is not in that set. Re-render it only once the owner settles its camera.
+  1. Settle the staging on the layout sheets, including the four new shots (not in round 8).
+  2. Review round 8 (`--what round8-new-builds`) when it lands; prune.
+  3. S10 (k5) is not in that set. Re-render it only once the owner settles its camera.
 
 ## What the brawl asks of the builds and the effects
 
