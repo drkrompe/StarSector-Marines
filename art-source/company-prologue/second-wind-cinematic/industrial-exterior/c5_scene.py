@@ -39,6 +39,7 @@ one frame a second) to build/c5/frames/.
 """
 import json
 import math
+import os
 import random
 import sys
 import time
@@ -69,6 +70,10 @@ SETTLE = 1.07                      # how much further it drifts up after the ris
 PARKED = c4.CUSTOMS_ARRIVE - c4.DURATION + 0.5   # every vehicle has stopped by this C5 second
 TITLE_T0 = 24.0                     # Castle's last line ends here; the title's reveal is timed from it
 NAV_BOX = (298.0, 389.0, 452.0, 472.0)
+# C5_NESSA=1 (a proposal awaiting the owner, off by default): Nessa's stand-in dressed as her character
+# sheet has her (`c5_crowd.body_nessa`), arms folded once she stops, facing the hull. Where she
+# stands and when she comes out are unchanged.
+NESSA = bool(os.environ.get('C5_NESSA'))
 
 KX, KY = c4.K9
 KH = c4.k9_heading()
@@ -134,8 +139,12 @@ def cast(rng):
         plan = [('stay',)] if k == 3 else [('wait', 2.0 + 0.8 * k), ('go', DOOR_FRONT, 0.5), ('enter', DOOR)]
         worker('Yard idler %d' % k, Vector(spot), plan, look=None)
     # Nessa: out of her door, a few steps, and stands apart.
-    groups.append(G([W('Nessa', 'nessa', speed=1.0, look=RAMP)], DOOR_FRONT, 4.5,
-                    [('go', Vector((350.0, 419.0)), 0.5), ('stay',)]))
+    if NESSA:
+        groups.append(G([W('Nessa', 'nessa', speed=1.0, look=ship)], DOOR_FRONT, 4.5,
+                        [('go', Vector((350.0, 419.0)), 0.5), ('pose', 'folded'), ('stay',)]))
+    else:
+        groups.append(G([W('Nessa', 'nessa', speed=1.0, look=RAMP)], DOOR_FRONT, 4.5,
+                        [('go', Vector((350.0, 419.0)), 0.5), ('stay',)]))
     # The families.
     sizes = [3, 2, 4, 1, 3, 2, 5, 1, 2, 3, 4, 2, 3]
     special = {2: [('go', SPOTS['wait'], 1.5), ('wait', 9.0), ('go', DOOR_FRONT, 2.5), ('enter', DOOR)],
@@ -236,6 +245,11 @@ def setup(body):
         make = crowd.body_sprite(c4.mesh, c4.SUN_DIR, OUT / 'sprites', c4.box, c4.material)
     else:
         make = crowd.body_3d(c4.mesh, c4.box, c4.material)
+        if NESSA:
+            plain, nessa = make, crowd.body_nessa(c4.mesh, c4.box, c4.material)
+
+            def make(w, n):
+                return nessa(w, n) if w.role == 'nessa' else plain(w, n)
     crowd.keyed(walkers, ground_z, C4_END, make)
     if '--no-port' not in sys.argv:
         (OUT / 'walk-maps').mkdir(parents=True, exist_ok=True)
