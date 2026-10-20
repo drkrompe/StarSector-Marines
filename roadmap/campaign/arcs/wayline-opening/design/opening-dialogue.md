@@ -711,15 +711,17 @@ player has met Nessa.
    > watch holding it is paid from the same collection as your fee. I know half of
    > them from the loading shifts.
 4. > Licensed companies cost more than we have. You cost what we have. On paper
-   > I've bought a load of ore dust, delivered to the checkpoint gate, and your
-   > people are its escort. Get it there, help them hold that gate, and you're paid
-   > on delivery. I'd rather you than nothing, and I expect you'd rather us than
-   > nothing too. One job at a time, Commander.
+   > you're escorting a delivery to my checkpoint, and you're paid when it
+   > arrives. In practice, help my watch hold that gate. One job at a time,
+   > Commander.
 
 **Briefing, Sabine** (recorded in her voice, after Mara's four turns)
-> Off the truck behind the gate. Twelve of us and one sack of dust. The dust stays
-> with the truck; the rest of us go to the line together. Nobody walks to that gate
-> alone.
+> We're off the truck behind the gate. Two teams, one on each road in. Get on the
+> wall and let them come to us.
+
+The cover story is said once, before the fight (Mara's turn 4), and paid off once
+after it (Castle's receipt). Nobody in the fight talks about the dust (owner,
+2026-10-20).
 
 This was first written into the mission radio, but a recorded line takes over
 from a text-only one at once, so a text line in the middle of Mara's exchange
@@ -736,8 +738,8 @@ launch and plays straight through, a line at a time, while the squad walks from
 the truck to the gate. It is not keyed to individual arrivals, so it cannot fall
 out of order. All Mara.
 
-1. > Mara here. My truck's behind the gate with your people and our dust. Our
-   > watch is holding, but not for long on their own.
+1. > Mara here. Your people are off the truck and behind the gate. Our watch is
+   > holding, but not for long on their own.
 2. > The raiders are coming up the freight and warehouse service roads. That's
    > where the gate gets hit.
 3. > Our militia are coming in on the only shuttle we've got. Keep them with your
