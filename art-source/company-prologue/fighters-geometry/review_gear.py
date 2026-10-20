@@ -1,14 +1,15 @@
 """Review renders of the fighters' retractable gear: flying, mid-stow, landed, and a landed close-up.
 
   blender -b --factory-startup --python review_gear.py -- --blend a.blend [--blend b.blend ...]
-          --out DIR [--half] [--samples 16]
+          --out DIR [--half] [--samples 16] [--views flight,landed]
 
 Each --blend is a textured fighter build (the surfacing build, ../fighters-surface/<id>/build/
 skinned.blend, or a copy) carrying the "<Name> control" empty and its gear_down knob. Per fighter
 it renders, into DIR, <id>-1-flight.png (knob 0, gear stowed, from below the bow quarter),
 <id>-2-mid-stow.png (knob 0.55: doors open, legs on the way), <id>-3-landed.png (knob 1, standing
 on a deck) and <id>-4-gear.png (knob 1, close on the gear). Frames already in DIR are skipped,
-so a swapped-out queue job resumes. --half renders at 960x540 (the render queue's light lane).
+so a swapped-out queue job resumes. --views picks views by name (default flight,landed: the owner
+looks at gear up and gear down; mid-stow and gear are there to ask for). --half renders at 960x540 (the render queue's light lane).
 """
 from pathlib import Path
 import argparse
@@ -22,6 +23,7 @@ ap.add_argument('--blend', action='append', required=True)
 ap.add_argument('--out', required=True)
 ap.add_argument('--half', action='store_true')
 ap.add_argument('--samples', type=int, default=16)
+ap.add_argument('--views', default='flight,landed')
 args = ap.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
 OUT = Path(args.out)
 OUT.mkdir(parents=True, exist_ok=True)
@@ -56,7 +58,8 @@ for path in args.blend:
     scene = bpy.context.scene
     control = next(o for o in bpy.data.objects if o.name.endswith(' control') and 'gear_down' in o)
     fighter = control.name[:-len(' control')].lower()
-    jobs = [v for v in VIEWS if not (OUT/f'{fighter}-{v[0]}.png').exists()]
+    jobs = [v for v in VIEWS if v[0].split('-', 1)[1] in args.views.split(',')
+            and not (OUT/f'{fighter}-{v[0]}.png').exists()]
     if not jobs:
         continue
     for o in list(bpy.data.objects):
