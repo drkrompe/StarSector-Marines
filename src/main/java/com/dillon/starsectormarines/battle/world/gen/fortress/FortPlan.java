@@ -38,6 +38,57 @@ public interface FortPlan {
     /** One gate through the works: the open cell just outside its middle and the direction outward from it. */
     record Gate(int mouthX, int mouthY, int outX, int outY) { }
 
+    /**
+     * A sally port: a short section of the works' wall, two cells along it and as deep as the wall, that stands closed
+     * like the wall round it until the fort's holder unbars it (a fort's ports are its sally doors; see
+     * {@code SallyDoors}). It is authored on a face of the works that has no gate, so the garrison does not walk round
+     * the works to the belt beyond that face. Its cells are
+     * wall cells ({@link #isWall}) at stamping; the mouth is the open cell just outside the first of them, and the inside
+     * cell the open yard cell just behind it.
+     *
+     * @param cells the port's wall cells in the footprint frame
+     * @param mouthX the open cell just outside the port
+     * @param outX the direction outward from the port, a unit step along one axis
+     */
+    record SallyPort(List<int[]> cells, int mouthX, int mouthY, int outX, int outY) {
+        public SallyPort {
+            cells = List.copyOf(cells);
+        }
+
+        /** The yard cell just inside the port, as deep behind the mouth as the wall is thick plus one. */
+        public int[] inside() {
+            int depth = 0;
+            for (int[] c : cells) {
+                depth = Math.max(depth, Math.abs((c[0] - mouthX) * outX) + Math.abs((c[1] - mouthY) * outY));
+            }
+            return new int[]{mouthX - outX * (depth + 1), mouthY - outY * (depth + 1)};
+        }
+
+        /**
+         * A port two cells along a face of the works: {@code alongX, alongY} is the first of the two cells on the
+         * wall's outer layer, {@code outX, outY} the outward step and {@code depth} how many cells thick the wall is.
+         */
+        public static SallyPort onFace(int alongX, int alongY, int outX, int outY, int depth) {
+            List<int[]> cells = new ArrayList<>();
+            int stepX = outY != 0 ? 1 : 0;
+            int stepY = outX != 0 ? 1 : 0;
+            for (int k = 0; k < depth; k++) {
+                for (int s = 0; s < 2; s++) {
+                    cells.add(new int[]{alongX - outX * k + stepX * s, alongY - outY * k + stepY * s});
+                }
+            }
+            return new SallyPort(cells, alongX + outX, alongY + outY, outX, outY);
+        }
+    }
+
+    /**
+     * The sally ports in the works, none by default. A port's cells are part of the wall until unbarred; it is not one of
+     * the {@link #gates()}, so it is no assault approach and the belt does not open in front of it.
+     */
+    default List<SallyPort> sallyPorts() {
+        return List.of();
+    }
+
     FortKind kind();
 
     /** Local width and height of the footprint, belt and fence included. */

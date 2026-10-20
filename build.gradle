@@ -280,6 +280,7 @@ tasks.register('garrisonEvidence', Test) {
     maxParallelForks = 1
     outputs.upToDateWhen { false }
     systemProperty 'starsectorDir', starsectorDir.absolutePath
+    forwardBattleSwitches(delegate)
     testLogging {
         showStandardStreams = true
     }

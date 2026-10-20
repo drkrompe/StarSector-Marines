@@ -321,6 +321,39 @@ public final class Fort {
         magazineBlown = true;
     }
 
+    /**
+     * The side that holds the fort whole: every standing aspect held by it and none contested. {@code null} while the
+     * fort is split between sides, contested, or wrecked to the last aspect. Fire control is read from the battery's own
+     * capture state, which is its authority; the emitter has no holder of its own and is left out.
+     */
+    public Faction wholeHolder() {
+        Faction holder = null;
+        for (Place place : places.values()) {
+            if (place.wrecked || place.aspect == FortAspect.EMITTER) continue;
+            FireControl control = place.aspect == FortAspect.FIRE_CONTROL && battery != null
+                    ? battery.fireControl() : place.control;
+            if (control.contested()) return null;
+            if (holder == null) holder = control.holder();
+            else if (holder != control.holder()) return null;
+        }
+        return holder;
+    }
+
+    // -------------------------------------------------------------------------------------------- sally ports
+
+    private boolean[] sallyPortsOpen = new boolean[0];
+
+    /** Whether sally port {@code index} of the fort's plan has been unbarred. A port, once open, stays open. */
+    public boolean sallyPortOpen(int index) {
+        return index >= 0 && index < sallyPortsOpen.length && sallyPortsOpen[index];
+    }
+
+    /** Records that sally port {@code index} has been unbarred (by {@code SallyDoors}). */
+    public void markSallyPortOpen(int index) {
+        if (index >= sallyPortsOpen.length) sallyPortsOpen = Arrays.copyOf(sallyPortsOpen, index + 1);
+        sallyPortsOpen[index] = true;
+    }
+
     // -------------------------------------------------------------------------------------------- shield fort
 
     private Faction domeHolderNow;
