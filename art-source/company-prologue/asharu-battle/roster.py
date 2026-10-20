@@ -29,14 +29,15 @@ from starsector_path import GAME_CORE  # noqa: E402
 #   manifest is the folder's manifest.json); length_m: the settled hull length.
 FINISHED = {
     'colossus': dict(dir='colossus', drive='builds/colossus/139e8b8b6', file='colossus.blend', length_m=108.5),
-    'shepherd': dict(dir='shepherd', drive='builds/shepherd/0cb9d83', file='shepherd.blend', length_m=67.1),
+    'shepherd': dict(dir='shepherd', drive='builds/shepherd/c85fb19b6', file='shepherd.blend', length_m=67.1),
     'lasher': dict(dir='lasher-independent', drive='builds/lasher-independent/0cb9d83', file='lasher.blend',
                    length_m=90.0),
-    'hound': dict(dir='hound-independent', drive='builds/hound-independent/0cb9d83',
+    'hound': dict(dir='hound-independent', drive='builds/hound-independent/5cb098e10',
                   file='hound-independent-clean.blend', length_m=60.8),
-    'hound-p': dict(dir='hound-p', drive='builds/hound-p/0cb9d83', file='hound-p-pirate.blend', length_m=60.8),
+    'hound-p': dict(dir='hound-p', drive='builds/hound-p/5cb098e10', file='hound-p-pirate.blend', length_m=60.8),
     'kite-p': dict(dir='kite-p', drive='builds/kite-p/0cb9d83', file='kite-p.blend', length_m=52.2),
-    'falcon-p': dict(dir='falcon-p', drive='builds/falcon-p/0cb9d83', file='falcon-p.blend', length_m=174.4),
+    'falcon-p': dict(dir='falcon-p', drive='builds/falcon-p/06784b46f', file='falcon-p.blend', length_m=174.4),
+    'manticore-p': dict(dir='manticore-p', drive='builds/manticore-p/056e05c26', file='manticore-p.blend', length_m=91.3),
     'wolf-p': dict(dir='wolf-p', drive='builds/wolf-p/f60641f63', file='wolf-p.blend', length_m=70.0),
     'wolf': dict(dir='wolf', drive='builds/wolf/f60641f63', file='wolf.blend', length_m=70.0),
     'colossus-mk3': dict(dir='colossus-mk3', drive='builds/colossus-mk3/005c3b11b', file='colossus-mk3.blend',
@@ -76,7 +77,7 @@ PIRATE = [
     dict(key='colossus3', game='colossus3', name='Colossus Mk.III', role='prize ship: an armed Colossus come to take the cargo',
          finished='colossus-mk3'),
     dict(key='manticore-p', game='manticore_pirates.skin', name='Manticore (P)', role='long-range destroyer: breaks the screen',
-         published_m=91.0),     # ship_scale.py 0.59 m/u (b11042b62); the hull is in review, so a slab stands in
+         finished='manticore-p'),
     dict(key='buffalo2-a', game='buffalo2', name='Buffalo Mk.II', role='destroyer'),
     dict(key='buffalo2-b', game='buffalo2', name='Buffalo Mk.II', role='destroyer'),
     dict(key='wolf-p-a', game='wolf_d_pirates.skin', name='Wolf (P)', role='fast frigate: cuts the column', finished='wolf-p'),

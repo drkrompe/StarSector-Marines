@@ -9,6 +9,7 @@
                                               # --post then dates the review folder by the day r7 began
     python battle_blockout.py --rerender      # render every frame even if a finished one is on disk
     python battle_blockout.py --root DIR      # put run folders under DIR (a render-queue job's {work})
+    python battle_blockout.py --date D        # the review folder's date, when the run starts (default today)
 
 A frame already finished in the run folder (its PNG, its labels, and the same samples and source)
 is not rendered again, so a job stopped part-way resumes where it stopped. Pass --run with a fixed
@@ -329,7 +330,7 @@ def blender_main(cfg):
     scene.view_settings.look = 'AgX - Base Contrast'
     try:
         prefs = bpy.context.preferences.addons['cycles'].preferences
-        for kind in ('OPTIX', 'CUDA'):
+        for kind in ('OPTIX', 'CUDA', 'METAL'):
             try:
                 prefs.compute_device_type = kind
                 prefs.get_devices()
@@ -1425,7 +1426,7 @@ def mounts(key, state=None):
         f = roster.FINISHED[fin]
         man = build_manifest(f)
         mpu = man['metres_per_unit']
-        rows = man.get('turrets') or []
+        rows = list(man.get('turrets') or []) + list(man.get('launchers') or [])   # some builds list launchers apart
         for w in man.get('weapon_slots', []) + man.get('weapons', []):
             rows.append(w)
         for t in rows if isinstance(rows, list) else []:
@@ -1439,7 +1440,8 @@ def mounts(key, state=None):
             arc = t.get('arc_deg', t.get('arc', 360))
             kind = 'hardpoint' if t.get('mount') == 'HARDPOINT' else 'turret'
             pos = [v * mpu for v in at] + [0] * (3 - len(at))
-            out.append((pos, rest, arc, kind, muzzle_of(t, mpu, pos)))
+            launcher = t.get('kind') == 'launcher' or 'missile' in str(t.get('type', '')).lower()
+            out.append((pos, rest, arc, kind, muzzle_of(t, mpu, pos), launcher))
     else:
         spec = roster.game_spec(m['game'])
         _, length_px, _ = roster.sprite_stats(spec['sprite'])
@@ -1447,7 +1449,7 @@ def mounts(key, state=None):
         for w in spec['weapons']:
             pos = [w['location'][0] * mpu, w['location'][1] * mpu, 0.0]
             out.append((pos, w['angle'], w['arc'], 'hardpoint' if w['mount'] == 'HARDPOINT' else 'turret',
-                        ('m', pos)))
+                        ('m', pos), w.get('type') in ('MISSILE', 'COMPOSITE', 'SYNERGY', 'UNIVERSAL')))
     return out
 
 
@@ -1466,7 +1468,8 @@ def bearing(kf):
         d = [sb[i] - sa[i] for i in range(3)]
         loc = [sum(R[j][i] * d[j] for j in range(3)) for i in range(3)]     # world -> shooter frame
         best = None
-        for pos, rest, arc, kind, muzzle in mounts(a, states.get(a)):
+        for pos, rest, arc, kind, muzzle, launcher in mounts(a, states.get(a)):
+            fits = launcher == (fx[0] == 'missiles')      # missiles from a launcher, tracers from a gun, when one bears
             v = [loc[i] - pos[i] for i in range(3)]
             h = math.hypot(v[0], v[1])
             el = math.degrees(math.atan2(v[2], h))
@@ -1480,8 +1483,8 @@ def bearing(kf):
                 in_az = abs(off) <= arc / 2 or el >= 75
                 ok = in_az and GUN_ELEVATION[0] <= el <= GUN_ELEVATION[1]
                 miss = max(0.0, GUN_ELEVATION[0] - el, abs(off) - arc / 2 if el < 75 else 0)
-            if best is None or (ok, -miss) > (best[0], -best[1]):
-                best = (ok, miss, kind, el, off, muzzle)
+            if best is None or (ok, fits, -miss) > (best[0], best[6], -best[1]):
+                best = (ok, miss, kind, el, off, muzzle, fits)
         tgt_el = math.degrees(math.atan2(loc[2], math.hypot(loc[0], loc[1])))
         rows.append((fx[0], a, b, best, tgt_el))
     return rows
@@ -1501,7 +1504,7 @@ def main():
     run.mkdir(parents=True, exist_ok=True)
     started = run / 'run-date.txt'      # the day the run began: a resume after midnight posts under it
     if not started.exists():
-        started.write_text(date.today().isoformat())
+        started.write_text(opt('--date', date.today().isoformat()))   # a queue round pins one date
     run_date = started.read_text().strip()
     samples = int(opt('--samples', 48))
     if '--skip-render' not in argv:

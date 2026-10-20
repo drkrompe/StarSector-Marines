@@ -4,8 +4,9 @@ The sprite's port forward pod (cols 13-27, rows 1-24) is a cylinder with a
 lit, glazed nose (the cream lamps at rows 2-8), wrapped in a cage: proud
 ring frames at rows 10-11, 14-15 and 18-19 reaching col 13, and fore-aft
 bars at cols 14-15 between them. Inboard it leans on the gun fork's port
-tine. The capsule is twelve-sided and flat-shaded; the cage is elliptical
-so it stays within the hull's depth.
+tine. The capsule is round by the shared segment rule (it was a flat-shaded
+twelve-gon until the close-shot detail pass) and smooth-shaded; the cage is
+elliptical so it stays within the hull's depth.
 
 Pass 2 reads it as the command module of an old armoured freighter:
 - armour sleeves between the cage rings, split into quarter panels over a
@@ -23,7 +24,7 @@ Pass 2 reads it as the command module of an old armoured freighter:
 """
 import math
 from mathutils import Vector
-from hd_kit import boolean, loft_x, material
+from hd_kit import boolean, loft_x, material, round_shading, sides
 
 CY, CZ = 9.2, 1.5
 CORE = [(20.0, 5.2), (37.4, 5.2)]
@@ -41,18 +42,21 @@ SLEEVE_SPLITS = [-15, 75, 165, 255, 345]
 # hound_lights.png viewport lamps: rows 9, 13, 17 at cols 18 and 23.
 VIEWPORT_X = [35.5, 31.5, 27.5]
 VIEWPORT_Y = [12.5, 7.5]
-K15 = math.cos(math.radians(15))
+# The capsule's rounds: vertices every STEP degrees from 15 (the segment rule at the
+# capsule's 4.6 m radius asks for 68; 72 keeps the old twelve-gon's vertices).
+STEP = 5
+N_CAPSULE = 360//STEP
 
 
-def circle(r, n=12, ry=None, rz=None, phase=math.pi/12):
+def circle(r, n=N_CAPSULE, ry=None, rz=None, phase=math.pi/12):
     ry = r if ry is None else ry
     rz = r if rz is None else rz
     return [(CY+ry*math.cos(phase+k*math.tau/n), CZ+rz*math.sin(phase+k*math.tau/n)) for k in range(n)]
 
 
 def ring(kit, name, x, mat):
-    # An elliptical frame: outer and inner twelve-gons joined front and back.
-    n = 16
+    # An elliptical frame: outer and inner rounds joined front and back.
+    n = sides(max(RING_OUT), 16)
     outer = circle(0, n, *RING_OUT, phase=0)
     inner = circle(0, n, *RING_IN, phase=0)
     verts = []
@@ -64,13 +68,13 @@ def ring(kit, name, x, mat):
         o0, i0, o1, i1 = 0, n, 2*n, 3*n
         faces += [(o0+a, o0+b, o1+b, o1+a), (i0+b, i0+a, i1+a, i1+b),
                   (o0+b, o0+a, i0+a, i0+b), (o1+a, o1+b, i1+b, i1+a)]
-    return kit.mesh(name, verts, faces, mat, .08)
+    return round_shading(kit.mesh(name, verts, faces, mat, .08))
 
 
-# --- Capsule-surface helpers: everything here follows the twelve-gon facets. ---
+# --- Capsule-surface helpers: everything here follows the capsule's round. ---
 
 def capsule_r(x):
-    """Vertex radius of the capsule/nose twelve-gon at station x."""
+    """Radius of the capsule/nose at station x."""
     st = CORE[:1]+NOSE
     if x <= st[0][0]:
         return st[0][1]
@@ -81,22 +85,21 @@ def capsule_r(x):
 
 
 def poly(a_deg, r):
-    """Point on the twelve-gon of vertex radius r at angle a (degrees), as a (dy, dz) offset."""
+    """Point on the capsule round of radius r at angle a (degrees), as a (dy, dz) offset."""
     a = math.radians(a_deg)
-    off = math.radians(((a_deg-15) % 30)-15)
-    rr = r*K15/math.cos(off)
-    return rr*math.cos(a), rr*math.sin(a)
+    return r*math.cos(a), r*math.sin(a)
 
 
 def panel(kit, name, x0, x1, a0, a1, t_in, t_out, mat, bevel=.04, t_out1=None):
     """A curved plate on the capsule from x0..x1 and angle a0..a1, standing
-    t_in..t_out off the facets (t_out1 at x1 flares the outer face)."""
+    t_in..t_out off the surface (t_out1 at x1 flares the outer face); its vertices
+    follow the capsule's, so it is as round as the capsule."""
     t_out1 = t_out if t_out1 is None else t_out1
-    angles = [a0]+[15+30*k for k in range(-12, 24) if a0 < 15+30*k < a1]+[a1]
+    angles = [a0]+[STEP*k for k in range(-72, 144) if a0 < STEP*k < a1]+[a1]
     verts = []
     for a in angles:
         for x, t in ((x0, t_in), (x0, t_out), (x1, t_out1), (x1, t_in)):
-            dy, dz = poly(a, capsule_r(x)+t/K15)
+            dy, dz = poly(a, capsule_r(x)+t)
             verts.append((x, CY+dy, CZ+dz))
     faces = [(0, 1, 2, 3)]
     m = len(angles)
@@ -105,7 +108,7 @@ def panel(kit, name, x0, x1, a0, a1, t_in, t_out, mat, bevel=.04, t_out1=None):
             j1 = (j+1) % 4
             faces.append((i*4+j, i*4+j1, (i+1)*4+j1, (i+1)*4+j))
     faces.append(tuple(reversed(range((m-1)*4, m*4))))
-    return kit.mesh(name, verts, faces, mat, bevel)
+    return round_shading(kit.mesh(name, verts, faces, mat, bevel))
 
 
 def radial(kit, name, obj, a_deg):
@@ -150,11 +153,11 @@ def build(kit):
     lens_white = material('Bridge navigation lens white', (.6, .6, .55), 0, .2)
     paint = {'cream': kit.cream, 'orange': kit.orange}
 
-    loft_x(kit, 'Bridge capsule hull', [(x, circle(r)) for x, r in CORE], kit.orange)
-    loft_x(kit, 'Bridge capsule nose', [(x, circle(r)) for x, r in NOSE], kit.cream)
+    round_shading(loft_x(kit, 'Bridge capsule hull', [(x, circle(r)) for x, r in CORE], kit.orange))
+    round_shading(loft_x(kit, 'Bridge capsule nose', [(x, circle(r)) for x, r in NOSE], kit.cream))
 
     # Armour sleeves over a dark liner: quarter panels with open seams.
-    loft_x(kit, 'Bridge capsule seam liner', [(x, circle(5.3)) for x in (20.6, 37.3)], kit.dark, 0)
+    round_shading(loft_x(kit, 'Bridge capsule seam liner', [(x, circle(5.3)) for x in (20.6, 37.3)], kit.dark, 0))
     for s, (x0, x1, col) in enumerate(SLEEVES, 1):
         for q, (a0, a1) in enumerate(zip(SLEEVE_SPLITS, SLEEVE_SPLITS[1:]), 1):
             panel(kit, f'Bridge armour sleeve {s} panel {q}', x0, x1, a0+1.2, a1-1.2, .05, .26, paint[col], .05)

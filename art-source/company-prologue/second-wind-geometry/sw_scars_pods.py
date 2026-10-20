@@ -19,7 +19,7 @@ import random
 from mathutils import Matrix, Vector
 from sw_damage import Scar, ENGINE_STATUSES, Geo, basis, TAU
 from sw_engines import (ENGINES, BELL_R, FIN_X, BELL_L, BANDS_N, STEP, COLLAR_AFT,
-                        FACE_GAP, CAN, CAN_FACE_R, HOUSING, FIN, bell_curve, rr)
+                        FACE_GAP, CAN, CAN_FACE_R, HOUSING, FIN, bell_curve, rr, corner_segments)
 from sw_scars_dorsal import mats as dorsal_mats, end_cap, tube
 
 V = Vector
@@ -783,10 +783,31 @@ FLOOR = 3.4                    # the void's dark floor, below the clean skin
 SKIN = .25
 
 
+# The bay was authored on the housing's first section, whose corners were two
+# facets (bottom) and three (top): u is still that polygon's index, so every
+# seam, crease and hole above keeps its place on the corner. Housing maps it onto
+# the section sw_engines builds now (each corner by the segment rule) at the same
+# angle round the corner, or the same fraction along a flat side.
+U_CORNERS = (2, 2, 3, 3)
+
+
+def section_index(u):
+    """Index along the rebuilt rr section of the authored index u."""
+    q = corner_segments()
+    start = 0
+    for k, n in enumerate(U_CORNERS):
+        if u <= start+n:
+            return k*(q+1)+(u-start)*q/n
+        if u <= start+n+1:
+            return k*(q+1)+q+(u-start-n)
+        start += n+1
+    return 4*(q+1)-1+(u-start)
+
+
 class Housing:
-    """The clean thrust housing's faceted section as a surface (u, x): u is
-    the index along its section polygon (sw_engines.rr order), x along the
-    pod; the loft is linear between its rings, so this is exact."""
+    """The clean thrust housing's section as a surface (u, x): u is the authored
+    index along its section polygon (section_index maps it onto sw_engines.rr's
+    order), x along the pod; the loft is linear between its rings, so this is exact."""
     def __init__(self, side):
         self.s = side
         self.rings = [(x, rr(sec)) for x, sec in HOUSING]   # x descending
@@ -802,14 +823,17 @@ class Housing:
 
     def at(self, u, x, inset=0.):
         pts = self.ring(x)
+        n = self.normal(u, x)
+        u = section_index(u)
         i = min(int(u), len(pts)-2)
         f = u-i
         y = pts[i][0]+(pts[i+1][0]-pts[i][0])*f
         z = pts[i][1]+(pts[i+1][1]-pts[i][1])*f
-        return V((x, self.s*y, z))-self.normal(u, x)*inset
+        return V((x, self.s*y, z))-n*inset
 
     def normal(self, u, x):
         pts = self.ring(x)
+        u = section_index(u)
         def seg(i):
             (y0, z0), (y1, z1) = pts[i], pts[(i+1) % len(pts)]
             return V((0, self.s*(z1-z0), -(y1-y0))).normalized()

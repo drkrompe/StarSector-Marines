@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — the defender counter-attacks a lost fort in proportion or not at all (`FortCounterattack`, scene `fort-counterattack`), and a turned fort's ground is the counter-attack's alone; earlier: a machine clicked onto a garrisonable its side believes is enemy-held assaults it by fire from a stand-off and never enters.
+Updated: 2026-10-20 — the defender counter-attacks a lost fort in proportion or not at all (`FortCounterattack`, scene `fort-counterattack`), and a turned fort's ground is the counter-attack's alone; a machine sent to a garrisonable its own side mans stands guard beside it as heavy support, by the player's click or a commander's bounded attachment (see machine guard under "Fighting positions"). Earlier: a machine clicked onto a garrisonable its side believes is enemy-held assaults it by fire from a stand-off and never enters.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2010,11 +2010,12 @@ refresh and installed-weapon fire continue during the walk. Reaching the cell
 removes the override before ordinary unit execution continues on the same tick;
 broken-morale survival suspends it, while a hard withdrawal invalidates it. The
 request therefore supplies neither a squad assignment nor a hostile target and
-never changes the knowledge available to the squad. The one exception is a
-click on a garrisonable the side believes is enemy-held, which is an assault
-rather than a move: it holds the stand-off instead of releasing on arrival and
-directs fire from the side's reports (see machine assault under fighting
-positions).
+never changes the knowledge available to the squad. The exceptions are a click
+on a garrisonable the side believes is enemy-held, which is an assault rather
+than a move: it holds the stand-off instead of releasing on arrival and directs
+fire from the side's reports (see machine assault under fighting positions); and
+a click on one the side mans, which is a guard: it holds a cell beside the place
+facing the believed threat (see machine guard there).
 
 Direct control of one Marine temporarily transfers that exact body's movement,
 facing, and primary-fire intent to player input. The body remains a living squad
@@ -2297,6 +2298,56 @@ machines open the place from outside and stand down by themselves once nobody is
 believed left in it. A trench has no walls to bring down; it is assaulted by
 direct fire alone. The scene `machine-assault` is the acceptance
 (`MachineAssaults`).
+
+**Machines guard the places their side mans.** The same click on a run or held
+place the machine's own **side mans** — somebody of the side standing in it, or
+an infantry squad of the side ordered to it (an occupy or hold order, or a
+commander's order to man it) — and does not believe enemy-held is a **guard**,
+and the cursor says GUARD, heavy support, in the friendly colour; an unarmed
+hull only moves, and a place believed to hold an enemy is still an assault. A
+run is guarded by the **stretch** under the click, the run's cells within twelve
+of it, so a lance sent to the garrison at a fort's gate stands at the gate rather
+than at the far corner of the belt. A guard stands on a **guard cell**: connected
+to the machine, three to seven cells outside the footprint and inside its reach,
+never on prepared ground (the posts are infantry's), and never in the
+**garrison's lanes** — the band in front of the place along the threat axis, as
+wide as the place plus two cells — preferring a clear line of fire to a point
+twelve cells past the place's front, then a cell abreast of the front edge so it
+sees past the place rather than over it, then a nearer ring; a lance's members
+keep apart. The **threat axis** is the side's belief: from the place toward the
+contacts its squads hold within 48 cells of it, nearer ones weighing more, and
+with none the way the machine was going, since it came up from its own ground.
+The order owns the machine's locomotion as an assault does, but names no target:
+its own targeting and doctrine engage whatever approaches, a turret keeps its
+own pick. While nothing is in its sights a mech holds its hips on the axis and an
+idle gun rests along it, so the front armour and the weapons point where the
+attack is believed to come from. Every three seconds the axis is read again, and
+a mech whose threat has swung round the place by more than 45 degrees moves to a
+cell chosen for the new one; a hull keeps its ground and turns its gun. A cell
+the chassis cannot route to is set aside and another chosen, five times at most.
+The guard ends five seconds after the side last manned the place, so a garrison
+that leaves or dies takes its guard with it, and on a new order, a withdrawal, a
+crippled chassis, a disarmed hull or direct control. The scene `machine-guard` is
+the acceptance (`MachineGuards`).
+
+A commander gives the same guard to a lance of its own side
+(`MachineGuardDirector`, `CommandEffects.guardPlace`), and a player's order on a
+chassis outranks it. The director knows nothing of which side it serves: given
+the places the side mans this pulse, which of them are pressed to the manning
+start level, and the side's free lances, it attaches at most one lance a pulse to
+a manned, pressed place nobody guards, one lance a place, never more at once than
+half the side's lances rounded up and never more than two, and only a useful
+lance (half the chassis it started with) that can arrive within the manning
+arrival bound. A lance already fighting is offered only for a place within 48
+cells of it, where its fight is plausibly the garrison's. A guard stands down when
+its place is no longer manned, has stayed below the start level for the manning
+dwell, its lance falls below useful strength, or the lance is taken up by other
+work. The defender offers lances its pool left without a track response or a
+structure task; the attacker holding taken ground offers lances the muster, the
+capture pass and the holders left, keeps a guarding lance in the pool so a
+company that recruits it or a capture that commits it takes it, and stands every
+guard down in the convergence phases. No side fields armed vehicles under a
+commander, so the commanders' guards are lances.
 
 **A player's squad may opt into reactive manning: the GARRISON stance.** It is a
 per-squad switch on the order bar (`[G] GARRISON`, and the `G` key), never a

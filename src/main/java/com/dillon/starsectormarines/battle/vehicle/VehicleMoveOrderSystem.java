@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.assault.MachineAssault;
+import com.dillon.starsectormarines.battle.assault.MachineGuard;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
@@ -42,6 +43,21 @@ public final class VehicleMoveOrderSystem {
     }
 
     private AssaultPlanner assaultPlanner;
+
+    /**
+     * Answers whether a click is a guard over a garrisonable the hull's own side mans, and if so where the hull
+     * stands beside it ({@code MachineGuards}). Supplied by the simulation; null means no click is a guard.
+     */
+    public interface GuardPlanner {
+        MachineGuard plan(long vehicleId, int cellX, int cellY);
+    }
+
+    private GuardPlanner guardPlanner;
+
+    /** Installs the planner the simulation answers guard questions with. */
+    public void setGuardPlanner(GuardPlanner planner) {
+        this.guardPlanner = planner;
+    }
 
     /** Installs the planner the simulation answers assault questions with. */
     public void setAssaultPlanner(AssaultPlanner planner) {
@@ -126,14 +142,18 @@ public final class VehicleMoveOrderSystem {
                         Refusal.NOT_COMMANDABLE);
                 continue;
             }
-            // Any new order supersedes a standing assault, including another assault.
+            // Any new order supersedes a standing assault or guard, including another of either.
             service.endAssault(request.vehicleId);
+            service.endGuard(request.vehicleId);
             // A click on a garrisonable the side believes is enemy-held is an assault by fire: the
             // hull drives to a stand-off rather than to the click, and keeps it once there.
             MachineAssault assault = request.destinationOnly || assaultPlanner == null ? null
                     : assaultPlanner.plan(request.vehicleId, request.cellX, request.cellY);
-            int goalX = assault != null ? assault.standoffX() : request.cellX;
-            int goalY = assault != null ? assault.standoffY() : request.cellY;
+            // A click on one the side mans is a guard: the hull drives to a cell beside it, off the garrison's lanes.
+            MachineGuard guard = assault != null || request.destinationOnly || guardPlanner == null ? null
+                    : guardPlanner.plan(request.vehicleId, request.cellX, request.cellY);
+            int goalX = assault != null ? assault.standoffX() : guard != null ? guard.guardX() : request.cellX;
+            int goalY = assault != null ? assault.standoffY() : guard != null ? guard.guardY() : request.cellY;
             float[][] route = planRoute(request.vehicleId, goalX, goalY);
             if (route == null) {
                 service.refuse(request.vehicleId, request.cellX, request.cellY,
@@ -141,6 +161,7 @@ public final class VehicleMoveOrderSystem {
                 continue;
             }
             if (assault != null) service.beginAssault(request.vehicleId, assault);
+            if (guard != null) service.beginGuard(request.vehicleId, guard);
             if (route[0].length == 0) {
                 // Already there. A plain click has nothing left to do; a dragged facing still has the turn to make,
                 // which the docking maneuver makes on the spot from a route that ends where the hull stands.
@@ -199,14 +220,15 @@ public final class VehicleMoveOrderSystem {
     }
 
     /**
-     * A hull at its stand-off under a standing assault holds there: the assault owns its
-     * locomotion so the duel-band engagement does not drive it off, or into the place it is
-     * firing on. Its turret is directed by the assault, not here.
+     * A hull at its stand-off under a standing assault, or at its cell under a guard, holds there: the order owns
+     * its locomotion so the duel-band engagement does not drive it off, or into the place it is firing on or
+     * screening. Its turret is directed by the assault, or keeps its own pick under a guard, not here.
      */
     private boolean holdAssault(long id, float dt) {
-        if (service.assault(id) == null) return false;
+        if (!service.holdsStation(id)) return false;
         if (!manuallyCommandable(id)) {
             service.endAssault(id);
+            service.endGuard(id);
             return false;
         }
         controlSystem.tickManual(id, dt, 0f, 0f);

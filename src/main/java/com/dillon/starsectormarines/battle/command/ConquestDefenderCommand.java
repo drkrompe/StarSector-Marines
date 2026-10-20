@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.IntBinaryOperator;
 
 /**
  * Defender-side Conquest command: faction-honest first contact mobilizes a
@@ -129,6 +130,11 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     private float[] threatSeenFront = new float[0];
     private volatile ConquestFrontSnapshot frontSnapshot;
     private final GarrisonDirector garrisons = new GarrisonDirector();
+    /** Which free lance stands guard by which manned place (`garrisonables.md`, machine guard). */
+    private final MachineGuardDirector machineGuards = new MachineGuardDirector();
+    /** Guards the last plan attached and stood down, ordered in {@link #afterCommit}. */
+    private List<MachineGuardDirector.Attach> guardsToOrder = List.of();
+    private List<Integer> guardsToStandDown = List.of();
     /** Alarms on this side's own forts: the pressure kept up while nobody can see the attack ({@link PlaceAlarms}). */
     private final PlaceAlarms alarms = new PlaceAlarms();
     /** The counter-attack on a fort this side has lost or is losing, with the reserve held for it ({@link FortCounterattack}). */
@@ -382,6 +388,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         rallyRedirects = 0;
         Map<Integer, PlanningSquad> allSquads = new TreeMap<>();
         Map<Integer, SquadDirective> directives = new TreeMap<>();
+        Map<Integer, PlanningSquad> guarding = new TreeMap<>();
+        List<PlanningSquad> contactMachines = new ArrayList<>();
         for (CommandSquadState state : frame.squads()) {
             PlanningSquad squad = new PlanningSquad(state);
             allSquads.put(squad.id, squad);
@@ -408,6 +416,11 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                     continue;
                 }
             }
+            if (machineGuards.holds(squad.id) && !hasHigherAuthority(squad)) {
+                // A lance standing guard by a manned place answers to the guard, not to this pulse's response.
+                guarding.put(squad.id, squad);
+                continue;
+            }
             StagePost post = flowOn && !hasHigherAuthority(squad) ? stagers.get(squad.id) : null;
             if (post != null) {
                 if (stageStands(squad, post)) {
@@ -419,6 +432,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 stagers.remove(squad.id);
             }
             if (squad.localContact) {
+                if (squad.machine) contactMachines.add(squad);
                 clearMissionRally(squad);
                 directives.put(squad.id, directive(squad, home, home,
                         AssignmentReason.DEFENDER_LOCAL_CONTACT));
@@ -495,6 +509,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         // Manning a pressed place outranks staging: it takes the free or waiting squads that can arrive in time, and
         // flow then posts what is left (counting the squads just sent as manned) behind whatever is still unanswered.
         if (reactive) manGarrisonables(places, frame.topology(), candidates, staged, allSquads, selected, justReleased, directives);
+        planMachineGuards(reactive ? places : null, candidates, contactMachines, selected, guarding, allSquads, directives);
         if (flowOn) {
             flowToPressure(influence, reactive ? places : null, frame.topology(), frame.perspective(), held,
                     candidates, staged, allSquads, selected, justReleased, directives);
@@ -522,6 +537,95 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 summaries(activeThreats.size(), responseBudget, mobileReserve, structureNotes, counterNotes, flowNote,
                         alarms.describe()),
                 proposals, detail);
+    }
+
+    /**
+     * The machine guard's commander half: stands each guarding lance by its place or stands it down, then attaches a
+     * free lance to a manned, pressed place nobody guards, by {@link MachineGuardDirector}'s laws. A lance is free when it
+     * is in the pool and this pulse gave it nothing (no track response, no structure task); a lance in local contact is
+     * offered too, for a place near its fight. The orders are given in {@link #afterCommit}.
+     */
+    private void planMachineGuards(GarrisonableRegistry places, List<PlanningSquad> candidates,
+                                   List<PlanningSquad> contactMachines, Set<Integer> selected,
+                                   Map<Integer, PlanningSquad> guarding, Map<Integer, PlanningSquad> allSquads,
+                                   Map<Integer, SquadDirective> directives) {
+        List<MachineGuardDirector.Place> manned = places == null ? List.of()
+                : mannedPlaces(places, allSquads, directives, garrisons.hotPlaces());
+        IntBinaryOperator placeAt = places == null ? (x, y) -> -1 : places::idAt;
+        Map<Integer, MachineGuardDirector.Machine> lances = new TreeMap<>();
+        for (PlanningSquad squad : guarding.values()) lances.put(squad.id, machineOf(squad));
+        List<Integer> down = machineGuards.review(lances, manned, placeAt);
+        for (int id : down) {
+            // A lance standing down from a guard is a reserve again; one taken by other work keeps that work's directive.
+            PlanningSquad squad = guarding.remove(id);
+            if (squad == null) continue;
+            int home = homeTrack(squad);
+            directives.put(id, directive(squad, home, home, AssignmentReason.DEFENDER_RESERVE_HOLD));
+        }
+        for (PlanningSquad squad : guarding.values()) {
+            int home = homeTrack(squad);
+            directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_MACHINE_GUARD));
+        }
+        List<MachineGuardDirector.Machine> free = new ArrayList<>();
+        for (PlanningSquad squad : candidates) {
+            if (squad.machine && !selected.contains(squad.id)) free.add(machineOf(squad));
+        }
+        for (PlanningSquad squad : contactMachines) {
+            free.add(new MachineGuardDirector.Machine(squad.id, squad.anchorCellX, squad.anchorCellY,
+                    squad.aliveMembers, squad.originalMembers, true));
+        }
+        int machineSquads = 0;
+        for (PlanningSquad squad : allSquads.values()) if (squad.machine && squad.aliveMembers > 0) machineSquads++;
+        List<MachineGuardDirector.Attach> sent = machineGuards.attach(free, manned, machineSquads, placeAt);
+        for (MachineGuardDirector.Attach attach : sent) {
+            PlanningSquad squad = allSquads.get(attach.squadId());
+            int home = homeTrack(squad);
+            directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_MACHINE_GUARD));
+            selected.add(squad.id);
+        }
+        guardsToOrder = sent;
+        guardsToStandDown = down;
+    }
+
+    /**
+     * The places this side mans after this pulse's manning: every run a squad is ordered to man and is not falling
+     * back from, the pressed ones first in the director's own order (most pressed first), then the rest by id.
+     */
+    static List<MachineGuardDirector.Place> mannedPlaces(GarrisonableRegistry places, Map<Integer, PlanningSquad> squads,
+                                                         Map<Integer, SquadDirective> directives, int[] hotPlaces) {
+        Set<Integer> mannedIds = new TreeSet<>();
+        for (PlanningSquad squad : squads.values()) {
+            if (squad.aliveMembers <= 0 || squad.machine || squad.assignedObjective == null
+                    || !squad.assignedObjective.isGarrison()) continue;
+            SquadDirective directive = directives.get(squad.id);
+            if (directive != null && directive.reason() == AssignmentReason.DEFENDER_GARRISONABLE_FALL_BACK) continue;
+            int place = places.idAt(squad.assignedObjective.targetCellX(), squad.assignedObjective.targetCellY());
+            if (place >= 0) mannedIds.add(place);
+        }
+        return MachineGuardDirector.manned(mannedIds, hotPlaces, places);
+    }
+
+    private static MachineGuardDirector.Machine machineOf(PlanningSquad squad) {
+        return new MachineGuardDirector.Machine(squad.id, squad.anchorCellX, squad.anchorCellY,
+                squad.aliveMembers, squad.originalMembers);
+    }
+
+    /** Gives the machine guards the plan attached, and stands down the ones it ended. */
+    @Override
+    public void afterCommit(CommandEffects effects) {
+        for (int squadId : guardsToStandDown) effects.standDownGuard(squadId);
+        for (MachineGuardDirector.Attach attach : guardsToOrder) {
+            if (effects.guardPlace(faction(), attach.squadId(), attach.cellX(), attach.cellY()) == 0) {
+                machineGuards.forget(attach.squadId());
+            }
+        }
+        guardsToOrder = List.of();
+        guardsToStandDown = List.of();
+    }
+
+    /** Lances standing guard by a manned place; for evidence. */
+    int machineGuardCount() {
+        return machineGuards.count();
     }
 
     private static List<String> summaries(Object threats, Object budget, Object reserve, List<String> structureNotes,

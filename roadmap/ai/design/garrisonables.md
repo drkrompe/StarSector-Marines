@@ -1,10 +1,10 @@
 # Garrisonables
 
-Status: ACTIVE — reactive manning is shipped for fort-belt fighting positions on both Conquest sides (the defender's own belts, the attacker's taken ones) and for a player's squads that opt into it, and the player's machine assault on a believed-held garrisonable is built; other kinds remain direction.
+Status: ACTIVE — reactive manning is shipped for fort-belt fighting positions on both Conquest sides (the defender's own belts, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans (player and both Conquest commanders); other kinds remain direction.
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — the defender counter-attacks a lost fort in proportion; the attacker holds what it takes (`attacker-holds-ground` scene); fort-belt reactive manning shipped; owner decisions on attackers, player opt-in and machines; the player's machine assault and the player's opt-in GARRISON stance are built.
+Updated: 2026-10-20 — the defender counter-attacks a lost fort in proportion; machines screen the places their side mans (owner decision; the machine guard is built); earlier: the attacker holds what it takes; fort-belt reactive manning; the player's machine assault and opt-in GARRISON stance.
 
 ## Why this exists
 
@@ -242,9 +242,11 @@ publishing one changes nothing until somebody is sent to it. That is
 deliberate: a building is manned in answer to threat or by order, by the same
 law as a trench. Every story map publishes them through `HeldPlaces`: authored
 maps with a garrison layout keep their garrison nodes and add held places only
-for the buildings those nodes do not already stand on, fort maps included. Silent Colony, a
-procedural city, adds them at setup. A story map with no buildings (Missile AA)
-has none, and the Veteran's Job raid keeps the procedural city's garrison nodes alone. The first consumer is the player's occupy
+for the buildings those nodes do not already stand on, fort maps included. Procedural cities add them at setup: Silent Colony and civilian rescue civilian-held, Assault, Sabotage,
+Raid (the Veteran's Job included) and Extraction defender-held, keeping their garrison nodes. A held place nobody is
+posted to (`HeldPlaces.isUnposted`) is not somewhere the defence lives: defender allocation, the assault
+commander's strongpoints, patrol waypoints and the garrison map feature all skip it. A story map with
+no buildings (Missile AA) has none. The first consumer is the player's occupy
 order. On any map that publishes held places, a click on a building holds it
 at its windows (`ai-nouns.md`, occupy). Reactive manning by the AI is the next
 consumer.
@@ -276,6 +278,17 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
   its side believes is enemy-held gets ASSAULT (`ai-nouns.md`, machine assault
   under fighting positions). A commander's use of machines against a garrison
   is not.
+- **Machines screen the places their side mans.** Owner, 2026-10-20 ("seems
+  reasonable"): a mech, lance or armed vehicle stands beside a garrison as its
+  heavy support — on a cell outside the place, off the garrison's lanes of
+  fire, covering the believed threat axis with its own doctrine or turret, never
+  entering — for the player as a GUARD order on a place the side mans, and for
+  the commanders as a bounded attachment of a free machine to a manned, pressed
+  place. Built (`ai-nouns.md`, machine guard under fighting positions; scene
+  `machine-guard`): the fun is a tank and a rifle squad reading as one position,
+  and a defending lance walking up beside the trench the attack leans on. A
+  guard screens the stretch of a run under the click, not the whole belt, which
+  is the same finer place the open question below asks for.
 
 ## Open questions
 
@@ -292,8 +305,6 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
   walls, was tried and cost more than it saved.
 - How a garrisonable is valued against an objective: a trench in front of the
   keep is worth more than one at the map edge under the same pressure.
-- Whether a machine screens a manned place it cannot man (stands beside a
-  garrison as its heavy support).
 
 ## Stories
 

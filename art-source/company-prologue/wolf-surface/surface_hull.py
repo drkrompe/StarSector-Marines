@@ -46,6 +46,11 @@ def derive_palette(classes):
     for c, std in (('crimson', [8.0, 3.0, 2.5]), ('grey', [9.0, 0.8, 1.6]), ('dark', [6.5, 0.6, 0.8])):
         out[c] = dict(classes[c], std=std, std_measured=classes[c]['std'],
                       note='spread owned: shading and edge contamination on the reference inflate it')
+    # The pirate fleet reads as one (owner, pass 6): the crimson is the Colossus Mk.III's
+    # pirate red (colossus-mk3-surface), about 2 delta-E from this reference's own.
+    # The Kite (P) carries no crimson field; the Falcon (P)'s red is a lighter trim.
+    out['crimson'] = dict(out['crimson'], mean=[35.6, 25.1, 13.8], mean_measured=classes['crimson']['mean'],
+                          note='mean owned: the Colossus Mk.III pirate red, so the pirate fleet matches')
     # The recesses are a few hundred reference pixels, washed toward their crimson and grey
     # neighbours (measured L 35, as light as the crimson): the near-black is owned.
     out['dark'] = dict(out['dark'], mean=[16.0, 0.8, 1.6], mean_measured=classes['dark']['mean'],

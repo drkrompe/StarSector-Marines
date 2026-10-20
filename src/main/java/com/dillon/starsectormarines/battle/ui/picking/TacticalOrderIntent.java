@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.picking;
 
 import com.dillon.starsectormarines.battle.assault.MachineAssaults;
+import com.dillon.starsectormarines.battle.assault.MachineGuards;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.squad.HoldPlaceDecision;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -49,7 +50,12 @@ public enum TacticalOrderIntent {
      * A mech, a lance or an armed vehicle over a trench or a held building the side believes is
      * enemy-held: an assault by fire from a stand-off, never by entering ({@code MachineAssaults}).
      */
-    ASSAULT("battleOrderAssaultPlace", true, true);
+    ASSAULT("battleOrderAssaultPlace", true, true),
+    /**
+     * A mech, a lance or an armed vehicle over a trench or a held building its own side mans: it stands beside the
+     * garrison as heavy support, outside the place and off its lanes of fire ({@code MachineGuards}).
+     */
+    GUARD("battleOrderGuardPlace", true, true);
 
     private final String label;
     private final boolean actionable;
@@ -75,6 +81,9 @@ public enum TacticalOrderIntent {
     /** Whether the click sends the squad into ground the enemy holds, which the cursor says in red. */
     public boolean assault() { return this == CLEAR || this == SECURE || this == ASSAULT; }
 
+    /** Whether the click sends a machine to stand by its own side's garrison, which the cursor says in the friendly colour. */
+    public boolean guard() { return this == GUARD; }
+
     /**
      * Resolves what a right-click at ({@code cellX}, {@code cellY}) would mean
      * for the current selection. Pure: nothing is queued and nothing changes.
@@ -89,7 +98,8 @@ public enum TacticalOrderIntent {
             if (sim.transport().pointsAt(vehicle, cellX, cellY)) {
                 return sim.transport().manifest(vehicle).isEmpty() ? NONE : DISMOUNT;
             }
-            // An armed hull assaults a garrisonable its side believes is enemy-held; an unarmed one only moves.
+            // An armed hull assaults a garrisonable its side believes is enemy-held and guards one its side mans;
+            // an unarmed one only moves.
             return MachineAssaults.vehicleArmed(sim, vehicle)
                     ? assaultOrMove(sim, sim.convoy().faction(vehicle), cellX, cellY) : MOVE;
         }
@@ -105,8 +115,8 @@ public enum TacticalOrderIntent {
         if (squadId == Selection.NONE) return NONE;
         Squad squad = sim.getSquad(squadId);
         if (squad == null) return NONE;
-        // A lance's click goes to its members' own move orders, so it neither rides nor secures:
-        // it assaults a garrisonable the side believes is enemy-held, and otherwise moves.
+        // A lance's click goes to its members' own move orders, so it neither rides nor secures: it assaults a
+        // garrisonable the side believes is enemy-held, guards one the side mans, and otherwise moves.
         if (squad.isMechSquad()) return assaultOrMove(sim, squad.faction, cellX, cellY);
 
         int size = sim.squadMemberCount(squadId);
@@ -131,6 +141,7 @@ public enum TacticalOrderIntent {
 
     private static TacticalOrderIntent assaultOrMove(BattleSimulation sim, Faction side,
                                                      int cellX, int cellY) {
-        return MachineAssaults.targetUnderClick(sim, side, cellX, cellY) != null ? ASSAULT : MOVE;
+        if (MachineAssaults.targetUnderClick(sim, side, cellX, cellY) != null) return ASSAULT;
+        return MachineGuards.targetUnderClick(sim, side, cellX, cellY) != null ? GUARD : MOVE;
     }
 }

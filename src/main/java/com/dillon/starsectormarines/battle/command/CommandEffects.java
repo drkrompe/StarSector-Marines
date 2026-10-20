@@ -1,10 +1,12 @@
 package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
+import com.dillon.starsectormarines.battle.assault.MachineGuards;
 import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.Set;
@@ -52,6 +54,18 @@ public interface CommandEffects {
      */
     AirPoolService.Outcome airCover(Faction side, float x, float y);
 
+    /**
+     * Orders every chassis of mech lance {@code squadId} of {@code side} to stand guard by the garrisonable at the
+     * cell, which the side mans (`garrisonables.md`, machine guard; {@code MachineGuards}). A chassis the player has an
+     * order on keeps it.
+     *
+     * @return the chassis ordered; zero when the squad is not a lance of the side or the side does not man the place
+     */
+    default int guardPlace(Faction side, int squadId, int cellX, int cellY) { return 0; }
+
+    /** Stands every chassis of lance {@code squadId} down from a guard a commander gave it; a player's order stays. */
+    default void standDownGuard(int squadId) { }
+
     /** The effects of a live battle, or {@link #NONE} where it cannot be controlled. */
     static CommandEffects over(BattleView sim) {
         if (!(sim instanceof BattleControl control)) return NONE;
@@ -71,6 +85,26 @@ public interface CommandEffects {
                 if (!(sim instanceof BattleSimulation live)) return AirPoolService.Outcome.NO_AIRFRAME;
                 AirPoolService pool = live.airPool();
                 return pool.director(side).cover(live, pool, x, y, unit -> true);
+            }
+            @Override public int guardPlace(Faction side, int squadId, int cellX, int cellY) {
+                if (!(sim instanceof BattleSimulation live)) return 0;
+                Squad squad = live.getSquad(squadId);
+                if (squad == null || squad.faction != side || !squad.isMechSquad()
+                        || MachineGuards.targetUnderClick(live, side, cellX, cellY) == null) return 0;
+                int ordered = 0;
+                for (int i = 0, n = live.squadMemberCount(squadId); i < n; i++) {
+                    long member = live.squadMemberAt(squadId, i);
+                    if (!live.world().isAlive(member) || !live.world().hasMechLoadout(member)) continue;
+                    live.getMechMoveOrderService().requestGuard(member, cellX, cellY);
+                    ordered++;
+                }
+                return ordered;
+            }
+            @Override public void standDownGuard(int squadId) {
+                if (!(sim instanceof BattleSimulation live) || live.getSquad(squadId) == null) return;
+                for (int i = 0, n = live.squadMemberCount(squadId); i < n; i++) {
+                    live.getMechMoveOrderService().standDownGuard(live.squadMemberAt(squadId, i));
+                }
             }
         };
     }

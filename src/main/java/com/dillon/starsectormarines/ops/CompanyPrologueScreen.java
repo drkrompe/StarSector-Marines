@@ -17,7 +17,7 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
     public static final String ROOT = "company-prologue";
     public static final List<String> COMPONENTS = List.of("data/ui/components/company/company-prologue.mlx");
     private static final List<String> SCENES = List.of("second-wind", "claim", "last-carrier",
-            "raising-her", "departure-roster", "somewhere-to-dock", "cargo-billets", "yard-estimate");
+            "raising-her", "departure-roster", "somewhere-to-dock", "cargo-billets");
 
     public CompanyPrologueScreen() { super(ROOT, COMPONENTS); }
     @Override protected List<String> requiredElementIds() {
@@ -59,41 +59,44 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
     }
 
     /**
-     * The story is Jangala's at whichever port the start chose; only the course and objective lines name
-     * {@code destination}. {@code arrivalAhead}: the Jangala arrival cinematic will play on docking, so
-     * Castle's Nessa memory moves there (over C4) and page six only promises it.
+     * The story is Jangala's at whichever port the start chose; only the course, the objective line and the
+     * Commander's last line name {@code destination}. {@code arrivalAhead}: the Jangala arrival cinematic will
+     * play on docking, so Castle's Nessa memory moves there (over C4) and page six only promises it.
      */
     public static Map<String, Object> model(int page, String destination, boolean arrivalAhead,
                                             int crew, int credits, int reserve, Runnable next, Runnable back, Runnable skip) {
         String[] titles = {Strings.get("openingCompanyPrologueSecondWind"), Strings.get("openingCompanyPrologueTheWritingOnTheWall"),
                 Strings.get("openingCompanyPrologueWhatWeLeftBehind"), Strings.get("openingCompanyPrologueRaisingHer"), Strings.get("openingCompanyPrologueTheDepartureRoster"),
-                Strings.get("openingCompanyPrologueSomewhereToDock"), Strings.get("openingCompanyPrologueAWayToEarn"), Strings.get("openingCompanyPrologueTheFirstStep")};
+                Strings.get("openingCompanyPrologueSomewhereToDock"), Strings.get("openingCompanyPrologueAWayToSurvive")};
         String[] narrative = {
                 Strings.get("openingCompanyPrologueTheAlarmAboveTheHatchHasFinally"),
                 Strings.get("openingCompanyPrologueHarkerSClaimWasThreeWeeksHaul"),
                 Strings.get("openingCompanyPrologueTheLastOreCarrierTookTheMine"),
-                Strings.get("openingCompanyPrologueTheCerberusByTheLoadingLocksHad"),
+                Strings.get("openingCompanyPrologueTheCerberusHadBeenTheClaimSEscort"),
                 Strings.get("openingCompanyPrologueTheDepartureRosterIsInYourHandwriting"),
-                destination == null ? Strings.get("openingCompanyPrologueCastleSearchesThePortListingsForSomewhere")
-                        : Strings.get("openingCompanyPrologueCorvusHasWorkingYardsAndRegularTraffic"),
-                Strings.get("openingCompanyPrologueACargoHandSleepsBesideTheBridge"),
-                Strings.get("openingCompanyPrologueCastlePutsTheYardEstimateBesideThe")
+                Strings.get("openingCompanyPrologueCorvusFillsTheNavigationDisplay"),
+                Strings.get("openingCompanyPrologueACargoHandSleepsAgainstTheBridgeHatch")
         };
         String[] dialogue = {
                 Strings.get("openingCompanyPrologueYouCanLetGoOfTheChair"),
-                Strings.get("openingCompanyPrologueIRanTheClaimSManifestsForNine"),
-                Strings.format("openingCompanyPrologueStillHadAMonthSPayOn", (reserve > 0 ? Strings.get("openingCompanyPrologueTheRealMoneySMostlySpokenFor")
-                        : Strings.get("openingCompanyPrologueIVePaidForShuttlePartsAnd"))),
-                Strings.get("openingCompanyPrologueFourDaysLeftOnTheChalkWhen"),
-                Strings.get("openingCompanyPrologueYouRememberTheNightTheyShutOff"),
-                destination == null ? Strings.get("openingCompanyPrologueNoAnswerFromAYardWeCan")
-                        : Strings.get(arrivalAhead ? "openingCompanyPrologueAnOldFriendIOweHerMore"
-                                : "openingCompanyPrologueNessaVennWeRanOreTogetherBefore"),
-                Strings.get("openingCompanyPrologueYouSaidWeCouldTakeContractWork"),
-                Strings.format("openingCompanyPrologueThenWeGetABoatFlyingAnd", (destination == null ? Strings.get("openingCompanyPrologueWeLlFindABerthThenBunks")
-                        : Strings.get("openingCompanyPrologueNessaSentAnEstimateCalledTheJob"))
-                        + (reserve > 0 ? Strings.get("openingCompanyPrologueIVeKeptThePaymentSafe")
-                        : Strings.get("openingCompanyPrologueWeLlHaveToWatchThatYard")))
+                Strings.get("openingCompanyPrologueISignedForEveryOneOfThoseCarriers"),
+                Strings.get("openingCompanyPrologueEveryoneAboardHasAPocketfulOfScrip"),
+                Strings.get("openingCompanyPrologueWeGaveHerTheLowerHabsAirPlant"),
+                Strings.get("openingCompanyPrologueSabineDidnTAskIfThereWasRoom"),
+                Strings.get(arrivalAhead ? "openingCompanyPrologueAnOldFriendIOweHerMore"
+                        : "openingCompanyPrologueNessaVennWeRanOreTogetherBefore"),
+                Strings.get("openingCompanyPrologueNessaAnsweredSheSHeldACradle")
+        };
+        // The Commander answers Castle on every page; the last answer names the port the course is laid for.
+        String[] replies = {
+                Strings.get("openingCompanyPrologueThenGoAndGetSomeSleepYourself"),
+                Strings.get("openingCompanyPrologueYouWerenTTheOneWhoLeft"),
+                Strings.get("openingCompanyPrologueThenItStaysBetweenUsUntilWeLand"),
+                Strings.get("openingCompanyPrologueSheLit"),
+                Strings.get("openingCompanyPrologueThenNobodyElseGetsLeft"),
+                Strings.get("openingCompanyPrologueSendIt"),
+                destination == null ? Strings.get("openingCompanyPrologueTakeCommand")
+                        : Strings.format("openingCompanyPrologueTakeUsTo", destination)
         };
         int index = Math.max(0, Math.min(CompanyPrologue.PAGE_COUNT - 1, page));
         Map<String, Object> props = new LinkedHashMap<>();
@@ -111,8 +114,7 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
         props.put("reserve", reserve > 0 ? Strings.format("openingCompanyPrologueCreditsHeldForTheConversionFirstBoat", String.format(Locale.ROOT, "%,d", reserve))
                 : Strings.get("openingCompanyPrologueConversionPaymentDueFromFleetFundsPreparation"));
         props.put("destination", destination == null ? Strings.get("openingCompanyPrologueFindAWorkingPlanetarySpaceport") : Strings.format("openingCompanyPrologueReach", destination));
-        props.put("nextLabel", index < CompanyPrologue.PAGE_COUNT - 1 ? Strings.get("openingCompanyPrologueContinue")
-                : destination == null ? Strings.get("openingCompanyPrologueTakeCommand") : Strings.format("openingCompanyPrologueSetCourseFor", destination));
+        props.put("nextLabel", replies[index]);
         props.put("backDisabled", index == 0);
         props.put("next", next); props.put("back", back); props.put("skip", skip);
         return props;
