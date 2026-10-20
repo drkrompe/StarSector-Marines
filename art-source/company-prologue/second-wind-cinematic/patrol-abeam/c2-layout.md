@@ -103,9 +103,14 @@ half-size review at 8 fps, not the final render. `c2_bridge_render.py` dresses t
 blockout's motion for Cycles at 24 fps with 180° motion blur, importing it so the two
 cannot drift apart:
 
-- Second Wind is the patched state from `second-wind-states`. The .blend is built, not
-  committed: copy it from Drive `builds/second-wind/<commit>/patched/`. The script
-  refuses a copy whose sha256 differs from the committed manifest's. The bridge slits
+- Second Wind is the patched state of one pinned build, `c2_bridge_render.SW_PIN` (now
+  `80c78dfac`, the build C1 and C5 share). Its manifest is committed under
+  `second-wind-cinematic/pins/`. The .blend is built, not committed: copy it from Drive
+  `builds/second-wind/<SW_PIN>/patched/` into `second-wind-states/patched/`. The script
+  refuses a copy whose sha256 differs from the pinned manifest's. The shot does not follow
+  `second-wind-states/`'s manifest, which moves with every candidate build. Adopting a new
+  Second Wind build for C2 means changing `SW_PIN` and committing that build's manifest
+  beside it. The bridge slits
   are real glass and no shot hides them, reflecting the room at the model's own strength
   (about 10% straight on). A faint version (1%, scaled to 35%) was tried and dropped: the
   slits stopped reading as windows (owner, 2026-10-20).

@@ -21,7 +21,7 @@ the final mix and packaging into the game.
 | Shot | Length | Source | State |
 |---|---|---|---|
 | C1 approach | 37.7 s | `corvus-approach/` (`c1v2_scene.py`, `c1-v2-shot.md`) | All ships on final builds; half-size motion check approved. Planet lock and captions are runtime data (`cinematic_export.py --shot c1`). |
-| C2 bridge | 15 s | `patrol-abeam/` (`c2-layout.md`, `c2_bridge_render.py`) | Camera set approved (walk, duck, breath, frame, lean, lens). Final Second Wind and Broadswords wired. Glass reflection kept faint, bridge lit brighter. Castle passes once at 5.5-6 s. |
+| C2 bridge | 15 s | `patrol-abeam/` (`c2-layout.md`, `c2_bridge_render.py`) | Camera set approved (walk, duck, breath, frame, lean, lens). Final Second Wind and Broadswords wired. Glass reflection kept faint, bridge lit brighter. Castle passes once at 5.5-6 s. Renders the Second Wind build pinned in `c2_bridge_render.SW_PIN` (`pins/`); a new build means moving the pin. |
 | Entry | 7 s | `patrol-abeam/compose_entry.py` | Approved. |
 | C3 window | 16 s | `first-open-sky/` | Approved. |
 | C4 landing | 21.4 s | `industrial-exterior/c4x_scene.py` (`LATE` 5.4: hover 12.0, touchdown 16.4) | Landing dust approved. Darker pads, final Second Wind. A joined C4+C5 review with the mix is the last check before the final render. |
