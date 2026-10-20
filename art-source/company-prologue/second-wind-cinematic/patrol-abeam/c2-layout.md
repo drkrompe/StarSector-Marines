@@ -106,10 +106,9 @@ cannot drift apart:
 - Second Wind is the patched state from `second-wind-states`. The .blend is built, not
   committed: copy it from Drive `builds/second-wind/<commit>/patched/`. The script
   refuses a copy whose sha256 differs from the committed manifest's. The bridge slits
-  are real glass and no shot hides them. Their reflection is kept but faint (owner,
-  2026-10-19): the shot lowers the glazing to about 1% straight on and scales the whole
-  reflection to 35%. At full strength the console strips and ceiling lamps lay across the
-  Legion.
+  are real glass and no shot hides them, reflecting the room at the model's own strength
+  (about 10% straight on). A faint version (1%, scaled to 35%) was tried and dropped: the
+  slits stopped reading as windows (owner, 2026-10-20).
 - The bridge is painted steel with console screens and warm ceiling light, plus a soft
   overhead fill over the forward station that the glass does not show. It is lit just
   enough for the consoles and frames to read and the fighters to be found at 3.0 s; the

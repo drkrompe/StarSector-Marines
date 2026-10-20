@@ -72,11 +72,11 @@ CEILING_ENERGY, CEILING_RGB = 24.0, (1.0, 0.82, 0.6)                       # W p
 # read and the fighters be easy to find, the view outside still the brightest thing in shot). It
 # lights the room without being seen in the glass itself (hidden from glossy rays).
 ROOM_FILL = ((14.8, 0.0, 20.0), (5.0, 6.0), 36.0, (1.0, 0.9, 0.78))         # loc, size, W, rgb
-# The slits' glass reflects the room faintly, not as a mirror (owner, 2026-10-19): the glazing's
-# Fresnel IOR 1.9 (about 10% straight on) is lowered to an anti-reflective 1.25 (about 1%), and
-# the whole reflection scaled by GLASS_REFLECT, since at a slant Fresnel climbs whatever the IOR:
-# at the end (14.5 s) a console strip still read mid-view with the IOR alone.
-GLASS_MATERIAL, GLASS_FRESNEL_IOR, GLASS_REFLECT = "Bridge smoked viewport glazing", 1.25, 0.35
+# The slits' glass reflects at the model's own strength (owner, 2026-10-20: turning it down to a
+# faint 1% and 35% was a mistake, the slits stopped reading as windows). The glazing keeps its
+# Fresnel IOR 1.9 (about 10% straight on); GLASS_REFLECT scales the whole reflection if it is
+# ever tuned again.
+GLASS_MATERIAL, GLASS_FRESNEL_IOR, GLASS_REFLECT = "Bridge smoked viewport glazing", 1.9, 1.0
 SCREEN_RGB = (0.22, 0.62, 0.5)                                            # 'Bridge display' emission
 CONSOLE_TOP = 18.25
 # (name, footprint centre, yaw_deg, screens (u along the run, width)) as sw_bridge_interior.build
