@@ -12,7 +12,7 @@ counts match the manifest; three `Engine <i> exhaust anchor` empties at the
 slot mouths pointing aft; Turret 1 (WS 001) trains about its pivot (its muzzle
 swings with it, its barbette stays) and elevates; the three hardpoints' muzzles
 point along the bow; every declared VFX muzzle rides a turret-kit muzzle at
-zero offset (12: one ion, one blaster, five tubes a pod); five lamps with
+zero offset (12: one ion, one blaster, five tubes a pod); eight lamps with
 blink properties; moving the root moves every part rigidly.
 
 Ship with effects (`WOLF_P` + `SWFX`): plume, core, haze and glow light on all
@@ -143,7 +143,7 @@ bad = [n for n in declared if not (anchors.get(n) and anchors[n].parent and anch
 check('declared VFX muzzles ride the kit muzzles', not bad and len(declared) >= 12, bad or f'{len(declared)} muzzles')
 
 bad = [l['name'] for l in man['running_lights'] if not bpy.data.objects.get(l['name'])]
-check('lamps', not bad and len(man['running_lights']) == 5, bad)
+check('lamps', not bad and len(man['running_lights']) == 8, bad)
 
 ref = {o.name: o.matrix_world.copy() for o in objs}
 M = Matrix.Translation((310, -45, 120)) @ Matrix.Rotation(.8, 4, 'Z') @ Matrix.Rotation(-.3, 4, 'Y') @ Matrix.Scale(.95, 4)
@@ -177,7 +177,7 @@ check('plumes leave every bell aft', not bad, bad)
 ga = [o for o in fx if o.name.startswith('SWFX anchor turret ')]
 check('gun rig anchors', len(ga) == len(declared), [len(ga), len(declared)])
 ll = [o for o in fx if o.type == 'LIGHT' and o.name.startswith('SWFX lighting Light ')]
-check('lamp lights', len(ll) == 5, len(ll))
+check('lamp lights', len(ll) == 8, len(ll))
 inval = []
 for o in fx:
     for owner in (o, o.data):

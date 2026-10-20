@@ -31,6 +31,22 @@
   ],
   "note": "hash default; edit freely"
  },
+ "bridge-face": {
+  "unit_offset_L_a_b": [
+   0.278,
+   -0.898,
+   -0.961
+  ],
+  "note": "hash default; edit freely"
+ },
+ "bridge-top": {
+  "unit_offset_L_a_b": [
+   0.765,
+   -0.169,
+   -0.224
+  ],
+  "note": "hash default; edit freely"
+ },
  "centre-hump": {
   "unit_offset_L_a_b": [
    -0.263,
@@ -188,6 +204,30 @@
    0.506,
    0.341,
    -0.145
+  ],
+  "note": "hash default; edit freely"
+ },
+ "prow-front": {
+  "unit_offset_L_a_b": [
+   -0.004,
+   -0.561,
+   0.639
+  ],
+  "note": "hash default; edit freely"
+ },
+ "prow-side-port": {
+  "unit_offset_L_a_b": [
+   0.435,
+   0.78,
+   -0.365
+  ],
+  "note": "hash default; edit freely"
+ },
+ "prow-side-stbd": {
+  "unit_offset_L_a_b": [
+   -0.09,
+   -0.788,
+   0.106
   ],
   "note": "hash default; edit freely"
  },
