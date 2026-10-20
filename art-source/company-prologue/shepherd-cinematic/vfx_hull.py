@@ -32,9 +32,10 @@ STATES = {
 }
 
 # Gun rigs in declared-muzzle order: 1 the WS 007 twin turret, 2 the fixed WS 008
-# hardpoint (single barrel). (x, y, angle, scale, twin); scale against the Second
-# Wind's small mount.
-MOUNTS = [(-3, -23, -75, .9, True), (27, -19, 0, .8, False)]
+# hardpoint, the turret kit's four-tube Swarmer pack (shepherd_Frontier): a launcher,
+# its tubes 'gun' (tube 1) and 'tube 2-4'. (x, y, angle, scale, twin[, kind]); scale
+# against the Second Wind's small mount.
+MOUNTS = [(-3, -23, -75, .9, True), (27, -19, 0, .8, False, 'launcher')]
 DECLARED_MUZZLES = True
 
 COLOURS = {
