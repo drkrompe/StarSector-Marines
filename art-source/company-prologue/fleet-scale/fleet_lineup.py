@@ -1587,7 +1587,7 @@ def driver(argv):
         return
     given = None
     if a.sprite_dims:
-        given = json.loads(Path(a.sprite_dims).read_text() if Path(a.sprite_dims).is_file() else a.sprite_dims)
+        given = json.loads(a.sprite_dims if a.sprite_dims.lstrip().startswith('{') else Path(a.sprite_dims).read_text())
     if a.build_missing and not a.skip_render:
         build_missing()
     hulls = [r for r in (resolve(h, a.basis) for h in HULLS) if r]
