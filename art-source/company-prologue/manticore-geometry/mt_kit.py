@@ -134,11 +134,11 @@ class Kit:
         # Round 15 (owner, round 14: the glass still read tan): an absorbing
         # near-black tint with a low specular level, so it reads dark even under
         # a bright grey studio world, and only the faintest interior glow.
-        self.glass = material('Manticore bridge glazing', (.004, .005, .006), 0, .06,
-                              emission=(1.0, .78, .5), strength=.025)
+        # Detail check (ship-detail-guide): the Manticore has no lights layer, so
+        # nothing but the sprite's lamps glows; the glass is dark with no emission.
+        self.glass = material('Manticore bridge glazing', (.004, .005, .006), 0, .06)
         self.glass.node_tree.nodes.get('Principled BSDF').inputs['Specular IOR Level'].default_value = .25
-        self.vent = material('Manticore heat vent glow', (.05, .03, .02), .3, .5,
-                             emission=(1.0, .45, .12), strength=2.5)
+        self.vent = material('Manticore heat vent', (.05, .03, .02), .3, .5)  # heat-stained slats, unlit
         self.hull = []  # objects the downward ray-cast seats parts on
         self.mpu = 1.0  # metres per unit; the driver sets it before building
 
@@ -356,6 +356,20 @@ def hull_plating(kit, ob, breaks=(), skip_up=True):
     return ob
 
 
+MODULE_BEVEL = .06/.59   # ship-detail-guide tiers in hull units (0.59 m/u): modules and housings
+FITTING_BEVEL = .03/.59  # fittings
+SMALL_BEVEL = .015/.59   # small parts
+
+
+def edge_bevel(ob, width, angle=30):
+    """Detail-guide chamfer: one segment, angle-limited, so every hard edge catches a highlight."""
+    if ob.name.startswith('Temporary') or width <= 0:
+        return ob
+    b = ob.modifiers.get('Plate edge chamfer') or ob.modifiers.new('Plate edge chamfer', 'BEVEL')
+    b.width, b.segments, b.limit_method, b.angle_limit = width, 1, 'ANGLE', math.radians(angle)
+    return ob
+
+
 def shade_round(ob, angle=30):
     """Smooth shading across faces meeting below `angle`; harder edges stay sharp,
     so a round part shades round and its caps and corners stay crisp."""
@@ -389,7 +403,7 @@ def revolve_x(kit, name, profile, y, z, mat, n=12):
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     bm.to_mesh(me)
     bm.free()
-    return ob if name.startswith('Temporary') else shade_round(ob)
+    return ob if name.startswith('Temporary') else edge_bevel(shade_round(ob), MODULE_BEVEL)
 
 
 # --- Planform prisms: one keel chamfer, one wall, one shoulder chamfer. ---

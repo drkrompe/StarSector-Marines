@@ -156,10 +156,20 @@ or body contact. It consumes no random samples, ammunition, or clocks and
 does not promise that a mount is aligned, ready, or certain to hit.
 `direct-control-nouns.md` owns that preview's visibility and selection scope.
 
-Manual ground-direct area weapons keep the same terminal-contact rule as other
-modeled direct fire. An empty cursor point is a bearing, never a detonation
-request; a round leaving modeled reach has no terminal blast. Direct SRMs remain
-interceptable in flight, and a surviving payload arrives on the ordinary delay.
+A manually thrown **rocket** (an interceptable direct round with a warhead) is
+the one point round whose aim point is a destination rather than a bearing. It
+still stops at the first body, wall or doodad on its way, but a rocket that meets
+nothing **ground-bursts** at the aim point plus its scatter instead of
+overshooting. The aim point may lie past nominal range, out to twice it (further
+points burst at that ceiling along the bearing): the player is never refused
+the shot, and pays for reach in scatter. The scatter disk has the point-aim
+radius at weapon range, scales with distance inside it, and grows faster than
+distance beyond it. Gun rounds, including those with an area payload, keep the
+bearing-only rule: an empty cursor point is no detonation request, and a round
+leaving modeled reach has no terminal blast. Autonomous fire and a company's
+wall-breach shots are not thrown and keep the terminal-contact rule. Direct SRMs
+remain interceptable in flight, and a surviving payload arrives on the ordinary
+delay.
 Indirect missiles retain their separate targeting contract and cannot be
 triggered through this point-fire adapter.
 
