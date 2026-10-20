@@ -33,8 +33,8 @@ def build(kit):
         z = kit.surface(26, s*11.5)[0].z
         lamp(kit, f'Light {side} neck lamp 1', (26, s*11.5, z+.2), 'amber', 'hull lamp (sprite, row 28)', 0, 0,
              mats, .7)
-    lamp(kit, 'Light port pod tip 1', (9.5, 25.8, .4), 'red', 'port side light (extremity)', 0, 0, mats)
-    lamp(kit, 'Light starboard pod tip 1', (9.5, -25.8, .4), 'green', 'starboard side light (extremity)', 0, 0, mats)
+    lamp(kit, 'Light port pod tip 1', (9.5, 25.6, -1.5), 'red', 'port side light (extremity)', 0, 0, mats)
+    lamp(kit, 'Light starboard pod tip 1', (9.5, -25.6, -1.5), 'green', 'starboard side light (extremity)', 0, 0, mats)
     z = kit.surface(-30, 0)[0].z
     lamp(kit, 'Light centre stern 1', (-30, 0, z+.35), 'white', 'stern light', 0, 0, mats)
 

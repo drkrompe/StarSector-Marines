@@ -1,6 +1,6 @@
 """Y1 as layers: the yard background with Nessa's cut-out composited over it.
 
-    python compose_y1.py [--scale 0.8] [--centre-x 1100] [--out PATH]
+    python compose_y1.py [--scale 0.8] [--centre-x 1100] [--out PATH] [--pack]
 
 The yard pictures are layered (owner, 2026-10-19): `yard-hull-bg-v3.png` has nobody in the
 foreground, and `nessa-y1-cutout-v1.png` is Nessa alone on transparency, so she can be changed or
@@ -8,7 +8,9 @@ left out without repainting the yard. The cut-out came back larger than its plac
 cropped at the hips, so it is scaled about its bottom edge (which stays on the frame's bottom edge,
 where the picture crops her) and slid sideways until her centre sits at --centre-x. A soft shade
 under her lower edge settles her onto the gravel. Writes a 1536x1024 PNG (default
-build/yard-stills/y1-composite.png); pack.ps1 packs whichever master story-stills holds.
+build/yard-stills/y1-composite.png). --pack also writes the shipped page,
+mod/graphics/illustrations/company/yard-hull.jpg, at 1200x800 and quality 85 as pack.ps1 does: Y1
+has no master in story-stills, because the page is the two layers, not one painting.
 """
 import sys
 from pathlib import Path
@@ -56,8 +58,16 @@ def main():
     arg = lambda k, d: argv[argv.index(k) + 1] if k in argv else d   # noqa: E731
     out = Path(arg('--out', str(REPO / 'build' / 'yard-stills' / 'y1-composite.png')))
     out.parent.mkdir(parents=True, exist_ok=True)
-    compose(float(arg('--scale', '0.8')), float(arg('--centre-x', '1100'))).save(out)
+    image = compose(float(arg('--scale', '0.8')), float(arg('--centre-x', '1100')))
+    image.save(out)
     print('Y1_COMPOSITE', out)
+    if '--pack' in argv:
+        page = REPO / 'mod' / 'graphics' / 'illustrations' / 'company' / 'yard-hull.jpg'
+        image.resize((1200, 800), Image.LANCZOS).save(page, quality=85)
+        kib = page.stat().st_size / 1024
+        if kib > 400:
+            sys.exit('yard-hull.jpg is %.0f KiB, over the 400 KiB story-frame budget' % kib)
+        print('Y1_PAGE %s 1200x800 %.0f KiB' % (page, kib))
 
 
 if __name__ == '__main__':

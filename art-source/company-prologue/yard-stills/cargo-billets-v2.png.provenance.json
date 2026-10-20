@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1569e-5461-77e3-9858-c57bc4bad60e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1569e-5461-77e3-9858-c57bc4bad60e\\exec-c9981451-c61e-4131-9c5d-2bc90a3a9aef.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\yard-stills\\cargo-billets-v2.png",
+    "sha256": "d39a6877035a8a200508e4feb31d802d3a31766a2b699d5d5123ab3c307cb4bb",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\yard-stills\\cargo-billets-v2.prompt.txt",
+  "promptSha256": "c20e1a7c8cd4d99310a7d15eb074486f90e9263df96657b7ba07eb4bfc3fac41",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target and layout authority: keep camera, hold, hatch; change only the people\nImage 2: Costume only: slate-blue and charcoal field jackets; not her face\n\nOne landscape 1536x1024 (3:2) cinematic story illustration for a mature industrial science-fiction game: an edit of reference 1. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. No legible text, logos, watermark, border or interface.\n\nReference roles:\n- Reference 1 is the EDIT TARGET and layout authority: Second Wind's cargo hold. Keep EXACTLY its camera, perspective, frame, the corridor and its floor tracks and tie-down rails, the cargo lashings and netting overhead, the lamps, the scarred grey steel and exposed wiring, and the yellow-striped sealed pressure hatch at the right with its locking bars and the collapsed machinery behind its inspection window. Change only the people and what lies with them.\n- Reference 2 is COSTUME ONLY: Sabine Hale's field kit (worn slate-blue and charcoal field jackets with a compact armoured shoulder). Do not copy her face; she is not in this picture.\n\nChange: the sleepers between the cargo lashings on the left become Sabine's section of former convoy-escort soldiers, sleeping in shifts on the bare deck, the way they did on the ore runs. Six or seven are visible along the left: asleep on bedrolls and blankets between the lashed cargo, boots on, in worn slate-blue and charcoal field jackets with compact armoured shoulders, a mix of men and women, ordinary and tired, not heroic. Their rifles stand stacked muzzle-up in a neat stack against the cargo on the left and lie within arm's reach, cared for, slung webbing and kit bags beside them. One of them sits awake on watch with her back to a crate, rifle across her knees, the only one awake. The man sitting in the middle distance by the crates stays, as a cargo hand in civilian work clothes. Nothing changes on the right except the existing clutter.\n\nMood: the company asleep where it can, in a ship that still is not theirs to live in; quiet, worn, dim amber.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\story-stills\\cargo-billets.master.png",
+      "sha256": "cc3592ab17117927d31dac4f15bbea580de6e8e5999b1b2536fbcdc58819e951",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Edit target and layout authority: keep camera, hold, hatch; change only the people"
+    },
+    {
+      "path": "art-source\\portraits\\sabine-hale.master.png",
+      "sha256": "008daeb37fe8bd34c80fa135130bfe7e1525edc485a5b0933f31cc42a5947dea",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Costume only: slate-blue and charcoal field jackets; not her face"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to make one image, keeping the cargo hold’s layout and changing the soldiers and their kit as specified."
+  ],
+  "usage": {
+    "input_tokens": 115389,
+    "cached_input_tokens": 95232,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 793,
+    "reasoning_output_tokens": 35
+  },
+  "elapsedSeconds": 65.4
+}

@@ -2635,79 +2635,133 @@ def _house_pdlaser(g, f, s, r, z0):
                              'muzzles': _tt_muzzles(sp, k, za), 'elevation_limits': (-5, 75)}
 
 
+def _sweep(m, path, sec, k, z0, sy=1):
+    """A solid swept along a plan path [(x, y), ...] in sprite pixels: sec(i, t) gives its
+    cross-section [(across, z), ...] at station i (t = 0 .. 1), `across` measured along the
+    path's normal (+ to port of the run, so outboard for an arm on the +y side); sy mirrors."""
+    rings = []
+    for i, (x, y) in enumerate(path):
+        a0, a1 = path[max(i-1, 0)], path[min(i+1, len(path)-1)]
+        dx, dy = a1[0]-a0[0], a1[1]-a0[1]
+        L = math.hypot(dx, dy)
+        nx, ny = -dy/L, dx/L
+        rings.append([m.bm.verts.new(m.base @ Vector(((x+v*nx)*k, sy*(y+v*ny)*k, z0+z*k)))
+                      for v, z in sec(i, i/(len(path)-1))])
+    n = len(rings[0])
+    for ra, rb in zip(rings, rings[1:]):
+        for j in range(n):
+            m.bm.faces.new((ra[j], ra[(j+1) % n], rb[(j+1) % n], rb[j]))
+    m.bm.faces.new(rings[0])
+    m.bm.faces.new(rings[-1])
+
+
 def _house_ioncannon(g, f, s, r, z0):
-    """ion_cannon_turret_base.png (36 x 36 px; the Wolf (P)'s WS 001). A green
-    capsule on a turntable: the shell is a crowned pod widest at its middle
-    (+-8 px), tapering to a rear cap, with grey studs on its flanks (the sprite's
-    paired lugs). From its face two curved grey prongs run forward and close in
-    toward their tips (rows 4-11, the field guides); the emitter between them is
-    a coil-wound tube on the elevation empty, its lens lit in the ion glow
-    colour (100, 200, 255). Fire point 10 px ahead (turretOffsets)."""
+    """ion_cannon_turret_base.png (36 x 36 px; the Wolf (P)'s WS 001). One weapon
+    read as one casting: a low grey armoured casing over the whole rear plan (its
+    flanks are the sprite's grey rims, its waist the light band at rows 16-17),
+    whose shoulders run on unbroken into the two field-guide arms that close toward
+    their tips (rows 4-15): each arm one swept solid, full casing height at its root
+    and falling to a slim cantilevered tip, a steep inner wall carrying the lit
+    guide rail (the glow layer's two bright streaks) and a chamfered outer glacis.
+    The green capacitor drum sits down in the casing (rows 18-25), a grey coil hub
+    on its crown with the lit bore (the glow's centre), coil windows lit in its
+    flanks. The emitter rides the elevation empty in the slot between the arms: a
+    green breech housing rounded about its trunnions, the coil-wound spine forward
+    (the sprite's lit centre line, rows 7-15), the lens in the ion glow colour
+    (100, 200, 255) at the fire point, 10 px ahead (turretOffsets)."""
     k = r/NOMINAL_RING['SMALL']
     sp = sprite(s.get('sprite', s['weapon']))
-    _turntable(g, k, z0, -1.0, 8.4, .5)
-    zb = z0+.5*k
-    # The shell: lofted plan stations (x, half-width), crowned sections.
-    plan = [(-8.6, 1.8), (-7.6, 5.0), (-6.0, 7.6), (-2.5, 8.6), (0.5, 8.4), (3.0, 7.8), (5.2, 6.8), (6.6, 5.0)]
-    shell = g['accent#shell']
-    stations = []
-    for x, hw in plan:
-        h = 3.6 if abs(x) < 5 else 3.6-.18*(abs(x)-5)
-        sec = section(hw, 0, h, top=.5*hw, bot=.25, tumble=.18*hw, round_=2)
-        stations.append((x*k, [(y*k, zb+z*k) for y, z in sec]))
-    shell.loft_x(stations)
-    # Plate seams cut through the shell, and a sunken panel on the crown.
-    for x in (-4.6, 1.4):
-        shell.cut().box((x*k, 0, zb+3.6*k), (.35*k, 18*k, 1.2*k))
-    shell.cut().box((-1.6*k, 0, zb+3.75*k), (4.4*k, 5.0*k, .6*k))
-    g['dark'].box((-1.6*k, 0, zb+3.2*k), (4.2*k, 4.8*k, .2*k))
-    g['steel'].box((-1.6*k, 0, zb+3.35*k), (3.0*k, 3.4*k, .3*k), .1*k)
-    # Flank studs (the sprite's grey lugs) and the rear cap.
+    d = .5
+    _turntable(g, k, z0, -1.0, 8.2, d)
+    zb = z0+d*k
+    H = 2.8                                           # casing roof above the turntable
+    # Casing: one loft over the plan, blunt tail, full width over the drum, its flanks
+    # running straight on into the arms (no waist, so the arm roots are its own flanks).
+    plan = [(-9.0, 2.6, 1.6), (-8.4, 5.2, 2.2), (-7.4, 7.0, 2.6), (-6.0, 7.9, H), (-1.5, 8.0, H),
+            (.6, 7.9, H), (2.0, 7.7, H)]
+    casing = g['paint#casing']
+    _loft(casing, [(x, section(hw, 0, h, .55, .2, .35, 2)) for x, hw, h in
+                   ((x, *_cr(plan, x)) for x in [-9.0+i*.55 for i in range(21)])], k, zb)
+    # The emitter's slot between the shoulders, a plate seam across the tail, the
+    # drum's well, the power coupling's grille at the tail.
+    casing.cut().box((2.35*k, 0, zb+(H+.2)*k), (3.9*k, 11.2*k, 2.0*H*k))
+    casing.cut().box((-6.6*k, 0, zb+H*k), (.3*k, 18*k, .7*k))
+    casing.cut().box((-3.4*k, 0, zb+H*k), (8.8*k, 13.4*k, 1.0*k))
+    for yy in (-1.4, -.5, .4, 1.3):
+        casing.cut().box((-9.0*k, yy*k, zb+1.1*k), (1.0*k, .45*k, 1.0*k))
+    g['dark'].box((-8.75*k, 0, zb+1.1*k), (.1*k, 3.4*k, 1.0*k))
+    # Field-guide arms: swept from inside the shoulders to the tips; root at casing
+    # height, the underside lifting once clear of the turntable.
+    path = [(-2.5, 7.2), (-1.0, 6.85), (.8, 6.7), (2.4, 6.6), (4.4, 6.3), (6.4, 5.7), (8.4, 4.95), (10.4, 4.2), (12.2, 3.4), (13.4, 2.85),
+            (14.0, 2.55)]
+    half = [.7, 1.15, 1.3, 1.45, 1.6, 1.75, 1.9, 1.7, 1.3, .85, .5]
+
+    def arm_z(i):
+        t = i/(len(path)-1)
+        rise = min(1.0, i/2)                                       # out of the casing's flank
+        return max(0.0, (t-.45)/.55)*.9, H-.5+.85*rise-1.7*t*t      # underside, crest
+
+    def arm(i, t):
+        # A wedge: steep inner wall down to the slot, crest near it, a long outer glacis.
+        w = half[i]
+        lo, h = arm_z(i)
+        return [(-w, lo), (w, lo), (w, lo+.35*(h-lo)), (.05*w, h), (-.55*w, h), (-w, h-.25*(h-lo))]
+    rail_i = range(5, 9)
+    rail = [(path[i][0]+0*half[i], path[i][1]-half[i]) for i in rail_i]
+    rail_z = [arm_z(i) for i in rail_i]
     for sy in (1, -1):
-        for x in (-2.6, 2.4):
-            g['steel'].cyl((x*k, sy*7.9*k, zb+1.6*k), 1.05*k, 1.2*k, 'Y', n=16, bevel=.15*k)
-            g['dark'].cyl((x*k, sy*8.55*k, zb+1.6*k), .45*k, .15*k, 'Y', n=12)
-    g['steel'].box((-8.2*k, 0, zb+1.2*k), (1.4*k, 3.4*k, 2.0*k), .2*k)
-    # The field-guide prongs: curved grey arms swept from the shell's face, closing
-    # toward their tips; one continuous solid each, tapering in width and height.
-    path = [(3.6, 6.4), (6.0, 6.3), (8.4, 5.9), (10.4, 5.1), (12.0, 4.1), (13.3, 2.8)]
-    for sy in (1, -1):
-        rings = []
-        for i, (x, y) in enumerate(path):
-            a0 = path[max(i-1, 0)]
-            a1 = path[min(i+1, len(path)-1)]
-            dx, dy = a1[0]-a0[0], a1[1]-a0[1]
-            L = math.hypot(dx, dy)
-            nx, ny = -dy/L, dx/L
-            t = i/(len(path)-1)
-            w, h = 1.6-.7*t, 2.6-1.1*t
-            sec = [(-w, .7), (w, .7), (.65*w, .7+h), (-.65*w, .7+h)]
-            rings.append([(x+v*nx, sy*(y+v*ny), z) for v, z in sec])
-        m = g['paint']
-        vs = [[m.bm.verts.new(m.base @ Vector((x*k, y*k, zb+z*k))) for x, y, z in ring] for ring in rings]
-        for ra, rb in zip(vs, vs[1:]):
-            for i in range(4):
-                m.bm.faces.new((ra[i], ra[(i+1) % 4], rb[(i+1) % 4], rb[i]))
-        m.bm.faces.new(vs[0])
-        m.bm.faces.new(vs[-1])
-        g['lamp_blue'].box((12.7*k, sy*3.5*k, zb+1.9*k), (1.0*k, .25*k, .45*k),
-                           rot=Matrix.Rotation(sy*math.radians(-40), 4, 'Z'))
-        g['dark'].box((5.4*k, sy*6.4*k, zb+1.8*k), (.3*k, 1.6*k, 1.6*k))      # prong root seam
-    za = zb+2.0*k
+        _sweep(g['paint#arms'], path, arm, k, zb, sy)
+        # The guide rail: a lit strip set into each arm's inner wall, a steel lip above it.
+        _sweep(g['lamp_blue'], rail, lambda i, t: [(-.14, rail_z[i][0]+.3), (.2, rail_z[i][0]+.3),
+                                                   (.2, rail_z[i][1]-.75), (-.14, rail_z[i][1]-.75)], k, zb, sy)
+        _sweep(g['steel'], rail, lambda i, t: [(-.3, rail_z[i][1]-.75), (.2, rail_z[i][1]-.75),
+                                               (.2, rail_z[i][1]-.45), (-.3, rail_z[i][1]-.45)], k, zb, sy)
+        # Coil ports in the casing flank (the glow's flank lamps, the sprite's dark ports):
+        # round, cut into the casing, a lit coil face at the bottom of each.
+        for x in (-5.3, -3.3):
+            casing.cut().cyl((x*k, sy*8.0*k, zb+1.45*k), .75*k, 1.6*k, 'Y', n=24)
+            g['lamp_blue'].cyl((x*k, sy*7.3*k, zb+1.45*k), .75*k, .1*k, 'Y', n=24)
+            g['steel'].ring((x*k, sy*7.75*k, zb+1.45*k), .75*k, .95*k, .5*k, 'Y', n=24)
+    # Capacitor drum: a crowned green pod seated in its well, a grey coil hub on top
+    # with its bore and the core lit at the bottom of it.
+    drum = [(-7.6, 3.4, 3.4), (-7.0, 5.4, 3.9), (-5.5, 6.4, 4.2), (-3.4, 6.6, 4.3), (-1.3, 6.4, 4.2), (.6, 5.2, 3.8),
+            (1.0, 4.4, 3.5)]
+    dm = g['accent#drum']
+    _loft(dm, [(x, section(hw, 1.2, h, .5*hw, 0, .25*hw, 3)) for x, hw, h in
+               ((x, *_cr(drum, x)) for x in [-7.6+i*.43 for i in range(21)])], k, zb)
+    for x in (-5.9, -.9):
+        dm.cut().box((x*k, 0, zb+4.3*k), (.3*k, 14*k, .8*k))
+    hub = g['steel#hub']
+    hub.lathe([(2.3*k, 0), (2.3*k, .3*k), (2.0*k, .7*k), (1.3*k, .95*k), (0, 1.0*k)], 32, (-3.4*k, 0, zb+3.8*k))
+    for m_ in (hub, dm):
+        m_.cut().cyl((-3.4*k, 0, zb+4.8*k), .9*k, 1.6*k, 'Z', n=24)
+    for a in range(0, 360, 45):
+        c, sn = math.cos(math.radians(a)), math.sin(math.radians(a))
+        hub.cut().box(((-3.4+1.8*c)*k, 1.8*sn*k, zb+4.6*k), (.25*k, .6*k, .5*k),
+                      rot=Matrix.Rotation(math.radians(a+90), 4, 'Z'))
+    g['lamp_blue'].cyl((-3.4*k, 0, zb+4.1*k), .9*k, .1*k, 'Z', n=24)
+    zt = 2.1
+    za = zb+zt*k
 
     def gun(gg, za):
-        # The emitter: a green snout between the prongs (the sprite's green core,
-        # rows 6-12), coil rings round its root, the lens at its face.
-        snout = [(4.0, 2.6), (8.0, 2.3), (10.6, 1.8), (11.4, 1.2)]
-        st = []
-        for x, hw in snout:
-            st.append((x*k, [(y*k, za+z*k) for y, z in section(hw, -1.5, 1.4, top=.5*hw, bot=.4*hw, round_=1)]))
-        gg['accent'].loft_x(st)
-        for x in (5.0, 6.0, 7.0):
-            gg['accent'].cut().box((x*k, 0, za+1.4*k), (.35*k, 6*k, .9*k))
-        gg['dark'].box((8.6*k, 0, za+1.35*k), (3.6*k, .5*k, .2*k))
-        gg['lamp_blue'].lathe([(1.0*k, 0), (.8*k, .3*k), (0, .45*k)], 24, (11.4*k, 0, za), 'X')
-    return (2.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun,
+        # Breech housing: rounded about the trunnion axis at its back (a mantlet, so it
+        # turns in the slot without opening a gap), its flanks stepping in to the spine.
+        def hous(hw, lo, hi, n=20):
+            return section(hw, lo, hi, .45*hw, .25*hw, .1*hw, 2)
+        st = [(1.0, hous(2.2, -.9, .9)), (1.4, hous(3.0, -1.3, 1.35)), (2.2, hous(3.3, -1.5, 1.55)),
+              (4.4, hous(3.2, -1.4, 1.5)), (5.6, hous(2.8, -1.1, 1.3)), (6.4, hous(2.0, -.8, 1.0))]
+        _loft(gg['accent#breech'], [(x, [(y, zt+z) for y, z in sec]) for x, sec in st], k, zb)
+        for x in (3.0, 4.6):
+            gg['accent#breech'].cut().box((x*k, 0, za+1.6*k), (.3*k, 8*k, .7*k))
+        gg['steel'].cyl((1.6*k, 0, za), .55*k, 9.4*k, 'Y', n=24)
+        # Spine: the coil-wound tube, three windings, a collar, the lens at the fire point.
+        gg['accent'].lathe([(1.25*k, 0), (1.15*k, 2.2*k), (.95*k, 3.6*k), (.95*k, 4.0*k), (1.15*k, 4.1*k),
+                            (1.15*k, 4.5*k), (.8*k, 4.7*k)], 32, (5.6*k, 0, za), 'X')
+        for x in (6.5, 7.2, 7.9):
+            gg['steel'].ring((x*k, 0, za), 1.0*k, 1.45*k, .45*k, 'X', n=32)
+        gg['dark'].ring((10.05*k, 0, za), .55*k, .8*k, .1*k, 'X', n=24)
+        gg['lamp_blue'].lathe([(.75*k, 0), (.6*k, .2*k), (0, .32*k)], 24, (10.1*k, 0, za), 'X')
+    return (1.6*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun,
                               'muzzles': [(x*k, y*k, za) for x, y in sp['offsets']],
                               'elevation_limits': (-5, 20)}
 

@@ -13,10 +13,15 @@ from frame to frame; close shots are repainted over its frames with Codex ImageG
 (`geometry-first-imagegen.md`), so the figure owns silhouette, proportion, pose and
 light, and the repaint owns face, hair and cloth finish. Her look is the portrait's
 (`art-source/portraits/castle/prompt.txt`, `art-source/hq-command-deck/castle-v2.brief.txt`).
+The modelling reference is `turnaround/`: two ImageGen sheets made from the concept and the
+portrait (owner, 2026-10-19), a full-body turnaround (front, both sides, back) and a head
+turnaround, with their briefs and provenance. They are the only views of her back, which is
+how C2 sees her.
 
 | File | What it is |
 |---|---|
 | `build_castle.py` | Builds her headless and writes `castle-figure.blend` (gitignored). `python build_castle.py [--hair mesh\|curves] [--face portrait\|plain] [--out PATH]`. |
+| `castle_dress.py` | Her clothes after the turnaround: MakeHuman's `male_casualsuit05` (jacket over a shirt, trousers) sorted by UV island into duty jacket, undershirt and trousers, its lapels and shirt collar taken off, each part a weathered procedural fabric over MakeHuman's normal and AO maps (the jacket faintly quilted); `shoes03` boots; modelled flap pockets on the left sleeve and both thighs (the jacket's own chest and hip pockets are kept), and a belt with a squared buckle. |
 | `castle_face.py` | Her face, half-smile and textured skin, eyes, brows and lashes: MakeHuman face targets from her portrait, the expression units masked to her left, MakeHuman's CC0 diffuses (packed into the .blend). `--face plain` skips it. |
 | `face_review.py` | Her face beside her portrait, and a front / three-quarter / profile turn, in EEVEE and Workbench. `python face_review.py --out DIR [--blend PATH] [--prefix NAME-]`. |
 | `face_texture.py` | Experiment: an ImageGen repaint of her face skin, two ways. `guides` renders the head's UV island and three orthographic albedo views into `face-texture/guides/`; Codex (Astra, `--effort ultra`) repaints each from `face-texture/prompts/` into `face-texture/generated/`; `measure` finds where eleven landmarks landed (NCC patch match, mm) and registers each generation with a robust affine; `bake` writes a UV-direct and a projected skin and a .blend for each under `build/castle-face-texture/`; `compare` renders both on her beside the portrait. Not yet adopted into `castle_face.py`. |
@@ -24,14 +29,15 @@ light, and the repaint owns face, hair and cloth finish. Her look is the portrai
 
 ## Hair
 
-`--hair mesh` (the default) is MakeHuman's `short04` cards plus a modelled UV-sphere bun.
-`--hair curves` is a prototype groom styled after `castle-v2.master.png`: a loose, fist-sized
-updo high on the back of the crown, hair gathered up into it with some volume, a fringe swept
-to her right that hangs at the temple, wisps at her right cheek, and silver sweeping back from
-the temples (most on her left). It is Blender hair curves on a hidden copy of the scalp skin,
-which is the skin under `short04` without its sideburns, with the hairline thinned over its
-outer rings. The script lays the guides: one per scalp vertex, gathered into the bun; arcs
-wrapping a lumpy core mesh for the bun; and the fringe and wisps, kept off the skin. Blender's
+`--hair curves` (the default) is a groom after the head turnaround: the hair drawn back off
+the forehead with some lift, gathered into a loose twisted knot at the back of the head a
+little above the ears, a few wavy tendrils escaping at both temples and the nape, and silver
+streaks at the temples (most on her right). `--hair mesh` is MakeHuman's `short04` cards plus
+a modelled UV-sphere bun, a quick stand-in. The groom is Blender hair curves on a hidden copy
+of the scalp skin, which is the skin under `short04` without its sideburns, with the hairline
+thinned over its outer rings. The script lays the guides: one per scalp vertex, gathered into
+the bun; arcs wound round the knot's axis over a lumpy core mesh; and the tendrils, kept off
+the skin. Blender's
 own procedural hair node groups, bundled with Blender (CC0), do the rest: Attach, Interpolate
 (about 45,000 strands), Clump, Frizz, Hair Curves Noise, Set Hair Curve Profile and Duplicate
 (bun and loose hair). The armature deforms the scalp copy, and the groom follows it through Deform Curves on Surface.
@@ -39,13 +45,13 @@ This matters at the nape, which is weighted to the neck: hair fixed rigidly to t
 sinks into the skin when she bows her head. Each strand's `grey` attribute marks the temples
 and a sprinkle of stray grey strands. The material is a Principled Hair BSDF with two outputs:
 melanin for Cycles, and direct colour for EEVEE, which ignores the melanin parametrisation.
-Workbench draws the flat `diffuse_color`. The owner has not yet chosen between the two modes.
+Workbench draws the flat `diffuse_color`.
 
 ## Using her
 
 `sw_bridge_interior.figures()` appends her in place of the 'Bridge figure Castle'
-mannequin whenever `castle-figure.blend` exists, at the mannequin's spot (10.9, 3.25,
-floor 16.6, facing +Y, in Second Wind units); without it, or with `castle=False`, the
+mannequin whenever `castle-figure.blend` exists, at `sw_bridge_interior.CASTLE_AT` (the
+comms bank's forward panel, facing +Y, in Second Wind units); without it, or with `castle=False`, the
 mannequin is drawn. `c2_bridge_blockout.py`, `c2_bridge_render.py` and
 `bridge_interior_review.py --figures` all go through it.
 
@@ -65,18 +71,19 @@ A Mac without MPFB takes the .blend from Drive, `starsector/builds/castle/<commi
 MakeHuman's base mesh, targets, rigs, skins, clothes, hair and other system assets are
 CC0 (released by Data Collection AB, Joel Palmius and Jonas Hauquier in 2020; each asset
 file says so). MPFB, the plug-in, is GPL-3.0; the meshes it outputs are not covered by
-that. The bun, collar and headset are modelled here. The curves groom uses Blender's bundled
+that. The bun, collar, pockets, belt and headset are modelled here. The curves groom uses Blender's bundled
 procedural hair node assets (CC0). No other assets are used.
 
 ## Open
 
-- Hair: the pack has no bun. Either `short04` (swept back) carries a modelled bun and the
-  repaint does the rest, or the curves groom replaces both (see Hair). The owner decides.
-- Boots: `shoes02` reads as low shoes, not work boots.
-- Clothes, boots and hair materials are flat colours. Skin, eyes, brows and lashes are
-  textured (castle_face.py) from MakeHuman's CC0 diffuses, packed into the .blend so it
-  opens without MPFB; every material keeps a flat diffuse_color for Workbench.
+- Hair: the front hairline is still a hard edge set high at the temples (it is `short04`'s),
+  where the turnaround's is soft, wavy and lower.
+- Clothes: `shoes03` are ankle boots, not the turnaround's tall laced boots; the jacket is a
+  blazer cut with its lapels removed rather than a zip jacket, and its cuffs are not rolled.
+- Every material keeps a flat diffuse_color for Workbench; the images are packed into the
+  .blend so it opens without MPFB.
 - The face is MakeHuman's, shaped toward the portrait: it carries her proportions and
-  expression for the repaint, not a likeness.
+  expression for the repaint, not a likeness. It is narrower and smoother than the
+  turnaround's.
 - The earpiece stays on her right ear, with her right hand at it while she speaks, although the
   portrait and cards wear it on her left (owner, 2026-10-19).

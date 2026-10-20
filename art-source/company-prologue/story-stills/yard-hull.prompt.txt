@@ -1,8 +1,7 @@
-Y1 background (owner approved 2026-10-19). This master is a copy of
-art-source/company-prologue/yard-stills/yard-hull-bg-v3.png; its exact prompt is
-yard-hull-bg-v3.prompt.txt beside it and its guide yard-stills/guides/y1-guide-v7.png, rendered by
-yard-stills/y1_guide.py from the C5 yard scene (Kilo Nine, industrial-exterior/c5_scene.py).
-
-It is a background layer: no Nessa. Her cut-out is a separate layer composited over it
-(yard-stills/compose_y1.py). Runtime packing: ./art-source/company-prologue/pack.ps1
-(copy only yard-hull.jpg when other story stills are in flight elsewhere).
+Y1 (owner approved 2026-10-19) is two layers, not one painting, so it has no master here and
+pack.ps1 does not touch yard-hull.jpg:
+  background  art-source/company-prologue/yard-stills/yard-hull-bg-v3.png (+ .prompt.txt, guide
+              yard-stills/guides/y1-guide-v7.png from yard-stills/y1_guide.py, the C5 yard scene)
+  Nessa       art-source/company-prologue/yard-stills/nessa-y1-cutout-v1.png (+ .prompt.txt, placed
+              from guides/nessa-y1-silhouette.png, nessa_silhouette.py)
+Runtime packing: python art-source/company-prologue/yard-stills/compose_y1.py --pack

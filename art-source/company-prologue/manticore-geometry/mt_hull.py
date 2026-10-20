@@ -55,8 +55,8 @@ POD_STATIONS = [(42, 2, 3, -6), (36, 7.5, 9, -11), (29, 10.5, 11, -13), (17, 10.
 # neck still climbs; the central hull can go down): the whole forward hull
 # pitches down from just ahead of the bridge, 0.10 per unit forward of X 10, and
 # the beak bends harder, 0.32 per unit forward of X 62. Turret rings stay level.
-WING_DROOP = [(24.0, .16), (46.0, .50)]
-NOSE_DROOP = [(10.0, .10), (62.0, .32)]
+WING_DROOP = [(24.0, .30)]
+NOSE_DROOP = [(10.0, .18)]
 
 
 def wing_drop(y):
@@ -93,7 +93,15 @@ def droop(ob):
     ob.data.update()
     return ob
 LAUNCHER = (32, 43)    # WS 004 / WS 005 hardpoint, port side
-LAUNCHER_WELL_DEPTH = 4.0
+LAUNCHER_WELL_DEPTH = 3.5
+# Round 7 (owner: cohesive angling, not wobbly): one angle vocabulary for the
+# whole hull. Every lofted body's shoulders fall 30 deg and its lower faces 45
+# deg; armour plates fall 30 deg outboard and rake 45 deg at their faces; the
+# forward hull bends down in one line from the bridge and the arms in one
+# anhedral. (The stern keeps its own accepted sections.)
+SHOULDER = math.tan(math.radians(30))
+LOWER = 1.0
+FALL, RAKE = 30, 45
 
 
 def ccw(poly):
@@ -122,7 +130,7 @@ def octagon_plan(cx, cy, r, n=8, phase=math.pi/8):
     return [(cx+r*math.cos(phase+2*math.pi*k/n), cy+r*math.sin(phase+2*math.pi*k/n)) for k in range(n)]
 
 
-def facets(hw, top, bot, flat=.5, keel=.45, up=.45, down=.55):
+def facets(hw, top, bot, flat=.5, keel=.45, up=SHOULDER, down=LOWER):
     """A faceted cross-section [(y, z)] round the hull, never a slab: a flat
     deck only `flat` x the half-width wide (where a turret ring stands),
     shoulders falling `up` per unit to the beam, a short vertical beam, and
@@ -169,9 +177,9 @@ def build(kit):
                                                          (60, s*18), (52, s*19), (43, s*20.5), (43, s*15.5),
                                                          (52, s*13), (62, s*11), (72, s*9.5), (82, s*5)]),
                      section(-9.0, 11.2, 2.6, .9), kit.red, .15)
-        plane_cut(horn, f'{side} horn outboard fall', (60, s*13, 11.2), facet_normal((0, s), 30))
-        plane_cut(horn, f'{side} horn beak rake', (82, 0, 11.2), facet_normal((1, 0), 32))
-        n = facet_normal((1, 0), 38)
+        plane_cut(horn, f'{side} horn outboard fall', (60, s*13, 11.2), facet_normal((0, s), FALL))
+        plane_cut(horn, f'{side} horn beak rake', (80, 0, 11.2), facet_normal((1, 0), RAKE))
+        n = facet_normal((1, 0), RAKE)
         plane_cut(horn, f'{side} horn chin', (82, 0, -9.0), (n[0], 0, -n[2]))
         kit.hull.append(droop(horn))
     crossbar = prism(kit, 'Hull bow crossbar', ccw(sym([(66.5, 7.5), (64, 9.5), (61, 8.5), (60.5, 4)])),
@@ -179,7 +187,7 @@ def build(kit):
     kit.hull += [droop(crossbar)]
 
     neck = droop(lofted(kit, 'Hull neck', NECK_STATIONS, kit.steel))
-    core = droop(lofted(kit, 'Hull core', CORE_STATIONS, kit.red, keel=.25, down=.8))
+    core = droop(lofted(kit, 'Hull core', CORE_STATIONS, kit.red, keel=.25))
     # The main gun stands in a well, so its roof sits low under the bridge's sightline.
     r, d = MAIN_WELL
     well = kit.cylinder('Temporary main well cutter', (21, 0, CORE_DECK-d+10-nose_drop(21)), r, 20, kit.red, vertices=24)
@@ -201,7 +209,7 @@ def build(kit):
         # faceted armoured nacelle tapering to a point forward and a short
         # stern, flat only under the turret ring.
         pod = loft_x(kit, f'Hull {side} turret pod',
-                     [(px, [(s*y+yy, zz-drop) for yy, zz in facets(hw, top, bot, flat=.68, keel=.3, up=.7, down=.8)])
+                     [(px, [(s*y+yy, zz-drop) for yy, zz in facets(hw, top, bot, flat=.68, keel=.3)])
                       for px, hw, top, bot in POD_STATIONS], kit.steel)
         kit.hull.append(droop(pod))
         # Angular armour on the nacelle (after the Onslaught's layered plate):
@@ -210,22 +218,35 @@ def build(kit):
         flank = prism(kit, f'Hull {side} pod armour collar',
                       ccw([(38, s*(y+4.5)), (31, s*(y+11.2)), (12, s*(y+11.2)), (7.5, s*(y+6.5))]),
                       section(-11.0-drop, 7.5-drop, 2.4, 1.6), kit.red, .12)
-        plane_cut(flank, f'{side} flank outboard fall', (22, s*(y+8.5), 7.5-drop), facet_normal((0, s), 38))
-        plane_cut(flank, f'{side} flank forward rake', (33, s*(y+8), 7.5-drop), facet_normal((1, .4*s), 40))
+        plane_cut(flank, f'{side} flank outboard fall', (22, s*(y+8.5), 7.5-drop), facet_normal((0, s), FALL))
+        plane_cut(flank, f'{side} flank forward rake', (33, s*(y+8), 7.5-drop), facet_normal((1, .4*s), RAKE))
         kit.hull.append(droop(flank))
         glacis = prism(kit, f'Hull {side} pod nose glacis',
                        ccw([(42.5, s*y), (36, s*(y+6.5)), (32, s*(y+6)), (32, s*(y-6)), (36, s*(y-6.5))]),
                        section(-6.0-drop, 8.6-drop, 2.0, .8), kit.red, .12)
-        plane_cut(glacis, f'{side} glacis rake', (34, s*y, 8.6-drop), facet_normal((1, 0), 30))
+        plane_cut(glacis, f'{side} glacis rake', (34, s*y, 8.6-drop), facet_normal((1, 0), RAKE))
         kit.hull.append(droop(glacis))
-        # Launcher well (round 5: inset, not a raised housing): the Harpoon rack
-        # sits down in a pocket in the wing, open forward through the leading
-        # edge so its tubes have a clear channel ahead.
-        floor = WING_DECK-ldrop-nose_drop(lx)-LAUNCHER_WELL_DEPTH
-        cutter = prism(kit, f'Temporary {side} launcher well cutter',
-                       ccw([(lx+40, s*(ly-8.5)), (lx+40, s*(ly+8.5)), (lx-9, s*(ly+8.5)), (lx-9, s*(ly-8.5))]),
-                       section(floor, floor+30, 0, 0), kit.steel, 0)
-        boolean(wing, cutter)
+        # Launcher bay (round 5: inset; round 7: not a wedge cut into the
+        # wing): an armoured red block in the arm round the Harpoon slot, its
+        # deck flush with the wing's; the rack sits down a chamfered recess in
+        # it, open forward through the leading edge for the tubes.
+        # The bay follows the arm's anhedral like the wing (sheared, then bent
+        # with the forward hull); the recess floor stays level for the rack.
+        # Round 8 (owner: the hull should not jut out for the missiles): the bay
+        # ends at the arm's leading edge, its face raked like the leading-edge
+        # armour beside it, so the edge reads as one armoured line.
+        bay = prism(kit, f'Hull {side} launcher bay',
+                    ccw([(33, s*(ly-10.5)), (33, s*(ly+10.5)), (lx-10, s*(ly+10.5)), (lx-10, s*(ly-10.5))]),
+                    section(WING_DECK-9.0, WING_DECK+.6, 4.5, 1.2), kit.red, .12)
+        plane_cut(bay, f'{side} bay face rake', (29, 0, WING_DECK+.6), facet_normal((1, 0), RAKE))
+        droop(shear(bay))
+        deck = WING_DECK-ldrop
+        recess = droop(prism(kit, f'Temporary {side} launcher recess cutter',
+                       ccw([(lx+40, s*(ly-7.5)), (lx+40, s*(ly+7.5)), (lx-7, s*(ly+7.5)), (lx-7, s*(ly-7.5))]),
+                       section(deck-LAUNCHER_WELL_DEPTH, deck+30, 2.5, 0), kit.steel, 0))
+        boolean(wing, recess, keep=True)
+        boolean(bay, recess)
+        kit.hull.append(bay)
 
     # The main gun's ring at the bottom of its well, and the small bow ring for WS 002.
     kit.hull.append(kit.cylinder('Hull main turret ring', (21, 0, CORE_DECK-MAIN_WELL[1]-.6-nose_drop(21)), MAIN_WELL[0]-.6, 1.4,

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1567d-e8e4-7353-bb46-aab690fc5dd1",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1567d-e8e4-7353-bb46-aab690fc5dd1\\exec-612cce4d-9bff-4a94-9aa2-37881c2bd378.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\castle-figure\\turnaround\\castle-turnaround-body-v1.png",
+    "sha256": "6ed5f433d02ba8fec8c5778c05100f8ef64d0fcde25d89edae6f313ec17ede2b",
+    "dimensions": [
+      1774,
+      887
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\castle-figure\\turnaround\\castle-turnaround-body.brief.txt",
+  "promptSha256": "3c76d8d9a8930f5ac6351c6cfb691183ff518f2e9d11fcb1c1022c050bf0fe86",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity and costume authority: same woman, same jacket, trousers, belt and boots; not the pose or framing\nImage 2: Face and hair identity only; not framing or lighting\n\nCharacter model turnaround sheet of Castle, for a 3D modeller to build her from: the same woman, same clothes, shown four times side by side at the same scale on one sheet, standing in a relaxed neutral A-pose with arms slightly away from the body so the clothes read clearly. Left to right: front view, her right side in profile, back view, her left side in profile. Orthographic-looking, level camera at mid-height, no perspective lean; heads on one line, feet on one line.\n\nShe is exactly the person and outfit of reference 1 (identity and costume authority) with the face and hair of reference 2: a woman in her early fifties, warm pale olive skin, lived-in face with fine lines, grey-green eyes, dark brown wavy hair with silver at the temples, gathered loosely up into a short practical bun high on the back of the head with loose strands falling at the temples and nape. Small earpiece with a short boom microphone on her right ear.\n\nCostume, every detail shown consistently in all four views: worn charcoal-olive duty jacket in a quilted, weathered fabric, hip length, open zip front, high stand collar, a flap chest pocket on her left breast, a flap pocket on the left upper sleeve, cuffs rolled once, shoulder yoke and back seams visible in the back view; faded cream crew-neck undershirt; dark olive canvas belt with a squared metal buckle; dark olive cargo trousers with a flap cargo pocket on each thigh, knee seams, slightly bloused over the boots; worn laced brown-black work boots. Show the back of the bun and how the hair is gathered in the back view.\n\nEven, neutral studio light from the front-left with soft fill, so every surface and seam reads; plain flat mid-grey background; no floor shadow slab. Painted, restrained realism matching reference 1. Widest landscape canvas. No text, no labels, no arrows, no extra people, no props in her hands.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\hq-command-deck\\castle-v2.master.png",
+      "sha256": "65d0083f394a1a8521282540e9ad20effc87c3d991ad68616c0e184a20ef5525",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Identity and costume authority: same woman, same jacket, trousers, belt and boots; not the pose or framing"
+    },
+    {
+      "path": "art-source\\portraits\\castle\\castle-master.png",
+      "sha256": "136dc31a89e0b8143f86e9c0ac80b49ba8230badb1c74d97d7bc6d39104bd37c",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Face and hair identity only; not framing or lighting"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to create one turnaround sheet with the four requested views."
+  ],
+  "usage": {
+    "input_tokens": 43725,
+    "cached_input_tokens": 36096,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 644,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 50.4
+}

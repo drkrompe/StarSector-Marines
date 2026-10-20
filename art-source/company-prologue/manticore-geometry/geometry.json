@@ -1,5 +1,5 @@
 {
-  "status": "Review round 6: no turntables under the Harpoon hardpoints, faceted pointed gun nacelles with angular armour, one bow armour strake a side to the beak, leading-edge arm armour; round 5: Harpoon racks inset in wing wells, faceted tapering engine block, slender V belly, steeper wing droop; round 4: forward hull pitched down from just ahead of the bridge; round 3: drooping beak and wings bending down to their tips (bird of prey); bridge back on a low plinth at the core deck, the Hellbore sunk deeper in a wider pit so the bridge sees over it; round 2 deep faceted lofted hull; pass 6 light pirate livery + pass 4 scale (0.59 m/u, ship_scale.py option C) + pass 2 detail on the pass 1 slots, drives, turret-kit weapons, anchors and running lights.",
+  "status": "Review round 8: launcher bays end at the arm leading edge; round 7: launcher bays round the Harpoons, one 30/45 deg angle vocabulary, single nose bend and single anhedral; round 6: no turntables under the Harpoon hardpoints, faceted pointed gun nacelles with angular armour, one bow armour strake a side to the beak, leading-edge arm armour; round 5: Harpoon racks inset in wing wells, faceted tapering engine block, slender V belly, steeper wing droop; round 4: forward hull pitched down from just ahead of the bridge; round 3: drooping beak and wings bending down to their tips (bird of prey); bridge back on a low plinth at the core deck, the Hellbore sunk deeper in a wider pit so the bridge sees over it; round 2 deep faceted lofted hull; pass 6 light pirate livery + pass 4 scale (0.59 m/u, ship_scale.py option C) + pass 2 detail on the pass 1 slots, drives, turret-kit weapons, anchors and running lights.",
   "hull": {
     "name": "Manticore (P)",
     "hullId": "manticore",
@@ -96,7 +96,7 @@
     },
     "published_metres_per_unit": 0.59,
     "measured_this_build": {
-      "enclosed_units3": 228901,
+      "enclosed_units3": 225259,
       "solids": [
         "Hull bow head",
         "Hull neck",
@@ -111,7 +111,7 @@
     "size_m": [
       91.0,
       94.9,
-      32.2
+      32.6
     ],
     "person_1_8_m_in_units": 3.05,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
@@ -131,7 +131,7 @@
     "min": [
       -66.3,
       -80.42,
-      -27.92
+      -28.72
     ],
     "max": [
       88.0,
@@ -141,7 +141,7 @@
     "size": [
       154.3,
       160.83,
-      54.5
+      55.3
     ]
   },
   "weapon_slots": [
@@ -150,7 +150,7 @@
       "location": [
         21,
         0,
-        10.11
+        9.64
       ],
       "angle": 0,
       "arc": 90,
@@ -167,7 +167,7 @@
       "location": [
         23,
         65,
-        -1.1
+        -1.48
       ],
       "angle": 80,
       "arc": 235,
@@ -184,7 +184,7 @@
       "location": [
         73,
         0,
-        2.08
+        -0.54
       ],
       "angle": 0,
       "arc": 235,
@@ -201,7 +201,7 @@
       "location": [
         23,
         -65,
-        -1.1
+        -1.48
       ],
       "angle": -80,
       "arc": 235,
@@ -218,7 +218,7 @@
       "location": [
         32,
         43,
-        -1.99
+        -5.05
       ],
       "angle": 0,
       "arc": 5,
@@ -235,7 +235,7 @@
       "location": [
         32,
         -43,
-        -1.99
+        -5.05
       ],
       "angle": 0,
       "arc": 5,
@@ -252,7 +252,7 @@
       "location": [
         36,
         -20,
-        6.4
+        4.32
       ],
       "angle": -45,
       "arc": 5,
@@ -269,7 +269,7 @@
       "location": [
         36,
         21,
-        5.88
+        3.92
       ],
       "angle": 45,
       "arc": 5,
@@ -286,7 +286,7 @@
       "location": [
         -19,
         40,
-        6.44
+        4.2
       ],
       "angle": 135,
       "arc": 5,
@@ -303,7 +303,7 @@
       "location": [
         -19,
         -40,
-        6.44
+        4.2
       ],
       "angle": 225,
       "arc": 5,
@@ -332,9 +332,9 @@
       "location": [
         21,
         0,
-        10.11
+        9.64
       ],
-      "seat_z": 8.41,
+      "seat_z": 7.94,
       "lift": 1.7,
       "rest_angle_deg": 0,
       "arc_deg": 90,
@@ -348,7 +348,7 @@
           "at": [
             43.576,
             0.0,
-            13.374
+            12.902
           ],
           "axis": [
             1.0,
@@ -374,10 +374,10 @@
       "location": [
         23,
         65,
-        -1.1
+        -1.48
       ],
-      "seat_z": -2.9,
-      "lift": 1.8,
+      "seat_z": -2.88,
+      "lift": 1.4,
       "rest_angle_deg": 80,
       "arc_deg": 235,
       "vfx_scale": 1.54,
@@ -390,7 +390,7 @@
           "at": [
             25.21,
             77.534,
-            1.496
+            1.112
           ],
           "axis": [
             0.174,
@@ -416,9 +416,9 @@
       "location": [
         73,
         0,
-        2.08
+        -0.54
       ],
-      "seat_z": 0.88,
+      "seat_z": -1.74,
       "lift": 1.2,
       "rest_angle_deg": 0,
       "arc_deg": 235,
@@ -432,7 +432,7 @@
           "at": [
             83.737,
             -1.895,
-            4.834
+            2.214
           ],
           "axis": [
             1.0,
@@ -447,7 +447,7 @@
           "at": [
             83.737,
             1.895,
-            4.834
+            2.214
           ],
           "axis": [
             1.0,
@@ -473,10 +473,10 @@
       "location": [
         23,
         -65,
-        -1.1
+        -1.48
       ],
-      "seat_z": -2.9,
-      "lift": 1.8,
+      "seat_z": -2.88,
+      "lift": 1.4,
       "rest_angle_deg": -80,
       "arc_deg": 235,
       "vfx_scale": 1.54,
@@ -489,7 +489,7 @@
           "at": [
             25.21,
             -77.534,
-            1.496
+            1.112
           ],
           "axis": [
             0.174,
@@ -515,9 +515,9 @@
       "location": [
         32,
         43,
-        -1.99
+        -5.05
       ],
-      "seat_z": -0.24,
+      "seat_z": -3.3,
       "lift": -1.75,
       "rest_angle_deg": 0,
       "arc_deg": 5,
@@ -531,7 +531,7 @@
           "at": [
             38.075,
             41.178,
-            2.146
+            -0.917
           ],
           "axis": [
             1.0,
@@ -546,7 +546,7 @@
           "at": [
             38.075,
             43.0,
-            2.146
+            -0.917
           ],
           "axis": [
             1.0,
@@ -561,7 +561,7 @@
           "at": [
             38.075,
             44.822,
-            2.146
+            -0.917
           ],
           "axis": [
             1.0,
@@ -587,9 +587,9 @@
       "location": [
         32,
         -43,
-        -1.99
+        -5.05
       ],
-      "seat_z": -0.24,
+      "seat_z": -3.3,
       "lift": -1.75,
       "rest_angle_deg": 0,
       "arc_deg": 5,
@@ -603,7 +603,7 @@
           "at": [
             38.075,
             -44.822,
-            2.146
+            -0.917
           ],
           "axis": [
             1.0,
@@ -618,7 +618,7 @@
           "at": [
             38.075,
             -43.0,
-            2.146
+            -0.917
           ],
           "axis": [
             1.0,
@@ -633,7 +633,7 @@
           "at": [
             38.075,
             -41.178,
-            2.146
+            -0.917
           ],
           "axis": [
             1.0,
@@ -788,7 +788,7 @@
       "position": [
         23,
         78.8,
-        -4.72
+        -5.04
       ],
       "colour": "red",
       "role": "port side light (extremity)",
@@ -803,7 +803,7 @@
       "position": [
         23,
         -78.8,
-        -4.72
+        -5.04
       ],
       "colour": "green",
       "role": "starboard side light (extremity)",
@@ -833,7 +833,7 @@
       "position": [
         83,
         0,
-        -5.57
+        -6.79
       ],
       "colour": "white",
       "role": "prow anti-collision strobe",
@@ -851,8 +851,8 @@
     "anchors_collection": "MANTICORE | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'MANTICORE'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 40202,
-    "objects": 177,
+    "triangles": 39726,
+    "objects": 179,
     "materials": [
       "Manticore bridge glazing",
       "Manticore grey plate",
@@ -1028,49 +1028,49 @@
           "at_x": null
         },
         {
-          "from_deg": 4.25,
+          "from_deg": 4.75,
           "meets": "Weapon WS 000 recoil 1 metal",
-          "at_x": 36.6
+          "at_x": 37.1
         },
         {
-          "from_deg": 7.0,
+          "from_deg": 7.75,
           "meets": "Weapon WS 000 gun steel",
-          "at_x": 27.3
+          "at_x": 27.7
         },
         {
-          "from_deg": 7.5,
+          "from_deg": 8.5,
+          "meets": "Weapon WS 000 recoil 1 steel",
+          "at_x": 26.5
+        },
+        {
+          "from_deg": 8.75,
           "meets": "Weapon WS 000 house accent",
-          "at_x": 22.5
+          "at_x": 22.1
         },
         {
-          "from_deg": 10.0,
+          "from_deg": 11.25,
           "meets": "Weapon WS 000 recoil 1 steel",
           "at_x": 19.6
         },
         {
-          "from_deg": 18.0,
+          "from_deg": 20.25,
           "meets": "Weapon WS 000 house paint",
           "at_x": 14.9
         },
         {
-          "from_deg": 18.25,
+          "from_deg": 21.0,
           "meets": "Weapon WS 000 recoil 1 steel",
           "at_x": 14.9
         },
         {
-          "from_deg": 20.25,
+          "from_deg": 21.75,
           "meets": "Weapon WS 000 house paint#rear",
           "at_x": 14.6
         },
         {
-          "from_deg": 40.0,
-          "meets": "Weapon WS 000 barbette",
-          "at_x": 12.0
-        },
-        {
-          "from_deg": 40.25,
+          "from_deg": 41.5,
           "meets": "Hull wing body",
-          "at_x": 11.8
+          "at_x": 11.3
         },
         {
           "from_deg": 46.25,
@@ -1079,7 +1079,7 @@
         }
       ],
       "prow_visible": false,
-      "prow_depression_deg": 19.1,
+      "prow_depression_deg": 19.6,
       "prow_ray_meets": "Weapon WS 000 recoil 1 steel",
       "bearing_sweep": [
         {
@@ -1088,7 +1088,7 @@
         },
         {
           "bearing_deg": -80,
-          "clear_down_to_deg": -10.0
+          "clear_down_to_deg": -12.5
         },
         {
           "bearing_deg": -70,
@@ -1096,55 +1096,55 @@
         },
         {
           "bearing_deg": -60,
-          "clear_down_to_deg": -15.5
+          "clear_down_to_deg": -18.0
         },
         {
           "bearing_deg": -50,
-          "clear_down_to_deg": -15.0
+          "clear_down_to_deg": -17.5
         },
         {
           "bearing_deg": -40,
-          "clear_down_to_deg": -14.5
+          "clear_down_to_deg": -17.0
         },
         {
           "bearing_deg": -30,
-          "clear_down_to_deg": -14.0
+          "clear_down_to_deg": -17.0
         },
         {
           "bearing_deg": -20,
-          "clear_down_to_deg": -12.0
+          "clear_down_to_deg": -13.0
         },
         {
           "bearing_deg": -10,
-          "clear_down_to_deg": -9.0
+          "clear_down_to_deg": -10.0
         },
         {
           "bearing_deg": 0,
-          "clear_down_to_deg": -4.0
+          "clear_down_to_deg": -4.5
         },
         {
           "bearing_deg": 10,
-          "clear_down_to_deg": -9.0
+          "clear_down_to_deg": -10.0
         },
         {
           "bearing_deg": 20,
-          "clear_down_to_deg": -7.0
+          "clear_down_to_deg": -7.5
         },
         {
           "bearing_deg": 30,
-          "clear_down_to_deg": -9.5
+          "clear_down_to_deg": -10.5
         },
         {
           "bearing_deg": 40,
-          "clear_down_to_deg": -14.5
+          "clear_down_to_deg": -17.0
         },
         {
           "bearing_deg": 50,
-          "clear_down_to_deg": -15.0
+          "clear_down_to_deg": -17.5
         },
         {
           "bearing_deg": 60,
-          "clear_down_to_deg": -15.5
+          "clear_down_to_deg": -18.0
         },
         {
           "bearing_deg": 70,
@@ -1152,7 +1152,7 @@
         },
         {
           "bearing_deg": 80,
-          "clear_down_to_deg": -10.0
+          "clear_down_to_deg": -12.5
         },
         {
           "bearing_deg": 90,
@@ -1160,7 +1160,7 @@
         }
       ],
       "bow_gun_visible": false,
-      "bow_gun_depression_deg": 10.2
+      "bow_gun_depression_deg": 12.1
     },
     "bearing_dead_ahead": {
       "count": 6,

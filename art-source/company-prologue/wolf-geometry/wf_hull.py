@@ -40,8 +40,13 @@ HEAD = sym([(43.6, 8.5), (42.5, 10), (31, 10), (30.5, 9)])
 OUTRIGGER = [(43.5, 12.4), (43.5, 13.9), (42.0, 15.3), (40.6, 16.2), (32.5, 16.2), (30.6, 15.8), (30.6, 10.4),
              (42, 10.4)]
 NECK = sym([(31.5, 14.2), (30.4, 13.0), (29, 13.0), (27.8, 14.6), (19, 14.9), (17, 16.4), (15.5, 16.4)])
-MAIN = sym([(18.6, 14.6), (17.3, 17.2), (5.5, 17.5), (4.2, 23.6), (1.5, 23.6), (-0.6, 22.6), (-2.2, 21.0),
-            (-3.4, 19.0), (-5.0, 17.6), (-6.4, 16.0), (-8.5, 15.6)])
+MAIN = sym([(18.6, 14.6), (17.3, 16.8), (6.0, 17.2), (-4.0, 16.6), (-6.4, 16.0), (-8.5, 15.6)])
+# (round 5: the body keeps to its core; the swept missile wings carry the span to Y +-25)
+# The missile wing (owner, round 5): the fixed missile hookups sit at the tips of
+# shallow swept wings that leave the hull amidships, rooted ahead of the drive
+# section and angling forward and outboard to the WS 005 / WS 006 launchers.
+WING = [(15.0, 18.6), (15.0, 24.2), (13.8, 25.2), (6.0, 25.2), (-3.0, 21.8), (-12.0, 17.4), (-19.0, 15.4),
+        (-19.0, 11.0), (-6.0, 12.2), (5.0, 14.0)]
 POD = [(14.6, 18.0), (14.6, 23.8), (13.6, 24.7), (5.4, 24.7), (4.4, 23.8), (4.4, 15.0), (6.0, 13.6),
        (13.0, 13.6)]
 AFT = sym([(-5, 11), (-9, 15.5), (-19.5, 15.6), (-21, 13)])
@@ -142,7 +147,9 @@ TOP_LINE = [(46, 1.5), (43.6, 3.6), (38, 5.2), (31, 6.6), (24, 7.6), (14, 8.8), 
 KEEL_LINE = [(46, -5.0), (43.6, -9.0), (38, -11.0), (31, -12.6), (20, -14.0), (6, -14.6), (-8, -14.4),
              (-18, -13.8), (-28, -12.8), (-39, -11.2)]
 MODULES = [('Hull head', 31.0, 43.6, 'steel'), ('Hull neck', 16.5, 31.0, 'red'), ('Hull main body', -6.0, 16.5, 'red'),
-           ('Hull aft body', -19.5, -6.0, 'red'), ('Hull engine block', -38.8, -19.5, 'steel')]
+           ('Hull aft body', -19.5, -6.0, 'red'), ('Hull engine block', -27.0, -19.5, 'steel')]
+# The drive section (owner, round 5): an octagon, short ahead of three long
+# octagonal drive cans that run exposed out the back (wf_engines).
 P_TOP, P_BOTTOM = 3.4, 3.8     # superellipse exponents: a rounded crown, a fuller belly
 
 
@@ -182,6 +189,8 @@ def side_span(poly, x):
 
 
 def sponson(kit, name, poly, top, keel, mat, sign, step=.8):
+    top_f = top if callable(top) else (lambda x, v=top: v)
+    keel_f = keel if callable(keel) else (lambda x, v=keel: v)
     """A side module (missile pod, outrigger) faired like the hull: superellipse
     sections that follow its sprite outline, port outline mirrored by sign."""
     xs0 = sorted({x for x, _ in poly})
@@ -196,6 +205,7 @@ def sponson(kit, name, poly, top, keel, mat, sign, step=.8):
     out = []
     for x, yc, w in stations_:
         ring = []
+        top, keel = top_f(x), keel_f(x)
         zm = keel+.45*(top-keel)
         for j in range(n):
             a = 2*math.pi*j/n
@@ -238,18 +248,14 @@ def stations(x0, x1, polys, step=1.2):
 def build(kit):
     red, steel, dark = kit.red, kit.steel, kit.dark
     # --- Bow fork: the base and its five tines. ---
-    fork = prism(kit, 'Hull bow fork base', ccw(FORK), section(*FORK_Z, 1.8, 1.4), steel)
-    plane_cut(fork, 'fork top rake', (46, 0, FORK_Z[1]), facet_normal((1, 0), 25))
+    # The bow (owner, round 5): the forward mount tapers the front of the ship - a
+    # faceted wedge from the head to the tip, its centreline channel holding the
+    # WS 004 gun (wf_mounts). The sprite's tines are the wedge's edges and the
+    # gun's prongs.
+    fork = superloft(kit, 'Hull bow fork base', [43.0+i*(54.0-43.0)/10 for i in range(11)],
+                     lambda x: 9.4-5.6*(x-43.0)/11.0, lambda x: 1.6-3.4*(x-43.0)/11.0,
+                     lambda x: -10.0+4.6*(x-43.0)/11.0, steel, n=8, pt=2.0, pb=2.0, mid=.45)
     tines = []
-    for side, s, plan in sides(OUTER_TINE):
-        t = prism(kit, f'Hull bow {side} outer tine', plan, section(-8.5, 0.6, .9, 1.1), steel)
-        plane_cut(t, f'{side} outer tine tip rake', (50, 0, .6), facet_normal((1, 0), 18))
-        plane_cut(t, f'{side} outer tine chin', (50, 0, -8.5), (math.sin(math.radians(20)), 0,
-                                                              -math.cos(math.radians(20))))
-        tines.append(t)
-    # The sprite's inner tines (Y +-2..4) are the WS 004 mining blaster's prongs
-    # (wf_mounts): the gun is the claw's middle, sunk in a bay in the fork base.
-
     # --- Head, outriggers. ---
     plans = [ccw(HEAD), ccw(NECK), ccw(MAIN), ccw(AFT), ccw(ENGINE_BLOCK)]
     top = lambda x: line_at(TOP_LINE, x)
@@ -257,8 +263,9 @@ def build(kit):
     hull_hw = lambda x: plan_hw(plans, x)
     body = {}
     for name, x0, x1, mat in MODULES:
+        octagon = name == 'Hull engine block'
         body[name] = superloft(kit, name, stations(x0, x1, plans), hull_hw, top, keel_z,
-                               steel if mat == 'steel' else red)
+                               steel if mat == 'steel' else red, **(dict(n=8, pt=2.0, pb=2.0, mid=.5) if octagon else {}))
     head = body['Hull head']
     outriggers = {}
     for side, s, plan in (('port', 1, OUTRIGGER), ('starboard', -1, OUTRIGGER)):
@@ -267,8 +274,10 @@ def build(kit):
 
     neck, main = body['Hull neck'], body['Hull main body']
     pods = {}
-    for side, s, plan in (('port', 1, POD), ('starboard', -1, POD)):
-        p = sponson(kit, f'Pod {side} missile body', plan, POD_Z[1], POD_Z[0], steel, s)
+    for side, s, plan in (('port', 1, WING), ('starboard', -1, WING)):
+        # Shallow: about 9 units at the root, thinning to 6 at the launcher.
+        p = sponson(kit, f'Pod {side} missile body', plan, lambda x: 1.2+.04*(x+19), lambda x: -7.8+.1*(x+19),
+                    steel, s)
         pods[side] = p
 
     # --- Aft body, armour domes, engine block. ---
