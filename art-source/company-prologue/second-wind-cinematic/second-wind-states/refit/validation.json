@@ -3,9 +3,9 @@
  "asset": "second-wind-refit.blend",
  "collection": "SECOND WIND | refit",
  "root": "SECOND WIND | refit | root",
- "objects": 1135,
- "meshes": 1098,
- "images": 45,
+ "objects": 1112,
+ "meshes": 1066,
+ "images": 41,
  "passed": true,
  "failed": [],
  "checks": {
@@ -27,8 +27,8 @@
   "object count": {
    "ok": true,
    "detail": [
-    1098,
-    1098
+    1066,
+    1066
    ]
   },
   "polygon count": {
@@ -45,7 +45,7 @@
   "base wear on every skin and swatch": {
    "ok": true,
    "detail": {
-    "materials": 96,
+    "materials": 72,
     "missing": []
    }
   },
@@ -55,7 +55,7 @@
   "overlay on every family material": {
    "ok": true,
    "detail": {
-    "materials": 121,
+    "materials": 100,
     "missing": []
    }
   },
@@ -74,7 +74,20 @@
   },
   "turret pivots train": {
    "ok": true,
-   "detail": 4e-06
+   "detail": 5e-06
+  },
+  "turret guns elevate": {
+   "ok": true,
+   "detail": {
+    "err": 2e-06,
+    "bad": [],
+    "muzzles": {
+     "1": 0,
+     "2": 2,
+     "3": 0,
+     "4": 1
+    }
+   }
   },
   "seized turrets carry nothing": {
    "ok": true,

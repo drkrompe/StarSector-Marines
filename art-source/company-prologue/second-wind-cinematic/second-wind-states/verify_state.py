@@ -13,8 +13,11 @@ Appends `SECOND WIND | <state>` into a factory-empty scene and checks, writing
   is present with its master and on every material with an overlay family;
 - engine anchors: four, +X aft, running flags as the manifest says;
 - turret pivots: four; turning a pivot 30 degrees about its Z swings its
-  muzzle anchor by 30 degrees about the pivot and leaves the barbette fixed;
-  a seized mount (jammed or wrecked) has nothing parented and no muzzle;
+  muzzle anchors by 30 degrees about the pivot and leaves the barbette fixed;
+  lifting a trainable mount's elevation 10 degrees (negative local Y) raises
+  every muzzle about the trunnion and leaves the house still; each fitted
+  gun declares one muzzle per barrel (vulcan 2, railgun 1, heavy mauler 1);
+  a seized or stripped mount has nothing parented and no muzzle;
 - spark anchors and crushed-mouth tags carry the manifest's values;
 - moving the root (translate, yaw, pitch, scale) moves every part rigidly and
   leaves hull_rest untouched (the wear masks ride the ship).
@@ -103,7 +106,7 @@ for t in man['turrets']:
     if piv is None:
         fails.append(f"pivot {t['pivot']}")
         continue
-    fixed = bpy.data.objects.get(f"Turret {t['index']} barbette foot")
+    fixed = bpy.data.objects.get(f"Turret {t['index']} barbette")
     before_fixed = fixed.matrix_world.copy() if fixed else None
     muz = [anchors[m['anchor']] for m in t['muzzles']]
     before = [m.matrix_world.translation.copy() for m in muz]
@@ -119,6 +122,35 @@ for t in man['turrets']:
     piv.rotation_euler.z -= math.radians(30)
     bpy.context.view_layer.update()
 check('turret pivots train', turn_err < 1e-3 and len(man['turrets']) == 4, round(turn_err, 6))
+# Elevation: the guns (and their muzzle anchors) turn about the trunnion; the house stays.
+BARRELS = {'vulcan': 2, 'railgun': 1, 'heavymauler': 1}
+elev_err, elev_bad = 0.0, []
+for t in man['turrets']:
+    if not t['trainable']:
+        continue
+    el = bpy.data.objects.get(t['elevation'] or '')
+    muz = [anchors[m['anchor']] for m in t['muzzles']]
+    if el is None or len(muz) != BARRELS.get(t['weapon'], -1):
+        elev_bad.append(t['index'])
+        continue
+    house = next((o for o in el.parent.children if o.type == 'MESH'), None)
+    hb = house.matrix_world.copy() if house else None
+    before = [m.matrix_world.translation.copy() for m in muz]
+    el.rotation_euler.y -= math.radians(10)
+    bpy.context.view_layer.update()
+    c, ax = el.matrix_world.translation, (el.matrix_world.to_3x3() @ Vector((0, 1, 0))).normalized()
+    for m, b in zip(muz, before):
+        want = c + Matrix.Rotation(math.radians(-10), 3, ax) @ (b - c)
+        elev_err = max(elev_err, (m.matrix_world.translation - want).length)
+        if m.matrix_world.translation.z <= b.z:
+            elev_bad.append(t['index'])
+    if house and any(abs(a - b) > 1e-6 for ra, rb in zip(house.matrix_world, hb) for a, b in zip(ra, rb)):
+        elev_bad.append(t['index'])
+    el.rotation_euler.y += math.radians(10)
+    bpy.context.view_layer.update()
+check('turret guns elevate', elev_err < 1e-3 and not elev_bad,
+      {'err': round(elev_err, 6), 'bad': sorted(set(elev_bad)),
+       'muzzles': {t['index']: len(t['muzzles']) for t in man['turrets']}})
 seized = [t for t in man['turrets'] if t.get('seized')]
 bad = [t['pivot'] for t in seized if t['muzzles'] or anchors[t['pivot']].children
        or abs(anchors[t['pivot']].get('rest_angle_deg', 0) - t['rest_angle_deg']) > 1e-6]
