@@ -45,6 +45,8 @@ def colour(key):
 
 def name(key):
     """The hull's name, told apart from its sisters by the key's suffix (Lasher lead, Wolf (P) b)."""
+    if key == 'platform':
+        return 'derelict platform'
     if key not in MEMBERS:
         return key
     n = MEMBERS[key]['name'].replace('Shepherd "Morrow"', 'Morrow')
@@ -81,6 +83,16 @@ def world(sp, local):
     """A point in a ship's own frame (metres; +X bow, +Y port, +Z deck) in world metres."""
     R = bb._rot(*sp[3:6])
     return [sp[i] + sum(R[i][j] * local[j] for j in range(3)) for i in range(3)]
+
+
+PLATFORM_HALF = (380, 260, 35)   # the blockout platform's rough extent, metres
+
+
+def platform_faces(p):
+    """The platform as two quads (top and bottom face) in world metres."""
+    hx, hy, hz = PLATFORM_HALF
+    return [[(p[0] + sx * hx, p[1] + sy * hy, p[2] + z) for sx, sy in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
+            for z in (-hz, hz)]
 
 
 def hull_points(key, sp):
@@ -170,7 +182,7 @@ def draw_hull(dr, pts, fill, outline, deck=True):
         dr.line((pts['centre'][:2], pts['deck'][:2]), fill=(255, 255, 255, 200), width=2)
 
 
-def camera_panel(im, dr, F, kf, spec, box):
+def camera_panel(im, dr, F, kf, spec, box, labelled=True):
     """The shot as its camera frames it, scaled into box."""
     x0, y0, x1, y1 = box
     s = (x1 - x0) / W
@@ -208,6 +220,14 @@ def camera_panel(im, dr, F, kf, spec, box):
                     mx, my = pa[0] + (pb[0] - pa[0]) * t, pa[1] + (pb[1] - pa[1]) * t
                     dr2.ellipse((mx - 3, my - 3, mx + 3, my + 3), fill=(*c, 220))
     labels = []
+    if spec.get('platform'):
+        for face in platform_faces(spec['platform']):
+            q = [P(v) for v in face]
+            if all(q):
+                dr2.polygon([v[:2] for v in q], fill=(120, 112, 100, 110), outline=(170, 160, 145, 220))
+        c = P(spec['platform'])
+        if c:
+            labels.append(('platform', (c[0], c[1] + 60 * s * 8, c[2])))
     for key in order:
         pts = {k: P(v) for k, v in hull_points(key, ships[key]).items()}
         c = colour(key)
@@ -219,10 +239,12 @@ def camera_panel(im, dr, F, kf, spec, box):
         if q:
             r = 9 if kind in ('blast_on', 'debris') else 6
             dr2.ellipse((q[0] - r, q[1] - r, q[0] + r, q[1] + r), outline=FX_C, width=2)
+    if not labelled:
+        return
     lab = Labels(dr2, F['label'], (x0, y0, x1, y1 + 40))
     for key, c in sorted(labels, key=lambda kv: kv[1][1]):
         if x0 <= c[0] <= x1 and y0 <= c[1] <= y1:
-            lab.put(c, name(key), colour(key), dy=12)
+            lab.put(c, name(key), (200, 190, 175) if key == 'platform' else colour(key), dy=12)
     off = [name(k) for k in ships if (lambda q: q is None or not (0 <= q[0] <= W and 0 <= q[1] <= H))(cam.project(ships[k][:3]))]
     dr.text((x0, y1 + 6), f"Camera frame ({cam.lens} mm, looking {abs(cam.pitch):.0f} deg {'down' if cam.pitch < 0 else 'up'})"
             + ('' if not off else f"; out of frame: {', '.join(off)}"), font=F['small'], fill=(170, 170, 180))
@@ -234,7 +256,15 @@ def map_panel(dr, F, spec, box, axes, title):
     ia, ib = {'x': 0, 'y': 1, 'z': 2}[axes[0]], {'x': 0, 'y': 1, 'z': 2}[axes[1]]
     ships = spec['ships']
     cam = spec['camera']
-    pts = [s[:3] for s in ships.values()] + [list(cam['loc'])]
+    pts = [s[:3] for s in ships.values()]
+    if spec.get('platform'):
+        pts += [v for face in platform_faces(spec['platform']) for v in face]
+    cen = [sum(p[i] for p in pts) / len(pts) for i in range(3)]
+    extent = max(max(abs(p[i] - cen[i]) for p in pts) for i in range(3))
+    cam_dist = math.dist(cam['loc'], cen)
+    cam_inside = cam_dist < 2.5 * max(extent, 150)      # a far camera is an arrow at the edge, not a fit
+    if cam_inside:
+        pts = pts + [list(cam['loc'])]
     lo_a, hi_a = min(p[ia] for p in pts), max(p[ia] for p in pts)
     lo_b, hi_b = min(p[ib] for p in pts), max(p[ib] for p in pts)
     pad = 60
@@ -261,19 +291,36 @@ def map_panel(dr, F, spec, box, axes, title):
         b += step
     dr.text((x0 + 10, y0 + 6), title, font=F['head'], fill=(230, 230, 230))
     dr.text((x1 - 170, y0 + 8), f'grid {step:,} m', font=F['small'], fill=(150, 150, 160))
+    if spec.get('platform'):
+        face = platform_faces(spec['platform'])[1]
+        qa = [Q(v) for v in face]
+        xs, ys = [v[0] for v in qa], [v[1] for v in qa]
+        hz = PLATFORM_HALF[2] * sc if axes == ('x', 'z') else 0
+        dr.rectangle((min(xs), min(ys), max(xs), max(ys) + 2 * hz), fill=(120, 112, 100, 90), outline=(170, 160, 145))
+        dr.text((min(xs), max(ys) + 2 * hz + 4), 'derelict platform', font=F['small'], fill=(200, 190, 175))
     # camera and its field of view
     c = Camera(cam)
     cp = Q(cam['loc'])
+    if not cam_inside:     # clamp to the panel edge along the line from the subject
+        sx_, sy_ = Q(cen)
+        dx, dy = cp[0] - sx_, cp[1] - sy_
+        t = min(((x1 - 30 - sx_) / dx if dx > 0 else (x0 + 30 - sx_) / dx if dx < 0 else 9e9),
+                ((y1 - 40 - sy_) / dy if dy > 0 else (y0 + 50 - sy_) / dy if dy < 0 else 9e9))
+        cp = (sx_ + dx * t, sy_ + dy * t)
+        arrow(dr, (sx_ + dx * t * .8, sy_ + dy * t * .8), cp, (220, 220, 220), 2, 9)
+        dr.text((cp[0] - 120 if cp[0] > (x0 + x1) / 2 else cp[0] + 12, cp[1] + 8),
+                f'camera, {cam_dist / 1e3:.1f} km', font=F['small'], fill=(220, 220, 220))
     half = math.atan(18.0 / cam['lens']) if axes == ('x', 'y') else math.atan(10.125 / cam['lens'])
     fa, fb = c.f[ia], c.f[ib]
     n = math.hypot(fa, fb) or 1
     ang = math.atan2(fb, fa)
     reach = 0.18 * max(x1 - x0, y1 - y0)
-    for s in (-1, 1):
-        e = (cp[0] + reach * math.cos(ang + s * half), cp[1] - reach * math.sin(ang + s * half))
-        dr.line((cp, e), fill=(255, 255, 255, 60), width=1)
-    dr.rectangle((cp[0] - 6, cp[1] - 6, cp[0] + 6, cp[1] + 6), outline=(255, 255, 255), width=2)
-    dr.text((cp[0] + 9, cp[1] - 9), 'camera', font=F['small'], fill=(220, 220, 220))
+    if cam_inside:
+        for s in (-1, 1):
+            e = (cp[0] + reach * math.cos(ang + s * half), cp[1] - reach * math.sin(ang + s * half))
+            dr.line((cp, e), fill=(255, 255, 255, 60), width=1)
+        dr.rectangle((cp[0] - 6, cp[1] - 6, cp[0] + 6, cp[1] + 6), outline=(255, 255, 255), width=2)
+        dr.text((cp[0] + 9, cp[1] - 9), 'camera', font=F['small'], fill=(220, 220, 220))
     ok = {}
     for fx in shots(spec):
         pa, pb = Q(ships[fx[1]][:3]), Q(ships[fx[2]][:3])
@@ -355,7 +402,7 @@ def sheet(kf, n):
 
 SHOTS = [('S1', 8, 'Establishing: the convoy over the day side', 'k1'),
          ('S2', 6, 'Alongside the Colossus, Morrow at her quarter', None),
-         ('S3', 5, 'Long lens down at the platform: drive lights come on', None),
+         ('S3', 8, 'Running dark: the platform, then a hulk lights up', 'k1b'),
          ('S4', 6, 'First contact: twelve hulls climb out of the platform', 'k2'),
          ('S5', 6, 'The Manticore (P) opens at long range', None),
          ('S6', 8, 'The screen breaks: Phaeton cooks off, Lashers hit', 'k3'),
@@ -423,7 +470,8 @@ def overview():
     dr.text((Q((-1500, 0, 0))[0] - 200, Q((0, 0, 650))[1] - 30), 'S1-S2: the convoy in column, slowing for its descent',
             font=F['text'], fill=MERCHANT_C)
     arrow(dr, Q((-200, 0, 0)), Q((2600, 0, 0)), MERCHANT_C, 3, 16)
-    notes = [('k3', 'S6: screen breaks, Phaeton cooks off', (-330, 150)),
+    notes = [('k1b', 'S3: running dark among the hulks', (-330, 100)),
+             ('k3', 'S6: screen breaks, Phaeton cooks off', (-330, 150)),
              ('k3b', 'S7: Tarsus boarded, falls astern', (-330, 200)),
              ('k4', 'S8-S9: the Mk.III on the Colossus', (-330, 250)),
              ('k5', 'S10: Tarsus clamped; Colossus falling', (-330, 300))]
@@ -448,11 +496,64 @@ def overview():
     return out
 
 
+ORBITRON = HERE.parent / 'second-wind-cinematic' / 'corvus-approach' / 'ui_fonts' / 'Orbitron[wght].ttf'
+
+
+def ui_mock(kf='k1', speaker='COLOSSUS', rows=('Convoy, Colossus. Window opens in forty.', 'All ships ease to two-thirds.')):
+    """The opening as the player would draw it: the place card and a caption over the S1 frame.
+    Caption geometry is ArrivalCinematicScreen.drawCaptions' (speaker tag 168 px above the
+    bottom, rows 44 px apart, a feathered band 1020 x 140 under them)."""
+    from PIL import ImageFilter, ImageFont
+    F = fonts()
+    im = Image.new('RGB', (W, H), BG)
+    dr = ImageDraw.Draw(im, 'RGBA')
+    camera_panel(im, dr, F, kf, bb.KEYFRAMES[kf], (0, 0, W, H), labelled=False)
+    band = Image.new('L', (W, H), 0)
+    ImageDraw.Draw(band).rounded_rectangle((W / 2 - 510, 912 + 66 - 70, W / 2 + 510, 912 + 66 + 70), 60, fill=107)
+    band = band.filter(ImageFilter.GaussianBlur(36))
+    im.paste((0, 0, 0), (0, 0), band)
+    dr = ImageDraw.Draw(im, 'RGBA')
+    try:
+        tag_f = ImageFont.truetype(str(ORBITRON), 17)
+        tag_f.set_variation_by_axes([700])
+        card_big = ImageFont.truetype(str(ORBITRON), 44)
+        card_big.set_variation_by_axes([700])
+        card_small = ImageFont.truetype(str(ORBITRON), 20)
+        card_small.set_variation_by_axes([500])
+    except (OSError, ValueError):
+        tag_f, card_big, card_small = F['head'], F['title'], F['text']
+    row_f = review_font(30)
+
+    def shadowed(xy, txt, font, fill):
+        dr.text((xy[0] + 2, xy[1] + 2), txt, font=font, fill=(0, 0, 0, 200))
+        dr.text(xy, txt, font=font, fill=fill)
+
+    tw = dr.textlength(speaker, font=tag_f)
+    shadowed((W / 2 - tw / 2, 912 - 20), speaker, tag_f, (170, 222, 255))
+    for j, row in enumerate(rows):
+        rw = dr.textlength(row, font=row_f)
+        shadowed((W / 2 - rw / 2, 942 - 26 + j * 44), row, row_f, (238, 242, 246))
+    # the place card, lower left, clear of the caption band
+    x, y = 72, 812
+    dr.line((x, y - 10, x, y + 84), fill=(170, 222, 255, 200), width=3)
+    shadowed((x + 18, y - 8), 'ASHARU', card_big, (238, 242, 246))
+    shadowed((x + 18 + dr.textlength('ASHARU', font=card_big) + 16, y + 14), 'CORVUS', card_small, (170, 222, 255))
+    shadowed((x + 18, y + 50), 'LOW ORBIT  /  THREE CYCLES AGO', card_small, (200, 205, 210))
+    dr.text((24, 16), 'UI layout mock over the S1 frame: the place card (in at 1.5 s for about 4 s) and the first caption',
+            font=F['head'], fill=(170, 170, 180))
+    dr.text((24, 44), 'Drawn by the cinematic player at run time, never baked into frames. Caption position, colours and '
+            "band are the arrival player's own.", font=F['small'], fill=(150, 150, 160))
+    out = OUT / '90-ui-mock-s1.png'
+    im.save(out)
+    return out
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     outs = [overview()]
     for n, kf in enumerate((k for k in bb.KEYFRAMES if bb.KEYFRAMES[k]['ships']), start=1):
         outs.append(sheet(kf, n))
+    outs.append(ui_mock())
     print('\n'.join(str(o) for o in outs))
 
 

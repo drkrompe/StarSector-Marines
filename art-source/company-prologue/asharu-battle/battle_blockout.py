@@ -90,6 +90,29 @@ PIRATES_RISING = {   # coming up out of the platform, behind and below the convo
     'kite-p-b': (-6700, 450, -3150, 3, 14, 2, 1),
 }
 
+PLATFORM = (-9500, 1200, -4300)   # the derelict Asharu platform: about 4 km lower and 10 km astern
+
+
+def moored(offset, throttle=0.0):
+    """A pirate hull lying cold along the platform's flank: offset in metres from its centre,
+    heading prograde with it, drives at throttle (0 is dark)."""
+    return (PLATFORM[0] + offset[0], PLATFORM[1] + offset[1], PLATFORM[2] + offset[2], 0, 0, 0, throttle)
+
+
+PIRATES_MOORED = {   # running dark among the platform's stripped hulks; the Falcon (P) lights first
+    'falcon-p': moored((-150, 105, 0), .15),
+    'manticore-p': moored((80, 110, -20)),
+    'colossus3': moored((120, -110, 0)),
+    'buffalo2-a': moored((230, 100, 10)),
+    'buffalo2-b': moored((-300, -105, 0)),
+    'wolf-p-a': moored((-60, -120, 35)),
+    'wolf-p-b': moored((60, 135, 35)),
+    'hound-p-a': moored((-200, -130, -30)),
+    'hound-p-b': moored((220, -120, -35)),
+    'kite-p-a': moored((-330, 120, -15)),
+    'kite-p-b': moored((340, 120, -20)),
+}
+
 # Where the Tarsus rides in the Colossus Mk.III's grapples, in Mk.III metres: the build's
 # grapples.tarsus_origin_units (20.398, 0.49, -78.254) at 0.495 m/u, axes aligned.
 CLAMP_TARSUS_M = (10.10, 0.24, -38.74)
@@ -121,13 +144,22 @@ KEYFRAMES = {
         ships=CONVOY,
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'buffalo-b', 'dram',
                 'lasher-lead', 'lasher-a', 'lasher-b', 'wolf-m', 'hound-m']),
+    'k1b': dict(
+        shot='S3', title='Running dark',
+        caption='Long lens from the convoy\'s tail, back down at the derelict platform it has just passed: dark, '
+                'stripped, hulks in its bays. Then one of the hulks shows a light: the Falcon (P)\'s drives coming '
+                'up. Eleven more lie cold beside her.',
+        camera=dict(loc=(-1600, -120, 90), target=PLATFORM, lens=135),
+        ships=PIRATES_MOORED,
+        platform=PLATFORM,
+        labels=['platform', 'falcon-p', 'colossus3', 'manticore-p']),
     'k2': dict(
         shot='S4', title='First contact',
         caption='Behind and below: drives light up in the derelict Asharu platform the convoy has just passed. '
                 'Twelve pirate hulls climb out of it toward the column.',
         camera=dict(loc=(-4800, -2600, -1700), target=(-6500, 200, -3100), lens=35),
         ships={**{k: CONVOY[k] for k in ('hound-m', 'tarsus')}, **PIRATES_RISING},
-        platform=(-9500, 1200, -4300),
+        platform=PLATFORM,
         labels=['falcon-p', 'colossus3', 'manticore-p', 'wolf-p-a', 'kite-p-a', 'hound-p-b', 'platform']),
     'k3': dict(
         shot='S6', title='The screen breaks',
