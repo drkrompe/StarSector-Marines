@@ -26,6 +26,8 @@ import com.dillon.starsectormarines.battle.mech.MechSection;
 import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.vehicle.HullLocations;
+import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import java.awt.BasicStroke;
 import java.awt.geom.Line2D;
@@ -143,6 +145,9 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 activeComposite(renderer, context.modRoot(), 1920, 1080, 1f,
                         BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.VEHICLE, false),
                         vehiclePlate(context.modRoot()), false)));
+        FlankedTank tank = flankedTank(context.modRoot());
+        artifacts.add(new SnapshotArtifact("active-tank-flanked-1920x1080-ui100.png",
+                activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, tank.status(), tank.plate(), false)));
         artifacts.add(new SnapshotArtifact("mech-sections-states-1920x1080-ui100.png",
                 sectionStates(renderer, context.modRoot())));
         return artifacts;
@@ -414,6 +419,43 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 ModStrings.fromDisk(modRoot));
         plate.updateVehicle(VehicleType.HEAVY_APC, 610f, 900f, 320f, 800f, null);
         return plate;
+    }
+
+    private record FlankedTank(BattleDirectControlStatus.Snapshot status, BattleDamageDollPlate plate) { }
+
+    /**
+     * A breakthrough tank shot from its left through the production located-damage law: the left plate
+     * stripped and the hull behind it hit, the drive gone (immobilised), and one round that found the
+     * turret. Front, right and rear plates stay whole.
+     */
+    private static FlankedTank flankedTank(Path modRoot) {
+        VehicleType type = VehicleType.BREAKTHROUGH_TANK;
+        HullTurretSection turret = HullTurretSection.forHull(type);
+        HullLocations locations = HullLocations.forHull(type, turret);
+        float hp = type.maxStructure;
+        float armor = type.maxArmor;
+        var scratch = new DurabilityModel.Resolution();
+        var hit = new HullLocations.Hit();
+        float rating = type.armorRating;
+        float[][] shots = {{90f, 0f}, {90f, 0f}, {90f, 0f}, {90f, 0f}, {90f, 1f}, {90f, 0f}, {90f, 1f}, {90f, 0f}};
+        for (float[] shot : shots) {
+            locations.resolve(false, shot[1] > 0f, HullLocations.Plate.LEFT, shot[0], 40f, rating, 1f,
+                    rating, .9f, hp, scratch, hit);
+            hp -= hit.structureDamage();
+            armor -= hit.armorDamage();
+        }
+        locations.resolve(true, false, HullLocations.Plate.LEFT, 70f, 40f, rating, .9f, rating, .9f, hp,
+                scratch, hit);
+        hp -= hit.structureDamage();
+        armor -= hit.armorDamage();
+        var plate = new BattleDamageDollPlate(path -> Files.readString(modRoot.resolve(path)),
+                ModStrings.fromDisk(modRoot));
+        plate.updateVehicle(type, hp, type.maxStructure, armor, type.maxArmor, turret, locations);
+        var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.VEHICLE, false);
+        var status = new BattleDirectControlStatus.Snapshot(base.entityId(), "Breakthrough Tank",
+                BattleDirectControlStatus.Carrier.VEHICLE, new BattleDirectControlStatus.Durability(hp,
+                type.maxStructure, armor, type.maxArmor, rating), base.weapons());
+        return new FlankedTank(status, plate);
     }
 
     private static MechLoadoutComponent damagedHound() {

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -75,7 +76,7 @@ final class BattleDamageDollPlate {
         markup = loader.reloadAndBuild(reactor, COMPONENT, props);
         document = BattleDirectControlOverlay.document(markup);
         document.layout(DOCUMENT_WIDTH, DOCUMENT_HEIGHT);
-        document.canvases().set(markup.requireElement("damage-doll-canvas"), new DamageDollCanvas(view));
+        document.canvases().set(markup.requireElement("damage-doll-canvas"), new DamageDollCanvas(view, copy));
     }
 
     /** Shows {@code loadout}, or hides the plate when null. */
@@ -90,9 +91,15 @@ final class BattleDamageDollPlate {
     /** Shows a vehicle from its hull pools and turret section (null when its gun is part of the hull). */
     void updateVehicle(VehicleType type, float hp, float maxHp, float armor, float maxArmor,
                        HullTurretSection turret) {
-        view.readVehicle(type, hp, maxHp, armor, maxArmor, turret);
+        updateVehicle(type, hp, maxHp, armor, maxArmor, turret, null);
+    }
+
+    /** Shows a vehicle by location: plates, drive and hull from {@code locations} when it has them. */
+    void updateVehicle(VehicleType type, float hp, float maxHp, float armor, float maxArmor,
+                       HullTurretSection turret, HullLocations locations) {
+        view.readVehicle(type, hp, maxHp, armor, maxArmor, turret, locations);
         vehicle = true;
-        firstOn = false;
+        firstOn = view.immobile();
         secondOn = turret != null && turret.destroyed();
         refresh();
     }
@@ -111,7 +118,9 @@ final class BattleDamageDollPlate {
         firstFlag.set(vehicle ? immobile : crippled);
         secondFlag.set(vehicle ? gunLost : sensorsLost);
         firstClasses.set(firstOn ? FLAG_ON : FLAG_OFF);
-        secondClasses.set(secondOn ? WIDE_ON : WIDE_OFF);
+        // SENSORS LOST is the long one; a vehicle's two flags are the same length.
+        if (vehicle) secondClasses.set(secondOn ? FLAG_ON : FLAG_OFF);
+        else secondClasses.set(secondOn ? WIDE_ON : WIDE_OFF);
         markup.flush();
     }
 

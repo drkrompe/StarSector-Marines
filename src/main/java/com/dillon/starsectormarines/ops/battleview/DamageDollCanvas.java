@@ -6,8 +6,11 @@ import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.ui.BitmapFont;
+import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
@@ -17,8 +20,10 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * The damage doll: one machine's line-art outline, a side elevation above a top plan, with each
- * location filled in the colour of its state, the way MechWarrior reads damage. Green is whole;
+ * The damage doll: one machine's line-art outline seen from the front and from behind, side by
+ * side and captioned {@code R FRONT L} / {@code L REAR R}, with each location filled in the colour
+ * of its state, the way MechWarrior reads damage. A side's state shows on the parts at that edge of
+ * both views. Green is whole;
  * worn armor runs to yellow; a location whose armor is gone shows orange, running to red as its
  * structure goes; a destroyed location is dark red; a location the machine does not have is
  * outline only. The drawings are {@code mod/graphics/ui/dolls/*.svg}, one per silhouette, with
@@ -28,8 +33,14 @@ import java.util.function.Function;
  */
 public final class DamageDollCanvas implements CanvasProducer {
 
-    public static final int SURFACE_WIDTH = 240;
-    public static final int SURFACE_HEIGHT = 170;
+    /** The canvas surface: the doll drawings' 240x170 viewBox at the size the HUD shows them. */
+    public static final int SURFACE_WIDTH = 166;
+    public static final int SURFACE_HEIGHT = 118;
+    private static final float VIEWBOX_WIDTH = 240f;
+    private static final float FRONT_CENTRE = 60f;
+    private static final float BACK_CENTRE = 180f;
+    private static final BitmapFont CAPTION_FONT = Fonts.ORBITRON_10;
+    private static final Color CAPTION = new Color(0x8C, 0x99, 0x93);
     static final String DOLL_DIR = "graphics/ui/dolls/";
 
     private static final int LOCATIONS = DollLocation.values().length;
@@ -49,10 +60,19 @@ public final class DamageDollCanvas implements CanvasProducer {
 
     private final View view;
     private final Function<String, Color> partColor;
+    private final String frontCaption;
+    private final String rearCaption;
 
-    public DamageDollCanvas(View view) {
+    /**
+     * @param copy resolves a strings key, read once here for the captions
+     */
+    public DamageDollCanvas(View view, Function<String, String> copy) {
         this.view = Objects.requireNonNull(view, "view");
         this.partColor = this::colorOf;
+        String left = copy.apply("battleDamageDollLeft");
+        String right = copy.apply("battleDamageDollRight");
+        frontCaption = right + "  " + copy.apply("battleDamageDollFront") + "  " + left;
+        rearCaption = left + "  " + copy.apply("battleDamageDollRear") + "  " + right;
     }
 
     public View view() {
@@ -63,6 +83,14 @@ public final class DamageDollCanvas implements CanvasProducer {
     public void draw(CanvasContext context) {
         if (!view.present || view.asset == null) return;
         view.asset.drawParts(context, 0f, 0f, SURFACE_WIDTH, SURFACE_HEIGHT, partColor);
+        float scale = SURFACE_WIDTH / VIEWBOX_WIDTH;
+        float y = SURFACE_HEIGHT - CAPTION_FONT.getLineHeight() - 1f;
+        caption(context, frontCaption, FRONT_CENTRE * scale, y);
+        caption(context, rearCaption, BACK_CENTRE * scale, y);
+    }
+
+    private static void caption(CanvasContext context, String text, float centreX, float y) {
+        context.text(CAPTION_FONT, text, centreX - CAPTION_FONT.measureWidth(text) * .5f, y, CAPTION);
     }
 
     private Color colorOf(String part) {
@@ -141,6 +169,7 @@ public final class DamageDollCanvas implements CanvasProducer {
         private final boolean[] destroyed = new boolean[LOCATIONS];
         private boolean crippled;
         private boolean sensorsLost;
+        private boolean immobile;
 
         /** Shows {@code loadout}: its sections once hit, every fitted section whole before. */
         public void read(MechLoadoutComponent loadout) {
@@ -162,9 +191,12 @@ public final class DamageDollCanvas implements CanvasProducer {
                     set(i, slot == null || loadout.mounts()[slot.ordinal()] != null, true, 1f, 1f, false);
                 }
             }
-            // Until the torso splits front and rear, the back plate reads the torso's pool.
+            // The back plate: its own armor in front of the torso's one structure pool. Under the control,
+            // or before the chassis has sections, it reads as the torso does.
             int torso = DollLocation.TORSO.ordinal();
-            set(DollLocation.TORSO_REAR.ordinal(), true, true, armor[torso], structure[torso], destroyed[torso]);
+            float rear = sections != null && sections.maxRearArmor() > 0f
+                    ? fraction(sections.rearArmor(), sections.maxRearArmor()) : armor[torso];
+            set(DollLocation.TORSO_REAR.ordinal(), true, true, rear, structure[torso], destroyed[torso]);
             crippled = sections != null && sections.crippled();
             sensorsLost = sections != null && sections.sensorsLost();
         }
@@ -177,6 +209,41 @@ public final class DamageDollCanvas implements CanvasProducer {
          */
         public void readVehicle(VehicleType type, float hp, float maxHp, float hullArmor, float maxHullArmor,
                                 HullTurretSection turret) {
+            readVehicle(type, hp, maxHp, hullArmor, maxHullArmor, turret, null);
+        }
+
+        /**
+         * Shows a vehicle, each plate, the drive and the hull from their own pools when it has located damage
+         * ({@code locations} non-null); otherwise as {@link #readVehicle(VehicleType, float, float, float, float,
+         * HullTurretSection)}.
+         */
+        public void readVehicle(VehicleType type, float hp, float maxHp, float hullArmor, float maxHullArmor,
+                                HullTurretSection turret, HullLocations locations) {
+            if (locations == null) {
+                readHullPool(type, hp, maxHp, hullArmor, maxHullArmor, turret);
+                return;
+            }
+            begin(dollPath(type));
+            boolean dead = hp <= 0f;
+            for (HullLocations.Plate plate : HullLocations.Plate.values()) {
+                float max = locations.maxArmor(plate);
+                set(PLATES[plate.ordinal()].ordinal(), true, max > 0f, fraction(locations.armor(plate), max), 1f, dead);
+            }
+            float turretStructure = turret != null ? turret.structure() : 0f;
+            float turretMax = turret != null ? turret.maxStructure() : 0f;
+            float hull = fraction(hp - turretStructure - locations.drive(),
+                    maxHp - turretMax - locations.maxDrive());
+            set(DollLocation.HULL.ordinal(), true, false, 0f, hull, dead);
+            set(DollLocation.DRIVE.ordinal(), true, false, 0f, fraction(locations.drive(), locations.maxDrive()),
+                    locations.immobilised());
+            readTurret(turret, hull, dead);
+            immobile = locations.immobilised();
+            crippled = false;
+            sensorsLost = false;
+        }
+
+        private void readHullPool(VehicleType type, float hp, float maxHp, float hullArmor, float maxHullArmor,
+                                  HullTurretSection turret) {
             begin(dollPath(type));
             boolean armored = maxHullArmor > 0f;
             float plate = armored ? fraction(hullArmor, maxHullArmor) : 0f;
@@ -187,6 +254,13 @@ public final class DamageDollCanvas implements CanvasProducer {
             }
             set(DollLocation.HULL.ordinal(), true, false, 0f, hull, dead);
             set(DollLocation.DRIVE.ordinal(), true, false, 0f, 1f, false);
+            readTurret(turret, hull, dead);
+            immobile = false;
+            crippled = false;
+            sensorsLost = false;
+        }
+
+        private void readTurret(HullTurretSection turret, float hull, boolean dead) {
             if (turret != null) {
                 set(DollLocation.TURRET.ordinal(), true, turret.maxArmor() > 0f,
                         fraction(turret.armor(), turret.maxArmor()),
@@ -195,8 +269,6 @@ public final class DamageDollCanvas implements CanvasProducer {
                 // A gun that cannot be shot away on its own shares the hull's fate.
                 set(DollLocation.TURRET.ordinal(), true, false, 0f, hull, dead);
             }
-            crippled = false;
-            sensorsLost = false;
         }
 
         /** Writes one location directly; fixtures and future located-armor readers use this. */
@@ -222,6 +294,7 @@ public final class DamageDollCanvas implements CanvasProducer {
 
         public void clear() {
             present = false;
+            immobile = false;
             crippled = false;
             sensorsLost = false;
         }
@@ -236,6 +309,11 @@ public final class DamageDollCanvas implements CanvasProducer {
 
         public boolean sensorsLost() {
             return sensorsLost;
+        }
+
+        /** Whether a vehicle's drive is gone. */
+        public boolean immobile() {
+            return immobile;
         }
 
         Color color(int i) {

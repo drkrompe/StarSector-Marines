@@ -220,11 +220,16 @@ public final class DamageResolver {
             ArmorArcs.Arc torsoArc = torsoArc(world, targetId, attackerId, mech);
             ArmorArcs.Profile arcs = MechSections.torsoArcs();
             sections.resolve(section, postCoverDamage, penetration, mitigationSoak, armorRating,
-                    armorRating * arcs.rating(torsoArc), arcs.plate(torsoArc), durability, sectionHit);
+                    armorRating * arcs.rating(torsoArc), arcs.plate(torsoArc), torsoArc == ArmorArcs.Arc.REAR,
+                    durability, sectionHit);
             if (sectionHit.mitigatedDamage() > 0f) screens.absorb(targetId, sectionHit.mitigatedDamage());
             armorDamage = sectionHit.armorDamage();
             structureDamage = sectionHit.structureDamage();
-            if (hasArmor) world.setArmor(targetId, sections.totalArmor());
+            if (hasArmor) {
+                // The rear plate is held on top of the chassis's armor, so the column's maximum follows it.
+                world.setMaxArmor(targetId, sections.totalMaxArmor());
+                world.setArmor(targetId, sections.totalArmor());
+            }
             newHp = sections.torsoDestroyed() ? 0f : sections.totalStructure();
             if (sectionHit.sectionDestroyed() && !sections.torsoDestroyed()) {
                 applySectionLoss(targetId, mech, section);

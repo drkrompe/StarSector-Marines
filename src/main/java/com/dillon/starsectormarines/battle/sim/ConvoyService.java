@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
+import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
@@ -95,15 +96,15 @@ public final class ConvoyService implements BodyCarrier {
         body.teleport(spawnX, spawnY, AirBody.facingToward(nextX - spawnX, nextY - spawnY));
         GroundTurret turret = type.hasTurretWeapon()
                 ? new GroundTurret(type.turretStructure().mount.ammoCapacity, HullTurretSection.forHull(type)) : null;
+        HullLocations locations = HullLocations.forHull(type, turret != null ? turret.section : null);
 
         // VEHICLE_MISSION (mission bag) + VEHICLE_CONTROL (motion-control bag) are universal;
-        // GROUND_TURRET is present only when armed.
-        ComponentType[] archetype = (turret != null)
-                ? new ComponentType[]{c.IDENTITY, c.GROUND_IDENTITY, c.GROUND_KINEMATICS,
-                    c.VEHICLE_MISSION, c.VEHICLE_CONTROL, c.GROUND_TURRET, c.HEALTH, c.ARMOR}
-                : new ComponentType[]{c.IDENTITY, c.GROUND_IDENTITY, c.GROUND_KINEMATICS,
-                    c.VEHICLE_MISSION, c.VEHICLE_CONTROL, c.HEALTH, c.ARMOR};
-        long id = roster.allocateVehicle(archetype);
+        // GROUND_TURRET is present only when armed, HULL_LOCATIONS unless its control is off.
+        List<ComponentType> components = new ArrayList<>(List.of(c.IDENTITY, c.GROUND_IDENTITY,
+                c.GROUND_KINEMATICS, c.VEHICLE_MISSION, c.VEHICLE_CONTROL, c.HEALTH, c.ARMOR));
+        if (turret != null) components.add(c.GROUND_TURRET);
+        if (locations != null) components.add(c.HULL_LOCATIONS);
+        long id = roster.allocateVehicle(components.toArray(new ComponentType[0]));
         // IDENTITY makes the chassis a body the ordinary grid walks can read:
         // faction, archetype, and a greppable name, exactly as a turret or a
         // parked airframe carries them. It deliberately brings no POSITION,
@@ -117,16 +118,22 @@ public final class ConvoyService implements BodyCarrier {
         world.setObject(id, c.GROUND_KINEMATICS, BattleComponents.GROUND_KINEMATICS_BODY, body);
         world.setObject(id, c.VEHICLE_MISSION, BattleComponents.VEHICLE_MISSION_STATE, mission);
         world.setObject(id, c.VEHICLE_CONTROL, BattleComponents.VEHICLE_CONTROL_STATE, new VehicleControlComponent());
-        world.setFloat(id, c.HEALTH, BattleComponents.HEALTH_HP, type.maxStructure);
-        world.setFloat(id, c.HEALTH, BattleComponents.HEALTH_MAX_HP, type.maxStructure);
+        // Located damage holds the drive and the side and rear plates on top of the hull's own pools.
+        float structure = type.maxStructure + (locations != null ? locations.maxDrive() : 0f);
+        float armor = locations != null ? locations.maxTotalArmor() : type.maxArmor;
+        world.setFloat(id, c.HEALTH, BattleComponents.HEALTH_HP, structure);
+        world.setFloat(id, c.HEALTH, BattleComponents.HEALTH_MAX_HP, structure);
         world.setFloat(id, c.HEALTH, BattleComponents.HEALTH_DAMAGE_TAKEN_MULT, 1f);
         world.setFloat(id, c.HEALTH, BattleComponents.HEALTH_INCOMING_ACCURACY_MULT,
                 type.incomingAccuracyMult);
-        world.setFloat(id, c.ARMOR, BattleComponents.ARMOR_CURRENT, type.maxArmor);
-        world.setFloat(id, c.ARMOR, BattleComponents.ARMOR_MAX, type.maxArmor);
+        world.setFloat(id, c.ARMOR, BattleComponents.ARMOR_CURRENT, armor);
+        world.setFloat(id, c.ARMOR, BattleComponents.ARMOR_MAX, armor);
         world.setFloat(id, c.ARMOR, BattleComponents.ARMOR_RATING, type.armorRating);
         if (turret != null) {
             world.setObject(id, c.GROUND_TURRET, BattleComponents.GROUND_TURRET_STATE, turret);
+        }
+        if (locations != null) {
+            world.setObject(id, c.HULL_LOCATIONS, BattleComponents.HULL_LOCATIONS_STATE, locations);
         }
         entityIds.add(id);
         roster.bodies().admit(id);
@@ -345,6 +352,15 @@ public final class ConvoyService implements BodyCarrier {
         EntityWorld world = roster.entityWorld();
         return world.has(id, c.GROUND_TURRET)
                 ? (GroundTurret) world.getObject(id, c.GROUND_TURRET, BattleComponents.GROUND_TURRET_STATE)
+                : null;
+    }
+
+    /** The vehicle's located damage ({@link HullLocations}), or {@code null} when the control is off or {@code id} isn't a live ground craft. */
+    public HullLocations locations(long id) {
+        BattleComponents c = roster.components();
+        EntityWorld world = roster.entityWorld();
+        return world.has(id, c.HULL_LOCATIONS)
+                ? (HullLocations) world.getObject(id, c.HULL_LOCATIONS, BattleComponents.HULL_LOCATIONS_STATE)
                 : null;
     }
 }

@@ -271,7 +271,8 @@ final class BattleDirectControlOverlay {
             var durability = status.durability();
             var turret = sim.convoy().turret(id);
             sectionPlate.updateVehicle(sim.convoy().vehicleType(id), durability.hp(), durability.maxHp(),
-                    durability.armor(), durability.maxArmor(), turret != null ? turret.section : null);
+                    durability.armor(), durability.maxArmor(), turret != null ? turret.section : null,
+                    sim.convoy().locations(id));
         } else {
             sectionPlate.clear();
         }

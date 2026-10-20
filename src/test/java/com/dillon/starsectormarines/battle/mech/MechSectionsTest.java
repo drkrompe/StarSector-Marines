@@ -61,6 +61,21 @@ class MechSectionsTest {
     }
 
     @Test
+    void aHitFromBehindSpendsTheRearPlateAndLeavesTheFrontWhole() {
+        MechSections sections = houndSections();
+        float front = sections.armor(MechSection.TORSO);
+        float rear = sections.rearArmor();
+        assertTrue(rear > 0f, "the torso carries a rear plate");
+        assertEquals(sections.armor(MechSection.TORSO) * MechSections.REAR_SHARE, rear, 1e-3f,
+                "the rear plate is held on top of the torso's");
+        sections.resolve(MechSection.TORSO, 20f, PEN, 0f, RATING, RATING, 1f, true, scratch, hit);
+        assertEquals(front, sections.armor(MechSection.TORSO));
+        assertTrue(sections.rearArmor() < rear);
+        sections.resolve(MechSection.TORSO, 20f, PEN, 0f, RATING, RATING, 1f, false, scratch, hit);
+        assertTrue(sections.armor(MechSection.TORSO) < front);
+    }
+
+    @Test
     void whatSpillsIntoTheTorsoMeetsTheTorsoArcPlate() {
         MechSections sections = houndSections();
         float torsoArmor = sections.armor(MechSection.TORSO);
@@ -87,7 +102,7 @@ class MechSectionsTest {
         assertEquals(VARIANT.maxStructure, maxStructure, 1e-3f);
         assertEquals(VARIANT.armorCapacity, maxArmor, 1e-3f);
         assertEquals(VARIANT.maxStructure, sections.totalStructure(), 1e-3f);
-        assertEquals(VARIANT.armorCapacity, sections.totalArmor(), 1e-3f);
+        assertEquals(VARIANT.armorCapacity + sections.rearArmor(), sections.totalArmor(), 1e-3f);
 
         MechBodyPlan plan = VARIANT.bodyPlan();
         assertFalse(sections.fitted(MechSection.RIGHT_SHOULDER));

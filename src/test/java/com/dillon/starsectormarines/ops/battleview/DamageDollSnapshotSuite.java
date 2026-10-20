@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.ops.ModStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -18,6 +19,8 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 /**
@@ -73,8 +76,9 @@ public final class DamageDollSnapshotSuite implements SnapshotSuite {
                         .map(name -> name.substring(0, name.length() - 4)).sorted().toList();
             }
             List<SnapshotArtifact> artifacts = new ArrayList<>();
-            artifacts.addAll(sheets(renderer, dolls, 1f, "dolls-ui100", 8, 2));
-            artifacts.addAll(sheets(renderer, dolls, 2.5f, "dolls-detail", 2, 1));
+            UnaryOperator<String> strings = ModStrings.fromDisk(modRoot);
+            artifacts.addAll(sheets(renderer, strings, dolls, 1f, "dolls-ui100", 8, 2));
+            artifacts.addAll(sheets(renderer, strings, dolls, 3.5f, "dolls-detail", 2, 1));
             return artifacts;
         } finally {
             SvgAsset.setSource(previous);
@@ -82,7 +86,8 @@ public final class DamageDollSnapshotSuite implements SnapshotSuite {
     }
 
     /** Sheets of {@code perSheet} dolls, each as an intact / damaged pair, drawn at {@code scale}. */
-    private static List<SnapshotArtifact> sheets(HeadlessUiRenderer renderer, List<String> dolls, float scale,
+    private static List<SnapshotArtifact> sheets(HeadlessUiRenderer renderer, Function<String, String> strings,
+                                                 List<String> dolls, float scale,
                                                  String prefix, int perSheet, int pairsPerRow) {
         List<SnapshotArtifact> artifacts = new ArrayList<>();
         int w = Math.round(DamageDollCanvas.SURFACE_WIDTH * scale);
@@ -110,7 +115,7 @@ public final class DamageDollSnapshotSuite implements SnapshotSuite {
                     for (int col = 0; col < 2; col++) {
                         boolean damaged = col == 1;
                         DamageDollCanvas.View view = view(path, damaged);
-                        DamageDollCanvas canvas = new DamageDollCanvas(view);
+                        DamageDollCanvas canvas = new DamageDollCanvas(view, strings);
                         CanvasProducer producer = scale == 1f ? canvas
                                 : context -> SvgAsset.load(path).drawParts(context, 0f, 0f, w, h,
                                 part -> {
