@@ -3,8 +3,8 @@
  "collection": "WOLF",
  "root": "WOLF | root",
  "effects_collection": "SWFX",
- "objects": 216,
- "meshes": 166,
+ "objects": 200,
+ "meshes": 150,
  "effects_objects": 74,
  "images": 19,
  "passed": true,
@@ -18,7 +18,7 @@
   },
   "root metres_per_unit": {
    "ok": true,
-   "detail": 0.75
+   "detail": 0.76
   },
   "all under root": {
    "ok": true,
@@ -38,15 +38,15 @@
   "mesh count": {
    "ok": true,
    "detail": [
-    166,
-    166
+    150,
+    150
    ]
   },
   "polygon count": {
    "ok": true,
    "detail": [
-    19009,
-    19009
+    18891,
+    18891
    ]
   },
   "three engine anchors at the mouths, pointing aft": {

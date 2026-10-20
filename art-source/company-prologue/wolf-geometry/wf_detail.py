@@ -129,10 +129,10 @@ def build(kit):
         yc = s*19.2
         for k, x in enumerate((6.0, 8.6, 11.2, 13.4), 1):
             z = z_at(kit, x, yc, 3)
-            kit.box(f'Pod {side} missile rib {k}', (x, yc, z+.2), (.8, 9.0, .7), steel, .1)
+            kit.box(f'Pod {side} missile rib {k}', (x, yc, z+.2), (.8, 7.0, .7), steel, .1)
         for k, x in enumerate((7.3, 9.9, 12.3), 1):
             z = z_at(kit, x, yc, 3)
-            kit.box(f'Pod {side} missile well {k}', (x, yc, z+.02), (1.6, 7.6, .1), dark, 0)
+            kit.box(f'Pod {side} missile well {k}', (x, yc, z+.02), (1.6, 6.0, .1), dark, 0)
 
     # --- Aft: hatch well, link frames. ---
     z = z_at(kit, -12.6, 0, 5)
@@ -144,19 +144,6 @@ def build(kit):
     # --- Engine block: collar, rails, centre stack, drive housings, troughs. ---
     ribbon(kit, 'Hull engine collar', [(-18.6+.6*math.cos(a)*0, 7.2*math.sin(a)) for a in
                                          [math.radians(t) for t in range(-90, 91, 15)]], 1.3, .7, steel)
-    for side, s in sides:
-        ribbon(kit, f'Hull engine {side} rail', line((-20.5, s*5.6), (-36.5, s*5.6)), 1.2, .6, steel)
-        hz = z_at(kit, -30, s*12, 4)
-        hood = kit.box(f'Hull engine {side} drive housing', (-29.8, s*12.0, hz+.5), (13.0, 6.4, 1.6), steel, .3)
-        for k, x in enumerate((-25.0, -28.0, -31.0, -34.0), 1):
-            kit.box(f'Hull engine {side} housing fin {k}', (x, s*12.0, hz+1.4), (.5, 5.6, .5), steel, 0)
-        for k, x in enumerate((-24.5, -31.5), 1):
-            z = z_at(kit, x, s*8.6, 4)
-            kit.box(f'Hull engine {side} trough {k}', (x, s*8.6, z+.02), (5.0, 1.8, .1), dark, 0)
-    for k, x in enumerate((-22.5, -26.0, -29.5, -33.0), 1):
-        z = z_at(kit, x, 0, 5)
-        kit.box(f'Hull engine centre stack {k}', (x, 0, z+.3), (2.4, 3.6, .9), steel, .12)
-
     # --- Pirate armour: mismatched plates welded over the domes and wing roots. ---
     import wf_kit
     for side, s in sides if wf_kit.VARIANT == 'pirate' else ():
@@ -170,10 +157,3 @@ def build(kit):
                                 ((30.6, 13.6), (30.6, -13.6))), 1):
         ribbon(kit, f'Hull seam {k}', [p for p in line(a, b) if abs(p[1]) > 4.2 or k == 2], .3, .08, dark)
 
-    # --- Drive bezels round each bell where it leaves the block's aft face. ---
-    import wf_engines
-    for i, (x, y, w, _) in enumerate(wf_engines.ENGINES, 1):
-        rm = wf_engines.mouth_r(w)
-        bpy.ops.mesh.primitive_torus_add(major_radius=rm+1.05, minor_radius=.5, major_segments=20, minor_segments=6,
-                                         location=(x+.5, y, wf_engines.Z), rotation=(0, math.pi/2, 0))
-        kit.finish(bpy.context.object, f'Engine {i} bezel', steel)

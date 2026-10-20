@@ -5,7 +5,7 @@
  "append_collection": "WOLF_P",
  "root": "WOLF_P | root",
  "anchors_collection": "WOLF_P | anchors",
- "metres_per_unit": 0.75,
+ "metres_per_unit": 0.76,
  "axes": {
   "+X": "bow",
   "+Y": "port",
@@ -14,22 +14,22 @@
  "bounds_units": [
   [
    -40.2,
-   -26.183,
+   -25.983,
    -18.0
   ],
   [
-   57.98,
-   26.183,
+   54.912,
+   25.983,
    14.57
   ]
  ],
  "size_m": [
-  73.6,
-  39.3,
-  24.4
+  72.3,
+  39.5,
+  24.8
  ],
- "meshes": 144,
- "polygons": 11119,
+ "meshes": 128,
+ "polygons": 11001,
  "images": 19,
  "engines": [
   {
@@ -53,7 +53,7 @@
     0,
     0
    ],
-   "mouth_radius": 3.2,
+   "mouth_radius": 3.52,
    "bell": "Engine 1 aft-facing bell",
    "lip": "Engine 1 mouth lip",
    "throat": "Engine 1 dark throat",
@@ -80,7 +80,7 @@
     0,
     0
    ],
-   "mouth_radius": 3.2,
+   "mouth_radius": 3.52,
    "bell": "Engine 2 aft-facing bell",
    "lip": "Engine 2 mouth lip",
    "throat": "Engine 2 dark throat",
@@ -107,7 +107,7 @@
     0,
     0
    ],
-   "mouth_radius": 3.2,
+   "mouth_radius": 3.52,
    "bell": "Engine 3 aft-facing bell",
    "lip": "Engine 3 mouth lip",
    "throat": "Engine 3 dark throat",
@@ -159,18 +159,18 @@
    "location": [
     45,
     0,
-    -4.0
+    -3.6
    ],
-   "k": 0.55,
+   "k": 0.42,
    "bay": {
     "x": [
      42.8,
-     49.0
+     55.0
     ],
-    "half_width": 5.3,
+    "half_width": 3.8,
     "z": [
-     -6.8,
-     -0.3999999999999999
+     -6.2,
+     2.4
     ],
     "cut_from": [
      "Hull bow fork base"
@@ -199,7 +199,7 @@
    "location": [
     11,
     20,
-    -3.2
+    -2.2
    ],
    "k": 0.6,
    "bay": null,
@@ -233,7 +233,7 @@
    "location": [
     11,
     -19,
-    -3.2
+    -2.2
    ],
    "k": 0.6,
    "bay": null,
@@ -353,7 +353,7 @@
    "location": [
     45,
     0,
-    -4.0
+    -3.6
    ],
    "angle": 0,
    "arc": 5,
@@ -370,7 +370,7 @@
    "location": [
     11,
     20,
-    -3.2
+    -2.2
    ],
    "angle": 0,
    "arc": 5,
@@ -391,7 +391,7 @@
    "location": [
     11,
     -19,
-    -3.2
+    -2.2
    ],
    "angle": 0,
    "arc": 5,
@@ -454,8 +454,8 @@
    "name": "Light port pod tip 1",
    "position": [
     9.5,
-    25.8,
-    0.4
+    25.6,
+    -1.5
    ],
    "colour": "red",
    "role": "port side light (extremity)",
@@ -469,8 +469,8 @@
    "name": "Light starboard pod tip 1",
    "position": [
     9.5,
-    -25.8,
-    0.4
+    -25.6,
+    -1.5
    ],
    "colour": "green",
    "role": "starboard side light (extremity)",
@@ -660,19 +660,19 @@
    {
     "index": 1,
     "side": "port",
-    "radius": 3.2,
+    "radius": 3.52,
     "width": 16
    },
    {
     "index": 2,
     "side": "centre",
-    "radius": 3.2,
+    "radius": 3.52,
     "width": 16
    },
    {
     "index": 3,
     "side": "starboard",
-    "radius": 3.2,
+    "radius": 3.52,
     "width": 16
    }
   ],
@@ -704,5 +704,5 @@
   },
   "append": "load both 'WOLF_P' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "9bda51d0a6452981d564291b1e66f4932216bee925eeb4e112eb9b5ca2e23841"
+ "asset_sha256": "d76ad086b863617badac0bcc81ac3798d2c9811ca34093343379c95fb05198fb"
 }
