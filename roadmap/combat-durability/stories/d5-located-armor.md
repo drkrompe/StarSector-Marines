@@ -2,8 +2,9 @@
 
 > A flanked tank should lose its side, not a share of everything.
 
-Status: PLANNED
+Status: IN PROGRESS — implemented; mech rear plate on, vehicle plates behind a default-off switch until flanking reads right
 Written: 2026-10-20
+Updated: 2026-10-20 — first balance reading: flanked tanks die slower, not faster
 
 Read `combat-durability-nouns.md` and `mechs-nouns.md` before implementing this story.
 The damage doll that draws these locations is `damage-doll.md`; the location
@@ -60,11 +61,33 @@ none), structure fraction (or none), destroyed.
 ## Constraints
 
 - Allocation-free and deterministic damage path, as today.
-- `-Dbattle.vehicle.locatedArmor=false` is the control: one hull pool, as today.
+- Sizing: the FRONT plate holds the whole of the old hull pool (and TORSO the
+  whole torso armor), with the side, rear and drive held on top of it, so a
+  machine shot head-on lasts as long as it did. Splitting the old pool instead
+  made every head-on fight about 35% shorter: a broad nerf, not a flank bonus.
+  Damage with no origin meets the FRONT plate and never the drive; letting it
+  pick a plate walked unattributed damage across all four.
+- `-Dbattle.vehicle.locatedArmor` switches vehicle locations; it is **off** by
+  default until the reading below is answered. `-Dbattle.mech.torsoRear=false`
+  is the control for the mech rear plate, which is on.
 - Balance on `armorMatchup` against its own control, including
   `-PdefenderFacing=90|180`, and on the hard-target time-to-kill harness. Total
   armor and structure are unchanged; only where they sit changes.
 - Existing saves need not load (owner, 2026-10-20).
+
+## First reading (armorMatchup, 2026-10-20)
+
+Mean TTK against each run's own control (located / control): head-on vehicle
+duels 28.0s / 26.4s and mech duels 42.6s / 45.1s, both close to parity as the
+sizing intends. **Two Hounds either side of a tank (`-PattackerSpread=180`) took
+60.5s / 44.2s, and 65.8s / 28.6s against the heavy-gun tank**: the flank that
+should be faster is slower. The attackers stood further off (median range 17.3
+against 10.7) and spent twice as long flux-limited, so the cause is most likely a
+reader of the vehicle's ARMOR column — now the sum of four plates and the turret —
+changing how a mech chooses to fight it, rather than the damage path.
+`-PdefenderFacing` is no clean test here: the defending hulls turn under their own
+doctrine. Next: find what reads ARMOR / ARMOR_MAX for target choice or duel range,
+and have it read the plate it would hit, then re-run the flank pair.
 
 ## Acceptance
 

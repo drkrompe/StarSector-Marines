@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — boxless takeover HUD and objectives; `text-shadow`; theme cascades after component sheets.
+Updated: 2026-10-20 — damage doll beside the takeover status; SVG parts coloured per location.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -674,8 +674,10 @@ chrome or leaves the battlefield.
 
 Active control follows the game's own combat HUD and keeps the centre clear.
 A status panel at bottom left names the body and reads HULL (or HEALTH), ARMOR,
-FLUX and a Marine's STAMINA as labelled bars with percentages, beside a Mech's
-section doll. A weapon-groups panel at bottom right lists equipment under the
+FLUX and a Marine's STAMINA as labelled bars with percentages, beside a Mech's or
+vehicle's damage doll. A doll is an SVG whose `part-<LOCATION>` groups fill with
+`currentColor`; `SvgAsset.drawParts` paints each part the colour its location's
+state asks for, and a part with no colour draws as outline only. A weapon-groups panel at bottom right lists equipment under the
 button that fires it, each group headed by an LMB, RMB or KEYS badge. Both panels
 measure their rows, hug the bottom edge and draw no backing box; text carries a
 dark halo and uses the game's Insignia face for values and names. Bars sit in dark

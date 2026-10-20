@@ -249,7 +249,7 @@ class BattleDirectControlHudTest {
         var actionsDocument = BattleDirectControlOverlay.document(actions);
         float statusHeight = BattleDirectControlOverlay.naturalHeight(statusDocument, status,
                 "direct-status-spacer", BattleDirectControlOverlay.STATUS_WIDTH);
-        if (snapshot.carrier() == Carrier.MECH) statusHeight = Math.max(statusHeight, BattleMechSectionPlate.DOCUMENT_HEIGHT);
+        if (snapshot.carrier() == Carrier.MECH || snapshot.carrier() == Carrier.VEHICLE) statusHeight = Math.max(statusHeight, BattleDamageDollPlate.DOCUMENT_HEIGHT);
         float weaponsHeight = BattleDirectControlOverlay.naturalHeight(weaponsDocument, weapons,
                 "direct-weapons-spacer", BattleDirectControlOverlay.WEAPONS_WIDTH);
         statusDocument.layout(BattleDirectControlOverlay.STATUS_WIDTH, statusHeight);

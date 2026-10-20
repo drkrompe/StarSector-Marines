@@ -319,6 +319,22 @@ public enum VehicleType {
     public float turretPoolShare() { return 0f; }
 
     /**
+     * Each plate's armor as a multiple of the hull's armor outside its turret ({@link HullLocations}): front, left,
+     * right, rear. The front holds the whole of it, so a hull shot head-on lasts as long as a hull with one pool did;
+     * the sides and rear are thinner, which is what a flank is worth.
+     */
+    public float[] plateArmor() { return PLATE_ARMOR; }
+
+    /**
+     * The drive's structure as a share of the hull's ({@link HullLocations}), held on top of it: losing the drive
+     * stops the hull, never brings its death nearer.
+     */
+    public float driveStructureShare() { return DRIVE_STRUCTURE_SHARE; }
+
+    /** The share of hull hits from the front, a side and the rear that land on the drive ({@link HullLocations}). */
+    public float[] driveHitShares() { return DRIVE_HIT_SHARES; }
+
+    /**
      * What this hull's plate is worth on each arc a hit can arrive on ({@link ArmorArcs}): one shared profile, the
      * front strongest and the rear weakest, with the tank line and the dozer on a steeper one of their own. The turret
      * of an armed hull meets the same profile on its own facing. {@code -Dbattle.vehicle.armorArcs=false} is the
@@ -388,6 +404,12 @@ public enum VehicleType {
      * 0.18 of the pools lost the gun in most fights and gave the open ground to the mech
      * ({@code heavy-equipment-progression.md}, a tank that loses its gun).
      */
+    /** Front, left, right, rear: the whole plate on the nose, three fifths on a side, under half behind. */
+    private static final float[] PLATE_ARMOR = {1f, .45f, .45f, .3f};
+    /** Running gear worth a seventh of the hull; it shows most from the sides, least from ahead. */
+    private static final float DRIVE_STRUCTURE_SHARE = .1f;
+    private static final float[] DRIVE_HIT_SHARES = {.05f, .15f, .12f};
+
     static final float TANK_TURRET_HIT_SHARE = .2f;
     static final float TANK_TURRET_POOL_SHARE = .25f;
 
