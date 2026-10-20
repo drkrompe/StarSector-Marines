@@ -20,7 +20,7 @@
         "policy": "hardened-direct-fire"
       },
       "presentation": {
-        "armoryIcon": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png",
+        "armoryIcon": "graphics/ui/armory/special-rocket-launcher.png",
         "aimSprite": "graphics/battle/marine-rocket.png",
         "usePose": "shoulder-launcher",
         "carrierLayer": {
@@ -92,7 +92,7 @@
         "policy": "hardened-direct-fire"
       },
       "presentation": {
-        "armoryIcon": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png",
+        "armoryIcon": "graphics/ui/armory/special-rocket-launcher.png",
         "aimSprite": "graphics/battle/marine-rocket.png",
         "usePose": "shoulder-launcher",
         "carrierLayer": {

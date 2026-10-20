@@ -13,6 +13,13 @@ layouts' contract.
   infantry-weapons-grades.raw.png  the surplus rifle and masterwork DMR, reskins of the same frames
   infantry-weapons-laser.raw.png   the pulse rifle's second geometry: copper coils, contained glow
   infantry-weapons-packed.raw.png  the rocket launcher stowed on the back (its packedLayer)
+
+Armory icons are the same guns in profile (art-source/templates/infantry-weapon-icons-guide.py),
+cut from their frames, turned up to the right like the anti-materiel rifle's icon and fitted to a
+512 px square:
+
+  infantry-weapon-icons.raw.png         rifle, pulse rifle, SMG, railgun DMR, rocket launcher
+  infantry-weapon-icons-grades.raw.png  the surplus rifle and masterwork DMR
 """
 import json
 from pathlib import Path
@@ -23,6 +30,9 @@ ROOT = Path(__file__).resolve().parents[2]
 RAW = ROOT / 'art-source/infantry-weapons/raw'
 TPL = ROOT / 'art-source/templates'
 WEAPONS = ROOT / 'mod/graphics/battle/marine-modular-topdown/variants/weapons'
+ICONS = ROOT / 'mod/graphics/ui/armory'
+ICON_SIZE = 512
+ICON_TILT = 30          # degrees, muzzle up to the right
 
 SHEETS = [
     ('infantry-weapons', 'infantry-weapons-guide.png', {
@@ -63,6 +73,45 @@ def load(raw_name, guide_name):
     return raw
 
 
+ICON_SHEETS = [
+    ('infantry-weapon-icons', 'infantry-weapon-icons-guide.png', {
+        'rifle': ICONS / 'weapon-rifle.png',
+        'laser-gun': ICONS / 'weapon-laser-gun.png',
+        'smg': ICONS / 'weapon-smg.png',
+        'dmr': ICONS / 'weapon-dmr.png',
+        'rocket-launcher': ICONS / 'special-rocket-launcher.png',
+    }),
+    ('infantry-weapon-icons-grades', 'infantry-weapon-icons-grades-guide.png', {
+        'rifle': ICONS / 'weapon-rifle-surplus.png',
+        'dmr': ICONS / 'weapon-dmr-masterwork.png',
+    }),
+]
+
+
+def icon(frame):
+    """One profile frame tilted up to the right, cropped about its alpha and centred in the square."""
+    tilted = frame.rotate(ICON_TILT, Image.BICUBIC, expand=True)
+    tilted = tilted.crop(tilted.getchannel('A').point(lambda v: 255 if v > 24 else 0).getbbox())
+    scale = (ICON_SIZE - 32) / max(tilted.size)
+    tilted = tilted.resize((round(tilted.width * scale), round(tilted.height * scale)), Image.LANCZOS)
+    out = Image.new('RGBA', (ICON_SIZE, ICON_SIZE))
+    out.alpha_composite(tilted, ((ICON_SIZE - tilted.width) // 2, (ICON_SIZE - tilted.height) // 2))
+    return out
+
+
+def icons():
+    frames = {f['name']: f for f in json.loads((TPL / 'infantry-weapon-icons-guide.json').read_text())['frames']}
+    for raw_name, guide_name, outputs in ICON_SHEETS:
+        if not (RAW / f'{raw_name}.raw.png').exists():
+            print('skip', raw_name, '(no raw)')
+            continue
+        sheet = load(raw_name, guide_name)
+        for name, out in outputs.items():
+            image = icon(sheet.crop(tuple(frames[name]['rect'])))
+            image.save(out, optimize=True)
+            print(out.relative_to(ROOT), image.size)
+
+
 def main():
     layout = json.loads((TPL / 'infantry-weapons-guide.json').read_text())
     frames = {f['name']: f for f in layout['frames'] + layout['packedFrames']}
@@ -81,3 +130,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    icons()
