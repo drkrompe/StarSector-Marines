@@ -1,0 +1,75 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15a6a-4145-78a1-bda1-42d6c0e6c444",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15a6a-4145-78a1-bda1-42d6c0e6c444\\call_7003caa2896a4973a72785985d15a538.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\yard-stills\\storybook\\p3-road-v1.png",
+    "sha256": "d1da7e046503460fcf3b3a36f6c9a2bf55d985df86237cd725a137d6bfe92cbb",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\yard-stills\\storybook\\p3-road-v1.prompt.txt",
+  "promptSha256": "3d1e4cccce469a4bc2dc1be29fc4bf302e2adb4ef4bd54f4f8d97c71e76f6ef2",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Place and style only: Kilo Nine yard look and daylight; not the camera or ship\nImage 2: Vehicle identity only: Wayline hauler design and livery, intact and shot up, top-down; not a pose\nImage 3: Identity only: Mara Venn's hair, headset and jacket, seen from behind\nImage 4: Place and mood only: the Wayline road into the highland hills\n\nOne landscape 1536x1024 (3:2) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, worn steel, humid hazy daylight, muted blue shadows, tactile wear, believable human scale. Readable when reduced to 900x600. No legible text, letters or numbers, logos, watermarks, border or interface.\n\nReference roles:\n- Reference 1 is PLACE AND STYLE: Kilo Nine, the small private repair yard at the jungle-world spaceport of Jangala, in hazy late-morning daylight: its gravel, yellow scaffolding, corrugated sheds and jungle. Do not copy its camera or its ship.\n- Reference 2 is VEHICLE IDENTITY: a Wayline freight hauler seen from directly above, intact on the left and shot up on the right. Keep its design and livery in perspective: a boxy angular olive-drab cab with small amber marker lights and a dark windscreen, and a long cream-white cargo container framed in rust-orange with yellow-black hazard stripes at its ends. It is a top-down sprite, not a pose.\n- Reference 3 is IDENTITY ONLY for Mara Venn, a woman in her early thirties: dark brown hair in a loose short ponytail, a worn single-ear radio headset, a scuffed charcoal work jacket with a rust-orange collar. She is seen FROM BEHIND, so only her hair, headset and jacket matter; her face is not seen.\n- Reference 4 is PLACE AND MOOD for the road: the Wayline road climbing from the lowlands into green highland hills under haze.\n\nScene: looking out from inside the yard's parts store, the forewoman's stock of salvaged ship parts. The camera is a standing adult just inside the store, eye height, level, a normal lens.\n- Foreground left and right, framing the view: tall steel parts racks, and they are HALF EMPTY. Some bays still hold a few dusty pump housings, seal rings and coil drums with paper tags, but many bays are bare, with clean rectangles in the dust where parts used to sit and empty tags hanging from hooks. The emptiness should read at once. No people in the foreground.\n- Middle: a wide open roller door, and through it the yard's sunlit gravel. Parked side-on just outside, the last Wayline hauler that made it down: its olive cab holed by gunfire, rows of punctures across the cab door, the windscreen starred and partly smashed, scorch streaks along the cab, and the cream container dented and holed. A driver in faded work clothes sits on the cab step with his elbows on his knees and his head down. Beside him, back to the viewer, stands Mara Venn (reference 3), one hand resting on the cab's shot-up door, looking away up toward the hills. Both are small, mid-distance figures.\n- Beyond the yard's chain-link fence and a strip of dark-green jungle: green highland hills rising into humid haze, and on them the pale line of the Wayline road switchbacking up and out of sight. The road is empty. High up on it, very small and far away, a thin smudge of dark smoke hangs in the still air.\n\nMood: the reason, the risk and the road in one view. Quiet and uneasy, no action, no raiders shown.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\yard-stills\\yard-hull-bg-v3.png",
+      "sha256": "1f8345b161b4568d7d10fb531be0d9860ea0a6b946e5a6b3cbb46fa0218af9da",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Place and style only: Kilo Nine yard look and daylight; not the camera or ship"
+    },
+    {
+      "path": "mod\\graphics\\battle\\vehicles\\wayline-hauler.png",
+      "sha256": "ab8bd67863c46815025dd6f39642b30308d514dbc90ae181d612b9d35d5b5427",
+      "dimensions": [
+        2048,
+        384
+      ],
+      "mode": "RGBA",
+      "role": "Vehicle identity only: Wayline hauler design and livery, intact and shot up, top-down; not a pose"
+    },
+    {
+      "path": "art-source\\portraits\\mara-venn.master.png",
+      "sha256": "81d62c09fe53397799c149233b03eca89d24f7e54b5d63d12f39f982040d5eb7",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity only: Mara Venn's hair, headset and jacket, seen from behind"
+    },
+    {
+      "path": "mod\\graphics\\illustrations\\wayline\\relief.jpg",
+      "sha256": "a8cabce351e7930a9e9228c0caa7b52504d12dac624c853a674c7421d1c79515",
+      "dimensions": [
+        1200,
+        400
+      ],
+      "mode": "RGB",
+      "role": "Place and mood only: the Wayline road into the highland hills"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image with the half-empty parts store framing the damaged hauler and distant highland road."
+  ],
+  "usage": {
+    "input_tokens": 58355,
+    "cached_input_tokens": 29824,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1028,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 78.1
+}
