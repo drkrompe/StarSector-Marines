@@ -112,6 +112,34 @@ LOWER = 1.0
 FALL, RAKE = 30, 45
 
 
+DOME_OUTLINE = [(-1, 5), (-3, 9.5), (-8, 11.5), (-15, 11), (-19.5, 7)]   # port side, bow to stern
+DOME_SHOULDER = 1.0   # radius of the roof's rounded shoulder
+
+
+def dome_plan(per_span=10):
+    """The command dome's plan: a closed Catmull-Rom curve through DOME_OUTLINE
+    and its mirror, sampled `per_span` points between each pair (CCW)."""
+    pts = ccw(sym(DOME_OUTLINE))
+    n, out = len(pts), []
+    for i in range(n):
+        p0, p1, p2, p3 = pts[i-1], pts[i], pts[(i+1) % n], pts[(i+2) % n]
+        for k in range(per_span):
+            t = k/per_span
+            out.append(tuple(.5*(2*b+(-a+c)*t+(2*a-5*b+4*c-d)*t*t+(-a+3*b-3*c+d)*t**3)
+                             for a, b, c, d in zip(p0, p1, p2, p3)))
+    return out
+
+
+def dome_profile(steps=8):
+    """(inset, z) keel to roof: a keel chamfer, a vertical wall, a rounded shoulder."""
+    keel, roof, r = BRIDGE_DECK-1, BRIDGE_DECK+5.0, DOME_SHOULDER
+    prof = [(.6, keel), (0, keel+.6)]
+    for k in range(steps+1):
+        a = math.pi/2*k/steps
+        prof.append((r*(1-math.cos(a)), roof-r+r*math.sin(a)))
+    return prof
+
+
 def ccw(poly):
     area = sum(x0*y1-x1*y0 for (x0, y0), (x1, y1) in zip(poly, poly[1:]+poly[:1]))
     return poly if area > 0 else list(reversed(poly))
@@ -291,8 +319,10 @@ def build(kit):
     for s in (1, -1):
         plane_cut(tier, f'tier {s} side fall', (-10, s*14, BRIDGE_DECK), facet_normal((0, s), 30))
     kit.hull.append(tier)
-    # The pale command dome on the tier (sprite rows 87-110).
-    dome = prism(kit, 'Bridge command dome', ccw(sym([(-1, 5), (-3, 9.5), (-8, 11.5), (-15, 11), (-19.5, 7)])),
-                 section(BRIDGE_DECK-1, BRIDGE_DECK+5.0, .6, 2.4), kit.pale)
-    plane_cut(dome, 'dome front rake', (-3, 0, BRIDGE_DECK+5.0), facet_normal((1, 0), 38))
+    # The pale command dome on the tier (sprite rows 87-110). Round 14 (owner:
+    # "too low poly"): its plan is a smooth closed curve through the round-3
+    # outline, and its shoulder a rounded quarter round, not one chamfer; the
+    # visor rake starts further forward so the glazing has a wall to sit in.
+    dome = prism(kit, 'Bridge command dome', dome_plan(), dome_profile(), kit.pale)
+    plane_cut(dome, 'dome front rake', (-1.8, 0, BRIDGE_DECK+5.0), facet_normal((1, 0), 38))
     kit.hull.append(dome)

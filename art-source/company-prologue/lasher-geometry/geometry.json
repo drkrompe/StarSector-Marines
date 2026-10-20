@@ -106,7 +106,7 @@
     "size_m": [
       90.0,
       64.9,
-      20.4
+      20.8
     ],
     "person_1_8_m_in_units": 1.89,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
@@ -131,12 +131,12 @@
     "max": [
       60.5,
       34.14,
-      12.01
+      12.36
     ],
     "size": [
       94.74,
       68.28,
-      21.51
+      21.86
     ]
   },
   "weapon_slots": [
@@ -145,7 +145,7 @@
       "location": [
         11,
         27,
-        1.4
+        3.4
       ],
       "angle": 0,
       "arc": 5,
@@ -162,7 +162,7 @@
       "location": [
         24,
         16,
-        1.2
+        3.8
       ],
       "angle": 0,
       "arc": 5,
@@ -179,7 +179,7 @@
       "location": [
         24,
         -15,
-        1.2
+        3.8
       ],
       "angle": 0,
       "arc": 5,
@@ -196,7 +196,7 @@
       "location": [
         11,
         -27,
-        1.4
+        3.4
       ],
       "angle": 0,
       "arc": 5,
@@ -315,8 +315,8 @@
       "elevation": "Turret 1 elevation",
       "elevates": "rotate about its local Y; negative lifts the muzzles",
       "elevation_limits_deg": [
-        null,
-        null
+        -2,
+        60
       ],
       "fixed": [
         "Turret 1 barbette"
@@ -332,10 +332,20 @@
         "Turret 1 house steel",
         "Turret 1 gun plate",
         "Turret 1 gun steel",
-        "Turret 1 gun accent",
+        "Turret 1 gun paint#shield",
         "Turret 1 recoil 1 metal",
         "Turret 1 recoil 1 dark",
-        "Turret 1 recoil 1 steel"
+        "Turret 1 recoil 1 steel",
+        "Turret 1 gimbal steel",
+        "Turret 1 gimbal dark",
+        "Turret 1 gimbal plate#yoke",
+        "Turret 1 gimbal plate",
+        "Turret 1 gimbal paint",
+        "Turret 1 cradle metal#pin",
+        "Turret 1 cradle plate",
+        "Turret 1 cradle steel",
+        "Turret 1 cradle glass",
+        "Turret 1 cradle dark"
       ],
       "recoil": [
         "Turret 1 recoil 1"
@@ -371,8 +381,8 @@
       "elevation": "Turret 2 elevation",
       "elevates": "rotate about its local Y; negative lifts the muzzles",
       "elevation_limits_deg": [
-        null,
-        null
+        -2,
+        60
       ],
       "fixed": [
         "Turret 2 barbette"
@@ -388,10 +398,20 @@
         "Turret 2 house steel",
         "Turret 2 gun plate",
         "Turret 2 gun steel",
-        "Turret 2 gun accent",
+        "Turret 2 gun paint#shield",
         "Turret 2 recoil 1 metal",
         "Turret 2 recoil 1 dark",
-        "Turret 2 recoil 1 steel"
+        "Turret 2 recoil 1 steel",
+        "Turret 2 gimbal steel",
+        "Turret 2 gimbal dark",
+        "Turret 2 gimbal plate#yoke",
+        "Turret 2 gimbal plate",
+        "Turret 2 gimbal paint",
+        "Turret 2 cradle metal#pin",
+        "Turret 2 cradle plate",
+        "Turret 2 cradle steel",
+        "Turret 2 cradle glass",
+        "Turret 2 cradle dark"
       ],
       "recoil": [
         "Turret 2 recoil 1"
@@ -427,8 +447,8 @@
       "elevation": "Turret 3 elevation",
       "elevates": "rotate about its local Y; negative lifts the muzzles",
       "elevation_limits_deg": [
-        null,
-        null
+        -2,
+        60
       ],
       "fixed": [
         "Turret 3 barbette"
@@ -444,10 +464,20 @@
         "Turret 3 house steel",
         "Turret 3 gun plate",
         "Turret 3 gun steel",
-        "Turret 3 gun accent",
+        "Turret 3 gun paint#shield",
         "Turret 3 recoil 1 metal",
         "Turret 3 recoil 1 dark",
-        "Turret 3 recoil 1 steel"
+        "Turret 3 recoil 1 steel",
+        "Turret 3 gimbal steel",
+        "Turret 3 gimbal dark",
+        "Turret 3 gimbal plate#yoke",
+        "Turret 3 gimbal plate",
+        "Turret 3 gimbal paint",
+        "Turret 3 cradle metal#pin",
+        "Turret 3 cradle plate",
+        "Turret 3 cradle steel",
+        "Turret 3 cradle glass",
+        "Turret 3 cradle dark"
       ],
       "recoil": [
         "Turret 3 recoil 1"
@@ -457,6 +487,224 @@
       ],
       "muzzles": [
         "Anchor turret 3 barrel 1 muzzle"
+      ]
+    }
+  ],
+  "hardpoints": [
+    {
+      "slot": "WS 001",
+      "weapon": "heatseeker",
+      "built_by": "turret-kit/turret_kit.py build_hardpoint",
+      "mount": "Weapon WS 001 mount",
+      "mount_location": [
+        10.3,
+        27,
+        3.4
+      ],
+      "bay": [
+        -5.6,
+        16.6,
+        5.5,
+        -2.9
+      ],
+      "bay_cut_from": [
+        "Hull frame 6 Pod port missile body",
+        "Hull port missile pod aft fairing",
+        "Pod port missile body",
+        "Pod port missile prong 1",
+        "Pod port missile prong 2",
+        "Pod port missile side rib 1",
+        "Pod port missile side rib 2"
+      ],
+      "parts": [
+        "Weapon WS 001 hardpoint plate#mag",
+        "Weapon WS 001 hardpoint steel",
+        "Weapon WS 001 hardpoint dark",
+        "Weapon WS 001 hardpoint paint#cheek1",
+        "Weapon WS 001 hardpoint plate",
+        "Weapon WS 001 hardpoint accent",
+        "Weapon WS 001 hardpoint paint#cheek-1",
+        "Weapon WS 001 missile 1 missile",
+        "Weapon WS 001 missile 1 dark",
+        "Weapon WS 001 missile 1 armour",
+        "Weapon WS 001 missile 1 glow"
+      ],
+      "moving": [
+        "Weapon WS 001 missile 1"
+      ],
+      "kit_muzzles": [
+        "Weapon WS 001 muzzle anchor 1"
+      ],
+      "muzzles": [
+        "Anchor weapon WS 001 muzzle"
+      ],
+      "muzzle_location": [
+        22.3,
+        27.0,
+        3.4
+      ]
+    },
+    {
+      "slot": "WS 002",
+      "weapon": "lightag",
+      "built_by": "turret-kit/turret_kit.py build_hardpoint",
+      "mount": "Weapon WS 002 mount",
+      "mount_location": [
+        22.0,
+        16,
+        3.8
+      ],
+      "bay": [
+        -5.4,
+        7.4,
+        4.5,
+        -3.1
+      ],
+      "bay_cut_from": [
+        "Hull frame 4 Pod port gun body",
+        "Hull frame 5 Pod port gun body",
+        "Hull port gun pod aft fairing",
+        "Pod port gun body",
+        "Pod port gun hatch rim",
+        "Pod port gun prong 1",
+        "Pod port gun prong 2"
+      ],
+      "parts": [
+        "Weapon WS 002 hardpoint paint#housing",
+        "Weapon WS 002 hardpoint accent",
+        "Weapon WS 002 hardpoint steel",
+        "Weapon WS 002 hardpoint dark",
+        "Weapon WS 002 hardpoint plate",
+        "Weapon WS 002 hardpoint steel#face",
+        "Weapon WS 002 hardpoint metal",
+        "Weapon WS 002 recoil 1 metal",
+        "Weapon WS 002 recoil 1 dark",
+        "Weapon WS 002 recoil 1 steel#brake"
+      ],
+      "moving": [
+        "Weapon WS 002 recoil 1"
+      ],
+      "kit_muzzles": [
+        "Weapon WS 002 muzzle anchor 1"
+      ],
+      "muzzles": [
+        "Anchor weapon WS 002 muzzle"
+      ],
+      "muzzle_location": [
+        40.5,
+        16.0,
+        3.8
+      ]
+    },
+    {
+      "slot": "WS 003",
+      "weapon": "lightag",
+      "built_by": "turret-kit/turret_kit.py build_hardpoint",
+      "mount": "Weapon WS 003 mount",
+      "mount_location": [
+        22.0,
+        -15,
+        3.8
+      ],
+      "bay": [
+        -5.4,
+        7.4,
+        4.8,
+        -3.1
+      ],
+      "bay_cut_from": [
+        "Hull frame 4 Hull starboard gun pod root fairing",
+        "Hull frame 4 Pod starboard gun body",
+        "Hull frame 5 Hull starboard gun pod root fairing",
+        "Hull frame 5 Pod starboard gun body",
+        "Hull starboard gun pod aft fairing",
+        "Hull starboard gun pod root fairing",
+        "Pod starboard gun body",
+        "Pod starboard gun hatch rim",
+        "Pod starboard gun prong 1",
+        "Pod starboard gun prong 2",
+        "Pod starboard gun vent 1",
+        "Pod starboard gun vent 2",
+        "Pod starboard gun vent 3"
+      ],
+      "parts": [
+        "Weapon WS 003 hardpoint paint#housing",
+        "Weapon WS 003 hardpoint accent",
+        "Weapon WS 003 hardpoint steel",
+        "Weapon WS 003 hardpoint dark",
+        "Weapon WS 003 hardpoint plate",
+        "Weapon WS 003 hardpoint steel#face",
+        "Weapon WS 003 hardpoint metal",
+        "Weapon WS 003 recoil 1 metal",
+        "Weapon WS 003 recoil 1 dark",
+        "Weapon WS 003 recoil 1 steel#brake"
+      ],
+      "moving": [
+        "Weapon WS 003 recoil 1"
+      ],
+      "kit_muzzles": [
+        "Weapon WS 003 muzzle anchor 1"
+      ],
+      "muzzles": [
+        "Anchor weapon WS 003 muzzle"
+      ],
+      "muzzle_location": [
+        40.5,
+        -15.0,
+        3.8
+      ]
+    },
+    {
+      "slot": "WS 004",
+      "weapon": "heatseeker",
+      "built_by": "turret-kit/turret_kit.py build_hardpoint",
+      "mount": "Weapon WS 004 mount",
+      "mount_location": [
+        10.3,
+        -27,
+        3.4
+      ],
+      "bay": [
+        -5.6,
+        16.6,
+        5.5,
+        -2.9
+      ],
+      "bay_cut_from": [
+        "Hull frame 6 Pod starboard missile body",
+        "Hull starboard missile pod aft fairing",
+        "Pod starboard missile body",
+        "Pod starboard missile prong 1",
+        "Pod starboard missile prong 2",
+        "Pod starboard missile side rib 1",
+        "Pod starboard missile side rib 2"
+      ],
+      "parts": [
+        "Weapon WS 004 hardpoint plate#mag",
+        "Weapon WS 004 hardpoint steel",
+        "Weapon WS 004 hardpoint dark",
+        "Weapon WS 004 hardpoint paint#cheek1",
+        "Weapon WS 004 hardpoint plate",
+        "Weapon WS 004 hardpoint accent",
+        "Weapon WS 004 hardpoint paint#cheek-1",
+        "Weapon WS 004 missile 1 missile",
+        "Weapon WS 004 missile 1 dark",
+        "Weapon WS 004 missile 1 armour",
+        "Weapon WS 004 missile 1 glow"
+      ],
+      "moving": [
+        "Weapon WS 004 missile 1"
+      ],
+      "kit_muzzles": [
+        "Weapon WS 004 muzzle anchor 1"
+      ],
+      "muzzles": [
+        "Anchor weapon WS 004 muzzle"
+      ],
+      "muzzle_location": [
+        22.3,
+        -27.0,
+        3.4
       ]
     }
   ],
@@ -666,8 +914,8 @@
     "anchors_collection": "LASHER | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'LASHER'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 32124,
-    "objects": 309,
+    "triangles": 56278,
+    "objects": 344,
     "materials": [
       "Lasher Hegemony armour",
       "Lasher bridge glazing",
@@ -677,7 +925,16 @@
       "Lasher running light green",
       "Lasher running light red",
       "Lasher running light white",
-      "Turret lightmg accent 0.3418,0.2847,0.1773",
+      "Missile body 0.1202,0.1202,0.1228",
+      "Turret armour Lasher Hegemony armour",
+      "Turret heatseeker accent 0.2292,0.1661,0.1398",
+      "Turret heatseeker paint 0.1927,0.1909,0.1891",
+      "Turret heatseeker plate 0.3215,0.3200,0.3156",
+      "Turret lamp glow",
+      "Turret lightag accent 0.2634,0.2396,0.1799",
+      "Turret lightag metal 0.1103,0.1103,0.1108",
+      "Turret lightag paint 0.1411,0.1411,0.1390",
+      "Turret lightag plate 0.2950,0.2920,0.2829",
       "Turret lightmg metal 0.1088,0.1106,0.1126",
       "Turret lightmg paint 0.0845,0.0861,0.0876",
       "Turret lightmg plate 0.1819,0.1837,0.1855",
@@ -779,14 +1036,11 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9502,
-    "sprite_uncovered": 0.006,
-    "model_outside_sprite": 0.0462,
-    "method": "top-view orthographic silhouette of the built mesh (the top camera frame, 1920x1080, 12.63 px per unit) vs sprite alpha (>127), nearest-sampled; rasterised from the mesh rather than rendered (it matches the rendered top alpha to 0.0001 on the previous build, 0.9535)",
-    "previous": {
-      "iou": 0.9535,
-      "build": "7805d3b (before the detail and cohesion pass)"
-    }
+    "iou": 0.8945,
+    "sprite_uncovered": 0.0062,
+    "model_outside_sprite": 0.1111,
+    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 6.32 px per unit",
+    "note": "with the kit hardpoints, which reach past the hull as the game draws them; the hull alone is unchanged (sprite uncovered 0.58% before, 0.62% after)"
   },
   "shot_extent_px": {
     "shot-1500m": {
