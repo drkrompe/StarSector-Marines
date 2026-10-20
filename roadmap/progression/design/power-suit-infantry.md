@@ -146,7 +146,7 @@ or a guarantee of superior performance on every map.
 
 Acquired templates and ordinary free fitting remain the progression route.
 No new upkeep, repair bill, pilot recruitment, fabrication inventory, or casualty
-economy is introduced by this category. Mechs retain chassis, hardpoints, heat,
+economy is introduced by this category. Mechs retain chassis, hardpoints, flux,
 component inventory, lances, Mech Lab, and Mech Support authority.
 
 ## Visual direction

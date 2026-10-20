@@ -883,7 +883,7 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   `-Pgifs`/`-PgifSeeds`, `-Dbattle.*` forwarded, the control replayed twice side by side for the determinism
   header). Writes `armor-matchups.md`, `armor-matchups.csv` and `runs.csv` under `build/reports/armor-matchups/`.
   A side is `unit(+unit)*`; a unit is `[Nx]` then a mech (`hound`, `bulwark:refit`,
-  `bulwark:arms=dual-linear-cannons,rs=shoulder-laser,engine=uprated,cooler=auxiliary,role=assault`: pattern ids with
+  `bulwark:arms=dual-linear-cannons,rs=shoulder-laser,engine=uprated,vents=auxiliary,role=assault`: pattern ids with
   or without their `component.mech-`/`internal.` prefix, `none` empties a mount, `refit` fills the best buildable
   internals around the fitted weapons, an over-budget fit runs and is labelled so) or a `VehicleType` in kebab case
   (`breakthrough-tank`; `technical`, `scout`, `dozer`). Scenarios: `open-ground`; `hull-down` (berms hide the
@@ -903,7 +903,7 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   stock Hound (the control), every chassis at stock and refit against every other both ways, each stock chassis
   against each armed vehicle line both ways, every armed line against every other (the unarmed scout car only when
   named); about 800 fights in well under a minute. Rows report wins, TTK from first hit, machines and integrity
-  left, hit rate, mounts lost, legs crippled, heat-limited seconds and damage by weapon (the side's dealt damage
+  left, hit rate, mounts lost, legs crippled, flux-limited seconds and damage by weapon (the side's dealt damage
   apportioned by hits x nominal damage); `runs.csv` adds each survivor's sections.
   One machine a side, no cost or lift parity: read rows against each other, not as balance acceptance.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own

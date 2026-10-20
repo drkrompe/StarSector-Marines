@@ -28,13 +28,13 @@ import java.util.regex.Pattern;
  *   mech    := ['mech:'] chassis [':' item (',' item)*]
  *   item    := stock | refit | role=&lt;role&gt;
  *            | arms|ls|rs = &lt;weapon&gt;|none           arms=demolition-cannon
- *            | engine|plating|sink|cooler = &lt;internal&gt;|none
+ *            | engine|plating|capacitors|vents = &lt;internal&gt;|none
  *   vehicle := ['vehicle:'] &lt;VehicleType, kebab case&gt;  breakthrough-tank (technical, scout, dozer accepted)
  * </pre>
  *
  * Every mech starts from its factory fit: its own weapons on the stock frame. {@code refit} fills the internals with
  * the strongest set the engine budget actually allows around whatever weapons the fit carries at that point (armor,
- * then speed, then cooling, as {@link MechFitSpace#bestRefitAroundStockWeapons} ranks it), so it is applied after the
+ * then speed, then dissipation, as {@link MechFitSpace#bestRefitAroundStockWeapons} ranks it), so it is applied after the
  * weapon items whatever order they are written in. Weapons are checked against the chassis's sockets; a fit over the
  * engine budget is allowed (the instrument is for asking what-if) and marked {@code !over-budget} in its label.
  */
@@ -190,13 +190,13 @@ public record ArmorSide(List<Unit> units) {
                         internal(variant, MechInternal.Role.ENGINE, value));
                 case "plating" -> fit = fit.withInternal(MechInternal.Role.PLATING,
                         internal(variant, MechInternal.Role.PLATING, value));
-                case "sink" -> fit = fit.withInternal(MechInternal.Role.HEAT_SINK,
-                        internal(variant, MechInternal.Role.HEAT_SINK, value));
-                case "cooler" -> fit = fit.withInternal(MechInternal.Role.COOLER,
-                        internal(variant, MechInternal.Role.COOLER, value));
+                case "capacitors" -> fit = fit.withInternal(MechInternal.Role.CAPACITOR_BANK,
+                        internal(variant, MechInternal.Role.CAPACITOR_BANK, value));
+                case "vents" -> fit = fit.withInternal(MechInternal.Role.VENT_ARRAY,
+                        internal(variant, MechInternal.Role.VENT_ARRAY, value));
                 case "role" -> role = role(value);
                 default -> throw new IllegalArgumentException("Unknown mech fit key '" + key
-                        + "'; known: arms, ls, rs, engine, plating, sink, cooler, role");
+                        + "'; known: arms, ls, rs, engine, plating, capacitors, vents, role");
             }
         }
         if (refit) fit = bestRefit(fit);
@@ -234,8 +234,8 @@ public record ArmorSide(List<Unit> units) {
 
     private static MechInternal internal(MechVariant variant, MechInternal.Role role, String value) {
         if (value.equals("none") || value.equals("-")) {
-            if (role != MechInternal.Role.COOLER) {
-                throw new IllegalArgumentException("Only the cooler socket may be left empty; use the factory part");
+            if (role != MechInternal.Role.VENT_ARRAY) {
+                throw new IllegalArgumentException("Only the vents socket may be left empty; use the factory part");
             }
             return null;
         }
@@ -308,8 +308,8 @@ public record ArmorSide(List<Unit> units) {
         return switch (role) {
             case ENGINE -> "engine";
             case PLATING -> "plating";
-            case HEAT_SINK -> "sink";
-            case COOLER -> "cooler";
+            case CAPACITOR_BANK -> "capacitors";
+            case VENT_ARRAY -> "vents";
         };
     }
 

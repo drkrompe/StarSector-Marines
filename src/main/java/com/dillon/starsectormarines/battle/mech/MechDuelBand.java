@@ -32,7 +32,7 @@ import java.util.List;
  * <p>Pressure is expected damage per second at a distance: damage times
  * rounds per cycle over the cooldown, times the weapon's range-falloff
  * accuracy there. It deliberately leaves out penetration against the target's
- * plate, heat, and ammunition depth: the choice is about which band trades
+ * plate, flux, and ammunition depth: the choice is about which band trades
  * better, and those scale both sides of a trade alike far more often than
  * they reverse it. The one exception is a missile rack, whose warhead is chosen
  * for what it does to plate: an anti-armor rack is read at its contact payload and

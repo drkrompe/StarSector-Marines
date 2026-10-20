@@ -173,7 +173,7 @@ public enum MechWeaponComponent {
         this.appearanceSelector = appearanceSelector;
     }
 
-    /** Mechanical trigger-to-trigger time, independent of thermal headroom and pack supply. */
+    /** Mechanical trigger-to-trigger time, independent of flux headroom and pack supply. */
     public float cycleSeconds() {
         return tuned("cycle", authoredCycleSeconds());
     }
@@ -198,21 +198,21 @@ public enum MechWeaponComponent {
     }
 
     /**
-     * Hot enough that the cannon competes with its carrier's launchers for the reservoir
-     * (heavy-equipment-progression.md); {@code -Dbattle.mech.heavyCannonHeat=26} is the control.
+     * Flux-hungry enough that the cannon competes with its carrier's launchers for the reservoir
+     * (heavy-equipment-progression.md); {@code -Dbattle.mech.heavyCannonFlux=26} is the control.
      */
-    private static final float HEAVY_CANNON_HEAT = Float.parseFloat(
-            System.getProperty("battle.mech.heavyCannonHeat", "34"));
+    private static final float HEAVY_CANNON_FLUX = Float.parseFloat(
+            System.getProperty("battle.mech.heavyCannonFlux", "34"));
 
-    /** Whole-packet thermal reservation: scheduled rounds cannot stall halfway through a salvo. */
-    public float heatPerTrigger() {
-        return tuned("heat", authoredHeat());
+    /** Whole-packet flux reservation: scheduled rounds cannot stall halfway through a salvo. */
+    public float fluxPerTrigger() {
+        return tuned("flux", authoredFlux());
     }
 
     /**
      * A balance control: {@code -Dbattle.mech.<axis>.<short id>=<value>} replaces one authored value, where the
      * short id is the component id without {@code component.mech-} (for example
-     * {@code -Dbattle.mech.heat.bastion-autocannons=24}). Read once per component and axis.
+     * {@code -Dbattle.mech.flux.bastion-autocannons=24}). Read once per component and axis.
      */
     public float tuned(String axis, float authored) {
         float override = TUNING.computeIfAbsent(axis + "." + id.substring(id.indexOf("mech-") + 5), key -> {
@@ -224,7 +224,7 @@ public enum MechWeaponComponent {
 
     private static final Map<String, Float> TUNING = new ConcurrentHashMap<>();
 
-    private float authoredHeat() {
+    private float authoredFlux() {
         return switch (this) {
             case NOSE_CHAINGUN -> 18f;
             case DUAL_CHAINGUNS -> 30f;
@@ -233,9 +233,9 @@ public enum MechWeaponComponent {
             case LRM_5, LRM_5_FRAG -> 22f;
             case LRM_15, LRM_15_FRAG -> 40f;
             case DUAL_LINEAR_CANNONS -> 24f;
-            // Hot enough that the bastion's range costs its carrier reservoir, as the heavy cannon's does.
+            // Flux-hungry enough that the bastion's range costs its carrier reservoir, as the heavy cannon's does.
             case DUAL_BASTION_AUTOCANNONS -> 28f;
-            case SINGLE_HEAVY_CANNON -> HEAVY_CANNON_HEAT;
+            case SINGLE_HEAVY_CANNON -> HEAVY_CANNON_FLUX;
             case DEMOLITION_CANNON, QUARRY_BREAKER_CANNON -> 26f;
             // The Prestige arm pays in mass; at 38 it lost to both Advanced arms on the same frame.
             case DUAL_PULSE_LASERS -> 26f;

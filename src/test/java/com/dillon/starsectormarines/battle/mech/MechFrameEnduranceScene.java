@@ -40,7 +40,7 @@ import java.util.concurrent.Future;
  * apart rather than who wins. Planted means speed is not exercised: it is reported, not measured.
  *
  * <p>A third loop, {@code hound-duty}, puts the stock Hound against an inert, durable target for a
- * minute at a range of reservoirs and cooling rates, which is the Hound's cooling ceiling as a
+ * minute at a range of reservoirs and dissipation rates, which is the Hound's dissipation ceiling as a
  * production-fire-path reading rather than arithmetic.
  *
  * <p>Verdicts assert the instrument (the frame reached the battle, every play took fire); every
@@ -143,11 +143,11 @@ public final class MechFrameEnduranceScene implements BehaviorScene {
 
     private static final FrameKind[] MAIN_KINDS = {FrameKind.STOCK, FrameKind.REFIT, FrameKind.PRE_CUT};
 
-    /** An extra frame to stand under the same fire: {@code variant:armor:reservoir:cooling[:speed]}. */
+    /** An extra frame to stand under the same fire: {@code variant:armor:reservoir:dissipation[:speed]}. */
     record Study(MechVariant variant, MechFrame frame) {
         String label() {
             return String.format(Locale.ROOT, "study-a%.0f-h%.0f-c%.1f", frame.armorCapacity(),
-                    frame.heatCapacity(), frame.coolingPerSecond());
+                    frame.fluxCapacity(), frame.dissipationPerSecond());
         }
     }
 
@@ -201,7 +201,7 @@ public final class MechFrameEnduranceScene implements BehaviorScene {
         int ticks;
         float damageDealt;
         int rounds;
-        int coolingTicks;
+        int dissipationTicks;
 
         Play(Opposition opposition, MechVariant variant, FrameKind kind, MechFrame frame, long seed) {
             this.opposition = opposition;
@@ -247,8 +247,8 @@ public final class MechFrameEnduranceScene implements BehaviorScene {
             long mech = world.members(SUBJECT)[0];
             MechLoadoutComponent loadout = sim.world().mechLoadout(mech);
             loadout.applyFrame(p.frame);
-            p.frameApplied = loadout.heat.capacity() == p.frame.heatCapacity()
-                    && loadout.heat.coolingPerSecond() == p.frame.coolingPerSecond()
+            p.frameApplied = loadout.flux.capacity() == p.frame.fluxCapacity()
+                    && loadout.flux.dissipationPerSecond() == p.frame.dissipationPerSecond()
                     && Math.abs(sim.world().maxArmor(mech) - p.frame.armorCapacity()) < 1e-3f;
             float maxArmor = sim.world().maxArmor(mech);
             while (sim.getSimTickIndex() < MAX_TICKS) {
@@ -260,7 +260,7 @@ public final class MechFrameEnduranceScene implements BehaviorScene {
                 }
                 p.damageDealt = sim.telemetry().damageDealt(mech);
                 p.rounds = sim.telemetry().roundsFired(mech);
-                if (loadout.heat.aiCooling()) p.coolingTicks++;
+                if (loadout.flux.aiDissipating()) p.dissipationTicks++;
                 float armor = sim.world().armor(mech);
                 boolean damaged = armor < maxArmor || sim.world().hp(mech) < sim.world().maxHp(mech);
                 if (damaged && p.firstDamaged < 0) p.firstDamaged = tick;
@@ -293,16 +293,16 @@ public final class MechFrameEnduranceScene implements BehaviorScene {
 
     static final class Duty {
         final float capacity;
-        final float cooling;
+        final float dissipation;
         final long seed;
         int rounds;
         float damage;
-        int coolingTicks;
+        int dissipationTicks;
         int firstGate = -1;
 
-        Duty(float capacity, float cooling, long seed) {
+        Duty(float capacity, float dissipation, long seed) {
             this.capacity = capacity;
-            this.cooling = cooling;
+            this.dissipation = dissipation;
             this.seed = seed;
         }
     }
@@ -323,11 +323,11 @@ public final class MechFrameEnduranceScene implements BehaviorScene {
             sim.world().setHp(target, DURABLE);
             MechLoadoutComponent loadout = sim.world().mechLoadout(mech);
             loadout.applyFrame(new MechFrame(MechVariant.HOUND.armorCapacity, MechVariant.HOUND.moveSpeed,
-                    d.capacity, d.cooling));
+                    d.capacity, d.dissipation));
             while (sim.getSimTickIndex() < DUTY_TICKS) {
                 sim.advance(BattleSimulation.TICK_DT);
-                if (loadout.heat.aiCooling()) {
-                    d.coolingTicks++;
+                if (loadout.flux.aiDissipating()) {
+                    d.dissipationTicks++;
                     if (d.firstGate < 0) d.firstGate = sim.getSimTickIndex();
                 }
             }
@@ -348,8 +348,8 @@ public final class MechFrameEnduranceScene implements BehaviorScene {
         m.put("locationalDamageEnabled", MechSections.ENABLED ? 1 : 0);
         m.put("frame.armorCapacity", first.frame.armorCapacity());
         m.put("frame.moveSpeed", first.frame.moveSpeed());
-        m.put("frame.heatCapacity", first.frame.heatCapacity());
-        m.put("frame.coolingPerSecond", first.frame.coolingPerSecond());
+        m.put("frame.fluxCapacity", first.frame.fluxCapacity());
+        m.put("frame.dissipationPerSecond", first.frame.dissipationPerSecond());
         stats(m, "firstDamagedS", group, p -> p.firstDamaged);
         stats(m, "armorHalfS", group, p -> p.armorHalf);
         stats(m, "armorBreakS", group, p -> p.armorBreak);
@@ -362,7 +362,7 @@ public final class MechFrameEnduranceScene implements BehaviorScene {
         double dealt = 0;
         double dealtPerMin = 0;
         double rounds = 0;
-        double cooling = 0;
+        double dissipation = 0;
         for (Play p : group) {
             if (p.death < 0) survived++;
             if (p.frameApplied) applied++;
@@ -371,7 +371,7 @@ public final class MechFrameEnduranceScene implements BehaviorScene {
             dealt += p.damageDealt;
             dealtPerMin += p.damageDealt / (p.ticks / 30.0) * 60.0;
             rounds += p.rounds;
-            cooling += p.coolingTicks / (double) Math.max(1, p.ticks);
+            dissipation += p.dissipationTicks / (double) Math.max(1, p.ticks);
         }
         m.put("survivedCap", survived);
         m.put("damageDealt.mean", dealt / group.size());
@@ -379,10 +379,10 @@ public final class MechFrameEnduranceScene implements BehaviorScene {
         spread(m, "damageDealtPerMinute", group, p -> p.damageDealt / (p.ticks / 30.0) * 60.0);
         spread(m, "enduranceS", group, p -> p.endurance() / 30.0);
         m.put("roundsFired.mean", rounds / group.size());
-        m.put("aiCoolingShare.mean", cooling / group.size());
+        m.put("aiDissipatingShare.mean", dissipation / group.size());
         List<Verdict> verdicts = List.of(
                 Verdict.of("frame-applied", applied == group.size(),
-                        applied + " of " + group.size() + " plays carried the frame's armor, reservoir and cooling into battle"),
+                        applied + " of " + group.size() + " plays carried the frame's armor, reservoir and dissipation into battle"),
                 Verdict.of("took-fire", tookFire == group.size(),
                         tookFire + " of " + group.size() + " plays were hit (wanted every one: the fire is the instrument)"));
         return new SceneReport(id(), loop, ticks, verdicts, m);
@@ -421,10 +421,10 @@ public final class MechFrameEnduranceScene implements BehaviorScene {
     private SceneReport dutyReport(List<Duty> duties) {
         Map<String, Number> m = new LinkedHashMap<>();
         for (Duty d : duties) {
-            String key = String.format(Locale.ROOT, "cap%.0f.cool%.1f.", d.capacity, d.cooling);
+            String key = String.format(Locale.ROOT, "cap%.0f.diss%.1f.", d.capacity, d.dissipation);
             add(m, key + "rounds.mean", d.rounds / (double) SEEDS.length);
             add(m, key + "damage.mean", d.damage / (double) SEEDS.length);
-            add(m, key + "aiCoolingShare.mean", d.coolingTicks / (double) DUTY_TICKS / SEEDS.length);
+            add(m, key + "aiDissipatingShare.mean", d.dissipationTicks / (double) DUTY_TICKS / SEEDS.length);
             add(m, key + "firstGateS.mean", d.firstGate / 30.0 / SEEDS.length);
         }
         return new SceneReport(id(), "hound-duty", DUTY_TICKS * duties.size(),
