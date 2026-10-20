@@ -4,7 +4,7 @@ Status: ACTIVE — reactive manning is shipped for fighting-position runs, a str
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — runs are garrisoned a stretch at a time (stretches, shifting, the alarm floor over stretches); the defender counter-attacks a lost fort in proportion and its reserve lends to its own belt (`conquest-command.md`); compounds offer prepared ground (sandbagged doors) manned like a belt; machines screen the places their side mans.
+Updated: 2026-10-20 — runs are garrisoned a stretch at a time (stretches, shifting, the alarm floor over stretches); the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground (sandbagged doors) manned like a belt; machines screen the places their side mans.
 
 ## Why this exists
 
@@ -244,11 +244,10 @@ buy anything measurable either. Every fixture in which it never fired (the
 four other on-path seeds, the offset fort, which is never taken because the
 company goes round it, and the rifles-only forces, which never take it) played
 out exactly as its control. The defender now
-counter-attacks a lost fort in proportion or not at all (`conquest-command.md`,
-Defender command); on the trial ground it launched against the hold in six of
-nine at the default garrison and retook the bunker once, before the hold was
-whole, and the defender's reserve may man its own fort's belt only from what it
-holds above the reserve law's share.
+counter-attacks any lost place, a taken fort or a taken compound, in proportion
+to what it has observed holds it or not at all (`conquest-command.md`, Defender
+command), and its reserve may man its own place's garrisonables only from what
+it holds above the reserve law's share.
 
 ## How it fits what exists
 
