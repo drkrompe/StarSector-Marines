@@ -3,10 +3,10 @@
  "collection": "WOLF",
  "root": "WOLF | root",
  "effects_collection": "SWFX",
- "objects": 582,
+ "objects": 586,
  "meshes": 503,
- "effects_objects": 68,
- "images": 23,
+ "effects_objects": 96,
+ "images": 31,
  "passed": true,
  "failed": [],
  "checks": {
@@ -31,7 +31,7 @@
   "images packed": {
    "ok": true,
    "detail": [
-    23,
+    31,
     []
    ]
   },
@@ -50,6 +50,10 @@
    ]
   },
   "three engine anchors at the mouths, pointing aft": {
+   "ok": true,
+   "detail": []
+  },
+  "four lift thruster engine anchors at the mouths, pointing down": {
    "ok": true,
    "detail": []
   },
@@ -92,11 +96,19 @@
   "SWFX present": {
    "ok": true,
    "detail": [
-    68,
-    68
+    96,
+    96
    ]
   },
   "plumes leave every bell aft": {
+   "ok": true,
+   "detail": []
+  },
+  "lift thruster plumes leave their mouths downward, idle by default": {
+   "ok": true,
+   "detail": []
+  },
+  "gear_down works with the effects loaded": {
    "ok": true,
    "detail": []
   },

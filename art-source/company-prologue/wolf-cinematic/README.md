@@ -42,7 +42,8 @@ manifest.
   heavy blaster and Harpoons, from the turret kit's own hardpoints (round 8;
   before that the mining blaster and Annihilator forms stood in).
 - **Engines.** `Engine 1-3 exhaust anchor` at the three bell mouths, local +X
-  down the exhaust: 1 port, 2 centre, 3 starboard, HIGH_TECH blue.
+  down the exhaust: 1 port, 2 centre, 3 starboard, HIGH_TECH blue. Engines 4-7
+  are the lift thrusters (Landing gear, below).
 - **Turret.** `Turret 1 pivot` (WS 001, the ion cannon) trains about its local
   Z (rests ahead, arc 150 degrees); `Turret 1 elevation` elevates (negative
   local Y lifts the emitter).
@@ -69,9 +70,12 @@ manifest.
   +X down. Place the root that far above the ground, times `metres_per_unit`. A
   knob set from Python needs `control.update_tag()` before the frame is
   re-evaluated; a keyframed knob needs nothing. Four `Lift <i> exhaust anchor`
-  empties under the hull point down (local +X) for ventral lift-thruster
-  effects; they are in the manifest as `lift_thrusters` and not yet wired into
-  SWFX.
+  empties under the hull point down (local +X); the export copies each to an
+  `Engine <4-7> exhaust anchor`, so SWFX drives the lift thrusters as engines 4-7
+  (the Colossus's way). They ship idle, `thr_throttle_e4..e7` = 0 on `SWFX
+  controls`; key them up for a landing or lift-off (`review_ship.py --lift 1`).
+  The manifest's `lift_thrusters` carry each one's `engine_index` and
+  `engine_anchor`; `engines_running` lists the three main drives only.
 - **Lamps.** Eight: two amber neck lamps (the sprite's), red and green pod-tip
   lights, a white stern light, and from the round 7 fittings a white masthead
   on the bridge mast and two white ventral docking lights.

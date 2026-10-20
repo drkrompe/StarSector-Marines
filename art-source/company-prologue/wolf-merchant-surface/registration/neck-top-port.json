@@ -6,10 +6,10 @@
   912,
   513
  ],
- "segmentation_selfcheck_iou_on_guide": 0.9927,
- "raw_iou": 0.9901,
+ "segmentation_selfcheck_iou_on_guide": 0.9926,
+ "raw_iou": 0.9913,
  "best_fit": "iou_refined_affine",
- "fitted_iou": 0.9974,
+ "fitted_iou": 0.9955,
  "fits": {
   "identity": {
    "scale": [
@@ -20,40 +20,40 @@
     0.0,
     0.0
    ],
-   "iou": 0.9901
+   "iou": 0.9913
   },
   "bounds_affine": {
    "scale": [
     1.00128,
-    1.0109
+    1.00272
    ],
    "offset_px": [
     -0.08,
-    -2.8
+    -1.2
    ],
-   "iou": 0.9941
+   "iou": 0.9949
   },
   "iou_refined_affine": {
    "scale": [
-    1.00028,
-    1.0069
+    1.00128,
+    1.00172
    ],
    "offset_px": [
-    -0.08,
-    -2.3
+    0.42,
+    -1.2
    ],
-   "iou": 0.9974
+   "iou": 0.9955
   }
  },
  "boundary_raw_px": {
-  "mean_px": 0.94,
+  "mean_px": 0.79,
   "p95_px": 2.0,
-  "max_px": 2.24
+  "max_px": 4.0
  },
  "boundary_fitted_px": {
-  "mean_px": 0.26,
+  "mean_px": 0.41,
   "p95_px": 1.0,
-  "max_px": 2.24
+  "max_px": 3.16
  },
  "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
 }
