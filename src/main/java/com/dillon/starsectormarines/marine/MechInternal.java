@@ -4,14 +4,14 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.i18n.Strings;
 
 /**
- * A non-weapon fitting that changes the frame: engine, plating, heat sink or cooler. Each
+ * A non-weapon fitting that changes the frame: engine, plating, capacitor bank or vent array. Each
  * internal replaces one stock part and none is a multiplier on the chassis; the chassis's
  * own band ({@link MechFrameBudget}) bounds what an engine or plating can buy back.
  *
  * <p>Higher tiers take more room: a larger footprint in their socket, or more mass against
  * the engine's output. Plating is frame-wide and has no socket; every other role has one.
  * The missile replenisher is the loader and stays its own component, but a non-standard
- * loader competes with a cooler for the one {@link SocketId#MINI_FAB} socket.</p>
+ * loader competes with a vent array for the one {@link SocketId#MINI_FAB} socket.</p>
  */
 public enum MechInternal {
 
@@ -32,30 +32,30 @@ public enum MechInternal {
     HEAVY_PLATING("internal.plating-heavy", "@gearInternalHeavyPlating", Role.PLATING,
             EquipmentAccessTier.PRESTIGE, 0, 0, 2.5f, 0f, 0f, 1.0f, 0f, 0f),
 
-    FACTORY_HEAT_SINK("internal.heat-sink-factory", "@gearInternalFactoryHeatSink", Role.HEAT_SINK,
+    FACTORY_CAPACITOR_BANK("internal.capacitor-bank-factory", "@gearInternalFactoryCapacitorBank", Role.CAPACITOR_BANK,
             EquipmentAccessTier.COMMON, 1, 1, 0f, 0f, 0f, 0f, 100f, 6f),
-    DOUBLE_HEAT_SINK("internal.heat-sink-double", "@gearInternalDoubleHeatSink", Role.HEAT_SINK,
+    DOUBLE_CAPACITOR_BANK("internal.capacitor-bank-double", "@gearInternalDoubleCapacitorBank", Role.CAPACITOR_BANK,
             EquipmentAccessTier.ADVANCED, 2, 1, 3f, 0f, 0f, 0f, 120f, 7.5f),
-    // The military sink keeps the double's reservoir and adds cooling. Above about 126 a bigger
-    // reservoir changes which weapon gets the heat, not how much heat there is. When a cooled
-    // reservoir of size C releases, the dual chainguns (30 heat) fire first. A 42-heat SRM-15
+    // The military bank keeps the double's reservoir and adds dissipation. Above about 126 a bigger
+    // reservoir changes which weapon gets the flux, not how much flux there is. When a vented
+    // reservoir of size C releases, the dual chainguns (30 flux) fire first. A 42-flux SRM-15
     // then clears the 0.9C gate before the chainguns cycle again only if
-    // C > 2 * (72 - 1.05 * cooling). That is about 126 on the refit Bulwark (8.5/s). Past it the
+    // C > 2 * (72 - 1.05 * dissipation). That is about 126 on the refit Bulwark (8.5/s). Past it the
     // refit fires mostly SRMs and out-guns its pre-cut frame by a further ~4%. 120 stays below
-    // the threshold for any cooling up to 11.4/s.
-    MILITARY_HEAT_SINK("internal.heat-sink-military", "@gearInternalMilitaryHeatSink", Role.HEAT_SINK,
+    // the threshold for any dissipation up to 11.4/s.
+    MILITARY_CAPACITOR_BANK("internal.capacitor-bank-military", "@gearInternalMilitaryCapacitorBank", Role.CAPACITOR_BANK,
             EquipmentAccessTier.PRESTIGE, 3, 1, 5f, 0f, 0f, 0f, 120f, 8f),
 
-    AUXILIARY_COOLER("internal.cooler-auxiliary", "@gearInternalAuxiliaryCooler", Role.COOLER,
+    AUXILIARY_VENT_ARRAY("internal.vent-array-auxiliary", "@gearInternalAuxiliaryVentArray", Role.VENT_ARRAY,
             EquipmentAccessTier.ADVANCED, 1, 1, 2f, 0f, 0f, 0f, 0f, 1f);
 
     /** What part of the frame an internal replaces. */
     public enum Role {
         ENGINE(SocketId.CORE),
         PLATING(null),
-        HEAT_SINK(SocketId.AMMO_RESERVE),
+        CAPACITOR_BANK(SocketId.AMMO_RESERVE),
         /** Optional: the stock frame leaves this socket empty. */
-        COOLER(SocketId.MINI_FAB);
+        VENT_ARRAY(SocketId.MINI_FAB);
 
         private final SocketId socket;
 
@@ -69,8 +69,8 @@ public enum MechInternal {
             return switch (this) {
                 case ENGINE -> INDUSTRIAL_ENGINE;
                 case PLATING -> FACTORY_PLATING;
-                case HEAT_SINK -> FACTORY_HEAT_SINK;
-                case COOLER -> null;
+                case CAPACITOR_BANK -> FACTORY_CAPACITOR_BANK;
+                case VENT_ARRAY -> null;
             };
         }
     }
@@ -92,17 +92,17 @@ public enum MechInternal {
     public final float speedFraction;
     /** Plating only: where in the chassis's armor-capacity band this plating puts it. */
     public final float armorFraction;
-    /** Heat sink only: the reservoir it provides. */
-    public final float heatCapacity;
+    /** Capacitor bank only: the reservoir it provides. */
+    public final float fluxCapacity;
     /**
-     * Cooling contribution in heat per second: a heat sink's base cooling, a cooler's
-     * addition, or an engine's (negative) running-heat penalty.
+     * Dissipation contribution in flux per second: a capacitor bank's base dissipation, a vent array's
+     * addition, or an engine's (negative) running-flux penalty.
      */
-    public final float cooling;
+    public final float dissipation;
 
     MechInternal(String id, String displayName, Role role, EquipmentAccessTier tier,
                  int footprintColumns, int footprintRows, float mass, float outputFactor,
-                 float speedFraction, float armorFraction, float heatCapacity, float cooling) {
+                 float speedFraction, float armorFraction, float fluxCapacity, float dissipation) {
         this.id = id;
         this.displayName = displayName;
         this.role = role;
@@ -113,8 +113,8 @@ public enum MechInternal {
         this.outputFactor = outputFactor;
         this.speedFraction = speedFraction;
         this.armorFraction = armorFraction;
-        this.heatCapacity = heatCapacity;
-        this.cooling = cooling;
+        this.fluxCapacity = fluxCapacity;
+        this.dissipation = dissipation;
     }
 
     public String displayName() { return Strings.resolve(displayName); }

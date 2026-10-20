@@ -64,18 +64,25 @@ root = bpy.data.objects['SECOND WIND | patched | root']
 - **RCS.** `RCS <cluster> <axis> anchor` empties (24, in 8 clusters), +X down
   each thruster's exhaust, with `working` for this state (`manifest.json`
   `rcs`, `rcs_working`).
-- **Turrets.** `Turret <i> pivot` (slots WS 001-004) turns about its local Z
-  to train; the rest pose is the slot angle (`rest_angle_deg`). Gun house,
-  mantlet and barrels ride the pivot; the barbette foot, collar and traverse
-  gap stay. `Anchor turret <i> <gun> muzzle` rides with it, +X along the line
-  of fire (turret 4 has a port and a starboard gun). A **seized** mount
-  (`seized` on the pivot and in the manifest) carries nothing and has no
-  muzzle anchor: turret 1 is jammed 24 degrees off its slot (`jam_deg`;
-  `rest_angle_deg` 114, the slew already in the mesh) with its barrel bent,
-  and turret 3 is holed with its barrel snapped, in derelict, patched and
-  refit. Their wreck parts (`Scar sp-turret-1/3 ...`) stay on the root. The
-  derelict's turrets 2 and 4 are stripped: their pivots carry nothing either.
-  Restored has all four guns back and trainable.
+- **Turrets.** A stripped fit, the same in every state (owner, 2026-10-20):
+  two Vulcans from the shared turret kit (`../../turret-kit/`, `sw_turrets`),
+  one fore and one aft, on turret 1 (WS 001, port) and turret 4 (WS 004,
+  starboard bow, on a reducer plate over its medium drum); turrets 2 and 3
+  (WS 002, WS 003) are empty housings, kit barbettes closed by a blanking cap.
+  `Turret <i> pivot` turns about its local Z to train; the rest pose is the
+  slot angle (`rest_angle_deg`, arc in `arc_deg`). `Turret <i> elevation`
+  lifts the guns with a negative rotation about its local Y; each barrel
+  recoils on `Turret <i> recoil <k>` (slide along its local -X). The barbette
+  stays. `Anchor turret <i> barrel <k> muzzle` rides each barrel, +X along the
+  line of fire, two per Vulcan. An empty housing's pivot carries nothing. A
+  **seized** mount (`seized` on the pivot and in the manifest) carries nothing
+  and has no muzzle anchor: turret 1's Vulcan is jammed 24 degrees off its
+  slot (`jam_deg`; `rest_angle_deg` 114, the slew already in the mesh) with
+  both barrels bent, and turret 3's cap is holed over a torn feed, in
+  derelict, patched and refit. Their parts stay on the root. In derelict,
+  turret 4's Vulcan and turret 2's cap are stripped (a bare stud ring);
+  patched and refit bolt them back on adapter rings (turret 2's salvage cap in
+  another owner's primer). Restored has both Vulcans trainable and new caps.
 - **Sparks.** `Scar <id> spark anchor` / `spark-2 anchor` empties at torn
   conduits, +X along the spray, with `sparking` and `radius_m`
   (`manifest.json` `sparks`, `sparking`). Live only in patched, where the crew

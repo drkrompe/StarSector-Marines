@@ -49,10 +49,10 @@ public final class MechFabricationCatalog {
             internal(MechInternal.FACTORY_PLATING, "@gearFabricationStandardIssue", 6, 4, 30, 1),
             internal(MechInternal.COMPOSITE_PLATING, "@gearFabricationMilitaryPattern", 12, 8, 46, 4),
             internal(MechInternal.HEAVY_PLATING, "@gearFabricationMilitaryPattern", 18, 12, 70, 8),
-            internal(MechInternal.FACTORY_HEAT_SINK, "@gearFabricationStandardIssue", 6, 3, 10, 1),
-            internal(MechInternal.DOUBLE_HEAT_SINK, "@gearFabricationMilitaryPattern", 12, 6, 18, 4),
-            internal(MechInternal.MILITARY_HEAT_SINK, "@gearFabricationMilitaryPattern", 18, 10, 24, 8),
-            internal(MechInternal.AUXILIARY_COOLER, "@gearFabricationStandardIssue", 10, 5, 14, 3));
+            internal(MechInternal.FACTORY_CAPACITOR_BANK, "@gearFabricationStandardIssue", 6, 3, 10, 1),
+            internal(MechInternal.DOUBLE_CAPACITOR_BANK, "@gearFabricationMilitaryPattern", 12, 6, 18, 4),
+            internal(MechInternal.MILITARY_CAPACITOR_BANK, "@gearFabricationMilitaryPattern", 18, 10, 24, 8),
+            internal(MechInternal.AUXILIARY_VENT_ARRAY, "@gearFabricationStandardIssue", 10, 5, 14, 3));
 
     /**
      * Bills sit beside the chassis of the same weight class: a hull is cheaper than a walker, and at base commodity

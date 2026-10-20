@@ -9,7 +9,7 @@ import java.io.Serializable;
 /**
  * Persistent identity of one player-owned vehicle standing on a mech-bay gantry.
  *
- * <p>It shares the gantry with mechs and nothing else: no chassis, sockets, heat or
+ * <p>It shares the gantry with mechs and nothing else: no chassis, sockets, flux or
  * weapon components. Its hull, turret and kinematics are its {@link VehicleType}'s.
  */
 public final class CampaignVehicle implements Serializable {

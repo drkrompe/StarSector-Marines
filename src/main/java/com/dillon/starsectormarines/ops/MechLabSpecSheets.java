@@ -40,8 +40,8 @@ final class MechLabSpecSheets {
     }
 
     /**
-     * With a view model, a weapon's heat lines read against the selected mech's own heat
-     * sink and cooling at the moment the sheet opens rather than the stock frame's.
+     * With a view model, a weapon's flux lines read against the selected mech's own flux
+     * capacitors and dissipation at the moment the sheet opens rather than the stock frame's.
      */
     static void bindCatalogRows(SpecSheetBinder binder, MarkupInstance markup,
                                 List<MechLabViewModel.CatalogRow> rows,
@@ -56,7 +56,7 @@ final class MechLabSpecSheets {
                 MechWeaponComponent weapon = row.weaponPreview();
                 if (viewModel == null) binder.bind(name, SpecSheets.mechWeapon(weapon));
                 else binder.bind(name, () -> SpecSheets.mechWeapon(weapon,
-                        viewModel.selectedHeatCapacity(), viewModel.selectedCoolingPerSecond()));
+                        viewModel.selectedFluxCapacity(), viewModel.selectedDissipationPerSecond()));
             } else if (row.replenisherPreview() != null) {
                 binder.bind(name, replenisherSheet(row.replenisherPreview()));
             } else if (row.internalPreview() != null) {
@@ -77,29 +77,29 @@ final class MechLabSpecSheets {
                         Strings.format("openingMechLabSpecOutputFactor", number(internal.outputFactor))));
                 stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecSpeed"),
                         Strings.format("openingMechLabSpecBand", Math.round(internal.speedFraction * 100f))));
-                if (internal.cooling != 0f) stats.add(SpecSheet.Stat.of(
-                        Strings.get("openingMechLabSpecCooling"), signed(internal.cooling)));
+                if (internal.dissipation != 0f) stats.add(SpecSheet.Stat.of(
+                        Strings.get("openingMechLabSpecDissipation"), signed(internal.dissipation)));
             }
             case PLATING -> stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecArmor"),
                     Strings.format("openingMechLabSpecBand", Math.round(internal.armorFraction * 100f))));
-            case HEAT_SINK -> {
-                stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecHeat"), number(internal.heatCapacity)));
-                stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecCooling"), number(internal.cooling)));
+            case CAPACITOR_BANK -> {
+                stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecFlux"), number(internal.fluxCapacity)));
+                stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecDissipation"), number(internal.dissipation)));
             }
-            case COOLER -> stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecCooling"),
-                    signed(internal.cooling)));
+            case VENT_ARRAY -> stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecDissipation"),
+                    signed(internal.dissipation)));
         }
         String role = switch (internal.role) {
             case ENGINE -> Strings.get("openingMechLabRoleEngine");
             case PLATING -> Strings.get("openingMechLabRolePlating");
-            case HEAT_SINK -> Strings.get("openingMechLabRoleHeatSink");
-            case COOLER -> Strings.get("openingMechLabRoleCooler");
+            case CAPACITOR_BANK -> Strings.get("openingMechLabRoleCapacitorBank");
+            case VENT_ARRAY -> Strings.get("openingMechLabRoleVentArray");
         };
         String copy = switch (internal.role) {
             case ENGINE -> Strings.get("openingMechLabEngineCopy");
             case PLATING -> Strings.get("openingMechLabPlatingCopy");
-            case HEAT_SINK -> Strings.get("openingMechLabHeatSinkCopy");
-            case COOLER -> Strings.get("openingMechLabUtilityCopy");
+            case CAPACITOR_BANK -> Strings.get("openingMechLabCapacitorBankCopy");
+            case VENT_ARRAY -> Strings.get("openingMechLabUtilityCopy");
         };
         return new SpecSheet(internal.displayName(), role, null, "item", List.copyOf(stats), List.of(copy));
     }

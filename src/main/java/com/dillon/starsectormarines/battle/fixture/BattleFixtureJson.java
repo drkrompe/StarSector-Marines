@@ -681,8 +681,8 @@ public final class BattleFixtureJson {
                 JSONObject frame = new JSONObject();
                 frame.put("armorCapacity", deployment.frame().armorCapacity());
                 frame.put("moveSpeed", deployment.frame().moveSpeed());
-                frame.put("heatCapacity", deployment.frame().heatCapacity());
-                frame.put("coolingPerSecond", deployment.frame().coolingPerSecond());
+                frame.put("fluxCapacity", deployment.frame().fluxCapacity());
+                frame.put("dissipationPerSecond", deployment.frame().dissipationPerSecond());
                 mech.put("frame", frame);
                 deployments.put(mech);
             }
@@ -750,8 +750,8 @@ public final class BattleFixtureJson {
                     frame = new MechFrame(
                             (float) encodedFrame.getDouble("armorCapacity"),
                             (float) encodedFrame.getDouble("moveSpeed"),
-                            (float) encodedFrame.getDouble("heatCapacity"),
-                            (float) encodedFrame.getDouble("coolingPerSecond"));
+                            (float) encodedFrame.getDouble("fluxCapacity"),
+                            (float) encodedFrame.getDouble("dissipationPerSecond"));
                 }
                 deployments.add(new MechDeploymentSpec(
                         variant,

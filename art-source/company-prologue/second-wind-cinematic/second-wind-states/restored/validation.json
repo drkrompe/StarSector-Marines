@@ -3,9 +3,9 @@
  "asset": "second-wind-restored.blend",
  "collection": "SECOND WIND | restored",
  "root": "SECOND WIND | restored | root",
- "objects": 1071,
- "meshes": 1033,
- "images": 45,
+ "objects": 1021,
+ "meshes": 974,
+ "images": 41,
  "passed": true,
  "failed": [],
  "checks": {
@@ -27,8 +27,8 @@
   "object count": {
    "ok": true,
    "detail": [
-    1033,
-    1033
+    974,
+    974
    ]
   },
   "polygon count": {
@@ -40,12 +40,12 @@
   },
   "hull_rest is rest position": {
    "ok": true,
-   "detail": 4e-06
+   "detail": 2e-06
   },
   "base wear on every skin and swatch": {
    "ok": true,
    "detail": {
-    "materials": 96,
+    "materials": 72,
     "missing": []
    }
   },
@@ -55,7 +55,7 @@
   "overlay on every family material": {
    "ok": true,
    "detail": {
-    "materials": 108,
+    "materials": 85,
     "missing": []
    }
   },
@@ -76,7 +76,20 @@
   },
   "turret pivots train": {
    "ok": true,
-   "detail": 5e-06
+   "detail": 3e-06
+  },
+  "turret guns elevate": {
+   "ok": true,
+   "detail": {
+    "err": 4e-06,
+    "bad": [],
+    "muzzles": {
+     "1": 2,
+     "2": 0,
+     "3": 0,
+     "4": 2
+    }
+   }
   },
   "seized turrets carry nothing": {
    "ok": true,
@@ -98,7 +111,7 @@
   },
   "root moves the ship rigidly": {
    "ok": true,
-   "detail": 3.1e-05
+   "detail": 6.1e-05
   }
  }
 }

@@ -30,7 +30,7 @@ final class ArmorReport {
                float attackerShots, float defenderShots,
                float attackerMountsLost, float defenderMountsLost,
                float attackerLegsCrippled, float defenderLegsCrippled,
-               float attackerHeatSeconds, float defenderHeatSeconds,
+               float attackerFluxSeconds, float defenderFluxSeconds,
                String attackerWeapons, String defenderWeapons, String gif) {
 
         static Row of(String pairing, List<ArmorPlay.Result> fights, String gif) {
@@ -40,7 +40,7 @@ final class ArmorReport {
             float range = 0f;
             int ranged = 0;
             float aLeft = 0, dLeft = 0, aInt = 0, dInt = 0, aShots = 0, dShots = 0, aHits = 0, dHits = 0;
-            float aMounts = 0, dMounts = 0, aLegs = 0, dLegs = 0, aHeat = 0, dHeat = 0;
+            float aMounts = 0, dMounts = 0, aLegs = 0, dLegs = 0, aFlux = 0, dFlux = 0;
             Map<String, ArmorPlay.WeaponStats> aWeapons = new TreeMap<>();
             Map<String, ArmorPlay.WeaponStats> dWeapons = new TreeMap<>();
             for (ArmorPlay.Result r : fights) {
@@ -73,8 +73,8 @@ final class ArmorReport {
                 dMounts += d.mountsLost();
                 aLegs += a.legsCrippled();
                 dLegs += d.legsCrippled();
-                aHeat += a.heatLimitedSeconds();
-                dHeat += d.heatLimitedSeconds();
+                aFlux += a.fluxLimitedSeconds();
+                dFlux += d.fluxLimitedSeconds();
                 a.weapons().forEach((k, v) -> aWeapons.merge(k, v, ArmorPlay.WeaponStats::plus));
                 d.weapons().forEach((k, v) -> dWeapons.merge(k, v, ArmorPlay.WeaponStats::plus));
             }
@@ -84,7 +84,7 @@ final class ArmorReport {
                     open, decided == 0 ? -1f : ttk / decided, ranged == 0 ? -1f : range / ranged,
                     aLeft / n, dLeft / n, aInt / n, dInt / n,
                     aShots == 0 ? 0f : aHits / aShots, dShots == 0 ? 0f : dHits / dShots,
-                    aShots / n, dShots / n, aMounts / n, dMounts / n, aLegs / n, dLegs / n, aHeat / n, dHeat / n,
+                    aShots / n, dShots / n, aMounts / n, dMounts / n, aLegs / n, dLegs / n, aFlux / n, dFlux / n,
                     weaponText(aWeapons), weaponText(dWeapons), gif == null ? "" : gif);
         }
     }
@@ -116,7 +116,7 @@ final class ArmorReport {
     static String markdownHeader() {
         return "| Matchup | Att wins | Def wins | Both dead | Stalemate | Timeout | TTK s | Range | Att left | Def left "
                 + "| Att integrity | Def integrity | Att hit | Def hit | Mounts lost A/D | Legs crippled A/D "
-                + "| Heat-limited s A/D | Att damage by weapon | Def damage by weapon | Replay |\n"
+                + "| Flux-limited s A/D | Att damage by weapon | Def damage by weapon | Replay |\n"
                 + "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n";
     }
 
@@ -130,7 +130,7 @@ final class ArmorReport {
                 + " | " + pct(r.attackerHitRate) + " | " + pct(r.defenderHitRate)
                 + " | " + f1(r.attackerMountsLost) + "/" + f1(r.defenderMountsLost)
                 + " | " + f1(r.attackerLegsCrippled) + "/" + f1(r.defenderLegsCrippled)
-                + " | " + f1(r.attackerHeatSeconds) + "/" + f1(r.defenderHeatSeconds)
+                + " | " + f1(r.attackerFluxSeconds) + "/" + f1(r.defenderFluxSeconds)
                 + " | " + r.attackerWeapons + " | " + r.defenderWeapons
                 + " | " + (r.gif.isEmpty() ? "" : "[gif](" + r.gif.replace(" ", "%20") + ")") + " |\n";
     }
@@ -139,7 +139,7 @@ final class ArmorReport {
             + "both_destroyed,stalemate,timeout,mean_ttk_s,fight_range,attacker_left,defender_left,attacker_integrity,"
             + "defender_integrity,attacker_hit_rate,defender_hit_rate,attacker_shots,defender_shots,"
             + "attacker_mounts_lost,defender_mounts_lost,attacker_legs_crippled,defender_legs_crippled,"
-            + "attacker_heat_limited_s,defender_heat_limited_s,attacker_weapons,defender_weapons\n";
+            + "attacker_flux_limited_s,defender_flux_limited_s,attacker_weapons,defender_weapons\n";
 
     static String csvRow(Row r) {
         return q(r.pairing) + ',' + r.scenario + ',' + q(r.attacker) + ',' + q(r.defender) + ',' + r.fights + ','
@@ -150,7 +150,7 @@ final class ArmorReport {
                 + f1(r.attackerShots) + ',' + f1(r.defenderShots) + ','
                 + f1(r.attackerMountsLost) + ',' + f1(r.defenderMountsLost) + ','
                 + f1(r.attackerLegsCrippled) + ',' + f1(r.defenderLegsCrippled) + ','
-                + f1(r.attackerHeatSeconds) + ',' + f1(r.defenderHeatSeconds) + ','
+                + f1(r.attackerFluxSeconds) + ',' + f1(r.defenderFluxSeconds) + ','
                 + q(r.attackerWeapons) + ',' + q(r.defenderWeapons) + '\n';
     }
 
@@ -158,7 +158,7 @@ final class ArmorReport {
             + "attacker_left,defender_left,attacker_integrity,defender_integrity,attacker_damage_dealt,"
             + "defender_damage_dealt,attacker_shots,attacker_hits,defender_shots,defender_hits,"
             + "attacker_mounts_lost,defender_mounts_lost,attacker_legs_crippled,defender_legs_crippled,"
-            + "attacker_heat_limited_s,defender_heat_limited_s,attacker_survivors,defender_survivors,"
+            + "attacker_flux_limited_s,defender_flux_limited_s,attacker_survivors,defender_survivors,"
             + "attacker_weapons,defender_weapons,attacker_rounds_engaged,attacker_rounds_stopped,"
             + "defender_rounds_engaged,defender_rounds_stopped,gif\n";
 
@@ -171,7 +171,7 @@ final class ArmorReport {
                 + f1(a.damageDealt()) + ',' + f1(d.damageDealt()) + ','
                 + a.shots() + ',' + a.hits() + ',' + d.shots() + ',' + d.hits() + ','
                 + a.mountsLost() + ',' + d.mountsLost() + ',' + a.legsCrippled() + ',' + d.legsCrippled() + ','
-                + f1(a.heatLimitedSeconds()) + ',' + f1(d.heatLimitedSeconds()) + ','
+                + f1(a.fluxLimitedSeconds()) + ',' + f1(d.fluxLimitedSeconds()) + ','
                 + q(a.survivors()) + ',' + q(d.survivors()) + ','
                 + q(weaponText(a.weapons())) + ',' + q(weaponText(d.weapons())) + ','
                 + a.roundsEngaged() + ',' + a.roundsStopped() + ',' + d.roundsEngaged() + ',' + d.roundsStopped() + ','

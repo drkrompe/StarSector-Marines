@@ -10,7 +10,7 @@ import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.ManualMechDrive;
 import com.dillon.starsectormarines.battle.mech.MechFrame;
-import com.dillon.starsectormarines.battle.mech.MechHeat;
+import com.dillon.starsectormarines.battle.mech.MechFlux;
 import com.dillon.starsectormarines.battle.mech.MechRouteIntent;
 import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
@@ -35,12 +35,12 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
  */
 public final class MechLoadoutComponent {
 
-    /** Shared thermal state survives control handback; the serial weapon pass owns cooling. */
-    public final MechHeat heat = new MechHeat();
+    /** Shared flux state survives control handback; the serial weapon pass owns dissipation. */
+    public final MechFlux flux = new MechFlux();
 
-    /** Size the thermal reservoir from a frozen deployment frame; before any heat is committed. */
+    /** Size the flux reservoir from a frozen deployment frame; before any flux is committed. */
     public void applyFrame(MechFrame frame) {
-        heat.configure(frame.heatCapacity(), frame.coolingPerSecond());
+        flux.configure(frame.fluxCapacity(), frame.dissipationPerSecond());
     }
 
     /** Manual velocity survives the applied-velocity tick reset, but never handback. */

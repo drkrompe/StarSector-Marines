@@ -102,6 +102,8 @@ WEAPONS = {
     'pdlaser':      dict(house='hand', chroma=.7, paints={'paint': (.2, .2, .22), 'accent': (.42, .12, .09),
                                                           'accent2': (.62, .63, .64)}),
     # The Wolf (P)'s WS 001: grey prongs and studs, the green shell as its accent.
+    # The Cerberus' railgun (cerberus_Standard WS 003): grey house, copper rails, a silver bulb.
+    'railgun':   dict(house='hand', paints={'accent2': (.62, .66, .7)}),
     'ioncannon':    dict(house='hand', chroma=.75, paints={'paint': (.42, .46, .43), 'accent': (.109, .262, .156)}),
     'harpoonpod':  dict(house='box', rack='open', missiles=(1, 3), mlen=1.2, mrad=.09, mcol=(.5, .6, .5)),
     'sabotpod':    dict(house='box', rack='open', missiles=(1, 3), mlen=.85, mrad=.095, mcol=(.66, .66, .62)),
@@ -2766,13 +2768,84 @@ def _house_ioncannon(g, f, s, r, z0):
                               'elevation_limits': (-5, 20)}
 
 
+def _house_railgun(g, f, s, r, z0):
+    """railgun_turret_base.png (one sprite, no gun layer; the Cerberus' WS 003):
+    a low grey house widest through its middle, a pale silver capacitor bulb
+    on its crown, a copper breech block sunk in a well behind the bulb, two
+    pale lugs at the rear either side of a dark notch, and forward of the bulb
+    the copper rail pair, banded dark every two pixels, a pale core between
+    the rails and grey guide fins along their roots. The rails ride the
+    elevation empty; the game draws no recoil, so recoil 1 is still."""
+    k = _k(s, r)
+    sp = sprite(s.get('sprite', s['weapon']))
+    H = 2.8
+    plan = [(-9.6, 5.8, H-.9), (-9.0, 6.6, H-.5), (-6.0, 6.9, H-.2), (-1.0, 7.6, H), (1.0, 7.6, H-.2),
+            (2.4, 5.0, H-.8)]
+    body = g['paint#body']
+    _plan_loft(body, plan, z0, k, .9, .1, .6)
+    zt = z0+H*k
+    # Rear notch between the lugs (the sprite's dark tail centre), cut into the house.
+    body.cut().box((-9.4*k, 0, z0+H*.5*k), (1.6*k, 2.2*k, H*1.2*k), .05*k)
+    g['dark'].box((-8.65*k, 0, z0+.7*k), (.1*k, 2.0*k, 1.2*k))
+    for sy in (1, -1):
+        g['accent2'].box((-8.0*k, sy*4.3*k, z0+(H-.3)*.5*k), (1.8*k, 2.6*k, (H-.3)*k), .2*k)        # lugs
+        # Flank cheeks: the dark band down each side (cols 6 / 21), a raised
+        # armour strip with a shadow gap under it and two lit tell-tales.
+        st = []
+        for x, w, h in ((-4.6, .5, H-.8), (-3.6, .9, H-.3), (.4, .9, H-.3), (1.2, .5, H-.8)):
+            loop = [(sy*7.3*k+yy, zz) for yy, zz in section(w*k, z0+.5*k, z0+h*k, .3*k, .1*k, .3*k)]
+            st.append((x*k, loop if sy > 0 else loop[::-1]))
+        g['steel'].loft_x(st)
+        g['dark'].box((-1.6*k, sy*8.0*k, z0+.45*k), (5.6*k, .3*k, .6*k))
+        g['glow'].box((-2.0*k, sy*8.25*k, z0+1.4*k), (.6*k, .2*k, .5*k))
+    # The breech: a copper block in a well behind the bulb (rows 15-19), its
+    # lit top a raised plate, dark joints fore and aft.
+    body.cut().box((-4.4*k, 0, zt), (4.6*k, 5.4*k, 1.6*k), .05*k)
+    g['dark'].box((-4.4*k, 0, zt-.76*k), (4.6*k, 5.4*k, .06*k))
+    g['accent#breech'].box((-4.4*k, 0, zt-.2*k), (4.0*k, 4.6*k, 1.4*k), .2*k)
+    g['accent#breech'].box((-4.2*k, 0, zt+.55*k), (2.6*k, 3.0*k, .3*k), .1*k)
+    for x in (-6.2, -2.6):
+        g['dark'].box((x*k, 0, zt+.1*k), (.3*k, 4.8*k, .4*k))
+    # Capacitor bulb: a squat dome on the crown (rows 10-15), a band round its
+    # foot and a dark seam ring at its shoulder.
+    bulb = g['accent2#bulb']
+    n = 10
+    prof = [(4.5*k*math.cos(math.pi/2*i/n)**.8, zt-.2*k+2.4*k*math.sin(math.pi/2*i/n)) for i in range(n+1)]
+    bulb.lathe([(0, zt-.2*k)]+prof, 32, (-.3*k, 0, 0), 'Z')
+    g['steel'].ring((-.3*k, 0, zt-.05*k), 4.3*k, 4.9*k, .5*k, 'Z', n=32)
+    g['dark'].ring((-.3*k, 0, zt+1.35*k), 3.45*k, 3.62*k, .12*k, 'Z', n=32)
+    za = z0+1.8*k
+
+    def gun_parts(gg, za):
+        rg = gg.sub('recoil 1', (1.5*k, 0, za), .1*r)
+        for sy in (1, -1):
+            # Rail: copper bar, tapering to the muzzle (rows 1-10), banded dark.
+            st = []
+            for x, w, h in ((1.5, .75, 1.6), (8.0, .65, 1.3), (12.0, .5, 1.0)):
+                loop = [(sy*1.15*k+yy, za+zz) for yy, zz in section(w*k, -h*.5*k, h*.5*k, .2*k, .2*k, 0)]
+                st.append((x*k, loop if sy > 0 else loop[::-1]))
+            rg['accent'].loft_x(st)
+            for x in (3.5, 5.5, 7.5, 9.5):
+                rg['dark'].box((x*k, sy*1.15*k, za), (.45*k, 1.6*k, 1.55*k-(x-3.5)*.05*k))
+            # Guide fin along the rail root (the grey pixels flanking rows 5-10).
+            fin = [(2.0*k, sy*1.9*k), (11.0*k, sy*1.6*k), (10.0*k, sy*2.7*k), (6.0*k, sy*3.6*k), (2.4*k, sy*4.6*k)]
+            rg["paint"].prism(fin if sy > 0 else fin[::-1], za-.5*k, za+.3*k)
+        # Pale core between the rails, its armature lit along the top.
+        rg['accent2'].box((6.5*k, 0, za+.15*k), (10.0*k, .9*k, .5*k), .1*k)
+        rg['dark'].box((6.5*k, 0, za-.3*k), (10.0*k, 1.4*k, .5*k))
+        # Collar where the rails leave the bulb.
+        rg['steel'].box((2.2*k, 0, za), (1.4*k, 4.4*k, 2.0*k), .2*k)
+    return (1.5*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True,
+                              'muzzles': [(12.0*k, 0, za)]}
+
+
 HANDS = {'heavyac': _house_heavyac2, 'flak': _house_flak2, 'vulcan': _house_vulcan, 'lightac': _house_lightac,
          'lightmg': _house_lightmg, 'dualflak': _house_dualflak, 'needler': _house_needler,
          'squall': _house_squall, 'hurricane': _house_hurricane, 'mark9': _house_mark9,
          'hellbore': _house_hellbore, 'hephaestus': _house_hephaestus, 'devastator': _house_devastator,
          'heavymauler': _house_heavymauler, 'hveldriver': _house_hveldriver,
          'tachyonlance': _house_tachyonlance, 'gravitonbeam': _house_gravitonbeam, 'taclaser': _house_taclaser,
-         'reaper': _house_reaper, 'pdlaser': _house_pdlaser, 'ioncannon': _house_ioncannon}
+         'reaper': _house_reaper, 'pdlaser': _house_pdlaser, 'ioncannon': _house_ioncannon, 'railgun': _house_railgun}
 
 # --- hardpoints: fixed mounts ---------------------------------------------------------
 # A hardpoint does not train: it sits in its slot (often a bay cut into the hull) and

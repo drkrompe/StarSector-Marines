@@ -1,110 +1,164 @@
-"""The four weapon mounts: three small, one medium, at vanilla Cerberus XY.
+"""The four weapon mounts: two Vulcans from the shared turret kit, and two empty housings.
 
-Naval-industrial gun houses rather than boxes: a faceted barbette seated on
-whatever hull slope lies beneath it, a traverse gap, a turret house lofted
-from a chamfered-nose plan with a sloped glacis and raked sides, a mantlet,
-and a stepped barrel ending in a muzzle brake. A rear bustle carries the
-ammunition feed and vents. Silhouette first; greebles stay sparse.
+warhound.ship's slots, fitted as the owner chose (2026-10-20): a stripped fit,
+the same in every condition state, lighter than the vanilla cerberus_Standard
+variant (Vulcans on 1-2, a railgun on 3, a heavy mauler on 4):
+  WS 001  TURRET  SMALL   BALLISTIC  (-11, 20)   90   arc 210   Turret 1  vulcan (port, aft)
+  WS 002  TURRET  SMALL   BALLISTIC  (-11, -20)  -90  arc 210   Turret 2  empty housing
+  WS 003  TURRET  SMALL   BALLISTIC  (41, 11)    30   arc 210   Turret 3  empty housing
+  WS 004  TURRET  MEDIUM  BALLISTIC  (36, -16)   -30  arc 290   Turret 4  vulcan (starboard, bow)
+One gun a side, one fore and one aft. The derelict's stripped turret 4 and
+wrecked 1 and 3 are its scars (sw_scars_spine), not its loadout.
+
+A gun is `tk.build(weapon)` from ../turret-kit on a kit barbette, as the
+Legion, Paragon and Wolf mount theirs. `Turret <i> pivot` is an empty at the
+top of the barbette: turn it about hull +Z to train (it rests at the slot
+angle, `rest_angle_deg`); `Turret <i> elevation` lifts the guns with a
+negative rotation about its local Y; each barrel recoils on `Turret <i>
+recoil <k>`. `Anchor turret <i> barrel <k> muzzle` rides the kit's own muzzle
+anchor, +X along the line of fire, for the VFX kit (DECLARED_MUZZLES) and the
+cinematic export. Everything the turret trains is named `Turret <i> house ...`,
+`Turret <i> gun ...` or `Turret <i> recoil <k> ...`; the fixed part is
+`Turret <i> barbette` (with its `... plinth` where the foot is deep). Turret
+4's small Vulcan stands on `Turret 4 reducer plate`, a fixed adapter on the
+medium drum.
+
+An empty housing is the same kit barbette closed by `Turret <i> blanking
+cap` (a bolted plate) and `Turret <i> blanking cap boss` (the plugged feed
+trunk at its centre); its pivot is kept, empty, so every slot has one.
+
+Rings are in hull units: the small mounts on 4.2, so the kit's flange (1.1
+ring) lands inside the pods' octagonal seats for 1 and 2 (4.62 to the flats),
+a little inside the sprite's own small ring; turret 4's drum on 7.0, the
+sprite's, with its Vulcan at the small ring.
 """
 import math
+import sys
+from pathlib import Path
 import bpy
-from mathutils import Matrix
 
-# Vanilla warhound.ship weapon slots WS 001..004: XY, resting angle (degrees
-# CCW from the bow, so +90 faces port), mount scale, medium flag. Small
-# mounts are one family; turret 4 is the medium twin-gun house.
-MOUNTS = [(-11,20,90,1.0,False),(-11,-20,-90,1.0,False),(41,11,30,1.0,False),(36,-16,-30,1.3,True)]
-# Extra barbette height per mount. Turret 3's resting line crosses the port
-# grapple arm stowed beside it, so it stands superfiring over the arm.
-LIFT = {3: 2.2}
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent/'turret-kit'))
+import turret_kit as tk  # noqa: E402
 
-# Turret-house plan (scaled), counter-clockwise from above: chamfered nose
-# at the bottom ring, glacis and raked sides pulled in at the roof ring.
-HOUSE_BASE = [(3.0,-1.3),(3.0,1.3),(1.7,2.5),(-2.5,2.5),(-2.5,-2.5),(1.7,-2.5)]
-HOUSE_ROOF = [(1.3,-.85),(1.3,.85),(.5,1.95),(-2.25,1.95),(-2.25,-1.95),(.5,-1.95)]
-HOUSE_H = 2.0
+# warhound.ship WS 001..004: XY, resting angle (degrees CCW from the bow, so +90
+# faces port), mount scale (the VFX kit's flash scale and the scars' strike
+# scale: 1.0 small, 1.3 medium), twin (no mount fires a paired port/starboard
+# gun any more: each gun declares its barrels).
+# The scars' keep-out reads the housing's scale, so turret 4 stays 1.3.
+MOUNTS = [(-11, 20, 90, 1.0, False), (-11, -20, -90, 1.0, False), (41, 11, 30, 1.0, False), (36, -16, -30, 1.3, False)]
+SLOTS = ['WS 001', 'WS 002', 'WS 003', 'WS 004']
+ARC = [210, 210, 210, 290]
+SIZE = ['SMALL', 'SMALL', 'SMALL', 'MEDIUM']
+LOADOUT = ['vulcan', None, None, 'vulcan']   # None: an empty housing
+RING = [4.2, 4.2, 4.2, 7.0]                   # the barbette
+GUN_RING = 4.2                                # every gun is a small Vulcan
+REDUCER_H = .3                                # turret 4's adapter plate under its Vulcan
+# Barbette drum above its seat. Turret 3 carries no gun, so it no longer stands
+# superfiring over the stowed port grapple arm.
+LIFT = [1.6, 1.6, 1.6, 1.8]
+# The VFX kit's mounts (swfx_anchors), flash scale 1.0: both guns are small.
+VFX_MOUNTS = [(x, y, a, 1.0, False, 'gun') for x, y, a, _, _ in MOUNTS]
+ENERGY_COLOURS = {}
+
+BUILT = {}   # index -> record, filled by build(); the scars and geometry.json read it
 
 
-def loft(kit, name, base, roof, z0, z1, mat, bevel=.12):
-    """Prism lofted between two CCW plans of equal vertex count."""
-    n = len(base)
-    verts = [(x,y,z0) for x,y in base] + [(x,y,z1) for x,y in roof]
-    faces = [(i,(i+1)%n,n+(i+1)%n,n+i) for i in range(n)]
-    faces += [tuple(reversed(range(n))), tuple(range(n,2*n))]
-    return kit.mesh(name, verts, faces, mat, bevel=bevel)
+def mats(kit):
+    return {'armour': kit.orange, 'plate': kit.steel, 'steel': kit.steel, 'dark': kit.dark}
 
 
 def seat(kit, i, x, y, r):
-    """Highest and lowest hull Z under the barbette footprint."""
+    """Highest and lowest hull Z under the barbette (sampled just inside its ring: the
+    pods' seats for 1 and 2 end under the flange's rim, and the side below is not its seat)."""
     zs = []
-    for k in range(13):
-        a = k*math.tau/12
-        px,py = (x,y) if k == 12 else (x+r*math.cos(a), y+r*math.sin(a))
-        hit = kit.surface(px,py)
+    for k in range(17):
+        a = k*math.tau/16
+        px, py = (x, y) if k == 16 else (x+.95*r*math.cos(a), y+.95*r*math.sin(a))
+        hit = kit.surface(px, py)
         if hit is not None:
             zs.append(hit[0].z)
-    if kit.surface(x,y) is None:
+    if kit.surface(x, y) is None:
         raise RuntimeError(f'Turret {i} has no supporting hull surface')
     return max(zs), min(zs)
 
 
-def barrel(kit, i, tag, ox, oy, z, s, heavy):
-    """Recoil sleeve, two tapering tube sections and a slotted muzzle brake."""
-    L = 1.25 if heavy else 1.0
-    sections = [(.6,1.7,kit.steel,'recoil sleeve'),(.44,2.6*L,kit.steel,'barrel chase'),
-                (.34,2.3*L,kit.steel,'barrel tube')]
-    x = ox
-    for r,length,mat,label in sections:
-        kit.cylinder(f'Turret {i} {tag} {label}',(x+length*s/2,oy,z),r*s,length*s,mat,'X',20,.05)
-        x += length*s
-    kit.cylinder(f'Turret {i} {tag} breech band',(ox+1.5*s,oy,z),.68*s,.3*s,kit.dark,'X',20,.04)
-    kit.box(f'Turret {i} {tag} muzzle brake',(x+.5*s,oy,z),(1.0*s,.95*s,.72*s),kit.steel,.08*s)
-    kit.box(f'Turret {i} {tag} muzzle brake port',(x+.5*s,oy,z),(.3*s,1.0*s,.5*s),kit.dark,.03)
+def empty(name, loc, rot_z=0.0, size=1.0, kind='PLAIN_AXES', parent=None):
+    ob = bpy.data.objects.new(name, None)
+    ob.empty_display_type, ob.empty_display_size = kind, size
+    bpy.context.collection.objects.link(ob)
+    ob.parent = parent
+    ob.location = loc
+    ob.rotation_euler = (0, 0, rot_z)
+    return ob
 
 
 def build(kit):
-    for i,(x,y,angle,s,heavy) in enumerate(MOUNTS,1):
-        R = 3.1*s
-        zmax,zmin = seat(kit,i,x,y,R)
-        zmax += LIFT.get(i,0)
-        # Barbette: a faceted foot sunk into the slope, an armoured collar
-        # proud of the highest ground, and a dark traverse gap above it.
-        kit.cylinder(f'Turret {i} barbette foot',(x,y,(zmin-.4+zmax+.25)/2),R+.45*s,zmax+.65-zmin,kit.steel,'Z',12,.12)
-        kit.cylinder(f'Turret {i} armoured collar',(x,y,zmax+.6*s),R,.9*s,kit.steel,'Z',12,.1)
-        kit.cylinder(f'Turret {i} traverse gap',(x,y,zmax+1.15*s),R-.35*s,.3*s,kit.dark,'Z',24,0)
-        zb = zmax+1.25*s
-        # Everything above the traverse gap is built bow-facing, then trained
-        # about the mount centre to the slot's resting angle.
-        fixed = set(bpy.data.objects)
-        P = lambda pts,dx=0: [(x+(px+dx)*s,y+py*s) for px,py in pts]
-        bustle = 1.6 if heavy else 1.0
-        loft(kit,f'Turret {i} gun house',P(HOUSE_BASE),P(HOUSE_ROOF),zb,zb+HOUSE_H*s,kit.steel)
-        # Rear bustle: ammunition handling, lower than the house roof.
-        bb = [(-2.4,-2.1),(-2.4,2.1),(-2.4-bustle,1.9),(-2.4-bustle-.6,1.3),(-2.4-bustle-.6,-1.3),(-2.4-bustle,-1.9)]
-        br = [(-2.3,-1.8),(-2.3,1.8),(-2.3-bustle,1.6),(-2.3-bustle-.35,1.1),(-2.3-bustle-.35,-1.1),(-2.3-bustle,-1.6)]
-        loft(kit,f'Turret {i} rear bustle',P(bb),P(br),zb+.15*s,zb+1.7*s,kit.steel)
-        for k in range(3):
-            kit.box(f'Turret {i} bustle vent slat',(x+(-2.6-bustle*.5)*s,y+(k-1)*.95*s,zb+1.72*s),((bustle+.1)*s,.45*s,.06*s),kit.dark,0)
-        kit.box(f'Turret {i} ammunition feed trunk',(x-(2.9+bustle)*s,y-1.3*s,zb+.3*s),(.9*s,.8*s,1.6*s),kit.dark,.08)
-        # Mantlet across the glacis, then the gun(s).
-        gz = zb+.95*s
-        guns = [(.85,'port gun'),(-.85,'starboard gun')] if heavy else [(0,'gun')]
-        mw = 3.4 if heavy else 1.9
-        # Rounded trunnion mantlet: a drum across the glacis the guns pierce.
-        kit.cylinder(f'Turret {i} mantlet drum',(x+2.3*s,y,gz),.78*s,mw*s,kit.steel,'Y',24,.12*s)
-        kit.box(f'Turret {i} mantlet face',(x+2.75*s,y,gz),(.5*s,(mw-.3)*s,1.2*s),kit.steel,.12*s)
-        for gy,tag in guns:
-            barrel(kit,i,tag,x+3.0*s,y+gy*s,gz,s,heavy)
-        # Roof: commander's hatch aft, rangefinder/optics blister to port.
-        kit.cylinder(f'Turret {i} roof hatch',(x-1.2*s,y-.7*s,zb+HOUSE_H*s+.08*s),.6*s,.16*s,kit.steel,'Z',16,.04)
-        ox = 1.95 if heavy else 1.35
-        kit.box(f'Turret {i} optics blister',(x-.2*s,y+ox*s,zb+HOUSE_H*s+.3*s),(1.5*s,.8*s,.6*s),kit.steel,.18*s)
-        kit.box(f'Turret {i} optics lens',(x+.56*s,y+ox*s,zb+HOUSE_H*s+.33*s),(.08,.55*s,.32*s),kit.glass,0)
-        if heavy:
-            kit.box(f'Turret {i} rangefinder arm',(x-.6*s,y,zb+HOUSE_H*s+.18*s),(.7*s,4.6*s,.36*s),kit.steel,.1*s)
-            for side in (1,-1):
-                kit.box(f'Turret {i} rangefinder window',(x-.6*s,y+side*2.31*s,zb+HOUSE_H*s+.18*s),(.45*s,.06,.24*s),kit.glass,0)
-            kit.box(f'Turret {i} starboard optics blister',(x-.2*s,y-ox*s,zb+HOUSE_H*s+.3*s),(1.5*s,.8*s,.6*s),kit.steel,.18*s)
-        train = Matrix.Translation((x,y,0)) @ Matrix.Rotation(math.radians(angle),4,'Z') @ Matrix.Translation((-x,-y,0))
-        for obj in set(bpy.data.objects)-fixed:
-            obj.matrix_world = train @ obj.matrix_world
+    BUILT.clear()
+    mpu = getattr(kit, 'mpu', .65)
+    for i, ((x, y, angle, s, _), sid, arc, size, weapon, ring, lift) in enumerate(
+            zip(MOUNTS, SLOTS, ARC, SIZE, LOADOUT, RING, LIFT), 1):
+        top_hull, low = seat(kit, i, x, y, ring)
+        tk.barbette(f'Turret {i} barbette', ring, lift, mats(kit), mpu, foot=top_hull-low+.5,
+                    location=(x, y, top_hull))
+        top = top_hull+lift
+        pivot = empty(f'Turret {i} pivot', (x, y, top), math.radians(angle), 2.5, 'SINGLE_ARROW')
+        pivot['slot'], pivot['weapon'], pivot['rest_angle_deg'] = sid, weapon or 'empty', float(angle)
+        pivot['arc_deg'], pivot['train_axis'] = float(arc), 'hull +Z'
+        rec = {'index': i, 'slot': sid, 'size': size, 'weapon': weapon or 'empty', 'ring': ring, 'lift': lift,
+               'seat': top_hull, 'top': top, 'location': [x, y, round(top, 3)], 'rest_angle_deg': angle,
+               'arc_deg': arc, 'pivot': pivot.name, 'fixed': [f'Turret {i} barbette']}
+        if weapon is None:
+            # Blanking cap: a bolted plate over the drum's crown and the plugged feed trunk.
+            cap = kit.cylinder(f'Turret {i} blanking cap', (x, y, top+.15), ring-.45, .3, kit.steel, 'Z', 32, .05)
+            boss = kit.cylinder(f'Turret {i} blanking cap boss', (x, y, top+.45), .32*ring, .35, kit.steel, 'Z', 16, .05)
+            rec.update(k=GUN_RING/tk.NOMINAL_RING['SMALL'], elevation=None, trunnion=[x, y, top],
+                       elevation_limits=None, fixed=rec['fixed']+[cap.name, boss.name], trained=[], recoil=[],
+                       kit_muzzles=[], muzzles=[])
+            BUILT[i] = rec
+            continue
+        if ring > GUN_RING:
+            plate = kit.cylinder(f'Turret {i} reducer plate', (x, y, top+REDUCER_H/2), GUN_RING*1.1, REDUCER_H,
+                                 kit.steel, 'Z', 32, .05)
+            pivot.location.z = top+REDUCER_H
+            rec['fixed'].append(plate.name)
+        t = tk.build(weapon, f'Turret {i}', pivot, GUN_RING, mats(kit), mpu)
+        muzzles = []
+        for k, m in enumerate(t['muzzles'], 1):
+            a = empty(f'Anchor turret {i} barrel {k} muzzle', (0, 0, 0), 0, .6, 'SINGLE_ARROW', m)
+            muzzles.append(a.name)
+        bpy.context.view_layer.update()
+        elev = t['elevation']
+        rec.update(k=GUN_RING/tk.NOMINAL_RING['SMALL'], elevation=elev.name,
+                   trunnion=list(elev.matrix_world.translation),
+                   elevation_limits=[elev.get('elevation_min_deg'), elev.get('elevation_max_deg')],
+                   trained=[o.name for o in t['parts']], recoil=[e.name for e in t['moving']],
+                   kit_muzzles=[m.name for m in t['muzzles']], muzzles=muzzles)
+        BUILT[i] = rec
+
+
+def records():
+    """geometry.json's `turrets`: what build() placed, JSON-safe."""
+    out = []
+    for i in sorted(BUILT):
+        r = dict(BUILT[i])
+        r['trunnion'] = [round(c, 3) for c in r['trunnion']]
+        r['seat'], r['top'], r['k'] = round(r['seat'], 3), round(r['top'], 3), round(r['k'], 4)
+        out.append(r)
+    return out
+
+
+def clearance(names_a, names_b):
+    """Pairs of meshes that overlap (BVH), to check a trained turret against the hull."""
+    from mathutils.bvhtree import BVHTree
+    dg = bpy.context.evaluated_depsgraph_get()
+
+    def tree(name):
+        ob = bpy.data.objects[name]
+        ev = ob.evaluated_get(dg)
+        me = ev.to_mesh()
+        verts = [ob.matrix_world @ v.co for v in me.vertices]
+        polys = [tuple(p.vertices) for p in me.polygons]
+        ev.to_mesh_clear()
+        return BVHTree.FromPolygons(verts, polys)
+    trees = {n: tree(n) for n in set(names_a) | set(names_b)}
+    return [(a, b) for a in names_a for b in names_b if a != b and trees[a].overlap(trees[b])]

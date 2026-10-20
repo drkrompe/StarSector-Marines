@@ -77,16 +77,20 @@ stand at the sprite's four deck rings; exposed service trunks run along the
 housing flanks.
 
 Weapons
-Four raised turrets at the vanilla mount XY: three small single-gun houses of
-one family and one medium twin. Each is a faceted barbette seated on the deck,
-a gun house with a sloped glacis, a mantlet, stepped barrels with muzzle
-brakes, and a rear bustle with ammunition feed and vents. These are exactly
-warhound.ship's four weapon slots (WS 001-004: small ballistic turrets at
-(-11,20), (-11,-20) and (41,11), medium at (36,-16)); the model invents no
-other gun positions and the hull has no built-in weapons. Each turret rests
-trained to its slot's angle: the aft pair broadside to port and starboard,
-the forward pair 30 degrees outboard. Turret 3 stands on a taller barbette
-so its resting line fires over the stowed port grapple arm.
+A stripped fit (owner, 2026-10-20), lighter than the vanilla cerberus_Standard
+variant: two Vulcans from the shared turret kit (../turret-kit, sw_turrets),
+one fore and one aft, and two empty housings, on warhound.ship's four weapon
+slots (WS 001-004: small ballistic turrets at (-11,20), (-11,-20) and (41,11),
+medium at (36,-16)). Turret 1 (WS 001, port aft) and turret 4 (WS 004,
+starboard bow) carry the Vulcans; turrets 2 and 3 are kit barbettes closed by
+a bolted blanking cap with a plugged feed boss. The model invents no other gun
+positions and the hull has no built-in weapons. Barbettes are 4.2-unit rings
+on the small slots (inside the pods' octagonal seats) and 7.0 on WS 004, whose
+small Vulcan stands on a reducer plate. Each gun rests trained to its slot's
+angle. `Turret <i> pivot` trains about +Z, `Turret <i> elevation` elevates,
+`Turret <i> recoil <k>` recoils each barrel, and `Anchor turret <i> barrel <k>
+muzzle` marks each muzzle; both Vulcans clear the hull across their arcs (BVH
+sweep at 15 degrees).
 
 Main drives and attitude thrusters (sw_engines.build_nozzles, sw_rcs)
 Each of the four drives (Engine 1-2 port, 3-4 starboard) is a contoured bell
@@ -161,15 +165,15 @@ derelict: ~8 years tethered in the belt as an unpowered parts bin, port side
   panels tore away along their seams: torn fastener rows, a panel folded back,
   the frame and stringers broken and pushed in at the strike, crushed and
   severed pipe and conduit. Salvagers took the pumps, coils, access panels,
-  the two sound gun houses (turrets 2 and 4) and hatch seals and torch-cut two
-  waist runs; they left the wrecked mounts: turret 1 jammed 24 degrees off its
-  slot with a bent barrel, turret 3 holed through the roof, barrel snapped; the mast is sheared; the sealed starboard bay's jamb is bowed
+  turret 4's Vulcan, turret 2's blanking cap and hatch seals and torch-cut two
+  waist runs; they left the wrecked mounts: turret 1's Vulcan jammed 24 degrees
+  off its slot with both barrels bent, turret 3's cap holed over a torn feed; the mast is sheared; the sealed starboard bay's jamb is bowed
   and its door creased. No power.
 patched: the escape, only what the flight needed. Collar patch on the
   sponson, welded doublers on the bow cheek and spine housing, pressure
   patches over strikes on occupied space, borrowed seals and one trunk dogged
-  shut, turrets 2 and 4 back on adapter rings (turret 2's house in another
-  owner's primer) while 1 and 3 fly wrecked and dead, the dorsal rips left
+  shut, turret 4's Vulcan and a salvage cap on turret 2 back on adapter rings
+  (the cap in another owner's primer) while 1 and 3 fly wrecked and dead, the dorsal rips left
   open except the forward one over the command deck (pressure plate welded
   over it, the torn ledge showing). Re-powering the bus left four severed
   conduits live, so they spark intermittently (the rips and turret 3's torn

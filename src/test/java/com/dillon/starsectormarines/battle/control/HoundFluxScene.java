@@ -19,9 +19,9 @@ import java.util.List;
 import java.util.Map;
 
 /** Isolated weapon duty cycles against an explicitly inert, durable range target. */
-public final class HoundHeatScene implements BehaviorScene {
-    @Override public String id() { return "hound-heat"; }
-    @Override public String label() { return "Hound burst heat, AI cooling and reverse drive"; }
+public final class HoundFluxScene implements BehaviorScene {
+    @Override public String id() { return "hound-flux"; }
+    @Override public String label() { return "Hound burst flux, AI dissipation hold and reverse drive"; }
 
     @Override public List<SceneReport> play(FrameSink frames) {
         List<SceneReport> reports = new ArrayList<>();
@@ -47,9 +47,9 @@ public final class HoundHeatScene implements BehaviorScene {
                 loadout.torsoFacingDegrees = -90f;
                 if (!ai && !sim.directControl().enter(mech)) throw new IllegalStateException("Hound entry refused");
                 float startX = sim.world().x(mech), startY = sim.world().y(mech), reverseX = startX;
-                float maxHeat = 0f;
-                int coolingTicks = 0, resumed = 0, earlyRounds = 0, roundsAtCooling = -1;
-                boolean bounded = true, cooled = false, facing = true, handback = false;
+                float maxFlux = 0f;
+                int dissipationTicks = 0, resumed = 0, earlyRounds = 0, roundsAtDissipation = -1;
+                boolean bounded = true, vented = false, facing = true, handback = false;
                 for (int tick = 0; tick < 900; tick++) {
                     if (!ai) {
                         boolean fire = !moving && (!mode.equals("paced-bursts") || tick % 240 < 30);
@@ -60,30 +60,30 @@ public final class HoundHeatScene implements BehaviorScene {
                     sim.advance(BattleSimulation.TICK_DT);
                     int rounds = sim.telemetry().roundsFired(mech);
                     if (tick == 89) { reverseX = sim.world().x(mech); earlyRounds = rounds; }
-                    maxHeat = Math.max(maxHeat, loadout.heat.value());
-                    bounded &= loadout.heat.value() >= 0f && loadout.heat.value() <= 100f;
-                    if (ai ? loadout.heat.aiCooling() : loadout.heat.venting()) {
-                        coolingTicks++;
-                        if (roundsAtCooling < 0) roundsAtCooling = rounds;
-                        cooled = true;
-                    } else if (cooled && rounds > roundsAtCooling) resumed++;
+                    maxFlux = Math.max(maxFlux, loadout.flux.value());
+                    bounded &= loadout.flux.value() >= 0f && loadout.flux.value() <= 100f;
+                    if (ai ? loadout.flux.aiDissipating() : loadout.flux.venting()) {
+                        dissipationTicks++;
+                        if (roundsAtDissipation < 0) roundsAtDissipation = rounds;
+                        vented = true;
+                    } else if (vented && rounds > roundsAtDissipation) resumed++;
                     if (moving && tick < 180) {
                         float desired = MechLocomotion.continuousFacing(24.5f - sim.world().x(mech),
                                 12.5f - sim.world().y(mech));
                         facing &= Math.abs(MechLocomotion.deltaDegrees(sim.world().mechHipFacingDegrees(mech), desired)) < 12f;
                     }
                     if (!ai && tick == 300) {
-                        float heat = loadout.heat.value();
+                        float flux = loadout.flux.value();
                         sim.directControl().exit();
-                        handback = loadout.heat.value() == heat && sim.directControl().enter(mech)
-                                && loadout.heat.value() == heat;
+                        handback = loadout.flux.value() == flux && sim.directControl().enter(mech)
+                                && loadout.flux.value() == flux;
                     }
                     if (tick % 30 == 0) frames.frame(mode, sim, tick,
-                            mode + " | heat " + Math.round(loadout.heat.value()) + "% | rounds " + rounds);
+                            mode + " | flux " + Math.round(loadout.flux.value()) + "% | rounds " + rounds);
                 }
                 int total = sim.telemetry().roundsFired(mech);
                 List<Verdict> verdicts = new ArrayList<>();
-                verdicts.add(Verdict.of("heat-bounded", bounded, "peak heat " + maxHeat));
+                verdicts.add(Verdict.of("flux-bounded", bounded, "peak flux " + maxFlux));
                 if (moving) {
                     verdicts.add(Verdict.of("reverse-strafe", reverseX < startX - .5f
                             && sim.world().y(mech) > startY + .5f && facing,
@@ -91,13 +91,13 @@ public final class HoundHeatScene implements BehaviorScene {
                 } else {
                     verdicts.add(Verdict.of("firing", earlyRounds > 0 && total > earlyRounds,
                             "first three seconds=" + earlyRounds + ", total=" + total));
-                    if (!mode.equals("paced-bursts")) verdicts.add(Verdict.of("cool-and-resume",
-                            coolingTicks > 0 && resumed > 0, "cooling ticks=" + coolingTicks + ", resumed=" + resumed));
-                    else verdicts.add(Verdict.of("paced-headroom", maxHeat < 75f, "paced bursts retain thermal headroom"));
+                    if (!mode.equals("paced-bursts")) verdicts.add(Verdict.of("dissipate-and-resume",
+                            dissipationTicks > 0 && resumed > 0, "dissipation ticks=" + dissipationTicks + ", resumed=" + resumed));
+                    else verdicts.add(Verdict.of("paced-headroom", maxFlux < 75f, "paced bursts retain flux headroom"));
                 }
-                if (!ai) verdicts.add(Verdict.of("handback", handback, "takeover preserves thermal reservoir"));
-                reports.add(new SceneReport(id(), mode, 900, verdicts, Map.of("peakHeat", maxHeat,
-                        "rounds", total, "earlyRounds", earlyRounds, "coolingTicks", coolingTicks)));
+                if (!ai) verdicts.add(Verdict.of("handback", handback, "takeover preserves flux reservoir"));
+                reports.add(new SceneReport(id(), mode, 900, verdicts, Map.of("peakFlux", maxFlux,
+                        "rounds", total, "earlyRounds", earlyRounds, "dissipationTicks", dissipationTicks)));
             }
         }
         return reports;

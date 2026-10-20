@@ -7,7 +7,7 @@
   },
   "units": "Vanilla hull-space units (1 sprite px = 1 unit); multiply by metres_per_unit for metres",
   "metres_per_unit": 0.65,
-  "revision": "V3 detail: segmented sprite-measured hull, whole engine pods, spine command deck, port grapple, naval turrets",
+  "revision": "V3 detail: segmented sprite-measured hull, whole engine pods, spine command deck, port grapple; turret-kit guns of the cerberus_Standard loadout",
   "thickness_profile": {
     "method": "Flat deck plateaus (x0, x1, deck z) over single-chamfer sections; level keel",
     "stations": [
@@ -147,6 +147,194 @@
         0
       ],
       "orthographic_scale": 130
+    }
+  ],
+  "turret_source": "starsector-core/data/variants/cerberus/cerberus_Standard.variant on warhound.ship weaponSlots; guns from ../turret-kit",
+  "turrets": [
+    {
+      "index": 1,
+      "slot": "WS 001",
+      "size": "SMALL",
+      "weapon": "vulcan",
+      "ring": 4.2,
+      "lift": 1.6,
+      "seat": 17.0,
+      "top": 18.6,
+      "location": [
+        -11,
+        20,
+        18.6
+      ],
+      "rest_angle_deg": 90,
+      "arc_deg": 210,
+      "pivot": "Turret 1 pivot",
+      "fixed": [
+        "Turret 1 barbette"
+      ],
+      "k": 0.7636,
+      "elevation": "Turret 1 elevation",
+      "trunnion": [
+        -11.0,
+        23.436,
+        19.929
+      ],
+      "elevation_limits": [
+        null,
+        null
+      ],
+      "trained": [
+        "Turret 1 house dark",
+        "Turret 1 house paint#dome",
+        "Turret 1 house steel",
+        "Turret 1 house plate",
+        "Turret 1 house paint",
+        "Turret 1 recoil 1 metal",
+        "Turret 1 recoil 1 steel",
+        "Turret 1 recoil 1 dark",
+        "Turret 1 recoil 2 metal",
+        "Turret 1 recoil 2 steel",
+        "Turret 1 recoil 2 dark"
+      ],
+      "recoil": [
+        "Turret 1 recoil 1",
+        "Turret 1 recoil 2"
+      ],
+      "kit_muzzles": [
+        "Turret 1 muzzle anchor 1",
+        "Turret 1 muzzle anchor 2"
+      ],
+      "muzzles": [
+        "Anchor turret 1 barrel 1 muzzle",
+        "Anchor turret 1 barrel 2 muzzle"
+      ]
+    },
+    {
+      "index": 2,
+      "slot": "WS 002",
+      "size": "SMALL",
+      "weapon": "empty",
+      "ring": 4.2,
+      "lift": 1.6,
+      "seat": 17.0,
+      "top": 18.6,
+      "location": [
+        -11,
+        -20,
+        18.6
+      ],
+      "rest_angle_deg": -90,
+      "arc_deg": 210,
+      "pivot": "Turret 2 pivot",
+      "fixed": [
+        "Turret 2 barbette",
+        "Turret 2 blanking cap",
+        "Turret 2 blanking cap boss"
+      ],
+      "k": 0.7636,
+      "elevation": null,
+      "trunnion": [
+        -11,
+        -20,
+        18.6
+      ],
+      "elevation_limits": null,
+      "trained": [],
+      "recoil": [],
+      "kit_muzzles": [],
+      "muzzles": []
+    },
+    {
+      "index": 3,
+      "slot": "WS 003",
+      "size": "SMALL",
+      "weapon": "empty",
+      "ring": 4.2,
+      "lift": 1.6,
+      "seat": 14.5,
+      "top": 16.1,
+      "location": [
+        41,
+        11,
+        16.1
+      ],
+      "rest_angle_deg": 30,
+      "arc_deg": 210,
+      "pivot": "Turret 3 pivot",
+      "fixed": [
+        "Turret 3 barbette",
+        "Turret 3 blanking cap",
+        "Turret 3 blanking cap boss"
+      ],
+      "k": 0.7636,
+      "elevation": null,
+      "trunnion": [
+        41,
+        11,
+        16.1
+      ],
+      "elevation_limits": null,
+      "trained": [],
+      "recoil": [],
+      "kit_muzzles": [],
+      "muzzles": []
+    },
+    {
+      "index": 4,
+      "slot": "WS 004",
+      "size": "MEDIUM",
+      "weapon": "vulcan",
+      "ring": 7.0,
+      "lift": 1.8,
+      "seat": 14.5,
+      "top": 16.3,
+      "location": [
+        36,
+        -16,
+        16.3
+      ],
+      "rest_angle_deg": -30,
+      "arc_deg": 290,
+      "pivot": "Turret 4 pivot",
+      "fixed": [
+        "Turret 4 barbette",
+        "Turret 4 reducer plate"
+      ],
+      "k": 0.7636,
+      "elevation": "Turret 4 elevation",
+      "trunnion": [
+        38.976,
+        -17.718,
+        17.929
+      ],
+      "elevation_limits": [
+        null,
+        null
+      ],
+      "trained": [
+        "Turret 4 house dark",
+        "Turret 4 house paint#dome",
+        "Turret 4 house steel",
+        "Turret 4 house plate",
+        "Turret 4 house paint",
+        "Turret 4 recoil 1 metal",
+        "Turret 4 recoil 1 steel",
+        "Turret 4 recoil 1 dark",
+        "Turret 4 recoil 2 metal",
+        "Turret 4 recoil 2 steel",
+        "Turret 4 recoil 2 dark"
+      ],
+      "recoil": [
+        "Turret 4 recoil 1",
+        "Turret 4 recoil 2"
+      ],
+      "kit_muzzles": [
+        "Turret 4 muzzle anchor 1",
+        "Turret 4 muzzle anchor 2"
+      ],
+      "muzzles": [
+        "Anchor turret 4 barrel 1 muzzle",
+        "Anchor turret 4 barrel 2 muzzle"
+      ]
     }
   ],
   "bay_state": {
@@ -320,7 +508,7 @@
       ],
       "position_m": [
         37.5507,
-        -8.4946,
+        -8.4947,
         2.5659
       ],
       "exhaust_dir": [
@@ -1196,28 +1384,28 @@
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "faded",
-        "note": "Drift strike bent the barrel at the chase and slewed the house 24 deg aft until the traverse seized, so it would not lift off: left as scrap, flown dead and jammed; new house on an adapter ring in restoration."
+        "note": "Drift strike bent both Vulcan barrels and slewed the gun 24 deg aft until the traverse seized, so it would not lift off: left as scrap, flown dead and jammed; new Vulcan on an adapter ring in restoration."
       },
       {
         "id": "sp-turret-2",
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "faded",
-        "note": "Gun house stripped; a gantry house from another hull bolted back in its owner's primer; repainted to near match."
+        "note": "Empty housing: its blanking cap taken for the plate, leaving a bare stud ring; a salvage cap in another owner's primer bolted on for the flight; repainted to near match."
       },
       {
         "id": "sp-turret-3",
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "faded",
-        "note": "House holed through the roof and the barrel snapped on the chase: left as scrap. Its feed, torn inside the hole, went live when the crew powered the mount bus (sparks); isolated and booted in the conversion; new house in restoration."
+        "note": "Empty housing holed through its blanking cap: left. The mount feed torn under it went live when the crew powered the mount bus (sparks); isolated and booted in the conversion; new cap in restoration."
       },
       {
         "id": "sp-turret-4",
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "faded",
-        "note": "Gun house stripped; its own house recovered from the gantry and reinstalled on an adapter ring; ring painted over."
+        "note": "Vulcan stripped; recovered from the gantry and reinstalled on an adapter ring; ring painted over."
       },
       {
         "id": "sp-waist-line-cut",
@@ -1349,24 +1537,12 @@
       "Mast crosstree: Scar repaint over Engine collars (sp-mast)",
       "Scanner turntable: Scar repaint over Engine collars (sp-mast)",
       "Search radar scanner bar: Scar repaint over Recess and machinery (sp-mast)",
-      "Turret 1 gun house: Scar repaint over Engine collars (sp-turret-1)",
-      "Turret 1 mantlet drum: Scar repaint over Engine collars (sp-turret-1)",
-      "Turret 1 mantlet face: Scar repaint over Engine collars (sp-turret-1)",
-      "Turret 1 optics blister: Scar repaint over Engine collars (sp-turret-1)",
-      "Turret 1 rear bustle: Scar repaint over Engine collars (sp-turret-1)",
-      "Turret 1 roof hatch: Scar repaint over Engine collars (sp-turret-1)",
-      "Turret 2 gun house: Scar repaint over Engine collars (sp-turret-2)",
-      "Turret 2 mantlet drum: Scar repaint over Engine collars (sp-turret-2)",
-      "Turret 2 mantlet face: Scar repaint over Engine collars (sp-turret-2)",
-      "Turret 2 optics blister: Scar repaint over Engine collars (sp-turret-2)",
-      "Turret 2 rear bustle: Scar repaint over Engine collars (sp-turret-2)",
-      "Turret 2 roof hatch: Scar repaint over Engine collars (sp-turret-2)",
-      "Turret 3 gun house: Scar repaint over Engine collars (sp-turret-3)",
-      "Turret 3 mantlet drum: Scar repaint over Engine collars (sp-turret-3)",
-      "Turret 3 mantlet face: Scar repaint over Engine collars (sp-turret-3)",
-      "Turret 3 optics blister: Scar repaint over Engine collars (sp-turret-3)",
-      "Turret 3 rear bustle: Scar repaint over Engine collars (sp-turret-3)",
-      "Turret 3 roof hatch: Scar repaint over Engine collars (sp-turret-3)"
+      "Turret 1 house paint: Scar repaint over Turret vulcan paint 0.1236,0.0973,0.0737 (sp-turret-1)",
+      "Turret 1 house paint#dome: Scar repaint over Turret vulcan paint 0.1236,0.0973,0.0737 (sp-turret-1)",
+      "Turret 2 blanking cap: Scar repaint over Engine collars (sp-turret-2)",
+      "Turret 2 blanking cap boss: Scar repaint over Engine collars (sp-turret-2)",
+      "Turret 3 blanking cap: Scar repaint over Engine collars (sp-turret-3)",
+      "Turret 3 blanking cap boss: Scar repaint over Engine collars (sp-turret-3)"
     ],
     "cut_objects": 82,
     "sites": {
@@ -1797,25 +1973,13 @@
         },
         {
           "p": [
-            42.721,
-            14.832,
-            15.17
-          ],
-          "n": [
-            -0.0,
-            0.0,
-            1.0
-          ]
-        },
-        {
-          "p": [
             39.047,
             16.772,
             15.17
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ]
         },
@@ -1857,6 +2021,18 @@
         },
         {
           "p": [
+            42.698,
+            20.303,
+            14.5
+          ],
+          "n": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "p": [
             45.401,
             19.345,
             14.296
@@ -1883,26 +2059,13 @@
         },
         {
           "p": [
-            42.721,
-            14.832,
-            15.17
-          ],
-          "n": [
-            -0.0,
-            0.0,
-            1.0
-          ],
-          "r": 0.411
-        },
-        {
-          "p": [
             39.047,
             16.772,
             15.17
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ],
           "r": 0.555
@@ -1945,6 +2108,19 @@
             0.891
           ],
           "r": 0.333
+        },
+        {
+          "p": [
+            42.698,
+            20.303,
+            14.5
+          ],
+          "n": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "r": 0.455
         }
       ],
       "fb-port-bow-flank-strike": [
@@ -2580,7 +2756,7 @@
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ]
         },
@@ -2592,7 +2768,7 @@
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ]
         },
@@ -2604,7 +2780,7 @@
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ]
         },
@@ -2616,7 +2792,7 @@
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ],
           "r": 0.339
@@ -2629,7 +2805,7 @@
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ],
           "r": 0.439
@@ -2642,7 +2818,7 @@
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ],
           "r": 0.395
@@ -2685,7 +2861,7 @@
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ]
         }
@@ -3449,7 +3625,7 @@
             15.17
           ],
           "n": [
-            -0.0,
+            0.0,
             0.0,
             1.0
           ]
@@ -3461,7 +3637,7 @@
             15.17
           ],
           "n": [
-            0.0,
+            -0.0,
             0.0,
             1.0
           ]
@@ -3593,7 +3769,7 @@
             15.17
           ],
           "n": [
-            -0.0,
+            0.0,
             0.0,
             1.0
           ],
@@ -3606,7 +3782,7 @@
             15.17
           ],
           "n": [
-            0.0,
+            -0.0,
             0.0,
             1.0
           ],

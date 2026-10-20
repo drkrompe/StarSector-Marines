@@ -430,7 +430,7 @@ public final class MechBay implements Serializable {
     /**
      * Whether {@code internal} physically fits this mech: its role's socket exists on the
      * chassis and holds the part's whole footprint (plating covers the frame and needs no
-     * socket), and a cooler never shares the utility socket with a non-standard loader.
+     * socket), and a vent array never shares the utility socket with a non-standard loader.
      * Mass is a separate question ({@link #withinBudget}).
      */
     public boolean canInstallInternal(String mechId, MechInternal internal) {
@@ -443,7 +443,7 @@ public final class MechBay implements Serializable {
                 return false;
             }
         }
-        return internal.role != MechInternal.Role.COOLER
+        return internal.role != MechInternal.Role.VENT_ARRAY
                 || !MechFrameBudget.loaderOccupiesUtility(mech.missileReplenisher());
     }
 
@@ -472,11 +472,11 @@ public final class MechBay implements Serializable {
         return true;
     }
 
-    /** Empties the optional utility socket; the cooler returns to stores. */
-    public boolean stripCooler(String mechId) {
+    /** Empties the optional utility socket; the vent array returns to stores. */
+    public boolean stripVentArray(String mechId) {
         CampaignMech mech = mechById(mechId);
-        if (mech == null || mech.internal(MechInternal.Role.COOLER) == null) return false;
-        mech.installInternal(MechInternal.Role.COOLER, null);
+        if (mech == null || mech.internal(MechInternal.Role.VENT_ARRAY) == null) return false;
+        mech.installInternal(MechInternal.Role.VENT_ARRAY, null);
         return true;
     }
 
@@ -527,10 +527,10 @@ public final class MechBay implements Serializable {
         if (mech == null || candidate == null) return false;
         if (candidate.id().equals(mech.missileReplenisherId())) return true;
         if (availableReplenisher(candidate.id()) <= 0) return false;
-        // A faster loader takes the utility socket a cooler would otherwise hold.
+        // A faster loader takes the utility socket a vent array would otherwise hold.
         if (MechFrameBudget.loaderOccupiesUtility(candidate)
                 && (!MechFittingLayout.forVariant(mech.variant()).hasSocket(SocketId.MINI_FAB)
-                    || mech.internal(MechInternal.Role.COOLER) != null)) return false;
+                    || mech.internal(MechInternal.Role.VENT_ARRAY) != null)) return false;
         mech.installMissileReplenisher(candidate.id());
         return true;
     }

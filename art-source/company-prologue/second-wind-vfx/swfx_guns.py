@@ -1,8 +1,11 @@
 """Gun effects for the Second Wind's four turrets.
 
-Three small point-defence/autocannon mounts (turrets 1-3) and the medium twin
-(turret 4, 'port gun' and 'starboard gun'). Everything rides the gun anchors
-(swfx_anchors.GunAnchor: an empty at the muzzle brake's mouth, local +X along
+Its fit from the shared turret kit (sw_turrets): Vulcans on turrets 1 and 4
+('barrel 1' / 'barrel 2'); 2 and 3 are empty housings and fire nothing.
+Builds from before 2026-10-20 carried the old
+gun houses: small mounts 1-3 and the medium twin (turret 4, 'port gun' and
+'starboard gun'), which the tags below still read. Everything rides the gun anchors
+(swfx_anchors.GunAnchor: an empty at the muzzle, local +X along
 the barrel, local +Z as near hull-dorsal as allowed), so the effects follow the
 model. Effect geometry is authored in mount units and scaled by the anchor's
 mount scale (1.0 small, 1.3 the medium twin).
@@ -72,6 +75,7 @@ from mathutils import Matrix, Vector
 
 import swfx_core
 import swfx_hull
+import swfx_anchors
 
 GROUP = 'Guns'
 PREFIX = 'SWFX guns'
@@ -302,7 +306,7 @@ def energy_tint(a):
     """An energy mount's colour (linear rgb), or None for a gun or launcher."""
     if getattr(a, 'kind', 'gun') != 'energy':
         return None
-    return tuple(swfx_hull.get('ENERGY_COLOURS', {}).get(a.turret, ENERGY_DEFAULT))
+    return tuple(swfx_anchors.ENERGY_COLOURS.get(a.turret, ENERGY_DEFAULT))
 
 
 def _flash_material(ctx, label, tint=None):
@@ -1123,15 +1127,16 @@ def review(ctx, out_dir, quick=False):
     rc = _review_lighting(ctx)
 
     # (a) single flash frames on small turret 1 (port beam), two rounds.
-    a3 = _anchor(ctx, 1, 'gun')
+    a3 = _anchor(ctx, 1, 'barrel 1') or _anchor(ctx, 1, 'gun')
     fire(ctx, 1, 5, 3, 6)
     m3, x3 = _world(a3)
     up = Vector((0, 0, 1))
     left3 = up.cross(x3).normalized()
     cam_a = swfx_core.look_camera(f'{PREFIX} review cam flash', rc, m3 + x3 * 5.0 + left3 * 17.0 + up * 10.0,
                                   m3 - x3 * 3.5 - up * 1.0, lens=50)
-    # (b) twin turret 4, alternating burst, over the shoulder.
-    a4p, a4s = _anchor(ctx, 4, 'port gun'), _anchor(ctx, 4, 'starboard gun')
+    # (b) turret 4 (the bow Vulcan; the old twin's two guns), a burst over the shoulder.
+    a4p = _anchor(ctx, 4, 'barrel 1') or _anchor(ctx, 4, 'port gun')
+    a4s = _anchor(ctx, 4, 'starboard gun') or a4p
     fire(ctx, 4, 104, 14, 3)
     m4 = (_world(a4p)[0] + _world(a4s)[0]) / 2
     x4 = _world(a4p)[1]

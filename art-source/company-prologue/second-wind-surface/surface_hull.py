@@ -5,7 +5,9 @@ folder; this one is the default when no --hull is given.
 """
 NAME = 'Second Wind'
 BLEND = 'build/geom/second-wind-geometry.blend'   # rebuild.sh step 1
-GROUPS = ['port', 'starboard', 'bow', 'decks', 'turrets', 'arm', 'bay']
+# No 'turrets' group: the guns are the shared turret kit's (sw_turrets), which carry
+# their own weathered paints; groups/turrets.py is the old gun houses' table, unused.
+GROUPS = ['port', 'starboard', 'bow', 'decks', 'arm', 'bay']
 MATERIAL_CLASS = {
     'Chalked cream armor': 'cream',
     'Oxide orange armor': 'oxide',

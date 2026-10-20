@@ -31,7 +31,7 @@ import java.util.Set;
  *       when its fuse runs out.</li>
  * </ul>
  *
- * <p>Every gate the weapon has anywhere else still applies (cycle, magazine, heat, a barrel not through a wall, cooldown),
+ * <p>Every gate the weapon has anywhere else still applies (cycle, magazine, flux, a barrel not through a wall, cooldown),
  * and a member that has a body to fight uses his weapons on it first: this pass runs after the ordinary firing passes
  * and takes what they left. It only ever fires at a wall cell the order named and that is still standing, so it can not
  * be used to shoot at anything else, and it names no hostile.
