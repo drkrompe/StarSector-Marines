@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
@@ -25,7 +26,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * The one seam both defence missions reach the allied garrison through, asked
  * from the outside: it is inert unless the mission named a faction to field.
+ *
+ * <p>Generated-space evidence rather than a unit test: each case stands up a whole
+ * procedural operation map to ask its question.
  */
+@Tag("generated-space-evidence")
 class AlliedGarrisonPlaceholderTest {
 
     private static final List<ShuttleAssignment> MANIFEST = List.of(

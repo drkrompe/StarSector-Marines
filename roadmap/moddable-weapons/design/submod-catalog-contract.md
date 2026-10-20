@@ -306,6 +306,11 @@ issuing changed kit charges the contributed card's authored cargo cost, and
 deployment resolves the same definitions without enum constants. A special's closed activation and AI
 policy select the built-in typed executor while its referenced weapon and
 presentation data supply ballistics, audio, sprites, and carrier layers.
+A carrier layer is the item as held or worn; an item that is hidden while
+carried may also author a `packedLayer`, one fixed placement on the body
+(`offsetShoulders`, `angleDegrees`, `occlusion` beside its sprite and size)
+drawn whenever the item is not in use, so a launcher slung across the back
+still tells the player who carries it.
 
 Removing the provider repairs unresolved player primaries to
 `weapon.field-rifle`, armor to `armor.field-fatigues`, and unresolved special

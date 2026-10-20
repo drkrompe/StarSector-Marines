@@ -134,7 +134,12 @@ A faint aim lane connects the current firing origin toward the cursor. Its
 clear segment ends at the first structural projectile blocker, marked in amber;
 a fainter dashed segment continues beyond that obstruction. Marine origin is
 the ordinary point-shot source. Mech and APC lanes use their actual posed
-muzzles, and Mech weapon selection determines which direct hardpoints appear.
+muzzles, and Mech weapon selection determines which flat-fire hardpoints appear;
+an arcing rack flies over walls and draws no lane. When an armed mount's rounds
+burst where they are thrown (rockets and LRM racks), a **scatter ring** circles
+the cursor at the widest landing disk among them: orange inside every covered
+mount's range, red past it, where the disk grows faster than distance. Guns draw
+no ring. The ring is the clear-air figure; smoke on a rocket's lane widens it.
 A blocked body-to-barrel segment cannot masquerade as an open lane from a
 muzzle beyond the wall. The guide uses current continuous terrain and shared
 edge profiles, so opening or destroying structure changes the next preview.
@@ -387,8 +392,7 @@ trigger and the right button the secondary, and both may be held together.
 
 A Mech's point-fire hardpoints split into two **groups by weapon role**. Guns,
 cannons and lasers are the primary group; missile and rocket racks are the
-secondary group. Indirect launchers (LRM) are in neither because the cursor cannot
-aim them. The Hound therefore fires its nose chaingun on the left button and its
+secondary group, arcing LRM racks included. The Hound therefore fires its nose chaingun on the left button and its
 SRM pod on the right; a Bulwark fires its chainguns left and both SRM racks right.
 A chassis whose point-fire mounts are all one role keeps them all on the left
 button and leaves the right one inert (an all-rack chassis is not stranded without
@@ -401,10 +405,10 @@ Keys 1-4 keep their place but act on the left button only. Key 1 is the default
 fires the secondary group. The weapon-groups panel lists each mount under the
 button that fires it: an LMB group (PRIMARY GROUP, or ONE MOUNT while keys 2-4
 point it at a hardpoint), an RMB group (SECONDARY GROUP), and OTHER MOUNTS for an
-indirect rack or an unfired hardpoint. A mount on both buttons is listed once,
+unfired hardpoint. A mount on both buttons is listed once,
 under LMB, marked `LR`. Each row carries its number key; clicking a row selects
 that mount and clicking the LMB header returns the left button to its group.
-Empty or indirect hardpoints cannot be selected; an installed direct mount remains
+Empty hardpoints cannot be selected; an installed mount remains
 selectable when its ammunition is exhausted. Selection belongs to the control
 session, survives pause, and resets on takeover or handback. Changing it cancels
 queued manual rounds and releases held fire while preserving movement, aim,
@@ -425,11 +429,24 @@ has a manual contract (grenade launchers and satchels are autonomous), so a Mari
 carrying only those leaves the right button inert rather than inventing a new free
 action. E and G keep working.
 
-Indirect mounts stay untriggered. Every mount keeps one clock and resource stream under the ordinary
+An arcing LRM rack drops its salvo on the thrown point: the aim point, pulled in
+to twice its range if further, plus the same growing scatter disk a rocket's ground
+burst uses (`ballistics-nouns.md`), with no hit roll. It flies over walls as its
+autonomous fire does. A point nearer the chassis centre than eight cells (or the
+weapon's authored minimum, where larger) is **too close**: the rack's trigger is
+refused without spending ammunition, flux or its cycle, while the other mounts
+on the same button still fire. Its HUD row reads TOO CLOSE, the hint on the
+header of the button that fires it reads TOO CLOSE in red, and the scatter ring
+turns red. Every mount keeps one clock and resource stream under the ordinary
 heavy-weapon pass; manual control neither advances it twice nor applies an
 infantry training multiplier to Mech accuracy. The live cursor owns torso aim
 and each scheduled round of a manual Mech burst. A round still requires the
-actual torso and muzzle to align legally; a refused release consumes its
+torso to align legally with the point, judged from the chassis centre; each
+barrel then fires from its own muzzle at the point, so paired and shoulder
+barrels converge rather than each needing the point inside its own alignment
+cone, which an offset muzzle loses at close range. A point nearer the centre
+than one and a half hull widths is pushed out along its bearing to that
+distance, so no barrel fires beside or behind itself. A refused release consumes its
 scheduled slot without emitting a shot or refunding the accepted trigger pack.
 A blocked or unaimed mount cannot retain a backlog or steer the torso. Entry,
 exit, and input suspension cancel queued rounds and aim while preserving
@@ -437,10 +454,11 @@ ammunition, mechanical cycle clocks, shared chassis flux, and replenishment prog
 
 AI and manual Mech direct rounds originate at the installed barrel's actual
 posed muzzle. The body-to-barrel structural segment must also be clear, so a
-barrel protruding beyond a wall cannot launch a round through it. Direct area
-payloads detonate only at their committed physical terminal contact; the cursor
-and an unobstructed overshoot produce no blast. Direct SRMs retain their ordinary
-interception opportunity and delayed impact.
+barrel protruding beyond a wall cannot launch a round through it. A manually
+thrown rocket ground-bursts at the scattered aim point, which may lie past
+nominal range at a growing scatter cost; gun area payloads detonate only at their
+committed physical terminal contact (`ballistics-nouns.md` owns both rules).
+Direct SRMs retain their ordinary interception opportunity and delayed impact.
 
 The APC's independent turret slews toward the mouse bearing at its authored
 traverse rate. The held primary trigger uses the existing magazine, cooldown,

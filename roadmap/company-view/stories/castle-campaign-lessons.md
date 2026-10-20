@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED; live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-13 — remove the field tutorial to preserve mission story presentation.
+Updated: 2026-10-20 — first-lift lesson between Relief and Counterattack.
 
 Read `company-view-nouns.md` and `early-operation-nouns.md`. Track the wider
 curve in `campaign-learning-curve.md`.
@@ -15,6 +15,12 @@ Use her existing portrait and live click-through highlights. Opening a screen,
 reading advice, or leaving must not impersonate fitting or field practice.
 
 - [x] Relief: choose one technology transfer, compare and actually fit a squad.
+- [x] First lift: after Relief and before Counterattack, while no seated boat is
+  airworthy, HQ hands off to the Boat Deck to repair Second Wind's accessible wreck
+  (or commission a berth) from the prepaid Hermes stores. It precedes the optional
+  refit because Counterattack cannot launch without lift. Away from the depot,
+  Castle sends the company back for the parts. It ends on the real boat, not on
+  reading. Counterattack's empty-lift readout names the same repair.
 - [x] Counterattack: explain free Hound recovery and the optional paid lift route.
 - [x] Mech Lab: fit the free SRM, remove and reuse it through ordinary controls.
 - [x] Junction: show the real founding bill, preserve wounded billets, prepare

@@ -31,7 +31,7 @@ Heights are proposed art; the game gives none.
 import math
 import bmesh
 import bpy
-from mt_kit import armour_plates, boolean, facet_normal, loft_x, plane_cut, prism, section, sweep, sym
+from mt_kit import armour_plates, hull_plating, boolean, facet_normal, loft_x, plane_cut, prism, section, sweep, sym
 
 HEAD = sym([(85.5, 9), (84, 14), (80.5, 20), (66, 21), (63, 18.5), (61, 16.5)])
 NECK = sym([(63, 16.5), (58, 16), (50, 18), (44, 19.5), (38, 21)])
@@ -265,18 +265,21 @@ def build(kit):
         plane_cut(horn, f'{side} horn beak rake', (79, 0, HORN_TOP), facet_normal((1, 0), RAKE))
         n = facet_normal((1, 0), RAKE)
         plane_cut(horn, f'{side} horn chin', (82, 0, -9.0), (n[0], 0, -n[2]))
-        # Round 15: the strake is laid in plates, broken at the beak's bends.
-        armour_plates(kit, horn, [((55, 0, 0), (1, 0, 0)), ((70, 0, 0), (1, 0, 0))])
-        kit.hull.append(droop(horn))
+        # Round 15: the strake is combat armour, laid in courses (mt_kit.armour_plates).
+        droop(horn)
+        armour_plates(kit, horn, [((x, 0, 0), (1, 0, 0)) for x in (50, 55, 62, 70, 78)])
+        kit.hull.append(horn)
     crossbar = prism(kit, 'Hull bow crossbar', ccw(sym([(66.5, 7.5), (64, 9.5), (61, 8.5), (60.5, 4)])),
                      section(4.0, HEAD_DECK+1.6, .5, 1.3), kit.red, .15)
-    kit.hull += [droop(armour_plates(kit, crossbar))]
+    droop(crossbar)
+    armour_plates(kit, crossbar)
+    kit.hull += [crossbar]
 
     neck = droop(lofted(kit, 'Hull neck', NECK_STATIONS, kit.steel))
     core = droop(lofted(kit, 'Hull core', CORE_STATIONS, kit.red, keel=.25))
-    # Round 15: the core's armour in plates, broken across at regular frames;
-    # the decks where the bridge and fittings stand stay whole.
-    armour_plates(kit, core, [((x, 0, 0), (1, 0, 0)) for x in (34, 8, -3, -14, -26)], skip_up=True)
+    # Round 15: the core is hull, not combat armour: fine plate lines at its
+    # frames; the decks where the bridge and fittings stand stay whole.
+    hull_plating(kit, core, [((x, 0, 0), (1, 0, 0)) for x in (34, 21, 8, -3, -14, -26)])
     # The main gun stands in a well, so its roof sits low under the bridge's sightline.
     r, d = MAIN_WELL
     well = kit.cylinder('Temporary main well cutter', (21, 0, CORE_DECK-d+10-nose_drop(21)), r, 20, kit.red, vertices=24)
@@ -311,9 +314,9 @@ def build(kit):
         n = facet_normal((1, 0), 45)
         plane_cut(pod, f'{side} pod chin', (nose_x-2, s*y, POD_STATIONS[1][3]-drop), (n[0], 0, -n[2]))
         paint_pod_armour(kit, pod, y, s)
-        armour_plates(kit, pod, [((x, 0, 0), (1, 0, 0)) for x in (11.3, 22.5)], plate_mat=kit.red)
-        pod.modifiers['Plate edge chamfer'].width = .05
-        kit.hull.append(droop(pod))
+        droop(pod)
+        armour_plates(kit, pod, [((x, 0, 0), (1, 0, 0)) for x in (9, 15, 21, 27, 33)], plate_mat=kit.red)
+        kit.hull.append(pod)
         # Launcher bay (rounds 5-8: inset, flush with the deck, ending at the
         # leading edge; the rack sits down a recess open forward through it).
         # Round 9 (owner: long sections): the leading-edge armour and the
@@ -329,8 +332,8 @@ def build(kit):
         plane_cut(band, f'{side} band root rake', (44.5, 0, 4.0), facet_normal((1, 0), 60))
         plane_cut(band, f'{side} band inboard chamfer', (40, s*19, top), facet_normal((0, -s), 45))
         bay = droop(shear(band))
-        # Round 15: the glacis band in plates, broken across at Y 33, 43 and 53.
-        armour_plates(kit, bay, [((0, s*y0, 0), (0, 1, 0)) for y0 in (33, 43, 53)])
+        # Round 15: the glacis band is the arm's fighting face, laid in courses.
+        armour_plates(kit, bay, [((0, s*y0, 0), (0, 1, 0)) for y0 in (28, 33, 38, 43, 48, 53)])
         # The band's root must stop at the main gun's well (it reached into it, rounds 9-10).
         r, d = MAIN_WELL
         boolean(bay, kit.cylinder(f'Temporary {side} band well cutter', (21, 0, CORE_DECK-d-nose_drop(21)), r, 40,
@@ -361,7 +364,7 @@ def build(kit):
     plane_cut(tier, 'tier aft rake', (-25, 0, BRIDGE_DECK), facet_normal((-1, 0), 30))
     for s in (1, -1):
         plane_cut(tier, f'tier {s} side fall', (-10, s*14, BRIDGE_DECK), facet_normal((0, s), 30))
-    armour_plates(kit, tier, [((-8, 0, 0), (1, 0, 0)), ((-17, 0, 0), (1, 0, 0))], skip_up=True)
+    hull_plating(kit, tier, [((-8, 0, 0), (1, 0, 0)), ((-17, 0, 0), (1, 0, 0))])
     kit.hull.append(tier)
     # The pale command dome on the tier (sprite rows 87-110). Round 14 (owner:
     # "too low poly"): its plan is a smooth closed curve through the round-3

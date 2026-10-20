@@ -246,8 +246,8 @@ def camera_panel(im, dr, F, kf, spec, box, labelled=True):
         if x0 <= c[0] <= x1 and y0 <= c[1] <= y1:
             lab.put(c, name(key), (200, 190, 175) if key == 'platform' else colour(key), dy=12)
     off = [name(k) for k in ships if (lambda q: q is None or not (0 <= q[0] <= W and 0 <= q[1] <= H))(cam.project(ships[k][:3]))]
-    dr.text((x0, y1 + 6), f"Camera frame ({cam.lens} mm, looking {abs(cam.pitch):.0f} deg {'down' if cam.pitch < 0 else 'up'})"
-            + ('' if not off else f"; out of frame: {', '.join(off)}"), font=F['small'], fill=(170, 170, 180))
+    return (x0, y1 + 6), (f"Camera frame ({cam.lens} mm, looking {abs(cam.pitch):.0f} deg {'down' if cam.pitch < 0 else 'up'})"
+                          + ('' if not off else f"; out of frame: {', '.join(off)}"))
 
 
 def map_panel(dr, F, spec, box, axes, title):
@@ -369,7 +369,11 @@ def sheet(kf, n):
     dr = ImageDraw.Draw(im, 'RGBA')
     dr.text((24, 16), f"{spec['shot']}  {spec['title']}", font=F['title'], fill=(255, 255, 255))
     dr.text((W - 560, 24), 'Layout diagram, not a render', font=F['head'], fill=(170, 170, 180))
-    camera_panel(im, dr, F, kf, spec, (24, 66, 24 + 1120, 66 + 630))
+    box = (24, 66, 24 + 1120, 66 + 630)
+    layer = im.copy()      # drawn whole, then clipped to its box: a hull off the frame's edge stays off it
+    at, footer = camera_panel(layer, ImageDraw.Draw(layer, 'RGBA'), F, kf, spec, box)
+    im.paste(layer.crop((box[0], box[1], box[2] + 1, box[3] + 1)), box[:2])
+    dr.text(at, footer, font=F['small'], fill=(170, 170, 180))
     map_panel(dr, F, spec, (1168, 66, W - 24, 66 + 446), ('x', 'y'), 'From above')
     map_panel(dr, F, spec, (1168, 524, W - 24, 1056), ('x', 'z'), 'From the side (south flank)')
     y = 730
@@ -403,15 +407,19 @@ def sheet(kf, n):
 SHOTS = [('S1', 8, 'Establishing: the convoy over the day side', 'k1'),
          ('S2', 6, 'Alongside the Colossus, Morrow at her quarter', None),
          ('S3', 8, 'Running dark: the platform, then a hulk lights up', 'k1b'),
-         ('S4', 6, 'First contact: twelve hulls climb out of the platform', 'k2'),
+         ('S4', 6, 'First contact: twelve hulls climb out', 'k2'),
          ('S5', 6, 'The Manticore (P) opens at long range', None),
-         ('S6', 8, 'The screen breaks: Phaeton cooks off, Lashers hit', 'k3'),
+         ('S6', 8, 'The screen breaks: Phaeton cooks off', 'k3'),
+         ('S6b', 8, 'The escorts answer: a Buffalo Mk.II breaks up', 'k3c'),
+         ('S6c', 8, 'The column is cut: Wolves (P) blink through', 'k3d'),
+         ('S6d', 6, 'The rear guard: Hound against Hounds (P)', 'k3e'),
          ('S7', 8, 'Boarding the Tarsus', 'k3b'),
          ('S8', 6, 'Close on the Colossus: port pod shot out', 'k4'),
-         ('S9', 8, 'She will not be taken: the Mk.III on her side', 'k4'),
-         ('S10', 10, 'The prize taken; the Colossus losing her orbit', 'k5'),
-         ('S11', 10, 'Entry: plasma round both hulls', None),
-         ('S12', 10, 'Two trails toward the canyons. End.', 'k6')]
+         ('S9', 8, 'She will not be taken', 'k4'),
+         ('S9b', 8, "The lead's last run: the Falcon overloads", 'k4b'),
+         ('S10', 8, 'The prize taken; the Colossus falling', 'k5'),
+         ('S11', 8, 'Entry: plasma round both hulls', None),
+         ('S12', 8, 'Two trails toward the canyons. End.', 'k6')]
 
 
 def overview():
@@ -472,6 +480,7 @@ def overview():
     arrow(dr, Q((-200, 0, 0)), Q((2600, 0, 0)), MERCHANT_C, 3, 16)
     notes = [('k1b', 'S3: running dark among the hulks', (-330, 100)),
              ('k3', 'S6: screen breaks, Phaeton cooks off', (-330, 150)),
+             ('k3d', 'S6b-S6d: the brawl along the column', (-330, 175)),
              ('k3b', 'S7: Tarsus boarded, falls astern', (-330, 200)),
              ('k4', 'S8-S9: the Mk.III on the Colossus', (-330, 250)),
              ('k5', 'S10: Tarsus clamped; Colossus falling', (-330, 300))]

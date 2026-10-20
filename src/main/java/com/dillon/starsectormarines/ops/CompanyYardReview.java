@@ -9,16 +9,12 @@ import java.util.function.Supplier;
 final class CompanyYardReview {
     /** Pages in order: the bill, the runway, the road up, the ore-dust papers. */
     enum Stage { COST, RUNWAY, ROAD, PAPERS }
-    private final boolean story;
     private Stage stage = Stage.COST;
     private String failure;
 
-    /** {@code story}: the Jangala visit, which runs on to the road and papers pages. */
-    CompanyYardReview(boolean story) { this.story = story; }
-
     Stage stage() { return stage; }
     String failure() { return failure; }
-    boolean last() { return stage == (story ? Stage.PAPERS : Stage.RUNWAY); }
+    boolean last() { return stage == Stage.PAPERS; }
     /** Back is off on the bill (the first page) and on the page that follows payment. */
     static boolean backAllowed(Stage stage) { return stage.ordinal() > Stage.RUNWAY.ordinal(); }
     void back() { if (backAllowed(stage)) stage = Stage.values()[stage.ordinal() - 1]; }

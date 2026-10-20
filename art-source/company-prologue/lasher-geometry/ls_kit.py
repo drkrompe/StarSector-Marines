@@ -102,6 +102,8 @@ class Kit:
         return self.finish(obj, name, mat, bevel)
 
     def cylinder(self, name, loc, radius, depth, mat, axis='Z', vertices=12, bevel=.08):
+        if vertices != 6:                       # hex heads keep six sides; every other round meets the rule
+            vertices = max(vertices, _segments(radius*self.mpu))
         bpy.ops.mesh.primitive_cylinder_add(vertices=vertices, radius=radius, depth=depth, location=loc)
         obj = bpy.context.object
         if axis == 'X':
@@ -167,9 +169,19 @@ def sym(port):
     return list(port) + [(x, -y) for x, y in reversed(port)]
 
 
+def _segments(radius_m):
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent/'ship-detail-kit'))
+    import ship_detail_kit as sdk
+    return sdk.segments(radius_m)
+
+
 def revolve_x(kit, name, profile, y, z, mat, n=12):
     """Closed solid of revolution about an X-parallel axis through (y, z):
-    profile is [(x, r), ...] round the section, closed."""
+    profile is [(x, r), ...] round the section, closed. Segmented by the shared
+    segment rule (ship-detail-kit: chord within 5 mm of the arc) at least."""
+    n = max(n, _segments(max(r for _, r in profile)*kit.mpu))
     m = len(profile)
     verts = []
     for k in range(n):

@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
 import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -41,6 +42,18 @@ import java.util.Random;
 public class HeavyWeapons {
 
     private static final float SHOT_LIFETIME = 0.15f;
+    /**
+     * A manual aim point nearer the chassis centre than this many hull widths is pushed out to it
+     * along the same bearing, so every barrel converges ahead of its own muzzle rather than on a
+     * point beside or behind it.
+     */
+    static final float MIN_POINT_AIM_HULL_WIDTHS = 1.5f;
+    /**
+     * A pilot cannot lob an arcing rack's salvo at a point nearer the chassis centre than this many cells (or the
+     * weapon's own authored minimum, where larger): the trigger is refused and the HUD reads TOO CLOSE, rather than
+     * the salvo coming down on the mech that threw it.
+     */
+    public static final float MIN_MANUAL_ARC_RANGE_CELLS = 8f;
 
     private final UnitRosterService roster;
     private final NavigationGrid grid;
@@ -108,7 +121,7 @@ public class HeavyWeapons {
                     if (mount == null || mount.cycleRemaining > 0f || mount.burstRemaining > 0 || !mount.hasAmmo()) continue;
                     if (!MechFireGroups.contains(pulled, mount)
                             || !loadout.flux.permits(mount.component.fluxPerTrigger(), false)) continue;
-                    if (firePointRound(controlledId, mount, aim)) {
+                    if (fireRoundAtPoint(controlledId, mount, aim, true)) {
                         loadout.flux.commit(mount.component.fluxPerTrigger());
                         mount.commitTrigger(0L, aim);
                     }
@@ -131,40 +144,103 @@ public class HeavyWeapons {
         MechLoadoutComponent loadout = roster.world().mechLoadout(shooter);
         if (mount.cycleRemaining > 0f || mount.burstRemaining > 0 || !mount.hasAmmo()
                 || !loadout.flux.permits(mount.component.fluxPerTrigger(), true)) return false;
-        if (!fireRoundAtPoint(shooter, mount, aim)) return false;
+        if (!fireRoundAtPoint(shooter, mount, aim, false)) return false;
         loadout.flux.commit(mount.component.fluxPerTrigger());
         mount.commitTrigger(0L, aim);
         return true;
     }
 
-    /** One round at a point: a flat-trajectory mount by its ordinary point round, an arcing one by its scatter. */
-    private boolean fireRoundAtPoint(long shooter, MechWeaponMount mount, PointFireAim aim) {
+    /**
+     * One round at a point: a flat-trajectory mount by its ordinary point round, an arcing one by its scatter.
+     * {@code manual} is a pilot's trigger: its rockets burst where they are thrown, and its arcing racks drop on
+     * the thrown point by {@link GroundBurstAim} rather than by the target-relative hit roll a company's breach
+     * shot keeps.
+     */
+    private boolean fireRoundAtPoint(long shooter, MechWeaponMount mount, PointFireAim aim, boolean manual) {
         WeaponDef weapon = mount.weaponDef();
-        if (weapon.arcHeight <= 0f && !weapon.indirectFire) return firePointRound(shooter, mount, aim);
+        if (weapon.arcHeight <= 0f && !weapon.indirectFire) return firePointRound(shooter, mount, aim, manual);
         if (!canFireMechMount(shooter, mount) || !Float.isFinite(weapon.range) || weapon.range <= 0f) return false;
         World world = roster.world();
         MechLoadoutComponent loadout = world.mechLoadout(shooter);
         float hipFacing = roster.entityWorld().getFloat(shooter, roster.components().MECH_LOCOMOTION,
                 BattleComponents.MECH_LOCOMOTION_FACING_DEGREES);
         MechHardpointGeometry.Point muzzle = muzzle(shooter, mount, MechHardpointGeometry.nextReleaseIndex(mount));
-        if (!loadout.isPointAimedAt(aim, world.renderX(shooter), world.renderY(shooter), hipFacing)
-                || !loadout.isPointAimedAt(aim, muzzle.x(), muzzle.y(), hipFacing)) return false;
+        float centreX = world.renderX(shooter);
+        float centreY = world.renderY(shooter);
+        if (!loadout.isPointAimedAt(aim, centreX, centreY, hipFacing)) return false;
         Faction shooterFaction = roster.identity().faction(shooter);
-        float distance = RangeFalloff.dist(world.x(shooter), world.y(shooter), aim.x(), aim.y());
-        float spread = RangeFalloff.spread(weapon.hitSpread, distance, weapon.range);
-        boolean hit = rng.nextFloat() < weapon.accuracy * sensorAccuracy(loadout);
-        ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(aim.x(), aim.y(), hit, spread, rng);
+        float accuracy = weapon.accuracy * sensorAccuracy(loadout);
+        boolean hit;
+        ShotEndpoint.Endpoint ep;
+        if (manual) {
+            if (tooClose(mount, (float) Math.hypot(aim.x() - centreX, aim.y() - centreY))) return false;
+            PointFireAim target = withStandoff(aim, centreX, centreY, standoffCells(loadout));
+            float dx = target.x() - centreX;
+            float dy = target.y() - centreY;
+            float distance = (float) Math.hypot(dx, dy);
+            float thrown = Math.min(distance, weapon.range * BallisticResolver.MAX_GROUND_BURST_RANGE_MULTIPLIER);
+            GroundBurstAim.Offset scatter = GroundBurstAim.sample(accuracy, weapon.hitSpread, weapon.range, thrown, rng);
+            float scale = distance > 1e-6f ? thrown / distance : 0f;
+            ep = new ShotEndpoint.Endpoint(centreX + dx * scale + scatter.dx(), centreY + dy * scale + scatter.dy());
+            hit = true;
+        } else {
+            float distance = RangeFalloff.dist(world.x(shooter), world.y(shooter), aim.x(), aim.y());
+            float spread = RangeFalloff.spread(weapon.hitSpread, distance, weapon.range);
+            hit = rng.nextFloat() < accuracy;
+            ep = ShotEndpoint.resolve(aim.x(), aim.y(), hit, spread, rng);
+        }
         roster.telemetry().recordRoundFired(shooter);
         launchArc(shooter, weapon, ep, hit, muzzle.x(), muzzle.y(), shooterFaction, roster.moraleImpact(shooter));
         return true;
     }
 
-    /** Carrier capability shared by the selector and the fire procedure. Ammunition is readiness, not eligibility. */
+    /**
+     * Carrier capability shared by the selector and the fire procedure: any ranged mount, flat or arcing, can be
+     * fired at a cursor point. Ammunition is readiness, not eligibility.
+     */
     public static boolean supportsPointFire(MechWeaponMount mount) {
         if (mount == null) return false;
         WeaponDef weapon = mount.weaponDef();
-        return weapon.arcHeight == 0f && !weapon.indirectFire
-                && Float.isFinite(weapon.range) && weapon.range > 0f;
+        return Float.isFinite(weapon.range) && weapon.range > 0f;
+    }
+
+    /**
+     * The nearest point, in cells from the chassis centre, a pilot may aim this mount at: zero for a flat-fire
+     * mount, {@link #MIN_MANUAL_ARC_RANGE_CELLS} or the weapon's authored minimum for an arcing rack.
+     */
+    public static float manualMinRangeCells(MechWeaponMount mount) {
+        if (!supportsPointFire(mount)) return 0f;
+        float authored = Math.max(0f, mount.weaponDef().minRange);
+        return firesFlat(mount) ? authored : Math.max(authored, MIN_MANUAL_ARC_RANGE_CELLS);
+    }
+
+    /** Whether a pilot's point {@code distance} cells from the chassis centre is inside this mount's minimum. */
+    public static boolean tooClose(MechWeaponMount mount, float distance) {
+        return Float.isFinite(distance) && distance < manualMinRangeCells(mount);
+    }
+
+    /** A flat-trajectory mount, whose round flies a lane to the point rather than arcing over it. */
+    public static boolean firesFlat(MechWeaponMount mount) {
+        return supportsPointFire(mount) && mount.weaponDef().arcHeight == 0f && !mount.weaponDef().indirectFire;
+    }
+
+    /**
+     * The radius, in cells, of the disk a pilot's round from this mount lands in when aimed {@code distance} cells
+     * from the chassis centre, or a negative value for a mount whose rounds do not burst where they are thrown (a
+     * gun). Smoke on the lane widens a rocket's disk further when it fires; this is the clear-air figure.
+     */
+    public static float manualScatterRadiusCells(MechLoadoutComponent loadout, MechWeaponMount mount, float distance) {
+        if (!supportsPointFire(mount)) return -1f;
+        WeaponDef weapon = mount.weaponDef();
+        if (firesFlat(mount) && !bursts(weapon)) return -1f;
+        float thrown = Math.min(Math.max(distance, standoffCells(loadout)),
+                weapon.range * BallisticResolver.MAX_GROUND_BURST_RANGE_MULTIPLIER);
+        return GroundBurstAim.errorRadius(weapon.accuracy * sensorAccuracy(loadout),
+                RangeFalloff.spread(weapon.hitSpread, weapon.range, weapon.range), weapon.range, thrown);
+    }
+
+    private static float standoffCells(MechLoadoutComponent loadout) {
+        return MIN_POINT_AIM_HULL_WIDTHS * LayeredMechAppearance.hullWidthCells(loadout.variant.renderScale);
     }
 
     /**
@@ -251,25 +327,40 @@ public class HeavyWeapons {
         deliverDirectRound(shooter, weapon, res, fromX, fromY);
     }
 
-    /** Refuses unsupported or physically unaimed triggers before spending a mount resource. */
-    private boolean firePointRound(long shooter, MechWeaponMount mount, PointFireAim aim) {
+    /**
+     * Refuses unsupported or physically unaimed triggers before spending a mount resource.
+     *
+     * <p>Alignment is the torso's, judged from the chassis centre: the torso turned onto the point is
+     * what aims every mount on it. Each barrel then fires from its own muzzle at the point, so paired
+     * and shoulder barrels converge on it instead of each needing the point inside its own few degrees,
+     * which a laterally offset muzzle loses at close range. A {@code manual} rocket bursts where it is
+     * thrown ({@link BallisticResolver#resolveGroundBurst}); gun rounds, and every round a pilot did not
+     * aim, keep the bearing-only point contract.
+     */
+    private boolean firePointRound(long shooter, MechWeaponMount mount, PointFireAim aim, boolean manual) {
         if (!canFireMechMount(shooter, mount)) return false;
         WeaponDef weapon = mount.weaponDef();
-        if (!supportsPointFire(mount)) return false;
+        if (!firesFlat(mount)) return false;
         MechLoadoutComponent loadout = roster.world().mechLoadout(shooter);
         float hipFacing = roster.entityWorld().getFloat(shooter, roster.components().MECH_LOCOMOTION,
                 BattleComponents.MECH_LOCOMOTION_FACING_DEGREES);
-        if (!loadout.isPointAimedAt(aim, roster.world().renderX(shooter),
-                roster.world().renderY(shooter), hipFacing)) return false;
+        float centreX = roster.world().renderX(shooter);
+        float centreY = roster.world().renderY(shooter);
+        if (!loadout.isPointAimedAt(aim, centreX, centreY, hipFacing)) return false;
+        if (manual && tooClose(mount, (float) Math.hypot(aim.x() - centreX, aim.y() - centreY))) return false;
+        PointFireAim target = withStandoff(aim, centreX, centreY, standoffCells(loadout));
         MechHardpointGeometry.Point muzzle = muzzle(shooter, mount, MechHardpointGeometry.nextReleaseIndex(mount));
-        if (!loadout.isPointAimedAt(aim, muzzle.x(), muzzle.y(), hipFacing)) return false;
+        if (!target.validFrom(muzzle.x(), muzzle.y())) return false;
         BallisticResolver.Source source = new BallisticResolver.Source(shooter, muzzle.x(), muzzle.y(),
                 0f, roster.identity().faction(shooter));
         // Mech mounts retain their own accuracy contract; no infantry training or stance factor.
         float spread = RangeFalloff.spread(weapon.hitSpread, weapon.range, weapon.range);
-        BallisticResolver.Resolution resolution = resolver.resolvePoint(source, aim.x(), aim.y(),
-                weapon.accuracy * sensorAccuracy(loadout), spread, weapon.roundVelocity, weapon.range,
-                weapon.bodyPenetrations, rng);
+        float accuracy = weapon.accuracy * sensorAccuracy(loadout);
+        BallisticResolver.Resolution resolution = manual && bursts(weapon)
+                ? resolver.resolveGroundBurst(source, target.x(), target.y(), accuracy, spread,
+                        weapon.roundVelocity, weapon.range, weapon.bodyPenetrations, rng)
+                : resolver.resolvePoint(source, target.x(), target.y(), accuracy, spread,
+                        weapon.roundVelocity, weapon.range, weapon.bodyPenetrations, rng);
         roster.telemetry().recordRoundFired(shooter);
         deliverDirectRound(shooter, weapon, resolution, muzzle.x(), muzzle.y());
         return true;
@@ -463,7 +554,7 @@ public class HeavyWeapons {
                     }
                     // Manual bursts follow the live cursor. A refused release uses its
                     // scheduled slot so blocked barrels cannot retain a stale backlog.
-                    fireRoundAtPoint(u, mount, manual ? aim : mount.burstPointAim);
+                    fireRoundAtPoint(u, mount, manual ? aim : mount.burstPointAim, manual);
                     finishBurstRound(mount);
                     continue;
                 }
@@ -487,6 +578,21 @@ public class HeavyWeapons {
                 finishBurstRound(mount);
             }
         }
+    }
+
+    /** A rocket with a warhead: the rounds a pilot throws at ground rather than along a bearing. */
+    private static boolean bursts(WeaponDef weapon) {
+        return weapon.interceptableProjectile && weapon.aoeRadius > 0f;
+    }
+
+    /** The aim point, pushed out along its bearing from the centre to at least {@code minimum} cells. */
+    static PointFireAim withStandoff(PointFireAim aim, float centreX, float centreY, float minimum) {
+        float dx = aim.x() - centreX;
+        float dy = aim.y() - centreY;
+        float distance = (float) Math.hypot(dx, dy);
+        if (distance >= minimum || distance <= 1e-6f) return aim;
+        float scale = minimum / distance;
+        return new PointFireAim(centreX + dx * scale, centreY + dy * scale);
     }
 
     private static void finishBurstRound(MechWeaponMount mount) {

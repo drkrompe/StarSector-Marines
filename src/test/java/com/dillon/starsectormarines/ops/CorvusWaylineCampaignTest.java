@@ -120,7 +120,8 @@ class CorvusWaylineCampaignTest {
         assertSame(moon, CorvusWaylineCampaign.destination(p, sector(List.of(impostor, moon))).planet());
         var guide = new CorvusWaylineWorkGuide(p, null, () -> { });
         assertEquals(true, guide.markupProperty("courseDisabled"));
-        assertTrue(guide.markupProperty("route").toString().contains("unavailable"));
+        assertTrue(guide.markupProperty("route").toString().startsWith("Paused: Warion is not in Corvus"));
+        assertEquals("Blind Watch (paused)", guide.markupProperty("mission"));
     }
 
     @Test void malformedAndForeignMissionKeysDoNotBecomeChapters() {

@@ -4,7 +4,7 @@ Status: SHIPPED — the campaign-start and first-contract dialogue register, and
 
 Written: 2026-10-14
 
-Updated: 2026-10-20 — Relief's ore-dust cover story: the company rides up on Wayline's truck; turn 4, Sabine's briefing and Mara's first radio turn re-recorded.
+Updated: 2026-10-20 — One story path for every start port: the fallback-port variants are retired and Nessa's lines play everywhere.
 
 ## How to read this script
 
@@ -29,8 +29,11 @@ Castle, Nessa and the founding field commander's canon. **PUBLIC**, **HIDDEN** a
 ## Owner calls
 
 1. **Nessa and Mara are sisters.** Castle hears of Wayline through Nessa; the yard
-   visit carries the bridge. Players starting at a fallback port never meet Nessa,
-   so every line that depends on the relationship is Jangala-only.
+   visit carries the bridge. There is one story for every start port (owner,
+   2026-10-20): a start that lands at a fallback port because Jangala is
+   unavailable still meets Nessa, and Castle's, Nessa's and Mara's lines say
+   Jangala. Only course, objective, Intel and mission text that names a place
+   uses the port actually chosen.
 2. **The founding field commander came off the Claim, and so did her squad.** She
    commanded the mine's escort section; twelve of them stayed with her. She is
    renamed **Sabine Hale** so she cannot be confused with Mara in
@@ -286,28 +289,24 @@ New — Castle
 
 **SOMEWHERE TO DOCK**
 
-`openingCompanyPrologueCorvusHasWorkingYardsAndRegularTraffic` (Jangala)
+`openingCompanyPrologueCorvusHasWorkingYardsAndRegularTraffic`
 > Corvus has working yards, steady freight and Hegemony patrols crawling across
 > the navigation display. Castle scrolls past the public yard listings to a
 > private address: Nessa Venn, Jangala. The last message in the thread is years
 > old and ends in the middle of an argument. Castle reads it twice before she
 > starts a new one.
 
-`openingCompanyPrologueCastleSearchesThePortListingsForSomewhere` (fallback)
+`openingCompanyPrologueCastleSearchesThePortListingsForSomewhere` (no port)
 > Castle works down the port listings for anywhere that will berth a civilian
 > hull and has a yard that can actually do the work. Half of them want a deposit
 > just to reply. A published berth and a working yard are worth more than anyone's
 > promise.
 
-`openingCompanyPrologueNessaVennWeRanOreTogetherBefore` — Castle (Jangala)
+`openingCompanyPrologueNessaVennWeRanOreTogetherBefore` — Castle (no arrival cinematic)
 > Nessa Venn. We ran ore together before she settled into the yards on Jangala.
 > Once spent three days towing my dead freighter home and swore she'd cut me loose
 > at every buoy. Never did. She'll have opinions about this ship. Let me talk
 > first.
-
-`openingCompanyPrologueHasAWorkingYardIDonT` — Castle (fallback)
-> {0} has a working yard. I don't know a soul there. We ask for a berth and a
-> written estimate, and we keep our story short.
 
 `openingCompanyPrologueNoAnswerFromAYardWeCan` — Castle (no port)
 > No yard in reach is answering. I'll keep trying. We didn't come all this way to
@@ -344,14 +343,10 @@ part then a payment part
 > {0}Then we get a boat flying and Sabine's people aboard her. After that...
 > well. We might actually be a company, Commander.
 
-`openingCompanyPrologueNessaSentAnEstimateCalledTheJob` (Jangala)
+`openingCompanyPrologueNessaSentAnEstimateCalledTheJob`
 > Nessa sent an estimate. She called the job "ambitious" twice, which beats
 > "scrap." Five thousand for the conversion, and she's found room in her stores
 > for ours.
-
-`openingCompanyPrologueWeLlGetTheYardAtTo` (fallback)
-> The yard at {0} will do the conversion. Five thousand, if they hold to the
-> estimate.
 
 `openingCompanyPrologueWeLlFindABerthThenBunks` (no port)
 > We find a berth. Then bunks, a workshop, and someone who can tell us which of
@@ -396,8 +391,8 @@ work: the bill, the runway it leaves, the road up, and the cover story. Page 1's
 Next pays and installs; after that the pages are a straight click-through. There
 is no Skip or "Return to port" on these pages, and Back is off on pages 1 and 2, so
 the bill cannot be reached again once it is paid. Each Next button carries the
-Commander's reply. A non-Jangala yard plays pages 1 and 2 only, with Nessa's name
-taken out.
+Commander's reply. Second Wind's conversion plays all four pages, with Nessa, at
+whichever port the start chose.
 
 The figures (owner, 2026-10-20) are stated in days of runway, not rescaled. The
 story's daily board-and-berth burn for the forty-five aboard is about 21.34
@@ -451,7 +446,7 @@ Commander (Next): *We'll need to make a living somehow.*
 
 The figures box reads the live account and works the days out from it.
 
-**Page 3 — THE ROAD UP** (`yard-road`, Jangala only)
+**Page 3 — THE ROAD UP** (`yard-road`)
 > Nessa's racks are half empty. Most of her parts come up the Wayline road from the
 > highland depots, and raiders have held that road for a month. The drivers'
 > cooperative that runs it has lost its director, a third of its trucks and most of
@@ -474,7 +469,7 @@ Castle:
 
 Commander (Next): *Then we roll the dice. Find us a way in.*
 
-**Page 4 — ORE DUST** (`yard-ore-dust`, Jangala only)
+**Page 4 — ORE DUST** (`yard-ore-dust`)
 
 Castle:
 > Our papers say visitors. Visitors berth, eat and spend. They don't work, not for
@@ -500,12 +495,12 @@ The last page's objective line points at Marine operations and the prepaid depot
 Any later conversion, and the planet menu's own yard entry, still report in the
 interaction panel:
 
-`openingCompanyYardCMDNessaVennMetUsAtTheBerth` — Castle (Jangala)
+`openingCompanyYardCMDNessaVennMetUsAtTheBerth` — Castle (Second Wind)
 > Nessa met us at the berth. Took one look at the patch under the collar and asked
 > if I'd done it myself. I said I'd supervised. She remembers what that means.
 > Here's her estimate, Commander. She held to it.
 
-`openingCompanyYardCMDTheYardCanMakeRoomForBunks` — Castle (fallback)
+`openingCompanyYardCMDTheYardCanMakeRoomForBunks` — Castle (any other Cerberus)
 > The yard will clear space for bunks and a workshop. I asked them to leave the
 > compartments that still hold pressure alone. Look the estimate over, Commander.
 > We only get to do this once.
@@ -514,13 +509,13 @@ interaction panel:
 > I've kept this payment apart since we left the Claim. It doesn't touch the
 > ship's account. Shuttle parts and the squad's kit are paid as well.
 
-`openingCompanyYardCMDTheYardHasFinishedEighteenMorePlaces` — Castle (fallback
+`openingCompanyYardCMDTheYardHasFinishedEighteenMorePlaces` — Castle (every
 completion)
 > The yard's done. Eighteen more berths, a proper command fit and a workshop
 > gantry, for twenty-five units of hold we're going to miss. It's permanent work,
 > Commander. No taking it back.
 
-`openingCompanyYardCMDNessaSaysSheLlKeepTheOld` — Castle (Jangala completion)
+`openingCompanyYardCMDNessaSaysSheLlKeepTheOld` — Castle (Second Wind completion)
 > Nessa's hanging the old pressure seals on her office wall. Says I have a
 > reputation to keep up. She stayed for the pressure test herself and left it off
 > the bill. Don't mention it. She'll deny it.
@@ -549,41 +544,36 @@ who kept the roster.
 `openingCerberusCompanyStartTheConversionIsInstalledStayDockedAt`
 > The conversion is in. Stay docked at {0}, open Marine operations and name our
 > Cerberus the company's command ship. While we're docked here, the preparation
-> bills draw on our depot stock. Then we repair the first Hermes, settle Sabine's
-> appointment and put her section on the roll.
+> bills draw on our depot stock. Then we settle Sabine's appointment and put her
+> section on the roll.
 
 `openingCerberusCompanyStartOurShipIsHomeNowStayDocked`
 > She's ours now, Commander, properly. Stay docked while we use the prepaid
-> stores: patch the first wrecked Hermes on the Boat Deck, settle Sabine's first
-> specialty in Barracks, then muster her squad in the Armory and put it under her.
-> I'll take you through each order.
+> stores: settle Sabine's first specialty in Barracks, then muster her squad in
+> the Armory and put it under her. I'll take you through each order.
 
 `openingCompanyPreparationGuideCommanderChooseAHomeWithQuartersAnd`
 > Commander, pick our home: a ship with quarters and a boat bay. These stores
-> cover one shuttle, which can make the trip as often as we need, and kit for one
-> full squad. Sabine's appointment is settled, first training point and all.\n\n{0}
+> kit one full squad now and patch one shuttle after Mara's job. Sabine's
+> appointment is settled, first training point and all.\n\n{0}
 
 `openingCompanyPreparationGuideTheCrewIsPreparingOurQuartersAnd`
-> The crew are clearing our quarters and the hangar. When the deck's ready we
-> commission our lift, sit down with Sabine and muster her squad.
-
-`openingCompanyPreparationGuideOurHomeIsReadyComeDownTo`
-> Home's ready. Come down to the Boat Deck and we'll get our first shuttle flying.
+> The crew are clearing our quarters. When they're done we sit down with Sabine
+> and muster her squad.
 
 `openingCompanyPreparationGuideSecondWindCameWithTwoWreckedHermes`
 > Second Wind came with two wrecked Hermes. We can reach this one; the other's
-> behind the sealed second bay. Let's patch this one for the first contracts.
-
-`openingCompanyPreparationGuideGoodThatBoatIsOursWithA`
-> Good. That boat's ours: a berth on the deck and a bill that's paid. She can make
-> the trip as many times as the squad needs. Plating and drive can wait for money
-> we haven't earned yet. Now, Sabine.
+> behind the sealed second bay. Let's patch this one for the depot job.
 
 `openingCompanyPreparationGuideOurLiftIsAboardComeToBarracks`
-> Our lift's aboard. Come to Barracks; Sabine's waiting.
+> Home's ready. Come to Barracks; Sabine's waiting.
+
+`openingCompanyPreparationGuideTheBoatsCanWait`
+> The boats can wait. Mara's truck takes us up to the checkpoint; we patch a Hermes
+> after that job. Sabine first.
 
 `openingCompanyPreparationGuideWeWillMusterTheSquadOnceOur`
-> We muster the squad once the ship, the lift and the field commander are ready.
+> We muster the squad once the ship and the field commander are ready.
 > Those first.
 
 `openingCompanyPreparationGuideTwelveMarinesThirtySixSuppliesAndTwenty`
@@ -596,8 +586,8 @@ who kept the roster.
 > command. Assigning them costs nothing more.
 
 `openingCompanyPreparationGuideNothingWasSpentByLeavingCommanderOur`
-> Leaving didn't cost us anything, Commander. The rest of the shuttle parts and
-> squad stores are waiting at {0}. They're held ashore, so I can't draw them from
+> Leaving didn't cost us anything, Commander. The rest of our prepaid stores are
+> waiting at {0}. They're held ashore, so I can't draw them from
 > up here. Go back, choose Marine operations in the planet menu, and we'll pick up
 > where we stopped. Don't buy them twice.
 
@@ -606,8 +596,28 @@ who kept the roster.
 > ore dust; her delivery order is waiting in Headquarters. Whatever stores we
 > didn't use stay in the depot for when we're back.
 
+### First lift (after Relief)
+
+Relief needs no boat, so the first Hermes is repaired in Castle's first-lift
+lesson between Relief and Counterattack, the first ferry job. The Boat Deck
+steps reuse the repair and commission lines above.
+
+`lessonFirstLiftTitle` / `lessonFirstLiftHandoff`
+> OUR FIRST LIFT
+>
+> No truck takes us into Mara's depot, Commander. That job needs a boat. The
+> prepaid Hermes parts are ours; come to the Boat Deck and we'll get her flying.
+
+`openingCompanyPreparationGuideTheHermesPartsAreStillWaitingAt`
+> The Hermes parts are still waiting at {0}, Commander. They're held ashore, so I
+> can't draw them from up here. Go back, choose Marine operations in the planet
+> menu, and we'll get her flying.
+
+Counterattack's briefing, with no airworthy boat, adds: "The depot is the
+company's first ferry job. Repair our first Hermes on the Boat Deck."
+
 The conversion line names no figure; the yard page states it. It says "the
-yard", not "Nessa", because a fallback start never meets her.
+yard", not "Nessa".
 
 ## 4 — Sabine
 
@@ -623,13 +633,13 @@ about her directly.
 
 `openingOfficerInductionGuideFirstCommanderChooseAShipWithQuarters`
 > First, Commander, a ship with quarters and a boat bay. I've counted the stores
-> for our first lift and a full squad. Bring the whole bill aboard before we
-> start, and we'll see this through together.
+> for a full squad, and for our first lift after Mara's job. Bring the whole bill
+> aboard before we start, and we'll see this through together.
 
 `openingOfficerInductionGuideOurPeopleNeedAWayDownAnd`
 > Our people need a way down and a way home. Pick an empty berth and commission
 > its shuttle. One boat can ferry the squad in trips; more boats put them down
-> together. Keep the squad's stores aside for the next step.
+> together.
 
 `openingOfficerInductionGuideCommanderWillLeadOurFirstFormationYou`
 > Sabine leads our first formation, Commander. She's been bringing those twelve
@@ -696,15 +706,17 @@ player has met Nessa.
    > watch holding it is paid from the same collection as your fee. I know half of
    > them from the loading shifts.
 4. > Licensed companies cost more than we have. You cost what we have. On paper
-   > I've bought a load of ore dust, delivered to the checkpoint gate, and your
-   > people are its escort. Get it there, help them hold that gate, and you're paid
-   > on delivery. I'd rather you than nothing, and I expect you'd rather us than
-   > nothing too. One job at a time, Commander.
+   > you're escorting a delivery to my checkpoint, and you're paid when it
+   > arrives. In practice, help my watch hold that gate. One job at a time,
+   > Commander.
 
 **Briefing, Sabine** (recorded in her voice, after Mara's four turns)
-> Off the truck behind the gate. Twelve of us and one sack of dust. The dust stays
-> with the truck; the rest of us go to the line together. Nobody walks to that gate
-> alone.
+> We're off the truck behind the gate. Two teams, one on each road in. Get on the
+> wall and let them come to us.
+
+The cover story is said once, before the fight (Mara's turn 4), and paid off once
+after it (Castle's receipt). Nobody in the fight talks about the dust (owner,
+2026-10-20).
 
 This was first written into the mission radio, but a recorded line takes over
 from a text-only one at once, so a text line in the middle of Mara's exchange
@@ -721,8 +733,8 @@ launch and plays straight through, a line at a time, while the squad walks from
 the truck to the gate. It is not keyed to individual arrivals, so it cannot fall
 out of order. All Mara.
 
-1. > Mara here. My truck's behind the gate with your people and our dust. Our
-   > watch is holding, but not for long on their own.
+1. > Mara here. Your people are off the truck and behind the gate. Our watch is
+   > holding, but not for long on their own.
 2. > The raiders are coming up the freight and warehouse service roads. That's
    > where the gate gets hit.
 3. > Our militia are coming in on the only shuttle we've got. Keep them with your

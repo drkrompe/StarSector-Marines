@@ -15,12 +15,14 @@ record CorvusWaylineWorkGuide(CorvusWaylineProgress progress, OpeningBroker.Dest
             case "broker" -> OpeningBroker.NAME;
             case "affiliation" -> "Wayline cooperative";
             case "heading" -> CorvusWaylineCampaign.TITLE;
-            case "mission" -> chapter != null ? chapter.title : progress.complete() ? "Corvus account closed" : "Operations paused";
+            case "mission" -> chapter != null ? chapter.title + (destination == null ? " (paused)" : "")
+                    : progress.complete() ? "Corvus account closed" : "Operations paused";
             case "payment" -> chapter != null ? "Cr. " + chapter.payment : "Contract payments: " + progress.paid() + " cr";
             case "location" -> destination != null ? destination.label()
                     : chapter != null ? chapter.planetName + " / Corvus" : "Corvus";
             case "route" -> chapter == null ? "Local Wayline arrangements remain at the original supply-route site."
-                    : destination == null ? "Destination unavailable. No substitute site has been assigned."
+                    : destination == null ? "Paused: " + chapter.planetName + " is not in Corvus in this sector, so Wayline "
+                            + "has no site for this operation. Nothing is lost; the account resumes if the site appears."
                     : "Marine operations > " + OpeningBroker.NAME;
             case "preparation" -> chapter != null ? chapter.squads + " squads recommended / owned mech lance supported."
                     : progress.complete() ? "Sable Wake's operation against Wayline has been broken." : "Unrecognized story record.";

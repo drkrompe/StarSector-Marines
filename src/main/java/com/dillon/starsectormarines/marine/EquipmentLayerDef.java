@@ -113,6 +113,28 @@ public record EquipmentLayerDef(
                 muzzleX, muzzleY);
     }
 
+    /**
+     * A layer with one fixed placement: {@code offsetShoulders}, {@code angleDegrees} and
+     * {@code occlusion} sit beside the sprite instead of under carried/using states, and it
+     * is always visible. Used for an item stowed on the wearer.
+     */
+    static EquipmentLayerDef parsePacked(JSONObject json, String equipmentId) throws JSONException {
+        String sprite = requireText(json, "sprite", equipmentId);
+        float width = positive(json, "widthShoulders", equipmentId);
+        float height = positive(json, "heightShoulders", equipmentId);
+        JSONArray pivot = json.getJSONArray("pivot");
+        if (pivot.length() != 2) {
+            throw new JSONException("Special equipment '" + equipmentId
+                    + "' packed pivot must contain [x, y]");
+        }
+        State placement = parseState(json, equipmentId);
+        return new EquipmentLayerDef(sprite, width, height,
+                unit((float) pivot.getDouble(0), "pivot x", equipmentId),
+                unit((float) pivot.getDouble(1), "pivot y", equipmentId),
+                placement, placement, 0f, null, true, false,
+                Attachment.fromKey(json.optString("attachment", "body"), equipmentId));
+    }
+
     private static State parseState(JSONObject json, String equipmentId) throws JSONException {
         JSONArray offset = json.getJSONArray("offsetShoulders");
         if (offset.length() != 2) {

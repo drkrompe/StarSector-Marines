@@ -196,6 +196,44 @@ class LayeredUnitComposerTest {
     }
 
     @Test
+    void aPackedLauncherRidesTheBackUntilItIsUsedThenTheHeldOneReplacesIt() {
+        LayeredUnitAssets assets = assets(false);
+        assets.registerSpecialEquipment("special", sprite("launcher"));
+        assets.registerSpecialEquipment(SpecialEquipmentPresentationDef.packedAssetKey("special"),
+                sprite("packed"));
+        EquipmentLayerDef.State held = new EquipmentLayerDef.State(0f, 0f, 0f,
+                EquipmentLayerDef.Occlusion.UNDER_BODY);
+        EquipmentLayerDef carrier = new EquipmentLayerDef("launcher", 1f, 1f, .5f, .5f,
+                held, held, 0f, EquipmentLayerDef.Occlusion.OVER_BODY, false, true);
+        EquipmentLayerDef.State slung = new EquipmentLayerDef.State(0f, -.03f, -35f,
+                EquipmentLayerDef.Occlusion.OVER_BODY);
+        EquipmentLayerDef packed = new EquipmentLayerDef("packed", .3f, .96f, .5f, .5f,
+                slung, slung, 0f, null, true, false, EquipmentLayerDef.Attachment.BODY);
+        SpecialEquipmentPresentationDef presentation = new SpecialEquipmentPresentationDef(
+                null, null, SpecialUsePose.SHOULDER_LAUNCHER, carrier,
+                null, null, null, null, null, null, packed);
+        SpecialEquipmentDef special = new SpecialEquipmentDef("special", "Special", null,
+                null, null, null, null, null, 0, null, presentation,
+                null, null, null, null, null);
+        for (int pose : new int[]{LayeredAppearance.POSE_IDLE, LayeredAppearance.POSE_FIRING}) {
+            List<String> layers = new ArrayList<>();
+            LayeredUnitComposer.emit((sprite, x, y, width, height, angle, r, g, b, alpha) ->
+                            layers.add(sprite.sourcePath),
+                    assets, assets.head, null, true, special, EquipmentGrade.SERVICE,
+                    0f, 0f, 150f, 0f, 0f, 0f, 0f, pose, 0, 1f);
+            assertEquals(List.of("foot", "foot", "rifle", "body", "packed", "head"), layers,
+                    "carried, the launcher is slung over the body under the head (pose " + pose + ")");
+        }
+        List<String> using = new ArrayList<>();
+        LayeredUnitComposer.emit((sprite, x, y, width, height, angle, r, g, b, alpha) ->
+                        using.add(sprite.sourcePath),
+                assets, assets.head, null, true, special, EquipmentGrade.SERVICE,
+                0f, 0f, 150f, 0f, 0f, 0f, 1f, LayeredAppearance.POSE_ROCKET_AIM, 0, 1f);
+        assertTrue(using.contains("launcher"), "aimed, the held launcher is drawn: " + using);
+        assertFalse(using.contains("packed"), "aimed, nothing is left on the back: " + using);
+    }
+
+    @Test
     void aTreatingMedicHoldsTheKitInPlaceOfTheirOwnSpecial() {
         LayeredUnitAssets assets = assets(false);
         assets.registerSpecialEquipment("special", sprite("special"));

@@ -103,6 +103,40 @@ public class MechLocomotionTest {
     }
 
     @Test
+    public void aHeldHeadingOutranksTheTargetForStandingHips() {
+        BattleSimulation sim = arena();
+        BattleComponents c = sim.getBattleComponents();
+        long mech = sim.spawn(new EntitySpec("mech", Faction.DEFENDER, UnitType.HEAVY_MECH, 5, 5));
+        long target = sim.spawn(new EntitySpec("target", Faction.MARINE, UnitType.MARINE, 8, 5));
+        sim.world().setTargetId(mech, target);
+        MechMoveOrderService orders = new MechMoveOrderService();
+        orders.holdFacing(mech, 90f);
+
+        new MechLocomotionSystem(sim.getEntityWorld(), c, sim.getRoster(), orders)
+                .tick(BattleSimulation.TICK_DT);
+
+        // Unheld, the east target turns these hips to -179.6 (above); held west, they turn the other way.
+        assertEquals(179.6f, sim.getEntityWorld().getFloat(mech, c.MECH_LOCOMOTION,
+                BattleComponents.MECH_LOCOMOTION_FACING_DEGREES), 0.001f);
+        assertEquals(90f, orders.heldFacing(mech));
+    }
+
+    @Test
+    public void walkingAwayEndsAHeldHeading() {
+        BattleSimulation sim = arena();
+        BattleComponents c = sim.getBattleComponents();
+        long mech = sim.spawn(new EntitySpec("mech", Faction.DEFENDER, UnitType.HEAVY_MECH, 5, 5));
+        sim.setPath(mech, new int[]{5, 5, 5, 6});
+        MechMoveOrderService orders = new MechMoveOrderService();
+        orders.holdFacing(mech, 90f);
+
+        new MechLocomotionSystem(sim.getEntityWorld(), c, sim.getRoster(), orders)
+                .tick(BattleSimulation.TICK_DT);
+
+        assertTrue(Float.isNaN(orders.heldFacing(mech)));
+    }
+
+    @Test
     public void reversingIntentBrakesBeforeChangingTurnDirection() {
         MechLocomotion.AngularStep east = MechLocomotion.dampedTurn(
                 0f, 0f, 90f, MechLocomotion.DEFAULT_TURN_RATE_DEGREES,

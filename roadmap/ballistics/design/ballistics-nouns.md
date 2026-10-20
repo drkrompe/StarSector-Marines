@@ -60,6 +60,13 @@ lead, or silhouette-conditioned hit roll. Accuracy, equipment, stance, spread,
 and smoke change the size of a sampled angular error disk before contacts are
 traced. Dispersion and smoke depth are calibrated along the bearing at weapon
 range, so cursor distance cannot improve distant accuracy or shorten flight.
+A player's own cursor on a controlled marine samples a **controlled**
+dispersion: authored spread keeps its full weight, but the abstract accuracy
+figure (tuned as an autonomous hit chance) widens the disk about a third as
+much, and rounds cluster toward the cursor rather than fill the disk evenly.
+Spread therefore carries a weapon's character under manual fire. Automated
+point fire (wall breaching, vehicle turrets, mech mounts) keeps the full-weight,
+evenly filled disk.
 A point round remains live to the same full modeled reach as a stray round;
 all body contacts are incidental and retain ordinary friendly-catch rules.
 Its trigger is allowed toward an obstructed or empty lane: a wall stops the
@@ -149,12 +156,23 @@ or body contact. It consumes no random samples, ammunition, or clocks and
 does not promise that a mount is aligned, ready, or certain to hit.
 `direct-control-nouns.md` owns that preview's visibility and selection scope.
 
-Manual ground-direct area weapons keep the same terminal-contact rule as other
-modeled direct fire. An empty cursor point is a bearing, never a detonation
-request; a round leaving modeled reach has no terminal blast. Direct SRMs remain
-interceptable in flight, and a surviving payload arrives on the ordinary delay.
-Indirect missiles retain their separate targeting contract and cannot be
-triggered through this point-fire adapter.
+A manually thrown **rocket** (an interceptable direct round with a warhead) is
+the one point round whose aim point is a destination rather than a bearing. It
+still stops at the first body, wall or doodad on its way, but a rocket that meets
+nothing **ground-bursts** at the aim point plus its scatter instead of
+overshooting. The aim point may lie past nominal range, out to twice it (further
+points burst at that ceiling along the bearing): the player is never refused
+the shot, and pays for reach in scatter. The scatter disk has the point-aim
+radius at weapon range, scales with distance inside it, and grows faster than
+distance beyond it. Gun rounds, including those with an area payload, keep the
+bearing-only rule: an empty cursor point is no detonation request, and a round
+leaving modeled reach has no terminal blast. Autonomous fire and a company's
+wall-breach shots are not thrown and keep the terminal-contact rule. Direct SRMs
+remain interceptable in flight, and a surviving payload arrives on the ordinary
+delay.
+A pilot's arcing LRM rack lands on the thrown point plus the same scatter disk,
+with no target-relative hit roll; autonomous and breach indirect fire keep their
+own targeting contract.
 
 ## Obscuration
 

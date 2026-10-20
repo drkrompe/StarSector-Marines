@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.fortress;
 
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.HeldPlaces;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenRecipe;
@@ -91,8 +95,10 @@ public final class CompoundMissionMap {
                 new PrecinctDefenceStage(),new TacticalLinkStage(),new FinalizeStage(),
                 new DoorwayClearanceStage(),new OutdoorLandscapeStage(),new FrontDepthStage(),
                 new InteriorAnchorFitStage())).run(c);
+        TacticalMap held = c.get(BspKeys.TACTICAL_MAP);
+        for (TacticalNode place : HeldPlaces.fromBuildingsNotIn(c.pois, held.all(), poi -> Faction.DEFENDER)) held.add(place);
         return new MapResult(c.grid,c.topology,site.marineX,site.marineY,site.defenderX,site.defenderY,
-                c.pois,c.doodads,c.get(BspKeys.TACTICAL_MAP),c.get(BspKeys.BUILDINGS),c.defensePosts,
+                c.pois,c.doodads,held,c.get(BspKeys.BUILDINGS),c.defensePosts,
                 c.get(BspKeys.ROAD_GRAPH),c.landingPads,List.of(),null,c.gantries,c.fixtureTasks,List.of(),List.of(),null,c.get(BspKeys.FRONT_DEPTH));
     }
 

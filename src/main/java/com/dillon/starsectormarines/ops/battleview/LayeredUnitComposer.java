@@ -153,6 +153,11 @@ final class LayeredUnitComposer {
         };
         boolean specialFiring = pose == LayeredAppearance.POSE_ROCKET_FIRE
                 || pose == LayeredAppearance.POSE_AMR_FIRE;
+        // Not in use, an item with packed art is drawn stowed on the wearer instead.
+        LayeredSpriteCache packedSprite = !specialUsing && specialDef != null
+                && specialDef.presentation().packedLayer() != null
+                ? assets.packed(specialDef.id()) : null;
+        if (packedSprite != null) specialLayer = specialDef.presentation().packedLayer();
         boolean genericSpecialLayer = specialLayer != null;
         boolean drawSpecialLayer = genericSpecialLayer
                 && (specialUsing || specialLayer.visibleWhileCarried());
@@ -215,6 +220,7 @@ final class LayeredUnitComposer {
 
         LayeredSpriteCache specialSprite = !drawSpecialLayer ? null
                 : treating ? assets.specialEquipment(TreatmentKitLayer.ASSET_KEY)
+                : packedSprite != null ? packedSprite
                 : assets.specialEquipment(specialDef.id());
         EquipmentLayerComposer.Placement specialPlacement = specialSprite != null
                 ? equipmentPlacement(specialLayer, specialUsing, specialFiring, weaponPhase,
