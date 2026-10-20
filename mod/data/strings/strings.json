@@ -493,6 +493,7 @@
     "battleShipHeading": "Ship",
     "battleOrderOccupyPosition": "OCCUPY POSITION",
     "battleOrderClearPlace": "CLEAR AND HOLD",
+    "battleOrderAssaultPlace": "ASSAULT",
     "unitModifierDugIn": "Dug in",
     "unitModifierLegWound": "Leg wound",
     "unitModifierArmWound": "Arm wound",

@@ -1,10 +1,10 @@
 # Garrisonables
 
-Status: ACTIVE — reactive manning is built for fort-belt fighting positions; other kinds remain direction.
+Status: ACTIVE — reactive manning is built for fort-belt fighting positions, and the player's machine assault on a believed-held garrisonable; other kinds remain direction.
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — owner decisions: attackers hold taken ground, player squads may opt into reactive manning, machines assault garrisons but never man them.
+Updated: 2026-10-20 — owner decisions: attackers hold taken ground, player squads may opt into reactive manning, machines assault garrisons but never man them; the player's machine assault is built.
 
 ## Why this exists
 
@@ -80,7 +80,9 @@ layer is what a squad falls back to when the one in front of it is lost.
   a garrisonable by hand, and a dragged line order assigns every fighting
   position along a drawn frontage, one fire team per stretch, counting the
   forward-facing door and window posts of buildings the line crosses. Whether a player's idle squads may opt into reactive
-  manning is opt-in, never a default (see Decided direction).
+  manning is opt-in, never a default (see Decided direction). A machine given
+  the same click on a place its side believes is enemy-held assaults it by fire
+  from outside instead.
 
 ## Measuring cheaply
 
@@ -196,7 +198,11 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
   order onto an enemy-held building or position is an assault by fire — engage
   the believed occupants at their apertures and posts, and, where the weapons
   can, bring down the walls that shelter them — from a stand-off, never by
-  entering. Infantry still does the clearing and the holding.
+  entering. Infantry still does the clearing and the holding. The player's
+  version is built: a mech, lance or armed vehicle clicking a run or held place
+  its side believes is enemy-held gets ASSAULT (`ai-nouns.md`, machine assault
+  under fighting positions). A commander's use of machines against a garrison
+  is not.
 
 ## Open questions
 

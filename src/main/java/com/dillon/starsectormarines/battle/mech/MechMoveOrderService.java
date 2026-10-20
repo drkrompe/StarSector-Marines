@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.assault.MachineAssault;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,9 +36,20 @@ public final class MechMoveOrderService {
      * Accepted move intent. Requested coordinates retain what the player
      * clicked; destination coordinates name the nearest reachable cell the
      * mech will actually occupy.
+     *
+     * <p>With an {@code assault}, the click was on a garrisonable the side believes is
+     * enemy-held: the destination is the assault's stand-off, and the order does not end on
+     * arrival but holds the mech there, firing on the place, until the assault is over
+     * ({@code MachineAssaults}).
      */
     public record ActiveOrder(int requestedX, int requestedY,
-                              int destinationX, int destinationY) { }
+                              int destinationX, int destinationY, MachineAssault assault) {
+
+        /** A plain move. */
+        public ActiveOrder(int requestedX, int requestedY, int destinationX, int destinationY) {
+            this(requestedX, requestedY, destinationX, destinationY, null);
+        }
+    }
 
     private final List<PendingOrder> pending = new ArrayList<>();
     private final Map<Long, ActiveOrder> active = new ConcurrentHashMap<>();
@@ -78,5 +91,15 @@ public final class MechMoveOrderService {
 
     Iterable<Map.Entry<Long, ActiveOrder>> activeEntries() {
         return active.entrySet();
+    }
+
+    /** Whether any order is accepted, so a per-tick pass with nothing to serve allocates nothing. */
+    public boolean hasActiveOrders() {
+        return !active.isEmpty();
+    }
+
+    /** Accepted orders, snapshotted, for the serial passes that serve them (wall fire, highlights). */
+    public List<Map.Entry<Long, ActiveOrder>> activeOrders() {
+        return new ArrayList<>(active.entrySet());
     }
 }
