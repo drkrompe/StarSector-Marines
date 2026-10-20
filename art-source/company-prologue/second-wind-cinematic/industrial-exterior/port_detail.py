@@ -106,20 +106,15 @@ def add(c4):
     g = Ground()
     P = Parts(c4)
     keep_out(c4, g)
-    berth_gaps(c4, g, P, r)
-    ferry_side(c4, g, P, r)
-    west_end(c4, g, P, r)
-    boneyard(c4, g, P, r)
-    fuel_loading(c4, g, P, r)
-    lighter_pads(c4, g, P, r)
-    pipe_bridge(c4, g, P)
-    truck_park(c4, g, P, r)
-    west_depot(c4, g, P, r)
-    container_overflow(c4, g, P, r)
-    terminal_lorries(c4, g, P, r)
-    arrivals(c4, g, P, r)
-    belt_ends(c4, g, P, r)
-    apron(c4, g, P, r)
+    trace = os.environ.get('PORT_DETAIL_TRACE')
+    for zone in (berth_gaps, ferry_side, west_end, boneyard, fuel_loading, lighter_pads, pipe_bridge,
+                 truck_park, west_depot, container_overflow, terminal_lorries, arrivals, belt_ends, apron):
+        if zone is pipe_bridge:
+            zone(c4, g, P)
+        else:
+            zone(c4, g, P, r)
+        if trace:                                          # where the random stream stands after each zone
+            print('PORT_DETAIL_TRACE %s %d' % (zone.__name__, hash(r.getstate()) & 0xffffff), flush=True)
     P.finish()
     print('PORT_DETAIL footprints=%d lanes=%d' % (len(FOOTPRINTS), len(LANES)), flush=True)
 
@@ -681,17 +676,23 @@ def lighter_pads(c4, g, P, r):
         for side in (-1, 1):
             cx = x + side * (c4.LIGHTER_R + 12)
             if port_roads.ON:
-                g.free(cx - 4, cx + 4, y - 10, y + 10)       # notes the old place for a patch
+                # Free but for the ring (and noted for a patch) is where the old set stood: only
+                # there does it make the old set's draws.
+                old = g.free(cx - 4, cx + 4, y - 10, y + 10) or g.road_blocked
                 null = Null(P)
                 if side < 0:
-                    dolly_train(null, r, cx, y + 6, -math.pi / 2, 3)
+                    if old:
+                        dolly_train(null, r, cx, y + 6, -math.pi / 2, 3)
                     ix = x - 17.5
                     power_cart(P.inner, ix, y + 0.5, math.pi / 2)
                 else:
-                    crate_stack(null, r, cx - 1.2, y - 6.2, 2, 1)
+                    if old:
+                        crate_stack(null, r, cx - 1.2, y - 6.2, 2, 1)
                     ix = x + 17.5
                     fuel_cart(P.inner, ix, y - 4.0, math.pi / 2)
                     P.inner.box('fence', (3.4, 3.0, 2.4), (ix, y + 3.0, 1.2))           # stores cage
+                if old:
+                    g.take(cx - 4, cx + 4, y - 10, y + 10)
                 g.take(ix - 2, ix + 2, y - 6, y + 6)
                 continue
             if g.free(cx - 4, cx + 4, y - 10, y + 10):
