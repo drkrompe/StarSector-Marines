@@ -155,9 +155,9 @@ checks the deployed pose (keel shoes and wedge soles on the ground, everything
 else clear of it, no wedge through the ground) and records `landing_gear` in
 geometry.json. Against ship-detail-guide.md (ship-detail-kit/check_detail.py,
 --mpu 0.76, turrets excluded) both variants pass every gate but one: the
-pirate's 2 faceted objects (Hull head, Hull main body) are the carve imprints of
-the mining blaster's breech and the launcher collars, inside the weapons and
-never seen. Otherwise 0 faceted (hull
+pirate's 1 faceted object (Hull head) is the carve imprint of the mining
+blaster's breech, inside the weapon and never seen (2 before the turret kit's
+close-view rebuild, which also took the launcher collars' imprint). Otherwise 0 faceted (hull
 lofts at 48 sections, pods 64, armour domes 64 sides, merchant turret sponsons
 64), 0.0 m unbevelled per 100 m2 (the skinned hull bodies take the guide's
 0.12 m plate bevel on edges of 55 degrees and sharper), no emissive off a lamp
@@ -178,7 +178,12 @@ blaster in the prow trough (HARDPOINT_K .3, its capacitor housing in a breech
 pocket under the gun hood) and Harpoon launchers on the wing tips (k .3, the
 main body's flank carved to the launcher's shape). turret-kit/check_hardpoints.py
 finds no clips on either variant: the pirate's buried breech and sunk launcher
-collars are carved the same way. Its livery is ../wolf-merchant-surface.
+collars are carved the same way. The WS 004 trough is 4.1 units a side (3.7
+before the turret kit's close-view mining blaster, whose prongs the 0.12 m plate
+bevel on the fork base otherwise refilled to 0.16 units deep). The check now
+counts only mount empties that have a parent, and the Wolf's mounts are top
+level in the geometry build: parent them to a temporary empty before calling
+clashes(), or it reports nothing. Its livery is ../wolf-merchant-surface.
 
 Shot checks
 At 1920x1080 on a 36 mm sensor, port bow quarter from a little above, low sun

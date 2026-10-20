@@ -29,7 +29,7 @@
   32.7
  ],
  "meshes": 421,
- "polygons": 114227,
+ "polygons": 129105,
  "images": 31,
  "engines": [
   {
@@ -173,7 +173,7 @@
      43.4,
      55.5
     ],
-    "half_width": 3.7,
+    "half_width": 4.1,
     "z": [
      -6.5,
      8.4
@@ -1317,5 +1317,5 @@
   },
   "append": "load both 'WOLF_P' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "ab2c6110e78be8184a0b20942356e564e9c5ac2427fd8e3476a8d0d1625d2643"
+ "asset_sha256": "2798d240b0a2a8faa29c6cba17dcace1937069882874679c2b32bcdd0c24af70"
 }
