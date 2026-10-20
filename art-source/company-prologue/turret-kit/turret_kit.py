@@ -184,7 +184,7 @@ class Mesh:
         h = depth/2
         self.lathe([(r_in, -h), (r_out, -h), (r_out, h), (r_in, h)], n, c, axis, loop=True, rot=rot)
 
-    def prism(self, poly, z0, z1, inset=0.0, z2=None):
+    def prism(self, poly, z0, z1, inset=0.0, z2=None, glacis=False):
         """A plan polygon [(x, y), ...] (counter-clockwise) stood up from z0 to z1.
         With an inset, the top steps in by that much on a sloped glacis up to z2,
         which is how a sprite outline becomes faceted armour, not a cookie cut."""
@@ -195,6 +195,10 @@ class Mesh:
             self.bm.faces.new((lo[k], lo[(k+1) % n], hi[(k+1) % n], hi[k]))
         self.bm.faces.new(lo[::-1])
         top = self.bm.faces.new(hi)
+        if glacis:
+            # Without a normal the inset below loses its depth and the roof stays flat at
+            # z1. Older builders were tuned to that flat roof, so the true glacis is opt-in.
+            top.normal_update()
         if inset > 1e-4 and z2 is not None and z2 > z1:
             bmesh.ops.inset_region(self.bm, faces=[top], thickness=inset, depth=z2-z1, use_even_offset=True)
 
@@ -1341,7 +1345,7 @@ def _house_lightmg(g, f, s, r, z0):
     flash hider. The trunnion and muzzle stand where the gun always stood."""
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
-    g['paint'].box((0, 0, z0+.18*k), (10.0*k, 7.4*k, .36*k), .1*k)                     # deck plate
+    g['paint'].box((0, 0, z0+.18*k), (10.0*k, 10.6*k, .36*k), .1*k)                    # deck plate
     for x, w in ((3.8, 2.2), (-2.6, 3.0)):                                              # crossbars
         g['plate'].box((x*k, 0, z0+.62*k), (w*k, 11.8*k, .55*k), .12*k)
         for sy in (1, -1):
@@ -1350,18 +1354,26 @@ def _house_lightmg(g, f, s, r, z0):
             lug.cut().cyl((x*k, sy*5.9*k, z0+.7*k), .25*k, .6*k, 'Y', n=16)             # pin socket
             g['dark'].cyl((x*k, sy*5.62*k, z0+.7*k), .25*k, .06*k, 'Y', n=16)
     for sy in (1, -1):
-        g['steel'].box((.6*k, sy*3.9*k, z0+.55*k), (7.6*k, .7*k, .5*k), .08*k)          # side rails
+        g['steel'].box((.6*k, sy*5.3*k, z0+.55*k), (7.6*k, .7*k, .5*k), .08*k)          # side rails
     g['dark'].box((1.5*k, 0, z0+.37*k), (2.2*k, 3.6*k, .04*k))                         # the well's floor
     for sy in (1, -1):
         g['steel'].box((-5.6*k, sy*2.4*k, z0+.45*k), (1.6*k, 1.8*k, .9*k), .1*k)        # rear feet
-    f.bolt_row(g['steel'], (-4.4*k, 3.3*k, z0+.37*k), (4.4*k, 3.3*k, z0+.37*k))
-    f.bolt_row(g['steel'], (-4.4*k, -3.3*k, z0+.37*k), (4.4*k, -3.3*k, z0+.37*k))
+    f.bolt_row(g['steel'], (-4.4*k, 4.0*k, z0+.37*k), (4.4*k, 4.0*k, z0+.37*k))
+    f.bolt_row(g['steel'], (-4.4*k, -4.0*k, z0+.37*k), (4.4*k, -4.0*k, z0+.37*k))
     za = z0+2.2*k
 
     def gun_parts(gg, za):
         gg['plate'].box((.7*k, 0, za+1.25*k), (2.6*k, 1.9*k, .3*k), .1*k)               # receiver cover
         gg['steel'].cyl((-.4*k, 0, za+1.25*k), .18*k, 2.0*k, 'Y', n=10)                 # its hinge
         gg['steel'].box((2.4*k, -1.2*k, za+.6*k), (.9*k, .5*k, .25*k), .05*k)           # charging handle
+        # A gun shield on the cradle's nose (the sprite's neck block): armoured plate
+        # with its corners cut, the barrel through a slot, riding the elevation.
+        sh = gg['paint#shield']
+        sh.prism([(5.25*k, y*k) for y in (-2.6, 2.6)]+[(5.75*k, y*k) for y in (2.6, -2.6)], za-1.1*k, za+1.3*k)
+        sh.cut().box((5.5*k, 0, za), (1.2*k, 1.3*k, 1.3*k))
+        for sy in (1, -1):
+            sh.cut().box((5.5*k, sy*2.6*k, za+1.3*k), (1.2*k, 1.0*k, 1.0*k), rot=Matrix.Rotation(math.pi/4, 4, 'X'))
+        f.bolt_row(gg['steel'], (5.8*k, -2.1*k, za+.9*k), (5.8*k, 2.1*k, za+.9*k), axis='X')
         rg = gg.sub('recoil 1', (1.0*k, 0, za), .1*r)
         rg['metal'].cyl((7.8*k, 0, za), .55*k, 13.4*k, 'X', n=20, bevel=.06*k)          # barrel
         rg['metal'].cyl((4.6*k, 0, za), .8*k, 2.6*k, 'X', n=20, bevel=.06*k)            # chamber jacket
