@@ -205,6 +205,8 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleTransportService;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderSystem;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderSystem;
+import com.dillon.starsectormarines.battle.squad.ReactiveManningService;
+import com.dillon.starsectormarines.battle.squad.ReactiveManningSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -533,6 +535,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SquadMoveOrderService squadMoveOrders = new SquadMoveOrderService();
     private final SquadMoveOrderSystem squadMoveOrderSystem =
             new SquadMoveOrderSystem(squadMoveOrders);
+    /** The player's GARRISON stance: opted-in squads man nearby places their side believes pressed. */
+    private final ReactiveManningService reactiveManning = new ReactiveManningService();
+    private final ReactiveManningSystem reactiveManningSystem =
+            new ReactiveManningSystem(reactiveManning, squadMoveOrderSystem, squadMoveOrders);
 
     /** Per-faction resource pools (reinforcement tickets, airstrike tickets). Compounds produce; dispatch layers consume. Ticked after compound capture so production reflects freshest capture state. Declared before {@link #reinforcement} so it can be constructor-injected into it. */
     private final BattleResources battleResources = new BattleResources();
@@ -1647,6 +1653,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public SquadMoveOrderService getSquadMoveOrderService() { return squadMoveOrders; }
     /** Applies squad tactical moves at the serialized command boundary. */
     public SquadMoveOrderSystem getSquadMoveOrderSystem() { return squadMoveOrderSystem; }
+
+    /** Which player squads stand in the GARRISON stance, and what each is doing about it. */
+    public ReactiveManningService getReactiveManning() { return reactiveManning; }
     public void setCommandPowerResources(com.dillon.starsectormarines.battle.power.CommandPowerResources resources) {
         commandPowers.setResources(resources);
     }
@@ -2962,6 +2971,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         mechDoctrineSystem.tick(this);
         mechMoveOrderSystem.tick(this);
         squadMoveOrderSystem.tick(this);
+        // After the player's own orders, so a click this tick already stands and the stance yields to it.
+        reactiveManningSystem.tick(this);
         tickProfile.lap(TickProfile.Phase.COMMANDER);
         // Squad-level GOAP replan pass. See SquadReplanSystem class doc for
         // ordering + parallelism notes.

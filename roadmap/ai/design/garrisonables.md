@@ -1,10 +1,10 @@
 # Garrisonables
 
-Status: ACTIVE — reactive manning is shipped for fort-belt fighting positions, and the player's machine assault on a believed-held garrisonable is built; other kinds, and other sides, remain direction.
+Status: ACTIVE — reactive manning is shipped for fort-belt fighting positions and for a player's squads that opt into it, and the player's machine assault on a believed-held garrisonable is built; other kinds, and other sides, remain direction.
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — fort-belt reactive manning shipped (`reactive-belt` scene, steady rallies, trial-ground figures); owner decisions on attackers, player opt-in and machines; the player's machine assault is built.
+Updated: 2026-10-20 — fort-belt reactive manning shipped; owner decisions on attackers, player opt-in and machines; the player's machine assault and the player's opt-in GARRISON stance are built.
 
 ## Why this exists
 
@@ -79,8 +79,10 @@ layer is what a squad falls back to when the one in front of it is lost.
 - **The player's version is manual.** The occupy order is the player assigning
   a garrisonable by hand, and a dragged line order assigns every fighting
   position along a drawn frontage, one fire team per stretch, counting the
-  forward-facing door and window posts of buildings the line crosses. Whether a player's idle squads may opt into reactive
-  manning is opt-in, never a default (see Decided direction). A machine given
+  forward-facing door and window posts of buildings the line crosses. A player's
+  squad may opt into reactive manning with the GARRISON stance, never a default:
+  it mans the pressed places round where it stands, by this doc's laws, and yields
+  to any order the player gives (`ai-nouns.md`, under fighting positions). A machine given
   the same click on a place its side believes is enemy-held assaults it by fire
   from outside instead.
 
@@ -148,8 +150,9 @@ works; each swing was a new route for every rallied squad.
 The assignment tier knows nothing of which side it serves. It is given a side's
 own pressure picture, its free squads and its places, and answers which squad
 mans which place and when it stops; the defender commander is its first caller.
-That is the seam the attacking commander and a player's opted-in squads will use
-(see Decided direction).
+That is the seam the attacking commander will use (see Decided direction). A
+player's opted-in squad answers the same question for itself, one squad and the
+places round it, with the same thresholds (`ReactiveWatch`).
 
 ## How it fits what exists
 
@@ -208,6 +211,12 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
   orders.
 - **A player's idle squads may opt into reactive manning.** It stays opt-in,
   never a default; the manual occupy and line orders remain the primary verbs.
+  Built as the GARRISON stance: a per-squad switch, a watch ring the size of a
+  defend area round the squad's anchor, the runs and held buildings on its own
+  side's ground inside it, and the commander's own thresholds applied at squad
+  scope (`ReactiveWatch`). The fun is the delegation: it reads as a squad given a
+  corner to watch, which jumps into the trench or building the enemy leans on and
+  walks back when the pressure passes.
 - **Machines assault garrisons; they never man them.** Mechs and vehicles take
   no posts, but their weapons make them the natural answer to a held place: an
   order onto an enemy-held building or position is an assault by fire — engage
