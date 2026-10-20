@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.CompanyPrologue;
 import com.dillon.starsectormarines.campaign.start.FoundingReserve;
 import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
+import com.dillon.starsectormarines.campaign.start.SecondWindKeep.Cause;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -42,7 +43,16 @@ public final class CompanyPrologueSnapshotSuite implements SnapshotSuite {
         frames.add(yardFrame(loader, renderer, Stage.COST, false, null));
         frames.add(yardFrame(loader, renderer, Stage.COST, false,
                 Strings.format("openingCompanyYardTheConversionRequiresCredits", MercenaryCompanyConversion.CREDIT_COST)));
+        frames.add(buyBackFrame(loader, renderer, Cause.BATTLE, 473, 2250, "Compromised Armor", "buyback-1-battle-debt-100.png"));
+        frames.add(buyBackFrame(loader, renderer, Cause.SOLD, 6000, 3100, "Faulty Grid", "buyback-2-sold-100.png"));
+        frames.add(buyBackFrame(loader, renderer, Cause.SCUTTLED, 4000, 2250, null, "buyback-3-scuttled-at-cap-100.png"));
         return frames;
+    }
+    /** Getting Second Wind back after each kind of loss: the bill, the account, and the d-mod she carries. */
+    private SnapshotArtifact buyBackFrame(MarkupLoader loader, HeadlessUiRenderer renderer, Cause cause,
+                                          int credits, int bill, String dMod, String name) {
+        var props = SecondWindBuyBackScreen.model(cause, "Second Wind", "Jangala", credits, bill, dMod, () -> {}, () -> {});
+        return renderFrame(loader, renderer, props, name);
     }
     /**
      * Reserved frames follow the protected start: Castle's chits pay the bill, and the account is the starting one.

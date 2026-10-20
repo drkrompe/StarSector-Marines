@@ -3,9 +3,8 @@ package com.dillon.starsectormarines.campaign.start;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 
 /**
- * The Second Wind in a yard after a loss: which yard, when she went in, and what the yard will charge.
- * Saved in sector persistent data; the member is the same fleet member she was, so her id, name, refits and
- * the company's saved interior state all come back with her.
+ * Legacy: the 2026-10-20 build sent a lost Second Wind to a yard for three weeks. Kept only so a save holding one
+ * still loads; {@link SecondWindKeeper} turns it into a {@link SecondWindLoss} on load.
  */
 public final class SecondWindYardOrder {
 

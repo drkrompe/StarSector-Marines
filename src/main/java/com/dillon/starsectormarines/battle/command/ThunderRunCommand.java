@@ -16,10 +16,13 @@ public final class ThunderRunCommand implements AutonomousMissionCommand<Thunder
     private final RelayNineTactics tactics = new RelayNineTactics();
     private final Map<Integer, Integer> detachments = new LinkedHashMap<>();
     private volatile Picture picture;
+    /** The defender's finite pool on the shared counter-attack (`place-counterattack.md`); {@code null} for the other sides. */
+    private final SiteCounterattack counter;
     public ThunderRunCommand(Faction faction) {
         if (faction != Faction.MARINE && faction != Faction.ALLY && faction != Faction.DEFENDER)
             throw new IllegalArgumentException("Thunder Run requires a fighting faction");
         this.faction = faction;
+        this.counter = faction == Faction.DEFENDER ? new SiteCounterattack(3, 1, 5) : null;
     }
     public static String issuer(Faction faction) { return "thunder-run:" + faction; }
     @Override public Faction faction() { return faction; }
@@ -32,6 +35,9 @@ public final class ThunderRunCommand implements AutonomousMissionCommand<Thunder
         tactics.observe(states);
         List<CommandProposal> proposals = new ArrayList<>();
         List<Duty> duties = new ArrayList<>();
+        Map<Integer, SiteCounterattack.Duty> retake = counter != null && PlaceCounterattack.isEnabled()
+                ? counter.plan(frame.tick(), sites, owned(frame), frame.squads(), frame.influence(), frame.topology(), "FREIGHT")
+                : null;
         for (var squad : frame.squads()) {
             if (squad.aliveMembers() <= 0) continue;
             var old = squad.directive();
@@ -51,6 +57,14 @@ public final class ThunderRunCommand implements AutonomousMissionCommand<Thunder
                     && states.stream().allMatch(state -> state == CompoundState.MARINE_HELD);
             boolean companyDefense = hold || corridorOpen;
             var place = sites.get(site);
+            SiteCounterattack.Duty duty = retake == null ? null : retake.get(squad.squadId());
+            if (duty != null) {
+                ObjectiveAssignment assignment = same(old.assignment(), duty.assignment()) ? old.assignment() : duty.assignment();
+                proposals.add(CommandProposal.assign(assignment, CommandAuthority.MISSION_COMMAND, duty.reason(),
+                        assignment == old.assignment() ? CommandStabilityBreak.NONE : CommandStabilityBreak.CONTEXT_INVALIDATED));
+                duties.add(new Duty(squad.squadId(), site, duty.reason()));
+                continue;
+            }
             String reason = hold ? "FREIGHT_DEFEND_DISPATCH_WINDOW" : corridorOpen ? "FREIGHT_SCREEN_FINAL_CROSSING"
                     : faction == Faction.MARINE ? "FREIGHT_SECURE_SITE"
                     : faction == Faction.DEFENDER ? "FREIGHT_RETAKE_GAIN"
@@ -70,7 +84,22 @@ public final class ThunderRunCommand implements AutonomousMissionCommand<Thunder
         return new CommandPlan<>(faction, strategyId(), faction == Faction.ALLY ? "HOLD_GAINS"
                 : faction == Faction.MARINE ? "OPEN_FREIGHT_CORRIDOR" : "FINITE_COUNTERATTACK", frame.tick(),
                 frame.influence() == null ? -1 : frame.influence().updatedTick(), duties.size(), 0,
-                duties.stream().map(d -> ThunderRunCompound.SITE_NAMES.get(d.site())).distinct().toList(), proposals, new Picture(duties));
+                summaries(duties), proposals, new Picture(duties));
+    }
+    private List<String> summaries(List<Duty> duties) {
+        List<String> out = new ArrayList<>(duties.stream().map(d -> ThunderRunCompound.SITE_NAMES.get(d.site())).distinct().toList());
+        if (counter != null && PlaceCounterattack.isEnabled()) out.addAll(counter.notes());
+        return out;
+    }
+    /** The squads this commander moves: alive and under its own mission directive. */
+    private List<CommandSquadState> owned(ThunderRunCommandFrame frame) {
+        List<CommandSquadState> out = new ArrayList<>();
+        for (var squad : frame.squads()) {
+            var old = squad.directive();
+            if (squad.aliveMembers() > 0 && old != null && old.authority() == CommandAuthority.MISSION_COMMAND
+                    && strategyId().equals(old.issuer())) out.add(squad);
+        }
+        return out;
     }
     private static boolean same(ObjectiveAssignment a, ObjectiveAssignment b) {
         return a != null && a.kind() == b.kind() && a.targetZoneId() == b.targetZoneId()
