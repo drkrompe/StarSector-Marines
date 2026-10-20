@@ -108,6 +108,19 @@ public final class VehicleControlSystem {
      * {@code vehicle-as-commandable-unit.md}.
      */
     public void tick(long id, float dt, float[] xs, float[] ys, VehicleLeg leg) {
+        tick(id, dt, xs, ys, leg, Float.NaN);
+    }
+
+    /**
+     * {@link #tick(long, float, float[], float[], VehicleLeg)} for a route that
+     * must finish on {@code goalFacingDeg}, as a player's dragged move order
+     * does. A finite heading lets the terminal Reeds-Shepp docking maneuver
+     * engage on any leg, landing the hull on that heading where the ground
+     * allows it; {@code NaN} leaves the leg's own docking rule alone. Where no
+     * feasible maneuver exists the vehicle arrives on whatever heading it drove
+     * in on, as an undragged order does.
+     */
+    public void tick(long id, float dt, float[] xs, float[] ys, VehicleLeg leg, float goalFacingDeg) {
         VehicleMission mission = convoy.mission(id);
         GroundBody body = convoy.body(id);
         VehicleType type = convoy.vehicleType(id);
@@ -119,7 +132,7 @@ public final class VehicleControlSystem {
         }
 
         float previousX = body.x, previousY = body.y, previousFacing = body.facingDegrees;
-        advance(mission, body, type, s, xs, ys, dt, leg);
+        advance(mission, body, type, s, xs, ys, dt, leg, goalFacingDeg);
         if (type.hasAnimatedTreads()) {
             body.recordVisualTravel(previousX, previousY, previousFacing);
         }
@@ -217,7 +230,8 @@ public final class VehicleControlSystem {
      * shared wall-stuck reverse stub wrapping the kinematic move.
      */
     private void advance(VehicleMission mission, GroundBody body, VehicleType type,
-                         VehicleControlComponent s, float[] xs, float[] ys, float dt, VehicleLeg leg) {
+                         VehicleControlComponent s, float[] xs, float[] ys, float dt, VehicleLeg leg,
+                         float goalFacingDeg) {
         // Keep the advisory cursor abreast of the pose so remainingLength /
         // the rolling goal measure from the current segment.
         s.corridor.advance(body.x, body.y);
@@ -268,8 +282,10 @@ public final class VehicleControlSystem {
         // A running maneuver owns the pose whichever direction it serves: an
         // arrival dock inbound, a departure turnaround outbound.
         if (s.dockingPath != null) { advanceDocking(mission, body, type, s, dt); return; }
-        if (leg.docksOnArrival()) {
-            tryEngageDocking(mission, body, type, s, xs, ys);
+        boolean orderedFacing = !Float.isNaN(goalFacingDeg);
+        if (leg.docksOnArrival() || orderedFacing) {
+            tryEngageDocking(body, type, s, xs, ys,
+                    orderedFacing ? goalFacingDeg : mission.lzDepartureFacingDeg);
             if (s.dockingPath != null) { advanceDocking(mission, body, type, s, dt); return; }
         }
 
@@ -757,32 +773,32 @@ public final class VehicleControlSystem {
 
     /**
      * Try to switch the inbound truck from pursuit to a Reeds-Shepp docking
-     * maneuver when within {@link VehicleController#DOCKING_TRIGGER_CELLS} of the
-     * LZ. The candidate RS path is footprint-checked along its length; if any pose
+     * maneuver onto {@code goalFacingDeg} when within
+     * {@link VehicleController#DOCKING_TRIGGER_CELLS} of the LZ (or of an ordered
+     * destination that names its heading). The candidate RS path is footprint-checked along its length; if any pose
      * is non-walkable, docking stays off this tick (pursuit then delivers the truck
      * to the LZ via the corridor).
      */
-    private void tryEngageDocking(VehicleMission mission, GroundBody body, VehicleType type,
+    private void tryEngageDocking(GroundBody body, VehicleType type,
                                   VehicleControlComponent s,
-                                  float[] xs, float[] ys) {
+                                  float[] xs, float[] ys, float goalFacingDeg) {
         long started = VehicleWorkProfile.start();
         try {
-            tryEngageDockingInner(mission, body, type, s, xs, ys);
+            tryEngageDockingInner(body, type, s, xs, ys, goalFacingDeg);
         } finally {
             VehicleWorkProfile.finish(Bucket.VEHICLE_DOCKING_PROBE, started);
         }
     }
 
-    private void tryEngageDockingInner(VehicleMission mission, GroundBody body, VehicleType type,
-                                      VehicleControlComponent s, float[] xs, float[] ys) {
+    private void tryEngageDockingInner(GroundBody body, VehicleType type,
+                                      VehicleControlComponent s, float[] xs, float[] ys,
+                                      float lzFacingDeg) {
         if (!(body instanceof BicycleBody)) return;
         int lastIdx = xs.length - 1;
         float lzX = xs[lastIdx];
         float lzY = ys[lastIdx];
         float distToLz = body.distanceTo(lzX, lzY);
         if (distToLz > VehicleController.DOCKING_TRIGGER_CELLS) return;
-
-        float lzFacingDeg = mission.lzDepartureFacingDeg;
 
         Pose start = new Pose(body.x, body.y, body.facingDegrees);
         Pose goal = new Pose(lzX, lzY, lzFacingDeg);

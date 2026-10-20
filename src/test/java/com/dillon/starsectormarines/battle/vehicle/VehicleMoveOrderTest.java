@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
@@ -86,6 +87,35 @@ class VehicleMoveOrderTest {
         assertNull(rig.orders().activeOrder(rig.id()),
                 "an order that completed is no longer active");
         assertNull(rig.orders().refusal(rig.id()), "and completing is not a refusal");
+    }
+
+    @Test
+    void aDraggedHeadingIsTheHeadingTheVehicleFinishesOn() {
+        // Facing east, sent east, told to finish facing north (+Y): only the docking maneuver turns it.
+        Rig rig = apcOn(openField(), -90f);
+        rig.orders().requestMove(rig.id(), 40, 30, 0f);
+
+        run(rig, 40f);
+
+        assertNull(rig.orders().activeOrder(rig.id()), "the order completed");
+        assertNull(rig.orders().refusal(rig.id()));
+        assertTrue(rig.body().distanceTo(40.5f, 30.5f) < 3f,
+                "at " + rig.body().x + "," + rig.body().y);
+        assertEquals(0f, LayeredAppearance.wrapDegrees(rig.body().facingDegrees), 5f,
+                "finishes on the dragged heading");
+    }
+
+    @Test
+    void aHeadingOnTheCellItStandsOnTurnsItThere() {
+        Rig rig = apcOn(openField(), -90f);
+        rig.orders().requestMove(rig.id(), 20, 30, 90f);
+
+        run(rig, 30f);
+
+        assertNull(rig.orders().activeOrder(rig.id()), "the order completed");
+        assertTrue(rig.body().distanceTo(20.5f, 30.5f) < 3f,
+                "at " + rig.body().x + "," + rig.body().y);
+        assertEquals(90f, LayeredAppearance.wrapDegrees(rig.body().facingDegrees), 5f);
     }
 
     @Test

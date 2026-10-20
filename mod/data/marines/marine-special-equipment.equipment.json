@@ -51,6 +51,16 @@
           "firingOcclusion": "over-body",
           "replacePrimaryWhileUsing": true
         },
+        "packedLayer": {
+          "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher-packed.png",
+          "attachment": "body",
+          "widthShoulders": 0.30,
+          "heightShoulders": 0.96,
+          "pivot": [0.5, 0.5],
+          "offsetShoulders": [0.0, -0.2],
+          "angleDegrees": 90.0,
+          "occlusion": "over-body"
+        },
         "layerClips": {
           "variant": "rocket",
           "using": "aiming",
@@ -103,6 +113,16 @@
           "recoilShoulders": 0.055,
           "firingOcclusion": "over-body",
           "replacePrimaryWhileUsing": true
+        },
+        "packedLayer": {
+          "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher-packed.png",
+          "attachment": "body",
+          "widthShoulders": 0.30,
+          "heightShoulders": 0.96,
+          "pivot": [0.5, 0.5],
+          "offsetShoulders": [0.0, -0.2],
+          "angleDegrees": 90.0,
+          "occlusion": "over-body"
         },
         "layerClips": {
           "variant": "rocket",

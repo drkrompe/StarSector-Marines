@@ -154,10 +154,16 @@ def seams(kit):
     import wf_kit
     for k, x in enumerate((8.0, 24.0, -12.0, 38.0), 4):
         clear = 6.2 if x > 30 else 4.4
-        # (the merchant's aft turret sponsons start at |Y| 6.6: the joint stops short of them)
-        outer = 6.4 if x < -6 and wf_kit.VARIANT == 'merchant' else 13.8
+        # (aft, the pirate's armour domes and the merchant's turret sponsons start
+        # outboard of |Y| 6.6: the joint stops short of them rather than draping over)
+        outer = 6.4 if x < -6 else 13.8
         for side_, s in SIDES:
             pts = [down(kit, x, s*(clear+(outer-clear)*i/14)) for i in range(15)]
+            # A joint ends where the deck does: stop at the first step onto a fitting.
+            for i in range(1, len(pts)):
+                if pts[i][0] is None or pts[i-1][0] is None or abs(pts[i][0].z-pts[i-1][0].z) > .25:
+                    pts = pts[:i]
+                    break
             strip(kit, f'Hull deck seam {k} {side_}', pts, .22, .07, d)
     # The prow and the bridge roof.
     pts = [down(kit, 48.2, y) for y in [3.9+.2*i for i in range(7)]]

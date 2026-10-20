@@ -56,7 +56,11 @@ When a job in an earlier lane arrives, a running review or final with frames
 still to render after the current one is **swapped out at its next frame
 boundary**. The runner waits for the frame in progress to land, however long
 that takes, then stops the job cleanly. It runs the earlier job, then
-relaunches the swapped-out one. Preemption never stops a frame mid-render.
+relaunches the swapped-out one. Preemption never stops a frame mid-render. A
+job is only swapped out once it has rendered for `preempt_min_run_seconds`
+(20 minutes) since its last launch, because every swap costs it a scene
+rebuild. So a light job can wait up to 20 minutes, and should batch a whole
+review round into one job rather than one job per part or view.
 
 A job without a `frames` check, or one on its last frame, is not swapped:
 it finishes first, then the earlier lane goes next. That includes a long
@@ -202,7 +206,7 @@ a reboot.
 
 `config.json` belongs to the render coordinator. Besides gates, holds and
 priority overrides it holds:
-- `preempt`
+- `preempt` and `preempt_min_run_seconds`
 - `swap_at_frame_boundary` and `swap_wait_max_seconds`
 - `mac_swap`: `stop` (the default, which frees memory) or `freeze` (SIGSTOP)
 - `low_priority`

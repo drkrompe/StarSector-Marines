@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -64,7 +65,7 @@ public final class LowQuay {
                 new FinalizeStage(), new OutdoorLandscapeStage(LANDING_X, LANDING_Y, RECORDS_X, RECORDS_Y,
                         KIT_X, KIT_Y, LOAD_X, LOAD_Y, CROSS_X, CROSS_Y, RESERVE_X, RESERVE_Y))).run(c);
         var map = new MapResult(c.grid, c.topology, LANDING_X, LANDING_Y, RESERVE_X, RESERVE_Y,
-                c.pois, c.doodads, new TacticalMap(List.of()), c.get(BspKeys.BUILDINGS), List.of(), null, c.landingPads);
+                c.pois, c.doodads, new TacticalMap(HeldPlaces.fromBuildings(c.pois, poi -> Faction.DEFENDER)), c.get(BspKeys.BUILDINGS), List.of(), null, c.landingPads);
         for (int[] point : new int[][]{{RECORDS_X,RECORDS_Y},{KIT_X,KIT_Y},{LOAD_X,LOAD_Y},{CROSS_X,CROSS_Y},{RESERVE_X,RESERVE_Y}})
             if (GridPathfinder.findPath(map.grid, LANDING_X, LANDING_Y, point[0], point[1]).length == 0)
                 throw new IllegalStateException("Disconnected Low Quay objective at " + point[0] + "," + point[1]);

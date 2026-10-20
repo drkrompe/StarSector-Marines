@@ -111,7 +111,7 @@ def build(kit):
         kit.box(f'Hull {side} outrigger vent well', (37.2, s*15.95, .6), (4.4, .5, 2.4), dark, 0)
         for k, x in enumerate((35.8, 36.7, 37.6, 38.5), 1):
             kit.box(f'Hull {side} outrigger vent slat {k}', (x, s*16.05, .6), (.35, .4, 2.2),
-                    kit.vent if s < 0 else steel, 0)
+                    steel, 0)   # not lit: the Wolf has no lights layer, and vents never glow (ship-detail-guide.md)
 
     # --- Main body: emitter wells. ---
     for side, s in sides:

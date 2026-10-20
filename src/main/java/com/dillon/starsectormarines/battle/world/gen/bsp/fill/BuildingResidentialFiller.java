@@ -13,7 +13,9 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
  * {@link BlockFiller} for {@link BlockKind#BUILDING_RESIDENTIAL} leaves. Carves
  * domestic room plans on ordinary lots. Medium and large homes separate sleep,
  * cooking/dining and living space; fitting large lots may keep a medium home
- * inside a fenced garden instead. Apartment compounds retain their common halls.
+ * inside a fenced garden instead. An ordinary lot is always a home, however
+ * large: the apartment plan with its common hall belongs to
+ * {@link GatedHousingFiller}'s compounds alone.
  *
  * <p>Fitting lots also draw from {@link BuildingStamp}'s rotated authored plans.
  * The procedural alternatives are carved by {@link BuildingShellCore}.
@@ -27,16 +29,6 @@ public final class BuildingResidentialFiller implements BlockFiller {
             BuildingLayouts.LayoutRecipe.HOME,
             BuildingKind.RESIDENTIAL);
 
-    static final BuildingShellCore.BuildingConfig APARTMENT_CONFIG =
-            new BuildingShellCore.BuildingConfig(
-                    GroundKind.INDOOR,
-                    "RESIDENTIAL",
-                    PointOfInterest.Kind.RESIDENTIAL,
-                    BuildingLayouts.LayoutRecipe.APARTMENT_BLOCK,
-                    BuildingKind.RESIDENTIAL,
-                    null,
-                    ResidentialPartitionStrategy.DEFAULT);
-
     @Override
     public BlockKind kind() { return BlockKind.BUILDING_RESIDENTIAL; }
 
@@ -45,16 +37,10 @@ public final class BuildingResidentialFiller implements BlockFiller {
         BuildingPlacement.Side front=streetFrontage(leaf,ctx);
         if (LotYardTemplate.tryPlace(leaf,ctx,HOME_CONFIG,front)) return;
         if (BuildingStamp.tryPlace(leaf, ctx, BuildingKind.RESIDENTIAL)) return;
-        BuildingShellCore.BuildingConfig config = HOME_CONFIG;
         BuildingPlacement placement = new BuildingPlacement(front, true);
         PointOfInterest poi = BuildingShellCore.carve(
-                leaf, ctx.grid, ctx.topology, ctx.doodads, ctx.rng, config, placement);
+                leaf, ctx.grid, ctx.topology, ctx.doodads, ctx.rng, HOME_CONFIG, placement);
         if (poi != null) ctx.pois.add(poi);
-    }
-
-    static boolean qualifiesForApartment(BlockLeaf leaf) {
-        return Math.max(leaf.width(), leaf.height()) >= ResidentialPartitionStrategy.MIN_LONG_DIM
-                && Math.min(leaf.width(), leaf.height()) >= ResidentialPartitionStrategy.MIN_SHORT_DIM;
     }
 
     /** Selects the facade with the strongest direct exposure to the BSP road mask. */

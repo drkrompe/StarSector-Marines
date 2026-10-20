@@ -201,8 +201,9 @@ class MechDirectControlSessionTest {
         assertEquals(-1f, session.intent().moveY());
         assertEquals(20f, session.intent().aimX());
         assertFalse(session.intent().firing());
-        for (int invalid : new int[]{-1, 3, 4}) assertFalse(session.selectWeapon(invalid));
-        assertEquals(2, session.selectedWeapon(), "indirect and invalid choices cannot change selection");
+        assertTrue(session.canSelectWeapon(3), "an arcing rack is aimed at the cursor point too");
+        for (int invalid : new int[]{-1, 4}) assertFalse(session.selectWeapon(invalid));
+        assertEquals(2, session.selectedWeapon(), "invalid choices cannot change selection");
         session.suspendInput();
         assertEquals(2, session.selectedWeapon(), "pause and chrome suspension retain equipment choice");
         session.exit();

@@ -4,10 +4,11 @@ Status: SHIPPED — folded legacy AI implementation stories.
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — folded fighting positions and their occupation follow-up.
+Updated: 2026-10-20 — folded the machine garrison assault.
 
 | Retired story | Ship date | Evidence | Fold destination |
 |---|---|---|---|
+| `machine-garrison-assault.md` | 2026-10-20 | this change; `MachineAssaultOrderTest` and the four-loop `machine-assault` scene (mech, tank, empty-building control, mech with clear-and-hold infantry) | `ai-nouns.md` (machine assault under fighting positions, mech tactical move); `garrisonables.md`; `convoy-nouns.md`; `phased-assault.md` (wall fire) |
 | `fighting-position-occupation.md` | 2026-10-13 | occupy order and overlay, Conquest position counts, belt-post structure defence, belt-nest garrisons, destructible fort sandbags; fort control: 20 belt squads hold their trenches dug in | `ai-nouns.md` (occupy, belt garrisons); `mapgen-nouns.md`; `forts.md`; `conquest-nouns.md`; `moddable-tilesets-nouns.md`; fort fixture in `CLAUDE.md` |
 | `fighting-positions.md` | 2026-10-13 | `bd9a60f7b`, `1031d77f8`, `22690feaa` and the fold commit; unit tests plus the five-loop `fighting-position` scene (composure isolation, fill, hold under live fire, overflow) | `ai-nouns.md` (fighting positions); `mapgen-nouns.md` (prepared ground) |
 | `district-patrol-work-budget.md` | 2026-09-27 | `2372adc75`, `de08ea3bb`; 199 focused tests, independently controlled JFR pair and paced eight-mech replay; bounded work verified, not a general tail-latency guarantee | `ai-nouns.md` (optional district waypoints); independent controls and counters in `conquest-tail-profile.md` |

@@ -31,12 +31,13 @@ public final class TacticalMap {
     /**
      * Adds a node discovered after the link pass, at generation time only.
      *
-     * <p>One caller, and the reason is ordering rather than convenience: the
-     * beachhead is made of the arrival areas, and those are authored by the
+     * <p>Callers add a node the recipe could not know about when it linked the map. The first is the
+     * beachhead, which is made of the arrival areas, and those are authored by the
      * last stage in the recipe — after the terrain, the walls and the
      * emplacements every berth has to be clear of, and therefore after the map
      * was built and linked. A node added here carries no links, which is
-     * honest: nothing overwatches or supplies a beachhead.
+     * honest: nothing overwatches or supplies a beachhead. The second is a procedural map a story mission
+     * publishes its buildings on as held places after generation.
      *
      * <p>Same lifecycle contract as {@link TacticalNode#setCompoundBounds}:
      * called during map generation, never at runtime. Treat the map as frozen

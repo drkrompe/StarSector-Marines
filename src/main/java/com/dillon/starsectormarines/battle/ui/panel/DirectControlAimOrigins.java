@@ -21,7 +21,8 @@ public final class DirectControlAimOrigins {
         int fired = MechFireGroups.leftMask(loadout.mounts(), selected)
                 | MechFireGroups.rightMask(loadout.mounts(), selected);
         for (var mount : loadout.mounts()) {
-            if (!HeavyWeapons.supportsPointFire(mount) || !MechFireGroups.contains(fired, mount)) continue;
+            // An arcing rack flies over walls, so a lane from its muzzle would say nothing true.
+            if (!HeavyWeapons.firesFlat(mount) || !MechFireGroups.contains(fired, mount)) continue;
             var muzzle = MechHardpointGeometry.muzzle(x, y, waistX, waistY,
                     loadout.torsoFacingDegrees, loadout, mount, MechHardpointGeometry.nextReleaseIndex(mount));
             origins.add(new Origin(muzzle.x(), muzzle.y(), x, y));

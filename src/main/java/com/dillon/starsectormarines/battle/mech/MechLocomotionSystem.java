@@ -21,12 +21,23 @@ public final class MechLocomotionSystem {
     private final BattleComponents components;
     private final UnitRosterService roster;
     private final Query mechs;
+    private final MechMoveOrderService orders;
 
     public MechLocomotionSystem(EntityWorld world, BattleComponents components,
                                 UnitRosterService roster) {
+        this(world, components, roster, null);
+    }
+
+    /**
+     * @param orders source of the hip heading a finished player move order left
+     *               a standing mech holding; {@code null} when nothing orders mechs
+     */
+    public MechLocomotionSystem(EntityWorld world, BattleComponents components,
+                                UnitRosterService roster, MechMoveOrderService orders) {
         this.world = world;
         this.components = components;
         this.roster = roster;
+        this.orders = orders;
         this.mechs = world.query(new ComponentType[]{components.MECH_LOCOMOTION,
                 components.POSITION, components.HEALTH}, null);
     }
@@ -59,8 +70,10 @@ public final class MechLocomotionSystem {
                 int rowCellY = (int) Math.floor(posY[row]);
                 // Crippled legs cannot walk the route, so the hips answer the fight instead of it:
                 // the chassis pivots onto its target like one with no route at all.
-                if (hasMovement && pathIdx[row] < Paths.cellCount((int[]) paths[row])
-                        && !MechSectionModifier.crippled(roster.world(), id)) {
+                boolean crippled = MechSectionModifier.crippled(roster.world(), id);
+                if (hasMovement && pathIdx[row] < Paths.cellCount((int[]) paths[row]) && !crippled) {
+                    // Walking anywhere ends the heading a move order left the mech standing on.
+                    if (orders != null) orders.releaseHeldFacing(id);
                     MovementService movement = roster.movement();
                     if (movement.continuousRoute(id) != null) {
                         int next = movement.nextWaypointIndex(id);
@@ -89,6 +102,13 @@ public final class MechLocomotionSystem {
                         // — a per-cell stutter-step.
                         MechLocomotion.stopTurning(world, components, id, dt);
                     }
+                    continue;
+                }
+                // A dragged move order told the hips which way to stand. That outranks the target: the
+                // torso twists to keep fighting while the legs and their armour point where they were put.
+                float held = orders == null || crippled ? Float.NaN : orders.heldFacing(id);
+                if (!Float.isNaN(held)) {
+                    MechLocomotion.turnToward(world, components, id, held, dt);
                     continue;
                 }
                 long target = hasCombat ? targets[row] : 0L;
