@@ -2,7 +2,7 @@
 
 Status: DRAFT — blockout round 7 in code, not yet rendered (last posted run: round 6). Hull builds nearly all finished.
 Written: 2026-10-19
-Updated: 2026-10-20 — round 7 staged on Windows: --check clean, Colossus is colossus/139e8b8b6, render cost measured (S6 about 1.5-2 h).
+Updated: 2026-10-20 — round 7 staged but the render is held (owner); the fight is reviewed as layout diagrams (fight_layout.py) first.
 
 The cinematic of the fighting that brought the Colossus and the Shepherd
 **Morrow** down onto Asharu, three cycles before the Shepherd-recovery arc. The
@@ -219,7 +219,7 @@ Each manifest is the build folder's `manifest.json`, renamed as shown. When a bu
 - **Stand-ins** are the sprite's silhouette raised into a lens shape and painted with the sprite. A stand-in reads as the right hull at the right size and nothing more.
 - **Effects** (tracers, placeholder blasts, drive plumes, entry plasma) are placeholders for the VFX kit.
 
-To check a scene without rendering, run `python battle_blockout.py --check`. It prints where every ship lands in every key frame, and whether each shot can bear (see Gunnery). `--frames k3b,k5` renders only those frames, and `--skip-render --post <machine> --what <slug>` posts a run to `review/cinematic-asharu-battle/`.
+To check a scene without rendering, run `python battle_blockout.py --check`; `python fight_layout.py` draws the same staging as diagrams. It prints where every ship lands in every key frame, and whether each shot can bear (see Gunnery). `--frames k3b,k5` renders only those frames, and `--skip-render --post <machine> --what <slug>` posts a run to `review/cinematic-asharu-battle/`.
 
 ## Where it stands, and the next step
 
@@ -243,10 +243,15 @@ To check a scene without rendering, run `python battle_blockout.py --check`. It 
     each frame adds about 5 min.
   - **Windows: about 2 h. Mac: about 3 h**, from C1's measured rate there (about 200 s a frame,
     against 2-3 min on Windows), and not timed directly.
+- **Held (owner, 2026-10-20): not ready for a production render.** The fight is reviewed
+  as layout diagrams first: `python fight_layout.py` draws an overview and one sheet per key
+  frame (the camera's frame as a schematic, plan and side views, every line of fire) from this
+  script's own staging, with no render, into `build/asharu-battle/layout/`.
 - **Next step:**
-  1. Render the set above, by night, through the owner.
-  2. Post with `--what round7-gunnery-cookoff`, then prune.
-  3. S10 (k5) is not in that set. Re-render it only once the owner settles its camera.
+  1. Settle the staging on the layout sheets.
+  2. Then render the set above, by night, through the owner.
+  3. Post with `--what round7-gunnery-cookoff`, then prune.
+  4. S10 (k5) is not in that set. Re-render it only once the owner settles its camera.
 
 ## Open for the owner
 
