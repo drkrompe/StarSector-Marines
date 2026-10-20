@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-14 — line orders preview as ghost rings where each marine will stand.
+Updated: 2026-10-20 — direct-control HUD split into a labelled status panel (bottom left) and weapon groups by button (bottom right).
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -664,33 +664,34 @@ framing and viewport-relative lead. All pointer aim uses the resulting camera
 projection. Look-ahead resets on takeover and eases back when the cursor enters
 chrome or leaves the battlefield.
 
-Active control uses a thin bottom-center equipment strip: color-only armor and
-health or structure lines above the weapon groups, with armor on top. Filled
-lengths read the exact controlled body; armor depletion empties its line without
-changing the health line, and armorless bodies have no armor fill. Identity,
-durability labels, and numeric capacity values do not occupy this strip.
-Equipped Marine shield and smoke cards share its weapon row without increasing
-the strip height. E and G identify their keyboard commands; the cards are
-readouts, so pointing at them does not choose a smoke target. They display the
+Active control follows the game's own combat HUD and keeps the centre clear.
+A status panel at bottom left names the body and reads HULL (or HEALTH), ARMOR,
+FLUX and a Marine's STAMINA as labelled bars with percentages, beside a Mech's
+section doll. A weapon-groups panel at bottom right lists equipment under the
+button that fires it, each group headed by an LMB, RMB or KEYS badge. Both panels
+measure their rows and hug the bottom edge; text uses the game's Insignia face
+for values and names. Filled lengths read the exact controlled body; armor
+depletion empties its bar without changing health, and armorless bodies have no
+armor row. Equipped Marine shield and smoke rows sit under KEYS, marked E and G;
+the rows are readouts, so pointing at them does not choose a smoke target. They display the
 equipment's actual readiness, active or throw clock, shield soak, and remaining
 canisters. Unequipped abilities have no placeholder card.
-A controlled Marine also has a read-only Shift sprint card with a distinct
-stamina bar. It projects that individual's battle resource, including active
-sprint and exhaustion, within the existing row height. Sprint belongs to every
+A controlled Marine also has a STAMINA row in the status panel. It projects that
+individual's battle resource, reading RUN while sprinting and REST while
+exhausted. Sprint belongs to every
 controllable Marine and is absent for Mechs and APCs; it is not inferred from
 the armor or health bars. Both Shift keys are held inputs, with releases
 observed before chrome consumes events. Input cancellation clears sprint and
 physical release reconciliation never activates it.
-Weapon cards show authored firing patterns, resource units, and
+Weapon rows show authored firing patterns, resource units, and
 recovery or burst state without claiming legal aim or barrel clearance. A Mech
 offers all direct mounts or one installed hardpoint through buttons and keys
 1–4; indirect mounts are read-only and retain their unavailability in manual
 control. The selection projects the battle-owned session and does not edit
-equipment or AI doctrine. All remains with the Mech weapon groups; Exit and Pause
-occupy separate top-right buttons. The world retains health bars, the controlled bracket,
-and the aim crosshair. Camera framing reserves clearance above the strip; when
-world-edge clamping would leave the body under it, the strip docks at the top
-below the session buttons.
+equipment or AI doctrine. Exit and Pause occupy separate top-right buttons. The
+world retains health bars, the controlled bracket, and the aim crosshair. When
+world-edge clamping puts the body under a corner panel, that panel fades and
+passes the pointer through instead of moving.
 
 A thin, faint world aim lane runs from the controlled weapon's firing origin
 toward the pointer. A small amber marker reports the first observed structural
@@ -714,8 +715,8 @@ Hidden projections continue
 to refresh, so handback restores current information and the existing selection.
 Entry cancels armed command-power and tactical-order targeting, clears retained focus
 and pointer capture, and dismisses retreat confirmation without abandoning the
-battle. The equipment strip and session buttons own only their separate visible
-bounds; the intervening world remains interactive. Movement and fire stop over
+battle. The status and weapon-groups panels and the session buttons own only their
+separate visible bounds; the intervening world remains interactive. Movement and fire stop over
 either surface. The host snapshots releases before chrome consumption, so a swallowed
 release cannot leave a key or trigger held.
 

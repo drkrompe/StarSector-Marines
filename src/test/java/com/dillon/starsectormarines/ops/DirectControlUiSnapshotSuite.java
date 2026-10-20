@@ -93,12 +93,12 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         }
         for (var carrier : List.of(BattleDirectControlStatus.Carrier.MARINE,
                 BattleDirectControlStatus.Carrier.MECH, BattleDirectControlStatus.Carrier.VEHICLE)) {
-            try (var fixture = BattleDirectControlHudTest.fixture(context.modRoot(),
-                    BattleDirectControlHudTest.preview(carrier, false), 0, false,
+            var snapshot = carrier == BattleDirectControlStatus.Carrier.MECH
+                    ? BattleDirectControlHudTest.triggered(0) : BattleDirectControlHudTest.preview(carrier, false);
+            try (var fixture = BattleDirectControlHudTest.fixture(context.modRoot(), snapshot, 0, false,
                     ignored -> {}, () -> {}, () -> {})) {
-                artifacts.add(new SnapshotArtifact("action-" + carrier.name().toLowerCase(Locale.ROOT)
-                        + ".png", renderer.render(fixture.document(),
-                        (int) BattleDirectControlOverlay.ACTION_WIDTH, (int) BattleDirectControlOverlay.ACTION_HEIGHT)));
+                artifacts.add(new SnapshotArtifact("panels-" + carrier.name().toLowerCase(Locale.ROOT)
+                        + ".png", panels(renderer, fixture)));
             }
         }
         for (int state = 0; state < 4; state++) {
@@ -106,16 +106,13 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                     BattleDirectControlHudTest.abilityPreview(state), 0, false,
                     ignored -> {}, () -> {}, () -> {})) {
                 String phase = new String[]{"full", "running", "empty", "recovering"}[state];
-                artifacts.add(new SnapshotArtifact("action-abilities-sprint-" + phase + ".png",
-                        renderer.render(fixture.document(), (int) BattleDirectControlOverlay.ACTION_WIDTH,
-                                (int) BattleDirectControlOverlay.ACTION_HEIGHT)));
+                artifacts.add(new SnapshotArtifact("panels-abilities-sprint-" + phase + ".png", panels(renderer, fixture)));
             }
         }
         try (var fixture = BattleDirectControlHudTest.fixture(context.modRoot(),
-                BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MECH, true), 2, true,
+                BattleDirectControlHudTest.triggered(2), 2, true,
                 ignored -> {}, () -> {}, () -> {})) {
-            artifacts.add(new SnapshotArtifact("action-exposed-selected.png", renderer.render(fixture.document(),
-                    (int) BattleDirectControlOverlay.ACTION_WIDTH, (int) BattleDirectControlOverlay.ACTION_HEIGHT)));
+            artifacts.add(new SnapshotArtifact("panels-mech-one-mount.png", panels(renderer, fixture)));
             artifacts.add(new SnapshotArtifact("action-controls.png", renderer.render(fixture.actionsDocument(),
                     (int) BattleDirectControlOverlay.ACTIONS_WIDTH, (int) BattleDirectControlOverlay.ACTIONS_HEIGHT)));
         }
@@ -154,7 +151,48 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    /** Active control keeps equipment bottom-center and exit/pause in their independent top-right document. */
+    /** Both panels side by side at 100%, bottom edges level, as a pilot reads them. */
+    private static BufferedImage panels(HeadlessUiRenderer renderer, BattleDirectControlHudTest.Fixture fixture)
+            throws Exception {
+        int statusWidth = (int) BattleDirectControlOverlay.STATUS_WIDTH;
+        int weaponsWidth = (int) BattleDirectControlOverlay.WEAPONS_WIDTH;
+        float[] measured = measure(renderer, fixture);
+        int statusHeight = Math.round(measured[0]);
+        int weaponsHeight = Math.round(measured[1]);
+        int height = Math.max(statusHeight, weaponsHeight);
+        BufferedImage image = new BufferedImage(statusWidth + 24 + weaponsWidth, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = image.createGraphics();
+        try {
+            graphics.setColor(new Color(18, 25, 30));
+            graphics.fillRect(0, 0, image.getWidth(), height);
+            graphics.drawImage(renderer.render(fixture.statusDocument(), statusWidth, statusHeight),
+                    0, height - statusHeight, null);
+            graphics.drawImage(renderer.render(fixture.weaponsDocument(), weaponsWidth, weaponsHeight),
+                    statusWidth + 24, height - weaponsHeight, null);
+        } finally {
+            graphics.dispose();
+        }
+        return image;
+    }
+
+    /**
+     * The panels' heights with the renderer's font metrics installed, as the game measures them.
+     * A fixture's own measure runs before any font has metrics, so its text has no height.
+     */
+    static float[] measure(HeadlessUiRenderer renderer, BattleDirectControlHudTest.Fixture fixture) {
+        renderer.render(fixture.statusDocument(), (int) BattleDirectControlOverlay.STATUS_WIDTH, 64);
+        renderer.render(fixture.weaponsDocument(), (int) BattleDirectControlOverlay.WEAPONS_WIDTH, 64);
+        float status = BattleDirectControlOverlay.naturalHeight(fixture.statusDocument(), fixture.status(),
+                "direct-status-spacer", BattleDirectControlOverlay.STATUS_WIDTH);
+        if (fixture.model().carrier() == BattleDirectControlStatus.Carrier.MECH) {
+            status = Math.max(status, BattleMechSectionPlate.DOCUMENT_HEIGHT);
+        }
+        float weapons = BattleDirectControlOverlay.naturalHeight(fixture.weaponsDocument(), fixture.weapons(),
+                "direct-weapons-spacer", BattleDirectControlOverlay.WEAPONS_WIDTH);
+        return new float[]{status, weapons};
+    }
+
+    /** Active control: status bottom left beside the doll, weapon groups bottom right, exit/pause top right. */
     private static BufferedImage activeComposite(HeadlessUiRenderer renderer, Path modRoot,
                                                   int width, int height, float uiScale,
                                                   boolean paused) throws Exception {
@@ -215,12 +253,15 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             }
             try (var fixture = BattleDirectControlHudTest.fixture(modRoot,
                     snapshot, 0, paused, ignored -> {}, () -> {}, () -> {})) {
-                draw(graphics, renderer, fixture.markup(), layout.activeControl(), layout.host(), uiScale);
-                draw(graphics, renderer, fixture.actionsMarkup(), layout.activeActions(), layout.host(), uiScale);
+                float[] measured = measure(renderer, fixture);
+                var status = BattleDirectControlOverlayTest.activeStatus(width, height, uiScale, measured[0]);
+                var weapons = BattleDirectControlOverlayTest.activeWeapons(width, height, uiScale, measured[1]);
+                draw(graphics, renderer, fixture.status(), status, layout.host(), uiScale);
+                draw(graphics, renderer, fixture.weapons(), weapons, layout.host(), uiScale);
+                draw(graphics, renderer, fixture.actions(), layout.activeActions(), layout.host(), uiScale);
             }
             var plate = sectionPlate(modRoot, mech);
-            draw(graphics, renderer, plate, BattleMechSectionPlate.leftOf(layout.activeControl()),
-                    layout.host(), uiScale);
+            draw(graphics, renderer, plate, layout.activeSections(), layout.host(), uiScale);
         } finally {
             graphics.dispose();
         }

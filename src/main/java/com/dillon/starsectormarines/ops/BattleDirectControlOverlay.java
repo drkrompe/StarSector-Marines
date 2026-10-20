@@ -21,14 +21,25 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.function.IntConsumer;
 
-/** Strategic entry above selection; equipment below and separate session controls above during takeover. */
+/**
+ * Strategic entry above selection. During takeover the HUD follows the game's own combat HUD:
+ * the body's status at bottom left (beside a mech's section doll), its weapon groups at bottom
+ * right, and the session controls at top right. The centre stays clear for the fight.
+ */
 final class BattleDirectControlOverlay {
     static final String COMPONENT = "battle-direct-control-overlay";
     static final String COMPONENT_PATH = "data/ui/components/battle/" + COMPONENT + ".mlx";
-    static final String ACTION_COMPONENT = "battle-direct-control-hud";
-    static final String ACTION_COMPONENT_PATH = "data/ui/components/battle/" + ACTION_COMPONENT + ".mlx";
-    static final float ACTION_WIDTH = 640f;
-    static final float ACTION_HEIGHT = 70f;
+    static final String STATUS_COMPONENT = "battle-direct-control-status";
+    static final String STATUS_COMPONENT_PATH = "data/ui/components/battle/" + STATUS_COMPONENT + ".mlx";
+    static final String WEAPONS_COMPONENT = "battle-direct-control-weapons";
+    static final String WEAPONS_COMPONENT_PATH = "data/ui/components/battle/" + WEAPONS_COMPONENT + ".mlx";
+    static final float STATUS_WIDTH = 300f;
+    static final float WEAPONS_WIDTH = 360f;
+    /** Layout height a panel is measured at; its spacer absorbs whatever the content does not use. */
+    static final float MEASURE_HEIGHT = 2000f;
+    static final float MARGIN = 12f;
+    /** How strongly a panel the controlled body has moved under is faded, so the body stays readable. */
+    static final float OCCLUDING_ALPHA = .3f;
     static final String ACTIONS_COMPONENT = "battle-direct-control-actions";
     static final String ACTIONS_COMPONENT_PATH = "data/ui/components/battle/" + ACTIONS_COMPONENT + ".mlx";
     static final float ACTIONS_WIDTH = 154f;
@@ -45,8 +56,17 @@ final class BattleDirectControlOverlay {
     private PositionAPI position;
     private UiDocument document;
     private MarkupInstance markup;
-    private UiDocument actionDocument;
-    private MarkupInstance actionMarkup;
+    private UiDocument statusDocument;
+    private MarkupInstance statusMarkup;
+    private UiViewport statusViewport;
+    private float statusHeight;
+    private UiDocument weaponsDocument;
+    private MarkupInstance weaponsMarkup;
+    private UiViewport weaponsViewport;
+    private StarsectorUiInputAdapter weaponsInput;
+    private float weaponsHeight;
+    private String measuredStructure;
+    private boolean statusOccluding, weaponsOccluding;
     private UiDocument actionsDocument;
     private MarkupInstance actionsMarkup;
     private UiViewport actionsViewport;
@@ -67,11 +87,6 @@ final class BattleDirectControlOverlay {
     private UiViewport sectionViewport;
 
     private boolean activeMode;
-    private boolean dockTop;
-    private float topReservedHeight;
-
-    /** Physical space already occupied by subtitles in the centre message lane. */
-    void topReservedHeight(float height) { topReservedHeight = Math.max(0f, height); }
 
     BattleDirectControlOverlay(Selection selection, Runnable toggle, Runnable togglePause) {
         this(selection, toggle, togglePause, ignored -> {});
@@ -94,10 +109,12 @@ final class BattleDirectControlOverlay {
             markup = loader.reloadAndBuild(reactor, COMPONENT, Map.of(
                     "label", label, "disabled", disabled, "toggle", toggle));
             document = document(markup);
-            MarkupLoader actionLoader = new MarkupLoader(path -> Global.getSettings().loadText(path),
-                    List.of(ACTION_COMPONENT_PATH));
-            actionMarkup = actionLoader.reloadAndBuild(reactor, ACTION_COMPONENT, actionModel.props());
-            actionDocument = document(actionMarkup);
+            MarkupLoader panelLoader = new MarkupLoader(path -> Global.getSettings().loadText(path),
+                    List.of(STATUS_COMPONENT_PATH, WEAPONS_COMPONENT_PATH));
+            statusMarkup = panelLoader.reloadAndBuild(reactor, STATUS_COMPONENT, actionModel.statusProps());
+            statusDocument = document(statusMarkup);
+            weaponsMarkup = panelLoader.build(reactor, WEAPONS_COMPONENT, actionModel.weaponsProps());
+            weaponsDocument = document(weaponsMarkup);
             MarkupLoader actionsLoader = new MarkupLoader(path -> Global.getSettings().loadText(path),
                     List.of(ACTIONS_COMPONENT_PATH));
             actionsMarkup = actionsLoader.reloadAndBuild(reactor, ACTIONS_COMPONENT, actionModel.actionsProps());
@@ -112,33 +129,45 @@ final class BattleDirectControlOverlay {
         update(0f, sim, speedMultiplier);
     }
 
-    /** Default bounds for the taller mech detail panel. */
+    /** The strategic entry shortcut's bounds for a selected mech. */
     static UiViewport viewport(PositionAPI position) {
-        return viewport(position, false);
-    }
-
-    static UiViewport viewport(PositionAPI position, boolean active) {
-        return viewport(position, active, false);
-    }
-
-    private static UiViewport viewport(PositionAPI position, boolean active, boolean dockTop) {
-        return viewport(position, active, dockTop, 0f);
-    }
-
-    private static UiViewport viewport(PositionAPI position, boolean active, boolean dockTop, float topReservedHeight) {
-        UiViewport host = MarineOpsUiViewport.from(position);
-        float scale = host.documentScale();
-        float width = Math.max(0f, Math.min((active ? ACTION_WIDTH : DOCUMENT_WIDTH) * scale,
-                position.getWidth() - 24f));
-        if (active) {
-            return new UiViewport(position.getX() + (position.getWidth() - width) / 2f,
-                    dockTop ? position.getY() + position.getHeight() - 12f
-                            - Math.max((ACTIONS_HEIGHT + 6f) * scale, topReservedHeight + 8f * scale)
-                            - ACTION_HEIGHT * scale
-                            : position.getY() + 12f,
-                    width, ACTION_HEIGHT * scale, scale);
-        }
         return entryViewport(position, true);
+    }
+
+    /**
+     * The status panel at bottom left, {@code documentHeight} tall. A mech's section doll takes the
+     * corner itself and the status stands to its right, bottom edges level.
+     */
+    static UiViewport statusViewport(PositionAPI position, float documentHeight, boolean mech) {
+        float scale = MarineOpsUiViewport.from(position).documentScale();
+        float left = position.getX() + MARGIN
+                + (mech ? (BattleMechSectionPlate.DOCUMENT_WIDTH + BattleMechSectionPlate.GAP) * scale : 0f);
+        float width = Math.max(0f, Math.min(STATUS_WIDTH * scale, position.getX() + position.getWidth() - MARGIN - left));
+        return new UiViewport(left, position.getY() + MARGIN, width, documentHeight * scale, scale);
+    }
+
+    /** The weapon-groups panel at bottom right, {@code documentHeight} tall. */
+    static UiViewport weaponsViewport(PositionAPI position, float documentHeight) {
+        float scale = MarineOpsUiViewport.from(position).documentScale();
+        float width = Math.max(0f, Math.min(WEAPONS_WIDTH * scale, position.getWidth() - 2f * MARGIN));
+        return new UiViewport(position.getX() + position.getWidth() - MARGIN - width, position.getY() + MARGIN,
+                width, documentHeight * scale, scale);
+    }
+
+    /** The section doll in the bottom-left corner, beside the status panel. */
+    static UiViewport sectionsViewport(PositionAPI position) {
+        float scale = MarineOpsUiViewport.from(position).documentScale();
+        return new UiViewport(position.getX() + MARGIN, position.getY() + MARGIN,
+                BattleMechSectionPlate.DOCUMENT_WIDTH * scale, BattleMechSectionPlate.DOCUMENT_HEIGHT * scale, scale);
+    }
+
+    /**
+     * The height a panel's content needs at {@code width}: laid out tall, less what its spacer
+     * absorbed. Panels hug the bottom edge, so this is also where their top edge sits.
+     */
+    static float naturalHeight(UiDocument document, MarkupInstance markup, String spacerId, float width) {
+        document.layout(width, MEASURE_HEIGHT);
+        return MEASURE_HEIGHT - markup.requireElement(spacerId).box().borderBox().height();
     }
 
     /** The shortcut sits just above the selected unit's detail card, aligned to its right edge. */
@@ -175,11 +204,15 @@ final class BattleDirectControlOverlay {
             deactivateDocuments();
             input = null;
             actionsInput = null;
+            weaponsInput = null;
+            statusViewport = null;
+            weaponsViewport = null;
+            measuredStructure = null;
+            statusOccluding = weaponsOccluding = false;
             helpViewport = null;
             helpHover.collapse();
         }
         activeMode = active;
-        if (!active) dockTop = false;
         long selected = selection.hasVehicleSelection() ? selection.getSelectedVehicleId()
                 : selection.getSelectedUnitEntityId();
         boolean eligible = sim != null && (sim.directControl().canEnter(selected)
@@ -203,24 +236,23 @@ final class BattleDirectControlOverlay {
         }
         updateHelp(dt, active);
         if (markup != null) markup.flush();
-        if (actionMarkup != null) actionMarkup.flush();
+        if (statusMarkup != null) statusMarkup.flush();
+        if (weaponsMarkup != null) weaponsMarkup.flush();
         if (actionsMarkup != null) actionsMarkup.flush();
         if (helpMarkup != null) helpMarkup.flush();
-        UiDocument current = currentDocument();
-        if (position != null && current != null) {
-            UiViewport next = active ? viewport(position, true, dockTop, topReservedHeight)
-                    : selection.hasWarshipSelection() ? shipEntryViewport(position)
+        if (active) {
+            updatePanels(dt);
+        } else if (position != null && document != null) {
+            UiViewport next = selection.hasWarshipSelection() ? shipEntryViewport(position)
                     : entryViewport(position, eligible && selected != 0L && sim.world().hasMechLoadout(selected));
             if (!next.equals(viewport) || input == null) {
-                deactivateDocuments();
+                document.deactivateInput();
                 viewport = next;
-                current.layout(viewport.documentWidth(), viewport.documentHeight());
-                input = new StarsectorUiInputAdapter(current, viewport);
-                placeSections();
+                document.layout(viewport.documentWidth(), viewport.documentHeight());
+                input = new StarsectorUiInputAdapter(document, viewport);
             }
+            document.advance(dt);
         }
-        if (current != null) current.advance(dt);
-        if (active && sectionPlate != null && sectionPlate.visible()) sectionPlate.document().advance(dt);
         if (active && position != null && actionsDocument != null) {
             UiViewport next = actionsViewport(position);
             if (!next.equals(actionsViewport) || actionsInput == null) {
@@ -231,6 +263,36 @@ final class BattleDirectControlOverlay {
             }
             actionsDocument.advance(dt);
         }
+    }
+
+    /** Re-measures the panels when a row comes or goes, then keeps them in their corners. */
+    private void updatePanels(float dt) {
+        if (position == null || statusDocument == null || weaponsDocument == null) return;
+        boolean mech = actionModel.carrier() == Carrier.MECH;
+        if (!actionModel.structureKey().equals(measuredStructure)) {
+            measuredStructure = actionModel.structureKey();
+            float status = naturalHeight(statusDocument, statusMarkup, "direct-status-spacer", STATUS_WIDTH);
+            statusHeight = mech ? Math.max(status, BattleMechSectionPlate.DOCUMENT_HEIGHT) : status;
+            weaponsHeight = naturalHeight(weaponsDocument, weaponsMarkup, "direct-weapons-spacer", WEAPONS_WIDTH);
+            statusViewport = null;
+            weaponsViewport = null;
+        }
+        UiViewport nextStatus = statusViewport(position, statusHeight, mech);
+        if (!nextStatus.equals(statusViewport)) {
+            statusViewport = nextStatus;
+            statusDocument.layout(nextStatus.documentWidth(), nextStatus.documentHeight());
+        }
+        UiViewport nextWeapons = weaponsViewport(position, weaponsHeight);
+        if (!nextWeapons.equals(weaponsViewport) || weaponsInput == null) {
+            weaponsDocument.deactivateInput();
+            weaponsViewport = nextWeapons;
+            weaponsDocument.layout(nextWeapons.documentWidth(), nextWeapons.documentHeight());
+            weaponsInput = new StarsectorUiInputAdapter(weaponsDocument, nextWeapons);
+        }
+        sectionViewport = mech ? sectionsViewport(position) : null;
+        statusDocument.advance(dt);
+        weaponsDocument.advance(dt);
+        if (sectionPlate != null && sectionPlate.visible()) sectionPlate.document().advance(dt);
     }
 
     /** The help tab is hover-only: pointer events are observed here, never consumed or acted on. */
@@ -273,35 +335,58 @@ final class BattleDirectControlOverlay {
 
     void processInput(List<InputEventAPI> events) {
         if (events != null) trackPointer(events);
-        if (visible && activeMode && actionsInput != null && events != null) actionsInput.process(events);
-        if (visible && input != null && events != null) input.process(events);
+        if (!visible || events == null) return;
+        if (activeMode) {
+            if (actionsInput != null) actionsInput.process(events);
+            if (weaponsInput != null && !weaponsOccluding) weaponsInput.process(events);
+        } else if (input != null) {
+            input.process(events);
+        }
     }
 
     void render(float alpha) {
-        UiDocument current = currentDocument();
-        if (visible && current != null) current.render(viewport, alpha);
-        if (visible && activeMode && actionsDocument != null) actionsDocument.render(actionsViewport, alpha);
-        if (visible && activeMode && sectionPlate != null) sectionPlate.render(sectionViewport, alpha);
-        if (visible && activeMode && helpDocument != null && helpViewport != null) helpDocument.render(helpViewport, alpha);
+        if (!visible) return;
+        if (!activeMode) {
+            if (document != null && viewport != null) document.render(viewport, alpha);
+            return;
+        }
+        float statusAlpha = statusOccluding ? alpha * OCCLUDING_ALPHA : alpha;
+        if (sectionPlate != null) sectionPlate.render(sectionViewport, statusAlpha);
+        if (statusDocument != null && statusViewport != null) statusDocument.render(statusViewport, statusAlpha);
+        if (weaponsDocument != null && weaponsViewport != null) {
+            weaponsDocument.render(weaponsViewport, weaponsOccluding ? alpha * OCCLUDING_ALPHA : alpha);
+        }
+        if (actionsDocument != null) actionsDocument.render(actionsViewport, alpha);
+        if (helpDocument != null && helpViewport != null) helpDocument.render(helpViewport, alpha);
     }
 
     List<BattleHudSurface> surfaces() {
         List<BattleHudSurface> result = new ArrayList<>();
         if (!visible) return result;
-        if (currentDocument() != null && viewport != null) result.add(new BattleHudSurface(currentDocument(), viewport));
-        if (activeMode && actionsDocument != null && actionsViewport != null) result.add(new BattleHudSurface(actionsDocument, actionsViewport));
-        if (activeMode && helpDocument != null && helpViewport != null) result.add(new BattleHudSurface(helpDocument, helpViewport));
-        if (activeMode && sectionPlate != null) {
+        if (!activeMode) {
+            if (document != null && viewport != null) result.add(new BattleHudSurface(document, viewport));
+            return List.copyOf(result);
+        }
+        if (statusDocument != null && statusViewport != null) result.add(new BattleHudSurface(statusDocument, statusViewport));
+        if (weaponsDocument != null && weaponsViewport != null) result.add(new BattleHudSurface(weaponsDocument, weaponsViewport));
+        if (actionsDocument != null && actionsViewport != null) result.add(new BattleHudSurface(actionsDocument, actionsViewport));
+        if (helpDocument != null && helpViewport != null) result.add(new BattleHudSurface(helpDocument, helpViewport));
+        if (sectionPlate != null) {
             BattleHudSurface sections = sectionPlate.surface(sectionViewport);
             if (sections != null) result.add(sections);
         }
         return List.copyOf(result);
     }
 
+    /** A faded panel lets the pointer through: the body beneath it is what the player is aiming at. */
     boolean blocksWorldPointer(float x, float y) {
-        return visible && (contains(viewport, x, y) || activeMode && contains(actionsViewport, x, y)
-                || activeMode && sectionPlate != null && sectionPlate.visible() && contains(sectionViewport, x, y)
-                || activeMode && helpLayout != null && helpHover.blocks(true, x, y, helpLayout));
+        if (!visible) return false;
+        if (!activeMode) return contains(viewport, x, y);
+        return contains(actionsViewport, x, y)
+                || !weaponsOccluding && contains(weaponsViewport, x, y)
+                || !statusOccluding && (contains(statusViewport, x, y)
+                || sectionPlate != null && sectionPlate.visible() && contains(sectionViewport, x, y))
+                || helpLayout != null && helpHover.blocks(true, x, y, helpLayout);
     }
 
     private static boolean contains(UiViewport bounds, float x, float y) {
@@ -313,48 +398,36 @@ final class BattleDirectControlOverlay {
         deactivateDocuments();
         input = null;
         actionsInput = null;
+        weaponsInput = null;
         helpViewport = null;
         helpHover.collapse();
     }
 
-    /** Map clamping can put the body at the bottom edge; move chrome instead of revealing off-map ground. */
+    /**
+     * Map clamping can put the body in a bottom corner. The panel it would sit under fades and
+     * lets the pointer through rather than moving: chrome that jumps is harder to read than chrome
+     * that steps back.
+     */
     void avoidControlledBody(float screenX, float screenY, float screenRadius) {
-        if (!activeMode || position == null || actionDocument == null) return;
-        UiViewport next = actionViewport(position, screenX, screenY, screenRadius, topReservedHeight);
-        dockTop = next.screenY() != viewport(position, true).screenY();
-        if (next.equals(viewport)) return;
-        deactivateDocuments();
-        viewport = next;
-        actionDocument.layout(next.documentWidth(), next.documentHeight());
-        input = new StarsectorUiInputAdapter(actionDocument, next);
-        placeSections();
-    }
-
-    /** The section paper-doll stands left of the control HUD, level with whichever edge it docks to. */
-    private void placeSections() {
-        sectionViewport = !activeMode || viewport == null ? null
-                : dockTop ? BattleMechSectionPlate.leftOfTop(viewport) : BattleMechSectionPlate.leftOf(viewport);
-    }
-
-    static UiViewport actionViewport(PositionAPI position, float screenX, float screenY, float screenRadius) {
-        return actionViewport(position, screenX, screenY, screenRadius, 0f);
-    }
-
-    static UiViewport actionViewport(PositionAPI position, float screenX, float screenY, float screenRadius, float topReservedHeight) {
-        UiViewport bottom = viewport(position, true);
+        if (!activeMode) return;
         float radius = Math.max(0f, screenRadius) + 8f;
-        boolean overlaps = screenX + radius > bottom.screenX()
-                && screenX - radius < bottom.screenX() + bottom.width()
-                && screenY + radius > bottom.screenY()
-                && screenY - radius < bottom.screenY() + bottom.height();
-        return overlaps ? viewport(position, true, true, topReservedHeight) : bottom;
+        statusOccluding = overlaps(statusViewport, screenX, screenY, radius)
+                || sectionPlate != null && sectionPlate.visible() && overlaps(sectionViewport, screenX, screenY, radius);
+        weaponsOccluding = overlaps(weaponsViewport, screenX, screenY, radius);
+        if (weaponsOccluding && weaponsDocument != null) weaponsDocument.deactivateInput();
     }
 
-    private UiDocument currentDocument() { return activeMode ? actionDocument : document; }
+    static boolean overlaps(UiViewport bounds, float x, float y, float radius) {
+        return bounds != null && x + radius > bounds.screenX() && x - radius < bounds.screenX() + bounds.width()
+                && y + radius > bounds.screenY() && y - radius < bounds.screenY() + bounds.height();
+    }
+
+    boolean statusOccluding() { return statusOccluding; }
+    boolean weaponsOccluding() { return weaponsOccluding; }
 
     private void deactivateDocuments() {
         if (document != null) document.deactivateInput();
-        if (actionDocument != null) actionDocument.deactivateInput();
+        if (weaponsDocument != null) weaponsDocument.deactivateInput();
         if (actionsDocument != null) actionsDocument.deactivateInput();
     }
 

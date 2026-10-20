@@ -107,7 +107,7 @@ class BattleDirectTenderStatusTest {
     }
 
     @Test
-    void theStripFitsTheSharedActionStripAndOffersNoClickableCards() throws Exception {
+    void shipSystemsFitTheirPanelAndOfferNoClickableCards() throws Exception {
         tender.lay(BuildOption.VULCAN_TURRET, 40.5f, 40.5f, grid);
         var status = BattleDirectTenderStatus.status(tender, 0, Notice.BLOCKED);
         var ship = tender.ship();
@@ -117,12 +117,12 @@ class BattleDirectTenderStatusTest {
         try (var fixture = BattleDirectControlHudTest.fixture(Path.of("mod"), snapshot, 0, false,
                 ignored -> fail("A ship's cards select nothing"), () -> {}, () -> {})) {
             for (ShipCard card : status.cards()) {
-                var element = fixture.markup().requireElement("direct-hud-ship-" + card.key());
+                var element = fixture.weapons().requireElement("direct-hud-ship-" + card.key());
                 assertTrue(element.disabled());
                 var bounds = element.box().borderBox();
-                assertTrue(bounds.right() <= BattleDirectControlOverlay.ACTION_WIDTH, card.key());
-                assertTrue(bounds.bottom() <= BattleDirectControlOverlay.ACTION_HEIGHT, card.key());
-                assertEquals(card.state(), fixture.markup().requireElement(
+                assertTrue(bounds.right() <= BattleDirectControlOverlay.WEAPONS_WIDTH, card.key());
+                assertTrue(bounds.bottom() <= fixture.weaponsHeight(), card.key());
+                assertEquals(card.state(), fixture.weapons().requireElement(
                         "direct-hud-ship-" + card.key() + "-state").text());
             }
         }

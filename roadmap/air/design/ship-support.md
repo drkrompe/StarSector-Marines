@@ -260,7 +260,7 @@ pass does not refuse friendly-dirty ground: a show of force fires over friendlie
 they land on.
 
 **Who orders it.** The pilot: **F** at the helm flies a pass from the hull to the cursor, on ground the player
-has observed (the fog rule of a laid area); the strip shows a `[F] LOW PASS` card (ready, running in, passing,
+has observed (the fog rule of a laid area); the ship-systems panel shows a `[F] LOW PASS` row (ready, running in, passing,
 or no time, with the station seconds left) and the help panel two rows. The tender's hands do not have it. A
 script or mission: `WarshipSystem.orderLowPass(sim, ship, ax, ay, bx, by)`. The debug panel: **F5** flies a pass
 from the ship to the cursor.
