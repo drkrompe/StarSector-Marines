@@ -43,7 +43,9 @@ crew plus five, 25 travel supplies and up to 25 fuel (the opening's work is all 
 travel burns none). Nothing aboard can buy a second squad before Relief, which is why the story
 Relief carries no squad cap: the depot founds Sabine's squad only, any other pays the full founding
 bill from the hold, and selling every crewman, all the fuel and both guns at the most favourable
-vanilla prices still falls short (`SecondSquadAffordabilityTest`). The first successful conversion
+vanilla prices still falls short (`SecondSquadAffordabilityTest`). The start also withdraws the Galatia
+Academy stipend that vanilla's skip-tutorial setup grants (15,000 a month), since a month of it
+would pay for that squad and contradicts the no-patron premise. The first successful conversion
 of this start's ship establishes a finite depot at that planet: 30 metals, 8 heavy
 machinery, 56 supplies, 12 Marines and 24 food, derived from the real Hermes and
 squad recipes. The boat and squad bills are earmarked separately; unrelated workshop

@@ -9,6 +9,7 @@ import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
+import com.fs.starfarer.api.impl.campaign.tutorial.GalatianAcademyStipend;
 
 import java.util.Comparator;
 
@@ -58,6 +59,18 @@ public final class CerberusCompanyStart implements Script {
         fleet.getFleetData().setSyncNeeded();
         sector.getIntelManager().addIntel(new CompanyFoundingIntel());
         CompanyProloguePresenter.install();
+    }
+
+    /**
+     * Vanilla's skip-tutorial setup, which this start runs first, also starts the Galatia Academy stipend:
+     * 15,000 credits a month for three years. Second Wind has no patron and 473 credits, and a month of that
+     * stipend would buy the second squad the story Relief assumes it cannot afford. Its only reader in vanilla
+     * rules is Baird's "ask about the stipend" option, which goes with it.
+     */
+    static void withdrawAcademyStipend() {
+        var sector = Global.getSector();
+        sector.getListenerManager().removeListenerOfClass(GalatianAcademyStipend.class);
+        sector.getMemoryWithoutUpdate().unset("$playerReceivingGAStipend");
     }
 
     /** Puts the fleet a short flight out from the yard it must reach first, with the course laid in. */
