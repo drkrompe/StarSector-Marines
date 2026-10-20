@@ -72,6 +72,10 @@ scope unless the owner asks for it.
   (never glowing rectangles), dishes, masts and lamps on believable mounts,
   and no bare primitives. Review captions name anything still at blockout
   level.
+  The standard is written down in metres in `ship-detail-guide.md` (from
+  the Legion and Colossus, which the owner holds up as the references),
+  built by `ship-detail-kit/` and measured by `ship-detail-kit/check_detail.py`,
+  which every pass-2 and pass-3 build runs before owner review (2026-10-20).
 - Sizes must make logical sense relative to each other and to each hull's
   role (owner, 2026-10-20). `ship_scale.py` option C is a starting estimate,
   not a law: a reshape that changes a hull's volume does not shrink or grow

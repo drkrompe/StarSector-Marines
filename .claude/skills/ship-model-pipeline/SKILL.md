@@ -95,6 +95,16 @@ Purpose: infer the detail the sprite implies but doesn't spell out, from the
 sprite's shading and from lore (the wiki page, the game description, the
 hull's role and tech level), and from what the campaign needs the ship to be.
 
+**Detail standard.** Read `art-source/company-prologue/ship-detail-guide.md`
+first: the Legion and Colossus detail language in metres (plates, seams,
+glazing, hatches, vents, RCS, masts, dishes, lamps, rails, bays, structure,
+edge treatment, wear, turrets) and its never list. Build fittings with
+`ship-detail-kit/ship_detail_kit.py` (`sdk.Scale(metres_per_unit)`, the
+metric builders, `segments` and the bevel table) rather than writing new
+ones; `kit_sampler.py` shows every call. A fitting the kit lacks is added to
+the kit, not to the hull, so the next hull gets it too. Turrets still come
+from `turret-kit/`. Give every subagent the guide and the kit in its brief.
+
 - Read the sprite at 4-8x: raised blocks, recesses, stripes, seams, hatches
   and greebles. Each raised or recessed blob is a protrusion or a well to
   account for (command deck, access trunks, hatches). Don't move protrusions
@@ -128,13 +138,22 @@ hull's role and tech level), and from what the campaign needs the ship to be.
 **Exit check:**
 - close-up cameras (bow, bridge, turret, stern) and the four standard views at
   1920x1080, compared before and after;
-- the IoU did not regress.
+- the IoU did not regress;
+- `ship-detail-kit/check_detail.py` has run on the build (chained after the
+  driver, flags in `SDK_CHECK`, `--lights`/`--ship` when the hull has a lights
+  layer). Each flag is fixed or named, with its reason, in the review run's
+  `NOTES.md` before the owner sees it.
 
 ## Pass 3: the review loop
 
 The owner reviews pass 2's renders. Each piece of feedback becomes one focused
 change, re-rendered from the same cameras so before and after can be compared.
 Repeat until the owner accepts the hull.
+
+Before each round goes to the owner, re-run `check_detail.py` on the changed
+build and caption what it still flags in the run's `NOTES.md` (the guide's
+Checking a build section). A round must not add new faceted curves,
+off-layer emissives or bare primitives.
 
 Faults that kept recurring on the Second Wind, worth checking for before the
 owner has to point them out:
