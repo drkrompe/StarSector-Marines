@@ -850,8 +850,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 : finalCompoundConvergence
                 ? Phase.FINAL_COMPOUND_CONVERGENCE : Phase.LANE_ADVANCE;
 
-        // Muster and assault run before the lane passes and take their squads out of the pool they draw from, so a
-        // company is never also a capture detachment or a lane probe. A mission that chose the trickle runs none of this.
         // Holders of taken ground are kept, withdrawn or given back before anybody recruits: a dug-in holder under a
         // believed counter-attack outranks a muster, and one given back is a lane squad again this pulse.
         boolean convergence = phase == Phase.KEEP_CONVERGENCE || phase == Phase.FINAL_COMPOUND_CONVERGENCE;
@@ -860,6 +858,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
         HoldPulse hold = new HoldPulse();
         if (holdsGround) standOrReleaseHolders(frame, places, convergence, squads, allSquads, directives, hold);
 
+        // Muster and assault run before the lane passes and take their squads out of the pool they draw from, so a
+        // company is never also a capture detachment or a lane probe. A mission that chose the trickle runs none of this.
         List<String> musterNotes = List.of();
         List<ConquestFrontSnapshot.CompanyState> companyPicture = List.of();
         if (assaultStyle == AssaultStyle.MUSTER) {

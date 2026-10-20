@@ -183,6 +183,23 @@ marines: a quiet belt left empty, a stretch pressed by a counter-attack manned
 from the pool within its share, dug in and given back after it passes, and a
 breached holder falling back to the works.
 
+On the trial ground (nine on-path fixtures at the combined-arms force, seeds 41
+to 49, against a same-build control with
+`-Dbattle.conquest.attackerHoldsGround=false`) the fort was taken in all nine
+and the hold fired in five: one to three squads at once,
+between one and nine manning orders a battle where it fired, holders dug in
+in three of the five, seven fall backs in all. Every battle was won in both arms and no fort was ever won back,
+in either arm, so the hold was insurance the defender never tested. The keep
+fell 84 ticks later on the mean of the five (from 960 earlier to 1,050 later)
+and the marines lost 3 more on the mean (from 8 fewer to 18 more): inside seed
+noise, so the share does not cost the attack its momentum, and it does not yet
+buy anything measurable either. Every fixture in which it never fired (the
+four other on-path seeds, the offset fort, which is never taken because the
+company goes round it, and the rifles-only forces, which never take it) played
+out exactly as its control. The question for later
+is a defender that actually counter-attacks a lost fort harder than one
+retaking squad.
+
 ## How it fits what exists
 
 The defender commander already raises a threatened track and forward band from
@@ -278,8 +295,6 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
 
 ## Stories
 
-- `attacker-holds-ground.md` — the attacking commander mans a taken fort's belt
-  against the believed counter-attack.
 
 - `compound-prepared-ground.md` — compounds and facilities offer prepared ground
   and building envelopes as garrisonables.
