@@ -1,0 +1,63 @@
+package com.dillon.starsectormarines.battle.mech;
+
+/** Battle-owned shared flux reservoir. Control handback never resets it. */
+public final class MechFlux {
+    public static final float CAPACITY = 100f;
+    public static final float DISSIPATION_PER_SECOND = 6f;
+    public static final float WARNING = 75f;
+    private float capacity = CAPACITY;
+    private float dissipation = DISSIPATION_PER_SECOND;
+    private float flux;
+    private boolean venting;
+    private boolean aiDissipating;
+
+    public MechFlux() { }
+
+    public MechFlux(float capacity, float dissipationPerSecond) {
+        configure(capacity, dissipationPerSecond);
+    }
+
+    /** Re-size the reservoir; only valid before any flux has been committed. */
+    public void configure(float capacity, float dissipationPerSecond) {
+        if (!(capacity > 0f) || !Float.isFinite(capacity)
+                || !(dissipationPerSecond >= 0f) || !Float.isFinite(dissipationPerSecond)) {
+            throw new IllegalArgumentException("Invalid flux frame");
+        }
+        if (flux != 0f || venting || aiDissipating) {
+            throw new IllegalStateException("Flux frame fixed once flux is committed");
+        }
+        this.capacity = capacity;
+        this.dissipation = dissipationPerSecond;
+    }
+
+    public float capacity() { return capacity; }
+    public float dissipationPerSecond() { return dissipation; }
+    public float value() { return flux; }
+    public boolean venting() { return venting; }
+    public boolean aiDissipating() { return aiDissipating; }
+
+    public boolean permits(float cost, boolean autonomous) {
+        return Float.isFinite(cost) && cost >= 0f && !venting
+                && (!autonomous || (!aiDissipating && flux + cost <= scaled(90f))) && flux + cost <= capacity;
+    }
+
+    /** Reserve only after the first round actually fires; cancelled packets do not refund flux. */
+    public void commit(float cost) {
+        if (!permits(cost, false)) throw new IllegalStateException("Mech trigger exceeds flux headroom");
+        flux += cost;
+        if (flux >= scaled(WARNING)) aiDissipating = true;
+        if (flux >= scaled(95f)) venting = true;
+    }
+
+    public void advance(float dt) {
+        if (!Float.isFinite(dt) || dt < 0f) throw new IllegalArgumentException("Invalid dissipation step");
+        flux = Math.max(0f, flux - dissipation * dt);
+        if (flux <= scaled(55f)) venting = false;
+        if (flux <= scaled(40f)) aiDissipating = false;
+    }
+
+    /** A stock-100 threshold expressed as the same fraction of this reservoir. */
+    private float scaled(float stockThreshold) {
+        return capacity == CAPACITY ? stockThreshold : stockThreshold * capacity / CAPACITY;
+    }
+}

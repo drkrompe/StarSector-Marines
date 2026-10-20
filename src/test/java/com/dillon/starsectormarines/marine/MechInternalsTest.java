@@ -47,15 +47,15 @@ class MechInternalsTest {
         learnAll(bay);
         String id = MechBay.STARTER_MECH_ID;
         for (MechInternal internal : new MechInternal[]{MechInternal.MILITARY_ENGINE,
-                MechInternal.HEAVY_PLATING, MechInternal.MILITARY_HEAT_SINK, MechInternal.AUXILIARY_COOLER}) {
+                MechInternal.HEAVY_PLATING, MechInternal.MILITARY_CAPACITOR_BANK, MechInternal.AUXILIARY_VENT_ARRAY}) {
             assertEquals(MechWorkshop.Status.FABRICATED_AND_INSTALLED,
                     workshop.fitInternal(id, internal).status(), internal.name());
         }
         MechFrameBudget.Fit fit = bay.mechById(id).fit();
         assertEquals(950f, fit.armorCapacity(), 1e-4f);
         assertEquals(1.15f, fit.moveSpeed(), 1e-4f);
-        assertEquals(120f, fit.heatCapacity(), 1e-4f);
-        assertEquals(8.5f, fit.coolingPerSecond(), 1e-4f);
+        assertEquals(120f, fit.fluxCapacity(), 1e-4f);
+        assertEquals(8.5f, fit.dissipationPerSecond(), 1e-4f);
         assertFalse(fit.overBudget());
         assertEquals(fit.frame(), bay.mechById(id).freezeForDeployment().frame());
     }
@@ -65,10 +65,10 @@ class MechInternalsTest {
         MechBay bay = houndBay();
         learnAll(bay);
         String id = bay.activeSquad().mechs().get(0).id();
-        assertFalse(bay.canInstallInternal(id, MechInternal.MILITARY_HEAT_SINK),
-                "a three-cell sink does not fit the Hound's two-cell reserve");
-        assertTrue(bay.canInstallInternal(id, MechInternal.DOUBLE_HEAT_SINK));
-        assertFalse(bay.canInstallInternal(id, MechInternal.AUXILIARY_COOLER),
+        assertFalse(bay.canInstallInternal(id, MechInternal.MILITARY_CAPACITOR_BANK),
+                "a three-cell capacitor bank does not fit the Hound's two-cell reserve");
+        assertTrue(bay.canInstallInternal(id, MechInternal.DOUBLE_CAPACITOR_BANK));
+        assertFalse(bay.canInstallInternal(id, MechInternal.AUXILIARY_VENT_ARRAY),
                 "the Hound has no utility socket");
     }
 
@@ -136,29 +136,29 @@ class MechInternalsTest {
     }
 
     @Test
-    void aFasterLoaderAndACoolerShareTheUtilitySocket() {
+    void aFasterLoaderAndAVentArrayShareTheUtilitySocket() {
         MechBay bay = MechBay.legacyStarterFixture();
         learnAll(bay);
         MechWorkshop workshop = new MechWorkshop(bay, TestResources.stocked(500));
         String id = MechBay.STARTER_MECH_ID;
         assertTrue(bay.installReplenisher(id, MissileReplenisherComponent.ACCELERATED_FEED.id()));
         assertEquals(MechWorkshop.Status.INCOMPATIBLE,
-                workshop.fitInternal(id, MechInternal.AUXILIARY_COOLER).status());
+                workshop.fitInternal(id, MechInternal.AUXILIARY_VENT_ARRAY).status());
         assertTrue(bay.installReplenisher(id, MissileReplenisherComponent.STANDARD.id()));
-        assertTrue(workshop.fitInternal(id, MechInternal.AUXILIARY_COOLER).succeeded());
+        assertTrue(workshop.fitInternal(id, MechInternal.AUXILIARY_VENT_ARRAY).succeeded());
         assertFalse(bay.installReplenisher(id, MissileReplenisherComponent.ACCELERATED_FEED.id()));
-        assertEquals(MechWorkshop.Status.STRIPPED, workshop.stripCooler(id).status());
-        assertNull(bay.mechById(id).internal(MechInternal.Role.COOLER));
-        assertEquals(1, bay.availableInternal(MechInternal.AUXILIARY_COOLER.id));
+        assertEquals(MechWorkshop.Status.STRIPPED, workshop.stripVentArray(id).status());
+        assertNull(bay.mechById(id).internal(MechInternal.Role.VENT_ARRAY));
+        assertEquals(1, bay.availableInternal(MechInternal.AUXILIARY_VENT_ARRAY.id));
     }
 
     @Test
     void lostSparesTakeFreeInternalsButNeverInstalledOnes() {
         MechBay bay = MechBay.legacyStarterFixture();
         bay.loseSpares();
-        bay.addInternal(MechInternal.DOUBLE_HEAT_SINK.id, 2);
+        bay.addInternal(MechInternal.DOUBLE_CAPACITOR_BANK.id, 2);
         assertEquals(2, bay.loseSpares());
-        assertEquals(0, bay.ownedInternal(MechInternal.DOUBLE_HEAT_SINK.id));
+        assertEquals(0, bay.ownedInternal(MechInternal.DOUBLE_CAPACITOR_BANK.id));
         assertEquals(1, bay.ownedInternal(MechInternal.INDUSTRIAL_ENGINE.id));
     }
 
@@ -180,7 +180,7 @@ class MechInternalsTest {
         assertEquals(MechFrame.stock(MechVariant.BULWARK), mech.freezeForDeployment().frame());
         assertEquals(1, loaded.ownedInternal(MechInternal.FACTORY_PLATING.id));
         assertEquals(0, loaded.availableInternal(MechInternal.FACTORY_PLATING.id));
-        assertTrue(loaded.canFabricate(MechInternal.FACTORY_HEAT_SINK));
+        assertTrue(loaded.canFabricate(MechInternal.FACTORY_CAPACITOR_BANK));
         assertFalse(loaded.canFabricate(MechInternal.MILITARY_ENGINE));
     }
 

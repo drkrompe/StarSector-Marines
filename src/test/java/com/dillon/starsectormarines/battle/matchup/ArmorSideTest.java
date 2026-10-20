@@ -44,13 +44,13 @@ class ArmorSideTest {
     @Test
     void weaponsAndInternalsByPatternId() {
         ArmorSide.Mech custom = mech("bulwark:arms=dual-linear-cannons,rs=component.mech-shoulder-laser,"
-                + "engine=uprated,sink=internal.heat-sink-double,cooler=auxiliary,role=assault");
+                + "engine=uprated,capacitors=internal.capacitor-bank-double,vents=auxiliary,role=assault");
         assertEquals(MechWeaponComponent.DUAL_LINEAR_CANNONS, custom.fit().arms());
         assertEquals(MechWeaponComponent.SRM_15, custom.fit().leftShoulder());
         assertEquals(MechWeaponComponent.SHOULDER_LASER_CANNON, custom.fit().rightShoulder());
         assertEquals(MechInternal.UPRATED_ENGINE, custom.fit().engine());
-        assertEquals(MechInternal.DOUBLE_HEAT_SINK, custom.fit().heatSink());
-        assertEquals(MechInternal.AUXILIARY_COOLER, custom.fit().cooler());
+        assertEquals(MechInternal.DOUBLE_CAPACITOR_BANK, custom.fit().capacitorBank());
+        assertEquals(MechInternal.AUXILIARY_VENT_ARRAY, custom.fit().ventArray());
         assertEquals(MechRole.ASSAULT, custom.role());
         assertEquals(custom, mech(custom.label()));
     }
@@ -66,7 +66,7 @@ class ArmorSideTest {
         ArmorSide.Mech bare = mech("bulwark:rs=none");
         assertNull(bare.fit().rightShoulder());
         assertEquals("bulwark:rs=none", bare.label());
-        ArmorSide.Mech heavy = mech("hound:arms=demolition-cannon,engine=military,plating=heavy,sink=double");
+        ArmorSide.Mech heavy = mech("hound:arms=demolition-cannon,engine=military,plating=heavy,capacitors=double");
         assertTrue(heavy.fit().overBudget());
         assertTrue(heavy.label().endsWith("!over-budget"));
     }

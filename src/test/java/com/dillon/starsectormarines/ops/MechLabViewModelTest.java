@@ -338,7 +338,7 @@ class MechLabViewModelTest {
         assertEquals(List.of("STRUCTURE", "ARMOR", "MOBILITY", "PASSENGERS"), meters);
         assertEquals(VehicleType.ESCORT_APC.capacity + " SEATS",
                 viewModel.performanceMeters().get().get(3).value());
-        assertTrue(viewModel.selectedSlotRule().get().contains("NO HEAT"));
+        assertTrue(viewModel.selectedSlotRule().get().contains("NO FLUX"));
 
         assertNull(viewModel.selectedVariant());
         assertEquals(1, viewModel.gantryDeployments().size());
@@ -795,7 +795,7 @@ class MechLabViewModelTest {
 
         viewModel.selectSlot(SocketId.AMMO_RESERVE);
         assertTrue(viewModel.catalogRows().get().stream().allMatch(row ->
-                row.internalPreview() != null && row.internalPreview().role == MechInternal.Role.HEAT_SINK));
+                row.internalPreview() != null && row.internalPreview().role == MechInternal.Role.CAPACITOR_BANK));
     }
 
     @Test
@@ -854,9 +854,9 @@ class MechLabViewModelTest {
         String expected = fit.overBudget() ? "OVER BUDGET" : "MASS";
         assertTrue(viewModel.budgetText().get().startsWith(expected), viewModel.budgetText().get());
         assertEquals(fit.overBudget(), viewModel.budgetClasses().get().contains("tone-danger"));
-        assertNotNull(meter(viewModel, "mech-meter:heat"));
-        assertNotNull(meter(viewModel, "mech-meter:cooling"));
-        assertEquals(fit.coolingPerSecond(), viewModel.selectedCoolingPerSecond(), EPSILON);
+        assertNotNull(meter(viewModel, "mech-meter:flux"));
+        assertNotNull(meter(viewModel, "mech-meter:dissipation"));
+        assertEquals(fit.dissipationPerSecond(), viewModel.selectedDissipationPerSecond(), EPSILON);
     }
 
     @Test
@@ -864,8 +864,8 @@ class MechLabViewModelTest {
         MechFrameBudget.Fit heavy = new MechFrameBudget.Fit(MechVariant.HOUND,
                 MechWeaponComponent.SINGLE_HEAVY_CANNON, MechWeaponComponent.LRM_15,
                 MechWeaponComponent.LRM_15, MechInternal.INDUSTRIAL_ENGINE,
-                MechInternal.HEAVY_PLATING, MechInternal.MILITARY_HEAT_SINK,
-                MechInternal.AUXILIARY_COOLER);
+                MechInternal.HEAVY_PLATING, MechInternal.MILITARY_CAPACITOR_BANK,
+                MechInternal.AUXILIARY_VENT_ARRAY);
         assertTrue(heavy.overBudget(), "fixture fit is expected to exceed a Hound's engine");
         String message = MechLabViewModel.overBudgetFeedback(heavy);
         assertTrue(message.contains(Math.round(heavy.output()) + ""), message);
@@ -890,33 +890,33 @@ class MechLabViewModelTest {
     }
 
     @Test
-    void utilityCoolerFitsAndStripsBackToEmpty() {
+    void utilityVentArrayFitsAndStripsBackToEmpty() {
         MechBay bay = MechBay.legacyStarterFixture();
         MechLabViewModel viewModel = new MechLabViewModel(
                 new Reactor(), bay, TestResources.stocked(2_000));
         viewModel.gantryRows().get().get(0).select().run();
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
-        bay.learnPattern(MechPattern.of(MechInternal.AUXILIARY_COOLER).id());
+        bay.learnPattern(MechPattern.of(MechInternal.AUXILIARY_VENT_ARRAY).id());
         viewModel.selectSlot(SocketId.MINI_FAB);
         assertNull(viewModel.installedInternal(SocketId.MINI_FAB));
 
-        MechLabViewModel.CatalogRow cooler = viewModel.catalogRows().get().stream()
-                .filter(row -> row.internalPreview() == MechInternal.AUXILIARY_COOLER)
+        MechLabViewModel.CatalogRow ventArray = viewModel.catalogRows().get().stream()
+                .filter(row -> row.internalPreview() == MechInternal.AUXILIARY_VENT_ARRAY)
                 .findFirst().orElseThrow();
         assertTrue(viewModel.catalogRows().get().stream().anyMatch(row -> row.replenisherPreview() != null),
                 "the utility socket still lists missile loaders");
-        assertFalse(cooler.actionDisabled(), cooler.actionHint());
-        cooler.action().run();
-        assertEquals(MechInternal.AUXILIARY_COOLER, mech.internal(MechInternal.Role.COOLER));
-        assertEquals(MechInternal.AUXILIARY_COOLER, viewModel.installedInternal(SocketId.MINI_FAB));
+        assertFalse(ventArray.actionDisabled(), ventArray.actionHint());
+        ventArray.action().run();
+        assertEquals(MechInternal.AUXILIARY_VENT_ARRAY, mech.internal(MechInternal.Role.VENT_ARRAY));
+        assertEquals(MechInternal.AUXILIARY_VENT_ARRAY, viewModel.installedInternal(SocketId.MINI_FAB));
 
         MechLabViewModel.SlotRow utility = viewModel.slotRows().get().stream()
                 .filter(row -> row.socketId() == SocketId.MINI_FAB).findFirst().orElseThrow();
         assertTrue(utility.canStrip());
-        assertEquals(MechInternal.AUXILIARY_COOLER.displayName(), utility.component());
+        assertEquals(MechInternal.AUXILIARY_VENT_ARRAY.displayName(), utility.component());
         utility.stripAction().run();
-        assertNull(mech.internal(MechInternal.Role.COOLER));
-        assertTrue(bay.availableInternal(MechInternal.AUXILIARY_COOLER.id) > 0);
+        assertNull(mech.internal(MechInternal.Role.VENT_ARRAY));
+        assertTrue(bay.availableInternal(MechInternal.AUXILIARY_VENT_ARRAY.id) > 0);
     }
 
     private static MechLabViewModel.PerformanceMeter meter(MechLabViewModel viewModel, String id) {

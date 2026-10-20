@@ -92,7 +92,7 @@ public class HeavyWeapons {
     /**
      * The left button fires {@link MechFireGroups#leftMask} (the primary group, or the one hardpoint
      * a number key chose) and the right button fires {@link MechFireGroups#rightMask} (the secondary
-     * group). Each mount still obeys its own cycle, burst, ammunition and the chassis heat reservoir.
+     * group). Each mount still obeys its own cycle, burst, ammunition and the chassis flux reservoir.
      */
     public void tick(long controlledId, PointFireAim aim, boolean primary, boolean secondary, int selectedWeapon) {
         int continuing = 0;
@@ -107,9 +107,9 @@ public class HeavyWeapons {
                 for (MechWeaponMount mount : mounts) {
                     if (mount == null || mount.cycleRemaining > 0f || mount.burstRemaining > 0 || !mount.hasAmmo()) continue;
                     if (!MechFireGroups.contains(pulled, mount)
-                            || !loadout.heat.permits(mount.component.heatPerTrigger(), false)) continue;
+                            || !loadout.flux.permits(mount.component.fluxPerTrigger(), false)) continue;
                     if (firePointRound(controlledId, mount, aim)) {
-                        loadout.heat.commit(mount.component.heatPerTrigger());
+                        loadout.flux.commit(mount.component.fluxPerTrigger());
                         mount.commitTrigger(0L, aim);
                     }
                 }
@@ -121,7 +121,7 @@ public class HeavyWeapons {
     /**
      * Pulls a mount's trigger on a world point, which is how a company opens a wall: nothing is aimed at (a wall is not a
      * body), the round flies to the point or stops at the first wall in its way, and its detonation does the structural
-     * damage the weapon's data says. The mount's own gates apply as for any trigger: cycle, burst, ammunition, heat, a
+     * damage the weapon's data says. The mount's own gates apply as for any trigger: cycle, burst, ammunition, flux, a
      * barrel that is not through a wall, and a torso turned onto the point. Returns whether a round left.
      */
     public boolean fireMountAtPoint(long shooter, MechWeaponMount mount, PointFireAim aim) {
@@ -130,9 +130,9 @@ public class HeavyWeapons {
         }
         MechLoadoutComponent loadout = roster.world().mechLoadout(shooter);
         if (mount.cycleRemaining > 0f || mount.burstRemaining > 0 || !mount.hasAmmo()
-                || !loadout.heat.permits(mount.component.heatPerTrigger(), true)) return false;
+                || !loadout.flux.permits(mount.component.fluxPerTrigger(), true)) return false;
         if (!fireRoundAtPoint(shooter, mount, aim)) return false;
-        loadout.heat.commit(mount.component.heatPerTrigger());
+        loadout.flux.commit(mount.component.fluxPerTrigger());
         mount.commitTrigger(0L, aim);
         return true;
     }
@@ -441,7 +441,7 @@ public class HeavyWeapons {
             long u = mechScratch.getLong(i);
             if (!roster.isAliveById(u)) continue; // killed earlier in this same pass
             MechLoadoutComponent m = world.mechLoadout(u);
-            m.heat.advance(BattleSimulation.TICK_DT);
+            m.flux.advance(BattleSimulation.TICK_DT);
 
             for (MechWeaponMount mount : m.mounts()) {
                 if (mount == null) continue;

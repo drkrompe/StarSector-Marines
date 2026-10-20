@@ -9,7 +9,7 @@ public final class MechWeaponMount {
     public final MechMountSlot slot;
     public final MechWeaponComponent component;
     public int ammo;
-    /** Mechanical loader/cycler time remaining; never the chassis heat reservoir. */
+    /** Mechanical loader/cycler time remaining; never the chassis flux reservoir. */
     public float cycleRemaining;
     public int burstRemaining;
     public float burstTimer;

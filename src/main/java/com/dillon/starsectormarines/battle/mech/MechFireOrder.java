@@ -5,13 +5,13 @@ import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 /**
- * Which installed mount an autonomous mech offers its heat reservoir to first. Against a machine (a mech or a ground
+ * Which installed mount an autonomous mech offers its flux reservoir to first. Against a machine (a mech or a ground
  * vehicle) the mounts are tried in order of how well each defeats that target's armor, by the durability law's own
  * measure, {@code clamp(penetration / armorRating, 0, 1)}, with slot order kept on ties. Against anything else the
  * slot order stands (arms, left shoulder, right shoulder).
  *
  * <p>The order matters because the reservoir admits one packet at a time: a chaingun firing first after every
- * release takes heat that its SRM shoulders, the chassis's anti-armor weapons, never get back
+ * release takes flux that its SRM shoulders, the chassis's anti-armor weapons, never get back
  * (heavy-equipment-progression.md). Fire at infantry is untouched. {@code -Dbattle.mech.armorFireOrder=false} is
  * the control.
  */

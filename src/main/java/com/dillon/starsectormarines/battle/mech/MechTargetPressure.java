@@ -14,7 +14,7 @@ import java.util.List;
  * area payload) at its armor efficiency against the target, times rounds per trigger over its
  * mechanical cycle, times its range-falloff accuracy at that distance. A mount that would not fire
  * counts nothing: out of range, an indirect rack inside the arms' reach (it lobs only beyond them),
- * or an anti-armor rack at a target that is not hardened. Heat and ammunition depth are left out:
+ * or an anti-armor rack at a target that is not hardened. Flux and ammunition depth are left out:
  * the question is which target, not whether to fire.
  *
  * <p>Pure: no simulation and no state.

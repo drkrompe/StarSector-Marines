@@ -45,7 +45,7 @@ class MechMissileVariantsTest {
             assertEquals(rack.footprintRows, frag.footprintRows, rack.name());
             assertEquals(MechPattern.of(rack).accessTier(), MechPattern.of(frag).accessTier(), rack.name());
             assertEquals(MechFrameBudget.mass(rack), MechFrameBudget.mass(frag), rack.name());
-            assertEquals(rack.heatPerTrigger(), frag.heatPerTrigger(), rack.name());
+            assertEquals(rack.fluxPerTrigger(), frag.fluxPerTrigger(), rack.name());
             assertEquals(rack.cycleSeconds(), frag.cycleSeconds(), rack.name());
             assertEquals(rack.ammoCapacity, frag.ammoCapacity, rack.name());
             assertEquals(rack.projectilesPerTrigger, frag.projectilesPerTrigger, rack.name());

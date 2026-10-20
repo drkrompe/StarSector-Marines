@@ -92,7 +92,7 @@ public record MechPattern(Kind kind, String definitionId) {
             of(MechWeaponComponent.SRM_5_FRAG),
             of(MechInternal.INDUSTRIAL_ENGINE),
             of(MechInternal.FACTORY_PLATING),
-            of(MechInternal.FACTORY_HEAT_SINK));
+            of(MechInternal.FACTORY_CAPACITOR_BANK));
 
     public static MechPattern of(MechVariant variant) {
         return new MechPattern(Kind.CHASSIS, variant.id);

@@ -150,7 +150,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
                                      BattleControl sim, boolean hasLos) {
         if (mount == null || !loadout.isAimedAt(target) || mount.cycleRemaining > 0f
                 || mount.burstRemaining > 0 || !mount.hasAmmo()
-                || !loadout.heat.permits(mount.component.heatPerTrigger(), true)
+                || !loadout.flux.permits(mount.component.fluxPerTrigger(), true)
                 || !sim.canFireMechMount(u, mount)) return;
         // An anti-armor warhead is wasted on a man: the rack keeps its pack for armor.
         if (mount.component.antiArmorOnly() && !sim.isHardenedTarget(target)) return;
@@ -164,7 +164,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
 
         float accuracyMult = indirect && !hasLos ? weapon.noLosAccuracyMult : 1f;
         sim.fireMechWeapon(u, target, mount, accuracyMult);
-        loadout.heat.commit(mount.component.heatPerTrigger());
+        loadout.flux.commit(mount.component.fluxPerTrigger());
         mount.commitTrigger(target, null);
     }
 }

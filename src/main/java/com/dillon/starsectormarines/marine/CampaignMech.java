@@ -24,11 +24,11 @@ public final class CampaignMech implements Serializable {
     private String leftShoulderComponentId;
     private String rightShoulderComponentId;
     // Absent in saves from before internals: null resolves to the stock part, so an existing
-    // mech migrates onto the stock frame without a rewrite. The cooler's stock is empty.
+    // mech migrates onto the stock frame without a rewrite. The vent array's stock is empty.
     private String engineId;
     private String platingId;
-    private String heatSinkId;
-    private String coolerId;
+    private String capacitorBankId;
+    private String ventArrayId;
     // Absent in saves from before section damage: null damage and a zero clock read as a whole,
     // ready mech, so an existing save needs no rewrite.
     /** What the last battle left needing repair; null when whole or once a repair is ordered. */
@@ -137,8 +137,8 @@ public final class CampaignMech implements Serializable {
         String installed = switch (role) {
             case ENGINE -> engineId;
             case PLATING -> platingId;
-            case HEAT_SINK -> heatSinkId;
-            case COOLER -> coolerId;
+            case CAPACITOR_BANK -> capacitorBankId;
+            case VENT_ARRAY -> ventArrayId;
         };
         MechInternal internal = MechInternal.findById(installed);
         return internal != null && internal.role == role ? internal : role.stock();
@@ -197,14 +197,14 @@ public final class CampaignMech implements Serializable {
         UNDER_REPAIR
     }
 
-    /** A null cooler empties the utility socket; every other role always holds a part. */
+    /** A null vent array empties the utility socket; every other role always holds a part. */
     void installInternal(MechInternal.Role role, MechInternal internal) {
         String internalId = internal != null ? internal.id : null;
         switch (role) {
             case ENGINE -> engineId = internalId;
             case PLATING -> platingId = internalId;
-            case HEAT_SINK -> heatSinkId = internalId;
-            case COOLER -> coolerId = internalId;
+            case CAPACITOR_BANK -> capacitorBankId = internalId;
+            case VENT_ARRAY -> ventArrayId = internalId;
         }
     }
 

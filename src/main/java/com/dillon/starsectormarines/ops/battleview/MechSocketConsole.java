@@ -22,7 +22,7 @@ final class MechSocketConsole {
     private MechSocketConsole() { }
 
     /**
-     * @param internal the engine, heat sink or cooler fitted in this well, drawn as its
+     * @param internal the engine, capacitor bank or vent array fitted in this well, drawn as its
      *                 footprint on the socket grid and named in the caption; null otherwise
      */
     static void draw(CanvasContext c, MechLabDollCanvas.SocketDropTarget t,
@@ -146,10 +146,10 @@ final class MechSocketConsole {
                 for (int i = -1; i <= 1; i++) c.line(x + i * 10, y - 12, x + i * 10, y + 12, color, 1f);
                 c.fillRect(x - 3, y - 3, 6, 6, AMBER);
             }
-            case HEAT_SINK, COOLER -> {
+            case CAPACITOR_BANK, VENT_ARRAY -> {
                 for (int i = -2; i <= 2; i++) c.line(x + i * 7, y - 12, x + i * 7, y + 12, color, 1.6f);
                 c.line(x - 18, y + 12, x + 18, y + 12, color, 1.4f);
-                if (role == MechInternal.Role.COOLER) c.strokeRect(x - 6, y - 6, 12, 12, GREEN, 1.2f);
+                if (role == MechInternal.Role.VENT_ARRAY) c.strokeRect(x - 6, y - 6, 12, 12, GREEN, 1.2f);
             }
             case PLATING -> c.strokeRect(x - 18, y - 12, 36, 24, color, 2f);
         }

@@ -569,7 +569,7 @@
   {
    "index": 2,
    "slot": "WS 002",
-   "weapon": "vulcan",
+   "weapon": "empty",
    "size": "SMALL",
    "arc_deg": 210.0,
    "pivot": "Turret 2 pivot",
@@ -596,14 +596,14 @@
   {
    "index": 3,
    "slot": "WS 003",
-   "weapon": "railgun",
+   "weapon": "empty",
    "size": "SMALL",
    "arc_deg": 210.0,
    "pivot": "Turret 3 pivot",
    "pivot_at": [
     41.0,
     11.0,
-    18.3
+    16.1
    ],
    "rest_angle_deg": 30.0,
    "elevation": null,
@@ -623,14 +623,14 @@
   {
    "index": 4,
    "slot": "WS 004",
-   "weapon": "heavymauler",
+   "weapon": "vulcan",
    "size": "MEDIUM",
    "arc_deg": 290.0,
    "pivot": "Turret 4 pivot",
    "pivot_at": [
     36.0,
     -16.0,
-    16.3
+    16.6
    ],
    "rest_angle_deg": -30.0,
    "elevation": null,
@@ -701,9 +701,9 @@
    "anchor": "Scar sp-turret-3 spark anchor",
    "scar": "sp-turret-3",
    "at": [
-    34.526,
-    13.791,
-    19.826
+    38.534,
+    13.366,
+    15.966
    ],
    "spray_dir": [
     -0.37155,
@@ -1125,16 +1125,6 @@
     48.12,
     25.3,
     9.4
-   ]
-  },
-  {
-   "object": "Turret 3 house glow",
-   "material": "Scar dead lamp",
-   "lit": false,
-   "at": [
-    39.68,
-    10.24,
-    19.71
    ]
   }
  ],
@@ -2759,8 +2749,8 @@
    },
    {
     "p": [
-     27.702,
-     -8.808,
+     31.387,
+     -9.883,
      15.17
     ],
     "n": [
@@ -2797,8 +2787,8 @@
    },
    {
     "p": [
-     27.702,
-     -8.808,
+     31.387,
+     -9.883,
      15.17
     ],
     "n": [
@@ -2806,7 +2796,7 @@
      0.0,
      1.0
     ],
-    "r": 0.282
+    "r": 0.395
    }
   ],
   "fb-stbd-flank-dent": [
@@ -4751,41 +4741,41 @@
   "sp-turret-2": {
    "centre": [
     -11.0,
-    -22.253,
-    19.827
+    -20.0,
+    18.913
    ],
    "extent": [
-    7.636,
-    13.822,
-    2.494
+    7.5,
+    7.5,
+    0.625
    ],
-   "objects": 12
+   "objects": 3
   },
   "sp-turret-3": {
    "centre": [
-    38.319,
-    10.236,
-    20.014
+    39.276,
+    12.466,
+    16.477
    ],
    "extent": [
-    9.491,
-    11.273,
-    1.5
+    2.573,
+    2.573,
+    1.975
    ],
-   "objects": 6
+   "objects": 5
   },
   "sp-turret-4": {
    "centre": [
-    37.409,
-    -15.521,
-    19.517
+    37.319,
+    -16.02,
+    17.687
    ],
    "extent": [
-    22.654,
-    18.662,
-    6.475
+    15.176,
+    12.554,
+    2.774
    ],
-   "objects": 16
+   "objects": 13
   },
   "sp-waist-line-cut": {
    "centre": [
@@ -4859,38 +4849,26 @@
   "Turbopump housing.001": "pod-starboard-pumps",
   "Turbopump vent slot": "pod-port-pumps",
   "Turbopump vent slot.001": "pod-starboard-pumps",
-  "Turret 2 house dark": "sp-turret-2",
-  "Turret 2 house paint": "sp-turret-2",
-  "Turret 2 house paint#dome": "sp-turret-2",
-  "Turret 2 house plate": "sp-turret-2",
-  "Turret 2 house steel": "sp-turret-2",
-  "Turret 2 recoil 1 dark": "sp-turret-2",
-  "Turret 2 recoil 1 metal": "sp-turret-2",
-  "Turret 2 recoil 1 steel": "sp-turret-2",
-  "Turret 2 recoil 2 dark": "sp-turret-2",
-  "Turret 2 recoil 2 metal": "sp-turret-2",
-  "Turret 2 recoil 2 steel": "sp-turret-2",
-  "Turret 4 gun dark": "sp-turret-4",
-  "Turret 4 gun plate": "sp-turret-4",
-  "Turret 4 gun steel": "sp-turret-4",
-  "Turret 4 house accent#flank-1": "sp-turret-4",
-  "Turret 4 house accent#flank1": "sp-turret-4",
+  "Turret 2 blanking cap": "sp-turret-2",
+  "Turret 2 blanking cap boss": "sp-turret-2",
   "Turret 4 house dark": "sp-turret-4",
-  "Turret 4 house metal": "sp-turret-4",
-  "Turret 4 house metal#brake": "sp-turret-4",
-  "Turret 4 house paint#body": "sp-turret-4",
+  "Turret 4 house paint": "sp-turret-4",
+  "Turret 4 house paint#dome": "sp-turret-4",
   "Turret 4 house plate": "sp-turret-4",
   "Turret 4 house steel": "sp-turret-4",
   "Turret 4 recoil 1 dark": "sp-turret-4",
+  "Turret 4 recoil 1 metal": "sp-turret-4",
   "Turret 4 recoil 1 steel": "sp-turret-4",
   "Turret 4 recoil 2 dark": "sp-turret-4",
+  "Turret 4 recoil 2 metal": "sp-turret-4",
   "Turret 4 recoil 2 steel": "sp-turret-4",
+  "Turret 4 reducer plate": "sp-turret-4",
   "Whip antenna.001": "sp-mast"
  },
- "left_out_objects": 183,
- "objects": 1019,
- "polygons": 216979,
- "baked_meshes": 780,
+ "left_out_objects": 167,
+ "objects": 1009,
+ "polygons": 215975,
+ "baked_meshes": 777,
  "images": [
   "Skin arm-boom-port",
   "Skin arm-forearm-out",
@@ -4939,7 +4917,7 @@
   "materials": {
    "base": 77,
    "steel": 5,
-   "torn": 8,
+   "torn": 7,
    "salvage": 2,
    "weld": 1
   },
@@ -4977,14 +4955,10 @@
    "Scar cut steel end",
    "Scar dead lamp",
    "Scar deck frame primer",
-   "Scar fracture bright steel",
    "Scar fresh fracture",
    "Scar oxidised copper",
    "Scar pipe lagging",
    "Scar plate back primer",
-   "Turret railgun accent 0.2145,0.1195,0.0974",
-   "Turret railgun accent2 0.3172,0.3261,0.3350",
-   "Turret railgun paint 0.1587,0.1662,0.1679",
    "Turret steel Engine collars",
    "Turret vulcan metal 0.1107,0.1104,0.1093",
    "Turret vulcan paint 0.1236,0.0973,0.0737",
@@ -5030,7 +5004,7 @@
  },
  "sources": {
   "skinned_blend": "skinned-derelict.blend",
-  "geometry_json_sha256": "b5620dc04d3e1a80d605bedcb7058ba930dd024d7799aade2106c4e1aa9c5190",
+  "geometry_json_sha256": "4c6ab573be1493592173388dde48c89926f441aeb073459e72fe41c6949e4204",
   "wear_params_sha256": "5572966dbb3381782a6f7f9896a7c3605eddff06edb65ef3a103ba9d1c128bc0"
  },
  "conventions": {
@@ -5041,5 +5015,5 @@
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "2ba4c50812856cc60d4fc2987b97d6c382c9307eb83949a0ab65558caa18ae58"
+ "asset_sha256": "801f04ae7563184b0adc115fe19242d569d04dafe7a8c93adf4e4aad1b2b1b91"
 }
