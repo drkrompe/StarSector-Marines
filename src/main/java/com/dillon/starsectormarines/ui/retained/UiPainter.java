@@ -11,6 +11,13 @@ final class UiPainter {
     private static final float SCROLL_THUMB_INSET = 2f;
     private static final float SCROLL_THUMB_MIN_HEIGHT = 12f;
     private static final Color SCROLL_THUMB = new Color(0xC8, 0xD0, 0xD8, 0xA6);
+    /**
+     * Where a {@code text-shadow} halo is stamped, in document pixels: a one-pixel ring with the
+     * drop corner doubled. Text over a battle has no panel behind it, so a ring rather than a single
+     * drop is what keeps a pale label readable over pale ground from any direction.
+     */
+    private static final float[][] SHADOW_OFFSETS = {
+            {-1f, 0f}, {1f, 0f}, {0f, -1f}, {0f, 1f}, {1f, 1f}, {-1f, -1f}, {1f, -1f}, {-1f, 1f}, {1.5f, 1.5f}};
 
     void paint(UiElement root, Rect viewport, float alphaMult,
                CanvasRegistry canvases, UiTextMeasurer text, UiPaintTarget target) {
@@ -71,7 +78,16 @@ final class UiPainter {
                 element, element.box().contentBox().width());
         if (measured.font() != null && element.text() != null && element.textColor() != null
                 && childClip.width() > 0f && childClip.height() > 0f) {
+            Color shadow = element.textShadow();
+            boolean halo = shadow != null && shadow.getAlpha() > 0;
             for (UiTextMeasurer.TextLine line : text.lineBoxes(element, measured)) {
+                if (halo) {
+                    for (float[] offset : SHADOW_OFFSETS) {
+                        Rect box = line.box();
+                        target.text(measured.font(), line.value(), new Rect(box.x() + offset[0],
+                                box.y() + offset[1], box.width(), box.height()), shadow, elementAlpha);
+                    }
+                }
                 target.text(measured.font(), line.value(), line.box(),
                         element.textColor(), elementAlpha);
             }

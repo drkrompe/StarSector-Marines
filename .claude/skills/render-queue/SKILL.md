@@ -44,19 +44,34 @@ The queue folder is `G:\My Drive\starsector\render-queue\` on Windows and
 
 | lane | for | gate |
 |------|-----|------|
-| `review` | stills and takes the owner will look at | waits for `run` |
 | `light` | half size, at most 16 samples, or a low-fps low-res clip (owner rule) | **runs while paused** |
+| `review` | stills and takes the owner will look at | waits for `run` |
 | `final` | full-quality finals the owner approved | waits for `run` |
 
-Within a lane, jobs run by priority (higher first), then submission time.
-Review and light jobs run ahead of finals. When one arrives while a final is
-rendering, the runner **swaps the final out**: it waits for the frame in
-progress to land (up to 7 minutes), stops the final cleanly, runs the short
-job, then relaunches the final. Closing the gate swaps a gated job out the
-same way, with nothing swapped in. So a final's render command **must skip
-frames that already exist**, as Blender does with `use_overwrite = False` /
-`use_placeholder = True`. The runner deletes 0-byte placeholders before each
-launch.
+Lanes run in that order: light before review before final. Priority (higher
+first), then submission time, orders jobs **within** a lane. It never lifts a
+job into an earlier lane.
+
+When a job in an earlier lane arrives, a running review or final with frames
+still to render after the current one is **swapped out at its next frame
+boundary**. The runner waits for the frame in progress to land, however long
+that takes, then stops the job cleanly. It runs the earlier job, then
+relaunches the swapped-out one. Preemption never stops a frame mid-render.
+
+A job without a `frames` check, or one on its last frame, is not swapped:
+it finishes first, then the earlier lane goes next. That includes a long
+single-frame still. A two-hour single frame therefore holds its machine for
+two hours. Submit quick looks as `any` so the other machine can take them, or
+ask the render coordinator to hold the long job, which stops it mid-frame and
+throws the frame away.
+
+Closing the gate, or a hold, swaps a job out the same way with nothing swapped
+in. These wait at most `swap_wait_max_seconds` (7 minutes) for the frame in
+progress, then stop it mid-frame.
+
+So a multi-frame render **must skip frames that already exist**, as Blender
+does with `use_overwrite = False` / `use_placeholder = True`. The runner
+deletes 0-byte placeholders before each launch.
 
 Respect the light-lane rule: a light job runs on the owner's GPU during the
 day. One that runs past 30 minutes is stopped and marked failed.

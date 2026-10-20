@@ -84,7 +84,7 @@ armor depletion empties its bar independently of health, and an armorless body
 has no armor row. A **weapon-groups panel** at bottom right lists equipment under
 the button that fires it (see Mouse buttons and weapon groups). Separate
 top-right buttons provide return-to-command and pause/resume. Both panels size
-to their rows and hug the bottom edge. Weapon rows distinguish the authored firing
+to their rows and hug the bottom edge, and like the game's own combat HUD they have no box: text and bars float over the battle, and only the selected weapon row carries a wash. Weapon rows distinguish the authored firing
 pattern, remaining resources, and burst or recovery clocks. Loaded describes
 resource and clock availability, not a guarantee that the barrel is aimed or
 clear. Infantry primaries show no ammunition counter; finite Mech stores count
