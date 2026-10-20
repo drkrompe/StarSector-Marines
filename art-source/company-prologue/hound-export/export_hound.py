@@ -24,7 +24,9 @@ or an opened ramp keep their wear.
 Hound specifics:
 - WS 002 (small turret, slot angle 145) trains: `Weapon WS 002 pivot` turns about
   hull +Z; everything above the traverse gap rides it, the barbette stays.
-- WS 001 (medium hardpoint) is fixed; WS 003 (hidden flare system) has its slot
+- WS 001 (medium hardpoint) is fixed: the turret kit's chaingun on `Weapon WS 001 mount`,
+  its parts kept on their own empties (recoil 1, rotor); `Anchor weapon WS 001 muzzle`
+  sits on the kit's `Weapon WS 001 muzzle anchor 1`, held by the root. WS 003 (hidden flare system) has its slot
   anchor and no muzzle.
 - The aft ventral ramp hangs on `Hull aft ventral ramp hinge` (local Y, negative
   angles lower the aft end; ground_contact_deg on the empty). The leaf, treads,
@@ -170,12 +172,14 @@ for ob in ship:
     for c in list(ob.users_collection):
         c.objects.unlink(ob)
     coll.objects.link(ob)
-    ob.parent = root          # root sits at the hull origin: no inverse needed
+    if ob.parent is None:     # a kit hardpoint's parts keep their own empties (mount, recoil, rotor)
+        ob.parent = root      # root sits at the hull origin: no inverse needed
 for ob in geo_anchors:
     for c in list(ob.users_collection):
         c.objects.unlink(ob)
     anchors_coll.objects.link(ob)
-    reparent(ob, root)
+    if ob.parent is None:
+        reparent(ob, root)
 bpy.context.view_layer.update()
 root['asset'] = NAME
 root['state'] = STATE
@@ -221,6 +225,25 @@ for slot_id, slot in SLOTS.items():
               [(k, by_name[f'Weapon {slot_id} muzzle brake {k}']) for k in range(1, 9)
                if f'Weapon {slot_id} muzzle brake {k}' in by_name])
     rec['muzzles'] = []
+    # A turret-kit hardpoint (WS 001's chaingun, tk.build_hardpoint) declares its own
+    # muzzle empties, '<slot prefix> muzzle anchor <k>' on its mount (fixed: they do not
+    # ride the recoil). The declared anchor sits on it, held by the root as the hull's own
+    # hardpoint's was, so the VFX kit's flash rig is not counted as part of the mount.
+    kit_muzzles = [bpy.data.objects[n] for n in (f'Weapon {slot_id} muzzle anchor {k}' for k in range(1, 9))
+                   if n in bpy.data.objects]
+    if not brakes and kit_muzzles:
+        rec['built_by'] = 'turret-kit build_hardpoint'
+        rec['mount_empty'] = f'Weapon {slot_id} mount'
+        rec['moving'] = sorted(o.name for o in geo_anchors if o.name in (f'Weapon {slot_id} recoil 1', f'Weapon {slot_id} rotor'))
+    for k, km in enumerate(kit_muzzles if not brakes else [], 1):
+        tip = km.matrix_world.translation.copy()
+        scale = 1.3 if slot['size'] == 'MEDIUM' else 1.0
+        a = empty(f'Anchor weapon {slot_id} muzzle' + (f' {k}' if k > 1 else ''), anchors_coll, 1.0, 'SINGLE_ARROW',
+                  holder, Matrix.Translation(tip) @ frame(axis).to_4x4())
+        a['slot'] = slot_id
+        a['scale'] = scale
+        rec['muzzles'].append({'anchor': a.name, 'at': rounded(tip), 'axis': rounded(axis), 'scale': scale,
+                               'kit_muzzle': km.name})
     for k, brake in brakes:
         pts = [brake.matrix_world @ v.co for v in brake.data.vertices]
         reach = max(p.dot(axis) for p in pts)

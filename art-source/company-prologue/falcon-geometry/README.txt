@@ -44,8 +44,9 @@ Modules
   fc_engines  the twelve drives (Engine 1-6 main, 7-12 manoeuvring)
   fc_mounts   the eight slots the skin keeps: turret-kit turrets on WS 005/006
               (typhoon) and WS 009/010 (the kit's pdlaser standing in for the
-              IR pulse laser), box launchers on WS 001/002 (swarmer) and
-              WS 007/008 (annihilator pod)
+              IR pulse laser), the kit's hardpoints sunk in bays cut from
+              the hull: swarmer packs on WS 001/002 (outrigger pods) and
+              annihilator heads on WS 007/008 (between the bow fork jaws)
   fc_lights   running lights and the bridge glazing
 
 Scale (pass 4): 0.81 m per unit
@@ -93,7 +94,7 @@ Effects and export (pass 7)
 vfx_hull.py is this hull's profile for the shared VFX kit (../second-wind-vfx):
 twelve MIDLINE drives (1-6 main, 7-12 manoeuvring), the eight weapon slots in
 manifest order as mounts (launchers for the swarmers, typhoons and annihilator
-pods, guns for the IR pulse lasers) and six lamps. export_falcon.kit_muzzles
+heads, guns for the IR pulse lasers) and six lamps. export_falcon.kit_muzzles
 adds the kit's declared muzzles, `Anchor turret <i> tube|barrel <k> muzzle`,
 parented to each `Weapon <id> muzzle anchor <k>`, so a trained turret carries
 them. export_effects.py adds the `SWFX` collection beside `FALCON (P)`;

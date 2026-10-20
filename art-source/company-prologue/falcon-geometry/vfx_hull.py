@@ -11,9 +11,10 @@ is a warm orange-yellow (engine_styles.json); the (P) skin's patchwork drives
 burn a little hotter and dirtier, so the plume is pushed toward orange.
 
 Mounts are the manifest's weapon slots in order (geometry.json weapon_slots):
-WS 001/002 swarmer and WS 007/008 annihilator pod box launchers, WS 005/006
-typhoon launcher turrets, WS 009/010 IR pulse laser turrets (the turret kit's
-pdlaser). The export declares one kit muzzle per launch cell row or barrel,
+WS 001/002 swarmer and WS 007/008 annihilator pod hardpoints (the turret kit's
+swarmer pack and annihilator head), WS 005/006 typhoon launcher turrets, WS
+009/010 IR pulse laser turrets (the turret kit's pdlaser). The export declares
+one kit muzzle per launch tube or barrel,
 `Anchor turret <i> tube|barrel <k> muzzle` (export_falcon.kit_muzzles),
 parented to the mount's own muzzle anchor, so a trained turret carries them.
 """

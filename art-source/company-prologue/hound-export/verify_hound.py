@@ -1,6 +1,6 @@
 """Structural checks on the exported Hound, appended the way a shot appends it.
 
-  blender --background --factory-startup --python verify_hound.py -- [--state clean]
+  blender --background --factory-startup --python verify_hound.py -- [--state clean] [--dir BUILD]
 
 Appends `HOUND (A) | <state>` and, when the manifest records effects, `SWFX` in
 the same load into a factory-empty scene. Writes <state>/validation.json (exit 1
@@ -27,7 +27,7 @@ from mathutils import Euler, Matrix, Vector
 HERE = Path(__file__).resolve().parent
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 STATE = argv[argv.index('--state') + 1] if '--state' in argv else 'clean'
-DIR = HERE / STATE
+DIR = Path(argv[argv.index('--dir') + 1]).resolve() if '--dir' in argv else HERE / STATE   # --dir: a build folder
 man = json.loads((DIR / 'manifest.json').read_text())
 bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene

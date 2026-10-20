@@ -101,7 +101,7 @@
       "location": [
         35,
         -6,
-        0.4
+        0.2
       ],
       "angle": 0,
       "arc": 5,
@@ -137,6 +137,100 @@
       "arc": 90,
       "objects": "Weapon WS 003 ...",
       "anchor": "Weapon WS 003 anchor"
+    }
+  ],
+  "hardpoints": [
+    {
+      "slot": "WS 001",
+      "weapon": "chaingun",
+      "built_by": "turret-kit/turret_kit.py build_hardpoint",
+      "k": 0.5,
+      "mount": "Weapon WS 001 mount",
+      "mount_location": [
+        24.95,
+        -6,
+        0.2
+      ],
+      "bay": [
+        [
+          -4.45,
+          5.1,
+          -4.2,
+          3.8,
+          -2.5
+        ],
+        [
+          -3.1,
+          3.7,
+          3.6,
+          5.45,
+          -1.8
+        ],
+        [
+          1.55,
+          4.45,
+          -7.45,
+          -3.9,
+          -0.75
+        ]
+      ],
+      "bay_cut_from": [
+        "Fork base",
+        "Fork base armour bolts",
+        "Fork base armour plate port aft",
+        "Fork base armour plate port fore",
+        "Fork base armour plate starboard aft inboard",
+        "Fork base armour plate starboard fore inboard",
+        "Fork base seam cores",
+        "Fork gusset 1",
+        "Fork gusset 2",
+        "Fork gusset 3",
+        "Fork gusset 4",
+        "Fork gusset bolts",
+        "Fork port tine",
+        "Fork port tine rail cap 1",
+        "Fork port tine stiffener ribs",
+        "Fork port tine web",
+        "Fork service hatch 2",
+        "Fork service hatch 2 handle (removed)",
+        "Fork starboard tine",
+        "Fork starboard tine rail cap 1",
+        "Fork starboard tine stiffener ribs"
+      ],
+      "parts": [
+        "Weapon WS 001 hardpoint paint#housing",
+        "Weapon WS 001 hardpoint steel",
+        "Weapon WS 001 hardpoint plate",
+        "Weapon WS 001 hardpoint dark",
+        "Weapon WS 001 hardpoint accent2",
+        "Weapon WS 001 hardpoint plate#chute",
+        "Weapon WS 001 hardpoint plate#box",
+        "Weapon WS 001 hardpoint mark",
+        "Weapon WS 001 hardpoint accent#motor",
+        "Weapon WS 001 hardpoint cable",
+        "Weapon WS 001 hardpoint steel#jacket",
+        "Weapon WS 001 hardpoint metal",
+        "Weapon WS 001 recoil 1 steel",
+        "Weapon WS 001 rotor metal#hub",
+        "Weapon WS 001 rotor steel",
+        "Weapon WS 001 rotor dark",
+        "Weapon WS 001 rotor metal",
+        "Weapon WS 001 rotor steel#clamp16.4",
+        "Weapon WS 001 rotor steel#clamp22.2",
+        "Weapon WS 001 rotor steel#clamp27.6"
+      ],
+      "moving": [
+        "Weapon WS 001 recoil 1",
+        "Weapon WS 001 rotor"
+      ],
+      "kit_muzzles": [
+        "Weapon WS 001 muzzle anchor 1"
+      ],
+      "muzzle_location": [
+        39.45,
+        -6.0,
+        0.2
+      ]
     }
   ],
   "engines": [
