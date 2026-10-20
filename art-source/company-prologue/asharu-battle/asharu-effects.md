@@ -37,9 +37,17 @@ game's stock variant for that hull, so what the player has fought is what they s
 | Dram | `dram_Light` | Vulcan | Harpoon | flares |
 | Tarsus, Phaeton | stock | light MGs | none | burn drive / flares |
 
-Open for the owner: the Lasher build models three light MGs where the game's Lasher variants carry
-Vulcans, dual autocannons and missiles. Either keep the build's guns or fit `lasher_CS` (light dual
-autocannon, Vulcan, Harpoon) when the escort's guns are built.
+**The Lashers keep the build's three light machine guns** (owner, 2026-10-20: only the
+cinematic look matters). That makes them PD boats, and it fits what they do in the scene:
+
+- **S5:** they are the convoy's missile screen, hosing at the Harpoon salvo and killing some short.
+- **S9b:** kinetic is the game's anti-shield damage, so the lead's guns honestly press the
+  Falcon's front shield into overload.
+- **S6b:** the Ammo Feeder doubles their rate for the kill.
+
+One beat leans on the game: an unshielded Buffalo Mk.II is the target kinetic fire handles worst.
+If it should read true to players, Lasher B's feeder burst strips her and the merchant Wolf's heavy
+blaster breaks her up. The radio line "She's breaking up. One down." still works.
 
 ## Guns: the families the player knows
 
@@ -142,7 +150,8 @@ tracer still crosses the frame in a readable beat.
 
 ## The effects bench (before any full render)
 
-The plan is light-lane tests: half size, 16 samples or fewer, close-ups on the real builds, one
+Timing (owner, 2026-10-20): after the Jangala finals finish, probably 2026-10-21, so the
+machines are free. The plan is light-lane tests: half size, 16 samples or fewer, close-ups on the real builds, one
 shooter and one target, a short burst of frames each.
 
 1. **Lasher light MG burst.** Normal cadence, then the Ammo Feeder doubling with the amber glow.
