@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1569f-87d6-7472-b303-832d8bffdb52",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1569f-87d6-7472-b303-832d8bffdb52\\exec-8839db03-692b-410a-abe4-558e870b8263.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\yard-stills\\berths-fitted-v2.png",
+    "sha256": "f11a66445444aac9d7650ce51f0394f2f434459ab7a5371aef71b9e80d7f1651",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\yard-stills\\berths-fitted-v2.prompt.txt",
+  "promptSha256": "a51f585c8fe32a2ad31b9a41c72724c6a22fdce06cbf1cba6d7d7912af8b1977",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target and layout authority: the before picture; keep camera, hold, hatch\nImage 2: Costume only: slate-blue and charcoal field jackets; not her face\n\nOne landscape 1536x1024 (3:2) cinematic story illustration for a mature industrial science-fiction game: the AFTER picture of reference 1. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. No legible text, logos, watermark, border or interface.\n\nReference roles:\n- Reference 1 is the EDIT TARGET and layout authority: Second Wind's cargo hold before the yard's conversion, with Sabine's section sleeping on the deck. Keep EXACTLY its camera, perspective, frame, the corridor and floor tracks, the overhead netting and lamps, the scarred grey steel and exposed wiring, and the yellow-striped sealed pressure hatch at the right with its locking bars and the collapsed machinery behind its inspection window. The hatch stays sealed: this was berthing work, not restoration.\n- Reference 2 is COSTUME ONLY: the slate-blue and charcoal field jackets of Sabine's section. Not her face.\n\nChange, on the LEFT only: the cargo lashings, loose bedrolls and the sleepers on the deck are gone. In their place a practical, tightly fitted run of two-tier steel bunks with thin mattresses and folded blankets, compact kit lockers bolted underneath, a few small new bunk reading lamps, and a fresh unpainted welded pressure patch with clean weld seams around them; a clear walking aisle along the deck. The section's rifles are now racked upright in a simple steel rifle rack at the end of the bunks. The soldier who was on watch now sits on a lower bunk unlacing her boots; one or two others rest in bunks, unobtrusive. A pair of boots stands under a rack. The rest of the hold stays as scarred and dim as before; the man in civilian work clothes sitting by the crates in the middle distance can stay.\n\nMood: slight warmth and relief, a place of their own, without making the ship new or luxurious.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\yard-stills\\cargo-billets-v2.png",
+      "sha256": "d39a6877035a8a200508e4feb31d802d3a31766a2b699d5d5123ab3c307cb4bb",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Edit target and layout authority: the before picture; keep camera, hold, hatch"
+    },
+    {
+      "path": "art-source\\portraits\\sabine-hale.master.png",
+      "sha256": "008daeb37fe8bd34c80fa135130bfe7e1525edc485a5b0933f31cc42a5947dea",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Costume only: slate-blue and charcoal field jackets; not her face"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one edited image, preserving the hold’s layout and sealed hatch while converting the left side into compact berthing.\n"
+  ],
+  "usage": {
+    "input_tokens": 43627,
+    "cached_input_tokens": 33792,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 622,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 51.1
+}
