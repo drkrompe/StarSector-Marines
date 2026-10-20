@@ -205,19 +205,34 @@ built closed, with its parts parented to a named hinge empty
 The segment rule and the bevel table, both defined in
 `ship_detail_kit.py`:
 
-- **Segment rule.** The chord of any round may sit at most **max(5 mm, r/400)**
-  inside the true arc, rounded up to a multiple of 4, with a minimum of 12.
+- **Segment rule.** The chord of any round may sit at most **5 mm** inside the
+  true arc. Use the smallest multiple of 4 that achieves it, between 12 and 96.
   - 8 sides are allowed under 5 cm radius.
   - 6-sided bolt and nut heads are exempt.
-  - Examples: a 0.17 m mast takes 16, a 0.4 m housing 24, a 1 m dome 32, a
-    1.7 m dish 48.
+  - Deliberate plate facets are exempt when built and named as plates (a plated
+    dome, an octagon collar).
+  - The references' finished rounds are where the rule comes from: the
+    Colossus mast (0.175 m radius, 16 sides, 3.4 mm), sensor dome (1 m, 32,
+    4.8 mm) and dish (1.7 m, 48, 3.6 mm).
+  - The turret kit's 0.22 m chord is the same rule at 1.2 m radius. Below that
+    it allows fewer segments (0.4 m: 12 against 20), above it more (4 m: 115
+    against 64). One rule is used for both.
   - `sdk.segments(r_m)` or `Scale.n(r_units)` gives the count.
 - **Smooth shading** on every curved body (`smooth`: shade smooth with
   sharp-from-angle at 35°), never on plate.
-- **Bevels**, angle-limited, one segment: hull plates 0.12 m, modules 0.06 m,
-  fittings 0.03 m, small parts 0.015 m (`Scale.bevel(kind)`). The Colossus uses
-  7.5 cm on its boxes and 6 cm on its prisms. Two or three segments only on
-  parts seen within a few metres.
+- **Bevels**, angle-limited, one segment, by the size of the part
+  (`Scale.bevel(kind)`). These are the Colossus's measured widths, with the
+  Legion's hull boxes at about 0.15 m:
+
+  | Part | Width |
+  |---|---|
+  | hull plates (faces over about 5 m) | 0.12 m |
+  | modules, housings, turret houses and barbettes (faces 1–5 m) | 0.06 m (Colossus boxes 7.5 cm, prisms 6 cm) |
+  | fittings (faces 0.3–1 m) | 0.03 m |
+  | small parts (under 0.3 m) | 0.015 m |
+
+  Two or three segments only on parts seen within a few metres. Near-black
+  recess parts may stay sharp, since a chamfer there catches no highlight.
 - A plate profile with its own chamfers (the Legion's belts) counts as
   bevelled. A plate with neither a bevel nor a chamfer catches no highlight
   and reads as a blockout.
@@ -289,59 +304,85 @@ SDK_CHECK="--mpu 0.5 --label colossus --out build/check-colossus.json --exclude 
 ```
 
 Add `--lights <hull>_lights.png --ship <hull>.ship` when the hull has a lights
-layer. The check reports these categories:
+layer.
 
-- **faceted**: objects whose rounds fall below the segment rule, at 0.8
-  tolerance. It counts regular n-gon caps and crease runs. A run counts when
-  it turns at least 75°, sits more than 0.6 m from any plating, and is not a
-  hull facet over 5 m radius, which is listed separately.
-- **unbevelled**: the length of hard convex edges (60° and sharper) between
-  faces at least 0.5 m wide, per 100 m² of surface.
-- **emissive outside**: emissive faces off the lights layer, or, without a
-  lights layer, on objects whose names aren't lamp or light names. Engines are
-  exempt.
-- **unframed glazing**: glass with no frame around it.
-- **bare patches**: coplanar regions with nothing in front of them over the
-  threshold (100 m² by default).
+The check has two kinds of result: gates and readings. A gate must pass before
+the owner sees the build, unless the review notes name the flag and why it
+stays. A reading is listed for the author and blocks nothing.
+
+**Gates:**
+- **faceted**: objects with a round whose silhouette error (chord sag) is over
+  **25 mm**. That is about one pixel at the accepted Legion and Colossus close
+  views, the point where a facet starts to show.
+  - The 5 mm segment rule is the build target. The 25 mm gate is how far a
+    finished build may miss it before it shows.
+  - The check finds rounds two ways: regular n-gon caps, and crease runs that
+    turn at least 75°, sit more than 0.6 m from any plating, and are under 5 m
+    radius.
+  - Rounds over 5 m radius are listed as hull facets and treated as designed
+    faceting.
+- **unbevelled**: no more than **3.0 m per 100 m²** of hard convex edges
+  (60° and sharper) between faces at least 0.5 m wide. This is the Colossus's
+  figure. Edges between two near-black recess faces are left out.
+- **emissive outside**: none. An emissive face counts if it is off the lights
+  layer, or, when the hull has no lights layer, if its object's name isn't a
+  lamp or light name. Engines are exempt.
+- **unframed glazing**: none (glass with no frame object around it).
+
+**Readings:**
+- **below rule**: objects whose rounds miss the 5 mm rule but not visibly.
+- **bare patches**: coplanar regions with nothing in front of them over 100 m².
+  The check sees geometry only, so panel lines painted in surfacing (the
+  Legion's box tiles) don't count here.
 - **bare boxes and cylinders**: primitives with no bevel and nothing touching
   them.
 
-A pass-2 or pass-3 build goes to the owner only after the check has run. Each
-remaining flag is either fixed or named in the review's `NOTES.md` with the
-reason it stays.
+### Calibration and first run (2026-10-20)
 
-### First run (2026-10-20)
+The first version flagged any round more than 20% under the segment rule. That
+put 170 Colossus objects on the faceted list, mostly 14–19-sided tanks,
+longerons and rings whose silhouette is off by 10–25 mm. That is under a pixel
+at the review cameras, and the accepted renders show them round. The 25 mm
+gate replaced that tolerance, and the dark-recess exception was added to the
+hard-edge count.
 
-Turrets excluded; mpu as in `ship-scale.md`.
+Results with turrets excluded. The Manticore and Wolf are at their builds of
+this date.
 
-| Hull | m/u | Faceted objects | Unbevelled m / 100 m² | Emissive off-layer | Bare patches (largest m²) | Bare boxes / cylinders |
-|---|---|---|---|---|---|---|
-| Legion | 0.99 | 140 | 15.65 | 6 | 97 (2,644) | 210 / 96 |
-| Colossus | 0.5 | 170 | 2.88 | 3 | 11 (263) | 25 / 5 |
-| Manticore (P) | 0.59 | 14 | 7.8 | 19 | 6 (145) | 0 / 2 |
-| Wolf (P) | 0.76 | 6 | 3.85 | 4 | 0 | 0 / 0 |
-| Lasher | 0.95 | 57 | 8.6 | 4 (0% on its lights layer) | 5 (310) | 0 / 0 |
+| Hull | m/u | Faceted (gate) | Below rule (reading) | Unbevelled m / 100 m² | Emissive off-layer | Bare patches (largest m²) | Bare boxes / cylinders |
+|---|---|---|---|---|---|---|---|
+| Legion | 0.99 | 126 | 138 | 13.66 | 6 | 97 (2,644) | 210 / 94 |
+| Colossus | 0.5 | 12 | 169 | 2.88 | 3 | 11 (263) | 25 / 5 |
+| Manticore (P) | 0.59 | 0 | 12 | 7.96 | 19 | 4 (143) | 0 / 2 |
+| Wolf (P) | 0.76 | 6 | 9 | 3.52 | 4 | 0 | 0 / 0 |
+| Lasher | 0.95 | 41 | 45 | 8.6 | 4 (0% on its lights layer) | 5 (310) | 0 / 0 |
 
-How to read the table:
+The references' remaining flags are real faults at a close view, and the check
+stays strict on them.
+- **Colossus, 12 faceted:**
+  - 8-sided truss pipe runs (0.4 m radius, 30 mm sag);
+  - 16-sided drive-pod inspection ports, flanges and couplings (1.35–1.6 m,
+    26–31 mm);
+  - the 15-sided drive housings (4.6 m). These are a faceted loft by design
+    and are the one allowance.
+  - It passes the bevel gate. Its 3 emissives (windscreen, wing ports, one
+    unnamed glazing part) need a lights-layer check, since the Colossus has
+    none.
+- **Legion, 126 faceted:**
+  - drive cans, cooling jackets, gimbal rings and bells at 16–20 sides on
+    1.5–3 m radii (30–47 mm);
+  - 8-sided engine actuators and feed lines (81 mm);
+  - 6- and 8-sided lifts, clamps, blisters and service lines (40–113 mm);
+  - masts at 8 sides, and ico-sphere lamps.
+- **Legion bevels:** it fails the bevel gate at 13.66. Its machinery bed ribs,
+  hangar roof frames, keel line, dome and wing armour plates and gallery ribs
+  carry no bevel modifier. The profile chamfers on its belts are why the hull
+  still reads crisp at a distance.
+- **Legion bare patches** are its broad hull tops, which surfacing paints with
+  box tiles.
 
-- **The references carry debt too.** The table measures the standard; it is
-  not a ranking.
-  - Legion: 8-segment masts, ico-sphere lamps, 20-sided drive cans, hexagonal
-    pipes on the flight decks, and few bevel modifiers. Its plate chamfers keep
-    its close views crisp, so its unbevelled figure overstates the problem.
-  - Colossus: 8-sided conduits and 19-segment tanks.
-- **The Legion's bare patches are mostly its broad hull tops** under the
-  turrets, belts and deck tiles. They read in the accepted renders through
-  texture and tile seams, which the check doesn't see.
-- **Emissives off the layer:**
-  - Legion: control booth glazing and gallery ports.
-  - Colossus: windscreen and wing ports. Lit glazing is allowed on the lights
-    layer, and the Colossus has no lights layer to test against.
-  - Manticore: core viewports.
-  - Wolf: vent slats.
-  - Lasher: running lights that miss its lights layer entirely.
-- **Nothing on these hulls was changed by this run.** Each hull's owning
-  session decides what to fix.
+Nothing on these hulls was changed. Each hull's owning session decides what to
+fix.
 
 ### The kit sampler
 

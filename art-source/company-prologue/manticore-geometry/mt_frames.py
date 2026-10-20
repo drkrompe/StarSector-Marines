@@ -263,7 +263,7 @@ def wing_armour(kit, side, s, wing):
     z0, z1 = PLATE
     plate = prism(kit, f'Hull wing {side} armour plate 1', ccw(m(plan)), [(0, z0), (0, z1-2.5), (2.5, z1)], kit.red, .12)
     plate = droop(shear(plate))
-    armour_plates(kit, plate, [((0, s*y0, 0), (0, 1, 0)) for y0 in (30, 46)])   # round 15: plates
+    armour_plates(kit, plate, [((0, s*y0, 0), (0, 1, 0)) for y0 in (27, 33, 39, 45, 51)])   # combat armour courses
     kit.hull.append(plate)
 
 

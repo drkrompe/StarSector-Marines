@@ -104,12 +104,12 @@ class MechPointFireTest {
     }
 
     @Test
-    void invalidRearAndBehindMuzzlePointsSpendNoResourcesDespiteStaleAimCache() {
+    void invalidAndRearPointsSpendNoResourcesDespiteStaleAimCache() {
         Fixture f = new Fixture(MechWeaponComponent.SINGLE_HEAVY_CANNON, null, null);
         MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
         f.loadout.torsoOnTarget = true;
         for (PointFireAim aim : List.of(new PointFireAim(Float.NaN, 0f),
-                new PointFireAim(20.5f, 20.5f), new PointFireAim(20.5f, 20.6f), EAST)) {
+                new PointFireAim(20.5f, 20.5f), EAST)) {
             f.fire(aim);
         }
         f.loadout.torsoFacingDegrees = 180f;
@@ -117,6 +117,25 @@ class MechPointFireTest {
         assertTrue(f.shots.getActiveShots().isEmpty());
         assertEquals(0f, arms.cycleRemaining);
         assertEquals(0, f.roster.telemetry().roundsFired(f.shooter));
+    }
+
+    @Test
+    void closePointsFireEveryBarrelConvergingAheadOfTheChassis() {
+        // A point just ahead of the centre, and one a few cells off to the side, used to fail the
+        // per-muzzle alignment check on the laterally offset barrels and drop half of every burst.
+        for (PointFireAim aim : List.of(new PointFireAim(20.5f, 20.6f), new PointFireAim(21.0f, 25.5f))) {
+            Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS, null, null);
+            MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
+            f.loadout.torsoFacingDegrees = (float) Math.toDegrees(Math.atan2(aim.x() - 20.5f, aim.y() - 20.5f)) * -1f;
+            f.roster.entityWorld().setFloat(f.shooter, f.roster.components().MECH_LOCOMOTION,
+                    BattleComponents.MECH_LOCOMOTION_FACING_DEGREES, f.loadout.torsoFacingDegrees);
+            f.fire(aim);
+            for (int i = 0; i < 100 && arms.burstRemaining > 0; i++) f.weapons.tick(f.shooter, aim, true);
+            assertEquals(12, f.shots.getActiveShots().size(), "every round of the burst leaves at " + aim);
+            for (ShotEvent shot : f.shots.getActiveShots()) {
+                assertTrue(shot.toY > shot.fromY, "rounds fly forward, never back under the chassis");
+            }
+        }
     }
 
     @Test
@@ -198,7 +217,7 @@ class MechPointFireTest {
     }
 
     @Test
-    void directMissileRemainsInterceptableAndOpenFlightHasNoPhantomBlast() {
+    void directMissileRemainsInterceptableAndBurstsOnOpenGroundWhereAimed() {
         Fixture f = new Fixture(null, MechWeaponComponent.SRM_5, null);
         for (int x = 0; x < 128; x++) f.grid.setWalkable(x, 32, false);
         f.fire(NORTH);
@@ -214,12 +233,32 @@ class MechPointFireTest {
 
         Fixture open = new Fixture(null, MechWeaponComponent.PIONEER_ROCKET_CRADLE, null);
         open.fire(new PointFireAim(20.5f, 35.5f));
-        Projectile overshoot = open.shots.getActiveProjectiles().get(0);
-        assertNull(overshoot.onArrival);
-        assertEquals(BallisticResolver.StopKind.OVERSHOOT, open.shots.getActiveShots().get(0).stopKind);
-        assertTrue(open.shots.getActiveShots().get(0).toY > 35.5f);
+        Projectile burst = open.shots.getActiveProjectiles().get(0);
+        assertNotNull(burst.onArrival, "a rocket thrown at open ground bursts there");
+        assertEquals(BallisticResolver.StopKind.GROUND_BURST, open.shots.getActiveShots().get(0).stopKind);
+        assertEquals(35.5f, burst.onArrival.endpointY, 0.001f);
         open.shots.tickProjectiles(100f, arrivals::add);
-        assertTrue(arrivals.isEmpty());
+        assertEquals(1, arrivals.size());
+    }
+
+    @Test
+    void rocketAimedBeyondRangeStillFliesAndBurstsNoFurtherThanItsCeiling() {
+        Fixture f = new Fixture(null, MechWeaponComponent.PIONEER_ROCKET_CRADLE, null);
+        float range = f.loadout.mount(MechMountSlot.LEFT_SHOULDER).weaponDef().range;
+        f.fire(new PointFireAim(20.5f, 120.5f));
+        Projectile rocket = f.shots.getActiveProjectiles().get(0);
+        assertNotNull(rocket.onArrival);
+        float thrown = rocket.onArrival.endpointY - 20.5f;
+        assertTrue(thrown > range, "a point past nominal range is not refused or cut short to it");
+        assertTrue(thrown <= range * BallisticResolver.MAX_GROUND_BURST_RANGE_MULTIPLIER + 1f);
+    }
+
+    @Test
+    void gunRoundsKeepTheBearingOnlyContractAtOpenGround() {
+        Fixture f = new Fixture(MechWeaponComponent.SINGLE_HEAVY_CANNON, null, null);
+        f.fire(new PointFireAim(20.5f, 35.5f));
+        assertEquals(BallisticResolver.StopKind.OVERSHOOT, f.shots.getActiveShots().get(0).stopKind);
+        assertTrue(f.detonations.getPending().isEmpty());
     }
 
     @Test

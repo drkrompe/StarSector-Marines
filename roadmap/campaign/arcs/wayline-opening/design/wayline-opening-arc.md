@@ -39,8 +39,10 @@ victories retain their progress. Defeat leaves the chapter available.
 | Hold Until Relieved — Relief | Start beside Wayline's truck behind the checkpoint, reinforce its militia and break the finite road assault | 6,000 credits; depot chapter opens | Implemented; linked live acceptance remains |
 | Take Back the Depot — Counterattack | Join the depot advance, capture dispatch and defend against two finite road attacks | 9,000 credits; recovered Hound Wayward and first Mech Bay restoration | Implemented; linked live acceptance remains |
 
-The optional A Proper Issue lesson follows Relief: one free equipment package
-and ordinary deliberate issue. It does not block Counterattack.
+Castle's first-lift lesson follows Relief: the company repairs its first Hermes
+from the prepaid stores, because Counterattack is its first ferry battle. The
+optional A Proper Issue lesson follows it: one free equipment package and
+ordinary deliberate issue. It does not block Counterattack.
 Counterattack's recovery and refitting lesson teaches the owned Hound and its
 physical components. `castle-campaign-lessons.md` owns that tutorial work.
 

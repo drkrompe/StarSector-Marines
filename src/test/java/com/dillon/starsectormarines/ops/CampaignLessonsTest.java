@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
@@ -36,6 +37,10 @@ class CampaignLessonsTest {
             var squad = roster.createSquad(); roster.recruitToSquad(squad.id(), 12);
             assertEquals(CampaignLessons.Step.NONE, CampaignLessons.next(roster));
             roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
+            // Relief rode up on Wayline's truck; the depot job needs the company's first boat.
+            assertEquals(CampaignLessons.Step.FIRST_LIFT, CampaignLessons.next(roster));
+            assertEquals(CampaignLessons.Step.FIRST_LIFT, CampaignLessons.next(restore(roster)));
+            roster.boatDeck().reconcile("home", ShuttleType.HERMES, 2);
             assertEquals(CampaignLessons.Step.REFIT, CampaignLessons.next(roster));
             roster.firstRefit().claim(roster, FirstRefit.Path.FORWARD_SCREEN);
             roster = restore(roster);

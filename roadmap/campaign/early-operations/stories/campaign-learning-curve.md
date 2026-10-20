@@ -2,7 +2,7 @@
 
 Status: PLANNED
 Written: 2026-10-12
-Updated: 2026-10-13 — Both Agreus recovered rewards enable the live mixed-squad acceptance pass.
+Updated: 2026-10-20 — Relief needs no boat; the first Hermes repair moves to the first-lift lesson before Counterattack.
 
 Read `early-operation-nouns.md`, `meta-progression.md` and
 `company-view-nouns.md`. `castle-campaign-lessons.md` owns the first tutorial slice.
@@ -11,9 +11,9 @@ Read `early-operation-nouns.md`, `meta-progression.md` and
 
 | Beat | Capability / power change | Practice before the next demand |
 |---|---|---|
-| Founding | One Hermes, Sabine's specialty, twelve-person squad | Repair, found, assign and ferry |
-| Relief | 6,000 credits and one free equipment package | Replenish vacancies; compare and fit learned specs |
-| Counterattack | 9,000 credits, Hound, mech bay, free SRM | Fit/reuse a physical component and understand heavy lift |
+| Founding | Sabine's specialty, twelve-person squad | Found, assign and walk on from Wayline's truck |
+| Relief | 6,000 credits, one free equipment package, first Hermes repair | Repair the first Hermes; replenish vacancies; compare and fit learned specs |
+| Counterattack | 9,000 credits, Hound, mech bay, free SRM | First ferry battle; fit/reuse a physical component and understand heavy lift |
 | Junction | Two-squad recommendation | Coordinate formations and actually call in owned Mech Support |
 | Thunder Run | Freight income and recurring work on success | Apply the force to physical freight escort |
 | Dust Ledger | Two squads; 22,000 credits | Raid and withdraw |
