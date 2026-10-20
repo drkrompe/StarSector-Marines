@@ -15,8 +15,13 @@ def flip_box(b):
     return ((x0, -y1, z0), (x1, -y0, z1))
 
 
+SEAMS = .05   # parts.py seam_walls: the plating's steep seam walls join the tile
+
+
 def pair(parts, name, members, dir, up, cone, what, **kw):
-    """members: [(port object name with '{s}' for the side, box)]; adds name-port and name-stbd."""
+    """members: [(port object name with '{s}' for the side, box)]; adds name-port and name-stbd.
+    Every pair claims its plates' seam walls (parts.py seam_walls)."""
+    kw.setdefault('seam_walls', SEAMS)
     parts[name+'-port'] = dict(members=[(o.format(s='port'), {'box': b}) for o, b in members],
                                dir=dir, up=up, cone=cone, what='port '+what, **kw)
     parts[name+'-stbd'] = dict(members=[(o.format(s='starboard'), {'box': flip_box(b)}) for o, b in members],

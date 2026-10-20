@@ -19,4 +19,7 @@ pair(PARTS, 'horn-top', [('Hull bow {s} horn', box())], SHOULDER, DOWN_X, .7, 'b
 
 SHEETS = {
     'bow': ['horn-out-port', 'horn-in-port', 'horn-top-port'],
+    # Retry: the first generation drew dark seam lines over the guide's thin blue plate gaps
+    # (IoU 0.956-0.969); listed after the first, its split overwrites only these tiles.
+    'bow-v2': ['horn-out-port', 'horn-in-port', 'horn-top-port'],
 }

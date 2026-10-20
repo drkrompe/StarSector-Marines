@@ -8,13 +8,13 @@ bands and nacelles are port-authored with starboard mirrors.
 """
 from math import sqrt
 from parts_common import UP_Z, DOWN_X, BOW, PORT
-from groups._mirror import box, pair
+from groups._mirror import SEAMS, box, pair
 
 GLACIS = (2/sqrt(5), 0.0, 1/sqrt(5))   # the bands' forward rake (normal +X, half up)
 
 PARTS = {
     'head-top': dict(members=[('Hull bow head', {'box': box()}), ('Hull bow crossbar', {'box': box()}),
-                              ('Hull neck', {'box': box()})], dir=UP_Z, up=DOWN_X, cone=.6,
+                              ('Hull neck', {'box': box()})], dir=UP_Z, up=DOWN_X, cone=.6, seam_walls=SEAMS,
                      what='the bow head deck round the bow turret ring, the crossbar and the neck from above'),
 }
 pair(PARTS, 'wing-top', [('Hull wing body', box(y=(24, 75)))], UP_Z, DOWN_X, .6,
@@ -33,4 +33,10 @@ pair(PARTS, 'pod-nose', [('Hull {s} turret pod', box())], BOW, UP_Z, .6,
 SHEETS = {
     'wings': ['wing-top-port', 'wing-armour-port', 'band-port', 'core-flank-aft-port'],
     'pods': ['pod-top-port', 'pod-out-port', 'pod-nose-port', 'head-top'],
+    # Retry: the first generation drew dark seam lines over the guide's thin blue plate gaps
+    # (IoU 0.956-0.969); listed after the first, its split overwrites only these tiles.
+    'wings-v2': ['wing-armour-port', 'band-port'],
+    # Retry: the first generation drew dark seam lines over the guide's thin blue plate gaps
+    # (IoU 0.956-0.969); listed after the first, its split overwrites only these tiles.
+    'pods-v2': ['pod-out-port'],
 }

@@ -10,23 +10,23 @@ its top is three tiles along X for texel density (about 11 a unit).
 """
 from math import sqrt
 from parts_common import UP_Z, DOWN_Z, DOWN_X, STERN, PORT
-from groups._mirror import box, pair
+from groups._mirror import SEAMS, box, pair
 
 CORE, AFT, WING, TIER, DOME = 'Hull core', 'Hull aft body', 'Hull wing body', 'Bridge command tier', 'Bridge command dome'
 FLANK = (0.0, sqrt(.5), -sqrt(.5))      # the core's lower chamfer, outboard and down
 
 PARTS = {
-    'core-top-1': dict(members=[(CORE, {'box': box(x=(18, 50))})], dir=UP_Z, up=DOWN_X, cone=.6,
+    'core-top-1': dict(members=[(CORE, {'box': box(x=(18, 50))})], dir=UP_Z, up=DOWN_X, cone=.6, seam_walls=SEAMS,
                        what='hull core deck and shoulders forward of X 18: the gun step round the main turret ring'),
-    'core-top-2': dict(members=[(CORE, {'box': box(x=(-16, 18))})], dir=UP_Z, up=DOWN_X, cone=.6,
+    'core-top-2': dict(members=[(CORE, {'box': box(x=(-16, 18))})], dir=UP_Z, up=DOWN_X, cone=.6, seam_walls=SEAMS,
                        what='hull core deck and shoulders X -16..18, in front of and beside the bridge plinth'),
-    'core-top-3': dict(members=[(CORE, {'box': box(x=(-60, -16))})], dir=UP_Z, up=DOWN_X, cone=.6,
+    'core-top-3': dict(members=[(CORE, {'box': box(x=(-60, -16))})], dir=UP_Z, up=DOWN_X, cone=.6, seam_walls=SEAMS,
                        what='hull core deck and shoulders aft of X -16, behind the bridge'),
     'core-stern': dict(members=[(CORE, {'box': box(x=(-60, -50))}), (AFT, {'box': box(x=(-60, -45))})], dir=STERN,
                        up=UP_Z, cone=.7, what='the stern faces of the core and the engine block, behind the drives'),
     'belly': dict(members=[(CORE, {'box': box()}), (WING, {'box': box()}), (AFT, {'box': box()})], dir=DOWN_Z,
                   up=PORT, cone=.8, what='the whole underside from below: core, wing body and engine block bottoms'),
-    'tier-top': dict(members=[(TIER, {'box': box()}), (DOME, {'box': box()})], dir=UP_Z, up=DOWN_X, cone=.6,
+    'tier-top': dict(members=[(TIER, {'box': box()}), (DOME, {'box': box()})], dir=UP_Z, up=DOWN_X, cone=.6, seam_walls=SEAMS,
                      what='bridge command tier roof and the pale command dome from above'),
 }
 pair(PARTS, 'aft-top', [(AFT, box(y=(0, 60)))], UP_Z, DOWN_X, .6,
