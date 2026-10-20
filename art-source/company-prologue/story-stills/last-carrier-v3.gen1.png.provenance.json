@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a159c8-37cc-72e3-98c1-f732644a1fda",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a159c8-37cc-72e3-98c1-f732644a1fda\\call_a8db6de87ccf4062aa9f57f047d32c9f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\story-stills\\last-carrier-v3.gen1.png",
+    "sha256": "3a881ef1016ff198ba0c34ce3a19a9802954d71557048b6f207b18ba754f0666",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\story-stills\\last-carrier-v3.prompt.txt",
+  "promptSha256": "4639e55664572b463b93ed4677c2f061ee65299dc115ab751af9c5908c399787",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target: keep everything; repaint only the freighter's exhaust, keeping the hull's exact silhouette and position\nImage 2: Identity only: the drive pods and their six bells, seen from the page's angle; not layout, not lighting\n\nUse case: precise-object-edit. Edit Reference 1, a finished 3:2 (1536x1024) story illustration, and change only the departing freighter's engine exhaust in the window.\n\nReference 1 is the current page with the thrust painted crudely where it belongs. Keep EVERYTHING else exactly as it is: Castle, her face, hand and pay chit, every person in the crowd, the children, the bags, the window frames, the rock field, the lamps, the light, the camera and the composition. The freighter keeps its exact silhouette, size, position, angle, hull detail and colours; do not reshape, move, enlarge or rotate it, and do not add any structure to it.\n\nThe freighter is pulling away from us. Its only engines are its six drive bells: two clusters of three round bells on the rear faces of its two outboard drive pods, the left pod's cluster low on its rear face and the right pod's at its upper right, both facing the camera (Reference 2 shows the plain model from the same angle; use it for the pods and bells only). Paint those six bells firing: each throat glowing white-hot shading to orange at the rim, and from each cluster a short, bright, foreshortened exhaust plume coming back toward the viewer, spreading softly down and slightly right and fading into the dark, casting a warm glow on the near rim of each pod and faintly on the asteroid rock field below. The two clusters' plumes are separate.\n\nThere is no other source of thrust or light under the ship: no glowing bank of lights, no extra engine module beneath the right pod, no long plumes trailing from under the hull. Where Reference 1 shows plain starfield there, keep it plain starfield. Same restrained painted realism as the rest of the image. No new text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\story-stills\\guides\\p3-thrust-guide.png",
+      "sha256": "1d1611aef2cdb8dd021804c0d302a036d70b3a460ea5f420c9e99fb5019bac35",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Edit target: keep everything; repaint only the freighter's exhaust, keeping the hull's exact silhouette and position"
+    },
+    {
+      "path": "art-source\\company-prologue\\story-stills\\guides\\colossus-p3.png",
+      "sha256": "7a840d6f34240ea2f3e1bd04703eb7c6828feb01edcc13c7a230c0c7a21b0918",
+      "dimensions": [
+        768,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Identity only: the drive pods and their six bells, seen from the page's angle; not layout, not lighting"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to repaint only the six engine bells and their two short exhaust plumes, preserving the rest of the scene."
+  ],
+  "usage": {
+    "input_tokens": 51563,
+    "cached_input_tokens": 4736,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 491,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.9
+}
