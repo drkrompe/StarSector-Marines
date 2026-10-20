@@ -20,14 +20,21 @@ the front the machine's right is on the viewer's left; from behind its left is.
 The renderer writes the ``R FRONT L`` / ``L REAR R`` captions under the views.
 A mech's back view is its torso alone: legs and arms are the same from behind.
 
+Every outline is one damageable location; thinner lines inside it are detail (seams,
+gun tubes). A leg is one outline, not a stack of panels.
+
 The mechs follow the owner's references (2026-10-20): the Hound is a Locust (a
-pod on long bird legs, gun pods slung beneath), the Sirocco a Catapult (missile
-boxes standing over a narrow torso, bird legs), the Bulwark a Fafnir (a wide,
-squat torso, huge arm cannons, thick short legs).
+pod in three thirds on straight, heavy legs, the chaingun under its nose, one rocket pod
+on top), the Sirocco a Catapult (a flat pod whose side thirds carry the missile
+boxes, a cannon under the nose, heavy legs), the Bulwark a Fafnir (one wide shell
+with missile pods on its top corners, guns held at the chest, thick short legs).
+A pod's side thirds are its shoulder sections: a shoulder mount lives in its side
+of the hull, as MWO's side torsos carry their weapons.
 
 Run from the repository root:  python art-source/dolls/build_dolls.py
 """
 
+from math import cos, radians, sin
 from pathlib import Path
 
 OUT = Path("mod/graphics/ui/dolls")
@@ -79,15 +86,41 @@ def svg_points(points):
     return " ".join(f"{x:.1f},{y:.1f}" for x, y in points)
 
 
+def flip(points):
+    """An outline mirrored across the view's centre line, kept in the same winding."""
+    return [(-x, y) for x, y in reversed(points)]
+
+
+def flip_lines(lines):
+    return [((-x0, y0), (-x1, y1)) for (x0, y0), (x1, y1) in lines]
+
+
 class Doll:
     def __init__(self, name):
         self.name = name
         self.parts = {}   # location -> list of panels, in drawing order
+        self.details = {}  # location -> thin lines drawn inside its panels
 
-    def panel(self, location, points, cx):
+    def panel(self, location, points, cx, convex=True):
+        """One outline. A mech part may be concave (a leg, a side torso with its pod), a hull panel may not."""
         placed = [(cx + x, y) for x, y in points]
-        check_convex(placed, f"{self.name}/{location}")
+        if convex:
+            check_convex(placed, f"{self.name}/{location}")
         self.parts.setdefault(location, []).append(inset(placed, GAP / 2))
+
+    def detail(self, location, segments, cx):
+        """Thin lines inside a location's outline: seams and gun tubes, not a damageable boundary."""
+        self.details.setdefault(location, []).extend(
+            ((cx + x0, y0), (cx + x1, y1)) for (x0, y0), (x1, y1) in segments)
+
+    def shape(self, location, points, cx, details=()):
+        self.panel(location, points, cx, convex=False)
+        self.detail(location, details, cx)
+
+    def mirrored(self, left, right, points, cx, details=()):
+        """A concave outline authored on the viewer's left, with its details, and its mirror on the right."""
+        self.shape(left, points, cx, details)
+        self.shape(right, flip(points), cx, flip_lines(details))
 
     def pair(self, left, right, points, cx):
         """A panel authored on the viewer's left, and its mirror on the right."""
@@ -101,8 +134,12 @@ class Doll:
             shapes = "".join(f'<polygon points="{svg_points(p)}"/>' for p in panels)
             body.append(f'<g fill="none" stroke="{GHOST}" stroke-opacity=".22" stroke-width="1" '
                         f'stroke-linejoin="miter">{shapes}</g>')
+            lines = "".join(f'<line x1="{p[0]:.1f}" y1="{p[1]:.1f}" x2="{q[0]:.1f}" y2="{q[1]:.1f}"/>'
+                            for p, q in self.details.get(location, ()))
+            thin = (f'<g fill="none" stroke-opacity=".6" stroke-width=".7" stroke-linecap="butt">{lines}</g>'
+                    if lines else "")
             body.append(f'<g id="part-{location}" fill="currentColor" fill-opacity="{FILL_OPACITY}" '
-                        f'stroke="currentColor" stroke-width="{STROKE}" stroke-linejoin="miter">{shapes}</g>')
+                        f'stroke="currentColor" stroke-width="{STROKE}" stroke-linejoin="miter">{shapes}{thin}</g>')
         svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}">'
                f'<title>{self.name} damage doll</title>' + "".join(body) + "</svg>\n")
         (OUT / f"{self.name}.svg").write_text(svg, encoding="utf-8")
@@ -238,64 +275,102 @@ def hauler(name):
 # the outside, legs beneath. Rear: the centre torso's back plate between the side
 # torsos, nothing else.
 
-def bird_legs(d, cx, hip, knee, ankle, spread, width):
-    """Reverse-jointed legs seen from the front: thigh splayed out, shin back in, a toe."""
-    d.pair("LEGS", "LEGS", [(-width - 2, hip), (-2, hip), (-spread + width, knee), (-spread - 2, knee - 4)], cx)
-    d.pair("LEGS", "LEGS", [(-spread - 2, knee - 4), (-spread + width, knee), (-spread + width - 2, ankle),
-                            (-spread - 4 + width // 2, ankle)], cx)
-    d.pair("LEGS", "LEGS", [(-spread - 10, ankle + 2), (-spread + width + 6, ankle + 2),
-                            (-spread + width + 8, 146), (-spread - 12, 146)], cx)
+def bird_leg(d, cx, inner, width, top=80):
+    """One leg as one outline: a straight, heavy column from the hip, a broad knee, a planted foot."""
+    o = inner - width
+    points = [(o, top), (inner, top), (inner + 1, 108), (inner - 1, 134), (inner + 4, 137), (inner + 6, 146),
+              (o - 6, 146), (o - 4, 137), (o + 1, 134), (o - 2, 108)]
+    seams = [((o - 2, 108), (inner + 1, 108)), ((o + 1, 134), (inner - 1, 134))]
+    d.mirrored("LEGS", "LEGS", points, cx, seams)
+
+
+def arc(cx, cy, r, start, end, steps=4):
+    """Points along a circular corner, in degrees with y down (180 is left, 270 is up)."""
+    return [(cx + r * cos(radians(start + (end - start) * i / steps)),
+             cy + r * sin(radians(start + (end - start) * i / steps))) for i in range(steps + 1)]
+
+
+def tubes(x0, y0, x1, y1, cols, rows):
+    """A launcher face: a grid of thin seams, one cell per tube."""
+    out = []
+    for c in range(1, cols):
+        x = x0 + (x1 - x0) * c / cols
+        out.append(((x, y0 + 2), (x, y1 - 2)))
+    for r in range(1, rows):
+        y = y0 + (y1 - y0) * r / rows
+        out.append(((x0 + 2, y), (x1 - 2, y)))
+    return out
 
 
 def hound(name):
-    """A Locust: a wide pod on long bird legs, gun pods slung under its flanks."""
+    """A Locust: a wide pod in three armoured thirds, the chaingun under its nose, one rocket pod on top.
+
+    The pod's side thirds are the shoulder sections: a shoulder mount lives in its side of the hull, as
+    MWO's side torsos carry their weapons. The Hound fits only its left shoulder, the rocket pod; its
+    empty right third draws as outline.
+    """
     d = Doll(name)
+    third = [(-12, 46), (-12, 78), (-26, 76), (-36, 66), (-36, 54), (-28, 46)]
+    podded = [(-12, 46), (-12, 78), (-26, 76), (-36, 66), (-36, 54), (-28, 46), (-28, 32), (-14, 32), (-14, 46)]
+    pod = [((-28, 46), (-14, 46))] + tubes(-28, 32, -14, 46, 2, 2)
     for cx, rear in views():
         sl, sr = shoulders(rear)
-        d.panel("TORSO_REAR" if rear else "TORSO",
-                [(-18, 46), (18, 46), (24, 54), (24, 70), (16, 80), (-16, 80), (-24, 70), (-24, 54)], cx)
-        d.pair(sl, sr, [(-36, 56), (-24, 52), (-24, 72), (-34, 72), (-38, 64)], cx)
+        d.panel("TORSO_REAR" if rear else "TORSO", [(-12, 46), (12, 46), (12, 78), (-12, 78)], cx)
+        # The rocket pod rides the mech's left third: the viewer's right from the front, left from behind.
+        if rear:
+            d.shape(sl, podded, cx, pod)
+            d.shape(sr, flip(third), cx)
+        else:
+            d.shape(sl, third, cx)
+            d.shape(sr, flip(podded), cx, flip_lines(pod))
         if rear:
             continue
-        d.panel("HEAD", [(-10, 36), (10, 36), (14, 46), (-14, 46)], cx)
-        d.pair("ARMS", "ARMS", [(-34, 72), (-24, 72), (-24, 90), (-29, 94), (-34, 90)], cx)
-        bird_legs(d, cx, hip=80, knee=110, ankle=136, spread=24, width=10)
+        d.panel("HEAD", [(-10, 36), (10, 36), (12, 46), (-12, 46)], cx)
+        d.shape("ARMS", [(-7, 78), (7, 78), (5, 90), (-5, 90)], cx, [((-3, 86), (3, 86)), ((0, 80), (0, 90))])
+        bird_leg(d, cx, inner=-10, width=16)
     return d.write()
 
 
 def sirocco(name):
-    """A Catapult: two missile boxes standing over a narrow torso with a nose cockpit, bird legs."""
+    """A Catapult: a hull much wider than its legs, in three thirds of even depth, a round-topped
+    missile pod standing on each wing and a cannon under the nose. Seen from in front or behind the
+    arrowhead plan does not show: the hull is one level band."""
     d = Doll(name)
+    # Each wing carries an upright, round-topped missile pod as one outline.
+    side = ([(-12, 80), (-47, 80), (-52, 74), (-52, 56), (-46, 56)] + arc(-40, 34, 6, 180, 270)
+            + arc(-30, 34, 6, 270, 360) + [(-24, 56), (-12, 56)])
+    pod = [((-44.5, 56), (-25.5, 56))] + tubes(-44, 30, -26, 54, 2, 3)
     for cx, rear in views():
         sl, sr = shoulders(rear)
-        d.panel("TORSO_REAR" if rear else "TORSO",
-                [(-16, 50), (16, 50), (20, 58), (20, 84), (10, 94), (-10, 94), (-20, 84), (-20, 58)], cx)
-        d.pair(sl, sr, [(-50, 22), (-24, 28), (-20, 50), (-20, 66), (-48, 66)], cx)
+        d.panel("TORSO_REAR" if rear else "TORSO", [(-12, 56), (12, 56), (12, 80), (-12, 80)], cx)
+        d.mirrored(sl, sr, side, cx, pod)
         if rear:
             continue
-        d.panel("HEAD", [(-10, 40), (10, 40), (16, 50), (-16, 50)], cx)
-        d.pair("ARMS", "ARMS", [(-42, 66), (-24, 66), (-24, 84), (-34, 90), (-42, 84)], cx)
-        bird_legs(d, cx, hip=94, knee=116, ankle=136, spread=28, width=12)
+        d.panel("HEAD", [(-9, 46), (9, 46), (12, 56), (-12, 56)], cx)
+        d.shape("ARMS", [(-5, 80), (5, 80), (4, 96), (-4, 96)], cx, [((-3, 92), (3, 92)), ((0, 82), (0, 96))])
+        bird_leg(d, cx, inner=-12, width=18, top=84)
     return d.write()
 
 
 def bulwark(name):
-    """A Fafnir: a wide squat torso with a small sunken head, huge arm cannons, thick short legs."""
+    """A Fafnir: one wide shell with a small sunken head, missile pods on its top corners, guns held at the chest."""
     d = Doll(name)
+    arm = [(-38, 50), (-38, 84), (-44, 90), (-54, 90), (-56, 84), (-56, 56), (-50, 48)]
+    barrels = [((-52, 62), (-52, 88)), ((-46, 62), (-46, 88)), ((-56, 60), (-38, 60))]
+    leg = [(-26, 96), (-6, 96), (-6, 120), (-8, 136), (-2, 138), (-2, 146), (-34, 146), (-34, 138), (-28, 136),
+           (-30, 120)]
     for cx, rear in views():
         sl, sr = shoulders(rear)
-        d.panel("TORSO_REAR" if rear else "TORSO",
-                [(-14, 40), (14, 40), (18, 46), (18, 92), (-18, 92), (-18, 46)], cx)
-        d.pair(sl, sr, [(-38, 46), (-18, 40), (-18, 86), (-38, 86)], cx)
+        d.shape("TORSO_REAR" if rear else "TORSO",
+                [(-34, 46), (34, 46), (36, 54), (36, 88), (26, 96), (-26, 96), (-36, 88), (-36, 54)], cx,
+                [((-14, 48), (-14, 94)), ((14, 48), (14, 94))])
+        d.mirrored(sl, sr, [(-34, 30), (-12, 30), (-12, 46), (-34, 46)], cx, tubes(-34, 30, -12, 46, 3, 2))
         if rear:
             continue
-        d.panel("HEAD", [(-8, 32), (8, 32), (10, 40), (-10, 40)], cx)
-        # The cannons: a shoulder housing, then the long barrel block hanging past the hips.
-        d.pair("ARMS", "ARMS", [(-54, 40), (-38, 44), (-38, 60), (-56, 60)], cx)
-        d.pair("ARMS", "ARMS", [(-56, 60), (-38, 60), (-40, 114), (-50, 118), (-56, 112)], cx)
-        d.pair("LEGS", "LEGS", [(-18, 92), (-2, 92), (-4, 116), (-26, 116), (-26, 100)], cx)
-        d.pair("LEGS", "LEGS", [(-26, 116), (-4, 116), (-6, 136), (-24, 136)], cx)
-        d.pair("LEGS", "LEGS", [(-30, 136), (-2, 136), (-2, 146), (-32, 146)], cx)
+        d.panel("HEAD", [(-8, 36), (8, 36), (10, 46), (-10, 46)], cx)
+        # Each arm one outline: the shoulder joint, then the gun block held level with the chest.
+        d.mirrored("ARMS", "ARMS", arm, cx, barrels)
+        d.mirrored("LEGS", "LEGS", leg, cx, [((-30, 120), (-6, 120)), ((-28, 136), (-8, 136))])
     return d.write()
 
 
