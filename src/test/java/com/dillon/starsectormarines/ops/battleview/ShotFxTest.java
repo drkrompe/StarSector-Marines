@@ -153,6 +153,9 @@ public class ShotFxTest {
                     expected = new BoltExpectation(ShotFx.RAIL_NEEDLE_SPRITE_PATH, 1.8f, 0.16f);
                 } else if (WeaponRegistry.DRONE_PULSE_ID.equals(w.id)) {
                     expected = new BoltExpectation(ShotFx.DRONE_DART_SPRITE_PATH, 0.65f, 0.16f);
+                } else if (WeaponRegistry.DRONE_ION_ID.equals(w.id)) {
+                    // No authored body: the strike drone's ion shot takes the generic energy bolt.
+                    expected = new BoltExpectation(ShotFx.PULSE_BOLT_SPRITE_PATH, 1.0f, 0.22f);
                 } else {
                     throw new AssertionError("sprite-backed primary reached bolt assertion: " + w);
                 }
