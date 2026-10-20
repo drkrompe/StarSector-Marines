@@ -66,8 +66,11 @@ RISE = (18.0, 26.0)
 PUSH = 4.0                          # the push in from C4's last view to the ramp, C5 seconds
 TOP, TOP_CENTRE = 1800.0, Vector((150.0, 430.0))
 SETTLE = 1.07                      # how much further it drifts up after the rise, to the end
+PORT_PARKED = c4.CUSTOMS_ARRIVE - c4.DURATION + 0.5   # the port's walk maps are read at this C5 second
+# Kilo Nine's walk map is read once its vehicles have all stopped: the same second unless K9_ORIGINS has
+# the tug still backing in, later. Only Kilo Nine's: by then the Colossus's lift dust is over the
+# heavy berth, which would close the port sites' ground.
 PARKED = max([c4.CUSTOMS_ARRIVE] + [stop for _, stop in c4.K9_ROLL_IN.values()]) - c4.DURATION + 0.5
-                                    # every vehicle has stopped by this C5 second
 TITLE_T0 = 24.0                     # Castle's last line ends here; the title's reveal is timed from it
 NAV_BOX = (298.0, 389.0, 452.0, 472.0)
 
@@ -251,6 +254,7 @@ def setup(body):
     if '--no-port' not in sys.argv:
         (OUT / 'walk-maps').mkdir(parents=True, exist_ok=True)
         clips = 0
+        scene.frame_set(C4_END + round(PORT_PARKED * c4.FPS))
         for site, pnav, people in port_people.populate(ship_parts, FRAMES, C4_END):
             crowd.save_map(pnav, people, OUT / 'walk-maps' / (site.name + '.png'))
             crowd.keyed(people, lambda x, y, z=site.z: z, C4_END, make)
