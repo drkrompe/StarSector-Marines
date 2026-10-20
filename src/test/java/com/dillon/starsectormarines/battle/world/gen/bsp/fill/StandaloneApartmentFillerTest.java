@@ -70,18 +70,16 @@ class StandaloneApartmentFillerTest {
     }
 
     @Test
-    void undersizedResidentialLotsRetainCompactHomePlan() {
+    void undersizedResidentialLotsBuildAHomeRatherThanAnApartment() {
         BlockLeaf home = new BlockLeaf(5, 5, 15, 14, false); // 11x10
         Fixture fixture = generate(home, BuildingPlacement.Side.TOP);
 
+        // A medium home separates sleeping, cooking and living space and takes daylight windows
+        // (mapgen-nouns.md); what it never gains is the apartment's lobby and common hall.
         assertFalse(BuildingResidentialFiller.qualifiesForApartment(home));
-        for (int y = home.top; y <= home.bottom; y++) {
-            for (int x = home.left; x <= home.right; x++) {
-                assertFalse(fixture.topology.isWindow(x, y));
-                assertEquals(null, fixture.topology.getRoomPurpose(x, y));
-            }
-        }
-        assertTrue(BuildingWindowTestSupport.windowsOwnedBy(fixture.grid, home).isEmpty());
+        assertEquals(0, countPurpose(fixture.topology, home, RoomPurpose.APARTMENT_LOBBY));
+        assertTrue(countPurpose(fixture.topology, home, RoomPurpose.BEDROOM) > 0);
+        assertTrue(countPurpose(fixture.topology, home, RoomPurpose.HOME_KITCHEN) > 0);
     }
 
     @Tag("generated-space-evidence")
