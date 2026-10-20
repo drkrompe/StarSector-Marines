@@ -97,7 +97,7 @@ def build(kit):
     # --- Neck: the second canopy. ---
     z = z_at(kit, 20.4, 0, 5)
     kit.cylinder('Hull neck aft canopy frame', (20.4, 0, z+.1), 1.9, .5, steel, 'Z', 12, .06)
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=6, radius=1.0, location=(20.4, 0, z+.35))
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=48, ring_count=24, radius=1.0, location=(20.4, 0, z+.35))
     ob = bpy.context.object
     ob.scale = (1.5, 1.4, .8)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)

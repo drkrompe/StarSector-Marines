@@ -125,6 +125,17 @@ and fittings sit below the belt. IoU 0.9007 (0.9013 for the round 6 hull
 alone); volume and scale unchanged; the antenna whips raise the overall height
 to 40 units (30.6 m). The new prow, jaws, hood and bridge carry their own
 Codex tiles in each livery (grey sheets 'grey-tops' and 'grey-bridge').
+Finished-model fidelity at the close view (coordinator, round 7): the bake
+shades every hull mesh smooth with sharp creases past 30 degrees and bakes
+area-weighted normals, so lofted and round forms show no facets while chamfers
+and the prow's facets stay crisp; every fitting without a bevel gets a small
+rounded one (the skinned hull objects keep their topology, the turret kit's
+parts are the kit's); round parts have a side-count floor by size; the
+glazing is dark non-emissive glass set back inside a steel frame with a
+mullion between every pane; the dish is a parabolic reflector with feed and
+struts on a hub, trunnion and turntable; masts are tapered and round; every
+lamp is a smooth lens in a bezel turned to the hull. About 58k polygons
+(pirate), 67k (merchant).
 
 Variants
 --variant merchant builds the convoy's own Wolf on the same hull and scale:

@@ -14,22 +14,22 @@
  "bounds_units": [
   [
    -40.2,
-   -25.983,
+   -26.05,
    -18.631
   ],
   [
    54.912,
-   25.983,
+   26.05,
    21.664
   ]
  ],
  "size_m": [
   72.3,
-  39.5,
+  39.6,
   30.6
  ],
- "meshes": 264,
- "polygons": 30803,
+ "meshes": 282,
+ "polygons": 66771,
  "images": 23,
  "engines": [
   {
@@ -941,5 +941,5 @@
   },
   "append": "load both 'WOLF' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "bb899d58b55d47b7743032a6f7d2ed68c868982bfecb7fa560a57bac67195637"
+ "asset_sha256": "0dc6f219930bc50aec1416d7ac05236bf0f8624daa4ebfca6ad6b21cba3efc78"
 }

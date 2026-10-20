@@ -190,23 +190,43 @@ def access(kit):
 
 
 def bridge(kit):
+    from wf_kit import revolve_x
     steel, glass = kit.steel, kit.glass
-    # Visor over the glazed face; frame lips along the side glazing.
+    # Visor over the glazed face (the glazing's own frame is the hull module's).
     kit.box('Hull bridge visor', (39.0, 0, 10.0), (1.7, 10.4, .26), steel, .06)
-    for side_, s in SIDES:
-        for k, z in enumerate((9.15, 7.35), 1):
-            kit.box(f'Hull bridge {side_} glazing lip {k}', (33.6, s*5.9, z), (8.6, .22, .2), steel, 0)
     zr = 10.2
-    # Comms dish on a short pedestal, aft on the roof.
-    kit.cylinder('Hull bridge dish pedestal', (28.4, -2.2, zr+.5), .35, 1.2, steel, 'Z', 10, 0)
-    bpy.ops.mesh.primitive_cone_add(vertices=16, radius1=1.5, radius2=.25, depth=.6, location=(0, 0, 0))
-    dish = bpy.context.object
-    dish.matrix_world = Matrix.Translation((28.0, -2.2, zr+1.4)) @ Matrix.Rotation(math.radians(-115), 4, 'Y')
+    # Comms dish, aft on the roof: a parabolic reflector on a yoke and turntable.
+    dish_at, aim = Vector((28.0, -2.2, zr+1.55)), Matrix.Rotation(math.radians(-120), 4, 'Y')
+    kit.cylinder('Hull bridge dish turntable', (28.0, -2.2, zr+.15), .55, .3, steel, 'Z', 40, .05)
+    kit.cylinder('Hull bridge dish pedestal', (28.0, -2.2, zr+.75), .22, 1.0, steel, 'Z', 24, .03)
+    # Behind the reflector: a hub on the dish axis and an elevation trunnion across it.
+    hub = kit.cylinder('Hull bridge dish hub', (-.55, 0, 0), .3, .4, steel, 'X', 32, .04)
+    hub.matrix_world = Matrix.Translation(dish_at) @ aim
+    trun = kit.cylinder('Hull bridge dish trunnion', (-.62, 0, 0), .13, .9, steel, 'Y', 16, .03)
+    trun.matrix_world = Matrix.Translation(dish_at) @ aim
+    R, D, T, K = 1.5, .45, .07, 10
+    outer = [(D*(k/K)**2, R*k/K) for k in range(K+1)]
+    prof = [(x - T, r) for x, r in outer] + [(x, r) for x, r in reversed(outer)]
+    dish = revolve_x(kit, 'Hull bridge comms dish', [(x - .25, r) for x, r in prof], 0, 0, steel, 64)
+    dish.matrix_world = Matrix.Translation(dish_at) @ aim
+    focus = D*0 + R*R/(4*D)
+    feed = kit.cylinder('Hull bridge comms dish feed', (focus*.55 - .25, 0, 0), .1, .3, steel, 'X', 16, .02)
+    feed.matrix_world = Matrix.Translation(dish_at) @ aim
+    for k in range(3):
+        a = 2*math.pi*k/3
+        rim = Vector((D - .25, R*.92*math.cos(a), R*.92*math.sin(a)))
+        st = pipe(kit, f'Hull bridge comms dish strut {k+1}', rim, Vector((focus*.55 - .4, 0, 0)), .025, steel)
+        st.matrix_world = Matrix.Translation(dish_at) @ aim @ st.matrix_world
+    bpy.ops.object.select_all(action='DESELECT')
+    for n in ('Hull bridge comms dish', 'Hull bridge comms dish feed', 'Hull bridge dish hub', 'Hull bridge dish trunnion') + tuple(f'Hull bridge comms dish strut {k}' for k in (1, 2, 3)):
+        bpy.data.objects[n].select_set(True)
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
-    kit.finish(dish, 'Hull bridge comms dish', steel)
     for side_, s in SIDES:
-        kit.cylinder(f'Hull bridge {side_} whip antenna', (36.2, s*4.4, zr+1.5), .07, 3.0, steel, 'Z', 6, 0)
-        kit.cylinder(f'Hull bridge {side_} whip antenna base', (36.2, s*4.4, zr+.1), .25, .3, steel, 'Z', 8, 0)
+        # A tapered whip in a spring-mounted base.
+        bpy.ops.mesh.primitive_cone_add(vertices=16, radius1=.07, radius2=.025, depth=3.0, location=(36.2, s*4.4, zr+1.75))
+        kit.finish(bpy.context.object, f'Hull bridge {side_} whip antenna', steel)
+        kit.cylinder(f'Hull bridge {side_} whip antenna base', (36.2, s*4.4, zr+.15), .25, .3, steel, 'Z', 24, .04)
+        kit.cylinder(f'Hull bridge {side_} whip antenna spring', (36.2, s*4.4, zr+.35), .11, .25, kit.dark, 'Z', 16, .02)
     kit.box('Hull bridge sensor box', (28.6, 2.4, zr+.35), (1.6, 1.2, .8), steel, .08)
     kit.box('Hull bridge sensor window', (29.42, 2.4, zr+.45), (.06, .8, .35), glass, 0)
     p, n = down(kit, 34.8, -2.8)
@@ -263,7 +283,7 @@ def sensors_and_docking(kit):
     # Ventral sensor blister under the neck.
     p, n = up(kit, 22.0, 0.0)
     if p is not None:
-        bpy.ops.mesh.primitive_uv_sphere_add(segments=14, ring_count=7, radius=1.0, location=p)
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=48, ring_count=24, radius=1.0, location=p)
         ob = bpy.context.object
         ob.scale = (2.4, 1.8, 1.1)
         bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
@@ -271,13 +291,15 @@ def sensors_and_docking(kit):
         kit.cylinder('Hull ventral sensor blister ring', (p.x, 0, p.z-.15), 2.0, .35, steel, 'Z', 16, 0)
     # Neck antenna mast on the spine.
     p, n = down(kit, 18.6, 0)
-    kit.cylinder('Hull neck antenna mast', (18.6, 0, p.z+1.6), .14, 3.2, steel, 'Z', 8, 0)
-    kit.box('Hull neck antenna yard', (18.6, 0, p.z+2.6), (.25, 2.6, .2), steel, 0)
+    kit.cylinder('Hull neck antenna mast footing', (18.6, 0, p.z+.06), .4, .14, steel, 'Z', 40, .03)
+    bpy.ops.mesh.primitive_cone_add(vertices=24, radius1=.16, radius2=.09, depth=3.2, location=(18.6, 0, p.z+1.6))
+    kit.finish(bpy.context.object, 'Hull neck antenna mast', steel, .02)
+    kit.cylinder('Hull neck antenna yard', (18.6, 0, p.z+2.6), .08, 2.6, steel, 'Y', 16, .02)
     # Ventral docking collar under the main body, with its two docking lights.
     p, n = up(kit, 2.0, 0.0)
     if p is not None:
         z = p.z
-        bpy.ops.mesh.primitive_cylinder_add(vertices=20, radius=2.3, depth=.7, location=(2.0, 0, z-.25))
+        bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=2.3, depth=.7, location=(2.0, 0, z-.25))
         collar = bpy.context.object
         kit.finish(collar, 'Hull ventral docking collar', steel, .06)
         kit.cylinder('Hull ventral docking hatch', (2.0, 0, z-.62), 1.5, .1, dark, 'Z', 20, 0)
