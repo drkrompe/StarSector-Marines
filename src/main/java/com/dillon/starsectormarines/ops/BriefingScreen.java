@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.start.SecondWindKeeper;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
@@ -1193,6 +1194,15 @@ public class BriefingScreen implements Screen {
             props.put("deployDisabled", false);
             props.put("deployClasses", "briefing-deploy");
             props.put("deployAction", (Runnable) ctx::openOfficerInduction);
+        }
+        // Campaign missions are flown from the Second Wind, with the company aboard her.
+        String secondWind = debug ? null : SecondWindKeeper.missionBlocker();
+        if (secondWind != null) {
+            props.put("deploymentStatus", secondWind);
+            props.put("deployLabel", "SECOND WIND NEEDED");
+            props.put("deployDisabled", true);
+            props.put("deployClasses", "briefing-deploy danger-surface briefing-blocked");
+            props.put("deployAction", (Runnable) () -> { });
         }
     }
 
@@ -2425,6 +2435,7 @@ public class BriefingScreen implements Screen {
     private void onAccept() {
         Mission m = ctx.getSelectedMission();
         if (m == null) return;
+        if (!m.source.isDebug() && SecondWindKeeper.missionBlocker() != null) { rebuild(); return; }
         if (MissionLaunch.requiresOfficerInduction(m)) { ctx.openOfficerInduction(); return; }
         prepareSurvey(m);
         if (survey.peek() == null) { installDocument(); return; }

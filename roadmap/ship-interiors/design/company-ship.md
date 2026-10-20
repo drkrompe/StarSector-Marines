@@ -203,9 +203,9 @@ being an argument for the next ship.
 ## The founding hull is kept
 
 Losing a home displaces a company, with one exception: the Second Wind, the
-start's own ship, comes back from every loss through a yard, at a cost in
-d-mods, credits and days, and cannot be sold or scuttled away. A sinking still
-costs what was aboard her. `ship-interiors-nouns.md` owns the rule.
+start's own ship, can be lost, sold or scuttled like any hull, and any yard sells
+her back at once for credits and a d-mod. Campaign missions are flown from her. A
+sinking still costs what was aboard her. `ship-interiors-nouns.md` owns the rule.
 
 ## What this does not decide
 
