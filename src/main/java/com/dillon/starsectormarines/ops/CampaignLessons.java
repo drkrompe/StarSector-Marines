@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
+import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -11,13 +13,14 @@ import java.util.Set;
 
 /** Resumable guidance derived from actual company work, independent of an entry screen. */
 final class CampaignLessons {
-    enum Step { NONE, BOAT_RECOVERY, REFIT, GANTRY, INVESTMENTS, FORMATIONS }
+    enum Step { NONE, BOAT_RECOVERY, FIRST_LIFT, REFIT, GANTRY, INVESTMENTS, FORMATIONS }
     private CampaignLessons() { }
 
     static Step next(MarineRoster roster) {
         if (roster == null || roster.officerInductionRequired()) return Step.NONE;
         if (roster.campaignLessons().boatRecoveryPending()) return Step.BOAT_RECOVERY;
         if (!roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId)) return Step.NONE;
+        if (firstLiftPending(roster)) return Step.FIRST_LIFT;
         if (FirstRefit.available(roster)) return Step.REFIT;
         if (!roster.hasCompletedStory(OpeningOperationKind.COUNTERATTACK.missionId)) return Step.NONE;
         if (roster.mechBay().mechById(WaylineHound.ID) != null
@@ -27,10 +30,22 @@ final class CampaignLessons {
         return roster.campaignLessons().formationsDeferred((int) formations(roster)) ? Step.NONE : Step.FORMATIONS;
     }
 
+    /**
+     * Relief needed no boat: the company rode up on Wayline's truck. The depot job is its first ferry battle, so
+     * between the two the company repairs (or commissions) its first Hermes from the prepaid stores.
+     */
+    static boolean firstLiftPending(MarineRoster roster) {
+        return roster != null && roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId)
+                && !roster.hasCompletedStory(OpeningOperationKind.COUNTERATTACK.missionId)
+                && roster.boatDeck().airworthy().stream().allMatch(boat -> boat.freezeForDeployment().machineOnly());
+    }
+
     static PreparationGuide.Lesson handoff(MarineRoster roster, MarineOpsContext context, ScreenId host) {
         if (context.getSelectedMission() != null && context.getSelectedMission().source.isDebug()) return null;
         return switch (next(roster)) {
             case BOAT_RECOVERY -> lesson(1, "boatLessonTitle", "boatLessonHandoff",
+                    List.of("page-nav-boats"), "boatLessonVisit", () -> context.goTo(ScreenId.BOAT_DECK));
+            case FIRST_LIFT -> host == ScreenId.BOAT_DECK ? null : lesson(1, "lessonFirstLiftTitle", "lessonFirstLiftHandoff",
                     List.of("page-nav-boats"), "boatLessonVisit", () -> context.goTo(ScreenId.BOAT_DECK));
             case REFIT -> lesson(0, "lessonRefitTitle", "lessonRefitHandoff", List.of("barracks-equipment"),
                     "lessonEquipment", () -> context.openFleetArmoryWorkspaceFrom(host));
@@ -47,6 +62,7 @@ final class CampaignLessons {
     }
 
     static PreparationGuide.Lesson boats(MarineRoster roster, BoatDeckViewModel model) {
+        if (next(roster) == Step.FIRST_LIFT) return firstLift(roster, model);
         if (next(roster) != Step.BOAT_RECOVERY) return null;
         CampaignBoat boat = model.boat(roster.campaignLessons().damagedBoatId());
         if (boat == null) return lesson(1, "boatLessonTitle", "boatLessonGone", List.of("boat-list"),
@@ -58,6 +74,22 @@ final class CampaignLessons {
         return lesson(1, "boatLessonTitle", boat.airworthy(model.day()) ? "boatLessonReady" : "boatLessonChoice",
                 List.of("boat-deck-canvas", "boat-recovery", "boat-material-stock", "page-nav-return"),
                 "boatLessonUnderstood", roster.campaignLessons()::reviewBoatRecovery);
+    }
+
+    /** The wreck in the first berth if Second Wind brought one, otherwise an empty berth to commission. */
+    private static PreparationGuide.Lesson firstLift(MarineRoster roster, BoatDeckViewModel model) {
+        boolean wreck = roster.boatDeck().wreckInBerth(0);
+        boolean building = model.fabricationFocused();
+        return lessonText(1, Strings.get(wreck ? "openingCompanyPreparationGuideRepairOurFirstHermes"
+                        : "openingCompanyPreparationGuideCommissionOurFirstShuttle"),
+                Strings.get(wreck ? "openingCompanyPreparationGuideSecondWindCameWithTwoWreckedHermes"
+                        : "openingOfficerInductionGuideOurPeopleNeedAWayDownAnd")
+                        + Strings.get(building ? "openingCompanyPreparationGuideCheckTheMaterialBillThenConfirmThe"
+                        : "openingCompanyPreparationGuideSelectTheFirstBerthOnTheRight")
+                        + (CerberusCompanyStart.depot() != null
+                        ? Strings.get("openingCompanyPreparationGuideOurPrepaidStoresAreAvailableWhileDocked") : ""),
+                building ? List.of("boat-fabrication-materials", "boat-fabricate", "boat-fabrication-back")
+                        : List.of("boat-list"), null, null);
     }
 
     static long formations(MarineRoster roster) {
@@ -108,11 +140,16 @@ final class CampaignLessons {
 
     static PreparationGuide.Lesson lesson(int step, String title, String copy, List<String> targets,
                                            String action, Runnable run) {
+        return lessonText(step, LessonCopy.text(title), LessonCopy.text(copy), targets,
+                action == null ? null : LessonCopy.text(action), run);
+    }
+
+    private static PreparationGuide.Lesson lessonText(int step, String title, String copy, List<String> targets,
+                                                       String action, Runnable run) {
         var interactive = new ArrayList<>(targets);
         // Travel, resupply, other work and mission back remain available; leaving is not completion.
         interactive.addAll(List.of("marine-ops-page-nav", "mission-briefing-back", "mission-prepare-barracks",
                 "mission-prepare-armory", "mission-assign", "mission-deploy", "company-hq-board", "barracks-flow-actions"));
-        return new PreparationGuide.Lesson(step, LessonCopy.text(title), LessonCopy.text(copy),
-                interactive, action == null ? null : LessonCopy.text(action), run, 280);
+        return new PreparationGuide.Lesson(step, title, copy, interactive, action, run, 280);
     }
 }

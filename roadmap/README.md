@@ -215,8 +215,9 @@ bills are defined in `company-view-nouns.md` (Company resource bills). `castle-o
 Castle's portrait-led first specialty and squad assignment for founding commander
 Sabine Hale, required before a new company deploys; live acceptance remains open.
 `first-mission-preparation.md` extends that lesson into one sequence from ship
-selection and the combined cargo preflight through commissioning lift, Sabine's
-specialty, squad founding and assignment, ending at the first Jangala story lead.
+selection and the combined cargo preflight through Sabine's specialty, squad
+founding and assignment, ending at the first Jangala story lead; the first Hermes
+is repaired after Relief, before the first ferry job.
 `cerberus-company-start.md` adds the optional one-Cerberus start: fly to a planetary
 yard, install the permanent conversion and draw finite prepaid depot stores while
 docked to complete preparation. Live start/save acceptance remains open.

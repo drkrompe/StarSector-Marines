@@ -45,32 +45,39 @@ from mathutils.bvhtree import BVHTree
 # The standard: segment rule, bevel table, person sizes (ship-detail-guide.md)
 # =============================================================================
 
-SAG_M = .005            # a curve's chord may stand at most 5 mm off the true arc ...
-SAG_RATIO = 1/400       # ... or 1/400 of its radius on big bodies (about 4.5 deg a segment)
+SAG_M = .005            # a round's chord may stand at most 5 mm inside the true arc
 MIN_SEGMENTS = 12       # any round part from 5 cm radius up
+MAX_SEGMENTS = 96       # ceiling (turret-kit ROUND_MAX); rounds that big are hull facets by design
 ROD_SEGMENTS = 8        # rods, whips, pins and pipes under 5 cm radius
 BOLT_SEGMENTS = 6       # bolt and nut heads are hexagons by design
+VISIBLE_SAG_M = .025    # check gate: about one pixel at the accepted Legion/Colossus close views
 
-# Bevel widths in metres by the size of the part (guide: Edge treatment).
+# Bevel widths in metres by the size of the part (guide: Edge treatment). Measured on the
+# Colossus: boxes 7.5 cm, prisms 6 cm, fittings 3 cm, small parts 1.5 cm; Legion hull boxes 15 cm.
 BEVEL_M = {'hull': .12, 'module': .06, 'fitting': .03, 'small': .015}
 # Person-scale sizes in metres (guide: Hatches and doors; Railings and walkways).
 PERSON_M = {'door': (1.1, 2.1), 'hatch': (1.46, 2.07), 'deck_hatch': (1.9, 1.9), 'rail': 1.1,
             'stanchion_pitch': 1.4, 'rung_pitch': .3, 'ladder_width': .55, 'walkway': 1.2, 'figure': 1.8}
 
 
-def segments(radius_m, sag=SAG_M, ratio=SAG_RATIO):
+def segments(radius_m, sag=SAG_M):
     """Segments a round of `radius_m` metres needs so no facet shows at a close view.
 
-    The chord between two segments may sit at most max(5 mm, r/400) inside the
-    arc, rounded up to a multiple of four. The references: a 1.7 m dish at 48
-    (Colossus), a 1 m sensor dome at 32, a 0.4 m lamp housing at 24, a 0.17 m
-    mast at 16."""
+    The smallest multiple of four whose chord sits at most 5 mm inside the arc, 12 to 96
+    (8 under 5 cm radius). This is what the references' finished rounds measure: the
+    Colossus mast (0.175 m, 16, 3.4 mm), dome (1 m, 32, 4.8 mm) and dish (1.7 m, 48, 3.6 mm).
+    Against turret-kit's 0.22 m chord it is the same at 1.2 m radius, stricter below
+    and looser above."""
     r = abs(radius_m)
     if r < .05:
         return ROD_SEGMENTS
-    tol = max(sag, r*ratio)
-    n = math.pi/math.acos(max(-1.0, 1-tol/r))
-    return max(MIN_SEGMENTS, 4*math.ceil(n/4-1e-9))
+    n = math.pi/math.acos(max(-1.0, 1-sag/r))
+    return min(MAX_SEGMENTS, max(MIN_SEGMENTS, 4*math.ceil(n/4-1e-9)))
+
+
+def sag(radius_m, n):
+    """How far (metres) the chord of an n-sided round of this radius sits inside the arc."""
+    return abs(radius_m)*(1-math.cos(math.pi/max(3, n)))
 
 
 class Scale:

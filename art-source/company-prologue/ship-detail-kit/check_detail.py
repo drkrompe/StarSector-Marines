@@ -49,7 +49,7 @@ from mathutils import Matrix, Vector
 from mathutils.bvhtree import BVHTree
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from ship_detail_kit import segments  # noqa: E402
+from ship_detail_kit import segments, sag, VISIBLE_SAG_M  # noqa: E402
 
 SKIP = re.compile(r'^(Temporary|Studio|Camera|Figure|Scale figure|C2 )', re.I)
 LIGHT_NAME = re.compile(r'(?<![a-z])(lamps?|lights?|lit|lens(es)?|beacons?|glow|strips?)(?![a-z])', re.I)
@@ -66,6 +66,7 @@ HULL_R = 5.0              # metres: rounds bigger than this may be built as armo
 ROUND = 75.0              # degrees: a crease run turning this far is a rounded form
 GRID = .5                 # metres: bare-patch sampling pitch
 TOUCH = .35               # metres: detail this close in front of a surface counts
+DARK = .06                # base colour (linear, brightest channel) under which a bevel highlight cannot read
 
 
 def parse():
@@ -145,6 +146,21 @@ class Part:
         self.ang = np.degrees(np.arccos(d))
 
 
+def base_value(mat):
+    """Brightest channel of a material's base colour (1.0 when unknown, so it is checked)."""
+    if mat is None:
+        return 1.0
+    col = mat.diffuse_color
+    if mat.node_tree:
+        for nd in mat.node_tree.nodes:
+            if nd.type == 'BSDF_PRINCIPLED':
+                if nd.inputs['Base Color'].is_linked:
+                    return 1.0
+                col = nd.inputs['Base Color'].default_value
+                break
+    return max(col[0], col[1], col[2])
+
+
 def emissive(mat):
     """Emission strength x colour brightness of a material (0 when it does not glow)."""
     if mat is None or not mat.node_tree:
@@ -214,7 +230,8 @@ def check_curves(i, p, world):
             continue       # hexagon bolt heads and thin rods are exempt by the rule
         need = segments(r)
         if k < need*TOL:
-            found.append({'kind': 'cap', 'radius_m': round(r, 3), 'segments': k, 'needs': need})
+            found.append({'kind': 'cap', 'radius_m': round(r, 3), 'segments': k, 'needs': need,
+                          'sag_mm': round(1000*sag(r, k), 1), 'visible': bool(sag(r, k) > VISIBLE_SAG_M)})
     # Group the flagged creases into runs (faces joined across them). A run whose faces turn
     # through at least ROUND deg is a rounded form drawn with too few segments; a gentler run
     # is a planform or plate break along a long body, which is a design choice, not a curve.
@@ -248,7 +265,8 @@ def check_curves(i, p, world):
         worst = min((flagged[k] for k in ks), key=lambda t: t[1]/t[2])
         found.append({'kind': 'crease run' if worst[0] <= HULL_R else 'hull facets', 'edges': len(ks), 'length_m': round(length, 1),
                       'turn_deg': round(spread), 'radius_m': round(worst[0], 3), 'segments': round(worst[1]),
-                      'needs': worst[2], 'smooth_shaded': sum(flagged[k][4] for k in ks)})
+                      'needs': worst[2], 'smooth_shaded': sum(flagged[k][4] for k in ks),
+                      'sag_mm': round(1000*sag(worst[0], worst[1]), 1), 'visible': bool(sag(worst[0], worst[1]) > VISIBLE_SAG_M)})
     return found
 
 
@@ -265,6 +283,9 @@ def check_hard(p):
     w1 = p.area[f1]/np.maximum(length, 1e-6)
     w2 = p.area[f2]/np.maximum(length, 1e-6)
     keep = convex & (length >= PLATE_W) & (w1 >= PLATE_W) & (w2 >= PLATE_W)
+    dark = np.array([base_value(m) < DARK for m in p.mats] or [False])
+    mi = p.mi.clip(0, len(dark)-1)
+    keep &= ~(dark[mi[f1]] & dark[mi[f2]])         # a chamfer on near-black recess catches no highlight
     return float(length[keep].sum())
 
 
@@ -453,6 +474,8 @@ def check_primitives(i, p, world, ob, mpu):
     """Bare boxes and cylinders among the object's own (unevaluated) connected parts."""
     out = []
     me = ob.data
+    if p.mats and all(base_value(m) < DARK for m in p.mats):
+        return out                                  # a bare box in near-black recess reads as shadow
     nv = len(me.vertices)
     if nv == 0 or nv > 200000:
         return out
@@ -545,7 +568,8 @@ def run(args):
     report = {'label': args.label, 'metres_per_unit': args.mpu, 'objects': len(parts), 'excluded': args.exclude,
               'faces': int(sum(len(p.polys) for p in parts)), 'lights_layer': bool(layer),
               'surface_m2': round(float(sum(p.area.sum() for p in parts))),
-              'rules': {'segments': 'max(5 mm, r/400) chord sag, multiple of 4, min 12 (8 under 5 cm, hex bolts 6)',
+              'rules': {'segments': 'chord sag <= 5 mm, multiple of 4, 12-96 (8 under 5 cm, hex bolts 6)',
+                        'visible_sag_mm': 1000*VISIBLE_SAG_M, 'dark_base': DARK,
                         'hard_edge_deg': HARD, 'plate_edge_m': PLATE_W, 'tolerance': TOL, 'bare_patch_m2': args.bare, 'touch_m': TOUCH, 'grid_m': GRID},
               'curves': {}, 'hard_m': {}, 'emissive': {}, 'bare': {}, 'primitives': {}}
     for i, ob, p in zip(keep, obs, parts):          # i indexes the world's parts
@@ -578,12 +602,13 @@ def summarise(r):
     caps = sum(1 for v in curves.values() for c in v if c['kind'] == 'cap')
     runs = sum(1 for v in curves.values() for c in v if c['kind'] == 'crease run')
     hull = sum(1 for v in curves.values() for c in v if c['kind'] == 'hull facets')
-    faceted = sum(1 for v in curves.values() if any(c['kind'] != 'hull facets' for c in v))
+    faceted = sum(1 for v in curves.values() if any(c['kind'] != 'hull facets' and c['visible'] for c in v))
+    below = sum(1 for v in curves.values() if any(c['kind'] != 'hull facets' for c in v))
     bare = [a['area_m2'] for v in r['bare'].values() for a in v]
     prim = [k for v in r['primitives'].values() for k in v]
     return {
         'objects': r['objects'], 'faces': r['faces'],
-        'faceted_objects': faceted, 'faceted_caps': caps, 'faceted_runs': runs, 'hull_facet_runs': hull,
+        'faceted_objects': faceted, 'below_rule_objects': below, 'faceted_caps': caps, 'faceted_runs': runs, 'hull_facet_runs': hull,
         'unbevelled_objects': len(r['hard_m']), 'unbevelled_m': round(sum(r['hard_m'].values()), 1),
         'unbevelled_m_per_100m2': round(100*sum(r['hard_m'].values())/max(r['surface_m2'], 1), 2),
         'emissive_outside': len(r['emissive']),

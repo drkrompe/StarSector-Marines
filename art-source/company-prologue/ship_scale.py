@@ -241,8 +241,8 @@ PUBLISHED['Phaeton'] = .33   # the rule solves 0.326 (75.7 m): published at two 
 # Published at 0.59 (91 m) by owner override (2026-10-20): rounds 11-12 opened the wings
 # behind the forward armour into exposed framework, which is not enclosed volume, and the
 # rule now solves about 0.65 (99 m). A reshape never resizes a hull; the size is the owner's.
-# Round 15: the armour laid in raised plates moved the measured union to 178,814.
-HULLS['Manticore (P)'] = dict(units3=178814, crew_max=80, cargo=80, fuel=50, cls='destroyer', length_units=151.9,
+# Rounds 15-16: the armour laid in raised plates moved the measured union to 177,969.
+HULLS['Manticore (P)'] = dict(units3=177969, crew_max=80, cargo=80, fuel=50, cls='destroyer', length_units=151.9,
                              sprite_px=154, fittings_units={'crew window w x h': [2.54, 1.02],
                                                             'bridge glazing band h': [2.04]})
 VOLUME_SOURCE['Manticore (P)'] = 'measured (SOLIDS)'
