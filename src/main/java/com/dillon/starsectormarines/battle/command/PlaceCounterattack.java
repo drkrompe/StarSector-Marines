@@ -127,9 +127,10 @@ final class PlaceCounterattack {
     static volatile boolean informed = knob("informed", 1f) > 0f;
     /**
      * Whether the reserve forms behind a held place once any hostile mover has been believed this battle, not only on the
-     * place's alarm: by the alarm, the patrols that meet the landing are already spent.
+     * place's alarm. Off by default: held from first contact, even the law's share at a staging cell took the patrol a
+     * small garrison mans its compound with, and the law already keeps that share from the track response.
      */
-    static volatile boolean formOnContact = knob("formOnContact", 1f) > 0f;
+    static volatile boolean formOnContact = knob("formOnContact", 0f) > 0f;
     /** Whether the reserve above the law's share may be lent to man its own place's pressed garrisonables while it holds. */
     static volatile boolean lendToBelt = knob("lendToBelt", 1f) > 0f;
 
@@ -518,7 +519,9 @@ final class PlaceCounterattack {
         List<Body> recruitable = recruitable(free, byId.keySet(), topology);
         if (group.stage == Stage.RESERVE) {
             topUp(reserveTarget, centre, recruitable, byId, recruited);
-            if (lendToBelt && !place.turned()) lendable = frontmost(lawTarget, centre, byId);
+            // Before anything is lost the whole reserve is the law's share and all of it may man its own place; once a
+            // place has turned, only what it holds above the law's share may.
+            if (lendToBelt && !place.turned()) lendable = frontmost(anyTurned ? lawTarget : 0, centre, byId);
             recruitable.removeIf(body -> group.members.contains(body.squadId()));
             if (place.turned() && tick >= retryAt.getOrDefault(group.key, Integer.MIN_VALUE)) {
                 if (informed && !observed(tick, group.key)) {
@@ -729,8 +732,8 @@ final class PlaceCounterattack {
     }
 
     /**
-     * The place the reserve should stand for: a turned place most worth it, else a held place under alarm or believed
-     * pressure, else (once the battle has reached the side) the held place most worth guarding.
+     * The place the reserve should stand for: a turned place most worth it, else a held place whose own alarm stands,
+     * else (with {@link #formOnContact}, once the battle has reached the side) the held place most worth guarding.
      */
     private Place choose(int tick, List<Place> places, int[] home, int[] keep, List<Hostile> hostiles) {
         Place best = null;
@@ -746,7 +749,7 @@ final class PlaceCounterattack {
             int tier;
             if (place.turned()) {
                 tier = 0;
-            } else if (place.alarmed() || believedAt(hostiles, place) > 0f) {
+            } else if (place.alarmed()) {
                 tier = 1;
             } else if (doctrine.formAtOnce() || doctrine.formOnContact() && contactSeen) {
                 tier = 2;

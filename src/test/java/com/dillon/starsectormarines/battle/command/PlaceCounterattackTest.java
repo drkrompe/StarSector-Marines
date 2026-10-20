@@ -372,7 +372,8 @@ class PlaceCounterattackTest {
                 List.of(), pool(150), 2, 8, topology);
         assertEquals(Stage.RESERVE, alarmed.stage());
         assertEquals(2, result.recruited().size(), "before anything is lost the reserve is the law's share");
-        assertTrue(alarmed.lendable().isEmpty(), "nothing above the law's share to lend");
+        assertEquals(new TreeSet<>(result.recruited()), new TreeSet<>(alarmed.lendable()),
+                "the law's share may all man its own place's garrisonables while nothing is lost");
         PlaceCounterattack finite = new PlaceCounterattack(PlaceCounterattack.Doctrine.finitePool(12));
         Result all = finite.plan(0, List.of(place(Status.HELD, false)), KEEP, List.of(), List.of(), Losses.NONE,
                 List.of(), pool(150), 0, 8, topology);

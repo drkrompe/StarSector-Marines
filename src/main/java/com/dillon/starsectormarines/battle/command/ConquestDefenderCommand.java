@@ -504,7 +504,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         // The counter-attack masses after every threatened track has its picket and before any track has a second.
         List<String> counterNotes = List.of();
         if (counterOn) {
-            counterNotes = planCounterattack(frame, influence, candidates, countering, selected, directives);
+            counterNotes = planCounterattack(frame, influence, candidates, countering, selected, justReleased, directives);
             mobileReserve = counterReserve(candidates.size());
             responseBudget = candidates.size() - mobileReserve;
         }
@@ -1738,13 +1738,16 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
      */
     private List<String> planCounterattack(ConquestCommandFrame frame, CommanderInfluenceSnapshot influence,
                                            List<PlanningSquad> candidates, Map<Integer, PlanningSquad> countering,
-                                           Set<Integer> selected, Map<Integer, SquadDirective> directives) {
+                                           Set<Integer> selected, Set<Integer> justReleased, Map<Integer, SquadDirective> directives) {
         List<PlaceCounterattack.Body> members = new ArrayList<>();
         for (PlanningSquad squad : countering.values()) members.add(counterBody(squad));
         List<PlaceCounterattack.Body> free = new ArrayList<>();
         Map<Integer, PlanningSquad> byId = new HashMap<>();
         for (PlanningSquad squad : candidates) {
-            if (selected.contains(squad.id) || squad.crew) continue;
+            // A garrison just given back or falling back into its building is still about its place, not free.
+            if (selected.contains(squad.id) || squad.crew || justReleased.contains(squad.id) || isInsideFallBack(squad)) {
+                continue;
+            }
             free.add(counterBody(squad));
             byId.put(squad.id, squad);
         }

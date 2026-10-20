@@ -516,20 +516,20 @@ to retake. A place is **valued** by what it means to the side — its own worth
 how near home it stands — and the group goes for the turned place worth most,
 within reach of home.
 
-- **The reserve is the counter-attack's.** Before anything is lost it is the
-  reserve law's quarter, waiting at a staging cell behind the place most worth
-  guarding (one alarmed or believed pressed, else, once the battle has reached
-  the side, the one worth most) rather than at home: on the line from the keep,
-  short of the place by the company's staging stand-off and clear of believed
-  contact. Once a place has turned it grows to half the mobile pool and stands
-  for that place. It counts as the reserve, not in addition to it, so the track
-  response's pickets come first and what it denies is concentration. While its
-  place still holds, what waits above the law's share may be lent to man that
-  place's own garrisonables (a fort's belt, a compound's apron) and nothing
-  else. Holding half the pool from first contact, as the fort counter-attack
-  first did, left a compound's apron without its garrison once every compound
-  was a place (`compound-apron`); a reserve that grows when there is something to
-  retake does not.
+- **The reserve is the counter-attack's.** Before anything is lost it forms
+  only behind a place whose own alarm stands (a fort's place alarm, `ai-nouns.md`),
+  as the reserve law's quarter waiting at a staging cell: on the line from the
+  keep, short of the place by the company's staging stand-off and clear of
+  believed contact; while that place holds, all of it may man the place's own
+  garrisonables (a fort's belt, a compound's apron) and nothing else. Once a place
+  has turned the reserve grows to half the mobile pool and stands for that place,
+  and only what it holds above the law's share may still be lent. It counts as
+  the reserve, not in addition to it, so the track response's pickets come first
+  and what it denies is concentration. Held from the battle's first contact, as
+  the fort counter-attack first had it, even the law's share at a staging cell
+  took the patrol a small garrison mans its compound with once every compound was
+  a place (`compound-apron`), and the law already keeps that share from the track
+  response; `formOnContact` restores it as a knob.
 - **A turned place is nobody else's.** From the moment a place turns, its
   ground — within its radius, and nearer it than any place the side still holds,
   so an attack on a held place beside a lost one is still answered — is left to

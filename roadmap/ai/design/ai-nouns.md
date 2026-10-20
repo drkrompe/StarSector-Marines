@@ -2179,9 +2179,10 @@ not stage toward it, its garrisonables are not manned and no single squad is
 sent to retake it; the commander observes what holds it (a probe, or any own
 squad already watching), sizes the push from the observed holders and its own
 remembered losses there, and retakes it in proportion, as one push, or not at
-all. Before anything is lost its reserve is the reserve law's share waiting
-behind the place most worth guarding, and what it holds above that share may
-man that place's own garrisonables and do nothing else.
+all. Before anything is lost its reserve forms only behind a place whose alarm
+stands, as the reserve law's share, and may man that place's own garrisonables
+and do nothing else; once a place has turned it grows, and only what it holds
+above the law's share may be lent.
 
 A belt squad is sent only if it can arrive in time, and one still closing is not
 recalled by a lull. Pressure also draws free patrols toward the pressed area,
