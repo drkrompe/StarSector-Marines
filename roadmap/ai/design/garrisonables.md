@@ -274,6 +274,13 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
   its side believes is enemy-held gets ASSAULT (`ai-nouns.md`, machine assault
   under fighting positions). A commander's use of machines against a garrison
   is not.
+- **Machines screen the places their side mans.** Owner, 2026-10-20 ("seems
+  reasonable"): a mech, lance or armed vehicle stands beside a garrison as its
+  heavy support — on a cell outside the place, off the garrison's lanes of
+  fire, covering the believed threat axis with its own doctrine or turret, never
+  entering — for the player as a GUARD order on a place the side mans, and for
+  the commanders as a bounded attachment of a free machine to a manned, pressed
+  place. Story `machine-guard.md`.
 
 ## Open questions
 
@@ -290,8 +297,6 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
   walls, was tried and cost more than it saved.
 - How a garrisonable is valued against an objective: a trench in front of the
   keep is worth more than one at the map edge under the same pressure.
-- Whether a machine screens a manned place it cannot man (stands beside a
-  garrison as its heavy support).
 
 ## Stories
 
