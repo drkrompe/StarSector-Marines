@@ -612,6 +612,6 @@ it and takeover/handback preserves it. Hot mounts remain fitted and supplied:
 flux does not cause an ammunition fallback or change the mission assignment.
 
 The status panel shows a 0-100% flux bar with its state beneath it: BURST
-RESERVE, then HIGH FLUX - EASE FIRE in amber from 75, then VENTING - WEAPONS
+RESERVE, then HIGH FLUX - EASE FIRE in amber from 75, then VENTING - GUNS
 LOCKED in red from 95 until 55. Each flux-blocked weapon row reads FLUX. Mechanical progress
 and finite ammunition remain separate. See `mechs-nouns` for baseline tuning.
