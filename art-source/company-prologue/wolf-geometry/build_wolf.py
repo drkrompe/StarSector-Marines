@@ -51,8 +51,8 @@ from mathutils.bvhtree import BVHTree
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent.parent))  # art-source: starsector_path
-import wf_kit, wf_hull, wf_engines, wf_mounts, wf_lights, wf_detail
-for module in (wf_kit, wf_hull, wf_engines, wf_mounts, wf_lights, wf_detail):
+import wf_kit, wf_hull, wf_engines, wf_mounts, wf_lights, wf_detail, wf_fittings
+for module in (wf_kit, wf_hull, wf_engines, wf_mounts, wf_lights, wf_detail, wf_fittings):
     importlib.reload(module)
 from starsector_path import GAME_CORE as GAME
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
@@ -152,6 +152,7 @@ wf_engines.build(kit)
 wf_mounts.build(kit)
 wf_lights.build(kit)
 wf_detail.build(kit)
+wf_fittings.build(kit)
 bpy.context.view_layer.update()
 
 trained = [n for t in wf_mounts.TURRETS for n in t['trained']
