@@ -93,7 +93,7 @@
     },
     "published_metres_per_unit": 0.95,
     "measured_this_build": {
-      "enclosed_units3": 32710,
+      "enclosed_units3": 32706,
       "solids": [
         "Hull bow head",
         "Hull nose cap",
@@ -101,11 +101,11 @@
         "Hull wing body",
         "Hull ventral keel"
       ],
-      "all_hull_solids_units3_incl_nacelles": 38671
+      "all_hull_solids_units3_incl_nacelles": 38660
     },
     "size_m": [
       90.0,
-      64.9,
+      63.1,
       20.6
     ],
     "person_1_8_m_in_units": 1.89,
@@ -125,17 +125,17 @@
   "dimensions": {
     "min": [
       -34.24,
-      -34.14,
+      -33.22,
       -9.5
     ],
     "max": [
       60.5,
-      34.14,
+      33.22,
       12.2
     ],
     "size": [
       94.74,
-      68.28,
+      66.44,
       21.7
     ]
   },
@@ -545,7 +545,7 @@
         "Weapon WS 001 missile 1 steel",
         "Weapon WS 001 missile 1 dark",
         "Weapon WS 001 missile 1 armour",
-        "Weapon WS 001 missile 1 glow"
+        "Weapon WS 001 missile 1 mark"
       ],
       "moving": [
         "Weapon WS 001 missile 1"
@@ -774,7 +774,7 @@
         "Weapon WS 004 missile 1 steel",
         "Weapon WS 004 missile 1 dark",
         "Weapon WS 004 missile 1 armour",
-        "Weapon WS 004 missile 1 glow"
+        "Weapon WS 004 missile 1 mark"
       ],
       "moving": [
         "Weapon WS 004 missile 1"
@@ -939,12 +939,13 @@
     {
       "name": "Light port wing tip 1",
       "position": [
-        -11.5,
-        33.8,
-        0.4
+        44,
+        8.5,
+        6.79
       ],
       "colour": "red",
-      "role": "port side light (extremity)",
+      "role": "port side light (the bow lamp pixel)",
+      "lit": true,
       "blink": {
         "period_s": 0,
         "phase_s": 0,
@@ -954,12 +955,13 @@
     {
       "name": "Light starboard wing tip 1",
       "position": [
-        -11.5,
-        -33.8,
-        0.4
+        44,
+        -8.5,
+        6.79
       ],
       "colour": "green",
-      "role": "starboard side light (extremity)",
+      "role": "starboard side light (the bow lamp pixel)",
+      "lit": true,
       "blink": {
         "period_s": 0,
         "phase_s": 0,
@@ -971,10 +973,11 @@
       "position": [
         -27,
         0,
-        7.7
+        7.63
       ],
       "colour": "white",
-      "role": "stern light",
+      "role": "stern light (dark lens: not on the lights layer)",
+      "lit": false,
       "blink": {
         "period_s": 0,
         "phase_s": 0,
@@ -986,10 +989,11 @@
       "position": [
         57.5,
         0,
-        3.59
+        3.53
       ],
       "colour": "white",
-      "role": "prow anti-collision strobe",
+      "role": "prow anti-collision strobe (dark lens: not on the lights layer)",
+      "lit": false,
       "blink": {
         "period_s": 1.6,
         "phase_s": 0.4,
@@ -1004,8 +1008,8 @@
     "anchors_collection": "LASHER | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'LASHER'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 116434,
-    "objects": 357,
+    "triangles": 190162,
+    "objects": 365,
     "materials": [
       "Lasher Hegemony armour",
       "Lasher bridge glazing",
@@ -1013,15 +1017,15 @@
       "Lasher heat vent glow",
       "Lasher recess",
       "Lasher running light green",
+      "Lasher running light lens (unlit)",
       "Lasher running light red",
-      "Lasher running light white",
       "Missile body 0.1202,0.1202,0.1228",
       "Turret armour Lasher Hegemony armour",
       "Turret heatseeker accent 0.2292,0.1661,0.1398",
+      "Turret heatseeker mark 0.6122,0.4277,0.1509",
       "Turret heatseeker metal 0.1103,0.1103,0.1108",
       "Turret heatseeker paint 0.1927,0.1909,0.1891",
       "Turret heatseeker plate 0.3215,0.3200,0.3156",
-      "Turret lamp glow",
       "Turret lightag accent 0.2634,0.2396,0.1799",
       "Turret lightag metal 0.1103,0.1103,0.1108",
       "Turret lightag paint 0.1411,0.1411,0.1390",
@@ -1127,9 +1131,9 @@
     }
   ],
   "silhouette": {
-    "iou": 0.8921,
+    "iou": 0.8924,
     "sprite_uncovered": 0.0059,
-    "model_outside_sprite": 0.1143,
+    "model_outside_sprite": 0.114,
     "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 6.32 px per unit",
     "note": "with the kit hardpoints, which reach past the pods as the game draws them; the hull itself is unchanged"
   },
@@ -1142,5 +1146,11 @@
       "width_px": 79,
       "height_px": 24
     }
+  },
+  "detail_check": {
+    "faceted_objects": 0,
+    "unbevelled_m_per_100m2": 0.9,
+    "emissive_outside": 0,
+    "tool": "ship-detail-kit/check_detail.py --lights lasher_lights.png"
   }
 }
