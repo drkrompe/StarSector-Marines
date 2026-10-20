@@ -707,7 +707,10 @@ def pipe_bridge(c4, g, P):
         cy = c4.BERTH_Y + c4.BERTH_DY[x]
         tx, ty, _ = c4.at(x, cy, h, c4.BERTH_R + 12, -23.5)
         P.strut('pipe', (tx, y, z), (tx, ty + 5, 4.0), 0.7)
-        P.strut('steel', (tx, (y + ty) / 2, 0), (tx, (y + ty) / 2, 5.0), 0.5)
+        py = (y + ty) / 2
+        if port_roads.ON:                  # off the back road (y 603.5-612.5); the pipe crosses it 4.8 m up
+            py = min(py, 600.5)
+        P.strut('steel', (tx, py, 0), (tx, py, 4.0 + (py - ty - 5) / (y - ty - 5) * (z - 4.0)), 0.5)
     g.take(xw, xe, y - 2, y + 2)
 
 
@@ -791,7 +794,7 @@ def west_depot(c4, g, P, r):
     park(c4, 'Yard forklift depot', c4.forklift_parts(P.m['yellow'], P.m['modules'][0]), dx1 - 14, dy0 + 30, 0.0)
     park(c4, 'Flatbed depot', c4.flatbed_parts(P.m['cab'], P.m['steel'], P.m['stock']), dx0 + 18, dy0 + 34, 0.0)
     stair_truck(P, dx1 - 10, dy0 + 12, math.pi / 2)
-    stair_truck(P, dx1 - 4 if ex == dx1 else dx1 - 16, dy0 + 12 if ex == dx1 else dy0 + 4, math.pi / 2)
+    stair_truck(P, dx1 - 4 if ex == dx1 else dx1 - 16, dy0 + 12, math.pi / 2)
     for _ in range(26):                                                 # scrap and cast-offs in the corner
         size = (r.uniform(1.5, 5), r.uniform(1.5, 4), r.uniform(0.6, 2.2))
         sx, sy, sz, sh = r.uniform(dx1 - 22, dx1 - 6), r.uniform(dy1 - 20, dy1 - 6), r.uniform(0.3, 1.5), r.uniform(0, math.pi)

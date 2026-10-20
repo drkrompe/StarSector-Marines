@@ -375,7 +375,8 @@ def _tanker():
 # vehicle is at frame 0; `go` the second it pulls away, or None if it is already driving. Lanes keep
 # right: the back road's 2.25 m either side of its line, the connector's 3 m.
 TRIPS = {} if not port_roads.ON else {
-    'fuel': dict(kind='bowser', pts=_tanker(), start=(-330.0, 369.0), go=None, cruise=10.0,
+    # It starts east of berth -310's cargo lane, whose three carriers leave no gap to cross from a stop.
+    'fuel': dict(kind='bowser', pts=_tanker(), start=(-285.0, 369.0), go=None, cruise=10.0,
                  name='Port bowser in -40'),
     'truck park in 1': dict(kind='container', pts=[(-435.75, 590.0), (-435.75, 605.75), (-257.75, 605.75),
                                                     (-257.75, 680.5), (-195.0, 680.5)],
