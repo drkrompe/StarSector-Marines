@@ -70,7 +70,7 @@ HEAD_ABOVE = {'WS 005': 3.8, 'WS 006': 3.8}
 # axis, hosts). The mining blaster's trough runs through the prow between the jaws,
 # open above; its breech is under the gun hood and buried in the head. The launcher
 # heads stand on the wings and need no bay.
-BAYS = {'WS 004': ((-1.6, 10.5), 3.7, (-2.9, 12.0), ('Hull bow fork base',))}
+BAYS = {'WS 004': ((-1.6, 10.5), 4.1, (-2.9, 12.0), ('Hull bow fork base',))}
 # The base hull (the merchant variant): every wolf.ship slot, armed as the vanilla
 # wolf_Assault variant: the kit's heavy blaster at WS 004 and Harpoon launchers on
 # the wing tips (round 8; the mining blaster and Annihilator forms stood in before).

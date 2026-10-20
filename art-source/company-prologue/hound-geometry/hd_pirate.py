@@ -147,6 +147,11 @@ SLABS = [
 ]
 CELL = .75
 EMBED = .18
+# The slabs' 6 cm chamfer catches only their sharp top and foot edges (over 65 deg): the
+# ragged torch-cut outline stays a crude polygon instead of soft creases that read as a
+# coarse round. Two slabs' cut corners (starboard deck 3, starboard pod 1) still read to
+# check_detail as a 1.3-1.5 m round; they are deliberate torch-cut facets.
+SLAB_BEVEL_ANGLE = 65
 
 
 def _grid(rect, skew, cuts, rng):
@@ -282,6 +287,7 @@ def slab(kit, mats, name, area, frame, rect, t, mode, skew, cuts, opts, rng, bui
     for a, b in zip(loop, loop[1:]+loop[:1]):
         faces.append((idx[a, 0], idx[b, 0], idx[b, 1], idx[a, 1]))
     ob = kit.mesh(name, verts, faces, mats.armour, .06)
+    ob.modifiers[-1].angle_limit = math.radians(SLAB_BEVEL_ANGLE)
     ob['pirate_area'] = area
     ob['thickness_m'] = round(t*METRES_PER_UNIT, 3)
 

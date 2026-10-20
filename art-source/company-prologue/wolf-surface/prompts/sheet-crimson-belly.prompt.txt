@@ -1,0 +1,16 @@
+Use case: precise-object-edit / texture reskin of a technical render sheet.
+INPUT 1 is a sheet of FOUR separate orthographic renders of single hull faces of one 3D spacecraft (a pirate Wolf-class frigate, a fast high-tech warship that a pirate crew has heavily modified and poorly maintained), each face seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background. Colour key: "crimson" is a deep, slightly dull crimson armour enamel; "grey" is a warm mid-grey painted machinery steel.
+top-left: a landing wedge stowed flat against the lower hull side, seen from below and outboard: a thick crimson armour plate, crimson over its whole face;
+top-right: the aft landing wedge, stowed the same way: a crimson armour plate, crimson over its whole face right up to every edge (no grey band along the hinge);
+bottom-left: the aft body underside seen from directly below: a broad crimson armour belly;
+bottom-right: the neck underside seen from directly below: a crimson armour belly.
+INPUT 2 is the SAME ship, already painted: it is the finish to match. Use its paint colours, its battle-worn finish, its seam, fastener and wear treatment. Never copy INPUT 2's composition, view or shapes.
+
+Paint each of the four faces in INPUT 1 as that hull surface. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:
+- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and any hole, gap or cut-out in a shape stays plain background blue.
+- Each shape is a flat painted steel hull surface. Add painted surface detail inside its outline only: crisp plate seams and welded joints, rows of small fasteners, flush access panels, plate-to-plate tone differences. Nothing may stand out from the surface or cross the outline.
+- Keep each region's colour: crimson areas stay deep crimson enamel (not orange, not pink, not brown); grey areas stay warm mid-grey steel. Do not repaint any part of a shape another colour: no stripes, no differently coloured patches, no repair plates.
+- Wear: a hard-used pirate warship, battle-worn but EVEN across each whole shape: chipped and scuffed paint along plate edges and seams showing dark steel, fine scratches, dusty grime packed into seams, slightly faded paint. No rust, no soot, no scorch marks, no burns, no dents, no holes, no large stains, and no single concentrated area of wear. No lettering, numbers, markings, decals, logos or hazard stripes.
+- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no gradients across a plate.
+- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.
+Output: one landscape 16:9 image, same composition as INPUT 1.

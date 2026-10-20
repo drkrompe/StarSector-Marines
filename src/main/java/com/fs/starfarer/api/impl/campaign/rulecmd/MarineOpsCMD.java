@@ -1,5 +1,6 @@
 package com.fs.starfarer.api.impl.campaign.rulecmd;
 
+import com.dillon.starsectormarines.campaign.start.SecondWindKeeper;
 import com.dillon.starsectormarines.ops.MarineOpsDialogDelegate;
 import com.dillon.starsectormarines.ops.MarineOpsDialogSize;
 import com.dillon.starsectormarines.ops.CorvusWaylineCampaign;
@@ -25,6 +26,8 @@ import java.util.Map;
  *
  * <p>Sub-commands:
  * <ul>
+ *   <li>{@code MarineOpsCMD gate} — disable the option, with Castle's instructions as its tooltip,
+ *       while the Second Wind is away from the company ({@link SecondWindKeeper}).</li>
  *   <li>{@code MarineOpsCMD open} — swap the current dialog area for the Marine Ops
  *       custom dialog (full-canvas, 3D render via FBO, our own input pipeline).</li>
  * </ul>
@@ -32,6 +35,8 @@ import java.util.Map;
 public class MarineOpsCMD extends BaseCommandPlugin {
 
     private static final Logger LOG = Global.getLogger(MarineOpsCMD.class);
+    /** The planet-menu option id, from {@code rules.csv}. */
+    private static final String OPTION = "marineOpsOpen";
 
     @Override
     public boolean execute(String ruleId,
@@ -45,8 +50,22 @@ public class MarineOpsCMD extends BaseCommandPlugin {
             return dialog.getInteractionTarget() instanceof PlanetAPI planet
                     && (CorvusWaylineCampaign.atSite(planet) || ShepherdRecoveryCampaign.atSite(planet) || AgreusArcCampaign.atSite(planet));
         }
+        if ("gate".equals(sub)) {
+            // The option stays listed so the player can see why it is closed.
+            String away = SecondWindKeeper.awayInstructions();
+            if (away != null && dialog.getOptionPanel().hasOption(OPTION)) {
+                dialog.getOptionPanel().setEnabled(OPTION, false);
+                dialog.getOptionPanel().setTooltip(OPTION, away);
+            }
+            return true;
+        }
         if ("open".equals(sub)) {
             if (CompanyYardCMD.openRequired(dialog, memoryMap)) return true;
+            String away = SecondWindKeeper.awayInstructions();
+            if (away != null) {
+                dialog.getTextPanel().addPara(away);
+                return true;
+            }
             float w = MarineOpsDialogSize.requestedWidth();
             float h = MarineOpsDialogSize.requestedHeight();
             LOG.info(String.format("MarineOpsCMD: opening custom dialog at %.0fx%.0f", w, h));

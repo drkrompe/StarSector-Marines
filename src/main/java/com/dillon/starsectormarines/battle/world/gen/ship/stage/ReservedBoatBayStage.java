@@ -26,8 +26,12 @@ public final class ReservedBoatBayStage implements GenStage {
         List<DeckGraph.Compartment> bays = graph.compartments().stream()
                 .filter(room -> room.purpose() == RoomPurpose.HANGAR)
                 .sorted(Comparator.comparingInt(DeckGraph.Compartment::foreFrame)
+                        .thenComparing(DeckGraph.Compartment::side)
                         .thenComparingInt(DeckGraph.Compartment::id)).toList();
         if (bays.size() != 2) throw new IllegalStateException("Restoration hull must reserve both bays");
+        // Abreast, the port bay is the original and the starboard one the
+        // reserve: that is how her model is drawn, open to port and sealed to
+        // starboard.
         DeckGraph.Compartment second = bays.get(1);
         boolean damaged = state == BoatBayState.DAMAGED;
         // Campaign berth order and room paging both run fore to aft. Rebind work

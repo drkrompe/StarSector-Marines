@@ -23,6 +23,7 @@ MATERIAL_CLASS = {
     'Recess and machinery': 'dark',
     'Chalked cream fittings': 'cream',
     'Bridge glazing': 'glass',
+    'Wheelhouse glazing': 'glass',         # the bridge's unlit panes (off the lights layer)
 }
 CLASS_ID = {'orange': (0, 255, 0), 'taupe': (255, 0, 0), 'gunmetal': (0, 0, 255), 'dark': (255, 255, 0),
             'cream': (0, 255, 255), 'glass': (255, 255, 255), 'other': (255, 0, 255)}

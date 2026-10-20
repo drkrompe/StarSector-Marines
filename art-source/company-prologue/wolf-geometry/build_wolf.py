@@ -203,16 +203,16 @@ if clash:
 # without a bevel gets a small rounded one, sized to its thinnest dimension. The
 # skinned hull objects keep their topology (their chamfers are already modelled and
 # the surfacing selects their faces), and the turret kit's parts are the kit's. ---
-def skinned_objects():
-    names = set()
-    for hull in ('wolf-surface', 'wolf-merchant-surface'):
-        for f in (HERE.parent / hull / 'part-list').glob('*.json'):
-            for part in json.loads(f.read_text(encoding='utf-8')).values():
-                names |= {m['object'] for m in part.get('members', [])}
-    return names
-
-
-SKINNED = skinned_objects()
+# The plate-bevelled set is fixed here, not read from the surfacing's part lists:
+# when pass 6 added the landing wedges, keel shoes and keel to the part tables,
+# reading the lists swapped those parts' rounded bevels for plate bevels and
+# changed the accepted round 8 geometry under the guides already rendered from it.
+# The surfacing selects faces on whatever this builds; it never reshapes the hull.
+SKINNED = {'Hull aft body', 'Hull bow fork base', 'Hull bow gun hood', 'Hull bow port jaw',
+           'Hull bow starboard jaw', 'Hull bridge', 'Hull dorsal spine aft', 'Hull dorsal spine fore',
+           'Hull engine block', 'Hull head', 'Hull main body', 'Hull neck', 'Hull port armour dome',
+           'Hull port outrigger', 'Hull starboard outrigger', 'Pod port missile body',
+           'Pod starboard missile body'}
 for ob in [o for o in bpy.data.objects if o.type == 'MESH']:
     if ob.name in SKINNED and not any(m.type == 'BEVEL' for m in ob.modifiers):
         # Round 8 (ship-detail-guide.md, Edge treatment): a hull plate's hard
