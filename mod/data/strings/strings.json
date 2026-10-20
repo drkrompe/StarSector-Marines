@@ -3052,6 +3052,7 @@
 		"battleDirectHudIndirect": "AI ONLY",
 		"battleDirectHudCYCLING": "CYCLING",
 		"battleDirectHudLOADED": "LOADED",
+		"battleDirectHudTOO_CLOSE": "TOO CLOSE",
 		"battleDirectHudEMPTY": "EMPTY",
 		"battleDirectHudUnlimited": "∞ ammo",
 		"battleDirectHudUntracked": "No ammo counter",

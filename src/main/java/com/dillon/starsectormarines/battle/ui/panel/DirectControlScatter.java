@@ -13,8 +13,14 @@ import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 public final class DirectControlScatter {
     private DirectControlScatter() {}
 
-    /** {@code beyondRange} is true when the point lies past the nominal range of a mount the ring covers. */
-    public record Ring(float radiusCells, boolean beyondRange) {}
+    /**
+     * {@code beyondRange} is true when the point lies past the nominal range of a mount the ring covers, and
+     * {@code tooClose} when it lies inside the minimum of one (an arcing rack refuses such a point).
+     */
+    public record Ring(float radiusCells, boolean beyondRange, boolean tooClose) {
+        /** Either condition draws the ring as a warning. */
+        public boolean warning() { return beyondRange || tooClose; }
+    }
 
     /** The ring for a cursor {@code distance} cells from the chassis centre, or null when no armed mount bursts. */
     public static Ring mech(MechLoadoutComponent loadout, int selected, float distance) {
@@ -22,13 +28,15 @@ public final class DirectControlScatter {
         int armed = MechFireGroups.leftMask(mounts, selected) | MechFireGroups.rightMask(mounts, selected);
         float radius = -1f;
         boolean beyond = false;
+        boolean close = false;
         for (MechWeaponMount mount : mounts) {
             if (mount == null || !MechFireGroups.contains(armed, mount)) continue;
             float r = HeavyWeapons.manualScatterRadiusCells(loadout, mount, distance);
             if (r < 0f) continue;
             radius = Math.max(radius, r);
             beyond |= distance > mount.weaponDef().range;
+            close |= HeavyWeapons.tooClose(mount, distance);
         }
-        return radius < 0f ? null : new Ring(radius, beyond);
+        return radius < 0f ? null : new Ring(radius, beyond, close);
     }
 }

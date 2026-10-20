@@ -8,7 +8,7 @@
         <button id="{group.headerId}" class="{group.headerClasses}" style="background-color: transparent; background-image: none; border-width: 0px;" disabled="{group.headerDisabled}" onclick="{group.action}">
           <div id="{group.badgeId}" class="{group.badgeClasses}">{group.badge}</div>
           <div id="{group.nameId}" class="group-name">{group.name}</div>
-          <div id="{group.hintId}" class="group-hint">{group.hint}</div>
+          <div id="{group.hintId}" class="{group.hintClasses}">{group.hint}</div>
         </button>
         <div id="{group.rowsId}" class="rows">
           <button each="weapon in group.weapons" key="{weapon.id}" id="{weapon.id}" class="{weapon.classes}" style="{weapon.style}" disabled="{weapon.disabled}" onclick="{weapon.action}">
@@ -53,6 +53,7 @@
   .badge-none { width: 0px; padding: 0px; border-width: 0px; }
   .group-name { width: 0px; flex-grow: 1; font-family: heading; color: #ecf3fb; white-space: nowrap; overflow: hidden; }
   .group-hint { font-family: body; color: #b2beb8; white-space: nowrap; }
+  .group-hint-warn { color: #f07c72; }
   .weapon { height: 44px; padding: 3px 6px; gap: 2px; border-width: 1px; overflow: hidden; }
   .weapon-top { height: 17px; flex-direction: row; gap: 6px; align-items: center; }
   .key { width: 22px; height: 15px; padding: 0px; text-align: center; font-family: heading; color: #d9e0dc; border-width: 1px; border-color: #8d9a93; background-color: #00000066; }

@@ -38,5 +38,8 @@ class DirectControlScatterTest {
         var ring = DirectControlScatter.mech(sirocco, 0, 20f);
         assertNotNull(ring);
         assertTrue(ring.radiusCells() > 0f);
+        assertFalse(ring.tooClose());
+        assertTrue(DirectControlScatter.mech(sirocco, 0, 3f).tooClose());
+        assertTrue(DirectControlScatter.mech(sirocco, 0, 3f).warning());
     }
 }

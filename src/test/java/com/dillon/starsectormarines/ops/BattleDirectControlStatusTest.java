@@ -118,6 +118,20 @@ class BattleDirectControlStatusTest {
     }
 
     @Test
+    void anArcingRackReadsTooCloseInsideItsMinimumAndRocketsDoNot() {
+        var pod = new MechWeaponMount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.SRM_5);
+        var lrm = new MechWeaponMount(MechMountSlot.RIGHT_SHOULDER, MechWeaponComponent.LRM_5);
+        var mounts = new MechWeaponMount[]{null, pod, lrm};
+        var near = BattleDirectControlStatus.mechWeapons(mounts, new MechFlux(), 0, 4f);
+        assertEquals(List.of(false, true), near.stream().map(BattleDirectControlStatus.WeaponStatus::tooClose).toList());
+        assertEquals(BattleDirectControlStatus.WeaponState.TOO_CLOSE, near.get(1).state());
+        var far = BattleDirectControlStatus.mechWeapons(mounts, new MechFlux(), 0, 20f);
+        assertEquals(BattleDirectControlStatus.WeaponState.LOADED, far.get(1).state());
+        assertFalse(BattleDirectControlStatus.mechWeapons(mounts, new MechFlux(), 0, Float.NaN).get(1).tooClose(),
+                "no cursor is not a close cursor");
+    }
+
+    @Test
     void mechCardsNameTheMouseButtonsThatFireThem() {
         var arms = new MechWeaponMount(MechMountSlot.ARMS, MechWeaponComponent.NOSE_CHAINGUN);
         var pod = new MechWeaponMount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.SRM_5);
