@@ -275,10 +275,10 @@ def hauler(name):
 # the outside, legs beneath. Rear: the centre torso's back plate between the side
 # torsos, nothing else.
 
-def bird_leg(d, cx, inner, width):
+def bird_leg(d, cx, inner, width, top=80):
     """One leg as one outline: a straight, heavy column from the hip, a broad knee, a planted foot."""
     o = inner - width
-    points = [(o, 80), (inner, 80), (inner + 1, 108), (inner - 1, 134), (inner + 4, 137), (inner + 6, 146),
+    points = [(o, top), (inner, top), (inner + 1, 108), (inner - 1, 134), (inner + 4, 137), (inner + 6, 146),
               (o - 6, 146), (o - 4, 137), (o + 1, 134), (o - 2, 108)]
     seams = [((o - 2, 108), (inner + 1, 108)), ((o + 1, 134), (inner - 1, 134))]
     d.mirrored("LEGS", "LEGS", points, cx, seams)
@@ -332,21 +332,22 @@ def hound(name):
 
 
 def sirocco(name):
-    """A Catapult: a flat pod in three thirds, a round-topped missile pod on each side third, a cannon under the nose."""
+    """A Catapult: an arrowhead hull in three thirds, wider than its legs, a round-topped missile pod
+    standing on each wing and a cannon under the point."""
     d = Doll(name)
-    # Each side third carries an upright, round-topped missile pod as one outline.
-    side = ([(-12, 80), (-26, 80), (-36, 74), (-38, 62)] + arc(-32, 32, 6, 180, 270)
-            + arc(-22, 32, 6, 270, 360) + [(-16, 56), (-12, 56)])
-    box = [((-36.5, 56), (-17.5, 56))] + tubes(-36, 28, -18, 54, 2, 3)
+    # Each wing carries an upright, round-topped missile pod as one outline; its lower edge runs in to the point.
+    side = ([(-12, 80), (-52, 62), (-52, 56), (-46, 56)] + arc(-40, 34, 6, 180, 270)
+            + arc(-30, 34, 6, 270, 360) + [(-24, 56), (-12, 56)])
+    pod = [((-44.5, 56), (-25.5, 56))] + tubes(-44, 30, -26, 54, 2, 3)
     for cx, rear in views():
         sl, sr = shoulders(rear)
-        d.panel("TORSO_REAR" if rear else "TORSO", [(-12, 56), (12, 56), (12, 80), (-12, 80)], cx)
-        d.mirrored(sl, sr, side, cx, box)
+        d.panel("TORSO_REAR" if rear else "TORSO", [(-12, 56), (12, 56), (12, 80), (0, 86), (-12, 80)], cx)
+        d.mirrored(sl, sr, side, cx, pod)
         if rear:
             continue
         d.panel("HEAD", [(-9, 46), (9, 46), (12, 56), (-12, 56)], cx)
-        d.shape("ARMS", [(-6, 80), (6, 80), (5, 98), (-5, 98)], cx, [((-3, 94), (3, 94)), ((0, 82), (0, 98))])
-        bird_leg(d, cx, inner=-12, width=18)
+        d.shape("ARMS", [(-5, 88), (5, 88), (4, 102), (-4, 102)], cx, [((-3, 98), (3, 98)), ((0, 90), (0, 102))])
+        bird_leg(d, cx, inner=-12, width=18, top=84)
     return d.write()
 
 
