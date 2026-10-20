@@ -66,6 +66,26 @@ def _wall_y(x):
     return 15.99-(x+1)*.0223
 
 
+RADAR_M = 3.2               # the bridge search radar's reflector diameter
+
+
+def cabinet(kit, name, centre, z, dims):
+    """A weatherproof equipment cabinet: a rounded box on a plinth, with a
+    louvred face, a door seam and handles."""
+    from mt_frames import struts
+    x, y = centre
+    w, d, h = dims
+    kit.smooth(kit.box(name+' plinth', (x, y, z+.06), (w+.25, d+.25, .2), kit.dark, .05), segments=2)
+    kit.smooth(kit.box(name, (x, y, z+.16+h/2), (w, d, h), kit.steel, .12), segments=3)
+    lou, n = [], 6
+    for k in range(n):
+        zz = z+.35+k*(h-.45)/(n-1)
+        lou.append(((x-w*.42, y+d/2+.02, zz), (x-w*.05, y+d/2+.02, zz), .03, .045))
+    lou += [((x+w*.04, y+d/2+.01, z+.25), (x+w*.04, y+d/2+.01, z+h+.05), .015, .015),
+            ((x+w*.3, y+d/2+.06, z+.16+h*.4), (x+w*.3, y+d/2+.06, z+.16+h*.65), .035, .035, 8)]
+    kit.smooth(struts(kit, name+' louvres', lou, kit.plate), .01, 1)
+
+
 def crew_windows(kit, side, s):
     from mt_frames import struts
     w, h = WINDOW_M[0]/kit.mpu, WINDOW_M[1]/kit.mpu
@@ -172,10 +192,12 @@ def build(kit):
         ob.rotation_euler.z = a
     # --- command dome: glazed band, visor brow, mast and dish ---
     bridge_glazing(kit)
-    zr = seat(kit, -12, 0, BRIDGE_DECK+5)
-    kit.smooth(kit.cylinder('Bridge sensor mast', (-13, 0, zr+2.4), .45, 4.8, kit.steel, vertices=32, bevel=.06), segments=2)
-    kit.smooth(kit.cylinder('Bridge sensor dish', (-13, 0, zr+4.9), 1.8, .35, kit.plate, vertices=48, bevel=.08))
-    kit.smooth(kit.box('Bridge roof equipment', (-9, 3.5, zr+.4), (3, 2.2, 1.0), kit.steel, .14))
+    # Round 14 (owner: "strange low poly radar dish"): a 3.2 m search dish on a
+    # yoke and pedestal (mt_fittings), and an equipment cabinet with louvres.
+    from mt_fittings import dish
+    dish(kit, 'Bridge sensor dish', (-12, 0), seat(kit, -12, 0, BRIDGE_DECK+5), RADAR_M/2/kit.mpu, 0, 12,
+         kit.plate, kit.steel, pedestal=.8)
+    cabinet(kit, 'Bridge roof equipment', (-8.6, 4.6), seat(kit, -8.6, 4.6, BRIDGE_DECK+5), (2.6, 1.8, 1.0))
     kit.smooth(bpy.data.objects['Bridge command dome'], .14)
     kit.smooth(bpy.data.objects['Bridge command tier'], .3)
     # --- bow head: sensor well and the prow strake ---

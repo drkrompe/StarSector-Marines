@@ -26,6 +26,7 @@ from mt_frames import struts
 DOOR_M = (1.0, 2.0)          # crew door, width x height
 HATCH_M = 1.2                # deck hatch diameter
 RAIL_M = (1.1, 1.5)          # rail height, post pitch
+COMMS_M = 1.6               # comms dish diameter
 RIM = .05                    # how far detail stands proud of the surface it is seated on
 
 
@@ -94,24 +95,27 @@ def command_deck(kit, beacon):
     # (Round 14: the glazing's mullions and sill are mt_detail's, recessed into the dome.)
     # Roof: a second mast aft with a radar bar and two yards, whip antennas,
     # two comms dishes on pedestals, and a beacon on each mast.
+    # Round 14 (owner: "strange low poly radar dish and light pole"): tapered
+    # masts on bolted, gusseted flanges with beacon housings (mt_fittings), a
+    # forward light pole and the aft mast with its yards, array and whips, and
+    # the comms dishes as real reflectors on yokes.
+    from mt_fittings import dish, light_mast, taper
     roof = hit(kit, -15.5, -5)[0].z
-    mast = [((-15.5, -5, roof), (-15.5, -5, roof+7.5), .22, .22, 24),
-            ((-15.5, -7.2, roof+5.0), (-15.5, -2.8, roof+5.0), .08, .08, 12),
-            ((-15.5, -6.6, roof+6.3), (-15.5, -3.4, roof+6.3), .08, .08, 12)]
-    for x, y in ((-15.5, 7.5), (-5.0, -7.0), (-5.0, 7.0)):
+    light_mast(kit, 'Bridge light pole', (-18.6, 0), hit(kit, -18.6, 0)[0].z, 3.0*u, kit.steel, beacon,
+               .2, .1, 'Bridge mast beacon 1')
+    top = light_mast(kit, 'Bridge aft mast', (-15.5, -5), roof, 7.4, kit.steel, beacon, .34, .16, 'Bridge mast beacon 2')
+    for k, (zz, half) in enumerate(((roof+5.0, 2.2), (roof+6.3, 1.6)), 1):
+        taper(kit, f'Bridge aft mast yard {k}', (-15.5, -5-half, zz), (-15.5, -5+half, zz), .07, .07, kit.steel, 16)
+    kit.smooth(kit.box('Bridge aft mast radar bar', (-15.5, -5, top-.55), (.55, 5.4, .42), kit.plate, .14), segments=3)
+    kit.smooth(kit.box('Bridge aft mast radar bar mount', (-15.5, -5, top-.9), (.4, .5, .4), kit.steel, .08), segments=2)
+    for k, (x, y) in enumerate(((-15.5, 7.5), (-5.0, -7.0), (-5.0, 7.0)), 1):
         z = hit(kit, x, y)[0].z
-        mast += [((x, y, z), (x, y, z+.5), .2, .2, 24), ((x, y, z+.5), (x, y, z+4.2), .06, .06, 12)]
-    kit.smooth(struts(kit, 'Bridge aft mast and antennas', mast, kit.steel), .02, 2)
-    kit.box('Bridge aft mast radar bar', (-15.5, -5, roof+7.75), (.6, 6.0, .45), kit.plate, .05)
-    for k, (x, y, z) in enumerate(((-13, 0, hit(kit, -12, 0)[0].z+5.3), (-15.5, -5, roof+8.15)), 1):
-        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=3, radius=.3, location=(x, y, z))
-        kit.smooth(kit.finish(bpy.context.object, f'Bridge mast beacon {k}', beacon), .01, 1)
-    for k, (x, y) in enumerate(((-7.0, -4.0), (-17.0, 4.5)), 1):
+        kit.smooth(kit.cylinder(f'Bridge whip {k} insulator', (x, y, z+.25), .14, .5, kit.dark, vertices=32, bevel=.04), segments=2)
+        taper(kit, f'Bridge whip {k}', (x, y, z+.5), (x, y, z+4.4), .055, .018, kit.steel, 16)
+    for k, (x, y) in enumerate(((-7.0, -4.6), (-17.0, 5.2)), 1):
         z = hit(kit, x, y)[0].z
-        kit.smooth(struts(kit, f'Bridge comms dish {k} pedestal', [((x, y, z), (x, y, z+1.3), .3, .3, 24)], kit.steel), .04, 2)
-        dish = kit.cylinder(f'Bridge comms dish {k}', (x, y, z+1.45), 1.25, .3, kit.plate, vertices=48, bevel=.06)
-        kit.smooth(dish)
-        dish.rotation_euler = (math.radians(35)*(1 if y > 0 else -1), math.radians(-20), 0)
+        dish(kit, f'Bridge comms dish {k}', (x, y), z, COMMS_M/2*u, 90 if y > 0 else -90, 35, kit.plate, kit.steel,
+             pedestal=.35)
     # Roof access hatches aft of the dome, and walkways with rails either side of it.
     r = HATCH_M*u/2
     deck = BRIDGE_DECK

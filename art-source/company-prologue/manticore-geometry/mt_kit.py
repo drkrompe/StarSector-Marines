@@ -168,9 +168,16 @@ class Kit:
         obj = bpy.context.object
         obj.dimensions = dims
         bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-        return self.finish(obj, name, mat, bevel)
+        self.finish(obj, name, mat, bevel)
+        if bevel and not name.startswith('Temporary'):
+            self.smooth(obj, segments=2)   # round 14: rounded plate edges, flat faces
+        return obj
 
     def cylinder(self, name, loc, radius, depth, mat, axis='Z', vertices=12, bevel=.08):
+        # Round 14 (owner: "we're getting the rough shape right, but need to add
+        # detail"): no round part reads as a polygon at a close view.
+        if not name.startswith('Temporary'):
+            vertices = max(vertices, 48)
         bpy.ops.mesh.primitive_cylinder_add(vertices=vertices, radius=radius, depth=depth, location=loc)
         obj = bpy.context.object
         if axis == 'X':
@@ -178,6 +185,8 @@ class Kit:
         elif axis == 'Y':
             obj.rotation_euler[0] = math.pi / 2
         bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+        if not name.startswith('Temporary'):
+            shade_round(obj)
         return self.finish(obj, name, mat, bevel)
 
     def mesh(self, name, verts, faces, mat, bevel=0):
@@ -236,9 +245,18 @@ def sym(port):
     return list(port) + [(x, -y) for x, y in reversed(port)]
 
 
+def shade_round(ob, angle=30):
+    """Smooth shading across faces meeting below `angle`; harder edges stay sharp,
+    so a round part shades round and its caps and corners stay crisp."""
+    ob.data.shade_smooth()
+    ob.data.set_sharp_from_angle(angle=math.radians(angle))
+    return ob
+
+
 def revolve_x(kit, name, profile, y, z, mat, n=12):
     """Closed solid of revolution about an X-parallel axis through (y, z):
     profile is [(x, r), ...] round the section, closed."""
+    n = max(n, 48)   # round 14: no faceted drive cans or bells
     m = len(profile)
     verts = []
     for k in range(n):
@@ -260,7 +278,7 @@ def revolve_x(kit, name, profile, y, z, mat, n=12):
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     bm.to_mesh(me)
     bm.free()
-    return ob
+    return ob if name.startswith('Temporary') else shade_round(ob)
 
 
 # --- Planform prisms: one keel chamfer, one wall, one shoulder chamfer. ---

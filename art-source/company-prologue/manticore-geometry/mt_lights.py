@@ -16,9 +16,10 @@ from mt_hull import POD, nose_drop, wing_drop
 POD_LAMP_Z = 9.6-wing_drop(POD[1])-nose_drop(POD[0])   # near the top of the drooping gun pod's outboard face
 
 def lamp(kit, name, loc, colour, role, period, phase, mats):
-    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=.4, location=loc)
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=3, radius=.4, location=loc)
     ob = bpy.context.object
     kit.finish(ob, name, mats[colour])
+    ob.data.shade_smooth()
     LIGHTS.append({'name': name, 'position': [round(v, 2) for v in loc], 'colour': colour, 'role': role,
                    'blink': {'period_s': period, 'phase_s': phase, 'duty': .18}})
     return ob
