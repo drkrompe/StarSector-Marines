@@ -113,7 +113,7 @@ picture of Nessa's wall of seals, and C5's crowd still draws a dark-coated stand
 - Long motion renders go to the Mac render queue. It renders from `origin/main` with ship inputs copied from Drive `builds/<ship>/<commit>/` and checked against the committed manifests, and writes frames to Drive `builds/<shot>-frames/<commit>/`. Windows scales them to 1920x1080 and adds the C5 title.
 - Every review set goes to Drive `review/<asset>/<date>_<what>_<machine>/` with `NOTES.md`, then `tools/review_prune.py --asset <asset> --apply`. Renders are shown to the owner in the coordinating chat.
 - Shots pin their Second Wind build: C1 (`c1v2_scene.py`), C2 (`c2_bridge_render.py`), C4 and C5 (`c4x_scene.py`) each name it in `SW_PIN` and read its manifest from `pins/`, never `second-wind-states/`'s latest, so a new ship build reaches a shot only when its pin moves.
-- Final ship builds: Second Wind `builds/second-wind/80c78dfac/<state>/`, Broadsword `builds/broadsword/df72dd899/`, Shepherd and Hermes `70f1f58eb`, Colossus as in its manifest. All are owner-accepted.
+- Final ship builds: Second Wind `builds/second-wind/dc62710dc/<state>/` (owner, 2026-10-20: the game start's two Vulcans on WS 001/002, WS 003/004 empty; it replaces 80c78dfac, so C1 frames 0-649 and C5 re-render, and C2 and C4 render on it). C1, C2 and C4 refuse a Second Wind .blend whose sha256 is not their pin's. Broadsword `builds/broadsword/df72dd899/`, Shepherd and Hermes `70f1f58eb`, Colossus as in its manifest. All are owner-accepted.
 
 ## Asset packages
 

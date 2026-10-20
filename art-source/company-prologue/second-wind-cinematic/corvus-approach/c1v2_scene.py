@@ -67,8 +67,20 @@ STATES = BASE.parent / 'second-wind-states' / 'patched'
 # The Second Wind build this shot renders: its .blend input is that build's patched state, and its
 # manifest is committed under ../pins/. The shot does not follow second-wind-states/'s latest
 # manifest; adopting a new build means moving SW_PIN and committing that build's manifest beside it.
-SW_PIN = '80c78dfac'
+SW_PIN = 'dc62710dc'
 SW_MANIFEST = BASE.parent / 'pins' / ('second-wind-%s-patched.manifest.json' % SW_PIN)
+
+
+def check_pinned_blend(path, manifest):
+    """Refuse a Second Wind .blend that is missing or is not the pinned build (SW_PIN). Copy it from
+    Drive builds/second-wind/<SW_PIN>/patched/."""
+    import hashlib
+    if not Path(path).exists():
+        raise SystemExit('%s is missing: copy it from Drive builds/second-wind/%s/patched/' % (path, SW_PIN))
+    digest = hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    if digest != manifest['asset_sha256']:
+        raise SystemExit('%s is not Second Wind build %s (sha256 %s, pin %s)'
+                         % (path, SW_PIN, digest[:12], manifest['asset_sha256'][:12]))
 TIMELINE = REPO / 'mod' / 'data' / 'cinematic' / 'jangala-arrival' / 'c1.json'
 
 FPS = 24
@@ -318,6 +330,7 @@ def add_hero(scene):
     drives, RCS corrections on the pass, the conduit sparks and seal wisps. The exhaust haze and
     landing dust are smoke in air and stay out."""
     manifest = json.loads(SW_MANIFEST.read_text())
+    check_pinned_blend(INPUTS / 'second-wind-patched.blend', manifest)
     ship, fx = load_with_effects(scene, INPUTS / 'second-wind-patched.blend', manifest)
     root = bpy.data.objects[manifest['root']]
     root.scale = (manifest['metres_per_unit'],) * 3
