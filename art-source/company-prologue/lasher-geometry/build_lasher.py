@@ -159,6 +159,34 @@ def bake():
                 p.use_smooth = False
 
 
+def bevel_hard_edges():
+    """The shared bevel table (ship-detail-guide.md, Edge treatment): every hull part that has
+    no edge chamfer of its own gets an angle-limited, one-segment bevel sized by its part
+    (hull plates 0.12 m, modules 0.06 m, fittings 0.03 m, small parts 0.015 m). Turrets and
+    hardpoints are bevelled by the turret kit; glazing, recesses and lamps stay sharp."""
+    sys.path.insert(0, str(HERE.parent/'ship-detail-kit'))
+    import ship_detail_kit as sdk
+    for ob in bpy.data.objects:
+        if ob.type != 'MESH' or ob.name.startswith(('Turret ', 'Weapon ', 'Temporary ', 'Light ')):
+            continue
+        own = [m for m in ob.modifiers if m.type == 'BEVEL']
+        if own:
+            for m in own:     # a chamfer of the part's own is the edge treatment; don't round it off
+                if m.limit_method == 'ANGLE':
+                    m.angle_limit = max(m.angle_limit, math.radians(65))
+            continue
+        mats = {m.name for m in ob.data.materials if m}
+        if mats & {kit.glass.name, kit.dark.name}:
+            continue
+        span = sorted(ob.dimensions)[1]*METRES_PER_UNIT
+        kind = 'hull' if span > 5 else 'module' if span > 1 else 'fitting' if span > .3 else 'small'
+        b = ob.modifiers.new('Edge treatment', 'BEVEL')
+        b.width, b.segments, b.limit_method = sdk.BEVEL_M[kind]/METRES_PER_UNIT, 1, 'ANGLE'
+        b.angle_limit = math.radians(70)   # above 64 deg, so a bevel never leaves soft creases that read as a coarse curve
+        b.use_clamp_overlap = True
+
+
+bevel_hard_edges()
 bake()
 # Fixed mounts must not clip the hull (owner, 2026-10-20): every hardpoint against
 # every other solid, the fixed-mount counterpart of the turrets' arc sweep.

@@ -160,7 +160,7 @@ def build(kit):
     for x in (17.2, -3.2, -20.5):
         kit.box(f'Hull spine seam {x:+.1f}', (x, 0, SPINE_DECK+.05), (.4, 9, .2), kit.dark, 0)
     # Bridge viewport arc across the head, forward of the bow turret (lights rows 12-15).
-    arc = [(44.0+5.3*math.cos(a), 5.3*math.sin(a)) for a in [math.radians(d) for d in range(-70, 71, 14)]]
+    arc = [(44.0+5.3*math.cos(a), 5.3*math.sin(a)) for a in [math.radians(d) for d in range(-70, 71, 4)]]   # 4 deg: the segment rule
     strip(kit, 'Hull bridge viewport arc', arc, BRIDGE_BAND_M/kit.mpu, HEAD_DECK-.15, .45, kit.glass)
     strip(kit, 'Hull bridge visor brow', [(x+.7, y*1.1) for x, y in arc], .5, HEAD_DECK, .8, kit.steel)
     # Nose sensor wells (rows 5-6, cols 29-32 and 36-39).
