@@ -63,6 +63,17 @@ public final class RoomPacker {
     public interface Affinity {
         boolean prefers(int centreX, int centreY);
 
+        /**
+         * How strongly a position belongs, for a place that ranks more than one
+         * kind of belonging: zero where it does not, and each step above that
+         * outranking packing outright, as a single preference does. A drawn
+         * hull's site for a room outranks the zone the room would otherwise be
+         * kept to, which still outranks anywhere at all.
+         */
+        default int preference(int centreX, int centreY) {
+            return prefers(centreX, centreY) ? 1 : 0;
+        }
+
         /** A room with no opinion about where it goes. */
         Affinity ANYWHERE = (centreX, centreY) -> true;
     }
@@ -885,8 +896,8 @@ public final class RoomPacker {
                     if (contact < 0) continue;
                     if (!meetsEdge(request.contact(), shape, x, y, side,
                             request.outboardOpeningWidth())) continue;
-                    int belongs = request.affinity().prefers(x + w / 2, y + h / 2)
-                            ? AFFINITY_BONUS : 0;
+                    int belongs = request.affinity().preference(x + w / 2, y + h / 2)
+                            * AFFINITY_BONUS;
                     int excess = massing.sharedSeamAllowance() == Integer.MAX_VALUE ? 0
                             : Math.max(0, glue(shape, x, y)
                                     - massing.sharedSeamAllowance());
