@@ -64,10 +64,10 @@ Recorded sites move at most 0.0 units between states (0.0 px on screen); site co
 | 57 | sp-trunk-aft-port | open | patched | replaced | gone | 0 | 0.0 | 0.01 (2 states) |
 | 58 | sp-trunk-aft-stbd | open | patched | replaced | faded | 0 | 0.0 | 1.06 (4 states) |
 | 59 | sp-mast | open | patched | replaced | faded | 0 | 0.0 | 1.02 (4 states) |
-| 60 | sp-turret-1 | open | open | open | faded | 0 | 0.0 | 3.62 (4 states) |
-| 61 | sp-turret-2 | open | patched | patched | faded | 0 | 0.0 | 3.59 (4 states) |
-| 62 | sp-turret-3 | open | open | open | faded | 0 | 0.0 | 4.45 (4 states) |
-| 63 | sp-turret-4 | open | patched | patched | faded | 0 | 0.0 | 4.61 (4 states) |
+| 60 | sp-turret-1 | open | open | open | faded | 0 | 0.0 | 2.55 (4 states) |
+| 61 | sp-turret-2 | open | patched | patched | faded | 0 | 0.0 | 2.52 (4 states) |
+| 62 | sp-turret-3 | open | open | open | faded | 0 | 0.0 | 0.64 (4 states) |
+| 63 | sp-turret-4 | open | patched | patched | faded | 0 | 0.0 | 3.44 (4 states) |
 | 64 | sp-waist-line-cut | open | patched | patched | faded | 0 | 0.0 | 0.05 (4 states) |
 | 65 | sp-waist-trunk-cut | open | patched | replaced | faded | 0 | 0.0 | 0.05 (4 states) |
 | 66 | rcs-bow-port | open | gone | gone | gone | 0 | 0.0 | 0.0 (0 states) |
@@ -82,4 +82,4 @@ Recorded sites move at most 0.0 units between states (0.0 px on screen); site co
 | 75 | ds-stbd-waist-rip | open | open | replaced | faded | 1 | 0.0 | 1.03 (4 states) |
 | 76 | ds-fwd-deck-rip | open | patched | replaced | faded | 1 | 0.0 | 1.21 (4 states) |
 | 77 | ds-port-shoulder-peel | open | open | open | faded | 1 | 0.0 | 0.45 (4 states) |
-| 78 | ds-stbd-shoulder-peel | open | open | open | faded | 1 | 0.0 | 0.65 (4 states) |
+| 78 | ds-stbd-shoulder-peel | open | open | open | faded | 1 | 0.0 | 2.49 (4 states) |

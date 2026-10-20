@@ -133,7 +133,7 @@ Sheet names start with the group; scratch output goes to `build/<group>/`.
 | `starboard` | 4 / 10 | mirrors of every port part that mirrors exactly (`mirror_u`, flipped-mask IoU 0.997–1.000), plus own tiles for the sealed bay door, the starboard belt plates and the bow flank/belt | the port bow parts also take the centreline faces (ties go to port), so their starboard twins frame differently and are not mirrors |
 | `bow` | 4 / 1 | nose block rake, front, crown and sides | the shield glacis and stem stay with the pilot's port parts |
 | `decks` | 4 / 1 | forward deck, the whole spine top (11 objects, 4 classes), spine sides (port, starboard mirrored), keel plate | the waist deck is one 51×61-unit face group (8.5 t/u), left to swatch |
-| `turrets` | 4 / 8 | small-turret top and side, turret 4 top and side | turrets 1–3 are one design at three yaws: the reuse camera turns with the barrel; far sides are mirrors. Multi-material class maps (gunmetal house, dark bands and traverse gap), graded per region |
+| `turrets` (retired) | 4 / 8 | small-turret top and side, turret 4 top and side | turrets 1–3 are one design at three yaws: the reuse camera turns with the barrel; far sides are mirrors. Multi-material class maps (gunmetal house, dark bands and traverse gap), graded per region. Retired 2026-10-20: the guns are now the shared turret kit's (`sw_turrets`) with their own paints, so the group is off `GROUPS`; the table and its generations stay for the record |
 | `arm` | 4 / 0 | boom and forearm tops and sides, slew casing and winch crown | new `pale` class (derived: cream lightness, gunmetal chroma) |
 | `bay` | 4 / 0 | back wall, frame (coaming, jambs, buttresses), floor, davit head | `ray` starts visibility rays inside the opening |
 

@@ -20,8 +20,8 @@ tube carries a launch bloom and no muzzle flash; a gun the reverse).
                 before and after a kit change to show a hull's output is
                 byte-identical
 --fire          afterwards fires every turret (three rounds) and checks that
-                guns make tracers or puffs and launchers make missiles, never
-                the other's effects
+                guns make tracers or puffs, energy mounts a flash with no puff
+                or brass, and launchers missiles, never the other's effects
 """
 import argparse
 import hashlib
@@ -207,12 +207,16 @@ if args.fire:
         recs = swfx_guns.fire(ctx, t, 10, 3, 4)
         kinds = {getattr(g, 'kind', 'gun') for g in guns if g.turret == t}
         launcher = kinds == {'launcher'}
+        energy = kinds == {'energy'}
         fired[t] = len(recs)
         shots += recs
         for r in recs:
             if launcher and ('missile' not in r or 'tracer' in r or 'casing' in r):
                 problems.append(f'turret {t} launch {r.get("tag")} f{r["frame"]}: expected a missile and no gun effects')
-            if not launcher and ('missile' in r or 'puff' not in r):
+            # An energy mount fires a flash and a bolt in its colour: no propellant puff, no brass.
+            if energy and ('missile' in r or 'puff' in r or 'casing' in r or not r.get('flash_frames')):
+                problems.append(f'turret {t} bolt {r.get("tag")} f{r["frame"]}: expected a flash, no puff, brass or missile')
+            if not launcher and not energy and ('missile' in r or 'puff' not in r):
                 problems.append(f'turret {t} round {r.get("tag")} f{r["frame"]}: expected gun effects and no missile')
         if len(recs) != 3:
             problems.append(f'turret {t}: fired {len(recs)} rounds of 3')

@@ -18,4 +18,4 @@ if [ $SKIP_GEOM = 0 ]; then
     --out "build/skinned-$STATE.blend" --manifest "build/skin-manifest-$STATE.json" --wear "$STATE" \
     > "$SURF/build/logs/skin-$STATE.log" 2>&1
 fi
-run export_state.py -- --state "$STATE" "${EXTRA[@]}" 2>&1 | tee "$SURF/build/logs/export-$STATE.log" | grep -E "EXPORT|Error|Traceback|line [0-9]"
+run export_state.py -- --state "$STATE" ${EXTRA[@]+"${EXTRA[@]}"} 2>&1 | tee "$SURF/build/logs/export-$STATE.log" | grep -E "EXPORT|Error|Traceback|line [0-9]"
