@@ -20,6 +20,7 @@ cut from their frames, turned up to the right like the anti-materiel rifle's ico
 
   infantry-weapon-icons.raw.png         rifle, pulse rifle, SMG, railgun DMR, rocket launcher
   infantry-weapon-icons-grades.raw.png  the surplus rifle and masterwork DMR
+  infantry-weapon-icons-amr.raw.png     the anti-materiel rifle (replacing its earlier hand-made icon)
 """
 import json
 from pathlib import Path
@@ -80,6 +81,9 @@ ICON_SHEETS = [
         'smg': ICONS / 'weapon-smg.png',
         'dmr': ICONS / 'weapon-dmr.png',
         'rocket-launcher': ICONS / 'special-rocket-launcher.png',
+    }),
+    ('infantry-weapon-icons-amr', 'infantry-weapon-icons-amr-guide.png', {
+        'anti-materiel-rifle': ICONS / 'special-anti-materiel-rifle.png',
     }),
     ('infantry-weapon-icons-grades', 'infantry-weapon-icons-grades-guide.png', {
         'rifle': ICONS / 'weapon-rifle-surplus.png',
