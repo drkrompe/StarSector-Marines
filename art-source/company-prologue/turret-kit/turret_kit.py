@@ -121,6 +121,34 @@ ALIASES = {'heavy_ac': 'heavyac', 'light_ac': 'lightac', 'hvd': 'hveldriver', 'h
 CHAMFER_M = .1     # the largest edge chamfer anywhere, in metres: crisp plate, not pillows
 _CAP = [1e9]       # CHAMFER_M in units, set per build
 
+# Close-view detail (owner, 2026-10-20: "getting the rough shape right, but need to
+# add detail"). Every round part (a lathe of 18 or more sides; fewer means plates on
+# purpose, a ten-plate dome, a hex bolt) gets enough segments that a facet is no
+# longer than ROUND_CHORD_M round its rim, and every box or cylinder left without a
+# bevel gets EDGE_BEVEL_M (bevel=-1 keeps an edge dead sharp). Cutters are left alone.
+ROUND_CHORD_M = .22
+ROUND_MAX = 96
+EDGE_BEVEL_M = .035
+
+
+def _units_per_metre():
+    return _CAP[0]/CHAMFER_M if _CAP[0] < 1e8 else None
+
+
+def _round_segments(r, n):
+    u = _units_per_metre()
+    if u is None or r <= 0:
+        return n
+    need = math.ceil(2*math.pi*(r/u)/ROUND_CHORD_M)
+    need = min(ROUND_MAX, -(-need//4)*4)
+    return max(n, need)
+
+
+def _detail_bevel():
+    u = _units_per_metre()
+    return EDGE_BEVEL_M*u if u is not None else 0.0
+
+
 AX = {'X': Matrix.Rotation(math.pi/2, 4, 'Y'), 'Y': Matrix.Rotation(-math.pi/2, 4, 'X'), 'Z': Matrix.Identity(4)}
 
 
@@ -134,6 +162,7 @@ class Mesh:
         self.base = Matrix.Translation(-Vector(origin))
         self.origin = origin
         self._cut = None
+        self.cutter = False
 
     def cut(self):
         """A Mesh in the same frame whose solids are carved out of this one when
@@ -141,6 +170,7 @@ class Mesh:
         where the sprite's dark pixels are depth, not dark paint laid on top."""
         if self._cut is None:
             self._cut = Mesh(self.origin)
+            self._cut.cutter = True
         return self._cut
 
     def _m(self, c, axis='Z', rot=None):
@@ -152,7 +182,9 @@ class Mesh:
     def box(self, c, d, bevel=0.0, seg=1, rot=None):
         m = self._m(c, rot=rot) @ Matrix.Diagonal((*d, 1))
         verts = bmesh.ops.create_cube(self.bm, size=1.0, matrix=m)['verts']
-        b = min(bevel, .45*min(d), _CAP[0])
+        if bevel == 0.0 and not self.cutter:
+            bevel = _detail_bevel()                 # no bare box: every edge catches a highlight
+        b = min(max(bevel, 0.0), .45*min(d), _CAP[0])
         if b > 1e-4:
             edges = list({e for v in verts for e in v.link_edges})
             bmesh.ops.bevel(self.bm, geom=verts+edges, offset=b, offset_type='OFFSET', segments=seg,
@@ -164,6 +196,8 @@ class Mesh:
         the last point to the first for a ring with a hole and no caps."""
         m = self._m(c, axis, rot)
         pts = [p for p in profile if loop or p[0] > 1e-6]
+        if n >= 18:                                  # a round part, not a ring of plates: no facets
+            n = _round_segments(max(r for r, _ in pts), n)
         ang = [phase+2*math.pi*i/n for i in range(n)]
         rings = [[self.bm.verts.new(m @ Vector((r*math.cos(a), r*math.sin(a), z))) for a in ang] for r, z in pts]
         for i in range(len(rings) if loop else len(rings)-1):
@@ -175,7 +209,9 @@ class Mesh:
             self.bm.faces.new(rings[-1])
 
     def cyl(self, c, r, depth, axis='X', n=24, bevel=0.0, rot=None):
-        b = min(bevel, .45*r, .45*depth, _CAP[0])
+        if bevel == 0.0 and not self.cutter and n >= 8:
+            bevel = .6*_detail_bevel()
+        b = min(max(bevel, 0.0), .45*r, .45*depth, _CAP[0])
         h = depth/2
         prof = [(r-b, -h), (r, -h+b), (r, h-b), (r-b, h)] if b > 1e-4 else [(r, -h), (r, h)]
         self.lathe(prof, n, c, axis, rot=rot)
