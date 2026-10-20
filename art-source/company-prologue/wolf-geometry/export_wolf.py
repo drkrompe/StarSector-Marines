@@ -80,6 +80,21 @@ for shoe in gear['keel_shoes']:
     bpy.context.scene.collection.objects.link(a)
     a.matrix_world = Matrix.Translation(((shoe['x'][0] + shoe['x'][1]) / 2, 0, shoe['sole_z'])) @ DOWN
     soles.append({'part': shoe['name'], 'anchor': a.name, 'moves': False, 'sole_z_deployed': G})
+# Pass 7: each ventral lift thruster is also a drive to the VFX kit, `Engine <3+i>
+# exhaust anchor` at its mouth (local +X down, the exhaust), so the kit gives it a
+# core, plume, bell glow and light like the main drives (as on the Colossus).
+N_MAIN = len(geom['engines'])
+lifts = []
+for t in gear['lift_thrusters']:
+    mouth = bpy.data.objects[t['anchor']]
+    a = bpy.data.objects.new(f"Engine {N_MAIN + t['index']} exhaust anchor", None)
+    a.empty_display_type, a.empty_display_size = 'SINGLE_ARROW', 1.0
+    bpy.context.scene.collection.objects.link(a)
+    a.matrix_world = mouth.matrix_world.copy()
+    a['radius_m'] = t['mouth_radius'] * mpu
+    a['lift_thruster'] = t['index']
+    a['running'] = True
+    lifts.append(dict(t, engine_index=N_MAIN + t['index'], engine_anchor=a.name))
 bpy.context.view_layer.update()
 wf_export.package(OUT / ASSET, mpu, pack_images=True, coll_name=COLL,
                   extra={'built_from': Path(src).name if src else 'unsaved', 'variant': args.variant})
@@ -109,7 +124,7 @@ man = {
                 'note': 'the Wolf sits on its keel shoes (fixed); at gear_down 1 every wedge sole anchor '
                         'stands on ground_z_units too, in hull space: place the root that far above the '
                         'ground (times metres_per_unit). Rest is gear stowed.'},
-    'lift_thrusters': gear['lift_thrusters'],
+    'lift_thrusters': lifts,
     'sources': {'geometry': 'art-source/company-prologue/wolf-geometry/build_wolf.py',
                 'surface': 'art-source/company-prologue/' + ('wolf-merchant-surface (shared harness, service wear)'
                                                             if MERCHANT else 'wolf-surface (shared harness, battle wear)'),

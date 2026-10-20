@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.fit.CirculationLoops;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.ship.BayAperture;
+import com.dillon.starsectormarines.battle.world.gen.ship.DeckArrangement;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckProfile;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckSide;
@@ -106,15 +107,23 @@ public final class RoomPlacementStage implements GenStage {
         RoomPacker packer = new RoomPacker(ctx, hull,
                 spineMask(ctx, profile), DECK_PALETTE);
 
+        DeckArrangement arrangement = ctx.get(ShipKeys.DECK_ARRANGEMENT);
         List<RoomRecipe> ordered = new ArrayList<>(program);
-        ordered.sort(Comparator.comparingInt(RoomRecipe::area).reversed()
-                .thenComparing(recipe -> recipe.purpose().name()));
+        Comparator<RoomRecipe> largestFirst = Comparator.comparingInt(RoomRecipe::area).reversed()
+                .thenComparing(recipe -> recipe.purpose().name());
+        // An arrangement is laid in its own order: the rooms a drawn hull fixes
+        // go down before the ones that only have to find room around them.
+        ordered.sort(arrangement == null ? largestFirst
+                : Comparator.comparingInt((RoomRecipe recipe) -> arrangement.rank(recipe.purpose()))
+                        .thenComparing(largestFirst));
 
+        DeckArrangement.Allocation sites = arrangement == null ? null : arrangement.allocate();
         List<DeckGraph.Compartment> placed = new ArrayList<>();
         List<RoomRecipe> unplaced = new ArrayList<>();
         List<BayAperture> apertures = new ArrayList<>();
         for (RoomRecipe recipe : ordered) {
-            RoomPacker.Placed room = packer.place(request(profile, recipe, fit), true);
+            DeckArrangement.Site site = sites == null ? null : sites.next(recipe.purpose());
+            RoomPacker.Placed room = packer.place(request(profile, recipe, fit, site), true);
             if (room == null) {
                 unplaced.add(recipe);
             } else {
@@ -152,7 +161,7 @@ public final class RoomPlacementStage implements GenStage {
         while (progressed) {
             progressed = false;
             for (RoomRecipe recipe : utility) {
-                RoomPacker.Placed room = packer.place(request(profile, recipe, fit), false);
+                RoomPacker.Placed room = packer.place(request(profile, recipe, fit, null), false);
                 if (room == null) continue;
                 placed.add(describe(profile, room, placed.size()));
                 progressed = true;
@@ -164,12 +173,24 @@ public final class RoomPlacementStage implements GenStage {
     /**
      * A recipe as the packer reads it: the zone becomes an opinion about
      * position, and the hull contact becomes an edge the room has to reach.
+     * A site the hull's arrangement names for the room is a stronger opinion
+     * than the zone, and the zone still stands behind it: a room its site
+     * cannot hold is kept to its own end of the ship rather than set down
+     * wherever it wedges tightest, which once put a drive room in the bow.
      */
     private static RoomPacker.Request request(DeckProfile profile, RoomRecipe recipe,
-                                              RoomFit fit) {
-        RoomPacker.Affinity affinity = recipe.zone() == null
+                                              RoomFit fit, DeckArrangement.Site site) {
+        RoomPacker.Affinity zoned = recipe.zone() == null
                 ? RoomPacker.Affinity.ANYWHERE
                 : (centreX, centreY) -> profile.zone(clampFrame(profile, centreX)) == recipe.zone();
+        RoomPacker.Affinity affinity = site == null ? zoned : new RoomPacker.Affinity() {
+            @Override public boolean prefers(int centreX, int centreY) {
+                return site.holds(profile, centreX, centreY);
+            }
+            @Override public int preference(int centreX, int centreY) {
+                return prefers(centreX, centreY) ? 2 : zoned.preference(centreX, centreY);
+            }
+        };
         return new RoomPacker.Request(recipe.purpose(), footprint(recipe, fit), affinity,
                 edgeContact(recipe.contact()), recipe.contact() == HullContact.FLANK ? DOOR_CELLS : 0);
     }

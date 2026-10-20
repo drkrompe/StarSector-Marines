@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15b1a-b3e0-7903-b8e7-a1a48f7b6b93",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15b1a-b3e0-7903-b8e7-a1a48f7b6b93\\exec-a057f87e-6ef6-46ed-bf43-eb88e87e7b14.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\infantry-weapons\\raw\\infantry-weapon-icons-amr.raw.png",
+    "sha256": "20863ba1c62f73b212c9dacd516f3c3aa75e74bcd917b2e391858240a3356856",
+    "dimensions": [
+      1586,
+      992
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\infantry-weapons\\infantry-weapon-icons-amr.prompt.txt",
+  "promptSha256": "6f9de726b7f548cc524c0d16e05a216da98ee903dc42d4e6663af7e28808e46f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target; empty canvas stays transparent\nImage 2: Finished icon sheet: painting style reference only; not layout\nImage 3: The same rifle from above: palette and material identity only; not layout or camera\n\nUse case: sketch-to-render. Asset: an anti-materiel rifle shown in SIDE PROFILE as an armory and inventory icon, for a gritty military dark-science-fiction tactical game, seen exactly from its left side, muzzle pointing right, flat side view with no perspective.\n\nImage 1 is the authoritative geometry guide and edit target: only one frame is drawn on it (bottom right); the rest of the canvas is empty and must stay fully transparent. Reskin this exact object, preserving every silhouette, part, proportion and position exactly, with the trigger guard opening left transparent. Do not move, add, merge or remove parts. Parts: a black rubber recoil pad and a heavy padded olive stock with a darker cheek pad; a dark gunmetal receiver with a pale steel bolt handle; a big black scope with a wide objective bell and blue glass; a black pistol grip and trigger guard; a pale olive box magazine below the receiver; a thick dark gunmetal barrel with the pale steel bipod legs folded back along its underside; a heavy gunmetal muzzle brake with two dark side ports. Massive and brutal.\n\nImage 2 is the finished icon sheet this belongs to: match its painting style, lighting, edge treatment and level of detail exactly; style reference only, not layout. Image 3 is the same rifle seen from straight above as a battle sprite: palette and material identity only, not layout or camera. No cast shadow, no ground, no text, labels, borders or watermark. True transparent background outside the silhouette. Change only material, detail and shading, never placement or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\infantry-weapon-icons-amr-guide.png",
+      "sha256": "242676446f8241ee422e68614f09243a64e2aabdd29d4df2f36056d1ccc2b223",
+      "dimensions": [
+        1792,
+        1120
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target; empty canvas stays transparent"
+    },
+    {
+      "path": "art-source\\infantry-weapons\\raw\\infantry-weapon-icons.raw.png",
+      "sha256": "c8948790c7d5db7717b7e168d94d528643a0e931a3e2f5186f4a6f904b70d813",
+      "dimensions": [
+        1586,
+        992
+      ],
+      "mode": "RGBA",
+      "role": "Finished icon sheet: painting style reference only; not layout"
+    },
+    {
+      "path": "mod\\graphics\\battle\\marine-modular-topdown\\variants\\weapons\\anti-materiel-rifle.png",
+      "sha256": "68280d62b331441d2599b2dc5c2160b9c7865df2dd2bd0a7e06c54045244d77f",
+      "dimensions": [
+        79,
+        144
+      ],
+      "mode": "RGBA",
+      "role": "The same rifle from above: palette and material identity only; not layout or camera"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the image generation tool to render the rifle with Image 1’s exact layout and transparency, matching the materials and painting style of the references."
+  ],
+  "usage": {
+    "input_tokens": 45351,
+    "cached_input_tokens": 25856,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 493,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 47.1
+}

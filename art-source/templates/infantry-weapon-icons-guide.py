@@ -11,7 +11,8 @@ anti-materiel rifle's icon.
   infantry-weapon-icons-guide.png   two columns of frames, 100 x 36 units at SCALE px each, 64 px gutters.
   infantry-weapon-icons-guide.json  the frames: name and rectangle on the sheet.
 
-The surplus rifle and masterwork DMR share the rifle and DMR geometry; their icons are reskins of the
+The anti-materiel rifle, drawn later, sits in the sixth slot on its own sheet
+(infantry-weapon-icons-amr-guide.png). The surplus rifle and masterwork DMR share the rifle and DMR geometry; their icons are reskins of the
 same frames (infantry-weapon-icons-grades-guide.png).
 """
 import json
@@ -24,7 +25,7 @@ OUT = ROOT / 'art-source/templates'
 SCALE = 8
 GUTTER = 64
 UNITS = (100, 36)
-FRAMES = ['rifle', 'laser-gun', 'smg', 'dmr', 'rocket-launcher']
+FRAMES = ['rifle', 'laser-gun', 'smg', 'dmr', 'rocket-launcher', 'anti-materiel-rifle']
 
 DARK = '#2b3034'
 MID = '#5d666c'
@@ -169,8 +170,34 @@ def rocket_launcher(p):
     p.box(61, 24, 65.5, 31, DARK, 1)                                  # fore grip
 
 
+def anti_materiel_rifle(p):
+    """Anti-materiel rifle: padded heavy stock with cheek pad and recoil pad, receiver with bolt handle and
+    box magazine, a big scope, heavy barrel with the bipod folded back along it, ported muzzle brake."""
+    p.box(0, 8, 2.5, 26.5, DARK, 0.8)                                 # recoil pad
+    p.poly([(2.5, 8), (24, 10), (24, 19), (2.5, 26)], LIGHT)          # heavy stock
+    p.box(6, 6.5, 20, 10, MID, 1.2)                                   # cheek pad
+    p.box(24, 8, 53, 18.5, MID, 1.2)                                  # receiver
+    p.box(26, 0.5, 47, 6.5, DARK, 2)                                  # scope tube
+    p.box(46, 0, 54, 7.5, DARK, 1.5)                                  # objective bell
+    p.box(52.5, 1, 54.5, 6.5, GLASS, 0.6)
+    p.box(25.5, 1.5, 27, 5.5, GLASS, 0.5)
+    p.box(31, 6.5, 33.5, 8, DARK)                                     # scope rings
+    p.box(42, 6.5, 44.5, 8, DARK)
+    p.box(26, 15, 29.5, 19.5, PALE, 0.8)                              # bolt handle
+    p.poly([(30, 18.5), (35.5, 18.5), (34, 29.5), (28.5, 29.5)], DARK)   # grip
+    p.box(35.5, 18.5, 40.5, 21.5, DARK, 1)                            # trigger guard
+    p.box(37, 18.5, 39, 20, CLEAR)
+    p.box(41.5, 18.5, 50, 27.5, LIGHT, 1)                             # box magazine
+    p.box(53, 10.5, 89, 15, DARK, 0.6)                                # heavy barrel
+    p.box(58, 15, 61, 17.5, PALE, 0.6)                                # bipod yoke
+    p.box(61, 16, 86, 17.6, LIGHT, 0.6)                               # folded bipod legs
+    p.box(88, 8.5, 100, 17, MID, 1)                                   # muzzle brake
+    for x in (90.5, 95):
+        p.box(x, 9.5, x + 2.2, 16, DARK, 0.5)                         # brake ports
+
+
 DRAW = {'rifle': rifle, 'laser-gun': laser_gun, 'smg': smg, 'dmr': dmr,
-        'rocket-launcher': rocket_launcher}
+        'rocket-launcher': rocket_launcher, 'anti-materiel-rifle': anti_materiel_rifle}
 
 
 def layout():
@@ -195,8 +222,11 @@ def render(names=None):
 
 
 def main():
-    im, frames = render()
+    # The first sheet keeps the five frames its retained raw was reskinned from; the anti-materiel
+    # rifle, added after, has the sixth slot on its own sheet so every frame rectangle is shared.
+    im, frames = render(set(FRAMES) - {'anti-materiel-rifle'})
     im.save(OUT / 'infantry-weapon-icons-guide.png')
+    render({'anti-materiel-rifle'})[0].save(OUT / 'infantry-weapon-icons-amr-guide.png')
     (OUT / 'infantry-weapon-icons-guide.json').write_text(
         json.dumps({'scale': SCALE, 'frames': frames}, indent=2) + '\n')
     render({'rifle', 'dmr'})[0].save(OUT / 'infantry-weapon-icons-grades-guide.png')

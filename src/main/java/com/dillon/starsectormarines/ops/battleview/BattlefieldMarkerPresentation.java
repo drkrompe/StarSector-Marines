@@ -102,6 +102,11 @@ public final class BattlefieldMarkerPresentation {
                 dome.tone(), base.radiusCells(), true);
     }
 
+    /** A machine sent to stand by its own side's garrison: carried out, and said in the friendly colour. */
+    public static TargetMarker guard(String displayName, String status) {
+        return new TargetMarker(displayName.toUpperCase(Locale.ROOT), status, SECURED, 0f, true);
+    }
+
     /** A ground order into ground the enemy holds: carried out, but said in the hostile colour. */
     public static TargetMarker assault(String displayName, String status) {
         return new TargetMarker(displayName.toUpperCase(Locale.ROOT), status, HOSTILE, 0f, true);

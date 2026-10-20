@@ -300,6 +300,12 @@ public class MarineRoster implements Serializable {
         companyShipCasualtyHeldField = heldTheField;
     }
 
+    /** A casualty was settled without the company losing its ship for good (the Second Wind). */
+    public void clearCompanyShipCasualty() {
+        companyShipCasualty = false;
+        companyShipCasualtyHeldField = false;
+    }
+
     /** @see #deckSeed */
     public long deckSeed() {
         return deckSeed;

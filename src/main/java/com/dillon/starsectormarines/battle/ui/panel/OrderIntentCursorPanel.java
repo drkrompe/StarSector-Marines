@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
 import com.dillon.starsectormarines.battle.ui.picking.TacticalOrderIntent;
 import com.dillon.starsectormarines.ops.battleview.BattlefieldMarkerPresentation;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.input.InputEventAPI;
 
@@ -74,6 +75,8 @@ public final class OrderIntentCursorPanel implements HudPanel {
         var marker = intent.assault()
                 ? BattlefieldMarkerPresentation.assault(intent.label(),
                         intent == TacticalOrderIntent.CLEAR ? "ENEMY INSIDE" : "ASSAULT")
+                : intent.guard()
+                ? BattlefieldMarkerPresentation.guard(intent.label(), Strings.get("battleOrderGuardStatus"))
                 : BattlefieldMarkerPresentation.target(intent.label(), intent.actionable(), 0f);
         CommandPowerTargetingPanel.paintTargetingMarker(
                 camera, marker, cellX, cellY, alphaMult);

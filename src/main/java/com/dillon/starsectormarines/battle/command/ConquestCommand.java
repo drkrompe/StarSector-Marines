@@ -28,6 +28,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.IntBinaryOperator;
 
 /**
  * Marine-side strategic commander for CONQUEST — the land-war pattern
@@ -890,6 +891,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         }
 
         if (holdsGround && !convergence) manTakenGround(frame, places, squads, committed, allSquads, directives, hold);
+        planHoldGuards(holdsGround && !convergence ? places : null, squads, committed, allSquads, directives);
 
         if (!keepConvergence) {
             // Pass 2: preferred tracks remain sticky, but an idle track is a
@@ -1082,6 +1084,12 @@ public final class ConquestCommand implements ConquestFrontCommand,
     }
 
     /** What the hold of taken ground did this pulse, for the later steps and the trace. */
+    /** Which free lance stands guard by which taken, manned run (`garrisonables.md`, machine guard). */
+    private final MachineGuardDirector machineGuards = new MachineGuardDirector();
+    /** Guards the last plan attached and stood down, ordered in {@link #afterCommit}. */
+    private List<MachineGuardDirector.Attach> guardsToOrder = List.of();
+    private List<Integer> guardsToStandDown = List.of();
+
     private static final class HoldPulse {
         int holders;
         int sent;
@@ -1186,6 +1194,79 @@ public final class ConquestCommand implements ConquestFrontCommand,
     }
 
     /**
+     * The machine guard on taken ground (`garrisonables.md`, machine guard): a lance the muster, the capture pass and
+     * the holders left free stands guard by a taken run this side mans while a counter-attack is believed pressing it,
+     * by {@link MachineGuardDirector}'s laws. Momentum first, as for the holders: a guarding lance stays in the pool,
+     * so a company that recruits it or a capture that commits it takes it, and its guard stands down; in the
+     * convergence phases every guard stands down. A standing guard leaves the lane passes for this pulse.
+     */
+    private void planHoldGuards(GarrisonableRegistry places, List<PlanningSquad> squads, IntOpenHashSet committed,
+                                Map<Integer, PlanningSquad> allSquads, Map<Integer, SquadDirective> directives) {
+        Map<Integer, MachineGuardDirector.Machine> guarding = new TreeMap<>();
+        List<MachineGuardDirector.Machine> free = new ArrayList<>();
+        for (PlanningSquad squad : squads) {
+            if (!squad.machine || committed.contains(squad.id) || inNamedGroup(squad)
+                    || squad.anchorCellX < 0 || squad.anchorCellY < 0) continue;
+            MachineGuardDirector.Machine machine = new MachineGuardDirector.Machine(squad.id, squad.anchorCellX,
+                    squad.anchorCellY, squad.aliveMembers, squad.originalMembers);
+            if (machineGuards.holds(squad.id)) guarding.put(squad.id, machine);
+            else free.add(machine);
+        }
+        List<MachineGuardDirector.Place> manned = List.of();
+        if (places != null) {
+            Set<Integer> mannedIds = new TreeSet<>();
+            for (PlanningSquad squad : allSquads.values()) {
+                if (squad.aliveMembers <= 0 || squad.machine || squad.assignedObjective == null
+                        || !squad.assignedObjective.isGarrison()) continue;
+                SquadDirective directive = directives.get(squad.id);
+                if (directive == null || directive.reason() != AssignmentReason.HOLD_GROUND_MAN
+                        && directive.reason() != AssignmentReason.HOLD_GROUND_STAND) continue;
+                int place = places.idAt(squad.assignedObjective.targetCellX(), squad.assignedObjective.targetCellY());
+                if (place >= 0) mannedIds.add(place);
+            }
+            manned = MachineGuardDirector.manned(mannedIds, heldGround.pressedPlaces(), places);
+        }
+        IntBinaryOperator placeAt = places == null ? (x, y) -> -1 : places::idAt;
+        List<Integer> down = machineGuards.review(guarding, manned, placeAt);
+        List<MachineGuardDirector.Attach> sent = places == null ? List.of()
+                : machineGuards.attach(free, manned, machineSquadCount(allSquads), placeAt);
+        Set<Integer> standing = new TreeSet<>(guarding.keySet());
+        standing.removeAll(down);
+        for (MachineGuardDirector.Attach attach : sent) standing.add(attach.squadId());
+        for (int id : standing) {
+            PlanningSquad squad = allSquads.get(id);
+            int preferred = stripFor(squad);
+            directives.put(id, directive(squad, preferred, preferred, AssignmentReason.HOLD_GROUND_MACHINE_GUARD));
+            squads.remove(squad);
+        }
+        guardsToOrder = sent;
+        guardsToStandDown = down;
+    }
+
+    private static int machineSquadCount(Map<Integer, PlanningSquad> allSquads) {
+        int count = 0;
+        for (PlanningSquad squad : allSquads.values()) if (squad.machine && squad.aliveMembers > 0) count++;
+        return count;
+    }
+
+    /** Gives the guards the last plan attached and stands down the ones it ended. */
+    private void orderGuards(CommandEffects effects) {
+        for (int squadId : guardsToStandDown) effects.standDownGuard(squadId);
+        for (MachineGuardDirector.Attach attach : guardsToOrder) {
+            if (effects.guardPlace(faction(), attach.squadId(), attach.cellX(), attach.cellY()) == 0) {
+                machineGuards.forget(attach.squadId());
+            }
+        }
+        guardsToOrder = List.of();
+        guardsToStandDown = List.of();
+    }
+
+    /** Lances standing guard by taken ground; for evidence. */
+    int machineGuardCount() {
+        return machineGuards.count();
+    }
+
+    /**
      * Runs the muster and assault phases (see {@link AssaultMuster}) and applies their orders. A squad a company
      * claims gets its order and its directive here and is taken out of {@code squads}, the pool the capture and lane
      * passes draw from. In the two convergence phases there is no other front to hold and every company is dissolved.
@@ -1264,6 +1345,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     @Override
     public void afterCommit(CommandEffects effects) {
+        orderGuards(effects);
         askForStrikes(effects);
         askForCover(effects);
         if (lanceWishFort < 0 || dropZone == null) return;
