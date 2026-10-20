@@ -28,7 +28,7 @@ def blend(script, *args, cwd=HARNESS):
     subprocess.run(cmd, cwd=cwd, env=env, check=True)
 
 
-blend(HERE.parent / 'manticore-geometry' / 'build_manticore.py', '--views', 'none', '--out', str(HERE / 'build' / 'geom'),
+blend(HERE.parent / 'manticore-geometry' / 'build_manticore.py', '--views', 'none', '--keep-studio', '--out', str(HERE / 'build' / 'geom'),
       cwd=HERE.parent / 'manticore-geometry')
 blend(HARNESS / 'render_reference_classes.py', '--hull', str(HERE))
 blend(HARNESS / 'render_parts.py', '--hull', str(HERE))

@@ -13,7 +13,7 @@ GEOM=../manticore-geometry
 cd ../second-wind-surface
 
 # 1. Clean model into build/geom (geometry imported, never edited; no render).
-blend "$GEOM/build_manticore.py" -- --views none --out "$HS/build/geom"
+blend "$GEOM/build_manticore.py" -- --views none --keep-studio --out "$HS/build/geom"
 # 2. Finish reference: build/sprite-livery.png is manticore_pirate.png from the install, turned
 #    bow-right and scaled 4x nearest on the guide blue (never committed). Guide and class
 #    map from the reference camera, registration, palette.
