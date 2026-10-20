@@ -310,3 +310,19 @@ deck, a raised armour coaming along its outboard edge, a vertical outboard
 wall, a nose rake and chin, red armour on the nose and outboard side and the
 dark structure inboard where it meets the wing framework. Raw IoU rose to
 0.897 with it.
+
+Owner direction after round 15 (2026-10-20)
+"Manticore hull/plating gaps seem weird. It needs to take more queues from the
+onslaught there for the armored sections of hull facing combat." Round 15's
+plates were every loft facet inset with a wide dark groove, which drew an
+outline round each facet. mt_kit.armour_plates now lays the combat armour as
+the Onslaught's belts are laid (onslaught-geometry/os_armour.py, its pass 6
+review): plate breaks at a regular pitch across each course (the glacis bands
+every 5 units of Y, the wing armour every 6, the beak strakes and gun pods
+every 6 to 8 of X), faces grouped into one plate across creases gentler than
+35 deg so a plate is a thick slab bent over the form, each plate lifted 0.45
+with a chamfered border, narrow 0.08 gunmetal seams between plates, and a row
+of bolt heads just inside every plate edge. Dark bolted straps cross the glacis
+bands, the wing armour and the strakes over their seams. The core and the
+bridge plinth are hull rather than combat armour and carry only fine plate
+lines (mt_kit.hull_plating); round 13's welds stay on the core's shoulders.
