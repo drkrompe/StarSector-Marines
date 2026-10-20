@@ -15,6 +15,11 @@ import java.util.Comparator;
 /** Runs once, after vanilla's ordinary skip-tutorial setup, only for this selected start. */
 public final class CerberusCompanyStart implements Script {
     public static final String SHIP_KEY = "sm_cerberus_start_ship";
+    /**
+     * The ship both start paths hand the player: a Cerberus (D) the mine stripped for parts, carrying the d-mods of
+     * those years and only the two Vulcans nobody took ({@code mod/data/variants/sm_second_wind_start.variant}).
+     */
+    public static final String START_VARIANT_ID = "sm_second_wind_start";
     private static final String DEPOT_KEY = "sm_preparation_depot";
     private static final String DEPOT_ISSUED = "sm_preparation_depot_issued";
     public static final int STARTING_CREDITS = 500;
