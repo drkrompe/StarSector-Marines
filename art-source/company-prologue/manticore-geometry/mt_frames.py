@@ -28,7 +28,7 @@ open bays are not enclosed volume, and the scale's volume check allows 2%.
 import math
 import bpy
 from mathutils import Matrix, Vector
-from mt_kit import boolean, facet_normal, loft_x, plane_cut, prism
+from mt_kit import armour_plates, boolean, facet_normal, loft_x, plane_cut, prism, shade_round
 from mt_hull import POD, POD_STATIONS, LAUNCHER, WING_DECK, ccw, droop, nose_drop, shear, wing_drop
 from mt_detail import SWEEP_N, SWEEP_T, TE_ROOT
 
@@ -44,6 +44,8 @@ def struts(kit, name, segs, mat):
     for seg in segs:
         p0, p1, hw, hh = (Vector(seg[0]), Vector(seg[1]), seg[2], seg[3])
         sides = seg[4] if len(seg) > 4 else 4
+        if sides >= 8:
+            sides = max(sides, 24)   # round 14: rods, pipes and rams read round at a close view
         u = (p1-p0).normalized()
         side = Vector((-u.y, u.x, 0))
         side = side.normalized() if side.length > 1e-6 else Vector((0, 1, 0))
@@ -57,7 +59,8 @@ def struts(kit, name, segs, mat):
         faces.append(tuple(base+k for k in range(sides)))
         faces.append(tuple(base+sides+k for k in range(sides)))
         faces += [(base+k, base+(k+1) % sides, base+sides+(k+1) % sides, base+sides+k) for k in range(sides)]
-    return kit.mesh(name, verts, faces, mat, 0)
+    ob = kit.mesh(name, verts, faces, mat, 0)
+    return ob if name.startswith('Temporary') else shade_round(ob)
 
 
 def te(sv, tv, s):
@@ -259,7 +262,9 @@ def wing_armour(kit, side, s, wing):
     plan = [(22.0, 21.0), (22.0, 56.0)]+list(reversed(ARMOUR_EDGE))
     z0, z1 = PLATE
     plate = prism(kit, f'Hull wing {side} armour plate 1', ccw(m(plan)), [(0, z0), (0, z1-2.5), (2.5, z1)], kit.red, .12)
-    kit.hull.append(droop(shear(plate)))
+    plate = droop(shear(plate))
+    armour_plates(kit, plate, [((0, s*y0, 0), (0, 1, 0)) for y0 in (30, 46)])   # round 15: plates
+    kit.hull.append(plate)
 
 
 def i_rib(kit, name, y, x0, x1, holes, segs, s):
@@ -342,12 +347,12 @@ def wing_framework(kit, side, s, wing):
     # The sensor dome (the tan bulb at (5, +-35)) on a platform over the root bay.
     plat = slab(kit, f'Hull wing {side} sensor platform', m([(0, 31.5), (10, 31.5), (10, 40), (0, 40)]), TOP+.35,
                 TOP+.85, kit.steel)
-    plinth = kit.cylinder(f'Hull wing {side} sensor plinth', (5, s*35, TOP+1.4), 4.6, 1.2, kit.steel, vertices=12, bevel=0)
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=16, ring_count=8, radius=3.8, location=(5, s*35, TOP+2.0))
+    plinth = kit.cylinder(f'Hull wing {side} sensor plinth', (5, s*35, TOP+1.4), 4.6, 1.2, kit.steel, vertices=48, bevel=.1)
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=64, ring_count=32, radius=3.8, location=(5, s*35, TOP+2.0))
     dome = bpy.context.object
     dome.scale.z = .8
     bpy.ops.object.transform_apply(scale=True)
-    kit.finish(dome, f'Hull wing {side} sensor dome', kit.pale)
+    shade_round(kit.finish(dome, f'Hull wing {side} sensor dome', kit.pale))
     for ob in (plat, plinth, dome):
         shear(baked(ob))
 

@@ -51,8 +51,8 @@ from mathutils.bvhtree import BVHTree
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent.parent))  # art-source: starsector_path
-import wf_kit, wf_hull, wf_engines, wf_mounts, wf_lights, wf_detail, wf_fittings
-for module in (wf_kit, wf_hull, wf_engines, wf_mounts, wf_lights, wf_detail, wf_fittings):
+import wf_kit, wf_hull, wf_engines, wf_mounts, wf_lights, wf_detail, wf_fittings, wf_gear
+for module in (wf_kit, wf_hull, wf_engines, wf_mounts, wf_lights, wf_detail, wf_fittings, wf_gear):
     importlib.reload(module)
 from starsector_path import GAME_CORE as GAME
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
@@ -153,7 +153,34 @@ wf_mounts.build(kit)
 wf_lights.build(kit)
 wf_detail.build(kit)
 wf_fittings.build(kit)
+wf_gear.build(kit)
 bpy.context.view_layer.update()
+
+
+def check_landing():
+    """Gear down: every pad sole on the ground plane, nothing else of the ship within
+    a unit of it, and no part of a leg through the hull. Then back to stowed."""
+    wf_gear.pose(1.0)
+    dg = bpy.context.evaluated_depsgraph_get()
+    gear = [o for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith(tuple(
+        l['name'] + ' ' for l in wf_gear.RECORD['legs']))]
+    def lowest(o):
+        mw = o.matrix_world
+        return min((mw @ v.co).z for v in o.evaluated_get(dg).data.vertices)
+    soles = {l['sole']: round(lowest(bpy.data.objects[l['sole']]), 3) for l in wf_gear.RECORD['legs']}
+    bad = {k: v for k, v in soles.items() if abs(v - wf_gear.GROUND_Z) > 1e-3}
+    rest = min((lowest(o), o.name) for o in bpy.data.objects if o.type == 'MESH' and o not in gear)
+    moving = [o.name for o in gear if o.parent is not None and o.parent.name.endswith(' stage 3 slide')]
+    hull = [o.name for o in kit.hull]
+    clash = [(a, b) for a, b in wf_mounts.clearance(moving, hull)]
+    wf_gear.pose(0.0)
+    if bad or rest[0] < wf_gear.GROUND_Z + 1.0 or clash:
+        raise RuntimeError(f'landing check failed: soles {bad}, lowest other part {rest}, leg clashes {clash}')
+    print('LANDING soles on the ground', len(soles), 'keel clearance', round(rest[0] - wf_gear.GROUND_Z, 2),
+          'units, lowest', rest[1])
+
+
+check_landing()
 
 trained = [n for t in wf_mounts.TURRETS for n in t['trained']
            if bpy.data.objects[n].type == 'MESH']
@@ -439,6 +466,7 @@ if not args.no_save:
         'vfx_mounts': wf_mounts.mounts(),
         'engines': wf_engines.records(),
         'running_lights': wf_lights.records(),
+        'landing_gear': wf_gear.record(),
         'asset': {'file': ASSET, 'collection': COLL, 'root': ROOT, 'anchors_collection': f'{COLL} | anchors',
                   'baked': 'every modifier applied; no live booleans or bevels',
                   'append': f"bpy.data.libraries.load(path, link=True) and take collection '{COLL}'; "

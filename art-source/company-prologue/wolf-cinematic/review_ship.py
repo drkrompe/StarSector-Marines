@@ -20,6 +20,9 @@ into a factory scene and renders 1920x1080 at 100% in Cycles:
   then renders frame FRAME with bolts and rockets in flight. Turret 1 is
   trained 20 degrees to port for it;
 - --lights-off drops the studio, leaving the ship's own lamps and drive glow.
+- round 8: `landed` and `gear-bay` stand the ship on its deployed gear
+  (gear_down 1) over a ground plane at landing.ground_z_units; `gear-bay-stowed`
+  and `ventral-quarter` show the belly in flight, gear stowed.
 
 Outputs go to build/review/ as <view>[-fx|-fire][-dark].png.
 """
@@ -66,7 +69,13 @@ VIEWS = {
     'bridge-detail': (40, 26, 32, Vector((35, 0, 7))),
     'drive-detail': (-58, 30, 42, Vector((-24, 5, 3))),
     'ventral-quarter': (50, -30, 128, T0),
+    # Round 8 landing: on the ground with the gear down, and the port fore leg close.
+    'landed': (40, 7, 124, Vector((5, 0, -6))),
+    'gear-bay': (58, 3, 20, Vector((20, 9, -17.5))),
+    'gear-bay-stowed': (36, -24, 18, Vector((20, 9, -14.5))),
 }
+# Views that stand the ship on its gear over the ground plane.
+LANDED_VIEWS = {'landed', 'gear-bay'}
 # The close Asharu shot: (azimuth from +X toward +Y, elevation, metres, lens mm).
 SHOTS = {'asharu-s9': (55, 16, 670.0, 28.0)}
 SUN_IN_CAMERA = Vector((-0.70, 0.35, 0.62)).normalized()
@@ -178,6 +187,26 @@ def aim_shot(az, el, metres, lens):
     sun.rotation_euler = (-s).to_track_quat('-Z', 'Y').to_euler()
 
 
+ctl = bpy.data.objects.get(man.get('control', {}).get('object', ''))
+gd = bpy.data.materials.new('Review ground')
+gd.use_nodes = True
+gb = gd.node_tree.nodes['Principled BSDF']
+gb.inputs['Base Color'].default_value, gb.inputs['Roughness'].default_value = (.16, .145, .125, 1), .95
+bpy.ops.mesh.primitive_plane_add(size=1200, location=(0, 0, man.get('landing', {}).get('ground_z_units', -22.0)))
+ground = bpy.context.object
+ground.name = 'Review ground'
+ground.data.materials.append(gd)
+
+
+def landed(on):
+    ground.hide_render = not on
+    if ctl is not None:
+        ctl['gear_down'] = 1.0 if on else 0.0
+        ctl.update_tag()          # a knob set from Python does not tag the depsgraph by itself
+    scene.frame_set(scene.frame_current)
+    bpy.context.view_layer.update()
+
+
 suffix = ('-fx' if args.effects else '') + ('-fire' if args.fire else '') + ('-dark' if args.lights_off else '')
 OUT.mkdir(parents=True, exist_ok=True)
 for v in [v for v in args.views.split(',') if v]:
@@ -187,6 +216,7 @@ for v in [v for v in args.views.split(',') if v]:
     else:
         studio(True)
         aim_ortho(*VIEWS[v])
+    landed(v in LANDED_VIEWS)
     scene.render.filepath = str(OUT / f"{v}{suffix}{'-merchant' if args.variant == 'merchant' else ''}.png")
     bpy.ops.render.render(write_still=True)
     print('REVIEW still', v + suffix, flush=True)

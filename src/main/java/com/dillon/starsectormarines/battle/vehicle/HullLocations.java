@@ -27,9 +27,10 @@ import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 public final class HullLocations {
 
     /**
-     * {@code -Dbattle.vehicle.locatedArmor=true} turns located hull damage on. Off by default until a flanked hull
-     * is shown to die sooner rather than later: in armorMatchup, two Hounds either side of a tank took longer to kill
-     * it with plates than without, because they stood further off (see {@code damage-doll.md}).
+     * {@code -Dbattle.vehicle.locatedArmor=true} turns located hull damage on. Off by default pending an owner call:
+     * a hull held side- or rear-on dies much sooner with plates, but a free tank caught between two attackers reverses
+     * until both are on its front, and the side plates they stripped meanwhile are spent on top of the front's whole
+     * pool, so the fight runs longer than without (see {@code d5-located-armor.md}).
      */
     public static final String PROPERTY = "battle.vehicle.locatedArmor";
 

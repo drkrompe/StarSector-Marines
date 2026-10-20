@@ -16,9 +16,10 @@ from mt_hull import POD, nose_drop, wing_drop
 POD_LAMP_Z = 9.6-wing_drop(POD[1])-nose_drop(POD[0])   # near the top of the drooping gun pod's outboard face
 
 def lamp(kit, name, loc, colour, role, period, phase, mats):
-    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=.4, location=loc)
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=3, radius=.4, location=loc)
     ob = bpy.context.object
     kit.finish(ob, name, mats[colour])
+    ob.data.shade_smooth()
     LIGHTS.append({'name': name, 'position': [round(v, 2) for v in loc], 'colour': colour, 'role': role,
                    'blink': {'period_s': period, 'phase_s': phase, 'duty': .18}})
     return ob
@@ -30,8 +31,8 @@ def build(kit):
     mats = {'red': material('Manticore running light red', (.1, .01, .01), 0, .4, emission=RED, strength=12.0),
             'green': material('Manticore running light green', (.01, .1, .03), 0, .4, emission=GREEN, strength=12.0),
             'white': material('Manticore running light white', (.2, .2, .2), 0, .4, emission=WHITE, strength=10.0)}
-    lamp(kit, 'Light port wing tip 1', (23, 78.8, POD_LAMP_Z), 'red', 'port side light (extremity)', 0, 0, mats)
-    lamp(kit, 'Light starboard wing tip 1', (23, -78.8, POD_LAMP_Z), 'green', 'starboard side light (extremity)', 0, 0, mats)
+    lamp(kit, 'Light port wing tip 1', (23, POD[1]+12.85, POD_LAMP_Z), 'red', 'port side light (extremity)', 0, 0, mats)
+    lamp(kit, 'Light starboard wing tip 1', (23, -POD[1]-12.85, POD_LAMP_Z), 'green', 'starboard side light (extremity)', 0, 0, mats)
     z = kit.surface(-48, 0)[0].z
     lamp(kit, 'Light centre stern 1', (-48, 0, z+.35), 'white', 'stern light', 0, 0, mats)
     z = kit.surface(83, 0)[0].z

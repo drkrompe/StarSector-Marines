@@ -136,8 +136,8 @@
     },
     "size_m": [
       72.3,
-      39.6,
-      30.6
+      39.3,
+      31.9
     ],
     "person_1_8_m_in_units": 2.37,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
@@ -156,18 +156,18 @@
   "dimensions": {
     "min": [
       -40.2,
-      -26.05,
-      -18.63
+      -25.83,
+      -20.34
     ],
     "max": [
       54.91,
-      26.05,
+      25.83,
       21.66
     ],
     "size": [
       95.11,
-      52.1,
-      40.3
+      51.65,
+      42.0
     ]
   },
   "weapon_slots": [
@@ -679,6 +679,138 @@
       }
     }
   ],
+  "landing_gear": {
+    "ground_z_units": -22.0,
+    "legs": [
+      {
+        "name": "Hull port fore gear",
+        "xy": [
+          20.0,
+          9.0
+        ],
+        "seat_z": -14.446,
+        "travel_units": 7.554,
+        "slides": [
+          "Hull port fore gear stage 2 slide",
+          "Hull port fore gear stage 3 slide"
+        ],
+        "pad": "Hull port fore gear pad",
+        "pad_radius_units": 2.4,
+        "sole": "Hull port fore gear pad sole"
+      },
+      {
+        "name": "Hull starboard fore gear",
+        "xy": [
+          20.0,
+          -9.0
+        ],
+        "seat_z": -14.445,
+        "travel_units": 7.555,
+        "slides": [
+          "Hull starboard fore gear stage 2 slide",
+          "Hull starboard fore gear stage 3 slide"
+        ],
+        "pad": "Hull starboard fore gear pad",
+        "pad_radius_units": 2.4,
+        "sole": "Hull starboard fore gear pad sole"
+      },
+      {
+        "name": "Hull port aft gear",
+        "xy": [
+          -14.0,
+          10.0
+        ],
+        "seat_z": -14.538,
+        "travel_units": 7.462,
+        "slides": [
+          "Hull port aft gear stage 2 slide",
+          "Hull port aft gear stage 3 slide"
+        ],
+        "pad": "Hull port aft gear pad",
+        "pad_radius_units": 2.4,
+        "sole": "Hull port aft gear pad sole"
+      },
+      {
+        "name": "Hull starboard aft gear",
+        "xy": [
+          -14.0,
+          -10.0
+        ],
+        "seat_z": -14.537,
+        "travel_units": 7.463,
+        "slides": [
+          "Hull starboard aft gear stage 2 slide",
+          "Hull starboard aft gear stage 3 slide"
+        ],
+        "pad": "Hull starboard aft gear pad",
+        "pad_radius_units": 2.4,
+        "sole": "Hull starboard aft gear pad sole"
+      }
+    ],
+    "lift_thrusters": [
+      {
+        "index": 1,
+        "location": [
+          32.0,
+          5.2,
+          -12.986
+        ],
+        "exhaust_direction": [
+          0,
+          0,
+          -1
+        ],
+        "mouth_radius": 1.55,
+        "anchor": "Lift 1 exhaust anchor"
+      },
+      {
+        "index": 2,
+        "location": [
+          32.0,
+          -5.2,
+          -12.986
+        ],
+        "exhaust_direction": [
+          0,
+          0,
+          -1
+        ],
+        "mouth_radius": 1.55,
+        "anchor": "Lift 2 exhaust anchor"
+      },
+      {
+        "index": 3,
+        "location": [
+          -24.6,
+          5.6,
+          -12.686
+        ],
+        "exhaust_direction": [
+          0,
+          0,
+          -1
+        ],
+        "mouth_radius": 1.55,
+        "anchor": "Lift 3 exhaust anchor"
+      },
+      {
+        "index": 4,
+        "location": [
+          -24.6,
+          -5.6,
+          -12.689
+        ],
+        "exhaust_direction": [
+          0,
+          0,
+          -1
+        ],
+        "mouth_radius": 1.55,
+        "anchor": "Lift 4 exhaust anchor"
+      }
+    ],
+    "note": "rest is gear stowed (flight); at gear_down 1 every pad sole stands on ground_z_units in hull space"
+  },
   "asset": {
     "file": "wolf-p.blend",
     "collection": "WOLF_P",
@@ -686,8 +818,8 @@
     "anchors_collection": "WOLF_P | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'WOLF_P'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 125138,
-    "objects": 272,
+    "triangles": 216474,
+    "objects": 395,
     "materials": [
       "Turret annihilator mark 0.6122,0.4277,0.1509",
       "Turret annihilator paint 0.1989,0.1880,0.1718",
@@ -701,8 +833,11 @@
       "Turret steel Wolf grey machinery",
       "Wolf bridge glazing",
       "Wolf grey machinery",
+      "Wolf heat shield tile",
+      "Wolf heat shield tile.001",
       "Wolf heat vent glow",
       "Wolf hull lamp amber",
+      "Wolf oleo chrome",
       "Wolf pirate crimson armour",
       "Wolf recess",
       "Wolf running light green",

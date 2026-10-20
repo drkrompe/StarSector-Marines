@@ -14,22 +14,22 @@
  "bounds_units": [
   [
    -40.2,
-   -26.05,
-   -18.631
+   -25.825,
+   -20.337
   ],
   [
    54.912,
-   26.05,
+   25.825,
    21.664
   ]
  ],
  "size_m": [
   72.3,
-  39.6,
-  30.6
+  39.3,
+  31.9
  ],
- "meshes": 272,
- "polygons": 58885,
+ "meshes": 395,
+ "polygons": 102447,
  "images": 23,
  "engines": [
   {
@@ -551,6 +551,212 @@
    }
   }
  ],
+ "control": {
+  "object": "WOLF_P control",
+  "knobs": {
+   "gear_down": "0 stowed (flight, built) .. 1 deployed"
+  }
+ },
+ "landing": {
+  "ground_z_units": -22.0,
+  "legs": [
+   {
+    "name": "Hull port fore gear",
+    "xy": [
+     20.0,
+     9.0
+    ],
+    "seat_z": -14.446,
+    "travel_units": 7.554,
+    "slides": [
+     "Hull port fore gear stage 2 slide",
+     "Hull port fore gear stage 3 slide"
+    ],
+    "pad": "Hull port fore gear pad",
+    "pad_radius_units": 2.4,
+    "sole": "Hull port fore gear pad sole"
+   },
+   {
+    "name": "Hull starboard fore gear",
+    "xy": [
+     20.0,
+     -9.0
+    ],
+    "seat_z": -14.445,
+    "travel_units": 7.555,
+    "slides": [
+     "Hull starboard fore gear stage 2 slide",
+     "Hull starboard fore gear stage 3 slide"
+    ],
+    "pad": "Hull starboard fore gear pad",
+    "pad_radius_units": 2.4,
+    "sole": "Hull starboard fore gear pad sole"
+   },
+   {
+    "name": "Hull port aft gear",
+    "xy": [
+     -14.0,
+     10.0
+    ],
+    "seat_z": -14.538,
+    "travel_units": 7.462,
+    "slides": [
+     "Hull port aft gear stage 2 slide",
+     "Hull port aft gear stage 3 slide"
+    ],
+    "pad": "Hull port aft gear pad",
+    "pad_radius_units": 2.4,
+    "sole": "Hull port aft gear pad sole"
+   },
+   {
+    "name": "Hull starboard aft gear",
+    "xy": [
+     -14.0,
+     -10.0
+    ],
+    "seat_z": -14.537,
+    "travel_units": 7.463,
+    "slides": [
+     "Hull starboard aft gear stage 2 slide",
+     "Hull starboard aft gear stage 3 slide"
+    ],
+    "pad": "Hull starboard aft gear pad",
+    "pad_radius_units": 2.4,
+    "sole": "Hull starboard aft gear pad sole"
+   }
+  ],
+  "slides": [
+   {
+    "slide": "Hull port fore gear stage 2 slide",
+    "axis": "hull -Z",
+    "units_at_1": 3.777
+   },
+   {
+    "slide": "Hull port fore gear stage 3 slide",
+    "axis": "hull -Z",
+    "units_at_1": 7.554
+   },
+   {
+    "slide": "Hull starboard fore gear stage 2 slide",
+    "axis": "hull -Z",
+    "units_at_1": 3.777
+   },
+   {
+    "slide": "Hull starboard fore gear stage 3 slide",
+    "axis": "hull -Z",
+    "units_at_1": 7.555
+   },
+   {
+    "slide": "Hull port aft gear stage 2 slide",
+    "axis": "hull -Z",
+    "units_at_1": 3.731
+   },
+   {
+    "slide": "Hull port aft gear stage 3 slide",
+    "axis": "hull -Z",
+    "units_at_1": 7.462
+   },
+   {
+    "slide": "Hull starboard aft gear stage 2 slide",
+    "axis": "hull -Z",
+    "units_at_1": 3.732
+   },
+   {
+    "slide": "Hull starboard aft gear stage 3 slide",
+    "axis": "hull -Z",
+    "units_at_1": 7.463
+   }
+  ],
+  "soles": [
+   {
+    "leg": "Hull port fore gear",
+    "anchor": "Anchor gear port fore gear sole",
+    "sole_z_stowed": -14.446,
+    "sole_z_deployed": -22.0
+   },
+   {
+    "leg": "Hull starboard fore gear",
+    "anchor": "Anchor gear starboard fore gear sole",
+    "sole_z_stowed": -14.445,
+    "sole_z_deployed": -22.0
+   },
+   {
+    "leg": "Hull port aft gear",
+    "anchor": "Anchor gear port aft gear sole",
+    "sole_z_stowed": -14.538,
+    "sole_z_deployed": -22.0
+   },
+   {
+    "leg": "Hull starboard aft gear",
+    "anchor": "Anchor gear starboard aft gear sole",
+    "sole_z_stowed": -14.537,
+    "sole_z_deployed": -22.0
+   }
+  ],
+  "note": "rest is gear stowed; at gear_down 1 every sole anchor stands on ground_z_units in hull space: place the root that far above the ground (times metres_per_unit)"
+ },
+ "lift_thrusters": [
+  {
+   "index": 1,
+   "location": [
+    32.0,
+    5.2,
+    -12.986
+   ],
+   "exhaust_direction": [
+    0,
+    0,
+    -1
+   ],
+   "mouth_radius": 1.55,
+   "anchor": "Lift 1 exhaust anchor"
+  },
+  {
+   "index": 2,
+   "location": [
+    32.0,
+    -5.2,
+    -12.986
+   ],
+   "exhaust_direction": [
+    0,
+    0,
+    -1
+   ],
+   "mouth_radius": 1.55,
+   "anchor": "Lift 2 exhaust anchor"
+  },
+  {
+   "index": 3,
+   "location": [
+    -24.6,
+    5.6,
+    -12.686
+   ],
+   "exhaust_direction": [
+    0,
+    0,
+    -1
+   ],
+   "mouth_radius": 1.55,
+   "anchor": "Lift 3 exhaust anchor"
+  },
+  {
+   "index": 4,
+   "location": [
+    -24.6,
+    -5.6,
+    -12.689
+   ],
+   "exhaust_direction": [
+    0,
+    0,
+    -1
+   ],
+   "mouth_radius": 1.55,
+   "anchor": "Lift 4 exhaust anchor"
+  }
+ ],
  "sources": {
   "geometry": "art-source/company-prologue/wolf-geometry/build_wolf.py",
   "surface": "art-source/company-prologue/wolf-surface (shared harness, battle wear)",
@@ -786,5 +992,5 @@
   },
   "append": "load both 'WOLF_P' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "ec842c3266336e40b749632646fd8261b5add7bba8b195c08311f90bf931e815"
+ "asset_sha256": "89de429d7a9ae601b80862b5e0cbd9bdffe724066807642fe73f54231013b27a"
 }

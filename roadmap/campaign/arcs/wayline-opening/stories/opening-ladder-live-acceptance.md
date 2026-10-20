@@ -4,7 +4,7 @@ Status: READY
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — Relief uses the starter company and western assembly apron; linked live pacing remains.
+Updated: 2026-10-20 — Relief's story company starts ashore beside Wayline's truck; its evidence matrix compares that start with a held start, boat lift and an absent company.
 
 Read `early-operation-nouns.md` before accepting this story.
 
@@ -17,16 +17,22 @@ postings unlock after the arc. Company growth does not remove access to small wo
 
 ## Headless review boundary
 
-`commanderEvidence -Pmission=relief` compares three production-factory maps
-with ordinary, delayed, and absent player arrival. It records original militia
-survival separately from employer reinforcements and supports 1920x1080 review
-frames and optional exact replay checks. These verdant-surface cases use twelve
-named starter recruits in Cordon shells with surplus Rooks, carried in three
-four-seat sorties by one fitted standard Hermes. They report full-squad assembly,
-first company fire/loss, and employer arrival at the gate. They exercise the
+`commanderEvidence -Pmission=relief` plays three production-factory maps four
+ways: the story chapter's ground start (twelve named starter recruits in Cordon
+shells with surplus Rooks, ashore beside Wayline's parked hauler at tick zero),
+the same company held at its start for thirty seconds, the repeatable posting's
+three four-seat trips on one standard Hermes, and that boat arriving after the
+observation window. It records original militia survival separately from
+employer reinforcements, company arrival at the gate, first company fire and
+loss, and supports 1920x1080 review frames and optional exact replay checks.
+The ground-start rows assert the start's mechanics: twelve named marines in one
+led squad, no company aircraft, one employer shuttle, an untouched civilian
+hauler, and the original militia already firing before the company reaches the
+gate. `campaign-lift.json` runs story Relief through production capture and the
+launch overlay and withdraws with no company boat on the map. These exercise the
 production roster overlay but do not establish live Jangala save, fog, or HUD
-acceptance. Delayed cases are a controlled intervention, not a slow transport
-model; extend the observation with `-PmaxTicks=12000` for longer fights.
+acceptance. A held start is a controlled intervention, not a player model;
+extend the observation with `-PmaxTicks=12000` for longer fights.
 
 Counterattack's corresponding harness uses three depot interiors with ordinary,
 delayed and absent player arrival, plus two fitted boats arriving together.
@@ -48,8 +54,10 @@ The 300s absent-player observation does not establish a new failure rule.
 
 ## Remaining pacing checks
 
-The expanded apron lets the twelve-person starter squad finish its three Hermes
-sorties before entering combat in all three ordinary construction controls.
+The story squad starts assembled on the rear apron and reaches the gate in
+about forty seconds; the repeatable posting's three Hermes sorties still finish
+before entering combat in all three boat-lift controls. Most 200-second
+observations end unresolved in every shape, as they did with boats.
 The longer 400-second controls still expose a late standoff in one ordinary
 seed and several delayed runs. Inspect the surviving raider's contact/route
 behavior and confirm live player advance can finish the fight; safe assembly
@@ -59,24 +67,24 @@ fail to clear the finite assault without inventing a timeout defeat rule.
 ## Acceptance
 
 - Relief's first victory retires that chapter and opens Counterattack at Mara
-  Venn's office. Its local line survives long enough for a slow
-  player transport to matter, but cannot win unattended.
+  Venn's office. Its local line survives long enough for a company held at
+  its start to matter, but cannot win unattended.
 - Relief's defensive anchor reads as a communications/logistics place the local
   militia must preserve: a four-person exterior screen, four-person gate post,
   recessed relay, expanded western apron and
   connected access roads. Its finite road arrivals cannot become recurring supply.
 - Employer lift waits for company assembly before reinforcing the gate; absent or delayed company arrival must not send it ahead alone.
-- The first briefing clearly accepts one starting transport and one selected
-  fire team; counterattack clearly communicates its larger player-lift demand.
+- The first briefing clearly says the squad starts beside Wayline's truck and
+  needs no company lift; counterattack clearly communicates its player-lift demand.
 - Live results justify the local-militia versus bandit ratio and approach
   pressure without adding regulars, mechs, turrets, fighters, or open-ended reinforcements.
 - Defeat leaves the relevant operation retryable. Completing Relief unlocks
   Counterattack even if the company has grown or suffered losses. After
   victory, each story chapter stays closed. Completing the arc opens distinct
   recurring work at Venn's office and other Independent brokers.
-- Squad assembly at the landing zone reads as deliberate rather than stalled
-  while the exterior militia fights the opening raiders. The starter Hermes
-  must finish all three sorties before the company is drawn into the gate fight.
+- The story squad's walk from the truck to the gate reads as deliberate while
+  the exterior militia fights the opening raiders. In Militia Relief the
+  Hermes must finish all three sorties before the company is drawn into the gate fight.
 - Counterattack's joint force advances from the apron through the gate and
   loading yard toward dispatch. The rear guard remains distinct from the
   reserve; contact and own casualties drive commitment and fallback. Confirm
