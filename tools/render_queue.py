@@ -56,20 +56,22 @@ import time
 import traceback
 from pathlib import Path
 
-VERSION = "2026-10-20.3"
+VERSION = "2026-10-20.4"
 MACHINES = ("mac", "windows")
 LANES = ("light", "review", "final")
 DEFAULT_CONFIG = {
     # The manual gate. Changed only by the render coordinator, on the owner's word.
     "gates": {"windows": "pause", "mac": "pause"},
-    # Lanes in running order. Lanes listed in ungated_lanes run whatever the gate
-    # says (owner rule: half size, at most 16 samples, or a low-fps low-res clip).
-    "lanes": ["review", "light", "final"],
+    # Lanes in running order; a list that leaves a lane out is ignored. Lanes in
+    # ungated_lanes run whatever the gate says (owner rule: half size, at most 16
+    # samples, or a low-fps low-res clip).
+    "lanes": ["light", "review", "final"],
     "ungated_lanes": ["light"],
-    # A runnable review or light job swaps a running final out, then back in.
+    # A job in an earlier lane swaps a running multi-frame job out at its next
+    # frame boundary (never mid-frame), then back in.
     "preempt": True,
-    # Swap out at a frame boundary: wait for the frame in progress to land, up to
-    # this long, then stop. Jobs without a frames check stop at once.
+    # Pause and hold also wait for the frame in progress to land, but only this
+    # long before stopping mid-frame. Jobs without a frames check stop at once.
     "swap_at_frame_boundary": True,
     "swap_wait_max_seconds": 420,
     # Mac swap-out: "stop" (clean stop, relaunch with frame skip) or "freeze"
@@ -286,8 +288,13 @@ def job_priority(job: dict, cfg: dict) -> int:
     return int(cfg.get("priority_overrides", {}).get(job["id"], job.get("priority", 0)))
 
 
+def lane_order(cfg: dict) -> list:
+    lanes = cfg.get("lanes")
+    return list(lanes) if isinstance(lanes, list) and set(lanes) >= set(LANES) else list(LANES)
+
+
 def order_key(job: dict, cfg: dict, resumed: bool = False):
-    lanes = cfg.get("lanes", list(LANES))
+    lanes = lane_order(cfg)
     lane = lanes.index(job["lane"]) if job["lane"] in lanes else len(lanes)
     return (lane, 0 if resumed else 1, -job_priority(job, cfg), job.get("submitted", ""), job["id"])
 
@@ -852,9 +859,12 @@ class Runner:
         if job["lane"] == "light" and time.time() - rec.get("started_epoch", time.time()) > \
                 int(cfg.get("light_max_seconds", 1800)):
             return None  # handled by reap as a failure
-        if cfg.get("preempt", True) and job["lane"] == "final":
-            # Not dry: an `any` job is claimed (and its claim wait sat out) while the
-            # final keeps rendering, so the swap itself costs no idle time.
+        fr = self.expand(job.get("frames"), self.placeholders(jid, rec))
+        if cfg.get("preempt", True) and fr and self.count_frames(fr) < int(fr["count"]) - 1:
+            # Only a job with frames still to render after the one in progress can
+            # yield at a frame boundary; anything else finishes first.
+            # Not dry: an `any` job is claimed (and its claim wait sat out) while this
+            # job keeps rendering, so the swap itself costs no idle time.
             if self.pick(jobs, done, swap_in_for=job):
                 return "preempted"
         return None
@@ -870,19 +880,30 @@ class Runner:
 
     def swap_ready(self, jid, job, rec) -> bool:
         sw = rec["swap"]
-        if not self.cfg.get("swap_at_frame_boundary", True) or sw.get("frames_at") is None:
+        if sw.get("frames_at") is None:
+            return True
+        fr = self.expand(job.get("frames"), self.placeholders(jid, rec))
+        have = self.count_frames(fr)
+        if have >= int(fr["count"]):
+            return False  # its last frame landed: let it exit and complete normally
+        if have > sw["frames_at"]:
+            return True
+        # Preemption never stops a frame mid-render. Pause and hold give up after
+        # swap_wait_max_seconds, or at once with swap_at_frame_boundary off.
+        if sw["why"] == "preempted":
+            return False
+        if not self.cfg.get("swap_at_frame_boundary", True):
             return True
         if time.time() - sw["since"] > int(self.cfg.get("swap_wait_max_seconds", 420)):
             self.log(f"{jid}: no frame landed within swap_wait_max_seconds; stopping mid-frame")
             return True
-        fr = self.expand(job.get("frames"), self.placeholders(jid, rec))
-        return self.count_frames(fr) > sw["frames_at"]
+        return False
 
     def pick(self, jobs, done, swap_in_for=None, dry=False):
         """The next job to run here. With swap_in_for, only jobs allowed to swap that
         final out (an earlier lane). dry: report a candidate without claiming it."""
         cfg = self.cfg
-        lanes = cfg.get("lanes", list(LANES))
+        lanes = lane_order(cfg)
         tags = set(self.tags())
         cands = []
         for jid, job in jobs.items():
@@ -1308,7 +1329,12 @@ class Runner:
                     slot["swap"] = rec["swap"]["why"]
                 cur = slot
             else:
-                slot["why"] = rec.get("why")
+                why = rec.get("why")
+                if why == "held" and jid not in self.cfg.get("held", []):
+                    why = "released; resumes in its turn"
+                elif why == "paused" and gate_allows(jobs.get(jid, {"lane": rec.get("lane")}), self.cfg, self.machine):
+                    why = "gate open; resumes in its turn"
+                slot["why"] = why
                 suspended.append(slot)
         body = {"machine": self.machine, "gate": self.cfg.get("gates", {}).get(self.machine),
                 "current": cur, "suspended": suspended, "note": self.note, "tags": self.tags(),
