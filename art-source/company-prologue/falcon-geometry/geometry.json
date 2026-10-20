@@ -87,7 +87,7 @@
     "fittings_m": {},
     "published_metres_per_unit": 0.81,
     "measured_this_build": {
-      "enclosed_units3": 227913,
+      "enclosed_units3": 227967,
       "solids": [
         "Hull port prong",
         "Hull starboard prong",
@@ -1103,7 +1103,7 @@
     "anchors_collection": "FALCON (P) | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'FALCON (P)'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 296528,
+    "triangles": 350362,
     "objects": 266,
     "materials": [
       "Falcon bare engine metal",

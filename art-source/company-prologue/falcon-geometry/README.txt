@@ -80,6 +80,17 @@ a trough exposing the inboard engine's bare core in its cradle, fins, patch
 plates and cable bundles on top; outrigger plating and struts; probes at the
 bow forks; a stern airlock. Silhouette IoU 0.935 (blockout 0.936).
 
+Detail rule (close-shot pass, ../ship-detail-guide.md): every hull round
+(fc_kit revolve_x and cylinder: drives, tanks, lamps, the bridge dome) is
+segmented by sdk.segments and smooth-shaded through the bake (fc_kit.SMOOTH);
+build_falcon.bevel_hard_edges gives every hull part without a chamfer of its
+own an angle-limited one-segment bevel by tier before the bake (parts with a
+dark engine-well face are bevelled too; all-glass or all-recess parts stay
+sharp); the glazing and viewports are dark glass, since the Falcon has no
+lights layer. check_detail with turrets excluded: faceted 67 -> 0,
+unbevelled 6.46 -> 0.06 m per 100 m2, emissive off-layer 11 -> 0, unframed
+glazing 0; geometry-raster top IoU unchanged (0.921 -> 0.922); 297k -> 350k tris.
+
 Texture (pass 6, ../falcon-surface)
 The shared surfacing harness with this hull's inputs: a pirate-livery finish
 reference and six Codex part sheets (prong decks and glacis per side, belts,
