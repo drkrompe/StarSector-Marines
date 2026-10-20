@@ -4,7 +4,9 @@ Status: ACTIVE — direction. No part of this is implemented; `ship-interiors-no
 
 Written: 2026-08-27
 
-Updated: 2026-08-27 — separated form from state: refits change the deck, battle
+Updated: 2026-10-20 — the founding Second Wind is the one company ship that is never lost for good; see `ship-interiors-nouns.md`.
+
+Earlier 2026-08-27 — separated form from state: refits change the deck, battle
 damage marks it. An earlier draft let d-mods resize the program, which quietly
 rebuilt the ship around its injuries. Damaged fixtures are out of service, so
 damage costs capacity.
@@ -197,6 +199,13 @@ being an argument for the next ship.
    law 5 — an upgrade changes the room or it is not an upgrade — reached through
    the base game's own refit screen rather than through an economy we would have
    to invent.
+
+## The founding hull is kept
+
+Losing a home displaces a company, with one exception: the Second Wind, the
+start's own ship, can be lost, sold or scuttled like any hull, and any yard sells
+her back at once for credits and a d-mod. Campaign missions are flown from her. A
+sinking still costs what was aboard her. `ship-interiors-nouns.md` owns the rule.
 
 ## What this does not decide
 

@@ -219,6 +219,8 @@ public final class TickInnerProfile {
         /** Count-only: releases deferred because the squad was still closing on its place, and falls back ordered. */
         GARRISON_HOLD_EN_ROUTE,
         GARRISON_FALL_BACK,
+        /** Count-only: garrisons moved onto the neighbouring stretch of their run the attack has moved to. */
+        GARRISON_SHIFT,
         /** Count-only: believed-contact cells read to see whether an enemy stands inside a manned run. */
         GARRISON_BREACH_READ,
         /** Count-only: patrols posted at a fort's works to wait there, and candidate patrols priced for it. */

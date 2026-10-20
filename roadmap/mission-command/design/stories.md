@@ -27,6 +27,7 @@ Design: `conquest-command.md`
 
 | Story | State | Intent |
 |---|---|---|
+| `place-counterattack.md` | IN PROGRESS | Generalise the fort counter-attack to any lost place worth retaking, informed by a probe and remembered losses; Conquest, Relay Nine, Thunder Run. |
 | `front-command-and-keep-convergence.md` | IN PROGRESS | Live-accept tracks, cross-track support, front staging, and culminating convergence. |
 | `defender-track-mobilization.md` | IN PROGRESS | Live-accept belief-honest bounded patrol mobilization on the shared tracks. |
 | `defender-convoy-deployment-and-handoff.md` | IN PROGRESS | Live-accept rear-edge deployment and commander ownership of convoy relief squads. |

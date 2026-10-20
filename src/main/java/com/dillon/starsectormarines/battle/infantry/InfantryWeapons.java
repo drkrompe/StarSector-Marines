@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.combat.PointAimDispersion;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.RangeFalloff;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
@@ -274,7 +275,7 @@ public class InfantryWeapons {
         for (int i = 0; i < projectileCount; i++) {
             BallisticResolver.Resolution resolution = aim != null
                     ? resolver.resolvePoint(shooter, aim.x(), aim.y(), accuracy, effectiveSpread,
-                            roundVelocity, maximumTargetingRange, rng)
+                            roundVelocity, maximumTargetingRange, PointAimDispersion.CONTROLLED, rng)
                     : resolver.resolve(shooter, target, accuracy, effectiveSpread, roundVelocity,
                             maximumTargetingRange, rng);
             resolutions[i] = resolution;

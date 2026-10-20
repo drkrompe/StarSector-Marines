@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.world.gen.HeldPlaces;
 import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import com.dillon.starsectormarines.battle.world.gen.MarketGarrison;
 import com.dillon.starsectormarines.battle.world.gen.NorthWeir;
@@ -498,6 +499,7 @@ public final class BattleSetup {
         PrecinctPlan precinct = sprawl == null ? null : precinctPlanFor(
                 MissionType.SABOTAGE, tier, risk, profile, scale, seed, sprawl);
         MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null, profile, precinct);
+        publishHeldPlaces(map, Faction.DEFENDER);
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         // Vehicles stamp before sim construction so the BattleSimulation's
@@ -1064,6 +1066,16 @@ public final class BattleSetup {
                 marineAir, enemyAir, sprawl, null, 1f, true, null, null);
     }
 
+    /**
+     * Publishes every building the map's tactical nodes do not already stand on as a held place for
+     * {@code owner}. Held places carry no garrison and are not objectives; see {@code HeldPlaces}.
+     */
+    private static void publishHeldPlaces(MapResult map, Faction owner) {
+        if (map.tacticalMap == null) return;
+        for (TacticalNode place : HeldPlaces.fromBuildingsNotIn(map.pointsOfInterest, map.tacticalMap.all(), poi -> owner))
+            map.tacticalMap.add(place);
+    }
+
     /** Whole campaign-derived sites are an ordinary remote-assault choice when the tier affords their approach. */
     static boolean usesCompoundTemplate(MissionType type, MapScale scale, PrecinctPlan.Sprawl sprawl) {
         return type == MissionType.ASSAULT && sprawl == PrecinctPlan.Sprawl.REMOTE
@@ -1095,6 +1107,9 @@ public final class BattleSetup {
                 ? MaintenanceOutpost.generate(MaintenanceOutpost.WIDTH, MaintenanceOutpost.HEIGHT, seed, profile,
                         precincts.objective().fortification())
                 : proceduralOperationMap(type, tier, risk, profile, scale, seed, sprawl, precincts);
+        // A raided site is defender-held: the city's garrison nodes keep their buildings and every other
+        // building is a place the player may order held once taken.
+        if (!coldAccount) publishHeldPlaces(map, Faction.DEFENDER);
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         List<Doodad> vehiclePlacements = stampVehicles(map, rng);
@@ -1282,8 +1297,21 @@ public final class BattleSetup {
     public static BattleSimulation createOpeningOperation(
             long seed, List<ShuttleAssignment> manifest, int employerShips,
             OpeningOperationKind kind, TargetProfile profile, boolean recoverHound) {
+        return createOpeningOperation(seed, manifest, employerShips, kind, profile, recoverHound, false);
+    }
+
+    /**
+     * {@code groundStart} is the story Relief chapter: the company rode up on Wayline's truck as its ore
+     * dust's escort, so it starts ashore on the rear apron beside the parked hauler and only the employer's
+     * militia lift flies. Committed company boats stay in reserve. The repeatable posting keeps its boats.
+     */
+    public static BattleSimulation createOpeningOperation(
+            long seed, List<ShuttleAssignment> manifest, int employerShips,
+            OpeningOperationKind kind, TargetProfile profile, boolean recoverHound, boolean groundStart) {
         if (kind == null) throw new IllegalArgumentException(
                 "opening operation kind is required");
+        if (groundStart && kind != OpeningOperationKind.RELIEF) throw new IllegalArgumentException(
+                "only Relief authors a company ground start");
 
         TargetProfile effectiveProfile = profile != null ? profile : TargetProfile.NEUTRAL;
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
@@ -1344,6 +1372,19 @@ public final class BattleSetup {
         stampLzPads(sim, lzCells);
         int localTransports = Math.max(0, Math.min(employerShips,
                 assignments.size()));
+        if (groundStart) {
+            ReliefCheckpoint.Cell start = ReliefCheckpoint.COMPANY_START;
+            sim.setGroundMarineArrival(new GroundMarineArrival(start.x() + .5f, start.y() + .5f,
+                    SquadCommandClaim.mission(OpeningOperationCommand.issuer(Faction.MARINE),
+                            "opening-operation landing force")));
+            // Wayline's hauler stands where it unloaded the company: a civilian hull, never a target.
+            ReliefCheckpoint.Cell truck = ReliefCheckpoint.HAULER;
+            float hx = truck.x() + .5f, hy = truck.y() + .5f;
+            VehicleMission parked = new VehicleMission(new float[]{hx, hx}, new float[]{hy, hy - 1},
+                    new float[]{hx, hx}, new float[]{hy, hy - 1}, 0f, 0);
+            parked.state = VehicleState.DEPLOYED;
+            sim.convoy().spawn(VehicleType.CARGO_CARRIER, Faction.CIVILIAN, parked);
+        }
         for (int i = 0; i < lzCells.size(); i++) {
             ShuttleAssignment assignment = assignments.get(i % assignments.size());
             LandingPad lz = lzCells.get(i);
@@ -1361,6 +1402,15 @@ public final class BattleSetup {
                             + i * SHUTTLE_DROP_STAGGER_SEC,
                     assignment.seatsPerSortie);
             ShuttleMission shuttleMission = sim.world().mission(shuttleId);
+            if (groundStart && !localMilitia) {
+                // The company is already ashore; a committed boat waits in reserve with no inbound recipe.
+                shuttleMission.totalCycles = 1;
+                shuttleMission.marinesRemaining = 0;
+                shuttleMission.marineLoadout = new MarineLoadout[0];
+                shuttleMission.cycleLoadouts = new MarineLoadout[][]{shuttleMission.marineLoadout};
+                shuttleMission.state = ShuttleState.GONE;
+                continue;
+            }
             shuttleMission.totalCycles = assignment.cycles;
             if (localMilitia) {
                 shuttleMission.commandClaim = SquadCommandClaim.mission(
@@ -1398,8 +1448,8 @@ public final class BattleSetup {
                     Faction.ALLY, "local-screen", forwardPost, rng, OPENING_FIRETEAM_SIZE,
                     WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID));
         }
-        // Relief meets a Rook-equipped starter company arriving four at a time.
-        // Keep its entire finite assault at that weapon tier, including road arrivals.
+        // Relief meets a Rook-equipped starter company. Keep its entire finite
+        // assault at that weapon tier, including road arrivals.
         if (depot == null) spawnOpeningMilitiaSquads(sim, raiderCells, Faction.DEFENDER,
                 "raider", null, rng, OPENING_FIRETEAM_SIZE,
                 WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID));
@@ -2464,6 +2514,7 @@ public final class BattleSetup {
             MapScale scale = MapScale.forRisk(risk);
             MapResult map = MAP_GEN.generate(
                     scale.width, scale.height, battleSeed, null, profile);
+            publishHeldPlaces(map, Faction.CIVILIAN);
             Random rng = new Random(battleSeed);
             List<ShuttleAssignment> assignments = resolveManifest(manifest);
             List<Doodad> vehiclePlacements = stampVehicles(map, rng);
@@ -2558,6 +2609,9 @@ public final class BattleSetup {
             MapScale scale = MapScale.forRisk(risk);
             MapResult map = MAP_GEN.generate(scale.width, scale.height,
                     scenarioSeed, null, TargetProfile.NEUTRAL);
+            // A colony is not an objective, but its buildings are still places the player may order held.
+            for (TacticalNode place : HeldPlaces.fromBuildings(map.pointsOfInterest, poi -> Faction.CIVILIAN))
+                map.tacticalMap.add(place);
             Random scenarioRng = new Random(
                     scenarioSeed ^ 0x4155544F4D415445L);
             List<ShuttleAssignment> assignments = resolveManifest(manifest);
@@ -4306,6 +4360,8 @@ public final class BattleSetup {
         List<TacticalNode> defenderNodes = (tactical != null)
                 ? new ArrayList<>(tactical.forFaction(Faction.DEFENDER))
                 : Collections.emptyList();
+        // A held place nobody is posted to is ground the player may order held, not somewhere the defence lives.
+        defenderNodes.removeIf(HeldPlaces::isUnposted);
         if (defenderNodes.isEmpty()) {
             List<int[]> cells = pickDefensiveCluster(map.grid, map.defenderSpawnX, map.defenderSpawnY,
                     roster.mechVariants.isEmpty() ? roster.totalCount

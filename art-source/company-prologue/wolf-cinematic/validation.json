@@ -3,10 +3,10 @@
  "collection": "WOLF_P",
  "root": "WOLF_P | root",
  "effects_collection": "SWFX",
- "objects": 452,
- "meshes": 395,
- "effects_objects": 74,
- "images": 23,
+ "objects": 496,
+ "meshes": 421,
+ "effects_objects": 102,
+ "images": 31,
  "passed": true,
  "failed": [],
  "checks": {
@@ -31,25 +31,29 @@
   "images packed": {
    "ok": true,
    "detail": [
-    23,
+    31,
     []
    ]
   },
   "mesh count": {
    "ok": true,
    "detail": [
-    395,
-    395
+    421,
+    421
    ]
   },
   "polygon count": {
    "ok": true,
    "detail": [
-    102447,
-    102447
+    129105,
+    129105
    ]
   },
   "three engine anchors at the mouths, pointing aft": {
+   "ok": true,
+   "detail": []
+  },
+  "four lift thruster engine anchors at the mouths, pointing down": {
    "ok": true,
    "detail": []
   },
@@ -63,7 +67,7 @@
   },
   "declared VFX muzzles ride the kit muzzles": {
    "ok": true,
-   "detail": "12 muzzles"
+   "detail": "12 declared, 12 kit muzzles"
   },
   "lamps": {
    "ok": true,
@@ -73,9 +77,13 @@
    "ok": true,
    "detail": "WOLF_P control"
   },
-  "gear stows flush and stands on the ground": {
+  "gear: keel shoes and wedge soles on the ground deployed, wedges up the side stowed": {
    "ok": true,
    "detail": []
+  },
+  "gear: every ram stays on its wedge and aims along itself through the swing": {
+   "ok": true,
+   "detail": 1.6e-05
   },
   "four lift thruster anchors point down": {
    "ok": true,
@@ -88,11 +96,19 @@
   "SWFX present": {
    "ok": true,
    "detail": [
-    74,
-    74
+    102,
+    102
    ]
   },
   "plumes leave every bell aft": {
+   "ok": true,
+   "detail": []
+  },
+  "lift thruster plumes leave their mouths downward, idle by default": {
+   "ok": true,
+   "detail": []
+  },
+  "gear_down works with the effects loaded": {
    "ok": true,
    "detail": []
   },

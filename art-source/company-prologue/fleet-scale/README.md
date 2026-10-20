@@ -19,6 +19,32 @@ python3 fleet_lineup.py --frames 3,5    # rerender some frames; the others keep 
 python3 fleet_lineup.py --skip-render   # relabel and rewrite the table from the last raw renders
 ```
 
+## Class lineup
+
+```sh
+python3 fleet_lineup.py --class-lineup --build-missing --size lasher=75 --what class-lineup --post windows
+```
+
+`--class-lineup` renders only the class comparison: every hull in role-class
+rows (fighters and boats, frigates, destroyers, freighters and tankers,
+cruisers and capitals; `CLASSES` in the script), under flat Workbench shading,
+so a frame takes seconds. Frames 01-04 are the models top-down and broadside,
+first every class at one scale, then fighters to destroyers magnified. Frames
+05-06 are the game sprites at their relative pixel sizes, laid out in the same
+slots at the same metres per pixel as the matching top-down frame. They are
+scaled so the Hound's sprite matches its model (`SPRITE_REFERENCE`), with each
+model's outline drawn over its sprite in cyan. `class-sizes.md` lists, for each
+hull, its class, its current and proposed lengths and the length its sprite
+implies.
+
+- `--size HULL=METRES` (repeatable) previews a hull at that length without
+  touching any `metres_per_unit`. In the class lineup its published size is drawn
+  as an orange ghost around it.
+- `--build-missing` first runs the package build of a hull whose model exists
+  only as a local build output (the Manticore's `build/manticore/manticore.blend`).
+- The sprites are read from the game install, read-only. Without it the sprite
+  frames are skipped; rerun with `--skip-render` on a machine that has it.
+
 Labelling needs Pillow. If the `python3` that runs the script has none (on the
 Mac, Homebrew's), it re-runs itself under `$PYTHON` or the system `python3`.
 Blender is found through `blender_path.py`.

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ab1-f864-7060-817d-5cf72827d083",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ab1-f864-7060-817d-5cf72827d083\\call_5a0f32128d974fafb4f518790648ec50.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\infantry-weapons\\raw\\infantry-weapons-grades.raw.png",
+    "sha256": "8a44257029acbd275edb2128877b912213d65c022ffc8ee4f99c81a256840f07",
+    "dimensions": [
+      1612,
+      976
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\infantry-weapons\\infantry-weapons-grades.prompt.txt",
+  "promptSha256": "fad482fc4182b3bcbcba564d6db1a2eae75039e99abdad7ebe305c614e48b29b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: exact silhouettes, parts and positions; empty canvas stays transparent\nImage 2: Finished standard sheet: painting style, lighting and detail level reference only; not layout\n\nUse case: sketch-to-render. Asset: two grade variants of infantry weapons for a gritty military dark-science-fiction tactical game, each seen from STRAIGHT OVERHEAD (looking down at the top of the gun as it lies flat, muzzle pointing up the image), drawn as a held layer under a top-down soldier sprite and only 15 to 30 pixels long in play, so value contrast and crisp light edges matter more than fine detail.\n\nImage 1 is the authoritative geometry guide and edit target: only two frames are drawn on it, the rest of the canvas is empty and must stay fully transparent. Reskin these exact two objects, preserving every silhouette, part, proportion and position exactly, with every gap and opening (the gap between the rails and the opening in the second weapon's stock) left transparent. Do not move, add, merge or remove parts; no slings, hands, ground or shadows.\n1. (left) SURPLUS field rifle, an old worn-out issue of the standard rifle: scuffed chipped olive-drab paint over bare grey steel, a WOODEN handguard and wooden stock in weathered brown with dark grain, a dull scope with a cracked dusty lens, rust at the joints, a wrap of dirty cloth tape around the barrel. Cheap and tired, clearly lower quality.\n2. (right) MASTERWORK railgun marksman rifle: immaculate polished navy-blue and ivory-white enamel with fine engraved brass inlay lines and brass rail braces, two polished black rails with a brighter glowing pale-blue field between them, a long black scope with clear blue glass and a brass ring, an ivory skeleton stock. Pristine, expensive, ceremonial-grade.\n\nImage 2 is the finished standard sheet these variants belong to: match its painting style, lighting, edge treatment and level of detail exactly; it is material and style reference only, not layout. Straight top-down orthographic camera, no perspective, no cast shadow, no ground, no text, labels, borders or watermark. True transparent background outside every silhouette, including negative spaces. Change only material, detail and shading, never placement or silhouette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\infantry-weapons-grades-guide.png",
+      "sha256": "3e86947c847ddceda09b0e295b53fe41cdf8cb34b8e09b63ac2ff366ba5aa2f4",
+      "dimensions": [
+        2272,
+        1376
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: exact silhouettes, parts and positions; empty canvas stays transparent"
+    },
+    {
+      "path": "art-source\\infantry-weapons\\raw\\infantry-weapons.raw.png",
+      "sha256": "9a30448811f651a2a9765050ac1db38085d62006b35a8950cded0965f2a8e593",
+      "dimensions": [
+        1612,
+        976
+      ],
+      "mode": "RGBA",
+      "role": "Finished standard sheet: painting style, lighting and detail level reference only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image, using Image 1 for exact geometry and Image 2 for the painted finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 57013,
+    "cached_input_tokens": 41344,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 672,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.0
+}

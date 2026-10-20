@@ -8,7 +8,7 @@ outboard wall, the engine block's stern face round the drives, the fore spine.
 grey-bridge (round 7): the bridge roof, the bridge and gun-hood faces from ahead,
 the prow's port flank and jaw, the prow's stem and jaw faces from ahead.
 """
-from parts_common import BOW, PORT, STARBOARD, UP_Z, DOWN_X, STERN
+from parts_common import BOW, PORT, STARBOARD, UP_Z, DOWN_Z, DOWN_X, STERN
 
 PARTS = {
     'head-top': dict(members=[('Hull head', (38.0, 4.0, 4.4)), ('Hull port outrigger', (36.0, 13.0, 3.3)),
@@ -61,3 +61,23 @@ SHEETS = {
     'grey-bridge': ['bridge-top', 'bridge-face', 'prow-side-port', 'prow-front'],
     'grey-faces': ['engine-side-port', 'outrigger-side-port', 'engine-stern', 'spine-fore'],
 }
+
+# Round 8 (the accepted underside): the keel with its two keel shoes from below,
+# the head's underside with the prow's, the head's port flank, and the port
+# missile pod's underside; starboard flank and pod mirror.
+PARTS.update({
+    'keel-under': dict(members=[('Hull ventral keel', (5.0, 0.0, -18.0)), ('Hull keel shoe fore', (12.0, 0.0, -19.4)),
+                                ('Hull keel shoe aft', (-10.0, 0.0, -19.4))], dir=DOWN_Z, up=DOWN_X, cone=.6,
+                       what='the ventral keel and its two keel shoes from below'),
+    'head-under': dict(members=[('Hull head', (37.0, 0.0, -12.5)), ('Hull bow fork base', (47.0, 0.0, -9.0))],
+                       dir=DOWN_Z, up=DOWN_X, cone=.6, what="the head's and the prow's underside"),
+    'head-side-port': dict(members=[('Hull head', (37.0, 14.0, -3.0))], dir=PORT, up=UP_Z, cone=.6,
+                           what="the head's port flank"),
+    'pod-under-port': dict(members=[('Pod port missile body', (2.0, 18.0, -6.5))], dir=DOWN_Z, up=DOWN_X, cone=.5,
+                           what='port missile pod from below'),
+    'head-side-stbd': dict(members=[('Hull head', (37.0, -14.0, -3.0))], dir=STARBOARD, up=UP_Z, cone=.6,
+                           skin_from='head-side-port', mirror_u=True, what="the head's starboard flank (mirror)"),
+    'pod-under-stbd': dict(members=[('Pod starboard missile body', (2.0, -18.0, -6.5))], dir=DOWN_Z, up=DOWN_X, cone=.5,
+                           skin_from='pod-under-port', mirror_u=True, what='starboard missile pod from below (mirror)'),
+})
+SHEETS['grey-belly'] = ['keel-under', 'head-under', 'head-side-port', 'pod-under-port']

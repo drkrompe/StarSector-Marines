@@ -56,7 +56,7 @@ import time
 import traceback
 from pathlib import Path
 
-VERSION = "2026-10-20.4"
+VERSION = "2026-10-20.6"
 MACHINES = ("mac", "windows")
 LANES = ("light", "review", "final")
 DEFAULT_CONFIG = {
@@ -70,6 +70,10 @@ DEFAULT_CONFIG = {
     # A job in an earlier lane swaps a running multi-frame job out at its next
     # frame boundary (never mid-frame), then back in.
     "preempt": True,
+    # A preempted job has rendered at least this long since its last launch before
+    # an earlier-lane job may swap it out again, so a stream of light jobs cannot
+    # starve a final with scene rebuilds. Light jobs wait at most this long.
+    "preempt_min_run_seconds": 1200,
     # Pause and hold also wait for the frame in progress to land, but only this
     # long before stopping mid-frame. Jobs without a frames check stop at once.
     "swap_at_frame_boundary": True,
@@ -860,7 +864,8 @@ class Runner:
                 int(cfg.get("light_max_seconds", 1800)):
             return None  # handled by reap as a failure
         fr = self.expand(job.get("frames"), self.placeholders(jid, rec))
-        if cfg.get("preempt", True) and fr and self.count_frames(fr) < int(fr["count"]) - 1:
+        ran = time.time() - rec.get("started_epoch", time.time())
+        if cfg.get("preempt", True) and fr and self.count_frames(fr) < int(fr["count"]) - 1                 and ran >= int(cfg.get("preempt_min_run_seconds", 1200)):
             # Only a job with frames still to render after the one in progress can
             # yield at a frame boundary; anything else finishes first.
             # Not dry: an `any` job is claimed (and its claim wait sat out) while this
@@ -933,7 +938,11 @@ class Runner:
                 w = claim_winner(self.q.claims(jid))
                 if w and w != self.machine:
                     continue
-            cands.append(order_key(job, cfg, resumed=rec is not None))
+            # A job preempted before it had run preempt_min_run_seconds is owed the
+            # rest of that run: it goes back in ahead of any queued earlier-lane job,
+            # so back-to-back light jobs cannot keep a final swapped out.
+            owed = swap_in_for is None and rec is not None and rec.get("why") == "preempted" and                 float(rec.get("last_ran", 0)) < int(cfg.get("preempt_min_run_seconds", 1200))
+            cands.append((0 if owed else 1,) + order_key(job, cfg, resumed=rec is not None))
         for c in sorted(cands):
             jid = c[-1]
             if dry:
@@ -1145,6 +1154,7 @@ class Runner:
             rec["state"] = "stopped"
             self.log(f"{why}: stopped {jid}; it relaunches later and skips finished frames")
         rec["why"] = why
+        rec["last_ran"] = round(time.time() - rec.get("started_epoch", time.time()), 1)
         rec.pop("swap", None)
         self.save()
 

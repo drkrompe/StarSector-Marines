@@ -15,8 +15,8 @@ machinery drum lying fore and aft (Y -12..-24, X 9..34, lit along its crown
 at Y -17..-20 and rounding off at the bow, X 31..34), the burnt-orange rails
 outboard of it and the outrigger beyond. So the lattice columns, girders and
 travelling crane are gone, and so is the top-deck plant they served; the
-core is that drum, on cradle saddles over the base deck, with the WS 008 bed
-as a round pedestal on its forward crown. The rails, the operator cab, the
+core is that drum, on cradle saddles over the base deck, with the WS 008 well
+cut into its forward crown (the turret kit's bay for the fitted hardpoint). The rails, the operator cab, the
 turret deck and the outrigger stand as pass 2 left them.
 
 Pass 2 reading of the repair_gantry as working repair plant (superseded for
@@ -47,7 +47,8 @@ Names: 'Gantry ...' and 'Frame starboard ...'.
 import math
 import bpy
 from mathutils import Vector
-from sh_kit import prism, section, material, loft_x, octagon, pod, ngon, boolean
+from sh_kit import prism, section, material, loft_x, octagon, pod, ngon, boolean, seg
+import sh_mounts
 
 Z0 = -12.0                                 # base deck height (ENVELOPE.md)
 CORE_BOT, CORE_TOP = -10.0, 6.0            # rail heights (the pass-1 core envelope)
@@ -59,11 +60,13 @@ DRUM_ST = [(8.6, 4.8, 6.6), (9.6, 6.0, 8.0), (27.0, 6.0, 8.0), (30.2, 5.3, 7.0),
 DRUM_N = 12
 SADDLE_X = (12.0, 20.0, 27.0)
 # WS 008 sits recessed in a well cut into the drum's forward crown (owner, pass 3),
-# with a trough running forward for the barrel. Sized for the hardpoint's 20 deg arc.
-WELL = (24.0, 30.6, -19.0, 2.6, 2.6)       # x0, x1, centre y, half-width, floor z
-TROUGH = (30.4, 35.5, 1.85, 2.95)          # x0, x1, half-width, floor z
+# with a trough running forward over the nose for the tubes. The well is the turret
+# kit's own bay for the fitted hardpoint, scaled as it is built (sh_mounts.hardpoint_bay).
+_BAY = sh_mounts.hardpoint_bay()
+WELL = (*_BAY['x'], _BAY['y'], _BAY['half_width'], _BAY['floor'])     # x0, x1, centre y, half-width, floor z
+TROUGH = (*_BAY['trough_x'], _BAY['trough_half_width'], _BAY['trough_floor'])  # x0, x1, half-width, floor z
 
-BED_BOT, BED_TOP = 1.4, 2.62               # 'Gantry forward hardpoint bed' (WS 008 seats on its top)
+BED_BOT, BED_TOP = 1.4, sh_mounts.HARDPOINT_FLOOR_Z   # 'Gantry forward hardpoint bed' (WS 008 stands on its top)
 DECK_BOT, DECK_TOP = -6.0, 3.0             # 'Frame starboard turret deck' (WS 007 seats on its top)
 OUT_BOT, OUT_TOP = -9.0, 5.0               # starboard outrigger envelope
 UP_BOT, UP_TOP = OUT_TOP-2.5, OUT_TOP-.5   # outrigger upper truss; walkway plate OUT_TOP-.5..OUT_TOP
@@ -105,6 +108,7 @@ class _Parts:
         self._hexa([a-u-v, a+u-v, a+u+v, a-u+v, b-u-v, b+u-v, b+u+v, b-u+v])
 
     def cyl(self, c, r, depth, axis='Z', n=10):
+        n = seg(r, n)
         c = Vector(c)
         ax = {'X': Vector((1, 0, 0)), 'Y': Vector((0, 1, 0)), 'Z': Vector((0, 0, 1))}[axis]
         e1 = Vector((0, 0, 1)) if axis != 'Z' else Vector((1, 0, 0))
@@ -178,7 +182,7 @@ def _skin(core, x, y):
     return p.z if hit else None
 
 
-def _rim(kit, name, core, edges, w, h, mat, step=.25):
+def _rim(kit, name, core, edges, w, h, mat, step=.1):
     """One continuous coaming band laid on the skin along each edge [(a, b), ...]:
     w wide, standing h proud, its foot sunk a little so it never floats."""
     verts, faces = [], []
@@ -208,8 +212,8 @@ def _rim(kit, name, core, edges, w, h, mat, step=.25):
 def _well(kit, core):
     """The WS 008 well, finished the way a recessed weapon pocket would be: a flush
     bolted armour coaming round the cut edge (following the drum's skin, not a
-    level frame), a lined barrel trough with a ribbed blast plate under the muzzle,
-    and drain grilles either side of the cradle. No hazard paint: nobody works on
+    level frame), a lined trough over the nose with a ribbed blast plate under the
+    tube mouths, and drain grilles either side of the housing. No hazard paint: nobody works on
     the drum's crown, and a hardpoint that traverses +-10 deg has no crush zone."""
     x0, x1, wy, hw, fz = WELL
     tx0, tx1, thw, tz = TROUGH
@@ -229,16 +233,16 @@ def _well(kit, core):
     # Trough liner plates and the ribbed blast plate under the muzzle.
     lin, rib = _Parts(), _Parts()
     lin.box(((tx0+tx1)/2, wy, tz+.05), (tx1-tx0, 2*thw-.2, .1))
-    for k in range(7):
-        rib.box((32.2+k*.36, wy, tz+.16), (.14, 2*thw-.5, .12))
+    for k in range(int((tx1-tx0-.8)/.36)):
+        rib.box((tx0+.4+k*.36, wy, tz+.16), (.14, 2*thw-.5, .12))
     lin.make(kit, 'Gantry hardpoint trough liner', kit.steel, .02)
     rib.make(kit, 'Gantry hardpoint trough blast plate ribs', kit.dark)
     # Drain grilles in the well floor, on the side strips clear of the cradle.
     g, sl = _Parts(), _Parts()
-    for gy in (wy-hw+.38, wy+hw-.38):
-        g.box(((x0+x1)/2, gy, BED_TOP+.02), (x1-x0-1.0, .5, .06))
+    for gy in (wy-hw+.26, wy+hw-.26):
+        g.box(((x0+x1)/2, gy, BED_TOP+.02), (x1-x0-1.0, .3, .06))
         for k in range(10):
-            sl.box((x0+.7+k*(x1-x0-1.4)/9, gy, BED_TOP+.06), (.12, .42, .06))
+            sl.box((x0+.7+k*(x1-x0-1.4)/9, gy, BED_TOP+.06), (.12, .24, .06))
     g.make(kit, 'Gantry hardpoint well drain grilles', kit.dark)
     sl.make(kit, 'Gantry hardpoint well drain grille slats', kit.steel)
 

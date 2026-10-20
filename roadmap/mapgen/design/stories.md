@@ -25,6 +25,5 @@ three lane-seeding defects it uncovered are fixed and folded into
 | `refinery-district.md` | PROPOSED | Make refining a tactically distinct economic district. |
 | `agriculture-district.md` | PROPOSED | Make agriculture a tactically distinct economic district. |
 | `target-faction-facility-treatment.md` | PLANNED | Give the shared shield-relay and later battery functions core/modded faction-specific geometry, materials, cover, and approach character without changing their battle laws. |
-| `compound-prepared-ground.md` | DRAFT | Compounds and facilities offer prepared ground and building envelopes as garrisonables; waits on `reactive-garrisons.md`. |
 
 Historical implementation slices belong in `shipped.md`.

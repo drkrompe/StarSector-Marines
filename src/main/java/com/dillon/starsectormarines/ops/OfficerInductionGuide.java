@@ -11,8 +11,6 @@ final class OfficerInductionGuide {
         return switch (step) {
             case SHIP -> new CompanyManagementGuide.Line("preparation-ship", Strings.get("openingOfficerInductionGuideAHomeForTheCompany"),
                     Strings.get("openingOfficerInductionGuideFirstCommanderChooseAShipWithQuarters"));
-            case LIFT -> new CompanyManagementGuide.Line("preparation-lift", Strings.get("openingOfficerInductionGuideOurFirstLift"),
-                    Strings.get("openingOfficerInductionGuideOurPeopleNeedAWayDownAnd"));
             case INTRODUCTION -> new CompanyManagementGuide.Line("officer-introduction", Strings.get("openingOfficerInductionGuideMeetYourFieldCommander"),
                     Strings.format("openingOfficerInductionGuideCommanderWillLeadOurFirstFormationYou", name));
             case SPECIALTY -> new CompanyManagementGuide.Line("officer-specialty", Strings.get("openingOfficerInductionGuideHerFirstSpecialty"),

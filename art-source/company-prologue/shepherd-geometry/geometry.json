@@ -98,7 +98,7 @@
     "published_metres_per_unit": 0.78,
     "published_note": "kept at the pass-4 figure (own deck-program solve, 45% usable) by the owner's choice, 2026-10-18, over the shared-basis solve",
     "measured_this_build": {
-      "enclosed_units3": 42222,
+      "enclosed_units3": 42231,
       "solids": [
         "Bridge hull",
         "Drone bay aft hangar pod",
@@ -298,7 +298,7 @@
       "location": [
         27,
         -19,
-        3.62
+        3.74
       ],
       "angle": 0,
       "arc": 20,
@@ -309,10 +309,91 @@
       "pivot": "Hardpoint 1 WS 008 pivot",
       "muzzle": "Hardpoint 1 WS 008 muzzle",
       "muzzle_location": [
-        33.5,
-        -19,
-        3.62
-      ]
+        32.4,
+        -16.975,
+        3.74
+      ],
+      "hardpoint": {
+        "weapon": "swarmer",
+        "variant": "shepherd_Frontier",
+        "built_by": "turret-kit/turret_kit.py build_hardpoint",
+        "k": 0.45,
+        "bay": {
+          "x": [
+            24.3,
+            32.58
+          ],
+          "y": -19,
+          "half_width": 3.78,
+          "floor": 2.435,
+          "axis": 3.74,
+          "trough_x": [
+            32.31,
+            35.5
+          ],
+          "trough_half_width": 3.105,
+          "trough_floor": 2.885
+        },
+        "parts": [
+          "Hardpoint 1 WS 008 hardpoint accent#fusebox",
+          "Hardpoint 1 WS 008 hardpoint accent#tubes",
+          "Hardpoint 1 WS 008 hardpoint cable",
+          "Hardpoint 1 WS 008 hardpoint dark",
+          "Hardpoint 1 WS 008 hardpoint lamp_red",
+          "Hardpoint 1 WS 008 hardpoint mark",
+          "Hardpoint 1 WS 008 hardpoint metal#caps",
+          "Hardpoint 1 WS 008 hardpoint paint#housing",
+          "Hardpoint 1 WS 008 hardpoint plate",
+          "Hardpoint 1 WS 008 hardpoint plate#collars",
+          "Hardpoint 1 WS 008 hardpoint steel",
+          "Hardpoint 1 WS 008 missile 1 dark",
+          "Hardpoint 1 WS 008 missile 1 missile",
+          "Hardpoint 1 WS 008 missile 1 plate",
+          "Hardpoint 1 WS 008 missile 2 dark",
+          "Hardpoint 1 WS 008 missile 2 missile",
+          "Hardpoint 1 WS 008 missile 2 plate",
+          "Hardpoint 1 WS 008 missile 3 dark",
+          "Hardpoint 1 WS 008 missile 3 missile",
+          "Hardpoint 1 WS 008 missile 3 plate",
+          "Hardpoint 1 WS 008 missile 4 dark",
+          "Hardpoint 1 WS 008 missile 4 missile",
+          "Hardpoint 1 WS 008 missile 4 plate"
+        ],
+        "moving": [
+          "Hardpoint 1 WS 008 missile 1",
+          "Hardpoint 1 WS 008 missile 2",
+          "Hardpoint 1 WS 008 missile 3",
+          "Hardpoint 1 WS 008 missile 4"
+        ],
+        "muzzles": [
+          "Hardpoint 1 WS 008 muzzle anchor 1",
+          "Hardpoint 1 WS 008 muzzle anchor 2",
+          "Hardpoint 1 WS 008 muzzle anchor 3",
+          "Hardpoint 1 WS 008 muzzle anchor 4"
+        ],
+        "muzzle_locations": [
+          [
+            32.4,
+            -16.975,
+            3.74
+          ],
+          [
+            32.4,
+            -18.325,
+            3.74
+          ],
+          [
+            32.4,
+            -19.675,
+            3.74
+          ],
+          [
+            32.4,
+            -21.025,
+            3.74
+          ]
+        ]
+      }
     }
   ],
   "engines": [
@@ -541,11 +622,5 @@
       "orthographic_scale": 128,
       "rotation": "looks at [2.0, 0.0, 3.0]"
     }
-  ],
-  "silhouette": {
-    "iou": 0.9372,
-    "sprite_uncovered": 0.0236,
-    "model_outside_sprite": 0.0418,
-    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 13.71 px per unit"
-  }
+  ]
 }

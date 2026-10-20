@@ -49,7 +49,7 @@
     "size_m": [
       15.0,
       14.4,
-      3.5
+      3.7
     ],
     "canopy": {
       "length_m": 2.66,
@@ -69,22 +69,34 @@
   "parked_check": {
     "feet": [
       "Hull port fore leg pad",
+      "Hull port fore leg claw 1",
+      "Hull port fore leg claw 2",
+      "Hull port fore leg claw 3",
       "Hull starboard fore leg pad",
+      "Hull starboard fore leg claw 1",
+      "Hull starboard fore leg claw 2",
+      "Hull starboard fore leg claw 3",
       "Hull port aft leg pad",
-      "Hull starboard aft leg pad"
+      "Hull port aft leg claw 1",
+      "Hull port aft leg claw 2",
+      "Hull port aft leg claw 3",
+      "Hull starboard aft leg pad",
+      "Hull starboard aft leg claw 1",
+      "Hull starboard aft leg claw 2",
+      "Hull starboard aft leg claw 3"
     ],
     "deck_plane_units": {
-      "z0": -4.2,
-      "dz_dx": -0.0,
-      "dz_dy": 0.0
+      "z0": -4.194,
+      "dz_dx": 0.0,
+      "dz_dy": -0.0
     },
-    "stance_pitch_deg_nose_down": -0.0,
-    "stance_roll_deg": 0.0,
-    "foot_level_spread_m": 0.0,
-    "lowest_other_part": "Hull port fore leg piston",
-    "deck_clearance_m": 0.057,
+    "stance_pitch_deg_nose_down": 0.0,
+    "stance_roll_deg": -0.0,
+    "foot_level_spread_m": 0.004,
+    "lowest_other_part": "Hull starboard aft leg ankle cheek starboard",
+    "deck_clearance_m": 0.056,
     "lowest_body_part": "Engine 1 collar rib 2",
-    "body_clearance_m": 0.363
+    "body_clearance_m": 0.36
   },
   "sprite": {
     "size": [
@@ -101,7 +113,7 @@
     "min": [
       -13.0,
       -16.0,
-      -4.2
+      -4.7
     ],
     "max": [
       20.4,
@@ -111,8 +123,409 @@
     "size": [
       33.4,
       32.0,
-      7.72
+      8.22
+    ],
+    "note": "landed (gear down); flight_* is gear up",
+    "flight_min": [
+      -13.0,
+      -16.0,
+      -3.39
+    ],
+    "flight_max": [
+      20.4,
+      16.0,
+      3.52
+    ],
+    "flight_size": [
+      33.4,
+      32.0,
+      6.91
     ]
+  },
+  "landing_gear": {
+    "control": "Longbow control",
+    "knob": "gear_down",
+    "knob_meaning": "0 stowed with the doors shut (flight); 1 deployed, standing on the parked deck",
+    "saved_knob": 0.0,
+    "spans": {
+      "doors": [
+        0.0,
+        0.3
+      ],
+      "legs": [
+        0.25,
+        1.0
+      ],
+      "claws": [
+        0.85,
+        1.0
+      ]
+    },
+    "hinges": [
+      {
+        "name": "Hull port fore leg hinge",
+        "mount": "Hull port fore leg hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 78.226,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.25,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull port fore leg claw 1 hinge",
+        "mount": "Hull port fore leg claw 1 hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 100.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.85,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull port fore leg claw 2 hinge",
+        "mount": "Hull port fore leg claw 2 hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 100.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.85,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull port fore leg claw 3 hinge",
+        "mount": "Hull port fore leg claw 3 hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 100.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.85,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull port fore leg door outboard hinge",
+        "mount": "Hull port fore leg door outboard hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": 160.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      },
+      {
+        "name": "Hull port fore leg door inboard hinge",
+        "mount": "Hull port fore leg door inboard hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": -95.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      },
+      {
+        "name": "Hull starboard fore leg hinge",
+        "mount": "Hull starboard fore leg hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 78.226,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.25,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull starboard fore leg claw 1 hinge",
+        "mount": "Hull starboard fore leg claw 1 hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 100.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.85,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull starboard fore leg claw 2 hinge",
+        "mount": "Hull starboard fore leg claw 2 hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 100.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.85,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull starboard fore leg claw 3 hinge",
+        "mount": "Hull starboard fore leg claw 3 hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 100.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.85,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull starboard fore leg door outboard hinge",
+        "mount": "Hull starboard fore leg door outboard hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": -160.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      },
+      {
+        "name": "Hull starboard fore leg door inboard hinge",
+        "mount": "Hull starboard fore leg door inboard hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": 95.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      },
+      {
+        "name": "Hull port aft leg hinge",
+        "mount": "Hull port aft leg hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 102.531,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.25,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull port aft leg claw 1 hinge",
+        "mount": "Hull port aft leg claw 1 hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 100.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.85,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull port aft leg claw 2 hinge",
+        "mount": "Hull port aft leg claw 2 hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 100.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.85,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull port aft leg claw 3 hinge",
+        "mount": "Hull port aft leg claw 3 hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 100.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.85,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull port aft leg door outboard hinge",
+        "mount": "Hull port aft leg door outboard hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": 160.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      },
+      {
+        "name": "Hull port aft leg door inboard hinge",
+        "mount": "Hull port aft leg door inboard hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": -95.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      },
+      {
+        "name": "Hull starboard aft leg hinge",
+        "mount": "Hull starboard aft leg hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 102.531,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.25,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull starboard aft leg claw 1 hinge",
+        "mount": "Hull starboard aft leg claw 1 hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 100.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.85,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull starboard aft leg claw 2 hinge",
+        "mount": "Hull starboard aft leg claw 2 hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 100.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.85,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull starboard aft leg claw 3 hinge",
+        "mount": "Hull starboard aft leg claw 3 hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 100.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.85,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull starboard aft leg door outboard hinge",
+        "mount": "Hull starboard aft leg door outboard hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": -160.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      },
+      {
+        "name": "Hull starboard aft leg door inboard hinge",
+        "mount": "Hull starboard aft leg door inboard hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": 95.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      }
+    ],
+    "units": [
+      {
+        "name": "Hull port fore leg",
+        "hinges": [
+          "Hull port fore leg hinge"
+        ],
+        "bay_in": [
+          "Wing port fore arm",
+          "Hull fore web",
+          "Weapon WS 001 housing"
+        ],
+        "doors": [
+          "Hull port fore leg door outboard",
+          "Hull port fore leg door inboard"
+        ],
+        "liners": [
+          "Hull port fore leg bay liner"
+        ]
+      },
+      {
+        "name": "Hull starboard fore leg",
+        "hinges": [
+          "Hull starboard fore leg hinge"
+        ],
+        "bay_in": [
+          "Wing starboard fore arm",
+          "Hull fore web",
+          "Weapon WS 002 inner plate"
+        ],
+        "doors": [
+          "Hull starboard fore leg door outboard",
+          "Hull starboard fore leg door inboard"
+        ],
+        "liners": [
+          "Hull starboard fore leg bay liner"
+        ]
+      },
+      {
+        "name": "Hull port aft leg",
+        "hinges": [
+          "Hull port aft leg hinge"
+        ],
+        "bay_in": [
+          "Wing port aft arm",
+          "Hull aft web",
+          "Hull fuselage"
+        ],
+        "doors": [
+          "Hull port aft leg door outboard",
+          "Hull port aft leg door inboard"
+        ],
+        "liners": [
+          "Hull port aft leg bay liner"
+        ]
+      },
+      {
+        "name": "Hull starboard aft leg",
+        "hinges": [
+          "Hull starboard aft leg hinge"
+        ],
+        "bay_in": [
+          "Wing starboard aft arm",
+          "Hull aft web",
+          "Hull fuselage"
+        ],
+        "doors": [
+          "Hull starboard aft leg door outboard",
+          "Hull starboard aft leg door inboard"
+        ],
+        "liners": [
+          "Hull starboard aft leg bay liner"
+        ]
+      }
+    ],
+    "clash_sweep": {
+      "knobs": [
+        0.0,
+        0.05,
+        0.1,
+        0.15,
+        0.2,
+        0.25,
+        0.3,
+        0.35,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        0.95,
+        1.0
+      ],
+      "clashes": [],
+      "stowed_outside_m": [],
+      "rule": "no moving part through anything but its own bay solids and liners, no leg through its own doors, and stowed every leg vertex between the skin's underside and top"
+    },
+    "pose_reference": "fg_gear.Gear.pose(k); the drivers on each hinge evaluate the same expression",
+    "notes": "Retractable since 2026-10-20 (fg_gear). The thin splayed legs and round pads are replaced by box-section shock struts on broad pads with three claws each. Each leg folds about an axis that lays it flat along the arm above it (fore legs out along the fore arms, aft legs in along the aft arms toward the fuselage); the claws curl up beside the strut as it lifts and uncurl onto the deck over the last 15% of the knob. Each bay is a strip along the arm with a dark liner and two doors on its long edges; the outboard door opens to 160 degrees, back up toward the skin, because the strut swings in a plane tilted by its splay. The feet stand where the pads stood."
   },
   "root": {
     "name": "Longbow root",
@@ -243,7 +656,7 @@
       "position": [
         3.5,
         0.0,
-        139.65890502929688
+        139.40704345703125
       ],
       "orthographic_scale": 67.69777777777779
     },
@@ -251,7 +664,7 @@
       "position": [
         3.5,
         140.0,
-        -0.34109175205230713
+        -0.5929611921310425
       ],
       "orthographic_scale": 45.083332856496185
     },
@@ -259,7 +672,7 @@
       "position": [
         143.5,
         0.0,
-        -0.34109175205230713
+        -0.5929611921310425
       ],
       "orthographic_scale": 64.6
     },
@@ -267,7 +680,7 @@
       "position": [
         94.5,
         101.5,
-        69.65890502929688
+        69.40703582763672
       ],
       "orthographic_scale": 59.5
     },
@@ -275,7 +688,7 @@
       "position": [
         87.5,
         119.0,
-        18.90890884399414
+        18.657039642333984
       ],
       "orthographic_scale": 70.0
     }
@@ -348,9 +761,9 @@
     }
   },
   "object_count": {
-    "meshes": 116,
-    "empties": 7,
-    "pass2_detail_meshes": 88
+    "meshes": 168,
+    "empties": 56,
+    "pass2_detail_meshes": 140
   },
   "silhouette": {
     "iou": 0.9506,

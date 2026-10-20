@@ -31,7 +31,7 @@ Heights are proposed art; the game gives none.
 import math
 import bmesh
 import bpy
-from mt_kit import boolean, facet_normal, loft_x, plane_cut, prism, section, sweep, sym
+from mt_kit import armour_plates, hull_plating, boolean, facet_normal, loft_x, plane_cut, prism, section, sweep, sym
 
 HEAD = sym([(85.5, 9), (84, 14), (80.5, 20), (66, 21), (63, 18.5), (61, 16.5)])
 NECK = sym([(63, 16.5), (58, 16), (50, 18), (44, 19.5), (38, 21)])
@@ -51,7 +51,9 @@ POD = (23, 65, 13.5)
 # The nacelle's lofted stations (x, half-width, deck, keel), before the wing droop.
 # Round 9 (owner: long angular sections, not small ones): three panels a side,
 # a long taper to the point, a long parallel body and a short tail.
-POD_STATIONS = [(42, 2, 3, -6), (30, 10.5, 11, -13), (14, 10.5, 11, -13), (5, 5, 7, -7)]
+# Round 15: read off the sprite's plan (outboard edge Y 77-79 from X 12 to 31,
+# a blunt chamfered nose ending at X 37): the nose station is the blunt front.
+POD_STATIONS = [(37.5, 4.5, 11, -9), (31.5, 12.5, 11, -13), (14, 12.5, 11, -13), (5, 6, 7.5, -7)]
 # Owner, round 3 (a bird of prey): the arms bend down toward their tips, 0.16
 # per unit outboard of |Y| 24 and 0.42 outboard of |Y| 46. Round 4 (owner: the
 # neck still climbs; the central hull can go down): the whole forward hull
@@ -110,6 +112,47 @@ LAUNCHER_WELL_DEPTH = 3.5
 SHOULDER = math.tan(math.radians(30))
 LOWER = 1.0
 FALL, RAKE = 30, 45
+
+
+POD_LIP = 1.0     # the armour coaming round the nacelle's turret deck, outboard
+
+
+def pod_section(hw, top, bot, s):
+    """The gun nacelle's section [(dy, z)], dy outboard positive (mirrored by s):
+    a flat turret deck, a raised armour coaming along its outboard edge with a
+    30 deg outer shoulder, a vertical outboard wall, 45 deg lower faces to a
+    narrow keel, and a lower inboard side with a 30 deg shoulder."""
+    a, b, lip = .7*hw, .3*hw, POD_LIP
+    mu = top-SHOULDER*(hw-a)
+    ml = min(bot+LOWER*(hw-b), mu-2)
+    pts = [(.68*hw, top+lip), (.86*hw, top+lip), (hw, top+lip-SHOULDER*.14*hw), (hw, ml), (b, bot), (-b, bot),
+           (-hw, ml), (-hw, mu), (-a, top), (.64*hw, top)]
+    return [(s*dy, z) for dy, z in pts]
+
+
+def pod_half_width(x):
+    """The nacelle's half-width at x (linear between POD_STATIONS)."""
+    st = sorted(POD_STATIONS)
+    if x <= st[0][0]:
+        return st[0][1]
+    for (xa, wa, _, _), (xb, wb, _, _) in zip(st, st[1:]):
+        if x <= xb:
+            return wa+(wb-wa)*(x-xa)/(xb-xa)
+    return st[-1][1]
+
+
+def paint_pod_armour(kit, pod, y, s):
+    """Red armour on the nacelle's nose, rakes, outboard side and coaming top;
+    the turret deck, keel and inboard side stay the dark structure."""
+    me = pod.data
+    if kit.red.name not in me.materials:
+        me.materials.append(kit.red)
+    ri = [m.name for m in me.materials].index(kit.red.name)
+    for f in me.polygons:
+        n, c = f.normal, f.center
+        out = (c.y*s-y)
+        if n.x > .3 or n.y*s > .25 or (n.z > .9 and out > .66*pod_half_width(c.x)):
+            f.material_index = ri
 
 
 DOME_OUTLINE = [(-1, 5), (-3, 9.5), (-8, 11.5), (-15, 11), (-19.5, 7)]   # port side, bow to stern
@@ -222,13 +265,21 @@ def build(kit):
         plane_cut(horn, f'{side} horn beak rake', (79, 0, HORN_TOP), facet_normal((1, 0), RAKE))
         n = facet_normal((1, 0), RAKE)
         plane_cut(horn, f'{side} horn chin', (82, 0, -9.0), (n[0], 0, -n[2]))
-        kit.hull.append(droop(horn))
+        # Round 15: the strake is combat armour, laid in courses (mt_kit.armour_plates).
+        droop(horn)
+        armour_plates(kit, horn, [((x, 0, 0), (1, 0, 0)) for x in (50, 55, 62, 70, 78)])
+        kit.hull.append(horn)
     crossbar = prism(kit, 'Hull bow crossbar', ccw(sym([(66.5, 7.5), (64, 9.5), (61, 8.5), (60.5, 4)])),
                      section(4.0, HEAD_DECK+1.6, .5, 1.3), kit.red, .15)
-    kit.hull += [droop(crossbar)]
+    droop(crossbar)
+    armour_plates(kit, crossbar)
+    kit.hull += [crossbar]
 
     neck = droop(lofted(kit, 'Hull neck', NECK_STATIONS, kit.steel))
     core = droop(lofted(kit, 'Hull core', CORE_STATIONS, kit.red, keel=.25))
+    # Round 15: the core is hull, not combat armour: fine plate lines at its
+    # frames; the decks where the bridge and fittings stand stay whole.
+    hull_plating(kit, core, [((x, 0, 0), (1, 0, 0)) for x in (34, 21, 8, -3, -14, -26)])
     # The main gun stands in a well, so its roof sits low under the bridge's sightline.
     r, d = MAIN_WELL
     well = kit.cylinder('Temporary main well cutter', (21, 0, CORE_DECK-d+10-nose_drop(21)), r, 20, kit.red, vertices=24)
@@ -246,33 +297,26 @@ def build(kit):
     lx, ly = LAUNCHER
     ldrop = wing_drop(ly)
     for side, s in (('port', 1), ('starboard', -1)):
-        # Gun nacelle (owner, round 6: the arm ends were oddly cylindrical): a
-        # faceted armoured nacelle tapering to a point forward and a short
-        # stern, flat only under the turret ring.
+        # Gun nacelle. Round 15 (owner: "the wing tips near the turrets have
+        # weird hull still"): one armoured body read off the sprite's plan, a
+        # blunt chamfered nose at X 37 and the outboard edge at Y 77.5, in
+        # place of round 11's point to X 42 and the separate collar and nose
+        # glacis that stood below its deck. Its outboard side and nose are the
+        # red armour (with a raised coaming round the turret deck), its inboard
+        # side the dark structure that meets the wing framework, and the
+        # armour is laid in plates (mt_kit.armour_plates).
         pod = loft_x(kit, f'Hull {side} turret pod',
-                     [(px, [(s*y+yy, zz-drop) for yy, zz in facets(hw, top, bot, flat=.68, keel=.3)])
+                     [(px, [(s*(y+yy), zz-drop) for yy, zz in pod_section(hw, top, bot, s)])
                       for px, hw, top, bot in POD_STATIONS], kit.steel)
-        kit.hull.append(droop(pod))
-        # Angular armour on the nacelle (after the Onslaught's layered plate):
-        # an outboard flank plate with a raked face, and a chevron glacis on
-        # the nacelle's nose.
-        # Round 9: one long red flank plate down the nacelle's outboard side,
-        # raked at both ends (the separate nose glacis is gone).
-        flank = prism(kit, f'Hull {side} pod armour collar',
-                      ccw([(39.5, s*(y+3.5)), (30, s*(y+11.2)), (14, s*(y+11.2)), (5.5, s*(y+5.8))]),
-                      section(-11.0-drop, 7.5-drop, 2.4, 1.6), kit.red, .12)
-        plane_cut(flank, f'{side} flank outboard fall', (22, s*(y+8.5), 7.5-drop), facet_normal((0, s), FALL))
-        plane_cut(flank, f'{side} flank forward rake', (33, s*(y+8), 7.5-drop), facet_normal((1, .4*s), RAKE))
-        plane_cut(flank, f'{side} flank aft rake', (9, s*(y+8), 7.5-drop), facet_normal((-1, .4*s), RAKE))
-        kit.hull.append(droop(flank))
-        # Round 11: a thick red glacis on the nacelle's nose, ahead of the gun ring.
-        nose = prism(kit, f'Hull {side} pod nose glacis',
-                     ccw([(43, s*y), (35, s*(y+8.5)), (31, s*(y+8.5)), (31, s*(y-8.5)), (35, s*(y-8.5))]),
-                     section(-7.0-drop, 13.0-drop, 2.0, .8), kit.red, .12)
-        plane_cut(nose, f'{side} nose glacis rake', (32, s*y, 13.0-drop), facet_normal((1, 0), 35))
-        for k in (1, -1):
-            plane_cut(nose, f'{side} nose glacis cheek {k}', (36, s*(y+k*5), 13.0-drop), facet_normal((.3, s*k), 40))
-        kit.hull.append(droop(nose))
+        nose_x = POD_STATIONS[1][0]+1.5
+        plane_cut(pod, f'{side} pod nose rake', (nose_x, s*y, POD_STATIONS[1][2]-drop+POD_LIP),
+                  facet_normal((1, 0), 40))
+        n = facet_normal((1, 0), 45)
+        plane_cut(pod, f'{side} pod chin', (nose_x-2, s*y, POD_STATIONS[1][3]-drop), (n[0], 0, -n[2]))
+        paint_pod_armour(kit, pod, y, s)
+        droop(pod)
+        armour_plates(kit, pod, [((x, 0, 0), (1, 0, 0)) for x in (9, 15, 21, 27, 33)], plate_mat=kit.red)
+        kit.hull.append(pod)
         # Launcher bay (rounds 5-8: inset, flush with the deck, ending at the
         # leading edge; the rack sits down a recess open forward through it).
         # Round 9 (owner: long sections): the leading-edge armour and the
@@ -288,6 +332,8 @@ def build(kit):
         plane_cut(band, f'{side} band root rake', (44.5, 0, 4.0), facet_normal((1, 0), 60))
         plane_cut(band, f'{side} band inboard chamfer', (40, s*19, top), facet_normal((0, -s), 45))
         bay = droop(shear(band))
+        # Round 15: the glacis band is the arm's fighting face, laid in courses.
+        armour_plates(kit, bay, [((0, s*y0, 0), (0, 1, 0)) for y0 in (28, 33, 38, 43, 48, 53)])
         # The band's root must stop at the main gun's well (it reached into it, rounds 9-10).
         r, d = MAIN_WELL
         boolean(bay, kit.cylinder(f'Temporary {side} band well cutter', (21, 0, CORE_DECK-d-nose_drop(21)), r, 40,
@@ -318,6 +364,7 @@ def build(kit):
     plane_cut(tier, 'tier aft rake', (-25, 0, BRIDGE_DECK), facet_normal((-1, 0), 30))
     for s in (1, -1):
         plane_cut(tier, f'tier {s} side fall', (-10, s*14, BRIDGE_DECK), facet_normal((0, s), 30))
+    hull_plating(kit, tier, [((-8, 0, 0), (1, 0, 0)), ((-17, 0, 0), (1, 0, 0))])
     kit.hull.append(tier)
     # The pale command dome on the tier (sprite rows 87-110). Round 14 (owner:
     # "too low poly"): its plan is a smooth closed curve through the round-3

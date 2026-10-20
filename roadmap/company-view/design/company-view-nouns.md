@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Illustrated opening and founding-yard review with a limited conversion and continuing restoration.
+Updated: 2026-10-20 — a lost Second Wind is bought back from the planet menu in place of Marine operations, and campaign missions need her with the company aboard; the prologue is seven pages, and Castle's saved credits pay for the yard.
 
 ## Purpose
 
@@ -569,8 +569,10 @@ and one with none shows the route greyed, exactly as a hull with no vehicle bay
 shows no lab.
 
 **Second Wind starts with two wrecked Hermes, not two usable boats.** The accessible
-wreck is repaired for the opening contracts using the existing Hermes material bill
-and finite local depot. Restoring the sealed bay exposes the second wreck; its repair
+wreck is repaired for the first ferry job, Counterattack, using the existing Hermes
+material bill and finite local depot. Relief needs no boat: the company rides up to
+it on Wayline's truck. The repair is Castle's first-lift lesson between the two
+chapters. Restoring the sealed bay exposes the second wreck; its repair
 is a separate material order. Each original wreck is consumed once by a successful
 repair. Failed payment leaves it intact, and a later combat loss never recreates it.
 Legacy occupied or previously opened berths are treated as already recovered; the
@@ -581,7 +583,7 @@ renderer; they supply neither lift nor ambient servicing or sorties.
 **New companies commission their boats.** A hull supplies the berth count and
 compatible pattern, while a new company's berths start empty. Commissioning
 consumes the authored fabrication bill and creates a standard-fit boat. One
-reusable boat supplies the opening mission's lift through repeated trips; further
+reusable boat supplies the first ferry job's lift through repeated trips; further
 boats increase simultaneous delivery. Existing owned boats remain intact, and a
 legacy deck without an established ship receives its historical complement once.
 
@@ -816,8 +818,8 @@ Venn course/contact lead for Hold Until Relieved, canonically on Jangala.
 The accessible-office policy remains the mission domain's authority.
 
 The portrait popover moves beside the real controls. Its dimmed background has
-live click-through openings, and four SVG milestones identify ship, lift, officer
-and squad preparation. Ship selection, commissioning, specialty training, squad
+live click-through openings, and four SVG milestones identify ship, officer,
+squad founding and assignment. Ship selection, specialty training, squad
 founding and assignment remain real orders. The opening lesson has no Later
 control and Escape does not dismiss it. Return to campaign remains available for
 travel or resupply; the required lesson returns on re-entry. Advancing dialogue
@@ -1254,23 +1256,27 @@ parallel organization or another inventory economy.
 ## Cerberus founding start and planetary stores
 
 The optional Cerberus company start is selected through vanilla character creation.
-It gives the player one unconverted Cerberus, 500 spendable credits and travel reserves;
+It gives the player one unconverted Cerberus, 473 spendable credits and travel reserves;
 it neither designates the vessel nor awards a shuttle, squad, mech or specialty.
 The hull starts as the wreck the story describes: a Cerberus (D) carrying a full
 wreck's five d-mods and only two Vulcans in its small mounts, the guns nobody stripped.
 Vanilla and Nexerelin starts hand out the same variant (`CerberusCompanyStart.START_VARIANT_ID`);
 restoring and arming her are ordinary yard work, not part of the opening.
 Castle directs the player to an accessible planetary spaceport, preferring Jangala.
-A new selection first opens **Second Wind**, a skippable eight-scene illustrated prologue
-with Castle's portrait and readable dialogue. The crew escaped **Harker's Claim**, an
+A new selection first opens **Second Wind**, a skippable seven-page illustrated prologue
+with Castle's portrait and readable dialogue; each page turns on the Commander's own
+answer to her, and the last one, "Take us to" the start port, plots the course. The crew escaped **Harker's Claim**, an
 independent mining asteroid, after its operator withdrew. Company scrip became
 worthless as the colony's supplies ran out. They restored a grounded Cerberus; the player
 earned command by organizing the escape, while Castle supplied port and convoy
-logistics experience. Earlier player biography remains open. Pooled savings and
-Castle's finite prepaid consignment explain the starting means. Castle holds the
-5,000-credit conversion payment separately from the fleet account, usable only for
-the original ship's yard conversion. Spending the fleet account down to zero cannot
-prevent that order. The reserve is consumed once, never refunded as cash or renewed
+logistics experience. Earlier player biography remains open. They set out for
+Jangala from the start, on Castle's one contact there, Nessa Venn at Greywater Down.
+Everyone aboard holds worthless company scrip; the real credits Castle quietly saved
+are what pay for the yard, and her finite prepaid consignment explains the stores. Castle holds the
+4,862-credit conversion payment (her chits) separately from the fleet account, usable only for
+the original ship's yard conversion. It falls short of the 4,986 estimate by exactly
+the pressure test, which the yard waives whenever the reserve pays, so spending the
+fleet account down to zero cannot prevent that order. The reserve is consumed once, never refunded as cash or renewed
 on load; existing campaigns keep their original funds and payment rules. Civilian crew keep
 the ship running; trained Marines must still be mustered through preparation.
 
@@ -1280,35 +1286,50 @@ disabled freighter home despite repeated threats to leave her behind; their fami
 barbs and her attention to the repairs carry that relationship into the yard visit.
 This personal help is not a promise of Hegemony protection. Harker's Claim and Nessa
 are authored backstory, not new sector entities or additional mission prerequisites.
-The prologue uses the actual accessible
-destination and adjusts its copy if Jangala is unavailable. Its final action plots
+There is one story for every start port (owner, 2026-10-20): when the start
+lands elsewhere because Jangala is unavailable, Castle, Nessa and Mara still speak
+of Jangala, and only the course, objective, Intel and mission text that names a
+place uses the actual accessible destination. Its final action plots
 that course and returns to the campaign. The Intel log retains the origin and
 next real preparation instruction. Page progress and explicit completion or skip
 survive saves; ordinary starts and pre-prologue saves do not opt in on load.
 The opening grants no resources, repairs, conversion, recruits or mission progress.
 Its illustrations are presentation, not a new hull-condition authority. Each beat
 has its own image: bridge, Claim, last carrier, emergency repairs, boarding,
-port approach, makeshift sleeping space and the estimate. Exterior workers wear
+port approach and makeshift sleeping space. Exterior workers wear
 sealed industrial EVA suits; boarding takes place inside a pressurized loading dock.
 Exterior views use an upscaled vanilla Cerberus sprite as their identity reference.
 Runtime art is full-frame 1200x800 JPEG; larger masters and reference art stay outside `mod/`.
 
-A reviewed 5,000-credit yard order installs the permanent Mercenary Company
+A reviewed 4,986-credit yard order installs the permanent Mercenary Company
 Conversion on the owned, active hull. Company designation still uses the ordinary
-preparation preflight and resumes lift, Sabine, squad founding and assignment.
+preparation preflight and resumes Sabine, squad founding and assignment.
 
 The Cerberus opening names **Mercenary Company Conversion** explicitly and directs
 the player to Marine operations in the planet menu, not the vanilla Refit picker.
-At an accessible planetary port that entry opens the actual 5,000-credit conversion
-review first, using the prologue's retained document and custom visual host.
-Inspection, reviewed order and completion pair Castle's account with makeshift
-sleeping space, the battered hull and newly fitted bunks. The order buys +18
+At an accessible planetary port that entry opens the founding conversion first as
+a four-page storybook on the prologue's retained document and custom visual host:
+the bill, paid by page 1's Next; the runway the account leaves; the
+road up; and the ore-dust papers that send the company to work (`opening-dialogue.md`
+§2). Nothing is spent before that Next. After it the pages are a straight
+click-through with no exit control, and Back never returns to the paid bill. The order buys +18
 personnel places and trades away 25 cargo; the remaining damaged rooms, second
-bay and Mech Lab stay damaged. Castle refers to Engineering's survey in character.
-The planet interaction remains alive as the docking and depot authority, and
-Return to port restores its ordinary menu. It spends nothing until Install
-conversion is confirmed. Until the
+bay and Mech Lab stay damaged. The planet interaction remains alive as the docking
+and depot authority, and its ordinary menu returns when the storybook closes. Until the
 founding conversion is installed, no alternative hull can bypass company designation.
+
+**The menu theme.** The opening storybook (the prologue's pages and the yard's) plays
+the same looping Marines theme as Marine operations, never vanilla's campaign music,
+and it is one track rather than two players (`MenuTheme`): every surface that wants it
+holds it while shown, the first holder starts it and the last one out fades it and
+restores default music. A hand-over between holders therefore neither restarts the
+track nor lets vanilla in. The yard pages hand it to the port they return to, which
+keeps it through that port's menu and into Marine operations until the player
+undocks. The Jangala arrival plays its own score: it fades the theme out rather than
+under it, and the next storybook page brings it back. The battle likewise replaces
+the track and the next ordinary screen restarts it. A game load forgets every holder
+and lifts the suspension, so a dialog torn down without its dismissal cannot leave a
+campaign silent.
 
 A `PreparationDepot` is a finite prepaid consignment at the planet that converted
 this start's Cerberus. Its contents derive from one Hermes recipe and one standard
@@ -1319,6 +1340,9 @@ checks the whole order, then consumes local stock before cargo. The existing
 fabrication and squad-founding adapters share that authority. New Second Wind starts
 earmark the first Hermes and first squad bills separately: boat jobs cannot consume
 the squad's stores, and other workshop jobs cannot consume either allocation.
+Preparation draws the squad's bill. The Hermes bill stays at the depot through
+Relief and is drawn by the first-lift lesson, while docked there, before
+Counterattack.
 Preparation preflight can inspect both allocations but cannot spend them. Legacy
 depots keep their existing remaining stock and unrestricted spending policy.
 The depot does not replenish
@@ -1328,8 +1352,10 @@ stores rather than claiming every counted item is in the hold.
 
 Leaving a room or its planet dialog spends no stores and completes no preparation
 step. Re-entering through the company shortcut, mission board, or a direct room
-link resumes the required step derived from the saved company: ship, lift, Sabine,
-formation, then assignment. HQ may present the same guided handoff. Required
+link resumes the required step derived from the saved company: ship, Sabine,
+formation, then assignment. After Relief the first-lift lesson resumes the same
+way from the saved boat deck until a seated boat is airworthy or Counterattack is
+won, and sends the company back to the depot when the Hermes parts are ashore. HQ may present the same guided handoff. Required
 preparation does not interrupt an active battle, settlement, or developer mission.
 If a remaining order needs reserved stores that are currently ashore, Castle names
 their depot planet and offers Return to Depot, plotting its course and closing the
@@ -1363,6 +1389,20 @@ eligibility and exact reviewed complement are rechecked at payment. Deferring,
 insufficient funds and stale review change nothing. Surviving boats remain ordinary
 owned assets, and destroyed replacements receive no story refund or free respawn.
 The hull's saved adapters remain with Second Wind through company transfers.
+
+**While the Second Wind is away the company has no home to open.** She is never
+lost for good (`ship-interiors-nouns.md`), but while the company lives aboard her
+and she is out of the fleet the Marines button answers with Castle's instructions
+instead of Company HQ. Stored, the planet menu keeps Marine operations listed but
+disabled, with the same instructions as its tooltip. Lost, the planet option
+becomes **Second Wind** at every port with a yard open to the company: a one-page
+storybook in Castle's voice - towed in after a fight, or found on the open market
+after a sale or scuttling - with the price, the account and the d-mod she comes
+back with. Buying is never refused; what the account cannot cover becomes debt.
+
+**Campaign missions need her.** The briefing refuses to deploy unless she is in
+the fleet and the company is quartered aboard her, and says which of the two is
+missing. Debug missions are not gated.
 
 Delivery ends with Castle directing the player to the real PLATING and DRIVE controls;
 no additional purchase is required. The conversation overlays the room and owns input

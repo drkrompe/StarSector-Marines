@@ -44,6 +44,34 @@ Gimbal (turret_gimbal.py)
   measured, the faces added, and parts that meet only when elevated, and with
   --json writes every anchor for a drift comparison.
 
+Close-view detail
+  Owner, 2026-10-20: "getting the rough shape right, but need to add detail". Every
+  turret and hardpoint has to hold up in a close view, by the shared rule of
+  ship-detail-guide.md (Edge treatment; ship-detail-kit/ship_detail_kit.py), so the
+  kit and the hulls meet one standard:
+  - Segment rule: every round from 5 cm radius up keeps its chord within 5 mm of the
+    arc (sdk.segments: 12-96, a multiple of 4; 8 under 5 cm). Mesh.lathe applies it to
+    every lathe, cylinder and ring; hex heads (6 sides under 10 cm) and lathes built as
+    plates (lathe(..., plates=True): the barbette's sixteen-sided bastion) are exempt.
+    Lofts are refined too: Mesh.loft_x splits the rounded stretches of its sections
+    and adds stations along rounded runs until each meets the rule, and section(),
+    _dome_section, _cable and the launcher arcs ask for the points the rule needs.
+  - Bevels by the size of the part's smallest face, one segment: hull plates 0.12 m
+    (over 5 m), modules, houses and barbettes 0.06 m (1-5 m), fittings 0.03 m
+    (0.3-1 m), small parts 0.015 m. A box or cylinder given no bevel gets its tier
+    (bevel=-1 keeps an edge dead sharp), and Mesh.emit bevels every convex edge
+    sharper than 70 deg left over (a lofted, lathed or prism form), tier by the span of
+    its faces; cutters and concave edges (recesses, seams) stay sharp.
+  - Every hand builder was rebuilt so no bare primitive stands alone: chamfered lofts
+    and glacis prisms for masses, stepped lathes, grooves and recesses cut in, real
+    fittings (hinged hatches, bolted bearings and flanges, clamps, feeds, louvres,
+    rams). Lamps that are not on a hull's lights layer are paint, not emissive (the
+    heatseeker's seeker windows); the Hurricane's flank lamps are 'lamp_cyan'.
+  kit_sampler.py builds every turret on its barbette and every hardpoint headless, to
+  chain with ship-detail-kit/check_detail.py (the gates: faceted 0, unbevelled 3.0 m
+  per 100 m2 or less, emissives off the lights layer 0). Anchors, trunnions and
+  extra-dict keys did not move (check_gimbal.py --json against the earlier build).
+
 What a turret gives a shot
   - Train: rotate the pivot (the hull's own empty) about its local Z.
   - Elevate: rotate '<prefix> elevation' about its local Y (negative lifts).
@@ -255,6 +283,15 @@ Hardpoints (fixed mounts)
     an ammunition box; one muzzle on the cluster's axis;
   - harpoonpod (Manticore (P) WS 004/005): two launch troughs with front hoops and
     a magazine block, a Harpoon in each on 'missile 1-2'.
+  - heavyblaster (merchant Wolf WS 004): a capacitor housing on a sled, cells in a
+    roof trough, armoured power cables, a field coil in a yoke and an oval emitter
+    head with its lens at the fire point;
+  - harpoon (merchant Wolf WS 005/006): a three-lane open rack on a bed, rails rising
+    into guide posts, a Harpoon in each lane on 'missile 1-3'.
+  check_hardpoints.py, run in a built .blend (or imported, clashes()), finds a fixed
+  mount that clips its hull: any hardpoint vertex inside another solid deeper than a
+  tolerance. It is the fixed-mount counterpart of a hull's turret arc sweep; the
+  Lasher's build fails on any clip.
   Mesh.prism's glacis (inset up to z2) used to come out flat (the new roof had no
   normal when it was inset); glacis=True gives the true slope. It is opt-in so
   turrets tuned to the flat roofs do not change; the new hardpoints use it.
@@ -282,9 +319,12 @@ Users
   two Vulcans and two capped empty housings, wrecked and stripped per
   condition state by sw_scars_spine), lasher-geometry (ls_mounts: three light
   machine guns, and its four hardpoints sunk in bays cut from its pods),
-  onslaught-geometry, manticore-geometry, falcon-geometry, kite-geometry. Hermes
-  and Hound still use their own turret modules; moving one onto the kit is that
-  hull's session's call.
+  onslaught-geometry, manticore-geometry, falcon-geometry (kit swarmer and
+  Annihilator hardpoints), kite-geometry (kit hammer and swarmer hardpoints, twin
+  MG on the kit gimbal), hound-geometry (kit chaingun hardpoint; its WS 002
+  turret is its own), shepherd-geometry (kit Swarmer hardpoint on WS 008).
+  Hermes still uses its own turret module. hull_turret_views.py renders one close
+  kit-mount view per built hull for a review.
 
 Cinematics hooks
 ----------------

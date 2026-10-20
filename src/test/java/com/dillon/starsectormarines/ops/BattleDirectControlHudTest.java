@@ -313,6 +313,23 @@ class BattleDirectControlHudTest {
      * The mech preview with real button assignments: the chaingun on the left and the SRM on the
      * right by default, or (selection 2) the SRM pointed at by the left button as well.
      */
+    @Test
+    void anLrmRackInsideItsMinimumReadsTooCloseOnItsRowAndItsButtonsHeader() throws Exception {
+        var base = triggered(0);
+        var lrm = base.weapons().get(2);
+        var close = new WeaponStatus(3, lrm.slotKey(), lrm.name(), new Behavior(FireKind.INDIRECT, 8, .1f, 1), true,
+                0f, 1f, 0, .1f, new Ammo(4, 4, AmmoUnit.TRIGGER_PACKS, false), false, "", "R", true);
+        var snapshot = new Snapshot(base.entityId(), base.name(), base.carrier(), base.durability(),
+                List.of(base.weapons().get(0), base.weapons().get(1), close));
+        try (Fixture fixture = fixture(Path.of("mod"), snapshot, 0, false, ignored -> {}, () -> {}, () -> {})) {
+            assertEquals("TOO CLOSE", fixture.weapons.requireElement("direct-hud-weapon-RIGHT_SHOULDER-state").text());
+            assertEquals("TOO CLOSE", fixture.weapons.requireElement("direct-hud-group-rmb-hint").text());
+            assertTrue(fixture.weapons.requireElement("direct-hud-group-rmb-hint").classes().contains("group-hint-warn"));
+            assertFalse(fixture.weapons.requireElement("direct-hud-group-lmb-hint").classes().contains("group-hint-warn"),
+                    "the guns on the other button are not refusing anything");
+        }
+    }
+
     static Snapshot triggered(int selected) {
         var base = preview(Carrier.MECH, false);
         var arms = base.weapons().get(0);

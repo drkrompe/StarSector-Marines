@@ -7,9 +7,33 @@ edit. Coordinates are hull-local, +X bow, +Y port, +Z dorsal, one
 sprite pixel per unit about the .ship centre.
 """
 import math
+import sys
+from pathlib import Path
 import bmesh
 import bpy
 from mathutils import Vector
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent/'ship-detail-kit'))
+import ship_scale  # noqa: E402
+import ship_detail_kit as sdk  # noqa: E402
+
+# The detail rule (ship-detail-guide.md, Edge treatment) in this hull's units.
+METRES_PER_UNIT = ship_scale.PUBLISHED['Shepherd']
+S = sdk.Scale(METRES_PER_UNIT)
+
+
+def seg(r, n):
+    """Sides for a round of radius r (hull units) drawn with n: at least the segment rule's
+    count (sdk.segments); a 6-sided bolt or nut head (<= 0.15 m) stays hexagonal."""
+    if n == 6 and abs(r)*METRES_PER_UNIT <= .15:
+        return 6
+    return max(n, S.n(r))
+
+
+def smooth(obj):
+    """Shade a curved body smooth, sharp from 35 deg (sdk.smooth): its caps and lips stay crisp."""
+    return sdk.smooth(obj)
 
 
 def material(name, color, metallic=0.0, roughness=.65, emission=None, strength=2.0):
@@ -39,7 +63,9 @@ class Kit:
         self.grey = material('Gantry light grey', (.38, .39, .40), .6, .5)
         self.dark = material('Recess and machinery', (.045, .05, .055), .5)
         self.cream = material('Chalked cream fittings', (.55, .50, .40), .25)
-        self.glass = material('Bridge glazing', (.05, .08, .09), .2, .15, emission=(.9, .75, .4), strength=3.0)
+        # Glass is dark (ship-detail-guide.md, Windows and glazing): the hull has no lights
+        # layer, so no pane is lit; the lamps and the bay's glow strips are its only light.
+        self.glass = material('Bridge glazing', (.05, .08, .09), .2, .15)
         self.bay_glow = material('Drone bay cyan glow', (.05, .12, .14), .2, .3, emission=(.35, .85, 1.0), strength=2.5)
         self.hull = []  # objects the downward ray-cast seats parts on
 
@@ -60,12 +86,16 @@ class Kit:
         return self.finish(obj, name, mat, bevel)
 
     def cylinder(self, name, loc, radius, depth, mat, axis='Z', vertices=12, bevel=.08):
+        # Every round follows the segment rule (the hand-built WS 007 turret's too).
+        vertices = seg(radius, vertices)
         bpy.ops.mesh.primitive_cylinder_add(vertices=vertices, radius=radius, depth=depth, location=loc)
         obj = bpy.context.object
         if axis == 'X':
             obj.rotation_euler[1] = math.pi / 2
         elif axis == 'Y':
             obj.rotation_euler[0] = math.pi / 2
+        if vertices > 6:
+            smooth(obj)
         return self.finish(obj, name, mat, bevel)
 
     def mesh(self, name, verts, faces, mat, bevel=0):
@@ -216,10 +246,11 @@ def pod(kit, name, stations, cy, cz, mat, n=12, bevel=.1):
 
 def revolve_x(kit, name, profile, cy, cz, mat, n=24, bevel=0):
     """Thin-walled solid of revolution about an X line: profile [(x, r), ...] is the closed outline."""
+    n = seg(max(abs(r) for _, r in profile), n)
     verts = [(x, cy+r*math.cos(2*math.pi*i/n), cz+r*math.sin(2*math.pi*i/n)) for x, r in profile for i in range(n)]
     m = len(profile)
     faces = []
     for a in range(m):
         b = (a+1) % m
         faces += [(a*n+i, a*n+(i+1) % n, b*n+(i+1) % n, b*n+i) for i in range(n)]
-    return kit.mesh(name, verts, faces, mat, bevel)
+    return smooth(kit.mesh(name, verts, faces, mat, bevel))

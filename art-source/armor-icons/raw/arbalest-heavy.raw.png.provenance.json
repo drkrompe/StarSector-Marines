@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ad8-c64c-7280-a2d8-506095f630d4",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ad8-c64c-7280-a2d8-506095f630d4\\exec-f75466bc-165c-450c-9819-5dbeb912a2e8.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\raw\\arbalest-heavy.raw.png",
+    "sha256": "4f281e8885ad6b2fcbd35199d5561f867980f6c3578e108570f75ac3aa0379a3",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\prompts\\arbalest-heavy.prompt.txt",
+  "promptSha256": "07f5e5b400dd3ed5323defcc9189b1e396127c3df022407897e95501df5afe49",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Composition, camera, lighting and finish reference only; not the suit design, colours or markings\nImage 2: Identity authority: the same suit seen from directly overhead in battle; palette, plate shapes, markings\n\nUse case: style-matched product render. Asset: the armory catalogue image of one marine armour suit, for a gritty military dark-science-fiction tactical game in the Starsector setting. The image shows the suit as a product shot: a massive powered-armour cuirass with its pauldrons standing upright at the upper right, its helmet set down in front at the lower left, and the two armoured gauntlets and forearms laid at the lower right.\n\nImage 1 is the composition, camera, lighting and finish reference only: match its arrangement of pieces, front three-quarter viewing angle, the scale the set fills in the frame, soft studio light from the upper left and its realistic hand-painted finish. Do NOT copy its suit design, colours or markings.\n\nImage 2 is the identity authority: this same suit as the game draws it in battle, seen from directly overhead (left: the torso and shoulder plates, with an empty hole where the helmet sits; right: the top of the helmet). The armory image must read unmistakably as this same suit seen from the front: the same palette and where each colour sits, the same plate and pauldron shapes, the same markings, lamps and hardware, the same faction character. Translate the overhead plates into their front-view forms; never show the overhead view itself.\n\nArbalest support battlesuit: the Hegemony's powered support shell built around a missile rack, the same articulated shell family as the Specter in Hegemony olive paint. Muted olive-green and grey-green faceted plates over a black ribbed and segmented joint backing, broad tapered angular pauldrons, a split chest of hexagonal plates over two square abdominal blocks, small recessed status strips, worn edges. Add one compact boxy shoulder-mounted rocket battery of four short tubes on its right pauldron, part of the suit. The helmet is a narrow faceted olive helmet with a dark central ridge, matching the overhead helmet. Slow, purposeful, military.\n\nSquare 1:1 canvas with every piece fully inside the frame and a clear margin. True transparent background, including the gaps between pieces; no ground, no cast-shadow slab, no border, no text, letters, numbers, logos or watermark, no person or face inside the suit, no weapon.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\mod\\graphics\\ui\\armory\\armor-tier-4-heavy.png",
+      "sha256": "4a08857d0fa292e29ea6a8a2cd3296cdf1901a008344580412ff08a4b102b72a",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Composition, camera, lighting and finish reference only; not the suit design, colours or markings"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\refs\\arbalest-heavy-identity.png",
+      "sha256": "849f23a838fd383692d9beef7604969389346e2c73c8a55bffbf75604acded0c",
+      "dimensions": [
+        1488,
+        680
+      ],
+      "mode": "RGB",
+      "role": "Identity authority: the same suit seen from directly overhead in battle; palette, plate shapes, markings"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent product render, using Image 1 for composition and Image 2 for the suit’s identity."
+  ],
+  "usage": {
+    "input_tokens": 39413,
+    "cached_input_tokens": 31616,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 618,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 72.2
+}

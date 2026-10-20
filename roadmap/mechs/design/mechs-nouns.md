@@ -402,7 +402,18 @@ increasing an encounter's total armored threat.
   picture. The clicked ground selects a provisional walkable cell in coarse
   connectivity; the actual chassis must still prove a route to a legal point
   within that cell. Arrival or proof refusal releases the order back to ordinary
-  behavior.
+  behavior. A right-drag instead of a click gives the order a **held heading**:
+  the mech goes to where the drag began and, on arrival, stands with its hips
+  the way the drag went. The heading outranks the combat target for the hips
+  only — the torso still twists onto the fight — so the legs and their armour
+  point where the player put them while the guns keep working. It lasts while
+  the mech stands: the next route it walks, a new order, or a cancel ends it.
+  A click on a garrisonable is not a move: one its side believes is enemy-held
+  is an assault, one its side mans a **guard**, which holds a cell beside the
+  place with the hips on the believed threat while nothing is in its sights
+  (`ai-nouns.md`, machine assault and machine guard). A guard is the one order a
+  commander may also give a lance of its own side; a player's order on the
+  chassis outranks it.
 - A **Defend Area order** is a persistent, battle-local tactical assignment for
   one whole battle lance. Its clicked center resolves to reachable ground and
   owns a circular twenty-cell-radius zone. Every live lance member positions
@@ -751,10 +762,12 @@ calculation without infantry training multipliers.
 
 The actual posed barrel is the source for both autonomous and manual direct
 fire. A structural obstruction between body and barrel blocks launch, including
-when the rendered muzzle protrudes beyond the obstacle. Ground-direct area
-weapons retain physical terminal-contact detonation and missile interception;
-neither the cursor nor an overshoot manufactures an impact. `ballistics-nouns.md`
-owns their shared contact and arrival law.
+when the rendered muzzle protrudes beyond the obstacle. Manual alignment is the
+torso's, judged from the chassis centre, and the barrels converge on the point.
+A pilot's rockets ground-burst where they are thrown, past nominal range at a
+scatter cost; gun area payloads keep physical terminal-contact detonation, and
+every rocket keeps missile interception. `ballistics-nouns.md` owns their shared
+contact and arrival law.
 
 Manual ownership cancels queued and active one-shot moves for this exact body.
 It excludes the body from autonomous role allocation, doctrine relevance,

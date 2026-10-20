@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.SquadDi
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.TrackState;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
+import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
@@ -26,7 +27,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.IntPredicate;
 import java.util.TreeSet;
+import java.util.function.IntBinaryOperator;
 
 /**
  * Marine-side strategic commander for CONQUEST — the land-war pattern
@@ -352,6 +355,17 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     public static final String LANE_CHAIN_PROPERTY = "battle.conquest.laneChain";
 
+    /**
+     * Whether the company holds what it takes (`garrisonables.md`, Decided direction): the runs of a fort it has taken
+     * are manned from the lane pool while it believes a counter-attack near them ({@link HeldGround}). Default on;
+     * {@code false} is the control a trial-ground comparison runs against.
+     */
+    public static final String HOLDS_GROUND_PROPERTY = "battle.conquest.attackerHoldsGround";
+
+    /** Read once from the property above; settable for a control in the same JVM. */
+    static boolean HOLDS_GROUND_ENABLED = Boolean.parseBoolean(
+            System.getProperty(HOLDS_GROUND_PROPERTY, "true"));
+
     /** Read once from the property above; see {@link #HOME_TRACK_CAPTURES_ENABLED}. */
     static boolean LANE_CHAIN_ENABLED = Boolean.parseBoolean(
             System.getProperty(LANE_CHAIN_PROPERTY, "true"));
@@ -482,6 +496,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
         return Map.copyOf(coverOutcomes);
     }
     private final ConquestGroupCommand groupCommand = new ConquestGroupCommand();
+    /** Reactive manning of taken ground against the counter-attack; see {@link #HOLDS_GROUND_PROPERTY}. */
+    private final HeldGround heldGround = new HeldGround();
     private CommandTopology groupTopology;
     private final Map<String, Integer> groupTracks = new TreeMap<>();
     /** Cells a structure-task squad must close on its destination to count as making progress. */
@@ -641,6 +657,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         final int id;
         final Faction faction;
         final int aliveMembers;
+        final int originalMembers;
         final float centroidX;
         final float centroidY;
         final int anchorCellX;
@@ -677,6 +694,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
             id = state.squadId();
             faction = state.faction();
             aliveMembers = state.aliveMembers();
+            originalMembers = state.originalMembers();
             centroidX = state.centroidX();
             centroidY = state.centroidY();
             anchorCellX = state.anchorCellX();
@@ -834,6 +852,14 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 : finalCompoundConvergence
                 ? Phase.FINAL_COMPOUND_CONVERGENCE : Phase.LANE_ADVANCE;
 
+        // Holders of taken ground are kept, withdrawn or given back before anybody recruits: a dug-in holder under a
+        // believed counter-attack outranks a muster, and one given back is a lane squad again this pulse.
+        boolean convergence = phase == Phase.KEEP_CONVERGENCE || phase == Phase.FINAL_COMPOUND_CONVERGENCE;
+        GarrisonableRegistry places = frame.facts().garrisonables();
+        boolean holdsGround = HOLDS_GROUND_ENABLED && HeldGround.usable(places, frame.influence());
+        HoldPulse hold = new HoldPulse();
+        if (holdsGround) standOrReleaseHolders(frame, places, convergence, squads, allSquads, directives, hold);
+
         // Muster and assault run before the lane passes and take their squads out of the pool they draw from, so a
         // company is never also a capture detachment or a lane probe. A mission that chose the trickle runs none of this.
         List<String> musterNotes = List.of();
@@ -864,6 +890,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
             assignCompoundCaptures(squads, committed, deferredCaptures,
                     farTrackCaptures, directives, frame);
         }
+
+        if (holdsGround && !convergence) manTakenGround(frame, places, squads, committed, allSquads, directives, hold);
+        planHoldGuards(holdsGround && !convergence ? places : null, squads, committed, allSquads, directives);
 
         if (!keepConvergence) {
             // Pass 2: preferred tracks remain sticky, but an idle track is a
@@ -1047,11 +1076,211 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 frame, allSquads, directives, phase);
         List<String> traceNotes = new ArrayList<>(musterNotes);
         traceNotes.addAll(structureNotes);
+        if (hold.noteworthy()) traceNotes.add(hold.note());
         return new CommandPlan<>(faction(), strategyId(), phase.name(), frame.tick(),
                 frame.influence() != null ? frame.influence().updatedTick() : -1,
-                squads.size() + holding.size(), 0,
+                squads.size() + holding.size() + hold.holders + hold.fellBack, 0,
                 summaries(remainingCompounds, traceNotes),
                 proposals, detail);
+    }
+
+    /** What the hold of taken ground did this pulse, for the later steps and the trace. */
+    /** Which free lance stands guard by which taken, manned run (`garrisonables.md`, machine guard). */
+    private final MachineGuardDirector machineGuards = new MachineGuardDirector();
+    /** Guards the last plan attached and stood down, ordered in {@link #afterCommit}. */
+    private List<MachineGuardDirector.Attach> guardsToOrder = List.of();
+    private List<Integer> guardsToStandDown = List.of();
+
+    private static final class HoldPulse {
+        int holders;
+        int sent;
+        int released;
+        int fellBack;
+        int cap = -1;
+        final IntOpenHashSet justReleased = new IntOpenHashSet();
+
+        boolean noteworthy() {
+            return holders > 0 || sent > 0 || released > 0 || fellBack > 0;
+        }
+
+        String note() {
+            return "hold ground: holders=" + holders + " sent=" + sent + " released=" + released
+                    + " fellBack=" + fellBack + " cap=" + cap;
+        }
+    }
+
+    private static HeldGround.Body holdBody(PlanningSquad squad) {
+        return new HeldGround.Body(squad.id, squad.anchorCellX, squad.anchorCellY, squad.centroidX, squad.centroidY,
+                squad.aliveMembers, squad.originalMembers, squad.localContact, squad.assignedObjective);
+    }
+
+    /**
+     * Keeps, withdraws or gives back the squads holding taken ground ({@link HeldGround}). A kept or withdrawn holder
+     * leaves the pool for this pulse; a released one stays in it with no order, so the lane pass takes it up. In the
+     * convergence phases every holder is released to the last push.
+     */
+    private void standOrReleaseHolders(ConquestCommandFrame frame, GarrisonableRegistry places, boolean convergence,
+                                       List<PlanningSquad> squads, Map<Integer, PlanningSquad> allSquads,
+                                       Map<Integer, SquadDirective> directives, HoldPulse hold) {
+        List<GarrisonDirector.Garrison> held = new ArrayList<>();
+        Map<Integer, HeldGround.Body> bodies = new TreeMap<>();
+        for (PlanningSquad squad : squads) {
+            if (squad.crew || squad.machine) continue;
+            HeldGround.Body body = holdBody(squad);
+            GarrisonDirector.Garrison garrison = heldGround.holderOf(body, places);
+            if (garrison == null) continue;
+            held.add(garrison);
+            bodies.put(squad.id, body);
+        }
+        // Priced every pulse, holders or none: the same walk finds the pressed places manning will draw on.
+        for (HeldGround.Decision decision : heldGround.standOrRelease(places, frame.influence(), held, bodies,
+                frame.perspective(), frame.facts().structures(), frame.topology(), convergence)) {
+            PlanningSquad squad = allSquads.get(decision.squadId());
+            int preferred = stripFor(squad);
+            switch (decision.verdict()) {
+                case STAND -> {
+                    squad.assignedObjective = decision.order();
+                    directives.put(squad.id, directive(squad, preferred, preferred, AssignmentReason.HOLD_GROUND_STAND));
+                    squads.remove(squad);
+                    hold.holders++;
+                }
+                case FALL_BACK -> {
+                    squad.assignedObjective = decision.order();
+                    directives.put(squad.id, directive(squad, preferred, preferred, AssignmentReason.HOLD_GROUND_FALL_BACK));
+                    squads.remove(squad);
+                    hold.fellBack++;
+                }
+                case RELEASE -> {
+                    squad.assignedObjective = null;
+                    hold.justReleased.add(squad.id);
+                    hold.released++;
+                }
+            }
+        }
+    }
+
+    /**
+     * Sends lane squads to the runs of forts this side has taken, and to the aprons at the doors of compounds it has
+     * taken, that it believes a counter-attack is pressing. The
+     * attack keeps its momentum: only squads the muster and the capture pass left are offered, never a crew, a
+     * machine, a demolition squad, a named officer's group or one just given back; at most
+     * {@link HeldGround#cap} of the offered pool holds at once, and the director's arrival bound sends only a squad
+     * still near the works. A squad already fighting the counter-attack is offered: it is the one beside the trench,
+     * and taking the trench is how it fights it.
+     */
+    private void manTakenGround(ConquestCommandFrame frame, GarrisonableRegistry places, List<PlanningSquad> squads,
+                                IntOpenHashSet committed, Map<Integer, PlanningSquad> allSquads,
+                                Map<Integer, SquadDirective> directives, HoldPulse hold) {
+        Set<Integer> taken = HeldGround.heldForts(frame.perspective(), frame.facts().structures());
+        List<HeldGround.Body> free = new ArrayList<>();
+        for (PlanningSquad squad : squads) {
+            if (committed.contains(squad.id) || squad.crew || squad.machine || squad.demolition || inNamedGroup(squad)
+                    || squad.role == UnitRole.GARRISON || hold.justReleased.contains(squad.id)
+                    || squad.anchorCellX < 0 || squad.anchorCellY < 0
+                    || (squad.assignedObjective != null
+                    && squad.assignedObjective.kind() == AssignmentKind.SECURE_COMPOUND)) continue;
+            free.add(holdBody(squad));
+        }
+        hold.cap = HeldGround.cap(free.size() + hold.holders);
+        List<ConquestCommandFacts.Compound> compounds = frame.facts().compounds();
+        IntPredicate takenCompound = place -> {
+            ConquestCommandFacts.Compound compound = CompoundGround.frontedBy(places, place, compounds);
+            return compound != null && compound.state() == CompoundService.CompoundState.MARINE_HELD;
+        };
+        // A taken building its own garrison holds (the squad a captured compound is sent) is manned already.
+        Set<Integer> ownGarrisoned = new TreeSet<>();
+        for (PlanningSquad squad : allSquads.values()) {
+            ObjectiveAssignment order = squad.assignedObjective;
+            if (squad.aliveMembers <= 0 || squad.machine || order == null || order.kind() != AssignmentKind.HOLD_NODE
+                    || order.isEnvelope()) continue;
+            int envelope = places.envelopeOf(order.targetNode());
+            if (envelope >= 0) ownGarrisoned.add(envelope);
+        }
+        heldGround.heldByOwnGarrison(ownGarrisoned);
+        for (HeldGround.Sent man : heldGround.man(places, free, hold.cap - hold.holders, taken, takenCompound,
+                (sx, sy, x, y) -> frame.topology().inBounds(sx, sy) && frame.topology().isWalkable(sx, sy)
+                        && (sx == x && sy == y || frame.topology().reachable(sx, sy, x, y)))) {
+            PlanningSquad squad = allSquads.get(man.squadId());
+            squad.assignedObjective = man.order();
+            int preferred = stripFor(squad);
+            directives.put(squad.id, directive(squad, preferred, preferred, AssignmentReason.HOLD_GROUND_MAN));
+            squads.remove(squad);
+            hold.sent++;
+            hold.holders++;
+        }
+    }
+
+    /**
+     * The machine guard on taken ground (`garrisonables.md`, machine guard): a lance the muster, the capture pass and
+     * the holders left free stands guard by a taken run this side mans while a counter-attack is believed pressing it,
+     * by {@link MachineGuardDirector}'s laws. Momentum first, as for the holders: a guarding lance stays in the pool,
+     * so a company that recruits it or a capture that commits it takes it, and its guard stands down; in the
+     * convergence phases every guard stands down. A standing guard leaves the lane passes for this pulse.
+     */
+    private void planHoldGuards(GarrisonableRegistry places, List<PlanningSquad> squads, IntOpenHashSet committed,
+                                Map<Integer, PlanningSquad> allSquads, Map<Integer, SquadDirective> directives) {
+        Map<Integer, MachineGuardDirector.Machine> guarding = new TreeMap<>();
+        List<MachineGuardDirector.Machine> free = new ArrayList<>();
+        for (PlanningSquad squad : squads) {
+            if (!squad.machine || committed.contains(squad.id) || inNamedGroup(squad)
+                    || squad.anchorCellX < 0 || squad.anchorCellY < 0) continue;
+            MachineGuardDirector.Machine machine = new MachineGuardDirector.Machine(squad.id, squad.anchorCellX,
+                    squad.anchorCellY, squad.aliveMembers, squad.originalMembers);
+            if (machineGuards.holds(squad.id)) guarding.put(squad.id, machine);
+            else free.add(machine);
+        }
+        List<MachineGuardDirector.Place> manned = List.of();
+        if (places != null) {
+            Set<Integer> mannedIds = new TreeSet<>();
+            for (PlanningSquad squad : allSquads.values()) {
+                if (squad.aliveMembers <= 0 || squad.machine || squad.assignedObjective == null
+                        || !squad.assignedObjective.isGarrison()) continue;
+                SquadDirective directive = directives.get(squad.id);
+                if (directive == null || directive.reason() != AssignmentReason.HOLD_GROUND_MAN
+                        && directive.reason() != AssignmentReason.HOLD_GROUND_STAND) continue;
+                int place = places.idAt(squad.assignedObjective.targetCellX(), squad.assignedObjective.targetCellY());
+                if (place >= 0) mannedIds.add(place);
+            }
+            manned = MachineGuardDirector.manned(mannedIds, heldGround.pressedPlaces(), places);
+        }
+        IntBinaryOperator placeAt = places == null ? (x, y) -> -1 : places::idAt;
+        List<Integer> down = machineGuards.review(guarding, manned, placeAt);
+        List<MachineGuardDirector.Attach> sent = places == null ? List.of()
+                : machineGuards.attach(free, manned, machineSquadCount(allSquads), placeAt);
+        Set<Integer> standing = new TreeSet<>(guarding.keySet());
+        standing.removeAll(down);
+        for (MachineGuardDirector.Attach attach : sent) standing.add(attach.squadId());
+        for (int id : standing) {
+            PlanningSquad squad = allSquads.get(id);
+            int preferred = stripFor(squad);
+            directives.put(id, directive(squad, preferred, preferred, AssignmentReason.HOLD_GROUND_MACHINE_GUARD));
+            squads.remove(squad);
+        }
+        guardsToOrder = sent;
+        guardsToStandDown = down;
+    }
+
+    private static int machineSquadCount(Map<Integer, PlanningSquad> allSquads) {
+        int count = 0;
+        for (PlanningSquad squad : allSquads.values()) if (squad.machine && squad.aliveMembers > 0) count++;
+        return count;
+    }
+
+    /** Gives the guards the last plan attached and stands down the ones it ended. */
+    private void orderGuards(CommandEffects effects) {
+        for (int squadId : guardsToStandDown) effects.standDownGuard(squadId);
+        for (MachineGuardDirector.Attach attach : guardsToOrder) {
+            if (effects.guardPlace(faction(), attach.squadId(), attach.cellX(), attach.cellY()) == 0) {
+                machineGuards.forget(attach.squadId());
+            }
+        }
+        guardsToOrder = List.of();
+        guardsToStandDown = List.of();
+    }
+
+    /** Lances standing guard by taken ground; for evidence. */
+    int machineGuardCount() {
+        return machineGuards.count();
     }
 
     /**
@@ -1133,6 +1362,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     @Override
     public void afterCommit(CommandEffects effects) {
+        orderGuards(effects);
         askForStrikes(effects);
         askForCover(effects);
         if (lanceWishFort < 0 || dropZone == null) return;
@@ -3504,6 +3734,11 @@ public final class ConquestCommand implements ConquestFrontCommand,
             return CommandStabilityBreak.NONE;
         }
         ObjectiveAssignment old = incumbent.assignment();
+        // Taking up or leaving taken ground answers the believed counter-attack, which is new information each way.
+        if (reason == AssignmentReason.HOLD_GROUND_MAN || reason == AssignmentReason.HOLD_GROUND_FALL_BACK
+                || (old.mansPlace() && reason != AssignmentReason.HOLD_GROUND_STAND)) {
+            return CommandStabilityBreak.CONTEXT_INVALIDATED;
+        }
         if (squad.commandGroup != null && ConquestGroupCommand.isHold(old)
                 && !validGroupHold(squad, frame)) {
             return CommandStabilityBreak.TARGET_UNREACHABLE;

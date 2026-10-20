@@ -28,11 +28,7 @@
       "WS 005": "harpoon",
       "WS 006": "harpoon"
     },
-    "built_as": {
-      "WS 004": "miningblaster",
-      "WS 005": "annihilator",
-      "WS 006": "annihilator"
-    },
+    "built_as": {},
     "built_in_mods": [],
     "built_in_weapons": [],
     "ship_system": "displacer",
@@ -101,7 +97,7 @@
     "fittings_m": {},
     "published_metres_per_unit": 0.76,
     "measured_this_build": {
-      "enclosed_units3": 38763,
+      "enclosed_units3": 38968,
       "solids": [
         "Hull head",
         "Hull neck",
@@ -113,9 +109,9 @@
       ]
     },
     "size_m": [
-      72.3,
+      72.1,
       39.3,
-      31.9
+      32.7
     ],
     "person_1_8_m_in_units": 2.37,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
@@ -135,17 +131,17 @@
     "min": [
       -40.2,
       -25.83,
-      -20.34
+      -22.09
     ],
     "max": [
-      54.91,
+      54.7,
       25.83,
-      21.66
+      20.96
     ],
     "size": [
-      95.11,
+      94.9,
       51.65,
-      42.0
+      43.05
     ]
   },
   "weapon_slots": [
@@ -171,7 +167,7 @@
       "location": [
         -13,
         12,
-        7.66
+        7.7
       ],
       "angle": 90,
       "arc": 200,
@@ -188,7 +184,7 @@
       "location": [
         -13,
         -11,
-        7.67
+        7.74
       ],
       "angle": -90,
       "arc": 200,
@@ -222,7 +218,7 @@
       "location": [
         11,
         20,
-        4.63
+        3.53
       ],
       "angle": 0,
       "arc": 5,
@@ -233,9 +229,7 @@
       "muzzles": [
         "Anchor turret 5 tube 1 muzzle",
         "Anchor turret 5 tube 2 muzzle",
-        "Anchor turret 5 tube 3 muzzle",
-        "Anchor turret 5 tube 4 muzzle",
-        "Anchor turret 5 tube 5 muzzle"
+        "Anchor turret 5 tube 3 muzzle"
       ]
     },
     {
@@ -243,7 +237,7 @@
       "location": [
         11,
         -19,
-        4.57
+        3.45
       ],
       "angle": 0,
       "arc": 5,
@@ -254,9 +248,7 @@
       "muzzles": [
         "Anchor turret 6 tube 1 muzzle",
         "Anchor turret 6 tube 2 muzzle",
-        "Anchor turret 6 tube 3 muzzle",
-        "Anchor turret 6 tube 4 muzzle",
-        "Anchor turret 6 tube 5 muzzle"
+        "Anchor turret 6 tube 3 muzzle"
       ]
     }
   ],
@@ -310,7 +302,7 @@
       "location": [
         -13,
         12,
-        7.66
+        7.7
       ],
       "rest_angle_deg": 90,
       "arc_deg": 200,
@@ -348,7 +340,7 @@
       "location": [
         -13,
         -11,
-        7.67
+        7.74
       ],
       "rest_angle_deg": -90,
       "arc_deg": 200,
@@ -382,20 +374,20 @@
     {
       "slot": "WS 004",
       "weapon": "heavyblaster",
-      "built_as": "miningblaster",
+      "built_as": "heavyblaster",
       "mount": "Weapon WS 004 mount",
       "location": [
         45,
         0,
         -3.6
       ],
-      "k": 0.42,
+      "k": 0.3,
       "bay": {
         "x": [
           43.4,
           55.5
         ],
-        "half_width": 3.7,
+        "half_width": 4.1,
         "z": [
           -6.5,
           8.4
@@ -405,12 +397,26 @@
         ]
       },
       "parts": [
-        "Weapon WS 004 hardpoint paint#body",
+        "Weapon WS 004 hardpoint steel#sled",
         "Weapon WS 004 hardpoint dark",
-        "Weapon WS 004 hardpoint metal",
         "Weapon WS 004 hardpoint steel",
-        "Weapon WS 004 hardpoint accent#prong",
-        "Weapon WS 004 hardpoint lamp_red"
+        "Weapon WS 004 hardpoint paint#housing",
+        "Weapon WS 004 hardpoint plate",
+        "Weapon WS 004 hardpoint accent2",
+        "Weapon WS 004 hardpoint accent#cells",
+        "Weapon WS 004 hardpoint lamp_blaster",
+        "Weapon WS 004 hardpoint accent2#clamp",
+        "Weapon WS 004 hardpoint metal#coupling",
+        "Weapon WS 004 hardpoint cable",
+        "Weapon WS 004 hardpoint accent",
+        "Weapon WS 004 hardpoint steel#cclamp1",
+        "Weapon WS 004 hardpoint steel#cclamp-1",
+        "Weapon WS 004 hardpoint accent#coil",
+        "Weapon WS 004 hardpoint steel#cradle",
+        "Weapon WS 004 hardpoint paint#cheek1",
+        "Weapon WS 004 hardpoint paint#cheek-1",
+        "Weapon WS 004 hardpoint plate#head",
+        "Weapon WS 004 hardpoint steel#bands"
       ],
       "kit_muzzles": [
         "Weapon WS 004 muzzle anchor 1"
@@ -422,73 +428,121 @@
     {
       "slot": "WS 005",
       "weapon": "harpoon",
-      "built_as": "annihilator",
+      "built_as": "harpoon",
       "mount": "Weapon WS 005 mount",
       "location": [
         11,
         20,
-        4.63
+        3.53
       ],
-      "k": 0.6,
+      "k": 0.3,
       "bay": null,
       "parts": [
-        "Weapon WS 005 hardpoint paint#shell",
-        "Weapon WS 005 hardpoint steel#collar",
-        "Weapon WS 005 hardpoint dark",
+        "Weapon WS 005 hardpoint paint#bed",
+        "Weapon WS 005 hardpoint plate#rail0",
         "Weapon WS 005 hardpoint steel",
-        "Weapon WS 005 hardpoint paint#cheek",
-        "Weapon WS 005 hardpoint steel#tubes",
-        "Weapon WS 005 hardpoint mark"
+        "Weapon WS 005 hardpoint plate#rail1",
+        "Weapon WS 005 hardpoint plate#rail2",
+        "Weapon WS 005 hardpoint plate#rail3",
+        "Weapon WS 005 hardpoint steel#saddle6.0",
+        "Weapon WS 005 hardpoint steel#saddle12.5",
+        "Weapon WS 005 hardpoint paint#rear",
+        "Weapon WS 005 hardpoint dark",
+        "Weapon WS 005 hardpoint glow",
+        "Weapon WS 005 hardpoint cable",
+        "Weapon WS 005 hardpoint accent2#lug4.61",
+        "Weapon WS 005 hardpoint plate",
+        "Weapon WS 005 hardpoint accent2#lug4.6-1",
+        "Weapon WS 005 hardpoint accent2#lug-0.81",
+        "Weapon WS 005 hardpoint accent2#lug-0.8-1",
+        "Weapon WS 005 missile 1 missile#body",
+        "Weapon WS 005 missile 1 dark",
+        "Weapon WS 005 missile 1 plate",
+        "Weapon WS 005 missile 1 steel",
+        "Weapon WS 005 missile 1 glow",
+        "Weapon WS 005 missile 1 missile#fins",
+        "Weapon WS 005 missile 2 missile#body",
+        "Weapon WS 005 missile 2 dark",
+        "Weapon WS 005 missile 2 plate",
+        "Weapon WS 005 missile 2 steel",
+        "Weapon WS 005 missile 2 glow",
+        "Weapon WS 005 missile 2 missile#fins",
+        "Weapon WS 005 missile 3 missile#body",
+        "Weapon WS 005 missile 3 dark",
+        "Weapon WS 005 missile 3 plate",
+        "Weapon WS 005 missile 3 steel",
+        "Weapon WS 005 missile 3 glow",
+        "Weapon WS 005 missile 3 missile#fins"
       ],
       "kit_muzzles": [
         "Weapon WS 005 muzzle anchor 1",
         "Weapon WS 005 muzzle anchor 2",
-        "Weapon WS 005 muzzle anchor 3",
-        "Weapon WS 005 muzzle anchor 4",
-        "Weapon WS 005 muzzle anchor 5"
+        "Weapon WS 005 muzzle anchor 3"
       ],
       "muzzles": [
         "Anchor turret 5 tube 1 muzzle",
         "Anchor turret 5 tube 2 muzzle",
-        "Anchor turret 5 tube 3 muzzle",
-        "Anchor turret 5 tube 4 muzzle",
-        "Anchor turret 5 tube 5 muzzle"
+        "Anchor turret 5 tube 3 muzzle"
       ]
     },
     {
       "slot": "WS 006",
       "weapon": "harpoon",
-      "built_as": "annihilator",
+      "built_as": "harpoon",
       "mount": "Weapon WS 006 mount",
       "location": [
         11,
         -19,
-        4.57
+        3.45
       ],
-      "k": 0.6,
+      "k": 0.3,
       "bay": null,
       "parts": [
-        "Weapon WS 006 hardpoint paint#shell",
-        "Weapon WS 006 hardpoint steel#collar",
-        "Weapon WS 006 hardpoint dark",
+        "Weapon WS 006 hardpoint paint#bed",
+        "Weapon WS 006 hardpoint plate#rail0",
         "Weapon WS 006 hardpoint steel",
-        "Weapon WS 006 hardpoint paint#cheek",
-        "Weapon WS 006 hardpoint steel#tubes",
-        "Weapon WS 006 hardpoint mark"
+        "Weapon WS 006 hardpoint plate#rail1",
+        "Weapon WS 006 hardpoint plate#rail2",
+        "Weapon WS 006 hardpoint plate#rail3",
+        "Weapon WS 006 hardpoint steel#saddle6.0",
+        "Weapon WS 006 hardpoint steel#saddle12.5",
+        "Weapon WS 006 hardpoint paint#rear",
+        "Weapon WS 006 hardpoint dark",
+        "Weapon WS 006 hardpoint glow",
+        "Weapon WS 006 hardpoint cable",
+        "Weapon WS 006 hardpoint accent2#lug4.61",
+        "Weapon WS 006 hardpoint plate",
+        "Weapon WS 006 hardpoint accent2#lug4.6-1",
+        "Weapon WS 006 hardpoint accent2#lug-0.81",
+        "Weapon WS 006 hardpoint accent2#lug-0.8-1",
+        "Weapon WS 006 missile 1 missile#body",
+        "Weapon WS 006 missile 1 dark",
+        "Weapon WS 006 missile 1 plate",
+        "Weapon WS 006 missile 1 steel",
+        "Weapon WS 006 missile 1 glow",
+        "Weapon WS 006 missile 1 missile#fins",
+        "Weapon WS 006 missile 2 missile#body",
+        "Weapon WS 006 missile 2 dark",
+        "Weapon WS 006 missile 2 plate",
+        "Weapon WS 006 missile 2 steel",
+        "Weapon WS 006 missile 2 glow",
+        "Weapon WS 006 missile 2 missile#fins",
+        "Weapon WS 006 missile 3 missile#body",
+        "Weapon WS 006 missile 3 dark",
+        "Weapon WS 006 missile 3 plate",
+        "Weapon WS 006 missile 3 steel",
+        "Weapon WS 006 missile 3 glow",
+        "Weapon WS 006 missile 3 missile#fins"
       ],
       "kit_muzzles": [
         "Weapon WS 006 muzzle anchor 1",
         "Weapon WS 006 muzzle anchor 2",
-        "Weapon WS 006 muzzle anchor 3",
-        "Weapon WS 006 muzzle anchor 4",
-        "Weapon WS 006 muzzle anchor 5"
+        "Weapon WS 006 muzzle anchor 3"
       ],
       "muzzles": [
         "Anchor turret 6 tube 1 muzzle",
         "Anchor turret 6 tube 2 muzzle",
-        "Anchor turret 6 tube 3 muzzle",
-        "Anchor turret 6 tube 4 muzzle",
-        "Anchor turret 6 tube 5 muzzle"
+        "Anchor turret 6 tube 3 muzzle"
       ]
     }
   ],
@@ -567,9 +621,7 @@
       "muzzles": [
         "Anchor turret 5 tube 1 muzzle",
         "Anchor turret 5 tube 2 muzzle",
-        "Anchor turret 5 tube 3 muzzle",
-        "Anchor turret 5 tube 4 muzzle",
-        "Anchor turret 5 tube 5 muzzle"
+        "Anchor turret 5 tube 3 muzzle"
       ]
     },
     {
@@ -586,9 +638,7 @@
       "muzzles": [
         "Anchor turret 6 tube 1 muzzle",
         "Anchor turret 6 tube 2 muzzle",
-        "Anchor turret 6 tube 3 muzzle",
-        "Anchor turret 6 tube 4 muzzle",
-        "Anchor turret 6 tube 5 muzzle"
+        "Anchor turret 6 tube 3 muzzle"
       ]
     }
   ],
@@ -681,7 +731,7 @@
       "position": [
         26,
         11.5,
-        5.66
+        5.71
       ],
       "colour": "amber",
       "role": "hull lamp (sprite, row 28)",
@@ -696,7 +746,7 @@
       "position": [
         26,
         -11.5,
-        5.66
+        5.71
       ],
       "colour": "amber",
       "role": "hull lamp (sprite, row 28)",
@@ -798,71 +848,197 @@
     }
   ],
   "landing_gear": {
-    "ground_z_units": -22.0,
-    "legs": [
+    "ground_z_units": -19.4,
+    "keel_shoes": [
       {
-        "name": "Hull port fore gear",
-        "xy": [
-          20.0,
-          9.0
+        "name": "Hull keel shoe aft",
+        "x": [
+          -17.5,
+          -2.4
         ],
-        "seat_z": -14.446,
-        "travel_units": 7.554,
-        "slides": [
-          "Hull port fore gear stage 2 slide",
-          "Hull port fore gear stage 3 slide"
-        ],
-        "pad": "Hull port fore gear pad",
-        "pad_radius_units": 2.4,
-        "sole": "Hull port fore gear pad sole"
+        "sole_z": -19.4
       },
       {
-        "name": "Hull starboard fore gear",
-        "xy": [
-          20.0,
-          -9.0
+        "name": "Hull keel shoe fore",
+        "x": [
+          6.4,
+          18.8
         ],
-        "seat_z": -14.445,
-        "travel_units": 7.555,
-        "slides": [
-          "Hull starboard fore gear stage 2 slide",
-          "Hull starboard fore gear stage 3 slide"
+        "sole_z": -19.4
+      }
+    ],
+    "wedges": [
+      {
+        "name": "Hull port fore wedge",
+        "hinge": "Hull port fore wedge hinge",
+        "H": [
+          12.6,
+          -12.4046
         ],
-        "pad": "Hull starboard fore gear pad",
-        "pad_radius_units": 2.4,
-        "sole": "Hull starboard fore gear pad sole"
+        "stow_deg": 133.715,
+        "x": [
+          15.0,
+          24.0
+        ],
+        "sole": "Hull port fore wedge sole",
+        "sole_y": 17.0795,
+        "rams": [
+          {
+            "pivot": "Hull port fore wedge ram 1 pivot",
+            "rod_pivot": "Hull port fore wedge ram 1 rod pivot",
+            "P": [
+              8.0,
+              2.0
+            ],
+            "W": [
+              15.6316,
+              -15.3467
+            ],
+            "base": -1.156334
+          },
+          {
+            "pivot": "Hull port fore wedge ram 2 pivot",
+            "rod_pivot": "Hull port fore wedge ram 2 rod pivot",
+            "P": [
+              8.0,
+              2.0
+            ],
+            "W": [
+              15.6316,
+              -15.3467
+            ],
+            "base": -1.156334
+          }
+        ]
       },
       {
-        "name": "Hull port aft gear",
-        "xy": [
-          -14.0,
-          10.0
+        "name": "Hull starboard fore wedge",
+        "hinge": "Hull starboard fore wedge hinge",
+        "H": [
+          -12.6,
+          -12.4057
         ],
-        "seat_z": -14.538,
-        "travel_units": 7.462,
-        "slides": [
-          "Hull port aft gear stage 2 slide",
-          "Hull port aft gear stage 3 slide"
+        "stow_deg": -133.712,
+        "x": [
+          15.0,
+          24.0
         ],
-        "pad": "Hull port aft gear pad",
-        "pad_radius_units": 2.4,
-        "sole": "Hull port aft gear pad sole"
+        "sole": "Hull starboard fore wedge sole",
+        "sole_y": -17.0799,
+        "rams": [
+          {
+            "pivot": "Hull starboard fore wedge ram 1 pivot",
+            "rod_pivot": "Hull starboard fore wedge ram 1 rod pivot",
+            "P": [
+              -8.0,
+              2.0
+            ],
+            "W": [
+              -15.6315,
+              -15.3479
+            ],
+            "base": -1.985226
+          },
+          {
+            "pivot": "Hull starboard fore wedge ram 2 pivot",
+            "rod_pivot": "Hull starboard fore wedge ram 2 rod pivot",
+            "P": [
+              -8.0,
+              2.0
+            ],
+            "W": [
+              -15.6315,
+              -15.3479
+            ],
+            "base": -1.985226
+          }
+        ]
       },
       {
-        "name": "Hull starboard aft gear",
-        "xy": [
-          -14.0,
-          -10.0
+        "name": "Hull port aft wedge",
+        "hinge": "Hull port aft wedge hinge",
+        "H": [
+          12.6,
+          -12.8345
         ],
-        "seat_z": -14.537,
-        "travel_units": 7.463,
-        "slides": [
-          "Hull starboard aft gear stage 2 slide",
-          "Hull starboard aft gear stage 3 slide"
+        "stow_deg": 115.888,
+        "x": [
+          -17.5,
+          -8.5
         ],
-        "pad": "Hull starboard aft gear pad",
-        "pad_radius_units": 2.4,
-        "sole": "Hull starboard aft gear pad sole"
+        "sole": "Hull port aft wedge sole",
+        "sole_y": 17.1244,
+        "rams": [
+          {
+            "pivot": "Hull port aft wedge ram 1 pivot",
+            "rod_pivot": "Hull port aft wedge ram 1 rod pivot",
+            "P": [
+              8.0,
+              2.0
+            ],
+            "W": [
+              15.7395,
+              -14.9789
+            ],
+            "base": -1.143103
+          },
+          {
+            "pivot": "Hull port aft wedge ram 2 pivot",
+            "rod_pivot": "Hull port aft wedge ram 2 rod pivot",
+            "P": [
+              8.0,
+              2.0
+            ],
+            "W": [
+              15.7395,
+              -14.9789
+            ],
+            "base": -1.143103
+          }
+        ]
+      },
+      {
+        "name": "Hull starboard aft wedge",
+        "hinge": "Hull starboard aft wedge hinge",
+        "H": [
+          -12.6,
+          -12.8332
+        ],
+        "stow_deg": -115.886,
+        "x": [
+          -17.5,
+          -8.5
+        ],
+        "sole": "Hull starboard aft wedge sole",
+        "sole_y": -17.1237,
+        "rams": [
+          {
+            "pivot": "Hull starboard aft wedge ram 1 pivot",
+            "rod_pivot": "Hull starboard aft wedge ram 1 rod pivot",
+            "P": [
+              -8.0,
+              2.0
+            ],
+            "W": [
+              -15.7396,
+              -14.9775
+            ],
+            "base": -1.998523
+          },
+          {
+            "pivot": "Hull starboard aft wedge ram 2 pivot",
+            "rod_pivot": "Hull starboard aft wedge ram 2 rod pivot",
+            "P": [
+              -8.0,
+              2.0
+            ],
+            "W": [
+              -15.7396,
+              -14.9775
+            ],
+            "base": -1.998523
+          }
+        ]
       }
     ],
     "lift_thrusters": [
@@ -871,7 +1047,7 @@
         "location": [
           32.0,
           5.2,
-          -12.986
+          -13.043
         ],
         "exhaust_direction": [
           0,
@@ -886,7 +1062,7 @@
         "location": [
           32.0,
           -5.2,
-          -12.986
+          -13.043
         ],
         "exhaust_direction": [
           0,
@@ -927,7 +1103,7 @@
         "anchor": "Lift 4 exhaust anchor"
       }
     ],
-    "note": "rest is gear stowed (flight); at gear_down 1 every pad sole stands on ground_z_units in hull space"
+    "note": "rest is wedges stowed (flight); at gear_down 1 the hull rests on its keel shoes on ground_z_units in hull space, the four wedges braced on the ground outboard"
   },
   "asset": {
     "file": "wolf.blend",
@@ -936,18 +1112,24 @@
     "anchors_collection": "WOLF | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'WOLF'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 236450,
-    "objects": 407,
+    "triangles": 405795,
+    "objects": 503,
     "materials": [
-      "Turret annihilator mark 0.6122,0.4277,0.1509",
-      "Turret annihilator paint 0.1989,0.1880,0.1718",
+      "Missile body 0.1395,0.1534,0.1357",
+      "Turret harpoon accent2 0.0675,0.0519,0.0539",
+      "Turret harpoon paint 0.1128,0.1128,0.1152",
+      "Turret harpoon plate 0.2665,0.2656,0.2698",
+      "Turret heavyblaster accent 0.2074,0.2242,0.2479",
+      "Turret heavyblaster accent2 0.2841,0.2870,0.2914",
+      "Turret heavyblaster metal 0.1101,0.1104,0.1104",
+      "Turret heavyblaster paint 0.0814,0.0830,0.0850",
+      "Turret heavyblaster plate 0.2437,0.2447,0.2466",
       "Turret ioncannon accent 0.0886,0.1626,0.1113",
       "Turret ioncannon paint 0.2099,0.2247,0.2136",
+      "Turret lamp blaster blue",
       "Turret lamp blue-white",
+      "Turret lamp glow",
       "Turret lamp red",
-      "Turret miningblaster accent 0.2524,0.2453,0.1858",
-      "Turret miningblaster metal 0.1103,0.1103,0.1108",
-      "Turret miningblaster paint 0.2071,0.2036,0.1664",
       "Turret pdlaser accent 0.2423,0.0963,0.0817",
       "Turret pdlaser accent2 0.3121,0.3143,0.3166",
       "Turret pdlaser metal 0.1103,0.1103,0.1108",
@@ -958,7 +1140,6 @@
       "Wolf grey machinery",
       "Wolf heat shield tile",
       "Wolf heat shield tile.001",
-      "Wolf heat vent glow",
       "Wolf hull armour",
       "Wolf hull lamp amber",
       "Wolf oleo chrome",

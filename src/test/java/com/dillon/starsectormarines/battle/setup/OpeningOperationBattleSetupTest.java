@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
@@ -10,6 +11,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.world.gen.ReliefCheckpoint;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
@@ -24,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Production construction checks run with the opt-in Relief evidence, not unit tests. */
 @Tag("relief-command-evidence")
@@ -107,6 +111,32 @@ class OpeningOperationBattleSetupTest {
         for (Squad squad : sim.getSquads()) if (squad.faction == Faction.ALLY) {
             assertEquals(4, squad.originalSize);
         }
+        sim.close();
+    }
+
+    @Test
+    void storyReliefAuthorsTheCompanyAshoreBesideWaylinesTruck() {
+        // A committed company boat stays in reserve; only the employer's militia lift flies.
+        BattleSimulation sim = BattleSetup.createOpeningOperation(
+                8_101L, MANIFEST, 1, OpeningOperationKind.RELIEF,
+                TargetProfile.NEUTRAL, false, true);
+        assertTrue(sim.companyStartsOnGround());
+        assertEquals(ReliefCheckpoint.COMPANY_START.x() + .5f, sim.companyGroundStartX());
+        assertEquals(ReliefCheckpoint.COMPANY_START.y() + .5f, sim.companyGroundStartY());
+        long[] shuttles = sim.getAirEntityIds();
+        assertEquals(Faction.ALLY, sim.world().airFaction(shuttles[0]));
+        assertEquals(6f, sim.world().mission(shuttles[0]).pendingDelay);
+        assertEquals(ShuttleState.GONE, sim.world().mission(shuttles[1]).state);
+        assertEquals(0, sim.world().mission(shuttles[1]).marinesRemaining);
+        int haulers = 0;
+        for (int i = 0; i < sim.convoy().vehicleCount(); i++) {
+            long vehicle = sim.convoy().vehicleAt(i);
+            assertEquals(Faction.CIVILIAN, sim.convoy().faction(vehicle));
+            assertEquals(VehicleType.CARGO_CARRIER, sim.convoy().vehicleType(vehicle));
+            haulers++;
+        }
+        assertEquals(1, haulers);
+        assertEquals(8, count(sim, Faction.ALLY, UnitType.MILITIA));
         sim.close();
     }
 

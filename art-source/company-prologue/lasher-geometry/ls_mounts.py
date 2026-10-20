@@ -178,22 +178,28 @@ HARDPOINTS = {'WS 001': 'heatseeker', 'WS 002': 'lightag', 'WS 003': 'lightag', 
 # drums proud of the deck; the autoloader's magazine sits at the missile pod's back
 # wall, its round in a channel open to the deck and its rails running out past the
 # fork to the fire point, as the game sprite draws them.
-SEAT = {'lightag': (-2.0, 3.8), 'heatseeker': (-.7, 3.4)}
+SEAT = {'lightag': (-2.0, 3.8), 'heatseeker': (.3, 3.4)}
+# A barrel that runs on past its pod along the bow head's flank lies in a trough cut
+# into whatever it meets (x0, x1 along the fire line from the mount, half-width,
+# floor below the axis), so the gun keeps the game's fire point and bearing without
+# passing through the hull.
+TROUGH = {'lightag': [(7.4, 12.6, 3.15, -2.0), (12.4, 20.5, 1.95, -2.0)]}   # the prongs' reach, then the barrel's
 BAY_WALL = .5     # pod wall left either side of a bay that would cut the pod to a skin
 HARDPOINT_RECORDS = []
 
 
-def _cut_bay(kit, sid, mount, bay, keep, reach):
-    """Sink the hardpoint: cut its bay (x0..x1 along the fire line, half-width, floor
-    below the axis, open to the deck and through the fork) out of every hull part it
-    reaches, so the housing sits in the pod rather than on it. Returns the cut parts."""
-    x0, x1, hw, floor = bay
+def _cut_bay(kit, sid, mount, box, keep, pods_only=True):
+    """Sink the hardpoint: cut a box (x0, x1 along the fire line, y0..y1 across it, the
+    floor below the axis; open to the deck) out of every hull part it reaches, so the
+    housing sits in the pod rather than on it. pods_only keeps the cut to the pod and
+    what stands on it; a barrel trough cuts the hull too. Returns the cut parts."""
+    x0, x1, y0, y1, floor = box
     bpy.ops.mesh.primitive_cube_add(size=1)
     cutter = bpy.context.object
     cutter.name = f'Temporary bay cutter {sid}'
     cutter.parent = mount
-    cutter.scale = (x1+reach-x0, 2*hw, 30)
-    cutter.location = ((x0+x1+reach)/2, 0, floor+15)
+    cutter.scale = (x1-x0, y1-y0, 30)
+    cutter.location = ((x0+x1)/2, (y0+y1)/2, floor+15)
     bpy.context.view_layer.update()
     corners = [cutter.matrix_world @ Vector(c) for c in cutter.bound_box]
     lo = Vector(map(min, *corners))
@@ -208,14 +214,23 @@ def _cut_bay(kit, sid, mount, bay, keep, reach):
             continue
         # Only the pod and what stands on it: a part reaching well beyond the bay's
         # footprint (the hull, the spine) is not the pod's.
-        if not ob.name.startswith('Pod ') and any(min(c[i] for c in bb) < lo[i]-6 or max(c[i] for c in bb) > hi[i]+6
+        if pods_only and not ob.name.startswith('Pod ') and any(min(c[i] for c in bb) < lo[i]-6 or max(c[i] for c in bb) > hi[i]+6
                                                   for i in range(2)):
             continue
+        for bm_ in ob.modifiers:          # its own chamfer, held to hard edges as the build does
+            if bm_.type == 'BEVEL' and bm_.limit_method == 'ANGLE':
+                bm_.angle_limit = max(bm_.angle_limit, math.radians(65))
         mod = ob.modifiers.new('bay', 'BOOLEAN')
         mod.operation, mod.solver, mod.object = 'DIFFERENCE', 'EXACT', cutter
         bpy.context.view_layer.update()
         dg = bpy.context.evaluated_depsgraph_get()
         me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg))
+        import bmesh
+        bm = bmesh.new()                 # merge the boolean's near-coplanar slivers back into faces
+        bm.from_mesh(me)
+        bmesh.ops.dissolve_limit(bm, angle_limit=math.radians(1.5), verts=bm.verts, edges=bm.edges)
+        bm.to_mesh(me)
+        bm.free()
         own = next((m for m in me.materials if m is not None), None)
         for i, m in enumerate(me.materials):     # the cut faces take the part's own finish
             if m is None:
@@ -249,9 +264,19 @@ def hardpoint(kit, slot):
     x0, x1, hw, floor = hp['bay']
     import ls_pods
     pod = ls_pods.GUN_POD if slot['type'] == 'BALLISTIC' else ls_pods.MISSILE_POD
-    hw = min(hw, min(pod['outer']-abs(y), abs(y)-pod['inner'])-BAY_WALL)
+    # Across the bay: where the pod wall left beside the housing would be a skin, the
+    # cut runs on out through it, so the housing's flank shows in an open side, not
+    # through a wall (owner, 2026-10-20: a fixed mount clipped its hull).
+    side = 1 if y > 0 else -1
+    room = {side: pod['outer']-abs(y), -side: abs(y)-pod['inner']}
+    ext = {sy: (hw if room[sy]-hw >= BAY_WALL else room[sy]+2.0) for sy in (1, -1)}
     reach = pod['prong']+.5-(x+back)-x1          # on through the pod's fork
-    cut = _cut_bay(kit, sid, mount, (x0, x1, hw, floor), set(hp['parts']), max(reach, 0))
+    cut = _cut_bay(kit, sid, mount, (x0, x1+max(reach, 0), -ext[-1], ext[1], floor), set(hp['parts']))
+    if TROUGH.get(weapon):
+        # The barrel's run past the pod, cut as a trough wherever it meets the hull.
+        for tx0, tx1, thw, tfl in TROUGH[weapon]:
+            cut += _cut_bay(kit, sid, mount, (tx0, tx1, -thw, thw, tfl), set(hp['parts']), pods_only=False)
+    hw = (ext[-1], ext[1])
     muzzles = []
     for k, m in enumerate(hp['muzzles'], 1):
         # The shared VFX kit's declared-muzzle name, riding the turret kit's anchor.
@@ -265,7 +290,7 @@ def hardpoint(kit, slot):
     MUZZLES[sid] = muzzles
     HARDPOINT_RECORDS.append({'slot': sid, 'weapon': weapon, 'built_by': 'turret-kit/turret_kit.py build_hardpoint',
                               'mount': mount.name, 'mount_location': [round(x+back, 2), y, z],
-                              'bay': [round(v, 2) for v in (x0, x1, hw, floor)], 'bay_cut_from': sorted(cut),
+                              'bay': {'x': [round(x0, 2), round(x1, 2)], 'y': [round(-hw[0], 2), round(hw[1], 2)], 'floor': round(floor, 2), 'trough': TROUGH.get(weapon)}, 'bay_cut_from': sorted(cut),
                               'parts': [o.name for o in hp['parts']], 'moving': [e.name for e in hp['moving']],
                               'kit_muzzles': [m.name for m in hp['muzzles']], 'muzzles': muzzles,
                               'muzzle_location': [round(v, 2) for v in (mount.matrix_world @ hp['muzzles'][0].location)]})

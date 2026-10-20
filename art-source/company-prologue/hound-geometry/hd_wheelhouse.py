@@ -22,9 +22,10 @@ sill at 1.5 units (1.3 m) above the bridge floor, the rails 1.15 units
 the brow, which stays over the body's forward deck, so the silhouette is
 unchanged and nothing enters WS 002's traverse (its barrel tip stays aft
 of X 4.3 and below the roof).
-Emissives: only the bridge glazing (kit.glass, a lit bridge) and the mast's
-nav lamps; the lights layer shows the deckhouse's three amber roof lamps,
-which hd_hull keeps.
+Emissives: none. hound_lights.png has no light on the deckhouse forward of
+its three amber roof lamps (hd_hull), so the bridge glazing is dark tinted
+glass (`Wheelhouse glazing`, the surfacing's glass class) and the mast's
+yard lamps are fittings with dark lenses (ship-detail-guide.md, Lamps).
 """
 import math
 import bpy
@@ -56,13 +57,19 @@ def framed(kit, name, centre, u, v, n, du, dv, dn, mat, bevel=0.0):
     return ob
 
 
+def unlit_glass():
+    """Dark tinted bridge glass, not lit: the lights layer has no viewport here."""
+    m = bpy.data.materials.get('Wheelhouse glazing')
+    return m or material('Wheelhouse glazing', (.05, .08, .09), .2, .15)
+
+
 def band(kit, house, label, centre, u, v, n, width, height, mullions, sill=True):
     """Recess a window band into a wall face and glaze it with mullions.
     centre lies on the face; u runs along the band, v up it, n outward."""
     c = Vector(centre)
     cut = framed(kit, 'Temporary window recess', c, u, v, n, width, height, .6, kit.dark)
     boolean(house, cut)
-    framed(kit, f'Wheelhouse {label} glazing', c-n*.26, u, v, n, width-.04, height-.04, .06, kit.glass)
+    framed(kit, f'Wheelhouse {label} glazing', c-n*.26, u, v, n, width-.04, height-.04, .06, unlit_glass())
     framed(kit, f'Wheelhouse {label} glazing backing', c-n*.32, u, v, n, width, height, .04, kit.dark)
     for k in range(mullions+1):
         t = -width/2+k*width/mullions
@@ -109,7 +116,8 @@ def mast(kit):
         for j, (dx, dy, w, l) in enumerate(((r, 0, .08, 2*r), (-r, 0, .08, 2*r), (0, r, 2*r, .08), (0, -r, 2*r, .08)), 1):
             kit.box(f'Wheelhouse mast band {k}.{j}', (x+dx, y+dy, z), (w, l, .08), kit.steel, 0)
     kit.box('Wheelhouse mast yard', (x, y, z1-.9), (.16, 3.6, .16), kit.steel, 0)
-    nav = material('Wheelhouse nav lamp', (.2, .05, .03), 0, .3, emission=(1, .25, .1), strength=4)
+    # Dark lenses: the lights layer has no pixel at the mast (a shot's effects may light them).
+    nav = material('Wheelhouse nav lamp', (.2, .05, .03), 0, .3)
     for s in (1, -1):
         kit.cylinder(f"Wheelhouse mast yard lamp {'port' if s > 0 else 'starboard'}", (x, y+s*1.85, z1-.75), .14, .25, nav, 'Z', 8, 0)
     kit.cylinder('Wheelhouse radome', (x, y, z1+.25), .55, .5, kit.cream, 'Z', 12, .1)

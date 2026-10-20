@@ -138,19 +138,31 @@ lamp is a smooth lens in a bezel turned to the hull. About 58k polygons
 (pirate), 67k (merchant).
 
 Round 8, the underside and landing ("Underside and landing needs to be figured
-out for this ship"), wf_gear.py, whose docstring carries the reasoning: four
-telescoping legs in flat-bottomed gear sponsons under the main body (X 20 and
--14), each sponson on a gear frame to the keel's side wall; the round foot pad
-is the armoured plug that closes the well flush when stowed, so there are no
-hinged doors on a belly that takes fire. Four ventral lift thrusters in rings of
-heat-shield tiles (two under the neck, two under the drive section), because
-the drives only push aft. Parked on GROUND_Z -22 the keel stands 3.4 units
-(2.6 m) clear. Also: keel frames, a rubbing strake and a heat-shield tile field
-on the keel, a ventral boarding hatch with a ladder housing, service hatches,
-drain and vent grilles, wing seams and panels, outrigger sensor windows and
-down-firing RCS. The build checks the deployed pose (every sole on the ground,
-nothing else within a unit of it, no oleo or pad through the hull) and records
-`landing_gear` in geometry.json. Round 7 leftovers brought up: lamp lenses
+out for this ship"; then, on the first design of telescoping legs: "I'd rather
+have 'wedges' that come out along the side of the under hull with 'thick'
+bracing. The ship should sit on its 'keel' with the edges stopping it from
+rolling"), wf_gear.py, whose docstring carries the reasoning: the ship rests on
+two armoured keel shoes on GROUND_Z -19.4, and four thick ribbed wedges (two a
+side, X 15..24 and -17.5..-8.5) hinge along the bottom of the hull sides, lie
+flat against the side as armour in flight and swing about 134 degrees down and
+out until their toes plant 4 units outboard, each braced by two heavy rams from
+deep in the main body. Four ventral lift thrusters in rings of heat-shield tiles
+(two under the neck, two under the drive section), because the drives only push
+aft. Also: keel frames and a heat-shield tile field on the keel, a ventral
+boarding hatch with a ladder housing, service hatches, drain and vent grilles,
+wing seams and panels, outrigger sensor windows and down-firing RCS. The build
+checks the deployed pose (keel shoes and wedge soles on the ground, everything
+else clear of it, no wedge through the ground) and records `landing_gear` in
+geometry.json. Against ship-detail-guide.md (ship-detail-kit/check_detail.py,
+--mpu 0.76, turrets excluded) both variants pass every gate but one: the
+pirate's 1 faceted object (Hull head) is the carve imprint of the mining
+blaster's breech, inside the weapon and never seen (2 before the turret kit's
+close-view rebuild, which also took the launcher collars' imprint). Otherwise 0 faceted (hull
+lofts at 48 sections, pods 64, armour domes 64 sides, merchant turret sponsons
+64), 0.0 m unbevelled per 100 m2 (the skinned hull bodies take the guide's
+0.12 m plate bevel on edges of 55 degrees and sharper), no emissive off a lamp
+(the outrigger vent slats no longer glow: the Wolf has no lights layer), no
+unframed glazing. Round 7 leftovers brought up: lamp lenses
 halved, a rounded sensor housing with a framed recessed window, a round roof
 hatch with coaming, hinge and handwheel, and radiator and exchanger panels as
 angled vanes in framed, rounded wells. About 102k polygons (pirate), 111k
@@ -161,9 +173,17 @@ Variants
 no pirate armour (domes, welded plates), the base hull's WS 002 / WS 003
 turrets back in wells sunk into low sponsons faired into the aft flanks (the
 base sprite's round wells; round 6 retired the full-depth drums), its own collection WOLF and asset wolf.blend,
-geometry-merchant.json, the vanilla wolf_Assault loadout (heavy blaster and
-Harpoons drawn with the kit's mining blaster and Annihilator forms for now:
-built_as in the manifest). Its livery is ../wolf-merchant-surface.
+geometry-merchant.json, the vanilla wolf_Assault loadout: the kit's heavy
+blaster in the prow trough (HARDPOINT_K .3, its capacitor housing in a breech
+pocket under the gun hood) and Harpoon launchers on the wing tips (k .3, the
+main body's flank carved to the launcher's shape). turret-kit/check_hardpoints.py
+finds no clips on either variant: the pirate's buried breech and sunk launcher
+collars are carved the same way. The WS 004 trough is 4.1 units a side (3.7
+before the turret kit's close-view mining blaster, whose prongs the 0.12 m plate
+bevel on the fork base otherwise refilled to 0.16 units deep). The check now
+counts only mount empties that have a parent, and the Wolf's mounts are top
+level in the geometry build: parent them to a temporary empty before calling
+clashes(), or it reports nothing. Its livery is ../wolf-merchant-surface.
 
 Shot checks
 At 1920x1080 on a 36 mm sensor, port bow quarter from a little above, low sun

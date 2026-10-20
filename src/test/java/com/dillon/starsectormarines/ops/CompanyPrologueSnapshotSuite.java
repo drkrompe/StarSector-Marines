@@ -1,6 +1,11 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.CompanyPrologue;
+import com.dillon.starsectormarines.campaign.start.FoundingReserve;
+import com.dillon.starsectormarines.campaign.start.MercenaryCompanyConversion;
+import com.dillon.starsectormarines.campaign.start.SecondWindKeep.Cause;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
@@ -33,23 +38,37 @@ public final class CompanyPrologueSnapshotSuite implements SnapshotSuite {
             frames.add(frame(loader, renderer, page, "Jangala"));
         }
         frames.add(frame(loader, renderer, 5, "Independent Port"));
-        frames.add(frame(loader, renderer, 7, null));
-        for (Stage stage : Stage.values()) {
-            frames.add(yardFrame(loader, renderer, stage, true, 5000, null));
-            frames.add(yardFrame(loader, renderer, stage, false, 0, null));
-        }
-        frames.add(yardFrame(loader, renderer, Stage.ORDER, false, 0, "The conversion requires 5,000 credits."));
+        frames.add(frame(loader, renderer, CompanyPrologue.PAGE_COUNT - 1, null));
+        for (Stage stage : Stage.values()) frames.add(yardFrame(loader, renderer, stage, true, null));
+        frames.add(yardFrame(loader, renderer, Stage.COST, false, null));
+        frames.add(yardFrame(loader, renderer, Stage.COST, false,
+                Strings.format("openingCompanyYardTheConversionRequiresCredits", MercenaryCompanyConversion.CREDIT_COST)));
+        frames.add(buyBackFrame(loader, renderer, Cause.BATTLE, 473, 2250, "Compromised Armor", "buyback-1-battle-debt-100.png"));
+        frames.add(buyBackFrame(loader, renderer, Cause.SOLD, 6000, 3100, "Faulty Grid", "buyback-2-sold-100.png"));
+        frames.add(buyBackFrame(loader, renderer, Cause.SCUTTLED, 4000, 2250, null, "buyback-3-scuttled-at-cap-100.png"));
         return frames;
     }
+    /** Getting Second Wind back after each kind of loss: the bill, the account, and the d-mod she carries. */
+    private SnapshotArtifact buyBackFrame(MarkupLoader loader, HeadlessUiRenderer renderer, Cause cause,
+                                          int credits, int bill, String dMod, String name) {
+        var props = SecondWindBuyBackScreen.model(cause, "Second Wind", "Jangala", credits, bill, dMod, () -> {}, () -> {});
+        return renderFrame(loader, renderer, props, name);
+    }
+    /**
+     * Reserved frames follow the protected start: Castle's chits pay the bill, and the account is the starting one.
+     * Account frames pay from the ship's account: a covered order, and a refused one.
+     */
     private SnapshotArtifact yardFrame(MarkupLoader loader, HeadlessUiRenderer renderer, Stage stage,
-                                       boolean jangala, int reserve, String refusal) {
-        var props = CompanyYardScreen.model(stage, jangala, "Second Wind", reserve > 0 ? 500 : 2500,
+                                       boolean reserved, String refusal) {
+        int reserve = reserved && stage == Stage.COST ? FoundingReserve.CREDITS : 0;
+        int credits = reserved ? CerberusCompanyStart.STARTING_CREDITS : refusal == null ? 6000 : 2500;
+        var props = CompanyYardScreen.model(stage, "Second Wind", credits,
                 reserve, refusal, null, true, () -> {}, () -> {}, () -> {});
-        return renderFrame(loader, renderer, props, "yard-" + stage.name().toLowerCase()
-                + (jangala ? "-jangala" : "-fallback") + (refusal == null ? "" : "-refused") + "-100.png");
+        return renderFrame(loader, renderer, props, "yard-" + (stage.ordinal() + 1) + "-" + stage.name().toLowerCase()
+                + (reserved ? "-reserve" : "-account") + (refusal == null ? "" : "-refused") + "-100.png");
     }
     private SnapshotArtifact frame(MarkupLoader loader, HeadlessUiRenderer renderer, int page, String port) {
-        var props = CompanyPrologueScreen.model(page, port, "Jangala".equals(port), 20, 500, 5000, () -> {}, () -> {}, () -> {});
+        var props = CompanyPrologueScreen.model(page, port, 25, 473, 4862, () -> {}, () -> {}, () -> {});
         return renderFrame(loader, renderer, props, "page-" + (page + 1) + "-" + (port == null ? "unavailable" : port.replace(' ', '-')) + "-100.png");
     }
     private SnapshotArtifact renderFrame(MarkupLoader loader, HeadlessUiRenderer renderer, Map<String, Object> props, String name) {

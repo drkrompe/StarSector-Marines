@@ -42,11 +42,11 @@ class MechFireGroupsTest {
     }
 
     @Test
-    void indirectLaunchersBelongToNeitherGroup() {
+    void arcingLaunchersJoinTheRightButton() {
         MechWeaponMount[] sirocco = of(MechVariant.SIROCCO);
         assertEquals(ARMS, MechFireGroups.primaryMask(sirocco));
-        assertEquals(0, MechFireGroups.secondaryMask(sirocco), "LRMs cannot be aimed at a cursor point");
-        assertEquals("", MechFireGroups.badge(sirocco, 0, sirocco[1]));
+        assertEquals(LEFT | RIGHT, MechFireGroups.secondaryMask(sirocco), "LRMs drop on the cursor point");
+        assertEquals("R", MechFireGroups.badge(sirocco, 0, sirocco[1]));
     }
 
     @Test

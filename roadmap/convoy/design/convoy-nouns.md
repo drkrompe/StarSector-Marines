@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — a hull keeps its front on the worst threat it knows of (harm into its plate, own sight or a spotter's), and a turning hull's gun shakes by the share of its turret's traverse its yaw takes; a hull holding in band without wearing its target down (a stalled hold) moves to another in-band firing position with a clear lane; a hull turns its front back onto a threat off its nose (a backing turn out to 120°, a forward turn beyond; rehearsed first, never off a parapet), and a disarmed hull still drives its withdrawal rear on (nose-on backing measured and rejected); a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
+Updated: 2026-10-20 — an armed hull clicked onto a garrisonable its side mans guards it from a cell beside it, idle gun on the believed threat; one its side believes is enemy-held it assaults from a stand-off, directing its turret; earlier: a hull keeps its front on the worst threat it knows of (harm into its plate, own sight or a spotter's), and a turning hull's gun shakes by the share of its turret's traverse its yaw takes; a hull holding in band without wearing its target down (a stalled hold) moves to another in-band firing position with a clear lane; a hull turns its front back onto a threat off its nose (a backing turn out to 120°, a forward turn beyond; rehearsed first, never off a parapet), and a disarmed hull still drives its withdrawal rear on (nose-on backing measured and rejected); a hull's plate depends on the arc a hit arrives on (front, side, rear; the turret on its own facing); the screened tank (a tank-line rung) carries active protection against top-attack rounds; a hull whose gun is shot away withdraws out of reach; earlier: the missile carriers (LRM carrier, SRM technical): spotted indirect fire, anti-armor-only racks, stand-off and ambush stances; a tank's turret is a section of its hull and its gun can be shot away; tanks reverse at 0.3 of top speed; deployed hulls engage armor from a duel band between orders.
 
 ## Purpose and boundary
 
@@ -768,7 +768,25 @@ retains the same existing cross-domain behavior as an autonomous hull.
   standing in the road with the order marked done.
 - A move order owns locomotion and nothing else. The turret, the payload, and
   the delivery obligation are untouched, and releasing the order hands the
-  vehicle straight back to the errand it was on.
+  vehicle straight back to the errand it was on. The one order that also
+  directs the turret is the **assault** an armed hull is given by a click on a
+  garrisonable its side believes is enemy-held (`ai-nouns.md`, machine
+  assault): it drives to a stand-off, holds there rather than handing back on
+  arrival, and puts the gun on the believed occupants and the walls sheltering
+  them until nobody is believed inside. Its sibling is the **guard** a click on a
+  garrisonable its own side mans gives (`ai-nouns.md`, machine guard): the hull
+  drives to a cell beside the place, off the garrison's lanes, holds there, and
+  rests its idle gun along the believed threat axis rather than over its nose;
+  the turret keeps its own pick, and the guard ends once the garrison has gone.
+  A hull keeps the cell it drove to, turning its gun rather than its ground.
+- A move order may name the heading to finish on: a right-drag goes to where
+  the drag began and faces the way it went. That heading is an arrival goal like
+  a delivery's departure heading, earned the same way — the terminal
+  Reeds-Shepp docking maneuver, which may back and fill, including on the spot
+  for a vehicle already standing at its destination. A bicycle cannot pivot, so
+  where no feasible maneuver fits the ground the vehicle arrives on the heading
+  it drove in on, as an undragged order does; the heading is a goal, never a
+  reason to refuse the move.
 - Arrival is not failure. Reaching the terminal corridor region must transition
   to landing/departure instead of triggering a false stuck recovery, and aiming
   at an off-map exit is arrival in progress rather than an unsolvable route.

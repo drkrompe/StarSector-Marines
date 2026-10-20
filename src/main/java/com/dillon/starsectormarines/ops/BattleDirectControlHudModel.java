@@ -181,19 +181,31 @@ final class BattleDirectControlHudModel {
         }
         List<WeaponGroup> result = new ArrayList<>();
         boolean single = selected != 0;
+        boolean leftClose = anyTooClose(snapshot, true);
         result.add(new WeaponGroup("direct-hud-group-lmb", label("BadgeLMB"), "badge badge-lmb",
                 label(single ? "GroupSingle" : "GroupPrimary"),
-                label(single ? "GroupSingleHint" : "GroupPrimaryHint"),
+                leftClose ? label("TOO_CLOSE") : label(single ? "GroupSingleHint" : "GroupPrimaryHint"),
+                leftClose ? HINT_WARN : HINT,
                 "group-header group-header-action", false, () -> select.accept(0), left));
         if (!right.isEmpty()) {
+            boolean close = anyTooClose(snapshot, false);
             result.add(new WeaponGroup("direct-hud-group-rmb", label("BadgeRMB"), "badge badge-rmb",
-                    label("GroupSecondary"), label("GroupSecondaryHint"), "group-header", false, () -> {}, right));
+                    label("GroupSecondary"), close ? label("TOO_CLOSE") : label("GroupSecondaryHint"),
+                    close ? HINT_WARN : HINT, "group-header", false, () -> {}, right));
         }
         if (!other.isEmpty()) {
             result.add(new WeaponGroup("direct-hud-group-other", label("BadgeAI"), "badge badge-ai",
                     label("GroupOther"), label("GroupOtherHint"), "group-header", false, () -> {}, other));
         }
         return result;
+    }
+
+    /** Whether a mount the left (or right) button fires is refusing the cursor as too close. */
+    private static boolean anyTooClose(BattleDirectControlStatus.Snapshot snapshot, boolean leftButton) {
+        for (WeaponStatus weapon : snapshot.weapons()) {
+            if (weapon.tooClose() && weapon.trigger().contains(leftButton ? "L" : "R")) return true;
+        }
+        return false;
     }
 
     /** Single-weapon carriers: the left button's weapon, then keyed abilities or a ship's systems. */
@@ -232,7 +244,9 @@ final class BattleDirectControlHudModel {
                 && weapon.state() != WeaponState.BURST && weapon.state() != WeaponState.EMPTY;
         if (fluxHeld) state = label("FluxHold");
         String stateClasses = "weapon-state";
-        if (fluxHeld || weapon.state() == WeaponState.EMPTY) stateClasses += " weapon-empty";
+        if (fluxHeld || weapon.state() == WeaponState.EMPTY || weapon.state() == WeaponState.TOO_CLOSE) {
+            stateClasses += " weapon-empty";
+        }
         else if (weapon.state() != WeaponState.LOADED) stateClasses += " weapon-busy";
         String classes = "weapon" + (highlighted ? " weapon-selected selected" : "")
                 + (!enabled ? " weapon-unsupported" : "");
@@ -338,16 +352,25 @@ final class BattleDirectControlHudModel {
         return ammo.remaining() + " / " + ammo.capacity() + " " + label(ammo.unit().name());
     }
 
+    private static final String HINT = "group-hint";
+    /** A group header hint that is a warning: a mount on that button refuses the cursor. */
+    private static final String HINT_WARN = "group-hint group-hint-warn";
+
     private String label(String suffix) { return copy.apply("battleDirectHud" + suffix); }
     private void set(String key, String value) { text.get(key).set(value); }
     private static String width(float fraction) { return "width: " + Math.round(fraction * 100f) + "%;"; }
 
     /** One button's worth of equipment; the header resets the left button to its group where that applies. */
     record WeaponGroup(String id, String badge, String badgeClasses, String name, String hint,
-                       String headerClasses, boolean headerDisabled, Runnable action,
+                       String hintClasses, String headerClasses, boolean headerDisabled, Runnable action,
                        List<WeaponRow> weapons) implements MarkupPropertySource {
         WeaponGroup {
             weapons = List.copyOf(weapons);
+        }
+
+        WeaponGroup(String id, String badge, String badgeClasses, String name, String hint,
+                    String headerClasses, boolean headerDisabled, Runnable action, List<WeaponRow> weapons) {
+            this(id, badge, badgeClasses, name, hint, HINT, headerClasses, headerDisabled, action, weapons);
         }
 
         @Override public Object markupProperty(String key) {
@@ -357,6 +380,7 @@ final class BattleDirectControlHudModel {
                 case "badgeClasses" -> badgeClasses;
                 case "name" -> name;
                 case "hint" -> hint;
+                case "hintClasses" -> hintClasses;
                 case "headerClasses" -> headerClasses;
                 case "headerDisabled" -> headerDisabled;
                 case "action" -> action;

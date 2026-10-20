@@ -42,6 +42,7 @@ ap.add_argument('--out', default=str(HERE / 'build' / 'review'))
 ap.add_argument('--effects', action='store_true')
 ap.add_argument('--fire', type=int, default=0)
 ap.add_argument('--lights-off', action='store_true')
+ap.add_argument('--lift', type=float, default=0.0)   # lift-thruster throttle (thr_throttle_e<i>) with --effects
 ap.add_argument('--device', default='GPU', choices=('GPU', 'CPU'))
 ap.add_argument('--variant', default='pirate', choices=('pirate', 'merchant'))
 ap.add_argument('--res', default='1920x1080')
@@ -69,13 +70,14 @@ VIEWS = {
     'bridge-detail': (40, 26, 32, Vector((35, 0, 7))),
     'drive-detail': (-58, 30, 42, Vector((-24, 5, 3))),
     'ventral-quarter': (50, -30, 128, T0),
-    # Round 8 landing: on the ground with the gear down, and the port fore leg close.
+    # Round 8 landing: on the ground with the gear down, and the port fore wedge close (deployed and stowed).
     'landed': (40, 7, 124, Vector((5, 0, -6))),
-    'gear-bay': (58, 3, 20, Vector((20, 9, -17.5))),
-    'gear-bay-stowed': (36, -24, 18, Vector((20, 9, -14.5))),
+    'gear-bay': (52, 6, 26, Vector((19.5, 14.5, -16))),
+    'gear-bay-stowed': (44, -8, 24, Vector((19.5, 13, -10))),
+    'landing': (35, 4, 124, Vector((5, 0, -8))),
 }
 # Views that stand the ship on its gear over the ground plane.
-LANDED_VIEWS = {'landed', 'gear-bay'}
+LANDED_VIEWS = {'landed', 'gear-bay', 'landing'}
 # The close Asharu shot: (azimuth from +X toward +Y, elevation, metres, lens mm).
 SHOTS = {'asharu-s9': (55, 16, 670.0, 28.0)}
 SUN_IN_CAMERA = Vector((-0.70, 0.35, 0.62)).normalized()
@@ -188,6 +190,11 @@ def aim_shot(az, el, metres, lens):
 
 
 ctl = bpy.data.objects.get(man.get('control', {}).get('object', ''))
+ctl_fx = bpy.data.objects.get('SWFX controls')
+if args.lift and ctl_fx is not None:
+    for t in man.get('lift_thrusters', []):
+        ctl_fx[f"thr_throttle_e{t['engine_index']}"] = args.lift
+    ctl_fx.update_tag()
 gd = bpy.data.materials.new('Review ground')
 gd.use_nodes = True
 gb = gd.node_tree.nodes['Principled BSDF']
@@ -207,7 +214,7 @@ def landed(on):
     bpy.context.view_layer.update()
 
 
-suffix = ('-fx' if args.effects else '') + ('-fire' if args.fire else '') + ('-dark' if args.lights_off else '')
+suffix = ('-fx' if args.effects else '') + ('-lift' if args.lift else '') + ('-fire' if args.fire else '') + ('-dark' if args.lights_off else '')
 OUT.mkdir(parents=True, exist_ok=True)
 for v in [v for v in args.views.split(',') if v]:
     if v in SHOTS:

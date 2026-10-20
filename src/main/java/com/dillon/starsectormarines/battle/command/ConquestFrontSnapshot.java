@@ -153,6 +153,8 @@ public record ConquestFrontSnapshot(
         DEFENDER_GARRISONABLE_FALL_BACK,
         /** A mobile-pool patrol waiting at a held fort's works so the nearest free squad is near its belt. */
         DEFENDER_GARRISONABLE_STAGE,
+        /** A mech lance standing guard beside a manned, pressed garrisonable as its heavy support, never in it. */
+        DEFENDER_MACHINE_GUARD,
         DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED,
         /** A squad detached to take or wreck a known enemy-held ground-defence structure (fire control, shield generator). */
         DEFENCE_STRUCTURE_TAKE,
@@ -160,6 +162,14 @@ public record ConquestFrontSnapshot(
         DEFENCE_STRUCTURE_RETAKE,
         /** A squad detached to stand to at this side's own ground-defence structure while it is being pressed. */
         DEFENCE_STRUCTURE_DEFEND,
+        /** The reserve share of the defender's pool, held at a staging cell behind a place worth guarding for its counter-attack. */
+        DEFENDER_COUNTERATTACK_RESERVE,
+        /** A squad sent ahead to observe a lost place before a counter-attack on it commits. */
+        DEFENDER_COUNTERATTACK_PROBE,
+        /** A squad gathering at the staging cell for a counter-attack on a place the defender has lost or is losing. */
+        DEFENDER_COUNTERATTACK_MUSTER,
+        /** A squad of a counter-attack launched as one push at a lost place (a fort's critical aspect, a compound's capture cell). */
+        DEFENDER_COUNTERATTACK_LAUNCH,
         /** A squad held at the landing while an assault company musters, so the foothold stays held. */
         MUSTER_FOOTHOLD,
         /** A squad gathering at the company rally point for an objective one squad cannot take. */
@@ -177,7 +187,15 @@ public record ConquestFrontSnapshot(
         /** An assault-element squad holding the aspect it has taken until the next pick. */
         ASSAULT_HOLD,
         /** A squad of an assault plan in position to open the wall section of a breach, at range or at its foot. */
-        ASSAULT_BREACH
+        ASSAULT_BREACH,
+        /** A lane squad sent to man a run of a fort its side has taken, because a counter-attack is believed near it. */
+        HOLD_GROUND_MAN,
+        /** A squad continuing to man a taken fort's run while its believed pressure stays up, or until the dwell ends. */
+        HOLD_GROUND_STAND,
+        /** A holder of a taken fort's run whose ground was breached or which fell below useful strength, withdrawn to the works. */
+        HOLD_GROUND_FALL_BACK,
+        /** A mech lance standing guard beside a taken fort's manned run while a counter-attack is believed near it. */
+        HOLD_GROUND_MACHINE_GUARD
     }
 
     public record TrackState(

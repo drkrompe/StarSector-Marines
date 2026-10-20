@@ -6,7 +6,7 @@ Slices are on the mission-command board.
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — a screen is weighed against the whole base of fire as it stands and is re-weighed until its clouds are thrown; a breach role is re-read against the live kit before release; a Conquest force is issued its declared sappers and smoke. See "Satchel squads keep holding" and "Smoke screens: the pot and the partition".
+Updated: 2026-10-20 — the defender counter-attacks a lost place (a fort as one case) in proportion to what it observed holds it, or not at all (`PlaceCounterattack`, scenes `place-counterattack`, `fort-counterattack`), reusing the company's rally line and, at a fort, its massed commit; earlier: a screen is weighed against the whole base of fire as it stands and is re-weighed until its clouds are thrown.
 
 Read `conquest-command.md`, `forts.md` and `ai-nouns.md` first.
 
@@ -360,9 +360,11 @@ third timeout can still send a sliver. Breach is now fired at on purpose (see "C
 breach beats a gate on Conquest is unmeasured.
 
 Not built here: recruiting whole named-officer groups into a company, a company's
-reaction to being counter-attacked at its rally, a defender-side use of the same
-machinery (nothing in it is attacker-only), retreat of a company that is failing
-but not yet broken, plans for any stamp but the two forts.
+reaction to being counter-attacked at its rally, retreat of a company that is failing
+but not yet broken, plans for any stamp but the two forts. The defender's side of it
+is the place counter-attack (`conquest-command.md`, Defender command), which takes the
+staging line and, at a fort, the massed commit from here but not the company: it has no
+foothold, no lane shares and no stamp plan, because the place it goes for is its own.
 
 ## Capability roles: as built
 
@@ -391,6 +393,9 @@ squad: mech mounts through `HeavyWeapons.fireMountAtPoint`, a launcher through
 `SatchelChargeService.plantAtCell`, a cutter through the ordinary breach damage. A
 carrier works from the squad's arrival footprint rather than on his own path
 (untuned simplification), and no aim or channel animation plays for these shots.
+The same pass fires a mech's mounts at the wall a player's machine assault names
+(the wall sheltering a believed occupant of a held place; `ai-nouns.md`, machine
+assault), and a vehicle's turret does the same through its point fire.
 
 **Evidence.** The `assault-muster` scene's `breach-cannon` loop (one cannon mech
 and rifle squads) takes a distance breach: the mech opens the wall section in a

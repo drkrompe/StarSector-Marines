@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15a65-fcb4-7351-b888-c6010ff1faeb",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15a65-fcb4-7351-b888-c6010ff1faeb\\call_0627acdc93bd47cdbdddb6c8e30a29f8.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\yard-stills\\storybook\\p1-counter-bg-v1.png",
+    "sha256": "9ec631c469cbbfeacfb12911265a32b038d6e35a4db543fc98f38d87f231b2da",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\yard-stills\\storybook\\p1-counter-bg-v1.prompt.txt",
+  "promptSha256": "f640659ac7ed882ae1402fd31c02f26ce910d8003b0d0532772244b72aec0027",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Place and light only: the yard seen out of focus through the window; not the camera\n\nOne landscape 1536x1024 (3:2) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, worn steel and canvas, warm humid daylight, muted blue shadows, tactile wear, believable human scale. Readable when reduced to 900x600. No legible text or numbers anywhere, no logos, watermarks, border or interface.\n\nReference roles:\n- Reference 1 is PLACE AND LIGHT ONLY: the yard outside the window. It is Kilo Nine, a small private repair yard at the jungle-world spaceport of Jangala, in hazy late-morning daylight, with Second Wind, a battered rust-orange and grey patched freighter, standing in its cradle beside a yellow scaffold tower. Use it for what is seen, soft and out of focus, through the window. Do not copy its camera.\n\nThis picture is a BACKGROUND LAYER: a hand will be composited over it later. It contains NO person and NO hands or arms. Keep the space above the right-hand end of the row of chits open.\n\nScene: a close, quiet still life on the scarred steel service counter of the yard forewoman's small office, seen from a standing adult just across the counter, looking slightly down along it. Behind the counter, a wide dusty window: through it, out of focus, the bright hazy yard, the rust-orange hull of Second Wind in its cradle and a yellow scaffold tower, jungle green at the edge. The daylight comes in through that window and rakes across the counter toward the viewer, with soft cool shade on the near side.\n\nOn the counter, the subject of the picture, sharp and lit:\n- A row of three credit chits laid down neatly, side by side with a small gap between each, running left to right across the middle of the counter, and an EMPTY place at the right-hand end of the row where a fourth will go. A credit chit is a small, thick, palm-sized data token like a stubby rounded slab of dull metal and dark composite, about the size of a matchbox, with a worn contact edge and one tiny dim status light; no text or numbers on it. They are old and personal and each one different: the first clean and scratched; the second with a curl of yellowed medical tape still stuck to it; the third dull with handling.\n- Beside them, an old field med kit lying open, its foam insert pulled up at one corner where something was dug out from the bottom.\n- A worn dark olive-drab canvas duty jacket folded over the end of the counter, its inner lining slit open along a short seam, a few loose threads hanging from the cut.\n- Pushed to one side, near the window, a scratched chunky work slate lying screen-up with a single column of soft, illegible glowing lines on it: the yard's estimate. A stylus beside it.\n- An old pressure seal ring hangs on the wall by the window, a little detail of the office.\n\nMood: careful, private, a person paying with the last of her own savings. Quiet, not sentimental. The chits should read at a glance as the most important things in the room.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\yard-stills\\yard-hull-bg-v3.png",
+      "sha256": "1f8345b161b4568d7d10fb531be0d9860ea0a6b946e5a6b3cbb46fa0218af9da",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Place and light only: the yard seen out of focus through the window; not the camera"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image, using the reference only for the yard and daylight beyond the window."
+  ],
+  "usage": {
+    "input_tokens": 50886,
+    "cached_input_tokens": 42368,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 986,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 62.2
+}

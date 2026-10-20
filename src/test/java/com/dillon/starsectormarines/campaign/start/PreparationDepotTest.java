@@ -82,13 +82,17 @@ class PreparationDepotTest {
     }
 
     @Test void yardRefusesEveryInvalidOrderBeforeMutating() {
-        assertNull(CompanyYard.refusal(true, true, false, false, true, 5000));
-        assertNotNull(CompanyYard.refusal(false, true, false, false, true, 5000));
-        assertNotNull(CompanyYard.refusal(true, false, false, false, true, 5000));
-        assertNotNull(CompanyYard.refusal(true, true, true, false, true, 5000));
-        assertNotNull(CompanyYard.refusal(true, true, false, true, true, 5000));
-        assertNotNull(CompanyYard.refusal(true, true, false, false, false, 5000));
-        assertNotNull(CompanyYard.refusal(true, true, false, false, true, 4999));
+        assertNull(CompanyYard.refusal(true, true, false, false, true, MercenaryCompanyConversion.CREDIT_COST));
+        assertNotNull(CompanyYard.refusal(false, true, false, false, true, MercenaryCompanyConversion.CREDIT_COST));
+        assertNotNull(CompanyYard.refusal(true, false, false, false, true, MercenaryCompanyConversion.CREDIT_COST));
+        assertNotNull(CompanyYard.refusal(true, true, true, false, true, MercenaryCompanyConversion.CREDIT_COST));
+        assertNotNull(CompanyYard.refusal(true, true, false, true, true, MercenaryCompanyConversion.CREDIT_COST));
+        assertNotNull(CompanyYard.refusal(true, true, false, false, false, MercenaryCompanyConversion.CREDIT_COST));
+        assertNotNull(CompanyYard.refusal(true, true, false, false, true, MercenaryCompanyConversion.CREDIT_COST - 1));
+        int waivedPrice = MercenaryCompanyConversion.CREDIT_COST - CompanyYard.waived(FoundingReserve.CREDITS);
+        assertNull(CompanyYard.refusal(true, true, false, false, true, FoundingReserve.CREDITS, waivedPrice),
+                "The reserve alone pays the waived estimate");
+        assertNotNull(CompanyYard.refusal(true, true, false, false, true, FoundingReserve.CREDITS - 1, waivedPrice));
     }
 
     private static CargoAPI cargo(Map<String, Float> stock) {

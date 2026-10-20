@@ -476,6 +476,12 @@ track and forward band; a bounded number of other initial patrol squads may
 rally into that track, preferring their home track and then one neighbor. The
 rally is an own-force destination, not a copied hostile identity or reported
 cell, and the receiving squad's local contact picture supersedes it on contact.
+A track's rally is steady: two answers often apply to one threatened track at
+once (the band behind a remembered contact and an alarmed fort's works, or the
+band point and a pressure area's staging cell), and a rally does not swing back
+to the post it has just left for a few command pulses, since each swing gives
+every rallied squad a new route for no new information. A post that is genuinely
+new is taken at once.
 
 Born garrisons never enter this mobile pool. Explicit hold or recapture work
 outranks a soft track response, at least one otherwise-free patrol remains in
@@ -484,7 +490,7 @@ owned by defender command. The setup pool is captured from the live squad
 roster before the first alert aggregation, so roster membership and `PATROL`
 role--not a not-yet-populated cached alive count--define the starting force.
 Authored setup garrisons claim garrison ownership at setup. A fort belt is not one of them: it is
-manned from the patrol pool only while pressed, and its squad returns to the pool
+manned from the patrol pool a stretch at a time, only where pressed, and its squad returns to the pool
 when the pressure passes (see `ai-nouns.md`, fighting positions). Staging free
 patrols behind pressured areas is a third use of the pool beside the track rally
 and structure tasks; staged patrols still count as reserve (see `garrisonables.md`).

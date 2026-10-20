@@ -23,29 +23,33 @@ sys.path.insert(0, str(ART))
 import ship_scale  # noqa: E402
 from starsector_path import GAME_CORE  # noqa: E402
 
-# Finished cinematic builds this scene appends (build/asharu-battle/inputs/, ignored).
-#   file and manifest (append collection, root, metres per unit, engine anchors), length m.
-#   Drive sources: colossus/139e8b8b6, shepherd builds/5860eae2b, kite-p/a48f8757b,
-#   hound-p/33114de, lasher-independent/7805d3b, hound-independent/1e91821,
-#   falcon-p/0044413fc, wolf-p/f60641f63, wolf/f60641f63, tarsus/2e7d396fc (clean, boarded),
-#   colossus-mk3/005c3b11b, phaeton/e9ab52297 (intact, destroyed).
+# Finished cinematic builds this scene appends. Each build is one Drive folder, copied whole to
+# build/asharu-battle/builds/<dir>/ (ignored) by hand or as a render-queue drive input:
+#   dir: the local folder; drive: its source under Drive starsector/; file: the .blend in it (the
+#   manifest is the folder's manifest.json unless 'manifest' names another); length_m: the settled hull length.
 FINISHED = {
-    'colossus': dict(file='colossus.blend', manifest='colossus-manifest.json', length_m=108.5),
-    'shepherd': dict(file='shepherd.blend', manifest='shepherd-manifest.json', length_m=67.1),
-    'lasher': dict(file='lasher-independent.blend', manifest='lasher-independent-manifest.json', length_m=90.0),
-    'hound': dict(file='hound-independent-clean.blend', manifest='hound-independent-manifest.json', length_m=60.8),
-    'hound-p': dict(file='hound-p-pirate.blend', manifest='hound-p-manifest.json', length_m=60.8),
-    'kite-p': dict(file='kite-p.blend', manifest='kite-p-manifest.json', length_m=52.2),
-    'falcon-p': dict(file='falcon-p.blend', manifest='falcon-p-manifest.json', length_m=174.4),
-    'wolf-p': dict(file='wolf-p.blend', manifest='wolf-p-manifest.json', length_m=70.0),
-    'wolf': dict(file='wolf.blend', manifest='wolf-manifest.json', length_m=70.0),
-    'colossus-mk3': dict(file='colossus-mk3.blend', manifest='colossus-mk3-manifest.json', length_m=109.6),
-    'phaeton': dict(file='phaeton.blend', manifest='phaeton-manifest.json', length_m=76.6),
+    'colossus': dict(dir='colossus', drive='builds/colossus/139e8b8b6', file='colossus.blend', length_m=108.5),
+    'shepherd': dict(dir='shepherd', drive='builds/shepherd/c85fb19b6', file='shepherd.blend', length_m=67.1),
+    'lasher': dict(dir='lasher-independent', drive='builds/lasher-independent/0cb9d83', file='lasher.blend',
+                   length_m=90.0),
+    'hound': dict(dir='hound-independent', drive='builds/hound-independent/5cb098e10',
+                  file='hound-independent-clean.blend', length_m=60.8),
+    'hound-p': dict(dir='hound-p', drive='builds/hound-p/5cb098e10', file='hound-p-pirate.blend', length_m=60.8),
+    'kite-p': dict(dir='kite-p', drive='builds/kite-p/0cb9d83', file='kite-p.blend', length_m=52.2),
+    'falcon-p': dict(dir='falcon-p', drive='builds/falcon-p/06784b46f', file='falcon-p.blend', length_m=174.4),
+    'manticore-p': dict(dir='manticore-p', drive='builds/manticore-p/056e05c26', file='manticore-p.blend', length_m=91.3),
+    'wolf-p': dict(dir='wolf-p', drive='builds/wolf-p/968fc1a01', file='wolf-p.blend', length_m=70.0),
+    'wolf': dict(dir='wolf', drive='builds/wolf/968fc1a01', file='wolf.blend', manifest='manifest-merchant.json',
+                 length_m=70.0),
+    'colossus-mk3': dict(dir='colossus-mk3', drive='builds/colossus-mk3/005c3b11b', file='colossus-mk3.blend',
+                         length_m=109.6),
+    'phaeton': dict(dir='phaeton', drive='builds/phaeton/e9ab52297/intact', file='phaeton.blend', length_m=76.6),
     # the wreck carries its own flash, fireball, break-up and fires in its SWFX collection
-    'phaeton-wreck': dict(file='phaeton-destroyed.blend', manifest='phaeton-destroyed-manifest.json', length_m=76.6,
-                          swfx=True),
-    'tarsus': dict(file='tarsus.blend', manifest='tarsus-manifest.json', length_m=94.0),
-    'tarsus-boarded': dict(file='tarsus-boarded.blend', manifest='tarsus-boarded-manifest.json', length_m=94.0),
+    'phaeton-wreck': dict(dir='phaeton-destroyed', drive='builds/phaeton/e9ab52297/destroyed',
+                          file='phaeton-destroyed.blend', length_m=76.6, swfx=True),
+    'tarsus': dict(dir='tarsus', drive='builds/tarsus/2e7d396fc/clean', file='tarsus.blend', length_m=94.0),
+    'tarsus-boarded': dict(dir='tarsus-boarded', drive='builds/tarsus/2e7d396fc/boarded', file='tarsus.blend',
+                           length_m=94.0),
 }
 
 # Each fleet member: key (unique in the scene), the game id (hull id, or skin file for a (P)
@@ -74,7 +78,7 @@ PIRATE = [
     dict(key='colossus3', game='colossus3', name='Colossus Mk.III', role='prize ship: an armed Colossus come to take the cargo',
          finished='colossus-mk3'),
     dict(key='manticore-p', game='manticore_pirates.skin', name='Manticore (P)', role='long-range destroyer: breaks the screen',
-         published_m=91.0),     # ship_scale.py 0.59 m/u (b11042b62); the hull is in review, so a slab stands in
+         finished='manticore-p'),
     dict(key='buffalo2-a', game='buffalo2', name='Buffalo Mk.II', role='destroyer'),
     dict(key='buffalo2-b', game='buffalo2', name='Buffalo Mk.II', role='destroyer'),
     dict(key='wolf-p-a', game='wolf_d_pirates.skin', name='Wolf (P)', role='fast frigate: cuts the column', finished='wolf-p'),

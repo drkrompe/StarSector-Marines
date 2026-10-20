@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ada-c1ea-7051-b212-31b268616a12",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ada-c1ea-7051-b212-31b268616a12\\exec-f5b1416a-8b89-4c9f-acaa-e6b8d427a147.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\raw\\blue-scout.raw.png",
+    "sha256": "7614dd245c8491aea990bcf2e1a96129f784874549e87c405ddfc1990a2275d9",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\prompts\\blue-scout.prompt.txt",
+  "promptSha256": "b15bdd1c8b4dfbed0c518d18c3f9798e1c565ac2dfceb1533367a81ee499ec2b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Composition, camera, lighting and finish reference only; not the suit design, colours or markings\nImage 2: Identity authority: the same suit seen from directly overhead in battle; palette, plate shapes, markings\n\nUse case: style-matched product render. Asset: the armory catalogue image of one marine armour suit, for a gritty military dark-science-fiction tactical game in the Starsector setting. The image shows the suit as a product shot: a torso vest or cuirass standing upright, its helmet set down in front at the lower left, a pair of gloves and a few pouches at the lower right.\n\nImage 1 is the composition, camera, lighting and finish reference only: match its arrangement of pieces, front three-quarter viewing angle, the scale the set fills in the frame, soft studio light from the upper left and its realistic hand-painted finish. Do NOT copy its suit design, colours or markings.\n\nImage 2 is the identity authority: this same suit as the game draws it in battle, seen from directly overhead (left: the torso and shoulder plates, with an empty hole where the helmet sits; right: the top of the helmet). The armory image must read unmistakably as this same suit seen from the front: the same palette and where each colour sits, the same plate and pauldron shapes, the same markings, lamps and hardware, the same faction character. Translate the overhead plates into their front-view forms; never show the overhead view itself.\n\nJanus scout suit: Tri-Tachyon recon armour of composite segments under a sensor hood and electronic-warfare weave. Very dark desaturated navy and slate blue-grey segmented plates over a near-charcoal base, a heavy rounded collar, gunmetal hardware, chipped paint and matte wear, tiny faded tan markings. The helmet is a smooth slate-blue scout helmet with a small sensor block on the crown, matching the overhead helmet. Dark gloves and slim pouches. Fast and quiet; no royal blue, no glossy plastic, no superhero styling.\n\nSquare 1:1 canvas with every piece fully inside the frame and a clear margin. True transparent background, including the gaps between pieces; no ground, no cast-shadow slab, no border, no text, letters, numbers, logos or watermark, no person or face inside the suit, no weapon.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\mod\\graphics\\ui\\armory\\armor-tier-2-scout.png",
+      "sha256": "204efa40df1395f235d92a795a666cd3a49163487d35ed8c95146e7be63e19b4",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Composition, camera, lighting and finish reference only; not the suit design, colours or markings"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\refs\\blue-scout-identity.png",
+      "sha256": "6fba56288ca50f42c2018068cbf70d9de836e15f0aa69c069cb5a30a4260e34c",
+      "dimensions": [
+        1261,
+        680
+      ],
+      "mode": "RGB",
+      "role": "Identity authority: the same suit seen from directly overhead in battle; palette, plate shapes, markings"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to create one transparent product render, following Image 2 for the suit’s identity and Image 1 for composition and finish."
+  ],
+  "usage": {
+    "input_tokens": 60659,
+    "cached_input_tokens": 51072,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 702,
+    "reasoning_output_tokens": 23
+  },
+  "elapsedSeconds": 56.0
+}

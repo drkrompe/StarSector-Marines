@@ -5,7 +5,11 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-12 — Second Wind reserves four mech berths within its existing hull envelope; individual repairs restore capacity.
+Updated: 2026-10-20 — Second Wind's deck follows her model: a deck arrangement sites each room, both bays stand abreast in a faired waist, open to port and sealed to starboard.
+
+Earlier 2026-10-20 — the Second Wind is never lost for good: any yard sells her back at once, one d-mod worse; campaign missions need her with the company aboard.
+
+Earlier 2026-10-12 — Second Wind reserves four mech berths within its existing hull envelope; individual repairs restore capacity.
 
 Earlier 2026-10-11 — briefing rooms gather eight seats around one tactical
 table, with a presentation bank and clear circulation in the muted ship materials.
@@ -843,6 +847,24 @@ them to the next-best hull automatically would turn the loss into a shrug - the
 player would learn their transport had burned by noticing the room looked
 different.
 
+**The Second Wind is never lost for good** (owner, 2026-10-20). She is the
+start's founding hull and the ship the campaign is written around, so she is the
+one exception to displacement: a company aboard her that loses her is **away**,
+not displaced, and keeps her as its home until she is back. She can be lost every
+way another ship can - a fight she does not come home from, a sale, a scuttling -
+and storing her is the player's choice and no loss at all. Recovery off a held
+field is always offered. Once she is gone, every port with a yard open to the
+company offers her back, in place of Marine operations, for a quarter of her
+hull's value or what letting her go paid out, whichever is more (so selling and
+buying her back is never a profit), and one d-mod worse (none once she carries
+vanilla's five). There is no wait: the campaign needs her, so she is back the
+moment the player pays, into debt if need be. How she went decides the story: a
+fight leaves her towed off the field into a yard; a sale or a scuttling puts her on
+the open market for Castle to find. The people and stores aboard her are still
+settled as for any sinking; only the home survives. **Campaign missions are flown
+from her**: they need her in the fleet with the company aboard. The rule's costs
+are named in `SecondWindKeep`; the campaign side is `SecondWindKeeper`.
+
 **Losing her and letting her go are different, and the company knows which.**
 To a fleet roster both are the same fact: she is not in it any more. To a
 company one is a decision the player made and the other is something that
@@ -1526,14 +1548,37 @@ any repair. Its compartment, doors, machinery positions and neighboring rooms
 remain fixed as individual berths return to service. The refit can reorganize the
 old single-berth layout once; paying for restoration never repacks the deck.
 
+**Second Wind's deck follows her model.** She is the one hull that has been
+drawn, and a **deck arrangement** says where the drawing keeps her rooms: each
+room gets a **site** — a stretch of her length and a side of the spine — which
+the packing treats as a stronger opinion than the room's zone. Rooms are still
+packed, doored and passaged like every other deck's; an arrangement only says
+where they belong, and lays its rooms in its own order so the ones the drawing
+fixes are down first. A room its site cannot hold falls back to its zone, never
+to anywhere: without that, a hold too deep for its site took the transom and
+put the drive room in the bow. Both programs of the original hull, converted or
+not, use the same arrangement.
+
+Her model cuts one lateral bay through each flank of the waist, centred about
+43% of her length from the bow, open to port and sealed to starboard, so both
+bays are sited at that one frame and stand abreast. Her collision polygon runs
+that stretch as a diagonal from the forward pods to the engine block, which no
+bay can stand flush against, so the arrangement also carries **fairings**: a
+stretch of flank laid straight at its narrowest, as the model's waist is. A
+fairing takes deck away rather than inventing hull. Around the bays the deck
+reads as the ship does: berths and the bridge in the forebody, the armory and
+the hold inboard of the bays, the Mech Lab hard abaft the working bay, the mess
+beside the provisions, and the machine shop, the plant and the drive together
+to starboard aft. Every other hull is packed by zone alone.
+
 The custom start's original Cerberus reserves two bay compartments even before
-conversion. The second is damaged: its hatch and launch aperture are sealed,
+conversion. The starboard bay is damaged: its hatch and launch aperture are sealed,
 its deck carries debris, and it offers no working berth or crew duties. Its
 working counterpart already belongs to the full room program. Restoration removes
 that condition after placement; it does not resize the hull, move either workshop,
 change compartment positions or award a boat. The physical working berths and the
 campaign lift count agree in both states, with the original bay first in berth
-order. The same layout seed always identifies the same damaged compartment.
+order: abreast, the port bay comes first.
 
 Sealed personnel entrances show closed steel pressure hatches, locking bars and
 hazard markings aligned with their bulkheads. Their overhead profile spans

@@ -61,8 +61,8 @@
   },
   "parked_check": {
     "feet": [
-      "Hull nose gear wheel inner",
-      "Hull nose gear wheel outer",
+      "Hull nose gear wheel port",
+      "Hull nose gear wheel starboard",
       "Hull port main gear wheel inner",
       "Hull port main gear wheel outer",
       "Hull starboard main gear wheel inner",
@@ -70,15 +70,15 @@
     ],
     "deck_plane_units": {
       "z0": -4.2,
-      "dz_dx": 0.0,
+      "dz_dx": -0.0,
       "dz_dy": 0.0
     },
-    "stance_pitch_deg_nose_down": 0.0,
+    "stance_pitch_deg_nose_down": -0.0,
     "stance_roll_deg": 0.0,
     "foot_level_spread_m": 0.0,
-    "lowest_other_part": "Hull nose gear wheel outer hub",
-    "deck_clearance_m": 0.176,
-    "lowest_body_part": "Engine 1 mouth lip",
+    "lowest_other_part": "Hull nose gear wheel port hub",
+    "deck_clearance_m": 0.151,
+    "lowest_body_part": "Engine 2 mouth lip",
     "body_clearance_m": 0.696
   },
   "sprite": {
@@ -107,7 +107,223 @@
       41.2,
       24.09,
       7.63
+    ],
+    "note": "landed (gear down); flight_* is gear up",
+    "flight_min": [
+      -12.0,
+      -12.04,
+      -2.65
+    ],
+    "flight_max": [
+      29.2,
+      12.04,
+      3.43
+    ],
+    "flight_size": [
+      41.2,
+      24.09,
+      6.08
     ]
+  },
+  "landing_gear": {
+    "control": "Thunder control",
+    "knob": "gear_down",
+    "knob_meaning": "0 stowed with the doors shut (flight); 1 deployed, standing on the parked deck",
+    "saved_knob": 0.0,
+    "spans": {
+      "doors": [
+        0.0,
+        0.3
+      ],
+      "legs": [
+        0.25,
+        1.0
+      ],
+      "claws": [
+        0.85,
+        1.0
+      ]
+    },
+    "hinges": [
+      {
+        "name": "Hull nose gear hinge",
+        "mount": null,
+        "axis": "local Y",
+        "stowed_deg": 90.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.25,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull nose gear door port hinge",
+        "mount": "Hull nose gear door port hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": 95.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      },
+      {
+        "name": "Hull nose gear door starboard hinge",
+        "mount": "Hull nose gear door starboard hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": -95.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      },
+      {
+        "name": "Hull port main gear hinge",
+        "mount": null,
+        "axis": "local Y",
+        "stowed_deg": 90.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.25,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull port main gear door port hinge",
+        "mount": "Hull port main gear door port hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": 95.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      },
+      {
+        "name": "Hull port main gear door starboard hinge",
+        "mount": "Hull port main gear door starboard hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": -95.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      },
+      {
+        "name": "Hull starboard main gear hinge",
+        "mount": null,
+        "axis": "local Y",
+        "stowed_deg": 90.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.25,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull starboard main gear door port hinge",
+        "mount": "Hull starboard main gear door port hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": 95.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      },
+      {
+        "name": "Hull starboard main gear door starboard hinge",
+        "mount": "Hull starboard main gear door starboard hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": -95.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      }
+    ],
+    "units": [
+      {
+        "name": "Hull nose gear",
+        "hinges": [
+          "Hull nose gear hinge"
+        ],
+        "bay_in": [
+          "Hull central fuselage",
+          "Hull delta wing",
+          "Hull port gun block"
+        ],
+        "doors": [
+          "Hull nose gear door port",
+          "Hull nose gear door starboard"
+        ],
+        "liners": [
+          "Hull nose gear bay liner"
+        ]
+      },
+      {
+        "name": "Hull port main gear",
+        "hinges": [
+          "Hull port main gear hinge"
+        ],
+        "bay_in": [
+          "Engine 1 port pod",
+          "Hull delta wing"
+        ],
+        "doors": [
+          "Hull port main gear door port",
+          "Hull port main gear door starboard"
+        ],
+        "liners": [
+          "Hull port main gear bay liner"
+        ]
+      },
+      {
+        "name": "Hull starboard main gear",
+        "hinges": [
+          "Hull starboard main gear hinge"
+        ],
+        "bay_in": [
+          "Engine 2 starboard pod",
+          "Hull delta wing"
+        ],
+        "doors": [
+          "Hull starboard main gear door port",
+          "Hull starboard main gear door starboard"
+        ],
+        "liners": [
+          "Hull starboard main gear bay liner"
+        ]
+      }
+    ],
+    "clash_sweep": {
+      "knobs": [
+        0.0,
+        0.05,
+        0.1,
+        0.15,
+        0.2,
+        0.25,
+        0.3,
+        0.35,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        0.95,
+        1.0
+      ],
+      "clashes": [],
+      "stowed_outside_m": [],
+      "rule": "no moving part through anything but its own bay solids and liners, no leg through its own doors, and stowed every leg vertex between the skin's underside and top"
+    },
+    "pose_reference": "fg_gear.Gear.pose(k); the drivers on each hinge evaluate the same expression",
+    "notes": "Retractable since 2026-10-20 (fg_gear). The thin oleo legs are replaced by box-section shock struts with a broad trailing arm to the axle and a box damper, on the same twin wheels (now with hubs and caps). All three fold aft 90 degrees, the nose leg into the fuselage under the cockpit's forward end (clear of the pilot) and the mains into the pods; each bay has a dark liner and a pair of doors on its long edges. The wheels stand where they stood; each strut now sits a trail's length ahead of its axle."
   },
   "root": {
     "name": "Thunder root",
@@ -358,9 +574,9 @@
     }
   },
   "object_count": {
-    "meshes": 149,
-    "empties": 8,
-    "pass2_detail_meshes": 126
+    "meshes": 182,
+    "empties": 24,
+    "pass2_detail_meshes": 159
   },
   "silhouette": {
     "iou": 0.9555,

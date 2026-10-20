@@ -4,7 +4,7 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-10-14 — the muster switches are gone: muster with plans is standing behaviour and the trickle is a mission's own declaration (`AssaultStyle`); Conquest also carries a mission-declared fire support kit and marine air pool (`phased-assault.md`).
+Updated: 2026-10-20 — the counter-attack is for places, not forts, and informed: any lost place worth retaking (a compound, a fort as one case) is probed, sized from its observed holders and remembered losses, and attacked in proportion or not at all (`PlaceCounterattack`, scenes `place-counterattack`, `fort-counterattack`); see "A place the defender loses" under Defender command.
 
 Earlier 2026-10-11 — the force is spread across the three tracks, the zone cap
 and transit spacing are on by default, and the clumps were found on the approach
@@ -492,6 +492,110 @@ is and nothing about which lane is contested; the chain says exactly that.
 Which place changed hands last is a claim about order rather than a snapshot, so
 the reinforcement recompute remembers what it saw. A position on no lane keeps
 the band reading, which is what a settlement's guard post has and should have.
+
+**Places, not forts (owner, 2026-10-20).** The game is much larger than forts.
+What the defender does about a place it has lost is built for places in
+general — compounds and their objectives, held buildings, aprons, story-mission
+sites, a fort as one case among many — and measured across missions, never only
+on the fort trial ground (`garrisonables.md`, places not forts).
+
+**A place the defender loses is counter-attacked in proportion to what it has
+seen hold it, or not at all.** Retaking a lost place is one group at a time, the
+defender's side of the attacker's company (`phased-assault.md`) without its
+foothold, lane shares or stamp plan (`PlaceCounterattack`). A **place** is
+anything the side holds and can lose: it has a centre and a ground radius, it
+stands held, losing or lost, it is worth something to the side, and it says how
+a group is ordered at it. A fort is lost with its most critical aspect (the
+bunker of a battery fort, the plant of a shield fort) and retaken by the massed
+commit at that aspect (`DefenceStructureTactics.planMassed`); a compound
+objective is lost when the marines have taken it, is being won back while it is
+contested after that (merely contested, it is still the ordinary defence's), and
+is retaken by the group holding its capture cell. The keep is home, not a place
+to retake. A place is **valued** by what it means to the side — its own worth
+(an objective, a fort's guns, more for one the mission says must be held) and
+how near home it stands — and the group goes for the turned place worth most,
+within reach of home.
+
+- **The reserve is the counter-attack's.** Before anything is lost it forms
+  only behind a place whose own alarm stands (a fort's place alarm, `ai-nouns.md`),
+  as the reserve law's quarter waiting at a staging cell: on the line from the
+  keep, short of the place by the company's staging stand-off and clear of
+  believed contact; while that place holds, all of it may man the place's own
+  garrisonables (a fort's belt, a compound's apron) and nothing else. Once a place
+  has turned the reserve grows to half the mobile pool and stands for that place,
+  and only what it holds above the law's share may still be lent. It counts as
+  the reserve, not in addition to it, so the track response's pickets come first
+  and what it denies is concentration. Held from the battle's first contact, as
+  the fort counter-attack first had it, even the law's share at a staging cell
+  took the patrol a small garrison mans its compound with once every compound was
+  a place (`compound-apron`), and the law already keeps that share from the track
+  response; `formOnContact` restores it as a knob.
+- **A turned place is nobody else's.** From the moment a place turns, its
+  ground — within its radius, and nearer it than any place the side still holds,
+  so an attack on a held place beside a lost one is still answered — is left to
+  the counter-attack while the place is within reach of home: believed contacts
+  there raise no track threat and no flow area, its alarm threatens no track,
+  its garrisonables are not manned, and a fort's enemy-held aspects are withheld
+  from single-squad structure work. A lost place is never fed squad by squad.
+- **Observe before committing.** A group that sizes itself from what it can see
+  from ninety cells back believes the floor and meets three times that: on the
+  fort trial ground every push into a consolidated hold broke at a sixth to a
+  third of its strength. So before anything commits the side establishes what
+  holds the place. If no own squad has watched it lately, one member of the
+  reserve — the **probe** — closes to an observation post short of the place (a
+  rifleman's sight of its middle, further out for a place whose near ground
+  cannot be stood on) and watches for a couple of pulses; any own squad already
+  standing that close, a picket, a garrison, a recon car or a drone flight,
+  serves as well and no probe is sent. A probe stopped by a fight watches from
+  where it was stopped. The **estimate** is what was observed there, kept while
+  the place stays turned and observed afresh once it is a minute stale.
+- **Worth it.** What the place takes is the observed holders with a margin of
+  two to one, plus half a marine for each of the side's own remembered losses
+  on its ground (the holders nobody saw), never below two patrols, raised a
+  quarter for each failed attempt. Home must not be believed threatened (a
+  believed mover near the keep dissolves anything not launched), the place must
+  not have been given up, and what the side can raise — the reserve and the free
+  patrols, less the reserve law's floor of one — must reach a commit share of
+  what the place takes. Short of that the place is **not attempted**: that is a
+  failed attempt, the place is left for a while and observed again before the
+  next decision. A pool of fewer than two patrols holds no reserve.
+- **Muster, stage, launch.** Pickets come first: every threatened track has its
+  first responder before the group recruits, and the group outranks only
+  concentration. Recruits are the nearest free patrols at useful strength; the
+  group gathers at the staging cell while the probe keeps its post and keeps
+  watching, and it is launched as one push, every member on the same pulse,
+  when the whole group stands there and reaches what the place takes, when
+  everything it could raise has arrived above the commit share, or at a timeout
+  above it; a straggler still walking up is waited for. A muster that times out
+  below the share stands down.
+- **Give up.** A launched group worn below a fraction of what it launched with,
+  or one that has not won the place back within a bound, has failed (never while
+  its own retake is under way: a group is not called off in the room). What it
+  met at the place is written into the estimate, so the next attempt believes at
+  least that many hold it; its survivors fall back to the staging cell as the
+  reserve, and after two failures (a stand-down or a place not attempted is one)
+  the place is given up for good, until it is won back by whoever is still in it.
+
+Belief only: how a place stands is an own-force fact about the side's own
+places, its holders are the hostile contacts the side believes near it, its
+losses are the side's own casualty memory there, and home's safety is the movers
+it believes near the keep. `-Dbattle.counterattack=false` is the same-build
+control (the old `-Dbattle.conquest.fortCounterattack=false` still works), and
+the figures above are evidence knobs under the same prefix (`reserveShare`,
+`minStrength`, `commitShare`, `minPoolSquads`, `margin`, `lossWeight`,
+`informed` — off is the uninformed sizing from what is believed at the place
+this pulse — `formOnContact`, `lendToBelt`), so a tuning variant is one command
+from its control. The scene `place-counterattack` plays it on a lost compound: a
+probe goes first and the group is sized from what it observed and launches only
+with that strength; thirty holders in sight are not attempted and the place is
+given up; a push that fails raises what the next attempt believes it needs. The
+scene `fort-counterattack` plays the fort case.
+
+The same mechanism is the story missions' finite counter-attack pools where a
+pool retakes a lost site (`SiteCounterattack`: Relay Nine and Thunder Run, whose
+defender pool used to converge on the lost site squad by squad). The whole pool
+is the counter-attack's from the start, the site it holds to the last is home,
+and what is not in the push holds home.
 
 Explicit hold, recapture, and relief tasks outrank soft track response. A
 Conquest convoy enters through the strict defender rear edge, uses a frozen

@@ -12,6 +12,7 @@ centre deck beyond the housing belongs to sw_aft_deck. Nothing exceeds z ~21 exc
 the short sensor mast; everything stays inboard of the four barbettes.
 """
 import math
+from mathutils import Vector
 import sw_kit
 from sw_hull import WAIST_DECK
 
@@ -22,10 +23,31 @@ def plan(x0, x1, hw, cf, ca=.6):
             (x1-cf,hw),(x0+ca,hw),(x0,hw-ca),(x0,-hw+ca)]
 
 
+END_STEPS = 6   # samples per span of a capsule end's round: 12 per quarter, the segment rule at these radii
+
+
+def end_curve(d, hw):
+    """A capsule end's quarter, from the side wall (d, hw) round to the end face
+    (0, 0.3 hw): a smooth curve through the former facet corner (0.38 d, 0.7 hw),
+    tangent to the wall and to the end face, as [(depth, fraction of hw)]."""
+    p0, p1, p2 = Vector((d, hw)), Vector((d*.38, hw*.7)), Vector((0, hw*.3))
+    m1 = (p2-p0).normalized()
+    spans = [(p0, p1, Vector((-1, 0))*(p1-p0).length, m1*(p1-p0).length),
+             (p1, p2, m1*(p2-p1).length, Vector((0, -1))*(p2-p1).length)]
+    out = [p0]
+    for a, b, ta, tb in spans:
+        for j in range(1, END_STEPS+1):
+            t = j/END_STEPS
+            h00, h10, h01, h11 = 2*t**3-3*t*t+1, t**3-2*t*t+t, -2*t**3+3*t*t, t**3-t*t
+            out.append(a*h00+ta*h10+b*h01+tb*h11)
+    return [(q.x, q.y/hw) for q in out]
+
+
 def capsule(x0, x1, hw, fore, aft):
-    """Twelve-sided plan whose ends are two flat facets each: a faceted
-    stand-in for the sprite's rounded capsule ends. fore/aft are end depths."""
-    end = lambda d: [(d,1),(d*.38,.7),(0,.3)]
+    """Plan of a capsule segment whose ends round from the side walls onto a short
+    flat end face (the sprite's rounded capsule ends), by the segment rule; every
+    capsule has the same vertex count, so stacked rings loft. fore/aft are end depths."""
+    end = lambda d: end_curve(d, hw)
     port = [(x1-d,hw*k) for d,k in end(fore)]
     aft_ = [(x0+d,hw*k) for d,k in end(aft)]
     return ([(x,-y) for x,y in reversed(aft_)] + [(x,-y) for x,y in port] +
@@ -79,7 +101,10 @@ def section(kit, name, x0, x1, base, prof, fore, aft, mat, bevel=.2):
     for z,hw,e in prof:
         a,f=(e if aft else 0),(e if fore else 0)
         rings.append((z,capsule(x0+a,x1-f,hw,max(fore-f,.4) if fore else .3,max(aft-a,.4) if aft else .3)))
-    return loft(kit,name,rings,mat,bevel)
+    ob=loft(kit,name,rings,mat)
+    # The rounded ends shade smooth; the wall, rake and roof steps stay sharp edges.
+    sw_kit.smooth(ob,20)
+    return sw_kit.angle_bevel(ob,bevel,3) if bevel else ob
 
 
 def extrude(kit, name, x0, x1, sec, mat, bevel=.05):
@@ -199,9 +224,12 @@ def build(kit):
         kit.box('Crosstree signal light',(mx,s*2.2,z+2.05),(.3,.3,.25),light,.04)
         kit.cylinder('Whip antenna',(mx-.9,s*3.0,z+1.2),.06,2.6,kit.steel,'Z',8,0)
     kit.cylinder('Fire-control radome base',(14.6,0,z+.2),1.15,.4,kit.steel,'Z',8,.06)
-    kit.mesh('Fire-control radome',[(14.6+1.0*math.cos(a*math.pi/4),1.0*math.sin(a*math.pi/4),z+.4) for a in range(8)]+
-             [(14.6+.55*math.cos(a*math.pi/4),.55*math.sin(a*math.pi/4),z+1.2) for a in range(8)],
-             [tuple(reversed(range(8))),tuple(range(8,16))]+[(a,(a+1)%8,8+(a+1)%8,8+a) for a in range(8)],kit.cream,bevel=.06)
+    rn=sw_kit.sides(1.0)
+    radome=kit.mesh('Fire-control radome',[(14.6+1.0*math.cos(a*math.tau/rn),1.0*math.sin(a*math.tau/rn),z+.4) for a in range(rn)]+
+             [(14.6+.55*math.cos(a*math.tau/rn),.55*math.sin(a*math.tau/rn),z+1.2) for a in range(rn)],
+             [tuple(reversed(range(rn))),tuple(range(rn,2*rn))]+[(a,(a+1)%rn,rn+(a+1)%rn,rn+a) for a in range(rn)],kit.cream)
+    sw_kit.smooth(radome)
+    sw_kit.angle_bevel(radome,.06)
     kit.cylinder('Roof comms dish pedestal',(12.7,-2.6,z+.25),.3,.5,kit.steel,'Z',12,.04)
     kit.cylinder('Roof comms dish',(12.7,-2.6,z+.7),.85,.2,kit.steel,'Z',24,.06).rotation_euler=(.6,0,-.7)
     kit.cylinder('Roof beacon',(12.7,2.6,z+.2),.25,.4,amber,'Z',12,.04)

@@ -16,9 +16,8 @@ salvaged armour welded on, and the Overdriven variant's guns are fitted:
   one object 'Pirate armour <area> <k>' with its own '... weld' beads round
   the edge it meets the hull with, '... bolts', and on two of them '... lugs';
   two have a cut-out showing the original plate.
-- GUNS (hound_d_pirates_Overdriven): WS 001 a chaingun (six barrels round a
-  spindle under the empty 'Weapon WS 001 rotor', local X the spin axis) on the
-  clean gun's cradle, breech, mantlet and feed; WS 002 a twin light machine
+- GUNS (hound_d_pirates_Overdriven): WS 001 is the chaingun both states carry,
+  the turret kit's (hd_mounts.hardpoint); WS 002 a twin light machine
   gun in the clean turret house. hd_mounts builds them through its gun hooks
   (GUNS), so the clean mounts' clash checks run on them too.
 - SCARS: light battle wear, the SCARS table. Ids are stable (HD01...). Pocks
@@ -26,8 +25,8 @@ salvaged armour welded on, and the Overdriven variant's guns are fitted:
   hit (cutter 'Scar cutter - <object>', hidden, material transfer), as the
   Second Wind does; everything added is 'Scar HD<nn> <what>'.
 
-Base objects are never renamed or deleted; the only base parts absent are the
-two guns' barrel groups, which the pirate weapons replace.
+Base objects are never renamed or deleted; the only base parts absent are
+WS 002's barrel group, which the twin MG replaces.
 """
 import math
 import random
@@ -148,6 +147,11 @@ SLABS = [
 ]
 CELL = .75
 EMBED = .18
+# The slabs' 6 cm chamfer catches only their sharp top and foot edges (over 65 deg): the
+# ragged torch-cut outline stays a crude polygon instead of soft creases that read as a
+# coarse round. Two slabs' cut corners (starboard deck 3, starboard pod 1) still read to
+# check_detail as a 1.3-1.5 m round; they are deliberate torch-cut facets.
+SLAB_BEVEL_ANGLE = 65
 
 
 def _grid(rect, skew, cuts, rng):
@@ -283,6 +287,7 @@ def slab(kit, mats, name, area, frame, rect, t, mode, skew, cuts, opts, rng, bui
     for a, b in zip(loop, loop[1:]+loop[:1]):
         faces.append((idx[a, 0], idx[b, 0], idx[b, 1], idx[a, 1]))
     ob = kit.mesh(name, verts, faces, mats.armour, .06)
+    ob.modifiers[-1].angle_limit = math.radians(SLAB_BEVEL_ANGLE)
     ob['pirate_area'] = area
     ob['thickness_m'] = round(t*METRES_PER_UNIT, 3)
 
@@ -414,70 +419,6 @@ def armour(kit, mats, rng):
 
 # ---------------------------------------------------------------- guns
 
-def chaingun(kit, slot, x, y, z, light):
-    """WS 001: a six-barrel rotary cannon on the clean gun's cradle and mantlet.
-
-    Fixed: the motor/drum housing against the mantlet, its drive motor and the
-    belt feed over the mantlet from the breech. Rotating, under the empty
-    'Weapon WS 001 rotor' (local X = spin axis): spindle, six barrels, rear
-    and mid clamp rings, and the muzzle plate (the 'muzzle brake', whose
-    forward-most vertex is the muzzle).
-    """
-    t = slot['id']
-    kit.cylinder(f'Weapon {t} motor housing', (x-1.75, y, z), .95, 1.7, kit.steel, 'X', 10, .06)
-    kit.cylinder(f'Weapon {t} motor housing band', (x-1.2, y, z), 1.02, .22, light, 'X', 10, .02)
-    kit.box(f'Weapon {t} drive motor', (x-1.95, y-.75, z+.72), (1.1, .5, .5), kit.dark, .05)
-    # Belt feed: out of the breech top, over the mantlet, down into the drum.
-    a, m, b = Vector((x-6.0, y+.55, z+1.65)), Vector((x-3.0, y+.55, z+1.5)), Vector((x-1.9, y+.55, z+.98))
-
-    def run(name, p, q):
-        d = (q-p).normalized()
-        n = Vector((d.z, 0, -d.x))
-        sec = lambda c: [c+Vector((0, -.28, 0))-n*.16, c+Vector((0, .28, 0))-n*.16,
-                         c+Vector((0, .28, 0))+n*.16, c+Vector((0, -.28, 0))+n*.16]
-        lo, up = sec(p), sec(q)
-        kit.mesh(name, [tuple(v) for v in lo+up], [(3, 2, 1, 0), (4, 5, 6, 7)]+[(i, (i+1) % 4, 4+(i+1) % 4, 4+i) for i in range(4)],
-                 light, .02)
-    run(f'Weapon {t} ammo feed', a, m+(m-a).normalized()*.15)
-    run(f'Weapon {t} ammo feed drop', m, b)
-    # Rotor.
-    x0, x1 = x-.9, x+4.75
-    rotor = bpy.data.objects.new(f'Weapon {t} rotor', None)
-    rotor.empty_display_type = 'ARROWS'
-    rotor.empty_display_size = 1.5
-    rotor.location = (x0, y, z)
-    bpy.context.collection.objects.link(rotor)
-    rotor['spin_axis'] = 'local X'
-    rotor['barrels'] = 6
-    parts = [kit.cylinder(f'Weapon {t} spindle', ((x0+x1+.4)/2, y, z), .17, x1+.4-x0, light, 'X', 8, .02)]
-    for k in range(6):
-        a = k*math.tau/6+math.pi/6
-        parts.append(kit.cylinder(f'Weapon {t} barrel {k+1}', ((x0+x1)/2, y+.42*math.cos(a), z+.42*math.sin(a)),
-                                  .155, x1-x0, kit.steel, 'X', 8, .015))
-    parts.append(kit.cylinder(f'Weapon {t} rear barrel clamp', (x0+.25, y, z), .72, .35, light, 'X', 12, .03))
-    parts.append(kit.cylinder(f'Weapon {t} barrel clamp', (x+2.0, y, z), .68, .32, light, 'X', 12, .03))
-    brake = kit.cylinder(f'Weapon {t} muzzle brake', (x1+.17, y, z), .68, .36, kit.steel, 'X', 12, .03)
-    for k in range(6):
-        a = k*math.tau/6+math.pi/6
-        bore = kit.cylinder('Temporary bore', (x1+.2, y+.42*math.cos(a), z+.42*math.sin(a)), .095, 1.0, kit.dark, 'X', 8, 0)
-        apply_cut(brake, bore)
-    parts.append(brake)
-    bv, bf = [], []
-    for k in range(6):
-        a = k*math.tau/6+math.pi/6
-        cy, cz = y+.42*math.cos(a), z+.42*math.sin(a)
-        b = len(bv)
-        ring = [(cy+.1*math.cos(j*math.pi/4), cz+.1*math.sin(j*math.pi/4)) for j in range(8)]
-        bv += [(x1-.02, yy, zz) for yy, zz in ring]+[(x1+.04, yy, zz) for yy, zz in ring]
-        bf += [tuple(b+j for j in range(8)), tuple(b+8+j for j in reversed(range(8)))]
-        bf += [(b+j, b+8+j, b+8+(j+1) % 8, b+(j+1) % 8) for j in range(8)]
-    parts.append(kit.mesh(f'Weapon {t} muzzle bores', bv, bf, kit.dark))
-    bpy.context.view_layer.update()
-    for p in parts:
-        p.parent = rotor
-        p.matrix_parent_inverse = rotor.matrix_world.inverted()
-
-
 def twin_mg(kit, slot, x, y, gz):
     """WS 002: twin light machine guns side by side in front of the mantlet,
     perforated cooling jackets, one muzzle each ('... muzzle brake 1/2')."""
@@ -501,7 +442,7 @@ def twin_mg(kit, slot, x, y, gz):
         kit.cylinder(f'Weapon {t} muzzle bore {i}', (x+8.62, yy, gz), .08, .03, kit.dark, 'X', 8, 0)
 
 
-GUNS = {'WS 001': chaingun, 'WS 002': twin_mg}
+GUNS = {'WS 002': twin_mg}   # WS 001's chaingun is the turret kit's, in both states (hd_mounts.hardpoint)
 
 
 # ---------------------------------------------------------------- scars
@@ -709,8 +650,9 @@ def build(kit, seed=1709):
         'name': 'Hound (P)', 'skinHullId': 'hound_d_pirates', 'variant': 'hound_d_pirates_Overdriven',
         'sprite': 'graphics/ships/hound/hound_pirates.png',
         'armour': slab_record,
-        'guns': {'WS 001': 'chaingun: rotor empty "Weapon WS 001 rotor" (local X spin), six barrels, '
-                           'muzzle "Weapon WS 001 muzzle brake"',
+        'guns': {'WS 001': "chaingun: the turret kit's (tk.build_hardpoint, as in the clean state); rotor empty "
+                           '"Weapon WS 001 rotor" (local X spin) inside "Weapon WS 001 recoil 1", '
+                           'muzzle "Weapon WS 001 muzzle anchor 1"',
                  'WS 002': 'lightdualmg: twin barrels, muzzles "Weapon WS 002 muzzle brake 1" and "... 2"',
                  'WS 003': 'flare launcher, unchanged'},
         'replaced_base_objects': REPLACED,
@@ -720,7 +662,4 @@ def build(kit, seed=1709):
     }
 
 
-REPLACED = ['Weapon WS 001 recoil sleeve', 'Weapon WS 001 recoil cylinder upper', 'Weapon WS 001 recoil cylinder lower',
-            'Weapon WS 001 barrel', 'Weapon WS 001 barrel jacket', 'Weapon WS 001 jacket band 1',
-            'Weapon WS 001 jacket band 2', 'Weapon WS 001 muzzle brake', 'Weapon WS 001 muzzle bore',
-            'Weapon WS 002 barrel', 'Weapon WS 002 barrel jacket', 'Weapon WS 002 muzzle brake']
+REPLACED = ['Weapon WS 002 barrel', 'Weapon WS 002 barrel jacket', 'Weapon WS 002 muzzle brake']

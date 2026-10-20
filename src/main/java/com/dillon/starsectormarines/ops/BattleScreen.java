@@ -102,6 +102,7 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -268,6 +269,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private List<HighlightOverlay.LineMark> linePreview;
     /** The drag's cells the preview was last worked out for; a move inside the same cells keeps it. */
     private long linePreviewKey = Long.MIN_VALUE;
+    /** The destination and heading a right drag in progress would give a vehicle or mech, or null. */
+    private HighlightOverlay.FacingMark facingPreview;
     private float speedMultiplier = 1f;
     /** The speed Space returns to: the last running speed, so a pause at 2x resumes at 2x. */
     private float resumeSpeed = 1f;
@@ -676,6 +679,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         SquadMoveOrderHighlightPublisher.publish(selection, sim, highlights);
         SquadMoveOrderHighlightPublisher.publishLinePreview(linePreview, highlights);
+        highlights.putFacings(HighlightOverlay.SRC_FACING_PREVIEW,
+                facingPreview == null ? null : List.of(facingPreview));
         FightingPositionHighlightPublisher.publish(selection, sim, highlights,
                 camera != null ? camera.visibleCells() : null);
         VehicleMoveOrderHighlightPublisher.publish(selection, sim, highlights);
@@ -939,7 +944,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         retainedPowerOverlay.attach(position, sim);
         if (retainedOrderOverlay == null) {
             retainedOrderOverlay = new BattleOrderOverlay(selection,
-                    () -> squadOrderTargeting.mode(), this::toggleSquadOrderTargeting);
+                    () -> squadOrderTargeting.mode(), this::toggleSquadOrderTargeting, this::toggleGarrisonStance);
         }
         retainedOrderOverlay.attach(position, sim, retainedPowerOverlay.occupiedHeight());
         if (shipCommandController == null) {
@@ -973,6 +978,24 @@ public class BattleScreen implements Screen, BattleUiContext {
         cameraControls.release();
         if (worldPicker != null) worldPicker.cancel();
         squadOrderTargeting.toggle(selection.getSelectedSquadId(), mode);
+    }
+
+    /**
+     * The order bar's GARRISON card and the G key: the selected infantry squads into the stance, or all of them out of
+     * it when all are already in. Mechs never man a place, so a lance in the selection takes no part.
+     */
+    private void toggleGarrisonStance() {
+        BattleSimulation sim = getSim();
+        if (sim == null || sim.isComplete()) return;
+        List<Integer> infantry = new ArrayList<>();
+        for (int id : selection.getSelectedSquadIds()) {
+            Squad squad = sim.getSquad(id);
+            if (squad != null && !squad.isMechSquad() && !squad.isDroneSquad()
+                    && SquadOrderTargetingPanel.canOrderSquad(sim, id)) {
+                infantry.add(id);
+            }
+        }
+        if (!infantry.isEmpty()) sim.getReactiveManning().toggle(infantry);
     }
 
     private void toggleCommandPowerTargeting(String powerId) {
@@ -1767,18 +1790,40 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     /**
      * A right drag: previews the line the selection would be given while the button is held,
-     * and gives it on release.
+     * and gives it on release. For a vehicle or mech selection the drag is a heading instead: the
+     * unit goes where the button went down and finishes facing the way the drag went.
      */
     private void dragSelectedLine(float startX, float startY, float x, float y, boolean released) {
         BattleSimulation sim = getSim();
+        facingPreview = null;
         if (sim == null || camera == null || sim.directControl().active()) {
             linePreview = null;
             return;
         }
-        int x0 = (int) Math.floor(camera.screenToCellX(startX));
-        int y0 = (int) Math.floor(camera.screenToCellY(startY));
-        int x1 = (int) Math.floor(camera.screenToCellX(x));
-        int y1 = (int) Math.floor(camera.screenToCellY(y));
+        float cellX0 = camera.screenToCellX(startX);
+        float cellY0 = camera.screenToCellY(startY);
+        float cellX1 = camera.screenToCellX(x);
+        float cellY1 = camera.screenToCellY(y);
+        int x0 = (int) Math.floor(cellX0);
+        int y0 = (int) Math.floor(cellY0);
+        int x1 = (int) Math.floor(cellX1);
+        int y1 = (int) Math.floor(cellY1);
+        if (SelectionOrders.takesFacing(sim, selection)) {
+            linePreview = null;
+            linePreviewKey = Long.MIN_VALUE;
+            float length = (float) Math.hypot(cellX1 - cellX0, cellY1 - cellY0);
+            if (length < SelectionOrders.MIN_FACING_DRAG_CELLS) {
+                if (released) SelectionOrders.requestMove(sim, selection, x1, y1);
+                return;
+            }
+            float facing = SelectionOrders.facingOf(cellX1 - cellX0, cellY1 - cellY0);
+            if (released) {
+                SelectionOrders.requestMove(sim, selection, x0, y0, facing);
+            } else {
+                facingPreview = new HighlightOverlay.FacingMark(x0 + .5f, y0 + .5f, facing, length);
+            }
+            return;
+        }
         if (released) {
             linePreview = null;
             linePreviewKey = Long.MIN_VALUE;

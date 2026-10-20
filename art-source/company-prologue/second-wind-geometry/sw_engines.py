@@ -9,11 +9,14 @@ second band, a stepped-down thrust housing, and two faceted engine cans
 whose aft faces are the exhausts, the bells sunk into them. A dark core
 shows through every seam; feed lines cross the valley from the centre body.
 
-Sections are lofted along X from faceted cross-sections: a rounded rectangle
-whose corners are cut by two or three flat facets, so the casing reads as
-machined barrel plate rather than a box, and stays flat-shaded and crisp
-rather than inflated. Tapering stations make the transitions: the cap
-narrows forward, the cowl face is raked, the housing steps down aft.
+Sections are lofted along X from rounded-rectangle cross-sections, so the
+casing reads as machined barrel plate rather than a box. The corner radii
+follow the shared segment rule (ship-detail-guide.md, Edge treatment) and
+shade smooth; the flats stay flat and every station step, raked face and
+band chamfer stays a crisp edge, so the pods read machined, not inflated.
+Tapering stations make the transitions: the cap narrows forward, the cowl
+face is raked, the housing steps down aft. The engine cans are round
+shrouds by the same rule.
 """
 import math
 import bpy
@@ -36,8 +39,9 @@ PYLON = ([(1,-6.5),(0,-5),(0,6.8),(.8,7.6)],
          [(-26,10.5),(0,10.5),(0,13),(-5,16.2),(-26,16.2)])
 
 # Cross-sections, port side: (y0, y1, z0, z1, (inboard, outboard) top
-# corner radius, bottom corner radius). Top corners take three facets so
-# the deck reads curved; bottom corners two.
+# corner radius, bottom corner radius). Every corner of every section takes
+# the same number of segments (corner_segments), so stations loft
+# vertex-for-vertex, enough for the largest corner under the segment rule.
 def S(y0, y1, z0, z1, rt, rb):
     return (y0, y1, z0, z1, rt if isinstance(rt, tuple) else (rt, rt), rb)
 
@@ -59,7 +63,7 @@ FIN_X = [-19.3-k*.95 for k in range(7)]
 # Thrust housing: the step down from the bands to the cans, aft face raked.
 HOUSING = [(-27.6,S(19.6,38,-6.8,9.8,(5,4.5),4.5)),(-31.4,S(19.6,38,-6.8,9.8,(5,4.5),4.5)),
            (-33.4,S(21.6,36,-5,7.4,(4,4),3.4))]
-# Engine cans: 12-sided shrouds (x, circumradius) per engine, with a proud
+# Engine cans: round shrouds (x, radius) per engine, with a proud
 # band and a taper to the face. The pair shares a split line with a dark
 # seam: outer can inboard of it is cut away, inner can outboard of it.
 CAN = {12:[(-29,5.8),(-34.6,5.8),(-34.6,6.25),(-35.8,6.25),(-35.8,5.8),(-36.4,5.8)],
@@ -72,13 +76,25 @@ CORE = [(-.4,S(22.5,35.5,-4.5,10.5,(3.5,3),2.5)),(-3,S(21,34.5,-5,13,(3.5,3),2.5
 SEAT = (-11,20,5.0,17.0)
 
 
+# The largest corner radius any pod section carries (the bands' top, 8 units).
+CORNER_MAX = 8.4
+
+
+def corner_segments():
+    """Segments per quarter round on every pod section corner: the segment rule
+    for the largest corner, so the smaller ones are finer than they need."""
+    return sw_kit.sides(CORNER_MAX)//4
+
+
 def rr(sec, grow=0, top=True, bottom=True):
-    """Faceted rounded rectangle in YZ, CCW. top/bottom False = square edge."""
+    """Rounded rectangle in YZ, CCW, its corners by the segment rule.
+    top/bottom False = square edge."""
     y0,y1,z0,z1,(ri,ro),rb = sec
     y0,y1,z0,z1,ri,ro,rb = y0-grow,y1+grow,z0-grow,z1+grow,ri+grow,ro+grow,rb+grow
     pts = []
-    for cy,cz,r,a0,n,on in [(y0,z0,rb,180,2,bottom),(y1,z0,rb,270,2,bottom),
-                            (y1,z1,ro,0,3,top),(y0,z1,ri,90,3,top)]:
+    q = corner_segments()
+    for cy,cz,r,a0,n,on in [(y0,z0,rb,180,q,bottom),(y1,z0,rb,270,q,bottom),
+                            (y1,z1,ro,0,q,top),(y0,z1,ri,90,q,top)]:
         if not on:
             pts.append((cy,cz)); continue
         oy = cy+(r if cy == y0 else -r)
@@ -97,17 +113,23 @@ def loft(kit, name, rings, mat, side, edge=.15):
     ob = kit.mesh(name, v, f, mat)
     bm = bmesh.new(); bm.from_mesh(ob.data)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces); bm.to_mesh(ob.data); bm.free()
+    # Corner rounds shade smooth; station steps, raked faces and chamfers stay sharp.
+    sw_kit.smooth(ob, 20)
     return bevel(ob, edge) if edge else ob
 
 
 def ngon(cy, cz, r, n=12):
-    # Flats at top, bottom and sides.
+    # n sides, flats at top, bottom and sides (n a multiple of 4).
     return [(cy+r*math.cos(math.pi/n*(2*k+1)), cz+r*math.sin(math.pi/n*(2*k+1))) for k in range(n)]
 
 
 def bevel(obj, width):
+    # One segment, angle-limited above the ~30-deg station tapers: a chamfer that
+    # splits an edge into shallow creases reads as a coarse curve, and the rounds'
+    # own segment edges are left alone. Hardened normals keep the flats flat.
     b = obj.modifiers.new('Manufactured edge radii', 'BEVEL')
-    b.width, b.segments = width, 2
+    b.width, b.segments = width, 1
+    b.limit_method, b.angle_limit, b.harden_normals = 'ANGLE', math.radians(40), True
     return obj
 
 
@@ -131,7 +153,8 @@ def bell_face(x):
 def build_cans(kit, s):
     for ex,ey,w in ENGINES[:2]:
         face = bell_face(ex)
-        rings = [(x,ngon(ey,0,r)) for x,r in CAN[w]] + [(face,ngon(ey,0,CAN_FACE_R[w]))]
+        n = sw_kit.sides(max(r for _,r in CAN[w]))
+        rings = [(x,ngon(ey,0,r,n)) for x,r in CAN[w]] + [(face,ngon(ey,0,CAN_FACE_R[w],n))]
         can = loft(kit, 'Thrust bay engine can', rings, kit.steel, s, 0)
         # Trim the shared side flat; the dark seam backing fills the gap.
         sy = SPLIT_Y[w]
@@ -184,8 +207,10 @@ def build_casing(kit, s, red):
     # Inboard: a feed manifold under the cantilevered seat.
     kit.box('Casing feed manifold', (-9,s*15.3,4), (9,.8,3), kit.steel, .2)
     # Intake: a dark faceted mouth on the cap's raked face, louvred across.
-    kit.mesh('Intake mouth', [(x,s*y,z) for x in (3.1,3.35) for y,z in rr(S(25,34,-1.6,7.6,2.6,2.2))],
-             [tuple(range(14)), tuple(range(27,13,-1))] + [(i,(i+1)%14,14+(i+1)%14,14+i) for i in range(14)], kit.dark)
+    mouth = rr(S(25,34,-1.6,7.6,2.6,2.2))
+    m = len(mouth)
+    kit.mesh('Intake mouth', [(x,s*y,z) for x in (3.1,3.35) for y,z in mouth],
+             [tuple(range(m)), tuple(range(2*m-1,m-1,-1))] + [(i,(i+1)%m,m+(i+1)%m,m+i) for i in range(m)], kit.dark)
     for z in (0,1.5,3,4.5,6):
         kit.box('Intake louver', (3.4,s*29.5,z), (.3,7.4,.35), kit.steel, .04)
     kit.box('Intake splitter', (3.45,s*29.5,3), (.4,.5,9.2), kit.steel, .06)
@@ -214,15 +239,35 @@ def build_housing(kit, s, red):
     # Feed pipes down the raked aft face into each can.
     for y,z1 in ((32,5.8),(23.6,4.4)):
         kit.cylinder('Can feed pipe', (-33.2,s*y,(z1+8.6)/2), .45, 8.6-z1, kit.steel, 'Z', 12, .04)
-    # Hot-section lights on the housing's aft corners.
+    # Hot-section lights on the housing's aft corners: a round lens (the emissive
+    # 'Drive warning light', 0.2 m) set back 7 cm in a bolted steel bezel ring.
     for y in (36.2,21.4):
-        kit.box('Drive warning light', (-32.8,s*y,7.9), (.6,.6,.5), red, .05)
+        warning_bezel(kit, -33.1, -32.55, s*y, 7.9, .3, .46)
+        kit.cylinder('Drive warning light', (-32.8,s*y,7.9), .3, .4, red, 'X', 32, .02)
     # Bulkhead on the aft band above the housing: hatch and vent louvres.
     kit.box('Aft band hatch', (-27.15,s*31,12), (.3,5,3), kit.dark, .05)
     for z in (11.1,12,12.9):
         kit.box('Aft band louver', (-27.3,s*31,z), (.2,4.4,.3), kit.steel, .03)
     kit.box('Housing flank seam strap', (-30,s*38.05,1.5), (5.5,.3,.6), kit.dark, 0)
     kit.box('Housing frame rib', (-29.8,s*38.1,1.5), (.9,.6,8.5), kit.steel, .15)
+
+
+def warning_bezel(kit, x0, x1, y, z, r_in, r_out):
+    """'Drive warning bezel': an annulus along X round a warning lamp's lens, its bore
+    the lens's radius, rounds by the segment rule, with four hex bolts on the aft face."""
+    n = sw_kit.sides(r_out, 32)
+    v = []
+    for x in (x0,x1):
+        v += [(x, y+r*math.cos(k*math.tau/n), z+r*math.sin(k*math.tau/n)) for r in (r_out,r_in) for k in range(n)]
+    f = []
+    for k in range(n):
+        j = (k+1) % n
+        f += [(k,j,2*n+j,2*n+k), (n+j,n+k,3*n+k,3*n+j), (j,k,n+k,n+j), (2*n+k,2*n+j,3*n+j,3*n+k)]
+    sw_kit.smooth(kit.mesh('Drive warning bezel', v, f, kit.steel, bevel=.02))
+    rb = (r_in+r_out)/2
+    for k in range(4):
+        a = math.pi/4+k*math.pi/2
+        kit.cylinder('Drive warning bezel bolt', (x0-.02, y+rb*math.cos(a), z+rb*math.sin(a)), .045, .06, kit.steel, 'X', 6, 0)
 
 
 def build_feeds(kit, s):
@@ -246,8 +291,10 @@ def build_details(kit):
         build_feeds(kit, s)
 
 
-def ring(kit, name, x0, x1, y, r_in, r_out, mat, n=48):
-    # Annulus along X: 12-sided outer collar plate around a round bore.
+def ring(kit, name, x0, x1, y, r_in, r_out, mat, n=48, flat_outer=True):
+    # Annulus along X: 12-sided outer collar plate (or a round one) around a round bore.
+    if not flat_outer:
+        n = sw_kit.sides(r_out, n)
     def pt(r, k, flat):
         a = k*math.tau/n
         if flat:
@@ -255,7 +302,7 @@ def ring(kit, name, x0, x1, y, r_in, r_out, mat, n=48):
         return (y+r*math.cos(a), r*math.sin(a))
     v = []
     for x in (x0,x1):
-        v += [(x,*pt(r_out,k,True)) for k in range(n)] + [(x,*pt(r_in,k,False)) for k in range(n)]
+        v += [(x,*pt(r_out,k,flat_outer)) for k in range(n)] + [(x,*pt(r_in,k,False)) for k in range(n)]
     f = []
     for k in range(n):
         j = (k+1) % n
@@ -305,7 +352,10 @@ def bell_curve(r):
 
 def revolve(kit, name, prof, y, mat, n=36, closed=False, inward=False, bevel=0):
     """Surface of revolution about the engine axis (parallel to X through
-    (y, 0)) through an (x, radius) profile; closed profiles make solids."""
+    (y, 0)) through an (x, radius) profile; closed profiles make solids.
+    Segmented by the shared segment rule at least, and shaded smooth with
+    its profile's steps kept sharp."""
+    n = sw_kit.sides(max(r_ for _,r_ in prof), n)
     v = []
     for x,r_ in prof:
         v += [(x, y+r_*math.cos(t*math.tau/n), r_*math.sin(t*math.tau/n)) for t in range(n)]
@@ -326,6 +376,7 @@ def revolve(kit, name, prof, y, mat, n=36, closed=False, inward=False, bevel=0):
         if (out > 0) == inward:
             bmesh.ops.reverse_faces(bm, faces=bm.faces)
     bm.to_mesh(ob.data); bm.free()
+    sw_kit.smooth(ob, 20)
     return ob
 
 
@@ -385,7 +436,7 @@ def build_nozzles(kit):
         ring_out = r+.85*k
         ring(kit, f'Engine {i} gimbal ring', x+COLLAR_AFT*k, ring_aft, y, rho(.4*k)+t+.03, ring_out, kit.steel)
         ring(kit, f'Engine {i} shroud collar', bell_face(x)+.2, x+COLLAR_AFT*k, y, r+.45,
-             CAN_FACE_R[w]*math.cos(math.pi/12)-.15, kit.dark)
+             CAN_FACE_R[w]*math.cos(math.pi/12)-.15, kit.dark, flat_outer=False)
         rmid = x+(COLLAR_AFT-RING_T/2)*k
         for ang in (0,180):
             radial_box(kit, f'Engine {i} gimbal trunnion', rmid, y, u, ang, ring_out-.15*k, ring_out+.42*k,

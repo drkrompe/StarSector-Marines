@@ -337,7 +337,8 @@ public final class MissionLaunch {
                     constructionDetachment.shuttleManifest,
                     DetachmentResolver.employerPhysicalShipCount(m),
                     openingOperation, profile,
-                    m.source == MissionSource.STORY && openingOperation == OpeningOperationKind.COUNTERATTACK);
+                    m.source == MissionSource.STORY && openingOperation == OpeningOperationKind.COUNTERATTACK,
+                    m.source == MissionSource.STORY && openingOperation == OpeningOperationKind.RELIEF);
         } else if (isSilentColonyBattle(m)) {
             builder = () -> BattleSetup.createSilentColony(seed,
                     m.campaignEventThreatSeed, m.civiliansAtRisk,

@@ -2,7 +2,9 @@ package com.dillon.starsectormarines.battle.world.gen.ship.stage;
 
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.ship.DeckArrangement;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckProfile;
+import com.dillon.starsectormarines.battle.world.gen.ship.DeckSide;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckZone;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullSilhouette;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipKeys;
@@ -83,6 +85,11 @@ public final class HullProfileStage implements GenStage {
             zone[f] = zoneAt(t);
         }
 
+        DeckArrangement arrangement = ctx.get(ShipKeys.DECK_ARRANGEMENT);
+        if (arrangement != null) {
+            for (DeckArrangement.Fairing fairing : arrangement.fairings()) fair(fairing, top, bottom);
+        }
+
         // Everything outside the hull is not deck. Said here because this stage
         // is the authority on where the hull is, and left unsaid every cell the
         // ship does not occupy defaults to indoor floor — which paints a
@@ -95,6 +102,21 @@ public final class HullProfileStage implements GenStage {
         }
 
         ctx.put(ShipKeys.DECK_PROFILE, new DeckProfile(spineTop, spineBottom, top, bottom, zone));
+    }
+
+    /** Lay one stretch of flank straight at its narrowest, so a bay can stand flush with it. */
+    private static void fair(DeckArrangement.Fairing fairing, int[] top, int[] bottom) {
+        int first = Math.max(0, fairing.first(top.length));
+        int last = Math.min(top.length - 1, fairing.last(top.length));
+        boolean port = fairing.side() == DeckSide.PORT;
+        int edge = port ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+        for (int f = first; f <= last; f++) {
+            edge = port ? Math.max(edge, top[f]) : Math.min(edge, bottom[f]);
+        }
+        for (int f = first; f <= last; f++) {
+            if (port) top[f] = edge;
+            else bottom[f] = edge;
+        }
     }
 
     private static int clamp(int depth, int maxDepth) {

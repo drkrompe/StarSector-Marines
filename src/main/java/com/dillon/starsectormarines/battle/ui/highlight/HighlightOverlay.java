@@ -47,10 +47,16 @@ public final class HighlightOverlay {
     /** Where an order was refused, or given up on — a different thing from where one is going. */
     public static final String SRC_VEHICLE_MOVE_REFUSED =
             "vehicle-move-refused";
+    /** The selected squads' GARRISON watch: the ring round the anchor and the place being manned. */
+    public static final String SRC_GARRISON_WATCH = "garrison-watch";
     /** Prepared ground and the selection's claimed cells; see {@code FightingPositionHighlightPublisher}. */
     public static final String SRC_FIGHTING_POSITIONS = "fighting-positions";
     /** The line a right drag in progress would give the selected squads. */
     public static final String SRC_SQUAD_LINE_PREVIEW = "squad-line-preview";
+    /** The destination and heading a right drag in progress would give a selected vehicle or mech. */
+    public static final String SRC_FACING_PREVIEW = "facing-preview";
+    /** The heading the selected vehicle's accepted order will finish on. */
+    public static final String SRC_VEHICLE_MOVE_FACING = "vehicle-move-facing";
     public static final String SRC_FIGHTING_POSITION_CLAIMS = "fighting-position-claims";
     public static final String SRC_CAPTAIN         = "captain";
     public static final String SRC_BELIEVED_CONTACTS = "believed-contacts";
@@ -99,6 +105,10 @@ public final class HighlightOverlay {
     /** Refusal reads as a warning rather than a command cue: it is the order not happening. */
     public static final Color COLOR_VEHICLE_MOVE_REFUSED =
             new Color(0xFF, 0x60, 0x50, 0xFF); // refusal red
+    /** A watch is a standing permission, not an order, so its ring is fainter than an order's. */
+    public static final Color COLOR_GARRISON_WATCH = new Color(0xFF, 0xD0, 0x40, 0x70);
+    /** The place the stance is manning, drawn as a small bright pip in the watch's colour. */
+    public static final Color COLOR_GARRISON_PLACE = new Color(0xFF, 0xD0, 0x40, 0xE0);
     /** Faint on purpose: a wash over every cell of every trench must not shout. */
     public static final Color COLOR_FIGHTING_POSITION = new Color(0x58, 0xE0, 0x78, 0x58);
     public static final Color COLOR_FIGHTING_POSITION_CLAIMED = new Color(0x50, 0xE8, 0xFF, 0xC0);
@@ -112,6 +122,7 @@ public final class HighlightOverlay {
 
     private final Map<String, List<CellHighlight>> sources = new LinkedHashMap<>();
     private final Map<String, List<LineMark>> lineSources = new LinkedHashMap<>();
+    private final Map<String, List<FacingMark>> facingSources = new LinkedHashMap<>();
 
     /**
      * A drawn frontage, drawn as a stroke with its front rather than as cells, and, while the drag
@@ -125,6 +136,29 @@ public final class HighlightOverlay {
 
     /** Where one marine will stand ({@code x}, {@code y} a cell), and whether it is a position rather than open ground. */
     public record PlaceMark(long member, int x, int y, boolean position) { }
+
+    /**
+     * A destination with the heading to finish on: ({@code x}, {@code y}) in continuous cells,
+     * {@code facingDegrees} in the sprite convention (0 = +Y, positive counterclockwise), drawn as
+     * an arrow {@code lengthCells} long.
+     */
+    public record FacingMark(float x, float y, float facingDegrees, float lengthCells) { }
+
+    /** Replaces the facing marks under {@code sourceId}; empty or null drops them. */
+    public void putFacings(String sourceId, List<FacingMark> marks) {
+        if (marks == null || marks.isEmpty()) {
+            facingSources.remove(sourceId);
+            return;
+        }
+        facingSources.put(sourceId, List.copyOf(marks));
+    }
+
+    /** Every facing mark, in insertion order. */
+    public List<FacingMark> facingMarks() {
+        List<FacingMark> marks = new ArrayList<>();
+        for (List<FacingMark> list : facingSources.values()) marks.addAll(list);
+        return marks;
+    }
 
     /** Replaces the line marks under {@code sourceId}; empty or null drops them. */
     public void putLines(String sourceId, List<LineMark> marks) {
@@ -157,11 +191,13 @@ public final class HighlightOverlay {
     public void clear(String sourceId) {
         sources.remove(sourceId);
         lineSources.remove(sourceId);
+        facingSources.remove(sourceId);
     }
 
     public void clearAll() {
         sources.clear();
         lineSources.clear();
+        facingSources.clear();
     }
 
     public boolean hasSource(String sourceId) {

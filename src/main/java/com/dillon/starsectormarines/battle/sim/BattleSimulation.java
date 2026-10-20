@@ -205,6 +205,8 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleTransportService;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderSystem;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderSystem;
+import com.dillon.starsectormarines.battle.squad.ReactiveManningService;
+import com.dillon.starsectormarines.battle.squad.ReactiveManningSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -214,6 +216,8 @@ import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
 import com.dillon.starsectormarines.battle.mech.MechLocomotionSystem;
 import com.dillon.starsectormarines.battle.mech.MechTurretSystem;
 import com.dillon.starsectormarines.battle.mech.MechSectionFxSystem;
+import com.dillon.starsectormarines.battle.assault.MachineAssaults;
+import com.dillon.starsectormarines.battle.assault.MachineGuards;
 import com.dillon.starsectormarines.battle.breach.WallBreachSystem;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -247,6 +251,7 @@ import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.perception.NoiseEventBus;
 import com.dillon.starsectormarines.battle.decision.TacticalContextService;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneOccupancy;
+import com.dillon.starsectormarines.battle.decision.DefenseFrontage;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
@@ -532,6 +537,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SquadMoveOrderService squadMoveOrders = new SquadMoveOrderService();
     private final SquadMoveOrderSystem squadMoveOrderSystem =
             new SquadMoveOrderSystem(squadMoveOrders);
+    /** The player's GARRISON stance: opted-in squads man nearby places their side believes pressed. */
+    private final ReactiveManningService reactiveManning = new ReactiveManningService();
+    private final ReactiveManningSystem reactiveManningSystem =
+            new ReactiveManningSystem(reactiveManning, squadMoveOrderSystem, squadMoveOrders);
 
     /** Per-faction resource pools (reinforcement tickets, airstrike tickets). Compounds produce; dispatch layers consume. Ticked after compound capture so production reflects freshest capture state. Declared before {@link #reinforcement} so it can be constructor-injected into it. */
     private final BattleResources battleResources = new BattleResources();
@@ -1231,7 +1240,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         facingSystem.setTreatmentPatients(squadMedics::treatingPatientOf);
         this.systemFxSystem = new SystemFxSystem(rosterService);
         this.mechLocomotionSystem = new MechLocomotionSystem(
-                entityWorld, battleComponents, rosterService);
+                entityWorld, battleComponents, rosterService, mechMoveOrders);
         this.mechGaitSystem = new MechGaitSystem(entityWorld, battleComponents);
         this.mechTurretSystem = new MechTurretSystem(
                 entityWorld, battleComponents, rosterService);
@@ -1316,6 +1325,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // A gun on a turning hull shakes the way a moving shooter's does.
         turretFire.setShooterAccuracy(new HullPivot(rosterService.convoy()));
         groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
+        groundSystem.setAssaultPlanner((vehicle, cellX, cellY) -> MachineAssaults.planVehicle(this, vehicle, cellX, cellY));
+        groundSystem.setGuardPlanner((vehicle, cellX, cellY) -> MachineGuards.planVehicle(this, vehicle, cellX, cellY));
         groundSystem.setSpotting(new SideObservers(rosterService.convoy(), rosterService, unitIndex, grid, scoutSight,
                 (side, x, y) -> commsSees(side, x, y)));
         rosterService.airTargets().setDestructionSink(airSystem::destroyAircraft);
@@ -1645,6 +1656,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public SquadMoveOrderService getSquadMoveOrderService() { return squadMoveOrders; }
     /** Applies squad tactical moves at the serialized command boundary. */
     public SquadMoveOrderSystem getSquadMoveOrderSystem() { return squadMoveOrderSystem; }
+
+    /** Which player squads stand in the GARRISON stance, and what each is doing about it. */
+    public ReactiveManningService getReactiveManning() { return reactiveManning; }
     public void setCommandPowerResources(com.dillon.starsectormarines.battle.power.CommandPowerResources resources) {
         commandPowers.setResources(resources);
     }
@@ -1726,12 +1740,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     private GarrisonableRegistry garrisonableRegistry;
+    /** The tactical map {@link #envelopes} were derived from, and them; rebuilt only when the map instance changes. */
+    private TacticalMap envelopeMap;
+    private List<GarrisonableRegistry.Envelope> envelopes = List.of();
 
     @Override
     public GarrisonableRegistry garrisonables() {
         FightingPositionIndex index = fightingPositions();
+        List<GarrisonableRegistry.Envelope> offered = envelopes();
         GarrisonableRegistry registry = garrisonableRegistry;
-        if (registry != null && registry.isBuiltFrom(index)) return registry;
+        if (registry != null && registry.isBuiltFrom(index, offered)) return registry;
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
         long started = profile != null ? System.nanoTime() : 0L;
         List<Fort> placed = forts.forts();
@@ -1752,10 +1770,48 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             centres[used++] = (int) (sy / n);
         }
         registry = GarrisonableRegistry.build(index, grid.getWidth(), grid.getHeight(),
-                CommanderInfluenceService.BLOCK_SIZE, Arrays.copyOf(centres, used));
+                CommanderInfluenceService.BLOCK_SIZE, Arrays.copyOf(centres, used), offered);
         if (profile != null) profile.record(TickInnerProfile.Bucket.GARRISON_REGISTRY_BUILD, System.nanoTime() - started);
         garrisonableRegistry = registry;
         return registry;
+    }
+
+    /**
+     * The buildings offered as garrisonables (`garrisonables.md`, building envelopes): every compound place and held
+     * place whose own shell has a frontage, its posts the stance cells that frontage derives. Derived once per tactical
+     * map instance, against the map as it stands when first asked, so a later breach does not renumber or drop a place:
+     * the squad holding it reads its frontage live. Before the zone graph exists nothing is offered and nothing is kept.
+     */
+    private List<GarrisonableRegistry.Envelope> envelopes() {
+        TacticalMap map = getTacticalMap();
+        if (!GarrisonableRegistry.envelopesEnabled() || map == null) return List.of();
+        if (map == envelopeMap) return envelopes;
+        if (getZoneGraph() == null || getGrid() == null || getTopology() == null) return List.of();
+        List<GarrisonableRegistry.Envelope> out = new ArrayList<>();
+        for (TacticalNode node : map.all()) {
+            if (!offersEnvelope(node)) continue;
+            List<DefenseFrontage.Aperture> apertures = DefenseFrontage.forStructure(node, this);
+            Set<Long> seen = new HashSet<>();
+            int[] posts = new int[apertures.size() * 2];
+            int n = 0;
+            for (DefenseFrontage.Aperture aperture : apertures) {
+                if (!seen.add(((long) aperture.stanceY() << 32) | (aperture.stanceX() & 0xffffffffL))) continue;
+                posts[n++] = aperture.stanceX();
+                posts[n++] = aperture.stanceY();
+            }
+            if (n > 0) out.add(new GarrisonableRegistry.Envelope(node, Arrays.copyOf(posts, n)));
+        }
+        envelopeMap = map;
+        envelopes = List.copyOf(out);
+        return envelopes;
+    }
+
+    /** The places whose buildings may be garrisonables: a compound's command post, barracks and armory, and a held place. */
+    private static boolean offersEnvelope(TacticalNode node) {
+        return switch (node.kind) {
+            case COMMAND_POST, BARRACKS, ARMORY, INNER_POSITION -> node.right > node.left && node.bottom > node.top;
+            default -> false;
+        };
     }
     /** Parked vehicles that occupy multi-cell footprints. Cells were flagged non-walkable at setup time, so the sim doesn't need to consult this list for pathing/LOS — only the renderer does. */
     public List<ParkedAircraft> getParkedAircraft() { return parkedAircraft; }
@@ -2960,6 +3016,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         mechDoctrineSystem.tick(this);
         mechMoveOrderSystem.tick(this);
         squadMoveOrderSystem.tick(this);
+        // After the player's own orders, so a click this tick already stands and the stance yields to it.
+        reactiveManningSystem.tick(this);
         tickProfile.lap(TickProfile.Phase.COMMANDER);
         // Squad-level GOAP replan pass. See SquadReplanSystem class doc for
         // ordering + parallelism notes.
@@ -3269,6 +3327,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         tickProfile.lap(TickProfile.Phase.AIR_SYSTEM);
         // Ground convoys ride the same ordering rule for the same reason —
         // deboarded militia join the roster between ticks, not mid-loop.
+        // Standing assaults on garrisonables end or aim their turrets, from the side's beliefs, first.
+        MachineAssaults.tickVehicles(this);
+        MachineGuards.tickVehicles(this);
         groundSystem.tick(TICK_DT, directControl.controlledVehicleId(), directControl.intent());
         tickProfile.lap(TickProfile.Phase.GROUND_SYSTEM);
         // Ballistic-round impact clock — a resolved round's damage/hit-response

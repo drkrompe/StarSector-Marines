@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
+import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
@@ -30,13 +31,17 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 /**
- * Inventory of every place a squad could hold on each story mission's production map at tick zero: per tactical
+ * Inventory of every place a squad could hold on each story mission's and each procedural mission's production map
+ * at tick zero: per tactical
  * node, the windows, entrances and distinct stand cells the defense frontage finds at building and compound scope,
  * and the fighting-position runs on its ground; map-wide, the windows and runs that no node covers. Read-only
  * evidence about the maps, not about any battle.
  */
 @Tag("garrison-evidence")
 class GarrisonInventoryEvidence {
+
+    /** How far outside a node's compound ground its prepared ground may stand: an apron stands off its door. */
+    private static final int GROUND_MARGIN = 7;
 
     private record Case(String name, Supplier<BattleSimulation> build) {}
 
@@ -64,10 +69,16 @@ class GarrisonInventoryEvidence {
         cases.add(new Case("WATER_UNDER_SEAL", () -> BattleSetup.createWaterUnderSeal(15301, lift, rock)));
         cases.add(new Case("LIMITED_WARRANT", () -> BattleSetup.createLimitedWarrant(15302, lift, rock, false)));
         cases.add(new Case("YARD_OWNERS", () -> BattleSetup.createYardOwners(15303, lift, rock)));
+        // The procedural missions, on the maps a contract stands them up on.
+        cases.add(new Case("RAID", () -> BattleSetup.createRaid(15311)));
+        cases.add(new Case("ASSAULT", () -> BattleSetup.createPlaceholder(15312, lift)));
+        cases.add(new Case("SABOTAGE", () -> BattleSetup.createSabotage(15313, lift, false)));
+        cases.add(new Case("EXTRACTION", () -> BattleSetup.createExtraction(15314)));
+        cases.add(new Case("CIVILIAN_RESCUE", () -> BattleSetup.createCivilianRescue(15315, lift, false, RiskLevel.MEDIUM)));
 
         StringBuilder out = new StringBuilder("# Garrisonable inventory\n\n");
         out.append("Per node: kind, garrison size, footprint; building scope W/E/S = windows / entrances / distinct stand cells; ")
-                .append("compound scope likewise; FP = fighting-position runs/cells on the node's compound ground.\n");
+                .append("compound scope likewise; FP = fighting-position runs/cells on the node's compound ground or within " + GROUND_MARGIN + " cells of it (an apron stands off its door).\n");
         out.append("Map: tagged window cells, edge-window barriers, and how many of each no node covers.\n\n");
         for (Case c : cases) {
             out.append("## ").append(c.name).append('\n');
@@ -99,8 +110,8 @@ class GarrisonInventoryEvidence {
             List<Aperture> compound = wider ? DefenseFrontage.forCompound(node, sim) : List.of();
             Set<Integer> runs = new HashSet<>();
             int runCells = 0;
-            for (int y = Math.max(0, node.compoundTop() - 2); y <= Math.min(grid.getHeight() - 1, node.compoundBottom() + 2); y++) {
-                for (int x = Math.max(0, node.compoundLeft() - 2); x <= Math.min(grid.getWidth() - 1, node.compoundRight() + 2); x++) {
+            for (int y = Math.max(0, node.compoundTop() - GROUND_MARGIN); y <= Math.min(grid.getHeight() - 1, node.compoundBottom() + GROUND_MARGIN); y++) {
+                for (int x = Math.max(0, node.compoundLeft() - GROUND_MARGIN); x <= Math.min(grid.getWidth() - 1, node.compoundRight() + GROUND_MARGIN); x++) {
                     int run = positions == null ? -1 : positions.runIdAt(x, y);
                     if (run >= 0) {
                         runs.add(run);
@@ -133,12 +144,17 @@ class GarrisonInventoryEvidence {
         }
         out.append(String.format("map windows: tagged %d (%d uncovered), edge %d (%d uncovered); FP runs %d (%d uncovered)%n",
                 taggedWindows, taggedUncovered, edgeWindows, edgeUncovered, runCount, runsUncovered));
+        GarrisonableRegistry places = sim.garrisonables();
+        int posts = 0;
+        for (int g = places.stretchCount(); g < places.count(); g++) posts += places.size(g);
+        out.append(String.format("garrisonables: stretches %d, building envelopes %d (%d posts)%n",
+                places.stretchCount(), places.count() - places.stretchCount(), posts));
     }
 
     private static boolean covered(List<TacticalNode> nodes, int x, int y) {
         for (TacticalNode node : nodes) {
-            if (x >= node.compoundLeft() - 2 && x <= node.compoundRight() + 2
-                    && y >= node.compoundTop() - 2 && y <= node.compoundBottom() + 2) return true;
+            if (x >= node.compoundLeft() - GROUND_MARGIN && x <= node.compoundRight() + GROUND_MARGIN
+                    && y >= node.compoundTop() - GROUND_MARGIN && y <= node.compoundBottom() + GROUND_MARGIN) return true;
         }
         return false;
     }

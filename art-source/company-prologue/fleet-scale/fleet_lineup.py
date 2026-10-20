@@ -53,6 +53,7 @@ HULLS = [
          geometry=('onslaught-geometry/onslaught-geometry.blend', None),
          json='onslaught-geometry/geometry.json'),
     dict(key='paragon', name='Paragon', kind='ship', scale_key='Paragon', vanilla='paragon',
+         drive_build=('paragon', 'paragon.blend', 'PARAGON | clean', 'PARAGON | clean | root'),
          geometry=('paragon-geometry/paragon-geometry.blend', None), json='paragon-geometry/geometry.json'),
     dict(key='legion', name='Legion (XIV)', kind='ship', scale_key='Legion (XIV)', vanilla='legion',
          geometry=('legion-geometry/legion-geometry.blend', None), json='legion-geometry/geometry.json'),
@@ -78,10 +79,56 @@ HULLS = [
     dict(key='broadsword', name='Broadsword', kind='fighter',
          geometry=('broadsword-geometry/broadsword-geometry.blend', 'BROADSWORD | geometry'),
          json='broadsword-geometry/geometry.json'),
+    # The Asharu battle's hulls. Built .blends are on the Drive (drive_build), except the
+    # Manticore's, which is built locally by --build-missing (local_build: script, build/<dir>, blend).
+    dict(key='wolf', name='Wolf (P)', kind='ship', scale_key='Wolf (P)',
+         drive_build=('wolf-p', 'wolf-p.blend', 'WOLF_P', 'WOLF_P | root'),
+         geometry=('wolf-geometry/wolf-geometry.blend', None), json='wolf-geometry/geometry.json'),
+    dict(key='manticore', name='Manticore (P)', kind='ship', scale_key='Manticore (P)',
+         local_build=('manticore-geometry/build_manticore.py', 'manticore', 'manticore.blend',
+                      'MANTICORE', 'MANTICORE | root'),
+         geometry=('manticore-geometry/manticore-geometry.blend', None), json='manticore-geometry/geometry.json'),
+    dict(key='kite', name='Kite (P)', kind='ship',
+         drive_build=('kite-p', 'kite-p.blend', 'KITE (P)', 'KITE (P) | root'),
+         geometry=('kite-geometry/kite-geometry.blend', None), json='kite-geometry/geometry.json'),
+    dict(key='falcon', name='Falcon (P)', kind='ship',
+         drive_build=('falcon-p', 'falcon-p.blend', 'FALCON (P)', 'FALCON (P) | root'),
+         geometry=('falcon-geometry/falcon-geometry.blend', None), json='falcon-geometry/geometry.json'),
+    dict(key='colossus-mk3', name='Colossus Mk.III', kind='ship',
+         drive_build=('colossus-mk3', 'colossus-mk3.blend', 'COLOSSUS MK.III', 'COLOSSUS MK.III | root'),
+         geometry=('colossus-mk3-geometry/colossus-mk3-geometry.blend', None),
+         json='colossus-mk3-geometry/geometry.json'),
+    dict(key='tarsus', name='Tarsus', kind='ship',
+         drive_build=('tarsus', 'clean/tarsus.blend', 'TARSUS', 'TARSUS | root'),
+         geometry=('tarsus-geometry/tarsus-geometry.blend', None), json='tarsus-geometry/geometry.json'),
+    dict(key='phaeton', name='Phaeton', kind='ship',
+         drive_build=('phaeton', 'intact/phaeton.blend', 'PHAETON', 'PHAETON | root'),
+         geometry=('phaeton-geometry/phaeton-geometry.blend', None), json='phaeton-geometry/geometry.json'),
 ] + [dict(key=f, name=f.capitalize(), kind='fighter',
           geometry=(f'fighters-geometry/{f}/{f}-geometry.blend', f'{f.upper()} | geometry'),
           json=f'fighters-geometry/{f}/geometry.json')
      for f in ('thunder', 'dagger', 'longbow', 'talon', 'wasp')]
+
+# The class lineup (--class-lineup): rows top to bottom, each a role class.
+CLASSES = [
+    ('fighters', 'Fighters and boats', ('broadsword', 'thunder', 'dagger', 'longbow', 'talon', 'wasp', 'hermes')),
+    ('frigates', 'Frigates', ('kite', 'hound', 'second-wind', 'mudskipper', 'shepherd', 'wolf', 'lasher')),
+    ('destroyers', 'Destroyers', ('manticore',)),
+    ('freighters', 'Freighters and tankers', ('phaeton', 'tarsus', 'colossus-mk3', 'colossus')),
+    ('capitals', 'Cruisers and capitals', ('falcon', 'legion', 'onslaught', 'paragon')),
+]
+# The game's sprite each model was read from: (.ship id, .skin id or None).
+SPRITES = {
+    'onslaught': ('onslaught', None), 'paragon': ('paragon', None), 'legion': ('legion', 'legion_xiv'),
+    'lasher': ('lasher', None), 'colossus': ('colossus', None), 'hound': ('hound', 'hound_hegemony'),
+    'second-wind': ('warhound', None), 'mudskipper': ('mudskipper', None), 'shepherd': ('shepherd', None),
+    'hermes': ('hermes', None), 'broadsword': ('broadsword', None), 'thunder': ('thunder', None),
+    'dagger': ('dagger', None), 'longbow': ('longbow', None), 'talon': ('talon', None), 'wasp': ('wasp', None),
+    'wolf': ('wolf', 'wolf_d_pirates'), 'manticore': ('manticore', 'manticore_pirates'),
+    'kite': ('kite', 'kite_pirates'), 'falcon': ('falcon', 'falcon_p'), 'colossus-mk3': ('colossus3', None),
+    'tarsus': ('tarsus', None), 'phaeton': ('phaeton', None),
+}
+SPRITE_REFERENCE = 'hound'      # the sprite lineup is scaled so this hull's sprite matches its model
 
 
 def scale_solution(key):
@@ -97,7 +144,11 @@ def resolve(h, basis):
     sol = scale_solution(h.get('scale_key'))
     out['solved_mpu'] = sol['solved_metres_per_unit'] if sol else None
     head_build = drive_build(h['drive_build'], gjson.parent) if h.get('drive_build') and gjson.exists() else None
-    if exp and (PROLOGUE/exp[0]).exists() and gjson.exists():
+    lb = h.get('local_build')
+    if lb and (local_build_path(lb)).exists() and gjson.exists():
+        out['source'] = dict(blend=str(local_build_path(lb)), collection=lb[3], root=lb[4])
+        out['source_label'] = f'build/{lb[1]}/{lb[2]} (local build of {lb[0]})'
+    elif exp and (PROLOGUE/exp[0]).exists() and gjson.exists():
         out['source'] = dict(blend=str(PROLOGUE/exp[0]), collection=exp[1], root=exp[2])
         out['source_label'] = h['export'][0]
     elif head_build and head_build[2]:          # the Drive build of the package's latest commit
@@ -144,7 +195,7 @@ def drive_build(spec, package):
     hull, blend = spec[0], spec[1]
     if not root or not (root/'builds'/hull).is_dir():
         return None
-    builds = [d for d in (root/'builds'/hull).iterdir() if (d/blend).exists()]
+    builds = [d for d in (root/'builds'/hull).iterdir() if (d/blend).exists() and not (d/'SUPERSEDED.txt').exists()]
     if not builds:
         return None
     try:
@@ -163,6 +214,45 @@ def drive_build(spec, package):
     pick = match[0] if match else max(builds, key=lambda d: (d/blend).stat().st_mtime)
     note = '' if match else f' (not the package head {head})'
     return pick/blend, f'Drive builds/{hull}/{pick.name}/{blend}{note}', bool(match)
+
+
+def local_build_path(spec):
+    return REPO/'build'/spec[1]/spec[2]
+
+
+def build_missing():
+    """Run the package build for every hull whose model is only a local build output and is missing
+    (the Manticore's build/manticore/manticore.blend), so the lineup shows the model, not an estimate."""
+    from blender_path import BLENDER
+    for h in HULLS:
+        lb = h.get('local_build')
+        if not lb or local_build_path(lb).exists():
+            continue
+        script = PROLOGUE/lb[0]
+        print(f"[fleet] building {h['name']}: {lb[0]} -> build/{lb[1]}/{lb[2]}", flush=True)
+        subprocess.check_call([BLENDER, '--background', '--factory-startup', '--python-exit-code', '1',
+                               '--python', str(script), '--', '--views', 'none',
+                               '--out', str(local_build_path(lb).parent)], cwd=str(script.parent))
+
+
+def sprite_dims(key):
+    """The game sprite behind a hull: its path and its opaque extent in pixels, (length along the bow,
+    width), read from the install (None without the game or Pillow)."""
+    if key not in SPRITES:
+        return None
+    try:
+        import re
+        from PIL import Image
+        from starsector_path import GAME_CORE
+        ship, skin = SPRITES[key]
+        f = GAME_CORE/'data'/'hulls'/(f'skins/{skin}.skin' if skin else f'{ship}.ship')
+        sprite = re.search(r'"spriteName"\s*:\s*"([^"]+)"', f.read_text()).group(1)   # skins are loose JSON
+        path = GAME_CORE/sprite
+        x0, y0, x1, y1 = Image.open(path).convert('RGBA').getchannel('A').point(lambda a: 255 if a > 127 else 0).getbbox()
+        return dict(path=str(path), sprite=sprite, length_px=y1 - y0, width_px=x1 - x0)
+    except Exception as e:
+        print(f'[fleet] no sprite for {key}: {e}')
+        return None
 
 
 def vanilla_spec(ship_id):
@@ -505,13 +595,16 @@ def blender_main(cfg):
         # It scales the hull to that length until its geometry.json lands within tolerance of it,
         # after which the published value is used and the hull drops its 'pending' label.
         target = h.get('pending_length_m')
-        h['pending'] = bool(target) and abs(size.x/target - 1) > cfg.get('pending_tolerance', .05)
+        tol = h.get('pending_tolerance', cfg.get('pending_tolerance', .05))
+        h['pending'] = bool(target) and abs(size.x/target - 1) > tol
         if h['pending']:
             h['published_length_m'] = round(size.x, 2)
+            h['ghost_mpu'] = h['mpu']           # the --size preview draws the current size as a ghost
             f = target/size.x
             h['mpu'] = round(h['mpu']*f, 4)
             h['mpu_from'] = f"{cfg['basis_label']}: {target:g} m by hand until published ({h['pending_label']})"
             root.scale = (h['mpu'],)*3
+            h['ghost_box'] = [list(mn), list(mx)]
             mn, mx = mn*f, mx*f
             size = mx - mn
         hulls[h['key']] = dict(cfg=h, col=col, root=root, objs=meshes, mn=mn.copy(), mx=mx.copy())
@@ -585,6 +678,10 @@ def blender_main(cfg):
         shoot(n, file)
         frames.append(dict(n=n, file=file, title=title, subtitle=subtitle,
                            parts=[dict(file=file, crop=[0, H], dest=0, labels=labels, rects=list(rects))]))
+
+    if cfg.get('class_lineup'):
+        class_lineup(cfg, hulls, scene, cam, look, show, out)
+        return
 
     order = sorted(hulls, key=lambda k: -(hulls[k]['mx'].x - hulls[k]['mn'].x))
     ships = [k for k in order]
@@ -910,6 +1007,332 @@ def blender_main(cfg):
               open(out/'layout.json', 'w'), indent=1)
 
 
+# ----------------------------------------------------------------------------- class lineup
+
+# Pixel layout of a class-lineup frame: a class-name column on the left, one row per class, a label
+# band under each row, a scale bar and footer at the bottom.
+CL_X0, CL_X1, CL_Y0, CL_Y1 = 250, W - 30, 100, H - 74
+CL_LABEL, CL_ROW_GAP, CL_MIN_SLOT, CL_GAP = 62, 8, 150, 14
+CL_SETS = [('all', 'every class', [c[0] for c in CLASSES]),
+           ('mid', 'frigates, destroyers, freighters and tankers', ['frigates', 'destroyers', 'freighters']),
+           ('close', 'fighters, frigates and destroyers, magnified', ['fighters', 'frigates', 'destroyers'])]
+
+
+def class_layout(dims, sets):
+    """For each frame set: one metres-per-pixel shared by its model and sprite frames, the x slot of every
+    hull (shared by every view, so a hull sits at the same place in each), and the rows of each view.
+    dims[key] = dict(L=, B=, Z=) model extents in metres, each the larger of the hull and its ghost, plus
+    SL=, SB= for its sprite at the sprite lineup's scale."""
+    out = {}
+    for set_id, _, class_ids in sets:
+        rows = [(cid, title, [k for k in keys if k in dims]) for cid, title, keys in CLASSES if cid in class_ids]
+        rows = [r for r in rows if r[2]]
+
+        def longest(k):
+            return max(dims[k]['L'], dims[k].get('SL', 0))
+
+        def broadest(k):
+            return max(dims[k]['B'], dims[k].get('SB', 0))
+
+        def fits(m):
+            for _, _, keys in rows:
+                if sum(max(longest(k)/m, CL_MIN_SLOT) for k in keys) + CL_GAP*(len(keys) - 1) > CL_X1 - CL_X0:
+                    return False
+            used = sum(max(broadest(k) for k in keys)/m + CL_LABEL + CL_ROW_GAP for _, _, keys in rows)
+            return used <= CL_Y1 - CL_Y0
+
+        mpp = .01
+        while not fits(mpp):
+            mpp *= 1.01
+        slots = {}
+        for _, _, keys in rows:
+            keys.sort(key=lambda k: dims[k]['L'])       # by the model's length
+            x = CL_X0
+            for k in keys:
+                w = max(longest(k)/mpp, CL_MIN_SLOT)
+                slots[k] = x + w/2
+                x += w + CL_GAP
+        views = {}
+        for view, ext in (('top', broadest), ('side', lambda k: dims[k]['Z'])):
+            y = CL_Y0
+            vr = []
+            for cid, title, keys in rows:
+                h = max(ext(k) for k in keys)/mpp
+                vr.append(dict(id=cid, title=title, keys=keys, y0=round(y, 1), y1=round(y + h, 1),
+                               centre=round(y + h/2, 1)))
+                y += h + CL_LABEL + CL_ROW_GAP
+            views[view] = vr
+        out[set_id] = dict(mpp=mpp, slots=slots, views=views)
+    return out
+
+
+def class_lineup(cfg, hulls, scene, cam, look, show, out):
+    """--class-lineup: every hull in role-class rows (CLASSES), top-down and broadside, one scale per frame
+    set, under flat Workbench shading: size is the only question, so a few seconds a frame. Writes raw
+    renders with alpha, a ghost-only render for hulls previewed by --size (their current size), and the
+    pixel layout that the driver labels and lays the game sprites over."""
+    from mathutils import Vector
+    scene.render.engine = 'BLENDER_WORKBENCH'
+    sh = scene.display.shading
+    sh.light, sh.color_type, sh.single_color = 'STUDIO', 'SINGLE', (.62, .63, .65)
+    scene.display.render_aa = '8'
+    scene.render.film_transparent = True
+    scene.view_settings.view_transform = 'Standard'
+    scene.render.image_settings.color_mode = 'RGBA'
+
+    def ext(mn, mx):
+        s = Vector(mx) - Vector(mn)
+        return s.x, s.y, s.z
+
+    sprites = cfg.get('sprites', {})
+    ref = sprites.get(SPRITE_REFERENCE)
+    k_sprite = (hulls[SPRITE_REFERENCE]['mx'].x - hulls[SPRITE_REFERENCE]['mn'].x)/ref['length_px'] \
+        if ref and SPRITE_REFERENCE in hulls else None
+    dims = {}
+    for k, r in hulls.items():
+        L, B, Z = ext(r['mn'], r['mx'])
+        g = r['cfg'].get('ghost_box')
+        if g:
+            gL, gB, gZ = ext(*g)
+            L, B, Z = max(L, gL), max(B, gB), max(Z, gZ)
+        dims[k] = dict(L=L, B=B, Z=Z)
+        s = sprites.get(k)
+        if s and k_sprite:
+            dims[k].update(SL=s['length_px']*k_sprite, SB=s['width_px']*k_sprite)
+    layout = class_layout(dims, CL_SETS)
+    every = set(hulls)
+    ghosts = [k for k in hulls if hulls[k]['cfg'].get('ghost_box')]
+    frames = []
+
+    def put(k, view, cx, row, box):
+        """Place a hull (its bbox `box` under a root at the origin) at slot cx in `row`: centred on the
+        row's centre line from above, on its keel line from the side."""
+        r = hulls[k]
+        mn, mx = Vector(box[0]), Vector(box[1])
+        m = lay['mpp']
+        x = (cx - W/2)*m - (mn.x + mx.x)/2
+        if view == 'top':
+            r['root'].location = Vector((x, (H/2 - row['centre'])*m - (mn.y + mx.y)/2, -mx.z))
+        else:
+            r['root'].location = Vector((x, -(mn.y + mx.y)/2, (H/2 - row['y1'])*m - mn.z))
+
+    n = 0
+    for set_id, set_title, _ in CL_SETS:
+        lay = layout[set_id]
+        m = lay['mpp']
+        for view in ('top', 'side'):
+            n += 1
+            rows = lay['views'][view]
+            keys = [k for row in rows for k in row['keys']]
+            for row in rows:
+                for k in row['keys']:
+                    hulls[k]['root'].scale = (hulls[k]['cfg']['mpu'],)*3
+                    put(k, view, lay['slots'][k], row, (hulls[k]['mn'], hulls[k]['mx']))
+            if view == 'top':
+                look((0, 0, 5000), (0, 0, 0), ortho=W*m)
+                cam.rotation_euler = (0, 0, 0)
+            else:
+                look((0, -5000, 0), (0, 0, 0), ortho=W*m)
+            file = f'{n:02d}-models-{"top-down" if view == "top" else "broadside"}-{set_id}.png'
+            show(set(keys))
+            scene.render.filepath = str(out/file)
+            if not cfg.get('frames') or n in cfg['frames']:
+                print(f'[fleet] rendering {file}  {m:.3f} m/px', flush=True)
+                bpy_render()
+            ghost_file = None
+            gk = [k for k in ghosts if k in keys]
+            if gk:
+                ghost_file = file.replace('.png', '-ghost.png')
+                for k in gk:
+                    row = next(r_ for r_ in rows if k in r_['keys'])
+                    hulls[k]['root'].scale = (hulls[k]['cfg']['ghost_mpu'],)*3
+                    put(k, view, lay['slots'][k], row, hulls[k]['cfg']['ghost_box'])
+                show(set(gk))
+                scene.render.filepath = str(out/ghost_file)
+                if not cfg.get('frames') or n in cfg['frames']:
+                    bpy_render()
+                for k in gk:
+                    hulls[k]['root'].scale = (hulls[k]['cfg']['mpu'],)*3
+            frames.append(dict(n=n, kind='model', view=view, set=set_id, set_title=set_title, file=file,
+                               raw=file, ghost_raw=ghost_file, mpp=m, rows=rows))
+    for set_id, set_title, _ in CL_SETS:
+        n += 1
+        frames.append(dict(n=n, kind='sprite', view='top', set=set_id, set_title=set_title,
+                           file=f'{n:02d}-sprites-top-down-{set_id}.png', mpp=layout[set_id]['mpp'],
+                           rows=layout[set_id]['views']['top'],
+                           model_raw=next(f['raw'] for f in frames if f['set'] == set_id and f['view'] == 'top'),
+                           model_n=next(f['n'] for f in frames if f['set'] == set_id and f['view'] == 'top')))
+    show(every)
+    for h in cfg['hulls']:
+        if h['key'] in hulls:
+            r = hulls[h['key']]
+            h['size_m'] = [round(v, 2) for v in ext(r['mn'], r['mx'])]
+    json.dump(dict(class_frames=frames, frames=[], slots={s: layout[s]['slots'] for s in layout},
+                   hulls=cfg['hulls'], sprite_m_per_px=k_sprite, sprite_reference=SPRITE_REFERENCE,
+                   basis_label=cfg.get('basis_label')), open(out/'layout.json', 'w'), indent=1)
+
+
+def bpy_render():
+    import bpy
+    bpy.ops.render.render(write_still=True)
+
+
+def outline(alpha, width):
+    """The edge band of a silhouette mask: a `width`-px ring just outside it."""
+    from PIL import ImageChops, ImageFilter
+    a = alpha.point(lambda v: 255 if v > 96 else 0)
+    return ImageChops.subtract(a.filter(ImageFilter.MaxFilter(2*width + 1)), a)
+
+
+def compose_class(run, layout, footer):
+    """Label the class-lineup renders and build the sprite frames at the same pixel layout."""
+    from PIL import Image, ImageDraw
+    from review_font import review_font
+    f_title, f_sub = review_font(30, True), review_font(18)
+    f_row, f_lab_b, f_lab = review_font(20, True), review_font(15, True), review_font(14)
+    by_key = {h['key']: h for h in layout['hulls']}
+    k_sprite = layout.get('sprite_m_per_px')
+    raw = run/'raw'
+    for fr in layout['class_frames']:
+        m = fr['mpp']
+        slots = layout['slots'][fr['set']]
+        img = Image.new('RGBA', (W, H), (17, 19, 23, 255))
+        d = ImageDraw.Draw(img)
+        for i, row in enumerate(fr['rows']):
+            band = (CL_X0 - 16, row['y0'] - 4, W - 8, row['y1'] + CL_LABEL - 4)
+            d.rectangle(band, fill=(24, 27, 32, 255) if i % 2 == 0 else (20, 22, 27, 255))
+            d.text((24, (row['y0'] + row['y1'] + CL_LABEL)/2 - 22), row['title'], font=f_row, fill=(240, 240, 240))
+            d.text((24, (row['y0'] + row['y1'] + CL_LABEL)/2 + 4), f"{len(row['keys'])} hull{'s' if len(row['keys']) > 1 else ''}",
+                   font=f_lab, fill=(150, 150, 150))
+        if fr['kind'] == 'model':
+            if not (raw/fr['raw']).exists():
+                print(f"[fleet] {fr['file']}: no raw render yet, not labelled")
+                continue
+            if fr.get('ghost_raw') and (raw/fr['ghost_raw']).exists():
+                ga = Image.open(raw/fr['ghost_raw']).getchannel('A')
+                tint = Image.new('RGBA', (W, H), (255, 150, 60, 60))
+                img.paste(tint, (0, 0), ga.point(lambda v: 255 if v > 96 else 0))
+                ring = outline(ga, 2)
+                img.paste(Image.new('RGBA', (W, H), (255, 160, 70, 255)), (0, 0), ring)
+            model = Image.open(raw/fr['raw']).convert('RGBA')
+            img.alpha_composite(model)
+        else:
+            if not k_sprite:
+                print(f"[fleet] {fr['file']}: no sprites (no game install), skipped")
+                continue
+            for row in fr['rows']:
+                for k in row['keys']:
+                    s = by_key[k].get('sprite_info')
+                    if not s or not s.get('path'):          # dims given, game not installed here
+                        continue
+                    sp = Image.open(s['path']).convert('RGBA')
+                    sp = sp.crop(sp.getchannel('A').point(lambda a: 255 if a > 127 else 0).getbbox())
+                    sp = sp.rotate(-90, expand=True)                 # bow up -> bow right, port up
+                    f = k_sprite/m
+                    sp = sp.resize((max(1, round(sp.width*f)), max(1, round(sp.height*f))), Image.LANCZOS)
+                    img.alpha_composite(sp, (round(slots[k] - sp.width/2), round(row['centre'] - sp.height/2)))
+            if (raw/fr['model_raw']).exists():
+                ring = outline(Image.open(raw/fr['model_raw']).getchannel('A'), 1)
+                img.paste(Image.new('RGBA', (W, H), (90, 220, 255, 255)), (0, 0), ring)
+        d = ImageDraw.Draw(img)
+        for row in fr['rows']:
+            boxes = []
+            for k in row['keys']:
+                h = by_key[k]
+                L = h['size_m'][0]
+                if fr['kind'] == 'model':
+                    lines = [h['name'], f'{L:.0f} m' + (' proposed' if h.get('pending') else '')]
+                    if h.get('pending'):
+                        lines.append(f"ghost: {h['published_length_m']:.0f} m now")
+                    cols = [(240, 240, 240), (255, 190, 80) if h.get('pending') else (200, 200, 200), (255, 160, 70)]
+                else:
+                    s = h.get('sprite_info')
+                    if not s:
+                        continue
+                    sl = s['length_px']*k_sprite
+                    lines = [h['name'], f"sprite {sl:.0f} m ({s['length_px']} px)", f'model {L:.0f} m']
+                    off = sl/L - 1
+                    cols = [(240, 240, 240), (200, 200, 200),
+                            (255, 130, 100) if abs(off) > .2 else (255, 210, 120) if abs(off) > .1 else (150, 220, 160)]
+                tw = max(d.textlength(t, font=f_lab_b if i == 0 else f_lab) for i, t in enumerate(lines)) + 10
+                x0 = min(max(slots[k] - tw/2, CL_X0 - 12), W - tw - 10)
+                y0 = row['y1'] + 6
+                th = 18*len(lines)
+                while any(not (x0 + tw < b[0] or x0 > b[2] or y0 + th < b[1] or y0 > b[3]) for b in boxes):
+                    y0 += 18                                         # a neighbour's label is in the way
+                boxes.append((x0, y0, x0 + tw, y0 + th))
+                for i, t in enumerate(lines):
+                    d.text((x0 + 5, y0 + 18*i), t, font=f_lab_b if i == 0 else f_lab, fill=cols[i])
+        # scale bar: the largest round length under 300 px
+        bar = max(v for v in (1, 2, 5, 10, 20, 25, 50, 100, 200) if v/m <= 300)
+        by = H - 58
+        d.rectangle([CL_X0, by, CL_X0 + bar/m, by + 8], fill=(235, 235, 235))
+        for i in range(0, 6):
+            if bar*i/5/m <= bar/m:
+                d.line([(CL_X0 + bar*i/5/m, by - 4), (CL_X0 + bar*i/5/m, by + 12)], fill=(235, 235, 235))
+        d.text((CL_X0 + bar/m + 12, by - 4), f'{bar} m   ·   1 px = {m:.2f} m', font=f_lab_b, fill=(235, 235, 235))
+        if fr['kind'] == 'model':
+            what = 'Models' + (', top-down' if fr['view'] == 'top' else ', broadside')
+            sub = (('Orthographic from above, bow to the right.' if fr['view'] == 'top' else
+                    'Orthographic from starboard, bow to the right, keels on each row\'s line.')
+                   + ' Sizes as published' + (', except where marked proposed (--size): the orange ghost is the '
+                                              'size published today.' if any(h.get('pending') for h in layout['hulls'])
+                                              else '.'))
+        else:
+            ref = by_key.get(layout['sprite_reference'], {})
+            what = 'Game sprites at their relative pixel sizes'
+            sub = (f"Every sprite at one {k_sprite:.3f} m per sprite pixel, so the {ref.get('name')} sprite matches its "
+                   f"{ref.get('size_m', [0])[0]:.0f} m model. Cyan: each model's outline, at the size in frame "
+                   f"{fr['model_n']:02d}. The third line is red past 20% off the model, amber past 10%.")
+        d.rectangle([0, 0, W, 86], fill=(17, 19, 23, 255))
+        d.text((24, 12), f"{fr['n']:02d}  {what}: {fr['set_title']}", font=f_title, fill=(240, 240, 240))
+        d.text((24, 54), sub, font=f_sub, fill=(190, 190, 190))
+        d.rectangle([0, H - 30, W, H], fill=(17, 19, 23, 255))
+        d.text((24, H - 25), footer, font=review_font(15), fill=(170, 170, 170))
+        img.convert('RGB').save(run/fr['file'])
+
+
+def class_table(run, layout, sizes):
+    """hull, class, current, proposed, sprite-implied length; written as class-sizes.md / .csv."""
+    k_sprite = layout.get('sprite_m_per_px')
+    by_key = {h['key']: h for h in layout['hulls']}
+    rows = []
+    for cid, title, keys in CLASSES:
+        for k in keys:
+            h = by_key.get(k)
+            if not h:
+                continue
+            cur = h.get('published_length_m') or h['size_m'][0]
+            prop = h['size_m'][0]
+            s = h.get('sprite_info')
+            sl = s['length_px']*k_sprite if s and k_sprite else None
+            note = []
+            if h.get('pending'):
+                note.append(f"previewed at {prop:.0f} m (--size), published {cur:.0f} m")
+            if h.get('estimate'):
+                note.append('ESTIMATE (no model)')
+            if sl:
+                off = prop/sl - 1
+                if abs(off) > .2:
+                    note.append(f"model {abs(off)*100:.0f}% {'over' if off > 0 else 'under'} the sprite")
+            rows.append(dict(hull=h['name'], cls=title, current_m=round(cur, 1), proposed_m=round(prop, 1),
+                             sprite_px=s['length_px'] if s else '', sprite_implied_m=round(sl, 1) if sl else '',
+                             proposed_over_sprite=round(prop/sl, 2) if sl else '', notes='; '.join(note)))
+    import csv
+    with open(run/'class-sizes.csv', 'w', newline='') as f:
+        w = csv.DictWriter(f, fieldnames=list(rows[0]))
+        w.writeheader()
+        w.writerows(rows)
+    cols = list(rows[0])
+    md = ['| ' + ' | '.join(cols) + ' |', '|' + '---|'*len(cols)]
+    md += ['| ' + ' | '.join(str(r[c]) for c in cols) + ' |' for r in rows]
+    md += ['', f"sprite_implied_m: the sprite's opaque length in pixels x {k_sprite or 0:.3f} m/px, the factor "
+           f"that makes the {SPRITE_REFERENCE} sprite match its model. Lengths are the render-visible model's "
+           'bounding box.']
+    (run/'class-sizes.md').write_text('\n'.join(md) + '\n')
+    return rows
+
+
 # ----------------------------------------------------------------------------- driver
 
 def label_frames(run, layout):
@@ -1140,14 +1563,45 @@ def driver(argv):
     ap.add_argument('--pending', default=None, metavar='JSON',
                     help='a chosen basis not yet published (e.g. pending-c.json): scales those hulls by hand')
     ap.add_argument('--no-references', action='store_true', help='leave out the real-world references')
+    ap.add_argument('--class-lineup', action='store_true',
+                    help='only the class lineup: models in role-class rows (top-down, broadside) and the game '
+                         'sprites at their relative pixel sizes, flat Workbench shading')
+    ap.add_argument('--size', action='append', default=[], metavar='HULL=METRES',
+                    help='preview a hull at this length (e.g. lasher=75) without publishing it; its published '
+                         'size is drawn as a ghost in the class lineup. Repeatable')
+    ap.add_argument('--sprite-dims', default=None, metavar='JSON',
+                    help='sprite pixel sizes {"hull": [length_px, width_px], ...} (inline or a file) instead of '
+                         'reading the game install, so a machine without the game lays out the same frames')
+    ap.add_argument('--print-sprite-dims', action='store_true', help='print the --sprite-dims JSON and exit')
+    ap.add_argument('--build-missing', action='store_true',
+                    help='first run the package build of any hull whose model is a missing local build output')
     a = ap.parse_args(argv)
-    what = a.what or ('lineup' if a.basis == 'published' else 'lineup-solved')
+    what = a.what or ('class-lineup' if a.class_lineup else 'lineup' if a.basis == 'published' else 'lineup-solved')
     today = date.today().isoformat()
-    run = Path(a.out) if a.out else REPO/'build'/'fleet-scale'/(today + ('' if a.basis == 'published' else '-solved'))
+    run = Path(a.out) if a.out else REPO/'build'/'fleet-scale'/(
+        today + ('-class' if a.class_lineup else '' if a.basis == 'published' else '-solved'))
     (run/'raw').mkdir(parents=True, exist_ok=True)
+    if a.print_sprite_dims:
+        print(json.dumps({h['key']: [s['length_px'], s['width_px']] for h in HULLS
+                          for s in [sprite_dims(h['key'])] if s}, separators=(',', ':')))
+        return
+    given = None
+    if a.sprite_dims:
+        given = json.loads(a.sprite_dims if a.sprite_dims.lstrip().startswith('{') else Path(a.sprite_dims).read_text())
+    if a.build_missing and not a.skip_render:
+        build_missing()
     hulls = [r for r in (resolve(h, a.basis) for h in HULLS) if r]
     cfg = dict(hulls=hulls, raw_dir=str(run/'raw'), samples=a.samples,
-               frames=[int(f) for f in a.frames.split(',') if f], references=not a.no_references)
+               frames=[int(f) for f in a.frames.split(',') if f], references=not a.no_references,
+               class_lineup=a.class_lineup)
+    if a.class_lineup:
+        cfg['references'] = False
+        cfg['sprites'] = {}
+        for h in hulls:
+            h['sprite_info'] = sprite_dims(h['key']) if given is None else (
+                dict(path=None, length_px=given[h['key']][0], width_px=given[h['key']][1]) if h['key'] in given else None)
+            if h['sprite_info']:
+                cfg['sprites'][h['key']] = h['sprite_info']
     if a.pending:
         pend = json.load(open(Path(a.pending) if Path(a.pending).exists() else HERE/a.pending))
         cfg['basis_label'] = pend['basis_label']
@@ -1158,6 +1612,15 @@ def driver(argv):
                 h['pending_length_m'] = e['length_m']
                 h['pending_label'] = e.get('label', f"{pend['basis_label'].split(' ')[0]}, pending publish")
                 h['pending_note'] = e.get('note')
+    for spec in a.size:
+        key, _, metres = spec.partition('=')
+        h = next((h for h in hulls if h['key'] == key), None)
+        if not h or not metres:
+            sys.exit(f'--size {spec}: expected HULL=METRES with HULL one of ' + ', '.join(h['key'] for h in hulls))
+        h['pending_length_m'] = float(metres)
+        h['pending_tolerance'] = .001
+        h['pending_label'] = f'proposed {float(metres):g} m'
+        cfg.setdefault('basis_label', 'proposed (--size)')
     cfg_path = run/'config.json'
     cfg_path.write_text(json.dumps(cfg, indent=1))
     if not a.skip_render:
@@ -1166,6 +1629,23 @@ def driver(argv):
                                '--', '--blender', str(cfg_path)])
     layout = json.load(open(run/'raw'/'layout.json'))
     commit = git_commit()
+    if a.class_lineup:
+        if a.skip_render:                      # relabel: today's sprites over the rendered layout
+            for h in layout['hulls']:
+                h['sprite_info'] = sprite_dims(h['key'])
+        footer = (f'fleet_lineup.py --class-lineup @ {commit}  ·  '
+                  + ('  '.join(f'--size {s}' for s in a.size) + '  ·  ' if a.size else '')
+                  + "sizes from each package's geometry.json; sprites from the game install, read-only")
+        compose_class(run, layout, footer)
+        rows = class_table(run, layout, None)
+        sizes_table(run, layout['hulls'])
+        write_class_notes(run, rows, layout, commit, a.size)
+        print((run/'class-sizes.md').read_text())
+        print(f'[fleet] run written to {run}')
+        if a.post:
+            post(run, today, what, a.post, [f['file'] for f in layout['class_frames']],
+                 ('NOTES.md', 'class-sizes.md', 'class-sizes.csv', 'sizes.md', 'sizes.csv'))
+        return
     layout['footer'] = (f'fleet_lineup.py @ {commit}  ·  basis: {a.basis}'
                         + (f" + {layout['basis_label']} pending" if layout.get('basis_label') else '') + '  ·  '
                         'sizes from each package\'s geometry.json; ESTIMATE = no model yet (ship_scale.py)')
@@ -1175,18 +1655,38 @@ def driver(argv):
     print((run/'sizes.md').read_text())
     print(f'[fleet] run written to {run}')
     if a.post:
-        root = drive_root()
-        if not root:
-            sys.exit('no shared Drive folder found')
-        dest = root/'review'/'fleet-scale'/f'{today}_{what}_{a.post}'
-        if dest.exists():
-            sys.exit(f'{dest} exists: one run, one writer; pick another --what')
-        dest.mkdir(parents=True)
-        for fr in layout['frames']:
-            shutil.copy2(run/fr['file'], dest/fr['file'])
-        for f in ('NOTES.md', 'sizes.md', 'sizes.csv'):
+        post(run, today, what, a.post, [fr['file'] for fr in layout['frames']], ('NOTES.md', 'sizes.md', 'sizes.csv'))
+
+
+def post(run, today, what, machine, images, extras):
+    import shutil
+    root = drive_root()
+    if not root:
+        sys.exit('no shared Drive folder found')
+    dest = root/'review'/'fleet-scale'/f'{today}_{what}_{machine}'
+    if dest.exists():
+        sys.exit(f'{dest} exists: one run, one writer; pick another --what')
+    dest.mkdir(parents=True)
+    for f in list(images) + list(extras):
+        if (run/f).exists():
             shutil.copy2(run/f, dest/f)
-        print(f'[fleet] posted to {dest}')
+    print(f'[fleet] posted to {dest}')
+
+
+def write_class_notes(run, rows, layout, commit, sizes):
+    n = ['# Fleet class lineup', '',
+         f'Built from commit `{commit}` by `art-source/company-prologue/fleet-scale/fleet_lineup.py --class-lineup`'
+         + (' ' + ' '.join(f'--size {s}' for s in sizes) if sizes else '') + '. Models under flat Workbench '
+         'shading in role-class rows; the game sprites at their relative pixel sizes in the same layout and at '
+         'the same metres per pixel as the matching model frame.', '',
+         '## Images', '']
+    for fr in layout['class_frames']:
+        n.append(f"- `{fr['file']}`: {'models' if fr['kind'] == 'model' else 'game sprites'}, "
+                 f"{'top-down' if fr['view'] == 'top' else 'broadside'}, {fr['set_title']}, 1 px = {fr['mpp']:.2f} m")
+    n += ['', '## Sizes', '', (run/'class-sizes.md').read_text(), '',
+          'Hull sizes follow role and the neighbouring hulls (owner, 2026-10-20); the sprites are not the source '
+          'of truth either, they show what the game implies.', '']
+    (run/'NOTES.md').write_text('\n'.join(n), encoding='utf-8')
 
 
 if __name__ == '__main__':

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines;
 
+import com.dillon.starsectormarines.campaign.start.SecondWindKeeper;
+import com.fs.starfarer.api.campaign.CampaignEventListener;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.ops.AgreusArcCampaign;
 import com.dillon.starsectormarines.ops.CompanyManagementGuide;
@@ -41,6 +43,7 @@ import com.dillon.starsectormarines.intel.DeadLetterIntel;
 import com.dillon.starsectormarines.intel.LastTestamentIntel;
 import com.dillon.starsectormarines.ops.CompanyShipLossListener;
 import com.dillon.starsectormarines.ops.CompanyViewAbility;
+import com.dillon.starsectormarines.ops.MenuTheme;
 import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
@@ -63,6 +66,7 @@ import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.comm.IntelManagerAPI;
 import org.apache.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 public class StarsectorMarinesModPlugin extends BaseModPlugin {
@@ -150,6 +154,9 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
     @Override
     public void onGameLoad(boolean newGame) {
         LOG.info("Starsector Marines: game loaded (newGame=" + newGame + ")");
+        // A storybook or ops dialog torn down without its dismissal must not leave this
+        // campaign's music suspended under a theme nobody is holding.
+        MenuTheme.shared().reset();
         ensureBridgeIntel();
         // Before the roster: CampaignClock anchors its day counter on CampaignState, and
         // starter-captain creation stamps a day.
@@ -161,6 +168,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         deliverPendingAgreusAwards();
         ensureCaptainDiscoverySalvageListener();
         ensureCompanyShipLossListener();
+        SecondWindKeeper.install(Global.getSector());
         ensureFactionEquipmentMarketStock();
         ensurePlayerEventPresenter();
         CompanyProloguePresenter.install();
@@ -236,8 +244,13 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
      */
     private static void ensureCompanyShipLossListener() {
         SectorAPI sector = Global.getSector();
+        // Engagement reports go only to the sector's own event listeners; one held by the listener
+        // manager never hears a battle. Older saves never held it at all (it was added transient).
         sector.getListenerManager().removeListenerOfClass(CompanyShipLossListener.class);
-        sector.getListenerManager().addListener(new CompanyShipLossListener(), true);
+        for (CampaignEventListener listener : new ArrayList<>(sector.getAllListeners())) {
+            if (listener instanceof CompanyShipLossListener) sector.removeListener(listener);
+        }
+        sector.addTransientListener(new CompanyShipLossListener());
         LOG.info("Starsector Marines: company ship loss listener registered");
     }
 

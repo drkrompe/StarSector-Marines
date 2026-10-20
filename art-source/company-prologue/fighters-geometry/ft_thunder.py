@@ -17,7 +17,9 @@ while the slot anchors keep the .ship coordinates exactly.
 """
 import math
 import bpy
+from mathutils import Vector
 import fg_kit as K
+from fg_gear import fold
 from fg_kit import prism, section, section_loft, mirror_y
 
 NAME = 'Thunder'
@@ -158,17 +160,29 @@ def build(kit):
 # nose droops, a dorsal spine rises behind the canopy, and the whole delta
 # folds down a little outboard of the fuselage, so the wing, gun block, tip
 # plates and pods droop and the pods cant outward. The Thunder is the one
-# fighter that rolls: conventional tricycle gear, a long steerable nose leg
-# under the fuselage and a twin-wheel main bogie under each pod's inner
-# belly. The plan view is unchanged.
+# fighter that rolls: conventional tricycle gear, a long nose leg under the
+# fuselage and a twin-wheel main leg under each pod's inner belly. Each leg is
+# a box-section shock strut with a trailing arm to its axle and a box damper
+# (owner, 2026-10-20: no thin pistons), and folds aft into the solid above it
+# under a pair of doors hinged on the bay's long edges. The plan view is
+# unchanged.
 FOLD_Y = 2.7               # the fuselage's half width: the delta folds outboard of it
 FOLD_DEG = 5.0
 DECK_Z = -4.2              # parked deck, level in the hull frame
-# (name, x, y, z where the strut enters the hull, wheel radius, drag brace run)
-GEAR = [('Hull nose gear', 13.0, 0.0, -.6, .7, 1.8),
-        ('Hull port main gear', -3.6, 5.0, -2.3, .9, 2.2),
-        ('Hull starboard main gear', -3.6, -5.0, -2.3, .9, 2.2)]
-FEET = [f'{g[0]} wheel {w}' for g in GEAR for w in ('inner', 'outer')]
+# (name, x, y of the wheels' contact, hinge z inside the host, wheel radius, tyre width,
+#  trail of the axle behind the strut, bay solids)
+GEAR = [('Hull nose gear', 13.0, 0.0, .3, .7, .42, .45, ('Hull central fuselage', 'Hull delta wing', 'Hull port gun block')),
+        ('Hull port main gear', -3.6, 5.0, -.75, .9, .5, .5, ('Engine 1 port pod', 'Hull delta wing')),
+        ('Hull starboard main gear', -3.6, -5.0, -.75, .9, .5, .5, ('Engine 2 starboard pod', 'Hull delta wing'))]
+STRUT = (.6, .62)          # strut width (along the axle) and depth, units
+ARM_W = .46                # the trailing arm's width between the wheels
+GEAR_NOTES = ('Retractable since 2026-10-20 (fg_gear). The thin oleo legs are replaced by box-section shock struts '
+              'with a broad trailing arm to the axle and a box damper, on the same twin wheels (now with hubs and '
+              "caps). All three fold aft 90 degrees, the nose leg into the fuselage under the cockpit's forward end"
+              ' (clear of the pilot) and the mains into the pods; each bay has a dark liner and a pair of doors on '
+              "its long edges. The wheels stand where they stood; each strut now sits a trail's length ahead of its"
+              ' axle.')
+FEET = [f'{g[0]} wheel {w}' for g in GEAR for w in (('inner', 'outer') if g[2] else ('port', 'starboard'))]
 LEG_PARTS = tuple(g[0] for g in GEAR)
 
 
@@ -197,20 +211,43 @@ def fold_wing():
 
 
 def tricycle_gear(kit):
-    """Each leg: an oleo strut and piston, a drag brace, an axle and two wheels either side of the strut."""
+    """Three trailing-link legs on twin wheels, each folding aft into the solid above it."""
+    g = kit.gear
+    ob = bpy.data.objects
     S, B, D = kit.steel, kit.bright, kit.dark
-    for name, x, y, top, r, brace in GEAR:
-        axle = DECK_Z+r
-        w = r*.55
-        kit.rod(f'{name} strut', (x, y, top+.3), (x, y, axle+r*1.2), .22, S, 12)
-        kit.rod(f'{name} piston', (x, y, axle+r*1.4), (x, y, axle), .13, B, 12)
-        kit.rod(f'{name} drag brace', (x+brace, y, top+.25), (x, y, axle+r*1.3), .08, S, 8)
-        kit.rod(f'{name} axle', (x, y-w-.35, axle), (x, y+w+.35, axle), .07, B, 8)
-        inboard = -1 if y >= 0 else 1
-        for side, s in (('inner', inboard), ('outer', -inboard)):
-            wy = y+s*(w/2+.25)
-            kit.cylinder(f'{name} wheel {side}', (x, wy, axle), r, w, D, 'Y', 24, .06)
-            kit.cylinder(f'{name} wheel {side} hub', (x, wy, axle), r*.45, w+.08, B, 'Y', 12, .02)
+    for name, x, y, hinge_z, r, wt, trail, hosts in GEAR:
+        axle = Vector((x, y, DECK_Z+r))
+        top = Vector((x+trail, y, hinge_z))
+        knee = Vector((x+trail, y, axle.z+r*.95))
+        parts = g.strut(name, top, knee, (0, 1, 0), *STRUT, ankle=False)
+        # The trailing arm: a broad wedge from the knee back and down to the axle, and a box damper
+        # from the strut to the arm's middle.
+        parts.append(g.beam(f'{name} trailing arm', knee+Vector((.12, 0, .1)), axle, (0, 1, 0), (.46, .5), (.38, .36), S))
+        parts.append(g.pin(f'{name} knee pin', knee, (0, 1, 0), .06, .62, B))
+        parts.append(g.beam(f'{name} damper', top.lerp(knee, .45)+Vector((-.32, 0, 0)), knee.lerp(axle, .55)+Vector((0, 0, .2)),
+                            (0, 1, 0), (.3, .3), (.26, .26), D))
+        span = ARM_W/2+.06+wt
+        parts.append(g.pin(f'{name} axle', axle, (0, 1, 0), .05, 2*span+.1, B))
+        inboard = -1 if y > 0 else 1
+        for side, s in (('inner', inboard), ('outer', -inboard)) if y else (('port', 1), ('starboard', -1)):
+            wy = y+s*(ARM_W/2+.06+wt/2)
+            n = max(24, 4*math.ceil(math.pi/math.acos(1-.005/(r*METRES_PER_UNIT))/4))
+            parts.append(kit.cylinder(f'{name} wheel {side}', (x, wy, axle.z), r, wt, D, 'Y', n, .07))
+            parts.append(kit.cylinder(f'{name} wheel {side} hub', (x, wy+s*.03, axle.z), r*.52, wt+.02, B, 'Y', 16, .03))
+            parts.append(kit.cylinder(f'{name} wheel {side} hub cap', (x, wy+s*(wt/2+.03), axle.z), r*.22, .08, S, 'Y', 12, .02))
+        axis, deg = fold(knee-top, Vector((-1, 0, 0)))
+        h = g.hinge(f'{name} hinge', top, axis, deg, 0.0)
+        g.adopt(h, parts)
+        bay = [ob[n] for n in hosts]
+        rec = g.leg(name, h, bay)
+        # The bay: from ahead of the trunnion to behind the folded wheels, a pair of doors hinged on
+        # its long edges.
+        x1 = top.x+.6
+        x0 = top.x-(hinge_z-axle.z)-r-.25
+        hw = span+.14
+        g.liner(rec, f'{name} bay liner', [(x1, y-hw), (x0, y-hw), (x0, y+hw), (x1, y+hw)], bay)
+        for side, s in (('port', 1), ('starboard', -1)):
+            g.door(rec, f'{name} door {side}', [(x1, y), (x0, y), (x0, y+s*hw), (x1, y+s*hw)], (2, 3), bay, kit.armour)
 
 
 def detail(kit):

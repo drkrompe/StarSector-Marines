@@ -53,6 +53,23 @@ class BattleOrderShortcutsTest {
         keys.forEach(key -> assertFalse(key.isConsumed()));
     }
 
+    @Test void gTogglesTheGarrisonStanceOncePerPress() {
+        var shortcuts = new BattleOrderShortcuts();
+        List<Mode> actions = new ArrayList<>();
+        int[] garrison = {0};
+        var down = event(Keyboard.KEY_G, true, false);
+        shortcuts.process(List.of(down, event(Keyboard.KEY_G, true, false)), true, actions::add, () -> garrison[0]++);
+        assertEquals(1, garrison[0]);
+        assertTrue(down.isConsumed());
+        assertTrue(actions.isEmpty());
+        shortcuts.process(List.of(event(Keyboard.KEY_G, false, false)), true, actions::add, () -> garrison[0]++);
+        shortcuts.process(List.of(event(Keyboard.KEY_G, true, false)), true, actions::add, () -> garrison[0]++);
+        assertEquals(2, garrison[0]);
+        var unclaimed = event(Keyboard.KEY_G, true, false);
+        new BattleOrderShortcuts().process(List.of(unclaimed), true, actions::add);
+        assertFalse(unclaimed.isConsumed(), "without a stance toggle G is not the order bar's");
+    }
+
     private static InputEventAPI event(int key, boolean down, boolean modified) {
         boolean[] consumed = {false};
         return (InputEventAPI) Proxy.newProxyInstance(InputEventAPI.class.getClassLoader(),

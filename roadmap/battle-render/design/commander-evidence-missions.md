@@ -4,32 +4,47 @@ Status: ACTIVE
 
 Written: 2026-10-20
 
+Updated: 2026-10-20 — conquest-trial reports the defender's fort counter-attack.
+
 Per-mission matrices, fixture fields and report contents for `gradlew.bat commanderEvidence -Pmission=<mission>`. How to run the task, the mission list, replay count, parallelism and snapshot flags stay in `CLAUDE.md` (Build & deploy); read this when you need one mission's details. Text is moved verbatim from `CLAUDE.md`; "Fixture fields match Relief" and similar refer to the sections below.
 
 ## Relief
 
-Relief's default matrix is three verdant-surface production maps with twelve
-named starter recruits (surplus Rooks and Cordon shells) aboard one standard Hermes
-making three four-seat trips, repeated with +30s player delay and no player arrival
-within a 200s observation window. Its `-Pfixture` takes a JSON array of objects
-with `id`, `seed`, `playerType`, `playerCycles`, `playerSeats`, and `playerDelay`
-(additional seconds). Optional `surface` selects the terrain palette (custom
-fixtures default to `ROCK`). Optional `starterCompany: true` applies a detached
-new-company roster through the campaign deployment overlay; omitted/false keeps
-the factory loadout. Reports include each recruit landing, surviving company
-strength at that moment, full-squad assembly, first company fire/loss, employer
-gate arrival, committed road-arrival times and pending raider counts.
-Player lift is a fitted boat; optional `playerBoatId`,
-`playerPlating`, and `playerDrive` pin its identity and catalog fitting ids
-(default: `relief-boat` and standard fit). Employer lift remains one six-seat
-Aeroshuttle. Reports
-separate original militia from arriving allies; timeout is not defeat. This
-is controlled construction with a detached roster, not a live Jangala save capture.
-The Relief task also writes `campaign-lift.json`: both opening chapters,
-two seeds, and standard/upgraded Hermes fittings run through production scenario
-capture with a twelve-person named company. It verifies three physical trips,
-all twelve identities landing, and their reunion into one squad. This uses a
-detached starter roster, never a live campaign save.
+Relief's default matrix is three verdant-surface production maps, each played
+four ways within a 200s observation window. The story chapter's **ground start**
+puts twelve named starter recruits (surplus Rooks and Cordon shells) ashore at
+tick zero on the rear apron beside Wayline's parked hauler, with only the
+employer's militia shuttle flying; a **held** run keeps that company at its
+start for 30s under a diagnostic player order, then hands it back to the
+mission; **boat-lift** is the repeatable posting's shape, one standard Hermes
+making three four-seat trips; **no-player** is that boat arriving after the
+window. Ground-start rows assert the start's mechanics: twelve named marines in
+one led squad, no company aircraft, one employer shuttle, one untouched civilian
+hauler, and the original militia firing before the company reaches the gate.
+Its `-Pfixture` takes a JSON array of objects with `id` and `seed`. Optional
+`groundStart` (default true unless `playerType` is given) selects the story
+start, with optional `companySize` (default 12) and `holdAtStart` (seconds).
+A lift fixture sets `groundStart: false` with `playerType`, `playerCycles`,
+`playerSeats` and `playerDelay` (additional seconds); optional `playerBoatId`,
+`playerPlating` and `playerDrive` pin the boat's identity and catalog fitting ids
+(default: `relief-boat` and standard fit). Optional `surface` selects the terrain
+palette (custom fixtures default to `ROCK`). `starterCompany: true` applies a
+detached new-company roster through the campaign deployment overlay; a ground
+start always does, a lift fixture that omits it keeps the factory loadout.
+Employer lift remains one six-seat Aeroshuttle. Reports include each recruit's
+arrival, company strength at that moment, full-squad assembly, company arrival
+at the gate, first company fire and loss, losses, employer gate arrival,
+committed road-arrival times and pending raider counts, and separate original
+militia from arriving allies; timeout is not defeat. This is controlled
+construction with a detached roster, not a live Jangala save capture.
+The Relief task also writes `campaign-lift.json`, through production scenario
+capture with a twelve-person named company at two seeds. Story Relief must stand
+all twelve identities ashore at tick zero in one led squad beside the hauler,
+with no company boat flying, and then withdraw with no boat on the map and no
+fabricated losses. Counterattack, the first ferry battle, runs standard and
+upgraded Hermes fittings and verifies three physical trips, all twelve
+identities landing, and their reunion into one squad. This uses a detached
+starter roster, never a live campaign save.
 
 ## Counterattack
 
@@ -37,7 +52,7 @@ Counterattack's default matrix has three verdant depot interiors, each with
 ordinary, +30s delayed and absent-player controls (300s observation), plus a
 paired-boat case. Ordinary lift is two six-seat sorties on one fitted boat;
 paired lift is one sortie each on two distinct fitted boats. The employer
-contributes one six-seat boat. Fixture fields match Relief, with optional
+contributes one six-seat boat. Fixture fields match Relief's lift fixtures, with optional
 `playerBoats` (default 1). Reports include gate/yard/warehouse vicinity times,
 defender orders and casualties; vicinity is not capture. The harness verifies
 that the production air entities retain each committed player airframe. These
@@ -158,7 +173,26 @@ the old default), which shows freezes a bigger force hides. A fixture may set
 `seed`, `placement`, `offset`, `shuttleType`, `shuttles`, `seats`, `cycles`,
 `elites`, `militia`, `patrolSize`, `objectiveGarrison`, `keepGarrison` and
 `risk`, and optional `airDefence` (true stamps the fort's anti-air yard). Use it for a commander
-question; the city map is unfinished.
+question; the city map is unfinished. Each fixture's fighting-position block carries a
+`DEFENDER garrison focus` line: belt-garrison samples taken while the company
+stands at a fort and how many of them have no marine within thirty cells, split
+into those in a fight, those with a believed contact that near, those still
+marching (and of those, marching to an order cell a marine is near: to the
+fight), with the nearest believed contact in fifteen-cell bins; the **stranded**
+share (arrived on a stretch no marine is near, or marching to one) is the
+garrison-placement reading. Also stretch shifts (a garrison order moved to another
+stretch of its run), how
+often a rallied squad's post moved and how often it moved back to the one before,
+and the defender's marches (a new order cell thirty or more cells off) with
+those of a thousand ticks or more, arrivals and members lost on the way. A `MARINE holds taken ground` line (and `attackerHold` in
+`summary.json`) says when the fort was whole in marine hands and whether it was
+won back, and how the attacker held its belt: manning orders, holder
+squad-samples, the most at once, dug-in member-samples and fall backs;
+`-Dbattle.conquest.attackerHoldsGround=false` is its control.
+A `DEFENDER counter-attacks its lost fort` line (and `counterattack` in `summary.json`) counts the
+defender's counter-attack reserves, musters and launches (squads and strength at each launch against
+the strength it believed it needed), retakes, failed attempts and forts abandoned, with the first tick
+of each; `-Dbattle.conquest.fortCounterattack=false` is its control.
 
 ## Conquest fixtures and fort control
 

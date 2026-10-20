@@ -353,7 +353,7 @@ def sirocco(name):
 
 
 def bulwark(name):
-    """A Fafnir: one wide shell with a small sunken head, missile pods on its top corners, guns held at the chest."""
+    """A Fafnir: a broad chest tapering to a narrow waist, a small sunken head, missile pods on its top corners, guns held at the chest."""
     d = Doll(name)
     arm = [(-38, 50), (-38, 84), (-44, 90), (-54, 90), (-56, 84), (-56, 56), (-50, 48)]
     barrels = [((-52, 62), (-52, 88)), ((-46, 62), (-46, 88)), ((-56, 60), (-38, 60))]
@@ -362,8 +362,10 @@ def bulwark(name):
     for cx, rear in views():
         sl, sr = shoulders(rear)
         d.shape("TORSO_REAR" if rear else "TORSO",
-                [(-34, 46), (34, 46), (36, 54), (36, 88), (26, 96), (-26, 96), (-36, 88), (-36, 54)], cx,
-                [((-14, 48), (-14, 94)), ((14, 48), (14, 94))])
+                # A broad chest tapering to a narrow armoured waist: a V, not a barrel.
+                [(-36, 46), (36, 46), (38, 52), (38, 70), (22, 94), (-22, 94), (-38, 70), (-38, 52)], cx,
+                [((-37, 70), (-14, 70)), ((37, 70), (14, 70)), ((-14, 48), (-14, 70)), ((14, 48), (14, 70)),
+                 ((-14, 70), (-8, 92)), ((14, 70), (8, 92))])
         d.mirrored(sl, sr, [(-34, 30), (-12, 30), (-12, 46), (-34, 46)], cx, tubes(-34, 30, -12, 46, 3, 2))
         if rear:
             continue

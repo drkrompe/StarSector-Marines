@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.HandsetLayer;
 
 import java.util.ArrayList;
@@ -109,6 +110,11 @@ public final class LayeredUnitAssets {
 
     public LayeredSpriteCache handset(String equipmentId) {
         return specialEquipment.get(HandsetLayer.assetKey(equipmentId));
+    }
+
+    /** The item stowed on the wearer while not in use, or null when it has no packed art. */
+    public LayeredSpriteCache packed(String equipmentId) {
+        return specialEquipment.get(SpecialEquipmentPresentationDef.packedAssetKey(equipmentId));
     }
 
     public LayeredSpriteCache handsetCord(String equipmentId) {

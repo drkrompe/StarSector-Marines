@@ -227,7 +227,7 @@ def hardpoint_bays(kit, masses):
         side_name = 'port' if side > 0 else 'starboard'
         b, w, h, z = BAY['back'], BAY['w'], BAY['h'], BAY['z']
         L = 171.0-b
-        for part, loc, dims in (('back', (b+.6, y, z), (1.2, w, h)),
+        for part, loc, dims in (('back', (b+.5, y, z), (1.0, w, h)),
                                 ('floor', (b+L/2, y, z-h/2+.6), (L, w, 1.2)),
                                 ('roof', (b+L/2, y, z+h/2-.6), (L, w, 1.2)),
                                 ('wall', (b+L/2, y+side*(w/2-.6), z), (L, 1.2, h)),

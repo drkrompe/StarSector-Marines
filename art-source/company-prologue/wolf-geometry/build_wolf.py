@@ -158,26 +158,35 @@ bpy.context.view_layer.update()
 
 
 def check_landing():
-    """Gear down: every pad sole on the ground plane, nothing else of the ship within
-    a unit of it, and no part of a leg through the hull. Then back to stowed."""
+    """Gear down: the keel shoes and every wedge's sole on the ground plane and nothing
+    else of the ship within 0.3 units of it; then back to stowed."""
     wf_gear.pose(1.0)
     dg = bpy.context.evaluated_depsgraph_get()
-    gear = [o for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith(tuple(
-        l['name'] + ' ' for l in wf_gear.RECORD['legs']))]
+    rec = wf_gear.RECORD
+    roots = {r['hinge'] for r in rec['wedges']} | {m[k] for r in rec['wedges'] for m in r['rams']
+                                                    for k in ('pivot', 'rod_pivot')}
+
+    def moving(o):
+        while o.parent is not None:
+            o = o.parent
+            if o.name in roots:
+                return True
+        return False
+
     def lowest(o):
         mw = o.matrix_world
         return min((mw @ v.co).z for v in o.evaluated_get(dg).data.vertices)
-    soles = {l['sole']: round(lowest(bpy.data.objects[l['sole']]), 3) for l in wf_gear.RECORD['legs']}
-    bad = {k: v for k, v in soles.items() if abs(v - wf_gear.GROUND_Z) > 1e-3}
-    rest = min((lowest(o), o.name) for o in bpy.data.objects if o.type == 'MESH' and o not in gear)
-    moving = [o.name for o in gear if o.parent is not None and o.parent.name.endswith(' stage 3 slide')]
-    hull = [o.name for o in kit.hull]
-    clash = [(a, b) for a, b in wf_mounts.clearance(moving, hull)]
+    feet = [r['sole'] for r in rec['wedges']] + [k['name'] for k in rec['keel_shoes']]
+    soles = {n: round(lowest(bpy.data.objects[n]), 3) for n in feet}
+    bad = {k: v for k, v in soles.items() if abs(v - wf_gear.GROUND_Z) > 2e-3}
+    rest = min((lowest(o), o.name) for o in bpy.data.objects
+               if o.type == 'MESH' and not moving(o) and o.name not in feet)
+    wedge_low = min(lowest(o) for o in bpy.data.objects if o.type == 'MESH' and moving(o))
     wf_gear.pose(0.0)
-    if bad or rest[0] < wf_gear.GROUND_Z + 1.0 or clash:
-        raise RuntimeError(f'landing check failed: soles {bad}, lowest other part {rest}, leg clashes {clash}')
-    print('LANDING soles on the ground', len(soles), 'keel clearance', round(rest[0] - wf_gear.GROUND_Z, 2),
-          'units, lowest', rest[1])
+    if bad or rest[0] < wf_gear.GROUND_Z + .3 or wedge_low < wf_gear.GROUND_Z - 1e-3:
+        raise RuntimeError(f'landing check failed: feet {bad}, lowest other part {rest}, wedges reach {wedge_low}')
+    print('LANDING on the keel shoes and', len(rec['wedges']), 'wedges; clearance under the rest',
+          round(rest[0] - wf_gear.GROUND_Z, 2), 'units, lowest', rest[1])
 
 
 check_landing()
@@ -194,17 +203,25 @@ if clash:
 # without a bevel gets a small rounded one, sized to its thinnest dimension. The
 # skinned hull objects keep their topology (their chamfers are already modelled and
 # the surfacing selects their faces), and the turret kit's parts are the kit's. ---
-def skinned_objects():
-    names = set()
-    for hull in ('wolf-surface', 'wolf-merchant-surface'):
-        for f in (HERE.parent / hull / 'part-list').glob('*.json'):
-            for part in json.loads(f.read_text(encoding='utf-8')).values():
-                names |= {m['object'] for m in part.get('members', [])}
-    return names
-
-
-SKINNED = skinned_objects()
+# The plate-bevelled set is fixed here, not read from the surfacing's part lists:
+# when pass 6 added the landing wedges, keel shoes and keel to the part tables,
+# reading the lists swapped those parts' rounded bevels for plate bevels and
+# changed the accepted round 8 geometry under the guides already rendered from it.
+# The surfacing selects faces on whatever this builds; it never reshapes the hull.
+SKINNED = {'Hull aft body', 'Hull bow fork base', 'Hull bow gun hood', 'Hull bow port jaw',
+           'Hull bow starboard jaw', 'Hull bridge', 'Hull dorsal spine aft', 'Hull dorsal spine fore',
+           'Hull engine block', 'Hull head', 'Hull main body', 'Hull neck', 'Hull port armour dome',
+           'Hull port outrigger', 'Hull starboard outrigger', 'Pod port missile body',
+           'Pod starboard missile body'}
 for ob in [o for o in bpy.data.objects if o.type == 'MESH']:
+    if ob.name in SKINNED and not any(m.type == 'BEVEL' for m in ob.modifiers):
+        # Round 8 (ship-detail-guide.md, Edge treatment): a hull plate's hard
+        # edges (60 degrees and sharper: loft end caps, cut faces) take the
+        # guide's 0.12 m plate bevel, one segment; its shallow creases stay put.
+        b = ob.modifiers.new('Finish plate edge', 'BEVEL')
+        b.width, b.segments, b.limit_method = .12/METRES_PER_UNIT, 1, 'ANGLE'
+        b.angle_limit = math.radians(55)
+        continue
     if (ob.name in SKINNED or ob.name.startswith(('Turret ', 'Weapon ', 'Temporary ', 'Light '))
             or any(m.type == 'BEVEL' for m in ob.modifiers)):
         continue

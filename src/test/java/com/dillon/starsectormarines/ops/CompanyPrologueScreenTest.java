@@ -18,7 +18,7 @@ class CompanyPrologueScreenTest {
         var images = new HashSet<String>();
         long bytes = 0;
         for (int page = 0; page < CompanyPrologue.PAGE_COUNT; page++) {
-            var props = CompanyPrologueScreen.model(page, "Jangala", true, 20, 500, 5000, () -> {}, () -> {}, () -> {});
+            var props = CompanyPrologueScreen.model(page, "Jangala", 20, 473, 4862, () -> {}, () -> {}, () -> {});
             String path = (String) props.get("image");
             assertTrue(images.add(path), "Each story beat needs its own illustration");
             var file = Path.of("mod", path);
@@ -30,7 +30,7 @@ class CompanyPrologueScreenTest {
             assertFalse(props.get("caption").toString().isBlank());
         }
         for (var stage : CompanyYardReview.Stage.values()) {
-            var props = CompanyYardScreen.model(stage, true, "Second Wind", 500, 5000, null, null, true,
+            var props = CompanyYardScreen.model(stage, "Second Wind", 473, 4862, null, null, true,
                     () -> {}, () -> {}, () -> {});
             String path = (String) props.get("image");
             if (!images.add(path)) continue;
@@ -43,29 +43,47 @@ class CompanyPrologueScreenTest {
         }
         assertTrue(bytes <= 3 * 1024 * 1024, "The opening and yard art have a bounded distribution cost");
     }
-    @Test void fallbackAndMissingPortNeverGiveTheJangalaContactOrADisabledExit() {
-        var fallback = CompanyPrologueScreen.model(5, "Independent Port", false, 17, 500, 5000, () -> {}, () -> {}, () -> {});
-        assertFalse(fallback.get("narrative").toString().contains("Corvus"));
-        assertFalse(fallback.get("dialogue").toString().contains("Jangala"));
-        assertFalse(fallback.get("dialogue").toString().contains("Nessa"));
-        assertEquals("Reach Independent Port", fallback.get("destination"));
-        assertTrue(fallback.get("manifest").toString().contains("17 crew"));
-        var absent = CompanyPrologueScreen.model(7, null, false, 17, 500, 5000, () -> {}, () -> {}, () -> {});
+    @Test void anotherPortTellsJangalasStoryButNamesItsOwnCourse() {
+        var elsewhere = CompanyPrologueScreen.model(5, "Independent Port", false, 17, 473, 4862, () -> {}, () -> {}, () -> {});
+        assertTrue(elsewhere.get("narrative").toString().contains("Nessa Venn, Jangala"));
+        assertTrue(elsewhere.get("dialogue").toString().contains("Greywater Down"));
+        assertEquals("Reach Independent Port", elsewhere.get("destination"));
+        assertEquals("Crew 17 / 45 aboard / 473 spendable credits", elsewhere.get("manifest"));
+        var handoff = CompanyPrologueScreen.model(CompanyPrologue.PAGE_COUNT - 1, "Independent Port", false, 17, 473, 4862,
+                () -> {}, () -> {}, () -> {});
+        assertEquals("A WAY TO SURVIVE", handoff.get("title"));
+        assertTrue(handoff.get("dialogue").toString().contains("Nessa"));
+        assertEquals("Take us to Independent Port.", handoff.get("nextLabel"));
+        assertEquals("Take us to Jangala.", CompanyPrologueScreen.model(CompanyPrologue.PAGE_COUNT - 1, "Jangala",
+                20, 473, 4862, () -> {}, () -> {}, () -> {}).get("nextLabel"));
+    }
+
+    @Test void everyContinueIsTheCommandersOwnLine() {
+        var labels = new HashSet<String>();
+        for (int page = 0; page < CompanyPrologue.PAGE_COUNT; page++) {
+            String label = CompanyPrologueScreen.model(page, "Jangala", 20, 473, 4862, () -> {}, () -> {}, () -> {})
+                    .get("nextLabel").toString();
+            assertNotEquals("Continue", label);
+            assertTrue(labels.add(label), "Each page gets its own reply: " + label);
+        }
+        assertEquals("Then go and get some sleep yourself.",
+                CompanyPrologueScreen.model(0, "Jangala", 20, 473, 4862, () -> {}, () -> {}, () -> {}).get("nextLabel"));
+    }
+
+    @Test void noPortAtAllNeverGivesADisabledExit() {
+        var absent = CompanyPrologueScreen.model(CompanyPrologue.PAGE_COUNT - 1, null, false, 17, 473, 4862, () -> {}, () -> {}, () -> {});
         assertEquals("Take command", absent.get("nextLabel"));
         assertFalse(absent.get("dialogue").toString().contains("null"));
-        assertFalse(absent.get("dialogue").toString().contains("Nessa"));
-        var fallbackHandoff = CompanyPrologueScreen.model(7, "Independent Port", false, 17, 500, 5000, () -> {}, () -> {}, () -> {});
-        assertFalse(fallbackHandoff.get("dialogue").toString().contains("Nessa"));
+        assertEquals("Find a working planetary spaceport", absent.get("destination"));
     }
 
     @Test void jangalaPageSixPromisesTheMemoryOnlyWhileTheArrivalIsAhead() {
-        var promised = CompanyPrologueScreen.model(5, "Jangala", true, true, 20, 500, 5000, () -> {}, () -> {}, () -> {});
-        assertTrue(promised.get("dialogue").toString().contains("tell you on the way down"));
+        var promised = CompanyPrologueScreen.model(5, "Jangala", true, 20, 473, 4862, () -> {}, () -> {}, () -> {});
+        assertTrue(promised.get("dialogue").toString().contains("tell you the rest on the way down"));
         assertFalse(promised.get("dialogue").toString().contains("ran ore together"));
-        var withheld = CompanyPrologueScreen.model(5, "Jangala", true, false, 20, 500, 5000, () -> {}, () -> {}, () -> {});
+        var withheld = CompanyPrologueScreen.model(5, "Jangala", false, 20, 473, 4862, () -> {}, () -> {}, () -> {});
         assertTrue(withheld.get("dialogue").toString().contains("ran ore together"));
-        var fallback = CompanyPrologueScreen.model(5, "Independent Port", false, true, 20, 500, 5000, () -> {}, () -> {}, () -> {});
-        assertFalse(fallback.get("dialogue").toString().contains("on the way down"));
+        assertFalse(withheld.get("dialogue").toString().contains("on the way down"));
     }
 
     @Test void allPagesKeepNavigationClickableAt1920x1080And100Percent() throws Exception {
@@ -73,7 +91,7 @@ class CompanyPrologueScreenTest {
         loader.reload();
         for (int page = 0; page < CompanyPrologue.PAGE_COUNT; page++) {
             var next = new AtomicInteger(); var back = new AtomicInteger(); var skip = new AtomicInteger();
-            var props = CompanyPrologueScreen.model(page, "Jangala", true, 20, 500, 5000,
+            var props = CompanyPrologueScreen.model(page, "Jangala", 20, 473, 4862,
                     next::incrementAndGet, back::incrementAndGet, skip::incrementAndGet);
             try (var instance = loader.build(new Reactor(), CompanyPrologueScreen.ROOT, props)) {
                 var document = new UiDocument(instance.root());
@@ -92,13 +110,13 @@ class CompanyPrologueScreenTest {
             }
         }
     }
-    @Test void yardControlsRemainReachableAndRefusedOrderCannotBeClicked() throws Exception {
+    @Test void yardIsAStraightClickThroughWithBackOffUntilPastThePaidPage() throws Exception {
         var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)), CompanyPrologueScreen.COMPONENTS);
         loader.reload();
         for (var stage : CompanyYardReview.Stage.values()) {
             for (boolean refused : new boolean[]{false, true}) {
                 var next = new AtomicInteger(); var back = new AtomicInteger(); var leave = new AtomicInteger();
-                var props = CompanyYardScreen.model(stage, true, "Second Wind", 500, 5000,
+                var props = CompanyYardScreen.model(stage, "Second Wind", 473, 4862,
                         refused ? "The yard is unavailable." : null, null, true,
                         next::incrementAndGet, back::incrementAndGet, leave::incrementAndGet);
                 try (var instance = loader.build(new Reactor(), CompanyPrologueScreen.ROOT, props)) {
@@ -110,13 +128,19 @@ class CompanyPrologueScreenTest {
                     assertTrue(box.y() >= 0 && box.bottom() <= 1080);
                     float x = box.x() + box.width() / 2, y = box.y() + box.height() / 2;
                     document.pointerDown(x, y); document.pointerUp(x, y);
-                    assertEquals(refused && stage == CompanyYardReview.Stage.ORDER ? 0 : 1, next.get());
-                    click(document, instance, "prologue-skip", 1080);
-                    assertEquals(1, leave.get());
-                    if (stage == CompanyYardReview.Stage.ORDER) {
+                    assertEquals(refused && stage == CompanyYardReview.Stage.COST ? 0 : 1, next.get());
+                    var skip = instance.requireElement("prologue-skip").box().borderBox();
+                    assertTrue(skip.width() == 0 || skip.height() == 0, "The yard has no way out but through");
+                    if (CompanyYardReview.backAllowed(stage)) {
                         click(document, instance, "prologue-back", 1080);
                         assertEquals(1, back.get());
+                    } else {
+                        var b = instance.requireElement("prologue-back").box().borderBox();
+                        document.pointerDown(b.x() + b.width() / 2, b.y() + b.height() / 2);
+                        document.pointerUp(b.x() + b.width() / 2, b.y() + b.height() / 2);
+                        assertEquals(0, back.get());
                     }
+                    assertEquals(0, leave.get());
                 }
             }
         }

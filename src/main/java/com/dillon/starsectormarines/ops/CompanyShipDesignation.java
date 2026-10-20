@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
+import com.dillon.starsectormarines.campaign.start.SecondWindKeeper;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullClass;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipsBoats;
@@ -74,8 +75,15 @@ public final class CompanyShipDesignation {
         // to offer the player, not a reason to declare the company's own home
         // missing while it is sitting in the fleet mothballed.
         for (FleetMemberAPI member : allShips()) {
-            if (chosen.equals(member.getId())) return member;
+            if (!chosen.equals(member.getId())) continue;
+            // In the fleet with no dialog left to settle the fight: she was recovered, and a later
+            // sale must not be counted as a sinking.
+            if (roster.companyShipCasualty() && !dialogOpen()) roster.clearCompanyShipCasualty();
+            return member;
         }
+        // The Second Wind is never lost for good: stored, sold back, or in a yard after a loss, she is
+        // still the company's home, and they are away from it rather than displaced.
+        if (SecondWindKeeper.keeps(chosen)) return null;
         LOG.info("CompanyShipDesignation: the company's ship ("
                 + roster.companyShipName() + ") is gone; they have nowhere to live");
         roster.reportCompanyShipGone(settle(roster));
@@ -96,8 +104,22 @@ public final class CompanyShipDesignation {
         ShipLossSettlement.Toll toll = ShipLossSettlement.settle(roster, holds(),
                 roster.companyShipHold(), roster.companyShipCasualtyHeldField(),
                 roster.deckSeed() * 31L + String.valueOf(roster.companyShipName()).hashCode());
-        announce(roster.companyShipName(), toll);
+        announce(roster.companyShipName(), toll, true);
         return toll.marinesLost();
+    }
+
+    /**
+     * Settle what went down when the Second Wind was lost in a fight, without displacing the company: she goes
+     * to a yard and comes back to them ({@link SecondWindKeeper}). The people and stores aboard are still lost.
+     */
+    public static void settleKeptLoss() {
+        MarineRoster roster = roster();
+        if (roster == null || !roster.companyShipCasualty()) return;
+        ShipLossSettlement.Toll toll = ShipLossSettlement.settle(roster, holds(),
+                roster.companyShipHold(), roster.companyShipCasualtyHeldField(),
+                roster.deckSeed() * 31L + String.valueOf(roster.companyShipName()).hashCode());
+        roster.clearCompanyShipCasualty();
+        announce(roster.companyShipName(), toll, false);
     }
 
     /**
@@ -105,7 +127,7 @@ public final class CompanyShipDesignation {
      * catastrophe the player discovers by noticing a screen looks different is
      * the failure this whole path exists to avoid.
      */
-    private static void announce(String lost, ShipLossSettlement.Toll toll) {
+    private static void announce(String lost, ShipLossSettlement.Toll toll, boolean displaced) {
         if (Global.getSector() == null || !toll.anything()) return;
         CampaignUIAPI ui = Global.getSector().getCampaignUI();
         if (ui == null || ui.getMessageDisplay() == null) return;
@@ -119,8 +141,13 @@ public final class CompanyShipDesignation {
             message.append("The bay's spares and ").append(toll.storesLost())
                     .append(" units of stores went down in her holds. ");
         }
-        message.append("The company needs somewhere to live.");
+        if (displaced) message.append("The company needs somewhere to live.");
         ui.getMessageDisplay().addMessage(message.toString());
+    }
+
+    private static boolean dialogOpen() {
+        CampaignUIAPI ui = Global.getSector() == null ? null : Global.getSector().getCampaignUI();
+        return ui == null || ui.isShowingDialog();
     }
 
     private static CargoAPI holds() {

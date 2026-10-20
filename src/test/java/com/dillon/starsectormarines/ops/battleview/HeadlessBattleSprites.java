@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.HandsetLayer;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -477,6 +478,11 @@ final class HeadlessBattleSprites extends BattleSprites {
                 EquipmentLayerDef carrier = def.presentation().carrierLayer();
                 if (carrier != null) {
                     loaded.registerSpecialEquipment(def.id(), layer(carrier.spritePath()));
+                }
+                EquipmentLayerDef packed = def.presentation().packedLayer();
+                if (packed != null) {
+                    loaded.registerSpecialEquipment(
+                            SpecialEquipmentPresentationDef.packedAssetKey(def.id()), layer(packed.spritePath()));
                 }
                 HandsetLayer handset = def.presentation().handsetLayer();
                 if (handset != null) {

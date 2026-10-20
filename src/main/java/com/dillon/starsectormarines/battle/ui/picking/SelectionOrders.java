@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.picking;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.decision.goap.action.LinePlacement;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
@@ -13,9 +15,48 @@ import java.util.List;
 
 /** Fans a world gesture out through the existing simulation-owned order mailboxes. */
 public final class SelectionOrders {
+    /**
+     * The shortest right drag, in cells, read as a heading rather than as the click it nearly was.
+     * Under it the angle is noise from the hand rather than intent.
+     */
+    public static final float MIN_FACING_DRAG_CELLS = 1f;
+
     private SelectionOrders() { }
 
     public static void requestMove(BattleSimulation sim, Selection selection, int x, int y) {
+        requestMove(sim, selection, x, y, Float.NaN);
+    }
+
+    /**
+     * Whether a right drag on this selection means "go to where the drag started and face the way it
+     * went": a vehicle, or mechs with no infantry alongside them to draw a line. A selection with
+     * infantry in it draws a frontage instead, and a warship has no use for a heading.
+     */
+    public static boolean takesFacing(BattleSimulation sim, Selection selection) {
+        if (sim == null || selection == null || selection.hasWarshipSelection()) return false;
+        if (selection.getSelectedVehicleId() != 0L) return true;
+        if (!lineHolders(sim, selection).isEmpty()) return false;
+        for (int id : selection.getSelectedSquadIds()) {
+            Squad squad = sim.getSquad(id);
+            if (squad != null && squad.faction == Faction.MARINE && squad.isMechSquad()
+                    && !squad.rescuePickupMech) return true;
+        }
+        return false;
+    }
+
+    /** The heading of a drag by ({@code dx}, {@code dy}) cells, in the sprite convention every chassis uses. */
+    public static float facingOf(float dx, float dy) {
+        return LayeredAppearance.wrapDegrees(AirBody.facingToward(dx, dy));
+    }
+
+    /**
+     * {@link #requestMove(BattleSimulation, Selection, int, int)} that finishes on
+     * {@code facingDegrees}, or on whatever heading the unit arrives with when that is {@code NaN}.
+     * Vehicles and mechs take the heading; ships and infantry, which have no order for one, take only
+     * the destination.
+     */
+    public static void requestMove(BattleSimulation sim, Selection selection, int x, int y,
+                                   float facingDegrees) {
         if (sim == null || selection == null || sim.directControl().active()
                 || !sim.getGrid().inBounds(x, y)) return;
         if (selection.hasWarshipSelection()) {
@@ -24,13 +65,13 @@ public final class SelectionOrders {
         }
         long vehicle = selection.getSelectedVehicleId();
         if (vehicle != 0L) {
-            sim.getVehicleMoveOrderService().requestMove(vehicle, x, y);
+            sim.getVehicleMoveOrderService().requestMove(vehicle, x, y, facingDegrees);
             return;
         }
         long primary = selection.getSelectedUnitEntityId();
         if (selection.squadCount() == 1 && primary != 0L
                 && sim.world().hasMechLoadout(primary)) {
-            sim.getMechMoveOrderService().requestMove(primary, x, y);
+            sim.getMechMoveOrderService().requestMove(primary, x, y, facingDegrees);
             return;
         }
         for (int id : selection.getSelectedSquadIds()) {
@@ -40,7 +81,7 @@ public final class SelectionOrders {
                 for (int i = 0; i < sim.squadMemberCount(id); i++) {
                     long member = sim.squadMemberAt(id, i);
                     if (sim.world().isAlive(member) && sim.world().hasMechLoadout(member)) {
-                        sim.getMechMoveOrderService().requestMove(member, x, y);
+                        sim.getMechMoveOrderService().requestMove(member, x, y, facingDegrees);
                     }
                 }
             } else {
