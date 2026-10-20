@@ -1,10 +1,10 @@
 # Garrisonables
 
-Status: ACTIVE — reactive manning is shipped for fighting-position runs, a stretch at a time, and for building envelopes, on both Conquest sides (the defender's own belts, compound aprons and compound buildings, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans (player and both Conquest commanders); the compound perimeter and emplacements remain direction.
+Status: ACTIVE — reactive manning is shipped for fighting-position runs, a stretch at a time, and for building envelopes, on both Conquest sides (the defender's own belts, compound aprons and compound buildings, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans, runs and buildings alike (player on any map, both Conquest commanders on any ground they man); the compound perimeter and emplacements remain direction.
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks a lost fort in proportion and its reserve lends to its own belt (`conquest-command.md`); compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
+Updated: 2026-10-20 — machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
 
 ## Why this exists
 
@@ -267,11 +267,10 @@ buy anything measurable either. Every fixture in which it never fired (the
 four other on-path seeds, the offset fort, which is never taken because the
 company goes round it, and the rifles-only forces, which never take it) played
 out exactly as its control. The defender now
-counter-attacks a lost fort in proportion or not at all (`conquest-command.md`,
-Defender command); on the trial ground it launched against the hold in six of
-nine at the default garrison and retook the bunker once, before the hold was
-whole, and the defender's reserve may man its own fort's belt only from what it
-holds above the reserve law's share.
+counter-attacks any lost place, a taken fort or a taken compound, in proportion
+to what it has observed holds it or not at all (`conquest-command.md`, Defender
+command), and its reserve may man its own place's garrisonables only from what
+it holds above the reserve law's share.
 
 ## How it fits what exists
 
@@ -384,7 +383,12 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
   `machine-guard`): the fun is a tank and a rifle squad reading as one position,
   and a defending lance walking up beside the trench the attack leans on. A
   guard screens the stretch of a run under the click, not the whole belt, which
-  is the same finer place the open question below asks for.
+  is the same finer place the open question below asks for. A manned building
+  draws a guard as a manned run does: the player's click on a held place or a
+  compound building its side mans, on any map, and a commander's attachment to
+  a building envelope it mans or a building its own garrison stands in, under
+  the same bounds (scene `machine-guard`, loops `mission-building` and
+  `mission-building-commander` on the Raid's map).
 
 ## Stretches on the trial ground
 
@@ -443,8 +447,6 @@ the battle and never mans the new ground.
 - **Mission defenders.** Whether the Raid, Assault, Sabotage and Extraction
   defenders should man held buildings reactively, as Conquest's does, or keep
   their authored posts.
-- **Machines and envelopes.** Machines guard the runs their side mans, not the
-  buildings; whether a manned building should draw a machine guard is open.
 
 ## Stories
 

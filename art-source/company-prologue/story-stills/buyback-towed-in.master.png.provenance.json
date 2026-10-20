@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15bb2-4447-7a83-a82a-2014d9c7aad9",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15bb2-4447-7a83-a82a-2014d9c7aad9\\exec-f083a0a4-d9fe-4014-94ec-91fd0c8598c2.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\story-stills\\buyback-towed-in.master.png",
+    "sha256": "e454f7c38ed5cd7683a598257a1929cc2b2e423468eeb6c42063f2123fffca92",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\story-stills\\buyback-towed-in.prompt.txt",
+  "promptSha256": "6a090acc0d32add31227e138266addf50394106890eb55e012e108fc719a435e",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity only: Second Wind's hull shape and livery; not layout\n\nOne landscape 1536x1024 (3:2) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.\n\nScene: the day after a lost battle. Second Wind, a battered patched freighter about 66 metres long, has been salvaged off the battlefield and towed down into a grimy salvage yard on a spaceport's edge at overcast dusk. She sits slightly askew on heavy salvage cradles and cribbing blocks, not on a proper pad. Her hull is freshly wrecked on top of its old patches: one flank torn open with blackened, peeled-back plating and exposed ribs, scorch fans around the breach, a drive bell cracked and dark, a weapon mount sheared off, thin smoke still rising from inside. Thick tow cables and chains still run from her bow to a squat salvage tug-crawler in the foreground left. Salvage crew in grey coveralls and orange hi-vis vests, all small against the ship, walk around her with lamps; one marks a plate with spray paint (no readable marks); a mobile crane is swinging a fallen hull panel away. Puddles reflect amber floodlights. Behind: stacked scrap, other stripped hulks in haze, a chain-link fence, port cranes against a bruised sky.\n\nReference 1 is IDENTITY ONLY for the ship: Second Wind's hull shape, proportions, rust-orange and dirty cream plate over grey steel, blocky superstructure and twin-hull stern. Paint the same ship, damaged as described, seen in three-quarter view from the bow at a different angle from reference 1; do not copy reference 1's yard, crane, sky, people or composition, and do not include the woman in reference 1.\n\nCamera: eye-level from the yard floor, about 1.6 metres up, normal lens, level horizon. Mood: grim, tired, but she is still here.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\yard-stills\\yard-hull-bg-v3.png",
+      "sha256": "1f8345b161b4568d7d10fb531be0d9860ea0a6b946e5a6b3cbb46fa0218af9da",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Identity only: Second Wind's hull shape and livery; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the reference for Second Wind’s identity and the new salvage-yard scene you described."
+  ],
+  "usage": {
+    "input_tokens": 81516,
+    "cached_input_tokens": 65792,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 645,
+    "reasoning_output_tokens": 9
+  },
+  "elapsedSeconds": 60.4
+}

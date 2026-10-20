@@ -1,5 +1,6 @@
-Status: DRAFT (a plan awaiting the owner; nothing built)
+Status: ACTIVE (plan approved 2026-10-20; built behind PORT_ROADS=1, off by default until the owner passes the light checks)
 Written: 2026-10-20
+Updated: 2026-10-20 — built (`port_roads.py`); "As built" records where it departs from the plan
 
 # Port roads: a network that makes sense
 
@@ -66,3 +67,43 @@ port road, which leaves the port road carrying trips rather than laps.
 - **C5 rise, 18-26 s, and the title to 40 s:** everything east of about x -540.
 
 Both approved finals would need re-rendering. The Colossus stays the only thing in the air.
+
+## As built (`PORT_ROADS=1`)
+
+`port_roads.py` holds the network; `port_detail` keeps it clear, `port_life` drives it, and
+`port_people` keeps the pad crews inside the rings. Kilo Nine's gate and the port road outside it
+are untouched, so the yard's vehicle journeys (`yard-vehicles.md`) are the same with the switch on.
+
+**Where it departs from the plan's lines**, each because the line ran into something standing:
+- **Back road.** The plan's diagonal behind the depot cut the depot's corner, and its run at y 610
+  hit the pipe bridge's portals (y 614). It now turns north at x -438 and runs at y 608, 9 m wide.
+  The depot's east fence comes in 6 m to make room. Between berth -130's steel stock and the pipe
+  bridge there is no 9 m corridor, so the road does not go on to x -90: it passes under the pipe
+  bridge between two portals at x -260 and into the truck park at its west end. The truck park's
+  gate moves there, and the two bays across the way in are left empty.
+- **Fuel spur** stays at x -422; the pumps between the farms stand back to x -432, and the manifold
+  that crossed it at knee height goes over on two posts.
+- **West lot spur** comes in on the lot's drive aisle (y 457, not 470) through a new gate in the
+  east fence. **Spares spur** meets the yard's existing gate (y 584, not 600).
+- **Arrivals link and terminal road** are one road with a jog at y 441-452.
+
+**What moved off the roads.** Each pad's clutter (now a power cart, fuel cart and stores cage
+inside its ring), the crates south of the parked lighters (two rows nearer the pad), the
+equipment-park bays the rings cross, and the pad crews. Removed roads and moved clutter are
+covered with patches cut from plain painted apron: the overhead painting still shows the old
+layout underneath.
+
+**Nothing off the roads changes.** Clutter a road displaces still makes its random draws and keeps
+its ground, the removed roads stay clear, and the approved loops stay kept clear, so every other
+placement, the bonded stores and the roof plant on every warehouse (Kilo Nine's included) are the
+approved scene's. `PORT_DETAIL_TRACE=1` prints the random stream after each zone to show it: on and
+off agree zone for zone. Two apron light masts that would stand on a road are not placed.
+
+**Traffic by job.** The belt and port-west / port-mid loops run on the loading strip (keeping
+right). The heavy berth's tugs and dollies go down the heavy berth road, round pad 5's ring, east
+along the port road, round pad 95's ring and back up, stopping on the far side of each pad. The
+port road carries trips: the second bowser from the west, round pad 5's ring and up the gap to
+berth -40 (it used to appear in the gap; at the shot's end it is still driving up the gap), and three trucks for the truck park, two in by the west
+connector and the back road and one out to the container yard. The terminal loop is unchanged; its
+east side now runs on the terminal road.
+
