@@ -63,6 +63,15 @@ layer is what a squad falls back to when the one in front of it is lost.
 
 ## Laws
 
+- **Places, not forts.** The game is much larger than forts (owner,
+  2026-10-20). Every mechanism here is built for places in general —
+  compounds and their objectives, held buildings, compound aprons, trench
+  stretches, capture points, story-mission sites — with a fort as one case
+  among many, and is measured across several missions and mission types, never
+  only on the Conquest fort trial ground. A mechanic that only a fort can use is
+  a gap to close, not a design; a place is valued by what it means to its side,
+  not by being a fort. Retaking a lost place is the counter-attack's
+  (`conquest-command.md`, Defender command), for every kind of place.
 - **Reactive manning.** A garrisonable is manned in proportion to believed
   pressure on it, read from the side's own faction influence, never from hostile
   truth. A quiet garrisonable is empty and its would-be garrison stays in the
