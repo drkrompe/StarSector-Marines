@@ -1096,6 +1096,13 @@ public final class BattleSetup {
                 ? MaintenanceOutpost.generate(MaintenanceOutpost.WIDTH, MaintenanceOutpost.HEIGHT, seed, profile,
                         precincts.objective().fortification())
                 : proceduralOperationMap(type, tier, risk, profile, scale, seed, sprawl, precincts);
+        // A raided site is defender-held: the city's garrison nodes keep their buildings and every other
+        // building is a place the player may order held once taken.
+        if (type == MissionType.RAID && !coldAccount && map.tacticalMap != null) {
+            for (TacticalNode place : HeldPlaces.fromBuildingsNotIn(map.pointsOfInterest,
+                    map.tacticalMap.all(), poi -> Faction.DEFENDER))
+                map.tacticalMap.add(place);
+        }
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         List<Doodad> vehiclePlacements = stampVehicles(map, rng);
