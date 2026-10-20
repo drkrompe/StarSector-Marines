@@ -10,11 +10,24 @@ start with its canonical noun doc for the high-level model and
 
 ## Agent model selection
 
-Use Sol 6.1 (`gpt-6.1-sol`) for reconnaissance and implementation subagents
-unless the user explicitly requests a different model. Select the model
-explicitly when spawning those agents; do not rely on inheritance from the
-orchestrating chat. If that model is unavailable, report the limitation before
-substituting another model.
+Subagents and sub-sessions run on Claude Code's own models: **Opus**, **Sonnet**
+and **Sol 6.1**. Pick one per job with the `model` argument of the Agent or
+start-session tool, set explicitly rather than inherited from the orchestrating
+chat:
+
+- **Opus** for design-heavy work: modelling and art direction, architecture,
+  tricky debugging, review that needs judgement.
+- **Sonnet** for mechanical or read-only work: reconnaissance, searches, sweeps,
+  bulk edits, running a known command and reporting.
+- **Sol 6.1** for reconnaissance and implementation when the tool offers it; if
+  it does not, use Opus or Sonnet by the rules above and carry on.
+
+The user may name a different model, and that wins.
+
+**Codex CLI is for image generation only**, through the `codex-imagegen` skill
+(`tools/codex_imagegen.py`). Never use `codex exec` or any other Codex call for
+reconnaissance, coding, review, planning or anything else a Claude agent can do:
+spawn a Claude subagent or session instead.
 
 ## Session worktrees (default workflow)
 
