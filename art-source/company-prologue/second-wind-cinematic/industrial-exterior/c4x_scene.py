@@ -49,6 +49,11 @@ REPO = BASE.parents[3]
 INPUTS = REPO / 'build' / 'c1v2' / 'inputs'
 OUT = REPO / 'build' / 'c4x'
 STATES = CINE / 'second-wind-states' / 'patched'
+# The Second Wind build this shot renders: its .blend input is that build's patched state, and its
+# manifest is committed under ../pins/. The shot does not follow second-wind-states/'s latest
+# manifest; adopting a new build means moving SW_PIN and committing that build's manifest beside it.
+SW_PIN = '80c78dfac'
+SW_MANIFEST = BASE.parent / 'pins' / ('second-wind-%s-patched.manifest.json' % SW_PIN)
 
 FPS = 24
 # The approach is LATE seconds slower than the first cut (owner, 2026-10-19: Castle names Kilo Nine
@@ -673,7 +678,7 @@ def ship_path(t):
 
 
 def add_ship():
-    manifest = json.loads((STATES / 'manifest.json').read_text())
+    manifest = json.loads(SW_MANIFEST.read_text())
     append_collection(INPUTS / 'second-wind-patched.blend', manifest['append_collection'])
     root = bpy.data.objects[manifest['root']]
     # The exhaust anchors are the root's children in a collection that never reaches the scene, so
@@ -1722,7 +1727,7 @@ def build():
     import vehicle_paint                                 # painted vehicle tops, once accepted
     vehicle_paint.apply()
     import ortho_paint                                  # painted overhead tiles, where accepted
-    manifest = json.loads((STATES / 'manifest.json').read_text())
+    manifest = json.loads(SW_MANIFEST.read_text())
     ship = bpy.data.collections.get(manifest['append_collection'])
     ortho_paint.apply(scene, ({o.name for o in ship.all_objects} if ship else set()) | port_fleet.hull_part_names())
     darken_pads()

@@ -100,7 +100,24 @@ class BattleDirectControlOverlayTest {
 
     static record OverlayLayout(UiViewport host, UiViewport control, UiViewport squad,
                                 UiViewport mech, UiViewport powers, UiViewport retreat,
-                                UiViewport hud, UiViewport activeControl, UiViewport activeActions, UiViewport orders, UiViewport manualObjectives) { }
+                                UiViewport hud, UiViewport activeStatus, UiViewport activeWeapons,
+                                UiViewport activeSections, UiViewport activeActions, UiViewport orders,
+                                UiViewport manualObjectives) { }
+
+    /** The status panel's production bounds at a measured {@code documentHeight}, beside a mech's doll. */
+    static UiViewport activeStatus(int physicalWidth, int physicalHeight, float uiScale, float documentHeight) {
+        return withHost(physicalWidth, physicalHeight, uiScale,
+                position -> BattleDirectControlOverlay.statusViewport(position, documentHeight, true));
+    }
+
+    /** The weapon-groups panel's production bounds at a measured {@code documentHeight}. */
+    static UiViewport activeWeapons(int physicalWidth, int physicalHeight, float uiScale, float documentHeight) {
+        return withHost(physicalWidth, physicalHeight, uiScale,
+                position -> BattleDirectControlOverlay.weaponsViewport(position, documentHeight));
+    }
+
+    /** A representative weapons panel: a three-mount mech's groups measure close to this. */
+    static final float SAMPLE_WEAPONS_HEIGHT = 260f;
 
     /** Uses the exact production panel bounds, including host offset and user-scale conversion. */
     static OverlayLayout layout(int physicalWidth, int physicalHeight, float uiScale) {
@@ -114,7 +131,9 @@ class BattleDirectControlOverlayTest {
                 BattlePowerOverlay.viewport(position, 5, true),
                 BattleRetreatOverlay.viewport(position, BattleRetreatOverlayModel.Presentation.CONFIRM),
                 BattleHudOverlay.viewport(position, new BattleHudOverlayModel.Presentation(false, true)),
-                BattleDirectControlOverlay.viewport(position, true),
+                BattleDirectControlOverlay.statusViewport(position, BattleMechSectionPlate.DOCUMENT_HEIGHT, mech),
+                BattleDirectControlOverlay.weaponsViewport(position, SAMPLE_WEAPONS_HEIGHT),
+                BattleDirectControlOverlay.sectionsViewport(position),
                 BattleDirectControlOverlay.actionsViewport(position),
                 BattleOrderOverlay.viewport(position, BattlePowerOverlay.viewport(position, 5, true).height()),
                 BattleManualObjectiveOverlay.viewport(position)));
@@ -180,7 +199,9 @@ class BattleDirectControlOverlayTest {
             for (float scale : new float[]{1f, 1.25f, 1.5f}) {
                 var layout = layout(size[0], size[1], scale);
                 var objectives = layout.manualObjectives();
-                assertDisjoint(objectives, layout.activeControl(), "objectives clear equipment");
+                assertDisjoint(objectives, layout.activeStatus(), "objectives clear the status panel");
+                assertDisjoint(objectives, layout.activeSections(), "objectives clear the section doll");
+                assertDisjoint(objectives, layout.activeWeapons(), "objectives clear the weapon groups");
                 assertDisjoint(objectives, layout.activeActions(), "objectives clear session buttons");
                 assertTrue(objectives.screenY() >= layout.host().screenY());
                 assertTrue(objectives.screenX() + objectives.width() <= layout.host().screenX() + layout.host().width());
@@ -189,58 +210,47 @@ class BattleDirectControlOverlayTest {
     }
 
     @Test
-    void activeHudStaysBottomCenteredInsideTheHostAcrossScales() throws Exception {
+    void activePanelsHoldTheBottomCornersAndLeaveTheCentreClear() throws Exception {
         for (int[] size : List.of(new int[]{1744, 938}, new int[]{1920, 1080},
                 new int[]{1366, 768}, new int[]{1280, 720})) {
             for (float uiScale : new float[]{1f, 1.25f, 1.5f}) {
                 OverlayLayout layout = layout(size[0], size[1], uiScale);
-                UiViewport plate = layout.activeControl();
-                assertEquals(layout.host().screenX() + layout.host().width() / 2f,
-                        plate.screenX() + plate.width() / 2f, .001f);
-                assertEquals(layout.host().screenY() + 12f, plate.screenY(), .001f);
-                assertTrue(plate.screenX() >= layout.host().screenX());
-                assertTrue(plate.screenX() + plate.width() <= layout.host().screenX() + layout.host().width());
-                assertTrue(plate.screenY() + plate.height() <= layout.host().screenY() + layout.host().height());
-                assertEquals(BattleDirectControlOverlay.ACTION_WIDTH, plate.documentWidth(), .001f);
-                assertEquals(BattleDirectControlOverlay.ACTION_HEIGHT, plate.documentHeight(), .001f);
+                String context = size[0] + "x" + size[1] + " UI " + uiScale;
+                UiViewport host = layout.host();
+                UiViewport status = layout.activeStatus();
+                UiViewport sections = layout.activeSections();
+                UiViewport weapons = layout.activeWeapons();
                 UiViewport actions = layout.activeActions();
-                assertEquals(layout.host().screenX() + layout.host().width() - 12f,
-                        actions.screenX() + actions.width(), .001f);
-                assertEquals(layout.host().screenY() + layout.host().height() - 12f,
-                        actions.screenY() + actions.height(), .001f);
-                assertEquals(BattleDirectControlOverlay.ACTIONS_WIDTH, actions.documentWidth(), .001f);
-                assertEquals(BattleDirectControlOverlay.ACTIONS_HEIGHT, actions.documentHeight(), .001f);
-                assertDisjoint(plate, actions, "bottom equipment and top-right actions own disjoint pointer bounds");
+                float scale = status.documentScale();
+                assertEquals(host.screenX() + 12f, sections.screenX(), .001f, context);
+                assertEquals(host.screenY() + 12f, sections.screenY(), .001f, context);
+                assertEquals(sections.screenX() + sections.width() + BattleMechSectionPlate.GAP * scale,
+                        status.screenX(), .001f, context + " status stands beside the doll");
+                assertEquals(host.screenY() + 12f, status.screenY(), .001f, context);
+                assertEquals(BattleDirectControlOverlay.STATUS_WIDTH, status.documentWidth(), .001f, context);
+                assertEquals(host.screenX() + host.width() - 12f, weapons.screenX() + weapons.width(), .001f, context);
+                assertEquals(host.screenY() + 12f, weapons.screenY(), .001f, context);
+                assertEquals(BattleDirectControlOverlay.WEAPONS_WIDTH, weapons.documentWidth(), .001f, context);
+                assertDisjoint(status, weapons, context + " status and weapons");
+                assertDisjoint(sections, weapons, context + " doll and weapons");
+                for (UiViewport panel : List.of(status, sections, weapons)) {
+                    assertDisjoint(panel, actions, context + " session buttons stay clear");
+                    float centre = host.screenX() + host.width() / 2f;
+                    assertTrue(panel.screenX() + panel.width() <= centre - 80f * scale
+                            || panel.screenX() >= centre + 80f * scale, context + " the centre stays open");
+                }
             }
         }
     }
 
     @Test
-    void hudDocksAtTopOnlyWhenTheControlledBodyWouldOverlapItsBottomBounds() {
-        for (int[] size : List.of(new int[]{1744, 938}, new int[]{1280, 720})) {
-            for (float scale : new float[]{1f, 1.25f, 1.5f}) {
-                withHost(size[0], size[1], scale, position -> {
-                    UiViewport host = MarineOpsUiViewport.from(position);
-                    UiViewport bottom = BattleDirectControlOverlay.viewport(position, true);
-                    float x = bottom.screenX() + bottom.width() / 2f;
-                    float y = bottom.screenY() + bottom.height() / 2f;
-                    float radius = 24f * scale;
-                    UiViewport docked = BattleDirectControlOverlay.actionViewport(position, x, y, radius);
-                    UiViewport actions = BattleDirectControlOverlay.actionsViewport(position);
-                    assertEquals(actions.screenY() - 6f * bottom.documentScale() - bottom.height(),
-                            docked.screenY(), .001f);
-                    assertEquals(bottom.screenX(), docked.screenX(), .001f);
-                    assertEquals(bottom.width(), docked.width(), .001f);
-                    assertTrue(y + radius < docked.screenY(), "docking leaves the body visible");
-                    assertDisjoint(docked, actions, "docked weapons leave top-right actions clear");
-                    assertEquals(bottom, BattleDirectControlOverlay.actionViewport(position,
-                            x, bottom.screenY() + bottom.height() + radius + 9f, radius));
-                    assertEquals(bottom, BattleDirectControlOverlay.actionViewport(position,
-                            bottom.screenX() - radius - 9f, y, radius));
-                    return null;
-                });
-            }
-        }
+    void onlyABodyInsideAPanelsBoundsMakesItStepBack() {
+        UiViewport panel = new UiViewport(1548f, 12f, 360f, 260f, 1f);
+        assertTrue(BattleDirectControlOverlay.overlaps(panel, 1700f, 100f, 20f), "under the panel");
+        assertTrue(BattleDirectControlOverlay.overlaps(panel, 1540f, 100f, 20f), "its radius reaches the edge");
+        assertFalse(BattleDirectControlOverlay.overlaps(panel, 960f, 40f, 20f), "bottom centre is clear");
+        assertFalse(BattleDirectControlOverlay.overlaps(panel, 1700f, 300f, 20f), "above the panel");
+        assertFalse(BattleDirectControlOverlay.overlaps(null, 1700f, 100f, 20f), "no panel, nothing to fade");
     }
 
     static UiDocument document(MarkupInstance markup) {

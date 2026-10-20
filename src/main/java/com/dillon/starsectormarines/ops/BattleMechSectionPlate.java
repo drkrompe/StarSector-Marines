@@ -20,7 +20,7 @@ import java.util.function.Function;
 /**
  * One mech's section paper-doll as a small read-only plate: the {@link MechSectionDollCanvas}
  * with a title and the CRIPPLED / SENSORS LOST flags. The same plate stands beside the
- * direct-control HUD while the player drives a mech and above the selected-mech panel; each host
+ * direct-control status panel while the player drives a mech and above the selected-mech panel; each host
  * owns one and places it. Display only: it takes no input.
  */
 final class BattleMechSectionPlate {
@@ -93,23 +93,6 @@ final class BattleMechSectionPlate {
 
     BattleHudSurface surface(UiViewport viewport) {
         return view.present() && viewport != null ? new BattleHudSurface(document, viewport) : null;
-    }
-
-    /** Left of {@code anchor}, bottom edges level: beside the bottom-centred control HUD. */
-    static UiViewport leftOf(UiViewport anchor) {
-        float scale = anchor.documentScale();
-        float width = DOCUMENT_WIDTH * scale;
-        return new UiViewport(anchor.screenX() - GAP * scale - width, anchor.screenY(),
-                width, DOCUMENT_HEIGHT * scale, scale);
-    }
-
-    /** Left of {@code anchor}, top edges level: beside the control HUD when it docks at the top. */
-    static UiViewport leftOfTop(UiViewport anchor) {
-        float scale = anchor.documentScale();
-        float height = DOCUMENT_HEIGHT * scale;
-        float width = DOCUMENT_WIDTH * scale;
-        return new UiViewport(anchor.screenX() - GAP * scale - width,
-                anchor.screenY() + anchor.height() - height, width, height, scale);
     }
 
     /** Above {@code anchor}, left edges level: over the selected-mech panel. */

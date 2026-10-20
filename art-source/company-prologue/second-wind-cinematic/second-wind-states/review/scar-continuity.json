@@ -1389,8 +1389,8 @@
    "id": "sp-turret-1",
    "status": {
     "derelict": "open",
-    "patched": "open",
-    "refit": "open",
+    "patched": "patched",
+    "refit": "patched",
     "restored": "faded"
    },
    "site_states": [],
@@ -1404,7 +1404,7 @@
     "refit",
     "restored"
    ],
-   "footprint_spread_units": 2.55
+   "footprint_spread_units": 2.61
   },
   {
    "row": 61,
@@ -1426,7 +1426,7 @@
     "refit",
     "restored"
    ],
-   "footprint_spread_units": 0.0
+   "footprint_spread_units": 2.52
   },
   {
    "row": 62,
@@ -1470,7 +1470,7 @@
     "refit",
     "restored"
    ],
-   "footprint_spread_units": 1.83
+   "footprint_spread_units": 0.12
   },
   {
    "row": 64,

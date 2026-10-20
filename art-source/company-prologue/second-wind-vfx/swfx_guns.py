@@ -1,7 +1,7 @@
 """Gun effects for the Second Wind's four turrets.
 
-Its fit from the shared turret kit (sw_turrets): Vulcans on turrets 1 and 4
-('barrel 1' / 'barrel 2'); 2 and 3 are empty housings and fire nothing.
+Its fit from the shared turret kit (sw_turrets): Vulcans on turrets 1 and 2
+('barrel 1' / 'barrel 2'); 3 and 4 are empty housings and fire nothing.
 Builds from before 2026-10-20 carried the old
 gun houses: small mounts 1-3 and the medium twin (turret 4, 'port gun' and
 'starboard gun'), which the tags below still read. Everything rides the gun anchors
@@ -1134,8 +1134,8 @@ def review(ctx, out_dir, quick=False):
     left3 = up.cross(x3).normalized()
     cam_a = swfx_core.look_camera(f'{PREFIX} review cam flash', rc, m3 + x3 * 5.0 + left3 * 17.0 + up * 10.0,
                                   m3 - x3 * 3.5 - up * 1.0, lens=50)
-    # (b) turret 4 (the bow Vulcan; the old twin's two guns), a burst over the shoulder.
-    a4p = _anchor(ctx, 4, 'barrel 1') or _anchor(ctx, 4, 'port gun')
+    # (b) turret 4 (empty now; an older build's twin), a burst over the shoulder.
+    a4p = _anchor(ctx, 4, 'barrel 1') or _anchor(ctx, 4, 'port gun') or _anchor(ctx, 2, 'barrel 1')
     a4s = _anchor(ctx, 4, 'starboard gun') or a4p
     fire(ctx, 4, 104, 14, 3)
     m4 = (_world(a4p)[0] + _world(a4s)[0]) / 2

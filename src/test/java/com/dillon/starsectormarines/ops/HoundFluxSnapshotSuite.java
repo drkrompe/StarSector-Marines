@@ -33,7 +33,16 @@ public final class HoundFluxSnapshotSuite implements SnapshotSuite {
                             BattleDirectControlStatus.snapshot(sim), 0, false, ignored -> {}, () -> {}, () -> {})) {
                         Graphics2D graphics = frame.createGraphics();
                         try {
-                            graphics.drawImage(uiRenderer.render(fixture.document(), 640, 70), 640, 980, null);
+                            float[] measured = DirectControlUiSnapshotSuite.measure(uiRenderer, fixture);
+                            int statusHeight = Math.round(measured[0]);
+                            int weaponsHeight = Math.round(measured[1]);
+                            graphics.drawImage(uiRenderer.render(fixture.statusDocument(),
+                                    (int) BattleDirectControlOverlay.STATUS_WIDTH, statusHeight),
+                                    12, frame.getHeight() - 12 - statusHeight, null);
+                            graphics.drawImage(uiRenderer.render(fixture.weaponsDocument(),
+                                    (int) BattleDirectControlOverlay.WEAPONS_WIDTH, weaponsHeight),
+                                    frame.getWidth() - 12 - (int) BattleDirectControlOverlay.WEAPONS_WIDTH,
+                                    frame.getHeight() - 12 - weaponsHeight, null);
                         } finally { graphics.dispose(); }
                     }
                 }

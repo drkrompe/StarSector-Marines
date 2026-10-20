@@ -198,7 +198,7 @@ def setup(body):
         bm.to_mesh(people.data)
         bm.free()
     scene.frame_set(C4_END + round(PARKED * c4.FPS))   # the walk map is read with the vehicles parked
-    manifest = json.loads((c4.STATES / 'manifest.json').read_text())
+    manifest = json.loads(c4.SW_MANIFEST.read_text())
     ship_parts = {o.name for o in bpy.data.collections[manifest['append_collection']].all_objects}
     ship_parts |= {o.name for o in bpy.data.objects if o.name.startswith('Drive ')}
     import port_fleet                       # the port's hulls and the Colossus's drive volumes: nobody walks them

@@ -89,18 +89,18 @@ def kind_sealed_cluster(d, scar, status):
 
 
 # ---- turrets ---------------------------------------------------------------
-# Story. The ship carries two Vulcans, one fore and one aft (turrets 1 and
-# 4); housings 2 and 3 are empty, closed by blanking caps. Point defence was
-# worth money, so the salvagers lifted what they could sell: turret 4's
-# Vulcan, and turret 2's cap for its plate. Turret 1's Vulcan took a drift
-# strike that bent both barrels and slewed it off its slot until the traverse
-# seized, so it will not lift off the barbette: left as scrap. Another strike
-# holed turret 3's cap and tore the mount feed under it. The escape crew
-# bolted turret 4's Vulcan back on from the salvagers' gantry, closed turret 2
-# with a salvage cap in another owner's primer, and re-energised the mount bus,
-# which put turret 3's torn feed live: left, as reaching it means cutting the
-# cap away. The conversion isolated it; the restoration fitted a new Vulcan on
-# 1 and new caps on 2 and 3.
+# Story. The ship carries two Vulcans, broadside on the pods (turrets 1 and
+# 2, as the game's start variant sm_second_wind_start); housings 3 and 4 are
+# empty, closed by blanking caps. Point defence was worth money, so the
+# salvagers lifted what they could sell: turret 2's Vulcan, and turret 4's cap
+# for its plate. Turret 1's Vulcan took a drift strike that bent both barrels
+# and slewed it off its slot until the traverse seized; another holed turret
+# 3's cap and tore the mount feed under it. The escape crew freed turret 1,
+# straightened and refitted it on a welded adapter ring, bolted turret 2's
+# Vulcan back from the gantry (in another owner's primer), capped 4, and
+# re-energised the mount bus, which put turret 3's torn feed live: left, as
+# reaching it means cutting the cap away. The conversion isolated it; the
+# restoration fitted new caps on 3 and 4.
 #
 # The guns are the shared turret kit's (sw_turrets): a fixed `Turret <i>
 # barbette`, and everything above it (`Turret <i> house ...`, `gun ...`,
@@ -337,6 +337,14 @@ def kind_turret(d, scar, status):
         for ob in turret_parts(d, i):
             if ob.name.endswith(' glow'):
                 d.override(ob, d.dead, scar)
+    if status in ('patched', 'replaced') and wreck == 'jammed':
+        # Put back in service: the welded seam where the freed gun's adapter
+        # ring was run down onto the barbette.
+        weld = Geo()
+        ring = [V((c.x+(R-.3)*math.cos(TAU*j/24), c.y+(R-.3)*math.sin(TAU*j/24), top+.02)) for j in range(25)]
+        for q0, q1 in zip(ring, ring[1:]):
+            weld.bead(q0, q1, Z, .1)
+        d.part(scar, 'repair weld', d.weld, .005).add(weld.v, weld.f)
     if status == 'open' and wreck == 'jammed':
         slew = turret_jam(d, scar, i, T, jam, scar.params.get('bend', (16, 9)))
         turret_house_strike(d, scar, i, T, 'house paint#dome', (1.0, -8.0, top+8), (0.0, -2.0, top+1.5),
@@ -632,27 +640,26 @@ SCARS = [
     Scar('sp-mast', 'mast', 'open patched replaced faded',
          'Mast sheared above the pedestal; jury whip and salvaged nav sensor for the flight; '
          'the command conversion fits a proper flanged upper section and scanner.'),
-    # Point defence: Vulcans on 1 and 4, empty capped housings on 2 and 3. The
-    # salvagers sold 4's Vulcan and 2's cap; drift strikes wrecked 1's Vulcan
-    # and holed 3's cap. The escape crew put 4's Vulcan back and capped 2; the
-    # restoration fitted a new Vulcan on 1 and new caps.
-    Scar('sp-turret-1', 'turret', 'open open open faded',
+    # Point defence: Vulcans on 1 and 2, empty capped housings on 3 and 4. The
+    # salvagers sold 2's Vulcan and 4's cap; drift strikes jammed 1's Vulcan and
+    # holed 3's cap. The escape crew freed and refitted 1, put 2 back, capped 4;
+    # the restoration fitted new caps.
+    Scar('sp-turret-1', 'turret', 'open patched patched faded',
          'Drift strike bent both Vulcan barrels and slewed the gun 24 deg aft until the '
-         'traverse seized, so it would not lift off: left as scrap, flown dead and jammed; '
-         'new Vulcan on an adapter ring in restoration.',
+         'traverse seized; freed, straightened and refitted on a welded adapter ring for the '
+         'flight; ring painted over in restoration.',
          index=1, wreck='jammed', jam_deg=24., bend=(24, 14)),
     Scar('sp-turret-2', 'turret', 'open patched patched faded',
-         'Empty housing: its blanking cap taken for the plate, leaving a bare stud ring; a '
-         'salvage cap in another owner\'s primer bolted on for the flight; repainted to near match.',
-         index=2, mismatched=True),
+         'Vulcan stripped; a gantry Vulcan from another hull bolted back in its owner\'s primer; '
+         'repainted to near match.', index=2, mismatched=True),
     Scar('sp-turret-3', 'turret', 'open open open faded',
          'Empty housing holed through its blanking cap: left. The mount feed torn under it went '
          'live when the crew powered the mount bus (sparks); isolated and booted in the '
          'conversion; new cap in restoration.',
          index=3, wreck='holed'),
     Scar('sp-turret-4', 'turret', 'open patched patched faded',
-         'Vulcan stripped; recovered from the gantry and reinstalled on an adapter ring; ring '
-         'painted over.', index=4),
+         'Empty housing: its blanking cap taken for the plate, leaving a bare stud ring; a '
+         'salvage cap bolted on for the flight; ring painted over.', index=4),
     # Salvagers torch-cut two waist runs for their contents.
     Scar('sp-waist-line-cut', 'torch', 'open patched patched faded',
          'Protected waist line cut for its contents: sleeved for the flight, spooled in restoration.',

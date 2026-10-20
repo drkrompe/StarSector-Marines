@@ -215,8 +215,6 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
         require(subtitle.blocksWorldPointer(messageX, messageY), "Visible subtitles suppress world actions");
         require(!subtitle.blocksWorldPointer(messageBounds.screenX() - 1, messageY),
                 "Subtitle pointer blocking remains inside its visible bounds");
-        control.topReservedHeight(position.getY() + position.getHeight() - BattleLayout.PAD
-                - subtitle.surface().viewport().screenY());
         control.update(0, sim, 1);
         if (sim.directControl().active()) {
             long unit = sim.directControl().activeUnitId();
@@ -224,11 +222,17 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
                     camera.cellToScreenY(sim.world().renderY(unit)), sim.getRoster().radius(unit) * camera.cellPxSize());
         }
         if (name.contains("docked")) {
-            UiViewport strip = control.surfaces().get(0).viewport();
+            require(!control.statusOccluding() && !control.weaponsOccluding(),
+                    "A body at the bottom edge stands between the corner panels, so neither fades");
             UiViewport message = subtitle.surface().viewport();
-            require(strip.screenY() > 540, "Map-edge body docks equipment in the upper lane");
-            require(strip.screenY() + strip.height() <= message.screenY(),
-                    "Top-docked equipment clears the active subtitle");
+            for (var surface : control.surfaces()) {
+                UiViewport panel = surface.viewport();
+                require(panel.screenY() + panel.height() <= message.screenY()
+                                || panel.screenY() >= message.screenY() + message.height()
+                                || panel.screenX() + panel.width() <= message.screenX()
+                                || panel.screenX() >= message.screenX() + message.width(),
+                        "Direct-control chrome clears the active subtitle");
+            }
         }
         if (confirm) {
             var surface = retreat.surface();

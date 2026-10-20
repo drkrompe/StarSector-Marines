@@ -105,7 +105,7 @@ class BattleActionCameraTest {
     @Test
     void northLookLeavesMechAndApcAboveTheActionHudAtProductionUi150Scale() {
         float width = 1744f / 1.5f, height = 938f / 1.5f;
-        float reserve = BattleDirectControlOverlay.ACTION_HEIGHT + 12f;
+        float reserve = 82f;
         for (float radius : new float[]{.6f, .5f * (float) Math.hypot(2.4f, 1.4f)}) {
             BattleCamera camera = productionCamera(width, height);
             BattleActionCamera follow = new BattleActionCamera();
@@ -127,7 +127,7 @@ class BattleActionCameraTest {
         BattleCamera a = productionCamera(1744f / 1.5f, 938f / 1.5f);
         BattleCamera b = productionCamera(1744f / 1.5f, 938f / 1.5f);
         BattleActionCamera fa = new BattleActionCamera(), fb = new BattleActionCamera();
-        float reserve = BattleDirectControlOverlay.ACTION_HEIGHT + 12f;
+        float reserve = 82f;
         float pointerX = a.vpX() + a.vpW() * .8f;
         float pointerY = a.vpY() + a.vpH() - 1f;
         for (int i = 0; i < 30; i++) fa.follow(a, 280f, 168f, .6f, pointerX, pointerY, true, 1f / 30f, reserve);
@@ -147,7 +147,7 @@ class BattleActionCameraTest {
     void bottomWorldEdgeStillUsesMapClampSoHostCanChooseAnAlternateHudDock() {
         BattleCamera camera = productionCamera(1744f / 1.5f, 938f / 1.5f);
         BattleActionCamera follow = new BattleActionCamera();
-        float reserve = BattleDirectControlOverlay.ACTION_HEIGHT + 12f;
+        float reserve = 82f;
         camera.zoomAt(20, camera.vpX() + camera.vpW() * .5f, camera.vpY() + camera.vpH() * .5f);
         follow.follow(camera, 280f, 1.4f, 1.4f,
                 camera.vpX() + camera.vpW() * .5f, camera.vpY() + camera.vpH() - 1f,

@@ -4,7 +4,7 @@ Status: LIVE ACCEPTANCE
 
 Written: 2026-09-23
 
-Updated: 2026-09-29 — verify terrain aim-lane readability alongside carrier movement.
+Updated: 2026-10-20 — durability checks read the labelled status panel; corner panels fade over a clamped body.
 
 Read `direct-control-nouns.md` first. Begin after the Marine slice; repeat
 carrier-specific checks when Mech and vehicle adapters ship.
@@ -49,16 +49,17 @@ including its transition back to autonomous play.
   moving, then resume; hand back and retake another body. Stale momentum must
   clear while ordinary key release continues to brake naturally.
 
-- Compare the strip's color-only armor and health or structure lines with each
-  controlled body before and after damage. Armor sits above health and empties
-  independently even with high health; armorless bodies have no armor fill.
-  Identity, durability labels, and numeric capacity readouts must be absent.
-- Check rifle, Mech, and APC weapon cards against real firing: authored bursts
+- Compare the status panel's labelled HULL/HEALTH, ARMOR and FLUX bars and their
+  percentages with each controlled body before and after damage. Armor empties
+  independently even with high health; armorless bodies have no armor row.
+  Check that both corner panels stay legible at 100% UI scale and fade when the
+  body is clamped beneath them.
+- Check rifle, Mech, and APC weapon rows against real firing: authored bursts
   versus simultaneous volleys, finite Mech trigger packs versus APC rounds,
   and current cooldown/burst state. Loaded must not imply that an unaimed or
   structurally blocked barrel can fire. Indirect mounts remain AI-only.
-- Select each direct Mech hardpoint by card and number key, including an empty
-  rack, then return to all direct mounts. A switch during a burst must stop the
+- Select each direct Mech hardpoint by row and number key, including an empty
+  rack, then click the LMB header to return to the group. A switch during a burst must stop the
   old queued fire and require a new press without refunding ammunition or
   clearing cooldowns. Pause retains the choice; exit and re-entry reset it.
 - Control a shield-and-smoke Marine. Only equipped abilities appear beside the

@@ -22,7 +22,7 @@ import sys; sys.path.insert(0, r'<repo>/art-source/company-prologue/second-wind-
 import swfx, swfx_thrusters, swfx_guns, swfx_smoke
 ctx = swfx.apply(state='patched', preset='jangala-approach')
 swfx_thrusters.ignition(ctx, 1, ramp_frames=18)
-swfx_guns.fire(ctx, 4, 30, shots=12, interval_frames=3)      # turret 4, the bow Vulcan
+swfx_guns.fire(ctx, 2, 30, shots=12, interval_frames=3)      # turret 2, the starboard Vulcan
 ctx.set('smk_atmosphere', 1)                                  # or ctx.key(name, frame, value)
 ```
 
@@ -145,7 +145,7 @@ as possible.
 |---|---|---|
 | `SWFX anchor engine {i}` | `Engine {i} exhaust anchor` if the geometry declares one, else `Engine {i} mouth lip` and `Engine {i} dark throat` | mouth plane; +X runs out of the mouth (aft). Radius comes from the anchor's `radius_m` (via `units()`), else `sw_engines.BELL_R`: 3.9 for the outer pair, 2.6 for the inner pair |
 | RCS puffs | `RCS <cluster> <axis> anchor` empties (skipped when `working` is false) | see Thrusters |
-| `SWFX anchor turret {i} {tag}` | `Anchor turret {i} barrel {k} muzzle` (the turret kit's guns since 2026-10-20: `sw_turrets`, `DECLARED_MUZZLES` on by default); an older build's `Turret {i} {tag} muzzle brake` | the muzzle; +X along the line of fire, riding the turret's pivot and elevation. `tag` is `barrel <k>`: two on each Vulcan (turrets 1 and 4); housings 2 and 3 are empty and have none. Older builds: `gun`, or `port gun` / `starboard gun` on the medium twin |
+| `SWFX anchor turret {i} {tag}` | `Anchor turret {i} barrel {k} muzzle` (the turret kit's guns since 2026-10-20: `sw_turrets`, `DECLARED_MUZZLES` on by default); an older build's `Turret {i} {tag} muzzle brake` | the muzzle; +X along the line of fire, riding the turret's pivot and elevation. `tag` is `barrel <k>`: two on each Vulcan (turrets 1 and 2); housings 3 and 4 are empty and have none. Older builds: `gun`, or `port gun` / `starboard gun` on the medium twin |
 | `SWFX anchor lamp <part>` | lamp parts by name (`LAMPS` in the module) | lamp centre; the role is running-port/starboard (by side), masthead, beacon, work, davit or drive-warning |
 | `SWFX anchor spark <id> <label>` | `Scar <id> spark anchor`, `Scar <id> spark-2 anchor`, ... (the damage layer's `d.anchor`) | the broken end of a live run; +X is the spray direction. Spray size comes from the anchor's `radius_m` (via `units()`, 0.5 m if absent); `sparking` is that state's flag |
 

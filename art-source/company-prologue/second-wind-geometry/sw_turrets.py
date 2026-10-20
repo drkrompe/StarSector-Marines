@@ -1,14 +1,15 @@
 """The four weapon mounts: two Vulcans from the shared turret kit, and two empty housings.
 
-warhound.ship's slots, fitted as the owner chose (2026-10-20): a stripped fit,
-the same in every condition state, lighter than the vanilla cerberus_Standard
-variant (Vulcans on 1-2, a railgun on 3, a heavy mauler on 4):
-  WS 001  TURRET  SMALL   BALLISTIC  (-11, 20)   90   arc 210   Turret 1  vulcan (port, aft)
-  WS 002  TURRET  SMALL   BALLISTIC  (-11, -20)  -90  arc 210   Turret 2  empty housing
+warhound.ship's slots, fitted as the game's start variant `sm_second_wind_start`
+(the Cerberus (D) the campaign hands out: `CerberusCompanyStart`) carries them,
+the same in every condition state:
+  WS 001  TURRET  SMALL   BALLISTIC  (-11, 20)   90   arc 210   Turret 1  vulcan (port)
+  WS 002  TURRET  SMALL   BALLISTIC  (-11, -20)  -90  arc 210   Turret 2  vulcan (starboard)
   WS 003  TURRET  SMALL   BALLISTIC  (41, 11)    30   arc 210   Turret 3  empty housing
-  WS 004  TURRET  MEDIUM  BALLISTIC  (36, -16)   -30  arc 290   Turret 4  vulcan (starboard, bow)
-One gun a side, one fore and one aft. The derelict's stripped turret 4 and
-wrecked 1 and 3 are its scars (sw_scars_spine), not its loadout.
+  WS 004  TURRET  MEDIUM  BALLISTIC  (36, -16)   -30  arc 290   Turret 4  empty housing
+The two Vulcans nobody took, broadside on the pods. The derelict's jammed
+turret 1, stripped turret 2 and holed cap on 3 are its scars (sw_scars_spine),
+not its loadout.
 
 A gun is `tk.build(weapon)` from ../turret-kit on a kit barbette, as the
 Legion, Paragon and Wolf mount theirs. `Turret <i> pivot` is an empty at the
@@ -19,9 +20,9 @@ recoil <k>`. `Anchor turret <i> barrel <k> muzzle` rides the kit's own muzzle
 anchor, +X along the line of fire, for the VFX kit (DECLARED_MUZZLES) and the
 cinematic export. Everything the turret trains is named `Turret <i> house ...`,
 `Turret <i> gun ...` or `Turret <i> recoil <k> ...`; the fixed part is
-`Turret <i> barbette` (with its `... plinth` where the foot is deep). Turret
-4's small Vulcan stands on `Turret 4 reducer plate`, a fixed adapter on the
-medium drum.
+`Turret <i> barbette` (with its `... plinth` where the foot is deep). A small
+gun on a medium drum would stand on `Turret <i> reducer plate`, a fixed
+adapter (no slot uses it in this fit).
 
 An empty housing is the same kit barbette closed by `Turret <i> blanking
 cap` (a bolted plate) and `Turret <i> blanking cap boss` (the plugged feed
@@ -30,7 +31,7 @@ trunk at its centre); its pivot is kept, empty, so every slot has one.
 Rings are in hull units: the small mounts on 4.2, so the kit's flange (1.1
 ring) lands inside the pods' octagonal seats for 1 and 2 (4.62 to the flats),
 a little inside the sprite's own small ring; turret 4's drum on 7.0, the
-sprite's, with its Vulcan at the small ring.
+sprite's.
 """
 import math
 import sys
@@ -49,7 +50,7 @@ MOUNTS = [(-11, 20, 90, 1.0, False), (-11, -20, -90, 1.0, False), (41, 11, 30, 1
 SLOTS = ['WS 001', 'WS 002', 'WS 003', 'WS 004']
 ARC = [210, 210, 210, 290]
 SIZE = ['SMALL', 'SMALL', 'SMALL', 'MEDIUM']
-LOADOUT = ['vulcan', None, None, 'vulcan']   # None: an empty housing
+LOADOUT = ['vulcan', 'vulcan', None, None]   # sm_second_wind_start; None: an empty housing
 RING = [4.2, 4.2, 4.2, 7.0]                   # the barbette
 GUN_RING = 4.2                                # every gun is a small Vulcan
 REDUCER_H = .3                                # turret 4's adapter plate under its Vulcan
