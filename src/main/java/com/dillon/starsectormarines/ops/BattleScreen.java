@@ -956,7 +956,6 @@ public class BattleScreen implements Screen, BattleUiContext {
             directControlOverlay = new BattleDirectControlOverlay(selection, this::toggleDirectControl,
                     () -> setBattleSpeed(speedMultiplier == 0f ? 1f : 0f), this::selectDirectWeapon);
         }
-        reserveDirectControlMessageLane();
         directControlOverlay.attach(position, sim, speedMultiplier);
         if (rangeTrial != null) directControlOverlay.setExitLabelKey("armoryRangeExit");
         if (manualObjectives == null) manualObjectives = new BattleManualObjectiveOverlay();
@@ -1120,13 +1119,6 @@ public class BattleScreen implements Screen, BattleUiContext {
         var bounds = surface.viewport();
         return x < bounds.screenX() + bounds.width() && x + width > bounds.screenX()
                 ? Math.max(top, bounds.screenY() + bounds.height()) : top;
-    }
-
-    private void reserveDirectControlMessageLane() {
-        if (directControlOverlay != null && position != null) {
-            directControlOverlay.topReservedHeight(position.getY() + position.getHeight()
-                    - BattleLayout.PAD - topCenterContentBottom());
-        }
     }
 
     @Override
@@ -1641,7 +1633,6 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     /** Mode changes release old captures and restore the strategic documents on handback. */
     private void syncDirectControlHud() {
-        reserveDirectControlMessageLane();
         boolean active = directControlInput.active();
         if (hud != null) hud.setDirectControl(active);
         if (active == directControlHudActive) return;
@@ -1665,7 +1656,6 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     private void syncDirectControl() {
-        reserveDirectControlMessageLane();
         BattleSimulation sim = getSim();
         if (Display.isCreated() && !Display.isActive() && shipOrderTargeting != null) shipOrderTargeting.cancel();
         if (directControlInput.active() && (sim != directControlSimulation
@@ -1715,7 +1705,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             actionCamera.follow(camera, ship.x, ship.y, shipRadius, pointerX, pointerY,
                     directControlInput.pointerKnown()
                             && !battleChromeBlocksWorldPointer(pointerX, pointerY), dt,
-                    position != null ? BattleDirectControlOverlay.viewport(position, true).height() + 12f : 0f);
+                    0f);
             if (directControlOverlay != null) {
                 directControlOverlay.avoidControlledBody(camera.cellToScreenX(ship.x),
                         camera.cellToScreenY(ship.y), shipRadius * camera.cellPxSize());
@@ -1733,7 +1723,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 pointerX, pointerY,
                 directControlInput.pointerKnown()
                         && !battleChromeBlocksWorldPointer(pointerX, pointerY), dt,
-                position != null ? BattleDirectControlOverlay.viewport(position, true).height() + 12f : 0f);
+                0f);
         if (directControlOverlay != null) {
             directControlOverlay.avoidControlledBody(
                     camera.cellToScreenX(directControlSimulation.world().renderX(unit)),
@@ -1789,7 +1779,6 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void refreshSelectionChrome() {
         if (turretAuthor != null && turretAuthor.active) return;
         BattleSimulation sim = getSim();
-        reserveDirectControlMessageLane();
         if (directControlInput.active()) {
             if (directControlOverlay != null) directControlOverlay.update(0f, sim, speedMultiplier);
             return;
