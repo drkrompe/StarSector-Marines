@@ -493,6 +493,13 @@ Which place changed hands last is a claim about order rather than a snapshot, so
 the reinforcement recompute remembers what it saw. A position on no lane keeps
 the band reading, which is what a settlement's guard post has and should have.
 
+**Places, not forts (owner, 2026-10-20).** The game is much larger than forts.
+The counter-attack below is being generalised from a lost fort to any lost or
+losing place worth retaking — a compound, an objective, a held building, a
+story-mission site, a fort as one case — and made informed: it observes what
+holds the place before it commits (`place-counterattack.md`). Nothing here is
+to be built for forts alone or measured only on the fort trial ground.
+
 **A fort the defender loses is counter-attacked in proportion, or not at
 all.** Retaking a lost fort is the structure planner's question (`ai-nouns.md`,
 place alarms), and the answer is one group at a time, the defender's side of
