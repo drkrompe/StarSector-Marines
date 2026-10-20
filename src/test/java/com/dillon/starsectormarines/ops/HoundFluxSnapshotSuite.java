@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.control.HoundHeatScene;
+import com.dillon.starsectormarines.battle.control.HoundFluxScene;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -14,16 +14,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** Real range frames and live production HUD bindings at 1920x1080, 100% scale. */
-public final class HoundHeatSnapshotSuite implements SnapshotSuite {
-    @Override public String id() { return "hound-heat"; }
-    @Override public String label() { return "Hound heat and manual movement"; }
+public final class HoundFluxSnapshotSuite implements SnapshotSuite {
+    @Override public String id() { return "hound-flux"; }
+    @Override public String label() { return "Hound flux and manual movement"; }
     @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
         var battleRenderer = new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080);
         var uiRenderer = new HeadlessUiRenderer(context.modRoot(), context.starsectorCore());
         List<SnapshotArtifact> artifacts = new ArrayList<>();
         List<BufferedImage> reverseFrames = new ArrayList<>();
-        var reports = new HoundHeatScene().play((loop, sim, tick, caption) -> {
+        var reports = new HoundFluxScene().play((loop, sim, tick, caption) -> {
             boolean reverse = loop.equals("reverse-strafe") && tick <= 180;
             if (!reverse && tick != 0 && tick != 90 && tick != 180 && tick != 360) return;
             try {

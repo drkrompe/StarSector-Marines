@@ -29,7 +29,7 @@ import java.util.Map;
  * <p>Prices are the game's own base prices from {@code commodities.csv}, read-only from the install. They are a common
  * yardstick for the bill, not what the player pays: scarcity and market margin are not modelled. Firepower is raw
  * damage per second from the weapon definitions (a mech's stock weapons; a vehicle's turret): no hit chance, armor
- * rating, splash or heat, so it ranks weapons of one family and does not rank a mortar against a machine gun.
+ * rating, splash or flux, so it ranks weapons of one family and does not rank a mortar against a machine gun.
  */
 @Tag("armor-economy-evidence")
 class ArmorEconomyEvidence {

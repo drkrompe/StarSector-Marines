@@ -32,7 +32,7 @@ class ArmorReportTest {
         assertEquals(10f / 30f, row.defenderHitRate(), 1e-4f);
         assertEquals(4f / 3f, row.attackerMountsLost(), 1e-4f);
         assertEquals(1f / 3f, row.defenderLegsCrippled(), 1e-4f);
-        assertEquals(4f, row.attackerHeatSeconds(), 1e-4f);
+        assertEquals(4f, row.attackerFluxSeconds(), 1e-4f);
         assertEquals("gifs/x.gif", row.gif());
     }
 
@@ -98,8 +98,8 @@ class ArmorReportTest {
     }
 
     private static ArmorPlay.SideStats side(int start, int left, float integrity, int shots, int hits,
-                                            int mounts, int legs, float heat) {
+                                            int mounts, int legs, float flux) {
         return new ArmorPlay.SideStats("side", start, left, 100f, 100f * integrity, 50f, shots, hits, mounts, legs,
-                heat, Map.of("w", new ArmorPlay.WeaponStats(shots, hits, 50f)), left > 0 ? "hound[50%]" : "", 0, 0);
+                flux, Map.of("w", new ArmorPlay.WeaponStats(shots, hits, 50f)), left > 0 ? "hound[50%]" : "", 0, 0);
     }
 }

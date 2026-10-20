@@ -1256,9 +1256,9 @@ public final class SquadStateDumper {
                 o.put("lrmReplenishmentSeconds",
                         mechLoadout.missileReplenisher().lrmReplenishmentSeconds());
                 o.put("mechMounts", buildMechMountsJson(mechLoadout, sim));
-                o.put("mechHeat", mechLoadout.heat.value());
-                o.put("mechVenting", mechLoadout.heat.venting());
-                o.put("mechAiCooling", mechLoadout.heat.aiCooling());
+                o.put("mechFlux", mechLoadout.flux.value());
+                o.put("mechVenting", mechLoadout.flux.venting());
+                o.put("mechAiDissipating", mechLoadout.flux.aiDissipating());
             }
             o.put("cellX", sim.world().cellX(u));
             o.put("cellY", sim.world().cellY(u));
@@ -1333,7 +1333,7 @@ public final class SquadStateDumper {
             o.put("hasAmmo", mount.hasAmmo());
             o.put("cycleRemaining", mount.cycleRemaining);
             o.put("cycleSeconds", mount.component.cycleSeconds());
-            o.put("heatPerTrigger", mount.component.heatPerTrigger());
+            o.put("fluxPerTrigger", mount.component.fluxPerTrigger());
             o.put("burstRemaining", mount.burstRemaining);
             o.put("burstTimer", mount.burstTimer);
             o.put("replenishmentProgressSeconds",

@@ -3,9 +3,9 @@
  "asset": "second-wind-patched.blend",
  "collection": "SECOND WIND | patched",
  "root": "SECOND WIND | patched | root",
- "objects": 1192,
- "meshes": 1152,
- "images": 45,
+ "objects": 1169,
+ "meshes": 1120,
+ "images": 41,
  "passed": true,
  "failed": [],
  "checks": {
@@ -27,8 +27,8 @@
   "object count": {
    "ok": true,
    "detail": [
-    1152,
-    1152
+    1120,
+    1120
    ]
   },
   "polygon count": {
@@ -40,12 +40,12 @@
   },
   "hull_rest is rest position": {
    "ok": true,
-   "detail": 4e-06
+   "detail": 2e-06
   },
   "base wear on every skin and swatch": {
    "ok": true,
    "detail": {
-    "materials": 96,
+    "materials": 72,
     "missing": []
    }
   },
@@ -55,7 +55,7 @@
   "overlay on every family material": {
    "ok": true,
    "detail": {
-    "materials": 120,
+    "materials": 99,
     "missing": []
    }
   },
@@ -74,7 +74,20 @@
   },
   "turret pivots train": {
    "ok": true,
-   "detail": 4e-06
+   "detail": 5e-06
+  },
+  "turret guns elevate": {
+   "ok": true,
+   "detail": {
+    "err": 2e-06,
+    "bad": [],
+    "muzzles": {
+     "1": 0,
+     "2": 2,
+     "3": 0,
+     "4": 1
+    }
+   }
   },
   "seized turrets carry nothing": {
    "ok": true,

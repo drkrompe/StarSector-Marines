@@ -115,7 +115,7 @@ class BattleDirectWarshipStatusTest {
                 assertEquals(card.state(), fixture.markup().requireElement(
                         "direct-hud-ship-" + card.key() + "-state").text());
             }
-            assertEquals("FLUX 0%", fixture.markup().requireElement("direct-hud-heat-label").text(),
+            assertEquals("FLUX 0%", fixture.markup().requireElement("direct-hud-flux-label").text(),
                     "the director puts an unconfigured ship on its hull's flux");
             assertEquals("DANGER", fixture.markup().requireElement("direct-hud-ship-MISSILES-state").text());
         }

@@ -104,7 +104,7 @@ class MechDirectControlSessionTest {
         var mount = loadout.mounts()[0];
         assertTrue(session.enter(mech));
         mount.cycleRemaining = 3f;
-        loadout.heat.commit(80f);
+        loadout.flux.commit(80f);
         mount.replenishmentProgressSeconds = 1.2f;
         int ammo = mount.ammo;
         mount.burstRemaining = 2;
@@ -119,9 +119,9 @@ class MechDirectControlSessionTest {
         assertNull(mount.burstPointAim);
         assertEquals(3f, mount.cycleRemaining);
         assertEquals(1.2f, mount.replenishmentProgressSeconds);
-        assertEquals(80f, loadout.heat.value());
+        assertEquals(80f, loadout.flux.value());
         session.exit();
-        assertEquals(80f, loadout.heat.value());
+        assertEquals(80f, loadout.flux.value());
         assertTrue(session.enter(mech));
         mount.burstRemaining = 1;
         mount.burstPointAim = new PointFireAim(18, 5);

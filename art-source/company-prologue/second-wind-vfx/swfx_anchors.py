@@ -30,18 +30,24 @@ import swfx_hull  # noqa: E402
 
 try:  # tables only; importing them builds nothing
     from sw_engines import ENGINES, BELL_R  # noqa: E402
-    from sw_turrets import MOUNTS  # noqa: E402
+    from sw_turrets import VFX_MOUNTS as MOUNTS, ENERGY_COLOURS  # noqa: E402
 except Exception:  # pragma: no cover - a renamed table must not stop a shot
     ENGINES = [(-41, 31, 12), (-39, 24, 8), (-39, -24, 8), (-41, -31, 12)]
     BELL_R = {12: 3.9, 8: 2.6}
     MOUNTS = [(-11, 20, 90, 1.0, False), (-11, -20, -90, 1.0, False),
-              (41, 11, 30, 1.0, False), (36, -16, -30, 1.3, True)]
+              (41, 11, 30, 1.0, False, 'energy'), (36, -16, -30, 1.3, False)]
+    ENERGY_COLOURS = {3: (.58, .58, 1.0)}
 
 # Another hull's profile (swfx_hull) replaces any of these tables.
 ENGINES = swfx_hull.get('ENGINES', ENGINES)
 BELL_R = swfx_hull.get('BELL_R', BELL_R)
 MOUNTS = swfx_hull.get('MOUNTS', MOUNTS)
-DECLARED_MUZZLES = swfx_hull.get('DECLARED_MUZZLES', False)
+# Another hull's profile keeps its own (or none: the ion-blue default).
+ENERGY_COLOURS = swfx_hull.get('ENERGY_COLOURS', ENERGY_COLOURS if swfx_hull.PROFILE is None else {})
+# The Second Wind's guns are the shared turret kit's (sw_turrets) and declare their
+# barrels ('Anchor turret <i> barrel <k> muzzle'); the muzzle-brake search below is
+# for a build from before 2026-10-20.
+DECLARED_MUZZLES = swfx_hull.get('DECLARED_MUZZLES', True)
 # 'Anchor turret <i> <tag> muzzle', the cinematic export's own muzzle empties.
 DECLARED_MUZZLE = re.compile(r'^Anchor turret (\d+) (.+) muzzle(\.\d+)?$')
 # A multi-barrel mount numbers its barrels: 'barrel <k>' (guns) or 'tube <k>' (launchers).

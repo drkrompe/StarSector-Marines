@@ -10,7 +10,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.infantry.SmokeThrowCommit;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
-import com.dillon.starsectormarines.battle.mech.MechHeat;
+import com.dillon.starsectormarines.battle.mech.MechFlux;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
@@ -38,7 +38,7 @@ final class BattleDirectControlStatus {
 
     record Snapshot(long entityId, String name, Carrier carrier, Durability durability,
                     List<WeaponStatus> weapons, List<AbilityStatus> abilities,
-                    MarineSprint.Status sprint, HeatStatus heat, WarshipStatus warship) {
+                    MarineSprint.Status sprint, MechFluxStatus flux, WarshipStatus warship) {
         static final Snapshot EMPTY = new Snapshot(0L, "", Carrier.NONE,
                 new Durability(0f, 0f, 0f, 0f, 0f), List.of());
 
@@ -51,8 +51,8 @@ final class BattleDirectControlStatus {
 
         Snapshot(long entityId, String name, Carrier carrier, Durability durability,
                  List<WeaponStatus> weapons, List<AbilityStatus> abilities, MarineSprint.Status sprint,
-                 HeatStatus heat) {
-            this(entityId, name, carrier, durability, weapons, abilities, sprint, heat, null);
+                 MechFluxStatus flux) {
+            this(entityId, name, carrier, durability, weapons, abilities, sprint, flux, null);
         }
 
         Snapshot(long entityId, String name, Carrier carrier, Durability durability,
@@ -71,8 +71,8 @@ final class BattleDirectControlStatus {
         }
     }
 
-    record HeatStatus(float value, boolean venting, float capacity) {
-        HeatStatus(float value, boolean venting) { this(value, venting, MechHeat.CAPACITY); }
+    record MechFluxStatus(float value, boolean venting, float capacity) {
+        MechFluxStatus(float value, boolean venting) { this(value, venting, MechFlux.CAPACITY); }
     }
 
     /** How a status card reads at a glance: ready, busy, or something the pilot should look at. */
@@ -131,7 +131,7 @@ final class BattleDirectControlStatus {
     record WeaponStatus(int number, String slotKey, String name, Behavior behavior,
                         boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
                         int burstRemaining, float burstSeconds, Ammo ammo,
-                        boolean thermalBlocked, String mechanism, String trigger) {
+                        boolean fluxBlocked, String mechanism, String trigger) {
         WeaponStatus(int number, String slotKey, String name, Behavior behavior,
                      boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
                      int burstRemaining, float burstSeconds, Ammo ammo) {
@@ -141,9 +141,9 @@ final class BattleDirectControlStatus {
         WeaponStatus(int number, String slotKey, String name, Behavior behavior,
                      boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
                      int burstRemaining, float burstSeconds, Ammo ammo,
-                     boolean thermalBlocked, String mechanism) {
+                     boolean fluxBlocked, String mechanism) {
             this(number, slotKey, name, behavior, directEligible, cooldownSeconds,
-                    cycleDurationSeconds, burstRemaining, burstSeconds, ammo, thermalBlocked, mechanism, "");
+                    cycleDurationSeconds, burstRemaining, burstSeconds, ammo, fluxBlocked, mechanism, "");
         }
         WeaponState state() {
             if (burstRemaining > 0) return WeaponState.BURST;
@@ -182,11 +182,11 @@ final class BattleDirectControlStatus {
         }
         if (world.hasMechLoadout(id)) {
             return new Snapshot(id, name, Carrier.MECH, durability,
-                    mechWeapons(world.mechLoadout(id).mounts(), world.mechLoadout(id).heat,
+                    mechWeapons(world.mechLoadout(id).mounts(), world.mechLoadout(id).flux,
                     sim.directControl().selectedWeapon()), List.of(),
-                    MarineSprint.EMPTY, new HeatStatus(world.mechLoadout(id).heat.value(),
-                    world.mechLoadout(id).heat.venting(),
-                    world.mechLoadout(id).heat.capacity()));
+                    MarineSprint.EMPTY, new MechFluxStatus(world.mechLoadout(id).flux.value(),
+                    world.mechLoadout(id).flux.venting(),
+                    world.mechLoadout(id).flux.capacity()));
         }
         var combat = sim.combat();
         WeaponDef primary = combat.has(id) ? combat.primaryWeaponDef(id) : null;
@@ -250,14 +250,14 @@ final class BattleDirectControlStatus {
     }
 
     static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts) {
-        return mechWeapons(mounts, new MechHeat());
+        return mechWeapons(mounts, new MechFlux());
     }
 
-    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechHeat heat) {
-        return mechWeapons(mounts, heat, MechFireGroups.DEFAULT_SELECTION);
+    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux) {
+        return mechWeapons(mounts, flux, MechFireGroups.DEFAULT_SELECTION);
     }
 
-    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechHeat heat, int selection) {
+    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechFlux flux, int selection) {
         List<WeaponStatus> weapons = new ArrayList<>();
         for (MechWeaponMount mount : mounts) {
             if (mount == null) continue;
@@ -268,7 +268,7 @@ final class BattleDirectControlStatus {
                     mount.burstRemaining, mount.burstTimer,
                     new Ammo(mount.ammo, mount.component.ammoCapacity, AmmoUnit.TRIGGER_PACKS,
                             mount.component.ammoCapacity < 0),
-                    !heat.permits(mount.component.heatPerTrigger(), false), mount.component.cycleLabel(),
+                    !flux.permits(mount.component.fluxPerTrigger(), false), mount.component.cycleLabel(),
                     MechFireGroups.badge(mounts, selection, mount)));
         }
         weapons.sort(Comparator.comparingInt(WeaponStatus::number));

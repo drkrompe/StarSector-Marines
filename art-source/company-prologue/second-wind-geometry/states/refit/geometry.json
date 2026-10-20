@@ -7,7 +7,7 @@
   },
   "units": "Vanilla hull-space units (1 sprite px = 1 unit); multiply by metres_per_unit for metres",
   "metres_per_unit": 0.65,
-  "revision": "V3 detail: segmented sprite-measured hull, whole engine pods, spine command deck, port grapple, naval turrets",
+  "revision": "V3 detail: segmented sprite-measured hull, whole engine pods, spine command deck, port grapple; turret-kit guns of the cerberus_Standard loadout",
   "thickness_profile": {
     "method": "Flat deck plateaus (x0, x1, deck z) over single-chamfer sections; level keel",
     "stations": [
@@ -147,6 +147,237 @@
         0
       ],
       "orthographic_scale": 130
+    }
+  ],
+  "turret_source": "starsector-core/data/variants/cerberus/cerberus_Standard.variant on warhound.ship weaponSlots; guns from ../turret-kit",
+  "turrets": [
+    {
+      "index": 1,
+      "slot": "WS 001",
+      "size": "SMALL",
+      "weapon": "vulcan",
+      "ring": 4.2,
+      "lift": 1.6,
+      "seat": 17.0,
+      "top": 18.6,
+      "location": [
+        -11,
+        20,
+        18.6
+      ],
+      "rest_angle_deg": 90,
+      "arc_deg": 210,
+      "k": 0.7636,
+      "pivot": "Turret 1 pivot",
+      "elevation": "Turret 1 elevation",
+      "trunnion": [
+        -11.0,
+        23.436,
+        19.929
+      ],
+      "elevation_limits": [
+        null,
+        null
+      ],
+      "fixed": [
+        "Turret 1 barbette"
+      ],
+      "trained": [
+        "Turret 1 house dark",
+        "Turret 1 house paint#dome",
+        "Turret 1 house steel",
+        "Turret 1 house plate",
+        "Turret 1 house paint",
+        "Turret 1 recoil 1 metal",
+        "Turret 1 recoil 1 steel",
+        "Turret 1 recoil 1 dark",
+        "Turret 1 recoil 2 metal",
+        "Turret 1 recoil 2 steel",
+        "Turret 1 recoil 2 dark"
+      ],
+      "recoil": [
+        "Turret 1 recoil 1",
+        "Turret 1 recoil 2"
+      ],
+      "kit_muzzles": [
+        "Turret 1 muzzle anchor 1",
+        "Turret 1 muzzle anchor 2"
+      ],
+      "muzzles": [
+        "Anchor turret 1 barrel 1 muzzle",
+        "Anchor turret 1 barrel 2 muzzle"
+      ]
+    },
+    {
+      "index": 2,
+      "slot": "WS 002",
+      "size": "SMALL",
+      "weapon": "vulcan",
+      "ring": 4.2,
+      "lift": 1.6,
+      "seat": 17.0,
+      "top": 18.6,
+      "location": [
+        -11,
+        -20,
+        18.6
+      ],
+      "rest_angle_deg": -90,
+      "arc_deg": 210,
+      "k": 0.7636,
+      "pivot": "Turret 2 pivot",
+      "elevation": "Turret 2 elevation",
+      "trunnion": [
+        -11.0,
+        -23.436,
+        19.929
+      ],
+      "elevation_limits": [
+        null,
+        null
+      ],
+      "fixed": [
+        "Turret 2 barbette"
+      ],
+      "trained": [
+        "Turret 2 house dark",
+        "Turret 2 house paint#dome",
+        "Turret 2 house steel",
+        "Turret 2 house plate",
+        "Turret 2 house paint",
+        "Turret 2 recoil 1 metal",
+        "Turret 2 recoil 1 steel",
+        "Turret 2 recoil 1 dark",
+        "Turret 2 recoil 2 metal",
+        "Turret 2 recoil 2 steel",
+        "Turret 2 recoil 2 dark"
+      ],
+      "recoil": [
+        "Turret 2 recoil 1",
+        "Turret 2 recoil 2"
+      ],
+      "kit_muzzles": [
+        "Turret 2 muzzle anchor 1",
+        "Turret 2 muzzle anchor 2"
+      ],
+      "muzzles": [
+        "Anchor turret 2 barrel 1 muzzle",
+        "Anchor turret 2 barrel 2 muzzle"
+      ]
+    },
+    {
+      "index": 3,
+      "slot": "WS 003",
+      "size": "SMALL",
+      "weapon": "railgun",
+      "ring": 4.2,
+      "lift": 3.8,
+      "seat": 14.5,
+      "top": 18.3,
+      "location": [
+        41,
+        11,
+        18.3
+      ],
+      "rest_angle_deg": 30,
+      "arc_deg": 210,
+      "k": 0.7636,
+      "pivot": "Turret 3 pivot",
+      "elevation": "Turret 3 elevation",
+      "trunnion": [
+        41.992,
+        11.573,
+        20.011
+      ],
+      "elevation_limits": [
+        null,
+        null
+      ],
+      "fixed": [
+        "Turret 3 barbette"
+      ],
+      "trained": [
+        "Turret 3 house dark",
+        "Turret 3 house paint#body",
+        "Turret 3 house accent2",
+        "Turret 3 house steel",
+        "Turret 3 house glow",
+        "Turret 3 house accent#breech",
+        "Turret 3 house accent2#bulb",
+        "Turret 3 recoil 1 accent",
+        "Turret 3 recoil 1 dark",
+        "Turret 3 recoil 1 paint",
+        "Turret 3 recoil 1 accent2",
+        "Turret 3 recoil 1 steel"
+      ],
+      "recoil": [
+        "Turret 3 recoil 1"
+      ],
+      "kit_muzzles": [
+        "Turret 3 muzzle anchor 1"
+      ],
+      "muzzles": [
+        "Anchor turret 3 barrel 1 muzzle"
+      ]
+    },
+    {
+      "index": 4,
+      "slot": "WS 004",
+      "size": "MEDIUM",
+      "weapon": "heavymauler",
+      "ring": 7.0,
+      "lift": 1.8,
+      "seat": 14.5,
+      "top": 16.3,
+      "location": [
+        36,
+        -16,
+        16.3
+      ],
+      "rest_angle_deg": -30,
+      "arc_deg": 290,
+      "k": 0.7368,
+      "pivot": "Turret 4 pivot",
+      "elevation": "Turret 4 elevation",
+      "trunnion": [
+        37.276,
+        -16.737,
+        19.071
+      ],
+      "elevation_limits": [
+        null,
+        null
+      ],
+      "fixed": [
+        "Turret 4 barbette"
+      ],
+      "trained": [
+        "Turret 4 house dark",
+        "Turret 4 house paint#body",
+        "Turret 4 house plate",
+        "Turret 4 house steel",
+        "Turret 4 house accent#flank1",
+        "Turret 4 house accent#flank-1",
+        "Turret 4 house metal",
+        "Turret 4 house metal#brake",
+        "Turret 4 gun steel",
+        "Turret 4 gun plate",
+        "Turret 4 gun dark",
+        "Turret 4 recoil 1 steel",
+        "Turret 4 recoil 1 dark",
+        "Turret 4 recoil 2 steel",
+        "Turret 4 recoil 2 dark"
+      ],
+      "recoil": [
+        "Turret 4 recoil 1",
+        "Turret 4 recoil 2"
+      ],
+      "kit_muzzles": [
+        "Turret 4 muzzle anchor 1"
+      ],
+      "muzzles": [
+        "Anchor turret 4 barrel 1 muzzle"
+      ]
     }
   ],
   "bay_state": {
@@ -340,7 +571,7 @@
       ],
       "position_m": [
         37.5507,
-        -8.4946,
+        -8.4947,
         2.5659
       ],
       "exhaust_dir": [
@@ -798,14 +1029,14 @@
     {
       "name": "Scar sp-turret-3 spark anchor",
       "position": [
-        38.31,
-        12.5228,
-        19.5156
+        34.5258,
+        13.7912,
+        19.8258
       ],
       "position_m": [
-        24.9015,
-        8.1398,
-        12.6852
+        22.4418,
+        8.9643,
+        12.8867
       ],
       "spray_dir": [
         -0.37155,
@@ -1238,28 +1469,28 @@
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "open",
-        "note": "Drift strike bent the barrel at the chase and slewed the house 24 deg aft until the traverse seized, so it would not lift off: left as scrap, flown dead and jammed; new house on an adapter ring in restoration."
+        "note": "Drift strike bent both Vulcan barrels and slewed the gun 24 deg aft until the traverse seized, so it would not lift off: left as scrap, flown dead and jammed; new Vulcan on an adapter ring in restoration."
       },
       {
         "id": "sp-turret-2",
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "patched",
-        "note": "Gun house stripped; a gantry house from another hull bolted back in its owner's primer; repainted to near match."
+        "note": "Vulcan stripped; a gantry Vulcan from another hull bolted back in its owner's primer; repainted to near match."
       },
       {
         "id": "sp-turret-3",
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "open",
-        "note": "House holed through the roof and the barrel snapped on the chase: left as scrap. Its feed, torn inside the hole, went live when the crew powered the mount bus (sparks); isolated and booted in the conversion; new house in restoration."
+        "note": "Railgun house holed and its rails snapped: left as scrap. Its feed, torn inside the hole, went live when the crew powered the mount bus (sparks); isolated and booted in the conversion; new railgun in restoration."
       },
       {
         "id": "sp-turret-4",
         "kind": "turret",
         "area": "sw_scars_spine",
         "status": "patched",
-        "note": "Gun house stripped; its own house recovered from the gantry and reinstalled on an adapter ring; ring painted over."
+        "note": "Heavy mauler stripped; its own gun recovered from the gantry and reinstalled on an adapter ring; ring painted over."
       },
       {
         "id": "sp-waist-line-cut",
@@ -1398,12 +1629,7 @@
       "Turbopump housing": "pod-port-pumps",
       "Turbopump housing.001": "pod-starboard-pumps",
       "Turbopump vent slot": "pod-port-pumps",
-      "Turbopump vent slot.001": "pod-starboard-pumps",
-      "Turret 3 gun barrel tube": "sp-turret-3",
-      "Turret 3 gun muzzle brake": "sp-turret-3",
-      "Turret 3 gun muzzle brake port": "sp-turret-3",
-      "Turret 3 optics blister": "sp-turret-3",
-      "Turret 3 optics lens": "sp-turret-3"
+      "Turbopump vent slot.001": "pod-starboard-pumps"
     },
     "shape_keys": [
       "Thrust bay engine can: Scar pod-port-outer-can",
@@ -1441,23 +1667,17 @@
       "Aft band louver.002: Scar pod-port-engine-bay",
       "Drive warning light: Scar pod-port-engine-bay",
       "Drive casing armour plate.003: Scar pod-starboard-casing-buckle",
-      "Turret 1 ammunition feed trunk: Scar sp-turret-1",
-      "Turret 1 bustle vent slat: Scar sp-turret-1",
-      "Turret 1 bustle vent slat.001: Scar sp-turret-1",
-      "Turret 1 bustle vent slat.002: Scar sp-turret-1",
-      "Turret 1 gun barrel chase: Scar sp-turret-1",
-      "Turret 1 gun barrel tube: Scar sp-turret-1",
-      "Turret 1 gun breech band: Scar sp-turret-1",
-      "Turret 1 gun house: Scar sp-turret-1",
-      "Turret 1 gun muzzle brake: Scar sp-turret-1",
-      "Turret 1 gun muzzle brake port: Scar sp-turret-1",
-      "Turret 1 gun recoil sleeve: Scar sp-turret-1",
-      "Turret 1 mantlet drum: Scar sp-turret-1",
-      "Turret 1 mantlet face: Scar sp-turret-1",
-      "Turret 1 optics blister: Scar sp-turret-1",
-      "Turret 1 optics lens: Scar sp-turret-1",
-      "Turret 1 rear bustle: Scar sp-turret-1",
-      "Turret 1 roof hatch: Scar sp-turret-1"
+      "Turret 1 house dark: Scar sp-turret-1",
+      "Turret 1 house paint: Scar sp-turret-1",
+      "Turret 1 house paint#dome: Scar sp-turret-1",
+      "Turret 1 house plate: Scar sp-turret-1",
+      "Turret 1 house steel: Scar sp-turret-1",
+      "Turret 1 recoil 1 dark: Scar sp-turret-1",
+      "Turret 1 recoil 1 metal: Scar sp-turret-1",
+      "Turret 1 recoil 1 steel: Scar sp-turret-1",
+      "Turret 1 recoil 2 dark: Scar sp-turret-1",
+      "Turret 1 recoil 2 metal: Scar sp-turret-1",
+      "Turret 1 recoil 2 steel: Scar sp-turret-1"
     ],
     "overrides": [
       "Drive warning light: Scar dead lamp (pod-port-drive)",
@@ -1472,17 +1692,14 @@
       "Mast crosstree: Replacement plate shop primer (sp-mast)",
       "Scanner turntable: Replacement plate shop primer (sp-mast)",
       "Search radar scanner bar: Replacement plate shop primer (sp-mast)",
-      "Turret 2 gun house: Salvage plate grey-green primer (sp-turret-2)",
-      "Turret 2 mantlet drum: Salvage plate grey-green primer (sp-turret-2)",
-      "Turret 2 mantlet face: Salvage plate grey-green primer (sp-turret-2)",
-      "Turret 2 optics blister: Salvage plate grey-green primer (sp-turret-2)",
-      "Turret 2 rear bustle: Salvage plate grey-green primer (sp-turret-2)",
-      "Turret 2 roof hatch: Salvage plate grey-green primer (sp-turret-2)",
+      "Turret 2 house paint: Salvage plate grey-green primer (sp-turret-2)",
+      "Turret 2 house paint#dome: Salvage plate grey-green primer (sp-turret-2)",
+      "Turret 3 house glow: Scar dead lamp (sp-turret-3)",
       "RCS bow-stbd stbd nozzle: Salvage plate bare steel (rcs-bow-stbd)",
       "RCS pod-port down nozzle: Salvage plate bare steel (rcs-pod-port)",
       "RCS pod-port up nozzle: Salvage plate bare steel (rcs-pod-port)"
     ],
-    "cut_objects": 81,
+    "cut_objects": 85,
     "sites": {
       "aft-deck-cluster": [
         {
@@ -1911,25 +2128,13 @@
         },
         {
           "p": [
-            42.721,
-            14.832,
-            15.17
-          ],
-          "n": [
-            -0.0,
-            0.0,
-            1.0
-          ]
-        },
-        {
-          "p": [
             39.047,
             16.772,
             15.17
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ]
         },
@@ -1971,6 +2176,18 @@
         },
         {
           "p": [
+            42.698,
+            20.303,
+            14.5
+          ],
+          "n": [
+            0.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "p": [
             45.401,
             19.345,
             14.296
@@ -1997,26 +2214,13 @@
         },
         {
           "p": [
-            42.721,
-            14.832,
-            15.17
-          ],
-          "n": [
-            -0.0,
-            0.0,
-            1.0
-          ],
-          "r": 0.411
-        },
-        {
-          "p": [
             39.047,
             16.772,
             15.17
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ],
           "r": 0.555
@@ -2059,6 +2263,19 @@
             0.891
           ],
           "r": 0.333
+        },
+        {
+          "p": [
+            42.698,
+            20.303,
+            14.5
+          ],
+          "n": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "r": 0.455
         }
       ],
       "fb-port-bow-flank-strike": [
@@ -2694,7 +2911,7 @@
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ]
         },
@@ -2706,19 +2923,19 @@
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ]
         },
         {
           "p": [
-            31.387,
-            -9.883,
+            27.702,
+            -8.808,
             15.17
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ]
         },
@@ -2730,7 +2947,7 @@
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ],
           "r": 0.339
@@ -2743,23 +2960,23 @@
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ],
           "r": 0.439
         },
         {
           "p": [
-            31.387,
-            -9.883,
+            27.702,
+            -8.808,
             15.17
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ],
-          "r": 0.395
+          "r": 0.282
         }
       ],
       "fb-stbd-flank-dent": [
@@ -2799,7 +3016,7 @@
           ],
           "n": [
             0.0,
-            -0.0,
+            0.0,
             1.0
           ]
         }
@@ -3591,7 +3808,7 @@
             15.17
           ],
           "n": [
-            -0.0,
+            0.0,
             0.0,
             1.0
           ]
@@ -3603,7 +3820,7 @@
             15.17
           ],
           "n": [
-            0.0,
+            -0.0,
             0.0,
             1.0
           ]
@@ -3735,7 +3952,7 @@
             15.17
           ],
           "n": [
-            -0.0,
+            0.0,
             0.0,
             1.0
           ],
@@ -3748,7 +3965,7 @@
             15.17
           ],
           "n": [
-            0.0,
+            -0.0,
             0.0,
             1.0
           ],

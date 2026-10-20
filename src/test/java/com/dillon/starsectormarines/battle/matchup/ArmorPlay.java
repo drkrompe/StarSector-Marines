@@ -38,7 +38,7 @@ import java.util.TreeMap;
  * given a move order to a standoff point at 70% of its longest gun's reach off the nearest living enemy, and left
  * alone once it is inside 85% of that reach (a mech, or a hull that engages on its own: anywhere inside its reach),
  * unless it then stands a whole pass without firing, when it is brought closer. Such a machine is brought closer only
- * when it has no line of sight to the enemy: one in sight may be cooling, turning, or holding a duel band on purpose. A lone mech would otherwise sit out the fight under its own doctrine (an
+ * when it has no line of sight to the enemy: one in sight may be holding fire to dissipate flux, turning, or holding a duel band on purpose. A lone mech would otherwise sit out the fight under its own doctrine (an
  * armored-support Bulwark with nobody to pace holds where it lands), and a hull has no tactical brain at all. Inside
  * range everything is the production game: mech doctrine and targeting, vehicle turrets acquiring on their own.
  * Attacking lances carry no mission of their own ({@link #MECH_ORDER}): once the steering has brought one into reach,
@@ -122,7 +122,7 @@ public final class ArmorPlay {
      */
     public record SideStats(String label, int start, int left, float integrityStart, float integrityLeft,
                             float damageDealt, int shots, int hits, int mountsLost, int legsCrippled,
-                            float heatLimitedSeconds, Map<String, WeaponStats> weapons, String survivors,
+                            float fluxLimitedSeconds, Map<String, WeaponStats> weapons, String survivors,
                             int roundsEngaged, int roundsStopped) {
 
         public float hitRate() {
@@ -318,7 +318,7 @@ public final class ArmorPlay {
         /** Hostile rounds this hull's active protection engaged and stopped. */
         int roundsEngaged;
         int roundsStopped;
-        int heatLimitedTicks;
+        int fluxLimitedTicks;
         long lastOrderCell = Long.MIN_VALUE;
         final Set<Long> refusedCells = new HashSet<>();
         /** Rounds this machine has fired, and the count at the last steering pass. */
@@ -414,7 +414,7 @@ public final class ArmorPlay {
             return lost;
         }
 
-        /** Reads the bodies after a tick: integrity, section losses, heat, and this side's shots. */
+        /** Reads the bodies after a tick: integrity, section losses, flux, and this side's shots. */
         void observe(BattleSimulation sim) {
             for (Body b : ids) {
                 if (b.dead) continue;
@@ -434,7 +434,7 @@ public final class ArmorPlay {
                 }
                 if (!b.vehicle && sim.world().hasMechLoadout(b.id)) {
                     MechLoadoutComponent loadout = sim.world().mechLoadout(b.id);
-                    if (loadout.heat.aiCooling() || loadout.heat.venting()) b.heatLimitedTicks++;
+                    if (loadout.flux.aiDissipating() || loadout.flux.venting()) b.fluxLimitedTicks++;
                     MechSections sections = loadout.sections();
                     if (sections != null) {
                         b.crippled = sections.crippled();
@@ -495,7 +495,7 @@ public final class ArmorPlay {
                     // In range: leave it to its doctrine and turret, unless it has stood there a whole pass without
                     // firing (a wall or a corner between it and the enemy), when a player would bring it closer.
                     // A mech with the enemy in sight is left to its doctrine even when it is quiet: it may be
-                    // cooling, turning, or holding a duel band on purpose, and bringing it closer every pass
+                    // holding fire to dissipate flux, turning, or holding a duel band on purpose, and bringing it closer every pass
                     // walked every mech into contact whatever its doctrine wanted.
                     if (!silent || hasOrder(sim, b) || b.closeIn >= MAX_CLOSE_IN
                             || !steeredLikeAHull && sim.getGrid().hasLineOfSight((int) at[0], (int) at[1],
@@ -631,7 +631,7 @@ public final class ArmorPlay {
         }
 
         SideStats stats(BattleSimulation sim, float damageDealt) {
-            int left = 0, mounts = 0, legs = 0, heat = 0, engaged = 0, stopped = 0;
+            int left = 0, mounts = 0, legs = 0, flux = 0, engaged = 0, stopped = 0;
             float start = 0f, now = 0f;
             List<String> survivors = new ArrayList<>();
             for (Body b : ids) {
@@ -641,7 +641,7 @@ public final class ArmorPlay {
                 engaged += b.roundsEngaged;
                 stopped += b.roundsStopped;
                 if (b.crippled) legs++;
-                heat += b.heatLimitedTicks;
+                flux += b.fluxLimitedTicks;
                 if (!b.dead && isAlive(sim, b)) {
                     left++;
                     survivors.add(survivorText(b));
@@ -658,7 +658,7 @@ public final class ArmorPlay {
                 hits += e.getValue()[1];
             }
             return new SideStats(side.label(), ids.size(), left, start, now, damageDealt, shots, hits, mounts, legs,
-                    heat / (float) TICKS_PER_SECOND, weapons, String.join(" ", survivors), engaged, stopped);
+                    flux / (float) TICKS_PER_SECOND, weapons, String.join(" ", survivors), engaged, stopped);
         }
 
         private static String survivorText(Body b) {
