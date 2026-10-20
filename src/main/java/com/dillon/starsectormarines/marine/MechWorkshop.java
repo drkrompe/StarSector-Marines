@@ -84,11 +84,11 @@ public final class MechWorkshop {
     }
 
     /** Empties the optional utility socket; nothing else on a frame can be left empty. */
-    public Result stripCooler(String mechId) {
+    public Result stripVentArray(String mechId) {
         CampaignMech mech = bay.mechById(mechId);
         if (mech == null) return Result.of(Status.INVALID);
-        if (mech.internal(MechInternal.Role.COOLER) == null) return Result.of(Status.ALREADY_STRIPPED);
-        return bay.stripCooler(mechId) ? Result.of(Status.STRIPPED) : Result.of(Status.INVALID);
+        if (mech.internal(MechInternal.Role.VENT_ARRAY) == null) return Result.of(Status.ALREADY_STRIPPED);
+        return bay.stripVentArray(mechId) ? Result.of(Status.STRIPPED) : Result.of(Status.INVALID);
     }
 
     public Result stripWeapon(String mechId, MechMountSlot slot) {

@@ -76,9 +76,9 @@ Scale
   from a kilometre or more.
 
 Built from the game's sprites (house='hand')
-  Fifteen turrets are hand-built from their own sprites: vulcan, lightac,
+  Sixteen turrets are hand-built from their own sprites: vulcan, lightac,
   lightmg, heavyac, heavymauler, hveldriver, devastator, mark9, hellbore,
-  hephaestus, needler, flak, dualflak, squall, hurricane. Each builder in
+  hephaestus, needler, flak, dualflak, squall, hurricane, railgun. Each builder in
   HANDS reads the sprite's measurements (sprite_outlines.json) and works in
   sprite pixels times k = ring / nominal ring (SMALL 5.5, MEDIUM 9.5, LARGE
   12.5), so at the nominal ring one pixel is one hull unit and the model
@@ -93,6 +93,18 @@ Built from the game's sprites (house='hand')
   offsets, render hints. --game names the install folder holding
   starsector-core (on a Mac, a folder with a starsector-core link to
   Starsector.app/Contents/Resources/Java).
+
+The Cerberus' railgun (house='hand')
+  railgun, the Second Wind's WS 003 (cerberus_Standard). The game draws it as
+  one sprite with no gun layer, so the builder splits it: the house is the
+  low grey body widest through its middle, a pale silver capacitor bulb on
+  the crown, the copper breech block sunk in a well behind it, two pale lugs
+  either side of the dark tail notch and armour cheeks with lit tell-tales
+  down the flanks; the elevation empty carries the copper rail pair (banded
+  dark every two pixels, a pale core between them, grey guide fins along
+  their roots) on recoil 1, which the game never moves. Muzzle at the rails'
+  tip. Paints: grey body and copper rails from the sprite, the bulb an
+  'accent2' silver override. Top-view IoU 0.90.
 
 Tri-Tachyon energy weapons (house='hand')
   tachyonlance, gravitonbeam, taclaser, the reaper launcher and the pdlaser,
@@ -214,9 +226,10 @@ The gauntlet (each turret, against its sprite)
 
 Users
   legion-geometry (lg_turrets), paragon-geometry (pg_turrets: its Elite fit,
-  hull_finish), wolf-geometry (wf_mounts). Lasher, Onslaught, Hermes, Hound and Second
-  Wind still use their own turret modules; moving one onto the kit is that
-  hull's session's call.
+  hull_finish), wolf-geometry (wf_mounts), second-wind-geometry (sw_turrets:
+  its cerberus_Standard fit, wrecked and stripped per condition state by
+  sw_scars_spine). Lasher, Onslaught, Hermes and Hound still use their own
+  turret modules; moving one onto the kit is that hull's session's call.
 
 Cinematics hooks
 ----------------

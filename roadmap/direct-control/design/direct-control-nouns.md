@@ -379,7 +379,7 @@ SRM pod on the right; a Bulwark fires its chainguns left and both SRM racks righ
 A chassis whose point-fire mounts are all one role keeps them all on the left
 button and leaves the right one inert (an all-rack chassis is not stranded without
 a primary). Each button's trigger still requests only its own group's mounts,
-subject to each mount's arc, alignment, cooldown, ammunition, heat and burst gates.
+subject to each mount's arc, alignment, cooldown, ammunition, flux and burst gates.
 
 Keys 1-4 keep their place but act on the left button only. Key 1 is the default
 (left = primary group); keys 2-4 re-point the left button at a single hardpoint
@@ -415,7 +415,7 @@ actual torso and muzzle to align legally; a refused release consumes its
 scheduled slot without emitting a shot or refunding the accepted trigger pack.
 A blocked or unaimed mount cannot retain a backlog or steer the torso. Entry,
 exit, and input suspension cancel queued rounds and aim while preserving
-ammunition, mechanical cycle clocks, shared chassis heat, and replenishment progress.
+ammunition, mechanical cycle clocks, shared chassis flux, and replenishment progress.
 
 AI and manual Mech direct rounds originate at the installed barrel's actual
 posed muzzle. The body-to-barrel structural segment must also be clear, so a
@@ -502,7 +502,7 @@ manually ordered keeps that order. The missile preset is a setting of the ship r
 than an order and stays as the pilot left it. Switching the director on for a ship that
 was never on flux puts it on its hull's flux, as it would any directed ship.
 
-The equipment strip shows hull above armour, the flux gauge in the heat row, and
+The equipment strip shows hull above armour, the flux gauge in the flux row, and
 read-only cards for the gun battery, lances, missile battery, point defence, shield, the low pass
 (`[F] LOW PASS`: ready, running in, passing, or no time, with the station seconds left) and
 the automation (director, missile preset, ground-fire policy), each with its laid area
@@ -555,7 +555,7 @@ handback; only new sites laid by the pilot are withdrawn under the manual contra
   while unpiloted; the pilot suspends that choosing, and handback resumes it on its next pass.
   Death of the hull, departure, battle end, Tab and Escape release it.
 
-The equipment strip shows hull above armour, the hull's flux in the heat row, and read-only
+The equipment strip shows hull above armour, the hull's flux in the flux row, and read-only
 cards: helm; the selected option with the other slots marked "soon"; the site card (the
 current site, its phase and progress, a refusal notice, the live-site count, and the cancel
 key); builders (ready, out or working, lost); defence drones (ready, out, lost, deployed or
@@ -590,18 +590,18 @@ or fire into vanilla ship controls.
 Open implementation slices and acceptance are indexed in `stories.md`.
 
 
-### Mech heat and mechanical cycling
+### Mech flux and mechanical cycling
 
 Mech mounts use component-authored trigger cycles, separate from projectile
 catalog cadence used by other carriers. Ballistics have cyclers, missiles have
 loaders, and energy weapons recharge capacitors. Missile mini-fabs separately
-restore ready packs. The shared battle-owned heat reservoir admits both AI and
-player triggers; an accepted first round reserves heat for the entire packet.
+restore ready packs. The shared battle-owned flux reservoir admits both AI and
+player triggers; an accepted first round reserves flux for the entire packet.
 Continuation and cancellation never charge again or refund that reservation.
 All mounts cool through one reservoir once per simulation tick. Pause freezes
 it and takeover/handback preserves it. Hot mounts remain fitted and supplied:
-heat does not cause an ammunition fallback or change the mission assignment.
+flux does not cause an ammunition fallback or change the mission assignment.
 
-The action strip shows a 0-100 heat bar, amber warning at 75, red venting at 95
-until 55, and a HEAT hold on each thermally blocked weapon. Mechanical progress
+The action strip shows a 0-100 flux bar, amber warning at 75, red venting at 95
+until 55, and a FLUX hold on each flux-blocked weapon. Mechanical progress
 and finite ammunition remain separate. See `mechs-nouns` for baseline tuning.

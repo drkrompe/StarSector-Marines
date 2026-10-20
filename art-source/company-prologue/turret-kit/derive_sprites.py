@@ -45,16 +45,18 @@ WEAPONS = {   # kit id -> .wpn id
     # The Wolf (P)'s pirate fit (wolf_d_pirates_Attack): the ion cannon turret, and the
     # colours of the mining blaster and Annihilator pod for their hardpoint mounts.
     'ioncannon': 'ioncannon', 'miningblaster': 'miningblaster', 'annihilator': 'annihilator',
+    # The Second Wind's fit (cerberus_Standard): its railgun on WS 003. One sprite, no gun layer.
+    'railgun': 'railgun',
 }
 ALPHA = 40
 # Second paints, sRGB, read off each base sprite; MAIN_HINT is its body paint
 # where that is needed to tell the two apart.
 ACCENT = {'flak': (200, 60, 55), 'dualflak': (225, 160, 60), 'devastator': (190, 120, 70),
           'hephaestus': (215, 180, 95), 'hveldriver': (200, 185, 120),
-          'pdlaser': (185, 55, 40)}
+          'pdlaser': (185, 55, 40), 'railgun': (200, 110, 75)}
 MAIN_HINT = {'flak': (150, 120, 100), 'dualflak': (150, 115, 105), 'devastator': (205, 205, 215),
              'hephaestus': (160, 150, 140), 'hveldriver': (175, 175, 180),
-             'pdlaser': (70, 70, 72)}
+             'pdlaser': (70, 70, 72), 'railgun': (110, 118, 125)}
 
 
 def lin(c):

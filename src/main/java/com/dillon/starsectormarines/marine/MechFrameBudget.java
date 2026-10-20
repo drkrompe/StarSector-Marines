@@ -101,19 +101,19 @@ public final class MechFrameBudget {
                       MechWeaponComponent arms, MechWeaponComponent leftShoulder,
                       MechWeaponComponent rightShoulder,
                       MechInternal engine, MechInternal plating,
-                      MechInternal heatSink, MechInternal cooler) {
+                      MechInternal capacitorBank, MechInternal ventArray) {
 
         public Fit {
             if (variant == null) throw new IllegalArgumentException("Mech variant is required");
             if (engine == null) engine = MechInternal.INDUSTRIAL_ENGINE;
             if (plating == null) plating = MechInternal.FACTORY_PLATING;
-            if (heatSink == null) heatSink = MechInternal.FACTORY_HEAT_SINK;
+            if (capacitorBank == null) capacitorBank = MechInternal.FACTORY_CAPACITOR_BANK;
         }
 
         public static Fit of(CampaignMech mech) {
             return new Fit(mech.variant(), mech.arms(), mech.leftShoulder(), mech.rightShoulder(),
                     mech.internal(MechInternal.Role.ENGINE), mech.internal(MechInternal.Role.PLATING),
-                    mech.internal(MechInternal.Role.HEAT_SINK), mech.internal(MechInternal.Role.COOLER));
+                    mech.internal(MechInternal.Role.CAPACITOR_BANK), mech.internal(MechInternal.Role.VENT_ARRAY));
         }
 
         public MechWeaponComponent weaponAt(MechMountSlot slot) {
@@ -129,25 +129,25 @@ public final class MechFrameBudget {
                     slot == MechMountSlot.ARMS ? component : arms,
                     slot == MechMountSlot.LEFT_SHOULDER ? component : leftShoulder,
                     slot == MechMountSlot.RIGHT_SHOULDER ? component : rightShoulder,
-                    engine, plating, heatSink, cooler);
+                    engine, plating, capacitorBank, ventArray);
         }
 
         public MechInternal internal(MechInternal.Role role) {
             return switch (role) {
                 case ENGINE -> engine;
                 case PLATING -> plating;
-                case HEAT_SINK -> heatSink;
-                case COOLER -> cooler;
+                case CAPACITOR_BANK -> capacitorBank;
+                case VENT_ARRAY -> ventArray;
             };
         }
 
-        /** Replaces the part in {@code role}; a null cooler empties the utility socket. */
+        /** Replaces the part in {@code role}; a null vent array empties the utility socket. */
         public Fit withInternal(MechInternal.Role role, MechInternal internal) {
             return new Fit(variant, arms, leftShoulder, rightShoulder,
                     role == MechInternal.Role.ENGINE ? internal : engine,
                     role == MechInternal.Role.PLATING ? internal : plating,
-                    role == MechInternal.Role.HEAT_SINK ? internal : heatSink,
-                    role == MechInternal.Role.COOLER ? internal : cooler);
+                    role == MechInternal.Role.CAPACITOR_BANK ? internal : capacitorBank,
+                    role == MechInternal.Role.VENT_ARRAY ? internal : ventArray);
         }
 
         public float output() {
@@ -175,18 +175,18 @@ public final class MechFrameBudget {
             return band(variant.moveSpeed, refitMoveSpeed(variant), engine.speedFraction);
         }
 
-        public float heatCapacity() {
-            return heatSink.heatCapacity;
+        public float fluxCapacity() {
+            return capacitorBank.fluxCapacity;
         }
 
-        public float coolingPerSecond() {
-            float cooling = heatSink.cooling + engine.cooling
-                    + (cooler != null ? cooler.cooling : 0f);
-            return Math.max(0f, cooling);
+        public float dissipationPerSecond() {
+            float dissipation = capacitorBank.dissipation + engine.dissipation
+                    + (ventArray != null ? ventArray.dissipation : 0f);
+            return Math.max(0f, dissipation);
         }
 
         public MechFrame frame() {
-            return new MechFrame(armorCapacity(), moveSpeed(), heatCapacity(), coolingPerSecond());
+            return new MechFrame(armorCapacity(), moveSpeed(), fluxCapacity(), dissipationPerSecond());
         }
 
         private static float band(float stock, float refit, float fraction) {

@@ -15,9 +15,10 @@ leaves out keeps the Second Wind's value:
   MOUNTS            [(x, y, angle, scale, twin[, kind]), ...] in turret index order;
                     kind 'gun' (default) or 'launcher' (a missile mount: launch
                     effects instead of muzzle flash, tracer and brass)
-  DECLARED_MUZZLES  True: guns come from the ship's own 'Anchor turret <i> <tag>
-                    muzzle' empties (+X along the line of fire) instead of the
-                    Second Wind's muzzle-brake parts; a multi-barrel mount tags
+  DECLARED_MUZZLES  True (the default; the Second Wind declares its own since
+                    2026-10-20): guns come from the ship's own 'Anchor turret <i> <tag>
+                    muzzle' empties (+X along the line of fire) instead of an
+                    older build's muzzle-brake parts; a multi-barrel mount tags
                     its barrels 'barrel <k>' (or 'tube <k>' on a launcher), and
                     k is the gun's index in its knob names (t<i>_<k>)
   LAMPS             [(object name prefix, role, colour or None), ...]

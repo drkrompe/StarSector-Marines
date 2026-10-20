@@ -17,7 +17,7 @@ import java.util.List;
  * crossed with every internal its sockets hold. Pure arithmetic over {@link MechFrameBudget} and
  * the authored doll ({@link MechFittingLayout#forVariant}); no world, no battle. The same rules
  * {@code MechBay.canInstallWeapon} and {@code MechBay.canInstallInternal} apply, with a standard
- * loader assumed (a faster loader would only take the cooler's socket away).
+ * loader assumed (a faster loader would only take the vent array's socket away).
  */
 public final class MechFitSpace {
 
@@ -42,7 +42,7 @@ public final class MechFitSpace {
     /** Internals of {@code role} this chassis can hold; a null entry is an empty utility socket. */
     public static List<MechInternal> internalsFor(MechVariant variant, MechInternal.Role role) {
         List<MechInternal> out = new ArrayList<>();
-        if (role == MechInternal.Role.COOLER) out.add(null);
+        if (role == MechInternal.Role.VENT_ARRAY) out.add(null);
         MechFittingLayout layout = MechFittingLayout.forVariant(variant);
         for (MechInternal internal : MechInternal.values()) {
             if (internal.role != role) continue;
@@ -78,9 +78,9 @@ public final class MechFitSpace {
         List<MechFrameBudget.Fit> out = new ArrayList<>();
         for (MechInternal engine : internalsFor(variant, MechInternal.Role.ENGINE)) {
             for (MechInternal plating : internalsFor(variant, MechInternal.Role.PLATING)) {
-                for (MechInternal sink : internalsFor(variant, MechInternal.Role.HEAT_SINK)) {
-                    for (MechInternal cooler : internalsFor(variant, MechInternal.Role.COOLER)) {
-                        out.add(new MechFrameBudget.Fit(variant, arms, left, right, engine, plating, sink, cooler));
+                for (MechInternal capacitors : internalsFor(variant, MechInternal.Role.CAPACITOR_BANK)) {
+                    for (MechInternal ventArray : internalsFor(variant, MechInternal.Role.VENT_ARRAY)) {
+                        out.add(new MechFrameBudget.Fit(variant, arms, left, right, engine, plating, capacitors, ventArray));
                     }
                 }
             }
@@ -104,19 +104,19 @@ public final class MechFitSpace {
                 heaviest(weaponsFor(variant, MechMountSlot.LEFT_SHOULDER)),
                 heaviest(weaponsFor(variant, MechMountSlot.RIGHT_SHOULDER)),
                 top(variant, MechInternal.Role.ENGINE), top(variant, MechInternal.Role.PLATING),
-                top(variant, MechInternal.Role.HEAT_SINK), top(variant, MechInternal.Role.COOLER));
+                top(variant, MechInternal.Role.CAPACITOR_BANK), top(variant, MechInternal.Role.VENT_ARRAY));
     }
 
     /** The top internal of every role this chassis holds, around its factory weapons. */
     public static MechFrameBudget.Fit fullInternalRefit(MechVariant variant) {
         return new MechFrameBudget.Fit(variant, variant.arms, variant.leftShoulder, variant.rightShoulder,
                 top(variant, MechInternal.Role.ENGINE), top(variant, MechInternal.Role.PLATING),
-                top(variant, MechInternal.Role.HEAT_SINK), top(variant, MechInternal.Role.COOLER));
+                top(variant, MechInternal.Role.CAPACITOR_BANK), top(variant, MechInternal.Role.VENT_ARRAY));
     }
 
     /**
      * The strongest frame that fits under budget around the factory weapons: armor first, then
-     * speed, then cooling, then reservoir. This is "a full refit" as a player could actually build it.
+     * speed, then dissipation, then reservoir. This is "a full refit" as a player could actually build it.
      */
     public static MechFrameBudget.Fit bestRefitAroundStockWeapons(MechVariant variant) {
         return internalFits(variant, variant.arms, variant.leftShoulder, variant.rightShoulder).stream()
@@ -128,8 +128,8 @@ public final class MechFitSpace {
     public static final Comparator<MechFrameBudget.Fit> FRAME_ORDER = Comparator
             .comparingDouble((MechFrameBudget.Fit f) -> f.armorCapacity())
             .thenComparingDouble(MechFrameBudget.Fit::moveSpeed)
-            .thenComparingDouble(MechFrameBudget.Fit::coolingPerSecond)
-            .thenComparingDouble(MechFrameBudget.Fit::heatCapacity);
+            .thenComparingDouble(MechFrameBudget.Fit::dissipationPerSecond)
+            .thenComparingDouble(MechFrameBudget.Fit::fluxCapacity);
 
     /** What every chassis stood at before the stock-frame cut (2026-10-16): the reference a refit is read against. */
     public static MechFrame preCut(MechVariant variant) {

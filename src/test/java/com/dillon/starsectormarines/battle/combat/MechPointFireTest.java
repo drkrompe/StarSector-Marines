@@ -282,35 +282,35 @@ class MechPointFireTest {
     }
 
     @Test
-    void heatAndMechanicalCycleIndependentlyGateFireWithoutSpendingAmmo() {
+    void fluxAndMechanicalCycleIndependentlyGateFireWithoutSpendingAmmo() {
         Fixture f = new Fixture(MechWeaponComponent.NOSE_CHAINGUN, MechWeaponComponent.SRM_5, null);
         var arms = f.loadout.mount(MechMountSlot.ARMS);
         var srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
-        f.loadout.heat.commit(90f);
+        f.loadout.flux.commit(90f);
         f.fire(NORTH);
         assertEquals(0, f.roster.telemetry().roundsFired(f.shooter));
         assertEquals(6, srm.ammo);
-        f.loadout.heat.advance(20f);
+        f.loadout.flux.advance(20f);
         arms.cycleRemaining = 2f;
         f.fire(NORTH);
         assertEquals(1, f.roster.telemetry().roundsFired(f.shooter), "ready SRM can fire beside cycling gun");
-        assertEquals(28f - f.loadout.heat.coolingPerSecond() * BattleSimulation.TICK_DT,
-                f.loadout.heat.value(), .001f);
+        assertEquals(28f - f.loadout.flux.dissipationPerSecond() * BattleSimulation.TICK_DT,
+                f.loadout.flux.value(), .001f);
         assertEquals(5, srm.ammo);
         for (int i = 0; i < 10; i++) f.weapons.tick(f.shooter, NORTH, false);
         assertEquals(2, f.roster.telemetry().roundsFired(f.shooter));
-        assertEquals(28f - f.loadout.heat.coolingPerSecond() * 11 * BattleSimulation.TICK_DT,
-                f.loadout.heat.value(), .001f,
-                "continuation does not charge a second salvo's heat");
+        assertEquals(28f - f.loadout.flux.dissipationPerSecond() * 11 * BattleSimulation.TICK_DT,
+                f.loadout.flux.value(), .001f,
+                "continuation does not charge a second salvo's flux");
         f.loadout.clearQueuedFire();
-        assertTrue(f.loadout.heat.value() > 0f);
+        assertTrue(f.loadout.flux.value() > 0f);
     }
 
     @Test
-    void unaimedTriggerDoesNotReserveHeat() {
+    void unaimedTriggerDoesNotReserveFlux() {
         Fixture f = new Fixture(MechWeaponComponent.NOSE_CHAINGUN, null, null);
         f.fire(EAST);
-        assertEquals(0f, f.loadout.heat.value());
+        assertEquals(0f, f.loadout.flux.value());
         assertEquals(0, f.roster.telemetry().roundsFired(f.shooter));
     }
 

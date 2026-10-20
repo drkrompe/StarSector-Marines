@@ -35,7 +35,7 @@ increasing an encounter's total armored threat.
   variant's recommendation. The override ends with the battle.
 - A **loadout** is the live mount configuration. It owns installed hardpoint
   components and their independent ammunition, mechanical cycle, salvo, lock,
-  and resupply state, plus one shared chassis heat reservoir.
+  and resupply state, plus one shared chassis flux reservoir.
 - **Relative handling mass** is the chassis's authored inertia for manual
   acceleration and braking. It is a dimensionless response parameter, not a
   tonnage estimate or remaining durability. The Bulwark has the heaviest
@@ -152,7 +152,7 @@ increasing an encounter's total armored threat.
 - A **gantry** is one of the support squad's four bay spaces, and it holds a mech
   or a **company vehicle** (`CampaignVehicle`): an id, a callsign and a
   `VehicleType`. The gantry is the only thing the two share. A vehicle has no
-  chassis, sockets, heat, replenisher or weapon components; its hull, turret and
+  chassis, sockets, flux, replenisher or weapon components; its hull, turret and
   kinematics are its type's, so there is nothing to fit until a vehicle doll
   exists (`mech-lab-data-authored-dolls.md`). Mechs and vehicles count against
   the same four gantries and the same restored berths, fabricate from the same
@@ -194,14 +194,14 @@ increasing an encounter's total armored threat.
   against owned quantity; a refit transaction returns the target mech's
   current component before evaluating the replacement.
 - An **internal** is a non-weapon fitting that changes the frame (`MechInternal`):
-  an **engine** in the CORE socket, a **heat sink** in AMMO_RESERVE, an optional
-  **cooler** in MINI_FAB, and **plating**, which covers the whole frame and has no
+  an **engine** in the CORE socket, a **capacitor bank** in AMMO_RESERVE, an optional
+  **vent array** in MINI_FAB, and **plating**, which covers the whole frame and has no
   socket. The **stock frame** is the industrial engine, factory plating and factory
-  heat sink, with the utility socket empty; every fabricated, recovered or migrated
+  capacitor bank, with the utility socket empty; every fabricated, recovered or migrated
   chassis carries it, and an existing mech with no recorded internals resolves to
   it. Each internal replaces one stock part; none multiplies the chassis.
 - The **loader** is the missile replenisher. The standard one is integral; a
-  faster one takes the MINI_FAB socket, so a loader and a cooler never share a
+  faster one takes the MINI_FAB socket, so a loader and a vent array never share a
   frame, and a chassis without that socket (the Hound) takes neither.
 - The **engine budget** is the engine's output against the fitted mass of every
   weapon and internal (`MechFrameBudget`). Output is the chassis's rated output
@@ -216,10 +216,10 @@ increasing an encounter's total armored threat.
   fit, so a fit from before the budget existed can be stripped down but never
   loaded further.
 - **Frame values** are what a fit resolves to and the deployment freezes
-  (`MechFrame`): armor capacity, move speed, heat capacity and cooling. Engine and
+  (`MechFrame`): armor capacity, move speed, flux capacity and dissipation. Engine and
   plating move speed and armor capacity along the chassis's own band, from its
   stock value to its refit ceiling (roughly the pre-cut value), so no fit makes
-  one chassis another. The heat sink sets the reservoir and base cooling, a cooler
+  one chassis another. The capacitor bank sets the reservoir and base dissipation, a vent array
   adds to it, and an uprated engine runs hotter. Battle reads only these values;
   internals, mass and budget stay campaign authority.
 - A **section** is where on a mech a round lands (`MechSection`): legs, torso,
@@ -257,7 +257,7 @@ increasing an encounter's total armored threat.
   frame the shoulder side is read in: front 45 degrees either side of the torso's
   nose, rear 45 degrees either side of its back, and the sides between. The front
   is the chassis rating as it stands. The flanks are 0.95 of the rating with each
-  point of torso armor counting 0.85. The back, where the reactor and its cooling
+  point of torso armor counting 0.85. The back, where the reactor and its flux vents
   sit, is 0.75 of the rating at 0.6 plate, so a round from behind strips torso
   armor two thirds faster. The arc governs the torso's own plate whether a hit
   lands on the torso or spills into it. Legs, arms and head meet the chassis rating
@@ -530,7 +530,7 @@ vehicle is both a duel target, read by its turret, and a duelist: a deployed
 armed hull between orders takes the same band against armor
 (`convoy-nouns.md`, deployed vehicles). A player's move order still wins over
 any band, for a hull as for a mech. Pressure
-leaves out penetration, heat and ammunition depth on purpose: they scale both
+leaves out penetration, flux and ammunition depth on purpose: they scale both
 sides of a trade alike far more often than they reverse it. A missile rack is the
 exception and is read by its warhead (Missile warheads).
 `-Dbattle.mech.duelRange=false` is the control; `MechDuelRangeScene` is the
@@ -612,7 +612,7 @@ Both battlefield hosts consume the same per-foot gait.
 ## Missile warheads
 
 Every SRM and LRM rack size comes with two warheads. A rack's size, footprint,
-cycle, heat, ammunition and replenisher are the same for both; only the warhead
+cycle, flux, ammunition and replenisher are the same for both; only the warhead
 differs. A mech's arm guns are its weapons against men, and its racks are its
 weapons against armor (owner, 2026-10-18), so the plain SRM-5, SRM-15, LRM-5 and
 LRM-15 are the anti-armor racks.
@@ -735,14 +735,14 @@ remains the authority for gait and moving-fire effects. Entry, handback, pause,
 and input suspension clear retained manual drive; natural key release brakes it.
 
 The primary trigger requests all installed ground-direct mounts, each spending
-its own ready ammunition and observing its mechanical cycle, heat admission, and burst state. Indirect
+its own ready ammunition and observing its mechanical cycle, flux admission, and burst state. Indirect
 mounts are withheld. The live cursor owns torso aim and every scheduled
 manual burst round. A refused release consumes its scheduled slot without
 emitting a shot or refunding the trigger pack, so blocked or unaimed mounts
 cannot hold a firing backlog or override current aim. Torso traversal between
 rear limits stays inside the forward arc rather than crossing the blind wedge.
 Entry, exit, and input suspension cancel queued rounds and aim without resetting mount clocks,
-ammunition, heat, or replenishment progress. Mech accuracy uses its shared weapon
+ammunition, flux, or replenishment progress. Mech accuracy uses its shared weapon
 calculation without infantry training multipliers.
 
 The actual posed barrel is the source for both autonomous and manual direct
@@ -1090,7 +1090,7 @@ support sortie, subject only to practical runtime resources.
 A power suit is wearable infantry equipment, not a mech chassis. Its named
 marine remains in the personnel roster, infantry squad, ordinary lift and
 casualty authority; the armor pattern owns its class and protection. Suit
-shoulder hardware does not imply mech sockets, shared heat, component inventory,
+shoulder hardware does not imply mech sockets, shared flux, component inventory,
 lances, the Mech Lab, or Mech Support. `power-suit-infantry.md` owns that category.
 
 A new chassis requires a distinct information or combat doctrine and a real
@@ -1136,31 +1136,38 @@ type or rendering, so a future chassis is excluded without the recovery sweep
 knowing it. A drop with only mechs nearby stays unassigned.
 
 
-## Thermal reservoir and weapon mechanisms
+## Flux reservoir and weapon mechanisms
 
-The battle loadout owns one heat reservoir whose capacity and cooling are the
-deployment's frozen frame values. The stock frame gives 100 units cooling at 6
-units/second, and every enemy, employer and debug mech fights on it; a fitted heat
-sink, cooler and engine change it for one player mech. Current heat is battle
-state, not a campaign repair cost.
+The battle loadout owns one flux reservoir whose capacity and dissipation are the
+deployment's frozen frame values. The stock frame gives 100 units of flux capacity
+dissipating at 6 units/second, and every enemy, employer and debug mech fights on it; a
+fitted capacitor bank, vent array and engine change it for one player mech. Current flux
+is battle state, not a campaign repair cost.
 
-A weapon component owns its mechanical trigger-to-trigger period and its heat
+The words are Starsector's own, because the game already has this concept: weapons
+build **flux**, the frame's **capacity** bounds it, **dissipation** sheds it every second,
+and a frame forced to stop firing until it drops is **venting**. The internals follow the
+same vocabulary: a **capacitor bank** sets capacity and base dissipation, a **vent array**
+adds dissipation. A mech's flux and a warship's flux share one gauge on the direct-control
+HUD. Never call it heat, which reads as a separate mod mechanic.
+
+A weapon component owns its mechanical trigger-to-trigger period and its flux
 reservation. The Hound nose chaingun cycles every 0.65 seconds for a six-round
-burst costing 18 heat. SRM-5 loads every 1.8 seconds for a two-rocket packet
-costing 28 heat. Burst continuation must also finish before another trigger.
+burst costing 18 flux. SRM-5 loads every 1.8 seconds for a two-rocket packet
+costing 28 flux. Burst continuation must also finish before another trigger.
 Projectile damage and spacing are unchanged. Larger and specialist components
 have explicit profiles; ordinary infantry/vehicle weapon cadence is unchanged.
 
 AI and manual triggers share the 100-unit admission ceiling. The first emitted
-round commits the whole packet's heat and ammunition, allowing scheduled rounds
+round commits the whole packet's flux and ammunition, allowing scheduled rounds
 to complete even if the chassis becomes hot. Blocked/unaimed first rounds spend
-nothing; cancelled packets retain spent heat and ammo. Cooling runs once in the
+nothing; cancelled packets retain spent flux and ammo. Dissipation runs once in the
 serial heavy-weapon pass, including on unselected mounts and autonomous chassis.
 Direct-control entry, exit, pause and input suspension never reset these resources.
 
 **Against a machine, the mount that best defeats its armor fires first.** The
 reservoir admits one packet at a time, so whichever mount an autonomous mech tries
-first after a release takes the heat. Against a mech or a ground vehicle, mounts
+first after a release takes the flux. Against a mech or a ground vehicle, mounts
 are tried in order of armor efficiency against that target's rating
 (`clamp(penetration / rating, 0, 1)`, the better of a weapon's payloads), with
 slot order kept on ties (`MechFireOrder`). Against anything else the slot order
@@ -1172,14 +1179,14 @@ it, and a fragmentation rack (penetration 4) goes after every arm gun. Manual fi
 `-Dbattle.mech.armorFireOrder=false` is the control.
 
 Thresholds are fractions of capacity, quoted here at the stock 100. AI refuses a
-trigger that would exceed 90 heat. At 75 it holds further triggers until 40,
+trigger that would exceed 90 flux. At 75 it holds further triggers until 40,
 continuing its standing movement and assignment. Manual fire may spend the extra
 headroom; at 95 it vents until 55, with no damage or movement shutdown. A trigger that would exceed capacity
-waits for enough headroom even below that interlock. The HUD shows shared heat
-and per-mount thermal holds separately from cycler/loader progress and pack
-supply. Mech Lab hover sheets expose both costs and cooling time per burst.
+waits for enough headroom even below that interlock. The HUD shows shared flux
+and per-mount flux holds separately from cycler/loader progress and pack
+supply. Mech Lab hover sheets expose both costs and dissipation time per burst.
 
-Evidence: `hound-heat` compares held fire, paced bursts, autonomous cooling and
+Evidence: `hound-flux` compares held fire, paced bursts, autonomous dissipation and
 reverse/strafe motion; its snapshot suite overlays the live production HUD on
 1920x1080 battle frames at 100% scale. Focused tests cover admission, single-charge
 salvos, independent mechanical clocks, resource-preserving handback and terrain-safe

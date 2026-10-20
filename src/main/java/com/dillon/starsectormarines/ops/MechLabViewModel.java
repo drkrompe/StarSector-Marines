@@ -444,20 +444,20 @@ public final class MechLabViewModel {
         return mech != null ? mech.fit() : null;
     }
 
-    /** Heat reservoir a weapon sheet reads against: the selected mech's, or the stock one. */
-    public float selectedHeatCapacity() {
+    /** Flux reservoir a weapon sheet reads against: the selected mech's, or the stock one. */
+    public float selectedFluxCapacity() {
         MechFrameBudget.Fit fit = selectedFit();
-        return fit != null ? fit.heatCapacity() : MechInternal.FACTORY_HEAT_SINK.heatCapacity;
+        return fit != null ? fit.fluxCapacity() : MechInternal.FACTORY_CAPACITOR_BANK.fluxCapacity;
     }
 
-    /** Cooling a weapon sheet reads against: the selected mech's, or the stock frame's. */
-    public float selectedCoolingPerSecond() {
+    /** Dissipation a weapon sheet reads against: the selected mech's, or the stock frame's. */
+    public float selectedDissipationPerSecond() {
         MechFrameBudget.Fit fit = selectedFit();
-        return fit != null ? fit.coolingPerSecond() : MechInternal.FACTORY_HEAT_SINK.cooling;
+        return fit != null ? fit.dissipationPerSecond() : MechInternal.FACTORY_CAPACITOR_BANK.dissipation;
     }
 
     /**
-     * The internal shown in one socket well: the engine, the heat sink, or the cooler
+     * The internal shown in one socket well: the engine, the capacitor bank, or the vent array
      * holding the utility socket. Null for weapon mounts and an empty utility socket.
      */
     public MechInternal installedInternal(SocketId id) {
@@ -756,10 +756,10 @@ public final class MechLabViewModel {
                         fit.armorCapacity(), maximum(MechFrameBudget::refitArmorCapacity), ghost.armorCapacity()),
                 meter("mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(fit.moveSpeed())),
                         fit.moveSpeed(), maximum(MechFrameBudget::refitMoveSpeed), ghost.moveSpeed()),
-                meter("heat", Strings.get("openingMechLabHeatSink"), Strings.format("openingMechLabHeatValue", number(fit.heatCapacity())),
-                        fit.heatCapacity(), maximumHeatCapacity(), ghost.heatCapacity()),
-                meter("cooling", Strings.get("openingMechLabCooling"), Strings.format("openingMechLabCoolingValue", number(fit.coolingPerSecond())),
-                        fit.coolingPerSecond(), maximumCooling(), ghost.coolingPerSecond()),
+                meter("flux", Strings.get("openingMechLabCapacitorBank"), Strings.format("openingMechLabFluxValue", number(fit.fluxCapacity())),
+                        fit.fluxCapacity(), maximumFluxCapacity(), ghost.fluxCapacity()),
+                meter("dissipation", Strings.get("openingMechLabDissipation"), Strings.format("openingMechLabDissipationValue", number(fit.dissipationPerSecond())),
+                        fit.dissipationPerSecond(), maximumDissipation(), ghost.dissipationPerSecond()),
                 meter("range", Strings.get("openingMechLabMaxRange"), Strings.format("openingMechLabCells", number(currentRange)),
                         currentRange, maximumWeaponRange(), ghostRange),
                 meter("endurance", Strings.get("openingMechLabMissiles"), Strings.format("openingMechLabTriggers", currentMissiles),
@@ -790,28 +790,28 @@ public final class MechLabViewModel {
                 number(fit.fittedMass()), number(fit.output()));
     }
 
-    private static float maximumHeatCapacity() {
+    private static float maximumFluxCapacity() {
         float max = 0f;
         for (MechInternal internal : MechInternal.values()) {
-            if (internal.role == MechInternal.Role.HEAT_SINK) max = Math.max(max, internal.heatCapacity);
+            if (internal.role == MechInternal.Role.CAPACITOR_BANK) max = Math.max(max, internal.fluxCapacity);
         }
         return max;
     }
 
-    /** Best heat sink and cooler, with the engine that runs coolest. */
-    private static float maximumCooling() {
-        float sink = 0f;
-        float cooler = 0f;
+    /** Best capacitor bank and vent array, with the engine that costs the least flux. */
+    private static float maximumDissipation() {
+        float capacitors = 0f;
+        float ventArray = 0f;
         float engine = Float.NEGATIVE_INFINITY;
         for (MechInternal internal : MechInternal.values()) {
             switch (internal.role) {
-                case HEAT_SINK -> sink = Math.max(sink, internal.cooling);
-                case COOLER -> cooler = Math.max(cooler, internal.cooling);
-                case ENGINE -> engine = Math.max(engine, internal.cooling);
+                case CAPACITOR_BANK -> capacitors = Math.max(capacitors, internal.dissipation);
+                case VENT_ARRAY -> ventArray = Math.max(ventArray, internal.dissipation);
+                case ENGINE -> engine = Math.max(engine, internal.dissipation);
                 default -> { }
             }
         }
-        return sink + cooler + Math.max(0f, engine);
+        return capacitors + ventArray + Math.max(0f, engine);
     }
 
     private List<SlotRow> buildSlots(List<SocketId> slots) {
@@ -872,7 +872,7 @@ public final class MechLabViewModel {
         return switch (selectedSlot.get()) {
             case MINI_FAB -> Strings.get("openingMechLabUtilityCopy");
             case CORE -> Strings.get("openingMechLabEngineCopy");
-            case AMMO_RESERVE -> Strings.get("openingMechLabHeatSinkCopy");
+            case AMMO_RESERVE -> Strings.get("openingMechLabCapacitorBankCopy");
             case ARMS, LEFT_SHOULDER, RIGHT_SHOULDER ->
                     slotComponent(mech, selectedSlot.get()).equals(Strings.get("openingMechLabEmptyHardpoint"))
                             ? Strings.get("openingMechLabEmptyMountFitCompatibleMissileHardwareHere")
@@ -902,7 +902,7 @@ public final class MechLabViewModel {
         if (mech != null && platingSelected.get()) return internalCatalog(mech, MechInternal.Role.PLATING);
         if (selectedSlot.get() == SocketId.MINI_FAB) {
             List<CatalogRow> rows = new ArrayList<>(replenisherCatalog(mech));
-            if (mech != null) rows.addAll(internalCatalog(mech, MechInternal.Role.COOLER));
+            if (mech != null) rows.addAll(internalCatalog(mech, MechInternal.Role.VENT_ARRAY));
             return List.copyOf(rows);
         }
         MechInternal.Role role = roleFor(selectedSlot.get());
@@ -1093,9 +1093,9 @@ public final class MechLabViewModel {
             int owned = bay.ownedReplenisher(component.id());
             int fielded = bay.installedReplenisher(component.id());
             int free = bay.availableReplenisher(component.id());
-            // A faster loader takes the utility socket, so a fitted cooler bars it.
+            // A faster loader takes the utility socket, so a fitted vent array bars it.
             boolean socketTaken = mech != null && !installed
-                    && mech.internal(MechInternal.Role.COOLER) != null
+                    && mech.internal(MechInternal.Role.VENT_ARRAY) != null
                     && !MissileReplenisherComponent.STANDARD.id().equals(component.id());
             boolean disabled = mech == null || installed || free <= 0 || socketTaken;
             boolean inCargo = free > 0;
@@ -1142,7 +1142,7 @@ public final class MechLabViewModel {
             int free = bay.availableInternal(internal.id);
             boolean installed = current == internal;
             boolean fits = bay.canInstallInternal(mech.id(), internal);
-            boolean loaderConflict = !fits && role == MechInternal.Role.COOLER
+            boolean loaderConflict = !fits && role == MechInternal.Role.VENT_ARRAY
                     && !MissileReplenisherComponent.STANDARD.id().equals(mech.missileReplenisherId());
             MechFrameBudget.Fit proposed = fit.withInternal(role, internal);
             boolean withinBudget = installed || bay.withinBudget(mech.id(), proposed);
@@ -1178,7 +1178,7 @@ public final class MechLabViewModel {
                     : !affordable ? Strings.get("openingMechLabMaterialsShort")
                     : Strings.get("openingMechLabFabricateInstall");
             String actionHint = installed ? Strings.get("openingMechLabAlreadyInstalledInThisMech")
-                    : loaderConflict ? Strings.get("openingMechLabCoolerLoaderHint")
+                    : loaderConflict ? Strings.get("openingMechLabVentArrayLoaderHint")
                     : !fits ? Strings.get("openingMechLabInternalTooLargeHint")
                     : !withinBudget ? overBudgetHint(proposed)
                     : inCargo ? Strings.get("openingMechLabInternalSpareHint")
@@ -1223,15 +1223,15 @@ public final class MechLabViewModel {
             case ENGINE -> new float[]{proposed.output() - current.output(),
                     proposed.moveSpeed() - current.moveSpeed()};
             case PLATING -> new float[]{proposed.armorCapacity() - current.armorCapacity()};
-            case HEAT_SINK -> new float[]{proposed.heatCapacity() - current.heatCapacity(),
-                    proposed.coolingPerSecond() - current.coolingPerSecond()};
-            case COOLER -> new float[]{proposed.coolingPerSecond() - current.coolingPerSecond()};
+            case CAPACITOR_BANK -> new float[]{proposed.fluxCapacity() - current.fluxCapacity(),
+                    proposed.dissipationPerSecond() - current.dissipationPerSecond()};
+            case VENT_ARRAY -> new float[]{proposed.dissipationPerSecond() - current.dissipationPerSecond()};
         };
         String[] labels = switch (role) {
             case ENGINE -> new String[]{"openingMechLabDeltaOutput", "openingMechLabDeltaSpeed"};
             case PLATING -> new String[]{"openingMechLabDeltaArmor"};
-            case HEAT_SINK -> new String[]{"openingMechLabDeltaHeat", "openingMechLabDeltaCool"};
-            case COOLER -> new String[]{"openingMechLabDeltaCool"};
+            case CAPACITOR_BANK -> new String[]{"openingMechLabDeltaFlux", "openingMechLabDeltaDissipation"};
+            case VENT_ARRAY -> new String[]{"openingMechLabDeltaDissipation"};
         };
         for (int i = 0; i < stats.length; i++) {
             float value = stats[i];
@@ -1259,10 +1259,10 @@ public final class MechLabViewModel {
                     number(fit.output()), number(fit.moveSpeed()));
             case PLATING -> Strings.format("openingMechLabInternalPlatingTelemetry",
                     Math.round(fit.armorCapacity()));
-            case HEAT_SINK -> Strings.format("openingMechLabInternalHeatSinkTelemetry",
-                    number(fit.heatCapacity()), number(fit.coolingPerSecond()));
-            case COOLER -> Strings.format("openingMechLabInternalCoolerTelemetry",
-                    number(internal.cooling));
+            case CAPACITOR_BANK -> Strings.format("openingMechLabInternalCapacitorBankTelemetry",
+                    number(fit.fluxCapacity()), number(fit.dissipationPerSecond()));
+            case VENT_ARRAY -> Strings.format("openingMechLabInternalVentArrayTelemetry",
+                    number(internal.dissipation));
         };
     }
 
@@ -1275,8 +1275,8 @@ public final class MechLabViewModel {
     static MechInternal.Role roleFor(SocketId socket) {
         return switch (socket) {
             case CORE -> MechInternal.Role.ENGINE;
-            case AMMO_RESERVE -> MechInternal.Role.HEAT_SINK;
-            case MINI_FAB -> MechInternal.Role.COOLER;
+            case AMMO_RESERVE -> MechInternal.Role.CAPACITOR_BANK;
+            case MINI_FAB -> MechInternal.Role.VENT_ARRAY;
             default -> null;
         };
     }
@@ -1606,7 +1606,7 @@ public final class MechLabViewModel {
 
     public void stripWeapon(SocketId slot) {
         if (slot == SocketId.MINI_FAB) {
-            stripCooler();
+            stripVentArray();
             return;
         }
         CampaignMech mech = selectedMech();
@@ -1627,14 +1627,14 @@ public final class MechLabViewModel {
         revision.update(value -> value + 1);
     }
 
-    /** Empties the utility socket; the cooler is the only internal that may be left out. */
-    public boolean stripCooler() {
+    /** Empties the utility socket; the vent array is the only internal that may be left out. */
+    public boolean stripVentArray() {
         CampaignMech mech = selectedMech();
         if (mech == null) return false;
-        MechInternal previous = mech.internal(MechInternal.Role.COOLER);
-        MechWorkshop.Result result = workshop.stripCooler(mech.id());
+        MechInternal previous = mech.internal(MechInternal.Role.VENT_ARRAY);
+        MechWorkshop.Result result = workshop.stripVentArray(mech.id());
         feedbackText.set(switch (result.status()) {
-            case STRIPPED -> Strings.format("openingMechLabCoolerStripped", previous.displayName());
+            case STRIPPED -> Strings.format("openingMechLabVentArrayStripped", previous.displayName());
             case ALREADY_STRIPPED -> Strings.get("openingMechLabUtilitySocketAlreadyEmpty");
             default -> Strings.get("openingMechLabUnequipBlockedCampaignHardwareWasNotChanged");
         });
@@ -1852,9 +1852,9 @@ public final class MechLabViewModel {
             case ARMS -> componentName(mech.arms());
             case LEFT_SHOULDER -> componentName(mech.leftShoulder());
             case RIGHT_SHOULDER -> componentName(mech.rightShoulder());
-            case AMMO_RESERVE -> mech.internal(MechInternal.Role.HEAT_SINK).displayName();
-            case MINI_FAB -> mech.internal(MechInternal.Role.COOLER) != null
-                    ? mech.internal(MechInternal.Role.COOLER).displayName()
+            case AMMO_RESERVE -> mech.internal(MechInternal.Role.CAPACITOR_BANK).displayName();
+            case MINI_FAB -> mech.internal(MechInternal.Role.VENT_ARRAY) != null
+                    ? mech.internal(MechInternal.Role.VENT_ARRAY).displayName()
                     : mech.missileReplenisherId().equals(MissileReplenisherComponent.ACCELERATED_FEED.id())
                     ? Strings.get("openingMechLabAcceleratedFeed") : Strings.get("openingMechLabStandardReplenisher");
         };

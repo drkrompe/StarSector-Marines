@@ -3,9 +3,9 @@
  "asset": "second-wind-derelict.blend",
  "collection": "SECOND WIND | derelict",
  "root": "SECOND WIND | derelict | root",
- "objects": 1070,
- "meshes": 1033,
- "images": 45,
+ "objects": 1056,
+ "meshes": 1019,
+ "images": 41,
  "passed": true,
  "failed": [],
  "checks": {
@@ -27,8 +27,8 @@
   "object count": {
    "ok": true,
    "detail": [
-    1033,
-    1033
+    1019,
+    1019
    ]
   },
   "polygon count": {
@@ -40,12 +40,12 @@
   },
   "hull_rest is rest position": {
    "ok": true,
-   "detail": 0.0
+   "detail": 4e-06
   },
   "base wear on every skin and swatch": {
    "ok": true,
    "detail": {
-    "materials": 94,
+    "materials": 72,
     "missing": []
    }
   },
@@ -55,7 +55,7 @@
   "overlay on every family material": {
    "ok": true,
    "detail": {
-    "materials": 112,
+    "materials": 93,
     "missing": []
    }
   },
@@ -72,6 +72,19 @@
   "turret pivots train": {
    "ok": true,
    "detail": 0.0
+  },
+  "turret guns elevate": {
+   "ok": true,
+   "detail": {
+    "err": 0.0,
+    "bad": [],
+    "muzzles": {
+     "1": 0,
+     "2": 0,
+     "3": 0,
+     "4": 0
+    }
+   }
   },
   "seized turrets carry nothing": {
    "ok": true,

@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-19 — one front for the worst known threat and a gun that shakes while its hull turns: two fire-support APCs from opposite sides take 0.50 of their fights against a tank against 0.17-0.33 from one approach, and the lone flanker stays modest (readings below); a stalled hold in band moves to a clear lane (street undecided fights 227 to 141 of 828, facing gains untouched); keeping the front: a flanked tank turns onto its target (backing out to 120° off the nose, a forward turn beyond, rehearsed first and never off a berm), which takes the escort APC's side-on and rear-on wins against a tank from 0.42-0.46 to 0.12 and 0.08; a gunless tank backing out of reach nose on was measured and rejected (readings below); balance is not parity (a law: read rows against bill and tier), and the dozer's and SRM technical's facing rows retuned to it; facing: a hull's plate, and a mech torso's, depend on the arc they are hit on (readings below; the matchup harness now sets hulls down facing the enemy, which re-baselines the street rows); earlier: the AT LRM against a tank: the screened tank, a tank-line rung with top-attack active protection (fit 0.78 to 0.66), rack levers measured and rejected; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and heat 28, pulse laser heat 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, heat 34, Sirocco rated 39); earlier: engines carry mass, military sink 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-19 — one front for the worst known threat and a gun that shakes while its hull turns: two fire-support APCs from opposite sides take 0.50 of their fights against a tank against 0.17-0.33 from one approach, and the lone flanker stays modest (readings below); a stalled hold in band moves to a clear lane (street undecided fights 227 to 141 of 828, facing gains untouched); keeping the front: a flanked tank turns onto its target (backing out to 120° off the nose, a forward turn beyond, rehearsed first and never off a berm), which takes the escort APC's side-on and rear-on wins against a tank from 0.42-0.46 to 0.12 and 0.08; a gunless tank backing out of reach nose on was measured and rejected (readings below); balance is not parity (a law: read rows against bill and tier), and the dozer's and SRM technical's facing rows retuned to it; facing: a hull's plate, and a mech torso's, depend on the arc they are hit on (readings below; the matchup harness now sets hulls down facing the enemy, which re-baselines the street rows); earlier: the AT LRM against a tank: the screened tank, a tank-line rung with top-attack active protection (fit 0.78 to 0.66), rack levers measured and rejected; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and flux 28, pulse laser flux 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, flux 34, Sirocco rated 39); earlier: engines carry mass, military capacitors 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -14,13 +14,13 @@ learning loadout cards (`progression-nouns.md`); machines progress by learning
 tiers and sources but not their unit of learning, because the player fits a mech
 and never fits a marine.
 
-Read `mechs-nouns.md` (chassis, sockets, Mech Lab, heat), `convoy-nouns.md`
+Read `mechs-nouns.md` (chassis, sockets, Mech Lab, flux), `convoy-nouns.md`
 (vehicles) and `air-nouns.md` (boats and fittings) before changing a story below.
 
 ## The shape of the ladder
 
 1. **A stock frame is where every machine starts.** Each chassis ships with an
-   industrial engine, factory plating and a factory cooler. Those are weaker than
+   industrial engine, factory plating and a factory vent array. Those are weaker than
    what the machine could be; today's pre-nerf numbers are roughly what a
    well-refit frame reaches, not what a fresh one has.
 2. **A pattern is learned, then built.** Learning a pattern gives the company the
@@ -41,7 +41,7 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, heat), `convoy-nouns.md`
 ## Vocabulary
 
 - **Stock frame.** The factory internals every chassis carries when fabricated or
-  recovered: industrial engine, factory plating, factory cooler. It is a fitting
+  recovered: industrial engine, factory plating, factory vent array. It is a fitting
   like any other, so a stock frame is upgraded by replacing its parts, never by a
   hidden multiplier. Faction issue may field better internals; the stock frame is
   the floor for every side alike.
@@ -53,8 +53,8 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, heat), `convoy-nouns.md`
   pattern card is one item, because the player composes each machine.
 - **Assembly.** One built, physical item in the bay's stores or on a machine.
   Finite and losable (`MechBay.loseSpares`); a pattern is neither.
-- **Internal.** A non-weapon fitting that changes the frame: engine, plating, heat
-  sink, cooler, loader. Internals live in sockets the doll already reserves (the
+- **Internal.** A non-weapon fitting that changes the frame: engine, plating,
+  capacitor bank, vent array, loader. Internals live in sockets the doll already reserves (the
   CORE, AMMO_RESERVE and MINI_FAB placeholders).
 - **Engine budget.** An engine's output, against the mass of everything fitted.
   A fit over budget is refused atomically. Engine tier also sets the chassis's
@@ -67,7 +67,7 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, heat), `convoy-nouns.md`
   pattern carries (Common, Advanced, Prestige) and the lift class it asks for.
 - **Bay space.** One gantry in the mech bay. The company ship carries four, and
   each holds a mech or a vehicle. A vehicle sharing the bay is still not a mech:
-  it never uses a mech chassis, socket or heat model.
+  it never uses a mech chassis, socket or flux model.
 - **Drop choice.** Calling armor picks which bay spaces come down on this call,
   instead of dropping a whole lance. A cooldown spaces the calls; lift bounds the
   total per mission.
@@ -86,13 +86,13 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, heat), `convoy-nouns.md`
   more mass than the one it replaces in the same role. That is what makes a light
   chassis's sockets and engine a real limit rather than a cosmetic one.
 - **Every upgrade gives something up.** Heavy plating costs mass and so speed or
-  budget; a large heat sink takes the utility slot a faster loader wanted; an
+  budget; a large capacitor bank takes the utility slot a faster loader wanted; an
   uprated engine costs materials and runs hotter. Nothing multiplies structure,
   armor capacity and armor rating together (`mechs-nouns.md`, internal).
 - **Chassis identity survives every fit.** A fully refit Hound is a better Hound,
   not a cheap Bulwark. Each chassis keeps its weapon bands and its weakness.
 - **The fitting is frozen at launch.** Campaign validates and stores ids; the
-  deployment spec carries them; battle owns heat, ammunition and damage and never
+  deployment spec carries them; battle owns flux, ammunition and damage and never
   reaches back into the campaign (`mechs-nouns.md`).
 - **A payload flies in a real carrier.** Heavy drops move to company boats and
   committed ships, so a carrier lost is a carrier the company no longer has. A
@@ -115,34 +115,34 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, heat), `convoy-nouns.md`
 All mechs were cut to the stock frame on 2026-10-16, enemy and employer mechs
 included, on the three axes later internals will buy back:
 
-| | Armor capacity | Move speed | Cooling |
+| | Armor capacity | Move speed | Dissipation |
 | --- | --- | --- | --- |
 | Bulwark | 950 → 710 | 1.15 → 1.05 | 8 → 6 /s |
 | Hound | 500 → 375 | 1.70 → 1.55 | 8 → 6 /s |
 | Sirocco | 400 → 300 | 1.45 → 1.32 | 8 → 6 /s |
 
-Structure, armor rating, heat capacity and every weapon are unchanged, so
+Structure, armor rating, flux capacity and every weapon are unchanged, so
 durability order (Bulwark, Hound, Sirocco) and each chassis's weapon bands hold.
 
 ## Internals (shipped)
 
-Plating restores capacity, engines restore speed, heat sinks and coolers restore
-cooling, each along the chassis's own band (`mechs-nouns.md`, internal and engine
+Plating restores capacity, engines restore speed, capacitor banks and vent arrays restore
+dissipation, each along the chassis's own band (`mechs-nouns.md`, internal and engine
 budget). The ladder, tuned on headless readings (below):
 
 | Role | Common (stock) | Advanced | Prestige |
 | --- | --- | --- | --- |
-| Engine (CORE) | Industrial, output x1.00, 2x1 | Uprated, x1.25, half the speed band, 2x2, mass 1 | Military, x1.50, full band, 2x2, mass 3, -0.5 cooling |
+| Engine (CORE) | Industrial, output x1.00, 2x1 | Uprated, x1.25, half the speed band, 2x2, mass 1 | Military, x1.50, full band, 2x2, mass 3, -0.5 dissipation |
 | Plating (frame) | Factory | Composite: half the armor band, 1 plating unit | Heavy: full band, 2.5 units |
-| Heat sink (AMMO_RESERVE) | Factory: 100 heat, 6/s, 1x1 | Double: 120, 7.5/s, 2x1, mass 3 | Military: 120, 8/s, 3x1, mass 5 |
-| Cooler (MINI_FAB) | none | Auxiliary: +1/s, mass 2 | — |
+| Capacitor bank (AMMO_RESERVE) | Factory: 100 flux, 6/s, 1x1 | Double: 120, 7.5/s, 2x1, mass 3 | Military: 120, 8/s, 3x1, mass 5 |
+| Vent array (MINI_FAB) | none | Auxiliary: +1/s, mass 2 | — |
 
 Rated output is Hound 20, Sirocco 39, Bulwark 46 (stock weapons weigh 16, 39 and
 40); a plating unit is 3, 4 and 6. A full refit reaches the pre-cut armor and speed
-and roughly the old cooling: Bulwark 950 / 1.15 / 120 heat at 8.5/s, Sirocco 400 /
+and roughly the old dissipation: Bulwark 950 / 1.15 / 120 flux at 8.5/s, Sirocco 400 /
 1.45 at 8/s, Hound 500 / 1.70 at 7/s. The trade is room: the Hound's two-cell
-reserve cannot take the military sink and it has no utility socket, a faster loader
-displaces the cooler, and a full plate and engine leave little output for the top
+reserve cannot take the military capacitor bank and it has no utility socket, a faster loader
+displaces the vent array, and a full plate and engine leave little output for the top
 weapons.
 
 **Why engines carry mass.** Every authored doll's CORE socket is 2x2, so an
@@ -181,41 +181,41 @@ output, so the starter fit still earns its gantry. A full refit restores the
 Bulwark and Sirocco to pre-cut endurance and the Hound to 0.85-0.97 of it, inside
 a seed spread of ±10-20 s — use eight seeds for any call near 10%.
 
-**The Hound's cooling ceiling stays below the old 8/s.** Its weapons draw about
-43 heat/s against 6-8/s of cooling, so sustained fire scales almost linearly
-with cooling (a stock Hound firing for 60 s: 971 damage at 6/s, 1080 at 7/s,
-1180 at 8/s). The uprated-engine Hound (composite plate, double sink, 120 heat at
+**The Hound's dissipation ceiling stays below the old 8/s.** Its weapons draw about
+43 flux/s against 6-8/s of dissipation, so sustained fire scales almost linearly
+with dissipation (a stock Hound firing for 60 s: 971 damage at 6/s, 1080 at 7/s,
+1180 at 8/s). The uprated-engine Hound (composite plate, double capacitor bank, 120 flux at
 7.5/s, 23 of 25 mass) already matches pre-cut damage per minute; the military
 refit gives up 7-18% of that for full armor and speed. That trade is the one the
 laws ask for, so the ceiling is 7.5/s on the uprated engine and 7/s on the
 military one.
 
-**The military sink holds 120, and its edge is cooling.** The AI fires a weapon
+**The military capacitor bank holds 120, and its edge is dissipation.** The AI fires a weapon
 only while the reservoir stays under 90%, locks out at 75% and releases at 40%,
 and it tries the arms before the shoulders. So whether a released Bulwark fires
-an SRM-15 salvo (42 heat) before its chainguns' next cycle (30 heat every
-1.05 s) depends on whether the reservoir exceeds 2 x (72 - 1.05 x cooling),
+an SRM-15 salvo (42 flux) before its chainguns' next cycle (30 flux every
+1.05 s) depends on whether the reservoir exceeds 2 x (72 - 1.05 x dissipation),
 about 126 at 8.5/s. Above that line each release goes chaingun plus SRM, about
 5% more damage against a mech. Below it, it goes chaingun plus chaingun, the
 same mix the pre-cut frame fires. Readings are flat on either side of the line,
 which is why an eight-seed study of 130 against 140 looked non-monotonic. At 140
 a full-refit Bulwark out-gunned its pre-cut frame by 16-18%; at 120 it is 12-13%
 over, at equal endurance (192 seeds, standard error about 1%). 120 stays under
-the line for any cooling up to 11.4/s, and it is the floor below which the
-Prestige sink would hold less than the double sink. The remaining 12% is the
-Prestige premium: cooling 8.5 against the pre-cut 8.0, and a 120 reservoir
-against 100. It still beats the double-sink refit by about 9%. Cutting its
-cooling to 7.5 would make it buy nothing, and a harsher military-engine penalty
+the line for any dissipation up to 11.4/s, and it is the floor below which the
+A prestige capacitor bank would hold less than the double bank. The remaining 12% is the
+Prestige premium: dissipation 8.5 against the pre-cut 8.0, and a 120 reservoir
+against 100. It still beats the double-bank refit by about 9%. Cutting its
+dissipation to 7.5 would make it buy nothing, and a harsher military-engine penalty
 would also hit the Hound.
 
 **The Sirocco is rated 39.** The LRM-15 is long-range support's Advanced rack,
 as the SRM-15 is the Bulwark's. At 34 the most fragile chassis had to give up its
-double sink or its heavy plate to carry one. At 36 the factory heavy cannon,
+double capacitor bank or its heavy plate to carry one. At 36 the factory heavy cannon,
 LRM-5 and LRM-15 fit a full frame (400 armor, 8/s) with no headroom, so the tier
 still costs room. The heavy cannon then gained 3 of build mass (below), and the
 rating rose by exactly that, so the Sirocco's own fit is where it was: the stock
 fit fills the industrial engine, and the full frame fits the military one with
-1.5 to spare, short of the cooler's 2. The best of everything still does not fit,
+1.5 to spare, short of the vent array's 2. The best of everything still does not fit,
 and a refit Sirocco still out-plates no Hound.
 
 ## The heavy cannon is equipment, not the Sirocco's gun
@@ -234,8 +234,8 @@ meant to be fragile under direct fire, and a Sirocco mirror fight is short
 
 **The cannon cost its carrier nothing.** It weighed 14, two more than the
 factory chaingun, and a full refit Bulwark has exactly 2 to spare, so the best
-Bulwark frame carried it at no loss. It also runs cool: 26 heat per 2.5 s round
-is 10 heat/s, against the chaingun's 29. A cool arm leaves the reservoir to the
+Bulwark frame carried it at no loss. It also runs cool: 26 flux per 2.5 s round
+is 10 flux/s, against the chaingun's 29. A cool arm leaves the reservoir to the
 SRM-15s, which did 60-78% of a cannon Bulwark's damage at the 17-18-cell range
 the duel band holds. So a cannon on a **stock** Bulwark beat a **fully refit**
 chaingun Bulwark 70% of the time: an Advanced weapon outweighing a whole internal
@@ -244,26 +244,26 @@ refit.
 **What it costs now:**
 
 - **Build mass 3** (`MechFrameBudget`; mass 17). A full refit Bulwark with the
-  cannon and two SRM-15s gives up its cooler. The Sirocco's rating took the same
+  cannon and two SRM-15s gives up its vent array. The Sirocco's rating took the same
   3, so the Sirocco pays nothing for its own gun. Mass alone did not move a fight:
-  at +3 and at +6 (cooler and sink tier given up) the refit cannon Bulwark still
+  at +3 and at +6 (vent array and capacitor-bank tier given up) the refit cannon Bulwark still
   beat a refit chaingun Bulwark 83-88%. Every authored doll's internals are cheap
-  next to the reservoir the cannon left free, which is why heat was needed too.
+  next to the reservoir the cannon left free, which is why flux was needed too.
   +6 was also rejected because the Sirocco's rating would have to rise by 6, and
-  the military engine would then hand it a free cooler.
-- **Heat 34 per round** (was 26; 13.6 heat/s at its cycle). The cannon now
-  competes with the SRM-15s for the reservoir. On a stock frame (100 heat, 6/s)
+  the military engine would then hand it a free vent array.
+- **Flux 34 per round** (was 26; 13.6 flux/s at its cycle). The cannon now
+  competes with the SRM-15s for the reservoir. On a stock frame (100 flux, 6/s)
   that is the cost that bites; on a 120 reservoir at 7.5/s less so. At 42 the
   stock-frame cannon Bulwark lost to everything but a stock chaingun, a weapon
   not worth carrying; 34 is where it trades even with the chaingun refit's
-  frame. A short Sirocco fight lives off its reservoir, so heat barely touches
+  frame. A short Sirocco fight lives off its reservoir, so flux barely touches
   the Sirocco (mirror 13 s either way).
 - **Range stays 26**, already the shortest mech arm (chaingun 30, pulse laser 32,
   bastion 34). Cycle time is unchanged.
 
 Readings (`armorMatchup`, explicit fits, open / hull-down / street, eight seeds,
 both roles; win share, and mean open-ground seconds from first hit). Controls
-are `-Dbattle.mech.heavyCannonBuildMass=0 -Dbattle.mech.heavyCannonHeat=26`.
+are `-Dbattle.mech.heavyCannonBuildMass=0 -Dbattle.mech.heavyCannonFlux=26`.
 
 | Fight | Before | After |
 | --- | --- | --- |
@@ -281,7 +281,7 @@ are `-Dbattle.mech.heavyCannonBuildMass=0 -Dbattle.mech.heavyCannonHeat=26`.
 
 The cannon is still a good Bulwark arm: refit around it, it beats the factory
 chaingun refit and the Prestige pulse laser. It is no longer the best one, it
-costs a cooler and a hotter reservoir to carry, and on a stock frame it no longer
+costs a vent array and a fuller reservoir to carry, and on a stock frame it no longer
 outweighs a refit. The heavy-cannon Sirocco is not a counter to anything heavy:
 it loses to every refit Bulwark and to both tanks, and beats only a stock
 chaingun Bulwark (stock Sirocco 0.39, refit 0.77; was 0.59 and 0.88).
@@ -294,47 +294,47 @@ Still open from these readings:
   Its armor-duel share is low by design, so it is judged against infantry,
   never by how it fares against machines. Its anti-armor answer is its SRM
   shoulders, as LRMs are the Sirocco's. What these readings did expose is that
-  the chaingun's heat starved those shoulders. That is now fixed by the firing
-  order, not by heat (next section).
+  the chaingun's flux starved those shoulders. That is now fixed by the firing
+  order, not by flux (next section).
 
 The bastion and the pulse laser are balanced in the next section.
 
 ## The Bulwark's other arms are equipment too
 
 The same readings showed two more of the Bulwark's 3x2 arms out of order. The
-bastion autocannons had the cannon's old problem: mass 14 and about 9 heat/s,
+bastion autocannons had the cannon's old problem: mass 14 and about 9 flux/s,
 so the best refit Bulwark arm cost nothing to carry, and on a **stock** frame it
 beat a refit chaingun Bulwark 56% of the time. The Prestige pulse laser, at 38
-heat per 2.1 s, lost to both Advanced arms on the same frame, 0.00 against the
+flux per 2.1 s, lost to both Advanced arms on the same frame, 0.00 against the
 bastion. They were tuned in the cannon's order: mass first, then
-heat. Range and cycle were not needed. Each lever was read alone against the
+flux. Range and cycle were not needed. Each lever was read alone against the
 others' authored values before they were combined.
 
 - **Bastion: build mass 3** (mass 17), as the cannon's, for its feed. A full
-  refit Bulwark carrying it gives up its cooler. Alone it barely moves a fight
+  refit Bulwark carrying it gives up its vent array. Alone it barely moves a fight
   (refit bastion against refit cannon 0.58 to 0.46; stock frame against refit
   chaingun unchanged at 0.56, because a stock frame has the room anyway).
   The Sirocco's rating does not absorb it: the bastion is not its gun.
-- **Bastion: heat 28** (was 24; 10.8 heat/s). This is the lever that bites on a
+- **Bastion: flux 28** (was 24; 10.8 flux/s). This is the lever that bites on a
   stock frame. Alone it takes the stock-frame bastion against a refit chaingun
   from 0.56 to 0.29. At 32 the refit bastion fell behind the refit cannon and the
   pulse laser by a wide margin (0.31 against each), so 28 it is.
-- **Pulse laser: heat 26** (was 38; 12.4 heat/s). The Prestige arm already pays
+- **Pulse laser: flux 26** (was 38; 12.4 flux/s). The Prestige arm already pays
   in mass: at 16 it fills a full refit Bulwark's engine exactly (69 of 69). At 30
   it drew level with the cannon (0.42 each way) but still lost to the bastion
   (0.33 against 0.50). At 26 it edges both. A pulse laser on a stock frame loses
   to every refit Advanced arm (0.00-0.02), so a Prestige arm does not outweigh
   an internal refit either.
 
-**The chaingun stays at 30, and heat is the wrong lever for its fault.** The
-chaingun's 29 heat/s does starve the Bulwark's SRM-15s, its anti-armor role:
+**The chaingun stays at 30, and flux is the wrong lever for its fault.** The
+chaingun's 29 flux/s does starve the Bulwark's SRM-15s, its anti-armor role:
 against machines the shoulders deal only 14-16% of a chaingun Bulwark's damage.
-Heat 24 was tried. On a refit frame it lifts that share to 25%, but on a stock
+Flux 24 was tried. On a refit frame it lifts that share to 25%, but on a stock
 frame it falls to 10%. A reservoir releases at 40% and admits a salvo only under
-90%, so a 42-heat SRM after a chaingun burst needs a reservoir of
-2 x (burst + 42): 132 at heat 24, beyond any stock frame. And the AI tries the
+90%, so a 42-flux SRM after a chaingun burst needs a reservoir of
+2 x (burst + 42): 132 at flux 24, beyond any stock frame. And the AI tries the
 arms first, so the chaingun takes every release. Against ten rifles and an AMR
-(`mech-frame-endurance`, 48 seeds) heat 24 also raised a stock chaingun
+(`mech-frame-endurance`, 48 seeds) flux 24 also raised a stock chaingun
 Bulwark's damage per minute by 26% (1136 to 1435) and a refit's by 15%. Every
 neutral enemy Bulwark fights on a stock frame, so that would have been a quarter
 more fire at marines while fixing nothing for the shoulders. The fault was the
@@ -343,7 +343,7 @@ firing order.
 **Against a machine, the anti-armor mounts fire first.** An autonomous mech now
 tries its mounts in order of armor efficiency against the target it is shooting,
 when that target is a mech or a vehicle, and in slot order otherwise
-(`mechs-nouns.md`, Thermal reservoir). Against infantry nothing changes. A
+(`mechs-nouns.md`, Flux reservoir). Against infantry nothing changes. A
 chaingun, pulse laser or linear cannon now yields the reservoir to the SRM-15s;
 a heavy cannon fires before them. With the anti-armor warheads (penetration 30,
 Missile warheads below) a bastion now yields to them too, and a fragmentation
@@ -380,10 +380,10 @@ plus a stock-frame bastion, a stock-frame pulse laser and a refit linear cannon;
 open / hull-down / street, eight seeds, both roles). A share is the wins over
 fights played in both roles; overall is the mean over the eleven fits the cannon
 section used. The controls are `-Dbattle.mech.buildMass.bastion-autocannons=0
--Dbattle.mech.heat.bastion-autocannons=24 -Dbattle.mech.heat.dual-pulse-lasers=38`.
-The control run reproduces the before column fight for fight. Any arm's heat,
+-Dbattle.mech.flux.bastion-autocannons=24 -Dbattle.mech.flux.dual-pulse-lasers=38`.
+The control run reproduces the before column fight for fight. Any arm's flux,
 cycle or build mass takes the same
-`-Dbattle.mech.<heat|cycle|buildMass>.<id without component.mech->` switch.
+`-Dbattle.mech.<flux|cycle|buildMass>.<id without component.mech->` switch.
 
 | Fight | Before | After |
 | --- | --- | --- |
@@ -392,7 +392,7 @@ cycle or build mass takes the same
 | Refit pulse laser vs refit bastion / refit cannon | 0.00 / 0.19 | 0.52 / 0.44 |
 | Overall: refit pulse / cannon / bastion Bulwark | 0.53 / 0.61 / 0.62 | 0.61 / 0.61 / 0.55 |
 | Overall: stock-frame bastion / pulse Bulwark | 0.39 / 0.20 | 0.31 / 0.37 |
-| Heat-limited seconds per fight: refit bastion / pulse | 13 / 36 | 18 / 20 |
+| Flux-limited seconds per fight: refit bastion / pulse | 13 / 36 | 18 / 20 |
 | Any Bulwark fit vs breakthrough / heavy-gun tank | 0.00 | 0.00 |
 
 On a full refit the Prestige pulse laser now narrowly leads, and the two
@@ -409,7 +409,7 @@ Still open:
   Siroccos clearly). Its trouble is not carriage. Its penetration of 8 against the
   Bulwark's 18 halves every round. And the duel band its SRM-15s pull it into
   keeps it at 17 cells, where those launchers latch the reservoir about 60 s of
-  a 75 s fight. Read with the chaingun at 24, heat 14 moved it to 0.36. Heat 16 with the cycle halved to 1.4 s
+  a 75 s fight. Read with the chaingun at 24, flux 14 moved it to 0.36. Flux 16 with the cycle halved to 1.4 s
   reached only 0.44, level with the chaingun refit, a Common arm. A weapon that needs
   its fire rate doubled is a damage question, not an equipment one, so it was
   left as authored.
@@ -429,7 +429,7 @@ broken ground and streets, close range, and with its missiles. Overall the
 target is roughly even, with clear splits by ground.
 
 **Why every tank beat every Bulwark (2 of 480 fights to the mech).** The tank
-was better on every axis that decides a duel, and the mech's heat stacked on top:
+was better on every axis that decides a duel, and the mech's flux stacked on top:
 
 - *Plate against penetration.* A tank's rating was 36 (heavy gun 40) against
   mech arms of penetration 5 (chaingun) to 18 (heavy cannon contact), so mech
@@ -441,9 +441,9 @@ was better on every axis that decides a duel, and the mech's heat stacked on top
 - *The gun against a mech section.* A twin-cannon salvo landed two 150 contact
   hits every 5.25 s, and the heavy gun 260 every 7 s: about 45 damage a second
   on a Bulwark. Bulwark against Bulwark trades about 20.
-- *Heat.* A tank has none. A Bulwark's sustained fire is its cooling, about
-  8.5 heat/s, so against armor it delivered 2-9 damage a second in the open and
-  7-14 in streets, heat-limited for most of a street fight.
+- *Flux.* A tank has none. A Bulwark's sustained fire is its dissipation, about
+  8.5 flux/s, so against armor it delivered 2-9 damage a second in the open and
+  7-14 in streets, flux-limited for most of a street fight.
 - *Reach and kiting.* The tank guns reach 36 and 44 against mech arms of 26-34
   and SRMs of 18, so the duel band (`mechs-nouns.md`, Duel range) holds the
   tank just outside the mech's reach. It backed off at half its top speed, 1.55
@@ -474,7 +474,7 @@ was better on every axis that decides a duel, and the mech's heat stacked on top
   neither side out-lasts the other by bulk alone. Armor per credit falls to
   1.20x (breakthrough) and 1.09x (heavy gun) the Bulwark's, still above 1 as the
   vehicle rule asks, and per lift a tank still beats a stock Bulwark.
-- **Contact hit halved.** The tank still out-damages a heat-bound mech (about
+- **Contact hit halved.** The tank still out-damages a flux-bound mech (about
   24 damage a second on a Bulwark against the mech's 12-30), but no longer
   takes half a Bulwark in a salvo. Tank against tank stays a quick fight: 52-55 s
   from first hit, against 45-47 before.
@@ -622,7 +622,7 @@ being a tank-only gap.
   | Contact damage 70 / 55 (shared with the AT LRM-5) | 0.80 / 0.77 | 0.60 / 0.56 |
   | Scatter 2.5 / 3.5 | 0.79 / 0.80 | 0.75 / 0.75 |
   | Cycle 13 s / 18 s | 0.81 / 0.80 | 0.75 / 0.73 |
-  | Heat per salvo 60 / 70 / 80 / 90 | 0.82 / 0.80 / 0.74 / 0.77 | 0.69 / 0.79 / 0.56 / 0.42 |
+  | Flux per salvo 60 / 70 / 80 / 90 | 0.82 / 0.80 / 0.74 / 0.77 | 0.69 / 0.79 / 0.56 / 0.42 |
   | Reach 34 / 32 (shared) | 0.89 / 0.73 | 0.67 / 0.67 |
 
   The magazine levers miss because the refit's replenisher reloads and the
@@ -920,7 +920,7 @@ Per rocket:
 Controls: `-Dbattle.mech.missileVariants=false` (the single-warhead rack on the
 AT ids) and `-Dbattle.mech.damageAwareTargeting=false` (nearest-target choice).
 
-Readings were taken on top of the bastion and pulse-laser heat changes above and
+Readings were taken on top of the bastion and pulse-laser flux changes above and
 of the armor fire order (against a machine, the reservoir goes to the mounts that
 best defeat its armor first, so AT racks fire before the arms and Frag racks after).
 
@@ -938,7 +938,7 @@ whole section:
 The Frag rack kills men at least as fast as the old rack did, and an AT rack holds
 fire at them every time (no salvo begun at a soft target in any loop). On a stock
 chaingun Bulwark the rack barely matters against men either way: it starts about
-one salvo per fight, because the chaingun's heat starves it (below). On the
+one salvo per fight, because the chaingun's flux starves it (below). On the
 Sirocco the rack is the whole answer to men, which is why the Sirocco ships Frag
 LRMs.
 
@@ -1070,9 +1070,9 @@ variants. A second fitting system would double the lab, the save model and the
 balance surface while making the two kinds the same decision in different art.
 The split gives the player a real choice instead:
 
-- **A mech is flexible and demanding.** Sockets, heat, an engine budget, a build
+- **A mech is flexible and demanding.** Sockets, flux, an engine budget, a build
   to plan and parts to lose.
-- **A vehicle is cheap, sturdy and good at one job.** No heat, no sockets, no
+- **A vehicle is cheap, sturdy and good at one job.** No flux, no sockets, no
   build. It costs less material and lift for the armor it brings, and it does
   things no mech does: an APC carries marines.
 
@@ -1153,7 +1153,7 @@ internals vocabulary without the doll.
 | Story | Owns |
 | --- | --- |
 | Mech patterns (shipped; `mechs-nouns.md`) | Learned patterns replace the starter-pattern gate; pattern cards through every existing source. |
-| Mech internals (shipped; `mechs-nouns.md`) | Engine, plating, heat sink and cooler internals; engine budget; tier-scaled footprints; per-loadout heat. |
+| Mech internals (shipped; `mechs-nouns.md`) | Engine, plating, capacitor bank and vent array internals; engine budget; tier-scaled footprints; per-loadout flux. |
 | Heavy lift (shipped; `air-nouns.md`, Lift) | Lift class and rating; the boat lift slot; drops flown by real company carriers. |
 | Vehicles in the bay (shipped; `mechs-nouns.md`) | Vehicle patterns; a bay space holds a mech or a vehicle; losses write back. |
 | Armor drop selection (shipped; `mechs-nouns.md`, armor drop) | Pick which bay spaces come down per call; cooldown between calls; lift caps armor per mission. |
