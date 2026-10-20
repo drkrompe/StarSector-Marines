@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15bb2-4447-7773-bcd1-98215829d751",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15bb2-4447-7773-bcd1-98215829d751\\exec-0ca46a80-1f86-4c13-9fe5-5a757b5adeb5.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\story-stills\\buyback-open-market.master.png",
+    "sha256": "0e5c0c24a132b2c73a3389470d5220c055ad44a7b5f1c7fcc05c8e6d009f1763",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\story-stills\\buyback-open-market.prompt.txt",
+  "promptSha256": "648cdfcbc79122eb48bfc60e55ac14cc8f2143a6f4700fc1f08736b173da5090",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity only: Second Wind's hull shape and livery; not layout\nImage 2: Identity only: Castle's face, hair and jacket; not framing\n\nOne landscape 1536x1024 (3:2) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface, ornate armor or luxury.\n\nScene: a used-ship broker's lot on the edge of a spaceport, late afternoon under a hazy sky. Rows of tired, decommissioned hulls stand on blocks and pads, each with a broker's hanging tag and painted lot marks (no readable text). In the middle distance, among them, sits Second Wind: a battered patched freighter about 66 metres long, cleaned up just enough to sell, with a crude repair patch over old damage and a broker's lot tag hanging from her bow. She is clearly the same ship and clearly for sale.\n\nIn the foreground right, Castle, the company's operations officer, stands half-turned toward the viewer, holding up a rugged tablet in one hand toward us as if to say \"look what I found\". The tablet screen glows with a blurred listing photo of the ship (no readable text). Her expression is a dry, tired half-smile: relief and a little exasperation. She is shown from mid-thigh up, about one third of the frame width, leaving the ship clearly visible on the left two thirds. A broker's prefab office with a lit window and a battered canopy stands at the far left edge.\n\nReference 1 is IDENTITY ONLY for the ship: Second Wind's hull shape, proportions, rust-orange and dirty cream plate over grey steel, blocky superstructure. Paint the same ship in this new place and angle (three-quarter from the bow); do not copy reference 1's yard, crane, sky, people or composition, and do not include the woman in reference 1.\n\nReference 2 is IDENTITY ONLY for Castle: her face, age, greying dark hair in a short practical bun, charcoal-olive high-collared duty jacket. Do not copy reference 2's framing or background.\n\nCamera: eye-level, normal lens, level horizon.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\yard-stills\\yard-hull-bg-v3.png",
+      "sha256": "1f8345b161b4568d7d10fb531be0d9860ea0a6b946e5a6b3cbb46fa0218af9da",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Identity only: Second Wind's hull shape and livery; not layout"
+    },
+    {
+      "path": "art-source\\portraits\\castle\\castle-master.png",
+      "sha256": "136dc31a89e0b8143f86e9c0ac80b49ba8230badb1c74d97d7bc6d39104bd37c",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity only: Castle's face, hair and jacket; not framing"
+    }
+  ],
+  "agentMessages": [
+    "I’m using the imagegen skill to create one illustration from your references and composition instructions."
+  ],
+  "usage": {
+    "input_tokens": 68510,
+    "cached_input_tokens": 56576,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 871,
+    "reasoning_output_tokens": 20
+  },
+  "elapsedSeconds": 68.9
+}

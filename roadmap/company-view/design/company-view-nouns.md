@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — while the Second Wind is away (stored, or in a yard after a loss), Company HQ and planet Marine operations are closed and say how to get her back; the prologue is seven pages, and Castle's saved credits pay for the yard.
+Updated: 2026-10-20 — a lost Second Wind is bought back from the planet menu in place of Marine operations, and campaign missions need her with the company aboard; the prologue is seven pages, and Castle's saved credits pay for the yard.
 
 ## Purpose
 
@@ -1392,12 +1392,17 @@ The hull's saved adapters remain with Second Wind through company transfers.
 
 **While the Second Wind is away the company has no home to open.** She is never
 lost for good (`ship-interiors-nouns.md`), but while the company lives aboard her
-and she is out of the fleet - in storage, or in a yard after a loss - the Marines
-button answers with Castle's instructions instead of Company HQ: where she is,
-how many yard days are left, what the yard will charge, and that docking there (or
-taking her out of storage) brings the company home. The planet menu keeps
-Marine operations listed but disabled, with the same instructions as its tooltip.
-A company that has moved to another hull is not gated by her absence.
+and she is out of the fleet the Marines button answers with Castle's instructions
+instead of Company HQ. Stored, the planet menu keeps Marine operations listed but
+disabled, with the same instructions as its tooltip. Lost, the planet option
+becomes **Second Wind** at every port with a yard open to the company: a one-page
+storybook in Castle's voice - towed in after a fight, or found on the open market
+after a sale or scuttling - with the price, the account and the d-mod she comes
+back with. Buying is never refused; what the account cannot cover becomes debt.
+
+**Campaign missions need her.** The briefing refuses to deploy unless she is in
+the fleet and the company is quartered aboard her, and says which of the two is
+missing. Debug missions are not gated.
 
 Delivery ends with Castle directing the player to the real PLATING and DRIVE controls;
 no additional purchase is required. The conversation overlays the room and owns input

@@ -47,8 +47,8 @@ import java.util.regex.Pattern;
  *
  * <ul>
  *   <li>{@code quiet}: the fort is the defender's and nobody comes. Nothing is held back and nothing is mustered.</li>
- *   <li>{@code retake}: frail holders. The defender holds its reserve, musters a group to what it believes the fort
- *       takes, stages it behind the fort and launches every member on one pulse; no squad is sent at the fort before
+ *   <li>{@code retake}: frail holders. The defender holds its reserve, sends a probe to observe the fort, musters a
+ *       group to what it observed the fort takes, stages it behind the fort and launches every member on one pulse; no squad is sent at the fort before
  *       the launch, and the reserve law's floor stays out of it. Whether the bunker is won back is a reading.</li>
  *   <li>{@code repulsed}: holders who cannot be killed. The counter-attack fails, falls back to its staging cell,
  *       waits before trying again, and after the bound gives the fort up for good.</li>
@@ -220,12 +220,12 @@ public final class FortCounterattackScene implements BehaviorScene {
                         "first give-up at tick " + giveUp + ", survivors ordered back to the staging cell at tick " + t.fellBackTick));
                 Launch second = t.launches.size() > 1 ? t.launches.get(1) : null;
                 verdicts.add(Verdict.of("waits-before-trying-again", second == null
-                                || second.tick - giveUp >= FortCounterattack.RETRY_TICKS - PULSE_TICKS,
+                                || second.tick - giveUp >= PlaceCounterattack.RETRY_TICKS - PULSE_TICKS,
                         second == null ? "no second launch" : "second launch at tick " + second.tick + ", "
-                                + (second.tick - giveUp) + " ticks after the give-up (retry " + FortCounterattack.RETRY_TICKS + ")"));
-                int abandoned = t.firstNoteTick("fort abandoned");
+                                + (second.tick - giveUp) + " ticks after the give-up (retry " + PlaceCounterattack.RETRY_TICKS + ")"));
+                int abandoned = t.firstNoteTick(" abandoned after ");
                 verdicts.add(Verdict.of("given-up-for-good-after-the-bound", abandoned >= 0
-                                && t.launches.size() <= FortCounterattack.MAX_ATTEMPTS && t.lastCounterTick <= abandoned
+                                && t.launches.size() <= PlaceCounterattack.MAX_ATTEMPTS && t.lastCounterTick <= abandoned
                                 && t.atFortAfter(abandoned) == 0,
                         "abandoned at tick " + abandoned + " after " + t.launches.size() + " launches; last counter-attack "
                                 + "reason at tick " + t.lastCounterTick + "; orders at the fort afterwards "
@@ -235,6 +235,9 @@ public final class FortCounterattackScene implements BehaviorScene {
         Map<String, Number> metrics = new LinkedHashMap<>();
         metrics.put("reserveFormedTick", t.firstNoteTick("reserve for fort"));
         metrics.put("musterTick", t.firstNoteTick(" musters: "));
+        metrics.put("probeTick", t.firstNoteTick(" probes: "));
+        metrics.put("observedTick", t.firstNoteTick(" observed it ("));
+        metrics.put("probeSamples", t.probeSamples);
         metrics.put("launches", t.launches.size());
         metrics.put("firstLaunchTick", first == null ? -1 : first.tick);
         metrics.put("firstLaunchSquads", first == null ? -1 : first.squads.size());
@@ -242,7 +245,7 @@ public final class FortCounterattackScene implements BehaviorScene {
         metrics.put("firstLaunchRequired", first == null ? -1 : first.required);
         metrics.put("retakenTick", t.retakenTick);
         metrics.put("giveUps", t.count(" gives up ("));
-        metrics.put("abandonedTick", t.firstNoteTick("fort abandoned"));
+        metrics.put("abandonedTick", t.firstNoteTick(" abandoned after "));
         metrics.put("poolAlive", t.poolAlive);
         metrics.put("otherOrdersAtFort", t.otherAtFort);
         return new SceneReport(id(), loop, ticks, verdicts, metrics);
@@ -252,17 +255,22 @@ public final class FortCounterattackScene implements BehaviorScene {
         verdicts.add(Verdict.of("fort-lost-at-the-start", t.fortLost, "every aspect held by the marines at the first pulse: "
                 + t.fortLost));
         int muster = t.firstNoteTick(" musters: ");
-        verdicts.add(Verdict.of("counter-attack-musters-within-a-few-pulses", muster >= 0 && muster <= FORM_BOUND_TICKS,
-                "muster note at tick " + muster + " (bound " + FORM_BOUND_TICKS + ")"));
+        int probe = t.firstNoteTick(" probes: ");
+        int observed = t.firstNoteTick(" observed it (");
+        verdicts.add(Verdict.of("counter-attack-probes-within-a-few-pulses", probe >= 0 && probe <= FORM_BOUND_TICKS,
+                "probe note at tick " + probe + " (bound " + FORM_BOUND_TICKS + ")"));
+        verdicts.add(Verdict.of("musters-once-it-has-observed-the-fort", observed >= probe && muster >= observed
+                        && muster <= probe + PlaceCounterattack.PROBE_TICKS + AssaultMuster.TICKS_PER_CELL * HEIGHT,
+                "probe at tick " + probe + ", observed at " + observed + ", muster at " + muster));
         verdicts.add(Verdict.of("mustered-in-proportion", first != null && first.squads.size() >= 2
-                        && first.strength >= FortCounterattack.COMMIT_SHARE * first.required,
+                        && first.strength >= PlaceCounterattack.COMMIT_SHARE * first.required,
                 first == null ? "no launch" : "launched " + first.squads.size() + " squads at strength " + first.strength
-                        + " against " + first.required + " believed needed (commit share " + FortCounterattack.COMMIT_SHARE + ")"));
+                        + " against " + first.required + " believed needed (commit share " + PlaceCounterattack.COMMIT_SHARE + ")"));
         verdicts.add(Verdict.of("staged-before-launch", first != null && t.stagedBefore(first),
                 first == null ? "no launch" : "squads that stood at the staging cell before the launch: "
                         + t.stagedCount(first) + " of " + first.squads.size()));
         verdicts.add(Verdict.of("launched-together", first != null && first.squads.equals(first.musteredJustBefore),
-                first == null ? "no launch" : "launched " + first.squads + " on tick " + first.tick + "; mustering the pulse "
+                first == null ? "no launch" : "launched " + first.squads + " on tick " + first.tick + "; the group the pulse "
                         + "before " + first.musteredJustBefore));
         verdicts.add(Verdict.of("no-squad-sent-at-the-fort-before-the-launch",
                 first != null && t.firstAtFortTick >= first.tick,
@@ -289,6 +297,7 @@ public final class FortCounterattackScene implements BehaviorScene {
         boolean fortLost;
         boolean fortChecked;
         int counterSamples;
+        int probeSamples;
         int lastCounterTick = -1;
         int retakenTick = -1;
         int releasedAfterRetakeTick = -1;
@@ -373,18 +382,24 @@ public final class FortCounterattackScene implements BehaviorScene {
                     lastCounterTick = tick;
                 }
                 if (reason.equals("DEFENDER_COUNTERATTACK_LAUNCH")) launching.add(id);
-                if (reason.equals("DEFENDER_COUNTERATTACK_MUSTER")) mustering.add(id);
-                if ((reason.equals("DEFENDER_COUNTERATTACK_MUSTER") || reason.equals("DEFENDER_COUNTERATTACK_RESERVE"))
-                        && order != null) {
+                // The group the pulse before a launch, in whatever stage it waited: reserve, probe or muster.
+                if (counter && !reason.equals("DEFENDER_COUNTERATTACK_LAUNCH")) mustering.add(id);
+                if (counter && !reason.equals("DEFENDER_COUNTERATTACK_LAUNCH") && order != null) {
                     // Arrived as the commander reckons it: the squad's leader within the rally radius.
                     long leader = sim.resolveUnit(squad.leaderId);
                     if (leader == 0L && sim.squadMemberCount(id) > 0) leader = sim.squadMemberAt(id, 0);
                     if (leader != 0L && Math.hypot(sim.world().cellX(leader) - order.targetCellX(),
-                            sim.world().cellY(leader) - order.targetCellY()) <= FortCounterattack.RALLY_RADIUS_CELLS) {
+                            sim.world().cellY(leader) - order.targetCellY()) <= PlaceCounterattack.RALLY_RADIUS_CELLS) {
                         stagedTick.putIfAbsent(id, tick);
                     }
                 }
-                if (order != null && order.targetCellX() >= 0 && nearFort(facts, order.targetCellX(), order.targetCellY())) {
+                // The probe watches from its post short of the fort; it is not sent at it.
+                boolean watching = reason.equals("DEFENDER_COUNTERATTACK_PROBE")
+                        || order != null && reason.equals("DEFENDER_COUNTERATTACK_MUSTER") && order.targetRadiusCells()
+                        == PlaceCounterattack.PROBE_RADIUS_CELLS;
+                if (watching) probeSamples++;
+                if (!watching && order != null && order.targetCellX() >= 0
+                        && nearFort(facts, order.targetCellX(), order.targetCellY())) {
                     // After the fort is given up, the counter-attack's and structure work's orders are what count; a track
                     // response to a believed contact is reported in the metrics, not judged here.
                     if (fresh && (counter || reason.equals("DEFENCE_STRUCTURE_RETAKE"))) atFort.add(new int[]{tick, id});
@@ -405,7 +420,7 @@ public final class FortCounterattackScene implements BehaviorScene {
                         launches.add(new Launch(tick, Integer.parseInt(m.group(2)), Integer.parseInt(m.group(3)),
                                 new TreeSet<>(launching), musteringBefore));
                     }
-                    if (text.contains(" gives up (") && !text.contains("abandoned")) fellBackPending = tick;
+                    if (text.contains(" gives up (") && !text.contains(" abandoned after ")) fellBackPending = tick;
                     if (text.contains("retook")) retakeNoted = tick;
                 }
                 if (fellBackPending >= 0 && fellBackTick < 0 && launching.isEmpty()) {

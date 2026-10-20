@@ -6,7 +6,7 @@ Slices are on the mission-command board.
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — the defender counter-attacks a lost fort in proportion or not at all (`FortCounterattack`, scene `fort-counterattack`), reusing the company's rally line and massed commit; earlier: a screen is weighed against the whole base of fire as it stands and is re-weighed until its clouds are thrown.
+Updated: 2026-10-20 — the defender counter-attacks a lost place (a fort as one case) in proportion to what it observed holds it, or not at all (`PlaceCounterattack`, scenes `place-counterattack`, `fort-counterattack`), reusing the company's rally line and, at a fort, its massed commit; earlier: a screen is weighed against the whole base of fire as it stands and is re-weighed until its clouds are thrown.
 
 Read `conquest-command.md`, `forts.md` and `ai-nouns.md` first.
 
@@ -362,9 +362,9 @@ breach beats a gate on Conquest is unmeasured.
 Not built here: recruiting whole named-officer groups into a company, a company's
 reaction to being counter-attacked at its rally, retreat of a company that is failing
 but not yet broken, plans for any stamp but the two forts. The defender's side of it
-is the fort counter-attack (`conquest-command.md`, Defender command), which takes the
-staging line and the massed commit from here but not the company: it has no foothold,
-no lane shares and no stamp plan, because the fort it goes for is its own.
+is the place counter-attack (`conquest-command.md`, Defender command), which takes the
+staging line and, at a fort, the massed commit from here but not the company: it has no
+foothold, no lane shares and no stamp plan, because the place it goes for is its own.
 
 ## Capability roles: as built
 
