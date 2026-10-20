@@ -297,18 +297,26 @@ def dress(bpy, suit, boots, rig, body, data_dir, add_part, bone_parent):
             nrm = -nrm
         return loc, nrm
 
-    def patch(name, mat, at, nrm, up, w, h, t):
-        """A thin box w x h x t lying on the surface at `at`, facing out along `nrm`."""
+    def patch(name, mat, at, nrm, up, w, h, t, off=0.0015):
+        """A w x h panel of cloth t thick laid on the suit at `at`, facing out along `nrm`.
+
+        A flat box on a curved thigh or sleeve stands off it like a board, so the panel is a
+        fine grid wrapped onto the suit (Shrinkwrap, evaluated after the suit's armature, so it
+        stays on the posed cloth) and only then given its thickness."""
         z = nrm.normalized()
         x = Vector(up).cross(z).normalized()
         y = z.cross(x)
-        ob = add_part(bpy.ops.mesh.primitive_cube_add, name, mat, size=1.0)
+        ob = add_part(bpy.ops.mesh.primitive_grid_add, name, mat, x_subdivisions=10, y_subdivisions=10, size=1.0)
         ob.data.materials.clear()
         ob.data.materials.append(mat)
-        ob.data.transform(Matrix.Diagonal((w, h, t, 1.0)))       # real size, so the fabric's scale is true
-        ob.matrix_world = Matrix.Translation(at + z * (t / 2 + 0.0015)) @ Matrix((x, y, z)).transposed().to_4x4()
+        ob.data.transform(Matrix.Diagonal((w, h, 1.0, 1.0)))     # real size, so the fabric's scale is true
+        ob.matrix_world = Matrix.Translation(at + z * off) @ Matrix((x, y, z)).transposed().to_4x4()
+        wrap = ob.modifiers.new("On the cloth", "SHRINKWRAP")
+        wrap.target, wrap.wrap_method, wrap.wrap_mode, wrap.offset = suit, "NEAREST_SURFACEPOINT", "OUTSIDE_SURFACE", off
+        sol = ob.modifiers.new("Thickness", "SOLIDIFY")
+        sol.thickness, sol.offset = t, 1.0
         bev = ob.modifiers.new("Bevel", "BEVEL")
-        bev.width, bev.segments = min(t * 0.45, 0.004), 2
+        bev.width, bev.segments, bev.limit_method = min(t * 0.45, 0.003), 2, "ANGLE"
         return ob
 
     def pocket(name, at, nrm, up, w, h, bone):
@@ -316,7 +324,8 @@ def dress(bpy, suit, boots, rig, body, data_dir, add_part, bone_parent):
         z = nrm.normalized()
         y = z.cross(Vector(up).cross(z).normalized())
         body_ = patch(name, jacket_plain, at, nrm, up, w, h, 0.006)
-        flap = patch(name + " flap", jacket_plain, at + y * (h / 2 - 0.018) + z * 0.006, nrm, up, w + 0.008, 0.036, 0.005)
+        flap = patch(name + " flap", jacket_plain, at + y * (h / 2 - 0.018), nrm, up, w + 0.008, 0.036, 0.004,
+                     off=0.0075)
         for ob in (body_, flap):
             bone_parent(ob, bone)
         return body_, flap
@@ -327,15 +336,11 @@ def dress(bpy, suit, boots, rig, body, data_dir, add_part, bone_parent):
 
     up = (0.0, 0.0, 1.0)
     spine_bones = sorted((b for b in bones if b.name.startswith("spine")), key=lambda b: b.head_local.z)
-    chest_bone = spine_bones[-1].name if spine_bones else "spine01"
     hip_bone = spine_bones[0].name if spine_bones else "root"
     sh_l = bones["upperarm01.L"].head_local
 
-    # Left breast flap pocket.
-    zc = sh_l.z - 0.13
-    at, n = hit((0.085, -1.0, zc), (0, 1, 0))
-    pocket("chest pocket", at, n, up, 0.105, 0.12, chest_bone)
-
+    # No modelled breast pocket: the suit's own front already carries a chest welt and hip flap
+    # pockets (in its normal and AO maps), and a patch on top of them overlapped both.
     # Left upper sleeve pocket, on the outside of the arm.
     ua = bones["upperarm01.L"]
     mid = ua.head_local.lerp(bones["lowerarm01.L"].head_local, 0.38)
