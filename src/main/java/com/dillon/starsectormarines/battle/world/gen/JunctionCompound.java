@@ -75,8 +75,10 @@ public final class JunctionCompound {
             sites.add(new TacticalNode(kinds[i], p.interiorAnchorX, p.interiorAnchorY,
                     p.left, p.top, p.right, p.bottom, Faction.DEFENDER, 50 + i * 10, 6 + 4 * i));
         }
+        List<TacticalNode> tactical = new ArrayList<>(sites);
+        tactical.addAll(HeldPlaces.fromBuildingsNotIn(c.pois, sites, poi -> Faction.DEFENDER));
         MapResult map = new MapResult(c.grid, c.topology, 21, 56, 148, 55,
-                c.pois, c.doodads, new TacticalMap(sites), c.get(BspKeys.BUILDINGS),
+                c.pois, c.doodads, new TacticalMap(tactical), c.get(BspKeys.BUILDINGS),
                 List.of(), AuthoredRoadGraph.graph(RoadCatalog.plan(RoadCatalog.JUNCTION), "western-boat-apron"), c.landingPads);
         for (LandingPad pad : map.landingPads) {
             if (!pad.isClear(map.grid, map.topology)) throw new IllegalStateException("Junction berth obstructed");
