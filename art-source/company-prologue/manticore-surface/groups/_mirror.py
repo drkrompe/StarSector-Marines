@@ -15,7 +15,7 @@ def flip_box(b):
     return ((x0, -y1, z0), (x1, -y0, z1))
 
 
-SEAMS = .05   # parts.py seam_walls: the plating's steep seam walls join the tile
+SEAMS = None  # parts.py seam_walls (.05 claims the plating's steep seam walls); off for the shipped build: its tiles were fitted to guides without them
 
 
 def pair(parts, name, members, dir, up, cone, what, **kw):

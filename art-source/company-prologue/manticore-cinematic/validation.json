@@ -1,0 +1,174 @@
+{
+ "asset": "manticore-p.blend",
+ "collection": "MANTICORE (P)",
+ "root": "MANTICORE (P) | root",
+ "state": "battle",
+ "metres_per_unit": 0.59,
+ "size_metres_rest": [
+  91.3,
+  94.6,
+  34.9
+ ],
+ "objects": 492,
+ "meshes": 434,
+ "effects_objects": 81,
+ "images": 26,
+ "asset_sha256": "e7f64cc1376d2baba6d2fd280184e12843846fcdca76b44773fefde5067d4283",
+ "passed": true,
+ "failed": [],
+ "checks": {
+  "root present": {
+   "ok": true
+  },
+  "anchors collection": {
+   "ok": true
+  },
+  "metres_per_unit on root": {
+   "ok": true,
+   "detail": 0.59
+  },
+  "state on root": {
+   "ok": true,
+   "detail": "battle"
+  },
+  "all under root": {
+   "ok": true,
+   "detail": []
+  },
+  "effects collection present": {
+   "ok": true
+  },
+  "effects ride the ship": {
+   "ok": true,
+   "detail": []
+  },
+  "nothing linked (all appended)": {
+   "ok": true,
+   "detail": []
+  },
+  "images packed": {
+   "ok": true,
+   "detail": []
+  },
+  "object count": {
+   "ok": true,
+   "detail": [
+    434,
+    434
+   ]
+  },
+  "polygon count": {
+   "ok": true
+  },
+  "rest bounds": {
+   "ok": true,
+   "detail": [
+    [
+     -66.3,
+     -80.2,
+     -29.38
+    ],
+    [
+     88.41,
+     80.2,
+     29.72
+    ]
+   ]
+  },
+  "about 91 m long": {
+   "ok": true,
+   "detail": [
+    91.3,
+    94.6,
+    34.9
+   ]
+  },
+  "hull attributes": {
+   "ok": true,
+   "detail": []
+  },
+  "hull_rest is rest position": {
+   "ok": true,
+   "detail": 4e-06
+  },
+  "five drive anchors at their mouths, aft along the exhaust": {
+   "ok": true,
+   "detail": []
+  },
+  "muzzle and launch anchors at their places and axes": {
+   "ok": true,
+   "detail": []
+  },
+  "Hellbore launch anchor (WS 000)": {
+   "ok": true
+  },
+  "Harpoon launch anchors, one per tube (WS 004/005)": {
+   "ok": true,
+   "detail": {
+    "WS 004": 3,
+    "WS 005": 3
+   }
+  },
+  "pivots rest at their slot angles": {
+   "ok": true,
+   "detail": []
+  },
+  "system slot anchors (WS 006-009)": {
+   "ok": true,
+   "detail": []
+  },
+  "six lamps (four running lamps, two mast beacons)": {
+   "ok": true,
+   "detail": []
+  },
+  "turrets train their muzzles about the pivot; barbettes fixed": {
+   "ok": true,
+   "detail": 8e-06
+  },
+  "training moves each gun": {
+   "ok": true,
+   "detail": [
+    true,
+    true,
+    true,
+    true
+   ]
+  },
+  "elevation (negative local Y) lifts each gun": {
+   "ok": true,
+   "detail": [
+    true,
+    true,
+    true,
+    true
+   ]
+  },
+  "Harpoon tubes stay with the hull": {
+   "ok": true,
+   "detail": 0.0
+  },
+  "SWFX controls with per-engine throttles": {
+   "ok": true,
+   "detail": []
+  },
+  "SWFX anchors on every drive, muzzle, tube and lamp": {
+   "ok": true,
+   "detail": []
+  },
+  "a light per lamp": {
+   "ok": true,
+   "detail": 6
+  },
+  "effects recorded in the manifest": {
+   "ok": true,
+   "detail": [
+    81,
+    81
+   ]
+  },
+  "root moves the ship rigidly": {
+   "ok": true,
+   "detail": 3.1e-05
+  }
+ }
+}
