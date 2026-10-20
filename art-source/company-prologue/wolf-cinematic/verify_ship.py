@@ -13,7 +13,8 @@ slot mouths pointing aft; Turret 1 (WS 001) trains about its pivot (its muzzle
 swings with it, its barbette stays) and elevates; the three hardpoints' muzzles
 point along the bow; every declared VFX muzzle rides a turret-kit muzzle at
 zero offset (12: one ion, one blaster, five tubes a pod); eight lamps with
-blink properties; moving the root moves every part rigidly.
+blink properties; the gear_down knob stows every sole flush and stands it on the
+ground plane, and the four lift thruster anchors point down; moving the root moves every part rigidly.
 
 Ship with effects (`WOLF_P` + `SWFX`): plume, core, haze and glow light on all
 three engines, each plume leaving its bell aft; one kit gun anchor per
@@ -144,6 +145,35 @@ check('declared VFX muzzles ride the kit muzzles', not bad and len(declared) >= 
 
 bad = [l['name'] for l in man['running_lights'] if not bpy.data.objects.get(l['name'])]
 check('lamps', not bad and len(man['running_lights']) == 8, bad)
+
+# Landing gear: the knob stows and deploys every leg; soles flush stowed, on the ground deployed.
+ctl = bpy.data.objects.get(man['control']['object'])
+check('gear control knob', ctl is not None and 'gear_down' in ctl, man['control']['object'])
+land = man['landing']
+bad = []
+if ctl is not None:
+    for k, key in ((0.0, 'sole_z_stowed'), (1.0, 'sole_z_deployed')):
+        ctl['gear_down'] = k
+        ctl.update_tag()          # a knob set from Python does not tag the depsgraph by itself
+        bpy.context.scene.frame_set(1)
+        upd()
+        for sl in land['soles']:
+            a = anchors.get(sl['anchor'])
+            if a is None:
+                bad.append((sl['anchor'], 'missing'))
+                continue
+            z = a.matrix_world.translation.z
+            down = (a.matrix_world.to_3x3() @ Vector((1, 0, 0))).normalized().z
+            if abs(z - sl[key]) > 1e-3 or down > -.999:
+                bad.append((sl['anchor'], k, round(z, 3), sl[key]))
+    ctl['gear_down'] = 0.0
+    ctl.update_tag()
+    bpy.context.scene.frame_set(1)
+    upd()
+check('gear stows flush and stands on the ground', not bad and len(land['soles']) == 4, bad)
+bad = [l['anchor'] for l in man['lift_thrusters'] if not anchors.get(l['anchor'])
+       or (anchors[l['anchor']].matrix_world.to_3x3() @ Vector((1, 0, 0))).normalized().z > -.999]
+check('four lift thruster anchors point down', not bad and len(man['lift_thrusters']) == 4, bad)
 
 ref = {o.name: o.matrix_world.copy() for o in objs}
 M = Matrix.Translation((310, -45, 120)) @ Matrix.Rotation(.8, 4, 'Z') @ Matrix.Rotation(-.3, 4, 'Y') @ Matrix.Scale(.95, 4)
