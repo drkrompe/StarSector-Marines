@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
+import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay.FacingMark;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay.LineMark;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay.PlaceMark;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -16,6 +17,9 @@ import java.awt.Color;
  *
  * <p>A ring on a position (a trench, or a building's door or window post) is green; one on open
  * ground is pale, so a line that runs out of positions shows where it does.
+ *
+ * <p>A move with a heading (a vehicle or mech dragged out from its destination) is a ring on the
+ * destination and an arrow out of it the way the chassis will finish facing.
  */
 public final class OrderLineRenderSystem implements RenderSystem {
 
@@ -26,6 +30,11 @@ public final class OrderLineRenderSystem implements RenderSystem {
     private static final float LINE_WIDTH = 2.2f;
     private static final float RING_RADIUS_CELLS = 0.46f;
     private static final int RING_SEGMENTS = 20;
+    /** Arrowhead barb length as a share of the shaft, and its splay either side of it. */
+    private static final float HEAD_SHARE = 0.32f;
+    private static final double HEAD_SPLAY = Math.toRadians(28);
+    private static final float MIN_ARROW_CELLS = 1.5f;
+    private static final float MAX_ARROW_CELLS = 6f;
 
     @Override public RenderLayer layer() { return RenderLayer.HIGHLIGHTS; }
 
@@ -56,6 +65,31 @@ public final class OrderLineRenderSystem implements RenderSystem {
                 }
                 dashedRing(out, cx, cy, RING_RADIUS_CELLS * camera.cellPxSize(), place.position(), alpha);
             }
+        }
+        for (FacingMark mark : overlay.facingMarks()) {
+            facingArrow(out, camera, mark, r, g, b, alpha);
+        }
+    }
+
+    private static void facingArrow(DrawList out, BattleCamera camera, FacingMark mark,
+                                    float r, float g, float b, float alpha) {
+        // Sprite facing 0 points +Y and turns counterclockwise, so its bearing is facing + 90 in math terms.
+        double bearing = Math.toRadians(mark.facingDegrees() + 90f);
+        float length = Math.max(MIN_ARROW_CELLS, Math.min(MAX_ARROW_CELLS, mark.lengthCells()));
+        float tipX = mark.x() + length * (float) Math.cos(bearing);
+        float tipY = mark.y() + length * (float) Math.sin(bearing);
+        float sx = camera.cellToScreenX(mark.x()), sy = camera.cellToScreenY(mark.y());
+        float tx = camera.cellToScreenX(tipX), ty = camera.cellToScreenY(tipY);
+        float ringPx = RING_RADIUS_CELLS * camera.cellPxSize();
+        dashedRing(out, sx, sy, ringPx, false, alpha);
+        out.addLine(RenderLayer.HIGHLIGHTS, sx, sy, tx, ty, LINE_WIDTH, r, g, b, 0.9f * alpha);
+        float head = length * HEAD_SHARE;
+        for (int side = -1; side <= 1; side += 2) {
+            double barb = bearing + Math.PI + side * HEAD_SPLAY;
+            out.addLine(RenderLayer.HIGHLIGHTS, tx, ty,
+                    camera.cellToScreenX(tipX + head * (float) Math.cos(barb)),
+                    camera.cellToScreenY(tipY + head * (float) Math.sin(barb)),
+                    LINE_WIDTH, r, g, b, 0.9f * alpha);
         }
     }
 
