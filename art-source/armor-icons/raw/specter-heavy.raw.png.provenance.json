@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15adc-fdd8-7931-bbcd-a0e1495ad8a2",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15adc-fdd8-7931-bbcd-a0e1495ad8a2\\exec-fd04a50a-f0fa-49ef-ba78-403237a97f46.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\raw\\specter-heavy.raw.png",
+    "sha256": "300528aa88769749f8e48f62e0bb241901f139ef4bfc348109b06be210bec7a4",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\prompts\\specter-heavy.prompt.txt",
+  "promptSha256": "26561f6d29425c9a9d7236c213d87738d957d2d60243641af7bb42eb4e75b207",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Composition, camera, lighting and finish reference only; not the suit design, colours or markings\nImage 2: Identity authority: the same suit seen from directly overhead in battle; palette, plate shapes, markings\n\nUse case: style-matched product render. Asset: the armory catalogue image of one marine armour suit, for a gritty military dark-science-fiction tactical game in the Starsector setting. The image shows the suit as a product shot: a massive powered-armour cuirass with its pauldrons standing upright at the upper right, its helmet set down in front at the lower left, and the two armoured gauntlets and forearms laid at the lower right.\n\nImage 1 is the composition, camera, lighting and finish reference only: match its arrangement of pieces, front three-quarter viewing angle, the scale the set fills in the frame, soft studio light from the upper left and its realistic hand-painted finish. Do NOT copy its suit design, colours or markings.\n\nImage 2 is the identity authority: this same suit as the game draws it in battle, seen from directly overhead (left: the torso and shoulder plates, with an empty hole where the helmet sits; right: the top of the helmet). The armory image must read unmistakably as this same suit seen from the front: the same palette and where each colour sits, the same plate and pauldron shapes, the same markings, lamps and hardware, the same faction character. Translate the overhead plates into their front-view forms; never show the overhead view itself.\n\nSpecter composite battlesuit: Tri-Tachyon's corporate breach shell, a walking tank built around high-output joints. Cool blue-grey titanium-steel faceted plates over a black ribbed and segmented joint backing, broad tapered angular pauldrons, a split chest of hexagonal plates over two square abdominal blocks, flush recessed cyan status strips on the pauldrons and abdomen, near-black graphite frame. The helmet is a narrow faceted blue-grey steel helmet with a dark central ridge, matching the overhead helmet. Heavy but sleek, precise and matte; no superhero styling, no glossy plastic.\n\nSquare 1:1 canvas with every piece fully inside the frame and a clear margin. True transparent background, including the gaps between pieces; no ground, no cast-shadow slab, no border, no text, letters, numbers, logos or watermark, no person or face inside the suit, no weapon.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\mod\\graphics\\ui\\armory\\armor-tier-4-heavy.png",
+      "sha256": "4a08857d0fa292e29ea6a8a2cd3296cdf1901a008344580412ff08a4b102b72a",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Composition, camera, lighting and finish reference only; not the suit design, colours or markings"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\refs\\specter-heavy-identity.png",
+      "sha256": "dd3563652499b7d4691047cdef7f6bee333be7a291f5643d463d047f86d995f5",
+      "dimensions": [
+        1488,
+        680
+      ],
+      "mode": "RGB",
+      "role": "Identity authority: the same suit seen from directly overhead in battle; palette, plate shapes, markings"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to create one transparent product render, matching Image 1’s composition and Image 2’s suit identity."
+  ],
+  "usage": {
+    "input_tokens": 103969,
+    "cached_input_tokens": 88832,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 798,
+    "reasoning_output_tokens": 33
+  },
+  "elapsedSeconds": 64.2
+}
