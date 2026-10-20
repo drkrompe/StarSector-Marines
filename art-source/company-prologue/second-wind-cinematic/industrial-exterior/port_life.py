@@ -351,6 +351,7 @@ def _lighters():
     return pts
 
 
+ROUTES_OFF = {k: dict(v) for k, v in ROUTES.items()}   # the approved loops, which port_detail keeps clear either way
 if port_roads.ON:
     ROUTES.update({
         'belt-east-outer': dict(pts=[(303, 203), (303, 354), (-3, 354), (-3, 203)], radius=11),

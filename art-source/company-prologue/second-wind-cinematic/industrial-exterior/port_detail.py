@@ -64,6 +64,7 @@ class Ground:
         """Whether nothing is in the way. Something only the new roads are in the way of is noted in
         GHOSTS (unless `ghost` is off, for a mere candidate such as a puddle)."""
         x0, x1, y0, y1 = x0 - pad, x1 + pad, y0 - pad, y1 + pad
+        self.road_blocked = False
         for a0, a1, b0, b1 in self.rects:
             if x0 < a1 and x1 > a0 and y0 < b1 and y1 > b0:
                 return False
@@ -72,6 +73,7 @@ class Ground:
             if math.hypot(nx - cx, ny - cy) < r:
                 return False
         if self.on_road(x0, x1, y0, y1):
+            self.road_blocked = True
             if ghost:
                 GHOSTS.append(('apron', (x0 + pad, x1 - pad, y0 + pad, y1 - pad)))
             return False
@@ -239,16 +241,17 @@ def keep_out(c4, g):
              (-600.0, 600.0, 334.0, 362.0),                   # loading strip
              (43.0 - 3, 57.0 + 3, 378.0, c4.HEAVY[2]),          # heavy berth road
              (-2000.0, 2000.0, -98.0, -72.0)]                 # freight road
-    if not port_roads.ON:
-        lanes += [(-302.0, -283.0, 556.0, 645.0),             # fuel farm road
-                  (57.0, 182.0, 677.0, 695.0)]                # terminal road
-    else:
+    # The two roads PORT_ROADS removes stay clear (a patch covers them) so that every placement
+    # and random draw off the new roads is the one the approved scene makes.
+    lanes += [(-302.0, -283.0, 556.0, 645.0),                 # fuel farm road
+              (57.0, 182.0, 677.0, 695.0)]                    # terminal road
+    if port_roads.ON:
         g.roads, g.rings = port_roads.keep_out(c4)
         for x, off, who in c4.BERTHS:                         # the fuel bowser's way up from pad 5's ring
             if who == 'fuelling':
                 gx = x + 39.0
                 g.roads.append((gx - 5, gx + 5, c4.LIGHTER_Y + port_roads.RING_R, c4.BERTH_Y + c4.BERTH_DY[x] - 60))
-        LANES.extend(g.roads)
+        g.roads += moving_ground(c4, new=True)             # not in LANES: puddles draw as they do without the roads
     for x in c4.CROSS_STREETS:
         lanes.append((x - 9, x + 9, -75.0, 362.0))
     for x, off, who in c4.BERTHS:
@@ -299,23 +302,28 @@ def keep_out(c4, g):
     g.rect(-250.0, -214.0, -165.0, -92.0)                      # gate checkpoint
 
 
-def moving_ground(c4):
+def moving_ground(c4, new=False):
     """Where port-life's vehicles drive (`port_life.ROUTES`, a lane centre each, vehicles up to 3 m
     wide), and the paths its berth forklifts and second bowser take up the berth gaps
-    (`port_life.berth_work`): rectangles nothing standing may overlap."""
+    (`port_life.berth_work`): rectangles nothing standing may overlap. The approved loops
+    (`ROUTES_OFF`) are kept clear either way; `new` gives PORT_ROADS' loops and trips instead,
+    which go in with the roads."""
     out = []
     try:
         import port_life
     except ImportError:
         return out
     w = 4.0
-    for name, rt in port_life.ROUTES.items():
+    routes = port_life.ROUTES if new else getattr(port_life, 'ROUTES_OFF', port_life.ROUTES)
+    for name, rt in routes.items():
         pts = rt['pts'] + ([rt['pts'][0]] if rt.get('closed', True) else [])
         for (ax, ay), (bx, by) in zip(pts, pts[1:]):
             out.append((min(ax, bx) - w, max(ax, bx) + w, min(ay, by) - w, max(ay, by) + w))
-    for name, t in port_life.TRIPS.items():                 # PORT_ROADS: the trips' ways
-        for (ax, ay), (bx, by) in zip(t['pts'], t['pts'][1:]):
-            out.append((min(ax, bx) - w, max(ax, bx) + w, min(ay, by) - w, max(ay, by) + w))
+    if new:
+        for name, t in port_life.TRIPS.items():             # PORT_ROADS: the trips' ways
+            for (ax, ay), (bx, by) in zip(t['pts'], t['pts'][1:]):
+                out.append((min(ax, bx) - w, max(ax, bx) + w, min(ay, by) - w, max(ay, by) + w))
+        return out
     for x, off, who in c4.BERTHS:
         if who not in ('hound', 'unloading', 'fuelling'):
             continue
@@ -524,11 +532,18 @@ def berth_gaps(c4, g, P, r):
                 if g.free(x - 2, x + 18, y - 2, y + 2, 1.0):
                     dolly_train(P, r, x + 16, y, 0.0, r.randrange(3, 5))
                     g.take(x - 2, x + 18, y - 2, y + 2)
+                elif g.road_blocked:                     # the same draws and keep-out, so what follows stays put
+                    dolly_train(Null(P), r, x + 16, y, 0.0, r.randrange(3, 5))
+                    g.take(x - 2, x + 18, y - 2, y + 2)
                 x += 22
         hx, hy = x1 - 6, yy + 15
         if g.free(hx - 4, hx + 4, hy - 2, hy + 2, 1.0):
             hut(P, r, hx, hy, 6.0, 3.0, 3.0)
             drums(P, r, hx - 9, hy - 1)
+            g.take(hx - 11, hx + 4, hy - 2, hy + 2)
+        elif g.road_blocked:
+            hut(Null(P), r, hx, hy, 6.0, 3.0, 3.0)
+            drums(Null(P), r, hx - 9, hy - 1)
             g.take(hx - 11, hx + 4, hy - 2, hy + 2)
         mx, my = (x0 + x1) / 2, yy + 17
         if g.free(mx - 2, mx + 2, my - 2, my + 2):
@@ -547,6 +562,9 @@ def ferry_side(c4, g, P, r):
             if g.free(x - 2, x + 18, y - 2, y + 2, 0.5):
                 dolly_train(P, r, x + 16, y, 0.0, r.randrange(3, 6))
                 g.take(x - 2, x + 18, y - 2, y + 2)
+            elif g.road_blocked:
+                dolly_train(Null(P), r, x + 16, y, 0.0, r.randrange(3, 6))
+                g.take(x - 2, x + 18, y - 2, y + 2)
             x += 22
     for k in range(3):
         x, y = 160.0 + k * 7, 466.0
@@ -555,6 +573,9 @@ def ferry_side(c4, g, P, r):
             g.take(x - 2, x + 2, y - 8, y + 5)
     if g.free(64.0, 76.0, 474.0, 482.0):
         hut(P, r, 70.0, 478.0, 10.0, 5.0, 3.5)
+        g.take(64.0, 76.0, 474.0, 482.0)
+    elif g.road_blocked:
+        hut(Null(P), r, 70.0, 478.0, 10.0, 5.0, 3.5)
         g.take(64.0, 76.0, 474.0, 482.0)
 
 
@@ -812,6 +833,9 @@ def west_depot(c4, g, P, r):
         if g.free(x - 18, x + 4, y - 2, y + 2):
             truck(P, r, x, y, 0.0)
             g.take(x - 18, x + 4, y - 2, y + 2)
+        elif g.road_blocked:
+            truck(Null(P), r, x, y, 0.0)
+            g.take(x - 18, x + 4, y - 2, y + 2)
     for x, y in ((-490.0, 548.0), (-505.0, 420.0)):
         if g.free(x - 2, x + 2, y - 2, y + 2):
             light_mast(P, x, y)
@@ -977,7 +1001,7 @@ def apron(c4, g, P, r):
             break
         x, y = r.uniform(-524, 286), r.uniform(384, 756)
         size = r.uniform(6.0, 18.0)
-        if g.free(x - size, x + size, y - size, y + size, ghost=False) or r.random() < 0.15:
+        if g.free(x - size, x + size, y - size, y + size, ghost=False) or g.road_blocked or r.random() < 0.15:
             if any(x0 <= x <= x1 and y0 <= y <= y1 for x0, x1, y0, y1 in LANES) and r.random() < 0.5:
                 continue
             puddle(P, r, x, y, size)
