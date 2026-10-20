@@ -27,7 +27,9 @@ Usage:
   (chained after a build, the flags come from $SDK_CHECK: the build's own argparse
   owns the command line). --manifest geometry.json reads metres_per_unit instead of
   --mpu; --lights <sprite_lights.png> with --ship <hull>.ship tests emissives against
-  the lights layer; --bare-m2 sets the bare-patch threshold (default 100 m2).
+  the lights layer; --bare-m2 sets the bare-patch threshold (default 100 m2);
+  --exclude '<regex>' leaves objects out (the table in ship-detail-guide.md leaves out
+  turrets, which turret-kit owns: --exclude '^(Weapon|Turret) ').
 
 It reports; it never edits the scene. Numbers are in metres at true scale.
 """
@@ -50,7 +52,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from ship_detail_kit import segments  # noqa: E402
 
 SKIP = re.compile(r'^(Temporary|Studio|Camera|Figure|Scale figure|C2 )', re.I)
-LIGHT_NAME = re.compile(r'\b(lamps?|lights?|lit|lens(es)?|beacons?|glow|strips?)\b', re.I)
+LIGHT_NAME = re.compile(r'(?<![a-z])(lamps?|lights?|lit|lens(es)?|beacons?|glow|strips?)(?![a-z])', re.I)
 ENGINE_NAME = re.compile(r'^(Engine|Lift thruster|Thruster)\b|exhaust|throat|plume', re.I)
 GLASS_NAME = re.compile(r'(glass|glazing|windows?|panes?|windscreen|viewports?|skylights?)', re.I)
 FRAME_NAME = re.compile(r'(frames?|mullions?|surrounds?|rims?|brow|visor|eyebrows?|bezel|sill|coamings?|plates|guards?|housings?)', re.I)
@@ -79,6 +81,7 @@ def parse():
     p.add_argument('--lights')
     p.add_argument('--ship')
     p.add_argument('--bare-m2', type=float, dest='bare', default=100.0)
+    p.add_argument('--exclude', help='regex of object names to leave out (e.g. turrets owned by turret-kit)')
     a, _ = p.parse_known_args(argv)
     if a.mpu is None and a.manifest:
         a.mpu = json.loads(Path(a.manifest).read_text(encoding='utf-8'))['metres_per_unit']
@@ -314,9 +317,9 @@ def bbox(p):
     return p.v.min(axis=0), p.v.max(axis=0)
 
 
-def check_glazing(parts):
+def check_glazing(parts, every):
     out = []
-    framers = [(q.name, *bbox(q)) for q in parts if FRAME_NAME.search(q.name)]
+    framers = [(q.name, *bbox(q)) for q in every if FRAME_NAME.search(q.name)]
     for p in parts:
         is_glass = GLASS_NAME.search(p.name) or any(m and GLASS_NAME.search(m.name) for m in p.mats)
         glows = any(emissive(m) > 0 for m in p.mats)
@@ -534,16 +537,18 @@ def run(args):
     dg = bpy.context.evaluated_depsgraph_get()
     obs = [ob for ob in bpy.context.scene.objects
            if ob.type == 'MESH' and not ob.hide_render and not SKIP.match(ob.name) and ob.visible_get()]
-    parts = [Part(ob, dg, args.mpu) for ob in obs]
+    every = [Part(ob, dg, args.mpu) for ob in obs]
+    world = World(every)              # excluded parts still cover, touch and shade what is checked
+    keep = [k for k, ob in enumerate(obs) if not (args.exclude and re.search(args.exclude, ob.name))]
+    obs, parts = [obs[k] for k in keep], [every[k] for k in keep]
     layer = LightsLayer(args.lights, args.ship) if args.lights and args.ship else None
-    world = World(parts)
-    report = {'label': args.label, 'metres_per_unit': args.mpu, 'objects': len(parts),
+    report = {'label': args.label, 'metres_per_unit': args.mpu, 'objects': len(parts), 'excluded': args.exclude,
               'faces': int(sum(len(p.polys) for p in parts)), 'lights_layer': bool(layer),
               'surface_m2': round(float(sum(p.area.sum() for p in parts))),
               'rules': {'segments': 'max(5 mm, r/400) chord sag, multiple of 4, min 12 (8 under 5 cm, hex bolts 6)',
                         'hard_edge_deg': HARD, 'plate_edge_m': PLATE_W, 'tolerance': TOL, 'bare_patch_m2': args.bare, 'touch_m': TOUCH, 'grid_m': GRID},
               'curves': {}, 'hard_m': {}, 'emissive': {}, 'bare': {}, 'primitives': {}}
-    for i, (ob, p) in enumerate(zip(obs, parts)):
+    for i, ob, p in zip(keep, obs, parts):          # i indexes the world's parts
         c = check_curves(i, p, world)
         if c:
             report['curves'][p.name] = c
@@ -559,7 +564,7 @@ def run(args):
         pr = check_primitives(i, p, world, ob, args.mpu)
         if pr:
             report['primitives'][p.name] = pr
-    report['glazing'] = check_glazing(parts)
+    report['glazing'] = check_glazing(parts, every)
     s = summarise(report)
     report['summary'] = s
     print('CHECK_DETAIL', json.dumps({'label': args.label, **s}))
