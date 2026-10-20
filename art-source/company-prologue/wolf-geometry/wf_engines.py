@@ -45,14 +45,14 @@ def build(kit):
         rm, wall = mouth_r(w), WALL*w
         rt, xt = THROAT*rm, x+LENGTH*w
         cutter = revolve_x(kit, f'Temporary Engine {i} bell well cutter',
-                           [(x-3, 0), (x-3, rm+.9*wall), (xt, rt+.9*wall), (xt, 0)], y, Z, kit.dark, 20)
+                           [(x-3, 0), (x-3, rm+.9*wall), (xt, rt+.9*wall), (xt, 0)], y, Z, kit.dark, 48)
         boolean(host, cutter)
         revolve_x(kit, f'Engine {i} aft-facing bell', [(xt, rt), (x, rm), (x, rm+wall), (xt, rt+wall)],
-                  y, Z, kit.steel, 20)
+                  y, Z, kit.steel, 48)
         revolve_x(kit, f'Engine {i} mouth lip', [(x+.35*wall, rm-.2*wall), (x-.25*wall, rm),
                                                 (x-.25*wall, rm+1.6*wall), (x+.6*wall, rm+1.8*wall)],
-                  y, Z, kit.steel, 20)
-        kit.cylinder(f'Engine {i} dark throat', (xt+.1, y, Z), rt+.05, .3, kit.dark, 'X', 20, 0)
+                  y, Z, kit.steel, 48)
+        kit.cylinder(f'Engine {i} dark throat', (xt+.1, y, Z), rt+.05, .3, kit.dark, 'X', 48, 0)
         kit.empty(f'Engine {i} exhaust anchor', (x, y, Z), 180, size=w/4)
         kit.empty(f'Engine {i} drive glow anchor', (xt-.05, y, Z), 180, size=w/6)
 

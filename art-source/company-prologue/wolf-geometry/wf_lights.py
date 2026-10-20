@@ -14,9 +14,20 @@ LIGHTS = []
 
 
 def lamp(kit, name, loc, colour, role, period, phase, mats, r=.45):
-    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=r, location=loc)
+    """A smooth lens seated half in a steel bezel, the bezel turned to the hull's nearest
+    surface normal (a lamp at a mast head takes the mast as its mount, pointing up)."""
+    from mathutils import Matrix, Vector
+    import wf_fittings
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=r, location=loc)
     ob = bpy.context.object
     kit.finish(ob, name, mats[colour])
+    near = wf_fittings._tree(kit).find_nearest(Vector(loc))
+    n = Vector((0, 0, 1)) if near[0] is None or near[3] > 2.0 else (Vector(loc) - near[0]).normalized()
+    if n.length < .5:
+        n = near[1]
+    q = Vector((0, 0, 1)).rotation_difference(n).to_matrix().to_4x4()
+    bezel = kit.cylinder(f'Hull lamp housing {name[6:]}', (0, 0, -r*.35), r*1.3, r*.7, kit.steel, 'Z', 32, r*.12)
+    bezel.matrix_world = Matrix.Translation(loc) @ q
     LIGHTS.append({'name': name, 'position': [round(v, 2) for v in loc], 'colour': colour, 'role': role,
                    'blink': {'period_s': period, 'phase_s': phase, 'duty': .18}})
     return ob
