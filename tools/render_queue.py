@@ -56,7 +56,7 @@ import time
 import traceback
 from pathlib import Path
 
-VERSION = "2026-10-20.2"
+VERSION = "2026-10-20.3"
 MACHINES = ("mac", "windows")
 LANES = ("light", "review", "final")
 DEFAULT_CONFIG = {
@@ -160,6 +160,21 @@ def write_once(path: Path, data) -> None:
     write_json(path, data)
 
 
+def allow_dataless_reads() -> None:
+    """macOS refuses to download a Drive file that is not yet local ("dataless")
+    for a background process: reads fail with EDEADLK, "Resource deadlock
+    avoided". A LaunchAgent is background, so opt this process in."""
+    if IS_WINDOWS or sys.platform != "darwin":
+        return
+    try:
+        import ctypes
+        libc = ctypes.CDLL("libc.dylib", use_errno=True)
+        # IOPOL_TYPE_VFS_MATERIALIZE_DATALESS_FILES, IOPOL_SCOPE_PROCESS, IOPOL_MATERIALIZE_DATALESS_FILES_ON
+        libc.setiopolicy_np(3, 0, 2)
+    except (OSError, AttributeError):
+        pass
+
+
 def sha256_file(path: Path) -> str:
     h = hashlib.sha256()
     with open(path, "rb") as f:
@@ -194,6 +209,7 @@ def fmt_secs(s) -> str:
 class Queue:
     def __init__(self, root: Path):
         self.root = root
+        self.unreadable: set = set()
 
     def d(self, name: str) -> Path:
         p = self.root / name
@@ -209,6 +225,8 @@ class Queue:
         out = {}
         for p in sorted(self.d("jobs").glob("*.json")):
             job = read_json(p)
+            if job is None and p.stat().st_size > 0:
+                self.unreadable.add(p.name)
             if isinstance(job, dict) and job.get("id") == p.stem:
                 out[p.stem] = job
         return out
@@ -222,8 +240,11 @@ class Queue:
             job_id, _, machine = p.name.rpartition(".")
             if machine in MACHINES:
                 res = read_json(p)
-                if isinstance(res, dict):
-                    out.setdefault(job_id, {})[machine] = res
+                if not isinstance(res, dict):
+                    # Present but unreadable (still syncing): a result exists, so
+                    # never treat the job as unfinished and run it again.
+                    res = {"result": "unreadable"}
+                out.setdefault(job_id, {})[machine] = res
         return out
 
     def claims(self, job_id: str) -> dict:
@@ -676,6 +697,7 @@ def spawn_detached(argv, log_path: Path):
 
 def cmd_wrap(args) -> int:
     """One job's process: run the command, record its pid and exit status locally."""
+    allow_dataless_reads()
     run_dir = Path(args.run_dir)
     launch = read_json(run_dir / "launch.json")
     log = open(run_dir / "job.log", "ab")
@@ -690,7 +712,9 @@ def cmd_wrap(args) -> int:
     else:
         kw["start_new_session"] = True
         if low:
-            kw["preexec_fn"] = lambda: os.nice(10)
+            kw["preexec_fn"] = lambda: (os.nice(10), allow_dataless_reads())
+        else:
+            kw["preexec_fn"] = allow_dataless_reads
     start = time.time()
     try:
         child = subprocess.Popen(launch["argv"], cwd=launch["cwd"], env=env, stdin=subprocess.DEVNULL,
@@ -719,6 +743,7 @@ class Runner:
         self.state.setdefault("active", {})  # job_id -> record
         self.cfg = self.q.config()
         self.awake = None
+        self.reported_unreadable: set = set()
         self.note = None
         self.last_status = None
         self.last_status_time = 0.0
@@ -778,6 +803,10 @@ class Runner:
     def tick(self):
         cfg = self.cfg
         jobs = self.q.jobs()
+        for name in sorted(self.q.unreadable - self.reported_unreadable):
+            self.log(f"cannot read jobs/{name}; it is skipped until it reads")
+        self.reported_unreadable |= self.q.unreadable
+        self.q.unreadable = set()
         self.reap(jobs)
         self.handle_cancels(jobs)
         done = self.q.done()
@@ -868,7 +897,8 @@ class Runner:
                 if job["machine"] == "any" and rec is None and \
                         time.time() - float(job.get("submitted_epoch", 0)) < int(cfg.get("any_grace_seconds", 120)):
                     continue  # leave it a moment for an idle machine
-            if jid in done and (self.machine in done[jid] or job_succeeded(done[jid])):
+            if jid in done and (self.machine in done[jid] or job_succeeded(done[jid]) or
+                                any(r.get("result") == "unreadable" for r in done[jid].values())):
                 continue
             if self.q.cancelled(jid) or jid in cfg.get("held", []):
                 continue
@@ -1308,6 +1338,7 @@ def single_instance(local: Path):
 
 
 def cmd_runner(args) -> int:
+    allow_dataless_reads()
     lock = single_instance(local_root())
     if lock is None:
         print("a runner is already running on this machine")
@@ -1394,9 +1425,10 @@ def cmd_install(args) -> int:
         print(r.stdout.strip() or f"scheduled task '{TASK_NAME}' registered and started")
         return r.returncode
     if args.mode == "nohup":
-        # A LaunchAgent cannot list ~/Library/CloudStorage (TCC: "Operation not
-        # permitted"); a process started from an ssh or Terminal session can.
-        # Running jobs are separate processes and survive the runner's restart.
+        # Fallback for a Mac where the interpreter lacks Full Disk Access: a
+        # LaunchAgent then cannot list ~/Library/CloudStorage ("Operation not
+        # permitted"), while a process started from ssh or Terminal can. It does
+        # not survive a reboot. Running jobs survive the runner's restart.
         uid = os.getuid()
         run(["launchctl", "bootout", f"gui/{uid}/{PLIST_LABEL}"], check=False)
         run(["pkill", "-f", "render-queue/render_queue.py runner"], check=False)
@@ -1405,13 +1437,22 @@ def cmd_install(args) -> int:
                                f">> '{local / 'runner.out'}' 2>&1 &!"])
         print("runner started under nohup; after a reboot run install again from ssh or Terminal")
         return 0
+    # launchd charges file access to the program the plist names, so it must be
+    # the interpreter that holds Full Disk Access (Python.app inside the Command
+    # Line Tools framework), not the /usr/bin/python3 shim that execs it.
+    interp = Path(sys.prefix) / "Resources/Python.app/Contents/MacOS/Python"
+    if not interp.exists():
+        interp = Path(os.path.realpath(sys.executable))
+    print(f"LaunchAgent runs {interp}; it needs Full Disk Access "
+          "(System Settings > Privacy & Security > Full Disk Access)")
+    run(["pkill", "-f", "render-queue/render_queue.py runner"], check=False)
     plist = Path.home() / "Library/LaunchAgents" / f"{PLIST_LABEL}.plist"
     plist.write_text(f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
   <key>Label</key><string>{PLIST_LABEL}</string>
   <key>ProgramArguments</key><array>
-    <string>/usr/bin/python3</string><string>{local / 'render_queue.py'}</string><string>runner</string>
+    <string>{interp}</string><string>{local / 'render_queue.py'}</string><string>runner</string>
   </array>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
@@ -1468,8 +1509,8 @@ def main(argv=None) -> int:
     s.add_argument("--repo", help="this machine's clone (default: the current repository)")
     s.add_argument("--blender", help="Blender executable for {blender}")
     s.add_argument("--tag", action="append", help="extra capability tag (repeatable)")
-    s.add_argument("--mode", choices=("nohup", "launchd"), default="nohup",
-                   help="macOS only; launchd cannot read the Drive folder without Full Disk Access")
+    s.add_argument("--mode", choices=("launchd", "nohup"), default="launchd",
+                   help="macOS only; launchd needs Full Disk Access for Python.app, nohup is the fallback")
     s.add_argument("--no-service", action="store_true", help="copy files only")
     s.set_defaults(fn=cmd_install)
     s = sub.add_parser("runner")
