@@ -38,6 +38,9 @@ import java.util.function.Supplier;
 @Tag("garrison-evidence")
 class GarrisonInventoryEvidence {
 
+    /** How far outside a node's compound ground its prepared ground may stand: an apron stands off its door. */
+    private static final int GROUND_MARGIN = 7;
+
     private record Case(String name, Supplier<BattleSimulation> build) {}
 
     @Test
@@ -67,7 +70,7 @@ class GarrisonInventoryEvidence {
 
         StringBuilder out = new StringBuilder("# Garrisonable inventory\n\n");
         out.append("Per node: kind, garrison size, footprint; building scope W/E/S = windows / entrances / distinct stand cells; ")
-                .append("compound scope likewise; FP = fighting-position runs/cells on the node's compound ground.\n");
+                .append("compound scope likewise; FP = fighting-position runs/cells on the node's compound ground or within " + GROUND_MARGIN + " cells of it (an apron stands off its door).\n");
         out.append("Map: tagged window cells, edge-window barriers, and how many of each no node covers.\n\n");
         for (Case c : cases) {
             out.append("## ").append(c.name).append('\n');
@@ -99,8 +102,8 @@ class GarrisonInventoryEvidence {
             List<Aperture> compound = wider ? DefenseFrontage.forCompound(node, sim) : List.of();
             Set<Integer> runs = new HashSet<>();
             int runCells = 0;
-            for (int y = Math.max(0, node.compoundTop() - 2); y <= Math.min(grid.getHeight() - 1, node.compoundBottom() + 2); y++) {
-                for (int x = Math.max(0, node.compoundLeft() - 2); x <= Math.min(grid.getWidth() - 1, node.compoundRight() + 2); x++) {
+            for (int y = Math.max(0, node.compoundTop() - GROUND_MARGIN); y <= Math.min(grid.getHeight() - 1, node.compoundBottom() + GROUND_MARGIN); y++) {
+                for (int x = Math.max(0, node.compoundLeft() - GROUND_MARGIN); x <= Math.min(grid.getWidth() - 1, node.compoundRight() + GROUND_MARGIN); x++) {
                     int run = positions == null ? -1 : positions.runIdAt(x, y);
                     if (run >= 0) {
                         runs.add(run);
@@ -137,8 +140,8 @@ class GarrisonInventoryEvidence {
 
     private static boolean covered(List<TacticalNode> nodes, int x, int y) {
         for (TacticalNode node : nodes) {
-            if (x >= node.compoundLeft() - 2 && x <= node.compoundRight() + 2
-                    && y >= node.compoundTop() - 2 && y <= node.compoundBottom() + 2) return true;
+            if (x >= node.compoundLeft() - GROUND_MARGIN && x <= node.compoundRight() + GROUND_MARGIN
+                    && y >= node.compoundTop() - GROUND_MARGIN && y <= node.compoundBottom() + GROUND_MARGIN) return true;
         }
         return false;
     }

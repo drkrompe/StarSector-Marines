@@ -1,10 +1,10 @@
 # Garrisonables
 
-Status: ACTIVE — reactive manning is shipped for fort-belt fighting positions on both Conquest sides (the defender's own belts, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans (player and both Conquest commanders); other kinds remain direction.
+Status: ACTIVE — reactive manning is shipped for fighting-position runs, a stretch at a time, on both Conquest sides (the defender's own belts and compound aprons, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans (player and both Conquest commanders); building envelopes and other kinds remain direction.
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — machines screen the places their side mans (owner decision; the machine guard is built); earlier: the attacker holds what it takes; fort-belt reactive manning; the player's machine assault and opt-in GARRISON stance.
+Updated: 2026-10-20 — runs are garrisoned a stretch at a time (stretches, shifting, the alarm floor over stretches); the defender counter-attacks a lost fort in proportion (`conquest-command.md`); compounds offer prepared ground (sandbagged doors) manned like a belt; machines screen the places their side mans.
 
 ## Why this exists
 
@@ -27,7 +27,10 @@ It is a kind of place, not a kind of order. Kinds, in the order they are
 expected to arrive:
 
 - a **fighting-position run** — trench and parapet cells (built; see
-  `ai-nouns.md` and prepared ground in `mapgen-nouns.md`);
+  `ai-nouns.md` and prepared ground in `mapgen-nouns.md`): a fort's belt, a
+  story map's dug line, and a compound's **sandbagged door**, the apron laid
+  in front of the entrance each compound place is attacked through; garrisoned
+  a **stretch** at a time (below);
 - a **building envelope** — the apertures and stance cells the defense frontage
   already derives (`ai-nouns.md`, frontage and standing to);
 - a **compound perimeter** — the outer envelope at compound scope, which frontage
@@ -40,6 +43,19 @@ digging in, facing the believed threat, and falling back. **Assignment** is
 commander-tier: which squad mans which garrisonable, and when it stops. The two
 tiers must stay separate — a squad never decides to go and man a trench nobody
 sent it to, and a commander never chooses a marine's cell.
+
+A **stretch** is the part of a run that is one garrisonable. A run a squad's
+frontage long or shorter is one stretch; a longer one — a fort's belt, wrapping
+the corners of its works — is cut along its length into stretches of about that
+frontage, each grown connected from the end the run is measured from, so a ring
+round the works or a branching trench is never one stretch on two sides of the
+fort. Stretches of one run that touch are **neighbours**. A stretch has its own
+posts (the run's cells within the circle a squad mans it through), its own
+covered influence blocks and so its own pressure, and its own manning, release
+and lockout; the order that mans it still names its run, so claims stay on the
+trench. The cut is derived from the run alone and rebuilt only when the run
+changes, the same for every run whether a fort's or not. (A line order's
+fire-team stretch is a different thing: a share of a drawn line, not a place.)
 
 Garrisonables may be **linked into layers**: a belt in front of a fort's works,
 a compound perimeter around its buildings, a building shell around its rooms. A
@@ -70,6 +86,26 @@ layer is what a squad falls back to when the one in front of it is lost.
   it), destroyed below its useful size, or untenable falls back to the next
   layer in if one is linked; with none, it releases to the commander. A fall
   back is squad-tier movement under an existing assignment, not a new order.
+  A breach is read against the whole run, not the stretch: an enemy a few cells
+  along the same trench, past the stretch's end, is inside it.
+- **Hold the stretch facing the threat.** A place is pressed only where a
+  believed contact is within reach of it; the influence field's spread alone,
+  which carries a company's weight across most of a fort, presses nothing. A
+  pressed stretch reads belief over its own ground and its neighbours', so the
+  stretch an attack is coming toward along the trench is manned before the
+  attack is on it, and of stretches pressed alike the one most pressed on its
+  own ground is served first. A garrison whose own stretch the attack has left,
+  beside an unmanned neighbour of the same run whose own ground the attack now
+  presses, **shifts** onto the neighbour rather than waiting out the dwell and
+  being given back: squad-tier movement under the assignment it holds, not a new
+  send, and never while it is in a fight. A squad shifts one stretch at a time
+  and not again for a few pulses.
+- **The alarm holds what belief cannot see.** A fort's alarm floor (place
+  alarms, `ai-nouns.md`) holds the fort's stretches only while belief has woken
+  none of them: an unseen attack keeps what the fort holds, and once the attack
+  is seen anywhere on the fort belief says which stretches it presses and the
+  rest cool. A squad still marching to a stretch is turned back by an enemy in
+  that stretch or one beside it, not by one anywhere on a long belt.
 - **Release when the threat passes.** A commander-assigned garrison returns to
   the pool when its pressure has decayed past the release level, so the pool is
   available for the next threatened band.
@@ -77,7 +113,8 @@ layer is what a squad falls back to when the one in front of it is lost.
   those inside or adjacent to threatened bands, on its own command cadence.
   Nothing scans every garrisonable every tick; candidate lookup is spatial.
 - **The player's version is manual.** The occupy order is the player assigning
-  a garrisonable by hand, and a dragged line order assigns every fighting
+  a garrisonable by hand — the run under the click, within the defend circle
+  round the click, which is a stretch by construction, so it is not cut again — and a dragged line order assigns every fighting
   position along a drawn frontage, one fire team per stretch, counting the
   forward-facing door and window posts of buildings the line crosses. A player's
   squad may opt into reactive manning with the GARRISON stance, never a default:
@@ -90,11 +127,12 @@ layer is what a squad falls back to when the one in front of it is lost.
 
 Pressure is the side's own hostile influence, already maintained in 8-cell
 blocks and published as a snapshot; nothing new is computed per cell. Each
-garrisonable records the few blocks it covers, and a block-to-garrisonables
+garrisonable (each stretch) records the few blocks it covers, and a block-to-garrisonables
 lookup is derived beside it, rebuilt only when the prepared ground changes and
 never per tick. On each command pulse the commander walks only the blocks its
 believed contacts stand in, prices the garrisonables those blocks can press,
-and re-prices only the ones already manned. The work grows with the size of the
+and re-prices only the ones already manned; a manned stretch no believed
+contact is near reads no belief at all. The work grows with the size of the
 fight, not with the number of garrisonables, and hysteresis state exists only
 for manned places. Measured on the fort control it is a few hundredths of a
 millisecond per pulse once warm.
@@ -196,9 +234,11 @@ noise, so the share does not cost the attack its momentum, and it does not yet
 buy anything measurable either. Every fixture in which it never fired (the
 four other on-path seeds, the offset fort, which is never taken because the
 company goes round it, and the rifles-only forces, which never take it) played
-out exactly as its control. The question for later
-is a defender that actually counter-attacks a lost fort harder than one
-retaking squad.
+out exactly as its control. The defender now
+counter-attacks a lost fort in proportion or not at all (`conquest-command.md`,
+Defender command); with ninety militia it won the fort back once in nine and
+broke on the hold four times, and the hold manned less because the defender no
+longer fed squads into the works one at a time.
 
 ## How it fits what exists
 
@@ -229,8 +269,11 @@ held place covers. Three things it shows shape the work ahead:
   have windows, but nothing names a place a garrison could hold, so neither the
   defender commander nor a player's occupy order can use them. Held places on
   those maps are the precondition for everything in this doc.
-- Fighting-position runs are almost absent outside forts; Relief now digs one
-  behind its gate.
+- Fighting-position runs were almost absent outside forts. Relief digs one
+  behind its gate, and compounds now lay a sandbagged door at each place's
+  attack-facing entrance: on five Conquest seeds 98 aprons on 138 compound
+  places, where there had been none, and three on Relay Nine where there were
+  none (`compound-prepared-ground.md`).
 
 A story map closes the second gap by publishing its buildings as **held
 places**: each building it already records becomes a held position on its own
@@ -256,8 +299,9 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
 - **Attackers hold what they take.** Captured ground is a garrisonable like any
   other: the attacking commander uses the same reactive assignment to man a
   taken belt, trench or building against the counter-attack, not only manual
-  orders. Built for taken fort belts (see Holding taken ground); runs of no
-  fort and building envelopes wait for those kinds to reach the tier.
+  orders. Built for taken fort belts (see Holding taken ground) and for the
+  aprons of taken compounds; building envelopes wait for that kind to reach the
+  tier.
 - **A player's idle squads may opt into reactive manning.** It stays opt-in,
   never a default; the manual occupy and line orders remain the primary verbs.
   Built as the GARRISON stance: a per-squad switch, a watch ring the size of a
@@ -288,19 +332,54 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
   guard screens the stretch of a run under the click, not the whole belt, which
   is the same finer place the open question below asks for.
 
+## Stretches on the trial ground
+
+The question stretches answer was why, on the trial ground's fort fixtures,
+about half of the belt-garrison samples taken while the company stood at a fort
+found no marine within thirty cells. Split by what the garrison was doing, most
+of that half was never a garrison left behind: it was squads still **marching**,
+and on whole runs most of the marches went to ground no marine was near. The
+reading that matters is the **stranded** share — a garrison arrived on a stretch
+no marine is within thirty cells of, or marching to one.
+
+Measured on 76 fixtures (40 fort-on-lane at the combined-arms force, seeds 41 to
+80; 22 rifles-only on the lane; 14 offset, where the company goes round the fort
+and almost nothing is manned) against a same-build control with
+`-Dbattle.garrison.stretches=false`:
+
+- stranded garrison samples fell from 41% of the samples to 10% (3,282 to 481),
+  and garrisons sitting on a stretch nobody was near from 2,111 samples to 212;
+- the coarse half-share itself fell from 55% to 45%; what is left of it is
+  squads marching to the fight (1,737 of its 2,218 samples), which arrive;
+- the defender spent 39% fewer squad-samples on garrisons (8,064 to 4,902) and
+  its dug-in members sat mostly where the fight was: dug-in samples on
+  a garrison no marine was near fell from 9,870 to 926;
+- outcomes did not move: marines won 51 against 52, the defender held 25
+  against 24, the keep fell at the same mean tick (9,122 against 9,103), and
+  losses were level (marines 3,393 against 3,412, defenders 3,158 against
+  3,128).
+
+So the belt is now held where the attack is and the pool is not spent on quiet
+trenches, but the battle's result is not decided by it on this ground. The scene
+`reactive-belt` plays the case in its `moving-attack` loop: once the gate
+stretch's garrison is dug in, the attack moves round the fort to a stretch
+beyond reach of the first; the new stretch is held and the old one given back
+within a few pulses. Its whole-run control holds the gate run for the rest of
+the battle and never mans the new ground.
+
 ## Open questions
 
-- **A garrison on a stretch the attack has left.** On the trial ground's fort
-  fixtures about half of the samples in which the company stands at a fort
-  find a belt garrison with no marine within thirty cells. The fort's alarm is not
-  what holds it there: letting the alarm's floor follow the attack round the fort,
-  so that only the stretch believed pressed kept it, changed nothing across 28
-  fixtures. A run is the unit of manning and a fort's runs are long, often round
-  a corner of the works, and the influence picture is coarse enough that a run
-  reads pressed while any of it is near the fight. A finer place (a stretch of a
-  run, with its own posts) or a way through the works rather than round them is
-  the likely answer; a garrison stand-to at the work being lost, sent round the
-  walls, was tried and cost more than it saved.
+- **Marching late.** A stretch is pressed only when an attack is near it, and
+  the pool waits at the works, so a garrison often walks forty to sixty cells
+  round the works and arrives as the attack does: half of the garrison samples
+  near a fight are squads still on the way. Staging nearer the belt, or a way
+  through the works rather than round them, is the likely next step; a garrison
+  stand-to at the work being lost, sent round the walls, was tried and cost more
+  than it saved.
+- **Alarm-held stretches.** What little stranding is left is mostly a fort's
+  alarm holding stretches while the defender believes nothing anywhere near: an
+  attack inside the works, unseen. Whether the floor should fall to the
+  stretches nearest the works being lost is open.
 - How a garrisonable is valued against an objective: a trench in front of the
   keep is worth more than one at the map edge under the same pressure.
 

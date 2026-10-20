@@ -1,11 +1,14 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.CompoundPreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -23,6 +26,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * sits on the attacker-facing side of the compound.
  */
 public class CompoundPerimeterDefenderStamperTest {
+
+    /**
+     * These ask where the bare lookout stands when no apron is laid (the control, and every compound whose doors take
+     * none), so prepared ground is switched off: whether it is laid otherwise depends on which art another test in the
+     * same JVM installed. Where the apron goes is {@code CompoundPreparedGroundTest}'s question.
+     */
+    private boolean preparedGround;
+
+    @BeforeEach
+    void noPreparedGround() {
+        preparedGround = CompoundPreparedGround.ENABLED;
+        CompoundPreparedGround.ENABLED = false;
+    }
+
+    @AfterEach
+    void restorePreparedGround() {
+        CompoundPreparedGround.ENABLED = preparedGround;
+    }
 
     private static final int W = 20;
     private static final int H = 20;
