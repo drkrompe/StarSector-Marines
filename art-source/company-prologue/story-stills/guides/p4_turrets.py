@@ -22,9 +22,10 @@ lays a generation back over the master through those boxes, feathered inward onl
 the generation's small offset), so the dock, the figures and the rest of the ship stay
 pixel-identical. It prints the largest change outside the boxes, which must be zero.
 
-Run on 2026-10-20 against the 2026-10-19 master: three generations (see
-raising-her-v2.candidate.png.provenance.json); the candidate is gen3, a clean-up pass over gen2's
-composite (guides/p4-turrets-gen2-composite.png).
+Run on 2026-10-20 against the 2026-10-19 master (`git show 968bb9112:<story-stills>/raising-her.master.png`):
+three generations (see raising-her.master.png.provenance.json); gen3, a clean-up pass over gen2's
+composite (guides/p4-turrets-gen2-composite.png), was composed and approved (2026-10-20), so the
+current master is the result and rerunning against it repeats nothing useful.
 """
 import argparse
 import sys

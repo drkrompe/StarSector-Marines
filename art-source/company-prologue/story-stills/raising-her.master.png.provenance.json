@@ -1,55 +1,122 @@
 {
-  "generator": "Codex CLI built-in image_gen",
-  "codexVersion": "codex-cli 0.159.0",
-  "model": "codex default",
-  "effort": "codex default",
-  "thread": "01a155a4-4ebf-74f1-a115-6a2ec243ac7a",
-  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a155a4-4ebf-74f1-a115-6a2ec243ac7a\\exec-0a40ff5c-e520-4f28-a2a2-53513d126a96.png",
-  "otherImagesInThread": [],
-  "output": {
-    "path": "art-source\\company-prologue\\story-stills\\v2\\raising-her.raw.png",
-    "sha256": "8d2a5657b1fa8ed5028b643d54c39a229f7c9fdd8d3d72c7394c0e761110e465",
+  "master": {
+    "path": "art-source/company-prologue/story-stills/raising-her.master.png",
+    "sha256": "fb95208f9bf095a7ed3d0ec8f4b6c647bbe7073b2c88eaa81f22b38612e8bdc0",
     "dimensions": [
       1536,
       1024
-    ],
-    "mode": "RGB"
+    ]
   },
-  "promptFile": "art-source\\company-prologue\\story-stills\\v2\\raising-her.brief.txt",
-  "promptSha256": "d39e1ca9c74565144859b800647db0c4460a31e0e8659659e6972791841847ce",
-  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the real Second Wind and camera; repaint, never move\nImage 2: Material and paint only: the same ship finished; not layout\n\nUse case: sketch-to-render. One landscape 3:2 (1536x1024) cinematic story illustration for a mature industrial science-fiction game. Restrained realistic hand-painted finish, charcoal steel, dirty amber work lights, muted blue shadows, tactile worn metal, believable human scale. Readable when reduced to 1200x800. No legible text, no logos, watermarks, border, interface or luxury.\n\nScene: the moment the Second Wind's drive is lit for the first time in ten years, at the loading locks of an asteroid mining colony that is being abandoned.\n\nReference 1 is a render of the real ship and is the authority for her: keep her exact silhouette, pose, camera, proportions, every turret, pod, radiator grille, patch and dent, and her livery of weathered rust-orange and cream panels over dark gunmetal. She is a short, wide, rounded 66-metre freighter, not a long tube. Do not add or remove hull parts. Reference 2 is the same ship photographed finished, for material and paint only.\n\nChange only this on the ship: the two big round drive mouths on the near (starboard) pod are lighting up for the first time, a deep warm amber-orange glow inside their throats with a little heat shimmer and faint glow on their rims; no long flame. The far (port) pod stays dark and capped. A few small work lamps on the hull.\n\nPaint around her: she is tethered beside a pressure-rated loading lock built into the scarred face of an asteroid. Heavy steel gantries, a boarding tube and fat umbilical hoses run from the rock to her flank; mooring tethers hang slack. Floodlights on the gantries. On the gantry beside the lock, three tiny figures in bulky worn civilian EVA suits, for scale (they are about the height of a door hatch), watching. Beside the lock hatch, a column of chalk tally marks, too small to read. Behind: black space with a few tumbling belt rocks and faint stars.\n\nHope through manual work; the whole dock holding its breath. No battle, no explosions.\n",
-  "adopted": false,
-  "references": [
-    {
-      "path": "art-source\\company-prologue\\story-stills\\guides\\p4-stern-quarter.png",
-      "sha256": "5794f69ce881702e0b2034ef139330e2c6e51f92b77f7855e9db35586d7a4530",
+  "composite": {
+    "tool": "art-source/company-prologue/story-stills/guides/p4_turrets.py compose",
+    "base": {
+      "description": "the 2026-10-19 master (painted over a guide of build 80c78dfac, commit 968bb9112)",
+      "sha256": "8d2a5657b1fa8ed5028b643d54c39a229f7c9fdd8d3d72c7394c0e761110e465"
+    },
+    "generation": "art-source/company-prologue/story-stills/raising-her-v2.gen3.png",
+    "mask": "the four turret boxes in p4_turrets.py, feathered inward; max change outside them 0 (67485 px changed)",
+    "editBoxes": {
+      "t1": [
+        322,
+        256,
+        536,
+        354
+      ],
+      "t3": [
+        878,
+        234,
+        964,
+        300
+      ],
+      "t2": [
+        746,
+        296,
+        992,
+        374
+      ],
+      "t4": [
+        1046,
+        260,
+        1302,
+        347
+      ]
+    },
+    "guideRender": "guides/p4-stern-quarter-dc62710dc.png: prologue_guides.py --views p4-stern-quarter --samples 24 --percent 50 (CPU, PG_CPU=1) against builds/second-wind/dc62710dc/patched/second-wind-patched.blend",
+    "earlierGenerations": [
+      {
+        "path": "raising-her-v2.gen1.png",
+        "prompt": "raising-her-v2.prompt.txt (as sent: provenance)",
+        "refs": [
+          "guides/p4-turrets-guide-gen1.png",
+          "guides/p4-stern-quarter-dc62710dc.png"
+        ],
+        "verdict": "turrets right, but the guide had copied a gantry down into turret 1's box and the generation kept it as a second gantry"
+      },
+      {
+        "path": "raising-her-v2.gen2.png",
+        "prompt": "raising-her-v2.prompt.txt",
+        "refs": [
+          "guides/p4-turrets-guide.png",
+          "guides/p4-stern-quarter-dc62710dc.png"
+        ],
+        "verdict": "no stray gantry; gatling clusters read, but loose barrel pieces behind turret 2 and a white scribble on turret 1"
+      }
+    ],
+    "approved": "owner, 2026-10-20 ('Ship it')"
+  },
+  "generation": {
+    "generator": "Codex CLI built-in image_gen",
+    "codexVersion": "codex-cli 0.159.0",
+    "model": "codex default",
+    "effort": "codex default",
+    "thread": "01a159f0-e66e-7920-80bd-e4f8389f1d47",
+    "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a159f0-e66e-7920-80bd-e4f8389f1d47\\call_cdd4df8c207e490f90536cefdeacbf1d.png",
+    "otherImagesInThread": [],
+    "output": {
+      "path": "art-source\\company-prologue\\story-stills\\raising-her-v2.gen3.png",
+      "sha256": "f8417b9dc5e64e2f378468c29eff59f4a6cf84b3e2362137ff89d93c18426f69",
       "dimensions": [
         1536,
         1024
       ],
-      "mode": "RGB",
-      "role": "Geometry/layout authority: the real Second Wind and camera; repaint, never move"
+      "mode": "RGB"
     },
-    {
-      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\146acfbf-ace6-43bb-bef2-d8438ab41d5a\\scratchpad\\ref\\c5.png",
-      "sha256": "b7ce60840b4f150908db1bc37e4acfe5ac1b2a369da7e583b4189335d561af75",
-      "dimensions": [
-        1920,
-        1080
-      ],
-      "mode": "RGB",
-      "role": "Material and paint only: the same ship finished; not layout"
-    }
-  ],
-  "agentMessages": [
-    "I’ll use the imagegen skill to preserve the first reference’s ship and camera while painting the asteroid dock and warm drive ignition around it."
-  ],
-  "usage": {
-    "input_tokens": 85714,
-    "cached_input_tokens": 68096,
-    "cache_write_input_tokens": 0,
-    "output_tokens": 872,
-    "reasoning_output_tokens": 18
-  },
-  "elapsedSeconds": 71.9
+    "promptFile": "art-source\\company-prologue\\story-stills\\raising-her-v2.gen3.prompt.txt",
+    "promptSha256": "7e56ba8455e8c7633cdc59770431bb745e435e3098de0c02d41a43b3014276e1",
+    "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The page to edit (generation 2 laid back over the master): keep everything except the two small clean-ups\nImage 2: Plain render of the same ship from the same camera: turret shape only; not lighting or materials\n\nUse case: precise-object-edit. Edit Reference 1, a finished 3:2 (1536x1024) story illustration, as little as possible: two small clean-ups on the freighter's two gun turrets. Keep every other pixel of the image as it is: the dock, rock, figures, lights, the ship's hull, the bridge dome, the big capped round mount on the right, the camera and the composition.\n\n1. The grey-green primer turret mid-deck, in front of the bridge dome, is a small Vulcan point-defence gun: its gun is one short, neat gatling cluster of several stubby barrels bundled round one axis, pointing right, ending in one muzzle ring. Remove the extra loose barrel pieces and the claw-like bits trailing behind and beside the cluster, so the turret reads as one dome with one short barrel bundle. Do not lengthen the barrels.\n2. The dark aft turret at the left, also a Vulcan with its short barrel bundle pointing left, keeps its shape; only remove the small white scribble on its side.\n\nReference 2 is a plain render of the same ship from the same camera, for the turrets' shape only. Same restrained hand-painted realism and light. No new text.\n",
+    "adopted": false,
+    "references": [
+      {
+        "path": "art-source\\company-prologue\\story-stills\\guides\\p4-turrets-gen2-composite.png",
+        "sha256": "8fdb14df81c518a86ac5620bc527568d2aebe098417b51cf9d6f7efcc27d6b85",
+        "dimensions": [
+          1536,
+          1024
+        ],
+        "mode": "RGB",
+        "role": "The page to edit (generation 2 laid back over the master): keep everything except the two small clean-ups"
+      },
+      {
+        "path": "art-source\\company-prologue\\story-stills\\guides\\p4-stern-quarter-dc62710dc.png",
+        "sha256": "449b4ba414cf4bff5e7c16aad10660e0855657f5f6c5cbf9b88421c3e7d3bddf",
+        "dimensions": [
+          768,
+          512
+        ],
+        "mode": "RGB",
+        "role": "Plain render of the same ship from the same camera: turret shape only; not lighting or materials"
+      }
+    ],
+    "agentMessages": [
+      "I\u00e2\u20ac\u2122ll use image_gen for one precise edit: tidy the mid-deck barrel cluster and remove the aft turret\u00e2\u20ac\u2122s white scribble, preserving the rest of the illustration.\n"
+    ],
+    "usage": {
+      "input_tokens": 52500,
+      "cached_input_tokens": 27136,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 441,
+      "reasoning_output_tokens": 0
+    },
+    "elapsedSeconds": 55.3
+  }
 }

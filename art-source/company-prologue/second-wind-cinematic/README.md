@@ -104,7 +104,7 @@ match.
 **Post-cinematic pictures** (`../yard-stills/`, the Nessa character sheet): Y1 yard
 with Nessa's cut-out layered on is in the game. Nessa is Kilo Nine's forewoman, about
 52, text only (Castle relays her). The prologue pages P1 to P6 and P8 are
-approved and shipped; P3's Colossus repaint shipped 2026-10-20 with its thrust from the six drive bells. P7 (cargo billets) and Y2
+approved and shipped; P3's Colossus repaint shipped 2026-10-20 with its thrust from the six drive bells. P4's turrets were repainted to build dc62710dc (two Vulcans, the other mounts capped) and shipped 2026-10-20; P5 shows no mount. P7 (cargo billets) and Y2
 (berths fitted) are repainted as a before/after pair and in the game. Not done: a
 picture of Nessa's wall of seals, and C5's crowd still draws a dark-coated stand-in for her.
 
