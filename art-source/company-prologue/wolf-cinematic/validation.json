@@ -3,10 +3,10 @@
  "collection": "WOLF_P",
  "root": "WOLF_P | root",
  "effects_collection": "SWFX",
- "objects": 175,
- "meshes": 135,
- "effects_objects": 68,
- "images": 18,
+ "objects": 292,
+ "meshes": 252,
+ "effects_objects": 74,
+ "images": 23,
  "passed": true,
  "failed": [],
  "checks": {
@@ -31,22 +31,22 @@
   "images packed": {
    "ok": true,
    "detail": [
-    18,
+    23,
     []
    ]
   },
   "mesh count": {
    "ok": true,
    "detail": [
-    135,
-    135
+    252,
+    252
    ]
   },
   "polygon count": {
    "ok": true,
    "detail": [
-    14623,
-    14623
+    22483,
+    22483
    ]
   },
   "three engine anchors at the mouths, pointing aft": {
@@ -76,8 +76,8 @@
   "SWFX present": {
    "ok": true,
    "detail": [
-    68,
-    68
+    74,
+    74
    ]
   },
   "plumes leave every bell aft": {
@@ -93,7 +93,7 @@
   },
   "lamp lights": {
    "ok": true,
-   "detail": 5
+   "detail": 8
   },
   "drivers valid": {
    "ok": true,

@@ -182,11 +182,11 @@ def access(kit):
         put(kit.box(f'Hull {side_} crew door', (0, 0, .22), (1.3, 2.9, .2), steel, .05), m)
         put(kit.box(f'Hull {side_} crew door handle', (.4, 0, .38), (.1, .5, .1), steel, 0), m)
         # Maintenance panels on the flanks: main body, aft body, engine block.
-        for k, (x, z, w, h) in enumerate(((10.0, -5.0, 3.4, 2.2), (1.0, -5.0, 3.4, 2.2), (-11.0, -4.0, 3.0, 2.4),
+        for k, (x, z, w, h) in enumerate(((10.0, -5.0, 3.4, 2.2), (1.0, -6.6, 3.4, 2.2), (-11.0, -6.0, 3.0, 2.4),
                                           (-24.5, -1.5, 3.6, 2.6)), 1):
             p, n = side(kit, x, z, s)
             if p is not None:
-                plate(kit, f'Hull {side_} access panel {k}', frame(p, n, 0), w, h, steel if x < -20 else red)
+                plate(kit, f'Hull {side_} access panel {k}', frame(p - n*.22, n, 0), w, h, steel if x < -20 else red)
 
 
 def bridge(kit):
@@ -239,13 +239,14 @@ def drive_section(kit):
 def rcs(kit):
     """Quad thruster blocks: two nozzles outboard along the surface normal, one fore or aft."""
     steel, dark = kit.steel, kit.dark
-    spots = [('bow', 51.0, -1.0, 1), ('wing', 8.0, -1.4, 1), ('stern', -33.8, 2.0, -1)]
+    # Below the belt line, where the flank tucks under, so none of them widens the plan.
+    spots = [('bow', 51.0, -3.5, 1), ('wing', 8.0, -3.8, 1), ('stern', -33.8, 2.0, -1)]
     for side_, s in SIDES:
         for where, x, z, fore in spots:
             p, n = side(kit, x, z, s)
             if p is None:
                 continue
-            m = frame(p, n)
+            m = frame(p - n*.75, n)        # block sunk in the skin: only the nozzles stand proud
             parts = [kit.box('rcs', (0, 0, .35), (1.5, 1.2, .8), steel, .08)]
             for dy in (-.3, .3):
                 parts.append(kit.cylinder('rcs n', (0, dy, .85), .2, .4, steel, 'Z', 10, 0))
@@ -303,8 +304,10 @@ def sensors_and_docking(kit):
 def wing_conduits(kit):
     steel = kit.steel
     for side_, s in SIDES:
-        path = [(-14.0, 16.4), (-8.0, 16.6), (-2.0, 16.9), (4.0, 17.3)]
-        for k, (r, dy, dz) in enumerate(((.32, 0.0, .45), (.22, .75, .35)), 1):
+        # Inside the sprite's root line, which pinches to |Y| 15 at X -8, and forward of
+        # the merchant's PD turret at (-13.6, 12.4).
+        path = [(-9.0, 14.3), (-5.0, 14.4), (-0.5, 15.0), (4.0, 16.0)]
+        for k, (r, dy, dz) in enumerate(((.32, 0.0, .45), (.22, -.75, .35)), 1):
             pts = []
             for x, y in path:
                 p, n = down(kit, x, s*(y+dy))
@@ -313,7 +316,7 @@ def wing_conduits(kit):
             join(segs, f'Pod {side_} wing root conduit {k}')
         brackets = []
         for x, y in path[:-1]:
-            p, n = down(kit, x+1.0, s*(y+.4))
+            p, n = down(kit, x+1.0, s*(y-.4))
             brackets.append(put(kit.box('b', (0, 0, .3), (.35, 1.6, .55), steel, 0), frame(p, n)))
         join(brackets, f'Pod {side_} wing root conduit brackets')
 
@@ -330,9 +333,9 @@ def pirate_plates(kit):
     for side_, s in SIDES:
         p, n = down(kit, 47.6, s*8.0)
         welded(f'Hull bow {side_} jaw patch plate', frame(p, n, 12*s), 3.0, 2.2, red)
-        p, n = side(kit, 28.0, 1.0, s)
+        p, n = side(kit, 28.0, -3.2, s)
         if p is not None:
-            welded(f'Hull neck {side_} flank patch plate', frame(p, n, 6*s), 3.6, 2.4, steel)
+            welded(f'Hull neck {side_} flank patch plate', frame(p - n*.25, n, 6*s), 3.6, 2.4, steel)
         p, n = side(kit, -29.0, -3.5, s)
         if p is not None:
             welded(f'Hull engine {side_} patch plate', frame(p, n, -8*s), 3.0, 2.6, red)

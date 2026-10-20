@@ -57,8 +57,9 @@ manifest.
   (`swfx.apply(state='clean', hull=<this folder>)`) and fires with
   `swfx.module('guns').fire(ctx, mount, start_frame, shots, interval)`, as
   `review_ship.py --fire` does.
-- **Lamps.** Two amber neck lamps (the sprite's), red and green pod-tip lights,
-  a white stern light.
+- **Lamps.** Eight: two amber neck lamps (the sprite's), red and green pod-tip
+  lights, a white stern light, and from the round 7 fittings a white masthead
+  on the bridge mast and two white ventral docking lights.
 
 ## Files
 

@@ -15,22 +15,22 @@
   [
    -40.2,
    -25.983,
-   -18.0
+   -18.631
   ],
   [
    54.912,
    25.983,
-   15.615
+   21.664
   ]
  ],
  "size_m": [
   72.3,
   39.5,
-  25.5
+  30.6
  ],
- "meshes": 135,
- "polygons": 14623,
- "images": 18,
+ "meshes": 252,
+ "polygons": 22483,
+ "images": 23,
  "engines": [
   {
    "index": 1,
@@ -502,13 +502,58 @@
     "phase_s": 0,
     "duty": 0.18
    }
+  },
+  {
+   "name": "Light ventral docking 1",
+   "position": [
+    2.0,
+    3.0,
+    -18.26
+   ],
+   "colour": "white",
+   "role": "docking light",
+   "blink": {
+    "period_s": 0,
+    "phase_s": 0,
+    "duty": 0.18
+   }
+  },
+  {
+   "name": "Light ventral docking 2",
+   "position": [
+    2.0,
+    -3.0,
+    -18.26
+   ],
+   "colour": "white",
+   "role": "docking light",
+   "blink": {
+    "period_s": 0,
+    "phase_s": 0,
+    "duty": 0.18
+   }
+  },
+  {
+   "name": "Light centre masthead 1",
+   "position": [
+    30.4,
+    0,
+    12.95
+   ],
+   "colour": "white",
+   "role": "masthead light",
+   "blink": {
+    "period_s": 0,
+    "phase_s": 0,
+    "duty": 0.18
+   }
   }
  ],
  "sources": {
   "geometry": "art-source/company-prologue/wolf-geometry/build_wolf.py",
   "surface": "art-source/company-prologue/wolf-surface (shared harness, battle wear)",
   "built_from": "skinned.blend",
-  "vfx_hull_sha256": "600c9d91f89462c38f84defdbcf89f3a534543338b1419249659c8888f866d09"
+  "vfx_hull_sha256": "d35ade4f432b5d3ce8e0943871e6463cccfdd36f3da0f5a7e01be88daed8271e"
  },
  "state": "clean",
  "engines_running": [
@@ -648,6 +693,33 @@
     0.95,
     0.85
    ]
+  },
+  {
+   "object": "Light ventral docking 1",
+   "role": "masthead",
+   "rgb": [
+    1.0,
+    0.95,
+    0.85
+   ]
+  },
+  {
+   "object": "Light ventral docking 2",
+   "role": "masthead",
+   "rgb": [
+    1.0,
+    0.95,
+    0.85
+   ]
+  },
+  {
+   "object": "Light centre masthead 1",
+   "role": "masthead",
+   "rgb": [
+    1.0,
+    0.95,
+    0.85
+   ]
   }
  ],
  "effects": {
@@ -656,11 +728,11 @@
   "defaults": {
    "smk_atmosphere": 0.0
   },
-  "objects": 68,
+  "objects": 74,
   "anchors": {
    "engines": 3,
    "guns": 12,
-   "lamps": 5,
+   "lamps": 8,
    "sparks": 0,
    "bounds": 2
   },
@@ -712,5 +784,5 @@
   },
   "append": "load both 'WOLF_P' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "db279e9927406b074fffca7d0b4f80d7bf1bf40a04f74b6ec470758904d58866"
+ "asset_sha256": "da66c2192e66f9295a53f954518f74dd0901be8b9a4aee4341cb958658fed87e"
 }
