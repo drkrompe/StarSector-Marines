@@ -64,6 +64,13 @@ scope unless the owner asks for it.
 
 ## Standing decisions
 
+- Rough shape is not a finished model (owner, 2026-10-20: "we're getting
+  the rough shape right, but need to add detail"). Every visible part must
+  hold up at a close view: curved forms with enough segments that no facets
+  show, bevelled hard edges, recessed windows with frames and dark glass
+  (never glowing rectangles), dishes, masts and lamps on believable mounts,
+  and no bare primitives. Review captions name anything still at blockout
+  level.
 - Sizes must make logical sense relative to each other and to each hull's
   role (owner, 2026-10-20). `ship_scale.py` option C is a starting estimate,
   not a law: a reshape that changes a hull's volume does not shrink or grow
