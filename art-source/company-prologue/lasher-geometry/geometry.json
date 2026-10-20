@@ -1,5 +1,5 @@
 {
-  "status": "Pass 2 (light) + pass 4 scale: silhouette, sections, slots, drives, anchors, glazing, vents and running lights; one Hegemony base material with light procedural wear. Built for distant formation shots (C1 v2); no interiors, damage or articulation beyond turrets.",
+  "status": "Pass 2 with the detail and cohesion pass (ls_detail, owner review 2026-10-19) + pass 4 scale: silhouette, sections, slots, drives, anchors, glazing, vents and running lights; join fairings, frames, panels, hatches, grilles and conduits; one base material per class with light procedural wear. No interiors, damage or articulation beyond turrets.",
   "hull": {
     "name": "Lasher",
     "hullId": "lasher",
@@ -106,7 +106,7 @@
     "size_m": [
       90.0,
       64.9,
-      19.2
+      19.7
     ],
     "person_1_8_m_in_units": 1.89,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
@@ -131,12 +131,12 @@
     "max": [
       60.5,
       34.14,
-      10.75
+      11.25
     ],
     "size": [
       94.74,
       68.28,
-      20.25
+      20.75
     ]
   },
   "weapon_slots": [
@@ -312,6 +312,8 @@
       "trained": [
         "Turret 1 gunhouse",
         "Turret 1 mantlet",
+        "Turret 1 roof hatch",
+        "Turret 1 sight hood",
         "Turret 1 barrel 1",
         "Anchor turret 1 barrel 1 muzzle",
         "Turret 1 barrel 2",
@@ -340,6 +342,8 @@
       "trained": [
         "Turret 2 gunhouse",
         "Turret 2 mantlet",
+        "Turret 2 roof hatch",
+        "Turret 2 sight hood",
         "Turret 2 barrel 1",
         "Anchor turret 2 barrel 1 muzzle",
         "Turret 2 barrel 2",
@@ -368,6 +372,8 @@
       "trained": [
         "Turret 3 gunhouse",
         "Turret 3 mantlet",
+        "Turret 3 roof hatch",
+        "Turret 3 sight hood",
         "Turret 3 barrel 1",
         "Anchor turret 3 barrel 1 muzzle",
         "Turret 3 barrel 2",
@@ -585,8 +591,8 @@
     "anchors_collection": "LASHER | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'LASHER'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 8928,
-    "objects": 128,
+    "triangles": 18912,
+    "objects": 288,
     "materials": [
       "Lasher Hegemony armour",
       "Lasher bridge glazing",
@@ -693,10 +699,14 @@
     }
   ],
   "silhouette": {
-    "iou": 0.9535,
-    "sprite_uncovered": 0.0086,
-    "model_outside_sprite": 0.0398,
-    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 12.63 px per unit"
+    "iou": 0.9502,
+    "sprite_uncovered": 0.006,
+    "model_outside_sprite": 0.0462,
+    "method": "top-view orthographic silhouette of the built mesh (the top camera frame, 1920x1080, 12.63 px per unit) vs sprite alpha (>127), nearest-sampled; rasterised from the mesh rather than rendered (it matches the rendered top alpha to 0.0001 on the previous build, 0.9535)",
+    "previous": {
+      "iou": 0.9535,
+      "build": "7805d3b (before the detail and cohesion pass)"
+    }
   },
   "shot_extent_px": {
     "shot-1500m": {
