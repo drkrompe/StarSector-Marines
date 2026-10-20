@@ -1,0 +1,72 @@
+{
+ "wing-top-port": {
+  "raw_iou": 0.7926,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.8756,
+  "scale": [
+   0.96363,
+   0.967
+  ],
+  "boundary_p95_px": 29.15
+ },
+ "wing-armour-port": {
+  "raw_iou": 0.9695,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9899,
+  "scale": [
+   1.00417,
+   1.0003
+  ],
+  "boundary_p95_px": 27.46
+ },
+ "band-port": {
+  "raw_iou": 0.7601,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.8175,
+  "scale": [
+   1.06747,
+   0.997
+  ],
+  "boundary_p95_px": 107.39
+ },
+ "pod-top-port": {
+  "raw_iou": 0.9836,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9864,
+  "scale": [
+   1.00797,
+   1.0
+  ],
+  "boundary_p95_px": 8.6
+ },
+ "pod-out-port": {
+  "raw_iou": 0.9042,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9071,
+  "scale": [
+   0.99897,
+   1.00165
+  ],
+  "boundary_p95_px": 105.95
+ },
+ "pod-nose-port": {
+  "raw_iou": 0.9079,
+  "best_fit": "identity",
+  "fitted_iou": 0.9079,
+  "scale": [
+   1.0,
+   1.0
+  ],
+  "boundary_p95_px": 59.0
+ },
+ "head-top": {
+  "raw_iou": 0.9302,
+  "best_fit": "iou_refined_affine",
+  "fitted_iou": 0.9321,
+  "scale": [
+   0.9976,
+   1.00554
+  ],
+  "boundary_p95_px": 38.95
+ }
+}

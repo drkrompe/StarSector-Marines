@@ -147,5 +147,48 @@
    ],
    "note": "spread owned: shading and edge contamination on the reference inflate it"
   }
+ },
+ "wear": {
+  "_doc": "Owned wear colours (wear.py), CIELAB D65, chosen against the class palette: what battle and a pirate crew's neglect reveal and deposit on a scarlet and gunmetal hull (the Colossus Mk.III's set, the chalk retuned to scarlet).",
+  "primer": {
+   "lab": [
+    38.0,
+    14.0,
+    16.0
+   ],
+   "what": "red-oxide primer under the scarlet enamel, rust-toned"
+  },
+  "bare": {
+   "lab": [
+    60.0,
+    0.5,
+    2.0
+   ],
+   "what": "abraded bare steel at chips and walkways, dulled"
+  },
+  "dust": {
+   "lab": [
+    36.0,
+    5.0,
+    12.0
+   ],
+   "what": "Asharu dust, landing grit and oily grime, brown"
+  },
+  "soot": {
+   "lab": [
+    12.0,
+    0.5,
+    1.5
+   ],
+   "what": "drive and gun soot"
+  },
+  "chalk": {
+   "lab": [
+    55.0,
+    18.0,
+    12.0
+   ],
+   "what": "sun-faded scarlet goes a dusty pink-grey, not white"
+  }
  }
 }

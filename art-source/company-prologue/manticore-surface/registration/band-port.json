@@ -1,0 +1,59 @@
+{
+ "part": "band-port",
+ "sheet": "wings-v2",
+ "tile": 1,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9699,
+ "raw_iou": 0.7601,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.8175,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.7601
+  },
+  "bounds_affine": {
+   "scale": [
+    1.06647,
+    1.0
+   ],
+   "offset_px": [
+    -29.37,
+    -2.0
+   ],
+   "iou": 0.8151
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.06747,
+    0.997
+   ],
+   "offset_px": [
+    -30.37,
+    -1.0
+   ],
+   "iou": 0.8175
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 30.39,
+  "p95_px": 116.19,
+  "max_px": 146.03
+ },
+ "boundary_fitted_px": {
+  "mean_px": 25.66,
+  "p95_px": 107.39,
+  "max_px": 145.72
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

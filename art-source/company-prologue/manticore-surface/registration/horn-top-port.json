@@ -1,0 +1,59 @@
+{
+ "part": "horn-top-port",
+ "sheet": "bow-v2",
+ "tile": 2,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9681,
+ "raw_iou": 0.8363,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.8498,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.8363
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00617,
+    0.88155
+   ],
+   "offset_px": [
+    -3.48,
+    58.5
+   ],
+   "iou": 0.8229
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00617,
+    0.92155
+   ],
+   "offset_px": [
+    -3.48,
+    38.5
+   ],
+   "iou": 0.8498
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 10.84,
+  "p95_px": 50.0,
+  "max_px": 83.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 11.28,
+  "p95_px": 46.96,
+  "max_px": 65.8
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

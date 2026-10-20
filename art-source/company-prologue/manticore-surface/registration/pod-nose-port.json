@@ -1,0 +1,59 @@
+{
+ "part": "pod-nose-port",
+ "sheet": "pods",
+ "tile": 2,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9744,
+ "raw_iou": 0.9079,
+ "best_fit": "identity",
+ "fitted_iou": 0.9079,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9079
+  },
+  "bounds_affine": {
+   "scale": [
+    1.0051,
+    0.90698
+   ],
+   "offset_px": [
+    -2.32,
+    45.37
+   ],
+   "iou": 0.7879
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.0051,
+    0.87798
+   ],
+   "offset_px": [
+    -1.82,
+    12.37
+   ],
+   "iou": 0.8819
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 19.28,
+  "p95_px": 59.0,
+  "max_px": 129.0
+ },
+ "boundary_fitted_px": {
+  "mean_px": 19.28,
+  "p95_px": 59.0,
+  "max_px": 129.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

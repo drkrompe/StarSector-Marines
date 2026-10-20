@@ -1,0 +1,59 @@
+{
+ "part": "core-flank-fore-port",
+ "sheet": "aft",
+ "tile": 3,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9845,
+ "raw_iou": 0.825,
+ "best_fit": "identity",
+ "fitted_iou": 0.825,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.825
+  },
+  "bounds_affine": {
+   "scale": [
+    0.72205,
+    0.98413
+   ],
+   "offset_px": [
+    245.74,
+    0.57
+   ],
+   "iou": 0.6359
+  },
+  "iou_refined_affine": {
+   "scale": [
+    0.72205,
+    1.05213
+   ],
+   "offset_px": [
+    245.74,
+    -35.43
+   ],
+   "iou": 0.6599
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 49.91,
+  "p95_px": 211.0,
+  "max_px": 212.06
+ },
+ "boundary_fitted_px": {
+  "mean_px": 49.91,
+  "p95_px": 211.0,
+  "max_px": 212.06
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}
