@@ -17,6 +17,9 @@ import java.util.List;
  */
 public final class VehicleMoveOrderHighlightPublisher {
 
+    /** Shaft length of the arrow on an accepted order's destination, in cells. */
+    private static final float FACING_ARROW_CELLS = 2.5f;
+
     private VehicleMoveOrderHighlightPublisher() { }
 
     public static void publish(Selection selection, BattleSimulation sim,
@@ -27,6 +30,7 @@ public final class VehicleMoveOrderHighlightPublisher {
         if (selected == 0L || orders == null) {
             overlay.clear(HighlightOverlay.SRC_VEHICLE_MOVE_DESTINATION);
             overlay.clear(HighlightOverlay.SRC_VEHICLE_MOVE_REFUSED);
+            overlay.clear(HighlightOverlay.SRC_VEHICLE_MOVE_FACING);
             return;
         }
 
@@ -36,8 +40,13 @@ public final class VehicleMoveOrderHighlightPublisher {
                     new CellHighlight((int) Math.floor(order.destinationX()),
                             (int) Math.floor(order.destinationY()),
                             HighlightOverlay.COLOR_VEHICLE_MOVE_DESTINATION)));
+            overlay.putFacings(HighlightOverlay.SRC_VEHICLE_MOVE_FACING, order.hasFacing()
+                    ? List.of(new HighlightOverlay.FacingMark(order.destinationX(), order.destinationY(),
+                            order.facingDegrees(), FACING_ARROW_CELLS))
+                    : null);
         } else {
             overlay.clear(HighlightOverlay.SRC_VEHICLE_MOVE_DESTINATION);
+            overlay.clear(HighlightOverlay.SRC_VEHICLE_MOVE_FACING);
         }
 
         VehicleMoveOrderService.RefusedOrder refused = orders.refusal(selected);

@@ -134,11 +134,11 @@ class Kit:
         # Round 15 (owner, round 14: the glass still read tan): an absorbing
         # near-black tint with a low specular level, so it reads dark even under
         # a bright grey studio world, and only the faintest interior glow.
-        self.glass = material('Manticore bridge glazing', (.004, .005, .006), 0, .06,
-                              emission=(1.0, .78, .5), strength=.025)
+        # Detail check (ship-detail-guide): the Manticore has no lights layer, so
+        # nothing but the sprite's lamps glows; the glass is dark with no emission.
+        self.glass = material('Manticore bridge glazing', (.004, .005, .006), 0, .06)
         self.glass.node_tree.nodes.get('Principled BSDF').inputs['Specular IOR Level'].default_value = .25
-        self.vent = material('Manticore heat vent glow', (.05, .03, .02), .3, .5,
-                             emission=(1.0, .45, .12), strength=2.5)
+        self.vent = material('Manticore heat vent', (.05, .03, .02), .3, .5)  # heat-stained slats, unlit
         self.hull = []  # objects the downward ray-cast seats parts on
         self.mpu = 1.0  # metres per unit; the driver sets it before building
 
@@ -249,44 +249,124 @@ def sym(port):
     return list(port) + [(x, -y) for x, y in reversed(port)]
 
 
-def armour_plates(kit, ob, breaks=(), gap=.22, rise=.3, plate_mat=None, seam_mat=None, skip_up=False):
-    """Round 15 (owner: the red plates were still blockout): turn a part's
-    armour faces into raised plates. Each plane in `breaks` ((point, normal))
-    first splits the faces it crosses, so plate breaks follow the form; then
-    every armour face wide enough is inset and lifted `rise`, which leaves a
-    V-groove `gap` wide either side of every crease and break, in `seam_mat`,
-    and gives each plate a visible edge thickness. Only faces in `plate_mat`
-    (default: the part's own first material) become plates; with `skip_up`,
-    level decks where fittings stand are left as they are."""
+def armour_plates(kit, ob, breaks=(), gap=.08, rise=.45, plate_mat=None, seam_mat=None, skip_up=False,
+                  angle=35, bolts=1.4):
+    """Armour laid as the Onslaught lays it (owner, round 15: the plating gaps
+    "seem weird"; take the cues from the Onslaught for the armour facing combat).
+    Each plane in `breaks` ((point, normal)) splits the part where one plate ends
+    and the next begins; faces of the part's armour material (`plate_mat`) are
+    then grouped into plates across creases gentler than `angle`, so a plate is a
+    thick slab bent over the form, not one tile per facet. Each plate is lifted
+    `rise` with a chamfered border, leaving a narrow seam `gap` wide in
+    `seam_mat` between neighbours, and (when `bolts` is a pitch) carries a row
+    of bolt heads just inside its edges. With `skip_up`, level decks where
+    fittings stand are left whole. Returns the bolts object, or None."""
     me = ob.data
     plate_mat = plate_mat or me.materials[0]
-    seam_mat = seam_mat or kit.dark
-    if seam_mat.name not in [m.name for m in me.materials]:
-        me.materials.append(seam_mat)
+    seam_mat = seam_mat or kit.steel
     names = [m.name for m in me.materials]
+    if seam_mat.name not in names:
+        me.materials.append(seam_mat)
+        names.append(seam_mat.name)
     pi = names.index(plate_mat.name) if plate_mat.name in names else 0
     si = names.index(seam_mat.name)
     bm = bmesh.new()
     bm.from_mesh(me)
-    for co, no in breaks:
-        geom = bm.verts[:]+bm.edges[:]+bm.faces[:]
-        bmesh.ops.bisect_plane(bm, geom=geom, plane_co=co, plane_no=no)
-    faces = []
-    for f in bm.faces:
-        if f.material_index != pi or (skip_up and f.normal.z > .95):
+    planes = [(Vector(co), Vector(no).normalized()) for co, no in breaks]
+    for co, no in planes:
+        bmesh.ops.bisect_plane(bm, geom=bm.verts[:]+bm.edges[:]+bm.faces[:], plane_co=co, plane_no=no)
+
+    def on_break(e):
+        return any(all(abs((v.co-co).dot(no)) < 1e-3 for v in e.verts) for co, no in planes)
+
+    ok = {f for f in bm.faces if f.material_index == pi and not (skip_up and f.normal.z > .95)}
+    lim = math.radians(angle)
+    regions, seen = [], set()
+    for f0 in ok:
+        if f0 in seen:
             continue
-        per = sum(e.calc_length() for e in f.edges)
-        if per and 2*f.calc_area()/per > gap*1.6:
-            faces.append(f)
-    res = bmesh.ops.inset_individual(bm, faces=faces, thickness=gap, depth=rise, use_even_offset=True)
-    for f in res['faces']:
-        f.material_index = si
+        reg, stack = [], [f0]
+        seen.add(f0)
+        while stack:
+            f = stack.pop()
+            reg.append(f)
+            for e in f.edges:
+                if on_break(e):
+                    continue
+                for g in e.link_faces:
+                    if g in ok and g not in seen and f.normal.angle(g.normal, 0) < lim:
+                        seen.add(g)
+                        stack.append(g)
+        area = sum(f.calc_area() for f in reg)
+        if area > 1.0:
+            regions.append(reg)
+    studs = []
+    for reg in regions:
+        res = bmesh.ops.inset_region(bm, faces=reg, thickness=gap, depth=rise, use_even_offset=True,
+                                     use_boundary=True)
+        ring = set(res['faces'])
+        for f in ring:
+            f.material_index = si
+        if not bolts:
+            continue
+        rs = set(reg)
+        for f in reg:
+            c = f.calc_center_median()
+            for e in f.edges:
+                if not any(g in ring for g in e.link_faces):
+                    continue
+                a, b = e.verts[0].co.copy(), e.verts[1].co.copy()
+                ln = (b-a).length
+                if ln < bolts*1.2:
+                    continue
+                d = (b-a).normalized()
+                inward = f.normal.cross(d)
+                if inward.dot(c-a) < 0:
+                    inward = -inward
+                n = int(ln/bolts)
+                for k in range(n):
+                    p = a+d*((k+.5)*ln/n)+inward*.4
+                    studs.append((p, f.normal.copy()))
     bm.to_mesh(me)
     bm.free()
     me.update()
     mod = ob.modifiers.get('Plate edge chamfer')
     if mod:
-        mod.width, mod.segments = min(mod.width, .06), 2
+        mod.width, mod.segments = min(mod.width, .1), 2
+    if not studs:
+        return None
+    verts, faces = [], []
+    for p, n in studs:
+        side = n.orthogonal().normalized()
+        up = n.cross(side)
+        base = len(verts)
+        for h in (-.05, .12):
+            for k in range(6):
+                t = 2*math.pi*k/6
+                verts.append(tuple(p+n*h+side*(.11*math.cos(t))+up*(.11*math.sin(t))))
+        faces += [tuple(range(base+5, base-1, -1)), tuple(range(base+6, base+12))]
+        faces += [(base+k, base+(k+1) % 6, base+6+(k+1) % 6, base+6+k) for k in range(6)]
+    return kit.mesh(ob.name+' bolts', verts, faces, kit.steel, 0)
+
+
+def hull_plating(kit, ob, breaks=(), skip_up=True):
+    """Ordinary hull plating, not armour: fine plate lines only (narrow, shallow
+    seams at `breaks` and sharp creases), no bolts."""
+    armour_plates(kit, ob, breaks, gap=.05, rise=.1, skip_up=skip_up, angle=35, bolts=None)
+    return ob
+
+
+MODULE_BEVEL = .06/.59   # ship-detail-guide tiers in hull units (0.59 m/u): modules and housings
+FITTING_BEVEL = .03/.59  # fittings
+SMALL_BEVEL = .015/.59   # small parts
+
+
+def edge_bevel(ob, width, angle=30):
+    """Detail-guide chamfer: one segment, angle-limited, so every hard edge catches a highlight."""
+    if ob.name.startswith('Temporary') or width <= 0:
+        return ob
+    b = ob.modifiers.get('Plate edge chamfer') or ob.modifiers.new('Plate edge chamfer', 'BEVEL')
+    b.width, b.segments, b.limit_method, b.angle_limit = width, 1, 'ANGLE', math.radians(angle)
     return ob
 
 
@@ -323,7 +403,7 @@ def revolve_x(kit, name, profile, y, z, mat, n=12):
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     bm.to_mesh(me)
     bm.free()
-    return ob if name.startswith('Temporary') else shade_round(ob)
+    return ob if name.startswith('Temporary') else edge_bevel(shade_round(ob), MODULE_BEVEL)
 
 
 # --- Planform prisms: one keel chamfer, one wall, one shoulder chamfer. ---

@@ -768,8 +768,8 @@ public final class BarracksCommandModel {
         if (inductionRequired() && roster.officerInduction().companyPreparation()) {
             int index = switch (inductionStep()) {
                 case SHIP -> 0;
-                case LIFT -> 1;
-                case INTRODUCTION, SPECIALTY -> 2;
+                case INTRODUCTION, SPECIALTY -> 1;
+                case FORMATION -> 2;
                 default -> 3;
             };
             return "graphics/ui/officers/preparation-step-" + index + ".svg";
@@ -793,7 +793,6 @@ public final class BarracksCommandModel {
     private String inductionTarget() {
         Step step = inductionStep();
         if (step == Step.SHIP) return "page-nav-hq";
-        if (step == Step.LIFT) return "page-nav-boats";
         if (step == Step.INTRODUCTION) return inductionOfficerTarget();
         if (step == Step.SPECIALTY)
             return !dossier || selectedOfficer() != inductionOfficer() ? inductionOfficerTarget()
@@ -820,7 +819,6 @@ public final class BarracksCommandModel {
                 : Strings.get("openingBarracksCommandChooseReadyToCompleteInductionThenReturn");
         return switch (inductionTarget()) {
             case "page-nav-hq" -> Strings.get("openingBarracksCommandChooseACompanyShipInHqBefore");
-            case "page-nav-boats" -> Strings.get("openingBarracksCommandCommissionOurFirstShuttleOnTheBoat");
             case "officer-formations" -> Strings.get("openingBarracksCommandChooseViewFormationsToReturnToThe");
             case "barracks-raise-squad" -> Strings.get("openingBarracksCommandRaiseSquadOpensTheEquipmentWorkspaceFound");
             case "command:all" -> Strings.get("openingBarracksCommandChooseAllFormationsSoTheUnassignedSquad");

@@ -2244,7 +2244,10 @@ a team is lost) the whole line is cut again, so a team that arrived first does
 not keep the share meant for the rest. Marines left over take ordinary cover in
 the band, a cell behind the line; with no prepared ground at all the squad forms
 a skirmish line along it. Several selected squads share one drawn line end to
-end. Mechs given a line move to its end.
+end. Mechs given a line move to its end. A drag on a selection with no
+infantry in it — a vehicle, or mechs alone — draws no line: it is a move to
+where the drag began, finishing facing the way it went (`mechs-nouns.md`,
+`convoy-nouns.md`), previewed as an arrow out of the destination.
 
 **A marine with a position fights from it.** A claimed marine walks to the cell
 and stays: they fire when they have a shot and otherwise wait, rather than

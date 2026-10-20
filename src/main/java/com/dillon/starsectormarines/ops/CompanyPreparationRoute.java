@@ -16,7 +16,6 @@ final class CompanyPreparationRoute {
                     MECH_LAB, BOAT_DECK, MISSION_SELECT, BRIEFING, SQUAD_DEPLOYMENT ->
                     switch (roster.officerInduction().step(roster)) {
                         case SHIP -> ScreenId.SHIP_TRANSFER;
-                        case LIFT -> ScreenId.BOAT_DECK;
                         default -> ScreenId.BARRACKS;
                     };
             // HQ already hosts Castle's handoff. Battle settlement and developer tools
