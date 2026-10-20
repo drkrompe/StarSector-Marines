@@ -94,8 +94,8 @@ def sides(plan):
     return (('port', 1, ccw(plan)), ('starboard', -1, mirror(plan)))
 
 
-def dome(kit, name, x, y, r, z0, h, mat, n=16, rings=4):
-    """A flattened spherical cap of plan radius r rising h above z0, faceted."""
+def dome(kit, name, x, y, r, z0, h, mat, n=64, rings=12):
+    """A flattened spherical cap of plan radius r rising h above z0, round by the segment rule."""
     verts, faces = [], []
     for k in range(rings+1):
         a = (math.pi/2)*k/rings
@@ -215,7 +215,7 @@ def sponson(kit, name, poly, top, keel, mat, sign, step=.8):
     for x in xs:
         yc, w = side_span(poly, x)
         stations_.append((x, yc*sign, max(w, .3)))
-    n = 20
+    n = 64   # round 8: the segment rule (ship-detail-guide.md) at the pods' 1.5-2 m corners
     out = []
     for x, yc, w in stations_:
         ring = []
@@ -232,7 +232,7 @@ def sponson(kit, name, poly, top, keel, mat, sign, step=.8):
     return loft_x(kit, name, out, mat, 0)
 
 
-def superloft(kit, name, xs, hw, top, keel, mat, yc=0.0, n=24, mid=.42, pt=P_TOP, pb=P_BOTTOM):
+def superloft(kit, name, xs, hw, top, keel, mat, yc=0.0, n=48, mid=.42, pt=P_TOP, pb=P_BOTTOM):
     """A closed loft through superellipse sections at stations xs: half-width hw(x)
     about yc, from keel(x) up to top(x), widest at mid of the way up."""
     stations = []
@@ -343,8 +343,8 @@ def build(kit):
             xs = [x-R*1.25+2*R*1.25*i/16 for i in range(17)]
             tub = superloft(kit, f'Hull {side} turret foundation', xs,
                             lambda xx, R=R: R*max(.25, 1-((xx-x)/(R*1.25))**2)**.5, lambda xx: deck,
-                            lambda xx: deck-9.0, red, yc=s*y, n=28, mid=.78, pt=6.0, pb=2.0)
-            well = kit.cylinder(f'Temporary {side} turret well', (x, s*y, deck), 5.0, 2.0, kit.dark, 'Z', 32, 0)
+                            lambda xx: deck-9.0, red, yc=s*y, n=64, mid=.78, pt=6.0, pb=2.0)
+            well = kit.cylinder(f'Temporary {side} turret well', (x, s*y, deck), 5.0, 2.0, kit.dark, 'Z', 64, 0)
             boolean(tub, well)
             domes.append(tub)
     eng = body['Hull engine block']

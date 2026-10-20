@@ -170,8 +170,9 @@ leaving modeled reach has no terminal blast. Autonomous fire and a company's
 wall-breach shots are not thrown and keep the terminal-contact rule. Direct SRMs
 remain interceptable in flight, and a surviving payload arrives on the ordinary
 delay.
-Indirect missiles retain their separate targeting contract and cannot be
-triggered through this point-fire adapter.
+A pilot's arcing LRM rack lands on the thrown point plus the same scatter disk,
+with no target-relative hit roll; autonomous and breach indirect fire keep their
+own targeting contract.
 
 ## Obscuration
 
