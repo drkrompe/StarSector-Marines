@@ -735,7 +735,7 @@ def barbette(name, r, lift, mats, mpu, detail='near', foot=None, location=(0, 0,
         top, base = 1.16*r, 1.16*r+min(.35*foot, .5*r)
         c = min(.06*r, .25*foot)
         p.lathe([(0, -foot), (base, -foot), (base, -foot+.25*foot), (top, -.2*foot+c), (top, -c), (top-c, 0),
-                 (0, 0)], 48, phase=math.pi/48, plates=True)   # plated, fine enough to pass the 25 mm sag gate
+                 (0, 0)], 48, phase=math.pi/48)   # round, by the segment rule
         for t in (.45, .72):                                   # plate courses
             zc = -foot*t
             rc = top+(base-top)*max(0, (t-.2)/.55)
