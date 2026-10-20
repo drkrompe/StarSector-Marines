@@ -22,12 +22,14 @@ What the export does to the build, in order:
    overrides survive;
 3. writes `hull_rest` (vertex position, hull units) and `hull_normal` (face
    normal, hull space), which the wear masks read so they ride the ship;
-4. parents everything to the root; each turret's trainable parts (above the
-   traverse gap) to `Turret <i> pivot`, which turns about hull +Z;
+4. parents everything to the root, keeping the turret kit's hierarchy
+   (sw_turrets): each gun's house, guns and barrels ride `Turret <i> pivot`,
+   which turns about hull +Z, its guns `Turret <i> elevation` and each barrel
+   `Turret <i> recoil <k>`; a seized or stripped mount's pivot carries nothing;
 5. keeps the geometry's anchors (`Engine <i> exhaust anchor` at each bell
    mouth, `RCS <cluster> <axis> anchor` at each thruster), writes this state's
-   `running` / `working` on them, and adds `Anchor turret <i> <gun> muzzle` at
-   each muzzle; local +X is the effect axis (down the exhaust, along the line
+   `running` / `working` on them, and keeps the build's `Anchor turret <i> barrel <k>
+   muzzle` at each muzzle; local +X is the effect axis (down the exhaust, along the line
    of fire), the second-wind-vfx convention;
 6. chains the state overlay (second-wind-surface/wear_overlay.py, overlay/<state>.json)
    after the base wear that apply_skin.py --wear <state> already put on the skins.
@@ -68,7 +70,6 @@ ROOT = f'SECOND WIND | {STATE} | root'
 # Drive status -> running. A jury-rigged coil runs (patched, refit starboard).
 RUNNING = {'running', 'jury'}
 PORT_ENGINES, STBD_ENGINES = (1, 2), (3, 4)   # sw_engines.ENGINES order: +Y is port
-FIXED_TURRET_PARTS = ('barbette foot', 'armoured collar', 'traverse gap')
 # Scar parts that sit on the collar (stripped studs, a refitted adapter ring):
 # they do not make a mount seized.
 COLLAR_SCAR_PARTS = ('bare stud', 'adapter ring', 'adapter bolts')
@@ -99,11 +100,20 @@ hidden_parts = {o.name: o.get('scar_hidden') for o in bpy.data.objects if o.get(
 # 1b. Where each scar id lives in this state: the union of everything it
 # touches (its own `Scar <id> ...` parts, base parts it hides, shape-keys or
 # overrides), for the cross-state continuity review.
+def _placed(ob):
+    # A hidden part is never evaluated, so its matrix_world is a placeholder:
+    # compose its placement from the parent chain instead (the turret kit
+    # parents a gun's meshes to its pivot, elevation and recoil empties).
+    m = ob.matrix_basis
+    while ob.parent is not None:
+        m = ob.parent.matrix_basis @ ob.matrix_parent_inverse @ m
+        ob = ob.parent
+    return m
+
+
 def _box(ob):
-    # From the mesh and its own transform: a hidden part is never evaluated,
-    # so its bound_box and matrix_world are placeholders at the origin. The
-    # build parents nothing, so matrix_basis is the placement.
-    mw = ob.matrix_basis if ob.parent is None else ob.matrix_world
+    # From the mesh and its own placement (_placed), not its bound_box.
+    mw = _placed(ob)
     pts = [mw @ v.co for v in ob.data.vertices] or [mw.translation]
     return Vector([min(c) for c in zip(*pts)]), Vector([max(c) for c in zip(*pts)])
 
@@ -187,16 +197,18 @@ def empty(name, where, size=1.0, kind='PLAIN_AXES', parent=None, matrix=None):
 
 
 root = empty(ROOT, coll, 12, 'ARROWS')
+kept = set(ship) | set(geo_anchors)
 for ob in ship:
     for c in list(ob.users_collection):
         c.objects.unlink(ob)
     coll.objects.link(ob)
-    ob.parent = root          # root sits at the hull origin: no inverse needed
+    if ob.parent is None:
+        ob.parent = root      # root sits at the hull origin: no inverse needed
 for ob in geo_anchors:
     for c in list(ob.users_collection):
         c.objects.unlink(ob)
     anchors_coll.objects.link(ob)
-    if ob.parent is None or ob.parent.name not in coll.objects:
+    if ob.parent is None or ob.parent not in kept:
         w = ob.matrix_world.copy()
         ob.parent = root
         ob.matrix_parent_inverse = Matrix.Identity(4)
@@ -221,50 +233,63 @@ def frame(axis, up=Vector((0, 0, 1))):
     return Matrix((x, z.cross(x), z)).transposed()
 
 
+def descendants(ob):
+    out = []
+    for ch in ob.children:
+        out += [ch]+descendants(ch)
+    return out
+
+
+def reparent(ob, parent):
+    w = ob.matrix_world.copy()
+    ob.parent = parent
+    ob.matrix_parent_inverse = parent.matrix_world.inverted()
+    ob.matrix_world = w
+
+
 turrets = []
-for i, (x, y, angle, scale, heavy) in enumerate(MOUNTS, 1):
-    parts = by_prefix(f'Turret {i} ')
-    gap = next((o for o in parts if o.name == f'Turret {i} traverse gap'), None)
-    z = bbox(gap)[1].z if gap else (max(bbox(o)[0].z for o in parts) if parts else 0.0)
-    pivot = empty(f'Turret {i} pivot', anchors_coll, 3 * scale, 'SINGLE_ARROW', root,
-                  Matrix.Translation((x, y, z)))
-    # A jammed mount (collar tagged jammed / jam_deg, its slew already baked)
-    # or a wrecked one (its own `Scar sp-turret-<i> ...` parts, which do not
-    # ride the pivot) is seized: it rests jam_deg off its slot, and nothing
-    # trains or fires from it.
-    collar = next((o for o in parts if o.name.endswith('armoured collar')), None)
-    jam = float(collar.get('jam_deg', 0.)) if collar is not None and collar.get('jammed') else 0.
+for i, (x, y, angle, scale, _) in enumerate(MOUNTS, 1):
+    pivot = bpy.data.objects[f'Turret {i} pivot']
+    barbette = bpy.data.objects[f'Turret {i} barbette']
+    # A jammed mount (barbette tagged jammed / jam_deg, its slew already baked)
+    # or a wrecked one (its own `Scar sp-turret-<i> ...` parts) is seized: it
+    # rests jam_deg off its slot, and nothing trains, elevates or fires from it.
+    # A stripped one (its gun hidden, so not in `ship`) carries nothing either.
+    jam = float(barbette.get('jam_deg', 0.)) if barbette.get('jammed') else 0.
     wreck = [o.name for o in ship if o.name.startswith(f'Scar sp-turret-{i} ')
              and not o.name.endswith(COLLAR_SCAR_PARTS)]
     seized = bool(jam or wreck)
+    below = descendants(pivot)
+    gun = [o for o in below if o.type == 'MESH']
+    trained = [] if seized else gun
+    if not trained:
+        for o in gun:
+            reparent(o, root)
+        for o in below:
+            if o.type == 'EMPTY':
+                bpy.data.objects.remove(o)
+    bpy.context.view_layer.update()
     angle = angle + jam
     pivot['rest_angle_deg'] = angle
-    pivot['slot'] = f'WS 00{i}'
-    pivot['train_axis'] = 'hull +Z'
     pivot['seized'] = seized
     pivot['jam_deg'] = jam
-    trained = [] if seized else [o for o in parts if not o.name.endswith(FIXED_TURRET_PARTS)]
-    for o in trained:
-        w = o.matrix_world.copy()
-        o.parent = pivot
-        o.matrix_parent_inverse = pivot.matrix_world.inverted()
-        o.matrix_world = w
-    bpy.context.view_layer.update()
     muzzles = []
-    for brake in [] if seized else [o for o in parts if o.name.endswith('muzzle brake')]:
-        tag = brake.name[len(f'Turret {i} '):-len(' muzzle brake')]
-        mw = brake.matrix_world
-        lo = Vector(map(min, *[Vector(c) for c in brake.bound_box]))
-        hi = Vector(map(max, *[Vector(c) for c in brake.bound_box]))
-        tip = mw @ Vector((hi.x, (lo.y + hi.y) / 2, (lo.z + hi.z) / 2))
-        axis = (mw.to_3x3() @ Vector((1, 0, 0))).normalized()
-        a = empty(f'Anchor turret {i} {tag} muzzle', anchors_coll, 1.0, 'SINGLE_ARROW', pivot,
-                  Matrix.Translation(tip) @ frame(axis).to_4x4())
+    for a in sorted((o for o in descendants(pivot) if o.name.startswith(f'Anchor turret {i} ')),
+                    key=lambda o: o.name):
+        tag = a.name[len(f'Anchor turret {i} '):-len(' muzzle')]
+        tip = a.matrix_world.translation
+        axis = (a.matrix_world.to_3x3() @ Vector((1, 0, 0))).normalized()
         muzzles.append({'tag': tag, 'anchor': a.name, 'at': [round(c, 3) for c in tip],
                         'axis': [round(c, 3) for c in axis]})
-    turrets.append({'index': i, 'slot': f'WS 00{i}', 'size': 'MEDIUM' if heavy else 'SMALL',
-                    'pivot': pivot.name, 'pivot_at': [x, y, round(z, 3)], 'rest_angle_deg': angle,
-                    'trained_parts': len(trained), 'fixed_parts': len(parts) - len(trained),
+    elev = bpy.data.objects.get(f'Turret {i} elevation') if trained else None
+    turrets.append({'index': i, 'slot': pivot.get('slot', f'WS 00{i}'), 'weapon': pivot.get('weapon'),
+                    'size': 'MEDIUM' if scale > 1 else 'SMALL', 'arc_deg': pivot.get('arc_deg'),
+                    'pivot': pivot.name, 'pivot_at': [round(c, 3) for c in pivot.matrix_world.translation],
+                    'rest_angle_deg': angle,
+                    'elevation': elev.name if elev else None,
+                    'elevation_limits_deg': [elev.get('elevation_min_deg'), elev.get('elevation_max_deg')] if elev else None,
+                    'recoil': sorted(o.name for o in descendants(pivot) if ' recoil ' in o.name and o.type == 'EMPTY'),
+                    'trained_parts': len(trained), 'fixed_parts': 1 + len(barbette.children),
                     'status': status.get(f'sp-turret-{i}'), 'present': bool(trained) or seized,
                     'trainable': bool(trained), 'seized': seized, 'jammed': bool(jam), 'jam_deg': jam,
                     'wreck_parts': len(wreck), 'muzzles': muzzles})
@@ -396,7 +421,10 @@ manifest = {
         'root': 'Every ship part and anchor descends from the root; move, rotate or scale the root only.',
         'anchors': 'Local +X is the effect axis (drive exhaust aft; gun line of fire); +Z as near hull-dorsal as that allows.',
         'turrets': 'Rotate a Turret <i> pivot about its local Z to train; rest pose is the slot angle '
-                   '(plus jam_deg when jammed). A seized mount (jammed or wrecked) carries nothing and has no muzzle.',
+                   '(plus jam_deg when jammed). Rotate Turret <i> elevation about its local Y to elevate '
+                   '(negative lifts the muzzles); slide Turret <i> recoil <k> along its local -X to recoil a barrel. '
+                   'Anchor turret <i> barrel <k> muzzle: +X along the line of fire. A seized mount (jammed or '
+                   'wrecked) or a stripped one carries nothing and has no muzzle.',
         'sparks': 'Scar <id> spark anchor: +X along the spray; emit only where sparking is true.',
         'wear': 'Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).',
         'metric': 'Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres.',

@@ -65,6 +65,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 kit = sw_kit.Kit()
+kit.mpu = METRES_PER_UNIT
 
 # Order matters: bow facets are cut before the engine pods join the hull,
 # and the bay apertures after, so neither cut reaches the wrong part.
@@ -162,12 +163,14 @@ if not args.no_save:
         'axes':{'+X':'bow','+Y':'port','+Z':'dorsal'},
         'units':'Vanilla hull-space units (1 sprite px = 1 unit); multiply by metres_per_unit for metres',
         'metres_per_unit':METRES_PER_UNIT,
-        'revision':'V3 detail: segmented sprite-measured hull, whole engine pods, spine command deck, port grapple, naval turrets',
+        'revision':'V3 detail: segmented sprite-measured hull, whole engine pods, spine command deck, port grapple; turret-kit guns of the cerberus_Standard loadout',
         'thickness_profile':{'method':'Flat deck plateaus (x0, x1, deck z) over single-chamfer sections; level keel', 'stations':sw_hull.THICKNESS_STATIONS, 'deck_datum':0, 'attachments':'Engine centres unchanged from V2'},
         'engine_source':'starsector-core/data/hulls/warhound.ship engineSlots',
         'engines':[{'location':[x,y,0],'width':w,'exhaust_direction':[-1,0,0]} for x,y,w in sw_engines.ENGINES],
         'port_fitting':{'extent_x':[28.5,48],'extent_y':[24,34.3],'function':'Proposed boarding/cargo grapple sponson and folded arm, read from the sprite; not canonical lore'},
         'cameras':[{'name':name,'position':list(pos),'orthographic_scale':scale} for name,pos,scale in cameras],
+        'turret_source':'starsector-core/data/variants/cerberus/cerberus_Standard.variant on warhound.ship weaponSlots; guns from ../turret-kit',
+        'turrets':sw_turrets.records(),
         'bay_state':{'port':'open, empty cradle','starboard':'sealed, awaits repair'},
         'mesh_authority':'All views render the same objects; generated surface art is subordinate to this geometry.'
     }

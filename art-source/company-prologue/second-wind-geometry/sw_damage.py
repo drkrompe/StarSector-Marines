@@ -232,17 +232,25 @@ class Damage:
         mat = ob.active_material if ob is not None else None
         return mat or self.kit.orange
 
+    @staticmethod
+    def colour(base):
+        """A material's flat colour: its BSDF base, or for a turret-kit paint (whose
+        base colour is a node tree) the calibrated colour it carries as diffuse."""
+        if 'paint_target' in base:
+            return tuple(base.diffuse_color[:3])
+        return tuple(base.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value[:3])
+
     def torn(self, base):
         """Torn painted metal from a base part: a scar material that matches it."""
         if base.name not in self._torn:
-            col = base.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value
+            col = self.colour(base)
             self._torn[base.name] = self.m(f'Scar torn {base.name}', tuple(col[:3]), .4, .6)
         return self._torn[base.name]
 
     def repaint(self, base):
         """New paint matched by eye to a base finish: close, never the same."""
         if base.name not in self._repaint:
-            r, g, b, _ = base.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value
+            r, g, b = self.colour(base)
             self._repaint[base.name] = self.m(f'Scar repaint over {base.name}',
                                               (r*1.08+.01, g*1.05+.008, b*.97+.006), .3, .55)
         return self._repaint[base.name]
