@@ -5,6 +5,12 @@
     python battle_blockout.py --samples 16    # quicker, noisier
     python battle_blockout.py --post windows  # ... and post the run to the Drive review folder
     python battle_blockout.py --skip-render   # relabel the last raw renders
+    python battle_blockout.py --run r7        # output under build/asharu-battle/r7/ instead of today's date
+    python battle_blockout.py --rerender      # render every frame even if a finished one is on disk
+
+A frame already finished in the run folder (its PNG, its labels, and the same samples and source)
+is not rendered again, so a job stopped part-way resumes where it stopped. Pass --run with a fixed
+name for a job that may resume on another day.
 
 Run as plain Python it is the driver: it launches Blender on itself (blender_path.py), then
 labels the frames with Pillow, draws the orbit diagram and writes NOTES.md. Inside Blender it
@@ -1028,15 +1034,40 @@ def blender_main(cfg):
             labels[kf] = lab
         else:
             labels[kf] = roster_sheet(kf)
-        scene.render.filepath = str(raw / f'{kf}.png')
+        partial = raw / f'{kf}.partial.png'
+        scene.render.filepath = str(partial)
         bpy.ops.render.render(write_still=True)
+        os.replace(partial, raw / f'{kf}.png')      # a PNG under its own name is always a finished one
+        store = raw / 'labels.json'   # saved per frame: a stopped job keeps every finished frame's labels
+        old = json.loads(store.read_text()) if store.exists() else {}
+        store.write_text(json.dumps({**old, kf: labels[kf]}, indent=1))
+        (raw / f'{kf}.meta.json').write_text(json.dumps(frame_meta(cfg['samples'])))
         print('ASHARU rendered', kf, flush=True)
-    store = raw / 'labels.json'   # a partial render keeps the other frames' labels
-    old = json.loads(store.read_text()) if store.exists() else {}
-    store.write_text(json.dumps({**old, **labels}, indent=1))
 
 
 # ======================================================================================= driver
+
+def frame_meta(samples):
+    """What a finished frame was rendered with: its samples and the staging source it came from."""
+    import hashlib
+    h = hashlib.sha256()
+    for f in (HERE / 'battle_blockout.py', HERE / 'roster.py'):
+        h.update(f.read_bytes())
+    return {'samples': samples, 'source_sha256': h.hexdigest()}
+
+
+def finished(raw, kf, samples):
+    """Whether raw/<kf>.png is a finished frame of this staging at these samples."""
+    png, meta, store = raw / f'{kf}.png', raw / f'{kf}.meta.json', raw / 'labels.json'
+    try:
+        if json.loads(meta.read_text()) != frame_meta(samples) or kf not in json.loads(store.read_text()):
+            return False
+        with open(png, 'rb') as fh:
+            fh.seek(-12, 2)
+            return fh.read(12)[4:8] == b'IEND'
+    except (OSError, ValueError):
+        return False
+
 
 def git_commit():
     try:
@@ -1368,13 +1399,19 @@ def main():
         return argv[argv.index(flag) + 1] if flag in argv else default
 
     frames = opt('--frames', ','.join(list(KEYFRAMES) + list(ROSTER_SHEETS))).split(',')
-    run = REPO / 'build' / 'asharu-battle' / date.today().isoformat()
+    run = REPO / 'build' / 'asharu-battle' / opt('--run', date.today().isoformat())
     run.mkdir(parents=True, exist_ok=True)
+    samples = int(opt('--samples', 48))
     if '--skip-render' not in argv:
-        from blender_path import BLENDER
-        cfg = dict(out=str(run), frames=frames, samples=int(opt('--samples', 48)))
-        env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
-        subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
+        todo = [kf for kf in frames if '--rerender' in argv or not finished(run / 'raw', kf, samples)]
+        done = [kf for kf in frames if kf not in todo]
+        if done:
+            print('ASHARU already finished, not rendered again:', ','.join(done), flush=True)
+        if todo:
+            from blender_path import BLENDER
+            cfg = dict(out=str(run), frames=todo, samples=samples)
+            env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
+            subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
     outputs = [orbit_diagram(run)] + label_frames(run)
     print('\n'.join(str(run / o) for o in outputs))
     post = opt('--post')

@@ -297,7 +297,7 @@ Each manifest is the build folder's `manifest.json`, renamed as shown. When a bu
 - **Stand-ins** are the sprite's silhouette raised into a lens shape and painted with the sprite. A stand-in reads as the right hull at the right size and nothing more.
 - **Effects** (tracers, placeholder blasts, drive plumes, entry plasma) are placeholders for the VFX kit.
 
-To check a scene without rendering, run `python battle_blockout.py --check`; `python fight_layout.py` draws the same staging as diagrams. It prints where every ship lands in every key frame, and whether each shot can bear (see Gunnery). `--frames k3b,k5` renders only those frames, and `--skip-render --post <machine> --what <slug>` posts a run to `review/cinematic-asharu-battle/`.
+To check a scene without rendering, run `python battle_blockout.py --check`; `python fight_layout.py` draws the same staging as diagrams. It prints where every ship lands in every key frame, and whether each shot can bear (see Gunnery). `--frames k3b,k5` renders only those frames; a frame already finished in the run folder is skipped, so a stopped job resumes (`--run <name>` fixes the folder across days, `--rerender` forces every frame); and `--skip-render --post <machine> --what <slug>` posts a run to `review/cinematic-asharu-battle/`.
 
 ## Where it stands, and the next step
 
