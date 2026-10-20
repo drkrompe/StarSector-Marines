@@ -2,7 +2,7 @@
 
 Status: DRAFT — blockout round 7 in code, not yet rendered (last posted run: round 6). Hull builds nearly all finished.
 Written: 2026-10-19
-Updated: 2026-10-20 — round 7 staged on Windows: --check clean, Colossus blend unresolved, render cost measured (S6 about 1.5-2 h).
+Updated: 2026-10-20 — round 7 staged on Windows: --check clean, Colossus is colossus/139e8b8b6, render cost measured (S6 about 1.5-2 h).
 
 The cinematic of the fighting that brought the Colossus and the Shepherd
 **Morrow** down onto Asharu, three cycles before the Shepherd-recovery arc. The
@@ -189,7 +189,7 @@ seen at a distance.
 
 | Hull | Build (Drive `builds/...`) | Copy into `build/asharu-battle/inputs/` as | State |
 |---|---|---|---|
-| Colossus | `colossus-cinematic` package (`colossus.blend` + manifest) | `colossus.blend`, `colossus-manifest.json` | finished |
+| Colossus | `colossus/139e8b8b6` | `colossus.blend`, `colossus-manifest.json` | finished |
 | Shepherd "Morrow" | `shepherd/5860eae2b` | `shepherd.blend`, `shepherd-manifest.json` | finished |
 | Lasher x3 | `lasher-independent/7805d3b` (`lasher.blend`) | `lasher-independent.blend`, `lasher-independent-manifest.json` | finished; awaiting the owner's review |
 | Hound | `hound-independent/1e91821` | `hound-independent-clean.blend`, `hound-independent-manifest.json` | finished; awaiting the owner's review |
@@ -230,11 +230,8 @@ To check a scene without rendering, run `python battle_blockout.py --check`. It 
   - the reshaped Wolf and the round 2 Tarsus;
   - the Manticore (P) at 91 m.
 - **Staged on Windows (2026-10-20):**
-  - Every build in the table is copied into `build/asharu-battle/inputs/` except `colossus.blend`.
-  - No `colossus-cinematic` package is on Drive. The Colossus manifest is the package's tracked
-    `colossus-cinematic/manifest.json`. Drive's only Colossus build, `builds/colossus/139e8b8b6`,
-    differs from that manifest only in its asset and source hashes. Choosing a blend (that one, or
-    a fresh `finalize.sh` build) is the owner's call, and the table's row follows it.
+  - Every build in the table is copied into `build/asharu-battle/inputs/`. The Colossus is
+    `colossus/139e8b8b6` (coordinator's call: the newest build; Asharu needs no front shields).
   - `--check` is clean: all 11 tracers and missiles bear. No staging change was needed.
 - **Render cost** of `--frames k3,k3b,k4,r1,r2 --samples 48`, extrapolated from quarter-size and
   half-size samples on the RTX 3080 (k3b was not sampled):
@@ -247,10 +244,9 @@ To check a scene without rendering, run `python battle_blockout.py --check`. It 
   - **Windows: about 2 h. Mac: about 3 h**, from C1's measured rate there (about 200 s a frame,
     against 2-3 min on Windows), and not timed directly.
 - **Next step:**
-  1. Settle the Colossus blend and copy it in as `colossus.blend`.
-  2. Render the set above, by night, through the owner.
-  3. Post with `--what round7-gunnery-cookoff`, then prune.
-  4. S10 (k5) is not in that set. Re-render it only once the owner settles its camera.
+  1. Render the set above, by night, through the owner.
+  2. Post with `--what round7-gunnery-cookoff`, then prune.
+  3. S10 (k5) is not in that set. Re-render it only once the owner settles its camera.
 
 ## Open for the owner
 

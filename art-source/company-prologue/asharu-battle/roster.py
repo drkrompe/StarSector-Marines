@@ -25,7 +25,7 @@ from starsector_path import GAME_CORE  # noqa: E402
 
 # Finished cinematic builds this scene appends (build/asharu-battle/inputs/, ignored).
 #   file and manifest (append collection, root, metres per unit, engine anchors), length m.
-#   Drive sources: colossus-cinematic, shepherd builds/5860eae2b, kite-p/a48f8757b,
+#   Drive sources: colossus/139e8b8b6, shepherd builds/5860eae2b, kite-p/a48f8757b,
 #   hound-p/33114de, lasher-independent/7805d3b, hound-independent/1e91821,
 #   falcon-p/0044413fc, wolf-p/f60641f63, wolf/f60641f63, tarsus/2e7d396fc (clean, boarded),
 #   colossus-mk3/005c3b11b, phaeton/e9ab52297 (intact, destroyed).
