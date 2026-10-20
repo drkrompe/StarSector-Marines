@@ -59,6 +59,17 @@ class LandingCraftSummaryTest {
     }
 
     @Test
+    void counterattackWithoutABoatPointsAtTheFirstHermes() {
+        Mission mission = Mission.builder().id(OpeningOperationKind.COUNTERATTACK.missionId)
+                .source(MissionSource.STORY).type(MissionType.ASSAULT)
+                .requiredDrops(3).employerShuttles(1).build();
+        Map<String, Object> props = BriefingViewModel.baseProps();
+        BriefingViewModel.putLandingCraft(props, mission, Collections.emptyList(), 12, "Company ship");
+        assertEquals("Company lift unavailable", props.get("landingCraftSchedule"));
+        assertTrue(props.get("landingCraftHint").toString().contains("first Hermes"));
+    }
+
+    @Test
     void missingBoatsDoNotPretendFallbackAssignmentsAreCompanyCraft() {
         assertEquals("Company lift unavailable", summary(MissionSource.GENERATED, 5, 3, 12, 0)
                 .get("landingCraftSchedule"));

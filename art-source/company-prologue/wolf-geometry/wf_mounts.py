@@ -35,7 +35,7 @@ import math
 import sys
 from pathlib import Path
 import bpy
-from mathutils import Matrix
+from mathutils import Matrix, Vector
 from wf_kit import boolean
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent/'turret-kit'))
@@ -72,17 +72,35 @@ HEAD_ABOVE = {'WS 005': 3.8, 'WS 006': 3.8}
 # heads stand on the wings and need no bay.
 BAYS = {'WS 004': ((-1.6, 10.5), 3.7, (-2.9, 12.0), ('Hull bow fork base',))}
 # The base hull (the merchant variant): every wolf.ship slot, armed as the vanilla
-# wolf_Assault variant. The kit has no heavy blaster or Harpoon hardpoint yet: the
-# mining blaster and Annihilator pod forms stand in for them (recorded as built_as).
-PIRATE = dict(slots=SLOTS, removed=REMOVED, loadout=LOADOUT, order=MOUNT_ORDER, built_as={})
+# wolf_Assault variant: the kit's heavy blaster at WS 004 and Harpoon launchers on
+# the wing tips (round 8; the mining blaster and Annihilator forms stood in before).
+PIRATE = dict(slots=SLOTS, removed=REMOVED, loadout=LOADOUT, order=MOUNT_ORDER, built_as={},
+              # The mining blaster's breech is buried in the head and the launcher heads'
+              # collars are sunk into the wings: those hosts are carved to the weapon's own
+              # shape, so it seats without passing through them (check_hardpoints).
+              carve={'WS 004': ('Hull head', 'Hull bow fork base'),
+                     'WS 005': ('Pod port missile body', 'Hull main body', 'Hull neck'),
+                     'WS 006': ('Pod starboard missile body', 'Hull main body', 'Hull neck')})
 MERCHANT = dict(
     slots=sorted(SLOTS+REMOVED, key=lambda s: s['id']), removed=[],
     loadout={'WS 001': 'ioncannon', 'WS 002': 'pdlaser', 'WS 003': 'pdlaser', 'WS 004': 'heavyblaster',
              'WS 005': 'harpoon', 'WS 006': 'harpoon'},
     order=['WS 001', 'WS 002', 'WS 003', 'WS 004', 'WS 005', 'WS 006'],
-    built_as={'WS 004': 'miningblaster', 'WS 005': 'annihilator', 'WS 006': 'annihilator'})
+    built_as={},
+    # The heavy blaster is about 26 sprite pixels across and the Harpoon launcher 25:
+    # scaled to fit the prow trough between the jaws and the wing tips beside the neck.
+    k={'WS 004': .3, 'WS 005': .3, 'WS 006': .3},
+    # The heavy blaster's capacitor housing runs back past the trough into the head:
+    # a closed breech pocket under the gun hood, open only to the trough ((x0, x1) about
+    # the slot, half width, (z0, z1) about the axis, hosts).
+    pockets={'WS 004': ((-3.7, -1.4), 3.4, (-3.6, 2.2), ('Hull head', 'Hull bow fork base'))},
+    # The Harpoon launchers sit on the wing tips against the main body's flank (WS 006
+    # is a unit closer in than WS 005): the flank is carved to the launcher's shape.
+    carve={'WS 005': ('Hull main body', 'Hull neck'), 'WS 006': ('Hull main body', 'Hull neck')})
+POCKETS = {}
+CARVE = {}
 TURRET_RING = {'WS 001': RING, 'WS 002': 4.4, 'WS 003': 4.4}
-HARDPOINT_K.update({})
+BASE_K = dict(HARDPOINT_K)
 BUILT_AS = {}
 
 
@@ -91,6 +109,12 @@ def configure(variant):
     global SLOTS, REMOVED, LOADOUT, MOUNT_ORDER, BUILT_AS
     v = MERCHANT if variant == 'merchant' else PIRATE
     SLOTS, REMOVED, LOADOUT, MOUNT_ORDER, BUILT_AS = v['slots'], v['removed'], v['loadout'], v['order'], v['built_as']
+    POCKETS.clear()
+    POCKETS.update(v.get('pockets', {}))
+    CARVE.clear()
+    CARVE.update(v.get('carve', {}))
+    HARDPOINT_K.clear()
+    HARDPOINT_K.update(BASE_K, **v.get('k', {}))
 
 
 ANCHOR_Z = {}
@@ -141,6 +165,36 @@ def turret(kit, i, slot, mpu):
                     'kit_muzzles': [m.name for m in t['muzzles']], 'muzzles': muzzles})
 
 
+def carve(host, parts):
+    """Cut the host to the shape of a weapon's parts where they pass into it."""
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    lo, hi = host.matrix_world @ Vector(host.bound_box[0]), host.matrix_world @ Vector(host.bound_box[6])
+    for ob in parts:
+        corners = [ob.matrix_world @ Vector(c) for c in ob.bound_box]
+        if any(max(c[i] for c in corners) < lo[i] or min(c[i] for c in corners) > hi[i] for i in range(3)):
+            continue
+        me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg))
+        me.transform(ob.matrix_world)
+        tool = bpy.data.objects.new('Temporary carve tool', me)
+        bpy.context.scene.collection.objects.link(tool)
+        mod = host.modifiers.new('Hull carve', 'BOOLEAN')
+        mod.operation, mod.object, mod.solver = 'DIFFERENCE', tool, 'EXACT'
+        bpy.context.view_layer.objects.active = host
+        bpy.ops.object.modifier_move_to_index(modifier=mod.name, index=0)
+        n = len(host.data.materials)
+        bpy.ops.object.modifier_apply(modifier=mod.name)
+        bpy.data.objects.remove(tool, do_unlink=True)
+        bpy.data.meshes.remove(me)
+        # The cut faces keep the host's finish (the surfacing classes the hull's
+        # materials, never the weapon's), and the weapon's slots go again.
+        for poly in host.data.polygons:
+            if poly.material_index >= n:
+                poly.material_index = 0
+        while len(host.data.materials) > n:
+            host.data.materials.pop()
+
+
 def hardpoint(kit, slot, mpu):
     x, y = slot['location']
     sid = slot['id']
@@ -150,9 +204,17 @@ def hardpoint(kit, slot, mpu):
         cutter = kit.box(f'Temporary {sid} bay cutter', (x+(bx0+bx1)/2, y, z+(bz0+bz1)/2),
                          (bx1-bx0, 2*hw, bz1-bz0), kit.dark, 0)
         boolean(bpy.data.objects[host], cutter)
+    if sid in POCKETS:
+        (px0, px1), phw, (pz0, pz1), phosts = POCKETS[sid]
+        for host in phosts:
+            cutter = kit.box(f'Temporary {sid} pocket cutter', (x+(px0+px1)/2, y, z+(pz0+pz1)/2),
+                             (px1-px0, 2*phw, pz1-pz0), kit.dark, 0)
+            boolean(bpy.data.objects[host], cutter)
     mount = kit.empty(f'Weapon {sid} mount', (x, y, z), slot['angle'], size=2)
     built = BUILT_AS.get(sid, LOADOUT[sid])
     hp = tk.build_hardpoint(built, f'Weapon {sid}', mount, mats(kit), mpu, k=HARDPOINT_K[sid])
+    for host in CARVE.get(sid, ()):
+        carve(bpy.data.objects[host], [o for o in hp['parts'] if o.type == 'MESH'])
     tag = 'tube' if slot['type'] == 'MISSILE' else 'barrel'
     i = MOUNT_ORDER.index(sid)+1
     muzzles = [vfx_anchor(f'Anchor turret {i} {tag} {k} muzzle', m).name for k, m in enumerate(hp['muzzles'], 1)]

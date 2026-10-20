@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — Illustrated opening and founding-yard review with a limited conversion and continuing restoration.
+Updated: 2026-10-20 — The first Hermes is repaired after Relief, in Castle's first-lift lesson; preparation is ship, Sabine, squad, assignment.
 
 ## Purpose
 
@@ -569,8 +569,10 @@ and one with none shows the route greyed, exactly as a hull with no vehicle bay
 shows no lab.
 
 **Second Wind starts with two wrecked Hermes, not two usable boats.** The accessible
-wreck is repaired for the opening contracts using the existing Hermes material bill
-and finite local depot. Restoring the sealed bay exposes the second wreck; its repair
+wreck is repaired for the first ferry job, Counterattack, using the existing Hermes
+material bill and finite local depot. Relief needs no boat: the company rides up to
+it on Wayline's truck. The repair is Castle's first-lift lesson between the two
+chapters. Restoring the sealed bay exposes the second wreck; its repair
 is a separate material order. Each original wreck is consumed once by a successful
 repair. Failed payment leaves it intact, and a later combat loss never recreates it.
 Legacy occupied or previously opened berths are treated as already recovered; the
@@ -581,7 +583,7 @@ renderer; they supply neither lift nor ambient servicing or sorties.
 **New companies commission their boats.** A hull supplies the berth count and
 compatible pattern, while a new company's berths start empty. Commissioning
 consumes the authored fabrication bill and creates a standard-fit boat. One
-reusable boat supplies the opening mission's lift through repeated trips; further
+reusable boat supplies the first ferry job's lift through repeated trips; further
 boats increase simultaneous delivery. Existing owned boats remain intact, and a
 legacy deck without an established ship receives its historical complement once.
 
@@ -816,8 +818,8 @@ Venn course/contact lead for Hold Until Relieved, canonically on Jangala.
 The accessible-office policy remains the mission domain's authority.
 
 The portrait popover moves beside the real controls. Its dimmed background has
-live click-through openings, and four SVG milestones identify ship, lift, officer
-and squad preparation. Ship selection, commissioning, specialty training, squad
+live click-through openings, and four SVG milestones identify ship, officer,
+squad founding and assignment. Ship selection, specialty training, squad
 founding and assignment remain real orders. The opening lesson has no Later
 control and Escape does not dismiss it. Return to campaign remains available for
 travel or resupply; the required lesson returns on re-entry. Advancing dialogue
@@ -1281,8 +1283,10 @@ disabled freighter home despite repeated threats to leave her behind; their fami
 barbs and her attention to the repairs carry that relationship into the yard visit.
 This personal help is not a promise of Hegemony protection. Harker's Claim and Nessa
 are authored backstory, not new sector entities or additional mission prerequisites.
-The prologue uses the actual accessible
-destination and adjusts its copy if Jangala is unavailable. Its final action plots
+There is one story for every start port (owner, 2026-10-20): when the start
+lands elsewhere because Jangala is unavailable, Castle, Nessa and Mara still speak
+of Jangala, and only the course, objective, Intel and mission text that names a
+place uses the actual accessible destination. Its final action plots
 that course and returns to the campaign. The Intel log retains the origin and
 next real preparation instruction. Page progress and explicit completion or skip
 survive saves; ordinary starts and pre-prologue saves do not opt in on load.
@@ -1296,14 +1300,14 @@ Runtime art is full-frame 1200x800 JPEG; larger masters and reference art stay o
 
 A reviewed 4,986-credit yard order installs the permanent Mercenary Company
 Conversion on the owned, active hull. Company designation still uses the ordinary
-preparation preflight and resumes lift, Sabine, squad founding and assignment.
+preparation preflight and resumes Sabine, squad founding and assignment.
 
 The Cerberus opening names **Mercenary Company Conversion** explicitly and directs
 the player to Marine operations in the planet menu, not the vanilla Refit picker.
 At an accessible planetary port that entry opens the founding conversion first as
 a four-page storybook on the prologue's retained document and custom visual host:
-the bill, paid by page 1's Next; the runway the account leaves; and, at Jangala, the
-road up and the ore-dust papers that send the company to work (`opening-dialogue.md`
+the bill, paid by page 1's Next; the runway the account leaves; the
+road up; and the ore-dust papers that send the company to work (`opening-dialogue.md`
 §2). Nothing is spent before that Next. After it the pages are a straight
 click-through with no exit control, and Back never returns to the paid bill. The order buys +18
 personnel places and trades away 25 cargo; the remaining damaged rooms, second
@@ -1320,6 +1324,9 @@ checks the whole order, then consumes local stock before cargo. The existing
 fabrication and squad-founding adapters share that authority. New Second Wind starts
 earmark the first Hermes and first squad bills separately: boat jobs cannot consume
 the squad's stores, and other workshop jobs cannot consume either allocation.
+Preparation draws the squad's bill. The Hermes bill stays at the depot through
+Relief and is drawn by the first-lift lesson, while docked there, before
+Counterattack.
 Preparation preflight can inspect both allocations but cannot spend them. Legacy
 depots keep their existing remaining stock and unrestricted spending policy.
 The depot does not replenish
@@ -1329,8 +1336,10 @@ stores rather than claiming every counted item is in the hold.
 
 Leaving a room or its planet dialog spends no stores and completes no preparation
 step. Re-entering through the company shortcut, mission board, or a direct room
-link resumes the required step derived from the saved company: ship, lift, Sabine,
-formation, then assignment. HQ may present the same guided handoff. Required
+link resumes the required step derived from the saved company: ship, Sabine,
+formation, then assignment. After Relief the first-lift lesson resumes the same
+way from the saved boat deck until a seated boat is airworthy or Counterattack is
+won, and sends the company back to the depot when the Hermes parts are ashore. HQ may present the same guided handoff. Required
 preparation does not interrupt an active battle, settlement, or developer mission.
 If a remaining order needs reserved stores that are currently ashore, Castle names
 their depot planet and offers Return to Depot, plotting its course and closing the

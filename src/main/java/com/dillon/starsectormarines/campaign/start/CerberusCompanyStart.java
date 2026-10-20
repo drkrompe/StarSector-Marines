@@ -9,6 +9,7 @@ import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
+import com.fs.starfarer.api.impl.campaign.tutorial.GalatianAcademyStipend;
 
 import java.util.Comparator;
 
@@ -25,6 +26,13 @@ public final class CerberusCompanyStart implements Script {
     /** The pooled ship's account: about twenty-two days of board and berth at Kilo Nine. */
     public static final int STARTING_CREDITS = 473;
     public static final int TRAVEL_SUPPLIES = 25;
+    /**
+     * A partly filled tank: the opening's work is all inside Corvus, where travel burns none. It is kept this low so
+     * that selling everything aboard cannot buy a second squad before Relief ({@code SecondSquadAffordabilityTest}).
+     */
+    public static final int STARTING_FUEL = 25;
+    /** Hands aboard beyond the ship's minimum crew. */
+    public static final int SURPLUS_CREW = 5;
 
     @Override public void run() {
         var sector = Global.getSector();
@@ -40,9 +48,9 @@ public final class CerberusCompanyStart implements Script {
         var cargo = fleet.getCargo();
         cargo.clear();
         cargo.getCredits().set(STARTING_CREDITS);
-        cargo.addCrew((int) Math.ceil(ship.getMinCrew()) + 5);
+        cargo.addCrew((int) Math.ceil(ship.getMinCrew()) + SURPLUS_CREW);
         cargo.addSupplies(TRAVEL_SUPPLIES);
-        cargo.addFuel(Math.min(40, cargo.getMaxFuel()));
+        cargo.addFuel(Math.min(STARTING_FUEL, cargo.getMaxFuel()));
         sector.getPersistentData().put(SHIP_KEY, ship.getId());
         FoundingReserve.issue(sector.getPersistentData());
         CompanyPrologue.begin(sector.getPersistentData());
@@ -51,6 +59,18 @@ public final class CerberusCompanyStart implements Script {
         fleet.getFleetData().setSyncNeeded();
         sector.getIntelManager().addIntel(new CompanyFoundingIntel());
         CompanyProloguePresenter.install();
+    }
+
+    /**
+     * Vanilla's skip-tutorial setup, which this start runs first, also starts the Galatia Academy stipend:
+     * 15,000 credits a month for three years. Second Wind has no patron and 473 credits, and a month of that
+     * stipend would buy the second squad the story Relief assumes it cannot afford. Its only reader in vanilla
+     * rules is Baird's "ask about the stipend" option, which goes with it.
+     */
+    static void withdrawAcademyStipend() {
+        var sector = Global.getSector();
+        sector.getListenerManager().removeListenerOfClass(GalatianAcademyStipend.class);
+        sector.getMemoryWithoutUpdate().unset("$playerReceivingGAStipend");
     }
 
     /** Puts the fleet a short flight out from the yard it must reach first, with the course laid in. */

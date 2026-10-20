@@ -24,18 +24,22 @@ public final class MechMoveOrderService {
         final long mechId;
         final int cellX;
         final int cellY;
+        /** Hip heading to hold on arrival, or {@code NaN} for none. */
+        final float facingDegrees;
 
-        PendingOrder(long mechId, int cellX, int cellY) {
+        PendingOrder(long mechId, int cellX, int cellY, float facingDegrees) {
             this.mechId = mechId;
             this.cellX = cellX;
             this.cellY = cellY;
+            this.facingDegrees = facingDegrees;
         }
     }
 
     /**
      * Accepted move intent. Requested coordinates retain what the player
      * clicked; destination coordinates name the nearest reachable cell the
-     * mech will actually occupy.
+     * mech will actually occupy. {@code facingDegrees} is the hip heading the
+     * player dragged out for it to stand on once there, or {@code NaN}.
      *
      * <p>With an {@code assault}, the click was on a garrisonable the side believes is
      * enemy-held: the destination is the assault's stand-off, and the order does not end on
@@ -43,20 +47,56 @@ public final class MechMoveOrderService {
      * ({@code MachineAssaults}).
      */
     public record ActiveOrder(int requestedX, int requestedY,
-                              int destinationX, int destinationY, MachineAssault assault) {
+                              int destinationX, int destinationY, float facingDegrees,
+                              MachineAssault assault) {
 
-        /** A plain move. */
+        /** A plain move with no dragged facing. */
         public ActiveOrder(int requestedX, int requestedY, int destinationX, int destinationY) {
-            this(requestedX, requestedY, destinationX, destinationY, null);
+            this(requestedX, requestedY, destinationX, destinationY, Float.NaN, null);
+        }
+
+        /** A plain move standing on {@code facingDegrees} once there. */
+        public ActiveOrder(int requestedX, int requestedY, int destinationX, int destinationY,
+                           float facingDegrees) {
+            this(requestedX, requestedY, destinationX, destinationY, facingDegrees, null);
         }
     }
 
     private final List<PendingOrder> pending = new ArrayList<>();
     private final Map<Long, ActiveOrder> active = new ConcurrentHashMap<>();
+    private final Map<Long, Float> heldFacing = new ConcurrentHashMap<>();
 
     /** Queues a one-shot move request for validation on the next fixed tick. */
     public void requestMove(long mechId, int cellX, int cellY) {
-        pending.add(new PendingOrder(mechId, cellX, cellY));
+        requestMove(mechId, cellX, cellY, Float.NaN);
+    }
+
+    /**
+     * Queues a move whose mech then stands with its hips on {@code facingDegrees}
+     * (the sprite convention: 0 = +Y, positive counterclockwise), or on its own
+     * judgement when that is {@code NaN}.
+     */
+    public void requestMove(long mechId, int cellX, int cellY, float facingDegrees) {
+        pending.add(new PendingOrder(mechId, cellX, cellY, facingDegrees));
+    }
+
+    /**
+     * The hip heading an arrived order left this mech holding, or {@code NaN}.
+     * It lasts while the mech stands: the next route it walks, a new order, or a
+     * cancel ends it. The upper chassis keeps its own aim within its twist.
+     */
+    public float heldFacing(long mechId) {
+        Float held = heldFacing.get(mechId);
+        return held == null ? Float.NaN : held;
+    }
+
+    void holdFacing(long mechId, float facingDegrees) {
+        if (Float.isNaN(facingDegrees)) heldFacing.remove(mechId);
+        else heldFacing.put(mechId, facingDegrees);
+    }
+
+    void releaseHeldFacing(long mechId) {
+        heldFacing.remove(mechId);
     }
 
     /** Current accepted order for one exact mech, or {@code null}. */
@@ -68,6 +108,7 @@ public final class MechMoveOrderService {
     public void cancel(long mechId) {
         pending.removeIf(order -> order.mechId == mechId);
         active.remove(mechId);
+        heldFacing.remove(mechId);
     }
 
     List<PendingOrder> drainPending() {
@@ -79,6 +120,7 @@ public final class MechMoveOrderService {
 
     void activate(long mechId, ActiveOrder order) {
         active.put(mechId, order);
+        heldFacing.remove(mechId);
     }
 
     void release(long mechId, ActiveOrder order) {

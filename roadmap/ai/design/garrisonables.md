@@ -164,7 +164,7 @@ held place covers. Three things it shows shape the work ahead:
 - Buildings already carry windows in useful numbers; a large barracks or armory
   offers ten to twenty-five stand cells, a small post two to four, and the
   smallest guard posts and bunkers none.
-- About half the story maps publish **no held places at all**. Their buildings
+- Story maps used to publish **no held places at all** (about half of them). Their buildings
   have windows, but nothing names a place a garrison could hold, so neither the
   defender commander nor a player's occupy order can use them. Held places on
   those maps are the precondition for everything in this doc.
@@ -177,8 +177,11 @@ footprint, entered at its interior anchor. A held place is not an objective — 
 has no capture record, marker or supply gate — and it asks for no garrison, so
 publishing one changes nothing until somebody is sent to it. That is
 deliberate: a building is manned in answer to threat or by order, by the same
-law as a trench. Relief and Counterattack publish theirs; the other story maps
-follow the same helper, `HeldPlaces`. The first consumer is the player's occupy
+law as a trench. Every story map publishes them through `HeldPlaces`: authored
+maps with a garrison layout keep their garrison nodes and add held places only
+for the buildings those nodes do not already stand on, fort maps included. Silent Colony, a
+procedural city, adds them at setup. A story map with no buildings (Missile AA)
+has none, and the Veteran's Job raid keeps the procedural city's garrison nodes alone. The first consumer is the player's occupy
 order. On any map that publishes held places, a click on a building holds it
 at its windows (`ai-nouns.md`, occupy). Reactive manning by the AI is the next
 consumer.

@@ -2,15 +2,17 @@
 
 Status: IMPLEMENTED - live campaign acceptance open
 Written: 2026-10-11
-Updated: 2026-10-13 - follow-on upkeep uses campaign-day recovery; retained walkthrough and cargo preflight verified, with live campaign acceptance remaining.
+Updated: 2026-10-20 - the first shuttle moves out of preparation into the first-lift lesson after Relief; live campaign acceptance remaining.
 
 ## Outcome
 
-Castle leads a new company through choosing its mercenary ship, commissioning
-its first shuttle, meeting Sabine and choosing her specialty, founding a fully
-equipped twelve-person squad, and assigning that squad to Sabine. The completed
-sequence hands off to Mara Venn's first story mission, Hold Until Relieved, on
-Jangala through the existing accessible-office policy.
+Castle leads a new company through choosing its mercenary ship, meeting Sabine
+and choosing her specialty, founding a fully equipped twelve-person squad, and
+assigning that squad to Sabine. The completed sequence hands off to Mara Venn's
+first story mission, Hold Until Relieved, on Jangala through the existing
+accessible-office policy. That mission needs no boat: the company rides up on
+Wayline's truck. Its first shuttle is repaired or commissioned in Castle's
+first-lift lesson after Relief (`castle-campaign-lessons.md`).
 
 ## Model and scope
 
@@ -35,7 +37,7 @@ Armory includes the real founding action and a return to assignment. Completion 
 
 ## Acceptance
 
-- A commissioned shuttle appears in its berth during the same open Boat Deck
+- (First-lift lesson, after Relief.) A commissioned shuttle appears in its berth during the same open Boat Deck
   session. Shipboard asset loading includes aircraft hulls before renderer setup;
   empty berths stay empty. Evidence includes a converted Cerberus with a Hermes.
 - Selecting the company hull unlocks its available room routes in the already-open

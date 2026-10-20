@@ -214,6 +214,14 @@ def skinned_objects():
 
 SKINNED = skinned_objects()
 for ob in [o for o in bpy.data.objects if o.type == 'MESH']:
+    if ob.name in SKINNED and not any(m.type == 'BEVEL' for m in ob.modifiers):
+        # Round 8 (ship-detail-guide.md, Edge treatment): a hull plate's hard
+        # edges (60 degrees and sharper: loft end caps, cut faces) take the
+        # guide's 0.12 m plate bevel, one segment; its shallow creases stay put.
+        b = ob.modifiers.new('Finish plate edge', 'BEVEL')
+        b.width, b.segments, b.limit_method = .12/METRES_PER_UNIT, 1, 'ANGLE'
+        b.angle_limit = math.radians(55)
+        continue
     if (ob.name in SKINNED or ob.name.startswith(('Turret ', 'Weapon ', 'Temporary ', 'Light '))
             or any(m.type == 'BEVEL' for m in ob.modifiers)):
         continue

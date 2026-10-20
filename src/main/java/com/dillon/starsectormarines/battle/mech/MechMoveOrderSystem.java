@@ -72,7 +72,7 @@ public final class MechMoveOrderSystem {
                     : nearestReachableCell(request.mechId, request.cellX, request.cellY, sim);
             if (destination == null) continue;
             ActiveOrder order = new ActiveOrder(request.cellX, request.cellY,
-                    destination[0], destination[1], assault);
+                    destination[0], destination[1], request.facingDegrees, assault);
             service.activate(request.mechId, order);
             sim.clearPath(request.mechId);
         }
@@ -114,6 +114,7 @@ public final class MechMoveOrderSystem {
         if (sim.movement().atCell(mech,
                 order.destinationX(), order.destinationY())) {
             service.release(mech, order);
+            service.holdFacing(mech, order.facingDegrees());
             if (!Paths.isEmpty(sim.world().path(mech))) sim.clearPath(mech);
             return false;
         }
@@ -166,7 +167,8 @@ public final class MechMoveOrderSystem {
                 lanceStandoffs(mech, squad, sim));
         if (cell == null || (cell[0] == order.destinationX() && cell[1] == order.destinationY())) return;
         assault.moveStandoff(cell[0], cell[1]);
-        service.activate(mech, new ActiveOrder(order.requestedX(), order.requestedY(), cell[0], cell[1], assault));
+        service.activate(mech, new ActiveOrder(order.requestedX(), order.requestedY(), cell[0], cell[1],
+                order.facingDegrees(), assault));
         sim.clearPath(mech);
     }
 

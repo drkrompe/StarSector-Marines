@@ -18,11 +18,6 @@ def sw(ratio: float) -> int:
 
 BODY_WIDTH = sw(1.0)
 HEAD_WIDTH = sw(0.48)
-STANDARD_WEAPON_HEIGHT = sw(0.6533)
-SMG_HEIGHT = sw(0.52)
-DMR_HEIGHT = sw(0.82)
-AMR_HEIGHT = sw(0.96)
-ROCKET_HEIGHT = sw(1.04)
 
 BODY_CENTER_OFFSET = (sw(0.0), sw(0.12))
 HEAD_CENTER_OFFSET = (sw(0.0), sw(-0.08))
@@ -44,15 +39,6 @@ def normalize(source: Path, target_width: int) -> Image.Image:
     scale = target_width / image.width
     return image.resize(
         (target_width, max(1, round(image.height * scale))),
-        Image.Resampling.NEAREST,
-    )
-
-
-def normalize_height(source: Path, target_height: int) -> Image.Image:
-    image = content_crop(Image.open(source).convert("RGBA"))
-    scale = target_height / image.height
-    return image.resize(
-        (max(1, round(image.width * scale)), target_height),
         Image.Resampling.NEAREST,
     )
 
@@ -151,27 +137,21 @@ def main() -> None:
         Image.open(specter_dir / "head.png").convert("RGBA"),
     )
 
+    # Held weapons are geometry-first reskins with their own retained exporter.
+    runpy.run_path(str(repository / "art-source" / "infantry-weapons" / "export.py"))["main"]()
     weapons_dir = directory / "weapons"
-    weapons_dir.mkdir(parents=True, exist_ok=True)
-    rifle = Image.open(directory.parent / "marine-rifle.png").convert("RGBA")
-    rocket = normalize_height(source_root / "rocket-launcher.png", ROCKET_HEIGHT)
-    laser = normalize_height(source_root / "laser-gun.png", STANDARD_WEAPON_HEIGHT)
-    smg = normalize_height(source_root / "smg.png", SMG_HEIGHT)
-    dmr = normalize_height(source_root / "dmr.png", DMR_HEIGHT)
-    amr = normalize_height(source_root / "anti-materiel-rifle.png", AMR_HEIGHT)
-    surplus_rifle = normalize_height(source_root / "rifle-surplus.png", STANDARD_WEAPON_HEIGHT)
-    masterwork_dmr = normalize_height(source_root / "dmr-masterwork.png", DMR_HEIGHT)
-    rifle.save(weapons_dir / "rifle.png", optimize=True)
-    rocket.save(weapons_dir / "rocket-launcher.png", optimize=True)
-    laser.save(weapons_dir / "laser-gun.png", optimize=True)
-    smg.save(weapons_dir / "smg.png", optimize=True)
-    dmr.save(weapons_dir / "dmr.png", optimize=True)
-    amr.save(weapons_dir / "anti-materiel-rifle.png", optimize=True)
-    grade_root = weapons_dir / "grades"
-    (grade_root / "surplus").mkdir(parents=True, exist_ok=True)
-    (grade_root / "masterwork").mkdir(parents=True, exist_ok=True)
-    surplus_rifle.save(grade_root / "surplus" / "rifle.png", optimize=True)
-    masterwork_dmr.save(grade_root / "masterwork" / "dmr.png", optimize=True)
+
+    def weapon(path: str) -> Image.Image:
+        return Image.open(weapons_dir / path).convert("RGBA")
+
+    rifle = weapon("rifle.png")
+    rocket = weapon("rocket-launcher.png")
+    laser = weapon("laser-gun.png")
+    smg = weapon("smg.png")
+    dmr = weapon("dmr.png")
+    amr = weapon("anti-materiel-rifle.png")
+    surplus_rifle = weapon("grades/surplus/rifle.png")
+    masterwork_dmr = weapon("grades/masterwork/dmr.png")
 
     previews = repository / "build" / "sprite-previews" / "infantry"
     previews.mkdir(parents=True, exist_ok=True)

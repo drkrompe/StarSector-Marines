@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED; live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-20 — The founding yard is a four-page storybook (bill, runway, road up, ore dust); start funds 473, estimate 4,986, Castle's reserve 4,862 with the pressure test waived. Live acceptance remains.
+Updated: 2026-10-20 — One story path at every start port; 25 starting fuel and no Galatia Academy stipend, so no second squad before Relief. Live acceptance remains.
 
 ## Outcome
 
@@ -10,11 +10,12 @@ An explicit new-game choice puts the player in command of an unconverted Cerberu
 The illustrated Second Wind prologue introduces the escape from the mining asteroid Harker's Claim, the
 crew's trust in their captain, and Castle's practical plan to fund a new company.
 Castle directs the player to Jangala and Nessa Venn, an old freight colleague now
-working as a yard forewoman, or an accessible fallback port. There the
+working as a yard forewoman. When Jangala is unavailable the course goes to an
+accessible fallback port, but the story stays Jangala's. There the
 player reviews and pays from Castle's protected reserve for a permanent Mercenary Company Conversion hullmod before
 the ship can be designated as the company command vessel. Designation resumes the
-existing paid-lift, Sabine specialty, squad founding and assignment tutorial, ending
-at the first Jangala contract.
+existing Sabine specialty, squad founding and assignment tutorial, ending at the
+first Jangala contract. The prepaid Hermes waits for the first-lift lesson after Relief.
 
 ## Scope and authority
 
@@ -39,7 +40,13 @@ separate from the workshop bill. The player chose one Cerberus and a staged plan
 consignment, with no support freighter. The start supplies 473 spendable credits,
 a separate 4,862-credit reserve usable only for the original ship's conversion (the
 yard waives the estimate's 124-credit pressure test when it pays), minimum
-crew plus five, 25 travel supplies and up to 40 fuel. The first successful conversion
+crew plus five, 25 travel supplies and up to 25 fuel (the opening's work is all in Corvus, where
+travel burns none). Nothing aboard can buy a second squad before Relief, which is why the story
+Relief carries no squad cap: the depot founds Sabine's squad only, any other pays the full founding
+bill from the hold, and selling every crewman, all the fuel and both guns at the most favourable
+vanilla prices still falls short (`SecondSquadAffordabilityTest`). The start also withdraws the Galatia
+Academy stipend that vanilla's skip-tutorial setup grants (15,000 a month), since a month of it
+would pay for that squad and contradicts the no-patron premise. The first successful conversion
 of this start's ship establishes a finite depot at that planet: 30 metals, 8 heavy
 machinery, 56 supplies, 12 Marines and 24 food, derived from the real Hermes and
 squad recipes. The boat and squad bills are earmarked separately; unrelated workshop
@@ -58,11 +65,11 @@ cannot replenish it. Ordinary starts receive no depot.
 - Opening preparation and Sabine induction have no Later or Escape dismissal.
   Return to campaign remains available for travel or resupply, with the required
   lesson returning on re-entry. Company designation cannot bypass the conversion.
-- Leave before confirming Hermes repair, reopen through both the company shortcut
+- Leave before confirming squad founding, reopen through both the company shortcut
   and the planet menu, and save/reload mid-step. The same stock and incomplete
   order survive. Away from the depot, Castle names its planet and offers a course
-  back; returning restores access without issuing another grant. Repeat for squad
-  founding. Mission-board Barracks and other direct room entrances resume the
+  back; returning restores access without issuing another grant. Repeat for the
+  Hermes repair in the first-lift lesson after Relief. Mission-board Barracks and other direct room entrances resume the
   current required step instead of bypassing it; battle settlement remains unaffected.
 - Additive selectable start, normal/easy choice, actual Cerberus flagship and player
   captain, no automatic company designation or preinstalled conversion.
@@ -71,12 +78,12 @@ cannot replenish it. Ordinary starts receive no depot.
   available; other dialogs and menus are never replaced. Back/Continue preserve
   progress, while Skip and the final course action finish it permanently. A load
   resumes an opted-in unfinished prologue, but never opts in an established save.
-- Final course, objective text and Intel marker share the accessible destination;
-  Jangala-specific contact and Corvus copy are absent for fallback ports. No port
+- Final course, objective text and Intel marker share the accessible destination
+  and name it; Castle's, Nessa's and Mara's lines say Jangala at every port. No port
   leaves a readable spaceport requirement and an exit instead of a dead button.
 - Castle's memories and the crew's belongings suggest their history; navigation
   instructions stay in the UI and Intel. Nessa's personal yard dialogue belongs
-  only to the original Second Wind conversion on Jangala.
+  to the original Second Wind conversion, at whichever port it is made.
 - Review all eight production pages and the four founding-yard storybook pages
   (`opening-dialogue.md` §2) at 1920x1080 and 100% scale through the
   `company-prologue` snapshot suite. Page 1's Next is the only install; the pages
@@ -86,8 +93,8 @@ cannot replenish it. Ordinary starts receive no depot.
   on incompatible/mothballed/unowned hulls, after installation, and without funds.
 - Failed orders change neither credits nor variant. Successful work persists and
   is visible to actual ship eligibility, deck generation and all room routes.
-- A new start can convert with zero fleet credits and complete the real first
-  Hermes repair and squad founding with empty cargo. Unrelated orders cannot spend
+- A new start can convert with zero fleet credits and complete the real squad
+  founding, and after Relief the first Hermes repair, with empty cargo. Unrelated orders cannot spend
   the protected stock, and neither reserve refills after consumption or reload.
 - Full room/berth evidence on a real Cerberus silhouette; unconverted control stays
   ineligible; compact Mech Lab cannot advertise absent gantries.

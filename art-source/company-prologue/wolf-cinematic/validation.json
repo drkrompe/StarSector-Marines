@@ -3,8 +3,8 @@
  "collection": "WOLF_P",
  "root": "WOLF_P | root",
  "effects_collection": "SWFX",
- "objects": 494,
- "meshes": 423,
+ "objects": 492,
+ "meshes": 421,
  "effects_objects": 74,
  "images": 23,
  "passed": true,
@@ -38,15 +38,15 @@
   "mesh count": {
    "ok": true,
    "detail": [
-    423,
-    423
+    421,
+    421
    ]
   },
   "polygon count": {
    "ok": true,
    "detail": [
-    101994,
-    101994
+    114227,
+    114227
    ]
   },
   "three engine anchors at the mouths, pointing aft": {
@@ -63,7 +63,7 @@
   },
   "declared VFX muzzles ride the kit muzzles": {
    "ok": true,
-   "detail": "12 muzzles"
+   "detail": "12 declared, 12 kit muzzles"
   },
   "lamps": {
    "ok": true,
@@ -79,7 +79,7 @@
   },
   "gear: every ram stays on its wedge and aims along itself through the swing": {
    "ok": true,
-   "detail": 3.1e-05
+   "detail": 1.6e-05
   },
   "four lift thruster anchors point down": {
    "ok": true,

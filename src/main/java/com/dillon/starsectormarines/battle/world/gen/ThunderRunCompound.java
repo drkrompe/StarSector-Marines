@@ -97,8 +97,10 @@ public final class ThunderRunCompound {
             sites.add(new TacticalNode(kinds[i], p.interiorAnchorX, p.interiorAnchorY,
                     p.left, p.top, p.right, p.bottom, Faction.DEFENDER, 50 + i * 10, i == 2 ? 6 : 4));
         }
+        List<TacticalNode> tactical = new ArrayList<>(sites);
+        tactical.addAll(HeldPlaces.fromBuildingsNotIn(c.pois, sites, poi -> Faction.DEFENDER));
         MapResult map = new MapResult(c.grid, c.topology, 21, 75, 270, 64,
-                c.pois, c.doodads, new TacticalMap(sites), c.get(BspKeys.BUILDINGS),
+                c.pois, c.doodads, new TacticalMap(tactical), c.get(BspKeys.BUILDINGS),
                 List.of(), roads(), c.landingPads);
         for (LandingPad pad : map.landingPads) {
             if (!pad.isClear(map.grid, map.topology)) throw new IllegalStateException("Thunder Run berth obstructed");

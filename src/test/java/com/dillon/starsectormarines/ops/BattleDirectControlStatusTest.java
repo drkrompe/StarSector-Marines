@@ -77,7 +77,7 @@ class BattleDirectControlStatusTest {
     }
 
     @Test
-    void mechKeepsStableHardpointNumbersAndIncludesUnsupportedIndirectEquipment() {
+    void mechKeepsStableHardpointNumbersAndIncludesIndirectEquipment() {
         var left = new MechWeaponMount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.SRM_15);
         var right = new MechWeaponMount(MechMountSlot.RIGHT_SHOULDER, MechWeaponComponent.LRM_15);
         left.ammo = 2;
@@ -89,7 +89,7 @@ class BattleDirectControlStatusTest {
         assertEquals(6, weapons.get(0).ammo().capacity());
         assertEquals(BattleDirectControlStatus.AmmoUnit.TRIGGER_PACKS, weapons.get(0).ammo().unit());
         assertEquals(4, weapons.get(0).behavior().projectilesPerTrigger());
-        assertFalse(weapons.get(1).directEligible());
+        assertTrue(weapons.get(1).directEligible(), "an LRM rack drops on the cursor point");
         assertEquals(BattleDirectControlStatus.FireKind.INDIRECT, weapons.get(1).behavior().kind());
     }
 
@@ -124,9 +124,9 @@ class BattleDirectControlStatusTest {
         var lrm = new MechWeaponMount(MechMountSlot.RIGHT_SHOULDER, MechWeaponComponent.LRM_5);
         var mounts = new MechWeaponMount[]{arms, pod, lrm};
         var flux = new MechFlux();
-        assertEquals(List.of("L", "R", ""), BattleDirectControlStatus.mechWeapons(mounts, flux, 0)
+        assertEquals(List.of("L", "R", "R"), BattleDirectControlStatus.mechWeapons(mounts, flux, 0)
                 .stream().map(BattleDirectControlStatus.WeaponStatus::trigger).toList());
-        assertEquals(List.of("", "LR", ""), BattleDirectControlStatus.mechWeapons(mounts, flux, 2)
+        assertEquals(List.of("", "LR", "R"), BattleDirectControlStatus.mechWeapons(mounts, flux, 2)
                 .stream().map(BattleDirectControlStatus.WeaponStatus::trigger).toList());
     }
 

@@ -774,6 +774,14 @@ retains the same existing cross-domain behavior as an autonomous hull.
   assault): it drives to a stand-off, holds there rather than handing back on
   arrival, and puts the gun on the believed occupants and the walls sheltering
   them until nobody is believed inside.
+- A move order may name the heading to finish on: a right-drag goes to where
+  the drag began and faces the way it went. That heading is an arrival goal like
+  a delivery's departure heading, earned the same way — the terminal
+  Reeds-Shepp docking maneuver, which may back and fill, including on the spot
+  for a vehicle already standing at its destination. A bicycle cannot pivot, so
+  where no feasible maneuver fits the ground the vehicle arrives on the heading
+  it drove in on, as an undragged order does; the heading is a goal, never a
+  reason to refuse the move.
 - Arrival is not failure. Reaching the terminal corridor region must transition
   to landing/departure instead of triggering a false stuck recovery, and aiming
   at an off-map exit is arrival in progress rather than an unsolvable route.

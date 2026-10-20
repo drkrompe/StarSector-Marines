@@ -20,16 +20,16 @@
   [
    54.912,
    25.825,
-   21.664
+   20.965
   ]
  ],
  "size_m": [
   72.3,
   39.3,
-  33.3
+  32.7
  ],
- "meshes": 423,
- "polygons": 101994,
+ "meshes": 421,
+ "polygons": 114227,
  "images": 23,
  "engines": [
   {
@@ -205,7 +205,7 @@
    "location": [
     11,
     20,
-    4.63
+    4.67
    ],
    "k": 0.6,
    "bay": null,
@@ -241,7 +241,7 @@
    "location": [
     11,
     -19,
-    4.57
+    4.59
    ],
    "k": 0.6,
    "bay": null,
@@ -380,7 +380,7 @@
    "location": [
     11,
     20,
-    4.63
+    4.67
    ],
    "angle": 0,
    "arc": 5,
@@ -401,7 +401,7 @@
    "location": [
     11,
     -19,
-    4.57
+    4.59
    ],
    "angle": 0,
    "arc": 5,
@@ -435,7 +435,7 @@
    "position": [
     26,
     11.5,
-    5.66
+    5.71
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -450,7 +450,7 @@
    "position": [
     26,
     -11.5,
-    5.66
+    5.71
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -583,15 +583,15 @@
     "hinge": "Hull port fore wedge hinge",
     "H": [
      12.6,
-     -12.3714
+     -12.4046
     ],
-    "stow_deg": 134.005,
+    "stow_deg": 133.715,
     "x": [
      15.0,
      24.0
     ],
     "sole": "Hull port fore wedge sole",
-    "sole_y": 17.0396,
+    "sole_y": 17.0795,
     "rams": [
      {
       "pivot": "Hull port fore wedge ram 1 pivot",
@@ -601,10 +601,10 @@
        2.0
       ],
       "W": [
-       15.5428,
-       -15.1369
+       15.6316,
+       -15.3467
       ],
-      "base": -1.156165
+      "base": -1.156334
      },
      {
       "pivot": "Hull port fore wedge ram 2 pivot",
@@ -614,10 +614,10 @@
        2.0
       ],
       "W": [
-       15.5428,
-       -15.1369
+       15.6316,
+       -15.3467
       ],
-      "base": -1.156165
+      "base": -1.156334
      }
     ]
    },
@@ -626,15 +626,15 @@
     "hinge": "Hull starboard fore wedge hinge",
     "H": [
      -12.6,
-     -12.3727
+     -12.4057
     ],
-    "stow_deg": -134.002,
+    "stow_deg": -133.712,
     "x": [
      15.0,
      24.0
     ],
     "sole": "Hull starboard fore wedge sole",
-    "sole_y": -17.0399,
+    "sole_y": -17.0799,
     "rams": [
      {
       "pivot": "Hull starboard fore wedge ram 1 pivot",
@@ -644,10 +644,10 @@
        2.0
       ],
       "W": [
-       -15.5428,
-       -15.1382
+       -15.6315,
+       -15.3479
       ],
-      "base": -1.9854
+      "base": -1.985226
      },
      {
       "pivot": "Hull starboard fore wedge ram 2 pivot",
@@ -657,10 +657,10 @@
        2.0
       ],
       "W": [
-       -15.5428,
-       -15.1382
+       -15.6315,
+       -15.3479
       ],
-      "base": -1.9854
+      "base": -1.985226
      }
     ]
    },
@@ -669,15 +669,15 @@
     "hinge": "Hull port aft wedge hinge",
     "H": [
      12.6,
-     -12.804
+     -12.8345
     ],
-    "stow_deg": 116.136,
+    "stow_deg": 115.888,
     "x": [
      -17.5,
      -8.5
     ],
     "sole": "Hull port aft wedge sole",
-    "sole_y": 17.0999,
+    "sole_y": 17.1244,
     "rams": [
      {
       "pivot": "Hull port aft wedge ram 1 pivot",
@@ -687,10 +687,10 @@
        2.0
       ],
       "W": [
-       15.6287,
-       -14.9041
+       15.7395,
+       -14.9789
       ],
-      "base": -1.146867
+      "base": -1.143103
      },
      {
       "pivot": "Hull port aft wedge ram 2 pivot",
@@ -700,10 +700,10 @@
        2.0
       ],
       "W": [
-       15.6287,
-       -14.9041
+       15.7395,
+       -14.9789
       ],
-      "base": -1.146867
+      "base": -1.143103
      }
     ]
    },
@@ -712,15 +712,15 @@
     "hinge": "Hull starboard aft wedge hinge",
     "H": [
      -12.6,
-     -12.8027
+     -12.8332
     ],
-    "stow_deg": -116.121,
+    "stow_deg": -115.886,
     "x": [
      -17.5,
      -8.5
     ],
     "sole": "Hull starboard aft wedge sole",
-    "sole_y": -17.1009,
+    "sole_y": -17.1237,
     "rams": [
      {
       "pivot": "Hull starboard aft wedge ram 1 pivot",
@@ -730,10 +730,10 @@
        2.0
       ],
       "W": [
-       -15.6294,
-       -14.9019
+       -15.7396,
+       -14.9775
       ],
-      "base": -1.994806
+      "base": -1.998523
      },
      {
       "pivot": "Hull starboard aft wedge ram 2 pivot",
@@ -743,10 +743,10 @@
        2.0
       ],
       "W": [
-       -15.6294,
-       -14.9019
+       -15.7396,
+       -14.9775
       ],
-      "base": -1.994806
+      "base": -1.998523
      }
     ]
    }
@@ -979,7 +979,7 @@
    "location": [
     32.0,
     5.2,
-    -12.986
+    -13.043
    ],
    "exhaust_direction": [
     0,
@@ -994,7 +994,7 @@
    "location": [
     32.0,
     -5.2,
-    -12.986
+    -13.043
    ],
    "exhaust_direction": [
     0,
@@ -1270,5 +1270,5 @@
   },
   "append": "load both 'WOLF_P' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "0f6c44723fe763d46ff5bfba14a53c5f2f1ff0911131301631b34e51386a7140"
+ "asset_sha256": "0953dc71a11c40ce4dd53f6ddc33f7a4f71e02f4b9f117cedf41bda422b1ccfe"
 }

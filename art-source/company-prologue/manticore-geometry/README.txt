@@ -310,3 +310,36 @@ deck, a raised armour coaming along its outboard edge, a vertical outboard
 wall, a nose rake and chin, red armour on the nose and outboard side and the
 dark structure inboard where it meets the wing framework. Raw IoU rose to
 0.897 with it.
+
+Owner direction after round 15 (2026-10-20)
+"Manticore hull/plating gaps seem weird. It needs to take more queues from the
+onslaught there for the armored sections of hull facing combat." Round 15's
+plates were every loft facet inset with a wide dark groove, which drew an
+outline round each facet. mt_kit.armour_plates now lays the combat armour as
+the Onslaught's belts are laid (onslaught-geometry/os_armour.py, its pass 6
+review): plate breaks at a regular pitch across each course (the glacis bands
+every 5 units of Y, the wing armour every 6, the beak strakes and gun pods
+every 6 to 8 of X), faces grouped into one plate across creases gentler than
+35 deg so a plate is a thick slab bent over the form, each plate lifted 0.45
+with a chamfered border, narrow 0.08 gunmetal seams between plates, and a row
+of bolt heads just inside every plate edge. Dark bolted straps cross the glacis
+bands, the wing armour and the strakes over their seams. The core and the
+bridge plinth are hull rather than combat armour and carry only fine plate
+lines (mt_kit.hull_plating); round 13's welds stay on the core's shoulders.
+
+Detail check (2026-10-20, ship-detail-guide.md)
+Coordinator: bring the bevels to the guide's tiers, keep every glow on the
+lights layer or justify it, and use the kit's builders. The shared check
+(../ship-detail-kit/check_detail.py, weapons and turrets excluded) read 7.72 m
+of unbevelled hard edge per 100 m2 and 19 emissives off the lights layer on
+round 16. Now: struts (wing framework, conduits, bands, frames), slabs (pump,
+panels) and revolved parts (drive cans, bells, lips) carry a one-segment
+angle-limited chamfer at the guide's tier by member size (mt_kit.edge_bevel:
+0.06 m modules, 0.03 m fittings, 0.015 m small parts). The Manticore has no
+lights layer, so only the running lamps glow: the glass and the heat-vent
+slats have no emission. The four running lamps are the kit's lamp_fitting
+(bracket, housing, wire guard; only the lens emissive), each anchored by an
+empty with the light's old name at the lens. Check: 0 faceted, 0.0 m
+unbevelled per 100 m2, 0 emissive outside, 0 unframed glazing; four bare
+underside patches (wing and aft body, 103-143 m2) remain, below the game's
+view.

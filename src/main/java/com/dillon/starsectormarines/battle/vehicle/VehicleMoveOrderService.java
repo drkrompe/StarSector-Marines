@@ -42,16 +42,19 @@ public final class VehicleMoveOrderService {
         final int cellX;
         final int cellY;
         final boolean destinationOnly;
+        /** Heading to finish on, or {@code NaN} for whatever heading the drive arrives with. */
+        final float facingDegrees;
 
-        PendingOrder(long vehicleId, int cellX, int cellY) {
-            this(vehicleId, cellX, cellY, false);
+        PendingOrder(long vehicleId, int cellX, int cellY, float facingDegrees) {
+            this(vehicleId, cellX, cellY, false, facingDegrees);
         }
 
-        PendingOrder(long vehicleId, int cellX, int cellY, boolean destinationOnly) {
+        PendingOrder(long vehicleId, int cellX, int cellY, boolean destinationOnly, float facingDegrees) {
             this.destinationOnly = destinationOnly;
             this.vehicleId = vehicleId;
             this.cellX = cellX;
             this.cellY = cellY;
+            this.facingDegrees = facingDegrees;
         }
     }
 
@@ -59,17 +62,30 @@ public final class VehicleMoveOrderService {
      * Accepted move intent. The requested cell is what the player clicked; the
      * route is what the vehicle will actually drive, and its last waypoint is
      * the nearest drivable ground to the request — which may not be the same
-     * cell, and the interface is expected to say so.
+     * cell, and the interface is expected to say so. {@code facingDegrees} is
+     * the heading the player dragged out for the vehicle to finish on, or
+     * {@code NaN} when it was a plain click and any arrival heading will do.
      */
     public record ActiveOrder(int requestedX, int requestedY,
-                              float[] routeXs, float[] routeYs) {
+                              float[] routeXs, float[] routeYs, float facingDegrees) {
+        public ActiveOrder(int requestedX, int requestedY, float[] routeXs, float[] routeYs) {
+            this(requestedX, requestedY, routeXs, routeYs, Float.NaN);
+        }
+
+        /** Whether the order names the heading to finish on. */
+        public boolean hasFacing() { return !Float.isNaN(facingDegrees); }
+
         /** Where the vehicle is actually going. */
         public float destinationX() { return routeXs[routeXs.length - 1]; }
         public float destinationY() { return routeYs[routeYs.length - 1]; }
     }
 
     /** Route-free destination retained while direct control owns the hull. */
-    public record RequestedOrder(int requestedX, int requestedY) { }
+    public record RequestedOrder(int requestedX, int requestedY, float facingDegrees) {
+        public RequestedOrder(int requestedX, int requestedY) {
+            this(requestedX, requestedY, Float.NaN);
+        }
+    }
 
     /** A refused or abandoned order, kept for the interface to report. */
     public record RefusedOrder(int requestedX, int requestedY, Refusal reason) { }
@@ -88,7 +104,16 @@ public final class VehicleMoveOrderService {
 
     /** Queues a one-shot move request for resolution on the next fixed tick. */
     public void requestMove(long vehicleId, int cellX, int cellY) {
-        pending.add(new PendingOrder(vehicleId, cellX, cellY));
+        requestMove(vehicleId, cellX, cellY, Float.NaN);
+    }
+
+    /**
+     * Queues a move that finishes on {@code facingDegrees} (0 = +Y, positive
+     * counterclockwise, the {@link GroundBody} convention), or on whatever
+     * heading the drive arrives with when it is {@code NaN}.
+     */
+    public void requestMove(long vehicleId, int cellX, int cellY, float facingDegrees) {
+        pending.add(new PendingOrder(vehicleId, cellX, cellY, facingDegrees));
     }
 
     /** Current accepted order for one exact vehicle, or {@code null}. */
@@ -127,12 +152,12 @@ public final class VehicleMoveOrderService {
         // Direct control is a new owner for the hull; the assault it was under does not survive it.
         assaults.remove(vehicleId);
         ActiveOrder order = active.remove(vehicleId);
-        if (order != null) retain(vehicleId, order.requestedX(), order.requestedY());
+        if (order != null) retain(vehicleId, order.requestedX(), order.requestedY(), order.facingDegrees());
         retainLatestPending(vehicleId);
     }
 
-    void retain(long vehicleId, int x, int y) {
-        retained.put(vehicleId, new RequestedOrder(x, y));
+    void retain(long vehicleId, int x, int y, float facingDegrees) {
+        retained.put(vehicleId, new RequestedOrder(x, y, facingDegrees));
         refused.remove(vehicleId);
     }
 
@@ -141,12 +166,12 @@ public final class VehicleMoveOrderService {
         retainLatestPending(vehicleId);
         RequestedOrder order = retained.remove(vehicleId);
         if (order != null) pending.add(new PendingOrder(vehicleId,
-                order.requestedX(), order.requestedY(), true));
+                order.requestedX(), order.requestedY(), true, order.facingDegrees()));
     }
 
     private void retainLatestPending(long vehicleId) {
         for (PendingOrder order : pending) {
-            if (order.vehicleId == vehicleId) retain(vehicleId, order.cellX, order.cellY);
+            if (order.vehicleId == vehicleId) retain(vehicleId, order.cellX, order.cellY, order.facingDegrees);
         }
         pending.removeIf(order -> order.vehicleId == vehicleId);
     }
