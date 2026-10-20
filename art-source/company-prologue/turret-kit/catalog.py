@@ -25,6 +25,9 @@ ap.add_argument('--mpu', type=float, default=.99)
 ap.add_argument('--detail', default='near')
 ap.add_argument('--only', default='')
 ap.add_argument('--samples', type=int, default=32)
+ap.add_argument('--half', action='store_true', help='render at 50%% (the render queue light lane)')
+ap.add_argument('--hardpoints', default='', help='also these hardpoints (HARDPOINT_WEAPONS), each on a block cut with its bay')
+ap.add_argument('--elevate', default='', help='weapon:degrees,... elevate these in the singles (positive up)')
 ap.add_argument('--no-singles', action='store_true')
 ap.add_argument('--top', action='store_true', help='also orthographic top and side views of each, trained dead ahead, for review_sheet.py')
 args = ap.parse_args(argv)
@@ -34,6 +37,8 @@ OUT.mkdir(parents=True, exist_ok=True)
 bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
 studio.setup(scene, args.samples)
+if args.half:
+    scene.render.resolution_percentage = 50
 MATS = studio.hull_mats()
 DECK = studio.material('Deck', (.22, .21, .2), .3, .7)
 
@@ -56,15 +61,46 @@ for i, w in enumerate(names):
     piv.location = (x, y, lift)
     piv.rotation_euler = (0, 0, 0 if args.top else math.radians(-25))
     t = tk.build(w, f'Weapon {w}', piv, r, MATS, args.mpu, args.detail)
-    t['elevation'].rotation_euler = (0, 0 if args.top else math.radians(-8), 0)
+    up = dict((e.split(':')[0], float(e.split(':')[1])) for e in args.elevate.split(',') if e).get(w)
+    t['elevation'].rotation_euler = (0, 0 if args.top else math.radians(-(8 if up is None else up)), 0)
     placed.append((w, Vector((x, y, lift)), r, t))
     print(f'{w}: {len(t["parts"])} objects, '
           f'{sum(len(p.data.polygons) for p in t["parts"])} faces, {len(t["muzzles"])} muzzles')
 
+# Hardpoints: each on its own block of hull with its bay cut out, as a hull seats it.
+hps = [h for h in args.hardpoints.split(',') if h]
+for j, w in enumerate(hps):
+    x, y = ((len(names)+j) % cols)*pitch, -((len(names)+j)//cols)*pitch
+    mount = bpy.data.objects.new(f'Hardpoint {w} mount', None)
+    scene.collection.objects.link(mount)
+    mount.location = (x, y, 4.0)
+    mount.rotation_euler = (0, 0, 0 if args.top else math.radians(-25))
+    h = tk.build_hardpoint(w, f'Hardpoint {w}', mount, MATS, args.mpu, args.detail)
+    x0, x1, hw, fl = h['bay'] or (-6.0, 8.0, 6.0, -3.0)
+    bpy.ops.mesh.primitive_cube_add(size=1)
+    block = bpy.context.object
+    block.name = f'Hardpoint {w} hull block'
+    block.parent = mount
+    block.scale = (x1-x0+8, 2*hw+6, 6.2)
+    block.location = ((x0+x1)/2-4, 0, -4.0+3.1-.5)
+    bpy.ops.mesh.primitive_cube_add(size=1)
+    cut = bpy.context.object
+    cut.name = f'Hardpoint {w} bay cutter'
+    cut.parent = mount
+    cut.scale = (x1-x0+8, 2*hw, 10)
+    cut.location = ((x0+x1)/2+4, 0, fl+5)
+    mod = block.modifiers.new('bay', 'BOOLEAN')
+    mod.operation, mod.object = 'DIFFERENCE', cut
+    cut.hide_render = cut.hide_viewport = True
+    block.data.materials.append(MATS['armour'])
+    placed.append((w, mount.location.copy(), 9.5, h))
+    print(f'{w}: {len(h["parts"])} objects, {sum(len(p.data.polygons) for p in h["parts"])} faces, '
+          f'{len(h["muzzles"])} muzzles')
+
 # A deck under everything.
-bpy.ops.mesh.primitive_plane_add(size=1, location=((cols-1)*pitch/2, -(len(names)//cols)*pitch/2, -.5))
+bpy.ops.mesh.primitive_plane_add(size=1, location=((cols-1)*pitch/2, -((len(names)+len(hps))//cols)*pitch/2, -.5))
 deck = bpy.context.object
-deck.scale = (cols*pitch+60, (len(names)//cols+1)*pitch+60, 1)
+deck.scale = (cols*pitch+60, ((len(names)+len(hps))//cols+1)*pitch+60, 1)
 deck.data.materials.append(DECK)
 
 
@@ -82,7 +118,7 @@ def shoot(name, target, dist, lens=50, elev=32, azim=-55):
     bpy.ops.render.render(write_still=True)
 
 
-rows = (len(names)+cols-1)//cols
+rows = (len(names)+len(hps)+cols-1)//cols
 centre = Vector(((cols-1)*pitch/2, -(rows-1)*pitch/2, 0))
 shoot('catalog-overview', centre, 2.2*max(cols*pitch*.62, rows*pitch), lens=50, elev=38)
 if not args.no_singles:
