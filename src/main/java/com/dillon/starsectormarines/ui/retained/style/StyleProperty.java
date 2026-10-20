@@ -34,6 +34,7 @@ public enum StyleProperty {
     BACKGROUND_COLOR("background-color", false, false, true, true),
     BACKGROUND_IMAGE("background-image", false, false, true, false),
     COLOR("color", true, false, true, true),
+    TEXT_SHADOW("text-shadow", true, false, true, false),
     FONT_FAMILY("font-family", true, true, true, false),
     TEXT_ALIGN("text-align", true, false, true, false),
     WHITE_SPACE("white-space", true, true, true, false),

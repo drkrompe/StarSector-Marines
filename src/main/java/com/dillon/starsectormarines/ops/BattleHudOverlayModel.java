@@ -314,6 +314,14 @@ final class BattleHudOverlayModel {
                 case "blocker" -> item.blocker().isEmpty() ? "" : item.blocker();
                 case "classes" -> "mission-card " + (item.state() == MissionObjectiveSnapshot.State.COMPLETE ? "mission-complete"
                         : item.state() == MissionObjectiveSnapshot.State.FAILED ? "mission-failed" : "mission-active");
+                case "objClasses" -> "obj " + switch (item.state()) {
+                    case COMPLETE -> "obj-complete";
+                    case FAILED -> "obj-failed";
+                    default -> "obj-active";
+                };
+                case "progressRowClasses" -> item.progress() < 0 && item.progressText().isEmpty()
+                        ? "obj-progress obj-hidden" : "obj-progress";
+                case "blockerClasses" -> item.blocker().isEmpty() ? "obj-blocker obj-hidden" : "obj-blocker";
                 case "progressStyle" -> "width: " + Math.round(Math.max(0, Math.min(1, item.progress())) * 100) + "%;";
                 case "trackStyle" -> item.progress() < 0 ? "height: 0px; opacity: 0; overflow: hidden;" : "";
                 case "locate" -> locate;
