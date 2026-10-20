@@ -239,15 +239,35 @@ def build_housing(kit, s, red):
     # Feed pipes down the raked aft face into each can.
     for y,z1 in ((32,5.8),(23.6,4.4)):
         kit.cylinder('Can feed pipe', (-33.2,s*y,(z1+8.6)/2), .45, 8.6-z1, kit.steel, 'Z', 12, .04)
-    # Hot-section lights on the housing's aft corners.
+    # Hot-section lights on the housing's aft corners: a round lens (the emissive
+    # 'Drive warning light', 0.2 m) set back 7 cm in a bolted steel bezel ring.
     for y in (36.2,21.4):
-        kit.box('Drive warning light', (-32.8,s*y,7.9), (.6,.6,.5), red, .05)
+        warning_bezel(kit, -33.1, -32.55, s*y, 7.9, .3, .46)
+        kit.cylinder('Drive warning light', (-32.8,s*y,7.9), .3, .4, red, 'X', 32, .02)
     # Bulkhead on the aft band above the housing: hatch and vent louvres.
     kit.box('Aft band hatch', (-27.15,s*31,12), (.3,5,3), kit.dark, .05)
     for z in (11.1,12,12.9):
         kit.box('Aft band louver', (-27.3,s*31,z), (.2,4.4,.3), kit.steel, .03)
     kit.box('Housing flank seam strap', (-30,s*38.05,1.5), (5.5,.3,.6), kit.dark, 0)
     kit.box('Housing frame rib', (-29.8,s*38.1,1.5), (.9,.6,8.5), kit.steel, .15)
+
+
+def warning_bezel(kit, x0, x1, y, z, r_in, r_out):
+    """'Drive warning bezel': an annulus along X round a warning lamp's lens, its bore
+    the lens's radius, rounds by the segment rule, with four hex bolts on the aft face."""
+    n = sw_kit.sides(r_out, 32)
+    v = []
+    for x in (x0,x1):
+        v += [(x, y+r*math.cos(k*math.tau/n), z+r*math.sin(k*math.tau/n)) for r in (r_out,r_in) for k in range(n)]
+    f = []
+    for k in range(n):
+        j = (k+1) % n
+        f += [(k,j,2*n+j,2*n+k), (n+j,n+k,3*n+k,3*n+j), (j,k,n+k,n+j), (2*n+k,2*n+j,3*n+j,3*n+k)]
+    sw_kit.smooth(kit.mesh('Drive warning bezel', v, f, kit.steel, bevel=.02))
+    rb = (r_in+r_out)/2
+    for k in range(4):
+        a = math.pi/4+k*math.pi/2
+        kit.cylinder('Drive warning bezel bolt', (x0-.02, y+rb*math.cos(a), z+rb*math.sin(a)), .045, .06, kit.steel, 'X', 6, 0)
 
 
 def build_feeds(kit, s):
