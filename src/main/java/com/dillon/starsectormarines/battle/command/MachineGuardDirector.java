@@ -14,7 +14,8 @@ import java.util.function.IntBinaryOperator;
 /**
  * Which of a side's free machines stands guard by which of its manned places (`garrisonables.md`, machine guard): the
  * commander-tier half of the machine guard, beside {@link GarrisonDirector}'s manning. It knows nothing of which side
- * it serves; it is given the places the side mans this pulse (and which of them are pressed), the side's free mech
+ * it serves, nor whether a place is a stretch of a run or a building's envelope ({@link #placeManned}); it is given
+ * the places the side mans this pulse (and which of them are pressed), the side's free mech
  * lances, and answers which lance is attached to which place and when it stands down. The machine-tier half — where
  * the chassis stands, which way it faces, what it engages — is {@code MachineGuards}, reached through the order a
  * commander gives ({@link CommandEffects#guardPlace}).
@@ -168,7 +169,23 @@ final class MachineGuardDirector {
     }
 
     /**
-     * The places a side mans, from the ids of the places its squads are ordered to man: the pressed ones first, in
+     * The garrisonable an order mans, or -1: the stretch a run-scoped area defence stands on, or the envelope of the
+     * building a hold of an envelope names (found by the building, since a commander's facts may carry a copy of its
+     * node, and by the order's cell when the registry no longer offers it). An order that mans nothing answers -1.
+     */
+    static int placeManned(ObjectiveAssignment order, GarrisonableRegistry places) {
+        if (order == null || places == null) return -1;
+        if (order.isGarrison()) return places.idAt(order.targetCellX(), order.targetCellY());
+        if (!order.isEnvelope()) return -1;
+        int envelope = places.envelopeOf(order.targetNode());
+        if (envelope >= 0) return envelope;
+        int at = places.idAt(order.targetCellX(), order.targetCellY());
+        return at >= 0 && places.isEnvelope(at) ? at : -1;
+    }
+
+    /**
+     * The places a side mans, from the ids of the places its squads are ordered to man (stretches of runs and buildings'
+     * envelopes alike, and buildings their own garrison stands in): the pressed ones first, in
      * {@code hotPlaces}' order (the manning director's, most pressed first), then the rest by id.
      */
     static List<Place> manned(Set<Integer> mannedIds, int[] hotPlaces, GarrisonableRegistry places) {
