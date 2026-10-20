@@ -45,7 +45,7 @@ def _dz_block(m, k, c, d, ch=.15, axis='X', taper=(1.0, 1.0)):
     def loop(su, sv, inset):
         hu, hv = su*wu/2-inset, sv*wv/2-inset
         cc = max(min(ch, .45*hu, .45*hv), 1e-3)
-        return [((cu+u)*k, (cv+v)*k) for u, v in tk.section(hu, -hv, hv, cc, cc)]
+        return [((cu+u)*k, (cv+v)*k) for u, v in tk.section(hu, -hv, hv, cc, cc, 0.0, 1)]
     st = [(a0, loop(1, 1, ch)), (a0+ch, loop(1, 1, 0)), (a1-ch, loop(tu, tv, 0)), (a1, loop(tu, tv, ch))]
     _dz_loft(m, [(t*k, L) for t, L in st], axis)
 
@@ -233,7 +233,7 @@ def _hp_heatseeker(g, f, s, k=1.0):
     m = g.sub('missile 1', (.5*k, 0, 0), 1.5*k)
     tk._missile(m, f, .5*k, 0, 0, 11.5*k, 1.1*k, True)
     for sy in (1, -1):                                                         # seeker lamps
-        m['glow'].box((10.0*k, sy*.75*k, .45*k), (.4*k, .3*k, .25*k))
+        m['mark'].box((10.0*k, sy*.75*k, .45*k), (.4*k, .3*k, .25*k))
     _dz_block(m['steel'], k, (2.6, 0, 1.12), (.8, .44, .26), ch=.06)           # umbilical plug
     return [(12.0*k, 0.0, 0.0)]
 
