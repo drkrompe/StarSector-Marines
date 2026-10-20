@@ -24,7 +24,7 @@ Options after a literal "--":
   --res WxH      render size (default 1920x1080)
   --no-save      skip the .blend and geometry.json
   --state S      clean (default; the Hound (A) as committed) or pirate (the
-                 Hound (P): hd_pirate's welded scrap armour, chaingun and twin
+                 Hound (P): hd_pirate's welded scrap armour, twin
                  MG, light scars). A pirate build needs --out (or --no-save):
                  the tracked .blend and geometry.json are the clean asset's.
 Then run compose_review.py (ordinary Python + Pillow + numpy) for the top
@@ -269,6 +269,7 @@ if not args.no_save:
         'weapon_slots': [dict(s, location=[*s['location'], round(hd_mounts.ANCHOR_Z[s['id']], 2)],
                               objects=f"Weapon {s['id']} ...", anchor=f"Weapon {s['id']} anchor")
                          for s in hd_mounts.SLOTS],
+        'hardpoints': [dict(hd_mounts.HARDPOINT_RECORD)],
         'engines': [{'index': i, 'objects': f'Engine {i} ...', 'anchor': f"Engine {i} {'port' if y > 0 else 'starboard'} exhaust anchor",
                      'location': [x, y, 0], 'width': w, 'length': 80, 'style': 'LOW_TECH', 'contrailSize': 64,
                      'angle': 180, 'bell_radius': round(hd_engines.BELL_R, 2)}

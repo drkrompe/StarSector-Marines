@@ -112,9 +112,15 @@ Every lamp is where hound_lights.png shows light.
 - Fork and mounts (hd_fork, hd_mounts): channel-section tines with dark
   webs, ribs and cream tip caps, an I-beam cross bar with a targeting
   sensor, a gun trough with cradle rails, plated base with hatches.
-  WS 001 is a naval breech on a recoil slide with recoil cylinders, a
-  jacketed barrel and ported brake (muzzle X 40.44), fed by a belt chute
-  from the shielded hold. WS 002 is a small naval turret: bolted armour
+  WS 001 is the shared turret kit's chaingun hardpoint (2026-10-20; it
+  replaced the hull's own naval gun and the Hound (P)'s own chaingun):
+  tk.build_hardpoint('chaingun') at k 0.5 on the empty 'Weapon WS 001
+  mount' (X 24.95, axis Z 0.2), sunk in a bay cut from the fork base and
+  the tine roots (hd_mounts.BAY; the old trough fittings are removed). The
+  six-barrel cluster rides 'Weapon WS 001 rotor' inside 'Weapon WS 001
+  recoil 1'; one muzzle, 'Weapon WS 001 muzzle anchor 1', on the cluster
+  axis at X 39.45. Both states carry it. turret-kit/check_hardpoints.py
+  must report it clear. WS 002 is a small naval turret: bolted armour
   collar, glacis, mantlet and trunnions, cupola with vision blocks, sight
   and ready-round box. WS 003 is an armoured, hazard-framed shutter with a
   4x3 tube grid. Both guns pass a BVH clearance check on every build.
@@ -199,18 +205,13 @@ armour. --state clean (the default) is the committed Hound (A), unchanged.
   bead round its foot), '... bolts', '... lugs' on three; starboard deck 1
   and port pod 2 have a cut-out showing the original plate. Material
   'Pirate scrap armour'; welds 'Recess and machinery'.
-- Guns (hd_mounts.build(kit, hd_pirate.GUNS) replaces only the barrel
-  groups; mounts, cradle, breech, mantlet, feed, houses are the clean ones):
-  WS 001 chaingun: 'Weapon WS 001 motor housing', '... drive motor',
-  '... ammo feed' (+ drop), and under the empty 'Weapon WS 001 rotor'
-  (local X = spin axis) the spindle, barrel 1-6, rear barrel clamp, barrel
-  clamp, muzzle bores and 'Weapon WS 001 muzzle brake' (the muzzle plate).
+- Guns (hd_mounts.build(kit, hd_pirate.GUNS) replaces only WS 002's barrel
+  group; WS 001 is the kit chaingun of the clean state, see above).
   WS 002 twin light MG: 'Weapon WS 002 twin cradle', barrel 1-2,
   perforated barrel jacket 1-2, muzzle brake 1-2 and muzzle bore 1-2 (no
   plain '... muzzle brake'); trained with the house above the traverse gap.
-  WS 003 unchanged. Absent in this state: WS 001 recoil sleeve, recoil
-  cylinders, barrel, barrel jacket, jacket bands, muzzle bore and the old
-  muzzle brake; WS 002 barrel, barrel jacket and muzzle brake.
+  WS 003 unchanged. Absent in this state: WS 002 barrel, barrel jacket and
+  muzzle brake.
 - Scars: hd_pirate.SCARS, light wear, stable ids HD01-HD11, each placed by a
   ray-cast: scorches HD01 (port pod skirt), HD05 (deckhouse front, feed-port
   armour), HD07 (deck forward of the turret), HD09 (bridge capsule aft
