@@ -5,7 +5,8 @@
     python battle_blockout.py --samples 16    # quicker, noisier
     python battle_blockout.py --post windows  # ... and post the run to the Drive review folder
     python battle_blockout.py --skip-render   # relabel the last raw renders
-    python battle_blockout.py --run r7        # output under build/asharu-battle/r7/ instead of today's date
+    python battle_blockout.py --run r7        # output under build/asharu-battle/r7/ instead of today's date;
+                                              # --post then dates the review folder by the day r7 began
     python battle_blockout.py --rerender      # render every frame even if a finished one is on disk
 
 A frame already finished in the run folder (its PNG, its labels, and the same samples and source)
@@ -1401,6 +1402,10 @@ def main():
     frames = opt('--frames', ','.join(list(KEYFRAMES) + list(ROSTER_SHEETS))).split(',')
     run = REPO / 'build' / 'asharu-battle' / opt('--run', date.today().isoformat())
     run.mkdir(parents=True, exist_ok=True)
+    started = run / 'run-date.txt'      # the day the run began: a resume after midnight posts under it
+    if not started.exists():
+        started.write_text(date.today().isoformat())
+    run_date = started.read_text().strip()
     samples = int(opt('--samples', 48))
     if '--skip-render' not in argv:
         todo = [kf for kf in frames if '--rerender' in argv or not finished(run / 'raw', kf, samples)]
@@ -1419,7 +1424,7 @@ def main():
         import shutil
         drive = Path('G:/My Drive/starsector') if os.name == 'nt' else next(
             Path.home().glob('Library/CloudStorage/GoogleDrive-*/My Drive/starsector'))
-        dest = drive / 'review' / 'cinematic-asharu-battle' / f"{date.today().isoformat()}_{opt('--what', 'blockout')}_{post}"
+        dest = drive / 'review' / 'cinematic-asharu-battle' / f"{run_date}_{opt('--what', 'blockout')}_{post}"
         dest.mkdir(parents=True, exist_ok=False)
         for o in outputs:
             shutil.copy2(run / o, dest / o)
