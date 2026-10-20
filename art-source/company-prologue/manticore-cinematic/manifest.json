@@ -1,0 +1,1032 @@
+{
+ "asset": "manticore-p.blend",
+ "append_collection": "MANTICORE (P)",
+ "root": "MANTICORE (P) | root",
+ "anchors_collection": "MANTICORE (P) | anchors",
+ "state": "battle",
+ "livery": "pirate (manticore-surface: Codex part skins, battle wear, the sprite's markings)",
+ "metres_per_unit": 0.59,
+ "axes": {
+  "+X": "bow",
+  "+Y": "port",
+  "+Z": "dorsal"
+ },
+ "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+ "bounds_units_rest": [
+  [
+   -66.3,
+   -80.2,
+   -29.38
+  ],
+  [
+   88.41,
+   80.2,
+   29.72
+  ]
+ ],
+ "size_metres_rest": [
+  91.3,
+  94.6,
+  34.9
+ ],
+ "engines": [
+  {
+   "index": 1,
+   "slot": 0,
+   "role": "main drive, port",
+   "anchor": "Engine 1 exhaust anchor",
+   "mouth": [
+    -66.0,
+    17.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 6.0,
+   "radius_m": 3.54,
+   "width": 20,
+   "length": 64,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 2,
+   "slot": 1,
+   "role": "main drive, centre",
+   "anchor": "Engine 2 exhaust anchor",
+   "mouth": [
+    -62.0,
+    0.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 6.0,
+   "radius_m": 3.54,
+   "width": 20,
+   "length": 48,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 3,
+   "slot": 2,
+   "role": "main drive, starboard",
+   "anchor": "Engine 3 exhaust anchor",
+   "mouth": [
+    -66.0,
+    -16.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 6.0,
+   "radius_m": 3.54,
+   "width": 20,
+   "length": 64,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 4,
+   "slot": 3,
+   "role": "outer drive, port",
+   "anchor": "Engine 4 exhaust anchor",
+   "mouth": [
+    -62.0,
+    30.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 3.6,
+   "radius_m": 2.124,
+   "width": 12,
+   "length": 32,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 5,
+   "slot": 4,
+   "role": "outer drive, starboard",
+   "anchor": "Engine 5 exhaust anchor",
+   "mouth": [
+    -62.0,
+    -30.0,
+    0.0
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 3.6,
+   "radius_m": 2.124,
+   "width": 12,
+   "length": 32,
+   "style": "LOW_TECH",
+   "running": true
+  }
+ ],
+ "engines_running": [
+  1,
+  2,
+  3,
+  4,
+  5
+ ],
+ "turrets": [
+  {
+   "index": 1,
+   "slot": "WS 000",
+   "mount": "TURRET",
+   "size": "LARGE",
+   "weapon": "hellbore",
+   "variant_weapon": "mark9",
+   "kind": "gun",
+   "pivot": "Weapon WS 000 pivot",
+   "elevation": "Weapon WS 000 elevation",
+   "pivot_at": [
+    21.0,
+    0.0,
+    9.638
+   ],
+   "rest_angle_deg": 0,
+   "arc_deg": 90,
+   "vfx_scale": 2.38,
+   "trainable": true,
+   "trained_parts": 20,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 1 barrel 1 muzzle",
+     "rides": "Weapon WS 000 muzzle anchor 1",
+     "at": [
+      43.576,
+      0.0,
+      12.902
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "barbette": "Weapon WS 000 barbette",
+   "note": "main gun: the launch/muzzle anchor is the Hellbore barrel tip"
+  },
+  {
+   "index": 2,
+   "slot": "WS 001",
+   "mount": "TURRET",
+   "size": "SMALL",
+   "weapon": "lightac",
+   "variant_weapon": "lightag",
+   "kind": "gun",
+   "pivot": "Weapon WS 001 pivot",
+   "elevation": "Weapon WS 001 elevation",
+   "pivot_at": [
+    23.0,
+    65.0,
+    -1.484
+   ],
+   "rest_angle_deg": 80,
+   "arc_deg": 235,
+   "vfx_scale": 1.54,
+   "trainable": true,
+   "trained_parts": 20,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 2 barrel 1 muzzle",
+     "rides": "Weapon WS 001 muzzle anchor 1",
+     "at": [
+      25.21,
+      77.534,
+      1.112
+     ],
+     "axis": [
+      0.1736,
+      0.9848,
+      0.0
+     ]
+    }
+   ],
+   "barbette": "Weapon WS 001 barbette"
+  },
+  {
+   "index": 3,
+   "slot": "WS 002",
+   "mount": "TURRET",
+   "size": "SMALL",
+   "weapon": "needler",
+   "variant_weapon": "lightneedler",
+   "kind": "gun",
+   "pivot": "Weapon WS 002 pivot",
+   "elevation": "Weapon WS 002 elevation",
+   "pivot_at": [
+    73.0,
+    0.0,
+    1.06
+   ],
+   "rest_angle_deg": 0,
+   "arc_deg": 235,
+   "vfx_scale": 1.08,
+   "trainable": true,
+   "trained_parts": 24,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 3 barrel 1 muzzle",
+     "rides": "Weapon WS 002 muzzle anchor 1",
+     "at": [
+      83.737,
+      -1.895,
+      3.814
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "barrel 2",
+     "anchor": "Anchor turret 3 barrel 2 muzzle",
+     "rides": "Weapon WS 002 muzzle anchor 2",
+     "at": [
+      83.737,
+      1.895,
+      3.814
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "barbette": "Weapon WS 002 barbette"
+  },
+  {
+   "index": 4,
+   "slot": "WS 003",
+   "mount": "TURRET",
+   "size": "SMALL",
+   "weapon": "lightac",
+   "variant_weapon": "lightag",
+   "kind": "gun",
+   "pivot": "Weapon WS 003 pivot",
+   "elevation": "Weapon WS 003 elevation",
+   "pivot_at": [
+    23.0,
+    -65.0,
+    -1.484
+   ],
+   "rest_angle_deg": -80,
+   "arc_deg": 235,
+   "vfx_scale": 1.54,
+   "trainable": true,
+   "trained_parts": 20,
+   "muzzles": [
+    {
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 4 barrel 1 muzzle",
+     "rides": "Weapon WS 003 muzzle anchor 1",
+     "at": [
+      25.21,
+      -77.534,
+      1.112
+     ],
+     "axis": [
+      0.1736,
+      -0.9848,
+      0.0
+     ]
+    }
+   ],
+   "barbette": "Weapon WS 003 barbette"
+  }
+ ],
+ "launchers": [
+  {
+   "index": 5,
+   "slot": "WS 004",
+   "mount": "HARDPOINT",
+   "size": "MEDIUM",
+   "weapon": "harpoonpod",
+   "variant_weapon": "harpoonpod",
+   "kind": "launcher",
+   "pivot": "Weapon WS 004 pivot",
+   "elevation": "Weapon WS 004 elevation",
+   "pivot_at": [
+    32.0,
+    43.0,
+    -3.516
+   ],
+   "rest_angle_deg": 0,
+   "arc_deg": 5,
+   "vfx_scale": 4.091,
+   "trainable": false,
+   "trained_parts": 8,
+   "muzzles": [
+    {
+     "tag": "tube 1",
+     "anchor": "Anchor turret 5 tube 1 muzzle",
+     "rides": "Weapon WS 004 muzzle anchor 1",
+     "at": [
+      38.075,
+      41.178,
+      0.621
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "tube 2",
+     "anchor": "Anchor turret 5 tube 2 muzzle",
+     "rides": "Weapon WS 004 muzzle anchor 2",
+     "at": [
+      38.075,
+      43.0,
+      0.621
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "tube 3",
+     "anchor": "Anchor turret 5 tube 3 muzzle",
+     "rides": "Weapon WS 004 muzzle anchor 3",
+     "at": [
+      38.075,
+      44.822,
+      0.621
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "note": "hardpoint: never trains (arc 5); one launch anchor per tube, +X out of the tube"
+  },
+  {
+   "index": 6,
+   "slot": "WS 005",
+   "mount": "HARDPOINT",
+   "size": "MEDIUM",
+   "weapon": "harpoonpod",
+   "variant_weapon": "harpoonpod",
+   "kind": "launcher",
+   "pivot": "Weapon WS 005 pivot",
+   "elevation": "Weapon WS 005 elevation",
+   "pivot_at": [
+    32.0,
+    -43.0,
+    -3.516
+   ],
+   "rest_angle_deg": 0,
+   "arc_deg": 5,
+   "vfx_scale": 4.091,
+   "trainable": false,
+   "trained_parts": 8,
+   "muzzles": [
+    {
+     "tag": "tube 1",
+     "anchor": "Anchor turret 6 tube 1 muzzle",
+     "rides": "Weapon WS 005 muzzle anchor 1",
+     "at": [
+      38.075,
+      -44.822,
+      0.621
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "tube 2",
+     "anchor": "Anchor turret 6 tube 2 muzzle",
+     "rides": "Weapon WS 005 muzzle anchor 2",
+     "at": [
+      38.075,
+      -43.0,
+      0.621
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "tube 3",
+     "anchor": "Anchor turret 6 tube 3 muzzle",
+     "rides": "Weapon WS 005 muzzle anchor 3",
+     "at": [
+      38.075,
+      -41.178,
+      0.621
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "note": "hardpoint: never trains (arc 5); one launch anchor per tube, +X out of the tube"
+  }
+ ],
+ "system_slots": [
+  {
+   "slot": "WS 006",
+   "anchor": "Weapon WS 006 anchor",
+   "angle_deg": -45,
+   "at": [
+    36.0,
+    -20.0,
+    4.32
+   ],
+   "axis": [
+    0.7071,
+    -0.7071,
+    0.0
+   ]
+  },
+  {
+   "slot": "WS 007",
+   "anchor": "Weapon WS 007 anchor",
+   "angle_deg": 45,
+   "at": [
+    36.0,
+    21.0,
+    3.801
+   ],
+   "axis": [
+    0.7071,
+    0.7071,
+    0.0
+   ]
+  },
+  {
+   "slot": "WS 008",
+   "anchor": "Weapon WS 008 anchor",
+   "angle_deg": 135,
+   "at": [
+    -19.0,
+    40.0,
+    2.505
+   ],
+   "axis": [
+    -0.7071,
+    0.7071,
+    0.0
+   ]
+  },
+  {
+   "slot": "WS 009",
+   "anchor": "Weapon WS 009 anchor",
+   "angle_deg": 225,
+   "at": [
+    -19.0,
+    -40.0,
+    2.505
+   ],
+   "axis": [
+    -0.7071,
+    -0.7071,
+    0.0
+   ]
+  }
+ ],
+ "lamps_lit": 6,
+ "lamps": [
+  {
+   "object": "Light port wing tip 1 lens",
+   "anchor": "Light port wing tip 1",
+   "colour": "red",
+   "role": "port side light (extremity)",
+   "material": "Manticore running light red",
+   "blink": {
+    "period_s": 0,
+    "phase_s": 0,
+    "duty": 0.18
+   },
+   "lit": true,
+   "at": [
+    23.0,
+    77.85,
+    -5.04
+   ]
+  },
+  {
+   "object": "Light starboard wing tip 1 lens",
+   "anchor": "Light starboard wing tip 1",
+   "colour": "green",
+   "role": "starboard side light (extremity)",
+   "material": "Manticore running light green",
+   "blink": {
+    "period_s": 0,
+    "phase_s": 0,
+    "duty": 0.18
+   },
+   "lit": true,
+   "at": [
+    23.0,
+    -77.85,
+    -5.04
+   ]
+  },
+  {
+   "object": "Light centre stern 1 lens",
+   "anchor": "Light centre stern 1",
+   "colour": "white",
+   "role": "stern light",
+   "material": "Manticore running light white",
+   "blink": {
+    "period_s": 0,
+    "phase_s": 0,
+    "duty": 0.18
+   },
+   "lit": true,
+   "at": [
+    -48.0,
+    0.0,
+    13.52
+   ]
+  },
+  {
+   "object": "Light centre prow 1 lens",
+   "anchor": "Light centre prow 1",
+   "colour": "white",
+   "role": "prow anti-collision strobe",
+   "material": "Manticore running light white",
+   "blink": {
+    "period_s": 1.6,
+    "phase_s": 0.4,
+    "duty": 0.18
+   },
+   "lit": true,
+   "at": [
+    83.0,
+    0.0,
+    -7.68
+   ]
+  },
+  {
+   "object": "Bridge mast beacon 1",
+   "anchor": null,
+   "colour": "red",
+   "role": "mast beacon (bridge light pole)",
+   "material": "Manticore mast beacon red",
+   "blink": null,
+   "lit": true,
+   "at": [
+    -18.6,
+    0.0,
+    27.07
+   ]
+  },
+  {
+   "object": "Bridge mast beacon 2",
+   "anchor": null,
+   "colour": "red",
+   "role": "mast beacon (aft mast)",
+   "material": "Manticore mast beacon red",
+   "blink": null,
+   "lit": true,
+   "at": [
+    -15.5,
+    -5.0,
+    29.38
+   ]
+  }
+ ],
+ "lights_layer": "none: manticore_pirate.png has no lights layer; the lamps are the geometry's four running lamps (mt_lights) and the two red mast beacons (mt_refine)",
+ "rcs": "none declared: the RCS quads (mt_refine) are detail meshes without anchors; the effects build passes rcs=False",
+ "objects": 434,
+ "polygons": 180594,
+ "baked_meshes": 0,
+ "images": [
+  "Manticore (P) drips mask",
+  "Manticore (P) flames mask",
+  "Skin aft-top-port",
+  "Skin band-port",
+  "Skin belly",
+  "Skin core-flank-aft-port",
+  "Skin core-flank-fore-port",
+  "Skin core-stern",
+  "Skin core-top-1",
+  "Skin core-top-2",
+  "Skin core-top-3",
+  "Skin head-top",
+  "Skin horn-in-port",
+  "Skin horn-out-port",
+  "Skin horn-top-port",
+  "Skin pod-nose-port",
+  "Skin pod-out-port",
+  "Skin pod-top-port",
+  "Skin tier-top",
+  "Skin wing-armour-port",
+  "Skin wing-top-port",
+  "Swatch dark",
+  "Swatch gunmetal",
+  "Swatch pale",
+  "Swatch plate",
+  "Swatch red"
+ ],
+ "effects": {
+  "collection": "SWFX",
+  "kit": "second-wind-vfx (swfx.apply, hull profile manticore-cinematic/vfx_hull.py, kit state clean, groups thrusters, smoke, guns, lighting; rcs and landing dust off; no rig preset)",
+  "objects": 81,
+  "anchors": {
+   "engines": [
+    {
+     "index": 1,
+     "side": "port",
+     "radius": 6.0,
+     "mouth": [
+      -66.0,
+      17.0,
+      0.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "side": "centre",
+     "radius": 6.0,
+     "mouth": [
+      -62.0,
+      0.0,
+      0.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 3,
+     "side": "starboard",
+     "radius": 6.0,
+     "mouth": [
+      -66.0,
+      -16.0,
+      0.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 4,
+     "side": "port",
+     "radius": 3.6000000000000005,
+     "mouth": [
+      -62.0,
+      30.0,
+      0.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 5,
+     "side": "starboard",
+     "radius": 3.6000000000000005,
+     "mouth": [
+      -62.0,
+      -30.0,
+      0.0
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    }
+   ],
+   "guns": [
+    {
+     "turret": 1,
+     "tag": "barrel 1",
+     "muzzle": [
+      43.576,
+      0.0,
+      12.902
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 2,
+     "tag": "barrel 1",
+     "muzzle": [
+      25.21,
+      77.534,
+      1.112
+     ],
+     "axis": [
+      0.174,
+      0.985,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 3,
+     "tag": "barrel 1",
+     "muzzle": [
+      83.737,
+      -1.895,
+      3.814
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 3,
+     "tag": "barrel 2",
+     "muzzle": [
+      83.737,
+      1.895,
+      3.814
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "barrel": 2
+    },
+    {
+     "turret": 4,
+     "tag": "barrel 1",
+     "muzzle": [
+      25.21,
+      -77.534,
+      1.112
+     ],
+     "axis": [
+      0.174,
+      -0.985,
+      0.0
+     ],
+     "barrel": 1
+    },
+    {
+     "turret": 5,
+     "tag": "tube 1",
+     "muzzle": [
+      38.075,
+      41.178,
+      0.621
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "barrel": 1,
+     "kind": "launcher"
+    },
+    {
+     "turret": 5,
+     "tag": "tube 2",
+     "muzzle": [
+      38.075,
+      43.0,
+      0.621
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "barrel": 2,
+     "kind": "launcher"
+    },
+    {
+     "turret": 5,
+     "tag": "tube 3",
+     "muzzle": [
+      38.075,
+      44.822,
+      0.621
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "barrel": 3,
+     "kind": "launcher"
+    },
+    {
+     "turret": 6,
+     "tag": "tube 1",
+     "muzzle": [
+      38.075,
+      -44.822,
+      0.621
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "barrel": 1,
+     "kind": "launcher"
+    },
+    {
+     "turret": 6,
+     "tag": "tube 2",
+     "muzzle": [
+      38.075,
+      -43.0,
+      0.621
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "barrel": 2,
+     "kind": "launcher"
+    },
+    {
+     "turret": 6,
+     "tag": "tube 3",
+     "muzzle": [
+      38.075,
+      -41.178,
+      0.621
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "barrel": 3,
+     "kind": "launcher"
+    }
+   ],
+   "lamps": [
+    {
+     "name": "Light port wing tip 1 lens",
+     "role": "running-port",
+     "at": [
+      23.0,
+      77.892,
+      -5.04
+     ]
+    },
+    {
+     "name": "Light starboard wing tip 1 lens",
+     "role": "running-starboard",
+     "at": [
+      23.0,
+      -77.892,
+      -5.04
+     ]
+    },
+    {
+     "name": "Light centre stern 1 lens",
+     "role": "masthead",
+     "at": [
+      -48.0,
+      0.0,
+      13.564
+     ]
+    },
+    {
+     "name": "Light centre prow 1 lens",
+     "role": "beacon",
+     "at": [
+      83.0,
+      0.0,
+      -7.642
+     ]
+    },
+    {
+     "name": "Bridge mast beacon 1",
+     "role": "beacon",
+     "at": [
+      -18.6,
+      0.0,
+      27.07
+     ]
+    },
+    {
+     "name": "Bridge mast beacon 2",
+     "role": "beacon",
+     "at": [
+      -15.5,
+      -5.0,
+      29.385
+     ]
+    }
+   ],
+   "sparks": [],
+   "bounds": [
+    [
+     -66.3,
+     -80.42,
+     -29.38
+    ],
+    [
+     88.41,
+     80.42,
+     29.72
+    ]
+   ]
+  },
+  "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md): thr_throttle and thr_throttle_e1..e5 for the drives, gun_ and lit_ knobs for the guns and lamps",
+  "groups": {
+   "thrusters": {
+    "engines": 5,
+    "rcs": 0,
+    "note": "RCS quad positions are art placement, not canon.",
+    "invalid_drivers": 0
+   },
+   "smoke": {
+    "state": "clean",
+    "haze": 5,
+    "seal_wisps": 0,
+    "welds": 0,
+    "sparks": 0
+   },
+   "guns": {
+    "state": "clean",
+    "guns": 5,
+    "shots": 0,
+    "built": true,
+    "launchers": 6
+   },
+   "lighting": {
+    "ship": 4
+   }
+  },
+  "append": "load both 'MANTICORE (P)' and 'SWFX' in one call; the ship alone works without it"
+ },
+ "source_commit": "056e05c26493719aefe6f22c001d25451c88d5fc",
+ "sources": {
+  "blend": "manticore-surface/build/skinned.blend",
+  "geometry_json_sha256": "bc55cf6b7ac869b82b3b9176c32a328b6a74b94d6aad7668116b53e120a24f53",
+  "surface_wear_sha256": "ab7d1a4567d93f3612a022166a6214c350fea83679a651ae37b6911714278699",
+  "surface_palette_sha256": "ef6efd50d147d555f821be55ec7f73759f123fe4a0c5f4e023e3904d4685faf4"
+ },
+ "conventions": {
+  "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only.",
+  "anchors": "Local +X is the effect axis (exhaust aft; line of fire; out of the tube); +Z as near hull-dorsal as that allows.",
+  "turrets": "Rotate 'Weapon WS 00x pivot' about its local Z (hull +Z) to train, within arc_deg about the rest angle (the slot angle, the saved pose); 'Weapon WS 00x elevation' lifts the gun about its local Y (negative lifts). Turrets 1-4 train; the Harpoon pods (5, 6) are fixed hardpoints.",
+  "engines": "Engines 1-3 are the main drives (port, centre, starboard), 4/5 the outer drives (port, starboard); with the effects collection each has its own throttle, thr_throttle_e<i>.",
+  "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
+ },
+ "asset_path": "manticore-cinematic/build/export/manticore-p.blend",
+ "asset_sha256": "f6e00401c82753056472a56eb1fb3bf8096883b3a2994e21821310fc915ad4ec"
+}

@@ -111,6 +111,32 @@ class Site:
         return iter((self.p, self.n, self.u, self.v, self.ob))
 
 
+BEND_STEP = 7.0   # degrees: a tube's path turns no more than this between rings
+
+
+def bend(path):
+    """A tube path with every bend rounded (Catmull-Rom through the given points),
+    so a cable or pipe turns through rings no more than BEND_STEP apart, as the
+    segment rule asks of any round, instead of kinking at each point."""
+    pts = [V(p) for p in path]
+    if len(pts) < 3:
+        return pts
+    out = [pts[0]]
+    for i in range(len(pts)-1):
+        p0, p1, p2 = pts[max(i-1, 0)], pts[i], pts[i+1]
+        p3 = pts[min(i+2, len(pts)-1)]
+        turn = 0.0
+        for a, b, c in ((p0, p1, p2), (p1, p2, p3)):
+            u, w = b-a, c-b
+            if u.length > 1e-6 and w.length > 1e-6:
+                turn = max(turn, math.degrees(u.angle(w)))
+        k = max(1, math.ceil(turn/BEND_STEP))
+        for j in range(1, k+1):
+            t = j/k
+            out.append(.5*((2*p1)+(-p0+p2)*t+(2*p0-5*p1+4*p2-p3)*t*t+(-p0+3*p1-3*p2+p3)*t*t*t))
+    return out
+
+
 class Geo:
     """World-space polygon soup gathered for one object."""
     def __init__(self):
@@ -143,7 +169,8 @@ class Geo:
         self.obox((a+b)/2, ax, side, ax.cross(side).normalized(), (b-a).length/2, w/2, h/2)
 
     def tube(self, path, r, sides=8):
-        path = [V(p) for p in path]
+        sides = sw_kit.sides(r, sides)      # the shared segment rule, round and along its bends
+        path = bend(path)
         rings = []
         for i,p in enumerate(path):
             t = (path[min(i+1,len(path)-1)]-path[max(i-1,0)]).normalized()
@@ -152,6 +179,8 @@ class Geo:
         self.loft(rings)
 
     def disc(self, c, axis, r, depth, sides=12):
+        if sides != 6:
+            sides = sw_kit.sides(r, sides)
         c, axis = V(c), V(axis).normalized()
         u, v = basis(axis)
         ring = [c+(u*math.cos(TAU*(k+.5)/sides)+v*math.sin(TAU*(k+.5)/sides))*r for k in range(sides)]

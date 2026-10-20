@@ -71,9 +71,10 @@ Reading of the sprite
 - Drive pods: whole drive units, not nozzles in the hull. Each is a domed
   intake cap, a forward casing, an orange armour collar (the widest band,
   with the dorsal vent ring the sprite shows), an aft casing with a
-  reinforcing band, a thrust housing and one twelve-sided engine can. The
+  reinforcing band, a thrust housing and one round engine can. The
   bell is sunk into the can's aft face. Seams open onto a dark core.
-- Bridge capsule (port bow): a twelve-sided capsule with a cream glazed nose
+- Bridge capsule (port bow): a round capsule (twelve-sided until the detail
+  rule pass) with a cream glazed nose
   (the lit lamps) inside an elliptical crash cage. The cage is four ring
   frames at the sprite's proud rows and five fore-aft bars.
 - Gun fork (starboard bow): the H around WS 001. A base, two tines with twin
@@ -165,6 +166,25 @@ freighter")
   on the bridge walkway for review renders; --ramp-open DEG lowers the ramp.
   Neither is saved in the committed .blend.
 - IoU unchanged at 0.942: nothing new leaves the existing plan outline.
+
+Detail rule (close-shot pass, 2026-10-20)
+The hull meets ship-detail-guide.md at a close view. check_detail (turrets
+and SWFX excluded, against hound_lights.png) on the Hound (A) export went
+faceted 81 -> 0, unbevelled 1.70 -> 0.83 m per 100 m2, emissive off the
+lights layer 11 -> 0 (Hound (P): 91 -> 2, 1.64 -> 0.84, 11 -> 0). Every round
+the hull builds (hd_kit.Kit.cylinder, the engines' pegs, rings and bells, the
+bridge capsule, its panels and cage rings) takes at least the segment rule's
+count (hd_kit.sides; hex heads up to 0.15 m keep six) and is smooth-shaded
+with sharp caps; the capsule is round, its panels on 5-degree stations. Own
+chamfers are angle-limited at 50 degrees so a designed 45-degree chamfer stays
+one facet; every part without one gets the guide's tiered bevel
+(hd_kit.edge_treatment, edges over 70 degrees). The bridge glazing, mast yard
+lamps and ramp work lights are not on the lights layer and are now dark
+(material 'Wheelhouse glazing', glass class in hound-surface); the lit lenses
+are the capsule's, the deckhouse's three amber lamps and the pod heat vents.
+Kept: two pirate slabs' torch-cut corners (starboard deck 3, starboard pod 1),
+which read to the check as 1.3-1.5 m rounds. Names, anchors and the plan
+outline are unchanged (plan IoU 0.9372 -> 0.9371); tris 77k -> 140k.
 
 Silhouette check
 compose_review.py lays the sprite into the top camera frame and compares
