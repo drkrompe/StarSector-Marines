@@ -135,9 +135,21 @@ need a 3.0-unit drum, because their arcs swing the gun across the spine and
 its ridge; the bow mount (WS 007) clears at 1.0 on its ring. geometry.json
 records seat, lift, foot and the sweep for each. Train: rotate `Turret <i>
 pivot` about its local Z. Elevate: rotate `Turret <i> elevation` about its
-local Y (negative lifts). The gun's recoil slide is `Turret <i> recoil 1`.
-The hardpoints keep this package's own placeholder guns: the kit has no
-light assault gun or heatseeker rack yet.
+local Y (negative lifts; -2 to 60 degrees). The gun's recoil slide is
+`Turret <i> recoil 1`. The kit's light machine gun is an open pedestal mount:
+turntable, yoke, trunnions, gun shield, recoil sleeve.
+
+The hardpoints are the kit's too (tk.build_hardpoint, lasher_Standard): the
+light assault gun in each gun pod (WS 002 / WS 003) and the heatseeker
+autoloader in each missile pod (WS 001 / WS 004), each on `Weapon <id>
+mount` and sunk in a bay ls_mounts cuts out of its pod and the pod's fork
+(cut faces keep the part's own finish; the bay leaves at least 0.5 units of
+pod wall). The LAG's housing runs from the pod's back wall to the fork with
+its drums proud of the deck; its barrel recoils on `Weapon <id> recoil 1`.
+The autoloader's magazine sits at the pod's back wall and its rails run out
+past the fork to the fire point, as the game sprite draws them; its loaded
+round is `Weapon <id> missile 1`. geometry.json records each mount, bay and
+the parts it cut.
 
 Stable object names
   Hull ...                       structure, glazing, vents, seams
@@ -209,6 +221,9 @@ alpha masks: IoU 0.950 after the detail pass (0.6% of the sprite uncovered,
 4.6% model outside it, mostly the hardpoint barrels and running lights the
 hull sprite does not draw, chamfer overhang at the pod corners, and the
 pod bridge frames and aft fairings at the pods' edges); 0.953 before it.
+With the kit hardpoints 0.894 (11.1% outside): the launch rails and LAG
+barrels reach past the pods, where the game draws its hardpoint sprites over
+empty space; the hull itself is unchanged (0.62% of the sprite uncovered).
 
 Shot check (C1 v2)
 c1_core's camera (50 mm on a 36 mm sensor) at 1920x1080 under its sun
