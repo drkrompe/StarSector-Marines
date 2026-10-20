@@ -8,7 +8,8 @@ every hardpoint mesh this tests whether it lies inside another solid of the ship
 odd number of crossings along a ray) deeper than --tol units below that solid's
 surface. Touching the bay it is sunk in is not a clash; passing through a pod wall,
 a frame, the neck or another weapon is. Prints one line per mount and exits non-zero
-when anything clips, so a hull's build can call it. The turrets have their own arc
+when anything clips; a hull build imports it and calls clashes() after its bake (build_lasher.py
+fails on any clip). The turrets have their own arc
 sweep (each hull's mounts module); this is the same guarantee for fixed mounts.
 """
 import argparse
@@ -17,13 +18,6 @@ import sys
 import bpy
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
-
-argv = sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else []
-ap = argparse.ArgumentParser()
-ap.add_argument('--tol', type=float, default=.15)
-ap.add_argument('--json', default='')
-args = ap.parse_args(argv)
-
 
 def clashes(tol=.15, scene=None):
     """{mount name: [(other object, deepest vertex depth, vertices inside), ...]}."""
@@ -59,7 +53,7 @@ def clashes(tol=.15, scene=None):
         for name, (slo, shi, t) in solids.items():
             if any(shi[i] < lo[i] or slo[i] > hi[i] for i in range(3)):
                 continue
-            found, deep = 0, 0.0
+            found, deep, at = 0, 0.0, None
             for p in pts:
                 if any(p[i] < slo[i] or p[i] > shi[i] for i in range(3)):
                     continue
@@ -78,20 +72,26 @@ def clashes(tol=.15, scene=None):
                         break
                 if c % 2:
                     found += 1
-                    deep = max(deep, n[3])
+                    if n[3] > deep:
+                        deep, at = n[3], p
             if found:
-                hits.append((name, round(deep, 3), found))
+                hits.append((name, round(deep, 3), found, [round(v, 2) for v in at]))
         out[mname] = {'clips': sorted(hits, key=lambda h: -h[1]), 'bounds': [list(lo), list(hi)] if pts else None}
     return out
 
 
 if __name__ == '__main__':
+    argv = sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else []
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--tol', type=float, default=.15)
+    ap.add_argument('--json', default='')
+    args = ap.parse_args(argv)
     res = clashes(args.tol)
     bad = 0
     for m, r in res.items():
         if r['clips']:
             bad += 1
-            print(f'CLIP {m}: ' + ', '.join(f'{n} (depth {d}, {c} vertices)' for n, d, c in r['clips'][:8]))
+            print(f'CLIP {m}: ' + ', '.join(f'{n} (depth {d}, {c} vertices, deepest at {a})' for n, d, c, a in r['clips'][:8]))
         else:
             print(f'OK   {m}: clear of the hull (tolerance {args.tol})')
     if args.json:
