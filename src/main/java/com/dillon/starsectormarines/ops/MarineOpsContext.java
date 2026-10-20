@@ -449,7 +449,6 @@ public class MarineOpsContext {
         if (roster != null && roster.officerInductionRequired()) {
             switch (roster.officerInduction().step(roster)) {
                 case SHIP -> { goTo(ScreenId.SHIP_TRANSFER); return; }
-                case LIFT -> { goTo(shipReady() ? ScreenId.BOAT_DECK : ScreenId.COMPANY_HQ); return; }
                 default -> { }
             }
         }

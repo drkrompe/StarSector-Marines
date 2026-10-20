@@ -149,7 +149,11 @@ its drums proud of the deck; its barrel recoils on `Weapon <id> recoil 1`.
 The autoloader's magazine sits at the pod's back wall and its rails run out
 past the fork to the fire point, as the game sprite draws them; its loaded
 round is `Weapon <id> missile 1`. geometry.json records each mount, bay and
-the parts it cut.
+the parts it cut. No fixed mount may clip the hull (owner, 2026-10-20): where
+the pod wall beside a housing would be a skin the bay runs on out through it,
+the light assault guns' prongs and barrels lie in troughs cut along the bow
+head's flanks (TROUGH), and build_lasher.py runs the kit's check_hardpoints
+after the bake and fails on any hardpoint vertex inside another solid.
 
 Stable object names
   Hull ...                       structure, glazing, vents, seams
@@ -221,7 +225,7 @@ alpha masks: IoU 0.950 after the detail pass (0.6% of the sprite uncovered,
 4.6% model outside it, mostly the hardpoint barrels and running lights the
 hull sprite does not draw, chamfer overhang at the pod corners, and the
 pod bridge frames and aft fairings at the pods' edges); 0.953 before it.
-With the kit hardpoints 0.894 (11.1% outside): the launch rails and LAG
+With the kit hardpoints 0.892 (11.4% outside): the launch rails and LAG
 barrels reach past the pods, where the game draws its hardpoint sprites over
 empty space; the hull itself is unchanged (0.62% of the sprite uncovered).
 

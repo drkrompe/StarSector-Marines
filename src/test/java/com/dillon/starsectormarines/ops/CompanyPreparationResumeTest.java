@@ -74,56 +74,38 @@ class CompanyPreparationResumeTest {
             roster.setCompanyShip("starter", "Second Wind", 75);
             roster.boatDeck().registerFoundingWrecks("starter");
             roster.boatDeck().reconcile("starter", ShuttleType.HERMES, 1);
-            assertCaptured(roster, ScreenId.BOAT_DECK);
-            var normal = new PreparationGuide.Lesson(1, "REPAIR OUR FIRST HERMES", "Confirm the work.", List.of(), null, null);
-            var stores = CampaignFabricationResources.forBoats();
+            // The company rides up to Relief on Wayline's truck: Sabine and her squad come straight after the ship.
+            assertCaptured(roster, ScreenId.BARRACKS);
+            var normal = new PreparationGuide.Lesson(1, "MUSTER OUR FIRST SQUAD", "Found the squad.", List.of(), null, null);
             Map<String, Integer> original = CerberusCompanyStart.depot().stock();
+            sabine = roster.officerInduction().officer(roster);
+            roster.officerInduction().introduce(sabine);
+            assertTrue(sabine.train(OfficerSpecialty.TACTICAL_COVER));
+            assertEquals(ScreenId.BARRACKS, CompanyPreparationRoute.resolve(ScreenId.FLEET_ARMORY, roster, false),
+                    "Squads are raised in Barracks, so the first formation resumes there");
+            assertEquals(ScreenId.BARRACKS, CompanyPreparationRoute.resolve(ScreenId.MISSION_SELECT, roster, false));
             assertSame(normal, CompanyPreparationGuide.withDepotAccess(roster, normal, () -> exits[0]++));
 
             // Close the planet dialog, then reopen from the planet-free company shortcut.
             ui.remove("getCurrentInteractionDialog");
             assertNull(CerberusCompanyStart.accessibleDepot());
             ui.put("getCurrentInteractionDialog", stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", fleet)));
-            assertEquals(0, stores.available("metals"));
-            assertFalse(new BoatWorkshop(roster.boatDeck(), stores).fabricate(0).succeeded());
-            assertEquals(original, CerberusCompanyStart.depot().stock());
             var recovery = CompanyPreparationGuide.withDepotAccess(roster, normal, () -> exits[0]++);
             assertEquals("RETURN TO DEPOT", recovery.actionLabel());
             assertTrue(recovery.copy().contains("Jangala"));
             assertEquals(List.of("page-nav-return"), recovery.targets());
             recovery.action().run();
             assertSame(planet, course[0]); assertEquals(1, exits[0]);
-            assertCaptured(roster, ScreenId.BOAT_DECK);
+            assertCaptured(roster, ScreenId.BARRACKS);
+            assertEquals(original, CerberusCompanyStart.depot().stock());
 
             // Reload before paying, then use a fresh planet dialog and a fresh resource adapter.
-            var bytes = new ByteArrayOutputStream();
-            try (var out = new ObjectOutputStream(bytes)) { out.writeObject(saved); out.writeObject(roster); }
-            saved.clear();
-            try (var in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
-                ((Map<?, ?>) in.readObject()).forEach((key, value) -> saved.put((String) key, value));
-                roster = (MarineRoster) in.readObject();
-            }
+            roster = reload(saved, roster);
             assertEquals(original, CerberusCompanyStart.depot().stock());
-            assertCaptured(roster, ScreenId.BOAT_DECK);
+            assertCaptured(roster, ScreenId.BARRACKS);
             ui.put("getCurrentInteractionDialog", stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", planet)));
             assertSame(normal, CompanyPreparationGuide.withDepotAccess(roster, normal, () -> exits[0]++));
-            var workshop = new BoatWorkshop(roster.boatDeck(), CampaignFabricationResources.forBoats());
-            assertTrue(workshop.fabricate(0).succeeded());
-            assertFalse(workshop.fabricate(0).succeeded());
-            assertEquals(1, roster.boatDeck().airworthy().size());
-            assertEquals(0, CerberusCompanyStart.depot().available("metals"));
-            assertEquals(36, CerberusCompanyStart.depot().available("supplies"));
-            assertCaptured(roster, ScreenId.BARRACKS);
             sabine = roster.officerInduction().officer(roster);
-            roster.officerInduction().introduce(sabine);
-            assertCaptured(roster, ScreenId.BARRACKS);
-            assertTrue(sabine.train(OfficerSpecialty.TACTICAL_COVER));
-            assertEquals(ScreenId.BARRACKS, CompanyPreparationRoute.resolve(ScreenId.FLEET_ARMORY, roster, false),
-                    "Squads are raised in Barracks, so the first formation resumes there");
-            assertEquals(ScreenId.BARRACKS, CompanyPreparationRoute.resolve(ScreenId.MISSION_SELECT, roster, false));
-            ui.remove("getCurrentInteractionDialog");
-            assertEquals("RETURN TO DEPOT", CompanyPreparationGuide.withDepotAccess(roster, normal, () -> {}).actionLabel());
-            ui.put("getCurrentInteractionDialog", dialog);
             var squad = new SquadFoundingWorkshop(roster, new CampaignSquadFoundingResources()).foundSquad().squad();
             assertNotNull(squad);
             assertCaptured(roster, ScreenId.BARRACKS);
@@ -131,6 +113,26 @@ class CompanyPreparationResumeTest {
             assertCaptured(roster, ScreenId.BARRACKS);
             assertTrue(roster.officerInduction().finish(roster));
             for (ScreenId id : ScreenId.values()) assertEquals(id, CompanyPreparationRoute.resolve(id, roster, false));
+            assertTrue(roster.boatDeck().airworthy().isEmpty(), "Relief launches without a boat");
+            assertTrue(CerberusCompanyStart.depot().available("metals") > 0, "The Hermes parts stay prepaid");
+
+            // After Relief, the first-lift lesson draws them, and leaving the planet still sends us back for them.
+            roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
+            assertTrue(CampaignLessons.firstLiftPending(roster));
+            var lift = new PreparationGuide.Lesson(1, "REPAIR OUR FIRST HERMES", "Confirm the work.", List.of(), null, null);
+            ui.put("getCurrentInteractionDialog", stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", fleet)));
+            var away = CompanyPreparationGuide.withDepotAccess(roster, lift, () -> exits[0]++);
+            assertEquals("RETURN TO DEPOT", away.actionLabel());
+            assertTrue(away.copy().contains("Hermes") && away.copy().contains("Jangala"), away.copy());
+            assertFalse(new BoatWorkshop(roster.boatDeck(), CampaignFabricationResources.forBoats()).fabricate(0).succeeded());
+            roster = reload(saved, roster);
+            ui.put("getCurrentInteractionDialog", dialog);
+            assertSame(lift, CompanyPreparationGuide.withDepotAccess(roster, lift, () -> exits[0]++));
+            var workshop = new BoatWorkshop(roster.boatDeck(), CampaignFabricationResources.forBoats());
+            assertTrue(workshop.fabricate(0).succeeded());
+            assertFalse(workshop.fabricate(0).succeeded());
+            assertEquals(1, roster.boatDeck().airworthy().size());
+            assertFalse(CampaignLessons.firstLiftPending(roster));
             assertTrue(CerberusCompanyStart.depot().stock().values().stream().allMatch(n -> n == 0));
         } finally { Global.setSector(previous); }
     }
@@ -141,6 +143,17 @@ class CompanyPreparationResumeTest {
         var sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0);
         roster.add(sabine); roster.beginOfficerInduction(sabine);
         for (ScreenId id : ScreenId.values()) assertEquals(id, CompanyPreparationRoute.resolve(id, roster, false));
+    }
+
+    /** Saves and restores the sector's persistent data and the roster together, as a game reload does. */
+    private static MarineRoster reload(Map<String, Object> saved, MarineRoster roster) throws Exception {
+        var bytes = new ByteArrayOutputStream();
+        try (var out = new ObjectOutputStream(bytes)) { out.writeObject(saved); out.writeObject(roster); }
+        saved.clear();
+        try (var in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
+            ((Map<?, ?>) in.readObject()).forEach((key, value) -> saved.put((String) key, value));
+            return (MarineRoster) in.readObject();
+        }
     }
 
     private static void assertCaptured(MarineRoster roster, ScreenId expected) {

@@ -429,7 +429,12 @@ Indirect mounts stay untriggered. Every mount keeps one clock and resource strea
 heavy-weapon pass; manual control neither advances it twice nor applies an
 infantry training multiplier to Mech accuracy. The live cursor owns torso aim
 and each scheduled round of a manual Mech burst. A round still requires the
-actual torso and muzzle to align legally; a refused release consumes its
+torso to align legally with the point, judged from the chassis centre; each
+barrel then fires from its own muzzle at the point, so paired and shoulder
+barrels converge rather than each needing the point inside its own alignment
+cone, which an offset muzzle loses at close range. A point nearer the centre
+than one and a half hull widths is pushed out along its bearing to that
+distance, so no barrel fires beside or behind itself. A refused release consumes its
 scheduled slot without emitting a shot or refunding the accepted trigger pack.
 A blocked or unaimed mount cannot retain a backlog or steer the torso. Entry,
 exit, and input suspension cancel queued rounds and aim while preserving
@@ -437,10 +442,11 @@ ammunition, mechanical cycle clocks, shared chassis flux, and replenishment prog
 
 AI and manual Mech direct rounds originate at the installed barrel's actual
 posed muzzle. The body-to-barrel structural segment must also be clear, so a
-barrel protruding beyond a wall cannot launch a round through it. Direct area
-payloads detonate only at their committed physical terminal contact; the cursor
-and an unobstructed overshoot produce no blast. Direct SRMs retain their ordinary
-interception opportunity and delayed impact.
+barrel protruding beyond a wall cannot launch a round through it. A manually
+thrown rocket ground-bursts at the scattered aim point, which may lie past
+nominal range at a growing scatter cost; gun area payloads detonate only at their
+committed physical terminal contact (`ballistics-nouns.md` owns both rules).
+Direct SRMs retain their ordinary interception opportunity and delayed impact.
 
 The APC's independent turret slews toward the mouse bearing at its authored
 traverse rate. The held primary trigger uses the existing magazine, cooldown,
