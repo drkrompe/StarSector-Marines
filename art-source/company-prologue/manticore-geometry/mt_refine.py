@@ -148,6 +148,8 @@ SEAMS = [  # (name, plan points): port side, mirrored; the forms' plate breaks
     ('wing armour root', [(3.5, 22.0), (12.5, 31.2)]), ('pod collar', [(11.3, 69.0), (11.3, 76.0)]),
     ('beak strake 1', [(55.0, 12.5), (55.0, 19.5)]), ('beak strake 2', [(70.0, 8.5), (70.0, 21.5)]),
 ]
+WELDS = {'core shoulder 1', 'core shoulder 2', 'core shoulder 3', 'glacis 1', 'glacis 2', 'wing armour',
+         'wing armour root', 'pod collar', 'beak strake 1', 'beak strake 2'}
 PATCHES = [  # (x, y, w, h, deg): placed unevenly, as a pirate yard would weld them
     (24.0, 29.5, 3.5, 2.8, 15), (20.5, -53.0, 2.4, 2.0, -10), (18.5, 51.0, 2.4, 2.2, 5), (11.0, -31.0, 3.0, 2.4, 20),
     (8.3, -73.0, 3.0, 2.0, 0), (62.0, 14.0, 3.4, 2.4, -15), (-54.0, -12.0, 3.5, 2.4, 10), (52.0, -11.0, 2.6, 2.0, 0),
@@ -161,7 +163,10 @@ def hull_detail(kit, beacon):
             pts2 = []
             for a, b in zip(pts, pts[1:]):
                 pts2 += line((a[0], s*a[1]), (b[0], s*b[1]))
-            ribbon(kit, f'Hull seam {side} {name}', pts2, .22, RIM, kit.dark)
+            if name in WELDS:   # round 15: on the plated armour the break is real; a weld bead runs in it
+                ribbon(kit, f'Hull weld {side} {name}', pts2, .2, .34, kit.steel)
+            else:
+                ribbon(kit, f'Hull seam {side} {name}', pts2, .22, RIM, kit.dark)
     for k, (x, y, w, h, ang) in enumerate(PATCHES, 1):
         patch(kit, f'Hull patch plate {k}', x, y, w, h, ang, kit.red, kit.steel)
     # Crew doors on the core's flanks, opening into the wing framework, each with a landing.
@@ -169,13 +174,13 @@ def hull_detail(kit, beacon):
     for s, side in ((1, 'port'), (-1, 'starboard')):
         for k, x in enumerate((-6.0, -13.0), 1):
             z0 = 2.5
-            kit.box(f'Hull core {side} crew door {k}', (x, s*24.95, z0+dh/2), (dw, .3, dh), kit.dark, 0)
-            fy = s*25.12
+            kit.box(f'Hull core {side} crew door {k}', (x, s*25.25, z0+dh/2), (dw, .3, dh), kit.dark, 0)
+            fy = s*25.42
             frame = [((x-dw/2-.15, fy, z0), (x-dw/2-.15, fy, z0+dh+.15), .15, .12),
                      ((x+dw/2+.15, fy, z0), (x+dw/2+.15, fy, z0+dh+.15), .15, .12),
                      ((x-dw/2-.15, fy, z0+dh+.15), (x+dw/2+.15, fy, z0+dh+.15), .15, .12)]
             struts(kit, f'Hull core {side} crew door {k} frame', frame, kit.steel)
-            kit.box(f'Hull core {side} crew door {k} landing', (x, s*26.4, z0-.12), (dw+1.2, 2.8, .24), kit.steel, .03)
+            kit.box(f'Hull core {side} crew door {k} landing', (x, s*26.7, z0-.12), (dw+1.2, 2.8, .24), kit.steel, .03)
     # Deck hatches on the forward deck and the aft deck.
     r = HATCH_M*u/2
     for k, (x, y) in enumerate(((40.0, 7.0), (40.0, -7.0), (-54.0, 0.0)), 1):
