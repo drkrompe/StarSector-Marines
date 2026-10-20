@@ -41,6 +41,24 @@ Colossus (108 m). The battle roster's plan-area estimate was 96 m. A 1.8 m perso
 drifts more than 2% from ship_scale.HULLS. Viewports (1.0 x 0.8 m) and the
 dome's glazed band (1.1 m) are sized in true metres.
 
+Owner review round 13 (2026-10-20)
+"Manti-core looks good. Let's continue with refined detail across the hull
+and command deck." Round 12's forms are accepted; mt_refine.py lays detail
+on them, seated by ray-casts and sized in true metres. Command deck: mullions
+and a sill on the glazing band, an aft mast with a radar bar, yards, whips
+and red beacons on both masts, two comms dishes, two 1.2 m roof hatches aft
+of the dome, walkways either side of it with 1.1 m rails on a 1.5 m pitch,
+and an aft rail. Hull: plate seams along the forms (core shoulders and aft
+deck, glacis bands, wing armour, pod collars, beak strakes); eight pirate
+patch plates with weld beads, placed unevenly; 1 x 2 m crew doors on the
+core's flanks into the wing framework, with landings; three deck hatches;
+RCS quads at the bow, the nacelles and the engine block; finned heat
+exchangers on the engine block's shoulders; transfer pipes from each wing
+tank into its shoulder machinery bay. Fixed: the trailing spar's alternating
+closed panels read as windows; its outer face is now one continuous lower
+web. Outline IoU 0.924 with the gaps filled; mounts and seats unchanged;
+0.59 m/u owner override.
+
 Owner review round 12 (2026-10-20)
 "Next less AND thicker framing though - light interspaced plating and
 machinery / tubing. Also the armor should wrap a bit further back, the outline
