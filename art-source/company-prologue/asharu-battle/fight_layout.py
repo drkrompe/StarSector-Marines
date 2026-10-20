@@ -557,11 +557,73 @@ def ui_mock(kf='k1', speaker='COLOSSUS', rows=('Convoy, Colossus. Window opens i
     return out
 
 
+CHANNELS = ('COLOSSUS', 'ESCORT LEAD', 'MORROW', 'PHAETON', 'TARSUS', 'MULE', 'REAR ESCORT')
+
+
+def recording_mock():
+    """S0: the recording screen the cinematic opens on, audio only. A storytelling device, not an
+    object in the plot: no source line, just where, when, and who is on the channel."""
+    import random
+    from PIL import ImageFont
+    F = fonts()
+    im = Image.new('RGB', (W, H), (4, 5, 8))
+    dr = ImageDraw.Draw(im, 'RGBA')
+    try:
+        big = ImageFont.truetype(str(ORBITRON), 64)
+        big.set_variation_by_axes([700])
+        mid = ImageFont.truetype(str(ORBITRON), 22)
+        mid.set_variation_by_axes([600])
+        small = ImageFont.truetype(str(ORBITRON), 17)
+        small.set_variation_by_axes([500])
+    except (OSError, ValueError):
+        big, mid, small = F['title'], F['head'], F['text']
+    blue, text, dim = (170, 222, 255), (238, 242, 246), (90, 100, 115)
+    x0 = 300
+    dr.text((x0, 250), 'ASHARU', font=big, fill=text)
+    dr.text((x0 + dr.textlength('ASHARU', font=big) + 24, 282), 'CORVUS  /  LOW ORBIT', font=mid, fill=blue)
+    dr.text((x0, 340), 'c203.05.14   06:41:12', font=mid, fill=(200, 205, 210))
+    dr.text((x0 + 330, 344), '(the arrival date minus three cycles, computed in play)', font=F['small'], fill=dim)
+    # channels: one row per voice, the speaking one lit
+    for j, ch in enumerate(CHANNELS):
+        y = 430 + j * 38
+        live = ch == 'COLOSSUS'
+        dr.ellipse((x0, y + 5, x0 + 12, y + 17), fill=(120, 230, 150) if live else (40, 46, 56))
+        dr.text((x0 + 28, y), ch, font=small, fill=text if live else dim)
+    # the waveform of the speaking channel
+    rnd = random.Random(7)
+    wx0, wx1, wy = x0 + 300, W - 300, 560
+    pts = []
+    for i in range(wx1 - wx0):
+        env = math.sin(math.pi * i / (wx1 - wx0)) ** .6
+        pts.append((wx0 + i, wy + rnd.gauss(0, 1) * 60 * env * (.4 + .6 * abs(math.sin(i / 23)))))
+    dr.line(pts, fill=(120, 230, 150, 200), width=2)
+    dr.line((wx0, wy, wx1, wy), fill=(60, 70, 80), width=1)
+    # caption: the same tag and row the picture uses
+    row_f = review_font(30)
+    try:
+        tag_f = ImageFont.truetype(str(ORBITRON), 17)
+        tag_f.set_variation_by_axes([700])
+    except (OSError, ValueError):
+        tag_f = F['head']
+    tw = dr.textlength('COLOSSUS', font=tag_f)
+    dr.text((W / 2 - tw / 2, 912 - 20), 'COLOSSUS', font=tag_f, fill=blue)
+    row = 'Convoy, Colossus. Window opens in forty.'
+    dr.text((W / 2 - dr.textlength(row, font=row_f) / 2, 942 - 26), row, font=row_f, fill=text)
+    dr.text((24, 16), 'S0 mock: the recording the cinematic opens on (audio only, before any picture)',
+            font=F['head'], fill=(170, 170, 180))
+    dr.text((24, 44), 'A storytelling device, not an object in the story. The date is a placeholder; '
+            'the player computes the real one.', font=F['small'], fill=(150, 150, 160))
+    out = OUT / '89-recording-mock-s0.png'
+    im.save(out)
+    return out
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     outs = [overview()]
     for n, kf in enumerate((k for k in bb.KEYFRAMES if bb.KEYFRAMES[k]['ships']), start=1):
         outs.append(sheet(kf, n))
+    outs.append(recording_mock())
     outs.append(ui_mock())
     print('\n'.join(str(o) for o in outs))
 
