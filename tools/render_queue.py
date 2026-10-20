@@ -1363,8 +1363,37 @@ def single_instance(local: Path):
     return f
 
 
+def in_job_object() -> bool:
+    import ctypes
+    k32 = ctypes.windll.kernel32
+    k32.GetCurrentProcess.restype = ctypes.c_void_p
+    result = ctypes.c_int(0)
+    k32.IsProcessInJob(ctypes.c_void_p(k32.GetCurrentProcess()), None, ctypes.byref(result))
+    return bool(result.value)
+
+
+def spawn_outside_job(argv, cwd) -> None:
+    """Start a process through WMI, which creates it outside the caller's job
+    object. Task Scheduler runs its task in a job object and ends that object
+    when the task is stopped, taking every process in it along."""
+    cmdline = " ".join(f'"{a}"' if " " in str(a) or "\\" in str(a) else str(a) for a in argv)
+    ps = ("$r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments "
+          f"@{{CommandLine='{cmdline}'; CurrentDirectory='{cwd}'}}; "
+          "if ($r.ReturnValue -ne 0) { exit $r.ReturnValue }; $r.ProcessId")
+    r = run(["powershell", "-NoProfile", "-Command", ps], check=False, timeout=60)
+    if r.returncode != 0:
+        raise RuntimeError(f"Win32_Process.Create failed: {r.stdout.strip()[:300]}")
+
+
 def cmd_runner(args) -> int:
     allow_dataless_reads()
+    if IS_WINDOWS and not args.detached and in_job_object():
+        # Started by Task Scheduler: move out of its job object first, so that
+        # neither ending the task nor restarting the runner can reach a job.
+        script = local_root() / "render_queue.py"
+        spawn_outside_job([python_gui(), script if script.exists() else Path(__file__).resolve(),
+                           "runner", "--detached"], local_root())
+        return 0
     lock = single_instance(local_root())
     if lock is None:
         print("a runner is already running on this machine")
@@ -1434,6 +1463,14 @@ def cmd_install(args) -> int:
     if args.no_service:
         return 0
     if IS_WINDOWS:
+        task = run(["schtasks", "/Query", "/TN", TASK_NAME], check=False)
+        if task.returncode == 0:
+            # Restart only the runner process, outside any job object; never end
+            # the task, which would end its job object and any job inside it.
+            stop_runner_processes()
+            spawn_outside_job([python_gui(), local / "render_queue.py", "runner", "--detached"], local)
+            print("runner restarted outside the scheduled task's job object")
+            return 0
         pyw = python_gui()
         ps = (
             f"$a = New-ScheduledTaskAction -Execute '{pyw}' -Argument '\"{local / 'render_queue.py'}\" runner' "
@@ -1444,7 +1481,6 @@ def cmd_install(args) -> int:
             "-RestartInterval (New-TimeSpan -Minutes 5);"
             f"Register-ScheduledTask -TaskName '{TASK_NAME}' -Action $a -Trigger $t -Settings $s "
             "-Description 'Starsector Marines render queue runner (tools/render_queue.py)' -Force | Out-Null;"
-            f"Stop-ScheduledTask -TaskName '{TASK_NAME}' -ErrorAction SilentlyContinue;"
             f"Start-ScheduledTask -TaskName '{TASK_NAME}'"
         )
         r = run(["powershell", "-NoProfile", "-Command", ps], check=False)
@@ -1457,8 +1493,7 @@ def cmd_install(args) -> int:
         # not survive a reboot. Running jobs survive the runner's restart.
         uid = os.getuid()
         run(["launchctl", "bootout", f"gui/{uid}/{PLIST_LABEL}"], check=False)
-        run(["pkill", "-f", "render-queue/render_queue.py runner"], check=False)
-        time.sleep(2)
+        stop_runner_processes()
         run(["/bin/zsh", "-c", f"nohup /usr/bin/python3 '{local / 'render_queue.py'}' runner "
                                f">> '{local / 'runner.out'}' 2>&1 &!"])
         print("runner started under nohup; after a reboot run install again from ssh or Terminal")
@@ -1471,9 +1506,8 @@ def cmd_install(args) -> int:
         interp = Path(os.path.realpath(sys.executable))
     print(f"LaunchAgent runs {interp}; it needs Full Disk Access "
           "(System Settings > Privacy & Security > Full Disk Access)")
-    run(["pkill", "-f", "render-queue/render_queue.py runner"], check=False)
     plist = Path.home() / "Library/LaunchAgents" / f"{PLIST_LABEL}.plist"
-    plist.write_text(f"""<?xml version="1.0" encoding="UTF-8"?>
+    text = f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
   <key>Label</key><string>{PLIST_LABEL}</string>
@@ -1486,12 +1520,37 @@ def cmd_install(args) -> int:
   <key>StandardOutPath</key><string>{local / 'runner.out'}</string>
   <key>StandardErrorPath</key><string>{local / 'runner.out'}</string>
 </dict></plist>
-""", encoding="utf-8")
+"""
+    loaded = run(["launchctl", "print", f"gui/{os.getuid()}/{PLIST_LABEL}"], check=False).returncode == 0
+    if loaded and plist.exists() and plist.read_text(encoding="utf-8") == text:
+        # Same agent: stop only the runner and let KeepAlive start the new script.
+        # Jobs run in their own sessions and are adopted by the new runner.
+        stop_runner_processes()
+        print(f"runner restarted by launch agent {PLIST_LABEL}")
+        return 0
+    stop_runner_processes()
+    plist.write_text(text, encoding="utf-8")
     uid = os.getuid()
     run(["launchctl", "bootout", f"gui/{uid}/{PLIST_LABEL}"], check=False)
     r = run(["launchctl", "bootstrap", f"gui/{uid}", str(plist)], check=False)
     print(r.stdout.strip() or f"launch agent {PLIST_LABEL} loaded")
     return r.returncode
+
+
+def stop_runner_processes() -> None:
+    """Stop the runner loop on this machine, and nothing else: never a job's
+    wrapper or its process tree."""
+    me = os.getpid()
+    for pid, _, _, cmd in process_table():
+        if pid != me and "render_queue.py" in cmd and re.search(r"render_queue\.py\"?\s+runner(\s|$)", cmd):
+            if IS_WINDOWS:
+                run(["taskkill", "/F", "/PID", str(pid)], check=False)
+            else:
+                try:
+                    os.kill(pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
+    time.sleep(2)
 
 
 def default_blender() -> str:
@@ -1540,6 +1599,7 @@ def main(argv=None) -> int:
     s.add_argument("--no-service", action="store_true", help="copy files only")
     s.set_defaults(fn=cmd_install)
     s = sub.add_parser("runner")
+    s.add_argument("--detached", action="store_true", help=argparse.SUPPRESS)
     s.set_defaults(fn=cmd_runner)
     s = sub.add_parser("wrap")
     s.add_argument("run_dir")
