@@ -96,8 +96,8 @@ adds parts only (no base part is renamed or moved):
   cheek and rake panels on the nose, side panels and ribs on the pods,
   shoulder panels, cooling fins, an aft grille and a belt on the nacelles,
   hatches with dark rims, vent grilles, drive bezels round the nacelle
-  bells and a collar where the main bell leaves the spine; a roof hatch and
-  sight hood on each gunhouse (trained with it).
+  bells and a collar where the main bell leaves the spine.
+Owner accepted the detail pass on 2026-10-20 ("This works").
 Every part is seated by ray-casts against the frozen hull (ls_detail.Field),
 none joins kit.hull (so the barbettes and lamps seat as before), and none is
 an enclosed volume, so the scale is unchanged. It also fixed a pass-2 fault
@@ -118,8 +118,26 @@ Slots (verified against the installed lasher.ship on every build)
   WS 009  HIDDEN     SMALL  SYSTEM     (-15, -29) 200    60    anchor only
 Engines, LOW_TECH, angle 180, Z 0: Engine 1 (-34, 0) width 16 (main),
 Engines 2-5 at (-28, 14), (-26, 19), (-28, -13), (-26, -18) width 8.
-Turrets rest at their slot angles; the build fails if a rested barrel
-overlaps the hull (BVH).
+Turrets rest at their slot angles; the build fails if a turret meets anything
+anywhere across its arc (below).
+
+Turrets (the shared turret kit, owner 2026-10-20)
+"Not using approved kit turrets": the three turrets are the turret kit's
+(../turret-kit/turret_kit.py), armed as lasher_Standard.variant, the stock
+fit: a light machine gun (lightmg) on each of WS 005, WS 006 and WS 007.
+Each stands on a kit barbette (ring 4.6 units, the sprite's turret ring)
+seated on the highest hull under its ring, its foot run down to the lowest
+surface under it, inside the detail pass's armour collar. ls_mounts lifts a
+barbette in 0.4-unit steps until the trained turret meets nothing across its
+whole 270-degree arc (25 angles, BVH against every other part within reach)
+and fails the build if no lift clears it. The waist pair (WS 005 / WS 006)
+need a 3.0-unit drum, because their arcs swing the gun across the spine and
+its ridge; the bow mount (WS 007) clears at 1.0 on its ring. geometry.json
+records seat, lift, foot and the sweep for each. Train: rotate `Turret <i>
+pivot` about its local Z. Elevate: rotate `Turret <i> elevation` about its
+local Y (negative lifts). The gun's recoil slide is `Turret <i> recoil 1`.
+The hardpoints keep this package's own placeholder guns: the kit has no
+light assault gun or heatseeker rack yet.
 
 Stable object names
   Hull ...                       structure, glazing, vents, seams
@@ -127,11 +145,14 @@ Stable object names
   Engine <i> drive can / aft-facing bell / mouth lip / dark throat
   Engine <i> exhaust anchor      empty at the slot (bell mouth), +X down the exhaust
   Engine <i> drive glow anchor   empty at the throat, +X aft, for drive glow
-  Turret <i> barbette, traverse gap      fixed
+  Turret <i> barbette             fixed (kit barbette; '... plinth' when deep)
   Turret <i> pivot               empty; turn about hull +Z to train; custom
-                                 properties slot, rest_angle_deg, arc_deg
-  Turret <i> gunhouse, mantlet, barrel <k>      trained
-  Anchor turret <i> barrel <k> muzzle            trained; the VFX kit's declared muzzle
+                                 properties slot, weapon, rest_angle_deg, arc_deg
+  Turret <i> house ..., gun ..., recoil 1 ...   trained (turret kit)
+  Turret <i> elevation           empty; turn about local Y to elevate
+  Turret <i> muzzle anchor 1     the turret kit's muzzle, +X along the bore
+  Anchor turret <i> barrel 1 muzzle              on it; the VFX kit's declared muzzle
+                                 (one barrel each; barrel 2 went with the old twin guns)
   Weapon <slot id> anchor / breech / barrel / launcher / tube <k>
   Anchor weapon <slot id> muzzle                 hardpoint muzzle
   Light <side> <where> <k>       running lights; origin = lamp position
@@ -140,10 +161,10 @@ The cinematic asset
 build_lasher.py saves lasher.blend: one collection `LASHER` with the root
 empty `LASHER | root` parenting every object, and the anchors in the child
 collection `LASHER | anchors`. Every modifier is baked (no live booleans or
-bevels), flat shaded, about 18,900 triangles and 288 meshes, eight
+bevels), flat shaded, about 32,100 triangles and 309 meshes, thirteen
 materials: Hegemony armour and gunmetal (each with light procedural wear on
-object coordinates), recess, bridge glazing, heat-vent glow and three
-running-light colours. No cameras, lamps or review rig are saved. Link or
+object coordinates), recess, bridge glazing, heat-vent glow, three
+running-light colours and the turret kit's weathered paints for the guns. No cameras, lamps or review rig are saved. Link or
 append the collection and instance it with a collection-instance empty
 scaled by metres_per_unit; verify_asset.py does exactly that three times
 and checks the contract. The built file is not tracked: it is copied to the
@@ -153,8 +174,8 @@ Liveries
 --livery hegemony (default) builds the original asset unchanged: collection
 LASHER into build/lasher/. --livery independent is the Asharu convoy's escort
 scheme: pale warm-grey armour from the independent faction colour (150,150,150)
-with a slate-blue accent on the wing strakes, spine ridge, gunhouses, gun-pod
-spine plates and drive lips (ls_kit.LIVERIES). Texture only: the geometry,
+with a slate-blue accent on the wing strakes, spine ridge, gun-pod spine
+plates and drive lips (the kit turrets keep the weapon's own paint) (ls_kit.LIVERIES). Texture only: the geometry,
 names and anchors are the same. It builds its own collection,
 LASHER (independent), root LASHER (independent) | root, into
 build/lasher-independent/, so both liveries can be appended into one scene.
@@ -171,8 +192,8 @@ Effects (pass 7)
 The shared VFX kit (../second-wind-vfx) dresses the Lasher through this
 folder's hull profile, vfx_hull.py: the five LOW_TECH drives in vanilla
 orange on the `Engine <i> exhaust anchor` empties (1 centre, 2-3 port, 4-5
-starboard), the three twin turrets' declared muzzles (`Anchor turret <i>
-barrel <k> muzzle`), and the four running lights (red and green wing tips,
+starboard), the three kit turrets' declared muzzles (`Anchor turret <i>
+barrel 1 muzzle`), and the four running lights (red and green wing tips,
 white stern, white prow strobe). One state, clean. export_effects.py runs
 `swfx.apply(state='clean', groups=thrusters, smoke, guns, lighting)` on the
 built lasher.blend and saves the kit's `SWFX` collection beside `LASHER`;

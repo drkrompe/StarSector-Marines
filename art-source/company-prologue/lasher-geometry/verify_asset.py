@@ -35,8 +35,13 @@ for i in range(1, 6):
     for part in ('aft-facing bell', 'mouth lip', 'dark throat', 'drive can', 'exhaust anchor', 'drive glow anchor'):
         assert f'Engine {i} {part}' in names, f'Engine {i} {part}'
 for i, slot in ((1, 'WS 005'), (2, 'WS 006'), (3, 'WS 007')):
+    # Kit turrets (../turret-kit): the pivot trains, its elevation empty lifts the gun,
+    # and the declared muzzle rides both (exercised on an appended copy below).
     pivot = bpy.data.objects[f'Turret {i} pivot']
-    assert pivot['slot'] == slot and any(c.name.startswith(f'Turret {i} barrel') for c in pivot.children)
+    assert pivot['slot'] == slot and pivot['weapon'], slot
+    assert bpy.data.objects[f'Turret {i} elevation'].parent == pivot, slot
+    assert bpy.data.objects[f'Anchor turret {i} barrel 1 muzzle'] in pivot.children_recursive, slot
+    assert f'Turret {i} barbette' in names, slot
 for sid in ('WS 00%d' % k for k in range(1, 10)):
     assert f'Weapon {sid} anchor' in names, sid
 lights = [n for n in names if n.startswith('Light ')]
@@ -54,3 +59,24 @@ tris = sum(len(p.vertices)-2 for o in meshes for p in o.data.polygons)
 mats = sorted({m.name for o in meshes for m in o.data.materials if m})
 print(f'OK {path.name}: collection {COLL!r}, root {ROOT!r}, {len(objs)} objects ({len(meshes)} meshes), '
       f'{tris} triangles, {len(mats)} materials, metres_per_unit {mpu}; linked and instanced 3x')
+
+
+# The knobs, on an appended (editable) copy: train each pivot, elevate each gun.
+bpy.ops.wm.read_factory_settings(use_empty=True)
+with bpy.data.libraries.load(str(path), link=False) as (src, dst):
+    dst.collections = [COLL]
+bpy.context.scene.collection.children.link(dst.collections[0])
+for i in (1, 2, 3):
+    pivot = bpy.data.objects[f'Turret {i} pivot']
+    elev = bpy.data.objects[f'Turret {i} elevation']
+    muzzle = bpy.data.objects[f'Anchor turret {i} barrel 1 muzzle']
+    bpy.context.view_layer.update()
+    rest = muzzle.matrix_world.translation.copy()
+    pivot.rotation_euler.z += .5
+    bpy.context.view_layer.update()
+    trained = muzzle.matrix_world.translation.copy()
+    elev.rotation_euler.y -= .3
+    bpy.context.view_layer.update()
+    assert (trained-rest).length > .5 and muzzle.matrix_world.translation.z > trained.z + .1, \
+        f'turret {i} does not train or elevate'
+print('OK knobs: three turrets train about their pivots and elevate on their elevation empties')

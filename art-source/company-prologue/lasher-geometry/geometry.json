@@ -1,5 +1,5 @@
 {
-  "status": "Pass 2 with the detail and cohesion pass (ls_detail, owner review 2026-10-19) + pass 4 scale: silhouette, sections, slots, drives, anchors, glazing, vents and running lights; join fairings, frames, panels, hatches, grilles and conduits; one base material per class with light procedural wear. No interiors, damage or articulation beyond turrets.",
+  "status": "Pass 2 with the detail and cohesion pass (ls_detail, accepted 2026-10-20) and turret-kit turrets (lasher_Standard light machine guns, owner 2026-10-20) + pass 4 scale: silhouette, sections, slots, drives, anchors, glazing, vents and running lights; join fairings, frames, panels, hatches, grilles and conduits; one base material per class with light procedural wear. No interiors, damage or articulation beyond turrets.",
   "hull": {
     "name": "Lasher",
     "hullId": "lasher",
@@ -106,7 +106,7 @@
     "size_m": [
       90.0,
       64.9,
-      19.7
+      20.4
     ],
     "person_1_8_m_in_units": 1.89,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
@@ -131,12 +131,12 @@
     "max": [
       60.5,
       34.14,
-      11.25
+      12.01
     ],
     "size": [
       94.74,
       68.28,
-      20.75
+      21.51
     ]
   },
   "weapon_slots": [
@@ -213,7 +213,7 @@
       "location": [
         4,
         10,
-        6.15
+        8.0
       ],
       "angle": 60,
       "arc": 270,
@@ -222,8 +222,7 @@
       "type": "BALLISTIC",
       "anchor": "Weapon WS 005 anchor",
       "muzzles": [
-        "Anchor turret 1 barrel 1 muzzle",
-        "Anchor turret 1 barrel 2 muzzle"
+        "Anchor turret 1 barrel 1 muzzle"
       ]
     },
     {
@@ -231,7 +230,7 @@
       "location": [
         4,
         -10,
-        6.15
+        8.0
       ],
       "angle": -60,
       "arc": 270,
@@ -240,8 +239,7 @@
       "type": "BALLISTIC",
       "anchor": "Weapon WS 006 anchor",
       "muzzles": [
-        "Anchor turret 2 barrel 1 muzzle",
-        "Anchor turret 2 barrel 2 muzzle"
+        "Anchor turret 2 barrel 1 muzzle"
       ]
     },
     {
@@ -249,7 +247,7 @@
       "location": [
         37,
         0,
-        8.95
+        8.8
       ],
       "angle": 0,
       "arc": 270,
@@ -258,8 +256,7 @@
       "type": "BALLISTIC",
       "anchor": "Weapon WS 007 anchor",
       "muzzles": [
-        "Anchor turret 3 barrel 1 muzzle",
-        "Anchor turret 3 barrel 2 muzzle"
+        "Anchor turret 3 barrel 1 muzzle"
       ]
     },
     {
@@ -297,91 +294,169 @@
     {
       "index": 1,
       "slot": "WS 005",
+      "weapon": "lightmg",
+      "built_by": "turret-kit/turret_kit.py",
       "pivot": "Turret 1 pivot",
       "location": [
         4,
         10,
-        6.15
+        8.0
       ],
       "rest_angle_deg": 60,
       "arc_deg": 270,
+      "ring": 4.6,
+      "seat": 5.0,
+      "lift": 3.0,
+      "foot": 1.2,
+      "arc_sweep": {
+        "angles": 25,
+        "clashes": 0
+      },
+      "elevation": "Turret 1 elevation",
+      "elevates": "rotate about its local Y; negative lifts the muzzles",
+      "elevation_limits_deg": [
+        null,
+        null
+      ],
       "fixed": [
-        "Turret 1 barbette",
-        "Turret 1 traverse gap"
+        "Turret 1 barbette"
       ],
       "trained": [
-        "Turret 1 gunhouse",
-        "Turret 1 mantlet",
-        "Turret 1 roof hatch",
-        "Turret 1 sight hood",
-        "Turret 1 barrel 1",
-        "Anchor turret 1 barrel 1 muzzle",
-        "Turret 1 barrel 2",
-        "Anchor turret 1 barrel 2 muzzle"
+        "Turret 1 house dark",
+        "Turret 1 house paint",
+        "Turret 1 house plate",
+        "Turret 1 house steel#lug3.81",
+        "Turret 1 house steel#lug3.8-1",
+        "Turret 1 house steel#lug-2.61",
+        "Turret 1 house steel#lug-2.6-1",
+        "Turret 1 house steel",
+        "Turret 1 gun plate",
+        "Turret 1 gun steel",
+        "Turret 1 gun accent",
+        "Turret 1 recoil 1 metal",
+        "Turret 1 recoil 1 dark",
+        "Turret 1 recoil 1 steel"
+      ],
+      "recoil": [
+        "Turret 1 recoil 1"
+      ],
+      "kit_muzzles": [
+        "Turret 1 muzzle anchor 1"
       ],
       "muzzles": [
-        "Anchor turret 1 barrel 1 muzzle",
-        "Anchor turret 1 barrel 2 muzzle"
+        "Anchor turret 1 barrel 1 muzzle"
       ]
     },
     {
       "index": 2,
       "slot": "WS 006",
+      "weapon": "lightmg",
+      "built_by": "turret-kit/turret_kit.py",
       "pivot": "Turret 2 pivot",
       "location": [
         4,
         -10,
-        6.15
+        8.0
       ],
       "rest_angle_deg": -60,
       "arc_deg": 270,
+      "ring": 4.6,
+      "seat": 5.0,
+      "lift": 3.0,
+      "foot": 1.2,
+      "arc_sweep": {
+        "angles": 25,
+        "clashes": 0
+      },
+      "elevation": "Turret 2 elevation",
+      "elevates": "rotate about its local Y; negative lifts the muzzles",
+      "elevation_limits_deg": [
+        null,
+        null
+      ],
       "fixed": [
-        "Turret 2 barbette",
-        "Turret 2 traverse gap"
+        "Turret 2 barbette"
       ],
       "trained": [
-        "Turret 2 gunhouse",
-        "Turret 2 mantlet",
-        "Turret 2 roof hatch",
-        "Turret 2 sight hood",
-        "Turret 2 barrel 1",
-        "Anchor turret 2 barrel 1 muzzle",
-        "Turret 2 barrel 2",
-        "Anchor turret 2 barrel 2 muzzle"
+        "Turret 2 house dark",
+        "Turret 2 house paint",
+        "Turret 2 house plate",
+        "Turret 2 house steel#lug3.81",
+        "Turret 2 house steel#lug3.8-1",
+        "Turret 2 house steel#lug-2.61",
+        "Turret 2 house steel#lug-2.6-1",
+        "Turret 2 house steel",
+        "Turret 2 gun plate",
+        "Turret 2 gun steel",
+        "Turret 2 gun accent",
+        "Turret 2 recoil 1 metal",
+        "Turret 2 recoil 1 dark",
+        "Turret 2 recoil 1 steel"
+      ],
+      "recoil": [
+        "Turret 2 recoil 1"
+      ],
+      "kit_muzzles": [
+        "Turret 2 muzzle anchor 1"
       ],
       "muzzles": [
-        "Anchor turret 2 barrel 1 muzzle",
-        "Anchor turret 2 barrel 2 muzzle"
+        "Anchor turret 2 barrel 1 muzzle"
       ]
     },
     {
       "index": 3,
       "slot": "WS 007",
+      "weapon": "lightmg",
+      "built_by": "turret-kit/turret_kit.py",
       "pivot": "Turret 3 pivot",
       "location": [
         37,
         0,
-        8.95
+        8.8
       ],
       "rest_angle_deg": 0,
       "arc_deg": 270,
+      "ring": 4.6,
+      "seat": 7.8,
+      "lift": 1.0,
+      "foot": 1.2,
+      "arc_sweep": {
+        "angles": 25,
+        "clashes": 0
+      },
+      "elevation": "Turret 3 elevation",
+      "elevates": "rotate about its local Y; negative lifts the muzzles",
+      "elevation_limits_deg": [
+        null,
+        null
+      ],
       "fixed": [
-        "Turret 3 barbette",
-        "Turret 3 traverse gap"
+        "Turret 3 barbette"
       ],
       "trained": [
-        "Turret 3 gunhouse",
-        "Turret 3 mantlet",
-        "Turret 3 roof hatch",
-        "Turret 3 sight hood",
-        "Turret 3 barrel 1",
-        "Anchor turret 3 barrel 1 muzzle",
-        "Turret 3 barrel 2",
-        "Anchor turret 3 barrel 2 muzzle"
+        "Turret 3 house dark",
+        "Turret 3 house paint",
+        "Turret 3 house plate",
+        "Turret 3 house steel#lug3.81",
+        "Turret 3 house steel#lug3.8-1",
+        "Turret 3 house steel#lug-2.61",
+        "Turret 3 house steel#lug-2.6-1",
+        "Turret 3 house steel",
+        "Turret 3 gun plate",
+        "Turret 3 gun steel",
+        "Turret 3 gun accent",
+        "Turret 3 recoil 1 metal",
+        "Turret 3 recoil 1 dark",
+        "Turret 3 recoil 1 steel"
+      ],
+      "recoil": [
+        "Turret 3 recoil 1"
+      ],
+      "kit_muzzles": [
+        "Turret 3 muzzle anchor 1"
       ],
       "muzzles": [
-        "Anchor turret 3 barrel 1 muzzle",
-        "Anchor turret 3 barrel 2 muzzle"
+        "Anchor turret 3 barrel 1 muzzle"
       ]
     }
   ],
@@ -591,8 +666,8 @@
     "anchors_collection": "LASHER | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'LASHER'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 18912,
-    "objects": 288,
+    "triangles": 32124,
+    "objects": 309,
     "materials": [
       "Lasher Hegemony armour",
       "Lasher bridge glazing",
@@ -601,14 +676,19 @@
       "Lasher recess",
       "Lasher running light green",
       "Lasher running light red",
-      "Lasher running light white"
+      "Lasher running light white",
+      "Turret lightmg accent 0.3418,0.2847,0.1773",
+      "Turret lightmg metal 0.1088,0.1106,0.1126",
+      "Turret lightmg paint 0.0845,0.0861,0.0876",
+      "Turret lightmg plate 0.1819,0.1837,0.1855",
+      "Turret steel Lasher gunmetal machinery"
     ]
   },
   "object_names": {
     "Hull ...": "bow head, nose cap, spine, wing body, nacelles, glazing, vents, seams",
     "Pod <side> gun|missile ...": "weapon pods round the hardpoints",
     "Engine <i> ...": "drive can, aft-facing bell, mouth lip, dark throat, exhaust anchor, drive glow anchor",
-    "Turret <i> ...": "barbette and traverse gap (fixed); gunhouse, mantlet, barrels and Anchor turret <i> barrel <k> muzzle under Turret <i> pivot",
+    "Turret <i> ...": "turret kit (../turret-kit): barbette (fixed); house, gun, recoil and muzzle anchor under Turret <i> pivot (trains about +Z) and Turret <i> elevation (local Y, negative lifts); Anchor turret <i> barrel 1 muzzle",
     "Weapon <slot id> ...": "hardpoint guns and launchers; anchor, and Anchor weapon <slot id> muzzle",
     "Light <side> <where> <k>": "running lights; positions, colours and blink in running_lights"
   },
