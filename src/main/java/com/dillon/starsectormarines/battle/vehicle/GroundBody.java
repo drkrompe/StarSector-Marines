@@ -36,6 +36,12 @@ public abstract class GroundBody {
      */
     public float speed;
 
+    /**
+     * Whether the drive is gone ({@link HullLocations}): the hull holds where it stands, neither driving nor
+     * turning, for the rest of the battle. Its turret still turns and fires.
+     */
+    public boolean immobilised;
+
     /** Accepted signed chassis travel for distance-driven tread UVs, never a render clock. */
     public double visualTravelCells, visualYawRadians;
 

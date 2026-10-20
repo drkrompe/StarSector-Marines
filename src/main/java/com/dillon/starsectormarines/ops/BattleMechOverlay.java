@@ -39,7 +39,7 @@ final class BattleMechOverlay {
     private UiDocument document;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
-    private BattleMechSectionPlate sectionPlate;
+    private BattleDamageDollPlate sectionPlate;
     private UiViewport sectionViewport;
     private BattleMechOverlayModel.Presentation presentation =
             new BattleMechOverlayModel.Presentation(false);
@@ -58,8 +58,8 @@ final class BattleMechOverlay {
         if (document == null) installDocument();
         else document.layout(viewport.documentWidth(), viewport.documentHeight());
         input = new StarsectorUiInputAdapter(document, viewport);
-        if (sectionPlate == null) sectionPlate = new BattleMechSectionPlate();
-        sectionViewport = BattleMechSectionPlate.above(viewport);
+        if (sectionPlate == null) sectionPlate = new BattleDamageDollPlate();
+        sectionViewport = BattleDamageDollPlate.above(viewport);
         updateSections(sim);
     }
 

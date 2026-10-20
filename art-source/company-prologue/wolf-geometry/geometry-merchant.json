@@ -115,7 +115,7 @@
     "size_m": [
       72.3,
       39.5,
-      25.5
+      30.6
     ],
     "person_1_8_m_in_units": 2.37,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
@@ -135,17 +135,17 @@
     "min": [
       -40.2,
       -25.98,
-      -18.0
+      -18.63
     ],
     "max": [
       54.91,
       25.98,
-      15.61
+      21.66
     ],
     "size": [
       95.11,
       51.97,
-      33.61
+      40.3
     ]
   },
   "weapon_slots": [
@@ -748,6 +748,51 @@
         "phase_s": 0,
         "duty": 0.18
       }
+    },
+    {
+      "name": "Light ventral docking 1",
+      "position": [
+        2.0,
+        3.0,
+        -18.26
+      ],
+      "colour": "white",
+      "role": "docking light",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light ventral docking 2",
+      "position": [
+        2.0,
+        -3.0,
+        -18.26
+      ],
+      "colour": "white",
+      "role": "docking light",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light centre masthead 1",
+      "position": [
+        30.4,
+        0,
+        12.95
+      ],
+      "colour": "white",
+      "role": "masthead light",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
     }
   ],
   "asset": {
@@ -757,8 +802,8 @@
     "anchors_collection": "WOLF | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'WOLF'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 52586,
-    "objects": 155,
+    "triangles": 67214,
+    "objects": 264,
     "materials": [
       "Turret annihilator mark 0.6122,0.4277,0.1509",
       "Turret annihilator paint 0.1989,0.1880,0.1718",

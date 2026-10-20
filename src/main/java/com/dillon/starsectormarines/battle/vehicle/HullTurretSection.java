@@ -107,27 +107,10 @@ public final class HullTurretSection {
                         float totalArmor, float totalStructure, DurabilityModel.Resolution scratch, Hit out) {
         float hullArmor = Math.max(0f, totalArmor - armor);
         float hullStructure = Math.max(0f, totalStructure - structure);
-        float turretArmorDamage = 0f;
-        float onSection = 0f;
-        float toHull = damage;
-        if (onTurret && structure > 0f) {
-            float armorBefore = armor;
-            float structureBefore = structure;
-            DurabilityModel.resolvePlatedInto(damage, penetration, armorBefore, turretRating, turretPlate,
-                    structureBefore, scratch);
-            turretArmorDamage = scratch.armorDamage();
-            onSection = scratch.structureDamage();
-            toHull = 0f;
-            if (onSection >= structureBefore) {
-                float toBreak = armorBefore > 0f
-                        ? armorBefore * turretPlate / DurabilityModel.armorEfficiency(penetration, turretRating) : 0f;
-                toHull = Math.max(0f, damage - toBreak - structureBefore);
-            }
-            armor = Math.max(0f, armorBefore - turretArmorDamage);
-            structure = Math.max(0f, structureBefore - onSection);
-        }
-        boolean gunNowDestroyed = !destroyed && onTurret && onSection > 0f && structure <= 0f;
-        if (gunNowDestroyed) destroyed = true;
+        float toHull = onTurret ? strike(damage, penetration, turretRating, turretPlate, scratch, out) : damage;
+        float turretArmorDamage = onTurret ? out.armorDamage : 0f;
+        float onSection = onTurret ? out.structureDamage : 0f;
+        boolean gunNowDestroyed = onTurret && out.gunDestroyed;
         float hullArmorDamage = 0f;
         float hullStructureDamage = 0f;
         if (toHull > 0f && hullStructure > 0f) {
@@ -139,6 +122,36 @@ public final class HullTurretSection {
         boolean hullNowDestroyed = hullStructure > 0f && hullStructureDamage >= hullStructure;
         out.set(turretArmorDamage + hullArmorDamage, onSection + hullStructureDamage,
                 gunNowDestroyed, hullNowDestroyed);
+    }
+
+    /**
+     * Takes a hit on the turret alone: its armor, then its structure. Writes the turret's own armor and structure
+     * loss and whether the gun went into {@code out} (hull fields false) and returns the damage that goes on through
+     * the turret into the hull. A turret already at zero passes the whole hit through.
+     */
+    public float strike(float damage, float penetration, float rating, float plate,
+                        DurabilityModel.Resolution scratch, Hit out) {
+        if (structure <= 0f) {
+            out.set(0f, 0f, false, false);
+            return damage;
+        }
+        float armorBefore = armor;
+        float structureBefore = structure;
+        DurabilityModel.resolvePlatedInto(damage, penetration, armorBefore, rating, plate, structureBefore, scratch);
+        float armorDamage = scratch.armorDamage();
+        float onSection = scratch.structureDamage();
+        float through = 0f;
+        if (onSection >= structureBefore) {
+            float toBreak = armorBefore > 0f
+                    ? armorBefore * plate / DurabilityModel.armorEfficiency(penetration, rating) : 0f;
+            through = Math.max(0f, damage - toBreak - structureBefore);
+        }
+        armor = Math.max(0f, armorBefore - armorDamage);
+        structure = Math.max(0f, structureBefore - onSection);
+        boolean gunNowDestroyed = !destroyed && onSection > 0f && structure <= 0f;
+        if (gunNowDestroyed) destroyed = true;
+        out.set(armorDamage, onSection, gunNowDestroyed, false);
+        return through;
     }
 
     private static float share(String property) {

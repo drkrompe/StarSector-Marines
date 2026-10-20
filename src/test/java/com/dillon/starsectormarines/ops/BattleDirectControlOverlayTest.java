@@ -131,7 +131,7 @@ class BattleDirectControlOverlayTest {
                 BattlePowerOverlay.viewport(position, 5, true),
                 BattleRetreatOverlay.viewport(position, BattleRetreatOverlayModel.Presentation.CONFIRM),
                 BattleHudOverlay.viewport(position, new BattleHudOverlayModel.Presentation(false, true)),
-                BattleDirectControlOverlay.statusViewport(position, BattleMechSectionPlate.DOCUMENT_HEIGHT, mech),
+                BattleDirectControlOverlay.statusViewport(position, BattleDamageDollPlate.DOCUMENT_HEIGHT, mech),
                 BattleDirectControlOverlay.weaponsViewport(position, SAMPLE_WEAPONS_HEIGHT),
                 BattleDirectControlOverlay.sectionsViewport(position),
                 BattleDirectControlOverlay.actionsViewport(position),
@@ -224,7 +224,7 @@ class BattleDirectControlOverlayTest {
                 float scale = status.documentScale();
                 assertEquals(host.screenX() + 12f, sections.screenX(), .001f, context);
                 assertEquals(host.screenY() + 12f, sections.screenY(), .001f, context);
-                assertEquals(sections.screenX() + sections.width() + BattleMechSectionPlate.GAP * scale,
+                assertEquals(sections.screenX() + sections.width() + BattleDamageDollPlate.GAP * scale,
                         status.screenX(), .001f, context + " status stands beside the doll");
                 assertEquals(host.screenY() + 12f, status.screenY(), .001f, context);
                 assertEquals(BattleDirectControlOverlay.STATUS_WIDTH, status.documentWidth(), .001f, context);

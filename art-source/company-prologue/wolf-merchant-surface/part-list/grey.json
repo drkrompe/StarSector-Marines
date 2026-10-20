@@ -247,7 +247,7 @@
    }
   ],
   "face_count": 210,
-  "area_units2": 374.56,
+  "area_units2": 372.85,
   "view_dir": [
    0.0,
    0.0,
@@ -273,7 +273,7 @@
   "native_texels_per_unit": 22.1
  },
  "fork-top": {
-  "what": "bow fork base and outer tines from above",
+  "what": "the prow deck, its two jaws and the gun hood from above",
   "sheet": "grey-tops",
   "tile": 1,
   "skin_from": null,
@@ -281,30 +281,132 @@
    {
     "object": "Hull bow fork base",
     "seed": [
-     46.0,
-     6.0,
-     0.5
+     49.0,
+     4.6,
+     2.4
     ],
     "faces": [
-     2,
+     4,
+     5,
+     12,
+     13,
+     20,
+     21,
+     28,
+     29,
+     36,
+     37,
+     44,
+     45,
+     52,
+     53,
+     60,
+     61,
+     68,
+     69,
+     76,
+     77,
+     84,
+     85
+    ]
+   },
+   {
+    "object": "Hull bow port jaw",
+    "seed": [
+     48.0,
+     8.0,
+     3.6
+    ],
+    "faces": [
+     3,
+     4,
+     5,
+     6,
      10,
+     13,
      18,
-     26,
-     33,
-     34,
-     41,
+     35,
      42,
+     43,
+     48,
      49,
      50,
-     57,
+     51,
+     52,
+     53,
+     54,
+     61,
+     62,
+     63,
+     64
+    ]
+   },
+   {
+    "object": "Hull bow starboard jaw",
+    "seed": [
+     48.0,
+     -8.0,
+     3.6
+    ],
+    "faces": [
+     4,
+     8,
+     9,
+     10,
+     11,
+     15,
+     18,
+     31,
+     34,
+     42,
+     47,
+     49,
+     50,
+     51,
+     52,
+     53,
+     54,
+     61,
+     62,
+     65,
+     66
+    ]
+   },
+   {
+    "object": "Hull bow gun hood",
+    "seed": [
+     42.0,
+     0.0,
+     6.0
+    ],
+    "faces": [
+     3,
+     7,
+     13,
+     14,
+     20,
+     21,
      58,
+     59,
+     60,
+     61,
+     62,
+     63,
+     64,
+     65,
+     66,
      67,
-     73
+     75,
+     76,
+     77,
+     78,
+     83,
+     84
     ]
    }
   ],
-  "face_count": 14,
-  "area_units2": 29.08,
+  "face_count": 86,
+  "area_units2": 200.74,
   "view_dir": [
    0.0,
    0.0,
@@ -317,17 +419,17 @@
   ],
   "cone_cos": 0.5,
   "extent_units": [
-   3.36,
-   11.0
+   20.68,
+   12.67
   ],
   "tile_camera": {
    "centre_uv": [
-    -5.479999899864197,
-    48.5
+    1.9073486328125e-06,
+    46.40291786193848
    ],
-   "ortho_width": 22.739018087855296
+   "ortho_width": 26.18114067294493
   },
-  "native_texels_per_unit": 34.9
+  "native_texels_per_unit": 30.3
  },
  "engine-top": {
   "what": "engine block deck and the aft spine",
@@ -1529,5 +1631,408 @@
    "ortho_width": 26.091712143378047
   },
   "native_texels_per_unit": 30.4
+ },
+ "bridge-top": {
+  "what": "the bridge roof from above",
+  "sheet": "grey-bridge",
+  "tile": 0,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull bridge",
+    "seed": [
+     33.0,
+     0.0,
+     10.2
+    ],
+    "faces": [
+     3,
+     4,
+     5,
+     11,
+     12,
+     13,
+     19,
+     20,
+     21,
+     28
+    ]
+   }
+  ],
+  "face_count": 10,
+  "area_units2": 180.8,
+  "view_dir": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "screen_up": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "cone_cos": 0.5,
+  "extent_units": [
+   11.6,
+   15.8
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    34.500000953674316
+   ],
+   "ortho_width": 32.661501073714064
+  },
+  "native_texels_per_unit": 24.3
+ },
+ "bridge-face": {
+  "what": "the bridge's raked face and the gun hood's face from ahead",
+  "sheet": "grey-bridge",
+  "tile": 1,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull bridge",
+    "seed": [
+     40.6,
+     0.0,
+     8.0
+    ],
+    "faces": [
+     1,
+     27,
+     29
+    ]
+   },
+   {
+    "object": "Hull bow gun hood",
+    "seed": [
+     45.6,
+     0.0,
+     3.6
+    ],
+    "faces": [
+     9,
+     10,
+     11,
+     12,
+     16,
+     17,
+     18,
+     19,
+     31,
+     40,
+     41,
+     42,
+     43,
+     44,
+     47,
+     52,
+     53,
+     55,
+     56,
+     57,
+     85,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91
+    ]
+   }
+  ],
+  "face_count": 30,
+  "area_units2": 112.32,
+  "view_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.4,
+  "extent_units": [
+   11.2,
+   9.03
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    0.0,
+    5.385177373886108
+   ],
+   "ortho_width": 18.66593176080275
+  },
+  "native_texels_per_unit": 42.5
+ },
+ "prow-side-port": {
+  "what": "the prow's port flank and port jaw",
+  "sheet": "grey-bridge",
+  "tile": 2,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull bow port jaw",
+    "seed": [
+     49.0,
+     10.4,
+     -2.0
+    ],
+    "faces": [
+     9,
+     11,
+     14,
+     16,
+     23,
+     33,
+     34,
+     37,
+     38,
+     39,
+     65,
+     66,
+     70
+    ]
+   },
+   {
+    "object": "Hull bow fork base",
+    "seed": [
+     46.0,
+     9.9,
+     -4.0
+    ],
+    "faces": [
+     3,
+     10,
+     11,
+     18,
+     19,
+     26,
+     27,
+     34,
+     35,
+     42,
+     43,
+     50,
+     51,
+     58,
+     59,
+     66,
+     67,
+     74,
+     75,
+     82,
+     83,
+     92,
+     93,
+     100
+    ]
+   }
+  ],
+  "face_count": 37,
+  "area_units2": 226.14,
+  "view_dir": [
+   0.0,
+   1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   12.05,
+   11.97
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -48.623247146606445,
+    -3.365318536758423
+   ],
+   "ortho_width": 24.736412304624412
+  },
+  "native_texels_per_unit": 32.1
+ },
+ "prow-front": {
+  "what": "the prow's stem and the jaws' faces from ahead",
+  "sheet": "grey-bridge",
+  "tile": 3,
+  "skin_from": null,
+  "members": [
+   {
+    "object": "Hull bow fork base",
+    "seed": [
+     53.0,
+     4.6,
+     -5.0
+    ],
+    "faces": [
+     2,
+     102
+    ]
+   },
+   {
+    "object": "Hull bow port jaw",
+    "seed": [
+     53.5,
+     6.0,
+     0.0
+    ],
+    "faces": [
+     12,
+     15,
+     17,
+     29,
+     30,
+     31,
+     32,
+     36,
+     47,
+     68,
+     69
+    ]
+   },
+   {
+    "object": "Hull bow starboard jaw",
+    "seed": [
+     53.5,
+     -6.0,
+     0.0
+    ],
+    "faces": [
+     13,
+     16,
+     17,
+     39,
+     40,
+     41,
+     44,
+     45,
+     48,
+     68,
+     69
+    ]
+   }
+  ],
+  "face_count": 24,
+  "area_units2": 76.92,
+  "view_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.5,
+  "extent_units": [
+   20.1,
+   9.24
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    -1.430511474609375e-06,
+    -2.1346386671066284
+   ],
+   "ortho_width": 23.37316357812216
+  },
+  "native_texels_per_unit": 34.0
+ },
+ "prow-side-stbd": {
+  "what": "the prow's starboard flank (mirror)",
+  "sheet": "grey-bridge",
+  "tile": 2,
+  "skin_from": "prow-side-port",
+  "members": [
+   {
+    "object": "Hull bow starboard jaw",
+    "seed": [
+     49.0,
+     -10.4,
+     -2.0
+    ],
+    "faces": [
+     2,
+     3,
+     12,
+     14,
+     27,
+     33,
+     36,
+     37,
+     38,
+     43,
+     55,
+     57,
+     67
+    ]
+   },
+   {
+    "object": "Hull bow fork base",
+    "seed": [
+     46.0,
+     -9.9,
+     -4.0
+    ],
+    "faces": [
+     6,
+     7,
+     14,
+     15,
+     22,
+     23,
+     30,
+     31,
+     38,
+     39,
+     46,
+     47,
+     54,
+     55,
+     62,
+     63,
+     70,
+     71,
+     78,
+     79,
+     86,
+     87,
+     94,
+     95
+    ]
+   }
+  ],
+  "face_count": 37,
+  "area_units2": 226.16,
+  "view_dir": [
+   0.0,
+   -1.0,
+   0.0
+  ],
+  "screen_up": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "cone_cos": 0.6,
+  "extent_units": [
+   12.05,
+   11.97
+  ],
+  "tile_camera": {
+   "centre_uv": [
+    48.62324905395508,
+    -3.365320563316345
+   ],
+   "ortho_width": 24.73641575460902
+  },
+  "native_texels_per_unit": 32.1
  }
 }

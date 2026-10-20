@@ -5,7 +5,9 @@ import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.BodyCarrier;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
+import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
@@ -37,6 +39,11 @@ import java.util.Random;
  * {@link VehicleType#armorArcs()}): the hull's arc is read against the hull's facing, a turret hit's against the
  * turret's. The arc is read from where the hit's shooter stands, which no random draw decides.
  *
+ * <p>A hull with located damage ({@link HullLocations}) is resolved by location instead: the turret roll as above,
+ * then a drive roll whose share depends on the arc, and the hit meets the plate on the side it arrives from. A hull
+ * whose drive goes is immobilised where it stands. A hit with no origin meets the front plate and rolls no drive.
+ * The control ({@code -Dbattle.vehicle.locatedArmor=false}) draws what it drew before.
+ *
  * <p>Serial only: it holds one reusable {@link DurabilityModel.Resolution},
  * which is the shape both resolvers it replaces already had.
  */
@@ -46,6 +53,7 @@ public final class BodyDamageResolver {
     private final Random rng;
     private final DurabilityModel.Resolution durability = new DurabilityModel.Resolution();
     private final HullTurretSection.Hit sectionHit = new HullTurretSection.Hit();
+    private final HullLocations.Hit locatedHit = new HullLocations.Hit();
 
     public BodyDamageResolver(UnitRosterService roster, Random rng) {
         this.roster = roster;
@@ -80,16 +88,32 @@ public final class BodyDamageResolver {
         ConvoyService convoy = carrier instanceof ConvoyService c ? c : null;
         GroundTurret turret = convoy != null ? convoy.turret(targetId) : null;
         HullTurretSection section = turret != null ? turret.section : null;
+        HullLocations locations = convoy != null ? convoy.locations(targetId) : null;
         // No origin to read, no arc: the hull's nominal plate.
-        ArmorArcs.Profile arcs = hasOrigin(world, targetId, attackerId) ? arcsOf(convoy, targetId)
-                : ArmorArcs.Profile.FLAT;
+        boolean origin = hasOrigin(world, targetId, attackerId);
+        ArmorArcs.Profile arcs = origin ? arcsOf(convoy, targetId) : ArmorArcs.Profile.FLAT;
         float dx = arcs != ArmorArcs.Profile.FLAT ? world.x(attackerId) - world.x(targetId) : 0f;
         float dy = arcs != ArmorArcs.Profile.FLAT ? world.y(attackerId) - world.y(targetId) : 0f;
         ArmorArcs.Arc hullArc = arcs == ArmorArcs.Profile.FLAT ? ArmorArcs.Arc.SIDE
                 : ArmorArcs.classify(convoy.body(targetId).facingDegrees, dx, dy);
         float armorDamage;
         float hpAfter;
-        if (section != null) {
+        if (locations != null) {
+            GroundBody body = convoy.body(targetId);
+            float facing = body != null ? body.facingDegrees : 0f;
+            ArmorArcs.Arc turretArc = section == null || arcs == ArmorArcs.Profile.FLAT ? ArmorArcs.Arc.SIDE
+                    : ArmorArcs.classify(turret.facingDeg, dx, dy);
+            boolean onTurret = section != null && section.struck(rng.nextFloat());
+            // A hit with no origin meets the front plate and never the drive: the hull's one pool, as it was.
+            boolean onDrive = !onTurret && origin && rng.nextFloat() < locations.driveHitShare(hullArc);
+            HullLocations.Plate plate = origin ? locations.plateFor(hullArc, facing, dx, dy) : HullLocations.Plate.FRONT;
+            locations.resolve(onTurret, onDrive, plate, postCover,
+                    penetration, rating * arcs.rating(turretArc), arcs.plate(turretArc),
+                    rating * arcs.rating(hullArc), arcs.plate(hullArc), hpBefore, durability, locatedHit);
+            armorDamage = locatedHit.armorDamage();
+            hpAfter = locatedHit.hullDestroyed() ? 0f : Math.max(0f, hpBefore - locatedHit.structureDamage());
+            if (locatedHit.driveDestroyed() && body != null) body.immobilised = true;
+        } else if (section != null) {
             // The turret faces its own way: a hit on it is read against the barrel, not the hull.
             ArmorArcs.Arc turretArc = arcs == ArmorArcs.Profile.FLAT ? ArmorArcs.Arc.SIDE
                     : ArmorArcs.classify(turret.facingDeg, dx, dy);

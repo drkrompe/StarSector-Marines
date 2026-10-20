@@ -75,6 +75,10 @@ public class BicycleBody extends GroundBody {
 
     @Override
     public void tick(float carrotX, float carrotY, float targetSpeed, float dt) {
+        if (immobilised) {
+            speed = 0f;
+            return;
+        }
         float dx = carrotX - x;
         float dy = carrotY - y;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);

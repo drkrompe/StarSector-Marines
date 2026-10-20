@@ -83,7 +83,7 @@ final class BattleDirectControlOverlay {
     private boolean helpPointerKnown;
     private float helpPointerX, helpPointerY;
     private boolean visible;
-    private BattleMechSectionPlate sectionPlate;
+    private BattleDamageDollPlate sectionPlate;
     private UiViewport sectionViewport;
 
     private boolean activeMode;
@@ -124,7 +124,7 @@ final class BattleDirectControlOverlay {
             helpMarkup = helpLoader.reloadAndBuild(reactor, BattleDirectControlHelpPlate.COMPONENT,
                     helpPlate.props());
             helpDocument = document(helpMarkup);
-            sectionPlate = new BattleMechSectionPlate();
+            sectionPlate = new BattleDamageDollPlate();
         }
         update(0f, sim, speedMultiplier);
     }
@@ -135,13 +135,13 @@ final class BattleDirectControlOverlay {
     }
 
     /**
-     * The status panel at bottom left, {@code documentHeight} tall. A mech's section doll takes the
-     * corner itself and the status stands to its right, bottom edges level.
+     * The status panel at bottom left, {@code documentHeight} tall. A mech's or vehicle's damage doll
+     * takes the corner itself and the status stands to its right, bottom edges level.
      */
     static UiViewport statusViewport(PositionAPI position, float documentHeight, boolean mech) {
         float scale = MarineOpsUiViewport.from(position).documentScale();
         float left = position.getX() + MARGIN
-                + (mech ? (BattleMechSectionPlate.DOCUMENT_WIDTH + BattleMechSectionPlate.GAP) * scale : 0f);
+                + (mech ? (BattleDamageDollPlate.DOCUMENT_WIDTH + BattleDamageDollPlate.GAP) * scale : 0f);
         float width = Math.max(0f, Math.min(STATUS_WIDTH * scale, position.getX() + position.getWidth() - MARGIN - left));
         return new UiViewport(left, position.getY() + MARGIN, width, documentHeight * scale, scale);
     }
@@ -154,11 +154,11 @@ final class BattleDirectControlOverlay {
                 width, documentHeight * scale, scale);
     }
 
-    /** The section doll in the bottom-left corner, beside the status panel. */
+    /** The damage doll in the bottom-left corner, beside the status panel. */
     static UiViewport sectionsViewport(PositionAPI position) {
         float scale = MarineOpsUiViewport.from(position).documentScale();
         return new UiViewport(position.getX() + MARGIN, position.getY() + MARGIN,
-                BattleMechSectionPlate.DOCUMENT_WIDTH * scale, BattleMechSectionPlate.DOCUMENT_HEIGHT * scale, scale);
+                BattleDamageDollPlate.DOCUMENT_WIDTH * scale, BattleDamageDollPlate.DOCUMENT_HEIGHT * scale, scale);
     }
 
     /**
@@ -227,12 +227,9 @@ final class BattleDirectControlOverlay {
             var status = BattleDirectControlStatus.snapshot(sim);
             helpCarrier = status.carrier();
             actionModel.update(status, sim.directControl().selectedWeapon(), speedMultiplier == 0f);
-            if (sectionPlate != null) {
-                sectionPlate.update(status.carrier() == Carrier.MECH
-                        ? sim.world().mechLoadout(status.entityId()) : null);
-            }
+            if (sectionPlate != null) updateDoll(sim, status);
         } else if (sectionPlate != null) {
-            sectionPlate.update(null);
+            sectionPlate.clear();
         }
         updateHelp(dt, active);
         if (markup != null) markup.flush();
@@ -265,14 +262,30 @@ final class BattleDirectControlOverlay {
         }
     }
 
+    /** Shows the controlled machine on the damage doll: a mech's sections or a vehicle's hull. */
+    private void updateDoll(BattleSimulation sim, BattleDirectControlStatus.Snapshot status) {
+        long id = status.entityId();
+        if (status.carrier() == Carrier.MECH) {
+            sectionPlate.update(sim.world().mechLoadout(id));
+        } else if (status.carrier() == Carrier.VEHICLE) {
+            var durability = status.durability();
+            var turret = sim.convoy().turret(id);
+            sectionPlate.updateVehicle(sim.convoy().vehicleType(id), durability.hp(), durability.maxHp(),
+                    durability.armor(), durability.maxArmor(), turret != null ? turret.section : null,
+                    sim.convoy().locations(id));
+        } else {
+            sectionPlate.clear();
+        }
+    }
+
     /** Re-measures the panels when a row comes or goes, then keeps them in their corners. */
     private void updatePanels(float dt) {
         if (position == null || statusDocument == null || weaponsDocument == null) return;
-        boolean mech = actionModel.carrier() == Carrier.MECH;
+        boolean mech = actionModel.carrier() == Carrier.MECH || actionModel.carrier() == Carrier.VEHICLE;
         if (!actionModel.structureKey().equals(measuredStructure)) {
             measuredStructure = actionModel.structureKey();
             float status = naturalHeight(statusDocument, statusMarkup, "direct-status-spacer", STATUS_WIDTH);
-            statusHeight = mech ? Math.max(status, BattleMechSectionPlate.DOCUMENT_HEIGHT) : status;
+            statusHeight = mech ? Math.max(status, BattleDamageDollPlate.DOCUMENT_HEIGHT) : status;
             weaponsHeight = naturalHeight(weaponsDocument, weaponsMarkup, "direct-weapons-spacer", WEAPONS_WIDTH);
             statusViewport = null;
             weaponsViewport = null;
