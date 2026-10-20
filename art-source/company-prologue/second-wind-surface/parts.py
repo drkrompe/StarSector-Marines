@@ -223,17 +223,24 @@ def select_faces(part, objects=None):
                     for ek in q.edge_keys:
                         edge_faces.setdefault(ek, []).append(q.index)
                 lim = spec['seam_walls']
-                walls = set()
-                for i in sel:
-                    for ek in me.polygons[i].edge_keys:
-                        for j in edge_faces[ek]:
-                            if j in sel or j in walls:
-                                continue
-                            n = (n3 @ me.polygons[j].normal).normalized()
-                            if (abs(n.dot(d)) >= lim and seen.get(j, 0) >= 0.5 * total.get(j, 1)
-                                    and all(lo[k] <= centres[j][k] <= hi[k] for k in range(3))):
-                                walls.add(j)
-                sel.update(walls)
+                # Grown a few rings out: a wall can meet its plate through the zero-area
+                # slivers a break plane's bisect leaves behind.
+                front = set(sel)
+                for _ in range(4):
+                    walls = set()
+                    for i in front:
+                        for ek in me.polygons[i].edge_keys:
+                            for j in edge_faces[ek]:
+                                if j in sel or j in walls:
+                                    continue
+                                n = (n3 @ me.polygons[j].normal).normalized()
+                                if (abs(n.dot(d)) >= lim and seen.get(j, 0) >= 0.5 * total.get(j, 1)
+                                        and all(lo[k] <= centres[j][k] <= hi[k] for k in range(3))):
+                                    walls.add(j)
+                    if not walls:
+                        break
+                    sel.update(walls)
+                    front = walls
             continue
         seed_v = Vector(seed)
         start = min(ok, key=lambda i: (centres[i] - seed_v).length)
