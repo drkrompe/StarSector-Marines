@@ -319,9 +319,12 @@ Users
   two Vulcans and two capped empty housings, wrecked and stripped per
   condition state by sw_scars_spine), lasher-geometry (ls_mounts: three light
   machine guns, and its four hardpoints sunk in bays cut from its pods),
-  onslaught-geometry, manticore-geometry, falcon-geometry, kite-geometry. Hermes
-  and Hound still use their own turret modules; moving one onto the kit is that
-  hull's session's call.
+  onslaught-geometry, manticore-geometry, falcon-geometry (kit swarmer and
+  Annihilator hardpoints), kite-geometry (kit hammer and swarmer hardpoints, twin
+  MG on the kit gimbal), hound-geometry (kit chaingun hardpoint; its WS 002
+  turret is its own), shepherd-geometry (kit Swarmer hardpoint on WS 008).
+  Hermes still uses its own turret module. hull_turret_views.py renders one close
+  kit-mount view per built hull for a review.
 
 Cinematics hooks
 ----------------
