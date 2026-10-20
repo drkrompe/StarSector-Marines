@@ -9,8 +9,8 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
  *
  * <p>The split is by weapon role, not by hardpoint: guns, cannons and lasers are primary, and
  * missile and rocket racks are secondary. Only mounts that can be fired at a cursor point
- * ({@link HeavyWeapons#supportsPointFire}) belong to either group, so an indirect launcher is
- * in neither. A chassis whose point-fire mounts are all one role keeps them all on the left
+ * ({@link HeavyWeapons#supportsPointFire}) belong to either group; an arcing LRM rack is one,
+ * and drops its salvo on the point. A chassis whose point-fire mounts are all one role keeps them all on the left
  * button and leaves the right button with nothing to fire, which is also what a chassis with
  * a single group has always done.
  *
