@@ -54,7 +54,7 @@ final class BattleDirectControlHelp {
                 add(out, "RMB hold", "MechSecondary");
                 add(out, "1", "MechDefault");
                 add(out, "2 3 4", "MechPick");
-                add(out, "", "MechHeat");
+                add(out, "", "MechFlux");
                 add(out, "", "MechIndirect");
                 add(out, "Tab / Esc", "Leave");
             }

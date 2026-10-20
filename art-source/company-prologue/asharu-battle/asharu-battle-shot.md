@@ -2,7 +2,7 @@
 
 Status: DRAFT — blockout round 7 in code, not yet rendered (last posted run: round 6). Hull builds nearly all finished.
 Written: 2026-10-19
-Updated: 2026-10-19 — round 7: the Phaeton is finished (intact in S1, an eight-blast cook-off in S6); ships roll to bring their dorsal guns to bear; the Mk.III and Falcon (P) are accepted; the Wolf is reshaped (f60641f63).
+Updated: 2026-10-20 — round 7 staged but the render is held (owner); the fight is reviewed as layout diagrams (fight_layout.py) first.
 
 The cinematic of the fighting that brought the Colossus and the Shepherd
 **Morrow** down onto Asharu, three cycles before the Shepherd-recovery arc. The
@@ -189,7 +189,7 @@ seen at a distance.
 
 | Hull | Build (Drive `builds/...`) | Copy into `build/asharu-battle/inputs/` as | State |
 |---|---|---|---|
-| Colossus | `colossus-cinematic` package (`colossus.blend` + manifest) | `colossus.blend`, `colossus-manifest.json` | finished |
+| Colossus | `colossus/139e8b8b6` | `colossus.blend`, `colossus-manifest.json` | finished |
 | Shepherd "Morrow" | `shepherd/5860eae2b` | `shepherd.blend`, `shepherd-manifest.json` | finished |
 | Lasher x3 | `lasher-independent/7805d3b` (`lasher.blend`) | `lasher-independent.blend`, `lasher-independent-manifest.json` | finished; awaiting the owner's review |
 | Hound | `hound-independent/1e91821` | `hound-independent-clean.blend`, `hound-independent-manifest.json` | finished; awaiting the owner's review |
@@ -219,7 +219,7 @@ Each manifest is the build folder's `manifest.json`, renamed as shown. When a bu
 - **Stand-ins** are the sprite's silhouette raised into a lens shape and painted with the sprite. A stand-in reads as the right hull at the right size and nothing more.
 - **Effects** (tracers, placeholder blasts, drive plumes, entry plasma) are placeholders for the VFX kit.
 
-To check a scene without rendering, run `python battle_blockout.py --check`. It prints where every ship lands in every key frame, and whether each shot can bear (see Gunnery). `--frames k3b,k5` renders only those frames, and `--skip-render --post <machine> --what <slug>` posts a run to `review/cinematic-asharu-battle/`.
+To check a scene without rendering, run `python battle_blockout.py --check`; `python fight_layout.py` draws the same staging as diagrams. It prints where every ship lands in every key frame, and whether each shot can bear (see Gunnery). `--frames k3b,k5` renders only those frames, and `--skip-render --post <machine> --what <slug>` posts a run to `review/cinematic-asharu-battle/`.
 
 ## Where it stands, and the next step
 
@@ -229,12 +229,29 @@ To check a scene without rendering, run `python battle_blockout.py --check`. It 
   - the rolls that let the guns bear, in S6, S7 and S8-S9;
   - the reshaped Wolf and the round 2 Tarsus;
   - the Manticore (P) at 91 m.
+- **Staged on Windows (2026-10-20):**
+  - Every build in the table is copied into `build/asharu-battle/inputs/`. The Colossus is
+    `colossus/139e8b8b6` (coordinator's call: the newest build; Asharu needs no front shields).
+  - `--check` is clean: all 11 tracers and missiles bear. No staging change was needed.
+- **Render cost** of `--frames k3,k3b,k4,r1,r2 --samples 48`, extrapolated from quarter-size and
+  half-size samples on the RTX 3080 (k3b was not sampled):
+  - k3 (S6) is nearly all of it. The cook-off's volumes scale linearly with pixels times samples:
+    35 s at quarter size and 4 samples, 573 s at half size and 16. That makes **about 1.5-2 h at
+    full size**. It holds about 7.5 GB of the 3080's 10 GB at half size, so a full-size render
+    may not fit beside anything else on the GPU.
+  - k4, r1 and r2 take under a minute each, and k3b should be the same. Setting up the scene and
+    each frame adds about 5 min.
+  - **Windows: about 2 h. Mac: about 3 h**, from C1's measured rate there (about 200 s a frame,
+    against 2-3 min on Windows), and not timed directly.
+- **Held (owner, 2026-10-20): not ready for a production render.** The fight is reviewed
+  as layout diagrams first: `python fight_layout.py` draws an overview and one sheet per key
+  frame (the camera's frame as a schematic, plan and side views, every line of fire) from this
+  script's own staging, with no render, into `build/asharu-battle/layout/`.
 - **Next step:**
-  1. Copy the builds in the table above into `build/asharu-battle/inputs/`.
-  2. Run `--check`; every shot should read "bears".
-  3. Render `--frames k3,k3b,k4,r1,r2 --samples 48`. S6 alone takes over ten minutes, because of the wreck's smoke and fire.
-  4. Post with `--what round7-gunnery-cookoff`, then prune.
-  5. S10 (k5) is not in that set. Re-render it only once the owner settles its camera.
+  1. Settle the staging on the layout sheets.
+  2. Then render the set above, by night, through the owner.
+  3. Post with `--what round7-gunnery-cookoff`, then prune.
+  4. S10 (k5) is not in that set. Re-render it only once the owner settles its camera.
 
 ## Open for the owner
 

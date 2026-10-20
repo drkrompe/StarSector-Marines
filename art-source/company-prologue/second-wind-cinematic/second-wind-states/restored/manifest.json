@@ -527,16 +527,27 @@
   {
    "index": 1,
    "slot": "WS 001",
+   "weapon": "vulcan",
    "size": "SMALL",
+   "arc_deg": 210.0,
    "pivot": "Turret 1 pivot",
    "pivot_at": [
-    -11,
-    20,
-    18.3
+    -11.0,
+    20.0,
+    18.6
    ],
    "rest_angle_deg": 90.0,
-   "trained_parts": 17,
-   "fixed_parts": 3,
+   "elevation": "Turret 1 elevation",
+   "elevation_limits_deg": [
+    null,
+    null
+   ],
+   "recoil": [
+    "Turret 1 recoil 1",
+    "Turret 1 recoil 2"
+   ],
+   "trained_parts": 11,
+   "fixed_parts": 1,
    "status": "faded",
    "present": true,
    "trainable": true,
@@ -546,12 +557,26 @@
    "wreck_parts": 0,
    "muzzles": [
     {
-     "tag": "gun",
-     "anchor": "Anchor turret 1 gun muzzle",
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 1 barrel 1 muzzle",
      "at": [
-      -11.0,
-      30.6,
-      19.2
+      -9.473,
+      27.636,
+      19.929
+     ],
+     "axis": [
+      0.0,
+      1.0,
+      0.0
+     ]
+    },
+    {
+     "tag": "barrel 2",
+     "anchor": "Anchor turret 1 barrel 2 muzzle",
+     "at": [
+      -12.527,
+      27.636,
+      19.929
      ],
      "axis": [
       0.0,
@@ -564,90 +589,81 @@
   {
    "index": 2,
    "slot": "WS 002",
+   "weapon": "empty",
    "size": "SMALL",
+   "arc_deg": 210.0,
    "pivot": "Turret 2 pivot",
    "pivot_at": [
-    -11,
-    -20,
-    18.3
+    -11.0,
+    -20.0,
+    18.6
    ],
    "rest_angle_deg": -90.0,
-   "trained_parts": 17,
-   "fixed_parts": 3,
+   "elevation": null,
+   "elevation_limits_deg": null,
+   "recoil": [],
+   "trained_parts": 0,
+   "fixed_parts": 1,
    "status": "faded",
-   "present": true,
-   "trainable": true,
+   "present": false,
+   "trainable": false,
    "seized": false,
    "jammed": false,
    "jam_deg": 0.0,
    "wreck_parts": 0,
-   "muzzles": [
-    {
-     "tag": "gun",
-     "anchor": "Anchor turret 2 gun muzzle",
-     "at": [
-      -11.0,
-      -30.6,
-      19.2
-     ],
-     "axis": [
-      0.0,
-      -1.0,
-      0.0
-     ]
-    }
-   ]
+   "muzzles": []
   },
   {
    "index": 3,
    "slot": "WS 003",
+   "weapon": "empty",
    "size": "SMALL",
+   "arc_deg": 210.0,
    "pivot": "Turret 3 pivot",
    "pivot_at": [
-    41,
-    11,
-    18.0
+    41.0,
+    11.0,
+    16.1
    ],
    "rest_angle_deg": 30.0,
-   "trained_parts": 17,
-   "fixed_parts": 3,
+   "elevation": null,
+   "elevation_limits_deg": null,
+   "recoil": [],
+   "trained_parts": 0,
+   "fixed_parts": 1,
    "status": "faded",
-   "present": true,
-   "trainable": true,
+   "present": false,
+   "trainable": false,
    "seized": false,
    "jammed": false,
    "jam_deg": 0.0,
    "wreck_parts": 0,
-   "muzzles": [
-    {
-     "tag": "gun",
-     "anchor": "Anchor turret 3 gun muzzle",
-     "at": [
-      50.18,
-      16.3,
-      18.9
-     ],
-     "axis": [
-      0.866,
-      0.5,
-      0.0
-     ]
-    }
-   ]
+   "muzzles": []
   },
   {
    "index": 4,
    "slot": "WS 004",
+   "weapon": "vulcan",
    "size": "MEDIUM",
+   "arc_deg": 290.0,
    "pivot": "Turret 4 pivot",
    "pivot_at": [
-    36,
-    -16,
-    16.19
+    36.0,
+    -16.0,
+    16.6
    ],
    "rest_angle_deg": -30.0,
-   "trained_parts": 27,
-   "fixed_parts": 3,
+   "elevation": "Turret 4 elevation",
+   "elevation_limits_deg": [
+    null,
+    null
+   ],
+   "recoil": [
+    "Turret 4 recoil 1",
+    "Turret 4 recoil 2"
+   ],
+   "trained_parts": 11,
+   "fixed_parts": 1,
    "status": "faded",
    "present": true,
    "trainable": true,
@@ -657,12 +673,12 @@
    "wreck_parts": 0,
    "muzzles": [
     {
-     "tag": "port gun",
-     "anchor": "Anchor turret 4 port gun muzzle",
+     "tag": "barrel 1",
+     "anchor": "Anchor turret 4 barrel 1 muzzle",
      "at": [
-      49.865,
-      -22.729,
-      17.36
+      41.85,
+      -21.141,
+      17.929
      ],
      "axis": [
       0.866,
@@ -671,12 +687,12 @@
      ]
     },
     {
-     "tag": "starboard gun",
-     "anchor": "Anchor turret 4 starboard gun muzzle",
+     "tag": "barrel 2",
+     "anchor": "Anchor turret 4 barrel 2 muzzle",
      "at": [
-      48.76,
-      -24.643,
-      17.36
+      43.377,
+      -18.496,
+      17.929
      ],
      "axis": [
       0.866,
@@ -1752,25 +1768,13 @@
    },
    {
     "p": [
-     42.721,
-     14.832,
-     15.17
-    ],
-    "n": [
-     -0.0,
-     0.0,
-     1.0
-    ]
-   },
-   {
-    "p": [
      39.047,
      16.772,
      15.17
     ],
     "n": [
      0.0,
-     -0.0,
+     0.0,
      1.0
     ]
    },
@@ -1812,6 +1816,18 @@
    },
    {
     "p": [
+     42.698,
+     20.303,
+     14.5
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   {
+    "p": [
      45.401,
      19.345,
      14.296
@@ -1838,26 +1854,13 @@
    },
    {
     "p": [
-     42.721,
-     14.832,
-     15.17
-    ],
-    "n": [
-     -0.0,
-     0.0,
-     1.0
-    ],
-    "r": 0.411
-   },
-   {
-    "p": [
      39.047,
      16.772,
      15.17
     ],
     "n": [
      0.0,
-     -0.0,
+     0.0,
      1.0
     ],
     "r": 0.555
@@ -1900,6 +1903,19 @@
      0.891
     ],
     "r": 0.333
+   },
+   {
+    "p": [
+     42.698,
+     20.303,
+     14.5
+    ],
+    "n": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "r": 0.455
    }
   ],
   "fb-port-bow-flank-strike": [
@@ -2535,7 +2551,7 @@
     ],
     "n": [
      0.0,
-     -0.0,
+     0.0,
      1.0
     ]
    },
@@ -2547,7 +2563,7 @@
     ],
     "n": [
      0.0,
-     -0.0,
+     0.0,
      1.0
     ]
    },
@@ -2559,7 +2575,7 @@
     ],
     "n": [
      0.0,
-     -0.0,
+     0.0,
      1.0
     ]
    },
@@ -2571,7 +2587,7 @@
     ],
     "n": [
      0.0,
-     -0.0,
+     0.0,
      1.0
     ],
     "r": 0.339
@@ -2584,7 +2600,7 @@
     ],
     "n": [
      0.0,
-     -0.0,
+     0.0,
      1.0
     ],
     "r": 0.439
@@ -2597,7 +2613,7 @@
     ],
     "n": [
      0.0,
-     -0.0,
+     0.0,
      1.0
     ],
     "r": 0.395
@@ -2640,7 +2656,7 @@
     ],
     "n": [
      0.0,
-     -0.0,
+     0.0,
      1.0
     ]
    }
@@ -3404,7 +3420,7 @@
      15.17
     ],
     "n": [
-     -0.0,
+     0.0,
      0.0,
      1.0
     ]
@@ -3416,7 +3432,7 @@
      15.17
     ],
     "n": [
-     0.0,
+     -0.0,
      0.0,
      1.0
     ]
@@ -3548,7 +3564,7 @@
      15.17
     ],
     "n": [
-     -0.0,
+     0.0,
      0.0,
      1.0
     ],
@@ -3561,7 +3577,7 @@
      15.17
     ],
     "n": [
-     0.0,
+     -0.0,
      0.0,
      1.0
     ],
@@ -4283,51 +4299,51 @@
   "sp-turret-1": {
    "centre": [
     -11.0,
-    19.54,
-    19.45
+    19.733,
+    19.837
    ],
    "extent": [
-    5.963,
-    7.08,
-    2.8
+    7.636,
+    8.782,
+    2.474
    ],
-   "objects": 8
+   "objects": 4
   },
   "sp-turret-2": {
    "centre": [
     -11.0,
-    -19.54,
-    19.45
+    -20.0,
+    18.913
    ],
    "extent": [
-    5.963,
-    7.08,
-    2.8
+    7.634,
+    7.634,
+    0.625
    ],
-   "objects": 8
+   "objects": 4
   },
   "sp-turret-3": {
    "centre": [
-    40.567,
-    10.8,
-    19.15
+    41.0,
+    11.0,
+    16.413
    ],
    "extent": [
-    7.362,
-    6.43,
-    2.8
+    7.634,
+    7.634,
+    0.625
    ],
-   "objects": 8
+   "objects": 4
   },
   "sp-turret-4": {
    "centre": [
     36.0,
     -16.0,
-    15.98
+    16.415
    ],
    "extent": [
-    7.751,
-    7.751,
+    13.186,
+    13.186,
     0.23
    ],
    "objects": 2
@@ -4370,9 +4386,9 @@
   "Forebody replaceable armor.006": "fb-port-deck-plate-fwd-torn"
  },
  "left_out_objects": 91,
- "objects": 1033,
- "polygons": 182053,
- "baked_meshes": 800,
+ "objects": 974,
+ "polygons": 180340,
+ "baked_meshes": 737,
  "images": [
   "Skin arm-boom-port",
   "Skin arm-forearm-out",
@@ -4410,10 +4426,6 @@
   "Skin sponson-cowl",
   "Skin sponson-cowl-tops",
   "Skin sponson-lower",
-  "Skin turret-4-side",
-  "Skin turret-4-top",
-  "Skin turret-small-side",
-  "Skin turret-small-top",
   "Swatch cream",
   "Swatch dark",
   "Swatch gunmetal",
@@ -4423,8 +4435,8 @@
  "wear": {
   "group": "SW overlay restored",
   "materials": {
-   "base": 101,
-   "repaint": 4,
+   "base": 77,
+   "repaint": 5,
    "steel": 1,
    "torn": 1,
    "weld": 1
@@ -4452,7 +4464,6 @@
    "Bridge status lamp",
    "Bridge tread plate",
    "Bridge vent grille",
-   "Bridge viewport glazing",
    "Davit position light green",
    "Drive bell heat",
    "Drive throat glow",
@@ -4463,7 +4474,11 @@
    "Port running light",
    "RCS bell heat-tinted steel",
    "RCS housing gunmetal",
-   "Starboard running light"
+   "Starboard running light",
+   "Turret steel Engine collars",
+   "Turret vulcan metal 0.1107,0.1104,0.1093",
+   "Turret vulcan paint 0.1236,0.0973,0.0737",
+   "Turret vulcan plate 0.1401,0.1401,0.1422"
   ],
   "scorch_sites": 0,
   "soot_engines": 4,
@@ -4474,7 +4489,7 @@
  "effects": {
   "collection": "SWFX",
   "kit": "second-wind-vfx (swfx.apply, groups thrusters, smoke, guns, lighting; no rig preset)",
-  "objects": 99,
+  "objects": 96,
   "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
   "groups": {
    "thrusters": {
@@ -4493,7 +4508,7 @@
    },
    "guns": {
     "state": "restored",
-    "guns": 5,
+    "guns": 4,
     "shots": 0,
     "built": true
    },
@@ -4505,16 +4520,16 @@
  },
  "sources": {
   "skinned_blend": "skinned-restored.blend",
-  "geometry_json_sha256": "07140e6a2923b8ac847c407b59727a70f33e7064e0de60f61e3d21788783dd6c",
+  "geometry_json_sha256": "9b14ba82861cbb66d9c6752db1f13add4c6f24fa8fb1379e0ff300cf6a84b2a2",
   "wear_params_sha256": "b27538126aa3598fe84c982cacae55c8f9de010470b26ccc64e83a1e91a3e163"
  },
  "conventions": {
   "root": "Every ship part and anchor descends from the root; move, rotate or scale the root only.",
   "anchors": "Local +X is the effect axis (drive exhaust aft; gun line of fire); +Z as near hull-dorsal as that allows.",
-  "turrets": "Rotate a Turret <i> pivot about its local Z to train; rest pose is the slot angle (plus jam_deg when jammed). A seized mount (jammed or wrecked) carries nothing and has no muzzle.",
+  "turrets": "Rotate a Turret <i> pivot about its local Z to train; rest pose is the slot angle (plus jam_deg when jammed). Rotate Turret <i> elevation about its local Y to elevate (negative lifts the muzzles); slide Turret <i> recoil <k> along its local -X to recoil a barrel. Anchor turret <i> barrel <k> muzzle: +X along the line of fire. A seized mount (jammed or wrecked) or a stripped one carries nothing and has no muzzle.",
   "sparks": "Scar <id> spark anchor: +X along the spray; emit only where sparking is true.",
   "wear": "Base wear: group `SW wear <state>` on skins and swatches (wear.py). State overlay: group `SW overlay <state>`, its `SW overlay master` value scales it (0 = base wear only).",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "0eded2194a124ba3d0df7efd9a0b08025bfd8cbb6e18f2e3b3f57d119ef8efdf"
+ "asset_sha256": "56d0de32c02afa4896643ebbd018e67c1f04b6486c09b4a1bb3db94a539bb4cb"
 }

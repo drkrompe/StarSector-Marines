@@ -10,11 +10,24 @@ start with its canonical noun doc for the high-level model and
 
 ## Agent model selection
 
-Use Sol 6.1 (`gpt-6.1-sol`) for reconnaissance and implementation subagents
-unless the user explicitly requests a different model. Select the model
-explicitly when spawning those agents; do not rely on inheritance from the
-orchestrating chat. If that model is unavailable, report the limitation before
-substituting another model.
+Subagents and sub-sessions run on Claude Code's own models: **Opus**, **Sonnet**
+and **Sol 6.1**. Pick one per job with the `model` argument of the Agent or
+start-session tool, set explicitly rather than inherited from the orchestrating
+chat:
+
+- **Opus** for design-heavy work: modelling and art direction, architecture,
+  tricky debugging, review that needs judgement.
+- **Sonnet** for mechanical or read-only work: reconnaissance, searches, sweeps,
+  bulk edits, running a known command and reporting.
+- **Sol 6.1** for reconnaissance and implementation when the tool offers it; if
+  it does not, use Opus or Sonnet by the rules above and carry on.
+
+The user may name a different model, and that wins.
+
+**Codex CLI is for image generation only**, through the `codex-imagegen` skill
+(`tools/codex_imagegen.py`). Never use `codex exec` or any other Codex call for
+reconnaissance, coding, review, planning or anything else a Claude agent can do:
+spawn a Claude subagent or session instead.
 
 ## Session worktrees (default workflow)
 
@@ -870,7 +883,7 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   `-Pgifs`/`-PgifSeeds`, `-Dbattle.*` forwarded, the control replayed twice side by side for the determinism
   header). Writes `armor-matchups.md`, `armor-matchups.csv` and `runs.csv` under `build/reports/armor-matchups/`.
   A side is `unit(+unit)*`; a unit is `[Nx]` then a mech (`hound`, `bulwark:refit`,
-  `bulwark:arms=dual-linear-cannons,rs=shoulder-laser,engine=uprated,cooler=auxiliary,role=assault`: pattern ids with
+  `bulwark:arms=dual-linear-cannons,rs=shoulder-laser,engine=uprated,vents=auxiliary,role=assault`: pattern ids with
   or without their `component.mech-`/`internal.` prefix, `none` empties a mount, `refit` fills the best buildable
   internals around the fitted weapons, an over-budget fit runs and is labelled so) or a `VehicleType` in kebab case
   (`breakthrough-tank`; `technical`, `scout`, `dozer`). Scenarios: `open-ground`; `hull-down` (berms hide the
@@ -890,7 +903,7 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   stock Hound (the control), every chassis at stock and refit against every other both ways, each stock chassis
   against each armed vehicle line both ways, every armed line against every other (the unarmed scout car only when
   named); about 800 fights in well under a minute. Rows report wins, TTK from first hit, machines and integrity
-  left, hit rate, mounts lost, legs crippled, heat-limited seconds and damage by weapon (the side's dealt damage
+  left, hit rate, mounts lost, legs crippled, flux-limited seconds and damage by weapon (the side's dealt damage
   apportioned by hits x nominal damage); `runs.csv` adds each survivor's sections.
   One machine a side, no cost or lift parity: read rows against each other, not as balance acceptance.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
@@ -1360,6 +1373,16 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   evidence, and terminates only its launched process tree. It redirects mods,
   saves, screenshots, and logs under `build/catalog-smoke/`; use only when a
   live game-runtime acceptance pass is intentionally required.
+- **Blender renders go through the render queue**, not a session's own shell:
+  `python tools/render_queue.py submit job.json --commit HEAD`, then
+  `status [--job <id>]`. The queue is `render-queue/` on the shared Drive. A
+  runner on each machine (a Windows scheduled task; nohup on the Mac) runs
+  one job at a time and swaps finals out at a frame boundary for review and
+  light jobs. Gated lanes run only while that machine's gate is `run`. The
+  `light` lane (half size, ≤16 samples) is not gated. The gate is manual and
+  belongs to the render coordinator role, which changes it only on the
+  owner's word. Job format, inputs, and collecting output: the `render-queue`
+  skill.
 
 ### Visual snapshot workflow
 

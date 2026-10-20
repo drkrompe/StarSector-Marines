@@ -103,8 +103,8 @@ match.
 
 **Post-cinematic pictures** (`../yard-stills/`, the Nessa character sheet): Y1 yard
 with Nessa's cut-out layered on is in the game. Nessa is Kilo Nine's forewoman, about
-52, text only (Castle relays her). The prologue pages P1, P2, P4, P5, P6 and P8 are
-approved and shipped; P3 (Colossus repaint) awaits the owner. P7 (cargo billets) and Y2
+52, text only (Castle relays her). The prologue pages P1 to P6 and P8 are
+approved and shipped; P3's Colossus repaint shipped 2026-10-20 with its thrust from the six drive bells. P7 (cargo billets) and Y2
 (berths fitted) are repainted as a before/after pair and in the game. Not done: a
 picture of Nessa's wall of seals, and C5's crowd still draws a dark-coated stand-in for her.
 

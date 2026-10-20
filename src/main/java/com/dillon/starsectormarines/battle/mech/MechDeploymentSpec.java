@@ -77,7 +77,7 @@ public record MechDeploymentSpec(
     /**
      * The one place a deployment becomes a live mech's entity values: the chassis variant,
      * then the frozen frame's armor capacity and speed over it (armor rating stays the chassis's).
-     * Pair with {@link MechLoadoutComponent#applyFrame(MechFrame)} for the heat reservoir.
+     * Pair with {@link MechLoadoutComponent#applyFrame(MechFrame)} for the flux reservoir.
      */
     public EntitySpec applyTo(EntitySpec spec) {
         spec.mechVariant(variant);

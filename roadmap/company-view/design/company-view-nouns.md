@@ -1256,6 +1256,10 @@ parallel organization or another inventory economy.
 The optional Cerberus company start is selected through vanilla character creation.
 It gives the player one unconverted Cerberus, 500 spendable credits and travel reserves;
 it neither designates the vessel nor awards a shuttle, squad, mech or specialty.
+The hull starts as the wreck the story describes: a Cerberus (D) carrying a full
+wreck's five d-mods and only two Vulcans in its small mounts, the guns nobody stripped.
+Vanilla and Nexerelin starts hand out the same variant (`CerberusCompanyStart.START_VARIANT_ID`);
+restoring and arming her are ordinary yard work, not part of the opening.
 Castle directs the player to an accessible planetary spaceport, preferring Jangala.
 A new selection first opens **Second Wind**, a skippable eight-scene illustrated prologue
 with Castle's portrait and readable dialogue. The crew escaped **Harker's Claim**, an

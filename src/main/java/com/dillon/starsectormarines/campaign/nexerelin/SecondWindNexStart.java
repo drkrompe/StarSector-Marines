@@ -29,7 +29,7 @@ import java.util.Map;
  */
 public final class SecondWindNexStart extends CustomStart {
 
-    public static final String VARIANT_ID = "cerberus_Standard";
+    public static final String VARIANT_ID = CerberusCompanyStart.START_VARIANT_ID;
     public static final int CHARACTER_POINTS = 1;
     /** Where vanilla's {@code NGCSetStartingLocation Corvus -2500 3000} puts the fleet before the opening moves it. */
     public static final String STARTING_SYSTEM = "Corvus";
