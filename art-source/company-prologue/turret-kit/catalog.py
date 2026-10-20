@@ -65,9 +65,9 @@ for i, w in enumerate(names):
           f'{sum(len(p.data.polygons) for p in t["parts"])} faces, {len(t["muzzles"])} muzzles')
 
 # A deck under everything.
-bpy.ops.mesh.primitive_plane_add(size=1, location=((cols-1)*pitch/2, -(len(names)//cols)*pitch/2, -.5))
+bpy.ops.mesh.primitive_plane_add(size=1, location=((cols-1)*pitch/2, -((len(names)+len(hps))//cols)*pitch/2, -.5))
 deck = bpy.context.object
-deck.scale = (cols*pitch+60, (len(names)//cols+1)*pitch+60, 1)
+deck.scale = (cols*pitch+60, ((len(names)+len(hps))//cols+1)*pitch+60, 1)
 deck.data.materials.append(DECK)
 
 
@@ -85,7 +85,7 @@ def shoot(name, target, dist, lens=50, elev=32, azim=-55):
     bpy.ops.render.render(write_still=True)
 
 
-rows = (len(names)+cols-1)//cols
+rows = (len(names)+len(hps)+cols-1)//cols
 centre = Vector(((cols-1)*pitch/2, -(rows-1)*pitch/2, 0))
 shoot('catalog-overview', centre, 2.2*max(cols*pitch*.62, rows*pitch), lens=50, elev=38)
 if not args.no_singles:

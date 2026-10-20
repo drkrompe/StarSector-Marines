@@ -41,7 +41,7 @@ GIMBAL = {
     'none': dict(kind='off'),
     'tachyonlance': dict(kind='off'), 'gravitonbeam': dict(kind='off'), 'taclaser': dict(kind='off'),
     'reaper': dict(kind='off'), 'pdlaser': dict(kind='off'),
-    'ioncannon': dict(feed='cable'), 'railgun': dict(feed='cable'),
+    'ioncannon': dict(feed='cable'), 'railgun': dict(feed='cable', sleeves=False),
     'lightmg': dict(kind='open'),
     'squall': dict(kind='off'), 'hurricane': dict(kind='off'),
 }
@@ -201,9 +201,13 @@ def fit(tk, prefix, pivot, elev, s, f, r, trunnion, parts, moving, mats):
         print('GIMBAL-DEBUG', s['weapon'], 'tx', round(tx/r, 3), 'tz', round(tz/r, 3), 'face', face and round(face/r, 3), 'raw', [e and round(e/r, 3) for e in [face_x(b[0], b[1]) for b in barrels]], 'x0', [round(b[2]/r, 3) for b in barrels], 'rb', round(rb/r, 3))
     if kind == 'enclosed':
         # A mantlet struck about the trunnion axis, proud of the face: the gun pivots in its port.
-        R0 = min(face-tx, .55*r)+.015*r          # a face far out is a fairing, not the port
-        th = max(.05*r, .25*u)
-        half = math.atan2(ch+.06*r, R0)
+        # Sunk a little into the face so it reads as seated in its port; a face far out
+        # is a fairing, not the port. A cast shield, thick enough to read at range.
+        R0 = max(min(face-tx, .55*r)-.03*r, .1*r)
+        th = max(.1*r, .4*u)
+        H = max(ch+.08*r, .35*(tz-z0))
+        half = min(math.atan2(H, R0), math.radians(55))
+        cw = cw+.03*r
         m = cradle['plate#mantlet']
         _arc_slab(m, trunnion, R0, R0+th, -half, half, -cw, cw)
         rim = cradle['steel']
@@ -215,6 +219,9 @@ def fit(tk, prefix, pivot, elev, s, f, r, trunnion, parts, moving, mats):
         front = tx+R0+th
         for b in barrels:                                          # the barrel's port in the mantlet
             m.cut().cyl((front-th/2, b[0], b[1]), b[4](front)*1.08, th*3, 'X', n=20)
+            rp = b[4](front)
+            if rp < .22*r:                                         # a bolted collar round the port
+                cradle['steel'].ring((front+.012*r, b[0], b[1]), rp*1.1, rp*1.55+.02*r, .03*r, 'X', n=20)
         # The trunnions show on the house's cheeks: a bearing housing on each side wall at
         # the elevation axis, bolted round, with the pin's end cap turning in it (a lug on
         # the cap, so its turn reads).
@@ -302,15 +309,18 @@ def fit(tk, prefix, pivot, elev, s, f, r, trunnion, parts, moving, mats):
             cradle['glass'].box((tx+.122*r, sy_-.04*r, tz+.035*r), (.01*r, .07*r, .05*r))
 
     # --- every barrel: a recoil sleeve where it leaves the cradle or mantlet ---------
-    for y, z, x0, x1, rad in barrels:
-        rr = rad(front+.05*r)
-        if rr <= 0:
+    for y, z, x0, x1, rad in (barrels if g.get('sleeves', True) else []):
+        # Sized to the tube just ahead (not a breech jacket the front may fall on), and
+        # left off a barrel whose tube is already as fat as a sleeve would be.
+        span_ = [front+.05*r+i*.04*r for i in range(8)]
+        rr = min(rad(xx) for xx in span_ if xx < x1) if any(xx < x1 for xx in span_) else 0
+        if rr <= 0 or rr > .22*r:
             continue
-        L = max(.18*r, 2.5*rr)
+        L = min(max(.12*r, 1.8*rr), .26*r)
         sl = cradle['steel']
-        sl.cyl((front+L/2, y, z), rr*1.32, L, 'X', n=20, bevel=.01*r)
-        sl.ring((front+L-.02*r, y, z), rr*1.05, rr*1.5, .04*r, 'X', n=20)
-        cradle['dark'].ring((front+L*.45, y, z), rr*1.3, rr*1.36, .025*r, 'X', n=20)
+        sl.cyl((front+L/2, y, z), rr*1.18+.008*r, L, 'X', n=20, bevel=.008*r)
+        sl.ring((front+L-.015*r, y, z), rr*1.02, rr*1.3+.01*r, .03*r, 'X', n=20)
+        cradle['dark'].ring((front+L*.45, y, z), rr*1.17+.008*r, rr*1.22+.01*r, .02*r, 'X', n=20)
         if kind == 'enclosed':
-            cradle['metal'].box((front+L*.5, y, z-rr*1.32), (L*.9, rr*.7, rr*.35))   # slide rail
+            cradle['metal'].box((front+L*.5, y, z-rr*1.18), (L*.9, rr*.6, rr*.3))   # slide rail
     return fixed.emit()+cradle.emit()

@@ -23,8 +23,11 @@ angle); every gun has a muzzle empty, +X along the line of fire: `Anchor
 turret <i> barrel 1 muzzle` on the turrets (riding the turret kit's own
 `Turret <i> muzzle anchor 1`) and `Anchor weapon <id> muzzle` on the
 hardpoints, the names the shared VFX kit (../second-wind-vfx) looks for. The
-hardpoint guns are this package's own placeholders sized by slot: the kit has
-no light assault gun or heatseeker rack yet.
+hardpoints are the kit's too (tk.build_hardpoint): the light assault gun in
+each gun pod and the heatseeker autoloader in each missile pod, on `Weapon
+<id> mount` and sunk in a bay cut out of the pod (`_cut_bay`), the pod's
+fork cut back with it. The light assault gun's barrel recoils on `Weapon
+<id> recoil 1`; the heatseeker's loaded round is `Weapon <id> missile 1`.
 """
 import math
 import sys
@@ -48,8 +51,7 @@ SLOTS = [
 ]
 # The turrets are the shared turret kit's (../turret-kit, owner 2026-10-20: "not using
 # approved kit turrets"), armed as lasher_Standard.variant, the stock fit: a light
-# machine gun on each of WS 005-007. The hardpoints keep this package's own guns (the
-# kit has no light assault gun or Annihilator-less heatseeker rack yet).
+# machine gun on each of WS 005-007; the hardpoints are the kit's too (HARDPOINTS).
 LOADOUT = {'WS 005': 'lightmg', 'WS 006': 'lightmg', 'WS 007': 'lightmg'}
 RING = 4.6        # the sprite's turret ring round each small mount (the old barbette)
 LIFT0 = 1.0       # barbette drum above its seat before the arc sweep asks for more
@@ -169,29 +171,106 @@ def turret(kit, i, slot):
                     'kit_muzzles': [m.name for m in t['muzzles']], 'muzzles': muzzles})
 
 
+HARDPOINTS = {'WS 001': 'heatseeker', 'WS 002': 'lightag', 'WS 003': 'lightag', 'WS 004': 'heatseeker'}
+# Where each kit hardpoint sits, from its slot: the mount empty this far along the
+# line of fire (negative: set back into the pod) and its axis this high. The light
+# assault gun's housing fills its gun pod from the pod's back wall to the fork, its
+# drums proud of the deck; the autoloader's magazine sits at the missile pod's back
+# wall, its round in a channel open to the deck and its rails running out past the
+# fork to the fire point, as the game sprite draws them.
+SEAT = {'lightag': (-2.0, 3.8), 'heatseeker': (-.7, 3.4)}
+BAY_WALL = .5     # pod wall left either side of a bay that would cut the pod to a skin
+HARDPOINT_RECORDS = []
+
+
+def _cut_bay(kit, sid, mount, bay, keep, reach):
+    """Sink the hardpoint: cut its bay (x0..x1 along the fire line, half-width, floor
+    below the axis, open to the deck and through the fork) out of every hull part it
+    reaches, so the housing sits in the pod rather than on it. Returns the cut parts."""
+    x0, x1, hw, floor = bay
+    bpy.ops.mesh.primitive_cube_add(size=1)
+    cutter = bpy.context.object
+    cutter.name = f'Temporary bay cutter {sid}'
+    cutter.parent = mount
+    cutter.scale = (x1+reach-x0, 2*hw, 30)
+    cutter.location = ((x0+x1+reach)/2, 0, floor+15)
+    bpy.context.view_layer.update()
+    corners = [cutter.matrix_world @ Vector(c) for c in cutter.bound_box]
+    lo = Vector(map(min, *corners))
+    hi = Vector(map(max, *corners))
+    cut = []
+    dg = bpy.context.evaluated_depsgraph_get()
+    for ob in list(bpy.context.scene.objects):
+        if ob.type != 'MESH' or ob == cutter or ob in keep or ob.name.startswith(('Turret ', 'Weapon ')):
+            continue
+        bb = [ob.matrix_world @ Vector(c) for c in ob.bound_box]
+        if any(max(c[i] for c in bb) < lo[i] or min(c[i] for c in bb) > hi[i] for i in range(3)):
+            continue
+        # Only the pod and what stands on it: a part reaching well beyond the bay's
+        # footprint (the hull, the spine) is not the pod's.
+        if not ob.name.startswith('Pod ') and any(min(c[i] for c in bb) < lo[i]-6 or max(c[i] for c in bb) > hi[i]+6
+                                                  for i in range(2)):
+            continue
+        mod = ob.modifiers.new('bay', 'BOOLEAN')
+        mod.operation, mod.solver, mod.object = 'DIFFERENCE', 'EXACT', cutter
+        bpy.context.view_layer.update()
+        dg = bpy.context.evaluated_depsgraph_get()
+        me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg))
+        old = ob.data
+        ob.modifiers.clear()
+        ob.data = me
+        me.name = old.name
+        bpy.data.meshes.remove(old)
+        if not me.polygons:            # a part wholly inside the bay
+            if ob in kit.hull:
+                kit.hull.remove(ob)
+            bpy.data.objects.remove(ob, do_unlink=True)
+            continue
+        cut.append(ob.name)
+    cm = cutter.data
+    bpy.data.objects.remove(cutter, do_unlink=True)
+    bpy.data.meshes.remove(cm)
+    return cut
+
+
 def hardpoint(kit, slot):
+    """The kit's hardpoint for the slot's stock weapon (lasher_Standard), on `Weapon <id>
+    mount`, sunk in a bay cut out of its pod."""
     x, y = slot['location']
     sid = slot['id']
-    if slot['type'] == 'BALLISTIC':
-        z = 1.2
-        kit.box(f'Weapon {sid} breech', (x+2.5, y, z), (5, 2.0, 1.8), kit.steel, .1)
-        kit.cylinder(f'Weapon {sid} barrel', (x+6.5, y, z), .4, 6.0, kit.steel, 'X', 8, 0)
-        kit.cylinder(f'Weapon {sid} muzzle brake', (x+9.3, y, z), .55, .9, kit.dark, 'X', 8, 0)
-        m = kit.empty(f'Anchor weapon {sid} muzzle', (x+9.8, y, z), 0, size=1)
-    else:
-        z = 1.4
-        kit.box(f'Weapon {sid} launcher', (x+1.6, y, z), (5.6, 2.8, 2.6), kit.steel, .1)
-        for k, (dy, dz) in enumerate(((.65, .6), (-.65, .6), (.65, -.6), (-.65, -.6)), 1):
-            kit.cylinder(f'Weapon {sid} tube {k}', (x+4.45, y+dy, z+dz), .42, .2, kit.dark, 'X', 8, 0)
-        m = kit.empty(f'Anchor weapon {sid} muzzle', (x+4.6, y, z), 0, size=1)
+    weapon = HARDPOINTS[sid]
+    back, z = SEAT[weapon]
+    mount = kit.empty(f'Weapon {sid} mount', (x+back, y, z), slot['angle'], size=2)
+    hp = tk.build_hardpoint(weapon, f'Weapon {sid}', mount, mats(kit), kit.mpu)
+    x0, x1, hw, floor = hp['bay']
+    import ls_pods
+    pod = ls_pods.GUN_POD if slot['type'] == 'BALLISTIC' else ls_pods.MISSILE_POD
+    hw = min(hw, min(pod['outer']-abs(y), abs(y)-pod['inner'])-BAY_WALL)
+    reach = pod['prong']+.5-(x+back)-x1          # on through the pod's fork
+    cut = _cut_bay(kit, sid, mount, (x0, x1, hw, floor), set(hp['parts']), max(reach, 0))
+    muzzles = []
+    for k, m in enumerate(hp['muzzles'], 1):
+        # The shared VFX kit's declared-muzzle name, riding the turret kit's anchor.
+        a = bpy.data.objects.new(f'Anchor weapon {sid} muzzle' if k == 1 else f'Anchor weapon {sid} muzzle {k}', None)
+        a.empty_display_size = .6
+        bpy.context.collection.objects.link(a)
+        a.parent = m
+        muzzles.append(a.name)
     kit.empty(f'Weapon {sid} anchor', (x, y, z), slot['angle'], size=2)
     ANCHOR_Z[sid] = z
-    MUZZLES[sid] = [m.name]
+    MUZZLES[sid] = muzzles
+    HARDPOINT_RECORDS.append({'slot': sid, 'weapon': weapon, 'built_by': 'turret-kit/turret_kit.py build_hardpoint',
+                              'mount': mount.name, 'mount_location': [round(x+back, 2), y, z],
+                              'bay': [round(v, 2) for v in (x0, x1, hw, floor)], 'bay_cut_from': sorted(cut),
+                              'parts': [o.name for o in hp['parts']], 'moving': [e.name for e in hp['moving']],
+                              'kit_muzzles': [m.name for m in hp['muzzles']], 'muzzles': muzzles,
+                              'muzzle_location': [round(v, 2) for v in (mount.matrix_world @ hp['muzzles'][0].location)]})
 
 
 def build(kit):
     ANCHOR_Z.clear()
     TURRETS.clear()
+    HARDPOINT_RECORDS.clear()
     MUZZLES.clear()
     i = 0
     for slot in SLOTS:
