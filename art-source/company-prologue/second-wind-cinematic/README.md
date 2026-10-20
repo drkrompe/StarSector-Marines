@@ -45,7 +45,7 @@ strings, sounds).
 with Nessa's cut-out layered on is in the game. Nessa is Kilo Nine's forewoman, about
 52, text only (Castle relays her). The prologue pages P1, P2, P4, P5, P6 and P8 are
 approved and shipped; P3 (Colossus repaint) awaits the owner. P7 (cargo billets) and Y2
-(berths fitted) were repainted as a before/after pair, awaiting the owner. Not done: a
+(berths fitted) are repainted as a before/after pair and in the game. Not done: a
 picture of Nessa's wall of seals, and C5's crowd still draws a dark-coated stand-in for her.
 
 **How renders are made and shown.**
