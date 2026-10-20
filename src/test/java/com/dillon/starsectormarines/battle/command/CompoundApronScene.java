@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.infantry.ApertureHold;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
@@ -15,6 +16,7 @@ import com.dillon.starsectormarines.battle.scene.TickObserver;
 import com.dillon.starsectormarines.battle.scene.Verdict;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.CompoundPreparedGround;
@@ -33,17 +35,21 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * A compound's prepared ground manned under pressure (`compound-prepared-ground.md`): one barracks with a sandbag apron
- * laid at its south door by the production stamper, the defender's Conquest commander and a pool of patrols behind the
- * building. A raiding party, too tough to be shot down so the question stays about command, is put in front of the
- * apron, and each loop changes one thing.
+ * A compound's two layers of garrisonable manned under pressure (`garrisonables.md`): one barracks with a sandbag
+ * apron laid at its south door by the production stamper and firing windows either side of the door, so the building's
+ * envelope is a garrisonable too, the defender's Conquest commander and a pool of patrols behind the building, and no
+ * garrison of the building's own. A raiding party, too tough to be shot down so the question stays about command, is
+ * put in front of the apron, and each loop changes one thing.
  *
  * <ul>
- *   <li>{@code quiet}: the raiders never come. The apron is a garrisonable like a belt and stays empty.</li>
- *   <li>{@code pressed}: the raiders stand off the door. The apron is manned within a few command pulses of the
- *       commander believing it pressed, and the garrison digs in behind the bags.</li>
- *   <li>{@code breach}: once the garrison is dug in, the raiders are on the apron beside it. The garrison falls back
- *       into the building it fronts and holds it: the apron is the layer in front of the barracks.</li>
+ *   <li>{@code quiet}: the raiders never come. Apron and envelope are garrisonables and both stay empty.</li>
+ *   <li>{@code pressed}: the raiders stand off the door. The apron and the envelope are each manned within a few
+ *       command pulses of the commander believing them pressed, the apron's garrison digs in behind the bags and the
+ *       envelope's stands to at the windows, and the pool keeps a reserve.</li>
+ *   <li>{@code breach}: once the apron's garrison is dug in, the raiders are on the apron beside it. The garrison falls
+ *       back into the layer behind it, the barracks' envelope.</li>
+ *   <li>{@code entered}: once the envelope is manned, the raiders are inside the barracks. The envelope's garrison
+ *       falls back to holding the rooms, and the envelope is not manned again while the enemy is believed in it.</li>
  * </ul>
  *
  * <p>Every verdict is a mechanic of the commander, timed from its own belief; how long things took is in the metrics.
@@ -62,18 +68,23 @@ public final class CompoundApronScene implements BehaviorScene {
     private static final int BREACH_AFTER_DUG_TICKS = 300;
     /** The barracks: interior box, wall ring one cell outside it, a two-cell door in the south wall. */
     private static final int LEFT = 70, TOP = 60, RIGHT = 89, BOTTOM = 74, DOOR_X = 79;
+    /** Windows in the south wall, clear of the door and of the cells beside it the apron keeps open. */
+    private static final int[] WINDOWS_X = {72, 74, 85, 87};
+    /** Ticks after the envelope is manned at which the {@code entered} loop puts the raiders inside the barracks. */
+    private static final int ENTER_AFTER_MANNED_TICKS = 450;
 
     @Override public String id() { return "compound-apron"; }
 
     @Override public String label() {
-        return "Compound prepared ground: a quiet apron stays empty, a pressed apron is manned and dug in, and a breached "
-                + "garrison falls back into the building it fronts";
+        return "Compound layers: a quiet apron and building stay empty, a pressed apron is manned and dug in and the "
+                + "building's windows stood to, a breached apron falls back into the building and an entered building "
+                + "to its rooms";
     }
 
     @Override
     public List<SceneReport> play(FrameSink frames) throws Exception {
         List<SceneReport> reports = new ArrayList<>();
-        for (String loop : List.of("quiet", "pressed", "breach")) reports.add(playOne(loop, frames));
+        for (String loop : List.of("quiet", "pressed", "breach", "entered")) reports.add(playOne(loop, frames));
         return reports;
     }
 
@@ -100,6 +111,11 @@ public final class CompoundApronScene implements BehaviorScene {
         for (int x = DOOR_X; x <= DOOR_X + 1; x++) {
             grid.setWalkableFloor(x, TOP - 1);
             grid.setDoorway(x, TOP - 1, true);
+        }
+        // Firing windows in the south wall either side of the door: the envelope the garrison stands to at.
+        for (int x : WINDOWS_X) {
+            grid.setSeeThrough(x, TOP - 1, true);
+            topology.setWindow(x, TOP - 1, true);
         }
         for (int y = TOP; y <= BOTTOM; y++) for (int x = LEFT; x <= RIGHT; x++) topology.setGroundKind(x, y, GroundKind.INDOOR);
         GenContext ctx = new GenContext(grid, topology, new Random(7L), WIDTH, HEIGHT, 7L);
@@ -173,16 +189,22 @@ public final class CompoundApronScene implements BehaviorScene {
             case "quiet" -> {
                 verdicts.add(Verdict.of("apron-is-a-garrisonable", t.apron >= 0,
                         "the apron's run is place " + t.apron + " in the registry"));
-                verdicts.add(Verdict.of("quiet-apron-left-empty", t.manOrders == 0, t.manOrders + " manning orders"));
+                verdicts.add(Verdict.of("envelope-is-a-garrisonable", t.envelope >= 0 && t.envelopePosts > 0,
+                        "the barracks' envelope is place " + t.envelope + " with " + t.envelopePosts + " posts"));
+                verdicts.add(Verdict.of("quiet-places-left-empty", t.manOrders == 0 && t.envelopeOrders == 0,
+                        t.manOrders + " apron and " + t.envelopeOrders + " envelope manning orders"));
             }
             case "pressed" -> {
                 manned(verdicts, t);
                 verdicts.add(Verdict.of("garrison-digs-in-behind-the-bags", t.firstDugIn >= 0,
                         "first member dug in on the apron at tick " + t.firstDugIn));
+                envelopeManned(verdicts, t);
+                verdicts.add(Verdict.of("envelope-garrison-stands-to-at-the-windows", t.firstStoodTo >= 0,
+                        "the envelope's garrison first stood to at the barracks' apertures at tick " + t.firstStoodTo));
                 verdicts.add(Verdict.of("reserve-kept", t.maxCommitted < PATROLS,
                         "most patrols manning or staging at once " + t.maxCommitted + " of " + PATROLS));
             }
-            default -> {
+            case "breach" -> {
                 manned(verdicts, t);
                 verdicts.add(Verdict.of("breach-made", t.breachInsideTick >= 0,
                         "raiders on the apron from tick " + t.breachInsideTick));
@@ -190,8 +212,20 @@ public final class CompoundApronScene implements BehaviorScene {
                         && t.fallBackTick - t.breachInsideTick <= MAN_BOUND_TICKS && t.fallBackIntoBuilding;
                 verdicts.add(Verdict.of("breached-garrison-falls-back-into-the-building", fellBack,
                         "fall back ordered at tick " + t.fallBackTick + " ("
-                                + (t.fallBackIntoBuilding ? "a hold of the barracks" : "not into the barracks")
+                                + (t.fallBackIntoBuilding ? "a hold of the barracks' envelope" : "not into the barracks")
                                 + "), raiders on the apron from tick " + t.breachInsideTick));
+            }
+            default -> {
+                envelopeManned(verdicts, t);
+                verdicts.add(Verdict.of("building-entered", t.enteredTick >= 0,
+                        "raiders inside the barracks from tick " + t.enteredTick));
+                boolean toRooms = t.roomsTick >= 0 && t.enteredTick >= 0
+                        && t.roomsTick - t.enteredTick <= MAN_BOUND_TICKS;
+                verdicts.add(Verdict.of("entered-envelope-falls-back-to-the-rooms", toRooms,
+                        "the envelope's garrison fell back to an area defence of the rooms at tick " + t.roomsTick
+                                + ", raiders inside from tick " + t.enteredTick));
+                verdicts.add(Verdict.of("entered-envelope-not-remanned", t.enteredTick < 0 || t.remannedAfterEntry == 0,
+                        t.remannedAfterEntry + " envelope manning orders while raiders were inside"));
             }
         }
         Map<String, Number> metrics = new LinkedHashMap<>();
@@ -203,6 +237,12 @@ public final class CompoundApronScene implements BehaviorScene {
         metrics.put("maxCommitted", t.maxCommitted);
         metrics.put("breachInsideTick", t.breachInsideTick);
         metrics.put("fallBackTick", t.fallBackTick);
+        metrics.put("envelopePosts", t.envelopePosts);
+        metrics.put("firstEnvelopeManTick", t.firstEnvelopeManTick);
+        metrics.put("envelopeOrders", t.envelopeOrders);
+        metrics.put("firstStoodToTick", t.firstStoodTo);
+        metrics.put("enteredTick", t.enteredTick);
+        metrics.put("roomsTick", t.roomsTick);
         return new SceneReport(id(), loop, ticks, verdicts, metrics);
     }
 
@@ -211,6 +251,14 @@ public final class CompoundApronScene implements BehaviorScene {
                 t.hotTick >= 0 && t.firstManTick >= t.hotTick && t.firstManTick - t.hotTick <= MAN_BOUND_TICKS,
                 "believed pressure on the apron at the manning level from tick " + t.hotTick
                         + ", first manned at tick " + t.firstManTick + " (bound " + MAN_BOUND_TICKS + " ticks)"));
+    }
+
+    private static void envelopeManned(List<Verdict> verdicts, Trace t) {
+        verdicts.add(Verdict.of("pressed-envelope-manned-within-a-few-pulses",
+                t.hotTick >= 0 && t.firstEnvelopeManTick >= t.hotTick
+                        && t.firstEnvelopeManTick - t.hotTick <= MAN_BOUND_TICKS,
+                "believed pressure at the manning level from tick " + t.hotTick + ", the barracks' envelope first "
+                        + "manned at tick " + t.firstEnvelopeManTick + " (bound " + MAN_BOUND_TICKS + " ticks)"));
     }
 
     private static final class Trace implements TickObserver {
@@ -230,6 +278,17 @@ public final class CompoundApronScene implements BehaviorScene {
         int breachInsideTick = -1;
         int fallBackTick = -1;
         boolean fallBackIntoBuilding;
+        int envelope = -1;
+        int envelopePosts;
+        int firstEnvelopeManTick = -1;
+        int envelopeOrders;
+        int envelopeSquad = -1;
+        int firstStoodTo = -1;
+        int enterTick = -1;
+        int enteredTick = -1;
+        int roomsTick = -1;
+        int remannedAfterEntry;
+        private final Map<Integer, Boolean> onEnvelope = new LinkedHashMap<>();
         private final Map<Integer, Integer> manning = new LinkedHashMap<>();
         private String state = "";
 
@@ -244,10 +303,21 @@ public final class CompoundApronScene implements BehaviorScene {
 
         @Override public void observe(BattleSimulation sim, int tick) {
             GarrisonableRegistry places = sim.garrisonables();
+            if (envelope < 0) {
+                for (int g = 0; g < places.count(); g++) {
+                    if (!places.isEnvelope(g)) continue;
+                    TacticalNode building = places.building(g);
+                    if (building.left <= door[0] && door[0] <= building.right) {
+                        envelope = g;
+                        envelopePosts = places.size(g);
+                    }
+                }
+            }
             if (apron < 0) {
-                // The apron's run: the place nearest the door.
+                // The apron's run: the stretch nearest the door.
                 long best = Long.MAX_VALUE;
                 for (int g = 0; g < places.count(); g++) {
+                    if (places.isEnvelope(g)) continue;
                     long dx = places.centreX(g) - door[0];
                     long dy = places.centreY(g) - door[1];
                     if (dx * dx + dy * dy < best) {
@@ -274,6 +344,25 @@ public final class CompoundApronScene implements BehaviorScene {
                 CommandDirective directive = snapshot == null ? null : snapshot.directiveFor(id);
                 String reason = directive == null ? "" : directive.reason();
                 if (reason.equals("DEFENDER_GARRISONABLE_STAGE")) committed++;
+                boolean holdsEnvelope = order != null && order.isEnvelope() && envelope >= 0
+                        && order.targetNode() == places.building(envelope);
+                if (holdsEnvelope) {
+                    committed++;
+                    if (onEnvelope.put(id, Boolean.TRUE) == null) {
+                        envelopeOrders++;
+                        if (firstEnvelopeManTick < 0) firstEnvelopeManTick = tick;
+                        if (enteredTick >= 0) remannedAfterEntry++;
+                    }
+                    if (envelopeSquad < 0 && id != garrisonSquad) envelopeSquad = id;
+                    if (firstStoodTo < 0 && standsTo(squad)) firstStoodTo = tick;
+                } else {
+                    onEnvelope.remove(id);
+                }
+                if (id == envelopeSquad && enteredTick >= 0 && roomsTick < 0
+                        && reason.equals("DEFENDER_GARRISONABLE_FALL_BACK") && order != null
+                        && order.kind() == AssignmentKind.DEFEND_AREA && insideBarracks(order)) {
+                    roomsTick = tick;
+                }
                 if (order != null && order.isGarrison()) {
                     committed++;
                     int run = places.idAt(order.targetCellX(), order.targetCellY());
@@ -296,11 +385,10 @@ public final class CompoundApronScene implements BehaviorScene {
                 } else {
                     manning.remove(id);
                 }
-                if (id == garrisonSquad && breachInsideTick >= 0 && fallBackTick < 0
-                        && reason.equals("DEFENDER_GARRISONABLE_FALL_BACK") && order != null) {
+                // Driven off the apron, the garrison's order becomes the hold of the layer behind it.
+                if (id == garrisonSquad && breachInsideTick >= 0 && fallBackTick < 0 && holdsEnvelope) {
                     fallBackTick = tick;
-                    fallBackIntoBuilding = order.targetCellX() >= LEFT && order.targetCellX() <= RIGHT
-                            && order.targetCellY() >= TOP && order.targetCellY() <= BOTTOM;
+                    fallBackIntoBuilding = insideBarracks(order);
                 }
             }
             maxCommitted = Math.max(maxCommitted, committed);
@@ -310,6 +398,22 @@ public final class CompoundApronScene implements BehaviorScene {
                 int[] into = intoApron(sim, places, Math.round(held.centroidX), Math.round(held.centroidY));
                 for (long raider : raiders) sim.world().setCellPos(raider, into[0], into[1]);
             }
+            if (loop.equals("entered") && enterTick < 0 && firstEnvelopeManTick >= 0
+                    && tick >= firstEnvelopeManTick + ENTER_AFTER_MANNED_TICKS) {
+                enterTick = tick;
+                for (int i = 0; i < raiders.length; i++) {
+                    sim.world().setCellPos(raiders[i], DOOR_X - 2 + (i % 3), TOP + 2 + i / 3);
+                }
+            }
+            if (enterTick >= 0 && enteredTick < 0) {
+                for (long raider : raiders) {
+                    int x = sim.world().cellX(raider), y = sim.world().cellY(raider);
+                    if (x >= LEFT && x <= RIGHT && y >= TOP && y <= BOTTOM) {
+                        enteredTick = tick;
+                        break;
+                    }
+                }
+            }
             if (breachTick >= 0 && breachInsideTick < 0) {
                 for (long raider : raiders) {
                     if (places.idAt(sim.world().cellX(raider), sim.world().cellY(raider)) == apron) {
@@ -318,8 +422,22 @@ public final class CompoundApronScene implements BehaviorScene {
                     }
                 }
             }
-            state = String.format(Locale.ROOT, "apron manning orders %d%s", manOrders,
-                    fallBackTick >= 0 ? ", fell back into the barracks" : "");
+            state = String.format(Locale.ROOT, "apron manning orders %d, envelope %d%s%s", manOrders, envelopeOrders,
+                    fallBackTick >= 0 ? ", fell back into the barracks" : "",
+                    roomsTick >= 0 ? ", holding the rooms" : "");
+        }
+
+        private static boolean insideBarracks(ObjectiveAssignment order) {
+            return order.targetCellX() >= LEFT && order.targetCellX() <= RIGHT
+                    && order.targetCellY() >= TOP && order.targetCellY() <= BOTTOM;
+        }
+
+        /** Whether the squad's current step is a stand-to at apertures. */
+        private static boolean standsTo(Squad squad) {
+            SquadPlan plan = squad.currentPlan;
+            if (plan == null || plan.isComplete()) return false;
+            SquadPlan.Step step = plan.currentStep();
+            return step != null && step.action instanceof ApertureHold;
         }
 
         /** A cell of the apron a few cells from the garrison: where a breach puts the raiders. */

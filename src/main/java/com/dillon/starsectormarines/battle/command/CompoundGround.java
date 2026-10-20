@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Which compound a garrisonable fronts: the prepared ground a compound's door or face is given
  * ({@code CompoundPreparedGround}) belongs to the compound whose building it stands off, the way a belt belongs to its
- * fort. Read at the place's centre against each compound's own building box grown by {@link #REACH_CELLS}; a place
+ * fort, and a building's envelope to the compound whose building it is. Read at a stretch's centre against each compound's own building box grown by {@link #REACH_CELLS}; a place
  * attributed to a fort is a belt and fronts no compound. Pure lookup over the commander's own disclosed compounds.
  */
 final class CompoundGround {
@@ -18,10 +18,21 @@ final class CompoundGround {
 
     private CompoundGround() {}
 
-    /** The compound this place fronts, nearest first, or {@code null}. */
+    /**
+     * The compound this place fronts, nearest first, or {@code null}. A building's envelope belongs to the compound whose
+     * building it is.
+     */
     static ConquestCommandFacts.Compound frontedBy(GarrisonableRegistry places, int place,
                                                    List<ConquestCommandFacts.Compound> compounds) {
-        if (places == null || place < 0 || place >= places.count() || places.fortId(place) >= 0) return null;
+        if (places == null || place < 0 || place >= places.count()) return null;
+        if (places.isEnvelope(place)) {
+            TacticalNode building = places.building(place);
+            for (ConquestCommandFacts.Compound compound : compounds) {
+                if (GarrisonableRegistry.sameBuilding(compound.node(), building)) return compound;
+            }
+            return null;
+        }
+        if (places.fortId(place) >= 0) return null;
         int x = places.centreX(place);
         int y = places.centreY(place);
         ConquestCommandFacts.Compound best = null;

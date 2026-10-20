@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.world.gen.CompoundPreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -73,7 +75,10 @@ public final class CompoundPerimeterDefenderStamper implements GenStage {
     @Override
     public void run(GenContext ctx) {
         TraversalAxis axis = ctx.get(BspKeys.AXIS);
-        if (axis == null) return;
+        if (axis == null) {
+            layOnPrecincts(ctx);
+            return;
+        }
         NavigationGrid grid = ctx.grid;
         boolean[][] reserved = ctx.get(BspKeys.ROAD_RESERVATION);
         List<TacticalNode> tactical = ctx.tactical;
@@ -100,6 +105,37 @@ public final class CompoundPerimeterDefenderStamper implements GenStage {
                     Faction.DEFENDER,
                     PERIMETER_GUARDPOST_PRIORITY,
                     PERIMETER_GUARDPOST_GARRISON));
+        }
+    }
+
+    /**
+     * A Conquest built of places (a precinct plan, the campaign's own) has no traversal axis: the attack comes from the
+     * landing place. Each compound place there gets the same sandbagged door, facing the side of its building that
+     * looks toward the landing, kept off every road the places' circulation runs on and every reserved cell, and the
+     * same two-man lookout behind it. Where no apron fits, nothing is stamped: a precinct map's compounds kept no
+     * perimeter lookout before, and a lookout is the apron's, not a substitute for it. A plan with no landing place
+     * (every map but a Conquest's) is left as it was.
+     */
+    private static void layOnPrecincts(GenContext ctx) {
+        PrecinctPlan plan = ctx.get(BspKeys.PRECINCTS);
+        Precinct landing = plan == null ? null : plan.landingPlace();
+        if (landing == null) return;
+        boolean[][] reserved = ctx.get(BspKeys.ROAD_RESERVATION);
+        int[][] road = ctx.get(BspKeys.PRECINCT_ROAD);
+        VehicleCorridor corridor = ctx.get(BspKeys.VEHICLE_CORRIDOR);
+        CompoundPreparedGround.KeepClear keepClear = (x, y) -> isReserved(reserved, x, y)
+                || (road != null && x < road.length && y < road[x].length && road[x][y] != GrownTrunkPlan.UNOWNED)
+                || (corridor != null && corridor.contains(x, y));
+        List<TacticalNode> initial = new ArrayList<>(ctx.tactical);
+        for (TacticalNode node : initial) {
+            if (!isCompoundKind(node.kind)) continue;
+            int dx = landing.seedX() - (node.left + node.right) / 2;
+            int dy = landing.seedY() - (node.top + node.bottom) / 2;
+            int towardX = Math.abs(dx) >= Math.abs(dy) ? Integer.signum(dx) : 0;
+            int towardY = Math.abs(dx) >= Math.abs(dy) ? 0 : Integer.signum(dy);
+            if (towardX == 0 && towardY == 0) continue;
+            CompoundPreparedGround.Apron apron = CompoundPreparedGround.layFacing(ctx, node, towardX, towardY, keepClear);
+            if (apron != null) ctx.tactical.add(picketOn(apron));
         }
     }
 

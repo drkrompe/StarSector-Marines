@@ -2203,17 +2203,25 @@ A compound's sandbagged door (`mapgen-nouns.md`, prepared ground) is the same
 kind of place and is manned the same way: its two-man lookout stands behind the
 bags from the first tick and the rest of the apron is empty until the commander
 believes it pressed. It is the layer in front of its building, so a garrison
-driven off it falls back inside the building the apron fronts and holds it as an
-area defence, never released in a fight, until the building has been quiet for a
-while or the marines have taken the compound; then it returns to the pool. A
+driven off it falls back to the building the apron fronts. The building is a
+garrisonable of its own, its envelope (`garrisonables.md`): a pressed building
+is manned by an ordinary hold of it, so its holders stand to at the windows and
+doors by the frontage laws above, and a building whose own born garrison still
+stands in it already counts as manned. An envelope breached by an enemy inside
+hands its holders to the rooms, an area defence inside the building, never
+released in a fight, until the building has been quiet for a while or the
+marines have taken the compound; then it returns to the pool. Apron, envelope
+and rooms are the three layers of a compound place. A
 place fronts a compound when it stands within a few cells of the compound
 building's box and is no fort's belt (`CompoundGround`). The scene
 `compound-apron` plays it: a quiet apron empty, a pressed one manned and dug in,
-a breached garrison inside its barracks.
+a pressed barracks manned and stood to at its windows, a breached apron falling
+back to the barracks, and an entered barracks falling back to its rooms.
 
 The attacker holds what it takes by the same assignment: the belt of a fort it
-has taken, and the apron at the door of a compound it has taken, is manned from its lane pool while it believes a counter-attack near
-it, never from a company or a capture, never more than a quarter of the lane
+has taken, and the apron and buildings of a compound it has taken, is manned from its lane pool while it believes a counter-attack near
+it (a captured compound's own garrison counts as manning its building; scene
+`taken-compound`), never from a company or a capture, never more than a quarter of the lane
 pool at once, and never in the convergence phases. Only a believed mover, not a
 nest left standing, presses taken ground (`garrisonables.md`, holding taken
 ground; scene `attacker-holds-ground`).
@@ -2388,7 +2396,9 @@ a squad in it acts only while it carries no player order. It watches a ring the
 size of a defend area round its **anchor** — where it stood when the stance was
 turned on, or when a player order it carried ended — and mans the
 stretch of fighting-position run or held building inside the ring that its side believes
-most pressed, by the commander's own law (`garrisonables.md`): the defender's
+most pressed — a building being any held place or compound building its side
+may enter, offered as a building envelope on every map that publishes held
+places — by the commander's own law (`garrisonables.md`): the defender's
 start and release levels and dwell, never released in a fight, never sent below
 useful strength, a breach near it a fall back with that place left alone for a
 while, belief only. It considers only the side's own ground — nothing inside a
@@ -2403,8 +2413,9 @@ left the squad, so a player can move a squad to a corner and have it watch there
 turning the stance off ends only the order the stance gave. The order bar's card says what the stance is doing
 (watching, manning a trench, holding a building, returning, under orders) and the
 selected squad's watch ring and manned place are drawn on the map. The scene
-`player-reactive-manning` is the acceptance (`ReactiveWatch`,
-`ReactiveManningSystem`).
+`player-reactive-manning` is the acceptance, and `mission-envelopes` plays the
+stance on a held building of each procedural mission's map and a story map
+(`ReactiveWatch`, `ReactiveManningSystem`).
 
 **A marine with a position fights from it.** A claimed marine walks to the cell
 and stays: they fire when they have a shot and otherwise wait, rather than
