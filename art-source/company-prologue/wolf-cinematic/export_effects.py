@@ -52,6 +52,8 @@ import vfx_hull  # noqa: E402  (after WOLF_VARIANT is set)
 bpy.ops.wm.open_mainfile(filepath=str(BASE))
 ctx = swfx.apply(state='clean', groups=GROUPS, hull=HERE, rcs=False, dust=False)
 ctx.set('smk_atmosphere', 0.0)
+for i in vfx_hull.LIFT_INDICES:   # the ventral lift thrusters idle in cruise; a landing runs them
+    ctx.set(f'thr_throttle_e{i}', 0.0)
 swfx_core.refresh_drivers(bpy.context.scene)
 coll = bpy.data.collections[swfx_core.ROOT]
 objs = list(coll.all_objects)
@@ -79,19 +81,26 @@ eng, guns = ctx.anchors.engines, ctx.anchors.guns
 man = dict(base_man)
 man['asset'] = ASSET
 man['state'] = 'clean'
-man['engines_running'] = [e.index for e in eng]
+man['engines_running'] = [e.index for e in eng if e.index in vfx_hull.MAIN_INDICES]
+man['lift_thruster_engines'] = list(vfx_hull.LIFT_INDICES)
+man['lift_thrusters_note'] = ('SWFX engines 4-7 are the ventral lift thrusters (lift_thrusters[].engine_index), '
+                              'shipped at thr_throttle_e4..e7 = 0; key them up for a landing or lift-off.')
 man['engine_sides'] = {'port': list(vfx_hull.PORT_ENGINES), 'starboard': list(vfx_hull.STARBOARD_ENGINES)}
 man['gun_rigs'] = [{'mount': g.turret, 'tag': g.tag, 'kind': getattr(g, 'kind', 'gun'), 'scale': g.scale,
                     'anchor': g.empty.name} for g in guns]
-man['gun_rigs_note'] = ("Kit mount numbers in vfx_mounts order. Pirate (swfx_guns.fire(ctx, mount, ...)): 1 WS 001 ion cannon and 2 WS 004 "
-                        "mining blaster are 'energy' mounts (ENERGY_COLOURS), 3 WS 005 and 4 WS 006 the "
-                        "Annihilator pods, five-tube launchers.")
+man['gun_rigs_note'] = (
+    "Kit mount numbers in vfx_mounts order (swfx_guns.fire(ctx, mount, ...)). Merchant: 1 WS 001 ion cannon, "
+    "2 WS 002 and 3 WS 003 PD lasers, 4 WS 004 heavy blaster are 'energy' mounts (ENERGY_COLOURS); 5 WS 005 and "
+    "6 WS 006 Harpoon launchers, three tubes each." if MERCHANT else
+    "Kit mount numbers in vfx_mounts order (swfx_guns.fire(ctx, mount, ...)). Pirate: 1 WS 001 ion cannon and "
+    "2 WS 004 mining blaster are 'energy' mounts (ENERGY_COLOURS), 3 WS 005 and 4 WS 006 the Annihilator pods, "
+    "five-tube launchers.")
 man['lamps'] = [{'object': n, 'role': role, 'rgb': list(c) if c else None} for n, role, c in vfx_hull.LAMPS]
 man['effects'] = {
     'collection': swfx_core.ROOT,
     'kit': 'second-wind-vfx (swfx.apply, hull profile wolf-cinematic/vfx_hull.py, state clean, '
            'groups thrusters, smoke, guns, lighting; rcs=False, dust=False; no rig preset)',
-    'defaults': {'smk_atmosphere': 0.0},
+    'defaults': dict({'smk_atmosphere': 0.0}, **{f'thr_throttle_e{i}': 0.0 for i in vfx_hull.LIFT_INDICES}),
     'objects': len(objs),
     'anchors': {k: (len(v) if isinstance(v, list) else v) for k, v in ctx.records['anchors'].items()},
     'engines': [{'index': e.index, 'side': e.side, 'radius': round(e.radius, 3), 'width': e.width} for e in eng],

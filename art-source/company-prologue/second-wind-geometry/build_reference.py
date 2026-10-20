@@ -66,6 +66,7 @@ bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 kit = sw_kit.Kit()
 kit.mpu = METRES_PER_UNIT
+sw_kit.MPU = METRES_PER_UNIT
 
 # Order matters: bow facets are cut before the engine pods join the hull,
 # and the bay apertures after, so neither cut reaches the wrong part.
@@ -83,6 +84,38 @@ sw_port_module.build(kit)
 sw_engines.build_nozzles(kit)
 sw_turrets.build(kit)
 sw_rcs.build(kit)
+
+
+def edge_treatment():
+    """The shared bevel table (ship-detail-guide.md, Edge treatment): every part with no
+    edge chamfer of its own gets an angle-limited, one-segment bevel sized by the part
+    (hull plates 0.12 m, modules 0.06 m, fittings 0.03 m, small parts 0.015 m), first in
+    its stack so the bridge cavity and the scar Booleans cut the bevelled part. The main
+    hull's sections carry their own keel and shoulder chamfers; turrets are the turret
+    kit's; glazing, lamps and displays stay sharp. Above 64 deg only, so a chamfer never
+    splits a gentle crease into two that read as a coarse curve."""
+    sys.path.insert(0, str(HERE.parent/'ship-detail-kit'))
+    import ship_detail_kit as sdk
+    skip = ('Turret ', 'Weapon ', 'Temporary ', 'Scar ', 'Anchor', 'Main hull')
+    for ob in bpy.data.objects:
+        if ob.type != 'MESH' or ob.name.startswith(skip) or any(m.type == 'BEVEL' for m in ob.modifiers):
+            continue
+        if sw_kit.LIGHT_NAME.search(ob.name):
+            continue
+        mats = [m for m in ob.data.materials if m]
+        if any(m.surface_render_method == 'BLENDED' or 'glazing' in m.name.lower() for m in mats):
+            continue
+        span = sorted(ob.dimensions)[1]*METRES_PER_UNIT
+        kind = 'hull' if span > 5 else 'module' if span > 1 else 'fitting' if span > .3 else 'small'
+        b = ob.modifiers.new('Edge treatment', 'BEVEL')
+        b.width, b.segments, b.limit_method = sdk.BEVEL_M[kind]/METRES_PER_UNIT, 1, 'ANGLE'
+        b.angle_limit = math.radians(70)
+        b.use_clamp_overlap = True
+        b.harden_normals = any(p.use_smooth for p in ob.data.polygons)
+        ob.modifiers.move(len(ob.modifiers)-1, 0)
+
+
+edge_treatment()
 # Scars are the last phase: everything above is the clean ship.
 damage = sw_damage.apply(kit, args.state) if args.state != 'clean' else None
 sw_bridge_interior.dress(kit, args.state)

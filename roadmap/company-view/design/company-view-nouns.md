@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — The first Hermes is repaired after Relief, in Castle's first-lift lesson; preparation is ship, Sabine, squad, assignment.
+Updated: 2026-10-20 — while the Second Wind is away (stored, or in a yard after a loss), Company HQ and planet Marine operations are closed and say how to get her back; the prologue is seven pages, and Castle's saved credits pay for the yard.
 
 ## Purpose
 
@@ -1263,13 +1263,16 @@ wreck's five d-mods and only two Vulcans in its small mounts, the guns nobody st
 Vanilla and Nexerelin starts hand out the same variant (`CerberusCompanyStart.START_VARIANT_ID`);
 restoring and arming her are ordinary yard work, not part of the opening.
 Castle directs the player to an accessible planetary spaceport, preferring Jangala.
-A new selection first opens **Second Wind**, a skippable eight-scene illustrated prologue
-with Castle's portrait and readable dialogue. The crew escaped **Harker's Claim**, an
+A new selection first opens **Second Wind**, a skippable seven-page illustrated prologue
+with Castle's portrait and readable dialogue; each page turns on the Commander's own
+answer to her, and the last one, "Take us to" the start port, plots the course. The crew escaped **Harker's Claim**, an
 independent mining asteroid, after its operator withdrew. Company scrip became
 worthless as the colony's supplies ran out. They restored a grounded Cerberus; the player
 earned command by organizing the escape, while Castle supplied port and convoy
-logistics experience. Earlier player biography remains open. Pooled savings and
-Castle's finite prepaid consignment explain the starting means. Castle holds the
+logistics experience. Earlier player biography remains open. They set out for
+Jangala from the start, on Castle's one contact there, Nessa Venn at Greywater Down.
+Everyone aboard holds worthless company scrip; the real credits Castle quietly saved
+are what pay for the yard, and her finite prepaid consignment explains the stores. Castle holds the
 4,862-credit conversion payment (her chits) separately from the fleet account, usable only for
 the original ship's yard conversion. It falls short of the 4,986 estimate by exactly
 the pressure test, which the yard waives whenever the reserve pays, so spending the
@@ -1293,7 +1296,7 @@ survive saves; ordinary starts and pre-prologue saves do not opt in on load.
 The opening grants no resources, repairs, conversion, recruits or mission progress.
 Its illustrations are presentation, not a new hull-condition authority. Each beat
 has its own image: bridge, Claim, last carrier, emergency repairs, boarding,
-port approach, makeshift sleeping space and the estimate. Exterior workers wear
+port approach and makeshift sleeping space. Exterior workers wear
 sealed industrial EVA suits; boarding takes place inside a pressurized loading dock.
 Exterior views use an upscaled vanilla Cerberus sprite as their identity reference.
 Runtime art is full-frame 1200x800 JPEG; larger masters and reference art stay outside `mod/`.
@@ -1386,6 +1389,15 @@ eligibility and exact reviewed complement are rechecked at payment. Deferring,
 insufficient funds and stale review change nothing. Surviving boats remain ordinary
 owned assets, and destroyed replacements receive no story refund or free respawn.
 The hull's saved adapters remain with Second Wind through company transfers.
+
+**While the Second Wind is away the company has no home to open.** She is never
+lost for good (`ship-interiors-nouns.md`), but while the company lives aboard her
+and she is out of the fleet - in storage, or in a yard after a loss - the Marines
+button answers with Castle's instructions instead of Company HQ: where she is,
+how many yard days are left, what the yard will charge, and that docking there (or
+taking her out of storage) brings the company home. The planet menu keeps
+Marine operations listed but disabled, with the same instructions as its tooltip.
+A company that has moved to another hull is not gated by her absence.
 
 Delivery ends with Castle directing the player to the real PLATING and DRIVE controls;
 no additional purchase is required. The conversation overlays the room and owns input

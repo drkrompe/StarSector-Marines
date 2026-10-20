@@ -29,8 +29,8 @@
   32.7
  ],
  "meshes": 503,
- "polygons": 152294,
- "images": 23,
+ "polygons": 186075,
+ "images": 31,
  "engines": [
   {
    "index": 1,
@@ -249,7 +249,7 @@
      43.4,
      55.5
     ],
-    "half_width": 3.7,
+    "half_width": 4.1,
     "z": [
      -6.5,
      8.4
@@ -1180,7 +1180,9 @@
     -1
    ],
    "mouth_radius": 1.55,
-   "anchor": "Lift 1 exhaust anchor"
+   "anchor": "Lift 1 exhaust anchor",
+   "engine_index": 4,
+   "engine_anchor": "Engine 4 exhaust anchor"
   },
   {
    "index": 2,
@@ -1195,7 +1197,9 @@
     -1
    ],
    "mouth_radius": 1.55,
-   "anchor": "Lift 2 exhaust anchor"
+   "anchor": "Lift 2 exhaust anchor",
+   "engine_index": 5,
+   "engine_anchor": "Engine 5 exhaust anchor"
   },
   {
    "index": 3,
@@ -1210,7 +1214,9 @@
     -1
    ],
    "mouth_radius": 1.55,
-   "anchor": "Lift 3 exhaust anchor"
+   "anchor": "Lift 3 exhaust anchor",
+   "engine_index": 6,
+   "engine_anchor": "Engine 6 exhaust anchor"
   },
   {
    "index": 4,
@@ -1225,14 +1231,16 @@
     -1
    ],
    "mouth_radius": 1.55,
-   "anchor": "Lift 4 exhaust anchor"
+   "anchor": "Lift 4 exhaust anchor",
+   "engine_index": 7,
+   "engine_anchor": "Engine 7 exhaust anchor"
   }
  ],
  "sources": {
   "geometry": "art-source/company-prologue/wolf-geometry/build_wolf.py",
   "surface": "art-source/company-prologue/wolf-merchant-surface (shared harness, service wear)",
   "built_from": "skinned.blend",
-  "vfx_hull_sha256": "d35ade4f432b5d3ce8e0943871e6463cccfdd36f3da0f5a7e01be88daed8271e"
+  "vfx_hull_sha256": "05780f26f82dee89ad50f90a5769835c35896661705f03fabc6f591ac1049e17"
  },
  "state": "clean",
  "engines_running": [
@@ -1240,12 +1248,23 @@
   2,
   3
  ],
+ "lift_thruster_engines": [
+  4,
+  5,
+  6,
+  7
+ ],
+ "lift_thrusters_note": "SWFX engines 4-7 are the ventral lift thrusters (lift_thrusters[].engine_index), shipped at thr_throttle_e4..e7 = 0; key them up for a landing or lift-off.",
  "engine_sides": {
   "port": [
-   1
+   1,
+   4,
+   6
   ],
   "starboard": [
-   3
+   3,
+   5,
+   7
   ]
  },
  "gun_rigs": [
@@ -1320,7 +1339,7 @@
    "anchor": "SWFX anchor turret 6 tube 3"
   }
  ],
- "gun_rigs_note": "Kit mount numbers in vfx_mounts order. Pirate (swfx_guns.fire(ctx, mount, ...)): 1 WS 001 ion cannon and 2 WS 004 mining blaster are 'energy' mounts (ENERGY_COLOURS), 3 WS 005 and 4 WS 006 the Annihilator pods, five-tube launchers.",
+ "gun_rigs_note": "Kit mount numbers in vfx_mounts order (swfx_guns.fire(ctx, mount, ...)). Merchant: 1 WS 001 ion cannon, 2 WS 002 and 3 WS 003 PD lasers, 4 WS 004 heavy blaster are 'energy' mounts (ENERGY_COLOURS); 5 WS 005 and 6 WS 006 Harpoon launchers, three tubes each.",
  "lamps": [
   {
    "object": "Light port neck lamp 1",
@@ -1391,11 +1410,15 @@
   "collection": "SWFX",
   "kit": "second-wind-vfx (swfx.apply, hull profile wolf-cinematic/vfx_hull.py, state clean, groups thrusters, smoke, guns, lighting; rcs=False, dust=False; no rig preset)",
   "defaults": {
-   "smk_atmosphere": 0.0
+   "smk_atmosphere": 0.0,
+   "thr_throttle_e4": 0.0,
+   "thr_throttle_e5": 0.0,
+   "thr_throttle_e6": 0.0,
+   "thr_throttle_e7": 0.0
   },
-  "objects": 68,
+  "objects": 96,
   "anchors": {
-   "engines": 3,
+   "engines": 7,
    "guns": 10,
    "lamps": 8,
    "sparks": 0,
@@ -1419,19 +1442,43 @@
     "side": "starboard",
     "radius": 3.52,
     "width": 16
+   },
+   {
+    "index": 4,
+    "side": "port",
+    "radius": 1.55,
+    "width": 6
+   },
+   {
+    "index": 5,
+    "side": "starboard",
+    "radius": 1.55,
+    "width": 6
+   },
+   {
+    "index": 6,
+    "side": "port",
+    "radius": 1.55,
+    "width": 6
+   },
+   {
+    "index": 7,
+    "side": "starboard",
+    "radius": 1.55,
+    "width": 6
    }
   ],
   "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
   "groups": {
    "thrusters": {
-    "engines": 3,
+    "engines": 7,
     "rcs": 0,
     "note": "RCS quad positions are art placement, not canon.",
     "invalid_drivers": 0
    },
    "smoke": {
     "state": "clean",
-    "haze": 3,
+    "haze": 7,
     "seal_wisps": 0,
     "welds": 0,
     "sparks": 0
@@ -1449,5 +1496,5 @@
   },
   "append": "load both 'WOLF' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "38ab9cde71214466250322926b02bb8dd9f24c0ca7f65d812467827d9e69fe34"
+ "asset_sha256": "c979257e8a5f05114f20d8106b017fdc58e173a01d57aa95d5153caef725be15"
 }

@@ -57,24 +57,35 @@ public final class DeckSizing {
      *     rooms that hold them rather than looked up against a roster
      */
     public record DeckPlan(int frames, int height, List<RoomRecipe> rooms,
-                           ShuttleType boats, CompanyShip.BoatBayState boatBay, WorkshopState workshop, ShipRestoration restoration) {
+                           ShuttleType boats, CompanyShip.BoatBayState boatBay, WorkshopState workshop, ShipRestoration restoration,
+                           DeckArrangement arrangement) {
+
+        public DeckPlan(int frames, int height, List<RoomRecipe> rooms,
+                        ShuttleType boats, CompanyShip.BoatBayState boatBay, WorkshopState workshop, ShipRestoration restoration) {
+            this(frames, height, rooms, boats, boatBay, workshop, restoration, null);
+        }
 
         public DeckPlan(int frames, int height, List<RoomRecipe> rooms, ShuttleType boats, CompanyShip.BoatBayState boatBay, WorkshopState workshop) {
             this(frames, height, rooms, boats, boatBay, workshop, ShipRestoration.NONE);
         }
         public DeckPlan withRestoration(ShipRestoration state) {
-            return new DeckPlan(frames, height, rooms, boats, boatBay, workshop, state);
+            return new DeckPlan(frames, height, rooms, boats, boatBay, workshop, state, arrangement);
         }
 
         public DeckPlan(int frames, int height, List<RoomRecipe> rooms, ShuttleType boats, CompanyShip.BoatBayState boatBay) {
             this(frames, height, rooms, boats, boatBay, WorkshopState.NONE);
         }
         public DeckPlan withBoats(ShuttleType pattern) {
-            return new DeckPlan(frames, height, rooms, pattern, boatBay, workshop, restoration);
+            return new DeckPlan(frames, height, rooms, pattern, boatBay, workshop, restoration, arrangement);
         }
 
         public DeckPlan withWorkshop(WorkshopState state) {
-            return new DeckPlan(frames, height, rooms, boats, boatBay, state, restoration);
+            return new DeckPlan(frames, height, rooms, boats, boatBay, state, restoration, arrangement);
+        }
+
+        /** The same deck with its rooms kept where {@code layout} says, or packed by zone alone when null. */
+        public DeckPlan withArrangement(DeckArrangement layout) {
+            return new DeckPlan(frames, height, rooms, boats, boatBay, workshop, restoration, layout);
         }
 
         public DeckPlan(int frames, int height, List<RoomRecipe> rooms, ShuttleType boats) {
@@ -157,8 +168,11 @@ public final class DeckSizing {
         if (conversion && boatBay != CompanyShip.BoatBayState.NONE)
             rooms.replaceAll(room -> room.equals(RoomRecipe.COMPACT_VEHICLE_BAY)
                     ? RoomRecipe.LANCE_VEHICLE_BAY : room);
-        return new DeckPlan(deckFrames, deckHeight, rooms,
+        // The original hull has been drawn, and her deck keeps its rooms where
+        // the drawing does. Every other hull is packed by zone.
+        DeckPlan plan = new DeckPlan(deckFrames, deckHeight, rooms,
                 ShipsBoats.carriedBy(role), boatBay);
+        return boatBay == CompanyShip.BoatBayState.NONE ? plan : plan.withArrangement(DeckArrangement.SECOND_WIND);
     }
 
     /**

@@ -103,3 +103,4 @@ com.dillon.starsectormarines.battle.command.AttackerHoldsGroundScene
 com.dillon.starsectormarines.battle.assault.MachineAssaultScene
 com.dillon.starsectormarines.battle.squad.PlayerReactiveManningScene
 com.dillon.starsectormarines.battle.command.CompoundApronScene
+com.dillon.starsectormarines.battle.command.MachineGuardScene

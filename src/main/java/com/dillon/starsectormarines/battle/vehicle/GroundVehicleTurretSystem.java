@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.assault.MachineAssault;
+import com.dillon.starsectormarines.battle.assault.MachineGuard;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.mech.MechTargeting;
@@ -160,7 +161,7 @@ public final class GroundVehicleTurretSystem {
         if (turret.ammo <= 0) {
             turret.clearQueuedFire();
             turret.targetId = 0L;
-            turret.facingDeg = idleFacing(turret.facingDeg, body.facingDegrees, mount.turnRateDegPerSec, dt);
+            turret.facingDeg = idleFacing(turret.facingDeg, idleHeading(id, body), mount.turnRateDegPerSec, dt);
             return;
         }
         WeaponDef weapon = mount.weapon;
@@ -220,7 +221,7 @@ public final class GroundVehicleTurretSystem {
         turret.cooldownTimer = aim.cooldownTimer;
         turret.targetId = aim.target;
         if (aim.target == 0L) {
-            turret.facingDeg = idleFacing(turret.facingDeg, body.facingDegrees, mount.turnRateDegPerSec, dt);
+            turret.facingDeg = idleFacing(turret.facingDeg, idleHeading(id, body), mount.turnRateDegPerSec, dt);
             return;
         }
         if (aim.fireThisTick && aim.target != 0L) {
@@ -237,6 +238,16 @@ public final class GroundVehicleTurretSystem {
                 turret.burstTargetId = aim.target;
             }
         }
+    }
+
+    /**
+     * Where an idle gun rests: down the threat axis of a guard the hull stands ({@code MachineGuards}), so the
+     * heavy support beside a garrison watches the way the attack is believed to come; otherwise over the hull's nose.
+     */
+    private float idleHeading(long id, GroundBody body) {
+        MachineGuard guard = assaults != null ? assaults.guard(id) : null;
+        if (guard == null) return body.facingDegrees;
+        return TurretAim.bearingTo(0f, 0f, guard.axisX(), guard.axisY());
     }
 
     private boolean closeThreat(long target, float mountX, float mountY) {
@@ -288,7 +299,7 @@ public final class GroundVehicleTurretSystem {
         }
         turret.targetId = target;
         if (target == 0L) {
-            turret.facingDeg = idleFacing(turret.facingDeg, body.facingDegrees, mount.turnRateDegPerSec, dt);
+            turret.facingDeg = idleFacing(turret.facingDeg, idleHeading(id, body), mount.turnRateDegPerSec, dt);
             return;
         }
         float bearing = TurretAim.bearingTo(mountX, mountY, world.x(target), world.y(target));

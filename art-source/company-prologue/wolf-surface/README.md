@@ -1,7 +1,8 @@
 # Wolf (P): surfacing
 
-Status: ACTIVE — pass 6 texture, in owner review.
+Status: ACTIVE — pass 6 texture redone on the accepted round 8 geometry.
 Written: 2026-10-19
+Updated: 2026-10-20 — round 8 underside surfaced; fleet crimson
 
 The Wolf (P)'s inputs to the shared surfacing harness
 (`../second-wind-surface/`, see its README): `surface_hull.py` (classes,
@@ -15,12 +16,19 @@ reference), `guide/`, `part-list/`, `registration/`, `palette.json`,
   committed): deep crimson armour over warm grey machinery, near-black recesses,
   tinted glazing. Finish reference generated from the three-quarter camera,
   registered at IoU 0.996.
-- **Parts:** 16 generated tiles on four sheets (crimson tops and sides, grey tops
-  and faces) plus 9 starboard mirrors, and one swatch sheet (crimson, grey, dark;
-  glass derived). Every tile registered at IoU 0.983-0.999 and held its declared
-  paint family on 96-100% of its pixels; no swaps.
-- **Palette:** crimson and grey measured off the reference; the recess near-black
-  is owned (the reference's few recess pixels measured as light as the crimson).
+- **Parts:** 27 generated tiles on seven sheets (crimson tops, sides and belly;
+  grey tops, bridge, faces and belly) plus 11 starboard mirrors, and one swatch
+  sheet (crimson, grey, dark; glass derived). The belly sheets cover round 8's
+  underside: the landing wedges (stowed, as they lie on the lower hull side), the
+  aft body and neck undersides, the keel with its keel shoes, the head and prow
+  underside, the head flank and the pod undersides. Every tile registered at IoU
+  0.980-1.000 and held its declared paint family on 95-100% of its pixels; no
+  swaps.
+- **Palette:** grey measured off the reference; the crimson mean is owned, the
+  Colossus Mk.III's pirate red, so the pirate fleet reads as one paint (the Kite
+  (P) has no crimson field and the Falcon (P)'s red is a lighter trim). The
+  recess near-black is owned (the reference's few recess pixels measured as light
+  as the crimson).
 - **Wear:** `battle` in `wear.json` ("heavily modified - and poorly maintained", the
   skin): abrasion, pitting, fade toward a dusty pink-grey, grime, drive soot, and
   neglect (the odd plate left in primer). The turret kit's guns keep their own

@@ -44,16 +44,17 @@ raked chin.
 
 Engine pods
 Each aft mound is a whole drive unit bolted to the ship, not hull with
-nozzles poking out of it. Its sections are faceted engine forms rather than
-boxes: rounded-rectangle sections whose corners are cut into flat facets,
-lofted so they taper between stations. An intake cap narrows to a raked
-intake; an armoured cowl over a steel lower casing carries the turret
-platform; proud barrel bands frame a finned heat-sink cylinder; a short
-thrust housing ends in two twelve-sided engine cans with the bells sunk into
-them. Every section is separated by a seam over a dark core. A low pylon
-with coolant and fuel lines ties each pod to the centre body. Smooth and
-inflated experiments looked organic and were rejected; facets stay flat and
-edges crisp. The four engine centres and the bay thresholds retain their V2
+nozzles poking out of it. Its sections are machined engine forms rather than
+boxes: rounded-rectangle sections whose corner radii follow the segment
+rule and shade smooth, lofted so they taper between stations. An intake cap
+narrows to a raked intake; an armoured cowl over a steel lower casing
+carries the turret platform; proud barrel bands frame a finned heat-sink
+cylinder; a short thrust housing ends in two round engine cans with the
+bells sunk into them. Every section is separated by a seam over a dark core.
+A low pylon with coolant and fuel lines ties each pod to the centre body.
+Smooth and inflated experiments looked organic and were rejected: the flats
+stay flat and every station step, raked face and band chamfer stays a crisp
+edge; only the corner rounds are smooth. The four engine centres and the bay thresholds retain their V2
 coordinates.
 
 Centre aft deck and stern notch
@@ -65,6 +66,23 @@ well, and a bolted girder on the aft edge over the engine-room bulkhead and
 door. The stern notch holds a docking/tow cradle: a cross beam with arms
 ending in clamp jaws, flanked by armoured prongs carrying winch bays and
 bolted to the pods' aft bands.
+
+Detail rule (close-shot pass, 2026-10-20)
+Held to ship-detail-guide.md for a close shot (check_detail.py at 0.65 m/unit,
+turrets excluded, no lights layer, each state). Every round follows the
+segment rule (sw_kit.sides: kit cylinders, the pod corner rounds and round
+engine cans, bells, radome, RCS bells, scar discs and tubes, the tubes rounded
+along their bends too) and shades smooth with its rims sharp; the spine
+capsule ends round on the same rule; parts without a chamfer of their own get
+an angle-limited one-segment bevel by tier before the scars
+(build_reference.edge_treatment); plate and pod chamfers sit above the angles
+they would split into shallow creases. The engine-bay scar keeps its places
+on the housing through sw_scars_pods.section_index. Faceted 60-66 -> 1-3,
+unbevelled 1.40-1.47 -> 0.14-0.16 m per 100 m2, top-view IoU unchanged. Still
+read: the octagonal turret 1/2 seat tops inside the main hull, hidden under
+their steel skin plates; two faceted impact basins (scar language) in the
+damaged states; and the bridge-interior displays behind the framed glazing,
+the only emissives without a lamp name (the Cerberus has no lights layer).
 
 Command deck
 Following the sprite's central capsule, the command deck stands on the

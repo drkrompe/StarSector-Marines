@@ -235,8 +235,8 @@ public final class CompanyDeck {
     }
 
     /**
-     * Every compartment of one purpose, ordered from fore to aft and then by
-     * stable deck identity. Room screens use this when a hull carries more than
+     * Every compartment of one purpose, ordered from fore to aft, port before
+     * starboard for rooms abreast, and then by stable deck identity. Room screens use this when a hull carries more than
      * one facility of the same kind instead of silently trapping the camera in
      * whichever one happened to be largest.
      */
@@ -247,6 +247,7 @@ public final class CompanyDeck {
             if (compartment.purpose() == purpose) found.add(compartment);
         }
         found.sort(Comparator.comparingInt(DeckGraph.Compartment::foreFrame)
+                .thenComparing(DeckGraph.Compartment::side)
                 .thenComparingInt(DeckGraph.Compartment::id));
         return List.copyOf(found);
     }

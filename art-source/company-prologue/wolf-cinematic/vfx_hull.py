@@ -18,6 +18,11 @@ propellant puff or brass), 3 WS 005 and 4 WS 006 the Annihilator pods,
 ENERGY_COLOURS are the vanilla glow colours in linear light: ion cannon
 (100, 200, 255), mining blaster (255, 100, 100).
 
+Lift thrusters (pass 7): the four ventral lift thrusters are engines 4-7, at
+the `Engine <i> exhaust anchor` empties export_wolf.py puts at their mouths
+(local +X down), shipped at thr_throttle_e4..e7 = 0; the merchant's mounts are
+1 ion cannon, 2-3 PD lasers and 4 heavy blaster (energy), 5-6 Harpoon launchers.
+
 Lamps: the two amber neck lamps the sprite draws (steady, masthead role), the
 red and green pod-tip lights, the white stern light, and the round 7 fittings'
 white masthead on the bridge mast and two white ventral docking lights.
@@ -36,10 +41,19 @@ _geom = json.loads(GEOMETRY_JSON.read_text(encoding='utf-8'))
 _engines = sorted(_geom['engines'], key=lambda e: e['index'])
 
 ENGINES = [(e['location'][0], e['location'][1], e['width']) for e in _engines]
-ENGINE_INDICES = tuple(e['index'] for e in _engines)
 BELL_R = {e['width']: e['mouth_radius'] for e in _engines}
-PORT_ENGINES = tuple(e['index'] for e in _engines if e['location'][1] > 0)
-STARBOARD_ENGINES = tuple(e['index'] for e in _engines if e['location'][1] < 0)
+MAIN_INDICES = tuple(e['index'] for e in _engines)
+# Pass 7: the four ventral lift thrusters are engines 4-7 (`Engine <i> exhaust anchor`
+# at each mouth, +X down, from export_wolf.py). The asset ships them at throttle 0
+# (cruise); a shot that lands or lifts off runs thr_throttle_e4..e7.
+LIFT_WIDTH = 6
+_lifts = sorted(_geom['landing_gear']['lift_thrusters'], key=lambda t: t['index'])
+BELL_R[LIFT_WIDTH] = _lifts[0]['mouth_radius']
+ENGINES += [(t['location'][0], t['location'][1], LIFT_WIDTH) for t in _lifts]
+LIFT_INDICES = tuple(range(len(MAIN_INDICES) + 1, len(ENGINES) + 1))
+ENGINE_INDICES = MAIN_INDICES + LIFT_INDICES
+PORT_ENGINES = tuple(i for i, (x, y, w) in enumerate(ENGINES, 1) if y > 0)
+STARBOARD_ENGINES = tuple(i for i, (x, y, w) in enumerate(ENGINES, 1) if y < 0)
 
 # One condition: battle-worn but working, every drive running, lamps lit, guns live.
 STATES = {

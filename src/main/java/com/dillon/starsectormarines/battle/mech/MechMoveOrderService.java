@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.assault.MachineAssault;
+import com.dillon.starsectormarines.battle.assault.MachineGuard;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,12 +27,19 @@ public final class MechMoveOrderService {
         final int cellY;
         /** Hip heading to hold on arrival, or {@code NaN} for none. */
         final float facingDegrees;
+        /** A commander's guard order rather than a player's click: it may only become a guard. */
+        final boolean commanded;
 
         PendingOrder(long mechId, int cellX, int cellY, float facingDegrees) {
+            this(mechId, cellX, cellY, facingDegrees, false);
+        }
+
+        PendingOrder(long mechId, int cellX, int cellY, float facingDegrees, boolean commanded) {
             this.mechId = mechId;
             this.cellX = cellX;
             this.cellY = cellY;
             this.facingDegrees = facingDegrees;
+            this.commanded = commanded;
         }
     }
 
@@ -45,10 +53,21 @@ public final class MechMoveOrderService {
      * enemy-held: the destination is the assault's stand-off, and the order does not end on
      * arrival but holds the mech there, firing on the place, until the assault is over
      * ({@code MachineAssaults}).
+     *
+     * <p>With a {@code guard}, the click was on a garrisonable the side mans: the destination is a cell beside it,
+     * and the order holds the mech there, facing the believed threat, until the garrison has gone
+     * ({@code MachineGuards}). {@code commanded} marks a guard a commander gave a lance of its own side rather
+     * than one a player clicked.
      */
     public record ActiveOrder(int requestedX, int requestedY,
                               int destinationX, int destinationY, float facingDegrees,
-                              MachineAssault assault) {
+                              MachineAssault assault, MachineGuard guard, boolean commanded) {
+
+        /** A move, or an assault when {@code assault} is given. */
+        public ActiveOrder(int requestedX, int requestedY, int destinationX, int destinationY,
+                           float facingDegrees, MachineAssault assault) {
+            this(requestedX, requestedY, destinationX, destinationY, facingDegrees, assault, null, false);
+        }
 
         /** A plain move with no dragged facing. */
         public ActiveOrder(int requestedX, int requestedY, int destinationX, int destinationY) {
@@ -78,6 +97,24 @@ public final class MechMoveOrderService {
      */
     public void requestMove(long mechId, int cellX, int cellY, float facingDegrees) {
         pending.add(new PendingOrder(mechId, cellX, cellY, facingDegrees));
+    }
+
+    /**
+     * Queues a commander's order for one chassis of a lance of its own side to guard the garrisonable at the cell
+     * ({@code MachineGuards}). It becomes a guard or nothing: a place the side no longer mans is not a move.
+     */
+    public void requestGuard(long mechId, int cellX, int cellY) {
+        pending.add(new PendingOrder(mechId, cellX, cellY, Float.NaN, true));
+    }
+
+    /** Ends a commander's guard on this chassis, if it stands under one; a player's order is left alone. */
+    public void standDownGuard(long mechId) {
+        pending.removeIf(order -> order.mechId == mechId && order.commanded);
+        ActiveOrder order = active.get(mechId);
+        if (order != null && order.guard() != null && order.commanded()) {
+            active.remove(mechId, order);
+            heldFacing.remove(mechId);
+        }
     }
 
     /**

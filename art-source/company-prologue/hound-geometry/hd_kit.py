@@ -7,9 +7,36 @@ are editing. Coordinates are hull-local, +X bow, +Y port, +Z dorsal, one
 sprite pixel per unit about the .ship centre.
 """
 import math
+import sys
+from pathlib import Path
 import bmesh
 import bpy
 from mathutils import Vector
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent/'ship-detail-kit'))
+import ship_detail_kit as sdk  # noqa: E402
+
+# Metres per hull unit; build_hound.py sets it from METRES_PER_UNIT before building.
+MPU = .88
+# A bevel modifier leaves edges flatter than this alone, so a designed 45-degree
+# chamfer (the octagon sections) stays one crisp facet instead of soft creases that
+# read as a coarse curve (ship-detail-guide.md, Edge treatment).
+BEVEL_ANGLE = 50.0
+HEX_BOLT_M = .15  # hexagonal heads up to this radius keep six sides (the segment rule's exemption)
+
+
+def sides(radius_units, n):
+    """At least the segment rule's count for a round of this radius (ship_detail_kit.segments);
+    six-sided bolt and nut heads up to HEX_BOLT_M keep six."""
+    r = abs(radius_units)*MPU
+    if n == 6 and r <= HEX_BOLT_M:
+        return 6
+    return max(n, sdk.segments(r))
+
+
+def round_shading(obj):
+    """Smooth-shade a round body with its creases over 35 degrees kept sharp (sdk.smooth)."""
+    return sdk.smooth(obj)
 
 
 def material(name, color, metallic=0.0, roughness=.65, emission=None, strength=2.0):
@@ -45,6 +72,7 @@ class Kit:
         if bevel:
             b = obj.modifiers.new('Plate edge chamfer', 'BEVEL')
             b.width, b.segments, b.limit_method = bevel, 1, 'ANGLE'
+            b.angle_limit = math.radians(BEVEL_ANGLE)
         return obj
 
     def box(self, name, loc, dims, mat, bevel=.15):
@@ -55,12 +83,16 @@ class Kit:
         return self.finish(obj, name, mat, bevel)
 
     def cylinder(self, name, loc, radius, depth, mat, axis='Z', vertices=12, bevel=.08):
-        bpy.ops.mesh.primitive_cylinder_add(vertices=vertices, radius=radius, depth=depth, location=loc)
+        """A round by the segment rule (at least `vertices` sides), smooth-shaded with sharp caps."""
+        n = sides(radius, vertices)
+        bpy.ops.mesh.primitive_cylinder_add(vertices=n, radius=radius, depth=depth, location=loc)
         obj = bpy.context.object
         if axis == 'X':
             obj.rotation_euler[1] = math.pi / 2
         elif axis == 'Y':
             obj.rotation_euler[0] = math.pi / 2
+        if n > 6:
+            round_shading(obj)
         return self.finish(obj, name, mat, bevel)
 
     def mesh(self, name, verts, faces, mat, bevel=0):
@@ -195,3 +227,26 @@ def facet_normal(down, angle):
     dx, dy = down
     length = (dx*dx+dy*dy)**.5
     return (dx/length*math.sin(a), dy/length*math.sin(a), math.cos(a))
+
+
+def edge_treatment(kit):
+    """The shared bevel table (ship-detail-guide.md, Edge treatment), the Lasher's pass: every
+    hull part with no edge chamfer of its own gets an angle-limited, one-segment bevel sized
+    by its part (hull plates 0.12 m, modules 0.06 m, fittings 0.03 m, small parts 0.015 m).
+    Turrets and hardpoints are the turret kit's; glazing and near-black recess parts stay
+    sharp (a chamfer there catches no highlight), and so do cutters and the scale figure."""
+    skip = ('Weapon ', 'Turret ', 'Temporary ', 'Scar cutter', 'Scale figure')
+    sharp = {kit.glass.name, kit.dark.name, 'Wheelhouse glazing'}
+    for ob in list(bpy.data.objects):
+        if ob.type != 'MESH' or ob.name.startswith(skip) or ob.hide_render:
+            continue
+        if any(m.type == 'BEVEL' for m in ob.modifiers):
+            continue        # a chamfer of the part's own is its edge treatment
+        if {m.name for m in ob.data.materials if m} & sharp:
+            continue
+        span = sorted(ob.dimensions)[1]*MPU
+        kind = 'hull' if span > 5 else 'module' if span > 1 else 'fitting' if span > .3 else 'small'
+        b = ob.modifiers.new('Edge treatment', 'BEVEL')
+        b.width, b.segments, b.limit_method = sdk.BEVEL_M[kind]/MPU, 1, 'ANGLE'
+        b.angle_limit = math.radians(70)   # only edges sharper than 70 deg: never soft creases on a curve
+        b.use_clamp_overlap = True

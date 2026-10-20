@@ -47,13 +47,27 @@ public final class AssaultTarget {
 
     /** Fighting-position run {@code runId} of {@code positions}. */
     public static AssaultTarget run(FightingPositionIndex positions, int runId) {
+        return stretch(positions, runId, 0, 0, Integer.MAX_VALUE);
+    }
+
+    /**
+     * The stretch of fighting-position run {@code runId} within {@code reach} cells (Chebyshev) of ({@code cx},
+     * {@code cy}): the part of a long run a garrison standing there holds. A fort's belt run can wrap a corner of the
+     * works; a machine guarding the garrison by the gate stands by the gate, not by the run's far end. The whole run
+     * when no cell of it is that near.
+     */
+    public static AssaultTarget stretch(FightingPositionIndex positions, int runId, int cx, int cy, int reach) {
         int left = Integer.MAX_VALUE, top = Integer.MAX_VALUE, right = Integer.MIN_VALUE, bottom = Integer.MIN_VALUE;
-        for (int i = 0, n = positions.runSize(runId); i < n; i++) {
-            int x = positions.runCellX(runId, i), y = positions.runCellY(runId, i);
-            left = Math.min(left, x);
-            top = Math.min(top, y);
-            right = Math.max(right, x);
-            bottom = Math.max(bottom, y);
+        for (int pass = 0; pass < 2 && left == Integer.MAX_VALUE; pass++) {
+            for (int i = 0, n = positions.runSize(runId); i < n; i++) {
+                int x = positions.runCellX(runId, i), y = positions.runCellY(runId, i);
+                if (pass == 0 && reach != Integer.MAX_VALUE
+                        && Math.max(Math.abs(x - cx), Math.abs(y - cy)) > reach) continue;
+                left = Math.min(left, x);
+                top = Math.min(top, y);
+                right = Math.max(right, x);
+                bottom = Math.max(bottom, y);
+            }
         }
         return new AssaultTarget(Kind.FIGHTING_POSITION, runId, null, positions, left, top, right, bottom);
     }
@@ -80,7 +94,7 @@ public final class AssaultTarget {
     /** The held place, or null for a run. */
     public TacticalNode heldPlace() { return place; }
 
-    /** Whether a hostile last placed at ({@code x}, {@code y}) is in this garrisonable. */
+    /** Whether a unit placed at ({@code x}, {@code y}) is in this garrisonable (a run's cells within its box). */
     public boolean contains(int x, int y) {
         if (kind == Kind.HELD_PLACE) return x >= left && x <= right && y >= top && y <= bottom;
         if (gap(x, y) > 1) return false;
