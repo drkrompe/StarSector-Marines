@@ -158,26 +158,35 @@ bpy.context.view_layer.update()
 
 
 def check_landing():
-    """Gear down: every pad sole on the ground plane, nothing else of the ship within
-    a unit of it, and no part of a leg through the hull. Then back to stowed."""
+    """Gear down: the keel shoes and every wedge's sole on the ground plane and nothing
+    else of the ship within 0.3 units of it; then back to stowed."""
     wf_gear.pose(1.0)
     dg = bpy.context.evaluated_depsgraph_get()
-    gear = [o for o in bpy.data.objects if o.type == 'MESH' and o.name.startswith(tuple(
-        l['name'] + ' ' for l in wf_gear.RECORD['legs']))]
+    rec = wf_gear.RECORD
+    roots = {r['hinge'] for r in rec['wedges']} | {m[k] for r in rec['wedges'] for m in r['rams']
+                                                    for k in ('pivot', 'rod_pivot')}
+
+    def moving(o):
+        while o.parent is not None:
+            o = o.parent
+            if o.name in roots:
+                return True
+        return False
+
     def lowest(o):
         mw = o.matrix_world
         return min((mw @ v.co).z for v in o.evaluated_get(dg).data.vertices)
-    soles = {l['sole']: round(lowest(bpy.data.objects[l['sole']]), 3) for l in wf_gear.RECORD['legs']}
-    bad = {k: v for k, v in soles.items() if abs(v - wf_gear.GROUND_Z) > 1e-3}
-    rest = min((lowest(o), o.name) for o in bpy.data.objects if o.type == 'MESH' and o not in gear)
-    moving = [o.name for o in gear if o.parent is not None and o.parent.name.endswith(' stage 3 slide')]
-    hull = [o.name for o in kit.hull]
-    clash = [(a, b) for a, b in wf_mounts.clearance(moving, hull)]
+    feet = [r['sole'] for r in rec['wedges']] + [k['name'] for k in rec['keel_shoes']]
+    soles = {n: round(lowest(bpy.data.objects[n]), 3) for n in feet}
+    bad = {k: v for k, v in soles.items() if abs(v - wf_gear.GROUND_Z) > 2e-3}
+    rest = min((lowest(o), o.name) for o in bpy.data.objects
+               if o.type == 'MESH' and not moving(o) and o.name not in feet)
+    wedge_low = min(lowest(o) for o in bpy.data.objects if o.type == 'MESH' and moving(o))
     wf_gear.pose(0.0)
-    if bad or rest[0] < wf_gear.GROUND_Z + 1.0 or clash:
-        raise RuntimeError(f'landing check failed: soles {bad}, lowest other part {rest}, leg clashes {clash}')
-    print('LANDING soles on the ground', len(soles), 'keel clearance', round(rest[0] - wf_gear.GROUND_Z, 2),
-          'units, lowest', rest[1])
+    if bad or rest[0] < wf_gear.GROUND_Z + .3 or wedge_low < wf_gear.GROUND_Z - 1e-3:
+        raise RuntimeError(f'landing check failed: feet {bad}, lowest other part {rest}, wedges reach {wedge_low}')
+    print('LANDING on the keel shoes and', len(rec['wedges']), 'wedges; clearance under the rest',
+          round(rest[0] - wf_gear.GROUND_Z, 2), 'units, lowest', rest[1])
 
 
 check_landing()

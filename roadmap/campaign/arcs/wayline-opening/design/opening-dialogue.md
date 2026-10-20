@@ -4,7 +4,7 @@ Status: SHIPPED — the campaign-start and first-contract dialogue register, and
 
 Written: 2026-10-14
 
-Updated: 2026-10-14 — applied; Sabine Hale renamed, protected from death, voiced, and relaying company-wide orders on the net.
+Updated: 2026-10-20 — Relief's ore-dust cover story: the company rides up on Wayline's truck; turn 4, Sabine's briefing and Mara's first radio turn re-recorded.
 
 ## How to read this script
 
@@ -49,6 +49,11 @@ Castle, Nessa and the founding field commander's canon. **PUBLIC**, **HIDDEN** a
 6. **No contract figures in dialogue.** Lines never name a negotiated fee. They
    say "credits", "the fee" or "paid", and the amount lives only in the offer's
    own terms, so a balance pass never has to rewrite or re-record a line.
+7. **The first job is a delivery.** The company's visitor papers on Jangala
+   forbid work, so its cover is a shipper's escort: Mara buys the company's own
+   ore dust (the cargo declared in the arrival hail), delivered to the checkpoint
+   gate, and Sabine's twelve ride up with it on a Wayline truck. The squad starts
+   Relief on the ground beside that truck; no company boat flies.
 
 ## What was wrong
 
@@ -69,7 +74,7 @@ went dark; the crew chose them before the drive lit. Not a soldier, not a
 merchant, not licensed.
 
 **Castle** — PUBLIC: ore freighter hand, ran ore with Nessa; kept the departure
-roster's margin; holds a 5,000-credit yard payment nobody may touch. Talks in
+roster's margin; holds a 4,862-credit yard payment nobody may touch. Talks in
 counts and understatement; protective by bookkeeping. HIDDEN: the yard payment
 is the last of her own savings; the "month's pay on my account" chit is the
 same money.
@@ -142,7 +147,7 @@ voices:
 
 | Chapter | Where | Hint |
 |---|---|---|
-| Relief | Radio, during the trips | "They knew which night the depot's gate crew was short. I still don't know how." |
+| Relief | Radio, on the way to the gate | "They knew which night the depot's gate crew was short. I still don't know how." |
 | Counterattack | Victory message | They left the strongroom alone and took the dispatch board, every route and every schedule on it. |
 | Open the Junction | Victory message | Sabine says they were dug in before your boats were down. Somebody told them we were coming. |
 | Thunder Run | Victory message | Castle's report says every ambush sat on the loads worth something and let the rest go by. |
@@ -162,7 +167,7 @@ voices:
 > the payroll and the good medical stores. Your people left later, in a Cerberus
 > the mine had spent eleven years stripping for parts. Someone painted SECOND WIND
 > over the registry. Somewhere between the locks and the jump point, they started
-> calling you Commander. You have 500 credits, a yard payment Castle will not let
+> calling you Commander. You have 473 credits, a yard payment Castle will not let
 > anyone touch, twelve unpaid escorts who stayed, and a name on Jangala.
 >
 > This start replaces the Galatia tutorial with the Second Wind prologue and
@@ -385,20 +390,120 @@ inspect and repair. These lines give it a cause.
 
 ## 2 — Jangala yard
 
-Castle reports the yard visit in the planet's interaction panel.
+After the arrival cinematic the founding conversion plays as a four-page storybook
+on the prologue's screen (`CompanyYardScreen`). It sets up why the company goes to
+work: the bill, the runway it leaves, the road up, and the cover story. Page 1's
+Next pays and installs; after that the pages are a straight click-through. There
+is no Skip or "Return to port" on these pages, and Back is off on pages 1 and 2, so
+the bill cannot be reached again once it is paid. Each Next button carries the
+Commander's reply. A non-Jangala yard plays pages 1 and 2 only, with Nessa's name
+taken out.
+
+The figures (owner, 2026-10-20) are stated in days of runway, not rescaled. The
+story's daily board-and-berth burn for the forty-five aboard is about 21.34
+credits, which is close to vanilla's own monthly crew and marine bill. Story only:
+nothing charges it.
+
+| Figure | Value |
+|---|---|
+| Ship's account at the start | 473 (twenty-two days) |
+| Nessa's estimate | 4,986: materials 3,300, yard time 1,562, pressure test 124 |
+| Castle's chits (the founding reserve) | 4,862, nine years of her share |
+| Shortfall | 124, the pressure test, which Nessa waives (option R1), so the reserve pays the whole order and the protected start converts on an empty account |
+
+**Page 1 — WHAT IT COSTS** (`yard-chits`)
+> Nessa's estimate comes through to the ship's slate as one page. Materials, 3,300.
+> Yard time, 1,562. Pressure test, 124. Total, 4,986. It buys bunks where the
+> cargo lashings were, a proper command fit and a workshop gantry. It does not
+> open the sealed rooms, and it does not fix either of the Hermes shuttles.
+>
+> Castle sets credit chits on the counter one at a time. One from her locker. One
+> from the bottom of the med kit. One that has been sewn into a jacket lining
+> since the Claim. The last she holds for a moment before she puts it down.
+
+Castle:
+> Four thousand, eight hundred and sixty-two. Nine years of my share, and some of
+> it was meant for other people. It's a hundred and twenty-four short.
+>
+> I told Nessa. She looked at the pressure test line for a while, then said she'd
+> be standing in the compartment for it anyway.
+
+Commander (Next): *Pay her. Install the conversion.*
+
+Without the reserve, the chits paragraph is dropped and Castle says the estimate
+comes out of the ship's account (`openingYardCashDialogue`).
+
+**Page 2 — TWENTY-TWO DAYS** (`yard-tally`)
+> The lashings are gone from the port-side space. Steel bunks stand in their place,
+> and someone has already put a pair of boots under a rack. Forty-five people
+> sleep aboard tonight: the Harker crew and their families, Sabine and her twelve,
+> and you. The yard bills the berth by the day.
+
+Castle:
+> Here's the arithmetic, Commander. Feeding forty-five and keeping Nessa's berth
+> comes to about twenty-one credits a day. The ship's account holds four hundred
+> and seventy-three.
+>
+> That's twenty-two days. After that we're living on a ship nobody is paying to
+> keep docked.
+
+Commander (Next): *We'll need to make a living somehow.*
+
+The figures box reads the live account and works the days out from it.
+
+**Page 3 — THE ROAD UP** (`yard-road`, Jangala only)
+> Nessa's racks are half empty. Most of her parts come up the Wayline road from the
+> highland depots, and raiders have held that road for a month. The drivers'
+> cooperative that runs it has lost its director, a third of its trucks and most of
+> its nerve.
+
+Castle:
+> I've got a lead on something that actually pays. I don't like it.
+>
+> Nessa's sister Mara got handed the cooperative when the director left. She's
+> keeping the drivers from selling their trucks, and she needs guards on that
+> road. She can't afford anyone with a licence, so she'd take us.
+>
+> It's a gamble, Commander. Those raiders have been killing drivers for a month.
+> If it goes wrong we come back short of people, with a ship we still can't feed
+> and nobody left who'd hire us. If we sit here, we lose the berth in twenty-two
+> days anyway.
+>
+> I told Nessa we'd be looking for work. I didn't tell her our papers say we can't
+> do any.
+
+Commander (Next): *Then we roll the dice. Find us a way in.*
+
+**Page 4 — ORE DUST** (`yard-ore-dust`, Jangala only)
+
+Castle:
+> Our papers say visitors. Visitors berth, eat and spend. They don't work, not for
+> anybody on Jangala.
+>
+> But a shipper can see its own cargo delivered, right to the buyer's door. We
+> told Approach we were carrying ore dust, and we are. So we sell it to Mara,
+> delivery guaranteed, and Sabine's people ride with it to make sure it arrives.
+> How much dust it takes to make that true is between us and the buyer. Mara
+> isn't going to weigh it.
+>
+> It isn't quite legal, Commander. But Sabine's people haven't been paid in four
+> months, and I'd rather explain this to a customs officer than explain that to
+> them.
+
+Commander (Next): *Then let's go deliver some ore dust.*
+
+The last page's objective line points at Marine operations and the prepaid depot
+(`openingYardNextStep`).
+
+### Planet-panel yard
+
+Any later conversion, and the planet menu's own yard entry, still report in the
+interaction panel:
 
 `openingCompanyYardCMDNessaVennMetUsAtTheBerth` — Castle (Jangala)
 > Nessa met us at the berth. Took one look at the patch under the collar and asked
 > if I'd done it myself. I said I'd supervised. She remembers what that means.
 > Here's her estimate, Commander. She held to it.
-
-**New, Jangala only, after the estimate** — Castle; the Wayline bridge
-> Her racks are half empty. Most of her parts come up the Wayline road, and
-> raiders have had it shut for a month. Her sister Mara got handed the drivers'
-> cooperative when its director left, and she's wearing herself thin keeping them
-> from selling the trucks too. I said we'd be looking for work, and that we've no licence. Nessa said Mara can't afford
-> anyone who has one. Then she said, "Talk to her when you've got something that
-> flies. Not before."
 
 `openingCompanyYardCMDTheYardCanMakeRoomForBunks` — Castle (fallback)
 > The yard will clear space for bunks and a workshop. I asked them to leave the
@@ -431,15 +536,15 @@ Castle's lesson panel. Instructions are unchanged; the speaker is the same woman
 who kept the roster.
 
 `openingCerberusCompanyStartFirstWeNeedMercenaryCompanyConversionOur`
-> First, the conversion: barracks and a workshop, built into her for good. Five
-> thousand credits. {0}Choose Return, dock at {1} and open Marine operations from
+> First, the conversion: barracks and a workshop, built into her for good. The
+> yard has the estimate. {0}Choose Return, dock at {1} and open Marine operations from
 > the planet menu; I'll have the yard order waiting. It isn't in the standard
 > Refit picker, and Additional Berthing won't do it. Nothing gets designated until
 > the yard has done its work. Our prepaid stores will wait in the planetary depot.
 
 `openingCerberusCompanyStartIHaveKeptThatPaymentSeparateFrom`
-> That payment is kept apart from our spending money. The yard draws it directly,
-> even if the ship's account is empty.
+> My chits pay for it, not the ship's account. The yard takes them even if the
+> account is empty.
 
 `openingCerberusCompanyStartTheConversionIsInstalledStayDockedAt`
 > The conversion is in. Stay docked at {0}, open Marine operations and name our
@@ -497,9 +602,12 @@ who kept the roster.
 > where we stopped. Don't buy them twice.
 
 `openingCerberusCompanyStartYourCompanyIsReadyCommanderTheFirst`
-> We're a company, Commander. Mara Venn's first contract is waiting in
-> Headquarters. Whatever stores we didn't use stay in the depot for when we're
-> back.
+> We're a company, Commander, as far as anyone's asking. Mara's signed for our
+> ore dust; her delivery order is waiting in Headquarters. Whatever stores we
+> didn't use stay in the depot for when we're back.
+
+The conversion line names no figure; the yard page states it. It says "the
+yard", not "Nessa", because a fallback start never meets her.
 
 ## 4 — Sabine
 
@@ -553,24 +661,24 @@ since the lesson panel speaks only with Castle's portrait)
 ## 5 — The first job
 
 `openingBarracksCommandMaraVennAnsweredWaylineNeedsItsCheckpoint` — Castle
-> Mara Venn answered. Wayline wants its freight checkpoint relieved, and they'll
-> pay if we break the assault. She sounds like she hasn't slept in a week. I've put
-> our name forward. First job, Commander. Choose Ready for the briefing, or follow
-> Mara's directions from HQ. Take Sabine's squad. Let's give Mara a reason to call
-> again.
+> Mara Venn answered. She'll take our ore dust, delivered to Wayline's freight
+> checkpoint, and the checkpoint's under attack. Her truck's waiting to carry it
+> up the road, and Sabine's squad rides with it. She sounds like she hasn't slept
+> in a week. First job, Commander. Choose Ready for the briefing, or follow Mara's
+> directions from HQ. Let's give Mara a reason to call again.
 
 ### Briefing and landing: the introduction is the briefing
 
 Relief splits Mara's words by where the player is. Before launch she is a
 stranger asking for help, so the briefing is her introduction: who she is, what
 Wayline lost, and what she is asking for. The tactical detail moves into the
-mission, spoken over the radio while the one Hermes makes its three trips, when
-the player is looking at the apron, the gate and the roads it describes. The
-trips take long enough to carry it, and a briefing heard over the ground it
-names is easier to follow than one heard before the map exists.
+mission, spoken over the radio while the squad walks from Wayline's truck to the
+gate, when the player is looking at the apron, the gate and the roads it
+describes. The walk takes long enough to carry it, and a briefing heard over the
+ground it names is easier to follow than one heard before the map exists.
 
-What the player needs to choose squads and lift stays on the briefing screen as
-unvoiced text, so nothing that matters is only said once over the radio.
+What the player needs to choose squads stays on the briefing screen as unvoiced
+text, so nothing that matters is only said once over the radio.
 
 **Briefing, voiced turns** — Mara (replaces the `WaylineArc` introduction and the
 recorded `relief` briefing; ordered `briefing.*` turns). Shared by every start
@@ -587,31 +695,34 @@ player has met Nessa.
    > checkpoint{location}, and if that falls there's no road left to haul on. The
    > watch holding it is paid from the same collection as your fee. I know half of
    > them from the loading shifts.
-4. > Licensed companies cost more than we have. You cost what we have. Help them
-   > hold that gate, and you'll be paid on success, agreed in writing. I'd rather
-   > you than nothing, and I expect you'd rather us than nothing too. One job at a
-   > time, Commander.
+4. > Licensed companies cost more than we have. You cost what we have. On paper
+   > I've bought a load of ore dust, delivered to the checkpoint gate, and your
+   > people are its escort. Get it there, help them hold that gate, and you're paid
+   > on delivery. I'd rather you than nothing, and I expect you'd rather us than
+   > nothing too. One job at a time, Commander.
 
 **Briefing, Sabine** (recorded in her voice, after Mara's four turns)
-> One boat, so we go down in trips. First team takes the apron and holds it until
-> the rest are on the ground. Nobody walks to that gate alone.
+> Off the truck behind the gate. Twelve of us and one sack of dust. The dust stays
+> with the truck; the rest of us go to the line together. Nobody walks to that gate
+> alone.
 
 This was first written into the mission radio, but a recorded line takes over
 from a text-only one at once, so a text line in the middle of Mara's exchange
 would have flashed and vanished. In the briefing, turns play one after another.
 
 **Briefing screen, unvoiced** — the tactical summary
-> Land on the rear unloading apron and reinforce the checkpoint gate. Raiders will
-> come up the freight and warehouse service roads. Wayline supplies its militia
-> and one shuttle. Break the assault and bring as many people home as you can.
+> Your squad starts beside Wayline's truck behind the checkpoint. Reinforce the
+> checkpoint gate. Raiders will come up the freight and warehouse service roads.
+> Wayline brings in its militia by shuttle. Break the assault and bring as many
+> people home as you can.
 
-**In mission, while the boat shuttles** — one ordered exchange that starts at
-launch and plays straight through, a line at a time, while the Hermes goes back
-and forth. It is not keyed to individual landings, so it cannot fall out of
-order. All Mara.
+**In mission, while the company moves up** — one ordered exchange that starts at
+launch and plays straight through, a line at a time, while the squad walks from
+the truck to the gate. It is not keyed to individual arrivals, so it cannot fall
+out of order. All Mara.
 
-1. > Mara here. Your first boat's headed for the rear unloading apron. Our watch is
-   > holding the gate, but not for long on their own.
+1. > Mara here. My truck's behind the gate with your people and our dust. Our
+   > watch is holding, but not for long on their own.
 2. > The raiders are coming up the freight and warehouse service roads. That's
    > where the gate gets hit.
 3. > Our militia are coming in on the only shuttle we've got. Keep them with your
@@ -639,8 +750,9 @@ hint moves out of the introduction into turn 4, where it has room to sit.
 `MissionDebriefConversation` first-contract exchange, after Relief victory.
 
 Castle — receipt
-> Payment's in. I counted it twice. Our first paid contract, Commander. Somebody
-> paid us to do exactly what we said we'd do.
+> Payment's in. I counted it twice. Mara paid for one sack of ore dust, delivered.
+> Our first paid job, Commander. Somebody paid us to do exactly what we said we'd
+> do.
 
 **New** Sabine — muster, no losses
 > All twelve back aboard. Counted twice.

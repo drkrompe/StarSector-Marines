@@ -4,6 +4,8 @@ Status: ACTIVE — opening arc direction; implemented chapters retain live accep
 
 Written: 2026-10-13
 
+Updated: 2026-10-20 — Relief starts the company ashore beside Wayline's truck; Counterattack is the first ferry battle.
+
 ## Premise, place and cast
 
 The company earns its first commercial relationship by protecting the Wayline
@@ -25,13 +27,16 @@ documents that are folded and deleted when shipped.
 
 ## Entry and chapter sequence
 
-Relief is discoverable before squad founding; deployment checks actual personnel
-and lift. Only the current unfinished chapter is offered. Older saved opening
+Relief is discoverable before squad founding; its deployment checks actual
+personnel only. The company's visitor papers forbid work, so it rides up as the
+escort of its own ore dust, sold to Wayline and delivered to the checkpoint gate,
+and starts the battle beside the Wayline truck. Counterattack is the first
+chapter that checks company lift. Only the current unfinished chapter is offered. Older saved opening
 victories retain their progress. Defeat leaves the chapter available.
 
 | Chapter | Tactical objective | Accepted victory reward | Delivery state |
 |---|---|---|---|
-| Hold Until Relieved — Relief | Land beside the checkpoint militia and break the finite road assault | 6,000 credits; depot chapter opens | Implemented; linked live acceptance remains |
+| Hold Until Relieved — Relief | Start beside Wayline's truck behind the checkpoint, reinforce its militia and break the finite road assault | 6,000 credits; depot chapter opens | Implemented; linked live acceptance remains |
 | Take Back the Depot — Counterattack | Join the depot advance, capture dispatch and defend against two finite road attacks | 9,000 credits; recovered Hound Wayward and first Mech Bay restoration | Implemented; linked live acceptance remains |
 
 The optional A Proper Issue lesson follows Relief: one free equipment package

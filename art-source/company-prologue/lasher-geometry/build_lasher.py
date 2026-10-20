@@ -160,6 +160,14 @@ def bake():
 
 
 bake()
+# Fixed mounts must not clip the hull (owner, 2026-10-20): every hardpoint against
+# every other solid, the fixed-mount counterpart of the turrets' arc sweep.
+sys.path.insert(0, str(HERE.parent/'turret-kit'))
+import check_hardpoints  # noqa: E402
+HARDPOINT_CLEARANCE = check_hardpoints.clashes()
+_clipped = {m: r['clips'] for m, r in HARDPOINT_CLEARANCE.items() if r['clips']}
+if _clipped:
+    raise RuntimeError(f'hardpoints clip the hull: {_clipped}')
 leftover = [o.name for o in bpy.data.objects if o.name.startswith('Temporary ')]
 assert not leftover, f'cutters left in the scene: {leftover}'
 
@@ -366,6 +374,7 @@ if not args.no_save:
                          for s in ls_mounts.SLOTS],
         'turrets': ls_mounts.TURRETS,
         'hardpoints': ls_mounts.HARDPOINT_RECORDS,
+        'hardpoint_clearance': {m: 'clear' for m in HARDPOINT_CLEARANCE},
         'engines': ls_engines.records(),
         'running_lights': ls_lights.records(),
         'asset': {'file': 'lasher.blend', 'collection': COLL, 'root': ROOT, 'anchors_collection': f'{COLL} | anchors',
