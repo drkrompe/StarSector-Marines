@@ -490,7 +490,7 @@ owned by defender command. The setup pool is captured from the live squad
 roster before the first alert aggregation, so roster membership and `PATROL`
 role--not a not-yet-populated cached alive count--define the starting force.
 Authored setup garrisons claim garrison ownership at setup. A fort belt is not one of them: it is
-manned from the patrol pool only while pressed, and its squad returns to the pool
+manned from the patrol pool a stretch at a time, only where pressed, and its squad returns to the pool
 when the pressure passes (see `ai-nouns.md`, fighting positions). Staging free
 patrols behind pressured areas is a third use of the pool beside the track rally
 and structure tasks; staged patrols still count as reserve (see `garrisonables.md`).

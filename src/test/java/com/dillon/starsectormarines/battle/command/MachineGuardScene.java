@@ -431,14 +431,19 @@ public final class MachineGuardScene implements BehaviorScene {
         int[] centre = probe.centre();
         GarrisonableRegistry probePlaces = probeSim.garrisonables();
         int fortId = probeSim.forts().forts().get(0).id();
-        int runA = -1;
+        // The gate stretch: of the fort's run nearest the field's south edge, the stretch at the run's middle. Runs are
+        // measured whole so that where the raiders stand does not depend on how runs are cut.
+        GarrisonableRegistry whole = GarrisonableRegistry.build(probeSim.fightingPositions(), FORT_WIDTH, FORT_HEIGHT,
+                probePlaces.blockSize(), new int[0], false);
+        int gateRun = -1;
         for (int g = 0; g < probePlaces.count(); g++) {
-            if (probePlaces.fortId(g) != fortId || probePlaces.size(g) < 6) continue;
-            if (runA < 0 || probePlaces.centreY(g) > probePlaces.centreY(runA)
-                    || (probePlaces.centreY(g) == probePlaces.centreY(runA)
-                    && probePlaces.centreX(g) < probePlaces.centreX(runA))) runA = g;
+            int r = probePlaces.runOf(g);
+            if (probePlaces.fortId(g) != fortId || whole.size(r) < 6) continue;
+            if (gateRun < 0 || whole.centreY(r) > whole.centreY(gateRun)
+                    || (whole.centreY(r) == whole.centreY(gateRun) && whole.centreX(r) < whole.centreX(gateRun))) gateRun = r;
         }
-        int[] halt = outside(probeSim, probePlaces.centreX(runA), probePlaces.centreY(runA), centre[0], centre[1]);
+        int runA = probePlaces.idAt(whole.centreX(gateRun), whole.centreY(gateRun));
+        int[] halt = outside(probeSim, whole.centreX(gateRun), whole.centreY(gateRun), centre[0], centre[1]);
         int[] fieldCell = walkable(probeSim, centre[0] - 70, FORT_HEIGHT - 6);
 
         SceneBuilder builder = SceneBuilder.over(terrain.grid(), terrain.topology()).posts(terrain.posts())

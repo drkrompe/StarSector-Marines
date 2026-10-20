@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.command.ReactiveWatch;
+import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
@@ -311,15 +312,27 @@ public final class PlayerReactiveManningScene implements BehaviorScene {
         return sim.fightingPositions().runIdAt(TRENCH_X0, TRENCH_Y);
     }
 
-    /** The trench's believed pressure as the stance reads it: its covered blocks' highest hostile reading. */
+    /**
+     * The trench's believed pressure as the stance reads it: its covered blocks' highest hostile reading, and, where runs
+     * are cut into stretches, only while a believed contact heavy enough to count is within the registry's reach of it.
+     */
     private static float trenchPressure(BattleSimulation sim) {
         // A read, as the stance's own: it keeps the side's picture refreshing in the loop that has no stance too.
         CommanderInfluenceSnapshot influence = sim.getCommanderInfluence(Faction.MARINE);
         GarrisonableRegistry registry = sim.garrisonables();
-        int run = runId(sim);
-        if (influence == null || run < 0 || influence.width() != registry.blockWidth()) return 0f;
+        int place = registry.idAt(TRENCH_X0, TRENCH_Y);
+        if (influence == null || place < 0 || influence.width() != registry.blockWidth()) return 0f;
+        if (registry.stretched()) {
+            boolean woken = false;
+            int size = registry.blockSize();
+            for (CommanderContact contact : influence.contacts()) {
+                if (contact.confidence() * contact.strength() < ReactiveWatch.MIN_CONTACT_WEIGHT) continue;
+                for (int g : registry.near(contact.cellX() / size, contact.cellY() / size)) woken |= g == place;
+            }
+            if (!woken) return 0f;
+        }
         float best = 0f;
-        for (int block : registry.coveredBlocks(run)) {
+        for (int block : registry.coveredBlocks(place)) {
             best = Math.max(best, influence.hostileAt(block % registry.blockWidth(), block / registry.blockWidth()));
         }
         return best;

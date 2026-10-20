@@ -75,7 +75,15 @@ Story maps: Junction had its two dug trenches, Relay Nine and Route Security non
   lookout on it, walkability unchanged.
 - `sceneEvidence -Pscene=compound-apron`: quiet, pressed, breach.
 - `createSnapshots -Psnapshot=compound-prepared-ground`: control, apron and
-  position overlay at one framing.
+  position overlay at one framing; `-Psnapshot=compound-apron` records the scene.
+- `commanderEvidence -Pmission=conquest-trial` against its own control
+  (`-Dbattle.mapgen.compoundPreparedGround=false`), 2026-10-20: the trial ground's
+  objective and keep each take an apron (8 runs at the start become 10). Where the
+  fort is on the path nothing moves, because the fight is at the fort. Where it is
+  offset and the marines go straight for the compounds, the defender manned the
+  aprons 5 times over the four fixtures against 1 without them. Outcomes are within
+  noise over the matrix: marine losses 313 against 318, defender losses 332
+  against 328, the keep taken in every fixture both ways but the rifles timeout.
 
 ## Depends on
 

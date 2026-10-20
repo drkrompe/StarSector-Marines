@@ -1107,9 +1107,13 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             contactScratch[2 * count + 1] = contact.cellY();
             count++;
         }
-        Set<Integer> releasing = new HashSet<>(garrisons.evaluate(places, (bx, by) -> placePressure(influence, bx, by),
-                contactScratch, count, held));
+        Set<Integer> releasing = new HashSet<>(garrisons.evaluate(places, new GarrisonDirector.Pressure() {
+            @Override public float hostileAt(int bx, int by) { return influence.hostileAt(bx, by); }
+            @Override public float floorAt(int bx, int by) { return alarms.floorAt(bx, by); }
+        }, contactScratch, count, held));
         Set<Integer> fallingBack = new HashSet<>(garrisons.fallingBack());
+        Map<Integer, Integer> shiftedTo = new HashMap<>();
+        for (GarrisonDirector.Shift shift : garrisons.shifting()) shiftedTo.put(shift.squadId(), shift.to());
         for (GarrisonDirector.Garrison garrison : held) {
             PlanningSquad squad = heldSquads.get(garrison.squadId());
             int home = homeTrack(squad);
@@ -1130,13 +1134,19 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 justReleased.add(squad.id);
                 continue;
             }
-            int place = garrison.garrisonable();
-            ObjectiveAssignment order = ObjectiveAssignment.defendRun(squad.id, places.centreX(place),
-                    places.centreY(place), places.radius(place), place);
+            // A garrison shifting onto the next stretch of its run keeps its assignment; only the stretch moves.
+            int place = shiftedTo.getOrDefault(squad.id, garrison.garrisonable());
+            ObjectiveAssignment order = runOrder(squad.id, place, places);
             if (!order.equals(squad.assignedObjective)) squad.assignedObjective = order;
             directives.put(squad.id, directive(squad, home, home, squad.localContact
                     ? AssignmentReason.DEFENDER_LOCAL_CONTACT : AssignmentReason.DEFENDER_GARRISONABLE_STAND));
         }
+    }
+
+    /** The order that mans a stretch: an area defence on its circle, its claims kept to the stretch's run. */
+    private static ObjectiveAssignment runOrder(int squadId, int place, GarrisonableRegistry places) {
+        return ObjectiveAssignment.defendRun(squadId, places.centreX(place), places.centreY(place),
+                places.radius(place), places.runOf(place));
     }
 
     /**
@@ -1649,8 +1659,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         for (GarrisonDirector.Man man : sent) {
             PlanningSquad squad = allSquads.get(man.squadId());
             if (lent.contains(squad.id)) counter.lend(squad.id);
-            squad.assignedObjective = ObjectiveAssignment.defendRun(squad.id, places.centreX(man.garrisonable()),
-                    places.centreY(man.garrisonable()), places.radius(man.garrisonable()), man.garrisonable());
+            squad.assignedObjective = runOrder(squad.id, man.garrisonable(), places);
             int home = homeTrack(squad);
             directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_GARRISONABLE_MAN));
             selected.add(squad.id);
