@@ -17,7 +17,7 @@ public final class CompanyPrologueDialog implements InteractionDialogPlugin {
         dialog.hideTextPanel();
         dialog.hideVisualPanel();
         dialog.showCustomVisualDialog(Global.getSettings().getScreenWidth(),
-                Global.getSettings().getScreenHeight(), new CompanyStoryDialogDelegate(
+                Global.getSettings().getScreenHeight(), CompanyStoryDialogDelegate.storybook(
                         new CompanyPrologueScreen(), () -> { closing = true; closeIfRequested(); }));
     }
     @Override public void advance(float amount) {

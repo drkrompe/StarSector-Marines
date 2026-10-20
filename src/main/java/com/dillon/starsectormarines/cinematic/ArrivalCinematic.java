@@ -67,7 +67,7 @@ public final class ArrivalCinematic {
         dialog.hideTextPanel();
         dialog.hideVisualPanel();
         dialog.showCustomVisualDialog(Global.getSettings().getScreenWidth(), Global.getSettings().getScreenHeight(),
-                new CompanyStoryDialogDelegate(new ArrivalCinematicScreen(sequence, ArrivalCinematic::readVideo), () -> {
+                CompanyStoryDialogDelegate.scored(new ArrivalCinematicScreen(sequence, ArrivalCinematic::readVideo), () -> {
                     dialog.showTextPanel();
                     dialog.showVisualPanel();
                     after.run();
