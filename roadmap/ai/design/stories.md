@@ -20,6 +20,7 @@ firing positions remain opt-in experiments.
 | `zone-graph-tiled-rebuild.md` | DRAFT | Scope `ZoneGraph.rebuild()` to the cells that changed; a 26 ms whole-map rebuild on the cell-less dirty path is the largest number left on a breach tick. |
 | `shared-goal-field-cadence.md` | DRAFT | Stop regrowing every shared-goal reverse field on a fifteen-snapshot clock; a 20 ms whole-map Dijkstra per goal per fifteen ticks is the early-battle spike and half of a serial replay's simulation time. |
 | `reactive-garrisons.md` | IN PROGRESS | Fort belts manned from the defender pool only under believed pressure, released after it passes, falling back to the works when breached; first consumer of `garrisonables.md`. |
+| `machine-garrison-assault.md` | IN PROGRESS | A mech, lance or armed vehicle clicked onto a garrisonable the side believes is enemy-held assaults it by fire from a stand-off and never enters. |
 
 See `stories.md` in the Mission Command feature for foundation, evidence,
 Conquest, Sabotage, Assault, Raid, Extraction, intervention, and faction-command
