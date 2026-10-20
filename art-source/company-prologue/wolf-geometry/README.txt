@@ -93,22 +93,92 @@ pods became shallow swept missile wings rooted ahead of the drive section and
 angling out to the WS 005 / WS 006 hookups, the body keeping to its core;
 the drive section an octagon ahead of three long octagonal drive cans exposed
 out the back; the bow a faceted wedge tapering to the forward mount. The
-silhouette IoU falls to 0.89 by design): measured 38,649 units3, which solves
-0.759 (range 0.736-0.782): 71 m
-long, 37 m across the pods, about 21 m deep. The roster's
+silhouette IoU falls to 0.89 by design; round 6, "that nose - still feels
+weak", the missile pods want "modeled missile turret heads" and the PD
+turrets "read like cylinders and are lifted quite high": a deep prow that keeps
+the sprite's breadth to the outer tines, raked at the stem with a chin, two
+armoured jaws either side of the WS 004 trough and a hood over its breech; the
+bridge as a raised command deck on the head (glazed face over the bow gun, the
+sprite's white canopy; roof running aft to the neck's sensor dome, the sprite's
+lit oval); kit launcher heads on the wing tips; the merchant's PD turrets in
+wells in low faired sponsons. IoU 0.90): measured 38,763 units3, which solves
+0.758 (range 0.736-0.782), published 0.76: 72 m long (the deeper prow adds a
+unit), 37 m across the wings, about 21 m deep. The bridge is not in SOLIDS, so
+the scale holds while the owner decides 71 m against 86 m. The roster's
 sprite-area estimate was 86 m: a deep hull holds its contents in a shorter
 ship, so this is 18% under the estimate, outside its +-8%. The owner decides
 between this and an override (as the Colossus has). The driver re-measures on every build and
 fails if the union drifts more than 2% from ship_scale.HULLS.
 
+Round 7, the detail pass ("Next it needs plausible detail pass"): wf_fittings.py
+adds, read off both sprites and sized for a 72 m ship: panel seams draped over
+the lofted decks, flanks, prow and bridge roof; deck hatches, a crew door in
+each neck flank (1.0 x 2.2 m) and flank maintenance panels; the bridge's visor,
+glazing frames, comms dish, whip antennas, sensor box and roof hatch; radiator
+wells and heat-exchanger louvres on the drive section; RCS clusters at the bow,
+wing roots and stern; a ventral sensor blister, a neck mast, a ventral docking
+collar with two white docking lights, a white masthead on the bridge mast and
+deck tie-down cleats; conduits along the wing roots; and, on the pirate,
+welded patch plates on the jaws, neck and engine flanks. Nothing on the flanks
+stands outside the plan: RCS blocks are sunk in the skin, panels are flush,
+and fittings sit below the belt. IoU 0.9007 (0.9013 for the round 6 hull
+alone); volume and scale unchanged; the antenna whips raise the overall height
+to 40 units (30.6 m). The new prow, jaws, hood and bridge carry their own
+Codex tiles in each livery (grey sheets 'grey-tops' and 'grey-bridge').
+Finished-model fidelity at the close view (coordinator, round 7): the bake
+shades every hull mesh smooth with sharp creases past 30 degrees and bakes
+area-weighted normals, so lofted and round forms show no facets while chamfers
+and the prow's facets stay crisp; every fitting without a bevel gets a small
+rounded one (the skinned hull objects keep their topology, the turret kit's
+parts are the kit's); round parts have a side-count floor by size; the
+glazing is dark non-emissive glass set back inside a steel frame with a
+mullion between every pane; the dish is a parabolic reflector with feed and
+struts on a hub, trunnion and turntable; masts are tapered and round; every
+lamp is a smooth lens in a bezel turned to the hull. About 58k polygons
+(pirate), 67k (merchant).
+
+Round 8, the underside and landing ("Underside and landing needs to be figured
+out for this ship"; then, on the first design of telescoping legs: "I'd rather
+have 'wedges' that come out along the side of the under hull with 'thick'
+bracing. The ship should sit on its 'keel' with the edges stopping it from
+rolling"), wf_gear.py, whose docstring carries the reasoning: the ship rests on
+two armoured keel shoes on GROUND_Z -19.4, and four thick ribbed wedges (two a
+side, X 15..24 and -17.5..-8.5) hinge along the bottom of the hull sides, lie
+flat against the side as armour in flight and swing about 134 degrees down and
+out until their toes plant 4 units outboard, each braced by two heavy rams from
+deep in the main body. Four ventral lift thrusters in rings of heat-shield tiles
+(two under the neck, two under the drive section), because the drives only push
+aft. Also: keel frames and a heat-shield tile field on the keel, a ventral
+boarding hatch with a ladder housing, service hatches, drain and vent grilles,
+wing seams and panels, outrigger sensor windows and down-firing RCS. The build
+checks the deployed pose (keel shoes and wedge soles on the ground, everything
+else clear of it, no wedge through the ground) and records `landing_gear` in
+geometry.json. Against ship-detail-guide.md (ship-detail-kit/check_detail.py,
+--mpu 0.76, turrets excluded) both variants pass every gate but one: the
+pirate's 2 faceted objects (Hull head, Hull main body) are the carve imprints of
+the mining blaster's breech and the launcher collars, inside the weapons and
+never seen. Otherwise 0 faceted (hull
+lofts at 48 sections, pods 64, armour domes 64 sides, merchant turret sponsons
+64), 0.0 m unbevelled per 100 m2 (the skinned hull bodies take the guide's
+0.12 m plate bevel on edges of 55 degrees and sharper), no emissive off a lamp
+(the outrigger vent slats no longer glow: the Wolf has no lights layer), no
+unframed glazing. Round 7 leftovers brought up: lamp lenses
+halved, a rounded sensor housing with a framed recessed window, a round roof
+hatch with coaming, hinge and handwheel, and radiator and exchanger panels as
+angled vanes in framed, rounded wells. About 102k polygons (pirate), 111k
+(merchant).
+
 Variants
 --variant merchant builds the convoy's own Wolf on the same hull and scale:
 no pirate armour (domes, welded plates), the base hull's WS 002 / WS 003
-turrets back on full-depth armoured drums built into the aft flanks (the
-base sprite's round wells), its own collection WOLF and asset wolf.blend,
-geometry-merchant.json, the vanilla wolf_Assault loadout (heavy blaster and
-Harpoons drawn with the kit's mining blaster and Annihilator forms for now:
-built_as in the manifest). Its livery is ../wolf-merchant-surface.
+turrets back in wells sunk into low sponsons faired into the aft flanks (the
+base sprite's round wells; round 6 retired the full-depth drums), its own collection WOLF and asset wolf.blend,
+geometry-merchant.json, the vanilla wolf_Assault loadout: the kit's heavy
+blaster in the prow trough (HARDPOINT_K .3, its capacitor housing in a breech
+pocket under the gun hood) and Harpoon launchers on the wing tips (k .3, the
+main body's flank carved to the launcher's shape). turret-kit/check_hardpoints.py
+finds no clips on either variant: the pirate's buried breech and sunk launcher
+collars are carved the same way. Its livery is ../wolf-merchant-surface.
 
 Shot checks
 At 1920x1080 on a 36 mm sensor, port bow quarter from a little above, low sun
@@ -132,7 +202,7 @@ under starsector/builds/wolf-p/<short-commit>/.
 
 Files
 build_wolf.py (driver), wf_kit.py, wf_hull.py, wf_engines.py, wf_mounts.py,
-wf_lights.py, wf_detail.py (one module per area), compose_review.py (IoU, shot extents,
+wf_lights.py, wf_detail.py, wf_fittings.py, wf_gear.py (one module per area), compose_review.py (IoU, shot extents,
 review sheet), compare_lineup.py (true-scale lineup against the Hound and
 Colossus), geometry.json (identity, slots, engines, turrets, lamps, scale
 record, asset contract, IoU, shot extents).

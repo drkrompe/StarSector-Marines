@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -81,7 +82,7 @@ public final class ShepherdBasin {
                         ? new OutdoorLandscapeStage(24,80,82,119,127,102,171,117,209,123,252,110,280,77,194,2,301,145,176,38,279,107,151,96,188,112,73,162,123,164,174,166,243,176,199,160)
                         : new OutdoorLandscapeStage(24,80,82,119,127,102,171,117,209,123,252,110,280,77,194,2,301,145,73,162,123,164,174,166,243,176,199,160))).run(c);
         MapResult map = new MapResult(c.grid, c.topology, LANDING.x(), LANDING.y(), 290, 77,
-                c.pois, c.doodads, new TacticalMap(List.of()), c.get(BspKeys.BUILDINGS), List.of(),
+                c.pois, c.doodads, new TacticalMap(HeldPlaces.fromBuildings(c.pois, poi -> Faction.DEFENDER)), c.get(BspKeys.BUILDINGS), List.of(),
                 AuthoredRoadGraph.graph(RoadCatalog.plan(RoadCatalog.SHEPHERD_BASIN), ""), c.landingPads);
         for (LandingPad pad : map.landingPads) {
             if (!pad.isClear(map.grid, map.topology)) throw new IllegalStateException("Basin berth obstructed");

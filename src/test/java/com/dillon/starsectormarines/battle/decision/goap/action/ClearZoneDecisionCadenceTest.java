@@ -234,6 +234,8 @@ class ClearZoneDecisionCadenceTest {
                         case "targetOf" -> roster.combat().targetId((long) args[0]);
                         case "getTacticalScoring" -> scoring;
                         case "getSimTickIndex" -> tick;
+                        // No per-tick zone table: the clear test takes the live scan this suite counts.
+                        case "zoneOccupancy" -> null;
                         case "liveUnitIndexOf" -> roster.indexOf((long) args[0]);
                         case "liveUnitCount" -> roster.liveCount();
                         case "liveUnitAt" -> { visits++; yield roster.get((int) args[0]); }

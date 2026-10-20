@@ -1,41 +1,46 @@
-Status: DRAFT (proposal, awaiting the owner)
+Status: ACTIVE (part 1 approved and on by default; part 2 held)
 Written: 2026-10-20
+Updated: 2026-10-20 — owner approved round 2 ("Yard review: Looks good"); K9_ORIGINS is now the default
 
 # Yard vehicles: where the ground crew comes from, and a working port
 
-Two parts, each behind its own switch, off by default, so `main` renders the approved C4 and C5
-unchanged until the owner passes them. `yard_vehicle_plan.py` draws the plan of part 1 (start, run
-and parked spot of every Kilo Nine vehicle, shipped against proposed) to `build/c4x/k9-vehicle-plan.png`.
+Two parts, each behind its own switch. Part 1 was approved on 2026-10-20 and is on by default
+(`K9_ORIGINS=0` is the control that restores the old roll-in); part 2 is held, off by default. `yard_vehicle_plan.py` draws the plan of part 1 (start, journey,
+holds and parked spot of every Kilo Nine vehicle, shipped against proposed) to `build/c4x/k9-vehicle-plan.png`.
 
-## Part 1: the Kilo Nine crew's origins (`K9_ORIGINS=1`)
+## Part 1: the Kilo Nine crew at work (`K9_ORIGINS`, default on)
 
 Shipped, the tug, crew carrier and bowser hop to stand-offs on open dirt at C4 10.4-13.4 s and roll
 in from there. Nothing explains where they came from, the tug comes out through the hangar wall (no
 door), its run in to the hull goes through a leg of the north-west scaffold tower and a walking
 scaffold hand, and the bowser drives in under the south-east scaffold.
 
-With the switch, each vehicle starts where it lives and waits out the landing there, 68-73 m from
-the pad centre, clear of the downwash:
+The first proposal (round 1) started each one at a home in the yard and drove it straight in on the
+old cue. The owner found it robotic: everything moved off together after the landing, crept the
+last couple of metres and was parked before anybody came off the ship. Round 2 gives each vehicle a
+journey with its own timing, and keeps the tug and bowser working while the families come down.
+`K9_LEGS` holds the itineraries: legs of (start, end, waypoints, reversing), holding in between.
+Times are C4 seconds; C5 opens at C4 21.4.
 
-| Vehicle | Home | Run to the hull |
+| Vehicle | From | What it does |
 |---|---|---|
-| Tug | the workshop's garage bay (the annex on its east side), nose north | 34 m straight north, C4 18.4-23.9 s |
-| Crew carrier | the motor pool on the south apron, between the washing lines and the tanks | 38 m, north then north-west, 18.9-24.9 s |
-| Bowser | the yard's fuel point beside its tanks, a pump at its side | 43 m straight north, 19.4-25.9 s |
-| Customs car | unchanged: the arrivals hall's MuniSec post, the port road, in at the gate | |
+| Crew carrier | the arrivals hall's spare (third) bus bay, out of shot at the start of C5's frame | C4 0-15.5: along the port road, in at the gate ahead of customs, up the haul road and onto the spur, where it holds through the touchdown dust. C4 20.6-C5 4.6: pulls up beside the ramp, first to arrive. |
+| Tug | the hangar's south apron | C4 3.0-19.0: down the haul road (on its west half, clear of the stores stack) to the spur junction, where it gives way to the customs car. C4 21.2-C5 7.0: along the spur behind customs, stopping while an officer walks across. C5 11.4-14.6: runs past its spot; 15.4-16.6: backs into it and squares up. |
+| Bowser | the yard's fuel point beside its tanks, a pump at its side | C4 12.0-17.0: creeps off the fuel point to a holding line 61 m from the pad during the final descent. C4 18.6-C5 1.8: in towards the hull, stopping short. C5 2.4-4.8: eases onto the hookup; its hand walks the hose to the hull and back. |
+| Customs car | unchanged: the arrivals hall's MuniSec post, the port road, in at the gate | parks C5 5.0, behind the carrier |
 
-Every vehicle parks on the same spot at the hull and stops on the same second as before
-(`K9_ROLL_IN` stops), so the crews and customs in C5 (`c5_scene.cast`) get out where and when they
-always did. Only the start times move, a second earlier, because the runs are longer than the
-old roll-ins; each speeds up and slows over 1.6 s and peaks at about 8 m/s.
+The parked spots at the hull are the approved ones; only the tug's heading changes (it backs in
+square to the ramp). The crews get out when their own vehicle stops (`c5_scene.cast`), so the tug
+crew is now out at C5 about 17 s, while families are already on the apron. C5's Kilo Nine walk map
+is read once every vehicle has stopped; the port's people sites keep the earlier reading, since by
+then the Colossus's lift dust covers the heavy berth.
 
-**Shots changed:** C4 from frame 0 (the vehicles stand at their homes instead of the old starts,
-and the 10.4-13.4 s hops are gone) and C4 18.4-21.4 s (the runs). C5 opens on C4's last frame with
-the vehicles still driving, so **C5 0-4.5 s changes too**: they arrive from the south instead of
-from the north-west and south-east. From C5 4.5 s on, everything stands where it did.
+**Shots changed:** C4 from frame 0 (the carrier and tug are on the move from 0 and 3 s; the 10.4-13.4 s
+hops are gone; the bowser creeps during the descent) and C5 0-17 s (carrier and bowser arrive by 5 s,
+the tug works in until about 16.6 s). From C5 17 s on, everything stands where it did.
 
-Checks (`port_life.report` on the four vehicles): no clip against anything standing (shipped: 4
-tug-frames in the hangar wall), and no new moving pair (shipped: the tug runs into scaffold hand 7).
+Checks (`port_life.report` on the four vehicles, the C5 crowd report): no clip against anything
+standing, no new moving pair, and no walker inside a vehicle or under a moving one.
 
 ## Part 2: a working port (held)
 

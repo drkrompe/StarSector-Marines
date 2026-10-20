@@ -35,15 +35,38 @@ class LandingCraftSummaryTest {
     }
 
     @Test
-    void reliefShowsThreeHermesTripsForOneSelectedSquad() {
-        Mission mission = Mission.builder().id(OpeningOperationKind.RELIEF.missionId)
-                .source(MissionSource.STORY).type(MissionType.ASSAULT)
+    void militiaReliefShowsThreeHermesTripsForOneSelectedSquad() {
+        Mission mission = Mission.builder().id(OpeningOperationKind.RELIEF.recurringId)
+                .source(MissionSource.RECURRING).type(MissionType.ASSAULT)
                 .requiredDrops(2).employerShuttles(1).build();
         Map<String, Object> props = BriefingViewModel.baseProps();
         BriefingViewModel.putLandingCraft(props, mission,
                 Collections.singletonList(FittedBoat.standard(ShuttleType.HERMES)), 12, "Company ship");
         assertEquals("3 boat trips planned", props.get("landingCraftSchedule"));
         assertTrue(props.get("landingCraftCapacity").toString().contains("4 seats / boat trip"));
+    }
+
+    @Test
+    void storyReliefStartsOffWaylinesTruckWithItsBoatsInReserve() {
+        Mission mission = Mission.builder().id(OpeningOperationKind.RELIEF.missionId)
+                .source(MissionSource.STORY).type(MissionType.ASSAULT)
+                .requiredDrops(1).employerShuttles(1)
+                .marineArrivalPolicy(MarineArrivalPolicy.SECURED_GROUND).build();
+        Map<String, Object> props = BriefingViewModel.baseProps();
+        BriefingViewModel.putLandingCraft(props, mission, Collections.emptyList(), 12, "Company ship");
+        assertEquals("Company already ashore", props.get("landingCraftTitle"));
+        assertEquals("Off Wayline's truck at the rear apron / no insertion flights", props.get("landingCraftSchedule"));
+    }
+
+    @Test
+    void counterattackWithoutABoatPointsAtTheFirstHermes() {
+        Mission mission = Mission.builder().id(OpeningOperationKind.COUNTERATTACK.missionId)
+                .source(MissionSource.STORY).type(MissionType.ASSAULT)
+                .requiredDrops(3).employerShuttles(1).build();
+        Map<String, Object> props = BriefingViewModel.baseProps();
+        BriefingViewModel.putLandingCraft(props, mission, Collections.emptyList(), 12, "Company ship");
+        assertEquals("Company lift unavailable", props.get("landingCraftSchedule"));
+        assertTrue(props.get("landingCraftHint").toString().contains("first Hermes"));
     }
 
     @Test

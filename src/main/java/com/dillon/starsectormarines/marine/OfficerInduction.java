@@ -7,7 +7,11 @@ import java.util.Arrays;
 public final class OfficerInduction implements Serializable {
     public static final String SABINE_PORTRAIT = "graphics/portraits/sabine-hale.png";
 
-    public enum Step { INTRODUCTION, SPECIALTY, FORMATION, ASSIGNMENT, READY, COMPLETE, SHIP, LIFT }
+    /**
+     * Derived, never saved. The first lift is not a step: the company rides up to Relief on Wayline's truck, and
+     * the first Hermes is repaired in the campaign lesson between Relief and Counterattack.
+     */
+    public enum Step { INTRODUCTION, SPECIALTY, FORMATION, ASSIGNMENT, READY, COMPLETE, SHIP }
 
     private final String foundingOfficerId;
     private boolean introduced;
@@ -32,11 +36,7 @@ public final class OfficerInduction implements Serializable {
 
     public Step step(MarineRoster roster) {
         if (complete) return Step.COMPLETE;
-        if (companyPreparation) {
-            if (roster.companyShipId() == null) return Step.SHIP;
-            if (!roster.companyShipId().equals(roster.boatDeck().shipId())
-                    || roster.boatDeck().airworthy().isEmpty()) return Step.LIFT;
-        }
+        if (companyPreparation && roster.companyShipId() == null) return Step.SHIP;
         MarineCaptain officer = officer(roster);
         if (!introduced || officer == null) return Step.INTRODUCTION;
         if (Arrays.stream(OfficerSpecialty.values()).noneMatch(s -> officer.career().level(s) > 0))

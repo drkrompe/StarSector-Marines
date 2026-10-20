@@ -43,6 +43,7 @@ public final class ComputedStyle {
         values.put(StyleProperty.BACKGROUND_COLOR, null);
         values.put(StyleProperty.BACKGROUND_IMAGE, null);
         values.put(StyleProperty.COLOR, null);
+        values.put(StyleProperty.TEXT_SHADOW, null);
         values.put(StyleProperty.FONT_FAMILY, null);
         values.put(StyleProperty.TEXT_ALIGN, UiTextAlign.START);
         values.put(StyleProperty.WHITE_SPACE, UiWhiteSpace.NOWRAP);
@@ -156,6 +157,11 @@ public final class ComputedStyle {
 
     public Color color() {
         return (Color) value(StyleProperty.COLOR);
+    }
+
+    /** The colour of the halo drawn behind text, or null for none; inherited like {@code color}. */
+    public Color textShadow() {
+        return (Color) value(StyleProperty.TEXT_SHADOW);
     }
 
     public Object fontFamily() {

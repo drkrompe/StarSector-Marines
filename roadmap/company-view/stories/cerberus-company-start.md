@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED; live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-15 — Eight distinct story illustrations and a shared retained founding-yard review, with Cerberus-referenced exterior art and a limited conversion receipt. Live acceptance remains.
+Updated: 2026-10-20 — One story path at every start port; no starting fuel and no Galatia Academy stipend; start port locked through the shared OpeningPort order; a lost depot follows the company. Live acceptance remains.
 
 ## Outcome
 
@@ -10,11 +10,12 @@ An explicit new-game choice puts the player in command of an unconverted Cerberu
 The illustrated Second Wind prologue introduces the escape from the mining asteroid Harker's Claim, the
 crew's trust in their captain, and Castle's practical plan to fund a new company.
 Castle directs the player to Jangala and Nessa Venn, an old freight colleague now
-working as a yard forewoman, or an accessible fallback port. There the
+working as a yard forewoman. When Jangala is unavailable the course goes to an
+accessible fallback port, but the story stays Jangala's. There the
 player reviews and pays from Castle's protected reserve for a permanent Mercenary Company Conversion hullmod before
 the ship can be designated as the company command vessel. Designation resumes the
-existing paid-lift, Sabine specialty, squad founding and assignment tutorial, ending
-at the first Jangala contract.
+existing Sabine specialty, squad founding and assignment tutorial, ending at the
+first Jangala contract. The prepaid Hermes waits for the first-lift lesson after Relief.
 
 ## Scope and authority
 
@@ -29,16 +30,29 @@ owns its first-berth recovery and three paid repairs.
 The Cerberus begins with one working Hermes berth and a reserved damaged second bay;
 `cerberus-bay-restoration.md` owns its later paid repair. Extra beds do not mint boats.
 It remains a frigate and combat freighter. Installation is a reviewed planetary
-yard order costing 5,000 credits, not automatic designation or a free space refit.
+yard order costing 4,986 credits, not automatic designation or a free space refit.
 It installs a permanent hullmod on the actual owned variant; duplicate orders are
 refused without charging. No new boat or mech is awarded by the conversion.
 
 Starting logistics must cover the conversion and the existing preparation recipes
 without overloading the fleet or requiring a shopping detour. Travel supplies are
 separate from the workshop bill. The player chose one Cerberus and a staged planetary
-consignment, with no support freighter. The start supplies 500 spendable credits,
-a separate 5,000-credit reserve usable only for the original ship's conversion, minimum
-crew plus five, 25 travel supplies and up to 40 fuel. The first successful conversion
+consignment, with no support freighter. The start supplies 473 spendable credits,
+a separate 4,862-credit reserve usable only for the original ship's conversion (the
+yard waives the estimate's 124-credit pressure test when it pays), minimum
+crew plus five, 25 travel supplies and no fuel (owner, 2026-10-20). Fuel burns only in hyperspace.
+The start sets the fleet down in its port's own system, and the yard, Mara Venn's office and the
+depot all start in it; a re-pick after the port is lost keeps to that system while any qualifying
+port remains there. When a re-pick during the opening (conversion unpaid or depot stores left) does
+land across hyperspace, Castle tops the tank up to exactly what the fleet's own fuel use per light
+year needs to reach it, only the shortfall, within its tanks, once per replacement port, and says so
+in one line. Fuel is otherwise bought at the port when the company leaves. Nothing aboard can buy a second squad before Relief,
+which is why the story Relief carries no squad cap: the depot founds Sabine's squad only, any other
+pays the full founding bill from the hold, and selling every crewman and both guns at the most
+favourable vanilla prices still falls short (`SecondSquadAffordabilityTest`). Money earned through
+ordinary vanilla play before Relief is the sandbox's business, not the story's. The start also withdraws the Galatia
+Academy stipend that vanilla's skip-tutorial setup grants (15,000 a month), since a month of it
+would pay for that squad and contradicts the no-patron premise. The first successful conversion
 of this start's ship establishes a finite depot at that planet: 30 metals, 8 heavy
 machinery, 56 supplies, 12 Marines and 24 food, derived from the real Hermes and
 squad recipes. The boat and squad bills are earmarked separately; unrelated workshop
@@ -47,21 +61,35 @@ first, then cargo. Existing campaigns retain their funds and depot policy withou
 new grants or deductions. The depot is
 available only during interaction with its accessible working planetary port;
 leaving, visiting another market, reloading, or installing another conversion
-cannot replenish it. Ordinary starts receive no depot.
+cannot replenish it. A port that is lost to the company (gone, decivilized,
+hidden or hostile, but not merely disrupted) releases the stores: they are held at
+the next accessible working yard the company docks at, and stay there. Castle's
+course and the Intel then point to that next yard. Ordinary starts receive no depot.
+
+The start port is chosen once, when the start runs, by the shared `OpeningPort`
+order that Mara Venn's office also uses (`early-operation-nouns.md`): Jangala, the
+rest of Corvus, an Independent world, then the nearest to Corvus, among visible,
+populated, non-player planetary markets whose owner is not hostile and which have a
+spaceport, disrupted or not. It is kept while it stays eligible; otherwise the same
+order picks again, with the start port's own system ranked first and distance measured
+from it. A fleet whose Cerberus is missing at start (another mod's setup)
+is given the start's own Second Wind and the gap is logged, rather than failing new-game
+creation. The Nexerelin start points Nexerelin's placement at that port, and leaves
+placement to Nexerelin when no port exists.
 
 ## Acceptance
 
 - Required conversion is named explicitly as Mercenary Company Conversion, a
-  5,000-credit planetary yard order. Marine operations opens its review directly
+  4,986-credit planetary yard order. Marine operations opens its review directly
   while docked before conversion; vanilla Refit is not the installation route.
 - Opening preparation and Sabine induction have no Later or Escape dismissal.
   Return to campaign remains available for travel or resupply, with the required
   lesson returning on re-entry. Company designation cannot bypass the conversion.
-- Leave before confirming Hermes repair, reopen through both the company shortcut
+- Leave before confirming squad founding, reopen through both the company shortcut
   and the planet menu, and save/reload mid-step. The same stock and incomplete
   order survive. Away from the depot, Castle names its planet and offers a course
-  back; returning restores access without issuing another grant. Repeat for squad
-  founding. Mission-board Barracks and other direct room entrances resume the
+  back; returning restores access without issuing another grant. Repeat for the
+  Hermes repair in the first-lift lesson after Relief. Mission-board Barracks and other direct room entrances resume the
   current required step instead of bypassing it; battle settlement remains unaffected.
 - Additive selectable start, normal/easy choice, actual Cerberus flagship and player
   captain, no automatic company designation or preinstalled conversion.
@@ -70,22 +98,23 @@ cannot replenish it. Ordinary starts receive no depot.
   available; other dialogs and menus are never replaced. Back/Continue preserve
   progress, while Skip and the final course action finish it permanently. A load
   resumes an opted-in unfinished prologue, but never opts in an established save.
-- Final course, objective text and Intel marker share the accessible destination;
-  Jangala-specific contact and Corvus copy are absent for fallback ports. No port
+- Final course, objective text and Intel marker share the accessible destination
+  and name it; Castle's, Nessa's and Mara's lines say Jangala at every port. No port
   leaves a readable spaceport requirement and an exit instead of a dead button.
 - Castle's memories and the crew's belongings suggest their history; navigation
   instructions stay in the UI and Intel. Nessa's personal yard dialogue belongs
-  only to the original Second Wind conversion on Jangala.
-- Review all eight production pages and the founding-yard inspection, order and
-  completion at 1920x1080 and 100% scale through the `company-prologue` snapshot
-  suite. Show the battered hull and usable bunks without implying all rooms have
-  been restored. Live host dismissal and save/load remain open.
+  to the original Second Wind conversion, at whichever port it is made.
+- Review all eight production pages and the four founding-yard storybook pages
+  (`opening-dialogue.md` §2) at 1920x1080 and 100% scale through the
+  `company-prologue` snapshot suite. Page 1's Next is the only install; the pages
+  have no exit control, and Back is off on pages 1 and 2. Live host dismissal and
+  save/load remain open.
 - Refuse installation in space, on stations, at inaccessible or nonworking ports,
   on incompatible/mothballed/unowned hulls, after installation, and without funds.
 - Failed orders change neither credits nor variant. Successful work persists and
   is visible to actual ship eligibility, deck generation and all room routes.
-- A new start can convert with zero fleet credits and complete the real first
-  Hermes repair and squad founding with empty cargo. Unrelated orders cannot spend
+- A new start can convert with zero fleet credits and complete the real squad
+  founding, and after Relief the first Hermes repair, with empty cargo. Unrelated orders cannot spend
   the protected stock, and neither reserve refills after consumption or reload.
 - Full room/berth evidence on a real Cerberus silhouette; unconverted control stays
   ineligible; compact Mech Lab cannot advertise absent gantries.

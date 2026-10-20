@@ -51,8 +51,8 @@ from mathutils.bvhtree import BVHTree
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent.parent))  # art-source: starsector_path
-import wf_kit, wf_hull, wf_engines, wf_mounts, wf_lights, wf_detail
-for module in (wf_kit, wf_hull, wf_engines, wf_mounts, wf_lights, wf_detail):
+import wf_kit, wf_hull, wf_engines, wf_mounts, wf_lights, wf_detail, wf_fittings, wf_gear
+for module in (wf_kit, wf_hull, wf_engines, wf_mounts, wf_lights, wf_detail, wf_fittings, wf_gear):
     importlib.reload(module)
 from starsector_path import GAME_CORE as GAME
 sys.path.insert(0, str(HERE.parent))  # company-prologue: ship_scale
@@ -152,7 +152,44 @@ wf_engines.build(kit)
 wf_mounts.build(kit)
 wf_lights.build(kit)
 wf_detail.build(kit)
+wf_fittings.build(kit)
+wf_gear.build(kit)
 bpy.context.view_layer.update()
+
+
+def check_landing():
+    """Gear down: the keel shoes and every wedge's sole on the ground plane and nothing
+    else of the ship within 0.3 units of it; then back to stowed."""
+    wf_gear.pose(1.0)
+    dg = bpy.context.evaluated_depsgraph_get()
+    rec = wf_gear.RECORD
+    roots = {r['hinge'] for r in rec['wedges']} | {m[k] for r in rec['wedges'] for m in r['rams']
+                                                    for k in ('pivot', 'rod_pivot')}
+
+    def moving(o):
+        while o.parent is not None:
+            o = o.parent
+            if o.name in roots:
+                return True
+        return False
+
+    def lowest(o):
+        mw = o.matrix_world
+        return min((mw @ v.co).z for v in o.evaluated_get(dg).data.vertices)
+    feet = [r['sole'] for r in rec['wedges']] + [k['name'] for k in rec['keel_shoes']]
+    soles = {n: round(lowest(bpy.data.objects[n]), 3) for n in feet}
+    bad = {k: v for k, v in soles.items() if abs(v - wf_gear.GROUND_Z) > 2e-3}
+    rest = min((lowest(o), o.name) for o in bpy.data.objects
+               if o.type == 'MESH' and not moving(o) and o.name not in feet)
+    wedge_low = min(lowest(o) for o in bpy.data.objects if o.type == 'MESH' and moving(o))
+    wf_gear.pose(0.0)
+    if bad or rest[0] < wf_gear.GROUND_Z + .3 or wedge_low < wf_gear.GROUND_Z - 1e-3:
+        raise RuntimeError(f'landing check failed: feet {bad}, lowest other part {rest}, wedges reach {wedge_low}')
+    print('LANDING on the keel shoes and', len(rec['wedges']), 'wedges; clearance under the rest',
+          round(rest[0] - wf_gear.GROUND_Z, 2), 'units, lowest', rest[1])
+
+
+check_landing()
 
 trained = [n for t in wf_mounts.TURRETS for n in t['trained']
            if bpy.data.objects[n].type == 'MESH']
@@ -160,6 +197,38 @@ clash = wf_mounts.clearance(
     trained, [o.name for o in bpy.data.objects if o.type == 'MESH' and (o.name.startswith(('Hull ', 'Pod ')))])
 if clash:
     raise RuntimeError(f'turret clashes with the hull at rest: {clash}')
+
+
+# --- Finish (round 7, finished-model fidelity at the close view): every fitting
+# without a bevel gets a small rounded one, sized to its thinnest dimension. The
+# skinned hull objects keep their topology (their chamfers are already modelled and
+# the surfacing selects their faces), and the turret kit's parts are the kit's. ---
+def skinned_objects():
+    names = set()
+    for hull in ('wolf-surface', 'wolf-merchant-surface'):
+        for f in (HERE.parent / hull / 'part-list').glob('*.json'):
+            for part in json.loads(f.read_text(encoding='utf-8')).values():
+                names |= {m['object'] for m in part.get('members', [])}
+    return names
+
+
+SKINNED = skinned_objects()
+for ob in [o for o in bpy.data.objects if o.type == 'MESH']:
+    if ob.name in SKINNED and not any(m.type == 'BEVEL' for m in ob.modifiers):
+        # Round 8 (ship-detail-guide.md, Edge treatment): a hull plate's hard
+        # edges (60 degrees and sharper: loft end caps, cut faces) take the
+        # guide's 0.12 m plate bevel, one segment; its shallow creases stay put.
+        b = ob.modifiers.new('Finish plate edge', 'BEVEL')
+        b.width, b.segments, b.limit_method = .12/METRES_PER_UNIT, 1, 'ANGLE'
+        b.angle_limit = math.radians(55)
+        continue
+    if (ob.name in SKINNED or ob.name.startswith(('Turret ', 'Weapon ', 'Temporary ', 'Light '))
+            or any(m.type == 'BEVEL' for m in ob.modifiers)):
+        continue
+    thin = min([d for d in ob.dimensions if d > 1e-4] or [1.0])
+    b = ob.modifiers.new('Finish edge round', 'BEVEL')
+    b.width, b.segments, b.limit_method = min(.05, .22*thin), 2, 'ANGLE'
+    b.angle_limit = math.radians(30)
 
 
 # --- Bake: every modifier applied, so the asset costs nothing to evaluate. ---
@@ -173,12 +242,25 @@ def bake():
         ob.data = me
         me.name = old.name
         bpy.data.meshes.remove(old)
-    for ob in bpy.data.objects:
-        # The hull is flat shaded; the turret kit's guns keep their own smoothing
-        # (smooth with sharp creases past 32 degrees).
-        if ob.type == 'MESH' and not ob.name.startswith(('Turret ', 'Weapon ')):
-            for p in ob.data.polygons:
-                p.use_smooth = False
+    # Shading (round 7): smooth with sharp creases past 30 degrees, so lofted and
+    # round forms show no facets while chamfers, bevel strips and the prow's facets
+    # stay crisp; area-weighted normals then keep every large flat face flat, with
+    # the turning carried by the small strips beside it. Baked into custom normals.
+    # The turret kit's guns keep their own smoothing (sharp past 32 degrees).
+    hull = [o for o in bpy.data.objects if o.type == 'MESH' and not o.name.startswith(('Turret ', 'Weapon '))]
+    for ob in hull:
+        ob.data.shade_smooth()
+        ob.data.set_sharp_from_angle(angle=math.radians(30))
+        w = ob.modifiers.new('Area-weighted normals', 'WEIGHTED_NORMAL')
+        w.mode, w.weight, w.keep_sharp = 'FACE_AREA', 50, True
+    dg = bpy.context.evaluated_depsgraph_get()
+    for ob in hull:
+        me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg))
+        old = ob.data
+        ob.modifiers.clear()
+        ob.data = me
+        me.name = old.name
+        bpy.data.meshes.remove(old)
 
 
 bake()
@@ -401,6 +483,7 @@ if not args.no_save:
         'vfx_mounts': wf_mounts.mounts(),
         'engines': wf_engines.records(),
         'running_lights': wf_lights.records(),
+        'landing_gear': wf_gear.record(),
         'asset': {'file': ASSET, 'collection': COLL, 'root': ROOT, 'anchors_collection': f'{COLL} | anchors',
                   'baked': 'every modifier applied; no live booleans or bevels',
                   'append': f"bpy.data.libraries.load(path, link=True) and take collection '{COLL}'; "

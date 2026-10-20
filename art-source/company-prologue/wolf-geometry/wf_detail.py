@@ -88,20 +88,16 @@ def build(kit):
     sides = (('port', 1), ('starboard', -1))
 
     # --- Head. ---
+    # (Round 6: the bridge stands where the sensor eyes, shoulder ports and spine-root
+    # slot were; its glazing is the sprite's lit canopy and ports. The cheek strips run
+    # down the head outboard of it.)
     for side, s in sides:
-        z = z_at(kit, 40.2, s*2.3, 4)
-        kit.box(f'Hull head {side} sensor eye', (40.2, s*2.3, z), (1.2, 1.1, .5), dark, 0)
-        kit.cylinder(f'Hull head {side} sensor eye lens', (40.2, s*2.3, z+.2), .35, .12, glass, 'Z', 10, 0)
-        z = z_at(kit, 35.6, s*3.4, 4)
-        kit.box(f'Hull head {side} shoulder port', (35.6, s*3.4, z), (1.6/kit.mpu*.6, 1.0/kit.mpu, .3), glass, 0)
-        ribbon(kit, f'Hull head {side} cheek strip', line((41.2, s*5.6), (31.5, s*6.4)), 1.8, .35, red)
-    z = z_at(kit, 33.6, 0, 5)
-    kit.box('Hull spine root slot', (33.6, 0, z), (.8, 2.4, .5), dark, 0)
+        ribbon(kit, f'Hull head {side} cheek strip', line((41.6, s*7.2), (31.5, s*7.9)), 1.6, .35, red)
 
     # --- Neck: the second canopy. ---
     z = z_at(kit, 20.4, 0, 5)
     kit.cylinder('Hull neck aft canopy frame', (20.4, 0, z+.1), 1.9, .5, steel, 'Z', 12, .06)
-    bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=6, radius=1.0, location=(20.4, 0, z+.35))
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=48, ring_count=24, radius=1.0, location=(20.4, 0, z+.35))
     ob = bpy.context.object
     ob.scale = (1.5, 1.4, .8)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
@@ -115,7 +111,7 @@ def build(kit):
         kit.box(f'Hull {side} outrigger vent well', (37.2, s*15.95, .6), (4.4, .5, 2.4), dark, 0)
         for k, x in enumerate((35.8, 36.7, 37.6, 38.5), 1):
             kit.box(f'Hull {side} outrigger vent slat {k}', (x, s*16.05, .6), (.35, .4, 2.2),
-                    kit.vent if s < 0 else steel, 0)
+                    steel, 0)   # not lit: the Wolf has no lights layer, and vents never glow (ship-detail-guide.md)
 
     # --- Main body: emitter wells. ---
     for side, s in sides:
@@ -126,13 +122,14 @@ def build(kit):
 
     # --- Missile pods: lattice ribs and dark wells. ---
     for side, s in sides:
-        yc = s*19.2
-        for k, x in enumerate((6.0, 8.6, 11.2, 13.4), 1):
+        # (Round 6: the launcher head stands on the tip; the lattice runs on the wing behind it.)
+        yc = s*18.6
+        for k, x in enumerate((4.6, 2.2, -.2, -2.6), 1):
             z = z_at(kit, x, yc, 3)
-            kit.box(f'Pod {side} missile rib {k}', (x, yc, z+.2), (.8, 7.0, .7), steel, .1)
-        for k, x in enumerate((7.3, 9.9, 12.3), 1):
+            kit.box(f'Pod {side} missile rib {k}', (x, yc, z+.2), (.8, 6.0, .7), steel, .1)
+        for k, x in enumerate((3.4, 1.0, -1.4), 1):
             z = z_at(kit, x, yc, 3)
-            kit.box(f'Pod {side} missile well {k}', (x, yc, z+.02), (1.6, 6.0, .1), dark, 0)
+            kit.box(f'Pod {side} missile well {k}', (x, yc, z+.02), (1.6, 5.0, .1), dark, 0)
 
     # --- Aft: hatch well, link frames. ---
     z = z_at(kit, -12.6, 0, 5)

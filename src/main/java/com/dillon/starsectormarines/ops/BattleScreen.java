@@ -268,7 +268,11 @@ public class BattleScreen implements Screen, BattleUiContext {
     private List<HighlightOverlay.LineMark> linePreview;
     /** The drag's cells the preview was last worked out for; a move inside the same cells keeps it. */
     private long linePreviewKey = Long.MIN_VALUE;
+    /** The destination and heading a right drag in progress would give a vehicle or mech, or null. */
+    private HighlightOverlay.FacingMark facingPreview;
     private float speedMultiplier = 1f;
+    /** The speed Space returns to: the last running speed, so a pause at 2x resumes at 2x. */
+    private float resumeSpeed = 1f;
     /** Owns all loaded sprite sheets, frame data, and ensure/load methods. */
     private final BattleSprites sprites = new BattleSprites();
     /** World-layer render pipeline — owns tile batches, FX systems, and all render/draw methods. */
@@ -348,6 +352,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (attachedSimulation != nextSimulation) {
             exitDirectControl();
             speedMultiplier = 1f;
+            resumeSpeed = 1f;
             attachedSimulation = nextSimulation;
             if (storyNarration != null) storyNarration.stop();
             storySubtitles.detach();
@@ -673,6 +678,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         SquadMoveOrderHighlightPublisher.publish(selection, sim, highlights);
         SquadMoveOrderHighlightPublisher.publishLinePreview(linePreview, highlights);
+        highlights.putFacings(HighlightOverlay.SRC_FACING_PREVIEW,
+                facingPreview == null ? null : List.of(facingPreview));
         FightingPositionHighlightPublisher.publish(selection, sim, highlights,
                 camera != null ? camera.visibleCells() : null);
         VehicleMoveOrderHighlightPublisher.publish(selection, sim, highlights);
@@ -954,9 +961,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         retainedRetreatOverlay.attach(position, sim != null && sim.isComplete());
         if (directControlOverlay == null) {
             directControlOverlay = new BattleDirectControlOverlay(selection, this::toggleDirectControl,
-                    () -> setBattleSpeed(speedMultiplier == 0f ? 1f : 0f), this::selectDirectWeapon);
+                    this::togglePause, this::selectDirectWeapon);
         }
-        reserveDirectControlMessageLane();
         directControlOverlay.attach(position, sim, speedMultiplier);
         if (rangeTrial != null) directControlOverlay.setExitLabelKey("armoryRangeExit");
         if (manualObjectives == null) manualObjectives = new BattleManualObjectiveOverlay();
@@ -1120,13 +1126,6 @@ public class BattleScreen implements Screen, BattleUiContext {
         var bounds = surface.viewport();
         return x < bounds.screenX() + bounds.width() && x + width > bounds.screenX()
                 ? Math.max(top, bounds.screenY() + bounds.height()) : top;
-    }
-
-    private void reserveDirectControlMessageLane() {
-        if (directControlOverlay != null && position != null) {
-            directControlOverlay.topReservedHeight(position.getY() + position.getHeight()
-                    - BattleLayout.PAD - topCenterContentBottom());
-        }
     }
 
     @Override
@@ -1516,6 +1515,15 @@ public class BattleScreen implements Screen, BattleUiContext {
             refreshSelectionChrome();
             return;
         }
+        // Space pauses everywhere on the battle screen. No battle surface takes typed text, so the
+        // key is claimed before any panel can read it as "activate the focused button" and toggle twice.
+        for (InputEventAPI event : events) {
+            if (!event.isConsumed() && event.isKeyDownEvent() && !event.isRepeat()
+                    && event.getEventValue() == Keyboard.KEY_SPACE) {
+                togglePause();
+                event.consume();
+            }
+        }
         boolean controlledAtInputStart = directControlInput.active();
         var manualSamples = BattleDirectControlInput.capture(events);
         // Hidden strategic surfaces neither claim input nor retain keyboard focus.
@@ -1641,7 +1649,6 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     /** Mode changes release old captures and restore the strategic documents on handback. */
     private void syncDirectControlHud() {
-        reserveDirectControlMessageLane();
         boolean active = directControlInput.active();
         if (hud != null) hud.setDirectControl(active);
         if (active == directControlHudActive) return;
@@ -1665,7 +1672,6 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     private void syncDirectControl() {
-        reserveDirectControlMessageLane();
         BattleSimulation sim = getSim();
         if (Display.isCreated() && !Display.isActive() && shipOrderTargeting != null) shipOrderTargeting.cancel();
         if (directControlInput.active() && (sim != directControlSimulation
@@ -1677,7 +1683,13 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (manualObjectives != null) manualObjectives.update(0f, sim);
     }
 
+    /** Space and the takeover Pause control: stop the battle, or resume it at the speed it had. */
+    private void togglePause() {
+        setBattleSpeed(speedMultiplier > 0f ? 0f : resumeSpeed);
+    }
+
     private void setBattleSpeed(float requested) {
+        if (speedMultiplier > 0f) resumeSpeed = speedMultiplier;
         speedMultiplier = directControlInput.active()
                 ? directControlInput.speedChanged(requested) : requested;
         if (directControlInput.active()) {
@@ -1715,7 +1727,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             actionCamera.follow(camera, ship.x, ship.y, shipRadius, pointerX, pointerY,
                     directControlInput.pointerKnown()
                             && !battleChromeBlocksWorldPointer(pointerX, pointerY), dt,
-                    position != null ? BattleDirectControlOverlay.viewport(position, true).height() + 12f : 0f);
+                    0f);
             if (directControlOverlay != null) {
                 directControlOverlay.avoidControlledBody(camera.cellToScreenX(ship.x),
                         camera.cellToScreenY(ship.y), shipRadius * camera.cellPxSize());
@@ -1733,7 +1745,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 pointerX, pointerY,
                 directControlInput.pointerKnown()
                         && !battleChromeBlocksWorldPointer(pointerX, pointerY), dt,
-                position != null ? BattleDirectControlOverlay.viewport(position, true).height() + 12f : 0f);
+                0f);
         if (directControlOverlay != null) {
             directControlOverlay.avoidControlledBody(
                     camera.cellToScreenX(directControlSimulation.world().renderX(unit)),
@@ -1759,18 +1771,40 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     /**
      * A right drag: previews the line the selection would be given while the button is held,
-     * and gives it on release.
+     * and gives it on release. For a vehicle or mech selection the drag is a heading instead: the
+     * unit goes where the button went down and finishes facing the way the drag went.
      */
     private void dragSelectedLine(float startX, float startY, float x, float y, boolean released) {
         BattleSimulation sim = getSim();
+        facingPreview = null;
         if (sim == null || camera == null || sim.directControl().active()) {
             linePreview = null;
             return;
         }
-        int x0 = (int) Math.floor(camera.screenToCellX(startX));
-        int y0 = (int) Math.floor(camera.screenToCellY(startY));
-        int x1 = (int) Math.floor(camera.screenToCellX(x));
-        int y1 = (int) Math.floor(camera.screenToCellY(y));
+        float cellX0 = camera.screenToCellX(startX);
+        float cellY0 = camera.screenToCellY(startY);
+        float cellX1 = camera.screenToCellX(x);
+        float cellY1 = camera.screenToCellY(y);
+        int x0 = (int) Math.floor(cellX0);
+        int y0 = (int) Math.floor(cellY0);
+        int x1 = (int) Math.floor(cellX1);
+        int y1 = (int) Math.floor(cellY1);
+        if (SelectionOrders.takesFacing(sim, selection)) {
+            linePreview = null;
+            linePreviewKey = Long.MIN_VALUE;
+            float length = (float) Math.hypot(cellX1 - cellX0, cellY1 - cellY0);
+            if (length < SelectionOrders.MIN_FACING_DRAG_CELLS) {
+                if (released) SelectionOrders.requestMove(sim, selection, x1, y1);
+                return;
+            }
+            float facing = SelectionOrders.facingOf(cellX1 - cellX0, cellY1 - cellY0);
+            if (released) {
+                SelectionOrders.requestMove(sim, selection, x0, y0, facing);
+            } else {
+                facingPreview = new HighlightOverlay.FacingMark(x0 + .5f, y0 + .5f, facing, length);
+            }
+            return;
+        }
         if (released) {
             linePreview = null;
             linePreviewKey = Long.MIN_VALUE;
@@ -1789,7 +1823,6 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void refreshSelectionChrome() {
         if (turretAuthor != null && turretAuthor.active) return;
         BattleSimulation sim = getSim();
-        reserveDirectControlMessageLane();
         if (directControlInput.active()) {
             if (directControlOverlay != null) directControlOverlay.update(0f, sim, speedMultiplier);
             return;

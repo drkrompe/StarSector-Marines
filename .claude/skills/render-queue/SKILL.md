@@ -44,19 +44,38 @@ The queue folder is `G:\My Drive\starsector\render-queue\` on Windows and
 
 | lane | for | gate |
 |------|-----|------|
-| `review` | stills and takes the owner will look at | waits for `run` |
 | `light` | half size, at most 16 samples, or a low-fps low-res clip (owner rule) | **runs while paused** |
+| `review` | stills and takes the owner will look at | waits for `run` |
 | `final` | full-quality finals the owner approved | waits for `run` |
 
-Within a lane, jobs run by priority (higher first), then submission time.
-Review and light jobs run ahead of finals. When one arrives while a final is
-rendering, the runner **swaps the final out**: it waits for the frame in
-progress to land (up to 7 minutes), stops the final cleanly, runs the short
-job, then relaunches the final. Closing the gate swaps a gated job out the
-same way, with nothing swapped in. So a final's render command **must skip
-frames that already exist**, as Blender does with `use_overwrite = False` /
-`use_placeholder = True`. The runner deletes 0-byte placeholders before each
-launch.
+Lanes run in that order: light before review before final. Priority (higher
+first), then submission time, orders jobs **within** a lane. It never lifts a
+job into an earlier lane.
+
+When a job in an earlier lane arrives, a running review or final with frames
+still to render after the current one is **swapped out at its next frame
+boundary**. The runner waits for the frame in progress to land, however long
+that takes, then stops the job cleanly. It runs the earlier job, then
+relaunches the swapped-out one. Preemption never stops a frame mid-render. A
+job is only swapped out once it has rendered for `preempt_min_run_seconds`
+(20 minutes) since its last launch, because every swap costs it a scene
+rebuild. So a light job can wait up to 20 minutes, and should batch a whole
+review round into one job rather than one job per part or view.
+
+A job without a `frames` check, or one on its last frame, is not swapped:
+it finishes first, then the earlier lane goes next. That includes a long
+single-frame still. A two-hour single frame therefore holds its machine for
+two hours. Submit quick looks as `any` so the other machine can take them, or
+ask the render coordinator to hold the long job, which stops it mid-frame and
+throws the frame away.
+
+Closing the gate, or a hold, swaps a job out the same way with nothing swapped
+in. These wait at most `swap_wait_max_seconds` (7 minutes) for the frame in
+progress, then stop it mid-frame.
+
+So a multi-frame render **must skip frames that already exist**, as Blender
+does with `use_overwrite = False` / `use_placeholder = True`. The runner
+deletes 0-byte placeholders before each launch.
 
 Respect the light-lane rule: a light job runs on the owner's GPU during the
 day. One that runs past 30 minutes is stopped and marked failed.
@@ -166,20 +185,28 @@ running job survives a runner restart.
 **Windows.** The runner lives in `%LOCALAPPDATA%\starsector-render-queue\`.
 The scheduled task "Starsector render queue" starts it at logon, hidden.
 
-**Mac.** The runner lives in `~/render-queue/` and runs under nohup, started
-from ssh or Terminal. A LaunchAgent cannot list `~/Library/CloudStorage`
-(macOS answers "Operation not permitted") without Full Disk Access, which is
-the owner's call. So **after a Mac reboot, start the runner again**:
+**Mac.** The runner lives in `~/render-queue/`. The LaunchAgent
+`com.starsectormarines.renderqueue` starts it at login and restarts it if it
+dies. To update it, copy the script over and run `install`:
 
 ```bash
 C:/Windows/System32/OpenSSH/ssh.exe -o HostKeyAlias=dillmac.local dillon@192.168.1.97 "cd ~/render-queue && /usr/bin/python3 render_queue.py install"
 ```
 
-A stale Mac heartbeat in `status` means the runner is down.
+The agent needs Full Disk Access to read the Drive folder, which the owner has
+granted. The grant is on the interpreter the plist runs, the Command Line
+Tools `Python.app`
+(`/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/Resources/Python.app`).
+A grant on the `/usr/bin/python3` shim does nothing. A Command Line Tools
+update can replace that `Python.app` and drop the grant. The runner log then
+fills with `PermissionError: Operation not permitted` and the Mac heartbeat in
+`status` goes stale. When that happens, ask the owner to grant it again, or
+use `install --mode nohup` from ssh as a stopgap; that copy does not survive
+a reboot.
 
 `config.json` belongs to the render coordinator. Besides gates, holds and
 priority overrides it holds:
-- `preempt`
+- `preempt` and `preempt_min_run_seconds`
 - `swap_at_frame_boundary` and `swap_wait_max_seconds`
 - `mac_swap`: `stop` (the default, which frees memory) or `freeze` (SIGSTOP)
 - `low_priority`

@@ -16,12 +16,14 @@ the ion cannon is `tk.build('ioncannon')` on a kit barbette, trained by
 `Turret 1 pivot` (an empty at the top of the drum; turn it about hull +Z, it
 rests ahead) and elevated by `Turret 1 elevation`; the mining blaster and the
 Annihilator pods are `tk.build_hardpoint` on fixed `Weapon <id> mount`
-empties: the mining blaster fills the bow fork's centre (it is the claw's
-middle, where the sprite draws the inner tines) in a channel cut through the
-fork base, its breech buried in the head; the pods are set into the missile
-pods' faces, their rears inside the pods. Hardpoint size: the
-game draws them over the hull at sprite scale and well proud of the bow; here
-they are scaled (HARDPOINT_K) to sit in the hull's own fork and pods.
+empties: the mining blaster runs in an open trough on the prow's centreline
+between its two armoured jaws (the sprite's outer tines), its breech under the
+gun hood and buried in the head; the Annihilators are the kit's launcher heads
+(round 6), each standing on its swept wing's tip on a fixed collar sunk into the
+wing, the five-tube bank facing ahead. Hardpoint size: the game draws them over
+the hull at sprite scale and well proud of the bow; here they are scaled
+(HARDPOINT_K) to the hull's own prow and wings. The merchant's WS 002 / WS 003 PD
+turrets stand in wells sunk into low sponsons (wf_hull), on short drums.
 
 Mounts for the shared VFX kit (../second-wind-vfx), in this order: 1 WS 001,
 2 WS 004, 3 WS 005, 4 WS 006. Each gun has `Anchor turret <i> barrel 1
@@ -33,7 +35,7 @@ import math
 import sys
 from pathlib import Path
 import bpy
-from mathutils import Matrix
+from mathutils import Matrix, Vector
 from wf_kit import boolean
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent/'turret-kit'))
@@ -52,26 +54,53 @@ REMOVED = [
 LOADOUT = {'WS 001': 'ioncannon', 'WS 004': 'miningblaster', 'WS 005': 'annihilator', 'WS 006': 'annihilator'}
 MOUNT_ORDER = ['WS 001', 'WS 004', 'WS 005', 'WS 006']     # VFX mount index i = position + 1
 RING = 5.0            # the sprite's turret ring round WS 001 (rows 39-48)
-LIFT = 1.6            # barbette drum above the deck
+LIFT = 1.6            # barbette drum above the deck (WS 001)
+# The merchant's aft PD mounts (owner, round 6: "read like cylinders and are lifted quite
+# high"): each stands in a well sunk into a low sponson faired into the flank (wf_hull),
+# its drum rising only a little above the sponson deck, so the turret head sits on the hull.
+TURRET_LIFT = {'WS 002': 1.25, 'WS 003': 1.25}
+TURRET_FOOT = {'WS 002': .5, 'WS 003': .5}
 HARDPOINT_K = {'WS 004': .42, 'WS 005': .6, 'WS 006': .6}   # hull units per weapon sprite pixel
-AXIS_Z = {'WS 004': -3.6, 'WS 005': -2.2, 'WS 006': -2.2}         # the hardpoints' bore axis height
+AXIS_Z = {'WS 004': -3.6}         # the bow gun's bore axis height
+# The Annihilators (owner, round 6: "modeled missile turret heads on the left and right"):
+# launcher heads standing on the swept wings' tips, their fixed collars sunk into the
+# wing; the bore axis is this many weapon pixels above the wing surface at the slot.
+HEAD_ABOVE = {'WS 005': 3.8, 'WS 006': 3.8}
 # Bays cut round the hardpoints: ((x0, x1) about the slot, half width, (z0, z1) about the
-# axis, hosts). The mining blaster's channel runs through the fork base between the
-# outer tines; its breech is buried in the head. The pods' launchers are set into the
-# pods' faces without a bay: their rears are inside the pod.
-BAYS = {'WS 004': ((-2.2, 10.0), 3.8, (-2.6, 6.0), ('Hull bow fork base',))}
+# axis, hosts). The mining blaster's trough runs through the prow between the jaws,
+# open above; its breech is under the gun hood and buried in the head. The launcher
+# heads stand on the wings and need no bay.
+BAYS = {'WS 004': ((-1.6, 10.5), 3.7, (-2.9, 12.0), ('Hull bow fork base',))}
 # The base hull (the merchant variant): every wolf.ship slot, armed as the vanilla
-# wolf_Assault variant. The kit has no heavy blaster or Harpoon hardpoint yet: the
-# mining blaster and Annihilator pod forms stand in for them (recorded as built_as).
-PIRATE = dict(slots=SLOTS, removed=REMOVED, loadout=LOADOUT, order=MOUNT_ORDER, built_as={})
+# wolf_Assault variant: the kit's heavy blaster at WS 004 and Harpoon launchers on
+# the wing tips (round 8; the mining blaster and Annihilator forms stood in before).
+PIRATE = dict(slots=SLOTS, removed=REMOVED, loadout=LOADOUT, order=MOUNT_ORDER, built_as={},
+              # The mining blaster's breech is buried in the head and the launcher heads'
+              # collars are sunk into the wings: those hosts are carved to the weapon's own
+              # shape, so it seats without passing through them (check_hardpoints).
+              carve={'WS 004': ('Hull head', 'Hull bow fork base'),
+                     'WS 005': ('Pod port missile body', 'Hull main body', 'Hull neck'),
+                     'WS 006': ('Pod starboard missile body', 'Hull main body', 'Hull neck')})
 MERCHANT = dict(
     slots=sorted(SLOTS+REMOVED, key=lambda s: s['id']), removed=[],
     loadout={'WS 001': 'ioncannon', 'WS 002': 'pdlaser', 'WS 003': 'pdlaser', 'WS 004': 'heavyblaster',
              'WS 005': 'harpoon', 'WS 006': 'harpoon'},
     order=['WS 001', 'WS 002', 'WS 003', 'WS 004', 'WS 005', 'WS 006'],
-    built_as={'WS 004': 'miningblaster', 'WS 005': 'annihilator', 'WS 006': 'annihilator'})
+    built_as={},
+    # The heavy blaster is about 26 sprite pixels across and the Harpoon launcher 25:
+    # scaled to fit the prow trough between the jaws and the wing tips beside the neck.
+    k={'WS 004': .3, 'WS 005': .3, 'WS 006': .3},
+    # The heavy blaster's capacitor housing runs back past the trough into the head:
+    # a closed breech pocket under the gun hood, open only to the trough ((x0, x1) about
+    # the slot, half width, (z0, z1) about the axis, hosts).
+    pockets={'WS 004': ((-3.7, -1.4), 3.4, (-3.6, 2.2), ('Hull head', 'Hull bow fork base'))},
+    # The Harpoon launchers sit on the wing tips against the main body's flank (WS 006
+    # is a unit closer in than WS 005): the flank is carved to the launcher's shape.
+    carve={'WS 005': ('Hull main body', 'Hull neck'), 'WS 006': ('Hull main body', 'Hull neck')})
+POCKETS = {}
+CARVE = {}
 TURRET_RING = {'WS 001': RING, 'WS 002': 4.4, 'WS 003': 4.4}
-HARDPOINT_K.update({})
+BASE_K = dict(HARDPOINT_K)
 BUILT_AS = {}
 
 
@@ -80,6 +109,12 @@ def configure(variant):
     global SLOTS, REMOVED, LOADOUT, MOUNT_ORDER, BUILT_AS
     v = MERCHANT if variant == 'merchant' else PIRATE
     SLOTS, REMOVED, LOADOUT, MOUNT_ORDER, BUILT_AS = v['slots'], v['removed'], v['loadout'], v['order'], v['built_as']
+    POCKETS.clear()
+    POCKETS.update(v.get('pockets', {}))
+    CARVE.clear()
+    CARVE.update(v.get('carve', {}))
+    HARDPOINT_K.clear()
+    HARDPOINT_K.update(BASE_K, **v.get('k', {}))
 
 
 ANCHOR_Z = {}
@@ -106,8 +141,10 @@ def turret(kit, i, slot, mpu):
     sid = slot['id']
     seat = kit.surface(x, y)[0].z
     ring = TURRET_RING[sid]
-    tk.barbette(f'Turret {i} barbette', ring, LIFT, mats(kit), mpu, foot=1.2, location=(x, y, seat))
-    top = seat+LIFT
+    lift = TURRET_LIFT.get(sid, LIFT)
+    tk.barbette(f'Turret {i} barbette', ring, lift, mats(kit), mpu, foot=TURRET_FOOT.get(sid, 1.2),
+                location=(x, y, seat))
+    top = seat+lift
     pivot = kit.empty(f'Turret {i} pivot', (x, y, top), 0, size=2.5, kind='SINGLE_ARROW')
     t = tk.build(LOADOUT[sid], f'Turret {i}', pivot, ring, mats(kit), mpu)
     muzzles = [vfx_anchor(f'Anchor turret {MOUNT_ORDER.index(sid)+1} barrel {k} muzzle', m).name
@@ -128,25 +165,63 @@ def turret(kit, i, slot, mpu):
                     'kit_muzzles': [m.name for m in t['muzzles']], 'muzzles': muzzles})
 
 
+def carve(host, parts):
+    """Cut the host to the shape of a weapon's parts where they pass into it."""
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    lo, hi = host.matrix_world @ Vector(host.bound_box[0]), host.matrix_world @ Vector(host.bound_box[6])
+    for ob in parts:
+        corners = [ob.matrix_world @ Vector(c) for c in ob.bound_box]
+        if any(max(c[i] for c in corners) < lo[i] or min(c[i] for c in corners) > hi[i] for i in range(3)):
+            continue
+        me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg))
+        me.transform(ob.matrix_world)
+        tool = bpy.data.objects.new('Temporary carve tool', me)
+        bpy.context.scene.collection.objects.link(tool)
+        mod = host.modifiers.new('Hull carve', 'BOOLEAN')
+        mod.operation, mod.object, mod.solver = 'DIFFERENCE', tool, 'EXACT'
+        bpy.context.view_layer.objects.active = host
+        bpy.ops.object.modifier_move_to_index(modifier=mod.name, index=0)
+        n = len(host.data.materials)
+        bpy.ops.object.modifier_apply(modifier=mod.name)
+        bpy.data.objects.remove(tool, do_unlink=True)
+        bpy.data.meshes.remove(me)
+        # The cut faces keep the host's finish (the surfacing classes the hull's
+        # materials, never the weapon's), and the weapon's slots go again.
+        for poly in host.data.polygons:
+            if poly.material_index >= n:
+                poly.material_index = 0
+        while len(host.data.materials) > n:
+            host.data.materials.pop()
+
+
 def hardpoint(kit, slot, mpu):
     x, y = slot['location']
     sid = slot['id']
-    z = AXIS_Z[sid]
+    z = AXIS_Z[sid] if sid in AXIS_Z else kit.surface(x, y)[0].z+HEAD_ABOVE[sid]*HARDPOINT_K[sid]
     (bx0, bx1), hw, (bz0, bz1), hosts = BAYS.get(sid, ((0, 0), 0, (0, 0), ()))
     for host in hosts:
         cutter = kit.box(f'Temporary {sid} bay cutter', (x+(bx0+bx1)/2, y, z+(bz0+bz1)/2),
                          (bx1-bx0, 2*hw, bz1-bz0), kit.dark, 0)
         boolean(bpy.data.objects[host], cutter)
+    if sid in POCKETS:
+        (px0, px1), phw, (pz0, pz1), phosts = POCKETS[sid]
+        for host in phosts:
+            cutter = kit.box(f'Temporary {sid} pocket cutter', (x+(px0+px1)/2, y, z+(pz0+pz1)/2),
+                             (px1-px0, 2*phw, pz1-pz0), kit.dark, 0)
+            boolean(bpy.data.objects[host], cutter)
     mount = kit.empty(f'Weapon {sid} mount', (x, y, z), slot['angle'], size=2)
     built = BUILT_AS.get(sid, LOADOUT[sid])
     hp = tk.build_hardpoint(built, f'Weapon {sid}', mount, mats(kit), mpu, k=HARDPOINT_K[sid])
+    for host in CARVE.get(sid, ()):
+        carve(bpy.data.objects[host], [o for o in hp['parts'] if o.type == 'MESH'])
     tag = 'tube' if slot['type'] == 'MISSILE' else 'barrel'
     i = MOUNT_ORDER.index(sid)+1
     muzzles = [vfx_anchor(f'Anchor turret {i} {tag} {k} muzzle', m).name for k, m in enumerate(hp['muzzles'], 1)]
     kit.empty(f'Weapon {sid} anchor', (x, y, z), slot['angle'], size=2)
     ANCHOR_Z[sid] = z
     MUZZLES[sid] = muzzles
-    HARDPOINTS.append({'slot': sid, 'weapon': LOADOUT[sid], 'built_as': built, 'mount': mount.name, 'location': [x, y, z],
+    HARDPOINTS.append({'slot': sid, 'weapon': LOADOUT[sid], 'built_as': built, 'mount': mount.name, 'location': [x, y, round(z, 2)],
                        'k': HARDPOINT_K[sid], 'bay': {'x': [x+bx0, x+bx1], 'half_width': hw,
                                                       'z': [z+bz0, z+bz1], 'cut_from': list(hosts)}
                        if hosts else None,

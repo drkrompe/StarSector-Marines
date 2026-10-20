@@ -128,10 +128,17 @@ class Kit:
         self.plate = livery('Manticore grey plate', (.16, .145, .14), vary=.12, grime=.25)
         self.pale = livery('Manticore pale command plating', (.52, .51, .50), vary=.06, grime=.3)
         self.dark = material('Manticore recess', (.025, .022, .02), .4, .6)
-        self.glass = material('Manticore bridge glazing', (.03, .03, .025), .2, .15,
-                              emission=(1.0, .85, .45), strength=4.0)
-        self.vent = material('Manticore heat vent glow', (.05, .03, .02), .3, .5,
-                             emission=(1.0, .45, .12), strength=2.5)
+        # Round 14 (owner: the lower-deck windows "read as weird rectangle
+        # lights"): dark, glossy glass that reflects the sky, with only a faint
+        # warm interior glow behind it, never a lit panel.
+        # Round 15 (owner, round 14: the glass still read tan): an absorbing
+        # near-black tint with a low specular level, so it reads dark even under
+        # a bright grey studio world, and only the faintest interior glow.
+        # Detail check (ship-detail-guide): the Manticore has no lights layer, so
+        # nothing but the sprite's lamps glows; the glass is dark with no emission.
+        self.glass = material('Manticore bridge glazing', (.004, .005, .006), 0, .06)
+        self.glass.node_tree.nodes.get('Principled BSDF').inputs['Specular IOR Level'].default_value = .25
+        self.vent = material('Manticore heat vent', (.05, .03, .02), .3, .5)  # heat-stained slats, unlit
         self.hull = []  # objects the downward ray-cast seats parts on
         self.mpu = 1.0  # metres per unit; the driver sets it before building
 
@@ -144,14 +151,37 @@ class Kit:
             b.width, b.segments, b.limit_method = bevel, 1, 'ANGLE'
         return obj
 
+    def smooth(self, obj, bevel=None, segments=3, angle=30):
+        """Round 14: hard edges get a rounded multi-segment chamfer with hardened
+        normals, and every face below `angle` of its neighbour shades smooth, so a
+        curved form reads as curved at a close view instead of as facets."""
+        me = obj.data
+        me.shade_smooth()
+        me.set_sharp_from_angle(angle=math.radians(angle))
+        b = obj.modifiers.get('Plate edge chamfer') or obj.modifiers.new('Plate edge chamfer', 'BEVEL')
+        if bevel:
+            b.width = bevel
+        b.segments, b.limit_method, b.angle_limit = segments, 'ANGLE', math.radians(angle)
+        b.harden_normals = True
+        w = obj.modifiers.new('Weighted normals', 'WEIGHTED_NORMAL')
+        w.keep_sharp = True
+        return obj
+
     def box(self, name, loc, dims, mat, bevel=.15):
         bpy.ops.mesh.primitive_cube_add(size=1, location=loc)
         obj = bpy.context.object
         obj.dimensions = dims
         bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-        return self.finish(obj, name, mat, bevel)
+        self.finish(obj, name, mat, bevel)
+        if bevel and not name.startswith('Temporary'):
+            self.smooth(obj, segments=2)   # round 14: rounded plate edges, flat faces
+        return obj
 
     def cylinder(self, name, loc, radius, depth, mat, axis='Z', vertices=12, bevel=.08):
+        # Round 14 (owner: "we're getting the rough shape right, but need to add
+        # detail"): no round part reads as a polygon at a close view.
+        if not name.startswith('Temporary'):
+            vertices = max(vertices, 48)
         bpy.ops.mesh.primitive_cylinder_add(vertices=vertices, radius=radius, depth=depth, location=loc)
         obj = bpy.context.object
         if axis == 'X':
@@ -159,6 +189,8 @@ class Kit:
         elif axis == 'Y':
             obj.rotation_euler[0] = math.pi / 2
         bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+        if not name.startswith('Temporary'):
+            shade_round(obj)
         return self.finish(obj, name, mat, bevel)
 
     def mesh(self, name, verts, faces, mat, bevel=0):
@@ -217,9 +249,139 @@ def sym(port):
     return list(port) + [(x, -y) for x, y in reversed(port)]
 
 
+def armour_plates(kit, ob, breaks=(), gap=.08, rise=.45, plate_mat=None, seam_mat=None, skip_up=False,
+                  angle=35, bolts=1.4):
+    """Armour laid as the Onslaught lays it (owner, round 15: the plating gaps
+    "seem weird"; take the cues from the Onslaught for the armour facing combat).
+    Each plane in `breaks` ((point, normal)) splits the part where one plate ends
+    and the next begins; faces of the part's armour material (`plate_mat`) are
+    then grouped into plates across creases gentler than `angle`, so a plate is a
+    thick slab bent over the form, not one tile per facet. Each plate is lifted
+    `rise` with a chamfered border, leaving a narrow seam `gap` wide in
+    `seam_mat` between neighbours, and (when `bolts` is a pitch) carries a row
+    of bolt heads just inside its edges. With `skip_up`, level decks where
+    fittings stand are left whole. Returns the bolts object, or None."""
+    me = ob.data
+    plate_mat = plate_mat or me.materials[0]
+    seam_mat = seam_mat or kit.steel
+    names = [m.name for m in me.materials]
+    if seam_mat.name not in names:
+        me.materials.append(seam_mat)
+        names.append(seam_mat.name)
+    pi = names.index(plate_mat.name) if plate_mat.name in names else 0
+    si = names.index(seam_mat.name)
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    planes = [(Vector(co), Vector(no).normalized()) for co, no in breaks]
+    for co, no in planes:
+        bmesh.ops.bisect_plane(bm, geom=bm.verts[:]+bm.edges[:]+bm.faces[:], plane_co=co, plane_no=no)
+
+    def on_break(e):
+        return any(all(abs((v.co-co).dot(no)) < 1e-3 for v in e.verts) for co, no in planes)
+
+    ok = {f for f in bm.faces if f.material_index == pi and not (skip_up and f.normal.z > .95)}
+    lim = math.radians(angle)
+    regions, seen = [], set()
+    for f0 in ok:
+        if f0 in seen:
+            continue
+        reg, stack = [], [f0]
+        seen.add(f0)
+        while stack:
+            f = stack.pop()
+            reg.append(f)
+            for e in f.edges:
+                if on_break(e):
+                    continue
+                for g in e.link_faces:
+                    if g in ok and g not in seen and f.normal.angle(g.normal, 0) < lim:
+                        seen.add(g)
+                        stack.append(g)
+        area = sum(f.calc_area() for f in reg)
+        if area > 1.0:
+            regions.append(reg)
+    studs = []
+    for reg in regions:
+        res = bmesh.ops.inset_region(bm, faces=reg, thickness=gap, depth=rise, use_even_offset=True,
+                                     use_boundary=True)
+        ring = set(res['faces'])
+        for f in ring:
+            f.material_index = si
+        if not bolts:
+            continue
+        rs = set(reg)
+        for f in reg:
+            c = f.calc_center_median()
+            for e in f.edges:
+                if not any(g in ring for g in e.link_faces):
+                    continue
+                a, b = e.verts[0].co.copy(), e.verts[1].co.copy()
+                ln = (b-a).length
+                if ln < bolts*1.2:
+                    continue
+                d = (b-a).normalized()
+                inward = f.normal.cross(d)
+                if inward.dot(c-a) < 0:
+                    inward = -inward
+                n = int(ln/bolts)
+                for k in range(n):
+                    p = a+d*((k+.5)*ln/n)+inward*.4
+                    studs.append((p, f.normal.copy()))
+    bm.to_mesh(me)
+    bm.free()
+    me.update()
+    mod = ob.modifiers.get('Plate edge chamfer')
+    if mod:
+        mod.width, mod.segments = min(mod.width, .1), 2
+    if not studs:
+        return None
+    verts, faces = [], []
+    for p, n in studs:
+        side = n.orthogonal().normalized()
+        up = n.cross(side)
+        base = len(verts)
+        for h in (-.05, .12):
+            for k in range(6):
+                t = 2*math.pi*k/6
+                verts.append(tuple(p+n*h+side*(.11*math.cos(t))+up*(.11*math.sin(t))))
+        faces += [tuple(range(base+5, base-1, -1)), tuple(range(base+6, base+12))]
+        faces += [(base+k, base+(k+1) % 6, base+6+(k+1) % 6, base+6+k) for k in range(6)]
+    return kit.mesh(ob.name+' bolts', verts, faces, kit.steel, 0)
+
+
+def hull_plating(kit, ob, breaks=(), skip_up=True):
+    """Ordinary hull plating, not armour: fine plate lines only (narrow, shallow
+    seams at `breaks` and sharp creases), no bolts."""
+    armour_plates(kit, ob, breaks, gap=.05, rise=.1, skip_up=skip_up, angle=35, bolts=None)
+    return ob
+
+
+MODULE_BEVEL = .06/.59   # ship-detail-guide tiers in hull units (0.59 m/u): modules and housings
+FITTING_BEVEL = .03/.59  # fittings
+SMALL_BEVEL = .015/.59   # small parts
+
+
+def edge_bevel(ob, width, angle=30):
+    """Detail-guide chamfer: one segment, angle-limited, so every hard edge catches a highlight."""
+    if ob.name.startswith('Temporary') or width <= 0:
+        return ob
+    b = ob.modifiers.get('Plate edge chamfer') or ob.modifiers.new('Plate edge chamfer', 'BEVEL')
+    b.width, b.segments, b.limit_method, b.angle_limit = width, 1, 'ANGLE', math.radians(angle)
+    return ob
+
+
+def shade_round(ob, angle=30):
+    """Smooth shading across faces meeting below `angle`; harder edges stay sharp,
+    so a round part shades round and its caps and corners stay crisp."""
+    ob.data.shade_smooth()
+    ob.data.set_sharp_from_angle(angle=math.radians(angle))
+    return ob
+
+
 def revolve_x(kit, name, profile, y, z, mat, n=12):
     """Closed solid of revolution about an X-parallel axis through (y, z):
     profile is [(x, r), ...] round the section, closed."""
+    n = max(n, 48)   # round 14: no faceted drive cans or bells
     m = len(profile)
     verts = []
     for k in range(n):
@@ -241,7 +403,7 @@ def revolve_x(kit, name, profile, y, z, mat, n=12):
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     bm.to_mesh(me)
     bm.free()
-    return ob
+    return ob if name.startswith('Temporary') else edge_bevel(shade_round(ob), MODULE_BEVEL)
 
 
 # --- Planform prisms: one keel chamfer, one wall, one shoulder chamfer. ---
@@ -335,3 +497,28 @@ def facet_normal(down, angle):
     dx, dy = down
     length = (dx*dx+dy*dy)**.5
     return (dx/length*math.sin(a), dy/length*math.sin(a), math.cos(a))
+
+
+def sweep(kit, name, path, profile, mat, s=1, bevel=.12):
+    """One constant cross-section carried along an open plan polyline, mitred at
+    every bend, so each face of the section is one long unbroken panel and each
+    corner of it one straight crease the whole length of the path.
+    `profile` is a closed list of (d, z): d is the distance to the left of the
+    direction of travel (to the right when s is -1, for a mirrored path)."""
+    n, m = len(path), len(profile)
+    normals = []
+    for a, b in zip(path, path[1:]):
+        dx, dy = b[0]-a[0], b[1]-a[1]
+        ln = math.hypot(dx, dy)
+        normals.append((-dy/ln*s, dx/ln*s))
+    verts = []
+    for i, (x, y) in enumerate(path):
+        n0 = normals[max(i-1, 0)]
+        n1 = normals[min(i, len(normals)-1)]
+        k = 1/(1+n0[0]*n1[0]+n0[1]*n1[1])
+        mx, my = (n0[0]+n1[0])*k, (n0[1]+n1[1])*k
+        verts += [(x+mx*d, y+my*d, z) for d, z in profile]
+    faces = [tuple(range(m)), tuple(reversed(range((n-1)*m, n*m)))]
+    for i in range(n-1):
+        faces += [(i*m+j, (i+1)*m+j, (i+1)*m+(j+1) % m, i*m+(j+1) % m) for j in range(m)]
+    return kit.mesh(name, verts, faces, mat, bevel)  # mesh() makes the normals face out

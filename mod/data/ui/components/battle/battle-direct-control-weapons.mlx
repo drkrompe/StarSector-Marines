@@ -1,0 +1,70 @@
+<template props="title,groups">
+  <div id="direct-weapons" class="weapons" style="background-color: transparent; background-image: none; border-width: 0px;">
+    <div id="direct-weapons-title" class="panel-title">{title}</div>
+    <div id="direct-weapons-rule" class="rule"></div>
+    <div id="direct-weapons-spacer" class="spacer"></div>
+    <div id="direct-weapons-groups" class="groups">
+      <div each="group in groups" key="{group.id}" id="{group.id}" class="group">
+        <button id="{group.headerId}" class="{group.headerClasses}" style="background-color: transparent; background-image: none; border-width: 0px;" disabled="{group.headerDisabled}" onclick="{group.action}">
+          <div id="{group.badgeId}" class="{group.badgeClasses}">{group.badge}</div>
+          <div id="{group.nameId}" class="group-name">{group.name}</div>
+          <div id="{group.hintId}" class="{group.hintClasses}">{group.hint}</div>
+        </button>
+        <div id="{group.rowsId}" class="rows">
+          <button each="weapon in group.weapons" key="{weapon.id}" id="{weapon.id}" class="{weapon.classes}" style="{weapon.style}" disabled="{weapon.disabled}" onclick="{weapon.action}">
+            <div id="{weapon.topId}" class="weapon-top">
+              <div id="{weapon.keyId}" class="{weapon.keyClasses}">{weapon.key}</div>
+              <div id="{weapon.nameId}" class="weapon-name">{weapon.name}</div>
+              <div id="{weapon.stateId}" class="{weapon.stateClasses}">{weapon.state}</div>
+            </div>
+            <div id="{weapon.dataId}" class="weapon-data"><div id="{weapon.behaviorId}" class="weapon-detail">{weapon.behavior}</div><div id="{weapon.ammoId}" class="weapon-ammo">{weapon.ammo}</div></div>
+            <div id="{weapon.cycleId}" class="weapon-cycle"><div id="{weapon.fillId}" class="cycle-fill" style="{weapon.cycleStyle}"></div></div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style>
+  div.weapons {
+    width: 100%;
+    height: 100%;
+    padding: 8px 10px;
+    gap: 6px;
+    text-shadow: #000000d9;
+    border-width: 0px;
+    background-color: transparent;
+    background-image: none;
+    overflow: hidden;
+  }
+  .panel-title { height: 16px; text-align: right; font-family: heading; color: #c3cec9; white-space: nowrap; }
+  .spacer { height: 0px; flex-grow: 1; }
+  .rule { width: 100%; height: 1px; background-image: linear-gradient(to right, #c3cec900 0%, #c3cec930 40%, #c3cec9aa 100%); }
+  .groups { gap: 6px; }
+  .group { gap: 4px; }
+  .rows { gap: 4px; }
+  .group-header { height: 20px; padding: 0px; flex-direction: row; gap: 8px; align-items: center; border-width: 0px; background-color: transparent; }
+  .badge { width: 44px; height: 18px; padding: 1px 0px; text-align: center; font-family: heading; border-width: 1px; }
+  .badge-lmb { color: #f2e2b0; border-color: #b8a46a; background-color: #3b3524b3; }
+  .badge-rmb { color: #c8e2f2; border-color: #6a94b8; background-color: #24323bb3; }
+  .badge-keys { color: #d9e0dc; border-color: #6f7d76; background-color: #26302bb3; }
+  .badge-ai { color: #b2beb8; border-color: #45524c; background-color: #1b2420b3; }
+  .badge-none { width: 0px; padding: 0px; border-width: 0px; }
+  .group-name { width: 0px; flex-grow: 1; font-family: heading; color: #ecf3fb; white-space: nowrap; overflow: hidden; }
+  .group-hint { font-family: body; color: #b2beb8; white-space: nowrap; }
+  .group-hint-warn { color: #f07c72; }
+  .weapon { height: 44px; padding: 3px 6px; gap: 2px; border-width: 1px; overflow: hidden; }
+  .weapon-top { height: 17px; flex-direction: row; gap: 6px; align-items: center; }
+  .key { width: 22px; height: 15px; padding: 0px; text-align: center; font-family: heading; color: #d9e0dc; border-width: 1px; border-color: #8d9a93; background-color: #00000066; }
+  .key-none { width: 0px; padding: 0px; border-width: 0px; }
+  .weapon-name { width: 0px; flex-grow: 1; font-family: body; color: #ecf3fb; overflow: hidden; white-space: nowrap; }
+  .weapon-state { font-family: heading; color: #7cd89c; white-space: nowrap; }
+  .weapon-busy { color: #ffd464; }
+  .weapon-empty { color: #f07c72; }
+  .weapon-data { height: 15px; flex-direction: row; gap: 6px; }
+  .weapon-detail { width: 0px; flex-grow: 1; color: #c3cdc8; font-family: body; overflow: hidden; white-space: nowrap; }
+  .weapon-ammo { color: #e4e7df; font-family: body; white-space: nowrap; }
+  .weapon-cycle { width: 100%; height: 3px; flex-direction: row; background-color: #00000080; }
+  .cycle-fill { height: 100%; background-color: #a7ccc4; }
+</style>

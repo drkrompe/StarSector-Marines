@@ -14,23 +14,23 @@
  "bounds_units": [
   [
    -40.2,
-   -25.983,
-   -18.0
+   -25.825,
+   -22.09
   ],
   [
    54.912,
-   25.983,
-   15.615
+   25.825,
+   20.965
   ]
  ],
  "size_m": [
   72.3,
-  39.5,
-  25.5
+  39.3,
+  32.7
  ],
- "meshes": 132,
- "polygons": 12893,
- "images": 19,
+ "meshes": 421,
+ "polygons": 114227,
+ "images": 23,
  "engines": [
   {
    "index": 1,
@@ -144,7 +144,9 @@
     "Turret 1 gun steel",
     "Turret 1 gun accent",
     "Turret 1 gun dark",
-    "Turret 1 gun lamp_blue"
+    "Turret 1 gun lamp_blue",
+    "Turret 1 gimbal steel",
+    "Turret 1 gimbal dark"
    ],
    "kit_muzzles": [
     "Turret 1 muzzle anchor 1"
@@ -168,13 +170,13 @@
    "k": 0.42,
    "bay": {
     "x": [
-     42.8,
-     55.0
+     43.4,
+     55.5
     ],
-    "half_width": 3.8,
+    "half_width": 3.7,
     "z": [
-     -6.2,
-     2.4
+     -6.5,
+     8.4
     ],
     "cut_from": [
      "Hull bow fork base"
@@ -203,15 +205,17 @@
    "location": [
     11,
     20,
-    -2.2
+    4.67
    ],
    "k": 0.6,
    "bay": null,
    "parts": [
-    "Weapon WS 005 hardpoint paint#box",
-    "Weapon WS 005 hardpoint steel",
-    "Weapon WS 005 hardpoint steel#tubes",
+    "Weapon WS 005 hardpoint paint#shell",
+    "Weapon WS 005 hardpoint steel#collar",
     "Weapon WS 005 hardpoint dark",
+    "Weapon WS 005 hardpoint steel",
+    "Weapon WS 005 hardpoint paint#cheek",
+    "Weapon WS 005 hardpoint steel#tubes",
     "Weapon WS 005 hardpoint mark"
    ],
    "kit_muzzles": [
@@ -237,15 +241,17 @@
    "location": [
     11,
     -19,
-    -2.2
+    4.59
    ],
    "k": 0.6,
    "bay": null,
    "parts": [
-    "Weapon WS 006 hardpoint paint#box",
-    "Weapon WS 006 hardpoint steel",
-    "Weapon WS 006 hardpoint steel#tubes",
+    "Weapon WS 006 hardpoint paint#shell",
+    "Weapon WS 006 hardpoint steel#collar",
     "Weapon WS 006 hardpoint dark",
+    "Weapon WS 006 hardpoint steel",
+    "Weapon WS 006 hardpoint paint#cheek",
+    "Weapon WS 006 hardpoint steel#tubes",
     "Weapon WS 006 hardpoint mark"
    ],
    "kit_muzzles": [
@@ -374,7 +380,7 @@
    "location": [
     11,
     20,
-    -2.2
+    4.67
    ],
    "angle": 0,
    "arc": 5,
@@ -395,7 +401,7 @@
    "location": [
     11,
     -19,
-    -2.2
+    4.59
    ],
    "angle": 0,
    "arc": 5,
@@ -429,7 +435,7 @@
    "position": [
     26,
     11.5,
-    5.66
+    5.71
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -444,7 +450,7 @@
    "position": [
     26,
     -11.5,
-    5.66
+    5.71
    ],
    "colour": "amber",
    "role": "hull lamp (sprite, row 28)",
@@ -498,13 +504,542 @@
     "phase_s": 0,
     "duty": 0.18
    }
+  },
+  {
+   "name": "Light ventral docking 1",
+   "position": [
+    2.0,
+    3.0,
+    -18.26
+   ],
+   "colour": "white",
+   "role": "docking light",
+   "blink": {
+    "period_s": 0,
+    "phase_s": 0,
+    "duty": 0.18
+   }
+  },
+  {
+   "name": "Light ventral docking 2",
+   "position": [
+    2.0,
+    -3.0,
+    -18.26
+   ],
+   "colour": "white",
+   "role": "docking light",
+   "blink": {
+    "period_s": 0,
+    "phase_s": 0,
+    "duty": 0.18
+   }
+  },
+  {
+   "name": "Light centre masthead 1",
+   "position": [
+    30.4,
+    0,
+    12.95
+   ],
+   "colour": "white",
+   "role": "masthead light",
+   "blink": {
+    "period_s": 0,
+    "phase_s": 0,
+    "duty": 0.18
+   }
+  }
+ ],
+ "control": {
+  "object": "WOLF_P control",
+  "knobs": {
+   "gear_down": "0 stowed (flight, built) .. 1 deployed"
+  }
+ },
+ "landing": {
+  "ground_z_units": -19.4,
+  "keel_shoes": [
+   {
+    "name": "Hull keel shoe aft",
+    "x": [
+     -17.5,
+     -2.4
+    ],
+    "sole_z": -19.4
+   },
+   {
+    "name": "Hull keel shoe fore",
+    "x": [
+     6.4,
+     18.8
+    ],
+    "sole_z": -19.4
+   }
+  ],
+  "wedges": [
+   {
+    "name": "Hull port fore wedge",
+    "hinge": "Hull port fore wedge hinge",
+    "H": [
+     12.6,
+     -12.4046
+    ],
+    "stow_deg": 133.715,
+    "x": [
+     15.0,
+     24.0
+    ],
+    "sole": "Hull port fore wedge sole",
+    "sole_y": 17.0795,
+    "rams": [
+     {
+      "pivot": "Hull port fore wedge ram 1 pivot",
+      "rod_pivot": "Hull port fore wedge ram 1 rod pivot",
+      "P": [
+       8.0,
+       2.0
+      ],
+      "W": [
+       15.6316,
+       -15.3467
+      ],
+      "base": -1.156334
+     },
+     {
+      "pivot": "Hull port fore wedge ram 2 pivot",
+      "rod_pivot": "Hull port fore wedge ram 2 rod pivot",
+      "P": [
+       8.0,
+       2.0
+      ],
+      "W": [
+       15.6316,
+       -15.3467
+      ],
+      "base": -1.156334
+     }
+    ]
+   },
+   {
+    "name": "Hull starboard fore wedge",
+    "hinge": "Hull starboard fore wedge hinge",
+    "H": [
+     -12.6,
+     -12.4057
+    ],
+    "stow_deg": -133.712,
+    "x": [
+     15.0,
+     24.0
+    ],
+    "sole": "Hull starboard fore wedge sole",
+    "sole_y": -17.0799,
+    "rams": [
+     {
+      "pivot": "Hull starboard fore wedge ram 1 pivot",
+      "rod_pivot": "Hull starboard fore wedge ram 1 rod pivot",
+      "P": [
+       -8.0,
+       2.0
+      ],
+      "W": [
+       -15.6315,
+       -15.3479
+      ],
+      "base": -1.985226
+     },
+     {
+      "pivot": "Hull starboard fore wedge ram 2 pivot",
+      "rod_pivot": "Hull starboard fore wedge ram 2 rod pivot",
+      "P": [
+       -8.0,
+       2.0
+      ],
+      "W": [
+       -15.6315,
+       -15.3479
+      ],
+      "base": -1.985226
+     }
+    ]
+   },
+   {
+    "name": "Hull port aft wedge",
+    "hinge": "Hull port aft wedge hinge",
+    "H": [
+     12.6,
+     -12.8345
+    ],
+    "stow_deg": 115.888,
+    "x": [
+     -17.5,
+     -8.5
+    ],
+    "sole": "Hull port aft wedge sole",
+    "sole_y": 17.1244,
+    "rams": [
+     {
+      "pivot": "Hull port aft wedge ram 1 pivot",
+      "rod_pivot": "Hull port aft wedge ram 1 rod pivot",
+      "P": [
+       8.0,
+       2.0
+      ],
+      "W": [
+       15.7395,
+       -14.9789
+      ],
+      "base": -1.143103
+     },
+     {
+      "pivot": "Hull port aft wedge ram 2 pivot",
+      "rod_pivot": "Hull port aft wedge ram 2 rod pivot",
+      "P": [
+       8.0,
+       2.0
+      ],
+      "W": [
+       15.7395,
+       -14.9789
+      ],
+      "base": -1.143103
+     }
+    ]
+   },
+   {
+    "name": "Hull starboard aft wedge",
+    "hinge": "Hull starboard aft wedge hinge",
+    "H": [
+     -12.6,
+     -12.8332
+    ],
+    "stow_deg": -115.886,
+    "x": [
+     -17.5,
+     -8.5
+    ],
+    "sole": "Hull starboard aft wedge sole",
+    "sole_y": -17.1237,
+    "rams": [
+     {
+      "pivot": "Hull starboard aft wedge ram 1 pivot",
+      "rod_pivot": "Hull starboard aft wedge ram 1 rod pivot",
+      "P": [
+       -8.0,
+       2.0
+      ],
+      "W": [
+       -15.7396,
+       -14.9775
+      ],
+      "base": -1.998523
+     },
+     {
+      "pivot": "Hull starboard aft wedge ram 2 pivot",
+      "rod_pivot": "Hull starboard aft wedge ram 2 rod pivot",
+      "P": [
+       -8.0,
+       2.0
+      ],
+      "W": [
+       -15.7396,
+       -14.9775
+      ],
+      "base": -1.998523
+     }
+    ]
+   }
+  ],
+  "drivers": [
+   {
+    "object": "Hull port fore wedge hinge",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull port fore wedge ram 1 pivot",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull port fore wedge ram 1 rod pivot",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull port fore wedge ram 1 rod pivot",
+    "path": "location",
+    "index": 1
+   },
+   {
+    "object": "Hull port fore wedge ram 1 rod pivot",
+    "path": "location",
+    "index": 2
+   },
+   {
+    "object": "Hull port fore wedge ram 2 pivot",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull port fore wedge ram 2 rod pivot",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull port fore wedge ram 2 rod pivot",
+    "path": "location",
+    "index": 1
+   },
+   {
+    "object": "Hull port fore wedge ram 2 rod pivot",
+    "path": "location",
+    "index": 2
+   },
+   {
+    "object": "Hull starboard fore wedge hinge",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull starboard fore wedge ram 1 pivot",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull starboard fore wedge ram 1 rod pivot",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull starboard fore wedge ram 1 rod pivot",
+    "path": "location",
+    "index": 1
+   },
+   {
+    "object": "Hull starboard fore wedge ram 1 rod pivot",
+    "path": "location",
+    "index": 2
+   },
+   {
+    "object": "Hull starboard fore wedge ram 2 pivot",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull starboard fore wedge ram 2 rod pivot",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull starboard fore wedge ram 2 rod pivot",
+    "path": "location",
+    "index": 1
+   },
+   {
+    "object": "Hull starboard fore wedge ram 2 rod pivot",
+    "path": "location",
+    "index": 2
+   },
+   {
+    "object": "Hull port aft wedge hinge",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull port aft wedge ram 1 pivot",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull port aft wedge ram 1 rod pivot",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull port aft wedge ram 1 rod pivot",
+    "path": "location",
+    "index": 1
+   },
+   {
+    "object": "Hull port aft wedge ram 1 rod pivot",
+    "path": "location",
+    "index": 2
+   },
+   {
+    "object": "Hull port aft wedge ram 2 pivot",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull port aft wedge ram 2 rod pivot",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull port aft wedge ram 2 rod pivot",
+    "path": "location",
+    "index": 1
+   },
+   {
+    "object": "Hull port aft wedge ram 2 rod pivot",
+    "path": "location",
+    "index": 2
+   },
+   {
+    "object": "Hull starboard aft wedge hinge",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull starboard aft wedge ram 1 pivot",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull starboard aft wedge ram 1 rod pivot",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull starboard aft wedge ram 1 rod pivot",
+    "path": "location",
+    "index": 1
+   },
+   {
+    "object": "Hull starboard aft wedge ram 1 rod pivot",
+    "path": "location",
+    "index": 2
+   },
+   {
+    "object": "Hull starboard aft wedge ram 2 pivot",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull starboard aft wedge ram 2 rod pivot",
+    "path": "rotation_euler",
+    "index": 0
+   },
+   {
+    "object": "Hull starboard aft wedge ram 2 rod pivot",
+    "path": "location",
+    "index": 1
+   },
+   {
+    "object": "Hull starboard aft wedge ram 2 rod pivot",
+    "path": "location",
+    "index": 2
+   }
+  ],
+  "soles": [
+   {
+    "part": "Hull port fore wedge",
+    "anchor": "Anchor gear port fore wedge sole",
+    "moves": true,
+    "sole_z_deployed": -19.4
+   },
+   {
+    "part": "Hull starboard fore wedge",
+    "anchor": "Anchor gear starboard fore wedge sole",
+    "moves": true,
+    "sole_z_deployed": -19.4
+   },
+   {
+    "part": "Hull port aft wedge",
+    "anchor": "Anchor gear port aft wedge sole",
+    "moves": true,
+    "sole_z_deployed": -19.4
+   },
+   {
+    "part": "Hull starboard aft wedge",
+    "anchor": "Anchor gear starboard aft wedge sole",
+    "moves": true,
+    "sole_z_deployed": -19.4
+   },
+   {
+    "part": "Hull keel shoe aft",
+    "anchor": "Anchor gear keel shoe aft sole",
+    "moves": false,
+    "sole_z_deployed": -19.4
+   },
+   {
+    "part": "Hull keel shoe fore",
+    "anchor": "Anchor gear keel shoe fore sole",
+    "moves": false,
+    "sole_z_deployed": -19.4
+   }
+  ],
+  "note": "the Wolf sits on its keel shoes (fixed); at gear_down 1 every wedge sole anchor stands on ground_z_units too, in hull space: place the root that far above the ground (times metres_per_unit). Rest is gear stowed."
+ },
+ "lift_thrusters": [
+  {
+   "index": 1,
+   "location": [
+    32.0,
+    5.2,
+    -13.043
+   ],
+   "exhaust_direction": [
+    0,
+    0,
+    -1
+   ],
+   "mouth_radius": 1.55,
+   "anchor": "Lift 1 exhaust anchor"
+  },
+  {
+   "index": 2,
+   "location": [
+    32.0,
+    -5.2,
+    -13.043
+   ],
+   "exhaust_direction": [
+    0,
+    0,
+    -1
+   ],
+   "mouth_radius": 1.55,
+   "anchor": "Lift 2 exhaust anchor"
+  },
+  {
+   "index": 3,
+   "location": [
+    -24.6,
+    5.6,
+    -12.686
+   ],
+   "exhaust_direction": [
+    0,
+    0,
+    -1
+   ],
+   "mouth_radius": 1.55,
+   "anchor": "Lift 3 exhaust anchor"
+  },
+  {
+   "index": 4,
+   "location": [
+    -24.6,
+    -5.6,
+    -12.689
+   ],
+   "exhaust_direction": [
+    0,
+    0,
+    -1
+   ],
+   "mouth_radius": 1.55,
+   "anchor": "Lift 4 exhaust anchor"
   }
  ],
  "sources": {
   "geometry": "art-source/company-prologue/wolf-geometry/build_wolf.py",
   "surface": "art-source/company-prologue/wolf-surface (shared harness, battle wear)",
   "built_from": "skinned.blend",
-  "vfx_hull_sha256": "600c9d91f89462c38f84defdbcf89f3a534543338b1419249659c8888f866d09"
+  "vfx_hull_sha256": "d35ade4f432b5d3ce8e0943871e6463cccfdd36f3da0f5a7e01be88daed8271e"
  },
  "state": "clean",
  "engines_running": [
@@ -644,6 +1179,33 @@
     0.95,
     0.85
    ]
+  },
+  {
+   "object": "Light ventral docking 1",
+   "role": "masthead",
+   "rgb": [
+    1.0,
+    0.95,
+    0.85
+   ]
+  },
+  {
+   "object": "Light ventral docking 2",
+   "role": "masthead",
+   "rgb": [
+    1.0,
+    0.95,
+    0.85
+   ]
+  },
+  {
+   "object": "Light centre masthead 1",
+   "role": "masthead",
+   "rgb": [
+    1.0,
+    0.95,
+    0.85
+   ]
   }
  ],
  "effects": {
@@ -652,11 +1214,11 @@
   "defaults": {
    "smk_atmosphere": 0.0
   },
-  "objects": 68,
+  "objects": 74,
   "anchors": {
    "engines": 3,
    "guns": 12,
-   "lamps": 5,
+   "lamps": 8,
    "sparks": 0,
    "bounds": 2
   },
@@ -708,5 +1270,5 @@
   },
   "append": "load both 'WOLF_P' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "45dd9e3fe837a2fdd44f0cbbc9f92db7498869d5d7cab528184536cc9f52e607"
+ "asset_sha256": "0953dc71a11c40ce4dd53f6ddc33f7a4f71e02f4b9f117cedf41bda422b1ccfe"
 }

@@ -15,6 +15,50 @@ Use (inside a hull's Blender build)
   ring is the sprite's turret-ring radius in hull units; mpu is the hull's
   metres per unit. Override any catalogue field per slot, e.g. barrels=2.
 
+Gimbal (turret_gimbal.py)
+  Every gun turret shows its two bearings (owner, 2026-10-20: "look more like a
+  useful gimballed turret"). build() adds them after the builder's house and gun,
+  measured off what the builder made, as new objects only ('<prefix> gimbal <key>'
+  on the pivot, '<prefix> cradle <key>' on the elevation empty): no existing name,
+  pivot, elevation, recoil or muzzle anchor moves (check_gimbal.py compares them).
+  - Traverse: a turntable disc the house stands on, bolted round its top, a dark
+    race groove in the gap below.
+  - Enclosed houses (the barrel leaves through the house face): a cast mantlet
+    struck about the trunnion axis, sunk a little into the face, with a bolted
+    collar round each port; bearing housings with bolts on both cheeks at the
+    elevation axis, the trunnion pin's end cap turning in each (a lug shows it).
+  - Open mounts (nothing of the house ahead of the trunnion on the barrel's line):
+    two yoke cheeks from the roof to bearing blocks with caps, gussets behind them,
+    the cradle between them (or the gun's own breech casing), trunnion pins, the
+    feed entering one trunnion end (a ready-use box and segmented chute; a power
+    cable for energy guns) and a sight head on the other.
+  - Every barrel: a recoil sleeve where it leaves the cradle or mantlet, sized to
+    the tube just ahead, with a collar and, in a mantlet, a slide rail; the barrel
+    slides back through it on its 'recoil k' empty.
+  GIMBAL in turret_gimbal.py overrides per weapon: 'off' for the Tri-Tachyon beams
+  (whole-weapon training), the PD laser (its own gimbal), the Squall and Hurricane
+  (racks on yokes); box launchers get the turntable only; build(..., gimbal=False)
+  skips it. The light machine gun is an open pedestal mount on a low frame with a
+  gun shield on the cradle, elevating -2 to 60.
+  check_gimbal.py (headless, no render) builds every turret, reports the kind
+  measured, the faces added, and parts that meet only when elevated, and with
+  --json writes every anchor for a drift comparison.
+
+Close-view detail
+  Owner, 2026-10-20: "getting the rough shape right, but need to add detail". Every
+  turret and hardpoint has to hold up in a close view. Two floors live in Mesh: a
+  lathe of 18 or more sides (a round part) is segmented so no facet is longer than
+  ROUND_CHORD_M (0.22 m) round its rim, up to ROUND_MAX; fewer sides mean plates on
+  purpose (a ten-plate dome, hex bolts) and are kept. Every box or cylinder left
+  without a bevel gets EDGE_BEVEL_M (0.035 m); bevel=-1 keeps an edge dead sharp;
+  cutters are left alone. On top of that every hand builder was rebuilt so no bare
+  primitive stands alone: chamfered lofts and glacis prisms for masses, stepped
+  lathes for round parts, grooves and recesses cut in, and real fittings (hinged
+  hatches, bolted bearings and flanges, clamps, feeds, louvres, rams). Anchors,
+  trunnions and extra-dict keys did not move (check_gimbal.py --json against the
+  earlier build); turrets are about 1.5-3x the faces they were (the Devastator,
+  the largest, about 32k).
+
 What a turret gives a shot
   - Train: rotate the pivot (the hull's own empty) about its local Z.
   - Elevate: rotate '<prefix> elevation' about its local Y (negative lifts).
@@ -187,7 +231,7 @@ Other catalogue entries (WEAPONS)
   none (dome), and the box launchers harpoonpod, sabotpod, salamanderpod (open
   rails), pilum, typhoon, annihilatorpod (tubes): the rack is drawn with its
   loaded missiles (RENDER_LOADED_MISSILES), on a yoke with elevation rams.
-  Not yet: other hardpoints, and energy weapons other than the Tri-Tachyon
+  Not yet: energy weapons other than the Tri-Tachyon
   guns above; the Onslaught's built-in TPCs stay in os_turrets.
 
 Hardpoints (fixed mounts)
@@ -207,6 +251,37 @@ Hardpoints (fixed mounts)
     the hollow emitter barrel down to its lens, a coolant pipe and a
     capacitor box;
   - miningblaster, annihilator: the Wolf (P)'s (above).
+  More live in turret_hardpoints.py, one builder each, registered into
+  HARDPOINT_WEAPONS (so hardpoint work does not edit this file). Each has a `bay`:
+  the pocket a hull cuts for it (x0, x1 along the fire line, half-width, floor below
+  the axis; open to the deck), and build_hardpoint returns it with 'moving' (the
+  'recoil k', 'rotor' and 'missile k' empties):
+  - lightag (Lasher WS 002/003): a faired gun housing, gold ammunition drums in
+    troughs either side of the breech cover, a mantlet plate with the port, the
+    pale guide prongs, the barrel through a fixed recoil sleeve on 'recoil 1';
+  - heatseeker (Lasher WS 001/004): an autoloading launch rail, the magazine block
+    at the back, copper rails on grey cheeks, the Salamander on 'missile 1';
+  - swarmer (Kite (P), Falcon (P), Shepherd Frontier): four tubes from a breech
+    housing, the SRM noses in the bores, 'missile 1-4';
+  - hammer (Kite (P)): two open troughs from a magazine block, each with a loaded
+    torpedo on 'missile 1-2';
+  - chaingun (Hound (A) WS 001): a breech housing, a rotary cluster on 'rotor'
+    (spins about +X) inside 'recoil 1', a finned cooling jacket, a belt feed from
+    an ammunition box; one muzzle on the cluster's axis;
+  - harpoonpod (Manticore (P) WS 004/005): two launch troughs with front hoops and
+    a magazine block, a Harpoon in each on 'missile 1-2'.
+  - heavyblaster (merchant Wolf WS 004): a capacitor housing on a sled, cells in a
+    roof trough, armoured power cables, a field coil in a yoke and an oval emitter
+    head with its lens at the fire point;
+  - harpoon (merchant Wolf WS 005/006): a three-lane open rack on a bed, rails rising
+    into guide posts, a Harpoon in each lane on 'missile 1-3'.
+  check_hardpoints.py, run in a built .blend (or imported, clashes()), finds a fixed
+  mount that clips its hull: any hardpoint vertex inside another solid deeper than a
+  tolerance. It is the fixed-mount counterpart of a hull's turret arc sweep; the
+  Lasher's build fails on any clip.
+  Mesh.prism's glacis (inset up to z2) used to come out flat (the new roof had no
+  normal when it was inset); glacis=True gives the true slope. It is opt-in so
+  turrets tuned to the flat roofs do not change; the new hardpoints use it.
 
 Review
   blender --background --factory-startup --python catalog.py -- --out DIR
@@ -229,8 +304,11 @@ Users
   legion-geometry (lg_turrets), paragon-geometry (pg_turrets: its Elite fit,
   hull_finish), wolf-geometry (wf_mounts), second-wind-geometry (sw_turrets:
   two Vulcans and two capped empty housings, wrecked and stripped per
-  condition state by sw_scars_spine). Lasher, Onslaught, Hermes and Hound still use their own
-  turret modules; moving one onto the kit is that hull's session's call.
+  condition state by sw_scars_spine), lasher-geometry (ls_mounts: three light
+  machine guns, and its four hardpoints sunk in bays cut from its pods),
+  onslaught-geometry, manticore-geometry, falcon-geometry, kite-geometry. Hermes
+  and Hound still use their own turret modules; moving one onto the kit is that
+  hull's session's call.
 
 Cinematics hooks
 ----------------

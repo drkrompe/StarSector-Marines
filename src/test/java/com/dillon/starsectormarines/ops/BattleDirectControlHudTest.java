@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
-import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
@@ -28,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class BattleDirectControlHudTest {
     @Test
-    void liveHoundFluxHoldAndLoaderRemainSeparateAndFitTheActionStrip() throws Exception {
+    void ventingHoundShowsFluxAsALabelledNumberAndHoldsItsWeapons() throws Exception {
         var loadout = MechVariant.HOUND.createLoadout(null);
         MechFlux flux = loadout.flux;
         flux.commit(98f);
@@ -37,13 +36,16 @@ class BattleDirectControlHudTest {
                 mechWeapons(loadout.mounts(), flux), List.of(), MarineSprint.EMPTY,
                 new MechFluxStatus(flux.value(), flux.venting()));
         try (Fixture fixture = fixture(Path.of("mod"), snapshot, 0, false, ignored -> {}, () -> {}, () -> {})) {
-            assertEquals("VENTING", fixture.markup.requireElement("direct-hud-flux-state").text());
-            assertEquals("FLUX", fixture.markup.requireElement("direct-hud-weapon-ARMS-state").text());
-            var fill = fixture.markup.requireElement("direct-hud-flux-fill").box().borderBox();
-            var meter = fixture.markup.requireElement("direct-hud-flux-meter").box().contentBox();
+            assertEquals("FLUX", fixture.status.requireElement("direct-status-flux-label").text());
+            assertEquals("98%", fixture.status.requireElement("direct-status-flux-value").text());
+            assertEquals("VENTING - GUNS LOCKED", fixture.status.requireElement("direct-status-flux-state").text());
+            assertTrue(fixture.status.requireElement("direct-status-flux-state").classes().contains("state-alarm"));
+            assertEquals("FLUX", fixture.weapons.requireElement("direct-hud-weapon-ARMS-state").text());
+            var fill = fixture.status.requireElement("direct-status-flux-fill").box().borderBox();
+            var meter = fixture.status.requireElement("direct-status-flux-meter").box().contentBox();
             assertEquals(meter.width() * .98f, fill.width(), .01f);
-            assertTrue(fixture.markup.requireElement("direct-hud-weapons").box().borderBox().bottom()
-                    <= BattleDirectControlOverlay.ACTION_HEIGHT);
+            assertInside(fixture.status, fixture.statusHeight, BattleDirectControlOverlay.STATUS_WIDTH);
+            assertInside(fixture.weapons, fixture.weaponsHeight, BattleDirectControlOverlay.WEAPONS_WIDTH);
         }
         flux.advance(20f);
         loadout.mounts()[0].cycleRemaining = .5f;
@@ -52,144 +54,152 @@ class BattleDirectControlHudTest {
     }
 
     @Test
-    void equippedAbilitiesFitExistingStripAndShowActualActiveEmptyAndBrokenState() throws Exception {
+    void statusNamesTheBodyAndReadsHullAndArmorAsPercentages() throws Exception {
+        try (Fixture fixture = fixture(Path.of("mod"), preview(Carrier.MECH, false), 0,
+                false, ignored -> {}, () -> {}, () -> {})) {
+            assertEquals("Bulwark Lead", fixture.status.requireElement("direct-status-name").text());
+            assertEquals("MECH", fixture.status.requireElement("direct-status-carrier").text());
+            assertEquals("HULL", fixture.status.requireElement("direct-status-hull-label").text());
+            assertEquals("68%", fixture.status.requireElement("direct-status-hull-value").text());
+            assertEquals("ARMOR", fixture.status.requireElement("direct-status-armor-label").text());
+            assertEquals("40%", fixture.status.requireElement("direct-status-armor-value").text());
+            var hull = fixture.status.requireElement("direct-status-hull-fill");
+            assertEquals(.68f * hull.parent().box().contentBox().width(), hull.box().borderBox().width(), .01f);
+            var hullMeter = fixture.status.requireElement("direct-status-hull-meter").box().borderBox();
+            assertTrue(hullMeter.height() >= 8f, "a bar a player can read at a glance");
+            assertTrue(fixture.status.requireElement("direct-status-armor").box().borderBox().bottom()
+                    <= fixture.status.requireElement("direct-status-flux").box().borderBox().y(), "armor above flux");
+            assertHidden(fixture.status.requireElement("direct-status-stamina"));
+        }
+        try (Fixture fixture = fixture(Path.of("mod"), preview(Carrier.MARINE, true), 0,
+                false, ignored -> {}, () -> {}, () -> {})) {
+            assertEquals("HEALTH", fixture.status.requireElement("direct-status-hull-label").text());
+            assertEquals("0%", fixture.status.requireElement("direct-status-armor-value").text(),
+                    "stripped armor reads empty rather than inferred from health");
+            assertEquals(0f, fixture.status.requireElement("direct-status-armor-fill").box().borderBox().width());
+            assertHidden(fixture.status.requireElement("direct-status-flux"));
+            assertHidden(fixture.status.requireElement("direct-status-flux-state"));
+        }
+    }
+
+    @Test
+    void mechMountsAreListedUnderTheButtonThatFiresThem() throws Exception {
+        AtomicInteger selection = new AtomicInteger(-1);
+        try (Fixture fixture = fixture(Path.of("mod"), triggered(0), 0, false, selection::set, () -> {}, () -> {})) {
+            assertEquals("WEAPON GROUPS", fixture.weapons.requireElement("direct-weapons-title").text());
+            assertEquals(List.of("direct-hud-weapon-ARMS"), rows(fixture.weapons, "direct-hud-group-lmb"));
+            assertEquals(List.of("direct-hud-weapon-LEFT_SHOULDER"), rows(fixture.weapons, "direct-hud-group-rmb"));
+            assertEquals(List.of("direct-hud-weapon-RIGHT_SHOULDER"), rows(fixture.weapons, "direct-hud-group-other"));
+            assertEquals("LMB", fixture.weapons.requireElement("direct-hud-group-lmb-badge").text());
+            assertEquals("RMB", fixture.weapons.requireElement("direct-hud-group-rmb-badge").text());
+            assertEquals("PRIMARY GROUP", fixture.weapons.requireElement("direct-hud-group-lmb-name").text());
+            assertEquals("3", fixture.weapons.requireElement("direct-hud-weapon-LEFT_SHOULDER-key").text(),
+                    "keys 2-4 point the left button at the arms and shoulders");
+            assertEquals("AI ONLY", fixture.weapons.requireElement("direct-hud-weapon-RIGHT_SHOULDER-state").text());
+            assertTrue(fixture.weapons.requireElement("direct-hud-weapon-RIGHT_SHOULDER").disabled());
+            click(fixture.weapons, fixture.weaponsDocument, "direct-hud-weapon-LEFT_SHOULDER");
+            assertEquals(2, selection.get());
+            click(fixture.weapons, fixture.weaponsDocument, "direct-hud-group-lmb-header");
+            assertEquals(0, selection.get(), "the left button's header returns it to its whole group");
+            click(fixture.weapons, fixture.weaponsDocument, "direct-hud-weapon-RIGHT_SHOULDER");
+            assertEquals(0, selection.get(), "an indirect rack cannot take the left button");
+            assertInside(fixture.weapons, fixture.weaponsHeight, BattleDirectControlOverlay.WEAPONS_WIDTH);
+        }
+        try (Fixture fixture = fixture(Path.of("mod"), triggered(2), 2, false, ignored -> {}, () -> {}, () -> {})) {
+            assertEquals("ONE MOUNT", fixture.weapons.requireElement("direct-hud-group-lmb-name").text());
+            assertEquals(List.of("direct-hud-weapon-LEFT_SHOULDER"), rows(fixture.weapons, "direct-hud-group-lmb"));
+            assertEquals("SRM-4 Rack · LR",
+                    fixture.weapons.requireElement("direct-hud-weapon-LEFT_SHOULDER-name").text());
+            assertTrue(fixture.weapons.requireElement("direct-hud-weapon-LEFT_SHOULDER").classes()
+                    .contains("weapon-selected"));
+            assertEquals(List.of("direct-hud-weapon-ARMS", "direct-hud-weapon-RIGHT_SHOULDER"),
+                    rows(fixture.weapons, "direct-hud-group-other"));
+        }
+    }
+
+    @Test
+    void marineAbilitiesSitUnderTheirKeysAndStaminaJoinsTheStatus() throws Exception {
         for (int state = 0; state < 4; state++) {
             try (Fixture fixture = fixture(Path.of("mod"), abilityPreview(state), 0,
                     false, ignored -> fail("Ability readouts cannot select weapons"), () -> {}, () -> {})) {
-                var shield = fixture.markup.requireElement("direct-hud-ability-SHIELD");
-                var smoke = fixture.markup.requireElement("direct-hud-ability-SMOKE");
-                var sprint = fixture.markup.requireElement("direct-hud-sprint");
-                assertEquals("[E] Shield", fixture.markup.requireElement("direct-hud-ability-SHIELD-name").text());
-                assertEquals("[G] Smoke", fixture.markup.requireElement("direct-hud-ability-SMOKE-name").text());
-                assertEquals("[Shift] Sprint", fixture.markup.requireElement("direct-hud-sprint-name").text());
-                for (var card : List.of(shield, smoke, sprint)) {
-                    assertTrue(card.disabled());
-                    assertEquals(1f, card.opacity());
-                    var bounds = card.box().borderBox();
-                    assertTrue(bounds.right() <= BattleDirectControlOverlay.ACTION_WIDTH);
-                    assertTrue(bounds.bottom() <= BattleDirectControlOverlay.ACTION_HEIGHT);
+                assertEquals(List.of("direct-hud-ability-SHIELD", "direct-hud-ability-SMOKE"),
+                        rows(fixture.weapons, "direct-hud-group-abilities"));
+                assertEquals("E", fixture.weapons.requireElement("direct-hud-ability-SHIELD-key").text());
+                assertEquals("G", fixture.weapons.requireElement("direct-hud-ability-SMOKE-key").text());
+                for (String id : List.of("direct-hud-ability-SHIELD", "direct-hud-ability-SMOKE")) {
+                    var row = fixture.weapons.requireElement(id);
+                    assertTrue(row.disabled());
+                    assertEquals(1f, row.opacity());
                 }
-                assertThinDurabilityBars(fixture.markup);
                 assertEquals(new String[]{"READY", "UP", "6.0s", "BROKEN"}[state],
-                        fixture.markup.requireElement("direct-hud-ability-SHIELD-state").text());
+                        fixture.weapons.requireElement("direct-hud-ability-SHIELD-state").text());
                 assertEquals(new String[]{"READY", "THROW", "EMPTY", "READY"}[state],
-                        fixture.markup.requireElement("direct-hud-ability-SMOKE-state").text());
+                        fixture.weapons.requireElement("direct-hud-ability-SMOKE-state").text());
                 assertEquals(state == 2 ? "0 / 2" : "2 / 2",
-                        fixture.markup.requireElement("direct-hud-ability-SMOKE-ammo").text());
-                assertEquals(new String[]{"READY", "RUN", "REST", "REST"}[state],
-                        fixture.markup.requireElement("direct-hud-sprint-state").text());
-                assertEquals(new String[]{"100%", "61%", "0%", "35%"}[state],
-                        fixture.markup.requireElement("direct-hud-sprint-ammo").text());
-                assertEquals("Stamina", fixture.markup.requireElement("direct-hud-sprint-behavior").text());
-                assertTrue(sprint.box().borderBox().width() > 0f);
-                var sprintFill = fixture.markup.requireElement("direct-hud-sprint-fill");
-                assertEquals(new float[]{1f, .61f, 0f, .35f}[state]
-                                * sprintFill.parent().box().contentBox().width(),
-                        sprintFill.box().borderBox().width(), .01f);
+                        fixture.weapons.requireElement("direct-hud-ability-SMOKE-ammo").text());
+                assertEquals(new String[]{"100%", "RUN", "REST", "REST"}[state],
+                        fixture.status.requireElement("direct-status-stamina-value").text());
+                var stamina = fixture.status.requireElement("direct-status-stamina-fill");
+                assertEquals(new float[]{1f, .61f, 0f, .35f}[state] * stamina.parent().box().contentBox().width(),
+                        stamina.box().borderBox().width(), .01f);
                 if (state == 1) {
-                    var fill = fixture.markup.requireElement("direct-hud-ability-SHIELD-fill");
+                    var fill = fixture.weapons.requireElement("direct-hud-ability-SHIELD-fill");
                     assertEquals(fill.parent().box().contentBox().width() * .5f,
                             fill.box().borderBox().width(), .01f);
                 }
+                assertInside(fixture.weapons, fixture.weaponsHeight, BattleDirectControlOverlay.WEAPONS_WIDTH);
+                assertInside(fixture.status, fixture.statusHeight, BattleDirectControlOverlay.STATUS_WIDTH);
             }
         }
         try (Fixture fixture = fixture(Path.of("mod"), preview(Carrier.MARINE, false), 0,
                 false, ignored -> {}, () -> {}, () -> {})) {
             assertThrows(IllegalArgumentException.class,
-                    () -> fixture.markup.requireElement("direct-hud-ability-SHIELD"));
-            assertThrows(IllegalArgumentException.class,
-                    () -> fixture.markup.requireElement("direct-hud-ability-SMOKE"));
-            assertEquals("READY", fixture.markup.requireElement("direct-hud-sprint-state").text(),
+                    () -> fixture.weapons.requireElement("direct-hud-group-abilities"));
+            assertEquals("100%", fixture.status.requireElement("direct-status-stamina-value").text(),
                     "unmodified Marines still have stamina");
-        }
-    }
-
-    @Test
-    void realBindingsShowDamageAndEquipmentAndKeepSelectionActionsInsideVisibleBounds() throws Exception {
-        AtomicInteger selection = new AtomicInteger(-1);
-        AtomicInteger exits = new AtomicInteger();
-        AtomicInteger pauses = new AtomicInteger();
-        for (int[] size : List.of(new int[]{1744, 938}, new int[]{1280, 720}, new int[]{1366, 768})) {
-            for (float scale : new float[]{1f, 1.25f, 1.5f}) {
-                var layout = BattleDirectControlOverlayTest.layout(size[0], size[1], scale);
-                var viewport = layout.activeControl();
-                try (Fixture fixture = fixture(Path.of("mod"), preview(Carrier.MECH, false), 2,
-                        true, selection::set, exits::incrementAndGet, pauses::incrementAndGet)) {
-                    fixture.document.layout(viewport.documentWidth(), viewport.documentHeight());
-                    fixture.actionsDocument.layout(layout.activeActions().documentWidth(),
-                            layout.activeActions().documentHeight());
-                    assertThrows(IllegalArgumentException.class,
-                            () -> fixture.markup.requireElement("direct-hud-sprint"));
-                    assertEquals("1x", fixture.actionsMarkup.requireElement("direct-actions-pause").text());
-                    var disabled = fixture.markup.requireElement("direct-hud-weapon-RIGHT_SHOULDER");
-                    assertTrue(disabled.disabled());
-                    for (String id : List.of("direct-hud-all", "direct-hud-weapon-ARMS",
-                            "direct-hud-weapon-LEFT_SHOULDER")) {
-                        clickWithin(fixture.markup, fixture.document, viewport, id);
-                    }
-                    clickWithin(fixture.actionsMarkup, fixture.actionsDocument, layout.activeActions(), "direct-actions-exit");
-                    clickWithin(fixture.actionsMarkup, fixture.actionsDocument, layout.activeActions(), "direct-actions-pause");
-                    assertEquals(2, selection.get());
-                    assertTrue(fixture.markup.requireElement("direct-hud-weapon-LEFT_SHOULDER")
-                            .classes().contains("weapon-selected"));
-                    var healthFill = fixture.markup.requireElement("direct-hud-health-fill").box().borderBox();
-                    assertEquals(.68f * fixture.markup.requireElement("direct-hud-health-fill")
-                            .parent().box().contentBox().width(), healthFill.width(), .01f);
-                    assertThinDurabilityBars(fixture.markup);
-                    for (String id : List.of("direct-hud-header", "direct-hud-identity",
-                            "direct-hud-carrier", "direct-hud-health", "direct-hud-health-label",
-                            "direct-hud-armor", "direct-hud-armor-label", "direct-hud-footer",
-                            "direct-hud-controls", "direct-hud-exit", "direct-hud-pause")) {
-                        assertThrows(IllegalArgumentException.class, () -> fixture.markup.requireElement(id), id);
-                    }
-                    assertFalse(visibleText(fixture.markup.root()).contains("Bulwark Lead"));
-                    assertFalse(visibleText(fixture.markup.root()).contains("610 / 900"));
-                    assertFalse(visibleText(fixture.markup.root()).contains("320 / 800"));
-                    var box = disabled.box().borderBox();
-                    fixture.document.pointerDown(box.x() + box.width() / 2f, box.y() + box.height() / 2f);
-                    fixture.document.pointerUp(box.x() + box.width() / 2f, box.y() + box.height() / 2f);
-                    assertEquals(2, selection.get(), "an indirect weapon cannot select manual fire");
-                }
-            }
-        }
-        assertEquals(9, exits.get());
-        assertEquals(9, pauses.get());
-    }
-
-    @Test
-    void liveUpdatesRetainWeaponElementsAndEmptyArmorBarWithoutInferringItFromHealth() throws Exception {
-        try (Fixture fixture = fixture(Path.of("mod"), preview(Carrier.MARINE, false), 0,
-                false, ignored -> {}, () -> {}, () -> {})) {
-            var primary = fixture.markup.requireElement("direct-hud-weapon-PRIMARY");
+            var primary = fixture.weapons.requireElement("direct-hud-weapon-PRIMARY");
             assertTrue(primary.disabled(), "the single primary is a readout, not a selector");
             assertEquals(1f, primary.opacity(), "read-only primary status must remain legible");
-            fixture.model.update(preview(Carrier.MARINE, true), 0, false);
-            fixture.markup.flush();
-            fixture.document.layout(BattleDirectControlOverlay.ACTION_WIDTH, BattleDirectControlOverlay.ACTION_HEIGHT);
-            assertSame(primary, fixture.markup.requireElement("direct-hud-weapon-PRIMARY"));
-            assertEquals(0f, fixture.markup.requireElement("direct-hud-armor-fill").box().borderBox().width());
-            assertTrue(fixture.markup.requireElement("direct-hud-health-fill").box().borderBox().width() > 0f);
-            assertThinDurabilityBars(fixture.markup);
+            assertEquals("", fixture.weapons.requireElement("direct-hud-weapon-PRIMARY-ammo").text(),
+                    "an infantry primary has no ammunition counter to show");
         }
     }
 
     @Test
-    void singleEquipmentCarriersHideAllSelectionWithoutTakingItsPointerSpace() throws Exception {
-        for (Carrier carrier : List.of(Carrier.MARINE, Carrier.VEHICLE)) {
-            try (Fixture fixture = fixture(Path.of("mod"), preview(carrier, false), 0,
-                    false, ignored -> fail("Read-only equipment cannot select"), () -> {}, () -> {})) {
-                var all = fixture.markup.requireElement("direct-hud-all");
-                assertTrue(all.disabled());
-                assertEquals(0f, all.box().borderBox().width());
-                assertEquals(0f, all.box().borderBox().height());
-                assertThinDurabilityBars(fixture.markup);
-                if (carrier == Carrier.VEHICLE) {
-                    assertThrows(IllegalArgumentException.class,
-                            () -> fixture.markup.requireElement("direct-hud-sprint"));
-                }
-                assertTrue(fixture.actionsMarkup.requireElement("direct-actions-exit").box().borderBox().width() > 0f);
-            }
+    void liveUpdatesKeepRowElementsAndOnlyAStructuralChangeAsksForRemeasure() throws Exception {
+        try (Fixture fixture = fixture(Path.of("mod"), preview(Carrier.MARINE, false), 0,
+                false, ignored -> {}, () -> {}, () -> {})) {
+            var primary = fixture.weapons.requireElement("direct-hud-weapon-PRIMARY");
+            String structure = fixture.model.structureKey();
+            fixture.model.update(preview(Carrier.MARINE, true), 0, false);
+            fixture.weapons.flush();
+            assertSame(primary, fixture.weapons.requireElement("direct-hud-weapon-PRIMARY"));
+            assertEquals(structure, fixture.model.structureKey(), "damage changes values, not rows");
+            fixture.model.update(abilityPreview(0), 0, false);
+            assertNotEquals(structure, fixture.model.structureKey(), "new ability rows change the panel's height");
         }
+    }
+
+    @Test
+    void sessionButtonsStillExitAndPause() throws Exception {
+        AtomicInteger exits = new AtomicInteger();
+        AtomicInteger pauses = new AtomicInteger();
+        try (Fixture fixture = fixture(Path.of("mod"), preview(Carrier.VEHICLE, false), 0,
+                true, ignored -> fail("Read-only equipment cannot select"), exits::incrementAndGet, pauses::incrementAndGet)) {
+            assertEquals("PAUSED", fixture.actions.requireElement("direct-actions-pause-label").text());
+            assertEquals("SPACE", fixture.actions.requireElement("direct-actions-pause-key").text());
+            assertTrue(fixture.actions.requireElement("direct-actions-pause").classes().contains("action-paused"),
+                    "a paused battle shows it on the pause control");
+            assertEquals("TAB", fixture.actions.requireElement("direct-actions-exit-key").text());
+            click(fixture.actions, fixture.actionsDocument, "direct-actions-exit");
+            click(fixture.actions, fixture.actionsDocument, "direct-actions-pause");
+            assertEquals("WEAPONS", fixture.weapons.requireElement("direct-weapons-title").text());
+            assertHidden(fixture.status.requireElement("direct-status-flux"));
+            assertHidden(fixture.status.requireElement("direct-status-stamina"));
+            click(fixture.weapons, fixture.weaponsDocument, "direct-hud-weapon-TURRET");
+        }
+        assertEquals(1, exits.get());
+        assertEquals(1, pauses.get());
     }
 
     @Test
@@ -221,55 +231,62 @@ class BattleDirectControlHudTest {
         }
     }
 
+    /** Builds both panels and the session buttons, each laid out at the height its content measures. */
     static Fixture fixture(Path modRoot, Snapshot snapshot, int selected, boolean paused,
                            IntConsumer selection, Runnable exit, Runnable pause) throws Exception {
         Reactor reactor = new Reactor();
         var model = new BattleDirectControlHudModel(reactor, selection, exit, pause, ModStrings.fromDisk(modRoot));
         model.update(snapshot, selected, paused);
         var loader = new MarkupLoader(path -> Files.readString(modRoot.resolve(path)),
-                List.of(BattleDirectControlOverlay.ACTION_COMPONENT_PATH,
+                List.of(BattleDirectControlOverlay.STATUS_COMPONENT_PATH,
+                        BattleDirectControlOverlay.WEAPONS_COMPONENT_PATH,
                         BattleDirectControlOverlay.ACTIONS_COMPONENT_PATH));
-        var markup = loader.reloadAndBuild(reactor, BattleDirectControlOverlay.ACTION_COMPONENT, model.props());
-        var actionsMarkup = loader.build(reactor, BattleDirectControlOverlay.ACTIONS_COMPONENT, model.actionsProps());
-        var document = BattleDirectControlOverlay.document(markup);
-        var actionsDocument = BattleDirectControlOverlay.document(actionsMarkup);
-        document.layout(BattleDirectControlOverlay.ACTION_WIDTH, BattleDirectControlOverlay.ACTION_HEIGHT);
+        var status = loader.reloadAndBuild(reactor, BattleDirectControlOverlay.STATUS_COMPONENT, model.statusProps());
+        var weapons = loader.build(reactor, BattleDirectControlOverlay.WEAPONS_COMPONENT, model.weaponsProps());
+        var actions = loader.build(reactor, BattleDirectControlOverlay.ACTIONS_COMPONENT, model.actionsProps());
+        var statusDocument = BattleDirectControlOverlay.document(status);
+        var weaponsDocument = BattleDirectControlOverlay.document(weapons);
+        var actionsDocument = BattleDirectControlOverlay.document(actions);
+        float statusHeight = BattleDirectControlOverlay.naturalHeight(statusDocument, status,
+                "direct-status-spacer", BattleDirectControlOverlay.STATUS_WIDTH);
+        if (snapshot.carrier() == Carrier.MECH || snapshot.carrier() == Carrier.VEHICLE) statusHeight = Math.max(statusHeight, BattleDamageDollPlate.DOCUMENT_HEIGHT);
+        float weaponsHeight = BattleDirectControlOverlay.naturalHeight(weaponsDocument, weapons,
+                "direct-weapons-spacer", BattleDirectControlOverlay.WEAPONS_WIDTH);
+        statusDocument.layout(BattleDirectControlOverlay.STATUS_WIDTH, statusHeight);
+        weaponsDocument.layout(BattleDirectControlOverlay.WEAPONS_WIDTH, weaponsHeight);
         actionsDocument.layout(BattleDirectControlOverlay.ACTIONS_WIDTH, BattleDirectControlOverlay.ACTIONS_HEIGHT);
-        return new Fixture(model, markup, document, actionsMarkup, actionsDocument);
+        return new Fixture(model, status, statusDocument, statusHeight, weapons, weaponsDocument, weaponsHeight,
+                actions, actionsDocument);
     }
 
-    private static void clickWithin(MarkupInstance markup, UiDocument document, UiViewport viewport, String id) {
+    private static void click(MarkupInstance markup, UiDocument document, String id) {
         var box = markup.requireElement(id).box().borderBox();
         assertTrue(box.width() > 0f && box.height() > 0f, id);
-        assertTrue(box.x() >= 0f && box.right() <= viewport.documentWidth(), id);
-        assertTrue(box.y() >= 0f && box.bottom() <= viewport.documentHeight(), id);
         document.pointerDown(box.x() + box.width() / 2f, box.y() + box.height() / 2f);
         document.pointerUp(box.x() + box.width() / 2f, box.y() + box.height() / 2f);
     }
 
-    private static void assertThinDurabilityBars(MarkupInstance markup) {
-        var health = markup.requireElement("direct-hud-health-meter").box().borderBox();
-        var armor = markup.requireElement("direct-hud-armor-meter").box().borderBox();
-        float width = markup.requireElement("direct-hud").box().contentBox().width();
-        assertEquals(width, health.width(), .01f);
-        assertEquals(width, armor.width(), .01f);
-        assertEquals(health.x(), armor.x(), .01f);
-        assertTrue(armor.bottom() <= health.y(), "armor sits above health");
-        assertTrue(armor.height() > 0f && armor.height() <= 4f, "thin armor bar");
-        assertTrue(health.height() > 0f && health.height() <= 4f, "thin health bar");
-        assertNoText(markup.requireElement("direct-hud-armor-meter"));
-        assertNoText(markup.requireElement("direct-hud-health-meter"));
+    private static List<String> rows(MarkupInstance markup, String groupId) {
+        return markup.requireElement(groupId + "-rows").children().stream().map(UiElement::id).toList();
     }
 
-    private static void assertNoText(UiElement element) {
-        assertTrue(element.text() == null || element.text().isBlank(), element.id());
-        element.children().forEach(BattleDirectControlHudTest::assertNoText);
+    private static void assertHidden(UiElement element) {
+        var box = element.box().borderBox();
+        assertEquals(0f, box.width() * box.height(), element.id());
     }
 
-    private static String visibleText(UiElement element) {
-        StringBuilder result = new StringBuilder(element.text() == null ? "" : element.text());
-        for (UiElement child : element.children()) result.append(' ').append(visibleText(child));
-        return result.toString();
+    /** Nothing visible spills past the panel's measured bounds. */
+    private static void assertInside(MarkupInstance markup, float height, float width) {
+        assertInsideElement(markup.root(), height, width);
+    }
+
+    private static void assertInsideElement(UiElement element, float height, float width) {
+        var box = element.box().borderBox();
+        if (box.width() > 0f && box.height() > 0f) {
+            assertTrue(box.right() <= width + .01f, element.id() + " fits the width");
+            assertTrue(box.bottom() <= height + .01f, element.id() + " fits the measured height");
+        }
+        for (UiElement child : element.children()) assertInsideElement(child, height, width);
     }
 
     static Snapshot preview(Carrier carrier, boolean exposed) {
@@ -278,18 +295,52 @@ class BattleDirectControlHudTest {
         List<WeaponStatus> weapons = switch (carrier) {
             case MECH -> List.of(
                     weapon(1, "ARMS", "Dual Chaingun", FireKind.BURST, 12, true, .3f, 0,
-                            new Ammo(-1, -1, AmmoUnit.TRIGGER_PACKS, true)),
+                            new Ammo(-1, -1, AmmoUnit.TRIGGER_PACKS, true), ""),
                     weapon(2, "LEFT_SHOULDER", "SRM-4 Rack", FireKind.BURST, 4, true, 0f, 2,
-                            new Ammo(12, 20, AmmoUnit.TRIGGER_PACKS, false)),
+                            new Ammo(12, 20, AmmoUnit.TRIGGER_PACKS, false), ""),
                     weapon(3, "RIGHT_SHOULDER", "LRM Rack", FireKind.INDIRECT, 8, false, 0f, 0,
-                            new Ammo(0, 8, AmmoUnit.TRIGGER_PACKS, false)));
+                            new Ammo(0, 8, AmmoUnit.TRIGGER_PACKS, false), ""));
             case VEHICLE -> List.of(weapon(1, "TURRET", "Heavy Machine Gun", FireKind.BURST, 10,
-                    true, 0f, 0, new Ammo(90, 120, AmmoUnit.ROUNDS, false)));
+                    true, 0f, 0, new Ammo(90, 120, AmmoUnit.ROUNDS, false), ""));
             default -> List.of(weapon(1, "PRIMARY", "Pulse Rifle", FireKind.BURST, 3,
-                    true, .4f, 0, new Ammo(0, 0, AmmoUnit.UNTRACKED, false)));
+                    true, .4f, 0, new Ammo(0, 0, AmmoUnit.UNTRACKED, false), ""));
         };
         return new Snapshot(101, carrier == Carrier.MARINE ? "Rhea Voss" : carrier == Carrier.MECH
                 ? "Bulwark Lead" : "Heavy APC", carrier, durability, weapons);
+    }
+
+    /**
+     * The mech preview with real button assignments: the chaingun on the left and the SRM on the
+     * right by default, or (selection 2) the SRM pointed at by the left button as well.
+     */
+    @Test
+    void anLrmRackInsideItsMinimumReadsTooCloseOnItsRowAndItsButtonsHeader() throws Exception {
+        var base = triggered(0);
+        var lrm = base.weapons().get(2);
+        var close = new WeaponStatus(3, lrm.slotKey(), lrm.name(), new Behavior(FireKind.INDIRECT, 8, .1f, 1), true,
+                0f, 1f, 0, .1f, new Ammo(4, 4, AmmoUnit.TRIGGER_PACKS, false), false, "", "R", true);
+        var snapshot = new Snapshot(base.entityId(), base.name(), base.carrier(), base.durability(),
+                List.of(base.weapons().get(0), base.weapons().get(1), close));
+        try (Fixture fixture = fixture(Path.of("mod"), snapshot, 0, false, ignored -> {}, () -> {}, () -> {})) {
+            assertEquals("TOO CLOSE", fixture.weapons.requireElement("direct-hud-weapon-RIGHT_SHOULDER-state").text());
+            assertEquals("TOO CLOSE", fixture.weapons.requireElement("direct-hud-group-rmb-hint").text());
+            assertTrue(fixture.weapons.requireElement("direct-hud-group-rmb-hint").classes().contains("group-hint-warn"));
+            assertFalse(fixture.weapons.requireElement("direct-hud-group-lmb-hint").classes().contains("group-hint-warn"),
+                    "the guns on the other button are not refusing anything");
+        }
+    }
+
+    static Snapshot triggered(int selected) {
+        var base = preview(Carrier.MECH, false);
+        var arms = base.weapons().get(0);
+        var srm = base.weapons().get(1);
+        var lrm = base.weapons().get(2);
+        return new Snapshot(base.entityId(), base.name(), base.carrier(), base.durability(), List.of(
+                weapon(1, arms.slotKey(), arms.name(), FireKind.BURST, 12, true, .3f, 0, arms.ammo(),
+                        selected == 0 ? "L" : ""),
+                weapon(2, srm.slotKey(), srm.name(), FireKind.BURST, 4, true, 0f, 2, srm.ammo(),
+                        selected == 2 ? "LR" : "R"),
+                weapon(3, lrm.slotKey(), lrm.name(), FireKind.INDIRECT, 8, false, 0f, 0, lrm.ammo(), "")));
     }
 
     static Snapshot abilityPreview(int state) {
@@ -310,14 +361,14 @@ class BattleDirectControlHudTest {
     }
 
     private static WeaponStatus weapon(int number, String slot, String name, FireKind kind, int rounds,
-                                       boolean direct, float cooldown, int burst, Ammo ammo) {
+                                       boolean direct, float cooldown, int burst, Ammo ammo, String trigger) {
         return new WeaponStatus(number, slot, name, new Behavior(kind, rounds, .1f, 1), direct,
-                cooldown, 1f, burst, .1f, ammo);
+                cooldown, 1f, burst, .1f, ammo, false, "", trigger);
     }
 
-    record Fixture(BattleDirectControlHudModel model, MarkupInstance markup, UiDocument document,
-                   MarkupInstance actionsMarkup, UiDocument actionsDocument)
-            implements AutoCloseable {
-        @Override public void close() { actionsMarkup.close(); markup.close(); }
+    record Fixture(BattleDirectControlHudModel model, MarkupInstance status, UiDocument statusDocument,
+                   float statusHeight, MarkupInstance weapons, UiDocument weaponsDocument, float weaponsHeight,
+                   MarkupInstance actions, UiDocument actionsDocument) implements AutoCloseable {
+        @Override public void close() { actions.close(); weapons.close(); status.close(); }
     }
 }

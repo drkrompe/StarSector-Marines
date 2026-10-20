@@ -1,0 +1,75 @@
+<template props="title,carrier,hullLabel,hullValue,hullStyle,hullClasses,armorRowClasses,armorValue,armorStyle,fluxRowClasses,fluxValue,fluxStyle,fluxStateClasses,fluxState,staminaRowClasses,staminaValue,staminaStyle,armorLabel,fluxLabel,staminaLabel">
+  <div id="direct-status" class="status" style="background-color: transparent; background-image: none; border-width: 0px;">
+    <div id="direct-status-spacer" class="spacer"></div>
+    <div id="direct-status-title" class="title-row">
+      <div id="direct-status-name" class="name">{title}</div>
+      <div id="direct-status-carrier" class="carrier">{carrier}</div>
+    </div>
+    <div id="direct-status-rule" class="rule"></div>
+    <div id="direct-status-hull" class="row">
+      <div id="direct-status-hull-label" class="row-label">{hullLabel}</div>
+      <div id="direct-status-hull-meter" class="meter"><div id="direct-status-hull-fill" class="{hullClasses}" style="{hullStyle}"></div><div id="direct-status-hull-tick-25" class="tick tick-25"></div><div id="direct-status-hull-tick-50" class="tick tick-50"></div><div id="direct-status-hull-tick-75" class="tick tick-75"></div></div>
+      <div id="direct-status-hull-value" class="row-value">{hullValue}</div>
+    </div>
+    <div id="direct-status-armor" class="{armorRowClasses}">
+      <div id="direct-status-armor-label" class="row-label">{armorLabel}</div>
+      <div id="direct-status-armor-meter" class="meter"><div id="direct-status-armor-fill" class="armor-fill" style="{armorStyle}"></div><div id="direct-status-armor-tick-25" class="tick tick-25"></div><div id="direct-status-armor-tick-50" class="tick tick-50"></div><div id="direct-status-armor-tick-75" class="tick tick-75"></div></div>
+      <div id="direct-status-armor-value" class="row-value">{armorValue}</div>
+    </div>
+    <div id="direct-status-flux" class="{fluxRowClasses}">
+      <div id="direct-status-flux-label" class="row-label flux-label">{fluxLabel}</div>
+      <div id="direct-status-flux-meter" class="meter flux-meter"><div id="direct-status-flux-fill" class="flux-fill" style="{fluxStyle}"></div><div id="direct-status-flux-mark-warn" class="mark mark-warn"></div><div id="direct-status-flux-mark-vent" class="mark mark-vent"></div></div>
+      <div id="direct-status-flux-value" class="row-value flux-value">{fluxValue}</div>
+    </div>
+    <div id="direct-status-flux-state" class="{fluxStateClasses}">{fluxState}</div>
+    <div id="direct-status-stamina" class="{staminaRowClasses}">
+      <div id="direct-status-stamina-label" class="row-label">{staminaLabel}</div>
+      <div id="direct-status-stamina-meter" class="meter"><div id="direct-status-stamina-fill" class="stamina-fill" style="{staminaStyle}"></div><div id="direct-status-stamina-tick-50" class="tick tick-50"></div></div>
+      <div id="direct-status-stamina-value" class="row-value">{staminaValue}</div>
+    </div>
+  </div>
+</template>
+
+<style>
+  div.status {
+    width: 100%;
+    height: 100%;
+    padding: 8px 10px;
+    gap: 4px;
+    text-shadow: #000000d9;
+    border-width: 0px;
+    background-color: transparent;
+    background-image: none;
+    overflow: hidden;
+  }
+  .rule { width: 100%; height: 1px; background-image: linear-gradient(to right, #c3cec9aa 0%, #c3cec930 60%, #c3cec900 100%); }
+  .title-row { height: 18px; flex-direction: row; gap: 8px; align-items: center; }
+  .name { width: 0px; flex-grow: 1; font-family: heading; color: #ecf3fb; white-space: nowrap; overflow: hidden; }
+  .carrier { font-family: heading; color: #b2beb8; white-space: nowrap; }
+  .spacer { height: 0px; flex-grow: 1; }
+  .row { height: 20px; flex-direction: row; gap: 8px; align-items: center; }
+  .row-hidden { position: absolute; width: 0px; height: 0px; overflow: hidden; }
+  .row-label { width: 74px; font-family: heading; color: #c3cec9; white-space: nowrap; }
+  .meter { width: 0px; flex-grow: 1; height: 10px; flex-direction: row; border-width: 1px; border-color: #000000b3; background-color: #0000008c; }
+  .tick { position: absolute; top: 0px; width: 1px; height: 100%; background-color: #00000080; }
+  .tick-25 { left: 25%; }
+  .tick-50 { left: 50%; }
+  .tick-75 { left: 75%; }
+  .mark { position: absolute; top: 0px; width: 2px; height: 100%; }
+  .mark-warn { left: 75%; background-color: #eab152; }
+  .mark-vent { left: 95%; background-color: #ef7962; }
+  .row-value { width: 52px; font-family: body; text-align: right; color: #ecf3fb; white-space: nowrap; }
+  .hull-fill { height: 100%; background-color: #7cd89c; background-image: linear-gradient(to bottom, #ffffff66 0%, #ffffff10 55%, #00000030 100%); }
+  .capacity-low { background-color: #f07c72; }
+  .armor-fill { height: 100%; background-color: #a7ccc4; background-image: linear-gradient(to bottom, #ffffff66 0%, #ffffff10 55%, #00000030 100%); }
+  .flux-label { color: #c9c0f5; }
+  .flux-meter { border-color: #000000b3; background-color: #1a1640a6; }
+  .flux-fill { height: 100%; background-image: linear-gradient(to bottom, #ffffff66 0%, #ffffff10 55%, #00000030 100%); }
+  .flux-value { color: #e2dcff; }
+  .stamina-fill { height: 100%; background-color: #e3b64e; background-image: linear-gradient(to bottom, #ffffff66 0%, #ffffff10 55%, #00000030 100%); }
+  .state { height: 14px; padding-left: 82px; font-family: heading; white-space: nowrap; }
+  .state-hidden { position: absolute; width: 0px; height: 0px; padding: 0px; overflow: hidden; }
+  .state-calm { color: #a99fe0; }
+  .state-warn { color: #eab152; }
+  .state-alarm { color: #ef7962; }
+</style>

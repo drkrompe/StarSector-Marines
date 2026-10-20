@@ -303,10 +303,12 @@ public enum BuildingStamp {
                 int[] position = posed(x, y, turns);
                 Direction outward = posed(side, turns);
                 // A procedurally placed lot can back onto a neighbour's wall or the map edge;
-                // a window there looks onto nothing, so the plan simply goes without it.
+                // a window there looks onto nothing, so the plan simply goes without it. The same
+                // holds where the neighbour's own window already glazes this edge from its recess.
                 int outsideX = left + position[0] + outward.dx;
                 int outsideY = bottom + position[1] + outward.dy;
-                if (!ctx.grid.inBounds(outsideX, outsideY) || !ctx.grid.isWalkable(outsideX, outsideY)) {
+                if (!ctx.grid.inBounds(outsideX, outsideY) || !ctx.grid.isWalkable(outsideX, outsideY)
+                        || ctx.grid.getEdgeBarrier(left + position[0], bottom + position[1], outward) != null) {
                     continue;
                 }
                 try {

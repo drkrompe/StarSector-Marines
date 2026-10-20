@@ -391,6 +391,9 @@ squad: mech mounts through `HeavyWeapons.fireMountAtPoint`, a launcher through
 `SatchelChargeService.plantAtCell`, a cutter through the ordinary breach damage. A
 carrier works from the squad's arrival footprint rather than on his own path
 (untuned simplification), and no aim or channel animation plays for these shots.
+The same pass fires a mech's mounts at the wall a player's machine assault names
+(the wall sheltering a believed occupant of a held place; `ai-nouns.md`, machine
+assault), and a vehicle's turret does the same through its point fire.
 
 **Evidence.** The `assault-muster` scene's `breach-cannon` loop (one cannon mech
 and rifle squads) takes a distance breach: the mech opens the wall section in a

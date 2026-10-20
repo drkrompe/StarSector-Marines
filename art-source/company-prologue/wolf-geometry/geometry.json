@@ -77,12 +77,12 @@
   "scale": {
     "method": "ship_scale.py: contents (crew, cargo, fuel, hangars, boat bays) over the class machinery share, against the measured enclosed volume",
     "inputs": {
-      "units3": 38649,
+      "units3": 38763,
       "crew_max": 30,
       "cargo": 50,
       "fuel": 20,
       "cls": "frigate",
-      "length_units": 94.0,
+      "length_units": 95.1,
       "sprite_px": 96,
       "volume_source": "measured (SOLIDS)"
     },
@@ -113,17 +113,17 @@
     "contents_total_m3": 9130,
     "machinery_share": 0.46,
     "enclosed_m3": 16907,
-    "solved_metres_per_unit": 0.759,
+    "solved_metres_per_unit": 0.758,
     "range": {
-      "habitable_273": 0.736,
-      "habitable_328": 0.782
+      "habitable_273": 0.735,
+      "habitable_328": 0.781
     },
     "enclosed_m3_per_person_at_max_crew": 564,
-    "length_m": 71.4,
+    "length_m": 72.1,
     "fittings_m": {},
     "published_metres_per_unit": 0.76,
     "measured_this_build": {
-      "enclosed_units3": 38649,
+      "enclosed_units3": 38935,
       "solids": [
         "Hull head",
         "Hull neck",
@@ -136,8 +136,8 @@
     },
     "size_m": [
       72.3,
-      39.5,
-      25.5
+      39.3,
+      32.7
     ],
     "person_1_8_m_in_units": 2.37,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
@@ -156,18 +156,18 @@
   "dimensions": {
     "min": [
       -40.2,
-      -25.98,
-      -18.0
+      -25.83,
+      -22.09
     ],
     "max": [
       54.91,
-      25.98,
-      15.61
+      25.83,
+      20.96
     ],
     "size": [
       95.11,
-      51.97,
-      33.61
+      51.65,
+      43.05
     ]
   },
   "weapon_slots": [
@@ -210,7 +210,7 @@
       "location": [
         11,
         20,
-        -2.2
+        4.67
       ],
       "angle": 0,
       "arc": 5,
@@ -231,7 +231,7 @@
       "location": [
         11,
         -19,
-        -2.2
+        4.59
       ],
       "angle": 0,
       "arc": 5,
@@ -278,7 +278,9 @@
         "Turret 1 gun steel",
         "Turret 1 gun accent",
         "Turret 1 gun dark",
-        "Turret 1 gun lamp_blue"
+        "Turret 1 gun lamp_blue",
+        "Turret 1 gimbal steel",
+        "Turret 1 gimbal dark"
       ],
       "kit_muzzles": [
         "Turret 1 muzzle anchor 1"
@@ -302,13 +304,13 @@
       "k": 0.42,
       "bay": {
         "x": [
-          42.8,
-          55.0
+          43.4,
+          55.5
         ],
-        "half_width": 3.8,
+        "half_width": 3.7,
         "z": [
-          -6.2,
-          2.4
+          -6.5,
+          8.4
         ],
         "cut_from": [
           "Hull bow fork base"
@@ -337,15 +339,17 @@
       "location": [
         11,
         20,
-        -2.2
+        4.67
       ],
       "k": 0.6,
       "bay": null,
       "parts": [
-        "Weapon WS 005 hardpoint paint#box",
-        "Weapon WS 005 hardpoint steel",
-        "Weapon WS 005 hardpoint steel#tubes",
+        "Weapon WS 005 hardpoint paint#shell",
+        "Weapon WS 005 hardpoint steel#collar",
         "Weapon WS 005 hardpoint dark",
+        "Weapon WS 005 hardpoint steel",
+        "Weapon WS 005 hardpoint paint#cheek",
+        "Weapon WS 005 hardpoint steel#tubes",
         "Weapon WS 005 hardpoint mark"
       ],
       "kit_muzzles": [
@@ -371,15 +375,17 @@
       "location": [
         11,
         -19,
-        -2.2
+        4.59
       ],
       "k": 0.6,
       "bay": null,
       "parts": [
-        "Weapon WS 006 hardpoint paint#box",
-        "Weapon WS 006 hardpoint steel",
-        "Weapon WS 006 hardpoint steel#tubes",
+        "Weapon WS 006 hardpoint paint#shell",
+        "Weapon WS 006 hardpoint steel#collar",
         "Weapon WS 006 hardpoint dark",
+        "Weapon WS 006 hardpoint steel",
+        "Weapon WS 006 hardpoint paint#cheek",
+        "Weapon WS 006 hardpoint steel#tubes",
         "Weapon WS 006 hardpoint mark"
       ],
       "kit_muzzles": [
@@ -557,7 +563,7 @@
       "position": [
         26,
         11.5,
-        5.66
+        5.71
       ],
       "colour": "amber",
       "role": "hull lamp (sprite, row 28)",
@@ -572,7 +578,7 @@
       "position": [
         26,
         -11.5,
-        5.66
+        5.71
       ],
       "colour": "amber",
       "role": "hull lamp (sprite, row 28)",
@@ -626,8 +632,311 @@
         "phase_s": 0,
         "duty": 0.18
       }
+    },
+    {
+      "name": "Light ventral docking 1",
+      "position": [
+        2.0,
+        3.0,
+        -18.26
+      ],
+      "colour": "white",
+      "role": "docking light",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light ventral docking 2",
+      "position": [
+        2.0,
+        -3.0,
+        -18.26
+      ],
+      "colour": "white",
+      "role": "docking light",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
+    },
+    {
+      "name": "Light centre masthead 1",
+      "position": [
+        30.4,
+        0,
+        12.95
+      ],
+      "colour": "white",
+      "role": "masthead light",
+      "blink": {
+        "period_s": 0,
+        "phase_s": 0,
+        "duty": 0.18
+      }
     }
   ],
+  "landing_gear": {
+    "ground_z_units": -19.4,
+    "keel_shoes": [
+      {
+        "name": "Hull keel shoe aft",
+        "x": [
+          -17.5,
+          -2.4
+        ],
+        "sole_z": -19.4
+      },
+      {
+        "name": "Hull keel shoe fore",
+        "x": [
+          6.4,
+          18.8
+        ],
+        "sole_z": -19.4
+      }
+    ],
+    "wedges": [
+      {
+        "name": "Hull port fore wedge",
+        "hinge": "Hull port fore wedge hinge",
+        "H": [
+          12.6,
+          -12.4046
+        ],
+        "stow_deg": 133.715,
+        "x": [
+          15.0,
+          24.0
+        ],
+        "sole": "Hull port fore wedge sole",
+        "sole_y": 17.0795,
+        "rams": [
+          {
+            "pivot": "Hull port fore wedge ram 1 pivot",
+            "rod_pivot": "Hull port fore wedge ram 1 rod pivot",
+            "P": [
+              8.0,
+              2.0
+            ],
+            "W": [
+              15.6316,
+              -15.3467
+            ],
+            "base": -1.156334
+          },
+          {
+            "pivot": "Hull port fore wedge ram 2 pivot",
+            "rod_pivot": "Hull port fore wedge ram 2 rod pivot",
+            "P": [
+              8.0,
+              2.0
+            ],
+            "W": [
+              15.6316,
+              -15.3467
+            ],
+            "base": -1.156334
+          }
+        ]
+      },
+      {
+        "name": "Hull starboard fore wedge",
+        "hinge": "Hull starboard fore wedge hinge",
+        "H": [
+          -12.6,
+          -12.4057
+        ],
+        "stow_deg": -133.712,
+        "x": [
+          15.0,
+          24.0
+        ],
+        "sole": "Hull starboard fore wedge sole",
+        "sole_y": -17.0799,
+        "rams": [
+          {
+            "pivot": "Hull starboard fore wedge ram 1 pivot",
+            "rod_pivot": "Hull starboard fore wedge ram 1 rod pivot",
+            "P": [
+              -8.0,
+              2.0
+            ],
+            "W": [
+              -15.6315,
+              -15.3479
+            ],
+            "base": -1.985226
+          },
+          {
+            "pivot": "Hull starboard fore wedge ram 2 pivot",
+            "rod_pivot": "Hull starboard fore wedge ram 2 rod pivot",
+            "P": [
+              -8.0,
+              2.0
+            ],
+            "W": [
+              -15.6315,
+              -15.3479
+            ],
+            "base": -1.985226
+          }
+        ]
+      },
+      {
+        "name": "Hull port aft wedge",
+        "hinge": "Hull port aft wedge hinge",
+        "H": [
+          12.6,
+          -12.8345
+        ],
+        "stow_deg": 115.888,
+        "x": [
+          -17.5,
+          -8.5
+        ],
+        "sole": "Hull port aft wedge sole",
+        "sole_y": 17.1244,
+        "rams": [
+          {
+            "pivot": "Hull port aft wedge ram 1 pivot",
+            "rod_pivot": "Hull port aft wedge ram 1 rod pivot",
+            "P": [
+              8.0,
+              2.0
+            ],
+            "W": [
+              15.7395,
+              -14.9789
+            ],
+            "base": -1.143103
+          },
+          {
+            "pivot": "Hull port aft wedge ram 2 pivot",
+            "rod_pivot": "Hull port aft wedge ram 2 rod pivot",
+            "P": [
+              8.0,
+              2.0
+            ],
+            "W": [
+              15.7395,
+              -14.9789
+            ],
+            "base": -1.143103
+          }
+        ]
+      },
+      {
+        "name": "Hull starboard aft wedge",
+        "hinge": "Hull starboard aft wedge hinge",
+        "H": [
+          -12.6,
+          -12.8332
+        ],
+        "stow_deg": -115.886,
+        "x": [
+          -17.5,
+          -8.5
+        ],
+        "sole": "Hull starboard aft wedge sole",
+        "sole_y": -17.1237,
+        "rams": [
+          {
+            "pivot": "Hull starboard aft wedge ram 1 pivot",
+            "rod_pivot": "Hull starboard aft wedge ram 1 rod pivot",
+            "P": [
+              -8.0,
+              2.0
+            ],
+            "W": [
+              -15.7396,
+              -14.9775
+            ],
+            "base": -1.998523
+          },
+          {
+            "pivot": "Hull starboard aft wedge ram 2 pivot",
+            "rod_pivot": "Hull starboard aft wedge ram 2 rod pivot",
+            "P": [
+              -8.0,
+              2.0
+            ],
+            "W": [
+              -15.7396,
+              -14.9775
+            ],
+            "base": -1.998523
+          }
+        ]
+      }
+    ],
+    "lift_thrusters": [
+      {
+        "index": 1,
+        "location": [
+          32.0,
+          5.2,
+          -13.043
+        ],
+        "exhaust_direction": [
+          0,
+          0,
+          -1
+        ],
+        "mouth_radius": 1.55,
+        "anchor": "Lift 1 exhaust anchor"
+      },
+      {
+        "index": 2,
+        "location": [
+          32.0,
+          -5.2,
+          -13.043
+        ],
+        "exhaust_direction": [
+          0,
+          0,
+          -1
+        ],
+        "mouth_radius": 1.55,
+        "anchor": "Lift 2 exhaust anchor"
+      },
+      {
+        "index": 3,
+        "location": [
+          -24.6,
+          5.6,
+          -12.686
+        ],
+        "exhaust_direction": [
+          0,
+          0,
+          -1
+        ],
+        "mouth_radius": 1.55,
+        "anchor": "Lift 3 exhaust anchor"
+      },
+      {
+        "index": 4,
+        "location": [
+          -24.6,
+          -5.6,
+          -12.689
+        ],
+        "exhaust_direction": [
+          0,
+          0,
+          -1
+        ],
+        "mouth_radius": 1.55,
+        "anchor": "Lift 4 exhaust anchor"
+      }
+    ],
+    "note": "rest is wedges stowed (flight); at gear_down 1 the hull rests on its keel shoes on ground_z_units in hull space, the four wedges braced on the ground outboard"
+  },
   "asset": {
     "file": "wolf-p.blend",
     "collection": "WOLF_P",
@@ -635,8 +944,8 @@
     "anchors_collection": "WOLF_P | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'WOLF_P'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 28766,
-    "objects": 132,
+    "triangles": 242332,
+    "objects": 421,
     "materials": [
       "Turret annihilator mark 0.6122,0.4277,0.1509",
       "Turret annihilator paint 0.1989,0.1880,0.1718",
@@ -650,8 +959,10 @@
       "Turret steel Wolf grey machinery",
       "Wolf bridge glazing",
       "Wolf grey machinery",
-      "Wolf heat vent glow",
+      "Wolf heat shield tile",
+      "Wolf heat shield tile.001",
       "Wolf hull lamp amber",
+      "Wolf oleo chrome",
       "Wolf pirate crimson armour",
       "Wolf recess",
       "Wolf running light green",
@@ -770,10 +1081,8 @@
     }
   ],
   "silhouette": {
-    "iou": 0.8915,
-    "sprite_uncovered": 0.0563,
-    "model_outside_sprite": 0.0585,
-    "method": "top render alpha vs sprite alpha (>127), nearest-sampled into the top camera frame at 12.63 px per unit; the hardpoint guns (Weapon WS ...) are hidden in the top render: the hull sprite draws no weapons"
+    "iou": 0.9007,
+    "method": "round 7 (round 6 hull alone 0.9013; the detail fittings sit flush or below the belt): a downward ray-cast silhouette, 4x4 samples per sprite pixel, against the sprite alpha (>127); the hardpoint guns (Weapon WS ...) are left out: the hull sprite draws no weapons. Round 5, by the top render: 0.8915."
   },
   "shot_extent_px": {
     "shot-670m": {

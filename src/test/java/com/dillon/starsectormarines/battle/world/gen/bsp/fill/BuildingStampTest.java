@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BuildingFloodFill;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -64,6 +65,21 @@ class BuildingStampTest {
                         "concave cuts must not be roofed over");
             }
         }
+    }
+
+    @Test
+    void aWindowBackToBackWithANeighboursWindowIsLeftToTheNeighbour() {
+        // CORNER_HOME's top facade glazes local (2,10) northward. A neighbour whose window recess
+        // stands just outside has already put its own pane on that edge.
+        GenContext ctx = open(BuildingStamp.CORNER_HOME.width + 4, BuildingStamp.CORNER_HOME.height + 4);
+        var neighbours = ctx.grid.placeEdgeBarrier(4, 13, Direction.S, SharedEdgeBarrier.Kind.WINDOW);
+
+        BuildingStamp.CORNER_HOME.place(ctx, 2, 2, 0);
+
+        assertSame(neighbours, ctx.grid.getEdgeBarrier(4, 12, Direction.N));
+        assertEquals(4, neighbours.structureCellX());
+        assertEquals(13, neighbours.structureCellY());
+        assertNotNull(ctx.grid.getEdgeBarrier(5, 12, Direction.N), "the rest of the bay is still glazed");
     }
 
     @Test

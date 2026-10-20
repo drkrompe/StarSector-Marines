@@ -377,6 +377,9 @@ public final class BattleComponents {
     /** {@link #GROUND_TURRET} field 0: the {@link com.dillon.starsectormarines.battle.vehicle.GroundTurret} payload (OBJECT) — live aim/fire state (facing/cooldown/ammo/burst). Presence == "armed". */
     public static final int GROUND_TURRET_STATE = 0;
 
+    /** {@link #HULL_LOCATIONS} field 0: the {@link com.dillon.starsectormarines.battle.vehicle.HullLocations} payload (OBJECT). */
+    public static final int HULL_LOCATIONS_STATE = 0;
+
     /** {@link #VEHICLE_MISSION} field 0: the convoy mission-state payload (OBJECT) — the {@link com.dillon.starsectormarines.battle.vehicle.VehicleMission} bag. Liveness is {@code state == GONE}. */
     public static final int VEHICLE_MISSION_STATE = 0;
 
@@ -966,6 +969,12 @@ public final class BattleComponents {
      */
     public final ComponentType GROUND_TURRET;
     /**
+     * A ground hull's located damage: its plates, drive and turret section
+     * ({@link com.dillon.starsectormarines.battle.vehicle.HullLocations}). Present on every hull unless
+     * {@code -Dbattle.vehicle.locatedArmor=false}; {@code has}-gate every read.
+     */
+    public final ComponentType HULL_LOCATIONS;
+    /**
      * Convoy mission state — one OBJECT field. The lifecycle/deboard/route/path state a
      * convoy vehicle carries: the payload is the
      * {@link com.dillon.starsectormarines.battle.vehicle.VehicleMission} bag (so the backbone
@@ -1235,6 +1244,7 @@ public final class BattleComponents {
         SYSTEM_FX       = world.register(39, "SystemFx",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.FLOAT, FieldKind.FLOAT);
+        HULL_LOCATIONS  = world.register(41, "HullLocations", FieldKind.OBJECT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, SPRITE, CORPSE}, null);
         liveSprites = world.query(

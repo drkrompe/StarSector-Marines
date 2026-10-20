@@ -127,7 +127,7 @@ public final class DebugMissionCatalog {
                     : Mission.builder(chapter.mission("unused", chapter.planetName, ""));
             return builder.id(PREFIX + name()).name(Strings.resolve(title)).source(MissionSource.DEBUG).payout(0)
                     .requiredDrops(squads * 2).employerShuttles(0)
-                    .marineArrivalPolicy(this == COLD_START ? MarineArrivalPolicy.SECURED_GROUND : MarineArrivalPolicy.PAIRED_HALF_SQUAD)
+                    .marineArrivalPolicy(this == COLD_START || this == RELIEF ? MarineArrivalPolicy.SECURED_GROUND : MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                     .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED)
                     .requirements(squads + (this == WORKING_PASSAGE ? " squads / service pulse rifles / starting Ward armor / no Hound or officer bonuses" : " starter squads" + (hound ? " + Wayward (chaingun)" : "")) + "; preset boats supplied")
                     .battleSeed(chapter != null ? chapter.mission("unused", chapter.planetName, "").battleSeed
@@ -207,7 +207,8 @@ public final class DebugMissionCatalog {
             case WORKING_PASSAGE -> BattleSetup.createWorkingPassage(seed,manifest,new TargetProfile(0,0,0,0,"pirates",Set.of(),SurfacePalette.ARID,SettlementLink.ROAD));
             case COLD_START -> BattleSetup.createColdStart(seed,manifest,new TargetProfile(0,0,0,0,"pirates",Set.of(),SurfacePalette.ARID,SettlementLink.ROAD),false,false);
             case SALVAGE_RIGHTS -> BattleSetup.createSalvageRights(seed,manifest,new TargetProfile(0,0,0,0,"pirates",Set.of(),SurfacePalette.ARID,SettlementLink.ROAD));
-            case RELIEF, MILITIA_RELIEF -> BattleSetup.createOpeningOperation(seed, manifest, 1, OpeningOperationKind.RELIEF, profile, false);
+            case RELIEF, MILITIA_RELIEF -> BattleSetup.createOpeningOperation(seed, manifest, 1, OpeningOperationKind.RELIEF, profile, false,
+                    scenario == Scenario.RELIEF);
             case COUNTERATTACK, DEPOT_CLEARANCE -> BattleSetup.createOpeningOperation(seed, manifest, 1, OpeningOperationKind.COUNTERATTACK, profile, scenario == Scenario.COUNTERATTACK);
             case JUNCTION -> BattleSetup.createJunction(seed, manifest, profile);
             case LAST_LIFT, CREW_RECOVERY -> BattleSetup.createLastLift(seed, manifest, profile, new LastLiftProgress("debug-rill").previewAttempt());

@@ -26,6 +26,7 @@ four aft streaks, the spine ridge, a few dark seam bands and vent recesses.
 import math
 import bmesh
 import bpy
+from mathutils import Matrix
 from ls_kit import facet_normal, plane_cut, prism, section, sym
 
 HEAD = sym([(49.5, 14), (45, 15), (42, 16), (35.5, 16), (34, 14), (33, 12), (31, 10)])
@@ -77,6 +78,9 @@ def strip(kit, name, points, width, z, height, mat):
 def shear(ob, top_only=False):
     """Lower vertices outboard of WING_SLOPE's |Y| so a part follows the wing's falling deck."""
     y0, k = WING_SLOPE
+    if ob.matrix_basis != Matrix.Identity(4):  # the slope is in hull coordinates, not the part's own
+        ob.data.transform(ob.matrix_basis)
+        ob.matrix_basis = Matrix.Identity(4)
     bm = bmesh.new()
     bm.from_mesh(ob.data)
     for s in (1, -1):  # a crease at |Y| = y0 keeps every face planar

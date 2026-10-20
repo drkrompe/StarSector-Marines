@@ -1,0 +1,59 @@
+{
+ "part": "bridge-face",
+ "sheet": "grey-bridge",
+ "tile": 1,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9966,
+ "raw_iou": 0.9887,
+ "best_fit": "iou_refined_affine",
+ "fitted_iou": 0.9941,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9887
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00183,
+    0.99773
+   ],
+   "offset_px": [
+    -0.34,
+    1.08
+   ],
+   "iou": 0.9873
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00133,
+    1.00123
+   ],
+   "offset_px": [
+    -0.34,
+    -0.92
+   ],
+   "iou": 0.9941
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 0.75,
+  "p95_px": 2.0,
+  "max_px": 2.24
+ },
+ "boundary_fitted_px": {
+  "mean_px": 0.38,
+  "p95_px": 1.0,
+  "max_px": 2.0
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

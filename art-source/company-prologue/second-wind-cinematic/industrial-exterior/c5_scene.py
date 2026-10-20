@@ -39,6 +39,7 @@ one frame a second) to build/c5/frames/.
 """
 import json
 import math
+import os
 import random
 import sys
 import time
@@ -66,9 +67,17 @@ RISE = (18.0, 26.0)
 PUSH = 4.0                          # the push in from C4's last view to the ramp, C5 seconds
 TOP, TOP_CENTRE = 1800.0, Vector((150.0, 430.0))
 SETTLE = 1.07                      # how much further it drifts up after the rise, to the end
-PARKED = c4.CUSTOMS_ARRIVE - c4.DURATION + 0.5   # every vehicle has stopped by this C5 second
+PORT_PARKED = c4.CUSTOMS_ARRIVE - c4.DURATION + 0.5   # the port's walk maps are read at this C5 second
+# Kilo Nine's walk map is read once its vehicles have all stopped: the same second unless K9_ORIGINS has
+# the tug still backing in, later. Only Kilo Nine's: by then the Colossus's lift dust is over the
+# heavy berth, which would close the port sites' ground.
+PARKED = max([c4.CUSTOMS_ARRIVE] + [stop for _, stop in c4.K9_ROLL_IN.values()]) - c4.DURATION + 0.5
 TITLE_T0 = 24.0                     # Castle's last line ends here; the title's reveal is timed from it
 NAV_BOX = (298.0, 389.0, 452.0, 472.0)
+# C5_NESSA=1 (a proposal awaiting the owner, off by default): Nessa's stand-in dressed as her character
+# sheet has her (`c5_crowd.body_nessa`), arms folded once she stops, facing the hull. Where she
+# stands and when she comes out are unchanged.
+NESSA = bool(os.environ.get('C5_NESSA'))
 
 KX, KY = c4.K9
 KH = c4.k9_heading()
@@ -91,6 +100,9 @@ CARRIER = Vector((369.0, 420.5))          # the crew carrier's near side
 TUG = Vector((352.0, 444.0))
 BOWSER = Vector((430.0, 437.0))
 CAR = Vector((355.0, 428.0))
+if c4.K9_ORIGINS:                         # the tug backs in square to the ramp, the bowser pulls in nose-first
+    TUG = Vector(c4.k9_offset(c4.k9_parked_pose('Tug'), 1.0, 2.8))
+    BOWSER = Vector(c4.k9_offset(c4.k9_parked_pose('Fuel bowser'), 4.0, 2.4))
 
 
 def ground_z(x, y):
@@ -118,10 +130,17 @@ def cast(rng):
                [('go', a, 0.6), ('wait', 1.5 + k), ('go', b, 0.6), ('wait', 3.0), ('go', a, 0.6), ('wait', 2.5)] * 5,
                t0=out + 1.0 + 0.5 * k)
     worker('Yard hand tug', TUG, [('stay',)], t0=parked['Tug'] + 0.6)
-    worker('Yard hand tug runner', TUG + Vector((1.5, -1.0)),
-           [('go', at(-26, 26), 0.6), ('wait', 3.0), ('go', TUG + Vector((1.5, -1.0)), 0.6), ('wait', 4.0)] * 6,
+    runner = (Vector(c4.k9_offset(c4.k9_parked_pose('Tug'), -1.0, 3.2)) if c4.K9_ORIGINS
+              else TUG + Vector((1.5, -1.0)))
+    worker('Yard hand tug runner', runner,
+           [('go', at(-26, 26), 0.6), ('wait', 3.0), ('go', runner, 0.6), ('wait', 4.0)] * 6,
            t0=parked['Tug'] + 1.1)
-    worker('Yard hand bowser', BOWSER, [('stay',)], t0=parked['Fuel bowser'] + 0.6)
+    if c4.K9_ORIGINS:                     # out with the hose to the hull's fuel point, back to the pump end
+        rear = Vector(c4.k9_offset(c4.k9_parked_pose('Fuel bowser'), -7.5, 0.6))
+        worker('Yard hand bowser', BOWSER, [('go', at(2, -28), 0.6), ('wait', 7.0), ('go', rear, 0.5), ('stay',)],
+               t0=parked['Fuel bowser'] + 0.6)
+    else:
+        worker('Yard hand bowser', BOWSER, [('stay',)], t0=parked['Fuel bowser'] + 0.6)
     # Customs: out of the car once it has pulled up off the stern, to either side of the way off the ship.
     car = c4.CUSTOMS_ARRIVE - c4.DURATION
     for k, post in enumerate(OFFICERS):
@@ -134,8 +153,12 @@ def cast(rng):
         plan = [('stay',)] if k == 3 else [('wait', 2.0 + 0.8 * k), ('go', DOOR_FRONT, 0.5), ('enter', DOOR)]
         worker('Yard idler %d' % k, Vector(spot), plan, look=None)
     # Nessa: out of her door, a few steps, and stands apart.
-    groups.append(G([W('Nessa', 'nessa', speed=1.0, look=RAMP)], DOOR_FRONT, 4.5,
-                    [('go', Vector((350.0, 419.0)), 0.5), ('stay',)]))
+    if NESSA:
+        groups.append(G([W('Nessa', 'nessa', speed=1.0, look=ship)], DOOR_FRONT, 4.5,
+                        [('go', Vector((350.0, 419.0)), 0.5), ('pose', 'folded'), ('stay',)]))
+    else:
+        groups.append(G([W('Nessa', 'nessa', speed=1.0, look=RAMP)], DOOR_FRONT, 4.5,
+                        [('go', Vector((350.0, 419.0)), 0.5), ('stay',)]))
     # The families.
     sizes = [3, 2, 4, 1, 3, 2, 5, 1, 2, 3, 4, 2, 3]
     special = {2: [('go', SPOTS['wait'], 1.5), ('wait', 9.0), ('go', DOOR_FRONT, 2.5), ('enter', DOOR)],
@@ -236,10 +259,16 @@ def setup(body):
         make = crowd.body_sprite(c4.mesh, c4.SUN_DIR, OUT / 'sprites', c4.box, c4.material)
     else:
         make = crowd.body_3d(c4.mesh, c4.box, c4.material)
+        if NESSA:
+            plain, nessa = make, crowd.body_nessa(c4.mesh, c4.box, c4.material)
+
+            def make(w, n):
+                return nessa(w, n) if w.role == 'nessa' else plain(w, n)
     crowd.keyed(walkers, ground_z, C4_END, make)
     if '--no-port' not in sys.argv:
         (OUT / 'walk-maps').mkdir(parents=True, exist_ok=True)
         clips = 0
+        scene.frame_set(C4_END + round(PORT_PARKED * c4.FPS))
         for site, pnav, people in port_people.populate(ship_parts, FRAMES, C4_END):
             crowd.save_map(pnav, people, OUT / 'walk-maps' / (site.name + '.png'))
             crowd.keyed(people, lambda x, y, z=site.z: z, C4_END, make)

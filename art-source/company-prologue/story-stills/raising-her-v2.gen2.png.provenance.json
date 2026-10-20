@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a159ef-907d-7193-b907-cf4d74ca130d",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a159ef-907d-7193-b907-cf4d74ca130d\\call_41e642b4c5e448f99fb665f00712fdbd.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\story-stills\\raising-her-v2.gen2.png",
+    "sha256": "1c44b6f41c6a603938ea535faff84d16f75b359ae20815a402dc1760a2cd956f",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\story-stills\\raising-her-v2.prompt.txt",
+  "promptSha256": "552b5d7a3271eb098aec15869667ec31ae91d17693d08fb06b591a321a4e9a06",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The current page with the new mounts pasted in crudely: edit this image; keep everything outside the gun mounts exactly\nImage 2: Plain render of the same ship from the same camera: authority for the gun mounts only (position, size, shape); not for lighting or materials\n\nUse case: precise-object-edit. Edit Reference 1, a finished 3:2 (1536x1024) story illustration, and change only the gun mounts on the freighter's dorsal deck.\n\nReference 1 is the current page with the ship's new armament pasted in crudely from a render: blurry, flat and badly blended. Repaint those mounts so they belong in the painting. Keep EVERYTHING else exactly as it is: the asteroid dock, gantries, boarding tube, umbilicals, floodlights, the three suited figures, the tally marks, the two lit drive mouths, the rocks and stars, the light, the camera and the composition. The ship keeps its exact silhouette, size, position, angle, hull plating, bridge dome, radiator grilles, patches, dents and livery of weathered rust-orange and cream over dark gunmetal; do not reshape, move or rotate her, and do not add any structure.\n\nReference 2 is a plain render of the same ship from the same camera, and is the authority for the mounts only: where each sits, its size and shape, and what is on it. She carries exactly two guns, both small Vulcan point-defence turrets: a squat rounded mount with a short gatling-style cluster of several stubby barrels bundled round one axis, not a single long gun. One is on the aft deck at the left, barrels pointing left; the other is mid-deck in front of the bridge dome, a rounded dome in another owner's grey-green primer, its stubby rotary barrels pointing right. The big round mount on the right is an empty turret housing closed by a flat bolted salvage plate, with no gun on it. Behind the bridge dome, a small housing with a holed blanking cap may just show; it is mostly hidden. There is no long cannon barrel and no tank-style turret anywhere on her. Where a gun once stood against the rock and the dock wall, paint the bare rock and wall behind as they are in the rest of the page; add no gantry, walkway or other structure behind the ship.\n\nSame restrained hand-painted realism, sharp detail, dirty amber work light from the dock and muted blue shadows as the rest of the image. No new text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\story-stills\\guides\\p4-turrets-guide.png",
+      "sha256": "e14a168e6f6c35f03fb44bde656066400d68973f900b9a39992a0216425c277d",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "The current page with the new mounts pasted in crudely: edit this image; keep everything outside the gun mounts exactly"
+    },
+    {
+      "path": "art-source\\company-prologue\\story-stills\\guides\\p4-stern-quarter-dc62710dc.png",
+      "sha256": "449b4ba414cf4bff5e7c16aad10660e0855657f5f6c5cbf9b88421c3e7d3bddf",
+      "dimensions": [
+        768,
+        512
+      ],
+      "mode": "RGB",
+      "role": "Plain render of the same ship from the same camera: authority for the gun mounts only (position, size, shape); not for lighting or materials"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to blend only the gun mounts into Reference 1, using Reference 2 for their shape and placement."
+  ],
+  "usage": {
+    "input_tokens": 51281,
+    "cached_input_tokens": 24192,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 618,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 50.3
+}

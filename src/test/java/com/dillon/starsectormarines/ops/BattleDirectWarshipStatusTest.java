@@ -100,24 +100,25 @@ class BattleDirectWarshipStatusTest {
     }
 
     @Test
-    void theStripFitsTheSharedActionStripAndOffersNoClickableCards() throws Exception {
+    void shipSystemsFitTheirPanelAndOfferNoClickableCards() throws Exception {
         ship.pilotDirector(true);
         ship.layArea(Warship.FireGroup.MISSILES, new WarshipOrder.FireOnArea(40f, 30f, 10f, true));
         Snapshot snapshot = BattleDirectWarshipStatus.snapshot(ship, false, true);
         try (var fixture = BattleDirectControlHudTest.fixture(Path.of("mod"), snapshot, 0, false,
                 ignored -> fail("A ship's cards select nothing"), () -> {}, () -> {})) {
             for (ShipCard card : snapshot.warship().cards()) {
-                var element = fixture.markup().requireElement("direct-hud-ship-" + card.key());
+                var element = fixture.weapons().requireElement("direct-hud-ship-" + card.key());
                 assertTrue(element.disabled());
                 var bounds = element.box().borderBox();
-                assertTrue(bounds.right() <= BattleDirectControlOverlay.ACTION_WIDTH, card.key());
-                assertTrue(bounds.bottom() <= BattleDirectControlOverlay.ACTION_HEIGHT, card.key());
-                assertEquals(card.state(), fixture.markup().requireElement(
+                assertTrue(bounds.right() <= BattleDirectControlOverlay.WEAPONS_WIDTH, card.key());
+                assertTrue(bounds.bottom() <= fixture.weaponsHeight(), card.key());
+                assertEquals(card.state(), fixture.weapons().requireElement(
                         "direct-hud-ship-" + card.key() + "-state").text());
             }
-            assertEquals("FLUX 0%", fixture.markup().requireElement("direct-hud-flux-label").text(),
+            assertEquals("0%", fixture.status().requireElement("direct-status-flux-value").text(),
                     "the director puts an unconfigured ship on its hull's flux");
-            assertEquals("DANGER", fixture.markup().requireElement("direct-hud-ship-MISSILES-state").text());
+            assertEquals("SHIP SYSTEMS", fixture.weapons().requireElement("direct-weapons-title").text());
+            assertEquals("DANGER", fixture.weapons().requireElement("direct-hud-ship-MISSILES-state").text());
         }
     }
 }

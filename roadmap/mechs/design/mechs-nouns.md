@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-19 — callsign bounds and freeze folded in; the torso has front, side and rear arcs (a thinner back), read against the upper torso's facing; earlier: anti-armor and fragmentation missile warheads, damage-aware torso target choice; against a machine, autonomous fire offers the reservoir to the mounts that best defeat its armor first; Bulwark arms balanced as equipment (bastion build weight); duel range against armor (stand off, close, or duel from the outer band; an anti-armor rack's band closes on a tie; posted mechs sortie at out-reaching shooters, read from where the fire comes from); headless tuning of section shares, arc-keeping withdrawal, engine mass, call cooldown and heavy cradle.
+Updated: 2026-10-20 — the torso's back is its own plate (TORSO_REAR, held on top of the torso armor) and the damage doll draws front and rear; earlier: torso arcs, missile warheads, duel range against armor, section-share tuning.
 
 ## Purpose
 
@@ -259,7 +259,10 @@ increasing an encounter's total armored threat.
   is the chassis rating as it stands. The flanks are 0.95 of the rating with each
   point of torso armor counting 0.85. The back, where the reactor and its flux vents
   sit, is 0.75 of the rating at 0.6 plate, so a round from behind strips torso
-  armor two thirds faster. The arc governs the torso's own plate whether a hit
+  armor two thirds faster. A round from behind spends the torso's own **rear plate**
+  (`TORSO_REAR`, `MechSections.REAR_SHARE` of the torso armor, held on top of it so a
+  mech shot head-on lasts as long as it did) before the torso structure behind both;
+  `-Dbattle.mech.torsoRear=false` is the control. The arc governs the torso's own plate whether a hit
   lands on the torso or spills into it. Legs, arms and head meet the chassis rating
   from every side: a limb is hit on whatever face it shows, and a second set of
   arcs per section would buy little. Every chassis shares the one profile. A hit
@@ -313,9 +316,10 @@ increasing an encounter's total armored threat.
   its legs for as long as it stands. These are presentation events read off the
   sections (`MechSectionFxSystem`); they draw nothing from the battle's random
   stream, so they change no outcome and a review frame stays a function of
-  simulation state. A section paper-doll in the direct-control HUD and above the
-  selected-mech panel shows each section's armor and structure and marks what
-  is gone.
+  simulation state. A damage doll in the direct-control HUD and above the
+  selected-mech panel draws the chassis facing the viewer and from behind (the
+  rear view shows the torso's back plate and shoulders, no legs), each section
+  coloured by its armor and structure, and marks what is gone.
 - **After the battle** settlement writes that record back. A destroyed torso
   (or a chassis that died as one body under the control) **loses the chassis**:
   it leaves its gantry and every part fitted to it leaves stores with it. A
@@ -398,7 +402,12 @@ increasing an encounter's total armored threat.
   picture. The clicked ground selects a provisional walkable cell in coarse
   connectivity; the actual chassis must still prove a route to a legal point
   within that cell. Arrival or proof refusal releases the order back to ordinary
-  behavior.
+  behavior. A right-drag instead of a click gives the order a **held heading**:
+  the mech goes to where the drag began and, on arrival, stands with its hips
+  the way the drag went. The heading outranks the combat target for the hips
+  only — the torso still twists onto the fight — so the legs and their armour
+  point where the player put them while the guns keep working. It lasts while
+  the mech stands: the next route it walks, a new order, or a cancel ends it.
 - A **Defend Area order** is a persistent, battle-local tactical assignment for
   one whole battle lance. Its clicked center resolves to reachable ground and
   owns a circular twenty-cell-radius zone. Every live lance member positions
@@ -747,10 +756,12 @@ calculation without infantry training multipliers.
 
 The actual posed barrel is the source for both autonomous and manual direct
 fire. A structural obstruction between body and barrel blocks launch, including
-when the rendered muzzle protrudes beyond the obstacle. Ground-direct area
-weapons retain physical terminal-contact detonation and missile interception;
-neither the cursor nor an overshoot manufactures an impact. `ballistics-nouns.md`
-owns their shared contact and arrival law.
+when the rendered muzzle protrudes beyond the obstacle. Manual alignment is the
+torso's, judged from the chassis centre, and the barrels converge on the point.
+A pilot's rockets ground-burst where they are thrown, past nominal range at a
+scatter cost; gun area payloads keep physical terminal-contact detonation, and
+every rocket keeps missile interception. `ballistics-nouns.md` owns their shared
+contact and arrival law.
 
 Manual ownership cancels queued and active one-shot moves for this exact body.
 It excludes the body from autonomous role allocation, doctrine relevance,

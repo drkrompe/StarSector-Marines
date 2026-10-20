@@ -24,8 +24,9 @@ port's east edge against the jungle, with repair scaffold, a derrick over the sa
 and the workshop the families will walk into, and the works that mend hulls at its north end.
 Its one gate is on the port road, and a haul road runs from it up the yard. Her tug, bowser and
 crew carrier wait clear of the downwash and move in once the dust thins, and a Hegemony customs
-car comes over from the public side and in through her gate, lights going. K9_ORIGINS=1 starts
-them where they live instead (a proposal, `yard-vehicles.md`).
+car comes over from the public side and in through her gate, lights going. Each of her vehicles
+starts where it lives and drives its own journey (`yard-vehicles.md`); K9_ORIGINS=0 restores the old
+hop to a stand-off and roll-in on one cue, as a control.
 
 World frame, metres: +Y toward the port; +Z up; ground at z = 0.
 Inputs: build/c1v2/inputs/{second-wind-patched,mudskipper-skinned,hound-skinned}.blend, and the
@@ -52,8 +53,20 @@ STATES = CINE / 'second-wind-states' / 'patched'
 # The Second Wind build this shot renders: its .blend input is that build's patched state, and its
 # manifest is committed under ../pins/. The shot does not follow second-wind-states/'s latest
 # manifest; adopting a new build means moving SW_PIN and committing that build's manifest beside it.
-SW_PIN = '80c78dfac'
+SW_PIN = 'dc62710dc'
 SW_MANIFEST = BASE.parent / 'pins' / ('second-wind-%s-patched.manifest.json' % SW_PIN)
+
+
+def check_pinned_blend(path, manifest):
+    """Refuse a Second Wind .blend that is missing or is not the pinned build (SW_PIN). Copy it from
+    Drive builds/second-wind/<SW_PIN>/patched/."""
+    import hashlib
+    if not Path(path).exists():
+        raise SystemExit('%s is missing: copy it from Drive builds/second-wind/%s/patched/' % (path, SW_PIN))
+    digest = hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    if digest != manifest['asset_sha256']:
+        raise SystemExit('%s is not Second Wind build %s (sha256 %s, pin %s)'
+                         % (path, SW_PIN, digest[:12], manifest['asset_sha256'][:12]))
 
 FPS = 24
 # The approach is LATE seconds slower than the first cut (owner, 2026-10-19: Castle names Kilo Nine
@@ -679,6 +692,7 @@ def ship_path(t):
 
 def add_ship():
     manifest = json.loads(SW_MANIFEST.read_text())
+    check_pinned_blend(INPUTS / 'second-wind-patched.blend', manifest)
     append_collection(INPUTS / 'second-wind-patched.blend', manifest['append_collection'])
     root = bpy.data.objects[manifest['root']]
     # The exhaust anchors are the root's children in a collection that never reaches the scene, so
@@ -1495,18 +1509,51 @@ K9_ROLL_IN = {n: (go + LATE, stop + LATE) for n, (go, stop) in
               {'Tug': (14.2, 18.5), 'Crew carrier': (14.5, 19.5), 'Fuel bowser': (14.8, 20.5)}.items()}
 CUSTOMS_ARRIVE = 21.0 + LATE
 
-# K9_ORIGINS=1 (a proposal awaiting the owner, off by default): the yard's vehicles start where they
-# live and wait out the landing there, instead of hopping to stand-offs on open dirt (where the tug
-# came out through the hangar wall and its run in drove through a scaffold leg). The tug stands at the
-# workshop's garage bay; the crew carrier on the south apron beside the bowser, which tops up at the
-# yard's fuel tanks. Each drives one short run to the same spot at the hull, stopping at the same
-# second as before, so nothing C5 reads changes: name: (start, heading, turn-in points, go).
-K9_ORIGINS = bool(os.environ.get('K9_ORIGINS'))
-K9_HOMES = {'Tug': ((357.0, 405.0), math.pi / 2, (), 18.4),
-            'Crew carrier': ((393.0, 401.0), math.pi / 2, ((393.0, 411.0),), 18.9),
-            'Fuel bowser': ((434.0, 400.0), math.pi / 2, (), 19.4)}
+# K9_ORIGINS (on by default, approved by the owner 2026-10-20; K9_ORIGINS=0 is the control that restores
+# the old roll-in above; `yard-vehicles.md`): the yard's
+# vehicles work like a crew that knows the drill instead of all leaving on one cue for a short hop.
+# Each comes from somewhere and is still at work while the families come off:
+#   crew carrier  out of the arrivals hall's spare bus bay, along the port road, in at the gate ahead
+#                 of customs; it holds on the spur through the dust and pulls up beside the ramp first.
+#   tug           off the hangar apron and down the haul road during the descent; it gives way to the
+#                 customs car at the spur, then waits behind it while an officer walks across, runs
+#                 past its spot and backs into it as the families come down.
+#   bowser        off the fuel point by the yard tanks to a holding line during the final descent,
+#                 in towards the hull once the drive spools down, stopping short, then easing onto
+#                 the hookup.
+# A leg is (start s, end s, points, reversing): C4 seconds, C5 starting at DURATION. 'END' is the
+# vehicle's spot at the hull, 'PAST' a little beyond it along its final heading (to back in from).
+K9_ORIGINS = os.environ.get('K9_ORIGINS', '1') != '0'
+K9_ENDS = {'Tug': (-46, 22), 'Crew carrier': (-50, 4), 'Fuel bowser': (0, -40)}
+C5S = 16.0 + LATE                          # C5 starts here, in C4 seconds
+K9_LEGS = {
+    'Crew carrier': ((273.0, 421.0), 0.0, [
+        (0.0, 15.5, [(273.0, 421.0), (285.0, 421.0), (286.0, 386.0), (288.0, 372.0), (300.0, 371.0),
+                     (305.0, 380.0), (305.0, 426.0), (314.0, 433.5), (330.0, 433.5)], False),
+        (20.6, C5S + 4.6, [(330.0, 433.5), (352.0, 432.5), (362.0, 427.2), 'END'], False)]),
+    'Tug': ((328.0, 513.0), math.pi, [
+        (3.0, 19.0, [(328.0, 513.0), (300.0, 513.0), (300.0, 452.0)], False),     # clear of the stores stack
+        (21.2, C5S + 7.0, [(300.0, 452.0), (300.0, 438.0), (318.0, 433.5), (338.0, 433.5)], False),
+        (C5S + 11.4, C5S + 14.6, [(338.0, 433.5), (345.0, 434.0), 'PAST'], False),
+        (C5S + 15.4, C5S + 16.6, ['PAST', 'END'], True)]),
+    'Fuel bowser': ((434.0, 400.0), math.pi / 2, [
+        (12.0, 17.0, [(434.0, 400.0), (434.0, 414.0)], False),
+        (18.6, 23.2, [(434.0, 414.0), (433.6, 437.0)], False),
+        (C5S + 2.4, C5S + 4.8, [(433.6, 437.0), 'END'], False)]),
+}
+def k9_parked_pose(name):
+    """(x, y, heading) of a K9_ORIGINS vehicle on its spot at the hull: the way it drove up to it."""
+    xb, yb, _ = at(*K9, k9_heading(), *K9_ENDS[name])
+    px, py = [p for leg in K9_LEGS[name][2] if not leg[3] for p in leg[2] if not isinstance(p, str)][-1]
+    return xb, yb, math.atan2(yb - py, xb - px)
+
+
+def k9_offset(pose, u, v):
+    """A point `u` m ahead of and `v` m left of a vehicle's pose."""
+    x, y, h = pose
+    return x + u * math.cos(h) - v * math.sin(h), y + u * math.sin(h) + v * math.cos(h)
 if K9_ORIGINS:
-    K9_ROLL_IN = {n: (K9_HOMES[n][3], stop) for n, (_, stop) in K9_ROLL_IN.items()}
+    K9_ROLL_IN = {n: (legs[0][0], legs[-1][1]) for n, (_, _, legs) in K9_LEGS.items()}
 
 
 def run_profile(t, go, stop, ramp=1.6):
@@ -1524,23 +1571,35 @@ def run_profile(t, go, stop, ramp=1.6):
 
 
 def k9_home_runs(parts_of):
-    """The K9_ORIGINS runs: each vehicle parked at home until its go, then along a rounded path to the
-    hull. `parts_of[name]` is its part list."""
+    """The K9_ORIGINS itineraries (`K9_LEGS`): parked at the start until the first leg, holding between
+    legs. A reversing leg keeps the heading the vehicle had pulling up, nose away from its travel.
+    `parts_of[name]` is its part list."""
     if str(BASE) not in sys.path:
         sys.path.insert(0, str(BASE))
     import port_life
-    kx, ky = K9
-    kh = k9_heading()
-    ends = {'Tug': (-46, 22), 'Crew carrier': (-50, 4), 'Fuel bowser': (0, -40)}
-    for name, (home, h0, via, _) in K9_HOMES.items():
-        go, stop = K9_ROLL_IN[name]
-        xb, yb, _ = at(kx, ky, kh, *ends[name])
-        rt = port_life.Route(name, [home, *via, (xb, yb)], closed=False, radius=10.0, step=0.25)
+    for name, (start, h0, legs) in K9_LEGS.items():
+        xb, yb, hf = k9_parked_pose(name)
+        spots = {'END': (xb, yb), 'PAST': (xb + 1.6 * math.cos(hf), yb + 1.6 * math.sin(hf))}
+        routes = []
+        for t0, t1, pts, rev in legs:
+            pts = [spots[p] if isinstance(p, str) else p for p in pts]
+            routes.append((t0, t1, port_life.Route(name, pts, closed=False, radius=6.0, step=0.25), rev))
         keys, heads = [], []
-        for f in range(0, FRAMES + round(8.0 * FPS), 2):
-            x, y, hd = rt.at(rt.L * run_profile(f / FPS, go, stop))
+        x, y, hd = start[0], start[1], h0
+        for f in range(0, FRAMES + round(41.0 * FPS), 2):
+            t = f / FPS
+            for t0, t1, rt, rev in routes:
+                if t >= t0:
+                    k = run_profile(t, t0, t1, ramp=min(1.6, (t1 - t0) / 3))
+                    x, y, h = rt.at(rt.L * k)
+                    hd = float(h) + (math.pi if rev else 0.0)
             keys.append((f, float(x), float(y)))
-            heads.append((f, h0 if f / FPS <= go else float(hd)))
+            heads.append((f, hd))
+        # keep the heading continuous through the turns and the reverse
+        for i in range(1, len(heads)):
+            f, h = heads[i]
+            prev = heads[i - 1][1]
+            heads[i] = (f, h + 2 * math.pi * round((prev - h) / (2 * math.pi)))
         ob = vehicle(name, parts_of[name], keys, heads)
         for fc in port_life.fcurves(ob):
             for kp in fc.keyframe_points:

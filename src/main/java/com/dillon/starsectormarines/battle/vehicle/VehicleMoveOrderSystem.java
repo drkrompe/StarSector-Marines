@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.assault.MachineAssault;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
@@ -30,6 +31,22 @@ import java.util.Map;
  * battle — which is what the recovery ladder's terminal state does on its own.
  */
 public final class VehicleMoveOrderSystem {
+
+    /**
+     * Answers whether a click is an assault on a garrisonable rather than a move, and if so where
+     * the hull fights from. Supplied by the simulation, which holds the side's beliefs this system
+     * does not; null means every click is a move.
+     */
+    public interface AssaultPlanner {
+        MachineAssault plan(long vehicleId, int cellX, int cellY);
+    }
+
+    private AssaultPlanner assaultPlanner;
+
+    /** Installs the planner the simulation answers assault questions with. */
+    public void setAssaultPlanner(AssaultPlanner planner) {
+        this.assaultPlanner = planner;
+    }
 
     /**
      * How long an accepted order tolerates the controller having no forward
@@ -90,7 +107,7 @@ public final class VehicleMoveOrderSystem {
         }
         for (PendingOrder request : service.drainPending()) {
             if (service.isSuspended(request.vehicleId)) {
-                service.retain(request.vehicleId, request.cellX, request.cellY);
+                service.retain(request.vehicleId, request.cellX, request.cellY, request.facingDegrees);
                 continue;
             }
             // Right-clicking a loaded transport on itself is "everybody out",
@@ -109,18 +126,33 @@ public final class VehicleMoveOrderSystem {
                         Refusal.NOT_COMMANDABLE);
                 continue;
             }
-            float[][] route = planRoute(request.vehicleId, request.cellX, request.cellY);
+            // Any new order supersedes a standing assault, including another assault.
+            service.endAssault(request.vehicleId);
+            // A click on a garrisonable the side believes is enemy-held is an assault by fire: the
+            // hull drives to a stand-off rather than to the click, and keeps it once there.
+            MachineAssault assault = request.destinationOnly || assaultPlanner == null ? null
+                    : assaultPlanner.plan(request.vehicleId, request.cellX, request.cellY);
+            int goalX = assault != null ? assault.standoffX() : request.cellX;
+            int goalY = assault != null ? assault.standoffY() : request.cellY;
+            float[][] route = planRoute(request.vehicleId, goalX, goalY);
             if (route == null) {
                 service.refuse(request.vehicleId, request.cellX, request.cellY,
                         Refusal.NO_ROUTE);
                 continue;
             }
+            if (assault != null) service.beginAssault(request.vehicleId, assault);
             if (route[0].length == 0) {
-                service.complete(request.vehicleId);
-                continue;
+                // Already there. A plain click has nothing left to do; a dragged facing still has the turn to make,
+                // which the docking maneuver makes on the spot from a route that ends where the hull stands.
+                if (Float.isNaN(request.facingDegrees)) {
+                    service.complete(request.vehicleId);
+                    continue;
+                }
+                GroundBody body = convoy.body(request.vehicleId);
+                route = new float[][]{{body.x, body.x}, {body.y, body.y}};
             }
-            service.activate(request.vehicleId,
-                    new ActiveOrder(request.cellX, request.cellY, route[0], route[1]));
+            service.activate(request.vehicleId, new ActiveOrder(request.cellX, request.cellY,
+                    route[0], route[1], request.facingDegrees));
         }
     }
 
@@ -137,13 +169,14 @@ public final class VehicleMoveOrderSystem {
             return false;
         }
         ActiveOrder order = service.activeOrder(id);
-        if (order == null) return false;
+        if (order == null) return holdAssault(id, dt);
         if (!commandable(id)) {
             service.forget(id);
             return false;
         }
 
-        controlSystem.tick(id, dt, order.routeXs(), order.routeYs(), VehicleLeg.MOVE_ORDER);
+        controlSystem.tick(id, dt, order.routeXs(), order.routeYs(), VehicleLeg.MOVE_ORDER,
+                order.facingDegrees());
         if (controlSystem.consumeArrived(id)) {
             // A move order does not snap onto its endpoint, so the distance gate can call arrival with the body
             // still rolling. Nothing integrates a deployed hull once its order is done, so that speed would never
@@ -162,6 +195,21 @@ public final class VehicleMoveOrderSystem {
         if (s.localPlanFailureTime >= GIVE_UP_SECONDS) {
             service.refuse(id, order.requestedX(), order.requestedY(), Refusal.GAVE_UP);
         }
+        return true;
+    }
+
+    /**
+     * A hull at its stand-off under a standing assault holds there: the assault owns its
+     * locomotion so the duel-band engagement does not drive it off, or into the place it is
+     * firing on. Its turret is directed by the assault, not here.
+     */
+    private boolean holdAssault(long id, float dt) {
+        if (service.assault(id) == null) return false;
+        if (!manuallyCommandable(id)) {
+            service.endAssault(id);
+            return false;
+        }
+        controlSystem.tickManual(id, dt, 0f, 0f);
         return true;
     }
 

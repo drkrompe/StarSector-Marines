@@ -660,13 +660,23 @@ def keyed(walkers, ground_z, frame0, make, every=2):
                 put(extra['squash'], 'scale', 2, fr, squash)
             if 'box' in extra:
                 put(extra['box'], 'scale', 0, fr, 1.0 if carry else 0.0)
+            if 'fold' in extra:                                   # crossed arms swapped in for the swinging ones
+                group, swinging = extra['fold']
+                on = pose == 'folded' and not moving
+                for i in range(3):
+                    put(group, 'scale', i, fr, 1.0 if on else 1e-4)
+                    for sh in swinging:
+                        put(sh, 'scale', i, fr, 1e-4 if on else 1.0)
             for c in cards:
                 put(c, '["walk"]', 0, fr, float(frame))
         if w.track[0][0] > 0:                                     # hidden until spawned
             for i in range(3):
                 ch[(root, 'scale', i)].insert(0, (frame0, 1e-4))
+        flips = {extra.get('box')}
+        if 'fold' in extra:
+            flips |= {extra['fold'][0], *extra['fold'][1]}
         for (ob, path, i), keys in ch.items():
-            step = path == '["walk"]' or ob is extra.get('box')   # a flip book: no in-betweens
+            step = path == '["walk"]' or ob in flips                 # a flip book: no in-betweens
             bake(ob, path, i, keys, 'CONSTANT' if step else 'BEZIER')
 
 
@@ -743,6 +753,63 @@ def body_3d(mesh, box, material):
             part('%s arm %d' % (w.name, side), 'arm', (0.12, 0.12, 0.62), (0, 0, -0.31), cloth, sh)
             arms.append((sh, side))
         return root, legs, [], {'arms': arms, 'box': load, 'squash': fig}
+    return make
+
+
+# Nessa as the character sheet has her (`nessa-figure/character.md`), from the same boxes as everyone
+# else: 1.72 m and square, a worn canvas work coat to mid-thigh over faded blue coveralls, scuffed
+# boots, iron-grey hair (the one grey head in the yard, which is what reads from straight overhead),
+# the biofilter mask hanging at her neck and a slate tucked under her crossed arms. Standing in the
+# 'folded' pose the swinging arms are swapped for crossed ones (`keyed`, extra 'fold').
+NESSA_LOOK = {'coat': (0.42, 0.27, 0.10), 'coveralls': (0.15, 0.19, 0.26), 'boots': (0.06, 0.05, 0.045),
+              'skin': (0.30, 0.17, 0.095), 'hair': (0.44, 0.44, 0.43), 'mask': (0.13, 0.16, 0.13),
+              'slate': (0.09, 0.10, 0.11)}
+
+
+def body_nessa(mesh, box, material):
+    mats = {}
+
+    def mat(key):
+        if key not in mats:
+            mats[key] = material('Nessa ' + key, NESSA_LOOK[key], 0.85 if key != 'slate' else 0.5)
+        return mats[key]
+
+    def part(name, size, centre, key, parent):
+        b = bmesh.new()
+        box(b, size, centre)
+        ob = mesh(name, b, mat(key))
+        ob.parent = parent
+        return ob
+
+    def empty(name, parent, location=(0, 0, 0)):
+        ob = link(bpy.data.objects.new(name, None))
+        ob.parent, ob.location = parent, location
+        return ob
+
+    def make(w, n):
+        root = link(bpy.data.objects.new(w.name, None))
+        fig = empty(w.name + ' figure', root)
+        part(w.name + ' coat', (0.36, 0.58, 0.88), (0, 0, 1.01), 'coat', fig)         # shoulders to mid-thigh
+        part(w.name + ' coveralls', (0.30, 0.46, 0.30), (0, 0, 0.72), 'coveralls', fig)
+        part(w.name + ' mask', (0.20, 0.27, 0.07), (0.07, 0, 1.47), 'mask', fig)        # hanging at the neck
+        part(w.name + ' head', (0.24, 0.22, 0.22), (0.02, 0, 1.58), 'skin', fig)
+        part(w.name + ' hair', (0.23, 0.24, 0.07), (-0.01, 0, 1.69), 'hair', fig)       # cropped close
+        legs, arms = [], []
+        for side in (-1, 1):
+            hip = empty('%s hip %d' % (w.name, side), fig, (0, side * 0.13, 0.80))
+            part('%s leg %d' % (w.name, side), (0.17, 0.17, 0.78), (0, 0, -0.39), 'coveralls', hip)
+            part('%s boot %d' % (w.name, side), (0.26, 0.19, 0.12), (0.04, 0, -0.74), 'boots', hip)
+            legs.append((hip, side))
+            sh = empty('%s shoulder %d' % (w.name, side), fig, (0, side * 0.34, 1.40))
+            part('%s arm %d' % (w.name, side), (0.13, 0.13, 0.60), (0, 0, -0.30), 'coat', sh)
+            arms.append((sh, side))
+        fold = empty(w.name + ' folded', fig)                                           # arms crossed on the chest
+        for side in (-1, 1):
+            part('%s upper arm %d' % (w.name, side), (0.14, 0.13, 0.32), (0.05, side * 0.33, 1.26), 'coat', fold)
+            part('%s hand %d' % (w.name, side), (0.09, 0.08, 0.08), (0.25, side * 0.25, 1.22), 'skin', fold)
+        part(w.name + ' forearms', (0.17, 0.56, 0.13), (0.23, 0, 1.15), 'coat', fold)
+        part(w.name + ' slate', (0.03, 0.22, 0.30), (0.19, -0.10, 1.26), 'slate', fold)
+        return root, legs, [], {'arms': arms, 'squash': fig, 'fold': (fold, [sh for sh, _ in arms])}
     return make
 
 

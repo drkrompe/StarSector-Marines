@@ -18,6 +18,13 @@ read flat. This adds, on the room side only, what makes each slit a window in ar
   flat-bar stiffeners, a riveted seam along the header zone, and a conduit on saddle clamps along
   the forward walls with a junction box on the port chamfer.
 
+Round 2 (owner, 2026-10-20: the first version read as low poly at this close camera): fixings at
+the console hardware's scale (chamfered hex bolts on washers, varied, some socket caps; slotted
+pan-head screws; domed rivets), riveted frame-number plates with raised numbers, and worn paint
+(worn): grime in recesses, edges scuffed to steel, blotches, streaks and a faint orange peel over
+each of the room's own flat paints, keeping its mean colour so the dressing sits beside the
+approved room.
+
 It is C2 dressing, not the ship model: the slit openings, the glass, the mullions (their widths too)
 and the camera are untouched, and every part lies on the room side of the cut wall. It is built in
 hull units from the model's own numbers (sw_bridge's glazing plan and mullion layout,
@@ -26,6 +33,7 @@ c2_bridge_render.py builds it only when asked (C2_BULKHEAD_DETAIL=1 or --bulkhea
 accepts it. Runs inside Blender, with second-wind-geometry on sys.path.
 """
 import math
+import random
 
 import bpy
 from mathutils import Matrix, Vector
@@ -97,6 +105,127 @@ def material(name, rgb, metallic=0.0, rough=.65):
     return m
 
 
+def worn(src, chip=.5, grime=.8, mottle=.06):
+    """A worn copy of one of the bridge's flat paints (the approved room is flat Principled colour, so
+    its mean colour and finish are kept): grime settled into recesses (ambient occlusion), paint
+    scuffed through to steel along edges (bevel normal against the true normal, broken up by noise),
+    and a low mottle in colour and roughness. Noise is in object space, which here is hull units."""
+    name = 'C2B | worn ' + src.name
+    if name in bpy.data.materials:
+        return bpy.data.materials[name]
+    bs0 = src.node_tree.nodes.get('Principled BSDF') if src.use_nodes else None
+    base = tuple(bs0.inputs['Base Color'].default_value) if bs0 else tuple(src.diffuse_color)
+    metal = bs0.inputs['Metallic'].default_value if bs0 else .3
+    rough = bs0.inputs['Roughness'].default_value if bs0 else .6
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    nt = m.node_tree
+    N, L = nt.nodes.new, nt.links.new
+    bs = nt.nodes['Principled BSDF']
+    tc = N('ShaderNodeTexCoord')
+
+    def noise(scale, detail, stretch=None):
+        n = N('ShaderNodeTexNoise')
+        n.inputs['Scale'].default_value, n.inputs['Detail'].default_value = scale, detail
+        if stretch:
+            mp = N('ShaderNodeMapping')
+            mp.inputs['Scale'].default_value = stretch
+            L(tc.outputs['Object'], mp.inputs['Vector'])
+            L(mp.outputs['Vector'], n.inputs['Vector'])
+        else:
+            L(tc.outputs['Object'], n.inputs['Vector'])
+        return n.outputs['Fac']
+
+    def mrange(src_, a, b, c=0.0, d=1.0):
+        r = N('ShaderNodeMapRange')
+        r.inputs['From Min'].default_value, r.inputs['From Max'].default_value = a, b
+        r.inputs['To Min'].default_value, r.inputs['To Max'].default_value = c, d
+        L(src_, r.inputs['Value'])
+        return r.outputs['Result']
+
+    def math_(op, a, b):
+        n = N('ShaderNodeMath')
+        n.operation = op
+        for k, v in enumerate((a, b)):
+            if isinstance(v, float):
+                n.inputs[k].default_value = v
+            else:
+                L(v, n.inputs[k])
+        return n.outputs['Value']
+
+    def mix(fac, a, b):
+        n = N('ShaderNodeMix')
+        n.data_type = 'RGBA'
+        rgba = {i.name: i for i in n.inputs if i.type == 'RGBA'}     # 'A'/'B' name float sockets too
+        for sock, v in (('A', a), ('B', b)):
+            if isinstance(v, tuple):
+                rgba[sock].default_value = v
+            else:
+                L(v, rgba[sock])
+        L(fac, n.inputs['Factor'])
+        return next(o for o in n.outputs if o.type == 'RGBA')
+
+    # Mottle: a broad variation of the paint, darker blotches of handling grime, and long vertical
+    # streaks where condensation has run down the walls.
+    tone = mrange(noise(6.0, 4.0), .3, .7, 1 - mottle, 1 + mottle)
+    blotch = mrange(noise(3.0, 4.0), .48, .66, 1.0, .66)
+    streak = mrange(noise(11.0, 6.0, (1.0, 1.0, .07)), .44, .72, 1.0, .72)
+    shade = math_('MULTIPLY', math_('MULTIPLY', tone, blotch), streak)
+    col = mix(math_('MINIMUM', shade, 1.0), (0.0, 0.0, 0.0, 1.0), base)
+    col = mix(mrange(shade, 1.0, 1 + mottle, 0.0, 1.0), col, tuple(min(1.0, c * (1 + mottle)) for c in base[:3]) + (1.0,))
+    # Grime packed into the recesses and corners.
+    ao = N('ShaderNodeAmbientOcclusion')
+    ao.inputs['Distance'].default_value, ao.samples = .05, 8
+    dirt = math_('POWER', math_('SUBTRACT', 1.0, ao.outputs['AO']), .8)
+    dirt = math_('MULTIPLY', dirt, mrange(noise(18.0, 6.0), .3, .7, .5, 1.3))
+    dirt = math_('MINIMUM', math_('MULTIPLY', dirt, grime), 1.0)
+    col = mix(dirt, col, (base[0] * .3, base[1] * .27, base[2] * .22, 1.0))
+    # Paint worn through to steel on convex edges (occlusion seen from inside the surface), in
+    # ragged patches rather than a clean line.
+    edge_ao = N('ShaderNodeAmbientOcclusion')
+    edge_ao.inside, edge_ao.samples = True, 8
+    edge_ao.inputs['Distance'].default_value = .004
+    edge = mrange(edge_ao.outputs['AO'], .9, .6, 0.0, 1.0)
+    chips = math_('MULTIPLY', edge, mrange(noise(55.0, 8.0), .32, .52, 0.0, 1.0))
+    chips = math_('MINIMUM', math_('MULTIPLY', chips, chip), 1.0)
+    col = mix(chips, col, (.42, .41, .39, 1.0))
+    L(col, bs.inputs['Base Color'])
+    met = mix(chips, (metal, metal, metal, 1.0), (.9, .9, .9, 1.0))
+    sep = N('ShaderNodeSeparateColor')
+    L(met, sep.inputs[0])
+    L(sep.outputs['Red'], bs.inputs['Metallic'])
+    r = math_('ADD', mrange(noise(16.0, 5.0), .3, .7, rough - .12, rough + .12), math_('MULTIPLY', dirt, .15))
+    r = math_('SUBTRACT', r, math_('MULTIPLY', chips, .35))
+    L(r, bs.inputs['Roughness'])
+    # Painted plate is never flat: a faint orange peel and the odd shallow dent break up highlights.
+    bump = N('ShaderNodeBump')
+    bump.inputs['Strength'].default_value, bump.inputs['Distance'].default_value = .25, .002
+    peel = math_('ADD', noise(140.0, 4.0), math_('MULTIPLY', noise(4.0, 2.0), 1.5))
+    L(peel, bump.inputs['Height'])
+    L(bump.outputs['Normal'], bs.inputs['Normal'])
+    return m
+
+
+def stamp(name, text, centre, R, size, relief):
+    """Raised characters (a stamped or cast number plate): a font curve made a mesh, its local
+    X along R's first column, up R's third, standing `relief` off the face R's second column faces."""
+    cu = bpy.data.curves.new(name, 'FONT')
+    cu.body, cu.size, cu.extrude = text, size, relief / 2
+    cu.align_x, cu.align_y = 'CENTER', 'CENTER'
+    tmp = bpy.data.objects.new(name, cu)
+    bpy.context.collection.objects.link(tmp)
+    x, nn, up = R.col[0], R.col[1], R.col[2]
+    tmp.matrix_world = Matrix.Translation(Vector(centre) + Vector(nn) * relief / 2) @         Matrix((-Vector(x), up, nn)).transposed().to_4x4()
+    bpy.context.view_layer.update()
+    me = bpy.data.meshes.new_from_object(tmp.evaluated_get(bpy.context.evaluated_depsgraph_get()))
+    ob = bpy.data.objects.new(name, me)
+    bpy.context.collection.objects.link(ob)
+    ob.matrix_world = tmp.matrix_world.copy()
+    bpy.data.objects.remove(tmp, do_unlink=True)
+    bpy.data.curves.remove(cu)
+    return ob
+
+
 def build(root, eyes=()):
     """Build the dressing in hull units and parent every part to `root` (the ship's root). `eyes` is
     the shot's camera path, [((x, y) in hull units, yaw deg, half field of view deg)]: each casing
@@ -133,12 +262,41 @@ def build(root, eyes=()):
     strips, gasket, screws, sill, fascia, header, lip = P(), P(), P(), P(), P(), P(), P()
     stiff, rivets, conduit, saddles, jbox = P(), P(), P(), P(), P()
 
-    def bolt_row(parts, p0, p1, normal, pitch, r=.015, h=.013, sides=6):
+    # Fixings at the console hardware's scale (hull units; 0.01 is 6.5 mm): hex bolts on washers
+    # (a chamfered head, turned at random, a few a size up, one in eight a socket cap), slotted
+    # pan-head screws, and domed rivets. A row is regular in pitch and nothing else.
+    heads, washers, domes, recesses = P(), P(), P(), P()
+    rng = random.Random(20261020)
+
+    def fixing(kind, at, normal):
+        nrm = Vector(normal).normalized()
+        q = nrm.to_track_quat('Z', 'Y').to_matrix() @ Matrix.Rotation(rng.uniform(0, math.tau), 3, 'Z')
+        at = Vector(at)
+        if kind == 'rivet':
+            domes.cyl(at + nrm * .0015, .0072, .003, q, 16, .006)
+            domes.cyl(at + nrm * .0042, .006, .0024, q, 16, .0028)
+            return
+        if kind == 'screw':
+            domes.cyl(at + nrm * .0018, .0068, .0036, q, 20, .0058)
+            recesses.box(at + nrm * .0037, (.0105, .0016, .0012), q)
+            return
+        k = rng.uniform(.92, 1.06) * (1.18 if rng.random() < .12 else 1.0)
+        washers.cyl(at + nrm * .0014 * k, .0165 * k, .0028 * k, q, 24, .0155 * k)
+        if rng.random() < .125:                 # socket cap: a round head with a hex socket
+            domes.cyl(at + nrm * .0078 * k, .0098 * k, .01 * k, q, 24, .0088 * k)
+            recesses.cyl(at + nrm * .0129 * k, .0042 * k, .0004, q, 6)
+            return
+        heads.cyl(at + nrm * .0062 * k, .0118 * k, .0068 * k, q, 6)
+        heads.cyl(at + nrm * .0111 * k, .0118 * k, .003 * k, q, 6, .0094 * k)       # the chamfer
+        if rng.random() < .7:                   # a thread end standing proud of the head
+            domes.cyl(at + nrm * .0135 * k, .0052 * k, .002 * k, q, 12, .0044 * k)
+
+    def bolt_row(parts, p0, p1, normal, pitch, *_):
+        kind = 'screw' if parts is screws else 'rivet' if parts is rivets else 'bolt'
         p0, p1 = Vector(p0), Vector(p1)
         count = max(1, int((p1 - p0).length / pitch))
-        q = Vector(normal).to_track_quat('Z', 'Y').to_matrix()
         for k in range(count + 1):
-            parts.cyl(p0.lerp(p1, k / count) + Vector(normal) * h / 2, r, h, q, sides)
+            fixing(kind, p0.lerp(p1, k / count), normal)
 
     # ---- embrasures behind the mullions.
     z0, z1 = SILL - .02, HEADER + .02
@@ -174,6 +332,7 @@ def build(root, eyes=()):
         a, t, nn, _ = frame_of(e)
         return a + t * u + nn * d, e, u
 
+    labels = []                                 # (face point, basis, normal) of each frame-number plate
     posts = []                                  # (wall edge, u of a cheek at the glass, outward sign, own frame line)
     for key, box in groups.items():
         edges = [key[1]] if key[0] == 'wall' else [(key[1] - 1) % n, key[1]]
@@ -236,7 +395,7 @@ def build(root, eyes=()):
         if inner is None and (RD - LD).length > .08:
             for dz in (-.2, .12):
                 seams.box(mid + nn * .003 + UP * (zm + dz), ((RD - LD).length - .02, .006, .012), R)
-        plates.box(mid + nn * .066 + UP * (HEADER - .12), (.05, .006, .045), R)
+        labels.append((mid + nn * .065, R, nn))
         posts += [(eL, uL, -1, key[0] == 'wall'), (eR, uR, 1, key[0] == 'wall')]
 
     # ---- sill and header along every wall (stopping either side of the aft hatch), and the
@@ -322,23 +481,46 @@ def build(root, eyes=()):
     q = nn.to_track_quat('Z', 'Y').to_matrix()
     for du in (-.11, .11):
         for dz in (-.1, .1):
-            screws.cyl(jc + t * du + nn * .085 + UP * dz, .012, .01, q, 8)
-    plates.box(jc + nn * .082 + UP * .02, (.16, .006, .06), R)
+            fixing('screw', jc + t * du + nn * .08 + UP * dz, nn)
+    plates.box(jc + nn * .082 + UP * .02, (.16, .004, .06), R)
+    for du in (-.068, .068):
+        fixing('rivet', jc + t * du + nn * .084 + UP * .02, nn)
+    stamps = [stamp('C2B | bulkhead junction box legend', 'JB 4-07  440V', jc + nn * .084 + UP * .02, R, .022, .0012)]
 
-    casing.build(kit, 'C2B | bulkhead reveal casings', M['lining'], bevel=.01)
+    # Frame-number plates high on each post: a pale plate riveted top and bottom, the frame number
+    # cast into it. Frames are numbered round the room from starboard aft, as a yard would.
+    def bearing(item):
+        c = item[0] - Vector((12.5, 0, 0))
+        return math.atan2(c.x, -c.y)
+    for k, (at, R_, nn_) in enumerate(sorted(labels, key=bearing)):
+        c = at + UP * (HEADER - .12)
+        plates.box(c + nn_ * .002, (.075, .004, .062), R_)
+        for dz in (-.022, .022):
+            fixing('rivet', c + nn_ * .004 + UP * dz, nn_)
+        stamps.append(stamp('C2B | bulkhead frame number %d' % (k + 1), 'FR %d' % (21 + k), c + nn_ * .004, R_,
+                            .02, .0012))
+
+    W = {key: worn(mat, *args) for key, mat, args in (
+        ('lining', M['lining'], (.9, 1.4, .1)), ('casing', M['casing'], (.9, 1.2, .1)),
+        ('hardware', M['hardware'], (.4, 1.6, .14)), ('label', M['label'], (.5, 1.4, .12)), ('steel', M['steel'], (.6, 1.2, .1)))}
+    M = {**M, **W}
+    casing.build(kit, 'C2B | bulkhead reveal casings', M['lining'], bevel=.012)
     ribs.build(kit, 'C2B | bulkhead post ribs', M['casing'], bevel=.006)
-    bolts.build(kit, 'C2B | bulkhead bolts', M['hardware'])
+    heads.build(kit, 'C2B | bulkhead bolt heads', M['hardware'], bevel=.0007)
+    washers.build(kit, 'C2B | bulkhead bolt washers', M['hardware'], bevel=.0006)
+    domes.build(kit, 'C2B | bulkhead screw and rivet heads', M['hardware'], bevel=.0006)
+    recesses.build(kit, 'C2B | bulkhead screw slots', M['gasket'])
+    for ob in stamps:
+        ob.data.materials.append(material('Bridge console knob', (.012, .012, .014), 0, .35))
     seams.build(kit, 'C2B | bulkhead seams', M['seam'])
-    plates.build(kit, 'C2B | bulkhead frame plates', M['label'])
+    plates.build(kit, 'C2B | bulkhead frame plates', M['label'], bevel=.0015)
     strips.build(kit, 'C2B | bulkhead retaining strips', M['casing'], bevel=.004)
     gasket.build(kit, 'C2B | bulkhead glazing gaskets', M['gasket'])
-    screws.build(kit, 'C2B | bulkhead retaining screws', M['hardware'])
     sill.build(kit, 'C2B | bulkhead sill', M['lining'], bevel=.008)
     fascia.build(kit, 'C2B | bulkhead sill fascia', M['casing'], bevel=.006)
     header.build(kit, 'C2B | bulkhead header beam', M['lining'], bevel=.008)
     lip.build(kit, 'C2B | bulkhead header lip', M['casing'], bevel=.006)
     stiff.build(kit, 'C2B | bulkhead wall stiffeners', M['casing'], bevel=.006)
-    rivets.build(kit, 'C2B | bulkhead wall rivets', M['hardware'])
     conduit.build(kit, 'C2B | bulkhead header conduit', M['steel'], smooth=True)
     saddles.build(kit, 'C2B | bulkhead conduit saddles', M['hardware'])
     jbox.build(kit, 'C2B | bulkhead junction box', M['casing'], bevel=.01)

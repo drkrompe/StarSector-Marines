@@ -69,8 +69,12 @@ class OpeningBrokerTest {
     }
 
     static PlanetAPI planet(String id, String name) {
+        return planet(id, name, "Corvus");
+    }
+
+    static PlanetAPI planet(String id, String name, String system) {
         return stub(PlanetAPI.class, Map.of("getId", id, "getName", name,
-                "getStarSystem", stub(StarSystemAPI.class, Map.of("getBaseName", "Corvus"))));
+                "getStarSystem", stub(StarSystemAPI.class, Map.of("getBaseName", system))));
     }
 
     private static MarketAPI market(String id, String factionId, boolean hostile,
@@ -78,7 +82,8 @@ class OpeningBrokerTest {
         FactionAPI faction = stub(FactionAPI.class, Map.of("getId", factionId, "isHostileTo", hostile));
         Map<String, Object> values = new HashMap<>(Map.of("getId", id, "getSize", 4,
                 "getFaction", faction, "getFactionId", factionId, "isHidden", hidden, "isPlayerOwned", playerOwned));
-        if (planetary) values.put("getPlanetEntity", planet(id, id));
+        // Only Jangala is in Corvus here, so the Independent preference beyond Corvus is what is measured.
+        if (planetary) values.put("getPlanetEntity", planet(id, id, "jangala".equals(id) ? "Corvus" : "Elsewhere"));
         return stub(MarketAPI.class, values);
     }
 
@@ -89,6 +94,12 @@ class OpeningBrokerTest {
 
     private static <T> T stub(Class<T> type, Map<String, Object> values) {
         return type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type},
-                (proxy, method, args) -> values.get(method.getName())));
+                (proxy, method, args) -> {
+                    Object value = values.get(method.getName());
+                    if (value != null || !method.getReturnType().isPrimitive()) return value;
+                    Class<?> t = method.getReturnType();
+                    return t == boolean.class ? (Object) false : t == float.class ? (Object) 0f
+                            : t == double.class ? (Object) 0d : t == long.class ? (Object) 0L : (Object) 0;
+                }));
     }
 }

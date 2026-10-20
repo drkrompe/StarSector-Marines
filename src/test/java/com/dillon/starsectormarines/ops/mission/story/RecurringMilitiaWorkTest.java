@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.mission.story;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.Client;
+import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
@@ -30,6 +31,8 @@ class RecurringMilitiaWorkTest {
             assertEquals(kind.payout, job.payout);
             assertEquals(kind == OpeningOperationKind.RELIEF ? 2 : 3, job.requiredDrops);
             assertEquals(1, job.employerShuttles);
+            // The repeatable posting is another crew's job: it keeps company lift.
+            assertNotEquals(MarineArrivalPolicy.SECURED_GROUND, job.marineArrivalPolicy);
             roster.markStoryComplete(job.id);
             assertTrue(work.isEligible(context), "even an old erroneous completion key cannot retire ordinary work");
         }

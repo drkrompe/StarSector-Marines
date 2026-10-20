@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15a68-6007-72c0-9695-ce35bfce0006",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15a68-6007-72c0-9695-ce35bfce0006\\call_2bea857a08db40ad8551465545fc148f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\yard-stills\\storybook\\p1-castle-hand-v1.png",
+    "sha256": "75a63a84add079886ba8b83bf2e553b21571ada40fdcda1c8557b83700f9c3d6",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\company-prologue\\yard-stills\\storybook\\p1-castle-hand-v1.prompt.txt",
+  "promptSha256": "2897e872cc883271037bfb71363d5894b25c57c08fa1561d7863873c347a99df",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Placement, scale and light authority: the background the hand hovers over; do not paint its content\nImage 2: Identity only: Castle's skin tone and grey undershirt; not a pose\n\nOne landscape 1536x1024 (3:2) image: a single painted cut-out of a woman's hand and forearm on a TRUE TRANSPARENT BACKGROUND (alpha), for compositing over a story illustration. Everything except the hand, forearm, sleeve and the small object in the hand is fully transparent: no counter, no table, no ground, no cast shadow, no background, no border, no text.\n\nReference roles:\n- Reference 1 is PLACEMENT, SCALE AND LIGHT AUTHORITY: the background the hand will be composited over, on the same 1536x1024 canvas. The hand must hover just above the empty place at the right-hand end of the row of three credit chits on the counter, about one finger's width above the counter surface, so that the chit it holds lines up with the row: the held chit's centre sits at roughly x 1200, y 640 on the canvas, the same size and the same perspective as the three chits on the counter. The forearm enters from the right edge of the canvas, angled slightly down and in. Match the reference's light: warm daylight from the window at the back, so the top and the far edges of the hand and the chit catch warm rim light, and the near side falls into soft cool shade. Do not paint anything from the reference itself.\n- Reference 2 is IDENTITY ONLY: Castle, about fifty, a weathered freighter hand. Her skin tone and the grey undershirt under her jacket. It is a portrait, not a pose.\n\nThe hand: Castle's right hand, weathered, a working woman's hand about fifty, short plain nails, a pale old scar across one knuckle, no rings or jewellery. She has taken her jacket off, so the forearm is in the sleeve of a plain, faded grey long-sleeved undershirt pushed up to the elbow. She holds a fourth credit chit pinched between thumb and two fingers, not yet letting go of it: the reluctant moment before she puts it down. The chit matches the three on the counter exactly in kind: a small, thick, palm-sized slab of dull dark metal with rounded corners, a row of small amber contacts along one short edge and one tiny amber status light, no text or numbers. This one has spent nine years sewn into a jacket lining: duller and softer-edged than the others, with two or three loose dark-olive threads still caught on it and hanging down.\n\nHand-painted, restrained realism matching reference 1's finish, natural proportions, crisp clean edges against the transparency round the fingers, threads and sleeve.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\yard-stills\\storybook\\p1-counter-bg-v1.png",
+      "sha256": "9ec631c469cbbfeacfb12911265a32b038d6e35a4db543fc98f38d87f231b2da",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Placement, scale and light authority: the background the hand hovers over; do not paint its content"
+    },
+    {
+      "path": "art-source\\portraits\\castle\\castle-master.png",
+      "sha256": "136dc31a89e0b8143f86e9c0ac80b49ba8230badb1c74d97d7bc6d39104bd37c",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity only: Castle's skin tone and grey undershirt; not a pose"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent cut-out, matching the placement and lighting in the first reference and Castle’s skin tone and grey sleeve in the second."
+  ],
+  "usage": {
+    "input_tokens": 56331,
+    "cached_input_tokens": 28928,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 856,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 62.8
+}

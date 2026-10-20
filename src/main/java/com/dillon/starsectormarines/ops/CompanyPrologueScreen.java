@@ -27,7 +27,7 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
         var planet = CerberusCompanyStart.destination();
         var cargo = Global.getSector().getPlayerFleet().getCargo();
         return model(CompanyPrologue.page(Global.getSector().getPersistentData()),
-                planet == null ? null : planet.getName(), planet != null && "jangala".equals(planet.getId()),
+                planet == null ? null : planet.getName(),
                 planet != null && "jangala".equals(planet.getId()) && ArrivalCinematic.available(),
                 cargo.getCrew(), (int) cargo.getCredits().get(), CompanyYard.reservedCredits(CerberusCompanyStart.startingShip()),
                 this::next, this::back, this::finish);
@@ -53,18 +53,18 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
     }
 
     /** Shared production projection for live UI and visual evidence. */
-    public static Map<String, Object> model(int page, String destination, boolean jangala,
+    public static Map<String, Object> model(int page, String destination,
                                             int crew, int credits, int reserve, Runnable next, Runnable back, Runnable skip) {
-        return model(page, destination, jangala, jangala, crew, credits, reserve, next, back, skip);
+        return model(page, destination, true, crew, credits, reserve, next, back, skip);
     }
 
     /**
-     * {@code arrivalAhead}: the Jangala arrival cinematic will play on docking, so Castle's Nessa
-     * memory moves there (over C4) and page six only promises it.
+     * The story is Jangala's at whichever port the start chose; only the course and objective lines name
+     * {@code destination}. {@code arrivalAhead}: the Jangala arrival cinematic will play on docking, so
+     * Castle's Nessa memory moves there (over C4) and page six only promises it.
      */
-    public static Map<String, Object> model(int page, String destination, boolean jangala, boolean arrivalAhead,
+    public static Map<String, Object> model(int page, String destination, boolean arrivalAhead,
                                             int crew, int credits, int reserve, Runnable next, Runnable back, Runnable skip) {
-        String port = destination == null ? Strings.get("openingCompanyPrologueAWorkingPlanetarySpaceport") : destination;
         String[] titles = {Strings.get("openingCompanyPrologueSecondWind"), Strings.get("openingCompanyPrologueTheWritingOnTheWall"),
                 Strings.get("openingCompanyPrologueWhatWeLeftBehind"), Strings.get("openingCompanyPrologueRaisingHer"), Strings.get("openingCompanyPrologueTheDepartureRoster"),
                 Strings.get("openingCompanyPrologueSomewhereToDock"), Strings.get("openingCompanyPrologueAWayToEarn"), Strings.get("openingCompanyPrologueTheFirstStep")};
@@ -74,8 +74,8 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
                 Strings.get("openingCompanyPrologueTheLastOreCarrierTookTheMine"),
                 Strings.get("openingCompanyPrologueTheCerberusByTheLoadingLocksHad"),
                 Strings.get("openingCompanyPrologueTheDepartureRosterIsInYourHandwriting"),
-                jangala ? Strings.get("openingCompanyPrologueCorvusHasWorkingYardsAndRegularTraffic")
-                        : Strings.get("openingCompanyPrologueCastleSearchesThePortListingsForSomewhere"),
+                destination == null ? Strings.get("openingCompanyPrologueCastleSearchesThePortListingsForSomewhere")
+                        : Strings.get("openingCompanyPrologueCorvusHasWorkingYardsAndRegularTraffic"),
                 Strings.get("openingCompanyPrologueACargoHandSleepsBesideTheBridge"),
                 Strings.get("openingCompanyPrologueCastlePutsTheYardEstimateBesideThe")
         };
@@ -87,13 +87,11 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
                 Strings.get("openingCompanyPrologueFourDaysLeftOnTheChalkWhen"),
                 Strings.get("openingCompanyPrologueYouRememberTheNightTheyShutOff"),
                 destination == null ? Strings.get("openingCompanyPrologueNoAnswerFromAYardWeCan")
-                        : jangala ? Strings.get(arrivalAhead ? "openingCompanyPrologueAnOldFriendIOweHerMore"
-                                : "openingCompanyPrologueNessaVennWeRanOreTogetherBefore")
-                        : Strings.format("openingCompanyPrologueHasAWorkingYardIDonT", port),
+                        : Strings.get(arrivalAhead ? "openingCompanyPrologueAnOldFriendIOweHerMore"
+                                : "openingCompanyPrologueNessaVennWeRanOreTogetherBefore"),
                 Strings.get("openingCompanyPrologueYouSaidWeCouldTakeContractWork"),
                 Strings.format("openingCompanyPrologueThenWeGetABoatFlyingAnd", (destination == null ? Strings.get("openingCompanyPrologueWeLlFindABerthThenBunks")
-                        : jangala ? Strings.get("openingCompanyPrologueNessaSentAnEstimateCalledTheJob")
-                        : Strings.format("openingCompanyPrologueWeLlGetTheYardAtTo", port))
+                        : Strings.get("openingCompanyPrologueNessaSentAnEstimateCalledTheJob"))
                         + (reserve > 0 ? Strings.get("openingCompanyPrologueIVeKeptThePaymentSafe")
                         : Strings.get("openingCompanyPrologueWeLlHaveToWatchThatYard")))
         };
@@ -106,6 +104,7 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
         props.put("heading", Strings.get("openingUiCompanyPrologueSecondWindPrologue"));
         props.put("note", Strings.get("openingUiCompanyPrologueAtPortMarineOperationsMercenaryCompanyConversion"));
         props.put("skipLabel", Strings.get("openingUiCompanyPrologueSkipIntroduction"));
+        props.put("skipClasses", SKIP_CLASSES);
         props.put("nextDisabled", false);
         props.put("page", (index + 1) + " / " + CompanyPrologue.PAGE_COUNT);
         props.put("manifest", Strings.format("openingCompanyPrologueCrewAboardSpendableCredits", crew, String.format(Locale.ROOT, "%,d", credits)));
@@ -118,6 +117,10 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
         props.put("next", next); props.put("back", back); props.put("skip", skip);
         return props;
     }
+
+    /** The footer Skip control's classes; {@link #SKIP_OFF_CLASSES} removes it from a straight click-through. */
+    static final String SKIP_CLASSES = "prologue-skip";
+    static final String SKIP_OFF_CLASSES = "prologue-skip prologue-skip-off";
 
     static String image(String scene) { return "graphics/illustrations/company/" + scene + ".jpg"; }
 }

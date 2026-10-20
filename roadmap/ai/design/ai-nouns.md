@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-15 — a smoke screen is a partition that cuts the attacker's own support as well as the enemy's sight; see "Smoke as a partition" and `phased-assault.md`.
+Updated: 2026-10-20 — a machine clicked onto a garrisonable its side believes is enemy-held assaults it by fire from a stand-off and never enters; see machine assault under "Fighting positions".
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2010,7 +2010,11 @@ refresh and installed-weapon fire continue during the walk. Reaching the cell
 removes the override before ordinary unit execution continues on the same tick;
 broken-morale survival suspends it, while a hard withdrawal invalidates it. The
 request therefore supplies neither a squad assignment nor a hostile target and
-never changes the knowledge available to the squad.
+never changes the knowledge available to the squad. The one exception is a
+click on a garrisonable the side believes is enemy-held, which is an assault
+rather than a move: it holds the stand-off instead of releasing on arrival and
+directs fire from the side's reports (see machine assault under fighting
+positions).
 
 Direct control of one Marine temporarily transfers that exact body's movement,
 facing, and primary-fire intent to player input. The body remains a living squad
@@ -2197,7 +2201,7 @@ the one the player pointed at. It is contextual in the way a click inside an
 uncaptured compound is, and that compound still wins — a sandbag apron at an
 objective's door does not turn securing it into holding the apron. An explicit
 defend-area click on a trench remains an ordinary defend area, and Mechs never
-occupy.
+occupy (see machine assault below).
 
 A click inside a **held place** (a building a map publishes as a held position)
 occupies the building instead: the player's version of a garrison's held node.
@@ -2244,7 +2248,40 @@ a team is lost) the whole line is cut again, so a team that arrived first does
 not keep the share meant for the rest. Marines left over take ordinary cover in
 the band, a cell behind the line; with no prepared ground at all the squad forms
 a skirmish line along it. Several selected squads share one drawn line end to
-end. Mechs given a line move to its end.
+end. Mechs given a line move to its end. A drag on a selection with no
+infantry in it — a vehicle, or mechs alone — draws no line: it is a move to
+where the drag began, finishing facing the way it went (`mechs-nouns.md`,
+`convoy-nouns.md`), previewed as an arrow out of the destination.
+
+**Machines assault garrisonables; they never man them.** A mech, a lance or an
+armed vehicle whose click lands on a fighting-position run or a held place
+(found by the same lookups, in the same order, as the occupy order) that its
+**side** believes holds an enemy is given an **assault**, and the cursor says
+ASSAULT in the hostile colour. The side's belief rather than the squad's,
+because a machine on a garrison is supporting fire for whoever found it and a
+vehicle has no squad; a click on a place nobody has reported is an ordinary
+move, and an unarmed hull only moves. An assault is an assault by fire from a
+**stand-off**: a cell connected to the machine, at least three cells outside the
+footprint, on a ring drawn first at about seven tenths of its reach and then
+nearer, preferring a clear line of fire to a believed occupant, then a line that
+stops on the target's own wall, and keeping a lance's members apart. The order
+owns the machine's locomotion until it ends, so doctrine, lance cohesion and a
+hull's duel-band engagement never walk it into the place; a mech that stands
+there with nothing to fire at for three seconds chooses again from what is
+believed now. Its fire goes, in order, to a visible enemy close enough to be
+self-defence, to a believed occupant it has a line to, and to the **sheltering
+wall** — the first wall on its line to a believed occupant, when it belongs to
+the target and the machine carries wall damage — through the same point-fire
+paths an ordered breach and a controlled turret use (`phased-assault.md`). No
+wall is fired on while a friendly stands within four cells of it, so infantry
+going in are not shelled. The order ends five seconds after the side last
+believed anybody inside, or when another order, a withdrawal, a crippled chassis
+or direct control supersedes it. Infantry still clear and hold: a mixed
+selection resolves one click per squad, so the riflemen clear and hold while the
+machines open the place from outside and stand down by themselves once nobody is
+believed left in it. A trench has no walls to bring down; it is assaulted by
+direct fire alone. The scene `machine-assault` is the acceptance
+(`MachineAssaults`).
 
 **A marine with a position fights from it.** A claimed marine walks to the cell
 and stays: they fire when they have a shot and otherwise wait, rather than

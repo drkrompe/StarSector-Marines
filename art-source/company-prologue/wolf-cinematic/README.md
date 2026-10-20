@@ -30,24 +30,25 @@ manifest.
 
 - **Move the root only.** Every part and anchor descends from it. The model is
   in hull units (+X bow, +Y port, +Z dorsal; one sprite pixel per unit);
-  `metres_per_unit` is 0.76 (on the root and in the manifest): 71 m from
-  bow fork to stern, 37 m across the missile pods, about 21 m deep. A shot in
+  `metres_per_unit` is 0.76 (on the root and in the manifest): 72 m from
+  prow to stern, 37 m across the missile pods, about 21 m deep. A shot in
   metres scales the root by 0.76.
 - **Two variants, one hull.** `wolf-p.blend` (`WOLF_P`, the pirate skin,
   battle wear) and `wolf.blend` (`WOLF`, the convoy's own Wolf: the base hull,
-  no pirate armour, its aft WS 002 / WS 003 PD laser turrets on full-depth
-  drums, an independent pale blue-grey livery, service wear; manifest-merchant.json,
+  no pirate armour, its aft WS 002 / WS 003 PD laser turrets in wells
+  sunk into low faired sponsons, an independent pale blue-grey livery, service wear; manifest-merchant.json,
   validation-merchant.json). `finalize.sh --variant merchant` builds the second.
   The merchant's WS 004 and WS 005 / WS 006 carry the vanilla wolf_Assault
-  heavy blaster and Harpoons, built with the mining blaster and Annihilator
-  forms until the turret kit has their own (manifest `built_as`).
+  heavy blaster and Harpoons, from the turret kit's own hardpoints (round 8;
+  before that the mining blaster and Annihilator forms stood in).
 - **Engines.** `Engine 1-3 exhaust anchor` at the three bell mouths, local +X
   down the exhaust: 1 port, 2 centre, 3 starboard, HIGH_TECH blue.
 - **Turret.** `Turret 1 pivot` (WS 001, the ion cannon) trains about its local
   Z (rests ahead, arc 150 degrees); `Turret 1 elevation` elevates (negative
   local Y lifts the emitter).
-- **Hardpoints.** `Weapon WS 004 mount` (the mining blaster, the bow claw's
-  middle) and `Weapon WS 005 / WS 006 mount` (the Annihilator pods), fixed,
+- **Hardpoints.** `Weapon WS 004 mount` (the mining blaster, in the prow's trough
+  between its jaws) and `Weapon WS 005 / WS 006 mount` (the Annihilator launcher heads on the
+  wing tips), fixed,
   +X along the bow.
 - **Gun effects.** Kit mounts, in order: 1 ion cannon, 2 mining blaster (both
   `energy`: flash, light and bolt in the weapon's own glow colour, ion blue
@@ -56,8 +57,24 @@ manifest.
   (`swfx.apply(state='clean', hull=<this folder>)`) and fires with
   `swfx.module('guns').fire(ctx, mount, start_frame, shots, interval)`, as
   `review_ship.py --fire` does.
-- **Lamps.** Two amber neck lamps (the sprite's), red and green pod-tip lights,
-  a white stern light.
+- **Landing gear (round 8).** The Wolf sits on its keel: two fixed keel shoes
+  are the lowest thing on the hull, and four braced wedges (two a side) swing
+  down off the lower hull sides to stop it rolling. `WOLF_P control` (`WOLF
+  control` for the merchant) carries one knob, `gear_down`: 0 stowed (flight,
+  the built state, each wedge lying flat against the lower hull side), 1
+  deployed (every wedge toe on the ground). Drivers turn each
+  `Hull <wedge> hinge` and aim its two rams; the manifest lists them under
+  `landing.drivers`. Six `Anchor gear <part> sole` empties (four wedges riding
+  their hinges, two fixed keel shoes) stand on `landing.ground_z_units` at 1, local
+  +X down. Place the root that far above the ground, times `metres_per_unit`. A
+  knob set from Python needs `control.update_tag()` before the frame is
+  re-evaluated; a keyframed knob needs nothing. Four `Lift <i> exhaust anchor`
+  empties under the hull point down (local +X) for ventral lift-thruster
+  effects; they are in the manifest as `lift_thrusters` and not yet wired into
+  SWFX.
+- **Lamps.** Eight: two amber neck lamps (the sprite's), red and green pod-tip
+  lights, a white stern light, and from the round 7 fittings a white masthead
+  on the bridge mast and two white ventral docking lights.
 
 ## Files
 

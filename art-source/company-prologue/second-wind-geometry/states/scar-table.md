@@ -64,7 +64,7 @@ One row per scar id; the same id is the same scar in every state.
 | sp-trunk-aft-port | spine | trunk | open | patched | replaced | gone |
 | sp-trunk-aft-stbd | spine | trunk | open | patched | replaced | faded |
 | sp-mast | spine | mast | open | patched | replaced | faded |
-| sp-turret-1 | spine | turret | open | open | open | faded |
+| sp-turret-1 | spine | turret | open | patched | patched | faded |
 | sp-turret-2 | spine | turret | open | patched | patched | faded |
 | sp-turret-3 | spine | turret | open | open | open | faded |
 | sp-turret-4 | spine | turret | open | patched | patched | faded |

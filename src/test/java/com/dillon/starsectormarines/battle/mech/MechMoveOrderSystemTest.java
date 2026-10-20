@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.ui.highlight.CellHighlight;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.highlight.MechMoveOrderHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
+import com.dillon.starsectormarines.battle.ui.picking.SelectionOrders;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -195,6 +196,43 @@ class MechMoveOrderSystemTest {
         MechMoveOrderHighlightPublisher.publish(selection, sim, overlay);
         assertFalse(overlay.hasSource(
                 HighlightOverlay.SRC_MECH_MOVE_DESTINATION));
+    }
+
+    @Test
+    void aDraggedLanceOrderCarriesItsHeadingAndArrivalHoldsIt() {
+        BattleSimulation sim = openSimulation(20, 12);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
+        long mech = spawnMech(sim, squadId, Faction.MARINE, 3, 4);
+        Squad squad = finishSquad(sim, squadId, mech);
+        Selection selection = new Selection();
+        selection.selectSquad(squadId);
+        assertTrue(SelectionOrders.takesFacing(sim, selection), "a lance takes a dragged heading");
+
+        SelectionOrders.requestMove(sim, selection, 12, 4, 90f);
+        sim.getMechMoveOrderSystem().tick(sim);
+        assertEquals(90f, sim.getMechMoveOrderService().activeOrder(mech).facingDegrees());
+        assertTrue(Float.isNaN(sim.getMechMoveOrderService().heldFacing(mech)),
+                "nothing is held while the order is still walking");
+
+        sim.world().setPos(mech, 12.5f, 4.5f);
+        sim.advanceMovement(mech);
+        assertFalse(sim.getMechMoveOrderSystem().executeIfActive(mech, squad, sim));
+        assertEquals(90f, sim.getMechMoveOrderService().heldFacing(mech));
+
+        sim.getMechMoveOrderService().requestMove(mech, 14, 4);
+        sim.getMechMoveOrderSystem().tick(sim);
+        assertTrue(Float.isNaN(sim.getMechMoveOrderService().heldFacing(mech)),
+                "a new order ends the old heading");
+    }
+
+    @Test
+    void cancelEndsAHeldHeading() {
+        MechMoveOrderService service = new MechMoveOrderService();
+        service.holdFacing(1L, 45f);
+        service.holdFacing(2L, 45f);
+        service.cancel(1L);
+        assertTrue(Float.isNaN(service.heldFacing(1L)));
+        assertEquals(45f, service.heldFacing(2L));
     }
 
     private static long spawnMech(BattleSimulation sim, int squadId,

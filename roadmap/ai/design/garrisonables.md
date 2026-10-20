@@ -1,10 +1,10 @@
 # Garrisonables
 
-Status: ACTIVE — reactive manning is built for fort-belt fighting positions; other kinds remain direction.
+Status: ACTIVE — reactive manning is built for fort-belt fighting positions, and the player's machine assault on a believed-held garrisonable; other kinds remain direction.
 
 Written: 2026-10-13
 
-Updated: 2026-10-14 — story maps publish held places; the player occupy order holds a building and a dragged line holds a frontage.
+Updated: 2026-10-20 — owner decisions: attackers hold taken ground, player squads may opt into reactive manning, machines assault garrisons but never man them; the player's machine assault is built.
 
 ## Why this exists
 
@@ -80,7 +80,9 @@ layer is what a squad falls back to when the one in front of it is lost.
   a garrisonable by hand, and a dragged line order assigns every fighting
   position along a drawn frontage, one fire team per stretch, counting the
   forward-facing door and window posts of buildings the line crosses. Whether a player's idle squads may opt into reactive
-  manning is a later question, not a default.
+  manning is opt-in, never a default (see Decided direction). A machine given
+  the same click on a place its side believes is enemy-held assaults it by fire
+  from outside instead.
 
 ## Measuring cheaply
 
@@ -162,7 +164,7 @@ held place covers. Three things it shows shape the work ahead:
 - Buildings already carry windows in useful numbers; a large barracks or armory
   offers ten to twenty-five stand cells, a small post two to four, and the
   smallest guard posts and bunkers none.
-- About half the story maps publish **no held places at all**. Their buildings
+- Story maps used to publish **no held places at all** (about half of them). Their buildings
   have windows, but nothing names a place a garrison could hold, so neither the
   defender commander nor a player's occupy order can use them. Held places on
   those maps are the precondition for everything in this doc.
@@ -175,19 +177,42 @@ footprint, entered at its interior anchor. A held place is not an objective — 
 has no capture record, marker or supply gate — and it asks for no garrison, so
 publishing one changes nothing until somebody is sent to it. That is
 deliberate: a building is manned in answer to threat or by order, by the same
-law as a trench. Relief and Counterattack publish theirs; the other story maps
-follow the same helper, `HeldPlaces`. The first consumer is the player's occupy
+law as a trench. Every story map publishes them through `HeldPlaces`: authored
+maps with a garrison layout keep their garrison nodes and add held places only
+for the buildings those nodes do not already stand on, fort maps included. Silent Colony, a
+procedural city, adds them at setup. A story map with no buildings (Missile AA)
+has none, and the Veteran's Job raid keeps the procedural city's garrison nodes alone. The first consumer is the player's occupy
 order. On any map that publishes held places, a click on a building holds it
 at its windows (`ai-nouns.md`, occupy). Reactive manning by the AI is the next
 consumer.
+
+## Decided direction
+
+Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
+
+- **Attackers hold what they take.** Captured ground is a garrisonable like any
+  other: the attacking commander uses the same reactive assignment to man a
+  taken belt, trench or building against the counter-attack, not only manual
+  orders.
+- **A player's idle squads may opt into reactive manning.** It stays opt-in,
+  never a default; the manual occupy and line orders remain the primary verbs.
+- **Machines assault garrisons; they never man them.** Mechs and vehicles take
+  no posts, but their weapons make them the natural answer to a held place: an
+  order onto an enemy-held building or position is an assault by fire — engage
+  the believed occupants at their apertures and posts, and, where the weapons
+  can, bring down the walls that shelter them — from a stand-off, never by
+  entering. Infantry still does the clearing and the holding. The player's
+  version is built: a mech, lance or armed vehicle clicking a run or held place
+  its side believes is enemy-held gets ASSAULT (`ai-nouns.md`, machine assault
+  under fighting positions). A commander's use of machines against a garrison
+  is not.
 
 ## Open questions
 
 - How a garrisonable is valued against an objective: a trench in front of the
   keep is worth more than one at the map edge under the same pressure.
-- Whether attackers use the same assignment for captured ground (holding a taken
-  belt against the counter-attack), or only manual orders.
-- Mechs and vehicles: excluded from posts; whether they screen a manned place.
+- Whether a machine screens a manned place it cannot man (stands beside a
+  garrison as its heavy support).
 
 ## Stories
 

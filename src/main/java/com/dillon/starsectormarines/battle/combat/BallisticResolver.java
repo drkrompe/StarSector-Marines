@@ -52,6 +52,12 @@ public final class BallisticResolver {
      * work only through its predicted contact with the intended body.
      */
     public static final float FLIGHT_RANGE_MULTIPLIER = 1.5f;
+    /**
+     * A manually thrown area round may be aimed out to this multiple of its weapon range; a point
+     * further out bursts at this distance along the same bearing. Past nominal range the round pays
+     * in scatter ({@link GroundBurstAim}), not in refusal.
+     */
+    public static final float MAX_GROUND_BURST_RANGE_MULTIPLIER = 2f;
     /** A physical ray crossing another hostile always transfers the missed shot into that body. */
     public static final float HOSTILE_INCIDENTAL_HIT_CHANCE = 1f;
     /** Friendly bodies retain a probabilistic graze so formation fire is not guaranteed self-harm. */
@@ -103,7 +109,8 @@ public final class BallisticResolver {
     public static final float MAX_MOVER_SPEED_CELLS = 4f;
 
     /** Where a round's flight ended and what stopped it. */
-    public enum StopKind { UNIT_HIT, COVER_CLIP, WALL, DOODAD_BLOCK, OVERSHOOT }
+    /** {@code GROUND_BURST} is a thrown rocket that met nothing on its way and burst where it was aimed. */
+    public enum StopKind { UNIT_HIT, COVER_CLIP, WALL, DOODAD_BLOCK, OVERSHOOT, GROUND_BURST }
 
     /**
      * General fire origin for entity and non-entity mounts. {@code entityId}
@@ -402,11 +409,20 @@ public final class BallisticResolver {
                                    float finalAccuracy, float effectiveSpread,
                                    float roundVelocity, float maximumTargetingRange,
                                    Random rng) {
+        return resolvePoint(shooter, aimX, aimY, finalAccuracy, effectiveSpread, roundVelocity,
+                maximumTargetingRange, PointAimDispersion.WEAPON, rng);
+    }
+
+    /** As above, with the dispersion profile chosen by the caller (a player's cursor is {@code CONTROLLED}). */
+    public Resolution resolvePoint(long shooter, float aimX, float aimY,
+                                   float finalAccuracy, float effectiveSpread,
+                                   float roundVelocity, float maximumTargetingRange,
+                                   PointAimDispersion dispersion, Random rng) {
         World world = roster.world();
         return resolvePoint(new Source(shooter, world.renderX(shooter), world.renderY(shooter),
                         0f, roster.identity().faction(shooter)),
                 aimX, aimY, finalAccuracy, effectiveSpread, roundVelocity,
-                maximumTargetingRange, 0, rng);
+                maximumTargetingRange, 0, dispersion, rng);
     }
 
     public Resolution resolvePoint(Source source, float aimX, float aimY,
@@ -432,6 +448,14 @@ public final class BallisticResolver {
                                    float finalAccuracy, float effectiveSpread,
                                    float roundVelocity, float maximumTargetingRange,
                                    int bodyPenetrations, Random rng) {
+        return resolvePoint(source, aimX, aimY, finalAccuracy, effectiveSpread, roundVelocity,
+                maximumTargetingRange, bodyPenetrations, PointAimDispersion.WEAPON, rng);
+    }
+
+    private Resolution resolvePoint(Source source, float aimX, float aimY,
+                                    float finalAccuracy, float effectiveSpread,
+                                    float roundVelocity, float maximumTargetingRange,
+                                    int bodyPenetrations, PointAimDispersion dispersion, Random rng) {
         if (!(roundVelocity > 0f) || !Float.isFinite(roundVelocity)) {
             throw new IllegalArgumentException("roundVelocity must be finite and positive");
         }
@@ -458,7 +482,7 @@ public final class BallisticResolver {
                         source.x() + baseDirX * sightDistance,
                         source.y() + baseDirY * sightDistance));
         PointAim.Sample aim = PointAim.sample(obscuredAccuracy, effectiveSpread,
-                maximumTargetingRange, rng);
+                maximumTargetingRange, dispersion, rng);
         float dirX = baseDirX - baseDirY * aim.lateralSlope();
         float dirY = baseDirY + baseDirX * aim.lateralSlope();
         float directionLength = (float) Math.hypot(dirX, dirY);
@@ -471,6 +495,63 @@ public final class BallisticResolver {
         return trace(source, 0L, false, 0.5f, dirX, dirY, zSlope,
                 maximumTargetingRange * FLIGHT_RANGE_MULTIPLIER,
                 roundVelocity, bodyPenetrations, rng);
+    }
+
+    /**
+     * Resolves one manually thrown rocket. Unlike {@link #resolvePoint}, the aim point is a
+     * destination: the round flies toward the aim point plus its scatter, stops at the first body,
+     * wall or doodad on the way as any round does, and otherwise bursts on the ground there
+     * ({@link StopKind#GROUND_BURST}) instead of overshooting into free flight. An aim point beyond
+     * {@link #MAX_GROUND_BURST_RANGE_MULTIPLIER} times the weapon range is pulled in along its bearing.
+     *
+     * @throws IllegalArgumentException for a non-finite input or coincident aim
+     */
+    public Resolution resolveGroundBurst(Source source, float aimX, float aimY,
+                                         float finalAccuracy, float effectiveSpread,
+                                         float roundVelocity, float weaponRange,
+                                         int bodyPenetrations, Random rng) {
+        if (!(roundVelocity > 0f) || !Float.isFinite(roundVelocity)) {
+            throw new IllegalArgumentException("roundVelocity must be finite and positive");
+        }
+        if (!(weaponRange > 0f) || !Float.isFinite(weaponRange)) {
+            throw new IllegalArgumentException("weaponRange must be finite and positive");
+        }
+        if (bodyPenetrations < 0) {
+            throw new IllegalArgumentException("bodyPenetrations cannot be negative");
+        }
+        float dx = aimX - source.x();
+        float dy = aimY - source.y();
+        float aimDistance = (float) Math.hypot(dx, dy);
+        if (!Float.isFinite(aimDistance) || aimDistance <= 1e-6f) {
+            throw new IllegalArgumentException("Point aim must be finite and distinct from its source");
+        }
+        float baseDirX = dx / aimDistance;
+        float baseDirY = dy / aimDistance;
+        float throwDistance = Math.min(aimDistance, weaponRange * MAX_GROUND_BURST_RANGE_MULTIPLIER);
+        float obscuredAccuracy = finalAccuracy * SmokeObscuration.accuracyMultiplier(
+                grid.smokeDepthOnLine(source.x(), source.y(),
+                        source.x() + baseDirX * throwDistance,
+                        source.y() + baseDirY * throwDistance));
+        GroundBurstAim.Offset scatter = GroundBurstAim.sample(obscuredAccuracy, effectiveSpread,
+                weaponRange, throwDistance, rng);
+        float burstDx = baseDirX * throwDistance + scatter.dx();
+        float burstDy = baseDirY * throwDistance + scatter.dy();
+        float burstDistance = (float) Math.hypot(burstDx, burstDy);
+        if (burstDistance <= 1e-6f) {
+            // Scatter landed the burst on the muzzle itself; keep the bearing rather than invent one.
+            burstDx = baseDirX * 1e-3f;
+            burstDy = baseDirY * 1e-3f;
+            burstDistance = 1e-3f;
+        }
+        float dirX = burstDx / burstDistance;
+        float dirY = burstDy / burstDistance;
+        // The round comes down to the ground at the burst point.
+        float zSlope = -source.z() / burstDistance;
+        Resolution res = trace(source, 0L, false, 0.5f, dirX, dirY, zSlope,
+                burstDistance, roundVelocity, bodyPenetrations, rng);
+        if (res.kind() != StopKind.OVERSHOOT) return res;
+        return new Resolution(res.endX(), res.endY(), res.endZ(), res.flightTime(),
+                0L, res.hitIntended(), false, StopKind.GROUND_BURST, res.bodyHits(), null);
     }
 
     /** Shared physical contact walk; aim policy is fully committed before entry. */

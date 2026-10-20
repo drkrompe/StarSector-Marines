@@ -44,6 +44,28 @@ public final class HeldPlaces {
         return places;
     }
 
+    /**
+     * The same places as {@link #fromBuildings}, for a map that already names some of its buildings as nodes
+     * (a barracks with a garrison, say): a building whose footprint already holds the anchor of a node in {@code existing}
+     * is left to that node, so no building is published twice.
+     */
+    public static List<TacticalNode> fromBuildingsNotIn(List<PointOfInterest> pois, List<TacticalNode> existing,
+                                                        Function<PointOfInterest, Faction> guard) {
+        List<PointOfInterest> unpublished = new ArrayList<>();
+        for (PointOfInterest poi : pois) {
+            boolean covered = false;
+            for (TacticalNode node : existing) {
+                if (node.anchorX >= poi.left && node.anchorX <= poi.right
+                        && node.anchorY >= poi.top && node.anchorY <= poi.bottom) {
+                    covered = true;
+                    break;
+                }
+            }
+            if (!covered) unpublished.add(poi);
+        }
+        return fromBuildings(unpublished, guard);
+    }
+
     /** Whether a node is a held place nobody is posted to: present on the map, but not a tactical centre. */
     public static boolean isUnposted(TacticalNode node) {
         return node.kind == TacticalNode.Kind.INNER_POSITION && node.garrisonSize == 0;

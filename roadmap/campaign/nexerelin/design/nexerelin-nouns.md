@@ -173,7 +173,8 @@ path is unchanged and remains the start when Nexerelin is absent.
 - **Nexerelin places the fleet; the opening has the last word.** Nexerelin
   moves a free start's fleet to a market after the time pass. The start
   points that placement at the opening's own yard, then re-applies the
-  opening's approach to it once play begins.
+  opening's approach to it once play begins. When no yard is open anywhere it
+  leaves the placement to Nexerelin's own friendly market.
 - Nexerelin's other new-game settings, such as starting D-mods and starting
   operatives, still apply. They are the player's own choices in that flow.
 

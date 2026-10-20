@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, deployed APC, friendly Warship, and drone Tende
 
 Written: 2026-09-23
 
-Updated: 2026-10-13 — manual control retains mission instructions, progress and world locators; individual ground presence remains objective-owned.
+Updated: 2026-10-20 — a damage doll (front and rear, coloured by location) stands in the corner for a Mech or a vehicle.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -74,17 +74,30 @@ world picking, contextual orders, and camera keys. During control, strategic
 chrome is hidden: commander rails, squad and Mech panels, command
 powers, retreat, communications, and developer panels. Their hidden bounds
 cannot capture input or suppress movement and fire. Entry clears old UI focus,
-pointer capture, and retreat confirmation. A thin bottom-center equipment strip
-shows installed weapon cards and two color-only durability lines: armor above
-health or chassis structure. Their filled lengths reflect the exact body's
-remaining fractions. Armor depletion empties its line independently of health;
-an armorless body has no armor fill. The strip omits identity, capacity labels,
-and numeric durability values. All stays with the Mech weapon groups; separate
-top-right buttons provide return-to-command and pause/resume. Weapon cards
-distinguish the authored firing
+pointer capture, and retreat confirmation. The takeover HUD follows the game's
+own combat HUD and leaves the centre of the screen to the fight. A **status panel**
+at bottom left names the body and its carrier and reads its durability as labelled
+bars with a percentage: HULL (HEALTH for a Marine), ARMOR above FLUX, and a
+Marine's STAMINA. A Mech or a vehicle shows its **damage doll** in the corner and
+the status stands beside it: the machine seen from the front and from behind,
+captioned `R FRONT L` and `L REAR R` as MechWarrior does, each location filled by
+its state (green whole, yellow as armor wears,
+orange once it is gone, red as structure goes, dark red destroyed) with two flags
+beneath, CRIPPLED and SENSORS LOST for a Mech, IMMOBILE and GUN LOST for a vehicle.
+A hull's side plates are the cheeks either side of each view, so a side reads in
+both; a Mech's rear view drops the legs, which are thin and the same from behind.
+The locations are owned by `d5-located-armor.md`; see `damage-doll.md`. Filled lengths reflect the exact body's remaining fractions;
+armor depletion empties its bar independently of health, and an armorless body
+has no armor row. A **weapon-groups panel** at bottom right lists equipment under
+the button that fires it (see Mouse buttons and weapon groups). At top right,
+boxless keycap controls read `[TAB] COMMAND` and `[SPACE] PAUSE`, beside the HELP
+tab; while the battle is paused the pause control turns amber and reads PAUSED.
+Space pauses and resumes anywhere on the battle screen, command mode included, and
+resumes at the speed the battle had before the pause. Both panels size
+to their rows and hug the bottom edge, and like the game's own combat HUD they have no box: text and bars float over the battle, and only the selected weapon row carries a wash. Weapon rows distinguish the authored firing
 pattern, remaining resources, and burst or recovery clocks. Loaded describes
 resource and clock availability, not a guarantee that the barrel is aimed or
-clear. Infantry primaries have no ammunition counter; finite Mech stores count
+clear. Infantry primaries show no ammunition counter; finite Mech stores count
 trigger packs, while the APC turret counts individual rounds. Indirect mounts
 remain visible as unavailable for manual fire.
 
@@ -121,7 +134,12 @@ A faint aim lane connects the current firing origin toward the cursor. Its
 clear segment ends at the first structural projectile blocker, marked in amber;
 a fainter dashed segment continues beyond that obstruction. Marine origin is
 the ordinary point-shot source. Mech and APC lanes use their actual posed
-muzzles, and Mech weapon selection determines which direct hardpoints appear.
+muzzles, and Mech weapon selection determines which flat-fire hardpoints appear;
+an arcing rack flies over walls and draws no lane. When an armed mount's rounds
+burst where they are thrown (rockets and LRM racks), a **scatter ring** circles
+the cursor at the widest landing disk among them: orange inside every covered
+mount's range, red past it, where the disk grows faster than distance. Guns draw
+no ring. The ring is the clear-air figure; smoke on a rocket's lane widens it.
 A blocked body-to-barrel segment cannot masquerade as an open lane from a
 muzzle beyond the wall. The guide uses current continuous terrain and shared
 edge profiles, so opening or destroying structure changes the next preview.
@@ -136,8 +154,8 @@ continue to update the guide while paused; pointing at chrome or outside the
 world viewport hides it.
 
 Equipped Marine abilities have one-shot input: E raises an integral directional
-shield and G throws carried smoke toward the cursor. Their small, read-only
-cards stay beside the primary weapon in the same equipment strip. Only present
+shield and G throws carried smoke toward the cursor. Their read-only rows sit
+under a KEYS group below the primary weapon, each marked with its key. Only present
 equipment appears. Shield state reads its real soak pool, expiry, break flash,
 and cooldown; smoke reads carried canisters and the committed throw clock.
 Smoke has no additional cooldown. Held keys never repeat activation or queue a
@@ -179,9 +197,10 @@ changed time while controlling. An action camera follows body movement immediate
 toward the cursor beyond a central dead zone. Its framing sits between the body
 and cursor without letting camera motion feed back into further camera drift.
 The lead scales with the viewport and leaves the controlled body on screen;
-world-edge clamping remains authoritative. Framing reserves clearance above the
-equipment strip; if map clamping places the body beneath that strip, the strip docks
-at the top below the separate session controls. Moving onto UI chrome or outside
+world-edge clamping remains authoritative. The panels hold the bottom corners, so
+framing reserves no clearance for them. If map clamping puts the body under a
+panel, that panel fades and lets the pointer through rather than moving: chrome
+that jumps is harder to read than chrome that steps back. Moving onto UI chrome or outside
 the battlefield eases the lead back toward the body. Entry resets old lead.
 Wheel zoom remains available, reaching twice the former close-up limit in
 strategic and action views. Action zoom preserves the body’s screen framing;
@@ -373,8 +392,7 @@ trigger and the right button the secondary, and both may be held together.
 
 A Mech's point-fire hardpoints split into two **groups by weapon role**. Guns,
 cannons and lasers are the primary group; missile and rocket racks are the
-secondary group. Indirect launchers (LRM) are in neither because the cursor cannot
-aim them. The Hound therefore fires its nose chaingun on the left button and its
+secondary group, arcing LRM racks included. The Hound therefore fires its nose chaingun on the left button and its
 SRM pod on the right; a Bulwark fires its chainguns left and both SRM racks right.
 A chassis whose point-fire mounts are all one role keeps them all on the left
 button and leaves the right one inert (an all-rack chassis is not stranded without
@@ -384,9 +402,13 @@ subject to each mount's arc, alignment, cooldown, ammunition, flux and burst gat
 Keys 1-4 keep their place but act on the left button only. Key 1 is the default
 (left = primary group); keys 2-4 re-point the left button at a single hardpoint
 (arms, left shoulder, right shoulder), including a rack. The right button always
-fires the secondary group. The strip marks every card with the button(s) that
-fire it: `L`, `R`, `LR`, or nothing (an indirect rack or an unfired hardpoint).
-Empty or indirect hardpoints cannot be selected; an installed direct mount remains
+fires the secondary group. The weapon-groups panel lists each mount under the
+button that fires it: an LMB group (PRIMARY GROUP, or ONE MOUNT while keys 2-4
+point it at a hardpoint), an RMB group (SECONDARY GROUP), and OTHER MOUNTS for an
+unfired hardpoint. A mount on both buttons is listed once,
+under LMB, marked `LR`. Each row carries its number key; clicking a row selects
+that mount and clicking the LMB header returns the left button to its group.
+Empty hardpoints cannot be selected; an installed mount remains
 selectable when its ammunition is exhausted. Selection belongs to the control
 session, survives pause, and resets on takeover or handback. Changing it cancels
 queued manual rounds and releases held fire while preserving movement, aim,
@@ -407,11 +429,24 @@ has a manual contract (grenade launchers and satchels are autonomous), so a Mari
 carrying only those leaves the right button inert rather than inventing a new free
 action. E and G keep working.
 
-Indirect mounts stay untriggered. Every mount keeps one clock and resource stream under the ordinary
+An arcing LRM rack drops its salvo on the thrown point: the aim point, pulled in
+to twice its range if further, plus the same growing scatter disk a rocket's ground
+burst uses (`ballistics-nouns.md`), with no hit roll. It flies over walls as its
+autonomous fire does. A point nearer the chassis centre than eight cells (or the
+weapon's authored minimum, where larger) is **too close**: the rack's trigger is
+refused without spending ammunition, flux or its cycle, while the other mounts
+on the same button still fire. Its HUD row reads TOO CLOSE, the hint on the
+header of the button that fires it reads TOO CLOSE in red, and the scatter ring
+turns red. Every mount keeps one clock and resource stream under the ordinary
 heavy-weapon pass; manual control neither advances it twice nor applies an
 infantry training multiplier to Mech accuracy. The live cursor owns torso aim
 and each scheduled round of a manual Mech burst. A round still requires the
-actual torso and muzzle to align legally; a refused release consumes its
+torso to align legally with the point, judged from the chassis centre; each
+barrel then fires from its own muzzle at the point, so paired and shoulder
+barrels converge rather than each needing the point inside its own alignment
+cone, which an offset muzzle loses at close range. A point nearer the centre
+than one and a half hull widths is pushed out along its bearing to that
+distance, so no barrel fires beside or behind itself. A refused release consumes its
 scheduled slot without emitting a shot or refunding the accepted trigger pack.
 A blocked or unaimed mount cannot retain a backlog or steer the torso. Entry,
 exit, and input suspension cancel queued rounds and aim while preserving
@@ -419,10 +454,11 @@ ammunition, mechanical cycle clocks, shared chassis flux, and replenishment prog
 
 AI and manual Mech direct rounds originate at the installed barrel's actual
 posed muzzle. The body-to-barrel structural segment must also be clear, so a
-barrel protruding beyond a wall cannot launch a round through it. Direct area
-payloads detonate only at their committed physical terminal contact; the cursor
-and an unobstructed overshoot produce no blast. Direct SRMs retain their ordinary
-interception opportunity and delayed impact.
+barrel protruding beyond a wall cannot launch a round through it. A manually
+thrown rocket ground-bursts at the scattered aim point, which may lie past
+nominal range at a growing scatter cost; gun area payloads detonate only at their
+committed physical terminal contact (`ballistics-nouns.md` owns both rules).
+Direct SRMs retain their ordinary interception opportunity and delayed impact.
 
 The APC's independent turret slews toward the mouse bearing at its authored
 traverse rate. The held primary trigger uses the existing magazine, cooldown,
@@ -502,8 +538,9 @@ manually ordered keeps that order. The missile preset is a setting of the ship r
 than an order and stays as the pilot left it. Switching the director on for a ship that
 was never on flux puts it on its hull's flux, as it would any directed ship.
 
-The equipment strip shows hull above armour, the flux gauge in the flux row, and
-read-only cards for the gun battery, lances, missile battery, point defence, shield, the low pass
+The status panel shows hull above armour (armour as its rating, since it is never
+spent down) and the flux gauge with the ship's flux state beneath it; the
+weapon-groups panel, titled SHIP SYSTEMS, holds read-only rows for the gun battery, lances, missile battery, point defence, shield, the low pass
 (`[F] LOW PASS`: ready, running in, passing, or no time, with the station seconds left) and
 the automation (director, missile preset, ground-fire policy), each with its laid area
 or a no-area/auto note and a readiness fill. Armour is a rating in this model and is
@@ -555,8 +592,8 @@ handback; only new sites laid by the pilot are withdrawn under the manual contra
   while unpiloted; the pilot suspends that choosing, and handback resumes it on its next pass.
   Death of the hull, departure, battle end, Tab and Escape release it.
 
-The equipment strip shows hull above armour, the hull's flux in the flux row, and read-only
-cards: helm; the selected option with the other slots marked "soon"; the site card (the
+The status panel shows hull above armour and the hull's flux; the SHIP SYSTEMS panel holds
+read-only rows: helm; the selected option with the other slots marked "soon"; the site card (the
 current site, its phase and progress, a refusal notice, the live-site count, and the cancel
 key); builders (ready, out or working, lost); defence drones (ready, out, lost, deployed or
 recalled); and the shield. Its help panel lists exactly these bindings.
@@ -602,6 +639,7 @@ All mounts cool through one reservoir once per simulation tick. Pause freezes
 it and takeover/handback preserves it. Hot mounts remain fitted and supplied:
 flux does not cause an ammunition fallback or change the mission assignment.
 
-The action strip shows a 0-100 flux bar, amber warning at 75, red venting at 95
-until 55, and a FLUX hold on each flux-blocked weapon. Mechanical progress
+The status panel shows a 0-100% flux bar with its state beneath it: BURST
+RESERVE, then HIGH FLUX - EASE FIRE in amber from 75, then VENTING - GUNS
+LOCKED in red from 95 until 55. Each flux-blocked weapon row reads FLUX. Mechanical progress
 and finite ammunition remain separate. See `mechs-nouns` for baseline tuning.

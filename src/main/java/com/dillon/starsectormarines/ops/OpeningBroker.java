@@ -1,16 +1,15 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
+import com.dillon.starsectormarines.campaign.start.OpeningPort;
+import com.dillon.starsectormarines.campaign.start.OpeningPort.Use;
 import com.fs.starfarer.api.Global;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
-import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Factions;
-
-import java.util.Comparator;
-import java.util.List;
 
 /** Authored contact and shared location policy for the opening operation sequence. */
 public final class OpeningBroker {
@@ -21,26 +20,25 @@ public final class OpeningBroker {
 
     private OpeningBroker() { }
 
-    /** Current reachable office. Reads campaign facts without creating contacts or save flags. */
+    /**
+     * Current reachable office: the company's own port (Second Wind's yard or depot) when it can be an office, else
+     * the shared {@link OpeningPort} order. Reads campaign facts without creating contacts or save flags.
+     */
     public static Destination current() {
-        return resolve(Global.getSector());
+        SectorAPI sector = Global.getSector();
+        PlanetAPI port = CerberusCompanyStart.destination();
+        if (sector != null && port != null
+                && OpeningPort.eligible(port.getMarket(), sector.getPlayerFaction(), Use.OFFICE)) return of(port);
+        MarketAPI market = OpeningPort.resolve(sector, Use.OFFICE, CerberusCompanyStart.homeSystem());
+        return market == null ? null : of(market.getPlanetEntity());
     }
 
     static Destination resolve(SectorAPI sector) {
-        if (sector == null || sector.getEconomy() == null) return null;
-        FactionAPI player = sector.getPlayerFaction();
-        List<MarketAPI> eligible = sector.getEconomy().getMarketsCopy().stream()
-                .filter(market -> market != null && !market.isHidden() && market.getSize() > 0)
-                .filter(market -> market.getPlanetEntity() != null && !market.isPlayerOwned())
-                .filter(market -> market.getFaction() != null
-                        && (player == null || !market.getFaction().isHostileTo(player)))
-                .toList();
-        MarketAPI market = eligible.stream().min(Comparator
-                .comparingInt((MarketAPI candidate) -> "jangala".equals(candidate.getPlanetEntity().getId()) ? 0
-                        : Factions.INDEPENDENT.equals(candidate.getFactionId()) ? 1 : 2)
-                .thenComparing(MarketAPI::getId)).orElse(null);
-        if (market == null) return null;
-        PlanetAPI planet = market.getPlanetEntity();
+        MarketAPI market = OpeningPort.resolve(sector, Use.OFFICE);
+        return market == null ? null : of(market.getPlanetEntity());
+    }
+
+    private static Destination of(PlanetAPI planet) {
         return new Destination(planet.getId(), planet.getName(),
                 planet.getStarSystem() == null ? "Local space" : planet.getStarSystem().getBaseName(), planet);
     }

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a159ed-6669-79a1-9487-de892d50122a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a159ed-6669-79a1-9487-de892d50122a\\call_170dbe50f0794373a452823c937ccff2.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\story-stills\\raising-her-v2.gen1.png",
+    "sha256": "1d3aa70d1a0e6abfa1c06fc75be637ea5fd53a2093e7c1e9ebb12e942290eb92",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\story-stills\\raising-her-v2.prompt.txt",
+  "promptSha256": "810810402e2f437b6c551b77098f29a9a1a64b00b5f7676bd826f83287842300",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The current page with the new mounts pasted in crudely: edit this image; keep everything outside the gun mounts exactly\nImage 2: Plain render of the same ship from the same camera: authority for the gun mounts only (position, size, shape); not for lighting or materials\n\nUse case: precise-object-edit. Edit Reference 1, a finished 3:2 (1536x1024) story illustration, and change only the gun mounts on the freighter's dorsal deck.\n\nReference 1 is the current page with the ship's new armament pasted in crudely from a render: blurry, flat and badly blended. Repaint those mounts so they belong in the painting. Keep EVERYTHING else exactly as it is: the asteroid dock, gantries, boarding tube, umbilicals, floodlights, the three suited figures, the tally marks, the two lit drive mouths, the rocks and stars, the light, the camera and the composition. The ship keeps its exact silhouette, size, position, angle, hull plating, bridge dome, radiator grilles, patches, dents and livery of weathered rust-orange and cream over dark gunmetal; do not reshape, move or rotate her, and do not add any structure.\n\nReference 2 is a plain render of the same ship from the same camera, and is the authority for the mounts only: where each sits, its size and shape, and what is on it. She carries exactly two guns, both small Vulcan point-defence turrets: a squat rounded mount with a short cluster of stubby rotary barrels. One is on the aft deck at the left, barrels pointing left; the other is mid-deck in front of the bridge dome, a rounded dome in another owner's grey-green primer, its stubby rotary barrels pointing right. The big round mount on the right is an empty turret housing closed by a flat bolted salvage plate, with no gun on it. Behind the bridge dome, a small housing with a holed blanking cap may just show; it is mostly hidden. There is no long cannon barrel and no tank-style turret anywhere on her. Where a gun once stood against the dock wall, paint the dock behind as it is in the rest of the page.\n\nSame restrained hand-painted realism, sharp detail, dirty amber work light from the dock and muted blue shadows as the rest of the image. No new text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\story-stills\\guides\\p4-turrets-guide.png",
+      "sha256": "09bf18e84c398b5da07053a2fb7bb0bb69e52741bcf5913c0acb2291333e35fb",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "The current page with the new mounts pasted in crudely: edit this image; keep everything outside the gun mounts exactly"
+    },
+    {
+      "path": "art-source\\company-prologue\\story-stills\\guides\\p4-stern-quarter-dc62710dc.png",
+      "sha256": "449b4ba414cf4bff5e7c16aad10660e0855657f5f6c5cbf9b88421c3e7d3bddf",
+      "dimensions": [
+        768,
+        512
+      ],
+      "mode": "RGB",
+      "role": "Plain render of the same ship from the same camera: authority for the gun mounts only (position, size, shape); not for lighting or materials"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to blend the two Vulcan mounts into Reference 1, preserving the rest of the scene."
+  ],
+  "usage": {
+    "input_tokens": 51816,
+    "cached_input_tokens": 4736,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 618,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 62.5
+}

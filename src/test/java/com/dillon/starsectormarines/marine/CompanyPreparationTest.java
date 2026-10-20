@@ -35,11 +35,10 @@ class CompanyPreparationTest {
         assertTrue(CompanyPreparation.canPrepare(roster, ShuttleType.AEROSHUTTLE, 2, hold));
         roster.setCompanyShip("home", "Home", 200);
         roster.boatDeck().reconcile("home", ShuttleType.AEROSHUTTLE, 2);
+        // The company rides up to Relief on Wayline's truck: Sabine comes straight after the ship.
         assertTrue(roster.boatDeck().airworthy().isEmpty());
-        assertEquals(Step.LIFT, induction.step(roster));
-        assertFalse(induction.finish(roster));
-        assertTrue(new BoatWorkshop(roster.boatDeck(), hold).fabricate(0).succeeded());
         assertEquals(Step.INTRODUCTION, induction.step(roster));
+        assertFalse(induction.finish(roster));
         induction.introduce(sabine);
         assertEquals(Step.SPECIALTY, induction.step(roster));
         assertTrue(sabine.train(OfficerSpecialty.TACTICAL_COVER));
@@ -48,13 +47,18 @@ class CompanyPreparationTest {
         assertEquals(Step.FORMATION, induction.step(roster));
         var squad = new SquadFoundingWorkshop(roster, hold).foundSquad().squad();
         assertNotNull(squad);
-        assertTrue(hold.stock.values().stream().allMatch(n -> n == 0));
-        assertTrue(CompanyPreparation.remainingBill(roster, ShuttleType.AEROSHUTTLE).isEmpty());
+        assertTrue(CompanyPreparation.squadBill(roster).isEmpty());
+        assertEquals(CompanyPreparation.boatBill(roster, ShuttleType.AEROSHUTTLE),
+                CompanyPreparation.remainingBill(roster, ShuttleType.AEROSHUTTLE));
         assertEquals(Step.ASSIGNMENT, induction.step(roster));
         roster.assignCaptainToSquad(sabine.id(), squad.id());
         assertEquals(Step.READY, induction.step(roster));
         assertTrue(induction.finish(roster));
         assertTrue(roundTrip(induction).complete());
+        // The boat's share of the bill waits for the first-lift lesson after Relief, and funds it exactly.
+        assertTrue(new BoatWorkshop(roster.boatDeck(), hold).fabricate(0).succeeded());
+        assertTrue(hold.stock.values().stream().allMatch(n -> n == 0));
+        assertTrue(CompanyPreparation.remainingBill(roster, ShuttleType.AEROSHUTTLE).isEmpty());
     }
 
     @Test void understrengthAssignedSquadCannotFinishAndTransferDoesNotMintBoats() {

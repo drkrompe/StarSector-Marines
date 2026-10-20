@@ -1,8 +1,8 @@
 # Combat durability — Open Stories
 
-Status: ACTIVE — 3 planned stories
+Status: ACTIVE — 4 planned stories
 Written: 2026-08-23
-Updated: 2026-08-28 — timed directional mitigation shipped and left the board.
+Updated: 2026-10-20 — located armor for vehicles and the mech rear torso planned.
 
 Read `combat-durability-nouns.md` before changing any of these stories.
 
@@ -11,3 +11,4 @@ Read `combat-durability-nouns.md` before changing any of these stories.
 | `d2-armor-aware-decisions.md` | Planned | Replace hardened-type AI gates and fictional mech armor morale with current durability-state decisions. |
 | `d3-durability-evidence-and-ui.md` | Planned | Split telemetry into armor/structure evidence and make both capacities plus penetration legible. |
 | `d4-durability-balance-pass.md` | Planned | Extend the TTK matrix, calibrate infantry and mech relationships, and complete live acceptance. |
+| `d5-located-armor.md` | In progress — vehicle plates off by default; held flanks die faster, a free tank reverses out of the pincer; owner call pending | Vehicle plates, drive and hull by location; a mech rear torso plate. Contract for `damage-doll.md`. |

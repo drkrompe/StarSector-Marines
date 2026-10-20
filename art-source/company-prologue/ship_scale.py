@@ -211,7 +211,7 @@ HULLS = {
     # The Wolf (P), the pirate skin of the high-tech Wolf frigate (Asharu battle). Its bow
     # fork, head outriggers, missile pods, armour domes and the engine block (the drive
     # section) are outside SOLIDS.
-    'Wolf (P)': dict(units3=38649, crew_max=30, cargo=50, fuel=20, cls='frigate', length_units=94.0,
+    'Wolf (P)': dict(units3=38763, crew_max=30, cargo=50, fuel=20, cls='frigate', length_units=95.1,
                      sprite_px=96),
     # The Phaeton tanker (Asharu convoy): the red tank hull, the machinery strakes along
     # both flanks (pump rooms and pipe galleries), the aft transverse frame and machinery
@@ -236,10 +236,14 @@ PUBLISHED['Phaeton'] = .33   # the rule solves 0.326 (75.7 m): published at two 
 # The Manticore (P), pirate long-range destroyer for the Asharu battle: bow head, neck, core,
 # wing body, aft engine block, ventral keel, command tier and dome (SOLIDS['manticore']). The drive
 # cans, outer turret pods, armour plates and weapons are excluded. Fittings:
-# the core flank viewports and the command dome's glazed band, sized in true metres. Kept as
+# the plinth's crew-deck windows and the command dome's glazed band, sized in true metres. Kept as
 # its own statements so sibling hulls added at the same time do not collide in one line.
-HULLS['Manticore (P)'] = dict(units3=228776, crew_max=80, cargo=80, fuel=50, cls='destroyer', length_units=151.9,
-                             sprite_px=154, fittings_units={'viewport w x h': [1.85, 1.48],
+# Published at 0.59 (91 m) by owner override (2026-10-20): rounds 11-12 opened the wings
+# behind the forward armour into exposed framework, which is not enclosed volume, and the
+# rule now solves about 0.65 (99 m). A reshape never resizes a hull; the size is the owner's.
+# Rounds 15-16: the armour laid in raised plates moved the measured union to 177,969.
+HULLS['Manticore (P)'] = dict(units3=177969, crew_max=80, cargo=80, fuel=50, cls='destroyer', length_units=151.9,
+                             sprite_px=154, fittings_units={'crew window w x h': [2.54, 1.02],
                                                             'bridge glazing band h': [2.04]})
 VOLUME_SOURCE['Manticore (P)'] = 'measured (SOLIDS)'
 PUBLISHED['Manticore (P)'] = .59

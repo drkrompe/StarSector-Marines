@@ -43,8 +43,8 @@ public final class WaylineArc {
         return switch (kind) {
             // Relief's briefing is Mara's recorded introduction; this is the unvoiced summary beside it,
             // and her tactical calls are radio traffic in the mission itself.
-            case RELIEF -> "Land on the rear unloading apron at the freight checkpoint" + location + " and reinforce the gate. "
-                    + "Raiders will come up the freight and warehouse service roads. Wayline supplies its militia and one shuttle. "
+            case RELIEF -> "Your squad starts beside Wayline's truck behind the freight checkpoint" + location + ". Reinforce the checkpoint gate. "
+                    + "Raiders will come up the freight and warehouse service roads. Wayline brings in its militia by shuttle. "
                     + "Break the assault and bring as many people home as you can.";
             case COUNTERATTACK -> OpeningBroker.NAME + ": Their assault is broken. Recovered traffic logs identify the occupied Wayline depot"
                     + location + ". Land at the western staging apron and advance with our militia through the freight gate, loading yard and dispatch warehouse. "
