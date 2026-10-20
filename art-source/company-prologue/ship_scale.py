@@ -211,7 +211,7 @@ HULLS = {
     # The Wolf (P), the pirate skin of the high-tech Wolf frigate (Asharu battle). Its bow
     # fork, head outriggers, missile pods, armour domes and the engine block (the drive
     # section) are outside SOLIDS.
-    'Wolf (P)': dict(units3=40988, crew_max=30, cargo=50, fuel=20, cls='frigate', length_units=94.0,
+    'Wolf (P)': dict(units3=38649, crew_max=30, cargo=50, fuel=20, cls='frigate', length_units=94.0,
                      sprite_px=96),
     # The Phaeton tanker (Asharu convoy): the red tank hull, the machinery strakes along
     # both flanks (pump rooms and pipe galleries), the aft transverse frame and machinery
@@ -230,7 +230,7 @@ VOLUME_SOURCE = {'Legion (XIV)': 'measured (SOLIDS)', 'Hound (A)': 'measured (SO
                  'Lasher': 'measured (SOLIDS)', 'Shepherd': 'measured (SOLIDS)', 'Paragon': 'measured (SOLIDS)',
                  'Colossus': 'measured (SOLIDS)', 'Wolf (P)': 'measured (SOLIDS)'}
 PUBLISHED = {'Legion (XIV)': .99, 'Hound (A)': .88, 'Second Wind (Cerberus)': .65, 'Lasher': .95, 'Onslaught': .86,
-             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50, 'Wolf (P)': .75}
+             'Shepherd': .78, 'Paragon': .87, 'Colossus': .50, 'Wolf (P)': 0.76}
 VOLUME_SOURCE['Phaeton'] = 'measured (SOLIDS)'   # the tanker; see HULLS['Phaeton']
 PUBLISHED['Phaeton'] = .33   # the rule solves 0.326 (75.7 m): published at two places, 76.6 m
 # The Manticore (P), pirate long-range destroyer for the Asharu battle: bow head, neck, core,

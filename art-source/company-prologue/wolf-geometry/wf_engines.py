@@ -21,7 +21,8 @@ from wf_kit import boolean, revolve_x
 
 ENGINES = [(-36, 12, 16, 64), (-40, 0, 16, 64), (-36, -11, 16, 64)]
 Z = -2.5   # the drive axis, centred in the deepened engine block
-MOUTH = .20    # mouth radius / slot width
+MOUTH = .22    # mouth radius / slot width
+CAN_R = 5.3    # the exposed octagonal drive can's circumradius (the cans sit side by side)
 THROAT = .62   # throat radius / mouth radius
 LENGTH = .45   # bell length / slot width
 WALL = .05     # wall thickness / slot width
@@ -33,16 +34,19 @@ def mouth_r(w):
 
 
 def build(kit):
-    host = bpy.data.objects[HOST]
     for i, (x, y, w, length) in enumerate(ENGINES, 1):
+        # A long octagonal drive can from inside the drive section, exposed out the
+        # back to the bell (owner, round 5), three cooling bands along it.
+        host = revolve_x(kit, f'Engine {i} drive can', [(x+.3, 0), (x+.3, CAN_R), (-21.0, CAN_R), (-21.0, 0)],
+                         y, Z, kit.steel, 8)
+        for k, xb in enumerate((x+3.0, (x-21.0)/2+.5, -24.0), 1):
+            revolve_x(kit, f'Engine {i} cooling band {k}', [(xb-.5, CAN_R-.2), (xb+.5, CAN_R-.2), (xb+.5, CAN_R+.35),
+                                                            (xb-.5, CAN_R+.35)], y, Z, kit.dark, 8)
         rm, wall = mouth_r(w), WALL*w
         rt, xt = THROAT*rm, x+LENGTH*w
         cutter = revolve_x(kit, f'Temporary Engine {i} bell well cutter',
                            [(x-3, 0), (x-3, rm+.9*wall), (xt, rt+.9*wall), (xt, 0)], y, Z, kit.dark, 20)
         boolean(host, cutter)
-        can_r = rm+wall+.2
-        revolve_x(kit, f'Engine {i} drive can', [(xt-.2, 0), (xt-.2, can_r), (-22.0, can_r*.9), (-22.0, 0)],
-                  y, Z, kit.steel, 20)
         revolve_x(kit, f'Engine {i} aft-facing bell', [(xt, rt), (x, rm), (x, rm+wall), (xt, rt+wall)],
                   y, Z, kit.steel, 20)
         revolve_x(kit, f'Engine {i} mouth lip', [(x+.35*wall, rm-.2*wall), (x-.25*wall, rm),
