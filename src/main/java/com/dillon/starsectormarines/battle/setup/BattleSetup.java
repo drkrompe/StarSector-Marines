@@ -499,6 +499,7 @@ public final class BattleSetup {
         PrecinctPlan precinct = sprawl == null ? null : precinctPlanFor(
                 MissionType.SABOTAGE, tier, risk, profile, scale, seed, sprawl);
         MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null, profile, precinct);
+        publishHeldPlaces(map, Faction.DEFENDER);
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         // Vehicles stamp before sim construction so the BattleSimulation's
@@ -1065,6 +1066,16 @@ public final class BattleSetup {
                 marineAir, enemyAir, sprawl, null, 1f, true, null, null);
     }
 
+    /**
+     * Publishes every building the map's tactical nodes do not already stand on as a held place for
+     * {@code owner}. Held places carry no garrison and are not objectives; see {@code HeldPlaces}.
+     */
+    private static void publishHeldPlaces(MapResult map, Faction owner) {
+        if (map.tacticalMap == null) return;
+        for (TacticalNode place : HeldPlaces.fromBuildingsNotIn(map.pointsOfInterest, map.tacticalMap.all(), poi -> owner))
+            map.tacticalMap.add(place);
+    }
+
     /** Whole campaign-derived sites are an ordinary remote-assault choice when the tier affords their approach. */
     static boolean usesCompoundTemplate(MissionType type, MapScale scale, PrecinctPlan.Sprawl sprawl) {
         return type == MissionType.ASSAULT && sprawl == PrecinctPlan.Sprawl.REMOTE
@@ -1098,11 +1109,7 @@ public final class BattleSetup {
                 : proceduralOperationMap(type, tier, risk, profile, scale, seed, sprawl, precincts);
         // A raided site is defender-held: the city's garrison nodes keep their buildings and every other
         // building is a place the player may order held once taken.
-        if (type == MissionType.RAID && !coldAccount && map.tacticalMap != null) {
-            for (TacticalNode place : HeldPlaces.fromBuildingsNotIn(map.pointsOfInterest,
-                    map.tacticalMap.all(), poi -> Faction.DEFENDER))
-                map.tacticalMap.add(place);
-        }
+        if (!coldAccount) publishHeldPlaces(map, Faction.DEFENDER);
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         List<Doodad> vehiclePlacements = stampVehicles(map, rng);
@@ -2507,6 +2514,7 @@ public final class BattleSetup {
             MapScale scale = MapScale.forRisk(risk);
             MapResult map = MAP_GEN.generate(
                     scale.width, scale.height, battleSeed, null, profile);
+            publishHeldPlaces(map, Faction.CIVILIAN);
             Random rng = new Random(battleSeed);
             List<ShuttleAssignment> assignments = resolveManifest(manifest);
             List<Doodad> vehiclePlacements = stampVehicles(map, rng);
@@ -4352,6 +4360,8 @@ public final class BattleSetup {
         List<TacticalNode> defenderNodes = (tactical != null)
                 ? new ArrayList<>(tactical.forFaction(Faction.DEFENDER))
                 : Collections.emptyList();
+        // A held place nobody is posted to is ground the player may order held, not somewhere the defence lives.
+        defenderNodes.removeIf(HeldPlaces::isUnposted);
         if (defenderNodes.isEmpty()) {
             List<int[]> cells = pickDefensiveCluster(map.grid, map.defenderSpawnX, map.defenderSpawnY,
                     roster.mechVariants.isEmpty() ? roster.totalCount

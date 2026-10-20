@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.world.gen.HeldPlaces;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -99,7 +100,7 @@ public final class PatrolRoute implements Action {
             int[] best = null;
             int bestRoll = -1;
             for (TacticalNode n : nearby) {
-                if (n.defaultGuard != squad.faction) continue;
+                if (n.defaultGuard != squad.faction || HeldPlaces.isUnposted(n)) continue;
                 if (n.anchorX == squad.patrolWaypointX && n.anchorY == squad.patrolWaypointY) continue;
                 if (!sim.getGrid().inBounds(n.anchorX, n.anchorY)) continue;
                 if (!sim.getGrid().isWalkable(n.anchorX, n.anchorY)) continue;

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.world.gen.HeldPlaces;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -37,7 +38,7 @@ public enum MapFeature {
         public boolean presentIn(MapResult map) {
             return map != null && map.tacticalMap != null
                     && map.tacticalMap.all().stream()
-                        .anyMatch(node -> node.defaultGuard == Faction.DEFENDER);
+                        .anyMatch(node -> node.defaultGuard == Faction.DEFENDER && !HeldPlaces.isUnposted(node));
         }
     },
 
