@@ -134,7 +134,7 @@ def shear(ob, y0, k, top_only=True):
     return ob
 
 
-def lobe(kit, name, centre, radii, mat, yaw=0.0, segments=16, rings=8):
+def lobe(kit, name, centre, radii, mat, yaw=0.0, segments=40, rings=20):
     """A faceted ellipsoid, mostly buried in the hull it rounds out: the curved
     crimson forms the sprite's highlights show (a high-tech hull)."""
     bpy.ops.mesh.primitive_uv_sphere_add(segments=segments, ring_count=rings, radius=1, location=centre)
@@ -370,22 +370,36 @@ def build(kit):
     for x, hw, roof in BRIDGE:
         rows.append((x, [(y, z) for y, z in octagon_yz(hw, BRIDGE_FLOOR, roof, 1.5, .6)]))
     bridge = loft_x(kit, 'Hull bridge', rows, steel, 0)
-    band = loft_x(kit, 'Hull bridge glazing', [(x, [(y*(1+.1/max(abs(y), .1)) if abs(y) > .1 else y, z+.08)
-                                                    for y, z in sec]) for x, sec in rows], kit.glass, 0)
+    def shell(d, dz):
+        return [(x, [(y + d*(1 if y > 0 else -1) if abs(y) > .1 else y, z+dz) for y, z in sec]) for x, sec in rows]
+    # Dark glass a hair proud of the deck's skin, set back inside a steel frame that
+    # stands a quarter unit (19 cm) proud of it: a frame round the band and a mullion
+    # between every pane, so each pane reads as a recessed window.
+    band = loft_x(kit, 'Hull bridge glazing', shell(.04, .03), kit.glass, 0)
     slab = kit.box('Temporary bridge glazing slab', (36.4, 0, 8.25), (13.0, 30, 1.5), kit.glass, 0)
     boolean(band, slab, 'INTERSECT')
+    frame = loft_x(kit, 'Hull bridge glazing frame', shell(.3, .28), steel, 0)
+    fslab = kit.box('Temporary bridge glazing frame slab', (36.4, 0, 8.25), (13.5, 30, 1.95), steel, 0)
+    boolean(frame, fslab, 'INTERSECT')
+    panes = kit.box('Temporary bridge panes', (37.0, 0, 8.25), (13.0, 30, 1.1), steel, 0)
     for y in (-3.0, -1.0, 1.0, 3.0):                       # mullions: the band split into panes
-        cutter = kit.box('Temporary bridge mullion', (41.0, y, 8.2), (6.0, .35, 3.0), kit.glass, 0)
-        boolean(band, cutter)
+        boolean(panes, kit.box('Temporary bridge mullion', (41.0, y, 8.2), (6.0, .4, 3.0), steel, 0))
     for x in (31.4, 33.8, 36.2):
-        cutter = kit.box('Temporary bridge side mullion', (x, 0, 8.2), (.35, 30, 3.0), kit.glass, 0)
-        boolean(band, cutter)
+        boolean(panes, kit.box('Temporary bridge side mullion', (x, 0, 8.2), (.4, 30, 3.0), steel, 0))
+    boolean(frame, panes)
+    b = frame.modifiers.new('Frame edge round', 'BEVEL')
+    b.width, b.segments, b.limit_method = .05, 2, 'ANGLE'
     zs = seat(kit, 25.0, 0, SPINE_TOP)
-    sensor = dome(kit, 'Hull neck sensor dome', 25.0, 0, 2.8, zs-.4, 2.0, steel, 14, 3)
+    sensor = dome(kit, 'Hull neck sensor dome', 25.0, 0, 2.8, zs-.4, 2.0, steel, 40, 12)
     zr = 10.2
-    roof = dome(kit, 'Hull bridge roof sensor dome', 32.6, 0, 1.9, zr-.3, 1.3, kit.glass, 12, 3)
-    kit.box('Hull bridge roof mast', (30.4, 0, zr+1.2), (.5, .5, 2.6), steel, .05)
-    kit.box('Hull bridge roof mast yard', (30.4, 0, zr+2.1), (.4, 3.6, .3), steel, .05)
+    roof = dome(kit, 'Hull bridge roof sensor dome', 32.6, 0, 1.9, zr-.3, 1.3, kit.glass, 40, 12)
+    # A tapered round mast on a footing plate, a round yard with capped ends.
+    kit.cylinder('Hull bridge roof mast footing', (30.4, 0, zr+.08), .55, .16, steel, 'Z', 40, .04)
+    bpy.ops.mesh.primitive_cone_add(vertices=24, radius1=.24, radius2=.14, depth=2.6, location=(30.4, 0, zr+1.3))
+    kit.finish(bpy.context.object, 'Hull bridge roof mast', steel, .02)
+    kit.cylinder('Hull bridge roof mast yard', (30.4, 0, zr+2.1), .1, 3.6, steel, 'Y', 16, .02)
+    for s in (1, -1):
+        kit.cylinder(f'Hull bridge roof mast yard cap {s:+d}', (30.4, s*1.82, zr+2.1), .15, .1, steel, 'Y', 16, .02)
     kit.hull += [bridge, sensor]
     keel_plan = [ccw(sym([(27, 3.2), (24, 5.0), (-16, 5.0), (-20, 3.6)]))]
     keel = superloft(kit, 'Hull ventral keel', stations(-19.8, 26.8, keel_plan, 1.5), lambda x: plan_hw(keel_plan, x),
