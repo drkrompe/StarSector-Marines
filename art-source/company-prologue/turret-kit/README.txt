@@ -156,10 +156,16 @@ Dressing a turret in the hull's finish
   way, with sprite_tint=.5.
 
 The Wolf (P)'s pirate fit
-  ioncannon (house='hand'): a green capsule shell on a turntable with flank
-  studs, two swept grey field-guide prongs closing toward their tips, and a
-  green emitter snout on the elevation empty, its lens in the ion blue. IoU
-  0.82. Hardpoints miningblaster (a ribbed capacitor body with two focusing
+  ioncannon (house='hand'), built as one casting (owner, 2026-10-19: the
+  earlier capsule, studs and prongs read as parts stuck together): a low grey
+  armoured casing over the rear plan whose flanks run straight on into the two
+  field-guide arms (each one swept wedge, _sweep, rising out of the flank and
+  closing to a cantilevered tip, a lit guide rail in its inner wall); the green
+  capacitor drum seated in a well in the casing, a coil hub with a lit bore on
+  its crown, round lit coil ports in the flanks; and on the elevation empty,
+  in the slot between the arms, a breech housing rounded about its trunnions,
+  the coil-wound spine and the lens at the fire point. Elevates -5 to 20. IoU
+  0.85. Hardpoints miningblaster (a ribbed capacitor body with two focusing
   prongs either side of a red-lit emitter face) and annihilator (a ribbed
   launcher box, five tubes across its face, a muzzle anchor at each mouth).
   derive_sprites.py records all three for their colours.
