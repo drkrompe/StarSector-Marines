@@ -29,7 +29,8 @@ public final class OpeningBroker {
         PlanetAPI port = CerberusCompanyStart.destination();
         if (sector != null && port != null
                 && OpeningPort.eligible(port.getMarket(), sector.getPlayerFaction(), Use.OFFICE)) return of(port);
-        return resolve(sector);
+        MarketAPI market = OpeningPort.resolve(sector, Use.OFFICE, CerberusCompanyStart.homeSystem());
+        return market == null ? null : of(market.getPlanetEntity());
     }
 
     static Destination resolve(SectorAPI sector) {

@@ -37,6 +37,18 @@ class OpeningPortTest {
         assertEquals("z-near", resolve(Use.YARD, far, near), "nearest Corvus before market id");
     }
 
+    @Test void aRepickStaysInTheStartSystemBeforeJangalaOrCorvus() {
+        var agreusYard = stub(MarketAPI.class, market("agreus", FAR, "hegemony"));
+        var jangala = stub(MarketAPI.class, market("jangala", CORVUS, "hegemony"));
+        var near = stub(MarketAPI.class, market("z-near", NEAR, "independent"));
+        var markets = sector(List.of(jangala, near, agreusYard));
+        assertEquals("agreus", OpeningPort.resolve(markets, Use.YARD, FAR).getId());
+        assertEquals("agreus", OpeningPort.resolve(markets, Use.OFFICE, FAR).getId());
+        assertEquals("jangala", OpeningPort.resolve(markets, Use.YARD, null).getId());
+        assertEquals("jangala", OpeningPort.resolve(sector(List.of(jangala, near)), Use.YARD, FAR).getId(),
+                "with nothing left at home, the ordinary order decides");
+    }
+
     @Test void aYardNeedsASpaceportEvenIfItIsDisruptedTodayAndAnOfficeDoesNot() {
         var noPort = market("jangala", CORVUS, "hegemony");
         noPort.put("getIndustries", List.of());

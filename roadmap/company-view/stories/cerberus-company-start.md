@@ -40,9 +40,12 @@ separate from the workshop bill. The player chose one Cerberus and a staged plan
 consignment, with no support freighter. The start supplies 473 spendable credits,
 a separate 4,862-credit reserve usable only for the original ship's conversion (the
 yard waives the estimate's 124-credit pressure test when it pays), minimum
-crew plus five, 25 travel supplies and no fuel (owner, 2026-10-20). The start always sets the fleet
-down in its port's own system, where travel burns none, so an empty tank cannot strand it; fuel is
-bought at the port when the company leaves. Nothing aboard can buy a second squad before Relief,
+crew plus five, 25 travel supplies and no fuel (owner, 2026-10-20). Fuel burns only in hyperspace.
+The start sets the fleet down in its port's own system, and the yard, Mara Venn's office and the
+depot all start in it; a re-pick after the port is lost keeps to that system while any qualifying
+port remains there. Only losing every qualifying port in the start's system would need a hyperspace
+crossing, and then no fixed amount covers an arbitrary sector; vanilla's own out-of-fuel recovery
+applies. Fuel is bought at the port when the company leaves. Nothing aboard can buy a second squad before Relief,
 which is why the story Relief carries no squad cap: the depot founds Sabine's squad only, any other
 pays the full founding bill from the hold, and selling every crewman and both guns at the most
 favourable vanilla prices still falls short (`SecondSquadAffordabilityTest`). Money earned through
@@ -67,7 +70,8 @@ order that Mara Venn's office also uses (`early-operation-nouns.md`): Jangala, t
 rest of Corvus, an Independent world, then the nearest to Corvus, among visible,
 populated, non-player planetary markets whose owner is not hostile and which have a
 spaceport, disrupted or not. It is kept while it stays eligible; otherwise the same
-order picks again. A fleet whose Cerberus is missing at start (another mod's setup)
+order picks again, with the start port's own system ranked first and distance measured
+from it. A fleet whose Cerberus is missing at start (another mod's setup)
 is given the start's own Second Wind and the gap is logged, rather than failing new-game
 creation. The Nexerelin start points Nexerelin's placement at that port, and leaves
 placement to Nexerelin when no port exists.

@@ -17,6 +17,9 @@ import java.util.List;
  * whatever is nearest Corvus; market id breaks the last tie so the answer never depends on enumeration order.
  * A yard also needs a spaceport, counted whether or not it is disrupted today: the start port is chosen once
  * and kept, and a temporary disruption is the yard's business when the order is placed, not the story's.
+ *
+ * <p>A re-pick after that port is lost prefers the start port's own system above everything else, so the company,
+ * which starts with no fuel, never has to cross hyperspace while a qualifying port remains where it already is.
  */
 public final class OpeningPort {
     public static final String JANGALA = "jangala";
@@ -27,13 +30,19 @@ public final class OpeningPort {
     private OpeningPort() { }
 
     public static MarketAPI resolve(SectorAPI sector, Use use) {
+        return resolve(sector, use, null);
+    }
+
+    /** {@code home}: the start port's system, ranked ahead of the ordinary order; null for none. */
+    public static MarketAPI resolve(SectorAPI sector, Use use, StarSystemAPI home) {
         if (sector == null || sector.getEconomy() == null) return null;
         FactionAPI player = sector.getPlayerFaction();
         StarSystemAPI corvus = sector.getStarSystem(CORVUS);
-        Vector2f anchor = corvus == null ? null : corvus.getLocation();
+        Vector2f anchor = home != null ? home.getLocation() : corvus == null ? null : corvus.getLocation();
         List<MarketAPI> markets = sector.getEconomy().getMarketsCopy();
         return markets == null ? null : markets.stream().filter(m -> eligible(m, player, use))
-                .min(order(anchor)).orElse(null);
+                .min(Comparator.comparingInt((MarketAPI m) -> home != null && system(m) == home ? 0 : 1)
+                        .thenComparing(order(anchor))).orElse(null);
     }
 
     /** A visible, populated, non-player planetary market whose owner is not hostile; a yard adds a spaceport. */
@@ -64,8 +73,12 @@ public final class OpeningPort {
         return Factions.INDEPENDENT.equals(market.getFactionId()) ? 2 : 3;
     }
 
+    private static StarSystemAPI system(MarketAPI market) {
+        return market.getPlanetEntity().getStarSystem();
+    }
+
     private static double distance(MarketAPI market, Vector2f corvus) {
-        StarSystemAPI system = market.getPlanetEntity().getStarSystem();
+        StarSystemAPI system = system(market);
         Vector2f at = system == null ? null : system.getLocation();
         if (corvus == null || at == null) return Double.MAX_VALUE;
         return Math.hypot(at.x - corvus.x, at.y - corvus.y);

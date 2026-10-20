@@ -9,6 +9,8 @@ import com.dillon.starsectormarines.campaign.start.OpeningPort.Use;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
+import com.fs.starfarer.api.campaign.SectorEntityToken;
+import com.fs.starfarer.api.campaign.StarSystemAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.fleet.FleetMemberType;
@@ -27,13 +29,17 @@ public final class CerberusCompanyStart implements Script {
     private static final String DEPOT_ISSUED = "sm_preparation_depot_issued";
     /** The start port, chosen once by {@link OpeningPort} when the start runs and kept. */
     private static final String START_PORT_KEY = "sm_start_port_market";
+    /** The start port's planet, which outlives its market, so its system is known after the port is lost. */
+    private static final String START_PLANET_KEY = "sm_start_port_planet";
     private static final Logger LOG = Global.getLogger(CerberusCompanyStart.class);
     /** The pooled ship's account: about twenty-two days of board and berth at Kilo Nine. */
     public static final int STARTING_CREDITS = 473;
     public static final int TRAVEL_SUPPLIES = 25;
     /**
-     * An empty tank (owner, 2026-10-20). The start always sets the fleet down in its port's own system and the
-     * opening's work stays there, where travel burns none; fuel is bought at the port when the company leaves.
+     * An empty tank (owner, 2026-10-20). Fuel burns only in hyperspace. The start sets the fleet down in its port's
+     * own system, and the yard, Mara Venn's office and the depot all start there; a re-pick after that port is lost
+     * stays in that system while any qualifying port remains in it ({@link OpeningPort}). Fuel is bought at the port
+     * when the company leaves.
      * Nothing aboard to sell is also why a second squad is out of reach before Relief
      * ({@code SecondSquadAffordabilityTest}).
      */
@@ -61,7 +67,10 @@ public final class CerberusCompanyStart implements Script {
         sector.getPersistentData().put(SHIP_KEY, ship.getId());
         FoundingReserve.issue(sector.getPersistentData());
         MarketAPI port = OpeningPort.resolve(sector, Use.YARD);
-        if (port != null) sector.getPersistentData().put(START_PORT_KEY, port.getId());
+        if (port != null) {
+            sector.getPersistentData().put(START_PORT_KEY, port.getId());
+            sector.getPersistentData().put(START_PLANET_KEY, port.getPlanetEntity().getId());
+        }
         else LOG.warn("Second Wind start: no planetary port with a spaceport is open to the player; the fleet stays put");
         CompanyPrologue.begin(sector.getPersistentData());
         approachDestination(fleet);
@@ -195,8 +204,15 @@ public final class CerberusCompanyStart implements Script {
             MarketAPI market = sector.getEconomy().getMarket(id);
             if (OpeningPort.eligible(market, sector.getPlayerFaction(), Use.YARD)) return market.getPlanetEntity();
         }
-        MarketAPI market = OpeningPort.resolve(sector, Use.YARD);
+        MarketAPI market = OpeningPort.resolve(sector, Use.YARD, homeSystem());
         return market == null ? null : market.getPlanetEntity();
+    }
+    /** The start port's star system, or null before the start has locked one (or for an ordinary start). */
+    public static StarSystemAPI homeSystem() {
+        var sector = Global.getSector();
+        if (sector == null || !(sector.getPersistentData().get(START_PLANET_KEY) instanceof String id)) return null;
+        SectorEntityToken planet = sector.getEntityById(id);
+        return planet == null ? null : planet.getStarSystem();
     }
     public static String instructions() {
         var script = Global.getSector() == null ? null : MarineRosterScript.getInstance();

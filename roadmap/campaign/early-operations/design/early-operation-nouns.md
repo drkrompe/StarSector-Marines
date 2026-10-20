@@ -518,7 +518,9 @@ visible, populated, non-player planetary market whose owner is not hostile to th
 player. When the company's own port (Second Wind's start yard, or its depot)
 qualifies, the office is there. Otherwise prefer Jangala, then the rest of Corvus,
 then an Independent world, then the qualifying world nearest Corvus, with market id
-breaking a tie. Stations, hidden or decivilized markets, and player colonies cannot
+breaking a tie. Once a Second Wind start has chosen its port, that port's own system
+ranks ahead of all of these, so the office never sends a fuelless company across
+hyperspace while a qualifying world remains where it started. Stations, hidden or decivilized markets, and player colonies cannot
 become an office. This is a read-only location policy,
 not a simulated travelling contact: current campaign facts determine its location,
 and HQ and local offers consult the same answer. If no office is accessible, HQ
