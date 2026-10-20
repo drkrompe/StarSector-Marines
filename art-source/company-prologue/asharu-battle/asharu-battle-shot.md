@@ -112,13 +112,8 @@ The owner's direction (2026-10-20): the fight happened cycles ago, so the audien
 before they see it**, as if listening to a recording of the comms traffic. The picture follows
 once time and place are established.
 
-- **It opens on Second Wind's bridge, in the present (owner, 2026-10-20).** The player has just
-  arrived at Asharu. The command deck from the arrival cinematic's C2 bridge pass is dim and
-  quiet, and Castle's comms bank along the port side is unmanned. The time card comes up over
-  this scene (see On-screen place and time). The camera pushes in on the bank's screen as it
-  starts playing the recording, until the screen fills the frame.
-- **Then the recording, not the picture.** The screen shows a playback: channel list, waveform,
-  timestamp (see On-screen place and time). Over it, the S1 traffic plays as
+- **It opens on the recording, not the picture.** The screen shows a playback: channel list,
+  waveform, timestamp, source (see On-screen place and time). Over it, the S1 traffic plays as
   audio only: the Colossus calling the window, the escort lead closing up the column. Ordinary
   work, voices only.
 - **Then the camera jumps to the action.** On a line (the escort lead's "Escorts, close up the
@@ -264,12 +259,11 @@ the shooter's real mounts and prints "bears" or "CANNOT BEAR" with how far short
 
 ## Shot list
 
-About 2 minutes 15 (134 s): 16 s on the bridge and the recording, 34 s of setup and ambush, 60 s of fighting, 24 s of the fall. **K** marks a shot with a blockout key frame. Shot names with a letter (S6b) were added on 2026-10-20 and are renumbered once the list is settled.
+About 2 minutes 10 (128 s): 10 s of recording, 34 s of setup and ambush, 60 s of fighting, 24 s of the fall. **K** marks a shot with a blockout key frame. Shot names with a letter (S6b) were added on 2026-10-20 and are renumbered once the list is settled.
 
 | Shot | Length | Picture | Ships seen closest | Camera |
 |---|---|---|---|---|
-| S0a | 6 s | **The bridge.** Second Wind's command deck, dim, in the present. Castle's comms bank is unmanned; its screen wakes. The time card. A slow push-in on the screen. | the comms bank | 22 mm standing eye (C2's), pushing in to the screen |
-| S0 | 10 s | **The recording.** The screen fills the frame: the playback screen: source, timestamp, place, the channels lighting as each speaks, a waveform. The S1 traffic plays over it as audio only. On the escort lead's "close up the column", cut to picture. | (none) | (a screen, not a camera) |
+| S0 | 10 s | **The recording.** Black, then the playback screen: source, timestamp, place, the channels lighting as each speaks, a waveform. The S1 traffic plays over it as audio only. On the escort lead's "close up the column", cut to picture. | (none) | (a screen, not a camera) |
 | S1 **K** | 8 s | Establishing: the convoy in loose column over the day side, the limb high in frame, the desert sliding beneath. Ordinary work. | the whole convoy, small | 35 mm, high off the north flank |
 | S2 | 6 s | Alongside the Colossus. Morrow rides off her starboard quarter; a Lasher slides through the foreground. | Colossus, Morrow, Lasher | 28 mm, tracking alongside at 300 m |
 | S3 **K** | 8 s | Running dark. Long lens back down at the derelict platform: dark, stripped, hulks in its bays; hold until it reads as junk. Then one hulk shows a running light, reactor glow behind a bay, a second, a third. Drives light and the first ships ease out. The audience sees the trap before the convoy does. | the platform, the Falcon (P) | 135 mm from the convoy's tail (longer, about 300 mm, is worth trying) |
@@ -357,16 +351,6 @@ Open for the owner:
 
 ## On-screen place and time
 
-**The time card goes at the start of the bridge scene (owner, 2026-10-20).** One wrinkle: the
-bridge is the present and the recording is the past, so a card reading "three cycles ago" over
-the present-day bridge would describe the wrong scene. The recommendation is to split it:
-
-- over the bridge (S0a): **ASHARU** Corvus, which is where the player is now;
-- as the push-in reaches the screen: **three cycles ago**, so the push-in is the step back in
-  time.
-
-The story fixes three *cycles* (Starsector years), not days.
-
 The recording screen (S0) states where and when, before anything is seen:
 
 > **ASHARU** Corvus · low orbit
@@ -403,23 +387,6 @@ The earlier plain place card, kept for reference:
 
 The crash against the canyon wall is a separate shot. It needs both ships'
 deferred pass 5 states (Colossus crashed; Morrow grounded and damaged).
-
-## The bridge scene (S0a)
-
-- **Reused, not rebuilt.** The set is Second Wind's bridge interior (`sw_bridge_interior`) as the
-  arrival cinematic's C2 bridge pass appends it, at the same pinned Second Wind build. The 22 mm
-  standing eye and the comms bank are C2's. Nobody is on deck: C2's figures (Castle and the
-  pilot) are left out, and Castle's station is simply empty.
-- **The screen is half in the world and half drawn.** The bank's screen carries the recording's
-  graphics, the waveform and the channel lamps, as its own texture, the way C2's screens carry
-  theirs. Every legible word (the place, the date, the channel names) is drawn by the cinematic
-  player as an overlay pinned to the screen. As the push-in fills the frame, that overlay
-  becomes S0's full-screen recording UI, so no text is baked into the frames (`runtime-contract.md`).
-- **Light.** Arrival at night watch: the bridge is lit only by the consoles, with Asharu's day
-  side outside the port slits as a warm edge.
-- **Before any render:** it needs a light framing check of the comms bank through the render
-  queue's `light` lane. No still of the bank exists yet; C2's review stills look out through the
-  glass.
 
 ## Hull builds
 
