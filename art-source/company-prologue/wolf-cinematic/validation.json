@@ -3,8 +3,8 @@
  "collection": "WOLF_P",
  "root": "WOLF_P | root",
  "effects_collection": "SWFX",
- "objects": 312,
- "meshes": 272,
+ "objects": 452,
+ "meshes": 395,
  "effects_objects": 74,
  "images": 23,
  "passed": true,
@@ -38,15 +38,15 @@
   "mesh count": {
    "ok": true,
    "detail": [
-    272,
-    272
+    395,
+    395
    ]
   },
   "polygon count": {
    "ok": true,
    "detail": [
-    58885,
-    58885
+    102447,
+    102447
    ]
   },
   "three engine anchors at the mouths, pointing aft": {
@@ -66,6 +66,18 @@
    "detail": "12 muzzles"
   },
   "lamps": {
+   "ok": true,
+   "detail": []
+  },
+  "gear control knob": {
+   "ok": true,
+   "detail": "WOLF_P control"
+  },
+  "gear stows flush and stands on the ground": {
+   "ok": true,
+   "detail": []
+  },
+  "four lift thruster anchors point down": {
    "ok": true,
    "detail": []
   },

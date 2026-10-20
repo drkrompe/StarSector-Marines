@@ -43,6 +43,15 @@ public final class ReliefCheckpoint {
     private static final Cell GATE = new Cell(83, 30);
     private static final Cell FORWARD_POST = new Cell(99, 30);
     private static final Cell OPENING = new Cell(122, 30);
+    /**
+     * Where the story chapter's company stands at tick zero: the northern rear apron, between the two
+     * company berths, inside the wall and on neither raider road. Wayline's truck brought it up.
+     */
+    public static final Cell COMPANY_START = new Cell(24, 41);
+    /** Centre of Wayline's parked hauler, nose toward the through-road, beside the company's start. */
+    public static final Cell HAULER = new Cell(29, 44);
+    /** Cells the parked hauler's body covers; they must stay open ground. */
+    private static final int HAULER_HALF_WIDTH = 1, HAULER_HALF_LENGTH = 3;
     /** The fallback trench: one column west of the gate, from the depot's yard to the relay's. */
     private static final int FALLBACK_LINE_X = 74;
     private static final int FALLBACK_LINE_TOP = 25;
@@ -271,6 +280,12 @@ public final class ReliefCheckpoint {
         required.addAll(service);
         required.add(FORWARD_POST);
         required.add(OPENING);
+        required.add(COMPANY_START);
+        required.add(HAULER);
+        for (int y = HAULER.y - HAULER_HALF_LENGTH; y <= HAULER.y + HAULER_HALF_LENGTH; y++)
+            for (int x = HAULER.x - HAULER_HALF_WIDTH; x <= HAULER.x + HAULER_HALF_WIDTH; x++)
+                if (!map.grid.isWalkable(x, y) || map.topology.getBuildingId(x, y) != 0)
+                    throw new IllegalStateException("Relief hauler stand obstructed: " + x + "," + y);
         for (PointOfInterest place : map.pointsOfInterest)
             required.add(new Cell(place.interiorAnchorX, place.interiorAnchorY));
         for (LandingPad pad : map.landingPads) {

@@ -31,8 +31,8 @@ def build(kit):
     mats = {'red': material('Manticore running light red', (.1, .01, .01), 0, .4, emission=RED, strength=12.0),
             'green': material('Manticore running light green', (.01, .1, .03), 0, .4, emission=GREEN, strength=12.0),
             'white': material('Manticore running light white', (.2, .2, .2), 0, .4, emission=WHITE, strength=10.0)}
-    lamp(kit, 'Light port wing tip 1', (23, 78.8, POD_LAMP_Z), 'red', 'port side light (extremity)', 0, 0, mats)
-    lamp(kit, 'Light starboard wing tip 1', (23, -78.8, POD_LAMP_Z), 'green', 'starboard side light (extremity)', 0, 0, mats)
+    lamp(kit, 'Light port wing tip 1', (23, POD[1]+12.85, POD_LAMP_Z), 'red', 'port side light (extremity)', 0, 0, mats)
+    lamp(kit, 'Light starboard wing tip 1', (23, -POD[1]-12.85, POD_LAMP_Z), 'green', 'starboard side light (extremity)', 0, 0, mats)
     z = kit.surface(-48, 0)[0].z
     lamp(kit, 'Light centre stern 1', (-48, 0, z+.35), 'white', 'stern light', 0, 0, mats)
     z = kit.surface(83, 0)[0].z

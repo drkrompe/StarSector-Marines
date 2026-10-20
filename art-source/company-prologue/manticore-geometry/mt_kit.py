@@ -131,8 +131,12 @@ class Kit:
         # Round 14 (owner: the lower-deck windows "read as weird rectangle
         # lights"): dark, glossy glass that reflects the sky, with only a faint
         # warm interior glow behind it, never a lit panel.
-        self.glass = material('Manticore bridge glazing', (.012, .016, .02), 0, .04,
-                              emission=(1.0, .78, .5), strength=.3)
+        # Round 15 (owner, round 14: the glass still read tan): an absorbing
+        # near-black tint with a low specular level, so it reads dark even under
+        # a bright grey studio world, and only the faintest interior glow.
+        self.glass = material('Manticore bridge glazing', (.004, .005, .006), 0, .06,
+                              emission=(1.0, .78, .5), strength=.025)
+        self.glass.node_tree.nodes.get('Principled BSDF').inputs['Specular IOR Level'].default_value = .25
         self.vent = material('Manticore heat vent glow', (.05, .03, .02), .3, .5,
                              emission=(1.0, .45, .12), strength=2.5)
         self.hull = []  # objects the downward ray-cast seats parts on
@@ -243,6 +247,47 @@ def parent(child, par):
 def sym(port):
     """A CCW plan from its port (+Y) edge listed bow to stern; starboard mirrors it."""
     return list(port) + [(x, -y) for x, y in reversed(port)]
+
+
+def armour_plates(kit, ob, breaks=(), gap=.22, rise=.3, plate_mat=None, seam_mat=None, skip_up=False):
+    """Round 15 (owner: the red plates were still blockout): turn a part's
+    armour faces into raised plates. Each plane in `breaks` ((point, normal))
+    first splits the faces it crosses, so plate breaks follow the form; then
+    every armour face wide enough is inset and lifted `rise`, which leaves a
+    V-groove `gap` wide either side of every crease and break, in `seam_mat`,
+    and gives each plate a visible edge thickness. Only faces in `plate_mat`
+    (default: the part's own first material) become plates; with `skip_up`,
+    level decks where fittings stand are left as they are."""
+    me = ob.data
+    plate_mat = plate_mat or me.materials[0]
+    seam_mat = seam_mat or kit.dark
+    if seam_mat.name not in [m.name for m in me.materials]:
+        me.materials.append(seam_mat)
+    names = [m.name for m in me.materials]
+    pi = names.index(plate_mat.name) if plate_mat.name in names else 0
+    si = names.index(seam_mat.name)
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    for co, no in breaks:
+        geom = bm.verts[:]+bm.edges[:]+bm.faces[:]
+        bmesh.ops.bisect_plane(bm, geom=geom, plane_co=co, plane_no=no)
+    faces = []
+    for f in bm.faces:
+        if f.material_index != pi or (skip_up and f.normal.z > .95):
+            continue
+        per = sum(e.calc_length() for e in f.edges)
+        if per and 2*f.calc_area()/per > gap*1.6:
+            faces.append(f)
+    res = bmesh.ops.inset_individual(bm, faces=faces, thickness=gap, depth=rise, use_even_offset=True)
+    for f in res['faces']:
+        f.material_index = si
+    bm.to_mesh(me)
+    bm.free()
+    me.update()
+    mod = ob.modifiers.get('Plate edge chamfer')
+    if mod:
+        mod.width, mod.segments = min(mod.width, .06), 2
+    return ob
 
 
 def shade_round(ob, angle=30):

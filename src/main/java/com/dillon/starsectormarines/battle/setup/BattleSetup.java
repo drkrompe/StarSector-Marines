@@ -1282,8 +1282,21 @@ public final class BattleSetup {
     public static BattleSimulation createOpeningOperation(
             long seed, List<ShuttleAssignment> manifest, int employerShips,
             OpeningOperationKind kind, TargetProfile profile, boolean recoverHound) {
+        return createOpeningOperation(seed, manifest, employerShips, kind, profile, recoverHound, false);
+    }
+
+    /**
+     * {@code groundStart} is the story Relief chapter: the company rode up on Wayline's truck as its ore
+     * dust's escort, so it starts ashore on the rear apron beside the parked hauler and only the employer's
+     * militia lift flies. Committed company boats stay in reserve. The repeatable posting keeps its boats.
+     */
+    public static BattleSimulation createOpeningOperation(
+            long seed, List<ShuttleAssignment> manifest, int employerShips,
+            OpeningOperationKind kind, TargetProfile profile, boolean recoverHound, boolean groundStart) {
         if (kind == null) throw new IllegalArgumentException(
                 "opening operation kind is required");
+        if (groundStart && kind != OpeningOperationKind.RELIEF) throw new IllegalArgumentException(
+                "only Relief authors a company ground start");
 
         TargetProfile effectiveProfile = profile != null ? profile : TargetProfile.NEUTRAL;
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
@@ -1344,6 +1357,19 @@ public final class BattleSetup {
         stampLzPads(sim, lzCells);
         int localTransports = Math.max(0, Math.min(employerShips,
                 assignments.size()));
+        if (groundStart) {
+            ReliefCheckpoint.Cell start = ReliefCheckpoint.COMPANY_START;
+            sim.setGroundMarineArrival(new GroundMarineArrival(start.x() + .5f, start.y() + .5f,
+                    SquadCommandClaim.mission(OpeningOperationCommand.issuer(Faction.MARINE),
+                            "opening-operation landing force")));
+            // Wayline's hauler stands where it unloaded the company: a civilian hull, never a target.
+            ReliefCheckpoint.Cell truck = ReliefCheckpoint.HAULER;
+            float hx = truck.x() + .5f, hy = truck.y() + .5f;
+            VehicleMission parked = new VehicleMission(new float[]{hx, hx}, new float[]{hy, hy - 1},
+                    new float[]{hx, hx}, new float[]{hy, hy - 1}, 0f, 0);
+            parked.state = VehicleState.DEPLOYED;
+            sim.convoy().spawn(VehicleType.CARGO_CARRIER, Faction.CIVILIAN, parked);
+        }
         for (int i = 0; i < lzCells.size(); i++) {
             ShuttleAssignment assignment = assignments.get(i % assignments.size());
             LandingPad lz = lzCells.get(i);
@@ -1361,6 +1387,15 @@ public final class BattleSetup {
                             + i * SHUTTLE_DROP_STAGGER_SEC,
                     assignment.seatsPerSortie);
             ShuttleMission shuttleMission = sim.world().mission(shuttleId);
+            if (groundStart && !localMilitia) {
+                // The company is already ashore; a committed boat waits in reserve with no inbound recipe.
+                shuttleMission.totalCycles = 1;
+                shuttleMission.marinesRemaining = 0;
+                shuttleMission.marineLoadout = new MarineLoadout[0];
+                shuttleMission.cycleLoadouts = new MarineLoadout[][]{shuttleMission.marineLoadout};
+                shuttleMission.state = ShuttleState.GONE;
+                continue;
+            }
             shuttleMission.totalCycles = assignment.cycles;
             if (localMilitia) {
                 shuttleMission.commandClaim = SquadCommandClaim.mission(
@@ -1398,8 +1433,8 @@ public final class BattleSetup {
                     Faction.ALLY, "local-screen", forwardPost, rng, OPENING_FIRETEAM_SIZE,
                     WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID));
         }
-        // Relief meets a Rook-equipped starter company arriving four at a time.
-        // Keep its entire finite assault at that weapon tier, including road arrivals.
+        // Relief meets a Rook-equipped starter company. Keep its entire finite
+        // assault at that weapon tier, including road arrivals.
         if (depot == null) spawnOpeningMilitiaSquads(sim, raiderCells, Faction.DEFENDER,
                 "raider", null, rng, OPENING_FIRETEAM_SIZE,
                 WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID));

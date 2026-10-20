@@ -28,7 +28,7 @@ open bays are not enclosed volume, and the scale's volume check allows 2%.
 import math
 import bpy
 from mathutils import Matrix, Vector
-from mt_kit import boolean, facet_normal, loft_x, plane_cut, prism, shade_round
+from mt_kit import armour_plates, boolean, facet_normal, loft_x, plane_cut, prism, shade_round
 from mt_hull import POD, POD_STATIONS, LAUNCHER, WING_DECK, ccw, droop, nose_drop, shear, wing_drop
 from mt_detail import SWEEP_N, SWEEP_T, TE_ROOT
 
@@ -262,7 +262,9 @@ def wing_armour(kit, side, s, wing):
     plan = [(22.0, 21.0), (22.0, 56.0)]+list(reversed(ARMOUR_EDGE))
     z0, z1 = PLATE
     plate = prism(kit, f'Hull wing {side} armour plate 1', ccw(m(plan)), [(0, z0), (0, z1-2.5), (2.5, z1)], kit.red, .12)
-    kit.hull.append(droop(shear(plate)))
+    plate = droop(shear(plate))
+    armour_plates(kit, plate, [((0, s*y0, 0), (0, 1, 0)) for y0 in (30, 46)])   # round 15: plates
+    kit.hull.append(plate)
 
 
 def i_rib(kit, name, y, x0, x1, holes, segs, s):

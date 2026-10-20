@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-16 — Terms of Protection (frozen signed route, handover facts, Berth Four, deferred Boarding Jack entitlement); A Small War at Black Sluice (the split, handover, once-only settlement); District Escort.
+Updated: 2026-10-20 — Relief's story chapter starts the company ashore beside Wayline's truck under the ore-dust cover story; Militia Relief keeps company lift.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -435,7 +435,16 @@ not acquire a fabricated career history. Mara offers further work on the strengt
 of this job, not a faction commission, permanent payroll or new patron-system status.
 Her personal knowledge of the loading crews makes the cooperative's need concrete.
 
-1. **Hold Until Relieved**: land beside the militia and break the bandit assault.
+The company's visitor papers on Jangala forbid paid work, so the first job is
+written as a consignment. Mara buys the company's own ore dust, the cargo its
+arrival hail declared, delivered to the checkpoint gate; Sabine's twelve are the
+shipper's escort and ride up the road on a Wayline truck. That is why the story
+chapter starts its squad on the ground and pays on delivery. The cover story
+belongs to the chapter: Militia Relief is another crew's posting and keeps
+company lift. No line names the fee; the amount lives in the offer's terms.
+
+1. **Hold Until Relieved**: start beside Wayline's truck behind the checkpoint,
+   reinforce the militia and break the bandit assault.
    Successful settlement pays 6,000 credits, records Relief complete, and unlocks
    the depot chapter. Recovered traffic logs connect the two operations; the
    story does not require or invent surviving militia witnesses.
@@ -463,8 +472,9 @@ not player labels, retries, scripted events or campaign-finale terminology.
 
 Only the current uncompleted chapter is offered at Venn's accessible office.
 Other Independent brokers refer the company there until the final victory.
-Relief is visible before the first squad is founded; deployment owns personnel
-and lift checks. Chapters have no seed lottery or maximum company size.
+Relief is visible before the first squad is founded; deployment owns the
+personnel check. The story chapter needs no company lift, so Counterattack is
+the first chapter whose deployment checks it. Chapters have no seed lottery or maximum company size.
 
 After the arc, **Militia Relief** and **Depot Clearance** become distinct
 repeatable postings at eligible Independent brokers, including Venn. Their
@@ -481,11 +491,12 @@ victory is authoritative even for a legacy record missing its earlier fact.
 
 Relief's pre-mission briefing is Mara's recorded introduction: who she is, what
 Wayline lost and what she is asking for, followed by the founding field
-commander's word on landing in trips. The briefing screen carries an unvoiced
-tactical summary beside it, so nothing the player needs to choose squads and
-lift is said only once over the radio. The tactical detail is radio traffic in
-the mission: one ordered exchange begins at launch and plays through while the
-company's boat makes its trips. Landings in Relief are facts rather than cues, so
+commander's word on getting off the truck and going to the line together. The
+briefing screen carries an unvoiced tactical summary beside it, so nothing the
+player needs to choose squads is said only once over the radio. The tactical
+detail is radio traffic in the mission: one ordered exchange begins at launch
+and plays through while the company moves up from the apron. Arrivals in Relief
+are facts rather than cues, so
 the exchange cannot fall out of order; urgent militia losses interrupt it, and
 an interrupted instruction resumes only within its relevance window.
 
@@ -784,7 +795,9 @@ rescue cohort as a new job. Unknown chapters retain the ordinary presentation.
 ## Small-company promise
 
 An **early operation** is tuned around scarce player lift, mixed persistent
-equipment, and a company still learning to fight together. Employer militia
+equipment, and a company still learning to fight together. Relief's story
+chapter has no company lift at all: one squad starts ashore together, and the
+pressure comes from the militia line and the road reserves. Employer militia
 makes the battle larger but never replaces the player contribution: local
 troops take their authored seats and campaign personnel retains ownership of
 player seats.
@@ -814,16 +827,20 @@ that area. Broken morale can still interrupt the duty.
 Relief's eight local militia split evenly between an exterior inspection post
 and the freight checkpoint gate, with a relay office set back inside its compound.
 The exterior group meets the opening raiders behind an open-backed revetment.
-A western extension separates the landing apron from this first engagement so
-a standard Hermes can land and assemble all twelve company recruits. The compound is planned before surrounding buildings:
+A western extension separates the rear apron from this first engagement, so
+the company assembles out of contact. The compound is planned before surrounding buildings:
 its inspection frontage, warehouse, rear unloading apron, gates and connected
 freight/service roads form one authored place. The story keeps that geography
 stable while interior details and the target world's wild surface may vary.
 Low cliffs frame the checkpoint and service-road approaches, with open ground
 between its varied workshops. The rear compound has marked freight berths on
 concrete rather than isolated pad tiles. The employer unloads south of the
-through-road; the company's two berths share the northern apron so a split
-transport load can assemble and advance together. Inspection parking and small
+through-road. In the story chapter the company starts on the northern apron,
+between its two berths, beside Wayline's parked hauler: a civilian hull, never a
+target, whose position is checked against the gate like every other authored
+place. Committed company boats stay aboard in reserve. In the repeatable posting
+the company lands on those two berths instead, so a split transport load can
+assemble and advance together. Inspection parking and small
 service yards stay outside the gate fight, relay entrances and attacker routes.
 Employer troops arriving by shuttle wait for company assembly, then reinforce
 the gate under their own mission commander; the two predeployed posts
@@ -841,25 +858,29 @@ requires the entire committed assault to be defeated.
 
 Relief fields eight initial raiders and two six-person road groups. All twenty
 carry Rooks at their ordinary low militia grades, matching the new company's
-entry-level weapon tier while its Hermes unloads four recruits per trip. Local
+entry-level weapon tier. Local
 and arriving employer militia also carry Rooks; their ordinary protection and
 personnel rolls remain intact. Counterattack retains mixed militia weapons.
 The freight reserve releases between 45 and 60 seconds, and the service-road
 reserve between 75 and 95 seconds. These are road-entry times, not instant
 contact at the gate. The opening must not inherit Lancers and Longbows from the
-generic militia roll and overwhelm a partially landed starter squad.
+generic militia roll and overwhelm a starter squad.
 
 Road arrivals create ordinary, equipped militia squads. Scripted ownership
 covers their approach only; reaching it or observing direct contact hands them
 to the ordinary assault commander. Squad AI owns contact, cohesion and survival.
 The policy neither earns reinforcement tickets nor replenishes its finite force.
-Transport approach starts after a short interval for the local engagement to
-develop; touchdown still depends on the fitted craft and landing geometry.
+The employer's shuttle starts its approach after a short interval for the local
+engagement to develop; in the repeatable posting the company's boats do too, and
+touchdown depends on the fitted craft and landing geometry. A company already
+ashore triggers the freight reserve at its earliest release time.
 The militia should have a line left to relieve, while delaying the company risks
 losing it. Local cover is a temporary advantage, not enough extra manpower to
-make the player irrelevant. Force and timing changes are checked against both
-ordinary arrival and delayed/absent-player controls. A timeout in those controls
-is unresolved observation, not a new defeat rule.
+make the player irrelevant. Force and timing changes are checked against the
+ordinary start, a company held at its start, boat lift and an absent company.
+A timeout in those controls is unresolved observation, not a new defeat rule.
+Withdrawal needs no boat: a company that walked in withdraws on foot, and the
+retreat fabricates no losses.
 
 Counterattack retakes Wayline's freight depot after the checkpoint victory.
 Its larger, mission-first compound provides a sheltered western boat apron,
@@ -1334,7 +1355,8 @@ stable scenario key and simulation tick. It is a presentation hook, not a new
 objective, a wave-release rule, or a campaign completion flag. Opening scenarios
 publish the start, actual company/employer arrival, proximity to authored
 places, and terminal victory, defeat or retreat. In Relief the arrivals are
-observer-only and the start also publishes the ordered launch exchange. Relief
+observer-only (the story company's is its tick-zero start) and the start also
+publishes the ordered launch exchange. Relief
 additionally reports the original militia line weakening or being lost and
 actual road arrivals;
 Counterattack reports reserve commitment and defensive fallback. Its story

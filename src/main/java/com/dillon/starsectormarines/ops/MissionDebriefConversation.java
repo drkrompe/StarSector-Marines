@@ -75,7 +75,7 @@ final class MissionDebriefConversation {
                     "power", "one_more", "guards", outcome.salvageRights.crewLost() > 0 ? "losses" : "ready", "apron");
         }
         if (firstContract(outcome)) return List.of(
-                firstContractLine("receipt", CASTLE, "Payment's in. I counted it twice. Our first paid contract, Commander. Somebody paid us to do exactly what we said we'd do."),
+                firstContractLine("receipt", CASTLE, "Payment's in. I counted it twice. Mara paid for one sack of ore dust, delivered. Our first paid job, Commander. Somebody paid us to do exactly what we said we'd do."),
                 firstContractLine("muster", SABINE, outcome.marinesLost > 0
                         ? "I've counted twice. The roll's shorter. I'll give Castle the names."
                         : "All twelve back aboard. Counted twice."),
