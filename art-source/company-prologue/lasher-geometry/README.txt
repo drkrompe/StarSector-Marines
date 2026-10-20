@@ -1,4 +1,4 @@
-LASHER - CINEMATIC GEOMETRY (PASSES 1, 2 LIGHT, 4 SCALE ACCEPTED; PASS 7 EFFECTS)
+LASHER - CINEMATIC GEOMETRY (PASSES 1, 2 + DETAIL PASS, 4 SCALE ACCEPTED; PASS 7 EFFECTS)
 
 Purpose
 A light, scripted Blender model of the vanilla Lasher as a Hegemony escort
@@ -7,8 +7,9 @@ formation 1.5-3 km from camera and this one is instanced several times. It
 follows the ship-model-pipeline skill (.claude/skills/ship-model-pipeline)
 and the Hound package's conventions (../hound-geometry/) but shares no code
 with another hull. Silhouette and true scale matter most; there are no
-interiors, no hero detail, no damage states and no articulation beyond the
-three turrets.
+interiors, no damage states and no articulation beyond the three turrets.
+The Asharu battle sees it closer (1-2 km, and nearer in passing), which is
+what the detail and cohesion pass below is for.
 
 Hull identity
 lasher (data/hulls/lasher.ship; ship_data.csv row "lasher": Frigate, Low
@@ -72,6 +73,38 @@ and hatches, nacelle vent wells and ribs. Running lights follow ordinary
 practice (the lights layer has none): red port wing tip, green starboard,
 white stern, white prow strobe.
 
+Detail and cohesion pass (ls_detail, owner review 2026-10-19)
+"Lasher hull needs detail, sections seem 'disconnected'." The light pass
+left the gun pods, missile pods and nacelles as blocks set against the
+spine and wing. ls_detail runs after the structure, pods and drives and
+adds parts only (no base part is renamed or moved):
+- Join fairings: armour wedges carrying the spine's plating over the groove
+  onto each gun pod, ramping the gun pods' and missile pods' aft walls and
+  the missile pods' inboard walls down onto the wing, and fairing the
+  nacelles' forward walls into it; a gunmetal saddle with two conduits on
+  brackets in each spine-nacelle groove; a bridge frame tying each gun pod
+  to its missile pod; buttresses and a rail on the pinched spine; armour
+  collars seating the three barbettes.
+- Frames: transverse gunmetal ribs cut from the hull itself (a thin slab of
+  every host at one station, grown out of its skin), so one frame runs
+  unbroken across spine, fairing, pod and wing: the nose join (X 49) and
+  the nose (53.6), the neck (28.7), across neck, fairings and gun pods
+  (18.1, 23.5), the missile pods (5.8), spine and wing (-3.1), spine and
+  nacelles (-9.2, -23.3).
+- Surface detail at a 90 m hull's scale: draped armour panels on the wing
+  (their gaps are the panel seams), side panels and a belt on the bow head,
+  cheek and rake panels on the nose, side panels and ribs on the pods,
+  shoulder panels, cooling fins, an aft grille and a belt on the nacelles,
+  hatches with dark rims, vent grilles, drive bezels round the nacelle
+  bells and a collar where the main bell leaves the spine; a roof hatch and
+  sight hood on each gunhouse (trained with it).
+Every part is seated by ray-casts against the frozen hull (ls_detail.Field),
+none joins kit.hull (so the barbettes and lamps seat as before), and none is
+an enclosed volume, so the scale is unchanged. It also fixed a pass-2 fault
+the owner saw: the strake seams were never lowered onto the sloping wing
+(ls_hull.shear worked in the part's own coordinates) and hung up to three
+units above it like stray antennae. Silhouette IoU 0.950 (was 0.953).
+
 Slots (verified against the installed lasher.ship on every build)
   id      mount      size   type       location   angle  arc
   WS 001  HARDPOINT  SMALL  MISSILE    (11, 27)   0      5
@@ -107,7 +140,7 @@ The cinematic asset
 build_lasher.py saves lasher.blend: one collection `LASHER` with the root
 empty `LASHER | root` parenting every object, and the anchors in the child
 collection `LASHER | anchors`. Every modifier is baked (no live booleans or
-bevels), flat shaded, about 8,900 triangles and 128 meshes, eight
+bevels), flat shaded, about 18,900 triangles and 288 meshes, eight
 materials: Hegemony armour and gunmetal (each with light procedural wear on
 object coordinates), recess, bridge glazing, heat-vent glow and three
 running-light colours. No cameras, lamps or review rig are saved. Link or
@@ -151,9 +184,10 @@ renders fx-stern-quarter, fx-port-side and fx-shot-1500m.
 
 Silhouette check
 compose_review.py lays the sprite into the top camera frame and compares
-alpha masks: IoU 0.953 (0.9% of the sprite uncovered, 4.0% model outside it,
-mostly the hardpoint barrels and running lights the hull sprite does not
-draw, and chamfer overhang at the pod corners).
+alpha masks: IoU 0.950 after the detail pass (0.6% of the sprite uncovered,
+4.6% model outside it, mostly the hardpoint barrels and running lights the
+hull sprite does not draw, chamfer overhang at the pod corners, and the
+pod bridge frames and aft fairings at the pods' edges); 0.953 before it.
 
 Shot check (C1 v2)
 c1_core's camera (50 mm on a 36 mm sensor) at 1920x1080 under its sun
@@ -174,7 +208,7 @@ only the asset and geometry.json. Options after "--": --out DIR, --views,
 
 Files
 build_lasher.py (driver), ls_kit.py, ls_hull.py, ls_pods.py, ls_engines.py,
-ls_mounts.py, ls_lights.py (one module per area), vfx_hull.py and
+ls_detail.py, ls_mounts.py, ls_lights.py (one module per area), vfx_hull.py and
 export_effects.py (the VFX kit profile and export), review_effects.py,
 compare_lineup.py (true-scale lineup against another hull), compose_review.py (IoU,
 shot extents, review set; python3 with Pillow + numpy), verify_asset.py,
