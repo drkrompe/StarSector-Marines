@@ -1,10 +1,10 @@
 # Garrisonables
 
-Status: ACTIVE — reactive manning is shipped for fort-belt fighting positions on both Conquest sides (the defender's own belts, the attacker's taken ones) and for a player's squads that opt into it, and the player's machine assault on a believed-held garrisonable is built; other kinds remain direction.
+Status: ACTIVE — reactive manning is shipped for fort-belt fighting positions on both Conquest sides (the defender's own belts, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans (player and both Conquest commanders); other kinds remain direction.
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — the attacker holds what it takes (`attacker-holds-ground` scene); fort-belt reactive manning shipped; owner decisions on attackers, player opt-in and machines; the player's machine assault and the player's opt-in GARRISON stance are built.
+Updated: 2026-10-20 — machines screen the places their side mans (owner decision; the machine guard is built); earlier: the attacker holds what it takes; fort-belt reactive manning; the player's machine assault and opt-in GARRISON stance.
 
 ## Why this exists
 
@@ -280,7 +280,11 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
   fire, covering the believed threat axis with its own doctrine or turret, never
   entering — for the player as a GUARD order on a place the side mans, and for
   the commanders as a bounded attachment of a free machine to a manned, pressed
-  place. Story `machine-guard.md`.
+  place. Built (`ai-nouns.md`, machine guard under fighting positions; scene
+  `machine-guard`): the fun is a tank and a rifle squad reading as one position,
+  and a defending lance walking up beside the trench the attack leans on. A
+  guard screens the stretch of a run under the click, not the whole belt, which
+  is the same finer place the open question below asks for.
 
 ## Open questions
 

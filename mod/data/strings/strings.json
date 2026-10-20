@@ -489,6 +489,8 @@
     "battleOrderOccupyPosition": "OCCUPY POSITION",
     "battleOrderClearPlace": "CLEAR AND HOLD",
     "battleOrderAssaultPlace": "ASSAULT",
+    "battleOrderGuardPlace": "GUARD",
+    "battleOrderGuardStatus": "HEAVY SUPPORT",
     "unitModifierDugIn": "Dug in",
     "unitModifierLegWound": "Leg wound",
     "unitModifierArmWound": "Arm wound",
