@@ -1783,6 +1783,13 @@ def _house_heavyac2(g, f, s, r, z0):
         g['dark'].box(((xh-1.4+7.0)/2*k, y*k, za-(rb-.2)*k), ((7.0-xh+1.2)*k, (2*rb+.4)*k, .1*k))
     shell.cut().box((11.0*k, 0, z0+3*k), (8.6*k, 30*k, 8*k))                         # front face at x 2.7
     g['steel'].box((2.75*k, 0, z0+1.5*k), (.3*k, 16.0*k, 1.6*k), .08*k)               # its sill
+    # The apron the sleeve housings rest on, ahead of the face, so a raised finger shows
+    # the house's own deck under it, not the turntable.
+    apron = g['paint#apron']
+    apron.prism([(x*k, y*k) for x, y in _ccw([(2.6, -7.6), (8.0, -7.0), (9.2, -4.6), (9.4, 4.6), (8.0, 7.0),
+                                               (2.6, 7.6)])], z0, z0+.6*k, .4*k, z0+.95*k, glacis=True)
+    for y in (5.0, 0.0, -5.0):                     # a rest pad under each sleeve
+        g['steel'].box((6.6*k, y*k, z0+.98*k), (2.4*k, 1.6*k, .1*k), .03*k)
 
     def gun_parts(gg, za):
         sleeves, ribs = gg['plate#sleeves'], gg['plate#ribs']
