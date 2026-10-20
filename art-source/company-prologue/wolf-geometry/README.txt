@@ -154,7 +154,10 @@ wing seams and panels, outrigger sensor windows and down-firing RCS. The build
 checks the deployed pose (keel shoes and wedge soles on the ground, everything
 else clear of it, no wedge through the ground) and records `landing_gear` in
 geometry.json. Against ship-detail-guide.md (ship-detail-kit/check_detail.py,
---mpu 0.76, turrets excluded) both variants pass every gate: 0 faceted (hull
+--mpu 0.76, turrets excluded) both variants pass every gate but one: the
+pirate's 2 faceted objects (Hull head, Hull main body) are the carve imprints of
+the mining blaster's breech and the launcher collars, inside the weapons and
+never seen. Otherwise 0 faceted (hull
 lofts at 48 sections, pods 64, armour domes 64 sides, merchant turret sponsons
 64), 0.0 m unbevelled per 100 m2 (the skinned hull bodies take the guide's
 0.12 m plate bevel on edges of 55 degrees and sharper), no emissive off a lamp
@@ -170,9 +173,12 @@ Variants
 no pirate armour (domes, welded plates), the base hull's WS 002 / WS 003
 turrets back in wells sunk into low sponsons faired into the aft flanks (the
 base sprite's round wells; round 6 retired the full-depth drums), its own collection WOLF and asset wolf.blend,
-geometry-merchant.json, the vanilla wolf_Assault loadout (heavy blaster and
-Harpoons drawn with the kit's mining blaster and Annihilator forms for now:
-built_as in the manifest). Its livery is ../wolf-merchant-surface.
+geometry-merchant.json, the vanilla wolf_Assault loadout: the kit's heavy
+blaster in the prow trough (HARDPOINT_K .3, its capacitor housing in a breech
+pocket under the gun hood) and Harpoon launchers on the wing tips (k .3, the
+main body's flank carved to the launcher's shape). turret-kit/check_hardpoints.py
+finds no clips on either variant: the pirate's buried breech and sunk launcher
+collars are carved the same way. Its livery is ../wolf-merchant-surface.
 
 Shot checks
 At 1920x1080 on a 36 mm sensor, port bow quarter from a little above, low sun
