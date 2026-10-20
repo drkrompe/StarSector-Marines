@@ -36,9 +36,13 @@ catalogue field per slot: build(..., barrels=2).
 import json
 import math
 import os
+import sys
 import bmesh
 import bpy
 from mathutils import Matrix, Vector
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import turret_gimbal  # noqa: E402
 
 GAP = .08          # traverse gap, x ring radius: the trainable part starts this far up
 
@@ -575,8 +579,13 @@ def build(weapon, prefix, pivot, r, mats, mpu, detail='near', **over):
         a.parent = elev
         a.location = (x-trunnion[0], y-trunnion[1], z-trunnion[2])
         anchors.append(a)
-    return {'parts': house.emit()+gun.emit(), 'elevation': elev, 'muzzles': anchors, 'spec': s,
-            'moving': gun.all_empties()}
+    parts = house.emit()+gun.emit()
+    moving = gun.all_empties()
+    if s.get('gimbal', True):
+        # The slewing ring, yoke, trunnions, cradle or mantlet and recoil sleeves (turret_gimbal.py).
+        parts += turret_gimbal.fit(sys.modules[__name__], prefix, pivot, elev, s, f, r, trunnion, parts,
+                                   moving, mats)
+    return {'parts': parts, 'elevation': elev, 'muzzles': anchors, 'spec': s, 'moving': moving}
 
 
 def _gunhouse(g, f, s, r, z0):
@@ -1321,49 +1330,46 @@ def _house_lightac(g, f, s, r, z0):
 
 
 def _house_lightmg(g, f, s, r, z0):
-    """mg_light_turret_base.png: an open gunmetal frame, not a house - two
-    crossbars full width, side rails joining their ends, a ring round the
-    barrel well, and the pale receiver over the rear crossbar; the gun is a
-    slim stepped barrel with its belt chutes either side."""
+    """mg_light_turret_base.png: an open pedestal mount, not a house. A low gunmetal
+    frame on the turntable - two crossbars full width with pale lug ends, side rails
+    joining their ends, a well between them - carries the yoke (turret_gimbal: two
+    cheeks, bearings, trunnion pins, the feed into one trunnion and the sight on the
+    other). The gun rides the cradle: the pale receiver cover over the breech, a
+    charging handle, and the slim barrel in its recoil sleeve, banded and ending in a
+    flash hider. The trunnion and muzzle stand where the gun always stood."""
     k = _k(s, r)
     sp = sprite(s.get('sprite', s['weapon']))
-    g['paint'].box((0, 0, z0+.3*k), (10.0*k, 10.6*k, .6*k), .15*k)                     # deck plate
+    g['paint'].box((0, 0, z0+.18*k), (10.0*k, 10.6*k, .36*k), .1*k)                    # deck plate
     for x, w in ((3.8, 2.2), (-2.6, 3.0)):                                              # crossbars
-        g['plate'].box((x*k, 0, z0+.95*k), (w*k, 11.8*k, .9*k), .15*k)
+        g['plate'].box((x*k, 0, z0+.62*k), (w*k, 11.8*k, .55*k), .12*k)
         for sy in (1, -1):
             lug = g[f'steel#lug{x}{sy}']
-            lug.box((x*k, sy*5.5*k, z0+1.0*k), ((w+.3)*k, .8*k, 1.2*k), .12*k)          # lug ends
-            lug.cut().cyl((x*k, sy*5.9*k, z0+1.0*k), .3*k, .6*k, 'Y', n=16)            # pin socket
-            g['dark'].cyl((x*k, sy*5.62*k, z0+1.0*k), .3*k, .06*k, 'Y', n=16)
+            lug.box((x*k, sy*5.5*k, z0+.7*k), ((w+.3)*k, .8*k, .9*k), .1*k)            # lug ends
+            lug.cut().cyl((x*k, sy*5.9*k, z0+.7*k), .25*k, .6*k, 'Y', n=16)             # pin socket
+            g['dark'].cyl((x*k, sy*5.62*k, z0+.7*k), .25*k, .06*k, 'Y', n=16)
     for sy in (1, -1):
-        g['steel'].box((.6*k, sy*5.3*k, z0+.8*k), (7.6*k, .7*k, .7*k), .1*k)            # side rails
-        g['paint'].box((1.5*k, sy*2.3*k, z0+1.1*k), (5.6*k, 1.0*k, 1.6*k), .15*k)       # well ring
-    for x in (4.3, -1.2):
-        g['paint'].box((x*k, 0, z0+1.1*k), (1.0*k, 5.6*k, 1.6*k), .15*k)
-    g['dark'].box((1.5*k, 0, z0+.62*k), (4.6*k, 3.6*k, .1*k))
-    g['paint'].box((5.6*k, 0, z0+1.1*k), (1.8*k, 6.0*k, 1.6*k), .2*k)                  # neck
+        g['steel'].box((.6*k, sy*5.3*k, z0+.55*k), (7.6*k, .7*k, .5*k), .08*k)          # side rails
+    g['dark'].box((1.5*k, 0, z0+.37*k), (2.2*k, 3.6*k, .04*k))                         # the well's floor
     for sy in (1, -1):
-        g['steel'].box((-5.6*k, sy*2.4*k, z0+.6*k), (1.6*k, 1.8*k, 1.2*k), .12*k)       # rear feet
-    f.bolt_row(g['steel'], (-4.4*k, 4.0*k, z0+.62*k), (4.4*k, 4.0*k, z0+.62*k))
-    f.bolt_row(g['steel'], (-4.4*k, -4.0*k, z0+.62*k), (4.4*k, -4.0*k, z0+.62*k))
+        g['steel'].box((-5.6*k, sy*2.4*k, z0+.45*k), (1.6*k, 1.8*k, .9*k), .1*k)        # rear feet
+    f.bolt_row(g['steel'], (-4.4*k, 4.0*k, z0+.37*k), (4.4*k, 4.0*k, z0+.37*k))
+    f.bolt_row(g['steel'], (-4.4*k, -4.0*k, z0+.37*k), (4.4*k, -4.0*k, z0+.37*k))
     za = z0+2.2*k
 
     def gun_parts(gg, za):
-        gg['plate'].box((-1.4*k, 0, za+.1*k), (2.8*k, 2.6*k, 1.6*k), .2*k)              # pale receiver
-        gg['steel'].box((1.6*k, 0, za), (3.4*k, 2.0*k, 1.3*k), .12*k)
-        gg['steel'].box((-1.0*k, 0, za-1.0*k), (2.0*k, 1.4*k, 1.0*k), .1*k)            # pintle
+        gg['plate'].box((.7*k, 0, za+1.25*k), (2.6*k, 1.9*k, .3*k), .1*k)               # receiver cover
+        gg['steel'].cyl((-.4*k, 0, za+1.25*k), .18*k, 2.0*k, 'Y', n=10)                 # its hinge
+        gg['steel'].box((2.4*k, -1.2*k, za+.6*k), (.9*k, .5*k, .25*k), .05*k)           # charging handle
         rg = gg.sub('recoil 1', (1.0*k, 0, za), .1*r)
-        rg['metal'].cyl((7.8*k, 0, za), .95*k, 13.4*k, 'X', n=20, bevel=.08*k)          # barrel
+        rg['metal'].cyl((7.8*k, 0, za), .55*k, 13.4*k, 'X', n=20, bevel=.06*k)          # barrel
+        rg['metal'].cyl((4.6*k, 0, za), .8*k, 2.6*k, 'X', n=20, bevel=.06*k)            # chamber jacket
         for x in (9.5, 11.0, 12.5):
-            rg['dark'].cyl((x*k, 0, za), .98*k, .3*k, 'X', n=20)
-        rg['steel'].box((9.0*k, 0, za+1.0*k), (.6*k, .3*k, .4*k), .04*k)                 # front sight
-        rg['steel'].cyl((14.6*k, 0, za), 1.1*k, .9*k, 'X', n=18, bevel=.05*k)           # flash hider
+            rg['dark'].cyl((x*k, 0, za), .6*k, .3*k, 'X', n=20)
+        rg['steel'].box((10.0*k, 0, za+.65*k), (.5*k, .2*k, .3*k), .03*k)                # front sight
+        rg['steel'].cyl((14.6*k, 0, za), .8*k, .9*k, 'X', n=18, bevel=.05*k)            # flash hider
         rg['dark'].cyl((15.06*k, 0, za), .3*k, .04*k, 'X', n=10)
-        for sy in (1, -1):                                                              # belt chutes
-            gg['steel'].box((4.4*k, sy*1.5*k, za-.3*k), (8.0*k, .6*k, .9*k), .06*k)
-            gg['accent'].box((4.4*k, sy*1.5*k, za+.2*k), (7.6*k, .45*k, .25*k), .04*k)
     return (1.0*k, 0.0, za), {'k': k, 'sp': sp, 'z0': z0, 'gun_parts': gun_parts, 'no_mantlet': True,
-                              'muzzles': [(15.1*k, 0, za)]}
+                              'muzzles': [(15.1*k, 0, za)], 'elevation_limits': (-2, 60)}
 
 
 def _house_dualflak(g, f, s, r, z0):
