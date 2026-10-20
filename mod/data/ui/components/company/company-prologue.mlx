@@ -1,4 +1,4 @@
-<template props="heading,caption,note,skipLabel,title,narrative,dialogue,portrait,image,page,manifest,reserve,destination,nextLabel,nextDisabled,backDisabled,next,back,skip,skipClasses">
+<template props="heading,caption,note,skipLabel,title,narrative,dialogue,portrait,image,page,manifest,reserve,destination,nextLabel,nextDisabled,backDisabled,backClasses,next,back,skip,skipClasses">
   <div id="prologue-root" class="prologue-root">
     <div id="prologue-header" class="prologue-header console-header">
       <div id="prologue-heading" class="label title">{heading}</div>
@@ -23,7 +23,7 @@
           <div id="prologue-dialogue" class="label prologue-copy prologue-dialogue">{dialogue}</div>
         </div>
         <div id="prologue-controls" class="prologue-controls console-rail">
-          <button id="prologue-back" class="prologue-back" disabled="{backDisabled}" onclick="{back}">{i18n.openingUiCompanyPrologueBack}</button>
+          <button id="prologue-back" class="{backClasses}" disabled="{backDisabled}" onclick="{back}">{i18n.openingUiCompanyPrologueBack}</button>
           <button id="prologue-next" class="prologue-next" disabled="{nextDisabled}" onclick="{next}">{nextLabel}</button>
         </div>
       </div>
@@ -55,5 +55,7 @@
 .prologue-note { flex-grow: 1; white-space: normal; }
 .prologue-skip { white-space: normal; width: 200px; height: 38px; text-align: center; border-width: 1px; }
 /* A flow with no way out but through (the yard storybook) keeps the slot and drops the control. */
+/* A single page has nowhere to go back to (the Second Wind buy-back), so it drops Back the same way. */
+.prologue-back.prologue-back-off { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
 .prologue-skip.prologue-skip-off { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
 </style>
