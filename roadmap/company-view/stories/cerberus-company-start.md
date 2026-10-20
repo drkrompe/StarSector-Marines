@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED; live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-20 — One story path at every start port; 25 starting fuel and no Galatia Academy stipend, so no second squad before Relief. Live acceptance remains.
+Updated: 2026-10-20 — One story path at every start port; no starting fuel and no Galatia Academy stipend; start port locked through the shared OpeningPort order; a lost depot follows the company. Live acceptance remains.
 
 ## Outcome
 
@@ -40,11 +40,13 @@ separate from the workshop bill. The player chose one Cerberus and a staged plan
 consignment, with no support freighter. The start supplies 473 spendable credits,
 a separate 4,862-credit reserve usable only for the original ship's conversion (the
 yard waives the estimate's 124-credit pressure test when it pays), minimum
-crew plus five, 25 travel supplies and up to 25 fuel (the opening's work is all in Corvus, where
-travel burns none). Nothing aboard can buy a second squad before Relief, which is why the story
-Relief carries no squad cap: the depot founds Sabine's squad only, any other pays the full founding
-bill from the hold, and selling every crewman, all the fuel and both guns at the most favourable
-vanilla prices still falls short (`SecondSquadAffordabilityTest`). The start also withdraws the Galatia
+crew plus five, 25 travel supplies and no fuel (owner, 2026-10-20). The start always sets the fleet
+down in its port's own system, where travel burns none, so an empty tank cannot strand it; fuel is
+bought at the port when the company leaves. Nothing aboard can buy a second squad before Relief,
+which is why the story Relief carries no squad cap: the depot founds Sabine's squad only, any other
+pays the full founding bill from the hold, and selling every crewman and both guns at the most
+favourable vanilla prices still falls short (`SecondSquadAffordabilityTest`). Money earned through
+ordinary vanilla play before Relief is the sandbox's business, not the story's. The start also withdraws the Galatia
 Academy stipend that vanilla's skip-tutorial setup grants (15,000 a month), since a month of it
 would pay for that squad and contradicts the no-patron premise. The first successful conversion
 of this start's ship establishes a finite depot at that planet: 30 metals, 8 heavy
@@ -55,7 +57,20 @@ first, then cargo. Existing campaigns retain their funds and depot policy withou
 new grants or deductions. The depot is
 available only during interaction with its accessible working planetary port;
 leaving, visiting another market, reloading, or installing another conversion
-cannot replenish it. Ordinary starts receive no depot.
+cannot replenish it. A port that is lost to the company (gone, decivilized,
+hidden or hostile, but not merely disrupted) releases the stores: they are held at
+the next accessible working yard the company docks at, and stay there. Castle's
+course and the Intel then point to that next yard. Ordinary starts receive no depot.
+
+The start port is chosen once, when the start runs, by the shared `OpeningPort`
+order that Mara Venn's office also uses (`early-operation-nouns.md`): Jangala, the
+rest of Corvus, an Independent world, then the nearest to Corvus, among visible,
+populated, non-player planetary markets whose owner is not hostile and which have a
+spaceport, disrupted or not. It is kept while it stays eligible; otherwise the same
+order picks again. A fleet whose Cerberus is missing at start (another mod's setup)
+is given the start's own Second Wind and the gap is logged, rather than failing new-game
+creation. The Nexerelin start points Nexerelin's placement at that port, and leaves
+placement to Nexerelin when no port exists.
 
 ## Acceptance
 

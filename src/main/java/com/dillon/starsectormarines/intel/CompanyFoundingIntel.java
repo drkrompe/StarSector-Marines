@@ -37,7 +37,8 @@ public final class CompanyFoundingIntel extends BaseIntelPlugin {
         if (reserved > 0) info.addPara(Strings.format("openingCompanyFoundingIntelCastleSConversionReserveCreditsHeldOutside", reserved), 8);
         var depot = CerberusCompanyStart.depot();
         if (depot != null) {
-            info.addPara(Strings.get("openingCompanyFoundingIntelPrepaidDepotStockRemainingAvailableOnlyWhile"), 8);
+            info.addPara(Strings.get(CerberusCompanyStart.depotLost()
+                    ? "openingCompanyFoundingIntelDepotLost" : "openingCompanyFoundingIntelPrepaidDepotStockRemainingAvailableOnlyWhile"), 8);
             if (depot.protectedStock()) info.addPara(Strings.get("openingCompanyFoundingIntelShuttlePartsAndFirstSquadStoresAre"), 8);
             var presentation = new CampaignFabricationResources();
             depot.stock().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(e ->

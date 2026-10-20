@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Nexerelin's custom-start list names the Second Wind start, and the start knows where to put the fleet. */
@@ -29,9 +30,9 @@ class SecondWindNexStartTest {
     }
 
     @Test
-    void theFleetIsPlacedAtTheOpeningsYardElseJangala() {
+    void theFleetIsPlacedAtTheOpeningsYardElseLeftToNexerelin() {
         assertEquals("corvus_iv", SecondWindNexStart.startEntityId("corvus_iv"));
-        assertEquals("jangala", SecondWindNexStart.startEntityId(null));
-        assertEquals("jangala", SecondWindNexStart.startEntityId(""));
+        assertNull(SecondWindNexStart.startEntityId(null));
+        assertNull(SecondWindNexStart.startEntityId(""));
     }
 }

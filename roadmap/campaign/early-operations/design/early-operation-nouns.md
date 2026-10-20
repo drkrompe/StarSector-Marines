@@ -512,11 +512,14 @@ every survivor is uninjured. The exchange grants nothing and is absent on defeat
 and recurring work. Its unrecorded transcript offers no audio playback controls;
 the existing tactical radio recordings remain the operational briefing.
 
-The office uses reachable campaign geography. Prefer Jangala when it is a visible,
-populated, non-player planetary market whose owner is not hostile to the player.
-Otherwise use a qualifying Independent planet, then another qualifying planet,
-with stable market-id ordering within each preference. Stations, hidden markets,
-and player colonies cannot become an office. This is a read-only location policy,
+The office uses reachable campaign geography, through the one place order the
+opening shares with Second Wind's yard (`OpeningPort`). A qualifying market is a
+visible, populated, non-player planetary market whose owner is not hostile to the
+player. When the company's own port (Second Wind's start yard, or its depot)
+qualifies, the office is there. Otherwise prefer Jangala, then the rest of Corvus,
+then an Independent world, then the qualifying world nearest Corvus, with market id
+breaking a tie. Stations, hidden or decivilized markets, and player colonies cannot
+become an office. This is a read-only location policy,
 not a simulated travelling contact: current campaign facts determine its location,
 and HQ and local offers consult the same answer. If no office is accessible, HQ
 says so and disables its course control. It never points to an absent planet.

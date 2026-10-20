@@ -2576,6 +2576,7 @@
     "openingCompanyFoundingIntelCastleSContactOnJangalaIsNessa": "Castle''s contact on {0} is Nessa Venn, a yard forewoman from her old ore runs. Nessa has agreed to take on the conversion and hold your prepaid stores.",
     "openingCompanyFoundingIntelCastleSConversionReserveCreditsHeldOutside": "Castle''s conversion reserve: {0} credits, held outside the fleet account for the original Second Wind only.",
     "openingCompanyFoundingIntelPrepaidDepotStockRemainingAvailableOnlyWhile": "Prepaid depot stock remaining (available only while docked at its planet):",
+    "openingCompanyFoundingIntelDepotLost": "The port holding our prepaid stores is closed to us now. Castle has had them sent on; they will be held at the next working yard we dock at:",
     "openingCompanyFoundingIntelShuttlePartsAndFirstSquadStoresAre": "Shuttle parts and first-squad stores are separately earmarked. Other workshop jobs cannot draw these supplies.",
     "openingOfficerSpecialtyIncomingAccuracyForThisOfficerSDeployed": "Incoming accuracy -{0}% for this officer''s deployed marines.",
     "openingOfficerSpecialtyWoundedRecoveryTimeForThisOfficerS": "Wounded recovery time -{0}% for this officer''s deployed marines.",

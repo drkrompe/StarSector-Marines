@@ -11,7 +11,7 @@ import java.util.Map;
 /** A finite prepaid consignment, held at one planet rather than in the ship's hold. */
 public final class PreparationDepot implements Serializable {
     private static final long serialVersionUID = 1L;
-    private final String marketId;
+    private String marketId;
     private final Map<String, Integer> stock = new LinkedHashMap<>();
     // Null on legacy saves: their remaining stock keeps its original unrestricted policy.
     private Map<String, Integer> boatStock;
@@ -30,6 +30,11 @@ public final class PreparationDepot implements Serializable {
             (protectedStock ? squadStock : stock).merge(line.commodityId(), line.quantity(), Integer::sum);
     }
     public String marketId() { return marketId; }
+    /** Moves the remaining stores to another port, for a depot whose own port was lost. Nothing is added. */
+    public void relocate(String marketId) {
+        if (marketId == null || marketId.isBlank()) throw new IllegalArgumentException("market id is required");
+        this.marketId = marketId;
+    }
     public boolean protectedStock() { return boatStock != null && squadStock != null; }
     public int available(String commodity) { return stock().getOrDefault(commodity, 0); }
     public Map<String, Integer> stock() {
