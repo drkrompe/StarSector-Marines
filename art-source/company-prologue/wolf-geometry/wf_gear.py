@@ -1,37 +1,35 @@
 """Wolf landing gear and the designed underside (round 8, owner: "Underside and
-landing needs to be figured out for this ship").
+landing needs to be figured out for this ship"; then, on the first design:
+"I'd rather have 'wedges' that come out along the side of the under hull with
+'thick' bracing. The ship should sit on its 'keel' with the edges stopping it
+from rolling").
 
-How it lands. Four telescoping legs, each in a flat-bottomed gear sponson under
-the main body, and four ventral lift thrusters, because the three drives only
-push aft: a frigate that sets down on a pad or open ground has to hover on its
-belly first. Telescoping legs suit an armed, fast hull better than the
-alternatives the project already has:
-- folding gear (the Broadsword's tricycle) needs long wells and hinged doors,
-  and every hinged door is an open seam on the belly that takes fire;
-- broad keel skids (the Colossus) are for a hauler that never needs a clean,
-  fast hull, and they would hang below the keel the whole flight;
-- a telescoping leg stows straight up into its own well, its round foot pad
-  is the armoured plug that closes it, flush with the sponson's flat floor,
-  and there is no door to jam or lose.
+How it lands. The Wolf sits on its keel: two thick armoured keel shoes run
+along the keel's bottom, fore and aft of the docking collar, and they are the
+lowest thing on the hull, so the collar and the sensor blister stand clear of
+the ground. A keel alone rolls, so four wedges (two a side, fore and aft) swing
+down off the lower hull sides and plant their toes well outboard: the stance
+is about 34 units (25 m) wide on a keel 2 units wide. In flight each wedge lies
+flat against the lower hull side, its outer face part of the side armour. It
+turns about a hinge along the bottom edge of the side, falling outward and
+down about 130 degrees, until its cut toe sits flat on the ground.
 
-Load paths. The keel is the backbone. Each sponson sits on a transverse gear
-frame that runs from the keel's side wall out under the main body, so a leg's
-load goes up its barrel into the frame and the keel. Forward pair under the
-neck/main body join (X 20, |Y| 9), aft pair under the aft body ahead of the
-drive section (X -14, |Y| 10), which carries the drives' mass: a 34-unit
-(26 m) wheelbase and an 18-20 unit (14-15 m) track.
+Bracing. Each wedge is a thick tapered plate stiffened by heavy ribs on the
+face that lies against the hull in flight, so on the ground the ribs stand on
+its upper side. Two thick hydraulic rams brace it from above: they run from
+deep in the main body, out through slots in the hull side that the stowed
+wedge covers, down to its two end ribs. The roll load goes up the rams into
+the main body and along the hinge line into the hull side. Four ventral lift thrusters in heat-shield tile rings set it
+down on that stance, because the drives only push aft.
 
-Size. The game gives the Wolf a mass of 200, which is relative. By volume
-(about 17,000 m3 at 0.76 m/u) a hull this size is a couple of thousand tonnes;
-four pads 1.8 m in radius (2.4 units) carry that on firm gravel at a few
-hundred kPa. Parked, the keel stands GROUND clear of the ground.
-
-Retraction. Each leg is three nested stages: the barrel is fixed in the well;
-stage 2 and the oleo (stage 3, carrying the pad) slide straight down. Every
-moving part is parented to the empty 'Hull <leg> stage <k> slide', whose
-custom property slide_units is its travel at gear_down 1 (along hull -Z).
-pose(t) sets them: 0 is stowed (built), 1 deployed. The cinematic export
-drives the same translations from its control empty's gear_down knob.
+Motion. Each wedge is parented to the empty 'Hull <wedge> hinge' (rotation about
+hull X; custom property stow_deg is its angle at gear_down 0). Each ram is two
+parts: the cylinder on 'Hull <wedge> ram <k> pivot' at its hull end, and the rod
+on 'Hull <wedge> ram <k> rod pivot' at the wedge, both aimed along the line
+between the two ends. The geometry is built deployed; pose(t) sets every
+rotation and position: 0 is stowed (the rest state), 1 deployed. The cinematic
+export drives the same rotations and positions from the gear_down knob, with
+the closed-form expressions in expressions().
 """
 import math
 import bmesh
@@ -40,11 +38,13 @@ from mathutils import Matrix, Vector
 
 from wf_fittings import SIDES, down, frame, join, pipe, plate, put, side, strip, up
 
-GROUND_Z = -22.0            # the parked ground plane in hull units (keel about 3.4 above)
-PAD_R, WELL_R, SPONSON_R = 2.4, 2.56, 3.05
-# (leg, x, y)
-LEGS = [('port fore gear', 20.0, 9.0), ('starboard fore gear', 20.0, -9.0),
-        ('port aft gear', -14.0, 10.0), ('starboard aft gear', -14.0, -10.0)]
+GROUND_Z = -19.4            # the parked ground plane in hull units: the keel shoes' soles
+# (wedge, x0, x1): two a side, under the main body forward and the aft body.
+WEDGES = [('fore wedge', 15.0, 24.0), ('aft wedge', -17.5, -8.5)]
+HINGE_Y = 12.6              # the hinge line along the lower edge of the hull side
+TOE_OUT = 4.2               # the toe lands this far outboard of the hinge line
+ROOT_T, TIP_T = 2.4, 1.0    # wedge thickness at the hinge (1.8 m) and at the toe (0.8 m)
+RAM_HULL = (8.0, 2.0)       # (|Y|, Z) of each ram's hull end, deep in the main body
 # Ventral lift thrusters: (index, x, y). Two under the neck, two under the drive section.
 LIFTS = [(1, 32.0, 5.2), (2, 32.0, -5.2), (3, -24.6, 5.6), (4, -24.6, -5.6)]
 RECORD = {}
@@ -109,76 +109,216 @@ def belly_range(kit, x, y, r):
     return min(zs), max(zs)
 
 
-def gear(kit):
+def yz_prism(kit, name, poly, x0, x1, mat, bevel=0):
+    """A solid extruded along X from a YZ polygon [(y, z), ...]."""
+    n = len(poly)
+    verts = [(x, y, z) for x in (x0, x1) for y, z in poly]
+    faces = [tuple(range(n)), tuple(range(2*n-1, n-1, -1))]
+    faces += [(i, n+i, n+(i+1) % n, (i+1) % n) for i in range(n)]
+    return kit.mesh(name, verts, faces, mat, bevel)
+
+
+def rot(v, a):
+    """v (y, z) turned by a about hull X."""
+    c, s = math.cos(a), math.sin(a)
+    return Vector((v[0]*c - v[1]*s, v[0]*s + v[1]*c))
+
+
+def ang(v):
+    return math.atan2(v[1], v[0])
+
+
+def keel_shoes(kit):
+    """The keel's two armoured shoes: the hull rests on these. Flat soles on the
+    ground plane, ramped ends, fore and aft of the docking collar."""
+    from wf_kit import loft_x
+    steel = kit.steel
+    shoes = []
+    for name, x0, x1 in (('Hull keel shoe aft', -17.5, -2.4), ('Hull keel shoe fore', 6.4, 18.8)):
+        st = []
+        for i in range(25):
+            x = x0 + (x1-x0)*i/24
+            p, _ = up(kit, x, 0.0)
+            top = p.z + .7
+            ramp = min(1.0, (x-x0)/1.6, (x1-x)/1.6)
+            g = GROUND_Z + (1-ramp)*.9
+            hw = 1.25 + .1*ramp
+            st.append((x, [(-hw, g), (hw, g), (hw+.4, g+.45), (hw+.4, top), (-hw-.4, top), (-hw-.4, g+.45)][::-1]))
+        ob = loft_x(kit, name, st, steel, 0)
+        rounded(ob, .06, 2)
+        shoes.append({'name': name, 'x': [x0, x1], 'sole_z': GROUND_Z})
+    RECORD['keel_shoes'] = shoes
+
+
+def wedges(kit):
     from wf_kit import boolean
     red, steel, dark = kit.red, kit.steel, kit.dark
     chrome = bpy.data.materials.get('Wolf oleo chrome')
     if chrome is None:
         from wf_kit import material
         chrome = material('Wolf oleo chrome', (.55, .56, .58), 1.0, .18)
-    legs = []
-    for leg, x, y in LEGS:
-        n = f'Hull {leg}'
-        lo, hi = belly_range(kit, x, y, SPONSON_R)
-        seat = round(lo - .55, 3)               # the sponson's flat floor and the stowed pad's sole
-        travel = round(seat - GROUND_Z, 3)
-        s = 1 if y > 0 else -1
-        # Sponson: a short drum faired into the belly, rounded at its floor, with a
-        # gear frame running inboard to the keel's side wall.
-        top = hi + 1.2
-        spon = lathe_z(kit, f'{n} sponson', [(0, seat), (SPONSON_R-.35, seat), (SPONSON_R, seat+.35),
-                                             (SPONSON_R, top), (0, top)], x, y, red)
-        well = kit.cylinder(f'Temporary {n} well', (x, y, seat+2.6), WELL_R, 5.4, dark, 'Z', 64, 0)
-        boolean(spon, well)
-        rounded(spon, .08, 2)
-        ceil = lo - .03                         # just under the belly skin: the well reads as a dark recess
-        lathe_z(kit, f'{n} well liner', [(0, ceil), (WELL_R-.01, ceil), (WELL_R-.01, seat+.2),
-                                         (WELL_R-.08, seat+.2), (WELL_R-.08, ceil-.08), (0, ceil-.08)], x, y, dark)
-        ky = 4.6*s
-        frame_len = abs(y - ky) - SPONSON_R + .6
-        fy = ky + s*frame_len/2
-        # The gear frame: a deep beam from the keel's side wall to the sponson, its
-        # underside level with the sponson's rim, buried in the belly above.
-        z0, z1 = seat + .45, belly_range(kit, x, fy, .1)[1] + 1.0
-        web = kit.box(f'{n} frame', (x, fy, (z0+z1)/2), (1.8, frame_len, z1-z0), steel, 0)
-        rounded(web, .18, 3)
-        # The leg, built stowed: pad sole flush with the sponson floor.
-        barrel = [kit.cylinder(f'{n} barrel', (x, y, seat+3.0), 1.1, 4.0, steel, 'Z', 48, .05),
-                  kit.cylinder(f'{n} barrel gland', (x, y, seat+1.05), 1.24, .34, dark, 'Z', 48, .04)]
-        st2 = [kit.cylinder(f'{n} stage 2', (x, y, seat+3.05), .88, 5.0, steel, 'Z', 48, .04),
-               kit.cylinder(f'{n} stage 2 gland', (x, y, seat+.72), 1.0, .3, dark, 'Z', 48, .03)]
-        st3 = [kit.cylinder(f'{n} oleo', (x, y, seat+3.15), .66, 5.0, chrome, 'Z', 48, .03),
-               kit.cylinder(f'{n} pad', (x, y, seat+.22), PAD_R, .36, red, 'Z', 64, .06),
-               kit.cylinder(f'{n} pad sole', (x, y, seat+.02), PAD_R-.12, .04, steel, 'Z', 64, 0),
-               kit.cylinder(f'{n} pad boss', (x, y, seat+.54), 1.2, .3, steel, 'Z', 48, .05)]
-        bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=.72, location=(x, y, seat+.8))
-        st3.append(kit.finish(bpy.context.object, f'{n} pad ball joint', steel))
-        # Anti-rotation torque links: two arms from the stage-2 gland to the pad boss,
-        # folded flat when stowed, shown as the straight deployed pair.
-        for k, a in enumerate((0, math.pi), 1):
-            off = Vector((math.cos(a)*1.25, math.sin(a)*1.25, 0))
-            st3.append(pipe(kit, f'{n} torque link {k}', Vector((x, y, seat+.7))+off,
-                            Vector((x, y, seat+1.3))+off*.8, .11, steel))
-        h2 = hinge(f'{n} stage 2 slide', (x, y, seat), slide_axis='-Z', slide_units=round(travel/2, 3),
-                   note='built stowed; at gear_down 1 it has slid slide_units along hull -Z')
-        h3 = hinge(f'{n} stage 3 slide', (x, y, seat), slide_axis='-Z', slide_units=travel,
-                   note='built stowed; carries the oleo and the pad; slide_units along hull -Z at gear_down 1')
-        adopt(h2, st2)
-        adopt(h3, st3)
-        legs.append({'name': n, 'xy': [x, y], 'seat_z': seat, 'travel_units': travel,
-                     'slides': [h2.name, h3.name], 'pad': f'{n} pad', 'pad_radius_units': PAD_R,
-                     'sole': f'{n} pad sole'})
-    RECORD['legs'] = legs
+    out = []
+    for wname, x0, x1 in WEDGES:
+        xm = (x0+x1)/2
+        for side_, s in SIDES:
+            n = f'Hull {side_} {wname}'
+            hp, _ = up(kit, xm, s*HINGE_Y)
+            H = Vector((s*HINGE_Y, hp.z - .1))
+            # Stowed, the wedge is the hull side's own shape: its outer face follows the
+            # side from the hinge up, so it closes flush. Walk up the side until the chord
+            # from the hinge is long enough to reach the ground when deployed.
+            u = Vector((s*TOE_OUT, GROUND_Z - H.y)).normalized()     # deployed chord direction
+            Lc = (GROUND_Z - .5 - H.y)/u.y                            # the outer toe is lowest deployed
+            prof = []
+            z = H.y + .15
+            while z < H.y + 30:
+                p, nn = side(kit, xm, z, s)
+                if p is not None:
+                    E = Vector((p.y + s*.05, p.z))
+                    if (E - H).length > .3:
+                        prof.append((E, Vector((nn.y, nn.z)).normalized()))
+                        if (E - H).length >= Lc:
+                            break
+                z += .08
+            prof = [(H.copy(), prof[0][1])] + prof
+            arc = [0.0]
+            for (a, _), (b, _) in zip(prof, prof[1:]):
+                arc.append(arc[-1] + (b - a).length)
+            pick = [min(range(len(arc)), key=lambda j: abs(arc[j] - arc[-1]*i/16)) for i in range(17)]
+            prof = [prof[j] for j in sorted(set(pick))]
+            arcs = [arc[j] for j in sorted(set(pick))]
+            fr = [a/arcs[-1] for a in arcs]
+            stow = (ang(prof[-1][0] - H) - ang(u) + math.pi) % (2*math.pi) - math.pi
+
+            def dep(v):
+                return H + rot(v - H, -stow)
+            E = [dep(e) for e, _ in prof]
+            I = [dep(e - nn*(ROOT_T + (TIP_T-ROOT_T)*f)) for (e, nn), f in zip(prof, fr)]
+            RIB = [dep(e - nn*(ROOT_T + (TIP_T-ROOT_T)*f + 1.4 - .9*f)) for (e, nn), f in zip(prof, fr)]
+            IN = [dep(e - nn*(ROOT_T + (TIP_T-ROOT_T)*f - .05)) for (e, nn), f in zip(prof, fr)]
+            ground = kit.box(f'Temporary {n} ground clip', (xm, H.x, GROUND_Z + 20), (40, 60, 40), steel, 0)
+            body = yz_prism(kit, n, [tuple(v) for v in E + I[::-1]], x0, x1, red)
+            boolean(body, ground, 'INTERSECT', keep=True)
+            rounded(body, .12, 3)
+            parts = [body]
+            # Ribs on the face that lies against the hull in flight: the bracing, deep at
+            # the root, shallower toward the toe; on the ground they stand on top.
+            for k, xr in enumerate((x0+.45, xm, x1-.45), 1):
+                rib = yz_prism(kit, f'{n} rib {k}', [tuple(v) for v in IN + RIB[::-1]], xr-.35, xr+.35, steel)
+                boolean(rib, ground, 'INTERSECT', keep=True)
+                parts.append(rounded(rib, .07, 2))
+            # A tread plate on the toe's cut sole.
+            poly = E + I[::-1]
+            ys = []
+            for a, b in zip(poly, poly[1:] + poly[:1]):
+                if (a.y - GROUND_Z)*(b.y - GROUND_Z) < 0:
+                    ys.append(a.x + (b.x - a.x)*(GROUND_Z - a.y)/(b.y - a.y))
+            ys = sorted(ys)[:1] + sorted(ys)[-1:]
+            sole_y = (ys[0]+ys[-1])/2
+            sole = kit.box(f'{n} sole', (xm, sole_y, GROUND_Z + .03), (x1-x0-.5, max(.4, abs(ys[-1]-ys[0])-.3), .06),
+                           dark, 0)
+            parts.append(sole)
+            mid = len(prof)//2
+            W_ram = (I[mid] + RIB[mid])/2
+            # Hinge knuckles on the wedge; hull lugs between them stay with the hull.
+            for k, (a, b) in enumerate(((x0+.2, x0+2.0), (xm-.9, xm+.9), (x1-2.0, x1-.2)), 1):
+                parts.append(kit.cylinder(f'{n} knuckle {k}', ((a+b)/2, H.x, H.y), 1.0, b-a, steel, 'X', 48, .06))
+            for k, (a, b) in enumerate(((x0+2.1, xm-1.0), (xm+1.0, x1-2.1)), 1):
+                kit.cylinder(f'{n} hinge lug {k}', ((a+b)/2, H.x, H.y), .92, b-a, steel, 'X', 48, .06)
+            kit.cylinder(f'{n} hinge pin', (xm, H.x, H.y), .42, x1-x0+.4, dark, 'X', 24, .02)
+            bpy.data.objects.remove(ground, do_unlink=True)
+            h = hinge(f'{n} hinge', (xm, H.x, H.y), open_axis='X', stow_deg=round(math.degrees(stow), 3),
+                      note='built deployed; rotate stow_deg about hull X to stow (gear_down 0)')
+            adopt(h, parts)
+            rec = {'name': n, 'hinge': h.name, 'H': [round(H.x, 4), round(H.y, 4)], 'stow_deg': h['stow_deg'],
+                   'x': [x0, x1], 'sole': sole.name, 'sole_y': round(sole_y, 4), 'rams': []}
+            # Rams: hull end inside the main body, rod end on each end rib.
+            P = Vector((s*RAM_HULL[0], RAM_HULL[1]))
+            W = W_ram
+            d = W - P
+            dirv = Vector((0, d.x, d.y)).normalized()
+            q = Vector((0, 0, 1)).rotation_difference(dirv).to_matrix().to_4x4()
+            for k, xr in enumerate((x0+1.1, x1-1.1), 1):
+                pv = hinge(f'{n} ram {k} pivot', (xr, P.x, P.y), open_axis='X', note='hull end of the ram')
+                rv = hinge(f'{n} ram {k} rod pivot', (xr, W.x, W.y), open_axis='X', note='wedge end of the ram')
+                cyl_len, rod_len = .6*d.length, .62*d.length
+
+                def along(name, start, length, r, mat):
+                    ob = kit.cylinder(name, (0, 0, 0), r, length, mat, 'Z', 40, .04)
+                    ob.matrix_world = Matrix.Translation(Vector((xr, start.x, start.y)) + dirv*length/2) @ q
+                    return ob
+                cyl = [along(f'{n} ram {k} cylinder', P, cyl_len, 1.05, steel),
+                       along(f'{n} ram {k} gland', P + d.normalized()*(cyl_len-.22), .44, 1.22, dark)]
+                rodp = [along(f'{n} ram {k} rod', W - d.normalized()*rod_len, rod_len, .7, chrome)]
+                bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=1.0, location=(xr, W.x, W.y))
+                rodp.append(kit.finish(bpy.context.object, f'{n} ram {k} eye', steel))
+                adopt(pv, cyl)
+                adopt(rv, rodp)
+                # The slot the deployed ram leaves the hull side by (under the stowed wedge).
+                for i in range(1, 80):
+                    c = P + d*(i/80)
+                    bp, bn = side(kit, xr, c.y, s)
+                    if bp is not None and s*c.x > s*bp.y:
+                        put(kit.box(f'{n} ram {k} slot', (0, 0, .02), (2.1, 2.6, .06), dark, 0), frame(bp, bn))
+                        break
+                rec['rams'].append({'pivot': pv.name, 'rod_pivot': rv.name, 'P': [round(P.x, 4), round(P.y, 4)],
+                                    'W': [round(W.x, 4), round(W.y, 4)], 'base': round(ang(d), 6)})
+            out.append(rec)
+    RECORD['wedges'] = out
+
+
+def wedge_state(rec, t):
+    """(hinge angle, [(ram angle offset, rod pivot (y, z)), ...]) at gear_down t."""
+    a = math.radians(rec['stow_deg'])*(1-t)
+    H = Vector(rec['H'])
+    rams = []
+    for r in rec['rams']:
+        W = H + rot(Vector(r['W']) - H, a)
+        rams.append((ang(W - Vector(r['P'])) - r['base'], W))
+    return a, rams
 
 
 def pose(gear_down):
-    """0 = stowed (built), 1 = deployed. Translations only."""
+    """0 = stowed (the rest state), 1 = deployed."""
     t = max(0.0, min(1.0, gear_down))
-    for leg in RECORD.get('legs', []):
-        for nm in leg['slides']:
-            h = bpy.data.objects[nm]
-            h.location.z = leg['seat_z'] - h['slide_units']*t
+    for rec in RECORD.get('wedges', []):
+        a, rams = wedge_state(rec, t)
+        bpy.data.objects[rec['hinge']].rotation_euler.x = a
+        for r, (da, W) in zip(rec['rams'], rams):
+            bpy.data.objects[r['pivot']].rotation_euler.x = da
+            rv = bpy.data.objects[r['rod_pivot']]
+            rv.location.y, rv.location.z = W.x, W.y
+            rv.rotation_euler.x = da
     bpy.context.view_layer.update()
+
+
+def expressions(rec):
+    """Driver expressions in the knob k: [(object, data path, index, expression), ...].
+
+    Blender truncates a driver expression at 256 characters, so constants are
+    folded and rounded to 5 decimals (a ten-thousandth of a unit)."""
+    def f(v):
+        return f'{v:.5f}'.rstrip('0').rstrip('.')
+    a = f"({f(math.radians(rec['stow_deg']))}*(1-k))"
+    out = [(rec['hinge'], 'rotation_euler', 0, a)]
+    hy, hz = rec['H']
+    for r in rec['rams']:
+        dy, dz = r['W'][0] - hy, r['W'][1] - hz
+        wy = f"{f(hy)}+{f(dy)}*cos({a})-{f(dz)}*sin({a})"
+        wz = f"{f(hz)}+{f(dy)}*sin({a})+{f(dz)}*cos({a})"
+        ry = f"{f(hy - r['P'][0])}+{f(dy)}*cos({a})-{f(dz)}*sin({a})"
+        rz = f"{f(hz - r['P'][1])}+{f(dy)}*sin({a})+{f(dz)}*cos({a})"
+        da = f"atan2({rz},{ry})-({f(r['base'])})"
+        out += [(r['pivot'], 'rotation_euler', 0, da), (r['rod_pivot'], 'rotation_euler', 0, da),
+                (r['rod_pivot'], 'location', 1, wy), (r['rod_pivot'], 'location', 2, wz)]
+    assert all(len(e[3]) < 256 for e in out), max(len(e[3]) for e in out)
+    return out
+
+
+def gear(kit):
+    keel_shoes(kit)
+    wedges(kit)
+    pose(0.0)
 
 
 def lifts(kit):
@@ -220,8 +360,8 @@ def lifts(kit):
 
 
 def keel(kit):
-    """Keel frames, a rubbing strake down the centre, and a heat-shield tile field
-    either side of it, clear of the sensor blister and the docking collar."""
+    """Keel frames across the keel, and a heat-shield tile field either side of the
+    keel shoes, clear of the sensor blister and the docking collar."""
     steel, dark = kit.steel, kit.dark
     tile = heat_tile_material()
     frames = []
@@ -233,26 +373,15 @@ def keel(kit):
         if st:
             frames.append(st)
     join(frames, 'Hull keel frames')
-    pts = [up(kit, x, 0.0) for x in [-18.0+i*.5 for i in range(83)]]
-    pts = [(p, n) for p, n in pts if p is not None and not (abs(p.x-2.0) < 2.6 or abs(p.x-22.0) < 2.8)]
-    runs, cur = [], []
-    for p, n in pts:
-        if cur and (p - cur[-1][0]).length > .9:
-            runs.append(cur)
-            cur = []
-        cur.append((p, n))
-    runs.append(cur)
-    for k, run in enumerate(runs, 1):
-        strip(kit, f'Hull keel strake {k}', run, 1.1, .3, steel)
     tiles = []
     for x in [-15.0+i*1.9 for i in range(21)]:
         if abs(x-2.0) < 3.0 or abs(x-22.0) < 3.0:
             continue
-        for y in (-2.6, -1.4, 1.4, 2.6):
+        for y in (-3.3, -2.3, 2.3, 3.3):
             p, n = up(kit, x, y)
             if p is None or n.z > -.85:          # only where the keel faces down
                 continue
-            tiles.append(put(kit.box('tile', (0, 0, .05), (1.75, 1.1, .12), tile, .03), frame(p, n)))
+            tiles.append(put(kit.box('tile', (0, 0, .05), (1.75, .9, .12), tile, .03), frame(p, n)))
     join(tiles, 'Hull keel heat shield tiles')
 
 
@@ -323,5 +452,7 @@ def build(kit):
 
 
 def record():
-    return {'ground_z_units': GROUND_Z, 'legs': RECORD['legs'], 'lift_thrusters': RECORD['lift_thrusters'],
-            'note': 'rest is gear stowed (flight); at gear_down 1 every pad sole stands on ground_z_units in hull space'}
+    return {'ground_z_units': GROUND_Z, 'keel_shoes': RECORD['keel_shoes'], 'wedges': RECORD['wedges'],
+            'lift_thrusters': RECORD['lift_thrusters'],
+            'note': 'rest is wedges stowed (flight); at gear_down 1 the hull rests on its keel shoes on '
+                    'ground_z_units in hull space, the four wedges braced on the ground outboard'}

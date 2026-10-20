@@ -137,7 +137,7 @@
     "size_m": [
       72.3,
       39.3,
-      31.9
+      33.3
     ],
     "person_1_8_m_in_units": 2.37,
     "not_this": "landed-ships-true-scale.md (battle-map readability) is a different, smaller number"
@@ -157,7 +157,7 @@
     "min": [
       -40.2,
       -25.83,
-      -20.34
+      -22.09
     ],
     "max": [
       54.91,
@@ -167,7 +167,7 @@
     "size": [
       95.11,
       51.65,
-      42.0
+      43.75
     ]
   },
   "weapon_slots": [
@@ -680,71 +680,197 @@
     }
   ],
   "landing_gear": {
-    "ground_z_units": -22.0,
-    "legs": [
+    "ground_z_units": -19.4,
+    "keel_shoes": [
       {
-        "name": "Hull port fore gear",
-        "xy": [
-          20.0,
-          9.0
+        "name": "Hull keel shoe aft",
+        "x": [
+          -17.5,
+          -2.4
         ],
-        "seat_z": -14.446,
-        "travel_units": 7.554,
-        "slides": [
-          "Hull port fore gear stage 2 slide",
-          "Hull port fore gear stage 3 slide"
-        ],
-        "pad": "Hull port fore gear pad",
-        "pad_radius_units": 2.4,
-        "sole": "Hull port fore gear pad sole"
+        "sole_z": -19.4
       },
       {
-        "name": "Hull starboard fore gear",
-        "xy": [
-          20.0,
-          -9.0
+        "name": "Hull keel shoe fore",
+        "x": [
+          6.4,
+          18.8
         ],
-        "seat_z": -14.445,
-        "travel_units": 7.555,
-        "slides": [
-          "Hull starboard fore gear stage 2 slide",
-          "Hull starboard fore gear stage 3 slide"
+        "sole_z": -19.4
+      }
+    ],
+    "wedges": [
+      {
+        "name": "Hull port fore wedge",
+        "hinge": "Hull port fore wedge hinge",
+        "H": [
+          12.6,
+          -12.3714
         ],
-        "pad": "Hull starboard fore gear pad",
-        "pad_radius_units": 2.4,
-        "sole": "Hull starboard fore gear pad sole"
+        "stow_deg": 134.005,
+        "x": [
+          15.0,
+          24.0
+        ],
+        "sole": "Hull port fore wedge sole",
+        "sole_y": 17.0396,
+        "rams": [
+          {
+            "pivot": "Hull port fore wedge ram 1 pivot",
+            "rod_pivot": "Hull port fore wedge ram 1 rod pivot",
+            "P": [
+              8.0,
+              2.0
+            ],
+            "W": [
+              15.5428,
+              -15.1369
+            ],
+            "base": -1.156165
+          },
+          {
+            "pivot": "Hull port fore wedge ram 2 pivot",
+            "rod_pivot": "Hull port fore wedge ram 2 rod pivot",
+            "P": [
+              8.0,
+              2.0
+            ],
+            "W": [
+              15.5428,
+              -15.1369
+            ],
+            "base": -1.156165
+          }
+        ]
       },
       {
-        "name": "Hull port aft gear",
-        "xy": [
-          -14.0,
-          10.0
+        "name": "Hull starboard fore wedge",
+        "hinge": "Hull starboard fore wedge hinge",
+        "H": [
+          -12.6,
+          -12.3727
         ],
-        "seat_z": -14.538,
-        "travel_units": 7.462,
-        "slides": [
-          "Hull port aft gear stage 2 slide",
-          "Hull port aft gear stage 3 slide"
+        "stow_deg": -134.002,
+        "x": [
+          15.0,
+          24.0
         ],
-        "pad": "Hull port aft gear pad",
-        "pad_radius_units": 2.4,
-        "sole": "Hull port aft gear pad sole"
+        "sole": "Hull starboard fore wedge sole",
+        "sole_y": -17.0399,
+        "rams": [
+          {
+            "pivot": "Hull starboard fore wedge ram 1 pivot",
+            "rod_pivot": "Hull starboard fore wedge ram 1 rod pivot",
+            "P": [
+              -8.0,
+              2.0
+            ],
+            "W": [
+              -15.5428,
+              -15.1382
+            ],
+            "base": -1.9854
+          },
+          {
+            "pivot": "Hull starboard fore wedge ram 2 pivot",
+            "rod_pivot": "Hull starboard fore wedge ram 2 rod pivot",
+            "P": [
+              -8.0,
+              2.0
+            ],
+            "W": [
+              -15.5428,
+              -15.1382
+            ],
+            "base": -1.9854
+          }
+        ]
       },
       {
-        "name": "Hull starboard aft gear",
-        "xy": [
-          -14.0,
-          -10.0
+        "name": "Hull port aft wedge",
+        "hinge": "Hull port aft wedge hinge",
+        "H": [
+          12.6,
+          -12.804
         ],
-        "seat_z": -14.537,
-        "travel_units": 7.463,
-        "slides": [
-          "Hull starboard aft gear stage 2 slide",
-          "Hull starboard aft gear stage 3 slide"
+        "stow_deg": 116.136,
+        "x": [
+          -17.5,
+          -8.5
         ],
-        "pad": "Hull starboard aft gear pad",
-        "pad_radius_units": 2.4,
-        "sole": "Hull starboard aft gear pad sole"
+        "sole": "Hull port aft wedge sole",
+        "sole_y": 17.0999,
+        "rams": [
+          {
+            "pivot": "Hull port aft wedge ram 1 pivot",
+            "rod_pivot": "Hull port aft wedge ram 1 rod pivot",
+            "P": [
+              8.0,
+              2.0
+            ],
+            "W": [
+              15.6287,
+              -14.9041
+            ],
+            "base": -1.146867
+          },
+          {
+            "pivot": "Hull port aft wedge ram 2 pivot",
+            "rod_pivot": "Hull port aft wedge ram 2 rod pivot",
+            "P": [
+              8.0,
+              2.0
+            ],
+            "W": [
+              15.6287,
+              -14.9041
+            ],
+            "base": -1.146867
+          }
+        ]
+      },
+      {
+        "name": "Hull starboard aft wedge",
+        "hinge": "Hull starboard aft wedge hinge",
+        "H": [
+          -12.6,
+          -12.8027
+        ],
+        "stow_deg": -116.121,
+        "x": [
+          -17.5,
+          -8.5
+        ],
+        "sole": "Hull starboard aft wedge sole",
+        "sole_y": -17.1009,
+        "rams": [
+          {
+            "pivot": "Hull starboard aft wedge ram 1 pivot",
+            "rod_pivot": "Hull starboard aft wedge ram 1 rod pivot",
+            "P": [
+              -8.0,
+              2.0
+            ],
+            "W": [
+              -15.6294,
+              -14.9019
+            ],
+            "base": -1.994806
+          },
+          {
+            "pivot": "Hull starboard aft wedge ram 2 pivot",
+            "rod_pivot": "Hull starboard aft wedge ram 2 rod pivot",
+            "P": [
+              -8.0,
+              2.0
+            ],
+            "W": [
+              -15.6294,
+              -14.9019
+            ],
+            "base": -1.994806
+          }
+        ]
       }
     ],
     "lift_thrusters": [
@@ -809,7 +935,7 @@
         "anchor": "Lift 4 exhaust anchor"
       }
     ],
-    "note": "rest is gear stowed (flight); at gear_down 1 every pad sole stands on ground_z_units in hull space"
+    "note": "rest is wedges stowed (flight); at gear_down 1 the hull rests on its keel shoes on ground_z_units in hull space, the four wedges braced on the ground outboard"
   },
   "asset": {
     "file": "wolf-p.blend",
@@ -818,8 +944,8 @@
     "anchors_collection": "WOLF_P | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'WOLF_P'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 216474,
-    "objects": 395,
+    "triangles": 216182,
+    "objects": 423,
     "materials": [
       "Turret annihilator mark 0.6122,0.4277,0.1509",
       "Turret annihilator paint 0.1989,0.1880,0.1718",

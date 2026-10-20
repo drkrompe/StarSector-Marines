@@ -13,8 +13,9 @@ slot mouths pointing aft; Turret 1 (WS 001) trains about its pivot (its muzzle
 swings with it, its barbette stays) and elevates; the three hardpoints' muzzles
 point along the bow; every declared VFX muzzle rides a turret-kit muzzle at
 zero offset (12: one ion, one blaster, five tubes a pod); eight lamps with
-blink properties; the gear_down knob stows every sole flush and stands it on the
-ground plane, and the four lift thruster anchors point down; moving the root moves every part rigidly.
+blink properties; the gear_down knob swings the four wedges from up the hull
+side down to the ground plane beside the fixed keel shoes, every ram following
+its wedge, and the four lift thruster anchors point down; moving the root moves every part rigidly.
 
 Ship with effects (`WOLF_P` + `SWFX`): plume, core, haze and glow light on all
 three engines, each plume leaving its bell aft; one kit gun anchor per
@@ -146,17 +147,25 @@ check('declared VFX muzzles ride the kit muzzles', not bad and len(declared) >= 
 bad = [l['name'] for l in man['running_lights'] if not bpy.data.objects.get(l['name'])]
 check('lamps', not bad and len(man['running_lights']) == 8, bad)
 
-# Landing gear: the knob stows and deploys every leg; soles flush stowed, on the ground deployed.
+# Landing gear: the ship sits on its keel shoes; the knob swings every wedge from
+# stowed up the hull side to its sole on the ground, its rams following it.
 ctl = bpy.data.objects.get(man['control']['object'])
 check('gear control knob', ctl is not None and 'gear_down' in ctl, man['control']['object'])
 land = man['landing']
-bad = []
+G = land['ground_z_units']
+bad, rams = [], []
+
+
+def knob(k):
+    ctl['gear_down'] = k
+    ctl.update_tag()          # a knob set from Python does not tag the depsgraph by itself
+    bpy.context.scene.frame_set(1)
+    upd()
+
+
 if ctl is not None:
-    for k, key in ((0.0, 'sole_z_stowed'), (1.0, 'sole_z_deployed')):
-        ctl['gear_down'] = k
-        ctl.update_tag()          # a knob set from Python does not tag the depsgraph by itself
-        bpy.context.scene.frame_set(1)
-        upd()
+    for k in (0.0, .5, 1.0):
+        knob(k)
         for sl in land['soles']:
             a = anchors.get(sl['anchor'])
             if a is None:
@@ -164,13 +173,27 @@ if ctl is not None:
                 continue
             z = a.matrix_world.translation.z
             down = (a.matrix_world.to_3x3() @ Vector((1, 0, 0))).normalized().z
-            if abs(z - sl[key]) > 1e-3 or down > -.999:
-                bad.append((sl['anchor'], k, round(z, 3), sl[key]))
-    ctl['gear_down'] = 0.0
-    ctl.update_tag()
-    bpy.context.scene.frame_set(1)
-    upd()
-check('gear stows flush and stands on the ground', not bad and len(land['soles']) == 4, bad)
+            on_ground = k == 1.0 or not sl['moves']
+            if (abs(z - G) > 1e-3 if on_ground else z < G + 3) or (on_ground and down > -.999):
+                bad.append((sl['anchor'], k, round(z, 3)))
+        for w in land['wedges']:
+            h = bpy.data.objects[w['hinge']]
+            for r in w['rams']:
+                want = h.matrix_world @ Vector((0, r['W'][0] - w['H'][0], r['W'][1] - w['H'][1]))
+                got = bpy.data.objects[r['rod_pivot']].matrix_world.translation
+                rams.append(abs(want.y - got.y) + abs(want.z - got.z))
+                # ... and both halves aim along the line from the hull end to it.
+                pv = bpy.data.objects[r['pivot']]
+                d = got - pv.matrix_world.translation
+                aim = math.atan2(d.z, d.y) - r['base']
+                for o in (pv, bpy.data.objects[r['rod_pivot']]):
+                    e = (o.matrix_world.to_euler('XYZ').x - aim + math.pi) % (2*math.pi) - math.pi
+                    rams.append(abs(e))
+    knob(0.0)
+check('gear: keel shoes and wedge soles on the ground deployed, wedges up the side stowed',
+      not bad and len(land['soles']) == 6, bad)
+check('gear: every ram stays on its wedge and aims along itself through the swing', rams and max(rams) < 1e-3,
+      round(max(rams), 6) if rams else None)
 bad = [l['anchor'] for l in man['lift_thrusters'] if not anchors.get(l['anchor'])
        or (anchors[l['anchor']].matrix_world.to_3x3() @ Vector((1, 0, 0))).normalized().z > -.999]
 check('four lift thruster anchors point down', not bad and len(man['lift_thrusters']) == 4, bad)
