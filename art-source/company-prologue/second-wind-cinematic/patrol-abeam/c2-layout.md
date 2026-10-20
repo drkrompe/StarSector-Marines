@@ -104,7 +104,7 @@ blockout's motion for Cycles at 24 fps with 180° motion blur, importing it so t
 cannot drift apart:
 
 - Second Wind is the patched state of one pinned build, `c2_bridge_render.SW_PIN` (now
-  `80c78dfac`, the build C1 and C5 share). Its manifest is committed under
+  `dc62710dc`, the two-Vulcan build C1, C4 and C5 share). Its manifest is committed under
   `second-wind-cinematic/pins/`. The .blend is built, not committed: copy it from Drive
   `builds/second-wind/<SW_PIN>/patched/` into `second-wind-states/patched/`. The script
   refuses a copy whose sha256 differs from the pinned manifest's. The shot does not follow
@@ -192,7 +192,7 @@ width: about 3 points more glass) and declined; the posts stay as modelled. With
 up to 2% of the frame, nearest surface 41 cm. Review:
 `review/cinematic-c2/2026-10-19_camera-pass_windows/`.
 
-**Bulkhead detail (2026-10-20, owner review pending; off by default).** The posts and walls round
+**Bulkhead detail (2026-10-20; owner approved round 2 for the final, on by default).** The posts and walls round
 the slits fill much of the frame and read flat, so `c2_bulkhead.py` frames the slits as windows
 cut through an armoured bulkhead, on the room side only. It adds an embrasure behind each mullion
 (rib, bolts, seams, frame plate), a shallow bolted sill and a header beam with a fascia,
@@ -203,8 +203,12 @@ what its mullion already hides from every camera position in the shot that sees 
 shows less glass (a casing square to the wall stands nearer the eye than its mullion and hid the
 Legion's bow mid-walk). The sill stays shallow because the consoles' lamp rows sit just under it. At
 abeam (8-10 s) the camera is at the glass and no wall is in frame, so those frames are unchanged.
-`c2_bridge_render.py --bulkhead` (or `C2_BULKHEAD_DETAIL=1`) builds it; without either, the
-render is the approved shot. Review: `review/cinematic-c2/2026-10-20_bridge-bulkhead-detail_windows/`.
+Round 2 (owner: round 1 read as low poly at the close camera) modelled the fixings at the
+console hardware's scale: washered, chamfered hex bolts, socket caps, slotted screws and rivets. It
+added riveted frame-number plates with raised numbers, and worn copies of the room's own flat paints:
+grime in recesses, edges scuffed to steel, blotches, streaks and orange peel, each at the paint's mean
+colour. `c2_bridge_render.py` builds it by default; `--no-bulkhead` (or `C2_BULKHEAD_DETAIL=0`)
+leaves it out for a control. Review: `review/cinematic-c2/2026-10-20_bridge-bulkhead-r2_windows/`.
 
 **Open for the owner.** Whether the bridge's glazing stays this
 narrow (the model's slits make a letterbox, with posts that take a good share of the

@@ -1376,7 +1376,7 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
 - **Blender renders go through the render queue**, not a session's own shell:
   `python tools/render_queue.py submit job.json --commit HEAD`, then
   `status [--job <id>]`. The queue is `render-queue/` on the shared Drive. A
-  runner on each machine (a Windows scheduled task; nohup on the Mac) runs
+  runner on each machine (a Windows scheduled task; a LaunchAgent on the Mac) runs
   one job at a time and swaps finals out at a frame boundary for review and
   light jobs. Gated lanes run only while that machine's gate is `run`. The
   `light` lane (half size, ≤16 samples) is not gated. The gate is manual and

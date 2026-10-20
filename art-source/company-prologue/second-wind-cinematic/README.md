@@ -21,7 +21,7 @@ the final mix and packaging into the game.
 | Shot | Length | Source | State |
 |---|---|---|---|
 | C1 approach | 37.7 s | `corvus-approach/` (`c1v2_scene.py`, `c1-v2-shot.md`) | All ships on final builds; half-size motion check approved. Planet lock and captions are runtime data (`cinematic_export.py --shot c1`). |
-| C2 bridge | 15 s | `patrol-abeam/` (`c2-layout.md`, `c2_bridge_render.py`) | Camera set approved (walk, duck, breath, frame, lean, lens). Final Second Wind and Broadswords wired. Glass reflection kept faint, bridge lit brighter. Castle passes once at 5.5-6 s. Renders the Second Wind build pinned in `c2_bridge_render.SW_PIN` (`pins/`); a new build means moving the pin. |
+| C2 bridge | 15 s | `patrol-abeam/` (`c2-layout.md`, `c2_bridge_render.py`) | Camera set approved (walk, duck, breath, frame, lean, lens). Final Second Wind and Broadswords wired. Glass reflection kept faint, bridge lit brighter. Castle passes once at 5.5-6 s. Bulkhead detail round the slits (`c2_bulkhead.py`, owner-approved round 2) is on by default; `--no-bulkhead` is the control. Renders the Second Wind build pinned in `c2_bridge_render.SW_PIN` (`pins/`); a new build means moving the pin. |
 | Entry | 7 s | `patrol-abeam/compose_entry.py` | Approved. |
 | C3 window | 16 s | `first-open-sky/` | Approved. |
 | C4 landing | 21.4 s | `industrial-exterior/c4x_scene.py` (`LATE` 5.4: hover 12.0, touchdown 16.4) | Landing dust approved. Darker pads, final Second Wind. A joined C4+C5 review with the mix is the last check before the final render. |
@@ -104,7 +104,7 @@ match.
 **Post-cinematic pictures** (`../yard-stills/`, the Nessa character sheet): Y1 yard
 with Nessa's cut-out layered on is in the game. Nessa is Kilo Nine's forewoman, about
 52, text only (Castle relays her). The prologue pages P1 to P6 and P8 are
-approved and shipped; P3's Colossus repaint shipped 2026-10-20 with its thrust from the six drive bells. P7 (cargo billets) and Y2
+approved and shipped; P3's Colossus repaint shipped 2026-10-20 with its thrust from the six drive bells. P4's turrets were repainted to build dc62710dc (two Vulcans, the other mounts capped) and shipped 2026-10-20; P5 shows no mount. P7 (cargo billets) and Y2
 (berths fitted) are repainted as a before/after pair and in the game. Not done: a
 picture of Nessa's wall of seals, and C5's crowd still draws a dark-coated stand-in for her.
 
@@ -113,7 +113,7 @@ picture of Nessa's wall of seals, and C5's crowd still draws a dark-coated stand
 - Long motion renders go to the Mac render queue. It renders from `origin/main` with ship inputs copied from Drive `builds/<ship>/<commit>/` and checked against the committed manifests, and writes frames to Drive `builds/<shot>-frames/<commit>/`. Windows scales them to 1920x1080 and adds the C5 title.
 - Every review set goes to Drive `review/<asset>/<date>_<what>_<machine>/` with `NOTES.md`, then `tools/review_prune.py --asset <asset> --apply`. Renders are shown to the owner in the coordinating chat.
 - Shots pin their Second Wind build: C1 (`c1v2_scene.py`), C2 (`c2_bridge_render.py`), C4 and C5 (`c4x_scene.py`) each name it in `SW_PIN` and read its manifest from `pins/`, never `second-wind-states/`'s latest, so a new ship build reaches a shot only when its pin moves.
-- Final ship builds: Second Wind `builds/second-wind/80c78dfac/<state>/`, Broadsword `builds/broadsword/df72dd899/`, Shepherd and Hermes `70f1f58eb`, Colossus as in its manifest. All are owner-accepted.
+- Final ship builds: Second Wind `builds/second-wind/dc62710dc/<state>/` (owner, 2026-10-20: the game start's two Vulcans on WS 001/002, WS 003/004 empty; it replaces 80c78dfac, so C1 frames 0-649 and C5 re-render, and C2 and C4 render on it). C1, C2 and C4 refuse a Second Wind .blend whose sha256 is not their pin's. Broadsword `builds/broadsword/df72dd899/`, Shepherd and Hermes `70f1f58eb`, Colossus as in its manifest. All are owner-accepted.
 
 ## Asset packages
 

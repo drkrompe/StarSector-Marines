@@ -16,7 +16,16 @@ layout or timing; finals and anything shown to the owner as a picture are at 100
              by a placeholder, so several machines can share a range, and a stopped run resumes.
 --still t    render single frames at these times (seconds) to build/c1v2/stills/ (with --final,
              Cycles stills to build/c1v2/stills-final/).
---samples n  Cycles samples per pixel for --final (default 128, denoised).
+--samples n  Cycles samples per pixel for --final (default 128, denoised; 64 under --profile cheap).
+--profile p  Cycles settings for --final (or C1_PROFILE in the environment). 'production' (the
+             default) is what every C1 final so far has rendered with: 128 samples, no adaptive
+             sampling, default bounces, OIDN on the CPU, the scene re-synced every frame. 'cheap'
+             is the faster candidate under test: 64 samples with adaptive sampling (threshold
+             0.02), max bounces 6, volume bounces 0, persistent data, OIDN on the GPU. Never mix
+             profiles within one shot's frames.
+--volume-step-rate r
+             switch volumes to biased ray marching at this step rate (volume_step_rate only acts
+             when volume_biased is on; the default null-scattering volumes ignore it).
 --from s, --to s, --step n
              with --animatic, render only those seconds of the shot, every nth frame (default
              every frame): a motion question rarely needs the whole 38 s at 24 fps.
@@ -67,8 +76,23 @@ STATES = BASE.parent / 'second-wind-states' / 'patched'
 # The Second Wind build this shot renders: its .blend input is that build's patched state, and its
 # manifest is committed under ../pins/. The shot does not follow second-wind-states/'s latest
 # manifest; adopting a new build means moving SW_PIN and committing that build's manifest beside it.
-SW_PIN = '80c78dfac'
+SW_PIN = 'dc62710dc'
+# C1_SW_PIN names another committed pin, for a comparison still against an earlier build only;
+# finals render the pin above.
+SW_PIN = os.environ.get('C1_SW_PIN', SW_PIN)
 SW_MANIFEST = BASE.parent / 'pins' / ('second-wind-%s-patched.manifest.json' % SW_PIN)
+
+
+def check_pinned_blend(path, manifest):
+    """Refuse a Second Wind .blend that is missing or is not the pinned build (SW_PIN). Copy it from
+    Drive builds/second-wind/<SW_PIN>/patched/."""
+    import hashlib
+    if not Path(path).exists():
+        raise SystemExit('%s is missing: copy it from Drive builds/second-wind/%s/patched/' % (path, SW_PIN))
+    digest = hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    if digest != manifest['asset_sha256']:
+        raise SystemExit('%s is not Second Wind build %s (sha256 %s, pin %s)'
+                         % (path, SW_PIN, digest[:12], manifest['asset_sha256'][:12]))
 TIMELINE = REPO / 'mod' / 'data' / 'cinematic' / 'jangala-arrival' / 'c1.json'
 
 FPS = 24
@@ -318,6 +342,7 @@ def add_hero(scene):
     drives, RCS corrections on the pass, the conduit sparks and seal wisps. The exhaust haze and
     landing dust are smoke in air and stay out."""
     manifest = json.loads(SW_MANIFEST.read_text())
+    check_pinned_blend(INPUTS / 'second-wind-patched.blend', manifest)
     ship, fx = load_with_effects(scene, INPUTS / 'second-wind-patched.blend', manifest)
     root = bpy.data.objects[manifest['root']]
     root.scale = (manifest['metres_per_unit'],) * 3
@@ -661,7 +686,7 @@ def add_camera(scene):
     return cam
 
 
-def cycles(scene, samples):
+def cycles(scene, samples, profile='production', volume_step_rate=None):
     """The look pass. A GPU is used when the machine has one Cycles can drive."""
     scene.render.engine = 'CYCLES'
     prefs = bpy.context.preferences.addons['cycles'].preferences
@@ -680,13 +705,31 @@ def cycles(scene, samples):
     scene.cycles.samples = samples
     scene.cycles.use_denoising = True
     scene.cycles.denoiser = 'OPENIMAGEDENOISE'
+    if profile == 'cheap':
+        scene.cycles.use_adaptive_sampling = True
+        scene.cycles.adaptive_threshold = 0.02
+        scene.cycles.max_bounces = 6
+        scene.cycles.volume_bounces = 0
+        scene.cycles.denoising_use_gpu = True
+        scene.render.use_persistent_data = True
+    elif profile != 'production':
+        raise SystemExit('unknown --profile %r (production or cheap)' % profile)
+    if volume_step_rate is not None:
+        scene.cycles.volume_biased = True
+        scene.cycles.volume_step_rate = volume_step_rate
     scene.render.use_motion_blur = True
     scene.render.motion_blur_shutter = 0.5          # 180 degrees, as C2's patrol pass
     scene.render.image_settings.file_format = 'PNG'
     scene.render.image_settings.color_mode = 'RGB'
     scene.render.use_overwrite = False
     scene.render.use_placeholder = True
-    print('C1V2 Cycles on %s, %d samples' % (scene.cycles.device, samples), flush=True)
+    c = scene.cycles
+    print('C1V2 Cycles on %s, profile %s, %d samples, adaptive %s (%.3f), bounces %d/vol %d, '
+          'persistent %s, denoise %s gpu %s, volumes %s, SW pin %s'
+          % (c.device, profile, samples, c.use_adaptive_sampling, c.adaptive_threshold, c.max_bounces,
+             c.volume_bounces, scene.render.use_persistent_data, c.denoiser, c.denoising_use_gpu,
+             ('biased step %.2f' % c.volume_step_rate) if c.volume_biased else 'null scattering', SW_PIN),
+          flush=True)
 
 
 def eevee(scene, samples=16):
@@ -709,7 +752,7 @@ def eevee(scene, samples=16):
     scene.render.image_settings.color_mode = 'RGB'
 
 
-def build(final=False, samples=128):
+def build(final=False, samples=128, profile='production', volume_step_rate=None):
     global EEVEE_PREVIEW
     EEVEE_PREVIEW = not final
     scene = fresh_scene()
@@ -724,7 +767,7 @@ def build(final=False, samples=128):
     import thrust_shots                      # every craft's nozzles marked for VFX and sound
     thrust_shots.mark_c1(sys.modules[__name__])
     if final:
-        cycles(scene, samples)
+        cycles(scene, samples, profile, volume_step_rate)
     else:
         eevee(scene)
     return scene
@@ -733,7 +776,8 @@ def build(final=False, samples=128):
 def opts():
     argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
     o = {'animatic': '--animatic' in argv, 'final': '--final' in argv, 'save': '--save' in argv,
-         'still': [], 'frames': None, 'samples': 128, 'step': 1}
+         'still': [], 'frames': None, 'samples': None, 'step': 1,
+         'profile': os.environ.get('C1_PROFILE', 'production'), 'volume_step_rate': None}
     for i, a in enumerate(argv):
         if a == '--from':
             o['frames'] = (round(float(argv[i + 1]) * FPS), (o['frames'] or (0, FRAMES - 1))[1])
@@ -743,17 +787,23 @@ def opts():
             o['step'] = int(argv[i + 1])
         if a == '--samples':
             o['samples'] = int(argv[i + 1])
+        if a == '--profile':
+            o['profile'] = argv[i + 1]
+        if a == '--volume-step-rate':
+            o['volume_step_rate'] = float(argv[i + 1])
         if a == '--still':
             o['still'] = [float(x) for x in argv[i + 1].split(',')]
         if a == '--frames':
             a0, a1 = argv[i + 1].split(':')
             o['frames'] = (int(a0), int(a1))
+    if o['samples'] is None:
+        o['samples'] = 64 if o['profile'] == 'cheap' else 128
     return o
 
 
 def main():
     o = opts()
-    scene = build(o['final'], o['samples'])
+    scene = build(o['final'], o['samples'], o['profile'], o['volume_step_rate'])
     if o['save']:
         OUT.mkdir(parents=True, exist_ok=True)
         bpy.ops.wm.save_as_mainfile(filepath=str(OUT / 'c1v2-scene.blend'))

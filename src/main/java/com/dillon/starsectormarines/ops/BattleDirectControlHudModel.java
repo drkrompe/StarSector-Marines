@@ -63,8 +63,11 @@ final class BattleDirectControlHudModel {
         weaponsProps.put("title", signal("weaponsTitle"));
         groups = reactor.signal(List.of());
         weaponsProps.put("groups", groups);
+        actionsProps.put("exitKey", label("KeyTab"));
         actionsProps.put("exitLabel", signal("exitLabel"));
+        actionsProps.put("pauseKey", label("KeySpace"));
         actionsProps.put("pauseLabel", signal("pauseLabel"));
+        actionsProps.put("pauseClasses", signal("pauseClasses"));
         actionsProps.put("exitAction", exit);
         actionsProps.put("pauseAction", pause);
     }
@@ -114,7 +117,8 @@ final class BattleDirectControlHudModel {
                     ? " background-color: #8a7440;" : ""));
             set("weaponsTitle", label(mech ? "WeaponGroups" : ship ? "ShipSystems" : "Weapons"));
             set("exitLabel", copy.apply(exitLabelKey));
-            set("pauseLabel", copy.apply(paused ? "battleSpeed1x" : "battleSpeedPause"));
+            set("pauseLabel", label(paused ? "Paused" : "Pause"));
+            set("pauseClasses", paused ? "action action-pause action-paused" : "action action-pause");
             List<WeaponGroup> next = mech ? mechGroups(snapshot, selected) : otherGroups(snapshot, ship);
             groups.set(List.copyOf(next));
             StringBuilder key = new StringBuilder(carrier.name()).append(armored).append(stamina)
@@ -235,7 +239,7 @@ final class BattleDirectControlHudModel {
         String key = mech ? String.valueOf(weapon.number() + 1) : "";
         String name = weapon.name() + (tag.isEmpty() ? "" : " · " + tag);
         return new WeaponRow("direct-hud-weapon-" + weapon.slotKey(), classes,
-                "opacity: " + (enabled ? "1" : "0.6") + ";", !enabled || !mech, key,
+                rowStyle(highlighted, enabled ? 1f : .6f), !enabled || !mech, key,
                 key.isEmpty() ? "key key-none" : "key", name, behavior(weapon.behavior()),
                 ammo(weapon.ammo()), state, stateClasses, width(weapon.cycleFraction()),
                 () -> select.accept(weapon.number()));
@@ -259,9 +263,20 @@ final class BattleDirectControlHudModel {
                 : ability.cooldownSeconds() > 0f ? 1f - fraction(ability.cooldownSeconds(), ability.cooldownDurationSeconds())
                 : ability.ready() ? 1f : 0f;
         return new WeaponRow("direct-hud-ability-" + ability.ability().name(), "weapon ability",
-                "opacity: 1;", true, shield ? "E" : "G", "key", label(shield ? "Shield" : "Smoke"),
+                rowStyle(false, 1f), true, shield ? "E" : "G", "key", label(shield ? "Shield" : "Smoke"),
                 detail, resource, state, "weapon-state" + (broken || empty ? " weapon-empty"
                 : !ability.ready() ? " weapon-busy" : ""), width(fill), () -> {});
+    }
+
+    /**
+     * A row's look, inline because the shared theme is applied after a component's own sheet and
+     * would otherwise give every row its raised button face. The HUD floats over the battle, so a
+     * row is see-through and only the selected one carries a gold wash and edge.
+     */
+    private static String rowStyle(boolean selected, float opacity) {
+        return "opacity: " + (opacity >= 1f ? "1" : String.valueOf(opacity)) + "; background-image: none;"
+                + " border-style: solid; background-color: " + (selected ? "#d6c27a24" : "transparent") + ";"
+                + " border-color: " + (selected ? "#d6c27a99" : "transparent") + ";";
     }
 
     /** A warship card: read-only, like the Marine's ability rows. */
@@ -271,7 +286,7 @@ final class BattleDirectControlHudModel {
             case BUSY -> " weapon-busy";
             case WARN -> " weapon-empty";
         };
-        return new WeaponRow("direct-hud-ship-" + card.key(), "weapon ship", "opacity: 1;", true, "",
+        return new WeaponRow("direct-hud-ship-" + card.key(), "weapon ship", rowStyle(false, 1f), true, "",
                 "key key-none", card.name(), card.detail(), card.resource(), card.state(), stateClasses,
                 width(card.fill()) + " background-color: " + toneColor(card.tone()) + ";", () -> {});
     }

@@ -38,7 +38,7 @@ class BattleDirectControlHudTest {
         try (Fixture fixture = fixture(Path.of("mod"), snapshot, 0, false, ignored -> {}, () -> {}, () -> {})) {
             assertEquals("FLUX", fixture.status.requireElement("direct-status-flux-label").text());
             assertEquals("98%", fixture.status.requireElement("direct-status-flux-value").text());
-            assertEquals("VENTING - WEAPONS LOCKED", fixture.status.requireElement("direct-status-flux-state").text());
+            assertEquals("VENTING - GUNS LOCKED", fixture.status.requireElement("direct-status-flux-state").text());
             assertTrue(fixture.status.requireElement("direct-status-flux-state").classes().contains("state-alarm"));
             assertEquals("FLUX", fixture.weapons.requireElement("direct-hud-weapon-ARMS-state").text());
             var fill = fixture.status.requireElement("direct-status-flux-fill").box().borderBox();
@@ -186,7 +186,11 @@ class BattleDirectControlHudTest {
         AtomicInteger pauses = new AtomicInteger();
         try (Fixture fixture = fixture(Path.of("mod"), preview(Carrier.VEHICLE, false), 0,
                 true, ignored -> fail("Read-only equipment cannot select"), exits::incrementAndGet, pauses::incrementAndGet)) {
-            assertEquals("1x", fixture.actions.requireElement("direct-actions-pause").text());
+            assertEquals("PAUSED", fixture.actions.requireElement("direct-actions-pause-label").text());
+            assertEquals("SPACE", fixture.actions.requireElement("direct-actions-pause-key").text());
+            assertTrue(fixture.actions.requireElement("direct-actions-pause").classes().contains("action-paused"),
+                    "a paused battle shows it on the pause control");
+            assertEquals("TAB", fixture.actions.requireElement("direct-actions-exit-key").text());
             click(fixture.actions, fixture.actionsDocument, "direct-actions-exit");
             click(fixture.actions, fixture.actionsDocument, "direct-actions-pause");
             assertEquals("WEAPONS", fixture.weapons.requireElement("direct-weapons-title").text());

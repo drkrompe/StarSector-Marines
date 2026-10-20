@@ -11,8 +11,8 @@ import java.util.List;
  * the descriptions live in the strings file under {@code battleDirectHelp*}.
  */
 final class BattleDirectControlHelp {
-    static final float TAB_WIDTH = 64f;
-    static final float TAB_HEIGHT = 20f;
+    static final float TAB_WIDTH = 74f;
+    static final float TAB_HEIGHT = 24f;
     static final float PANEL_WIDTH = 340f;
     static final float TITLE_HEIGHT = 20f;
     static final float ROW_HEIGHT = 14f;
@@ -46,6 +46,7 @@ final class BattleDirectControlHelp {
                 add(out, "G", "MarineSmoke");
                 add(out, "Shift", "MarineSprint");
                 add(out, "Tab / Esc", "Leave");
+                add(out, "Space", "Pause");
             }
             case MECH -> {
                 add(out, "WASD", "MechMove");
@@ -57,6 +58,7 @@ final class BattleDirectControlHelp {
                 add(out, "", "MechFlux");
                 add(out, "", "MechIndirect");
                 add(out, "Tab / Esc", "Leave");
+                add(out, "Space", "Pause");
             }
             case VEHICLE -> {
                 add(out, "W / S", "VehicleDrive");
@@ -64,6 +66,7 @@ final class BattleDirectControlHelp {
                 add(out, "Mouse", "VehicleAim");
                 add(out, "LMB hold", "VehicleFire");
                 add(out, "Tab / Esc", "Leave");
+                add(out, "Space", "Pause");
             }
             case WARSHIP -> {
                 add(out, "WASD", "ShipFly");
@@ -76,6 +79,7 @@ final class BattleDirectControlHelp {
                 add(out, "E", "ShipShield");
                 add(out, "F", "ShipPass");
                 add(out, "Tab / Esc", "Leave");
+                add(out, "Space", "Pause");
                 add(out, "", "ShipLaid");
                 add(out, "", "ShipSeen");
                 add(out, "", "ShipDanger");
@@ -93,6 +97,7 @@ final class BattleDirectControlHelp {
                 add(out, "X", "TenderCancel");
                 add(out, "E", "ShipShield");
                 add(out, "Tab / Esc", "TenderLeave");
+                add(out, "Space", "Pause");
                 add(out, "", "TenderSeen");
                 add(out, "", "TenderReach");
                 add(out, "", "TenderStandDown");
