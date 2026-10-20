@@ -278,7 +278,9 @@
         "Turret 1 gun steel",
         "Turret 1 gun accent",
         "Turret 1 gun dark",
-        "Turret 1 gun lamp_blue"
+        "Turret 1 gun lamp_blue",
+        "Turret 1 gimbal steel",
+        "Turret 1 gimbal dark"
       ],
       "kit_muzzles": [
         "Turret 1 muzzle anchor 1"
@@ -684,8 +686,8 @@
     "anchors_collection": "WOLF_P | anchors",
     "baked": "every modifier applied; no live booleans or bevels",
     "append": "bpy.data.libraries.load(path, link=True) and take collection 'WOLF_P'; instance it with a collection-instance empty scaled by metres_per_unit",
-    "triangles": 123646,
-    "objects": 270,
+    "triangles": 125138,
+    "objects": 272,
     "materials": [
       "Turret annihilator mark 0.6122,0.4277,0.1509",
       "Turret annihilator paint 0.1989,0.1880,0.1718",

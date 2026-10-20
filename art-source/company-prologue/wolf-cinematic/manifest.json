@@ -28,8 +28,8 @@
   39.6,
   30.6
  ],
- "meshes": 270,
- "polygons": 58259,
+ "meshes": 272,
+ "polygons": 58885,
  "images": 23,
  "engines": [
   {
@@ -144,7 +144,9 @@
     "Turret 1 gun steel",
     "Turret 1 gun accent",
     "Turret 1 gun dark",
-    "Turret 1 gun lamp_blue"
+    "Turret 1 gun lamp_blue",
+    "Turret 1 gimbal steel",
+    "Turret 1 gimbal dark"
    ],
    "kit_muzzles": [
     "Turret 1 muzzle anchor 1"
@@ -784,5 +786,5 @@
   },
   "append": "load both 'WOLF_P' and 'SWFX' in one call; the ship alone works without it"
  },
- "asset_sha256": "4dd8ac5400165cfeb9743cb1109894318b9ff4087513e6bb760a144487746bd4"
+ "asset_sha256": "ec842c3266336e40b749632646fd8261b5add7bba8b195c08311f90bf931e815"
 }
