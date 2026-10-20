@@ -58,7 +58,7 @@ SW_STATE = "patched"                      # C2's; --state picks another for a li
 # The Second Wind build this shot renders: its manifest, copied from Drive builds/second-wind/<commit>/
 # and committed under ../pins/. The shot is pinned to it and does not follow second-wind-states/'s
 # manifest, which moves with every new candidate build; adopting a new build means changing this.
-SW_PIN = "80c78dfac"
+SW_PIN = "dc62710dc"
 C1_ASSETS = BASE.parent / "corvus-approach" / "assets"
 SUN_STRENGTH = 4.5                        # C1's key, as render_patrol_sequence.py
 SHINE_COLOR = (0.55, 0.75, 1.0)

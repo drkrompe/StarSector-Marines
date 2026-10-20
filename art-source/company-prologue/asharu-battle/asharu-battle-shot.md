@@ -117,7 +117,7 @@ Colossus 108 m, Onslaught 301 m.
 |---|---|---|---|---|
 | Colossus | the heavy freighter that falls | 108 m | the reference | **finished** |
 | Shepherd "Morrow" | drone tender, the convoy's repair ship; falls with the Colossus | 67 m | a little longer than a Hound | **finished** (Ko Combine livery) |
-| Tarsus | freighter: boarded and taken, the pirates' prize | 94 m | 0.9 Colossus, much slimmer | **finished**, clean and boarded (drives dead) states |
+| Tarsus | freighter: boarded and taken, the pirates' prize | 94 m | 0.9 Colossus, much slimmer | **finished** (accepted by the owner), clean and boarded (drives dead) states |
 | Phaeton | the convoy's tanker, destroyed in the opening | 77 m | 1.24 Hounds, long and thin | **finished** (both states accepted by the owner): destroyed is an eight-blast cook-off over about 6 s |
 | Mule | armed freighter; gets away | 104 m (est.) | about a Colossus | stand-in |
 | Buffalo x2 | small freighters; get away | 58 m (est.) | a Hound | stand-in |
@@ -270,13 +270,13 @@ seen at a distance.
 | Colossus | `colossus/139e8b8b6` | `colossus.blend`, `colossus-manifest.json` | finished |
 | Shepherd "Morrow" | `shepherd/5860eae2b` | `shepherd.blend`, `shepherd-manifest.json` | finished |
 | Lasher x3 | `lasher-independent/7805d3b` (`lasher.blend`) | `lasher-independent.blend`, `lasher-independent-manifest.json` | finished; awaiting the owner's review |
-| Hound | `hound-independent/1e91821` | `hound-independent-clean.blend`, `hound-independent-manifest.json` | finished; awaiting the owner's review |
-| Hound (P) x2 | `hound-p/33114de` | `hound-p-pirate.blend`, `hound-p-manifest.json` | finished; awaiting the owner's review |
+| Hound | `hound-independent/1e91821` | `hound-independent-clean.blend`, `hound-independent-manifest.json` | **accepted** |
+| Hound (P) x2 | `hound-p/33114de` | `hound-p-pirate.blend`, `hound-p-manifest.json` | **accepted** |
 | Kite (P) x2 | `kite-p/a48f8757b` | `kite-p.blend`, `kite-p-manifest.json` | **accepted** |
 | Falcon (P) | `falcon-p/0044413fc` | `falcon-p.blend`, `falcon-p-manifest.json` | **accepted** |
 | Colossus Mk.III | `colossus-mk3/005c3b11b` | `colossus-mk3.blend`, `colossus-mk3-manifest.json` | **accepted** |
 | Phaeton | `phaeton/e9ab52297` `intact/` and `destroyed/` | `phaeton.blend` + `phaeton-manifest.json`; `phaeton-destroyed.blend` + `phaeton-destroyed-manifest.json` | **accepted** (both states, including the eight-blast cook-off) |
-| Tarsus | `tarsus/2e7d396fc` `clean/` and `boarded/` (both `tarsus.blend`) | `tarsus.blend` + `tarsus-manifest.json`; `tarsus-boarded.blend` + `tarsus-boarded-manifest.json` | finished after the owner's round 2; not yet accepted |
+| Tarsus | `tarsus/2e7d396fc` `clean/` and `boarded/` (both `tarsus.blend`) | `tarsus.blend` + `tarsus-manifest.json`; `tarsus-boarded.blend` + `tarsus-boarded-manifest.json` | **accepted** (owner, 2026-10-20) |
 | Wolf (P) x2, merchant Wolf | `wolf-p/f60641f63`, `wolf/f60641f63` | `wolf-p.blend`, `wolf-p-manifest.json`; `wolf.blend`, `wolf-manifest.json` | finished; size not settled (70 m); a turret clash check may update the build |
 | Manticore (P) | none yet: the hull is in the owner's review | none: a stand-in at its published 91 m (0.59 m/u) | effects pass and Drive build come after acceptance |
 
@@ -340,7 +340,6 @@ To check a scene without rendering, run `python battle_blockout.py --check`; `py
   - the Mk.III on her side for a broadside before she takes the Tarsus.
 - **Open hull questions:**
   - the Wolf's size, 70 m;
-  - the Tarsus: 94 m or 106 m, and a faceted body or not;
   - the Manticore (P) hull review.
 - A short animated pass of S6, to judge the whole cook-off rather than one still.
 

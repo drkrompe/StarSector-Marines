@@ -104,7 +104,7 @@ blockout's motion for Cycles at 24 fps with 180° motion blur, importing it so t
 cannot drift apart:
 
 - Second Wind is the patched state of one pinned build, `c2_bridge_render.SW_PIN` (now
-  `80c78dfac`, the build C1 and C5 share). Its manifest is committed under
+  `dc62710dc`, the two-Vulcan build C1, C4 and C5 share). Its manifest is committed under
   `second-wind-cinematic/pins/`. The .blend is built, not committed: copy it from Drive
   `builds/second-wind/<SW_PIN>/patched/` into `second-wind-states/patched/`. The script
   refuses a copy whose sha256 differs from the pinned manifest's. The shot does not follow
