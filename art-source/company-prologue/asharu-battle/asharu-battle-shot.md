@@ -2,7 +2,7 @@
 
 Status: DRAFT — blockout round 7 in code, not yet rendered (last posted run: round 6). Hull builds nearly all finished.
 Written: 2026-10-19
-Updated: 2026-10-20 — restructured as a spectacle (owner): a back-and-forth brawl turning on flux, four new combat shots (S6b, S6c, S6d, S9b), a voiced cast, about 2 minutes.
+Updated: 2026-10-20 — plays on arrival at Asharu as scene-setting (owner): told as a comms recording, audio first, then the picture; a brawl, about 2 minutes 10.
 
 The cinematic of the fighting that brought the Colossus and the Shepherd
 **Morrow** down onto Asharu, three cycles before the Shepherd-recovery arc. The
@@ -105,6 +105,43 @@ The brawl reads as Starsector because it moves to the game's own rhythm:
   - front shields: Lasher (210 deg), Wolf (150), Falcon (270), Colossus and Mk.III (150);
   - omni shields: Manticore, Kite, Tarsus, Phaeton, Mule, Buffalo, Dram, Shepherd;
   - no shield: Hound and Buffalo Mk.II, which is why they rely on armour and flares.
+
+## Framing: a comms recording
+
+The owner's direction (2026-10-20): the fight happened cycles ago, so the audience **hears it
+before they see it**, as if listening to a recording of the comms traffic. The picture follows
+once time and place are established.
+
+- **It opens on the recording, not the picture.** The screen shows a playback: channel list,
+  waveform, timestamp, source (see On-screen place and time). Over it, the S1 traffic plays as
+  audio only: the Colossus calling the window, the escort lead closing up the column. Ordinary
+  work, voices only.
+- **Then the camera jumps to the action.** On a line (the escort lead's "Escorts, close up the
+  column"), the recording screen gives way to S1, and the film shows what the voices describe.
+  From there the picture is a reconstruction, and the recording carries the story.
+- **The edit follows the radio.** A shot changes when a new voice keys the mic: the camera goes
+  to whoever is talking, or to what they are talking about. That gives the brawl its rhythm, and
+  explains why the camera can be anywhere.
+- **S3 is the exception.** The pirates are running dark and not transmitting. The convoy's
+  channel is quiet, chatting about the window, while the picture shows the trap: the audience
+  sees what the recording could not hear.
+- **It ends on the recording.** In S11 the plasma takes the channel: the picture breaks into the
+  recording screen's static, the waveform flattens, the Colossus's and Morrow's channels drop out
+  one at a time, and **END OF RECORDING**. S12, the two trails, plays after it in silence, or
+  under the static: the last image is one no recording made.
+- **When it plays (owner, 2026-10-20): when the player arrives at Asharu,** before the Salvage
+  Rights briefing. It sets the scene. Vale's "three cycles back, two fleets fought it out in low
+  orbit" then confirms something the player has already seen, rather than introducing it.
+- **Nobody in the story recovers it.** The recording is the film's way of telling, not an object
+  in the plot: no source, no device, nothing the player finds or keeps. It sets the scene, and
+  the story never refers to it again.
+- **What it may and may not reveal**, against the arc's reveal order (`shepherd-recovery-dialogue.md`):
+  - it shows the wreckfall, the Colossus and her escorts coming down, which the briefing reveals
+    next anyway;
+  - it never touches the hold, its contents, the buyer, or Basin, which are withheld in the arc,
+    some of them permanently;
+  - it names Morrow on the radio as she goes down with the Colossus. That is deliberate: the
+    player later reads her name plate in Basin's yard, and recognises her.
 
 ## How the convoy is broken, and why the pirates do not follow
 
@@ -222,10 +259,11 @@ the shooter's real mounts and prints "bears" or "CANNOT BEAR" with how far short
 
 ## Shot list
 
-About 2 minutes (118 s): 34 s of setup and ambush, 60 s of fighting, 24 s of the fall. **K** marks a shot with a blockout key frame. Shot names with a letter (S6b) were added on 2026-10-20 and are renumbered once the list is settled.
+About 2 minutes 10 (128 s): 10 s of recording, 34 s of setup and ambush, 60 s of fighting, 24 s of the fall. **K** marks a shot with a blockout key frame. Shot names with a letter (S6b) were added on 2026-10-20 and are renumbered once the list is settled.
 
 | Shot | Length | Picture | Ships seen closest | Camera |
 |---|---|---|---|---|
+| S0 | 10 s | **The recording.** Black, then the playback screen: source, timestamp, place, the channels lighting as each speaks, a waveform. The S1 traffic plays over it as audio only. On the escort lead's "close up the column", cut to picture. | (none) | (a screen, not a camera) |
 | S1 **K** | 8 s | Establishing: the convoy in loose column over the day side, the limb high in frame, the desert sliding beneath. Ordinary work. | the whole convoy, small | 35 mm, high off the north flank |
 | S2 | 6 s | Alongside the Colossus. Morrow rides off her starboard quarter; a Lasher slides through the foreground. | Colossus, Morrow, Lasher | 28 mm, tracking alongside at 300 m |
 | S3 **K** | 8 s | Running dark. Long lens back down at the derelict platform: dark, stripped, hulks in its bays; hold until it reads as junk. Then one hulk shows a running light, reactor glow behind a bay, a second, a third. Drives light and the first ships ease out. The audience sees the trap before the convoy does. | the platform, the Falcon (P) | 135 mm from the convoy's tail (longer, about 300 mm, is worth trying) |
@@ -240,8 +278,8 @@ About 2 minutes (118 s): 34 s of setup and ambush, 60 s of fighting, 24 s of the
 | S9 **K** | 8 s | She will not be taken: the Colossus Mk.III closes from above; she fights with flares and both turrets and drives off a Kite; Morrow is under her keel holding her up. | Colossus, Colossus Mk.III, Morrow | 28 mm, 600 m off her port side |
 | S9b **K** | 8 s | The lead's last run. Smoking since S6, the lead Lasher dives over the Falcon (P) on her back. The Falcon's broad front shield takes it and flares, then overloads in a burst of arcs, and the Lasher's guns walk down the flagship's open flank. The Falcon's broadside answers, and the Lasher tumbles away burning. | lead Lasher, Falcon (P) | 28 mm, close, just above the Lasher |
 | S10 **K** | 8 s | The prize taken: the Tarsus clamped to the Colossus Mk.III; far below, the Colossus nose-down and losing her orbit, Morrow with her. | Falcon (P), Colossus Mk.III, Tarsus; Colossus and Morrow below | 35 mm, behind and above |
-| S11 | 8 s | Entry: from just behind, plasma builds round both hulls; Morrow drifts apart from her. | Colossus, Morrow | 50 mm, chase |
-| S12 **K** | 8 s | Two trails down the track toward the horizon and the canyon country. Hold. End. | (trails only) | 50 mm from the pirates' orbit |
+| S11 | 8 s | Entry: from just behind, plasma builds round both hulls; Morrow drifts apart from her. The radio breaks up, the picture breaks into the recording screen's static, the channels drop out, and END OF RECORDING. | Colossus, Morrow | 50 mm, chase |
+| S12 **K** | 8 s | After the recording ends: two trails down the track toward the horizon and the canyon country, in silence. Hold. End. | (trails only) | 50 mm from the pirates' orbit |
 
 ## Radio traffic (draft)
 
@@ -302,7 +340,7 @@ Rules:
 | S10 | Pirate (Falcon) | Let her go. She's going down anyway. Take the Tarsus. |
 | S10 | Colossus | We're losing the orbit. Morrow, break off. |
 | S10 | Morrow | Staying with you. |
-| S11 | (both) | static; the plasma takes the channel |
+| S11 | (both) | static; the plasma takes the channel; END OF RECORDING |
 
 Open for the owner:
 - Morrow's "Staying with you" makes her going down with the Colossus a choice. The plan
@@ -313,7 +351,19 @@ Open for the owner:
 
 ## On-screen place and time
 
-S1 opens on a place card, so the audience knows where and when they are before anything happens:
+The recording screen (S0) states where and when, before anything is seen:
+
+> **ASHARU** Corvus · low orbit
+> the recording's own date, three cycles before the player's arrival
+
+- **The timestamp is in the game's own date format.** The player computes it at run time as the
+  date of the player's arrival minus three cycles, written in the game's own date format, so it
+  is right in every save.
+- **The channels:** one row per speaker (COLOSSUS, ESCORT LEAD, MORROW and the rest), lighting
+  as each speaks. The caption tags in the picture use the same names, so the screen teaches the
+  cast before the picture starts.
+
+The earlier plain place card, kept for reference:
 
 > **ASHARU** Corvus
 > Low orbit / three cycles ago
@@ -332,9 +382,8 @@ S1 opens on a place card, so the audience knows where and when they are before a
 - **Sensor locks inside the fight** are a natural use of the same overlay. For example, the
   pirates' lock on the Colossus as they climb in S4, titled with her hull class and never her
   cargo, and the rear escort's lock on the climbing contacts.
-- **Not decided:** where the cinematic plays in the game (the Shepherd-recovery arc's opening, a
-  codex entry, or a recovered recording Basin found in the Colossus). That decides whether the
-  card says "three cycles ago" or carries a recording's own timestamp.
+- **Decided (owner, 2026-10-20):** it plays when the player arrives at Asharu, as scene-setting.
+  It is not a recording the player recovers.
 
 The crash against the canyon wall is a separate shot. It needs both ships'
 deferred pass 5 states (Colossus crashed; Morrow grounded and damaged).
