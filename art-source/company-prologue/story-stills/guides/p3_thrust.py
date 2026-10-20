@@ -14,6 +14,9 @@ back to space, and paints the six bells hot with short exhaust foreshortened tow
 the exhaust only (after finding the generation's small offset against the master), so Castle, the
 crowd, the children, the window and the rest of the ship stay pixel-identical. It prints the
 largest change outside the mask, which must be zero.
+
+Both modes were run against the 2026-10-19 master (`git show b7b252566:<story-stills>/last-carrier.master.png`);
+the current master is the result (approved 2026-10-20), so rerunning against it repeats nothing useful.
 """
 import argparse
 import sys
