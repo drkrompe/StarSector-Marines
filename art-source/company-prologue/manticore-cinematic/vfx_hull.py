@@ -44,9 +44,13 @@ MOUNTS = [(t['location'][0], t['location'][1], t['rest_angle_deg'], t['vfx_scale
           for t in sorted(_geom['turrets'], key=lambda t: t['index'])]
 DECLARED_MUZZLES = True
 
+# Warmer than the kit's LOW_TECH row (which the Lasher's profile also carries): at
+# the Manticore's bell sizes and a close framing that row's pale core clipped to
+# white and read as smoke (coordinator, 2026-10-20: warm it to the Lasher's
+# orange drives). The core keeps its lead over the plume so the mouth stays hottest.
 COLOURS = {
-    'clean': dict(core=(1.0, .80, .52), plume=(1.0, .42, .08), warm=(1.0, .50, .12),
-                  glow=(1.0, .72, .40), light=(1.0, .62, .30)),
+    'clean': dict(core=(1.0, .58, .22), plume=(1.0, .30, .04), warm=(1.0, .38, .06),
+                  glow=(1.0, .52, .18), light=(1.0, .48, .16)),
 }
 
 RCS_QUADS = {}
