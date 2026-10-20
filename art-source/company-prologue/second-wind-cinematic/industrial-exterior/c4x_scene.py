@@ -52,8 +52,20 @@ STATES = CINE / 'second-wind-states' / 'patched'
 # The Second Wind build this shot renders: its .blend input is that build's patched state, and its
 # manifest is committed under ../pins/. The shot does not follow second-wind-states/'s latest
 # manifest; adopting a new build means moving SW_PIN and committing that build's manifest beside it.
-SW_PIN = '80c78dfac'
+SW_PIN = 'dc62710dc'
 SW_MANIFEST = BASE.parent / 'pins' / ('second-wind-%s-patched.manifest.json' % SW_PIN)
+
+
+def check_pinned_blend(path, manifest):
+    """Refuse a Second Wind .blend that is missing or is not the pinned build (SW_PIN). Copy it from
+    Drive builds/second-wind/<SW_PIN>/patched/."""
+    import hashlib
+    if not Path(path).exists():
+        raise SystemExit('%s is missing: copy it from Drive builds/second-wind/%s/patched/' % (path, SW_PIN))
+    digest = hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    if digest != manifest['asset_sha256']:
+        raise SystemExit('%s is not Second Wind build %s (sha256 %s, pin %s)'
+                         % (path, SW_PIN, digest[:12], manifest['asset_sha256'][:12]))
 
 FPS = 24
 # The approach is LATE seconds slower than the first cut (owner, 2026-10-19: Castle names Kilo Nine
@@ -679,6 +691,7 @@ def ship_path(t):
 
 def add_ship():
     manifest = json.loads(SW_MANIFEST.read_text())
+    check_pinned_blend(INPUTS / 'second-wind-patched.blend', manifest)
     append_collection(INPUTS / 'second-wind-patched.blend', manifest['append_collection'])
     root = bpy.data.objects[manifest['root']]
     # The exhaust anchors are the root's children in a collection that never reaches the scene, so

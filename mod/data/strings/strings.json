@@ -3064,7 +3064,7 @@
 		"battleDirectHudStaminaLabel": "STAMINA",
 		"battleDirectHudFluxReserve": "BURST RESERVE",
 		"battleDirectHudFluxHigh": "HIGH FLUX - EASE FIRE",
-		"battleDirectHudFluxVenting": "VENTING - WEAPONS LOCKED",
+		"battleDirectHudFluxVenting": "VENTING - GUNS LOCKED",
 		"battleDirectHudFluxHold": "FLUX",
 		"battleDirectHudWeaponGroups": "WEAPON GROUPS",
 		"battleDirectHudWeapons": "WEAPONS",
