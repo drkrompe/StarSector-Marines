@@ -6,7 +6,7 @@ import java.util.Map;
 public final class CompanyPrologue {
     private static final String PAGE = "sm_company_prologue_page";
     private static final String COMPLETE = "sm_company_prologue_complete";
-    public static final int PAGE_COUNT = 8;
+    public static final int PAGE_COUNT = 7;
 
     private CompanyPrologue() { }
 
@@ -19,6 +19,7 @@ public final class CompanyPrologue {
                 && saved.containsKey(PAGE) && !Boolean.TRUE.equals(saved.get(COMPLETE));
     }
 
+    /** Clamped on read: a save left on a page that no longer exists (the old eighth) opens the last one. */
     public static int page(Map<String, Object> saved) {
         Object value = saved.get(PAGE);
         return value instanceof Number n ? clamp(n.intValue()) : 0;

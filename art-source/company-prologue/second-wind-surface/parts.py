@@ -32,6 +32,9 @@ Optional per-part keys:
   ray       visibility rays start this far out along the view direction
             (default 300, i.e. outside the ship). A bay interior seen
             through its opening sets it short enough to start inside.
+  seam_walls  (box members) also claim the visible faces sharing an edge with
+            the selection whose |normal . dir| is at least this: the steep walls a
+            lifted plate stands on, which would otherwise leave a hairline gap.
   square    |normal . dir| at and above which the skin is used unblended
             (default SQUARE). Below it the material blends to the graded
             swatch of the face's class, fully by SQUARE - SQUARE_BAND: the
@@ -207,6 +210,37 @@ def select_faces(part, objects=None):
                 lo[k] - pad <= verts[v][k] <= hi[k] + pad for v in me.polygons[i].vertices for k in range(3)))
             out.setdefault(name, set()).update(
                 i for i in ok if all(lo[k] <= centres[i][k] <= hi[k] for k in range(3)) and inside(i))
+            # 'seam_walls' (opt-in, a minimum |normal . dir|): plating lifted on steep seam
+            # walls (the Manticore's armour courses) leaves the walls outside every cone, so
+            # each groove would be a hairline gap in the tile that neither the guide's own
+            # segmentation nor a generation can reproduce. Claim the visible faces sharing an
+            # edge with a selected face too; being steep, they take their class swatch
+            # through `square`, exactly as the bevel strips do.
+            if spec.get('seam_walls') is not None:
+                sel = out[name]
+                edge_faces = {}
+                for q in me.polygons:
+                    for ek in q.edge_keys:
+                        edge_faces.setdefault(ek, []).append(q.index)
+                lim = spec['seam_walls']
+                # Grown a few rings out: a wall can meet its plate through the zero-area
+                # slivers a break plane's bisect leaves behind.
+                front = set(sel)
+                for _ in range(4):
+                    walls = set()
+                    for i in front:
+                        for ek in me.polygons[i].edge_keys:
+                            for j in edge_faces[ek]:
+                                if j in sel or j in walls:
+                                    continue
+                                n = (n3 @ me.polygons[j].normal).normalized()
+                                if (abs(n.dot(d)) >= lim and seen.get(j, 0) >= 0.5 * total.get(j, 1)
+                                        and all(lo[k] <= centres[j][k] <= hi[k] for k in range(3))):
+                                    walls.add(j)
+                    if not walls:
+                        break
+                    sel.update(walls)
+                    front = walls
             continue
         seed_v = Vector(seed)
         start = min(ok, key=lambda i: (centres[i] - seed_v).length)

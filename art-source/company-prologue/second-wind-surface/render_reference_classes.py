@@ -15,6 +15,7 @@ spike instead).
 """
 from pathlib import Path
 import sys
+import os
 import bpy
 
 HERE = Path(__file__).resolve().parent
@@ -30,7 +31,8 @@ scene.render.engine = 'CYCLES'
 scene.render.resolution_x, scene.render.resolution_y = 1920, 1080
 scene.render.resolution_percentage = 100
 scene.render.film_transparent = True
-scene.cycles.samples = 64
+# SURF_GUIDE_SAMPLES (opt-in): a cheaper lit guide for a queued light job; unset keeps 64.
+scene.cycles.samples = int(os.environ.get('SURF_GUIDE_SAMPLES', 64))
 scene.render.image_settings.file_format = 'PNG'
 scene.render.image_settings.color_mode = 'RGBA'
 scene.render.filepath = str(DATA / 'build' / 'reference-guide-rgba.png')
