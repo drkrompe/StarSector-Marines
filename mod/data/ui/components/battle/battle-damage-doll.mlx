@@ -1,0 +1,40 @@
+<template props="first,firstClasses,second,secondClasses">
+  <div id="damage-doll" class="damage-doll" style="background-color: transparent; background-image: none; border-width: 0px;">
+    <canvas id="damage-doll-canvas" class="doll-canvas" width="240" height="170" />
+    <div id="damage-doll-flags" class="doll-flags">
+      <div id="damage-doll-first" class="{firstClasses}">{first}</div>
+      <div id="damage-doll-second" class="{secondClasses}">{second}</div>
+    </div>
+  </div>
+</template>
+
+<style>
+  div.damage-doll {
+    text-shadow: #000000d9;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    padding: 4px 6px;
+    gap: 3px;
+    border-width: 0px;
+    background-color: transparent;
+    background-image: none;
+    overflow: hidden;
+  }
+  .doll-canvas { width: 166px; height: 118px; }
+  .doll-flags { width: 100%; height: 16px; flex-direction: row; gap: 4px; }
+  .flag {
+    width: 0px;
+    flex-grow: 1;
+    height: 12px;
+    padding: 2px 0px;
+    border-width: 1px;
+    font-family: compact;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .flag-off { color: #4f5c55; border-color: #2c3732; }
+  .flag-on { color: #ffe1d8; border-color: #f06a5e; background-color: #6a221c; }
+  .flag-wide { flex-grow: 1.5; }
+</style>

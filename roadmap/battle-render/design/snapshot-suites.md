@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-16
 
-Updated: 2026-10-19 — warship rounds in flight at hull scale (`warship-rounds`)
+Updated: 2026-10-20 — damage dolls for every machine (`damage-doll`)
 
 A guide to the notable `createSnapshots` suites: what each one shows and where it writes.
 How to run them, and the rules every preview obeys, are in `CLAUDE.md` (Visual snapshot
@@ -36,6 +36,7 @@ by name.
 | `equipment-mounts` | Catalog-equipped Aegis and Arbalest missile pods, Specter emitter, Legionary control, articulation and weapon clearance; enlarged and normal world-scale samples with twelve lossless frames at 1920x1080, 100% scale | `build/snapshots/equipment-mounts/` |
 | `squad-selection` | Selected and hovered infantry circles, unmarked enemy bodies, the group command plate, and a dragged line order: its preview rings (`line-preview.png`) and the squad on those posts after release, with nothing left drawn (`line-held.png`), at 1920x1080, 100% scale | `build/snapshots/squad-selection/` |
 | `field-salvage` | Optional material caches: production placement checks, controlled discovery/collection/contest/secured frames and cargo claim rows at 1920x1080, 100% scale; not a full mission replay | `build/snapshots/field-salvage/` |
+| `damage-doll` | Every doll under `mod/graphics/ui/dolls/`, intact beside a scripted damage state that walks every location colour: HUD-size sheets (`dolls-ui100-*`) and the same art 2.5x for line review (`dolls-detail-*`), 1920x1080. The live plate is in `direct-control-ui` (`active-mech`, `active-apc`) | `build/snapshots/damage-doll/` |
 | `durability-bars` | Ownership matrix and an authored-profile magnitude ladder, true scale and magnified | `build/snapshots/durability-bars/` |
 | `power-suit` | One regular squad, one XIV squad, and two regular squads against fixed rifle opposition, plus a marksman control at 1920x1080; matched training and grade, no suit systems. Casualties and endurance observations, not mission-balance acceptance | `build/snapshots/power-suit/` |
 | `boarding-jack-layers` | The Boarding Jack's exported parts, the rig beside the Specter it shares a registration with, the boarding shield's sweep from idle to fire, articulated poses, all five paints including Greyhook's pirate paint, and Greyhook's raiders in their paint at world scale; 1920x1080, 100% scale | `build/snapshots/boarding-jack-layers/` |

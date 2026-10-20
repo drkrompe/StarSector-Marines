@@ -313,9 +313,9 @@ increasing an encounter's total armored threat.
   its legs for as long as it stands. These are presentation events read off the
   sections (`MechSectionFxSystem`); they draw nothing from the battle's random
   stream, so they change no outcome and a review frame stays a function of
-  simulation state. A section paper-doll in the direct-control HUD and above the
-  selected-mech panel shows each section's armor and structure and marks what
-  is gone.
+  simulation state. A damage doll in the direct-control HUD and above the
+  selected-mech panel draws the chassis from the side and from above, each
+  section coloured by its armor and structure, and marks what is gone.
 - **After the battle** settlement writes that record back. A destroyed torso
   (or a chassis that died as one body under the control) **loses the chassis**:
   it leaves its gantry and every part fitted to it leaves stores with it. A

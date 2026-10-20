@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, deployed APC, friendly Warship, and drone Tende
 
 Written: 2026-09-23
 
-Updated: 2026-10-20 — the takeover HUD follows the game's combat HUD: labelled status bottom left, weapon groups by button bottom right.
+Updated: 2026-10-20 — a damage doll (side elevation and plan, coloured by location) stands in the corner for a Mech or a vehicle.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -78,8 +78,12 @@ pointer capture, and retreat confirmation. The takeover HUD follows the game's
 own combat HUD and leaves the centre of the screen to the fight. A **status panel**
 at bottom left names the body and its carrier and reads its durability as labelled
 bars with a percentage: HULL (HEALTH for a Marine), ARMOR above FLUX, and a
-Marine's STAMINA. A Mech's section doll takes the corner itself and the status
-stands beside it. Filled lengths reflect the exact body's remaining fractions;
+Marine's STAMINA. A Mech or a vehicle shows its **damage doll** in the corner and
+the status stands beside it: the machine's outline as a side elevation and a top
+plan, each location filled by its state (green whole, yellow as armor wears,
+orange once it is gone, red as structure goes, dark red destroyed) with two flags
+beneath, CRIPPLED and SENSORS LOST for a Mech, IMMOBILE and GUN LOST for a vehicle.
+The locations are owned by `d5-located-armor.md`; see `damage-doll.md`. Filled lengths reflect the exact body's remaining fractions;
 armor depletion empties its bar independently of health, and an armorless body
 has no armor row. A **weapon-groups panel** at bottom right lists equipment under
 the button that fires it (see Mouse buttons and weapon groups). At top right,

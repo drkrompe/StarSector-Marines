@@ -2,8 +2,9 @@
 
 > Read where a machine is hurt at a glance, the way MechWarrior does.
 
-Status: IN PROGRESS
+Status: IN PROGRESS — dolls, colouring and the HUD plate shipped; waits on located vehicle armor
 Written: 2026-10-20
+Updated: 2026-10-20 — every silhouette drawn and live in the takeover HUD; vehicle plates read the one hull pool until D5
 
 Read `direct-control-nouns.md` and `ui-nouns.md` first. The locations the doll
 draws are owned by `d5-located-armor.md`.
@@ -31,8 +32,21 @@ is a location, coloured by its state.
 - Silhouettes: three mechs (Hound, Bulwark, Sirocco) and the vehicle families
   (APC, tank, dozer, technical, truck, scout car, hover scout, drone skimmer, LRM
   carrier, hauler). Variants of a family share a doll.
-- Outlines start from the shipped top-down sprites: the top plan is traced from
-  the sprite's alpha; the side elevation is drawn to match it.
+- Outlines are drawn, not traced, from proportions measured off the shipped
+  top-down sprites (`art-source/dolls/build_dolls.py` writes every doll); a
+  traced alpha edge is jagged at HUD size. A hull stacks its elevation above its
+  plan; a walker, taller than it is long, stands them side by side.
+- The doll plate replaces the boxed section schematic beside the takeover status
+  and above the selected-mech panel; its width is bounded by the takeover HUD's
+  clear centre at the smallest supported hosts.
+
+## Remaining
+
+- When `d5-located-armor.md` lands, read each plate, the drive and the mech rear
+  torso from their own pools (`DamageDollCanvas.View.readVehicle` and `read`),
+  and light IMMOBILE from the drive.
+- Live pass: drive a mech and a vehicle in game and compare the doll with the
+  hits taken.
 
 ## Acceptance
 

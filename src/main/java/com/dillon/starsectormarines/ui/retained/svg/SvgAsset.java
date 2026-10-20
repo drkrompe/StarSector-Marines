@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,13 +88,64 @@ public final class SvgAsset {
     private final double width;
     private final double height;
     private final CanvasMeshBatch batch;
+    /** The {@code part-*} group each layer was drawn in, without the prefix; null outside any part. */
+    private final String[] layerParts;
+    /** Whether each layer was painted with {@code currentColor}, so a part colour may replace it. */
+    private final boolean[] layerCurrentColor;
 
-    private SvgAsset(double[] viewBox, List<Layer> layers) {
+    private SvgAsset(double[] viewBox, Sink sink) {
         minX = viewBox[0];
         minY = viewBox[1];
         width = viewBox[2];
         height = viewBox[3];
-        batch = new CanvasMeshBatch(layers);
+        batch = new CanvasMeshBatch(sink.layers);
+        layerParts = sink.parts.toArray(new String[0]);
+        layerCurrentColor = new boolean[sink.current.size()];
+        for (int i = 0; i < layerCurrentColor.length; i++) layerCurrentColor[i] = sink.current.get(i);
+    }
+
+    /** Collects compiled layers with the part and paint they came from. */
+    private static final class Sink {
+        final List<Layer> layers = new ArrayList<>();
+        final List<String> parts = new ArrayList<>();
+        final List<Boolean> current = new ArrayList<>();
+    }
+
+    /** Group ids that name a part: {@code <g id="part-TURRET">} is part {@code TURRET}. */
+    public static final String PART_PREFIX = "part-";
+
+    /** The distinct part names this drawing declares, in document order. */
+    public List<String> parts() {
+        List<String> names = new ArrayList<>();
+        for (String part : layerParts) if (part != null && !names.contains(part)) names.add(part);
+        return names;
+    }
+
+    /**
+     * Draws like {@link #draw}, except that a layer painted with {@code currentColor} inside a
+     * {@code part-*} group takes the colour {@code partColor} gives that part. A null answer
+     * leaves the layer out, which is how a missing location draws as outline alone. Every other
+     * layer keeps its authored colour.
+     */
+    public void drawParts(CanvasContext context, float x, float y, float boxWidth, float boxHeight,
+                          Function<String, Color> partColor) {
+        Objects.requireNonNull(context, "context");
+        Objects.requireNonNull(partColor, "partColor");
+        double scale = Math.min(boxWidth / width, boxHeight / height);
+        if (!(scale > 0)) return;
+        float offsetX = (float) (x + (boxWidth - width * scale) / 2 - minX * scale);
+        float offsetY = (float) (y + (boxHeight - height * scale) / 2 - minY * scale);
+        for (int i = 0; i < batch.layerCount(); i++) {
+            Layer layer = batch.layer(i);
+            Color color = layer.color();
+            if (layerCurrentColor[i] && layerParts[i] != null) {
+                Color part = partColor.apply(layerParts[i]);
+                if (part == null) continue;
+                color = new Color(part.getRed(), part.getGreen(), part.getBlue(),
+                        part.getAlpha() * layer.color().getAlpha() / 255);
+            }
+            context.mesh(layer.mesh(), offsetX, offsetY, (float) scale, color);
+        }
     }
 
     /** One load per path; call while constructing a producer, outside paint. */
@@ -143,12 +195,12 @@ public final class SvgAsset {
                     throw error(root, "width/height aspect must match the viewBox for an aspect-fitted asset");
                 }
             }
-            List<Layer> layers = new ArrayList<>();
+            Sink layers = new Sink();
             double flatness = Math.max(viewBox[2], viewBox[3]) / 2048;
             Style rootStyle = style(root, Style.DEFAULT);
             requireContainerOpacity(root, rootStyle);
             Rectangle2D viewport = new Rectangle2D.Double(viewBox[0], viewBox[1], viewBox[2], viewBox[3]);
-            walkChildren(root, rootStyle, transform(root), flatness, viewport, layers);
+            walkChildren(root, rootStyle, transform(root), flatness, viewport, layers, null);
             return new SvgAsset(viewBox, layers);
         } catch (IllegalArgumentException failure) {
             throw failure;
@@ -186,10 +238,10 @@ public final class SvgAsset {
     }
 
     private static void walkChildren(Element parent, Style inherited, AffineTransform transform,
-                                      double flatness, Rectangle2D viewport, List<Layer> layers) {
+                                      double flatness, Rectangle2D viewport, Sink layers, String part) {
         for (Node node = parent.getFirstChild(); node != null; node = node.getNextSibling()) {
             if (node instanceof Element element) {
-                walk(element, inherited, transform, flatness, viewport, layers);
+                walk(element, inherited, transform, flatness, viewport, layers, part);
             } else if (node.getNodeType() == Node.TEXT_NODE && !node.getTextContent().isBlank()) {
                 throw error(parent, "text is unsupported; author geometry as paths");
             }
@@ -197,7 +249,7 @@ public final class SvgAsset {
     }
 
     private static void walk(Element element, Style inherited, AffineTransform parentTransform,
-                              double flatness, Rectangle2D viewport, List<Layer> layers) {
+                              double flatness, Rectangle2D viewport, Sink layers, String part) {
         String tag = tag(element);
         if (tag.equals("title") || tag.equals("desc")) {
             attributes(element, Set.of());
@@ -219,7 +271,9 @@ public final class SvgAsset {
         transform.concatenate(transform(element));
         if (tag.equals("g")) {
             requireContainerOpacity(element, style);
-            walkChildren(element, style, transform, flatness, viewport, layers);
+            String id = element.getAttribute("id");
+            String groupPart = id.startsWith(PART_PREFIX) ? id.substring(PART_PREFIX.length()) : part;
+            walkChildren(element, style, transform, flatness, viewport, layers, groupPart);
             return;
         }
         for (Node node = element.getFirstChild(); node != null; node = node.getNextSibling()) {
@@ -236,22 +290,27 @@ public final class SvgAsset {
         }
         if (!style.fill().equals("none")) {
             addLayer(layers, transform.createTransformedShape(shape),
-                    paint(style.fill(), style.color(), style.opacity() * style.fillOpacity()), flatness, viewport);
+                    paint(style.fill(), style.color(), style.opacity() * style.fillOpacity()), flatness, viewport,
+                    part, style.fill().equals("currentColor"));
         }
         if (!style.stroke().equals("none") && style.strokeWidth() > 0) {
             BasicStroke stroke = new BasicStroke((float) style.strokeWidth(), style.cap(), style.join(),
                     (float) style.miterLimit(), style.dash(), style.dashPhase());
             addLayer(layers, transform.createTransformedShape(stroke.createStrokedShape(shape)),
-                    paint(style.stroke(), style.color(), style.opacity() * style.strokeOpacity()), flatness, viewport);
+                    paint(style.stroke(), style.color(), style.opacity() * style.strokeOpacity()), flatness, viewport,
+                    part, style.stroke().equals("currentColor"));
         }
     }
 
-    private static void addLayer(List<Layer> layers, Shape shape, Color color,
-                                 double flatness, Rectangle2D viewport) {
+    private static void addLayer(Sink layers, Shape shape, Color color,
+                                 double flatness, Rectangle2D viewport, String part, boolean currentColor) {
         finite(shape);
         if (color.getAlpha() == 0) return;
         CanvasMesh mesh = SvgTessellator.mesh(shape, flatness, viewport);
-        if (mesh.vertexCount() > 0) layers.add(new Layer(mesh, color));
+        if (mesh.vertexCount() == 0) return;
+        layers.layers.add(new Layer(mesh, color));
+        layers.parts.add(part);
+        layers.current.add(currentColor);
     }
 
     private static Shape shape(Element element, String tag, int winding) {
