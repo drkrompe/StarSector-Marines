@@ -166,16 +166,24 @@ running job survives a runner restart.
 **Windows.** The runner lives in `%LOCALAPPDATA%\starsector-render-queue\`.
 The scheduled task "Starsector render queue" starts it at logon, hidden.
 
-**Mac.** The runner lives in `~/render-queue/` and runs under nohup, started
-from ssh or Terminal. A LaunchAgent cannot list `~/Library/CloudStorage`
-(macOS answers "Operation not permitted") without Full Disk Access, which is
-the owner's call. So **after a Mac reboot, start the runner again**:
+**Mac.** The runner lives in `~/render-queue/`. The LaunchAgent
+`com.starsectormarines.renderqueue` starts it at login and restarts it if it
+dies. To update it, copy the script over and run `install`:
 
 ```bash
 C:/Windows/System32/OpenSSH/ssh.exe -o HostKeyAlias=dillmac.local dillon@192.168.1.97 "cd ~/render-queue && /usr/bin/python3 render_queue.py install"
 ```
 
-A stale Mac heartbeat in `status` means the runner is down.
+The agent needs Full Disk Access to read the Drive folder, which the owner has
+granted. The grant is on the interpreter the plist runs, the Command Line
+Tools `Python.app`
+(`/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/Resources/Python.app`).
+A grant on the `/usr/bin/python3` shim does nothing. A Command Line Tools
+update can replace that `Python.app` and drop the grant. The runner log then
+fills with `PermissionError: Operation not permitted` and the Mac heartbeat in
+`status` goes stale. When that happens, ask the owner to grant it again, or
+use `install --mode nohup` from ssh as a stopgap; that copy does not survive
+a reboot.
 
 `config.json` belongs to the render coordinator. Besides gates, holds and
 priority overrides it holds:
