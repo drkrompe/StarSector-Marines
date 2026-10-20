@@ -2169,7 +2169,10 @@ believed inside it, or a garrison too small to hold it, falls back to the works
 of the fort it belongs to if the side still holds them, else returns to the pool;
 a breached run is not re-manned for a while. A squad is sent to man a run only at
 useful strength (half the strength it started with, never fewer than two), and a breach is a believed enemy on the run itself near the
-squad, not one beside the run or at its far end.
+squad, not one beside the run or at its far end. The scene `reactive-belt` plays the whole cycle on a production
+fort: a quiet belt left empty, a pressed stretch manned on the pulse its pressure
+is believed, dug in and given back after the attack passes, and a breached
+garrison falling back to the works.
 
 **What it pays is composure and reach, never protection.** Cover already
 reduces damage and stops rounds, and the cells of a position already carry it;

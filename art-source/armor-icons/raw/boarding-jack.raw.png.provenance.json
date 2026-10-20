@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ad9-e0a2-74e3-a492-30448e47ae72",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ad9-e0a2-74e3-a492-30448e47ae72\\exec-c4390d69-dfb0-4a08-ad37-2739a820b03c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\raw\\boarding-jack.raw.png",
+    "sha256": "3c19d267d3e82c101ed39296044be6b504a9f8925e96afc6a800ec10faed6a9c",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\prompts\\boarding-jack.prompt.txt",
+  "promptSha256": "989d2ac0b9535b58ce3f27da320b05d6e24b447a1187fbc703625dad940274fe",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Composition, camera, lighting and finish reference only; not the suit design, colours or markings\nImage 2: Identity authority: the same suit seen from directly overhead in battle; palette, plate shapes, markings\n\nUse case: style-matched product render. Asset: the armory catalogue image of one marine armour suit, for a gritty military dark-science-fiction tactical game in the Starsector setting. The image shows the suit as a product shot: a massive powered-armour cuirass with its pauldrons standing upright at the upper right, its helmet set down in front at the lower left, and the two armoured gauntlets and forearms laid at the lower right.\n\nImage 1 is the composition, camera, lighting and finish reference only: match its arrangement of pieces, front three-quarter viewing angle, the scale the set fills in the frame, soft studio light from the upper left and its realistic hand-painted finish. Do NOT copy its suit design, colours or markings.\n\nImage 2 is the identity authority: this same suit as the game draws it in battle, seen from directly overhead (left: the torso and shoulder plates, with an empty hole where the helmet sits; right: the top of the helmet). The armory image must read unmistakably as this same suit seen from the front: the same palette and where each colour sits, the same plate and pauldron shapes, the same markings, lamps and hardware, the same faction character. Translate the overhead plates into their front-view forms; never show the overhead view itself.\n\nBoarding Jack rebuilt frame: a pirate-yard loading frame rebuilt for ship boarding. Scuffed safety-orange painted plate over dark steel, welded and riveted mismatched panels, a squarish torso with a round neck ring, two guarded steel hoses running down the chest to a ribbed steel vent block at the belly, a deliberately mismatched pair of shoulders: a long, wide welded slab of a boarding shield on the left with a small grey ram block bolted to its face and a pale yellow hand-lettered service label, and a smaller rounded cargo cap with steel bands on the right. Tiny cyan indicator lamps. The helmet is a round orange pressure helmet with a steel brow handle and two round dark viewports low at the front, matching the overhead helmet. Industrial, crude, heavy; no spikes, skulls or chains.\n\nSquare 1:1 canvas with every piece fully inside the frame and a clear margin. True transparent background, including the gaps between pieces; no ground, no cast-shadow slab, no border, no text, letters, numbers, logos or watermark, no person or face inside the suit, no weapon.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\mod\\graphics\\ui\\armory\\armor-tier-4-heavy.png",
+      "sha256": "4a08857d0fa292e29ea6a8a2cd3296cdf1901a008344580412ff08a4b102b72a",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Composition, camera, lighting and finish reference only; not the suit design, colours or markings"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\refs\\boarding-jack-identity.png",
+      "sha256": "206a023a10426d7577ab57baab13cc84020fa2349c52c1ee543f6c985ac140a3",
+      "dimensions": [
+        1428,
+        680
+      ],
+      "mode": "RGB",
+      "role": "Identity authority: the same suit seen from directly overhead in battle; palette, plate shapes, markings"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent product render using Image 1 for composition and Image 2 for the suit’s identity.\n"
+  ],
+  "usage": {
+    "input_tokens": 39413,
+    "cached_input_tokens": 31616,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 658,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 66.2
+}

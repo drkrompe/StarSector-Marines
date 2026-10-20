@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ad5-7c41-7ae0-ac7b-453921337c6f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ad5-7c41-7ae0-ac7b-453921337c6f\\exec-4796876c-de8f-477a-b5c1-999fb7e1fd30.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\raw\\palatine.raw.png",
+    "sha256": "ece4f3a293f7fe68604eaf081baf2bc7368179adebc5963efb847e936d3c6614",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\prompts\\palatine.prompt.txt",
+  "promptSha256": "4a0ae98056a23e977f13b117d5dde7fbf788de2dc0849c0fe1d2c8920be5ea1f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Composition, camera, lighting and finish reference only; not the suit design, colours or markings\nImage 2: Identity authority: the same suit seen from directly overhead in battle; palette, plate shapes, markings\n\nUse case: style-matched product render. Asset: the armory catalogue image of one marine armour suit, for a gritty military dark-science-fiction tactical game in the Starsector setting. The image shows the suit as a product shot: one complete upper-body suit displayed as on an invisible stand, seen from the front: helmet on top, cuirass, pauldrons and upper-arm and forearm plates, down to the belt, with no person inside.\n\nImage 1 is the composition, camera, lighting and finish reference only: match its arrangement of pieces, front three-quarter viewing angle, the scale the set fills in the frame, soft studio light from the upper left and its realistic hand-painted finish. Do NOT copy its suit design, colours or markings.\n\nImage 2 is the identity authority: this same suit as the game draws it in battle, seen from directly overhead (left: the torso and shoulder plates, with an empty hole where the helmet sits; right: the top of the helmet). The armory image must read unmistakably as this same suit seen from the front: the same palette and where each colour sits, the same plate and pauldron shapes, the same markings, lamps and hardware, the same faction character. Translate the overhead plates into their front-view forms; never show the overhead view itself.\n\nPalatine legacy line suit: Luddic Church powered armour rebuilt from inherited pressure shells. Broad hand-fitted weathered ivory ceramic plates over a muted sage and deep olive frame, layered rounded pauldrons with olive edging, aged brass fasteners and small brass hinge plates, faded ochre cloth seals hanging at the shoulders, dark iron joints, and a small brass sunburst devotional plate in the centre of the chest. The helmet is an ivory ceramic dome with sage bands, brass fasteners and a small forward sunburst boss, matching the overhead helmet. Dignified, old and carefully maintained; no glowing electronics, no fantasy robes, no wings or halo.\n\nSquare 1:1 canvas with every piece fully inside the frame and a clear margin. True transparent background, including the gaps between pieces; no ground, no cast-shadow slab, no border, no text, letters, numbers, logos or watermark, no person or face inside the suit, no weapon.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\mod\\graphics\\ui\\armory\\armor-tier-3-combat.png",
+      "sha256": "68170384df5c9d4d8a347c5c3834d179c037a062db96c0645acf070d21d57391",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Composition, camera, lighting and finish reference only; not the suit design, colours or markings"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-icons\\art-source\\armor-icons\\refs\\palatine-identity.png",
+      "sha256": "4d410cc349c006e6d89b1cefeebc8e67181e42caac95224b4aea3b577865ab95",
+      "dimensions": [
+        1169,
+        680
+      ],
+      "mode": "RGB",
+      "role": "Identity authority: the same suit seen from directly overhead in battle; palette, plate shapes, markings"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent product render, using Image 1 for presentation and Image 2 for the suit’s identity.\n"
+  ],
+  "usage": {
+    "input_tokens": 40681,
+    "cached_input_tokens": 32256,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 603,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 67.7
+}
