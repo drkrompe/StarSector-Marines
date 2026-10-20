@@ -24,8 +24,9 @@ port's east edge against the jungle, with repair scaffold, a derrick over the sa
 and the workshop the families will walk into, and the works that mend hulls at its north end.
 Its one gate is on the port road, and a haul road runs from it up the yard. Her tug, bowser and
 crew carrier wait clear of the downwash and move in once the dust thins, and a Hegemony customs
-car comes over from the public side and in through her gate, lights going. K9_ORIGINS=1 starts
-them where they live instead (a proposal, `yard-vehicles.md`).
+car comes over from the public side and in through her gate, lights going. Each of her vehicles
+starts where it lives and drives its own journey (`yard-vehicles.md`); K9_ORIGINS=0 restores the old
+hop to a stand-off and roll-in on one cue, as a control.
 
 World frame, metres: +Y toward the port; +Z up; ground at z = 0.
 Inputs: build/c1v2/inputs/{second-wind-patched,mudskipper-skinned,hound-skinned}.blend, and the
@@ -1508,7 +1509,8 @@ K9_ROLL_IN = {n: (go + LATE, stop + LATE) for n, (go, stop) in
               {'Tug': (14.2, 18.5), 'Crew carrier': (14.5, 19.5), 'Fuel bowser': (14.8, 20.5)}.items()}
 CUSTOMS_ARRIVE = 21.0 + LATE
 
-# K9_ORIGINS=1 (a proposal awaiting the owner, off by default; `yard-vehicles.md`): the yard's
+# K9_ORIGINS (on by default, approved by the owner 2026-10-20; K9_ORIGINS=0 is the control that restores
+# the old roll-in above; `yard-vehicles.md`): the yard's
 # vehicles work like a crew that knows the drill instead of all leaving on one cue for a short hop.
 # Each comes from somewhere and is still at work while the families come off:
 #   crew carrier  out of the arrivals hall's spare bus bay, along the port road, in at the gate ahead
@@ -1521,7 +1523,7 @@ CUSTOMS_ARRIVE = 21.0 + LATE
 #                 the hookup.
 # A leg is (start s, end s, points, reversing): C4 seconds, C5 starting at DURATION. 'END' is the
 # vehicle's spot at the hull, 'PAST' a little beyond it along its final heading (to back in from).
-K9_ORIGINS = bool(os.environ.get('K9_ORIGINS'))
+K9_ORIGINS = os.environ.get('K9_ORIGINS', '1') != '0'
 K9_ENDS = {'Tug': (-46, 22), 'Crew carrier': (-50, 4), 'Fuel bowser': (0, -40)}
 C5S = 16.0 + LATE                          # C5 starts here, in C4 seconds
 K9_LEGS = {

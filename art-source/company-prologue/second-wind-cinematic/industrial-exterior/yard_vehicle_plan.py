@@ -1,5 +1,5 @@
 """Kilo Nine's ground crew from above: where each vehicle starts, the journey it drives, where it waits
-and where it parks, the shipped keys against the K9_ORIGINS proposal (`c4x_scene.K9_LEGS`). A plan for review, drawn
+and where it parks, the old keys (K9_ORIGINS=0) against the K9_ORIGINS itineraries (`c4x_scene.K9_LEGS`). A plan for review, drawn
 from the scene's layout numbers; writes a 1920x1080 PNG (default build/c4x/k9-vehicle-plan.png).
 
     python yard_vehicle_plan.py [out.png]
@@ -116,7 +116,7 @@ for y in range(400, 560, 50):
     d.text(P(X0 + 1, y), str(y), fill=(90, 90, 90), font=FS)
 L = 10 + (X1 - X0) * K + 40
 TEAL, PURP = (0, 110, 120), (120, 60, 160)
-lines = [('Kilo Nine ground crew, round 2', FB, PARK), ('(K9_ORIGINS=1, proposal)', F, PARK), ('', FS, PARK),
+lines = [('Kilo Nine ground crew, round 2', FB, PARK), ('(K9_ORIGINS, default since 2026-10-20)', F, PARK), ('', FS, PARK),
          ('Crew carrier', FB, NEW),
          ('C4 0-15.5  out of the spare bus bay, the', F, NEW), ('  port road, in at the gate ahead of customs', F, NEW),
          ('A  holds on the spur through the dust', F, NEW), ('C4 20.6-C5 4.6  up beside the ramp', F, NEW),
