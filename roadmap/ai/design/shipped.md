@@ -57,3 +57,4 @@ Updated: 2026-10-20 — folded reactive garrisons, the machine garrison assault 
 | `squad-tactical-move-order.md` | 2026-08-31 | this change | `ai-nouns.md` |
 | `squad-contextual-capture-order.md` | 2026-08-31 | this change | `ai-nouns.md`, `conquest-nouns.md` |
 | `tiled-navigation-derivations.md` | 2026-09-03 | `b00ba1430`, `08bf8ea23`, `7629478f1`, `b2d9c6e01` | `battle.nav` package charter (`package-info.java`), `convoy-nouns.md` |
+| `attacker-holds-ground.md` | 2026-10-20 | `be349ff91`, this change | `garrisonables.md` (holding taken ground), `ai-nouns.md` |

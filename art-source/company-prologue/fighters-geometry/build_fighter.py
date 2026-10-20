@@ -33,6 +33,14 @@ Options after a literal "--":
   --blockout     the pass-1 build (no detail), for the before half of a
                  before/after: --blockout --out <id>/reference-history/v1-blockout
   --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE   an ad-hoc ortho camera (units), rendered too
+  --gear-knob K  for a fighter with retractable gear (fg_gear): the gear_down knob the
+                 renders (all but 'parked', always 1) and the saved .blend take
+                 (default 0, flying; 1 is landed, as the surfacing build uses)
+Retractable gear: a module that builds it through kit.gear (fg_gear.Gear) gets
+the control empty "<Name> control" with the gear_down knob driving every hinge,
+the parked check at gear_down 1, and fg_gear's clash sweep through the stow,
+recorded under landing_gear in geometry.json; a clash or a stowed part
+outside the skin fails the build.
 Then: python compose_fighter.py --fighter ID   (overlay, IoU, review sheet)
 """
 from pathlib import Path
@@ -40,6 +48,7 @@ import argparse
 import importlib
 import json
 import math
+import os
 import re
 import sys
 import bmesh
@@ -59,10 +68,13 @@ parser.add_argument('--samples', type=int, default=24)
 parser.add_argument('--no-save', action='store_true')
 parser.add_argument('--blockout', action='store_true')
 parser.add_argument('--cam', action='append', default=[])
+parser.add_argument('--gear-knob', type=float, default=0.0)
 args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
 
 import fg_kit
 importlib.reload(fg_kit)
+import fg_gear
+importlib.reload(fg_gear)
 ft = importlib.import_module('ft_'+args.fighter)
 importlib.reload(ft)
 OUT = Path(args.out or HERE/args.fighter).resolve()
@@ -114,6 +126,7 @@ bpy.context.view_layer.active_layer_collection = layers[COLLECTION]
 kit = fg_kit.Kit(**getattr(ft, 'KIT', {}))
 kit.m = M
 kit.detail = not args.blockout
+kit.gear = fg_gear.Gear(kit, M)
 ft.build(kit)
 for ob in list(bpy.data.objects):  # a helper's scratch solid must never reach the asset
     if ob.name.startswith('Temporary'):
@@ -159,6 +172,19 @@ def bounds(objs):
 
 
 meshes = [o for o in model.objects if o.type == 'MESH']
+gear = kit.gear if kit.gear.hinges else None
+sweep = None
+if gear:
+    # Flight dimensions with the gear up; the sweep walks the knob through the stow and back.
+    gear.pose(0.0)
+    dg = bpy.context.evaluated_depsgraph_get()
+    flo, fhi = bounds(meshes)
+    sweep = gear.sweep(meshes)
+    print(fg_gear.summary(sweep))
+    if (sweep['clashes'] or sweep['stowed_outside_m']) and not os.environ.get('FG_GEAR_LAX'):
+        raise RuntimeError(f'{NAME}: gear sweep failed (FG_GEAR_LAX=1 to build anyway)')
+    gear.pose(1.0)  # the landed pose, for the parked check, the scale figure and the frames
+    dg = bpy.context.evaluated_depsgraph_get()
 lo, hi = bounds(meshes)
 size = hi-lo
 glass = [o for o in meshes if o.name.startswith('Canopy glass')]
@@ -265,6 +291,31 @@ if feet:
     deck.rotation_euler = (math.atan(c0), -math.atan(b0), 0)  # its normal along (-b, -c, 1)
     deck.parent = root
     deck.data.materials.append(fg_kit.material('Deck grey', (.42, .43, .44), 0, .8))
+
+control = None
+if gear:
+    control = bpy.data.objects.new(fg_gear.control_name(NAME), None)
+    control.empty_display_type, control.empty_display_size = 'CUBE', 1.0
+    model.objects.link(control)
+    control.parent = root
+    control.location = (0, 0, hi.z+2.0)
+    control[fg_gear.KNOB] = 1.0
+    control.id_properties_ui(fg_gear.KNOB).update(
+        min=0.0, max=1.0, soft_min=0.0, soft_max=1.0,
+        description='landing gear: 0 stowed, doors shut (flight); 1 down and standing on the deck. '
+                    'Doors open over the first 30%, legs swing over the rest')
+    gear.drive(control)
+    drift = fg_gear.verify_drivers(gear, control)
+    if drift > 1e-4:
+        raise RuntimeError(f'{NAME}: gear drivers disagree with fg_gear.pose by {drift:.6f} rad')
+
+
+def set_knob(k):
+    if control is not None:
+        control[fg_gear.KNOB] = k
+        control.update_tag()
+        gear.pose(k)
+
 
 scene.render.engine = 'CYCLES'
 scene.cycles.samples = args.samples
@@ -374,6 +425,7 @@ for name in wanted:
     scene.render.film_transparent = name == 'top'
     for o in proxies:  # the top view is the silhouette: nothing but the model
         o.hide_render = (name != 'cockpit-check') if o.name.startswith('Pilot') else (name != 'port-side')
+    set_knob(1.0 if name == 'parked' else args.gear_knob)
     if ground:
         deck.hide_render = name != 'parked'
         root.rotation_euler = (-math.atan(c0), math.atan(b0), 0) if name == 'parked' else (0, 0, 0)
@@ -401,6 +453,7 @@ for ob in meshes:
         del ob['_mats']
 scene.render.film_transparent = False
 
+set_knob(args.gear_knob)
 if not args.no_save:
     scene.camera = bpy.data.objects['Camera three-quarter']
     bpy.context.preferences.filepaths.save_version = 0
@@ -424,7 +477,12 @@ if not args.no_save:
         'sprite': {'size': [SW, SH], 'center': [CX, CY],
                    'pixel_to_model': f'col c, row r (from top) covers X {SH-CY-1}-r..{SH-CY}-r, Y {CX-1}-c..{CX}-c'},
         'dimensions': {'min': [round(v, 2) for v in lo], 'max': [round(v, 2) for v in hi],
-                       'size': [round(v, 2) for v in size]},
+                       'size': [round(v, 2) for v in size],
+                       **({'note': 'landed (gear down); flight_* is gear up',
+                           'flight_min': [round(v, 2) for v in flo], 'flight_max': [round(v, 2) for v in fhi],
+                           'flight_size': [round(v, 2) for v in fhi-flo]} if gear else {})},
+        **({'landing_gear': fg_gear.manifest(gear, control, sweep, args.gear_knob, getattr(ft, 'GEAR_NOTES', ''))}
+           if gear else {}),
         'root': {'name': ROOT, 'location': [0, 0, 0], 'note': 'the .ship centre: the game\'s rotation pivot'},
         'collections': {'model': COLLECTION, 'review_rig': RIG},
         'weapon_slots': [dict(s, location=list(s['location']), anchor=f"Weapon {s['id']} anchor") for s in ft.SLOTS],

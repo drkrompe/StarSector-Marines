@@ -29,6 +29,14 @@ build_fighter.py    the driver: one build per fighter (--fighter ID); checks
 compose_fighter.py  top-over-sprite overlay, IoU, the review sheet, and
                     the before/after sheets against the blockout
 check_clashes.py    overlap sweep of one integrated build -> <id>/clashes.txt
+fg_gear.py          retractable landing gear (below): hinges, doors, bay
+                    liners, the gear_down knob's drivers, the stow clash sweep,
+                    and the gear shapes (box-section struts, wedge shoes,
+                    claws, links)
+review_gear.py      gear review renders from a textured build: flying,
+                    mid-stow, landed and a landed close-up per fighter
+package_build.py    verifies a textured build's gear knob, saves it flying
+                    (<id>.blend) with <id>-manifest.json, for Drive
 ft_<id>.py          one module per fighter: build() is pass 1, detail() is
                     pass 2 (run unless --blockout), CLOSEUPS its detail cameras
 <id>/               <id>-geometry.blend, geometry.json, renders,
@@ -158,6 +166,38 @@ the same module pair for pair, except that the Talon's four bell and
 throat intersections with its aft body are gone: that is the bell-well
 fix above.
 
+Retractable landing gear (fg_gear; owner 2026-10-20)
+The Talon, Dagger, Longbow and Thunder were built with fixed gear and flew
+with it hanging down. Their gear now retracts, and the thin piston legs and
+puck feet are gone (owner: "a piston with a hockey puck foot is ugly"): legs
+are box-section shock struts that taper like wedges, on broad wedge shoes
+(Dagger), clawed pads (Longbow) or twin wheels on a trailing arm (Thunder);
+the Talon's sled runners hang on wedge parallelogram links. Each fighter's
+landed stance is unchanged: its feet stand where they stood, on DECK_Z.
+- Built down; every moving part is parented to a hinge empty "<part> hinge"
+  that turns about its local Y (a "<part> hinge mount" above it carries an
+  axis that is not the hull's Y). The hinge stores stowed_deg, deployed_deg
+  and knob_span.
+- "<Name> control" (Talon control, ...) under the root carries the knob
+  gear_down: 0 stowed, doors shut (flight; the saved pose and the default),
+  1 landed. Drivers on every hinge evaluate fg_gear.Gear.pose: doors open
+  over the first 30%, legs swing over 25-100%, Longbow claws uncurl over the
+  last 15%. A pose set from Python needs control.update_tag().
+- Legs fold into the solid above them (as the Broadsword's do), under doors:
+  thin plates laid 8 mm off the skin, hinged on the bay's long edges, with a
+  dark liner on the skin under them. The Talon has no doors: its runners lift
+  flat into the trough of a skid fairing under each pod (and a slot under the
+  drum) and their soles close it.
+- The build fails unless fg_gear.sweep passes: at 16 knob values no moving
+  part crosses anything but the solids of its own bay and its liners, no leg
+  crosses its own doors, and stowed, every leg vertex lies between the skin's
+  underside and top. The result is landing_gear.clash_sweep in geometry.json,
+  with the hinges and bays. The parked check runs at gear_down 1;
+  dimensions are landed, dimensions.flight_* gear up.
+- Doors, liners, fairings and gear take class swatches when surfaced; the
+  hull skins are untouched (their face selection is per object, so nothing
+  new changes it).
+
 For review
 - * Thunder follows graphics/ships/thunder.png, which is asymmetric (the
   owner's call): a port gun block with two prongs (ion cannon on the outer
@@ -190,6 +230,7 @@ For review
   layer (the Talon's glow files are drive glows).
 
 Rebuild (from this folder; one Blender at a time)
+  (--gear-knob 1 saves the gear down; the surfacing build uses it)
   sh ../../blender.sh --background --factory-startup --python build_fighter.py -- --fighter talon
   python compose_fighter.py --fighter talon
   sh ../../blender.sh --background talon/talon-geometry.blend --python check_clashes.py

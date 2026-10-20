@@ -73,22 +73,22 @@
   },
   "parked_check": {
     "feet": [
-      "Hull port main gear pad",
-      "Hull starboard main gear pad",
-      "Hull tail gear pad"
+      "Hull port main gear shoe",
+      "Hull starboard main gear shoe",
+      "Hull tail gear shoe"
     ],
     "deck_plane_units": {
-      "z0": -3.4,
-      "dz_dx": 0.0,
+      "z0": -3.394,
+      "dz_dx": -0.0,
       "dz_dy": 0.0
     },
-    "stance_pitch_deg_nose_down": 0.0,
+    "stance_pitch_deg_nose_down": -0.0,
     "stance_roll_deg": 0.0,
     "foot_level_spread_m": 0.0,
-    "lowest_other_part": "Hull port main gear piston",
-    "deck_clearance_m": 0.1,
+    "lowest_other_part": "Hull tail gear ankle cheek port",
+    "deck_clearance_m": 0.089,
     "lowest_body_part": "Wing port tip fin",
-    "body_clearance_m": 0.449
+    "body_clearance_m": 0.446
   },
   "sprite": {
     "size": [
@@ -116,7 +116,219 @@
       32.85,
       24.1,
       6.2
+    ],
+    "note": "landed (gear down); flight_* is gear up",
+    "flight_min": [
+      -15.15,
+      -10.05,
+      -2.5
+    ],
+    "flight_max": [
+      17.7,
+      14.05,
+      2.8
+    ],
+    "flight_size": [
+      32.85,
+      24.1,
+      5.3
     ]
+  },
+  "landing_gear": {
+    "control": "Dagger control",
+    "knob": "gear_down",
+    "knob_meaning": "0 stowed with the doors shut (flight); 1 deployed, standing on the parked deck",
+    "saved_knob": 0.0,
+    "spans": {
+      "doors": [
+        0.0,
+        0.3
+      ],
+      "legs": [
+        0.25,
+        1.0
+      ],
+      "claws": [
+        0.85,
+        1.0
+      ]
+    },
+    "hinges": [
+      {
+        "name": "Hull port main gear hinge",
+        "mount": null,
+        "axis": "local Y",
+        "stowed_deg": 90.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.25,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull port main gear door port hinge",
+        "mount": "Hull port main gear door port hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": 95.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      },
+      {
+        "name": "Hull port main gear door starboard hinge",
+        "mount": "Hull port main gear door starboard hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": -95.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      },
+      {
+        "name": "Hull starboard main gear hinge",
+        "mount": null,
+        "axis": "local Y",
+        "stowed_deg": 90.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.25,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull starboard main gear door port hinge",
+        "mount": "Hull starboard main gear door port hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": 95.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      },
+      {
+        "name": "Hull starboard main gear door starboard hinge",
+        "mount": "Hull starboard main gear door starboard hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": -95.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      },
+      {
+        "name": "Hull tail gear hinge",
+        "mount": null,
+        "axis": "local Y",
+        "stowed_deg": -90.0,
+        "deployed_deg": 0.0,
+        "knob_span": [
+          0.25,
+          1.0
+        ]
+      },
+      {
+        "name": "Hull tail gear door port hinge",
+        "mount": "Hull tail gear door port hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": 95.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      },
+      {
+        "name": "Hull tail gear door starboard hinge",
+        "mount": "Hull tail gear door starboard hinge mount",
+        "axis": "local Y",
+        "stowed_deg": 0.0,
+        "deployed_deg": -95.0,
+        "knob_span": [
+          0.0,
+          0.3
+        ]
+      }
+    ],
+    "units": [
+      {
+        "name": "Hull port main gear",
+        "hinges": [
+          "Hull port main gear hinge"
+        ],
+        "bay_in": [
+          "Hull port prong"
+        ],
+        "doors": [
+          "Hull port main gear door port",
+          "Hull port main gear door starboard"
+        ],
+        "liners": [
+          "Hull port main gear bay liner"
+        ]
+      },
+      {
+        "name": "Hull starboard main gear",
+        "hinges": [
+          "Hull starboard main gear hinge"
+        ],
+        "bay_in": [
+          "Hull starboard prong"
+        ],
+        "doors": [
+          "Hull starboard main gear door port",
+          "Hull starboard main gear door starboard"
+        ],
+        "liners": [
+          "Hull starboard main gear bay liner"
+        ]
+      },
+      {
+        "name": "Hull tail gear",
+        "hinges": [
+          "Hull tail gear hinge"
+        ],
+        "bay_in": [
+          "Engine 1 drive block"
+        ],
+        "doors": [
+          "Hull tail gear door port",
+          "Hull tail gear door starboard"
+        ],
+        "liners": [
+          "Hull tail gear bay liner"
+        ]
+      }
+    ],
+    "clash_sweep": {
+      "knobs": [
+        0.0,
+        0.05,
+        0.1,
+        0.15,
+        0.2,
+        0.25,
+        0.3,
+        0.35,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        0.95,
+        1.0
+      ],
+      "clashes": [],
+      "stowed_outside_m": [],
+      "rule": "no moving part through anything but its own bay solids and liners, no leg through its own doors, and stowed every leg vertex between the skin's underside and top"
+    },
+    "pose_reference": "fg_gear.Gear.pose(k); the drivers on each hinge evaluate the same expression",
+    "notes": "Retractable since 2026-10-20 (fg_gear). The thin oleo legs and pads are replaced by box-section shock struts (upper sleeve, bright slide, lower sleeve, ankle clevis) on broad wedge shoes, each with a raked brace on its fold side. The mains fold aft 90 degrees into the prongs, the tail leg forward into the drive block; each bay has a dark liner and a pair of doors hinged on its long edges that open over the first 30% of the knob, before the legs move. The shoes stand where the pads stood."
   },
   "root": {
     "name": "Dagger root",
@@ -304,9 +516,9 @@
     }
   },
   "object_count": {
-    "meshes": 95,
-    "empties": 4,
-    "pass2_detail_meshes": 79
+    "meshes": 122,
+    "empties": 20,
+    "pass2_detail_meshes": 106
   },
   "silhouette": {
     "iou": 0.9589,

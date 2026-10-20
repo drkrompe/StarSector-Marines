@@ -60,7 +60,8 @@ relaunches the swapped-out one. Preemption never stops a frame mid-render. A
 job is only swapped out once it has rendered for `preempt_min_run_seconds`
 (20 minutes) since its last launch, because every swap costs it a scene
 rebuild. So a light job can wait up to 20 minutes, and should batch a whole
-review round into one job rather than one job per part or view.
+review round into one job rather than one job per part or view. A job swapped
+out before its 20 minutes were up goes back in ahead of the next light job.
 
 A job without a `frames` check, or one on its last frame, is not swapped:
 it finishes first, then the earlier lane goes next. That includes a long

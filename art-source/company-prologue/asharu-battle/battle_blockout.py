@@ -8,6 +8,7 @@
     python battle_blockout.py --run r7        # output under build/asharu-battle/r7/ instead of today's date;
                                               # --post then dates the review folder by the day r7 began
     python battle_blockout.py --rerender      # render every frame even if a finished one is on disk
+    python battle_blockout.py --root DIR      # put run folders under DIR (a render-queue job's {work})
 
 A frame already finished in the run folder (its PNG, its labels, and the same samples and source)
 is not rendered again, so a job stopped part-way resumes where it stopped. Pass --run with a fixed
@@ -24,7 +25,7 @@ spherical cap under the battle so its limb is a true curve, painted with the gam
 map read from the install (never copied) and broken up with procedural relief at the scales a
 low orbit sees.
 
-Hulls. Finished cinematic builds are appended once from build/asharu-battle/inputs/ and placed
+Hulls. Finished cinematic builds are appended once from build/asharu-battle/builds/<dir>/ and placed
 as collection instances at their own metres per unit. A hull with no build yet is a stand-in:
 the game sprite's silhouette raised into a lens-shaped slab, painted with the sprite, at the
 size ship_scale.py's option C solves for it (roster.py). Every drive carries a stand-in glow and
@@ -47,7 +48,16 @@ sys.path.insert(0, str(PROLOGUE))
 sys.path.insert(0, str(ART))
 import roster  # noqa: E402
 
-INPUTS = REPO / 'build' / 'asharu-battle' / 'inputs'
+# One folder per finished build (roster.FINISHED's dir), copied whole from Drive.
+BUILDS = Path(os.environ.get('ASHARU_BUILDS') or REPO / 'build' / 'asharu-battle' / 'builds')
+
+
+def build_file(f):
+    return BUILDS / f['dir'] / f['file']
+
+
+def build_manifest(f):
+    return json.loads((BUILDS / f['dir'] / 'manifest.json').read_text())
 W, H = 1920, 1080
 
 # Asharu and the orbit. Asharu's real size is not given anywhere in the game or the story; a
@@ -597,12 +607,12 @@ def blender_main(cfg):
 
     def finished(key):
         f = roster.FINISHED[key]
-        m = json.loads((INPUTS / f['manifest']).read_text())
+        m = build_manifest(f)
         fx = None
         if f.get('swfx'):     # the build's own effects, instanced at the same root
-            coll, fx = append(INPUTS / f['file'], m['append_collection'], ('SWFX',))
+            coll, fx = append(build_file(f), m['append_collection'], ('SWFX',))
         else:
-            coll = append(INPUTS / f['file'], m['append_collection'])
+            coll = append(build_file(f), m['append_collection'])
         ctl = m.get('control', {}).get('object') or m.get('break_up', {}).get('controls')
         ctl = next((o for o in coll.all_objects if ctl and o.name.split('.')[0] == ctl), None) or (
             bpy.data.objects.get(ctl) if ctl else None)
@@ -782,7 +792,7 @@ def blender_main(cfg):
             e2.instance_collection = lib['fx']
             e2.matrix_world = e.matrix_world
             link(e2, stage)
-        placed[key] = dict(matrix=mw, mpu=lib['mpu'], length=lib['length_m'])
+        placed[key] = dict(matrix=mw, mpu=lib['mpu'], length=lib['length_m'], lib=lib)
         if thr <= 0:
             return
         for pos, dirn, rad, style in lib['engines']:
@@ -817,16 +827,34 @@ def blender_main(cfg):
         obj(name, plume_me, mat, Matrix.Translation(p0) @ q.to_matrix().to_4x4()
             @ Matrix.Diagonal((radius, radius, d.length, 1)))
 
-    def tracer(a, b, local=None, n=6):
-        p0 = at(a)
+    def muzzle_world(key, muzzle):
+        """A shot's start: the bearing mount's muzzle (bearing()), on the placed ship."""
+        if muzzle is None:
+            return at(key)
+        if muzzle[0] == 'anchor':
+            lib = placed[key]['lib']
+            o = next((o for o in lib['coll'].all_objects if o.name.split('.')[0] == muzzle[1]), None)
+            if o is None:
+                print('ASHARU muzzle anchor missing, firing from the hull centre:', key, muzzle[1], flush=True)
+                return at(key)
+            # an appended object outside the scene has no evaluated matrix_world: compose its chain
+            w = o.matrix_basis
+            while o.parent:
+                w = o.parent.matrix_basis @ o.matrix_parent_inverse @ w
+                o = o.parent
+            return at(key, w.translation * lib['mpu'])
+        return at(key, muzzle[1])
+
+    def tracer(a, b, local=None, n=6, muzzle=None):
+        p0 = muzzle_world(a, muzzle)
         p1 = at(b, local or (0, 0, 0)) + Vector(rng.normal(0, 12, 3))
         for i in range(n):
             f0 = rng.uniform(.08, .95)
             f1 = min(1.0, f0 + 30.0 / (p1 - p0).length)
             segment(p0.lerp(p1, f1), p0.lerp(p1, f0), .7, tracer_mat, 'Tracer')
 
-    def missiles(a, b, n=5):
-        p0, p1 = at(a), at(b)
+    def missiles(a, b, n=5, muzzle=None):
+        p0, p1 = muzzle_world(a, muzzle), at(b)
         for i in range(n):
             f = rng.uniform(.3, .9)
             p = p0.lerp(p1, f) + Vector(rng.normal(0, 60, 3))
@@ -1051,12 +1079,13 @@ def blender_main(cfg):
             if spec.get('platform'):
                 platform(spec['platform'])
                 extra3d['platform'] = Vector(spec['platform']) + Vector((0, 0, -140))
+            muzzles = {(k, a, b): (best[5] if best else None) for k, a, b, best, _ in bearing(kf)}
             for fx in spec.get('fx', ()):
                 kind = fx[0]
                 if kind == 'tracer':
-                    tracer(fx[1], fx[2], fx[3] if len(fx) > 3 else None)
+                    tracer(fx[1], fx[2], fx[3] if len(fx) > 3 else None, muzzle=muzzles.get(fx[:3]))
                 elif kind == 'missiles':
-                    missiles(fx[1], fx[2])
+                    missiles(fx[1], fx[2], muzzle=muzzles.get(fx[:3]))
                 elif kind == 'blast':
                     blast(at(fx[1]), fx[2])
                 elif kind == 'blast_on':
@@ -1082,7 +1111,8 @@ def blender_main(cfg):
             labels[kf] = lab
         else:
             labels[kf] = roster_sheet(kf)
-        partial = raw / f'{kf}.partial.png'
+        partial = raw / f'{kf}.partial'           # not *.png, so a queue's frame count never counts it
+        scene.render.use_file_extension = False
         scene.render.filepath = str(partial)
         bpy.ops.render.render(write_still=True)
         os.replace(partial, raw / f'{kf}.png')      # a PNG under its own name is always a finished one
@@ -1180,7 +1210,7 @@ def label_frames(run):
         for line in wrap(dr, cap, f_cap, W - 44):
             dr.text((22, y), line, font=f_cap, fill=(230, 230, 230, 255))
             y += 27
-        name = f"{i + 2:02d}-{kf}-{slug(title)}.png"
+        name = f"{order.index(kf) + 2:02d}-{kf}-{slug(title)}.png"   # by shot order: two jobs' halves interleave
         im.save(run / name)
         outputs.append(name)
     return outputs
@@ -1366,6 +1396,24 @@ def _rot(hd, pt, rl):
     return mul(mul(rz(math.radians(hd)), ry(-math.radians(pt))), rx(math.radians(rl)))
 
 
+def muzzle_of(t, mpu, mount_m):
+    """Where a mount's shot leaves, from the build's current muzzle data: ('m', metres in the ship's
+    frame), or ('anchor', name) when the manifest names the anchor without placing it (the anchor
+    is then found in the appended build). Builds write it differently: muzzle_locations (units),
+    muzzles / muzzle entries with an 'at' (units), or muzzles as anchor names."""
+    locs = t.get('muzzle_locations')
+    if isinstance(locs, list) and locs and isinstance(locs[0], list):
+        return 'm', [v * mpu for v in locs[0]]
+    for m in (t.get('muzzles') if isinstance(t.get('muzzles'), list) else []) + [t.get('muzzle')]:
+        if isinstance(m, dict) and isinstance(m.get('at'), list):
+            return 'm', [v * mpu for v in m['at']]
+        if isinstance(m, dict) and m.get('anchor'):
+            return 'anchor', m['anchor']
+        if isinstance(m, str):
+            return 'anchor', m
+    return 'm', mount_m
+
+
 def mounts(key, state=None):
     """A ship's guns in its own frame, metres: (position, rest bearing, arc, kind). Finished hulls
     from their manifests (dorsal turrets that train in azimuth, fixed hardpoints); stand-ins from
@@ -1375,7 +1423,7 @@ def mounts(key, state=None):
     out = []
     if fin:
         f = roster.FINISHED[fin]
-        man = json.loads((INPUTS / f['manifest']).read_text())
+        man = build_manifest(f)
         mpu = man['metres_per_unit']
         rows = man.get('turrets') or []
         for w in man.get('weapon_slots', []) + man.get('weapons', []):
@@ -1390,14 +1438,16 @@ def mounts(key, state=None):
             rest = t.get('rest_angle_deg', t.get('angle_deg', t.get('angle', 0)))
             arc = t.get('arc_deg', t.get('arc', 360))
             kind = 'hardpoint' if t.get('mount') == 'HARDPOINT' else 'turret'
-            out.append(([v * mpu for v in at] + [0] * (3 - len(at)), rest, arc, kind))
+            pos = [v * mpu for v in at] + [0] * (3 - len(at))
+            out.append((pos, rest, arc, kind, muzzle_of(t, mpu, pos)))
     else:
         spec = roster.game_spec(m['game'])
         _, length_px, _ = roster.sprite_stats(spec['sprite'])
         mpu = roster.size_row(m)['length_m'] / length_px
         for w in spec['weapons']:
-            out.append(([w['location'][0] * mpu, w['location'][1] * mpu, 0.0], w['angle'], w['arc'],
-                        'hardpoint' if w['mount'] == 'HARDPOINT' else 'turret'))
+            pos = [w['location'][0] * mpu, w['location'][1] * mpu, 0.0]
+            out.append((pos, w['angle'], w['arc'], 'hardpoint' if w['mount'] == 'HARDPOINT' else 'turret',
+                        ('m', pos)))
     return out
 
 
@@ -1416,7 +1466,7 @@ def bearing(kf):
         d = [sb[i] - sa[i] for i in range(3)]
         loc = [sum(R[j][i] * d[j] for j in range(3)) for i in range(3)]     # world -> shooter frame
         best = None
-        for pos, rest, arc, kind in mounts(a, states.get(a)):
+        for pos, rest, arc, kind, muzzle in mounts(a, states.get(a)):
             v = [loc[i] - pos[i] for i in range(3)]
             h = math.hypot(v[0], v[1])
             el = math.degrees(math.atan2(v[2], h))
@@ -1431,7 +1481,7 @@ def bearing(kf):
                 ok = in_az and GUN_ELEVATION[0] <= el <= GUN_ELEVATION[1]
                 miss = max(0.0, GUN_ELEVATION[0] - el, abs(off) - arc / 2 if el < 75 else 0)
             if best is None or (ok, -miss) > (best[0], -best[1]):
-                best = (ok, miss, kind, el, off)
+                best = (ok, miss, kind, el, off, muzzle)
         tgt_el = math.degrees(math.atan2(loc[2], math.hypot(loc[0], loc[1])))
         rows.append((fx[0], a, b, best, tgt_el))
     return rows
@@ -1447,7 +1497,7 @@ def main():
         return argv[argv.index(flag) + 1] if flag in argv else default
 
     frames = opt('--frames', ','.join(list(KEYFRAMES) + list(ROSTER_SHEETS))).split(',')
-    run = REPO / 'build' / 'asharu-battle' / opt('--run', date.today().isoformat())
+    run = Path(opt('--root', REPO / 'build' / 'asharu-battle')) / opt('--run', date.today().isoformat())
     run.mkdir(parents=True, exist_ok=True)
     started = run / 'run-date.txt'      # the day the run began: a resume after midnight posts under it
     if not started.exists():
@@ -1472,7 +1522,11 @@ def main():
         drive = Path('G:/My Drive/starsector') if os.name == 'nt' else next(
             Path.home().glob('Library/CloudStorage/GoogleDrive-*/My Drive/starsector'))
         dest = drive / 'review' / 'cinematic-asharu-battle' / f"{run_date}_{opt('--what', 'blockout')}_{post}"
-        dest.mkdir(parents=True, exist_ok=False)
+        marker = dest / '.asharu-run'         # one run may post in parts (two jobs); another run may not
+        if dest.exists() and not (marker.exists() and marker.read_text().strip() == run.name):
+            raise SystemExit(f'{dest} exists and belongs to another run')
+        dest.mkdir(parents=True, exist_ok=True)
+        marker.write_text(run.name)
         for o in outputs:
             shutil.copy2(run / o, dest / o)
         if (run / 'NOTES.md').exists():

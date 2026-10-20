@@ -13,7 +13,7 @@ cd ../../second-wind-surface
 
 # 1. Clean model into build/geom (geometry imported, never edited).
 (cd "$GEOM" && "$BLENDER" --background --factory-startup --python build_fighter.py -- --fighter thunder \
-    --out "$HS/build/geom" --views three-quarter --samples 8 2>&1 | grep -E "Error|Traceback" || true)
+    --out "$HS/build/geom" --views three-quarter --samples 8 --gear-knob 1 2>&1 | grep -E "Error|Traceback" || true)
 "$BLENDER" --background "$HS/build/geom/thunder-geometry.blend" --python "$HS/../strip_review_props.py" 2>&1 | grep -E "SURF|Error|Traceback" || true
 # 2. Finish reference: guide and class map from the reference camera, registration, palette.
 blend render_reference_classes.py -- --hull "$HS"
@@ -35,3 +35,6 @@ blend render_parts.py -- --hull "$HS"
 blend apply_skin.py -- --hull "$HS" --wear service
 blend review.py -- --hull "$HS" --samples 48
 "$PYTHON" compose_review.py --hull "$HS"
+# 6. Package for shots: verify the gear knob, save it flying -> build/package/thunder.blend + manifest.
+(cd "$GEOM" && "$BLENDER" --background "$HS/build/skinned.blend" --python package_build.py -- --fighter thunder \
+    --out "$HS/build/package" 2>&1 | grep -E "PACKAGE|Error|Traceback" || true)

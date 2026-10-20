@@ -17,8 +17,10 @@ The Talon is asymmetric forward and symmetric aft:
 """
 import math
 import bpy
+from mathutils import Vector
 import fg_kit as K
 from fg_kit import prism, section, section_loft, loft_x, octagon, at
+from fg_gear import fold
 
 NAME = 'Talon'
 HULL_ID = 'talon'
@@ -123,20 +125,41 @@ X_MOUTH = -9.0
 
 # Bends and landing (owner, 2026-10-18: the fighters read flat). The pod and
 # nacelle swell into a hump behind the cockpit and over the gun's breech and
-# their noses droop; the wing plates droop outboard of the shoulders. The
-# Talon lands on two fixed sled runners, low-tech and rugged: each runs under
-# one pod line and its drive drum, on a faired strut forward and a short one
-# under the drum, with a wear pad at each end of its sole. The plan view is
-# unchanged.
+# their noses droop; the wing plates droop outboard of the shoulders. The plan
+# view is unchanged.
+#
+# Landing gear (owner, 2026-10-20: retractable, and no thin struts). The Talon
+# lands on two sled runners, low-tech and rugged, each under one pod line and
+# its drive drum. Each runner hangs on two broad wedge links of equal length,
+# a parallelogram, so it stays level as it swings: stowed, the links lie flat
+# and the runner is drawn up against the belly, its sole flush with the drum's
+# keel aft and with a skid fairing forward, a keel strake under each pod whose
+# trough the runner fills. Its upturned toe becomes the fairing's chin. The
+# runners' soles stand where they always did, on the level deck.
 WING_ANHEDRAL_DEG = 12.0
 WING_ROOT = 6.0            # |Y - 1| where the wing plates leave the aft body
 DECK_Z = -3.1              # parked deck, level in the hull frame
 RUNNER_Y = (1+4.5, 1-4.5)
 RUNNER_X = (8.6, -8.2)     # nose (upturned) to tail
-RUNNER_SOLE, RUNNER_T, RUNNER_W = DECK_Z+.08, .35, .7
-# (x, top z, name): struts from a pod's or nacelle's belly, and from the drum keel
-STRUTS = [(5.6, -1.0, 'fore'), (-5.8, -2.0, 'aft')]
-FEET = [f'Hull {side} runner {end} pad' for side in ('port', 'starboard') for end in ('fore', 'aft')]
+RUNNER_T, RUNNER_W = .35, .7
+SHOE_T = .05               # wear shoes under the sole stand on the deck; the sole clears it by this
+SHOES = (('fore', 6.0), ('aft', -5.0))
+SKID_Z = -2.315            # stowed sole: just proud of the drum keel (-2.30), the fairing's floor
+LINK_L = 1.15              # link length, hinge to runner pin
+PIN_Z = DECK_Z+SHOE_T+RUNNER_T+.12          # runner pins, gear down
+HINGE_Z = PIN_Z+(SKID_Z-DECK_Z)      # link hinges: level with the pins once stowed
+LINK_PHI = math.degrees(math.acos((HINGE_Z-PIN_Z)/LINK_L))  # links raked forward-down from vertical
+LINK_PINS = (('fore', 5.6), ('aft', -5.8))  # runner pins, x, gear down
+RIB_X = (-7.0, -7.75)      # the drums' collar ribs, notched where the runners' slot crosses them
+GEAR_NOTES = ('Retractable since 2026-10-20 (fg_gear). Each runner hangs on two equal wedge links, a parallelogram,'
+              ' so it stays level: stowed (gear_down 0) the links lie flat and the runner rises 0.43 m and rides '
+              '0.17 m forward, its wear shoes flush with the drum keel aft and with the floor of a skid fairing '
+              'forward, a keel strake under each pod whose trough the runner fills; the upturned toe becomes the '
+              "fairing's chin. The slot runs on under the drum as a dark strip, and the drums' collar ribs are "
+              "notched where it crosses them. No doors: the runner's own sole closes the trough. The soles stand "
+              'where they did at gear_down 1; the runner sole now clears the deck by 2.8 cm on four wear shoes (the'
+              ' old puck pads are gone).')
+FEET = [f'Hull {side} runner {end} shoe' for side in ('port', 'starboard') for end, _ in SHOES]
 LEG_PARTS = ('Hull port runner', 'Hull starboard runner')
 
 
@@ -222,25 +245,104 @@ def droop_wings():
         ob.data.update()
 
 
-def runners(kit):
-    """Two fixed sled runners, each on a faired fore strut and a short aft strut under its drum."""
-    S, D, B = kit.steel, kit.dark, kit.bright
+def runner_rows(y, z0, w, t, dx=0.0, grow=0.0):
+    """The runner's stations, nose (upturned) to tail, sole at z0, shifted dx along X. The toe turns
+    up on a smooth curve (ten stations), so its bend reads as a bend and not as facets."""
     x0, x1 = RUNNER_X
-    z0, t, w = RUNNER_SOLE, RUNNER_T, RUNNER_W
+    w, t, z0 = w+2*grow, t+2*grow, z0-grow
+    rows = []
+    for k in range(11):
+        f = k/10                       # 0 at the toe's tip, 1 where the sole runs flat
+        lift = .75*(1-f)**2
+        rows.append((x0+dx-2.0*f+(grow if k == 0 else 0),
+                     K.octagon(y-w*(.35+.15*f), y+w*(.35+.15*f), z0+lift, z0+lift+t*(.7+.3*f)+(grow if k == 0 else 0),
+                               .08+.02*f)))
+    rows += [(x1+dx+.6, K.octagon(y-w/2, y+w/2, z0, z0+t, .1)),
+             (x1+dx-grow, K.octagon(y-w*.4, y+w*.4, z0+.1, z0+t, .1))]
+    return rows
+
+
+def runners(kit):
+    """Two sled runners on wedge parallelogram links, retracting flat into skid fairings."""
+    S, D, B, A = kit.steel, kit.dark, kit.bright, kit.armour
+    g = kit.gear
+    ob = bpy.data.objects
+    phi = math.radians(LINK_PHI)
+    shift = LINK_L*(1-math.sin(phi))   # the runner rides this far forward as it rises
     for side, y in zip(('port', 'starboard'), RUNNER_Y):
         name = f'Hull {side} runner'
-        rows = [(x0, K.octagon(y-w*.35, y+w*.35, z0+.75, z0+.75+t*.7, .08)),
-                (x0-1.0, K.octagon(y-w/2, y+w/2, z0+.12, z0+t+.12, .1)),
-                (x0-2.0, K.octagon(y-w/2, y+w/2, z0, z0+t, .1)),
-                (x1+.6, K.octagon(y-w/2, y+w/2, z0, z0+t, .1)),
-                (x1, K.octagon(y-w*.4, y+w*.4, z0+.1, z0+t, .1))]
-        kit.hull.append(loft_x(kit, name, rows, S, .03))
-        for sx, top, end in STRUTS:
-            plan = [(sx+.7, y-.18), (sx+.7, y+.18), (sx-.7, y+.18), (sx-.7, y-.18)]
-            kit.slab(f'{name} {end} strut', plan, z0+t-.05, top+.3, S)
-            kit.box(f'{name} {end} strut clamp', (sx, y, z0+t+.12), (1.9, w+.1, .24), D, .04)
-        for px, end in ((x0-2.6, 'fore'), (x1+1.2, 'aft')):
-            kit.box(f'{name} {end} pad', (px, y, DECK_Z+.07), (1.4, w*.8, .14), D, .03)
+        i = 1 if side == 'port' else 2
+        drum = ob[f'Engine {i} {side} drive drum']
+        above = [ob['Hull gun nacelle' if side == 'port' else 'Hull cockpit pod'], ob['Hull aft body']]
+        runner = loft_x(kit, name, runner_rows(y, DECK_Z+SHOE_T, RUNNER_W, RUNNER_T), S, .03)
+        # Hardened wear shoes under the sole, fore and aft: what stands on the deck.
+        shoes = [g.wedge(f'{name} {end} shoe', (sx, y, DECK_Z), (1, 0, 0), (0, 1, 0), 1.5, RUNNER_W*.9, SHOE_T+.03,
+                         D, .2, .2, .9) for end, sx in SHOES]
+        # The runner's slot in the drum keel interrupts the collar ribs that band it.
+        for k, rx in enumerate(RIB_X, 1):
+            rib = ob.get(f'Engine {i} collar rib {k}')
+            if rib:
+                K.boolean(rib, kit.box('Temporary rib notch', (rx, y, SKID_Z+.35), (1.0, RUNNER_W+.12, 1.0), D, 0))
+        # Skid fairing: a keel strake under the pod, its floor level with the drum keel, its nose rising
+        # with the stowed toe to meet the belly.
+        # Under the toe its floor follows the stowed toe's own curve, station for station.
+        inboard = POD_Y if side == 'starboard' else GUN_Y   # where the pod's belly is sure to be, near the nose
+        stations = [(-3.1, -2.30, 1.0), (RUNNER_X[0]+shift-2.1, -2.30, 1.0)]
+        for k in range(9, -1, -1):
+            f = k/10
+            stations.append((RUNNER_X[0]+shift-2.0*f, SKID_Z+SHOE_T+.75*(1-f)**2, .6+.4*f))
+        stations.append((RUNNER_X[0]+shift+.18, SKID_Z+SHOE_T+.95, .5))
+        rows = []
+        for x, zb, wk in stations:
+            top = g.belly(above, x, y if x < 8 else (y+inboard)/2)+.3 if x > -3.0 else -.9
+            hw = .56*wk
+            rows.append((x, K.octagon(y-hw, y+hw, zb, max(top, zb+.5), .05, .14*wk)))
+        fairing = loft_x(kit, f'Hull {side} skid fairing', rows, A, .04)
+        # Its trough: the runner's path up into it (stowed and on the way), and each link's swing.
+        # The cutter is dark, so the trough's walls and roof are.
+        cut = None
+        for psi in (90, 80, 70, 60, LINK_PHI):
+            p = math.radians(psi)
+            dx = LINK_L*(math.sin(p)-math.sin(phi))
+            dz = LINK_L*(math.cos(phi)-math.cos(p))
+            c = loft_x(kit, 'Temporary trough', runner_rows(y, DECK_Z+SHOE_T+dz, RUNNER_W, RUNNER_T, dx, .07), D, 0)
+            if cut is None:
+                cut = c
+            else:
+                K.boolean(cut, c, 'UNION')
+        for end, px in LINK_PINS:
+            hx = px-LINK_L*math.sin(phi)
+            K.boolean(cut, kit.box('Temporary link swing', (hx+LINK_L/2+.1, y, HINGE_Z-.6), (LINK_L+.9, .92, 1.9), D, 0),
+                      'UNION')
+        K.boolean(fairing, cut)
+        kit.hull.append(fairing)
+        rec = g.leg(name, [], [fairing, drum, *above], floor=-2.30)
+        # Under the drum the runner's slot is a dark strip on the keel (the ribs are notched across it).
+        s0, s1, hw = RUNNER_X[1]-.05, -3.12, RUNNER_W/2+.04
+        g.liner(rec, f'{name} slot liner 1', [(s1, y-hw), (s0, y-hw), (s0, y+hw), (s1, y+hw)], [drum], (4, 2))
+        # The links: broad tapered wedges with a knuckle pin at each end, and a clevis block on the runner.
+        hinges, carriage = [], None
+        for end, px in LINK_PINS:
+            hx = px-LINK_L*math.sin(phi)
+            hinge_p = Vector((hx, y, HINGE_Z))
+            pin_p = Vector((px, y, PIN_Z))
+            link = g.beam(f'{name} {end} link', hinge_p, pin_p, (0, 1, 0), (.62, .4), (.5, .3), S, .28)
+            kp = g.pin(f'{name} {end} link hinge knuckle', hinge_p, (0, 1, 0), .1, .78, B)
+            fp = g.pin(f'{name} {end} link runner knuckle', pin_p, (0, 1, 0), .085, .78, B)
+            clevis = g.wedge(f'{name} {end} clevis', (px, y, DECK_Z+SHOE_T+RUNNER_T-.02), (1, 0, 0), (0, 1, 0),
+                             1.3, .62, .2, D, .3, .3, .8)
+            axis, deg = fold(pin_p-hinge_p, (1, 0, 0))
+            h = g.hinge(f'{name} {end} link hinge', hinge_p, axis, deg, 0.0)
+            g.adopt(h, [link, kp])
+            hinges.append(h)
+            if end == 'fore':
+                # The runner rides the fore link's pin and turns back by the link's angle, so it stays level.
+                carriage = g.hinge(f'{name} carriage hinge', pin_p, axis, -deg, 0.0, parent=h)
+                g.adopt(carriage, [runner, fp, clevis, *shoes])
+            else:
+                g.adopt(h, [fp])
+                g.adopt(carriage, [clevis])
+        rec['hinges'] = [h.name for h in hinges]
 
 
 def detail(kit):
