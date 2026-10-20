@@ -108,13 +108,15 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
         int credits = (int) Global.getSector().getPlayerFleet().getCargo().getCredits().get();
         int reserved = CompanyYard.reservedCredits(ship);
         int cash = CompanyYard.cashCost(ship);
-        dialog.getTextPanel().addPara(Strings.format("openingCompanyYardCMDYardCostCreditsCastleSReservedPayment", reserved, cash, credits, Math.max(0, cash - Math.max(0, credits))));
+        dialog.getTextPanel().addPara(Strings.format("openingCompanyYardCMDYardCostCreditsCastleSReservedPayment",
+                MercenaryCompanyConversion.CREDIT_COST, reserved, CompanyYard.waived(reserved), cash, credits,
+                Math.max(0, cash - Math.max(0, credits))));
         if (reserved > 0) dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDIVeKeptThisPaymentAsideSince"));
         String failure = CompanyYard.refusal(ship, CompanyYard.dockedMarket());
         if (failure != null) dialog.getTextPanel().addPara(failure);
         dialog.getOptionPanel().clearOptions();
         dialog.getOptionPanel().addOption(reserved > 0 ? Strings.get("openingCompanyYardCMDInstallConversionUseReservedPayment")
-                : Strings.get("openingCompanyYardCMDInstallConversionCredits"), "smYardInstall");
+                : Strings.format("openingCompanyYardCMDInstallConversionCredits", MercenaryCompanyConversion.CREDIT_COST), "smYardInstall");
         dialog.getOptionPanel().setEnabled("smYardInstall", failure == null);
         dialog.getOptionPanel().addOption(Strings.get("openingCompanyYardCMDReturnToPort"), "smYardReturn");
     }

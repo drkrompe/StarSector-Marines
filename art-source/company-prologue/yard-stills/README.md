@@ -1,6 +1,7 @@
 # Yard stills
 
-Status: SHIPPED — Y1, Y2 and P7 pages in the game (2026-10-19)
+Status: SUPERSEDED for the yard by `storybook/` (2026-10-20); P7 still ships. Y1 (`yard-hull.jpg`) and
+Y2 (`berths-fitted.jpg`) are still packed but no screen shows them.
 Written: 2026-10-19
 
 The pictures on the company yard screens after the Jangala arrival cinematic

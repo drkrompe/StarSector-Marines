@@ -74,7 +74,7 @@ went dark; the crew chose them before the drive lit. Not a soldier, not a
 merchant, not licensed.
 
 **Castle** — PUBLIC: ore freighter hand, ran ore with Nessa; kept the departure
-roster's margin; holds a 5,000-credit yard payment nobody may touch. Talks in
+roster's margin; holds a 4,862-credit yard payment nobody may touch. Talks in
 counts and understatement; protective by bookkeeping. HIDDEN: the yard payment
 is the last of her own savings; the "month's pay on my account" chit is the
 same money.
@@ -167,7 +167,7 @@ voices:
 > the payroll and the good medical stores. Your people left later, in a Cerberus
 > the mine had spent eleven years stripping for parts. Someone painted SECOND WIND
 > over the registry. Somewhere between the locks and the jump point, they started
-> calling you Commander. You have 500 credits, a yard payment Castle will not let
+> calling you Commander. You have 473 credits, a yard payment Castle will not let
 > anyone touch, twelve unpaid escorts who stayed, and a name on Jangala.
 >
 > This start replaces the Galatia tutorial with the Second Wind prologue and
@@ -390,20 +390,120 @@ inspect and repair. These lines give it a cause.
 
 ## 2 — Jangala yard
 
-Castle reports the yard visit in the planet's interaction panel.
+After the arrival cinematic the founding conversion plays as a four-page storybook
+on the prologue's screen (`CompanyYardScreen`). It sets up why the company goes to
+work: the bill, the runway it leaves, the road up, and the cover story. Page 1's
+Next pays and installs; after that the pages are a straight click-through. There
+is no Skip or "Return to port" on these pages, and Back is off on pages 1 and 2, so
+the bill cannot be reached again once it is paid. Each Next button carries the
+Commander's reply. A non-Jangala yard plays pages 1 and 2 only, with Nessa's name
+taken out.
+
+The figures (owner, 2026-10-20) are stated in days of runway, not rescaled. The
+story's daily board-and-berth burn for the forty-five aboard is about 21.34
+credits, which is close to vanilla's own monthly crew and marine bill. Story only:
+nothing charges it.
+
+| Figure | Value |
+|---|---|
+| Ship's account at the start | 473 (twenty-two days) |
+| Nessa's estimate | 4,986: materials 3,300, yard time 1,562, pressure test 124 |
+| Castle's chits (the founding reserve) | 4,862, nine years of her share |
+| Shortfall | 124, the pressure test, which Nessa waives (option R1), so the reserve pays the whole order and the protected start converts on an empty account |
+
+**Page 1 — WHAT IT COSTS** (`yard-chits`)
+> Nessa's estimate comes through to the ship's slate as one page. Materials, 3,300.
+> Yard time, 1,562. Pressure test, 124. Total, 4,986. It buys bunks where the
+> cargo lashings were, a proper command fit and a workshop gantry. It does not
+> open the sealed rooms, and it does not fix either of the Hermes shuttles.
+>
+> Castle sets credit chits on the counter one at a time. One from her locker. One
+> from the bottom of the med kit. One that has been sewn into a jacket lining
+> since the Claim. The last she holds for a moment before she puts it down.
+
+Castle:
+> Four thousand, eight hundred and sixty-two. Nine years of my share, and some of
+> it was meant for other people. It's a hundred and twenty-four short.
+>
+> I told Nessa. She looked at the pressure test line for a while, then said she'd
+> be standing in the compartment for it anyway.
+
+Commander (Next): *Pay her. Install the conversion.*
+
+Without the reserve, the chits paragraph is dropped and Castle says the estimate
+comes out of the ship's account (`openingYardCashDialogue`).
+
+**Page 2 — TWENTY-TWO DAYS** (`yard-tally`)
+> The lashings are gone from the port-side space. Steel bunks stand in their place,
+> and someone has already put a pair of boots under a rack. Forty-five people
+> sleep aboard tonight: the Harker crew and their families, Sabine and her twelve,
+> and you. The yard bills the berth by the day.
+
+Castle:
+> Here's the arithmetic, Commander. Feeding forty-five and keeping Nessa's berth
+> comes to about twenty-one credits a day. The ship's account holds four hundred
+> and seventy-three.
+>
+> That's twenty-two days. After that we're living on a ship nobody is paying to
+> keep docked.
+
+Commander (Next): *We'll need to make a living somehow.*
+
+The figures box reads the live account and works the days out from it.
+
+**Page 3 — THE ROAD UP** (`yard-road`, Jangala only)
+> Nessa's racks are half empty. Most of her parts come up the Wayline road from the
+> highland depots, and raiders have held that road for a month. The drivers'
+> cooperative that runs it has lost its director, a third of its trucks and most of
+> its nerve.
+
+Castle:
+> I've got a lead on something that actually pays. I don't like it.
+>
+> Nessa's sister Mara got handed the cooperative when the director left. She's
+> keeping the drivers from selling their trucks, and she needs guards on that
+> road. She can't afford anyone with a licence, so she'd take us.
+>
+> It's a gamble, Commander. Those raiders have been killing drivers for a month.
+> If it goes wrong we come back short of people, with a ship we still can't feed
+> and nobody left who'd hire us. If we sit here, we lose the berth in twenty-two
+> days anyway.
+>
+> I told Nessa we'd be looking for work. I didn't tell her our papers say we can't
+> do any.
+
+Commander (Next): *Then we roll the dice. Find us a way in.*
+
+**Page 4 — ORE DUST** (`yard-ore-dust`, Jangala only)
+
+Castle:
+> Our papers say visitors. Visitors berth, eat and spend. They don't work, not for
+> anybody on Jangala.
+>
+> But a shipper can see its own cargo delivered, right to the buyer's door. We
+> told Approach we were carrying ore dust, and we are. So we sell it to Mara,
+> delivery guaranteed, and Sabine's people ride with it to make sure it arrives.
+> How much dust it takes to make that true is between us and the buyer. Mara
+> isn't going to weigh it.
+>
+> It isn't quite legal, Commander. But Sabine's people haven't been paid in four
+> months, and I'd rather explain this to a customs officer than explain that to
+> them.
+
+Commander (Next): *Then let's go deliver some ore dust.*
+
+The last page's objective line points at Marine operations and the prepaid depot
+(`openingYardNextStep`).
+
+### Planet-panel yard
+
+Any later conversion, and the planet menu's own yard entry, still report in the
+interaction panel:
 
 `openingCompanyYardCMDNessaVennMetUsAtTheBerth` — Castle (Jangala)
 > Nessa met us at the berth. Took one look at the patch under the collar and asked
 > if I'd done it myself. I said I'd supervised. She remembers what that means.
 > Here's her estimate, Commander. She held to it.
-
-**New, Jangala only, after the estimate** — Castle; the Wayline bridge
-> Her racks are half empty. Most of her parts come up the Wayline road, and
-> raiders have had it shut for a month. Her sister Mara got handed the drivers'
-> cooperative when its director left, and she's wearing herself thin keeping them
-> from selling the trucks too. I said we'd be looking for work, and that we've no licence. Nessa said Mara can't afford
-> anyone who has one. Then she said, "Talk to her when you've got something that
-> flies. Not before."
 
 `openingCompanyYardCMDTheYardCanMakeRoomForBunks` — Castle (fallback)
 > The yard will clear space for bunks and a workshop. I asked them to leave the

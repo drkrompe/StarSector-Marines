@@ -69,10 +69,10 @@ VIEWS = {
     'bridge-detail': (40, 26, 32, Vector((35, 0, 7))),
     'drive-detail': (-58, 30, 42, Vector((-24, 5, 3))),
     'ventral-quarter': (50, -30, 128, T0),
-    # Round 8 landing: on the ground with the gear down, and the port fore leg close.
+    # Round 8 landing: on the ground with the gear down, and the port fore wedge close (deployed and stowed).
     'landed': (40, 7, 124, Vector((5, 0, -6))),
-    'gear-bay': (58, 3, 20, Vector((20, 9, -17.5))),
-    'gear-bay-stowed': (36, -24, 18, Vector((20, 9, -14.5))),
+    'gear-bay': (52, 6, 26, Vector((19.5, 14.5, -16))),
+    'gear-bay-stowed': (44, -8, 24, Vector((19.5, 13, -10))),
 }
 # Views that stand the ship on its gear over the ground plane.
 LANDED_VIEWS = {'landed', 'gear-bay'}
