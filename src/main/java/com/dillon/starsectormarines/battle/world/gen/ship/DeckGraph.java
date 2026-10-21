@@ -144,6 +144,17 @@ public final class DeckGraph {
     public boolean reserved(int compartmentId) { return reservedRooms.contains(compartmentId); }
 
     /**
+     * The facility a reserved compartment is kept for, or null for a room the
+     * program placed. Whether it is open is the hull's condition, not the plan's.
+     */
+    public ReservedFacility reserve(int compartmentId) {
+        if (!reserved(compartmentId)) return null;
+        for (Compartment room : compartments)
+            if (room.id() == compartmentId) return ReservedFacility.of(room.purpose());
+        return null;
+    }
+
+    /**
      * @param compartments placed rooms, in deterministic placement order
      * @param unplaced rooms from the program the deck had no space for
      */

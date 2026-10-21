@@ -177,10 +177,13 @@ public final class FiringRangeFitting implements RoomFitting {
         }
         closeOff(floor, plan.firingLine(), plan.laneFrom(),
                 along - plan.firingLine(), plan.laneSpan());
+        int readyFrom = plan.laneFrom() + plan.laneSpan();
+        if (plan.back() - readyFrom < 3) {
+            shortReadyEnd(floor, plan, along, across);
+            return;
+        }
         reserve(floor, 0, plan.laneFrom(), plan.firingLine(), plan.laneSpan());
         clearApproaches(floor, plan, along, across);
-        int readyFrom = plan.laneFrom() + plan.laneSpan();
-        if (plan.back() - readyFrom < 3) return;
         reserve(floor, 0, readyFrom + 1, plan.firingLine(), plan.back() - readyFrom - 1);
         for (int x = 1; x + 2 < plan.firingLine(); x += 3)
             floor.placeAssembly(x, readyFrom, "firing-range."
@@ -190,6 +193,34 @@ public final class FiringRangeFitting implements RoomFitting {
             floor.placeAssembly(x, plan.back(), "armory-workshop.rack", List.of(
                     new LayoutOp.Layer(0, 0, "armory-workshop.rifles"),
                     new LayoutOp.Layer(0, 0, "armory-workshop.rack-frame")));
+    }
+
+    /**
+     * A range with no deeper ready end: a plain rectangle, like a frigate's
+     * three short lanes. The ready end is the lanes' own first cells, so the
+     * run up to the line keeps the two columns behind the shooters and the
+     * range control and a prep bench stand against the side bulkheads beyond
+     * it, wherever the hatches leave them room. Both are scenery here, as on a
+     * larger range.
+     */
+    private void shortReadyEnd(RoomFloor floor, Plan plan, int along, int across) {
+        int run = Math.min(2, plan.firingLine() - 1);
+        reserve(floor, plan.firingLine() - run, plan.laneFrom(), run, plan.laneSpan());
+        clearApproaches(floor, plan, along, across);
+        int last = plan.laneFrom() + plan.laneSpan() - 1;
+        String[] pieces = {"firing-range.control", "firing-range.prep-bench"};
+        int placed = 0;
+        for (int row : new int[]{plan.laneFrom(), last}) {
+            for (int x = 0; x + 2 <= plan.firingLine() - run && placed < pieces.length; x++) {
+                if (floor.placeAssembly(x, row, pieces[placed], List.of())) { placed++; break; }
+            }
+        }
+        // Whatever the gear did not take stays clear for a detail to come up to the line.
+        for (int row = plan.laneFrom(); row <= last; row++)
+            for (int x = 0; x < plan.firingLine() - run; x++) {
+                int[] cell = floor.toLocal(x, row);
+                if (floor.isFree(cell[0], cell[1])) floor.reserveLane(cell[0], cell[1], 1, 1);
+            }
     }
 
     private void surface(RoomFloor floor, int x, int y, int w, int h, String id) {

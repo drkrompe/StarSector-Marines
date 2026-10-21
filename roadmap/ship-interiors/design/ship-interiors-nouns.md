@@ -5,7 +5,9 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-21 — Second Wind's arrangement also carries sealed reserves for her refit tree, laid after the program so they never move it.
+Updated: 2026-10-21 — a reserve is furnished as its facility and opens where it stands when the hull's restoration names it; nothing on the deck moves.
+
+Earlier 2026-10-21 — Second Wind's arrangement also carries sealed reserves for her refit tree, laid after the program so they never move it.
 
 Earlier 2026-10-20 — the founding hull's per-core Deficit dressing: presentation-only state over the fixed form, cleared core by core.
 
@@ -1580,12 +1582,20 @@ for refits she has not had. A reserve is no part of the room program. The
 deck is not sized for it, the ship is not owed it and no facility count reads
 it. It is laid after every programmed room and before the pocket fill, so
 reserving one never moves a room, door or berth the program placed. It is
-furnished, then stripped and closed behind pressure hatches, and stays out of
-service until a refit opens it where it stands. Second Wind reserves a firing
+furnished as the facility it is kept for, at its reserved footprint, then
+stripped and closed behind pressure hatches, and stays out of service until a
+refit opens it where it stands. Opening is condition, not form: the hull's
+restoration state names the reserves that are open, the fill that ran is the
+same in both states, and an opened reserve is simply not stripped, so its
+hatches work and its fixtures publish their places like any room's. Every
+reserve is closed until named. Second Wind reserves a firing
 range, a gymnasium, a sick bay, a rec lounge and a brig for her refit tree, at
 footprints her deck can spare in every layout (`second-wind-refit-tree.md`).
 These are the founding hull's exception to the destroyer-size gate on those
-rooms, not a change to the general program.
+rooms, not a change to the general program. Their compact fittings follow the
+ordinary rules: the range's lanes are shut deck behind its firing line, the
+gymnasium and lounge (with its chapel) publish recreation, the sick bay and its
+rehab pool are the medic's work, and the brig's one place is a guard post.
 
 The custom start's original Cerberus reserves two bay compartments even before
 conversion. The starboard bay is damaged: its hatch and launch aperture are sealed,
