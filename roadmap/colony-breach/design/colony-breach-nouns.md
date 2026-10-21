@@ -494,9 +494,11 @@ creep and bodies.
 They show their **damage**. Below half its durability a bore or colony is
 drawn **wounded**: plates torn out of their sockets over raw sinew, gashes
 through the carapace, a sac burst, a spine snapped, its amber dimmed; the same
-painting, hurt. A wounded body **bleeds**, as the Zerg's buildings did: small
-looping ooze, a pool welling over the wound, a bubble rising in it and popping,
-a run of ichor with beads travelling down it, pinned to the wounds its own
+painting, hurt. A wounded body **bleeds**, as the Zerg's buildings did: a
+wound is a puncture in a living membrane, and it pulses to a heartbeat: on
+each beat the torn slit dilates, its flaps lift and a gout of ichor is pushed
+out over the lip to run downhill as a glossy film, which drains and thins
+before the next. The loops are pinned to the wounds its own
 painting shows and running downhill off its body (into the pit from a bore's
 lip). The first wound bleeds as the body turns wounded, and more open the
 further it is hurt, every one by under a third of that; each wound bleeds at
@@ -572,8 +574,16 @@ for one job in the cycle, and reads that way on screen.
   itself stays the ordinary melee hit. A carrier (*Harvest*, *Impale*) is
   drawn hauling: it turns to face the body it drags, so it backs toward the
   bore at a trot with its shoulders heaving, the spike that struck stays in
-  and the jaws latch on beside it. A dead Runner keeps its skeleton, falls
-  onto its flank with its legs gone slack and lies there, dulled.
+  and the jaws latch on beside it. The body it hauls, alive or dead, is drawn
+  lying (its outfit's fallen pose), head toward the jaws, jolting with each
+  heave. Through a turn the spine bows into a C toward the inside, the
+  shoulders and the hips swinging the same way while the planted feet hold.
+  A dead Runner keeps its skeleton, falls
+  onto its flank with its legs gone slack and lies there, dulled. In a crowd it
+  is shoved as the shape it is drawn as, a capsule along its facing (the
+  separation shape in `continuous-positions-nouns.md`), so a pack queues nose to
+  tail and packs flank to flank rather than stacking into one another; its
+  0.3-cell footprint radius stays its size to everything else.
 - **Brute** — slow, plated, heavy melee; the strain that makes a garrisoned
   building stop being a safe room. Its plate (20 points at rating 10) is what
   small arms struggle with: a DMR or rocket goes through it, an SMG barely

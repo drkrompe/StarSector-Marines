@@ -37,6 +37,20 @@ rubble and ground damage.
    still open. Use small unit tests for selection/state laws and the snapshot
    catalog for whole-render evidence.
 
+**Draw small, boxy pieces large.** ImageGen keeps a minimum of bevel and detail
+per piece, so a short strip on a mostly empty canvas comes back too big and far
+too deep: real-size armory benches and lockers drawn at 128 px per cell returned
+twice at 1.2x their width and two to four times their depth, whatever the brief
+said, while the slim gym machines held at the same density. At 320 px per cell,
+one 3x1 frame per row, they landed within a few pixels of the guide. Measure each
+returned piece's opaque box against its guide box before cutting.
+
+**Re-drawing part of a kit.** When only some pieces of an accepted sheet change,
+generate just those, then join the accepted raw and the new generation side by
+side with `art-source/templates/real-scale-montage.py`; the authoring document
+cuts each piece from its own half. No pixel is altered, and the unchanged pieces
+keep their registered damage states.
+
 Set `JAVA_HOME` to the path in `CLAUDE.md` before Gradle/authoring commands.
 Keep source inputs out of `mod/`; only exported art and its runtime catalog ship.
 
@@ -86,7 +100,7 @@ Keep source inputs out of `mod/`; only exported art and its runtime catalog ship
 | Ship shuttle bay | `ShuttleBayTemplate`; contained service equipment, shelf loads, landing material and flush tie-downs | `templates/shuttle-bay.png`, `tilesets/shuttle-bay.*` | `ship-materials` |
 | Ship crew lounge | `CrewLoungeTemplate`; opposing sofas, layered tables and distinct recreation groups | `templates/crew-lounge.png`, `tilesets/crew-lounge.*` | `ship-materials` |
 | Ship main stores | `MainStoresTemplate`; shelf beds, independent cargo, transparent retaining frames and pallet staging | `templates/main-stores.png`, `tilesets/main-stores.*` | `ship-materials` |
-| Ship armory | `ArmoryWorkshopTemplate`; issue counter, layered weapons racks and repair bench, separate cabinets | `templates/armory-workshop.png`, `tilesets/armory-workshop.*` | `ship-materials` |
+| Ship armory | Issue counter, layered weapons racks and separate cabinets from the original guide; `ArmoryWorkshopTemplate` re-draws the repair bench, its tools and the ready-locker bank at real size (3x1, 320 px per cell), joined to the original raw by `real-scale-montage.py` | `templates/armory-workshop.png`, `tilesets/armory-workshop.*` | `ship-materials` |
 | Ship sickbay | `SickbayClinicTemplate`; layered medical beds, head monitors and an adaptable clinic bank | `templates/sickbay-clinic.png`, `tilesets/sickbay-clinic.*` | `ship-materials` |
 | Ship mess | `MessGalleyTemplate`; long tables, separate meals and stools, coordinated galley appliances | `templates/mess-galley.png`, `tilesets/mess-galley.*` | `ship-materials` |
 | Ship berthing | `BarracksBunkTemplate`; full bunk bases, separate bedding and rails, personal locker banks | `templates/barracks-bunks.png`, `tilesets/barracks-bunks.*` | `ship-materials` |

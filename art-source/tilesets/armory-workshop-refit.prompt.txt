@@ -1,0 +1,10 @@
+Reskin the attached geometry guide into finished top-down game art for three spaceship armory props. Strict overhead orthographic view, soft light from the upper left, the same look as the material reference sheet: restrained worn graphite steel, muted sage/olive enamel, quiet silver edges, small bolts and panel seams, modest edge wear, realistic painted game-asset finish. No saturated colour, no glow, no hazard stripes.
+
+The guide is the geometry, scale and layout authority, and the result will be cut mechanically from the guide's exact pixel rectangles. Each piece is a long narrow strip, exactly three times as long as its frame is deep, and must overlay its grey guide shape almost exactly: the same left and right ends, the same top and bottom edges. Do not make any piece deeper, longer, taller or larger than its grey shape; do not move, rescale, rotate, merge or add pieces. Keep all empty canvas fully transparent: true transparent background, including gaps between parts; no floor, no ground, no shadow slab, no border, no people, no labels or text.
+
+Pieces, top to bottom:
+1. Empty narrow armorer's repair workbench: steel top with bevelled edges, a dark green rubber work mat on its left two thirds, three subdued drawer pulls along the bottom (near) edge. No tools on it.
+2. Transparent overlay for that bench, the same size: one stripped compact service rifle lying lengthwise with its removed barrel just below it, and at the right a small bench vise above a little organised tool tray. ONLY these items with transparent space between them; no bench, no mat, no floor.
+3. A shallow ready-use locker bank seen from directly above: a thin strip of three side-by-side locker tops in muted grey-sage enamel, their door fronts with small pulls along the bottom edge. It is only as deep as its grey shape: a slim strip with transparent space above it.
+
+Broad readable forms, soft restrained highlights, sparse wear, low surface noise.

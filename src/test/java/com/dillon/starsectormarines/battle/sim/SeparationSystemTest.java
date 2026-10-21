@@ -974,4 +974,61 @@ public class SeparationSystemTest {
             }
         }
     }
+
+    private static long runnerFacingNorth(BattleSimulation sim, String name, float x, float y) {
+        long id = sim.spawn(new EntitySpec(name, Faction.DEFENDER, UnitType.SWARM_RUNNER,
+                (int) x, (int) y));
+        sim.world().setPos(id, x, y);
+        sim.getRoster().entityWorld().setFloat(id, sim.getRoster().components().LAYERED_ANIMATION,
+                BattleComponents.LAYERED_FACING_DEGREES, 0f);
+        return id;
+    }
+
+    /**
+     * Capsules: two Runners in file, 1.3 cells apart centre to centre, are
+     * clear of each other as circles but overlap nose to tail as the bodies
+     * they are drawn as, so the capsule pass pushes them apart along their
+     * length and the circle control leaves them be.
+     */
+    @Test
+    public void runnersInFileArePushedApartLengthwiseOnlyAsCapsules() {
+        for (boolean capsules : new boolean[]{true, false}) {
+            BattleSimulation sim = openArena(20, 20);
+            long rear = runnerFacingNorth(sim, "r0", 10.5f, 10.0f);
+            long front = runnerFacingNorth(sim, "r1", 10.5f, 11.3f);
+            new SeparationSystem(sim.getRoster(), sim.getUnitIndex(), sim.getGrid(), capsules)
+                    .tick(BattleSimulation.TICK_DT);
+            if (capsules) {
+                assertTrue(sim.world().y(rear) < 10.0f, "rear Runner pushed back");
+                assertTrue(sim.world().y(front) > 11.3f, "front Runner pushed ahead");
+                assertEquals(10.5f, sim.world().x(rear), 1e-5f);
+                assertEquals(10.5f, sim.world().x(front), 1e-5f);
+            } else {
+                assertEquals(10.0f, sim.world().y(rear), 1e-6f);
+                assertEquals(11.3f, sim.world().y(front), 1e-6f);
+            }
+        }
+    }
+
+    /**
+     * Capsules: two Runners flank to flank half a cell apart overlap as 0.3
+     * circles but not as the slim bodies they are, so only the circle control
+     * shoves them apart.
+     */
+    @Test
+    public void slimRunnersFlankToFlankAreLeftBeAsCapsules() {
+        for (boolean capsules : new boolean[]{true, false}) {
+            BattleSimulation sim = openArena(20, 20);
+            long left = runnerFacingNorth(sim, "r0", 10.0f, 10.5f);
+            long right = runnerFacingNorth(sim, "r1", 10.5f, 10.5f);
+            new SeparationSystem(sim.getRoster(), sim.getUnitIndex(), sim.getGrid(), capsules)
+                    .tick(BattleSimulation.TICK_DT);
+            float gap = sim.world().x(right) - sim.world().x(left);
+            if (capsules) {
+                assertEquals(0.5f, gap, 1e-6f);
+            } else {
+                assertTrue(gap > 0.5f, "circles shoved apart: " + gap);
+            }
+        }
+    }
 }
