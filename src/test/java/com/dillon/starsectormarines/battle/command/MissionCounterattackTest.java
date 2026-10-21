@@ -173,6 +173,36 @@ class MissionCounterattackTest {
         assertTrue(left.get(3).roving(), "a squad let go is offered as reserve");
     }
 
+    @Test
+    void anAuthoredCounterAttackIsALostPlaceOnlyWhileItsTriggerHasItActive() {
+        PlaceTarget target = PlaceTarget.region(PX, PY, 4);
+        MissionCounterattack counter = new MissionCounterattack();
+        counter.directives(List.of(PlaceDirective.counterAttack("retake-hall", Faction.DEFENDER, target)
+                .when(PlaceTrigger.allOf(PlaceTrigger.tickAtLeast(300), PlaceTrigger.held(PlaceHold.HOSTILE)))
+                .build(), PlaceDirective.counterAttack("theirs", Faction.ALLY, target).build()), Faction.DEFENDER);
+        assertEquals(1, counter.directives().directives().size(), "a party reads only its own directives");
+        float[] nobody = new float[0];
+        int[] inside = {PX + 1, PY};
+        List<String> notes = new ArrayList<>();
+
+        assertTrue(counter.triggered(PlaceSignals.of(225, nobody, inside, null, 1, 0, 0), notes).isEmpty(),
+                "held by the marines, but not yet the hour the mission named");
+        List<Place> places = counter.triggered(PlaceSignals.of(300, nobody, inside, null, 1, 0, 0), notes);
+        assertEquals(1, places.size());
+        Place place = places.get(0);
+        assertEquals(MissionCounterattack.DIRECTIVE_KEY_PREFIX + "retake-hall", place.key());
+        assertEquals(Status.LOST, place.status());
+        assertTrue(place.worth() > MissionPlaces.OBJECTIVE_WORTH, "the mission's word outranks its own reading");
+        assertTrue(notes.get(0).contains("retake-hall is active"), notes.toString());
+
+        float[] ours = {PX, PY + 1};
+        assertEquals(Status.LOSING, counter.triggered(PlaceSignals.of(375, ours, inside, null, 1, 0, 0), notes)
+                .get(0).status(), "ours on it with the marines still there: being won back");
+        assertTrue(counter.triggered(PlaceSignals.of(450, ours, new int[0], null, 1, 0, 0), notes).isEmpty(),
+                "held again: released, and no longer offered");
+        assertEquals(PlaceDirectives.State.RELEASED, counter.directives().state("retake-hall"));
+    }
+
     private static CommandSquadState state(int id) {
         return new CommandSquadState(id, Faction.DEFENDER, 6, 50, 50, 50, 50, 0, UnitRole.PATROL, false, null, null,
                 null, 0, new int[0]);

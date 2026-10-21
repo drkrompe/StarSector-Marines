@@ -4,11 +4,14 @@ import com.dillon.starsectormarines.battle.command.MissionPlaces.Site;
 import com.dillon.starsectormarines.battle.command.PlaceCounterattack.Body;
 import com.dillon.starsectormarines.battle.command.PlaceCounterattack.Order;
 import com.dillon.starsectormarines.battle.command.PlaceCounterattack.Place;
+import com.dillon.starsectormarines.battle.command.PlaceCounterattack.Status;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
+import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -24,13 +27,22 @@ import java.util.TreeSet;
  * <p><b>Reasonable, by doctrine.</b> The mission decides first: the counter-attack recruits only squads the mission holds
  * in its <em>reserve</em>, never a post (the Raid target's guard, a Sabotage site post, an Assault routine area or
  * responder, the Extraction source guard), an interdicting squad, an authored garrison, a crew or anybody another owner
- * holds. Its group never holds more than {@link #share} of the mission's mobile pool, it is sized two to one against what
- * it has observed holds the place ({@link #margin}) and goes only when it can raise most of that, and the side has
- * {@link #maxLaunches} pushes a battle: after that, and after two failures on one place, the ordinary defence is all
- * there is. A squad in the group is the counter-attack's until it is let go; the mission plans everybody else.
+ * holds; quiet authored garrisons away from the fight may sortie into a decided push. Its group never holds more than
+ * {@link #share} of the side's infantry, it sizes a place at parity with what it has observed holds it ({@link #margin})
+ * and goes once it can raise half of that ({@link #commitShare}), and the side has {@link #maxLaunches} pushes a battle:
+ * after that, and after two failures on one place, the ordinary defence is all there is. A squad in the group is the
+ * counter-attack's until it is let go; the mission plans everybody else.
+ *
+ * <p><b>Triggered.</b> A mission may also author "counter-attack this place when ..." as a {@link PlaceDirective} of kind
+ * {@link PlaceDirective.Kind#COUNTER_ATTACK} (`garrisonables.md`, place directives). This class is the adapter: it holds
+ * the party's {@link PlaceDirectives}, evaluates them each pulse on the commander's {@link PlaceSignals}, and offers every
+ * active one to the same planner as a lost place of its own, worth more than any the mission reads for itself and
+ * standing in for those inside its target. The trigger decides when; the doctrine still decides with what and whether, so
+ * an authored counter-attack against more than the side can raise is observed and stood down like any other.
  *
  * <p>{@code -Dbattle.mission.counterattack=false} (or the shared {@code -Dbattle.counterattack=false}) is the
- * same-build control; the knobs are {@code -Dbattle.mission.counterattack.<name>}.
+ * same-build control for the untriggered form, {@code -Dbattle.mission.counterattack.triggered=false} for the authored
+ * one; the knobs are {@code -Dbattle.mission.counterattack.<name>}.
  */
 final class MissionCounterattack {
 
@@ -81,6 +93,13 @@ final class MissionCounterattack {
     /** The issuer suffix of the procedural missions' authored garrisons ({@code BattleSetup}). */
     static final String SETUP_GARRISON_SUFFIX = "-setup-garrison";
 
+    /** {@code -Dbattle.mission.counterattack.triggered=false} switches authored counter-attack directives off. */
+    static final String TRIGGERED_PROPERTY = PROPERTY + ".triggered";
+    /** The key prefix of a place an authored directive names: this, then the directive's id. */
+    static final String DIRECTIVE_KEY_PREFIX = "directive ";
+    /** What an authored counter-attack's place is worth: more than any objective, because the mission said so. */
+    static final float AUTHORED_WORTH = 2 * MissionPlaces.OBJECTIVE_WORTH;
+
     private static volatile Boolean forced;
 
     private static float knob(String name, float fallback) {
@@ -93,6 +112,12 @@ final class MissionCounterattack {
         Boolean f = forced;
         if (f != null) return f;
         return PlaceCounterattack.isEnabled() && !"false".equalsIgnoreCase(System.getProperty(PROPERTY, "true"));
+    }
+
+    /** Whether authored counter-attack directives are read: both this switch and the shared one. */
+    static boolean triggeredEnabled() {
+        return PlaceCounterattack.isEnabled()
+                && !"false".equalsIgnoreCase(System.getProperty(TRIGGERED_PROPERTY, "true"));
     }
 
     /** Evidence seam: forces the switch for the rest of this JVM; {@code null} reads the properties again. */
@@ -120,6 +145,7 @@ final class MissionCounterattack {
     private final Set<Integer> held = new TreeSet<>();
     /** Garrisons recruited this pulse, by squad id, with the issuer each is taken over from in {@link #afterCommit}. */
     private Map<Integer, String> handoffs = Map.of();
+    private PlaceDirectives directives = PlaceDirectives.none();
 
     MissionCounterattack() {
         this(PlaceCounterattack.Doctrine.mission(share, floor, margin, commitShare, maxLaunches));
@@ -127,6 +153,24 @@ final class MissionCounterattack {
 
     MissionCounterattack(PlaceCounterattack.Doctrine doctrine) {
         this.counter = new PlaceCounterattack(doctrine);
+    }
+
+    /**
+     * The mission's place directives, of which this party's counter-attack ones are read; the commander's to call once,
+     * at setup. With the triggered switch off the book is empty.
+     */
+    void directives(List<PlaceDirective> mission, Faction party) {
+        directives = PlaceDirectives.forParty(triggeredEnabled() ? mission : List.of(), party);
+    }
+
+    /** The party's directive book, for tests and scenes. */
+    PlaceDirectives directives() {
+        return directives;
+    }
+
+    /** Whether the commander plans a counter-attack at all: the untriggered form, or an authored directive to read. */
+    boolean active() {
+        return enabled() || !directives.isEmpty() && triggeredEnabled();
     }
 
     /** The squads the group held after the last plan: the mission leaves these out of its own planning. */
@@ -152,16 +196,28 @@ final class MissionCounterattack {
      * @param reserve    squads the mission holds in reserve this pulse, which the group may recruit
      * @param poolSquads the mission's mobile pool, in squads, the group's included
      * @param all        every own squad: one standing near a place watches it, one on it holds it
+     * @param signals    the party's pulse as its place directives read it; {@code null} when it has none
      */
     Result plan(int tick, List<Site> sites, List<CommandSquadState> members, List<CommandSquadState> reserve,
                 int poolSquads, List<CommandSquadState> all, CommanderInfluenceSnapshot influence,
-                CommandTopology topology) {
+                CommandTopology topology, PlaceSignals signals) {
         List<PlaceCounterattack.Hostile> hostiles = PlaceCounterattack.hostiles(influence);
         List<int[]> own = new ArrayList<>();
         for (CommandSquadState squad : all) {
             if (squad.aliveMembers() > 0) own.add(new int[] {squad.anchorCellX(), squad.anchorCellY()});
         }
-        List<Place> list = places.places(sites, hostiles, own);
+        List<Place> list = new ArrayList<>(places.places(enabled() ? sites : List.of(), hostiles, own));
+        List<String> directiveNotes = new ArrayList<>();
+        List<Place> authored = triggered(signals, directiveNotes);
+        if (!authored.isEmpty()) {
+            // A mission place inside an authored target is that directive's: one ground, one place.
+            List<PlaceTarget> targets = new ArrayList<>();
+            for (PlaceDirective directive : directives.active(PlaceDirective.Kind.COUNTER_ATTACK)) {
+                targets.add(directive.target());
+            }
+            list.removeIf(place -> targets.stream().anyMatch(target -> target.contains(place.x(), place.y())));
+            list.addAll(authored);
+        }
         List<Body> memberBodies = new ArrayList<>();
         for (CommandSquadState squad : members) memberBodies.add(body(squad));
         List<Body> free = new ArrayList<>();
@@ -196,13 +252,43 @@ final class MissionCounterattack {
         for (int id : result.released()) if (!duties.containsKey(id)) released.add(id);
         List<Integer> recruited = new ArrayList<>();
         for (int id : result.recruited()) if (duties.containsKey(id)) recruited.add(id);
-        List<String> notes = new ArrayList<>(places.changes());
+        List<String> notes = new ArrayList<>(directiveNotes);
+        notes.addAll(places.changes());
         notes.addAll(result.notes());
         if (!handing.isEmpty()) {
             notes.add("counter-attack for " + counter.placeKey() + " draws garrisons out to sortie: squads "
                     + new ArrayList<>(handing.keySet()));
         }
         return new Result(duties, recruited, released, notes);
+    }
+
+    /**
+     * The adapter onto the place-directive seam: evaluates the book on this pulse's signals and returns a place for every
+     * active counter-attack directive, keyed {@link #DIRECTIVE_KEY_PREFIX} and its id, centred on its target with the
+     * target as its ground (at least {@link MissionPlaces#ON_CELLS}). Its trigger has said it is to be retaken, so it
+     * stands lost, or losing while the party's own squads are in it; a launched group holds it as a mission place is
+     * held. A directive released (by default once the party holds the target again) is simply no longer offered.
+     */
+    List<Place> triggered(PlaceSignals signals, List<String> notes) {
+        if (directives.isEmpty() || signals == null) return List.of();
+        for (PlaceDirectives.Transition change : directives.evaluate(signals)) {
+            if (change.kind() != PlaceDirective.Kind.COUNTER_ATTACK) continue;
+            notes.add("place directive " + change.id() + " is " + change.to().name().toLowerCase(Locale.ROOT) + " ("
+                    + change.trigger() + ")");
+        }
+        List<Place> out = new ArrayList<>();
+        for (PlaceDirective directive : directives.active(PlaceDirective.Kind.COUNTER_ATTACK)) {
+            PlaceTarget target = directive.target();
+            PlaceHold hold = signals.hold(target);
+            Status status = hold == PlaceHold.OWN || hold == PlaceHold.CONTESTED ? Status.LOSING : Status.LOST;
+            int x = target.x();
+            int y = target.y();
+            int ground = Math.max(MissionPlaces.ON_CELLS, target.radius());
+            int within = Math.max(2, Math.min(MissionPlaces.HOLD_RADIUS_CELLS, target.radius()));
+            out.add(new Place(DIRECTIVE_KEY_PREFIX + directive.id(), x, y, ground, status, AUTHORED_WORTH, false,
+                    status == Status.LOSING, (members, topology) -> MissionPlaces.hold(x, y, within, members)));
+        }
+        return out;
     }
 
     /** Hands this pulse's sortied garrisons to the commander; call from its afterCommit. */

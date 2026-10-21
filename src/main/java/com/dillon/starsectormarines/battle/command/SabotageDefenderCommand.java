@@ -52,6 +52,15 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
     public SabotageDefenseSnapshot defenseSnapshot() { return defenseSnapshot; }
 
     @Override public Faction faction() { return Faction.DEFENDER; }
+    /**
+     * The mission's place directives (`garrisonables.md`, place directives); this commander reads its counter-attack
+     * ones ({@link MissionCounterattack}). Call once, at setup.
+     */
+    public SabotageDefenderCommand placeDirectives(List<PlaceDirective> mission) {
+        counter.directives(mission, faction());
+        return this;
+    }
+
     @Override public String strategyId() { return "sabotage-defender"; }
     @Override public void afterCommit(CommandEffects effects) {
         garrisons.afterCommit(effects, faction());
@@ -66,7 +75,7 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
                 .stream().filter(site -> !site.complete()).toList();
         Map<Integer, SquadDirective> directives = new LinkedHashMap<>();
         List<CommandSquadState> candidates = new ArrayList<>();
-        boolean countering = MissionCounterattack.enabled();
+        boolean countering = counter.active();
         Set<Integer> claimed = countering ? counter.claimed() : Set.of();
         List<CommandSquadState> members = new ArrayList<>();
 
@@ -184,7 +193,8 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
 
         MissionCounterattack.Result retake = countering
                 ? counter.plan(frame.tick(), sites(activeSites, frame), members, held,
-                candidates.size() + members.size(), frame.squads(), frame.influence(), frame.topology())
+                candidates.size() + members.size(), frame.squads(), frame.influence(), frame.topology(),
+                PlaceSignals.of(frame))
                 : MissionCounterattack.Result.NONE;
         proposals = MissionCounterattack.apply(proposals, retake, frame.squads());
         offers = MissionCounterattack.offers(offers, retake);

@@ -75,6 +75,20 @@ public enum LandingKind {
      */
     public static final int BERTH_REACH = 16;
 
+    /**
+     * How far in from the edge it lands across a field's centre sits.
+     *
+     * <p>Less than the radius, so a quarter of the disc lies off the map. The
+     * edge is not an obstruction, and nothing comes at the company out of the
+     * country behind it: the clear ground that matters is the town side and
+     * the flanks. Sitting closer in keeps the shuttles' flight to the berths
+     * short and leaves the town more of the map, since the country it gives up
+     * runs to the disc's far side.
+     */
+    public int fieldSetback() {
+        return fieldOfFire() * 3 / 4;
+    }
+
     /** Whether this kind promises a clear field of fire round its berths. */
     public boolean hasFieldOfFire() {
         return fieldOfFire() > 0;
