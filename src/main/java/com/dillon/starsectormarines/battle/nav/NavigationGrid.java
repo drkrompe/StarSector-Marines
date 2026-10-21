@@ -195,6 +195,14 @@ public class NavigationGrid {
      */
     private final LosCaches losCaches = new LosCaches();
 
+    /**
+     * The swarm's per-goal flow fields over this grid. Owned here for the
+     * reason the line-of-sight caches are: they are derived from this grid's
+     * topology and retired by its revision, so concurrent battles never share
+     * one — see {@link SwarmFlowFields}.
+     */
+    private final SwarmFlowFields swarmFlowFields = new SwarmFlowFields(this);
+
     public NavigationGrid(int width, int height) {
         this(width, height, false);
     }
@@ -244,6 +252,9 @@ public class NavigationGrid {
     public int getWidth()  { return width;  }
     public int getHeight() { return height; }
     public long topologyRevision() { return topologyRevision; }
+
+    /** This grid's swarm flow fields; see {@link SwarmFlowFields}. */
+    public SwarmFlowFields swarmFlowFields() { return swarmFlowFields; }
 
     /** Independent navigation snapshot retaining full ancillary grid storage. */
     public NavigationGrid copyNavigationTopology() {

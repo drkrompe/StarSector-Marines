@@ -28,7 +28,8 @@ Model: `colony-breach-nouns.md` (Swarm strain).
      senses or at low aircraft; retreats when charged.
    Use the existing swarm sensing laws: senses, does not know. Strategic
    movement must go through the same swarm movement call the Runner uses, so
-   `swarm-flow-fields.md` speeds all strains at once; do not fork pathing.
+   the swarm's flow fields (`colony-breach-nouns.md`, Swarm goal) speed all
+   strains at once; do not fork pathing.
 4. **Hookup.** If `bore-spawners.md` has landed its tier strain table, fill the
    brute and spitter slots; otherwise expose a director-independent way to spawn
    them (debug mission / scene) and leave the hookup to whichever story lands

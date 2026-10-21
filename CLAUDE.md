@@ -356,6 +356,15 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   `build/reports/performance/squad-firing-positions/summary.json`.
   `-Dbattle.squadFiringEvidence.outputDir=<path>` redirects it. This measures
   selected-cell validity, spread and reachability, not autonomous combat outcomes.
+- `gradlew.bat profileSwarmFlow` → swarm strategic-movement cost on generated
+  cities at 280x168, 400x240 and 560x336 with 64 to 1000 runners chasing three
+  walking Marine columns, flow field on and off in the same run (serial
+  scheduler, one sim at a time: per-tick median, spread, p99, max and ticks over
+  10 ms), then two replicas of each lever side by side for the determinism
+  check; fails if they differ. `build/reports/performance/swarm-flow/summary.md`.
+  `-Dbattle.swarmFlow.sizes=400x240`, `.counts=150,300`, `.levers=on`,
+  `.measureTicks`, `.warmupTicks`, `.outputDir` narrow it. Opt-in, excluded
+  from `test`. Readings and the decision they support: `swarm-movement-cost.md`.
 - `gradlew.bat garrisonEvidence` → stands up every story mission at tick zero
   (the debug mission catalog plus the three Agreus maps) and inventories what
   each map offers a squad to hold: per tactical node, windows / entrances /

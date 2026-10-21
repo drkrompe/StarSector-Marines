@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.evacuation;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
-import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -59,10 +58,6 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             return;
         }
 
-        int runnerX = sim.world().cellX(runner);
-        int runnerY = sim.world().cellY(runner);
-        int targetX = sim.world().cellX(target);
-        int targetY = sim.world().cellY(target);
         float dx = sim.world().x(target) - sim.world().x(runner);
         float dy = sim.world().y(target) - sim.world().y(runner);
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
@@ -78,18 +73,17 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             return;
         }
 
-        boolean targetChanged = target != previousTarget;
-        if ((targetChanged || sim.movement().mayRepath(runner))
-                && needsPath(runner, targetX, targetY, sim)) {
-            int[] path = SharedGoalPolicy.usesSharedGoalFields(sim.liveUnitCount())
-                    ? sim.findSharedPathToGoal(
-                            runnerX, runnerY, targetX, targetY)
-                    : GridPathfinder.findPath(sim.getGrid(),
-                            runnerX, runnerY, targetX, targetY,
-                            sim.getOccupancyMap());
-            sim.setPath(runner, path);
-        }
-        sim.advanceMovement(runner);
+        pressToward(runner, target, target != previousTarget, sim);
+    }
+
+    /**
+     * The swarm's strategic move toward a chosen target, shared by every
+     * strain so that one change to how the swarm moves reaches all of them.
+     * See {@link SwarmMovement#pursue}.
+     */
+    public static void pressToward(long body, long target, boolean targetChanged,
+                                   BattleSimulation sim) {
+        SwarmMovement.pursue(body, target, targetChanged, sim);
     }
 
     /**
@@ -285,7 +279,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
     }
 
     /** Caller has already established that the candidate is a prey faction. */
-    private static boolean eligiblePreyKnownFaction(
+    static boolean eligiblePreyKnownFaction(
             long candidate, boolean shelterProtected, BattleSimulation sim) {
         if (!shelterProtected) return true;
         Squad squad = sim.squadOf(candidate);
@@ -305,14 +299,6 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                 runnerCellX, runnerCellY,
                 (int) Math.floor(candidateX), (int) Math.floor(candidateY),
                 senseRange);
-    }
-
-    private static boolean needsPath(long runner, int targetX, int targetY,
-                                     BattleSimulation sim) {
-        int[] path = sim.movement().path(runner);
-        return sim.movement().pathIdx(runner) >= Paths.cellCount(path)
-                || Paths.destX(path) != targetX
-                || Paths.destY(path) != targetY;
     }
 
     private static void tickCooldown(long runner, BattleSimulation sim) {
