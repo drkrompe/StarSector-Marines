@@ -66,6 +66,12 @@ public interface CommandEffects {
     /** Stands every chassis of lance {@code squadId} down from a guard a commander gave it; a player's order stays. */
     default void standDownGuard(int squadId) { }
 
+    /**
+     * Hands squad {@code squadId} from {@code fromIssuer} to this commander ({@code toIssuer}) under mission command, with
+     * no order yet: a garrison sortieing into a counter-attack. Nothing happens when {@code fromIssuer} no longer owns it.
+     */
+    default boolean takeOverSquad(int squadId, String fromIssuer, String toIssuer, String reason) { return false; }
+
     /** The effects of a live battle, or {@link #NONE} where it cannot be controlled. */
     static CommandEffects over(BattleView sim) {
         if (!(sim instanceof BattleControl control)) return NONE;
@@ -105,6 +111,17 @@ public interface CommandEffects {
                 for (int i = 0, n = live.squadMemberCount(squadId); i < n; i++) {
                     live.getMechMoveOrderService().standDownGuard(live.squadMemberAt(squadId, i));
                 }
+            }
+            @Override public boolean takeOverSquad(int squadId, String fromIssuer, String toIssuer, String reason) {
+                Squad squad = control.getSquad(squadId);
+                if (squad == null) return false;
+                if (!control.handoffSquadCommand(squadId, fromIssuer, CommandAuthority.MISSION_COMMAND, toIssuer, null,
+                        reason)) return false;
+                // Its spawn-time post and its ambush discipline would otherwise keep it garrisoning its compound,
+                // or guarding its post, whatever it is ordered.
+                squad.assignedNode = null;
+                squad.holdsFireUntilKillZone = false;
+                return true;
             }
         };
     }

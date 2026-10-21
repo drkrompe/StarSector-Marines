@@ -56,7 +56,7 @@ inventing a definitive answer.
 | `pirates` | `pirates-lore-guide.md` |
 | `independent`, `mercenary` | `independents-lore-guide.md` |
 | `remnant` | `remnants-lore-guide.md` |
-| none (mod-invented; Colony Breach swarm) | `swarm-lore-guide.md` |
+| none (mod-invented; the Rav Bloom, Colony Breach) | `swarm-lore-guide.md` |
 
 Unknown or modded factions use the Independent gameplay fallback unless merged
 content supplies a profile. That technical fallback does not assert that every

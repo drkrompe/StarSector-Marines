@@ -27,6 +27,14 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
         RescueCommandFrame, RescueCommandSnapshot> {
 
     public static final int ADVANCE_SCREEN_CELLS = 5;
+    /**
+     * Route cells the close escort's rally anchor leads the cohort by. A civilian
+     * holds while its nearest escort is behind it toward the lift, so an escort
+     * pocket centred on the cohort itself can leave a trailing member as every
+     * civilian's nearest and park the cohort for good. One cell keeps the pocket
+     * on the cohort and the escort's anchor clear of the lead screen's.
+     */
+    static final int ESCORT_LEAD_CELLS = 1;
     /** Compatibility name for the legacy two-cell pressured bound. */
     public static final int ENGAGED_BOUND_CELLS = 2;
     public static final int ENGAGED_BOUND_TICKS = 150;
@@ -97,6 +105,10 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
         int guideX = guideIndex >= 0 ? Paths.cellX(route, guideIndex) : anchorX;
         int guideY = guideIndex >= 0 ? Paths.cellY(route, guideIndex) : anchorY;
         int[] forward = direction(anchorX, anchorY, guideX, guideY);
+        int escortIndex = Paths.isEmpty(route) ? -1
+                : Math.min(ESCORT_LEAD_CELLS, Paths.cellCount(route) - 1);
+        int escortX = escortIndex >= 0 ? Paths.cellX(route, escortIndex) : anchorX;
+        int escortY = escortIndex >= 0 ? Paths.cellY(route, escortIndex) : anchorY;
 
         List<CommandProposal> proposals = new ArrayList<>();
         List<SquadIntent> intents = new ArrayList<>();
@@ -123,7 +135,7 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
             int[] ideal = atShelter
                     ? formationCell(role, roleOrdinal,
                     anchorX, anchorY, forward)
-                    : corridorCell(role, anchorX, anchorY, guideX, guideY,
+                    : corridorCell(role, escortX, escortY, guideX, guideY,
                     forward, roleOrdinal);
             int[] target = nearestReachable(squad, ideal[0], ideal[1],
                     anchorX, anchorY, frame.topology(), claimed);
@@ -217,10 +229,10 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
                 && current.targetCellY() == desired[1];
     }
 
-    private static int[] corridorCell(Role role, int cohortX, int cohortY,
+    private static int[] corridorCell(Role role, int escortX, int escortY,
                                       int guideX, int guideY, int[] forward,
                                       int roleOrdinal) {
-        if (role == Role.COHORT_ESCORT) return new int[]{cohortX, cohortY};
+        if (role == Role.COHORT_ESCORT) return new int[]{escortX, escortY};
         return formationCell(role, roleOrdinal, guideX, guideY, forward);
     }
 

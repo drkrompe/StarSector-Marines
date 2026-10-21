@@ -650,6 +650,10 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     /** Gives the machine guards the plan attached, and stands down the ones it ended. */
     @Override
     public void afterCommit(CommandEffects effects) {
+        for (int squadId : sortiesToHandOff) {
+            effects.takeOverSquad(squadId, SETUP_GARRISON_ISSUER, strategyId(), "garrison sorties into a counter-attack");
+        }
+        sortiesToHandOff = List.of();
         for (int squadId : guardsToStandDown) effects.standDownGuard(squadId);
         for (MachineGuardDirector.Attach attach : guardsToOrder) {
             if (effects.guardPlace(faction(), attach.squadId(), attach.cellX(), attach.cellY()) == 0) {
@@ -1038,6 +1042,16 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
      * staging post kept it, read as an external assignment every pulse after, and was lost to the pool for the battle.
      */
     private final Map<Integer, ObjectiveAssignment> counterLeft = new TreeMap<>();
+    /** The issuer of the authored Conquest garrisons ({@code BattleSetup}); a sortie takes a squad over from it. */
+    static final String SETUP_GARRISON_ISSUER = "conquest-setup-garrison";
+    /** A garrison with a believed hostile mover this close is not quiet and does not sortie. UNTUNED. */
+    static final int SORTIE_QUIET_CELLS = 40;
+    /** A garrison further than this from the place does not sortie to it. UNTUNED. */
+    static final int SORTIE_REACH_CELLS = 120;
+    /** A garrison belongs to the compound whose capture cell is nearest and at most this far. */
+    static final int SORTIE_COMPOUND_CELLS = 30;
+    /** Garrisons the last plan's counter-attack recruited, handed over in {@link #afterCommit}. */
+    private List<Integer> sortiesToHandOff = List.of();
 
     /** Whether a squad still holds an order the counter-attack gave it, though the counter-attack no longer claims it. */
     private boolean leftByCounterattack(PlanningSquad squad) {
@@ -1816,9 +1830,19 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             if (state.aliveMembers() > 0) watchers.add(new int[] {state.anchorCellX(), state.anchorCellY()});
         }
         int pool = candidates.size() + countering.size();
+        Map<Integer, PlanningSquad> sortieSquads = sortieGarrisons(frame, hostiles);
+        List<PlaceCounterattack.Body> sortie = new ArrayList<>();
+        for (PlanningSquad squad : sortieSquads.values()) sortie.add(counterBody(squad));
         PlaceCounterattack.Result result = counter.plan(frame.tick(), counterPlaces, keepCell(frame), hostiles, watchers,
-                PlaceCounterattack.losses(influence), members, free, mobileReserveFor(pool), pool, frame.topology());
+                PlaceCounterattack.losses(influence), members, free, sortie, mobileReserveFor(pool), pool,
+                frame.topology());
+        List<Integer> handoffs = new ArrayList<>();
         for (int id : result.recruited()) {
+            if (sortieSquads.containsKey(id)) {
+                // A garrison is its own authority's until it is handed over; from the next pulse it is the group's.
+                handoffs.add(id);
+                continue;
+            }
             PlanningSquad squad = byId.get(id);
             candidates.remove(squad);
             countering.put(id, squad);
@@ -1848,7 +1872,86 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 case LAUNCHED -> AssignmentReason.DEFENDER_COUNTERATTACK_LAUNCH;
             }));
         }
-        return result.notes();
+        sortiesToHandOff = List.copyOf(handoffs);
+        if (handoffs.isEmpty()) return result.notes();
+        List<String> notes = new ArrayList<>(result.notes());
+        notes.add("counter-attack for " + counter.placeKey() + " draws garrisons out to sortie: squads " + handoffs);
+        return notes;
+    }
+
+    /**
+     * Garrisons that may sortie into a decided counter-attack (`conquest-command.md`, a place the defender loses): an
+     * authored compound garrison of a compound this side still holds that is not home, out of local contact, with no
+     * believed hostile mover within {@link #SORTIE_QUIET_CELLS} of it, within {@link #SORTIE_REACH_CELLS} of the place
+     * the counter-attack stands for (of any turned place, while it stands for none), and above what its compound keeps
+     * home (at least one squad, and half). Nothing is offered for a place that has not turned. Most of a Conquest
+     * defender is garrisons; without this the counter-attack could raise only the mobile pool, which by the time a
+     * place turns is in contact or dead, and a place was almost never retaken.
+     */
+    private Map<Integer, PlanningSquad> sortieGarrisons(ConquestCommandFrame frame,
+                                                        List<PlaceCounterattack.Hostile> hostiles) {
+        Map<Integer, PlanningSquad> out = new TreeMap<>();
+        if (!PlaceCounterattack.garrisonSortie) return out;
+        // The place the group stands for, or, with no group yet, every turned place it could form for.
+        String key = counter.placeKey();
+        List<PlaceCounterattack.Place> targets = new ArrayList<>();
+        for (PlaceCounterattack.Place candidate : counterPlaces) {
+            if (candidate.turned() && (key == null || candidate.key().equals(key))) targets.add(candidate);
+        }
+        if (targets.isEmpty()) return out;
+        List<ConquestCommandFacts.Compound> compounds = frame.facts().compounds();
+        Map<Integer, List<PlanningSquad>> byCompound = new TreeMap<>();
+        for (CommandSquadState state : frame.squads()) {
+            CommandDirective directive = state.directive();
+            if (state.aliveMembers() <= 0 || state.machine() || state.crew() || directive == null
+                    || directive.authority() != CommandAuthority.GARRISON
+                    || !SETUP_GARRISON_ISSUER.equals(directive.issuer())) continue;
+            int compound = garrisonCompound(state, compounds);
+            if (compound < 0) continue;
+            byCompound.computeIfAbsent(compound, c -> new ArrayList<>()).add(new PlanningSquad(state));
+        }
+        for (List<PlanningSquad> garrison : byCompound.values()) {
+            int home = Math.max(1, (garrison.size() + 1) / 2);
+            garrison.sort(Comparator.comparingInt((PlanningSquad s) -> -s.aliveMembers).thenComparingInt(s -> s.id));
+            for (int i = home; i < garrison.size(); i++) {
+                PlanningSquad squad = garrison.get(i);
+                if (squad.localContact) continue;
+                boolean inReach = false;
+                for (PlaceCounterattack.Place place : targets) {
+                    inReach |= Math.hypot(squad.anchorCellX - place.x(), squad.anchorCellY - place.y()) <= SORTIE_REACH_CELLS;
+                }
+                if (!inReach) continue;
+                boolean quiet = true;
+                for (PlaceCounterattack.Hostile hostile : hostiles) {
+                    if (Math.hypot(hostile.x() - squad.anchorCellX, hostile.y() - squad.anchorCellY) <= SORTIE_QUIET_CELLS) {
+                        quiet = false;
+                        break;
+                    }
+                }
+                if (quiet) out.put(squad.id, squad);
+            }
+        }
+        return out;
+    }
+
+    /** The index of the held compound (never home) whose capture cell is nearest this garrison and within reach, or -1. */
+    private static int garrisonCompound(CommandSquadState state, List<ConquestCommandFacts.Compound> compounds) {
+        int best = -1;
+        double bestGap = SORTIE_COMPOUND_CELLS;
+        for (int i = 0; i < compounds.size(); i++) {
+            ConquestCommandFacts.Compound compound = compounds.get(i);
+            double gap = Math.hypot(compound.captureCellX() - state.anchorCellX(),
+                    compound.captureCellY() - state.anchorCellY());
+            if (gap <= bestGap) {
+                best = i;
+                bestGap = gap;
+            }
+        }
+        if (best < 0) return -1;
+        ConquestCommandFacts.Compound compound = compounds.get(best);
+        if (compound.state() != CompoundService.CompoundState.DEFENDER_HELD
+                || compound.node().kind == TacticalNode.Kind.COMMAND_POST) return -1;
+        return best;
     }
 
     /** Whether a garrisonable belongs to the place the counter-attack stands for: its fort's belt, its compound's apron. */

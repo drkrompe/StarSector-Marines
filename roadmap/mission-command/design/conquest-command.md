@@ -4,7 +4,7 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-10-20 — the counter-attack is for places, not forts, and informed, and it holds nothing idle: a place it judges outmatched is stood down from and observed again later, its squads and its ground going back to the ordinary defence (`PlaceCounterattack`, scenes `place-counterattack`, `fort-counterattack`); see "A place the defender loses" under Defender command.
+Updated: 2026-10-21 — quiet compound garrisons sortie into a decided counter-attack, so a place is answered when the mobile pool is spent; `formOnAlarm` stays off, with its reasons; the counter-attack's figures are refreshed against same-build controls, with how often a launch meets a hold (see "A place the defender loses" under Defender command).
 
 Earlier 2026-10-11 — the force is spread across the three tracks, the zone cap
 and transit spacing are on by default, and the clumps were found on the approach
@@ -578,6 +578,22 @@ within reach of home.
   everything it could raise has arrived above the commit share, or at a timeout
   above it; a straggler still walking up is waited for. A muster that times out
   below the share stands down.
+- **Garrisons sortie.** Most of a Conquest defender is its authored compound
+  garrisons, and by the time a place has turned the mobile patrols are in
+  contact or dead: the group could raise two or three squads and was judged
+  outmatched however lightly the place was held. So a quiet garrison may sortie
+  into a decided counter-attack: an authored garrison of a compound the side
+  still holds (never home), out of contact, with no believed hostile mover within
+  forty cells, within 120 cells of a turned place, and above what its compound
+  keeps home (half its garrisons, at least one). It counts towards what can be
+  raised ahead of the patrols, so the reserve law's floor comes off the patrols,
+  and a pool too small to hold a reserve still forms a group for a place that has
+  turned when garrisons can sortie to it (never for one that still holds). A
+  recruited garrison is handed to the commander under mission command and leaves
+  its post and its ambush discipline; let go, it is the pool's. A sortie is a
+  fight in the open by construction, garrisons leaving their windows to meet the
+  holders on the move, which is what the owner's law on prepared positions asks
+  for (`garrisonables.md`). `garrisonSortie` off is the control.
 - **Give up.** A launched group worn below a fraction of what it launched with,
   or one that has not won the place back within a bound, has failed (never while
   its own retake is under way: a group is not called off in the room). What it
@@ -622,34 +638,75 @@ Counterattack's waves are a hold-out the mission scripts. Both keep those duties
 standing one to man the places beside its post (`garrisonables.md`, story
 commanders).
 
-What it did against its same-build control (2026-10-20, one replay a fixture;
-outcomes are readings, and nine seeds swing by a few wins either way). Read from
-the defender's side: fewer marine wins, more timeouts and more marines lost are
-the defender doing better.
+**`formOnAlarm` stays off.** A reserve formed behind an alarmed place that
+still holds is the one arm that makes counter-attacks meet the attacker's
+holds at all (the trial ground at militia 90, below), but it costs the
+defence of the place it stands behind: on the default trial ground the marines
+lost 391 against 541 with it, and the defender's dead were not fewer. It also
+does not open the fight: brawls were 33% against 32% there and 39% against 42%
+at militia 90, because the reserve waits at a staging cell behind the place and
+goes in only once the place has turned and the company is standing on it. The
+open-ground fight a counter-attack should be comes from the garrison sortie
+instead, which on Conquest raised the brawl share four points without costing
+the defence anything measurable. On Conquest, Relay Nine and Thunder Run the
+switch plays byte for byte as off (Conquest's pool is too small to hold an
+alarm reserve; a story site's pool is the counter-attack's from the start).
 
-- **Trial ground, default garrison** (nine seeds): two probes in nine battles,
-  both places observed outmatched and stood down from, no launch. Marines won 6
-  of 9, as against the control; 357 marines left alive against 349, 41 defenders
-  against 43; the defender won the fort back once, the control three times. The
-  first form, its reserve held at the staging cell through a retry and formed
-  behind every alarmed place, let the marines win 8.
-- **Trial ground, militia 90**: one probe and two stand-downs, no launch; marines
-  won 8 against 8, 358 left against 350. Here the alarm reserve had been what
-  made launches possible (four or five pushes, none winning the place back, and
-  6 marine wins); without it none goes.
-- **Conquest**: on `reinforced-south` the place it observed held by thirty is
-  stood down from four times and its squads fight elsewhere; the battle timed
-  out where the control's marines won at tick 17,430 (marine losses 136 against
-  133, defender losses 392 against 396), where the first form, its reserve
-  standing behind that place, also timed out, and where an arm that freed the
-  reserve but still held a muster at its staging cell for the muster's bound let
-  the marines win at 13,500. On `full-strength-west` two launches, one winning
-  its compound back; both arms timed out, marines losing 248 against 252 and
-  defenders 362 against 395.
-- **Relay Nine** (eleven fixtures): one launch, retaking its site, and seventeen
-  stand-downs whose pool held home instead; marines won 10 against 10, 36
-  raiders left against 34 and 80 allies against 48. Junction on the same pool
-  lost its lesson's retake beat and stays authored (above).
+What it did against its same-build control (2026-10-21, one replay a fixture;
+outcomes are readings). Read from the defender's side: fewer marine wins, more
+timeouts and more marines lost are the defender doing better. A **hold** is a
+squad of the other side on a taken place: the attacker holding taken ground or
+a captured compound, a story militia holding a gain; "met" is a launched squad
+within 24 cells of one (`PlaceFightProbe`, `commander-evidence-missions.md`).
+
+| ground | arm | outcomes | marines lost | defenders lost | brawls | launches (met a post, met a hold) | won back | stood down outmatched | hold samples, pressed by a counter-attack |
+|---|---|---|---:|---:|---:|---|---:|---:|---|
+| Conquest (2 fixtures) | default | timeouts 2 | 384 | 846 | 69% | 3 (2, 0) | 0 | 1 | 65, 3 |
+| | no sortie | timeouts 2 | 412 | 839 | 65% | 2 (1, 0) | 0 | 5 | 70, 0 |
+| | no counter-attack | timeouts 2 | 438 | 853 | 67% | — | — | — | 62, 0 |
+| | margin 1.25 | timeouts 2 | 401 | 837 | 69% | 3 (1, 0) | 0 | 1 | 73, 0 |
+| Trial, default garrison (9 seeds) | default | marines 8, timeout 1 | 541 | 480 | 32% | 0 | 0 | 1 | 310, 0 |
+| | no counter-attack | marines 9 | 535 | 500 | 31% | — | — | — | 357, 0 |
+| | `formOnAlarm` | marines 8, timeout 1 | 391 | 432 | 33% | 0 | 0 | 8 | 339, 10 |
+| Trial, militia 90 | default | marines 9 | 529 | 937 | 42% | 0 | 0 | 1 | 332, 3 |
+| | no counter-attack | marines 9 | 530 | 935 | 42% | — | — | — | 474, 0 |
+| | `formOnAlarm` | marines 9 | 512 | 935 | 39% | 9 (5, 5) | 0 | 3 | 604, 225 |
+| Relay Nine (11) | default | marines 10, timeout 1 | 22 | 266 | 25% | 1 (0, 0) | 1 | 16 | 1,990, 99 |
+| | no counter-attack | marines 10, timeout 1 | 26 | 266 | 27% | — | — | — | 1,689, 0 |
+
+**A launch almost never meets a hold, and the reasons are structural.** Over
+every battle above at the default, four launches met a hold none of the time;
+only the alarm reserve on the militia trial ground did (five launches in nine,
+one of them a dug-in hold, none winning the fort back).
+
+- **The pool is spent when a place turns.** On Conquest the defender's mobile
+  squads have been fed into contact by the time the marines take a compound,
+  and what is left is garrisons. That is what the sortie answers: with it,
+  outmatched stand-downs fell from five to one and launches rose from two to
+  three, the sortied garrisons fighting in the street (brawls 69% against 65%,
+  the defender firing from a post 21% of the time against 26%). None won its
+  compound back: the two given up broke at about a sixth of their strength.
+- **A held place is held by the company standing on it.** The attacker's hold
+  mans only against a believed mover and only a quarter of the lane pool, and
+  on Conquest it fired on 65 squad-samples in two battles. A counter-attack
+  sized two to one against what it sees holding is outmatched exactly while
+  the company stands on the place, which is when a hold exists; on Relay Nine
+  the eight-man road reserve was outmatched sixteen times against a company of
+  about fifty on the gain, and the one launch came after the company left.
+  Lowering the margin to 1.25 changed nothing on the trial ground or Relay
+  Nine and lost one more push on Conquest, so the margin stays at two: the
+  side declining a hopeless push is right.
+- **Where the hold exists the counter-attack does not.** Raid, Assault, Sabotage
+  and Extraction have no counter-attack at all (their defenders man and
+  respond, and lose nothing they win back), and Thunder Run's pool never forms
+  a group on these fixtures (9,596 hold samples, none pressed). The trial
+  ground's fort is retaken once in nine by the ordinary defence, not by a push.
+
+So the two meet in a meaningful share of battles only where the side has a
+reserve standing before the place turns, and that reserve costs the defence
+more than the meeting is worth. Making them meet across missions needs a
+counter-attack on the procedural missions, which is open work rather than a
+tuning of this one.
 
 ## Picture and evidence
 
