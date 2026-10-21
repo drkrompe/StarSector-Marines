@@ -35,6 +35,15 @@ public final class LayeredAppearance {
      * is where the hands are in their sweep across it, 0 to 1.
      */
     public static final int FLAG_AT_STATION = 1 << 5;
+    /**
+     * Bits 8-15 of the flags carry a {@link WorkMotion} ordinal: which work the
+     * station arms (or the carried prop) are doing. Packed here rather than given
+     * a field of their own because a motion is a refinement of the station flag
+     * and travels every path the flags already travel.
+     */
+    private static final int WORK_MOTION_SHIFT = 8;
+    private static final int WORK_MOTION_MASK = 0xFF << WORK_MOTION_SHIFT;
+    private static final WorkMotion[] WORK_MOTIONS = WorkMotion.values();
     /** The held point of the planting clip a kneeling medic shows. */
     public static final float TREATING_PHASE = 0.56f;
 
@@ -49,6 +58,18 @@ public final class LayeredAppearance {
     public static final float MAX_HEAD_LOOK_DEGREES = 65f;
 
     private LayeredAppearance() {}
+
+    /** {@code flags} with its work motion replaced by {@code motion}. */
+    public static int withWorkMotion(int flags, WorkMotion motion) {
+        int ordinal = motion != null ? motion.ordinal() : 0;
+        return (flags & ~WORK_MOTION_MASK) | (ordinal << WORK_MOTION_SHIFT);
+    }
+
+    /** The work motion packed into {@code flags}; {@link WorkMotion#NONE} when there is none. */
+    public static WorkMotion workMotion(int flags) {
+        int ordinal = (flags & WORK_MOTION_MASK) >>> WORK_MOTION_SHIFT;
+        return ordinal < WORK_MOTIONS.length ? WORK_MOTIONS[ordinal] : WorkMotion.NONE;
+    }
 
     /** 0° = north/+Y, positive counter-clockwise, matching SpriteAPI. */
     public static float facingDegrees(int dx, int dy) {
