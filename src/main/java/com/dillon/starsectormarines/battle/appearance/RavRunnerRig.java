@@ -91,7 +91,7 @@ public final class RavRunnerRig {
     /** Seconds until the pieces lie flat, the pool has spread, and everything is still. */
     private static final float FLATTEN_SECONDS = 0.45f;
     private static final float POOL_SECONDS = 0.6f;
-    private static final float POOL_CELLS = 1.1f;
+    private static final float POOL_CELLS = 0.8f;
     private static final float SETTLE_SECONDS = 2.5f;
 
     // ------------------------------------------------------------------ pose layout
@@ -143,7 +143,7 @@ public final class RavRunnerRig {
             PIECE_POINTS[PIECE_ARM + a] = new int[]{ARM_START[a], ARM_START[a] + 1, ARM_START[a] + 2, ARM_START[a] + 3};
         }
     }
-    private static final int DROPS = 18;
+    private static final int DROPS = 9;
     /** Fields of a piece's or a droplet's state. */
     private static final int P_X = 0, P_Y = 1, P_Z = 2, P_VX = 3, P_VY = 4, P_VZ = 5, P_SPIN = 6, P_SPIN_RATE = 7,
             P_PIVOT_X = 8, P_PIVOT_Y = 9, P_PIVOT_Z = 10, P_BOUNCED = 11, P_RESTING = 12, P_SIZE = 13, P_VARIANT = 14,
@@ -190,6 +190,8 @@ public final class RavRunnerRig {
     private float sinceDeath;
     private final float[] alivePose = new float[POINTS * 3];
     private final float[][] piece = new float[PIECES][P_FIELDS];
+    /** The piece each piece moves with: itself when it came away, its trunk half when it stayed on. */
+    private final int[] carriedBy = new int[PIECES];
     private final float[][] drops = new float[DROPS][P_FIELDS];
     private float poolAngle;
     private int poolVariant;
@@ -620,8 +622,9 @@ public final class RavRunnerRig {
 
     /**
      * Advances a dead Runner: on its first dead tick it bursts. The trunk splits at mid-spine and
-     * the head, the legs and the spike arms come away; each piece is flung outward (biased behind
-     * it, away from what it was charging), spins, bounces once and lies flat where it lands. Ichor
+     * the two halves slump apart; the head and one or two limbs come away, the other limbs staying
+     * on their half. Each piece is thrown out (biased behind it, away from what it was charging),
+     * spins, bounces once and lies flat where it lands. Ichor
      * sprays out in droplets that land as small splats around a pool spreading under the middle.
      * Seeded by the rig, so every replay bursts the same way. A body dragged off by another
      * Runner moves with its position.
@@ -646,7 +649,7 @@ public final class RavRunnerRig {
         sinceDeath += dt;
         for (int i = 0; i < PIECES; i++) {
             float[] q = piece[i];
-            if (q[P_RESTING] > 0f) continue;
+            if (q[P_RESTING] > 0f || carriedBy[i] != i) continue;
             fly(q, dt, i <= PIECE_FRONT ? 0.25f : 0.35f);
             q[P_SPIN] += q[P_SPIN_RATE] * dt;
         }
@@ -686,6 +689,15 @@ public final class RavRunnerRig {
     private void burst() {
         SplittableRandom rng = new SplittableRandom(seed * 0x9E3779B97F4A7C15L + 17L);
         float mx = alivePose[MID * 3], my = alivePose[MID * 3 + 1];
+        // the head always comes away, and one or two limbs; the rest stay on their half
+        for (int i = 0; i < PIECES; i++) carriedBy[i] = i;
+        int loose = 1 + rng.nextInt(2);
+        for (int i = PIECE_LEG; i < PIECES; i++) {
+            boolean hind = i == PIECE_LEG + 2 || i == PIECE_LEG + 3;
+            carriedBy[i] = hind ? PIECE_REAR : PIECE_FRONT;
+        }
+        for (int n = 0; n < loose; n++) carriedBy[PIECE_LEG + rng.nextInt(PIECES - PIECE_LEG)] = -1;
+        for (int i = PIECE_LEG; i < PIECES; i++) if (carriedBy[i] == -1) carriedBy[i] = i;
         for (int i = 0; i < PIECES; i++) {
             float[] q = piece[i];
             int[] points = PIECE_POINTS[i];
@@ -714,23 +726,23 @@ public final class RavRunnerRig {
             dirX += (float) rng.nextDouble(-0.45, 0.45);
             dirY += (float) rng.nextDouble(-0.45, 0.45) - BURST_BACK;
             float dn = Math.max(1e-4f, (float) Math.hypot(dirX, dirY));
-            float speed = trunk ? (float) rng.nextDouble(0.45, 0.85) : (float) rng.nextDouble(1.1, 2.0);
+            float speed = trunk ? (float) rng.nextDouble(0.15, 0.35) : (float) rng.nextDouble(0.6, 1.2);
             q[P_VX] = dirX / dn * speed;
             q[P_VY] = dirY / dn * speed;
-            q[P_VZ] = trunk ? (float) rng.nextDouble(0.7, 1.1) : (float) rng.nextDouble(1.1, 1.9);
-            float spin = trunk ? (float) rng.nextDouble(60, 200) : (float) rng.nextDouble(260, 760);
+            q[P_VZ] = trunk ? (float) rng.nextDouble(0.4, 0.7) : (float) rng.nextDouble(0.9, 1.4);
+            float spin = trunk ? (float) rng.nextDouble(20, 80) : (float) rng.nextDouble(150, 420);
             q[P_SPIN_RATE] = rng.nextBoolean() ? spin : -spin;
         }
         for (float[] d : drops) {
             double a = rng.nextDouble(0, Math.PI * 2);
-            float speed = (float) rng.nextDouble(0.8, 3.0);
+            float speed = (float) rng.nextDouble(0.5, 1.8);
             d[P_X] = mx + (float) rng.nextDouble(-0.08, 0.08);
             d[P_Y] = my + (float) rng.nextDouble(-0.15, 0.15);
             d[P_Z] = 0.3f;
             d[P_VX] = (float) Math.cos(a) * speed;
             d[P_VY] = (float) Math.sin(a) * speed - BURST_BACK * 0.6f * speed;
             d[P_VZ] = (float) rng.nextDouble(0.6, 2.4);
-            d[P_SIZE] = (float) rng.nextDouble(0.10, 0.24);
+            d[P_SIZE] = (float) rng.nextDouble(0.08, 0.18);
             d[P_SPIN] = (float) rng.nextDouble(0, 360);
             d[P_VARIANT] = rng.nextInt(4);
         }
@@ -743,7 +755,7 @@ public final class RavRunnerRig {
      * offset by (addX, addY) in the pose it died in; out gets x, y, z. Only meaningful once dead.
      */
     public void deadPoint(int pieceIndex, int point, float addX, float addY, float[] out) {
-        float[] q = piece[pieceIndex];
+        float[] q = piece[carriedBy[pieceIndex]];
         float lx = alivePose[point * 3] + addX - q[P_PIVOT_X];
         float ly = alivePose[point * 3 + 1] + addY - q[P_PIVOT_Y];
         float lz = (alivePose[point * 3 + 2] - q[P_PIVOT_Z]) * (1f - flat());
@@ -763,7 +775,7 @@ public final class RavRunnerRig {
     /** Where piece i lies in the rig frame, and whether it has come to rest (and left a smear). */
     public float pieceX(int i) { return piece[i][P_X]; }
     public float pieceY(int i) { return piece[i][P_Y]; }
-    public boolean pieceResting(int i) { return piece[i][P_RESTING] > 0f; }
+    public boolean pieceResting(int i) { return carriedBy[i] == i && piece[i][P_RESTING] > 0f; }
 
     public int dropCount() { return drops.length; }
 

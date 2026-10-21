@@ -108,18 +108,18 @@ class RavRunnerRigTest {
         float[] p = new float[3];
         rig.advanceDead(3f, 3f, DT);
         rig.deadPoint(RavRunnerRig.PIECE_HEAD, RavRunnerRig.HEAD, 0f, 0f, p);
-        float headX = p[0], headY = p[1];
+        float headX = p[0], headY = p[1], headZ = p[2];
         boolean airborne = false;
-        for (int tick = 0; tick < 6; tick++) {
+        for (int tick = 0; tick < 4; tick++) {
             rig.advanceDead(3f, 3f, DT);
-            rig.deadPoint(RavRunnerRig.PIECE_LEG, RavRunnerRig.LEG_START[0], 0f, 0f, p);
-            airborne |= p[2] > 0.45f;
+            rig.deadPoint(RavRunnerRig.PIECE_HEAD, RavRunnerRig.HEAD, 0f, 0f, p);
+            airborne |= p[2] > headZ + 0.01f;
         }
-        assertTrue(airborne, "the burst throws the pieces up");
+        assertTrue(airborne, "the burst throws the head up");
         for (int tick = 0; tick < 120; tick++) rig.advanceDead(3f, 3f, DT);
         assertTrue(rig.dead());
         rig.deadPoint(RavRunnerRig.PIECE_HEAD, RavRunnerRig.HEAD, 0f, 0f, p);
-        assertTrue(Math.hypot(p[0] - headX, p[1] - headY) > 0.4f, "the head was flung clear");
+        assertTrue(Math.hypot(p[0] - headX, p[1] - headY) > 0.2f, "the head came away");
         float[] still = new float[3];
         for (int piece = 0; piece < RavRunnerRig.PIECES; piece++) {
             for (int point = 0; point < RavRunnerRig.POINTS; point++) {
