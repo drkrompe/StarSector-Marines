@@ -195,7 +195,7 @@ final class MissionPlaces {
         return state != null && state.lost;
     }
 
-    private static Map<Integer, ObjectiveAssignment> hold(int x, int y, int radius, List<Body> members) {
+    static Map<Integer, ObjectiveAssignment> hold(int x, int y, int radius, List<Body> members) {
         Map<Integer, ObjectiveAssignment> out = new TreeMap<>();
         for (Body body : members) out.put(body.squadId(), ObjectiveAssignment.defendArea(body.squadId(), x, y, radius));
         return out;

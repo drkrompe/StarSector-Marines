@@ -544,9 +544,12 @@ aboard instead, in about the same deck area: a two-lane running track round the
 whole compartment, which is also its circulation, the cardio and strength floor
 inside it, and a pool with loungers along its deck. Its equipment is drawn at
 real size against the crew, so a gym is read as a room people use rather than
-a showroom of oversized machines. The track publishes no work yet: a lap is a
-walk round a loop inside one room, and the ambient model has no job of that
-shape.
+a showroom of oversized machines. The track is run: it publishes **lap markers**
+on its inner lane, corners and straights in running order, and a crew member's
+rotation takes them as one lap (the **lap** shape in `ai-nouns.md`), jogged, while
+the outer lane stays clear for whoever is crossing to a hatch. Second Wind's
+reserved gym is this same cruise-ship room, laid in her aft port block. Nothing on a track is a place to stand
+and exercise; the dumbbells are at the rack.
 
 They are not decoration. The whole ambient model exists so that nobody stands
 about for want of something to do, and the only idleness worth having is the kind

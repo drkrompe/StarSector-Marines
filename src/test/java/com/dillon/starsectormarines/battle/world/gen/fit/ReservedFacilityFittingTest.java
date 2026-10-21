@@ -70,6 +70,7 @@ class ReservedFacilityFittingTest {
 
     @Test void theGymKeepsItsLoopAndItsEquipment() {
         everyHatch(28, 14, RoomPurpose.GYMNASIUM, GrandGymFitting::new, Affordance.EXERCISE, 16);
+        everyHatch(28, 14, RoomPurpose.GYMNASIUM, GrandGymFitting::new, Affordance.LAP, 12);
     }
 
     @Test void theSickBayKeepsItsBedsBesideTheRehabPool() {

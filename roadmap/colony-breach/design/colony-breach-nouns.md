@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — a holdout claims a block behind works (barricade, firing step, gate, gun) with a line team that falls back into the building; the company lands in open fields outside the colony; bores, tiers, surges, spore colonies and the bore-sourced director as built.
+Updated: 2026-10-21 — a holdout claims a block behind works (barricade, firing step, gate, gun) with a line team that falls back into the building; the company lands in open fields outside the colony and the lift comes down on them; bores, tiers, surges, spore colonies and the bore-sourced director as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -96,18 +96,19 @@ colony's edge, never its streets. Shuttles cannot land amid an infested town:
 bores open underfoot, spore colonies cover the sky over them, and every building
 is cover for the swarm right up to the hull. So the company lands where it can
 see them coming and fights its way in, and that is why it does not land next to
-the colonists it came for. The field is a landing place of the
-`OPEN_FIELD` kind (`precincts.md`): farmland laid out with the colony, north
-or south of the town (the seed's choice; the town, the installation and the
-suburb run across the map's long axis, so that is the colony's far side from
-every place a bore comes up beside), against the map edge the shuttles arrive
-across. Nothing is built, walled or tall within forty cells of its centre, and
-the berths stand within sixteen, so every berth has at least twenty-four cells
-of open ground on every side, a rifle's reach. The walk into the town starts
-across that open ground. The colony map must have it, clear, with every
-arrival area on it, or the seed re-rolls; `-Dbattle.colonyBreach.fieldLanding=false`
-is the control, which lands wherever open ground is first found, as Civilian
-Rescue did.
+the colonists it came for. The field is a landing place of the `OPEN_FIELD`
+kind (`precincts.md`): a band of farmland along the north or south edge (the
+seed's choice; the town, the installation and the suburb run across the map's
+long axis, so that is the colony's far side from every place a bore comes up
+beside), with the town laid out on the rest of the map beyond it, never round
+it. Nothing is built, walled or tall within forty cells of the field's centre,
+and the berths stand within sixteen, so every berth has at least twenty-four
+cells of open ground on every side, a rifle's reach. The walk into the town
+starts across that open ground. The colony map must have it, clear, with every
+arrival area on it and room for the lift, or the seed re-rolls;
+`-Dbattle.colonyBreach.fieldLanding=false` is the control, which lands
+wherever open ground is first found, as Civilian Rescue did, and keeps the
+ordinary lift.
 
 **Colony militia.** Allied, non-player defenders who survived the first night.
 They hold a few buildings through ordinary garrison manning, crew whatever
@@ -147,10 +148,14 @@ Marine commander is honoured only where the mission declares one, never derived
 from the company's mechs, because an allowance is a separate payment and would
 field the same machines twice.
 
-**Shelter, cohort, lift.** Unchanged from Civilian Rescue (see
+**Shelter, cohort, lift.** As in Civilian Rescue (see
 `extraction-command.md`): the cohort is sealed in the shelter until a Marine
 reaches it, then walks to the lift under escort and boards only once a shuttle
-is physically down. On the colony the cohort is spread over several redoubts.
+is physically down. On the colony the cohort is spread over several redoubts,
+and the **lift is on the landing field**: the shuttles taking the survivors off
+come down where the company came down, for the same reason, at the clear pickup
+site on the field nearest the shelter and clear of the berths. Land in the
+fields, fight in to the redoubts, bring the survivors back out.
 
 **Redoubt.** A place the cohort is holed up in. The **main redoubt** is the
 shelter, with the largest share of the cohort and the sealed, hidden shelter
@@ -355,10 +360,18 @@ so it is heard and drawn through the weapon's own fire sound and effects.
 
 Bores and colonies are grown, not built, and look it: the runner's chitin
 and amber in every body, standing on the ground with no hardstanding pad,
-their amber nodes breathing. A bore is a ring of hooked plates round an open
-pit, the mother bore a wider, deeper, tusked one. A colony's grade shows in
-its body as well as its numbers: one spore sac at fissure grade, a triad at
-bore grade, a spined crown of six at maw grade, each larger than the last.
+their amber nodes breathing. Nothing about them is regular: they erupted, so
+they are lopsided. A bore is a slanted shaft torn up through the ground, one
+side heaved up into reared jaw-plates, tusks and thrown paving, the other
+collapsed into the funnel; the mother bore is a wider, deeper, terraced one.
+A colony is an uneven cluster round one dominant, leaning sac. Its grade shows
+in its body as well as its numbers: a lone sac with a bud at fissure grade,
+two lesser sacs pressed against it at bore grade, three and a plated, spined
+flank at maw grade, each larger than the last. Each body carries several
+paintings chosen per structure, so a map of them does not look stamped, and
+their depth (the lit far wall of a shaft, shadows cast plate on plate and onto
+the ground) is lit by the battle's own default sun, so the paintings are
+never rotated or mirrored.
 
 A colony keeps the **grade** of the tier that grew it: a fissure-grade colony
 threatens light craft at short reach, a bore-grade one reaches further and

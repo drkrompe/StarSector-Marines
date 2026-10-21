@@ -36,6 +36,20 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
 
     public RaidCommandSnapshot raidSnapshot() { return raidSnapshot; }
     @Override public Faction faction() { return Faction.DEFENDER; }
+    /** Raised on a pulse a place directive reads while the raid alarm is up. */
+    public static final String ALARM_FLAG = "raid-alarm";
+    /** Raised on a pulse a place directive reads once the raid target is secured. */
+    public static final String TARGET_SECURED_FLAG = "raid-target-secured";
+
+    /**
+     * The mission's place directives (`garrisonables.md`, place directives); this commander reads its counter-attack
+     * ones ({@link MissionCounterattack}). Call once, at setup.
+     */
+    public RaidDefenderCommand placeDirectives(List<PlaceDirective> mission) {
+        counter.directives(mission, faction());
+        return this;
+    }
+
     @Override public String strategyId() { return "raid-defender"; }
     @Override public void afterCommit(CommandEffects effects) {
         garrisons.afterCommit(effects, faction());
@@ -46,7 +60,7 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
     @Override
     public CommandPlan<RaidCommandSnapshot> plan(RaidDefenderCommandFrame frame) {
         RaidDefenderCommandFacts facts = frame.facts();
-        boolean countering = MissionCounterattack.enabled();
+        boolean countering = counter.active();
         Set<Integer> claimed = countering ? counter.claimed() : Set.of();
         List<CommandSquadState> pool = frame.squads().stream()
                 .filter(squad -> squad.aliveMembers() > 0)
@@ -115,7 +129,9 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
         }
         MissionCounterattack.Result retake = countering
                 ? counter.plan(frame.tick(), sites(facts, frame), members, reserve,
-                pool.size() + members.size(), frame.squads(), frame.influence(), frame.topology())
+                pool.size() + members.size(), frame.squads(), frame.influence(), frame.topology(),
+                PlaceSignals.of(frame).flag(ALARM_FLAG, facts.alarmActive())
+                        .flag(TARGET_SECURED_FLAG, facts.targetSecured()))
                 : MissionCounterattack.Result.NONE;
         proposals = MissionCounterattack.apply(proposals, retake, frame.squads());
         offers = MissionCounterattack.offers(offers, retake);

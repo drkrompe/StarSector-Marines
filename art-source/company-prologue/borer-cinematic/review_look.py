@@ -241,7 +241,6 @@ def panel_under(scene, rig, cam):
     for k in list(ctl.keys()):
         if k.startswith('thr_rcs_') and k != 'thr_rcs_gain':
             ctl[k] = .35
-    ctl['thr_rcs_gain'] = 4.0
     settle()
     aim(cam, 38, -24, 32, (0.5, 0, -2.3))
 

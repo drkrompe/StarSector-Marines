@@ -41,6 +41,7 @@ public final class WorkMotions {
             case EXERCISE -> fixture.contains("treadmill") ? WorkMotion.RUN
                     : fixture.contains("rower") || fixture.contains("ergometer") ? WorkMotion.ROW
                     : fixture.contains("bench-press") ? WorkMotion.PRESS : WorkMotion.LIFT;
+            case LAP -> WorkMotion.JOG;
             case FABRICATE, STOW, READOUT, WATCH, ISSUE, MESS -> WorkMotion.CONSOLE;
             case REST, WASH, PRACTICE, UNWIND, ROUNDS, GUARD -> WorkMotion.NONE;
         };
@@ -64,10 +65,14 @@ public final class WorkMotions {
 
     /**
      * What is in the arms of somebody walking from {@code from} to the next stop.
-     * Stores handling is the one job done between points rather than at one, so
-     * the walk between two stowage stops is part of the work and carries a crate.
+     * Two jobs are done between points rather than at one: stores handling,
+     * whose walk between two stowage stops carries a crate, and a lap, whose
+     * walk between two markers is the run itself. Onto the track from anywhere
+     * else is an ordinary walk.
      */
     public static WorkMotion between(Affordance from, Affordance to) {
-        return from == Affordance.STOW && to == Affordance.STOW ? WorkMotion.CARRY : WorkMotion.NONE;
+        if (from == Affordance.STOW && to == Affordance.STOW) return WorkMotion.CARRY;
+        if (from == Affordance.LAP && to == Affordance.LAP) return WorkMotion.JOG;
+        return WorkMotion.NONE;
     }
 }
