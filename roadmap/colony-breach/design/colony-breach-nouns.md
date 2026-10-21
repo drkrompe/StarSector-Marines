@@ -717,12 +717,18 @@ Bores and bodies sound through presentation cues the simulation writes and
 never reads (`BoreCues`, `SwarmCues`), so a headless run is silent and nothing
 heard reaches the battle. A bore is heard erupting, growing to each tier,
 surging and collapsing, and breathes a tier ambience while it lives. A swarm
-body cries when it takes new quarry, and is heard striking, ramming a wall,
-breaking it and dying; a Brute's charge, a Runner's impale and a seized body
-being dragged have their own sounds, posted as cues by the stories that add
-those acts. Each strain's sound is admitted under its own gap so a pack reads as
-a pack, and the swarm is heard only on ground the player has seen. The Spitter
-has no voice.
+body is heard for what it does, not for the beat table: it cries when it takes
+new quarry, strikes, rams a wall and breaks it, yelps or grunts when it is hurt
+and lives, and dies. Its feet follow the ground it covers: a Runner's gallop and
+chitin clatter, a Brute's hooves at every half cell, so a walking Brute plods
+and a charging one thunders. Each phase of the Brute's charge has its own sound
+(the tell, the run, the hit on infantry, a vehicle or a wall, the stun after a
+heavy wall or a tank), as do a Runner's impale and the drag of a seized body;
+the stories that add those acts post them as cues. Each strain's sound is
+admitted under its own gap and footfalls come from the few bodies nearest the
+listener, so a pack reads as a pack, and the swarm is heard only on ground the
+player has seen. The Spitter has no voice; the Matriarch's sounds wait for its
+design and join as a strain of their own.
 
 ## Laws
 
