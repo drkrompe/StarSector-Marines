@@ -1,10 +1,10 @@
 # Breach mission spine
 
-Status: IN PROGRESS — skeleton landed (colony map, breach sequence, eruption-site seam, `colony-breach` evidence); militia, heavy assets remain
+Status: IN PROGRESS — every scope item built; acceptance waits on the escort deadlock and the generic Extraction evidence failure (see Remaining)
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — items 1, 2 and the evidence argument landed; 3 and 4 open.
+Updated: 2026-10-21 — militia posts, emplacements and technicals built; heavy assets resolved as the Mech Support power plus declared allowances only.
 
 Model: `colony-breach-nouns.md`. Marine side: `extraction-command.md`.
 
@@ -77,3 +77,15 @@ wiring. `SwarmReinforcementSystem` only for the seepage-then-director switch.
 `bore-spawners.md` is blocked on this story's skeleton: land the sequence,
 eruption-site seam and map plan to `main` as soon as they are green, then
 continue with militia and heavy assets.
+
+## Remaining
+
+- **Escort deadlock.** With the militia seated, the canonical fixture
+  (`colony-breach-v1.json`) times out with the cohort parked mid-walk: see the
+  known gap in `colony-breach-nouns.md`. The control run
+  (`-Dbattle.colonyBreach.militia=false`) completes at tick 9556. Fix belongs to
+  Marine corridor command; re-read acceptance once it lands.
+- **Generic Extraction evidence.** `commanderEvidence -Pmission=extraction`
+  fails in `ExtractionObjectiveEvidenceTest` on `main` before this story (the
+  canonical matrix no longer exercises source-perimeter fallback or
+  interdiction). The Rescue half passes.

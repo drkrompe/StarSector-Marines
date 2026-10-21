@@ -1,6 +1,6 @@
 # Matriarch
 
-Status: QUEUED on `swarm-strains.md` and `bore-spawners.md`
+Status: QUEUED on `bore-spawners.md` (the Brute and Spitter strains have shipped)
 
 Written: 2026-10-21
 

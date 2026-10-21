@@ -223,3 +223,6 @@ com.dillon.starsectormarines.battle.world.gen.bsp.CompoundPreparedGroundSnapshot
 com.dillon.starsectormarines.battle.command.CompoundApronSceneSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.ship.SecondWindDressingSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.ship.SecondWindFacilitiesSnapshotSuite
+com.dillon.starsectormarines.battle.evacuation.SwarmStrainSkirmishSnapshotSuite
+com.dillon.starsectormarines.battle.evacuation.SwarmBruteBreachSnapshotSuite
+com.dillon.starsectormarines.ops.battleview.SwarmStrainLayerSnapshotSuite

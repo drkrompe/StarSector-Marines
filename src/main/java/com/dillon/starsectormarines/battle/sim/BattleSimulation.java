@@ -167,6 +167,7 @@ import com.dillon.starsectormarines.battle.setup.RelayNineSequence;
 import com.dillon.starsectormarines.battle.setup.ThunderRunSequence;
 import com.dillon.starsectormarines.battle.setup.WaylineGunship;
 import com.dillon.starsectormarines.battle.turret.GroundAntiAirSystem;
+import com.dillon.starsectormarines.battle.evacuation.SwarmStrikeSystem;
 import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
 import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
 import com.dillon.starsectormarines.battle.command.objective.FreightConvoyObjective;
@@ -226,6 +227,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.RouteCostField;
 import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
+import com.dillon.starsectormarines.battle.nav.SwarmFlowFields;
 import com.dillon.starsectormarines.battle.nav.SquadRouteRequest;
 import com.dillon.starsectormarines.battle.nav.mesh.GreedyNavigationMesh;
 import com.dillon.starsectormarines.battle.squad.SquadRoutePreparationSystem;
@@ -235,6 +237,7 @@ import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.ObjectivesService;
 import com.dillon.starsectormarines.battle.command.objective.WinCheckSystem;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
+import com.dillon.starsectormarines.battle.evacuation.SwarmMovement;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmReinforcementSystem;
@@ -671,6 +674,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     private ThunderRunSequence thunderRun;
     private final GroundAntiAirSystem groundAntiAir = new GroundAntiAirSystem();
+    private final SwarmStrikeSystem swarmStrikes = new SwarmStrikeSystem();
     private final AirToAirFire airToAir = new AirToAirFire();
     private WaylineGunship waylineGunship;
     public WaylineGunship getWaylineGunship() { return waylineGunship; }
@@ -1109,6 +1113,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final DirectControlSession directControl;
     /** False for bounded non-mission hosts such as shipboard room previews. */
     private boolean missionCompletionEnabled = true;
+    /** Whether the swarm's strategic move descends a goal's flow field; see {@link SwarmFlowFields}. */
+    private boolean swarmFlowFieldEnabled = SwarmFlowFields.defaultEnabled();
 
     /** Alias of {@link NavigationService#getZoneGraph()}. */
     private final ZoneGraph zoneGraph;
@@ -1961,6 +1967,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         missionCompletionEnabled = enabled;
         completion.setEnabled(enabled);
     }
+
+    /** Whether swarm strategic movement descends a shared flow field rather than pathing body by body. */
+    public boolean isSwarmFlowFieldEnabled() { return swarmFlowFieldEnabled; }
+
+    /** Per-battle override of {@code -Dbattle.swarm.flowField}, so evidence can run lever and control in one process. */
+    public void setSwarmFlowFieldEnabled(boolean enabled) { swarmFlowFieldEnabled = enabled; }
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. Exposed for AI scoring; do not mutate directly — go through {@link #setPath}. */
     public byte[] getOccupancyMap()        { return occupancyMap; }
     /** Bucketed spatial index over alive units. Rebuilt at the top of each tick by {@link #tick()}. */
@@ -3100,6 +3112,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // moves or plants the medic and patient it is updating.
         squadMedics.tick(TICK_DT, this);
         directControl.tick();
+        // Swarm goal fields are rebuilt here, serially and from the positions
+        // the unit update starts from, so the dispatch below only reads them.
+        if (swarmFlowFieldEnabled) SwarmMovement.prepare(this);
         navigation.beginSharedGoalPathSnapshot();
         try {
             unitUpdate.tick(this);
@@ -3185,6 +3200,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         tickProfile.lap(TickProfile.Phase.HEAVY_TICK);
         // Squads told to open a wall spend what their ordinary firing left on it.
         wallBreach.tick(this);
+        // Brute blows on walls and Spitter acid on low fliers, posted from the parallel update.
+        swarmStrikes.tick(this);
         // Armed contact charges follow their target and resolve through the
         // ordinary AoE/durability pipeline when their fixed fuse expires.
         satchelCharges.tick(TICK_DT, this);
@@ -3751,6 +3768,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** The wall-breach pass, for readings of how many rounds and charges it has spent. */
     public WallBreachSystem wallBreach() { return wallBreach; }
+
+    /** Where swarm strains post the blows and acid that land in the serial pass. */
+    public SwarmStrikeSystem swarmStrikes() { return swarmStrikes; }
 
     @Override
     public boolean applyContactStrike(long carrier, long target) {

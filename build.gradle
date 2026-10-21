@@ -158,7 +158,7 @@ void forwardBattleSwitches(task) {
 test {
     useJUnitPlatform {
         excludeTags 'battle-profile', 'battle-tail-profile', 'convoy-route-evidence',
-                'squad-firing-evidence',
+                'squad-firing-evidence', 'swarm-flow-evidence',
                 'commander-balance', 'conquest-trial-evidence',
                 'sabotage-command-evidence', 'assault-command-evidence', 'relief-command-evidence', 'counterattack-command-evidence', 'junction-command-evidence', 'relay-nine-command-evidence', 'thunder-run-command-evidence', 'last-lift-command-evidence', 'supply-route-campaign-evidence',
                 'raid-command-evidence', 'extraction-command-evidence', 'colony-breach-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
@@ -751,6 +751,27 @@ tasks.register('profileConvoyRoute', Test) {
     systemProperty 'battle.convoyRoute.outputDir', System.getProperty(
             'battle.convoyRoute.outputDir',
             layout.buildDirectory.dir('reports/performance/convoy-route').get().asFile.absolutePath)
+    testLogging { showStandardStreams = true }
+}
+
+// Swarm strategic movement by map size and swarm size, flow field on and off
+// in the same run, plus two replicas of each lever side by side for the
+// determinism check. Serial scheduler so the timings are one thread's work.
+tasks.register('profileSwarmFlow', Test) {
+    group = 'verification'
+    description = 'Measure swarm strategic movement cost by map and swarm size, flow field on and off.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'swarm-flow-evidence' }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
+    systemProperty 'battle.influence.async', 'false'
+    systemProperty 'battle.pathfinding.asyncDefendTrack', 'false'
+    systemProperty 'battle.swarmFlow.outputDir', System.getProperty('battle.swarmFlow.outputDir',
+            layout.buildDirectory.dir('reports/performance/swarm-flow').get().asFile.absolutePath)
+    forwardBattleSwitches(delegate)
     testLogging { showStandardStreams = true }
 }
 

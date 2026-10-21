@@ -78,6 +78,17 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
                 : validCell(cohort.payloadCellX(), placement.shelterX);
         int anchorY = atShelter ? placement.shelterApproachY
                 : validCell(cohort.payloadCellY(), placement.shelterY);
+        // The cohort's cell is its centroid, which can fall on a wall between two
+        // of its members; a route from there is empty and the guide would sit on
+        // the cohort itself, so no screen ever leads it on. Route from the
+        // nearest open cell instead.
+        if (!atShelter) {
+            int[] open = nearestWalkable(frame.topology(), anchorX, anchorY);
+            if (open != null) {
+                anchorX = open[0];
+                anchorY = open[1];
+            }
+        }
         int[] route = frame.topology().route(anchorX, anchorY,
                 placement.liftX, placement.liftY);
         int guideIndex = Paths.isEmpty(route) ? -1
@@ -333,6 +344,24 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
 
     private static boolean terminal(ExtractionObjectiveFacts cohort) {
         return cohort.complete() || cohort.failed();
+    }
+
+    /** Radius searched for an open cell around a cohort centroid that is not one. */
+    private static final int ANCHOR_SNAP_RADIUS = 6;
+
+    /** The cell itself when it is open, else the nearest open one by ring, row then column; {@code null} for none. */
+    private static int[] nearestWalkable(CommandTopology topology, int x, int y) {
+        if (topology.inBounds(x, y) && topology.isWalkable(x, y)) return new int[]{x, y};
+        for (int r = 1; r <= ANCHOR_SNAP_RADIUS; r++) {
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    int cx = x + dx, cy = y + dy;
+                    if (topology.inBounds(cx, cy) && topology.isWalkable(cx, cy)) return new int[]{cx, cy};
+                }
+            }
+        }
+        return null;
     }
 
     private static int validCell(int value, int fallback) {
