@@ -1,0 +1,75 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ece-d53b-73e2-91cf-b972814e266b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ece-d53b-73e2-91cf-b972814e266b\\exec-256371f1-80a7-4f84-97b1-c4744f96c637.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\ship-hold.raw.png",
+    "sha256": "a35d5a0cad7fd0ec5908437c433d60e9cd326aebfdf59a5c639cc506c605fecd",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\ship-hold.prompt.txt",
+  "promptSha256": "bed2623791d5574ca4edda660bf1153f2bec1dad4467aa51c53ec6618a575332",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority: exact slots, outlines, positions, orientation and canvas\nImage 2: Material, palette and mood only; not layout\nImage 3: Material, palette and mood only; not layout\nImage 4: Material and mood only; first-person, not layout\n\nTexture reference 1, a 6x6 placement guide of top-down game sprites at 256 px per world cell, into finished painted-realistic top-down game art for the interior of a battered ex-military transport starship. Seen straight down (orthographic), soft neutral top light, no cast shadows outside each sprite.\n\nReference 1 is the GEOMETRY AUTHORITY: keep every sprite in its slot with the same outline, position, size and orientation; keep the same 1536x1536 canvas and 6x6 grid of 256 px slots. Never move anything across a slot boundary.\nReferences 2, 3 and 4 are MATERIAL, PALETTE AND MOOD ONLY (top-down look-dev and a first-person corridor of the same ship; never copy their layout or perspective): bolted dark steel plating, grey-green and graphite paint, olive drab canvas, small accents of hazard yellow, caged amber lamps, dull steel showing through chipped paint. Little rust, no orange cast.\n\nSlots:\n- Rows 1-2 (top two rows): twelve seamless FLOOR TILES, fully opaque edge to edge so they tile in a grid. Row 1: three bolted steel deck plates with a seam round the edge, then three of the same plate with a recessed cargo rail running top to bottom carrying tie-down slots. Row 2: the same six, worn: scuffed paint, grime in the seams, a welded patch, scratches. Keep all twelve the same mid-dark value so mixed tiles do not checkerboard; no lighting gradients.\n- Row 3: six WALL-EDGE STRIPS. The ship's bulkhead is just beyond the TOP edge of each slot; the art hugs the top 40% and the rest of the slot is fully transparent. In order: a tidy cable run clipped along the wall foot; the same cable run hanging slack in a loose droop; a small caged amber bulkhead lamp, lit, glowing warm; the same lamp dead and dark; a riveted mismatched patch plate on the wall foot; grime and condensation staining at the wall foot fading to transparent.\n- Rows 4-5: six 2-cell-wide STORAGE pieces standing against the wall (wall beyond the top edge), art in the top 70%, transparent below: a stack of military supply crates; a cargo pallet lashed with yellow straps; duffel bags and a rolled bedroll; a row of olive ammo cans with a helmet; cargo under a cargo net; a sleeping mat with a bedroll, pillow and a small footlocker.\n- Row 6: six single loose items centred in their slots: one supply crate, two ammo cans, a duffel bag, a steel drum, a coiled cable, a red toolbox.\n\nTrue transparent background everywhere outside the sprites, except the floor tiles which are fully opaque. No text, no labels, no grid lines, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ship-hold-guide.png",
+      "sha256": "150da8c66ba501f2eb896fbf17639e145e1ca5cab2c2a2a1ede746cbd41fcb13",
+      "dimensions": [
+        1536,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority: exact slots, outlines, positions, orientation and canvas"
+    },
+    {
+      "path": "art-source\\ship-deck-lookdev\\barracks-deficit-v1.png",
+      "sha256": "78138bb4a876b92ab1cb77d60c1ef1c807e485b7a5518f5c8ecea8b984c51545",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material, palette and mood only; not layout"
+    },
+    {
+      "path": "art-source\\ship-deck-lookdev\\bridge-deficit-v1.png",
+      "sha256": "bc74d4f795205af3e74426310a2ee1dc3198f88f8c98d552a78fd819f31bcfe9",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Material, palette and mood only; not layout"
+    },
+    {
+      "path": "art-source\\company-prologue\\story-stills\\cargo-billets.master.png",
+      "sha256": "d39a6877035a8a200508e4feb31d802d3a31766a2b699d5d5123ab3c307cb4bb",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Material and mood only; first-person, not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to create one sprite sheet, preserving Image 1’s geometry and using the other references for materials and mood.\n"
+  ],
+  "usage": {
+    "input_tokens": 100191,
+    "cached_input_tokens": 74624,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1196,
+    "reasoning_output_tokens": 22
+  },
+  "elapsedSeconds": 108.8
+}

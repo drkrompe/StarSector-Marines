@@ -1,0 +1,12 @@
+Texture reference 1, a 6x6 placement guide of top-down game sprites at 256 px per world cell, into finished painted-realistic top-down game art for the interior of a battered ex-military transport starship. Seen straight down (orthographic), soft neutral top light, no cast shadows outside each sprite.
+
+Reference 1 is the GEOMETRY AUTHORITY: keep every sprite in its slot with the same outline, position, size and orientation; keep the same 1536x1536 canvas and 6x6 grid of 256 px slots. Never move anything across a slot boundary.
+References 2, 3 and 4 are MATERIAL, PALETTE AND MOOD ONLY (top-down look-dev and a first-person corridor of the same ship; never copy their layout or perspective): bolted dark steel plating, grey-green and graphite paint, olive drab canvas, small accents of hazard yellow, caged amber lamps, dull steel showing through chipped paint. Little rust, no orange cast.
+
+Slots:
+- Rows 1-2 (top two rows): twelve seamless FLOOR TILES, fully opaque edge to edge so they tile in a grid. Row 1: three bolted steel deck plates with a seam round the edge, then three of the same plate with a recessed cargo rail running top to bottom carrying tie-down slots. Row 2: the same six, worn: scuffed paint, grime in the seams, a welded patch, scratches. Keep all twelve the same mid-dark value so mixed tiles do not checkerboard; no lighting gradients.
+- Row 3: six WALL-EDGE STRIPS. The ship's bulkhead is just beyond the TOP edge of each slot; the art hugs the top 40% and the rest of the slot is fully transparent. In order: a tidy cable run clipped along the wall foot; the same cable run hanging slack in a loose droop; a small caged amber bulkhead lamp, lit, glowing warm; the same lamp dead and dark; a riveted mismatched patch plate on the wall foot; grime and condensation staining at the wall foot fading to transparent.
+- Rows 4-5: six 2-cell-wide STORAGE pieces standing against the wall (wall beyond the top edge), art in the top 70%, transparent below: a stack of military supply crates; a cargo pallet lashed with yellow straps; duffel bags and a rolled bedroll; a row of olive ammo cans with a helmet; cargo under a cargo net; a sleeping mat with a bedroll, pillow and a small footlocker.
+- Row 6: six single loose items centred in their slots: one supply crate, two ammo cans, a duffel bag, a steel drum, a coiled cable, a red toolbox.
+
+True transparent background everywhere outside the sprites, except the floor tiles which are fully opaque. No text, no labels, no grid lines, no border.

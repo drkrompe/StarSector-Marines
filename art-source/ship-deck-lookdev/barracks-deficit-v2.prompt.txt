@@ -1,0 +1,15 @@
+Top-down orthographic game view of the interior deck of a battered ex-military transport starship (the "Second Wind"), seen straight down from above with the ceiling removed, as in a tactical top-down game. Painted-realistic, gritty industrial sci-fi, readable at game scale.
+
+Reference 1 is the LAYOUT AUTHORITY: keep every room, wall, door gap, corridor and furniture footprint exactly where it is and the same size and shape. Do not move, add or remove walls, doors or rooms; do not change the camera, framing or scale. Repaint it in the target look.
+References 2 and 3 are MATERIAL, LIGHTING AND MOOD ONLY (they are first-person views of the same ship's corridors; never copy their perspective or layout): riveted and bolted steel plating with welded patch plates, cable bundles running along the walls, hazard-striped hatch frames, cargo-rail floors with rows of tie-down slots, wet reflective deck, crates, net-strapped cargo and gear.
+
+Lighting model to show, seen from above:
+- Strung lighting: small caged amber bulkhead lamps mounted on the corridor and room walls at regular spacing (about every three floor tiles), joined by a thin drooping cable run along the wall. Each lamp makes a bright warm spot on its wall and a soft half-oval pool of warm light on the floor in front of it.
+- Floor sheen: soft specular highlights on the wet steel deck near each lamp.
+- The overhead is not visible, but its shadows are: faint cargo-netting, beam and cable-tray shadow patterns fall across the floor between lamps.
+- Screens and consoles cast small cool teal pools of their own.
+- Walls are drawn as thick dark bulkheads seen from above with bolted top edges.
+
+No people, no text, no UI, no labels, no captions, no border. Keep the black void outside the hull black. Same 16:9 framing as reference 1.
+
+STATE: the battered start, with the power failure clearly visible. About two lamps in three are dead (dark caged housings, cable slack), so most of the deck is near-black and the light comes in separate, isolated warm pools with deep shadow between them; the far ends of corridors fade to black. The corridors are used as storage: crate stacks, strapped cargo pallets, duffel bags, bedrolls and loose gear line both walls, always leaving a clear centre lane. Patched mismatched wall plating, sagging cables, grime collected along wall bases and in corners (not blotches in open floor; no rust stains on the floor). Bunks have bare stained mattresses and tangled blankets; lockers dented, some doors open. Consoles dark or dim amber standby.
