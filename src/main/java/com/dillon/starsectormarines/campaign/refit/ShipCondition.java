@@ -1,10 +1,12 @@
 package com.dillon.starsectormarines.campaign.refit;
 
 import com.dillon.starsectormarines.battle.mech.MechRefit;
+import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.battle.world.gen.ship.ReservedFacility;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 import com.dillon.starsectormarines.marine.MechFieldRepair;
+import com.dillon.starsectormarines.marine.RecruitIntake;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -88,6 +90,51 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
 
     /** Days added to a wound's recovery while the scrubbers are degraded. */
     public float woundRecoveryExtraDays() { return band(RefitTrack.LIFE_SUPPORT) == RefitBand.DEFICIT ? 1f : 0f; }
+
+    // --- The reserved facilities. A sealed compartment is neutral, so opening one is
+    // already a gain, and every other hull reads as sealed rather than as opened. ---
+
+    /** Infantry primary accuracy: the range's target machinery, then its simulator lanes. */
+    public float infantryAccuracy() { return facility(RefitTrack.RANGE, 1f, 1f, 1.03f, 1.06f); }
+
+    /** Infantry move speed: the gym open, its conditioning programme, the track loop. */
+    public float infantryMoveSpeed() { return facility(RefitTrack.GYM, 1f, 1.02f, 1.04f, 1.06f); }
+
+    /** Morale a hit or near miss drains from a fire team: the track loop's squads take it steadier. */
+    public float infantryMoraleDrain() { return facility(RefitTrack.GYM, 1f, 1f, 1f, 0.90f); }
+
+    /** Everything above that reaches a battle, frozen onto each squad at launch. */
+    public HullWelfare hullWelfare() {
+        return new HullWelfare(moraleRecovery(), infantryAccuracy(), infantryMoveSpeed(), infantryMoraleDrain());
+    }
+
+    /**
+     * The share of marines a battle counted as killed whom the sick bay brings back
+     * wounded instead. Read when the battle is settled; it moves no one already
+     * wounded or missing, and stacks with a squad medic's work in the field.
+     */
+    public float casualtiesSaved() { return facility(RefitTrack.SICK_BAY, 0f, 0.10f, 0.25f, 0.40f); }
+
+    /** Where a cargo replacement's aptitude lands: the lounge keeps marginal hands, then draws better ones. */
+    public RecruitIntake recruitIntake() {
+        return switch (facilityBand(RefitTrack.REC_LOUNGE)) {
+            case DEFICIT -> RecruitIntake.NEUTRAL;
+            case RESTORED -> new RecruitIntake(5, 25, 100);
+            case IMPROVED_I -> new RecruitIntake(5, 35, 100);
+            case IMPROVED_II -> new RecruitIntake(10, 45, 100);
+        };
+    }
+
+    private RefitBand facilityBand(RefitTrack track) { return applies ? band(track) : RefitBand.DEFICIT; }
+
+    private float facility(RefitTrack track, float sealed, float open, float first, float second) {
+        return switch (facilityBand(track)) {
+            case DEFICIT -> sealed;
+            case RESTORED -> open;
+            case IMPROVED_I -> first;
+            case IMPROVED_II -> second;
+        };
+    }
 
     // --- Mech Lab: frozen into each company mech's deployment at launch, or read at a quote ---
 

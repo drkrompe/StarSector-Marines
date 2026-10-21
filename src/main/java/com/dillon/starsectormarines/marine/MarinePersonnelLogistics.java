@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CargoAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
@@ -20,14 +21,19 @@ public final class MarinePersonnelLogistics {
 
     /** Fills one squad billet and then removes the supplying marine from fleet cargo. */
     public static MarineSoldier drawCargoMarineIntoSquad(MarineRoster roster, String squadId) {
-        return drawCargoMarineIntoSquad(roster, squadId, playerCargo());
+        return drawCargoMarineIntoSquad(roster, squadId, playerCargo(), intakeAboard());
     }
 
     static MarineSoldier drawCargoMarineIntoSquad(
             MarineRoster roster, String squadId, CargoAPI cargo) {
+        return drawCargoMarineIntoSquad(roster, squadId, cargo, RecruitIntake.NEUTRAL);
+    }
+
+    static MarineSoldier drawCargoMarineIntoSquad(
+            MarineRoster roster, String squadId, CargoAPI cargo, RecruitIntake intake) {
         if (roster == null || cargo == null
                 || cargo.getCommodityQuantity(Commodities.MARINES) < 1f) return null;
-        MarineSoldier replacement = roster.recruitToSquad(squadId);
+        MarineSoldier replacement = roster.recruitToSquad(squadId, intake);
         if (replacement == null) return null;
         cargo.removeCommodity(Commodities.MARINES, 1f);
         return replacement;
@@ -39,18 +45,23 @@ public final class MarinePersonnelLogistics {
      * temporarily degraded squad.
      */
     public static PersonnelDrawResult reinforceSquad(MarineRoster roster, String squadId) {
-        return reinforceSquad(roster, squadId, playerCargo());
+        return reinforceSquad(roster, squadId, playerCargo(), intakeAboard());
     }
 
     static PersonnelDrawResult reinforceSquad(
             MarineRoster roster, String squadId, CargoAPI cargo) {
+        return reinforceSquad(roster, squadId, cargo, RecruitIntake.NEUTRAL);
+    }
+
+    static PersonnelDrawResult reinforceSquad(
+            MarineRoster roster, String squadId, CargoAPI cargo, RecruitIntake intake) {
         if (roster == null || roster.squadById(squadId) == null) {
             return new PersonnelDrawResult(0, 0);
         }
         int reservesAssigned = roster.fillVacanciesFromReserve(squadId);
         int cargoMarinesConsumed = 0;
         while (roster.vacancies(roster.squadById(squadId)) > 0
-                && drawCargoMarineIntoSquad(roster, squadId, cargo) != null) {
+                && drawCargoMarineIntoSquad(roster, squadId, cargo, intake) != null) {
             cargoMarinesConsumed++;
         }
         return new PersonnelDrawResult(reservesAssigned, cargoMarinesConsumed);
@@ -61,11 +72,16 @@ public final class MarinePersonnelLogistics {
      * Cargo is removed only after the roster accepts each corresponding billet holder.
      */
     public static PersonnelDrawResult fillLineShortfall(MarineRoster roster, int requested) {
-        return fillLineShortfall(roster, requested, playerCargo());
+        return fillLineShortfall(roster, requested, playerCargo(), intakeAboard());
     }
 
     static PersonnelDrawResult fillLineShortfall(
             MarineRoster roster, int requested, CargoAPI cargo) {
+        return fillLineShortfall(roster, requested, cargo, RecruitIntake.NEUTRAL);
+    }
+
+    static PersonnelDrawResult fillLineShortfall(
+            MarineRoster roster, int requested, CargoAPI cargo, RecruitIntake intake) {
         if (roster == null || requested <= 0) return new PersonnelDrawResult(0, 0);
         int reservesAssigned = 0;
         while (reservesAssigned < requested && roster.assignReadyReserveToLine()) {
@@ -75,7 +91,7 @@ public final class MarinePersonnelLogistics {
         int cargoMarinesConsumed = 0;
         int cargoLimit = Math.min(requested - reservesAssigned, availableCargoMarines(cargo));
         while (cargoMarinesConsumed < cargoLimit) {
-            MarineSoldier replacement = roster.createLineReplacement();
+            MarineSoldier replacement = roster.createLineReplacement(intake);
             if (replacement == null) break;
             cargo.removeCommodity(Commodities.MARINES, 1f);
             cargoMarinesConsumed++;
@@ -95,6 +111,11 @@ public final class MarinePersonnelLogistics {
         }
         cargo.addCommodity(Commodities.MARINES, 1f);
         return true;
+    }
+
+    /** The current company home's intake: the founding hull's lounge, neutral anywhere else. */
+    private static RecruitIntake intakeAboard() {
+        return ShipRefits.aboard().recruitIntake();
     }
 
     private static CargoAPI playerCargo() {

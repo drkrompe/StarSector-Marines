@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.campaign.refit;
 
+import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
+import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
+import com.dillon.starsectormarines.marine.RecruitIntake;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -74,6 +77,61 @@ class ShipConditionTest {
         for (RefitOrder order : RefitOrder.values())
             if (order.track.group == RefitTrack.Group.COMBAT && order.band == RefitBand.RESTORED)
                 assertFalse(order.requires.isEmpty(), order.name());
+    }
+
+    @Test void aSealedRoomIsNeutralAndEveryOtherHullReadsAsSealed() {
+        for (ShipCondition neutral : new ShipCondition[]{ShipCondition.NONE, ShipCondition.battered()}) {
+            assertEquals(1f, neutral.infantryAccuracy());
+            assertEquals(1f, neutral.infantryMoveSpeed());
+            assertEquals(1f, neutral.infantryMoraleDrain());
+            assertEquals(0f, neutral.casualtiesSaved());
+            assertEquals(RecruitIntake.NEUTRAL, neutral.recruitIntake());
+        }
+        assertEquals(HullWelfare.NEUTRAL, ShipCondition.NONE.hullWelfare());
+        assertEquals(HullWelfare.mess(0.85f), ShipCondition.battered().hullWelfare());
+    }
+
+    @Test void eachRoomClimbsFromOpeningThroughBothImprovements() {
+        var start = ShipCondition.battered();
+        assertEquals(1f, start.with(RefitTrack.RANGE, RefitBand.RESTORED).infantryAccuracy(), "an open range trains aboard");
+        assertEquals(1.03f, start.with(RefitTrack.RANGE, RefitBand.IMPROVED_I).infantryAccuracy());
+        assertEquals(1.06f, start.with(RefitTrack.RANGE, RefitBand.IMPROVED_II).infantryAccuracy());
+        assertEquals(1.02f, start.with(RefitTrack.GYM, RefitBand.RESTORED).infantryMoveSpeed());
+        assertEquals(1.04f, start.with(RefitTrack.GYM, RefitBand.IMPROVED_I).infantryMoveSpeed());
+        assertEquals(1.06f, start.with(RefitTrack.GYM, RefitBand.IMPROVED_II).infantryMoveSpeed());
+        assertEquals(1f, start.with(RefitTrack.GYM, RefitBand.IMPROVED_I).infantryMoraleDrain());
+        assertEquals(0.90f, start.with(RefitTrack.GYM, RefitBand.IMPROVED_II).infantryMoraleDrain());
+        assertEquals(0.10f, start.with(RefitTrack.SICK_BAY, RefitBand.RESTORED).casualtiesSaved());
+        assertEquals(0.25f, start.with(RefitTrack.SICK_BAY, RefitBand.IMPROVED_I).casualtiesSaved());
+        assertEquals(0.40f, start.with(RefitTrack.SICK_BAY, RefitBand.IMPROVED_II).casualtiesSaved());
+        var trained = start.with(RefitTrack.MESS, RefitBand.IMPROVED_I)
+                .with(RefitTrack.RANGE, RefitBand.IMPROVED_II).with(RefitTrack.GYM, RefitBand.IMPROVED_I);
+        assertEquals(new HullWelfare(1.15f, 1.06f, 1.04f, 1f), trained.hullWelfare());
+    }
+
+    @Test void theLoungeLiftsTheIntakeTierByTier() {
+        var start = ShipCondition.battered();
+        RecruitIntake previous = start.recruitIntake();
+        for (RefitBand band : new RefitBand[]{RefitBand.RESTORED, RefitBand.IMPROVED_I, RefitBand.IMPROVED_II}) {
+            RecruitIntake intake = start.with(RefitTrack.REC_LOUNGE, band).recruitIntake();
+            assertEquals(SoldierAptitude.STEADY, intake.aptitude(99), "no Limited hand once the lounge is open");
+            assertTrue(intake.exceptionalBelow() >= previous.exceptionalBelow() && intake.giftedBelow() >= previous.giftedBelow());
+            assertNotEquals(previous, intake, band.name());
+            previous = intake;
+        }
+    }
+
+    @Test void facilityImprovementsNeedTwoCoresTheTopTierThreeAndCarryABill() {
+        for (RefitOrder order : RefitOrder.values()) {
+            if (order.track.reserve == null || order.band == RefitBand.RESTORED) continue;
+            int cores = order.band == RefitBand.IMPROVED_II ? 3 : 2;
+            assertEquals(cores, order.requires.size(), order.name());
+            for (RefitTrack need : order.requires.keySet()) assertNotNull(need.core, order.name() + " names " + need);
+            assertFalse(order.materials().isEmpty(), order.name());
+        }
+        for (RefitTrack track : new RefitTrack[]{RefitTrack.RANGE, RefitTrack.GYM, RefitTrack.SICK_BAY, RefitTrack.REC_LOUNGE})
+            assertEquals(RefitBand.IMPROVED_II, RefitOrder.ceiling(track), track.name());
+        assertEquals(RefitBand.RESTORED, RefitOrder.ceiling(RefitTrack.BRIG), "interrogation waits on contract intel");
     }
 
     @Test void facilitiesInExistingRoomsPayOnlyPastNeutral() {
