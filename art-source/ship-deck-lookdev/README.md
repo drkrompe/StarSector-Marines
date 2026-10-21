@@ -3,7 +3,8 @@
 Status: ACTIVE. Concept only; nothing here ships or is read by the game.
 Written: 2026-10-21
 
-ImageGen look-dev for the company deck's lighting and condition dressing,
+ImageGen look-dev for the **low-tech interior style** (`ship-interiors-nouns.md`,
+interior tech style): the company deck's lighting and condition dressing,
 painted over the game's own top-down framing so the layout stays ours and only
 the look is borrowed. Briefs are `common.txt` plus a per-image state paragraph
 (`*.prompt.txt` holds the full brief as sent).

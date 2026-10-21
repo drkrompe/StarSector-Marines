@@ -1,7 +1,9 @@
 # Ship hold kit
 
-Plate deck, passage-wall fixtures and stored cargo for company ship decks, after
-the deck look-dev (`art-source/ship-deck-lookdev`).
+The low-tech interior style's kit (`ship-interiors-nouns.md`, interior tech
+style): plate deck, passage-wall fixtures and stored cargo, after the deck
+look-dev (`art-source/ship-deck-lookdev`). A midline or high-tech style gets a kit
+of its own rather than a variant of this one.
 
 ## Geometry and generation
 

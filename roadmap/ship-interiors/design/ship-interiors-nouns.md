@@ -5,7 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-21 — passages strung with caged lamps and lined with stored cargo at Deficit; plate decks; worn furniture twins.
+Updated: 2026-10-21 — interior tech styles named; low-tech is the strung-lamp, plate-deck, stored-cargo look from Deficit to Restored; midline and high-tech open.
 
 Earlier 2026-10-21 — Second Wind's arrangement also carries sealed reserves for her refit tree, laid after the program so they never move it.
 
@@ -389,6 +389,19 @@ authored content.
 - A **deck graph** is the published topology: the shared layout-neutral tier plus
   this family's annotation — each compartment's frame span, zone, and side of the
   spine.
+- An **interior tech style** is the material and light language a hull's
+  interior is drawn in, after the game's own hull families: **low-tech**,
+  **midline** and **high-tech**. A style owns its whole condition range, from a
+  wreck through Deficit to Restored, so restoring a ship makes it a better ship
+  of the same kind, never a different kind of ship. **Low-tech** is the one that
+  exists. Its passages are bolted steel plate lit by caged amber lamps strung
+  along both walls on exposed cable, with cool white rooms and console-lit
+  command spaces against them. Battered, it is told by dark passages, stored
+  cargo along the walls and worn fittings; restored, by every lamp lit and the
+  passages cleared. Midline and high-tech are open: they will be designed as
+  styles of their own, with their own condition range, rather than as upgrades
+  to low-tech. Until they exist, every generated hull is drawn low-tech. A
+  style is presentation: it never changes a hull's rooms, doors, berths or lanes.
 
 ## Home decks and prize decks
 
@@ -1630,8 +1643,8 @@ old welded plates and soot scars outside the active restoration work. Those mark
 survive facility repair, so a working ship still has a history. They decorate
 actual floor beneath furnishings and own no navigation, cover or capacity.
 
-Over that history the founding hull carries a **Deficit dressing**, one set per
-core, after the deck look-dev (`art-source/ship-deck-lookdev`): the passages go
+Over that history the founding hull carries a **Deficit dressing**: the
+low-tech style's battered end, one set per core, after the deck look-dev (`art-source/ship-deck-lookdev`): the passages go
 dark, with two strung lamps in three dead, their cable hanging slack, dead wall
 panels and torn-down conduit, for Power; the company camping in its passages, with
 crates, lashed cargo, duffels and bedrolls along both walls, grime at the wall
@@ -1653,8 +1666,8 @@ condition twin: a fitting whose sheet has an `<id>-worn` piece draws that art on
 the same cells, turn and mirror, keeping its own footprint, cover and blocking.
 The haze's control is `-Dbattle.render.deadAirHaze=false`.
 
-**Deck lighting** belongs to the company interior presentation, and has three
-kinds of light. Rooms keep fixtures on their long walls: cool white and broad on
+**Deck lighting** belongs to the company interior presentation. In the low-tech
+interior style it has three kinds of light. Rooms keep fixtures on their long walls: cool white and broad on
 working distribution, short warm pools of emergency light with staggered local
 faults and deep, readable shadow between fixtures where distribution has failed.
 Passages are lit by **strung lamps**, small caged amber lamps on both walls of
