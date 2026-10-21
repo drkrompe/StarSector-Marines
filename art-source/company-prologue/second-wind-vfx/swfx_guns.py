@@ -818,6 +818,20 @@ def _lin(rgb):
     return tuple((c / 255.0) ** 2.2 for c in rgb[:3])
 
 
+# The weapon layer is tuned in metres (watts at metre distances, glow emission per metre), but
+# like the rest of the kit it is authored into a hull-unit file, which a scene places at
+# Scale(mpu) and ship_fx.metre_scale then corrects (light exposure 2*log2(mpu), volume
+# emission / mpu). These two put a metre-tuned number into hull units so the round trip lands
+# it where it was tuned.
+def _hull_watts(w):
+    return w / swfx_core.METRES_PER_UNIT ** 2
+
+
+def _hull_glow(k):
+    """A glow's emission per metre (object colour B) as per hull unit."""
+    return k * swfx_core.METRES_PER_UNIT
+
+
 def _mg(**kw):
     w = dict(energy=False, burst=5, burst_delay=.1, cooldown=.4, barrels='alternating', spread=.0035,
              flash=(1.0, .5, .2), flash_tint=None, flash_size=(1.0, 1.0, 1.0), flash_light=(255, 240, 165),
@@ -1115,7 +1129,7 @@ def _cloud(ctx, coll, a, label, frame, spec):
         sc.append(swfx_core.units(r))
         lx.append(swfx_core.units(r * .55 + .3 * r1 * e))
         fade.append((1 - t) ** 1.6)
-        kk.append(spec['peak'] / (2 * r) / 20.0)
+        kk.append(_hull_glow(spec['peak'] / (2 * r)) / 20.0)
     for i in range(3):
         _bake(ob, 'scale', i, fr, sc)
     _bake(ob, 'location', 0, fr, lx)
@@ -1145,7 +1159,7 @@ def _charge(ctx, a, frame, frames, w):
         fr.append(f0 + j)
         sc.append(swfx_core.units(r))
         fade.append((.25 + .75 * t * t) * rnd.uniform(.8, 1.0))
-        kk.append(spec['peak'] / (2 * r) / 20.0)
+        kk.append(_hull_glow(spec['peak'] / (2 * r)) / 20.0)
     for i in range(3):
         _bake(ob, 'scale', i, fr, sc)
     _bake(ob, 'color', 0, fr, fade)
@@ -1155,7 +1169,7 @@ def _charge(ctx, a, frame, frames, w):
     light = swfx_core.point_light(f'{PREFIX} charge light {label} f{frame:04d}', coll, rgb, 0.0,
                                   radius=swfx_core.units(r1 * .5))
     swfx_core.attach(light, a.empty, local=(swfx_core.units(.2), 0, 0))
-    _bake(light.data, 'energy', -1, [f0 - 1] + fr + [frame], [0.0] + [spec['light'] * v for v in fade] + [0.0])
+    _bake(light.data, 'energy', -1, [f0 - 1] + fr + [frame], [0.0] + [_hull_watts(spec['light']) * v for v in fade] + [0.0])
     return ob.name
 
 
@@ -1441,7 +1455,7 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
         ob.scale = (swfx_core.units(h['r']),) * 3
         _bake(ob, 'color', 0, frames, burn)
         _bake(ob, 'color', 1, [frame], [rnd.random()], 'CONSTANT')
-        _bake(ob, 'color', 2, [frame], [h['peak'] / (2 * h['r']) / 20.0], 'CONSTANT')
+        _bake(ob, 'color', 2, [frame], [_hull_glow(h['peak'] / (2 * h['r'])) / 20.0], 'CONSTANT')
         _visible_between(ob, frame, frame + life)
     if r.get('light'):
         light = swfx_core.point_light(f'{PREFIX} round light {label} f{frame:04d}', coll,
@@ -1450,7 +1464,7 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
         for i in range(3):
             _bake(light, 'location', i, frames, [(M @ (d * (hh - L * .3)))[i] for hh in heads])
         _bake(light.data, 'energy', -1, [frame - 1] + frames + [frame + life + 1],
-              [0.0] + [r['light'] * b for b in burn] + [0.0])
+              [0.0] + [_hull_watts(r['light']) * b for b in burn] + [0.0])
     return rec
 
 
@@ -1511,7 +1525,7 @@ def emp_arcs(ctx, frame, paths, frames=8, rgb=(140, 200, 255), seed=0, light=300
         lt = swfx_core.point_light(f'{PREFIX} emp light f{frame:04d}', coll, lin, 0.0, radius=swfx_core.units(.5))
         lt.location = Vector(paths[0][0])
         _bake(lt.data, 'energy', -1, [frame - 1] + [frame + j for j in range(frames)] + [frame + frames],
-              [0.0] + [light * rnd.uniform(.3, 1.0) for _ in range(frames)] + [0.0])
+              [0.0] + [_hull_watts(light) * rnd.uniform(.3, 1.0) for _ in range(frames)] + [0.0])
         names.append(lt.name)
     return names
 
@@ -1567,7 +1581,7 @@ def feeder(ctx, turret, start_frame, end_frame, ramp_frames=6, light=2500.0):
         lt = swfx_core.point_light(f'{PREFIX} feeder light {gun_label(a)}', coll, _lin(FEEDER_RGB), 0.0,
                                    radius=.6 * s)
         swfx_core.attach(lt, a.empty, local=(-3.0 * s, 0, .8 * s))
-        ctx.drive(lt.data, 'energy', f'{knob}*{light:g}', (knob,))
+        ctx.drive(lt.data, 'energy', f'{knob}*{_hull_watts(light):g}', (knob,))
         names += [ob.name, lt.name]
     return names
 
