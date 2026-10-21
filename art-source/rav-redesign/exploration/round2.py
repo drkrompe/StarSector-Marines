@@ -184,9 +184,11 @@ def ground_tiles(root, size):
     return [("paving", pav), ("grass", grass), ("field", field), ("creep stand-in", creep)]
 
 
-def concept_sheet(round_dir, root, out, names, title):
+def concept_sheet(round_dir, root, out, names, title, nums=None, rim_row=False):
     rd = Path(round_dir)
-    raws = sorted(p for p in (rd / "raw").glob("c*.png") if p.stem[1:].isdigit())
+    raws = sorted((p for p in (rd / "raw").glob("c*.png") if p.stem[1:].isdigit()), key=lambda p: int(p.stem[1:]))
+    if nums:
+        raws = [p for p in raws if int(p.stem[1:]) in nums]
     m32 = cut_marines(root, "rav-zoom32-marines", PPC32)
     m17 = marine_cutouts(str(frames(root, "rav-zoom")[1]))
     pav32 = ground_tiles(root, (300, 200))[0][1]
@@ -226,6 +228,22 @@ def concept_sheet(round_dir, root, out, names, title):
         d.text((x0 + 466, y0 + 262), "17.1 px/cell 1:1", font=font(13), fill=DIM)
         d.text((x0 + 466, y0 + 282), "and x2 below", font=font(13), fill=DIM)
         d.text((x0 + 318, y0 + 478), "32 px/cell above", font=font(13), fill=DIM)
+    if rim_row:
+        tiles = ground_tiles(root, (300, 205))
+        for i, p in enumerate(raws[:3]):
+            x0, y0 = 12 + i * (cw + 6), 66 + ch + 6
+            d.rectangle([x0, y0, x0 + cw, y0 + ch], fill=(24, 28, 36))
+            d.text((x0 + 10, y0 + 6), f"#{int(p.stem[1:])} with cream rim, full shadow and eye shine, 32 px/cell",
+                   font=font(16, True), fill=ACC)
+            rot = key_plate(p).rotate(-90, expand=True, resample=Image.BICUBIC)
+            body = eyes(rim(scaled(rot, PPC32)), PPC32)
+            for j, (gname, g) in enumerate(tiles):
+                t = g.copy()
+                place(t, m32[j % len(m32)], 230, 100, PPC32)
+                place(t, body, 100, 100, PPC32, strength=0.85, grow=1.25)
+                tx, ty = x0 + 10 + (j % 2) * 308, y0 + 34 + (j // 2) * 230
+                img.paste(t.convert("RGB"), (tx, ty))
+                d.text((tx + 4, ty + 207), gname, font=font(13), fill=DIM)
     img.save(out)
 
 
