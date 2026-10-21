@@ -4,7 +4,7 @@ Status: ACTIVE — reactive manning is shipped for fighting-position runs, a str
 
 Written: 2026-10-13
 
-Updated: 2026-10-21 — the Raid, Assault, Sabotage and Extraction defenders push for a place they lose, bounded, and read counter-attack directives (mission defenders, place directives); parties are sides of the garrison system, a mission speaks to any party's commander through place directives and their triggers, and a locked position is a place a party must take and hold (parties, place directives, locked positions, parties wired); the fight mix is measured on every mission against each garrison feature's control, and building envelopes are what move it (fight mix by mission); the trial-ground hold and mission-defender figures are refreshed on the current build; the mission defenders stage their roving reserve toward pressure, half waiting at the places and half meeting the attack in the street (mission defenders, flow); every story commander has a commander-evidence harness, A Small War's commander offers its posts clear of the stages and the other eight have no standing hostile duty to offer (story commanders, below); story commanders man reactively through a hosted planner and a holder share; a sally door shuts again: its holder shuts it behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body, and an open door of a place its holder lost stays open (sally doors, below); not every fight is into prepared positions is a law; a holder sorties from a walled place it holds through a sally door in its own wall (sally doors, below); the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
+Updated: 2026-10-21 — a mission defender's duty squads are bound: a post takes the building beside it only under heavy pressure and at most a third at once, which brings Sabotage's fight mix back to within a few points of no manning (mission defenders, fight mix by mission); the Raid, Assault, Sabotage and Extraction defenders push for a place they lose, bounded, and read counter-attack directives (mission defenders, place directives); parties are sides of the garrison system, a mission speaks to any party's commander through place directives and their triggers, and a locked position is a place a party must take and hold (parties, place directives, locked positions, parties wired); the fight mix is measured on every mission against each garrison feature's control, and building envelopes are what move it (fight mix by mission); the trial-ground hold and mission-defender figures are refreshed on the current build; the mission defenders stage their roving reserve toward pressure, half waiting at the places and half meeting the attack in the street (mission defenders, flow); every story commander has a commander-evidence harness, A Small War's commander offers its posts clear of the stages and the other eight have no standing hostile duty to offer (story commanders, below); story commanders man reactively through a hosted planner and a holder share; a sally door shuts again: its holder shuts it behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body, and an open door of a place its holder lost stays open (sally doors, below); not every fight is into prepared positions is a law; a holder sorties from a walled place it holds through a sally door in its own wall (sally doors, below); the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
 
 ## Why this exists
 
@@ -402,6 +402,25 @@ fun of these missions is the target network holding out from its buildings.
   rather than given up, and it is not the reserve the floor protects. A squad
   the mission stops offering — its alarm took it, its duty moved, its area
   changed — is forgotten that pulse: the mission outranks the place.
+- **A post is defended from the open first (the duty bound).** A duty squad
+  takes a place only when it is pressed **harder than a reserve squad needs**
+  (5 against the ordinary 3: above the start, below the pressure that wants a
+  second squad), and **at most a third of the squads on duty hold a place at
+  once** (at least one from one duty squad up). A post is covered by the squad
+  standing on it whether or not it stands behind a window, so taking the
+  building beside it changes the texture of the fight at the post rather than
+  whether the post is held; and a commander that puts most of its force on
+  posts, as Sabotage does, otherwise turns every contact at a post into a
+  siege (fight mix by mission, below). A post pressed hard still takes its
+  building, which is the reactive defence the bound keeps. The roving reserve
+  is not bound by it, since flow already sends half of it forward into the
+  street, and the story commanders bound their own holders with a share of
+  their own (story commanders, below). It is one rule for every mission
+  defender rather than a Sabotage special case: on Raid, Assault and
+  Extraction it trims a few manning orders and leaves the fight mix where it
+  was. `-Dbattle.mission.reactiveDefence.dutyShare=1` with
+  `-Dbattle.mission.reactiveDefence.dutyPressure=0` is the control; either
+  alone switches off one half.
 - **Never offered:** authored garrisons and declared holds (born manned, and a
   building whose born garrison stands in it counts as manned), external owners,
   Assault's contact response when it is not on a post, Extraction's
@@ -463,7 +482,9 @@ against the same-build control, with `commanderEvidence` (2026-10-21, flow on):
 | Sabotage | 21 | 3 | 4 (4) | 84 / 75 | 64 / 88 | defender 6 / defender 4, marines 2 |
 | Extraction (alarm fixture) | 26 | 0 | 7 (7) | 136 / 138 | 197 / 200 | marines 6 / 6 |
 
-One to five squads held at once; no reserve lance existed on these fixtures, so
+These figures predate the duty bound (above); with it Sabotage sends four
+manning orders over the six battles and Raid eleven (fight mix by mission). One
+to five squads held at once; no reserve lance existed on these fixtures, so
 no guard was attached outside the scene. Outcomes moved by a seed or two
 either way, inside the noise of six seeds, and the defence reads as buildings
 held and given back: on Sabotage the defender kills more and loses fewer, on
@@ -514,41 +535,69 @@ The law that not every fight is into prepared positions is read here
 (`PlaceFightProbe`, `commander-evidence-missions.md`, places and fights): a
 **brawl** is a contact with both ends in the open, and "from a post" is the
 share of the defender's shots fired from one. Each garrison feature against its
-own same-build control (2026-10-21), every fixture a mission's harness plays
-(six seeds for the procedural missions, eleven for the stories, nine for each
-trial-ground set, Conquest's two). *None* is every manning feature off
+own same-build control, every fixture a mission's harness plays (six seeds for
+the procedural missions, eleven for the stories, nine for each trial-ground
+set, Conquest's two). *None* is every manning feature off
 (`-Dbattle.mission.reactiveDefence=false`, and for Conquest and the trial
-ground with envelopes, stretches, aprons and the attacker's hold off too).
+ground with envelopes, stretches, aprons and the attacker's hold off too). The
+procedural missions' rows were measured on 2026-10-21 with the duty bound
+(mission defenders, above) and the mission defenders' counter-attacks; *duty
+bound off* is its control. The envelopes, aprons, stretches and flow columns
+were played an hour earlier, before the counter-attacks' latest revision. The other rows
+are from earlier the same day and the duty bound does not reach them.
 
-| mission | brawls, all on | none | envelopes off | aprons off | stretches off | flow off | defender from a post, on / none |
-|---|---:|---:|---:|---:|---:|---:|---|
-| Raid | 75% | 75% | 75% | 75% | 75% | 79% | 31% / 32% |
-| Assault | 76% | 80% | 80% | 76% | 76% | 76% | 21% / 14% |
-| Sabotage | 74% | 86% | 86% | 74% | 74% | 74% | 22% / 9% |
-| Extraction | 84% | 86% | 86% | 84% | 84% | 84% | 27% / 30% |
-| Conquest | 69% | 66% | 62% | 65% | — | — | 21% / 22% |
-| Trial, default | 32% | 33% | — | — | 33% | — | 53% / 52% |
-| Trial, militia 90 | 42% | 39% | — | — | 41% | — | 49% / 50% |
-| Relay Nine | 25% | 22% | — | — | — | — | 72% / 73% |
-| Thunder Run | 46% | 46% | — | — | — | — | 30% / 30% |
+| mission | brawls, all on | none | duty bound off | envelopes off | aprons off | stretches off | flow off | defender from a post, on / duty bound off / none |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| Raid | 85% | 75% | 83% | 70% | 84% | 84% | 78% | 22% / 23% / 28% |
+| Assault | 75% | 78% | 77% | 77% | 80% | 80% | 81% | 21% / 21% / 18% |
+| Sabotage | 88% | 91% | 80% | 91% | 88% | 88% | 88% | 11% / 20% / 7% |
+| Extraction | 85% | 84% | 84% | 84% | 84% | 84% | 80% | 23% / 22% / 24% |
+| Conquest | 69% | 66% | — | 62% | 65% | — | — | 21% / — / 22% |
+| Trial, default | 32% | 33% | — | — | — | 33% | — | 53% / — / 52% |
+| Trial, militia 90 | 42% | 39% | — | — | — | 41% | — | 49% / — / 50% |
+| Relay Nine | 25% | 22% | — | — | — | — | — | 72% / — / 73% |
+| Thunder Run | 46% | 46% | — | — | — | — | — | 30% / — / 30% |
 
-**The stack has not driven the open ground away.** Three contacts in four are
-still brawls on every procedural mission, and on Conquest and the trial ground
+**The stack has not driven the open ground away.** On every procedural mission
+at least seven contacts in ten are brawls, and on Conquest and the trial ground
 the stacked features leave the share where the control has it, a few points
-either way. The one real drop is **Sabotage, twelve points (86% to 74%), and
-it is all building envelopes**: with envelopes off Sabotage plays byte for byte
-as with no manning at all, and the defender's share of shots from a post goes
-from 9% to 22% (it also wins all six battles against four). Envelopes do the
-most on Assault too (four points), and on every procedural mission switching
-envelopes off is the same battle as switching manning off; aprons and
-stretches change nothing there. Flow pulls Raid's mix the other way, toward
-posts (79% brawls without it), because a staged squad is already beside the
-building it mans. On Conquest envelopes push the other way: with them off the
-share falls to 62% and the marines fire from a post twice as often (14% of
-their shots against 7%), so there they keep fights in the open. The trial ground is a fort and was always a siege; the stack does not
-make it more of one. Where the owner wants Sabotage's sites fought in the
-street more often, the lever is the envelope's share of the site posts, not
-the stack.
+either way. On every procedural mission switching envelopes off is the same
+battle as switching manning off; aprons and stretches change nothing there.
+
+**Sabotage was the one real drop, and the duty bound is what closes it.**
+Without the bound, its site posts took the buildings beside their sites: brawls
+fell from 91% with no manning to 80%, and the defender's shots from a post
+rose from 7% to 20%, all of it building envelopes. Sabotage puts nearly every
+squad on a post or a response, so nothing roving is left to stage forward and
+every manning order was a post going indoors. A share alone was not enough (the sweep
+was played the same day, before the mission counter-attacks, whose arrival
+moved none of Sabotage's figures): at most a third of the posts holding at once (`dutyPressure=0`) still left 78%
+brawls and 19% from a post, because one site post behind windows makes the
+whole fight at its site a siege. Raising the pressure a post needs is what moves
+it: at 4, 82% brawls and 17% from a post (eight manning orders over six
+battles); at 5, 88% and 11% (four orders); at 6, 90% and 8% (one order); at 8,
+nothing is ever manned and the battle is byte for byte the one with no
+manning. Five is the bound: within a few points of the no-manning mix while a
+post pressed hard still takes its building. Outcomes did not move (defender 3,
+marines 3 against 4, 2 for the control; marines lost 75 against 78, the
+defender 109 against 89).
+
+The same rule on the other missions trims manning orders and leaves the mix
+within a few points of its control: Assault sends 24 orders against 33, 75%
+brawls against 77% (21% of the defender's shots from a post either way; two of
+its six battles end inside the clock where the control's all time out); Raid
+11 against 19, 85% against 83% (22% from a post against 23%, the defender
+winning four against three); Extraction 21 against 19, 85% against 84%. These
+two missions' figures moved by a few points between builds an hour apart
+while Sabotage's did not move at all, which is the size of the noise on six
+seeds. On Raid, envelopes keep fights in the open rather than taking them away
+(85% brawls against 75% with none, and 22% of the defender's shots from a post
+against 28%). Flow pulls
+Raid's and Extraction's mix toward posts when it is off (78% and 80%), because a staged forward squad meets the attack in the street. On
+Conquest envelopes push the other way too: with them off the share falls to 62%
+and the marines fire from a post twice as often (14% of their shots against
+7%), so there they keep fights in the open. The trial ground is a fort and was
+always a siege; the stack does not make it more of one.
 
 ## Story commanders
 

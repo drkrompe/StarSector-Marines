@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16015-01a7-7020-bf1d-ac4e1f06a969",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16015-01a7-7020-bf1d-ac4e1f06a969\\exec-63f223a3-2bee-4e58-92f8-34a50e4ea08c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\round-5\\layers\\hind.png",
+    "sha256": "2f2c8b83706954ba3b427db29f2b1f75d16a47fa112dcb7702c42435d7c6a2f9",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\round-5\\prompts\\l-hind.prompt.txt",
+  "promptSha256": "2790e6ffca182d210fa630e3229fc587fec260e84715f91d1eee7057ff530053",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and identity authority: top-down view\nImage 2: Anatomy reference: side view of the same creature\n\nLayer for a 2D rig: ONE isolated hind leg of the hound-bodied creature in references 1 and 2 (same finish: pale lilac armour plates over deep purple-magenta sinew, ivory claws), laid out flat and straight seen from DIRECTLY ABOVE, pointing DOWN: hip joint at the top centre, a heavy muscular thigh, the stifle, the shin, the hock, then a long metatarsus and the clawed paw at the bottom. Spanning about three quarters of the frame height. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\round-5\\raw\\c3.png",
+      "sha256": "d6501c1b95a2ba0435c735443ec4115f4496a6ebae30c7f2e3473ddbaf37ea17",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry and identity authority: top-down view"
+    },
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\round-5\\raw\\c1.png",
+      "sha256": "0870ed6af353f1fc101a876d033a9b74e49111dcc917bcf717d5fe1e2ad382cb",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Anatomy reference: side view of the same creature"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one isolated hind leg using the references for anatomy and finish."
+  ],
+  "usage": {
+    "input_tokens": 44408,
+    "cached_input_tokens": 36864,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 370,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 41.5
+}

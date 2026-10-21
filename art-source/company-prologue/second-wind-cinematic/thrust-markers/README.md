@@ -79,6 +79,33 @@ or (in the port shot) hovering still in the air: lift; travelling: cruise; vecto
 without a change here. Where a shot already hung a drive glow off an exhaust anchor (C1's and
 C4's Second Wind glows, C2's Broadsword flames), it now hangs off the marker.
 
+## No craft thrusts without a plume
+
+Owner, 2026-10-21: plumes match forward momentum or implied acceleration, and a cinematic may not
+ship a moving craft without them again (C4's inbound Shepherd once let down through the opening
+seconds with nothing firing). The rule, `thrust_markers.plume_faults`:
+
+- every craft with a working `main` or `lift` nozzle whose throttle rises above 0 on any frame of
+  the shot must have plume geometry that renders, hung under that nozzle's marker (so it follows
+  the marker's throttle), **or** carry its drive effects in its own hierarchy (the VFX kit's
+  `SWFX thrusters` volumes, or an object a shot tagged `thrust_plume` as that craft's drive, such as
+  C1's stand-in drive glows and C4's Hermes lifter glow);
+- `maneuver` jets are attitude puffs and are not held to it;
+- a craft whose drives the camera can never see carries `thrust_plume_exempt` with the reason (C2's
+  Second Wind, filmed from its own bridge); the build prints every exemption.
+
+`thrust_shots.require_plumes(fps, frames, shot)` applies it: `mark_c1` and `mark_c2` call it at
+their end, and `c4x_scene.build` (which C5 builds on) once Second Wind's and the Colossus's plumes are
+hung. A fault stops the build with SystemExit naming each craft and its bare nozzles, and a
+`render_init` handler asks again as any render starts, so a script that forgets the call still
+cannot render past it. A new shot calls it once its last plume is on.
+
+In C4/C5, `mark_c4` gives every craft it marks from motion (`_rest`) `port_fleet.far_plume` on each
+main and lift nozzle that fires (`hang_plumes`): the inbound Shepherd on its mains, the lifting and
+landing Hermes lighters and freighters on their vectored drives, the ferry leaving north. Each
+plume hides when its craft does and is tagged `thrust_plume_added`. `CINE_PLUMES=0` leaves them off
+as a control; the guard then only warns, except under `CINE_FINAL=1`, where it still refuses.
+
 ## Checking
 
 ```

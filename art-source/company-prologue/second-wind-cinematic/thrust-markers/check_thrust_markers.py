@@ -6,8 +6,10 @@
 Builds the scene the way its own script does (c1v2_scene.build, c2_bridge_render's Blender half
 up to its render loop, c4x_scene.build, which C5 also builds on), then lists every craft the view
 layer shows with its markers by kind, what its engines are doing, and the nozzle sources. Fails
-(exit 1) when a craft has no markers, when a marker breaks the convention, or when an object that
-looks like a ship (by name) is neither a marked craft nor declared scenery below.
+(exit 1) when a craft has no markers, when a marker breaks the convention, when a craft thrusts
+with no plume drawn (`thrust_markers.plume_faults`; the shot's own build already refuses that, via
+`thrust_shots.require_plumes`), or when an object that looks like a ship (by name) is neither a
+marked craft nor declared scenery below. A failing shot renders no stills.
 
 Writes <out>/<shot>.json: per marker its craft, kind, radius, source, throttle keys and its place
 on the craft, plus each craft's world position once a second, for the VFX and sound passes.
@@ -119,6 +121,11 @@ def check(scene, fps, end):
             bad.append('%s: throttle out of 0..1' % m.name)
         if m.get('thrust_vectored'):
             bad += vectored_faults(m, fps, end)
+    faults, exempt = tm.plume_faults((0, end))
+    for name, bare in faults:
+        bad.append('%s: thrusts with no plume drawn (%s)' % (name, ', '.join(n.split(' | ')[-1] for n in bare)))
+    for name, why in exempt:
+        print('THRUST   plume exempt: %s (%s)' % (name, why))
     suspects = []
     for ob in bpy.context.view_layer.objects:
         if ob.name.startswith(tm.PREFIX) or ob.type in ('LIGHT', 'CAMERA'):
@@ -241,7 +248,7 @@ def main():
     data = summary(scene, fps, end, o['shot'])
     data['problems'] = bad
     (o['out'] / ('%s.json' % o['shot'])).write_text(json.dumps(data, indent=1) + '\n', encoding='utf-8')
-    for t in o['still'] or ():
+    for t in (o['still'] or ()) if not bad else ():
         frame = round(t * fps)
         stem = '%s-%04.1fs' % (o['shot'], t)
         g = glyphs(scene, frame)

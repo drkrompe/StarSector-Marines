@@ -40,6 +40,14 @@ import java.util.TreeSet;
  * envelope into its rooms (an area defence inside the building, held until the building has been quiet for
  * {@link #INSIDE_COOL_PLANS} plans), and with no layer left it is given back.
  *
+ * <p><b>Not every fight is into prepared positions.</b> A duty squad's post is already covered by the squad standing on
+ * it, so taking the building beside it changes the texture of the fight at the post, not whether the post is held. In
+ * the mission defenders' form ({@link #plan(CommandFrame, GarrisonableRegistry, Map, String)}) the {@link Duty duty
+ * bound} applies: a duty squad takes a place only when it is pressed at {@link #DUTY_PRESSURE} or more, harder than
+ * the ordinary start, and at most {@link #DUTY_SHARE} of the squads offered on duty hold a place at once
+ * ({@link #dutyCap}); the rest defend their posts from the open. The roving reserve is bounded by flow instead, and a
+ * story commander bounds every holder with its own share, so neither is counted against it.
+ *
  * <p>Pure planning over a frozen frame; one instance per commander, so per simulation. {@link #PROPERTY} switched off
  * is the control: nothing is offered, nothing is planned, and the battle is as it was.
  */
@@ -57,9 +65,63 @@ final class MissionGarrisons {
     static final int IN_FIGHT_REACH_CELLS = 8;
     /** How far outside a building's box an apron may stand and still front it. */
     static final int APRON_REACH_CELLS = CompoundGround.REACH_CELLS;
+    /**
+     * Share of the squads offered on duty that may hold a place at once in the mission defenders' form, at least one
+     * from one duty squad up. UNTUNED; the story commanders' holder share. A third keeps a site's defence reactive (the
+     * first pressed post still takes its building) while most posts are fought for in the street.
+     */
+    static final float DUTY_SHARE = 1f / 3f;
+    /** {@code -Dbattle.mission.reactiveDefence.dutyShare=<0..1>} overrides {@link #DUTY_SHARE}; {@code 1} bounds nothing. */
+    static final String DUTY_SHARE_PROPERTY = PROPERTY + ".dutyShare";
+    /**
+     * Believed pressure on a place at or above which a duty squad takes it in the mission defenders' form: above the
+     * ordinary start, since the post is already held by the squad standing at it outside, and below the pressure at
+     * which a place wants a second squad. Chosen on Sabotage's six-seed evidence (`garrisonables.md`, fight mix by
+     * mission): at 4 its brawl share stays well under the no-manning baseline, at 6 almost nobody mans at all.
+     */
+    static final float DUTY_PRESSURE = 5f;
+    /** {@code -Dbattle.mission.reactiveDefence.dutyPressure=<p>} overrides {@link #DUTY_PRESSURE}; {@code 0} bounds nothing. */
+    static final String DUTY_PRESSURE_PROPERTY = PROPERTY + ".dutyPressure";
+
+    /**
+     * How a duty squad is bounded: the share of duty squads that may hold a place at once ({@link #dutyCap}) and the
+     * pressure a place must reach before a duty squad takes it. {@link #NONE} bounds nothing.
+     */
+    record Duty(float share, float pressure) {
+        static final Duty NONE = new Duty(1f, 0f);
+
+        /** The mission defenders' bound: {@link #DUTY_SHARE} and {@link #DUTY_PRESSURE}, or their overrides. */
+        static Duty mission() {
+            return new Duty(dutyShare(), dutyPressure());
+        }
+    }
 
     static boolean enabled() {
         return !"false".equalsIgnoreCase(System.getProperty(PROPERTY, "true"));
+    }
+
+    /** The mission defenders' duty share: {@link #DUTY_SHARE}, or its override clamped to {@code [0, 1]}. */
+    static float dutyShare() {
+        String override = System.getProperty(DUTY_SHARE_PROPERTY);
+        if (override == null || override.isBlank()) return DUTY_SHARE;
+        return Math.max(0f, Math.min(1f, Float.parseFloat(override.trim())));
+    }
+
+    /** The mission defenders' duty pressure: {@link #DUTY_PRESSURE}, or its override (never below zero). */
+    static float dutyPressure() {
+        String override = System.getProperty(DUTY_PRESSURE_PROPERTY);
+        if (override == null || override.isBlank()) return DUTY_PRESSURE;
+        return Math.max(0f, Float.parseFloat(override.trim()));
+    }
+
+    /**
+     * How many of {@code dutyOffers} squads offered on duty may hold a place at once under {@code share}: unbounded at a
+     * share of one, none with nobody on duty, otherwise the share rounded down and at least one.
+     */
+    static int dutyCap(int dutyOffers, float share) {
+        if (share >= 1f) return Integer.MAX_VALUE;
+        if (dutyOffers <= 0) return 0;
+        return Math.max(1, (int) Math.floor(dutyOffers * share));
     }
 
     /**
@@ -148,6 +210,8 @@ final class MissionGarrisons {
         int contactFirst;
         /** Manning orders that ended (given back, taken back, lost) before either. */
         int arrivalUnresolved;
+        /** Duty squads, summed over pulses, kept on their posts in the open because the duty share was spent. */
+        int dutyShareWithheld;
         final Set<Integer> placesManned = new TreeSet<>();
 
         int distinctPlaces() { return placesManned.size(); }
@@ -198,17 +262,27 @@ final class MissionGarrisons {
      */
     Map<Integer, Manning> plan(CommandFrame frame, GarrisonableRegistry places, Map<Integer, Offer> offers,
                                String issuer) {
-        return plan(frame, places, offers, issuer, Integer.MAX_VALUE);
+        return plan(frame, places, offers, issuer, Integer.MAX_VALUE, Duty.mission());
     }
 
     /**
      * As {@link #plan(CommandFrame, GarrisonableRegistry, Map, String)}, with at most {@code maxHolders} squads holding
      * a place (standing on it, falling back or in its rooms) after this pulse: a caller that keeps most of its force
      * out of prepared positions (`garrisonables.md`, not every fight is into prepared positions) says how many may be.
-     * It bounds new sends only; nobody already holding is turned out by it.
+     * It bounds new sends only; nobody already holding is turned out by it. The caller's cap is the only bound: no duty
+     * bound is applied.
      */
     Map<Integer, Manning> plan(CommandFrame frame, GarrisonableRegistry places, Map<Integer, Offer> offers,
                                String issuer, int maxHolders) {
+        return plan(frame, places, offers, issuer, maxHolders, Duty.NONE);
+    }
+
+    /**
+     * As {@link #plan(CommandFrame, GarrisonableRegistry, Map, String, int)}, with duty squads bounded by {@code duty}:
+     * like the holder cap it bounds new sends only.
+     */
+    Map<Integer, Manning> plan(CommandFrame frame, GarrisonableRegistry places, Map<Integer, Offer> offers,
+                               String issuer, int maxHolders, Duty duty) {
         CommanderInfluenceSnapshot influence = frame.influence();
         if (!enabled() || !HeldGround.usable(places, influence)) return new TreeMap<>();
         int count = contacts(influence);
@@ -216,7 +290,7 @@ final class MissionGarrisons {
         return plan(frame.squads(), places, (bx, by) -> influence.hostileAt(bx, by), contactScratch, count,
                 (sx, sy, x, y) -> topology.inBounds(sx, sy) && topology.isWalkable(sx, sy)
                         && (sx == x && sy == y || topology.reachable(sx, sy, x, y)),
-                (x, y) -> topology.inBounds(x, y) && topology.isWalkable(x, y), offers, issuer, maxHolders);
+                (x, y) -> topology.inBounds(x, y) && topology.isWalkable(x, y), offers, issuer, maxHolders, duty);
     }
 
     /**
@@ -233,14 +307,18 @@ final class MissionGarrisons {
     Map<Integer, Manning> plan(List<CommandSquadState> roster, GarrisonableRegistry places,
                                GarrisonDirector.Pressure field, int[] contactXY, int contactCount,
                                HeldGround.Reach reach, Map<Integer, Offer> offers, String issuer, int maxHolders) {
-        return plan(roster, places, field, contactXY, contactCount, reach, (x, y) -> true, offers, issuer, maxHolders);
+        return plan(roster, places, field, contactXY, contactCount, reach, (x, y) -> true, offers, issuer, maxHolders,
+                Duty.NONE);
     }
 
-    /** The full seam: as above, with a test for the cells a waiting squad may stand on. */
+    /**
+     * The full seam: as above, with a test for the cells a waiting squad may stand on and the duty bound
+     * ({@link Duty#NONE} bounds nothing).
+     */
     Map<Integer, Manning> plan(List<CommandSquadState> roster, GarrisonableRegistry places,
                                GarrisonDirector.Pressure field, int[] contactXY, int contactCount,
                                HeldGround.Reach reach, GarrisonFlow.CellOk stand, Map<Integer, Offer> offers,
-                               String issuer, int maxHolders) {
+                               String issuer, int maxHolders, Duty duty) {
         Map<Integer, Manning> out = new TreeMap<>();
         stats.pulses++;
 
@@ -328,6 +406,19 @@ final class MissionGarrisons {
         }
         director.heldByOwnGarrison(ownGarrisoned);
 
+        // The duty share: how many more duty squads may take a place this pulse.
+        int dutyOffers = 0;
+        for (Map.Entry<Integer, Offer> entry : offers.entrySet()) {
+            if (!entry.getValue().roving() && offerable(squads.get(entry.getKey()), entry.getValue())) dutyOffers++;
+        }
+        int dutyHolding = 0;
+        for (Manning m : out.values()) {
+            Offer offer = offers.get(m.squadId());
+            if (offer != null && !offer.roving()) dutyHolding++;
+        }
+        int dutyCap = dutyCap(dutyOffers, duty.share());
+        int dutyRoom = dutyCap == Integer.MAX_VALUE ? Integer.MAX_VALUE : Math.max(0, dutyCap - dutyHolding);
+
         List<GarrisonDirector.Free> free = new ArrayList<>();
         for (Map.Entry<Integer, Offer> entry : offers.entrySet()) {
             int id = entry.getKey();
@@ -338,18 +429,32 @@ final class MissionGarrisons {
             PlaceFlow.Post post = flow.post(id);
             // A forward squad meets the attack in the street: it is not sent to man.
             if (post != null && post.forward) continue;
+            // The duty share is spent: this post is defended from the open.
+            if (!entry.getValue().roving() && dutyRoom <= 0) {
+                stats.dutyShareWithheld++;
+                continue;
+            }
             boolean staged = !entry.getValue().roving() || squad.localContact() || post != null;
             free.add(new GarrisonDirector.Free(id, squad.anchorCellX(), squad.anchorCellY(), staged,
                     squad.aliveMembers(), squad.originalMembers()));
         }
+        // The director picks the first squad this test passes, so a duty squad passed is a duty squad sent: once the
+        // share is spent the next pressed place goes to the reserve, or stays empty. A duty squad takes only a place
+        // pressed hard enough for the duty bound; under that it holds its post from the open.
+        int[] dutyLeft = {dutyRoom};
         List<GarrisonDirector.Man> sent = director.assign(free, (squadId, place) -> {
             Offer offer = offers.get(squadId);
             CommandSquadState squad = squads.get(squadId);
             if (offer == null || squad == null || !withinDuty(offer, place, places)) return false;
+            if (!offer.roving() && (dutyLeft[0] <= 0 || director.pressureOn(place) < duty.pressure())) return false;
             // A squad in a fight takes the cover beside it, never a march away from it.
             if (squad.localContact() && gapTo(place, squad.anchorCellX(), squad.anchorCellY(), places)
                     > IN_FIGHT_REACH_CELLS) return false;
-            return reach.to(squad.anchorCellX(), squad.anchorCellY(), places.centreX(place), places.centreY(place));
+            if (!reach.to(squad.anchorCellX(), squad.anchorCellY(), places.centreX(place), places.centreY(place))) {
+                return false;
+            }
+            if (!offer.roving() && dutyLeft[0] != Integer.MAX_VALUE) dutyLeft[0]--;
+            return true;
         }, areas.isEmpty() ? null : (squadId, place) -> {
             // The squads waiting for the place's own area are drawn on before any other.
             int own = PlaceFlow.areaOf(flow.post(squadId), areas);

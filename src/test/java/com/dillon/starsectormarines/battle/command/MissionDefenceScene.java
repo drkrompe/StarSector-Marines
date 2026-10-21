@@ -47,8 +47,10 @@ import java.util.function.Supplier;
 /**
  * Mission defenders man garrisonables reactively (`garrisonables.md`, mission defenders): on the production map of a
  * Raid and of an Assault, the mission's own defender commander — {@link RaidDefenderCommand},
- * {@link AssaultDefenderCommand} — is given three mobile squads beside a held place's building, and a party of marines,
- * too tough to be shot down so the question stays about command, is set down in front of it and later walks away.
+ * {@link AssaultDefenderCommand} — is given three mobile squads beside a held place's building, and a party of eight
+ * marines, too tough to be shot down so the question stays about command, is set down in front of it and later walks
+ * away. Those missions offer such squads on duty, and a duty squad takes a building only under heavier pressure than a
+ * reserve squad does ({@link MissionGarrisons#DUTY_PRESSURE}): the party is sized to raise it.
  *
  * <p>Verdicts: the building is an envelope; the defender believes the party pressing it; the commander mans it with
  * its own envelope order within a few pulses; a holder stands to at the apertures; and once the party has gone and
@@ -65,7 +67,7 @@ public final class MissionDefenceScene implements BehaviorScene {
     private static final int TICKS = 4200;
     private static final int SQUADS = 3;
     private static final int SQUAD_SIZE = 6;
-    private static final int RAIDERS = 4;
+    private static final int RAIDERS = 8;
     private static final float TOUGH = 1_000_000f;
     private static final int MIN_POSTS = 4;
 
