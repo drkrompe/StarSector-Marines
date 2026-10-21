@@ -190,4 +190,18 @@ public enum Affordance {
             case PRACTICE, UNWIND, EXERCISE, ROUNDS, GUARD -> false;
         };
     }
+
+    /**
+     * Whether the hands are out on the fixture while this work is done: a console
+     * worked, a bench used, a meal eaten. It is what puts a family's station arms
+     * in the picture. Narrower than {@link #closesOnFixture}, which a bunk and a
+     * washstand also do without anybody reaching onto them.
+     */
+    public boolean handsOnFixture() {
+        return switch (this) {
+            case SERVICE, FABRICATE, STOW, READOUT, TREAT, WATCH, ISSUE, TEND,
+                    REPAIR, COOK, MESS -> true;
+            case REST, WASH, PRACTICE, UNWIND, EXERCISE, ROUNDS, GUARD -> false;
+        };
+    }
 }

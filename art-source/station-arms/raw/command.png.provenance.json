@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f1a-7bb8-71e2-9241-faa61344725e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f1a-7bb8-71e2-9241-faa61344725e\\exec-c3231e68-9fe0-4de2-a567-23f0606a3228.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\station-arms\\raw\\command.png",
+    "sha256": "1e0759fbb150608eae753fa5ae1bffced2d0acd925f2a8ba9d6a99bd94614d4b",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\station-arms\\prompts\\command.full.txt",
+  "promptSha256": "d2df0d2ac5a56ad335ba1b4296a4e86a5c5f7737b2139ca38acf9a2c7c214fd8",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the two forearm-and-hand shapes to reskin, exact outlines, positions and angles\nImage 2: Style and identity: this same character's torso, head and boot sprites; match its pixel-art rendering, outline, palette, sleeve fabric and skin tone, but not its layout\n\nUse case: sketch-to-render. Production overhead sprite layers for a tactical game: the two FOREARMS AND HANDS of a person working at a console, seen from directly above, drawn as separate layers that sit over their torso layer.\n\nReference 1 is the authoritative SILHOUETTE GUIDE and edit target, 1536x1024. Reskin only its two flat gray shapes; keep each shape's exact outline, position, scale and angle. Everything outside the shapes must be genuinely transparent: no background, glow, ground, shadow, body, head, console, border, labels or grid.\n\nCamera: TRUE STRAIGHT-DOWN 90-degree overhead view. Each shape is one forearm: the wide rounded lower end is the sleeve at the elbow, the narrow upper part is the forearm, and the round blob at the top is the HAND seen from above, palm down, fingers together pointing up the image, resting on a console surface. Left shape is the person's left arm, right shape the right arm. Show a sleeve cuff where the sleeve ends at the wrist, then the bare (or gloved) hand: knuckles and four short fingers readable, thumb tucked on the inner side.\n\nStyle: match reference 2 exactly — the same character's torso and head sprites — chunky crisp pixel art with a clean one-step dark outline around every shape, the same limited muted palette, sleeve fabric and skin tone, light from the upper left, restrained detail that reads at 25 pixels wide. Not painterly, not smooth airbrushed, not photographic.\n\nAvoid: tools, pens, tablets, weapons, watches with text, neon, text, insignia lettering, noise, cast shadows outside the shapes.\nThis person: SHIP COMMAND watch officer. Sleeves: the smooth charcoal-navy duty tunic of reference 2, with a slim pale-gray cuff edge. Hands: bare, the same skin tone as the ears in reference 2.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\station-arms-silhouettes.png",
+      "sha256": "3296fa1d5965aae7e123755580c879cab1ba99ece8a9ed5289f39d1eddef28f8",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the two forearm-and-hand shapes to reskin, exact outlines, positions and angles"
+    },
+    {
+      "path": "art-source\\ship-crew\\raw\\command.png",
+      "sha256": "3a9191975131217b5257512e762124b23445c9bef4c863d5dea55db2663d5290",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Style and identity: this same character's torso, head and boot sprites; match its pixel-art rendering, outline, palette, sleeve fabric and skin tone, but not its layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first reference for geometry and the second for the officer’s pixel-art style, with transparency outside the arms.\n"
+  ],
+  "usage": {
+    "input_tokens": 44224,
+    "cached_input_tokens": 28416,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 567,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.6
+}

@@ -29,6 +29,12 @@ public final class LayeredAppearance {
      * in hand, whatever special the medic happens to carry.
      */
     public static final int FLAG_TREATING = 1 << 4;
+    /**
+     * Standing at a fixture with hands on it: a console, a bench, a counter.
+     * The family's station arms are drawn reaching onto it, and the weapon phase
+     * carries how far through the job the actor is, which keeps the hands busy.
+     */
+    public static final int FLAG_AT_STATION = 1 << 5;
     /** The held point of the planting clip a kneeling medic shows. */
     public static final float TREATING_PHASE = 0.56f;
 

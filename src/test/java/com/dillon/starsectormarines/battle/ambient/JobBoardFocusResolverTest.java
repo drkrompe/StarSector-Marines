@@ -84,4 +84,12 @@ class JobBoardFocusResolverTest {
         assertEquals(4.5f, guard.worldX(), 0.001f);
         assertEquals(2.5f, guard.worldY(), 0.001f);
     }
+
+    @Test
+    void aClaimGroupNamesTheJobItWasMadeFor() {
+        assertEquals(Affordance.WATCH, JobBoard.affordance(JobBoard.group(11, Affordance.WATCH)));
+        assertEquals(Affordance.SERVICE, JobBoard.affordance(JobBoard.group(4, Affordance.SERVICE, 2)));
+        assertEquals(null, JobBoard.affordance("not-a-group"));
+        assertEquals(null, JobBoard.affordance(null));
+    }
 }
