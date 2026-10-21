@@ -1,12 +1,13 @@
 <template props="survey,workshop,roomTitle,roomCopy,contextLabel,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
   <div id="ship-view-root" class="ship-view-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
-    <company-resource-stock stockId="engineering-resource-stock" rows="{workshop.stock}" />
-
     <div id="ship-view-room-bar" class="panel ship-view-room-bar console-header">
       <img id="ship-view-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
       <div id="ship-view-room-title" class="label heading tone-edge">{roomTitle}</div>
       <div id="ship-view-room-copy" class="label tone-muted">{roomCopy}</div>
+      <div id="ship-view-stock-slot" class="ship-view-stock-slot">
+        <company-resource-stock stockId="engineering-resource-stock" rows="{workshop.stock}" />
+      </div>
     </div>
 
     <div id="ship-view-body" class="ship-view-body">
@@ -176,6 +177,8 @@
   .heading { font-family: heading; }
   .ship-view-room-bar { flex-direction: row; height: 54px; padding: 8px 10px; gap: 12px; align-items: center; border-width: 2px; }
   #ship-view-room-title { width: 330px; height: auto; white-space: normal; }
+  .ship-view-stock-slot { flex-direction: row; width: 640px; height: 38px; }
+  #engineering-resource-stock { width: 100%; height: 38px; padding: 0px 10px; }
   #ship-view-room-copy { width: 0; flex-grow: 1; text-align: left; height: auto; white-space: normal; }
   .ship-view-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 8px; }
   .ship-view-stage { flex-direction: column; width: 0px; height: 100%; flex-grow: 1; padding: 0px; overflow: hidden; border-width: 2px; }
