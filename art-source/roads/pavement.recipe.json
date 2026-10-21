@@ -14,6 +14,11 @@
       "id": "concrete",
       "damageBlock": "terrain.blast-paving",
       "base": "#888981"
+    },
+    {
+      "id": "marking",
+      "base": "#d9d5c6",
+      "paint": true
     }
   ]
 }

@@ -34,13 +34,16 @@ public final class RoadMaterialBaker {
             blocks.put(block);
         }
         out.dispose();
-        // Six material/age rows, sixteen cardinal masks, eight coordinate variants.
+        // A row per material and age, sixteen cardinal masks, eight coordinate variants.
         // Keeping variant order identical makes the feathered tile match its interior.
-        int columns=variants*4;
-        BufferedImage edges=new BufferedImage(size*columns,size*families.length()*3*4,BufferedImage.TYPE_INT_ARGB);
+        // Paint has no feathered edge: it is drawn as an exact patch over whole
+        // asphalt, so only the families ahead of the first paint get edge rows.
+        int columns=variants*4,feathered=0;
+        while(feathered<families.length() && !families.getJSONObject(feathered).optBoolean("paint"))feathered++;
+        BufferedImage edges=new BufferedImage(size*columns,size*feathered*3*4,BufferedImage.TYPE_INT_ARGB);
         Graphics2D edgeOut=edges.createGraphics(); JSONArray edgeBlocks=new JSONArray();
         double feather=recipe.getDouble("edgeFeather"),roughness=recipe.getDouble("edgeRoughness");
-        for(int row=0;row<families.length()*3;row++) for(int mask=1;mask<16;mask++) {
+        for(int row=0;row<feathered*3;row++) for(int mask=1;mask<16;mask++) {
             JSONArray cells=new JSONArray();
             for(int v=0;v<variants;v++) {
                 int col=(mask%4)*variants+v,ey=row*4+mask/4;
@@ -87,6 +90,14 @@ public final class RoadMaterialBaker {
             int grain=noise.nextInt(13)-6+age*3;
             int r=Math.max(0,Math.min(255,base.getRed()+grain)),g=Math.max(0,Math.min(255,base.getGreen()+grain)),b=Math.max(0,Math.min(255,base.getBlue()+grain));
             image.setRGB(x,y,0xff000000|r<<16|g<<8|b);
+        }
+        if(family.optBoolean("paint")) {
+            // Road paint wears through rather than cracking: an aged stripe lets the
+            // asphalt under it show in specks, more of them with each age.
+            Random wear=new Random(seed^0x2F6E2B1L);
+            for(int y=0;y<size;y++) for(int x=0;x<size;x++)
+                if(wear.nextDouble()<age*.05) image.setRGB(x,y,image.getRGB(x,y)&0x00ffffff);
+            return image;
         }
         Graphics2D g=image.createGraphics(); g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
         if(family.getString("id").equals("concrete")) {
