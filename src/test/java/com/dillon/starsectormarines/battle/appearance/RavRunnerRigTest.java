@@ -113,6 +113,24 @@ class RavRunnerRigTest {
     }
 
     @Test
+    void aTurningBodyBowsIntoTheTurn() {
+        RavRunnerRig rig = new RavRunnerRig(4L);
+        float x = 0f, y = 0f, facing = 0f;
+        for (int tick = 0; tick < 20; tick++) {
+            // running and turning left at 180 degrees a second
+            rig.advance(x, y, facing, 1f, false, DT);
+            double rad = Math.toRadians(facing);
+            x += (float) -Math.sin(rad) * 3f * DT;
+            y += (float) Math.cos(rad) * 3f * DT;
+            facing += 180f * DT;
+        }
+        assertTrue(rig.bendDegrees() > 10f, "the spine bends with the turn: " + rig.bendDegrees());
+        float mid = rig.x(RavRunnerRig.MID);
+        assertTrue(rig.x(RavRunnerRig.SHOULDER) < mid && rig.x(RavRunnerRig.HIP) < mid,
+                "shoulders and hips both bow toward the inside of a left turn");
+    }
+
+    @Test
     void ikKeepsBoneLengths() {
         float[] j = new float[4];
         RavRunnerRig.ik2(0f, 0.4f, 0.1f, 0f, 0.22f, 0.22f, -1f, j);

@@ -80,12 +80,33 @@ public final class RavRunnerRig {
 
     // ------------------------------------------------------------------ pose layout
     /** First point of each leg; front legs have three points, hind legs four. */
-    public static final int[] LEG_START = {0, 3, 6, 10};
+    private static final int[] LEG_START_INIT = {0, 3, 6, 10};
+    public static final int[] LEG_START = LEG_START_INIT.clone();
     public static final int[] LEG_POINTS = {3, 3, 4, 4};
     /** First point of each arm (left, right): base, elbow, wrist, spike tip. */
     public static final int[] ARM_START = {14, 18};
-    public static final int SHOULDER = 22, HIP = 23, NECK = 24, HEAD = 25;
-    public static final int POINTS = 26;
+    public static final int SHOULDER = 22, HIP = 23, NECK = 24, HEAD = 25, MID = 26;
+    public static final int POINTS = 27;
+    /**
+     * How far each point turns with its half of the bending spine (front positive, rear negative,
+     * as a share of half the bend): the feet hold their ground and the joints between share it.
+     */
+    private static final float[] BEND_SHARE = new float[POINTS];
+    static {
+        float[] front = {1f, 0.5f, 0f};
+        float[] hind = {1f, 0.67f, 0.3f, 0f};
+        for (int leg = 0; leg < 4; leg++) {
+            float[] share = leg < 2 ? front : hind;
+            for (int j = 0; j < share.length; j++) {
+                BEND_SHARE[LEG_START_INIT[leg] + j] = leg < 2 ? share[j] : -share[j];
+            }
+        }
+        for (int p = 14; p < 22; p++) BEND_SHARE[p] = 1f;
+        BEND_SHARE[22] = 1f;     // shoulder
+        BEND_SHARE[23] = -1f;    // hip
+        BEND_SHARE[24] = 1.2f;   // neck, and the head looks further into the turn
+        BEND_SHARE[25] = 1.4f;
+    }
 
     private enum Mode { GALLOP, TROT, PLANT }
 
@@ -95,6 +116,10 @@ public final class RavRunnerRig {
     private float phi;
     private Mode mode = Mode.PLANT;
     private float swayAmp, shx, hpx, run;
+    /** Spine bend through a turn, degrees: positive bows the body into a left turn. */
+    private float bend;
+    /** Degrees of bend per degree a second of turning, and the most the spine bends. */
+    private static final float BEND_PER_YAW_RATE = 0.12f, MAX_BEND = 40f;
     private final float[] feet = new float[12];          // rig frame
     private final float[] pinnedWorld = new float[8];     // world x,y of each pinned foot
     private final float[] pinStart = new float[12];       // rig frame when the pin began
@@ -178,6 +203,9 @@ public final class RavRunnerRig {
         }
         bodyX = posX;
         bodyY = posY;
+        float yawRate = (((facing - facingDeg) % 360f + 540f) % 360f - 180f) / dt;
+        float bendTarget = Math.max(-MAX_BEND, Math.min(MAX_BEND, yawRate * BEND_PER_YAW_RATE));
+        bend += (bendTarget - bend) * Math.min(1f, dt / 0.12f);
         facingDeg = facing;
         double rad = Math.toRadians(facing);
         float fwdX = (float) -Math.sin(rad), fwdY = (float) Math.cos(rad);
@@ -247,6 +275,8 @@ public final class RavRunnerRig {
         solveArms(shY, shZ);
         set(NECK, shx * 1.2f, shY + 0.12f, shZ + 0.03f);
         set(HEAD, shx * 1.4f, shY + 0.25f + 0.03f * s * run, shZ - 0.01f);
+        set(MID, (shx + hpx) / 2, (shY + hpY) / 2, (shZ + hpZ) / 2);
+        bendSpine();
         if (latch > 0.001f && carrying) latchOn(loadX, loadY, fwdX, fwdY);
     }
 
@@ -474,6 +504,28 @@ public final class RavRunnerRig {
             set(p + 3, w[0] + ARM_SPIKE * dx / n, w[1] + ARM_SPIKE * dy / n, w[2] + ARM_SPIKE * dz / n);
         }
     }
+
+    /**
+     * Bows the spine into the turn about mid-spine: the shoulders and everything mounted on them
+     * swing one way, the hips and the tail the other, so the body draws a C toward the inside of
+     * the turn while the planted feet stay put and the legs lean.
+     */
+    private void bendSpine() {
+        if (Math.abs(bend) < 0.05f) return;
+        float mx = x(MID), my = y(MID);
+        for (int p = 0; p < POINTS; p++) {
+            float share = BEND_SHARE[p];
+            if (share == 0f) continue;
+            double a = Math.toRadians(bend / 2 * share);
+            float c = (float) Math.cos(a), sn = (float) Math.sin(a);
+            float dx = x(p) - mx, dy = y(p) - my;
+            pose[p * 3] = mx + dx * c - dy * sn;
+            pose[p * 3 + 1] = my + dx * sn + dy * c;
+        }
+    }
+
+    /** Spine bend this tick, degrees; positive bows the body into a left turn. */
+    public float bendDegrees() { return bend; }
 
     /** The jaws close on the load beside the spike, the neck reaching no further than it can. */
     private void latchOn(float loadX, float loadY, float fwdX, float fwdY) {
