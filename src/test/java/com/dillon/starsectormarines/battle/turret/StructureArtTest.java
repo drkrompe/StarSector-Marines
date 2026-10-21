@@ -60,13 +60,37 @@ class StructureArtTest {
     }
 
     @Test
+    void variantsResolveEveryLayerToTheSamePaintingPerStructure() throws Exception {
+        StructureArt art = StructureArt.parse("s", new JSONObject("""
+                { "variants": 3, "layers": [
+                  { "sprite": "g/body-{variant}.png", "cells": 3.0 },
+                  { "sprite": "g/body-{variant}-glow.png", "cells": 3.0, "pulseHz": 0.3, "pulseDepth": 0.5 } ] }
+                """));
+        boolean[] seen = new boolean[4];
+        for (long id = 1; id <= 60; id++) {
+            int v = art.variantFor(id);
+            assertTrue(v >= 1 && v <= 3);
+            assertEquals(v, art.variantFor(id), "the same structure always wears the same painting");
+            seen[v] = true;
+        }
+        assertTrue(seen[1] && seen[2] && seen[3], "sixty structures wear all three paintings");
+        assertEquals("g/body-2-glow.png", art.layers().get(1).spritePath(2));
+        assertEquals(1, StructureArt.parse("s", new JSONObject(
+                "{ \"layers\": [ { \"sprite\": \"a.png\", \"cells\": 1.0 } ] }")).variantFor(42));
+        assertThrows(JSONException.class, () -> StructureArt.parse("s", new JSONObject(
+                "{ \"variants\": 0, \"layers\": [ { \"sprite\": \"a.png\", \"cells\": 1.0 } ] }")));
+    }
+
+    @Test
     void everyShippedArtPathAndMountSpriteExistsOnDisk() {
         int withArt = 0;
         for (StructureDef structure : TurretCatalogRegistry.installed().structures()) {
             if (structure.art == null) continue;
             withArt++;
             if (structure.art.basePath != null) assertShipped(structure.id, structure.art.basePath);
-            for (StructureArt.Layer layer : structure.art.layers()) assertShipped(structure.id, layer.spritePath());
+            for (StructureArt.Layer layer : structure.art.layers()) {
+                for (int v = 1; v <= structure.art.variants; v++) assertShipped(structure.id, layer.spritePath(v));
+            }
             // A mod-owned mount sprite is checked too; vanilla weapon sprites live in the game install.
             for (String path : new String[]{structure.mount.spritePath, structure.mount.recoilSpritePath}) {
                 if (path != null && path.startsWith("graphics/structures/")) assertShipped(structure.id, path);
