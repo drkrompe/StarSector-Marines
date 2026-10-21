@@ -22,7 +22,6 @@ import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -117,7 +116,7 @@ final class FirstRefitModel {
                 : LessonCopy.text("refitFittingCopy"));
         props.put("claimClasses", !claimed && !complete ? "refit-action console-action" : "refit-hidden");
         props.put("claimDisabled", path == null || reviewed == null);
-        props.put("claimLabel", path == null ? Strings.get("openingFirstRefitChooseAPath") : Strings.format("openingFirstRefitLearn", path.label().toUpperCase(Locale.ROOT)));
+        props.put("claimLabel", path == null ? Strings.get("openingFirstRefitChooseAPath") : Strings.format("openingFirstRefitLearn", Strings.upper(path.label())));
         props.put("issueClasses", claimed && !complete ? "refit-action console-action" : "refit-hidden");
         props.put("workClasses", !complete ? "refit-work" : "refit-hidden");
         props.put("doneClasses", complete ? "refit-action console-action" : "refit-hidden");

@@ -8,14 +8,19 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Separate assault, two stable militia holds, and a finite counterattack pool. */
-public final class ThunderRunCommand implements AutonomousMissionCommand<ThunderRunCommandFrame, ThunderRunCommand.Picture> {
+/**
+ * Separate assault, two stable militia holds, and a finite counterattack pool. A pool squad holding home or holding its
+ * ground mans the places near it, within the story share ({@link StoryGarrisons}); one in the push goes as authored.
+ */
+public final class ThunderRunCommand implements AutonomousMissionCommand<ThunderRunCommandFrame, ThunderRunCommand.Picture>,
+        ReactiveDefenceSource {
     public record Duty(int squadId, int site, String reason) {}
     public record Picture(List<Duty> duties) { public Picture { duties = List.copyOf(duties); } }
     private final Faction faction;
     private final RelayNineTactics tactics = new RelayNineTactics();
     private final Map<Integer, Integer> detachments = new LinkedHashMap<>();
     private volatile Picture picture;
+    private final StoryGarrisons garrisons = new StoryGarrisons();
     /** The defender's finite pool on the shared counter-attack (`conquest-command.md`, Defender command); {@code null} for the other sides. */
     private final SiteCounterattack counter;
     public ThunderRunCommand(Faction faction) {
@@ -29,6 +34,8 @@ public final class ThunderRunCommand implements AutonomousMissionCommand<Thunder
     @Override public String strategyId() { return issuer(faction); }
     public Picture picture() { return picture; }
     @Override public void publish(CommanderSnapshot<Picture> snapshot) { picture = snapshot.detail(); }
+    @Override public void afterCommit(CommandEffects effects) { garrisons.afterCommit(effects, faction); }
+    @Override public Map<String, Integer> reactiveDefenceFigures() { return garrisons.figures(); }
     @Override public CommandPlan<Picture> plan(ThunderRunCommandFrame frame) {
         var sites = frame.facts().compounds();
         var states = sites.stream().map(ConquestCommandFacts.Compound::state).toList();
@@ -58,8 +65,11 @@ public final class ThunderRunCommand implements AutonomousMissionCommand<Thunder
             boolean companyDefense = hold || corridorOpen;
             var place = sites.get(site);
             SiteCounterattack.Duty duty = retake == null ? null : retake.get(squad.squadId());
+            if (faction == Faction.DEFENDER) garrisons.own(squad);
             if (duty != null) {
                 ObjectiveAssignment assignment = same(old.assignment(), duty.assignment()) ? old.assignment() : duty.assignment();
+                if (duty.reason().endsWith(SiteCounterattack.HOLD_HOME) || duty.reason().endsWith(SiteCounterattack.HOLD_GROUND))
+                    garrisons.offerDuty(squad, duty.assignment().targetCellX(), duty.assignment().targetCellY());
                 proposals.add(CommandProposal.assign(assignment, CommandAuthority.MISSION_COMMAND, duty.reason(),
                         assignment == old.assignment() ? CommandStabilityBreak.NONE : CommandStabilityBreak.CONTEXT_INVALIDATED));
                 duties.add(new Duty(squad.squadId(), site, duty.reason()));
@@ -81,6 +91,7 @@ public final class ThunderRunCommand implements AutonomousMissionCommand<Thunder
                     assignment == old.assignment() ? CommandStabilityBreak.NONE : CommandStabilityBreak.CONTEXT_INVALIDATED));
             duties.add(new Duty(squad.squadId(), site, reason));
         }
+        if (faction == Faction.DEFENDER) proposals = garrisons.apply(frame, frame.facts().garrisonables(), proposals, strategyId());
         return new CommandPlan<>(faction, strategyId(), faction == Faction.ALLY ? "HOLD_GAINS"
                 : faction == Faction.MARINE ? "OPEN_FREIGHT_CORRIDOR" : "FINITE_COUNTERATTACK", frame.tick(),
                 frame.influence() == null ? -1 : frame.influence().updatedTick(), duties.size(), 0,
