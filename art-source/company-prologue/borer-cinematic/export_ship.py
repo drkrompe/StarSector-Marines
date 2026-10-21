@@ -202,7 +202,7 @@ for ob in ship:
         bsdf = m and m.node_tree and m.node_tree.nodes.get('Principled BSDF')
         if bsdf and bsdf.inputs['Emission Strength'].default_value > 0 and any(bsdf.inputs['Emission Color'].default_value[:3]):
             lamps.append({'object': ob.name, 'material': m.name, 'lit': True,
-                          'at': [round(c, 2) for c in ob.matrix_world.translation]})
+                          'at': [round(c, 2) for c in (bbox(ob)[0] + bbox(ob)[1]) / 2]})
             break
 
 # Strip everything outside the collection, pack, save.
