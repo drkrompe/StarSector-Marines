@@ -362,6 +362,13 @@ delivery is lost. Laws:
   evacuee may be.
 - Harvest is deterministic and traced: deliveries per bore appear in the
   director snapshot.
+- **A dragged body is safe from its own side's direct fire** (owner,
+  2026-10-21). Fire at a carrier, a miss that strays into its load and a round
+  that would go through the carrier never hurt the body being dragged, Marine,
+  militia or colonist; the ray passes it. Area weapons still reach it, behind a
+  switch while the owner decides. It matters once the load can be alive: a
+  Runner can impale a living body and drag it off, and killing the carrier
+  frees it (`runner-impale-drag.md`).
 
 **Spawning surge.** How the swarm moves out of a bore. Bodies do not trickle
 out one at a time: a bore **spawns**, pushing a dense pulse of bodies out of
@@ -401,9 +408,11 @@ puffs (flak) or a fast white-amber streak (lance). It bursts in the air at the
 craft's drawn height, hit or miss, in an amber flash, and leaves spore haze
 drifting there; it never marks the ground beneath.
 
-Bores and colonies are grown, not built, and look it: the runner's chitin
-and amber in every body, standing on the ground with no hardstanding pad,
-their amber nodes breathing. Nothing about them is regular: they erupted, so
+Bores and colonies are grown, not built, and look it: they wear the same
+Rav Bloom palette as the creatures (lilac and dusky-violet carapace over
+crimson sinew, ivory bone, amber nodes breathing), standing on the ground with
+no hardstanding pad. The earth a bore heaved up is creep, in the creep's own
+colours, so the rim reads as where the creep pours out of the ground. Nothing about them is regular: they erupted, so
 they are lopsided. A bore is a slanted shaft torn up through the ground, one
 side heaved up into reared jaw-plates, tusks and thrown paving, the other
 collapsed into the funnel; the mother bore is a wider, deeper, terraced one.

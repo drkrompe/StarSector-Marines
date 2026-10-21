@@ -614,7 +614,23 @@ are not both met by a crossing street), which would otherwise swell the road
 into the yard or float asphalt in a gap between buildings. Pedestrian frames,
 the rest of the flank, plazas broader than a street (nine cells) and lanes too
 narrow for a sweep (under three) keep their paving, which also shows in the
-corners a round end or a junction turn leaves uncovered. The paving is the underlay rather than being replaced: no
+corners a junction turn leaves uncovered.
+
+A city street ends square, flush with its band, rather than with the round
+brush end a service road takes. Beside its asphalt lies a concrete sidewalk,
+on the street's own ground: the kerb, the flank, or a yard's paving where one
+is beside the asphalt, and otherwise the carriageway's outer cell, provided
+three cells of asphalt remain. A narrower street goes without on that side.
+**The sidewalk is ground, never a second painted layer.** It is the underlay
+of every city street cell the asphalt touches or neighbours, and of every
+building apron and sidewalk flank in the city whether a road runs past or not,
+so a city has one sidewalk material and asphalt is the only subcell paint. A cell the asphalt only
+partly covers shows concrete beside the curve, and the concrete meets the
+untouched paving on whole cell edges. A sidewalk swept as a second subcell
+layer over the old kerb and paver tiles left half-cell triangles of the tile
+showing wherever either sweep only partly covered a cell.
+`-Dbattle.mapgen.cityRoadEnds=round` and `-Dbattle.mapgen.citySidewalks=false`
+are the controls; precinct roads keep round ends and no sidewalk. The paving is the underlay rather than being replaced: no
 ground kind, surface, walkability, road graph, width or random draw changes,
 so navigation, convoy routing, garrisons and mission map requirements are
 untouched. `-Dbattle.mapgen.cityRoads=false` is the control; it leaves the city

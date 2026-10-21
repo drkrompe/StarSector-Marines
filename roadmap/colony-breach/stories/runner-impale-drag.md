@@ -4,7 +4,7 @@ Status: READY once `swarm-harvest.md` has landed its carrier — design settled 
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — owner answers folded in; the revised Runner's blade, bite and swipe variants are presentation of one strike.
+Updated: 2026-10-21 — owner rule: direct fire never hurts a held body, area weapons do behind a switch.
 
 Model: `colony-breach-nouns.md` (Harvest, Swarm strain, The feed seam, Bore).
 Art and the motion study (blades swept back at rest, the forward strike, the
@@ -115,8 +115,29 @@ on screen, so this story doesn't do it.
   target** while it is in sight. That is a target-priority bump only. Squads do
   not chase carriers on their own: going after one is the player's call, made
   with an ordinary move order.
-- Shots at the carrier resolve against the carrier alone; the held body is not
-  hit by them.
+- **Direct fire never hurts the held body** (owner, 2026-10-21). Marines and
+  militia can pour fire at a carrier without killing the person on its blades:
+  a shot aimed at the carrier, a miss that strays into the held body, and a
+  round that would pass through the carrier into it all leave it untouched.
+  This holds for Marines, militia and colonists alike.
+- **Area weapons still can** (grenades, mortars, rocket blasts, air-delivered
+  ordnance). Calling a blast down on a carrier is a real choice with a real
+  cost. The owner said "maybe" here, so it is a switch,
+  `-Dbattle.colonyBreach.impale.areaHitsHeld` (default `true`), and an open
+  question below.
+
+**How the hit is kept off.** Direct fire is a ray traced against every body it
+crosses (`BallisticResolver.trace`); that is what lets a miss hit a bystander
+or a round go through one body into the next. The trace's candidate loop
+already drops bodies that cannot be hit (the shooter itself, a carrier body
+that is not present or airborne, civilians to a Marine-side shooter); a held
+body joins that list, so it can be neither the locked target, nor an
+incidental hit, nor the body behind a penetration. The ray simply passes it.
+The held body stays in the spatial index and the roster, because occupancy and
+everything else still need to see it. Blasts are resolved separately
+(`Detonations.detonate` walks every body in the radius), so area damage reaches
+a held body unless the switch is off, in which case that walk skips it the same
+way.
 
 ### 4. Where the carrier goes, and what happens there
 
@@ -191,9 +212,17 @@ Radio lines ("They've got Okafor!") are `breach-audio.md`'s.
 - Impales happen only on eligible targets while a bore is open, never to power
   suits, never to an escorted evacuee.
 - Killing the carrier always frees a living body.
+- No direct-fire round, aimed, stray or penetrating, ever damages a held
+  body; a blast does unless `areaHitsHeld` is off.
 - A taken Marine writes back KIA without a roll.
 - Deterministic; the control switch changes no other roll; unit tests on the
   impale draw and the outcome mapping each run under a second.
+
+## Open question for the owner
+
+- **Should area weapons hurt a held body?** Default yes (a blast on a carrier
+  costs you the victim too); `-Dbattle.colonyBreach.impale.areaHitsHeld=false`
+  is the other answer, ready to flip.
 
 ## Later, not in this story
 

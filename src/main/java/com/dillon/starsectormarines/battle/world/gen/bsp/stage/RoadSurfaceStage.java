@@ -25,8 +25,20 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.Tag;
  * renderer draws wherever a wall or building is within one cell. The kerb, the
  * pedestrian frames, plazas wider than {@link #CITY_MAX_BREADTH}, lanes
  * narrower than a sweep, and the bulges and pills {@link GeneratedRoads#streets}
- * refuses keep the paving, which also shows through in the corners a round end
- * or a junction turn leaves uncovered.
+ * refuses keep the paving, which also shows through in the corners a junction
+ * turn leaves uncovered.
+ *
+ * <p>A city street ends square, flush with the band it was found in, and has a
+ * concrete sidewalk beside its asphalt: on the kerb, the boulevard's flank or a
+ * yard's paving where the street has one beside it, and otherwise out of the
+ * street's own outer cells while three cells of asphalt remain. The sidewalk is
+ * <em>ground</em>, not pavement: it is the underlay of every city street cell
+ * the asphalt touches or neighbours (two deep on a sidewalk flank), so a cell
+ * the asphalt only partly covers shows concrete beside it rather than the kerb
+ * or paver tile it was, and the concrete meets the untouched paving on whole
+ * cell edges. {@code -Dbattle.mapgen.cityRoadEnds=round} restores the round
+ * brush end and {@code -Dbattle.mapgen.citySidewalks=false} the bare asphalt;
+ * precinct roads keep round ends and no sidewalk either way.
  *
  * <p>This is a finish, not a repaving: no cell's ground kind, surface,
  * walkability or tag other than {@link Tag#ROAD_EDGE_BLEND} changes, and no
@@ -44,6 +56,12 @@ public final class RoadSurfaceStage implements GenStage {
         return Boolean.parseBoolean(System.getProperty("battle.mapgen.cityRoads", "true"));
     }
 
+    static GeneratedRoads.StreetStyle cityStreetStyle() {
+        return new GeneratedRoads.StreetStyle(
+                !"round".equalsIgnoreCase(System.getProperty("battle.mapgen.cityRoadEnds", "square")),
+                Boolean.parseBoolean(System.getProperty("battle.mapgen.citySidewalks", "true")));
+    }
+
     @Override public void run(GenContext ctx) {
         if (ctx.topology.roadSurface() != null) return;
         int[][] owner = ctx.get(BspKeys.PRECINCT_ROAD);
@@ -54,11 +72,13 @@ public final class RoadSurfaceStage implements GenStage {
         var precincts = ctx.get(BspKeys.PRECINCTS);
         boolean[][] road = new boolean[ctx.width][ctx.height];
         boolean[][] street = new boolean[ctx.width][ctx.height];
+        boolean[][] footway = new boolean[ctx.width][ctx.height];
         for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++) {
             road[x][y] = precinct && owner[x][y] != GrownTrunkPlan.UNOWNED
                     && (claim[x][y] == GrownTrunkPlan.UNOWNED || precincts == null
                     || precincts.precincts().get(claim[x][y]).isProgrammed());
             street[x][y] = city && !road[x][y] && carriageway(ctx, x, y);
+            footway[x][y] = city && !road[x][y] && footway(ctx, x, y);
         }
         if (city) bridgeSidewalks(ctx, road, street);
         boolean[][] swept = new boolean[ctx.width][ctx.height];
@@ -68,7 +88,9 @@ public final class RoadSurfaceStage implements GenStage {
             anyStreet |= street[x][y];
         }
         // Precinct roads are swept as they always were; only bands holding a city street are judged as streets.
-        var routes = anyStreet ? GeneratedRoads.streets(swept, street, ctx.seed, CITY_MAX_BREADTH)
+        var style = cityStreetStyle();
+        var routes = anyStreet
+                ? GeneratedRoads.streets(swept, street, footway, ctx.seed, CITY_MAX_BREADTH, style)
                 : GeneratedRoads.routes(swept, ctx.seed);
         if (routes.isEmpty()) return;
         TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
@@ -78,7 +100,7 @@ public final class RoadSurfaceStage implements GenStage {
         var allowed = new RoadSurface.Underlay[ctx.width][ctx.height];
         for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++) {
             var kind = ctx.topology.getGroundKind(x, y);
-            if (street[x][y]) {
+            if (street[x][y] || (footway[x][y] && style.sidewalks())) {
                 // The city's own paving is the underlay: it shows where the sweep does not reach.
                 allowed[x][y] = new RoadSurface.Underlay(kind, ctx.topology.getSurface(x, y), false, false);
                 continue;
@@ -98,6 +120,7 @@ public final class RoadSurfaceStage implements GenStage {
             allowed[x][y] = new RoadSurface.Underlay(kind, underlay, false, false);
         }
         var surface = RoadSurface.generated(routes, ctx.topology, allowed);
+        if (anyStreet && style.sidewalks()) surface = surface.withUnderlays(sidewalks(ctx, surface, footway));
         ctx.topology.setRoadSurface(surface);
         for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++)
             if (surface.underlay(x, y) != null) ctx.topology.setTag(x, y, Tag.ROAD_EDGE_BLEND, true);
@@ -149,6 +172,50 @@ public final class RoadSurfaceStage implements GenStage {
     private static boolean flank(GenContext ctx, int x, int y) {
         return ctx.topology.getGroundKind(x, y) == GroundKind.SIDEWALK && ctx.topology.getSurface(x, y) == 0
                 && outdoorOpen(ctx, x, y) && !kerb(ctx, x, y);
+    }
+
+    /**
+     * Concrete underlay for every footway cell not wholly under asphalt that the
+     * asphalt touches or neighbours, two deep where the footway is a sidewalk
+     * flank, and for every building apron and sidewalk flank in the city
+     * whether a road runs past or not: one sidewalk material throughout, rather
+     * than concrete beside the roads and the old kerb tile everywhere else.
+     * A precinct road's cells are not footway and keep their own ground.
+     */
+    static RoadSurface.Underlay[][] sidewalks(GenContext ctx, RoadSurface surface, boolean[][] footway) {
+        int w = ctx.width, h = ctx.height;
+        boolean[][] asphalt = new boolean[w][h];
+        for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) {
+            var patch = surface.patch(x, y, Material.ASPHALT.ordinal());
+            asphalt[x][y] = patch != null && patch.area() > 1e-6;
+        }
+        var sidewalk = new RoadSurface.Underlay[w][h];
+        for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) {
+            if (!footway[x][y]) continue;
+            var patch = surface.patch(x, y, Material.ASPHALT.ordinal());
+            if (patch != null && patch.area() > 1 - 1e-6) continue;
+            var kind = ctx.topology.getGroundKind(x, y);
+            boolean apron = kind == GroundKind.SIDEWALK || kerb(ctx, x, y);
+            if (!apron && !near(asphalt, x, y, 1)) continue;
+            int concrete = ctx.topology.surfaceIndex(Material.CONCRETE.block(RoadRasterizer.age(.4, ctx.seed, x, y)));
+            sidewalk[x][y] = new RoadSurface.Underlay(kind, concrete, false, false);
+        }
+        return sidewalk;
+    }
+
+    private static boolean near(boolean[][] cells, int x, int y, int reach) {
+        for (int dy = -reach; dy <= reach; dy++) for (int dx = -reach; dx <= reach; dx++) {
+            int nx = x + dx, ny = y + dy;
+            if (nx >= 0 && ny >= 0 && nx < cells.length && ny < cells[0].length && cells[nx][ny]) return true;
+        }
+        return false;
+    }
+
+    /** Unsurfaced city ground a sidewalk may be laid on: a street, its kerb, a boulevard's flank. */
+    static boolean footway(GenContext ctx, int x, int y) {
+        var kind = ctx.topology.getGroundKind(x, y);
+        return (kind == GroundKind.STREET || kind == GroundKind.SIDEWALK) && ctx.topology.getSurface(x, y) == 0
+                && outdoorOpen(ctx, x, y);
     }
 
     /**

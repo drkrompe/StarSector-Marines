@@ -2,11 +2,14 @@ package com.dillon.starsectormarines.battle.world.gen.road;
 
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Point;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Route;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.EndCap;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /** Derives pavement sweeps from the final reserved bands, including added gate links. */
@@ -66,7 +69,17 @@ public final class GeneratedRoads {
      * rather than becoming a square of carriageway.
      */
     public static List<Route> routes(boolean[][] road, long seed, int maxBreadth) {
-        return routes(road, null, seed, maxBreadth);
+        return routes(road, null, null, seed, maxBreadth, StreetStyle.ROUND_BARE);
+    }
+
+    /**
+     * How a city street is finished. {@code squareEnds} ends each street flush
+     * with the band it was found in instead of with a round brush end;
+     * {@code sidewalks} keeps room for a sidewalk on a side with no footway
+     * beside the band (the sidewalk itself is ground, laid by the caller).
+     */
+    public record StreetStyle(boolean squareEnds, boolean sidewalks) {
+        public static final StreetStyle ROUND_BARE = new StreetStyle(false, false);
     }
 
     /**
@@ -80,12 +93,20 @@ public final class GeneratedRoads {
      * in a gap between buildings or swell a junction into a yard. Both keep
      * their paving. Bands of {@code road} alone are swept as
      * {@link #routes(boolean[][], long)} sweeps them.
+     *
+     * <p>A street's sidewalk lies on the {@code footway} beside its band where
+     * there is one (the kerb, a boulevard's flank, a yard's paving). On a side
+     * with none, grass for instance, the asphalt gives up the band's outer cell
+     * to it, so long as three cells of asphalt remain; a narrower street goes
+     * without on that side.
      */
-    public static List<Route> streets(boolean[][] road, boolean[][] city, long seed, int maxBreadth) {
-        return routes(road, city, seed, maxBreadth);
+    public static List<Route> streets(boolean[][] road, boolean[][] city, boolean[][] footway,
+                                      long seed, int maxBreadth, StreetStyle style) {
+        return routes(road, city, footway, seed, maxBreadth, style);
     }
 
-    private static List<Route> routes(boolean[][] road, boolean[][] city, long seed, int maxBreadth) {
+    private static List<Route> routes(boolean[][] road, boolean[][] city, boolean[][] footway,
+                                      long seed, int maxBreadth, StreetStyle style) {
         if (road.length == 0 || road[0].length == 0) return List.of();
         Set<Band> candidates = new LinkedHashSet<>();
         int cap = city == null ? Math.min(maxBreadth, MAX_BREADTH) : MAX_BREADTH;
@@ -106,36 +127,74 @@ public final class GeneratedRoads {
                     || (b.endMet(true, kept, w, h) && b.endMet(false, kept, w, h))).toList();
         }
         List<Route> routes = new ArrayList<>();
+        Map<Band, Carriageway> lanes = new HashMap<>();
         for (Band b : bands) {
-            double inset = b.breadth() / 2 - .5;
-            Point a = b.horizontal() ? new Point(b.left + inset, b.cy()) : new Point(b.cx(), b.bottom + inset);
-            Point z = b.horizontal() ? new Point(b.right - inset, b.cy()) : new Point(b.cx(), b.top - inset);
+            boolean street = city != null && b.holds(city);
+            Carriageway c = street ? Carriageway.of(b, footway, style.sidewalks()) : Carriageway.whole(b);
+            lanes.put(b, c);
+            boolean square = street && style.squareEnds();
+            double inset = square ? -.5 : c.width() / 2 - .5;
+            Point a = b.horizontal() ? new Point(b.left + inset, c.centre()) : new Point(c.centre(), b.bottom + inset);
+            Point z = b.horizontal() ? new Point(b.right - inset, c.centre()) : new Point(c.centre(), b.top - inset);
             // A square is a junction, covered by its through bands. Isolated small
             // squares retain their original paving rather than inventing a road.
-            if (!a.equals(z)) add(routes, List.of(a, z), b.breadth(), seed);
+            if (a.equals(z) || b.width() == b.height()) continue;
+            EndCap end = square ? EndCap.BUTT : EndCap.ROUND;
+            add(routes, List.of(a, z), c.width(), seed, Material.ASPHALT, end);
         }
         for (Band h : bands) for (Band v : bands) {
             if (!h.horizontal() || v.horizontal() || v.cx() < h.left || v.cx() > h.right
                     || h.cy() < v.bottom || h.cy() > v.top) continue;
-            double radius = Math.max(h.breadth(), v.breadth());
+            Carriageway ch = lanes.get(h), cv = lanes.get(v);
+            double radius = Math.max(ch.width(), cv.width());
             for (int sx : new int[]{-1, 1}) for (int sy : new int[]{-1, 1}) {
-                double x = v.cx(), y = h.cy();
+                double x = cv.centre(), y = ch.centre();
                 // Both approach arms must actually exist. Never bend a dead end
                 // into a phantom street on the other side of a pruned junction.
                 if (x + sx * (radius + 1) < h.left || x + sx * (radius + 1) > h.right
                         || y + sy * (radius + 1) < v.bottom || y + sy * (radius + 1) > v.top) continue;
                 double mid = radius * (1 - Math.sqrt(.5));
-                add(routes, List.of(new Point(x + sx * (radius + 1), y),
+                var turn = List.of(new Point(x + sx * (radius + 1), y),
                         new Point(x + sx * radius, y), new Point(x + sx * mid, y + sy * mid),
-                        new Point(x, y + sy * radius), new Point(x, y + sy * (radius + 1))),
-                        Math.min(h.breadth(), v.breadth()), seed);
+                        new Point(x, y + sy * radius), new Point(x, y + sy * (radius + 1)));
+                double width = Math.min(ch.width(), cv.width());
+                add(routes, turn, width, seed, Material.ASPHALT, EndCap.ROUND);
             }
         }
         return List.copyOf(routes);
     }
 
-    private static void add(List<Route> routes, List<Point> points, double width, long seed) {
-        routes.add(new Route("generated-" + routes.size(), points, width, 0, .4, seed, Material.ASPHALT));
+    /** The asphalt across a band: its centre line across the band's axis, and its width. */
+    private record Carriageway(double centre, double width) {
+        static Carriageway whole(Band b) {
+            return new Carriageway(b.horizontal() ? b.cy() : b.cx(), b.breadth());
+        }
+
+        /** Give a side's outer cell to the sidewalk where no footway lies beyond it. */
+        static Carriageway of(Band b, boolean[][] footway, boolean sidewalks) {
+            if (!sidewalks || footway == null) return whole(b);
+            int lo = b.horizontal() ? b.bottom : b.left, hi = b.horizontal() ? b.top : b.right;
+            int innerLo = lo + (footed(b, footway, lo - 1) ? 0 : 1);
+            int innerHi = hi - (footed(b, footway, hi + 1) ? 0 : 1);
+            if (innerHi - innerLo + 1 < 3) return whole(b);
+            return new Carriageway((innerLo + innerHi) * .5, innerHi - innerLo + 1);
+        }
+
+        /** Whether at least half the cell line {@code line} beside the band is footway. */
+        private static boolean footed(Band b, boolean[][] footway, int line) {
+            int w = footway.length, h = footway[0].length, cells = 0, along = 0;
+            int from = b.horizontal() ? b.left : b.bottom, to = b.horizontal() ? b.right : b.top;
+            for (int i = from; i <= to; i++, along++) {
+                int x = b.horizontal() ? i : line, y = b.horizontal() ? line : i;
+                if (x >= 0 && y >= 0 && x < w && y < h && footway[x][y]) cells++;
+            }
+            return cells * 2 >= along;
+        }
+    }
+
+    private static void add(List<Route> routes, List<Point> points, double width, long seed,
+                            Material material, EndCap cap) {
+        routes.add(new Route("generated-" + routes.size(), points, width, 0, .4, seed, material, cap));
     }
 
     /** Maximal horizontal and vertical rectangles, not the obsolete pre-pruning trunks. */
