@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — the counter-attack reserve forms at first contact and lends to its own belt; the defender counter-attacks a lost fort in proportion or not at all (`FortCounterattack`, scene `fort-counterattack`), and a turned fort's ground is the counter-attack's alone; a machine sent to a garrisonable its own side mans stands guard beside it as heavy support, by the player's click or a commander's bounded attachment (see machine guard under "Fighting positions"). Earlier: a machine clicked onto a garrisonable its side believes is enemy-held assaults it by fire from a stand-off and never enters.
+Updated: 2026-10-20 — a holder sorties from a walled place it holds through a sally door in its own wall instead of walking round (`garrisonables.md`, sally doors); earlier: the counter-attack reserve forms at first contact and lends to its own belt; the defender counter-attacks a lost fort in proportion or not at all (`FortCounterattack`, scene `fort-counterattack`), and a turned fort's ground is the counter-attack's alone; a machine sent to a garrisonable its own side mans stands guard beside it as heavy support, by the player's click or a commander's bounded attachment (see machine guard under "Fighting positions"). Earlier: a machine clicked onto a garrisonable its side believes is enemy-held assaults it by fire from a stand-off and never enters.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2223,6 +2223,13 @@ it (a captured compound's own garrison counts as manning its building; scene
 pool at once, and never in the convergence phases. Only a believed mover, not a
 nest left standing, presses taken ground (`garrisonables.md`, holding taken
 ground; scene `attacker-holds-ground`).
+
+**A holder goes out by its own sally door, not round its own walls.** A walled place a side holds (a fort's works, a
+walled compound or yard, a building with few exits) has a closed **sally door** in each face its walls would otherwise
+send the holder round: wall until the holder orders people inside the place to ground beyond that face, then opened as
+built passage when no hostile stands at it, and open for everybody after (`garrisonables.md`, sally doors). It is the
+holder's way to the ground it owns, never an attacker's way in: a closed door is wall and is breached as wall. Scenes
+`sally-door` (a walled yard, infantry and a mech) and `sally-port` (a fort).
 
 **What it pays is composure and reach, never protection.** Cover already
 reduces damage and stops rounds, and the cells of a position already carry it;
