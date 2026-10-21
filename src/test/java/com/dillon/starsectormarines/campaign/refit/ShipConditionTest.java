@@ -74,6 +74,36 @@ class ShipConditionTest {
                 assertFalse(order.requires.isEmpty(), order.name());
     }
 
+    @Test void facilitiesInExistingRoomsPayOnlyPastNeutral() {
+        for (ShipCondition neutral : new ShipCondition[]{ShipCondition.NONE, ShipCondition.battered(),
+                ShipCondition.battered().with(RefitTrack.WARDROOM, RefitBand.RESTORED)
+                        .with(RefitTrack.HYDROPONICS, RefitBand.RESTORED).with(RefitTrack.HOLDS, RefitBand.RESTORED)}) {
+            assertEquals(1f, neutral.officerXpMult());
+            assertEquals(1f, neutral.suppliesPerMonthMult());
+            assertEquals(0, neutral.cargoBonus());
+        }
+        var start = ShipCondition.battered();
+        assertEquals(1.15f, start.with(RefitTrack.WARDROOM, RefitBand.IMPROVED_I).officerXpMult());
+        assertEquals(1.30f, start.with(RefitTrack.WARDROOM, RefitBand.IMPROVED_II).officerXpMult());
+        assertEquals(0.95f, start.with(RefitTrack.HYDROPONICS, RefitBand.IMPROVED_I).suppliesPerMonthMult());
+        assertEquals(0.90f, start.with(RefitTrack.HYDROPONICS, RefitBand.IMPROVED_II).suppliesPerMonthMult());
+        assertEquals(20, start.with(RefitTrack.HOLDS, RefitBand.IMPROVED_I).cargoBonus());
+        assertEquals(40, start.with(RefitTrack.HOLDS, RefitBand.IMPROVED_II).cargoBonus());
+        assertEquals(RefitBand.RESTORED, RefitOrder.ceiling(RefitTrack.BRIEFING), "plot table and holo-tank wait on a hook");
+    }
+
+    @Test void roomlessFacilitiesNeedTwoCoresAndTheirTopTierThree() {
+        var tracks = EnumSet.of(RefitTrack.HYDROPONICS, RefitTrack.WARDROOM, RefitTrack.BRIEFING, RefitTrack.HOLDS);
+        for (RefitOrder order : RefitOrder.values()) {
+            if (!tracks.contains(order.track)) continue;
+            assertEquals(RefitTrack.Group.FACILITY, order.track.group);
+            assertNull(order.track.reserve, "fitted into a room the deck already has");
+            assertTrue(order.requires.keySet().stream().allMatch(t -> t.core != null), order.name());
+            assertTrue(order.requires.size() >= (order.band == RefitBand.IMPROVED_II ? 3 : 2), order.name());
+            assertFalse(order.materials().isEmpty(), order.name());
+        }
+    }
+
     @Test void fabricationIsTheWorkshopChain() {
         assertEquals(RefitBand.DEFICIT, ShipCondition.fabrication(WorkshopState.BURIED));
         assertEquals(RefitBand.DEFICIT, ShipCondition.fabrication(WorkshopState.CLEARED));
