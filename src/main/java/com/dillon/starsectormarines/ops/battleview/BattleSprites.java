@@ -1001,6 +1001,11 @@ public class BattleSprites {
         for (Map.Entry<String, LayeredSpriteCache> entry : integralSystemLayers.entrySet()) {
             assets.registerIntegralSystem(entry.getKey(), entry.getValue());
         }
+        if (familyId.hasDownedArt()) {
+            for (int pose = 0; pose < LayeredUnitAssets.DOWNED_POSES; pose++) {
+                assets.registerDowned(loadLayeredSprite(familyRoot + "downed-" + pose + ".png"));
+            }
+        }
         layeredUnitSprites.put(familyId, assets);
     }
 

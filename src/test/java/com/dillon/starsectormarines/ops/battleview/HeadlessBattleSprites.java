@@ -502,6 +502,11 @@ final class HeadlessBattleSprites extends BattleSprites {
                 }
             }
         }
+        if (family.hasDownedArt()) {
+            for (int pose = 0; pose < LayeredUnitAssets.DOWNED_POSES; pose++) {
+                loaded.registerDowned(layer(root + "downed-" + pose + ".png"));
+            }
+        }
         infantry.put(family, loaded);
     }
 
