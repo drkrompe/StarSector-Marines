@@ -163,7 +163,15 @@ need the whole company.
 
 **Tender call-down.** A command power available only if the fleet brought a
 tender. The player spends it, picks a landing site, and the tender lands and
-grounds there to build. Not every mission brings every tool.
+grounds there to build. Not every mission brings every tool. The power is
+mission-agnostic (`TenderCallDown`, offered by the catalog for each tender in
+the committed fleet, one charge per tender): the hull comes in through the
+ordinary ship call-in, berths at landed scale on a clear footprint, becomes a
+grounded host and registers the existing yard construction. It announces itself
+with the generic `tender_landed` story beat, which the breach sequence
+re-emits as `colony_breach.tender_down`. A landed hull builds only ahead of its
+bay (the nose heading it came in on), so where the player lands decides which
+way the hardpoint can face.
 
 **Hive posture.** The player's pre-launch answer to the optional hive objective,
 frozen into the Marine command envelope at launch:

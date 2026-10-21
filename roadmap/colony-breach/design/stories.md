@@ -16,7 +16,6 @@ these stories.
 | `sector-outbreaks.md` | **QUEUED on lore guide + spine.** Outbreaks as a recurring campaign phenomenon. |
 | `swarm-strains.md` | **READY.** Brute and Spitter: unit types, layered bodies (ImageGen art), stats and behaviour, behaviour scenes. |
 | `swarm-flow-fields.md` | **READY.** Shared per-goal flow fields for swarm movement; performance evidence at 400x240 and 560x336. |
-| `tender-call-down.md` | **READY.** Tender as a call-down command power when the fleet brought one; grounded construction in the rescue battle. |
 | `breach-audio.md` | **READY.** ElevenLabs strain voices, bore SFX, militia and administrator radio lines keyed to the beat table. |
 | `hive-posture-command.md` | **QUEUED on spine + bores.** Hive posture in the briefing and command envelope; readiness gate; strike detachments. |
 | `matriarch.md` | **QUEUED on strains + bores.** The mother bore's heavy strain. |
