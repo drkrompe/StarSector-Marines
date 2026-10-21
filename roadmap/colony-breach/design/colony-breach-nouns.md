@@ -85,6 +85,23 @@ colony turret emplacements still work, and may run a technical or two. They
 are a resource the player inherits, not a force the player commands. The
 shelter guard is one militia post among several.
 
+On the colony map three more buildings near the cohort's walk are held, spaced
+apart and clear of the shelter, the lift and the landing pads; each fireteam
+holds its building's held place under garrison authority, so it mans the
+building's windows and doors the way any held building is manned. Two of those
+posts keep a working heavy-machine-gun emplacement outside the door and two a
+parked militia technical. Placed hardware stands on open ground away from the
+cohort's walk to the lift, because a gun or a truck in a one-lane street closes
+it. Lower risks keep the shelter guard alone, and
+`-Dbattle.colonyBreach.militia=false` is the control that drops the rest.
+
+**Heavy assets are what the fleet brought.** The company's mechs and vehicles
+reach the battle through its own Mech Support power, which every battle
+honours; the rescue adds nothing to that. A mech-lance allowance for the
+Marine commander is honoured only where the mission declares one, never derived
+from the company's mechs, because an allowance is a separate payment and would
+field the same machines twice.
+
 **Shelter, cohort, lift.** Unchanged from Civilian Rescue (see
 `extraction-command.md`): the cohort is sealed in the shelter until a Marine
 reaches it, then walks to the lift under escort and boards only once a shuttle
@@ -181,7 +198,9 @@ living bores. It publishes an immutable pressure snapshot for evidence and
 diagnostics. It never reads hidden Marine state the swarm could not sense.
 
 **Swarm strain.** A kind of swarm body with its own stats, appearance family and
-behaviour:
+behaviour. A strain is a designed stage of the one organism (see *Origin*), not
+another animal: every strain is the Runner's body plan and chitin specialised
+for one job in the cycle, and reads that way on screen.
 
 - **Runner** — the shipped 20 HP melee body. Volume.
 - **Brute** — slow, plated, heavy melee; the strain that makes a garrisoned
@@ -218,10 +237,47 @@ strain body enters the battle through `SwarmStrains`, which issues the
 strain's kit (the Brute's plate), so a director, a scene and a debug mission
 spawn the same Brute.
 
+A body is carried as itself. A corpse is an entity with its own position and
+facing that the renderer reads every frame, and a layered swarm body is drawn
+as parts, so a carrier (`swarm-harvest.md`) moves the colonist's corpse with
+it and draws it as one more attached sprite; neither the strains nor their
+corpse sheets assume a body stays where it fell.
+
 **Swarm goal.** A place the swarm is drawn toward: the shelter, the lift, the
 nearest Marine body. Swarm movement toward a goal is a shared **flow field** per
 goal rather than a path per body, which is what lets the swarm be large on a
 large map.
+
+- **Prey** is the goal a hunting body descends when its target is far off: every
+  combatant the swarm is hostile to, less the shelter guard while the shelter is
+  sealed. It is gathered from the battle each refresh, so "nearest" means
+  nearest by the way the ground runs, not as the crow flies. Civilians are never
+  prey sources; a body that has found one chases it directly.
+- **Shelter** and **lift** are disclosed, so the mission declares their cells;
+  the swarm knows where they are without sensing them, as the noun's law allows.
+- **Bore** is the goal of a body carrying biomass home: the nearest living
+  bore. The swarm's own holes, so their cells are declared and redeclared as a
+  bore opens or collapses.
+- **A field makes a stream.** The descent is the same from every cell and has
+  no crowd term, so bodies released together follow one lane down it, which is
+  the river a spawning surge needs; they break apart where local pursuit takes
+  over. Nothing separates swarm bodies from each other today (Marines steer
+  away from them, not they from one another), so a later separation pass must
+  leave a surging body on its lane to keep the stream.
+- **Strategic movement and local pursuit.** A body whose target is more than a
+  few cells away moves down its goal's field; within that range it runs its own
+  short path to the one victim it has chosen. Every strain moves through the
+  same call, so a change to how the swarm travels reaches all of them at once.
+- **A field belongs to the battle's navigation grid.** It is derived from that
+  grid's walls and retired by its topology changing, so two battles in one
+  process can never read each other's fields (the `LosCache` lesson). It is
+  rebuilt when its sources move or the walls change, at a bounded cadence and a
+  bounded amount of work per tick, and published whole: a body always descends
+  a complete field, an older one at worst, against the current walls. Fields
+  are deterministic under the seed, so replays match byte for byte.
+- `-Dbattle.swarm.flowField=false` is the control: every body paths for itself,
+  as the swarm did before fields. What the fields buy, by map and swarm size, is
+  in `swarm-movement-cost.md`.
 
 **Hardpoint.** A position the player has fortified with tender construction
 (Vulcans and whatever else the tender can build). A hardpoint is how the player
@@ -288,6 +344,15 @@ spawning at the perimeter after the tremor, so the "spawning has a source" law
 is not yet in force. The lift has no countdown yet: the pickup craft comes down
 at the start of the battle and waits, so `lift_inbound` and `lift_down`
 normally fire before the shelter is reached.
+
+**Known gap: the escort can park the cohort on a long walk.** A civilian holds
+while its nearest marine is behind it toward the lift, and the close escort is
+sent to the cohort's own cell, so an escort member standing on the cohort's
+tail holds it indefinitely once the screens are out of leash. The colony's long,
+bending walk finds this on the canonical fixture with the militia seated (the
+control without them completes); it is Marine corridor command's to fix
+(`extraction-command.md`). The corridor guide no longer collapses onto the
+cohort when its centroid falls on a wall; it routes from the nearest open cell.
 
 ## Beats
 

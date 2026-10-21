@@ -285,6 +285,8 @@ public final class TickInnerProfile {
         SWARM_PATHFIND,
         SHARED_PATH_FIELD_BUILD,
         SHARED_PATH_FIELD_EXTRACT,
+        /** Serial rebuild of a swarm goal's flow field (multi-source integration over the grid). */
+        SWARM_FLOW_FIELD_BUILD,
         SQUAD_PATH_FIELD_BUILD,
         // Nested stages of the serial squad-field build, for rare single-build spikes.
         SQUAD_PATH_FIELD_SEED,

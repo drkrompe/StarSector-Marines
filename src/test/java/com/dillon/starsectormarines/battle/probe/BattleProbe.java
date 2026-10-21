@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -50,6 +52,8 @@ import java.util.Set;
  *                                         recorded hits grouped by the other side's label: count, damage, kills
  *   squads [label=TEXT]                   every squad with members alive: size, leader position, assignment
  *   beats [since=T] [text=TEXT]           story beats
+ *   escort                                the rescue cohort's escort hold and progress
+ *   route X0 Y0 X1 Y1                     cells on the walkable path between two cells (0 for none)
  *   places                                every compound: kind, box, holder, capture and who is present
  * </pre>
  * Every command answers one JSON object.
@@ -83,6 +87,13 @@ public final class BattleProbe {
         commands.put("hits-by", this::hitsBy);
         commands.put("squads", this::squads);
         commands.put("beats", this::beats);
+        commands.put("route", a -> {
+            int[] path = GridPathfinder.findPath(sim.getGrid(), a.intAt(0), a.intAt(1), a.intAt(2), a.intAt(3));
+            return new JSONObject().put("tick", sim.getSimTickIndex()).put("cells", Paths.cellCount(path));
+        });
+        commands.put("escort", a -> new JSONObject().put("tick", sim.getSimTickIndex())
+                .put("hold", String.valueOf(sim.getCivilianEscortHold()))
+                .put("progress", String.valueOf(sim.getCivilianEvacuationProgress())));
         commands.put("places", this::places);
     }
 
