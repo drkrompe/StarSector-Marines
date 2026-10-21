@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.appearance.RavBruteRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
+import com.dillon.starsectormarines.battle.appearance.WorkMotion;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.AnimationClip;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
@@ -102,6 +103,12 @@ public final class UnitRenderService implements RenderSystem {
      * about 1.2 cells long: plainly a person on the ground, not a giant.
      */
     static final float DOWNED_BODY_SCALE = 0.65f;
+    /**
+     * A sleeper against the live shoulder scale. Larger than a fallen body because it lies in a
+     * real-length bunk beside its neighbours: at this scale the straight lying pose spans the
+     * mattress's width with its arms at its sides and lies head on the pillow.
+     */
+    static final float SLEEPER_BODY_SCALE = 0.9f;
     /**
      * A full pool's width in cells at render scale 1. A body lies about 1.2 cells long, and
      * the pool spreads past its torso and out from under its arms rather than hiding beneath it.
@@ -522,22 +529,23 @@ public final class UnitRenderService implements RenderSystem {
         float[][] wounds = bleed.woundsOf(variant);
         int open = StructureArt.Bleed.openWounds(wounds.length, durability, art.woundedBelow);
         if (open == 0) return;
-        ShuttleSpriteCache sheet = sprites.spriteByPath(bleed.sheet());
-        if (sheet == null) return;
-        int sheetW = sheet.pxW > 0 ? sheet.pxW : (int) sheet.sprite.getWidth();
-        int framePx = sheetW / bleed.frames();
-        if (framePx <= 0) return;
         float edge = 0f;
         for (StructureArt.Layer layer : art.layers()) edge = Math.max(edge, layer.cells());
         edge *= cellPx;
-        float size = bleed.cells() * cellPx;
         for (int w = 0; w < open; w++) {
             float[] wound = wounds[w];
+            StructureArt.Bleed.Family family = bleed.familyOf(wound);
+            ShuttleSpriteCache sheet = sprites.spriteByPath(family.sheet());
+            if (sheet == null) continue;
+            int sheetW = sheet.pxW > 0 ? sheet.pxW : (int) sheet.sprite.getWidth();
+            int framePx = sheetW / family.frames();
+            if (framePx <= 0) continue;
+            float size = family.cells() * cellPx;
             long mix = mix(id * 31L + w);
-            int kind = (int) Math.floorMod(mix, (long) bleed.kinds());
+            int kind = (int) Math.floorMod(mix, (long) family.kinds());
             float phase = ((mix >>> 16) & 0xFFFF) / 65536f;
-            int frame = bleed.frame(clock, phase);
-            int row = bleed.row(kind, wound[2]);
+            int frame = family.frame(clock, phase);
+            int row = family.row(kind, wound[2]);
             // The anchor is in image space, v down; the screen's y runs up.
             out.addSheetQuad(RenderLayer.UNITS, sheet.sprite, frame * framePx, row * framePx, framePx, framePx,
                     cx + wound[0] * edge, cy - wound[1] * edge, size, size, 1f, 1f, 1f, alphaMult);
@@ -1342,6 +1350,16 @@ public final class UnitRenderService implements RenderSystem {
                     }
                     float shoulderPx = layeredInfantryShoulderWidth(
                             cam.cellPxSize(), type.renderScale);
+                    // Asleep in a bunk: the straight lying pose, along the bunk, head on the pillow.
+                    LayeredSpriteCache sleeper = onMachine > 0f && LayeredAppearance.workMotion(layeredFlags[r])
+                            == WorkMotion.SLEEP ? layeredAssets.downed(0) : null;
+                    if (sleeper != null) {
+                        float scale = shoulderPx * SLEEPER_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
+                        out.addSprite(RenderLayer.UNITS, sleeper.sprite, cx, cy,
+                                sleeper.pxWidth * scale, sleeper.pxHeight * scale, layeredFacing[r],
+                                1f, 1f, 1f, unitAlpha);
+                        continue;
+                    }
                     // Knocked down by a charge: the picture lies as a fallen body does for that
                     // second, though the sim keeps the body upright (colony-breach-nouns.md, Brute).
                     LayeredSpriteCache lying = ctx.sim.stagger().isStaggered(entityId)

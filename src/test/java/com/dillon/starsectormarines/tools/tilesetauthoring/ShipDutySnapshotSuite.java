@@ -232,8 +232,10 @@ public final class ShipDutySnapshotSuite implements SnapshotSuite {
     /** The motions the board shows, in reading order. */
     private static final List<WorkMotion> BOARD = List.of(WorkMotion.WELD, WorkMotion.CARRY, WorkMotion.TREAT,
             WorkMotion.STIR, WorkMotion.CHOP, WorkMotion.WRENCH, WorkMotion.RUN, WorkMotion.ROW,
-            WorkMotion.PRESS, WorkMotion.LIFT, WorkMotion.JOG, WorkMotion.CONSOLE);
-    private static final int CLOSE_PX = 128, CLOSE_TILE = 320, GAME_PX = 24, GAME_TILE = 150, BOARD_FRAMES = 45;
+            WorkMotion.PRESS, WorkMotion.LIFT, WorkMotion.JOG, WorkMotion.CONSOLE, WorkMotion.SLEEP);
+    private static final int CLOSE_PX = 108, CLOSE_TILE = 270, GAME_PX = 24, GAME_TILE = 140, BOARD_FRAMES = 45;
+    /** Close-up tiles per row of the board. */
+    private static final int BOARD_COLUMNS = 7;
     /** How long the ship is watched for every motion to turn up: six minutes of its day. */
     private static final int BOARD_SEARCH_TICKS = 6 * 60 * 30;
 
@@ -309,7 +311,7 @@ public final class ShipDutySnapshotSuite implements SnapshotSuite {
             g.setColor(new Color(0xd8, 0xdc, 0xd0));
             for (int i = 0; i < BOARD.size(); i++) {
                 WorkMotion motion = BOARD.get(i);
-                int closeX = (i % 6) * CLOSE_TILE, closeY = (i / 6) * (CLOSE_TILE + 30);
+                int closeX = (i % BOARD_COLUMNS) * CLOSE_TILE, closeY = (i / BOARD_COLUMNS) * (CLOSE_TILE + 30);
                 int gameX = 12 + i * (GAME_TILE + 6), gameY = 2 * (CLOSE_TILE + 30) + 60;
                 List<BufferedImage[]> clip = clips.getOrDefault(motion, List.of());
                 String label = clip.isEmpty() ? motion.name() + " (not seen)" : motion.name();

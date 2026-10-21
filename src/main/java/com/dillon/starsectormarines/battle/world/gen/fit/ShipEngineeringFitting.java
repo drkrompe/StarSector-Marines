@@ -48,9 +48,11 @@ public final class ShipEngineeringFitting implements RoomFitting {
         machine(floor, 9, 12, "generator", 11, 11, Affordance.TEND);
         machine(floor, 16, 12, "life-support", 18, 11, Affordance.TEND);
         control(floor, 2, 19);
-        machine(floor, 7, 18, "switchgear", 8, 17, Affordance.READOUT);
-        machine(floor, 12, 18, "bench", 13, 17, Affordance.REPAIR);
-        machine(floor, 19, 18, "spares", 20, 17, Affordance.STOW);
+        // Switchgear, bench and spares are one cell deep and worked on their bottom edge (a sprite's top edge lies
+        // at its footprint's highest row), so they stand in line with the control board and are worked from below.
+        machine(floor, 7, 19, "switchgear", 8, 18, Affordance.READOUT);
+        machine(floor, 12, 19, "bench", 13, 18, Affordance.REPAIR);
+        machine(floor, 19, 19, "spares", 20, 18, Affordance.STOW);
     }
 
     private void auxiliary(RoomFloor floor) {
@@ -64,8 +66,8 @@ public final class ShipEngineeringFitting implements RoomFitting {
         if (put(floor, 12, 2, "life-support")) task(floor, 14, 6, 14, 5, Affordance.TEND);
         machine(floor, 2, 8, "spares", 3, 7, Affordance.STOW);
         control(floor, 2, 11);
-        machine(floor, 8, 9, "bench", 9, 8, Affordance.FABRICATE);
-        machine(floor, 14, 9, "switchgear", 15, 8, Affordance.READOUT);
+        machine(floor, 8, 11, "bench", 9, 10, Affordance.FABRICATE);
+        machine(floor, 14, 11, "switchgear", 15, 10, Affordance.READOUT);
     }
 
     private void control(RoomFloor floor, int x, int y) {

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160c6-bd29-7370-9cd2-7146242ab77a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160c6-bd29-7370-9cd2-7146242ab77a\\exec-811a027f-f7a3-4e3d-8f02-06e68f6f165d.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\small\\briefing-refit.png",
+    "sha256": "b7bb3eb70f71f916d39b7c4b5a1eaa611475d366c9d970693f0ce16484ac3b65",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\briefing-room-refit.prompt.txt",
+  "promptSha256": "502715edf29e7f08fc80cffbf0100bfcd5ebb49ab75fd8a3f4cecce8f9f21e93",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry, scale and layout authority: reskin this exactly, same size and position for the piece\nImage 2: Material and style reference only; its pieces are the wrong size and layout, ignore their proportions\n\nReskin the attached geometry guide into finished top-down game art for one spaceship briefing-room prop: a compact presenter's lectern. Strict overhead orthographic view, soft light from the upper left, the same look as the material reference sheet: muted worn olive-grey enamel, charcoal recesses, dull steel edging, modest edge wear, realistic painted game-asset finish. No saturated colour, no glow, no hazard stripes.\n\nThe guide is the geometry, scale and layout authority, and the result will be cut mechanically from the guide's exact pixel rectangle. The lectern is small: slightly wider than it is deep, about six to five (length to depth), and it must overlay its grey guide shape almost exactly: the same left and right ends, the same top and bottom edges. Do not make it wider, deeper or larger than its grey shape; do not move, rescale or rotate it, and do not add any other piece. Keep all empty canvas fully transparent: true transparent background; no floor, no ground, no shadow slab, no border, no people, no labels or text.\n\nThe lectern: a plain raised front panel along its top edge (the side facing the audience), and below it the speaker's sloped reading desk, which fills the lower part and carries a small dim green-grey screen on the left and a few flat briefing sheets on the right, with a thin steel ledge along the bottom (speaker's) edge.\n\nBroad readable forms, soft restrained highlights, sparse wear, low surface noise.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\briefing-room.png",
+      "sha256": "2fa4ce5c9798d243111c5fb4d827ca940ed66b15a7421edb64b3834b54c61dac",
+      "dimensions": [
+        640,
+        640
+      ],
+      "mode": "RGBA",
+      "role": "Geometry, scale and layout authority: reskin this exactly, same size and position for the piece"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\small\\briefing-old.raw.png",
+      "sha256": "2ac7f5c8c4799ecc60c9e8255b9183995f5fb80f01cbc960bc08785c038f7a21",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only; its pieces are the wrong size and layout, ignore their proportions"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one lectern image using the guide’s exact footprint and the second image’s materials, with a transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 83235,
+    "cached_input_tokens": 73856,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 558,
+    "reasoning_output_tokens": 13
+  },
+  "elapsedSeconds": 63.0
+}

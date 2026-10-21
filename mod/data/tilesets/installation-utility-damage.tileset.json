@@ -83,7 +83,7 @@
       "cover": "med",
       "footprintCells": [
         3,
-        2
+        1
       ],
       "id": "ship-engineering.switchgear-damaged",
       "row": 4
@@ -94,7 +94,7 @@
       "cover": "none",
       "footprintCells": [
         3,
-        2
+        1
       ],
       "id": "ship-engineering.switchgear-destroyed",
       "row": 4

@@ -1,78 +1,95 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.imageio.ImageIO;
 
-/** Complete machinery skids: pipe circuits terminate inside the same authored assembly. */
+/**
+ * The engineering pieces re-drawn at real size, where a cell is about 0.75 m (a crewman's shoulders are 0.6 cells):
+ * the switchgear bank, the spares rack and the service bench, each one cell deep. The machinery skids and the control
+ * board were already true and keep their original generation (the left half of the raw).
+ *
+ * <p>Drawn large, 320 px per cell, one frame per row: at 128 px per cell ImageGen drew boxy pieces half again too
+ * wide and two to four times too deep, whatever the brief said, while at this size it holds them. The worked face of
+ * every piece is its bottom edge: a sprite's top edge lies at its footprint's highest row, and each piece is worked
+ * from the aisle below it.
+ *
+ * <pre>
+ *   slot         frame (x,y,w,h px)    real size
+ *   switchgear   160, 160, 960,320     2.1 x 0.6 m three-cabinet bank, breaker doors on the bottom face
+ *   spares       160, 640, 960,320     2.1 x 0.6 m parts rack, drawer pulls on the bottom face
+ *   bench        160,1120,1280,320     2.9 x 0.7 m service bench, drawers and vise on the near (bottom) edge
+ * </pre>
+ */
 public final class ShipEngineeringTemplate {
     private ShipEngineeringTemplate() {}
+
+    /** Pixels per cell on the canvas; shapes below are drawn in 64ths of a cell. */
+    static final int C = 320;
+
     public static BufferedImage render() {
-        BufferedImage image = new BufferedImage(1024,1024,BufferedImage.TYPE_INT_ARGB);
+        BufferedImage image = new BufferedImage(5 * C, 5 * C, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
-        g.translate(40,40);
-        base(g,864,288);
-        pipe(g,new int[]{115,115,744,744},new int[]{128,40,40,128});
-        pipe(g,new int[]{115,115,744,744},new int[]{150,248,248,150});
-        pipe(g,new int[]{440,440},new int[]{40,248});
-        rect(g,28,75,184,138,0x737E70);
-        oval(g,48,76,144,136,0xA0A494);oval(g,77,102,86,84,0x566355);
-        rect(g,304,73,280,142,0x657264);
-        g.setColor(new Color(0x939D8C));g.fillRoundRect(317,85,254,118,48,48);
-        for(int x=355;x<550;x+=48)rect(g,x,87,12,114,0x576356);
-        rect(g,670,77,156,134,0x7C897A);
-        for(int y=94;y<202;y+=28)rect(g,682,y,132,12,0x505F53);
-        g.translate(-40,-40);
-        for(int slot=0;slot<3;slot++) {
-            g.translate(40+slot*320,384);
-            base(g,288,192);
-            pipe(g,new int[]{67,67,226,226,67},new int[]{85,25,25,165,165});
-            pipe(g,new int[]{67,67},new int[]{165,85});
-            if(slot==0) {
-                rect(g,28,51,80,91,0x879281);oval(g,39,64,58,58,0xB1B3A1);
-                rect(g,163,47,91,101,0x6C7D6C);
-                for(int y=59;y<140;y+=22)rect(g,174,y,69,9,0xA8AE9D);
-            } else if(slot==1) {
-                rect(g,27,48,89,98,0x7C8877);oval(g,39,59,65,65,0x465648);
-                rect(g,163,46,92,103,0x8C9685);
-                rect(g,174,60,70,20,0x455647);rect(g,174,112,70,20,0x455647);
-            } else {
-                rect(g,28,49,226,94,0x7D8877);
-                for(int x=45;x<232;x+=46)rect(g,x,58,25,76,0xADB09E);
-            }
-            g.translate(-40-slot*320,-384);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Switchgear: three cabinets 0.6 m deep against the back of the cell; breaker doors, handles and indicator
+        // windows on the near face.
+        at(g, 0);
+        rect(g, 4, 12, 184, 50, 0x313D36);
+        for (int x : new int[]{8, 69, 130}) {
+            rect(g, x, 15, 54, 34, 0x77816E);
+            rect(g, x + 8, 21, 38, 6, 0x56604F);
+            rect(g, x + 8, 31, 38, 6, 0x56604F);
+            rect(g, x + 2, 50, 50, 10, 0x5D6656);
+            rect(g, x + 6, 52, 12, 5, 0x3B4E42);
+            rect(g, x + 40, 53, 8, 4, 0xBBB9A1);
         }
-        g.translate(40,688);base(g,144,48);
-        for(int x=10;x<130;x+=44) {rect(g,x,8,36,22,0x354A40);rect(g,x+6,34,24,5,0xACB19B);}
-        g.translate(-40,-688);
-        g.translate(360,688);base(g,192,96);rect(g,10,10,172,76,0x9D9F8C);
-        rect(g,22,24,68,48,0x566654);rect(g,117,20,48,53,0x6F7A6B);rect(g,108,37,66,15,0x414E42);
-        g.translate(-360,-688);
-        g.translate(680,688);base(g,144,96);
-        for(int x=9;x<140;x+=44) {rect(g,x,9,39,78,0x77816E);rect(g,x+7,19,25,21,0x3B4E42);rect(g,x+9,55,21,6,0xBBB9A1);}
-        g.translate(-680,-688);
-        g.translate(40,864);base(g,144,96);
-        for(int y=10;y<84;y+=38)for(int x=10;x<136;x+=42) {rect(g,x,y,38,31,0x7B8674);rect(g,x+9,y+12,20,5,0xB2B5A0);}
-        g.dispose();return image;
+
+        // Spares rack: 0.6 m deep; three bays of parts bins on the top shelf, six drawer pulls along the near face.
+        at(g, 1);
+        rect(g, 4, 12, 184, 50, 0x313D36);
+        for (int x : new int[]{8, 69, 130}) {
+            rect(g, x, 15, 54, 34, 0x48544A);
+            for (int b = 0; b < 3; b++) rect(g, x + 3 + b * 17, 18, 14, 13, 0x7B8674);
+            rect(g, x + 4, 35, 22, 11, 0x6A7563);
+            rect(g, x + 29, 35, 21, 11, 0x6A7563);
+            rect(g, x + 2, 50, 50, 10, 0x5D6656);
+            rect(g, x + 8, 53, 10, 4, 0xB2B5A0);
+            rect(g, x + 36, 53, 10, 4, 0xB2B5A0);
+        }
+
+        // Service bench: 2.9 x 0.7 m; a grey-green work pad, a steel vise on the near edge at the right end, four
+        // drawer pulls along the near fascia.
+        at(g, 2);
+        rect(g, 4, 2, 248, 60, 0x313D36);
+        rect(g, 6, 4, 244, 48, 0x9D9F8C);
+        rect(g, 18, 10, 150, 34, 0x566654);
+        rect(g, 196, 30, 30, 20, 0x6F7A6B);
+        rect(g, 190, 38, 42, 7, 0x414E42);
+        for (int x : new int[]{16, 74, 132, 190}) rect(g, x, 55, 44, 5, 0xACB19B);
+
+        g.dispose();
+        return image;
     }
-    private static void base(Graphics2D g,int w,int h) {
-        rect(g,4,4,w-8,h-8,0x313D36);rect(g,9,9,w-18,h-18,0x48544A);
+
+    /** Slot {@code row}'s frame: half a cell in from the left, half a cell of gutter above each row. */
+    private static void at(Graphics2D g, int row) {
+        g.setTransform(new AffineTransform());
+        g.translate(C / 2, C / 2 + row * (C + C / 2));
+        g.scale(C / 64.0, C / 64.0);
     }
-    private static void pipe(Graphics2D g,int[] x,int[] y) {
-        g.setColor(new Color(0xABB09D));g.setStroke(new BasicStroke(14,BasicStroke.CAP_BUTT,BasicStroke.JOIN_ROUND));
-        g.drawPolyline(x,y,x.length);
+
+    private static void rect(Graphics2D g, int x, int y, int w, int h, int rgb) {
+        g.setColor(new Color(rgb)); g.fillRect(x, y, w, h);
     }
-    private static void rect(Graphics2D g,int x,int y,int w,int h,int rgb) {
-        g.setColor(new Color(rgb));g.fillRect(x,y,w,h);
-    }
-    private static void oval(Graphics2D g,int x,int y,int w,int h,int rgb) {
-        g.setColor(new Color(rgb));g.fillOval(x,y,w,h);
-    }
+
     public static void main(String[] args) throws Exception {
-        Path path=Path.of(args[0]);Files.createDirectories(path.getParent());ImageIO.write(render(),"png",path.toFile());
+        Path path = Path.of(args[0]); Files.createDirectories(path.getParent());
+        ImageIO.write(render(), "png", path.toFile());
     }
 }

@@ -7,7 +7,7 @@
   "idPrefix": "ship-engineering",
   "alphaMin": 40,
   "outputSheet": "graphics/tilesets/ship-engineering.png",
-  "note": "Complete connected machinery skids: pipe circuits stay inside each blocking assembly. Muted geometry-first ImageGen source, measured cuts with four-pixel padding; no post-export patch.",
+  "note": "Complete connected machinery skids: pipe circuits stay inside each blocking assembly. Geometry-first ImageGen reskins on a 2508x1254 raw: the left half is the original generation (drive train, three skids, control board; measured cuts with four-pixel padding); the right half is the real-size refit (ShipEngineeringTemplate, 320 px per cell on the guide) of the switchgear bank, spares rack and service bench, cut as full one-cell-deep placement frames. No post-export patch. See ship-engineering.README.md.",
   "entries": [
     {
       "id": "ship-engineering.drive-train",
@@ -92,14 +92,14 @@
     {
       "id": "ship-engineering.bench",
       "rect": [
-        456,
-        809,
-        369,
-        161
+        1379,
+        878,
+        1003,
+        251
       ],
       "footprintCells": [
         4,
-        2
+        1
       ],
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -108,14 +108,14 @@
     {
       "id": "ship-engineering.switchgear",
       "rect": [
-        920,
-        809,
-        284,
-        163
+        1379,
+        153,
+        752,
+        251
       ],
       "footprintCells": [
         3,
-        2
+        1
       ],
       "cover": "med",
       "ballisticHalfHeight": 0.9,
@@ -124,14 +124,14 @@
     {
       "id": "ship-engineering.spares",
       "rect": [
-        51,
-        1026,
-        294,
-        170
+        1379,
+        502,
+        752,
+        251
       ],
       "footprintCells": [
         3,
-        2
+        1
       ],
       "cover": "med",
       "ballisticHalfHeight": 0.65,

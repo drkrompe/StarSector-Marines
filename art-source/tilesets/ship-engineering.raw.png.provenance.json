@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160c4-9ec3-7742-9fe7-5d94d7457acf",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160c4-9ec3-7742-9fe7-5d94d7457acf\\exec-ed32fe1b-a690-40cb-970f-b70ffa35a243.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\eng\\eng-refit.png",
+    "sha256": "1cf20e516ada7cfed83fda83270f8be381bb962de4b72bdcc791017dcbfdeacb",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\ship-engineering-refit.prompt.txt",
+  "promptSha256": "b492b4c5635c0e92b97380bb561833b6b82e8dad344861ae5a10dee3f938a0ac",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry, scale and layout authority: reskin this exactly, same size and position for every piece\nImage 2: Material and style reference only; its pieces are the wrong size and layout, ignore their proportions\n\nReskin the attached geometry guide into finished top-down game art for three spaceship engineering-room props. Strict overhead orthographic view, soft light from the upper left, the same look as the material reference sheet: muted grey-green enamel, graphite steel, dull silver trim, small bolts and panel seams, light edge wear, realistic painted game-asset finish. No saturated colour, no glow, no hazard stripes.\n\nThe guide is the geometry, scale and layout authority, and the result will be cut mechanically from the guide's exact pixel rectangles. Each piece is a long narrow strip and must overlay its grey guide shape almost exactly: the same left and right ends, the same top and bottom edges. Do not make any piece deeper, longer, taller or larger than its grey shape; do not move, rescale, rotate, merge or add pieces. Keep all empty canvas fully transparent: true transparent background, including gaps between parts; no floor, no ground, no shadow slab, no border, no people, no labels or text.\n\nPieces, top to bottom:\n1. A shallow electrical switchgear bank seen from directly above: three side-by-side cabinet tops in grey-green enamel with ventilation louvres, the strip about three and a half times as long as it is deep. Their breaker-panel doors face the bottom edge: a slim front strip with a small dark indicator window and a silver handle on each door, along the bottom (near) edge only.\n2. A shallow spares rack, the same size as the switchgear: three bays whose open top shelf holds small grey-green parts bins and boxed spare components, neatly organised. Along its bottom (near) edge, a slim front strip with two small drawer pulls per bay.\n3. A narrow engineer's service bench, about four times as long as it is deep: a steel top with bevelled edges, a broad dark grey-green work pad on its left, one steel bench vise at the right end close to the bottom (near) edge, and four drawer pulls along the bottom (near) fascia. No loose tools.\n\nBroad readable forms, soft restrained highlights, sparse wear, low surface noise.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ship-engineering.png",
+      "sha256": "d5aa1e4cec2e1126770b1ccbfb0b618ebaf19f0beb7e0aa7de15f94f5270f3b5",
+      "dimensions": [
+        1600,
+        1600
+      ],
+      "mode": "RGBA",
+      "role": "Geometry, scale and layout authority: reskin this exactly, same size and position for every piece"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\eng\\eng-old.raw.png",
+      "sha256": "1daede86305363c7ef25b4658b7bf5abe24f61ee0aabf426ae9650d32c7664e7",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only; its pieces are the wrong size and layout, ignore their proportions"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the guide’s exact layout and the second image’s material style, with transparent empty space."
+  ],
+  "usage": {
+    "input_tokens": 47771,
+    "cached_input_tokens": 38400,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 657,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 51.6
+}

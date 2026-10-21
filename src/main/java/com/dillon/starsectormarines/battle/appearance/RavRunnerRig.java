@@ -56,7 +56,16 @@ public final class RavRunnerRig {
     static final float SWIPE_WIND = 0.15f, SWIPE_CUT = 0.10f, SWIPE_BACK = 0.30f;
     /** The swipe connects a little past the middle of its cut. */
     static final float SWIPE_HIT = 0.55f * SWIPE_CUT;
-    private static final float LUNGE = 0.14f;
+    private static final float LUNGE = 0.18f;
+    /** A stab gathers the body back this far, cells, while the elbow bows out. */
+    private static final float PULL_BACK = 0.08f;
+    /**
+     * How far the shoulders turn with a blow, degrees: a stab rolls the striking shoulder back
+     * and then drives it through; a swipe winds the shoulders away and twists hard across.
+     */
+    private static final float STAB_TWIST = 12f, SWIPE_WIND_TWIST = 15f, SWIPE_CUT_TWIST = 25f;
+    /** The hips turn against the shoulders by this share of the twist. */
+    private static final float HIP_COUNTER = 0.35f;
     private static final float RELAX_SECONDS = 0.15f;
 
     // arm poses: yaw (deg, + turns outward), reach, height, roll (deg, bows the elbow out)
@@ -118,6 +127,8 @@ public final class RavRunnerRig {
     private float swayAmp, shx, hpx, run;
     /** Spine bend through a turn, degrees: positive bows the body into a left turn. */
     private float bend;
+    /** The shoulders' turn into the current blow, degrees, positive counter-clockwise. */
+    private float twist;
     /** Degrees of bend per degree a second of turning, and the most the spine bends. */
     private static final float BEND_PER_YAW_RATE = 0.12f, MAX_BEND = 40f;
     private final float[] feet = new float[12];          // rig frame
@@ -238,6 +249,7 @@ public final class RavRunnerRig {
         float flex = 0.10f * run * (float) Math.sin(2 * Math.PI * (phi + 0.25f));
         float crouch = crouch(cooldown);
         float lunge = lunge(cooldown);
+        twist = twist(cooldown);
 
         float swayTarget = next == Mode.GALLOP ? 0.025f : next == Mode.TROT ? (along < 0f ? 0.045f : 0.035f) : 0f;
         swayAmp += (swayTarget - swayAmp) * Math.min(1f, dt / 0.15f);
@@ -468,9 +480,34 @@ public final class RavRunnerRig {
     private float lunge(float cooldown) {
         if (!strikeIsStab || (!winding && sinceHit >= strikeLength())) return 0f;
         float t = strikeClock(cooldown);
-        if (t < -STAB_DRIVE) return 0f;
-        if (t < STAB_HOLD) return LUNGE * easeOut((t + STAB_DRIVE) / (STAB_DRIVE + STAB_HOLD));
+        if (t < -STAB_DRIVE) return -PULL_BACK * smooth((t + STAB_WIND + STAB_DRIVE) / STAB_WIND);
+        if (t < STAB_HOLD) {
+            return -PULL_BACK + (LUNGE + PULL_BACK) * easeOut((t + STAB_DRIVE) / (STAB_DRIVE + STAB_HOLD));
+        }
         return LUNGE * (1f - smooth((t - STAB_HOLD) / STAB_RECOVER));
+    }
+
+    /**
+     * The shoulders' turn into the blow. Positive turns counter-clockwise, which takes the left
+     * shoulder back: a left-arm blow winds positive and drives negative, a right-arm one the reverse.
+     */
+    private float twist(float cooldown) {
+        if (!winding && sinceHit >= strikeLength()) return 0f;
+        float t = strikeClock(cooldown);
+        float side = strikeArm == 0 ? 1f : -1f;
+        if (strikeIsStab) {
+            if (t < -STAB_DRIVE) return STAB_TWIST * side * smooth((t + STAB_WIND + STAB_DRIVE) / STAB_WIND);
+            if (t < 0f) return STAB_TWIST * side * (1f - 2f * easeOut((t + STAB_DRIVE) / STAB_DRIVE));
+            if (t < STAB_HOLD) return -STAB_TWIST * side;
+            return -STAB_TWIST * side * (1f - smooth((t - STAB_HOLD) / STAB_RECOVER));
+        }
+        if (t < -SWIPE_HIT) return SWIPE_WIND_TWIST * side * smooth((t + SWIPE_WIND + SWIPE_HIT) / SWIPE_WIND);
+        float u = t + SWIPE_HIT;
+        if (u < SWIPE_CUT) {
+            float k = easeOut(u / SWIPE_CUT);
+            return side * (SWIPE_WIND_TWIST + (-SWIPE_CUT_TWIST - SWIPE_WIND_TWIST) * k);
+        }
+        return -SWIPE_CUT_TWIST * side * (1f - smooth((u - SWIPE_CUT) / SWIPE_BACK));
     }
 
     private void solveArms(float shY, float shZ) {
@@ -511,18 +548,23 @@ public final class RavRunnerRig {
      * the turn while the planted feet stay put and the legs lean.
      */
     private void bendSpine() {
-        if (Math.abs(bend) < 0.05f) return;
+        if (Math.abs(bend) < 0.05f && Math.abs(twist) < 0.05f) return;
         float mx = x(MID), my = y(MID);
         for (int p = 0; p < POINTS; p++) {
             float share = BEND_SHARE[p];
             if (share == 0f) continue;
-            double a = Math.toRadians(bend / 2 * share);
+            // the front half turns with the blow; the rear half turns a little against it
+            double a = Math.toRadians(bend / 2 * share
+                    + (share > 0f ? twist * share : -HIP_COUNTER * twist * -share));
             float c = (float) Math.cos(a), sn = (float) Math.sin(a);
             float dx = x(p) - mx, dy = y(p) - my;
             pose[p * 3] = mx + dx * c - dy * sn;
             pose[p * 3 + 1] = my + dx * sn + dy * c;
         }
     }
+
+    /** The shoulders' turn into the current blow, degrees, positive counter-clockwise. */
+    public float twistDegrees() { return twist; }
 
     /** Spine bend this tick, degrees; positive bows the body into a left turn. */
     public float bendDegrees() { return bend; }

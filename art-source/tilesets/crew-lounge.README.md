@@ -8,8 +8,11 @@ A two-cell cross-passage joins the groups and a perimeter path serves hatches.
 
 ## Geometry and art
 
-`CrewLoungeTemplate` draws the retained 1024x1024 RGBA guide at 64px/cell,
-with slot origins (48,32) and a 336x240 pitch. Twelve slots, row-major:
+The raw is two generations side by side (2508x1254). The left half is the
+original built-in ImageGen reskin of the first guide (1024 square, 64px/cell,
+slot origins (48,32), 336x240 pitch), with `armory-workshop.raw.png` only as a
+material reference and the request in `crew-lounge.prompt.txt`. Twelve slots,
+row-major:
 
 1. 3x1 sofa, backrest at image bottom; 3x1 sofa, backrest at image top;
    2x1 coffee table.
@@ -17,12 +20,24 @@ with slot origins (48,32) and a 336x240 pitch. Twelve slots, row-major:
 3. 3x2 pool table; round 1x1 stool; 3x1 media console.
 4. 1x3 refreshment counter; 1x3 bookshelf; 1x1 planter.
 
-Built-in ImageGen reskinned the guide using `armory-workshop.raw.png` only as a
-material reference. `crew-lounge.prompt.txt` retains the exact prompt, and the
-accepted unchanged 1254x1254 RGBA output is `crew-lounge.raw.png`. The authoring
-JSON records measured cuts and padded overlay canvases. The ordinary exporter
-crops/downsamples to 64px/cell; no keying, repainting or post-export patch is
-used. This sheet has no height/normal companions.
+The right half, from x=1254, is the real-size refit of four of them. A cell is
+about 0.75 m (a crewman's shoulders are 0.6 cells). The games table was 1.42 m
+across, the stool 0.66 m and the bookshelf 0.66 m deep. `CrewLoungeTemplate`
+draws them at 320 px per cell inside their old footprints: a 1.05 m square
+table centred in its 2x2 frame (it stays 2x2 because it seats two a side) with
+its game overlay inside the felt, a 0.4 m round stool, and a 2.1 x 0.35 m
+bookshelf against the right edge of its 1x3 frame. That right edge is its wall:
+a wall-backed tall piece takes one more quarter turn than a wide one, and the
+lounge fitting stands it with its back to the side lane. Its open front faces
+left. Codex `image_gen` reskinned the guide with the left half as material
+reference (`crew-lounge-refit.prompt.txt`, provenance in
+`crew-lounge.raw.png.provenance.json`); every piece landed within a few pixels
+of its guide shape, so they are cut as full placement frames.
+`real-scale-montage.py` joins the halves without touching a pixel.
+
+The authoring JSON records measured cuts and padded overlay canvases. The
+ordinary exporter crops/downsamples to 64px/cell; no keying, repainting or
+post-export patch is used. This sheet has no height/normal companions.
 
 ## Placement and evidence
 
@@ -43,6 +58,7 @@ With JAVA_HOME set as documented in CLAUDE.md:
 
 ```powershell
 & "$env:JAVA_HOME/bin/java.exe" src/test/java/com/dillon/starsectormarines/tools/tilesetauthoring/CrewLoungeTemplate.java art-source/templates/crew-lounge.png
+python art-source/templates/real-scale-montage.py <original-raw.png> <refit.png> art-source/tilesets/crew-lounge.raw.png
 '{"name":"crew-lounge"}' | .\tools\authoring.cmd tileset_export -
 .\gradlew.bat createSnapshots '-Psnapshot=ship-materials'
 ```
