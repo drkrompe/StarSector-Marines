@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.squad.ReactiveManningService.Status;
 import com.dillon.starsectormarines.battle.ui.panel.SquadOrderTargetingPanel.Mode;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -32,7 +33,7 @@ final class BattleOrderOverlayModel {
         defendClasses = reactor.signal("order-card");
         defendScope = reactor.signal("");
         garrisonClasses = reactor.signal("order-card");
-        garrisonDetail = reactor.signal("OFF");
+        garrisonDetail = reactor.signal(Strings.get("battleGarrisonOff"));
     }
 
     void update(int count, boolean mech, Mode mode) {
@@ -48,10 +49,10 @@ final class BattleOrderOverlayModel {
         for (Status status : stances) on |= status != Status.OFF;
         garrisonClasses.set("order-card" + (on ? " selected" : ""));
         garrisonDetail.set(garrisonDetail(stances));
-        String formations = count > 1 ? count + " SQUADS" : mech ? "MECH / LANCE" : "SQUAD ORDERS";
+        String formations = count > 1 ? Strings.format("battleOrderSquads", count) : Strings.get(mech ? "battleOrderLance" : "battleOrderSquad");
         scope.set(formations);
-        defendScope.set(count > 1 ? "ALL SELECTED" : mech ? "WHOLE LANCE" : "WHOLE SQUAD");
-        hint.set(mode == Mode.NONE ? "RMB: MOVE" : "LMB: PLACE  ·  RMB / ESC: CANCEL");
+        defendScope.set(Strings.get(count > 1 ? "battleOrderAllSelected" : mech ? "battleOrderWholeLance" : "battleOrderWholeSquad"));
+        hint.set(Strings.get(mode == Mode.NONE ? "battleOrderHintMove" : "battleOrderHintPlace"));
         defendClasses.set("order-card" + (mode == Mode.DEFEND_AREA ? " selected" : ""));
     }
 
@@ -65,19 +66,19 @@ final class BattleOrderOverlayModel {
 
     /** What the GARRISON card says about the selection's stances: one squad's state, or how many stand in it. */
     static String garrisonDetail(List<Status> stances) {
-        if (stances.isEmpty()) return "INFANTRY ONLY";
+        if (stances.isEmpty()) return Strings.get("battleGarrisonInfantryOnly");
         if (stances.size() > 1) {
             int on = 0;
             for (Status status : stances) if (status != Status.OFF) on++;
-            return on == 0 ? "OFF" : on + " OF " + stances.size() + " WATCHING";
+            return on == 0 ? Strings.get("battleGarrisonOff") : Strings.format("battleGarrisonSomeWatching", on, stances.size());
         }
         return switch (stances.get(0)) {
-            case OFF -> "OFF";
-            case WATCHING -> "WATCHING";
-            case MANNING_TRENCH -> "MANNING TRENCH";
-            case HOLDING_BUILDING -> "HOLDING BUILDING";
-            case RETURNING -> "RETURNING TO POST";
-            case UNDER_ORDERS -> "ON  ·  UNDER ORDERS";
+            case OFF -> Strings.get("battleGarrisonOff");
+            case WATCHING -> Strings.get("battleGarrisonWatching");
+            case MANNING_TRENCH -> Strings.get("battleGarrisonTrench");
+            case HOLDING_BUILDING -> Strings.get("battleGarrisonBuilding");
+            case RETURNING -> Strings.get("battleGarrisonReturning");
+            case UNDER_ORDERS -> Strings.get("battleGarrisonOrders");
         };
     }
 }

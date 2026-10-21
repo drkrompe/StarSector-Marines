@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.LoadoutEffectiveness;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
@@ -69,20 +70,19 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                 context != null ? context.getSelectedMarineSquadIds() : null);
 
         Map<String, Object> props = baseProps();
-        props.put("missionName", mission != null ? mission.name : "No mission selected");
+        props.put("missionName", mission != null ? mission.name : Strings.get("deployNoMission"));
         props.put("missionMeta", mission != null
-                ? mission.tier.displayName + " · " + mission.type.name()
-                : "Return to briefing and choose an operation.");
+                ? Strings.format("deployMissionMeta", mission.tier.displayName, Strings.upper(Strings.get(mission.type.displayKey)))
+                : Strings.get("deployChooseOperation"));
         props.put("readinessTone", "label title "
                 + (readiness.ready() ? "tone-good" : "tone-danger"));
-        props.put("readinessSummary", readiness.selectedReady() + " / " + capacity + " seats filled");
+        props.put("readinessSummary", Strings.format("deploySeatsFilled", readiness.selectedReady(), capacity));
         props.put("commandSummary", force.summary());
-        props.put("capacitySummary", capacity + " ready seats · "
-                + readiness.companyReady() + " marines company-wide");
+        props.put("capacitySummary", Strings.format("deployCapacity", capacity, readiness.companyReady()));
         props.put("reserveSummary", reserveSummary(readiness, capacity));
         projectedRows = squadRows();
         props.put("squadRows", projectedRows);
-        props.put("emptyMessage", roster == null ? "Persistent roster unavailable." : "");
+        props.put("emptyMessage", roster == null ? Strings.get("deployRosterUnavailable") : "");
         putEmptyInspector(props);
         props.put("backAction", (Runnable) this::onBack);
         props.put("armoryAction", (Runnable) this::onArmory);
@@ -114,7 +114,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
 
     private static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("title", "Squad Assignment");
+        props.put("title", Strings.get("deployTitle"));
         return props;
     }
 
@@ -136,7 +136,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
             CommanderRow commander = commanderRow(squad, selected, canToggle);
             rows.add(new SquadRow(base, "deployment-squad-card console-toggle"
                     + (selected ? " selected" : ""), squad.name(),
-                    ready + " / " + MarineSquad.CAPACITY + " RTD",
+                    Strings.format("deployReadyOfCapacity", ready, MarineSquad.CAPACITY),
                     "label heading squad-card-readiness " + (selected ? "tone-accent"
                             : canToggle ? "tone-good" : "tone-danger"),
                     loadoutSummary(squad), commander.portrait(), commander.name(),
@@ -154,9 +154,9 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
         return new SquadRow(base, "deployment-squad-card console-toggle" + (selected ? " selected" : ""),
                 name, readiness, "label heading squad-card-readiness "
                         + (selected ? "tone-accent" : "tone-good"),
-                "Field Rifles / Standard Plate",
+                "Field Rifles / Standard Plate", // preview fixture
                 "graphics/portraits/portrait_mercenary01.png", "Lt. Sabine Hale",
-                "HOME COMMAND · " + status.toUpperCase(Locale.ROOT),
+                Strings.format("deployCommandStatus", Strings.get("deployCommandHome"), Strings.upper(status)),
                 "label heading squad-card-commander-status "
                         + (index == 3 ? "tone-danger" : selected ? "tone-accent" : "tone-good"),
                 index == 2 ? "3 WIA · 1 KIA" : "", "label squad-card-casualty "
@@ -176,7 +176,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                 members.add(memberRow(squad, soldier, team, slot, selected));
             }
             String id = "deployment-member-team-" + squad.id() + "-" + team;
-            teams.add(new FireTeamRow(id, id + "-label", "TEAM " + (char) ('A' + team),
+            teams.add(new FireTeamRow(id, id + "-label", Strings.format("deployTeam", String.valueOf((char) ('A' + team))),
                     List.copyOf(members)));
         }
         return List.copyOf(teams);
@@ -201,18 +201,15 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
         return new MemberRow(id, classes, compactName(soldier), equipment,
                 meter(firepower, "#78d494"), meter(protection, "#6ed7ff"),
                 soldier.enlistedRank().displayName() + " " + soldier.name(),
-                "FIRETEAM " + (char) ('A' + team) + " · BILLET " + (slot + 1)
-                        + " · " + statusLabel(soldier),
-                "FIREPOWER " + firepower, "PROTECTION " + protection,
-                "PRIMARY · " + primary.catalogName(soldier.primaryGrade())
-                        + " · " + soldier.primaryGrade().displayName(),
-                "ARMOR · " + armor.displayName() + " · " + armor.role().displayName(),
-                special != null ? "SPECIAL · " + special.displayName() : "SPECIAL · NONE",
+                Strings.format("deployBilletStatus", String.valueOf((char) ('A' + team)), slot + 1, statusLabel(soldier)),
+                Strings.format("deployFirepower", firepower), Strings.format("deployProtection", protection),
+                Strings.format("deployPrimary", primary.catalogName(soldier.primaryGrade()), soldier.primaryGrade().displayName()),
+                Strings.format("deployArmor", armor.displayName(), armor.role().displayName()),
+                special != null ? Strings.format("deploySpecial", special.displayName()) : Strings.format("deploySpecial", Strings.get("deployNone")),
                 armor.hasIntegralSystem()
-                        ? "SUIT SYSTEM · " + IntegralSystemCopy.summary(armor)
-                        : "SUIT SYSTEM · NONE",
-                "PROFILE · " + soldier.profile().experienceTier().displayName + " / "
-                        + soldier.aptitude().displayName,
+                        ? Strings.format("deploySystem", IntegralSystemCopy.summary(armor))
+                        : Strings.format("deploySystem", Strings.get("deployNone")),
+                Strings.format("deployProfile", soldier.profile().experienceTier().displayName, soldier.aptitude().displayName),
                 SpecSheets.weapon(primary, soldier.primaryGrade()),
                 SpecSheets.armor(armor),
                 special != null ? SpecSheets.special(special) : null,
@@ -221,12 +218,13 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
     }
 
     private static MemberRow vacantMember(String id, int team, int slot) {
-        return new MemberRow(id, "deployment-member vacant", "VACANT", "NO KIT",
-                meter(0, "#78d494"), meter(0, "#6ed7ff"), "Vacant billet",
-                "FIRETEAM " + (char) ('A' + team) + " · BILLET " + (slot + 1),
-                "FIREPOWER 0", "PROTECTION 0",
-                "PRIMARY · NONE", "ARMOR · NONE", "SPECIAL · NONE",
-                "SUIT SYSTEM · NONE", "PROFILE · NO MARINE WILL DEPLOY",
+        return new MemberRow(id, "deployment-member vacant", Strings.get("deployVacant"), Strings.get("deployNoKit"),
+                meter(0, "#78d494"), meter(0, "#6ed7ff"), Strings.get("deployVacantBillet"),
+                Strings.format("deployBillet", String.valueOf((char) ('A' + team)), slot + 1),
+                Strings.format("deployFirepower", 0), Strings.format("deployProtection", 0),
+                Strings.format("deployPrimaryOne", Strings.get("deployNone")), Strings.format("deployArmorOne", Strings.get("deployNone")),
+                Strings.format("deploySpecial", Strings.get("deployNone")),
+                Strings.format("deploySystem", Strings.get("deployNone")), Strings.get("deployProfileNone"),
                 null, null, null, null);
     }
 
@@ -267,26 +265,25 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                         null, null, null, null));
             }
             String id = "deployment-preview-team-" + squadIndex + "-" + team;
-            teams.add(new FireTeamRow(id, id + "-label", "TEAM " + (char) ('A' + team),
+            teams.add(new FireTeamRow(id, id + "-label", Strings.format("deployTeam", String.valueOf((char) ('A' + team))),
                     List.copyOf(members)));
         }
         return List.copyOf(teams);
     }
 
     private static String compactName(MarineSoldier soldier) {
-        String name = soldier.name() == null ? "MARINE" : soldier.name().trim();
+        String name = soldier.name() == null ? Strings.get("deployMarine") : soldier.name().trim();
         int split = name.lastIndexOf(' ');
         String compact = split >= 0 ? name.substring(split + 1) : name;
-        return (soldier.enlistedRank().leads() ? "L " : "")
-                + compact.toUpperCase(Locale.ROOT);
+        return Strings.format(soldier.enlistedRank().leads() ? "deployLeaderName" : "deployMemberName", Strings.upper(compact));
     }
 
     private static String statusLabel(MarineSoldier soldier) {
         return switch (soldier.status()) {
-            case ACTIVE -> "READY";
-            case WIA -> "WIA · NOT DEPLOYING";
-            case MIA -> "MISSING";
-            case KIA -> "KILLED";
+            case ACTIVE -> Strings.get("deployStatusReady");
+            case WIA -> Strings.get("deployStatusWia");
+            case MIA -> Strings.get("deployStatusMia");
+            case KIA -> Strings.get("deployStatusKia");
         };
     }
 
@@ -297,15 +294,15 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
 
     private static void putEmptyInspector(Map<String, Object> props) {
         props.put("inspectorClasses", "marine-inspector empty");
-        props.put("inspectorTitle", "HOVER A MARINE");
-        props.put("inspectorContext", "The twelve billets in each card are the people committed.");
-        props.put("inspectorFirepower", "FIREPOWER —");
-        props.put("inspectorProtection", "PROTECTION —");
-        props.put("inspectorPrimary", "PRIMARY · —");
-        props.put("inspectorArmor", "ARMOR · —");
-        props.put("inspectorSpecial", "SPECIAL · —");
-        props.put("inspectorSystem", "SUIT SYSTEM · —");
-        props.put("inspectorProfile", "PROFILE · —");
+        props.put("inspectorTitle", Strings.get("deployInspectorTitle"));
+        props.put("inspectorContext", Strings.get("deployInspectorContext"));
+        props.put("inspectorFirepower", Strings.format("deployFirepower", "—"));
+        props.put("inspectorProtection", Strings.format("deployProtection", "—"));
+        props.put("inspectorPrimary", Strings.format("deployPrimaryOne", "—"));
+        props.put("inspectorArmor", Strings.format("deployArmorOne", "—"));
+        props.put("inspectorSpecial", Strings.format("deploySpecial", "—"));
+        props.put("inspectorSystem", Strings.format("deploySystem", "—"));
+        props.put("inspectorProfile", Strings.format("deployProfileOne", "—"));
     }
 
     private static void putInspector(Map<String, Object> props, MemberRow member) {
@@ -347,9 +344,9 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
 
     private String loadoutSummary(MarineSquad squad) {
         SquadWeaponDoctrine weapons = roster.armory().weaponDoctrineById(squad.weaponDoctrineId());
-        String weaponName = weapons != null ? weapons.displayName() : "Field weapons";
+        String weaponName = weapons != null ? weapons.displayName() : Strings.get("deployFieldWeapons");
         String armorName = ArmorPlanPresentation.label(roster.armory(), squad.armorDoctrineId());
-        return weaponName + " / " + armorName;
+        return Strings.join("separatorPath", weaponName, armorName);
     }
 
     private CommanderRow commanderRow(MarineSquad squad, boolean selected,
@@ -363,36 +360,36 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
             if (element.squads.contains(squad)) { leader = element.officer; break; }
         }
         boolean inherited = home == null || leader == null || !home.id().equals(leader.id());
-        String commandKind = inherited ? "OPERATION COMMAND" : "HOME COMMAND";
-        String status = !canToggle ? "COMMAND LIMIT"
-                : selected ? "SELECTED" : "AVAILABLE";
+        String commandKind = Strings.get(inherited ? "deployCommandOperation" : "deployCommandHome");
+        String status = Strings.get(!canToggle ? "deployCommandLimit"
+                : selected ? "deployCommandSelected" : "deployCommandAvailable");
         if (leader == null) {
-            return new CommanderRow("", "Acting NCO",
-                    "SQUAD COMMAND · " + status,
+            return new CommanderRow("", Strings.get("deployActingNco"),
+                    Strings.format("deployCommandStatus", Strings.get("deployCommandSquad"), status),
                     "label heading squad-card-commander-status tone-good");
         }
         return new CommanderRow(leader.portraitSprite(),
                 leader.rank().displayName() + " " + leader.name(),
-                commandKind + " · " + status,
+                Strings.format("deployCommandStatus", commandKind, status),
                 "label heading squad-card-commander-status "
                         + (!canToggle ? "tone-danger" : selected ? "tone-accent" : "tone-good"));
     }
 
     private static String casualtySummary(int wia, int mia, int kia) {
         List<String> parts = new ArrayList<>();
-        if (wia > 0) parts.add(wia + " WIA");
-        if (mia > 0) parts.add(mia + " MIA");
-        if (kia > 0) parts.add(kia + " KIA");
-        return String.join(" · ", parts);
+        if (wia > 0) parts.add(Strings.format("deployCasualtyWia", wia));
+        if (mia > 0) parts.add(Strings.format("deployCasualtyMia", mia));
+        if (kia > 0) parts.add(Strings.format("deployCasualtyKia", kia));
+        return Strings.join("separatorDot", parts.toArray(new String[0]));
     }
 
     private static String reserveSummary(PersonnelReadiness readiness, int capacity) {
         int reserve = Math.max(0, readiness.selectedReady() - capacity);
-        if (reserve > 0) return reserve + " marines committed in reserve";
+        if (reserve > 0) return Strings.format("deployReserveCommitted", reserve);
         if (readiness.selectedShortfall() > 0) {
-            return readiness.selectedShortfall() + " seats remain unfilled";
+            return Strings.format("deployUnfilled", readiness.selectedShortfall());
         }
-        return "No reserve commitment";
+        return Strings.get("deployNoReserve");
     }
 
     private void onBack() {

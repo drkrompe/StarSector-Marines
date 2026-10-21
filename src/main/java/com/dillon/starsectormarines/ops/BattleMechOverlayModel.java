@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
@@ -55,16 +56,16 @@ final class BattleMechOverlayModel {
         this.backAction = backAction;
         this.doctrineRequest = doctrineRequest;
         this.lanceOrderRequest = lanceOrderRequest;
-        mechTitle = reactor.signal("MECH");
-        mechIdentity = reactor.signal("SELECTED MECH");
-        deployedDoctrine = reactor.signal("DEPLOYED · --");
-        effectiveDoctrine = reactor.signal("EFFECTIVE · --");
-        doctrineState = reactor.signal("DOCTRINE DEFAULT");
+        mechTitle = reactor.signal(Strings.get("battleMechTitle"));
+        mechIdentity = reactor.signal(Strings.get("battleMechSelected"));
+        deployedDoctrine = reactor.signal(Strings.format("battleMechDeployed", "--"));
+        effectiveDoctrine = reactor.signal(Strings.format("battleMechEffective", "--"));
+        doctrineState = reactor.signal(Strings.get("battleMechDoctrineDefault"));
         doctrineStateClasses = reactor.signal(DEFAULT_STATE);
         formOnLeadClasses = reactor.signal(LANCE_ORDER_CARD_ACTIVE);
         freeReignClasses = reactor.signal(LANCE_ORDER_CARD);
-        formOnLeadMeta = reactor.signal("ACTIVE");
-        freeReignMeta = reactor.signal("SELECT");
+        formOnLeadMeta = reactor.signal(Strings.get("battleMechActive"));
+        freeReignMeta = reactor.signal(Strings.get("battleMechSelect"));
         formOnLeadDisabled = reactor.signal(true);
         freeReignDisabled = reactor.signal(false);
         doctrineCards = reactor.signal(List.of());
@@ -132,22 +133,22 @@ final class BattleMechOverlayModel {
             return hide();
         }
         selectedMechId = mech.entityId();
-        String variant = text(mech.variantName(), "MECH").toUpperCase(Locale.ROOT);
-        String identity = text(mech.unitName(), variant).toUpperCase(Locale.ROOT);
+        String variant = Strings.upper(text(mech.variantName(), Strings.get("battleMechTitle")));
+        String identity = Strings.upper(text(mech.unitName(), variant));
         mechTitle.set(variant);
         mechIdentity.set(identity);
-        deployedDoctrine.set("DEPLOYED · " + displayName(mech.deployedRole()));
-        effectiveDoctrine.set("EFFECTIVE · " + displayName(mech.effectiveRole()));
+        deployedDoctrine.set(Strings.format("battleMechDeployed", displayName(mech.deployedRole())));
+        effectiveDoctrine.set(Strings.format("battleMechEffective", displayName(mech.effectiveRole())));
 
         boolean overridden = mech.effectiveRole() != mech.deployedRole();
-        doctrineState.set(overridden ? "DOCTRINE OVERRIDE" : "DOCTRINE DEFAULT");
+        doctrineState.set(Strings.get(overridden ? "battleMechDoctrineOverride" : "battleMechDoctrineDefault"));
         doctrineStateClasses.set(overridden ? OVERRIDDEN_STATE : DEFAULT_STATE);
 
         boolean forming = mech.lanceOrder() == MechLanceOrder.FORM_ON_LEAD;
         formOnLeadClasses.set(forming ? LANCE_ORDER_CARD_ACTIVE : LANCE_ORDER_CARD);
         freeReignClasses.set(forming ? LANCE_ORDER_CARD : LANCE_ORDER_CARD_ACTIVE);
-        formOnLeadMeta.set(forming ? "ACTIVE" : "SELECT");
-        freeReignMeta.set(forming ? "SELECT" : "ACTIVE");
+        formOnLeadMeta.set(Strings.get(forming ? "battleMechActive" : "battleMechSelect"));
+        freeReignMeta.set(Strings.get(forming ? "battleMechSelect" : "battleMechActive"));
         formOnLeadDisabled.set(forming);
         freeReignDisabled.set(!forming);
 
@@ -157,8 +158,8 @@ final class BattleMechOverlayModel {
             boolean active = role == mech.effectiveRole();
             boolean deployed = role == mech.deployedRole();
             String id = cardId(role);
-            String meta = active && deployed ? "ACTIVE · DEFAULT"
-                    : active ? "ACTIVE" : deployed ? "DEFAULT" : "SELECT";
+            String meta = Strings.get(active && deployed ? "battleMechActiveDefault"
+                    : active ? "battleMechActive" : deployed ? "battleMechDefault" : "battleMechSelect");
             String classes = "doctrine-card"
                     + (active ? " doctrine-card-active" : "")
                     + (deployed ? " doctrine-card-deployed" : "")
@@ -205,12 +206,13 @@ final class BattleMechOverlayModel {
     }
 
     private static String displayName(MechRole role) {
-        return role.displayName().toUpperCase(Locale.ROOT);
+        return Strings.upper(role.displayName());
     }
 
     private static String compactDisplayName(MechRole role) {
-        String name = displayName(role);
-        return name.contains("LONG RANGE") ? "LR SUPPORT" : name;
+        String key = "battleMechCompact_" + role.name();
+        String compact = Strings.get(key);
+        return compact.equals(key) ? displayName(role) : compact;
     }
 
     private static String text(String value, String fallback) {

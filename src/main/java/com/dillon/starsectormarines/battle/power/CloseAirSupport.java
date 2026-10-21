@@ -30,7 +30,7 @@ public final class CloseAirSupport extends CommandPower {
     private static final int SLOT_WEIGHT = 2;
 
     public CloseAirSupport() {
-        super(ID, "Close Air Support", CP_COST, COOLDOWN_SECONDS, MAX_CHARGES, SUPPLY_COST, SLOT_WEIGHT);
+        super(ID, "@battlePowerCloseAirSupport", CP_COST, COOLDOWN_SECONDS, MAX_CHARGES, SUPPLY_COST, SLOT_WEIGHT);
     }
 
     /** The ring's radius, so the targeting preview draws the ground the gunship circles. */

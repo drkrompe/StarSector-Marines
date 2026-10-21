@@ -9,7 +9,7 @@ public final class EmergencyResupply extends AirDeliveryPower {
     public static final String ID = "emergency_resupply";
 
     public EmergencyResupply() {
-        super(ID, "Resupply", 3f, 2, ShuttleType.TARSUS,
+        super(ID, "@battlePowerResupply", 3f, 2, ShuttleType.TARSUS,
                 ResupplyPayload.INSTANCE, 4);
     }
 }
