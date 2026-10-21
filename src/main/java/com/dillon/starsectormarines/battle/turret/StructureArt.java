@@ -62,20 +62,45 @@ public final class StructureArt {
     }
 
     /**
-     * The ooze a wounded body bleeds, the way the Zerg's buildings did: a looping animation on a sheet, pinned to the
-     * wounds its wounded painting shows. {@code wounds} holds, per painting, its wounds largest first, each as
-     * {@code [u, v, degrees]}: the offset from the structure's centre as a share of the widest layer's edge ({@code v}
-     * down the image) and the way the ooze runs from it, downhill on the body. The sheet holds {@code frames} columns
-     * and {@code kinds * directions} rows (row {@code kind * directions + direction}, direction {@code k} running at
-     * {@code k * 360 / directions} degrees, image space), each frame square; a frame is drawn {@code cells} across.
+     * How a wounded body bleeds, the way the Zerg's buildings did: looping animations pinned to the wounds its wounded
+     * painting shows. {@code wounds} holds, per painting, its wounds largest first, each as
+     * {@code [u, v, degrees, family]}: the offset from the structure's centre as a share of the widest layer's edge
+     * ({@code v} down the image), the way the ichor runs from it (downhill on the body), and which {@link Family} of
+     * wound it is (0 when left out): a puncture pulsing, a fissure spraying.
      *
      * <p>Wounds open in order as the body is hurt: the first as it is drawn wounded, then evenly until the last opens
-     * at {@link #LAST_OPENS_AT} of {@code woundedBelow}. A wound shows one kind of ooze at its own phase, both chosen
-     * from the structure and the wound, so a row of bodies does not bleed in step. The run's direction is baked into
-     * the sheet rather than turned at runtime, because turning a frame would turn its baked light.
+     * at {@link #LAST_OPENS_AT} of {@code woundedBelow}. A wound shows one kind of its family at its own phase, both
+     * chosen from the structure and the wound, so a row of bodies does not bleed in step.
      */
-    public record Bleed(String sheet, int frames, int kinds, int directions, float fps, float cells,
-                        List<float[][]> wounds) {
+    public record Bleed(List<Family> families, List<float[][]> wounds) {
+
+        /**
+         * One family of wound animation on its own sheet: {@code frames} columns and {@code kinds * directions} rows
+         * (row {@code kind * directions + direction}, direction {@code k} running at {@code k * 360 / directions}
+         * degrees, image space), each frame square and drawn {@code cells} across, played at {@code fps}. The run's
+         * direction is baked into the sheet rather than turned at runtime, because turning a frame would turn its
+         * baked light.
+         */
+        public record Family(String sheet, int frames, int kinds, int directions, float fps, float cells) {
+
+            /** The sheet row for one {@code kind} running at {@code degrees} (image space). */
+            public int row(int kind, float degrees) {
+                float sector = 360f / directions;
+                int direction = Math.floorMod(Math.round(degrees / sector), directions);
+                return Math.floorMod(kind, kinds) * directions + direction;
+            }
+
+            /** The frame shown at {@code seconds} by a wound whose loop starts {@code phase} (0 to 1) of the way in. */
+            public int frame(float seconds, float phase) {
+                return Math.floorMod((int) Math.floor(seconds * fps + phase * frames), frames);
+            }
+        }
+
+        /** The family a wound belongs to: its fourth value, the first family when it has none. */
+        public Family familyOf(float[] wound) {
+            int index = wound.length > 3 ? (int) wound[3] : 0;
+            return families.get(index >= 0 && index < families.size() ? index : 0);
+        }
 
         /** The share of {@code woundedBelow} at which the last wound opens. */
         public static final float LAST_OPENS_AT = 0.3f;
@@ -97,17 +122,6 @@ public final class StructureArt {
             return Math.min(count, 1 + (int) ((woundedBelow - durability) / step));
         }
 
-        /** The sheet row for one {@code kind} of ooze running at {@code degrees} (image space). */
-        public int row(int kind, float degrees) {
-            float sector = 360f / directions;
-            int direction = Math.floorMod(Math.round(degrees / sector), directions);
-            return Math.floorMod(kind, kinds) * directions + direction;
-        }
-
-        /** The frame shown at {@code seconds} by a wound whose loop starts {@code phase} (0 to 1) of the way in. */
-        public int frame(float seconds, float phase) {
-            return Math.floorMod((int) Math.floor(seconds * fps + phase * frames), frames);
-        }
     }
 
     /** How long a {@link Layer#fireFlash} layer takes to settle after a shot. */
@@ -221,17 +235,14 @@ public final class StructureArt {
     }
 
     private static Bleed parseBleed(String structureId, JSONObject json, int variants) throws JSONException {
-        String sheet = TurretMountDef.requireText(json, "sheet");
-        int frames = json.getInt("frames");
-        int kinds = json.optInt("kinds", 1);
-        int directions = json.optInt("directions", 1);
-        float fps = (float) json.getDouble("fps");
-        float cells = (float) json.getDouble("cells");
-        if (frames < 1 || kinds < 1 || directions < 1) {
-            throw new JSONException("Structure '" + structureId + "' bleed needs at least one frame, kind and direction");
+        JSONArray familyArray = json.getJSONArray("families");
+        if (familyArray.length() == 0) {
+            throw new JSONException("Structure '" + structureId + "' bleed names no families");
         }
-        TurretMountDef.requirePositiveFinite(fps, structureId, "bleed fps");
-        TurretMountDef.requirePositiveFinite(cells, structureId, "bleed cells");
+        List<Bleed.Family> families = new ArrayList<>();
+        for (int f = 0; f < familyArray.length(); f++) {
+            families.add(parseFamily(structureId, familyArray.getJSONObject(f)));
+        }
         JSONArray paintings = json.getJSONArray("wounds");
         if (paintings.length() > variants) {
             throw new JSONException("Structure '" + structureId + "' bleed lists wounds for " + paintings.length()
@@ -243,15 +254,32 @@ public final class StructureArt {
             float[][] list = new float[painting.length()][];
             for (int w = 0; w < painting.length(); w++) {
                 JSONArray wound = painting.getJSONArray(w);
-                if (wound.length() != 3) {
+                int family = wound.length() > 3 ? wound.getInt(3) : 0;
+                if (wound.length() < 3 || wound.length() > 4 || family < 0 || family >= families.size()) {
                     throw new JSONException("Structure '" + structureId + "' bleed wound " + w + " of painting "
-                            + (v + 1) + " is not [u, v, degrees]");
+                            + (v + 1) + " is not [u, v, degrees] or [u, v, degrees, family] of a listed family");
                 }
-                list[w] = new float[]{(float) wound.getDouble(0), (float) wound.getDouble(1), (float) wound.getDouble(2)};
+                list[w] = new float[]{(float) wound.getDouble(0), (float) wound.getDouble(1), (float) wound.getDouble(2),
+                        family};
             }
             wounds.add(list);
         }
-        return new Bleed(sheet, frames, kinds, directions, fps, cells, Collections.unmodifiableList(wounds));
+        return new Bleed(Collections.unmodifiableList(families), Collections.unmodifiableList(wounds));
+    }
+
+    private static Bleed.Family parseFamily(String structureId, JSONObject json) throws JSONException {
+        String sheet = TurretMountDef.requireText(json, "sheet");
+        int frames = json.getInt("frames");
+        int kinds = json.optInt("kinds", 1);
+        int directions = json.optInt("directions", 1);
+        float fps = (float) json.getDouble("fps");
+        float cells = (float) json.getDouble("cells");
+        if (frames < 1 || kinds < 1 || directions < 1) {
+            throw new JSONException("Structure '" + structureId + "' bleed needs at least one frame, kind and direction");
+        }
+        TurretMountDef.requirePositiveFinite(fps, structureId, "bleed fps");
+        TurretMountDef.requirePositiveFinite(cells, structureId, "bleed cells");
+        return new Bleed.Family(sheet, frames, kinds, directions, fps, cells);
     }
 
     private static String text(JSONObject json, String key) {
