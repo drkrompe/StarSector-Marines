@@ -64,6 +64,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             updateRoaming(runner, previousTarget, sim);
             return;
         }
+        if (target != previousTarget) sim.swarmCues().post(SwarmCues.Kind.ALERT, runner, sim);
 
         float dx = sim.world().x(target) - sim.world().x(runner);
         float dy = sim.world().y(target) - sim.world().y(runner);
@@ -74,6 +75,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                 sim.applyDamage(target, runner,
                         sim.combat().attackDamage(runner), 0f,
                         sim.identity().type(runner).moraleImpact);
+                sim.swarmCues().post(SwarmCues.Kind.STRIKE, runner, sim);
                 sim.combat().setCooldownTimer(runner,
                         sim.combat().attackCooldown(runner));
             }

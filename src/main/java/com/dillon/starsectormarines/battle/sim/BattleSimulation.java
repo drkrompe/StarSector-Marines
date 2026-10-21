@@ -169,6 +169,7 @@ import com.dillon.starsectormarines.battle.setup.ThunderRunSequence;
 import com.dillon.starsectormarines.battle.setup.WaylineGunship;
 import com.dillon.starsectormarines.battle.turret.GroundAntiAirSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmStrikeSystem;
+import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
 import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
 import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
 import com.dillon.starsectormarines.battle.command.objective.FreightConvoyObjective;
@@ -682,6 +683,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Aimed flak and guided missiles from ground anti-air mounts, including a swarm bore's spore colonies. */
     public GroundAntiAirSystem groundAntiAir() { return groundAntiAir; }
     private final SwarmStrikeSystem swarmStrikes = new SwarmStrikeSystem();
+    private final SwarmCues swarmCues = new SwarmCues();
     private final AirToAirFire airToAir = new AirToAirFire();
     private WaylineGunship waylineGunship;
     public WaylineGunship getWaylineGunship() { return waylineGunship; }
@@ -2941,6 +2943,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         warships.beginFrame();
         shieldDomes.beginFrame();
         tenders.cues().beginFrame();
+        swarmCues.beginFrame();
         systemFxSystem.beginFrame();
         directControl.validate();
         if (isComplete()) return;
@@ -3843,6 +3846,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Where swarm strains post the blows and acid that land in the serial pass. */
     public SwarmStrikeSystem swarmStrikes() { return swarmStrikes; }
+    /** What swarm bodies ask the presentation to sound this advance; presentation-only. */
+    public SwarmCues swarmCues() { return swarmCues; }
 
     @Override
     public boolean applyContactStrike(long carrier, long target) {
