@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 final class RavRunnerComposer {
 
     /** Each sprite's bone length in sprite px: the layer row tables times the export scale (0.2). */
-    private static final float TRUNK_PX = 83.4f, FORE_PX = 17.4f;
+    private static final float TRUNK_HALF_PX = 41.7f, FORE_PX = 17.4f;
     private static final float[] FRONT_PX = {116f, 120f};
     private static final float[] HIND_PX = {70f, 84f, 86f};
     private static final float[] ARM_PX = {118f, 88f, 45.8f};
@@ -38,6 +38,13 @@ final class RavRunnerComposer {
      */
     static void emit(DrawList out, RavRunnerAssets art, RavRunnerRig rig,
                      float cx, float cy, float ppc, float shade, float alpha) {
+        emit((layer, x, y, w, h, angle, r, g, b, a) -> out.addSprite(RenderLayer.UNITS, layer.sprite,
+                x, y, w, h, angle, r, g, b, a), art, rig, cx, cy, ppc, shade, alpha);
+    }
+
+    /** The same composition into any emitter, so an art review draws exactly what the battle draws. */
+    static void emit(LayeredUnitComposer.SpriteEmitter out, RavRunnerAssets art, RavRunnerRig rig,
+                     float cx, float cy, float ppc, float shade, float alpha) {
         Frame f = new Frame(rig, cx, cy, ppc);
         float[] p0 = new float[2], p1 = new float[2];
         for (int leg : LEG_ORDER) {
@@ -55,10 +62,15 @@ final class RavRunnerComposer {
                         LEG_WIDTH, i == bones - 1 ? lift : 1f, f.facing, shade, alpha);
             }
         }
-        // trunk: the shoulder row on the shoulders, the hip row on the hips
-        f.screen(RavRunnerRig.SHOULDER, p0);
+        // trunk, in two halves from mid-spine so it bends through a turn: the rear half (tail and all)
+        // out to the hips, then the front half out to the shoulders over it
+        float halfSpine = RavRunnerRig.SPINE / 2 * ppc;
+        f.screen(RavRunnerRig.MID, p0);
         f.screen(RavRunnerRig.HIP, p1);
-        bone(out, art.trunk, TRUNK_PX, p0, p1, RavRunnerRig.SPINE * ppc, 1f, 1f, f.facing + 180f, shade, alpha);
+        bone(out, art.trunkRear, TRUNK_HALF_PX, p0, p1, halfSpine, 1f, 1f, f.facing + 180f, shade, alpha);
+        f.screen(RavRunnerRig.MID, p0);
+        f.screen(RavRunnerRig.SHOULDER, p1);
+        bone(out, art.trunkFront, TRUNK_HALF_PX, p0, p1, halfSpine, 1f, 1f, f.facing, shade, alpha);
         // head and neck: pivots at the neck root toward the skeleton's head
         f.screen(RavRunnerRig.SHOULDER, p0, 0f, NECK_ROOT_CELLS);
         f.screen(RavRunnerRig.HEAD, p1);
@@ -86,7 +98,7 @@ final class RavRunnerComposer {
      * One bone from p0 toward p1. full is the bone's unforeshortened length on screen: it sets
      * the sprite's scale across, and the projected length its scale along (never under a fifth).
      */
-    static void bone(DrawList out, LayeredSpriteCache sprite, float bonePx, float[] p0, float[] p1,
+    static void bone(LayeredUnitComposer.SpriteEmitter out, LayeredSpriteCache sprite, float bonePx, float[] p0, float[] p1,
                      float full, float widthMul, float lift, float fallbackFacing, float shade,
                      float alpha) {
         float dx = p1[0] - p0[0], dy = p1[1] - p0[1];
@@ -105,7 +117,7 @@ final class RavRunnerComposer {
         float across = full / bonePx * widthMul;
         float along = Math.max(0.2f * full, length) / bonePx * widthMul;
         float toCentre = bonePx / 2f * along;
-        out.addSprite(RenderLayer.UNITS, sprite.sprite, p0[0] + ux * toCentre, p0[1] + uy * toCentre,
+        out.add(sprite, p0[0] + ux * toCentre, p0[1] + uy * toCentre,
                 sprite.pxWidth * across * lift, sprite.pxHeight * along, angle, shade, shade, shade, alpha);
     }
 

@@ -23,17 +23,28 @@ a third of the way down the lane).
 - **Cold eject, then lit** (owner, 2026-10-20). A launch pushes the missile clear of the tube
   at `eject_mps` along the tube axis; its motor lights `ignite_s` later, with a small ignition
   flash, and only then does it turn and accelerate.
+- **Seeker corrections** (owner, 2026-10-20: guided missiles are chase missiles that hunt).
+  A guided missile does not fly its guide smoothly: its seeker updates the aim every `seek_s`
+  and each update carries a seeded error of up to `seek_deg`, which shrinks as the missile
+  closes (with the remaining range, and to nothing over the last tenth). The aim is held
+  between updates, so the missile turns onto each new aim at its turn rate and the path
+  hunts in small corrections. Each new error tends to swing the other way (`seek_swing`), so
+  the corrections read as a seeker over-correcting, not as noise. Torpedoes and rockets fly
+  straight and have no seeker. `seek_s=0` turns it off.
 - **Contrails** are one tube mesh per missile along its whole path, each ring stamped with the
   frame the missile passed it (`birth`). The shader shows a ring once its frame has come and
   thins it with age: the core spreads toward `trail_spread` times its width and fades over
-  `trail_life_s`. Nothing moves, so in vacuum the trail stays where the motor spent it.
+  `trail_life_s` (times `trail_scale`, default 1: pass `trail_scale=1.5` to `plan`/`salvo`
+  for a hero shot's longer trails). Nothing moves, so in vacuum the trail stays where the motor spent it.
   Colours are vanilla: the Harpoon's blue (100,165,255), grey smoke (100,100,100,150) for the
   others. The Harpoon's trail is denser than the game's alpha 75 (.45 against .29) and glows a
   little, so it still reads as a line at 3 km: the curving contrails are the S5 shot.
 - **The end of a flight** is one of:
   - `hit`: a blast at the target point, `on='armour'` or `on='shield'` (the caller supplies the
     point: the hull's surface, or the shield's);
-  - `kill`: killed short (by `swfx_pd`): a pop, the motor dies, the body tumbles on, dark;
+  - `kill`: killed short (by `swfx_pd`): a jagged pop with cooling fragments
+    (`swfx_pd.jagged_burst`; profile `pop='orb'` for the old ball), the motor dies, the body
+    tumbles on, dark;
   - `decoy`: diverted onto a flare (`Flight.divert`) and detonated on it;
   - `burnout`: an unguided round that reached its range without a target.
   `arrivals(flights)` lists every end as a cue (frame, world point, kind, target, by), for the
@@ -64,30 +75,71 @@ def srgb(c):
 # to the scene's kilometres (speeds, sizes). guide: 'swing' (wide arc, curve in), 'weave',
 # 'arc' (a slow shallow arc, then a dart), or 'straight' (unguided).
 PROFILES = {
-    'harpoon': dict(guide='swing', width=.18, lift=.04, turn_deg_s=70.0, eject_mps=18.0, ignite_s=.35,
+    'harpoon': dict(guide='swing', width=.18, seek_s=.3, seek_deg=8.0, lift=.04, turn_deg_s=70.0, eject_mps=18.0, ignite_s=.35,
                     accel=650.0, vmax=950.0, engine=srgb((100, 165, 255)), trail=srgb((100, 165, 255)),
-                    trail_alpha=.45, trail_glow=1.4, trail_r_m=3.0, trail_spread=2.5, trail_life_s=2.6,
+                    trail_alpha=.45, trail_glow=1.4, trail_r_m=3.0, trail_spread=2.5, trail_life_s=1.7,
                     glare_m=5.0, blast=srgb((100, 100, 255)), blast_m=24.0),
-    'swarmer': dict(guide='weave', width=.05, lift=.02, weave=.035, weave_cycles=(2.5, 4.0), turn_deg_s=240.0,
+    'swarmer': dict(guide='weave', width=.05, seek_s=.18, seek_deg=10.0, lift=.02, weave=.035, weave_cycles=(2.5, 4.0), turn_deg_s=240.0,
                     eject_mps=12.0, ignite_s=.2, accel=1400.0, vmax=700.0, engine=srgb((255, 145, 75)),
                     trail=srgb((100, 100, 100)), trail_alpha=150 / 255, trail_glow=0.0, trail_r_m=1.2,
-                    trail_spread=1.6, trail_life_s=1.0, glare_m=3.0, blast=srgb((255, 155, 75)), blast_m=10.0),
-    'pilum': dict(guide='arc', width=.08, lift=.10, turn_deg_s=35.0, eject_mps=10.0, ignite_s=.4,
+                    trail_spread=1.6, trail_life_s=.7, glare_m=3.0, blast=srgb((255, 155, 75)), blast_m=10.0),
+    'pilum': dict(guide='arc', width=.08, seek_s=.5, seek_deg=5.0, lift=.10, turn_deg_s=35.0, eject_mps=10.0, ignite_s=.4,
                   accel=150.0, vmax=260.0, dart_at=.78, dart_vmax=1100.0, dart_accel=2500.0,
                   engine=srgb((255, 145, 75)), trail=srgb((100, 100, 100)), trail_alpha=150 / 255,
-                  trail_glow=0.0, trail_r_m=2.0, trail_spread=2.0, trail_life_s=4.0, glare_m=4.0,
+                  trail_glow=0.0, trail_r_m=2.0, trail_spread=2.0, trail_life_s=2.6, glare_m=4.0,
                   blast=srgb((255, 155, 75)), blast_m=16.0),
     'rocket': dict(guide='straight', fan_deg=(-7.0, -3.5, 0.0, 3.5, 7.0), turn_deg_s=0.0, eject_mps=0.0,
                    ignite_s=0.0, accel=900.0, vmax=800.0, range_m=1800.0, engine=srgb((255, 190, 140)),
                    trail=srgb((190, 180, 160)), trail_alpha=.45, trail_glow=0.0, trail_r_m=1.4,
-                   trail_spread=1.8, trail_life_s=1.2, glare_m=3.0, blast=srgb((255, 155, 75)), blast_m=12.0),
+                   trail_spread=1.8, trail_life_s=.8, glare_m=3.0, blast=srgb((255, 155, 75)), blast_m=12.0),
     'torpedo': dict(guide='straight', turn_deg_s=0.0, eject_mps=14.0, ignite_s=.5, accel=120.0, vmax=420.0,
                     range_m=3000.0, engine=srgb((255, 100, 100)), trail=srgb((255, 100, 100)), trail_alpha=.35,
-                    trail_glow=1.0, trail_r_m=3.0, trail_spread=2.0, trail_life_s=3.0, glare_m=7.0,
+                    trail_glow=1.0, trail_r_m=3.0, trail_spread=2.0, trail_life_s=2.0, glare_m=7.0,
                     blast=srgb((255, 100, 100)), blast_m=45.0),
 }
 
 SUB = 4            # steering sub-steps per frame
+
+
+class Seeker:
+    """A guided missile's seeker: the aim error it holds between updates (a small rotation of
+    the wanted heading), resampled every `seek_s`, up to `seek_deg` scaled by the remaining
+    range, and gone over the last tenth of the lane. Its own random stream, so a profile
+    without a seeker plans exactly as before."""
+
+    def __init__(self, prof, key):
+        self.every = prof.get('seek_s', 0.0)
+        self.deg = prof.get('seek_deg', 0.0)
+        self.swing = prof.get('seek_swing', .6)
+        self.rnd = random.Random(f'swfx-seeker|{key}')
+        self.next_t = None
+        self.err = (0.0, 0.0)            # (sideways, up) degrees about the wanted heading
+        self.updates = []                # (t, sideways, up): the corrections, for the bench report
+
+    def aim(self, t, want, s):
+        """The heading the seeker steers for at time t, given the true wanted heading `want`
+        (unit) at lane fraction s."""
+        if not self.every or not self.deg:
+            return want
+        if self.next_t is None or t >= self.next_t:
+            self.next_t = t + self.every * self.rnd.uniform(.8, 1.2)
+            k = max(0.0, min(1.0, (.9 - s) / .9)) ** .8       # shrinks as it closes, 0 at s=.9
+            a = self.deg * k
+            ex = -self.swing * self.err[0] + self.rnd.gauss(0, a * .7)
+            ey = -self.swing * self.err[1] + self.rnd.gauss(0, a * .45)
+            m = math.hypot(ex, ey)
+            if m > a and m > 1e-9:
+                ex, ey = ex * a / m, ey * a / m
+            self.err = (ex, ey)
+            self.updates.append((round(t, 3), round(ex, 2), round(ey, 2)))
+        ex, ey = self.err
+        if abs(ex) < 1e-6 and abs(ey) < 1e-6:
+            return want
+        side = want.cross(Vector((0, 0, 1)))           # a frame that turns with the heading
+        side = side.normalized() if side.length > 1e-3 else want.orthogonal().normalized()
+        up = side.cross(want).normalized()
+        q = Quaternion(up, math.radians(ex)) @ Quaternion(side, math.radians(ey))
+        return (q @ want).normalized()
 
 
 def space_of(ship):
@@ -130,6 +182,7 @@ class Flight:
         self.end = None          # dict(kind, frame, point, on, target, by)
         self.hot = None          # (frame, frame): a PD laser heating it before the kill
         self.dart = None         # frame a Pilum's terminal stage separates
+        self.seeker = None       # a guided flight's Seeker (its corrections), set by plan()
 
     # ------------------------------------------------------------------ reading
     @property
@@ -274,6 +327,8 @@ def plan(kind, frame, start, axis, target, space, label=None, seed=0, fps=24, ta
     dt = 1.0 / (fps * SUB)
     p, h = fl.start.copy(), fl.axis.copy()
     dart_t = None
+    seeker = None if straight else Seeker(prof, f'{kind}|{label}|{frame}|{seed}')
+    fl.seeker = seeker
     fl.pos.append(p.copy())
     look = .08
     travelled = 0.0
@@ -291,7 +346,7 @@ def plan(kind, frame, start, axis, target, space, label=None, seed=0, fps=24, ta
                         dart_t = t
                         fl.dart = f
                     want = guide(s + look) if s + look < 1.0 else T
-                    h = _steer(h, (want - p).normalized(), omega * dt * (1 + 2 * max(0.0, s - .85) / .15))
+                    h = _steer(h, seeker.aim(t, (want - p).normalized(), s), omega * dt * (1 + 2 * max(0.0, s - .85) / .15))
             p = p + h * v * dt
             travelled += v * dt
         fl.pos.append(p.copy())
@@ -543,8 +598,9 @@ def _contrail(ctx, coll, fl, inv, mpu, sides=6):
     coll.objects.link(ob)
     ob.visible_shadow = False
     fps = ctx.scene.render.fps or 24
-    ob.color = (1.0 / (prof['trail_life_s'] * fps), prof['trail_alpha'], prof['trail_spread'], 1)
-    _visible_between(ob, f0, f_end + int(prof['trail_life_s'] * fps * 3))
+    life = prof['trail_life_s'] * prof.get('trail_scale', 1.0)
+    ob.color = (1.0 / (life * fps), prof['trail_alpha'], prof['trail_spread'], 1)
+    _visible_between(ob, f0, f_end + int(life * fps * 3))
     return ob
 
 
@@ -678,9 +734,17 @@ def key(ctx, coll, fl, a, motor_mat, body_mat, cylinder_mesh, mpu):
         rec['blast'] = end['frame']
     elif end['kind'] == 'kill':
         # A missile killed short: a small hot pop, orange whatever its motor colour (the warhead
-        # and fuel going), and the motor out.
-        _flash(ctx, coll, f'{PREFIX} pop {fl.label} f{fl.frame:04d}', here, end['frame'], srgb((255, 190, 120)),
-               prof['blast_m'] * .45 / mpu, frames=7, peak=1.4, heat=1.0, light_w=4.0e4, grow=2.0)
+        # and fuel going), and the motor out. 'jagged' (default): torn and angled like the
+        # flak, with cooling fragments; 'orb': the old soft ball.
+        if prof.get('pop', 'jagged') == 'jagged':
+            import swfx_pd
+            swfx_pd.jagged_burst(ctx, coll, f'pop {fl.label} f{fl.frame:04d}', here, end['frame'], mpu,
+                                 random.Random(f'swfx-missile-pop|{fl.label}|{fl.frame}'), srgb((255, 190, 120)),
+                                 size_m=(prof['blast_m'] * .35, prof['blast_m'] * .5), light_w=4.0e4, smoke=.45,
+                                 prefix=PREFIX)
+        else:
+            _flash(ctx, coll, f'{PREFIX} pop {fl.label} f{fl.frame:04d}', here, end['frame'], srgb((255, 190, 120)),
+                   prof['blast_m'] * .45 / mpu, frames=7, peak=1.4, heat=1.0, light_w=4.0e4, grow=2.0)
         rec['pop'] = end['frame']
     elif end['kind'] == 'decoy':
         _flash(ctx, coll, f'{PREFIX} decoyed {fl.label} f{fl.frame:04d}', here, end['frame'], prof['blast'],

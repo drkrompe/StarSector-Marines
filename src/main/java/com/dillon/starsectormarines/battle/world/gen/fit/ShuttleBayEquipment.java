@@ -20,10 +20,11 @@ final class ShuttleBayEquipment {
 
     void fit(RoomFloor floor) {
         int w = floor.canonicalWidth(), h = floor.canonicalHeight();
-        // Office and mobile gear face the walking ring, storage faces it from the opposite side.
-        station(floor, "flight-desk", 0, 3, 2, 4, 1, 4, Affordance.READOUT);
+        // The desk and the carts are worked on their bottom edge (a sprite's top edge lies at its footprint's
+        // highest row), so each is worked from the band cell below it; storage faces the walking ring opposite.
+        station(floor, "flight-desk", 0, 4, 1, 3, 1, 4, Affordance.READOUT);
         for (int y=11; y+3<=h-2; y+=8)
-            station(floor, "service-cart", 0, y, 2, y+1, 1, y+1, Affordance.REPAIR);
+            station(floor, "service-cart", 0, y+1, 0, y, 0, y+1, Affordance.REPAIR);
         for (int y=3; y+6<=h-2; y+=8) {
             if (floor.placeAssembly(w-2, y, "main-stores.rack", List.of(
                     new LayoutOp.Layer(0,0,KIT+"wheels"),

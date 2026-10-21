@@ -22,22 +22,22 @@
       "row": 2
     },
     {
-      "col": 2,
+      "col": 1,
       "name": "briefing-room.chair-back-top",
       "row": 2
     },
     {
-      "col": 3,
+      "col": 2,
       "name": "briefing-room.chair-back-bottom",
       "row": 2
     },
     {
-      "col": 4,
+      "col": 3,
       "name": "briefing-room.chair-back-left",
       "row": 2
     },
     {
-      "col": 5,
+      "col": 4,
       "name": "briefing-room.chair-back-right",
       "row": 2
     }
@@ -80,37 +80,33 @@
       "ballisticHalfHeight": 0.5,
       "col": 0,
       "cover": "med",
-      "footprintCells": [
-        2,
-        1
-      ],
       "id": "briefing-room.lectern",
       "row": 2
     },
     {
       "ballisticHalfHeight": 0.35,
-      "col": 2,
+      "col": 1,
       "cover": "light",
       "id": "briefing-room.chair-back-top",
       "row": 2
     },
     {
       "ballisticHalfHeight": 0.35,
-      "col": 3,
+      "col": 2,
       "cover": "light",
       "id": "briefing-room.chair-back-bottom",
       "row": 2
     },
     {
       "ballisticHalfHeight": 0.35,
-      "col": 4,
+      "col": 3,
       "cover": "light",
       "id": "briefing-room.chair-back-left",
       "row": 2
     },
     {
       "ballisticHalfHeight": 0.35,
-      "col": 5,
+      "col": 4,
       "cover": "light",
       "id": "briefing-room.chair-back-right",
       "row": 2

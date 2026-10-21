@@ -107,6 +107,42 @@ class StructureArtTest {
     }
 
     @Test
+    void aWoundedBodyOpensItsWoundsInOrderAsItIsHurtFurther() throws Exception {
+        StructureArt art = StructureArt.parse("s", new JSONObject("""
+                { "variants": 2, "woundedBelow": 0.5,
+                  "bleed": { "families": [
+                               { "sheet": "g/ooze.png", "frames": 4, "kinds": 2, "directions": 8, "fps": 4.0, "cells": 1.0 },
+                               { "sheet": "g/spray.png", "frames": 6, "fps": 6.0, "cells": 2.0 } ],
+                             "wounds": [ [ [0.1, 0.2, 90], [-0.1, 0.0, 180, 1] ] ] },
+                  "layers": [ { "sprite": "g/body.png", "cells": 2.0 } ] }
+                """));
+        StructureArt.Bleed bleed = art.bleed;
+        assertEquals(2, bleed.woundsOf(1).length);
+        assertEquals(0, bleed.woundsOf(2).length, "a painting with no wounds listed bleeds from none");
+        float below = art.woundedBelow;
+        assertEquals(0, StructureArt.Bleed.openWounds(3, 0.6f, below), "a body not yet wounded does not bleed");
+        assertEquals(1, StructureArt.Bleed.openWounds(3, 0.49f, below), "the first wound opens as it is drawn wounded");
+        int previous = 0;
+        for (float d = 0.49f; d >= 0f; d -= 0.01f) {
+            int open = StructureArt.Bleed.openWounds(3, d, below);
+            assertTrue(open >= previous, "a wound once open stays open as the body is hurt further");
+            previous = open;
+        }
+        assertEquals(3, StructureArt.Bleed.openWounds(3, below * StructureArt.Bleed.LAST_OPENS_AT, below));
+        StructureArt.Bleed.Family puncture = bleed.familyOf(bleed.woundsOf(1)[0]);
+        assertEquals("g/ooze.png", puncture.sheet(), "a wound naming no family is of the first");
+        assertEquals("g/spray.png", bleed.familyOf(bleed.woundsOf(1)[1]).sheet());
+        assertEquals(8 + 2, puncture.row(3, 90f), "kind 3 of two wraps to the second; a run at 90 degrees is the third of eight directions");
+        assertEquals(0, puncture.row(0, 359f), "a run just short of a full turn is the first direction");
+        assertEquals(puncture.frame(0f, 0.5f), puncture.frame(1f, 0.5f), "the loop comes round once a second at 4 fps of 4 frames");
+        assertThrows(JSONException.class, () -> StructureArt.parse("s", new JSONObject("""
+                { "bleed": { "families": [ { "sheet": "o.png", "frames": 4, "fps": 4.0, "cells": 1.0 } ],
+                             "wounds": [ [ [0.1, 0.2, 0, 1] ] ] },
+                  "layers": [ { "sprite": "a.png", "cells": 1.0 } ] }
+                """)), "a wound names a family the bleed lists");
+    }
+
+    @Test
     void everyShippedArtPathAndMountSpriteExistsOnDisk() {
         int withArt = 0;
         for (StructureDef structure : TurretCatalogRegistry.installed().structures()) {
@@ -117,6 +153,11 @@ class StructureArtTest {
                 for (int v = 1; v <= structure.art.variants; v++) {
                     assertShipped(structure.id, layer.spritePath(v, false));
                     if (structure.art.woundedBelow > 0f) assertShipped(structure.id, layer.spritePath(v, true));
+                }
+            }
+            if (structure.art.bleed != null) {
+                for (StructureArt.Bleed.Family family : structure.art.bleed.families()) {
+                    assertShipped(structure.id, family.sheet());
                 }
             }
             for (int v = 1; v <= structure.art.variants && structure.art.remainsPath != null; v++) {

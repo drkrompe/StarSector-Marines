@@ -113,6 +113,50 @@ class RavRunnerRigTest {
     }
 
     @Test
+    void aTurningBodyBowsIntoTheTurn() {
+        RavRunnerRig rig = new RavRunnerRig(4L);
+        float x = 0f, y = 0f, facing = 0f;
+        for (int tick = 0; tick < 20; tick++) {
+            // running and turning left at 180 degrees a second
+            rig.advance(x, y, facing, 1f, false, DT);
+            double rad = Math.toRadians(facing);
+            x += (float) -Math.sin(rad) * 3f * DT;
+            y += (float) Math.cos(rad) * 3f * DT;
+            facing += 180f * DT;
+        }
+        assertTrue(rig.bendDegrees() > 10f, "the spine bends with the turn: " + rig.bendDegrees());
+        float mid = rig.x(RavRunnerRig.MID);
+        assertTrue(rig.x(RavRunnerRig.SHOULDER) < mid && rig.x(RavRunnerRig.HIP) < mid,
+                "shoulders and hips both bow toward the inside of a left turn");
+    }
+
+    @Test
+    void theBodyWindsBackAndDrivesThroughEachBlow() {
+        RavRunnerRig rig = new RavRunnerRig(3L);
+        float cooldown = 0.7f;
+        float wound = 0f;
+        int blows = 0;
+        for (int tick = 0; tick < 120; tick++) {
+            boolean lands = cooldown <= 0f;
+            if (lands) cooldown = 0.7f;
+            rig.advance(5f, 5f, 0f, cooldown, true, DT);
+            cooldown = Math.max(0f, cooldown - DT);
+            // positive: the striking arm's shoulder is turned back
+            float side = rig.strikeArm() == 0 ? 1f : -1f;
+            float back = rig.twistDegrees() * side;
+            if (lands) {
+                assertTrue(wound > 5f, "blow " + blows + " wound the shoulder back first: " + wound);
+                assertTrue(back < 0f, "blow " + blows + " drives the shoulder through as it lands: " + back);
+                blows++;
+                wound = 0f;
+            } else if (cooldown < 0.25f) {
+                wound = Math.max(wound, back);
+            }
+        }
+        assertTrue(blows >= 3);
+    }
+
+    @Test
     void ikKeepsBoneLengths() {
         float[] j = new float[4];
         RavRunnerRig.ik2(0f, 0.4f, 0.1f, 0f, 0.22f, 0.22f, -1f, j);

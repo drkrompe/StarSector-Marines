@@ -31,10 +31,19 @@ Updated: 2026-09-29 — manual Mech momentum uses shared clearance and actual-mo
   authoritative cells and shared edges from which they were built.
 - **Arrival** means reaching the named destination under its route contract: a cell center for a cell path, or the resolved endpoint of a completed clearance route. A retained **arrival witness** relates that endpoint to the requested destination after movement stops; it remains valid only while the body stays there on legal terrain. **Settled** means the current path is exhausted. **Repath permission** is a throttle decision. These are distinct questions.
 - **Footprint radius** is a unit type's physical extent in continuous space.
-  It applies to Mech terrain clearance, picking, blast reach, separation, and physical ballistic
+  It applies to Mech terrain clearance, picking, blast reach, separation (as the
+  separation shape of a round body, and the mass of any body), and physical ballistic
   contacts. Aim may name an entity, but the resolved ray can contact another
   body first.
 - **Separation** is the post-movement physical relaxation of overlapping ground footprints. **Formation steering** is a weaker, movement-scoped attempt to preserve useful allied spacing. Neither is a path planner or a hard reservation system.
+- **Separation shape** is the capsule a body is shoved as: a segment laid along
+  its facing, swept by a radius (`BodyCapsule`). A round body is a capsule of
+  zero length swept by its footprint radius, which is every body except the
+  elongated ones a circle misdescribes — today the Rav Bloom Runner, drawn about
+  1.5 cells nose to tail and under half a cell across. The shape answers only
+  how much ground a body covers in a crowd; where the body *is* stays its
+  position, and its footprint radius stays its size to occupancy, picking,
+  blast reach and ballistics.
 - **Spatial snapshot** is the tick-local float-position view used to prune nearby-unit queries. Buckets use a point's projected grid cell, while distance decisions use its unprojected position.
 
 ## Ownership and flow
@@ -142,6 +151,17 @@ Nearby-unit queries snapshot true positions once per tick. Point-space consumers
    tests the physical ray against unit radii and may contact an incidental body
    first.
 8. Separation is soft, deterministic, and subordinate to authored movement: it relaxes overlap over time, never becomes hard collision, stays on walkable space, honors the same shared-edge and diagonal transitions as A*, and cannot move a unit faster than its intent permits. Static ground emplacements anchor; independently kinematic craft do not participate.
+   A pair is pushed apart along the line between the closest points of the two
+   separation shapes, by their radii less that distance, with the mass split of
+   the bodies' footprint radii; a pair of round bodies is exactly the old circle
+   test. The push translates and never turns: facing stays `FacingSystem`'s,
+   and a shove reaches it only through the velocity it folds in.
+   `-Dbattle.separation.capsules=false` is the control, every body its circle.
+   A mover pressed nearly head-on into an immovable body also steps aside, to a
+   side hashed from the pair, so a route laid along cell centres into a body on
+   a cell centre cannot hold it there with step and push cancelling forever. A
+   body another holds and places every tick (a Runner's load) takes no part, as
+   a flight-slaved drone takes none.
 9. Formation steering may shape a coherent moving allied group, but it must
    remain weaker than physical separation and must yield in constrained
    terrain. A brief movement-derived heading may finish settling infantry that

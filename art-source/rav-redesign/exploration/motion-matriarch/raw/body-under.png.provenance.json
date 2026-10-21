@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160b1-06ce-7c73-b10a-182deb12b8cf",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160b1-06ce-7c73-b10a-182deb12b8cf\\exec-a7c40eec-ce74-4732-bf02-ebc62a09d042.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\motion-matriarch\\raw\\body-under.png",
+    "sha256": "e5abf8c93107dea0b9781bf8589e7fc71fd16e95060bb42fc40ba7d4a34d98ff",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\motion-matriarch\\prompts\\body-under.prompt.txt",
+  "promptSha256": "50a542fbd81e4f74cbc58e21a495f852058a234f9887deb9d09747554c1568e1",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and identity authority: the chosen Matriarch (round 3 #5); register every kept part to it\n\nReference image 1 is the chosen Matriarch design from the Rav Bloom swarm (a huge, old, heavily plated quadruped: matte charcoal-black plates with dried-blood red on worn edges, deep wine-red sinew in every gap, a vast fan-shaped crown of yellowed ivory bone spikes over the head, two curved ivory scythes coming out from under the crown's rim, clawed feet under the body), seen strictly from above, facing up. This is a rig layer for animating it: keep its palette, finish, scale and lighting (from the upper left) exactly, and keep every part you draw in EXACTLY the same position and size as in reference image 1 so the layer registers over it pixel for pixel, unless this layer says otherwise. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n\nThis layer: the BODY ONLY. Remove the whole crown and head and both scythes: in their place leave a short, thick plated neck stump at the front of the shoulders, ending in black plates and wine-red sinew, so a separate head layer can sit on it. Remove all four legs: no knees, feet or claws showing past the body anywhere; the body's outline is smooth plated flank all round. The spine plates and the tail stay exactly as they are.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-matriarch\\raw\\hero.png",
+      "sha256": "9f2820dbf0752bc5172bbd209d0de312eee14488150839bcd23c368429ea33b6",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry and identity authority: the chosen Matriarch (round 3 #5); register every kept part to it"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one body-only layer, keeping the torso, spine plates, and tail aligned to the reference.\n"
+  ],
+  "usage": {
+    "input_tokens": 40988,
+    "cached_input_tokens": 35072,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 503,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 47.1
+}

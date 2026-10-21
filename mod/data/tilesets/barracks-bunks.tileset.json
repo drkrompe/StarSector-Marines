@@ -39,7 +39,7 @@
       "cover": "med",
       "footprintCells": [
         1,
-        2
+        3
       ],
       "id": "barracks-bunks.bed",
       "row": 0
@@ -50,7 +50,7 @@
       "cover": "none",
       "footprintCells": [
         1,
-        2
+        3
       ],
       "id": "barracks-bunks.bedding-high",
       "row": 0
@@ -61,7 +61,7 @@
       "cover": "none",
       "footprintCells": [
         1,
-        2
+        3
       ],
       "id": "barracks-bunks.bedding-low",
       "row": 0
@@ -72,7 +72,7 @@
       "cover": "none",
       "footprintCells": [
         1,
-        2
+        3
       ],
       "id": "barracks-bunks.frame",
       "row": 0

@@ -5,9 +5,11 @@ import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.SystemFxService;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.appearance.RavBruteRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
+import com.dillon.starsectormarines.battle.appearance.WorkMotion;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.AnimationClip;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
@@ -101,6 +103,12 @@ public final class UnitRenderService implements RenderSystem {
      * about 1.2 cells long: plainly a person on the ground, not a giant.
      */
     static final float DOWNED_BODY_SCALE = 0.65f;
+    /**
+     * A sleeper against the live shoulder scale. Larger than a fallen body because it lies in a
+     * real-length bunk beside its neighbours: at this scale the straight lying pose spans the
+     * mattress's width with its arms at its sides and lies head on the pillow.
+     */
+    static final float SLEEPER_BODY_SCALE = 0.9f;
     /**
      * A full pool's width in cells at render scale 1. A body lies about 1.2 cells long, and
      * the pool spreads past its torso and out from under its arms rather than hiding beneath it.
@@ -465,7 +473,8 @@ public final class UnitRenderService implements RenderSystem {
             }
         }
         int variant = structure.art.variantFor(id);
-        boolean wounded = structure.art.woundedBelow > 0f && structure.art.woundedAt(durability(ctx, structure, id));
+        float durability = durability(ctx, structure, id);
+        boolean wounded = structure.art.woundedBelow > 0f && structure.art.woundedAt(durability);
         for (int i = 0; i < layers.size(); i++) {
             StructureArt.Layer layer = layers.get(i);
             ShuttleSpriteCache sprite = sprites.spriteByPath(layer.spritePath(variant, wounded));
@@ -505,6 +514,49 @@ public final class UnitRenderService implements RenderSystem {
             out.addSprite(RenderLayer.UNITS, sprite.sprite, cx, cy, size * sprite.aspect, size, angle,
                     r * bright, g * bright, b * bright, alphaMult);
         }
+        if (wounded && structure.art.bleed != null) {
+            emitBleed(out, structure.art, id, variant, durability, cx, cy, cellPx, alphaMult, clock);
+        }
+    }
+
+    /**
+     * The ooze a wounded body bleeds from its open wounds (`StructureArt.Bleed`): one looping frame per open wound,
+     * pinned to the wound on the painting, upright, the run's direction chosen from the sheet rather than turned.
+     */
+    private void emitBleed(DrawList out, StructureArt art, long id, int variant, float durability,
+                           float cx, float cy, float cellPx, float alphaMult, float clock) {
+        StructureArt.Bleed bleed = art.bleed;
+        float[][] wounds = bleed.woundsOf(variant);
+        int open = StructureArt.Bleed.openWounds(wounds.length, durability, art.woundedBelow);
+        if (open == 0) return;
+        float edge = 0f;
+        for (StructureArt.Layer layer : art.layers()) edge = Math.max(edge, layer.cells());
+        edge *= cellPx;
+        for (int w = 0; w < open; w++) {
+            float[] wound = wounds[w];
+            StructureArt.Bleed.Family family = bleed.familyOf(wound);
+            ShuttleSpriteCache sheet = sprites.spriteByPath(family.sheet());
+            if (sheet == null) continue;
+            int sheetW = sheet.pxW > 0 ? sheet.pxW : (int) sheet.sprite.getWidth();
+            int framePx = sheetW / family.frames();
+            if (framePx <= 0) continue;
+            float size = family.cells() * cellPx;
+            long mix = mix(id * 31L + w);
+            int kind = (int) Math.floorMod(mix, (long) family.kinds());
+            float phase = ((mix >>> 16) & 0xFFFF) / 65536f;
+            int frame = family.frame(clock, phase);
+            int row = family.row(kind, wound[2]);
+            // The anchor is in image space, v down; the screen's y runs up.
+            out.addSheetQuad(RenderLayer.UNITS, sheet.sprite, frame * framePx, row * framePx, framePx, framePx,
+                    cx + wound[0] * edge, cy - wound[1] * edge, size, size, 1f, 1f, 1f, alphaMult);
+        }
+    }
+
+    private static long mix(long z) {
+        z += 0x9E3779B97F4A7C15L;
+        z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
+        z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
+        return z ^ (z >>> 31);
     }
 
     /** The share of a structure's structure and armour left, 0 to 1. */
@@ -900,6 +952,43 @@ public final class UnitRenderService implements RenderSystem {
         return outfit != null && outfit.downed(poseIndex) != null;
     }
 
+    /** Heaves a second a carrier hauls its load with, and how far each heave jolts and rocks the body. */
+    private static final float DRAG_HEAVE_HZ = 1.8f;
+    private static final float DRAG_JOLT_CELLS = 0.05f;
+    private static final float DRAG_ROCK_DEGREES = 7f;
+
+    /**
+     * A body being dragged off by a Runner, alive or dead: lying, its head toward the carrier
+     * along the line it is hauled on, jolting forward and rocking with each heave. The jitter is
+     * keyed to the sim tick, so a review frame stays a function of the battle.
+     */
+    private static void emitDragged(RenderContext ctx, DrawList out, LayeredSpriteCache lying,
+                                    long body, long carrier, float x, float y, float scale, float alpha) {
+        BattleCamera cam = ctx.camera;
+        float dx = 0f, dy = 1f;
+        if (ctx.sim.world().hasPosition(carrier)) {
+            dx = ctx.sim.world().x(carrier) - x;
+            dy = ctx.sim.world().y(carrier) - y;
+            float d = (float) Math.hypot(dx, dy);
+            if (d > 1e-4f) {
+                dx /= d;
+                dy /= d;
+            } else {
+                dx = 0f;
+                dy = 1f;
+            }
+        }
+        double phase = 2 * Math.PI * (ctx.sim.getSimTickIndex() * BattleSimulation.TICK_DT * DRAG_HEAVE_HZ
+                + (body & 15L) / 16.0);
+        float heave = (float) Math.max(0.0, Math.sin(phase));
+        float jolt = DRAG_JOLT_CELLS * heave * heave;
+        float angle = (float) Math.toDegrees(Math.atan2(-dx, dy))
+                + DRAG_ROCK_DEGREES * (float) Math.sin(phase + 0.6);
+        out.addSprite(RenderLayer.UNITS, lying.sprite,
+                cam.cellToScreenX(x + dx * jolt), cam.cellToScreenY(y + dy * jolt),
+                lying.pxWidth * scale, lying.pxHeight * scale, angle, 1f, 1f, 1f, alpha);
+    }
+
     private void sweepDeadSprites(RenderContext ctx, DrawList out) {
         BattleComponents c = ctx.sim.getBattleComponents();
         BattleCamera cam = ctx.camera;
@@ -954,7 +1043,7 @@ public final class UnitRenderService implements RenderSystem {
                 if (rx[r] < cullMinX || rx[r] > cullMaxX
                         || ry[r] < cullMinY || ry[r] > cullMaxY) continue;
                 UnitType type = (UnitType) types[r];
-                RavRunnerRig ravRig = ravRigs != null ? (RavRunnerRig) ravRigs[r] : null;
+                RavRunnerRig ravRig = ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead ? dead : null;
                 if (ravRig != null && ravRig.dead()) {
                     // A dead Runner lies on its own skeleton, fallen onto its flank, its colour gone dull.
                     RavRunnerComposer.emit(out, ravArt, ravRig,
@@ -968,6 +1057,13 @@ public final class UnitRenderService implements RenderSystem {
                         ? sprites.layeredUnitSprites().get(
                                 LayeredArmorFamily.fromOrdinal(corpseFamily[r])) : null;
                 LayeredSpriteCache lying = outfit != null ? outfit.downed(poseIdx[r]) : null;
+                long carrier = lying != null ? ctx.sim.swarmHarvest().carrierOf(t.entityAt(r)) : 0L;
+                if (carrier != 0L) {
+                    float shoulderPx = layeredInfantryShoulderWidth(cam.cellPxSize(), type.renderScale);
+                    float scale = shoulderPx * DOWNED_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
+                    emitDragged(ctx, out, lying, t.entityAt(r), carrier, rx[r], ry[r], scale, alphaMult);
+                    continue;
+                }
                 if (lying != null) {
                     float shoulderPx = layeredInfantryShoulderWidth(cam.cellPxSize(), type.renderScale);
                     float scale = shoulderPx * DOWNED_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
@@ -1092,7 +1188,8 @@ public final class UnitRenderService implements RenderSystem {
             boolean hasMechLayered = t.has(c.MECH_LAYERED_ANIMATION);
             boolean hasMechGait = t.has(c.MECH_GAIT_STATE);
             RavRunnerAssets ravArt = sprites.ravRunnerSprites();
-            Object[] ravRigs = ravArt != null && t.has(c.RAV_RIG)
+            RavBruteAssets bruteArt = sprites.ravBruteSprites();
+            Object[] ravRigs = (ravArt != null || bruteArt != null) && t.has(c.RAV_RIG)
                     ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             Object[] secSpec = hasSecondary
                     ? t.objects(c.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC).array() : null;
@@ -1195,7 +1292,15 @@ public final class UnitRenderService implements RenderSystem {
                             authoredPose, gaitPose);
                     continue;
                 }
-                RavRunnerRig ravRig = ravRigs != null ? (RavRunnerRig) ravRigs[r] : null;
+                Object rig = ravRigs != null ? ravRigs[r] : null;
+                if (bruteArt != null && rig instanceof RavBruteRig bruteRig && bruteRig.posed()) {
+                    // The Brute too; its rig is sized in cells, so no render scale.
+                    RavBruteComposer.emit(out, bruteArt, bruteRig,
+                            cam.cellToScreenX(bruteRig.bodyX()), cam.cellToScreenY(bruteRig.bodyY()),
+                            cam.cellPxSize(), unitAlpha);
+                    continue;
+                }
+                RavRunnerRig ravRig = ravArt != null && rig instanceof RavRunnerRig runnerRig ? runnerRig : null;
                 if (ravRig != null && ravRig.posed()) {
                     // The Runner is drawn on its own skeleton, solved at the position it was posed at.
                     RavRunnerComposer.emit(out, ravArt, ravRig,
@@ -1245,11 +1350,30 @@ public final class UnitRenderService implements RenderSystem {
                     }
                     float shoulderPx = layeredInfantryShoulderWidth(
                             cam.cellPxSize(), type.renderScale);
+                    // Asleep in a bunk: the straight lying pose, along the bunk, head on the pillow.
+                    LayeredSpriteCache sleeper = onMachine > 0f && LayeredAppearance.workMotion(layeredFlags[r])
+                            == WorkMotion.SLEEP ? layeredAssets.downed(0) : null;
+                    if (sleeper != null) {
+                        float scale = shoulderPx * SLEEPER_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
+                        out.addSprite(RenderLayer.UNITS, sleeper.sprite, cx, cy,
+                                sleeper.pxWidth * scale, sleeper.pxHeight * scale, layeredFacing[r],
+                                1f, 1f, 1f, unitAlpha);
+                        continue;
+                    }
                     // Knocked down by a charge: the picture lies as a fallen body does for that
                     // second, though the sim keeps the body upright (colony-breach-nouns.md, Brute).
                     LayeredSpriteCache lying = ctx.sim.stagger().isStaggered(entityId)
                             && ctx.sim.stagger().cause(entityId) == StaggerService.Cause.KNOCKED_DOWN
                             ? layeredAssets.downed((int) (entityId & 0x7fffffff)) : null;
+                    // On a Runner's spike: the body lies as a fallen one does, hauled along behind the jaws.
+                    long carrier = ctx.sim.swarmHarvest().carrierOf(entityId);
+                    LayeredSpriteCache hauled = carrier != 0L
+                            ? layeredAssets.downed((int) (entityId & 0x7fffffff)) : null;
+                    if (hauled != null) {
+                        float scale = shoulderPx * DOWNED_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
+                        emitDragged(ctx, out, hauled, entityId, carrier, rx[r], ry[r], scale, unitAlpha);
+                        continue;
+                    }
                     if (lying != null) {
                         float scale = shoulderPx * DOWNED_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
                         out.addSprite(RenderLayer.UNITS, lying.sprite, cx, cy,

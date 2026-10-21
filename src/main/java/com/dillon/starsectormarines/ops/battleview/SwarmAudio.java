@@ -24,11 +24,14 @@ import java.util.concurrent.ThreadLocalRandom;
  * <ul>
  *   <li><b>Acts</b> from {@link SwarmCues}: a Runner's snarl and a Brute's
  *       bellow on taking new quarry, strikes, rams and walls giving way, and
- *       each phase of the Brute's charge and the Runner's impale and drag.</li>
+ *       each phase of the Brute's charge and the Runner's impale, and the
+ *       latch of a body being taken up.</li>
  *   <li><b>Footfalls</b> off each body's gait phase, which advances with the
  *       ground it covers: a gallop on every other Runner stride (and the
  *       chitin clattering on some of them), a Brute's hoof every half cell, so a
- *       walking Brute plods and a charging one thunders.</li>
+ *       walking Brute plods and a charging one thunders. A Runner hauling a
+ *       body drags it instead: its strides scrape the load over the ground,
+ *       repeated no faster than one drag clip plays.</li>
  *   <li><b>Pain</b> when a body loses health and lives, <b>death</b> off the
  *       battle's deaths this frame.</li>
  * </ul>
@@ -65,7 +68,8 @@ public final class SwarmAudio {
         RUNNER_IMPALE("runner_impale", 0.9f, 250),
         RUNNER_PAIN("runner_pain", 0.6f, 120),
         RUNNER_DEATH("runner_death", 0.8f, 60),
-        BODY_DRAG("body_drag", 0.7f, 800),
+        BODY_LATCH("body_latch", 0.8f, 400),
+        BODY_DRAG("body_drag", 0.6f, 1900),
         BRUTE_BELLOW("brute_bellow", 1f, 1500),
         BRUTE_FOOTFALL("brute_footfall", 0.75f, 90),
         BRUTE_IMPACT("brute_impact", 0.9f, 200),
@@ -184,7 +188,7 @@ public final class SwarmAudio {
             float dy = y - listenerY;
             float d2 = dx * dx + dy * dy;
             if (!(d2 <= FOOTFALL_RANGE_CELLS * FOOTFALL_RANGE_CELLS)) continue;
-            Sound step = footfall(type, ++mix.strides);
+            Sound step = footfall(type, ++mix.strides, sim.swarmHarvest().isCarrier(body));
             if (step != null) steps.add(new Step(step, x, y, d2));
         }
         mix.settle();
@@ -208,9 +212,10 @@ public final class SwarmAudio {
         return wrapped;
     }
 
-    static Sound footfall(UnitType strain, int stride) {
+    static Sound footfall(UnitType strain, int stride, boolean carrying) {
         if (strain == UnitType.SWARM_BRUTE) return Sound.BRUTE_FOOTFALL;
         if (strain == UnitType.SWARM_RUNNER) {
+            if (carrying) return Sound.BODY_DRAG;
             if (stride % 2 != 0) return null;
             return stride % 6 == 0 ? Sound.RUNNER_CLATTER : Sound.RUNNER_GALLOP;
         }
@@ -223,7 +228,7 @@ public final class SwarmAudio {
                 case ALERT -> Sound.RUNNER_CRY;
                 case STRIKE -> Sound.RUNNER_STRIKE;
                 case IMPALE -> Sound.RUNNER_IMPALE;
-                case DRAG -> Sound.BODY_DRAG;
+                case DRAG -> Sound.BODY_LATCH;
                 default -> null;
             };
         }
@@ -238,7 +243,7 @@ public final class SwarmAudio {
                 case CHARGE_HIT_VEHICLE -> Sound.BRUTE_CHARGE_HIT_VEHICLE;
                 case CHARGE_HIT_WALL -> Sound.BRUTE_CHARGE_HIT_WALL;
                 case STUNNED -> Sound.BRUTE_STUN;
-                case DRAG -> Sound.BODY_DRAG;
+                case DRAG -> Sound.BODY_LATCH;
                 default -> null;
             };
         }

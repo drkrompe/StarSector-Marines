@@ -219,7 +219,7 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
         boolean stores = purpose == RoomPurpose.STOCKROOM;
         boolean lounge = purpose == RoomPurpose.CREW_LOUNGE;
         int along = server ? 5 : closet ? 3 : parts ? 6 : range ? 30 : washroom ? 6 : gym ? 14 : briefing ? 14 : loading ? 18 : hangar ? (gig ? 16 : 24) : shop ? 14 : drive ? 24 : auxiliary ? 20 : bridge ? 13 : lounge ? 16 : stores ? 18 : sickbay ? 14 : mess ? 22 : berthing ? 8 : 12;
-        int across = server || parts ? 4 : closet ? 3 : range ? 8 : washroom ? 5 : gym ? 10 : briefing ? 10 : loading ? 12 : hangar ? (gig ? 10 : 30) : shop ? 10 : drive ? 22 : auxiliary ? 14 : bridge ? 11 : lounge ? 12 : stores ? 12 : sickbay ? 10 : mess ? 12 : berthing ? 6 : 8;
+        int across = server || parts ? 4 : closet ? 3 : range ? 8 : washroom ? 5 : gym ? 10 : briefing ? 10 : loading ? 12 : hangar ? (gig ? 10 : 30) : shop ? 10 : drive ? 22 : auxiliary ? 14 : bridge ? 11 : lounge ? 12 : stores ? 12 : sickbay ? 10 : mess ? 12 : berthing ? 8 : 8;
         RoomShape shape = (range ? RoomRecipe.RANGE.shape() : bridge ? RoomRecipe.COMMAND.shape() : RoomShape.rectangle(along, across)).posed(pose);
         int width = shape.width() + 4, height = shape.height() + 4;
         NavigationGrid grid = new NavigationGrid(width, height);

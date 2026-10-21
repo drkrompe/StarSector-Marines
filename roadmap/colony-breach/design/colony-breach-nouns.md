@@ -494,7 +494,19 @@ creep and bodies.
 They show their **damage**. Below half its durability a bore or colony is
 drawn **wounded**: plates torn out of their sockets over raw sinew, gashes
 through the carapace, a sac burst, a spine snapped, its amber dimmed; the same
-painting, hurt. When it dies it leaves its **remains** on the ground for the
+painting, hurt. A wounded body **bleeds**, as the Zerg's buildings did: a
+wound is a puncture in a living membrane, and it pulses to a heartbeat: on
+each beat the torn slit dilates, its flaps lift and a gout of ichor is pushed
+out over the lip to run downhill as a glossy film, which drains and thins
+before the next. A long wound (a gash, a torn plate's socket) is a **fissure**
+instead and sprays on the same beat: its lips part and throw a fan of droplets
+downhill, arcing with their shadows under them, landing as splats that soak
+away before the next beat. The loops are pinned to the wounds its own
+painting shows and running downhill off its body (into the pit from a bore's
+lip). The first wound bleeds as the body turns wounded, and more open the
+further it is hurt, every one by under a third of that; each wound bleeds at
+its own phase so a row of bodies does not pulse in step. The dead do not bleed.
+When it dies it leaves its **remains** on the ground for the
 rest of the battle, under the living: a bore's shaft caved in and choked with
 rubble, its plates slumped and drained to a dry husk; a colony's sacs burst
 and deflated. The remains are of the painting the structure wore, so a
@@ -559,14 +571,25 @@ for one job in the cycle, and reads that way on screen.
   spine flexing and the shoulders and hips swaying against each other, with two
   jointed spike arms on its shoulders. Each blow is one arm, alternating, and
   is either a stab (the elbow bows out away from the body, then the point
-  drives straight forward) or a side swipe. The wind-up runs off the attack
+  drives straight forward) or a side swipe. The body is in every blow: a stab
+  draws the trunk back on its planted feet, then lunges it forward onto the
+  point, and a swipe winds the striking shoulder back and twists the trunk
+  through the cut, the hips countering. The wind-up runs off the attack
   cooldown, so the blow arrives on the tick its damage is dealt. The rig is
   presentation only: nothing in the simulation reads it, and the strike rule
   itself stays the ordinary melee hit. A carrier (*Harvest*, *Impale*) is
   drawn hauling: it turns to face the body it drags, so it backs toward the
   bore at a trot with its shoulders heaving, the spike that struck stays in
-  and the jaws latch on beside it. A dead Runner keeps its skeleton, falls
-  onto its flank with its legs gone slack and lies there, dulled.
+  and the jaws latch on beside it. The body it hauls, alive or dead, is drawn
+  lying (its outfit's fallen pose), head toward the jaws, jolting with each
+  heave. Through a turn the spine bows into a C toward the inside, the
+  shoulders and the hips swinging the same way while the planted feet hold.
+  A dead Runner keeps its skeleton, falls
+  onto its flank with its legs gone slack and lies there, dulled. In a crowd it
+  is shoved as the shape it is drawn as, a capsule along its facing (the
+  separation shape in `continuous-positions-nouns.md`), so a pack queues nose to
+  tail and packs flank to flank rather than stacking into one another; its
+  0.3-cell footprint radius stays its size to everything else.
 - **Brute** — slow, plated, heavy melee; the strain that makes a garrisoned
   building stop being a safe room. Its plate (20 points at rating 10) is what
   small arms struggle with: a DMR or rocket goes through it, an SMG barely
@@ -578,7 +601,15 @@ for one job in the cycle, and reads that way on screen.
   than breaking the wall beside it. "Light" means a colony wall (at most 120 of
   wall left); fortified and fort walls are out of its reach until something
   else has worn them down. Its blow carries penetration, so it hurts plated
-  bodies and emplacements where a Runner's slash only scratches.
+  bodies and emplacements where a Runner's slash only scratches. It strikes
+  what is under its head, about a cell from its centre to the target's surface
+  (a hull's footprint, not a circle round its middle), and its weight lands
+  with the blow: a hull or a mech it strikes takes the same contact a charge
+  gives, at a slower closing speed, so a pickup or a light mech is shoved about
+  as the fight goes on while a tank only rocks. On infantry
+  the blow is a **trample**: the body under it is knocked down for a moment and
+  bowled a little way, and anyone on foot right beside it takes half the blow
+  and goes down too (`-Dbattle.brute.trample=false` is the control).
 
   It has two speeds: it **walks** at its sim speed and **charges** at a much
   higher one. A **charge** is a committed straight run at one target, or at the
@@ -591,9 +622,25 @@ for one job in the cycle, and reads that way on screen.
   depends on what it hits: infantry is thrown aside and knocked down and the
   charge goes on through up to two bodies; a light prop is bowled over; a light
   wall takes one double-weight ram; a heavy wall or a tank's bulk stuns the
-  Brute; a vehicle is shoved and stalled by its **weight class** (light /
-  medium / heavy on `VehicleType`); a mech is struck in the legs and, unless
-  heavy, staggered. Knocked down, stalled, staggered and stunned are one short
+  Brute; a vehicle is stalled by its **weight class** (light / medium / heavy
+  on `VehicleType`); a mech is struck in the legs and, unless heavy,
+  staggered.
+
+  Running into a hull is a **contact**, not a rule of thumb (`HullImpact`):
+  the Brute is a point mass at charge speed, the hull a rectangle about its
+  centre of gravity with its own mass, and the two exchange one impulse where
+  the Brute meets the footprint, momentum conserved. So the hull moves by how
+  heavy it is against the Brute and turns by how far from its centre it was
+  struck, and the Brute rebounds with what the hull did not take and is hurt,
+  through its plate, by whatever impulse its bulk could not shed. A pickup is
+  pushed half a cell and swung round; an APC moves a little; a tank only rocks
+  on its suspension, and the Brute comes off worse. The hull then **slides**
+  (`HullSlide`): its tires or tracks scrub the velocity away as a fixed
+  deceleration in the hull's own frame, so a wheeled hull struck end-on rolls
+  on while one struck in the side stops short, tracks hold harder than wheels
+  along the hull, and the spin is scrubbed by the same sideways grip. Nothing a
+  charge strikes is moved in one step: a thrown or trampled body and a
+  rebounding Brute also slide to rest over the next ticks. Knocked down, stalled, staggered and stunned are one short
   **can't act** state (`StaggerService`): no move, no fire, for a fixed time,
   never a casualty state. The swarm's own bodies are never struck. Squad mates
   of a thrown body take a near-miss morale drain. The numbers (charge speed,
@@ -605,10 +652,24 @@ for one job in the cycle, and reads that way on screen.
   the charge is shown four ways, all presentation over the rule: a faint amber
   wedge along the line during the tell, with the other threat warnings; a
   knocked-down body's picture lying as a fallen one does for that second,
-  with a ring of dust where it lands, while the sim keeps it upright; one
-  amber daze mark over anything that can't act, whatever made it so; and the
-  squad card's status word naming the cause (knocked down, stalled,
+  with a ring of dust where it lands, while the sim keeps it upright; a quiet
+  amber arc on the ground under a Marine or hull that can't act, whatever made
+  it so, emptying as the hold runs out (a staggered mech shows only in its
+  stilled hips); and the squad card's status word naming the cause (knocked down, stalled,
   staggered, stunned) ahead of engaged or wounded.
+
+  Like the Runner it is drawn on its own skeleton (`RavBruteRig`): a plum,
+  plated rhino-ram with a mace head on four boar's legs, the hooves under the
+  body and the shanks over them. It walks, trots and gallops with the hips
+  and shoulders swaying against each other; it plants its feet to stand, to
+  brace for the tell and while it can't act, and gallops through a charge with
+  its head down. A blow is the whole body's, timed off the attack cooldown as
+  the Runner's arms are: the weight goes back onto the hind legs and the
+  forequarters rise, then it drives forward through the shoulders, the front
+  hooves stamping down ahead and the head driving with them; a charge's hit
+  plays the same drive. Stunned, it shows it in its body rather than with a
+  mark: the head hangs and shakes slowly side to side and the shoulders
+  wander. Its corpse is still the old single sprite.
 - **Spitter** — fragile, keeps its distance, lobs acid. It backs away from any
   ground enemy that closes inside its charge radius and does not lob while it
   runs. Otherwise a low hostile craft in reach whose skin its acid can bite
@@ -907,8 +968,9 @@ heard reaches the battle. A bore is heard erupting, growing to each tier,
 surging and collapsing, and breathes a tier ambience while it lives. A swarm
 body is heard for what it does, not for the beat table: it cries when it takes
 new quarry, strikes, rams a wall and breaks it, yelps or grunts when it is hurt
-and lives, and dies, and a Runner is heard taking up a body to drag it. Its feet
-follow the ground it covers: a Runner's gallop and chitin clatter, a Brute's
+and lives, and dies. A Runner taking up a body is heard latching onto it, and
+hauling it is heard as the load scraping over the ground in place of its gallop.
+Its feet follow the ground it covers: a Runner's gallop and chitin clatter, a Brute's
 hooves at every half cell, so a walking Brute plods and a charging one thunders.
 Each phase of the Brute's charge has its own sound (the tell, the run, the hit
 on infantry, a vehicle or a wall, the stun after a heavy wall or a tank), keyed
@@ -917,7 +979,8 @@ by the story that adds it. Each strain's sound is admitted under its own gap and
 footfalls come from the few bodies nearest the listener, so a pack reads as a
 pack, and the swarm is heard only on ground the player has seen. The Spitter has
 no voice; the Matriarch's sounds wait for its design and join as a strain of
-their own.
+their own (its catalogued roar was rejected and is redone once the design
+settles).
 
 ## Laws
 

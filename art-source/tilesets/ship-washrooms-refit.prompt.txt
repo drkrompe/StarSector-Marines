@@ -1,0 +1,7 @@
+Reskin the attached geometry guide into finished top-down game art for one spaceship washroom prop: a small wall-mounted basin counter. Strict overhead orthographic view, soft light from the upper left, the same look as the material reference sheet: warm grey ceramic, gray-green enamel, subdued brushed steel, charcoal trim, lightly worn but clean, realistic painted game-asset finish. No saturated colour, no glow, no water spray, no hazard stripes.
+
+The guide is the geometry, scale and layout authority, and the result will be cut mechanically from the guide's exact pixel rectangle. The basin counter is small: slightly wider than it is deep, about ten to nine (width to depth), and it occupies only the grey shape in the lower middle of the canvas; most of the canvas stays empty. It must overlay its grey guide shape almost exactly: the same left and right ends, the same top and bottom edges. Do not make it wider, deeper or larger than its grey shape; do not move, rescale or rotate it, and do not add any other piece. Keep all empty canvas fully transparent: true transparent background; no floor, no ground, no shadow slab, no border, no people, no labels or text.
+
+The basin: a compact grey counter top with an oval recessed ceramic bowl and a small drain, a short steel faucet and two small round controls along the BOTTOM edge, and a dark charcoal wall strip across the very bottom edge where it meets the bulkhead.
+
+Broad readable forms, soft restrained highlights, sparse wear, low surface noise.

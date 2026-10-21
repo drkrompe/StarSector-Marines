@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160c7-b4df-72c1-a2d4-467cdb9bd18f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160c7-b4df-72c1-a2d4-467cdb9bd18f\\exec-263b36b4-951a-4240-b530-e41dd2c5625b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\beds\\barracks-refit.png",
+    "sha256": "275777a8d388e0fae92384e9acb4233b70f5a7f2b36f33eb190eaa60c5a5b7f8",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\beds\\barracks-refit.prompt.txt",
+  "promptSha256": "4401d8dd95069cf2ed729596aaf19b920ba88163243ad845ca812048bc470b1c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry, scale and layout authority: reskin this exactly, same size and position for every piece\nImage 2: Material and style reference only; its pieces are the wrong size and layout, ignore their proportions\n\nReskin the attached geometry guide into finished top-down game art for four spaceship bunk props that overlay one another in the game. Strict overhead orthographic view, soft light from the upper left, the same look as the material reference sheet: restrained worn graphite steel, muted grey-sage enamel, quiet silver edges, soft grey-green bedding and off-white pillows, realistic painted game-asset finish. No saturated colour, no glow, no hazard stripes.\n\nThe guide is the geometry, scale and layout authority, and the result will be cut mechanically from the guide's exact pixel rectangles. Every piece is a long slim upright strip, a little more than three times as long as it is wide, and must overlay its grey guide shape almost exactly: the same left and right sides, the same top and bottom ends. Do not make any piece wider, shorter, longer or larger than its grey shape; do not move, rescale, rotate, merge or add pieces. Keep all empty canvas fully transparent: true transparent background, including inside the open frame; no floor, no ground, no shadow slab, no border, no people, no labels or text.\n\nPieces, left to right:\n1. EMPTY ship bunk base: a long narrow graphite steel pan with bevelled edges and a recessed spring deck divided by three faint cross members. No mattress, no bedding, no drawer. The same at both ends.\n2. ONLY a long single mattress with a flat off-white pillow at the TOP end and a neatly tucked muted grey-green blanket covering the lower two thirds, its turned-down band just below the pillow. No bed frame, no floor outside the mattress.\n3. The same bedding facing the OPPOSITE way: pillow at the BOTTOM end, blanket over the upper two thirds with its turned-down band just above the pillow. Same size.\n4. ONLY the open retaining rails of the bunk: two thin side rails, thin end bars and four small square corner posts on exactly the base's outline. The whole long centre must be transparent so the bedding below shows through. No mattress, no platform.\n\nBroad readable forms, restrained weave and a few broad fabric folds, soft restrained highlights, sparse wear, low surface noise.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\barracks-bunks.png",
+      "sha256": "e3161ce986333e68b9eb90da60f4951cbba9b793382342fec52f58b169dca431",
+      "dimensions": [
+        1920,
+        1280
+      ],
+      "mode": "RGBA",
+      "role": "Geometry, scale and layout authority: reskin this exactly, same size and position for every piece"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\beds\\barracks-old.raw.png",
+      "sha256": "b6c3ce218bbb9de7528abd0c54571d4b71a7d9fe7a370d0f289fb7e1d3cc6c90",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only; its pieces are the wrong size and layout, ignore their proportions"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first reference’s exact geometry and the second reference’s materials and finish."
+  ],
+  "usage": {
+    "input_tokens": 47665,
+    "cached_input_tokens": 38272,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 847,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.0
+}

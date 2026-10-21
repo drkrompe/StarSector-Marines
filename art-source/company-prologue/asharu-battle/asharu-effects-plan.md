@@ -183,6 +183,22 @@ frames in 287 s) and posted to `review/asharu-fx-shields/`.
 - **Done when:** the tech colours read correctly by rule, and an overloaded shield is unmistakable
   at 28 mm (S9b).
 
+### W3 and W2: built 2026-10-21, bench job submitted, owner's curve-width question open
+
+`swfx_missile_paths` plans flights (cold eject, then lit; guided ones steer after an authored
+guide, rockets and torpedoes fly straight), and its `Seeker` makes the guided ones hunt: the
+aim updates every `seek_s` (Harpoon .3 s, Swarmer .18, Pilum .5) with a seeded error of up to
+`seek_deg` (8, 10, 5 degrees) that swings back the other way and shrinks with the remaining
+range, gone over the last tenth. `seek_s=0` turns it off. `swfx_pd` keys the screen, flak and
+flares, and trains each PD mount onto its rounds and beam through `swfx_guns.aim` at the game's
+turn rate. Bench: `missiles.harpoon-salvo` (width .18), `harpoon-wide` (.28) and
+`harpoon-narrow` (.10) on the same frames, `harpoon-launch`, and `pd.harpoon-screen`,
+`swarmer-laser`, `flak`, `flares`; `--check` passes with every colour routed (`direct` 0), and the
+Second Wind's `check_kit.py --fire` fingerprint is 532023f9.
+
+Curve width moves the timing: launch to hit is about 104 frames at .18, 101 at .10 and 111 at
+.28 over 3 km, so W6 re-plans its launch frames once the width is picked.
+
 ### W2 Point defence
 
 - **Reuse:** guns (Vulcan, light MG tracers), beams (`swfx_beams`, vanilla PD laser and LR PD laser

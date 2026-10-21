@@ -1,74 +1,108 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.BasicStroke;
+import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.imageio.ImageIO;
 
-/** Geometry contract: 64px/cell, seven isolated slots in a 3x3 sheet. */
+/**
+ * The shuttle-bay pieces re-drawn at real size, where a cell is about 0.75 m (a crewman's shoulders are 0.6 cells):
+ * the flight-operations desk, two cells by one, the servicing cart, one cell by two, and the flush tie-down, a
+ * quarter-metre deck plate with a lashing ring in the middle of its one cell. The rest of the kit (ground-power
+ * unit, fluid skid, wheel cradles, landing deck) was already true and keeps its original generation.
+ *
+ * <p>The old tie-down, a ring with a bar across its centre, read to ImageGen's safety filter as a gun sight: every
+ * request carrying it, or the old sheet as reference, was refused as violence. The plate is square for that reason.
+ *
+ * <p>Drawn large, 320 px per cell: at 128 px per cell ImageGen draws boxy pieces far too deep. The worked face of
+ * every piece is its bottom edge: a sprite's top edge lies at its footprint's highest row, and each piece is worked
+ * from the row below it. The desk's operator side is its near (bottom) fascia; the cart's push handle is at the
+ * bottom.
+ *
+ * <pre>
+ *   slot          frame (x,y,w,h px)    real size
+ *   flight-desk   160, 80,640,320       1.45 x 0.68 m desk, display at the back, operator fascia at the bottom
+ *   service-cart  880, 80,320,640       0.66 x 1.4 m cart, coiled lead on top, push handle at the bottom
+ *   tie-down      160,560,320,320       0.26 m flush deck plate with a lashing ring, centred, transparent around it
+ * </pre>
+ */
 public final class ShuttleBayTemplate {
     private ShuttleBayTemplate() {}
+
+    /** Pixels per cell on the canvas; shapes below are drawn in 64ths of a cell. */
+    static final int C = 320;
+
     public static BufferedImage render() {
-        BufferedImage image = new BufferedImage(1024,1024,BufferedImage.TYPE_INT_ARGB);
-        for (int slot=0;slot<7;slot++) {
-            Graphics2D g=image.createGraphics();
-            g.translate(32+slot%3*336,32+slot/3*320);
-            switch(slot) {
-                case 0 -> { // 2x3 flight operations desk, controls on its right edge.
-                    box(g,4,4,120,184,0x434B46); box(g,12,12,104,168,0x92968B);
-                    box(g,26,20,46,55,0x384940); box(g,31,25,36,45,0x647C6C);
-                    box(g,83,20,23,55,0xB0B2A3); box(g,25,103,80,52,0xB4B5A8);
-                    box(g,94,163,18,9,0x5D665C);
-                }
-                case 1 -> { // 2x3 mobile servicing station, coiled leads entirely on cart.
-                    box(g,5,8,118,175,0x343F38);box(g,15,15,98,157,0x818C7C);
-                    box(g,25,25,78,43,0xA2A899);box(g,29,36,67,8,0x455349);
-                    g.setStroke(new BasicStroke(9));g.setColor(new Color(0x34483B));
-                    g.drawOval(29,88,69,65);g.drawOval(42,101,43,39);
-                    box(g,17,1,15,12,0x29332D);box(g,93,1,15,12,0x29332D);
-                    box(g,17,179,15,12,0x29332D);box(g,93,179,15,12,0x29332D);
-                }
-                case 2 -> { // 4x2 ground-power unit.
-                    box(g,4,4,248,120,0x354239);box(g,14,13,165,102,0x7F8D79);
-                    box(g,25,25,140,10,0x586650);box(g,25,48,140,10,0x586650);
-                    box(g,25,71,140,10,0x586650);box(g,194,17,42,41,0xA5AB9A);
-                    g.setColor(new Color(0x35483A));g.fillOval(186,69,54,40);
-                }
-                case 3 -> { // 4x2 contained fluid servicing skid; short joined manifold.
-                    box(g,4,4,248,120,0x354239);
-                    g.setColor(new Color(0xA5AD9D));g.fillRoundRect(17,17,85,83,24,24);
-                    g.fillRoundRect(124,17,85,83,24,24);
-                    box(g,49,98,134,10,0x697762);box(g,49,83,10,20,0x697762);
-                    box(g,173,83,10,20,0x697762);box(g,216,45,25,50,0x809479);
-                    box(g,183,98,47,10,0x697762);box(g,222,82,8,26,0x697762);
-                }
-                case 4 -> { // 2x2 wheels in cradles, transparent shelf overlay.
-                    for(int x:new int[]{26,72}) {
-                        box(g,x-5,23,37,82,0x6A7664);
-                        g.setColor(new Color(0x334138));g.fillOval(x,29,27,65);
-                        g.setColor(new Color(0xA1AA99));g.fillOval(x+8,44,11,33);
-                    }
-                }
-                case 5 -> { // 1x1 seamless matte landing-deck material, enlarged sample.
-                    box(g,0,0,192,192,0x777C73);
-                }
-                case 6 -> { // 1x1 flush tie-down marking, enlarged sample, transparent.
-                    g.setColor(new Color(0xA6AB99));g.setStroke(new BasicStroke(7));
-                    g.drawOval(47,47,98,98);
-                    box(g,83,87,26,18,0x4B574B);box(g,90,77,12,38,0xA6AB99);
-                }
-            }
-            g.dispose();
-        }
+        BufferedImage image = new BufferedImage(4 * C, 4 * C, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = image.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Flight-operations desk 2x1: a dim display and a status panel at the back, a log board, a control strip,
+        // and the operator's fascia with two drawer pulls along the near (bottom) edge.
+        at(g, C / 2, C / 4);
+        rect(g, 2, 4, 124, 56, 0x434B46);
+        rect(g, 4, 6, 120, 44, 0x92968B);
+        rect(g, 10, 9, 40, 24, 0x384940);
+        rect(g, 13, 11, 34, 19, 0x647C6C);
+        rect(g, 56, 9, 18, 24, 0xB0B2A3);
+        rect(g, 82, 12, 34, 30, 0xB4B5A8);
+        rect(g, 12, 38, 56, 7, 0x5D665C);
+        rect(g, 2, 50, 124, 10, 0x353D38);
+        rect(g, 20, 54, 22, 3, 0x92988B);
+        rect(g, 86, 54, 22, 3, 0x92988B);
+
+        // Servicing cart 1x2: casters at the corners, a drawer at the far end, a coiled lead on the deck of the
+        // cart, and the push handle across the near (bottom) end.
+        at(g, 11 * C / 4, C / 4);
+        rect(g, 7, 10, 10, 8, 0x29332D);
+        rect(g, 47, 10, 10, 8, 0x29332D);
+        rect(g, 7, 104, 10, 8, 0x29332D);
+        rect(g, 47, 104, 10, 8, 0x29332D);
+        rect(g, 4, 14, 56, 94, 0x343F38);
+        rect(g, 9, 18, 46, 86, 0x818C7C);
+        rect(g, 13, 22, 38, 22, 0xA2A899);
+        rect(g, 22, 30, 20, 4, 0x455349);
+        g.setColor(new Color(0x34483B));
+        g.setStroke(new BasicStroke(5));
+        g.draw(new Ellipse2D.Double(14, 54, 36, 36));
+        g.draw(new Ellipse2D.Double(22, 62, 20, 20));
+        rect(g, 10, 112, 4, 10, 0xADB09E);
+        rect(g, 50, 112, 4, 10, 0xADB09E);
+        rect(g, 10, 120, 44, 5, 0xADB09E);
+
+        // Flush tie-down 1x1: a small square deck plate painted off-white round its edge, recessed in the middle,
+        // with a steel lashing ring lying flat in the recess.
+        at(g, C / 2, 7 * C / 4);
+        rect(g, 21, 21, 22, 22, 0xA6AB99);
+        rect(g, 24, 24, 16, 16, 0x6B7468);
+        rect(g, 26, 26, 12, 12, 0x3B463D);
+        g.setColor(new Color(0xA6AB99));
+        g.setStroke(new BasicStroke(2));
+        g.draw(new Ellipse2D.Double(28, 30, 9, 6));
+
+        g.dispose();
         return image;
     }
-    private static void box(Graphics2D g,int x,int y,int w,int h,int rgb) {
-        g.setColor(new Color(rgb));g.fillRect(x,y,w,h);
+
+    /** Places a frame's top-left corner at canvas pixel ({@code x}, {@code y}), scaled to 64ths of a cell. */
+    private static void at(Graphics2D g, int x, int y) {
+        g.setTransform(new AffineTransform());
+        g.translate(x, y);
+        g.scale(C / 64.0, C / 64.0);
     }
+
+    private static void rect(Graphics2D g, int x, int y, int w, int h, int rgb) {
+        g.setColor(new Color(rgb)); g.fillRect(x, y, w, h);
+    }
+
     public static void main(String[] args) throws Exception {
-        Path path=Path.of(args[0]);Files.createDirectories(path.getParent());ImageIO.write(render(),"png",path.toFile());
+        Path path = Path.of(args[0]); Files.createDirectories(path.getParent());
+        ImageIO.write(render(), "png", path.toFile());
     }
 }

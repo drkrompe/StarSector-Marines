@@ -39,7 +39,38 @@ final class BruteChargeRules {
     static final float BODY_SLOW = f("chargeBodySlow", .75f);
     static final float KNOCKDOWN = f("knockdown", 1f);
     static final float THROW = f("throw", 1.2f);
-    static final float SHOVE = f("shove", .6f);
+    /**
+     * A Brute's mass in tonnes, against {@link com.dillon.starsectormarines.battle.vehicle.VehicleType#massTonnes}:
+     * what a hull it runs into takes from it is a momentum exchange
+     * ({@link com.dillon.starsectormarines.battle.vehicle.HullImpact}), not a fixed shove.
+     */
+    static final float MASS = f("mass", 3f);
+    /** How much a charge bounces off a hull: 0 is a dead stop against it, 1 a perfect bounce. */
+    static final float RESTITUTION = f("restitution", .2f);
+    /** Impulse (tonne-cells a second) a Brute's plate and bulk take without harm; damage per unit past it. */
+    static final float SAFE_IMPULSE = f("safeImpulse", 5f);
+    static final float RECOIL_DAMAGE = f("recoilDamage", 1f);
+    /** Decelerations, cells a second squared, of a thrown body sliding to rest and of a Brute's rebound. */
+    static final float BODY_SLIDE = f("bodySlide", 9f);
+    static final float BRUTE_SLIDE = f("bruteSlide", 8f);
+    /**
+     * How far a Brute's blow reaches, from its centre to the surface of what it strikes: its head, about a
+     * cell. Measured to a hull's footprint, not to a circle about its centre.
+     */
+    static final float BLOW_REACH = f("blowReach", 1.0f);
+    /** The speed a blow drives the Brute's weight into what it strikes, cells a second: what a hull or mech takes. */
+    static final float BLOW_SPEED = f("blowSpeed", 2.5f);
+    /** A mech's tonnes per unit of its variant's relative mass, and how hard its feet hold a slide. */
+    static final float MECH_TONNES = f("mechTonnes", 10f);
+    static final float MECH_SLIDE = f("mechSlide", 4f);
+    /** {@code -Dbattle.brute.trample=false} keeps the Brute's blow on infantry an ordinary hit: the control. */
+    static final boolean TRAMPLE = Boolean.parseBoolean(System.getProperty("battle.brute.trample", "true"));
+    /** A trampled body's time down, how far it is bowled, and the ground under the hooves (cells). */
+    static final float TRAMPLE_HOLD = f("trampleHold", .6f);
+    static final float TRAMPLE_BOWL = f("trampleBowl", .4f);
+    static final float TRAMPLE_RADIUS = f("trampleRadius", .75f);
+    /** What a body beside the one trampled takes of the blow. */
+    static final float TRAMPLE_SPLASH = f("trampleSplash", .5f);
     static final float STALL_LIGHT = f("stallLight", .8f);
     static final float STALL_MEDIUM = f("stallMedium", .4f);
     static final float STUN = f("stun", 1f);
@@ -56,22 +87,21 @@ final class BruteChargeRules {
     enum Kind { INFANTRY, EMPLACEMENT, LIGHT_VEHICLE, MEDIUM_VEHICLE, HEAVY_VEHICLE, LIGHT_MECH, MEDIUM_MECH, HEAVY_MECH }
 
     /**
-     * What a charge's hit does to a body of one {@link Kind}: how far it is thrown sideways or
-     * shoved along the line, how long it can't act, how long the Brute is stunned, whether the blow is
-     * aimed at the legs, and whether the charge goes on through it.
+     * What a charge's hit does to a body of one {@link Kind}: how far it is thrown sideways, how long it
+     * can't act, how long the Brute is stunned, whether the blow is aimed at the legs, and whether the
+     * charge goes on through it. How far a hull moves is not here: that is the momentum the two exchange.
      */
-    record Outcome(float throwCells, float shoveCells, float holdSeconds, float bruteStunSeconds,
-                   boolean legs, boolean goesOn) {}
+    record Outcome(float throwCells, float holdSeconds, float bruteStunSeconds, boolean legs, boolean goesOn) {}
 
     static Outcome outcome(Kind kind) {
         return switch (kind) {
-            case INFANTRY -> new Outcome(THROW, 0f, KNOCKDOWN, 0f, false, true);
-            case EMPLACEMENT -> new Outcome(0f, 0f, 0f, 0f, false, false);
-            case LIGHT_VEHICLE -> new Outcome(0f, SHOVE, STALL_LIGHT, 0f, false, false);
-            case MEDIUM_VEHICLE -> new Outcome(0f, 0f, STALL_MEDIUM, 0f, false, false);
-            case HEAVY_VEHICLE -> new Outcome(0f, 0f, 0f, STUN, false, false);
-            case LIGHT_MECH, MEDIUM_MECH -> new Outcome(0f, 0f, MECH_STAGGER, 0f, true, false);
-            case HEAVY_MECH -> new Outcome(0f, 0f, 0f, 0f, true, false);
+            case INFANTRY -> new Outcome(THROW, KNOCKDOWN, 0f, false, true);
+            case EMPLACEMENT -> new Outcome(0f, 0f, 0f, false, false);
+            case LIGHT_VEHICLE -> new Outcome(0f, STALL_LIGHT, 0f, false, false);
+            case MEDIUM_VEHICLE -> new Outcome(0f, STALL_MEDIUM, 0f, false, false);
+            case HEAVY_VEHICLE -> new Outcome(0f, 0f, STUN, false, false);
+            case LIGHT_MECH, MEDIUM_MECH -> new Outcome(0f, MECH_STAGGER, 0f, true, false);
+            case HEAVY_MECH -> new Outcome(0f, 0f, 0f, true, false);
         };
     }
 
@@ -120,6 +150,24 @@ final class BruteChargeRules {
     static float turnToward(float heading, float desired, float maxStep) {
         float delta = ((desired - heading) % 360f + 540f) % 360f - 180f;
         return heading + Math.max(-maxStep, Math.min(maxStep, delta));
+    }
+
+    /** What a Brute takes from an impulse it could not shed: nothing up to {@link #SAFE_IMPULSE}. */
+    static float recoilDamage(float impulse) {
+        return Math.max(0f, impulse - SAFE_IMPULSE) * RECOIL_DAMAGE;
+    }
+
+    /**
+     * The velocity change a body of {@code mass} takes, struck head-on by a Brute closing at {@code speed}:
+     * momentum conserved between two point masses, bouncing by {@link #RESTITUTION}.
+     */
+    static float pointPush(float speed, float mass) {
+        return (1f + RESTITUTION) * speed / (1f / MASS + 1f / mass) / mass;
+    }
+
+    /** Speed a body must leave at to slide {@code cells} against a deceleration of {@code decel}. */
+    static float launchSpeed(float cells, float decel) {
+        return (float) Math.sqrt(2f * decel * cells);
     }
 
     static int ticks(float seconds) {
