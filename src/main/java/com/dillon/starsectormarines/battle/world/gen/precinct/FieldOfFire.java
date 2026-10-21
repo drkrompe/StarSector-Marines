@@ -31,6 +31,71 @@ public record FieldOfFire(int centerX, int centerY, int radius) {
                 landing.landing().fieldOfFire());
     }
 
+    /**
+     * Cells of open country past the disc's far side before the town may begin,
+     * so the colony's first wall stands outside the radius rather than on it.
+     */
+    public static final int COUNTRY_MARGIN = 8;
+
+    /**
+     * How far from the edge it lies against the field's open country reaches:
+     * the centre's own depth, the radius and {@link #COUNTRY_MARGIN}.
+     *
+     * <p>The country is a band across the whole edge, not a ring round the
+     * disc. A ring leaves the town free to grow up both flanks to the map edge,
+     * and a field with the town on three sides of it is a clearing in the
+     * colony rather than fields outside it: the company would be landing
+     * inside what it came to fight its way into.
+     */
+    public int countryDepth(int width, int height) {
+        return edgeDistance(centerX, centerY, width, height) + radius + COUNTRY_MARGIN;
+    }
+
+    /** Whether a cell is the field's open country: its band along the edge. */
+    public boolean inCountry(int x, int y, int width, int height) {
+        return edgeDistance(x, y, width, height) <= countryDepth(width, height);
+    }
+
+    /**
+     * The map left for the town once the country is taken, as an inclusive
+     * {@code {x0, y0, x1, y1}} rect.
+     */
+    public int[] townBounds(int width, int height) {
+        int depth = countryDepth(width, height) + 1;
+        return switch (edge(width, height)) {
+            case 0 -> new int[]{depth, 0, width - 1, height - 1};
+            case 1 -> new int[]{0, 0, width - 1 - depth, height - 1};
+            case 2 -> new int[]{0, depth, width - 1, height - 1};
+            default -> new int[]{0, 0, width - 1, height - 1 - depth};
+        };
+    }
+
+    /**
+     * Cells from a cell to the map edge the field lies against.
+     *
+     * <p>That edge is the one nearest the centre. A field sits less than its
+     * radius in from the edge it lands across, and a map the field fits on is
+     * more than twice that from its other edges, so the nearest is the one.
+     */
+    private int edgeDistance(int x, int y, int width, int height) {
+        return switch (edge(width, height)) {
+            case 0 -> x;
+            case 1 -> width - 1 - x;
+            case 2 -> y;
+            default -> height - 1 - y;
+        };
+    }
+
+    /** The edge nearest the centre: 0 low x, 1 high x, 2 low y, 3 high y. */
+    private int edge(int width, int height) {
+        int[] distance = {centerX, width - 1 - centerX, centerY, height - 1 - centerY};
+        int best = 0;
+        for (int i = 1; i < distance.length; i++) {
+            if (distance[i] < distance[best]) best = i;
+        }
+        return best;
+    }
+
     /** Whether a cell lies inside the disc. */
     public boolean contains(int x, int y) {
         long dx = x - centerX;

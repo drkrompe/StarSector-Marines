@@ -151,13 +151,16 @@ class PrecinctClaimTest {
     /**
      * An open field's disc is its own however little ground it was allowed and
      * whoever else wants it: a town's streets run through it and a garrison
-     * listed first sits just outside it, and still every cell within the field
-     * of fire is the field's, because a field of fire is a promise about
-     * distance and pooling would bulge past it on one side and fall short on
-     * another.
+     * listed first sits past it, and still every cell within the field of fire
+     * is the field's, because a field of fire is a promise about distance and
+     * pooling would bulge past it on one side and fall short on another.
+     *
+     * <p>So is the open country it lies in: the whole band along its edge out
+     * past the disc, so the town is on one side of the fields rather than
+     * round them.
      */
     @Test
-    void anOpenFieldTakesItsWholeDiscBeforeAnyonePools() {
+    void anOpenFieldTakesItsDiscAndItsCountryBeforeAnyonePools() {
         int width = 120;
         int height = 100;
         int[][] owner = new int[width][height];
@@ -167,21 +170,23 @@ class PrecinctClaimTest {
                 if (x % 6 == 0 || y % 6 == 0) owner[x][y] = 0;
             }
         }
-        Precinct field = Precinct.landing("landing", 60, 48, GrownTrunkPlan.Profile.hamlet(),
+        int setback = LandingKind.OPEN_FIELD.fieldSetback();
+        Precinct field = Precinct.landing("landing", 60, setback, GrownTrunkPlan.Profile.hamlet(),
                 LandingKind.OPEN_FIELD, LandingKind.OPEN_FIELD.program());
         List<Precinct> precincts = List.of(town(), garrison("garrison", 60, 94), field);
         int[][] claim = PrecinctClaim.byKind(precincts).assign(owner, width, height,
                 new int[]{TOWN_BUDGET, GARRISON_BUDGET, 100});
 
-        FieldOfFire disc = new FieldOfFire(60, 48, LandingKind.OPEN_FIELD.fieldOfFire());
+        FieldOfFire disc = new FieldOfFire(60, setback, LandingKind.OPEN_FIELD.fieldOfFire());
+        int country = disc.countryDepth(width, height);
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                if (!disc.contains(x, y)) continue;
-                assertTrue(claim[x][y] == 2, "cell " + x + "," + y + " inside the field of fire went to "
-                        + claim[x][y] + ", so a neighbour can build inside the radius the field promised");
+                if (!disc.contains(x, y) && y > country) continue;
+                assertTrue(claim[x][y] == 2, "cell " + x + "," + y + " inside the field's country went to "
+                        + claim[x][y] + ", so a neighbour can build in the fields the company lands in");
             }
         }
         assertTrue(PrecinctClaim.sizes(claim, 3)[1] > 0,
-                "the garrison beside the field claimed nothing at all");
+                "the garrison past the fields claimed nothing at all");
     }
 }

@@ -348,8 +348,16 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
         Precinct landingPlace = landing == null || attackerFrom == null ? null
                 : seedLanding(landing, Standoff.FAR, null, attackerFrom, taken,
                         EDGE_MARGIN, LandingKind.AREAS_THE_APRON_SEATS, width, height);
+        // Fields are outside the town: the briefs lay out on the map the
+        // country leaves, so a brief asked for the centre is the centre of the
+        // town rather than of the map, and no place is seeded in the fields.
+        int[] town = {0, 0, width - 1, height - 1};
+        if (landingPlace != null && landing.hasFieldOfFire()) {
+            town = new FieldOfFire(landingPlace.seedX(), landingPlace.seedY(), landing.fieldOfFire())
+                    .townBounds(width, height);
+        }
         for (PrecinctBrief brief : briefs) {
-            out.add(spaced(brief, taken, width, height, rng));
+            out.add(spaced(brief, taken, town, rng));
         }
         if (landingPlace != null) out.add(landingPlace);
         return new PrecinctPlan(out, attackerFrom);
@@ -364,11 +372,14 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      * out of the region the mission asked for is a different map.
      */
     private static Precinct spaced(PrecinctBrief brief, List<int[]> taken,
-                                   int width, int height, Random rng) {
+                                   int[] within, Random rng) {
         Precinct best = null;
         int bestGap = -1;
+        int width = within[2] - within[0] + 1;
+        int height = within[3] - within[1] + 1;
         for (int attempt = 0; attempt < 64; attempt++) {
-            Precinct candidate = brief.resolve(width, height, EDGE_MARGIN, rng);
+            Precinct candidate = brief.resolve(width, height, EDGE_MARGIN, rng)
+                    .movedBy(within[0], within[1]);
             int gap = Integer.MAX_VALUE;
             for (int[] other : taken) {
                 int dx = other[0] - candidate.seedX();
@@ -699,10 +710,9 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
 
         ApproachRegion region = ApproachRegion.resolve(attackerFrom, standoff,
                 estimatedClaim(objectivePlace, width, height), width, height);
-        // A field sits its clear radius in from the edge it lands across, so the
-        // whole disc is on the map and the shuttles fly no further inland than
-        // it takes to keep it there.
-        int radius = kind.hasFieldOfFire() ? kind.fieldOfFire() : claimRadius(program);
+        // A field sits its setback in from the edge it lands across, against
+        // that edge with open country behind it and the town beyond it.
+        int radius = kind.hasFieldOfFire() ? kind.fieldSetback() : claimRadius(program);
         boolean forwardIsY = region.approach() == LandingPad.Approach.SOUTH
                 || region.approach() == LandingPad.Approach.NORTH;
         boolean towardHigher = region.approach() == LandingPad.Approach.SOUTH

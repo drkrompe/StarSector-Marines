@@ -73,6 +73,15 @@ public final class AssaultDefenderCommand implements AutonomousMissionCommand<
     }
 
     @Override public Faction faction() { return Faction.DEFENDER; }
+    /**
+     * The mission's place directives (`garrisonables.md`, place directives); this commander reads its counter-attack
+     * ones ({@link MissionCounterattack}). Call once, at setup.
+     */
+    public AssaultDefenderCommand placeDirectives(List<PlaceDirective> mission) {
+        counter.directives(mission, faction());
+        return this;
+    }
+
     @Override public String strategyId() { return "assault-defender"; }
     @Override public void afterCommit(CommandEffects effects) {
         garrisons.afterCommit(effects, faction());
@@ -91,7 +100,7 @@ public final class AssaultDefenderCommand implements AutonomousMissionCommand<
                 new HashMap<>(squadRoutineArea);
         Map<Integer, SquadDirective> directives = new LinkedHashMap<>();
         List<CommandSquadState> candidates = new ArrayList<>();
-        boolean countering = MissionCounterattack.enabled();
+        boolean countering = counter.active();
         Set<Integer> claimed = countering ? counter.claimed() : Set.of();
         List<CommandSquadState> members = new ArrayList<>();
 
@@ -255,7 +264,8 @@ public final class AssaultDefenderCommand implements AutonomousMissionCommand<
                 .filter(squad -> !selectedResponders.contains(squad.squadId())).toList();
         MissionCounterattack.Result retake = countering
                 ? counter.plan(frame.tick(), MissionPlaces.buildings(frame.keyBuildings()), members, held,
-                candidates.size() + members.size(), frame.squads(), frame.influence(), frame.topology())
+                candidates.size() + members.size(), frame.squads(), frame.influence(), frame.topology(),
+                PlaceSignals.of(frame))
                 : MissionCounterattack.Result.NONE;
         proposals = MissionCounterattack.apply(proposals, retake, frame.squads());
         offers = MissionCounterattack.offers(offers, retake);
