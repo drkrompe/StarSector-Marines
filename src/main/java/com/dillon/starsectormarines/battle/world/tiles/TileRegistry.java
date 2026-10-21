@@ -120,6 +120,7 @@ public final class TileRegistry {
             "data/tilesets/loading-bay.tileset.json",
             "data/tilesets/briefing-room.tileset.json",
             "data/tilesets/ship-gym.tileset.json",
+            "data/tilesets/ship-gym-track.tileset.json",
             "data/tilesets/ship-washrooms.tileset.json",
             "data/tilesets/firing-range.tileset.json",
             "data/tilesets/ship-utility.tileset.json",
