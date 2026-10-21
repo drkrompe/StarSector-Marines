@@ -146,6 +146,7 @@ def cookoff_caused(bench):
     bench.bpy.context.view_layer.update()
     with p.kit() as (ctx, kit):
         recs = imp.apply_cue(ctx, cookoff_entries(BREAK), matrix=p.matrix)
+        print('BENCH cook-off embers refined:', imp.refine_sparks(ctx), flush=True)
     print('BENCH cook-off cause', [(r['kind'], r['frame'], r['at_m']) for r in recs], flush=True)
     bench.camera((95, 150, 85), (8, 0, 0), 50)
     # The cook-off fills this framing with volumes; coarser volume steps keep the light job in

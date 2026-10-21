@@ -59,6 +59,10 @@ PREFIX = 'SWFX impact'
 FPS = swfx_core.FPS
 LEAK_FLUX = .75
 SHARD_SIDES = 7          # rim points of one debris shard before it is torn
+# The kit draws a spark as a streak two frames of travel long and ~0.1 m thick: at a fast spark's
+# speed that is a 10 m bar, which makes a 60-90 m hull read as a model. Impact sparks are drawn
+# finer: half as thick and under half as long (refine_sparks).
+SPARK_WIDTH, SPARK_STREAK = .5, .4
 # kind -> look. Sizes in metres, times in seconds. Light power is real watts for a hull-unit
 # file (swfx_lighting.watts); ShipFx.metre_scale corrects it once a copy is instanced in metres.
 KINDS = {
@@ -142,6 +146,7 @@ def _sparks(ctx, e, seed, name, count, speed_m, life_s, width, knob, gain, cool,
     heat = g.m('SUBTRACT', 1.0, g.m('DIVIDE', g.m('MAXIMUM', age, 0.0), life), clamp=True)
     mat = _spark_material(ctx, knob=knob, name=f'{PREFIX} {name}', gain=gain, cool=cool, hot=hot)
     _spark_streaks(g, gout, count, pos, vel, heat, alive, mat, width=width)
+    _refine(tree, SPARK_WIDTH, SPARK_STREAK)
     ob = bpy.data.objects.new(f'{PREFIX} {name} | {e.name}', bpy.data.meshes.new(f'{PREFIX} {name} {seed}'))
     ctx.collection(GROUP).objects.link(ob)
     ob.modifiers.new('Sparks', 'NODES').node_group = tree
@@ -537,6 +542,50 @@ def strike(ctx, frame, at_m, normal, kind='kinetic', shield_centre_m=(0, 0, 0), 
         hit(ctx, frame, at_m, normal, scale=.6, **kw)
         return 'leak'
     return 'shield'
+
+
+# ======================================================================================= spark scale
+
+def _refine(tree, width, streak, count=1.0):
+    """Scale one spark-streak tree (swfx_smoke._spark_streaks): streak thickness by width, streak
+    length (frames of travel) by streak, spark count by count. Idempotent per tree. Returns True
+    when the tree is a streak tree."""
+    if tree.get('imp_refined'):
+        return True
+    length = thick = None
+    for n in tree.nodes:
+        if n.bl_idname != 'ShaderNodeMath' or n.operation != 'MULTIPLY_ADD':
+            continue
+        if abs(n.inputs[1].default_value - 2.0 / FPS) < 1e-6 and n.inputs[0].is_linked:
+            length = n
+        elif any(l.to_node.bl_idname == 'ShaderNodeCombineXYZ' and l.to_socket.identifier != 'X'
+                 for l in n.outputs[0].links):
+            thick = n
+    if length is None or thick is None:
+        return False
+    length.inputs[1].default_value *= streak
+    thick.inputs[1].default_value *= width
+    thick.inputs[2].default_value *= width
+    if count != 1.0:
+        for n in tree.nodes:
+            if n.bl_idname == 'GeometryNodePoints' and not n.inputs['Count'].is_linked:
+                n.inputs['Count'].default_value = max(1, round(n.inputs['Count'].default_value * count))
+    tree['imp_refined'] = True
+    return True
+
+
+def refine_sparks(ctx, width=.4, streak=.4, count=2.0, prefix='SWFX fire embers'):
+    """Draw a build's baked spark streaks finer, on this ship's copy only (a wreck's cook-off
+    embers by default): thinner, shorter, and more of them, so a ship-killing blast throws sparks
+    at the scale of the ship rather than of a model. Opt-in; returns how many trees it scaled."""
+    n = 0
+    for o in ctx.root.all_objects:
+        if not o.name.startswith(prefix):
+            continue
+        for mod in o.modifiers:
+            if mod.type == 'NODES' and mod.node_group is not None and _refine(mod.node_group, width, streak, count):
+                n += 1
+    return n
 
 
 # ======================================================================================= placing

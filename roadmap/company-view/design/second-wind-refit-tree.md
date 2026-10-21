@@ -480,31 +480,27 @@ original distribution and mess orders stay credits-only.
 The top of the tree is end-game content, gated on exotic parts the player
 already hunts for on the sector's outskirts (owner, same day). An exotic part
 is a hard requirement: there is no credit-heavy alternative, because everything
-below it stays reachable without one. Exotic parts are AI cores, and the
-Threat's and the abyss's special items. **Colony items never go into the
-ship**: they belong in industries, and AI cores are the one exception. Each
-part goes where its own description says it would work, so a system with no
-fitting part is left to bulk goods rather than given an arbitrary one; the
-comfort rooms (mess, gym, lounge, hydroponics, wardroom, holds) take none, and
-nothing is asked to reach Restored.
+below it stays reachable without one. The exotic parts are the alpha, beta and
+gamma cores and nothing else for now: **colony items never go into the ship**,
+the Threat's and the abyss's special items were tried and dropped, and a relic
+part (the owner's "relics") must work in the base game without another mod,
+so it waits for a source the game itself provides. The comfort rooms (mess,
+gym, lounge, hydroponics, wardroom, holds) take no core, and nothing asks for
+one to reach Restored.
 
-| Tier | Exotic part | Why there |
+| Tier | Core | Why there |
 |---|---|---|
-| Compute: processing cluster | gamma core | |
-| Compute: tactical core (gates the military flux grid and sensor suite) | beta core | |
-| Flux: military flux grid | alpha core | |
-| Range: simulator | gamma core | runs the opposing force |
-| Sick bay: trauma | gamma core | diagnostics |
-| Briefing room II | gamma core | threat projection on the holo-tank |
-| Mech calibration II | beta core | mech fire control |
-| Sensors II | Threat Processing Unit | modular computation, below the AI threshold |
-| Power: auxiliary plant | Shrouded Thunderhead | self-sustaining energy differentials |
-| Drive II | Shrouded Mantle | flickers the drive field |
-| Mech field repair II | Fragment Fabricator | self-repairing fragment swarms |
+| Compute: processing cluster | gamma | |
+| Compute: tactical core (gates the military flux grid and sensor suite) | beta | |
+| Flux: military flux grid | alpha | |
+| Range: simulator | gamma | runs the opposing force |
+| Sick bay: trauma | gamma | diagnostics |
+| Briefing room II | gamma | threat projection on the holo-tank |
+| Mech calibration II | beta | mech fire control |
 
-The Shrouded Substrate and Shrouded Lens have no fitting system yet. The bill is
-`RefitOrder.materials()`, with the special items listed in
-`RefitOrder.SPECIAL_ITEMS`; quantities are placeholders with the prices.
+The physical-plant tops (auxiliary plant, Drive II, Sensors II, mech field
+repair II) are where a relic part would go. The bill is
+`RefitOrder.materials()`; quantities are placeholders with the prices.
 
 ## Credit curve
 
