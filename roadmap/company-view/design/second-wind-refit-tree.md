@@ -129,10 +129,13 @@ occur, to see the room change"). The camera flies to the room, the yard works
 behind a curtain, and the room is revealed changed (`RefitReveal`). The cut is
 deliberate: opening a compartment lays the deck out again, and a curtain
 reads as the yard's days of work where an animated swap would show a blank
-deck and a re-mustered crew. Changes that are only dressing (a core's
-Deficit look clearing) could instead play as a wave across the deck, lights
-coming on room by room from the engine room; that wants a progressive
-version of the deck's dressing and is the next step if the cut feels abrupt.
+deck and a re-mustered crew. A change that is only dressing, a core brought
+up from Deficit, keeps the same deck, so it plays without the curtain: the
+order is paid as the camera arrives and the core's look clears across the
+running deck as a wave from its source room, lamps and screens stuttering on
+as it reaches them. The reveal waits for the wave before naming the result,
+so the player watches the before turn into the after in one shot (owner,
+2026-10-21: "Player still sees the A/B happen and it's an effect").
 
 A facility tier names the core tiers it needs. Engineering shows a locked tier
 with its reason in Castle's voice ("the range has no power", "the frames won't

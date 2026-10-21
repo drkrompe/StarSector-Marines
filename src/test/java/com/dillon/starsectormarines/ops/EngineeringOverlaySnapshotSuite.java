@@ -103,7 +103,7 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
                 order -> {
                     if (order != RefitOrder.LIFE_SUPPORT_RESTORED) { payments[0]++; return "Evidence: no campaign mutation"; }
                     refit[0] = refit[0].with(order.track, order.band);
-                    ship.dress(CoreDressing.restored(refit[0].restoredCores()));
+                    ship.dress(CoreDressing.restored(refit[0].restoredCores()), RefitReveal.WAVE);
                     return null;
                 }, goods,
                 ignored -> {}, () -> {});
@@ -258,7 +258,8 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
 
     /**
      * Authorizes life support and plays the reveal out at a steady frame rate: the camera flies to
-     * the barracks, the curtain falls while the order is paid, and lifts on the room without its haze.
+     * the barracks, the order is paid as it arrives, and the scrubbers' haze clears across the deck
+     * as a wave before the result is shown. No curtain: the deck is the same deck throughout.
      */
     private static List<SnapshotArtifact> reveal(UiDocument document, MarkupInstance markup, ShipConditionModel model,
                                                  ShipConditionOverlay overlay, HeadlessUiRenderer renderer,
@@ -274,8 +275,10 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
         List<BufferedImage> movie = new ArrayList<>();
         BufferedImage previous = null;
         float dt = 1f / 12f;
-        boolean flew = false, before = false, dark = false, shown = false;
+        boolean flew = false, before = false, dark = false, shown = false, curtained = false;
         for (int frame = 0; frame < 200 && overlay.revealing(); frame++) {
+            ship.advance(dt);
+            boolean wasWaving = ship.dressingWave();
             overlay.update(dt, ship, canvas);
             markup.flush();
             BufferedImage image = renderer.render(document, 1920, 1080);
@@ -283,19 +286,23 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
             float curtain = markup.requireElement("reveal-curtain").opacity();
             float caption = markup.requireElement("reveal-caption").opacity();
             if (!flew && frame == 8) { stills.add(new SnapshotArtifact("08-reveal-1-flight.png", image)); flew = true; }
-            if (!before && curtain > 0f) {
-                // The last frame with the curtain still up: the room as it was, framed as it will be.
+            curtained |= curtain > 0f;
+            if (!before && !wasWaving && ship.dressingWave()) {
+                // The last frame before the wave set out: the room as it was, framed as it will be.
                 stills.add(new SnapshotArtifact("08-reveal-2-before.png", previous));
                 before = true;
             }
             previous = image;
-            if (!dark && curtain >= 1f && caption >= 1f) { stills.add(new SnapshotArtifact("08-reveal-3-yard-at-work.png", image)); dark = true; }
-            if (!shown && curtain == 0f && caption >= 0.99f && markup.requireElement("reveal-frame").opacity() > 0f) {
+            if (!dark && ship.dressingWave() && ship.dressingProgress() >= 0.5f) {
+                stills.add(new SnapshotArtifact("08-reveal-3-wave.png", image)); dark = true;
+            }
+            if (!shown && !ship.dressingWave() && dark && caption >= 0.99f && markup.requireElement("reveal-frame").opacity() > 0f) {
                 stills.add(new SnapshotArtifact("08-reveal-4-after.png", image)); shown = true;
             }
         }
         require(!overlay.revealing(), "The reveal never finished");
-        require(flew && before && dark && shown, "The reveal skipped a beat: flight " + flew + ", before " + before + ", yard " + dark + ", result " + shown);
+        require(flew && before && dark && shown, "The reveal skipped a beat: flight " + flew + ", before " + before + ", wave " + dark + ", result " + shown);
+        require(!curtained, "A core's wave was hidden behind the curtain");
         require(model.systemsOpen(), "The tree did not come back after the reveal");
         markup.flush(); overlay.update(0f, ship, canvas);
         stills.add(new SnapshotArtifact("08-reveal-5-back-to-tree.png", renderer.render(document, 1920, 1080)));
