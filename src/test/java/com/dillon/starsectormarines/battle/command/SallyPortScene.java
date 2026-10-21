@@ -56,8 +56,8 @@ import java.util.Random;
  *       party, too tough to be shot down, put outside the belt beyond a gateless face. The stretch it presses is manned,
  *       the port on that face is unbarred within a port pulse of the order (and not while a hostile stands at its door),
  *       the garrison goes out through it and reaches its stretch within a bound set by the straight line, and the port on
- *       the other face stays barred. A guard the commander attaches to the garrison, if it attaches one, walks out and
- *       reaches its cell within the same kind of bound.</li>
+ *       the other face stays barred. A guard the commander attaches to the garrison, if it attaches one, goes out of the
+ *       works through the port.</li>
  *   <li>{@code sortie-barred}: the same with {@code -Dbattle.sallyDoors=false} in force for the loop: nothing is
  *       unbarred, and the walk round is measured for comparison.</li>
  *   <li>{@code enemy-at-the-door}: a defender squad in the works is ordered out to ground beyond the port while raiders
@@ -398,11 +398,12 @@ public final class SallyPortScene implements BehaviorScene {
                 verdicts.add(Verdict.of("other-port-stays-barred", t.otherUnbarTick < 0,
                         "the port on the other face was unbarred at tick " + t.otherUnbarTick));
                 if (t.guardTick >= 0) {
-                    verdicts.add(Verdict.of("guard-reaches-its-cell-within-the-bound", t.guardArrivedTick >= 0
-                                    && t.guardArrivedTick - t.guardTick <= t.guardBound,
-                            "guard attached at tick " + t.guardTick + ", stood on its cell "
-                                    + (t.guardArrivedTick < 0 ? "never" : (t.guardArrivedTick - t.guardTick) + " ticks later")
-                                    + " (bound " + t.guardBound + ")"));
+                    // Where the guard then stands is the machine guard's question (scene machine-guard); this one asks
+                    // that the works let it out, and by the port rather than round by a gate.
+                    verdicts.add(Verdict.of("guard-goes-out-through-the-port", t.guardThroughPortTick >= 0
+                                    && t.guardLeftWorksTick >= 0,
+                            "guard attached at tick " + t.guardTick + ", stood in the port at tick " + t.guardThroughPortTick
+                                    + ", out of the works at tick " + t.guardLeftWorksTick));
                 }
             }
             case "sortie-barred" -> verdicts.add(Verdict.of("no-port-unbarred-under-the-switch",
@@ -443,6 +444,7 @@ public final class SallyPortScene implements BehaviorScene {
         metrics.put("hostileAtUnbar", Math.round(t.hostileAtUnbar * 10f) / 10f);
         metrics.put("attackerInsideWorksTick", t.attackerInsideTick);
         metrics.put("guardLeftWorksTick", t.guardLeftWorksTick);
+        metrics.put("guardNearestToItsCell", t.guardNearest == Float.MAX_VALUE ? -1f : Math.round(t.guardNearest * 10f) / 10f);
         return new SceneReport(id(), loop, ticks, verdicts, metrics);
     }
 
@@ -459,6 +461,7 @@ public final class SallyPortScene implements BehaviorScene {
         int guardTick = -1, guardArrivedTick = -1, guardThroughPortTick = -1, guardBound = -1;
         int attackerInPortTick = -1, attackerInsideTick = -1;
         int guardLeftWorksTick = -1;
+        float guardNearest = Float.MAX_VALUE;
         private String state = "";
 
         Trace(String loop, Layout layout, List<Integer> outgoing, int lance, long[] attackers) {
@@ -519,6 +522,8 @@ public final class SallyPortScene implements BehaviorScene {
                                 sim.world().cellY(mech), order.destinationX(), order.destinationY())
                                 * UnitType.MARINE.moveSpeed / MechVariant.SIROCCO.moveSpeed);
                     }
+                    guardNearest = Math.min(guardNearest, (float) Math.hypot(sim.world().x(mech) - order.destinationX() - 0.5f,
+                            sim.world().y(mech) - order.destinationY() - 0.5f));
                     if (guardLeftWorksTick < 0 && !fort.frame().isWorks(sim.world().cellX(mech), sim.world().cellY(mech))) {
                         guardLeftWorksTick = tick;
                     }
