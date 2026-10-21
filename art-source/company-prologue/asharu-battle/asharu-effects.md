@@ -32,7 +32,7 @@ game's stock variant for that hull, so what the player has fought is what they s
 | Kite (P) x2 | `kite_pirates_Raider` | light dual MG | Hammer torpedo, Swarmer | manoeuvring jets |
 | Colossus Mk.III | `colossus3_Pirate` | light autocannons, light MGs | light mortar | flares |
 | Colossus | `colossus_Standard` | light MGs | none | flares |
-| Buffalo Mk.II x2 | `buffalo2_FS` | antimatter blaster, LR PD laser, Vulcans | Pilum LRM, Swarmer | flares |
+| Buffalo Mk.II (distant) | `buffalo2_FS` | antimatter blaster, LR PD laser, Vulcans | Pilum LRM, Swarmer | flares |
 | Mule | `mule_Standard` | heavy autocannon, light MG | Salamander | manoeuvring jets |
 | Dram | `dram_Light` | Vulcan | Harpoon | flares |
 | Tarsus, Phaeton | stock | light MGs | none | burn drive / flares |
@@ -45,7 +45,7 @@ cinematic look matters). That makes them PD boats, and it fits what they do in t
   Falcon's front shield into overload.
 - **S6b:** the Ammo Feeder doubles their rate for the kill.
 
-One beat leans on the game: an unshielded Buffalo Mk.II is the target kinetic fire handles worst.
+One beat leans on the game: an unshielded Hound (P) (S6b) is the target kinetic fire handles worst.
 If it should read true to players, Lasher B's feeder burst strips her and the merchant Wolf's heavy
 blaster breaks her up. The radio line "She's breaking up. One down." still works.
 
