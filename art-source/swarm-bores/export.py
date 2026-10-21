@@ -12,14 +12,14 @@ sprite carries its own shadow and the reskin never has to paint one.
 Each variant also gets a ``-glow`` layer: the reskin's own warm amber pixels lifted out by colour, drawn over
 the body with a pulse, so the nodes and the heat in a pit breathe while the chitin stays still.
 
-``--palette purple`` (or ``chitin``) recolours the creature materials (chitin, sinew, bone, flesh, sac; read from
-the guide's material map, so thrown earth and paving keep their colours) to a proposed creature palette by
-luminance gradient maps, and writes under ``build/swarm-bores/<palette>/`` instead of the mod: a preview of the
-recolour, not a shipped palette, until the creature redesign settles.
+The creature materials (chitin, sinew, bone, flesh, sac; read from the guide's material map, so thrown earth and
+paving keep their colours) are recoloured by luminance gradient maps to the settled Rav Bloom palette, ``bloom``:
+lilac carapace, crimson sinew, ivory bone, amber. That is what ships. ``--palette purple`` or ``chitin`` (earlier
+proposals) and ``raw`` (the generations' own colours) write previews under ``build/swarm-bores/<palette>/``.
 
 Prints the silhouette IoU of each raw against its guide (the registration check) and the glow coverage.
 
-Run from the repository root: ``python art-source/swarm-bores/export.py [--palette runner|purple|chitin]``.
+Run from the repository root: ``python art-source/swarm-bores/export.py [--palette bloom|raw|purple|chitin]``.
 """
 
 import argparse
@@ -94,12 +94,64 @@ PURPLE_SINEW = [
 ]
 PURPLE_AMBER = (0xf2, 0x9a, 0x3c)
 
-# palette -> (creature ramp, sinew ramp or None, materials the sinew ramp takes, amber). Without a sinew ramp a
-# shaft's lining keeps its value and only takes FLESH_TINT.
+# The settled Rav Bloom palette (owner, 2026-10-21): sampled by luminance from the approved Runner and Brute plates
+# (rav-redesign `motion-runner/raw/hero.png`, `motion-brute/raw/hero.png`). Lilac to dusky-violet carapace,
+# crimson-magenta rope sinew for roots and a shaft's lining, ivory bone, amber eyes. The shipped export.
+BLOOM_CARAPACE = [
+    (0, (8, 4, 8)),
+    (30, (48, 26, 44)),
+    (50, (71, 40, 66)),
+    (70, (92, 55, 85)),
+    (90, (115, 73, 107)),
+    (110, (137, 92, 129)),
+    (130, (156, 113, 148)),
+    (150, (173, 134, 167)),
+    (170, (190, 155, 185)),
+    (190, (207, 178, 202)),
+    (210, (222, 198, 217)),
+    (230, (238, 218, 233)),
+    (255, (252, 246, 250)),
+]
+BLOOM_SINEW = [
+    (0, (14, 0, 4)),
+    (10, (37, 1, 11)),
+    (30, (74, 6, 31)),
+    (50, (113, 16, 50)),
+    (70, (143, 30, 69)),
+    (90, (154, 56, 87)),
+    (110, (156, 85, 105)),
+    (130, (178, 105, 125)),
+    (150, (202, 119, 145)),
+    (170, (231, 135, 166)),
+    (255, (245, 185, 205)),
+]
+BLOOM_BONE = [
+    (0, (20, 14, 12)),
+    (40, (55, 42, 38)),
+    (70, (86, 67, 60)),
+    (90, (111, 85, 76)),
+    (110, (137, 103, 92)),
+    (130, (158, 122, 108)),
+    (150, (179, 141, 125)),
+    (170, (198, 161, 145)),
+    (190, (216, 182, 164)),
+    (210, (232, 204, 187)),
+    (230, (245, 225, 210)),
+    (255, (253, 245, 236)),
+]
+BLOOM_AMBER = (0xf2, 0x9a, 0x3c)
+
+# palette -> (creature ramp, sinew ramp or None, materials the sinew ramp takes, amber, bone ramp or None). Without a
+# sinew ramp a shaft's lining keeps its value and only takes FLESH_TINT; without a bone ramp bone takes the creature
+# ramp.
 PALETTES = {
-    "chitin": (CHITIN_RAMP, None, (make_guide.FLESH,), CHITIN_AMBER),
-    "purple": (PURPLE_RAMP, PURPLE_SINEW, (make_guide.FLESH, make_guide.UNDER), PURPLE_AMBER),
+    "bloom": (BLOOM_CARAPACE, BLOOM_SINEW, (make_guide.FLESH, make_guide.UNDER), BLOOM_AMBER, BLOOM_BONE),
+    "chitin": (CHITIN_RAMP, None, (make_guide.FLESH,), CHITIN_AMBER, None),
+    "purple": (PURPLE_RAMP, PURPLE_SINEW, (make_guide.FLESH, make_guide.UNDER), PURPLE_AMBER, None),
 }
+# The palette the export ships to mod/; any other writes a preview under build/swarm-bores/<palette>/. "raw" ships
+# nothing either: it is the generations' own colours, previewed.
+SHIPPED = "bloom"
 
 
 def edge_px(part: str) -> int:
@@ -174,7 +226,7 @@ def recolour(body: Image.Image, materials: np.ndarray, palette: str) -> Image.Im
 
     Earth and paving are not creature and keep their colours.
     """
-    ramp, sinew_ramp, sinew_materials, amber_colour = PALETTES[palette]
+    ramp, sinew_ramp, sinew_materials, amber_colour, bone_ramp = PALETTES[palette]
     arr = np.asarray(body).astype(np.float32)
     lum = 0.299 * arr[..., 0] + 0.587 * arr[..., 1] + 0.114 * arr[..., 2]
     amber = amber_weight(arr.astype(np.uint8))[..., None]
@@ -186,6 +238,9 @@ def recolour(body: Image.Image, materials: np.ndarray, palette: str) -> Image.Im
     else:
         lining = np.clip(lum[..., None] * 0.9 * np.array(FLESH_TINT, np.float32), 0, 255)
     target = target * (1 - sinew) + lining * sinew
+    if bone_ramp is not None:
+        bone = soft_mask(materials, (make_guide.BONE,))
+        target = target * (1 - bone) + gradient(lum, bone_ramp) * bone
     target = target * (1 - amber) + glowing * amber
     creature = soft_mask(materials, make_guide.CREATURE)
     rgb = arr[..., :3] * (1 - creature) + target * creature
@@ -194,13 +249,13 @@ def recolour(body: Image.Image, materials: np.ndarray, palette: str) -> Image.Im
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--palette", choices=("runner", *PALETTES), default="runner")
+    parser.add_argument("--palette", choices=("raw", *PALETTES), default=SHIPPED)
     parser.add_argument("--part", action="append", help="limit to these parts")
     args = parser.parse_args()
     here = Path(__file__).resolve().parent
     repository = here.parent.parent
     templates = repository / "art-source" / "templates"
-    if args.palette == "runner":
+    if args.palette == SHIPPED:
         out_dir = repository / "mod" / "graphics" / "structures"
     else:
         out_dir = repository / "build" / "swarm-bores" / args.palette
@@ -222,7 +277,7 @@ def main() -> None:
             score = iou(mask(raw.resize(small)), mask(guide.resize(small)))
             raw.putalpha(raw.getchannel("A").point(lambda value: 0 if value < ALPHA_FLOOR else value))
             field = make_guide.build(part, v)
-            if args.palette != "runner":
+            if args.palette != "raw":
                 raw = recolour(raw, field.m, args.palette)
             lit = glow(raw).resize((edge, edge), Image.Resampling.LANCZOS)
             sprite = make_guide.ground_layer(field)
