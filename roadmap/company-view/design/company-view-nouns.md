@@ -1522,7 +1522,12 @@ in the colour of that core's band; a chip opens the **systems tree** over the
 deck. The tree flows downward from the hull: the five cores hang from her, and
 every other track hangs from the core it leans on most (drive and flux from
 Power; mess, gym, sick bay and lounge from Life support; hull, brig and range
-from Structure; sensors from Compute). Each track is a column of tier nodes,
+from Structure; sensors from Compute). Hydroponics hangs from Life support, the
+holds from Structure, and the wardroom and briefing room from Compute: facilities
+fitted into rooms she already has (the provisions store, the mess, the holds), so
+buying one opens no compartment. Hydroponics and the holds act through the hull
+mod (her supplies per month, her cargo); the wardroom scales officers' mission XP
+when a mission resolves and is named on the briefing once it pays. Each track is a column of tier nodes,
 owned, available (nothing but the price in the way) or locked. Most tiers need
 two or three cores, so beside each unbought node sit small icons of the cores it
 waits on, gold once met and red until then; requirements are marked this way

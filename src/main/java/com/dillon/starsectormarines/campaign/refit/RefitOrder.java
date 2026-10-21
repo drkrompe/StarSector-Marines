@@ -53,6 +53,27 @@ public enum RefitOrder {
             RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
     BRIG_OPEN(RefitTrack.BRIG, RefitBand.RESTORED, 3_500,
             RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
+    HYDROPONICS_RESTORED(RefitTrack.HYDROPONICS, RefitBand.RESTORED, 4_000,
+            RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
+    HYDROPONICS_I(RefitTrack.HYDROPONICS, RefitBand.IMPROVED_I, 12_000,
+            RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
+    HYDROPONICS_II(RefitTrack.HYDROPONICS, RefitBand.IMPROVED_II, 26_000,
+            RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.COMPUTE, RefitBand.IMPROVED_I),
+    WARDROOM_RESTORED(RefitTrack.WARDROOM, RefitBand.RESTORED, 3_500,
+            RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
+    WARDROOM_I(RefitTrack.WARDROOM, RefitBand.IMPROVED_I, 12_000,
+            RefitTrack.COMPUTE, RefitBand.RESTORED, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
+    WARDROOM_II(RefitTrack.WARDROOM, RefitBand.IMPROVED_II, 28_000,
+            RefitTrack.COMPUTE, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
+    /** The plot table and the holo-tank above it are not offered until their passives have a hook. */
+    BRIEFING_RESTORED(RefitTrack.BRIEFING, RefitBand.RESTORED, 3_000,
+            RefitTrack.COMPUTE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
+    HOLDS_RESTORED(RefitTrack.HOLDS, RefitBand.RESTORED, 3_000,
+            RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
+    HOLDS_I(RefitTrack.HOLDS, RefitBand.IMPROVED_I, 10_000,
+            RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.FABRICATION, RefitBand.RESTORED),
+    HOLDS_II(RefitTrack.HOLDS, RefitBand.IMPROVED_II, 24_000,
+            RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.IMPROVED_I),
     HULL_RESTORED(RefitTrack.HULL, RefitBand.RESTORED, 9_000,
             RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.FABRICATION, RefitBand.RESTORED),
     HULL_I(RefitTrack.HULL, RefitBand.IMPROVED_I, 20_000,
@@ -114,6 +135,16 @@ public enum RefitOrder {
         bill(SICK_BAY_OPEN, Commodities.HEAVY_MACHINERY, 3, Commodities.METALS, 10);
         bill(REC_LOUNGE_OPEN, Commodities.METALS, 10);
         bill(BRIG_OPEN, Commodities.METALS, 15);
+        bill(HYDROPONICS_RESTORED, Commodities.METALS, 10, Commodities.ORGANICS, 10);
+        bill(HYDROPONICS_I, Commodities.HEAVY_MACHINERY, 4, Commodities.ORGANICS, 20);
+        bill(HYDROPONICS_II, Commodities.HEAVY_MACHINERY, 8, Commodities.ORGANICS, 40);
+        bill(WARDROOM_RESTORED, Commodities.METALS, 10);
+        bill(WARDROOM_I, Commodities.HEAVY_MACHINERY, 2, Commodities.RARE_METALS, 2);
+        bill(WARDROOM_II, Commodities.HEAVY_MACHINERY, 4, Commodities.RARE_METALS, 6);
+        bill(BRIEFING_RESTORED, Commodities.METALS, 5);
+        bill(HOLDS_RESTORED, Commodities.METALS, 20);
+        bill(HOLDS_I, Commodities.METALS, 40);
+        bill(HOLDS_II, Commodities.METALS, 60, Commodities.HEAVY_MACHINERY, 6);
         bill(HULL_RESTORED, Commodities.METALS, 60);
         bill(HULL_I, Commodities.METALS, 100, Commodities.RARE_METALS, 10);
         bill(HULL_II, Commodities.METALS, 150, Commodities.RARE_METALS, 25);

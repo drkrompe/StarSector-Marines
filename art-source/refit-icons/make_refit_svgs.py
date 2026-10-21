@@ -17,7 +17,7 @@ GOLD, PALE, DARK, MUTED, RED, TEAL = "#dec58a", "#f3d98e", "#1d2822", "#738578",
 
 def svg(name, body, box=64):
     (out / f"{name}.svg").write_text(
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {box} {box}">\n{body}\n</svg>\n', encoding="utf-8")
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {box} {box}">\n{body}\n</svg>\n', encoding="utf-8", newline="\n")
 
 
 def line(d, color=PALE, w=3.5):
@@ -45,6 +45,13 @@ icons = {
     "sensors": line("M8 40A32 32 0 0 1 40 8", w=3) + line("M8 40A21 21 0 0 1 29 19", w=3) + line("M8 40A10 10 0 0 1 18 30", w=3)
                + f'<circle cx="8" cy="40" r="3.5" fill="{PALE}"/>',
     "drive": line("M10 12L22 24L10 36M24 12L36 24L24 36"),
+    "hydroponics": line("M24 42V22") + line("M24 30C15 30 9 24 9 14C18 14 24 20 24 30Z", w=3)
+                   + line("M24 24C24 15 30 9 39 9C39 18 33 24 24 24Z", w=3) + line("M12 42H36", w=2.5),
+    "wardroom": line("M10 22L24 12L38 22") + line("M10 32L24 22L38 32") + line("M10 42L24 32L38 42", w=2.5),
+    "briefing": line("M6 34H42") + line("M12 34L10 42M36 34L38 42", w=3)
+                + line("M24 28C18 21 17 16 17 13a7 7 0 0 1 14 0C31 16 30 21 24 28Z", w=3)
+                + f'<circle cx="24" cy="13" r="2.5" fill="{PALE}"/>',
+    "holds": line("M8 16L24 8L40 16V34L24 42L8 34Z") + line("M8 16L24 24L40 16M24 24V42", w=3),
 }
 for name, body in icons.items():
     svg("track-" + name, body, 48)

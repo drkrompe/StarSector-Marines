@@ -22,9 +22,10 @@ final class ShipSystemsTree {
     /** Which core each system hangs from, in the order its column lays them out. */
     static final Map<RefitTrack, List<RefitTrack>> BRANCHES = new EnumMap<>(Map.of(
             RefitTrack.POWER, List.of(RefitTrack.DRIVE, RefitTrack.FLUX),
-            RefitTrack.LIFE_SUPPORT, List.of(RefitTrack.MESS, RefitTrack.GYM, RefitTrack.SICK_BAY, RefitTrack.REC_LOUNGE),
-            RefitTrack.STRUCTURE, List.of(RefitTrack.HULL, RefitTrack.BRIG, RefitTrack.RANGE),
-            RefitTrack.COMPUTE, List.of(RefitTrack.SENSORS),
+            RefitTrack.LIFE_SUPPORT, List.of(RefitTrack.MESS, RefitTrack.GYM, RefitTrack.SICK_BAY, RefitTrack.REC_LOUNGE,
+                    RefitTrack.HYDROPONICS),
+            RefitTrack.STRUCTURE, List.of(RefitTrack.HULL, RefitTrack.BRIG, RefitTrack.RANGE, RefitTrack.HOLDS),
+            RefitTrack.COMPUTE, List.of(RefitTrack.SENSORS, RefitTrack.WARDROOM, RefitTrack.BRIEFING),
             RefitTrack.FABRICATION, List.of()));
 
     static final String LINE = "#738578", LINE_ON = "#dec58a";
