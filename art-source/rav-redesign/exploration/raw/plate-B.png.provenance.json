@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f8d-1de9-7253-8e0d-c8814639a2b1",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f8d-1de9-7253-8e0d-c8814639a2b1\\exec-0c724b10-c30a-447c-acc6-e7e07787631b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "raw\\plate-B.png",
+    "sha256": "01f78eb3062c54fed4ff3fec79a423e6963fb9088563f6f0bfb623fb29f5c233",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\plate-B.prompt.txt",
+  "promptSha256": "6c5327210aefbb52a7480e770f9696c29b098dd5c1f00407b8c9ed0dd2ca5a4e",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact silhouettes, positions, sizes, poses and palette intent; render material onto it, never move or redesign\n\nConcept plate for a top-down tactical game (Starsector mod, Marines fighting a biological weapon in a frontier colony). Strict overhead orthographic view, camera looking straight down, light from the upper left, soft contact shadows only. Painterly-realistic game concept art, crisp readable silhouettes, wet organic detail. Keep every creature exactly where it is in the guide, at the same size, outline, facing (all face up) and pose; you are rendering surface material and form onto the guide, not redesigning it. From left: a Runner at rest, the same Runner mid-strike with its limbs fully extended, a Brute, a Spitter, and a large Matriarch thumbnail lower right. Plain flat neutral grey background, no ground, no scenery, no text, no labels, no border, no humans.\n\nDirection: RED TIDE. The Rav Bloom is an engineered colonial organism, like a siphonophore or Portuguese man o' war crawling on land: each body is a chain or raft of fused zooids. Wet carmine flesh, darker oxblood cores visible through translucent skin, glistening highlights, vermilion gas floats that glow faintly from inside, pale pink-white stinger stipple on tentacle tips. Runner: a chain of bead-like segments with rows of short rowing cilia down both sides, a small glowing dorsal float, trailing filaments, and two long multi-segmented grasping tentacles with barbed tips (curled at rest, whipped straight forward in the strike). Brute: a dense raft of fused bladders ringed by short thick pseudopods, crusted with pale calcified plaques (its armour), two club tentacles in front. Spitter: a large glowing vermilion float with a pale crest over a small dark body with a forward siphon, a skirt of trailing tentacles behind. Matriarch: a wide raft ringed by floats around a dark central maw, many tentacles. No insect legs, no claws, no eyes.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guides\\guide-B.png",
+      "sha256": "8b422fa40a9dc4d8ab901a7c21822dc6c776deb25b068a73a9f8b90ba85ac5db",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: exact silhouettes, positions, sizes, poses and palette intent; render material onto it, never move or redesign"
+    }
+  ],
+  "agentMessages": [
+    "I’ll render the wet organic materials onto the guide while preserving every silhouette, position, size, and pose."
+  ],
+  "usage": {
+    "input_tokens": 41556,
+    "cached_input_tokens": 35328,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 587,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 40.5
+}
