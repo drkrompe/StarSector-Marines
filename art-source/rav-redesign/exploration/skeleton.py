@@ -24,7 +24,7 @@ from boards import font
 from rig import ease_out, smooth
 
 FPS = 25
-T_END = 4.4
+T_END = 5.0
 SS = 2                   # supersampling
 BG = (16, 20, 26)
 INK = (226, 228, 232)
@@ -50,8 +50,10 @@ LIFT = {"gallop": 0.10, "trot": 0.05}
 
 # ----------------------------------------------------------------------------- timeline
 T_RUN, T_STOP = 1.2, 1.42           # galloping, then braking into a planted stance
-T_WIND, T_THRUST, T_HOLD, T_REEL = 1.42, 1.62, 1.70, 1.95
-T_DRAG = 2.4
+T_SWIPE, SWIPE_WIND, SWIPE_CUT, SWIPE_BACK = 1.42, 0.15, 0.10, 0.30   # right arm: a side swipe
+T_WIND, T_THRUST, T_HOLD, T_REEL = 1.95, 2.15, 2.23, 2.45                # left arm: a straight stab
+T_DRAG = 2.9
+T_SWIPE_HIT = T_SWIPE + SWIPE_WIND + 0.55 * SWIPE_CUT
 RUN_V, DRAG_V, LUNGE = 3.0, -0.6, 0.14
 
 
@@ -193,42 +195,64 @@ class Skeleton:
                     phase=self.phase(t))
 
     def arms(self, t, sh):
-        """Spike arms: wrist targets (relative to the arm base) along a straight line forward."""
+        """One arm per strike. Each wrist is (turn at the shoulder, reach, height) from its base: the left arm
+        stabs straight along a line; the right arm swipes, turning from out wide across the front."""
         rest, coil, ext = (0.15, 0.10), (0.05, 0.14), (0.31, -0.08)
+
+        def lerp(p, q, k):
+            return tuple(a + (b - a) * k for a, b in zip(p, q))
+
+        # left: (yaw deg, reach, height)
+        r0 = (0.0, *rest)
         if t < T_WIND:
-            w = rest
+            left = r0
         elif t < T_THRUST:
-            k = smooth((t - T_WIND) / (T_THRUST - T_WIND))
-            w = (rest[0] + (coil[0] - rest[0]) * k, rest[1] + (coil[1] - rest[1]) * k)
+            left = lerp(r0, (0.0, *coil), smooth((t - T_WIND) / (T_THRUST - T_WIND)))
         elif t < T_HOLD:
-            k = ease_out((t - T_THRUST) / (T_HOLD - T_THRUST))
-            w = (coil[0] + (ext[0] - coil[0]) * k, coil[1] + (ext[1] - coil[1]) * k)
+            left = lerp((0.0, *coil), (0.0, *ext), ease_out((t - T_THRUST) / (T_HOLD - T_THRUST)))
         elif t < T_REEL:
-            w = ext
+            left = (0.0, *ext)
         else:
-            k = smooth(min(1, (t - T_REEL) / 0.4))
-            w = (ext[0] + (rest[0] - ext[0]) * k, ext[1] + (rest[1] - ext[1]) * k)
+            left = lerp((0.0, *ext), r0, smooth(min(1, (t - T_REEL) / 0.4)))
+        # right: the swipe
+        out, cut = (80.0, 0.22, 0.07), (-30.0, 0.30, -0.02)
+        u = t - T_SWIPE
+        if u < 0:
+            right = r0
+        elif u < SWIPE_WIND:
+            right = lerp(r0, out, smooth(u / SWIPE_WIND))
+        elif u < SWIPE_WIND + SWIPE_CUT:
+            right = lerp(out, cut, ease_out((u - SWIPE_WIND) / SWIPE_CUT))
+        else:
+            right = lerp(cut, r0, smooth(min(1, (u - SWIPE_WIND - SWIPE_CUT) / SWIPE_BACK)))
         arms, tips = [], []
-        for side in (-1, 1):
+        for side, (yaw, r, h) in ((-1, left), (1, right)):
             base = (side * ARMS["x"], sh[0] - 0.02, sh[1] + ARMS["up"])
-            target = (base[1] + w[0], base[2] + w[1])
-            elbow, wrist = ik2((base[1], base[2]), target, ARMS["a"], ARMS["b"], -1)
-            ang = math.atan2(wrist[1] - elbow[1], wrist[0] - elbow[0])
-            tip = (wrist[0] + ARMS["spike"] * math.cos(ang), wrist[1] + ARMS["spike"] * math.sin(ang))
-            arms.append([base, (base[0], *elbow), (base[0], *wrist), (base[0], *tip)])
-            tips.append((base[0], *tip))
+            (er, eh), (wr, wh) = ik2((0.0, 0.0), (r, h), ARMS["a"], ARMS["b"], -1)
+            ang = math.atan2(wh - eh, wr - er)
+            tr, th = wr + ARMS["spike"] * math.cos(ang), wh + ARMS["spike"] * math.sin(ang)
+            sy, cy = math.sin(math.radians(yaw)), math.cos(math.radians(yaw))
+
+            def at(rr, hh):
+                return (base[0] + side * rr * sy, base[1] + rr * cy, base[2] + hh)
+
+            pts = [base, at(er, eh), at(wr, wh), at(tr, th)]
+            arms.append(pts)
+            tips.append(pts[-1])
         return arms, tips
 
     @staticmethod
     def phase(t):
         if t < T_RUN:
             return "gallop"
-        if t < T_WIND:
+        if t < T_SWIPE:
             return "brake"
+        if t < T_WIND:
+            return "side swipe"
         if t < T_THRUST:
-            return "wind-up"
+            return "stab wind-up"
         if t < T_HOLD:
-            return "thrust"
+            return "stab"
         if t < T_REEL:
             return "impale"
         if t < T_DRAG:
@@ -316,44 +340,38 @@ def draw_frame(sk, t, victim):
         d.ellipse([vx - r, vy - r, vx + r, vy + r], fill=VICTIM)
     img = img.resize((1920, 1080), Image.LANCZOS)
     d = ImageDraw.Draw(img)
-    d.text((24, 12), "RAV BLOOM RUNNER  /  SKELETON TEST  /  hound legs under the body, spike arms that thrust",
+    d.text((24, 12), "RAV BLOOM RUNNER  /  SKELETON TEST 2  /  one arm per strike: side swipe, then straight stab",
            font=font(24, True), fill=INK)
     d.text((24, 44), "Side view (left) and top view (right) of one 3D skeleton. Camera follows the body; a planted "
                      "foot holds still against the ground ticks. Far-side limbs darker. Real time.",
            font=font(14), fill=DIM)
-    d.text((24, 1000), "Legs: front elbow back; hind stifle forward, hock back. Gallop: rotary, spine gathers and "
-                       "stretches. Drag: backward trot. Spike arms fold in a Z on the shoulders; the wrist runs "
-                       "a straight line, so the spike thrusts.", font=font(14), fill=DIM)
-    for i, ph in enumerate(["gallop", "brake", "wind-up", "thrust", "impale", "reel in", "drag off"]):
-        x = 24 + i * 132
+    d.text((24, 1000), "Legs: front elbow back; hind stifle forward, hock back. Gallop: rotary, spine gathers and stretches. "
+                       "One arm per strike: the right swipes across from out wide, the left stabs straight and "
+                       "impales. Drag: backward trot.", font=font(14), fill=DIM)
+    for i, ph in enumerate(["gallop", "brake", "side swipe", "stab wind-up", "stab", "impale", "reel in", "drag off"]):
+        x = 24 + i * 118
         on = ph == sk["phase"]
-        d.rectangle([x, 940, x + 126, 972], fill=ACC if on else (34, 38, 46))
-        d.text((x + 8, 946), ph, font=font(15, True), fill=BG if on else DIM)
-    d.text((1000, 946), f"t = {t:4.2f} s", font=font(15, True), fill=DIM)
+        d.rectangle([x, 940, x + 114, 972], fill=ACC if on else (34, 38, 46))
+        d.text((x + 6, 947), ph, font=font(13, True), fill=BG if on else DIM)
+    d.text((990, 946), f"t = {t:4.2f} s", font=font(15, True), fill=DIM)
     return img
 
 
 def build(out):
     sk = Skeleton()
     frames, raw = [], []
-    victim = None
-    victim_y = None
     for f in range(int(T_END * FPS)):
-        t = f / FPS
-        s = sk.frame(t, 1 / FPS)
-        if victim_y is None:  # the Marine stands where the thrust will land
-            pass
-        raw.append(s)
-    # place the victim at the spikes' reach on the thrust
-    hit = next(s for s, f in zip(raw, range(len(raw))) if f / FPS >= T_HOLD)
-    vy = sum(p[1] for p in hit["tips"]) / 2
+        raw.append(sk.frame(f / FPS, 1 / FPS))
+    # the Marine stands where the left arm's stab lands; the swipe staggers it there first
+    hit = next(s for f, s in enumerate(raw) if f / FPS >= T_HOLD)
+    vy, vx = hit["tips"][0][1], hit["tips"][0][0]
     for f, s in enumerate(raw):
         t = f / FPS
         if t < T_HOLD:
-            victim = (vy, 0.0)
+            k = smooth(min(1, max(0.0, t - T_SWIPE_HIT) / 0.15))
+            victim = (vy + 0.04 * k, vx + 0.1 * (1 - k))
         else:
-            ty = sum(p[1] for p in s["tips"]) / 2
-            victim = (ty, 0.0)
+            victim = (s["tips"][0][1], s["tips"][0][0])
         frames.append(draw_frame(s, t, victim))
     from motion import save_gif
     save_gif(frames, out, FPS, accents=[ACC, SPIKE, NEAR, FAR, BODY])
@@ -363,7 +381,7 @@ def build(out):
 if __name__ == "__main__":
     fr = build(sys.argv[1])
     if len(sys.argv) > 2:
-        picks = [0.3, 0.42, 1.5, 1.66, 1.9, 3.0]
+        picks = [0.3, 1.5, 1.63, 2.1, 2.24, 3.6]
         sheet = Image.new("RGB", (1920, 1080), BG)
         for i, tt in enumerate(picks):
             im = fr[int(tt * FPS)].crop((0, 70, 1920, 930)).resize((640, 287))
