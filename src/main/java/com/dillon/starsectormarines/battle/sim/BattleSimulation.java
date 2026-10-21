@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
 import com.dillon.starsectormarines.battle.salvage.SalvagePlacement;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
+import com.dillon.starsectormarines.battle.world.model.PropPower;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.PropDamage;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
@@ -245,6 +246,7 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
+import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
@@ -703,6 +705,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         relayNineSequence = new RelayNineSequence(reserve);
         relayNineStory = new RelayNineStoryObserver(storyBeats);
     }
+    private CreepField creep;
+    /**
+     * The battle's hive creep, created on first use by whatever declares a
+     * source (a bore, a scene); call only from the simulation thread.
+     */
+    public CreepField creepField() {
+        if (creep == null) creep = new CreepField(grid, topology, generationSeed);
+        return creep;
+    }
+    /** The creep field if anything has created one, else {@code null}; safe for renderers. */
+    public CreepField creepFieldIfPresent() { return creep; }
     private ColonyBreachSequence colonyBreach;
     /** Salt for the bores' own draws, so they are not the battle stream read again. */
     private static final long BORE_SEED_SALT = 0x53574152_4D424F52L;
@@ -1111,6 +1124,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final AmbientTaskService ambientTasks;
     /** Exclusive interaction-site claims shared by ambient work and ordinary battle tasks. */
     private final TaskPointService taskPoints;
+    private volatile PropPower propPower = PropPower.FULL;
     /** Post-movement ground-unit separation and terrain-aware squad-formation relaxation. See {@link SeparationSystem} class doc; ticked right after the occupancy-delta drain, before the spawn flush. */
     private final SeparationSystem separation;
     /** Moving and parked ground hulls push infantry out of their footprint and bow wave. See {@link VehicleRepulsionSystem}. */
@@ -1549,6 +1563,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Interruptible authored world-work assignments for civilians, workers, guards, and embedded scenes. */
     public AmbientTaskService ambientTasks() {
         return ambientTasks;
+    }
+
+    /** How well this map's machinery is powered; see {@link PropPower}. Fully powered unless a host says otherwise. */
+    public PropPower propPower() {
+        return propPower;
+    }
+
+    /** Install this map's power answer, or null for fully powered. Read by presentation on the render thread. */
+    public void setPropPower(PropPower power) {
+        this.propPower = power == null ? PropPower.FULL : power;
     }
 
     /** Exclusive task-point registry for generated fixtures and mission-owned interaction sites. */
@@ -3423,6 +3447,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmBores.tick(this);
         if (colonyBreach != null) colonyBreach.tick(this);
         swarmReinforcements.tick(TICK_DT, this);
+        if (creep != null) creep.tick(simTickIndex);
         if (reliefAssault != null) reliefAssault.tick(this);
         if (lastLiftSequence != null) lastLiftSequence.tick(this);
         if (relayNineSequence != null) relayNineSequence.tick(this);

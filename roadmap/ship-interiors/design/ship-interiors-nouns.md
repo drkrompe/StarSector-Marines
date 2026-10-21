@@ -5,7 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-21 — moving props: a fixture may carry a part that runs (belt, fan, crane bridge, lift carriage), gated by power and by somebody actually at work on it.
+Updated: 2026-10-21 — moving props: the general capability is a doodad's (`moddable-tilesets-nouns.md`); the deck answers its power from her core.
 
 Earlier 2026-10-21 — interior tech styles named; low-tech is the strung-lamp, plate-deck, stored-cargo look from Deficit to Restored; midline and high-tech open.
 
@@ -355,20 +355,15 @@ authored content.
   affords work; a firing lane affords practice.
 - A **moving prop** is a fixture with a part that runs: a fan turning, a belt
   conveyor or treadmill belt running, a rowing seat sliding, a lift carriage
-  working a rack, a travelling crane crossing a bay overhead. The part is
-  presentation over a static base and never moves the fixture's footprint,
-  cover or blocking; it stays over deck the fixture, or the bay it spans,
-  already owns. What makes it run is what the deck already knows: the ship's
-  power, so a plant at Deficit turns its fans slowly and stops its belts, and,
-  for a machine that is worked, **somebody at work on it** — a task point on
-  the fixture whose claimant has that job in hand, not one walking toward it.
-  A crane over an empty berth stands still, because a berth's work exists only
-  while something is parked there. A machine that stops stops where it stands
-  and picks up from there. Motion belongs to the fixture's identity rather than
-  to a room, so a conveyor runs in every room that holds one; a wrecked fixture
-  is a different fixture and does not run. A crew member's work motion and the
-  prop's own motion read the same fact, so the two cannot disagree about
-  whether the job is being done.
+  working a rack, a travelling crane crossing a bay overhead. Prop motion is a
+  general doodad capability on every battle map, owned by
+  `moddable-tilesets-nouns.md`; what is shipboard is only the deck's answers
+  to its inputs. Her **power** is her power core, so a plant at Deficit turns
+  its fans slowly and stops its belts, and a dressing wave reaches the props
+  as it crosses the deck. **Use** is the deck's ordinary work: a crane over an
+  empty berth stands still, because a berth's work exists only while something
+  is parked there. Motion belongs to the fixture's identity rather than to a
+  room, so a conveyor runs in every room that holds one.
 - A **job** is one thing a fixture affords, sited at the cell it is done from.
   It is the authored half: generation knows which berth a job belongs to and
   whether its fixture is in service, and both are spent when the deck is staffed

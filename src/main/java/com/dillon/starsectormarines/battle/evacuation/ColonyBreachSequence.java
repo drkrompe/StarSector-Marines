@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
+import com.dillon.starsectormarines.battle.creep.ColonyCreep;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog.Audience;
@@ -45,7 +46,8 @@ public final class ColonyBreachSequence {
 
     /**
      * What happens on the field when a site erupts. The battle installs one
-     * that opens a bore on the site ({@link SwarmBores#open}).
+     * that opens a bore on the site ({@link SwarmBores#open}); without one the
+     * site itself becomes a creep source ({@link ColonyCreep}).
      */
     @FunctionalInterface
     public interface EruptionHandler {
@@ -72,7 +74,7 @@ public final class ColonyBreachSequence {
     private final StoryBeatLog log;
     private final boolean[] erupted;
     private final int[] eruptedAt;
-    private EruptionHandler handler = (sim, site, tick) -> { };
+    private EruptionHandler handler = ColonyCreep::siteErupted;
     private int landfallTick = -1;
     private int shelterReachedTick = -1;
     private int tremorTick = -1;
@@ -98,7 +100,7 @@ public final class ColonyBreachSequence {
 
     /** Installs what eruption does on the field. One handler; the last one installed wins. */
     public void setEruptionHandler(EruptionHandler handler) {
-        this.handler = handler == null ? (sim, site, tick) -> { } : handler;
+        this.handler = handler == null ? ColonyCreep::siteErupted : handler;
     }
 
     /** The tick of the tremor, or {@code -1} before it. */

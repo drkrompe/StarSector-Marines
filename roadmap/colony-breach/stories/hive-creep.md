@@ -1,8 +1,10 @@
 # Hive creep
 
-Status: READY (bores, spore colonies and the growth-site seam, `BoreGrowthSites`, are on main; `colony-breach-nouns.md` Bore, Spore colony)
+Status: IN PROGRESS — creep field built and driven by eruption sites; look, art and the bore hookup open. Bores and the growth-site seam (`BoreGrowthSites`) are on main.
 
 Written: 2026-10-21
+
+Updated: 2026-10-21 — field shipped ahead of bores; sites are interim sources.
 
 Model: `colony-breach-nouns.md` (Bore, Spore colony, Origin).
 
