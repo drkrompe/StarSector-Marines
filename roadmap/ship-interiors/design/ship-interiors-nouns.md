@@ -5,7 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-20 — Second Wind's deck follows her model: a deck arrangement sites each room, both bays stand abreast in a faired waist, open to port and sealed to starboard.
+Updated: 2026-10-20 — Second Wind's arrangement also carries sealed reserves for her refit tree, laid after the program so they never move it.
 
 Earlier 2026-10-20 — the Second Wind is never lost for good: any yard sells her back at once, one d-mod worse; campaign missions need her with the company aboard.
 
@@ -1570,6 +1570,18 @@ reads as the ship does: berths and the bridge in the forebody, the armory and
 the hold inboard of the bays, the Mech Lab hard abaft the working bay, the mess
 beside the provisions, and the machine shop, the plant and the drive together
 to starboard aft. Every other hull is packed by zone alone.
+
+An arrangement may also carry **reserves**: compartments a hull keeps sealed
+for refits she has not had. A reserve is no part of the room program. The
+deck is not sized for it, the ship is not owed it and no facility count reads
+it. It is laid after every programmed room and before the pocket fill, so
+reserving one never moves a room, door or berth the program placed. It is
+furnished, then stripped and closed behind pressure hatches, and stays out of
+service until a refit opens it where it stands. Second Wind reserves a firing
+range, a gymnasium, a sick bay, a rec lounge and a brig for her refit tree, at
+footprints her deck can spare in every layout (`second-wind-refit-tree.md`).
+These are the founding hull's exception to the destroyer-size gate on those
+rooms, not a change to the general program.
 
 The custom start's original Cerberus reserves two bay compartments even before
 conversion. The starboard bay is damaged: its hatch and launch aperture are sealed,

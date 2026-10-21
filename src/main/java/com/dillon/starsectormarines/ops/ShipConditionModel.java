@@ -75,7 +75,8 @@ public final class ShipConditionModel {
             boolean sealed = ShipConditionStage.sealed(graph, room, state)
                     || room.purpose() == RoomPurpose.HANGAR && graph.damaged(room.id())
                     || room.equals(graph.largest(RoomPurpose.PARTS_CAGE)) && ship.ship().workshop() == WorkshopState.BURIED;
-            String status = sealed ? Strings.get("openingShipConditionSealedDamaged") : graph.damaged(room.id()) ? Strings.get("openingShipConditionDamagedAccessible")
+            String status = sealed ? Strings.get(graph.reserved(room.id())
+                    ? "openingShipConditionSealedReserved" : "openingShipConditionSealedDamaged") : graph.damaged(room.id()) ? Strings.get("openingShipConditionDamagedAccessible")
                     : graph.emergencyLighting(room.id()) ? Strings.get("openingShipConditionFaultyPower") : Strings.get("openingShipConditionWorking");
             if (state.applies() && room.purpose() == RoomPurpose.VEHICLE_BAY && state.mechBay())
                 status = Strings.format("openingShipConditionBerthsWorking", state.workingMechBerths());
@@ -105,7 +106,11 @@ public final class ShipConditionModel {
         String bill = "";
         Work work = null;
         boolean bay = false;
-        if (state.applies() && selectedRoom == null) {
+        if (selectedRoom != null && graph.reserved(selectedRoom.id())) {
+            copy = Strings.get("openingShipConditionReservedCompartmentCopy");
+            benefit = Strings.format("openingShipConditionReservedFor", function(selectedRoom.purpose()));
+            reason = Strings.get("openingShipConditionReservedNoOrderYet");
+        } else if (state.applies() && selectedRoom == null) {
             copy = state.power() ? Strings.get("openingShipConditionSteadyLightsAgainWeHaveReplacedThe")
                     : Strings.get("openingShipConditionWeAreNursingOldCableAndScorched");
             benefit = Strings.get("openingShipConditionRestoreSteadyLightsThroughoutTheWorkingCompartments");
@@ -183,6 +188,11 @@ public final class ShipConditionModel {
             case BARRACKS -> Strings.get("openingShipConditionCompanyQuarters");
             case PARTS_CAGE -> Strings.get("openingShipConditionWorkshopParts");
             case HANGAR -> Strings.get("openingShipConditionShuttleBay");
+            case FIRING_RANGE -> Strings.get("openingShipConditionFiringRange");
+            case GYMNASIUM -> Strings.get("openingShipConditionGymnasium");
+            case PATIENT_WARD -> Strings.get("openingShipConditionSickBay");
+            case CREW_LOUNGE -> Strings.get("openingShipConditionRecLounge");
+            case BRIG -> Strings.get("openingShipConditionBrig");
             default -> room.purpose().name().replace('_', ' ');
         };
     }
@@ -198,6 +208,11 @@ public final class ShipConditionModel {
             case ENGINE_ROOM -> Strings.get("openingShipConditionEngineWatchAndMachineryService");
             case MESS_HALL -> Strings.get("openingShipConditionMealsAndOffWatchCrewRoutines");
             case STOCKROOM -> Strings.get("openingShipConditionCargoStowageAndStoresDuties");
+            case FIRING_RANGE -> Strings.get("openingShipConditionLiveFirePracticeLanes");
+            case GYMNASIUM -> Strings.get("openingShipConditionTrainingAndConditioning");
+            case PATIENT_WARD -> Strings.get("openingShipConditionTreatmentAndRecovery");
+            case CREW_LOUNGE -> Strings.get("openingShipConditionOffWatchRestAndServices");
+            case BRIG -> Strings.get("openingShipConditionHoldingCellsForPrisoners");
             default -> Strings.get("openingShipConditionReachableFittingsAndCrewWorkStations");
         };
     }

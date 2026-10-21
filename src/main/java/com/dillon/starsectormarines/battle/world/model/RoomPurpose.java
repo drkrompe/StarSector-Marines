@@ -151,4 +151,6 @@ public enum RoomPurpose {
     BRIDGE,
     /** Domestic cooking and dining area; distinct from a ship mess. */
     HOME_KITCHEN,
+    /** Ship deck — holding cells for prisoners taken ashore. */
+    BRIG,
 }

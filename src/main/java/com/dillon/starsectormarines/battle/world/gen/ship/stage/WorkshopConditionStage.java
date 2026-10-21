@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.HashSet;
+import java.util.Set;
 
 /** Overlay after furnishing: neither placement nor any other room's random stream changes. */
 public final class WorkshopConditionStage implements GenStage {
@@ -64,8 +65,7 @@ public final class WorkshopConditionStage implements GenStage {
         var damaged = new HashSet<Integer>();
         graph.compartments().stream().filter(r -> graph.damaged(r.id())).forEach(r -> damaged.add(r.id()));
         if (!state.operational()) damaged.add(room.id());
-        ctx.put(ShipKeys.DECK_GRAPH, new DeckGraph(graph.compartments(), graph.unplaced(),
-                graph.apertures(), graph.boats(), damaged));
+        ctx.put(ShipKeys.DECK_GRAPH, graph.withCondition(graph.apertures(), damaged, Set.of()));
     }
 
     /** Apply after floor/wall finalization: a decompressed floor is forbidden, not a solid bulkhead. */

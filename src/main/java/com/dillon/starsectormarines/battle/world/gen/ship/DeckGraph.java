@@ -131,9 +131,17 @@ public final class DeckGraph {
     private final ShuttleType boats;
     private final Set<Integer> damagedRooms;
     private final Set<Integer> faultyCircuits;
+    private final Set<Integer> reservedRooms;
     public boolean emergencyLighting(int id) { return damaged(id) || faultyCircuits.contains(id); }
 
     public boolean damaged(int compartmentId) { return damagedRooms.contains(compartmentId); }
+
+    /**
+     * Whether this compartment is one of the hull's reserves: kept sealed for a
+     * refit she has not had, present on the plan and supplying nothing. See
+     * {@link DeckArrangement#reserves()}.
+     */
+    public boolean reserved(int compartmentId) { return reservedRooms.contains(compartmentId); }
 
     /**
      * @param compartments placed rooms, in deterministic placement order
@@ -172,6 +180,17 @@ public final class DeckGraph {
 
     public DeckGraph(List<Compartment> compartments, List<RoomRecipe> unplaced,
                      List<BayAperture> apertures, ShuttleType boats, Set<Integer> damagedRooms, Set<Integer> faultyCircuits) {
+        this(compartments, unplaced, apertures, boats, damagedRooms, faultyCircuits, Set.of());
+    }
+
+    /**
+     * @param reservedRooms compartments laid as the hull's reserves; see
+     *     {@link #reserved(int)}
+     */
+    public DeckGraph(List<Compartment> compartments, List<RoomRecipe> unplaced,
+                     List<BayAperture> apertures, ShuttleType boats, Set<Integer> damagedRooms,
+                     Set<Integer> faultyCircuits, Set<Integer> reservedRooms) {
+        this.reservedRooms = Set.copyOf(reservedRooms);
         this.faultyCircuits = Set.copyOf(faultyCircuits);
         this.damagedRooms = Set.copyOf(damagedRooms);
         this.compartments = List.copyOf(compartments);
@@ -190,6 +209,16 @@ public final class DeckGraph {
      */
     public ShuttleType boats() {
         return boats;
+    }
+
+    /**
+     * The same deck with its condition replaced: which rooms are damaged, which
+     * run on faulty circuits, and which bays still open onto space. Placement,
+     * the unplaced program and the reserves are carried over, because condition
+     * is laid over a plan and never changes it.
+     */
+    public DeckGraph withCondition(List<BayAperture> apertures, Set<Integer> damaged, Set<Integer> faults) {
+        return new DeckGraph(compartments, unplaced, apertures, boats, damaged, faults, reservedRooms);
     }
 
     public List<Compartment> compartments() {

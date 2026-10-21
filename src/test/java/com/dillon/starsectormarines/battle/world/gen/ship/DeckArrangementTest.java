@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomPose;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.HullProfileStage;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -9,11 +11,13 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DeckArrangementTest {
@@ -95,5 +99,38 @@ class DeckArrangementTest {
         assertEquals(traced.top(last + 1), faired.top(last + 1));
         assertEquals(CellTopology.GroundKind.VOID, ctx.topology.getGroundKind(first, traced.top(first)),
                 "deck taken off by the fairing is space");
+    }
+
+    @Test
+    void aReserveIsKeptAtASiteNamedForItsOwnPurpose() {
+        var range = new DeckArrangement.Site(RoomPurpose.FIRING_RANGE, 0.4f, 0.6f, DeckSide.STARBOARD);
+        assertSame(range, new DeckArrangement.Reserve(RoomRecipe.SECOND_WIND_RANGE, range).site());
+        assertThrows(IllegalArgumentException.class,
+                () -> new DeckArrangement.Reserve(RoomRecipe.SECOND_WIND_GYM, range));
+    }
+
+    @Test
+    void secondWindsReservesAreNoPartOfAnyProgramPurposeSheHolds() {
+        // A reserve shares no purpose with a sited programmed room, so a site
+        // handed out by purpose can never send a programmed room to a reserve's
+        // ground or the other way round.
+        for (var reserve : DeckArrangement.SECOND_WIND.reserves()) {
+            assertEquals(DeckArrangement.SECOND_WIND.sites().size(),
+                    DeckArrangement.SECOND_WIND.rank(reserve.recipe().purpose()), reserve.recipe().purpose().name());
+        }
+    }
+
+    @Test
+    void conditionNeverForgetsWhichRoomsAreReserves() {
+        var room = new DeckGraph.Compartment(0, RoomShape.rectangle(6, 6), 0, 0,
+                RoomPose.CANONICAL, DeckSide.PORT, DeckZone.AFT, RoomPurpose.BRIG, List.of());
+        var other = new DeckGraph.Compartment(1, RoomShape.rectangle(6, 6), 8, 0,
+                RoomPose.CANONICAL, DeckSide.PORT, DeckZone.AFT, RoomPurpose.WASHROOM, List.of());
+        var graph = new DeckGraph(List.of(room, other), List.of(), List.of(), null, Set.of(), Set.of(), Set.of(0));
+        var damaged = graph.withCondition(List.of(), Set.of(1), Set.of());
+        assertTrue(damaged.reserved(0));
+        assertFalse(damaged.reserved(1));
+        assertTrue(damaged.damaged(1));
+        assertFalse(damaged.damaged(0), "condition is replaced, not merged");
     }
 }
