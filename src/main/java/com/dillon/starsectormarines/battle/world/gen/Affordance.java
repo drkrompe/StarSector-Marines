@@ -129,6 +129,16 @@ public enum Affordance {
     EXERCISE,
 
     /**
+     * A marker on a running track: somewhere a lap goes past rather than
+     * somewhere anybody stops.
+     *
+     * <p>A track's markers are published in the order the lap runs and each is
+     * faced at the next, so a room's markers in order are the loop. Done one
+     * after another, never one at a time: see {@code CrewRole.isLap}.
+     */
+    LAP,
+
+    /**
      * A compartment as it appears on somebody's rounds: looked into, checked,
      * and left.
      *
@@ -169,7 +179,7 @@ public enum Affordance {
         return switch (this) {
             case SERVICE, FABRICATE, STOW, READOUT, TREAT, WATCH, ISSUE, TEND,
                     ROUNDS, REPAIR, COOK, GUARD -> true;
-            case REST, MESS, PRACTICE, WASH, UNWIND, EXERCISE -> false;
+            case REST, MESS, PRACTICE, WASH, UNWIND, EXERCISE, LAP -> false;
         };
     }
 
@@ -187,7 +197,7 @@ public enum Affordance {
         return switch (this) {
             case SERVICE, FABRICATE, STOW, READOUT, TREAT, WATCH, ISSUE, TEND,
                     REPAIR, COOK, MESS, WASH, REST -> true;
-            case PRACTICE, UNWIND, EXERCISE, ROUNDS, GUARD -> false;
+            case PRACTICE, UNWIND, EXERCISE, LAP, ROUNDS, GUARD -> false;
         };
     }
 
@@ -201,7 +211,7 @@ public enum Affordance {
         return switch (this) {
             case SERVICE, FABRICATE, STOW, READOUT, TREAT, WATCH, ISSUE, TEND,
                     REPAIR, COOK, MESS -> true;
-            case REST, WASH, PRACTICE, UNWIND, EXERCISE, ROUNDS, GUARD -> false;
+            case REST, WASH, PRACTICE, UNWIND, EXERCISE, LAP, ROUNDS, GUARD -> false;
         };
     }
 }

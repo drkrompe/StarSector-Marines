@@ -638,6 +638,27 @@ public final class RoomFloor {
         return true;
     }
 
+    /**
+     * Mark out a running track: one {@link Affordance#LAP} marker at each of
+     * {@code markers}, canonical cells given in the order the lap runs, each
+     * faced at the one after it and the last at the first. The order is the
+     * loop, and nothing downstream re-derives it, so a fitting lists the corners
+     * as well as the straights: a lap only keeps to the track if consecutive
+     * markers share a lane.
+     *
+     * @return how many markers were placed; a cell already taken is skipped and
+     *     the lap closes over it
+     */
+    public int runningTrack(int[][] markers) {
+        int placed = 0;
+        for (int i = 0; i < markers.length; i++) {
+            int[] stand = toLocal(markers[i][0], markers[i][1]);
+            int[] next = toLocal(markers[(i + 1) % markers.length][0], markers[(i + 1) % markers.length][1]);
+            if (fixtureTask(stand[0], stand[1], Affordance.LAP, next[0], next[1])) placed++;
+        }
+        return placed;
+    }
+
     /** Record work done on whatever the host parks in {@code berth}. */
     public boolean berthFixtureTask(int cellX, int cellY, int berth,
                                   int fixtureX, int fixtureY) {
