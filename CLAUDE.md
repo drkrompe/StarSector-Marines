@@ -507,8 +507,9 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   it. A fixture encodes what we believe arrives; that residue is the part that
   still wants a live pass.
 - `gradlew.bat renderEvidence` → what a frame costs, per layer, on the map the
-  owner actually plays. It generates the canonical 560x336 Conquest and a
-  280x168 control, plays them until units, decals, shadows and effects exist,
+  owner actually plays. It generates the canonical 560x336 Conquest, a
+  280x168 control and the canonical 400x240 colony with four minutes of hive
+  creep grown over it, plays them until units, decals, shadows and effects exist,
   and then runs the shipping `BattleRenderer` — the real collect and the real
   drain — into a `HeadlessGl` context at three framings: a compound, a lane, and
   the whole map. Per layer it reports commands collected, quads, sprites and
@@ -528,7 +529,7 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   `-Dbattle.render.residentRelief=false`, `-Dbattle.render.fogField=false`,
   `-Dbattle.render.groundAtlas=false`,
   `-Dbattle.render.residentDecoration=false`, `-Dbattle.render.unitAtlas=false`,
-  `-Dbattle.render.residentRoofs=false`,
+  `-Dbattle.render.residentRoofs=false`, `-Dbattle.render.creep=false`,
   `-Dbattle.render.collectCulling=false`), never against a number in a
   document — and never against a delta smaller than that spread.
   **The world it profiles has to be the same world every run**, which it was
