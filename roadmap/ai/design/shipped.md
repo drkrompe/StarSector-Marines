@@ -4,7 +4,7 @@ Status: SHIPPED — folded legacy AI implementation stories.
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — folded reactive garrisons, the machine garrison assault, player reactive manning and the machine guard.
+Updated: 2026-10-20 — folded sally doors, reactive garrisons, the machine garrison assault, player reactive manning and the machine guard.
 
 | Retired story | Ship date | Evidence | Fold destination |
 |---|---|---|---|
@@ -60,3 +60,4 @@ Updated: 2026-10-20 — folded reactive garrisons, the machine garrison assault,
 | `tiled-navigation-derivations.md` | 2026-09-03 | `b00ba1430`, `08bf8ea23`, `7629478f1`, `b2d9c6e01` | `battle.nav` package charter (`package-info.java`), `convoy-nouns.md` |
 | `attacker-holds-ground.md` | 2026-10-20 | `be349ff91`, this change | `garrisonables.md` (holding taken ground), `ai-nouns.md` |
 | `garrison-stretches.md` | 2026-10-20 | this change | `garrisonables.md` (stretches, holding the stretch facing the threat, the trial-ground reading), `ai-nouns.md` |
+| `sally-doors.md` | 2026-10-20 | session `fort-works-routes` commits ending in the merge to `main`; `SallyDoorSurveyTest`, `FortSallyPortPlanTest`; scenes `sally-door` (6 loops) and `sally-port` (5 loops) green; `HolderRouteEvidence`, `FortWorksRouteEvidence`; conquest-trial 76 fixtures and Relief, Counterattack, Junction against `-Dbattle.sallyDoors=false` | `garrisonables.md` (sally doors; marching late); `forts.md` (sally ports); `ai-nouns.md` (a holder goes out by its own sally door) |
