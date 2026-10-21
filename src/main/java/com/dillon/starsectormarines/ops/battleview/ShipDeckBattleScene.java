@@ -328,8 +328,9 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      */
     public void dress(CoreDressing state, float seconds) {
         CoreDressing next = state == null ? CoreDressing.RESTORED : state;
-        wave = null;
+        // The same condition again (the screen re-dresses every frame) leaves a running wave alone.
         if (next.equals(coreDressing)) return;
+        wave = null;
         if (!next.clean() && dressing == null)
             dressing = ShipDeckDressing.of(deck.topology, simulation.getGrid(), rooms, gantries,
                     simulation.getDoodads(), seed);

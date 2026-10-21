@@ -221,6 +221,16 @@ public class MarineOpsContext {
      * Presentation only, so it is applied to the running deck rather than
      * laying the ship out again.
      */
+    /**
+     * Dress the running deck for the ship's condition now, as a wave over {@code seconds} where a
+     * core's look changes: how a refit that clears one is seen to happen.
+     */
+    public void redressCompanyDeck(float seconds) {
+        FleetMemberAPI aboard = CompanyShipDesignation.aboard();
+        if (companyDeck == null || aboard == null) return;
+        companyDeck.dress(CoreDressing.restored(ShipRefits.condition(aboard).restoredCores()), seconds);
+    }
+
     private void dressFromCondition(FleetMemberAPI aboard) {
         if (companyDeck == null || aboard == null) return;
         var condition = ShipRefits.condition(aboard);

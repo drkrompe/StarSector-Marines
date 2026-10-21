@@ -902,6 +902,13 @@ under `build/test-results/test/` records each test's time) before
 committing, and do not raise the bar for a test that misses it — move the
 question down to its unit, or move the test out of `test`.
 
+**Test less, and only meaningful core behaviour** (owner, 2026-10-21). The project
+wants fewer tests, not more: test the rules the code owns, not the content it ships.
+A test that asserts what an image, a data file or a tuned number currently contains
+(a pixel window, a sprite's size, a curve's constants) fails whenever the content is
+reworked while nothing is broken; do not write one, and delete one you find failing
+for that reason rather than updating it to the new content.
+
 **Things that are not tests do not go in `test`:**
 
 - **Mission and battle runs** — anything that plays a simulation forward for

@@ -231,7 +231,7 @@ public final class ShipConditionOverlay {
         style(systems, HIDDEN);
         style(card, HIDDEN);
         deck.advance(dt);
-        reveal.advance(dt, ship.ready());
+        reveal.advance(dt, reveal.wave ? !ship.dressingWave() : ship.ready());
         RefitReveal.Phase phase = reveal.phase();
         if (phase == RefitReveal.Phase.DONE) {
             reveal = null;
@@ -244,8 +244,10 @@ public final class ShipConditionOverlay {
             if (returnView != null) deck.flyTo(returnView, RefitReveal.RETURN);
             returning = true;
         }
-        // The deck may have been laid out again under the curtain, so frame the room on the one drawn now.
-        if (phase.ordinal() >= RefitReveal.Phase.OPEN.ordinal() && phase != RefitReveal.Phase.RETURN && revealCanvas != deck) {
+        // The deck may have been laid out again under the curtain, so frame the room on the one drawn now;
+        // a wave keeps the deck but the screen may hand over a fresh canvas once the order is paid.
+        boolean settled = reveal.wave ? reveal.paid() && ship.ready() : phase.ordinal() >= RefitReveal.Phase.OPEN.ordinal();
+        if (settled && phase != RefitReveal.Phase.RETURN && revealCanvas != deck) {
             if (room != null) deck.focus(room); else deck.flyTo((Compartment) null, 0.01f);
             revealCanvas = deck;
         }
@@ -269,12 +271,13 @@ public final class ShipConditionOverlay {
                 captionWidth - 44f, shown));
         Rect box = room == null ? Rect.EMPTY : deck.roomBounds(room, metrics);
         boolean framed = room != null && box.width() > 0f && reveal.refusal() == null
-                && (phase == RefitReveal.Phase.OPEN || phase == RefitReveal.Phase.SHOW);
+                && (phase == RefitReveal.Phase.OPEN || phase == RefitReveal.Phase.SHOW
+                    || reveal.wave && phase == RefitReveal.Phase.WORK);
         if (phase == RefitReveal.Phase.RETURN) framed = false;
         float pulse = 0.6f + 0.4f * (float) Math.sin(reveal.time() * 5f);
         style(frame, framed ? position(box.x() - bounds.x() - 4f, box.y() - bounds.y() - 4f)
                 + String.format(Locale.ROOT, "width: %.1fpx; height: %.1fpx; opacity: %.3f; pointer-events: none; transition: none;",
-                box.width() + 2f, box.height() + 2f, reveal.caption() * pulse) : HIDDEN);
+                box.width() + 2f, box.height() + 2f, (phase == RefitReveal.Phase.WORK ? shown : reveal.caption()) * pulse) : HIDDEN);
         document.advance(0f);
         return true;
     }

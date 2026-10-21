@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f14-871d-78c1-852d-51ae8fee503f",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f14-871d-78c1-852d-51ae8fee503f\\exec-a565d810-5841-4abf-879a-f6d2b2760557.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\downed\\raw\\specter.png",
+    "sha256": "b4f722dc78d4a6a2c7120d35479c230723ef43d6e2ba78d32a4f1dc5224f4790",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\downed\\prompts\\specter.full.txt",
+  "promptSha256": "449f75cfd5340219d7a88e93a333cba009730888bed068a2445ba534435aa6b8",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the four lying figures to reskin, exact outlines, limbs, positions and scale\nImage 2: Style and pose rendering only: the accepted sibling sheet; match its pixel-art rendering, outline, shading and how it reads each pose, but not its armor or colors\nImage 3: Identity and style: this outfit's live layers seen from above; copy its clothing, armor, palette and head, not its layout\n\nUse case: sketch-to-render. Production sprites of fallen infantry for a top-down tactical game, to lie on the ground beside the existing live overhead sprites.\n\nReference 1 is the authoritative POSE GUIDE and edit target, 1536x1024. Reskin only its four flat gray figures; keep every figure's exact outline, limb positions, position on the canvas and scale. Everything outside the figures must be genuinely transparent: no background, ground, floor, shadow, blood pool, border, labels or grid.\n\nCamera: TRUE STRAIGHT-DOWN 90-degree overhead view of four people lying flat on the ground, heads toward the TOP of the image. No perspective, no isometric or three-quarter view.\n- Figure 1: lying face down, arms along the sides; we see the back of the head, back, backs of the legs and the soles/heels of the boots.\n- Figure 2: lying on the back, arms flung out, one knee fallen outward; we see the face from directly above (eyes closed, simple features), chest, fronts of the legs and the toes of the boots.\n- Figure 3: lying curled on one side, knees drawn up, arms forward.\n- Figure 4: sprawled face down, one arm thrown overhead, legs apart.\nEach figure is the same person in the same outfit, limp and still: incapacitated or dead, not posing.\n\nStyle: match the live-sprite references exactly — chunky crisp pixel art with a clean one-step dark outline around every figure, a limited muted palette, broad readable planes, light from the upper left, restrained detail that still reads at 300x460 pixels per figure. Not painterly, not smooth airbrushed, not photographic. No weapons, dropped gear, gore, wounds, blood or text.\nThis outfit: SPECTER composite battlesuit (Tri-Tachyon), a person sealed in a heavy powered battlesuit (a walking-tank shell, still human-shaped: helmet, torso, two arms, two legs). Faceted ceramic-composite plates with dark ribbed joint backing between them, huge faceted pauldron shells over both shoulders, a broad segmented chest and back plate with a dark central seam and a thin cyan status strip, thick plated arms and legs and heavy blocky armored boots. Small enclosed helmet sunk between the pauldrons (figure 2 shows a dark visor slit, no skin). Palette: cool slate blue-gray plates with fine pale scuffing, near-black joints, tiny cyan insets. Copy the plates, pauldrons and colors from the specter reference (the live layers assembled).\nFit: keep every figure on its gray guide figure, same place, pose and scale. This is a heavy shell, so armor may stand a little proud of the outline, but do not enlarge, widen or shift the figure; limbs follow the gray limbs.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\downed-poses.png",
+      "sha256": "258356b848e570ef25b0e902e5cdbc17b7b04a665d2cf2b7f97c1336e01b111b",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the four lying figures to reskin, exact outlines, limbs, positions and scale"
+    },
+    {
+      "path": "art-source\\downed\\raw\\charcoal.png",
+      "sha256": "87a1f07b753fd4ce4391d9405ef5dca4ec71ade85de10aedac100f02934a55b6",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Style and pose rendering only: the accepted sibling sheet; match its pixel-art rendering, outline, shading and how it reads each pose, but not its armor or colors"
+    },
+    {
+      "path": "art-source\\downed\\identity\\specter.png",
+      "sha256": "fd1c9c3d560e98a0ab3b915da52eec82eb609046e23772022fc25113dc5fc3c3",
+      "dimensions": [
+        600,
+        520
+      ],
+      "mode": "RGBA",
+      "role": "Identity and style: this outfit's live layers seen from above; copy its clothing, armor, palette and head, not its layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent SPECTER sheet using the pose guide’s layout and the references’ armor and pixel-art style."
+  ],
+  "usage": {
+    "input_tokens": 46678,
+    "cached_input_tokens": 35200,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 784,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.0
+}

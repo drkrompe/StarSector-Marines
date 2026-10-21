@@ -175,10 +175,9 @@
   .ship-view-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
-  .ship-view-room-bar { flex-direction: row; height: 54px; padding: 8px 10px; gap: 12px; align-items: center; border-width: 2px; }
+  .ship-view-room-bar { flex-direction: row; height: 54px; padding: 4px 10px; gap: 12px; align-items: center; border-width: 2px; }
   #ship-view-room-title { width: 330px; height: auto; white-space: normal; }
-  .ship-view-stock-slot { flex-direction: row; width: 640px; height: 38px; }
-  #engineering-resource-stock { width: 100%; height: 38px; padding: 0px 10px; }
+  .ship-view-stock-slot { flex-direction: column; width: 640px; height: 46px; }
   #ship-view-room-copy { width: 0; flex-grow: 1; text-align: left; height: auto; white-space: normal; }
   .ship-view-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 8px; }
   .ship-view-stage { flex-direction: column; width: 0px; height: 100%; flex-grow: 1; padding: 0px; overflow: hidden; border-width: 2px; }

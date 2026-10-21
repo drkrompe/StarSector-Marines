@@ -54,8 +54,15 @@ Proof (no render):
   keyed through the kit's own `swfx_guns.fire`. The flash envelopes interleave as keyed: A
   fires on frames 2 and 5, B on 3–4. Each ship's tracers sit in its own Guns collection, ride its
   own muzzle anchors, and use its own tracer material reading its own controls.
-- The light-lane proof render of that test is job `asharu-fx-w0-two-lashers-2026-10-21`
-  (`bench-job.template.json`), posting to `review/asharu-fx-w0/`.
+- The harness ran end to end through the light lane: job `asharu-fx-w0-two-lashers-2026-10-21`
+  (now `bench-job.template.json`) finished `ok` on Windows. It took 97 s for four frames, about
+  15 s a frame at half size and 16 samples, and posted
+  `review/asharu-fx-w0/2026-10-21_w0-two-lashers_windows/`.
+  - On the sheet, the full-throttle Lasher's hot plume stands beside the quarter-throttle one's
+    faint haze, and the tracers alternate between the ships as keyed.
+  - Light MG flashes are too small to judge at that 360 m framing. Gun tests should frame closer.
+  - That run's sky came out 0.05 grey rather than black: a new world's own Background node.
+    The bench now zeroes it.
 
 **What W1–W6 build on:**
 
@@ -70,8 +77,9 @@ Proof (no render):
     `bench.camera(loc, target, lens)` and `bench.at(ship, local)`.
   - `python effects_bench.py --list` lists every test; `--tests <module.name> --check` builds and
     keys the rig in Blender, prints each ship's readings, and renders nothing.
-  - `--write-job --tests ... --machine windows|mac --date D --what <slug> --out DIR` writes the
-    light-lane job. It pins only the builds the tests name, by sha256. Submit it with
+  - `--write-job --tests ... [--machine any] --date D --what <slug> --out DIR` writes the
+    light-lane job. It pins only the builds the tests name, by sha256. Leave the machine as `any`
+    (the default): Drive on the Mac stopped syncing on 2026-10-21, so a Mac-only job stalls. Submit it with
     `tools/render_queue.py submit <job> --commit <rev>`. One job may carry several tests (keep it
     under 30 minutes).
   - Each module posts to its own review asset, `review/asharu-fx-<module>/<date>_<what>_<machine>/`:
