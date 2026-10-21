@@ -52,7 +52,10 @@ the approved Runner and Brute plates (rav-redesign `motion-runner` and
 `motion-brute` heroes): carapace to lilac and dusky violet, roots and a shaft's
 lining to crimson-magenta sinew, bone to ivory; amber stays amber. The raws
 keep the generations' own colours (`--palette raw` previews them), so a
-palette change is a ramp edit, not a new generation. `purple` (round 3) and
+palette change is a ramp edit, not a new generation. The thrown earth of a
+berm is creep heaved up out of the shaft: the export maps it to the creep's
+default palette, read from `CreepPalette.java`, so **re-export after the creep
+palette changes**. `purple` (round 3) and
 `chitin` (the brown proposal) remain as previews.
 
 The `-glow` layer is the reskin's own amber pixels lifted out by colour and

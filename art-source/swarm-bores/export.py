@@ -23,6 +23,7 @@ Run from the repository root: ``python art-source/swarm-bores/export.py [--palet
 """
 
 import argparse
+import re
 import colorsys
 import sys
 from pathlib import Path
@@ -154,6 +155,47 @@ PALETTES = {
 SHIPPED = "bloom"
 
 
+CREEP_PALETTE_JAVA = "src/main/java/com/dillon/starsectormarines/ops/battleview/CreepPalette.java"
+
+
+def creep_palette(repository: Path) -> dict:
+    """The creep's default palette as the game draws it, read from ``CreepPalette.java``: name -> RGB 0..255.
+
+    The bore's berm is creep heaved up out of the shaft, so it takes the creep's own colours. Reading them from the
+    Java keeps the two in step; re-export after the creep palette changes.
+    """
+    text = (repository / CREEP_PALETTE_JAVA).read_text(encoding="utf-8")
+    default = re.search(r"System\.getProperty\(PROPERTY,\s*(\w+)\.id\(\)\)", text).group(1)
+    entry = re.search(default + r"\s*=\s*new CreepPalette\(\s*\"\w+\",((?:\s*rgb\(0x[0-9a-fA-F]{6}\),?){6})", text)
+    hexes = re.findall(r"0x([0-9a-fA-F]{6})", entry.group(1))
+    names = ("base", "flesh", "vein", "glow", "rim", "dead")
+    return {n: tuple(int(h[i:i + 2], 16) for i in (0, 2, 4)) for n, h in zip(names, hexes)}
+
+
+def creep_ramp(palette: dict) -> list:
+    """Luminance in -> creep colour out: veins in the shadows, film in the mid-tones, nodules in the lights."""
+    def scale(c, k):
+        return tuple(min(255, round(v * k)) for v in c)
+    return [
+        (0, scale(palette["vein"], 0.45)),
+        (45, palette["vein"]),
+        (95, scale(palette["base"], 0.9)),
+        (140, palette["base"]),
+        (185, palette["flesh"]),
+        (230, scale(palette["flesh"], 1.2)),
+        (255, scale(palette["flesh"], 1.35)),
+    ]
+
+
+def overgrow(body: Image.Image, materials: np.ndarray, ramp: list) -> Image.Image:
+    """The thrown earth of a bore's berm turned to creep by luminance gradient map; paving slabs stay paving."""
+    arr = np.asarray(body).astype(np.float32)
+    lum = 0.299 * arr[..., 0] + 0.587 * arr[..., 1] + 0.114 * arr[..., 2]
+    earth = soft_mask(materials, (make_guide.EARTH,))
+    rgb = arr[..., :3] * (1 - earth) + gradient(lum, ramp) * earth
+    return Image.fromarray(np.dstack([np.clip(rgb, 0, 255), arr[..., 3]]).astype(np.uint8), "RGBA")
+
+
 def edge_px(part: str) -> int:
     return 2 * round(make_guide.display_cells(part) * PX_PER_CELL / 2)
 
@@ -260,6 +302,7 @@ def main() -> None:
     else:
         out_dir = repository / "build" / "swarm-bores" / args.palette
         out_dir.mkdir(parents=True, exist_ok=True)
+    berm = creep_ramp(creep_palette(repository))
     for part in make_guide.PARTS:
         if args.part and part not in args.part:
             continue
@@ -279,6 +322,7 @@ def main() -> None:
             field = make_guide.build(part, v)
             if args.palette != "raw":
                 raw = recolour(raw, field.m, args.palette)
+                raw = overgrow(raw, field.m, berm)
             lit = glow(raw).resize((edge, edge), Image.Resampling.LANCZOS)
             sprite = make_guide.ground_layer(field)
             sprite.alpha_composite(raw)

@@ -408,9 +408,11 @@ puffs (flak) or a fast white-amber streak (lance). It bursts in the air at the
 craft's drawn height, hit or miss, in an amber flash, and leaves spore haze
 drifting there; it never marks the ground beneath.
 
-Bores and colonies are grown, not built, and look it: the runner's chitin
-and amber in every body, standing on the ground with no hardstanding pad,
-their amber nodes breathing. Nothing about them is regular: they erupted, so
+Bores and colonies are grown, not built, and look it: they wear the same
+Rav Bloom palette as the creatures (lilac and dusky-violet carapace over
+crimson sinew, ivory bone, amber nodes breathing), standing on the ground with
+no hardstanding pad. The earth a bore heaved up is creep, in the creep's own
+colours, so the rim reads as where the creep pours out of the ground. Nothing about them is regular: they erupted, so
 they are lopsided. A bore is a slanted shaft torn up through the ground, one
 side heaved up into reared jaw-plates, tusks and thrown paving, the other
 collapsed into the funnel; the mother bore is a wider, deeper, terraced one.
