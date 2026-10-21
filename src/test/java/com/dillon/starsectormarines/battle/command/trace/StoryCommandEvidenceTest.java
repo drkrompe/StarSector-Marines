@@ -313,8 +313,8 @@ class StoryCommandEvidenceTest {
         StringBuilder md = new StringBuilder("# ").append(mission.id()).append(" commander evidence\n\n")
                 .append("Story switch `battle.story.reactiveDefence=").append(System.getProperty("battle.story.reactiveDefence", "true"))
                 .append("`, ").append(EvidenceFanOut.replayWording(EvidenceFanOut.repeat())).append(", max ").append(ticks).append(" ticks.\n\n")
-                .append("| fixture | end | winner | ticks | phase | losses M/A/D | beats | brawls | defender from a post | man orders | offered | inputs |\n")
-                .append("|---|---|---|---:|---|---|---:|---:|---:|---:|---:|---|\n");
+                .append("| fixture | end | winner | ticks | phase | losses M/A/D | beats | brawls | defender from a post | ally from a post | man orders | offered | ally man / locked pulses | inputs |\n")
+                .append("|---|---|---|---:|---|---|---:|---:|---:|---:|---:|---:|---|---|\n");
         for (int index = 0; index < results.size(); index += EvidenceFanOut.repeat()) {
             Result first = results.get(index);
             List<String> traces = new ArrayList<>();
@@ -382,15 +382,19 @@ class StoryCommandEvidenceTest {
         JSONObject mix = s.getJSONObject("placeFight").getJSONObject("fightMix");
         JSONObject all = mix.optJSONObject("ALL");
         JSONObject defender = mix.optJSONObject("DEFENDER");
+        JSONObject allied = mix.optJSONObject("ALLY");
         JSONObject figures = s.getJSONObject("reactiveDefence");
+        JSONObject ally = figures.optJSONObject("ally");
         return "| " + s.getString("fixture") + " | " + s.getString("termination") + " | " + s.opt("winner") + " | " + s.getInt("ticks")
                 + " | " + s.getString("finalPhase")
                 + " | " + (losses == null ? 0 : losses.optInt("MARINE")) + "/" + (losses == null ? 0 : losses.optInt("ALLY"))
                 + "/" + (losses == null ? 0 : losses.optInt("DEFENDER"))
                 + " | " + s.getJSONArray("storyBeats").length()
                 + " | " + share(all, "openOpen") + " | " + share(defender, "postAtOpen", "postPost")
+                + " | " + share(allied, "postAtOpen", "postPost")
                 + " | " + (figures.has("manOrders") ? figures.getInt("manOrders") : "-")
                 + " | " + (figures.has("offeredSquadPulses") ? figures.getInt("offeredSquadPulses") : "-")
+                + " | " + (ally == null ? "-" : ally.optInt("manOrders") + " / " + ally.optInt("lockedSquadPulses"))
                 + " | " + s.getJSONArray("playerInputs").length() + " |";
     }
 

@@ -60,10 +60,21 @@ public final class ThunderRunCompound {
         return posts.get(Math.floorMod(detachment, posts.size()));
     }
     public static Cell militiaPost(int site, int detachment) {
-        if (site == 0) return new Cell(27, detachment % 2 == 0 ? 64 : 86);
-        if (site == 1 && detachment % 2 != 0) return new Cell(97, 65);
-        if (site <= 2) return MILITIA_POSTS.get(site - 1);
-        return new Cell(251, detachment % 2 == 0 ? 65 : 85);
+        var posts = militiaPosts(site);
+        return posts.get(Math.floorMod(detachment, posts.size()));
+    }
+    /**
+     * The militia's posts at a site, taken in turn by detachment: the staging's two road shoulders, Dispatch's gun crew
+     * and the crossroad picket, the Crossing's gun crew, and the Gate's two shoulders. These are the posts of the
+     * militia's locked positions (`garrisonables.md`, locked positions).
+     */
+    public static List<Cell> militiaPosts(int site) {
+        return switch (site) {
+            case 0 -> List.of(new Cell(27, 64), new Cell(27, 86));
+            case 1 -> List.of(MILITIA_POSTS.get(0), new Cell(97, 65));
+            case 2 -> List.of(MILITIA_POSTS.get(1));
+            default -> List.of(new Cell(251, 65), new Cell(251, 85));
+        };
     }
     public static final List<Cell> EXIT_RIFLE_POSTS = List.of(new Cell(290, 60), new Cell(290, 90));
     public static final List<Cell> ANTI_AIR_POSTS = List.of(new Cell(119, 9), new Cell(198, 9));

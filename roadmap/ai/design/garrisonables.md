@@ -734,8 +734,8 @@ before; a directive adds to them.
 - **Lifecycle.** Dormant, active, released. On every pulse each directive is
   evaluated once, in declaration order, on that pulse's frame: an active one
   whose `until` holds is released; a dormant one whose `when` holds becomes
-  active; never both on one pulse, so a directive that comes on is held for at
-  least one. A released directive stays released unless it is declared to
+  active unless its `until` already holds too; never both on one pulse, so a
+  directive that comes on is held for at least one. A released directive stays released unless it is declared to
   **re-arm**, in which case it is dormant again from the next pulse (a
   counter-attack that may be tried again). The order directives became active in
   is remembered, ties in declaration order; it is what orders locked positions.
