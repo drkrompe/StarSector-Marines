@@ -68,9 +68,12 @@ public final class HiveCreepSnapshotSuite implements SnapshotSuite {
                 corridor.x() + 0.5f, corridor.y() + 0.5f, 72f);
         out.add(still("06-close-bore-1.png", close.render(sim, outbreak.caption("bore 1, 72 cells across"))));
         int[] edge = outbreak.edgeNear(corridor);
+        BattleReviewFrameRenderer play = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H,
+                edge[0] + 0.5f, edge[1] + 0.5f, 60f);
+        out.add(still("07-play-zoom-edge.png", play.render(sim, outbreak.caption("spreading edge at play zoom, 32 px a cell"))));
         BattleReviewFrameRenderer battle = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H,
                 edge[0] + 0.5f, edge[1] + 0.5f, 36f);
-        out.add(still("07-close-edge.png", battle.render(sim, outbreak.caption("spreading edge, 36 cells across"))));
+        out.add(still("08-close-edge.png", battle.render(sim, outbreak.caption("spreading edge, 36 cells across"))));
 
         List<BufferedImage> pulse = new ArrayList<>();
         for (int i = 0; i < 24; i++) {
@@ -78,7 +81,7 @@ public final class HiveCreepSnapshotSuite implements SnapshotSuite {
             pulse.add(battle.atClock(clock).render(sim, outbreak.caption(String.format(Locale.ROOT, "pulse, clock %.1fs", clock))));
         }
         battle.atClock(0f);
-        out.add(SnapshotArtifact.colorAnimation("08-pulse.gif", pulse, 100));
+        out.add(SnapshotArtifact.colorAnimation("09-pulse.gif", pulse, 100));
 
         sim.creepField().removeSource(ColonyCreep.SITE_SOURCE_BASE + corridor.number());
         BattleReviewFrameRenderer recede = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H,
@@ -90,7 +93,7 @@ public final class HiveCreepSnapshotSuite implements SnapshotSuite {
             dying.add(recede.render(sim, outbreak.caption(String.format(Locale.ROOT,
                     "bore 1 collapsed %ds ago: its creep dies back", (outbreak.tick - collapsed) / 30))));
         }
-        out.add(SnapshotArtifact.colorAnimation("09-dying-back.gif", dying, 150));
+        out.add(SnapshotArtifact.colorAnimation("10-dying-back.gif", dying, 150));
         System.out.println("[hive-creep] " + outbreak.tickCost());
         return out;
     }

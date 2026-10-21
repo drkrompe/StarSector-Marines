@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
@@ -71,11 +72,17 @@ public final class PrecinctWardStage implements GenStage {
         Map<String, Integer> shortFields = new LinkedHashMap<>();
         for (int i = 0; i < plan.precincts().size(); i++) {
             Precinct precinct = plan.precincts().get(i);
+            // A square place builds and walls inside its glacis; the strip stays claimed, so
+            // no neighbour builds on it, and open.
+            boolean square = precinct.fortification() != null && precinct.fortification().square();
+            int[][] own = square ? glacis(claim, i, ctx.width, ctx.height) : claim;
+            // Its gates are where roads met the whole claim, carried across the strip to the wall.
+            int[][] ownRoad = square ? acrossGlacis(claim, road, i, precinct.fortification(), ctx) : road;
             PrecinctFill.Masks masks = null;
             FortressInterior.Result result = null;
             if (precinct.isProgrammed()) {
                 masks =
-                        PrecinctFill.masks(claim, road, i, ctx.width, ctx.height);
+                        PrecinctFill.masks(own, road, i, ctx.width, ctx.height);
                 AirbaseLot.Facing facing = AirbaseLot.Facing.of(facing(precinct, ctx));
                 // Lots first, buildings second. A lot claimed after packing gets
                 // whatever shape the leftovers had, which is a shallow strip an
@@ -112,7 +119,18 @@ public final class PrecinctWardStage implements GenStage {
                 }
             }
             if (precinct.boundary() == Precinct.Boundary.WALLED) {
-                stampWall(ctx, claim, road, i, precinct.fortification());
+                stampWall(ctx, own, ownRoad, i, precinct.fortification());
+            }
+            if (square) {
+                boolean[][] strip = new boolean[ctx.width][ctx.height];
+                boolean[][] paved = new boolean[ctx.width][ctx.height];
+                for (int x = 0; x < ctx.width; x++) {
+                    for (int y = 0; y < ctx.height; y++) {
+                        strip[x][y] = claim[x][y] == i && own[x][y] != i;
+                        paved[x][y] = ownRoad[x][y] != GrownTrunkPlan.UNOWNED;
+                    }
+                }
+                InstallationGround.glacis(ctx, strip, paved);
             }
             if (result != null) {
                 InstallationGround.dress(ctx, masks.buildable(), masks.circulation(), result.placed());
@@ -494,6 +512,50 @@ public final class PrecinctWardStage implements GenStage {
             }
         }
         InstallationWalls.perimeter(ctx, wall);
+    }
+
+    /** The claim with the place's outermost {@link Fortification#GLACIS} cells given up. */
+    private static int[][] glacis(int[][] claim, int who, int width, int height) {
+        int[][] out = new int[width][];
+        for (int x = 0; x < width; x++) out[x] = claim[x].clone();
+        int g = Fortification.GLACIS;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (claim[x][y] != who) continue;
+                boolean edge = false;
+                for (int dx = -g; dx <= g && !edge; dx++) {
+                    for (int dy = -g; dy <= g && !edge; dy++) {
+                        int nx = x + dx, ny = y + dy;
+                        edge = nx < 0 || ny < 0 || nx >= width || ny >= height || claim[nx][ny] != who;
+                    }
+                }
+                if (edge) out[x][y] = GrownTrunkPlan.UNOWNED;
+            }
+        }
+        return out;
+    }
+
+    /** Road ownership with each gate of the whole claim run inward across the glacis. */
+    private static int[][] acrossGlacis(int[][] claim, int[][] road, int who, Fortification fortification,
+                                        GenContext ctx) {
+        int[][] out = new int[ctx.width][];
+        for (int x = 0; x < ctx.width; x++) out[x] = road[x].clone();
+        for (PrecinctBoundary.Gate gate : PrecinctBoundary.openGates(claim, road, who, ctx.width, ctx.height,
+                fortification.gates())) {
+            for (int[] cell : gate.cells()) {
+                for (int[] step : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                    int ox = cell[0] - step[0], oy = cell[1] - step[1];
+                    if (ox < 0 || oy < 0 || ox >= ctx.width || oy >= ctx.height || claim[ox][oy] == who) continue;
+                    int owner = road[cell[0]][cell[1]];
+                    for (int d = 0; d <= Fortification.GLACIS + 1; d++) {
+                        int x = cell[0] + step[0] * d, y = cell[1] + step[1] * d;
+                        if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height || claim[x][y] != who) break;
+                        if (out[x][y] == GrownTrunkPlan.UNOWNED) out[x][y] = owner;
+                    }
+                }
+            }
+        }
+        return out;
     }
 
     /** Off the map counts as outside, so an edge-hugging wall still gets a face. */

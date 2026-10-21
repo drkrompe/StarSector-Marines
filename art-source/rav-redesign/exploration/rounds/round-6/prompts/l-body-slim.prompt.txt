@@ -1,0 +1,8 @@
+Layer for a 2D rig. Reproduce reference 1 exactly (same creature, same top-down view, same lighting, finish, palette and plate style, same position and scale on the canvas) with ONE change: make the torso SLIMMER from side to side so the legs drawn underneath it show past its flanks.
+
+- Narrow the shoulder and haunch plates to about 60% of their current width; the shoulders and hips must not bulge out sideways. The waist between them stays as it is or slightly narrower.
+- Keep everything along the length exactly where it is: the snout tip, the head, the neck, the shoulders, the hips and the tail sit on the same rows of the canvas as in reference 1, and the spine runs straight up the centre line.
+- Head, jaws (closed), neck and tail unchanged.
+- Still no legs and no arms, with small smooth armoured sockets where the limbs attach.
+
+Strict overhead orthographic view facing UP, same framing so the layer registers over reference 1. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.

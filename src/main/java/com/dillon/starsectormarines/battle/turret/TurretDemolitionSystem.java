@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.battle.sim.IdentityService;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -46,6 +48,25 @@ public final class TurretDemolitionSystem {
 
     /** Multi-cell structures by turret id, so the whole footprint is opened on death; one-cell turrets need no entry. */
     private final Long2ObjectOpenHashMap<StructureDef> multiCellStructures = new Long2ObjectOpenHashMap<>();
+
+    /**
+     * What a structure whose art names {@link StructureArt#remainsPath remains} leaves on the ground: its structure,
+     * the painting it wore and where it stood. Recorded at its death, kept for the rest of the battle.
+     */
+    public record Remains(StructureDef structure, int variant, float x, float y) { }
+
+    /** Structures that leave remains, by turret id, until they die. */
+    private final Long2ObjectOpenHashMap<StructureDef> leavesRemains = new Long2ObjectOpenHashMap<>();
+    private final List<Remains> remains = new ArrayList<>();
+    private final List<Remains> remainsView = Collections.unmodifiableList(remains);
+
+    /** Records that {@code turretId}'s art leaves remains when it dies; a structure that leaves none is ignored. */
+    public void registerRemains(long turretId, StructureDef structure) {
+        if (structure.art != null && structure.art.remainsPath != null) leavesRemains.put(turretId, structure);
+    }
+
+    /** Every structure's remains so far, in the order they died. */
+    public List<Remains> remains() { return remainsView; }
 
     /** Records that {@code turretId} stands on a multi-cell footprint, to be cleared when it dies. */
     public void registerFootprint(long turretId, StructureDef structure) {
@@ -94,6 +115,8 @@ public final class TurretDemolitionSystem {
                 }
             }
         }
+        StructureDef left = leavesRemains.remove(u);
+        if (left != null) remains.add(new Remains(left, left.art.variantFor(u), event.x(), event.y()));
         // Mount cell keeps smoking for a while so the player can see the
         // wreck is dead-and-cooling rather than just "gone".
         effects.spawnSmokingWreck(cx, cy);

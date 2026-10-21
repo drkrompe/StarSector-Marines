@@ -9,8 +9,6 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
-import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -36,7 +34,7 @@ import java.util.Set;
  * squat <b>tower</b> on each outer corner, a heavy machine gun in a slitted
  * <b>gun tower</b> beside each gate (the compound's whole armament: no layers,
  * no bunkers, no anti-air), <b>firing slits</b> along the straight runs, a
- * sandbag <b>firing step</b> along the inside of the wall, and
+ * the <b>wall posts</b> behind the slits a wall team stands at, and
  * <b>floodlights</b> on tripods in the corners and at the gates, facing out.
  */
 public final class CivilDefenceCompound {
@@ -56,6 +54,8 @@ public final class CivilDefenceCompound {
     private static final int MAX_GATE = 10;
     /** How far past the wall's extent the yard may run before the wall is read as open. */
     private static final int LEAK = 6;
+    /** How far outside the hall its doorstep is looked for: through the building it stands in, to open ground. */
+    private static final int DOORSTEP_REACH = 12;
     private static final String LIGHT_CIRCUIT = "civil-defence";
 
     enum Kind { WALL, SLIT, GUN }
@@ -69,7 +69,7 @@ public final class CivilDefenceCompound {
      * @param gateY the first cell of the gate nearest the lift
      */
     record Plan(int left, int top, int right, int bottom, Map<Long, Kind> cells, List<int[]> guns,
-                List<RedoubtWorks.Bag> step, List<NightLighting.Lamp> lamps, int gateX, int gateY) {}
+                List<RedoubtWorks.Bag> posts, List<NightLighting.Lamp> lamps, int gateX, int gateY) {}
 
     private CivilDefenceCompound() {}
 
@@ -80,10 +80,12 @@ public final class CivilDefenceCompound {
 
     /**
      * The places the colony's shelter may be: on a plan with a compound, its
-     * shelter hall alone, or {@code null} when the map did not build one (the
-     * caller re-rolls). Every point of interest on any other map.
+     * shelter hall alone, re-anchored in {@code points} where its people stand,
+     * or {@code null} when the map did not build one (the caller re-rolls).
+     * Every point of interest on any other map.
      */
-    public static List<PointOfInterest> shelters(List<PointOfInterest> points, PrecinctPlan plan) {
+    public static List<PointOfInterest> shelters(NavigationGrid grid, List<PointOfInterest> points,
+                                                 PrecinctPlan plan) {
         Precinct compound = null;
         if (plan != null) {
             for (Precinct precinct : plan.precincts()) if (precinct.name().equals(PLACE)) compound = precinct;
@@ -99,15 +101,73 @@ public final class CivilDefenceCompound {
                 bestDistance = dx * dx + dy * dy;
             }
         }
-        return best == null ? null : List.of(best);
+        if (best == null) return null;
+        int[] anchors = throughTheDoor(grid, best);
+        if (anchors == null) return null;
+        PointOfInterest hall = new PointOfInterest(best.kind, best.left, best.top, best.right,
+                best.bottom, anchors[2], anchors[3], anchors[0], anchors[1]);
+        // Replaced where it stands, so the militia and the colony's people find the same hall.
+        points.set(points.indexOf(best), hall);
+        return List.of(hall);
+    }
+
+    /**
+     * The hall's floor cell nearest its middle that the door reaches, and the
+     * nearest open ground that door leads out to: {@code {insideX, insideY,
+     * doorstepX, doorstepY}}. The hall is furnished with bunks after it was
+     * planned, and either anchor chosen on the bare plan can end up under a bunk,
+     * in a corner the bunks wall off, or in a one-cell passage between the bunks
+     * and the building's shell. The colony's people wait in the aisle, and the
+     * relief that opens the shelter has to be able to stand a squad on its doorstep.
+     */
+    private static int[] throughTheDoor(NavigationGrid grid, PointOfInterest hall) {
+        ArrayDeque<int[]> queue = new ArrayDeque<>();
+        Set<Long> seen = new HashSet<>();
+        queue.add(new int[]{hall.interiorAnchorX, hall.interiorAnchorY});
+        seen.add(key(hall.interiorAnchorX, hall.interiorAnchorY));
+        if (seen.add(key(hall.anchorCellX, hall.anchorCellY))) queue.add(new int[]{hall.anchorCellX, hall.anchorCellY});
+        int[] best = null;
+        int[] doorstep = null;
+        int bestDistance = Integer.MAX_VALUE;
+        while (!queue.isEmpty()) {
+            int[] c = queue.poll();
+            boolean in = c[0] > hall.left && c[0] < hall.right && c[1] > hall.top && c[1] < hall.bottom;
+            boolean out = c[0] < hall.left - 1 || c[0] > hall.right + 1 || c[1] < hall.top - 1 || c[1] > hall.bottom + 1;
+            boolean stand = grid.isWalkable(c[0], c[1]) && !grid.isDoorway(c[0], c[1]);
+            int distance = Math.abs(c[0] - hall.centerX()) + Math.abs(c[1] - hall.centerY());
+            if (in && stand && distance < bestDistance) {
+                best = c;
+                bestDistance = distance;
+            }
+            // Searched outward, so the first open outside cell is the nearest one through a door.
+            if (out && stand && doorstep == null && roomToStand(grid, c[0], c[1])) doorstep = c;
+            for (int[] d : STEPS) {
+                int nx = c[0] + d[0], ny = c[1] + d[1];
+                // The hall's bounds are its floor; its walls and door stand one cell out.
+                boolean near = nx >= hall.left - DOORSTEP_REACH && nx <= hall.right + DOORSTEP_REACH
+                        && ny >= hall.top - DOORSTEP_REACH && ny <= hall.bottom + DOORSTEP_REACH;
+                if (!near || !grid.isWalkable(nx, ny) || !seen.add(key(nx, ny))) continue;
+                queue.add(new int[]{nx, ny});
+            }
+        }
+        if (best == null || doorstep == null) return null;
+        return new int[]{best[0], best[1], doorstep[0], doorstep[1]};
+    }
+
+    /** Whether {@code (x, y)} and every cell round it can be walked: room for a squad to stand. */
+    private static boolean roomToStand(NavigationGrid grid, int x, int y) {
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                if (!grid.inBounds(x + dx, y + dy) || !grid.isWalkable(x + dx, y + dy)) return false;
+            }
+        }
+        return true;
     }
 
     /** Plans the dressing of the wall round {@code shelter}; null when the shelter stands in no closed wall. */
     static Plan plan(BattleSimulation sim, PointOfInterest shelter, CivilianEvacuationPlacement placement) {
         NavigationGrid grid = sim.getGrid();
         CellTopology topology = sim.getTopology();
-        TileRegistry registry = TileRegistry.installed();
-        if (registry == null || registry.doodad("doodad.fort-sandbag-n") == null) return null;
         Set<Long> wall = new HashSet<>();
         int sx = shelter.centerX(), sy = shelter.centerY();
         for (int y = Math.max(0, sy - WALL_REACH); y <= Math.min(grid.getHeight() - 1, sy + WALL_REACH); y++) {
@@ -223,23 +283,20 @@ public final class CivilDefenceCompound {
             if (faces) cells.put(k, Kind.SLIT);
         }
 
-        // The firing step: a course of sandbag along the inside of the wall, bags facing out.
-        List<RedoubtWorks.Bag> step = new ArrayList<>();
-        for (long k : inside) {
-            int x = x(k), y = y(k);
-            if (keepOpen.contains(k) || !open.at(x, y)) continue;
-            int ox = 0, oy = 0;
-            if (solid(wall, cells, x - 1, y)) ox = -1;
-            else if (solid(wall, cells, x + 1, y)) ox = 1;
-            if (solid(wall, cells, x, y - 1)) oy = -1;
-            else if (solid(wall, cells, x, y + 1)) oy = 1;
-            if (ox == 0 && oy == 0) continue;
-            String name = ox != 0 && oy != 0 ? "corner-" + letter(0, oy) + letter(ox, 0) : String.valueOf(letter(ox, oy));
-            if (registry.doodad("doodad.fort-sandbag-" + name) == null) continue;
-            step.add(new RedoubtWorks.Bag(x, y, "doodad.fort-sandbag-" + name));
+        // Wall posts: the yard cell behind each slit. A wall is its own cover, so nothing is
+        // piled against it; the wall team stands at the slits and shoots through them.
+        List<RedoubtWorks.Bag> posts = new ArrayList<>();
+        for (Map.Entry<Long, Kind> e : cells.entrySet()) {
+            if (e.getValue() != Kind.SLIT) continue;
+            for (int[] d : STEPS) {
+                int x = x(e.getKey()) + d[0], y = y(e.getKey()) + d[1];
+                long k = key(x, y);
+                if (!inside.contains(k) || keepOpen.contains(k) || !open.at(x, y)) continue;
+                if (posts.stream().noneMatch(p -> p.x() == x && p.y() == y)) posts.add(new RedoubtWorks.Bag(x, y, null));
+            }
         }
-        if (step.isEmpty()) return null;
-        return new Plan(l, t, r, b, cells, guns, step, lamps, main[0], main[1]);
+        if (posts.isEmpty()) return null;
+        return new Plan(l, t, r, b, cells, guns, posts, lamps, main[0], main[1]);
     }
 
     /** A gun tower on one flank of a gate: its gun on the line of the wall behind slits, a floodlight inside the other flank. */
@@ -251,16 +308,24 @@ public final class CivilDefenceCompound {
         for (int f = 0; f < flanks.length; f++) {
             int gx = flanks[f][0], gy = flanks[f][1];
             if (!wall.contains(key(gx, gy))) continue;
+            // The line of the wall and the row inside it must be free; the row outside is built
+            // only where the ground is open, since a neighbour may stand against the wall.
             boolean fits = true;
             for (int dy = -1; dy <= 1 && fits; dy++) {
                 for (int dx = -1; dx <= 1 && fits; dx++) {
+                    if (dx * in[0] + dy * in[1] < 0) continue;
                     long k = key(gx + dx, gy + dy);
                     fits = !cells.containsKey(k) && (wall.contains(k) || open.at(gx + dx, gy + dy));
                 }
             }
             if (!fits) continue;
             for (int dy = -1; dy <= 1; dy++) {
-                for (int dx = -1; dx <= 1; dx++) cells.put(key(gx + dx, gy + dy), dx == 0 && dy == 0 ? Kind.GUN : Kind.SLIT);
+                for (int dx = -1; dx <= 1; dx++) {
+                    long k = key(gx + dx, gy + dy);
+                    boolean outer = dx * in[0] + dy * in[1] < 0;
+                    if (outer && (cells.containsKey(k) || !(wall.contains(k) || open.at(gx + dx, gy + dy)))) continue;
+                    cells.put(k, dx == 0 && dy == 0 ? Kind.GUN : Kind.SLIT);
+                }
             }
             guns.add(new int[]{gx, gy});
             int[] other = flanks[1 - f];
@@ -324,13 +389,6 @@ public final class CivilDefenceCompound {
                     grid.recomputeCoverAt(x, y);
                 }
             }
-        }
-        TileRegistry registry = TileRegistry.installed();
-        for (RedoubtWorks.Bag bag : plan.step()) {
-            DoodadDef def = registry.doodad(bag.doodad());
-            grid.setSeeThrough(bag.x(), bag.y(), true);
-            topology.setFixture(bag.x(), bag.y(), true);
-            sim.addDoodad(new Doodad(bag.x(), bag.y(), def));
         }
         NightLighting night = topology.nightLighting();
         List<NightLighting.Lamp> lamps = new ArrayList<>(night == null ? List.of() : night.lamps());
@@ -401,12 +459,6 @@ public final class CivilDefenceCompound {
         return false;
     }
 
-    private static boolean solid(Set<Long> wall, Map<Long, Kind> cells, int x, int y) {
-        long k = key(x, y);
-        Kind kind = cells.get(k);
-        return kind != null ? kind != Kind.GUN : wall.contains(k);
-    }
-
     private interface Open {
         boolean at(int x, int y);
     }
@@ -423,12 +475,6 @@ public final class CivilDefenceCompound {
                 for (int x = d.cellX; x < d.cellX + d.footprintCellsX; x++) cells.add(key(x, y));
         }
         return cells;
-    }
-
-    private static char letter(int dx, int dy) {
-        if (dy > 0) return 'n';
-        if (dy < 0) return 's';
-        return dx > 0 ? 'e' : 'w';
     }
 
     private static final int[][] STEPS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};

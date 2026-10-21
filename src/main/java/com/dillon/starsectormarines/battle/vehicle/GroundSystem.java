@@ -29,6 +29,7 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.LongPredicate;
 
 /**
  * Owns every ground vehicle in the battle and drives them each tick.
@@ -129,6 +130,9 @@ public class GroundSystem {
 
     /** Gives bladed hulls the blade that opens ground ahead of them. */
     public void setBlade(DozerBlade blade) { controlSystem.setBlade(blade); }
+
+    /** Hulls that hold still this tick (a Brute's charge stalls them; {@code colony-breach-nouns.md}). */
+    public void setStall(LongPredicate stalled) { controlSystem.setStall(stalled); }
 
     /** The mailbox the interface queues move requests into. */
     public VehicleMoveOrderService moveOrders() { return moveOrders; }

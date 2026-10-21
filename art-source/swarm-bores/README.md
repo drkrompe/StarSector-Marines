@@ -7,17 +7,30 @@ and the three spore-colony grades (`structure.spore-colony-fissure`, `-bore`,
 
 | Step | Command | Writes |
 | --- | --- | --- |
-| Guides | `python art-source/swarm-bores/make_guide.py` | `art-source/templates/swarm-<part>-<n>-guide.png` |
-| Reskin one variant (one paid call) | `bash art-source/swarm-bores/generate.sh <part> <n>` | `raw/<part>-<n>.raw.png` + provenance |
-| Export | `python art-source/swarm-bores/export.py` | `mod/graphics/structures/<name>-<n>.png` and `<name>-<n>-glow.png` |
+| Guides | `python art-source/swarm-bores/make_guide.py [part or state ...]` | `art-source/templates/swarm-<part>-<n>[-<state>]-guide.png` |
+| Reskin one variant (one paid call) | `bash art-source/swarm-bores/generate.sh <part> <n> [wounded\|remains]` | `raw/<part>-<n>[-<state>].raw.png` + provenance |
+| Export | `python art-source/swarm-bores/export.py [--part P] [--state S]` | `mod/graphics/structures/<name>-<n>[-wounded].png` and its `-glow.png`; `<name>-<n>-remains.png` |
 | Spore shots (code-drawn) | `python art-source/swarm-bores/spore_shots.py` | `mod/graphics/fx/spore-clump.png`, `spore-cluster.png`, `spore-lance.png` |
-| Recolour preview | `python art-source/swarm-bores/export.py --palette purple` (or `chitin`) | `build/swarm-bores/<palette>/` |
+| Other-palette preview | `python art-source/swarm-bores/export.py --palette raw` (or `purple`, `chitin`) | `build/swarm-bores/<palette>/` |
 
 Parts and variant counts are `make_guide.VARIANTS`: `bore` 3, `mother-bore` 2,
 `spore-colony-fissure`, `spore-colony-bore`, `spore-colony-maw` 3 each. The
 structure's art block declares `"variants": N` and names its layers with
 `{variant}`; `StructureArt.variantFor` picks one per structure from its entity
 id, the same for the body and its glow.
+
+**Damage states** (`make_guide.STATES`). `wounded` is drawn below half the
+structure's durability (`"woundedBelow": 0.5`, layer paths carry `{state}`):
+plates torn out of their sockets over raw sinew, gashes, a sac burst, a spine
+snapped, the amber dimmed. `remains` is left on the ground when it dies
+(`"remains"`): a bore caved in and choked with rubble, a colony's sacs burst
+and deflated, no glow. Both are built from the variant's own seeded geometry,
+with a separate draw stream deciding the damage, so the intact guides do not
+change and each damaged painting keeps its structure's shape. A state's brief
+is the part's prompt plus `prompts/state-<state>.prompt.txt`, and the
+variant's intact raw rides along as its identity reference. The export drains
+the remains towards grey (`husk`) and gives their berm the creep's withered
+colour.
 
 **Geometry and light come from code.** Each guide is a seeded heightfield of
 lopsided primitives (plates of differing size and lean, tusks, tilted paving
@@ -44,14 +57,19 @@ of glow and loose spores, an airburst, drifting spore haze); `flightSec` and
 `arcHeight` lob the slower grades. The glow layers set `fireFlash`, so a sac
 flares and swells as it fires. Review: `createSnapshots -Psnapshot=spore-colony-fire`.
 
-**Palette.** The shipped sprites are in the current runner palette. The
-guide's material map records which pixels are creature (chitin, sinew, bone,
-flesh, sac) and which are earth or paving, so `--palette purple` recolours
-only the creature by luminance gradient maps: carapace to the Rav Bloom
-round-3 violet and plum running up to ivory, roots and a shaft's lining to its
-magenta-crimson sinew (ramps sampled from the round-3 Runner plates).
-`--palette chitin` is the earlier brown proposal. When the creature redesign
-settles, the recolour is a ramp edit and that switch, not a new generation.
+**Palette.** The shipped sprites are in the settled Rav Bloom palette,
+`bloom` (owner, 2026-10-21). The guide's material map records which pixels are
+creature (chitin, sinew, bone, flesh, sac) and which are earth or paving, so
+the export recolours only the creature by luminance gradient maps sampled from
+the approved Runner and Brute plates (rav-redesign `motion-runner` and
+`motion-brute` heroes): carapace to lilac and dusky violet, roots and a shaft's
+lining to crimson-magenta sinew, bone to ivory; amber stays amber. The raws
+keep the generations' own colours (`--palette raw` previews them), so a
+palette change is a ramp edit, not a new generation. The thrown earth of a
+berm is creep heaved up out of the shaft: the export maps it to the creep's
+default palette, read from `CreepPalette.java`, so **re-export after the creep
+palette changes**. `purple` (round 3) and
+`chitin` (the brown proposal) remain as previews.
 
 The `-glow` layer is the reskin's own amber pixels lifted out by colour and
 drawn over the body with a pulse; the structures set `groundPad: false`, so

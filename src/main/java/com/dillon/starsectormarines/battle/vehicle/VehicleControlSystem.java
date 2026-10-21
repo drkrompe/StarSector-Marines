@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile.Bucket;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
+import java.util.function.LongPredicate;
 
 /**
  * Stateless per-vehicle motion driver — the behaviour half of the ground-vehicle
@@ -53,6 +54,8 @@ public final class VehicleControlSystem {
     private final int recoveryExpansionsPerTick;
     /** The dozer blade, or {@code null} where no map editor is wired (bare control tests). */
     private DozerBlade blade;
+    /** Hulls that can't act this tick: a Brute's charge stalls them ({@code colony-breach-nouns.md}, Brute). */
+    private LongPredicate stalled = id -> false;
     private HoverSkirt skirt;
 
     public VehicleControlSystem(ConvoyService convoy, NavigationService navigation) {
@@ -71,6 +74,9 @@ public final class VehicleControlSystem {
 
     /** Gives bladed hulls their blade. Without one a dozer drives as the cannonless tank it looks like. */
     public void setBlade(DozerBlade blade) { this.blade = blade; }
+
+    /** Hulls that hold still this tick, whatever their route says. */
+    public void setStall(LongPredicate stalled) { this.stalled = stalled; }
 
     /**
      * The grid a hull's own planning reads: the blade's breach view for a bladed hull, the skirt's hover view for a
@@ -129,6 +135,10 @@ public final class VehicleControlSystem {
         if (s.routeXs != xs || s.routeYs != ys || s.leg != leg) {
             initCorridor(s, xs, ys);
             s.leg = leg;
+        }
+        if (stalled.test(id)) {
+            body.speed = 0f;
+            return;
         }
 
         float previousX = body.x, previousY = body.y, previousFacing = body.facingDegrees;

@@ -234,7 +234,14 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
         return new Fortification(count, wallHp, posts, square);
     }
 
-    /** The same wall drawn on a square claim. */
+    /**
+     * Cells of cleared ground a square place keeps outside its wall: the strip
+     * a colony leaves open round its compound so nothing stands against the
+     * wall and a watchman can see the foot of it.
+     */
+    public static final int GLACIS = 3;
+
+    /** The same wall drawn on a square claim, with a glacis of open ground outside it. */
     public Fortification laidSquare() {
         return new Fortification(gates, wallHp, posts, true);
     }
