@@ -1,0 +1,77 @@
+"""Ship crew layers: silhouette guide and mechanical export. Run from the repository root.
+
+    python art-source/ship-crew/ship_crew.py guide
+    python art-source/ship-crew/ship_crew.py export
+
+The crew wear the same anatomy as the marines. Each guide frame is the alpha of a
+shipped marine layer (fatigues body, bare head, infantry boot) scaled up by one
+factor, so a reskin that keeps the guide registers in the compositor exactly as the
+marine it stands beside does. Export cuts each frame mechanically, scales it back
+down with nearest-neighbour sampling (the marines' pixel-art grid) and bounds its
+alpha by the same marine silhouette.
+"""
+
+from pathlib import Path
+import sys
+
+from PIL import Image, ImageFilter
+
+ROLES = ("command", "engineering", "medical", "service")
+MARINE = Path("mod/graphics/battle/marine-modular-topdown")
+SILHOUETTES = {
+    "body": MARINE / "variants/armor/armorless/body.png",
+    "head": MARINE / "variants/armor/armorless/head.png",
+    "foot": MARINE / "marine-foot.png",
+}
+SCALE = 6
+CANVAS = (1536, 1024)
+# Top-left of each frame on the guide; frame size is the silhouette size x SCALE.
+ORIGINS = {"body": (24, 152), "head": (960, 40), "foot": (1176, 640)}
+GUIDE_GRAY = (163, 163, 163, 255)
+SOURCE = Path("art-source/ship-crew")
+TARGET = Path("mod/graphics/battle/ship-crew-modular-topdown")
+
+
+def silhouette(part: str) -> Image.Image:
+    return Image.open(SILHOUETTES[part]).convert("RGBA").getchannel("A")
+
+
+def frame(part: str) -> tuple[int, int, int, int]:
+    w, h = silhouette(part).size
+    x, y = ORIGINS[part]
+    return x, y, x + w * SCALE, y + h * SCALE
+
+
+def guide() -> None:
+    sheet = Image.new("RGBA", CANVAS, (0, 0, 0, 0))
+    for part in SILHOUETTES:
+        x0, y0, x1, y1 = frame(part)
+        # Smooth the marine's pixel steps out of the enlarged edge, then make it hard.
+        mask = silhouette(part).resize((x1 - x0, y1 - y0), Image.Resampling.BILINEAR)
+        mask = mask.filter(ImageFilter.GaussianBlur(SCALE)).point(lambda a: 255 if a >= 128 else 0)
+        sheet.paste(Image.new("RGBA", mask.size, GUIDE_GRAY), (x0, y0), mask)
+    out = Path("art-source/templates/ship-crew-silhouettes.png")
+    sheet.save(out)
+    print(out)
+
+
+def export() -> None:
+    for role in ROLES:
+        raw = Image.open(SOURCE / "raw" / f"{role}.png").convert("RGBA")
+        sx, sy = raw.width / CANVAS[0], raw.height / CANVAS[1]
+        target = TARGET / role
+        target.mkdir(parents=True, exist_ok=True)
+        for part in SILHOUETTES:
+            x0, y0, x1, y1 = frame(part)
+            mask = silhouette(part)
+            cut = raw.crop((round(x0 * sx), round(y0 * sy), round(x1 * sx), round(y1 * sy)))
+            layer = cut.resize(mask.size, Image.Resampling.NEAREST)
+            r, g, b, a = layer.split()
+            # Generated alpha inside the marine silhouette; nothing outside it.
+            a = Image.composite(a, Image.new("L", mask.size, 0), mask.point(lambda v: 255 if v else 0))
+            Image.merge("RGBA", (r, g, b, a)).save(target / f"{part}.png", optimize=True)
+            print(target / f"{part}.png")
+
+
+if __name__ == "__main__":
+    {"guide": guide, "export": export}[sys.argv[1] if len(sys.argv) > 1 else "guide"]()

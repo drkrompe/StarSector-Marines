@@ -56,6 +56,13 @@ icons = {
                    + line("M24 6V12M24 36V42M6 24H12M36 24H42M11.3 11.3L15.5 15.5M32.5 32.5L36.7 36.7M11.3 36.7L15.5 32.5M32.5 15.5L36.7 11.3", w=4),
     "vehicle-bay": line("M6 28H42L38 36H10Z", w=3) + line("M14 28V22H30V28M30 24H43", w=3)
                    + line("M14 40m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M24 40m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M34 40m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0", w=2),
+    "hydroponics": line("M24 42V22") + line("M24 30C15 30 9 24 9 14C18 14 24 20 24 30Z", w=3)
+                   + line("M24 24C24 15 30 9 39 9C39 18 33 24 24 24Z", w=3) + line("M12 42H36", w=2.5),
+    "wardroom": line("M10 22L24 12L38 22") + line("M10 32L24 22L38 32") + line("M10 42L24 32L38 42", w=2.5),
+    "briefing": line("M6 34H42") + line("M12 34L10 42M36 34L38 42", w=3)
+                + line("M24 28C18 21 17 16 17 13a7 7 0 0 1 14 0C31 16 30 21 24 28Z", w=3)
+                + f'<circle cx="24" cy="13" r="2.5" fill="{PALE}"/>',
+    "holds": line("M8 16L24 8L40 16V34L24 42L8 34Z") + line("M8 16L24 24L40 16M24 24V42", w=3),
 }
 for name, body in icons.items():
     svg("track-" + name, body, 48)

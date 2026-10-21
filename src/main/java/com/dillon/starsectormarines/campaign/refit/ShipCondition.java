@@ -121,7 +121,34 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
         };
     }
 
+    /** Officer XP from a mission, read at resolution: the wardroom, then the staff college. */
+    public float officerXpMult() {
+        return switch (band(RefitTrack.WARDROOM)) {
+            case IMPROVED_I -> 1.15f;
+            case IMPROVED_II -> 1.30f;
+            default -> 1f;
+        };
+    }
+
     // --- Hull figures, applied by the conversion hull mod ---
+
+    /** Her own supplies per month: hydroponic racks grow part of what the company eats. */
+    public float suppliesPerMonthMult() {
+        return switch (band(RefitTrack.HYDROPONICS)) {
+            case IMPROVED_I -> 0.95f;
+            case IMPROVED_II -> 0.90f;
+            default -> 1f;
+        };
+    }
+
+    /** Cargo space won back by racking the holds, on top of what the conversion took. */
+    public int cargoBonus() {
+        return switch (band(RefitTrack.HOLDS)) {
+            case IMPROVED_I -> 20;
+            case IMPROVED_II -> 40;
+            default -> 0;
+        };
+    }
 
     public float hullMult() { return combat(RefitTrack.HULL, 0.80f, 1.15f, 1.30f); }
     public float armorMult() { return combat(RefitTrack.HULL, 0.85f, 1.10f, 1.20f); }

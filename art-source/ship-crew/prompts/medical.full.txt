@@ -1,0 +1,13 @@
+Use case: sketch-to-render. Production overhead sprite layers for one starship crew member in a tactical game, to stand beside the existing marine infantry.
+
+Reference 1 is the authoritative SILHOUETTE GUIDE and edit target, 1536x1024. Reskin only its three flat gray shapes; keep every shape's exact outline, position, scale and the empty neck opening. Everything outside the shapes, and the neck opening, must be genuinely transparent: no background, ground, shadow, border, labels or grid.
+
+Camera: TRUE STRAIGHT-DOWN 90-degree overhead view, every part facing UP the image. These are three SEPARATE LAYERS, not a full figure:
+- Left shape = shoulders, upper arms and upper torso seen from directly above, with an EMPTY round neck opening where an independent head layer sits. A soft collar rings the opening. No head, hands, backpack, armor plates, webbing, pouches or weapons.
+- Upper right shape = top/back of a bare human head seen from directly above: crown of hair filling the shape, ears just showing at the left and right edges, forehead toward the TOP. No face, no neck.
+- Lower right shape = one boot seen from directly above, toe at the TOP.
+
+Style: match the marine reference sprites exactly — chunky crisp pixel art with a clean one-step dark outline around every shape, a limited muted palette, broad readable fabric planes with soft cloth folds, light from the upper left, restrained detail that still reads at 150 pixels wide. Not painterly, not smooth airbrushed, not photographic. These are ship's clothes, not combat gear: softer and plainer than the marines' fatigues, no straps or harness.
+
+Avoid: bright blue/orange, neon, text, insignia lettering, noise, scratches, carried tools, rifles, cast shadows outside the shapes.
+This crew member: MEDICAL duty. Pale gray-green clinical tunic with a diagonal wrap closure across the chest and restrained darker sage panels on the upper sleeves; clean and smooth. Head: dark hair pulled back into a small tied bun at the back of the crown, kept inside the shape. Boot: light gray clean soft shoe.
