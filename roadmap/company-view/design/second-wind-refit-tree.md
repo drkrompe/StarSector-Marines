@@ -1,8 +1,8 @@
 # Second Wind refit tree
 
-Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Ship Systems card and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review; opening the new facilities, Improved-tier dressing and mech passives are not.
+Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Ship Systems card and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review, and each reserve is furnished and can be opened on the deck; the facility tracks that open them, their passives, Improved-tier dressing and mech passives are not.
 Written: 2026-10-20
-Updated: 2026-10-21 — deck capacity survey: five sealed reserves fit every layout, the other facilities share a compartment; combat refit tracks added earlier the same day.
+Updated: 2026-10-21 — the reserves are furnished at their footprints and open where they stand when the hull says so; the facility tracks still have to say it.
 
 The Engineering tab today sells a short list of one-off yard orders: the
 workshop chain (750 / 3,000 / 4,500), the second bay (8,000), three Mech Lab
@@ -251,11 +251,33 @@ comparison does not count it. A refit story opens one where it stands.
 `SecondWindReservesEvidence` (`generatedSpaceEvidence`) holds all of this
 over 60 layouts.
 
-**What this leaves open.** Reserves supply nothing yet. Each facility's
-Restored order opens its compartment and installs the fitting at this
-footprint. The range fitting is authored for the 30×8 L and must be checked
-at 16×6 when the firing range story (slice 5) lands. If a later program change
-moves rooms, the reserve evidence fails before a save notices.
+**Opening a reserve.** Each reserve is furnished for its facility at its
+reserved footprint, sealed or not, so its fill is the same either way and
+opening it changes only whether it is stripped and closed. Which reserves are
+open is part of the hull's restoration state, the same record that already
+says which wrecked rooms are repaired (`ShipRestoration.openReserves`); every
+reserve is closed until something names it. An opened reserve is in service:
+its hatches work, its fixtures publish their places and Engineering lists it
+as a working room. The facility track whose Restored tier is bought is what
+names it; until those tracks exist, nothing does.
+
+What each opened room is:
+
+| Reserve | Furnished as | Publishes |
+|---|---|---|
+| Firing range 16×6 | three 10-cell lanes, shut deck downrange with a trap behind each target; a range control and prep bench beside the run to the line where the hatch leaves room | practice at the firing line |
+| Gymnasium 12×8 | a running loop round the bulkheads, cardio and a press inside it, a weights rack and a mat | exercise (recreation), on the loop as well as at the equipment |
+| Sick bay 10×6 | up to three beds across a stretcher aisle from the nurse station, cabinet and sink; a narrow rehab pool in a walkable coping ring at the end with fewer hatches | treatment at the beds, the station and the poolside; the medic's work |
+| Rec lounge 8×6 | a sofa and low table, a card table with stools, and at the quieter end a chapel of two pews facing a small altar | unwind (recreation), the pews included |
+| Brig 6×6 | two cells, each a bunk and a head behind bars, a bulkhead between them, on the side with fewer hatches; a desk and a property locker outside | one guard post facing the bars; the bunks publish no rest |
+
+These are built from the furniture the other ship rooms already use. The
+chapel and the brig have no art of their own yet: the altar is a low table
+with a planter, the pews are sofas and the bars are the industrial fence run.
+
+If a later program change moves rooms, the reserve evidence fails before a
+save notices; the same evidence opens every reserve on the same layouts and
+fails if anything moves or a range lane is crossed.
 
 ## Credit curve
 

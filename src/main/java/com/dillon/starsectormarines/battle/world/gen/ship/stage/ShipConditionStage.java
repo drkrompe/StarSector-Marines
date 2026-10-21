@@ -28,9 +28,10 @@ public final class ShipConditionStage implements GenStage {
                         .thenComparingInt(DeckGraph.Compartment::id)).toList();
         return rooms.subList(Math.min(rooms.size(), Math.max(3, rooms.size() - 2)), rooms.size());
     }
-    /** Whether this room is closed: a hull reserve, or a facility the original wreck has not had repaired. */
+    /** Whether this room is closed: a hull reserve not yet opened, or a facility the original wreck has not had repaired. */
     public static boolean sealed(DeckGraph graph, DeckGraph.Compartment room, ShipRestoration state) {
-        return graph.reserved(room.id()) || state.applies() && (room.purpose() == RoomPurpose.VEHICLE_BAY && !state.mechBay()
+        if (graph.reserved(room.id())) return !state.opens(graph.reserve(room.id()));
+        return state.applies() && (room.purpose() == RoomPurpose.VEHICLE_BAY && !state.mechBay()
                 || room.purpose() == RoomPurpose.MESS_HALL && !state.messHall()
                 || !state.billets() && spareBillets(graph).contains(room));
     }
@@ -46,7 +47,7 @@ public final class ShipConditionStage implements GenStage {
             if (!state.power() && room.purpose() != RoomPurpose.VEHICLE_BAY
                     && room.purpose() != RoomPurpose.HANGAR && room.purpose() != RoomPurpose.PARTS_CAGE
                     && (room.id() % 3 != 0 || room.purpose() == RoomPurpose.ENGINE_ROOM)) faults.add(room.id());
-            // Reserves are sealed by their own stage, whatever the wreck's state.
+            // Reserves are sealed or opened by their own stage, whatever the wreck's state.
             if (graph.reserved(room.id())) continue;
             if (!sealed(graph, room, state)) {
                 if (room.purpose() == RoomPurpose.VEHICLE_BAY || room.purpose() == RoomPurpose.MESS_HALL || spareBillets(graph).contains(room))
