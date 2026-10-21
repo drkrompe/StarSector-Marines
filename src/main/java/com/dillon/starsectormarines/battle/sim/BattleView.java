@@ -39,6 +39,7 @@ import com.dillon.starsectormarines.battle.grenade.FragGrenadeService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
+import com.dillon.starsectormarines.battle.evacuation.CivilianRedoubt;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 
 import com.dillon.starsectormarines.battle.evacuation.SurvivorPickupSystem;
@@ -474,6 +475,12 @@ public interface BattleView {
 
     /** Mission-local rescue cohort lifecycle; empty in ordinary battles. */
     CivilianEvacuationTracker getCivilianEvacuationTracker();
+
+    /**
+     * Where the rescue cohort is holed up, main redoubt first; empty in
+     * ordinary battles. A single entry is a single-shelter rescue.
+     */
+    default List<CivilianRedoubt> getCivilianRedoubts() { return List.of(); }
 
     /** Whether a marine has physically reached the civilian shelter entrance. */
     boolean isCivilianEvacuationTriggered();

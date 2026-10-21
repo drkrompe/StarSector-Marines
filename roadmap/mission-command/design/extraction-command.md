@@ -136,6 +136,24 @@ offsets instead of forming one brick. A local actionable contact may hold only
 the affected squad's current target for a bounded interval; it does not freeze
 the whole formation.
 
+**Several redoubts.** On the Colony Breach colony the cohort is holed up in two
+to four redoubts (`colony-breach-nouns.md`, Redoubt), each released when a
+Marine reaches its own door. The commander's frame then carries each redoubt's
+public door, whether it is reached or fallen, and how many of its people are
+behind the door or walking. The model is the simplest honest one. Every redoubt
+whose people are walking gets its own close escort, the free squad nearest them,
+kept until they are aboard; the escort rallies a route cell ahead of its group,
+as the single escort does. The rest of the force relieves one pending redoubt
+at a time, forming on its door: the one whose route from the force's mean
+position is shortest, kept until it is reached or falls, so the force does not
+turn back and forth between two doors. Escorts come before relief, because
+people in the open are exposed and people behind a door are not. With nothing
+left to relieve, the force screens the largest walking group along its route;
+with nobody walking, it holds at the lift. The visit order is therefore the
+commander's choice from what it can see, nearest door first, and the triage
+(which holdout is left to fall) follows from it. A frame with one redoubt runs
+the single-cohort plan above unchanged.
+
 Authored shelter and pickup guards remain outside the command pool under their
 existing garrison or payload authority. The commander does not invent a missing
 pickup-guard post. Mission command owns where the mobile force is useful while
