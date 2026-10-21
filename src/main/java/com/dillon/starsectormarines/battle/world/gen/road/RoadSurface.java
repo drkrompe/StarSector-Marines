@@ -64,17 +64,25 @@ public final class RoadSurface {
         for(int ri=0;ri<routes.size();ri++) {
             var route=routes.get(ri);if(!route.autoEdge())continue;
             int material=route.material().ordinal();
-            double[] distance=distances(route,w,h);
-            for(int vertex=0;vertex<vertices;vertex++) {
-                double value=distance[vertex];
+            // Outside its sweep's bounds a route's field is -infinity and changes
+            // nothing, so a city of short streets costs its streets, not its map.
+            Sweep sweep=distances(route,w,h);
+            double[] distance=sweep.distance();
+            int sw=sweep.x1()-sweep.x0()+1;
+            for(int vy=sweep.y0();vy<=sweep.y1();vy++)for(int vx=sweep.x0();vx<=sweep.x1();vx++) {
+                int vertex=vy*vw+vx;
+                double value=distance[(vy-sweep.y0())*sw+vx-sweep.x0()];
                 for(int other=0;other<MATERIALS;other++)if(other!=material)
                     value=Math.min(value,-fields[other][vertex]);
                 fields[material][vertex]=Math.max(fields[material][vertex],value);
             }
-            for(int y=0;y<h;y++)for(int x=0;x<w;x++)if(owner[material][y*w+x]<0 &&
-                    Math.max(Math.max(distance[y*vw+x],distance[y*vw+x+1]),
-                            Math.max(distance[(y+1)*vw+x],distance[(y+1)*vw+x+1]))>=0)
+            for(int y=sweep.y0();y<sweep.y1();y++)for(int x=sweep.x0();x<sweep.x1();x++) {
+                int local=(y-sweep.y0())*sw+x-sweep.x0();
+                if(owner[material][y*w+x]<0 &&
+                    Math.max(Math.max(distance[local],distance[local+1]),
+                            Math.max(distance[local+sw],distance[local+sw+1]))>=0)
                 owner[material][y*w+x]=ri;
+            }
         }
         Patch[][] patches=new Patch[MATERIALS][cells];
         Underlay[] underlays=new Underlay[cells];
@@ -106,21 +114,28 @@ public final class RoadSurface {
         return new RoadSurface(w,patches,underlays);
     }
 
-    private static double[] distances(RoadPlan.Route route,int w,int h) {
-        int vw=w+1;
+    /** A route's signed distance over the vertex rectangle {@code x0..x1, y0..y1} it can reach. */
+    private record Sweep(int x0,int y0,int x1,int y1,double[] distance) {}
+
+    private static Sweep distances(RoadPlan.Route route,int w,int h) {
         var points=RoadRasterizer.sample(route);double radius=route.width()/2;
-        double[] distance=new double[vw*(h+1)];Arrays.fill(distance,Double.POSITIVE_INFINITY);
-        double[] progress=new double[distance.length];
+        double minX=Double.POSITIVE_INFINITY,minY=minX,maxX=Double.NEGATIVE_INFINITY,maxY=maxX;
+        for(var p:points){minX=Math.min(minX,p.x());maxX=Math.max(maxX,p.x());minY=Math.min(minY,p.y());maxY=Math.max(maxY,p.y());}
+        int x0=Math.max(0,(int)Math.floor(minX-radius)),y0=Math.max(0,(int)Math.floor(minY-radius));
+        int x1=Math.min(w,(int)Math.ceil(maxX+radius+1)),y1=Math.min(h,(int)Math.ceil(maxY+radius+1));
+        int sw=x1-x0+1,size=sw*(y1-y0+1);
+        double[] distance=new double[size];Arrays.fill(distance,Double.POSITIVE_INFINITY);
+        double[] progress=new double[size];
         double travelled=0;
         for(int i=1;i<points.size();i++) {
             var a=points.get(i-1);var z=points.get(i);
             double dx=z.x()-a.x(),dy=z.y()-a.y(),length=Math.hypot(dx,dy);
             if(length<1e-9)continue;
-            for(int y=Math.max(0,(int)Math.floor(Math.min(a.y(),z.y())-radius));y<=Math.min(h,(int)Math.ceil(Math.max(a.y(),z.y())+radius+1));y++)
-                for(int x=Math.max(0,(int)Math.floor(Math.min(a.x(),z.x())-radius));x<=Math.min(w,(int)Math.ceil(Math.max(a.x(),z.x())+radius+1));x++) {
+            for(int y=Math.max(y0,(int)Math.floor(Math.min(a.y(),z.y())-radius));y<=Math.min(y1,(int)Math.ceil(Math.max(a.y(),z.y())+radius+1));y++)
+                for(int x=Math.max(x0,(int)Math.floor(Math.min(a.x(),z.x())-radius));x<=Math.min(x1,(int)Math.ceil(Math.max(a.x(),z.x())+radius+1));x++) {
                     double t=((x-.5-a.x())*dx+(y-.5-a.y())*dy)/(length*length),clamped=Math.max(0,Math.min(1,t));
                     double d=Math.hypot(x-.5-a.x()-clamped*dx,y-.5-a.y()-clamped*dy);
-                    int vertex=y*vw+x;
+                    int vertex=(y-y0)*sw+x-x0;
                     if(d<distance[vertex]) {
                         distance[vertex]=d;progress[vertex]=travelled+clamped*length;
                     }
@@ -131,8 +146,8 @@ public final class RoadSurface {
         var last=points.get(points.size()-1);var previous=points.get(points.size()-2);
         double startLength=Math.hypot(second.x()-first.x(),second.y()-first.y());
         double endLength=Math.hypot(last.x()-previous.x(),last.y()-previous.y());
-        for(int vertex=0;vertex<distance.length;vertex++) {
-            double value=radius-distance[vertex],x=vertex%vw-.5,y=vertex/vw-.5;
+        for(int vertex=0;vertex<size;vertex++) {
+            double value=radius-distance[vertex],x=x0+vertex%sw-.5,y=y0+vertex/sw-.5;
             if(route.endCap()==RoadPlan.EndCap.BUTT) {
                 if(progress[vertex]<radius+1 && startLength>0)
                     value=Math.min(value,((x-first.x())*(second.x()-first.x())+(y-first.y())*(second.y()-first.y()))/startLength);
@@ -141,7 +156,7 @@ public final class RoadSurface {
             }
             distance[vertex]=value;
         }
-        return distance;
+        return new Sweep(x0,y0,x1,y1,distance);
     }
     static float[] clip(float[] triangle,double[] distances) { return CellContour.clip(triangle,distances); }
 }

@@ -136,10 +136,11 @@ public final class DeckPropMotionSnapshotSuite implements SnapshotSuite {
                 System.out.println("deck-props: " + room.purpose() + " recorded from t=" + (int) (t - FRAMES * FRAME_SECONDS)
                         + "s after waiting " + (int) waited + "s for work");
             }
-            // Staged: a lone exerciser always takes the nearest free station, so the rower is only ever reached when
-            // the others are busy. Hold every other exercise stand with a placeholder claim and record the rower.
-            for (var room : chosen.values()) {
-                Doodad rower = props.get(room).stream().filter(d -> d.definitionId().equals("ship-gym.rower"))
+            // Staged: a lone exerciser always takes the nearest free station, so a given machine is only reached when
+            // the others are busy. Hold every other exercise stand with a placeholder claim and record that machine:
+            // the treadmill's belt and the rower's seat each move only while somebody is on them.
+            for (var room : chosen.values()) for (String machine : List.of("treadmill", "rower")) {
+                Doodad rower = props.get(room).stream().filter(d -> d.definitionId().equals("ship-gym." + machine))
                         .findFirst().orElse(null);
                 if (rower == null) continue;
                 var points = sim.taskPoints();
@@ -169,11 +170,25 @@ public final class DeckPropMotionSnapshotSuite implements SnapshotSuite {
                     staged.add(drain.renderHostPass(scene.pass(view, layers), WIDTH, HEIGHT));
                     if (FixtureUse.inUse(sim, rower)) rowed++;
                 }
+                // A close-up of the machine itself, where the belt can actually be read: filmed at the sim's own thirty
+                // frames a second, because at ten the slats alias and the belt appears to creep the wrong way.
+                if (machine.equals("treadmill")) {
+                    var close = new ShipDeckBattleScene.DeckView(rower.cellX + rower.footprintCellsX * 0.5f,
+                            rower.cellY + rower.footprintCellsY * 0.5f, 216f);
+                    List<BufferedImage> closeFrames = new ArrayList<>();
+                    for (int frame = 0; frame < 60; frame++) {
+                        t += 1f / 30f;
+                        scene.advanceTo(t);
+                        closeFrames.add(drain.renderHostPass(scene.pass(close, layers), WIDTH, HEIGHT));
+                    }
+                    images.add(SnapshotArtifact.colorAnimation("deck-props-" + room.purpose().name().toLowerCase()
+                            + "-" + room.id() + "-treadmill-close.gif", closeFrames, 33));
+                }
                 for (long actor : held) points.release(actor);
-                System.out.println("deck-props: staged rower, other stands held: worked in " + rowed + " of "
+                System.out.println("deck-props: staged " + machine + ", other stands held: worked in " + rowed + " of "
                         + FRAMES / 2 + " frames after waiting " + (int) waited + "s");
                 images.add(SnapshotArtifact.colorAnimation("deck-props-" + room.purpose().name().toLowerCase()
-                        + "-" + room.id() + "-rower-staged.gif", staged, Math.round(FRAME_SECONDS * 1000)));
+                        + "-" + room.id() + "-" + machine + "-staged.gif", staged, Math.round(FRAME_SECONDS * 1000)));
             }
             for (var room : chosen.values()) {
                 for (Doodad d : props.get(room)) {

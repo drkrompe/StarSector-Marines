@@ -556,6 +556,7 @@ def add_fighters(scene, starts):
     for eng in geo['engines']:
         mesh = bpy.data.meshes.new('Broadsword | drive bead %d' % eng['index'])
         bead = bpy.data.objects.new(mesh.name, mesh)
+        bead['thrust_plume'] = True          # the drive as it reads at picket range (`thrust_markers.craft_drive_fx`)
         coll.objects.link(bead)
         bm = bmesh.new()
         bmesh.ops.create_uvsphere(bm, u_segments=12, v_segments=8, radius=FIGHTER_GLOW_RADIUS / mpu)

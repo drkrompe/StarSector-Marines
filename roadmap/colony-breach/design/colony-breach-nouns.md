@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — a holdout claims a block behind works (barricade, firing step, gate, gun) with a line team that falls back into the building; the company lands in open fields outside the colony and the lift comes down on them; bores, tiers, surges, spore colonies and the bore-sourced director as built.
+Updated: 2026-10-21 — the shelter stands in a civil-defence compound, a square walled place in the colony plan dressed with towers, gate guns, slits and floodlights; a holdout claims a block behind works (barricade, firing step, gate, gun) with a line team that falls back into the building; the company lands in open fields outside the colony and the lift comes down on them; bores, tiers, surges, spore colonies and the bore-sourced director as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -114,7 +114,8 @@ ordinary lift.
 They hold a few buildings through ordinary garrison manning, crew whatever
 colony turret emplacements still work, and may run a technical or two. They
 are a resource the player inherits, not a force the player commands. The
-shelter guard is one militia post among several.
+shelter guard is one militia post among several; on the colony map a wall team
+mans the civil-defence compound round the shelter (see *Redoubt*).
 
 On the colony map the other militia posts are the **holdouts** (see
 *Redoubt*): buildings spread across the colony, each chosen as far as it can be
@@ -123,8 +124,9 @@ map's short side, past which the seed decides), clear of the landing pads and
 with a walk to the lift. Each fireteam holds its building's held place under
 garrison authority, so it mans the building's windows and doors the way any
 held building is manned; a holdout with works adds a second team on its
-firing step (see *Redoubt*). A holdout with works has its heavy gun just
-inside its gate; of the posts without, two keep a working
+firing step (see *Redoubt*). The compound's guns stand beside its gates,
+and a holdout with works has its heavy gun just inside its gate; of the posts
+without, two keep a working
 heavy-machine-gun emplacement outside the door. Two posts have a parked militia
 technical. Placed hardware stands on open ground away from the cohort's walk to
 the lift and outside every redoubt's works, because a gun or a truck in a
@@ -159,7 +161,8 @@ fields, fight in to the redoubts, bring the survivors back out.
 
 **Redoubt.** A place the cohort is holed up in. The **main redoubt** is the
 shelter, with the largest share of the cohort and the sealed, hidden shelter
-guard; it is redoubt 1. The colony has one to three **holdouts** besides
+guard; it is redoubt 1. On the colony map the shelter stands inside the
+colony's **civil-defence compound** (below). The colony has one to three **holdouts** besides
 (seeded, so two to four redoubts in all): a militia post with three or four of
 the cohort inside, deeper in than the fireteam's firing cells.
 
@@ -183,8 +186,7 @@ the cohort's walk to the lift, a pad or a protected zone, and they are refused
 outright, leaving the holdout with sandbag aprons across its doors (the
 compound prepared-ground courses a held base gets), when no gate can be cut or
 the building's door would be shut in. Nothing is invented for them. Nothing
-stands on a roof, and there is no floodlight or watch post, because the
-battle has no roof posts and no such props to stand there.
+stands on a roof, because the battle has no roof posts.
 
 A holdout with works has two militia teams. The **house** team holds the
 building's held place and mans its windows and doors. The **line** team mans
@@ -198,11 +200,47 @@ made once, in place of the commander-tier fall back through layers that
 light barricade breaks the nearest piece between them rather than walking
 round to the gate the Runners crowd into.
 
-A redoubt's ground is its works' rectangle. A Marine at its **gate** relieves
-it, and the people walk out through the gate. The main redoubt is the shelter
-and has no works yet: it is sealed and hidden, and its guard is not seen.
+A holdout's ground is its works' rectangle. A Marine at its **gate** relieves
+it, and the people walk out through the gate.
 `-Dbattle.colonyBreach.redoubtWorks=false` is the control: every holdout is the
 bare building with aprons.
+
+The **civil-defence compound** is the main redoubt's, and it is a different
+kind of thing from a holdout's works. A frontier colony that always knew
+something might come out of the wilderness built it when the colony was laid
+out, so it is a **place in the colony's plan**, not works raised round a house:
+a walled precinct on the town's far side from the fields, laid out square, with
+a shelter hall of bunks, a sick bay, a canteen and a store round a muster
+yard, each furnished as what it is. Because it is planned
+with the colony, the town's streets run up to it, its gates are where they
+cross its wall, and its neighbours are built against it: it fits the layout by
+construction. The colony re-rolls a map that did not build it. The shelter is
+always its hall.
+
+It is a proper work, but a civil one, partway between a house with sandbags and
+a Conquest fort and copied from neither. Its program owes nothing military (no
+keep, barracks, armoury or guard post, each of which would publish a node of
+the defender's, and on this map the defender is the swarm), and its wall is
+colony-grade, light enough for a Brute, a charge or a shell to breach. The
+militia make the rest of it when the battle is set up:
+
+- a squat **tower** on each outer corner of the wall;
+- a **gun tower** beside each gate: a heavy machine gun on the line of the
+  wall behind slits. Those guns are its whole armament: no layers, no bunkers,
+  no anti-air;
+- **firing slits** along the wall's straight runs;
+- a militia **wall team** standing behind the slits, holding the yard. Nothing
+  is piled against the wall: the wall is the cover, so the compound has no
+  sandbag step, which is what tells it apart from a holdout's works;
+- **floodlights** on tripods inside the corners and the gates, facing out.
+
+The ground the wall and its yard cover is the main redoubt's ground. The wall
+team falls back into the shelter once a swarm body is inside the wall or half
+the team is down, so a fall reads as the wall breached and the fight pushed
+back to the shelter. The shelter itself is still sealed and never falls, which
+keeps the triage. `-Dbattle.colonyBreach.civilDefence=false` is the control:
+the colony is laid out without the compound and the shelter is an ordinary
+house.
 
 Every redoubt's people are one cohort for the objective, the outcome and the
 campaign. Each member belongs to one redoubt and waits behind its door until a

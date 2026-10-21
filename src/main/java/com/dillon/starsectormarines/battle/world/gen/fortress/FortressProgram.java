@@ -339,6 +339,33 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
                 0, LANDING_APRON);
     }
 
+    /**
+     * A frontier colony's civil-defence compound: the place everybody runs to
+     * when something comes out of the wilderness.
+     *
+     * <p>A shelter hall of bunks big enough for the colony to sleep in, a
+     * canteen, a sick bay and a store, round a yard the people muster in, walled and gated by the
+     * fortification the brief carries. It is built by a colony rather than a
+     * garrison, so it owes nothing military: <b>no keep, no barracks, no
+     * armoury and no guard post</b>. Each of those publishes a node of the
+     * defender's, and on a colony map the defender is what came out of the
+     * wilderness. Its guns and watchmen are the militia's, set up when the
+     * battle is ({@code colony-breach-nouns.md}).
+     */
+    public static FortressProgram civilDefence() {
+        return new FortressProgram(List.of(
+                new FortressBuilding(RoomPurpose.RESIDENTIAL_HALL, SHELTER_HALL, Ward.REAR, 1),
+                new FortressBuilding(RoomPurpose.PATIENT_WARD, CLINIC, Ward.YARD, 1),
+                new FortressBuilding(RoomPurpose.MESS_HALL, MESS, Ward.YARD, 1),
+                new FortressBuilding(RoomPurpose.STOCKROOM, STORES, Ward.YARD, 1)),
+                0, MUSTER_YARD);
+    }
+
+    private static final RoomShape SHELTER_HALL = RoomShape.rectangle(14, 9);
+    private static final RoomShape CLINIC = RoomShape.rectangle(13, 12);
+    /** Open ground inside the wall for the colony to muster on and the militia to fight across. */
+    private static final int MUSTER_YARD = 300;
+
     /** An apron with one hut on it: what an off-grid settlement is supplied through. */
     public static FortressProgram landingStrip() {
         return new FortressProgram(List.of(

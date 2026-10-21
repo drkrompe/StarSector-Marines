@@ -35,8 +35,8 @@ CLASSES = {
 
 _CIVILIAN = ('freighter', 'tanker', 'tender', 'liner', 'transport', 'tug')   # 'combat freighter' is not one
 _HEAVIER = {'frigate': 'destroyer', 'destroyer': 'cruiser', 'cruiser': 'freighter', 'freighter': 'freighter'}
-_SIZE = {'FRIGATE': 'frigate', 'DESTROYER': 'destroyer', 'CRUISER': 'cruiser', 'CAPITAL_SHIP': 'freighter'}
-_MEMBERS = {m['key']: m for m in roster.MERCHANT + roster.PIRATE + roster.REFERENCES}
+_SIZE = {'FIGHTER': 'frigate', 'FRIGATE': 'frigate', 'DESTROYER': 'destroyer', 'CRUISER': 'cruiser', 'CAPITAL_SHIP': 'freighter'}
+_MEMBERS = {m['key']: m for m in roster.MERCHANT + roster.PIRATE + roster.REFERENCES + roster.DRONES}
 _CLASS_CACHE = {}
 
 

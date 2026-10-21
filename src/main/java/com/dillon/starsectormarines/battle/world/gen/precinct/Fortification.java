@@ -44,8 +44,13 @@ import java.util.Map;
  * <p>Stated authored-wins, and derived when nobody states it: a {@link Demand}
  * resolves the world's defence rating against what the mission may ask of its
  * attacker. See {@code precincts.md}.
+ *
+ * <p>{@link #square} is how the place was laid out rather than how hard it is:
+ * a wall drawn on a square claim, for a place somebody surveyed and pegged out
+ * before building, where the ordinary claim pools organically round its seed.
  */
-public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer> posts) {
+public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer> posts,
+                            boolean square) {
 
     /**
      * Which emplacements are placed first when the ground runs out.
@@ -59,6 +64,11 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
     public static final List<DefensePostKind> PRECEDENCE = List.of(
             DefensePostKind.LARGE, DefensePostKind.MEDIUM, DefensePostKind.LIGHT,
             DefensePostKind.ARTILLERY, DefensePostKind.DRONE_HUB);
+
+    /** A place whose claim pools round its seed, as every garrison's does. */
+    public Fortification(int gates, int wallHp, Map<DefensePostKind, Integer> posts) {
+        this(gates, wallHp, posts, false);
+    }
 
     public Fortification {
         if (gates < 1) {
@@ -221,18 +231,23 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
     }
 
     public Fortification withGates(int count) {
-        return new Fortification(count, wallHp, posts);
+        return new Fortification(count, wallHp, posts, square);
+    }
+
+    /** The same wall drawn on a square claim. */
+    public Fortification laidSquare() {
+        return new Fortification(gates, wallHp, posts, true);
     }
 
     public Fortification withWallHp(int hp) {
-        return new Fortification(gates, hp, posts);
+        return new Fortification(gates, hp, posts, square);
     }
 
     /** The same place asked to hold {@code count} of one kind of emplacement. */
     public Fortification withPosts(DefensePostKind kind, int count) {
         EnumMap<DefensePostKind, Integer> next = new EnumMap<>(posts);
         next.put(kind, count);
-        return new Fortification(gates, wallHp, next);
+        return new Fortification(gates, wallHp, next, square);
     }
 
     /** How many of one kind this asks for. */

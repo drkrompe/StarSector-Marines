@@ -1,0 +1,3 @@
+Reference image 1 is the chosen Brute design from the Rav Bloom swarm (a heavy, old, dark plum-violet armoured hoofed beast with a knobbed ivory mace head), seen strictly from above, facing up. This is a rig layer for animating it: keep its palette, finish, scale and lighting (from the upper left) exactly, and keep every part you draw in EXACTLY the same position and size as in reference image 1 so the layer registers over it pixel for pixel. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.
+
+This layer: the HEAD ONLY: the knobbed and spiked ivory mace head and its jaw, plus a short length of thick armoured neck behind it ending in sinew, in exactly the same place and size as in the reference; the whole body, legs and tail removed.
