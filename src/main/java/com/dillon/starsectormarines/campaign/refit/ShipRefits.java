@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.refit;
 
+import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
 import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
 import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration;
 import com.dillon.starsectormarines.campaign.start.CompanyYard;
@@ -12,7 +13,9 @@ import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * The founding hull's refit receipts and the yard orders that write them. A
@@ -52,10 +55,19 @@ public final class ShipRefits {
         return condition(ship);
     }
 
-    public record Offer(ShipCondition condition, int credits, String refusal) { }
+    /** What a review shows: the condition, the credits and cargo on hand, and the first reason to refuse. */
+    public record Offer(ShipCondition condition, int credits, Map<String, Integer> cargo, String refusal) {
+        public Offer(ShipCondition condition, int credits, String refusal) { this(condition, credits, Map.of(), refusal); }
+        public int held(String commodity) { return cargo.getOrDefault(commodity, 0); }
+    }
 
+    /**
+     * The first reason an order cannot be bought now. Materials are checked
+     * after credits; {@code names} names a short commodity.
+     */
     public static String refusal(RefitOrder order, ShipCondition condition, boolean home, boolean active,
-                                 boolean reliefComplete, boolean docked, int credits) {
+                                 boolean reliefComplete, boolean docked, int credits,
+                                 Map<String, Integer> cargo, Function<String, String> names) {
         if (!home || !condition.applies()) return Strings.get("openingCompanyShipRestorationHouseTheCompanyAboardSecondWindS");
         if (condition.band(order.track).atLeast(order.band)) return Strings.get("openingCompanyShipRestorationThisWorkIsAlreadyComplete");
         if (!active) return Strings.get("openingCompanyShipRestorationTheConvertedCompanyShipMustBeActive");
@@ -66,6 +78,10 @@ public final class ShipRefits {
         if (missing != null) return RefitText.lock(missing.getKey(), missing.getValue());
         if (!docked) return Strings.get("openingCompanyShipRestorationDockAtAnAccessiblePlanetarySpaceportFor");
         if (credits < order.price) return Strings.get("openingCompanyShipRestorationInsufficientCredits");
+        for (var need : order.materials().entrySet())
+            if (cargo.getOrDefault(need.getKey(), 0) < need.getValue())
+                return Strings.format("openingRefitShortOfMaterial", names.apply(need.getKey()),
+                        need.getValue() - cargo.getOrDefault(need.getKey(), 0));
         return null;
     }
 
@@ -73,19 +89,24 @@ public final class ShipRefits {
         var condition = condition(ship);
         var fleet = Global.getSector() == null ? null : Global.getSector().getPlayerFleet();
         int credits = fleet == null ? 0 : (int) fleet.getCargo().getCredits().get();
+        var cargo = new LinkedHashMap<String, Integer>();
+        for (String commodity : order.materials().keySet())
+            cargo.put(commodity, fleet == null ? 0 : (int) fleet.getCargo().getCommodityQuantity(commodity));
         boolean home = fleet != null && ship != null && roster != null && ship.getId().equals(roster.companyShipId())
                 && fleet.getFleetData().getMembersListCopy().contains(ship);
-        return new Offer(condition, credits, refusal(order, condition, home,
+        return new Offer(condition, credits, Map.copyOf(cargo), refusal(order, condition, home,
                 ship != null && !ship.isMothballed() && MercenaryCompanyConversion.installed(ship),
                 roster != null && roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId),
-                CompanyYard.dockedMarket() != null, credits));
+                CompanyYard.dockedMarket() != null, credits, cargo, CampaignCommodityPresentation.INSTANCE::commodityName));
     }
 
     /** Rechecks everything at payment; the hull's stats refresh so a combat tier shows at once. */
     public static String purchase(FleetMemberAPI ship, MarineRoster roster, RefitOrder order) {
         var offer = offer(ship, roster, order);
         if (offer.refusal() != null) return offer.refusal();
-        Global.getSector().getPlayerFleet().getCargo().getCredits().subtract(order.price);
+        var fleetCargo = Global.getSector().getPlayerFleet().getCargo();
+        fleetCargo.getCredits().subtract(order.price);
+        for (var need : order.materials().entrySet()) fleetCargo.removeCommodity(need.getKey(), need.getValue());
         Global.getSector().getPersistentData().put(KEY + ship.getId() + order.receipt, true);
         ship.updateStats();
         return null;
