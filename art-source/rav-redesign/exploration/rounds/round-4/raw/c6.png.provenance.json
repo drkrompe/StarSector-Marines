@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fc5-5952-7340-8938-78443c1e9397",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fc5-5952-7340-8938-78443c1e9397\\exec-1758e369-b5e8-4173-99e4-5cf0c240cfce.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\round-4\\raw\\c6.png",
+    "sha256": "fb8d38cde52965ed3d67b8150b66c9e9f21a9971789468644d8fdbfdf9a599b6",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\round-4\\prompts\\c6.prompt.txt",
+  "promptSha256": "57729b0cd49cd071d42d169fcd5466c884d0459a9b2c71ec2ace463331239878",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity, palette and finish of the chosen design; pose and blades change per the brief\n\nTop-down concept for a tactical game (Starsector mod: Marines against an engineered biological weapon). ONE creature, the Runner: the swarm's fast hunter, original design. Reference image 1 is the chosen design: keep its identity, palette and finish exactly (pale lilac and mauve glossy carapace plates, deep purple-magenta sinew in the gaps, ivory blade and claw tips, a dog-like muscular four-legged body, a pale spine ridge). Changes for this pass: its two forelimb-mounted ARM BLADES (long ivory-tipped scythes growing from the shoulders) and a CHOMPY HEAD, a big predator maw with heavy jaws and rows of fangs, small hot amber eyes. Strict overhead orthographic view, camera looking straight down at its back, facing UP (head toward the top), centred, filling about two thirds of the frame, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n\nThis concept: DRAG-OFF pose: the creature backs away hauling a downed armoured human soldier (grey power armour, smaller than the creature, lying limp) that is skewered on both barbed arm blades and held in its jaws; it drags the body backward toward the bottom of the frame. Not gory: no blood pools, just the hold.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\round-3\\raw\\c6.png",
+      "sha256": "46f1ca662f0a5f5613bc1398f1bf295274a8c49e1d1f5cf412e30dfc5a841abe",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity, palette and finish of the chosen design; pose and blades change per the brief"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the reference’s palette and finish, with the drag-off pose and no gore.\n"
+  ],
+  "usage": {
+    "input_tokens": 41082,
+    "cached_input_tokens": 32384,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 580,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 62.3
+}

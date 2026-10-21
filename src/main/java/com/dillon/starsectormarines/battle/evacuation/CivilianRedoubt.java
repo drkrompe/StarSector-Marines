@@ -24,17 +24,21 @@ package com.dillon.starsectormarines.battle.evacuation;
  * @param walking         its people released and not yet aboard
  * @param walkingCellX    where its walking people are, or {@code -1}
  * @param walkingCellY    where its walking people are, or {@code -1}
+ * @param lineBrokeTick   the tick its line fell back from the works into the building, or {@code -1}
  */
 public record CivilianRedoubt(int number, int approachX, int approachY,
                               int left, int top, int right, int bottom,
                               int garrisonSquadId, int cohort,
                               int releasedTick, int fellTick,
                               int sealed, int walking,
-                              int walkingCellX, int walkingCellY) {
+                              int walkingCellX, int walkingCellY, int lineBrokeTick) {
 
     public boolean released() { return releasedTick >= 0; }
 
     public boolean fallen() { return fellTick >= 0; }
+
+    /** Whether its works' line has been pushed back into the building. */
+    public boolean lineBroke() { return lineBrokeTick >= 0; }
 
     public boolean isMain() { return number == 1; }
 

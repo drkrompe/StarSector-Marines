@@ -15,14 +15,14 @@
       "runs": "use",
       "spinUpSeconds": 0.8,
       "parts": [
-        {"part": "deck-motion.treadmill-belt", "kind": "scroll", "window": [0.31, 0.55, 1.39, 2.14], "axis": "y", "period": 0.5, "speed": 1.8}
+        {"part": "deck-motion.treadmill-belt", "kind": "scroll", "window": [0.19, 0.6, 0.63, 2.17], "axis": "y", "period": 0.5, "speed": 1.8}
       ]
     },
     {
-      "doodad": "deck-motion.rower",
+      "doodad": "ship-gym.rower",
       "runs": "use",
       "parts": [
-        {"part": "deck-motion.rower-seat", "kind": "slide", "stops": [[0.98, 1.8], [0.98, 2.45]], "travelSeconds": 0.85, "dwellSeconds": 0.25}
+        {"part": "ship-gym.rower-seat", "kind": "slide", "stops": [[0.5, 1.85], [0.5, 2.5]], "travelSeconds": 0.85, "dwellSeconds": 0.25}
       ]
     },
     {
