@@ -7,8 +7,8 @@ flight, so the colour is in the pixels. Three bodies, one per grade, named after
 - ``spore-cluster``: the bore colony's spore flak. Three clots stuck together, bursting into three puffs.
 - ``spore-lance``: the maw colony's spore lance. A long, fast, white-amber streak in a violet sheath.
 
-The amber is the swarm's own node amber; the membrane is a dusky violet that sits with the runner palette and
-the round-3 purples alike. The weapons' ``fx`` blocks carry the rest of the look (muzzle spit, trail, airburst,
+The amber is the swarm's own node amber; the membrane is a dusky violet that sits with the settled Rav Bloom
+lilac and crimson. The weapons' ``fx`` blocks carry the rest of the look (muzzle spit, trail, airburst,
 drifting haze), in the same colours.
 
 Run from the repository root: ``python art-source/swarm-bores/spore_shots.py``.

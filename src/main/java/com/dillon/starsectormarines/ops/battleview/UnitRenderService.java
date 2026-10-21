@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.SystemFxService;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.AnimationClip;
@@ -1048,6 +1049,9 @@ public final class UnitRenderService implements RenderSystem {
             boolean hasLayered = t.has(c.LAYERED_ANIMATION);
             boolean hasMechLayered = t.has(c.MECH_LAYERED_ANIMATION);
             boolean hasMechGait = t.has(c.MECH_GAIT_STATE);
+            RavRunnerAssets ravArt = sprites.ravRunnerSprites();
+            Object[] ravRigs = ravArt != null && t.has(c.RAV_RIG)
+                    ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             Object[] secSpec = hasSecondary
                     ? t.objects(c.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC).array() : null;
             Object[] primaryWeapon = t.has(c.COMBAT)
@@ -1147,6 +1151,14 @@ public final class UnitRenderService implements RenderSystem {
                             mechSrmPhase[r], mechLrmPhase[r], mechFlags[r], mechChassis[r],
                             mechArms[r], mechLeftShoulder[r], mechRightShoulder[r], unitAlpha,
                             authoredPose, gaitPose);
+                    continue;
+                }
+                RavRunnerRig ravRig = ravRigs != null ? (RavRunnerRig) ravRigs[r] : null;
+                if (ravRig != null && ravRig.posed()) {
+                    // The Runner is drawn on its own skeleton, solved at the position it was posed at.
+                    RavRunnerComposer.emit(out, ravArt, ravRig,
+                            cam.cellToScreenX(ravRig.bodyX()), cam.cellToScreenY(ravRig.bodyY()),
+                            cam.cellPxSize() * type.renderScale, unitAlpha);
                     continue;
                 }
                 LayeredArmorFamily bodyFamily = hasLayered

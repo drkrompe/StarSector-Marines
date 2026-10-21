@@ -408,9 +408,11 @@ puffs (flak) or a fast white-amber streak (lance). It bursts in the air at the
 craft's drawn height, hit or miss, in an amber flash, and leaves spore haze
 drifting there; it never marks the ground beneath.
 
-Bores and colonies are grown, not built, and look it: the runner's chitin
-and amber in every body, standing on the ground with no hardstanding pad,
-their amber nodes breathing. Nothing about them is regular: they erupted, so
+Bores and colonies are grown, not built, and look it: they wear the same
+Rav Bloom palette as the creatures (lilac and dusky-violet carapace over
+crimson sinew, ivory bone, amber nodes breathing), standing on the ground with
+no hardstanding pad. The earth a bore heaved up is creep, in the creep's own
+colours, so the rim reads as where the creep pours out of the ground. Nothing about them is regular: they erupted, so
 they are lopsided. A bore is a slanted shaft torn up through the ground, one
 side heaved up into reared jaw-plates, tusks and thrown paving, the other
 collapsed into the funnel; the mother bore is a wider, deeper, terraced one.
@@ -464,7 +466,17 @@ behaviour. A strain is a designed stage of the one organism (see *Origin*), not
 another animal: every strain is the Runner's body plan and chitin specialised
 for one job in the cycle, and reads that way on screen.
 
-- **Runner** — the shipped 20 HP melee body. Volume.
+- **Runner** — the shipped 20 HP melee body. Volume. It is drawn on its own
+  skeleton (`RavRunnerRig`), not on the layered infantry composition: a hunched
+  hound whose feet stay planted on the ground, galloping and trotting with the
+  spine flexing and the shoulders and hips swaying against each other, with two
+  jointed spike arms on its shoulders. Each blow is one arm, alternating, and
+  is either a stab (the elbow bows out away from the body, then the point
+  drives straight forward) or a side swipe. The wind-up runs off the attack
+  cooldown, so the blow arrives on the tick its damage is dealt. The rig is
+  presentation only: nothing in the simulation reads it, and the strike rule
+  itself stays the ordinary melee hit. The impale and drag pose belongs to
+  `runner-impale-drag.md`.
 - **Brute** — slow, plated, heavy melee; the strain that makes a garrisoned
   building stop being a safe room. Its plate (20 points at rating 10) is what
   small arms struggle with: a DMR or rocket goes through it, an SMG barely
