@@ -3,9 +3,13 @@
 One painted armory image per armor appearance family, shipped as
 `mod/graphics/ui/armory/armor-<family-slug>.png` (512 px, transparent). Every armor
 pattern in `marine-armor-catalog.armor.json` points its `catalog.iconPath` at its
-family's image, and `MarineArmorPattern` does the same for the legacy enum. Patterns that
-share a family share its image (`arbalest` and `arbalest-recovered`, `specter-heavy` and
-`specter-recovered`, the four MILITIA kits, and so on).
+family's image, and `MarineArmorPattern` does the same for the legacy enum.
+
+A pattern that shares its family's battle layers but is a different piece of kit (a riot
+shell with a shield, a medic's harness, a recovered shell with patched plate) has its own
+image too, `armor-<pattern>.png`, listed in `variants.py`. A variant is generated from its
+family's accepted armory image as the base design, with the battle layers still the identity
+reference, and its brief names only what the catalog text says is different.
 
 ## Authority
 
@@ -25,9 +29,11 @@ share a family share its image (`arbalest` and `arbalest-recovered`, `specter-he
 ```bash
 python art-source/armor-icons/build_refs.py            # identity references
 python art-source/armor-icons/briefs.py                # prompts/<slug>.prompt.txt
+python art-source/armor-icons/variants.py              # prompts/<pattern>.prompt.txt for the variants
 python art-source/armor-icons/generate.py PALATINE     # one paid generation -> raw/<slug>.raw.png
+python art-source/armor-icons/generate.py pathfinder   # a variant: raw/<pattern>.raw.png
 python art-source/armor-icons/export.py                # raw -> mod/graphics/ui/armory/armor-<slug>.png
-python art-source/armor-icons/point_catalog.py         # catalog iconPath -> family image
+python art-source/armor-icons/point_catalog.py         # catalog iconPath -> variant image, else family image
 python art-source/armor-icons/contact_sheet.py --new   # review sheets under build/armor-icons/
 ```
 

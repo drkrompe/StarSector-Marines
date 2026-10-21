@@ -1,12 +1,13 @@
 """Review contact sheet: each armor family's battle layers beside its armory image.
 
-  python art-source/armor-icons/contact_sheet.py [--new | --compare REV] [--out build/armor-icons/sheets]
+  python art-source/armor-icons/contact_sheet.py [--new | --compare REV | --variants] [--out build/armor-icons/sheets]
 
 Writes 1920x1080 pages, nine families each. Left of each tile: the family's body, head and (for
 articulated shells) shoulder layers enlarged on a neutral ground; right: the armory image the
 catalog currently points its patterns at. With --new the right side is the family's own image
 (art-source/armor-icons export) when it exists. With --compare REV each tile shows the layers, the
-image the catalog pointed at in REV (small, labelled) and the family's own image. Output is a render: it goes under build/, never git.
+image the catalog pointed at in REV (small, labelled) and the family's own image. With --variants
+each tile is one variant pattern: its family's image (small) beside the variant's own. Output is a render: it goes under build/, never git.
 """
 import argparse
 import json
@@ -18,6 +19,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from build_refs import assembled
 from families import CATALOG, FAMILIES, ROOT, icon_path
+from variants import VARIANTS, variant_icon_path
 
 W, H = 1920, 1080
 COLS, ROWS = 3, 3
@@ -84,14 +86,45 @@ def compare_tile(sheet, d, fam, old_path, x0, y0, box, f_small):
     d.text((x0 + TW - box - 16, y0 + TH - 22), 'new: ' + Path(icon_path(fam)).name, font=f_small, fill=(200, 210, 220))
 
 
+def variant_sheet(out):
+    cols, rows = 4, 3
+    tw, th = W // cols, H // rows
+    f_title, f_small = font(18), font(13)
+    sheet = Image.new('RGBA', (W, H), BG + (255,))
+    d = ImageDraw.Draw(sheet)
+    for i, pattern in enumerate(list(VARIANTS)[:cols * rows]):
+        family = VARIANTS[pattern][0]
+        x0, y0 = (i % cols) * tw, (i // cols) * th
+        d.rectangle((x0 + 5, y0 + 5, x0 + tw - 5, y0 + th - 5), fill=TILE)
+        d.text((x0 + 14, y0 + 10), pattern, font=f_title, fill=(230, 230, 230))
+        d.text((x0 + 14, y0 + 34), 'variant of ' + family, font=f_small, fill=(160, 170, 180))
+        big = th - 66
+        own = ROOT / 'mod' / variant_icon_path(pattern)
+        if own.exists():
+            sheet.alpha_composite(Image.open(own).convert('RGBA').resize((big, big), Image.LANCZOS), (x0 + tw - big - 10, y0 + 56))
+        small = tw - big - 34
+        base = Image.open(ROOT / 'mod' / icon_path(family)).convert('RGBA').resize((small, small), Image.LANCZOS)
+        sheet.alpha_composite(base, (x0 + 14, y0 + 56))
+        d.text((x0 + 14, y0 + 60 + small), 'base', font=f_small, fill=(140, 150, 160))
+        strip = layer_strip(family, small, small // 2)
+        sheet.alpha_composite(strip, (x0 + 14, y0 + th - 18 - small // 2))
+    path = out / 'variants-01.png'
+    sheet.convert('RGB').save(path)
+    print(path)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--new', action='store_true')
     ap.add_argument('--compare', metavar='REV')
+    ap.add_argument('--variants', action='store_true')
     ap.add_argument('--out', default=str(ROOT / 'build/armor-icons/sheets'))
     args = ap.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
+    if args.variants:
+        variant_sheet(out)
+        return
     pats = patterns_by_family()
     old = patterns_by_family(args.compare) if args.compare else None
     fams = list(FAMILIES)
