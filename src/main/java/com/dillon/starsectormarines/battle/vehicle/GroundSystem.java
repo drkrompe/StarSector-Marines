@@ -131,7 +131,7 @@ public class GroundSystem {
     /** Gives bladed hulls the blade that opens ground ahead of them. */
     public void setBlade(DozerBlade blade) { controlSystem.setBlade(blade); }
 
-    /** Hulls that hold still this tick ({@code brute-charge.md}: a charge stalls them). */
+    /** Hulls that hold still this tick (a Brute's charge stalls them; {@code colony-breach-nouns.md}). */
     public void setStall(LongPredicate stalled) { controlSystem.setStall(stalled); }
 
     /** The mailbox the interface queues move requests into. */

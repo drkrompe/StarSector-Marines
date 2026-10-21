@@ -533,8 +533,19 @@ for one job in the cycle, and reads that way on screen.
   heavy, staggered. Knocked down, stalled, staggered and stunned are one short
   **can't act** state (`StaggerService`): no move, no fire, for a fixed time,
   never a casualty state. The swarm's own bodies are never struck. Squad mates
-  of a thrown body take a near-miss morale drain. The numbers are
-  `-Dbattle.brute.*` switches, still to be felt out.
+  of a thrown body take a near-miss morale drain. The numbers (charge speed,
+  band, cooldown, tell, every hold time) are starting values the owner chose
+  to feel out in play rather than settle on paper, so each is a
+  `-Dbattle.brute.*` switch and `-Dbattle.brute.charge=false` is the control.
+
+  A second of not being able to act confuses unless the player sees why, so
+  the charge is shown four ways, all presentation over the rule: a faint amber
+  wedge along the line during the tell, with the other threat warnings; a
+  knocked-down body's picture lying as a fallen one does for that second,
+  with a ring of dust where it lands, while the sim keeps it upright; one
+  amber daze mark over anything that can't act, whatever made it so; and the
+  squad card's status word naming the cause (knocked down, stalled,
+  staggered, stunned) ahead of engaged or wounded.
 - **Spitter** — fragile, keeps its distance, lobs acid. It backs away from any
   ground enemy that closes inside its charge radius and does not lob while it
   runs. Otherwise a low hostile craft in reach whose skin its acid can bite

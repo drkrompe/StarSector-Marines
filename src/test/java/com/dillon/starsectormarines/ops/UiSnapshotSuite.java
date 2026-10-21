@@ -775,7 +775,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         index % 3 == 0 ? "Gifted" : "Steady",
                         UnitRole.COMBATANT, leader ? ArmorClass.POWER_SUIT : ArmorClass.STANDARD,
                         30 + index * 4, 12 + index * 2, index == 5 ? 3 : index % 4 == 0 ? 1 : 0,
-                        40f + index * 11f, index % 2 == 0));
+                        40f + index * 11f, index % 2 == 0, null));
             }
         }
         return members;

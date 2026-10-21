@@ -338,7 +338,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                             i == 0 ? "Rhea Voss" : "Marine " + (i + 1), 100f, 100f,
                             40f, 40f, 12f, "Assault rifle", "AR", new Color(140, 185, 210),
                             "", "", "", "", "", "Regular", "Steady", UnitRole.COMBATANT,
-                            ArmorClass.STANDARD, 0, 0, 0, 0f, false));
+                            ArmorClass.STANDARD, 0, 0, 0, 0f, false, null));
                 }
                 model.updateProjected(new BattleSquadOverlayModel.SquadState("Squad 20", 12, 12,
                         .72f, members));

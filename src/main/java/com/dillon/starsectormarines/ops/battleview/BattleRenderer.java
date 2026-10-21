@@ -324,11 +324,15 @@ public class BattleRenderer {
                 new UnitRenderService(sprites),
                 // Over the bodies, like the health bars: who the medic is and what they are doing.
                 new MedicMarkerRenderSystem(sprites),
+                // Over the bodies: who can't act this second, and why a Marine is lying down.
+                new DazeMarkRenderSystem(),
                 new SatchelRenderSystem(sprites),
                 new PointDefenseRenderSystem(),
                 new ShieldDomeRenderSystem(),
                 new TenderSiteRenderSystem(),
                 new FragGrenadeRenderSystem(),
+                // With the frag rings: where a Brute is about to charge.
+                new ChargeTellRenderSystem(),
                 new SmokeRenderSystem(sprites),
                 RenderSystem.of(RenderLayer.ROOFS, (ctx, out) ->
                         collectRoofs(ctx.sim, out, ctx.alphaMult)),
