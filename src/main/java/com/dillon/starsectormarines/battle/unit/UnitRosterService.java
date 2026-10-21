@@ -16,6 +16,8 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.appearance.SystemFxService;
 import com.dillon.starsectormarines.battle.combat.MitigationService;
+import com.dillon.starsectormarines.battle.combat.StaggerModifier;
+import com.dillon.starsectormarines.battle.combat.StaggerService;
 import com.dillon.starsectormarines.battle.combat.WoundModifier;
 import com.dillon.starsectormarines.battle.combat.WoundService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -208,6 +210,8 @@ public final class UnitRosterService {
             new MitigationService(entityWorld, components);
     /** Limb wounds carried this battle; read through {@link WoundModifier}. */
     private final WoundService woundService = new WoundService();
+    /** The short "can't act" state a Brute's charge leaves behind; read through {@link StaggerModifier}. */
+    private final StaggerService staggerService = new StaggerService();
     private final IntegralSystemService integralSystemService =
             new IntegralSystemService(entityWorld, components, mitigationService);
     private final SystemFxService systemFxService = new SystemFxService(entityWorld, components);
@@ -282,6 +286,7 @@ public final class UnitRosterService {
         unitModifiers.register(WoundModifier.legs(woundService));
         unitModifiers.register(WoundModifier.arms(woundService));
         unitModifiers.register(new MechSectionModifier(this));
+        unitModifiers.register(new StaggerModifier(staggerService));
     }
 
     /** Bind the damage service after construction — used by the sim ctor to break
@@ -410,6 +415,9 @@ public final class UnitRosterService {
 
     /** Limb wounds carried this battle. */
     public WoundService wounds() { return woundService; }
+
+    /** Who can't act this tick, and for how long. */
+    public StaggerService stagger() { return staggerService; }
 
     /**
      * Data owner for the SYSTEM_FX component — what a running integral system

@@ -445,6 +445,19 @@ Colonies stand on the bore's **growth sites**, a seeded ring of open cells
 round the mouth (`BoreGrowthSites`). Today only spore colonies use it; a
 later ground colony roots on the same sites (`hive-creep.md`).
 
+**Creep carries the umbrella outward** (`CreepOutposts`). A living bore also
+seeds spore colonies of its current grade on its creep, away from the mouth:
+its **outposts**. An outpost roots on living creep that stands a couple of
+cells deep on every side (never on the ragged front), on open ground, once
+that cell lies one and a half times the grade's spore reach from the bore,
+every other living bore and every living spore colony, so neighbouring
+umbrellas only just overlap; the cell must stay good for a while before
+anything roots. A bore holds at most one living outpost at fissure, two at
+bore and four at maw; a dead outpost frees its place and the creep grows
+another elsewhere. Outposts wither with their bore like the mouth's colonies.
+So an air sortie that waits watches the defended sky spread with the creep,
+and a bore's creep is worth burning back before its outposts stand.
+
 **Swarm director.** The non-human pressure owner (today
 `SwarmReinforcementSystem`). It decides how many, from which bore, and of which
 strain, against a population target that scales with the number and tier of
@@ -489,6 +502,25 @@ for one job in the cycle, and reads that way on screen.
   wall left); fortified and fort walls are out of its reach until something
   else has worn them down. Its blow carries penetration, so it hurts plated
   bodies and emplacements where a Runner's slash only scratches.
+
+  It has two speeds: it **walks** at its sim speed and **charges** at a much
+  higher one. A **charge** is a committed straight run at one target, or at the
+  light wall it means to break, taken only when the target is in a band of
+  middle distance, the line to it is open ground (a light prop or a body in the
+  way is allowed: it is what gets bowled), and the last charge's cooldown has
+  run. It begins with a **tell** (it stands head-down, the player's warning),
+  runs on a line it can turn only slowly, and ends on a hit that stops it, on a
+  wall, or when it runs out. The hit is its blow, heavier, and what follows
+  depends on what it hits: infantry is thrown aside and knocked down and the
+  charge goes on through up to two bodies; a light prop is bowled over; a light
+  wall takes one double-weight ram; a heavy wall or a tank's bulk stuns the
+  Brute; a vehicle is shoved and stalled by its **weight class** (light /
+  medium / heavy on `VehicleType`); a mech is struck in the legs and, unless
+  heavy, staggered. Knocked down, stalled, staggered and stunned are one short
+  **can't act** state (`StaggerService`): no move, no fire, for a fixed time,
+  never a casualty state. The swarm's own bodies are never struck. Squad mates
+  of a thrown body take a near-miss morale drain. The numbers are
+  `-Dbattle.brute.*` switches, still to be felt out.
 - **Spitter** — fragile, keeps its distance, lobs acid. It backs away from any
   ground enemy that closes inside its charge radius and does not lob while it
   runs. Otherwise a low hostile craft in reach whose skin its acid can bite

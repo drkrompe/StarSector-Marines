@@ -1,10 +1,10 @@
 # Brute charge
 
-Status: READY — owner answers folded in; nothing built
+Status: IN PROGRESS — rules 1–6 built and scene-checked; presentation (rule 7) next
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — owner answers: knocked down 1 s (and show it), through two bodies, light and medium mechs stagger, weight classes as written, numbers are starting values to feel out.
+Updated: 2026-10-21 — sim rules landed with the `brute-charge` scene; the four presentation cues remain.
 
 Model: `colony-breach-nouns.md` (Swarm strain: Brute). Art and motion belong to
 the Brute art pass (`art-source/rav-redesign/exploration/motion_brute.py`, the
@@ -54,9 +54,9 @@ wall delivers a ram.
 ### 1. Two speeds
 
 The Brute **walks** at its sim speed, 1.8 cells/s (it trots at that pace, as
-the motion study shows), and **charges** at 4.0 cells/s. Charge speed is a move
-speed multiplier held only while a charge lasts, through a new modifier on the
-existing chain, so wounds, creep and terrain still apply on top.
+the motion study shows), and **charges** at 4.0 cells/s. The run is driven by
+the charge itself as a speed scale over the Brute's modified move speed, so
+wounds, creep and terrain still apply on top.
 
 ### 2. When a Brute charges
 
