@@ -33,7 +33,8 @@ public final class ShipBriefingRoomFitting implements RoomFitting {
             put(floor,x+6,y,"chair-back-right");
         }
         put(floor,x+1,h-2,"display");
-        put(floor,x-2,h-2,"lectern");
+        // The lectern is one cell, its reading desk on its bottom edge: the presenter stands on the aisle below it.
+        put(floor,x-1,h-2,"lectern");
         // A briefing is an event. Furniture deliberately publishes no permanent jobs.
     }
 

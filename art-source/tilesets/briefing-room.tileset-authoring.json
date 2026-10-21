@@ -7,7 +7,7 @@
   "idPrefix": "briefing-room",
   "alphaMin": 40,
   "outputSheet": "graphics/tilesets/briefing-room.png",
-  "note": "Measured geometry-first briefing components. Padded physical fixtures and full 6x2 transparent map canvas inset over table.",
+  "note": "Measured geometry-first briefing components on a 2508x1254 raw: the left half is the original built-in generation (padded physical fixtures, full 6x2 transparent map canvas inset over the table); the right half is the real-size refit (BriefingRoomTemplate, 320 px per cell) of the lectern, cut as a full 1x1 frame scaled so the lectern is 0.6 m wide. See briefing-room.README.md.",
   "entries": [
     {
       "id": "briefing-room.table",
@@ -60,13 +60,13 @@
     {
       "id": "briefing-room.lectern",
       "rect": [
-        801,
-        407,
-        201,
-        104
+        1440,
+        140,
+        884,
+        884
       ],
       "footprintCells": [
-        2,
+        1,
         1
       ],
       "cover": "med",

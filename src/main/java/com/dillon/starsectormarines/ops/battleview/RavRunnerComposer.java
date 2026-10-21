@@ -38,6 +38,13 @@ final class RavRunnerComposer {
      */
     static void emit(DrawList out, RavRunnerAssets art, RavRunnerRig rig,
                      float cx, float cy, float ppc, float shade, float alpha) {
+        emit((layer, x, y, w, h, angle, r, g, b, a) -> out.addSprite(RenderLayer.UNITS, layer.sprite,
+                x, y, w, h, angle, r, g, b, a), art, rig, cx, cy, ppc, shade, alpha);
+    }
+
+    /** The same composition into any emitter, so an art review draws exactly what the battle draws. */
+    static void emit(LayeredUnitComposer.SpriteEmitter out, RavRunnerAssets art, RavRunnerRig rig,
+                     float cx, float cy, float ppc, float shade, float alpha) {
         Frame f = new Frame(rig, cx, cy, ppc);
         float[] p0 = new float[2], p1 = new float[2];
         for (int leg : LEG_ORDER) {
@@ -91,7 +98,7 @@ final class RavRunnerComposer {
      * One bone from p0 toward p1. full is the bone's unforeshortened length on screen: it sets
      * the sprite's scale across, and the projected length its scale along (never under a fifth).
      */
-    static void bone(DrawList out, LayeredSpriteCache sprite, float bonePx, float[] p0, float[] p1,
+    static void bone(LayeredUnitComposer.SpriteEmitter out, LayeredSpriteCache sprite, float bonePx, float[] p0, float[] p1,
                      float full, float widthMul, float lift, float fallbackFacing, float shade,
                      float alpha) {
         float dx = p1[0] - p0[0], dy = p1[1] - p0[1];
@@ -110,7 +117,7 @@ final class RavRunnerComposer {
         float across = full / bonePx * widthMul;
         float along = Math.max(0.2f * full, length) / bonePx * widthMul;
         float toCentre = bonePx / 2f * along;
-        out.addSprite(RenderLayer.UNITS, sprite.sprite, p0[0] + ux * toCentre, p0[1] + uy * toCentre,
+        out.add(sprite, p0[0] + ux * toCentre, p0[1] + uy * toCentre,
                 sprite.pxWidth * across * lift, sprite.pxHeight * along, angle, shade, shade, shade, alpha);
     }
 

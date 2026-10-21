@@ -42,6 +42,14 @@ public abstract class GroundBody {
      */
     public boolean immobilised;
 
+    /**
+     * Velocity and spin a hit left the hull with, cells a second and radians a second, on top of its own
+     * drive; {@link HullSlide} spends them against the tires or tracks. Zero when nothing has struck it.
+     */
+    public float knockVx, knockVy, knockOmega;
+    /** The hull rocking on its suspension after a hit: offset from the chassis, cells, and its rate. */
+    public float joltX, joltY, joltVx, joltVy;
+
     /** Accepted signed chassis travel for distance-driven tread UVs, never a render clock. */
     public double visualTravelCells, visualYawRadians;
 
@@ -59,6 +67,8 @@ public abstract class GroundBody {
         y = py;
         facingDegrees = facingDeg;
         speed = 0f;
+        knockVx = knockVy = knockOmega = 0f;
+        joltX = joltY = joltVx = joltVy = 0f;
         visualTravelCells = visualYawRadians = 0;
         onTeleport();
     }

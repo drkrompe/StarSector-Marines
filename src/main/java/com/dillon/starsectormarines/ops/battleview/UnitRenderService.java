@@ -529,22 +529,23 @@ public final class UnitRenderService implements RenderSystem {
         float[][] wounds = bleed.woundsOf(variant);
         int open = StructureArt.Bleed.openWounds(wounds.length, durability, art.woundedBelow);
         if (open == 0) return;
-        ShuttleSpriteCache sheet = sprites.spriteByPath(bleed.sheet());
-        if (sheet == null) return;
-        int sheetW = sheet.pxW > 0 ? sheet.pxW : (int) sheet.sprite.getWidth();
-        int framePx = sheetW / bleed.frames();
-        if (framePx <= 0) return;
         float edge = 0f;
         for (StructureArt.Layer layer : art.layers()) edge = Math.max(edge, layer.cells());
         edge *= cellPx;
-        float size = bleed.cells() * cellPx;
         for (int w = 0; w < open; w++) {
             float[] wound = wounds[w];
+            StructureArt.Bleed.Family family = bleed.familyOf(wound);
+            ShuttleSpriteCache sheet = sprites.spriteByPath(family.sheet());
+            if (sheet == null) continue;
+            int sheetW = sheet.pxW > 0 ? sheet.pxW : (int) sheet.sprite.getWidth();
+            int framePx = sheetW / family.frames();
+            if (framePx <= 0) continue;
+            float size = family.cells() * cellPx;
             long mix = mix(id * 31L + w);
-            int kind = (int) Math.floorMod(mix, (long) bleed.kinds());
+            int kind = (int) Math.floorMod(mix, (long) family.kinds());
             float phase = ((mix >>> 16) & 0xFFFF) / 65536f;
-            int frame = bleed.frame(clock, phase);
-            int row = bleed.row(kind, wound[2]);
+            int frame = family.frame(clock, phase);
+            int row = family.row(kind, wound[2]);
             // The anchor is in image space, v down; the screen's y runs up.
             out.addSheetQuad(RenderLayer.UNITS, sheet.sprite, frame * framePx, row * framePx, framePx, framePx,
                     cx + wound[0] * edge, cy - wound[1] * edge, size, size, 1f, 1f, 1f, alphaMult);

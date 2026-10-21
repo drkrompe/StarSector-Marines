@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160c7-1a2c-7dd3-83fe-01f712505fb9",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160c7-1a2c-7dd3-83fe-01f712505fb9\\exec-89aa3be6-cde1-4c0e-ab67-9b0eecdc9e4e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\installation-utility-refit-damage.raw.png",
+    "sha256": "efa9460b9fd6ea3a9fd3bae2340f7bbf3f5bbdb4e7d53d7e5d8268d7d00c98a4",
+    "dimensions": [
+      887,
+      1774
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\installation-utility-refit-damage.prompt.txt",
+  "promptSha256": "cc225a9917ddecc31ed04af58ffa1e72046998948adc7ca3a04823b962472e6e",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry-locked edit target\nImage 2: Intact materials and identity for the same slot\n\nEdit the FIRST image, a geometry-locked sprite atlas. The SECOND image supplies the intact materials and identity for the same slot. Preserve the exact canvas, grid, slot centers, object orientation, footprint and scale: the piece is a long narrow strip three times as long as it is deep, and must stay exactly that long and that shallow; do not make it deeper or larger. Orthographic straight overhead, no perspective or cast shadows, gritty detailed military science fiction metal, matching the reference. True transparent RGBA background and gutters. No text, labels, captions, floor tiles, borders or extra objects. One column and two equal rows. Row 1 damaged: the shallow three-cabinet electrical switchgear bank, retaining its recognizable standing silhouette and the reference surface identity, adding dents, scorches, a blown breaker door and burnt louvres; its door fronts stay along the bottom edge. Row 2 destroyed: replace the switchgear with LOW collapsed flattened panel fragments and scorched breaker parts within its original footprint, with transparent gaps between fragments, no complete cabinet, no intact box shell. Preserve all whitespace, do not enlarge the object or move it between slots. Respect the width/height of every guide silhouette exactly.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\console-bank\\damage\\installation-utility-refit-guide.png",
+      "sha256": "b73f2c2df0e5f822fd75637637a28436fa28f4c9703b51dd23858583b156c840",
+      "dimensions": [
+        384,
+        768
+      ],
+      "mode": "RGBA",
+      "role": "Geometry-locked edit target"
+    },
+    {
+      "path": "art-source\\console-bank\\damage\\installation-utility-refit-reference.png",
+      "sha256": "6174f85619f739446a86ef5a3545f056f5e318ff9dfea0ab95470f9c415620df",
+      "dimensions": [
+        384,
+        768
+      ],
+      "mode": "RGBA",
+      "role": "Intact materials and identity for the same slot"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first image’s geometry and the second image’s materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 38816,
+    "cached_input_tokens": 31232,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 563,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 52.0
+}
