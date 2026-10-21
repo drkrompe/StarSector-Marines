@@ -1327,6 +1327,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 entityWorld, battleComponents, rosterService, mechMoveOrders);
         this.mechGaitSystem = new MechGaitSystem(entityWorld, battleComponents);
         this.ravRunnerRigSystem = new RavRunnerRigSystem(entityWorld, battleComponents);
+        this.ravRunnerRigSystem.bruteState(id -> bruteCharges.phase(id).ordinal(),
+                id -> rosterService.stagger().isStaggered(id));
         ravRunnerRigSystem.setLoads(swarmHarvest::loadOf);
         this.mechTurretSystem = new MechTurretSystem(
                 entityWorld, battleComponents, rosterService);
