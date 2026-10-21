@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.squad.FireTeamMorale;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
+import com.dillon.starsectormarines.battle.sim.HitLog;
 import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
@@ -210,6 +211,8 @@ public final class DamageResolver {
         float armorDamage;
         float structureDamage;
         float newHp;
+        String hitArc = null;
+        String hitPart = part != null ? String.valueOf(part) : null;
         if (mech != null) {
             // A mech is hit on a section: its own armor and structure, spill into the torso, and
             // only the torso kills. The chassis columns keep the sections' totals, so every
@@ -219,6 +222,8 @@ public final class DamageResolver {
             MechSection section = sectionStruck(world, targetId, attackerId, mech, sections, part);
             ArmorArcs.Arc torsoArc = torsoArc(world, targetId, attackerId, mech);
             ArmorArcs.Profile arcs = MechSections.torsoArcs();
+            hitArc = torsoArc.name();
+            hitPart = String.valueOf(section);
             sections.resolve(section, postCoverDamage, penetration, mitigationSoak, armorRating,
                     armorRating * arcs.rating(torsoArc), arcs.plate(torsoArc), torsoArc == ArmorArcs.Arc.REAR,
                     durability, sectionHit);
@@ -266,8 +271,15 @@ public final class DamageResolver {
         // smaller resolved damage would be a statistical rumour rather than a
         // capability the player can read. What the pool absorbed is attributable
         // exactly as the refused fraction used to be.
-        telemetry.recordDamageMitigated(targetId,
-                mech != null ? sectionHit.mitigatedDamage() : durability.mitigatedDamage());
+        float mitigated = mech != null ? sectionHit.mitigatedDamage() : durability.mitigatedDamage();
+        telemetry.recordDamageMitigated(targetId, mitigated);
+        HitLog hitLog = telemetry.hitLog();
+        if (hitLog.recording()) {
+            hitLog.record(new HitLog.Hit(hitLog.tick(), targetId, HitLog.label(roster, targetId),
+                    attackerId, HitLog.label(roster, attackerId), damage, postCoverDamage, penetration,
+                    armorRating, hitArc, hitPart, mitigated, armorDamage, structureDamage,
+                    newHp, hasArmor ? world.armor(targetId) : 0f, died));
+        }
         // Gated on isRecorded, not on the NO_ATTACKER sentinel alone: a convoy
         // vehicle's turret fires with the vehicle entity as the attacker, and a
         // vehicle carries GROUND_IDENTITY rather than IDENTITY, so the faction

@@ -1,0 +1,18 @@
+Use case: stylized-concept. Transparent game environment overlay sheet for a battered starship interior, seen in straight overhead orthographic view.
+Image 1 is the authoritative geometry/placement guide: a square sheet in a fixed grid. Rows 1-2 hold six square slots (three per row); rows 3-4 hold six half-height slots (three per row). Keep every piece inside its own slot, at the same position, scale and silhouette as the guide, with large genuinely transparent gutters between slots. Image 2 and image 3 are material and palette references only (the ship's existing deck wear and floor/trim art), not layout.
+Reskin each guide shape into finished painted art in the references' muted industrial style: charcoal, gunmetal, dull grey-green steel, faded ochre, restrained rust; soft top light, no cast shadows outside the objects.
+Square slots are flat overlays lying on the deck:
+1 grime: an oily, sooty olive-brown grime smear with feathered, mostly transparent edges, like years of unscrubbed air settling.
+2 condensation: damp pooled condensation with small beaded droplets and a faint rust bloom at one edge; translucent, wet sheen, deck visible through it.
+3 debris: a flat scatter of torn panel shards, loose bolts and grit; nothing piled up, everything lying flat, lots of transparent space between pieces.
+4 cable spill: loops of pulled-out data and power cable lying flat on the deck with cut, frayed ends.
+5 hull patch: two flush, riveted steel repair plates welded over a deck seam, mismatched steel tones, restrained weld beads; flat, no raised box.
+6 buckled deck plate: one deck plate heaved up along a split seam, a dark crack line with a lighter lifted lip; low relief, flat-lit.
+Half-height slots are wall-hugging pieces: in every one the ship's bulkhead is the TOP EDGE of the slot, the object is fixed to or hanging from that bulkhead, and everything below the drawn guide shape must stay fully transparent (that is walkable deck).
+7 dead panel: a wall light or display panel, unlit, cracked dark lens, dusty housing.
+8 conduit: a length of conduit torn loose from the overhead, drooping in one sagging loop off the wall, with a broken bracket.
+9 stained grille: a scrubber return grille at the foot of the bulkhead, clogged black, with rust-brown streaks staining the deck just below it.
+10 buckled wall panel: a bulkhead lining panel bowed outward and torn at one corner, exposing a dark gap.
+11 bracing: two welded yellow-ochre I-beam braces shoring the bulkhead, with a cross strut and small foot plates.
+12 cable run: a bundle of cables pulled out of an overhead tray, hanging in loose overlapping loops against the wall.
+No labels, numbers, borders, grid lines, floor backing, people, perspective or added objects. True transparent background with real alpha in all empty space, including the gaps inside loops.

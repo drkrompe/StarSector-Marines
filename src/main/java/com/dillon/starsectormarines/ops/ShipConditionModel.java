@@ -6,6 +6,13 @@ import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 import com.dillon.starsectormarines.battle.world.gen.ship.RoomRecipe;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.ShipConditionStage;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.campaign.CommodityPresentation;
+import com.dillon.starsectormarines.campaign.refit.RefitBand;
+import com.dillon.starsectormarines.campaign.refit.RefitOrder;
+import com.dillon.starsectormarines.campaign.refit.RefitText;
+import com.dillon.starsectormarines.campaign.refit.RefitTrack;
+import com.dillon.starsectormarines.campaign.refit.ShipCondition;
+import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
 import com.dillon.starsectormarines.campaign.start.CompanyShipRestoration;
 import com.dillon.starsectormarines.campaign.start.CompanyShipRestoration.Work;
@@ -17,7 +24,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -29,6 +38,15 @@ public final class ShipConditionModel {
     private final Function<Work, String> repair;
     private final Supplier<CompanyBayRestoration.Offer> bayOffer;
     private final Supplier<String> repairBay;
+    private final Supplier<ShipCondition> condition;
+    private final Function<RefitOrder, ShipRefits.Offer> refitOffers;
+    private final Function<RefitOrder, String> refit;
+    private final CommodityPresentation goods;
+    private final Map<RefitTrack, Runnable> trackSelections = new LinkedHashMap<>();
+    private final Map<RefitTrack, Runnable> chipSelections = new LinkedHashMap<>();
+    private RefitTrack track = RefitTrack.POWER;
+    private boolean systems;
+    private BiConsumer<RefitOrder, Supplier<String>> stage = (order, commit) -> commit.get();
     private final Consumer<Compartment> focus;
     private final Runnable changed;
     private final MutableSignal<Map<String, Object>> row;
@@ -41,8 +59,19 @@ public final class ShipConditionModel {
                               Function<Work, CompanyShipRestoration.Offer> offers, Function<Work, String> repair,
                               Supplier<CompanyBayRestoration.Offer> bayOffer, Supplier<String> repairBay,
                               Consumer<Compartment> focus, Runnable changed) {
+        this(reactor, deck, offers, repair, bayOffer, repairBay, () -> ShipCondition.NONE,
+                order -> new ShipRefits.Offer(ShipCondition.NONE, 0, ""), order -> "", CommodityPresentation.NONE, focus, changed);
+    }
+    public ShipConditionModel(Reactor reactor, Supplier<CompanyDeck> deck,
+                              Function<Work, CompanyShipRestoration.Offer> offers, Function<Work, String> repair,
+                              Supplier<CompanyBayRestoration.Offer> bayOffer, Supplier<String> repairBay,
+                              Supplier<ShipCondition> condition, Function<RefitOrder, ShipRefits.Offer> refitOffers,
+                              Function<RefitOrder, String> refit, CommodityPresentation goods,
+                              Consumer<Compartment> focus, Runnable changed) {
         this.deck = deck; this.offers = offers; this.repair = repair; this.bayOffer = bayOffer;
-        this.repairBay = repairBay; this.focus = focus; this.changed = changed;
+        this.repairBay = repairBay; this.condition = condition; this.refitOffers = refitOffers; this.refit = refit;
+        this.goods = goods;
+        this.focus = focus; this.changed = changed;
         row = reactor.signal(workshopOnly());
         refresh();
     }
@@ -59,10 +88,15 @@ public final class ShipConditionModel {
         m.put("title", Strings.get("openingShipConditionShipCondition")); m.put("copy", ""); m.put("benefit", ""); m.put("bill", ""); m.put("billRows", List.of()); m.put("reason", "");
         m.put("action", (Runnable) () -> {}); m.put("actionLabel", Strings.get("openingShipConditionReviewRepair")); m.put("disabled", true);
         m.put("actionClasses", "hidden"); m.put("detailClasses", "hidden"); m.put("workshopClasses", "restoration-panel");
-        m.put("feedback", ""); m.put("summary", Strings.get("openingShipConditionRoomSurvey"));
+        m.put("feedback", "");
         m.put("powerClasses", "hidden"); m.put("powerLabel", Strings.get("openingShipConditionDistributionCircuits"));
         m.put("powerAction", (Runnable) () -> {});
         m.put("status", "");
+        m.put("billStyle", "height: 36px;");
+        m.put("stripClasses", "hidden"); m.put("chips", List.of()); m.put("stripLabel", "");
+        m.put("systemsClasses", "hidden"); m.put("cores", List.of()); m.put("systemsProgress", "");
+        m.put("trackIcon", ""); m.put("trackIconClasses", "hidden");
+        m.put("needsClasses", "hidden"); m.put("needs", List.of());
         return m;
     }
     public void refresh() {
@@ -75,7 +109,8 @@ public final class ShipConditionModel {
             boolean sealed = ShipConditionStage.sealed(graph, room, state)
                     || room.purpose() == RoomPurpose.HANGAR && graph.damaged(room.id())
                     || room.equals(graph.largest(RoomPurpose.PARTS_CAGE)) && ship.ship().workshop() == WorkshopState.BURIED;
-            String status = sealed ? Strings.get("openingShipConditionSealedDamaged") : graph.damaged(room.id()) ? Strings.get("openingShipConditionDamagedAccessible")
+            String status = sealed ? Strings.get(graph.reserved(room.id())
+                    ? "openingShipConditionSealedReserved" : "openingShipConditionSealedDamaged") : graph.damaged(room.id()) ? Strings.get("openingShipConditionDamagedAccessible")
                     : graph.emergencyLighting(room.id()) ? Strings.get("openingShipConditionFaultyPower") : Strings.get("openingShipConditionWorking");
             if (state.applies() && room.purpose() == RoomPurpose.VEHICLE_BAY && state.mechBay())
                 status = Strings.format("openingShipConditionBerthsWorking", state.workingMechBerths());
@@ -91,21 +126,45 @@ public final class ShipConditionModel {
         var m = workshopOnly();
         m.put("status", rooms.stream().filter(r -> ((Integer) r.get("roomId")) == selected)
                 .map(r -> r.get("status")).findFirst().orElse(state.applies() ? (state.power() ? Strings.get("openingShipConditionRestored") : Strings.get("openingShipConditionFaultyPower")) : Strings.get("openingShipConditionShipboardServices")));
-        m.put("powerClasses", state.applies() ? "survey-power console-action" : "hidden");
+        var refitState = condition.get();
+        if (!refitState.applies()) systems = false;
+        m.put("powerClasses", state.applies() && !refitState.applies() ? "survey-power console-action" : "hidden");
         m.put("powerLabel", Strings.format("openingShipConditionPowerStatus", state.power() ? Strings.get("openingShipConditionRestored") : Strings.get("openingShipConditionFaultyPower")));
         m.put("powerAction", selection(-1));
+        if (state.applies() && refitState.applies() && !systems) {
+            m.put("stripClasses", "systems-strip");
+            m.put("chips", chips(refitState));
+            m.put("stripLabel", Strings.format("openingRefitSystemsProgress", tiersDone(refitState), tiersOffered()));
+        }
+        if (systems) {
+            m.put("systemsClasses", "systems-view");
+            m.put("systemsProgress", Strings.format("openingRefitSystemsProgress", tiersDone(refitState), tiersOffered()));
+            m.put("cores", ShipSystemsTree.cores(refitState, track, this::trackSelection));
+        }
         m.put("rooms", List.copyOf(rooms));
-        m.put("summary", Strings.format("openingShipConditionDamageInspectionSummary", graph.compartments().stream().filter(r -> graph.damaged(r.id())).count()));
         m.put("workshopClasses", workshop ? "restoration-panel" : "hidden");
         m.put("detailClasses", workshop ? "hidden" : "condition-detail");
-        m.put("title", selectedRoom == null ? (state.applies() ? Strings.get("openingShipConditionDistributionCircuits") : Strings.get("openingShipConditionShipCondition")) : name(selectedRoom));
+        m.put("title", selectedRoom == null ? (state.applies() ? (refitState.applies() ? Strings.get("openingRefitSystemsTitle")
+                : Strings.get("openingShipConditionDistributionCircuits")) : Strings.get("openingShipConditionShipCondition")) : name(selectedRoom));
         String copy = Strings.get("openingShipConditionSheSBeenThroughHardServiceThe");
         String benefit = Strings.format("openingShipConditionInService", function(selectedRoom == null ? null : selectedRoom.purpose()));
         String reason = Strings.get("openingShipConditionNoStructuralWorkRequiredHere");
         String bill = "";
         Work work = null;
+        RefitTrack shown = null;
         boolean bay = false;
-        if (state.applies() && selectedRoom == null) {
+        if (selectedRoom != null && graph.reserved(selectedRoom.id()) && refitState.applies()) {
+            shown = RefitTrack.forReserve(graph.reserve(selectedRoom.id()));
+            copy = refitState.band(shown) == RefitBand.DEFICIT ? Strings.get("openingShipConditionReservedCompartmentCopy")
+                    : Strings.get("openingRefitReserveOpenCopy");
+        } else if (selectedRoom != null && graph.reserved(selectedRoom.id())) {
+            copy = Strings.get("openingShipConditionReservedCompartmentCopy");
+            benefit = Strings.format("openingShipConditionReservedFor", function(selectedRoom.purpose()));
+            reason = Strings.get("openingShipConditionReservedNoOrderYet");
+        } else if (state.applies() && selectedRoom == null && refitState.applies()) {
+            shown = track;
+            copy = RefitText.lore(track);
+        } else if (state.applies() && selectedRoom == null) {
             copy = state.power() ? Strings.get("openingShipConditionSteadyLightsAgainWeHaveReplacedThe")
                     : Strings.get("openingShipConditionWeAreNursingOldCableAndScorched");
             benefit = Strings.get("openingShipConditionRestoreSteadyLightsThroughoutTheWorkingCompartments");
@@ -125,6 +184,10 @@ public final class ShipConditionModel {
                 case 2 -> Work.MECH_BERTH_3;
                 default -> Work.MECH_BERTH_4;
             };
+        } else if (selectedRoom != null && state.applies() && selectedRoom.purpose() == RoomPurpose.MESS_HALL && refitState.applies()) {
+            shown = RefitTrack.MESS;
+            copy = state.messHall() ? Strings.get("openingShipConditionHotMealsAndATableTogetherYou")
+                    : Strings.get("openingShipConditionTheMessTookAHitWeAre");
         } else if (selectedRoom != null && state.applies() && selectedRoom.purpose() == RoomPurpose.MESS_HALL) {
             copy = state.messHall() ? Strings.get("openingShipConditionHotMealsAndATableTogetherYou")
                     : Strings.get("openingShipConditionTheMessTookAHitWeAre");
@@ -145,7 +208,40 @@ public final class ShipConditionModel {
             copy = Strings.get("openingShipConditionTheFittingsStillDoTheirJobBut");
             reason = Strings.get("openingShipConditionSelectDistributionCircuitsToReviewTheShip");
         }
-        if (work != null || bay) {
+        if (shown != null) {
+            RefitBand band = refitState.band(shown);
+            RefitOrder next = refitState.next(shown);
+            m.put("status", Strings.format("openingRefitRowState", RefitText.band(band), RefitText.tier(shown, band)));
+            if (selectedRoom == null) m.put("title", RefitText.track(shown).toUpperCase(Locale.ROOT));
+            m.put("trackIcon", ShipSystemsTree.icon(shown));
+            m.put("trackIconClasses", "survey-track-icon");
+            benefit = Strings.format("openingRefitNow", RefitText.effect(shown, band));
+            if (next != null) benefit += "\n" + Strings.format("openingRefitNext",
+                    Strings.format("openingRefitRowState", RefitText.tier(shown, next.band), RefitText.effect(shown, next.band)));
+            reason = shown == RefitTrack.FABRICATION ? Strings.get("openingRefitWorkshopCard") : Strings.get("openingRefitAtCeiling");
+            if (next != null && !next.requires.isEmpty()) {
+                m.put("needsClasses", "survey-needs");
+                m.put("needs", needs(refitState, next));
+            }
+            if (next != null) {
+                var offer = refitOffers.apply(next);
+                String key = "refit:" + next.name();
+                bill = CompanyResources.creditBill(next.price, offer.credits());
+                var rows = new ArrayList<CompanyResources.Row>(CompanyResources.credits("survey-repair-cost", offer.credits(), next.price));
+                for (var need : next.materials().entrySet())
+                    rows.add(CompanyResources.cost("survey-repair-" + slug(need.getKey()), goods.commodityName(need.getKey()),
+                            goods.commodityIcon(need.getKey()), offer.held(need.getKey()), need.getValue()));
+                m.put("billRows", List.copyOf(rows));
+                m.put("billStyle", CompanyResources.billHeight(rows));
+                reason = offer.refusal() != null ? offer.refusal() : next.materials().isEmpty()
+                        ? Strings.get("openingShipConditionPlanetaryYardLaborAndMaterialsIncluded")
+                        : Strings.get("openingRefitMaterialsFromCargo");
+                m.put("actionClasses", "restoration-action console-action");
+                m.put("actionLabel", key.equals(reviewed) ? Strings.get("openingShipConditionAuthorizeD") : Strings.get("openingShipConditionReviewRepair"));
+                m.put("disabled", offer.refusal() != null && key.equals(reviewed));
+                m.put("order", key);
+            }
+        } else if (work != null || bay) {
             var offer = work == null ? null : offers.apply(work);
             var boat = bay ? bayOffer.get() : null;
             int price = bay ? CompanyBayRestoration.CREDIT_COST : work.price;
@@ -169,20 +265,107 @@ public final class ShipConditionModel {
         String key = (String) row.get().get("order");
         if (key == null) return;
         if (!key.equals(reviewed)) { reviewed = key; feedback = Strings.get("openingShipConditionReviewTheCostAndRestoredFacilitiesBefore"); }
-        else {
-            String refusal = key.equals("bay") ? repairBay.get() : repair.apply(Work.valueOf(key));
+        else if (key.startsWith("refit:")) {
+            // A refit is paid for where the player can watch it land; see RefitReveal.
+            RefitOrder order = RefitOrder.valueOf(key.substring(6));
+            reviewed = null;
+            feedback = "";
+            stage.accept(order, () -> commit(order));
+        } else {
+            String refusal = key.equals("bay") ? repairBay.get()
+                    : repair.apply(Work.valueOf(key));
             feedback = refusal == null ? Strings.get("openingShipConditionYardWorkComplete") : refusal;
             reviewed = null;
             if (refusal == null) changed.run();
         }
         refresh();
     }
+    /**
+     * Who plays an authorized refit out before it is paid for. The default pays at once; the deck
+     * overlay stages it on the ship and calls {@code commit} under its curtain.
+     */
+    public void stageWith(BiConsumer<RefitOrder, Supplier<String>> stage) { this.stage = stage; }
+
+    /** Pays for {@code order} now; the yard's refusal, or null once the work is done. */
+    private String commit(RefitOrder order) {
+        String refusal = refit.apply(order);
+        feedback = refusal == null ? Strings.get("openingShipConditionYardWorkComplete") : refusal;
+        if (refusal == null) changed.run();
+        refresh();
+        return refusal;
+    }
+
+    /** Selecting a track keeps the systems view open on it; a review never carries across tracks. */
+    public void selectTrack(RefitTrack chosen) { track = chosen; selected = -1; reviewed = null; feedback = ""; refresh(); }
+
+    /** Opens the systems tree on {@code chosen}, leaving the deck behind it. */
+    public void openSystems(RefitTrack chosen) { systems = true; selectTrack(chosen); }
+
+    public void closeSystems() {
+        if (!systems) return;
+        systems = false; reviewed = null; feedback = ""; refresh();
+    }
+
+    public boolean systemsOpen() { return systems; }
+
+    private Runnable trackSelection(RefitTrack chosen) {
+        return trackSelections.computeIfAbsent(chosen, key -> () -> selectTrack(key));
+    }
+
+    /** The deck's entry to the tree: one chip per core, ringed in the colour of its band. */
+    private List<Map<String, Object>> chips(ShipCondition state) {
+        var chips = new ArrayList<Map<String, Object>>();
+        for (RefitTrack core : ShipSystemsTree.BRANCHES.keySet()) {
+            String id = "systems-chip-" + ShipSystemsTree.slug(core);
+            chips.add(Map.of("id", id, "iconId", id + "-icon", "icon", ShipSystemsTree.icon(core),
+                    "style", "width: 30px; height: 44px; padding: 5px; border-width: 2px; background-color: #18221f; background-image: none; border-color: "
+                            + ShipSystemsTree.bandColor(state.band(core)) + ";",
+                    "select", chipSelections.computeIfAbsent(core, key -> () -> openSystems(key))));
+        }
+        return List.copyOf(chips);
+    }
+
+    /** What the next tier also waits on beyond its own predecessor, met or not. */
+    private static List<Map<String, Object>> needs(ShipCondition state, RefitOrder order) {
+        var rows = new ArrayList<Map<String, Object>>();
+        for (var need : order.requires.entrySet()) {
+            boolean met = state.band(need.getKey()).atLeast(need.getValue());
+            String id = "survey-need-" + ShipSystemsTree.slug(need.getKey());
+            rows.add(Map.of("id", id, "iconId", id + "-icon", "labelId", id + "-label",
+                    "icon", ShipSystemsTree.icon(need.getKey()),
+                    "label", Strings.format("openingRefitNeed", RefitText.track(need.getKey()), RefitText.band(need.getValue())),
+                    "classes", "label survey-need-label " + (met ? "refit-state-improved" : "refit-state-deficit")));
+        }
+        return List.copyOf(rows);
+    }
+
+    private static String slug(String name) { return name.toLowerCase(Locale.ROOT).replace('_', '-'); }
+
+    /** Tiers bought or earned above the battered start, out of every tier the tree offers. */
+    static int tiersDone(ShipCondition state) {
+        int done = 0;
+        for (RefitTrack t : RefitTrack.values())
+            done += Math.min(state.band(t).ordinal(), RefitOrder.ceiling(t).ordinal()) - t.start().ordinal();
+        return done;
+    }
+
+    static int tiersOffered() {
+        int offered = 0;
+        for (RefitTrack t : RefitTrack.values()) offered += RefitOrder.ceiling(t).ordinal() - t.start().ordinal();
+        return offered;
+    }
+
     private static String name(Compartment room) {
         return switch (room.purpose()) {
             case VEHICLE_BAY -> Strings.get("openingShipConditionMechLab");
             case BARRACKS -> Strings.get("openingShipConditionCompanyQuarters");
             case PARTS_CAGE -> Strings.get("openingShipConditionWorkshopParts");
             case HANGAR -> Strings.get("openingShipConditionShuttleBay");
+            case FIRING_RANGE -> Strings.get("openingShipConditionFiringRange");
+            case GYMNASIUM -> Strings.get("openingShipConditionGymnasium");
+            case PATIENT_WARD -> Strings.get("openingShipConditionSickBay");
+            case CREW_LOUNGE -> Strings.get("openingShipConditionRecLounge");
+            case BRIG -> Strings.get("openingShipConditionBrig");
             default -> room.purpose().name().replace('_', ' ');
         };
     }
@@ -198,6 +381,11 @@ public final class ShipConditionModel {
             case ENGINE_ROOM -> Strings.get("openingShipConditionEngineWatchAndMachineryService");
             case MESS_HALL -> Strings.get("openingShipConditionMealsAndOffWatchCrewRoutines");
             case STOCKROOM -> Strings.get("openingShipConditionCargoStowageAndStoresDuties");
+            case FIRING_RANGE -> Strings.get("openingShipConditionLiveFirePracticeLanes");
+            case GYMNASIUM -> Strings.get("openingShipConditionTrainingAndConditioning");
+            case PATIENT_WARD -> Strings.get("openingShipConditionTreatmentAndRecovery");
+            case CREW_LOUNGE -> Strings.get("openingShipConditionOffWatchRestAndServices");
+            case BRIG -> Strings.get("openingShipConditionHoldingCellsForPrisoners");
             default -> Strings.get("openingShipConditionReachableFittingsAndCrewWorkStations");
         };
     }

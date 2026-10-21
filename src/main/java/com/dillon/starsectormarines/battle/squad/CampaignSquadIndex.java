@@ -63,6 +63,7 @@ public final class CampaignSquadIndex {
             squad.campaignSquadId = tag.squadId;
             squad.commandGroupIdentity = tag.commandGroupIdentity;
             squad.moraleRecoveryMultiplier = tag.moraleRecoveryMultiplier;
+            squad.hullWelfare = tag.welfare;
             squad.campaignLabel = landing > 1
                     ? tag.label + " (" + (char) ('A' + landing - 1) + ")"
                     : tag.label;

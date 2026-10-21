@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration;
 import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
+import com.dillon.starsectormarines.campaign.CommodityPresentation;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration.Offer;
@@ -25,9 +26,16 @@ public final class WorkshopRestorationModel {
     private WorkshopState reviewed;
     private boolean reclaimReviewed;
     private String feedback = "";
+    private final CommodityPresentation goods;
     public WorkshopRestorationModel(Reactor reactor, Supplier<Offer> read,
                                     Function<WorkshopState, String> purchase, Supplier<String> reclaim,
                                     Runnable inspect, Runnable changed) {
+        this(reactor, read, purchase, reclaim, inspect, changed, CampaignCommodityPresentation.INSTANCE);
+    }
+    public WorkshopRestorationModel(Reactor reactor, Supplier<Offer> read,
+                                    Function<WorkshopState, String> purchase, Supplier<String> reclaim,
+                                    Runnable inspect, Runnable changed, CommodityPresentation goods) {
+        this.goods = goods;
         this.read = read; this.purchase = purchase; this.reclaim = reclaim;
         this.inspect = inspect; this.changed = changed;
         row = reactor.signal(project());
@@ -37,7 +45,7 @@ public final class WorkshopRestorationModel {
     private Row project() {
         Offer offer = read.get();
         if (reviewed != offer.state()) reviewed = null;
-        return new Row(offer, reviewed != null, reclaimReviewed, feedback, action, reclaimAction, inspect);
+        return new Row(offer, reviewed != null, reclaimReviewed, feedback, action, reclaimAction, inspect, goods);
     }
     private void act() {
         Offer offer = read.get();
@@ -59,9 +67,10 @@ public final class WorkshopRestorationModel {
         refresh();
     }
     public record Row(Offer offer, boolean reviewed, boolean reclaimReviewed, String feedback,
-                      Runnable action, Runnable reclaim, Runnable inspect) implements MarkupPropertySource {
+                      Runnable action, Runnable reclaim, Runnable inspect, CommodityPresentation goods) implements MarkupPropertySource {
         public static Row hidden() {
-            return new Row(new Offer(WorkshopState.NONE, 0, "", "", 0, 0), false, false, "", () -> {}, () -> {}, () -> {});
+            return new Row(new Offer(WorkshopState.NONE, 0, "", "", 0, 0), false, false, "", () -> {}, () -> {}, () -> {},
+                    CommodityPresentation.NONE);
         }
         @Override public Object markupProperty(String key) {
             WorkshopState state = offer.state();
@@ -92,9 +101,9 @@ public final class WorkshopRestorationModel {
                 case "billRows" -> complete ? List.of() : CompanyResources.credits("workshop-cost", offer.credits(), state.price());
                 case "stock" -> List.of(
                         CompanyResources.stock("engineering-credit-stock", Strings.get("companyResourceCredits"), "graphics/ui/company/credits.svg", offer.credits()),
-                        CompanyResources.stock("engineering-machinery-stock", CampaignCommodityPresentation.INSTANCE.commodityName(Commodities.HEAVY_MACHINERY), CampaignCommodityPresentation.INSTANCE.commodityIcon(Commodities.HEAVY_MACHINERY), offer.machinery()),
-                        CompanyResources.stock("engineering-metals-stock", CampaignCommodityPresentation.INSTANCE.commodityName(Commodities.METALS), CampaignCommodityPresentation.INSTANCE.commodityIcon(Commodities.METALS), offer.metals()));
-                case "reclaimBill" -> List.of(CompanyResources.cost("reclaim-machinery-cost", CampaignCommodityPresentation.INSTANCE.commodityName(Commodities.HEAVY_MACHINERY), CampaignCommodityPresentation.INSTANCE.commodityIcon(Commodities.HEAVY_MACHINERY), offer.machinery(), 1));
+                        CompanyResources.stock("engineering-machinery-stock", goods.commodityName(Commodities.HEAVY_MACHINERY), goods.commodityIcon(Commodities.HEAVY_MACHINERY), offer.machinery()),
+                        CompanyResources.stock("engineering-metals-stock", goods.commodityName(Commodities.METALS), goods.commodityIcon(Commodities.METALS), offer.metals()));
+                case "reclaimBill" -> List.of(CompanyResources.cost("reclaim-machinery-cost", goods.commodityName(Commodities.HEAVY_MACHINERY), goods.commodityIcon(Commodities.HEAVY_MACHINERY), offer.machinery(), 1));
                 case "reason" -> offer.refusal() == null ? Strings.get("openingWorkshopRestorationPlanetaryYardLaborAndInstallationIncluded") : offer.refusal();
                 case "actionLabel" -> !reviewed ? Strings.get("openingWorkshopRestorationInspectWorkshop") : switch (state) {
                     case BURIED -> Strings.get("openingWorkshopRestorationClear"); case CLEARED -> Strings.get("openingWorkshopRestorationRepair"); default -> Strings.get("openingWorkshopRestorationInstallTools");

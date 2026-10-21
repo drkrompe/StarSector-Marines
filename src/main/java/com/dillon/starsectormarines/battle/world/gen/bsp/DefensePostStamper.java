@@ -587,6 +587,7 @@ public final class DefensePostStamper implements GenStage {
     private static DefensePost stampPost(NavigationGrid grid, CellTopology topology,
                                          List<Doodad> doodads, DefensePostLayoutDef layout,
                                          int cx, int cy) {
+        clearFootprint(doodads, layout, cx, cy);
         for (DefensePostLayoutDef.Cell cell : layout.cells) {
             if (cell.kind() != DefensePostLayoutDef.CellKind.BARRIER) continue;
             DefensePostLayoutDef.Offset offset = cell.offset();
@@ -700,6 +701,24 @@ public final class DefensePostStamper implements GenStage {
         placeRingDoodad(grid, topology, doodads, x, y, generated != null
                 ? new Doodad(x, y, generated)
                 : new Doodad(x, y, tile, /*fromRoadSheet=*/true, Doodad.COVER_HEAVY));
+    }
+
+    /**
+     * Lifts whatever the block fill left standing on the cells the post is about to seal. The post runs after the
+     * fill, and its footprint test asks only for walkable open ground, which a crate stack or pallet still is: the ring
+     * was laid on top of it, and once the concrete parapets became wearable cover the two claimed the same cell in the
+     * destructible-cover channel. A post is built where it stands, so the clutter under it goes.
+     */
+    static void clearFootprint(List<Doodad> doodads, DefensePostLayoutDef layout, int cx, int cy) {
+        Set<Long> sealed = new HashSet<>();
+        for (DefensePostLayoutDef.Cell cell : layout.cells) {
+            sealed.add(cellKey(cx + cell.offset().x(), cy + cell.offset().y()));
+        }
+        doodads.removeIf(d -> sealed.contains(cellKey(d.cellX, d.cellY)));
+    }
+
+    private static long cellKey(int x, int y) {
+        return ((long) x << 32) | (y & 0xFFFFFFFFL);
     }
 
     /** A ring cell whose art is already a doodad (the concrete parapet): same sealing as every other ring cell. */

@@ -65,7 +65,10 @@ The defender preserves authored garrisons outside mission-command ownership.
 Its mobile pool keeps one routine target guard and holds the remainder in
 reserve. The first legal uncontested service tick raises a latched,
 identity-free target alarm; alarm or target loss mobilizes at most three mobile
-squads around the known installation. Defender disclosure includes target
+squads around the known installation. Under believed pressure the held
+reserve, and the guard and responders for a building beside their rallies, man
+the map's garrisonables as the other mission defenders do (`garrisonables.md`,
+mission defenders); the alarm still takes whoever it mobilizes. Defender disclosure includes target
 geometry, alarm, and seized state, but excludes attacker egress, progress,
 identity, and position.
 

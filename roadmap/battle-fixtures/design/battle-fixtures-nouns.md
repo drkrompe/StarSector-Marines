@@ -174,6 +174,15 @@ battle forward; a true mid-battle checkpoint is a
 separate persistence problem and should not be smuggled into construction
 capture.
 
+Most of what a checkpoint would be wanted for is a question about one moment
+of one battle, and determinism already answers that: replay a fixture to the
+tick, then read. The battle probe (`BattleProbe`, `gradlew battleProbe`) holds
+one rebuilt battle in memory, steps it on command and answers entity, squad,
+story-beat and per-hit queries between steps, with the hit log switched on only
+from the tick that matters. A checkpoint is still the tool for branching (two
+settings tried from the same mid-battle state); the probe is not one and makes
+no claim to resume anything.
+
 Deterministic command replay also requires deterministic ownership of random
 streams inside parallel simulation systems. V1 proves tick-zero construction
 fidelity; it does not claim that concurrently advanced sims will schedule

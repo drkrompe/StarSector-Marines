@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.command.trace.PlaceFightProbe;
+import com.dillon.starsectormarines.battle.command.trace.ReactiveDefenceEvidence;
 import com.dillon.starsectormarines.testsupport.InstalledWeaponSlots;
 import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import org.junit.jupiter.api.AfterEach;
@@ -75,22 +77,12 @@ class ThunderRunEvidenceTest {
         for (int ci = 0; ci < cases.length(); ci++) {
             var fixture = cases.getJSONObject(ci); String name = fixture.getString("id");
             Path dir = output.resolve(name); Files.createDirectories(dir);
-            var route = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
-            String id = route.missionId(); route.begin(id); route.settle(id, true, null);
-            if (fixture.optBoolean("retry")) {
-                id=route.missionId();route.begin(id);
-                route.settle(id,false,null,new FreightRunProgress.Outcome(route.freight().previewAttempt(),List.of(0),List.of(1),false));
-            }
-            Mission mission = SupplyRouteCampaign.offers(route).get(0);
-            int companySize = fixture.optInt("companySize", 24);
-            var roster = new MarineRoster(); roster.ensureActiveSoldiers(companySize);
-            var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
-            var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, companySize);
-            var boats = List.of(new FittedBoat(ShuttleType.VALKYRIE, BoatFitting.STANDARD_PLATING, BoatFitting.STANDARD_DRIVE, "freight-alpha"),
-                    new FittedBoat(ShuttleType.VALKYRIE, BoatFitting.requireById("reinforced_plating"), BoatFitting.requireById("tuned_drive"), "freight-bravo"));
-            var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, boats, companySize);
-            var profile = new TargetProfile(0,0,0,0,"",Set.of(),SurfacePalette.VERDANT,SettlementLink.ROAD);
-            try (var sim = MissionLaunch.supplyRouteBuilder(route,fixture.getLong("seed"),manifest,profile).get()) {
+            var staged = ThunderRunEvidenceBattle.build(fixture);
+            var route = staged.route();
+            Mission mission = staged.mission();
+            int companySize = staged.companySize();
+            var manifest = staged.manifest();
+            try (var sim = staged.sim()) {
                 // Measure the intact map, before any destruction changes its routes.
                 var grid = sim.getGrid();
                 var clearance = VehicleClearance.erode(grid,
@@ -106,8 +98,7 @@ class ThunderRunEvidenceTest {
                 boolean bypass = !Paths.isEmpty(GridPathfinder.findPath(grid,21,75,318,75,null,vehicleRoute));
                 if (bypass) Files.writeString(dir.resolve("bypass.json"),new JSONArray(
                         GridPathfinder.findPath(grid,21,75,318,75,null,vehicleRoute)).toString());
-                deployment.applyToAuthoredPlayerLift(sim);
-                assertTrue(route.begin(mission.id));
+                assertTrue(ThunderRunEvidenceBattle.launch(staged));
                 int seats = 0;
                 for (long air : sim.getAirEntityIds()) if (sim.world().airFaction(air) == Faction.MARINE) {
                     var lift = sim.world().mission(air);
@@ -150,7 +141,7 @@ class ThunderRunEvidenceTest {
                 int firstFinalShot = -1;
                 int[] rearContactTicks = new int[2];
                 Map<Long, Integer> rearGunRounds = new LinkedHashMap<>();
-                int rearStart = -1, advanceWreckTick = -1;
+                int rearStart = -1, advanceWreckTick = -1, retreatTick = -1;
                 int openingRocketShots = 0;
                 var rearCamera = new BattleReviewFrameRenderer(Path.of("mod"),1920,1080,150,75,112);
                 var truckCamera = new BattleReviewFrameRenderer(Path.of("mod"),1920,1080,119,73,40);
@@ -195,6 +186,9 @@ class ThunderRunEvidenceTest {
                             "png",dir.resolve("checkpoint-before.png").toFile());
                 }
                 var close = new BattleReviewFrameRenderer(Path.of("mod"),1920,1080,282,75,80);
+                PlaceFightProbe places = new PlaceFightProbe();
+                // The command trace is the place-fight line's source of retakes and losses.
+                sim.setCommandTraceEnabled(true, "THUNDER_RUN");
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                     for (long gun : column.supportGuns()) if (!measuredGuns.contains(gun)) {
                         measuredGuns.add(gun);
@@ -225,6 +219,7 @@ class ThunderRunEvidenceTest {
                     }
                     sim.advance(BattleSimulation.TICK_DT);
                     impacts.feed(sim);
+                    places.sample(sim);
                     if (column.phase() == 1 || column.phase() == 2) {
                         for (int i = 0; i < sim.liveUnitCount(); i++) {
                             long unit = sim.liveUnitAt(i);
@@ -324,7 +319,9 @@ class ThunderRunEvidenceTest {
                         }
                     }
                     for (long gun : roadGuns) if (!sim.world().isAlive(gun)) gunDown.putIfAbsent(gun, tick);
-                    if(fixture.optBoolean("retreat") && column.deliveredCount()>0 && !sim.isComplete()) assertTrue(sim.retreat());
+                    if(fixture.optBoolean("retreat") && retreatTick < 0 && column.deliveredCount()>0 && !sim.isComplete()) {
+                        assertTrue(sim.retreat()); retreatTick = tick;
+                    }
                     if (landedTick < 0 && count(sim,Faction.MARINE)>0) landedTick=tick;
                     if (tick % 300 == 0 || column.phase()!=previousPhase || sim.isComplete()) {
                         JSONArray vehicles = new JSONArray();
@@ -417,6 +414,7 @@ class ThunderRunEvidenceTest {
                     if(fixture.optBoolean("absent") && tick>=9000) break;
                 }
                 if (reviewGif != null) { reviewGif.close(); convoyGif.close(); crossroadsGif.close(); }
+                System.out.println(places.line(name, sim, sim.getCommandTraceJsonLines()));
                 if(fixture.optBoolean("absent")) { assertEquals(0,column.phase()); assertEquals(0,column.deliveredCount()); }
                 if(fixture.optBoolean("destroyCargo")) { assertTrue(sim.isComplete()); assertNotEquals(Faction.MARINE,sim.getWinner()); assertEquals(column.cargo().size(),column.lostCount()); }
                 if (!fixture.optBoolean("absent") && !fixture.optBoolean("unarmedFinal") && !fixture.optBoolean("silentTankFinal") && maxTicks >= 18000) {
@@ -446,11 +444,11 @@ class ThunderRunEvidenceTest {
                         .put("alive",sim.world().isAlive(gun)));
                 JSONArray beats=new JSONArray();
                 for(var e:sim.getStoryBeats()) beats.put(new JSONObject().put("tick",e.tick()).put("id",e.id()));
-                var report=new JSONObject().put("fixture",name).put("ticks",sim.getSimTickIndex()).put("landedTick",landedTick)
+                var report=new JSONObject().put("fixture",name).put("placeFight",places.json(sim, sim.getCommandTraceJsonLines())).put("reactiveDefence",ReactiveDefenceEvidence.figures(sim)).put("ticks",sim.getSimTickIndex()).put("landedTick",landedTick)
                         .put("result",sim.isComplete()?String.valueOf(sim.getWinner()):"UNRESOLVED").put("phase",column.phase())
                         .put("delivered",column.deliveredCount()).put("lost",column.lostCount()).put("namedSeats",seats)
                         .put("rearContactTicks",new JSONArray(List.of(rearContactTicks[0],rearContactTicks[1])))
-                        .put("rearStart",rearStart).put("openingRocketShots",openingRocketShots).put("advanceWreckTick",advanceWreckTick)
+                        .put("retreatTick",retreatTick).put("rearStart",rearStart).put("openingRocketShots",openingRocketShots).put("advanceWreckTick",advanceWreckTick)
                         .put("supportGunsBuilt", column.supportGuns().size()).put("fieldGuns",fieldGuns)
                         .put("sharedAutomaticDefenseTargets", sharedDefenseTargets)
                         .put("pendingRaiders", column.pendingMembers())
@@ -479,7 +477,9 @@ class ThunderRunEvidenceTest {
                     int paid=route.settle(mission.id,sim.getWinner()==Faction.MARINE,null,column.outcome());
                     assertTrue(paid>=0); assertEquals(-1,route.settle(mission.id,sim.getWinner()==Faction.MARINE,null,column.outcome()));
                     report.put("paid",paid).put("campaignStatus",route.status());
-                    if(fixture.optBoolean("retreat")) {
+                    // The withdrawal needs a delivery to happen first, which the fight may not supply: a convoy lost
+                    // whole is an ordinary defeat with nothing left waiting. Its ledger is asserted only once confirmed.
+                    if(fixture.optBoolean("retreat") && retreatTick >= 0) {
                         assertEquals(0,paid);assertFalse(route.freight().waiting().isEmpty());
                         assertEquals(column.deliveredCount(),route.freight().deliveredCount());
                         for(int carrier:route.freight().waiting()) assertTrue(column.cargo().containsKey(carrier));

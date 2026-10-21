@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.campaign.refit.RefitBand;
+import com.dillon.starsectormarines.campaign.refit.RefitTrack;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullClass;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullRole;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckSide;
@@ -57,6 +59,16 @@ class OpeningLocalizationTest {
             for (var value : values) assertTrue(catalog.has("openingShipWord" + value.name()), value.name());
         }
         for (var grade : EquipmentGrade.values()) assertTrue(catalog.has("openingEquipmentGrade" + grade.name()));
+        for (var track : RefitTrack.values()) {
+            assertTrue(catalog.has("openingRefitTrack" + track.name()), track.name());
+            assertTrue(catalog.has("openingRefitLore" + track.name()), track.name());
+            if (track.core != null) assertTrue(catalog.has("openingRefitLock" + track.name()), track.name());
+            for (var band : RefitBand.values()) {
+                assertTrue(catalog.has("openingRefitTier" + track.name() + band.name()), track + " " + band);
+                assertTrue(catalog.has("openingRefitEffect" + track.name() + band.name()), track + " " + band);
+            }
+        }
+        for (var band : RefitBand.values()) assertTrue(catalog.has("openingRefitBand" + band.name()), band.name());
         for (var path : FirstRefit.Path.values()) {
             assertFalse(path.label().startsWith("opening"));
             assertFalse(path.description().startsWith("opening"));

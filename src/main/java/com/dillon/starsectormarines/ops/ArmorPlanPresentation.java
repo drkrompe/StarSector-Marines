@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadArmorPlan;
@@ -13,7 +14,7 @@ final class ArmorPlanPresentation {
         SquadArmorDoctrine issued = armory.armorDoctrineById(id);
         if (issued != null) return issued.displayName();
         SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlanById(id);
-        if (plan != null) return plan.displayName() + " (" + plan.armorClassDisplayName() + " unavailable)";
-        return id == null ? "No armor plan" : "Unavailable armor plan: " + id;
+        if (plan != null) return Strings.format("armorPlanClassUnavailable", plan.displayName(), plan.armorClassDisplayName());
+        return id == null ? Strings.get("armorPlanNone") : Strings.format("armorPlanUnavailable", id);
     }
 }

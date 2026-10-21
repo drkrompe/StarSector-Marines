@@ -43,6 +43,8 @@ from mathutils import Vector
 
 import c4x_scene as c4
 import c5_crowd as crowd
+import port_roads
+
 
 W = crowd.Walker
 REPEAT = 12                     # a loop's steps repeated this many times outlasts any shot
@@ -421,9 +423,10 @@ def lighter95(rng, shot):
     down = shot.landing('Lighter 6 return', 22.0)
     m = s.person('port', look=Vector((95.0, 412.0)))
     s.add(m, (84.0, 400.6), [('until', down - 9.0), ('pose', 'signal'), ('until', down + 0.8), ('pose', 'stand'),
-                             ('go', Vector((86.0, 393.0)), 0.5), ('pose', 'talk'), ('stay',)])
-    for k, (store, meet, foot) in enumerate((((88.0, 389.0), (93.0, 396.0), (97.5, 398.4)),
-                                             ((101.0, 389.5), (99.0, 395.0), (101.5, 397.8)))):
+                             ('go', Vector((87.0, 395.0)), 0.5), ('pose', 'talk'), ('stay',)])
+    stores = ((89.0, 393.0), (101.0, 393.0))                    # inside pad 95's service ring
+    for k, (store, meet, foot) in enumerate(((stores[0], (93.0, 396.0), (97.5, 398.4)),
+                                             (stores[1], (99.0, 395.0), (101.5, 397.8)))):
         handover(s, 'port', 'crew', store, meet, foot, look_store=Vector(store) + Vector((0, 4)),
                  look_onward=Vector((95.0, 412.0)), start=down + 2.0 + 2.5 * k, taker_from=foot)
     return s
@@ -605,9 +608,9 @@ def far(rng, shot):
         s = Site('pad%d' % int(x), (x - 18.0, 380.0, x + 18.0, 405.0), (x, 386.0))
         if who in ('lifting', 'landing'):
             s.post('port', (x - 9.0, 398.0), look=Vector((x, 412.0)), pose='signal')
-            s.post('port', (x + 12.0, 392.0), look=Vector((x, 412.0)), pose='folded')
+            s.post('port', (x + 12.0, 396.0), look=Vector((x, 412.0)), pose='folded')
         else:
-            s.fetch('port', (x - 3.0, 390.0), (x + 3.0, 398.6), look_a=Vector((x, 393.0)), look_b=Vector((x, 412.0)),
+            s.fetch('port', (x - 3.0, 393.0), (x + 3.0, 398.6), look_a=Vector((x, 393.0)), look_b=Vector((x, 412.0)),
                     t0=rng.uniform(0, 3))
             if i % 2:
                 s.post('crew', (x + 6.5, 398.0), look=Vector((x + 3.0, 398.6)), pose='talk')

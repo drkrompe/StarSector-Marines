@@ -135,6 +135,18 @@ class MachineGuardOrderTest {
     }
 
     @Test
+    void aHostileOnlyHeardInAMannedPlaceDoesNotBarItsGuard() {
+        garrisonAt(45, 45);
+        long hostile = sim.spawn(new EntitySpec("heard", Faction.DEFENDER, UnitType.MILITIA, 60, 45).squad(enemyId));
+        SquadBeliefs.heard(sim.getSquad(infantryId), hostile, 44, 44, sim.getSimTickIndex(), 0.3f);
+        assertNotNull(MachineGuards.targetUnderClick(sim, Faction.MARINE, 45, 45),
+                "a report localised by sound onto the place is not the enemy holding it");
+
+        SquadBeliefs.sighted(sim.getSquad(infantryId), hostile, 44, 44, sim.getSimTickIndex());
+        assertNull(MachineGuards.targetUnderClick(sim, Faction.MARINE, 45, 45), "one seen inside is");
+    }
+
+    @Test
     void aSquadSentToATrenchMansItBeforeItArrives() {
         AssaultTarget run = AssaultTarget.underClick(sim.fightingPositions(), true, sim.getTacticalMap(), 35, TRENCH_Y);
         assertNotNull(run);
@@ -145,6 +157,20 @@ class MachineGuardOrderTest {
         squad.assignedObjective = ObjectiveAssignment.defendRun(infantryId, 35, TRENCH_Y, 6, run.runId());
         assertTrue(MachineGuards.sentTo(sim, Faction.MARINE, run), "an order to man the run counts as manning it");
         assertEquals(TacticalOrderIntent.GUARD, TacticalOrderIntent.resolve(sim, mechSelected(), 38, TRENCH_Y));
+    }
+
+    @Test
+    void aCommandersOrderToManTheBuildingByACopyOfItsNodeMansIt() {
+        AssaultTarget place = AssaultTarget.place(PLACE);
+        garrisonAt(10, 10);
+        Squad squad = sim.getSquad(infantryId);
+        squad.aliveMembers = 1;
+        TacticalNode copy = new TacticalNode(PLACE.kind, PLACE.anchorX, PLACE.anchorY, PLACE.left, PLACE.top,
+                PLACE.right, PLACE.bottom, Faction.ALLY, HeldPlaces.PRIORITY, 0);
+        squad.assignedObjective = ObjectiveAssignment.holdEnvelope(infantryId, copy, 45, 41, 6);
+        assertTrue(MachineGuards.sentTo(sim, Faction.MARINE, place),
+                "a commander's facts carry a copy of the node; the same footprint is the same building");
+        assertEquals(TacticalOrderIntent.GUARD, TacticalOrderIntent.resolve(sim, mechSelected(), 45, 45));
     }
 
     @Test

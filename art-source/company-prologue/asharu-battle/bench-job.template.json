@@ -1,0 +1,51 @@
+{
+ "id": "asharu-fx-w0-two-lashers-2026-10-21",
+ "machine": "any",
+ "lane": "light",
+ "priority": 0,
+ "after": [],
+ "requires": [
+  "gpu"
+ ],
+ "cwd": "{checkout}/art-source/company-prologue/asharu-battle",
+ "command": [
+  "{python}",
+  "effects_bench.py",
+  "--tests",
+  "w0.two-lashers",
+  "--samples",
+  "16",
+  "--half",
+  "--root",
+  "{work}",
+  "--run",
+  "bench",
+  "--date",
+  "2026-10-21",
+  "--post",
+  "{machine}",
+  "--what",
+  "w0-two-lashers"
+ ],
+ "env": {},
+ "inputs": [
+  {
+   "kind": "git",
+   "commit": "<filled in by --commit>"
+  },
+  {
+   "kind": "drive",
+   "from": "{drive}/builds/lasher-independent/0cb9d83",
+   "to": "{checkout}/build/asharu-battle/builds/lasher-independent",
+   "sha256": {
+    "lasher.blend": "f8c9cda8f5497e48010b8883ec29b98a0870af54e306d54b7e41c115b095937b",
+    "manifest.json": "ee0f03ec7c9dea2431993c78f4c049a94f803efc88ceffcb21d18150910fdcab"
+   }
+  }
+ ],
+ "frames": {
+  "dir": "{work}/bench/raw",
+  "glob": "*.png",
+  "count": 4
+ }
+}

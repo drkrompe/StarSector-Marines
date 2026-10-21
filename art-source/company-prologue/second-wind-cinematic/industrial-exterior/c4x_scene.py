@@ -44,6 +44,9 @@ import bmesh
 import bpy
 from mathutils import Matrix, Quaternion, Vector
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import port_roads  # noqa: E402  the port's road network (`port-roads.md`)
+
 BASE = Path(__file__).resolve().parent
 CINE = BASE.parent
 REPO = BASE.parents[3]
@@ -690,42 +693,54 @@ def ship_path(t):
     return p
 
 
+def hang_drive_plumes():
+    """The Second Wind's drive plumes, the way `port_fleet.hang_effects` draws the other hulls': the
+    effects kit's core and plume as soft emissive cones on each of her own thruster markers
+    (`thrust_shots.mark_c4`), the mains long and the belly lift jets short, each sized by its
+    marker's throttle. So they burn on the way in, the lift jets light for the hover, and both spool
+    off after touchdown; a dead bell's marker stays at 0 and shows nothing. Named 'Drive ...' so the
+    paint and C5's walk map treat them as the ship's own, as they did the stand-in cores."""
+    import port_fleet
+    n = 0
+    for m in bpy.data.objects:
+        if m.get('thrust_craft') != 'Second Wind' or m.get('thrust_kind') not in ('main', 'lift'):
+            continue
+        for ob in port_fleet.far_plume(m, m['thrust_kind'], float(m.get('radius_m', 1.5))):
+            ob.name = 'Drive ' + ob.name[len('Fleet '):]
+        n += 1
+    print('C4X drive plumes on %d markers' % n, flush=True)
+
+
 def add_ship():
+    import port_fleet
     manifest = json.loads(SW_MANIFEST.read_text())
     check_pinned_blend(INPUTS / 'second-wind-patched.blend', manifest)
     append_collection(INPUTS / 'second-wind-patched.blend', manifest['append_collection'])
     root = bpy.data.objects[manifest['root']]
     # The exhaust anchors are the root's children in a collection that never reaches the scene, so
     # they are not moved with the ship. Read each one's place relative to the root and hang the
-    # drive glows on the root itself.
+    # drive glow lights on the root itself. The plumes themselves are the effects kit's, hung on her
+    # thruster markers once they exist (`hang_drive_plumes`).
     root.scale = (manifest['metres_per_unit'],) * 3
     root.rotation_mode = 'XYZ'
-    glow = material('Drive plume', (0.6, 0.8, 1.0))
-    glow.node_tree.nodes['Principled BSDF'].inputs['Emission Color'].default_value = (0.6, 0.8, 1.0, 1)
-    glow.node_tree.nodes['Principled BSDF'].inputs['Emission Strength'].default_value = 25.0
+    # The anchor is looked up among the root's own children: every hull in the port is built from the
+    # same kit, so a bare 'Engine 3 exhaust anchor' is whichever ship took the name first (Hermes's,
+    # Colossus's), and its offset hung the glow tens of metres off the Second Wind.
+    own = {o.name.split('.')[0]: o for o in root.children_recursive if 'exhaust anchor' in o.name}
     for i in manifest['engines_running']:
-        anchor = bpy.data.objects.get('Engine %d exhaust anchor' % i)
+        anchor = own.get('Engine %d exhaust anchor' % i)
         if anchor is None:
             continue
         local = anchor.matrix_parent_inverse @ anchor.matrix_basis
         light = bpy.data.objects.new('Drive %d glow' % i, bpy.data.lights.new('Drive %d glow' % i, 'POINT'))
         light.data.energy = 6.0e5
-        light.data.color = (0.55, 0.75, 1.0)
+        light.data.color = port_fleet.CORE_RGB                       # the kit's hot core
         light.parent = root
         light.matrix_basis = local @ Matrix.Translation((3.0, 0, 0))
         link(light)
-        bm = bmesh.new()
-        bmesh.ops.create_uvsphere(bm, u_segments=12, v_segments=8, radius=1.0)
-        core = mesh('Drive %d core' % i, bm, glow)
-        core.parent = root
-        core.matrix_basis = local @ Matrix.Translation((2.5, 0, 0)) @ Matrix.Diagonal((5.0, 2.2, 2.2, 1.0))
-        full = core.scale.copy()
         for t, e in ((T_DOWN, 1.0), (T_DOWN + 1.5, 0.0)):           # spooling down after touchdown
-            f = round(t * FPS)
             light.data.energy = 6.0e5 * e
-            light.data.keyframe_insert('energy', frame=f)
-            core.scale = full * max(e, 0.001)
-            core.keyframe_insert('scale', frame=f)
+            light.data.keyframe_insert('energy', frame=round(t * FPS))
     dt = 1.0 / FPS
     for f in range(FRAMES):
         t = f / FPS
@@ -863,7 +878,8 @@ def add_port():
                 ang + math.pi / 2)
         if who == 'parked':                                                 # stores and a crate or two
             for k in range(r.randrange(2, 5)):
-                box(crateb, (2.2, 2.2, 2.0), (x + r.uniform(-6, 6), LIGHTER_Y - LIGHTER_R - 3 - k * 2.6, 1.0))
+                dy = (k % 2) * 2.4                                      # two rows, inside the pad's service ring
+                box(crateb, (2.2, 2.2, 2.0), (x + r.uniform(-6, 6), LIGHTER_Y - LIGHTER_R - 3 - dy, 1.0))
     h = ROW_HEADING
     for x, off, who in BERTHS:
         y = BERTH_Y + BERTH_DY[x]
@@ -901,11 +917,9 @@ def add_port():
     for k in range(5):
         box(doors, (7, 1.0, 6), (190 + k * 15, 644.6, 3))
     mesh('Terminal doors', doors, bpy.data.materials['Steel'])
-    plane('Fuel farm road', -300, -285, 560, 645, asphalt, 0.085)
     vehicle('Terminal truck', [((3.4, 3.0, 3.4), (0, 0, 2.1), bpy.data.materials['Hauler cab']),
                                ((12.5, 3.0, 3.2), (-9, 0, 2.4), bpy.data.materials['Hauler load'])],
             [(0, 205, 630)], [(0, -math.pi / 2)])
-    plane('Terminal road', 57, 180, 680, 692, asphalt, 0.085)
     # The heavy berth: blast walls on three sides, gantry rails along them, a crane across.
     hx0, hx1, hy0, hy1 = HEAVY
     plane('Heavy berth deck', hx0, hx1, hy0, hy1, concrete, 0.2)
@@ -1781,6 +1795,7 @@ def build():
     port_life.after_farm(sys.modules[__name__])         # the farm's road traffic on through C5
     import port_detail                                  # the public port's standing clutter
     port_detail.add(sys.modules[__name__])
+    port_roads.build(sys.modules[__name__], port_detail.GHOSTS + port_roads.crate_ghosts(sys.modules[__name__]))
     import c4_jungle                                    # layered canopy past the fence
     c4_jungle.apply(YARD[1], 768.0)
     import vehicle_paint                                 # painted vehicle tops, once accepted
@@ -1792,17 +1807,21 @@ def build():
     darken_pads()
     import wall_paint                                   # painted walls and roof plant
     wall_paint.apply(WAREHOUSES)
-    add_haze(skip={'Steam', 'Drive plume', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'} | c4_farm.HAZE_SKIP
+    add_haze(skip={'Steam', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'} | c4_farm.HAZE_SKIP
              | port_life.HAZE_SKIP | port_fleet.HAZE_SKIP)
     add_camera(scene)
     sys.path.insert(0, str(CINE / 'thrust-markers'))
     import thrust_shots                                  # every craft's nozzles marked, through C5
     thrust_shots.mark_c4(sys.modules[__name__])
     port_fleet.after_markers(sys.modules[__name__])     # the departing Colossus's burn, off its markers
+    hang_drive_plumes()
     scene.render.engine = 'BLENDER_EEVEE'
-    scene.eevee.taa_render_samples = 6     # layout pass: speed over smoothness
+    # Layout pass by default: speed over smoothness. CINE_FINAL=1 is the final render's quality
+    # (more anti-aliasing samples, full-resolution shadows); the look is otherwise the same.
+    final = os.environ.get('CINE_FINAL', '0') == '1'
+    scene.eevee.taa_render_samples = 64 if final else 6
     scene.render.use_persistent_data = True   # keep the synced scene and shaders between frames
-    scene.eevee.shadow_resolution_scale = 0.5
+    scene.eevee.shadow_resolution_scale = 1.0 if final else 0.5
     scene.render.image_settings.file_format = 'PNG'
     scene.render.image_settings.color_mode = 'RGB'
     scene.view_settings.view_transform = 'AgX'

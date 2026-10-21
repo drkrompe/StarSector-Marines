@@ -1,0 +1,396 @@
+{
+  "blocks": [
+    {
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "doorBlock": "ship.neutral-door",
+      "id": "ship-hold.plate",
+      "windowBlock": "ship.neutral-window"
+    },
+    {
+      "cells": [
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ]
+      ],
+      "doorBlock": "ship.neutral-door",
+      "id": "ship-hold.plate-worn",
+      "windowBlock": "ship.neutral-window"
+    }
+  ],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "description": "variant 1 of the pool",
+      "name": "ship-hold.plate v1",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "ship-hold.rail-1",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "variant 1 of the pool",
+      "name": "ship-hold.plate-worn v1",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "name": "ship-hold.rail-worn-1",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "variant 2 of the pool",
+      "name": "ship-hold.plate v2",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "ship-hold.rail-2",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "variant 2 of the pool",
+      "name": "ship-hold.plate-worn v2",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "ship-hold.rail-worn-2",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "variant 3 of the pool",
+      "name": "ship-hold.plate v3",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "ship-hold.rail-3",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "variant 3 of the pool",
+      "name": "ship-hold.plate-worn v3",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "name": "ship-hold.rail-worn-3",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "ship-hold.cable",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "name": "ship-hold.cable-slack",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "name": "ship-hold.lamp",
+      "row": 0
+    },
+    {
+      "col": 15,
+      "name": "ship-hold.lamp-dead",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "ship-hold.wall-patch",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "name": "ship-hold.wall-grime",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "name": "ship-hold.crate-stack",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "name": "ship-hold.pallet",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "name": "ship-hold.duffels",
+      "row": 1
+    },
+    {
+      "col": 8,
+      "name": "ship-hold.ammo-cans",
+      "row": 1
+    },
+    {
+      "col": 10,
+      "name": "ship-hold.netted-cargo",
+      "row": 1
+    },
+    {
+      "col": 12,
+      "name": "ship-hold.bedroll-camp",
+      "row": 1
+    },
+    {
+      "col": 14,
+      "name": "ship-hold.crate",
+      "row": 1
+    },
+    {
+      "col": 15,
+      "name": "ship-hold.ammo-pair",
+      "row": 1
+    },
+    {
+      "col": 0,
+      "name": "ship-hold.duffel",
+      "row": 2
+    },
+    {
+      "col": 1,
+      "name": "ship-hold.drum",
+      "row": 2
+    },
+    {
+      "col": 2,
+      "name": "ship-hold.cable-coil",
+      "row": 2
+    },
+    {
+      "col": 3,
+      "name": "ship-hold.toolbox",
+      "row": 2
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "id": "ship-hold.rail-1",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "id": "ship-hold.rail-worn-1",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "id": "ship-hold.rail-2",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "id": "ship-hold.rail-worn-2",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 10,
+      "cover": "none",
+      "id": "ship-hold.rail-3",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 11,
+      "cover": "none",
+      "id": "ship-hold.rail-worn-3",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 12,
+      "cover": "none",
+      "id": "ship-hold.cable",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 13,
+      "cover": "none",
+      "id": "ship-hold.cable-slack",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 14,
+      "cover": "none",
+      "id": "ship-hold.lamp",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 15,
+      "cover": "none",
+      "id": "ship-hold.lamp-dead",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "id": "ship-hold.wall-patch",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 1,
+      "cover": "none",
+      "id": "ship-hold.wall-grime",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 1,
+      "col": 2,
+      "cover": "heavy",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "ship-hold.crate-stack",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 4,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "ship-hold.pallet",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 6,
+      "cover": "light",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "ship-hold.duffels",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 8,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "ship-hold.ammo-cans",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 10,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "ship-hold.netted-cargo",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 12,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "ship-hold.bedroll-camp",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 14,
+      "cover": "none",
+      "id": "ship-hold.crate",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 15,
+      "cover": "none",
+      "id": "ship-hold.ammo-pair",
+      "row": 1
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "id": "ship-hold.duffel",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 1,
+      "cover": "none",
+      "id": "ship-hold.drum",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "id": "ship-hold.cable-coil",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "id": "ship-hold.toolbox",
+      "row": 2
+    }
+  ],
+  "sheet": "graphics/tilesets/ship-hold.png"
+}

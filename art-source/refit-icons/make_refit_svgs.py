@@ -1,0 +1,93 @@
+"""Write the Ship Systems tree's SVGs under mod/graphics/ui/refit/.
+
+Usage: python art-source/refit-icons/make_refit_svgs.py <repo root>
+
+Line icons in the officer specialty tree's language: gold strokes on the
+console's dark green, a hexagonal node frame instead of the specialty diamond so
+the two trees read as siblings rather than the same thing.
+"""
+import sys
+from pathlib import Path
+
+out = Path(sys.argv[1]) / "mod/graphics/ui/refit"
+out.mkdir(parents=True, exist_ok=True)
+
+GOLD, PALE, DARK, MUTED, RED, TEAL = "#dec58a", "#f3d98e", "#1d2822", "#738578", "#d88a6c", "#8fd0b8"
+
+
+def svg(name, body, box=64):
+    (out / f"{name}.svg").write_text(
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {box} {box}">\n{body}\n</svg>\n', encoding="utf-8", newline="\n")
+
+
+def line(d, color=PALE, w=3.5):
+    return f'<path d="{d}" fill="none" stroke="{color}" stroke-width="{w}" stroke-linecap="round" stroke-linejoin="round"/>'
+
+
+# Track icons, 48x48 line art.
+icons = {
+    "power": line("M27 5L13 27H23L20 43L35 20H25Z"),
+    "life-support": line("M24 24m-15 0a15 15 0 1 0 30 0a15 15 0 1 0 -30 0") + line("M24 24L24 11M24 24L35 31M24 24L13 31", w=3)
+                    + f'<circle cx="24" cy="24" r="3" fill="{PALE}"/>',
+    "structure": line("M8 10H40M8 38H40M24 10V38M14 10V38M34 10V38", w=3) + line("M14 10L24 24L34 10M14 38L24 24L34 38", w=2),
+    "compute": line("M14 14H34V34H14Z") + line("M19 19H29V29H19Z", w=2)
+               + line("M18 14V8M24 14V8M30 14V8M18 34V40M24 34V40M30 34V40M14 18H8M14 24H8M14 30H8M34 18H40M34 24H40M34 30H40", w=2.5),
+    "fabrication": line("M30 8a8 8 0 0 0 -8 11L9 32a4 4 0 0 0 6 6L28 25a8 8 0 0 0 11 -8l-5 5l-5 -1l-1 -5z"),
+    "mess": line("M14 8V22M10 8V18a4 4 0 0 0 8 0V8M14 22V40") + line("M32 8c-5 3 -5 13 0 15V40"),
+    "gym": line("M6 24H42") + line("M11 15V33M17 12V36M31 12V36M37 15V33", w=4),
+    "sick-bay": f'<path d="M19 7H29V19H41V29H29V41H19V29H7V19H19Z" fill="none" stroke="{PALE}" stroke-width="3.5" stroke-linejoin="round"/>',
+    "rec-lounge": line("M24 6V14M20 10H28") + line("M14 40V26a10 10 0 0 1 20 0V40") + line("M10 40H38"),
+    "brig": line("M10 8H38V40H10Z") + line("M17 8V40M24 8V40M31 8V40", w=3),
+    "range": line("M24 24m-16 0a16 16 0 1 0 32 0a16 16 0 1 0 -32 0", w=3) + line("M24 24m-8 0a8 8 0 1 0 16 0a8 8 0 1 0 -16 0", w=3)
+             + line("M24 4V12M24 36V44M4 24H12M36 24H44", w=2.5),
+    "hull": line("M24 5L40 11V23C40 33 33 40 24 43C15 40 8 33 8 23V11Z") + line("M15 20H33M15 28H33", w=2.5),
+    "flux": line("M6 24C10 12 14 12 18 24S26 36 30 24S38 12 42 24") + line("M10 38H38M10 10H38", w=2),
+    "sensors": line("M8 40A32 32 0 0 1 40 8", w=3) + line("M8 40A21 21 0 0 1 29 19", w=3) + line("M8 40A10 10 0 0 1 18 30", w=3)
+               + f'<circle cx="8" cy="40" r="3.5" fill="{PALE}"/>',
+    "drive": line("M10 12L22 24L10 36M24 12L36 24L24 36"),
+    # Mech Lab refits: a boresight reticle, a coolant snowflake, lapped plate, a repair gear, and the vehicle bay.
+    "mech-calibration": line("M8 16V8H16M32 8H40V16M40 32V40H32M16 40H8V32", w=3) + line("M24 14V20M24 28V34M14 24H20M28 24H34", w=2.5)
+                        + f'<circle cx="24" cy="24" r="2.5" fill="{PALE}"/>',
+    "mech-coolant": line("M24 6V42M8.4 15L39.6 33M8.4 33L39.6 15", w=3)
+                    + line("M19 9L24 14L29 9M19 39L24 34L29 39M8 21L14 22L12 16M40 27L34 26L36 32M8 27L14 26L12 32M40 21L34 22L36 16", w=2),
+    "mech-armor": line("M8 14L24 8L40 14V22L24 16L8 22Z", w=3) + line("M8 24L24 18L40 24V32L24 26L8 32Z", w=3)
+                  + line("M8 34L24 28L40 34V38L24 42L8 38Z", w=3),
+    "mech-repair": line("M24 24m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0", w=3) + f'<circle cx="24" cy="24" r="3" fill="{PALE}"/>'
+                   + line("M24 6V12M24 36V42M6 24H12M36 24H42M11.3 11.3L15.5 15.5M32.5 32.5L36.7 36.7M11.3 36.7L15.5 32.5M32.5 15.5L36.7 11.3", w=4),
+    "vehicle-bay": line("M6 28H42L38 36H10Z", w=3) + line("M14 28V22H30V28M30 24H43", w=3)
+                   + line("M14 40m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M24 40m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M34 40m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0", w=2),
+    "hydroponics": line("M24 42V22") + line("M24 30C15 30 9 24 9 14C18 14 24 20 24 30Z", w=3)
+                   + line("M24 24C24 15 30 9 39 9C39 18 33 24 24 24Z", w=3) + line("M12 42H36", w=2.5),
+    "wardroom": line("M10 22L24 12L38 22") + line("M10 32L24 22L38 32") + line("M10 42L24 32L38 42", w=2.5),
+    "briefing": line("M6 34H42") + line("M12 34L10 42M36 34L38 42", w=3)
+                + line("M24 28C18 21 17 16 17 13a7 7 0 0 1 14 0C31 16 30 21 24 28Z", w=3)
+                + f'<circle cx="24" cy="13" r="2.5" fill="{PALE}"/>',
+    "holds": line("M8 16L24 8L40 16V34L24 42L8 34Z") + line("M8 16L24 24L40 16M24 24V42", w=3),
+}
+for name, body in icons.items():
+    svg("track-" + name, body, 48)
+
+
+def hexagon(r, cx=32, cy=32):
+    import math
+    pts = [(cx + r * math.cos(math.radians(60 * i - 90)), cy + r * math.sin(math.radians(60 * i - 90))) for i in range(6)]
+    return "M" + "L".join(f"{x:.1f} {y:.1f}" for x, y in pts) + "Z"
+
+
+def pips(n, color):
+    xs = {1: [32], 2: [26, 38], 3: [21, 32, 43]}[n]
+    return "".join(f'<rect x="{x - 3}" y="28" width="6" height="8" rx="1" fill="{color}"/>' for x in xs)
+
+
+# Node frames: one per tier (pips 1-3) and state.
+for tier in (1, 2, 3):
+    svg(f"node-{tier}-owned",
+        f'<path d="{hexagon(30)}" fill="none" stroke="{GOLD}" stroke-width="1.5" stroke-opacity="0.5"/>'
+        f'<path d="{hexagon(25)}" fill="#3a3220" stroke="{GOLD}" stroke-width="3"/>' + pips(tier, PALE))
+    svg(f"node-{tier}-available",
+        f'<path d="{hexagon(30)}" fill="none" stroke="{TEAL}" stroke-width="1.5" stroke-opacity="0.55"/>'
+        f'<path d="{hexagon(25)}" fill="{DARK}" stroke="{TEAL}" stroke-width="3"/>' + pips(tier, TEAL))
+    svg(f"node-{tier}-locked",
+        f'<path d="{hexagon(25)}" fill="#141b18" stroke="{MUTED}" stroke-width="2" stroke-dasharray="4 3"/>' + pips(tier, MUTED))
+
+print(len(list(out.iterdir())), "svgs")

@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -77,7 +78,7 @@ public final class FortBuildingRenderSystem implements RenderSystem {
             for (Fort.Place place : fort.places()) {
                 drawBuilding(ctx, out, view, fort, frame, place, dt);
             }
-            drawGatehouse(ctx, out, view, frame);
+            drawGatehouse(ctx, out, view, fort, frame);
         }
     }
 
@@ -273,7 +274,7 @@ public final class FortBuildingRenderSystem implements RenderSystem {
 
     // ------------------------------------------------------------------------------------------- gatehouse
 
-    private void drawGatehouse(RenderContext ctx, DrawList out, ViewCull view, FortFrame frame) {
+    private void drawGatehouse(RenderContext ctx, DrawList out, ViewCull view, Fort fort, FortFrame frame) {
         FortPlan plan = frame.plan();
         if (plan.gatehouse().isEmpty()) return;
         StructureDef platform = TurretCatalogRegistry.installed().getStructure(plan.centrepieceStructureId());
@@ -317,6 +318,32 @@ public final class FortBuildingRenderSystem implements RenderSystem {
             float h = (sideways ? piece.width() : piece.height()) * cellPx;
             out.addSprite(layer, sprite.sprite, cam.cellToScreenX(cx), cam.cellToScreenY(cy), w, h,
                     frameAngle(frame) + piece.turns() * 90f, 1f, 1f, 1f, ctx.alphaMult);
+        }
+        // An unbarred sally port carries the gate's leaves, folded back over its passage; a barred one is the wall.
+        ShuttleSpriteCache leaves = sprites.spriteByPath(art.gate());
+        List<FortPlan.SallyPort> ports = plan.sallyPorts();
+        for (int i = 0; i < ports.size() && leaves != null; i++) {
+            if (!fort.sallyPortOpen(i)) continue;
+            FortPlan.SallyPort port = ports.get(i);
+            int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE;
+            for (int[] c : port.cells()) {
+                minX = Math.min(minX, c[0]);
+                minY = Math.min(minY, c[1]);
+                maxX = Math.max(maxX, c[0]);
+                maxY = Math.max(maxY, c[1]);
+            }
+            int[] b = frame.bounds(minX, minY, maxX - minX + 1, maxY - minY + 1);
+            float cx = (b[0] + b[2] + 1) * 0.5f;
+            float cy = (b[1] + b[3] + 1) * 0.5f;
+            if (!view.visible(cx, cy, 4f)) continue;
+            // The leaves are authored for a west-facing passage; a port facing north, east or south turns one, two or three quarters.
+            int turns = port.outX() < 0 ? 0 : port.outY() < 0 ? 1 : port.outX() > 0 ? 2 : 3;
+            float across = (maxX - minX + 1) * cellPx;
+            float along = (maxY - minY + 1) * cellPx;
+            boolean sideways = turns % 2 == 1;
+            out.addSprite(RenderLayer.DOODADS, leaves.sprite, cam.cellToScreenX(cx), cam.cellToScreenY(cy),
+                    sideways ? along : across, sideways ? across : along, frameAngle(frame) + turns * 90f,
+                    1f, 1f, 1f, ctx.alphaMult);
         }
     }
 

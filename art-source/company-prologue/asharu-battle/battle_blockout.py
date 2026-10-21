@@ -210,6 +210,8 @@ KEYFRAMES = {
             ('tracer', 'lasher-b', 'wolf-p-a'), ('missiles', 'manticore-p', 'phaeton'),
             ('fire_on', 'lasher-a', (-20, 10, 6)),
             ('blast_on', 'lasher-lead', 14, (8, 6, 6))],
+        cues={'lasher-lead': {'fire': 'all'}, 'lasher-b': {'fire': ['t3_1']},
+              'manticore-p': {'fire': ['t1_1']}},
         labels=['lasher-lead', 'lasher-a', 'phaeton', 'colossus', 'morrow', 'falcon-p', 'manticore-p', 'wolf-p-a']),
     'k3c': dict(
         shot='S6b', title='The escorts answer',
@@ -246,6 +248,7 @@ KEYFRAMES = {
         fx=[('tracer', 'hound-m', 'hound-p-a'), ('tracer', 'hound-p-b', 'hound-m'),
             ('blast_on', 'hound-p-a', 14, (0, 0, 0)), ('debris', 'hound-p-a', 40, (0, 0, 0)),
             ('fire_on', 'hound-m', (-12, 4, 3)), ('flares', 'hound-m')],
+        cues={'hound-m': {'fire': 'all'}, 'hound-p-b': {'fire': 'all'}},
         labels=['hound-m', 'hound-p-a', 'hound-p-b']),
     'k3b': dict(
         shot='S7', title='Boarding the Tarsus',
@@ -325,6 +328,7 @@ def blender_main(cfg):
     import numpy as np
     from bpy_extras.object_utils import world_to_camera_view
     from mathutils import Euler, Matrix, Quaternion, Vector
+    import ship_fx
 
     out = Path(cfg['out'])
     raw = out / 'raw'
@@ -659,8 +663,8 @@ def blender_main(cfg):
         f = roster.FINISHED[key]
         m = build_manifest(f)
         fx = None
-        if f.get('swfx'):     # the build's own effects, instanced at the same root
-            coll, fx = append(build_file(f), m['append_collection'], ('SWFX',))
+        if (m.get('effects') or {}).get('collection'):     # the build's own SWFX, copied per ship (ShipFx)
+            coll, fx = append(build_file(f), m['append_collection'], (m['effects']['collection'],))
         else:
             coll = append(build_file(f), m['append_collection'])
         ctl = m.get('control', {}).get('object') or m.get('break_up', {}).get('controls')
@@ -680,8 +684,9 @@ def blender_main(cfg):
             ks = m['control'].get('knobs') or []
             pose = m['control'].get('saved_pose') or {}
             knobs = {n: pose.get(n, 0.0) for n in (ks if isinstance(ks, dict) else [k['name'] for k in ks])}
+        hull_ctl = ctl if ctl is not None and ctl.name in coll.all_objects else None    # gear, grapples, break-up
         return dict(coll=coll, fx=fx, mpu=m['metres_per_unit'], engines=eng, length_m=f['length_m'], ctl=ctl,
-                    knobs=knobs)
+                    knobs=knobs, manifest=m, hull_ctl=hull_ctl, swfx=bool(f.get('swfx')))
 
     def standin(game, length_m=None):
         """The sprite's silhouette as a lens-shaped slab in hull units (one sprite px per unit,
@@ -822,6 +827,26 @@ def blender_main(cfg):
     stage = bpy.data.collections.new('Stage')
     scene.collection.children.link(stage)
     placed = {}
+    ships_fx = {}     # (ship key, build key) -> ShipFx: that ship's own SWFX (and hull, where it has gear)
+
+    def ship_fx_for(key, m, lib):
+        """The ship's own effects copy, when it needs one: always for a build that drives hull parts
+        (gear, grapples) or carries scene effects (the wreck), and for every build under --swfx."""
+        if lib.get('manifest') is None:
+            return None
+        if not (lib['hull_ctl'] is not None or lib['swfx'] or (cfg.get('swfx') and lib['fx'] is not None)):
+            return None
+        k = (key, m['finished'])
+        if k not in ships_fx:
+            fx = lib['fx'] if (cfg.get('swfx') or lib['swfx']) else None
+            s = ship_fx.ShipFx(key, lib['coll'], fx, lib['manifest'], hull_ctl=lib['hull_ctl'],
+                               clock=not lib['swfx'])
+            for c in (s.hull if s.hull is not lib['coll'] else None, s.fx):
+                if c is not None:
+                    scene.collection.children.link(c)
+                    excluded(c)
+            ships_fx[k] = s
+        return ships_fx[k]
 
     def frame_of(loc, heading, pitch, roll):
         q = (Quaternion((0, 0, 1), math.radians(heading)) @ Quaternion((0, 1, 0), -math.radians(pitch))
@@ -833,21 +858,22 @@ def blender_main(cfg):
         x, y, z, hd, pt, rl, thr = spec
         m = {**members[key], 'finished': state} if state else members[key]
         lib = hull(m)
+        sfx = ship_fx_for(key, m, lib)
         e = bpy.data.objects.new('Ship | ' + key, None)
         e.instance_type = 'COLLECTION'
-        e.instance_collection = lib['coll']
+        e.instance_collection = sfx.hull if sfx is not None else lib['coll']
         mw = frame_of((x, y, z), hd, pt, rl)
         e.matrix_world = mw @ Matrix.Scale(lib['mpu'], 4)
         link(e, stage)
-        if lib.get('fx') is not None:
+        if sfx is not None and sfx.fx is not None:
             e2 = bpy.data.objects.new('Ship fx | ' + key, None)
             e2.instance_type = 'COLLECTION'
-            e2.instance_collection = lib['fx']
+            e2.instance_collection = sfx.fx
             e2.matrix_world = e.matrix_world
             link(e2, stage)
-        placed[key] = dict(matrix=mw, mpu=lib['mpu'], length=lib['length_m'], lib=lib)
-        if thr <= 0:
-            return
+        placed[key] = dict(matrix=mw, mpu=lib['mpu'], length=lib['length_m'], lib=lib, fx=sfx, throttle=thr)
+        if thr <= 0 or (sfx is not None and sfx.fx is not None and not lib['swfx']):
+            return      # no throttle, or the kit's own drives draw this ship's plumes
         for pos, dirn, rad, style in lib['engines']:
             style = style if style in STYLE_RGB else 'LOW_TECH'
             p = mw @ (pos * lib['mpu'])
@@ -1031,6 +1057,25 @@ def blender_main(cfg):
         obj('Platform spine', plume_me, mat, Matrix.Translation(base + Vector((-380, 0, 0)))
             @ Vector((1, 0, 0)).to_track_quat('Z', 'Y').to_matrix().to_4x4() @ Matrix.Diagonal((12, 12, 760, 1)))
 
+    def apply_cue(s, cue):
+        """One ship's effects cue for this frame (KEYFRAMES 'cues'): 'fire' lists the guns flashing
+        ('t1_1' ..., or 'all'); any other entry sets that knob on this ship only."""
+        for name, val in cue.items():
+            if name == 'fire':
+                for lab in (s.gun_labels() if val == 'all' else val):
+                    s.flash(lab)
+            else:
+                s.set(name, val)
+
+    def fx_report(kf):
+        """--fx-check: what each ship's own copy reads on this frame, evaluated."""
+        dg = bpy.context.evaluated_depsgraph_get()
+        for k, pl in placed.items():
+            if pl['fx'] is not None:
+                row = pl['fx'].reading(dg)
+                FX_ROWS.append(dict(frame=kf, ship=k, **row))
+                print(f'ASHARU fx {kf} {k:12} {json.dumps(row)}', flush=True)
+
     def clear_stage():
         for o in list(stage.objects):
             bpy.data.objects.remove(o)
@@ -1167,16 +1212,26 @@ def blender_main(cfg):
                 if lib.get('ctl') is not None:
                     for name, rest in lib['knobs'].items():
                         lib['ctl'][name] = rest
+            for s in ships_fx.values():      # every ship's own copy: saved pose, no flashes
+                s.reset()
+            for key, pl in placed.items():   # the kit's drives follow the placement's throttle
+                if pl['fx'] is not None and pl['fx'].fx is not None and not pl['lib']['swfx']:
+                    pl['fx'].set('thr_throttle', pl['throttle'])
             for key, kn in spec.get('knobs', {}).items():
-                state = spec.get('states', {}).get(key)
-                lib = hull({**members[key], 'finished': state} if state else members[key])
                 for name, val in kn.items():
                     if isinstance(val, dict):     # {'ago_s': t}: a frame t seconds before this one
                         val = scene.frame_current - round(val['ago_s'] * scene.render.fps / scene.render.fps_base)
-                    lib['ctl'][name] = val
-            if any(lib.get('ctl') is not None for lib in library.values()):
-                scene.frame_set(scene.frame_current)    # drivers read the knobs
+                    if placed[key]['fx'] is not None:
+                        placed[key]['fx'].set(name, val)
+                    else:
+                        placed[key]['lib']['ctl'][name] = val
+            for key, cue in spec.get('cues', {}).items() if cfg.get('swfx') else ():
+                apply_cue(placed[key]['fx'], cue)
+            if ships_fx or any(lib.get('ctl') is not None for lib in library.values()):
+                ship_fx.refresh(scene)     # drivers read the knobs
                 bpy.context.view_layer.update()
+            if cfg.get('fx_check'):
+                fx_report(kf)
             extra3d = {}
             if spec.get('platform'):
                 platform(spec['platform'])
@@ -1229,6 +1284,50 @@ def blender_main(cfg):
         store.write_text(json.dumps({**old, kf: labels[kf]}, indent=1))
         (raw / f'{kf}.meta.json').write_text(json.dumps(frame_meta(cfg['samples'], cfg.get('half', False))))
         print('ASHARU rendered', kf, flush=True)
+    if cfg.get('fx_check'):
+        fx_verdict(list(ships_fx.values()), [lib.get('fx') for lib in library.values()], out)
+
+
+FX_ROWS = []     # --fx-check: one row per ship per frame, what its own copy evaluated to
+
+
+def fx_verdict(ships, library_fx, out):
+    """--fx-check's verdict: every ship's copy reaches only itself (ship_fx.audit), no driver is
+    invalid, and on some frame two ships of one build read different throttle or firing values."""
+    import ship_fx
+    audit = ship_fx.audit(ships, library_fx)
+    invalid = sorted({s.key for s in ships for i in s.ids for fc in ship_fx._drivers(i) if not fc.driver.is_valid})
+    builds = {}
+    for s in ships:
+        builds.setdefault(s.manifest['asset'] if 'asset' in s.manifest else s.manifest['append_collection'],
+                          set()).add(s.key)
+    pairs = []
+    for kf in dict.fromkeys(r['frame'] for r in FX_ROWS):
+        rows = {r['ship']: r for r in FX_ROWS if r['frame'] == kf}
+        for build, keys in builds.items():
+            here = sorted(k for k in keys if k in rows)
+            for i, a in enumerate(here):
+                for b in here[i + 1:]:
+                    ra, rb = rows[a], rows[b]
+                    diff = [n for n in ('thr_throttle', 'plume', 'firing', 'flash_W', 'gear_down', 'grapples')
+                            if n in ra and ra.get(n) != rb.get(n)]
+                    if diff:
+                        pairs.append(dict(frame=kf, build=build, ships=[a, b], differ=diff,
+                                          a={n: ra.get(n) for n in diff}, b={n: rb.get(n) for n in diff}))
+    foreign = {k: v['foreign'] for k, v in audit.items() if v['foreign']}
+    ok = not foreign and not invalid and bool(pairs)
+    report = dict(ok=ok, ships=len(ships), audit={k: dict(own=v['own'], shared=v['shared'], foreign=v['foreign'])
+                                                  for k, v in audit.items()},
+                  invalid_drivers=invalid, independent_pairs=pairs, rows=FX_ROWS)
+    (out / 'fx-check.json').write_text(json.dumps(report, indent=1))
+    for k, v in audit.items():
+        print(f"ASHARU fx audit {k:12} own {v['own']:5}  shared {v['shared']:4}  foreign {len(v['foreign'])}", flush=True)
+    for pr in pairs:
+        print(f"ASHARU fx independent {pr['frame']}: {pr['ships'][0]} {pr['a']}  vs  {pr['ships'][1]} {pr['b']}",
+              flush=True)
+    print('ASHARU fx-check', 'PASS' if ok else 'FAIL', out / 'fx-check.json', flush=True)
+    if not ok:
+        raise SystemExit(1)
 
 
 # ======================================================================================= driver
@@ -1480,6 +1579,52 @@ def check(frames):
             else:
                 verdict = f'CANNOT BEAR: target {tgt_el:+.0f} deg off her deck plane, best {best[2]} short by {best[1]:.0f} deg'
             print(f'   {kind:8} {a:12} -> {b:12} {verdict}')
+        for line in cue_lines(kf):
+            print('   ' + line)
+
+
+def cue_lines(kf):
+    """--check's view of a frame's effects cues: what each ship's own SWFX copy is set to (under
+    --swfx) beside the other ships of its build, and anything a cue names that is not there."""
+    spec = KEYFRAMES[kf]
+    cues = spec.get('cues', {})
+    if not cues:
+        return []
+    out = []
+    by_build = {}
+    for key, sp in spec['ships'].items():
+        m = next((m for m in roster.MERCHANT + roster.PIRATE if m['key'] == key), {})
+        build = spec.get('states', {}).get(key) or m.get('finished')
+        if build:
+            by_build.setdefault(build, []).append(key)
+    for key, cue in cues.items():
+        if key not in spec['ships']:
+            out.append(f'cue      {key:12} NOT IN FRAME')
+            continue
+    for build, keys in by_build.items():
+        if not any(k in cues for k in keys):
+            continue
+        for k in keys:
+            cue = cues.get(k, {})
+            fire = cue.get('fire', [])
+            bad = []
+            if fire != 'all' and fire:
+                try:
+                    have = set(gun_labels(build))
+                    bad = [lab for lab in fire if have and lab not in have]
+                except OSError:
+                    pass
+            knobs = {n: v for n, v in cue.items() if n != 'fire'}
+            out.append(f"cue      {k:12} [{build}] throttle {spec['ships'][k][6]:.2f}  fire {fire or '-'}"
+                       + (f'  knobs {knobs}' if knobs else '') + (f'  UNKNOWN GUNS {bad}' if bad else ''))
+    return out
+
+
+def gun_labels(build):
+    """'t<turret>_<k>' for the guns a build's manifest lists (a list-form effects.anchors.guns)."""
+    rows = ((build_manifest(roster.FINISHED[build]).get('effects') or {}).get('anchors') or {}).get('guns')
+    return [f"t{g['turret']}_{g.get('barrel', 1)}" for g in rows if g.get('kind', 'gun') != 'launcher'] \
+        if isinstance(rows, list) else []
 
 
 GUN_ELEVATION = (-10.0, 85.0)   # a dorsal turret's reach above (and just below) its own deck plane
@@ -1621,10 +1766,15 @@ def main():
         started.write_text(opt('--date', date.today().isoformat()))   # a queue round pins one date
     run_date = started.read_text().strip()
     samples = int(opt('--samples', 48))
+    if '--fx-check' in argv:        # per-ship effects: stage the cued frames under the kit, no render
+        if '--frames' not in argv:
+            frames = [kf for kf in KEYFRAMES if KEYFRAMES[kf].get('cues')]
+        argv += ['--stage-only', '--swfx']
     if '--stage-only' in argv:      # the whole Blender scene build for these frames, CPU only, nothing written
         from blender_path import BLENDER
         env = dict(os.environ, ASHARU_CFG=json.dumps(dict(out=str(run), frames=frames, samples=1, stage_only=True,
-                                                          los='--los' in argv)))
+                                                          los='--los' in argv, swfx='--swfx' in argv,
+                                                          fx_check='--fx-check' in argv)))
         subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python-exit-code', '1',
                                '--python', __file__], env=env)
         return
@@ -1636,7 +1786,7 @@ def main():
             print('ASHARU already finished, not rendered again:', ','.join(done), flush=True)
         if todo:
             from blender_path import BLENDER
-            cfg = dict(out=str(run), frames=todo, samples=samples, half=half)
+            cfg = dict(out=str(run), frames=todo, samples=samples, half=half, swfx='--swfx' in argv)
             env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
             subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
     outputs = [orbit_diagram(run)] + label_frames(run)

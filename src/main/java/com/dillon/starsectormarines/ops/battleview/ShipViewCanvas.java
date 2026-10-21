@@ -72,7 +72,50 @@ public final class ShipViewCanvas implements CanvasProducer {
     private BattleCamera camera;
     private RoomPurpose focus;
     private Compartment focusedRoom, selectedRoom;
-    public void focus(Compartment room) { focusedRoom = room; selectedRoom = room; }
+    public void focus(Compartment room) { focusedRoom = room; selectedRoom = room; flying = false; }
+
+    /** Where the camera stands: zoom and the cell at the centre of the view. */
+    public record View(float zoom, float x, float y) {}
+
+    private boolean flying, flightStarted, flightWhole;
+    private Compartment flightRoom;
+    private View flightView;
+    private float flightTime, flightSeconds, fromZoom, fromX, fromY;
+
+    /**
+     * Flies the camera to {@code room}, or out to the whole ship when it is null, over
+     * {@code seconds}, eased at both ends. Lands on the same framing {@link #focus(Compartment)}
+     * gives, so a deck laid out again under the same room can pick up exactly where the flight
+     * ended.
+     */
+    public void flyTo(Compartment room, float seconds) {
+        flightRoom = room;
+        flightView = null;
+        flightWhole = room == null;
+        flightSeconds = Math.max(0.01f, seconds);
+        flightTime = 0f;
+        flightStarted = false;
+        flying = true;
+        selectedRoom = room;
+    }
+
+    /** Flies back to a view taken earlier with {@link #view()}. */
+    public void flyTo(View view, float seconds) {
+        flyTo((Compartment) null, seconds);
+        flightView = view;
+        flightWhole = false;
+        selectedRoom = null;
+    }
+
+    /** The camera's current view, or null before the first frame has sized it. */
+    public View view() {
+        return camera == null ? null : new View(camera.zoom(), camera.panCellX(), camera.panCellY());
+    }
+
+    /** Advances a flight in progress; the screen calls it once per frame. */
+    public void advance(float dt) { if (flying) flightTime += dt; }
+
+    public boolean flying() { return flying; }
     /** Inspection does not fly the camera away from the other room markers. */
     public void select(Compartment room) { selectedRoom = room; }
 
@@ -191,6 +234,7 @@ public final class ShipViewCanvas implements CanvasProducer {
         camera.setViewport(rect.screenX(), rect.screenY(),
                 rect.width(), rect.height(), baseCell);
 
+        if (flying) fly(rect, baseCell, cellsAcross, cellsDown);
         if (focus != null || focusedRoom != null) {
             var room = focusedRoom != null ? focusedRoom : ship.room(focus);
             selectedRoom = room;
@@ -211,6 +255,29 @@ public final class ShipViewCanvas implements CanvasProducer {
             context.fillRect(0f, 0f, width, height, BACKGROUND);
         }
         drawSelection(context, rect);
+    }
+
+    private void fly(CanvasHostViewport rect, float baseCell, int cellsAcross, int cellsDown) {
+        if (!flightStarted) {
+            fromZoom = camera.zoom(); fromX = camera.panCellX(); fromY = camera.panCellY();
+            flightStarted = true;
+        }
+        float toZoom = BattleCamera.MIN_ZOOM, toX = cellsAcross * 0.5f, toY = cellsDown * 0.5f;
+        if (flightView != null) {
+            toZoom = flightView.zoom(); toX = flightView.x(); toY = flightView.y();
+        } else if (!flightWhole) {
+            float cell = Math.min(rect.width() / (flightRoom.width() + 8f), rect.height() / (flightRoom.depth() + 8f));
+            toZoom = Math.max(BattleCamera.MIN_ZOOM, Math.min(BattleCamera.MAX_ZOOM, cell / baseCell));
+            toX = flightRoom.originX() + flightRoom.width() / 2f;
+            toY = flightRoom.originY() + flightRoom.depth() / 2f;
+        }
+        float t = Math.min(1f, flightTime / flightSeconds);
+        float eased = t * t * (3f - 2f * t);
+        float zoom = (float) Math.exp(Math.log(fromZoom) + (Math.log(toZoom) - Math.log(fromZoom)) * eased);
+        float centerX = rect.screenX() + rect.width() / 2f, centerY = rect.screenY() + rect.height() / 2f;
+        camera.zoomAt((float) (Math.log(zoom / camera.zoom()) / Math.log(1.2)), centerX, centerY);
+        camera.centerOn(fromX + (toX - fromX) * eased, fromY + (toY - fromY) * eased);
+        if (t >= 1f) flying = false;
     }
 
     /**

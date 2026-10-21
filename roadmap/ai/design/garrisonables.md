@@ -1,10 +1,10 @@
 # Garrisonables
 
-Status: ACTIVE — reactive manning is shipped for fighting-position runs, a stretch at a time, on both Conquest sides (the defender's own belts and compound aprons, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans (player and both Conquest commanders); building envelopes and other kinds remain direction.
+Status: ACTIVE — reactive manning is shipped for fighting-position runs, a stretch at a time, and for building envelopes, on both Conquest sides (the defender's own belts, compound aprons and compound buildings, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans, runs and buildings alike (player on any map, both Conquest commanders on any ground they man), and the Raid, Assault, Sabotage and Extraction defenders man their maps' places reactively too, their lances guarding what they man, and the story commanders offer their standing-duty squads to the same planner within a share, and a holder sorties from a walled place it holds through a sally door in its own wall; the compound perimeter and emplacements remain direction.
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — runs are garrisoned a stretch at a time (stretches, shifting, the alarm floor over stretches); the defender counter-attacks a lost fort in proportion and its reserve lends to its own belt (`conquest-command.md`); compounds offer prepared ground (sandbagged doors) manned like a belt; machines screen the places their side mans.
+Updated: 2026-10-21 — story commanders man reactively through a hosted planner and a holder share (story commanders, below); a sally door shuts again: its holder shuts it behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body, and an open door of a place its holder lost stays open (sally doors, below); not every fight is into prepared positions is a law; a holder sorties from a walled place it holds through a sally door in its own wall (sally doors, below); the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
 
 ## Why this exists
 
@@ -31,8 +31,12 @@ expected to arrive:
   story map's dug line, and a compound's **sandbagged door**, the apron laid
   in front of the entrance each compound place is attacked through; garrisoned
   a **stretch** at a time (below);
-- a **building envelope** — the apertures and stance cells the defense frontage
-  already derives (`ai-nouns.md`, frontage and standing to);
+- a **building envelope** — the windows and doors of one building, its posts the
+  interior stance cells its defense frontage derives (built; `ai-nouns.md`,
+  frontage and standing to): every compound place (command post, barracks,
+  armory) and every held place whose shell has a frontage. It is manned by
+  holding the building, so the squad on it stands to at the apertures by the
+  frontage laws and walks the rooms when they are quiet or entered;
 - a **compound perimeter** — the outer envelope at compound scope, which frontage
   also already derives;
 - an **emplacement** — a crewed structure, later and outside this direction's
@@ -59,7 +63,15 @@ fire-team stretch is a different thing: a share of a drawn line, not a place.)
 
 Garrisonables may be **linked into layers**: a belt in front of a fort's works,
 a compound perimeter around its buildings, a building shell around its rooms. A
-layer is what a squad falls back to when the one in front of it is lost.
+layer is what a squad falls back to when the one in front of it is lost. A
+compound place has three: its sandbagged door, the building's envelope behind
+it, and the rooms behind that.
+
+The registry holds the place, never its frontage. Which apertures stand open,
+which are manned and whether a breach has dissolved the envelope are read live
+by the squad holding it, as for any held building; the registry offers each
+building once, against the map as it stands when first asked, so a later breach
+neither renumbers nor drops it.
 
 ## Laws
 
@@ -72,6 +84,18 @@ layer is what a squad falls back to when the one in front of it is lost.
   a gap to close, not a design; a place is valued by what it means to its side,
   not by being a fort. Retaking a lost place is the counter-attack's
   (`conquest-command.md`, Defender command), for every kind of place.
+- **Not every fight is into prepared positions.** Always assaulting dug-in
+  defenders is not fun; sometimes a brawl is (owner, 2026-10-21). Garrisoning
+  is one texture of a battle, never its default shape. A defender that mans
+  every place it can reach, or stages its whole reserve behind them, turns
+  every contact into a siege. Commanders must leave room for fights in the
+  open: meeting engagements in streets and yards, sorties, a reserve that
+  meets the attack forward rather than waiting behind a parapet, defenders
+  caught moving between places. A manning or staging rule is judged by the
+  mix of fights it produces as well as by its losses, and its evidence reports
+  that mix (for example, the share of contacts fought by squads on posts
+  against squads in the open) across missions. A change that drives the
+  open-ground share toward zero is a regression even when it wins battles.
 - **Reactive manning.** A garrisonable is manned in proportion to believed
   pressure on it, read from the side's own faction influence, never from hostile
   truth. A quiet garrisonable is empty and its would-be garrison stays in the
@@ -87,7 +111,11 @@ layer is what a squad falls back to when the one in front of it is lost.
   visible.
 - **Declared holds stay held.** A place the mission says must be held — a keep,
   a capture objective's garrison — is born manned as today. Reactivity is for
-  everything else.
+  everything else. A building whose own garrison still stands in it (the
+  defender's born garrison, the squad a captured compound is sent) counts as
+  manned, so pickets before massing sends it a reactive squad only as its
+  second, under the pressure that wants one, and re-garrisons it once that
+  garrison is gone.
 - **Pickets before massing.** Across garrisonables as across apertures: every
   threatened place gets a squad before any gets a second, and the reserve
   yields to that rule rather than outranking it.
@@ -96,7 +124,10 @@ layer is what a squad falls back to when the one in front of it is lost.
   layer in if one is linked; with none, it releases to the commander. A fall
   back is squad-tier movement under an existing assignment, not a new order.
   A breach is read against the whole run, not the stretch: an enemy a few cells
-  along the same trench, past the stretch's end, is inside it.
+  along the same trench, past the stretch's end, is inside it. A building's
+  envelope is breached by a believed enemy in its footprint (or on one of its
+  posts) near the squad; its garrison then holds the rooms, as an area defence
+  inside the building, until the building is quiet or the compound is taken.
 - **Hold the stretch facing the threat.** A place is pressed only where a
   believed contact is within reach of it; the influence field's spread alone,
   which carries a company's weight across most of a fort, presses nothing. A
@@ -224,6 +255,10 @@ counts as pressure:
   would otherwise press it for the rest of the battle.
 - A holder driven off a run the enemy is believed inside falls back to the
   fort's works like one still standing on it.
+- A taken compound's buildings are offered too, and the squad a captured
+  compound is sent to hold it counts as manning its building, so the lane pool
+  re-mans a taken building only once that garrison is gone or the
+  counter-attack presses it hard.
 
 The scene `attacker-holds-ground` plays it on a production fort handed to the
 marines: a quiet belt left empty, a stretch pressed by a counter-attack manned
@@ -244,11 +279,10 @@ buy anything measurable either. Every fixture in which it never fired (the
 four other on-path seeds, the offset fort, which is never taken because the
 company goes round it, and the rifles-only forces, which never take it) played
 out exactly as its control. The defender now
-counter-attacks a lost fort in proportion or not at all (`conquest-command.md`,
-Defender command); on the trial ground it launched against the hold in six of
-nine at the default garrison and retook the bunker once, before the hold was
-whole, and the defender's reserve may man its own fort's belt only from what it
-holds above the reserve law's share.
+counter-attacks any lost place, a taken fort or a taken compound, in proportion
+to what it has observed holds it or not at all (`conquest-command.md`, Defender
+command), and its reserve may man its own place's garrisonables only from what
+it holds above the reserve law's share.
 
 ## How it fits what exists
 
@@ -258,11 +292,17 @@ A garrisonable inside that band is a better destination for a rally than a
 point on the track: the rallied squad mans it and digs in instead of meeting the
 attack in the open. That is the natural first consumer.
 
-Standing to is already reactive manning of a building envelope by its own
-garrison. Unifying it under garrisonable posts is a later step, taken only once
-fighting-position runs prove the commander-tier half, because frontage carries
-its own laws — what an aperture may open onto, held layers, the breach that
-dissolves an envelope — that must survive the move intact.
+Standing to is reactive manning of a building envelope by the squad holding
+it, and it stays exactly that: the commander tier now decides which squad holds
+which building and when it stops, and the order it gives is the ordinary hold
+of the building, so everything frontage decides is decided where it always was
+— what an aperture may open onto, which layer a squad holds (a compound's
+perimeter first for a squad holding the whole compound, its own shell
+otherwise), the picket on every threatened facing before a second post, the
+reserve, and the breach that dissolves an envelope and hands the fight to the
+room-clearing behaviours. The player's occupy click on a held place and its
+standing to are the same order and unchanged; the GARRISON stance gives that
+order where it used to search held places of its own.
 
 ## Beyond Conquest
 
@@ -283,7 +323,18 @@ held place covers. Three things it shows shape the work ahead:
   behind its gate, and compounds now lay a sandbagged door at each place's
   attack-facing entrance: on five Conquest seeds 98 aprons on 138 compound
   places, where there had been none, and three on Relay Nine where there were
-  none (`compound-prepared-ground.md`).
+  none. The campaign's Conquest of places laid none until it took the same stage
+  (43 on 110 compound places over five fixture seeds with forts; none of them
+  read as a fort's belt).
+- Buildings were garrisonable only through a held place's occupy order. Every
+  held place and compound place whose building has a frontage now offers its
+  envelope: on the five Conquest seeds 110 of 110 compound places, with a median
+  of four posts; on the story maps three to forty each; on the procedural
+  missions every held place — Raid 33 (235 posts), Assault 44 (245), Sabotage
+  36 (209), Extraction 41 (263), civilian rescue 36 (205). What offers none is
+  what has no frontage (a beachhead, the smallest guard posts and bunkers) and
+  the guard posts and gates that keep a garrison of their own
+  (`gradlew.bat garrisonEvidence`, `CompoundEnvelopeEvidence`).
 
 A story map closes the second gap by publishing its buildings as **held
 places**: each building it already records becomes a held position on its own
@@ -299,8 +350,163 @@ posted to (`HeldPlaces.isUnposted`) is not somewhere the defence lives: defender
 commander's strongpoints, patrol waypoints and the garrison map feature all skip it. A story map with
 no buildings (Missile AA) has none. The first consumer is the player's occupy
 order. On any map that publishes held places, a click on a building holds it
-at its windows (`ai-nouns.md`, occupy). Reactive manning by the AI is the next
-consumer.
+at its windows (`ai-nouns.md`, occupy). The second is the GARRISON stance, which
+mans those buildings under pressure by that same order on every such map
+(scene `mission-envelopes`: Raid, Assault, Sabotage, Extraction, civilian
+rescue and a story map). The third is the mission defenders' own commanders
+(below).
+
+## Mission defenders
+
+The Raid, Assault, Sabotage and Extraction defender commanders man the
+garrisonables of their maps reactively, through the same side-neutral tier and
+laws as Conquest's defender (`MissionGarrisons`, one per commander). The answer
+to the old open question is yes: a defender who meets a raid in the street when
+the building beside it has windows is a defender left standing about, and the
+fun of these missions is the target network holding out from its buildings.
+
+- **The mission decides first.** Each commander plans its duties exactly as its
+  own command doc says (`raid-command.md`, `assault-command.md`,
+  `sabotage-command.md`, `extraction-command.md`) and then offers squads. Its
+  held reserve is offered **roving**, and the reserve floor applies to it. A
+  squad on a stationary mission post — the Raid target's guard and responders,
+  an Assault routine post or responder, a Sabotage site post, the Extraction
+  source guard and perimeter responders — is offered on **duty**: it may man only
+  a place within a dozen cells of its post, so the post is held from a window
+  rather than given up, and it is not the reserve the floor protects. A squad
+  the mission stops offering — its alarm took it, its duty moved, its area
+  changed — is forgotten that pulse: the mission outranks the place.
+- **Never offered:** authored garrisons and declared holds (born manned, and a
+  building whose born garrison stands in it counts as manned), external owners,
+  Assault's contact response when it is not on a post, Extraction's
+  interdiction, crews, demolition squads, machines (which guard instead).
+- **A squad in a fight takes the cover beside it.** A squad in local contact
+  may be sent only to a place within a few cells of it, and is not held to the
+  reserve floor: taking the building is how it fights the fight it is in. A
+  march across the map to a pressed building is never sent; the missions have
+  no flow tier, so the arrival bound is what keeps manning local.
+- **Layers:** off an apron into the envelope of the building it fronts, out of
+  an envelope into its rooms until the building has been quiet for a while,
+  then back to the mission.
+- **Machines.** A free lance the mission holds in reserve, or one fighting near
+  the place, is attached to a manned, pressed place by the machine guard's
+  director and bounds, and stands down with the garrison; while it guards it
+  carries no mission order.
+- A mission's published picture keeps each squad's mission role and names the
+  manning in its reason, so the mission's own memory of routine and response is
+  read as before. `-Dbattle.mission.reactiveDefence=false` is the control and
+  plays the battle as it was.
+
+The Veteran's Job and Cold Account run these commanders and inherit it, and so
+does Last Lift, whose defender is the Extraction commander. The bespoke story
+commanders come in through their own seam (story commanders, below).
+
+The scene `mission-defence` plays it on the Raid's and the Assault's production
+maps with the mission's own commander: a building pressed by a party is manned
+from the pool by the commander's envelope order, a holder stands to at its
+windows, and the building is given back within the dwell once belief of the
+party cools; in `raid-lances` a reserve lance guards the manned building from
+outside it, within the bound, and stands down with the garrison.
+
+Measured on six seeds per mission (the canonical fixture and five offsets)
+against the same-build control, with `commanderEvidence`:
+
+| mission | manning orders | releases | fall backs (rooms) | marine losses on / off | defender losses on / off | outcomes on / off |
+|---|---:|---:|---:|---:|---:|---|
+| Raid | 18 | 4 | 3 (3) | 123 / 106 | 125 / 115 | defender 4, marines 1, timeout 1 / 3, 2, 1 |
+| Assault | 23 | 3 | 9 (9) | 351 / 370 | 242 / 237 | timeout 5, defender 1 / the same |
+| Sabotage | 19 | 4 | 4 (4) | 78 / 68 | 92 / 106 | defender 4, marines 2 / 3, 3 |
+| Extraction (alarm fixture) | 28 | 5 | 5 (5) | 141 / 133 | 196 / 188 | marines 6 / 6 |
+
+One to five squads held at once; no reserve lance existed on these fixtures, so
+no guard was attached outside the scene. Outcomes moved by a seed or two
+either way, inside the noise of six seeds: the defence reads as buildings held
+and given back rather than as a different balance. Sabotage's battles ran
+shorter (18,086 ticks against 21,226 over the six) and Extraction's last seed
+ran longer (4,549 against 2,585).
+
+## Story commanders
+
+The bespoke story commanders give every squad they own an authored duty, and
+their lesson beats read where those squads are and what they are doing:
+Junction's reserve walking onto the first gain, the depot's reserve committing,
+Relay Nine's pool holding home. A story commander knows its own squads by its
+own issuer on their mission directive, so a planner claiming squads from outside
+would take them out of its roster for good, and the duty and the beat that hangs
+on it with them. A shared planner put in charge of Junction's pool did exactly
+that (`conquest-command.md`, Defender command) and was reverted.
+
+- **Hosted, not outside.** A story commander holds the side-neutral planner
+  itself (`StoryGarrisons` over `MissionGarrisons`). Its orders are the
+  commander's own proposals, under its issuer and authority, so the commander's
+  own-squad check reads a squad manning a window as its own on the next pulse.
+  No new claim or tag is needed: the seam is who holds the planner.
+- **The story declares, every pulse.** After planning its authored duties the
+  commander offers a squad only while that squad's duty is a **standing** one —
+  a wait at a post, a guard on a stage, holding home or holding its ground —
+  and always on duty, so it may man only a place within a dozen cells of that
+  post. A squad whose duty moves (a reserve committed, a column marching, a
+  push, a retake, a fall back) is not offered that pulse, the planner forgets
+  it, and its authored order is back in the same plan. Only infantry is
+  offered; authored garrisons and declared holds never are.
+- **The story's picture is the story's.** Only the proposals are rewritten.
+  The commander's published picture keeps each squad's authored duty and
+  reason, so every observer that turns the picture into beats reads exactly
+  what it read before.
+- **A share, not the force.** At most a third of the commander's own infantry
+  squads holds a place at once, at least one from two squads up and none for a
+  lone squad, so the rest keep their posts in the street and the yard. The share
+  bounds new sends; nobody already holding is turned out by it, and pickets
+  before massing still picks which pressed place gets the squad.
+- `-Dbattle.story.reactiveDefence=false` is the control (and
+  `-Dbattle.story.reactiveDefence.share=` the share);
+  `-Dbattle.mission.reactiveDefence=false` switches the planner off for story
+  and procedural commanders alike.
+
+Wired: Junction's raiders (the reserve and the road column while they wait),
+Relay Nine's and Thunder Run's pools (squads holding home or their ground) and
+the Counterattack depot's guards (gate, yard and rear guard on their stages).
+Relief's defender assaults the anchor and has no standing duty. The Agreus and
+Black Sluice commanders are not wired yet (open question below).
+
+Measured with `commanderEvidence` against the same-build control (2026-10-21),
+every fixture of each mission's matrix. The beat lists came out identical by
+name and order on every fixture of every mission. The fight mix is
+`PlaceFightProbe`'s (`commander-evidence-missions.md`, places and fights): a
+brawl is a contact with both ends in the open, and "from a post" counts the
+defender's shooters standing on one.
+
+| mission | fixtures | manning orders | fall backs (rooms) | beats | brawls, on / off | defender shooting from a post, on / off | outcomes |
+|---|---:|---:|---:|---|---|---|---|
+| Counterattack | 12 | 12 | 8 (8) | identical | 64% / 64% | 24% / 23% | marines 9, unresolved 3, in both arms |
+| Junction | 11 | 0 | 0 | identical | 39% / 39% | 53% / 53% | byte for byte as the control |
+| Relay Nine | 11 | 0 | 0 | identical | 23% / 23% | 75% / 75% | byte for byte |
+| Thunder Run | 11 | 0 | 0 | identical | 46% / 46% | 30% / 30% | byte for byte |
+| Relief | 12 | 0 | 0 | identical | 92% / 92% | 4% / 4% | byte for byte |
+| Last Lift | 13 attempts | 7 (Extraction's) | 4 (4) | identical | 96% / 96% | 0% / 0% | unaffected by the story switch |
+
+- **Counterattack** is where it bites: the rear guard, and on two fixtures the
+  yard guard, takes the warehouse beside its stage when the company presses it
+  (one squad at a time), and is driven into its rooms when the company gets in.
+  The mix hardly moves — two fights in three are still brawls, the gate and yard
+  are still met in the open — because the share lets one guard of the depot's
+  handful hold at a time. The company won every battle it won in the control,
+  39 ticks later on the mean, losing 8 marines over the twelve against 14. On
+  the depot-hold harness the marines won three of four in both arms, losing a
+  different seed in each.
+- **Junction** offered its waiting reserve and road column on 1,618
+  squad-pulses and nothing near their posts was ever pressed while they
+  waited: the lesson's reserve waits out of the fight by design. **Relay
+  Nine**'s pool is one squad, which the share keeps on its post (225 offered
+  pulses, all closed). **Thunder Run** offered nobody: no pool squad held home
+  or ground on these fixtures.
+
+The scene `story-defence` plays the production Counterattack depot with its own
+story commander: a guard on a standing duty holds a building by the story's own
+envelope order, every holder is in the story's roster on its published pulse, a
+holder whose duty moves takes its authored order back within a pulse, no squad
+is sent past the share, and the reserve-committed beat fires when the picture
+commits the reserve.
 
 ## Decided direction
 
@@ -309,9 +515,8 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
 - **Attackers hold what they take.** Captured ground is a garrisonable like any
   other: the attacking commander uses the same reactive assignment to man a
   taken belt, trench or building against the counter-attack, not only manual
-  orders. Built for taken fort belts (see Holding taken ground) and for the
-  aprons of taken compounds; building envelopes wait for that kind to reach the
-  tier.
+  orders. Built for taken fort belts (see Holding taken ground), and for the
+  aprons and buildings of taken compounds (scene `taken-compound`).
 - **A player's idle squads may opt into reactive manning.** It stays opt-in,
   never a default; the manual occupy and line orders remain the primary verbs.
   Built as the GARRISON stance: a per-squad switch, a watch ring the size of a
@@ -340,7 +545,12 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
   `machine-guard`): the fun is a tank and a rifle squad reading as one position,
   and a defending lance walking up beside the trench the attack leans on. A
   guard screens the stretch of a run under the click, not the whole belt, which
-  is the same finer place the open question below asks for.
+  is the same finer place the open question below asks for. A manned building
+  draws a guard as a manned run does: the player's click on a held place or a
+  compound building its side mans, on any map, and a commander's attachment to
+  a building envelope it mans or a building its own garrison stands in, under
+  the same bounds (scene `machine-guard`, loops `mission-building` and
+  `mission-building-commander` on the Raid's map).
 
 ## Stretches on the trial ground
 
@@ -377,26 +587,179 @@ beyond reach of the first; the new stretch is held and the old one given back
 within a few pulses. Its whole-run control holds the gate run for the rest of
 the battle and never mans the new ground.
 
+## Sally doors
+
+A holder inside a walled place it holds (a fort's works, a walled compound or
+yard, a building with few exits) reached the ground it owns beyond a gateless
+face by walking out of its one gate and round its own walls. That was the
+"marching late" reading below at its worst: a garrison in a fort's works walked
+up to four times the straight line to a belt stretch beyond a gateless face, and
+a stand-to sent round the walls arrived after the attack it was sent against.
+The answer is a door the holder opens from inside, not a faster march.
+
+A **sally door** is a short span of a walled place's own wall, two cells along
+it and as deep as the wall (one or two cells), standing closed as wall. Two
+cells is wide enough for every chassis that fights on foot, so the holder's
+machines go out by it too. Where doors are:
+
+- a fort authors a **sally port** on each face of its works with no gate
+  (`forts.md`, sally ports);
+- every other tactical node's building and compound get one per face where
+  `SallyDoorSurvey` finds a clean span of built wall with the place's floor on
+  one side and open ground on the other, nearest the face's middle, **and**
+  opening it saves the holder at least twenty cells of walk from its anchor.
+  Only a walled place qualifies: built wall along at least half the edge of
+  the place's rectangle. Open ground with somebody else's wall at its edge (a
+  landing zone beside a warehouse) gets none; neither does natural rock, a
+  doorway, or a fort's works outside its authored ports.
+
+**Laws.**
+
+- A door serves the side that holds its place **whole**: a fort's side holding
+  every aspect; a compound's side by its capture record, uncontested; any other
+  place, the side with people inside it and nobody hostile inside. A sortie
+  often empties a small place, so a place nobody stands in still serves the
+  side that last held it whole until somebody hostile to that side comes in. A
+  split or contested place opens and shuts nothing.
+- It opens when that side has a squad or a machine ordered through it: a member
+  inside the place ordered to ground beyond the door's face, outside the place
+  and within reach of the mouth, or a member out on that ground ordered home
+  into the place, by a commander or by the player, and only while the door is
+  still ahead of the body and of its squad (a squad that has reached its ground
+  does not hold its door open for a straggler on the works). Never while a
+  hostile body stands near its mouth: a door is not opened in the face of the
+  enemy.
+- Opened, it is built passage (not rubble). The same side **shuts** it again:
+  at once when a hostile body comes as near its mouth as would have kept it
+  shut, and when the sortie has passed, nothing of the side's having wanted it
+  or stood near it for five seconds. A sortie is therefore a choice taken for
+  as long as it is needed, not a hole made for good: the attack is given a way
+  in only while the holder is using it. A door that changed state does not
+  open again for three seconds, so it cannot flap; shutting in the enemy's face
+  is never held.
+- **A door never shuts on a body.** Anybody of any side standing in or across
+  its cells keeps it open; it shuts on the first look that finds it clear.
+  Nothing is pushed out or crushed.
+- **The holder losing the place shuts nothing.** A door left open when its
+  side loses the place stays open while the place is split or contested, and
+  then serves whoever holds it whole: the hole a sortie made is the attack's if
+  the sortie goes wrong, which is its risk. Shutting on loss would hand the
+  loser a free wall at the moment it lost and cut the assault's routes under it.
+- Shut, it is wall with the wall's strength, breached as any wall is: an
+  attacker forces a shut door by breaching it, with what any wall costs, and is
+  never given a door it did not cut. A door is not made weaker than its wall,
+  which would make every door the attack's way in, nor stronger, which would
+  make it a keep. A door breached while shut is broken, a hole for good. A
+  place that changes hands serves its new holder: marines who take a fort
+  sortie by its ports and shut them behind them.
+- **The player's bar.** The player bars or unbars a door of a place their side
+  holds whole (key B over it). A barred door shuts now, or as soon as nobody
+  stands in it, and nothing opens it; an unbarred door opens at once, the enemy
+  near or not, and the side's reflexes leave it open. Either lasts until the
+  player orders the door again or the place changes hands.
+
+**Shutting is the one runtime write that closes ground.** It puts every door
+cell back exactly as it stood before it opened (its wall, hit points, ground and
+surface, and the cover it gave), and every derivation of the map sees the cell
+close: the grid's revision and change log retire path components, line of sight,
+the vehicle clearance mask and its labels, the greedy mesh, clearance searches,
+route proofs and the commanders' frozen topology as they do for an opening; the
+zone graph, whose incremental update only merges, is rebuilt whole at the tick's
+flush; and every route that crosses the door is dropped, so nobody walks into
+the wall and whoever meant to go through plans again.
+
+**Measured** (`garrisonEvidence`: `HolderRouteEvidence`, `FortWorksRouteEvidence`;
+map evidence, every door opened against none). From each node's anchor to the
+garrisonable stretches on its ground and to the open ground just beyond each
+face, the worst detour (walk minus straight line) fell on Relief from 51 cells
+to 16 (the checkpoint's yard wall), on Counterattack from 77 to 24, on Relay
+Nine from 22 to 21 with every face detour but one gone, on Junction from 20 to
+17, and on Conquest's map from 71 to 53 (a walled armory's north face 71 to 1);
+Salvage Rights and Cold Start had none and get none. A fort's garrison walks at
+worst 3.0 times the straight line to its belt instead of 3.8 (battery fort) and
+2.7 instead of 4.3 (shield fort). What is left is not a holder's own wall: map
+edge pockets behind a diagonal perimeter, and walks across a town block where a
+stretch stands in a neighbour's yard (Dust Ledger's ten, the Conquest keep's
+block).
+
+**In play**, against a same-build control with `-Dbattle.sallyDoors=false`
+(76 trial-ground fixtures: 40 fort-on-lane at the combined-arms force, seeds 41
+to 80; 22 rifles-only on the lane; 14 offset): the fort's ports opened in 68
+places, 39 times for the defender's own garrison and 29 for marines who had
+taken the fort and went on to the keep. Garrisons stranded on ground nobody was
+near fell on the rifles-only fixtures from 121 samples to 53; on the
+combined-arms fixtures, where the attack comes at the gate faces and little is
+stranded, the marching share near a fight did not fall (424 to 489 samples
+marching to the fight, most of them through a gate the port does not replace).
+Readings: marines won 36 against 31 on the lane (defender holds 4 against 9),
+of the five extra wins four came after the marines had opened a port of a fort
+they had taken; marine losses 2,305 against 2,379, defender losses 2,226
+against 2,164; the offset and rifles-only results were level. Relief,
+Counterattack and Junction played byte for byte as their controls: their
+defenders keep authored posts and never order a sortie beyond a doored face,
+so their doors wait for a player's order (scene `sally-door`, taken yard) or a
+reactive commander.
+
+**Shutting, in play**, against a same-build control with
+`-Dbattle.sallyDoors.closable=false` (conquest-trial, fort on the lane, seeds
+41 to 80 at the combined-arms force, and seeds 41 to 64 rifles-only; each
+first time a body stood in an open door opened for a side hostile to its own
+is counted, which includes marines in a port the defender opened before the
+marines took the fort): with the combined-arms force the attack's use of doors
+opened for the other side fell from 1,141 such crossings in 39 of 40 battles
+to 75 in 3, the 75 all through doors whose holder lost its place with them
+open. Doors opened 118 times against 49 and shut 117 times (108 behind a
+sortie, 9 in the enemy's face): marines who took the fort opened its ports for
+their own sorties 56 times against 7, because a shut port is theirs to open
+where an open one was simply walked through. Marines won 39 of 40 either way,
+losing 2,173 against 2,396, defenders 2,164 against 2,216. Rifles-only, the
+crossings fell from 4 to none; marines won 4 of 24 against 3. Both readings are
+findings, not balance acceptance.
+
+The scenes are `sally-door` (a walled yard that is not a fort: a sortie by
+infantry, the walk round with doors closed, the enemy at the door, an attack on
+the door, a taken yard where the player sends a squad and a Sirocco out, a
+contested yard, the door shut behind a sortie, shut in the face of raiders
+marching on it with no route left through it, barred by the player over a body
+standing in it, and a round trip out and home) and `sally-port` (the fort, with
+the defender's commander, and the port barred behind a sortie and in the face
+of raiders come up to it). Every loop asks that no door shuts on a body.
+
 ## Open questions
 
 - **Marching late.** A stretch is pressed only when an attack is near it, and
   the pool waits at the works, so a garrison often walks forty to sixty cells
-  round the works and arrives as the attack does: half of the garrison samples
-  near a fight are squads still on the way. Staging nearer the belt, or a way
-  through the works rather than round them, is the likely next step; a garrison
-  stand-to at the work being lost, sent round the walls, was tried and cost more
-  than it saved.
+  and arrives as the attack does: half of the garrison samples near a fight are
+  squads still on the way. The walk round a gateless face is answered by sally
+  doors (above); what remains is the walk out of a gate to the gate's own face,
+  which is the march itself. Staging nearer the belt is the likely next step; a
+  garrison stand-to at the work being lost, sent round the walls, was tried and
+  cost more than it saved.
 - **Alarm-held stretches.** What little stranding is left is mostly a fort's
   alarm holding stretches while the defender believes nothing anywhere near: an
   attack inside the works, unseen. Whether the floor should fall to the
   stretches nearest the works being lost is open.
 - How a garrisonable is valued against an objective: a trench in front of the
   keep is worth more than one at the map edge under the same pressure.
+- **Aprons on a Conquest of places.** Two in five compound places there get an
+  apron, against seven in ten on a stock map: the places' circulation roads run
+  close to their doors. Whether to let an apron stand on a circulation road the
+  attack does not use is open.
+- **The rest of the story commanders.** Yard Owners, Water Under Seal,
+  Limited Warrant, District Escort, Terms of Protection, A Small War, Salvage
+  Rights, Cold Start and Working Passage plan standing duties too, but have no
+  commander-evidence harness that shows their beats survive; each needs one (or
+  a scene verdict on its beats) before it offers squads through the seam.
+- **Story maps that offer nothing.** On Junction, Relay Nine and Thunder Run the
+  seam is wired and nothing is manned. Whether a one-squad pool should man its
+  home's windows, and whether a story ally holding a gain (Junction's and Relay
+  Nine's militia) should, is open.
+- **Mission flow.** The procedural missions man only what a squad can reach
+  while the pressure lasts, and have no staging tier to move the reserve toward
+  pressure; whether they should is open.
 
 ## Stories
 
 
-- `compound-prepared-ground.md` — compounds and facilities offer prepared ground
-  and building envelopes as garrisonables.
 - `fort-sandbag-damage-art.md` — real art for the placeholder fort sandbag damage
   states.

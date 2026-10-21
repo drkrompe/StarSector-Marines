@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — while the Second Wind is away (stored, or in a yard after a loss), Company HQ and planet Marine operations are closed and say how to get her back; the prologue is seven pages, and Castle's saved credits pay for the yard.
+Updated: 2026-10-20 — a lost Second Wind is bought back from the planet menu in place of Marine operations, and campaign missions need her with the company aboard; the prologue is seven pages, and Castle's saved credits pay for the yard.
 
 ## Purpose
 
@@ -696,9 +696,11 @@ faster on the deck.
 
 ## Company resource bills
 
-Company rooms show a shared **Available** stock strip immediately below navigation,
-away from individual orders. Balances use exact, grouped quantities in bounded
-columns, including holdings in the millions. The strip includes the resources
+Company rooms show a shared stock strip immediately below navigation, away from
+individual orders. Each resource is its icon and its exact, grouped quantity, with
+no written name: the credit glyph and the base game's cargo icons are the
+vocabulary the player already reads everywhere else. Columns are bounded,
+including for holdings in the millions. The strip includes the resources
 that room can actually draw; named ready reserves remain a separate personnel
 count. Fleet cargo and the opening depot keep their existing access and earmarking
 rules. Engineering reclamation uses fleet cargo, never the preparation depot.
@@ -1392,21 +1394,26 @@ The hull's saved adapters remain with Second Wind through company transfers.
 
 **While the Second Wind is away the company has no home to open.** She is never
 lost for good (`ship-interiors-nouns.md`), but while the company lives aboard her
-and she is out of the fleet - in storage, or in a yard after a loss - the Marines
-button answers with Castle's instructions instead of Company HQ: where she is,
-how many yard days are left, what the yard will charge, and that docking there (or
-taking her out of storage) brings the company home. The planet menu keeps
-Marine operations listed but disabled, with the same instructions as its tooltip.
-A company that has moved to another hull is not gated by her absence.
+and she is out of the fleet the Marines button answers with Castle's instructions
+instead of Company HQ. Stored, the planet menu keeps Marine operations listed but
+disabled, with the same instructions as its tooltip. Lost, the planet option
+becomes **Second Wind** at every port with a yard open to the company: a one-page
+storybook in Castle's voice - towed in after a fight, or found on the open market
+after a sale or scuttling - with the price, the account and the d-mod she comes
+back with. Buying is never refused; what the account cannot cover becomes debt.
+
+**Campaign missions need her.** The briefing refuses to deploy unless she is in
+the fleet and the company is quartered aboard her, and says which of the two is
+missing. Debug missions are not gated.
 
 Delivery ends with Castle directing the player to the real PLATING and DRIVE controls;
 no additional purchase is required. The conversation overlays the room and owns input
 while open. Later briefings freeze the purchased boats and their actual fittings through
 the shared campaign lift authority. Replayed Depot Clearance never unlocks the offer.
 
-The ship view offers a Machine Shop / Fit Squads control that opens the Armory
-fitting workspace and returns to the ship. Free fitting remains available regardless
-of workshop restoration; repairing production machinery affects boat and mech jobs.
+Squads are fitted from the Armory, not from Engineering. Free fitting remains
+available regardless of workshop restoration; repairing production machinery
+affects boat and mech jobs.
 
 The same hull's machine shop has a three-step restoration chain after Relief.
 Clearance costs 750 credits, includes a pressure patch before the hatch reopens,
@@ -1471,12 +1478,14 @@ for fabrication. The workshop checks this capacity again before spending materia
 Each completed repair refreshes the shared deck, room view and capacity together.
 
 The original hull's mess hall starts sealed. Field rations in working quarters
-keep the first mission available. A 2,500-credit yard order after Relief restores
-its pressure skin, galley and tables, crew meal routines, and a company welfare
-benefit: infantry morale recovers 25% faster once the normal incoming-fire delay
-has elapsed. Morale still starts full, retains casualty ceilings and break/clear
-thresholds, and has no additional food upkeep. Castle explains both the temporary
-arrangement and the exact benefit beside her portrait in Engineering.
+keep the first mission available, at a cost: company infantry recover morale 15%
+slower. A 2,500-credit yard order after Relief restores its pressure skin, galley
+and tables and brings recovery to neutral; a proper galley (+15%) and a galley
+with cold store (+25%) follow as refit tiers. Recovery applies once the normal
+incoming-fire delay has elapsed. Morale still starts full, retains casualty
+ceilings and break/clear thresholds, and has no additional food upkeep. Castle
+explains the current arrangement and the exact figure beside her portrait in
+Engineering.
 
 The benefit belongs to the active converted original company home and freezes
 with the selected personnel at launch. Later shuttle trips and split landings
@@ -1495,6 +1504,88 @@ at an accessible planetary spaceport, include labor and materials, and recheck
 funds and completion at payment. Inspection and review spend nothing. Every view
 rebuilds from the same current condition after an order. `ship-condition-survey.md`
 owns live acceptance of this survey and its new restoration paths.
+
+**The refit tree** (`second-wind-refit-tree.md`) generalises these orders. Every
+track of the founding hull stands at a band: Deficit (the battered start), Restored
+(neutral, the figures every mission and evidence harness is tuned at), Improved I
+and II. Five cores (Power, Life support, Structure, Compute, and Fabrication, which
+is the workshop chain) gate the other tracks' tiers. A locked tier names what it
+waits on in Castle's terms ("no power for it yet"). The distribution order is Power's
+Restored tier and the mess order is the mess's; their prices and receipts stand.
+Degraded scrubbers add a day to every wound's recovery until life support is
+restored. The combat tracks (hull, flux, sensors, drive) are the hull's own
+figures, applied through the conversion hull mod, so the refit screen shows them
+and every fight she is in uses them. They start below a stock Cerberus and stay a
+liability until the cores behind them are paid for; flux waits on the reactor
+overhaul. The deck carries one icon chip per core in its top-left corner, ringed
+in the colour of that core's band; a chip opens the **systems tree** over the
+deck. The tree opens as a modal over the live ship, which stays visible
+around and faintly behind it. The tree flows downward from the hull: the five cores hang from her, and
+every other track hangs from the core it leans on most (drive, flux and the
+Mech Lab's coolant plant from Power; mess, gym, sick bay and lounge from Life
+support; hull, brig and range from Structure; sensors and mech calibration from
+Compute; the mech armor shop, mech field repair and the vehicle bay from
+Fabrication). Hydroponics hangs from Life support, the
+holds from Structure, and the wardroom and briefing room from Compute: facilities
+fitted into rooms she already has (the provisions store, the mess, the holds), so
+buying one opens no compartment. Hydroponics and the holds act through the hull
+mod (her supplies per month, her cargo); the wardroom scales officers' mission XP
+when a mission resolves and is named on the briefing once it pays. The briefing
+room's holo-tank shows the briefing the garrison the operation faces. It reads the
+same target profile launch builds the battle from, so its headcount is the battle's;
+its mechs are given as *up to*, because the landing caps them. The plot table below it is the tank's mount and has
+no battle passive yet. Each track is a column of tier nodes,
+owned, available (nothing but the price in the way) or locked. Most tiers need
+two or three cores, so beside each unbought node sit small icons of the cores it
+waits on, gold once met and red until then; requirements are marked this way
+rather than drawn as lines across branches, so the tree stays a tree. The card docks down the tree's right edge and carries
+Castle's account of how the system works aboard her, the current and next tier,
+what the next tier needs, its bill, its lock reason and the reviewed order. The
+workshop's stages appear under Fabrication but are still ordered from the
+workshop card. Authorizing a tier plays it out on the deck rather than
+in the card: the tree steps aside, the camera flies to the room the work is in
+(the whole ship for the combat tracks), a curtain falls while the yard works,
+and it lifts on the changed room with the tier's name and effect before the
+camera flies back and the tree returns. The order is paid under the curtain,
+not at the click, so a deck that is laid out again for a newly opened
+compartment is never seen blank, and a refusal at that moment lifts on the
+unchanged room. A core brought up from Deficit changes only the deck's
+dressing, so it needs no curtain: it is paid as the camera arrives and plays
+as a dressing wave across the running deck, which the reveal waits out. Each tier is its
+own reviewed yard order under the same home, dock, Relief and funds rechecks, and
+the receipts stay with the hull. Beyond credits, most tiers take materials out of
+fleet cargo (metals for structure and plating, heavy machinery for plant and
+drive, transplutonics for flux and sensors), shown as icon rows with Short by.
+The strongest tiers take AI cores: a gamma core for the processing cluster, a
+beta core for the tactical core, and an alpha core for the military flux grid. Other hulls are neutral on every track.
+
+Five reserved compartments (range, gym, sick bay, lounge, brig) open by their
+facility track's Restored order. A sealed one is neutral, so opening one is
+already a gain, and other hulls read as sealed. The range opens trials aboard
+and then sharpens company infantry's primary fire; the gym makes them faster
+and, at its top tier, steadier under fire. With the mess's morale recovery these
+freeze onto every squad at launch as one hull-welfare record and reach the fight
+as one named unit modifier. The sick bay brings a share of the would-be dead home
+wounded when a battle is settled. The lounge raises the aptitude cargo
+replacements arrive with. The brig opens its cells; interrogation waits on a
+battle that takes prisoners, since no defender is ever captured and the outcome
+records none. The briefing's Ship row names each room that changes the
+operation.
+
+The **Mech Lab tracks** reach the company's own mechs. Nothing there starts
+at a deficit: an absent bench and a Restored one are both neutral, and the
+Improved tiers add fire-control calibration (mech weapon accuracy, then with
+the tactical core link a faster torso traverse onto a new target), the coolant
+plant (flux dissipation) and the armor shop (armor capacity, which every
+section's plate is a share of). These are frozen into each owned mech's
+deployment at launch, beside its fit's own frame values, so a battle never
+reads the ship; a mech the company does not own deploys neutral. Field repair
+stays in the campaign: a repair's clock is shorter, and with the spares rack a
+replacement weapon assembly (what refitting a mount lost in battle comes to)
+costs less to fabricate, both read whenever the Mech Lab quotes an order. The
+selected mech's sheet in the Mech Lab shows the deployed figures and names the
+refits in its header, and the briefing line carries the same text. The vehicle
+bay is a track with no orders until company vehicles can deploy.
 
 Interior restoration is saved by the original hull's identity, independently of
 company designation and vanilla hull damage. Moving company, reopening screens and

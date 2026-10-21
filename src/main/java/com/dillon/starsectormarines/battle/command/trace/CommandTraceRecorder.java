@@ -17,6 +17,8 @@ import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective
 import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.sally.SallyDoor;
+import com.dillon.starsectormarines.battle.sally.SallyDoors;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -77,6 +79,7 @@ public final class CommandTraceRecorder {
         sampleCompounds(sim);
         sampleChargeSites(sim);
         sampleExtractionPayloads(sim);
+        sampleSallyDoors(sim);
         if (sim.isComplete() && !terminalRecorded) {
             terminalRecorded = true;
             StringBuilder out = begin("referee", sim.getSimTickIndex());
@@ -279,6 +282,51 @@ public final class CommandTraceRecorder {
             appendLine(end(out));
         }
     }
+
+    /** One referee line per sally door the moment it opens or shuts, and each first crossing of one by the side it was not opened for. */
+    private void sampleSallyDoors(BattleSimulation sim) {
+        List<int[]> openings = sim.sallyDoors().openings();
+        for (; sallyDoorsReported < openings.size(); sallyDoorsReported++) {
+            int[] opening = openings.get(sallyDoorsReported);
+            SallyDoor door = sim.sallyDoors().doors(sim).get(opening[0]);
+            StringBuilder out = begin("referee", opening[1]);
+            field(out, "event", "sally-door-opened");
+            field(out, "place", door.place().label());
+            numberField(out, "mouthX", door.mouthX());
+            numberField(out, "mouthY", door.mouthY());
+            field(out, "holder", opening[2] < 0 ? "none" : Faction.values()[opening[2]].name());
+            appendLine(end(out));
+        }
+        List<int[]> closings = sim.sallyDoors().closings();
+        for (; sallyClosingsReported < closings.size(); sallyClosingsReported++) {
+            int[] closing = closings.get(sallyClosingsReported);
+            SallyDoor door = sim.sallyDoors().doors(sim).get(closing[0]);
+            StringBuilder out = begin("referee", closing[1]);
+            field(out, "event", "sally-door-closed");
+            field(out, "place", door.place().label());
+            numberField(out, "mouthX", door.mouthX());
+            numberField(out, "mouthY", door.mouthY());
+            field(out, "holder", closing[2] < 0 ? "none" : Faction.values()[closing[2]].name());
+            field(out, "reason", SallyDoors.Shut.values()[closing[3]].name());
+            appendLine(end(out));
+        }
+        List<int[]> crossings = sim.sallyDoors().hostileCrossings();
+        for (; sallyCrossingsReported < crossings.size(); sallyCrossingsReported++) {
+            int[] crossing = crossings.get(sallyCrossingsReported);
+            SallyDoor door = sim.sallyDoors().doors(sim).get(crossing[0]);
+            StringBuilder out = begin("referee", crossing[1]);
+            field(out, "event", "sally-door-hostile-crossing");
+            field(out, "place", door.place().label());
+            numberField(out, "mouthX", door.mouthX());
+            numberField(out, "mouthY", door.mouthY());
+            field(out, "side", Faction.values()[crossing[2]].name());
+            appendLine(end(out));
+        }
+    }
+
+    private int sallyDoorsReported;
+    private int sallyClosingsReported;
+    private int sallyCrossingsReported;
 
     /** Full payload progress belongs only to the neutral referee stream. */
     private void sampleExtractionPayloads(BattleSimulation sim) {

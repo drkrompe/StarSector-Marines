@@ -4,9 +4,29 @@ Status: ACTIVE
 
 Written: 2026-10-20
 
-Updated: 2026-10-20 — conquest-trial reports the defender's fort counter-attack.
+Updated: 2026-10-21 — every battle harness about places prints a `[place-fight]` line: the fight mix (contacts on posts against the open) and whether a counter-attack met a hold; conquest-trial plays its fixtures side by side. Story summaries carry it and the story commanders' manning.
 
 Per-mission matrices, fixture fields and report contents for `gradlew.bat commanderEvidence -Pmission=<mission>`. How to run the task, the mission list, replay count, parallelism and snapshot flags stay in `CLAUDE.md` (Build & deploy); read this when you need one mission's details. Text is moved verbatim from `CLAUDE.md`; "Fixture fields match Relief" and similar refer to the sections below.
+
+## Places and fights (every harness about places)
+
+Conquest, conquest-trial, Relay Nine, Thunder Run, Raid, Assault, Sabotage and
+Extraction print one `[place-fight] <run> <json>` line per battle
+(`PlaceFightProbe`; conquest-trial also puts it in `summary.json` as
+`placeFight`). `fightMix` counts, per shooting faction, every ground shooter
+that fired in a thirty-tick window once, as it stood at its last shot, with
+each end **on a post** (dug in, on a fighting-position cell, under an intact
+roof, or an emplacement) or **in the open**: `openOpen` is a brawl,
+`openAtPost` an assault on a post, `postAtOpen` a defence from one, `postPost`
+posts trading fire. `counterattacks` lists each run of samples in which a side
+had counter-attack launch orders: whether a launched squad came within 24
+cells of a hostile squad at all (`met`), of one on a post (`metPost`), of one
+holding taken ground or a story gain (`metHold`, `metDugInHold`), what it lost
+and whether a place was won back in the window (from the trace's retake notes
+or a compound flipping back to the defender). `hold` counts holder
+squad-samples and those with a counter-attack squad of any stage within 40
+cells. Read a run against its control run: same fixture, one `-Dbattle.*`
+switch, `-PevidenceDir` set apart.
 
 ## Relief
 
@@ -156,7 +176,11 @@ records `review.gif` (whole map every N ticks), `crossroads.gif` (a fixed
 camera on the first crossroads through both holds, with the militia guns and
 technical labelled) and `convoy-run.gif` (a stepped follow camera on the column
 through the final run) per fixture.
-Reports separate living militia from their assembled field guns. Default
+Reports separate living militia from their assembled field guns. The
+withdrawal control retreats at its first delivery and asserts the frozen
+ledger (no pay, the undelivered cargo still waiting) only when that retreat
+fired; `retreatTick` is -1 when the convoy was lost before anything got out,
+which is an ordinary defeat and leaves the control unexercised. Default
 observation is 27000 ticks.
 
 ## Conquest trial (`conquest-trial`)
@@ -202,3 +226,13 @@ control is `-Pfixture=src/test/resources/battle-fixtures/conquest-forts-reinforc
 (four battery forts and a shield fort; about 50 runs, 5,200 cells).
 The fort report carries a
 `pressure flow:` line and a fighting-position use block per faction. Use
+
+## Story manning
+
+Every story fixture's `summary.json` (Junction, Relay Nine, Relief,
+Counterattack, Last Lift per attempt, Thunder Run per fixture) carries
+`placeFight`, the `PlaceFightProbe` reading above, and `reactiveDefence`, the
+defender commander's manning figures with, for a story commander, the
+squad-pulses it offered and the pulses its holder share was closed
+(`garrisonables.md`, story commanders). Read both against
+`-Dbattle.story.reactiveDefence=false` on the same build.

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
+import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -85,6 +86,12 @@ public final class CampaignMarineDeployment {
 
     public static CampaignMarineDeployment freezeSelection(MarineRoster roster,
             Set<String> selectedSquadIds, int requiredSeats, MarineCaptain commander, float moraleRecoveryMultiplier) {
+        return freezeSelection(roster, selectedSquadIds, requiredSeats, commander, HullWelfare.mess(moraleRecoveryMultiplier));
+    }
+
+    /** Freezes the company home's whole welfare (mess, range, gym) onto every selected squad. */
+    public static CampaignMarineDeployment freezeSelection(MarineRoster roster,
+            Set<String> selectedSquadIds, int requiredSeats, MarineCaptain commander, HullWelfare welfare) {
         CampaignMarineDeployment deployment = freezeSelection(roster, selectedSquadIds, requiredSeats);
         TaskForce force = TaskForce.of(roster, commander, selectedSquadIds);
         List<MarineLoadout> seats = new ArrayList<>();
@@ -92,7 +99,7 @@ public final class CampaignMarineDeployment {
             CampaignSquadTag prior = seat.campaignSquad;
             CampaignSquadTag tag = prior == null ? null : new CampaignSquadTag(prior.squadId,
                     prior.label, prior.leader, prior.strength, prior.fireTeamIndex,
-                    force.groupForSquad(prior.squadId), moraleRecoveryMultiplier);
+                    force.groupForSquad(prior.squadId), welfare);
             seats.add(new MarineLoadout(seat.role, seat.objective, seat.primaryWeaponId,
                     seat.equipmentGrade, seat.soldierProfile, seat.specialEquipmentId,
                     seat.secondaryAmmo, seat.campaignSoldierId, seat.armorFamily,

@@ -456,6 +456,15 @@ muzzle moves the shot with it.
 - **The S10 clamp:** the Tarsus is placed at the Mk.III's `grapples.tarsus_origin_units` through `aboard()`.
 - **Stand-ins** are the sprite's silhouette raised into a lens shape and painted with the sprite. A stand-in reads as the right hull at the right size and nothing more.
 - **Effects** (tracers, placeholder blasts, drive plumes, entry plasma) are placeholders for the VFX kit.
+- **Each ship has its own effects** (`ship_fx.py`). Every placed ship gets its own copy of its
+  build's `SWFX` collection, retargeted onto its own controls. A build that drives its hull (gear,
+  grapples, the wreck's break-up) gets its own hull copy too. So two Lashers never flash in step,
+  and two Wolves (P) can hold different gear.
+  - A key frame's `cues` set one ship's knobs or light its guns.
+  - `--swfx` renders with the kit on every finished build, its drives replacing the placeholder
+    plumes.
+  - `--fx-check` proves the copies independent without rendering (see `asharu-effects-plan.md`,
+    W0).
 
 To check a scene without rendering, run `python battle_blockout.py --check`; `python fight_layout.py` draws the same staging as diagrams. It prints where every ship lands in every key frame, and whether each shot can bear (see Gunnery). `--frames k3b,k5` renders only those frames; a frame already finished in the run folder is skipped, so a stopped job resumes (`--run <name>` fixes the folder across days, `--rerender` forces every frame); and `--skip-render --post <machine> --what <slug>` posts a run to `review/cinematic-asharu-battle/`.
 

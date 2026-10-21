@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.command.ReactiveWatch.Candidate;
 import com.dillon.starsectormarines.battle.command.ReactiveWatch.Keep;
 import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
-import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -37,27 +36,24 @@ import java.util.Set;
  * other order is the player's: the stance stands aside until it ends and then watches again from where the squad
  * stopped. Nothing here ever ends an order the stance did not give.
  *
+ * <p><b>Places.</b> Both kinds come from the battle's garrisonables: a stretch of a run, manned with the occupy order a
+ * click on it gives, and a building's envelope (a held place's, or a captured compound building's), held with the hold
+ * order a click on the building gives, so the squad stands to at its windows and doors by the frontage laws. A
+ * compound the marines have not taken offers neither.
+ *
  * <p><b>Cost.</b> The reconcile is a map read per stance squad per tick. The decision runs once per
  * {@link ReactiveWatch#PULSE_TICKS} per squad, staggered by squad id, and reads only what is near the anchor: the
- * registry's block lookup at the anchor's block for runs, and a block bucket of held places built once per tactical
- * map; each place is priced by one influence read per block it covers.
+ * registry's block lookup at the anchor's block; each place is priced by one influence read per block it covers.
  */
 public final class ReactiveManningSystem {
 
     /** A squad this close to its anchor is home, and needs no walk back. */
     static final int HOME_CELLS = 2;
-    /** Held places are bucketed by the influence block their anchor stands in. */
-    private static final int BUCKET_CELLS = 8;
-    /** How far past the watch a held place's anchor may stand and its footprint still reach into the watch. */
-    private static final int FOOTPRINT_SLACK_CELLS = 24;
     private static final long BUILDING_KEY = 1L << 62;
 
     private final ReactiveManningService service;
     private final SquadMoveOrderSystem orders;
     private final SquadMoveOrderService mailbox;
-
-    private TacticalMap bucketedMap;
-    private Map<Long, List<TacticalNode>> placesByBucket = Map.of();
 
     public ReactiveManningSystem(ReactiveManningService service, SquadMoveOrderSystem orders,
                                  SquadMoveOrderService mailbox) {
@@ -204,32 +200,26 @@ public final class ReactiveManningSystem {
                         List<Place> places, List<Candidate> candidates) {
         int ax = watch.anchorX;
         int ay = watch.anchorY;
-        GarrisonableRegistry registry = pulse.registry;
-        if (registry != null) {
-            int size = registry.blockSize();
-            int bx = Math.min(registry.blockWidth() - 1, Math.max(0, ax / size));
-            int by = Math.min(registry.blockHeight() - 1, Math.max(0, ay / size));
-            for (int run : registry.near(bx, by)) {
-                Place place = pulse.run(run);
-                int gap = pulse.runGap(run, ax, ay);
+        GarrisonableRegistry registry = pulse.places;
+        if (registry == null) return;
+        int size = registry.blockSize();
+        int bx = Math.min(registry.blockWidth() - 1, Math.max(0, ax / size));
+        int by = Math.min(registry.blockHeight() - 1, Math.max(0, ay / size));
+        for (int g : registry.near(bx, by)) {
+            if (registry.isEnvelope(g)) {
+                TacticalNode node = registry.building(g);
+                int gap = ReactiveWatch.gap(ax, ay, node.left, node.top, node.right, node.bottom);
                 if (gap > ReactiveWatch.WATCH_RADIUS_CELLS) continue;
-                if (SquadMoveOrderSystem.insideUncapturedCompound(place.x, place.y, sim)) continue;
-                add(watch, squad, pulse, place, gap, sx, sy, places, candidates);
+                if (SquadMoveOrderSystem.insideUncapturedCompound(node.anchorX, node.anchorY, sim)) continue;
+                add(watch, squad, pulse, pulse.building(node), gap, sx, sy, places, candidates);
+                continue;
             }
-        }
-        long reach = ReactiveWatch.WATCH_RADIUS_CELLS + FOOTPRINT_SLACK_CELLS;
-        bucket(sim.getTacticalMap());
-        for (long y = Math.floorDiv(ay - reach, BUCKET_CELLS); y <= Math.floorDiv(ay + reach, BUCKET_CELLS); y++) {
-            for (long x = Math.floorDiv(ax - reach, BUCKET_CELLS); x <= Math.floorDiv(ax + reach, BUCKET_CELLS); x++) {
-                List<TacticalNode> nodes = placesByBucket.get(pack((int) x, (int) y));
-                if (nodes == null) continue;
-                for (TacticalNode node : nodes) {
-                    int gap = ReactiveWatch.gap(ax, ay, node.left, node.top, node.right, node.bottom);
-                    if (gap > ReactiveWatch.WATCH_RADIUS_CELLS) continue;
-                    if (SquadMoveOrderSystem.insideUncapturedCompound(node.anchorX, node.anchorY, sim)) continue;
-                    add(watch, squad, pulse, pulse.building(node), gap, sx, sy, places, candidates);
-                }
-            }
+            if (pulse.registry == null) continue;
+            Place place = pulse.run(g);
+            int gap = pulse.runGap(g, ax, ay);
+            if (gap > ReactiveWatch.WATCH_RADIUS_CELLS) continue;
+            if (SquadMoveOrderSystem.insideUncapturedCompound(place.x, place.y, sim)) continue;
+            add(watch, squad, pulse, place, gap, sx, sy, places, candidates);
         }
     }
 
@@ -246,21 +236,6 @@ public final class ReactiveManningSystem {
         candidates.add(new Candidate(place.key, gap, ReactiveWatch.etaTicks(sx, sy, place.x, place.y),
                 pulse.pressure(place), pulse.isTaken(place, squad.id), enemyInside,
                 watch.lockedUntil.containsKey(place.key)));
-    }
-
-    /** Held places bucketed by anchor, rebuilt only when the battle's tactical map instance changes. */
-    private void bucket(TacticalMap map) {
-        if (map == bucketedMap) return;
-        bucketedMap = map;
-        Map<Long, List<TacticalNode>> buckets = new HashMap<>();
-        if (map != null) {
-            for (TacticalNode node : map.all()) {
-                if (node.kind != TacticalNode.Kind.INNER_POSITION) continue;
-                buckets.computeIfAbsent(pack(Math.floorDiv(node.anchorX, BUCKET_CELLS),
-                        Math.floorDiv(node.anchorY, BUCKET_CELLS)), k -> new ArrayList<>()).add(node);
-            }
-        }
-        placesByBucket = buckets;
     }
 
     private static long pack(int x, int y) {
@@ -294,6 +269,9 @@ public final class ReactiveManningSystem {
     private final class Pulse {
         final CommanderInfluenceSnapshot influence;
         final List<CommanderContact> contacts = new ArrayList<>();
+        /** The battle's garrisonables, when laid on the influence picture's lattice; the buildings are read from it. */
+        final GarrisonableRegistry places;
+        /** The same registry where its runs may be manned (fighting positions on), or {@code null}. */
         final GarrisonableRegistry registry;
         /** Squads holding each stretch (by current garrisonable id) or building, from the standing orders of the side. */
         final Map<Integer, Set<Integer>> runHolders = new HashMap<>();
@@ -310,11 +288,12 @@ public final class ReactiveManningSystem {
                     }
                 }
             }
-            GarrisonableRegistry places = DigInSystem.isEnabled() ? sim.garrisonables() : null;
-            registry = places != null && places.count() > 0 && influence != null
-                    && places.blockSize() == influence.blockSize()
-                    && places.blockWidth() == influence.width() && places.blockHeight() == influence.height()
-                    ? places : null;
+            GarrisonableRegistry all = sim.garrisonables();
+            places = all != null && all.count() > 0 && influence != null
+                    && all.blockSize() == influence.blockSize()
+                    && all.blockWidth() == influence.width() && all.blockHeight() == influence.height()
+                    ? all : null;
+            registry = places != null && DigInSystem.isEnabled() && places.stretchCount() > 0 ? places : null;
             // Over stretches a place is priced only where a believed contact is within the registry's reach of it,
             // the commander's own rule: the field's spread alone does not press a stretch nobody is near.
             if (registry != null && registry.stretched()) {
@@ -332,8 +311,8 @@ public final class ReactiveManningSystem {
                 ActiveOrder order = entry.getValue();
                 if (order instanceof ActiveDefendAreaOrder defend && defend.isOccupy()) {
                     // An occupy holds the stretch it was clicked on (the stance clicks a stretch's centre).
-                    int stretch = registry == null ? -1 : registry.idAt(defend.requestedX(), defend.requestedY());
-                    if (stretch < 0 && registry != null) stretch = registry.idAt(defend.destinationX(), defend.destinationY());
+                    int stretch = registry == null ? -1 : registry.stretchAt(defend.requestedX(), defend.requestedY());
+                    if (stretch < 0 && registry != null) stretch = registry.stretchAt(defend.destinationX(), defend.destinationY());
                     if (stretch >= 0) runHolders.computeIfAbsent(stretch, k -> new HashSet<>()).add(entry.getKey());
                 } else if (order instanceof ActiveHoldPlaceOrder hold) {
                     buildingHolders.computeIfAbsent(hold.targetNode(), k -> new HashSet<>()).add(entry.getKey());
@@ -350,7 +329,7 @@ public final class ReactiveManningSystem {
         /** The run whose centre was manned, found again on the current index (shelling renumbers runs). */
         Place runAt(int cx, int cy) {
             if (registry == null) return null;
-            int run = registry.idAt(cx, cy);
+            int run = registry.stretchAt(cx, cy);
             return run < 0 ? null : run(run);
         }
 

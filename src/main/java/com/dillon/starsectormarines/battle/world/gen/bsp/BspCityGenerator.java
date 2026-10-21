@@ -286,6 +286,8 @@ public final class BspCityGenerator implements MapGenerator {
                 new PedestrianFrameStage(),                 // Step 3a'
                 wardStage,                                  // Step 3b'' precinct-only; null omits it
                 defenceStage,                               // Step 3c'  precinct-only; null omits it
+                defenceStage == null ? null
+                        : new CompoundPerimeterDefenderStamper(), // Step 3c'' precinct Conquest: aprons facing the landing
                 new KeepEntryChamberStamper(),              // Step 3c'''
                 new TacticalLinkStage(),                    // Step 3d
                 new FinalizeStage(),                        // Step 4 + 4b

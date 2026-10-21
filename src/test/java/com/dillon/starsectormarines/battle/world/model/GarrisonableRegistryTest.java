@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.model;
 
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.FightingPositionRole;
@@ -14,6 +16,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -235,5 +238,62 @@ class GarrisonableRegistryTest {
 
         assertEquals(0, registry.count());
         assertEquals(0, registry.near(3, 1).length);
+    }
+
+    private static TacticalNode building(int left, int top, int right, int bottom) {
+        return new TacticalNode(TacticalNode.Kind.BARRACKS, (left + right) / 2, (top + bottom) / 2,
+                left, top, right, bottom, Faction.DEFENDER, 60, 0);
+    }
+
+    @Test
+    void anEnvelopeIsNumberedAfterEveryStretchAndIsItsOwnRun() {
+        trench(10, 25, 12);
+        TacticalNode barracks = building(40, 20, 55, 30);
+        // Posts: the stance cells behind a door and two windows in the south wall.
+        int[] posts = {47, 20, 48, 20, 42, 20, 53, 20};
+        GarrisonableRegistry registry = GarrisonableRegistry.build(index(), W, H, BLOCK, new int[0],
+                List.of(new GarrisonableRegistry.Envelope(barracks, posts)));
+
+        assertEquals(2, registry.count());
+        assertEquals(1, registry.stretchCount());
+        assertFalse(registry.isEnvelope(0));
+        assertTrue(registry.isEnvelope(1));
+        assertSame(barracks, registry.building(1));
+        assertNull(registry.building(0));
+        assertEquals(1, registry.envelopeOf(barracks));
+        assertEquals(1, registry.envelopeOf(building(40, 20, 55, 30)), "a copy of the node is the same building");
+        assertEquals(-1, registry.envelopeOf(building(40, 20, 56, 30)));
+        assertEquals(4, registry.size(1), "one cell per post");
+        assertEquals(registry.runOf(0) + 1, registry.runOf(1), "its run is past the index's runs");
+        assertEquals(0, registry.neighbours(1).length);
+        assertEquals(-1, registry.fortId(1), "a building fronts no fort");
+        assertEquals(20, registry.centreY(1), "the centre is one of its posts");
+        assertEquals(1, registry.idAt(50, 25), "anywhere in the footprint is inside it");
+        assertEquals(-1, registry.idAt(50, 33));
+        assertEquals(0, registry.idAt(20, 12), "a trench cell is still its stretch");
+        assertEquals(-1, registry.stretchAt(50, 25));
+    }
+
+    @Test
+    void anEnvelopeIsPricedOverItsFootprintAndTheGroundItsAperturesLookOnto() {
+        TacticalNode barracks = building(40, 20, 55, 30);
+        GarrisonableRegistry registry = GarrisonableRegistry.build(index(), W, H, BLOCK, new int[0],
+                List.of(new GarrisonableRegistry.Envelope(barracks, new int[]{47, 20})));
+
+        assertEquals(1, registry.count(), "a building alone, with no prepared ground on the map");
+        // x 38..57 is blocks 4..7, y 18..32 is block rows 2..4; row width 13.
+        List<Integer> expected = new ArrayList<>();
+        for (int by = 2; by <= 4; by++) for (int bx = 4; bx <= 7; bx++) expected.add(by * 13 + bx);
+        assertArrayEquals(expected.stream().mapToInt(Integer::intValue).toArray(), registry.coveredBlocks(0));
+        assertArrayEquals(new int[]{0}, registry.near(5, 3));
+    }
+
+    @Test
+    void aBuildingWithNoPostsIsNotOffered() {
+        GarrisonableRegistry registry = GarrisonableRegistry.build(index(), W, H, BLOCK, new int[0],
+                List.of(new GarrisonableRegistry.Envelope(building(40, 20, 55, 30), new int[0])));
+
+        assertEquals(0, registry.count());
+        assertEquals(-1, registry.idAt(50, 25));
     }
 }

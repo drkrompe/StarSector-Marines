@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Compound prepared ground on production-size Conquest maps (`compound-prepared-ground.md`), against the same seeds
+ * Compound prepared ground on production-size Conquest maps (`mapgen-nouns.md`, prepared ground), against the same seeds
  * generated without it: how many compound places get an apron, that each one is a full fighting-position run with the
  * compound's lookout standing in it, and that the authored laws hold (no bag on a doorway or in the vehicle corridor, the generation
  * otherwise unchanged). Writes {@code build/reports/garrison/conquest-compounds.md}.

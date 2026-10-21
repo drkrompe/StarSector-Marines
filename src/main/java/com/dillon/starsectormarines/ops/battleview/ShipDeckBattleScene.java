@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
+import com.dillon.starsectormarines.battle.world.gen.ship.FacilityDressing;
 import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.ShipBayRoute;
@@ -30,6 +32,7 @@ import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.ship.BayAperture;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -166,7 +169,18 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      */
     private final Map<String, Shift> watchBills = new HashMap<>();
     private final DeckGraph rooms;
-    private final ShipDeckLighting lighting;
+    private ShipDeckLighting lighting;
+    private final MapResult deck;
+    private final long seed;
+    /** The founding hull's Deficit dressing, planned the first time anything is left unrestored. */
+    private ShipDeckDressing dressing;
+    private CoreDressing coreDressing = CoreDressing.RESTORED;
+    /** The facility pieces fitted into existing rooms, planned the first time any tier is shown. */
+    private ShipFacilityDressing facilities;
+    private FacilityDressing facilityDressing = FacilityDressing.NONE;
+    private List<Doodad> facilityPieces = List.of();
+    /** A dressing change still playing out, or null. */
+    private DressingWave wave;
     /**
      * Which boat berths still have a boat, by the Boat Deck's own numbering, or
      * null when nobody has said and every berth is therefore held. Copied on
@@ -247,7 +261,9 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         this.groundedBoats = groundedBoats == null ? null : groundedBoats.clone();
         if (deck == null) throw new IllegalArgumentException("a generated deck is required");
         this.rooms = rooms;
-        lighting = new ShipDeckLighting(deck.topology, rooms, seed);
+        this.deck = deck;
+        this.seed = seed;
+        lighting = lighting(CoreDressing.RESTORED);
         this.boatsHeld = boatsHeld == null ? null : boatsHeld.clone();
         this.boatWrecks = boatWrecks == null ? null : boatWrecks.clone();
         gantries = deck.gantries;
@@ -286,6 +302,95 @@ public final class ShipDeckBattleScene implements AutoCloseable {
 
     public BattleSimulation simulation() {
         return simulation;
+    }
+
+    /**
+     * Show each core's Deficit dressing, or clear it, over this deck, at once.
+     *
+     * <p>The one door the ship-condition record feeds. Presentation only: the
+     * deck, its crew and its simulation are untouched, the plan is derived once
+     * from the deck and its seed, and the same condition always dresses the
+     * same cells. A scene starts clean, which is every hull but the founding one.
+     * A wave still running is finished first.
+     */
+    public void dress(CoreDressing state) {
+        dress(state, 0f);
+    }
+
+    /**
+     * Change the deck's dressing to {@code state} over {@code seconds} of this
+     * scene's own clock ({@link #advanceTo}), as a wave: each changing core's
+     * look clears, or returns, outward from its source room along the deck,
+     * lamps and screens stuttering on as it reaches them. When it has run the
+     * deck is exactly what {@link #dress(CoreDressing)} gives. A wave still
+     * running is finished first; zero seconds changes the deck at once.
+     * {@link #coreDressing()} names the target from the moment of the call.
+     */
+    public void dress(CoreDressing state, float seconds) {
+        CoreDressing next = state == null ? CoreDressing.RESTORED : state;
+        // The same condition again (the screen re-dresses every frame) leaves a running wave alone.
+        if (next.equals(coreDressing)) return;
+        wave = null;
+        if (!next.clean() && dressing == null)
+            dressing = ShipDeckDressing.of(deck.topology, simulation.getGrid(), rooms, gantries,
+                    simulation.getDoodads(), seed);
+        ShipDeckLighting before = lighting;
+        if (next.power() != coreDressing.power() || next.compute() != coreDressing.compute())
+            lighting = lighting(next);
+        if (seconds > 0f && Float.isFinite(seconds))
+            wave = new DressingWave(coreDressing, next, simulatedSeconds, seconds, before, deck.topology, rooms, seed);
+        coreDressing = next;
+    }
+
+    /**
+     * Show the facility tiers bought for the rooms that carry them: the
+     * provisions store's grow racks, the mess's wardroom and briefing ends and
+     * the hold's racking. Presentation only, as {@link #dress(CoreDressing)} is:
+     * every tier's pieces are planned once from the deck and its seed, and a
+     * tier only chooses how many are drawn.
+     */
+    public void dress(FacilityDressing state) {
+        FacilityDressing next = state == null ? FacilityDressing.NONE : state;
+        if (next.equals(facilityDressing)) return;
+        if (!next.none() && facilities == null)
+            facilities = ShipFacilityDressing.of(deck.topology, simulation.getGrid(), rooms,
+                    simulation.getDoodads(), fixtureTasks, seed);
+        facilityPieces = facilities == null ? List.of() : facilities.doodads(next);
+        facilityDressing = next;
+    }
+
+    /** Which facility tiers this deck currently shows. */
+    public FacilityDressing facilityDressing() {
+        return facilityDressing;
+    }
+
+    /** Whether a dressing wave is still playing on this deck's clock. */
+    public boolean dressing() {
+        return wave != null && !wave.done(simulatedSeconds);
+    }
+
+    /** How far the current dressing wave has come: 0 at its start, 1 once it has finished or when none is playing. */
+    public float dressingProgress() {
+        return wave == null ? 1f : wave.progress(simulatedSeconds);
+    }
+
+    /** The wave the next frame draws, if one is still playing. */
+    private DressingWave liveWave() {
+        if (wave != null && wave.done(simulatedSeconds)) wave = null;
+        return wave;
+    }
+
+    private ShipDeckLighting lighting(CoreDressing state) {
+        List<Doodad> screens = new ArrayList<>();
+        for (Doodad doodad : deck.doodads)
+            if (ShipDeckDressing.isScreen(doodad.definitionId())) screens.add(doodad);
+        return new ShipDeckLighting(deck.topology, rooms, seed, state.power(), screens, state.compute(),
+                ShipDeckLighting.registry());
+    }
+
+    /** Which cores this deck currently shows restored. */
+    public CoreDressing coreDressing() {
+        return coreDressing;
     }
 
     /** The berths this deck authored, in generation order. */
@@ -1081,7 +1186,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                 viewport.width(), viewport.height());
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
-                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting);
+                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing, liveWave(), facilityPieces);
         return new BattleSceneFrame(context, layers);
     }
 
@@ -1097,7 +1202,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         camera.centerOn(view.centerCellX(), view.centerCellY());
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
-                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting);
+                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing, liveWave(), facilityPieces);
         return new BattleSceneFrame(context, layers);
     }
 

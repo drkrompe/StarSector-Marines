@@ -73,6 +73,11 @@ public final class CombatTelemetryService {
         this.components = components;
     }
 
+    /** Per-hit rows, recorded only while switched on; see {@link HitLog}. */
+    private final HitLog hitLog = new HitLog();
+
+    public HitLog hitLog() { return hitLog; }
+
     /** Presence check — true iff {@code id}'s fighting is being recorded (spawned as a combatant). Gate the readers on this. */
     public boolean isRecorded(long id) {
         return id != NO_ATTACKER && entityWorld.has(id, components.TELEMETRY);

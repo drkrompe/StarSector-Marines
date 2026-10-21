@@ -117,6 +117,7 @@ public final class CompanyYardScreen extends MissionFlowMlxScreen {
         props.put("skipClasses", CompanyPrologueScreen.SKIP_OFF_CLASSES);
         props.put("nextDisabled", stage == Stage.COST && refusal != null);
         props.put("backDisabled", !CompanyYardReview.backAllowed(stage));
+        props.put("backClasses", CompanyPrologueScreen.BACK_CLASSES);
         props.put("next", next); props.put("back", back); props.put("skip", leave);
         return props;
     }

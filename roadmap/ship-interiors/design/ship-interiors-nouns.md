@@ -5,9 +5,15 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-20 — Second Wind's deck follows her model: a deck arrangement sites each room, both bays stand abreast in a faired waist, open to port and sealed to starboard.
+Updated: 2026-10-21 — interior tech styles named; low-tech is the strung-lamp, plate-deck, stored-cargo look from Deficit to Restored; midline and high-tech open.
 
-Earlier 2026-10-20 — the Second Wind is never lost for good: a loss sends her to a yard, and her absence leaves the company away rather than displaced.
+Earlier 2026-10-21 — Second Wind's arrangement also carries sealed reserves for her refit tree, laid after the program so they never move it.
+
+Earlier 2026-10-20 — the founding hull's per-core Deficit dressing: presentation-only state over the fixed form, cleared core by core.
+
+Earlier 2026-10-20 — Second Wind's deck follows her model: a deck arrangement sites each room, both bays stand abreast in a faired waist, open to port and sealed to starboard.
+
+Earlier 2026-10-20 — the Second Wind is never lost for good: any yard sells her back at once, one d-mod worse; campaign missions need her with the company aboard.
 
 Earlier 2026-10-12 — Second Wind reserves four mech berths within its existing hull envelope; individual repairs restore capacity.
 
@@ -199,6 +205,16 @@ authored content.
   rank. They replace loose kit without consuming another berth. The central
   aisle and whole hatch approaches stay clear, and rest and stowage happen
   from reachable standing cells beside the fixtures.
+  Work done with hands on a fixture (consoles, benches, counters, plant,
+  bunks, tables, the galley) is drawn up against it: the stand stays inside
+  its exclusive standing cell but leans toward the fixture, so an operator
+  reads as manning the console rather than waiting near it. A sentry, rounds,
+  a firing lane, the gym and the lounge keep the cell's centre. Circulation,
+  claims and which cell is reserved are unchanged.
+  Where the hands are on the work (consoles, benches, counters, plant, the
+  galley, a mess table; not a bunk or a washstand) a family that ships
+  station arms draws its forearms out onto the fixture in place of its
+  weapon, for as long as it stands at the job.
 - A **room program is gated by size as well as role.** Room footprints do not
   shrink, so a hull below destroyer size cannot hold a range, a briefing room,
   or a proper sick bay without those rooms becoming the ship. A frigate keeps a
@@ -383,6 +399,19 @@ authored content.
 - A **deck graph** is the published topology: the shared layout-neutral tier plus
   this family's annotation — each compartment's frame span, zone, and side of the
   spine.
+- An **interior tech style** is the material and light language a hull's
+  interior is drawn in, after the game's own hull families: **low-tech**,
+  **midline** and **high-tech**. A style owns its whole condition range, from a
+  wreck through Deficit to Restored, so restoring a ship makes it a better ship
+  of the same kind, never a different kind of ship. **Low-tech** is the one that
+  exists. Its passages are bolted steel plate lit by caged amber lamps strung
+  along both walls on exposed cable, with cool white rooms and console-lit
+  command spaces against them. Battered, it is told by dark passages, stored
+  cargo along the walls and worn fittings; restored, by every lamp lit and the
+  passages cleared. Midline and high-tech are open: they will be designed as
+  styles of their own, with their own condition range, rather than as upgrades
+  to low-tech. Until they exist, every generated hull is drawn low-tech. A
+  style is presentation: it never changes a hull's rooms, doors, berths or lanes.
 
 ## Home decks and prize decks
 
@@ -848,20 +877,22 @@ player would learn their transport had burned by noticing the room looked
 different.
 
 **The Second Wind is never lost for good** (owner, 2026-10-20). She is the
-start's founding hull and the ship the story is written around, so she is the one
-exception to displacement: a company aboard her that loses her is **away**, not
-displaced, and keeps her as its home until she is back. Selling her is undone and
-the price returned; scuttling her is undone and the salvage taken back out of the
-holds; storing her is the player's choice and left alone. Recovery off a held
-field is always offered. A fight she does not come home from - a rout, a declined
-recovery, a wipe - sends her to a yard: the start port while it has one open to
-the company, else the nearest friendly or independent yard. She comes back the
-same ship, with one more d-mod (none once she carries vanilla's five), a bill of a
-quarter of her hull's value and three weeks in the yard, collected by docking
-there. The people and stores aboard her are still settled as for any sinking;
-only the home survives. While she is away the operations screens are closed and
-say where she is and how to get her back. The rule's costs are named in
-`SecondWindKeep`; the campaign side is `SecondWindKeeper`.
+start's founding hull and the ship the campaign is written around, so she is the
+one exception to displacement: a company aboard her that loses her is **away**,
+not displaced, and keeps her as its home until she is back. She can be lost every
+way another ship can - a fight she does not come home from, a sale, a scuttling -
+and storing her is the player's choice and no loss at all. Recovery off a held
+field is always offered. Once she is gone, every port with a yard open to the
+company offers her back, in place of Marine operations, for a quarter of her
+hull's value or what letting her go paid out, whichever is more (so selling and
+buying her back is never a profit), and one d-mod worse (none once she carries
+vanilla's five). There is no wait: the campaign needs her, so she is back the
+moment the player pays, into debt if need be. How she went decides the story: a
+fight leaves her towed off the field into a yard; a sale or a scuttling puts her on
+the open market for Castle to find. The people and stores aboard her are still
+settled as for any sinking; only the home survives. **Campaign missions are flown
+from her**: they need her in the fleet with the company aboard. The rule's costs
+are named in `SecondWindKeep`; the campaign side is `SecondWindKeeper`.
 
 **Losing her and letting her go are different, and the company knows which.**
 To a fleet roster both are the same fact: she is not in it any more. To a
@@ -1569,6 +1600,26 @@ the hold inboard of the bays, the Mech Lab hard abaft the working bay, the mess
 beside the provisions, and the machine shop, the plant and the drive together
 to starboard aft. Every other hull is packed by zone alone.
 
+An arrangement may also carry **reserves**: compartments a hull keeps sealed
+for refits she has not had. A reserve is no part of the room program. The
+deck is not sized for it, the ship is not owed it and no facility count reads
+it. It is laid after every programmed room and before the pocket fill, so
+reserving one never moves a room, door or berth the program placed. It is
+furnished as the facility it is kept for, at its reserved footprint, then
+stripped and closed behind pressure hatches, and stays out of service until a
+refit opens it where it stands. Opening is condition, not form: the hull's
+restoration state names the reserves that are open, the fill that ran is the
+same in both states, and an opened reserve is simply not stripped, so its
+hatches work and its fixtures publish their places like any room's. Every
+reserve is closed until named. Second Wind reserves a firing
+range, a gymnasium, a sick bay, a rec lounge and a brig for her refit tree, at
+footprints her deck can spare in every layout (`second-wind-refit-tree.md`).
+These are the founding hull's exception to the destroyer-size gate on those
+rooms, not a change to the general program. Their compact fittings follow the
+ordinary rules: the range's lanes are shut deck behind its firing line, the
+gymnasium and lounge (with its chapel) publish recreation, the sick bay and its
+rehab pool are the medic's work, and the brig's one place is a guard post.
+
 The custom start's original Cerberus reserves two bay compartments even before
 conversion. The starboard bay is damaged: its hatch and launch aperture are sealed,
 its deck carries debris, and it offers no working berth or crew duties. Its
@@ -1602,18 +1653,57 @@ old welded plates and soot scars outside the active restoration work. Those mark
 survive facility repair, so a working ship still has a history. They decorate
 actual floor beneath furnishings and own no navigation, cover or capacity.
 
-**Deck lighting** belongs to the company interior presentation. Compartments and
-passages have visible fixtures and readable pools of light. Damaged facilities
-use short, warm pools of emergency light with staggered local faults and deep,
-readable shadow between fixtures. Rooms with working distribution have broader, steady
-illumination from fixtures in the same locations. Second Wind also carries
-faulty distribution in otherwise usable rooms; those local faults do not close
-facilities or remove work stations. A distribution repair restores those circuits
-without repairing sealed structural rooms. Clearing workshop rubble alone does
-not restore its faulty lights; machinery repair does. Bay restoration restores
-its lights with its other facilities. Room masks confine the shading; space and
-management controls retain their own appearance. Lighting follows the shared
-deck clock across views, and has no combat visibility or simulation effect.
+Over that history the founding hull carries a **Deficit dressing**: the
+low-tech style's battered end, one set per core, after the deck look-dev (`art-source/ship-deck-lookdev`): the passages go
+dark, with two strung lamps in three dead, their cable hanging slack, dead wall
+panels and torn-down conduit, for Power; the company camping in its passages, with
+crates, lashed cargo, duffels and bedrolls along both walls, grime at the wall
+foot, stained scrubber grilles, worn furniture and a drifting dead-air haze, for
+Life support; buckled and mismatched patched wall plating, bracing and patched
+deck for Structure; dead screens and cable pulled out of the overhead for
+Compute. Each core's Restored tier clears its own set everywhere on the deck, so
+the ship comes back core by core (`second-wind-refit-tree.md`). Dressing is state
+over fixed form and is presentation only: it is drawn by the deck scene and never
+enters the map, so it moves no room, door, berth or lane and owns no navigation,
+cover or sight. The whole Deficit plan is derived from the deck and its seed, and
+the condition only chooses which cores' pieces show, so the same cells are dirty
+on every visit and clearing one core never moves another's. It keeps off
+doorways, berths, bay apertures, sealed or shut deck and firing ranges; anything
+that reads as standing on the deck hugs a straight run of bulkhead and leaves the
+lane beside it clear, stored cargo lines only passages wide enough to keep two
+clear cells past it, and only flat patches lie mid-lane. **Worn furniture** is a
+condition twin: a fitting whose sheet has an `<id>-worn` piece draws that art on
+the same cells, turn and mirror, keeping its own footprint, cover and blocking.
+A change of condition may be shown at once or played as a **dressing wave**:
+each changing core's look clears, or returns, outward from its source room by
+walking distance along the deck (Power and Life support from the engine room,
+Compute from the bridge, Structure from the middle of the hull), lamps and
+screens stuttering on as it reaches them. A wave runs on the deck's own clock,
+is deterministic for the deck's seed, and ends exactly in the condition shown at
+once. The haze's control is `-Dbattle.render.deadAirHaze=false`.
+
+**Deck lighting** belongs to the company interior presentation. In the low-tech
+interior style it has three kinds of light. Rooms keep fixtures on their long walls: cool white and broad on
+working distribution, short warm pools of emergency light with staggered local
+faults and deep, readable shadow between fixtures where distribution has failed.
+Passages are lit by **strung lamps**, small caged amber lamps on both walls of
+every straight passage, staggered between the walls and fed by a cable run along
+the wall foot; each throws a warm pool that runs inboard from its wall, and the
+passage curve keeps the floor readable between pools. Screens light the deck in
+front of them, teal while the ship's processing runs and a faint amber standby
+when it does not. Beneath the light lies a static shade: contact shadow at the
+foot of every bulkhead and, in the passages, the shadow of overhead beams. Warm
+passages against cool rooms is the deck's palette; command spaces read cool and
+console-lit. Second Wind also carries faulty distribution in otherwise usable
+rooms; those local faults do not close facilities or remove work stations. They
+are the Power core's symptom and follow it: while Power is restored they light as
+any intact room does, so restoring Power relights them in the same wave as the
+passages, without a new deck. A distribution repair restores those circuits
+without repairing sealed structural rooms, which stay on emergency strips. Clearing workshop rubble alone does not restore its faulty lights;
+machinery repair does. Bay restoration restores its lights with its other
+facilities. Room masks confine the shading; space and management controls retain
+their own appearance. Lighting follows the shared deck clock across views, and has
+no combat visibility or simulation effect.
 
 The starting hull's converted Mech Lab, mess hall and two spare troop bunkrooms
 are also sealed wrecks. Their permanent compartments carry breached plating, collapsed

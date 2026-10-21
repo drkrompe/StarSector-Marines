@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.campaign.nexerelin.NexInvasionSettlement;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.AirLoss;
@@ -362,7 +363,8 @@ public final class MissionResolver {
         List<OfficerMissionResult> officers = OfficerMissionResult.compute(sim.committedMarines(),
                 sim.operationOfficer() != null ? sim.operationOfficer() : OfficerCommandProfile.capture(captain),
                 survivingSoldierIds, fallenSoldierIds, victory, payoutEarned, mission.id,
-                currentDayInt(), marinesEngaged, marinesLost);
+                currentDayInt(), marinesEngaged, marinesLost,
+                mission.source.isDebug() ? 1f : ShipRefits.aboard().officerXpMult());
         for (OfficerMissionResult officer : officers) {
             if (captain == null || !captain.id().equals(officer.officer().id())) continue;
             priorStatus = officer.officer().status(); newStatus = officer.status();
@@ -685,10 +687,11 @@ public final class MissionResolver {
         MarineRoster roster = personnelScript.roster();
         // Wounds heal over one day of ship time whatever the risk; stamped from the
         // precise clock so a marine hurt late in a day still gets the whole day.
-        float wiaDays = MarineRoster.WIA_RECOVERY_DAYS;
+        // Degraded scrubbers aboard the founding hull add a day of their own.
+        float wiaDays = MarineRoster.WIA_RECOVERY_DAYS + ShipRefits.aboard().woundRecoveryExtraDays();
         float day = Global.getSector() != null ? CampaignClock.dayFloat() : 0f;
         roster.applySoldierOutcome(
-                resolvePersonnelOutcomes(outcome), day, wiaDays,
+                resolvePersonnelOutcomes(outcome, ShipRefits.aboard().casualtiesSaved()), day, wiaDays,
                 outcome.soldierTelemetry, outcome.victory);
         applyRecoverySpecialties(roster, outcome, day, wiaDays);
         if (outcome.victory) {
@@ -712,6 +715,11 @@ public final class MissionResolver {
 
     /** Deterministic fate roll: a battlefield casualty can be WIA or MIA, not only KIA. */
     static Map<String, MarineSoldierStatus> resolvePersonnelOutcomes(MissionOutcome outcome) {
+        return resolvePersonnelOutcomes(outcome, 0f);
+    }
+
+    /** {@code saved} is the sick bay's share of the killed who come home wounded ({@code ShipCondition.casualtiesSaved}). */
+    static Map<String, MarineSoldierStatus> resolvePersonnelOutcomes(MissionOutcome outcome, float saved) {
         Map<String, MarineSoldierStatus> result = new HashMap<>();
         if (outcome == null) return result;
         for (String id : outcome.survivingSoldierIds) {
@@ -720,7 +728,7 @@ public final class MissionResolver {
         for (String id : outcome.fallenSoldierIds) {
             long seed = CasualtyFate.seed(
                     outcome.missionId != null ? outcome.missionId.hashCode() : 0, id);
-            result.put(id, CasualtyFate.roll(seed, outcome.victory));
+            result.put(id, CasualtyFate.roll(seed, outcome.victory, saved));
         }
         return result;
     }

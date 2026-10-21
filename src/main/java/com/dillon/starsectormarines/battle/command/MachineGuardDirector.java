@@ -14,7 +14,8 @@ import java.util.function.IntBinaryOperator;
 /**
  * Which of a side's free machines stands guard by which of its manned places (`garrisonables.md`, machine guard): the
  * commander-tier half of the machine guard, beside {@link GarrisonDirector}'s manning. It knows nothing of which side
- * it serves; it is given the places the side mans this pulse (and which of them are pressed), the side's free mech
+ * it serves, nor whether a place is a stretch of a run or a building's envelope ({@link #placeManned}); it is given
+ * the places the side mans this pulse (and which of them are pressed), the side's free mech
  * lances, and answers which lance is attached to which place and when it stands down. The machine-tier half — where
  * the chassis stands, which way it faces, what it engages — is {@code MachineGuards}, reached through the order a
  * commander gives ({@link CommandEffects#guardPlace}).
@@ -69,6 +70,12 @@ final class MachineGuardDirector {
     }
 
     private final Map<Integer, Guard> guards = new TreeMap<>();
+    /**
+     * Places whose guard order was refused (the machine tier sees the enemy holding the place, or the side not manning
+     * it), with the pulses left before one is attached there again. Without it the most pressed place was attached, refused
+     * and attached again every pulse, and no other place the side mans was ever given a guard.
+     */
+    private final Map<Integer, Integer> refused = new TreeMap<>();
 
     /** Lances on guard at once for a side fielding {@code machineSquads}: half rounded up, never above {@link #MAX_GUARDS}. */
     static int cap(int machineSquads) {
@@ -96,6 +103,15 @@ final class MachineGuardDirector {
     }
 
     /**
+     * Drops a guard whose order was refused at {@code garrisonable}, and passes that place over for {@link #COOL_PULSES}
+     * pulses so the lance is offered to the next place the side mans.
+     */
+    void refused(int squadId, int garrisonable) {
+        guards.remove(squadId);
+        refused.put(garrisonable, COOL_PULSES);
+    }
+
+    /**
      * Stands or stands down every guard for this pulse. A guard whose lance is not among {@code guarding} (gone, under
      * another authority, or taken up by higher-value work), whose place is not manned or has cooled for the dwell, or
      * whose lance is below useful strength stands down.
@@ -104,6 +120,8 @@ final class MachineGuardDirector {
      * @return the lances standing down this pulse, in id order
      */
     List<Integer> review(Map<Integer, Machine> guarding, List<Place> manned, IntBinaryOperator placeAt) {
+        refused.replaceAll((place, pulses) -> pulses - 1);
+        refused.values().removeIf(pulses -> pulses <= 0);
         List<Integer> down = new ArrayList<>();
         for (var it = guards.entrySet().iterator(); it.hasNext(); ) {
             var entry = it.next();
@@ -143,7 +161,7 @@ final class MachineGuardDirector {
         Set<Integer> used = new HashSet<>();
         for (Place place : manned) {
             if (out.size() >= budget) break;
-            if (!place.hot() || guarded.contains(place.garrisonable())) continue;
+            if (!place.hot() || guarded.contains(place.garrisonable()) || refused.containsKey(place.garrisonable())) continue;
             Machine best = null;
             int bestEta = Integer.MAX_VALUE;
             for (Machine machine : free) {
@@ -168,7 +186,23 @@ final class MachineGuardDirector {
     }
 
     /**
-     * The places a side mans, from the ids of the places its squads are ordered to man: the pressed ones first, in
+     * The garrisonable an order mans, or -1: the stretch a run-scoped area defence stands on, or the envelope of the
+     * building a hold of an envelope names (found by the building, since a commander's facts may carry a copy of its
+     * node, and by the order's cell when the registry no longer offers it). An order that mans nothing answers -1.
+     */
+    static int placeManned(ObjectiveAssignment order, GarrisonableRegistry places) {
+        if (order == null || places == null) return -1;
+        if (order.isGarrison()) return places.idAt(order.targetCellX(), order.targetCellY());
+        if (!order.isEnvelope()) return -1;
+        int envelope = places.envelopeOf(order.targetNode());
+        if (envelope >= 0) return envelope;
+        int at = places.idAt(order.targetCellX(), order.targetCellY());
+        return at >= 0 && places.isEnvelope(at) ? at : -1;
+    }
+
+    /**
+     * The places a side mans, from the ids of the places its squads are ordered to man (stretches of runs and buildings'
+     * envelopes alike, and buildings their own garrison stands in): the pressed ones first, in
      * {@code hotPlaces}' order (the manning director's, most pressed first), then the rest by id.
      */
     static List<Place> manned(Set<Integer> mannedIds, int[] hotPlaces, GarrisonableRegistry places) {

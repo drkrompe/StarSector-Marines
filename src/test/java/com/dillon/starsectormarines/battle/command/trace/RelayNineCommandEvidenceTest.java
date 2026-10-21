@@ -128,6 +128,7 @@ class RelayNineCommandEvidenceTest {
             Set<Long> observedRaiders = new HashSet<>();
             BattleReviewFrameRenderer renderer = capture ? new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080) : null;
             sim.setCommandTraceEnabled(true, "RELAY_NINE");
+            PlaceFightProbe places = new PlaceFightProbe();
             try (CommanderEvidenceCapture visuals = CommanderEvidenceCapture.open(capture ? output : null, "relay-nine", sim,
                     (battle, caption, marks) -> {
                         ReviewAnnotations.Builder extra = ReviewAnnotations.builder();
@@ -197,9 +198,11 @@ class RelayNineCommandEvidenceTest {
                                 .put("allies", count(sim, Faction.ALLY)).put("raiders", count(sim, Faction.DEFENDER)).put("reserve", reserveMembers));
                     }
                     visuals.afterAdvance();
+                    places.sample(sim);
                 }
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
+            System.out.println(places.line(fixture.getString("id"), sim, sim.getCommandTraceJsonLines()));
             assertTrue(observedRaiders.size() <= 28, "Recapture must never refill the finite force");
             if (reserveTick >= 0) assertEquals(28, observedRaiders.size());
             if (sim.getWinner() == Faction.MARINE) {
@@ -218,7 +221,7 @@ class RelayNineCommandEvidenceTest {
                     .put("peakPlayerSquads", peakPlayerSquads).put("uniqueRaiders", observedRaiders.size()).put("reserveArrivalTick", reserveTick).put("militiaFootprintArrivalTick", holdArrivalTick)
                     .put("militiaFootprintOccupancyTicks", holdOccupancyTicks).put("playerRemaining", count(sim, Faction.MARINE))
                     .put("alliesRemaining", count(sim, Faction.ALLY)).put("raidersRemaining", count(sim, Faction.DEFENDER))
-                    .put("storyBeats", StoryBeatEvidence.snapshot(sim)).put("transitions", transitions).put("samples", samples).put("finalSquads", finalSquads).toString(2), sim.getCommandTraceJsonLines());
+                    .put("storyBeats", StoryBeatEvidence.snapshot(sim)).put("placeFight", places.json(sim, sim.getCommandTraceJsonLines())).put("reactiveDefence", ReactiveDefenceEvidence.figures(sim)).put("transitions", transitions).put("samples", samples).put("finalSquads", finalSquads).toString(2), sim.getCommandTraceJsonLines());
         }
     }
     private static boolean inside(BattleSimulation sim, Faction faction, TacticalNode node) {

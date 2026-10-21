@@ -290,7 +290,9 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   need that mission's details.
   Use
   `-PmaxTicks=9000` or
-  `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. Add
+  `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. `-PevidenceDir=<path>` writes the report
+  somewhere other than `build/reports/commander/<mission>/`, so a run and its
+  control run do not overwrite each other. Add
   `-PsnapshotEveryTicks=300` to render neutral-observer PNG frames from the
   first replay and assemble `visuals/<fixture>/review.gif`; the frames add
   cyan marine, red defender, and yellow civilian markers for whole-map review.
@@ -592,6 +594,26 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   (maximum and mean channel difference, worst frame side by side) — accept a
   renderer change on that, never on GIFs, whose palette hides and invents
   differences.
+- `gradlew.bat battleProbe -Pbattle=<source> -Pscript=<file>` → **ask a battle
+  questions instead of bisecting for them.** Stands one battle up, steps it on
+  command and answers queries between steps, one JSON line each: `until T`,
+  `until-beat final_run`, `entity ID` (health, plate, target, orders, squad,
+  telemetry), `near ID R`, `find label=TURRET`, `squads`, `beats`, and, once
+  `hitlog on` has been given, `hits target=ID` / `hits-by attacker target=ID`:
+  every resolved hit with the penetration, the plate rating and arc it met, and
+  what went to armor and to structure. Sources are `thunder-run[:seed=N,...]`
+  (the battle `ThunderRunEvidenceTest` plays, built by the same
+  `ThunderRunEvidenceBattle`) and `fixture:<path>` for any fixture JSON; without
+  `-Pscript` it reads commands from stdin. The battle is deterministic, so
+  stepping to the tick that matters and switching the hit log on there costs one
+  replay for any number of questions: "who killed the Thunder Run tank" was ten
+  seconds here against a bisect of hours. The hit log (`HitLog`, on
+  `CombatTelemetryService`) is an observer that draws no random number and is
+  off unless asked for. The task gets the same deterministic switches every
+  `Test` task does (synchronous routes and influence, serial unit update); a
+  JavaExec without them plays the live game's asynchronous battle, which is
+  not the one the evidence reported. Add a source in `BattleProbeMain.build`
+  when a mission's harness has its own construction.
 - `gradlew.bat sceneEvidence` → plays the behaviour scenes for their verdicts and
   prints a PASS/FAIL table, one row per loop, with a line beneath each failing
   row saying what was measured. The same scenes already play under
@@ -879,6 +901,13 @@ whole-system question and is in the wrong place. Measure it (the JUnit XML
 under `build/test-results/test/` records each test's time) before
 committing, and do not raise the bar for a test that misses it — move the
 question down to its unit, or move the test out of `test`.
+
+**Test less, and only meaningful core behaviour** (owner, 2026-10-21). The project
+wants fewer tests, not more: test the rules the code owns, not the content it ships.
+A test that asserts what an image, a data file or a tuned number currently contains
+(a pixel window, a sprite's size, a curve's constants) fails whenever the content is
+reworked while nothing is broken; do not write one, and delete one you find failing
+for that reason rather than updating it to the new content.
 
 **Things that are not tests do not go in `test`:**
 

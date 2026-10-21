@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.ship.stage;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
+import com.dillon.starsectormarines.battle.world.gen.ship.ReservedFacility;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipKeys;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFloor;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
@@ -41,8 +42,12 @@ public final class CompartmentFillStage implements GenStage {
             throw new IllegalStateException("CompartmentFillStage requires a published deck graph");
         }
         for (DeckGraph.Compartment compartment : graph.compartments()) {
-            RoomFitting fitting = RoomFittings.forShipRoom(
-                    compartment.purpose(), compartment.shape(), fit);
+            // A reserve is furnished as the facility it is kept for, at the
+            // footprint it was given, whether it is open or not: the fill is
+            // the same either way, and only the condition stages tell them apart.
+            ReservedFacility reserve = graph.reserve(compartment.id());
+            RoomFitting fitting = reserve != null ? reserve.fitting()
+                    : RoomFittings.forShipRoom(compartment.purpose(), compartment.shape(), fit);
             int doodads = ctx.doodads.size();
             int berths = ctx.gantries.size();
             int work = ctx.fixtureTasks.size();

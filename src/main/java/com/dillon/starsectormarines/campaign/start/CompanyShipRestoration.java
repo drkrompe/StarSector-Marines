@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.campaign.start;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipRestoration;
+import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
@@ -41,7 +43,8 @@ public final class CompanyShipRestoration {
                 Boolean.TRUE.equals(data.get(KEY + ship.getId() + Work.BILLETS)),
                 Boolean.TRUE.equals(data.get(KEY + ship.getId() + Work.POWER)),
                 Boolean.TRUE.equals(data.get(KEY + ship.getId() + Work.MESS_HALL)),
-                paidMechBerths(data, ship.getId()));
+                paidMechBerths(data, ship.getId()))
+                .withOpenReserves(ShipRefits.condition(ship).openReserves());
     }
 
     /** Contiguous repair receipts survive reload and remain attached to the original hull. */
@@ -53,14 +56,9 @@ public final class CompanyShipRestoration {
         }
         return count;
     }
-    /** Captured at launch, never looked up by a running battle. */
-    public static float moraleRecoveryAboard() {
-        var ship = CompanyShipDesignation.aboard();
-        return moraleRecovery(state(ship), ship != null && !ship.isMothballed()
-                && MercenaryCompanyConversion.installed(ship));
-    }
-    public static float moraleRecovery(ShipRestoration state, boolean activeHome) {
-        return activeHome && state.applies() && state.messHall() ? 1.25f : 1f;
+    /** Captured at launch, never looked up by a running battle: the mess, range and gym together. */
+    public static HullWelfare hullWelfareAboard() {
+        return ShipRefits.aboard().hullWelfare();
     }
     public static boolean mechBayRestored(MarineRoster roster) {
         return roster != null && roster.hasCompletedStory(OpeningOperationKind.COUNTERATTACK.missionId);

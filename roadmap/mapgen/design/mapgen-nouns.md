@@ -89,6 +89,10 @@ Runtime mutation is admitted in both directions, under different obligations.
 **Destruction is free**, because it only ever makes the world more permissive: a
 path that was valid stays valid, a zone that was connected stays connected, and
 a unit standing somewhere legal is still standing somewhere legal.
+The one runtime write that closes ground again is a sally door shut behind a
+sortie (`garrisonables.md`, sally doors): it puts back exactly the wall that
+was opened, never on a body, drops every route that crosses it, and forces the
+full zone rebuild, since the zone graph's incremental update only merges.
 **Construction must not create an island.** That is the harm the model exists to
 prevent — a unit cut off from its objective, or sealed inside a region with no
 way out — and it is what a runtime placement has to answer for, since a new
@@ -198,8 +202,13 @@ leaves is a full run, so every apron is a fighting position and none is a stub
 of cover that reads like one. It refuses rather than repairs: no bag on a
 doorway, a wall, a fixture, reserved road or a vehicle corridor, or beside
 another door, and the door's lane and the cells behind the bags must be open
-floor. Conquest's compound places each try for one, facing the landing; story
-compound maps lay theirs facing where the attack lands. The compound's lookout
+floor. Conquest's compound places each try for one, facing the landing — the
+traversal axis's landing end on a stock map, the landing place on the campaign's
+Conquest of places, where the places' own circulation roads are kept clear as
+reserved road is; story compound maps lay theirs facing where the attack lands.
+An apron is stamped to qualify as a run rather than made a smaller kind of
+place, because a smaller kind with its own floor would split every garrison
+consumer in two for ground that reads exactly like a trench line. The compound's lookout
 is seated behind it. `-Dbattle.mapgen.compoundPreparedGround=false` is the
 control.
 

@@ -96,11 +96,15 @@ class RaidCommandEvidenceTest {
              CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(
                      visualRoot, runId, sim)) {
             sim.setCommandTraceEnabled(true, fixture.kind());
+            PlaceFightProbe places = new PlaceFightProbe();
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 sim.advance(BattleSimulation.TICK_DT);
                 capture.afterAdvance();
+                places.sample(sim);
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
+            System.out.println(ReactiveDefenceEvidence.line(runId, sim, sim.getCommandTraceJsonLines()));
+            System.out.println(places.line(runId, sim, sim.getCommandTraceJsonLines()));
             return new RunResult(sim.getCommandTraceJsonLines(),
                     sim.getSimTickIndex(), sim.isComplete(),
                     sim.getWinner() != null ? sim.getWinner().name() : null);

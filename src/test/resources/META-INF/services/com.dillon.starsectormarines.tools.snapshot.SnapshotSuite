@@ -221,3 +221,5 @@ com.dillon.starsectormarines.battle.vehicle.HoverLineSceneSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.DamageDollSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.CompoundPreparedGroundSnapshotSuite
 com.dillon.starsectormarines.battle.command.CompoundApronSceneSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.ship.SecondWindDressingSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.ship.SecondWindFacilitiesSnapshotSuite

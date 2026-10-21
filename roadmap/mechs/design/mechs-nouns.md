@@ -222,6 +222,13 @@ increasing an encounter's total armored threat.
   one chassis another. The capacitor bank sets the reservoir and base dissipation, a vent array
   adds to it, and an uprated engine runs hotter. Battle reads only these values;
   internals, mass and budget stay campaign authority.
+- A **ship refit** is what the company ship's Mech Lab is worth to an owned
+  mech (`MechRefit`; `second-wind-refit-tree.md`): an armor and a dissipation
+  factor over the frame values, a fire-control factor on every mount's
+  accuracy, and a torso traverse factor. The launch freezes it into each owned
+  mech's deployment beside its frame, never into the frame, so the fit's own
+  figures stay what the Mech Lab budget reads. Unowned mechs, and any mech off
+  the founding hull, deploy neutral; battle never reads the ship.
 - A **section** is where on a mech a round lands (`MechSection`): legs, torso,
   the arms mount, the left and right shoulder mounts, and the head. A chassis's
   **mech plan** (`MechBodyPlan`, authored per chassis) stacks four height bands
@@ -333,7 +340,9 @@ increasing an encounter's total armored threat.
   weighted over armor) weighted by its pool share. At full wear the bill is half
   the chassis's own fabrication bill, the boat precedent, and the clock is a
   few campaign days by weight class; both scale down with wear. A paid order
-  clears the damage and starts the clock.
+  clears the damage and starts the clock. The ship's field-repair refit shortens the clock when
+  the order is quoted, and its spares rack cheapens a replacement weapon
+  assembly, which is what refitting a destroyed mount costs.
 - A mech's **readiness** is ready, damaged (no order yet) or under repair
   (clock running). Only a ready mech enters the armor-drop manifest; the Mech
   Lab shows a held-back mech's reason and days left. A damaged mech never fights

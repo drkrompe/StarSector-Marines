@@ -280,6 +280,7 @@ tasks.register('garrisonEvidence', Test) {
     maxParallelForks = 1
     outputs.upToDateWhen { false }
     systemProperty 'starsectorDir', starsectorDir.absolutePath
+    forwardBattleSwitches(delegate)
     testLogging {
         showStandardStreams = true
     }
@@ -472,6 +473,36 @@ tasks.register('renderEvidence', Test) {
     }
 }
 
+// Stands one battle up and answers questions about it between steps (`BattleProbe`): step to the tick that
+// matters, switch on the hit log there, and ask who is shooting whom, without a replay per question.
+// -Pbattle=thunder-run[:seed=N,companySize=N] or fixture:<path>; -Pscript=<file> (stdin without one); -Pout=<file>.
+// Serial, as commanderEvidence plays, so the battle probed is the battle the evidence reported.
+tasks.register('battleProbe', JavaExec) {
+    group = 'verification'
+    description = 'Step one battle and query entities, hits and squads between steps.'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.battle.probe.BattleProbeMain'
+    workingDir projectDir
+    standardInput = System.in
+    outputs.upToDateWhen { false }
+    maxHeapSize = '2g'
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    // Exactly what every Test task is given (`tasks.withType(Test)` above) plus commanderEvidence's serial unit
+    // update. Without the async switches the probe plays the live game's asynchronous battle, which is neither the
+    // one the evidence reported nor guaranteed to repeat; a -Dbattle switch still overrides any of them.
+    systemProperty 'marines.debug.screenTrigger', 'off'
+    systemProperty 'battle.pathfinding.asyncDefendTrack', 'false'
+    systemProperty 'battle.pathfinding.asyncClearance', 'false'
+    systemProperty 'battle.influence.async', 'false'
+    systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
+    forwardBattleSwitches(delegate)
+    ['battle': 'probe.battle', 'script': 'probe.script', 'out': 'probe.out'].each { argument, property ->
+        def value = providers.gradleProperty(argument).getOrElse('').trim()
+        if (!value.isBlank()) systemProperty property, argument == 'battle' ? value : file(value).absolutePath
+    }
+}
+
 tasks.register('commanderEvidence', Test) {
     group = 'verification'
     description = 'Run forced-serial commander evidence selected with -Pmission=<mission>.'
@@ -503,8 +534,11 @@ tasks.register('commanderEvidence', Test) {
                 raid: 'raid.command.evidence',
                 extraction: 'extraction.command.evidence',
         ][commanderEvidenceMission]
-        systemProperty "${prefix}.outputDir",
-                layout.buildDirectory.dir(
+        // -PevidenceDir=<path> writes this run's report elsewhere, so a run and its control run can sit side by side.
+        def evidenceDir = providers.gradleProperty('evidenceDir').getOrElse('').trim()
+        systemProperty "${prefix}.outputDir", !evidenceDir.isBlank()
+                ? file(evidenceDir).absolutePath
+                : layout.buildDirectory.dir(
                         "reports/commander/${commanderEvidenceMission}")
                         .get().asFile.absolutePath
         def fixture = providers.gradleProperty('fixture')

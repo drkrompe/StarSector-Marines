@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.fs.starfarer.api.graphics.SpriteAPI;
+import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 
 /**
  * Emits the {@link RenderLayer#DOODADS} layer — props (rocks, plants, debris,
@@ -39,7 +40,43 @@ public final class DoodadRenderSystem implements RenderSystem {
         VisibleCellRect view = cam.visibleCells(
                 VisibleCellRect.GEOMETRY_MARGIN_CELLS,
                 ctx.sim.getGrid().getWidth(), ctx.sim.getGrid().getHeight());
-        collectPlacements(ctx.sim.getDoodads(), out, cam, view, ctx.alphaMult);
+        collectPlacements(ctx.sim.getDoodads(), out, cam, view, ctx.alphaMult, wornTwins(ctx));
+        // Facility tiers fitted into existing rooms stand with the furniture, presentation only.
+        if (!ctx.facilityPieces.isEmpty() && ctx.hostProfile == BattleRenderHostProfile.DECK_SCENE)
+            collectPlacements(ctx.facilityPieces, out, cam, view, ctx.alphaMult);
+    }
+
+    /**
+     * A placement's condition twin and how strongly it shows. Presentation only:
+     * a twin shares its placement's footprint, cover and blocking.
+     */
+    interface Twins {
+        /** The twin, or the placement itself when it has none. */
+        Doodad twin(Doodad placed);
+        /** 0 shows the placement, 1 its twin; between, the twin is drawn over it at that alpha. */
+        float weight(Doodad placed);
+    }
+
+    /** A deck whose Life support is at Deficit shows worn furniture where a worn twin exists. */
+    private static Twins wornTwins(RenderContext ctx) {
+        ShipDeckDressing dressing = ctx.deckDressing;
+        if (dressing == null || ctx.hostProfile != BattleRenderHostProfile.DECK_SCENE) return null;
+        DressingWave wave = ctx.dressingWave;
+        float time = ctx.animationTimeSeconds;
+        if (wave != null && wave.moves(ShipCore.LIFE_SUPPORT)) {
+            return new Twins() {
+                @Override public Doodad twin(Doodad placed) { return dressing.worn(placed); }
+                @Override public float weight(Doodad placed) {
+                    return wave.deficit(ShipCore.LIFE_SUPPORT, placed.cellX + placed.footprintCellsX * .5f,
+                            placed.cellY + placed.footprintCellsY * .5f, time);
+                }
+            };
+        }
+        if (ctx.coreDressing.lifeSupport()) return null;
+        return new Twins() {
+            @Override public Doodad twin(Doodad placed) { return dressing.worn(placed); }
+            @Override public float weight(Doodad placed) { return 1f; }
+        };
     }
 
     /**
@@ -85,6 +122,12 @@ public final class DoodadRenderSystem implements RenderSystem {
 
     void collectPlacements(Iterable<Doodad> placements, DrawList out, BattleCamera cam,
                            VisibleCellRect view, float alphaMult) {
+        collectPlacements(placements, out, cam, view, alphaMult, null);
+    }
+
+    /** @param twins each placement's condition twin, or null for none */
+    void collectPlacements(Iterable<Doodad> placements, DrawList out, BattleCamera cam,
+                           VisibleCellRect view, float alphaMult, Twins twins) {
         boolean additionalSheet = false;
         for (Doodad d : placements) {
             if (!isLegacySheet(d.sheetPath)) { additionalSheet = true; break; }
@@ -97,10 +140,36 @@ public final class DoodadRenderSystem implements RenderSystem {
             emitLegacySheet(placements, out, cam, view, sprites.tileSheet(), TileManifest.SHEET, alphaMult);
             return;
         }
+        for (Doodad placed : placements) {
+            if (!view.intersectsCells(placed.cellX, placed.cellY, placed.footprintCellsX, placed.footprintCellsY)) continue;
+            Doodad twin = twins == null ? placed : twins.twin(placed);
+            float weight = twin == placed ? 0f : twins.weight(placed);
+            if (weight < 1f) emitOne(placed, out, cam, alphaMult);
+            if (weight > 0f) emitOne(twin, out, cam, alphaMult * weight);
+        }
+    }
+
+    /** One placement at its own alpha, if it is in view. */
+    void collectOne(Doodad d, DrawList out, BattleCamera cam, VisibleCellRect view, float alpha) {
+        if (alpha <= 0f || !view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY)) return;
+        emitOne(d, out, cam, alpha);
+    }
+
+    private void emitOne(Doodad d, DrawList out, BattleCamera cam, float alpha) {
+        SpriteAPI sheet = sheetFor(d);
+        if (sheet != null) emit(out, cam, sheet, d, cam.cellPxSize(), alpha);
+    }
+
+    /**
+     * Draw placements again over themselves in one flat tint: how an unpowered
+     * screen reads without a second sheet of dead variants. Presentation only.
+     */
+    void collectTinted(Iterable<Doodad> placements, DrawList out, BattleCamera cam, VisibleCellRect view,
+                       float r, float g, float b, float alpha) {
         for (Doodad d : placements) {
             if (!view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY)) continue;
             SpriteAPI sheet = sheetFor(d);
-            if (sheet != null) emit(out, cam, sheet, d, cam.cellPxSize(), alphaMult);
+            if (sheet != null) emit(out, cam, sheet, d, cam.cellPxSize(), alpha, RenderLayer.DOODADS, r, g, b);
         }
     }
 
@@ -136,6 +205,12 @@ public final class DoodadRenderSystem implements RenderSystem {
 
     private static void emit(DrawList out, BattleCamera cam, SpriteAPI sheet,
                              Doodad d, float cellPx, float alphaMult, RenderLayer layer) {
+        emit(out, cam, sheet, d, cellPx, alphaMult, layer, 1f, 1f, 1f);
+    }
+
+    private static void emit(DrawList out, BattleCamera cam, SpriteAPI sheet,
+                             Doodad d, float cellPx, float alphaMult, RenderLayer layer,
+                             float r, float g, float b) {
         // Source rectangle is read at the sheet's own cell size, not the
         // game's. A sheet drawn finer than the grid keeps its detail; one drawn
         // at the grid behaves exactly as before. The quad then stretches that
@@ -159,13 +234,13 @@ public final class DoodadRenderSystem implements RenderSystem {
                     srcX, srcY, sourceWidth, sourceHeight,
                     cx, cy, cellPx * d.sourceCellsX, cellPx * d.sourceCellsY,
                     d.quarterTurns * 90f + 180f,
-                    1f, 1f, 1f, alphaMult);
+                    r, g, b, alphaMult);
             return;
         }
         out.addSheetQuad(layer, sheet,
                 srcX, srcY, sourceWidth, sourceHeight,
                 cx, cy, cellPx * d.sourceCellsX, cellPx * d.sourceCellsY,
                 d.quarterTurns * 90f,
-                1f, 1f, 1f, alphaMult);
+                r, g, b, alphaMult);
     }
 }

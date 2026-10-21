@@ -60,8 +60,8 @@ public final class ReservedBoatBayStage implements GenStage {
             floor.pave(x, second.depth() / 2, "doodad.industrial-scrap-pile");
         SealedShipHatches.seal(ctx, second);
         // The original launch opening remains a solid bulkhead until repaired.
-        ctx.put(ShipKeys.DECK_GRAPH, new DeckGraph(graph.compartments(), graph.unplaced(),
+        ctx.put(ShipKeys.DECK_GRAPH, graph.withCondition(
                 graph.apertures().stream().filter(a -> a.compartmentId() != second.id()).toList(),
-                graph.boats(), Set.of(second.id())));
+                Set.of(second.id()), Set.of()));
     }
 }

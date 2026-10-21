@@ -1,5 +1,6 @@
 Status: DRAFT — work plan for the Asharu effects day (2026-10-21)
 Written: 2026-10-20
+Updated: 2026-10-21 — W0 done: per-ship SWFX copies proven independent; the bench and its job template are in.
 
 # Asharu battle: effects work plan
 
@@ -27,24 +28,111 @@ renders until the bench has answered the taste questions.
 
 Each workstream lists what it reuses, what is genuinely new, and its proof.
 
-### W0 Integration spike (serial, first)
+### W0 Integration spike (serial, first): done 2026-10-21
 
 The kit was built for **one hull per file**: one `SWFX controls` object whose knobs drive that
-ship's effects. The Asharu scene places up to a dozen hulls, several of them the same build
-(three Lashers, two Wolves (P)), as collection instances. Instances share one set of knobs, so
-three Lashers would flash in step.
+ship's effects. The scene places several hulls of one build (three Lashers, two Hounds (P), two
+Wolves (P), two Kites (P)), and collection instances would share one set of knobs.
 
-- **Spike:** append two builds' `SWFX` into one scene. Make a second, independent copy of one
-  (a full copy, not an instance). Show that each copy's drivers read its own controls.
-- **Then:** the blockout gains a per-ship effects hook: append `SWFX` with the hull, copy per
-  ship, and key knobs per shot from a small per-shot cue list.
-- **Files:** `battle_blockout.py` (sole owner), a new `asharu-battle/effects_bench.py`.
-- **Bench harness:** loads 1-3 named builds from `build/asharu-battle/builds/`, places them at a
-  test distance against a black sky, applies the kit live with chosen groups, and renders N
-  frames at half size and ≤16 samples. Each workstream adds its tests in its own
-  `bench_<ws>.py` module, so parallel sessions never edit one file.
-- **Done when:** the spike stills show two Lashers firing out of step, and the harness runs one
-  trivial test end to end through the light lane.
+**Result: every placed ship gets its own full copy, and the copies are proven independent.**
+`ship_fx.ShipFx` copies the build's `SWFX` tree for one ship: objects, lights, meshes and
+materials. It then points every driver, parent and pointer at the copy. A build that drives hull
+parts from its own control (the Wolfs' `gear_down`, the Mk.III's `grapples`, the Phaeton wreck's
+`break_frame`) also gets its hull copied, sharing the meshes. Each copy also shifts the kit's
+`frame`-noise drivers by its own offset, so engine flicker and beacon blinks are out of step too.
+Drivers keyed to a `*_frame` knob stay on the scene clock, so the wreck's cook-off timing is
+unchanged.
+
+Proof (no render):
+- `python battle_blockout.py --fx-check` stages every cued key frame under the kit and reads
+  each ship's copy back from Blender's evaluated scene. On k3 (S6) the three Lashers read
+  throttle 0.2 / 0.6 / 1.0, firing none / `t3_1` / all three, at 0 / 2,500 / 7,500 W of flash
+  light. On k3e (S6d) the two Hounds (P) differ the same way. The audit covers 14 ships: none
+  of them reaches another ship's copy or the library original. No driver is invalid. Verdict
+  `PASS`, written to `fx-check.json`.
+- `python effects_bench.py --tests w0.two-lashers --check`: two copies of the Lasher build
+  keyed through the kit's own `swfx_guns.fire`. The flash envelopes interleave as keyed: A
+  fires on frames 2 and 5, B on 3–4. Each ship's tracers sit in its own Guns collection, ride its
+  own muzzle anchors, and use its own tracer material reading its own controls.
+- The harness ran end to end through the light lane: job `asharu-fx-w0-two-lashers-2026-10-21`
+  (now `bench-job.template.json`) finished `ok` on Windows. It took 97 s for four frames, about
+  15 s a frame at half size and 16 samples, and posted
+  `review/asharu-fx-w0/2026-10-21_w0-two-lashers_windows/`.
+  - On the sheet, the full-throttle Lasher's hot plume stands beside the quarter-throttle one's
+    faint haze, and the tracers alternate between the ships as keyed.
+  - Light MG flashes are too small to judge at that 360 m framing. Gun tests should frame closer.
+  - That run's sky came out 0.05 grey rather than black: a new world's own Background node.
+    The bench now zeroes it.
+
+**What W1–W6 build on:**
+
+- **The bench.** `effects_bench.py` sets up a black sky, a fixed key and fill light and a fixed
+  camera. Each test places 1–3 builds, each ship with its own copy. It renders at half size and
+  16 samples or fewer, and skips frames already rendered, so a swapped-out job resumes.
+  - Each workstream adds tests in its own `bench_<module>.py`: `bench_shields.py`,
+    `bench_missiles.py`, `bench_pd.py`, `bench_guns.py`, `bench_impacts.py`. Copy the
+    `bench_w0.py` pattern:
+    `TESTS = {name: dict(builds=[...], frames=[...], note=..., setup=fn)}`.
+  - `setup(bench)` calls `bench.ship(key, build, at=, heading=, throttle=)`,
+    `bench.camera(loc, target, lens)` and `bench.at(ship, local)`.
+  - `python effects_bench.py --list` lists every test; `--tests <module.name> --check` builds and
+    keys the rig in Blender, prints each ship's readings, and renders nothing.
+  - `--write-job --tests ... [--machine any] --date D --what <slug> --out DIR` writes the
+    light-lane job. It pins only the builds the tests name, by sha256. Leave the machine as `any`
+    (the default): Drive on the Mac stopped syncing on 2026-10-21, so a Mac-only job stalls. Submit it with
+    `tools/render_queue.py submit <job> --commit <rev>`. One job may carry several tests (keep it
+    under 30 minutes).
+  - Each module posts to its own review asset, `review/asharu-fx-<module>/<date>_<what>_<machine>/`:
+    four frames to a 1920x1080 sheet, with a `NOTES.md` that records each ship's readings per
+    frame. That asset alone is pruned after a post, so one workstream's posts never prune
+    another's, or the scene rounds.
+- **Per-ship knobs.**
+  - `ship.set(name, v)` and `ship.key(name, frame, v)` act on one ship only. They reach both the
+    SWFX knobs and hull knobs such as `gear_down`.
+  - `ship.flash(label)` lights one gun for a still.
+  - `ship.reading()` reports what the copy evaluates to on the current frame.
+  - `ship.object('<kit name>')` finds this ship's copy of a kit object.
+- **The kit's own helpers, per ship:**
+
+  ```python
+  with ship.kit() as (ctx, kit):
+      kit.guns.fire(ctx, 1, 4, shots=6, interval_frames=3)
+  ```
+
+  This also works for `kit.thrusters.ignition` and the other helpers. Inside the block:
+  - the kit's modules are loaded for that build's hull profile and scale;
+  - its rigs (`swfx_guns._RIGS`) are this ship's flash and launch volumes;
+  - this ship's copies carry the kit's own names, because the kit finds materials and meshes by
+    name.
+
+  Anything the helpers create belongs to that ship and is renamed out of the way afterwards. A new
+  kit group (shield flux, overload, PD, missile paths, impacts) gets per-ship behaviour for free
+  if it does two things:
+  - keeps its state in `SWFX controls` knobs and objects under the `SWFX` collection;
+  - reaches the ship through `ctx` (`ctx.controls`, `ctx.collection(group)`, `ctx.anchors`)
+    rather than through `bpy.data` lookups by name.
+- **Builds must carry the new group.** A build's `SWFX` is baked into its `.blend`, so a
+  new group (W1's shield, say) reaches a test once of two things happens. Either the hull is
+  re-exported with the group applied, or the test builds the group onto the ship's copy. The
+  second way means calling the group's `build(ctx, ...)` inside `ship.kit()`, with
+  `ctx.anchors` already this ship's.
+- **The scene's cue list (W6 and the final integration go through `battle_blockout.py`).**
+  - A key frame takes `cues={ship: {'fire': 'all' | ['t1_1', ...], '<knob>': value}}`.
+    `--check` lists each frame's cues beside the other ships of the same build.
+  - `--swfx` turns the kit on for every finished build. The kit's drives then follow each
+    placement's throttle, and the placeholder plumes are dropped for those ships. Without
+    `--swfx` the frames render as before.
+  - Cues are on k3 and k3e so far.
+
+**Limits W1–W6 should know:**
+- A hull without its own control object stays one shared collection. Turret traverse is
+  therefore the build's pose, the same for every copy. The guns' effects ride their own copies'
+  anchors, which ride the shared turrets.
+- Per-round randomness in `swfx_guns` is seeded by turret, frame and round. Two ships firing the
+  same gun on the same frame draw the same flash shape. Stagger them, or set `gun_seed_*`.
+- Some kit lookups are still by name outside `ship.kit()`: `swfx_shield` (its anchor),
+  `swfx_beams` (muzzle, rig) and `swfx_lighting` (the grapple head). Run that code inside the
+  block, or pass the object.
 
 ### W1 Shields
 
@@ -169,8 +257,9 @@ three Lashers would flash in step.
 ## Proof jobs: three light-lane jobs
 
 Each job stays under the light lane's 30-minute cap: half size, 16 samples, about 40 frames. Each
-runs `effects_bench.py --tests <list> --samples 16 --half --root {work} --post {machine}`, writing
-to `review/cinematic-asharu-battle/2026-10-21_effects-bench_<machine>`.
+runs `effects_bench.py --tests <list> --samples 16 --half --root {work} --post {machine}`, written by
+`effects_bench.py --write-job` (see W0), and posts each module's sheets to
+`review/asharu-fx-<module>/<date>_<what>_<machine>`.
 
 | Job | Tests | Machine | Why |
 |---|---|---|---|

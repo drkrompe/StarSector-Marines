@@ -1,0 +1,46 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f21-f1f4-7d11-9516-08027f8e635c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f21-f1f4-7d11-9516-08027f8e635c\\exec-89150f0a-da97-4109-9f62-98c01e428466.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\downed\\raw\\bulwark-heavy.png",
+    "sha256": "45a12213583c7914ed943f313c88f7e4b3092f81c6a9f9b769c7ef348260996d",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\downed\\prompts\\_wear.txt",
+  "promptSha256": "fdda0ac759459cca09b849362b5834bf8e27f1024346538201a41a649808611a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target and authority for everything except surface wear: exact figures, outlines, positions, armor design, colors and pixel-art style\n\nUse case: edit. Reference 1 is a finished production sprite sheet of four fallen armored soldiers for a top-down tactical game, 1536x1024, on a genuinely transparent background. It is the exact edit target.\n\nChange ONLY the surface wear: make the armor look like it has been through a hard fight instead of fresh from the depot.\n- Scorch and carbon soot: dark blast scorching on a few plates, soot streaks.\n- Chipped and scraped paint: worn edges and chips showing dull bare metal underneath, deep scratches.\n- Impact damage: a handful of bullet pocks and gouges, one or two cracked or dented plates per figure, a frayed or torn strap or cloth seam.\n- Grime: dust and dried mud caked on the boots and lower legs, grime in the joints and seams, the colors slightly dulled and dirtier overall.\nSpread the damage unevenly and believably, more on the front-facing and lower surfaces; every figure gets some.\n\nKeep EVERYTHING else exactly as it is: every figure's outline, pose, limb positions, size and position on the canvas; the armor design, plate shapes, helmet, insignia and base colors; the pixel-art rendering, one-step dark outline and lighting from the upper left. Do not add or remove any part, do not move anything, do not crop or resize. Everything outside the figures stays genuinely transparent: no background, ground, shadow, border or text. No blood, gore, wounds or bodies' skin damage; no weapons or dropped gear.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\downed\\raw\\bulwark-heavy.png",
+      "sha256": "9f006d7001bb7132a9a8e46c4357ab3c01b41616b972351219e538934f13471a",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Edit target and authority for everything except surface wear: exact figures, outlines, positions, armor design, colors and pixel-art style"
+    }
+  ],
+  "agentMessages": [
+    "I\u00e2\u20ac\u2122ll use the image generation tool to add battle wear while preserving the four figures, their placement, and the transparent background."
+  ],
+  "usage": {
+    "input_tokens": 40980,
+    "cached_input_tokens": 29312,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 428,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.4,
+  "note": "Battle-wear edit of the previous clean sheet (git history), made with prompts/_wear.txt; the clean sheet was the edit target."
+}

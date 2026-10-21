@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
+import com.dillon.starsectormarines.battle.sim.HitLog;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.BodyCarrier;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -98,6 +99,9 @@ public final class BodyDamageResolver {
                 : ArmorArcs.classify(convoy.body(targetId).facingDegrees, dx, dy);
         float armorDamage;
         float hpAfter;
+        // What the round was read against, for the hit log only.
+        float hitRating = rating * arcs.rating(hullArc);
+        String hitPart = null;
         if (locations != null) {
             GroundBody body = convoy.body(targetId);
             float facing = body != null ? body.facingDegrees : 0f;
@@ -110,6 +114,8 @@ public final class BodyDamageResolver {
             locations.resolve(onTurret, onDrive, plate, postCover,
                     penetration, rating * arcs.rating(turretArc), arcs.plate(turretArc),
                     rating * arcs.rating(hullArc), arcs.plate(hullArc), hpBefore, durability, locatedHit);
+            if (onTurret) hitRating = rating * arcs.rating(turretArc);
+            hitPart = onTurret ? "TURRET" : onDrive ? "DRIVE" : "HULL:" + plate;
             armorDamage = locatedHit.armorDamage();
             hpAfter = locatedHit.hullDestroyed() ? 0f : Math.max(0f, hpBefore - locatedHit.structureDamage());
             if (locatedHit.driveDestroyed() && body != null) body.immobilised = true;
@@ -117,7 +123,10 @@ public final class BodyDamageResolver {
             // The turret faces its own way: a hit on it is read against the barrel, not the hull.
             ArmorArcs.Arc turretArc = arcs == ArmorArcs.Profile.FLAT ? ArmorArcs.Arc.SIDE
                     : ArmorArcs.classify(turret.facingDeg, dx, dy);
-            section.resolve(section.struck(rng.nextFloat()), postCover, penetration,
+            boolean onTurret = section.struck(rng.nextFloat());
+            if (onTurret) hitRating = rating * arcs.rating(turretArc);
+            hitPart = onTurret ? "TURRET" : "HULL";
+            section.resolve(onTurret, postCover, penetration,
                     rating * arcs.rating(turretArc), arcs.plate(turretArc),
                     rating * arcs.rating(hullArc), arcs.plate(hullArc),
                     armorBefore, hpBefore, durability, sectionHit);
@@ -137,6 +146,13 @@ public final class BodyDamageResolver {
 
         float applied = armorDamage + (hpBefore - hpAfter);
         CombatTelemetryService telemetry = roster.telemetry();
+        HitLog hitLog = telemetry.hitLog();
+        if (hitLog.recording()) {
+            hitLog.record(new HitLog.Hit(hitLog.tick(), targetId, HitLog.label(roster, targetId),
+                    attackerId, HitLog.label(roster, attackerId), damage, postCover, penetration, hitRating,
+                    arcs == ArmorArcs.Profile.FLAT ? null : hullArc.name(), hitPart, 0f, armorDamage,
+                    hpBefore - hpAfter, hpAfter, world.armor(targetId), hpAfter <= 0f));
+        }
         if (telemetry.isRecorded(attackerId) && attackerId != targetId) {
             boolean friendly = roster.identity().faction(attackerId)
                     .friendlyTo(carrier.faction(targetId));

@@ -8,9 +8,12 @@ import com.dillon.starsectormarines.battle.world.gen.ship.DeckZone;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,6 +37,29 @@ class ShipDeckLightingTest {
         }
         assertTrue(before.cells[5 * 20 + 5].emergency());
         assertFalse(after.cells[5 * 20 + 5].emergency());
+    }
+
+    @Test void restoringPowerRelightsRoomsWithFaultyCircuitsButNotDamagedOnes() {
+        var topology = new CellTopology(30, 12);
+        for (int y = 0; y < 12; y++) for (int x = 0; x < 30; x++) topology.setGroundKind(x, y, GroundKind.INDOOR);
+        var faulty = new DeckGraph.Compartment(1, RoomShape.rectangle(10, 6), 2, 3,
+                RoomPose.CANONICAL, DeckSide.PORT, DeckZone.MIDSHIPS, RoomPurpose.BARRACKS, List.of());
+        var wrecked = new DeckGraph.Compartment(2, RoomShape.rectangle(10, 6), 16, 3,
+                RoomPose.CANONICAL, DeckSide.PORT, DeckZone.MIDSHIPS, RoomPurpose.BARRACKS, List.of());
+        var plain = new DeckGraph(List.of(faulty, wrecked), List.of());
+        var graph = new DeckGraph(List.of(faulty, wrecked), List.of(), List.of(), plain.boats(), Set.of(2), Set.of(1));
+        var dark = new ShipDeckLighting(topology, graph, 42, false);
+        var lit = new ShipDeckLighting(topology, graph, 42, true);
+        assertTrue(dark.cells[5 * 30 + 5].emergency());
+        assertFalse(lit.cells[5 * 30 + 5].emergency());
+        assertTrue(dark.cells[5 * 30 + 20].emergency());
+        assertTrue(lit.cells[5 * 30 + 20].emergency());
+        // The same fixtures either way, so a wave can blend one lamp into its own other state.
+        assertEquals(dark.lamps.size(), lit.lamps.size());
+        for (int i = 0; i < dark.lamps.size(); i++) {
+            assertEquals(dark.lamps.get(i).x(), lit.lamps.get(i).x());
+            assertEquals(dark.lamps.get(i).y(), lit.lamps.get(i).y());
+        }
     }
 
     @Test void emergencyPowerLeavesDistinctDarkGapsAndRepairRestoresCoverage() {
@@ -72,18 +98,48 @@ class ShipDeckLightingTest {
     @Test void demolishingTheMountRemovesTheFixtureAndItsPoolWithoutRebuildingTheScene() {
         var topology = new CellTopology(10, 10);
         for (int y = 0; y < 10; y++) for (int x = 0; x < 10; x++) topology.setGroundKind(x, y, GroundKind.INDOOR);
-        topology.setWall(3, 5, true); // Passage lamp at (3.5, 4.85), x+y == 7.
-        var lights = new ShipDeckLighting(topology, null, 42);
-        assertEquals(1, lights.lamps.size()); assertTrue(lights.present(0));
-        var floor = lights.cells[4 * 10 + 3];
-        float lit = ShipDeckLighting.illumination(floor, 5, new float[]{lights.gain(0, 0)});
-        assertTrue(lit > 0);
-        topology.setWall(3, 5, false);
-        assertFalse(lights.present(0)); assertEquals(0f, lights.gain(0, 0));
-        assertEquals(0f, ShipDeckLighting.illumination(floor, 5, new float[]{lights.gain(0, 0)}));
+        for (int x = 0; x < 10; x++) topology.setWall(x, 5, true); // A straight passage wall; lamps on x % 4 == 0.
+        var lights = new ShipDeckLighting(topology, null, 42, true, List.of(), true, id -> null);
+        int lamp = -1;
+        for (int i = 0; i < lights.lamps.size(); i++)
+            if (lights.lamps.get(i).x() == 4.5f && lights.lamps.get(i).y() < 5f) lamp = i;
+        assertTrue(lamp >= 0); assertTrue(lights.present(lamp));
+        assertEquals(ShipDeckLighting.Style.STRUNG, lights.lamps.get(lamp).style());
+        var floor = lights.cells[4 * 10 + 4];
+        float[] gains = new float[lights.lamps.size()];
+        for (int i = 0; i < gains.length; i++) gains[i] = lights.gain(i, 0);
+        assertTrue(ShipDeckLighting.illumination(floor, 3 * ShipDeckLighting.SAMPLES + 4, gains) > .3f);
+        topology.setWall(4, 5, false);
+        assertFalse(lights.present(lamp)); assertEquals(0f, lights.gain(lamp, 0));
         // Ordinary scarring does not destroy a mount; restoring actual structure restores light.
-        topology.setWall(3, 5, true); topology.setTag(3, 4, CellTopology.Tag.GROUND_DAMAGED, true);
-        assertTrue(lights.present(0)); assertEquals(1f, lights.gain(0, 0));
+        topology.setWall(4, 5, true); topology.setTag(4, 4, CellTopology.Tag.GROUND_DAMAGED, true);
+        assertTrue(lights.present(lamp)); assertEquals(1f, lights.gain(lamp, 0));
+    }
+
+    @Test void aStrungLampLightsInboardAndNeverThroughItsOwnWall() {
+        var lamp = new ShipDeckLighting.Lamp(4.5f, 4.88f, false, false, false, 0f,
+                ShipDeckLighting.Style.STRUNG, 0f, -1f, 1f, .64f, .3f, 2.4f);
+        float near = ShipDeckLighting.weight(lamp, 4.5f, 4f), across = ShipDeckLighting.weight(lamp, 4.5f, 2.5f);
+        float aside = ShipDeckLighting.weight(lamp, 6.5f, 4f), behind = ShipDeckLighting.weight(lamp, 4.5f, 5.1f);
+        assertTrue(near > .8f, "brightest just inboard of the lamp: " + near);
+        assertTrue(across > aside, "the pool runs out from the wall more than along it");
+        assertEquals(0f, behind);
+    }
+
+    @Test void passagesWithoutPowerLoseTwoLampsInThreeAndSlackTheirCable() {
+        var topology = new CellTopology(40, 6);
+        for (int y = 0; y < 6; y++) for (int x = 0; x < 40; x++) topology.setGroundKind(x, y, GroundKind.INDOOR);
+        for (int x = 0; x < 40; x++) { topology.setWall(x, 0, true); topology.setWall(x, 5, true); }
+        var def = new DoodadDef("x", "s.png", 0, 0,
+                DoodadCover.NONE);
+        var lit = new ShipDeckLighting(topology, null, 7, true, List.of(), true, id -> def);
+        var dark = new ShipDeckLighting(topology, null, 7, false, List.of(), true, id -> def);
+        assertEquals(lit.lamps.size(), dark.lamps.size());
+        long dead = IntStream.range(0, dark.lamps.size()).filter(dark::dead).count();
+        assertEquals(dark.lamps.size() - (dark.lamps.size() + 2) / 3, dead);
+        assertTrue(IntStream.range(0, lit.lamps.size()).noneMatch(lit::dead));
+        assertEquals(lit.cables.size(), dark.cables.size());
+        assertEquals(lit.fixtures.size(), lit.lamps.size());
     }
 
     @Test void aCollapsedCeilingRemovesOnlyTheFixtureItSupported() {

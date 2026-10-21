@@ -2306,7 +2306,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Map<String, Object> props = new LinkedHashMap<>();
         var survey = snapshotShipCondition(reactor, ship);
         props.put("survey", survey.row());
-        props.put("equipmentAction", (Runnable) () -> { });
         props.put("workshop", WorkshopRestorationModel.Row.hidden());
         props.put("roomTitle", "COMPANY SHIP  //  UNDERWAY");
         props.put("roomCopy",
@@ -3261,7 +3260,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         var reactor = new Reactor();
         var survey = snapshotShipCondition(reactor, ship);
         props.put("survey", survey.row());
-        props.put("equipmentAction", (Runnable) () -> { });
         props.put("workshop", workshop);
         props.put("roomTitle", "SECOND WIND / RESTORATION");
         props.put("roomCopy", "Inspect the workshop. Restoring her rooms keeps their place in the hull.");
@@ -3299,7 +3297,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         loader.reload();
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("survey", model.row());
-        props.put("equipmentAction", (Runnable) () -> { });
         props.put("workshop", WorkshopRestorationModel.Row.hidden());
         props.put("roomTitle", "SECOND WIND / ENGINEERING");
         props.put("roomCopy", "Select a room to inspect. Right-drag to pan; wheel to zoom.");

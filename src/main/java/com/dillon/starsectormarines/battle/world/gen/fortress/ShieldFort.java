@@ -66,6 +66,9 @@ public final class ShieldFort {
             new FortPlan.Piece(FortPlan.PieceKind.TOWER, OX + WORKS - 5, OY + 24, 3, 3, 2),
             new FortPlan.Piece(FortPlan.PieceKind.GATE, OX + WORKS - 2, OY + 21, 2, 3, 2));
 
+    /** The one sally port, in the middle of the north face, the only face with no gate: two cells of the two-deep wall. */
+    public static final List<FortPlan.SallyPort> SALLY_PORTS = List.of(FortPlan.SallyPort.onFace(OX + 22, OY, 0, -1, 2));
+
     /** Gates in order; the first is the main gate. */
     private static final List<FortPlan.Gate> GATES = List.of(
             new FortPlan.Gate(OX + 22, OY + WORKS, 0, 1),
@@ -301,6 +304,7 @@ public final class ShieldFort {
         @Override public boolean isWall(int x, int y) { return ShieldFort.isWall(x, y); }
         @Override public List<int[]> clearCells() { return CLEAR_CELLS; }
         @Override public List<Gate> gates() { return GATES; }
+        @Override public List<FortPlan.SallyPort> sallyPorts() { return SALLY_PORTS; }
         @Override public List<int[]> gateCells() { return GATE_CELLS; }
         @Override public List<FortPlan.Piece> gatehouse() { return GATEHOUSE; }
         @Override public List<int[]> nests() { return NESTS; }

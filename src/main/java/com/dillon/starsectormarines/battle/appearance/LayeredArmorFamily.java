@@ -62,6 +62,32 @@ public enum LayeredArmorFamily {
         return this == BOARDING_JACK || this == BOARDING_JACK_PIRATE ? 1f : 0f;
     }
 
+    /**
+     * Whether this family ships the four lying-body poses ({@code downed-0..3.png} beside its
+     * body and head), so its fallen are drawn as themselves rather than through the unit type's
+     * legacy corpse sheet. Declared rather than probed: the game logs an error for every texture
+     * it is asked to load that is not there.
+     */
+    public boolean hasDownedArt() {
+        // Every infantry outfit falls as itself; only the alien keeps its unit type's sheet.
+        return this != XENO;
+    }
+
+    /**
+     * Whether this family ships forearm-and-hand layers ({@code station-arm-left.png} and
+     * {@code station-arm-right.png}) drawn while it works a console or bench. Declared, not
+     * probed, for the same reason as {@link #hasDownedArt}.
+     */
+    public boolean hasStationArms() {
+        switch (this) {
+            case CIVILIAN_COLONIST: case ENGINEER: case SCIENTIST:
+            case SHIP_COMMAND: case SHIP_ENGINEERING: case SHIP_MEDICAL: case SHIP_SERVICE:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     public boolean articulatedShoulders() {
         return this == SPECTER_HEAVY || this == ARBALEST_HEAVY || this == BOARDING_JACK
                 || this == BOARDING_JACK_PIRATE;
