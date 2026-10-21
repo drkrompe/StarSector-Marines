@@ -933,6 +933,14 @@ WEAPONS = {
                                     light_rgb=(100, 100, 255)),
                          puff=False, brass=False),
 }
+# The game's turn rates (weapon_data.csv "turn rate", degrees per second): how fast aim()
+# swings each turret onto its target. A Hellbore takes six seconds over thirty degrees.
+TURN_RATES = {'lightmg': 50, 'lightdualmg': 50, 'vulcan': 75, 'lightac': 20, 'heavyac': 7, 'mark9': 10,
+              'hellbore': 5, 'lightag': 40, 'chaingun': 30, 'lightneedler': 20, 'ioncannon': 40,
+              'miningblaster': 7, 'heavyblaster': 15}
+for _k, _v in TURN_RATES.items():
+    WEAPONS[_k].setdefault('turn', _v)
+
 FEEDER_RGB = (255, 200, 0)          # Accelerated Ammo Feeder weapon glow
 
 
@@ -1024,7 +1032,7 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
         mode = w['barrels']
         pick = guns if mode == 'linked' else [guns[(k if mode == 'alternating_burst' else n) % len(guns)]]
         if target is not None and train:
-            aim(ctx, turret, target, f, tag=tag)
+            aim(ctx, turret, target, f, tag=tag, turn_rate=w.get('turn'))
         for g in pick:
             if w.get('charge') and w.get('chargeup'):
                 _charge(ctx, g, f, int(round(w['chargeup'] * fps)), w)
@@ -1335,12 +1343,45 @@ def _key_constant(ob, path, index, frame):
             kp.interpolation = 'CONSTANT'
 
 
-def aim(ctx, turret, target, frame, tag=None, slew_frames=0, iterations=4):
-    """Train a turret onto `target` (a point in the ship's own copy space, units) at `frame`:
+def _pose_at(ob, index, frame):
+    """A rotation channel's value at `frame` (its keys, else its current value), and the last
+    key before `frame` (None if it has none)."""
+    fc = swfx_core.find_fcurve(ob, 'rotation_euler', index)
+    if fc is None or not len(fc.keyframe_points):
+        return ob.rotation_euler[index], None
+    before = [kp.co.x for kp in fc.keyframe_points if kp.co.x < frame - 1e-4]
+    return fc.evaluate(frame), (max(before) if before else None)
+
+
+def _key_slew(ob, index, f0, v0, f1, v1):
+    """Hold v0 to f0, swing eased to v1 at f1, hold there (CONSTANT) until the next key."""
+    ob.rotation_euler[index] = v0
+    ob.keyframe_insert('rotation_euler', index=index, frame=f0)
+    ob.rotation_euler[index] = v1
+    ob.keyframe_insert('rotation_euler', index=index, frame=f1)
+    fc = swfx_core.find_fcurve(ob, 'rotation_euler', index)
+    for kp in fc.keyframe_points:
+        if abs(kp.co.x - f0) < 1e-4:
+            kp.interpolation = 'BEZIER'
+            kp.easing = 'AUTO'
+            kp.handle_left_type = kp.handle_right_type = 'AUTO_CLAMPED'
+        elif abs(kp.co.x - f1) < 1e-4:
+            kp.interpolation = 'CONSTANT'
+            kp.handle_left_type = kp.handle_right_type = 'AUTO_CLAMPED'
+    fc.update()
+
+
+def aim(ctx, turret, target, frame, tag=None, slew_frames=None, turn_rate=None, iterations=4):
+    """Train a turret onto `target` (a point in the ship's own copy space, units) by `frame`:
     its pivot traverses about its own Z and its elevation lifts about its own Y until the
-    muzzle's line of fire passes through the target, keyed CONSTANT there, so the flash, which
-    rides the muzzle, points where the rounds go. slew_frames > 0 keys the previous pose that many
-    frames earlier, so the turret swings over rather than snapping. Elevation is not clamped.
+    muzzle's line of fire passes through the target, so the flash, which rides the muzzle,
+    points where the rounds go.
+
+    The turret swings there from the pose it has at that frame (its earlier keys), eased, over
+    `slew_frames`, or over the time `turn_rate` (degrees per second; the game's "turn rate":
+    a Hellbore 5, a light MG 50) takes for the larger of the two angles. The swing starts no
+    earlier than the turret's previous key, so a turret given too little time turns faster
+    than its rate rather than late. Neither: it snaps, keyed CONSTANT. Elevation is not clamped.
 
     The pivot is a hull object. A ship placed without its own hull copy (ship_fx.ShipFx
     own_hull) shares its turrets with every other copy of that build, and training one trains
@@ -1354,15 +1395,14 @@ def aim(ctx, turret, target, frame, tag=None, slew_frames=0, iterations=4):
     if piv is None:
         return None
     T = Vector(target)
-    if slew_frames > 0:
-        _key_constant(piv, 'rotation_euler', 2, frame - slew_frames)
-        if elev is not None:
-            _key_constant(elev, 'rotation_euler', 1, frame - slew_frames)
-        for ob, i in ((piv, 2), (elev, 1)):
-            fc = swfx_core.find_fcurve(ob, 'rotation_euler', i) if ob is not None else None
-            for kp in fc.keyframe_points if fc else ():
-                if abs(kp.co.x - (frame - slew_frames)) < 1e-4:
-                    kp.interpolation = 'BEZIER'
+    chans = [(piv, 2)] + ([(elev, 1)] if elev is not None else [])
+    start, prev = {}, []
+    for ob, i in chans:
+        v, k = _pose_at(ob, i, frame)
+        ob.rotation_euler[i] = v
+        start[ob.name] = v
+        if k is not None:
+            prev.append(k)
     X, Y, Z = Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1))
     for _ in range(iterations):
         m = anchor_matrix(a.empty)
@@ -1372,9 +1412,21 @@ def aim(ctx, turret, target, frame, tag=None, slew_frames=0, iterations=4):
             m = anchor_matrix(a.empty)
             elev.rotation_euler.y += _signed_angle(m.to_3x3() @ X, T - m.translation,
                                                    (anchor_matrix(elev).to_3x3() @ Y).normalized())
-    _key_constant(piv, 'rotation_euler', 2, frame)
-    if elev is not None:
-        _key_constant(elev, 'rotation_euler', 1, frame)
+    swing = max(abs(math.degrees(ob.rotation_euler[i] - start[ob.name])) for ob, i in chans)
+    dur = 0.0
+    if slew_frames:
+        dur = float(slew_frames)
+    elif turn_rate:
+        dur = swing / turn_rate * (ctx.scene.render.fps or swfx_core.FPS)
+    f0 = frame - dur
+    if prev:
+        f0 = max(f0, max(prev))
+    if dur > 0 and swing > .05 and f0 < frame - .5:
+        for ob, i in chans:
+            _key_slew(ob, i, round(f0), start[ob.name], frame, ob.rotation_euler[i])
+    else:
+        for ob, i in chans:
+            _key_constant(ob, 'rotation_euler', i, frame)
     return (round(math.degrees(piv.rotation_euler.z), 2),
             round(math.degrees(elev.rotation_euler.y), 2) if elev is not None else None)
 

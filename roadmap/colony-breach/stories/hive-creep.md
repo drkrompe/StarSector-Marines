@@ -1,8 +1,10 @@
 # Hive creep
 
-Status: QUEUED on `bore-spawners.md` (bores, spore colonies, the growth-site seam)
+Status: IN PROGRESS — creep field built and driven by eruption sites; look, art and the bore hookup open. Ground colonies wait on `bore-spawners.md` (the growth-site seam).
 
 Written: 2026-10-21
+
+Updated: 2026-10-21 — field shipped ahead of bores; sites are interim sources.
 
 Model: `colony-breach-nouns.md` (Bore, Spore colony, Origin).
 
