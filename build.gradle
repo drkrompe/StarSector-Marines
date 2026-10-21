@@ -171,9 +171,8 @@ test {
         // gradle console so devs don't have to dig through the XML report.
         showStandardStreams = true
     }
-    // EngineSlotPreviewTest loads vanilla .ship files + sprites from the
-    // game install; forward the project-level `starsectorDir` gradle property
-    // so the test can find them. Same source of truth the build.gradle root
+    // Tests that read vanilla files or sprites from the game install find it
+    // through the project-level `starsectorDir` gradle property. Same source of truth the build.gradle root
     // uses for compileOnly + deployMod (resolved at line 13).
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     // ProjectTilesetSeedsTest reads the checked-in tileset seeds at runtime, so

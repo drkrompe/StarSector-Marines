@@ -26,9 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * {@link CompoundFiller#fill} path that reads {@link BspKeys#ROAD_CELLS} /
  * {@link BspKeys#ROAD_RESERVATION}. Previously this path was only ever exercised
  * end-to-end by {@code BspMapPreviewSnapshotSuite} (conquest maps always have a
- * MILITARY_BASE compound); the per-filler {@code BuildingZonePreviewTest} builds
- * a {@link GenContext} without binding those overlays and only drives the
- * single-leaf building fillers, so the compound overlay-read path had no unit
+ * MILITARY_BASE compound), so the compound overlay-read path had no unit
  * coverage and the "always non-null" contract on the overlays was unenforced.
  *
  * <p>Two cases:
