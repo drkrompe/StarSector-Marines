@@ -3,66 +3,56 @@ package com.dillon.starsectormarines.tools.tilesetauthoring;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.imageio.ImageIO;
 
-/** Four isolated slots: basin (1x1), toilet and shower cubicles (1x2), seamless deck. */
+/**
+ * The washroom basin re-drawn at real size, where a cell is about 0.75 m (a crewman's shoulders are 0.6 cells). The
+ * original counter filled its cell at 0.73 m; a wall basin is about 0.5 m wide and 0.45 m deep, so it keeps its 1x1
+ * footprint and is drawn at true size inside it. The toilet and shower cubicles and the deck sample were already true
+ * and keep their original generation.
+ *
+ * <p>Drawn large, 320 px per cell, on a two-cell canvas: small boxy pieces drawn small come back far too big. The
+ * basin's wall, with its faucet and two controls, is its bottom edge, flush with the frame: the ship washroom lines
+ * its basins along the bottom bulkhead and washes at them from the aisle above, so the basin's open front is its top.
+ *
+ * <pre>
+ *   slot  frame (x,y,w,h px)   real size
+ *   sink  160,160,320,320      0.5 x 0.45 m basin counter, faucet and controls on the bottom (wall) edge
+ * </pre>
+ */
 public final class ShipWashroomTemplate {
     private ShipWashroomTemplate() {}
 
+    /** Pixels per cell on the canvas; shapes below are drawn in 64ths of a cell. */
+    static final int C = 320;
+
     public static BufferedImage render() {
-        BufferedImage image = new BufferedImage(1024, 1024, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage image = new BufferedImage(2 * C, 2 * C, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        // Basin back faces image-bottom; the opposite bank's cubicles face image-bottom.
-        g.translate(144, 136);
-        rect(g, 0, 0, 192, 192, 0x878980);
-        rect(g, 7, 7, 178, 170, 0xB4B4A8);
-        oval(g, 32, 25, 128, 108, 0x5E6865);
-        oval(g, 42, 34, 108, 86, 0xA8AFA9);
-        oval(g, 89, 88, 14, 14, 0x48524F);
-        rect(g, 0, 174, 192, 18, 0x454D47);
-        rect(g, 85, 139, 22, 38, 0xA4ABA5);
-        rect(g, 85, 132, 22, 19, 0x697771);
-        oval(g, 43, 150, 19, 19, 0x737E77);
-        oval(g, 130, 150, 19, 19, 0x737E77);
-        g.translate(-144, -136);
 
-        g.translate(656, 56);
-        cubicle(g);
-        rect(g, 38, 40, 116, 54, 0xB6B8AD); // cistern at the back
-        oval(g, 39, 85, 114, 174, 0xBCC0B5);
-        oval(g, 54, 102, 84, 122, 0x4A5954);
-        oval(g, 65, 119, 62, 80, 0x919F98);
-        rect(g, 159, 151, 16, 35, 0x9CA399); // paper holder, contained
-        g.translate(-656, -56);
+        // Basin counter: 0.5 m wide, 0.45 m deep, its back against the bottom of the frame.
+        g.setTransform(new AffineTransform());
+        g.translate(C / 2, C / 2);
+        g.scale(C / 64.0, C / 64.0);
+        rect(g, 10, 24, 44, 38, 0x878980);
+        rect(g, 12, 26, 40, 31, 0xB4B4A8);
+        oval(g, 16, 28, 32, 24, 0x5E6865);
+        oval(g, 19, 30, 26, 19, 0xA8AFA9);
+        oval(g, 30, 38, 4, 4, 0x48524F);
+        rect(g, 10, 57, 44, 5, 0x454D47);
+        rect(g, 29, 47, 6, 11, 0xA4ABA5);
+        oval(g, 18, 51, 5, 5, 0x737E77);
+        oval(g, 41, 51, 5, 5, 0x737E77);
 
-        g.translate(144, 556);
-        cubicle(g);
-        rect(g, 27, 56, 138, 278, 0x8C9992); // broad shower pan
-        rect(g, 34, 63, 124, 264, 0x9DA7A0);
-        rect(g, 87, 26, 18, 82, 0x6C7770);
-        oval(g, 69, 78, 54, 39, 0xBEC4B8); // overhead shower head
-        rect(g, 45, 29, 22, 17, 0x939C91); // control
-        rect(g, 75, 274, 42, 28, 0x4B5852); // one broad drain
-        for (int x = 81; x < 113; x += 9) rect(g, x, 279, 4, 18, 0xA4AEA3);
-        g.translate(-144, -556);
-
-        rect(g, 584, 590, 336, 336, 0x969D91); // quiet seamless non-slip resin sample
         g.dispose();
         return image;
     }
 
-    private static void cubicle(Graphics2D g) {
-        rect(g, 0, 0, 192, 384, 0xA7AAA0);
-        rect(g, 0, 0, 192, 22, 0x353E39);
-        rect(g, 0, 0, 17, 384, 0x353E39);
-        rect(g, 175, 0, 17, 384, 0x353E39);
-        rect(g, 17, 364, 24, 20, 0x535D54);
-        rect(g, 151, 364, 24, 20, 0x535D54);
-    }
     private static void rect(Graphics2D g, int x, int y, int w, int h, int rgb) {
         g.setColor(new Color(rgb)); g.fillRect(x, y, w, h);
     }
