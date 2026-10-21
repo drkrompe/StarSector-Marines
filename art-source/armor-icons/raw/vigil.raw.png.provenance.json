@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f7d-b095-7b12-bf2f-ef97e1f0d524",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f7d-b095-7b12-bf2f-ef97e1f0d524\\exec-b18426b1-4804-4994-97ff-b6ea995cbfb9.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\raw\\vigil.raw.png",
+    "sha256": "a17421fd804d9fed2d83d399b1f847ab9c1dbed259732de95c5c316230414473",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\prompts\\vigil.prompt.txt",
+  "promptSha256": "3e3a4357685d448ad299106b372a66686d74b688a3846260f668e7f10c484a2e",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Base design authority: the finished armory image of the suit this pattern varies; design, palette, composition and finish\nImage 2: Identity: the same suit seen from directly overhead in battle; palette and silhouette character\n\nUse case: style-matched variant of an existing product render. Asset: the armory catalogue image of one marine armour suit, for a gritty military dark-science-fiction tactical game in the Starsector setting.\n\nImage 1 is the finished armory image of the base suit this pattern belongs to: it is the authority for the design, palette, plate shapes, markings, composition, camera, lighting and realistic hand-painted finish. Produce a variant of this same suit that a player recognises at once as a sibling of Image 1, changing only what is described below and keeping everything else as Image 1 has it.\n\nImage 2 shows how this suit is drawn in battle, from directly overhead (left: the torso and shoulder plates; right: the helmet top). The variant must still match it in palette and silhouette character. Never show the overhead view itself.\n\nVigil suppression shell: Sindrian Diktat state-security armour, a riot shell built up to stop a rifle round, issued to people expected to go through a door on a schedule. Keep the furnace-crimson, soot-black, copper and amber palette, make the plates smoother and the helmet a closed full-face security helmet with a dark visor, and add the defining piece: a heavy crimson-and-black ballistic door shield with an amber-lit vision slot standing upright beside the suit. Lighter than the Lion's Guard, heavier than a riot shell; no flames or skulls.\n\nSquare 1:1 canvas with every piece fully inside the frame and a clear margin. True transparent background, including the gaps between pieces; no ground, no cast-shadow slab, no border, no text, letters, numbers, logos or watermark, no person or face inside the suit, no weapon held or worn except an item named above.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\mod\\graphics\\ui\\armory\\armor-furnace-line.png",
+      "sha256": "9cc69a81def9409d44e1519ef3a8d7b1ce1e32ed0f75a5d25fd44f356071c577",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Base design authority: the finished armory image of the suit this pattern varies; design, palette, composition and finish"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\refs\\furnace-line-identity.png",
+      "sha256": "47e1cc52ebfe04b39c487f08ec90201618a0b5a1c9b378777b1e4c438be79358",
+      "dimensions": [
+        1056,
+        680
+      ],
+      "mode": "RGB",
+      "role": "Identity: the same suit seen from directly overhead in battle; palette and silhouette character"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one style-matched variant with the closed security helmet and upright ballistic door shield, using a transparent background."
+  ],
+  "usage": {
+    "input_tokens": 40025,
+    "cached_input_tokens": 29312,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 489,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 68.3
+}

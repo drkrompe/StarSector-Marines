@@ -1,4 +1,4 @@
-"""Point every armor pattern's catalog iconPath at its appearance family's armory image.
+"""Point every armor pattern's catalog iconPath at its own variant image, else its family's.
 
   python art-source/armor-icons/point_catalog.py
 
@@ -9,6 +9,7 @@ import json
 import re
 
 from families import CATALOG, ROOT, icon_path
+from variants import VARIANTS, variant_icon_path
 
 def main():
     patterns = json.load(open(CATALOG))['armor']
@@ -16,7 +17,10 @@ def main():
     targets = {}
     for p in patterns:
         fam = p['battle']['appearanceFamily']
-        if (ROOT / 'mod' / icon_path(fam)).exists():
+        own = p['id'].removeprefix('armor.')
+        if own in VARIANTS and (ROOT / 'mod' / variant_icon_path(own)).exists():
+            targets[p['id']] = variant_icon_path(own)
+        elif (ROOT / 'mod' / icon_path(fam)).exists():
             targets[p['id']] = icon_path(fam)
     current, changed = None, 0
     for i, line in enumerate(lines):

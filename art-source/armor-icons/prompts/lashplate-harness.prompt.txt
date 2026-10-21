@@ -1,0 +1,9 @@
+Use case: style-matched variant of an existing product render. Asset: the armory catalogue image of one marine armour suit, for a gritty military dark-science-fiction tactical game in the Starsector setting.
+
+Image 1 is the finished armory image of the base suit this pattern belongs to: it is the authority for the design, palette, plate shapes, markings, composition, camera, lighting and realistic hand-painted finish. Produce a variant of this same suit that a player recognises at once as a sibling of Image 1, changing only what is described below and keeping everything else as Image 1 has it.
+
+Image 2 shows how this suit is drawn in battle, from directly overhead (left: the torso and shoulder plates; right: the helmet top). The variant must still match it in palette and silhouette character. Never show the overhead view itself.
+
+Lashplate salvage harness: a cargo frame and pressure web with slabs of whatever a breaker crew could drill and wire into place. Cruder and cheaper than the Blackforge rig: an open tubular cargo frame worn like a harness, a pressure-web of straps, and a few uneven slabs of brick-red, rust and bare steel plate drilled through and wired on with visible twisted wire, exposed hoses and lines, badly balanced. The helmet is a scuffed salvage pressure helmet with one replacement plate. Expendable-hand protection; no spikes or skulls.
+
+Square 1:1 canvas with every piece fully inside the frame and a clear margin. True transparent background, including the gaps between pieces; no ground, no cast-shadow slab, no border, no text, letters, numbers, logos or watermark, no person or face inside the suit, no weapon held or worn except an item named above.
