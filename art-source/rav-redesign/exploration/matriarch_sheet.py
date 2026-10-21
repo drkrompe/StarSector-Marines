@@ -1,7 +1,7 @@
 """Matriarch concept rounds: numbered ImageGen plates judged at play zoom beside the
 rest of the family and a mech.
 
-  python matriarch_sheet.py <round dir> <render root> <out dir> "<title>" [--linear=3.9] [--control=<plate>] <names...>
+  python matriarch_sheet.py <round dir> <render root> <out dir> "<title>" [--linear=3.9] [--control=<label>=<plate>,...] <names...>
 
 Writes two 1920x1080 sheets into <out dir>:
   01-concepts.png  each plate beside the same design at 32 px per cell with a Bulwark,
@@ -13,7 +13,7 @@ Writes two 1920x1080 sheets into <out dir>:
   04-grounds.png   every concept on paving, grass and hive creep at 32 px per cell (creep from
                    <render root>/creep-play-zoom.png, the hive-creep build-1 GL play-zoom frame,
                    else round2's stand-in),
-                   after the Runner, the Brute and --control=<plate> (a previous pick) if given.
+                   after the Runner, the Brute and any --control plates (earlier picks).
 
 <render root> holds the colony close-ups round2.py documents. Sizes: the Runner by
 round_sheet.RUNNER_AREA_PX, the Brute 1.5x its length (UnitType radius 0.45 against
@@ -201,9 +201,9 @@ def sheet_grounds(items, root, cast, out, title, linear, control=None):
     img = Image.new("RGB", (1920, 1080), BG)
     d = ImageDraw.Draw(img)
     d.text((24, 10), title + " - palettes on the ground at 32 px per cell", font=font(24, True), fill=INK)
-    d.text((24, 40), "Runner and Brute at left, then " + ("the round-1 colours (R1), then " if control else "")
+    d.text((24, 40), "Runner and Brute at left, then " + ("earlier picks (" + ", ".join(l for l, _ in control) + "), then " if control else "")
            + "each palette; rows are paving, grass and hive creep", font=font(14), fill=DIM)
-    bodies = ([("R1", control)] if control is not None else []) + [(f"#{n}", c) for n, c in items]
+    bodies = (control or []) + [(f"#{n}", c) for n, c in items]
     rows = [t for t in ground_tiles(root, (600, 320)) if t[0] in ("paving", "grass")]
     creep = Path(root) / "creep-play-zoom.png"
     if creep.exists():
@@ -235,7 +235,11 @@ def main(argv):
         if args[0].startswith("--linear="):
             linear = float(args[0][9:])
         elif args[0].startswith("--control="):
-            control = key_plate(Path(args[0][10:]))
+            # label=plate[,label=plate...]; a bare plate is labelled R1
+            control = []
+            for spec in args[0][10:].split(","):
+                label, _, path = spec.rpartition("=")
+                control.append((label or "R1", key_plate(Path(path))))
         args = args[1:]
     items = concepts(round_dir, root, linear)
     cast = Cast(root)
