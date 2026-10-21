@@ -445,6 +445,19 @@ Colonies stand on the bore's **growth sites**, a seeded ring of open cells
 round the mouth (`BoreGrowthSites`). Today only spore colonies use it; a
 later ground colony roots on the same sites (`hive-creep.md`).
 
+**Creep carries the umbrella outward** (`CreepOutposts`). A living bore also
+seeds spore colonies of its current grade on its creep, away from the mouth:
+its **outposts**. An outpost roots on living creep that stands a couple of
+cells deep on every side (never on the ragged front), on open ground, once
+that cell lies one and a half times the grade's spore reach from the bore,
+every other living bore and every living spore colony, so neighbouring
+umbrellas only just overlap; the cell must stay good for a while before
+anything roots. A bore holds at most one living outpost at fissure, two at
+bore and four at maw; a dead outpost frees its place and the creep grows
+another elsewhere. Outposts wither with their bore like the mouth's colonies.
+So an air sortie that waits watches the defended sky spread with the creep,
+and a bore's creep is worth burning back before its outposts stand.
+
 **Swarm director.** The non-human pressure owner (today
 `SwarmReinforcementSystem`). It decides how many, from which bore, and of which
 strain, against a population target that scales with the number and tier of

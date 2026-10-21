@@ -250,6 +250,7 @@ import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
 import com.dillon.starsectormarines.battle.creep.BoreCreep;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
+import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
@@ -723,6 +724,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Salt for the bores' own draws, so they are not the battle stream read again. */
     private static final long BORE_SEED_SALT = 0x53574152_4D424F52L;
     private final SwarmBores swarmBores;
+    private final CreepOutposts creepOutposts;
     /** The battle's swarm bores: empty until something opens one. */
     public SwarmBores swarmBores() { return swarmBores; }
     /** From the tremor on, the swarm director spawns only from living bores. */
@@ -1181,6 +1183,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public BattleSimulation(NavigationGrid grid, CellTopology topology, long seed) {
         this.generationSeed = seed;
         this.swarmBores = new SwarmBores(seed ^ BORE_SEED_SALT);
+        this.creepOutposts = new CreepOutposts(seed ^ BORE_SEED_SALT);
         this.rng = new Random(seed);
         this.noiseEvents = new NoiseEventBus(() -> simTickIndex);
         this.shots = new ShotService(noiseEvents);
@@ -3478,6 +3481,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmReinforcements.tick(TICK_DT, this);
         boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);
+        // Outposts after the creep has spread: they root on ground it has held a while.
+        creepOutposts.tick(this);
         if (reliefAssault != null) reliefAssault.tick(this);
         if (lastLiftSequence != null) lastLiftSequence.tick(this);
         if (relayNineSequence != null) relayNineSequence.tick(this);
