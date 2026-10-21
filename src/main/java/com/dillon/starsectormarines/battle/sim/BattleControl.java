@@ -27,7 +27,6 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.warship.MissionStance;
 import com.dillon.starsectormarines.battle.warship.Warship;
-import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 
 import java.util.List;
 
@@ -254,8 +253,8 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
     /** Puts a drone tender over the battle, its hull among the warships and its drones launching. */
     default void addTender(Tender tender) {}
 
-    /** The map's traversal axis, which decides which edge a side's overhead ship arrives from. */
-    default TraversalAxis shipAxis() { return TraversalAxis.WEST_TO_EAST; }
+    /** Sends a flown tender to set down at the site, where it becomes a grounded builder ({@code TenderLanding}). */
+    default void landTender(Tender tender, float siteX, float siteY) {}
 
     /** What the player's company is doing about the objective: attacking it or holding it. */
     default MissionStance companyStance() { return MissionStance.ATTACK; }
