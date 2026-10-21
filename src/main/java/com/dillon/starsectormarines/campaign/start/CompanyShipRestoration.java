@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.campaign.start;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipRestoration;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
@@ -55,9 +56,9 @@ public final class CompanyShipRestoration {
         }
         return count;
     }
-    /** Captured at launch, never looked up by a running battle; the mess's band on the refit tree. */
-    public static float moraleRecoveryAboard() {
-        return ShipRefits.aboard().moraleRecovery();
+    /** Captured at launch, never looked up by a running battle: the mess, range and gym together. */
+    public static HullWelfare hullWelfareAboard() {
+        return ShipRefits.aboard().hullWelfare();
     }
     public static boolean mechBayRestored(MarineRoster roster) {
         return roster != null && roster.hasCompletedStory(OpeningOperationKind.COUNTERATTACK.missionId);

@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ef3-54a2-7760-b566-152be16f281b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ef3-54a2-7760-b566-152be16f281b\\exec-afc93e0e-1436-4c58-a1e0-3b5078e7dffd.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\colonist-modular-topdown\\raw\\engineer.png",
+    "sha256": "dfd78608218113526a6f6225774f0a954ad4e037422c4f36297dee9dba3076b5",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\colonist-modular-topdown\\prompts\\engineer.full.txt",
+  "promptSha256": "77cee49dfb189cc5f52ddf67291468457e5713045dcf4f6a1de64d02d4ffe1f7",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the three shapes to reskin, exact outlines, positions and transparent neck opening\nImage 2: Style only: the accepted crew sheet; match its pixel-art rendering, outline weight, shading and level of detail, but not its colors, tabs, uniform or headset; ignore its dark background glow\nImage 3: Identity only: the earlier painted design of this colonist profession; carry over its garment design, colors and headgear, but not its painterly rendering, shapes or layout\n\nUse case: sketch-to-render. Production overhead sprite layers for one frontier colonist in a tactical game, to stand beside the existing marine infantry and starship crew.\n\nReference 1 is the authoritative SILHOUETTE GUIDE and edit target, 1536x1024. Reskin only its three flat gray shapes; keep every shape's exact outline, position, scale and the empty neck opening. Everything outside the shapes, and the neck opening, must be genuinely transparent: no background, ground, glow, shadow, border, labels or grid.\n\nCamera: TRUE STRAIGHT-DOWN 90-degree overhead view, every part facing UP the image. These are three SEPARATE LAYERS, not a full figure:\n- Left shape = shoulders, upper arms and upper torso seen from directly above, with an EMPTY round neck opening where an independent head layer sits. A collar rings the opening. No head, hands, backpack, armor plates or weapons.\n- Upper right shape = the top/back of the head seen from directly above, forehead toward the TOP, filling the shape. No face, no neck.\n- Lower right shape = one boot seen from directly above, toe at the TOP.\n\nStyle: match the crew and marine reference sprites exactly — chunky crisp pixel art with a clean one-step dark outline around every shape, a limited muted palette, broad readable fabric planes with soft cloth folds, light from the upper left, restrained detail that still reads at 150 pixels wide. Not painterly, not smooth airbrushed, not photographic. These are civilian working clothes on a frontier colony: worn, patched and a little grimy, plainer than the marines' fatigues. Work straps may sit on the cloth, but nothing stands proud of the silhouette.\n\nAvoid: neon, text, insignia lettering, noise, scratches, carried tools, rifles, cast shadows outside the shapes.\nThis colonist: COLONY ENGINEER. Dark navy-slate work coveralls with worn ochre-yellow hazard panels over both shoulders, a heavy ribbed sealing ring around the neck opening, and grimy gray harness straps down each side of the chest; grease-darkened patches. Head: a SEALED HAZARD HELMET filling the whole head shape — dull gunmetal shell with a broad ochre-yellow stripe from front to back, small round ear pods at the left and right edges, and a short vent grille at the back with one tiny amber status light. No hair and no skin show. Boot: heavy dark gray safety boot with a yellow-ochre toe cap.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ship-crew-silhouettes.png",
+      "sha256": "e710890ad7f648af313f6846349edade1541ef337c18135d03bbbf27bce9b1fe",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the three shapes to reskin, exact outlines, positions and transparent neck opening"
+    },
+    {
+      "path": "art-source\\ship-crew\\raw\\command.png",
+      "sha256": "3a9191975131217b5257512e762124b23445c9bef4c863d5dea55db2663d5290",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Style only: the accepted crew sheet; match its pixel-art rendering, outline weight, shading and level of detail, but not its colors, tabs, uniform or headset; ignore its dark background glow"
+    },
+    {
+      "path": "art-source\\colonist-modular-topdown\\sources\\civilian-engineer-board-v2-chroma.png",
+      "sha256": "857784997068766698bd868160e7f8b3cba4323114698ba5903554ed781fd87a",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Identity only: the earlier painted design of this colonist profession; carry over its garment design, colors and headgear, but not its painterly rendering, shapes or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one engineer sprite sheet using the silhouette guide for geometry and the other references for style and identity."
+  ],
+  "usage": {
+    "input_tokens": 49483,
+    "cached_input_tokens": 39296,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 609,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 64.2
+}

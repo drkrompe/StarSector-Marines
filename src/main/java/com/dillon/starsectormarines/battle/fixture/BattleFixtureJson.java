@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.ArmorClass;
@@ -27,6 +28,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechFrame;
+import com.dillon.starsectormarines.battle.mech.MechRefit;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolAllowance;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolDeclaration;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
@@ -565,6 +567,13 @@ public final class BattleFixtureJson {
                 squad.put("strength", seat.campaignSquadStrength());
                 squad.put("fireTeamIndex", seat.campaignFireTeamIndex());
                 squad.put("moraleRecoveryMultiplier", seat.moraleRecoveryMultiplier());
+                if (seat.welfare().changesUnitStats()) {
+                    JSONObject welfare = new JSONObject();
+                    welfare.put("accuracy", seat.welfare().accuracy());
+                    welfare.put("moveSpeed", seat.welfare().moveSpeed());
+                    welfare.put("moraleDrain", seat.welfare().moraleDrain());
+                    squad.put("hullWelfare", welfare);
+                }
                 CommandGroupIdentity identity = seat.commandGroupIdentity();
                 if (identity != null) {
                     JSONObject group = new JSONObject();
@@ -650,11 +659,21 @@ public final class BattleFixtureJson {
                     squad != null && squad.getBoolean("leader"),
                     squad != null ? squad.getInt("strength") : 0,
                     squad != null ? squad.getInt("fireTeamIndex") : -1, identity,
-                    squad != null ? (float) squad.optDouble("moraleRecoveryMultiplier", 1d) : 1f,
+                    hullWelfareFromJson(squad),
                     encoded.has("armorClass") ? ArmorClass.parse(encoded.optString("armorClass", null), "committed seat")
                             : ArmorClass.STANDARD, integralSystemFromJson(encoded)));
         }
         return List.copyOf(seats);
+    }
+
+    /** The squad's frozen welfare; a seat saved before the facilities carries only the mess's figure. */
+    private static HullWelfare hullWelfareFromJson(JSONObject squad) {
+        if (squad == null) return HullWelfare.NEUTRAL;
+        float morale = (float) squad.optDouble("moraleRecoveryMultiplier", 1d);
+        JSONObject welfare = squad.optJSONObject("hullWelfare");
+        if (welfare == null) return HullWelfare.mess(morale);
+        return new HullWelfare(morale, (float) welfare.optDouble("accuracy", 1d),
+                (float) welfare.optDouble("moveSpeed", 1d), (float) welfare.optDouble("moraleDrain", 1d));
     }
 
     private static JSONArray powersToJson(
@@ -684,6 +703,14 @@ public final class BattleFixtureJson {
                 frame.put("fluxCapacity", deployment.frame().fluxCapacity());
                 frame.put("dissipationPerSecond", deployment.frame().dissipationPerSecond());
                 mech.put("frame", frame);
+                if (!deployment.refit().neutral()) {
+                    JSONObject refit = new JSONObject();
+                    refit.put("accuracyMult", deployment.refit().accuracyMult());
+                    refit.put("dissipationMult", deployment.refit().dissipationMult());
+                    refit.put("armorMult", deployment.refit().armorMult());
+                    refit.put("traverseMult", deployment.refit().traverseMult());
+                    mech.put("refit", refit);
+                }
                 deployments.put(mech);
             }
             encoded.put("mechDeployments", deployments);
@@ -753,6 +780,15 @@ public final class BattleFixtureJson {
                             (float) encodedFrame.getDouble("fluxCapacity"),
                             (float) encodedFrame.getDouble("dissipationPerSecond"));
                 }
+                MechRefit refit = MechRefit.NEUTRAL;
+                JSONObject encodedRefit = mech.optJSONObject("refit");
+                if (encodedRefit != null) {
+                    refit = new MechRefit(
+                            (float) encodedRefit.getDouble("accuracyMult"),
+                            (float) encodedRefit.getDouble("dissipationMult"),
+                            (float) encodedRefit.getDouble("armorMult"),
+                            (float) encodedRefit.getDouble("traverseMult"));
+                }
                 deployments.add(new MechDeploymentSpec(
                         variant,
                         enumValue(MechRole.class, mech.getString("role"), "mech role"),
@@ -760,7 +796,7 @@ public final class BattleFixtureJson {
                         component(mech, "armsComponentId", variant.arms),
                         component(mech, "leftShoulderComponentId", variant.leftShoulder),
                         component(mech, "rightShoulderComponentId", variant.rightShoulder),
-                        displayName, frame));
+                        displayName, frame, null, refit));
             }
             List<ShipSupportSource> ships = new ArrayList<>();
             JSONArray encodedShips = encoded.optJSONArray("ships");

@@ -105,6 +105,7 @@ public final class UnitAtlas extends SpriteAtlas {
         for (LayeredMechAssets livery : sprites.layeredMechLiveries().values()) {
             if (livery != null) addLayers(candidates, livery.layers());
         }
+        addLayers(candidates, sprites.bloodPools());
         LayeredMechAssets baseMech = sprites.layeredMechSprites();
         if (baseMech != null) addLayers(candidates, baseMech.layers());
         addHulls(candidates, sprites.turretSprites().values());

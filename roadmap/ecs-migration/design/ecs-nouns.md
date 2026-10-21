@@ -124,7 +124,9 @@ shape. Current families include:
   Static emplacements deliberately lack movement and AI-state membership.
 - **Corpses** are lifecycle variants, not detached records: they retain only
   what their corpse consumers need and can additionally carry a crash
-  capability while a drone falls.
+  capability while a drone falls. What a lying body draws from its live
+  appearance (the facing and outfit it died with) is copied onto the corpse
+  marker at the transmute, because the live layered appearance does not ride it.
 - **Air craft** are disjoint world entities with air identity, kinematics,
   mission, authored appearance, and optional engine or turret capability. They
   carry no grid position, so grid queries exclude them naturally.
