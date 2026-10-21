@@ -706,8 +706,12 @@ def add_ship():
     glow = material('Drive plume', (0.6, 0.8, 1.0))
     glow.node_tree.nodes['Principled BSDF'].inputs['Emission Color'].default_value = (0.6, 0.8, 1.0, 1)
     glow.node_tree.nodes['Principled BSDF'].inputs['Emission Strength'].default_value = 25.0
+    # The anchor is looked up among the root's own children: every hull in the port is built from the
+    # same kit, so a bare 'Engine 3 exhaust anchor' is whichever ship took the name first (Hermes's,
+    # Colossus's), and its offset hung the glow tens of metres off the Second Wind.
+    own = {o.name.split('.')[0]: o for o in root.children_recursive if 'exhaust anchor' in o.name}
     for i in manifest['engines_running']:
-        anchor = bpy.data.objects.get('Engine %d exhaust anchor' % i)
+        anchor = own.get('Engine %d exhaust anchor' % i)
         if anchor is None:
             continue
         local = anchor.matrix_parent_inverse @ anchor.matrix_basis
