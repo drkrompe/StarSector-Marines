@@ -1,10 +1,10 @@
 # Hive creep
 
-Status: IN PROGRESS — creep field built and driven by eruption sites; look, art and the bore hookup open. Bores and the growth-site seam (`BoreGrowthSites`) are on main.
+Status: IN PROGRESS — field, bore hookup and the hard-edge look are built (GL inside the ground composite, CPU mirror for review frames); creep effects, ground colonies and the behaviour scene are open.
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — field shipped ahead of bores; sites are interim sources.
+Updated: 2026-10-21 — round-3 look built; owner sign-off pending on the build1 review run.
 
 Model: `colony-breach-nouns.md` (Bore, Spore colony, Origin).
 

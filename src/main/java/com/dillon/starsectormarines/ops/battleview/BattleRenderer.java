@@ -267,6 +267,7 @@ public class BattleRenderer {
         this.sprites = sprites;
         this.ordnanceTraceFx = new OrdnanceTraceFxService(sprites);
         this.groundParallax = new GroundParallaxPipeline(sprites, groundLights, sun);
+        creep.useSun(sun);
         // The full world-render pass list, in paint order — every pass now lives
         // here (collect-all → drain-all; see renderWorld). Order is verbatim today's
         // pass sequence; RenderLayer ordinal mirrors it. Within a shared layer
@@ -1167,7 +1168,24 @@ public class BattleRenderer {
                 // of draining straight to the backbuffer. groundParallax falls back to
                 // drainLayer(GROUND) itself (a plain Runnable) on any failure, so this
                 // call always ends up painting the layer exactly once.
-                groundParallax.renderGround(rc, () -> drainLayer(RenderLayer.GROUND, census));
+                // Creep drains inside the same colour target, straight after the ground, so the
+                // composite displaces it with the ground under it and shadows it with the walls.
+                boolean creepToo = layers.contains(RenderLayer.CREEP);
+                long[] creepNanos = {0L};
+                groundParallax.renderGround(rc, () -> {
+                    drainLayer(RenderLayer.GROUND, census);
+                    if (!creepToo) return;
+                    long creepStarted = census == null ? 0L : System.nanoTime();
+                    drainLayer(RenderLayer.CREEP, census);
+                    if (census != null) creepNanos[0] += System.nanoTime() - creepStarted;
+                });
+                if (census != null && creepNanos[0] > 0L) {
+                    // Charge the creep its own drain, not the ground's.
+                    census.addDrainNanos(RenderLayer.CREEP, creepNanos[0]);
+                    started += creepNanos[0];
+                }
+            } else if (layer == RenderLayer.CREEP && parallax) {
+                // Already drained inside the ground's colour target.
             } else {
                 drainLayer(layer, census);
             }
