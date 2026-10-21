@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.campaign.refit;
 
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.squad.HullWelfare;
+import com.dillon.starsectormarines.battle.world.gen.ship.FacilityDressing;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 import com.dillon.starsectormarines.marine.RecruitIntake;
@@ -161,10 +162,24 @@ class ShipConditionTest {
             if (!tracks.contains(order.track)) continue;
             assertEquals(RefitTrack.Group.FACILITY, order.track.group);
             assertNull(order.track.reserve, "fitted into a room the deck already has");
-            assertTrue(order.requires.keySet().stream().allMatch(t -> t.core != null), order.name());
-            assertTrue(order.requires.size() >= (order.band == RefitBand.IMPROVED_II ? 3 : 2), order.name());
+            // The wardroom and briefing room are ends of the mess, so their opening needs the mess in service too.
+            boolean messEnd = order.band == RefitBand.RESTORED
+                    && (order.track == RefitTrack.WARDROOM || order.track == RefitTrack.BRIEFING);
+            assertEquals(messEnd, order.requires.get(RefitTrack.MESS) == RefitBand.RESTORED, order.name());
+            long cores = order.requires.keySet().stream().filter(t -> t.core != null).count();
+            assertEquals(order.requires.size() - (messEnd ? 1 : 0), cores, order.name());
+            assertTrue(cores >= (order.band == RefitBand.IMPROVED_II ? 3 : 2), order.name());
             assertFalse(order.materials().isEmpty(), order.name());
         }
+    }
+
+    @Test void theDeckIsDressedForTheFacilityTiersBought() {
+        assertEquals(FacilityDressing.NONE, ShipCondition.NONE.facilityDressing(), "another hull carries none");
+        assertEquals(FacilityDressing.NONE, ShipCondition.battered().facilityDressing());
+        var built = ShipCondition.battered().with(RefitTrack.HYDROPONICS, RefitBand.IMPROVED_II)
+                .with(RefitTrack.WARDROOM, RefitBand.RESTORED).with(RefitTrack.BRIEFING, RefitBand.RESTORED)
+                .with(RefitTrack.HOLDS, RefitBand.IMPROVED_I);
+        assertEquals(new FacilityDressing(3, 1, 1, 2), built.facilityDressing());
     }
 
     @Test void fabricationIsTheWorkshopChain() {

@@ -23,6 +23,12 @@ shipped torso, shoulders, helmet and feet assembled at 4x; their lying body is t
 whole suit, shoulder shells included. Prompts are under `prompts/`
 (`<outfit>.full.txt` is the exact text sent), raws and provenance under `raw/`.
 
+Blood pools: `downed.py pool-guide` draws four seeded pool shapes
+(`../templates/blood-pools.png`), one generation reskins them
+(`prompts/blood-pools.txt`, `raw/blood-pools.png`), and `downed.py pool-export` writes
+`mod/graphics/battle/downed/blood-pool-<n>.png` at 240x240. Pools are shared by every
+outfit.
+
 Adding an outfit: write `prompts/<outfit>.txt`, generate, add it to `OUTFITS` in
 `downed.py`, export, then add the family to `LayeredArmorFamily.hasDownedArt` and to
 `DownedArtTest`.

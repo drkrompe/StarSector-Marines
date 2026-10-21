@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
+import java.util.function.IntSupplier;
+
 /**
  * Turns the dead unit's world entity into a corpse — the death-event handler
  * that builds the corpse home. Subscribed to the battle's death dispatcher; on
@@ -48,13 +50,20 @@ public final class DeadBodySystem {
 
     private final EntityWorld world;
     private final BattleComponents components;
+    /** The simulation tick, stamped on a body so presentation can age it (a pool spreading). */
+    private final IntSupplier clock;
     /** Cached transmute masks — no per-death array garbage. */
     private final ComponentType[] corpseAdd;
     private final ComponentType[] corpseRemove;
 
     public DeadBodySystem(EntityWorld world, BattleComponents components) {
+        this(world, components, () -> 0);
+    }
+
+    public DeadBodySystem(EntityWorld world, BattleComponents components, IntSupplier clock) {
         this.world = world;
         this.components = components;
+        this.clock = clock;
         // POSITION is universal on the live archetype and stays off the remove
         // mask, so it rides the row-move (no add) — same for SPRITE, which every
         // sheet-drawn unit (UnitType.drawnAsSheet) already carries live (authored
@@ -127,6 +136,7 @@ public final class DeadBodySystem {
         if (firstDeath) {
             world.setFloat(id, c.CORPSE, BattleComponents.CORPSE_FACING_DEGREES, facing);
             world.setInt(id, c.CORPSE, BattleComponents.CORPSE_BODY_FAMILY, bodyFamily);
+            world.setInt(id, c.CORPSE, BattleComponents.CORPSE_DEATH_TICK, clock.getAsInt());
         }
     }
 }

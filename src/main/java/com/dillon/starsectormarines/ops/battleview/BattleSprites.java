@@ -36,7 +36,9 @@ import org.apache.log4j.Logger;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -86,6 +88,10 @@ public class BattleSprites {
     private final Map<String, LayeredSpriteCache> specialEquipmentLayers = new LinkedHashMap<>();
     private final Map<String, LayeredSpriteCache> integralSystemLayers = new LinkedHashMap<>();
     private boolean layeredUnitSpritesLoadAttempted;
+    /** Pools drawn under a fallen layered body, picked by its death-pose roll. */
+    private final List<LayeredSpriteCache> bloodPools = new ArrayList<>();
+    static final String BLOOD_POOL_ROOT = "graphics/battle/downed/blood-pool-";
+    static final int BLOOD_POOLS = 4;
 
     // ---- modular layered heavy mech ---------------------------------------
 
@@ -201,6 +207,8 @@ public class BattleSprites {
     public java.util.EnumMap<UnitType, UnitSpriteCache> unitDeadSprites()      { return unitDeadSprites; }
     public java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites() { return layeredUnitSprites; }
     public LayeredMechAssets layeredMechSprites() { return layeredMechSprites; }
+    /** Pools under fallen layered bodies; empty when the art did not load. */
+    public List<LayeredSpriteCache> bloodPools() { return bloodPools; }
 
     /**
      * Every faction livery that loaded completely.
@@ -835,6 +843,10 @@ public class BattleSprites {
                 "graphics/battle/alien-modular-topdown/",
                 alienFoot, alienForeClaw, rifle, laser, smg, dmr, rocket, amr, flash,
                 surplusRifle, masterworkDmr);
+        for (int pool = 0; pool < BLOOD_POOLS; pool++) {
+            LayeredSpriteCache sprite = loadLayeredSprite(BLOOD_POOL_ROOT + pool + ".png");
+            if (sprite != null) bloodPools.add(sprite);
+        }
     }
 
     /** Loads the all-or-nothing modular heavy-mech set; legacy sheet remains fallback. */

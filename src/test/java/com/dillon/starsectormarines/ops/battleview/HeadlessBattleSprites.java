@@ -30,9 +30,11 @@ import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -383,7 +385,12 @@ final class HeadlessBattleSprites extends BattleSprites {
         return asset;
     }
 
+    @Override public List<LayeredSpriteCache> bloodPools() { return bloodPools; }
+
+    private final List<LayeredSpriteCache> bloodPools = new ArrayList<>();
+
     private void loadInfantry() throws IOException {
+        for (int pool = 0; pool < BLOOD_POOLS; pool++) bloodPools.add(layer(BLOOD_POOL_ROOT + pool + ".png"));
         LayeredSpriteCache foot = layer(
                 "graphics/battle/marine-modular-topdown/marine-foot.png");
         LayeredSpriteCache rifle = layer(INFANTRY_ROOT + "weapons/rifle.png");

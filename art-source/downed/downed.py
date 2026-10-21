@@ -2,6 +2,8 @@
 
     python art-source/downed/downed.py guide
     python art-source/downed/downed.py export <outfit> [<outfit> ...]
+    python art-source/downed/downed.py pool-guide
+    python art-source/downed/downed.py pool-export
 
 A fallen body is drawn the way a live one is: straight down, head toward the sprite's
 north, at the layered compositor's shoulder scale (150 source pixels to one shoulder
@@ -240,9 +242,85 @@ def export(outfits) -> None:
             print(out)
 
 
+# Blood pools: four irregular shapes drawn under a body, shared by every outfit and
+# picked by the same death roll as the pose. POOL px at the 150-px shoulder reference,
+# centred on the body's frame centre and turned with it.
+POOL = 240
+POOL_GUIDE_SCALE = 1.4
+POOL_TARGET = Path("mod/graphics/battle/downed")
+
+
+def pool_mask(index: int, scale: int) -> Image.Image:
+    """A pool: a seeded union of overlapping discs with a few outlying drops."""
+    import random
+    rng = random.Random(9100 + index)
+    img = Image.new("L", (POOL * scale, POOL * scale), 0)
+    d = ImageDraw.Draw(img)
+    c = POOL / 2
+
+    def disc(x, y, r):
+        d.ellipse([(x - r) * scale, (y - r) * scale, (x + r) * scale, (y + r) * scale], fill=255)
+
+    disc(c, c, 46)
+    for _ in range(9):
+        a = rng.uniform(0, 2 * math.pi)
+        dist = rng.uniform(22, 54)
+        disc(c + math.cos(a) * dist, c + math.sin(a) * dist * 1.15, rng.uniform(20, 36))
+    for _ in range(4):
+        a = rng.uniform(0, 2 * math.pi)
+        dist = rng.uniform(86, 104)
+        disc(c + math.cos(a) * dist, c + math.sin(a) * dist, rng.uniform(4, 8))
+    return img
+
+
+def pool_frame_mask(index: int) -> Image.Image:
+    big = pool_mask(index, SUPER).filter(ImageFilter.GaussianBlur(SUPER * 2))
+    return big.resize((POOL, POOL), Image.Resampling.BOX).point(lambda a: 255 if a >= 128 else 0)
+
+
+def pool_box(index: int) -> tuple[int, int, int, int]:
+    w = round(POOL * POOL_GUIDE_SCALE)
+    gap = (CANVAS[0] - POSES * w) // (POSES + 1)
+    x = gap + index * (w + gap)
+    y = (CANVAS[1] - w) // 2
+    return x, y, x + w, y + w
+
+
+def pool_guide() -> None:
+    sheet = Image.new("RGBA", CANVAS, (0, 0, 0, 0))
+    for index in range(POSES):
+        x0, y0, x1, y1 = pool_box(index)
+        mask = pool_mask(index, SUPER).filter(ImageFilter.GaussianBlur(SUPER * 2))
+        mask = mask.resize((x1 - x0, y1 - y0), Image.Resampling.BOX).point(lambda a: 255 if a >= 128 else 0)
+        sheet.paste(Image.new("RGBA", mask.size, GUIDE_GRAY), (x0, y0), mask)
+    out = Path("art-source/templates/blood-pools.png")
+    sheet.save(out)
+    print(out)
+
+
+def pool_export() -> None:
+    raw = Image.open(SOURCE / "raw" / "blood-pools.png").convert("RGBA")
+    sx, sy = raw.width / CANVAS[0], raw.height / CANVAS[1]
+    POOL_TARGET.mkdir(parents=True, exist_ok=True)
+    for index in range(POSES):
+        x0, y0, x1, y1 = pool_box(index)
+        cut = raw.crop((round(x0 * sx), round(y0 * sy), round(x1 * sx), round(y1 * sy)))
+        layer = cut.resize((POOL, POOL), Image.Resampling.NEAREST)
+        r, g, b, a = layer.split()
+        bound = pool_frame_mask(index).filter(ImageFilter.MaxFilter(9))
+        a = Image.composite(a, Image.new("L", a.size, 0), bound)
+        out = POOL_TARGET / f"blood-pool-{index}.png"
+        Image.merge("RGBA", (r, g, b, a)).save(out, optimize=True)
+        print(out)
+
+
 if __name__ == "__main__":
     command = sys.argv[1] if len(sys.argv) > 1 else "guide"
     if command == "guide":
         guide()
+    elif command == "pool-guide":
+        pool_guide()
+    elif command == "pool-export":
+        pool_export()
     else:
         export(sys.argv[2:] or list(OUTFITS))
