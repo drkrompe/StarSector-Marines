@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
 import com.dillon.starsectormarines.battle.ambient.CrewRole;
+import com.dillon.starsectormarines.battle.ambient.JobBoard;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.WorkMotion;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
@@ -8,6 +9,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
+import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckSizing;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipDeckGenerator;
 import com.dillon.starsectormarines.battle.world.gen.ship.VanillaHullSilhouettes;
@@ -26,6 +28,7 @@ import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -121,8 +124,12 @@ public final class ShipDutySnapshotSuite implements SnapshotSuite {
                 else for (CrewRole role : CrewRole.values())
                     if (sim.identity().name(actor).startsWith(role.name().toLowerCase(Locale.ROOT) + "-")) roles.put(actor, role);
             }
+            // The biggest gym aboard, filmed for the whole two minutes: its running track is run, not stood on.
+            var gym = rooms.compartments().stream().filter(room -> room.purpose() == RoomPurpose.GYMNASIUM)
+                    .max(Comparator.comparingInt(room -> room.width() * room.depth())).orElse(null);
             for (int tick = 0; tick <= 3600; tick++) {
                 if (tick > 0) sim.advance(BattleSimulation.TICK_DT);
+
                 // Station guarantees hold past several dwell renewals, not just at spawn.
                 if (tick % 30 == 0) for (var entry : scene.dutyCrew().entrySet()) {
                     var post = entry.getValue();
@@ -164,6 +171,7 @@ public final class ShipDutySnapshotSuite implements SnapshotSuite {
                                     (room.width() + 4) * scale, (room.depth() + 4) * scale)));
                 }
             }
+            if (gym != null) images.add(gymTrack(scene, gym, drain));
             for (CrewRole role : workplaces.keySet()) {
                 int stations = visited.getOrDefault(role, Set.of()).size();
                 System.out.println("ship-duty: " + role + " worked " + stations + " distinct home-room stations");
@@ -174,11 +182,58 @@ public final class ShipDutySnapshotSuite implements SnapshotSuite {
         return images;
     }
 
+    /** How long the ship is watched for its first runner: a lap comes late in a long rotation. */
+    private static final int TRACK_SEARCH_TICKS = 15 * 60 * 30, TRACK_FILM_TICKS = 90 * 30;
+
+    /**
+     * The biggest gym aboard, from the moment somebody first sets out on its track, for ninety seconds at two
+     * frames a second: the track is run, not stood on. Who ran it and how many markers they passed is printed.
+     */
+    private static SnapshotArtifact gymTrack(ShipDeckBattleScene scene, DeckGraph.Compartment gym,
+                                             HeadlessUiRenderer drain) {
+        var sim = scene.simulation();
+        int waited = 0;
+        while (waited < TRACK_SEARCH_TICKS && runners(scene).isEmpty()) {
+            sim.advance(BattleSimulation.TICK_DT);
+            waited++;
+        }
+        if (waited >= TRACK_SEARCH_TICKS)
+            throw new IllegalStateException("Nobody set out on the gym's track in " + TRACK_SEARCH_TICKS / 30 + "s");
+        float scale = Math.min(1920f / (gym.width() + 4), 1080f / (gym.depth() + 4));
+        List<BufferedImage> frames = new ArrayList<>();
+        Map<Long, Set<String>> markersRun = new HashMap<>();
+        for (int tick = 0; tick <= TRACK_FILM_TICKS; tick++) {
+            if (tick > 0) sim.advance(BattleSimulation.TICK_DT);
+            for (var runner : runners(scene).entrySet())
+                markersRun.computeIfAbsent(runner.getKey(), key -> new HashSet<>()).add(runner.getValue());
+            if (tick % 15 == 0) frames.add(drain.renderHostPass(scene.pass(
+                    ShipDeckBattleScene.DeckView.over(gym, 2, scale),
+                    EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.UNITS)), 1920, 1080));
+        }
+        int furthest = markersRun.values().stream().mapToInt(Set::size).max().orElse(0);
+        System.out.println("ship-duty: first runner on the " + gym.width() + "x" + gym.depth() + " gym's track after "
+                + waited / 30 + "s; " + markersRun.size() + " ran it in " + TRACK_FILM_TICKS / 30
+                + "s, the furthest passing " + furthest + " markers");
+        if (furthest < 4) throw new IllegalStateException("Nobody ran the gym's track: " + furthest + " markers");
+        return SnapshotArtifact.colorAnimation("ship-duty-gym-track.gif", frames, 100);
+    }
+
+    /** Everybody holding a lap marker this tick, and which. */
+    private static Map<Long, String> runners(ShipDeckBattleScene scene) {
+        var sim = scene.simulation();
+        Map<Long, String> runners = new HashMap<>();
+        for (long actor : sim.ambientTasks().assigned()) {
+            var point = sim.taskPoints().claimedPoint(actor);
+            if (point != null && JobBoard.affordance(point.group()) == Affordance.LAP) runners.put(actor, point.id());
+        }
+        return runners;
+    }
+
     /** The motions the board shows, in reading order. */
     private static final List<WorkMotion> BOARD = List.of(WorkMotion.WELD, WorkMotion.CARRY, WorkMotion.TREAT,
             WorkMotion.STIR, WorkMotion.CHOP, WorkMotion.WRENCH, WorkMotion.RUN, WorkMotion.ROW,
-            WorkMotion.PRESS, WorkMotion.LIFT, WorkMotion.CONSOLE);
-    private static final int CLOSE_PX = 128, CLOSE_TILE = 320, GAME_PX = 24, GAME_TILE = 168, BOARD_FRAMES = 45;
+            WorkMotion.PRESS, WorkMotion.LIFT, WorkMotion.JOG, WorkMotion.CONSOLE);
+    private static final int CLOSE_PX = 128, CLOSE_TILE = 320, GAME_PX = 24, GAME_TILE = 150, BOARD_FRAMES = 45;
     /** How long the ship is watched for every motion to turn up: six minutes of its day. */
     private static final int BOARD_SEARCH_TICKS = 6 * 60 * 30;
 

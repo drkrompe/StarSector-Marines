@@ -17,6 +17,9 @@ weapon_data.csv values; its width is not. Vanilla draws the beam 17 sprite pixel
 the Borer's 0.25 m/unit would be a 4 m beam from a 0.24 m emitter; it is sized to the emitter
 instead (0.6 units fringe, 0.15 m). The drone has no guns, so the kit's `guns` group is not used.
 
+The lift jets puff short and faint (RCS_PUFF_M, RCS_PUFF_DENSITY). The kit's smoke group (drive
+haze, landing dust) is not used: on a drone this size it read as a smear (owner, round 2).
+
 Lamps are the geometry's two work-lamp lenses (warm white, point lights at the masthead
 role's small power) and the amber beacon on the spine, which blinks.
 """
@@ -63,6 +66,12 @@ BEAMS = [dict(id='ws001', slot='WS 001', mount='HIDDEN', muzzle='Anchor weapon W
               glow=_rgb(255, 155, 155), chargeup=0.0, chargedown=.25, burst=None, pd=True)]
 
 RCS_QUADS = {}
+# The four ventral lift jets (the export's 'RCS <side> <fore|aft> lift jet anchor'): a short,
+# faint cold-gas pulse off a 0.2 m ring, not the kit's 4 m frigate plume (owner, round 2:
+# "too much smoke in the vertical booster").
+RCS_NOZZLE_M = .1
+RCS_PUFF_M = .7
+RCS_PUFF_DENSITY = .25
 
 WARM = (1.0, .88, .70)
 AMBER = (1.0, .45, .08)

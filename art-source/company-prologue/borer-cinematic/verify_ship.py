@@ -16,7 +16,7 @@ checks, writing validation.json beside the asset (exit 1 on any failure):
 - the cradle seat on the skid shoes' plane: every shoe's sole within 1 mm of it;
 - four lift jet anchors under the pods, pointing straight down;
 - the lamps are emissive;
-- with effects: the beam rig rides the muzzle anchor and is dark at rest (beam_t_ws001 = 0);
+- with effects: four lift-jet puffs under a metre long and no smoke group (owner, round 2); the beam rig rides the muzzle anchor and is dark at rest (beam_t_ws001 = 0);
 - moving the root (translate, yaw, pitch, scale) moves every part rigidly.
 The Borer has no moving parts, so there is no knob to exercise.
 """
@@ -118,6 +118,11 @@ if man.get('effects'):
     beam = [o for o in fx if o.name.startswith('SWFX beams') and 'ws001' in o.name]
     rides = [o for o in beam if o.parent is not None and (o.parent == muz or o.parent.parent == muz)]
     ctl = bpy.data.objects.get('SWFX controls')
+    puffs = [o for o in fx if o.type == 'MESH' and ' rcs puff ' in o.name]
+    reach = max((max(v.co.x for v in o.data.vertices) - min(v.co.x for v in o.data.vertices)) * man['metres_per_unit']
+                for o in puffs) if puffs else 0
+    check('four short lift-jet puffs, no smoke group', len(puffs) == 4 and reach < 1.0
+          and not any(o.name.startswith('SWFX smoke') for o in fx), [len(puffs), round(reach, 2)])
     check('beam rig rides the muzzle, dark at rest', beam and rides and ctl is not None
           and float(ctl.get('beam_t_ws001', 0)) == 0.0, [o.name for o in beam][:4])
 
