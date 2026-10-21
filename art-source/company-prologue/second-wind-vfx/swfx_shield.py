@@ -197,7 +197,7 @@ BANDS, BAND_PEAK = 2.2, .55        # thin-film interference bands across the thi
 TEAR_SPAN = .35         # share of the overload timeline the tear takes to run the whole shell
 TEAR_SOFT, TEAR_EDGE, TEAR_PEAK = .05, .09, 6.0   # torn-edge softness and glow half-width (radians), glow
 TEAR_W = 20000.0        # the tear light at its flash (W)
-SHARD_PEAK, SHARD_DECAY, SHARD_LIFT = 4.0, 6.0, .16   # shard glow, burn rate, scatter (mean radii)
+SHARD_PEAK, SHARD_DECAY, SHARD_LIFT = 2.5, 1.6, .16   # shard glow, burn rate, scatter (mean radii)
 SHARD_SUBDIV, SHARD_PIECES = 5, 150  # the shard mesh: a fine icosphere grown into this many ragged pieces
 SHARD_GAP, SHARD_SHRINK = .93, .45   # pieces pulled in from each other; shrunk to this as they burn
 SHARD_BURN_SCALE = 7.0               # burn-hole noise scale over the mean radius
@@ -891,9 +891,10 @@ def _shard_material(ctx, s, Rm):
     # Glow: the torn rim hot, the inside a thin mottled film.
     rim_w = g.pow(rimv.outputs['Fac'], 1.5)
     film = g.add(.18, g.mul(g.clamp01(g.mul(g.sub(bn.outputs['Fac'], .35), 2.0)), .3))
-    glow = g.add(g.mul(g.add(film, g.mul(rim_w, 1.6)), alive), g.mul(g.mul(front, g.sub(1.0, alive)), 1.4))
+    glow = g.add(g.mul(g.add(film, g.mul(rim_w, 1.6)), alive), g.mul(g.mul(front, g.sub(1.0, alive)), 1.0))
     strength = g.mul(g.mul(g.mul(g.mul(appear, glow), g.mul(cover, env)), g.sub(1.0, g.mul(burnt, .5))), SHARD_PEAK)
-    hot = tuple(a + (b - a) * .6 for a, b in zip(s['inner'], s['ring']))
+    # The rim runs hotter than the film but keeps the shield's tint: a whiter hot colour blows out.
+    hot = tuple(min(1.0, c + .3) for c in s['inner'])
     colour = g.mix_rgb(g.clamp01(g.add(rim_w, front)), s['inner'], hot)
     _additive_multi(nodes, links, [(colour, strength)])
     return _blended(m)
