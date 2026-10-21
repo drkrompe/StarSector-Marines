@@ -34,8 +34,12 @@ import java.util.Map;
  *
  * Runs once per simulation tick after the creep has spread, looking every
  * {@link #CHECK_TICKS}; deterministic in the bores' seed.
+ * {@code -Dbattle.swarm.creepOutposts=false} is the control: no outposts.
  */
 public final class CreepOutposts {
+
+    /** Control-run switch; outposts root unless it reads {@code false}. */
+    public static final String PROPERTY = "battle.swarm.creepOutposts";
 
     /** Outpost spacing as a share of the grade's spore reach: umbrellas that just overlap. */
     public static final float SPACING_PER_REACH = 1.5f;
@@ -56,6 +60,7 @@ public final class CreepOutposts {
 
     private final long seed;
     private final Map<Long, Pending> pending = new HashMap<>();
+    private final boolean enabled = !"false".equalsIgnoreCase(System.getProperty(PROPERTY));
 
     public CreepOutposts(long seed) {
         this.seed = seed;
@@ -120,6 +125,7 @@ public final class CreepOutposts {
 
     /** Once per simulation tick, after the creep has spread. No-op while there is no creep. */
     public void tick(BattleSimulation sim) {
+        if (!enabled) return;
         CreepField field = sim.creepFieldIfPresent();
         if (field == null) return;
         int tick = sim.getSimTickIndex();
