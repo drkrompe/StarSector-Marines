@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
-import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing.Core;
+import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import java.util.ArrayList;
@@ -78,7 +78,7 @@ class ShipDeckDressingTest {
         var all = plan.pieces(CoreDressing.DEFICIT);
         assertEquals(plan.pieces(), all);
         assertTrue(plan.pieces(CoreDressing.RESTORED).isEmpty());
-        for (Core core : Core.values()) {
+        for (ShipCore core : CoreDressing.DRESSED) {
             var expected = all.stream().filter(p -> p.kind().core != core).toList();
             assertEquals(expected, plan.pieces(CoreDressing.DEFICIT.with(core, true)));
         }

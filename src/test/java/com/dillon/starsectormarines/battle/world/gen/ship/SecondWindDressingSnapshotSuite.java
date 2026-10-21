@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
-import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing.Core;
+import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
@@ -57,10 +57,10 @@ public final class SecondWindDressingSnapshotSuite implements SnapshotSuite {
         // Power's Restored tier is the distribution order, which also clears the rooms' faults.
         Map<String, CoreDressing> states = new LinkedHashMap<>();
         states.put("01-all-deficit", CoreDressing.DEFICIT);
-        states.put("02-power-restored", CoreDressing.DEFICIT.with(Core.POWER, true));
-        states.put("03-life-support-restored", CoreDressing.DEFICIT.with(Core.LIFE_SUPPORT, true));
-        states.put("04-structure-restored", CoreDressing.DEFICIT.with(Core.STRUCTURE, true));
-        states.put("05-compute-restored", CoreDressing.DEFICIT.with(Core.COMPUTE, true));
+        states.put("02-power-restored", CoreDressing.DEFICIT.with(ShipCore.POWER, true));
+        states.put("03-life-support-restored", CoreDressing.DEFICIT.with(ShipCore.LIFE_SUPPORT, true));
+        states.put("04-structure-restored", CoreDressing.DEFICIT.with(ShipCore.STRUCTURE, true));
+        states.put("05-compute-restored", CoreDressing.DEFICIT.with(ShipCore.COMPUTE, true));
         states.put("06-all-restored", CoreDressing.RESTORED);
 
         List<SnapshotArtifact> frames = new ArrayList<>();
@@ -138,7 +138,7 @@ public final class SecondWindDressingSnapshotSuite implements SnapshotSuite {
     private static String caption(String name, CoreDressing state) {
         if (state.clean()) return "All cores Restored (today's clean look)";
         if (state.equals(CoreDressing.DEFICIT)) return "All cores at Deficit (the battered start)";
-        for (Core core : Core.values())
+        for (ShipCore core : CoreDressing.DRESSED)
             if (state.restored(core)) return core.name().replace('_', ' ') + " restored alone, the rest at Deficit";
         return name;
     }

@@ -90,12 +90,11 @@ vocabulary (damaged props, rubble decals) the d-mod damage model wants. It
 needs new battered corridor and wall art; the clean art already shipped is the
 target, not something to replace.
 
-The deck reads a per-core Restored flag (`CoreDressing`), fed through one seam
-(`CoreDressing.of`) that the ship-condition record will own; until it does, every
-core but Power shows its Deficit on the converted hull, and Power follows the
-existing circuits order. `ShipDeckBattleScene.dress` is the one door into the
-scene. The first-pass art is one sheet, `ship-dressing`; Improved-tier dressing
-(better lighting, fresh paint, running displays) is not built.
+The deck reads the record's restored cores (`ShipCondition.restoredCores`) as a
+per-core flag (`CoreDressing`) and applies it to the running deck, so buying a
+core's Restored order clears its look without laying the ship out again. The
+first-pass art is one sheet, `ship-dressing`; Improved-tier dressing (better
+lighting, fresh paint, running displays) is not built.
 
 ## Facilities and their passives
 

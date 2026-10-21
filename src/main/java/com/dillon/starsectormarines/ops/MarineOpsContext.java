@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
+import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 
@@ -195,6 +197,7 @@ public class MarineOpsContext {
         String held = CompanyShipRestoration.state(aboard) + ":" + boatsHeldSignature() + ":" + CompanyBayRestoration.state(aboard) + ":" + CompanyWorkshopRestoration.state(aboard) + ":" + (aboard != null && CompanyShipResolver.read(aboard).aeroshuttleConversion());
         if (companyDeck != null && Objects.equals(hull, companyDeckShipId)
                 && held.equals(companyDeckBoatsHeld)) {
+            dressFromCondition(aboard);
             return companyDeck;
         }
         if (companyDeck != null) companyDeck.dismiss();
@@ -207,7 +210,18 @@ public class MarineOpsContext {
                 MarineOpsContext::companyMarines,
                 MarineOpsContext::companyBoatsHeld, MarineOpsContext::companyBoatWrecks)
                 .groundedBoats(MarineOpsContext::companyBoatsGrounded);
+        dressFromCondition(aboard);
         return companyDeck;
+    }
+
+    /**
+     * Each core's Deficit dressing follows the ship-condition record: a core
+     * brought to Restored clears its own look from the deck. Presentation only,
+     * so it is applied to the running deck rather than laying the ship out again.
+     */
+    private void dressFromCondition(FleetMemberAPI aboard) {
+        if (companyDeck == null || aboard == null) return;
+        companyDeck.dress(CoreDressing.restored(ShipRefits.condition(aboard).restoredCores()));
     }
 
     /**

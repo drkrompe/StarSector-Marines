@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.ship.BayAperture;
 import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
-import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing.Core;
+import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -55,20 +55,20 @@ final class ShipDeckDressing {
      * leaves a worse-looking deck rather than a bare one.
      */
     enum Kind {
-        DEAD_PANEL(Core.POWER, Placement.EDGE, "ship-dressing.dead-panel", null, 13, false),
-        CONDUIT(Core.POWER, Placement.EDGE, "ship-dressing.conduit", null, 17, false),
-        GRIME(Core.LIFE_SUPPORT, Placement.FLOOR, "ship-dressing.grime", "ship-wear.scuffs", 30, false),
-        CONDENSATION(Core.LIFE_SUPPORT, Placement.FLOOR, "ship-dressing.condensation", null, 44, false),
-        GRILLE(Core.LIFE_SUPPORT, Placement.EDGE, "ship-dressing.grille", null, 19, false),
-        BUCKLED_PANEL(Core.STRUCTURE, Placement.EDGE, "ship-dressing.buckled-panel", null, 15, false),
-        BRACING(Core.STRUCTURE, Placement.EDGE, "ship-dressing.bracing", null, 23, false),
-        DEBRIS(Core.STRUCTURE, Placement.FLOOR, "ship-dressing.debris", "doodad.decal-rubble-2", 40, false),
-        PATCH(Core.STRUCTURE, Placement.FLOOR, "ship-dressing.hull-patch", "ship-wear.patch", 26, true),
-        BUCKLED_PLATE(Core.STRUCTURE, Placement.FLOOR, "ship-dressing.buckled-plate", null, 52, false),
-        CABLE_SPILL(Core.COMPUTE, Placement.FLOOR, "ship-dressing.cable-spill", null, 0, false),
-        CABLE_RUN(Core.COMPUTE, Placement.EDGE, "ship-dressing.cable-run", null, 21, false);
+        DEAD_PANEL(ShipCore.POWER, Placement.EDGE, "ship-dressing.dead-panel", null, 13, false),
+        CONDUIT(ShipCore.POWER, Placement.EDGE, "ship-dressing.conduit", null, 17, false),
+        GRIME(ShipCore.LIFE_SUPPORT, Placement.FLOOR, "ship-dressing.grime", "ship-wear.scuffs", 30, false),
+        CONDENSATION(ShipCore.LIFE_SUPPORT, Placement.FLOOR, "ship-dressing.condensation", null, 44, false),
+        GRILLE(ShipCore.LIFE_SUPPORT, Placement.EDGE, "ship-dressing.grille", null, 19, false),
+        BUCKLED_PANEL(ShipCore.STRUCTURE, Placement.EDGE, "ship-dressing.buckled-panel", null, 15, false),
+        BRACING(ShipCore.STRUCTURE, Placement.EDGE, "ship-dressing.bracing", null, 23, false),
+        DEBRIS(ShipCore.STRUCTURE, Placement.FLOOR, "ship-dressing.debris", "doodad.decal-rubble-2", 40, false),
+        PATCH(ShipCore.STRUCTURE, Placement.FLOOR, "ship-dressing.hull-patch", "ship-wear.patch", 26, true),
+        BUCKLED_PLATE(ShipCore.STRUCTURE, Placement.FLOOR, "ship-dressing.buckled-plate", null, 52, false),
+        CABLE_SPILL(ShipCore.COMPUTE, Placement.FLOOR, "ship-dressing.cable-spill", null, 0, false),
+        CABLE_RUN(ShipCore.COMPUTE, Placement.EDGE, "ship-dressing.cable-run", null, 21, false);
 
-        final Core core;
+        final ShipCore core;
         final Placement placement;
         final String art;
         final String standIn;
@@ -77,7 +77,7 @@ final class ShipDeckDressing {
         /** Passages only: patched plating belongs in the corridors. */
         final boolean passagesOnly;
 
-        Kind(Core core, Placement placement, String art, String standIn, int rarity, boolean passagesOnly) {
+        Kind(ShipCore core, Placement placement, String art, String standIn, int rarity, boolean passagesOnly) {
             this.core = core; this.placement = placement; this.art = art; this.standIn = standIn;
             this.rarity = rarity; this.passagesOnly = passagesOnly;
         }

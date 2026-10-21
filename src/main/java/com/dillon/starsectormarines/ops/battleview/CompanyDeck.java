@@ -96,6 +96,11 @@ public final class CompanyDeck {
     private MapResult deck;
     private DeckGraph rooms;
     private ShipDeckBattleScene scene;
+    /**
+     * Which cores' Deficit dressing the deck shows. Presentation only, so it is
+     * changed on the scene in place rather than by laying the ship out again.
+     */
+    private volatile CoreDressing dressing;
     /** Her deck being laid out and her watch mustered, off the frame. @see #ready() */
     private CompletableFuture<ShipDeckBattleScene> gettingReady;
     /** What she is doing meanwhile; written where the work is and read here. */
@@ -345,7 +350,7 @@ public final class CompanyDeck {
         generate();
         work = Work.MUSTERING;
         ShipDeckBattleScene manned = new ShipDeckBattleScene(deck, rooms, seed, null, held, wrecks, grounded);
-        manned.dress(CoreDressing.of(ship));
+        manned.dress(dressing == null ? CoreDressing.of(ship) : dressing);
         manned.occupyGantries(berthed);
         // The company musters before the ship is crewed, so the berthing is
         // filled by marines who are on the roster rather than topped up with
@@ -364,6 +369,7 @@ public final class CompanyDeck {
         ensureSceneSprites();
         manned.attachRenderer(sprites);
         scene = manned;
+        if (dressing != null) scene.dress(dressing);
     }
 
     /**
@@ -457,6 +463,16 @@ public final class CompanyDeck {
      */
     public DeckGraph.Compartment quartersOf(String soldierId) {
         return quarters.get(soldierId);
+    }
+
+    /**
+     * Dress the deck for the ship's current core condition: each core's Deficit
+     * look shown or cleared. Applied to the running scene at once, or to the
+     * scene when it is ready.
+     */
+    public void dress(CoreDressing state) {
+        dressing = state;
+        if (scene != null) scene.dress(state);
     }
 
     /** Whether the ship has been built and crewed yet. */
