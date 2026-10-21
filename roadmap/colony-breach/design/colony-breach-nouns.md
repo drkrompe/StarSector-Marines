@@ -252,6 +252,14 @@ as parts, so a carrier (`swarm-harvest.md`) moves the colonist's corpse with
 it and draws it as one more attached sprite; neither the strains nor their
 corpse sheets assume a body stays where it fell.
 
+**Creep.** The biological growth living bores spread across the colony:
+streets, walls, buildings. It is what makes an ordinary settlement look
+unmistakably wrong, and it is the only ground the hive's static growths stand on
+away from a bore's mouth. A ground colony (anti-infantry, anti-emplacement)
+roots only on creep. Creep recedes when its bore collapses. Mobile strains never
+gain ranged attacks to answer fortifications: static growth on creep does that.
+Planned in `hive-creep.md`.
+
 **Swarm goal.** A place the swarm is drawn toward: the shelter, the lift, the
 nearest Marine body. Swarm movement toward a goal is a shared **flow field** per
 goal rather than a path per body, which is what lets the swarm be large on a
