@@ -177,7 +177,10 @@ public final class RoadSurfaceStage implements GenStage {
     /**
      * Concrete underlay for every footway cell not wholly under asphalt that the
      * asphalt touches or neighbours, two deep where the footway is a sidewalk
-     * flank. A precinct road's cells are not footway and keep their own ground.
+     * flank, and for every building apron and sidewalk flank in the city
+     * whether a road runs past or not: one sidewalk material throughout, rather
+     * than concrete beside the roads and the old kerb tile everywhere else.
+     * A precinct road's cells are not footway and keep their own ground.
      */
     static RoadSurface.Underlay[][] sidewalks(GenContext ctx, RoadSurface surface, boolean[][] footway) {
         int w = ctx.width, h = ctx.height;
@@ -192,7 +195,8 @@ public final class RoadSurfaceStage implements GenStage {
             var patch = surface.patch(x, y, Material.ASPHALT.ordinal());
             if (patch != null && patch.area() > 1 - 1e-6) continue;
             var kind = ctx.topology.getGroundKind(x, y);
-            if (!near(asphalt, x, y, kind == GroundKind.SIDEWALK ? 2 : 1)) continue;
+            boolean apron = kind == GroundKind.SIDEWALK || kerb(ctx, x, y);
+            if (!apron && !near(asphalt, x, y, 1)) continue;
             int concrete = ctx.topology.surfaceIndex(Material.CONCRETE.block(RoadRasterizer.age(.4, ctx.seed, x, y)));
             sidewalk[x][y] = new RoadSurface.Underlay(kind, concrete, false, false);
         }
