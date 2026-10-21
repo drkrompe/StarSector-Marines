@@ -60,14 +60,13 @@ FPS = swfx_core.FPS
 LEAK_FLUX = .75
 # kind -> look. Sizes in metres, times in seconds.
 KINDS = {
-    'kinetic': dict(sparks=70, spark_speed=(40.0, 170.0), spark_life=(.12, .45), spark_width=36.0,
-                    spall=0, flash_m=.55, flash_s=.09, flash_W=2.5e5, fireball_m=0.0,
-                    pock_m=.45, pock_gain=9.0),
-    'he': dict(sparks=40, spark_speed=(60.0, 200.0), spark_life=(.1, .3), spark_width=30.0,
-               spall=45, flash_m=1.6, flash_s=.16, flash_W=1.6e6, fireball_m=2.6,
-               pock_m=1.4, pock_gain=7.0),
+    'kinetic': dict(sparks=50, spark_speed=(12.0, 55.0), spark_life=(.08, .3), spark_width=22.0, spark_gain=26.0,
+                    spall=0, flash_m=.5, flash_s=.08, flash_W=2.0e4, fireball_m=0.0,
+                    pock_m=.6, pock_gain=16.0),
+    'he': dict(sparks=30, spark_speed=(20.0, 80.0), spark_life=(.08, .25), spark_width=22.0, spark_gain=22.0,
+               spall=40, flash_m=1.4, flash_s=.14, flash_W=1.5e5, fireball_m=2.6,
+               pock_m=1.4, pock_gain=12.0),
 }
-
 
 # ======================================================================================= helpers
 
@@ -160,7 +159,7 @@ def _flash(ctx, e, seed, radius_m, decay_s, metre_watts, colour=(1.0, .86, .6)):
     ctx.drive(light.data, 'energy', f'{watts(metre_watts):.1f}*{env}', ('imp_flash',), extra=_start(e))
     m, nodes, links = node_material(f'{PREFIX} flash body {seed}')
     g = G(m.node_tree)
-    strength = value_node(ctx, nodes, 'strength', f'{60.0:.1f}*{env}', ('imp_flash',), extra=_start(e))
+    strength = value_node(ctx, nodes, 'strength', f'{25.0:.1f}*{env}', ('imp_flash',), extra=_start(e))
     # Bright at the centre, falling off to the silhouette: a soft star rather than a ball.
     lw = g.node('ShaderNodeLayerWeight')
     lw.inputs['Blend'].default_value = .5
@@ -219,7 +218,7 @@ def _fireball(ctx, e, seed, radius_m):
     fade = g.m('EXPONENT', g.m('MULTIPLY', t, -1.3))
     dens = g.m('MULTIPLY', g.m('MULTIPLY', g.m('MULTIPLY', shell, on), fade), 1.6 / units(1.0))
     temp = g.m('MULTIPLY_ADD', g.m('MULTIPLY', heat, g.mr(n, .2, .8, .75, 1.0)), 4200.0, 1100.0)
-    em = g.m('MULTIPLY', g.m('MULTIPLY', g.m('MULTIPLY', shell, on), g.m('POWER', heat, 2.5)), 22.0 / units(1.0))
+    em = g.m('MULTIPLY', g.m('MULTIPLY', g.m('MULTIPLY', shell, on), g.m('POWER', heat, 2.5)), 40.0 / units(1.0))
     vol = volume_output(g, dens, (0.05, 0.045, 0.04, 1), (0.16, 0.16, 0.17, 1), .2, emission=em)
     bb = g.node('ShaderNodeBlackbody')
     g._in(bb.inputs['Temperature'], temp)
@@ -282,7 +281,7 @@ def kinetic(ctx, frame, at_m, normal, scale=1.0):
     k = KINDS['kinetic']
     e, seed = anchor(ctx, 'kinetic', frame, at_m, normal)
     obs = [_sparks(ctx, e, seed, 'kinetic spark', k['sparks'], [v * scale for v in k['spark_speed']], k['spark_life'],
-                   k['spark_width'] * scale ** .5, 'imp_sparks', 55.0, (1.0, .5, .12, 1), (1.0, .92, .7, 1))]
+                   k['spark_width'] * scale ** .5, 'imp_sparks', k['spark_gain'], (1.0, .5, .12, 1), (1.0, .92, .7, 1))]
     obs += _flash(ctx, e, seed, k['flash_m'] * scale, k['flash_s'], k['flash_W'] * scale ** 2)
     obs.append(_pock(ctx, e, seed, k['pock_m'] * scale, k['pock_gain']))
     return _record('kinetic', frame, at_m, e, obs)
@@ -296,9 +295,9 @@ def he(ctx, frame, at_m, normal, size_m=None, scale=1.0, flash_colour=(1.0, .62,
     s = (size_m / k['fireball_m'] if size_m else 1.0) * scale
     e, seed = anchor(ctx, 'he', frame, at_m, normal)
     obs = [_sparks(ctx, e, seed, 'he spark', k['sparks'], [v * s ** .5 for v in k['spark_speed']], k['spark_life'],
-                   k['spark_width'], 'imp_sparks', 45.0, (1.0, .5, .12, 1), (1.0, .9, .65, 1)),
-           _sparks(ctx, e, seed + 11, 'he spall', k['spall'], (12.0 * s ** .5, 55.0 * s ** .5), (.5, 1.6),
-                   70.0 * s ** .5, 'imp_sparks', 18.0, (.6, .12, .02, 1), (1.0, .55, .16, 1), spread=1.2, lift=1.0)]
+                   k['spark_width'], 'imp_sparks', k['spark_gain'], (1.0, .5, .12, 1), (1.0, .9, .65, 1)),
+           _sparks(ctx, e, seed + 11, 'he spall', k['spall'], (6.0 * s ** .5, 24.0 * s ** .5), (.4, 1.2),
+                   60.0 * s ** .5, 'imp_sparks', 10.0, (.6, .12, .02, 1), (1.0, .55, .16, 1), spread=1.2, lift=1.0)]
     obs += _flash(ctx, e, seed, k['flash_m'] * s, k['flash_s'], k['flash_W'] * s ** 2, colour=flash_colour)
     obs.append(_fireball(ctx, e, seed, k['fireball_m'] * s))
     obs.append(_pock(ctx, e, seed, k['pock_m'] * s, k['pock_gain']))
@@ -368,7 +367,7 @@ def debris(ctx, frame, at_m, normal, count=60, speed_m=(4.0, 38.0), size_m=(.6, 
     pts = g.node('GeometryNodePoints')
     pts.inputs['Count'].default_value = count
     g.links.new(pos, pts.inputs['Position'])
-    heat = g.m('EXPONENT', g.m('MULTIPLY', secs, -1.6))
+    heat = g.m('EXPONENT', g.m('MULTIPLY', secs, -3.0))
     st = g.node('GeometryNodeStoreNamedAttribute', data_type='FLOAT', domain='POINT')
     g.links.new(pts.outputs[0], st.inputs['Geometry'])
     st.inputs['Name'].default_value = 'swfx_heat'
@@ -405,8 +404,8 @@ def debris(ctx, frame, at_m, normal, count=60, speed_m=(4.0, 38.0), size_m=(.6, 
     _child(ob, e)
     obs = [ob]
     if sparks:
-        obs.append(_sparks(ctx, e, seed + 3, 'debris spark', sparks, (30.0, 150.0), (.2, .8), 40.0, 'imp_debris',
-                           50.0, (1.0, .45, .1, 1), (1.0, .9, .65, 1), spread=1.0, lift=.8))
+        obs.append(_sparks(ctx, e, seed + 3, 'debris spark', sparks, (10.0, 50.0), (.15, .6), 26.0, 'imp_debris',
+                           24.0, (1.0, .45, .1, 1), (1.0, .9, .65, 1), spread=1.0, lift=.8))
     return _record('debris', frame, at_m, e, obs)
 
 
@@ -426,7 +425,7 @@ def _debris_material(ctx):
     g._in(bb.inputs['Temperature'], g.m('MULTIPLY_ADD', heat, 900.0, 800.0))
     g.links.new(bb.outputs[0], bsdf.inputs['Emission Color'])
     amt = value_node(ctx, nodes, 'amount', 'imp_debris', ('imp_debris',))
-    g._in(bsdf.inputs['Emission Strength'], g.m('MULTIPLY', g.m('MULTIPLY', g.m('POWER', heat, 2.0), 6.0), amt))
+    g._in(bsdf.inputs['Emission Strength'], g.m('MULTIPLY', g.m('MULTIPLY', g.m('POWER', heat, 2.0), 3.0), amt))
     out = g.node('ShaderNodeOutputMaterial')
     links.new(bsdf.outputs[0], out.inputs['Surface'])
     return m

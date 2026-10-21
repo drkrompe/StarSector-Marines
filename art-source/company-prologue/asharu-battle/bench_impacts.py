@@ -124,7 +124,7 @@ def armour_breach(bench):
                 recs.append(imp.he(ctx, f, *got))
         got = imp.ray_to_hull(bench.scene, t.matrix, *port(24, 2))   # beat 2: she breaks open
         if got:
-            recs.append(imp.breach(ctx, 62, *got, size_m=3.5))
+            recs.append(imp.breach(ctx, 62, *got, size_m=5.0, vent_m=30.0))
             recs.append(imp.debris(ctx, 62, *got))
     print('BENCH impacts', len(recs), 'placed:',
           {k: sum(1 for r in recs if r['kind'] == k) for k in ('kinetic', 'he', 'debris')},
