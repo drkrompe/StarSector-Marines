@@ -71,6 +71,7 @@ final class SwarmBruteBehavior {
             SwarmPressureBehavior.updateRoaming(brute, previousTarget, sim);
             return;
         }
+        if (target != previousTarget) sim.swarmCues().post(SwarmCues.Kind.ALERT, brute, sim);
 
         float dx = sim.world().x(target) - sim.world().x(brute);
         float dy = sim.world().y(target) - sim.world().y(brute);
@@ -81,6 +82,7 @@ final class SwarmBruteBehavior {
             if (sim.combat().cooldownTimer(brute) <= 0f) {
                 sim.applyDamage(target, brute, sim.combat().attackDamage(brute), MELEE_PENETRATION,
                         sim.identity().type(brute).moraleImpact);
+                sim.swarmCues().post(SwarmCues.Kind.STRIKE, brute, sim);
                 sim.combat().setCooldownTimer(brute, sim.combat().attackCooldown(brute));
             }
             return;

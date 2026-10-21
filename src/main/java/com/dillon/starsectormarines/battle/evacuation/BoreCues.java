@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * What the bores ask the presentation to sound: an eruption, a tier reached, a
- * collapse, a surge leaving the mouth (`breach-audio.md`, hook points).
+ * collapse, a surge leaving the mouth (`colony-breach-nouns.md`, Bore).
  *
  * <p>The simulation only records here and never reads back, so a headless run
  * stays silent and nothing presented reaches the simulation. Requests last one

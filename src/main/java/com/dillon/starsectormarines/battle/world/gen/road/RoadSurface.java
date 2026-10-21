@@ -9,9 +9,38 @@ import com.dillon.starsectormarines.battle.world.gen.CellContour;
 /** Immutable subcell pavement boundary. Navigation continues to use the center-sampled raster. */
 public final class RoadSurface {
     /** Borrowed vertex arrays are read-only; collecting a frame allocates no geometry. */
-    public record Patch(int pavement,float[] first,float[] second) {}
+    public record Patch(int pavement,float[] first,float[] second) {
+        /** The share of the cell this patch covers; an edge on a cell boundary leaves a patch of none. */
+        public double area() { return area(first)+area(second); }
+        private static double area(float[] p) {
+            if(p==null)return 0;
+            double sum=0;
+            for(int i=0;i<p.length/2;i++) { int j=(i+1)%(p.length/2); sum+=p[i*2]*p[j*2+1]-p[j*2]*p[i*2+1]; }
+            return Math.abs(sum)/2;
+        }
+    }
     public record Underlay(GroundKind ground,int surface,boolean shoulder,boolean hard) {}
     public static final int MATERIALS=RoadPlan.Material.values().length;
+    /** The patch layer road paint is drawn in, over every material. */
+    public static final int MARKING=MATERIALS;
+    /** Patch layers: one per material, then the paint. */
+    public static final int LAYERS=MATERIALS+1;
+    /** The paint's pool prefix; its ages follow the pavement's. */
+    public static final String MARKING_BLOCK="pavement.marking.";
+
+    /**
+     * Road paint: a straight stroke from {@code a} to {@code b}, {@code width}
+     * across and flush at both ends, laid over asphalt and nothing else. A
+     * centre-line dash, a stop line or a crossing bar are all one of these.
+     * Strokes run along a grid axis: a patch is one quad, which holds the
+     * overlap of two axis-aligned rectangles and nothing slanted.
+     */
+    public record Marking(RoadPlan.Point a,RoadPlan.Point b,double width) {
+        public Marking {
+            if(a.x()!=b.x() && a.y()!=b.y()) throw new IllegalArgumentException("a marking runs along a grid axis: "+a+" "+b);
+            if(!(width>0)) throw new IllegalArgumentException("marking width "+width);
+        }
+    }
     private final int width;
     private final Patch[][] patches;
     private final Underlay[] underlays;
@@ -21,6 +50,17 @@ public final class RoadSurface {
     public Patch patch(int x,int y,int material) { return patches[material][y*width+x]; }
     public Underlay underlay(int x,int y) { return underlays[y*width+x]; }
 
+    /**
+     * The same pavement over different ground: each non-null {@code ground} cell
+     * shows that underlay, whether or not any pavement covers it.
+     */
+    public RoadSurface withUnderlays(Underlay[][] ground) {
+        Underlay[] next=underlays.clone();
+        for(int x=0;x<ground.length;x++)for(int y=0;y<ground[0].length;y++)
+            if(ground[x][y]!=null)next[y*width+x]=ground[x][y];
+        return new RoadSurface(width,patches,next);
+    }
+
     /** Sample signed distances at cell corners, preserving first-authored-road precedence. */
     public static RoadSurface build(RoadPlan plan,RoadRasterizer.Raster raster,CellTopology topology) {
         return build(plan.routes(),plan.width(),plan.height(),raster,topology);
@@ -28,6 +68,12 @@ public final class RoadSurface {
 
     /** Generated pavement is a finish over an already reserved, fully placed map. */
     public static RoadSurface generated(List<RoadPlan.Route> routes, CellTopology topology,
+                                        Underlay[][] allowed) {
+        return generated(routes,List.of(),topology,allowed);
+    }
+
+    /** As {@link #generated(List, CellTopology, Underlay[][])}, with paint over the finished asphalt. */
+    public static RoadSurface generated(List<RoadPlan.Route> routes, List<Marking> markings, CellTopology topology,
                                         Underlay[][] allowed) {
         int w=allowed.length,h=allowed[0].length;
         RoadSurface result=build(routes,w,h,null,topology);
@@ -48,10 +94,11 @@ public final class RoadSurface {
         for(int y=0;y<h;y++)for(int x=0;x<w;x++) {
             int cell=y*w+x;
             if(allowed[x][y]==null) {
-                for(int m=0;m<MATERIALS;m++)result.patches[m][cell]=null;
+                for(int m=0;m<LAYERS;m++)result.patches[m][cell]=null;
                 result.underlays[cell]=null;
             } else if(result.underlays[cell]!=null) result.underlays[cell]=allowed[x][y];
         }
+        paint(result,markings,topology);
         return result;
     }
 
@@ -84,7 +131,7 @@ public final class RoadSurface {
                 owner[material][y*w+x]=ri;
             }
         }
-        Patch[][] patches=new Patch[MATERIALS][cells];
+        Patch[][] patches=new Patch[LAYERS][cells];
         Underlay[] underlays=new Underlay[cells];
         for(int y=0;y<h;y++)for(int x=0;x<w;x++) {
             int cell=y*w+x,navOwner=raster==null?-1:raster.owner()[cell];
@@ -158,5 +205,35 @@ public final class RoadSurface {
         }
         return new Sweep(x0,y0,x1,y1,distance);
     }
+    /**
+     * Lay each stroke over cells the asphalt covers whole; paint never reaches a
+     * ragged asphalt edge, a sidewalk or bare ground. The first stroke in a cell
+     * keeps it. A stroke is a rectangle, so its share of a cell is the overlap
+     * of two rectangles: exact however thin the line, where a patch clipped from
+     * corner distances would lose any line narrower than the cell.
+     */
+    private static void paint(RoadSurface surface,List<Marking> markings,CellTopology topology) {
+        int w=surface.width,h=surface.patches[0].length/w,asphalt=RoadPlan.Material.ASPHALT.ordinal();
+        for(int mi=0;mi<markings.size();mi++) {
+            var m=markings.get(mi);
+            double half=m.width()/2,horizontal=m.a().y()==m.b().y()?half:0,vertical=half-horizontal;
+            double left=Math.min(m.a().x(),m.b().x())-vertical,right=Math.max(m.a().x(),m.b().x())+vertical;
+            double bottom=Math.min(m.a().y(),m.b().y())-horizontal,top=Math.max(m.a().y(),m.b().y())+horizontal;
+            for(int y=Math.max(0,(int)Math.floor(bottom+.5));y<=Math.min(h-1,(int)Math.ceil(top-.5));y++)
+                for(int x=Math.max(0,(int)Math.floor(left+.5));x<=Math.min(w-1,(int)Math.ceil(right-.5));x++) {
+                    int cell=y*w+x;
+                    Patch under=surface.patches[asphalt][cell];
+                    if(surface.patches[MARKING][cell]!=null || under==null || under.area()<1-1e-6)continue;
+                    // The overlap in the cell's own unit square, y up the cell as the patches are.
+                    float x0=(float)Math.max(0,left-x+.5),x1=(float)Math.min(1,right-x+.5);
+                    float y0=(float)Math.max(0,bottom-y+.5),y1=(float)Math.min(1,top-y+.5);
+                    if(x1-x0<1e-4 || y1-y0<1e-4)continue;
+                    int age=RoadRasterizer.age(.15,mi*0x9E3779B9L,x,y);
+                    int pool=topology.surfaceIndex(MARKING_BLOCK+new String[]{"new","worn","cracked"}[age]);
+                    surface.patches[MARKING][cell]=new Patch(pool,new float[]{x0,y0,x1,y0,x1,y1,x0,y1},null);
+                }
+        }
+    }
+
     static float[] clip(float[] triangle,double[] distances) { return CellContour.clip(triangle,distances); }
 }

@@ -13,7 +13,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * The bores' sound (`breach-audio.md`, hook points): an eruption, a tier
+ * The bores' sound (`colony-breach-nouns.md`, Bore): an eruption, a tier
  * reached, a collapse and a surge leaving the mouth, played positionally from
  * {@link BoreCues}, and a breathing ambience loop under every living bore whose
  * clip follows its tier. A bore is the swarm's, so it is heard only where the
@@ -25,6 +25,7 @@ public final class BoreAudio {
     static final String ERUPTION = "marines_breach_bore_eruption";
     static final String COLLAPSE = "marines_breach_bore_collapse";
     static final String SURGE = "marines_breach_bore_surge";
+    static final String GROWTH = "marines_breach_bore_growth";
     private static final float PITCH_JITTER = 0.06f;
     private static final float AMBIENCE_VOLUME = 0.45f;
 
@@ -49,19 +50,18 @@ public final class BoreAudio {
         for (BoreCues.Cue cue : cues) {
             if (!heard(sim, (int) Math.floor(cue.x()), (int) Math.floor(cue.y()))) continue;
             String id = soundId(cue.kind());
-            if (id == null) continue;
             float pitch = 1f + ThreadLocalRandom.current().nextFloat(-PITCH_JITTER, PITCH_JITTER);
             Global.getSoundPlayer().playSound(id, pitch, volume(cue.kind()), where(cue.x(), cue.y()), still);
         }
     }
 
-    /** The one-shot clip for a cue; a tier reached has none of its own, the ambience changing is the sound. */
+    /** The one-shot clip for a cue; a tier reached tears the ground wider before its ambience changes. */
     static String soundId(BoreCues.Kind kind) {
         return switch (kind) {
             case ERUPTED -> ERUPTION;
             case COLLAPSED -> COLLAPSE;
             case SURGE -> SURGE;
-            case GREW -> null;
+            case GREW -> GROWTH;
         };
     }
 
@@ -70,7 +70,7 @@ public final class BoreAudio {
             case ERUPTED -> 1f;
             case COLLAPSED -> 0.95f;
             case SURGE -> 0.7f;
-            case GREW -> 0f;
+            case GREW -> 0.9f;
         };
     }
 

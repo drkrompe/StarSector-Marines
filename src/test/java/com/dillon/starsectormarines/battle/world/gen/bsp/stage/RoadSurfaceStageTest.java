@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import org.junit.jupiter.api.Test;
@@ -87,7 +88,13 @@ class RoadSurfaceStageTest {
         assertNotNull(surface.patch(20, 6, 0), "the carriageway is swept");
         assertNotNull(surface.underlay(20, 6));
         assertTrue(ctx.topology.hasTag(20, 6, CellTopology.Tag.ROAD_EDGE_BLEND));
-        assertNull(surface.patch(20, 8, 0), "the kerb beside the wall keeps its paving");
+        assertEquals(0, area(surface.patch(20, 8, 0)), 1e-6, "no asphalt on the kerb beside the wall");
+        assertTrue(concrete(ctx, surface, 20, 8), "the kerb is the sidewalk");
+        assertEquals(0, area(surface.patch(20, 4, 0)), 1e-6, "beside grass the sidewalk comes out of the street");
+        assertTrue(concrete(ctx, surface, 20, 4));
+        assertNull(surface.patch(20, 4, 1), "a sidewalk is ground, never a second painted layer");
+        assertNull(surface.underlay(20, 2), "grass beyond the sidewalk keeps its own ground");
+        assertFalse(concrete(ctx, surface, 18, 20), "a square away from the road keeps its paving");
         assertNull(surface.patch(18, 20, 0), "a square is not a street");
         assertArrayEquals(kinds, ctx.topology.copyGroundKinds());
         assertEquals(0, ctx.topology.getSurface(20, 6), "a finish, not a repaving");
@@ -124,5 +131,14 @@ class RoadSurfaceStageTest {
         assertNotNull(surface.patch(22, 13, 0), "the mouth crosses the flank");
         assertNotNull(surface.patch(22, 14, 0));
         assertNull(surface.patch(35, 14, 0), "the flank elsewhere stays paved");
+    }
+
+    private static double area(RoadSurface.Patch patch) {
+        return patch == null ? 0 : patch.area();
+    }
+
+    private static boolean concrete(GenContext ctx, RoadSurface surface, int x, int y) {
+        var underlay = surface.underlay(x, y);
+        return underlay != null && ctx.topology.surfaceId(underlay.surface()).startsWith("pavement.concrete.");
     }
 }

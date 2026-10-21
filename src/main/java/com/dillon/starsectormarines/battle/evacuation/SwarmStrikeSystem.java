@@ -68,6 +68,8 @@ public final class SwarmStrikeSystem {
                             blow.edge(), blow.amount());
             blowsLanded++;
             if (broke) structuresBroken++;
+            sim.swarmCues().postAt(broke ? SwarmCues.Kind.WALL_BREAK : SwarmCues.Kind.WALL_BLOW,
+                    blow.attacker(), blow.cellX(), blow.cellY(), sim);
         }
 
         int before = inFlight.size();
