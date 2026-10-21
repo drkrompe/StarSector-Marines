@@ -41,6 +41,9 @@ public final class DoodadRenderSystem implements RenderSystem {
                 VisibleCellRect.GEOMETRY_MARGIN_CELLS,
                 ctx.sim.getGrid().getWidth(), ctx.sim.getGrid().getHeight());
         collectPlacements(ctx.sim.getDoodads(), out, cam, view, ctx.alphaMult, wornTwins(ctx));
+        // Facility tiers fitted into existing rooms stand with the furniture, presentation only.
+        if (!ctx.facilityPieces.isEmpty() && ctx.hostProfile == BattleRenderHostProfile.DECK_SCENE)
+            collectPlacements(ctx.facilityPieces, out, cam, view, ctx.alphaMult);
     }
 
     /**

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command.trace;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
+import com.dillon.starsectormarines.battle.command.DefenceStructureFact;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService.CompoundState;
@@ -66,6 +67,8 @@ public final class PlaceFightProbe {
     /** Compounds the marines have held since the defender last held them, and the ticks the defender won one back. */
     private final Set<CompoundService.Record> marineHeld = new HashSet<>();
     private final List<Integer> compoundRetakes = new ArrayList<>();
+    private final List<JSONObject> turns = new ArrayList<>();
+    private boolean fortWasHeld;
     private int holderSamples;
     private int holderSamplesPressedByCounterattack;
     private int holderSamplesDugIn;
@@ -104,10 +107,52 @@ public final class PlaceFightProbe {
 
     private void sampleCompounds(BattleSimulation sim, int tick) {
         CompoundService compounds = sim.getCompoundService();
-        if (compounds == null) return;
-        for (CompoundService.Record record : compounds.getRecords()) {
-            if (record.state == CompoundState.MARINE_HELD) marineHeld.add(record);
-            else if (record.state == CompoundState.DEFENDER_HELD && marineHeld.remove(record)) compoundRetakes.add(tick);
+        if (compounds != null) {
+            for (CompoundService.Record record : compounds.getRecords()) {
+                if (record.state == CompoundState.MARINE_HELD) {
+                    if (marineHeld.add(record)) turns.add(turn(sim, tick, "compound"));
+                } else if (record.state == CompoundState.DEFENDER_HELD && marineHeld.remove(record)) {
+                    compoundRetakes.add(tick);
+                }
+            }
+        }
+        boolean anyFort = false;
+        boolean whole = true;
+        for (DefenceStructureFact fact : sim.defenceStructures()) {
+            if (!fact.ofFort()) continue;
+            anyFort = true;
+            if (fact.holder() != Faction.MARINE) whole = false;
+        }
+        boolean fortHeld = anyFort && whole;
+        if (fortHeld && !fortWasHeld) turns.add(turn(sim, tick, "fort"));
+        fortWasHeld = fortHeld;
+    }
+
+    /**
+     * What the defender had left to counter-attack with when a place turned: its squads that are not a garrison of a
+     * building, and their members.
+     */
+    private static JSONObject turn(BattleSimulation sim, int tick, String kind) {
+        CommanderSnapshot<?> snapshot = sim.getCommanderSnapshot(Faction.DEFENDER);
+        int squads = 0;
+        int members = 0;
+        int garrisons = 0;
+        for (Squad squad : sim.getSquads()) {
+            if (squad.faction != Faction.DEFENDER || squad.aliveMembers <= 0) continue;
+            CommandDirective directive = snapshot == null ? null : snapshot.directiveFor(squad.id);
+            String reason = directive == null ? "" : directive.reason();
+            if (reason.contains("GARRISON") || squad.defensePost != null) {
+                garrisons++;
+                continue;
+            }
+            squads++;
+            members += squad.aliveMembers;
+        }
+        try {
+            return new JSONObject().put("tick", tick).put("kind", kind).put("mobileSquads", squads)
+                    .put("mobileMembers", members).put("garrisonSquads", garrisons);
+        } catch (JSONException e) {
+            throw new IllegalStateException(e);
         }
     }
 
@@ -320,9 +365,22 @@ public final class PlaceFightProbe {
                     .put("met", episode.met).put("metPost", episode.metPost).put("metHold", episode.metHold).put("metDugInHold", episode.metDugInHold)
                     .put("holdersMet", episode.holdersMet).put("retook", won));
         }
+        JSONObject losses = new JSONObject();
+        if (trace != null) {
+            Map<String, Integer> dead = new HashMap<>();
+            for (String line : trace.split("\n")) {
+                if (!line.contains("\"casualty\"")) continue;
+                JSONObject event = new JSONObject(line);
+                if (!"casualty".equals(event.optString("event")) || !event.optBoolean("combatant")) continue;
+                dead.merge(event.optString("faction"), 1, Integer::sum);
+            }
+            for (Map.Entry<String, Integer> entry : dead.entrySet()) losses.put(entry.getKey(), entry.getValue());
+        }
         JSONObject notes = trace == null ? new JSONObject() : ConquestTrialEvidenceTest.counterattackNotes(trace);
         notes.remove("launchList");
-        return new JSONObject().put("fightMix", mixJson).put("counterattackNotes", notes)
+        return new JSONObject().put("winner", sim.isComplete() && sim.getWinner() != null ? sim.getWinner().name()
+                        : sim.isComplete() ? "none" : "timeout").put("ticks", sim.getSimTickIndex()).put("losses", losses)
+                .put("fightMix", mixJson).put("counterattackNotes", notes).put("turns", new JSONArray(turns))
                 .put("counterattacks", new JSONObject().put("launches", launches).put("met", met)
                         .put("metPost", metPost).put("metHold", metHold).put("metDugInHold", metDugInHold).put("retook", retook)
                         .put("retookMetHold", retookMetHold).put("retookOther", retookOther).put("lost", lost)

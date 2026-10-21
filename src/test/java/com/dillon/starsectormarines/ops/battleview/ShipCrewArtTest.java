@@ -20,7 +20,9 @@ class ShipCrewArtTest {
                 assertTrue(image.getColorModel().hasAlpha());
                 assertEquals(0, image.getRGB(0, 0) >>> 24);
                 if (part == 0) {
-                    for (int y = 10; y < 32; y++) for (int x = 65; x < 85; x++)
+                    // The body is squashed x0.85 about the socket centre (ship_crew.py BODY_Y_SCALE),
+                    // so the opening spans rows 11-47 rather than the marine's 8-51.
+                    for (int y = 12; y < 32; y++) for (int x = 65; x < 85; x++)
                         assertTrue((image.getRGB(x, y) >>> 24) < 10, uniform + " neck filled");
                     assertTrue((image.getRGB(75, 95) >>> 24) > 200, uniform + " body empty");
                 }
