@@ -80,11 +80,11 @@ public final class CorvusWaylineSnapshotSuite implements SnapshotSuite {
                 int defenders = 0;
                 for (int i = 0; i < sim.liveUnitCount(); i++)
                     if (sim.identity().faction(sim.liveUnitAt(i)) == Faction.DEFENDER) defenders++;
-                artifacts.add(new SnapshotArtifact(stem + "-map.png", battlefield.render(sim, chapter.planetName + " / " + chapter.title)));
+                artifacts.add(new SnapshotArtifact(stem + "-map.png", battlefield.render(sim, chapter.planetName + " / " + chapter.title())));
                 int ticks = 0;
                 while (ticks < 1800 && !sim.isComplete()) { sim.advance(BattleSimulation.TICK_DT); ticks++; }
-                artifacts.add(new SnapshotArtifact(stem + "-arrival.png", battlefield.render(sim, chapter.title + " / 60 SECOND OBSERVATION")));
-                report.append(chapter.title).append(": ").append(named.size()).append(" named seats / ")
+                artifacts.add(new SnapshotArtifact(stem + "-arrival.png", battlefield.render(sim, chapter.title() + " / 60 SECOND OBSERVATION")));
+                report.append(chapter.title()).append(": ").append(named.size()).append(" named seats / ")
                         .append(craft).append(" company craft / ").append(defenders).append(" initial defenders / ")
                         .append(ticks).append(" observed ticks / terminal=").append(sim.isComplete()).append('\n');
             }

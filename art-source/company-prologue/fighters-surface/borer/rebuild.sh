@@ -35,6 +35,8 @@ cd ../../second-wind-surface
 # 4. Register, check, de-light, grade; class swatches.
 "$PYTHON" register.py --hull "$HS"
 "$PYTHON" grade.py --hull "$HS"
+"$PYTHON" swatches.py guide --hull "$HS"
+#   (Codex, not replayed) prompts/sheet-swatch.prompt.txt -> generated/sheet-swatch.png
 "$PYTHON" swatches.py --hull "$HS"
 # 5. Apply with light service wear (no render). Review renders go through the render queue.
 blend apply_skin.py -- --hull "$HS" --wear service

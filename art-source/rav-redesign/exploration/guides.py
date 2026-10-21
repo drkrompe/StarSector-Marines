@@ -3,6 +3,7 @@ grey field, used as the geometry/layout authority for one ImageGen plate."""
 import sys
 from PIL import Image, ImageDraw
 from rig import render
+import chitin  # noqa: F401  (registers D1, D2)
 from creatures import DIRECTIONS, st
 
 W, H = 1672, 941

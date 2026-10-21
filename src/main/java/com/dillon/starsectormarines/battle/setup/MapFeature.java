@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
+import com.dillon.starsectormarines.battle.evacuation.ColonyRedoubts;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
@@ -105,6 +106,20 @@ public enum MapFeature {
         @Override
         public boolean presentIn(MapResult map) {
             return map != null && map.pointsOfInterest.size() >= MIN_BORE_PLACES;
+        }
+    },
+
+    /**
+     * Held buildings big enough to be a holdout: a held place with room
+     * indoors for a militia fireteam and a holdout's people. A colony needs
+     * one more than its fewest holdouts, since the shelter and the lift's
+     * surroundings rule some out; it seats as many of its draw as it has room
+     * for.
+     */
+    REDOUBT_SITES("held buildings with room to hole up in") {
+        @Override
+        public boolean presentIn(MapResult map) {
+            return map != null && ColonyRedoubts.seatableSites(map) >= ColonyRedoubts.MIN_HOLDOUTS + 1;
         }
     },
 

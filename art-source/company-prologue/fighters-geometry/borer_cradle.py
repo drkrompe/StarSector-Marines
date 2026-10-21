@@ -1,7 +1,7 @@
 """Seat the Borer on every Shepherd launch cradle and measure the fit: no render.
 
   blender -b --factory-startup --python borer_cradle.py -- --shepherd <shepherd.blend> \
-      [--borer borer/borer-geometry.blend] [--collection "BORER | geometry"] [--out borer/cradle-check.json]
+      [--borer borer/borer-geometry.blend] [--collection "BORER | geometry" (the export: "BORER")] [--out borer/cradle-check.json]
 
 Appends the Shepherd's collection (the accepted build, builds/shepherd/<commit>/shepherd.blend, copied
 local first) and the Borer's, and for each 'Drone bay WS 003 launch point <i>' places the Borer the way
@@ -50,7 +50,8 @@ shep = bpy.data.collections['SHEPHERD']
 bor = bpy.data.collections[BCOLL]
 broot = next(o for o in bor.all_objects if o.type == 'EMPTY' and o.parent is None)
 mpu = broot.get('metres_per_unit', GEOM['metres_per_unit'])
-seat = bor.all_objects['Borer cradle seat']
+# The geometry names it 'Borer cradle seat'; the cinematic export re-declares it 'Anchor cradle seat'.
+seat = next(bor.all_objects[n] for n in ('Borer cradle seat', 'Anchor cradle seat') if n in bor.all_objects)
 dg = bpy.context.evaluated_depsgraph_get()
 
 

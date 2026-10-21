@@ -60,6 +60,7 @@ public final class ColonyPopulation {
             if (Math.abs(place.interiorAnchorX - placement.shelterX)
                     + Math.abs(place.interiorAnchorY - placement.shelterY) < clearance) continue;
             if (sim.isInsideRescueOpeningProtectedZone(place.interiorAnchorX, place.interiorAnchorY)) continue;
+            if (insideRedoubt(sim, place)) continue;
             houses.add(place);
         }
         houses.sort(Comparator
@@ -81,6 +82,14 @@ public final class ColonyPopulation {
             }
         }
         return List.copyOf(ids);
+    }
+
+    /** Whether a place is one of the redoubts, whose people are the cohort's rather than the town's. */
+    private static boolean insideRedoubt(BattleSimulation sim, PointOfInterest place) {
+        for (CivilianRedoubt redoubt : sim.getCivilianRedoubts()) {
+            if (redoubt.contains(place.interiorAnchorX, place.interiorAnchorY, 0)) return true;
+        }
+        return false;
     }
 
     /** A house's walkable interior cells in seeded order, one per occupant. */

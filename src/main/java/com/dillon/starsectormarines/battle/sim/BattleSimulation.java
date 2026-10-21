@@ -238,6 +238,7 @@ import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.ObjectivesService;
 import com.dillon.starsectormarines.battle.command.objective.WinCheckSystem;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
+import com.dillon.starsectormarines.battle.evacuation.CivilianRedoubt;
 import com.dillon.starsectormarines.battle.evacuation.SwarmMovement;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationSystem;
@@ -1626,6 +1627,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     public boolean attachCivilianPickupShuttle(long shuttleId) {
         return civilianEvacuationSystem.attachPickupShuttle(shuttleId);
+    }
+    /**
+     * Adds a rescue holdout holding {@code members} of the cohort behind its
+     * own garrison; see {@link CivilianEvacuationSystem#addHoldout}.
+     */
+    public int addCivilianHoldout(int approachX, int approachY, int left, int top, int right, int bottom,
+                                  int garrisonSquadId, List<Long> members) {
+        return civilianEvacuationSystem.addHoldout(approachX, approachY, left, top, right, bottom,
+                garrisonSquadId, members);
+    }
+    @Override
+    public List<CivilianRedoubt> getCivilianRedoubts() {
+        return civilianEvacuationSystem.redoubts();
     }
     /** Whether the rescue cohort is still sealed inside its opening shelter. */
     public boolean isCivilianShelterProtected() {
