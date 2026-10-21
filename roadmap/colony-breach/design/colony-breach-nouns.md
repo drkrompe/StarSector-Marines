@@ -157,6 +157,13 @@ exactly as a single-shelter rescue. `-Dbattle.colonyBreach.redoubts=false` is
 the control: the posts hold militia only and the whole cohort is in the
 shelter.
 
+Where redoubts meet the stories still open: a fallen holdout's people are the
+harvest's easiest biomass, and what a runner does with them is harvest's to
+decide; whether creep under a redoubt weakens its aprons or its garrison is
+creep's to say; and a hive posture that sends strike detachments competes with
+relief for the same squads, so its readiness gate should count pending holdouts
+as unmet need.
+
 **Breach.** The mission-level event of the swarm coming up through the colony.
 The breach has a shape over time (see *Flow*) driven by the **breach sequence**,
 the one story sequence the battle runs.
