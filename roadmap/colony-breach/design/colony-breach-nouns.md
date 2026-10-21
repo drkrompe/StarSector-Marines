@@ -82,6 +82,23 @@ colony turret emplacements still work, and may run a technical or two. They
 are a resource the player inherits, not a force the player commands. The
 shelter guard is one militia post among several.
 
+On the colony map three more buildings near the cohort's walk are held, spaced
+apart and clear of the shelter, the lift and the landing pads; each fireteam
+holds its building's held place under garrison authority, so it mans the
+building's windows and doors the way any held building is manned. Two of those
+posts keep a working heavy-machine-gun emplacement outside the door and two a
+parked militia technical. Placed hardware stands on open ground away from the
+cohort's walk to the lift, because a gun or a truck in a one-lane street closes
+it. Lower risks keep the shelter guard alone, and
+`-Dbattle.colonyBreach.militia=false` is the control that drops the rest.
+
+**Heavy assets are what the fleet brought.** The company's mechs and vehicles
+reach the battle through its own Mech Support power, which every battle
+honours; the rescue adds nothing to that. A mech-lance allowance for the
+Marine commander is honoured only where the mission declares one, never derived
+from the company's mechs, because an allowance is a separate payment and would
+field the same machines twice.
+
 **Shelter, cohort, lift.** Unchanged from Civilian Rescue (see
 `extraction-command.md`): the cohort is sealed in the shelter until a Marine
 reaches it, then walks to the lift under escort and boards only once a shuttle
@@ -260,6 +277,15 @@ spawning at the perimeter after the tremor, so the "spawning has a source" law
 is not yet in force. The lift has no countdown yet: the pickup craft comes down
 at the start of the battle and waits, so `lift_inbound` and `lift_down`
 normally fire before the shelter is reached.
+
+**Known gap: the escort can park the cohort on a long walk.** A civilian holds
+while its nearest marine is behind it toward the lift, and the close escort is
+sent to the cohort's own cell, so an escort member standing on the cohort's
+tail holds it indefinitely once the screens are out of leash. The colony's long,
+bending walk finds this on the canonical fixture with the militia seated (the
+control without them completes); it is Marine corridor command's to fix
+(`extraction-command.md`). The corridor guide no longer collapses onto the
+cohort when its centroid falls on a wall; it routes from the nearest open cell.
 
 ## Beats
 

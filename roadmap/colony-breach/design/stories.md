@@ -9,7 +9,7 @@ these stories.
 
 | Story | State and dependency |
 | --- | --- |
-| `breach-mission-spine.md` | **IN PROGRESS.** Skeleton on main: 400x240 colony, breach sequence and beats, eruption-site seam, `colony-breach` evidence. Open: militia garrisons and vehicles, player lance allowance. |
+| `breach-mission-spine.md` | **IN PROGRESS.** All scope built (colony, breach sequence, eruption-site seam, militia, heavy assets, `colony-breach` evidence). Acceptance waits on the rescue escort deadlock and the generic Extraction evidence failure. |
 | `bore-spawners.md` | **READY.** Destroyable bores, director spawning from living bores, biomass-driven tiers, spawning surges, spore vents. Plugs into the eruption handler on the breach sequence. |
 | `swarm-harvest.md` | **QUEUED on bores.** Runners seize colonists and drag them to bores as biomass; interceptable carriers. |
 | `swarm-lore-guide.md` | **READY.** The weapon's lore guide (mod choice, tiered), name candidates for the owner. No code. |
