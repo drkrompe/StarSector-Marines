@@ -748,6 +748,26 @@ ordinary behaviour to act out a role for a while and returned to it afterwards.
 The assignment already suspends and restores ordinary dispatch; what a mission
 supplies is the role and the sites.
 
+**Work looks like the work.** What an ambient actor visibly does at a job is a
+**work motion**: welding, carrying a crate, kneeling at a bed with the kit,
+stirring, chopping, heaving a wrench, running, rowing, pressing, lifting, or the
+ordinary two-handed sweep across a console. It is chosen from what the ambient
+model already knows — the job's affordance, refined by the fixture the claimed
+point faces (the same COOK stirs at a range and chops at a prep bench), and, for
+an authored stop that names no job on the board, the stop's activity; the walk
+between two stowage stops is part of stores work and carries a crate. It is
+keyed on nothing narrower. Not on a role, because the motion belongs to the job
+and whoever does it; not on a ship's compartments or watch bill, because a job
+site is a ship's compartment, a building interior or a walled yard alike. So a
+colonist at a workshop bench, a mission's scripted townsfolk and a ship's
+machinist get the same motion for the same work, and nothing a surface job
+needs lives in shipboard hosting. Any layered family with station-arm art shows
+it, the colonist families included; a family without that art shows less of it.
+The motion is presentation only: it never changes how long a job takes, who may
+claim it, or where the worker stands, and a body drawn onto a machine (a
+treadmill's belt) leaves its claim on the standing cell. Animated fixtures are
+the fixture's own art and meet the worker through the same claim and focus.
+
 A shift derives where it works from what each place publishes, so **posting is
 the only thing a caller decides**. Hand it a role, the place somebody is
 stationed, and the map's sites, and it finds the nearest site offering each job

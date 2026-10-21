@@ -742,16 +742,17 @@ public final class AmbientTaskService {
                     || state.stopIndex < 0 || state.stopIndex >= route.stops().size()) {
                 return WorkMotion.NONE;
             }
-            return WorkMotion.between(JobBoard.affordance(state.lastGroup),
+            return WorkMotions.between(JobBoard.affordance(state.lastGroup),
                     JobBoard.affordance(route.stops().get(state.stopIndex).pointGroup()));
         }
         Affordance job = JobBoard.affordance(jobInHand(actorId));
-        if (job == null || !job.handsOnFixture() && job != Affordance.EXERCISE) {
-            return WorkMotion.NONE;
-        }
+        // A stop authored without a job on the board still says what it is
+        // doing, and that is enough to show it.
+        if (job == null) return WorkMotions.forActivity(pose.activity());
+        if (!job.handsOnFixture() && job != Affordance.EXERCISE) return WorkMotion.NONE;
         TaskPoint point = taskPoints.claimedPoint(actorId);
-        if (point == null) return WorkMotion.of(job, null);
-        return motionAtPoint.computeIfAbsent(point.id(), id -> WorkMotion.of(job,
+        if (point == null) return WorkMotions.forJob(job, null);
+        return motionAtPoint.computeIfAbsent(point.id(), id -> WorkMotions.forJob(job,
                 fixtures.definitionsAt((int) Math.floor(point.focusX()),
                         (int) Math.floor(point.focusY()))));
     }
