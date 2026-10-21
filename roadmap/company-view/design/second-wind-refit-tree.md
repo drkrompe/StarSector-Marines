@@ -279,6 +279,23 @@ If a later program change moves rooms, the reserve evidence fails before a
 save notices; the same evidence opens every reserve on the same layouts and
 fails if anything moves or a range lane is crossed.
 
+## Materials and AI cores
+
+Credits are not the only price (owner, 2026-10-21). Most tiers also take
+materials from fleet cargo: metals for structure and plating, heavy machinery for
+the plant, the drive and the galley, transplutonics for flux and sensor work. The
+original distribution and mess orders stay credits-only. The tiers that start
+making her more than a frigate are gated on AI cores, the base game's own measure
+of something powerful:
+
+| Tier | Core |
+|---|---|
+| Compute: processing cluster | gamma |
+| Compute: tactical core (gates the military flux grid and sensor suite) | beta |
+| Flux: military flux grid | alpha |
+
+The bill is `RefitOrder.materials()`; quantities are placeholders with the prices.
+
 ## Credit curve
 
 The current total is ~46k. A full tree of five cores × 3 tiers and ~14

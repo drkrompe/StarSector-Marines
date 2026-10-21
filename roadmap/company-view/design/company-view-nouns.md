@@ -696,9 +696,11 @@ faster on the deck.
 
 ## Company resource bills
 
-Company rooms show a shared **Available** stock strip immediately below navigation,
-away from individual orders. Balances use exact, grouped quantities in bounded
-columns, including holdings in the millions. The strip includes the resources
+Company rooms show a shared stock strip immediately below navigation, away from
+individual orders. Each resource is its icon and its exact, grouped quantity, with
+no written name: the credit glyph and the base game's cargo icons are the
+vocabulary the player already reads everywhere else. Columns are bounded,
+including for holdings in the millions. The strip includes the resources
 that room can actually draw; named ready reserves remain a separate personnel
 count. Fleet cargo and the opening depot keep their existing access and earmarking
 rules. Engineering reclamation uses fleet cargo, never the preparation depot.
@@ -1409,9 +1411,9 @@ no additional purchase is required. The conversation overlays the room and owns 
 while open. Later briefings freeze the purchased boats and their actual fittings through
 the shared campaign lift authority. Replayed Depot Clearance never unlocks the offer.
 
-The ship view offers a Machine Shop / Fit Squads control that opens the Armory
-fitting workspace and returns to the ship. Free fitting remains available regardless
-of workshop restoration; repairing production machinery affects boat and mech jobs.
+Squads are fitted from the Armory, not from Engineering. Free fitting remains
+available regardless of workshop restoration; repairing production machinery
+affects boat and mech jobs.
 
 The same hull's machine shop has a three-step restoration chain after Relief.
 Clearance costs 750 credits, includes a pressure patch before the hatch reopens,
@@ -1519,7 +1521,11 @@ overhaul. Engineering's Ship Systems control opens a card listing every track
 grouped as cores, facilities and combat refit, with the selected track's current
 and next tier, its bill, its lock reason and the reviewed order. Each tier is its
 own reviewed yard order under the same home, dock, Relief and funds rechecks, and
-the receipts stay with the hull. Other hulls are neutral on every track.
+the receipts stay with the hull. Beyond credits, most tiers take materials out of
+fleet cargo (metals for structure and plating, heavy machinery for plant and
+drive, transplutonics for flux and sensors), shown as icon rows with Short by.
+The strongest tiers take AI cores: a gamma core for the processing cluster, a
+beta core for the tactical core, and an alpha core for the military flux grid. Other hulls are neutral on every track.
 
 Interior restoration is saved by the original hull's identity, independently of
 company designation and vanilla hull damage. Moving company, reopening screens and

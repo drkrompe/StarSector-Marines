@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.battleview.ShipViewCanvas;
@@ -98,7 +99,7 @@ public final class ShipViewScreen implements Screen {
                 work -> CompanyShipRestoration.repair(ship, roster, work),
                 () -> CompanyBayRestoration.offer(ship, roster), () -> CompanyBayRestoration.repair(ship, roster),
                 () -> ShipRefits.condition(ship), order -> ShipRefits.offer(ship, roster, order),
-                order -> ShipRefits.purchase(ship, roster, order),
+                order -> ShipRefits.purchase(ship, roster, order), CampaignCommodityPresentation.INSTANCE,
                 room -> { if (deck != null) deck.select(room); }, () -> deckChanged = true);
         viewport = MarineOpsUiViewport.from(position);
         installDocument();
@@ -142,7 +143,6 @@ public final class ShipViewScreen implements Screen {
 
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("equipmentAction", equipmentAction(context));
         props.put("workshop", workshop.row());
         props.put("survey", survey.row());
         props.put("roomTitle", Strings.get("openingShipViewEngineeringShipCondition"));
@@ -157,10 +157,6 @@ public final class ShipViewScreen implements Screen {
                 () -> context.goTo(ScreenId.MECH_LAB),
                 () -> context.goTo(ScreenId.BOAT_DECK), context::openEngineering);
         return props;
-    }
-
-    static Runnable equipmentAction(MarineOpsContext context) {
-        return () -> context.openFleetArmoryWorkspaceFrom(ScreenId.SHIP_VIEW);
     }
 
     private void inspectWorkshop() {

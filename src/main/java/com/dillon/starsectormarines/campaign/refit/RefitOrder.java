@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.campaign.refit;
 
+import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -13,6 +15,13 @@ import java.util.Map;
  * <p>{@link #POWER_RESTORED} and {@link #MESS_RESTORED} are the original
  * distribution and mess orders; they keep those orders' prices and saved
  * receipts. Fabrication has no orders here: the workshop chain sells it.
+ *
+ * <p>Beyond credits, most tiers take materials out of fleet cargo: metals for
+ * structure and plating, heavy machinery for plant and drive, transplutonics for
+ * flux and sensor work. The strongest tiers are gated on AI cores, the base
+ * game's own measure of something powerful: a gamma core runs the processing
+ * cluster, a beta core the tactical core, and an alpha core the military flux
+ * grid, the tier that starts making her more than a frigate.
  */
 public enum RefitOrder {
     POWER_RESTORED(RefitTrack.POWER, RefitBand.RESTORED, 3_000, "POWER"),
@@ -27,6 +36,8 @@ public enum RefitOrder {
             RefitTrack.POWER, RefitBand.RESTORED),
     COMPUTE_CLUSTER(RefitTrack.COMPUTE, RefitBand.IMPROVED_I, 14_000,
             RefitTrack.POWER, RefitBand.IMPROVED_I),
+    COMPUTE_TACTICAL(RefitTrack.COMPUTE, RefitBand.IMPROVED_II, 35_000,
+            RefitTrack.POWER, RefitBand.IMPROVED_II),
     MESS_RESTORED(RefitTrack.MESS, RefitBand.RESTORED, 2_500, "MESS_HALL"),
     MESS_GALLEY(RefitTrack.MESS, RefitBand.IMPROVED_I, 8_000,
             RefitTrack.POWER, RefitBand.RESTORED, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
@@ -43,13 +54,13 @@ public enum RefitOrder {
     FLUX_I(RefitTrack.FLUX, RefitBand.IMPROVED_I, 22_000,
             RefitTrack.POWER, RefitBand.IMPROVED_II),
     FLUX_II(RefitTrack.FLUX, RefitBand.IMPROVED_II, 45_000,
-            RefitTrack.POWER, RefitBand.IMPROVED_II, RefitTrack.COMPUTE, RefitBand.IMPROVED_I),
+            RefitTrack.POWER, RefitBand.IMPROVED_II, RefitTrack.COMPUTE, RefitBand.IMPROVED_II),
     SENSORS_RESTORED(RefitTrack.SENSORS, RefitBand.RESTORED, 6_000,
             RefitTrack.COMPUTE, RefitBand.RESTORED),
     SENSORS_I(RefitTrack.SENSORS, RefitBand.IMPROVED_I, 14_000,
             RefitTrack.COMPUTE, RefitBand.IMPROVED_I),
     SENSORS_II(RefitTrack.SENSORS, RefitBand.IMPROVED_II, 30_000,
-            RefitTrack.COMPUTE, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.IMPROVED_II),
+            RefitTrack.COMPUTE, RefitBand.IMPROVED_II, RefitTrack.POWER, RefitBand.IMPROVED_II),
     DRIVE_RESTORED(RefitTrack.DRIVE, RefitBand.RESTORED, 8_000,
             RefitTrack.POWER, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
     DRIVE_I(RefitTrack.DRIVE, RefitBand.IMPROVED_I, 16_000,
@@ -77,6 +88,39 @@ public enum RefitOrder {
         this.receipt = receipt;
         this.requires = Collections.unmodifiableMap(needs);
     }
+
+    private static final Map<RefitOrder, Map<String, Integer>> MATERIALS = new EnumMap<>(RefitOrder.class);
+    static {
+        bill(POWER_OVERHAUL, Commodities.HEAVY_MACHINERY, 10, Commodities.METALS, 20);
+        bill(POWER_AUXILIARY, Commodities.HEAVY_MACHINERY, 20, Commodities.RARE_METALS, 10);
+        bill(LIFE_SUPPORT_RESTORED, Commodities.HEAVY_MACHINERY, 4);
+        bill(STRUCTURE_RESTORED, Commodities.METALS, 40);
+        bill(COMPUTE_CLUSTER, Commodities.GAMMA_CORE, 1);
+        bill(COMPUTE_TACTICAL, Commodities.BETA_CORE, 1, Commodities.RARE_METALS, 10);
+        bill(MESS_GALLEY, Commodities.HEAVY_MACHINERY, 4);
+        bill(MESS_COLD_STORE, Commodities.HEAVY_MACHINERY, 6);
+        bill(HULL_RESTORED, Commodities.METALS, 60);
+        bill(HULL_I, Commodities.METALS, 100, Commodities.RARE_METALS, 10);
+        bill(HULL_II, Commodities.METALS, 150, Commodities.RARE_METALS, 25);
+        bill(FLUX_RESTORED, Commodities.RARE_METALS, 10);
+        bill(FLUX_I, Commodities.RARE_METALS, 20);
+        bill(FLUX_II, Commodities.ALPHA_CORE, 1, Commodities.RARE_METALS, 30);
+        bill(SENSORS_RESTORED, Commodities.RARE_METALS, 5);
+        bill(SENSORS_I, Commodities.RARE_METALS, 10);
+        bill(SENSORS_II, Commodities.RARE_METALS, 20);
+        bill(DRIVE_RESTORED, Commodities.HEAVY_MACHINERY, 10);
+        bill(DRIVE_I, Commodities.HEAVY_MACHINERY, 15);
+        bill(DRIVE_II, Commodities.HEAVY_MACHINERY, 20, Commodities.RARE_METALS, 15);
+    }
+
+    private static void bill(RefitOrder order, Object... pairs) {
+        var materials = new LinkedHashMap<String, Integer>();
+        for (int i = 0; i < pairs.length; i += 2) materials.put((String) pairs[i], (Integer) pairs[i + 1]);
+        MATERIALS.put(order, Collections.unmodifiableMap(materials));
+    }
+
+    /** Commodities taken from fleet cargo besides the credits, in bill order; empty for a credits-only tier. */
+    public Map<String, Integer> materials() { return MATERIALS.getOrDefault(this, Map.of()); }
 
     /** The order that brings {@code track} from {@code band} to the next tier, or null. */
     public static RefitOrder after(RefitTrack track, RefitBand band) {

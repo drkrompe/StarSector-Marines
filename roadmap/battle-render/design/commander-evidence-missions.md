@@ -156,7 +156,11 @@ records `review.gif` (whole map every N ticks), `crossroads.gif` (a fixed
 camera on the first crossroads through both holds, with the militia guns and
 technical labelled) and `convoy-run.gif` (a stepped follow camera on the column
 through the final run) per fixture.
-Reports separate living militia from their assembled field guns. Default
+Reports separate living militia from their assembled field guns. The
+withdrawal control retreats at its first delivery and asserts the frozen
+ledger (no pay, the undelivered cargo still waiting) only when that retreat
+fired; `retreatTick` is -1 when the convoy was lost before anything got out,
+which is an ordinary defeat and leaves the control unexercised. Default
 observation is 27000 ticks.
 
 ## Conquest trial (`conquest-trial`)

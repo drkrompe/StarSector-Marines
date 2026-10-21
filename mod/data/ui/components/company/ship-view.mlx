@@ -1,4 +1,4 @@
-<template props="equipmentAction,survey,workshop,roomTitle,roomCopy,contextLabel,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
+<template props="survey,workshop,roomTitle,roomCopy,contextLabel,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
   <div id="ship-view-root" class="ship-view-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
     <company-resource-stock stockId="engineering-resource-stock" rows="{workshop.stock}" />
@@ -7,13 +7,11 @@
       <img id="ship-view-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
       <div id="ship-view-room-title" class="label heading tone-edge">{roomTitle}</div>
       <div id="ship-view-room-copy" class="label tone-muted">{roomCopy}</div>
-      <button id="machine-shop-equipment" class="machine-shop-equipment console-action" onclick="{equipmentAction}">{i18n.openingUiShipViewMachineShopFitSquadsForFree}</button>
     </div>
 
     <div id="ship-view-body" class="ship-view-body">
     <div id="ship-view-stage" class="panel ship-view-stage console-well">
       <canvas id="ship-view-deck" class="ship-view-deck" width="1600" height="900" />
-      <div id="survey-heading" class="label heading tone-accent survey-heading">{survey.summary}</div>
       <button id="survey-power" class="{survey.powerClasses}" onclick="{survey.powerAction}">{survey.powerLabel}</button>
       <div id="survey-markers" class="survey-markers">
       <button each="room in survey.rooms" key="{room.id}" id="{room.id}" class="{room.classes}" onclick="{room.select}">
@@ -57,7 +55,7 @@
         </div>
         <div id="survey-copy" class="label wrapped survey-copy">{survey.copy}</div>
         <div id="survey-benefit" class="label wrapped survey-benefit tone-edge">{survey.benefit}</div>
-        <div id="survey-bill" class="company-credit-bill"><company-resource-cost each="row in survey.billRows" key="{row.id}" row="{row}" /></div>
+        <div id="survey-bill" class="company-credit-bill" style="{survey.billStyle}"><company-resource-cost each="row in survey.billRows" key="{row.id}" row="{row}" /></div>
         <div id="survey-reason" class="label wrapped survey-reason tone-muted">{survey.reason}</div>
         <div id="survey-actions" class="action-row">
         <button id="ship-condition-action" class="{survey.actionClasses}" disabled="{survey.disabled}" onclick="{survey.action}">{survey.actionLabel}</button>
@@ -103,7 +101,6 @@
   .ship-view-room-bar { flex-direction: row; height: 54px; padding: 8px 10px; gap: 12px; align-items: center; border-width: 2px; }
   #ship-view-room-title { width: 330px; height: auto; white-space: normal; }
   #ship-view-room-copy { width: 0; flex-grow: 1; text-align: left; height: auto; white-space: normal; }
-  .machine-shop-equipment { width: 390px; height: 38px; padding: 4px 10px; font-family: heading; }
   .ship-view-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 8px; }
   .ship-view-stage { flex-direction: column; width: 0px; height: 100%; flex-grow: 1; padding: 0px; overflow: hidden; border-width: 2px; }
   .ship-view-deck { width: 100%; height: 0px; flex-grow: 1; border-width: 1px; }
@@ -127,8 +124,7 @@
   .reclaim-reason { height: auto; }
   .workshop-feedback { height: auto; }
   .condition-panel { position: absolute; left: 0px; top: 0px; flex-direction: column; width: 370px; height: auto; padding: 16px; gap: 10px; border-width: 2px; border-color: #b99f65; background-color: #18221f; overflow: scroll; opacity: 0; pointer-events: none; }
-  .survey-heading { position: absolute; left: 14px; top: 12px; width: 620px; height: 24px; pointer-events: none; }
-  .survey-power { position: absolute; left: 14px; top: 42px; width: 290px; height: 32px; padding: 3px 8px; }
+  .survey-power { position: absolute; left: 14px; top: 12px; width: 290px; height: 32px; padding: 3px 8px; }
   .survey-room { position: absolute; left: 0px; top: 0px; width: 22px; height: 22px; padding: 0px; border-width: 0px; background-color: transparent; background-image: none; opacity: 0; pointer-events: none; }
   .survey-room.selected, .survey-room:hover, .survey-room:active, .survey-room:focus-visible { background-color: transparent; background-image: none; }
   .survey-icon { width: 100%; height: 100%; pointer-events: none; }
@@ -143,7 +139,6 @@
   .survey-benefit { height: auto; }
   .survey-reason { height: auto; }
   #survey-feedback { height: auto; }
-  #survey-bill { height: 36px; }
   .refit-tracks { flex-direction: column; width: 100%; height: auto; gap: 3px; }
   .refit-list { flex-direction: column; width: 100%; height: auto; gap: 3px; }
   .refit-heading { width: 100%; height: 18px; padding-top: 4px; }
