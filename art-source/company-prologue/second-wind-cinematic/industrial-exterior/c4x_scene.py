@@ -45,7 +45,7 @@ import bpy
 from mathutils import Matrix, Quaternion, Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import port_roads  # noqa: E402  PORT_ROADS=1: the port's road network (`port-roads.md`)
+import port_roads  # noqa: E402  the port's road network (`port-roads.md`)
 
 BASE = Path(__file__).resolve().parent
 CINE = BASE.parent
@@ -870,8 +870,7 @@ def add_port():
                 ang + math.pi / 2)
         if who == 'parked':                                                 # stores and a crate or two
             for k in range(r.randrange(2, 5)):
-                # PORT_ROADS: two rows, inside the pad's service ring rather than across it
-                dy = (k % 2) * 2.4 if port_roads.ON else k * 2.6
+                dy = (k % 2) * 2.4                                      # two rows, inside the pad's service ring
                 box(crateb, (2.2, 2.2, 2.0), (x + r.uniform(-6, 6), LIGHTER_Y - LIGHTER_R - 3 - dy, 1.0))
     h = ROW_HEADING
     for x, off, who in BERTHS:
@@ -910,13 +909,9 @@ def add_port():
     for k in range(5):
         box(doors, (7, 1.0, 6), (190 + k * 15, 644.6, 3))
     mesh('Terminal doors', doors, bpy.data.materials['Steel'])
-    if not port_roads.ON:                                               # PORT_ROADS: removed
-        plane('Fuel farm road', -300, -285, 560, 645, asphalt, 0.085)
     vehicle('Terminal truck', [((3.4, 3.0, 3.4), (0, 0, 2.1), bpy.data.materials['Hauler cab']),
                                ((12.5, 3.0, 3.2), (-9, 0, 2.4), bpy.data.materials['Hauler load'])],
             [(0, 205, 630)], [(0, -math.pi / 2)])
-    if not port_roads.ON:                                               # PORT_ROADS: removed
-        plane('Terminal road', 57, 180, 680, 692, asphalt, 0.085)
     # The heavy berth: blast walls on three sides, gantry rails along them, a crane across.
     hx0, hx1, hy0, hy1 = HEAVY
     plane('Heavy berth deck', hx0, hx1, hy0, hy1, concrete, 0.2)

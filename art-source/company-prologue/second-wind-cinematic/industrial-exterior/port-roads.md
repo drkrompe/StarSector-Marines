@@ -1,6 +1,6 @@
-Status: ACTIVE (plan approved 2026-10-20; built behind PORT_ROADS=1, off by default until the owner passes the light checks)
+Status: SHIPPED (owner-approved 2026-10-21 for the C4/C5 finals; the roads are simply the port now, with no switch)
 Written: 2026-10-20
-Updated: 2026-10-20 — built (`port_roads.py`); "As built" records where it departs from the plan
+Updated: 2026-10-21 — approved and made permanent (the switch is gone); "As built" records where it departs from the plan
 
 # Port roads: a network that makes sense
 
@@ -68,7 +68,7 @@ port road, which leaves the port road carrying trips rather than laps.
 
 Both approved finals would need re-rendering. The Colossus stays the only thing in the air.
 
-## As built (`PORT_ROADS=1`)
+## As built
 
 `port_roads.py` holds the network; `port_detail` keeps it clear, `port_life` drives it, and
 `port_people` keeps the pad crews inside the rings. Kilo Nine's gate and the port road outside it
@@ -96,8 +96,10 @@ layout underneath.
 **Nothing off the roads changes.** Clutter a road displaces still makes its random draws and keeps
 its ground, the removed roads stay clear, and the approved loops stay kept clear, so every other
 placement, the bonded stores and the roof plant on every warehouse (Kilo Nine's included) are the
-approved scene's. `PORT_DETAIL_TRACE=1` prints the random stream after each zone to show it: on and
-off agree zone for zone. Two apron light masts that would stand on a road are not placed.
+approved scene's. `PORT_DETAIL_TRACE=1` prints the random stream after each zone; checked against
+the scene before the roads (2026-10-21), it agreed zone for zone. Two apron light masts that would
+stand on a road are not placed. Keep it that way when editing `port_detail`: something a road
+displaces makes its draws on a `Null` stand-in rather than skipping them.
 
 **Traffic by job.** The belt and port-west / port-mid loops run on the loading strip (keeping
 right). The heavy berth's tugs and dollies go down the heavy berth road, round pad 5's ring, east
