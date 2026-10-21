@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.FireTeamGroups;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.unit.BodyCapsule;
 import com.dillon.starsectormarines.battle.unit.BodyRadius;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
@@ -24,6 +25,7 @@ import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 import java.util.Arrays;
+import java.util.function.LongPredicate;
 
 /**
  * Post-movement separation pass. It pushes overlapping ground units apart
@@ -90,6 +92,20 @@ import java.util.Arrays;
  *       rules as A*, not merely destination-cell walkability.</li>
  * </ol>
  *
+ * <p><b>Shape.</b> A body is a {@link BodyCapsule}: a segment along its
+ * layered facing, swept by a radius. Every round body is a capsule of zero
+ * length, and a pair of those takes exactly the circle path it always took.
+ * When either body of a pair is elongated (the Rav Bloom Runner), the pair is
+ * pushed apart along the line between the closest points of the two segments,
+ * by the capsules' radii less that distance, with the same mass split. The
+ * push moves the body's centre only; it never turns it. Facing belongs to
+ * {@code FacingSystem}, which turns a body toward its target or the velocity it
+ * applied, and a shove is folded into that velocity, so a body shoved hard
+ * enough already turns with it at the combatant turn rate; a second writer of
+ * facing here would be overwritten within the tick anyway.
+ * {@code -Dbattle.separation.capsules=false} is the control: every body is the
+ * circle of its {@link BodyRadius}.
+ *
  * <p>Every applied displacement is also folded additively into the
  * {@code MOVEMENT} component's {@code MOVEMENT_VEL_X}/{@code Y} fields (the
  * same fields {@link MovementService#setVelocity} writes) so {@code
@@ -121,6 +137,10 @@ public final class SeparationSystem {
      * however wide the net is.
      */
     public static final float QUERY_RADIUS = 1.5f;
+    /** {@code -Dbattle.separation.capsules=false} shoves every body as its circle. */
+    public static final String CAPSULES_PROPERTY = "battle.separation.capsules";
+    /** Covers one tick of motion beyond the spatial index's tick-start snapshot for a capsule's wider gather. */
+    private static final float CAPSULE_QUERY_MARGIN = 0.25f;
     /** Fraction of a pair's overlap resolved per tick before the speed clamp — relaxation, not instant pop. */
     public static final float STIFFNESS = 0.5f;
     /** Cap on push distance per tick, in cells/sec — kept under walk speed (2.0) so separation never outruns intent. */
@@ -151,6 +171,9 @@ public final class SeparationSystem {
     static final int INFANTRY_CLEARANCE_LOOKAHEAD = 3;
     /** Compression-floor radius plus enough slack for one tick of ordinary mech movement. */
     private static final float MECH_FORMATION_QUERY_RADIUS = 2.75f;
+
+    /** Below this ratio of sideways to inward walking speed, a mover meets an immovable body head-on and steps aside. */
+    private static final float HEAD_ON_TANGENT = 0.25f;
 
     /** Below this separation distance, two units are treated as coincident and steered apart by the deterministic id-hash tiebreak instead of a (division-by-zero) normalized delta. */
     private static final float COINCIDENT_EPS = 1e-4f;
@@ -204,6 +227,29 @@ public final class SeparationSystem {
     private byte[] collisionFlags = new byte[0];
     private byte[] collisionFaction = new byte[0];
     /**
+     * The capsule each slot is shoved as: segment midpoint, half-extent along
+     * the facing, swept radius, and how far it reaches from the position. A
+     * round body has a zero half-extent, its midpoint at its position and its
+     * footprint radius.
+     */
+    private float[] shapeX = new float[0];
+    private float[] shapeY = new float[0];
+    private float[] shapeHalfX = new float[0];
+    private float[] shapeHalfY = new float[0];
+    private float[] shapeRadius = new float[0];
+    private float[] shapeReach = new float[0];
+    /** The velocity each slot's mover applied this tick, before this pass: what it was walking at. */
+    private float[] collisionVelX = new float[0];
+    private float[] collisionVelY = new float[0];
+    private boolean[] elongated = new boolean[0];
+    /** Farthest any elongated participant reaches from its position this pass, or 0. */
+    private float maxCapsuleReach;
+    /** Closest-points return buffer. */
+    private final float[] closest = new float[4];
+    private final boolean capsules;
+    /** Bodies whose position another body owns this tick (a Runner's load); they take no part. */
+    private LongPredicate held = id -> false;
+    /**
      * Entity id to collision-slot-plus-one for the current pass. Entries are
      * grow-and-stay and need no full-array clear: {@link #collisionSlot}
      * verifies the encoded slot still holds the requested id in the current
@@ -231,6 +277,13 @@ public final class SeparationSystem {
     private int[] movingTeamLength = new int[0];
 
     public SeparationSystem(UnitRosterService roster, UnitSpatialIndex unitIndex, NavigationGrid grid) {
+        this(roster, unitIndex, grid,
+                Boolean.parseBoolean(System.getProperty(CAPSULES_PROPERTY, "true")));
+    }
+
+    SeparationSystem(UnitRosterService roster, UnitSpatialIndex unitIndex, NavigationGrid grid,
+                     boolean capsules) {
+        this.capsules = capsules;
         this.roster = roster;
         this.world = roster.world();
         this.unitIndex = unitIndex;
@@ -238,6 +291,15 @@ public final class SeparationSystem {
         this.entityWorld = roster.entityWorld();
         this.components = roster.components();
         this.movement = roster.movement();
+    }
+
+    /**
+     * Bodies held by another body sit where their holder puts them every tick,
+     * so they take no part: a shove would be overwritten, and the holder would
+     * be shoved off its course by its own load.
+     */
+    public void spareHeld(LongPredicate held) {
+        this.held = held;
     }
 
     /**
@@ -265,12 +327,12 @@ public final class SeparationSystem {
         cacheCollisionSlots(dense, liveCount);
         cacheCollisionState(dense, liveCount);
 
-        accumulate(dense, liveCount, controlledUnitId);
+        accumulate(dense, liveCount, dt, controlledUnitId);
         accumulateSquadFormations(dense, liveCount, dt, controlledUnitId);
         apply(dense, liveCount, dt, controlledUnitId);
     }
 
-    private void accumulate(long[] dense, int liveCount, long controlledUnitId) {
+    private void accumulate(long[] dense, int liveCount, float dt, long controlledUnitId) {
         for (int i = 0; i < liveCount; i++) {
             long a = dense[i];
             byte aFlags = collisionFlags[i];
@@ -279,8 +341,15 @@ public final class SeparationSystem {
             float ax = collisionX[i];
             float ay = collisionY[i];
             float ra = collisionRadius[i];
+            boolean aLong = elongated[i];
             float queryRadius = hasFlag(aFlags, MECH)
                     ? MECH_FORMATION_QUERY_RADIUS : QUERY_RADIUS;
+            if (maxCapsuleReach > 0f) {
+                // Two long bodies can touch nose to tail from farther apart
+                // than the ordinary net reaches.
+                queryRadius = Math.max(queryRadius,
+                        shapeReach[i] + maxCapsuleReach + CAPSULE_QUERY_MARGIN);
+            }
             unitIndex.gather(ax, ay, queryRadius, scratch);
             for (int k = 0, n = scratch.size; k < n; k++) {
                 long b = scratch.ids[k];
@@ -296,12 +365,40 @@ public final class SeparationSystem {
                 float bx = collisionX[j];
                 float by = collisionY[j];
                 float rb = collisionRadius[j];
-                float sumR = ra + rb;
-                float dx = ax - bx;
-                float dy = ay - by;
+                float sumR;
+                float dx;
+                float dy;
+                boolean crossing = false;
+                if (aLong || elongated[j]) {
+                    // Measured lower id first, so both sides of a pair see the
+                    // same two points and push along one line.
+                    boolean aFirst = a < b;
+                    int p = aFirst ? i : j;
+                    int q = aFirst ? j : i;
+                    BodyCapsule.closestPoints(shapeX[p], shapeY[p], shapeHalfX[p], shapeHalfY[p],
+                            shapeX[q], shapeY[q], shapeHalfX[q], shapeHalfY[q], closest);
+                    dx = closest[0] - closest[2];
+                    dy = closest[1] - closest[3];
+                    if (!aFirst) {
+                        dx = -dx;
+                        dy = -dy;
+                    }
+                    if (dx * dx + dy * dy < COINCIDENT_EPS * COINCIDENT_EPS) {
+                        // The segments cross: the whole of both radii is
+                        // overlap, and the centres say which way is out.
+                        dx = ax - bx;
+                        dy = ay - by;
+                        crossing = true;
+                    }
+                    sumR = shapeRadius[i] + shapeRadius[j];
+                } else {
+                    sumR = ra + rb;
+                    dx = ax - bx;
+                    dy = ay - by;
+                }
                 float dist2 = dx * dx + dy * dy;
                 float dist = (float) Math.sqrt(dist2);
-                float physicalOverlap = Math.max(0f, sumR - dist);
+                float physicalOverlap = crossing ? sumR : Math.max(0f, sumR - dist);
                 float formationGap = a != controlledUnitId && b != controlledUnitId
                         && hasFlag(aFlags, MECH)
                         && hasFlag(bFlags, MECH)
@@ -335,8 +432,36 @@ public final class SeparationSystem {
                 float mag = weight * correction;
                 impulseX[i] += dirX * mag;
                 impulseY[i] += dirY * mag;
+                if (physicalOverlap > 0f && hasFlag(bFlags, IMMOVABLE)) {
+                    slideRound(i, a, b, dirX, dirY, physicalOverlap, dt);
+                }
             }
         }
+    }
+
+    /**
+     * A mover walking nearly head-on into an immovable body is pushed straight
+     * back along its own line, so its step and the push cancel and it stands
+     * there for good: a route laid along cell centres meets a body on a cell
+     * centre exactly head-on. Such a mover also steps aside, as fast as it was
+     * walking in, up to the overlap; once off the line the ordinary push has a
+     * sideways part of its own and carries it round. Which side is a hash of
+     * the pair, never a random draw.
+     */
+    private void slideRound(int i, long a, long b, float dirX, float dirY,
+                            float overlap, float dt) {
+        float vx = collisionVelX[i];
+        float vy = collisionVelY[i];
+        float inward = -(vx * dirX + vy * dirY);
+        if (inward <= 0f) return;
+        float tangentX = vx + inward * dirX;
+        float tangentY = vy + inward * dirY;
+        if (tangentX * tangentX + tangentY * tangentY
+                > HEAD_ON_TANGENT * HEAD_ON_TANGENT * inward * inward) return;
+        float side = (coincidentAngle(a, b) < (float) Math.PI) ? 1f : -1f;
+        float slide = Math.min(inward * dt, overlap);
+        impulseX[i] += -dirY * side * slide;
+        impulseY[i] += dirX * side * slide;
     }
 
     private void cacheCollisionSlots(long[] dense, int liveCount) {
@@ -375,6 +500,7 @@ public final class SeparationSystem {
 
     private void cacheCollisionState(long[] dense, int liveCount) {
         Arrays.fill(collisionFlags, 0, liveCount, (byte) 0);
+        maxCapsuleReach = 0f;
         for (ArchetypeTable table : entityWorld.matched(components.gridOccupants)) {
             // POSITION-minus-CORPSE is deliberately broader than the ground
             // roster. Ignore any future position-only family before asking for
@@ -412,6 +538,13 @@ public final class SeparationSystem {
             Object[] mechLoadouts = hasMechLoadout
                     ? table.objects(components.MECH_LOADOUT,
                     BattleComponents.MECH_LOADOUT_STATE).array() : null;
+            float[] velXs = hasMovement
+                    ? table.floats(components.MOVEMENT, BattleComponents.MOVEMENT_VEL_X).array() : null;
+            float[] velYs = hasMovement
+                    ? table.floats(components.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y).array() : null;
+            float[] facings = table.has(components.LAYERED_ANIMATION)
+                    ? table.floats(components.LAYERED_ANIMATION,
+                    BattleComponents.LAYERED_FACING_DEGREES).array() : null;
             boolean hasTurretState = table.has(components.TURRET_STATE);
             Object[] turretStructureIds = hasTurretState
                     ? table.objects(components.TURRET_STATE,
@@ -438,7 +571,7 @@ public final class SeparationSystem {
                         type);
                 byte flags = POPULATED;
                 if (hasHealth && hp[row] > 0f
-                        && !hasKinematics && radius > 0f) {
+                        && !hasKinematics && radius > 0f && !held.test(id)) {
                     flags |= PARTICIPATES;
                 }
                 if (type.isStatic()
@@ -465,6 +598,11 @@ public final class SeparationSystem {
                 collisionFlags[slot] = flags;
                 collisionFaction[slot] =
                         (byte) ((Faction) factions[row]).ordinal();
+                collisionVelX[slot] = hasMovement ? velXs[row] : 0f;
+                collisionVelY[slot] = hasMovement ? velYs[row] : 0f;
+                cacheShape(slot, type, posX[row], posY[row], radius,
+                        facings != null ? facings[row] : Float.NaN,
+                        hasFlag(flags, PARTICIPATES));
             }
         }
         for (int i = 0; i < liveCount; i++) {
@@ -477,6 +615,33 @@ public final class SeparationSystem {
                         "live unit missing from gridOccupants query: " + dense[i]);
             }
         }
+    }
+
+    private void cacheShape(int slot, UnitType type, float x, float y, float radius,
+                            float facingDegrees, boolean participates) {
+        float halfLength = BodyCapsule.halfLength(type);
+        if (!capsules || halfLength <= 0f || Float.isNaN(facingDegrees)) {
+            shapeX[slot] = x;
+            shapeY[slot] = y;
+            shapeHalfX[slot] = 0f;
+            shapeHalfY[slot] = 0f;
+            shapeRadius[slot] = radius;
+            shapeReach[slot] = radius;
+            elongated[slot] = false;
+            return;
+        }
+        double rad = Math.toRadians(facingDegrees);
+        float fx = (float) -Math.sin(rad);
+        float fy = (float) Math.cos(rad);
+        float offset = BodyCapsule.forwardOffset(type);
+        shapeX[slot] = x + fx * offset;
+        shapeY[slot] = y + fy * offset;
+        shapeHalfX[slot] = fx * halfLength;
+        shapeHalfY[slot] = fy * halfLength;
+        shapeRadius[slot] = BodyCapsule.radius(type, radius);
+        shapeReach[slot] = BodyCapsule.reach(type, radius);
+        elongated[slot] = true;
+        if (participates) maxCapsuleReach = Math.max(maxCapsuleReach, shapeReach[slot]);
     }
 
     /**
@@ -1076,6 +1241,15 @@ public final class SeparationSystem {
         collisionMass = new float[newCap];
         collisionFlags = new byte[newCap];
         collisionFaction = new byte[newCap];
+        shapeX = new float[newCap];
+        shapeY = new float[newCap];
+        shapeHalfX = new float[newCap];
+        shapeHalfY = new float[newCap];
+        shapeRadius = new float[newCap];
+        shapeReach = new float[newCap];
+        collisionVelX = new float[newCap];
+        collisionVelY = new float[newCap];
+        elongated = new boolean[newCap];
     }
 
     private void ensureFormationCapacity(int required) {

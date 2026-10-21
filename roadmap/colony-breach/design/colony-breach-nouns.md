@@ -577,8 +577,16 @@ for one job in the cycle, and reads that way on screen.
   itself stays the ordinary melee hit. A carrier (*Harvest*, *Impale*) is
   drawn hauling: it turns to face the body it drags, so it backs toward the
   bore at a trot with its shoulders heaving, the spike that struck stays in
-  and the jaws latch on beside it. A dead Runner keeps its skeleton, falls
-  onto its flank with its legs gone slack and lies there, dulled.
+  and the jaws latch on beside it. The body it hauls, alive or dead, is drawn
+  lying (its outfit's fallen pose), head toward the jaws, jolting with each
+  heave. Through a turn the spine bows into a C toward the inside, the
+  shoulders and the hips swinging the same way while the planted feet hold.
+  A dead Runner keeps its skeleton, falls
+  onto its flank with its legs gone slack and lies there, dulled. In a crowd it
+  is shoved as the shape it is drawn as, a capsule along its facing (the
+  separation shape in `continuous-positions-nouns.md`), so a pack queues nose to
+  tail and packs flank to flank rather than stacking into one another; its
+  0.3-cell footprint radius stays its size to everything else.
 - **Brute** — slow, plated, heavy melee; the strain that makes a garrisoned
   building stop being a safe room. Its plate (20 points at rating 10) is what
   small arms struggle with: a DMR or rocket goes through it, an SMG barely
@@ -928,8 +936,9 @@ heard reaches the battle. A bore is heard erupting, growing to each tier,
 surging and collapsing, and breathes a tier ambience while it lives. A swarm
 body is heard for what it does, not for the beat table: it cries when it takes
 new quarry, strikes, rams a wall and breaks it, yelps or grunts when it is hurt
-and lives, and dies, and a Runner is heard taking up a body to drag it. Its feet
-follow the ground it covers: a Runner's gallop and chitin clatter, a Brute's
+and lives, and dies. A Runner taking up a body is heard latching onto it, and
+hauling it is heard as the load scraping over the ground in place of its gallop.
+Its feet follow the ground it covers: a Runner's gallop and chitin clatter, a Brute's
 hooves at every half cell, so a walking Brute plods and a charging one thunders.
 Each phase of the Brute's charge has its own sound (the tell, the run, the hit
 on infantry, a vehicle or a wall, the stun after a heavy wall or a tank), keyed
@@ -938,7 +947,8 @@ by the story that adds it. Each strain's sound is admitted under its own gap and
 footfalls come from the few bodies nearest the listener, so a pack reads as a
 pack, and the swarm is heard only on ground the player has seen. The Spitter has
 no voice; the Matriarch's sounds wait for its design and join as a strain of
-their own.
+their own (its catalogued roar was rejected and is redone once the design
+settles).
 
 ## Laws
 

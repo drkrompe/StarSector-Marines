@@ -945,6 +945,43 @@ public final class UnitRenderService implements RenderSystem {
         return outfit != null && outfit.downed(poseIndex) != null;
     }
 
+    /** Heaves a second a carrier hauls its load with, and how far each heave jolts and rocks the body. */
+    private static final float DRAG_HEAVE_HZ = 1.8f;
+    private static final float DRAG_JOLT_CELLS = 0.05f;
+    private static final float DRAG_ROCK_DEGREES = 7f;
+
+    /**
+     * A body being dragged off by a Runner, alive or dead: lying, its head toward the carrier
+     * along the line it is hauled on, jolting forward and rocking with each heave. The jitter is
+     * keyed to the sim tick, so a review frame stays a function of the battle.
+     */
+    private static void emitDragged(RenderContext ctx, DrawList out, LayeredSpriteCache lying,
+                                    long body, long carrier, float x, float y, float scale, float alpha) {
+        BattleCamera cam = ctx.camera;
+        float dx = 0f, dy = 1f;
+        if (ctx.sim.world().hasPosition(carrier)) {
+            dx = ctx.sim.world().x(carrier) - x;
+            dy = ctx.sim.world().y(carrier) - y;
+            float d = (float) Math.hypot(dx, dy);
+            if (d > 1e-4f) {
+                dx /= d;
+                dy /= d;
+            } else {
+                dx = 0f;
+                dy = 1f;
+            }
+        }
+        double phase = 2 * Math.PI * (ctx.sim.getSimTickIndex() * BattleSimulation.TICK_DT * DRAG_HEAVE_HZ
+                + (body & 15L) / 16.0);
+        float heave = (float) Math.max(0.0, Math.sin(phase));
+        float jolt = DRAG_JOLT_CELLS * heave * heave;
+        float angle = (float) Math.toDegrees(Math.atan2(-dx, dy))
+                + DRAG_ROCK_DEGREES * (float) Math.sin(phase + 0.6);
+        out.addSprite(RenderLayer.UNITS, lying.sprite,
+                cam.cellToScreenX(x + dx * jolt), cam.cellToScreenY(y + dy * jolt),
+                lying.pxWidth * scale, lying.pxHeight * scale, angle, 1f, 1f, 1f, alpha);
+    }
+
     private void sweepDeadSprites(RenderContext ctx, DrawList out) {
         BattleComponents c = ctx.sim.getBattleComponents();
         BattleCamera cam = ctx.camera;
@@ -1013,6 +1050,13 @@ public final class UnitRenderService implements RenderSystem {
                         ? sprites.layeredUnitSprites().get(
                                 LayeredArmorFamily.fromOrdinal(corpseFamily[r])) : null;
                 LayeredSpriteCache lying = outfit != null ? outfit.downed(poseIdx[r]) : null;
+                long carrier = lying != null ? ctx.sim.swarmHarvest().carrierOf(t.entityAt(r)) : 0L;
+                if (carrier != 0L) {
+                    float shoulderPx = layeredInfantryShoulderWidth(cam.cellPxSize(), type.renderScale);
+                    float scale = shoulderPx * DOWNED_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
+                    emitDragged(ctx, out, lying, t.entityAt(r), carrier, rx[r], ry[r], scale, alphaMult);
+                    continue;
+                }
                 if (lying != null) {
                     float shoulderPx = layeredInfantryShoulderWidth(cam.cellPxSize(), type.renderScale);
                     float scale = shoulderPx * DOWNED_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
@@ -1304,6 +1348,15 @@ public final class UnitRenderService implements RenderSystem {
                     LayeredSpriteCache lying = ctx.sim.stagger().isStaggered(entityId)
                             && ctx.sim.stagger().cause(entityId) == StaggerService.Cause.KNOCKED_DOWN
                             ? layeredAssets.downed((int) (entityId & 0x7fffffff)) : null;
+                    // On a Runner's spike: the body lies as a fallen one does, hauled along behind the jaws.
+                    long carrier = ctx.sim.swarmHarvest().carrierOf(entityId);
+                    LayeredSpriteCache hauled = carrier != 0L
+                            ? layeredAssets.downed((int) (entityId & 0x7fffffff)) : null;
+                    if (hauled != null) {
+                        float scale = shoulderPx * DOWNED_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
+                        emitDragged(ctx, out, hauled, entityId, carrier, rx[r], ry[r], scale, unitAlpha);
+                        continue;
+                    }
                     if (lying != null) {
                         float scale = shoulderPx * DOWNED_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
                         out.addSprite(RenderLayer.UNITS, lying.sprite, cx, cy,
