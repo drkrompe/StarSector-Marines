@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160d3-f131-7ad2-bf28-6c909c7bf317",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160d3-f131-7ad2-bf28-6c909c7bf317\\exec-ace0d27a-e605-46a8-ba73-76aed80b666b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\small\\lounge-refit.png",
+    "sha256": "3241587350edac2e2151cfc7384860003b578e614ff8cc5fdbe4a7e7991365eb",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\crew-lounge-refit.prompt.txt",
+  "promptSha256": "e3d6f52c26242d23d37f1448d2aa4bf4f01919ef5ee47914dde0b010804ed7c1",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry, scale and layout authority: reskin this exactly, same size and position for every piece\nImage 2: Material and style reference only; its pieces are the wrong size and layout, ignore their proportions\n\nReskin the attached geometry guide into finished top-down game art for four spaceship crew-lounge props. Strict overhead orthographic view, soft light from the upper left, the same look as the material reference sheet: restrained graphite frames, muted grey-green enamel and sage fabric, dull steel edges, quiet wear, realistic painted game-asset finish. No saturated colour, no glow, no hazard stripes.\n\nThe guide is the geometry, scale and layout authority, and the result will be cut mechanically from the guide's exact pixel rectangles. Every piece must overlay its grey guide shape almost exactly: the same left and right ends, the same top and bottom edges. Do not make any piece wider, deeper or larger than its grey shape; do not move, rescale, rotate, merge or add pieces. Keep all empty canvas fully transparent: true transparent background, including gaps between parts; no floor, no ground, no shadow slab, no border, no people, no labels or text.\n\nPieces:\n1. Top left: a square card table, exactly as long as it is wide: a dull steel rim around a muted sage felt playing surface. Nothing on it.\n2. Bottom left: a transparent overlay for that table, the same canvas: ONLY a small checkered board game in the middle, two pale playing cards and two dark chips exactly where the guide puts them, with transparent space between them. No table, no felt, no floor.\n3. Top right: a long narrow bookshelf seen from directly above, six times as long as it is deep: a slim graphite case whose closed back is its right edge and whose open front is its left edge, three thin shelf dividers across it, and in each of the four bays a few muted book tops standing side by side, their spines along the open left side. Keep it as slim as its grey shape.\n4. Bottom right: one small round padded stool, a dark steel ring around a grey-green cushion, exactly as large as its grey circle.\n\nBroad readable forms, soft restrained highlights, sparse wear, low surface noise.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\crew-lounge.png",
+      "sha256": "56c6f574d61e3f3d771b0a8b4ef525ed585f8c1e4632c38abcf3a66939a2eb5c",
+      "dimensions": [
+        1600,
+        1600
+      ],
+      "mode": "RGBA",
+      "role": "Geometry, scale and layout authority: reskin this exactly, same size and position for every piece"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\small\\lounge-old.raw.png",
+      "sha256": "412f8e231bf401881f1a553db9dab063d63664cfaeaa9e9d58b2c89a533a8e91",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only; its pieces are the wrong size and layout, ignore their proportions"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the guide’s exact layout and the second image’s materials, with a transparent background."
+  ],
+  "usage": {
+    "input_tokens": 45947,
+    "cached_input_tokens": 37120,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 677,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 58.8
+}
