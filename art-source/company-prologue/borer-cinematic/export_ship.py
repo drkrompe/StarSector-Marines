@@ -200,7 +200,7 @@ for side, sg in (('port', 1), ('starboard', -1)):
                          note='between the tine tips: where a held piece of rock or salvage sits'))
 seat_at = src['Borer cradle seat'].translation.copy()
 seat = declare('Anchor cradle seat', seat_at, (1, 0, 0), 1.2, root_scale_in_shepherd=round(MPU / SHEPHERD_MPU, 6),
-               note='the skid shoes' plane under the .ship centre: place it on a Shepherd "Drone bay WS 003 launch point <i>", '
+               note='the skid shoe plane under the .ship centre: place it on a Shepherd "Drone bay WS 003 launch point <i>", '
                     'heading the slot angle (0 deg, +X forward), root scaled by 0.25 / 0.78')
 
 root['metres_per_unit'] = MPU
@@ -283,7 +283,7 @@ manifest = {
     'baked_meshes': len(baked),
     'images': sorted(i.name for i in bpy.data.images if i.packed_file),
     'effects': None,
-    'sources': {'skinned_blend': str(SKINNED.relative_to(PROLOGUE)).replace('\\', '/'),
+    'sources': {'skinned_blend': (SKINNED.relative_to(PROLOGUE) if SKINNED.is_relative_to(PROLOGUE) else SKINNED).as_posix(),
                 'geometry_json_sha256': sha(GEOM_JSON),
                 'skin_manifest_sha256': sha(SURFACE / 'skin-manifest.json') if (SURFACE / 'skin-manifest.json').exists() else None},
     'conventions': {

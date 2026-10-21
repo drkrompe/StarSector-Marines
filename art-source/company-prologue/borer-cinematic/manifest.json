@@ -15,18 +15,18 @@
   [
    -7.34,
    -8.0,
-   -3.0
+   -5.75
   ],
   [
    7.15,
    8.0,
-   3.15
+   3.51
   ]
  ],
  "size_metres_rest": [
   3.62,
   4.0,
-  1.54
+  2.31
  ],
  "engines": [
   {
@@ -95,6 +95,76 @@
   2,
   3
  ],
+ "lift_jets": [
+  {
+   "anchor": "RCS port aft lift jet anchor",
+   "side": "port",
+   "position": "aft",
+   "at": [
+    -2.15,
+    4.3,
+    -3.35
+   ],
+   "exhaust_dir": [
+    0,
+    0,
+    -1
+   ],
+   "radius_m": 0.17,
+   "working": true
+  },
+  {
+   "anchor": "RCS port fore lift jet anchor",
+   "side": "port",
+   "position": "fore",
+   "at": [
+    2.55,
+    5.05,
+    -3.0
+   ],
+   "exhaust_dir": [
+    0,
+    0,
+    -1
+   ],
+   "radius_m": 0.2,
+   "working": true
+  },
+  {
+   "anchor": "RCS starboard aft lift jet anchor",
+   "side": "starboard",
+   "position": "aft",
+   "at": [
+    -2.15,
+    -4.3,
+    -3.35
+   ],
+   "exhaust_dir": [
+    0,
+    0,
+    -1
+   ],
+   "radius_m": 0.17,
+   "working": true
+  },
+  {
+   "anchor": "RCS starboard fore lift jet anchor",
+   "side": "starboard",
+   "position": "fore",
+   "at": [
+    2.55,
+    -5.05,
+    -3.0
+   ],
+   "exhaust_dir": [
+    0,
+    0,
+    -1
+   ],
+   "radius_m": 0.2,
+   "working": true
+  }
+ ],
  "tool": {
   "weapon": "mininglaser (WS 001, HIDDEN, small energy beam)",
   "muzzle": {
@@ -102,7 +172,7 @@
    "at": [
     7.1,
     0.0,
-    -0.3
+    -4.35
    ],
    "axis": [
     1,
@@ -116,7 +186,7 @@
     "at": [
      6.0,
      0.0,
-     -0.3
+     -4.35
     ]
    },
    {
@@ -143,7 +213,7 @@
   "at": [
    0.0,
    0.0,
-   -3.0
+   -5.75
   ],
   "shepherd": {
    "metres_per_unit": 0.78,
@@ -173,7 +243,7 @@
    "heading_deg": 0,
    "checked": "fighters-geometry/borer_cradle.py: no overlap, pads on the deck, socket over the charging contact, clear lift to the bay mouth"
   },
-  "pad_soles_z_units": -3.0
+  "skid_shoe_soles_z_units": -5.75
  },
  "control": null,
  "lamps_lit": 3,
@@ -183,9 +253,9 @@
    "material": "Borer beacon lens",
    "lit": true,
    "at": [
-    -3.92,
+    -3.93,
     0.9,
-    2.19
+    2.63
    ]
   },
   {
@@ -209,9 +279,9 @@
    ]
   }
  ],
- "objects": 169,
- "polygons": 8873,
- "baked_meshes": 38,
+ "objects": 225,
+ "polygons": 11428,
+ "baked_meshes": 66,
  "images": [
   "Skin bow",
   "Skin cheek-port",
@@ -231,7 +301,7 @@
   "collection": "SWFX",
   "kit": "second-wind-vfx (swfx.apply, hull profile borer-cinematic/vfx_hull.py, state clean, groups thrusters, smoke, beams, lighting; no rig preset)",
   "beam": "ws001 (mininglaser): dark until beam_t_ws001 is raised; beam_len_ws001 is the distance to the work",
-  "objects": 37,
+  "objects": 41,
   "anchors": {
    "engines": [
     {
@@ -287,7 +357,7 @@
      "muzzle": [
       7.1,
       0.0,
-      -0.3
+      -4.35
      ],
      "axis": [
       1.0,
@@ -319,9 +389,9 @@
      "name": "Hull spine beacon lamp lens",
      "role": "beacon",
      "at": [
-      -3.917,
+      -3.928,
       0.9,
-      2.194
+      2.632
      ]
     }
    ],
@@ -330,12 +400,12 @@
     [
      -7.34,
      -8.0,
-     -3.0
+     -5.75
     ],
     [
      7.15,
      8.0,
-     3.15
+     3.51
     ]
    ]
   },
@@ -343,7 +413,7 @@
   "groups": {
    "thrusters": {
     "engines": 3,
-    "rcs": 0,
+    "rcs": 4,
     "note": "RCS quad positions are art placement, not canon.",
     "invalid_drivers": 0
    },
@@ -367,8 +437,8 @@
  },
  "sources": {
   "skinned_blend": "fighters-surface/borer/build/skinned.blend",
-  "geometry_json_sha256": "4f1b87831e38778e89db803dbda9bc36449b60a0a4784410b0743ae39f46f807",
-  "skin_manifest_sha256": "2acddcabaf47eb6862f32ee5218ff99044b4a1bbe4f0e00846e597285a5af6a6"
+  "geometry_json_sha256": "1b909fb39d2d0cd7b181098eaf27666c36e56781195fdbce87e75a1c67fad37b",
+  "skin_manifest_sha256": "da03c48a3aaaf96455c1f5aee2af8e44fe068b5f08364982d867097a5869ec40"
  },
  "conventions": {
   "root": "Every part and anchor descends from the root; move, rotate or scale the root only.",
@@ -376,5 +446,5 @@
   "scale": "Beside the Shepherd (0.78 m/u) scale the root by 0.25 / 0.78 = 0.3205; in a metre scene by 0.25.",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "4c6037787092bff993e4b1fd28ac4bfa275007bf16b55b0920c250c63f143bce"
+ "asset_sha256": "d430155fadcd9978f438d62c483363e968c4281143d8ede1c1dee6a8626ce401"
 }
