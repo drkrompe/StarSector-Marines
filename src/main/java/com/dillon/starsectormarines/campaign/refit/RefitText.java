@@ -33,15 +33,17 @@ public final class RefitText {
     /**
      * The briefing's line for what the company's home is worth in this
      * operation, frozen at launch: the mess's morale band and, while the
-     * scrubbers are degraded, the extra day every wound will take. Null off the
+     * scrubbers are degraded, the extra day every wound will take, and once the
+     * staff college is running, the officer XP it adds. Null off the
      * founding hull, where every track is neutral.
      */
     public static String briefingLine(ShipCondition condition) {
         if (!condition.applies()) return null;
         List<String> parts = new ArrayList<>();
-        for (RefitTrack track : new RefitTrack[]{RefitTrack.MESS, RefitTrack.LIFE_SUPPORT}) {
+        for (RefitTrack track : new RefitTrack[]{RefitTrack.MESS, RefitTrack.LIFE_SUPPORT, RefitTrack.WARDROOM}) {
             RefitBand band = condition.band(track);
             if (track == RefitTrack.LIFE_SUPPORT && band != RefitBand.DEFICIT) continue;
+            if (track == RefitTrack.WARDROOM && !band.atLeast(RefitBand.IMPROVED_I)) continue;
             parts.add(Strings.format("openingRefitTooltipRow", track(track), tier(track, band), effect(track, band)));
         }
         return String.join("  ·  ", parts);
