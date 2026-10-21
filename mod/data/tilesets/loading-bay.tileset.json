@@ -1,8 +1,8 @@
 {
   "blocks": [{
     "cells": [[
-      0,
-      3
+      13,
+      0
     ]],
     "id": "loading-bay.staging-deck"
   }],
@@ -14,30 +14,30 @@
       "row": 0
     },
     {
-      "col": 4,
+      "col": 2,
       "name": "loading-bay.pallet-tug",
       "row": 0
     },
     {
-      "col": 6,
+      "col": 3,
       "name": "loading-bay.conveyor",
       "row": 0
     },
     {
-      "col": 12,
+      "col": 9,
       "name": "loading-bay.insulated-tote",
       "row": 0
     },
     {
-      "col": 14,
+      "col": 11,
       "name": "loading-bay.provision-cartons",
       "row": 0
     },
     {
-      "col": 0,
+      "col": 13,
       "description": "variant 1 of the pool",
       "name": "loading-bay.staging-deck v1",
-      "row": 3
+      "row": 0
     }
   ],
   "doodads": [
@@ -46,18 +46,18 @@
       "col": 0,
       "cover": "med",
       "footprintCells": [
-        4,
-        2
+        2,
+        1
       ],
       "id": "loading-bay.manifest-desk",
       "row": 0
     },
     {
       "ballisticHalfHeight": 0.6,
-      "col": 4,
+      "col": 2,
       "cover": "med",
       "footprintCells": [
-        2,
+        1,
         3
       ],
       "id": "loading-bay.pallet-tug",
@@ -65,7 +65,7 @@
     },
     {
       "ballisticHalfHeight": 0.6,
-      "col": 6,
+      "col": 3,
       "cover": "med",
       "footprintCells": [
         6,
@@ -76,7 +76,7 @@
     },
     {
       "ballisticHalfHeight": 0,
-      "col": 12,
+      "col": 9,
       "cover": "none",
       "footprintCells": [
         2,
@@ -87,7 +87,7 @@
     },
     {
       "ballisticHalfHeight": 0,
-      "col": 14,
+      "col": 11,
       "cover": "none",
       "footprintCells": [
         2,
