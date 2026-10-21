@@ -359,9 +359,12 @@ public final class SquadMedicSystem {
         @Override public long memberAt(int index) { return sim.squadMemberAt(squad.id, index); }
         @Override public long leader() { return squad.leaderId; }
         @Override public int fireTeamIndex(long member) { return sim.squad().fireTeamIndex(member); }
-        @Override public boolean alive(long member) { return sim.world().isAlive(member); }
+        /** A squadmate on a carrier's blades is out of reach: medics never chase a carrier. */
+        @Override public boolean alive(long member) {
+            return sim.world().isAlive(member) && !sim.swarmHarvest().isCarried(member);
+        }
         @Override public boolean mayAct(long member) {
-            return member != controlled && !squad.isRejoining(member)
+            return member != controlled && !sim.swarmHarvest().holdsStill(member) && !squad.isRejoining(member)
                     && !squad.fireTeamBroken(sim.squad().fireTeamIndex(member));
         }
         @Override public float incomingPressure(long member) {

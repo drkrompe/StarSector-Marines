@@ -84,6 +84,7 @@ import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceAudio;
 import com.dillon.starsectormarines.ops.battleview.WarshipAudio;
 import com.dillon.starsectormarines.ops.battleview.BoreAudio;
+import com.dillon.starsectormarines.ops.battleview.SwarmAudio;
 import com.dillon.starsectormarines.ops.battleview.TenderAudio;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceFxRuntime;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceTraceFxService;
@@ -365,7 +366,8 @@ public class BattleScreen implements Screen, BattleUiContext {
             operationRadio.reset();
             mechFootsteps.reset();
             storyNarration = new StoryNarrationPlayer(WaylineNarration.builtins(),
-                    WaylineNarration.storyMissionId(ctx != null ? ctx.getSelectedMission() : null), line -> {
+                    WaylineNarration.narrationMissionId(ctx != null ? ctx.getSelectedMission() : null,
+                            nextSimulation), line -> {
                         if (radioSound != null) radioSound.stop();
                         radioSound = null;
                         companyOfficer.stop();
@@ -1329,6 +1331,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         WarshipAudio.play(sim.shieldDomes().cuesThisFrame());
         TenderAudio.play(sim);
         BoreAudio.play(sim);
+        SwarmAudio.play(sim, camera.panCellX(), camera.panCellY());
     }
 
     private void spawnImpactFx(BattleSimulation sim) {

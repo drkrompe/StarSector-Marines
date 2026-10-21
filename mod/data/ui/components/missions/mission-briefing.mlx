@@ -399,6 +399,7 @@
   .mission-captain-list .choice-icon { width: 46px; height: 46px; }
   .mission-term-actions { flex-direction: column; height: 100px; gap: 6px; }
   .mission-term-actions button { flex-direction: column; width: auto; flex-grow: 0; padding: 6px; gap: 4px; border-width: 1px; text-align: center; height: 38px; }
+  .mission-term-actions .choice-row.selected { background-color: #35433f; border-color: #f2cf68; border-width: 2px; }
   .mission-commitment { flex-direction: column; width: 0px; flex-grow: 1; padding: 12px; gap: 5px; border-width: 0px; overflow: hidden; }
   .mission-plan-sections { flex-direction: column; height: 0px; flex-grow: 1; gap: 24px; overflow: scroll; }
   .briefing-section { flex-direction: column; padding: 0px; gap: 8px; border-width: 0px; background-color: transparent; }

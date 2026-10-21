@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.air.AirTargetService;
 import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
@@ -15,6 +16,8 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.appearance.SystemFxService;
 import com.dillon.starsectormarines.battle.combat.MitigationService;
+import com.dillon.starsectormarines.battle.combat.StaggerModifier;
+import com.dillon.starsectormarines.battle.combat.StaggerService;
 import com.dillon.starsectormarines.battle.combat.WoundModifier;
 import com.dillon.starsectormarines.battle.combat.WoundService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -207,6 +210,8 @@ public final class UnitRosterService {
             new MitigationService(entityWorld, components);
     /** Limb wounds carried this battle; read through {@link WoundModifier}. */
     private final WoundService woundService = new WoundService();
+    /** The short "can't act" state a Brute's charge leaves behind; read through {@link StaggerModifier}. */
+    private final StaggerService staggerService = new StaggerService();
     private final IntegralSystemService integralSystemService =
             new IntegralSystemService(entityWorld, components, mitigationService);
     private final SystemFxService systemFxService = new SystemFxService(entityWorld, components);
@@ -281,6 +286,7 @@ public final class UnitRosterService {
         unitModifiers.register(WoundModifier.legs(woundService));
         unitModifiers.register(WoundModifier.arms(woundService));
         unitModifiers.register(new MechSectionModifier(this));
+        unitModifiers.register(new StaggerModifier(staggerService));
     }
 
     /** Bind the damage service after construction — used by the sim ctor to break
@@ -409,6 +415,9 @@ public final class UnitRosterService {
 
     /** Limb wounds carried this battle. */
     public WoundService wounds() { return woundService; }
+
+    /** Who can't act this tick, and for how long. */
+    public StaggerService stagger() { return staggerService; }
 
     /**
      * Data owner for the SYSTEM_FX component — what a running integral system
@@ -664,12 +673,14 @@ public final class UnitRosterService {
         // that replaced the old instanceof-subclass checks.
         boolean isDrone = spec.type.isDrone();
         boolean mechLayerDrawn = spec.type.drawnAsMechLayers();
+        // The Runner is drawn on its own skeleton; its layered appearance stays, for facing and the corpse.
+        boolean ravRigged = layerDrawn && spec.type == UnitType.SWARM_RUNNER;
         ComponentType[] archetype = new ComponentType[
                 5 + (hasArmor ? 1 : 0) + (combatant ? 2 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
                   + (hasIntegralSystem ? 1 : 0) + (hasMitigation ? 1 : 0)
                   + (hasSystemFx ? 1 : 0)
                   + (hasBody ? 1 : 0) + (inSquad ? 1 : 0) + (hasHome ? 1 : 0) + (hasTask ? 1 : 0)
-                  + (sheetDrawn ? 1 : 0) + (layerDrawn ? 1 : 0) + (mechLayerDrawn ? 3 : 0)
+                  + (sheetDrawn ? 1 : 0) + (layerDrawn ? 1 : 0) + (mechLayerDrawn ? 3 : 0) + (ravRigged ? 1 : 0)
                   + (isHub ? 1 : 0) + (isTurret ? 1 : 0) + (isDrone ? 1 : 0)];
         int c = 0;
         archetype[c++] = components.IDENTITY;
@@ -702,6 +713,7 @@ public final class UnitRosterService {
             archetype[c++] = components.MECH_LOCOMOTION;
             archetype[c++] = components.MECH_GAIT_STATE;
         }
+        if (ravRigged) archetype[c++] = components.RAV_RIG;
         if (isHub) archetype[c++] = components.HUB_STATE;
         if (isTurret) archetype[c++] = components.TURRET_STATE;
         if (isDrone) archetype[c++] = components.DRONE_STATE;
@@ -769,6 +781,10 @@ public final class UnitRosterService {
                     BattleComponents.MECH_GAIT_STATE_STATE,
                     MechGaitState.create(spec.spawnX, spec.spawnY,
                             180f, variant));
+        }
+        if (ravRigged) {
+            entityWorld.setObject(id, components.RAV_RIG, BattleComponents.RAV_RIG_STATE,
+                    new RavRunnerRig(id));
         }
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, spec.hp);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, spec.maxHp);

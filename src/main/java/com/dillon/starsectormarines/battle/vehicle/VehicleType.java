@@ -452,6 +452,19 @@ public enum VehicleType {
      */
     public boolean hasBlade() { return this == DOZER_BREACHER; }
 
+    /** How heavy a hull is to something that runs into it ({@code colony-breach-nouns.md}, Brute). */
+    public enum Weight { LIGHT, MEDIUM, HEAVY }
+
+    /**
+     * The hull's weight class: the pickups, hover hulls and haulers are light, the APC lines, the missile
+     * carriers and the dozer medium, the gun tanks heavy. Read only by a Brute's charge so far.
+     */
+    public Weight weight() {
+        if (this == BREAKTHROUGH_TANK || this == HEAVY_GUN_TANK || this == SCREENED_TANK) return Weight.HEAVY;
+        if (isApc() || this == SRM_TECHNICAL || this == DOZER_BREACHER) return Weight.MEDIUM;
+        return Weight.LIGHT;
+    }
+
     /** Only exposed tire/track tops scroll; covered technical/hauler wheels stay hidden. */
     public boolean hasAnimatedTreads() { return isApc() || isTank(); }
 

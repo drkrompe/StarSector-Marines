@@ -58,6 +58,11 @@ final class SwarmBruteBehavior {
 
     static void update(long brute, BattleSimulation sim) {
         SwarmPressureBehavior.tickCooldown(brute, sim);
+        // Stunned, or in a charge: the charge system moves it, and a stunned Brute does nothing at all.
+        if (sim.stagger().isStaggered(brute) || sim.bruteCharges().busy(brute)) {
+            sim.clearPath(brute);
+            return;
+        }
         long previousTarget = sim.combat().targetId(brute);
         long target = sensedEmplacement(brute, sim);
         if (target == 0L) target = SwarmPressureBehavior.selectTarget(brute, sim);
@@ -66,6 +71,7 @@ final class SwarmBruteBehavior {
             SwarmPressureBehavior.updateRoaming(brute, previousTarget, sim);
             return;
         }
+        if (target != previousTarget) sim.swarmCues().post(SwarmCues.Kind.ALERT, brute, sim);
 
         float dx = sim.world().x(target) - sim.world().x(brute);
         float dy = sim.world().y(target) - sim.world().y(brute);
@@ -76,14 +82,22 @@ final class SwarmBruteBehavior {
             if (sim.combat().cooldownTimer(brute) <= 0f) {
                 sim.applyDamage(target, brute, sim.combat().attackDamage(brute), MELEE_PENETRATION,
                         sim.identity().type(brute).moraleImpact);
+                sim.swarmCues().post(SwarmCues.Kind.STRIKE, brute, sim);
                 sim.combat().setCooldownTimer(brute, sim.combat().attackCooldown(brute));
             }
             return;
         }
 
+        if (tryCharge(brute, target, sim.world().x(target), sim.world().y(target), distance, sim)) return;
+
         BreachPoint breach = breachPointToward(brute, target, sim);
         if (breach == null) breach = barricadeToward(brute, target, sim);
         if (breach != null) {
+            // The light wall it means to break, charged when it stands in the band with open ground between.
+            float wallX = breach.cellX + .5f + (breach.edge == null ? 0f : breach.edge.dx * .5f);
+            float wallY = breach.cellY + .5f + (breach.edge == null ? 0f : breach.edge.dy * .5f);
+            float toWall = (float) Math.hypot(wallX - sim.world().x(brute), wallY - sim.world().y(brute));
+            if (!breach.inReach && tryCharge(brute, 0L, wallX, wallY, toWall, sim)) return;
             if (breach.inReach) {
                 sim.clearPath(brute);
                 if (sim.combat().cooldownTimer(brute) <= 0f) {
@@ -108,6 +122,51 @@ final class SwarmBruteBehavior {
             }
         }
         SwarmPressureBehavior.pressToward(brute, target, target != previousTarget, sim);
+    }
+
+    /**
+     * Posts a charge at {@code target} (0 for a wall) aimed at {@code (aimX, aimY)} when the rules allow
+     * one: in the band, an open line, the cooldown spent. True when it did, and the Brute holds for it.
+     */
+    private static boolean tryCharge(long brute, long target, float aimX, float aimY, float distance,
+                                     BattleSimulation sim) {
+        BruteChargeSystem charges = sim.bruteCharges();
+        int now = sim.getSimTickIndex();
+        if (!BruteChargeRules.ENABLED || !charges.ready(brute, now)) return false;
+        boolean open = lineOpen(sim, sim.world().cellX(brute), sim.world().cellY(brute),
+                (int) Math.floor(aimX), (int) Math.floor(aimY));
+        if (!BruteChargeRules.shouldCharge(distance, open, now, 0)) return false;
+        charges.request(brute, target, aimX, aimY);
+        sim.clearPath(brute);
+        return true;
+    }
+
+    /**
+     * Whether the straight line between two cells, ends excluded, is ground a charge can cross: walkable,
+     * or a light barricade prop it will bowl through.
+     */
+    static boolean lineOpen(BattleSimulation sim, int x0, int y0, int x1, int y1) {
+        NavigationGrid grid = sim.getGrid();
+        int dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+        int err = dx + dy, x = x0, y = y0;
+        while (x != x1 || y != y1) {
+            int e2 = 2 * err;
+            if (e2 >= dy) {
+                err += dy;
+                x += sx;
+            }
+            if (e2 <= dx) {
+                err += dx;
+                y += sy;
+            }
+            if (x == x1 && y == y1) break;
+            if (!grid.inBounds(x, y)) return false;
+            if (grid.isWalkable(x, y)) continue;
+            int hp = grid.getWallHp(x, y);
+            if (!sim.isBarricadeAt(x, y) || hp <= 0 || hp > LIGHT_WALL_HP) return false;
+        }
+        return true;
     }
 
     /** The walkable cell nearest the Brute from which it can reach {@code target}, or null. */

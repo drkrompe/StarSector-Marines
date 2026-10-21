@@ -1,9 +1,11 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.combat.StaggerService;
 import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.SystemFxService;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.AnimationClip;
@@ -1048,6 +1050,9 @@ public final class UnitRenderService implements RenderSystem {
             boolean hasLayered = t.has(c.LAYERED_ANIMATION);
             boolean hasMechLayered = t.has(c.MECH_LAYERED_ANIMATION);
             boolean hasMechGait = t.has(c.MECH_GAIT_STATE);
+            RavRunnerAssets ravArt = sprites.ravRunnerSprites();
+            Object[] ravRigs = ravArt != null && t.has(c.RAV_RIG)
+                    ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             Object[] secSpec = hasSecondary
                     ? t.objects(c.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC).array() : null;
             Object[] primaryWeapon = t.has(c.COMBAT)
@@ -1149,6 +1154,14 @@ public final class UnitRenderService implements RenderSystem {
                             authoredPose, gaitPose);
                     continue;
                 }
+                RavRunnerRig ravRig = ravRigs != null ? (RavRunnerRig) ravRigs[r] : null;
+                if (ravRig != null && ravRig.posed()) {
+                    // The Runner is drawn on its own skeleton, solved at the position it was posed at.
+                    RavRunnerComposer.emit(out, ravArt, ravRig,
+                            cam.cellToScreenX(ravRig.bodyX()), cam.cellToScreenY(ravRig.bodyY()),
+                            cam.cellPxSize() * type.renderScale, unitAlpha);
+                    continue;
+                }
                 LayeredArmorFamily bodyFamily = hasLayered
                         ? LayeredArmorFamily.fromOrdinal(layeredBodyFamily[r]) : null;
                 LayeredArmorFamily headFamily = hasLayered
@@ -1191,6 +1204,18 @@ public final class UnitRenderService implements RenderSystem {
                     }
                     float shoulderPx = layeredInfantryShoulderWidth(
                             cam.cellPxSize(), type.renderScale);
+                    // Knocked down by a charge: the picture lies as a fallen body does for that
+                    // second, though the sim keeps the body upright (colony-breach-nouns.md, Brute).
+                    LayeredSpriteCache lying = ctx.sim.stagger().isStaggered(entityId)
+                            && ctx.sim.stagger().cause(entityId) == StaggerService.Cause.KNOCKED_DOWN
+                            ? layeredAssets.downed((int) (entityId & 0x7fffffff)) : null;
+                    if (lying != null) {
+                        float scale = shoulderPx * DOWNED_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
+                        out.addSprite(RenderLayer.UNITS, lying.sprite, cx, cy,
+                                lying.pxWidth * scale, lying.pxHeight * scale, layeredFacing[r],
+                                1f, 1f, 1f, unitAlpha);
+                        continue;
+                    }
                     // Lifted out of the column arrays so the halo's replay of
                     // this same composition can close over them.
                     LayerPose pose = authoredPose;

@@ -26,3 +26,26 @@ committed.
 
 The rigs stand in for motion and silhouette only. Production art follows
 `geometry-first-imagegen.md` once the owner picks a direction.
+
+## Spitter (PARKED 2026-10-21)
+
+The owner parked the Spitter ("thinking about dropping the spitters for now") after three
+concept rounds. Review sets are on Drive under `review/rav-spitter/`. The sources here are
+`exploration/rounds/spitter-1..3/`, made with `exploration/spitter_round.py`:
+- the default mode draws the concept sheet;
+- `--fire` adds the side views caught firing;
+- `--pack` puts two Spitters behind five Runners.
+
+What the owner settled before parking:
+- **Acid:** a dark venom green, darker than round 1 #6's lime.
+- **Body:** symmetric, never lopsided, on two or three legs (round 2).
+- **Firing:** must be legible. Round 2 and 3 plates carry a side view of the lob.
+- **Palette:** its own, not the Runner's lilac. Round 2's lilac read as "too visually and palette close to the
+  swarmer".
+- **Read from above:** what separates a firer from a Runner is a round mass on the back, a mortar tube or a domed
+  vent.
+- **Legs** sit under the body like a hound's or a pig's, swinging forward and back, never sprawled like an
+  alligator's. That rule came after round 3, whose splayed tripods and toad break it.
+
+Round 3's strongest reads were #4 indigo, #6 inside-out magenta and #2 bone-white. The owner had not picked one.
+To resume, start from round 3, put the legs under the body, and widen the stance only for the brace when it fires.

@@ -217,7 +217,7 @@ class BattleSquadOverlayModelTest {
                         leader ? "READY" : "", "Veteran", "Gifted",
                         UnitRole.COMBATANT, leader ? ArmorClass.POWER_SUIT : ArmorClass.STANDARD,
                         leader ? 14 : 6, leader ? 9 : 2, leader ? 2 : slot == 1 ? 3 : 0,
-                        leader ? 120f : slot == 1 ? 90f : 0f, leader));
+                        leader ? 120f : slot == 1 ? 90f : 0f, leader, null));
             }
         }
         return members;
@@ -231,6 +231,6 @@ class BattleSquadOverlayModelTest {
                 m.primaryName(), m.primaryAbbrev(), m.primaryColor(), m.specialName(),
                 m.specialAbbrev(), m.specialStatus(), m.systemName(), m.systemStatus(),
                 m.experience(), m.aptitude(), m.role(), m.armorClass(), m.roundsFired(),
-                m.roundsHit(), kills, damage, engaged);
+                m.roundsHit(), kills, damage, engaged, m.held());
     }
 }

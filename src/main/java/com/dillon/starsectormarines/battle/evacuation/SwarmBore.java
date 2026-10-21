@@ -64,6 +64,8 @@ public final class SwarmBore {
     private int collapsedTick = -1;
     private final List<Long> colonies = new ArrayList<>();
     private final List<Long> colonyView = Collections.unmodifiableList(colonies);
+    private final List<Long> outposts = new ArrayList<>();
+    private final List<Long> outpostView = Collections.unmodifiableList(outposts);
 
     /**
      * @param number    the bore's number in eruption order, {@code 0} for the mother
@@ -107,6 +109,8 @@ public final class SwarmBore {
     public boolean collapsed() { return collapsedTick >= 0; }
     /** Every spore colony the bore has sprouted, living or not, in sprouting order. */
     public List<Long> colonies() { return colonyView; }
+    /** Every spore colony the bore's creep has seeded away from the mouth ({@link CreepOutposts}), living or not. */
+    public List<Long> outposts() { return outpostView; }
     public int collapsedTick() { return collapsedTick; }
 
     /** The beat key that names this bore: {@code N} for a first-wave bore, {@code mother} for the mother. */
@@ -170,6 +174,10 @@ public final class SwarmBore {
 
     void sprouted(long colony) {
         colonies.add(colony);
+    }
+
+    void outposted(long colony) {
+        outposts.add(colony);
     }
 
     void collapse(int tick) {

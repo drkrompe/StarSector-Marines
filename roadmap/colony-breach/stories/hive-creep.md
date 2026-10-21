@@ -1,10 +1,10 @@
 # Hive creep
 
-Status: IN PROGRESS — creep field built and driven by eruption sites; look, art and the bore hookup open. Bores and the growth-site seam (`BoreGrowthSites`) are on main.
+Status: IN PROGRESS — field, bore hookup and the hard-edge look are built (GL inside the ground composite, CPU mirror for review frames); creep effects, ground colonies and the behaviour scene are open.
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — field shipped ahead of bores; sites are interim sources.
+Updated: 2026-10-21 — round-3 look built; owner sign-off pending on the build1 review run.
 
 Model: `colony-breach-nouns.md` (Bore, Spore colony, Origin).
 
@@ -39,14 +39,15 @@ Mobile strains stay what they are: no melee body gains a ranged attack.
    sunken-colony analogue that strikes ground targets in short range (impaling
    spines from below), wrecks emplacements, hardpoints and buildings it
    reaches, and is destroyable. It reuses the bores' growth-site placement.
-   Spore colonies (anti-air) may also root on creep away from bores once creep
-   carries them, extending the umbrella across the infested colony.
+   Spore colonies rooting on creep away from bores have shipped as a bore's
+   outposts (`colony-breach-nouns.md`, Spore colony); a ground colony should
+   take the same spacing-by-reach rule.
 4. **Creep effects.** Swarm bodies move faster on creep; Marines and colonists
    do not get slowed (keep it readable and fair), but colonists will not shelter
    in creeped buildings. Keep effects few until play shows a need.
 5. **Lore and audio.** Creep is the weapon converting a world (see
    `swarm-lore-guide.md`); ask for a creep-spread ambience and ground-colony
-   strike sound through `breach-audio.md`'s pipeline.
+   strike sound through the Colony Breach audio pipeline (`colony-breach-nouns.md`, Sound).
 6. **Evidence.** A behaviour scene: a bore left alone creeps toward a
    hardpoint and a ground colony roots and wrecks it; a second loop where the
    bore is collapsed and the creep recedes. A `renderEvidence` comparison with

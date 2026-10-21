@@ -1,0 +1,215 @@
+package com.dillon.starsectormarines.battle.evacuation;
+
+import com.dillon.starsectormarines.battle.combat.BodyPart;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.DeathEvent;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.marine.ArmorClass;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+/** Harvest's own rules, asked of {@link SwarmHarvest} directly: nothing here steps a battle. */
+class SwarmHarvestTest {
+
+    private static BattleSimulation simulation() {
+        NavigationGrid grid = new NavigationGrid(24, 10);
+        for (int y = 0; y < 10; y++) {
+            for (int x = 0; x < 24; x++) grid.setWalkableFloor(x, y);
+        }
+        return new BattleSimulation(grid, new CellTopology(24, 10));
+    }
+
+    private static long colonist(BattleSimulation sim, int x, int y) {
+        return sim.spawn(new EntitySpec("colonist", Faction.CIVILIAN, UnitType.CIVILIAN, x, y).role(UnitRole.FLEE));
+    }
+
+    /** A Runner's blow on {@code body} that killed it this tick, as the death drain reports it. */
+    private static void killedBy(SwarmHarvest harvest, long body, long runner, BattleSimulation sim) {
+        sim.applyDamage(body, runner, 1000f, 1000f, 0f);
+        harvest.struck(body, runner);
+        harvest.onDeath(new DeathEvent(body, sim.world().x(body), sim.world().y(body), 0));
+    }
+
+    @Test
+    void aRunnersKillIsSeizedDraggedAndFedIntoTheBore() {
+        try (BattleSimulation sim = simulation()) {
+            SwarmHarvest harvest = sim.swarmHarvest();
+            SwarmBore bore = sim.swarmBores().open(sim, 1, false, 20, 5);
+            harvest.tick(sim);
+            assertTrue(harvest.isOpen(), "a living bore opens the harvest");
+            long runner = SwarmStrains.spawn(sim, "runner", UnitType.SWARM_RUNNER, 4, 5);
+            long body = colonist(sim, 5, 5);
+
+            killedBy(harvest, body, runner, sim);
+            harvest.tick(sim);
+            assertEquals(body, harvest.loadOf(runner));
+            assertEquals(1, harvest.seized());
+            assertEquals(SwarmHarvest.CARRIER_SPEED * UnitType.SWARM_RUNNER.moveSpeed,
+                    sim.movement().moveSpeed(runner), 1e-4f, "a carrier drags at a fraction of its pace");
+
+            sim.world().setPos(runner, 12.5f, 5.5f);
+            harvest.tick(sim);
+            float dx = sim.world().x(body) - 12.5f, dy = sim.world().y(body) - 5.5f;
+            assertEquals(SwarmHarvest.TRAIL_CELLS, Math.sqrt(dx * dx + dy * dy), 1e-3, "the load trails its carrier");
+
+            sim.world().setPos(runner, 19.5f, 5.5f);
+            harvest.tick(sim);
+            assertEquals(1, harvest.delivered());
+            assertEquals(1, bore.feeds());
+            assertFalse(harvest.isCarrier(runner), "a delivery frees the carrier");
+            assertEquals(UnitType.SWARM_RUNNER.moveSpeed, sim.movement().moveSpeed(runner), 1e-4f);
+        }
+    }
+
+    @Test
+    void aDeadCarrierDropsItsLoadAndAnotherRunnerTakesItUp() {
+        try (BattleSimulation sim = simulation()) {
+            SwarmHarvest harvest = sim.swarmHarvest();
+            sim.swarmBores().open(sim, 1, false, 20, 5);
+            harvest.tick(sim);
+            long carrier = SwarmStrains.spawn(sim, "carrier", UnitType.SWARM_RUNNER, 4, 5);
+            long body = colonist(sim, 5, 5);
+            killedBy(harvest, body, carrier, sim);
+            harvest.tick(sim);
+
+            sim.applyDamage(carrier, 1000f, 1000f);
+            harvest.tick(sim);
+            assertFalse(harvest.isCarried(body));
+            assertTrue(harvest.isLoose(body), "the body lies where its carrier fell");
+            assertEquals(1, harvest.dropped());
+            assertEquals(0, harvest.delivered());
+
+            long second = SwarmStrains.spawn(sim, "second", UnitType.SWARM_RUNNER,
+                    sim.world().cellX(body), sim.world().cellY(body));
+            sim.getUnitIndex().rebuild(sim.getRoster());
+            harvest.tick(sim);
+            assertEquals(body, harvest.loadOf(second));
+            assertEquals(2, harvest.seized());
+        }
+    }
+
+    @Test
+    void onlyARunnersKillWithABoreOpenIsHarvested() {
+        try (BattleSimulation sim = simulation()) {
+            SwarmHarvest harvest = sim.swarmHarvest();
+            long runner = SwarmStrains.spawn(sim, "runner", UnitType.SWARM_RUNNER, 4, 5);
+            long body = colonist(sim, 5, 5);
+            harvest.tick(sim);
+            killedBy(harvest, body, runner, sim);
+            harvest.tick(sim);
+            assertFalse(harvest.isCarried(body), "no bore, nowhere to take it");
+
+            sim.swarmBores().open(sim, 1, false, 20, 5);
+            harvest.tick(sim);
+            long brute = SwarmStrains.spawn(sim, "brute", UnitType.SWARM_BRUTE, 8, 5);
+            long other = colonist(sim, 9, 5);
+            killedBy(harvest, other, brute, sim);
+            harvest.tick(sim);
+            assertFalse(harvest.isCarried(other), "only a Runner carries");
+
+            long marine = sim.spawn(new EntitySpec("marine", Faction.MARINE, UnitType.MARINE, 12, 5));
+            assertTrue(SwarmHarvest.harvestable(sim, marine), "a Marine on foot is taken");
+            long mech = sim.spawn(new EntitySpec("mech", Faction.MARINE, UnitType.HEAVY_MECH, 14, 5));
+            assertFalse(SwarmHarvest.harvestable(sim, mech), "a machine is not");
+        }
+    }
+
+    @Test
+    void theImpaleDrawIsTheStrikesOwnAndComesUpAboutOneBlowInTwenty() {
+        assertEquals(SwarmHarvest.impaleDraw(120, 7L, 9L), SwarmHarvest.impaleDraw(120, 7L, 9L));
+        int hits = 0, draws = 0;
+        for (int tick = 0; tick < 200; tick++) {
+            for (long runner = 1; runner <= 100; runner++) {
+                draws++;
+                if (SwarmHarvest.impaleDraw(tick, runner, 5000L + tick) < SwarmHarvest.IMPALE_CHANCE) hits++;
+            }
+        }
+        assertEquals(SwarmHarvest.IMPALE_CHANCE, hits / (float) draws, 0.01f);
+    }
+
+    @Test
+    void anImpaledBodyIsHeldAliveAndFreedWithBothLegsWoundedWhenItsCarrierDies() {
+        try (BattleSimulation sim = simulation()) {
+            SwarmHarvest harvest = sim.swarmHarvest();
+            sim.swarmBores().open(sim, 1, false, 20, 5);
+            harvest.tick(sim);
+            long runner = SwarmStrains.spawn(sim, "runner", UnitType.SWARM_RUNNER, 4, 5);
+            long body = sim.spawn(new EntitySpec("militia", Faction.ALLY, UnitType.MILITIA, 5, 5));
+            float hp = sim.world().hp(body);
+
+            harvest.impale(body, runner);
+            harvest.tick(sim);
+            assertTrue(harvest.isCarried(body));
+            assertTrue(harvest.holdsStill(body), "a held body does nothing");
+            assertEquals(hp, sim.world().hp(body), "the impaling blow does no damage of its own");
+            assertEquals(SwarmHarvest.EventKind.IMPALED, harvest.events().get(0).kind());
+
+            sim.applyDamage(runner, 1000f, 1000f);
+            harvest.tick(sim);
+            assertFalse(harvest.isCarried(body));
+            assertTrue(sim.world().isAlive(body), "killing the carrier frees a living body");
+            assertEquals(2, sim.wounds().wounds(body, BodyPart.LEGS), "the blades went through both legs");
+            assertTrue(harvest.holdsStill(body), "it lies recovering for a moment");
+            assertFalse(harvest.isLoose(body), "a living body is freed, not left for another Runner");
+            assertEquals(1, harvest.freed());
+        }
+    }
+
+    @Test
+    void aMarineCarriedToTheBoreIsTakenAndIsBiomass() {
+        try (BattleSimulation sim = simulation()) {
+            SwarmHarvest harvest = sim.swarmHarvest();
+            SwarmBore bore = sim.swarmBores().open(sim, 1, false, 20, 5);
+            harvest.tick(sim);
+            long runner = SwarmStrains.spawn(sim, "runner", UnitType.SWARM_RUNNER, 16, 5);
+            long marine = sim.spawn(new EntitySpec("marine", Faction.MARINE, UnitType.MARINE, 17, 5));
+            harvest.impale(marine, runner);
+            harvest.tick(sim);
+            assertTrue(harvest.takenMarines(sim).contains(marine), "still held: lost with the carrier if the battle ends");
+
+            sim.world().setPos(runner, 19.5f, 5.5f);
+            harvest.tick(sim);
+            assertFalse(sim.world().isAlive(marine), "taken at the mouth");
+            assertEquals(1, harvest.taken());
+            assertEquals(1, bore.feeds());
+            assertTrue(harvest.takenMarines(sim).contains(marine));
+        }
+    }
+
+    @Test
+    void aPowerSuitIsNeverTaken() {
+        try (BattleSimulation sim = simulation()) {
+            SwarmHarvest harvest = sim.swarmHarvest();
+            sim.swarmBores().open(sim, 1, false, 20, 5);
+            harvest.tick(sim);
+            long suit = sim.spawn(new EntitySpec("suit", Faction.MARINE, UnitType.MARINE, 5, 5)
+                    .armorClass(ArmorClass.POWER_SUIT));
+            assertFalse(SwarmHarvest.harvestable(sim, suit));
+            long marine = sim.spawn(new EntitySpec("marine", Faction.MARINE, UnitType.MARINE, 8, 5));
+            assertTrue(SwarmHarvest.harvestable(sim, marine));
+        }
+    }
+
+    @Test
+    void theControlLeavesTheDeadWhereTheyFall() {
+        try (BattleSimulation sim = simulation()) {
+            SwarmHarvest harvest = new SwarmHarvest(false);
+            sim.swarmBores().open(sim, 1, false, 20, 5);
+            harvest.tick(sim);
+            assertFalse(harvest.isOpen());
+            long runner = SwarmStrains.spawn(sim, "runner", UnitType.SWARM_RUNNER, 4, 5);
+            long body = colonist(sim, 5, 5);
+            killedBy(harvest, body, runner, sim);
+            harvest.tick(sim);
+            assertFalse(harvest.isCarried(body));
+        }
+    }
+}

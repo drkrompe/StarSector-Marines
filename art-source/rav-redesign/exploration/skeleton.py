@@ -127,15 +127,17 @@ class Skeleton:
         self.blend_from = None
         self.blend_t = 0.0
         self.prev_feet = None
+        self.sway_amp = 0.0
+        self.shx = self.hpx = 0.0
 
     def roots(self, y, flex, crouch):
         sh_y, hp_y = y + SPINE / 2 * (1 + flex), y - SPINE / 2 * (1 + flex)
         sz, hz = SHOULDER_Z - crouch, HIP_Z - crouch * 0.6
         r = {}
         for n in ("FL", "FR"):
-            r[n] = ((-1 if n[1] == "L" else 1) * FRONT["x"], sh_y, sz - 0.02)
+            r[n] = ((-1 if n[1] == "L" else 1) * FRONT["x"] + self.shx, sh_y, sz - 0.02)
         for n in ("HL", "HR"):
-            r[n] = ((-1 if n[1] == "L" else 1) * HIND["x"], hp_y, hz - 0.02)
+            r[n] = ((-1 if n[1] == "L" else 1) * HIND["x"] + self.hpx, hp_y, hz - 0.02)
         return r, (sh_y, sz), (hp_y, hz)
 
     def frame(self, t, dt):
@@ -154,6 +156,13 @@ class Skeleton:
             crouch = 0.035 * smooth((t - T_WIND) / (T_THRUST - T_WIND))
         elif T_THRUST <= t < T_HOLD + 0.2:
             crouch = 0.035 * (1 - smooth((t - T_THRUST) / 0.28))
+        # shoulders and hips sway side to side against each other with the stride, hardest when hauling
+        target = {"gallop": 0.025, "trot": 0.045 if t > T_DRAG else 0.035, "plant": 0.0}[m]
+        self.sway_amp += (target - self.sway_amp) * min(1.0, dt / 0.15)
+        self.shx = self.sway_amp * math.sin(2 * math.pi * self.phi)
+        self.hpx = -self.sway_amp * math.sin(2 * math.pi * self.phi)
+        if t > T_DRAG:  # each heave throws the shoulders harder than the hips
+            self.shx *= 1.4
         roots, sh, hp = self.roots(y, flex, crouch)
         feet = {}
         for n, root in roots.items():
@@ -167,10 +176,11 @@ class Skeleton:
                 pin = self.pinned[n]
                 k = smooth(min(1, (t - pin["t"]) / 0.1))
                 sy, sz = pin["start"][1], pin["start"][2]
-                feet[n] = (root[0], sy + (pin["land"] - sy) * k, sz * (1 - k))
+                feet[n] = (root[0] - (self.shx if n[0] == "F" else self.hpx), sy + (pin["land"] - sy) * k,
+                           sz * (1 - k))
             else:
                 fy, fz = gait_foot(n, self.phi, gait)
-                feet[n] = (root[0], neutral + fy, fz)
+                feet[n] = (root[0] - (self.shx if n[0] == "F" else self.hpx), neutral + fy, fz)
         if m != self.last_mode:
             if m == "trot":
                 self.blend_from = {n: (f[0], f[1] - y, f[2]) for n, f in self.prev_feet.items()}
@@ -193,14 +203,17 @@ class Skeleton:
             foot = feet[n]
             if n[0] == "F":
                 elbow, paw = ik2((root[1], root[2]), (foot[1], foot[2]), FRONT["a"], FRONT["b"], -1)
-                legs[n] = [root, (root[0], *elbow), (root[0], *paw)]
+                fx = foot[0]  # the leg leans from the swaying shoulder down to the planted foot
+                legs[n] = [root, ((root[0] + fx) / 2, *elbow), (fx, *paw)]
             else:
                 hock_t = (foot[1] - 0.03, foot[2] + HIND["c"])  # metatarsus stands near-vertical, leaning back
                 stifle, hock = ik2((root[1], root[2]), hock_t, HIND["a"], HIND["b"], 1)
-                legs[n] = [root, (root[0], *stifle), (root[0], *hock), (root[0], foot[1], foot[2])]
+                fx = foot[0]
+                legs[n] = [root, (root[0] + (fx - root[0]) * 0.33, *stifle), (root[0] + (fx - root[0]) * 0.7, *hock),
+                           (fx, foot[1], foot[2])]
         arms, tips = self.arms(t, sh)
-        neck = (0.0, sh[0] + 0.12, sh[1] + 0.03)
-        head = (0.0, sh[0] + 0.25 + 0.03 * math.sin(2 * math.pi * self.phi) * run, sh[1] - 0.01)
+        neck = (self.shx * 1.2, sh[0] + 0.12, sh[1] + 0.03)
+        head = (self.shx * 1.4, sh[0] + 0.25 + 0.03 * math.sin(2 * math.pi * self.phi) * run, sh[1] - 0.01)
         if t > T_REEL:  # jaws latch on beside the spike
             k = smooth(min(1, (t - T_REEL - 0.15) / 0.25)) if t > T_REEL + 0.15 else 0.0
             tip = tips[0]
@@ -209,8 +222,8 @@ class Skeleton:
                     head[2] + (0.2 - head[2]) * k)
         tail = [(0.0, hp[0] - 0.08 * i, hp[1] + 0.02 - 0.03 * i) for i in range(5)]
         sway = 0.04 * run * math.sin(2 * math.pi * self.phi)
-        tail = [(sway * i * i / 16, p[1], p[2]) for i, p in enumerate(tail)]
-        return dict(y=y, legs=legs, arms=arms, tips=tips, sh=sh, hp=hp, neck=neck, head=head, tail=tail,
+        tail = [(self.hpx * (1 + 0.3 * i) + sway * i * i / 16, p[1], p[2]) for i, p in enumerate(tail)]
+        return dict(shx=self.shx, hpx=self.hpx, y=y, legs=legs, arms=arms, tips=tips, sh=sh, hp=hp, neck=neck, head=head, tail=tail,
                     phase=self.phase(t))
 
     def arms(self, t, sh):
@@ -250,7 +263,7 @@ class Skeleton:
             right = lerp(cut, r0, smooth(min(1, (u - SWIPE_WIND - SWIPE_CUT) / SWIPE_BACK)))
         arms, tips = [], []
         for side, (yaw, r, h, roll) in ((-1, left), (1, right)):
-            base = (side * ARMS["x"], sh[0] - 0.02, sh[1] + ARMS["up"])
+            base = (side * ARMS["x"] + self.shx, sh[0] - 0.02, sh[1] + ARMS["up"])
             (er, eh), (wr, wh) = ik2((0.0, 0.0), (r, h), ARMS["a"], ARMS["b"], -1)
             sy, cy = math.sin(math.radians(yaw)), math.cos(math.radians(yaw))
 
@@ -349,7 +362,7 @@ def draw_frame(sk, t, victim):
         d.ellipse([px - r, py - r, px + r, py + r], fill=SPIKE if fz < 0.005 else (180, 150, 170))
     tail = [top(p, ox, oy) for p in sk["tail"]]
     line(tail, BODY, 14)
-    hp, sh = top((0, sk["hp"][0], 0), ox, oy), top((0, sk["sh"][0], 0), ox, oy)
+    hp, sh = top((sk["hpx"], sk["hp"][0], 0), ox, oy), top((sk["shx"], sk["sh"][0], 0), ox, oy)
     d.ellipse([hp[0] - 0.13 * ppc, hp[1] - 0.12 * ppc, hp[0] + 0.13 * ppc, hp[1] + 0.12 * ppc], fill=BODY,
               outline=BODY_EDGE, width=2 * SS)
     d.ellipse([sh[0] - 0.15 * ppc, sh[1] - 0.13 * ppc, sh[0] + 0.15 * ppc, sh[1] + 0.13 * ppc], fill=BODY,
