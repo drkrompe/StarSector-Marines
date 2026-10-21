@@ -76,6 +76,6 @@ edited:
 5. **Spore colonies**: hooked. Each grade's colony weapon (`weapon.spore-burst-fissure`, `-bore`, `-maw`) names `spore_vent_burst` as its fire sound.
 6. **Matriarch** (`matriarch.md`): `matriarch_roar` at emergence; spitter splash on acid impact.
 
-7. **Harvest and surge** (`swarm-harvest.md`): `body_drag` while a body is carried to a bore is pending; `bore_surge` at each surge is hooked through `BoreCues`. `first_harvest` has a militia line; `bore_fed_N` and `surge_N` are OBSERVER_ONLY and stay silent as beats.
+7. **Harvest and surge** (`colony-breach-nouns.md`, Harvest): `body_drag` while a body is carried to a bore is pending; `bore_surge` at each surge is hooked through `BoreCues`. `first_harvest` has a militia line; `bore_fed_N` and `surge_N` are OBSERVER_ONLY and stay silent as beats.
 
 Name-bearing alternates ("ravs", "a bloom") sit in the narration catalog's `variants` array beside the generic lines; the queue never looks them up. Adopt one by moving it into `lines`.

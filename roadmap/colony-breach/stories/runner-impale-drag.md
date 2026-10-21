@@ -1,6 +1,6 @@
 # Runner impale and drag
 
-Status: READY once `swarm-harvest.md` has landed its carrier — design settled with the owner; nothing built
+Status: READY — Harvest's carrier is on main (`SwarmHarvest`); design settled with the owner
 
 Written: 2026-10-21
 
@@ -38,7 +38,9 @@ Read before planning; these are what the rules lean on.
   death in the team drains 0.30.
 - **Casualties** leave the battle as surviving or fallen soldier ids;
   `CasualtyFate` rolls each fallen one into KIA, WIA or MIA afterwards.
-- **Harvest** is not built past `SwarmBores.feed`. There is no carrier yet.
+- **Harvest** (`SwarmHarvest`): a Runner that kills a body seizes it and drags
+  the corpse to the nearest living bore at 40% pace; a dead carrier drops it
+  loose for the next Runner. Carriers do not strike.
 
 ## Vocabulary
 
@@ -191,7 +193,7 @@ Radio lines ("They've got Okafor!") are `breach-audio.md`'s.
 ## Scope
 
 1. The impale draw in the Runner's strike, the impaled state, and the carrier
-   hookup from `swarm-harvest.md`.
+   hookup from Harvest (`SwarmHarvest`).
 2. Freed, taken and killed-while-held endings for Marines, militia and
    colonists; the taken list in the mission outcome and its fixed KIA fate.
 3. Carrier priority in squad target selection.

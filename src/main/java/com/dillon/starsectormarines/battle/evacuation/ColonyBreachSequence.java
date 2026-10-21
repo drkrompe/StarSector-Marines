@@ -62,15 +62,24 @@ public final class ColonyBreachSequence {
      * @param erupted       per site, whether it has opened
      * @param colonists     colonists placed outside the shelter at setup
      * @param colonistsAlive of those, how many are still on the field
+     * @param harvest       what the swarm has dragged to its bores so far
      */
     public record Snapshot(int tick, Phase phase, int landfallTick, int shelterReachedTick,
                            int tremorTick, List<ColonyEruptionPlan.Site> sites,
                            List<Integer> eruptionTicks, List<Boolean> erupted,
-                           int colonists, int colonistsAlive, List<CivilianRedoubt> redoubts) {
+                           int colonists, int colonistsAlive, List<CivilianRedoubt> redoubts,
+                           Harvest harvest) {
         public Snapshot {
             redoubts = List.copyOf(redoubts);
         }
     }
+
+    /**
+     * Harvest so far: bodies seized (a re-seizure of a dropped body counts
+     * again), delivered into a bore, dropped by a carrier that died, and being
+     * dragged now.
+     */
+    public record Harvest(int firstTick, int seized, int delivered, int dropped, int carrying) { }
 
     private final ColonyEruptionPlan plan;
     private final List<Long> colonists;
@@ -165,6 +174,7 @@ public final class ColonyBreachSequence {
             }
         }
         if (tremorTick >= 0 && tick >= tremorTick) emit(tick, "tremor");
+        if (sim.swarmHarvest().firstHarvestTick() >= 0) emit(tick, "first_harvest");
         List<ColonyEruptionPlan.Site> sites = plan.sites();
         for (int i = 0; i < sites.size(); i++) {
             if (!erupted[i]) continue;
@@ -182,6 +192,7 @@ public final class ColonyBreachSequence {
                 case COLLAPSED -> emit(tick, bore.mother()
                         ? "mother_bore_collapsed" : "bore_collapsed_" + bore.number());
                 case SURGE -> log.emit(tick, BEAT_PREFIX + "surge_" + bore.beatKey(), Audience.OBSERVER_ONLY);
+                case FED -> log.emit(tick, BEAT_PREFIX + "bore_fed_" + bore.beatKey(), Audience.OBSERVER_ONLY);
             }
         }
         ShuttleMission pickup = sim.getCivilianPickupMission();
@@ -210,7 +221,12 @@ public final class ColonyBreachSequence {
         }
         return new Snapshot(tick, phase(), landfallTick, shelterReachedTick, tremorTick,
                 plan.sites(), List.copyOf(ticks), List.copyOf(open), colonists.size(), alive,
-                sim.getCivilianRedoubts());
+                sim.getCivilianRedoubts(), harvest(sim.swarmHarvest()));
+    }
+
+    private static Harvest harvest(SwarmHarvest harvest) {
+        return new Harvest(harvest.firstHarvestTick(), harvest.seized(), harvest.delivered(),
+                harvest.dropped(), harvest.carrying());
     }
 
     private void emit(int tick, String key) {

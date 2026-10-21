@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — the shelter stands in a civil-defence compound, a square walled place in the colony plan dressed with towers, gate guns, slits and floodlights; a holdout claims a block behind works (barricade, firing step, gate, gun) with a line team that falls back into the building; the company lands in open fields outside the colony and the lift comes down on them; bores, tiers, surges, spore colonies and the bore-sourced director as built.
+Updated: 2026-10-21 — the shelter stands in a civil-defence compound, a square walled place in the colony plan dressed with towers, gate guns, slits and floodlights; a holdout claims a block behind works (barricade, firing step, gate, gun) with a line team that falls back into the building; the company lands in open fields outside the colony and the lift comes down on them; bores, tiers, surges, spore colonies, the bore-sourced director and harvest as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -251,8 +251,8 @@ are prey like any of the swarm's, and once the shelter has opened its people
 are too. A holdout **falls** when its garrison is dead and a swarm body is at
 its works (or its walls, without works), or when nobody behind its door is
 still alive. Its survivors leave
-the cohort — overrun, they are the swarm's (harvest's biomass, once harvest
-exists) — and the holdout is no longer anyone's to relieve. The shelter is
+the cohort — overrun, they are the swarm's, harvested like any colonist once
+no escort is near them — and the holdout is no longer anyone's to relieve. The shelter is
 sealed and does not fall. That asymmetry is the triage: the main cohort is
 safe while it waits, the holdouts are not, and which door the company reaches
 first decides who is left to bring out. With one redoubt the rescue plays
@@ -260,9 +260,7 @@ exactly as a single-shelter rescue. `-Dbattle.colonyBreach.redoubts=false` is
 the control: the posts hold militia only and the whole cohort is in the
 shelter.
 
-Where redoubts meet the stories still open: a fallen holdout's people are the
-harvest's easiest biomass, and what a runner does with them is harvest's to
-decide; whether creep under a redoubt weakens its aprons or its garrison is
+Where redoubts meet the stories still open: whether creep under a redoubt weakens its aprons or its garrison is
 creep's to say; and a hive posture that sends strike detachments competes with
 relief for the same squads, so its readiness gate should count pending holdouts
 as unmet need.
@@ -344,24 +342,40 @@ bore to deliver to is found with `nearestLiving`. A feed buys growth at once
 to the bore's fresh biomass, and brings its next surge forward. A feed into a
 collapsed bore is refused and changes nothing: the delivery is lost.
 
-**Harvest.** The swarm's economy. Colonists are food. A runner that brings down
-a colonist (ambient colony civilians, militia, and in the end Marines) does not
-just kill it: it seizes the body and drags it back toward the nearest living
-bore, slowed, as a visible carrier. A carried body delivered into a bore is
-**biomass**: it advances that bore's growth and buys the director a burst of
-spawn capacity there. A carrier killed on the way drops the body, and the
-delivery is lost. Laws:
+**Harvest.** The swarm's economy. Colonists are food. While a bore lives, a
+Runner hunts the colonists it can sense as well as the company and its
+militia, and a body a Runner brings down (a colonist, a militia fighter or a
+Marine on foot) is not left where it fell: the Runner seizes it and becomes a
+**carrier**, dragging the body home down the bore field to the nearest living
+bore at four tenths of its own pace, slower than a walking Marine. The body
+trails a little behind it, lying along the drag. A carrier does not strike. At
+the bore's mouth the body goes into the hole: it is **biomass**, one
+colonist's worth through the feed seam, so the bore grows and its next surge
+comes forward and swells. A carrier killed on the way drops the body where it
+fell; the body lies **loose**, and the next Runner to come within reach takes
+it up again. A carrier whose last bore collapses drops its load the same way.
+Laws:
 
 - Biomass is the only fast path to growth. A starved bore stays a fissure for
   a long time; a fed one reaches maw quickly.
 - Every colonist the company gets out, or keeps alive, is biomass the hive
   never gets. Rescue and hive pressure are the same fight seen from two sides.
 - Carriers are readable and interceptable: a stream of bodies being dragged to
-  a bore is the player's signal that a bore is about to grow.
-- Evacuees in the cohort are never harvested while their escort lives. A lost
-  evacuee may be.
+  a bore is the player's signal that a bore is about to grow, and a carrier is
+  an ordinary Runner to shoot.
+- Only a Runner carries, and only what it killed itself or finds loose. A
+  Brute's or a Spitter's kill, or a body shot down by the company, stays where
+  it fell. No body is seized while no bore lives, because there is nowhere to
+  take it.
+- Never a power suit, a machine or a structure: harvest takes bodies on foot.
+- Evacuees in the cohort are never harvested while their escort lives: one
+  who falls with a Marine or militia fighter within eight cells stays where it
+  fell. A lost evacuee, with nobody near, may be taken.
 - Harvest is deterministic and traced: deliveries per bore appear in the
-  director snapshot.
+  director snapshot, and the breach snapshot counts bodies seized, delivered,
+  dropped and still being dragged.
+- `-Dbattle.colonyBreach.harvest=false` is the control: Runners leave the dead
+  where they fall and do not hunt colonists.
 - **A dragged body is safe from its own side's direct fire** (owner,
   2026-10-21). Fire at a carrier, a miss that strays into its load and a round
   that would go through the carrier never hurt the body being dragged, Marine,
@@ -522,8 +536,8 @@ spawn the same Brute.
 
 A body is carried as itself. A corpse is an entity with its own position and
 facing that the renderer reads every frame, and a layered swarm body is drawn
-as parts, so a carrier (`swarm-harvest.md`) moves the colonist's corpse with
-it and draws it as one more attached sprite; neither the strains nor their
+as parts, so a carrier (*Harvest*) moves the colonist's corpse by moving its
+position, and the body draws where it is; neither the strains nor their
 corpse sheets assume a body stays where it fell.
 
 **Creep.** The biological growth living bores spread across the colony:
@@ -567,7 +581,8 @@ large map.
   combatant the swarm is hostile to, less the shelter guard while the shelter is
   sealed. It is gathered from the battle each refresh, so "nearest" means
   nearest by the way the ground runs, not as the crow flies. Civilians are never
-  prey sources; a body that has found one chases it directly.
+  prey sources; a body that has found one chases it directly, and a Runner finds
+  colonists while harvest is open.
 - **Shelter** and **lift** are disclosed, so the mission declares their cells;
   the swarm knows where they are without sensing them, as the noun's law allows.
 - **Bore** is the goal of a body carrying biomass home: the nearest living
@@ -652,8 +667,8 @@ publishes. Beats are presentation and evidence, never inputs to the simulation.
 
 **Lift timing.** The lift has no countdown: the pickup craft comes down at the
 start of the battle and waits, so `lift_inbound` and `lift_down` normally fire
-before the shelter is reached. Harvest is not built yet, so nothing feeds a
-bore in a live battle and bores grow on their base clock alone.
+before the shelter is reached. Bores grow on their base clock and on what the
+Runners drag into them (*Harvest*).
 
 ## Beats
 
@@ -678,7 +693,7 @@ the evidence; change them here first.
 | `mother_bore_collapsed` | PLAYER | Mother bore destroyed |
 | `matriarch_emerged` | PLAYER | A matriarch spawns |
 | `first_harvest` | PLAYER | First body seized and dragged toward a bore |
-| `bore_fed_N` | OBSERVER_ONLY | Biomass delivered into bore N |
+| `bore_fed_N` / `bore_fed_mother` | OBSERVER_ONLY | A body delivered into bore N (or the mother); published at every delivery |
 | `surge_N` / `surge_mother` | OBSERVER_ONLY | Bore N (or the mother) starts a surge; published at every surge, not once |
 | `tender_down` | PLAYER | A called-down tender is on station (no producer yet) |
 | `hardpoint_established` | PLAYER | First tender-built defence completes at the lift |
