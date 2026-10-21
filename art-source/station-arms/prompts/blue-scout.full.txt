@@ -1,0 +1,10 @@
+Use case: sketch-to-render. Production overhead sprite layers for a tactical game: the two FOREARMS AND HANDS of a person working at a console, seen from directly above, drawn as separate layers that sit over their torso layer.
+
+Reference 1 is the authoritative SILHOUETTE GUIDE and edit target, 1536x1024. Reskin only its two flat gray shapes; keep each shape's exact outline, position, scale and angle. Everything outside the shapes must be genuinely transparent: no background, glow, ground, shadow, body, head, console, border, labels or grid.
+
+Camera: TRUE STRAIGHT-DOWN 90-degree overhead view. Each shape is one forearm: the wide rounded lower end is the sleeve at the elbow, the narrow upper part is the forearm, and the round blob at the top is the HAND seen from above, palm down, fingers together pointing up the image, resting on a console surface. Left shape is the person's left arm, right shape the right arm. Show a sleeve cuff where the sleeve ends at the wrist, then the bare (or gloved) hand: knuckles and four short fingers readable, thumb tucked on the inner side.
+
+Style: match reference 2 exactly — the same character's torso and head sprites — chunky crisp pixel art with a clean one-step dark outline around every shape, the same limited muted palette, sleeve fabric and skin tone, light from the upper left, restrained detail that reads at 25 pixels wide. Not painterly, not smooth airbrushed, not photographic.
+
+Avoid: tools, pens, tablets, weapons, watches with text, neon, text, insignia lettering, noise, cast shadows outside the shapes.
+This person: a MARINE in slate-blue scout armour. Forearms: the dark undersuit sleeve under a slim slate-blue forearm armour guard matching the plates of reference 2. Hands: dark gray tactical gloves.
