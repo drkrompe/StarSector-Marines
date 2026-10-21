@@ -56,6 +56,33 @@ look as an already completed animation.
    affected by the change. Continue an already authorized stage without adding
    approval gates; pause at review when the user explicitly requested it.
 
+## Every moving craft shows its drive
+
+A craft that moves under power shows plumes that match its motion: aft on its
+mains while it travels or accelerates, down on its lift jets while it climbs,
+sinks or hovers, and nothing while it is parked (owner, 2026-10-21: "plumes
+should match forward momentum or implied acceleration ... We cannot make this
+mistake again in cinematics"). C4's first finals let an inbound Shepherd down
+through the opening seconds with no drive firing, and had to be repaired with a
+composite pass.
+
+- Give every craft thruster markers
+  (`art-source/company-prologue/second-wind-cinematic/thrust-markers/README.md`)
+  and key their throttle from the motion; `thrust_markers.auto` does this for
+  traffic the shot does not name.
+- Hang the plume off the markers so it follows the same throttle
+  (`port_fleet.far_plume` in an EEVEE shot; the VFX kit's thrusters where the
+  hull is linked with its SWFX).
+- The shot's build calls `thrust_shots.require_plumes` once every plume is on.
+  It refuses to build or render (SystemExit naming the craft and nozzles) when a
+  craft's main or lift nozzles thrust on any frame with nothing drawing them. Do
+  not work around it: add the plume, or, for a craft whose drives the camera can
+  never see (a ship filmed from its own bridge), set `thrust_plume_exempt` on the
+  craft with the reason. `CINE_PLUMES=0` is a plumes-off control for review
+  builds only; a final (`CINE_FINAL=1`) is refused all the same.
+- Review the first seconds of a shot for traffic as well as for the hero: a
+  craft at the edge of frame is still in the film.
+
 ## Deliver useful evidence
 
 Retain source blend/scripts, raw generated images, exact prompts and reference
