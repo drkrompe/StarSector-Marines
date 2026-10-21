@@ -186,6 +186,8 @@ class ThunderRunEvidenceTest {
                 }
                 var close = new BattleReviewFrameRenderer(Path.of("mod"),1920,1080,282,75,80);
                 PlaceFightProbe places = new PlaceFightProbe();
+                // The command trace is the place-fight line's source of retakes and losses.
+                sim.setCommandTraceEnabled(true, "THUNDER_RUN");
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                     for (long gun : column.supportGuns()) if (!measuredGuns.contains(gun)) {
                         measuredGuns.add(gun);
@@ -411,7 +413,7 @@ class ThunderRunEvidenceTest {
                     if(fixture.optBoolean("absent") && tick>=9000) break;
                 }
                 if (reviewGif != null) { reviewGif.close(); convoyGif.close(); crossroadsGif.close(); }
-                System.out.println(places.line(name, sim, null));
+                System.out.println(places.line(name, sim, sim.getCommandTraceJsonLines()));
                 if(fixture.optBoolean("absent")) { assertEquals(0,column.phase()); assertEquals(0,column.deliveredCount()); }
                 if(fixture.optBoolean("destroyCargo")) { assertTrue(sim.isComplete()); assertNotEquals(Faction.MARINE,sim.getWinner()); assertEquals(column.cargo().size(),column.lostCount()); }
                 if (!fixture.optBoolean("absent") && !fixture.optBoolean("unarmedFinal") && !fixture.optBoolean("silentTankFinal") && maxTicks >= 18000) {
