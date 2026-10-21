@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.command.RescueCommandFacts.AuthoredDuty;
+import com.dillon.starsectormarines.battle.command.RescueCommandFacts.KnownBore;
+import com.dillon.starsectormarines.battle.command.RescueCommandSnapshot.HivePicture;
 import com.dillon.starsectormarines.battle.command.RescueCommandSnapshot.Role;
 import com.dillon.starsectormarines.battle.command.RescueCommandSnapshot.SquadIntent;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
@@ -18,11 +20,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiPredicate;
 
 /**
  * Frame-only Marine commander for Civilian Rescue. Authored shelter and pickup
  * guards remain external while the mobile force relieves the shelter and then
  * occupies stable, separated cohort-screen roles along the public route.
+ *
+ * <p>On Colony Breach it also answers the hive posture frozen into it at
+ * launch: a {@link StrikeDetachment} taken from the squads free of escort duty
+ * goes against a bore while the {@link ReadinessGate} holds open, ordered at
+ * the bore's cell as at any structure, and comes back when it closes.
  */
 public final class RescueEscortCommand implements AutonomousMissionCommand<
         RescueCommandFrame, RescueCommandSnapshot> {
@@ -55,10 +63,19 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
     private final Map<Integer, Integer> escortOf = new HashMap<>();
     /** Several redoubts: the one the mobile force is relieving, or {@code -1}. */
     private int reliefTarget = -1;
+    private final StrikeDetachment strike;
 
     public RescueEscortCommand(CivilianEvacuationPlacement placement) {
-        this.placement = Objects.requireNonNull(placement, "placement");
+        this(placement, HivePosture.DEFAULT);
     }
+
+    /** @param posture the hive posture chosen at the briefing; {@code null} is the default */
+    public RescueEscortCommand(CivilianEvacuationPlacement placement, HivePosture posture) {
+        this.placement = Objects.requireNonNull(placement, "placement");
+        this.strike = new StrikeDetachment(posture);
+    }
+
+    public HivePosture posture() { return strike.posture(); }
 
     public RescueCommandSnapshot rescueSnapshot() { return rescueSnapshot; }
 
@@ -85,7 +102,24 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
         for (CommandSquadState squad : pool) poolIds.add(squad.squadId());
         roles.keySet().retainAll(poolIds);
         nextPressureBoundTick.keySet().retainAll(poolIds);
-        if (!terminal(cohort)) assignStableRoles(pool);
+        strike.observeLift(frame.tick(), frame.squads(), frame.facts().emplacements(), placement.liftX, placement.liftY);
+        strike.observeCohort(frame.tick(), cohort.lostElements());
+        List<CommandSquadState> screens = pool;
+        if (!terminal(cohort)) {
+            screens = pool.stream().filter(s -> !strike.members().contains(s.squadId())).toList();
+            assignStableRoles(screens);
+            List<CommandSquadState> candidates = new ArrayList<>();
+            for (CommandSquadState squad : pool) {
+                if (roles.get(squad.squadId()) != Role.COHORT_ESCORT
+                        || strike.members().contains(squad.squadId())) candidates.add(squad);
+            }
+            int[] walkFrom = "AT_SOURCE".equals(cohort.phase())
+                    ? new int[]{placement.shelterApproachX, placement.shelterApproachY}
+                    : new int[]{validCell(cohort.payloadCellX(), placement.shelterX),
+                            validCell(cohort.payloadCellY(), placement.shelterY)};
+            updateStrike(frame, candidates, pool.size(), ReadinessGate.escortNeed(List.of()), List.of(walkFrom));
+            screens = pool.stream().filter(s -> !strike.members().contains(s.squadId())).toList();
+        }
 
         boolean atShelter = "AT_SOURCE".equals(cohort.phase());
         int anchorX = atShelter ? placement.shelterApproachX
@@ -136,8 +170,12 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
                 continue;
             }
 
+            if (strike.members().contains(squad.squadId())) {
+                strikeOrder(squad, proposals, intents);
+                continue;
+            }
             Role role = roles.get(squad.squadId());
-            int roleOrdinal = roleOrdinal(squad, pool, role);
+            int roleOrdinal = roleOrdinal(squad, screens, role);
             int[] ideal = atShelter
                     ? formationCell(role, roleOrdinal,
                     anchorX, anchorY, forward)
@@ -181,11 +219,11 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
                 cohort.lostElements(), cohort.progress(),
                 cohort.escortPresent(), cohort.controllingSquadId(),
                 knownPressure, cohort.complete(), cohort.failed(),
-                cohort.failure(), intents);
+                cohort.failure(), intents, hivePicture());
         return new CommandPlan<>(faction(), strategyId(), cohort.phase(),
                 frame.tick(), frame.influence() != null
                 ? frame.influence().updatedTick() : -1,
-                pool.size(), 0, List.of(summary(cohort)), proposals, detail);
+                pool.size(), 0, List.of(summary(cohort) + strikeSummary()), proposals, detail);
     }
 
     /**
@@ -218,13 +256,27 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
 
         escortOf.entrySet().removeIf(entry -> !poolIds.contains(entry.getValue())
                 || walkers(redoubts, entry.getKey()) == null);
+        strike.observeLift(frame.tick(), frame.squads(), frame.facts().emplacements(), placement.liftX, placement.liftY);
+        strike.observeCohort(frame.tick(), cohort.lostElements());
+        if (!terminal) {
+            // The strike is decided before new escorts are drawn, from the squads
+            // not already escorting; a squad on strike is not drawn as an escort.
+            List<CommandSquadState> candidates = pool.stream()
+                    .filter(s -> !escortOf.containsValue(s.squadId())).toList();
+            List<int[]> walkFrom = new ArrayList<>();
+            for (CivilianRedoubt redoubt : redoubts) {
+                if (redoubt.walking() > 0) walkFrom.add(new int[]{redoubt.walkingCellX(), redoubt.walkingCellY()});
+                else if (redoubt.pending()) walkFrom.add(new int[]{redoubt.approachX(), redoubt.approachY()});
+            }
+            updateStrike(frame, candidates, pool.size(), ReadinessGate.escortNeed(redoubts), walkFrom);
+        }
         if (!terminal) {
             for (CivilianRedoubt redoubt : redoubts) {
                 if (redoubt.walking() == 0 || escortOf.containsKey(redoubt.number())) continue;
                 CommandSquadState nearest = null;
                 int best = Integer.MAX_VALUE;
                 for (CommandSquadState squad : pool) {
-                    if (escortOf.containsValue(squad.squadId())) continue;
+                    if (escortOf.containsValue(squad.squadId()) || strike.members().contains(squad.squadId())) continue;
                     int distance = Math.abs(squad.anchorCellX() - redoubt.walkingCellX())
                             + Math.abs(squad.anchorCellY() - redoubt.walkingCellY());
                     if (distance < best) {
@@ -237,7 +289,8 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
         }
         Map<Integer, Integer> escorting = new HashMap<>();
         for (Map.Entry<Integer, Integer> entry : escortOf.entrySet()) escorting.put(entry.getValue(), entry.getKey());
-        List<CommandSquadState> force = pool.stream().filter(s -> !escorting.containsKey(s.squadId())).toList();
+        List<CommandSquadState> force = pool.stream().filter(s -> !escorting.containsKey(s.squadId())
+                && !strike.members().contains(s.squadId())).toList();
         assignScreenRoles(force);
 
         CivilianRedoubt relief = redoubt(redoubts, reliefTarget);
@@ -288,6 +341,10 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
                 proposals.add(releaseOrRetain(squad, "RESCUE_TERMINAL"));
                 intents.add(new SquadIntent(squad.squadId(), Role.RELEASED, "RESCUE_TERMINAL", null, -1, -1,
                         squad.localContact(), false));
+                continue;
+            }
+            if (strike.members().contains(squad.squadId())) {
+                strikeOrder(squad, proposals, intents);
                 continue;
             }
             Role role;
@@ -352,11 +409,80 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
                 cohort.lostElements(), cohort.progress(),
                 cohort.escortPresent(), cohort.controllingSquadId(),
                 knownPressure, cohort.complete(), cohort.failed(),
-                cohort.failure(), intents);
+                cohort.failure(), intents, hivePicture());
         return new CommandPlan<>(faction(), strategyId(), cohort.phase(),
                 frame.tick(), frame.influence() != null ? frame.influence().updatedTick() : -1,
                 pool.size(), 0, List.of(summary(cohort) + " relief=" + reliefTarget
-                        + " escorts=" + escortOf.size()), proposals, detail);
+                        + " escorts=" + escortOf.size() + strikeSummary()), proposals, detail);
+    }
+
+    /**
+     * Reads the readiness gate and moves the detachment. {@code walkFrom} are
+     * the places people will walk to the lift from (walking groups, doors
+     * still to relieve); a bore near any of those walks is on the route.
+     */
+    private void updateStrike(RescueCommandFrame frame, List<CommandSquadState> candidates, int mobileForce,
+                              int escortNeed, List<int[]> walkFrom) {
+        List<KnownBore> bores = frame.facts().bores();
+        BiPredicate<Integer, Integer> onRoute = onRoute(frame.topology(), bores, walkFrom);
+        strike.update(frame.tick(), bores, frame.facts().emplacements(), placement.liftX, placement.liftY,
+                candidates, mobileForce, escortNeed, onRoute);
+    }
+
+    /**
+     * Whether a cell is within {@link StrikeDetachment#ON_ROUTE_CELLS} of a
+     * route from one of {@code walkFrom} to the lift. Routes are asked for
+     * only when a living bore exists and only for Evacuate, the one posture
+     * that reads them; every other posture gets a predicate that is never
+     * consulted.
+     */
+    private BiPredicate<Integer, Integer> onRoute(CommandTopology topology, List<KnownBore> bores,
+                                                  List<int[]> walkFrom) {
+        if (strike.posture() != HivePosture.EVACUATE || bores.stream().noneMatch(KnownBore::living)) {
+            return (x, y) -> false;
+        }
+        List<int[]> routes = new ArrayList<>();
+        for (int[] from : walkFrom) {
+            int[] open = nearestWalkable(topology, from[0], from[1]);
+            if (open == null) continue;
+            int[] route = topology.route(open[0], open[1], placement.liftX, placement.liftY);
+            if (!Paths.isEmpty(route)) routes.add(route);
+        }
+        return (x, y) -> {
+            for (int[] route : routes) {
+                for (int i = 0, n = Paths.cellCount(route); i < n; i++) {
+                    if (Math.max(Math.abs(Paths.cellX(route, i) - x), Math.abs(Paths.cellY(route, i) - y))
+                            <= StrikeDetachment.ON_ROUTE_CELLS) return true;
+                }
+            }
+            return false;
+        };
+    }
+
+    /** A detachment squad's order: attack-move onto the bore with its cell named as the thing to open. */
+    private void strikeOrder(CommandSquadState squad, List<CommandProposal> proposals, List<SquadIntent> intents) {
+        KnownBore bore = strike.target();
+        ObjectiveAssignment assignment = ObjectiveAssignment.attackMove(squad.squadId(), bore.x(), bore.y())
+                .withBreach(bore.x(), bore.y());
+        String reason = "STRIKE_BORE_" + bore.key();
+        proposals.add(CommandProposal.assign(assignment, CommandAuthority.MISSION_COMMAND, reason,
+                stabilityBreak(squad, assignment)));
+        intents.add(new SquadIntent(squad.squadId(), Role.STRIKE_DETACHMENT, reason, assignment.kind(),
+                bore.x(), bore.y(), squad.localContact(), false));
+    }
+
+    private HivePicture hivePicture() {
+        KnownBore target = strike.target();
+        ReadinessGate gate = strike.gate();
+        return new HivePicture(strike.posture(),
+                gate == null ? null : StrikeDetachment.gateLine(gate, strike.inputs()),
+                target == null ? null : target.key(), target == null ? -1 : target.x(),
+                target == null ? -1 : target.y(), List.copyOf(strike.members()), strike.decisions());
+    }
+
+    private String strikeSummary() {
+        KnownBore target = strike.target();
+        return target == null ? "" : " strike=" + target.key() + strike.members();
     }
 
     /** Screen roles for the squads not escorting, spread evenly; an escort's old role gives way. */

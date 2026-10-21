@@ -255,7 +255,7 @@ class RenderBudgetEvidence {
      * is the tier whose scale is {@code LARGE}, the 280x168 the renderer was
      * built and measured on.
      */
-    private record MapSpec(String id, Builder builder) {
+    record MapSpec(String id, Builder builder) {
 
         interface Builder {
             BattleSimulation build() throws Exception;
@@ -288,7 +288,7 @@ class RenderBudgetEvidence {
          * the creep layer is measured on. Only the creep field is advanced for
          * the outbreak, so the battle itself is the ordinary playout.
          */
-        private static BattleSimulation colony() throws Exception {
+        static BattleSimulation colony() throws Exception {
             BattleFixture parsed = BattleFixtureJson.fromJson(new JSONObject(resource(CANONICAL_COLONY)));
             BattleSimulation sim = (parsed instanceof BattleLaunchFixture launch ? launch.construction() : parsed).build();
             ColonyBreachSequence breach = sim.getColonyBreach();
@@ -644,7 +644,7 @@ class RenderBudgetEvidence {
     }
 
     /** Walks the camera to a zoom through its own control, which is the only way in. */
-    private static void zoomTo(BattleCamera camera, float target) {
+    static void zoomTo(BattleCamera camera, float target) {
         for (int step = 0; step < 200 && camera.zoom() < target - 1e-4f; step++) {
             camera.zoomAt(1f, camera.vpX() + camera.vpW() * 0.5f,
                     camera.vpY() + camera.vpH() * 0.5f);
@@ -838,7 +838,7 @@ class RenderBudgetEvidence {
      * ortho with the origin bottom-left, matching the screen-space coordinates
      * every collector emits.
      */
-    private static void configureSurface() {
+    static void configureSurface() {
         glViewport(0, 0, SURFACE_W, SURFACE_H);
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
@@ -858,7 +858,7 @@ class RenderBudgetEvidence {
      * else answers as it does when there is no game at all — a texture load
      * hands back null, and every consumer of one already takes that path.
      */
-    private static SettingsAPI screenSettings() {
+    static SettingsAPI screenSettings() {
         return (SettingsAPI) Proxy.newProxyInstance(
                 SettingsAPI.class.getClassLoader(), new Class<?>[]{SettingsAPI.class},
                 (proxy, method, args) -> switch (method.getName()) {
@@ -872,7 +872,7 @@ class RenderBudgetEvidence {
                 });
     }
 
-    private static PositionAPI position() {
+    static PositionAPI position() {
         return (PositionAPI) Proxy.newProxyInstance(
                 PositionAPI.class.getClassLoader(), new Class<?>[]{PositionAPI.class},
                 (proxy, method, args) -> switch (method.getName()) {

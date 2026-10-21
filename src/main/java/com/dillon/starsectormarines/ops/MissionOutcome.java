@@ -119,6 +119,12 @@ public final class MissionOutcome {
     public final int     representativesEvacuated;
     /** Explicit Silent Colony archive report; {@code NONE} means no valid report. */
     public final AbandonedColonyArchiveOutcome colonyArchiveOutcome;
+    /**
+     * Colony Breach's hive bonus: the mother bore was collapsed in the battle
+     * ({@code colony-breach-nouns.md}, Mother bore). False on every other
+     * mission and on a breach where it stood.
+     */
+    public final boolean motherBoreCollapsed;
     /** Salvage percentage consumed by the loot roll (0..255). 0 = no salvage. */
     public final int     salvageEntitlement;
     /** Frozen captain + fleet recovery-pool bonus, in percentage points. */
@@ -242,6 +248,7 @@ public final class MissionOutcome {
                 ? b.representativesEvacuated : -1;
         this.colonyArchiveOutcome = b.colonyArchiveOutcome != null
                 ? b.colonyArchiveOutcome : AbandonedColonyArchiveOutcome.NONE;
+        this.motherBoreCollapsed = this.missionSource.isCivilianRescue() && b.motherBoreCollapsed;
         this.salvageEntitlement = b.salvageEntitlement;
         this.salvageRecoveryBonusPct = Math.max(0, b.salvageRecoveryBonusPct);
         this.salvageHighValueChancePct = Math.max(0, Math.min(100, b.salvageHighValueChancePct));
@@ -332,6 +339,7 @@ public final class MissionOutcome {
         private long campaignEventThreatSeed = -1L;
         private int civiliansAtRisk;
         private int civiliansRescued = -1;
+        private boolean motherBoreCollapsed;
         private int evacuationRepresentatives = -1;
         private int representativesEvacuated = -1;
         private AbandonedColonyArchiveOutcome colonyArchiveOutcome =
@@ -538,6 +546,12 @@ public final class MissionOutcome {
 
         public Builder civiliansRescued(int civiliansRescued) {
             this.civiliansRescued = civiliansRescued;
+            return this;
+        }
+
+        /** @param collapsed whether the Colony Breach mother bore was collapsed: the hive bonus */
+        public Builder motherBoreCollapsed(boolean collapsed) {
+            this.motherBoreCollapsed = collapsed;
             return this;
         }
 

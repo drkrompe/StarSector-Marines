@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.evacuation.LiftHardpoints;
+import com.dillon.starsectormarines.battle.command.RescueCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
+import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.world.gen.HeldPlaces;
 import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import com.dillon.starsectormarines.battle.world.gen.MarketGarrison;
@@ -2519,6 +2523,20 @@ public final class BattleSetup {
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, RiskLevel risk, int swarmCount,
             TargetProfile profile, boolean stressTest) {
+        return createCivilianRescue(seed, manifest, enemyHasHeavyArmor, risk, swarmCount, profile, stressTest,
+                HivePosture.DEFAULT, 0);
+    }
+
+    /**
+     * Civilian rescue with the hive posture chosen at the briefing, frozen into
+     * the corridor commander, and {@code liftHardpoints} Vulcans already standing
+     * at the lift (a fixture statement standing in for a tender's finished
+     * builds; zero in every launched battle).
+     */
+    public static BattleSimulation createCivilianRescue(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, RiskLevel risk, int swarmCount,
+            TargetProfile profile, boolean stressTest, HivePosture posture, int liftHardpoints) {
         boolean colony = isColonyBreachColony(risk, stressTest);
         EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);
         for (int attempt = 0; attempt < 8; attempt++) {
@@ -2556,6 +2574,9 @@ public final class BattleSetup {
             CivilianEvacuationPayload payload =
                     CivilianEvacuationPayload.install(sim, shelters, battleSeed);
             if (payload == null) continue;
+            sim.setAutonomousCommander(Faction.MARINE,
+                    new RescueEscortCommand(payload.placement, posture), RescueCommandDisclosure.INSTANCE);
+            LiftHardpoints.standUp(sim, payload.placement, liftHardpoints);
             // The payload installs the marine evacuation objective. Defenders
             // win by eliminating the responding marine force.
             sim.addObjective(new EliminateFactionObjective(

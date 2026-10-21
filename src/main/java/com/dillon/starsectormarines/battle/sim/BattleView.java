@@ -40,6 +40,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
 import com.dillon.starsectormarines.battle.evacuation.CivilianRedoubt;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 
 import com.dillon.starsectormarines.battle.evacuation.SurvivorPickupSystem;
@@ -481,6 +482,9 @@ public interface BattleView {
      * ordinary battles. A single entry is a single-shelter rescue.
      */
     default List<CivilianRedoubt> getCivilianRedoubts() { return List.of(); }
+
+    /** Every swarm bore that has opened, collapsed ones included, in opening order; empty in ordinary battles. */
+    default List<SwarmBore> getSwarmBores() { return List.of(); }
 
     /** Whether a marine has physically reached the civilian shelter entrance. */
     boolean isCivilianEvacuationTriggered();

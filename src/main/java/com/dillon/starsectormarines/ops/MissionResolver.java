@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.campaign.nexerelin.NexInvasionSettlement;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -417,6 +418,7 @@ public final class MissionResolver {
                 .injuredUntilDay(injuredUntilDay)
                 .promotedTo(promotedTo)
                 .civiliansRescued(civiliansRescued)
+                .motherBoreCollapsed(motherBoreCollapsed(sim))
                 .evacuationReport(evacuationRepresentatives, representativesEvacuated)
                 .colonyArchiveOutcome(colonyArchiveOutcome)
                 .salvageEntitlement(salvageEntitlement)
@@ -1102,5 +1104,13 @@ public final class MissionResolver {
             case EXTRACTION: return DISRUPT_DAYS_EXTRACTION;
             default:         return 0f;
         }
+    }
+
+    /** Whether the battle's mother bore opened and was collapsed: Colony Breach's hive bonus. */
+    static boolean motherBoreCollapsed(BattleSimulation sim) {
+        for (SwarmBore bore : sim.getSwarmBores()) {
+            if (bore.mother() && bore.collapsed()) return true;
+        }
+        return false;
     }
 }

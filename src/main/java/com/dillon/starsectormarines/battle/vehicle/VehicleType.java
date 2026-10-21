@@ -452,7 +452,7 @@ public enum VehicleType {
      */
     public boolean hasBlade() { return this == DOZER_BREACHER; }
 
-    /** How heavy a hull is to something that runs into it ({@code brute-charge.md}). */
+    /** How heavy a hull is to something that runs into it ({@code colony-breach-nouns.md}, Brute). */
     public enum Weight { LIGHT, MEDIUM, HEAVY }
 
     /**

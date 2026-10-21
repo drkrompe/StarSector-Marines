@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.command.HivePosture;
 import java.util.Locale;
 import com.dillon.starsectormarines.campaign.refit.RefitText;
 import com.dillon.starsectormarines.campaign.refit.ShipCondition;
@@ -651,6 +653,11 @@ public class BriefingScreen implements Screen {
     }
 
     private List<BriefingViewModel.ChoiceRow> retainedTermActions(Mission mission) {
+        // Colony Breach: the hive posture is chosen here and frozen into the
+        // commander at launch (colony-breach-nouns.md, Hive posture).
+        if (isColonyBreach(mission)) {
+            return BriefingViewModel.hivePostureRows(mission.hivePosture, this::selectHivePosture);
+        }
         int baseline = mission.contractSalvageBaseline & 0xFF;
         if (baseline <= 0 || !negotiationOpen(mission)) return List.of();
         int current = mission.contractSalvageNegotiated & 0xFF;
@@ -661,6 +668,19 @@ public class BriefingScreen implements Screen {
                 new BriefingViewModel.ChoiceRow("briefing-salvage-more", "choice-row",
                         Strings.get("briefingUiSalvageMore"), Strings.get("briefingUiSalvageMoreDetail"),
                         current >= baseline, () -> adjustSalvage(10), null));
+    }
+
+    /** Whether this mission is fought on the Colony Breach colony, where the hive posture applies. */
+    static boolean isColonyBreach(Mission mission) {
+        return MissionLaunch.isCivilianRescueBattle(mission)
+                && BattleSetup.isColonyBreachColony(mission.risk, mission.source == MissionSource.DEBUG_CIVILIAN_RESCUE);
+    }
+
+    private void selectHivePosture(HivePosture posture) {
+        Mission m = ctx.getSelectedMission();
+        if (m == null || m.hivePosture == posture) return;
+        ctx.setSelectedMission(Mission.builder(m).hivePosture(posture).build());
+        rebuild();
     }
 
     private void selectCaptain(MarineCaptain captain, Mission mission) {

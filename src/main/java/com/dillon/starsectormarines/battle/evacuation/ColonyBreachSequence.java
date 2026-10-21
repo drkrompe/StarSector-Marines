@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
+import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
+import com.dillon.starsectormarines.battle.command.StrikeDetachment;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog.Audience;
@@ -96,6 +98,7 @@ public final class ColonyBreachSequence {
     private boolean terminal;
     private int boreEventCursor;
     private int harvestEventCursor;
+    private int strikeCursor;
 
     public ColonyBreachSequence(ColonyEruptionPlan plan, List<Long> colonists, StoryBeatLog log) {
         if (plan == null || log == null) throw new IllegalArgumentException("A breach needs its plan and beat log");
@@ -207,6 +210,21 @@ public final class ColonyBreachSequence {
                         ? "mother_bore_collapsed" : "bore_collapsed_" + bore.number());
                 case SURGE -> log.emit(tick, BEAT_PREFIX + "surge_" + bore.beatKey(), Audience.OBSERVER_ONLY);
                 case FED -> log.emit(tick, BEAT_PREFIX + "bore_fed_" + bore.beatKey(), Audience.OBSERVER_ONLY);
+            }
+        }
+        // The commander's strike decisions, read off its published picture with
+        // a cursor: a detachment may be sent, recalled and sent again.
+        if (sim.getCommander(Faction.MARINE) instanceof RescueEscortCommand command
+                && command.rescueSnapshot() != null) {
+            List<StrikeDetachment.Decision> decisions = command.rescueSnapshot().hive().decisions();
+            for (; strikeCursor < decisions.size(); strikeCursor++) {
+                StrikeDetachment.Decision decision = decisions.get(strikeCursor);
+                String beat = switch (decision.kind()) {
+                    case COMMITTED -> "strike_committed_";
+                    case RECALLED -> "strike_recalled_";
+                    default -> null;
+                };
+                if (beat != null) log.emit(tick, BEAT_PREFIX + beat + decision.boreKey(), Audience.OBSERVER_ONLY);
             }
         }
         ShuttleMission pickup = sim.getCivilianPickupMission();

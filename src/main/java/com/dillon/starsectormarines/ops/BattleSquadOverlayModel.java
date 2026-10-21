@@ -225,6 +225,8 @@ final class BattleSquadOverlayModel {
 
     /** What this marine is doing right now, read from state the simulation already keeps. */
     static String status(MemberState member) {
+        // Can't act outranks everything: it is why the marine is not doing what the rest are.
+        if (member.held() != null) return member.held().toUpperCase(Locale.ROOT);
         if (member.engaged()) return "ENGAGED";
         if (member.maxHp() > 0f && member.hp() < member.maxHp()) return "WOUNDED";
         return "HOLDING";
@@ -272,7 +274,8 @@ final class BattleSquadOverlayModel {
                 sim.role().role(unit), sim.identity().armorClass(unit),
                 sim.telemetry().roundsFired(unit), sim.telemetry().roundsHit(unit),
                 sim.telemetry().kills(unit), sim.telemetry().damageDealt(unit),
-                sim.combat().targetId(unit) != 0L || sim.combat().reflexTargetId(unit) != 0L);
+                sim.combat().targetId(unit) != 0L || sim.combat().reflexTargetId(unit) != 0L,
+                sim.stagger().isStaggered(unit) ? Strings.get(sim.stagger().cause(unit).nameKey) : null);
     }
 
     private MemberTile tile(String id, int team, int slot, MemberState member,
@@ -403,7 +406,7 @@ final class BattleSquadOverlayModel {
                        String systemName, String systemStatus,
                        String experience, String aptitude, UnitRole role,
                        ArmorClass armorClass, int roundsFired, int roundsHit, int kills,
-                       float damageDealt, boolean engaged) { }
+                       float damageDealt, boolean engaged, String held) { }
 
     record FireTeamView(String id, String headerId, String labelId, String strengthId,
                         String membersId, String label, String strength,

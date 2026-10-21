@@ -254,6 +254,7 @@ import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
 import com.dillon.starsectormarines.battle.creep.BoreCreep;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
@@ -735,6 +736,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final CreepOutposts creepOutposts;
     /** The battle's swarm bores: empty until something opens one. */
     public SwarmBores swarmBores() { return swarmBores; }
+    @Override public List<SwarmBore> getSwarmBores() { return swarmBores.bores(); }
     private final SwarmHarvest swarmHarvest = new SwarmHarvest(SwarmHarvest.enabledByDefault());
     /** Runners dragging the dead to the bores (`colony-breach-nouns.md`, Harvest). */
     public SwarmHarvest swarmHarvest() { return swarmHarvest; }
@@ -2107,7 +2109,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Limb wounds carried this battle ({@code body-part-cover.md}, Part consequences). */
     public WoundService wounds() { return rosterService.wounds(); }
 
-    /** Who can't act this tick ({@code brute-charge.md}). */
+    /** Who can't act this tick ({@code colony-breach-nouns.md}, Brute). */
     public StaggerService stagger() { return rosterService.stagger(); }
     /**
      * Returns the entity id {@code u} is currently targeting, or {@code 0L} when
@@ -3882,7 +3884,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** What swarm bodies ask the presentation to sound this advance; presentation-only. */
     public SwarmCues swarmCues() { return swarmCues; }
 
-    /** Brute charges in progress and their record ({@code brute-charge.md}). */
+    /** Brute charges in progress and their record ({@code colony-breach-nouns.md}, Brute). */
     public BruteChargeSystem bruteCharges() { return bruteCharges; }
 
     @Override

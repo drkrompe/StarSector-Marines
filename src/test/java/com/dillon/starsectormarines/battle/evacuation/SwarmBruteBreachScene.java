@@ -148,7 +148,7 @@ public final class SwarmBruteBreachScene implements BehaviorScene {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("fence-is-a-barricade", fence > 0,
                 fence + " fence pieces laid (none without the tile registry)"));
-        // A charge bowls a fence piece over outright (brute-charge.md); a walking Brute strikes it down.
+        // A charge bowls a fence piece over outright (colony-breach-nouns.md, Brute); a walking Brute strikes it down.
         long bowled = sim.bruteCharges().events().stream().filter(e -> e.what().equals("prop")).count();
         int struck = strikes.blowsLanded() + (int) bowled;
         verdicts.add(Verdict.of("strikes-the-fence", fence == 0 || struck > 0,

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -104,6 +105,9 @@ public final class BattleFixtureJson {
                     rescue.targetProfile());
             root.put("swarmCount", rescue.swarmCount());
             root.put("stressTest", rescue.stressTest());
+            // Written only when not the default, so older fixtures round-trip unchanged.
+            if (rescue.hivePosture() != HivePosture.DEFAULT) root.put("hivePosture", rescue.hivePosture().name());
+            if (rescue.liftHardpoints() > 0) root.put("liftHardpoints", rescue.liftHardpoints());
             return root;
         }
         if (fixture instanceof ConquestBattleFixture conquest) {
@@ -273,7 +277,11 @@ public final class BattleFixtureJson {
                 enumValue(RiskLevel.class, root.getString("risk"), "risk"),
                 root.getInt("swarmCount"),
                 targetProfileFromJson(root.getJSONObject("targetProfile")),
-                root.getBoolean("stressTest"));
+                root.getBoolean("stressTest"),
+                root.has("hivePosture")
+                        ? enumValue(HivePosture.class, root.getString("hivePosture"), "hivePosture")
+                        : HivePosture.DEFAULT,
+                root.optInt("liftHardpoints", 0));
     }
 
     private static ConquestBattleFixture decodeConquest(

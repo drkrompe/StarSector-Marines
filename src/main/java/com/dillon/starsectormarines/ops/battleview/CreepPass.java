@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 /**
  * This frame's creep, queued as one custom command: the extent to draw, in map
- * cells, the screen mapping the collector saw, the clock and the palette.
+ * cells, the screen mapping the collector saw, the clock, the palette and the sun.
  * Running it uploads what changed and draws through {@link CreepShader}; the
  * offline drain reads the same numbers and the layer's CPU mirror through
  * {@link CreepShading}.
@@ -15,6 +15,7 @@ final class CreepPass implements Runnable {
     float timeSeconds;
     float alpha;
     CreepPalette palette;
+    CreepShading.Sun sun = new CreepShading.Sun(-0.7071f, 0.7071f, 0.78f, 0.75f);
 
     CreepPass(CreepLayer layer) {
         this.layer = layer;

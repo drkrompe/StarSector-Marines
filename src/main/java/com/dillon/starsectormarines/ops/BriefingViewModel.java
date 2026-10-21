@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import java.util.function.Consumer;
+import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
@@ -66,6 +68,17 @@ final class BriefingViewModel {
         props.put("assignClasses", "");
         props.put("assignDisabled", false);
         putDebugDrawer(props, false, false, () -> { });
+        return withEmptyStyles(props);
+    }
+
+    /** A Colony Breach briefing with the hive-posture choice showing, Opportunistic selected. */
+    static Map<String, Object> colonyBreachPreviewProps() {
+        Map<String, Object> props = campaignPreviewProps(false);
+        props.put("missionKicker", "EXTRACTION  ·  HIGH RISK  ·  Colony Breach");
+        props.put("missionTitle", "Civilian Evacuation — Asharu");
+        props.put("missionFlavor", "Relief stores are committed. Hold the evacuation "
+                + "corridor until the civilian lifts are clear.");
+        props.put("termActions", hivePostureRows(HivePosture.OPPORTUNISTIC, posture -> { }));
         return withEmptyStyles(props);
     }
 
@@ -449,8 +462,10 @@ final class BriefingViewModel {
     }
 
     static Map<String, Object> withEmptyStyles(Map<String, Object> props) {
-        props.put("termActionsStyle", ((List<?>) props.getOrDefault("termActions", List.of())).isEmpty()
-                ? "height: 0px; overflow: hidden" : "height: 100px");
+        // Each term row is 38px with a 6px gap: two salvage rows, or the three hive postures.
+        int termRows = ((List<?>) props.getOrDefault("termActions", List.of())).size();
+        props.put("termActionsStyle", termRows == 0
+                ? "height: 0px; overflow: hidden" : "height: " + Math.max(100, termRows * 44 + 12) + "px");
         boolean hasCarriers = !((List<?>) props.getOrDefault("carrierRows", List.of())).isEmpty();
         props.put("carrierEmpty", hasCarriers ? "" : Strings.get("briefingVmNoFighterCover"));
         props.put("carrierEmptyStyle", hasCarriers ? "height: 0px; padding: 0px;" : "height: 20px;");
@@ -558,6 +573,32 @@ final class BriefingViewModel {
                 case "valueClasses" -> valueClasses; default -> null;
             };
         }
+    }
+
+    /**
+     * The Colony Breach hive-posture choice, one row per posture with the
+     * chosen one selected; picking a row hands its posture to {@code select}.
+     */
+    static List<ChoiceRow> hivePostureRows(HivePosture selected, Consumer<HivePosture> select) {
+        HivePosture chosen = HivePosture.orDefault(selected);
+        List<ChoiceRow> rows = new ArrayList<>();
+        for (HivePosture posture : HivePosture.values()) {
+            String title = switch (posture) {
+                case EVACUATE -> Strings.get("briefingUiHiveEvacuate");
+                case OPPORTUNISTIC -> Strings.get("briefingUiHiveOpportunistic");
+                case PURGE -> Strings.get("briefingUiHivePurge");
+            };
+            String detail = switch (posture) {
+                case EVACUATE -> Strings.get("briefingUiHiveEvacuateDetail");
+                case OPPORTUNISTIC -> Strings.get("briefingUiHiveOpportunisticDetail");
+                case PURGE -> Strings.get("briefingUiHivePurgeDetail");
+            };
+            rows.add(new ChoiceRow("briefing-hive-" + posture.name().toLowerCase(Locale.ROOT),
+                    "choice-row" + (posture == chosen ? " selected" : ""),
+                    posture == chosen ? Strings.format("briefingUiHiveChosen", title) : title, detail,
+                    false, () -> select.accept(posture), null));
+        }
+        return List.copyOf(rows);
     }
 
     private static String rockerSource(boolean selected) {

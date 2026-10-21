@@ -56,8 +56,10 @@ class CreepFieldTest {
         CreepField field = new CreepField(grid, topology, 3L);
         field.putSource(1L, 16, 12, FAST);
         run(field, 0, 240);
-        assertTrue(field.isCreeped(20, 12), "the wall beside the creep is climbed");
-        assertFalse(field.isCreeped(21, 12), "the far side of an unbroken wall is never reached");
+        int wall = field.coverageAt(12 * W + 20), ground = field.coverageAt(12 * W + 19);
+        assertTrue(wall > 0, "the wall beside the creep is climbed");
+        assertTrue(wall < ground, "a wall fills slower than the ground, so its coverage is how long creep has held it");
+        assertEquals(0, field.coverageAt(12 * W + 21), "the far side of an unbroken wall is never reached");
     }
 
     @Test

@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.command.RaidCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.RescueCommandSnapshot;
+import com.dillon.starsectormarines.battle.command.StrikeDetachment;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
@@ -849,7 +850,31 @@ public final class CommandTraceRecorder {
             booleanField(out, "locallySlowed", intent.locallySlowed());
             out.append('}');
         }
-        out.append("]}");
+        out.append(']');
+        // The hive posture: the readiness gate as read this pulse, the
+        // detachment and its bore, and the strike decisions made on this tick.
+        RescueCommandSnapshot.HivePicture hive = snapshot.hive();
+        out.append(",\"hive\":{");
+        rawField(out, "posture", hive.posture().name());
+        nullableField(out, "gate", hive.gate());
+        nullableField(out, "target", hive.targetKey());
+        numberField(out, "targetCellX", hive.targetCellX());
+        numberField(out, "targetCellY", hive.targetCellY());
+        out.append(",\"detachment\":").append(hive.detachment().toString().replace(" ", ""));
+        out.append(",\"decisions\":[");
+        boolean first = true;
+        for (StrikeDetachment.Decision decision : hive.decisions()) {
+            if (decision.tick() != snapshot.tick()) continue;
+            if (!first) out.append(',');
+            first = false;
+            out.append('{');
+            rawField(out, "kind", decision.kind().name());
+            field(out, "bore", decision.boreKey());
+            out.append(",\"squads\":").append(decision.squads().toString().replace(" ", ""));
+            field(out, "gate", decision.gate());
+            out.append('}');
+        }
+        out.append("]}}");
     }
 
     private static void extractionDefense(
