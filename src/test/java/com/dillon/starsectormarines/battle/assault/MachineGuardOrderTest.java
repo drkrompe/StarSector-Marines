@@ -135,6 +135,18 @@ class MachineGuardOrderTest {
     }
 
     @Test
+    void aHostileOnlyHeardInAMannedPlaceDoesNotBarItsGuard() {
+        garrisonAt(45, 45);
+        long hostile = sim.spawn(new EntitySpec("heard", Faction.DEFENDER, UnitType.MILITIA, 60, 45).squad(enemyId));
+        SquadBeliefs.heard(sim.getSquad(infantryId), hostile, 44, 44, sim.getSimTickIndex(), 0.3f);
+        assertNotNull(MachineGuards.targetUnderClick(sim, Faction.MARINE, 45, 45),
+                "a report localised by sound onto the place is not the enemy holding it");
+
+        SquadBeliefs.sighted(sim.getSquad(infantryId), hostile, 44, 44, sim.getSimTickIndex());
+        assertNull(MachineGuards.targetUnderClick(sim, Faction.MARINE, 45, 45), "one seen inside is");
+    }
+
+    @Test
     void aSquadSentToATrenchMansItBeforeItArrives() {
         AssaultTarget run = AssaultTarget.underClick(sim.fightingPositions(), true, sim.getTacticalMap(), 35, TRENCH_Y);
         assertNotNull(run);

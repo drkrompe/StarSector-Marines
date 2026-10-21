@@ -37,6 +37,10 @@ import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import org.json.JSONObject;
 
 import java.nio.file.Files;
+import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -87,13 +91,21 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
         var reactor = new Reactor();
         var goods = HeadlessCommodityPresentation.from(context.starsectorCore());
         int[] payments = {0};
+        // Mutable so the reveal can land a real tier: life support, the one this hold can afford.
+        ShipCondition[] refit = {REFIT};
+        ship.dress(CoreDressing.restored(REFIT.restoredCores()));
         var model = new ShipConditionModel(reactor, () -> ship,
                 work -> new CompanyShipRestoration.Offer(ship.ship().restoration(), 20000, null),
                 work -> { payments[0]++; return "Evidence: no campaign mutation"; },
                 () -> new CompanyBayRestoration.Offer(true, 20000, null), () -> "Evidence only",
-                () -> REFIT, order -> new ShipRefits.Offer(REFIT, 20000, CARGO,
-                        ShipRefits.refusal(order, REFIT, true, true, true, true, 20000, CARGO, goods::commodityName)),
-                order -> { payments[0]++; return "Evidence: no campaign mutation"; }, goods,
+                () -> refit[0], order -> new ShipRefits.Offer(refit[0], 20000, CARGO,
+                        ShipRefits.refusal(order, refit[0], true, true, true, true, 20000, CARGO, goods::commodityName)),
+                order -> {
+                    if (order != RefitOrder.LIFE_SUPPORT_RESTORED) { payments[0]++; return "Evidence: no campaign mutation"; }
+                    refit[0] = refit[0].with(order.track, order.band);
+                    ship.dress(CoreDressing.restored(refit[0].restoredCores()));
+                    return null;
+                }, goods,
                 ignored -> {}, () -> {});
         var offer = new CompanyWorkshopRestoration.Offer[]{new CompanyWorkshopRestoration.Offer(WorkshopState.BURIED, 20000, null, null, 3, 20)};
         var workshop = new WorkshopRestorationModel(reactor,
@@ -149,7 +161,10 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
             frames.add(new SnapshotArtifact("03-pinned-review.png", renderer.render(document, 1920, 1080)));
             click(document, markup.requireElement("ship-condition-action"));
             markup.flush(); overlay.update(0f, ship, canvas);
-            require(payments[0] == 1, "Authorization failed or repeated");
+            require(overlay.revealing() && payments[0] == 0, "A refit was paid for before the deck could show it");
+            overlay.dismiss(); // Escape hurries the reveal to its curtain, where the order is paid.
+            for (int i = 0; i < 100 && overlay.revealing(); i++) { overlay.update(0.1f, ship, canvas); markup.flush(); }
+            require(!overlay.revealing() && payments[0] == 1, "Authorization failed or repeated");
             click(document, markup.requireElement("survey-close"));
             overlay.update(0f, ship, canvas);
             require(card.opacity() == 0f, "Close did not dismiss the inspection");
@@ -165,12 +180,13 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
             require(model.row().get().get("reason").equals(ShipRefits.refusal(RefitOrder.FLUX_RESTORED, REFIT, true, true, true, true, 20000, CARGO, goods::commodityName)),
                     "A locked combat tier did not name what it waits on");
             frames.add(new SnapshotArtifact("04-systems-flux-locked.png", renderer.render(document, 1920, 1080)));
-            click(document, markup.requireElement("systems-hull-node-1"));
+            click(document, markup.requireElement("systems-hull-header"));
             markup.flush(); overlay.update(0f, ship, canvas);
             click(document, markup.requireElement("ship-condition-action"));
             markup.flush(); overlay.update(0f, ship, canvas);
             require(payments[0] == 1, "Reviewing a refit tier spent credits");
             frames.add(new SnapshotArtifact("04-systems-hull-review.png", renderer.render(document, 1920, 1080)));
+            frames.addAll(reveal(document, markup, model, overlay, renderer, ship, canvas));
             click(document, markup.requireElement("systems-back"));
             markup.flush(); overlay.update(0f, ship, canvas);
             require(!model.systemsOpen() && markup.requireElement("ship-systems").opacity() == 0f && card.opacity() == 0f,
@@ -239,6 +255,63 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
 
     private static final ShipCondition REFIT = ShipCondition.battered()
             .with(RefitTrack.POWER, RefitBand.RESTORED).with(RefitTrack.STRUCTURE, RefitBand.RESTORED);
+
+    /**
+     * Authorizes life support and plays the reveal out at a steady frame rate: the camera flies to
+     * the barracks, the curtain falls while the order is paid, and lifts on the room without its haze.
+     */
+    private static List<SnapshotArtifact> reveal(UiDocument document, MarkupInstance markup, ShipConditionModel model,
+                                                 ShipConditionOverlay overlay, HeadlessUiRenderer renderer,
+                                                 CompanyDeck ship, ShipViewCanvas canvas) throws Exception {
+        click(document, markup.requireElement("systems-life-support-header"));
+        markup.flush(); overlay.update(0f, ship, canvas);
+        click(document, markup.requireElement("ship-condition-action"));
+        markup.flush(); overlay.update(0f, ship, canvas);
+        click(document, markup.requireElement("ship-condition-action"));
+        markup.flush(); overlay.update(0f, ship, canvas);
+        require(overlay.revealing(), "Authorizing a refit did not stage it on the deck");
+        List<SnapshotArtifact> stills = new ArrayList<>();
+        List<BufferedImage> movie = new ArrayList<>();
+        BufferedImage previous = null;
+        float dt = 1f / 12f;
+        boolean flew = false, before = false, dark = false, shown = false;
+        for (int frame = 0; frame < 200 && overlay.revealing(); frame++) {
+            overlay.update(dt, ship, canvas);
+            markup.flush();
+            BufferedImage image = renderer.render(document, 1920, 1080);
+            movie.add(downscale(image));
+            float curtain = markup.requireElement("reveal-curtain").opacity();
+            float caption = markup.requireElement("reveal-caption").opacity();
+            if (!flew && frame == 8) { stills.add(new SnapshotArtifact("08-reveal-1-flight.png", image)); flew = true; }
+            if (!before && curtain > 0f) {
+                // The last frame with the curtain still up: the room as it was, framed as it will be.
+                stills.add(new SnapshotArtifact("08-reveal-2-before.png", previous));
+                before = true;
+            }
+            previous = image;
+            if (!dark && curtain >= 1f && caption >= 1f) { stills.add(new SnapshotArtifact("08-reveal-3-yard-at-work.png", image)); dark = true; }
+            if (!shown && curtain == 0f && caption >= 0.99f && markup.requireElement("reveal-frame").opacity() > 0f) {
+                stills.add(new SnapshotArtifact("08-reveal-4-after.png", image)); shown = true;
+            }
+        }
+        require(!overlay.revealing(), "The reveal never finished");
+        require(flew && before && dark && shown, "The reveal skipped a beat: flight " + flew + ", before " + before + ", yard " + dark + ", result " + shown);
+        require(model.systemsOpen(), "The tree did not come back after the reveal");
+        markup.flush(); overlay.update(0f, ship, canvas);
+        stills.add(new SnapshotArtifact("08-reveal-5-back-to-tree.png", renderer.render(document, 1920, 1080)));
+        stills.add(SnapshotArtifact.colorAnimation("08-reveal.gif", movie, 83));
+        return stills;
+    }
+
+    /** Half size keeps a seven-second animation a reasonable file; the stills carry full resolution. */
+    private static BufferedImage downscale(BufferedImage image) {
+        var small = new BufferedImage(image.getWidth() / 2, image.getHeight() / 2, BufferedImage.TYPE_INT_RGB);
+        var g = small.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.drawImage(image, 0, 0, small.getWidth(), small.getHeight(), null);
+        g.dispose();
+        return small;
+    }
 
     private static void click(UiDocument document, UiElement element) {
         Rect box = element.box().borderBox();

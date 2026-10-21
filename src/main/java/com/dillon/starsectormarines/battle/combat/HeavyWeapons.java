@@ -278,10 +278,14 @@ public class HeavyWeapons {
                 muzzle.x(), muzzle.y());
     }
 
-    /** What a lost head leaves of a chassis's aim; whole while its sensors stand. */
+    /**
+     * The chassis's own aim over every mount: the ship's fire-control calibration, and what a lost
+     * head leaves of it (whole while its sensors stand).
+     */
     private static float sensorAccuracy(MechLoadoutComponent loadout) {
         MechSections sections = loadout.sections();
-        return sections != null && sections.sensorsLost() ? MechSections.SENSOR_LOSS_ACCURACY : 1f;
+        float sensors = sections != null && sections.sensorsLost() ? MechSections.SENSOR_LOSS_ACCURACY : 1f;
+        return sensors * loadout.fireControlAccuracy;
     }
 
     /** The barrel cannot put its source through structural terrain, including its own end cell. */

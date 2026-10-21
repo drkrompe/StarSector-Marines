@@ -129,15 +129,18 @@ class SabotageCommandEvidenceTest {
              CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(
                      visualRoot, runId, sim)) {
             sim.setCommandTraceEnabled(true, fixture.kind());
+            PlaceFightProbe places = new PlaceFightProbe();
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 int before = sim.getSimTickIndex();
                 sim.advance(BattleSimulation.TICK_DT);
                 capture.afterAdvance();
+                places.sample(sim);
                 assertEquals(before + 1, sim.getSimTickIndex(),
                         "headless runner must advance exactly one fixed tick");
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
             System.out.println(ReactiveDefenceEvidence.line(runId, sim, sim.getCommandTraceJsonLines()));
+            System.out.println(places.line(runId, sim, sim.getCommandTraceJsonLines()));
             String trace = sim.getCommandTraceJsonLines();
             return new RunResult(trace,
                     SabotageCommandTraceAnalyzer.analyze(trace));

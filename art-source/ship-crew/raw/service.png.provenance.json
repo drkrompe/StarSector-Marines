@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15eed-9cfa-7ef2-813c-316cda910d9c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15eed-9cfa-7ef2-813c-316cda910d9c\\exec-ed217d2f-9b9b-4c2c-b3d5-0bbff162cad4.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ship-crew\\raw\\service.png",
+    "sha256": "e8d094cc36a3ad036883022828aede4f6170056cd5f6186f1e855a0ac8d89fda",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ship-crew\\prompts\\service.full.txt",
+  "promptSha256": "c34e65014e9b832734a5754291137f47a41d0071c0c42c1eb57c13fe8128405f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the three shapes to reskin, exact outlines, positions and transparent neck opening\nImage 2: Style only: the accepted sibling crew sheet; match its pixel-art rendering, outline weight, shading and level of detail, but not its colors, tabs or headset\nImage 3: Style only: pixel-art rendering of the marine torso layer; do not copy its harness, color or layout\n\nUse case: sketch-to-render. Production overhead sprite layers for one starship crew member in a tactical game, to stand beside the existing marine infantry.\n\nReference 1 is the authoritative SILHOUETTE GUIDE and edit target, 1536x1024. Reskin only its three flat gray shapes; keep every shape's exact outline, position, scale and the empty neck opening. Everything outside the shapes, and the neck opening, must be genuinely transparent: no background, ground, shadow, border, labels or grid.\n\nCamera: TRUE STRAIGHT-DOWN 90-degree overhead view, every part facing UP the image. These are three SEPARATE LAYERS, not a full figure:\n- Left shape = shoulders, upper arms and upper torso seen from directly above, with an EMPTY round neck opening where an independent head layer sits. A soft collar rings the opening. No head, hands, backpack, armor plates, webbing, pouches or weapons.\n- Upper right shape = top/back of a bare human head seen from directly above: crown of hair filling the shape, ears just showing at the left and right edges, forehead toward the TOP. No face, no neck.\n- Lower right shape = one boot seen from directly above, toe at the TOP.\n\nStyle: match the marine reference sprites exactly — chunky crisp pixel art with a clean one-step dark outline around every shape, a limited muted palette, broad readable fabric planes with soft cloth folds, light from the upper left, restrained detail that still reads at 150 pixels wide. Not painterly, not smooth airbrushed, not photographic. These are ship's clothes, not combat gear: softer and plainer than the marines' fatigues, no straps or harness.\n\nAvoid: bright blue/orange, neon, text, insignia lettering, noise, scratches, carried tools, rifles, cast shadows outside the shapes.\nThis crew member: SHIP SERVICES / logistics. Muted stone-khaki working uniform with darker khaki yokes across both shoulders and a plain buttoned placket below the collar; practical, slightly worn. Head: short gray hair. Boot: brown-gray boot.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ship-crew-silhouettes.png",
+      "sha256": "e710890ad7f648af313f6846349edade1541ef337c18135d03bbbf27bce9b1fe",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the three shapes to reskin, exact outlines, positions and transparent neck opening"
+    },
+    {
+      "path": "art-source\\ship-crew\\raw\\command.png",
+      "sha256": "3a9191975131217b5257512e762124b23445c9bef4c863d5dea55db2663d5290",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Style only: the accepted sibling crew sheet; match its pixel-art rendering, outline weight, shading and level of detail, but not its colors, tabs or headset"
+    },
+    {
+      "path": "art-source\\marine-modular-topdown\\sources\\armorless-body.png",
+      "sha256": "34a4bab22c0b25d7435058decfd3e8399e94aedc8dc454f6ed7ef9f9c4ec21fc",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Style only: pixel-art rendering of the marine torso layer; do not copy its harness, color or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render the three layers, preserving the silhouette guide’s layout and transparent openings.\n"
+  ],
+  "usage": {
+    "input_tokens": 109932,
+    "cached_input_tokens": 90240,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 836,
+    "reasoning_output_tokens": 40
+  },
+  "elapsedSeconds": 61.2
+}

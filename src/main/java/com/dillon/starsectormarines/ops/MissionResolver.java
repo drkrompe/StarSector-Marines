@@ -363,7 +363,8 @@ public final class MissionResolver {
         List<OfficerMissionResult> officers = OfficerMissionResult.compute(sim.committedMarines(),
                 sim.operationOfficer() != null ? sim.operationOfficer() : OfficerCommandProfile.capture(captain),
                 survivingSoldierIds, fallenSoldierIds, victory, payoutEarned, mission.id,
-                currentDayInt(), marinesEngaged, marinesLost);
+                currentDayInt(), marinesEngaged, marinesLost,
+                mission.source.isDebug() ? 1f : ShipRefits.aboard().officerXpMult());
         for (OfficerMissionResult officer : officers) {
             if (captain == null || !captain.id().equals(officer.officer().id())) continue;
             priorStatus = officer.officer().status(); newStatus = officer.status();
@@ -690,7 +691,7 @@ public final class MissionResolver {
         float wiaDays = MarineRoster.WIA_RECOVERY_DAYS + ShipRefits.aboard().woundRecoveryExtraDays();
         float day = Global.getSector() != null ? CampaignClock.dayFloat() : 0f;
         roster.applySoldierOutcome(
-                resolvePersonnelOutcomes(outcome), day, wiaDays,
+                resolvePersonnelOutcomes(outcome, ShipRefits.aboard().casualtiesSaved()), day, wiaDays,
                 outcome.soldierTelemetry, outcome.victory);
         applyRecoverySpecialties(roster, outcome, day, wiaDays);
         if (outcome.victory) {
@@ -714,6 +715,11 @@ public final class MissionResolver {
 
     /** Deterministic fate roll: a battlefield casualty can be WIA or MIA, not only KIA. */
     static Map<String, MarineSoldierStatus> resolvePersonnelOutcomes(MissionOutcome outcome) {
+        return resolvePersonnelOutcomes(outcome, 0f);
+    }
+
+    /** {@code saved} is the sick bay's share of the killed who come home wounded ({@code ShipCondition.casualtiesSaved}). */
+    static Map<String, MarineSoldierStatus> resolvePersonnelOutcomes(MissionOutcome outcome, float saved) {
         Map<String, MarineSoldierStatus> result = new HashMap<>();
         if (outcome == null) return result;
         for (String id : outcome.survivingSoldierIds) {
@@ -722,7 +728,7 @@ public final class MissionResolver {
         for (String id : outcome.fallenSoldierIds) {
             long seed = CasualtyFate.seed(
                     outcome.missionId != null ? outcome.missionId.hashCode() : 0, id);
-            result.put(id, CasualtyFate.roll(seed, outcome.victory));
+            result.put(id, CasualtyFate.roll(seed, outcome.victory, saved));
         }
         return result;
     }

@@ -290,7 +290,9 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   need that mission's details.
   Use
   `-PmaxTicks=9000` or
-  `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. Add
+  `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. `-PevidenceDir=<path>` writes the report
+  somewhere other than `build/reports/commander/<mission>/`, so a run and its
+  control run do not overwrite each other. Add
   `-PsnapshotEveryTicks=300` to render neutral-observer PNG frames from the
   first replay and assemble `visuals/<fixture>/review.gif`; the frames add
   cyan marine, red defender, and yellow civilian markers for whole-map review.
