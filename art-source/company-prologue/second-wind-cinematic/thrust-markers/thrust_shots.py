@@ -306,7 +306,7 @@ def mark_c1(c1):
             tm.key(m, [(0, 0.0)], fps, kinds=('maneuver', 'lift'))
         elif name.startswith('HOUND'):
             m = mark_any(ob, 'Customs Hound', activity='crossing at full throttle')
-            ob[tm.MOTION_EXEMPT] = ('the approved C1 final: crosses at a steady 63 m/s on the kit's own '
+            ob[tm.MOTION_EXEMPT] = ("the approved C1 final: crosses at a steady 63 m/s on the kit's own "
                                     'thrusters at full; key it to its motion before any re-render')
             tm.key(m, [(0, 1.0)], fps, kinds=('main',))
             tm.key(m, [(0, 0.0)], fps, kinds=('maneuver', 'lift'))
