@@ -687,6 +687,10 @@ def blender_main(cfg):
             pose = m['control'].get('saved_pose') or {}
             knobs = {n: pose.get(n, 0.0) for n in (ks if isinstance(ks, dict) else [k['name'] for k in ks])}
         hull_ctl = ctl if ctl is not None and ctl.name in coll.all_objects else None    # gear, grapples, break-up
+        # the build's own lamps and volumes (shared by every ship of the build: one build, one mpu)
+        ship_fx.metre_scale({d for o in coll.all_objects for d in
+                             (o.data if o.type == 'LIGHT' else None, *(sl.material for sl in o.material_slots))
+                             if d is not None}, m['metres_per_unit'])
         return dict(coll=coll, fx=fx, mpu=m['metres_per_unit'], engines=eng, length_m=f['length_m'], ctl=ctl,
                     knobs=knobs, manifest=m, hull_ctl=hull_ctl, swfx=bool(f.get('swfx')))
 
@@ -1077,22 +1081,26 @@ def blender_main(cfg):
                 row = pl['fx'].reading(dg)
                 FX_ROWS.append(dict(frame=kf, ship=k, **row))
                 print(f'ASHARU fx {kf} {k:12} {json.dumps(row)}', flush=True)
-                # Light scale: the kit sizes its lights for a hull-unit file (watts / mpu^2); placed at
-                # Scale(mpu) in this metre scene the distances grow by mpu but Cycles leaves a light's
-                # power alone, so each lit lamp reads 1/mpu^2 too bright here.
+                # Metre scale (ship_fx.metre_scale): the kit tunes lights and volumes in a hull-unit file;
+                # here each light should read its kit energy x mpu^2 (exposure 2*log2(mpu)) and each
+                # volume material should carry the 1/mpu it was scaled by.
                 lights = [o for o in pl['fx'].ids if isinstance(o, bpy.types.Object) and o.type == 'LIGHT'
                           and o.users_collection]
-                lit = [(o, o.data.evaluated_get(dg).energy) for o in lights]
-                lit = [(o, e) for o, e in lit if e > 0]
-                vols = sum(1 for o in pl['fx'].ids if isinstance(o, bpy.types.Material) and o.node_tree
-                           and any(n.type in ('PRINCIPLED_VOLUME', 'VOLUME_SCATTER', 'VOLUME_ABSORPTION', 'EMISSION')
-                                   and any(l.to_socket.name == 'Volume' for l in n.outputs[0].links)
-                                   for n in o.node_tree.nodes if n.outputs))
+                lit = [(o, o.data.evaluated_get(dg).energy, o.data.exposure) for o in lights]
+                lit = [t for t in lit if t[1] > 0]
+                want = 2 * math.log2(pl['mpu'])
+                off = [ship_fx.base_name(o.name) for o in lights if abs(o.data.exposure - want) > 1e-4]
+                mats = [o for o in pl['fx'].ids if isinstance(o, bpy.types.Material) and o.node_tree
+                        and ship_fx._volume_leaves(o.node_tree) != ([], [])]
+                unscaled = [ship_fx.base_name(o.name) for o in mats if o.get(ship_fx.SCALED) != pl['mpu']]
                 top = max(lit, key=lambda t: t[1]) if lit else None
-                print(f'ASHARU light {kf} {k:12} mpu {pl["mpu"]:.3f} over x{1 / pl["mpu"] ** 2:.2f} '
-                      f'lights {len(lights)} lit {len(lit)} sum {sum(e for _, e in lit):.0f} W'
-                      + (f' top {ship_fx.base_name(top[0].name)} {top[1]:.0f} W -> {top[1] * pl["mpu"] ** 2:.0f} W'
-                         if top else '') + f' volume-mats {vols}', flush=True)
+                print(f'ASHARU light {kf} {k:12} mpu {pl["mpu"]:.3f} exposure {want:+.2f} '
+                      f'lights {len(lights)} lit {len(lit)} off {len(off)} '
+                      f'sum {sum(e * 2 ** x for _, e, x in lit):.0f} W'
+                      + (f' top {ship_fx.base_name(top[0].name)} {top[1]:.0f} W kit -> {top[1] * 2 ** top[2]:.0f} W'
+                         if top else '')
+                      + f' volumes {len(mats)} unscaled {len(unscaled)}' + (f' {off[:3]} {unscaled[:3]}' if off or unscaled else ''),
+                      flush=True)
                 # Stale transforms: the copy is only ever instanced, never evaluated, so a stored
                 # matrix_world can disagree with its parent chain; anything reading it is off by this.
                 worst, name = 0.0, ''

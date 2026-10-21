@@ -134,6 +134,20 @@ Proof (no render):
   `swfx_beams` (muzzle, rig) and `swfx_lighting` (the grapple head). Run that code inside the
   block, or pass the object.
 
+**Metre scale (2026-10-21).** The kit tunes a build in its own hull-unit file, and the scene and
+the benches place that build at Scale(mpu). Cycles scales neither a light's power nor a volume's
+per-length density with its object, so before this fix:
+- every kit light read 1/mpu^2 too bright: x9 on the Phaeton, x4 on the Colossus and Tarsus,
+  x1.1 on a Lasher;
+- every volume read mpu times too thin.
+
+`ship_fx.metre_scale` now handles both, on every copy and on every build's own lamps:
+- each light gets exposure 2*log2(mpu), leaving its energy drivers and keys untouched;
+- each volume's density and emission is divided by mpu.
+
+`--fx-check` prints it per ship. Bench tunings made before the fix were judged with the
+overbright lights and thin volumes.
+
 ### W1 Shields: built and benched 2026-10-21, taste questions open
 
 `swfx_shield.build(ctx, film=True, hull_collection=ship.hull)` builds the film on one ship's copy
