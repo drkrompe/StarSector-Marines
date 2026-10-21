@@ -2291,6 +2291,7 @@
     "openingRefitWorkshopCard": "Order the workshop stages from the workshop card in the machine shop.",
     "openingRefitRowState": "{0} / {1}",
     "openingRefitTooltipRow": "{0} / {1}: {2}",
+    "openingRefitBriefingLabel": "Ship",
     "openingShipConditionRestored": "RESTORED",
     "openingShipConditionDamagedRoomsSelectToInspect": "{0} DAMAGED ROOMS / SELECT TO INSPECT",
     "openingShipConditionSheSBeenThroughHardServiceThe": "Nearly a decade of the belt's small rocks. The pitting stays, but this room is safe to use.",

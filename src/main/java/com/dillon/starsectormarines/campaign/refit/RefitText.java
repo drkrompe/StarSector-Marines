@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.campaign.refit;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import java.util.ArrayList;
+import java.util.List;
 
 /** Player-facing names for tracks, tiers and lock reasons; keys are built from the enums. */
 public final class RefitText {
@@ -23,5 +25,22 @@ public final class RefitText {
     public static String lock(RefitTrack needed, RefitBand band) {
         String key = needed.core != null ? "openingRefitLock" + needed.name() : "openingRefitLockOther";
         return Strings.format(key, tier(needed, band));
+    }
+
+    /**
+     * The briefing's line for what the company's home is worth in this
+     * operation, frozen at launch: the mess's morale band and, while the
+     * scrubbers are degraded, the extra day every wound will take. Null off the
+     * founding hull, where every track is neutral.
+     */
+    public static String briefingLine(ShipCondition condition) {
+        if (!condition.applies()) return null;
+        List<String> parts = new ArrayList<>();
+        for (RefitTrack track : new RefitTrack[]{RefitTrack.MESS, RefitTrack.LIFE_SUPPORT}) {
+            RefitBand band = condition.band(track);
+            if (track == RefitTrack.LIFE_SUPPORT && band != RefitBand.DEFICIT) continue;
+            parts.add(Strings.format("openingRefitTooltipRow", track(track), tier(track, band), effect(track, band)));
+        }
+        return String.join("  ·  ", parts);
     }
 }
