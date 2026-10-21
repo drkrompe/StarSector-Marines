@@ -944,8 +944,27 @@ LAUNCH_PROFILE = (.7, 1.0, .75, .5, .3, .16, .07)
 TRAIL_PUFFS = 4           # a launch puff plus this many along the trail: smoke is most of a launch's render cost
 
 
-def _launch(ctx, a, frame):
-    """Key one missile launch from one tube at an integer frame. Returns its record."""
+COLD_EJECT = .3           # a planned flight's launch bloom: a gas puff as the tube ejects it, motor not lit
+
+
+def launch_flights(ctx, flights):
+    """Key planned flights (swfx_missile_paths.Flight, opt-in): each from the tube its label
+    names ('t5_1'), on its own launch frame, along its own curved path to its own end. The
+    plain fire() path is unchanged. Returns one record per flight."""
+    out = []
+    for fl in flights:
+        a = next((g for g in ctx.anchors.guns if gun_label(g) == fl.label
+                  and getattr(g, 'kind', 'gun') == 'launcher'), None)
+        if a is None:
+            raise KeyError(f'no launcher tube {fl.label} on this ship')
+        out.append(_launch(ctx, a, fl.frame, flight=fl))
+    return out
+
+
+def _launch(ctx, a, frame, flight=None):
+    """Key one missile launch from one tube at an integer frame. Returns its record.
+    flight: a planned swfx_missile_paths.Flight (cold eject, curved path, contrail, its end);
+    None flies the kit's straight missile."""
     coll = ctx.collection(GROUP)
     label = gun_label(a)
     rig = _rig(ctx, a)
@@ -955,7 +974,7 @@ def _launch(ctx, a, frame):
     s = a.scale
     fps = ctx.scene.render.fps or swfx_core.FPS
 
-    gain = rnd.uniform(.85, 1.15)
+    gain = rnd.uniform(.85, 1.15) * (COLD_EJECT if flight is not None else 1.0)
     env, seed = f'gun_launch_{label}', f'gun_seed_{label}'
     for j, v in enumerate(LAUNCH_PROFILE):
         _key_env(ctx, env, frame + j, v * gain)
@@ -969,6 +988,11 @@ def _launch(ctx, a, frame):
         _rebuild_visibility(box, lit)
     rec = {'turret': a.turret, 'tag': a.tag, 'frame': frame, 'round': n, 'kind': 'launcher',
            'bloom_frames': len(LAUNCH_PROFILE)}
+    if flight is not None:
+        import swfx_missile_paths
+        rec.update(swfx_missile_paths.key(ctx, coll, flight, a, _motor_material(ctx), _missile_material(),
+                                          _cylinder_mesh, swfx_core.METRES_PER_UNIT))
+        return rec
 
     # Flight along the line of fire (anchor +X), a fraction of a degree off.
     v0 = swfx_core.units(_knob(ctx, 'gun_missile_velocity'))

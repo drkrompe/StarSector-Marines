@@ -22,6 +22,12 @@ public final class SwarmReinforcementSystem {
     public static final int PERIMETER_BAND_CELLS = 6;
     public static final int MIN_CIVILIAN_ENTRY_DISTANCE = 14;
     public static final int MIN_MARINE_ENTRY_DISTANCE = 8;
+    /**
+     * The share of the population floor the director restores during Colony
+     * Breach's opening seepage: a thin trickle at the perimeter until the
+     * tremor, then the full floor.
+     */
+    public static final float SEEPAGE_FLOOR_FRACTION = 0.40f;
     private static final int MIN_WAVE_SIZE = 4;
     private static final int MIN_RUNNER_SPACING = 2;
 
@@ -34,6 +40,7 @@ public final class SwarmReinforcementSystem {
     private int waveIndex;
     private float accumulator;
     private boolean configured;
+    private boolean seepage;
     private int snapshotRevision;
     private String snapshotSignature = "";
     private final Map<Long, SwarmPressureSnapshot.Approach> approachByRunner =
@@ -85,15 +92,18 @@ public final class SwarmReinforcementSystem {
         }
         accumulator = Math.min(WAVE_INTERVAL_SECONDS, accumulator + Math.max(0f, dt));
         int live = liveRunnerCount(sim);
-        if (live >= populationFloor || accumulator < WAVE_INTERVAL_SECONDS) {
-            refreshSnapshot(sim, live < populationFloor
+        int floor = activeFloor();
+        if (live >= floor || accumulator < WAVE_INTERVAL_SECONDS) {
+            refreshSnapshot(sim, live < floor
                     ? "REASSEMBLING_WAVE"
+                    : seepage ? "PERIMETER_SEEPAGE"
                     : sim.isCivilianShelterProtected()
                     ? "OPENING_SCREEN" : "PRESSURE_COHORT_SCREEN");
             return;
         }
 
-        int requested = Math.min(waveSize, targetPopulation - live);
+        int ceiling = seepage ? floor : targetPopulation;
+        int requested = Math.min(waveSize, ceiling - live);
         if (requested <= 0) {
             refreshSnapshot(sim, "PRESSURE_POPULATION_MET");
             return;
@@ -110,6 +120,27 @@ public final class SwarmReinforcementSystem {
 
     public boolean isConfigured() {
         return configured;
+    }
+
+    /** Starts the opening perimeter seepage: the floor is restored only to a fraction of itself. */
+    public void beginSeepage() {
+        seepage = true;
+    }
+
+    /** Ends the seepage; the director restores its full floor from here on. Idempotent. */
+    public void endSeepage() {
+        seepage = false;
+    }
+
+    /** Whether the director is still in its opening seepage. */
+    public boolean isSeeping() {
+        return seepage;
+    }
+
+    private int activeFloor() {
+        return seepage
+                ? Math.max(1, (int) Math.ceil(populationFloor * SEEPAGE_FLOOR_FRACTION))
+                : populationFloor;
     }
 
     public int targetPopulation() {
