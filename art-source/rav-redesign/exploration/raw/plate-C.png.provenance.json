@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f8d-1de9-7560-b026-9c41a5055369",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f8d-1de9-7560-b026-9c41a5055369\\exec-e286a5ed-ecaa-4a74-b364-9ef5b78b52d7.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "raw\\plate-C.png",
+    "sha256": "ef6f7da5bc86a5fe5d2c453112f30a2ac2cca1b0a6ea10b0a2cf3a9be6a82962",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\plate-C.prompt.txt",
+  "promptSha256": "ed7c388c18b720db9c4d4556adf880bd13644cc2da86dbd0279f9464ef8b2d09",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact silhouettes, positions, sizes, poses and palette intent; render material onto it, never move or redesign\n\nConcept plate for a top-down tactical game (Starsector mod, Marines fighting a biological weapon in a frontier colony). Strict overhead orthographic view, camera looking straight down, light from the upper left, soft contact shadows only. Painterly-realistic game concept art, crisp readable silhouettes, wet organic detail. Keep every creature exactly where it is in the guide, at the same size, outline, facing (all face up) and pose; you are rendering surface material and form onto the guide, not redesigning it. From left: a Runner at rest, the same Runner mid-strike with its limbs fully extended, a Brute, a Spitter, and a large Matriarch thumbnail lower right. Plain flat neutral grey background, no ground, no scenery, no text, no labels, no border, no humans.\n\nDirection: SEEDCASE. The Rav Bloom is an engineered biomachine bred from a sporeship's seeding stock: grown, not built, but with designed regularity. Lacquered green-black seed-husk shells with pale bone ridges and seams, wet red tissue showing at every joint and port, a glowing red seed pod on the rear. Runner: a three-lobed husk on three jointed legs (tripod), with a single long three-segment lance arm that folds flat on its back at rest and unfolds into a straight bone-tipped spike in the strike. Brute: a heavy ovoid seed husk with a ridged bone ram-cap at the front, four short piston legs, two telescoping hammer pistons. Spitter: a hexagonal husk on three legs with a long bone-rimmed launch tube forward and a swollen red ballast sac behind. Matriarch: a hexagonal husk with six red seed bays and six legs, like the core of a seeding ship grown into a body. Engineered symmetry, seed and husk textures, not a beetle and not a robot.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guides\\guide-C.png",
+      "sha256": "80514dd885f2b581a170432e662bd28497598ace6833ca7baeeb5524236feef7",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: exact silhouettes, positions, sizes, poses and palette intent; render material onto it, never move or redesign"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image, using the guide to preserve the exact layout, silhouettes, and poses while adding the requested organic materials."
+  ],
+  "usage": {
+    "input_tokens": 41536,
+    "cached_input_tokens": 29312,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 601,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 48.5
+}
