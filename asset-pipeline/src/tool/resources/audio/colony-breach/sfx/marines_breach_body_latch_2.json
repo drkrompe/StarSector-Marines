@@ -1,0 +1,11 @@
+{
+  "trimmedFrom": "marines_breach_body_drag_2.mp3",
+  "sourceCommit": "e5c643cbd",
+  "sourceAudioSha256": "229a036be5f4ad7aba3757e3d618e2602f6a8ce54e594fdd5db0b8d0ade1863e",
+  "sourceRequestId": null,
+  "trim": "atrim=0:0.6,afade=t=out:st=0.48:d=0.12",
+  "note": "The latch of the owner-reviewed body_drag take ('latch is good, bad drag'), 2026-10-21.",
+  "audioSha256": "11228b81585f5bad670756435ded6b5c17b46770dadaff3ea4b7d521ba4f7024",
+  "durationSeconds": 0.6,
+  "outputFormat": "mp3_44100_128"
+}

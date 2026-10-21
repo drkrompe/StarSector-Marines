@@ -5,7 +5,9 @@ python tools/generate_colony_breach_audio.py --register     (audio.json + sounds
 
 Speech comes from mod/data/marines/colony_breach_narration.json (text to speech, one
 voice per line); effects from colony-breach/sfx.json (sound generation, one request
-per variant). Sources and receipts land under asset-pipeline/src/tool/resources/audio/colony-breach/.
+per variant). A sound's "cut" lists takes the owner rejected: never generated, registered
+or shipped. A sound with "trimmedFrom" was cut by hand from another sound's takes; it is
+registered but never generated. Sources and receipts land under asset-pipeline/src/tool/resources/audio/colony-breach/.
 A changed take needs --replace. No retries after ambiguous API failures. Needs ffprobe on
 PATH when generating. Credentials come only from the local environment.
 """
@@ -48,10 +50,15 @@ def speech_plan(catalog):
     return result
 
 
+def takes(sound):
+    """The take numbers that ship: 1..variants less the owner's cuts."""
+    return [v for v in range(1, sound["variants"] + 1) if v not in sound.get("cut", [])]
+
+
 def sfx_plan(catalog):
     result = []
     for sound in catalog["sounds"]:
-        for variant in range(1, sound["variants"] + 1):
+        for variant in takes(sound):
             sound_id = "%s%s_%d" % (catalog["prefix"], sound["id"], variant)
             if not re.fullmatch(r"[a-z0-9_]+", sound_id):
                 raise SystemExit("Invalid sound ID; no request sent.")
@@ -63,7 +70,8 @@ def sfx_plan(catalog):
                 payload["loop"] = True
             url = "https://api.elevenlabs.io/v1/sound-generation?output_format=" + FORMAT
             result.append(dict(id=sound_id, dir=BREACH / "sfx", url=url, payload=payload,
-                               voice="", model=catalog["modelId"], entry=sound))
+                               voice="", model=catalog["modelId"], entry=sound,
+                               generated="trimmedFrom" not in sound))
     return result
 
 
@@ -123,13 +131,22 @@ def register(speech, sfx):
     for item in sfx:
         clips.append((item["id"], '{"id": "%s", "source": "colony-breach/sfx/%s.mp3", "kind": "positional", '
                       '"out": "%s"}' % (item["id"], item["id"], sfx_catalog["out"])))
+    # Effect clips no longer in the plan (cut takes) are dropped so they are never converted.
+    planned = {item["id"] for item in sfx}
+    clip = re.compile(r'"id": "(%s[a-z0-9_]+)", "source": "colony-breach/sfx/' % sfx_catalog["prefix"])
+    lines = text.split("\n")
+    kept = [line for line in lines if not (m := clip.search(line)) or m.group(1) in planned]
+    removed = len(lines) - len(kept)
+    text = "\n".join(kept)
     fresh = [c for c in clips if '"id": "%s"' % c[0] not in text]
+    if removed and not fresh:
+        manifest.write_text(text, encoding="utf-8", newline="\n")
     if fresh:
         end = text.rindex("]")
-        text = text[:end].rstrip() + ",\n    // Colony Breach (tools/generate_colony_breach_audio.py)\n    " \
+        text = text[:end].rstrip().rstrip(",") + ",\n    // Colony Breach (tools/generate_colony_breach_audio.py)\n    " \
             + ",\n    ".join(c[1] for c in fresh) + "\n  " + text[end:]
         manifest.write_text(text, encoding="utf-8", newline="\n")
-    print("audio.json: added %d of %d clips." % (len(fresh), len(clips)))
+    print("audio.json: added %d of %d clips, removed %d." % (len(fresh), len(clips), removed))
     sounds = SOUNDS.read_text(encoding="utf-8")
     entries = []
     for item in speech:
@@ -139,15 +156,25 @@ def register(speech, sfx):
         base = sfx_catalog["prefix"] + sound["id"]
         files = ", ".join('{"file": "sounds/%s/%s_%d.ogg", "pitch": 1.0, "volume": %s}'
                           % (sfx_catalog["out"], base, v, sound["volume"])
-                          for v in range(1, sound["variants"] + 1))
+                          for v in takes(sound))
         entries.append((base, '"%s": [%s],' % (base, files)))
+    # An effect's entry is rewritten in place when its takes change; speech entries never are.
+    rewritten = 0
+    for base, entry in entries[len(speech):]:
+        line = re.compile(r'^\t"%s": \[.*\],$' % re.escape(base), re.M)
+        found = line.search(sounds)
+        if found and found.group(0) != "\t" + entry:
+            sounds = line.sub(lambda ignored: "\t" + entry, sounds)
+            rewritten += 1
     fresh = [e for e in entries if '"%s":' % e[0] not in sounds]
+    if rewritten and not fresh:
+        SOUNDS.write_text(sounds, encoding="utf-8", newline="\n")
     if fresh:
         end = sounds.rindex("}")
         sounds = sounds[:end].rstrip() + "\n\t# ----- Colony Breach (tools/generate_colony_breach_audio.py) -----\n\t" \
             + "\n\t".join(e[1] for e in fresh) + "\n" + sounds[end:]
         SOUNDS.write_text(sounds, encoding="utf-8", newline="\n")
-    print("sounds.json: added %d of %d ids." % (len(fresh), len(entries)))
+    print("sounds.json: added %d of %d ids, rewrote %d." % (len(fresh), len(entries), rewritten))
 
 
 def main():
@@ -175,6 +202,7 @@ def main():
         subprocess.run(["ffprobe", "-version"], check=True, capture_output=True)
     key = credential() if args.generate else None
     changed = False
+    plan = [item for item in plan if item.get("generated", True)]
     for item in plan:
         duration = generate(item, key, args.replace)
         if duration is not None and item["dir"].name == "speech":
