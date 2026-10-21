@@ -128,6 +128,16 @@ def hang_plumes(craft_obj, marks, plume, frames):
     return out
 
 
+def far_plume():
+    """`port_fleet.far_plume`: the drive's core and plume as soft emissive cones on a marker, the
+    look the port's departing Colossus set. Lives with the port's fleet; C1 borrows it."""
+    ie = str(CINE / 'industrial-exterior')
+    if ie not in sys.path:
+        sys.path.insert(0, ie)
+    import port_fleet
+    return port_fleet.far_plume
+
+
 def _hide_with(ob, craft_obj):
     """Copy the craft's keyed hide_render (port_life puts climbers away above C5's camera)."""
     keys = [tuple(k.co) for fc in tm.fcurves(craft_obj) if fc.data_path == 'hide_render'
@@ -244,6 +254,17 @@ def mark_c1(c1):
         m = tm.card(card, 'Atlas outbound', img, activity='outbound, under drive')
         tm.key(m, [(0, 0.8)], fps)
     _rest(found, done, fps, frames)
+    if PLUMES:
+        # The picket's Lashers and Hounds and the lane freighters cruise 5-9 km out with only a
+        # stand-in light (or nothing) at their bells; the Onslaught, Legion, Mudskipper, customs
+        # Hound and Second Wind carry the kit's thrusters and the Broadswords their drive beads.
+        hung = {}
+        for name, ob in sorted(found.items()):
+            objs = hang_plumes(ob, tm.markers(ob), far_plume(), frames)
+            if objs:
+                hung[name] = objs
+        print('THRUST_PLUMES c1 added on %d craft: %s' % (len(hung), ', '.join(
+            '%s x%d' % (n, len(o)) for n, o in sorted(hung.items())) or '-'), flush=True)
     require_plumes(fps, frames, 'c1')
 
 
