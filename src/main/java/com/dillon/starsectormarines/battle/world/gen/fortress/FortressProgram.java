@@ -343,8 +343,8 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
      * A frontier colony's civil-defence compound: the place everybody runs to
      * when something comes out of the wilderness.
      *
-     * <p>A shelter hall big enough for the colony to sleep in, a clinic and a
-     * store, round a yard the people muster in, walled and gated by the
+     * <p>A shelter hall of bunks big enough for the colony to sleep in, a
+     * canteen, a sick bay and a store, round a yard the people muster in, walled and gated by the
      * fortification the brief carries. It is built by a colony rather than a
      * garrison, so it owes nothing military: <b>no keep, no barracks, no
      * armoury and no guard post</b>. Each of those publishes a node of the
@@ -355,13 +355,14 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
     public static FortressProgram civilDefence() {
         return new FortressProgram(List.of(
                 new FortressBuilding(RoomPurpose.RESIDENTIAL_HALL, SHELTER_HALL, Ward.REAR, 1),
-                new FortressBuilding(RoomPurpose.MEDICAL_RECEPTION, CLINIC, Ward.YARD, 1),
+                new FortressBuilding(RoomPurpose.PATIENT_WARD, CLINIC, Ward.YARD, 1),
+                new FortressBuilding(RoomPurpose.MESS_HALL, MESS, Ward.YARD, 1),
                 new FortressBuilding(RoomPurpose.STOCKROOM, STORES, Ward.YARD, 1)),
                 0, MUSTER_YARD);
     }
 
     private static final RoomShape SHELTER_HALL = RoomShape.rectangle(14, 9);
-    private static final RoomShape CLINIC = RoomShape.rectangle(8, 6);
+    private static final RoomShape CLINIC = RoomShape.rectangle(13, 12);
     /** Open ground inside the wall for the colony to muster on and the militia to fight across. */
     private static final int MUSTER_YARD = 300;
 

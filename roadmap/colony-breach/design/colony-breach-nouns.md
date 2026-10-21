@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — the shelter stands in a civil-defence compound, a square walled place in the colony plan dressed with towers, gate guns, firing step and floodlights; a holdout claims a block behind works (barricade, firing step, gate, gun) with a line team that falls back into the building; the company lands in open fields outside the colony and the lift comes down on them; bores, tiers, surges, spore colonies and the bore-sourced director as built.
+Updated: 2026-10-21 — the shelter stands in a civil-defence compound, a square walled place in the colony plan dressed with towers, gate guns, slits and floodlights; a holdout claims a block behind works (barricade, firing step, gate, gun) with a line team that falls back into the building; the company lands in open fields outside the colony and the lift comes down on them; bores, tiers, surges, spore colonies and the bore-sourced director as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -210,7 +210,8 @@ kind of thing from a holdout's works. A frontier colony that always knew
 something might come out of the wilderness built it when the colony was laid
 out, so it is a **place in the colony's plan**, not works raised round a house:
 a walled precinct on the town's far side from the fields, laid out square, with
-a shelter hall, a clinic and a store round a muster yard. Because it is planned
+a shelter hall of bunks, a sick bay, a canteen and a store round a muster
+yard, each furnished as what it is. Because it is planned
 with the colony, the town's streets run up to it, its gates are where they
 cross its wall, and its neighbours are built against it: it fits the layout by
 construction. The colony re-rolls a map that did not build it. The shelter is
@@ -228,8 +229,9 @@ militia make the rest of it when the battle is set up:
   wall behind slits. Those guns are its whole armament: no layers, no bunkers,
   no anti-air;
 - **firing slits** along the wall's straight runs;
-- a **firing step** of sandbag along the inside of the wall, manned by a
-  militia **wall team** with the same run order as a holdout's line;
+- a militia **wall team** standing behind the slits, holding the yard. Nothing
+  is piled against the wall: the wall is the cover, so the compound has no
+  sandbag step, which is what tells it apart from a holdout's works;
 - **floodlights** on tripods inside the corners and the gates, facing out.
 
 The ground the wall and its yard cover is the main redoubt's ground. The wall
