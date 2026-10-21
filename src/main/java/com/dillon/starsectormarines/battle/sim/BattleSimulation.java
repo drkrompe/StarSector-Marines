@@ -1158,6 +1158,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // which we build right after. We construct the service second and
         // wire it with damageResolver::resolve as the applier method ref.
         this.rosterService = new UnitRosterService(unitIndex, null);
+        rosterService.telemetry().hitLog().setClock(() -> simTickIndex);
         this.commanderInfluence = new CommanderInfluenceService(grid, rosterService,
                 () -> navigation.getNavigationMesh().snapshot().revision(),
                 Boolean.parseBoolean(System.getProperty(

@@ -75,22 +75,12 @@ class ThunderRunEvidenceTest {
         for (int ci = 0; ci < cases.length(); ci++) {
             var fixture = cases.getJSONObject(ci); String name = fixture.getString("id");
             Path dir = output.resolve(name); Files.createDirectories(dir);
-            var route = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
-            String id = route.missionId(); route.begin(id); route.settle(id, true, null);
-            if (fixture.optBoolean("retry")) {
-                id=route.missionId();route.begin(id);
-                route.settle(id,false,null,new FreightRunProgress.Outcome(route.freight().previewAttempt(),List.of(0),List.of(1),false));
-            }
-            Mission mission = SupplyRouteCampaign.offers(route).get(0);
-            int companySize = fixture.optInt("companySize", 24);
-            var roster = new MarineRoster(); roster.ensureActiveSoldiers(companySize);
-            var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
-            var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, companySize);
-            var boats = List.of(new FittedBoat(ShuttleType.VALKYRIE, BoatFitting.STANDARD_PLATING, BoatFitting.STANDARD_DRIVE, "freight-alpha"),
-                    new FittedBoat(ShuttleType.VALKYRIE, BoatFitting.requireById("reinforced_plating"), BoatFitting.requireById("tuned_drive"), "freight-bravo"));
-            var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, boats, companySize);
-            var profile = new TargetProfile(0,0,0,0,"",Set.of(),SurfacePalette.VERDANT,SettlementLink.ROAD);
-            try (var sim = MissionLaunch.supplyRouteBuilder(route,fixture.getLong("seed"),manifest,profile).get()) {
+            var staged = ThunderRunEvidenceBattle.build(fixture);
+            var route = staged.route();
+            Mission mission = staged.mission();
+            int companySize = staged.companySize();
+            var manifest = staged.manifest();
+            try (var sim = staged.sim()) {
                 // Measure the intact map, before any destruction changes its routes.
                 var grid = sim.getGrid();
                 var clearance = VehicleClearance.erode(grid,
@@ -106,8 +96,7 @@ class ThunderRunEvidenceTest {
                 boolean bypass = !Paths.isEmpty(GridPathfinder.findPath(grid,21,75,318,75,null,vehicleRoute));
                 if (bypass) Files.writeString(dir.resolve("bypass.json"),new JSONArray(
                         GridPathfinder.findPath(grid,21,75,318,75,null,vehicleRoute)).toString());
-                deployment.applyToAuthoredPlayerLift(sim);
-                assertTrue(route.begin(mission.id));
+                assertTrue(ThunderRunEvidenceBattle.launch(staged));
                 int seats = 0;
                 for (long air : sim.getAirEntityIds()) if (sim.world().airFaction(air) == Faction.MARINE) {
                     var lift = sim.world().mission(air);

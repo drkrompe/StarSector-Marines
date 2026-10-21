@@ -592,6 +592,26 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   (maximum and mean channel difference, worst frame side by side) — accept a
   renderer change on that, never on GIFs, whose palette hides and invents
   differences.
+- `gradlew.bat battleProbe -Pbattle=<source> -Pscript=<file>` → **ask a battle
+  questions instead of bisecting for them.** Stands one battle up, steps it on
+  command and answers queries between steps, one JSON line each: `until T`,
+  `until-beat final_run`, `entity ID` (health, plate, target, orders, squad,
+  telemetry), `near ID R`, `find label=TURRET`, `squads`, `beats`, and, once
+  `hitlog on` has been given, `hits target=ID` / `hits-by attacker target=ID`:
+  every resolved hit with the penetration, the plate rating and arc it met, and
+  what went to armor and to structure. Sources are `thunder-run[:seed=N,...]`
+  (the battle `ThunderRunEvidenceTest` plays, built by the same
+  `ThunderRunEvidenceBattle`) and `fixture:<path>` for any fixture JSON; without
+  `-Pscript` it reads commands from stdin. The battle is deterministic, so
+  stepping to the tick that matters and switching the hit log on there costs one
+  replay for any number of questions: "who killed the Thunder Run tank" was ten
+  seconds here against a bisect of hours. The hit log (`HitLog`, on
+  `CombatTelemetryService`) is an observer that draws no random number and is
+  off unless asked for. The task gets the same deterministic switches every
+  `Test` task does (synchronous routes and influence, serial unit update); a
+  JavaExec without them plays the live game's asynchronous battle, which is
+  not the one the evidence reported. Add a source in `BattleProbeMain.build`
+  when a mission's harness has its own construction.
 - `gradlew.bat sceneEvidence` → plays the behaviour scenes for their verdicts and
   prints a PASS/FAIL table, one row per loop, with a line beneath each failing
   row saying what was measured. The same scenes already play under
