@@ -43,6 +43,16 @@ public enum RefitOrder {
             RefitTrack.POWER, RefitBand.RESTORED, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
     MESS_COLD_STORE(RefitTrack.MESS, RefitBand.IMPROVED_II, 18_000,
             RefitTrack.POWER, RefitBand.IMPROVED_I),
+    RANGE_OPEN(RefitTrack.RANGE, RefitBand.RESTORED, 7_500,
+            RefitTrack.POWER, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
+    GYM_OPEN(RefitTrack.GYM, RefitBand.RESTORED, 6_000,
+            RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
+    SICK_BAY_OPEN(RefitTrack.SICK_BAY, RefitBand.RESTORED, 8_000,
+            RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
+    REC_LOUNGE_OPEN(RefitTrack.REC_LOUNGE, RefitBand.RESTORED, 4_000,
+            RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
+    BRIG_OPEN(RefitTrack.BRIG, RefitBand.RESTORED, 3_500,
+            RefitTrack.STRUCTURE, RefitBand.RESTORED),
     HULL_RESTORED(RefitTrack.HULL, RefitBand.RESTORED, 9_000,
             RefitTrack.STRUCTURE, RefitBand.RESTORED),
     HULL_I(RefitTrack.HULL, RefitBand.IMPROVED_I, 20_000,
@@ -99,6 +109,11 @@ public enum RefitOrder {
         bill(COMPUTE_TACTICAL, Commodities.BETA_CORE, 1, Commodities.RARE_METALS, 10);
         bill(MESS_GALLEY, Commodities.HEAVY_MACHINERY, 4);
         bill(MESS_COLD_STORE, Commodities.HEAVY_MACHINERY, 6);
+        bill(RANGE_OPEN, Commodities.METALS, 30, Commodities.HEAVY_MACHINERY, 2);
+        bill(GYM_OPEN, Commodities.METALS, 20);
+        bill(SICK_BAY_OPEN, Commodities.HEAVY_MACHINERY, 3, Commodities.METALS, 10);
+        bill(REC_LOUNGE_OPEN, Commodities.METALS, 10);
+        bill(BRIG_OPEN, Commodities.METALS, 15);
         bill(HULL_RESTORED, Commodities.METALS, 60);
         bill(HULL_I, Commodities.METALS, 100, Commodities.RARE_METALS, 10);
         bill(HULL_II, Commodities.METALS, 150, Commodities.RARE_METALS, 25);

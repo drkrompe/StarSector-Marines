@@ -42,7 +42,8 @@ public final class CompanyShipRestoration {
                 Boolean.TRUE.equals(data.get(KEY + ship.getId() + Work.BILLETS)),
                 Boolean.TRUE.equals(data.get(KEY + ship.getId() + Work.POWER)),
                 Boolean.TRUE.equals(data.get(KEY + ship.getId() + Work.MESS_HALL)),
-                paidMechBerths(data, ship.getId()));
+                paidMechBerths(data, ship.getId()))
+                .withOpenReserves(ShipRefits.condition(ship).openReserves());
     }
 
     /** Contiguous repair receipts survive reload and remain attached to the original hull. */

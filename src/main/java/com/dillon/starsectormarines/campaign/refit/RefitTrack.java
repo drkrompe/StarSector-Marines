@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.refit;
 
+import com.dillon.starsectormarines.battle.world.gen.ship.ReservedFacility;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 
 /**
@@ -16,6 +17,11 @@ public enum RefitTrack {
     /** Read from the workshop chain, which keeps its own orders. */
     FABRICATION(Group.CORE, ShipCore.FABRICATION),
     MESS(Group.FACILITY, null),
+    RANGE(ReservedFacility.FIRING_RANGE),
+    GYM(ReservedFacility.GYMNASIUM),
+    SICK_BAY(ReservedFacility.SICK_BAY),
+    REC_LOUNGE(ReservedFacility.REC_LOUNGE),
+    BRIG(ReservedFacility.BRIG),
     HULL(Group.COMBAT, null),
     FLUX(Group.COMBAT, null),
     SENSORS(Group.COMBAT, null),
@@ -27,7 +33,19 @@ public enum RefitTrack {
     /** The core this track is, or null for a facility or combat track. */
     public final ShipCore core;
 
-    RefitTrack(Group group, ShipCore core) { this.group = group; this.core = core; }
+    /** The sealed compartment this facility track opens, or null for a track that is not a reserve. */
+    public final ReservedFacility reserve;
+
+    RefitTrack(Group group, ShipCore core) { this.group = group; this.core = core; this.reserve = null; }
+
+    /** A facility whose Restored tier unseals one of the hull's reserved compartments. */
+    RefitTrack(ReservedFacility reserve) { this.group = Group.FACILITY; this.core = null; this.reserve = reserve; }
+
+    /** The track that opens {@code reserve}. */
+    public static RefitTrack forReserve(ReservedFacility reserve) {
+        for (RefitTrack track : values()) if (track.reserve == reserve) return track;
+        throw new IllegalArgumentException("No refit track opens " + reserve);
+    }
 
     /** Every track of the battered start begins at a deficit; nothing starts improved. */
     public RefitBand start() { return RefitBand.DEFICIT; }
