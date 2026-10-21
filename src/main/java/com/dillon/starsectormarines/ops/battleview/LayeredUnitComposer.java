@@ -15,7 +15,7 @@ import com.dillon.starsectormarines.marine.SpecialUsePose;
 /** Emits one modular infantry actor from shoulder-relative authored transforms. */
 final class LayeredUnitComposer {
 
-    private static final float SOURCE_SHOULDER_PX = 150f;
+    static final float SOURCE_SHOULDER_PX = 150f;
 
     // Sprite pivots authored against the retained source PNGs.
     private static final float FOOT_PIVOT_X = 19f;

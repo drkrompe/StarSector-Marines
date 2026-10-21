@@ -53,6 +53,58 @@ public enum RefitOrder {
             RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
     BRIG_OPEN(RefitTrack.BRIG, RefitBand.RESTORED, 3_500,
             RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
+    // The reserved facilities' improvements. Each names cores the room's opening did
+    // not: the workshop that cuts its fittings, the overhauled plant that runs its
+    // machinery, the cluster that drives its screens. The brig has none yet: no
+    // battle takes a prisoner for it to question.
+    /** Pop-up targets and traps cut in the workshop, run off the overhauled plant. */
+    RANGE_MACHINERY(RefitTrack.RANGE, RefitBand.IMPROVED_I, 14_000,
+            RefitTrack.FABRICATION, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.IMPROVED_I),
+    /** Simulated targets need the processing cluster, the plant behind it and tooled projector mounts. */
+    RANGE_SIMULATOR(RefitTrack.RANGE, RefitBand.IMPROVED_II, 32_000,
+            RefitTrack.COMPUTE, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.FABRICATION, RefitBand.IMPROVED_I),
+    /** Press, rack and powered cardio built in the workshop and wired to restored distribution. */
+    GYM_CONDITIONING(RefitTrack.GYM, RefitBand.IMPROVED_I, 12_000,
+            RefitTrack.FABRICATION, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
+    /** A timed loop: lap boards on the compute net, the overhauled plant, sprung decking from the workshop. */
+    GYM_TRACK(RefitTrack.GYM, RefitBand.IMPROVED_II, 28_000,
+            RefitTrack.COMPUTE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.FABRICATION, RefitBand.IMPROVED_I),
+    /** A theatre needs the overhauled plant's steady power and instruments made in the workshop. */
+    SICK_BAY_SURGERY(RefitTrack.SICK_BAY, RefitBand.IMPROVED_I, 16_000,
+            RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.FABRICATION, RefitBand.RESTORED),
+    /** Monitored beds on the processing cluster, an isolation loop on life support, the plant behind both. */
+    SICK_BAY_TRAUMA(RefitTrack.SICK_BAY, RefitBand.IMPROVED_II, 36_000,
+            RefitTrack.COMPUTE, RefitBand.IMPROVED_I, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.IMPROVED_I),
+    /** Screens and a library on the compute net, powered from restored distribution. */
+    REC_LOUNGE_CENTRE(RefitTrack.REC_LOUNGE, RefitBand.IMPROVED_I, 10_000,
+            RefitTrack.COMPUTE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
+    /** A shore-leave deck of projected views: the cluster, the overhauled plant, and the workshop's frames. */
+    REC_LOUNGE_SHORE_LEAVE(RefitTrack.REC_LOUNGE, RefitBand.IMPROVED_II, 26_000,
+            RefitTrack.COMPUTE, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.FABRICATION, RefitBand.RESTORED),
+    MECH_CALIBRATION_RESTORED(RefitTrack.MECH_CALIBRATION, RefitBand.RESTORED, 3_000,
+            RefitTrack.COMPUTE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
+    MECH_CALIBRATION_I(RefitTrack.MECH_CALIBRATION, RefitBand.IMPROVED_I, 12_000,
+            RefitTrack.COMPUTE, RefitBand.IMPROVED_I, RefitTrack.FABRICATION, RefitBand.RESTORED),
+    MECH_CALIBRATION_II(RefitTrack.MECH_CALIBRATION, RefitBand.IMPROVED_II, 28_000,
+            RefitTrack.COMPUTE, RefitBand.IMPROVED_II, RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.FABRICATION, RefitBand.IMPROVED_I),
+    MECH_COOLANT_RESTORED(RefitTrack.MECH_COOLANT, RefitBand.RESTORED, 3_000,
+            RefitTrack.POWER, RefitBand.RESTORED, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
+    MECH_COOLANT_I(RefitTrack.MECH_COOLANT, RefitBand.IMPROVED_I, 12_000,
+            RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.STRUCTURE, RefitBand.RESTORED),
+    MECH_COOLANT_II(RefitTrack.MECH_COOLANT, RefitBand.IMPROVED_II, 26_000,
+            RefitTrack.POWER, RefitBand.IMPROVED_II, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.COMPUTE, RefitBand.IMPROVED_I),
+    MECH_ARMOR_RESTORED(RefitTrack.MECH_ARMOR, RefitBand.RESTORED, 3_500,
+            RefitTrack.FABRICATION, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
+    MECH_ARMOR_I(RefitTrack.MECH_ARMOR, RefitBand.IMPROVED_I, 12_000,
+            RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.RESTORED),
+    MECH_ARMOR_II(RefitTrack.MECH_ARMOR, RefitBand.IMPROVED_II, 25_000,
+            RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.IMPROVED_I),
+    MECH_REPAIR_RESTORED(RefitTrack.MECH_REPAIR, RefitBand.RESTORED, 2_500,
+            RefitTrack.FABRICATION, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
+    MECH_REPAIR_I(RefitTrack.MECH_REPAIR, RefitBand.IMPROVED_I, 10_000,
+            RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.COMPUTE, RefitBand.RESTORED),
+    MECH_REPAIR_II(RefitTrack.MECH_REPAIR, RefitBand.IMPROVED_II, 20_000,
+            RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.COMPUTE, RefitBand.IMPROVED_I),
     HYDROPONICS_RESTORED(RefitTrack.HYDROPONICS, RefitBand.RESTORED, 4_000,
             RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
     HYDROPONICS_I(RefitTrack.HYDROPONICS, RefitBand.IMPROVED_I, 12_000,
@@ -65,9 +117,14 @@ public enum RefitOrder {
             RefitTrack.COMPUTE, RefitBand.RESTORED, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
     WARDROOM_II(RefitTrack.WARDROOM, RefitBand.IMPROVED_II, 28_000,
             RefitTrack.COMPUTE, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
-    /** The plot table and the holo-tank above it are not offered until their passives have a hook. */
     BRIEFING_RESTORED(RefitTrack.BRIEFING, RefitBand.RESTORED, 3_000,
             RefitTrack.COMPUTE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
+    /** The plot table: the holo-tank's mount. Its own battle passive has no hook yet, so it changes nothing in battle. */
+    BRIEFING_I(RefitTrack.BRIEFING, RefitBand.IMPROVED_I, 8_000,
+            RefitTrack.COMPUTE, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
+    /** The holo-tank, run off the processing cluster: the briefing shows the garrison the operation faces. */
+    BRIEFING_II(RefitTrack.BRIEFING, RefitBand.IMPROVED_II, 20_000,
+            RefitTrack.COMPUTE, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
     HOLDS_RESTORED(RefitTrack.HOLDS, RefitBand.RESTORED, 3_000,
             RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
     HOLDS_I(RefitTrack.HOLDS, RefitBand.IMPROVED_I, 10_000,
@@ -135,6 +192,26 @@ public enum RefitOrder {
         bill(SICK_BAY_OPEN, Commodities.HEAVY_MACHINERY, 3, Commodities.METALS, 10);
         bill(REC_LOUNGE_OPEN, Commodities.METALS, 10);
         bill(BRIG_OPEN, Commodities.METALS, 15);
+        bill(RANGE_MACHINERY, Commodities.HEAVY_MACHINERY, 6, Commodities.METALS, 20);
+        bill(RANGE_SIMULATOR, Commodities.RARE_METALS, 10, Commodities.HEAVY_MACHINERY, 8);
+        bill(GYM_CONDITIONING, Commodities.HEAVY_MACHINERY, 4, Commodities.METALS, 15);
+        bill(GYM_TRACK, Commodities.METALS, 30, Commodities.HEAVY_MACHINERY, 6);
+        bill(SICK_BAY_SURGERY, Commodities.HEAVY_MACHINERY, 5, Commodities.RARE_METALS, 5);
+        bill(SICK_BAY_TRAUMA, Commodities.HEAVY_MACHINERY, 8, Commodities.RARE_METALS, 10);
+        bill(REC_LOUNGE_CENTRE, Commodities.METALS, 15, Commodities.HEAVY_MACHINERY, 2);
+        bill(REC_LOUNGE_SHORE_LEAVE, Commodities.METALS, 25, Commodities.RARE_METALS, 5);
+        bill(MECH_CALIBRATION_RESTORED, Commodities.HEAVY_MACHINERY, 2);
+        bill(MECH_CALIBRATION_I, Commodities.RARE_METALS, 5);
+        bill(MECH_CALIBRATION_II, Commodities.RARE_METALS, 10, Commodities.HEAVY_MACHINERY, 4);
+        bill(MECH_COOLANT_RESTORED, Commodities.HEAVY_MACHINERY, 3);
+        bill(MECH_COOLANT_I, Commodities.HEAVY_MACHINERY, 6, Commodities.METALS, 10);
+        bill(MECH_COOLANT_II, Commodities.HEAVY_MACHINERY, 10, Commodities.RARE_METALS, 8);
+        bill(MECH_ARMOR_RESTORED, Commodities.METALS, 20);
+        bill(MECH_ARMOR_I, Commodities.METALS, 40);
+        bill(MECH_ARMOR_II, Commodities.METALS, 60, Commodities.RARE_METALS, 10);
+        bill(MECH_REPAIR_RESTORED, Commodities.METALS, 10);
+        bill(MECH_REPAIR_I, Commodities.HEAVY_MACHINERY, 4);
+        bill(MECH_REPAIR_II, Commodities.METALS, 30, Commodities.HEAVY_MACHINERY, 6);
         bill(HYDROPONICS_RESTORED, Commodities.METALS, 10, Commodities.ORGANICS, 10);
         bill(HYDROPONICS_I, Commodities.HEAVY_MACHINERY, 4, Commodities.ORGANICS, 20);
         bill(HYDROPONICS_II, Commodities.HEAVY_MACHINERY, 8, Commodities.ORGANICS, 40);
@@ -142,6 +219,8 @@ public enum RefitOrder {
         bill(WARDROOM_I, Commodities.HEAVY_MACHINERY, 2, Commodities.RARE_METALS, 2);
         bill(WARDROOM_II, Commodities.HEAVY_MACHINERY, 4, Commodities.RARE_METALS, 6);
         bill(BRIEFING_RESTORED, Commodities.METALS, 5);
+        bill(BRIEFING_I, Commodities.METALS, 15);
+        bill(BRIEFING_II, Commodities.HEAVY_MACHINERY, 2, Commodities.RARE_METALS, 6);
         bill(HOLDS_RESTORED, Commodities.METALS, 20);
         bill(HOLDS_I, Commodities.METALS, 40);
         bill(HOLDS_II, Commodities.METALS, 60, Commodities.HEAVY_MACHINERY, 6);

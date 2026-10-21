@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
+import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
@@ -34,9 +35,30 @@ public record MarineSeatCommitment(
         int campaignSquadStrength,
         int campaignFireTeamIndex,
         CommandGroupIdentity commandGroupIdentity,
-        float moraleRecoveryMultiplier,
+        HullWelfare welfare,
         ArmorClass armorClass,
         IntegralSystemDef integralSystem) {
+
+    /** A commitment that carries only the mess's figure, as every one saved before the facilities did. */
+    public MarineSeatCommitment(String campaignSoldierId, String primaryWeaponId,
+            EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
+            String specialEquipmentId, LayeredArmorFamily armorFamily,
+            float armorCapacity, float armorRating, float armorMoveSpeedMult,
+            float armorIncomingAccuracyMult, String campaignSquadId,
+            String campaignSquadLabel, boolean campaignSquadLeader,
+            int campaignSquadStrength, int campaignFireTeamIndex,
+            CommandGroupIdentity commandGroupIdentity, float moraleRecoveryMultiplier,
+            ArmorClass armorClass, IntegralSystemDef integralSystem) {
+        this(campaignSoldierId, primaryWeaponId, equipmentGrade, soldierProfile,
+                specialEquipmentId, armorFamily, armorCapacity, armorRating,
+                armorMoveSpeedMult, armorIncomingAccuracyMult, campaignSquadId,
+                campaignSquadLabel, campaignSquadLeader, campaignSquadStrength,
+                campaignFireTeamIndex, commandGroupIdentity, HullWelfare.mess(moraleRecoveryMultiplier),
+                armorClass, integralSystem);
+    }
+
+    /** The mess's part of {@link #welfare}. */
+    public float moraleRecoveryMultiplier() { return welfare.moraleRecovery(); }
 
     /** Compatibility construction for commitments captured before integral suit capabilities. */
     public MarineSeatCommitment(String campaignSoldierId, String primaryWeaponId,
@@ -106,7 +128,7 @@ public record MarineSeatCommitment(
         }
         equipmentGrade = Objects.requireNonNull(equipmentGrade, "equipmentGrade");
         soldierProfile = Objects.requireNonNull(soldierProfile, "soldierProfile");
-        requireFinitePositive(moraleRecoveryMultiplier, "moraleRecoveryMultiplier");
+        if (welfare == null) welfare = HullWelfare.NEUTRAL;
         requireFiniteNonNegative(armorCapacity, "armorCapacity");
         requireFiniteNonNegative(armorRating, "armorRating");
         requireFinitePositive(armorMoveSpeedMult, "armorMoveSpeedMult");
@@ -161,7 +183,7 @@ public record MarineSeatCommitment(
                 squad != null ? squad.strength : 0,
                 squad != null ? squad.fireTeamIndex : Squad.NO_FIRE_TEAM,
                 squad != null ? squad.commandGroupIdentity : null,
-                squad != null ? squad.moraleRecoveryMultiplier : 1f, loadout.armorClass, loadout.integralSystem);
+                squad != null ? squad.welfare : HullWelfare.NEUTRAL, loadout.armorClass, loadout.integralSystem);
     }
 
     /**
@@ -172,7 +194,7 @@ public record MarineSeatCommitment(
     public MarineLoadout toLoadout() {
         CampaignSquadTag squad = campaignSquadId != null
                 ? new CampaignSquadTag(campaignSquadId, campaignSquadLabel,
-                campaignSquadLeader, campaignSquadStrength, campaignFireTeamIndex, commandGroupIdentity, moraleRecoveryMultiplier)
+                campaignSquadLeader, campaignSquadStrength, campaignFireTeamIndex, commandGroupIdentity, welfare)
                 : null;
         return MarineLoadout.fromCatalog(
                 UnitRole.COMBATANT,

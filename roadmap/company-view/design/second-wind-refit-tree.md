@@ -1,8 +1,8 @@
 # Second Wind refit tree
 
-Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Ship Systems tree and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review, and each reserve is furnished and can be opened on the deck. Hydroponics, the wardroom, the briefing room and the holds are tracks fitted into existing rooms, with their supplies, officer-XP and cargo passives; the briefing room's plot table and holo-tank, the reserves' own passives, Improved-tier dressing and mech passives are not built.
+Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Mech Lab tracks and their mech passives, the Ship Systems tree and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review. Each reserve is furnished and opened by its facility track; the range, gym, sick bay and lounge carry passives through both Improved tiers. Hydroponics, the wardroom, the briefing room and the holds are tracks fitted into existing rooms, with their supplies, officer-XP, cargo and garrison-intel passives. The brig's improvements, the plot table's own battle passive, Improved-tier dressing (the Mech Lab's included) and the vehicle bay's passives are not built.
 Written: 2026-10-20
-Updated: 2026-10-21 — the facilities that take no new compartment are tracks; boat bay services is left out for want of a hook.
+Updated: 2026-10-21 — the brig's interrogation waits on a capture mechanic, not on contract intel, which the holo-tank now provides.
 
 The Engineering tab today sells a short list of one-off yard orders: the
 workshop chain (750 / 3,000 / 4,500), the second bay (8,000), three Mech Lab
@@ -33,6 +33,11 @@ scenes and matchups all run at neutral, so a Deficit or an upgrade is a known
 offset from tuned ground, not a new tuning surface. Only the campaign company
 aboard the active converted Second Wind ever leaves neutral. Allies, enemies,
 debug companies and fixtures do not, which is the rule the mess already follows.
+
+**A reserved facility's neutral is its sealed compartment.** Other companies have
+no range or sick bay aboard a frigate, so the sealed room is what costs nothing,
+and opening one is already a small gain. Every hull but the founding one reads
+these tracks as sealed, not as opened.
 
 **Battle deficits are real but cheap to clear.** Jangala and Relief were tuned
 at neutral, and the opening must not pay for the ship's injuries. Every battle
@@ -88,14 +93,22 @@ cluster, the workshop to cut plate):
 | Sick bay | Life support R, Power R, Compute R (diagnostics) |
 | Gym, lounge | Life support R, Structure R |
 | Brig | Structure R, Power R (cell locks) |
+| Range I / II | Fabrication R (targets and traps cut in the workshop) + Power I / Compute I (simulators) + Power I + Fabrication I |
+| Gym I / II | Fabrication R (press and rack) + Power R / Compute R (lap boards) + Power I + Fabrication I (sprung decking) |
+| Sick bay I / II | Power I (steady theatre power) + Fabrication R (instruments) / Compute I (monitored beds) + Life support R (isolation loop) + Power I |
+| Lounge I / II | Compute R (screens, library) + Power R / Compute I (projected shore leave) + Power I + Fabrication R |
 | Mess galley / cold store | Power R + Life support R / Power I + Compute R (stock control) |
 | Hull R / I / II | Structure R + Fabrication R / Fabrication I + Power I / Fabrication I + Power II + Compute I |
 | Flux R / I / II | Power I + Structure R / Power II + Compute I / Power II + Compute II, alpha core |
 | Sensors R / I / II | Compute R + Structure R (mast mount) / Compute I + Power I / Compute II + Power II |
 | Drive R / I / II | Power R + Structure R / Power I + Compute R (governor) / Power II + Structure R + Fabrication I |
+| Mech calibration R / I / II | Compute R + Power R (bench) / Compute I + Fabrication R / Compute II + Power I + Fabrication I |
+| Mech coolant R / I / II | Power R + Life support R (scrubber loop) / Power I + Structure R (chiller mount) / Power II + Life support R + Compute I |
+| Mech armor shop R / I / II | Fabrication R + Structure R / Fabrication I + Power R (plate press) / Fabrication I + Structure R + Power I |
+| Mech field repair R / I / II | Fabrication R + Power R / Fabrication I + Compute R (diagnostics) / Fabrication I + Structure R + Compute I |
 | Hydroponics R / I / II | Life support R + Power R (water feed, grow lights) / Power I + Life support R / Life support R + Power I + Compute I (climate control) |
 | Wardroom R / I / II | Life support R + Structure R / Compute R (war-game console) + Life support R / Compute I + Power I + Life support R |
-| Briefing room R | Compute R + Power R (the screen) |
+| Briefing room R / I / II | Compute R + Power R (the screen) / Compute R + Structure R (the table's frame) / Compute I + Power I + Life support R (the tank, run off the processing cluster) |
 | Holds R / I / II | Structure R + Power R / Structure R + Fabrication R (racking) / Structure R + Fabrication I + Power I (bonded stores' climate) |
 
 Power restored, Structure restored and the mess's opening order need nothing:
@@ -160,41 +173,84 @@ for a balance pass, not tuned values.
 | Facility | Deficit | Restored | Improved I | Improved II |
 |---|---|---|---|---|
 | **Mess / galley** (exists) | field rations: morale recovery −15% | sealed mess restored: neutral | proper galley: +15% | galley + cold store: +25% |
-| **Firing range** (new compartment) | — (absent is neutral) | lanes open: enables range trials aboard (today refused: "a ship without a range") | target machinery: infantry primary accuracy +3% | simulator lanes (Compute): +6% |
-| **Gymnasium / indoor track** | — | open: neutral | conditioning: infantry move speed +3% | track loop: +5%, and faster recovery from suppression and stagger |
+| **Firing range** (reserve) | sealed: neutral | lanes open: range trials aboard (refused without one: "a ship without a range") | target machinery: infantry primary accuracy +3% | simulator lanes: +6% |
+| **Gymnasium / indoor track** (reserve) | sealed: neutral | open: infantry move speed +2% | conditioning: +4% | track loop: +6%, and hits and near misses drain 10% less morale |
 | **Briefing room** | — | open | plot table: first action against a new threat faster (the experience-tier axis, as a flat company step) | holo-tank (Compute): mission intel shown in the briefing (enemy composition, garrison counts) |
-| **Sick bay** (new) | no sick bay: none | open: neutral | surgery: a share of would-be KIA come back WIA | trauma ward: a larger share; stacks with Field Medicine, not with itself |
+| **Sick bay** (reserve) | sealed: neutral | open: one in ten would-be KIA come home WIA | surgery: a quarter | trauma ward: two in five; stacks with Field Medicine |
 | **Chapel** | — | open: neutral | services: break threshold eased for the first casualty-ceiling step | — |
 
 ### Battle layer: mechs and vehicles
 
 Mechs are already company assets with visible fittings in the Mech Lab, so a
-ship passive shows on the mech's sheet there as well as on the briefing.
+ship passive shows on the mech's sheet there as well as on the briefing. The
+Mech Lab has no deficit: an absent shop is neutral, like an absent range.
 
 | Facility | Restored | Improved I | Improved II |
 |---|---|---|---|
-| **Mech Lab calibration** (Compute) | neutral | fire-control calibration: mech weapon accuracy +3% | tactical core link: +6%, and faster target reacquisition |
+| **Mech Lab calibration** (Compute) | bench: neutral | fire-control calibration: mech weapon accuracy +3% | tactical core link: +6%, and torso traverse +25% (onto a new target faster) |
 | **Mech Lab coolant plant** (Power) | neutral | flux dissipation +10% | +20% |
-| **Mech Lab armor shop** (Fabrication, Structure) | neutral | section armor +5% at deployment | +10% |
-| **Vehicle bay** | neutral | — | — |
+| **Mech Lab armor shop** (Fabrication, Structure) | neutral | armor capacity +5% at deployment | +10% |
+| **Vehicle bay** | — | — | — |
+
+The battle passives are one frozen value per deployed mech (`MechRefit`), set
+over each owned mech's deployment when the launch takes the active lance
+(`DetachmentResolver`). The deployment keeps its fit's own frame beside it, so
+the refit is never folded in twice: armor and dissipation scale the frame the
+mech lands on, the accuracy factor multiplies every mount's hit roll with the
+head-loss penalty, and the traverse factor scales the torso's turn rate. A mech
+the company does not own is neutral, and so is every mech off the founding
+hull. A recorded fixture carries the refit with the frame.
 
 Player-side vehicles are not deployable yet (`c12-the-debug-company.md` waits on
-them). The vehicle bay keeps its track so the passives exist when they are:
-engine tuning (speed), turret calibration (accuracy), field repair (integrity
-between battles).
+them). The vehicle bay is a track with no orders, so its passives have a home
+when they are: engine tuning (speed), turret calibration (accuracy), field
+repair (integrity between battles).
 
 ### Campaign layer (outside battle)
 
 | Facility | Restored | Improved I | Improved II |
 |---|---|---|---|
-| **Sick bay / rehab pool** | neutral heal time | WIA heal −25% (multiplies with Recovery Planning, floored) | hydrotherapy pool: −40%, and a crippled-wound class heals instead of discharging |
-| **Rec center / lounge** | neutral | replacements arrive in the top half of their aptitude band | shore-leave deck: the replenishment fee drops |
+| **Sick bay / rehab pool** | heal time: not offered | — | — |
+| **Rec center / lounge** (reserve) | open: no cargo replacement arrives Limited | rec centre: and 30% arrive Gifted (20% neutral) | shore-leave deck: and 10% Exceptional, 35% Gifted |
 | **Wardroom / staff college** | — | officer XP +15% | +30% |
-| **Brig / interrogation** | — | prisoners from a battle yield intel on the next contract in that system | — |
+| **Brig / interrogation** (reserve) | open: the cells and a guard post | not offered: waits on a battle that takes prisoners; then a prisoner yields intel on the next contract in that system | — |
 | **Hydroponics** (Life support) | — | supplies upkeep −5% | −10% |
 | **Boat bay services** | — | grounded-boat recovery one day faster | deck crane: boat and Hermes material bills −15% |
-| **Mech Lab field repair** | — | damaged mechs repair between missions faster | spares rack: lost mounts refit cheaper |
+| **Mech Lab field repair** (Fabrication) | neutral | repair clock −25% | spares rack: repair clock −25%, and a weapon assembly fabricates at −25% on every line, which is what refitting a lost mount costs |
 | **Holds / bonded stores** | — | racked holds: cargo +20 via the conversion hull mod | bonded stores: cargo +40 |
+
+How each passive lands. The range and the gym reach the fight as one named
+unit modifier on the marines of the company's own squads (accuracy, move speed
+and morale drain), read off a record frozen with each squad at launch with the
+mess's morale recovery, so a refit bought mid-operation changes the next launch,
+never a battle underway. The sick bay acts where the battle is settled: a marine
+the battle counted as killed rolls their fate as before, and if it comes up
+killed, an independent draw against the bay's share brings them home wounded.
+Nobody wounded or missing moves, and a better bay saves everyone a lesser one
+did. The lounge acts on the cargo marines who take a billet, whose fixed roll
+is read against a higher intake; recruits founded with a squad are untouched.
+
+Some rows wait on a system that does not exist yet, and stay unoffered rather
+than faked. A wound heals in one day, and Recovery Planning is already floored
+at a day, so a sick bay heal-time tier would change nothing; it waits on
+longer wounds, and the bay's tiers act on fate instead. Replacements cost cargo
+marines, not a fee, so the lounge's top tier raises the intake again rather
+than discounting a price. The brig's interrogation waits on prisoners, not on
+intel. The contract half exists: the holo-tank's garrison read (`GarrisonIntel`)
+is the operation's own roster and could be shown, or added to, for a contract a
+prisoner knows about. The other half does not exist. No battle takes anyone
+alive: a defender is fought until killed, or is still on the field when an
+objective ends the battle, and nothing yields, is secured or is carried to a
+boat. `MissionOutcome` records nothing about the defenders at all, so the
+company never holds a prisoner for the brig to question. Counting the defenders
+left standing at a win as captives would be the faked tier the owner ruled out.
+Interrogation is offered once the battle has a capture mechanic: a defender who
+gives up (broken, wounded, cut off), is secured by a marine and brought out on a
+boat, recorded on the outcome by faction and system, and held aboard until
+questioned. Even then it has to show what the holo-tank does not, since
+Briefing II already shows every operation's garrison: where the command post
+stands, or what reinforcement the defenders can call. Until then the brig opens
+its cells and stops there.
 
 ### Combat refit: the hull as a fighting ship
 
@@ -230,10 +286,10 @@ receipt.
 - **Legibility law** (`progression-nouns.md`). A squad's fighting quality is
   fully determined by what the player can see. A ship passive is a
   company-wide, named modifier like Tactical Cover. It is listed in Engineering
-  and on the briefing, and frozen into `CampaignMarineDeployment` at launch, the
-  way `CompanyShipRestoration.moraleRecoveryAboard` already is. It never varies
-  per squad. The frozen value becomes one *ship-condition* record, not a
-  growing argument list. Mech passives also show on the mech's Mech Lab sheet.
+  and on the briefing, and frozen into `CampaignMarineDeployment` at launch as
+  one record, `HullWelfare` (mess, range, gym), carried by every seat's squad
+  tag and fixture commitment rather than a growing argument list. It never
+  varies per squad. Mech passives also show on the mech's Mech Lab sheet.
 - **An upgrade changes the room or it is not an upgrade** (law 5). Every tier
   has visible deck change: lanes and traps, a pool, machinery, lights, cleaned
   corridors. Upgrades that only change a number go in the hull mod's vanilla
@@ -304,10 +360,23 @@ changes no compartment's state. Their passives:
   the way the scrubbers' wound day is. The briefing names it once it pays.
 - **Holds** wins back cargo the conversion took (+20, +40), also through the
   hull mod.
-- **Briefing room** sells only its Restored tier. The holo-tank's intel would
-  be the defender headcount, which is decided at launch from the mission's
-  own target profile and nowhere earlier, and the plot table is a battle
-  passive no seat carries; both stay *not yet offered* until those exist.
+- **Briefing room**: the **holo-tank** (Improved II) shows the briefing the
+  garrison the operation will face: every defender on the ground, the regulars
+  and militia among them, and the most mechs it can field. The headcount is the
+  battle's own. Launch and the briefing resolve the mission's target profile
+  through one function (`MissionLaunch.targetProfile`), and the estimate is
+  `DefenderRoster.forMission` over that profile with nothing held back. The
+  total depends only on type, tier, risk and the market's garrison. Mechs are
+  priced against the committed landing, so the briefing says *up to*; a mech
+  the landing does not draw is fielded as infantry, which makes the regulars
+  and militia shown the least of each. It is read when the briefing is drawn,
+  like the scrubbers' wound day, and only where the defenders are derived from
+  the mission. Debug missions and scripted battles that bring their own force
+  (the opening operations, the story arcs, the supply route, the silent colony
+  and the civilian rescue) show nothing. The **plot table** (Improved I) is a plot
+  table in the briefing corner that the holo-tank is built on, sold for metals
+  alone, and it changes nothing in battle yet: its passive, a faster
+  first action against a new threat, needs a reaction axis no seat carries.
 - **Boat bay services** is not a track yet: a boat grounded in battle has no
   timed recovery to shorten, and the deck crane's discount needs the boat
   bill to read the condition record.
@@ -322,7 +391,7 @@ before the pocket fill, so the same random stream reaches the program with
 or without them. A reserve is furnished like any room and then sealed:
 stripped, salvage left on the bare deck, pressure hatches on its doors, out
 of service. Engineering lists it as *sealed / reserved for refit*; the ship
-comparison does not count it. A refit story opens one where it stands.
+comparison does not count it. Its facility track's Restored order opens it where it stands.
 `SecondWindReservesEvidence` (`generatedSpaceEvidence`) holds all of this
 over 60 layouts.
 
@@ -334,7 +403,7 @@ says which wrecked rooms are repaired (`ShipRestoration.openReserves`); every
 reserve is closed until something names it. An opened reserve is in service:
 its hatches work, its fixtures publish their places and Engineering lists it
 as a working room. The facility track whose Restored tier is bought is what
-names it; until those tracks exist, nothing does.
+names it (`ShipCondition.openReserves`).
 
 What each opened room is:
 
@@ -392,9 +461,11 @@ not a checklist. That measurement comes first in the balance story.
    existing orders, with lock reasons in Engineering.
 4. **Deficit dressing.** Battered corridor and wall art per core, cleared by
    each core's Restored order.
-5. **Firing range**, the first new facility: compartment, range trials aboard,
-   accuracy tiers.
-6. **Mech Lab passives**, the first of them through the mech sheet.
+5. **Reserved facilities.** Done for the range, gym, sick bay and lounge
+   (passives through both Improved tiers); the brig waits on prisoners taken in battle,
+   and Improved-tier dressing is not built.
+6. **Mech Lab passives.** Done: calibration, coolant plant, armor shop and
+   field repair, on the mech sheet and the briefing line.
 7. **Hull-mod fleet stats** (supplies, CR) for the campaign-layer deficit and
    its recovery.
 8. Remaining facilities, one story each.

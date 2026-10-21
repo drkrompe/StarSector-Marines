@@ -18,9 +18,10 @@ import java.util.function.Supplier;
  * the dock) lifts the curtain on the unchanged room and says why.
  */
 final class RefitReveal {
-    enum Phase { FLY, CLOSE, WORK, OPEN, SHOW, DONE }
+    enum Phase { FLY, CLOSE, WORK, OPEN, SHOW, RETURN, DONE }
 
-    static final float FLY = 1.2f, CLOSE = 0.5f, WORK = 1.0f, OPEN = 0.7f, SHOW = 3.5f;
+    /** RETURN flies the camera back to where the player had it before the tree comes back. */
+    static final float FLY = 1.2f, CLOSE = 0.5f, WORK = 1.0f, OPEN = 0.7f, SHOW = 3.5f, RETURN = 1.0f;
 
     final RefitOrder order;
     private final Supplier<String> commit;
@@ -52,8 +53,9 @@ final class RefitReveal {
             case FLY -> { if (time >= FLY) next(Phase.CLOSE); }
             case CLOSE -> { if (time >= CLOSE) { pay(); next(Phase.WORK); } }
             case WORK -> { if (time >= WORK && deckReady) next(Phase.OPEN); }
-            case OPEN -> { if (time >= OPEN) next(refusal == null ? Phase.SHOW : Phase.DONE); }
-            case SHOW -> { if (time >= SHOW) next(Phase.DONE); }
+            case OPEN -> { if (time >= OPEN) next(refusal == null ? Phase.SHOW : Phase.RETURN); }
+            case SHOW -> { if (time >= SHOW) next(Phase.RETURN); }
+            case RETURN -> { if (time >= RETURN) next(Phase.DONE); }
             case DONE -> { }
         }
     }
@@ -62,7 +64,8 @@ final class RefitReveal {
     void skip() {
         switch (phase) {
             case FLY, CLOSE -> { pay(); next(Phase.WORK); time = WORK; }
-            case SHOW -> next(Phase.DONE);
+            case SHOW -> next(Phase.RETURN);
+            case RETURN -> next(Phase.DONE);
             default -> { }
         }
     }

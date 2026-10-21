@@ -452,9 +452,15 @@ final class HeadlessBattleSprites extends BattleSprites {
         loadFamily(LayeredArmorFamily.SHIP_SERVICE,
                 "graphics/battle/ship-crew-modular-topdown/service/", layer("graphics/battle/ship-crew-modular-topdown/service/foot.png"),
                 null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+        loadFamily(LayeredArmorFamily.CIVILIAN_COLONIST,
+                "graphics/battle/colonist-modular-topdown/civilian/", layer("graphics/battle/colonist-modular-topdown/civilian/foot.png"),
+                null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
         loadFamily(LayeredArmorFamily.ENGINEER,
-                "graphics/battle/colonist-modular-topdown/engineer/",
-                foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+                "graphics/battle/colonist-modular-topdown/engineer/", layer("graphics/battle/colonist-modular-topdown/engineer/foot.png"),
+                null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+        loadFamily(LayeredArmorFamily.SCIENTIST,
+                "graphics/battle/colonist-modular-topdown/scientist/", layer("graphics/battle/colonist-modular-topdown/scientist/foot.png"),
+                null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
     }
 
     private void loadFamily(LayeredArmorFamily family, String root,
@@ -500,6 +506,11 @@ final class HeadlessBattleSprites extends BattleSprites {
                     loaded.registerIntegralSystem(system.id(),
                             layer(system.carrierLayer().spritePath()));
                 }
+            }
+        }
+        if (family.hasDownedArt()) {
+            for (int pose = 0; pose < LayeredUnitAssets.DOWNED_POSES; pose++) {
+                loaded.registerDowned(layer(root + "downed-" + pose + ".png"));
             }
         }
         infantry.put(family, loaded);

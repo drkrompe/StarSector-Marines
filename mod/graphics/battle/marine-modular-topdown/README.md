@@ -16,4 +16,5 @@ in `LAYERED_RUNTIME.md`.
 Run `python art-source/marine-modular-topdown/build_variants.py` to normalize retained sources, rebuild runtime
 layers, and write disposable composition previews beneath
 `build/sprite-previews/infantry/`. The legacy directional sheets in the parent battle
-directory remain intentional load-failure and corpse-rendering fallbacks.
+directory remain intentional load-failure fallbacks, and the corpse art for a family
+without its own lying poses (see `LAYERED_RUNTIME.md`, "Downed bodies").

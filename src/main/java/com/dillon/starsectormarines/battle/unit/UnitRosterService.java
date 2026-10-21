@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.infantry.IntegralSystemModifier;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.modifier.UnitModifiers;
 import com.dillon.starsectormarines.battle.squad.DugInModifier;
+import com.dillon.starsectormarines.battle.squad.HullWelfareModifier;
 import com.dillon.starsectormarines.battle.squad.TacticalCoverModifier;
 import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
@@ -276,6 +277,7 @@ public final class UnitRosterService {
         unitModifiers.register(new DugInModifier(combatService));
         unitModifiers.register(new IntegralSystemModifier(integralSystemService));
         unitModifiers.register(new TacticalCoverModifier(this));
+        unitModifiers.register(new HullWelfareModifier(this));
         unitModifiers.register(WoundModifier.legs(woundService));
         unitModifiers.register(WoundModifier.arms(woundService));
         unitModifiers.register(new MechSectionModifier(this));

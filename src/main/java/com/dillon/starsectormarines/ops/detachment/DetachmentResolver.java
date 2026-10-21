@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.detachment;
 
+import com.dillon.starsectormarines.campaign.refit.ShipRefits;
+import com.dillon.starsectormarines.battle.mech.MechRefit;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -94,10 +96,18 @@ public final class DetachmentResolver {
         return new ArrayList<>(fleet.getFleetData().getMembersListCopy());
     }
 
+    /** The active lance as it launches, with the company ship's Mech Lab refits frozen over each mech. */
     private static List<MechDeploymentSpec> campaignMechDeployment() {
         if (Global.getSector() == null) return List.of();
         MarineRosterScript script = MarineRosterScript.getInstance();
-        return script != null ? script.roster().mechBay().activeDeployment() : List.of();
+        return script != null ? withShipRefit(script.roster().mechBay().activeDeployment(),
+                ShipRefits.aboard().mechRefit()) : List.of();
+    }
+
+    /** Each owned mech carries {@code refit} into battle; a mech the company does not own stays neutral. */
+    static List<MechDeploymentSpec> withShipRefit(List<MechDeploymentSpec> deployment, MechRefit refit) {
+        if (refit.neutral()) return deployment;
+        return deployment.stream().map(mech -> mech.campaignId() == null ? mech : mech.withRefit(refit)).toList();
     }
 
     /** Null without a campaign roster, so debug and detached launches keep the fallback hull. */

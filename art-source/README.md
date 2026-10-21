@@ -35,7 +35,7 @@ work that cannot be redone mechanically.
 | `alien-modular-topdown/` | Retained alien layer originals and the script that normalizes them. |
 | `mech-modular-topdown/` | Retained mech layer originals, faction chassis masters, ImageGen weapon concepts and material-ID passes, derived paint masks, alpha/color-transfer builders, contact-sheet renderers, and the weapon-authoring/perspective-prompting guide. |
 | `marine-modular-topdown/` | Retained marine body/head/weapon originals, their prompt recipes, and the variant builder. |
-| `colonist-modular-topdown/` | Retained colonist layer originals. The layers they produced are checked in; no builder is currently kept. |
+| `colonist-modular-topdown/` | Colonist reskins on the marine silhouettes: prompts, raw masters, the earlier chroma boards kept as identity references, and `colonists.py export`. |
 
 Tileset authoring documents — one per annotated sheet, written by the Tilesets
 page of `gradlew.bat layerAuthoring` — live in `tilesets/` beside the sheet they
