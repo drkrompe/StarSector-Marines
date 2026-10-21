@@ -85,8 +85,9 @@ installation (depot character) to one side and a dormitory suburb to the
 other, the side seeded — because the colony is the same kind of place whatever
 world the event names, and a rescue fixture has no market to derive from. Its
 map is mission-owned (`MapScale.COLONY`, 400x240) and must contain a
-residential shelter, a clear lift footprint and enough buildings for the
-eruption sites; a map that lacks any re-rolls the seed. Lower risks and the
+residential shelter, a clear lift footprint, enough buildings for the
+eruption sites and enough held buildings with room indoors to be holdouts; a
+map that lacks any re-rolls the seed. Lower risks and the
 debug stress path keep their tier map and run the same breach on it, seating
 whatever eruption sites that smaller map has room for.
 
@@ -96,15 +97,18 @@ colony turret emplacements still work, and may run a technical or two. They
 are a resource the player inherits, not a force the player commands. The
 shelter guard is one militia post among several.
 
-On the colony map three more buildings near the cohort's walk are held, spaced
-apart and clear of the shelter, the lift and the landing pads; each fireteam
-holds its building's held place under garrison authority, so it mans the
-building's windows and doors the way any held building is manned. Two of those
-posts keep a working heavy-machine-gun emplacement outside the door and two a
-parked militia technical. Placed hardware stands on open ground away from the
-cohort's walk to the lift, because a gun or a truck in a one-lane street closes
-it. Lower risks keep the shelter guard alone, and
-`-Dbattle.colonyBreach.militia=false` is the control that drops the rest.
+On the colony map the other militia posts are the **holdouts** (see
+*Redoubt*): buildings spread across the colony, each chosen as far as it can be
+from the shelter, the lift and the posts already chosen (out to a third of the
+map's short side, past which the seed decides), clear of the landing pads and
+with a walk to the lift. Each fireteam holds its building's held place under
+garrison authority, so it mans the building's windows and doors the way any
+held building is manned. Two of those posts keep a working
+heavy-machine-gun emplacement outside the door and two a parked militia
+technical. Placed hardware stands on open ground away from the cohort's walk to
+the lift, because a gun or a truck in a one-lane street closes it. Lower risks
+keep the shelter guard alone, and `-Dbattle.colonyBreach.militia=false` is the
+control that drops the rest.
 
 **Colony population.** The colonists outside the shelter: ordinary fleeing
 civilians, not part of the cohort and not counted by the evacuation, spread
@@ -125,7 +129,33 @@ field the same machines twice.
 **Shelter, cohort, lift.** Unchanged from Civilian Rescue (see
 `extraction-command.md`): the cohort is sealed in the shelter until a Marine
 reaches it, then walks to the lift under escort and boards only once a shuttle
-is physically down.
+is physically down. On the colony the cohort is spread over several redoubts.
+
+**Redoubt.** A place the cohort is holed up in. The **main redoubt** is the
+shelter, with the largest share of the cohort and the sealed, hidden shelter
+guard; it is redoubt 1. The colony has one to three **holdouts** besides
+(seeded, so two to four redoubts in all): a militia post with three or four of
+the cohort inside, deeper in than the fireteam's firing cells, and sandbag
+aprons across its doors — the compound prepared-ground courses a held base
+gets, the door toward the lift first. A holdout is built from existing pieces:
+a building, its held place and garrison, aprons, and perhaps a colony
+emplacement; it reads as a desperate holdout because it is one.
+
+Every redoubt's people are one cohort for the objective, the outcome and the
+campaign. Each member belongs to one redoubt and waits behind its door until a
+Marine reaches *that* door; then it walks to the lift under the ordinary
+per-member escort law. A holdout is not hidden as the shelter is: its militia
+are prey like any of the swarm's, and once the shelter has opened its people
+are too. A holdout **falls** when its garrison is dead and a swarm body is at
+its walls, or when nobody behind its door is still alive. Its survivors leave
+the cohort — overrun, they are the swarm's (harvest's biomass, once harvest
+exists) — and the holdout is no longer anyone's to relieve. The shelter is
+sealed and does not fall. That asymmetry is the triage: the main cohort is
+safe while it waits, the holdouts are not, and which door the company reaches
+first decides who is left to bring out. With one redoubt the rescue plays
+exactly as a single-shelter rescue. `-Dbattle.colonyBreach.redoubts=false` is
+the control: the posts hold militia only and the whole cohort is in the
+shelter.
 
 **Breach.** The mission-level event of the swarm coming up through the colony.
 The breach has a shape over time (see *Flow*) driven by the **breach sequence**,
@@ -364,10 +394,12 @@ sends against a bore. Stable membership, traced like any other command role.
 
 1. **Landfall.** The company lands at the colony edge. A thin perimeter seepage
    of runners is the only pressure. Militia hold their buildings.
-2. **Shelter.** A Marine reaches the shelter; the cohort releases. This is the
-   breach sequence's first trigger: **tremor**, then the first bores erupt over
-   the following minute at precincts between the shelter and the lift and on
-   the flanks. Seepage stops.
+2. **Shelter.** A Marine reaches the shelter; the main cohort releases. This is
+   the breach sequence's first trigger: **tremor**, then the first bores erupt
+   over the following minute at precincts between the shelter and the lift and
+   on the flanks. Seepage stops. The holdouts are relieved one at a time, before
+   or after the shelter as the commander chooses, and any of them may fall
+   while it waits.
 3. **Dig in.** The lift countdown runs. A called-down flying tender can be
    on station and building. Bores grow. The director's target climbs with every living bore
    and tier.
@@ -396,7 +428,9 @@ the evidence; change them here first.
 | --- | --- | --- |
 | `landfall` | PLAYER | First Marine on the ground |
 | `militia_contact` | PLAYER | First Marine within sight of a militia post |
-| `shelter_reached` | PLAYER | Cohort released |
+| `shelter_reached` | PLAYER | Cohort released (the main redoubt) |
+| `redoubt_reached_N` | PLAYER | A Marine reaches redoubt N (1 is the shelter); several redoubts only |
+| `redoubt_fell_N` | PLAYER | Holdout N falls |
 | `tremor` | PLAYER | Breach begins (before the first eruption) |
 | `bore_erupted_N` | PLAYER | Bore N opens |
 | `bore_grew_N_bore` / `bore_grew_N_maw` | PLAYER | Bore N reaches that tier |

@@ -9,6 +9,7 @@ these stories.
 
 | Story | State and dependency |
 | --- | --- |
+| `militia-redoubts.md` | **IN PROGRESS.** Cohort holed up in 2-4 redoubts; holdouts fall; per-redoubt release, escorts and relief. Built; preview pending. |
 | `bore-spawners.md` | **READY.** Destroyable bores, director spawning from living bores, biomass-driven tiers (fills the Brute and Spitter strain slots), spawning surges, spore vents. Plugs into the eruption handler on the breach sequence. |
 | `hive-creep.md` | **QUEUED on bores.** Creep spreads from living bores and visibly infests the colony; ground colonies root on creep and siege hardpoints; recedes when a bore dies. |
 | `swarm-harvest.md` | **QUEUED on bores.** Runners seize colonists and drag them to bores as biomass; interceptable carriers. |

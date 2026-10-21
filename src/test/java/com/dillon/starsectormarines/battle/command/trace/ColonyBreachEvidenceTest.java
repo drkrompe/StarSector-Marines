@@ -1,9 +1,11 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
+import com.dillon.starsectormarines.battle.evacuation.CivilianRedoubt;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.evacuation.ColonyPopulation;
+import com.dillon.starsectormarines.battle.evacuation.ColonyRedoubts;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -39,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Tag("colony-breach-command-evidence")
 class ColonyBreachEvidenceTest {
     private static final String DEFAULT_FIXTURE = "/battle-fixtures/colony-breach-v1.json";
-    private static final int DEFAULT_MAX_TICKS = 18_000;
+    private static final int DEFAULT_MAX_TICKS = 24_000;
     private static final String PREFIX = "colony.breach.command.evidence.";
 
     /** The flow's order. A beat that fires never precedes one listed before it. */
@@ -58,9 +60,11 @@ class ColonyBreachEvidenceTest {
         Files.createDirectories(output);
 
         List<ColonyEruptionPlan.Site> replayedSites;
+        List<CivilianRedoubt> replayedRedoubts;
         try (BattleSimulation again = fixture.build()) {
             assertNotNull(again.getColonyBreach(), "the rescue must install the breach");
             replayedSites = again.getColonyBreach().plan().sites();
+            replayedRedoubts = again.getCivilianRedoubts();
         }
 
         int repeat = Integer.getInteger("commander.evidence.repeat", 1);
@@ -76,6 +80,24 @@ class ColonyBreachEvidenceTest {
                 assertEquals(replayedSites, plan.sites(), "eruption sites must be stable across constructions");
                 assertTrue(breach.colonists().size() >= ColonyPopulation.MIN_COLONISTS,
                         "the colony carries " + breach.colonists().size() + " colonists outside the shelter");
+                List<CivilianRedoubt> redoubts = sim.getCivilianRedoubts();
+                assertEquals(replayedRedoubts, redoubts, "redoubts must be stable across constructions");
+                if (ColonyRedoubts.enabled()) {
+                    assertTrue(redoubts.size() >= 1 + ColonyRedoubts.MIN_HOLDOUTS
+                            && redoubts.size() <= 1 + ColonyRedoubts.MAX_HOLDOUTS, "redoubts: " + redoubts);
+                }
+                int cohort = 0;
+                for (CivilianRedoubt redoubt : redoubts) {
+                    cohort += redoubt.cohort();
+                    if (redoubt.isMain()) continue;
+                    assertFalse(sim.isInsideRescueOpeningProtectedZone(redoubt.approachX(), redoubt.approachY()),
+                            "holdout " + redoubt + " stands in the shelter or lift zone");
+                    assertTrue(redoubt.garrisonSquadId() >= 0, "holdout " + redoubt.number() + " has no garrison");
+                    assertTrue(redoubt.cohort() >= ColonyRedoubts.MIN_COHORT
+                            && redoubt.cohort() <= ColonyRedoubts.MAX_COHORT, "holdout cohort " + redoubt);
+                }
+                assertEquals(sim.getCivilianEvacuationTracker().expectedCount(), cohort,
+                        "every member of the cohort belongs to one redoubt");
                 for (ColonyEruptionPlan.Site site : plan.sites()) {
                     assertFalse(sim.isInsideRescueOpeningProtectedZone(site.x(), site.y()),
                             "site " + site + " stands in the shelter or lift zone");
@@ -166,7 +188,25 @@ class ColonyBreachEvidenceTest {
                 .put("evacuated", tracker.evacuatedCount())
                 .put("registered", tracker.registeredCount())
                 .put("sites", sites)
+                .put("redoubts", redoubts(snapshot))
                 .put("beats", beats);
+    }
+
+    private static JSONArray redoubts(ColonyBreachSequence.Snapshot snapshot) throws Exception {
+        JSONArray out = new JSONArray();
+        for (CivilianRedoubt redoubt : snapshot.redoubts()) {
+            out.put(new JSONObject()
+                    .put("number", redoubt.number())
+                    .put("main", redoubt.isMain())
+                    .put("x", redoubt.approachX()).put("y", redoubt.approachY())
+                    .put("garrisonSquad", redoubt.garrisonSquadId())
+                    .put("cohort", redoubt.cohort())
+                    .put("reachedTick", redoubt.releasedTick())
+                    .put("fellTick", redoubt.fellTick())
+                    .put("sealed", redoubt.sealed())
+                    .put("walking", redoubt.walking()));
+        }
+        return out;
     }
 
     private static String markdown(JSONObject s) throws Exception {
@@ -187,6 +227,18 @@ class ColonyBreachEvidenceTest {
                     .append(" | ").append(site.get("place"))
                     .append(" | ").append(site.getInt("eruptionTick"))
                     .append(" | ").append(site.getBoolean("erupted")).append(" |\n");
+        }
+        out.append("\n## Redoubts\n\n| # | door | garrison | cohort | reached | fell | sealed at end |\n|---|---|---|---|---|---|---|\n");
+        JSONArray redoubts = s.getJSONArray("redoubts");
+        for (int i = 0; i < redoubts.length(); i++) {
+            JSONObject r = redoubts.getJSONObject(i);
+            out.append("| ").append(r.getInt("number")).append(r.getBoolean("main") ? " (shelter)" : "")
+                    .append(" | ").append(r.getInt("x")).append(',').append(r.getInt("y"))
+                    .append(" | ").append(r.getInt("garrisonSquad"))
+                    .append(" | ").append(r.getInt("cohort"))
+                    .append(" | ").append(r.getInt("reachedTick"))
+                    .append(" | ").append(r.getInt("fellTick"))
+                    .append(" | ").append(r.getInt("sealed")).append(" |\n");
         }
         out.append("\n## Beats\n\n| tick | beat |\n|---|---|\n");
         JSONArray beats = s.getJSONArray("beats");

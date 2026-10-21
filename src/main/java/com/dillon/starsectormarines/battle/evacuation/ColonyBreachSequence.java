@@ -63,7 +63,11 @@ public final class ColonyBreachSequence {
     public record Snapshot(int tick, Phase phase, int landfallTick, int shelterReachedTick,
                            int tremorTick, List<ColonyEruptionPlan.Site> sites,
                            List<Integer> eruptionTicks, List<Boolean> erupted,
-                           int colonists, int colonistsAlive) { }
+                           int colonists, int colonistsAlive, List<CivilianRedoubt> redoubts) {
+        public Snapshot {
+            redoubts = List.copyOf(redoubts);
+        }
+    }
 
     private final ColonyEruptionPlan plan;
     private final List<Long> colonists;
@@ -145,6 +149,13 @@ public final class ColonyBreachSequence {
         }
         if (militiaSeen) emit(tick, "militia_contact");
         if (shelterReachedTick >= 0) emit(tick, "shelter_reached");
+        List<CivilianRedoubt> redoubts = sim.getCivilianRedoubts();
+        if (redoubts.size() > 1) {
+            for (CivilianRedoubt redoubt : redoubts) {
+                if (redoubt.released()) emit(tick, "redoubt_reached_" + redoubt.number());
+                if (redoubt.fallen()) emit(tick, "redoubt_fell_" + redoubt.number());
+            }
+        }
         if (tremorTick >= 0 && tick >= tremorTick) emit(tick, "tremor");
         List<ColonyEruptionPlan.Site> sites = plan.sites();
         for (int i = 0; i < sites.size(); i++) {
@@ -177,7 +188,8 @@ public final class ColonyBreachSequence {
             open.add(erupted[i]);
         }
         return new Snapshot(tick, phase(), landfallTick, shelterReachedTick, tremorTick,
-                plan.sites(), List.copyOf(ticks), List.copyOf(open), colonists.size(), alive);
+                plan.sites(), List.copyOf(ticks), List.copyOf(open), colonists.size(), alive,
+                sim.getCivilianRedoubts());
     }
 
     private void emit(int tick, String key) {
