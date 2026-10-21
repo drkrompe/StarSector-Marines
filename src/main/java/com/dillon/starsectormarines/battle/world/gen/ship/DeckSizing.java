@@ -287,7 +287,9 @@ public final class DeckSizing {
             // destroyer size has neither the room nor a complement large enough
             // to need one, and gets the same answer as she gets for a sick bay.
             add(rooms, RoomRecipe.LOUNGE, RoomRecipe.LOUNGE.countFor(maxCrew));
-            add(rooms, RoomRecipe.GYM, RoomRecipe.GYM.countFor(maxCrew));
+            // A complement that would fill three small gyms trains in a big one with a track and a pool.
+            RoomRecipe gym = maxCrew > 2 * RoomRecipe.GYM.provides() ? RoomRecipe.GRAND_GYM : RoomRecipe.GYM;
+            add(rooms, gym, gym.countFor(maxCrew));
         }
     }
 

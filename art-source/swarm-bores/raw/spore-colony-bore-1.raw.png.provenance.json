@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fd3-d69b-7e91-a4c0-cbe85d861c12",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fd3-d69b-7e91-a4c0-cbe85d861c12\\exec-9c201f60-4f4b-4cc5-9428-d1800aa9e69b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\swarm-bores\\raw\\spore-colony-bore-1.raw.png",
+    "sha256": "a790c8ab609f6dbc178777d126981eef48eecceb886718a895b2fb7a872cb72d",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\swarm-bores\\prompts\\spore-colony-bore.prompt.txt",
+  "promptSha256": "dd350be77d92e41d895284ddd80eed44244966143da76e25758fd678647c99cc",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and lighting guide and edit target: exact silhouette, placement, scale and light-and-shadow authority; reskin it, never move, reshape, re-light or symmetrise it\nImage 2: Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape\n\nUse case: sketch-to-render. Asset: a SPORE COLONY of the alien swarm grown beside a bore, for a top-down tactical game: a living anti-aircraft growth that fires bursts of spores at aircraft. It is an uneven cluster, grown, not designed: one dominant swollen spore sac set off-centre and leaning, two smaller sacs pressed against it at uneven angles, a few buds, cupping chitin plates on one flank only, bone spines bunched on one side, sinew roots reaching out mostly one way, all on a heaved lump of soil. Each sac is a domed bladder of taut skin laced with dark veins, its firing pore glowing amber from inside, lit on its upper-left shoulder and dark beneath. Image 1 is the authoritative geometry AND lighting guide and the edit target: a code-built relief, lit by the game's sun from the upper left. Reskin it into a finished painted sprite, preserving its outline, placement, scale, transparent space and its light and shadow exactly: faces turned up and left are lit, faces turned down and right are in shade, and every shadow one part casts on another stays where the guide puts it. Do not re-light it, do not even it out, do not make it symmetrical. Read the guide's flat colours as materials: grey-violet = the swarm's chitin plates: smooth, curved, overlapping carapace like a beetle's wing-case or a crab's shell, glossy and organic with soft rounded edges and fine growth lines, never faceted, never stone, never masonry blocks; pale ivory = bone (tusks, spines); dark grey-green tubes = sinew roots; brown = churned, thrown-up soil; pale grey-tan blocks = broken slabs of human colony paving, real concrete pavers with chipped edges; dusky mauve = wet dark flesh; orange-amber spots = glowing amber nodes, painted as light coming from inside, not as flat dots. Straight overhead orthographic zenith camera looking straight down, no perspective. Genuine transparent background outside the silhouette, including the gaps between roots, slabs and plates; no ground plane, no cast shadow on the ground (that is drawn separately), no border, no text, no labels, no watermark. Crisp hand-painted 2D strategy-game sprite matching the existing swarm creature in the material reference: dark charcoal-purple segmented chitin with worn bone-grey edges, organic gunmetal-green sinew and under-plates, small warm amber glowing nodes. It is one designed bio-weapon organism (the same chitin as the swarm runner, grown for another job), never a plant, never a machine, never a different animal. It will be shown only about 60 to 160 pixels wide in play, so keep bold readable shapes, clear dark separations and strong value contrast rather than fine noise. Add material, surface detail, scratches, plate seams and wet highlights; never change the silhouette, the placement, the lighting direction or the transparent space.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\swarm-spore-colony-bore-1-guide.png",
+      "sha256": "d500c76a05390dc8edc11b9aa585f77d38a934248691476a9488f0191d4d50f8",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry and lighting guide and edit target: exact silhouette, placement, scale and light-and-shadow authority; reskin it, never move, reshape, re-light or symmetrise it"
+    },
+    {
+      "path": "art-source\\alien-modular-topdown\\sources\\alien-body-source.png",
+      "sha256": "6c1cd9a54e6b39cb668a5eb8ece0147af382571ad7fe3db1e0e6af4e45755c5c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image generation to reskin the guide, preserving its geometry and lighting and matching the second image’s materials."
+  ],
+  "usage": {
+    "input_tokens": 42848,
+    "cached_input_tokens": 26624,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 753,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 68.2
+}

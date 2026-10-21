@@ -145,6 +145,7 @@ as possible.
 |---|---|---|
 | `SWFX anchor engine {i}` | `Engine {i} exhaust anchor` if the geometry declares one, else `Engine {i} mouth lip` and `Engine {i} dark throat` | mouth plane; +X runs out of the mouth (aft). Radius comes from the anchor's `radius_m` (via `units()`), else `sw_engines.BELL_R`: 3.9 for the outer pair, 2.6 for the inner pair |
 | RCS puffs | `RCS <cluster> <axis> anchor` empties (skipped when `working` is false) | see Thrusters |
+| RCS puff size | profile `RCS_NOZZLE_M`, `RCS_PUFF_M` (metres) and `RCS_PUFF_DENSITY` (multiplier); defaults 0.25, 4.0, 1.0 | the Borer's lift jets |
 | `SWFX anchor turret {i} {tag}` | `Anchor turret {i} barrel {k} muzzle` (the turret kit's guns since 2026-10-20: `sw_turrets`, `DECLARED_MUZZLES` on by default); an older build's `Turret {i} {tag} muzzle brake` | the muzzle; +X along the line of fire, riding the turret's pivot and elevation. `tag` is `barrel <k>`: two on each Vulcan (turrets 1 and 2); housings 3 and 4 are empty and have none. Older builds: `gun`, or `port gun` / `starboard gun` on the medium twin |
 | `SWFX anchor lamp <part>` | lamp parts by name (`LAMPS` in the module) | lamp centre; the role is running-port/starboard (by side), masthead, beacon, work, davit or drive-warning |
 | `SWFX anchor spark <id> <label>` | `Scar <id> spark anchor`, `Scar <id> spark-2 anchor`, ... (the damage layer's `d.anchor`) | the broken end of a live run; +X is the spray direction. Spray size comes from the anchor's `radius_m` (via `units()`, 0.5 m if absent); `sparking` is that state's flag |

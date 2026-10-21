@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fc9-8f50-7473-8361-51e618f54371",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fc9-8f50-7473-8361-51e618f54371\\exec-884d394f-9792-46b9-be7c-86096affa32d.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\hero.png",
+    "sha256": "1fd084bdf713b942ea09dca5767d4ee1ac913bf17c5bcea8ae0d6ac62bcb41e8",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\motion-runner\\prompts\\hero.prompt.txt",
+  "promptSha256": "949067f98a731a3d35ed331507315d4fc618c076e347d8d116296ca81a912025",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Pose, body and head authority\nImage 2: Blade shape only: barbed gaff tips\n\nTop-down concept for a tactical game: the final design of the Runner, a fast swarm hunter (original design). Reference image 1 gives the pose and head; reference image 2 gives the blade shape. Combine them: keep reference 1's body, pose and its heavy bulldog-like open fanged jaw exactly; keep its two arm blades haunched up and swept back over the shoulders, elbows high, tips pointing backward and outward; but give the blades reference 2's hooked, barbed gaff tips made to impale and hold. Identity and palette exactly as both references: pale lilac and mauve glossy carapace plates, deep purple-magenta sinew in the gaps, ivory blade and claw tips, small hot amber eyes, a pale spine ridge. Strict overhead orthographic view looking straight down at its back, facing UP, centred, filling about two thirds of the frame, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\round-4\\raw\\c2.png",
+      "sha256": "bcc03f9ddfe849d7efb0b68baaff068ff1de5f99f2d5a6f99df281927be863c9",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Pose, body and head authority"
+    },
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\round-4\\raw\\c3.png",
+      "sha256": "faa035d51421bfd93f5e5fd5e6573f14260247156a9ca361ef43acd478b5780e",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Blade shape only: barbed gaff tips"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using Image 1 for the pose, body, and open jaw, and Image 2 only for the hooked, barbed blade tips."
+  ],
+  "usage": {
+    "input_tokens": 88353,
+    "cached_input_tokens": 74496,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 675,
+    "reasoning_output_tokens": 42
+  },
+  "elapsedSeconds": 44.7
+}

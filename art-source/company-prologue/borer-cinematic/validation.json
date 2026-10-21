@@ -2,8 +2,8 @@
  "asset": "borer.blend",
  "collection": "BORER",
  "root": "BORER | root",
- "objects": 178,
- "meshes": 169,
+ "objects": 238,
+ "meshes": 225,
  "images": 13,
  "passed": true,
  "failed": [],
@@ -29,8 +29,8 @@
   "object count": {
    "ok": true,
    "detail": [
-    169,
-    169
+    225,
+    225
    ]
   },
   "polygon count": {
@@ -72,14 +72,17 @@
   "tool anchors": {
    "ok": true
   },
-  "cradle seat on the pad soles": {
+  "cradle seat on the skid shoe soles": {
    "ok": true,
    "detail": [
-    -3.0,
-    -3.0,
-    -3.0,
-    -3.0
+    -5.75,
+    -5.75,
+    -5.75,
+    -5.75
    ]
+  },
+  "four lift jets pointing down": {
+   "ok": true
   },
   "lamps emissive": {
    "ok": true,
@@ -87,6 +90,13 @@
     "Hull spine beacon lamp lens",
     "Pod port work lamp lens",
     "Pod starboard work lamp lens"
+   ]
+  },
+  "four short lift-jet puffs, no smoke group": {
+   "ok": true,
+   "detail": [
+    4,
+    0.72
    ]
   },
   "beam rig rides the muzzle, dark at rest": {

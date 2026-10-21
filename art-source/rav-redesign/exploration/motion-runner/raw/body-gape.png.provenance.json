@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fca-907a-7293-b49c-8a996d4c53ae",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fca-907a-7293-b49c-8a996d4c53ae\\exec-39b9cbfb-3bbf-4b92-bf5e-39a90f8513f1.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\body-gape.png",
+    "sha256": "94496bf8338c593ae1fc20c1c84ccb5b0040ea67fc7617b3d9402c4e8a6f09e1",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\motion-runner\\prompts\\body-gape.prompt.txt",
+  "promptSha256": "f2fad13b03a8da283d7268b3174e04034f9e063338ab8eb20d77ebf5a805287e",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity, geometry and layout authority\n\nLayer for a 2D rig. Reproduce reference 1 exactly (same creature, same pose, same position, same scale, same lighting and finish) with ONE change: remove both arm blades completely, leaving only a smooth armoured shoulder socket where each arm blade attaches. The head's jaws GAPE WIDE OPEN at full bite, rows of fangs and a dark magenta throat showing, the head thrust slightly forward. Keep the four walking legs, body and tail exactly as they are. Strict overhead orthographic view, same framing, scale and position as reference 1 so the layers register over it. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\hero.png",
+      "sha256": "1fd084bdf713b942ea09dca5767d4ee1ac913bf17c5bcea8ae0d6ac62bcb41e8",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity, geometry and layout authority"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one matching image with both arm blades removed and smooth armored shoulder sockets in their place."
+  ],
+  "usage": {
+    "input_tokens": 40609,
+    "cached_input_tokens": 34944,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 404,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 38.7
+}
