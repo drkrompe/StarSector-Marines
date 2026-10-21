@@ -87,7 +87,9 @@
     "data/tilesets/ship-floor-trim.tileset.json",
     "data/tilesets/firing-range-target.tileset.json",
     "data/tilesets/ship-bulkheads.tileset.json",
-    "data/tilesets/ship-interior-materials.tileset.json"
+    "data/tilesets/ship-interior-materials.tileset.json",
+    "data/tilesets/deck-motion.tileset.json",
+    "data/tilesets/deck-prop-motions.tileset.json"
   ],
   "tileMappings": [
     "data/tilesets/urban.mapping.json"

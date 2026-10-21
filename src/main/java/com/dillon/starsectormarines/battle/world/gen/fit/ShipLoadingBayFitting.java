@@ -4,11 +4,13 @@ import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import java.util.ArrayList;
 import java.util.List;
 
 /** Receiving apron and transfer equipment, with staged provisions and a single picking rack. */
 public final class ShipLoadingBayFitting implements RoomFitting {
     private static final String KIT = "loading-bay.";
+    private static final String RACK_LIFT = "deck-motion.rack-lift-rail";
     @Override public RoomPurpose purpose() { return RoomPurpose.LOADING_BAY; }
     @Override public boolean handed() { return true; }
     @Override public List<Hookup> hookups(RoomShape canonical) {
@@ -37,11 +39,14 @@ public final class ShipLoadingBayFitting implements RoomFitting {
         pallet(floor,9,2,"insulated-tote",9,4,9,3);
         pallet(floor,12,2,"provision-cartons",12,4,12,3);
         pallet(floor,w-3,h-3,"provision-cartons",w-4,h-3,w-3,h-3);
-        if (floor.placeAssembly(w-3,2,"main-stores.rack",List.of(
+        List<LayoutOp.Layer> rack=new ArrayList<>(List.of(
                 new LayoutOp.Layer(0,0,KIT+"insulated-tote"),
                 new LayoutOp.Layer(0,2,KIT+"insulated-tote"),
                 new LayoutOp.Layer(0,4,KIT+"provision-cartons"),
-                new LayoutOp.Layer(0,0,"main-stores.frame"))))
+                new LayoutOp.Layer(0,0,"main-stores.frame")));
+        // A lift carriage on a guide rail down the aisle face carries loads to and from the shelves.
+        if(TileRegistry.installed().doodad(RACK_LIFT)!=null) rack.add(new LayoutOp.Layer(0,0,RACK_LIFT));
+        if (floor.placeAssembly(w-3,2,"main-stores.rack",rack))
             for(int y=2;y<8;y+=2) task(floor,w-4,y,w-3,y,Affordance.STOW);
     }
 

@@ -119,7 +119,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      */
     public static final EnumSet<RenderLayer> DECK_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.VEHICLES,
-            RenderLayer.DOODADS, RenderLayer.UNITS, RenderLayer.SHUTTLES, RenderLayer.AIRCRAFT_LIGHTS, RenderLayer.DECK_LIGHTING);
+            RenderLayer.DOODADS, RenderLayer.UNITS, RenderLayer.ROOFS, RenderLayer.SHUTTLES, RenderLayer.AIRCRAFT_LIGHTS, RenderLayer.DECK_LIGHTING);
 
     /**
      * Most a single {@link #advanceTo} will actually run, however far the clock
