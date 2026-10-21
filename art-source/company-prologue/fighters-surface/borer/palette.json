@@ -1,0 +1,177 @@
+{
+ "source": "reference/finish-reference.png registered by its own fit (iou_refined_affine, IoU 0.993)",
+ "space": "CIELAB D65",
+ "classes": {
+  "orange": {
+   "pixels": 197973,
+   "mean": [
+    49.21,
+    20.45,
+    33.61
+   ],
+   "std": [
+    8.0,
+    2.0,
+    3.5
+   ],
+   "L_p10_p50_p90": [
+    35.28,
+    50.84,
+    60.99
+   ],
+   "mean_srgb": [
+    180.4,
+    94.8,
+    57.4
+   ],
+   "mean_measured": [
+    49.75,
+    31.52,
+    36.47
+   ],
+   "std_measured": [
+    9.6,
+    4.1,
+    4.68
+   ],
+   "note": "mean owned: the Shepherd's graded paint; spread owned (shading on the reference)"
+  },
+  "grey": {
+   "pixels": 152472,
+   "mean": [
+    48.16,
+    0.42,
+    1.76
+   ],
+   "std": [
+    9.0,
+    0.6,
+    1.2
+   ],
+   "L_p10_p50_p90": [
+    31.25,
+    46.24,
+    65.2
+   ],
+   "mean_srgb": [
+    115.8,
+    110.5,
+    106.3
+   ],
+   "mean_measured": [
+    46.98,
+    1.25,
+    3.05
+   ],
+   "std_measured": [
+    12.81,
+    1.9,
+    2.14
+   ],
+   "note": "mean owned: the Shepherd's graded paint; spread owned (shading on the reference)"
+  },
+  "gunmetal": {
+   "pixels": 9318,
+   "mean": [
+    28.5,
+    0.69,
+    1.46
+   ],
+   "std": [
+    10.0,
+    0.6,
+    1.6
+   ],
+   "L_p10_p50_p90": [
+    8.66,
+    20.84,
+    34.54
+   ],
+   "mean_srgb": [
+    54.5,
+    50.4,
+    49.2
+   ],
+   "mean_measured": [
+    21.35,
+    1.54,
+    1.4
+   ],
+   "std_measured": [
+    9.82,
+    2.37,
+    2.43
+   ],
+   "note": "mean owned: the Shepherd's graded paint; spread owned (shading on the reference)"
+  },
+  "bright": {
+   "derived": "owned: polished steel rings, lips, tines and pins, brighter than the grey",
+   "mean": [
+    64.0,
+    -0.3,
+    1.5
+   ],
+   "std": [
+    6.0,
+    0.5,
+    0.8
+   ]
+  },
+  "dark": {
+   "derived": "owned: the Shepherd's near-black recesses",
+   "mean": [
+    17.82,
+    0.37,
+    0.92
+   ],
+   "std": [
+    5.0,
+    0.5,
+    0.7
+   ]
+  }
+ },
+ "wear": {
+  "_doc": "Owned wear colours (wear.py), CIELAB D65: the Shepherd's own (shepherd-surface/palette.json), so a drone on its cradle wears like the tender.",
+  "primer": {
+   "lab": [
+    58.0,
+    -1.0,
+    4.0
+   ],
+   "what": "grey primer under the paint"
+  },
+  "bare": {
+   "lab": [
+    70.0,
+    0.0,
+    1.5
+   ],
+   "what": "abraded bare steel, brighter than gunmetal paint"
+  },
+  "dust": {
+   "lab": [
+    38.0,
+    4.0,
+    12.0
+   ],
+   "what": "work-yard dust and grit, brown-grey"
+  },
+  "soot": {
+   "lab": [
+    13.0,
+    0.5,
+    1.5
+   ],
+   "what": "drive soot"
+  },
+  "chalk": {
+   "lab": [
+    72.0,
+    3.0,
+    13.0
+   ],
+   "what": "chalked, UV-bleached paint: faded sand goes paler and greyer, not white"
+  }
+ }
+}

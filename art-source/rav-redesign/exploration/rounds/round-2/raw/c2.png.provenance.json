@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fb4-f6ea-79e3-9a7f-c8025c2fc770",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fb4-f6ea-79e3-9a7f-c8025c2fc770\\exec-836bd15f-10dd-488c-ab98-168312c7cc79.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "rounds\\round-2\\raw\\c2.png",
+    "sha256": "6d9ad86b9aa98b32013ed302f41b3bb4f8b47aea2e201980f900cec20a6ab4e1",
+    "dimensions": [
+      1347,
+      1168
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "rounds\\round-2\\prompts\\c2.prompt.txt",
+  "promptSha256": "593f38f0238af1834e656daa0bc00a3a927cc6c422346750d675c39a7208e100",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Design and finish reference: one of the two concepts the owner liked (twin sickles, striped abdomen); keep its material and finish, not its upright pose\nImage 2: Design and finish reference: the other concept the owner liked (twin scorpion lances); keep its material and finish, not its upright pose\n\nTop-down concept for a tactical game (Starsector mod: Marines against an engineered biological weapon). ONE creature, the Runner: the swarm's fast hunter, a LOCUST crossed with a DOG. Strict overhead orthographic view, camera looking straight down at its back, creature facing UP (head toward the top), centred, filling about two thirds of the frame. Make it read as a four-legged predator from above, more dog than insect: a LONG, LOW horizontal spine, deep chest and broad shoulders, a waist, strong haunches, the head carried forward on a short thick neck, and all four legs held OUT TO THE SIDES in a wide mid-stride stance (one foreleg reaching forward, the opposite hind leg pushing back) so the legs are clearly visible around the body, not tucked under it. Locust anatomy on that frame: a saddle-shaped pronotum shield over the shoulders, big compound eyes, mandibles, a segmented abdomen behind, heavy locust jumping thighs on the hind legs. Its weapon is on TOP of the body: jointed striking spikes mounted on the back that arch forward over the head, cocked to stab down past it. Hard lacquered chitin, a crisp lacquer sheen, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border, no other creatures.\n\nThis concept: Twin lances (from reference #1): two long slender four-segment spikes rise from the rear corners of the pronotum and arc forward in parallel, cream-tipped points just ahead of the head. Near-black walnut chitin with cream suture bands across the abdomen; amber compound eyes.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "rounds\\round-1\\raw\\c8.png",
+      "sha256": "acb3ee27d2c9843a54ef0f7edeee64448e636babca6c6ee771e420c40e4fbbed",
+      "dimensions": [
+        1347,
+        1168
+      ],
+      "mode": "RGB",
+      "role": "Design and finish reference: one of the two concepts the owner liked (twin sickles, striped abdomen); keep its material and finish, not its upright pose"
+    },
+    {
+      "path": "rounds\\round-1\\raw\\c1.png",
+      "sha256": "3187c56fdf3b4b3a6ed484337c495beb66e2f6381fe7f9df743278f559c145a5",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Design and finish reference: the other concept the owner liked (twin scorpion lances); keep its material and finish, not its upright pose"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image with the lacquered walnut-and-cream finish and a strict overhead, four-legged predator silhouette."
+  ],
+  "usage": {
+    "input_tokens": 89762,
+    "cached_input_tokens": 81024,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 707,
+    "reasoning_output_tokens": 18
+  },
+  "elapsedSeconds": 52.4
+}

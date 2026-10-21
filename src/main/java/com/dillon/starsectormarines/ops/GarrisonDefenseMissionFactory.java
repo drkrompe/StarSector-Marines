@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.GarrisonDefenseMissionKey;
 import com.dillon.starsectormarines.campaign.GarrisonDefensePayload;
 import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
@@ -17,17 +18,15 @@ public final class GarrisonDefenseMissionFactory {
             return null;
         }
         int drops = Math.max(2, Math.min(10, (payload.activeSeats + 9) / 10));
-        String title = title(payload.triggerType) + " — " + planetName;
-        String flavor = "The stationed Garrison is already under attack. Defend the market "
-                + "with the assigned captain and " + payload.committedMarines
-                + " committed marines.";
+        String title = Strings.format("garrisonDefenseTitle", title(payload.triggerType), planetName);
+        String flavor = Strings.format("garrisonDefenseFlavor", payload.committedMarines);
         Mission.Builder builder = Mission.builder()
                 .id(GarrisonDefenseMissionKey.encode(payload))
                 .name(title)
                 .type(MissionType.ASSAULT)
                 .source(MissionSource.STATIONING)
                 .risk(RiskLevel.HIGH)
-                .requirements("Stationed detachment")
+                .requirements(Strings.get("garrisonDefenseRequirements"))
                 .flavor(flavor)
                 .mapPosition(0.5f, 0.5f)
                 .requiredDrops(drops)
@@ -59,11 +58,11 @@ public final class GarrisonDefenseMissionFactory {
 
     private static String title(GarrisonDefenseTriggerType type) {
         switch (type) {
-            case RIVAL_STRIKE: return "Garrison Defense: Rival Strike";
-            case VANILLA_RAID: return "Garrison Defense: Faction Raid";
-            case INTERNAL_FLIP: return "Garrison Defense: Internal Revolt";
+            case RIVAL_STRIKE: return Strings.get("garrisonDefenseTitleRivalStrike");
+            case VANILLA_RAID: return Strings.get("garrisonDefenseTitleFactionRaid");
+            case INTERNAL_FLIP: return Strings.get("garrisonDefenseTitleInternalRevolt");
             case NONE:
-            default: return "Garrison Defense";
+            default: return Strings.get("garrisonDefenseTitleDefault");
         }
     }
 }
