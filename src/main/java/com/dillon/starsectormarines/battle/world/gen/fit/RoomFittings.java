@@ -191,7 +191,8 @@ public final class RoomFittings {
             case CIVIC_OFFICE -> new InstallationOfficeFitting();
             case PARTS_CAGE -> new InstallationWorkshopFitting();
             case VEHICLE_BAY -> VehicleBayFitting.installation();
-            case BARRACKS, CREW_QUARTERS -> BerthingFitting.shipboard(purpose);
+            // A civil-defence shelter hall is bunks for everybody the colony has.
+            case BARRACKS, CREW_QUARTERS, RESIDENTIAL_HALL -> BerthingFitting.shipboard(purpose);
             case MESS_HALL -> MessHallFitting.shipboard();
             case PATIENT_WARD -> SickBayFitting.shipboard();
             default -> forPurpose(purpose);

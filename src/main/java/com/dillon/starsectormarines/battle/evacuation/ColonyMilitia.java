@@ -382,8 +382,8 @@ public final class ColonyMilitia {
 
     /**
      * Mans the civil-defence compound round the shelter, the main redoubt: the
-     * generated wall dressed with its towers, gate guns, slits, firing step and
-     * floodlights, and a wall team on the step that falls back into the shelter
+     * generated wall dressed with its towers, gate guns, slits and floodlights,
+     * and a wall team at the slits that falls back into the shelter
      * once the wall is breached. A shelter in no compound stands bare.
      */
     private static void raiseCompound(BattleSimulation sim, MapResult map, CivilianEvacuationPlacement placement,
@@ -400,7 +400,7 @@ public final class ColonyMilitia {
         }
         claimed.add(new int[]{compound.left(), compound.top(), compound.right(), compound.bottom()});
         sim.setCivilianRedoubtGround(1, compound.left(), compound.top(), compound.right(), compound.bottom());
-        int wall = ColonyRedoubts.seatLine(sim, compound.step(), compound.gateX(), compound.gateY(),
+        int wall = ColonyRedoubts.seatLine(sim, compound.posts(), compound.gateX(), compound.gateY(),
                 compound.left(), compound.top(), compound.right(), compound.bottom(),
                 "Compound Wall", "man the compound wall", risk, rng);
         if (wall < 0) return;
