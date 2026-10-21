@@ -25,9 +25,11 @@ Swarm director).
    snapshot with per-bore state for evidence.
 4. **Tiers.** Fissure → bore → maw on a seeded growth clock from eruption,
    slowed by damage taken. Emit `bore_grew_N_*`. Tier picks the strain mix
-   through a small table keyed by tier; this story fills it with runners only
-   and leaves named slots for brute, spitter and matriarch, which
-   `swarm-strains.md` and `matriarch.md` fill.
+   through a small table keyed by tier. The Brute and Spitter have shipped
+   (`colony-breach-nouns.md`, Swarm strain), so this story fills the table:
+   runners at fissure, brutes and spitters added from bore tier, every body
+   spawned through `SwarmStrains.spawn`. It leaves a named matriarch slot for
+   `matriarch.md`.
 5. **Spore vents.** Each bore projects an air-denial umbrella: an air-defence
    effect that engages aircraft inside a tier-scaled radius, reusing the
    existing ground air-defence / flak machinery (`ground-defences.md`) rather

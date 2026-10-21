@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f3d-159b-71c3-b986-80b3d8f5d38c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f3d-159b-71c3-b986-80b3d8f5d38c\\exec-0832ace1-6588-4ae2-a720-529c5e67348f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\swarm-strains\\raw\\spitter-corpse.raw.png",
+    "sha256": "1420bc75abd92cd2687459f335876ccac00e5e842c31f658be57d4eb96c66137",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\swarm-strains\\prompts\\spitter-corpse.prompt.txt",
+  "promptSha256": "3470388cc076652d8e53f90d38043ecd3c9a82004352591438ac86d59520d3cb",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry guide and edit target: the four poses' placement, heading and scale authority; reskin into corpses, keep each in its quarter\nImage 2: Material and style reference only: the existing swarm runner corpse sheet; match its finish and ichor, never its poses or layout\n\nUse case: sketch-to-render. Asset: four corpse poses of the swarm SPITTER, a fragile acid-lobbing alien strain, for a top-down tactical game; each quarter of the square image is one separate corpse, centred in its own quarter. Image 1 is the authoritative geometry guide and edit target: it is the living creature's own layers (slim shoulders over a glowing acid sac, tubular spout head, thin claws and feet) laid out collapsed. Turn each assembly into one convincing dead creature lying sprawled where it fell, preserving each pose's overall placement, heading, scale and footprint: join the loose feet and claws to the body with short thin dark segmented limbs so it reads as one fallen animal, let the spout head slump, and burst the acid sac: its membrane torn open and deflated, its glow dimmed to a dull sickly yellow-green, with a small irregular pool of yellow-green acid spilled from it beside the body (staying inside its own quarter). No living pose, no red gore, no extra creatures, nothing crossing between quarters. Straight overhead orthographic zenith camera, no perspective, no cast shadow, no ground texture, no floor, no grid lines, no border, no text, no labels, no watermark. Genuine transparent background everywhere outside the four corpses and their small spills, including between them. Crisp hand-painted 2D strategy-game sprite finish matching the living layers in Image 1 and the existing swarm corpse sheet in Image 2: dark charcoal-purple chitin, gunmetal-green under-plates, bone-grey edges; the amber sensory nodes are dark and dead now. Shown only about 50 to 90 pixels long in play, so keep bold readable shapes and strong value contrast.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\swarm-spitter-corpse-guide.png",
+      "sha256": "6ccd1e28bf4ea50fbfa7d508a58b15586d2e7bc6a88774860529d8fdaca95ed4",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry guide and edit target: the four poses' placement, heading and scale authority; reskin into corpses, keep each in its quarter"
+    },
+    {
+      "path": "mod\\graphics\\battle\\alien-dead.png",
+      "sha256": "3efe03a6e75af8d6e6ac2485ffe18c698816164821458549701be5066c6b04d2",
+      "dimensions": [
+        850,
+        163
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only: the existing swarm runner corpse sheet; match its finish and ichor, never its poses or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent corpse sheet, preserving Image 1’s four poses and using Image 2 for the corpse finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 40639,
+    "cached_input_tokens": 34816,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 578,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 71.3
+}

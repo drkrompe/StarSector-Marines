@@ -112,3 +112,7 @@ com.dillon.starsectormarines.battle.command.StoryDefenceScene
 com.dillon.starsectormarines.battle.command.MachineGuardScene
 com.dillon.starsectormarines.battle.command.SallyPortScene
 com.dillon.starsectormarines.battle.sally.SallyDoorScene
+com.dillon.starsectormarines.battle.evacuation.SwarmBruteBreachScene
+com.dillon.starsectormarines.battle.evacuation.SwarmSpitterScene
+com.dillon.starsectormarines.battle.evacuation.SwarmSpitterAirScene
+com.dillon.starsectormarines.battle.evacuation.SwarmStrainSkirmishScene

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f3d-1590-7643-bb9a-5e58351415c8",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f3d-1590-7643-bb9a-5e58351415c8\\exec-da203b71-c998-4292-91fd-7a0c1153b085.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\swarm-strains\\raw\\brute-corpse.raw.png",
+    "sha256": "a598a7d025ab42ab42abb2425490ea61b35c554a11d11d237c7393d23ba88e31",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\swarm-strains\\prompts\\brute-corpse.prompt.txt",
+  "promptSha256": "54af83d3150581ff5e77b956dc5adbf6d0d96272a7017f3147ce22dbcdab96eb",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry guide and edit target: the four poses' placement, heading and scale authority; reskin into corpses, keep each in its quarter\nImage 2: Material and style reference only: the existing swarm runner corpse sheet; match its finish and ichor, never its poses or layout\n\nUse case: sketch-to-render. Asset: four corpse poses of the swarm BRUTE, a heavy armoured alien strain, for a top-down tactical game; each quarter of the square image is one separate corpse, centred in its own quarter. Image 1 is the authoritative geometry guide and edit target: it is the living creature's own layers (plated body, battering crest head, crushing club claws, heavy feet) laid out collapsed. Turn each assembly into one convincing dead creature lying sprawled where it fell, preserving each pose's overall placement, heading, scale and footprint: join the loose feet and claws to the body with short dark segmented limbs so it reads as one fallen animal, let the head slump, crack and split several dorsal plates with bone-grey fractures, and add a small irregular pool and spatter of dark purple-black ichor directly under and beside each corpse (staying inside its own quarter). No living pose, no blood-red gore, no extra creatures, nothing crossing between quarters. Straight overhead orthographic zenith camera, no perspective, no cast shadow, no ground texture, no floor, no grid lines, no border, no text, no labels, no watermark. Genuine transparent background everywhere outside the four corpses and their small spills, including between them. Crisp hand-painted 2D strategy-game sprite finish matching the living layers in Image 1 and the existing swarm corpse sheet in Image 2: dark charcoal-purple chitin, gunmetal-green under-plates, bone-grey edges; the amber sensory nodes are dark and dead now. Shown only about 50 to 90 pixels long in play, so keep bold readable shapes and strong value contrast.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\swarm-brute-corpse-guide.png",
+      "sha256": "4bbc48fe8aba902da05a199872c817d42e500fbd9cd6c2418115bf09ea4ceaa0",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry guide and edit target: the four poses' placement, heading and scale authority; reskin into corpses, keep each in its quarter"
+    },
+    {
+      "path": "mod\\graphics\\battle\\alien-dead.png",
+      "sha256": "3efe03a6e75af8d6e6ac2485ffe18c698816164821458549701be5066c6b04d2",
+      "dimensions": [
+        850,
+        163
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only: the existing swarm runner corpse sheet; match its finish and ichor, never its poses or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use Image 1 to preserve the four poses and Image 2 for the corpse finish, generating one transparent image."
+  ],
+  "usage": {
+    "input_tokens": 79897,
+    "cached_input_tokens": 70144,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 657,
+    "reasoning_output_tokens": 42
+  },
+  "elapsedSeconds": 72.7
+}

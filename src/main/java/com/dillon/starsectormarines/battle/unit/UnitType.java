@@ -108,7 +108,19 @@ public enum UnitType {
     /** A convoy ground vehicle — the chassis itself, not its payload (see {@link com.dillon.starsectormarines.battle.sim.ConvoyService}). Combatant so it is seen, targeted, and damaged through the paths every other body uses; its role, structure, armor, and body geometry all come from the per-instance {@link com.dillon.starsectormarines.battle.vehicle.VehicleType}, the same convention as {@link #TURRET} / {@link #BASED_AIRCRAFT}. Sprite path is empty because it draws its own chassis. Not {@link #isStatic}: it moves, it simply does its moving through a {@code GroundBody} rather than the grid mover. */
     GROUND_VEHICLE("",                             null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.3f, 1.5f, 0.90f),
     /** Fast biological close-contact attacker for the civilian-rescue swarm payload. Append-only; legacy ALIEN remains the generic ranged-stat archetype. */
-    SWARM_RUNNER("graphics/battle/alien.png",       "graphics/battle/alien-dead.png",       true,  20.0f, 5.0f, 3.2f, 1.0f, 0.7f, 1.5f, 20.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.3f, 0.3f, 0.30f);
+    SWARM_RUNNER("graphics/battle/alien.png",       "graphics/battle/alien-dead.png",       true,  20.0f, 5.0f, 3.2f, 1.0f, 0.7f, 1.5f, 20.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.3f, 0.3f, 0.30f),
+    /**
+     * Slow, plated swarm strain that breaks into held buildings and goes for emplacements. Its plate is
+     * issued at spawn ({@code SwarmStrains}), not here: 20 points at rating 10, which a DMR or rocket
+     * goes straight through and an SMG barely scratches. Append-only.
+     */
+    SWARM_BRUTE("graphics/battle/alien.png",        "graphics/battle/swarm-brute-dead.png", true,  40.0f, 14.0f, 1.8f, 1.0f, 1.2f, 1.7f, 16.0f, FrameLayout.WNES_WEAPON_UP, 1.5f, 2.0f, 0.45f, 0.45f),
+    /**
+     * Fragile swarm strain that keeps its distance and lobs acid with a splash, at infantry or a low
+     * flier. {@link #attackDamage} is the acid's direct hit; the splash and range live with its
+     * behaviour. Append-only.
+     */
+    SWARM_SPITTER("graphics/battle/alien.png",      "graphics/battle/swarm-spitter-dead.png", true, 12.0f, 7.0f, 2.6f, 0.55f, 2.6f, 14.0f, 20.0f, FrameLayout.WNES_WEAPON_UP, 1.1f, 1.4f, 0.3f, 0.30f);
 
     public final String spritePath;
     /** Optional corpse sheet — 4 prone poses, auto-sliced like the alive sheets. Drawn for {@code !isAlive()} units in their own pre-pass so live units draw on top. Null = no corpse rendering (units just vanish on death). */
@@ -258,6 +270,11 @@ public enum UnitType {
      */
     public boolean isDrone() { return this == DRONE; }
 
+    /** Whether this archetype is a swarm strain body: runner, brute or spitter. */
+    public boolean isSwarm() {
+        return this == SWARM_RUNNER || this == SWARM_BRUTE || this == SWARM_SPITTER;
+    }
+
     /**
      * Whether this unit is a trained humanoid whose individual soldier profile
      * controls handling, trigger discipline, and reflexes. Kept here so every
@@ -329,12 +346,12 @@ public enum UnitType {
         return this == MARINE || this == MARINE_BLUE || this == MARINE_RED
                 || this == MILITIA || this == CIVILIAN || this == ENGINEER
                 || this == TECHNICIAN
-                || this == SCIENTIST || this == ALIEN || this == SWARM_RUNNER;
+                || this == SCIENTIST || this == ALIEN || isSwarm();
     }
 
     /** Whether the layered compositor should add carried/firing weapon art. */
     public boolean drawsLayeredWeapon() {
-        return drawnAsLayers() && combatant && this != ALIEN && this != SWARM_RUNNER;
+        return drawnAsLayers() && combatant && this != ALIEN && !isSwarm();
     }
 
     /**

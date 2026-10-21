@@ -46,7 +46,11 @@ public enum LayeredArmorFamily {
      * markings. Raiders wear it; the company's issue keeps {@link #BOARDING_JACK}. Appended for
      * ordinal stability.
      */
-    BOARDING_JACK_PIRATE;
+    BOARDING_JACK_PIRATE,
+    /** The swarm Brute: a heavier plated body, battering crest and crushing fore-claw. Appended. */
+    XENO_BRUTE,
+    /** The swarm Spitter: slim shoulders over an acid sac and a spout head; the Runner's feet and claws. Appended. */
+    XENO_SPITTER;
 
     /**
      * Whether this family is a powered shell cut into a torso and two hinged shoulder layers
@@ -70,7 +74,12 @@ public enum LayeredArmorFamily {
      */
     public boolean hasDownedArt() {
         // Every infantry outfit falls as itself; only the alien keeps its unit type's sheet.
-        return this != XENO;
+        return !isXeno();
+    }
+
+    /** Whether this is one of the swarm's chitin families, which fall through their unit type's corpse sheet. */
+    public boolean isXeno() {
+        return this == XENO || this == XENO_BRUTE || this == XENO_SPITTER;
     }
 
     /**
@@ -106,6 +115,8 @@ public enum LayeredArmorFamily {
             case SCIENTIST: return SCIENTIST;
             case ALIEN:
             case SWARM_RUNNER: return XENO;
+            case SWARM_BRUTE: return XENO_BRUTE;
+            case SWARM_SPITTER: return XENO_SPITTER;
             case MARINE:
             default: return CHARCOAL;
         }
