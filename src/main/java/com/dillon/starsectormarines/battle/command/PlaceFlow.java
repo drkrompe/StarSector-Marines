@@ -75,8 +75,26 @@ final class PlaceFlow {
         return !"false".equalsIgnoreCase(System.getProperty(FORWARD_PROPERTY, "true"));
     }
 
-    /** A free squad that may be staged: not manning, not on a duty, not in a fight, strong enough. */
-    record Candidate(int squadId, int x, int y) { }
+    /**
+     * A free squad that may be staged: not manning, not on a duty, not in a fight, strong enough. A squad offered only
+     * for {@code regions} (a party's hold directives) is staged only for an area whose places lie in one of them.
+     */
+    record Candidate(int squadId, int x, int y, List<PlaceTarget> regions) {
+        Candidate {
+            regions = List.copyOf(regions);
+        }
+
+        Candidate(int squadId, int x, int y) {
+            this(squadId, x, y, List.of());
+        }
+
+        /** Whether this squad may wait for places centred on {@code (x, y)}. */
+        boolean mayServe(int x, int y) {
+            if (regions.isEmpty()) return true;
+            for (PlaceTarget region : regions) if (region.contains(x, y)) return true;
+            return false;
+        }
+    }
 
     /** One squad's waiting order, and whether it waits forward. */
     static final class Post {
@@ -241,7 +259,7 @@ final class PlaceFlow {
                 failed[i] = true;
                 continue;
             }
-            int pick = nearest(free, used, cell, reach);
+            int pick = nearest(free, used, cell, target[i], reach);
             if (pick < 0) {
                 failed[i] = true;
                 continue;
@@ -272,10 +290,13 @@ final class PlaceFlow {
         return cell != null ? cell : GarrisonFlow.snap(desired[0], desired[1], SNAP_RADIUS, stand);
     }
 
-    /** The nearest unused candidate (of the first {@link #CANDIDATES_TRIED} by distance) that can reach the cell, or -1. */
-    private static int nearest(List<Candidate> free, boolean[] used, int[] cell, HeldGround.Reach reach) {
+    /**
+     * The nearest unused candidate (of the first {@link #CANDIDATES_TRIED} by distance) that may serve the places at
+     * {@code target} and can reach the cell, or -1.
+     */
+    private static int nearest(List<Candidate> free, boolean[] used, int[] cell, int[] target, HeldGround.Reach reach) {
         List<Integer> byDistance = new ArrayList<>();
-        for (int i = 0; i < free.size(); i++) if (!used[i]) byDistance.add(i);
+        for (int i = 0; i < free.size(); i++) if (!used[i] && free.get(i).mayServe(target[0], target[1])) byDistance.add(i);
         byDistance.sort(Comparator.<Integer>comparingLong(i -> {
             long dx = free.get(i).x() - cell[0];
             long dy = free.get(i).y() - cell[1];
