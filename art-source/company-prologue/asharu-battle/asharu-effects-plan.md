@@ -137,7 +137,7 @@ three Lashers would flash in step.
      builds' scar anchors (the clean builds have none).
   3. **Debris:** tumbling plate fragments and sparks, to replace the blockout's debris placeholder.
 - **Files:** `swfx_impacts.py` (new), `bench_impacts.py`.
-- **Proof (light):** a Buffalo Mk.II stand-in taking a light MG stream (sparks), then light assault
+- **Proof (light):** a Hound (P) taking a light MG stream (sparks), then light assault
   gun HE (flashes), then a breach that starts burning. 8 frames.
 - **Done when:** S6b's "armour soaks it, then she breaks up" reads in two beats.
 
@@ -160,7 +160,7 @@ three Lashers would flash in step.
 | 2 | S6 (the cook-off) | Harpoon salvo arriving, Phaeton cook-off, Lasher hit and burning, MG fire |
 | 3 | S5 (85 mm, the opener) | Manticore main gun and Harpoon salvo over 3-4 km, the Lashers' PD screen killing some short |
 | 4 | S6c | Displacer blink, Wolf (P) front shields up under the Mule's fire then down, ion cannon and mining blaster on the Tarsus's drives |
-| 5 | S6b | Ammo Feeder burst, armour soaking hits on the Buffalo Mk.II, breach, break-up |
+| 5 | S6b | Ammo Feeder burst, armour soaking hits on a Hound (P), breach, break-up |
 | 6 | S6d | chaingun, flares, no shields, drives hit |
 | 7 | S9 | Colossus flares and turrets, a Kite's omni shield driven off |
 | 8 | S7, S8 | boarding cover fire; the Colossus's tug pod shot out, debris |

@@ -106,6 +106,28 @@ The brawl reads as Starsector because it moves to the game's own rhythm:
   - omni shields: Manticore, Kite, Tarsus, Phaeton, Mule, Buffalo, Dram, Shepherd;
   - no shield: Hound and Buffalo Mk.II, which is why they rely on armour and flares.
 
+### Space has stars
+
+The owner's call (2026-10-21): a camera exposed for sunlit hulls would lose the stars, but space
+reads wrong without them. Every key frame has a starfield, faint and sparse, mostly dim with a
+few bright, warm and cool. It is seen only by the camera, so it lights nothing. It is off on the
+roster sheets.
+
+### Continuity
+
+Fixed before any production render (owner: make continuity changes without asking):
+
+- **S6c, S7:** the Tarsus's drives are shot out, so her fire burns up out of breaches and her
+  smoke rises. Neither streams aft like a drive plume.
+- **S9:** the Kite (P) driven off is Kite B. Kite A stays alongside the Tarsus and is docked
+  with her in S10.
+- **S10:** the Falcon (P) carries the hit she took in S9b: fire and smoke on her flank.
+- **S6b:** the escorts' victim is a third Hound (P). The stand-ins stay distant.
+- **Line of sight:** every shot fires from a gun that bears on the target and has a clear line
+  to it, checked by ray-cast in Blender (`--stage-only --los`). Two shots were firing through
+  their own ship: the merchant Wolf through her bridge dish in S6c, the lead Lasher through her
+  own third turret in S9b. They now fire from a gun with a clear line.
+
 ## Framing: a comms recording
 
 The owner's direction (2026-10-20): the fight happened cycles ago, so the audience **hears it
@@ -158,7 +180,7 @@ once time and place are established.
    range. The Phaeton tanker, at the convoy's tail, goes up. A Lasher burns.
    The lead Lasher turns back into the fire and is shot up. Then the escorts
    answer: Lasher B and the merchant Wolf roll over onto the climbing raiders and
-   break up a Buffalo Mk.II, and the convoy's Hound kills a Hound (P) at the
+   break up a Hound (P), and the convoy's Hound kills a Hound (P) at the
    rear before the second one cripples her.
 4. **The tail is cut off.** The two Wolves (P) blink through the column between
    the freighters and rake the Tarsus's drives as they pass. The Tarsus, astern of the Colossus, has her drives
@@ -183,7 +205,7 @@ once time and place are established.
 
 | | Convoy | Pirates |
 |---|---|---|
-| Destroyed | Phaeton | Buffalo Mk.II B, Hound (P) A |
+| Destroyed | Phaeton | Hound (P) C (S6b), Hound (P) A (S6d) |
 | Crippled or lost | lead Lasher, Lasher A, the convoy's Hound; Colossus and Morrow fall | Falcon (P) hit hard; Kite (P) A driven off |
 | Taken | Tarsus | |
 | Got away | Mule, both Buffalos, Dram, Lasher B, the merchant Wolf | the rest, with the Tarsus |
@@ -222,9 +244,9 @@ Colossus 108 m, Onslaught 301 m.
 | Falcon (P) | flagship, light cruiser | 174 m | 1.6 Colossus; 0.6 Onslaught | **finished** (accepted by the owner; faded red kept) |
 | Colossus Mk.III | the prize ship: tries for the Colossus, takes the Tarsus | 110 m | the Colossus's twin | **finished** (accepted by the owner); grapples from stowed to clamped, fitted to the Tarsus |
 | Manticore (P) | long-range destroyer that breaks the screen | 91 m (0.59 m/u; 95 m across the pods) | 0.85 Colossus | **finished** (textured; no shield yet) |
-| Buffalo Mk.II x2 | destroyers | 87 m (est.) | 0.8 Colossus | stand-in |
+| Buffalo Mk.II | destroyer | 87 m (est.) | 0.8 Colossus | stand-in, kept distant |
 | Wolf (P) x2 | fast frigates that cut the column | 70 m (size not settled) | 1.15 Hounds | **finished** |
-| Hound (P) x2 | frigates | 61 m | the reference | **finished** (pirate state of the Hound) |
+| Hound (P) x3 | frigates | 61 m | the reference | **finished** (pirate state of the Hound) |
 | Kite (P) x2 | boarding shuttles | 52 m | 0.9 Hound | **finished** |
 
 All the pirate hulls are vanilla `pirate_bp` skins or pirate hulls (Colossus
@@ -259,18 +281,19 @@ the shooter's real mounts and prints "bears" or "CANNOT BEAR" with how far short
 
 ## Shot list
 
-About 2 minutes 10 (128 s): 10 s of recording, 34 s of setup and ambush, 60 s of fighting, 24 s of the fall. **K** marks a shot with a blockout key frame. Shot names with a letter (S6b) were added on 2026-10-20 and are renumbered once the list is settled.
+About 2 minutes 15 (134 s): 10 s of recording, 40 s of setup and ambush, 60 s of fighting, 24 s of the fall. **K** marks a shot with a blockout key frame. Shot names with a letter (S6b) were added on 2026-10-20 and are renumbered once the list is settled.
 
 | Shot | Length | Picture | Ships seen closest | Camera |
 |---|---|---|---|---|
 | S0 | 10 s | **The recording.** Black, then the playback screen: source, timestamp, place, the channels lighting as each speaks, a waveform. The S1 traffic plays over it as audio only. On the escort lead's "close up the column", cut to picture. | (none) | (a screen, not a camera) |
+| S1a **K** | 6 s | **The view the player knows** (owner, 2026-10-21). The first picture after the recording looks straight down on the convoy, prograde up the frame: the ships small against the desert far below, the way the player has always seen them. Then the camera tips down and pulls into 3D for S1. | the core convoy, from above | 100 mm, straight down from 11 km |
 | S1 **K** | 8 s | Establishing: the convoy in loose column over the day side, the limb high in frame, the desert sliding beneath. Ordinary work. | the whole convoy, small | 35 mm, high off the north flank |
 | S2 | 6 s | Alongside the Colossus. Morrow rides off her starboard quarter; a Lasher slides through the foreground. | Colossus, Morrow, Lasher | 28 mm, tracking alongside at 300 m |
 | S3 **K** | 8 s | Running dark. Long lens back down at the derelict platform: dark, stripped, hulks in its bays; hold until it reads as junk. Then one hulk shows a running light, reactor glow behind a bay, a second, a third. Drives light and the first ships ease out. The audience sees the trap before the convoy does. | the platform, the Falcon (P) | 135 mm from the convoy's tail (longer, about 300 mm, is worth trying) |
 | S4 **K** | 6 s | First contact: twelve hulls climbing out of the platform toward the column, drives lit, the desert behind them. | Falcon (P), Wolves, Hounds (P), Kites (P) | 35 mm, off their flank |
 | S5 | 6 s | The opening: the Manticore (P) fires at long range, and rounds and missiles cross 3-4 km of space. | Manticore (P) | 85 mm along the line of fire |
 | S6 **K** | 8 s | The screen breaks: the Phaeton tanker is struck in the first 2 s and cooks off through the rest, a Lasher burns, and the lead Lasher turns back into the fire and is hit. | lead Lasher, Phaeton, Lasher A | 35 mm, looking aft along the convoy |
-| S6b **K** | 8 s | The escorts answer. Lasher B and the merchant Wolf turn back and roll onto their backs over the climbing raiders. A Buffalo Mk.II's armour soaks it (no shield), then the Ammo Feeder burst breaks her up. First blood to the convoy. | Lasher B, merchant Wolf, Buffalo Mk.II B | 50 mm, above and behind the escorts, looking down past them |
+| S6b **K** | 8 s | The escorts answer. Lasher B and the merchant Wolf turn back and roll onto their backs over the climbing raiders. A Hound (P)'s bare armour soaks it (no shield), then the Ammo Feeder burst breaks her up. First blood to the convoy. | Lasher B, merchant Wolf, Hound (P) C | 50 mm, above and behind the escorts, looking down past them |
 | S6c **K** | 8 s | The column is cut. Tracking alongside at about 300 m: the two Wolves (P) blink (Displacer) into the gap between the freighters, front shields up under the Mule's fire, then down to rake the Tarsus's drives. The merchant Wolf chases them through. | Wolves (P), Tarsus, merchant Wolf | 35 mm, tracking alongside the column |
 | S6d **K** | 6 s | The rear guard. The convoy's Hound rolls over to face two Hounds (P) climbing at her. No shields on either side: armour, flares and guns. She kills the first; the second's fire takes her drives, and she falls back on the column trailing flares. | Hound, Hounds (P) | 35 mm, close behind the Hound |
 | S7 **K** | 8 s | Boarding the Tarsus: drives shot out, fallen out of the column, Kites (P) alongside, a Wolf (P) covering; the convoy runs on ahead. | Tarsus, Kite (P), Wolf (P) | 35 mm, from behind the Tarsus |
@@ -392,8 +415,8 @@ deferred pass 5 states (Colossus crashed; Morrow grounded and damaged).
 
 No further hulls are to be ordered from this blockout unless the owner asks
 (owner, 2026-10-19). The Enforcer was cut, and a finished Lasher leads the escort.
-The Mule, Buffalo, Dram and Buffalo Mk.II stay stand-ins, because they are only
-seen at a distance.
+The Mule, Buffalo, Dram and Buffalo Mk.II stay stand-ins and are only ever seen at a distance
+(owner, 2026-10-21). That is why S6b's victim is a third Hound (P), not the second Buffalo Mk.II.
 
 Each build is one Drive folder, copied whole to `build/asharu-battle/builds/<folder>/` by hand,
 or by the render queue as a drive input (`queue_jobs.py`), pinned by its blend's sha256.
@@ -406,7 +429,7 @@ or by the render queue as a drive input (`queue_jobs.py`), pinned by its blend's
 | Shepherd "Morrow" | `shepherd/c85fb19b6` | `shepherd` | finished (close-shot rebuild; dark glazing, 27 lit lamps, blue ring unlit) |
 | Lasher x3 | `lasher-independent/0cb9d83` (`lasher.blend`) | `lasher-independent` | finished (kit rebuild); awaiting the owner's review |
 | Hound | `hound-independent/5cb098e10` | `hound-independent` | **accepted** (close-shot rebuild; wheelhouse, mast and ramp lamps unlit) |
-| Hound (P) x2 | `hound-p/5cb098e10` | `hound-p` | **accepted** (close-shot rebuild; wheelhouse, mast and ramp lamps unlit) |
+| Hound (P) x3 | `hound-p/5cb098e10` | `hound-p` | **accepted** (close-shot rebuild; wheelhouse, mast and ramp lamps unlit) |
 | Kite (P) x2 | `kite-p/0cb9d83` | `kite-p` | **accepted** (kit rebuild: hammer, swarmer as a row of four) |
 | Falcon (P) | `falcon-p/06784b46f` | `falcon-p` | **accepted** (close-shot rebuild; bridge glazing now dark glass, so S10 loses that glow) |
 | Colossus Mk.III | `colossus-mk3/005c3b11b` | `colossus-mk3` | **accepted** |
@@ -487,8 +510,8 @@ new shots draw on:
   - the Lasher's Ammo Feeder burst (a faster muzzle cadence).
   The shield kit already exists (front arcs, faction colours, one strength knob). Overload,
   venting and the blink are new.
-- **Condition states:** two are stand-ins, a destroyed Buffalo Mk.II (S6b) and a destroyed
-  Hound (P) (S6d), and are blasts and debris over the slab in the blockout. Three are finished
+- **Condition states:** two Hounds (P) are destroyed (S6b, S6d), as blasts and debris over the
+  finished build in the blockout. Three are finished
   builds that would want a damaged state: the Falcon (P) hit (S9b), the lead Lasher burning
   (S6, S9b) and the convoy's Hound with her drives hit (S6d).
 - **The Colossus's shield:** the game gives her a front shield, but the staged build

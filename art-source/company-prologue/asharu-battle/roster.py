@@ -80,11 +80,12 @@ PIRATE = [
     dict(key='manticore-p', game='manticore_pirates.skin', name='Manticore (P)', role='long-range destroyer: breaks the screen',
          finished='manticore-p'),
     dict(key='buffalo2-a', game='buffalo2', name='Buffalo Mk.II', role='destroyer'),
-    dict(key='buffalo2-b', game='buffalo2', name='Buffalo Mk.II', role='destroyer'),
     dict(key='wolf-p-a', game='wolf_d_pirates.skin', name='Wolf (P)', role='fast frigate: cuts the column', finished='wolf-p'),
     dict(key='wolf-p-b', game='wolf_d_pirates.skin', name='Wolf (P)', role='fast frigate: cuts the column', finished='wolf-p'),
     dict(key='hound-p-a', game='hound_d_pirates.skin', name='Hound (P)', role='frigate', finished='hound-p'),
     dict(key='hound-p-b', game='hound_d_pirates.skin', name='Hound (P)', role='frigate', finished='hound-p'),
+    dict(key='hound-p-c', game='hound_d_pirates.skin', name='Hound (P)', role='frigate: broken up by the escorts in S6b',
+         finished='hound-p'),     # was a second Buffalo Mk.II: the S6b victim is seen close, and stand-ins stay distant
     dict(key='kite-p-a', game='kite_pirates.skin', name='Kite (P)', role='boarding shuttle', finished='kite-p'),
     dict(key='kite-p-b', game='kite_pirates.skin', name='Kite (P)', role='boarding shuttle', finished='kite-p'),
 ]
