@@ -5,23 +5,31 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.decision.DefenseFrontage;
 import com.dillon.starsectormarines.battle.decision.DefenseFrontage.Aperture;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.evacuation.CivilianRedoubt;
+import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
 import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -75,6 +83,8 @@ class GarrisonInventoryEvidence {
         cases.add(new Case("SABOTAGE", () -> BattleSetup.createSabotage(15313, lift, false)));
         cases.add(new Case("EXTRACTION", () -> BattleSetup.createExtraction(15314)));
         cases.add(new Case("CIVILIAN_RESCUE", () -> BattleSetup.createCivilianRescue(15315, lift, false, RiskLevel.MEDIUM)));
+        // The Colony Breach colony, on the fixture its commander evidence plays, so a redoubt here is that run's.
+        cases.add(new Case("COLONY_BREACH", GarrisonInventoryEvidence::colonyBreach));
 
         StringBuilder out = new StringBuilder("# Garrisonable inventory\n\n");
         out.append("Per node: kind, garrison size, footprint; building scope W/E/S = windows / entrances / distinct stand cells; ")
@@ -102,6 +112,7 @@ class GarrisonInventoryEvidence {
         List<TacticalNode> nodes = sim.getTacticalMap() == null ? List.of() : sim.getTacticalMap().all();
         out.append("map ").append(grid.getWidth()).append('x').append(grid.getHeight())
                 .append(", nodes ").append(nodes.size()).append('\n');
+        redoubts(sim, nodes, out);
 
         for (TacticalNode node : nodes) {
             List<Aperture> structure = DefenseFrontage.forStructure(node, sim);
@@ -149,6 +160,74 @@ class GarrisonInventoryEvidence {
         for (int g = places.stretchCount(); g < places.count(); g++) posts += places.size(g);
         out.append(String.format("garrisonables: stretches %d, building envelopes %d (%d posts)%n",
                 places.stretchCount(), places.count() - places.stretchCount(), posts));
+    }
+
+    /**
+     * Each redoubt as a place to hold: its claimed ground, the held building's envelope, and what stands
+     * on that ground to fight from — fighting-position cells, wall outside the held building and how much
+     * of it a Brute can break, props, gun emplacements, and the garrison.
+     */
+    private static void redoubts(BattleSimulation sim, List<TacticalNode> nodes, StringBuilder out) {
+        List<CivilianRedoubt> redoubts = sim.getCivilianRedoubts();
+        if (redoubts.isEmpty()) return;
+        NavigationGrid grid = sim.getGrid();
+        CellTopology topology = sim.getTopology();
+        FightingPositionIndex positions = sim.fightingPositions();
+        out.append("\n| redoubt | door | ground | bldg W/E/S | FP runs/cells | wall outside the building (light) | props | guns | garrison |\n")
+                .append("|---|---|---|---|---|---|---|---|---|\n");
+        for (CivilianRedoubt r : redoubts) {
+            TacticalNode held = null;
+            for (TacticalNode node : nodes) {
+                if (r.contains(node.anchorX, node.anchorY, 0) && topology.getBuildingId(node.anchorX, node.anchorY) != 0) {
+                    held = node;
+                    break;
+                }
+            }
+            Set<Integer> runs = new HashSet<>();
+            int runCells = 0, freeWall = 0, lightWall = 0, props = 0;
+            for (int y = Math.max(0, r.top() - 1); y <= Math.min(grid.getHeight() - 1, r.bottom() + 1); y++) {
+                for (int x = Math.max(0, r.left() - 1); x <= Math.min(grid.getWidth() - 1, r.right() + 1); x++) {
+                    int run = positions == null ? -1 : positions.runIdAt(x, y);
+                    if (run >= 0) {
+                        runs.add(run);
+                        runCells++;
+                    }
+                    boolean building = held != null && x >= held.left && x <= held.right && y >= held.top && y <= held.bottom;
+                    if (!building && topology.isWall(x, y) && !grid.isWalkable(x, y)) {
+                        freeWall++;
+                        int hp = grid.getWallHp(x, y);
+                        if (hp > 0 && hp <= 120) lightWall++;
+                    }
+                }
+            }
+            for (Doodad d : sim.getDoodads()) {
+                if (r.contains(d.cellX, d.cellY, 1)) props++;
+            }
+            int guns = 0;
+            for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+                long unit = sim.liveUnitAt(i);
+                if (sim.identity().faction(unit) != Faction.ALLY || !sim.identity().type(unit).isTurret()) continue;
+                if (r.contains(sim.world().cellX(unit), sim.world().cellY(unit), 4)) guns++;
+            }
+            Squad garrison = r.garrisonSquadId() >= 0 ? sim.getSquad(r.garrisonSquadId()) : null;
+            out.append(String.format("| %d%s | %d,%d | %dx%d | %s | %d/%d | %d (%d) | %d | %d | %s |%n",
+                    r.number(), r.isMain() ? " (shelter)" : "", r.approachX(), r.approachY(),
+                    r.right() - r.left() + 1, r.bottom() - r.top() + 1,
+                    held == null ? "-" : counts(DefenseFrontage.forStructure(held, sim)),
+                    runs.size(), runCells, freeWall, lightWall, props, guns,
+                    garrison == null ? "hidden" : String.valueOf(garrison.originalSize)));
+        }
+        out.append('\n');
+    }
+
+    /** The colony the Colony Breach commander evidence plays: its fixture, built as that harness builds it. */
+    private static BattleSimulation colonyBreach() {
+        try (InputStream stream = GarrisonInventoryEvidence.class.getResourceAsStream("/battle-fixtures/colony-breach-v1.json")) {
+            if (stream == null) throw new IllegalStateException("missing colony-breach-v1.json");
+            return BattleFixtureJson.fromJson(new JSONObject(new String(stream.readAllBytes(), StandardCharsets.UTF_8))).build();
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private static boolean covered(List<TacticalNode> nodes, int x, int y) {
