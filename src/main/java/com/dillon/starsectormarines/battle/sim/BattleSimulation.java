@@ -148,8 +148,10 @@ import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.combat.fx.RollingBlast;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.vehicle.DozerBlade;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
 import com.dillon.starsectormarines.battle.vehicle.HullPivot;
+import com.dillon.starsectormarines.battle.vehicle.HullSlide;
 import com.dillon.starsectormarines.battle.vehicle.ScoutSight;
 import com.dillon.starsectormarines.battle.vehicle.SideObservers;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDustEmitter;
@@ -3489,6 +3491,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         MachineAssaults.tickVehicles(this);
         MachineGuards.tickVehicles(this);
         groundSystem.tick(TICK_DT, directControl.controlledVehicleId(), directControl.intent());
+        // A hull a Brute ran into slides and rocks on top of its own drive (HullSlide).
+        for (long hull : convoy().entityIds()) {
+            GroundBody body = convoy().body(hull);
+            if (body != null && HullSlide.moving(body)) {
+                HullSlide.tick(body, convoy().vehicleType(hull), grid, rosterService.radius(hull), TICK_DT);
+            }
+        }
         tickProfile.lap(TickProfile.Phase.GROUND_SYSTEM);
         // Ballistic-round impact clock — a resolved round's damage/hit-response
         // applies here, on its flight-time delay, rather than inline at fire

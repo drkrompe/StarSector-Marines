@@ -498,7 +498,10 @@ painting, hurt. A wounded body **bleeds**, as the Zerg's buildings did: a
 wound is a puncture in a living membrane, and it pulses to a heartbeat: on
 each beat the torn slit dilates, its flaps lift and a gout of ichor is pushed
 out over the lip to run downhill as a glossy film, which drains and thins
-before the next. The loops are pinned to the wounds its own
+before the next. A long wound (a gash, a torn plate's socket) is a **fissure**
+instead and sprays on the same beat: its lips part and throw a fan of droplets
+downhill, arcing with their shadows under them, landing as splats that soak
+away before the next beat. The loops are pinned to the wounds its own
 painting shows and running downhill off its body (into the pit from a bore's
 lip). The first wound bleeds as the body turns wounded, and more open the
 further it is hurt, every one by under a third of that; each wound bleeds at
@@ -595,7 +598,10 @@ for one job in the cycle, and reads that way on screen.
   than breaking the wall beside it. "Light" means a colony wall (at most 120 of
   wall left); fortified and fort walls are out of its reach until something
   else has worn them down. Its blow carries penetration, so it hurts plated
-  bodies and emplacements where a Runner's slash only scratches.
+  bodies and emplacements where a Runner's slash only scratches. On infantry
+  the blow is a **trample**: the body under it is knocked down for a moment and
+  bowled a little way, and anyone on foot right beside it takes half the blow
+  and goes down too (`-Dbattle.brute.trample=false` is the control).
 
   It has two speeds: it **walks** at its sim speed and **charges** at a much
   higher one. A **charge** is a committed straight run at one target, or at the
@@ -608,9 +614,25 @@ for one job in the cycle, and reads that way on screen.
   depends on what it hits: infantry is thrown aside and knocked down and the
   charge goes on through up to two bodies; a light prop is bowled over; a light
   wall takes one double-weight ram; a heavy wall or a tank's bulk stuns the
-  Brute; a vehicle is shoved and stalled by its **weight class** (light /
-  medium / heavy on `VehicleType`); a mech is struck in the legs and, unless
-  heavy, staggered. Knocked down, stalled, staggered and stunned are one short
+  Brute; a vehicle is stalled by its **weight class** (light / medium / heavy
+  on `VehicleType`); a mech is struck in the legs and, unless heavy,
+  staggered.
+
+  Running into a hull is a **contact**, not a rule of thumb (`HullImpact`):
+  the Brute is a point mass at charge speed, the hull a rectangle about its
+  centre of gravity with its own mass, and the two exchange one impulse where
+  the Brute meets the footprint, momentum conserved. So the hull moves by how
+  heavy it is against the Brute and turns by how far from its centre it was
+  struck, and the Brute rebounds with what the hull did not take and is hurt,
+  through its plate, by whatever impulse its bulk could not shed. A pickup is
+  pushed half a cell and swung round; an APC moves a little; a tank only rocks
+  on its suspension, and the Brute comes off worse. The hull then **slides**
+  (`HullSlide`): its tires or tracks scrub the velocity away as a fixed
+  deceleration in the hull's own frame, so a wheeled hull struck end-on rolls
+  on while one struck in the side stops short, tracks hold harder than wheels
+  along the hull, and the spin is scrubbed by the same sideways grip. Nothing a
+  charge strikes is moved in one step: a thrown or trampled body and a
+  rebounding Brute also slide to rest over the next ticks. Knocked down, stalled, staggered and stunned are one short
   **can't act** state (`StaggerService`): no move, no fire, for a fixed time,
   never a casualty state. The swarm's own bodies are never struck. Squad mates
   of a thrown body take a near-miss morale drain. The numbers (charge speed,
@@ -622,19 +644,23 @@ for one job in the cycle, and reads that way on screen.
   the charge is shown four ways, all presentation over the rule: a faint amber
   wedge along the line during the tell, with the other threat warnings; a
   knocked-down body's picture lying as a fallen one does for that second,
-  with a ring of dust where it lands, while the sim keeps it upright; one
-  amber daze mark over anything that can't act, whatever made it so; and the
-  squad card's status word naming the cause (knocked down, stalled,
+  with a ring of dust where it lands, while the sim keeps it upright; a quiet
+  amber arc on the ground under any non-swarm body that can't act, whatever made
+  it so, emptying as the hold runs out; and the squad card's status word naming the cause (knocked down, stalled,
   staggered, stunned) ahead of engaged or wounded.
 
   Like the Runner it is drawn on its own skeleton (`RavBruteRig`): a plum,
   plated rhino-ram with a mace head on four boar's legs, the hooves under the
   body and the shanks over them. It walks, trots and gallops with the hips
   and shoulders swaying against each other; it plants its feet to stand, to
-  brace for the tell and while it can't act, gallops through a charge with
-  its head down, and rears and drives the head down for each blow, timed off
-  the attack cooldown as the Runner's arms are. Its corpse is still the old
-  single sprite.
+  brace for the tell and while it can't act, and gallops through a charge with
+  its head down. A blow is the whole body's, timed off the attack cooldown as
+  the Runner's arms are: the weight goes back onto the hind legs and the
+  forequarters rise, then it drives forward through the shoulders, the front
+  hooves stamping down ahead and the head driving with them; a charge's hit
+  plays the same drive. Stunned, it shows it in its body rather than with a
+  mark: the head hangs and shakes slowly side to side and the shoulders
+  wander. Its corpse is still the old single sprite.
 - **Spitter** — fragile, keeps its distance, lobs acid. It backs away from any
   ground enemy that closes inside its charge radius and does not lob while it
   runs. Otherwise a low hostile craft in reach whose skin its acid can bite
