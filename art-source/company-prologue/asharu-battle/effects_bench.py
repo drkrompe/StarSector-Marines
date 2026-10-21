@@ -102,6 +102,10 @@ class Bench:
         world = bpy.data.worlds.new('Bench black')
         scene.world = world
         world.color = (0, 0, 0)
+        bg = world.node_tree.nodes.get('Background') if world.node_tree else None
+        if bg is not None:          # a new world's node tree carries its own 0.05 grey
+            bg.inputs['Color'].default_value = (0, 0, 0, 1)
+            bg.inputs['Strength'].default_value = 0.0
         self.libraries = {}
         self.ships = []
         # A fixed key from above-left and a faint cool fill: enough to read the hull, dark

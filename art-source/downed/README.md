@@ -30,5 +30,4 @@ Blood pools: `downed.py pool-guide` draws four seeded pool shapes
 outfit.
 
 Adding an outfit: write `prompts/<outfit>.txt`, generate, add it to `OUTFITS` in
-`downed.py`, export, then add the family to `LayeredArmorFamily.hasDownedArt` and to
-`DownedArtTest`.
+`downed.py`, export, then add the family to `LayeredArmorFamily.hasDownedArt`.
