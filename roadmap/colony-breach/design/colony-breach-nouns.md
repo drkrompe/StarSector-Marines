@@ -466,7 +466,17 @@ behaviour. A strain is a designed stage of the one organism (see *Origin*), not
 another animal: every strain is the Runner's body plan and chitin specialised
 for one job in the cycle, and reads that way on screen.
 
-- **Runner** — the shipped 20 HP melee body. Volume.
+- **Runner** — the shipped 20 HP melee body. Volume. It is drawn on its own
+  skeleton (`RavRunnerRig`), not on the layered infantry composition: a hunched
+  hound whose feet stay planted on the ground, galloping and trotting with the
+  spine flexing and the shoulders and hips swaying against each other, with two
+  jointed spike arms on its shoulders. Each blow is one arm, alternating, and
+  is either a stab (the elbow bows out away from the body, then the point
+  drives straight forward) or a side swipe. The wind-up runs off the attack
+  cooldown, so the blow arrives on the tick its damage is dealt. The rig is
+  presentation only: nothing in the simulation reads it, and the strike rule
+  itself stays the ordinary melee hit. The impale and drag pose belongs to
+  `runner-impale-drag.md`.
 - **Brute** — slow, plated, heavy melee; the strain that makes a garrisoned
   building stop being a safe room. Its plate (20 points at rating 10) is what
   small arms struggle with: a DMR or rocket goes through it, an SMG barely
