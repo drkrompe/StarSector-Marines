@@ -10,7 +10,7 @@ Model: `colony-breach-nouns.md` (Beats). Radio law: `battle-radio-nouns.md`.
 
 1. **Swarm SFX** (ElevenLabs sound effects): runner chitter and death, brute
    bellow, impact and wall-break, spitter lob and acid splash, bore eruption
-   (ground rupture), bore ambience loop by tier, bore collapse, spore-vent
+   (ground rupture), bore ambience loop by tier, bore collapse, spore-colony
    burst, matriarch roar. Several variants per sound so a swarm is not one
    clip on repeat. Positional where they come from a body or a bore.
 2. **Radio and narration** (ElevenLabs voices): a colony militia voice and a
@@ -61,7 +61,7 @@ edited:
 
 1. **Mission to catalog.** `WaylineNarration.storyMissionId` must return
    `"story_colony_breach"` for the Colony Breach mission and its debug scenario
-   (`breach-mission-spine.md`). Until then no line plays.
+   (`colony-breach-nouns.md`). Until then no line plays.
 2. **Beats.** The breach sequence must emit the `colony_breach.*` ids from the nouns
    table as PLAYER beats with exactly those ids; lines exist for `landfall`,
    `militia_contact`, `shelter_reached`, `tremor`, `bore_erupted|grew_N_bore|grew_N_maw|collapsed_N`
@@ -73,7 +73,9 @@ edited:
    under a per-kind gap and plays them positionally with pitch jitter.
 4. **Bores**: hooked. `BoreCues` feeds `BoreAudio` (eruption, collapse, surge one-shots and a
    positional ambience loop per living bore that follows its tier).
-5. **Spore vents**: hooked. `weapon.spore-burst` names `spore_vent_burst` as its fire sound.
+5. **Spore colonies**: hooked. Each grade's colony weapon (`weapon.spore-burst-fissure`, `-bore`, `-maw`) names `spore_vent_burst` as its fire sound.
 6. **Matriarch** (`matriarch.md`): `matriarch_roar` at emergence; spitter splash on acid impact.
 
 7. **Harvest and surge** (`swarm-harvest.md`): `body_drag` while a body is carried to a bore is pending; `bore_surge` at each surge is hooked through `BoreCues`. `first_harvest` has a militia line; `bore_fed_N` and `surge_N` are OBSERVER_ONLY and stay silent as beats.
+
+Name-bearing alternates ("ravs", "a bloom") sit in the narration catalog's `variants` array beside the generic lines; the queue never looks them up. Adopt one by moving it into `lines`.

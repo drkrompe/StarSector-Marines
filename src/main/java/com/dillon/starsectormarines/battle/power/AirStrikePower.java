@@ -26,7 +26,7 @@ public final class AirStrikePower extends CommandPower {
     private static final float PREVIEW_RADIUS_CELLS = 5f;
 
     public AirStrikePower() {
-        super(ID, "Air Strike", 0f, COOLDOWN_SECONDS, 0, 0, 1);
+        super(ID, "@battlePowerAirStrike", 0f, COOLDOWN_SECONDS, 0, 0, 1);
     }
 
     @Override

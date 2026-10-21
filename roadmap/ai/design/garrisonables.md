@@ -4,7 +4,7 @@ Status: ACTIVE — reactive manning is shipped for fighting-position runs, a str
 
 Written: 2026-10-13
 
-Updated: 2026-10-21 — the mission defenders stage their roving reserve toward pressure, half waiting at the places and half meeting the attack in the street (mission defenders, flow); every story commander has a commander-evidence harness, A Small War's commander offers its posts clear of the stages and the other eight have no standing hostile duty to offer (story commanders, below); story commanders man reactively through a hosted planner and a holder share; a sally door shuts again: its holder shuts it behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body, and an open door of a place its holder lost stays open (sally doors, below); not every fight is into prepared positions is a law; a holder sorties from a walled place it holds through a sally door in its own wall (sally doors, below); the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
+Updated: 2026-10-21 — parties are sides of the garrison system, a mission speaks to any party's commander through place directives and their triggers, and a locked position is a place a party must take and hold (parties, place directives, locked positions; story `party-places.md`); the fight mix is measured on every mission against each garrison feature's control, and building envelopes are what move it (fight mix by mission); the trial-ground hold and mission-defender figures are refreshed on the current build; the mission defenders stage their roving reserve toward pressure, half waiting at the places and half meeting the attack in the street (mission defenders, flow); every story commander has a commander-evidence harness, A Small War's commander offers its posts clear of the stages and the other eight have no standing hostile duty to offer (story commanders, below); story commanders man reactively through a hosted planner and a holder share; a sally door shuts again: its holder shuts it behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body, and an open door of a place its holder lost stays open (sally doors, below); not every fight is into prepared positions is a law; a holder sorties from a walled place it holds through a sally door in its own wall (sally doors, below); the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
 
 ## Why this exists
 
@@ -293,22 +293,22 @@ breached holder falling back to the works.
 
 On the trial ground (nine on-path fixtures at the combined-arms force, seeds 41
 to 49, against a same-build control with
-`-Dbattle.conquest.attackerHoldsGround=false`) the fort was taken in all nine
-and the hold fired in five: one to three squads at once,
-between one and nine manning orders a battle where it fired, holders dug in
-in three of the five, seven fall backs in all. Every battle was won in both arms and no fort was ever won back,
-in either arm, so the hold was insurance the defender never tested. The keep
-fell 84 ticks later on the mean of the five (from 960 earlier to 1,050 later)
-and the marines lost 3 more on the mean (from 8 fewer to 18 more): inside seed
-noise, so the share does not cost the attack its momentum, and it does not yet
-buy anything measurable either. Every fixture in which it never fired (the
-four other on-path seeds, the offset fort, which is never taken because the
-company goes round it, and the rifles-only forces, which never take it) played
-out exactly as its control. The defender now
-counter-attacks any lost place, a taken fort or a taken compound, in proportion
-to what it has observed holds it or not at all (`conquest-command.md`, Defender
-command), and its reserve may man its own place's garrisonables only from what
-it holds above the reserve law's share.
+`-Dbattle.conquest.attackerHoldsGround=false`, 2026-10-21) the fort was taken
+in all nine and the hold fired in four, with 21 manning orders between them;
+the defender won the fort back once, by its ordinary defence, in both arms.
+Marines won eight and timed out once in both arms, losing 541 against 527:
+inside seed noise, so the share does not cost the attack its momentum and does
+not buy anything measurable on this ground either. At militia 90 it fired in
+four of the seven battles in which the fort fell, marines winning all nine in
+both arms (529 lost against 531). On Conquest it matters more: with the hold
+off the marines lost 524 against 384 over the two fixtures, both timing out in
+either arm. The hold is almost never pressed by a counter-attack, because the
+defender has nothing left to push with when a place turns
+(`conquest-command.md`, a place the defender loses, which counts how often a
+launch meets a hold). The defender counter-attacks any lost place, a taken fort
+or a taken compound, in proportion to what it has observed holds it or not at
+all, and its reserve may man its own place's garrisonables only from what it
+holds above the reserve law's share.
 
 ## How it fits what exists
 
@@ -444,21 +444,21 @@ party cools; in `raid-lances` a reserve lance guards the manned building from
 outside it, within the bound, and stands down with the garrison.
 
 Measured on six seeds per mission (the canonical fixture and five offsets)
-against the same-build control, with `commanderEvidence`:
+against the same-build control, with `commanderEvidence` (2026-10-21, flow on):
 
 | mission | manning orders | releases | fall backs (rooms) | marine losses on / off | defender losses on / off | outcomes on / off |
 |---|---:|---:|---:|---:|---:|---|
-| Raid | 18 | 4 | 3 (3) | 123 / 106 | 125 / 115 | defender 4, marines 1, timeout 1 / 3, 2, 1 |
-| Assault | 23 | 3 | 9 (9) | 351 / 370 | 242 / 237 | timeout 5, defender 1 / the same |
-| Sabotage | 19 | 4 | 4 (4) | 78 / 68 | 92 / 106 | defender 4, marines 2 / 3, 3 |
-| Extraction (alarm fixture) | 28 | 5 | 5 (5) | 141 / 133 | 196 / 188 | marines 6 / 6 |
+| Raid | 12 | 2 | 3 (3) | 112 / 140 | 146 / 137 | defender 3, marines 3 / defender 5, marines 1 |
+| Assault | 20 | 5 | 4 (4) | 366 / 377 | 267 / 226 | timeout 4, defender 2 / 5, 1 |
+| Sabotage | 21 | 3 | 4 (4) | 84 / 75 | 64 / 88 | defender 6 / defender 4, marines 2 |
+| Extraction (alarm fixture) | 26 | 0 | 7 (7) | 136 / 138 | 197 / 200 | marines 6 / 6 |
 
 One to five squads held at once; no reserve lance existed on these fixtures, so
 no guard was attached outside the scene. Outcomes moved by a seed or two
-either way, inside the noise of six seeds: the defence reads as buildings held
-and given back rather than as a different balance. Sabotage's battles ran
-shorter (18,086 ticks against 21,226 over the six) and Extraction's last seed
-ran longer (4,549 against 2,585).
+either way, inside the noise of six seeds, and the defence reads as buildings
+held and given back: on Sabotage the defender kills more and loses fewer, on
+Assault it loses more, and Raid's defender with manning gives up two of
+its wins against the control's.
 
 The scene `mission-flow` plays the flow on the Raid's production map with the
 Raid's own commander: six mobile squads far from a held place's building and a
@@ -497,6 +497,48 @@ law forbids. With `-Dbattle.mission.flow.forward=false` (everyone back) Raid's
 defender fired 76% of its shots from the open and Extraction's 72%: inside the
 noise of six seeds. Conquest's flow was not touched, so its trial ground is
 unchanged by construction.
+
+## Fight mix by mission
+
+The law that not every fight is into prepared positions is read here
+(`PlaceFightProbe`, `commander-evidence-missions.md`, places and fights): a
+**brawl** is a contact with both ends in the open, and "from a post" is the
+share of the defender's shots fired from one. Each garrison feature against its
+own same-build control (2026-10-21), every fixture a mission's harness plays
+(six seeds for the procedural missions, eleven for the stories, nine for each
+trial-ground set, Conquest's two). *None* is every manning feature off
+(`-Dbattle.mission.reactiveDefence=false`, and for Conquest and the trial
+ground with envelopes, stretches, aprons and the attacker's hold off too).
+
+| mission | brawls, all on | none | envelopes off | aprons off | stretches off | flow off | defender from a post, on / none |
+|---|---:|---:|---:|---:|---:|---:|---|
+| Raid | 75% | 75% | 75% | 75% | 75% | 79% | 31% / 32% |
+| Assault | 76% | 80% | 80% | 76% | 76% | 76% | 21% / 14% |
+| Sabotage | 74% | 86% | 86% | 74% | 74% | 74% | 22% / 9% |
+| Extraction | 84% | 86% | 86% | 84% | 84% | 84% | 27% / 30% |
+| Conquest | 69% | 66% | 62% | 65% | — | — | 21% / 22% |
+| Trial, default | 32% | 33% | — | — | 33% | — | 53% / 52% |
+| Trial, militia 90 | 42% | 39% | — | — | 41% | — | 49% / 50% |
+| Relay Nine | 25% | 22% | — | — | — | — | 72% / 73% |
+| Thunder Run | 46% | 46% | — | — | — | — | 30% / 30% |
+
+**The stack has not driven the open ground away.** Three contacts in four are
+still brawls on every procedural mission, and on Conquest and the trial ground
+the stacked features leave the share where the control has it, a few points
+either way. The one real drop is **Sabotage, twelve points (86% to 74%), and
+it is all building envelopes**: with envelopes off Sabotage plays byte for byte
+as with no manning at all, and the defender's share of shots from a post goes
+from 9% to 22% (it also wins all six battles against four). Envelopes do the
+most on Assault too (four points), and on every procedural mission switching
+envelopes off is the same battle as switching manning off; aprons and
+stretches change nothing there. Flow pulls Raid's mix the other way, toward
+posts (79% brawls without it), because a staged squad is already beside the
+building it mans. On Conquest envelopes push the other way: with them off the
+share falls to 62% and the marines fire from a post twice as often (14% of
+their shots against 7%), so there they keep fights in the open. The trial ground is a fort and was always a siege; the stack does not
+make it more of one. Where the owner wants Sabotage's sites fought in the
+street more often, the lever is the envelope's share of the site posts, not
+the stack.
 
 ## Story commanders
 
@@ -612,6 +654,137 @@ envelope order, every holder is in the story's roster on its published pulse, a
 holder whose duty moves takes its authored order back within a pulse, no squad
 is sent past the share, and the reserve-committed beat fires when the picture
 commits the reserve.
+
+## Parties
+
+Owner, 2026-10-21: "We should try to model neutral / allied parties as well.
+Missions may have triggers which say when they should consider taking new parts
+of the map or so on to make things interesting, but otherwise I want to have
+generic systems we can re-use. There might also be locked positions that allies
+are meant to take and hold à la Thunder Run."
+
+A **party** is a force on the field under a commander of its own: one per
+faction with strategic agency (`ai-nouns.md`, sides). The company is the
+player's; the opposition is `DEFENDER`; an employer's or patron's force —
+constables, militia, estate guards, a garrison's auxiliaries — is `ALLY`; the
+residents are `CIVILIAN`. The garrison system is keyed by party, never by which
+side of the fight it is on: the planner is handed one party's own picture, the
+squads that party's commander offers and the map's places, and answers for that
+party alone (`MissionGarrisons`; `PartyPlaces` hosts it for any party
+commander).
+
+- **A party's places are its own commander's.** Only a party's commander offers
+  its squads, under its own issuer and authority, so the commander reads a
+  holder as its own on the next pulse. No commander offers another party's
+  squads, and the player's company is never manned by a commander: the occupy
+  and line orders and the GARRISON stance remain its verbs. An ally is not the
+  player's to command (`ai-nouns.md`).
+- **Belief from its own picture.** A party's pressure is its own faction
+  influence, built from its own squads' believed contacts, never the company's
+  and never truth. `ALLY` has a picture of its own, published beside the
+  company's and the defender's whenever the battle fields allied combatants, and
+  an allied holder stands to at its windows by it. Constables at a dispatch house
+  man its windows because they have seen the counter-attack coming, not because
+  the company has.
+- **A party guards the place it was put on.** The story commanders offer an
+  employer's squad only while its duty is a standing one, and only for the place
+  its post stands in or touches: it holds that building from its windows rather
+  than standing in its yard, and is never sent to the next building on its own
+  initiative, since an employer's post is often what a story counts (the Yard's
+  Owners inspection needs a friendly body in every site). A place directive opens
+  more (below).
+- **A share, then the mission's allowance.** The story share (a third of the
+  party's own infantry, none for a lone squad) bounds what a party mans on its own
+  initiative; an active hold directive adds its own allowance for its own places,
+  because a mission that says "hold this" says how many it means.
+- **Civilians are a party with no fighters.** Nothing is offered for them.
+  Whether residents should shelter in buildings is a different question (open).
+- `-Dbattle.party.places=false` is the control: no allied picture, no party
+  manning and no hold directives, the battle as it was. A locked position that
+  re-expresses an authored duty (Thunder Run's militia) does not follow the
+  switch, since it is the story's order and not a feature on top of it.
+
+## Place directives
+
+A **place directive** is a mission's word to one party's commander about one
+place: what to do there (its kind), where (its target), when to begin (its
+`when` trigger) and when to stop (its `until` trigger). It is declared once, at
+mission setup, held by that party's commander and evaluated on every one of its
+pulses over its own frame (`PlaceDirective`, `PlaceDirectives`). It is the one
+seam by which a mission, story or procedural, makes its battle move — "consider
+taking this region once the reserve commits", "hold this gain once the company
+has it", "counter-attack this place when it is lost" — without a mission-specific
+code path in any commander. Commanders may still plan their authored duties as
+before; a directive adds to them.
+
+- **Kinds.** `HOLD`: consider holding the target. Its places are open to the
+  party's reactive manning within the directive's allowance, its free squads
+  offered roving for them and its standing-duty squads beside their posts; belief
+  still decides whether anybody goes, so a hold directive opens places, it never
+  fills them, and its free squads are staged toward pressure, back at the places
+  and forward to meet the attack, by the flow tier's laws. `LOCK`: a locked
+  position (below). `COUNTER_ATTACK`: retake the target. A counter-attack
+  directive names the place and when; how and with what is the commander's
+  counter-attack's (`conquest-command.md`, Defender command), which reads the
+  active ones each pulse. A new kind joins this list rather than starting a
+  parallel mechanism.
+- **Target.** A region of public geometry: a centre cell and a radius (cells,
+  square). Its places are the garrisonables whose centre lies in it. A lock may
+  also name posts, its own cells to stand on.
+- **Lifecycle.** Dormant, active, released. On every pulse each directive is
+  evaluated once, in declaration order, on that pulse's frame: an active one
+  whose `until` holds is released; a dormant one whose `when` holds becomes
+  active; never both on one pulse, so a directive that comes on is held for at
+  least one. A released directive stays released unless it is declared to
+  **re-arm**, in which case it is dormant again from the next pulse (a
+  counter-attack that may be tried again). The order directives became active in
+  is remembered, ties in declaration order; it is what orders locked positions.
+- **Triggers** are generic predicates, never a mission's own code: always and
+  never; a tick reached; active for a number of ticks; a named mission **stage**
+  at least a value (a phase reached); a named mission **flag** (a beat fired, a
+  public fact such as a site the company holds); the target, or another region,
+  **held** — own, hostile, contested or empty — by the party's own belief (its
+  own squads standing in it, believed hostiles in it); **lost** (seen held by the
+  party on an earlier pulse, and now hostile or contested); believed **pressure**
+  on it at least a level; and any of, all of, not. Each prints as what it reads,
+  so a trace says why a directive moved.
+- **What a trigger may read.** Belief predicates read the party's own picture
+  and nothing else. Stages and flags are the mission's disclosure
+  (`mission-command-nouns.md`, perspective and disclosure): a mission says only
+  what it may say to that party (a site the company holds is public; a hidden
+  enemy's position is not), and the mission answers for it.
+- **Fun is still the test.** A directive is judged by the fights it makes as
+  well as by what it holds (not every fight is into prepared positions, above): a
+  hold that turns every contact into a defence from windows is a siege the
+  mission chose, and its evidence reports the fight mix against the directive
+  switched off.
+
+## Locked positions
+
+A **locked position** is a `LOCK` directive: a place a mission declares a party
+must take and hold. While it is active the party's commander:
+
+- gives it squads before anything else, by **detachments** — the commander's own
+  stable numbering of its squads, first come first numbered. Detachments fill the
+  active locks in the order they became active, one each, oldest first, and
+  detachments beyond them reinforce the newest: a party led forward holds every
+  gain once and leans on the latest;
+- orders each the lock's own hold: a defend area on the lock's post for its
+  detachment (posts cycle by detachment number) or, with no posts and a
+  garrisonable at the lock's centre, that place's manning order. A defend area
+  fights whatever is believed inside it, which is how the party takes a lock held
+  against it; there is no separate assault stage;
+- never offers a squad on a lock to reactive manning, flow or release: the lock
+  outranks the place's pressure, and nothing reactive gives it back. A squad on a
+  lock is also exempt from the share;
+- lets the lock go only when its `until` holds (the mission unlocks it); its
+  squads go to the next lock, or back to the commander's own duties.
+
+Thunder Run's militia are the first: four locks, the convoy staging (active from
+the start, unlocked by the company's first gain) and one per road site, each
+locked the first time the company holds it and never unlocked. That is exactly
+the old stable militia holds, re-expressed (`mission-command-nouns.md`, player
+and faction extensions).
 
 ## Decided direction
 
@@ -863,6 +1036,13 @@ of raiders come up to it). Every loop asks that no door shuts on a body.
   seam is wired and nothing is manned. Whether a one-squad pool should man its
   home's windows, and whether a story ally holding a gain (Junction's and Relay
   Nine's militia) should, is open.
+- **Counter-attacks on the procedural missions.** Raid, Assault, Sabotage and
+  Extraction have no counter-attack, so a place the defender loses there is
+  never pushed for, and a hold never meets one. Whether their defenders should
+  retake a lost building or site with the shared counter-attack
+  (`conquest-command.md`), and what it would cost the missions' tempo, is open;
+  it is what would make taking a place contested across missions rather than
+  on Conquest only.
 - **Missions without a reserve.** Assault and Sabotage spend nearly every squad
   on posts and responders on their fixtures, so flow has almost nothing roving
   to stage there; whether a quiet post's squad should ever be lent to an area's
@@ -871,5 +1051,8 @@ of raiders come up to it). Every loop asks that no door shuts on a body.
 ## Stories
 
 
+- `party-places.md` — parties as sides of the garrison system, place
+  directives and their triggers, locked positions; wired on The Yard's Owners,
+  Limited Warrant and Thunder Run.
 - `fort-sandbag-damage-art.md` — real art for the placeholder fort sandbag damage
   states.

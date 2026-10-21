@@ -32,7 +32,9 @@ FORMAT = "mp3_44100_128"
 
 def speech_plan(catalog):
     result = []
-    for line in catalog["lines"]:
+    # Variants are name-bearing alternates of a line (see "replaces"); recorded and registered
+    # alongside it, but only "lines" are looked up by the narration queue.
+    for line in catalog["lines"] + catalog.get("variants", []):
         if not re.fullmatch(r"[a-z0-9_]+", line["id"]):
             raise SystemExit("Invalid sound ID; no request sent.")
         if not line.get("voiceId") or not line.get("synthesisText"):

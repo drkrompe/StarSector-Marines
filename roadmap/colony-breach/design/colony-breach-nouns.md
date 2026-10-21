@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — bores, tiers, surges, spore umbrella and the bore-sourced director as built.
+Updated: 2026-10-21 — bores, tiers, surges, spore colonies and the bore-sourced director as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -24,7 +24,7 @@ to the shelter where the survivors are sealed in, and has to hold a lift zone
 open long enough for shuttles to take them off. The swarm does not walk in from
 the horizon: it erupts out of bores inside the colony, and every bore left open
 gets worse. The player can spend force to collapse bores and buy quiet, or
-harden the lift with a grounded tender so that the rest of the company is free
+harden the lift with a called-down flying tender so that the rest of the company is free
 to go hunting. Air power can harass but cannot clear the map, because the bores
 defend the sky over themselves.
 
@@ -43,6 +43,16 @@ it surfaces across the Persean Sector from time to time as a recurring problem
 rather than a war with a front: a mining colony goes quiet, a relief call comes
 in, and somebody's company is paid to get people out.
 
+**Name.** It is **the Rav Bloom** (owner, 2026-10-21): the weapon and an outbreak
+of it. **Ravager Bloom** is the older, fuller form, rare. Spacers call an
+outbreak **a bloom**, understated like weather ("There's been a bloom on
+Asharu"), and the bodies are **ravs**, talked about as monsters rather than as a
+weapon. "the swarm" stays the lowercase generic word in mission UI. The Bloom is
+whispered but known: few have seen one, almost everyone knows of a colony that
+went quiet. "Bloom" carries red-tide imagery without fixing a colour; art decides
+that. A spacer rumour says it was a sporeship payload turned into a weapon; under
+the maker rule below it stays rumour.
+
 Consequences that the design keeps:
 
 - **It is a system, not a society.** No diplomacy, no faction relations, no
@@ -54,7 +64,8 @@ Consequences that the design keeps:
   across the campaign, are never "defeated" for good, and a collapsed mother
   bore ends an outbreak, not the weapon.
 - **Who made it is a question, not an answer.** Briefings and radio may
-  speculate (Domain denial programme, a Tri-Tachyon-era leak, something older);
+  speculate (Domain denial programme, a Tri-Tachyon-era leak, a sporeship payload,
+  something older);
   no text states the maker as fact.
 
 Names, the life cycle in in-world terms, each faction's view and the tone and
@@ -175,7 +186,7 @@ body; nothing about a bore is special-cased in Marine fire or demolition.
 
 **Bore tier.** A bore grows while it stays open: **fissure** (runners only, low
 rate) → **bore** (adds brutes and spitters) → **maw** (adds heavy strains, higher
-rate, a wider spore umbrella). Growth runs on a slow base clock from eruption,
+rate, another and stronger spore colony). Growth runs on a slow base clock from eruption,
 is slowed by damage taken, and is **driven mainly by biomass fed to it** (see
 *Harvest*). Tier is what makes leaving a bore alone a decision with a cost.
 
@@ -236,18 +247,33 @@ cluster and is the target of the optional hive objective. It erupts later than
 the others, starts at bore tier and is the only bore that can produce a
 matriarch.
 
-**Spore vent.** The swarm's air denial. Each bore projects a spore umbrella over
-itself: vents throw flak-like spore bursts at aircraft inside its radius.
-Radius grows with tier. Collapsing the bore kills its vents. Spitters can also
-engage low fliers. Law: no air sortie should be able to collapse a bore that
-still has its umbrella without taking losses; air is for after the ground push.
+**Spore colony.** The swarm's static air defence, after StarCraft's spore
+colonies. A bore sprouts colonies on the ground round its mouth as it grows:
+one as a fissure, another on reaching bore, another on reaching maw. Each is
+its own small destroyable structure with its own body on the map, and fires
+spore bursts at hostile aircraft in its reach through the ground anti-air
+system, exactly as a flak position does: aimed bursts at the nearest airborne
+craft, never at the ground. A bore's own body never fires. Each burst is a shot,
+so it is heard and drawn through the weapon's own fire sound and effects. The
+colony art is a placeholder awaiting an art pass.
 
-The vent is the bore's own anti-air mount, flown by the ground anti-air system
-exactly as a flak position is: aimed bursts at the nearest hostile airborne
-craft in reach, never at the ground. Its reach is the vent weapon's range
-scaled by tier, so a maw's umbrella covers ground a fissure's does not, and the
-umbrella goes with the body. Each burst is a shot, so it is heard and drawn
-through the weapon's own fire sound and effects.
+A colony keeps the **grade** of the tier that grew it: a fissure-grade colony
+threatens light craft at short reach, a bore-grade one reaches further and
+bites harder, and a maw-grade one reaches furthest and penetrates enough to
+hurt gunships and dropships. The grade is the colony's weapon (range, damage,
+penetration), never a list of what it may shoot at, so whether a burst hurts a
+craft is the shared armour law against that craft's skin. A large feed that
+takes a bore across two tiers at once sprouts a colony of each.
+
+Colonies **wither** when their bore collapses. Killing them one by one opens
+the sky over a bore that still stands: a bore whose colonies are dead has no
+air defence of its own until it grows another tier. Laws: no air sortie should
+be able to collapse a bore that still has its colonies without taking losses;
+air is for after the ground push, or for after the colonies.
+
+Colonies stand on the bore's **growth sites**, a seeded ring of open cells
+round the mouth (`BoreGrowthSites`). Today only spore colonies use it; a
+later ground colony roots on the same sites (`hive-creep.md`).
 
 **Swarm director.** The non-human pressure owner (today
 `SwarmReinforcementSystem`). It decides how many, from which bore, and of which
@@ -262,8 +288,8 @@ capacities by tier, and bodies enter only as surges from living bores. Between
 the tremor and the first eruption nothing spawns; once every bore has
 collapsed, nothing spawns again. Every swarm strain counts toward the
 population. The snapshot carries each bore that has opened: its tier, whether
-it lives, integrity, growth, biomass fed, surges, bodies released, next surge
-and the ticks it opened and collapsed.
+it lives, integrity, growth, biomass fed, surges, bodies released, next surge,
+its living spore colonies and the ticks it opened and collapsed.
 
 **Swarm strain.** A kind of swarm body with its own stats, appearance family and
 behaviour. A strain is a designed stage of the one organism (see *Origin*), not
@@ -285,8 +311,9 @@ for one job in the cycle, and reads that way on screen.
   bodies and emplacements where a Runner's slash only scratches.
 - **Spitter** — fragile, keeps its distance, lobs acid. It backs away from any
   ground enemy that closes inside its charge radius and does not lob while it
-  runs. Otherwise a low hostile craft in reach comes first, then the sensed
-  enemy with the most others inside the splash; the glob is a real arcing
+  runs. Otherwise a low hostile craft in reach whose skin its acid can bite
+  comes first (see *Air threat ladder*), then the sensed enemy with the most
+  others inside the splash; the glob is a real arcing
   projectile whose splash goes through the ordinary detonation path, spares the
   swarm and is stopped by an intact roof. Acid on a low flier lands on the hull
   through the aimed-damage path; a craft at cruise altitude is out of reach.
@@ -295,6 +322,26 @@ for one job in the cycle, and reads that way on screen.
   damage model has none for ground bodies.
 - **Matriarch** — one per mother bore at maw tier: large, slow, very durable,
   wrecks emplacements. Answered by mechs, heavy weapons or a lot of satchels.
+
+**Air threat ladder.** What the swarm can do to what flies, rung by rung:
+
+- **Light air: Spitters.** Mobile, everywhere the swarm is, and only good for
+  light air. A drone is an ordinary unarmoured body and takes the ordinary lob.
+  A craft takes acid only while it flies low and only if the acid can bite its
+  skin: acid is a corrosive, not a penetrator, so its penetration is a third of
+  an airframe's skin rating and an intact skin turns it. A Spitter does not
+  waste lobs on a craft it cannot hurt, but finishes one whose skin something
+  else has stripped.
+- **Armoured air: spore colonies.** Gunships, dropships and warship-class
+  overflights shrug Spitters off. What denies them is static: the colonies a
+  bore sprouts, whose penetration and reach climb with the grade of the tier
+  that grew them, so only a bore left to reach maw can hurt the heaviest craft.
+
+The ladder is read from durability, never from a list of craft: whether a rung
+reaches a flier is the shared armour law against that flier's own skin. Today
+every airframe carries the same skin rating, fighters included, so a fighter is
+armoured air until the air model gives light airframes a lighter skin; when it
+does, they fall onto the Spitters' rung without this rule changing.
 
 Strains are added to a bore's mix by tier, not chosen per wave by hand.
 Every strain is the same swarm to everything outside it: one side, one
@@ -310,6 +357,14 @@ facing that the renderer reads every frame, and a layered swarm body is drawn
 as parts, so a carrier (`swarm-harvest.md`) moves the colonist's corpse with
 it and draws it as one more attached sprite; neither the strains nor their
 corpse sheets assume a body stays where it fell.
+
+**Creep.** The biological growth living bores spread across the colony:
+streets, walls, buildings. It is what makes an ordinary settlement look
+unmistakably wrong, and it is the only ground the hive's static growths stand on
+away from a bore's mouth. A ground colony (anti-infantry, anti-emplacement)
+roots only on creep. Creep recedes when its bore collapses. Mobile strains never
+gain ranged attacks to answer fortifications: static growth on creep does that.
+Planned in `hive-creep.md`.
 
 **Swarm goal.** A place the swarm is drawn toward: the shelter, the lift, the
 nearest Marine body. Swarm movement toward a goal is a shared **flow field** per
@@ -347,22 +402,17 @@ large map.
   as the swarm did before fields. What the fields buy, by map and swarm size, is
   in `swarm-movement-cost.md`.
 
-**Hardpoint.** A position the player has fortified with tender construction
-(Vulcans and whatever else the tender can build). A hardpoint is how the player
-frees troops: a lift zone that can hold itself is a lift zone that does not
-need the whole company.
+**Hardpoint.** A position the player has fortified with the flying tender's
+construction (Vulcans and whatever else the tender can build). A hardpoint is
+how the player frees troops: a lift zone that can hold itself is a lift zone
+that does not need the whole company.
 
-**Tender call-down.** A command power available only if the fleet brought a
-tender. The player spends it, picks a landing site, and the tender lands and
-grounds there to build. Not every mission brings every tool. The power is
-mission-agnostic (`TenderCallDown`, offered by the catalog for each tender in
-the committed fleet, one charge per tender): the hull comes in through the
-ordinary ship call-in, berths at landed scale on a clear footprint, becomes a
-grounded host and registers the existing yard construction. It announces itself
-with the generic `tender_landed` story beat, which the breach sequence
-re-emits as `colony_breach.tender_down`. A landed hull builds only ahead of its
-bay (the nose heading it came in on), so where the player lands decides which
-way the hardpoint can face.
+**Tender call-down.** The flying tender, called through Ship on Station when
+the fleet brought a Shepherd. It hovers over the ground the player names and
+builds there by its stance director (Vulcans and whatever else the tender can
+build) for its bounded visit. Not every mission brings every tool. A landed,
+grounded tender is campaign-mission and set-dressing machinery, not part of
+Colony Breach.
 
 **Hive posture.** The player's pre-launch answer to the optional hive objective,
 frozen into the Marine command envelope at launch:
@@ -393,11 +443,11 @@ sends against a bore. Stable membership, traced like any other command role.
    breach sequence's first trigger: **tremor**, then the first bores erupt over
    the following minute at precincts between the shelter and the lift and on
    the flanks. Seepage stops.
-3. **Dig in.** The lift countdown runs. A called-down tender can be grounded
-   and building. Bores grow. The director's target climbs with every living bore
+3. **Dig in.** The lift countdown runs. A called-down flying tender can be
+   on station and building. Bores grow. The director's target climbs with every living bore
    and tier.
 4. **Mother bore.** Later in the battle the mother bore erupts away from the
-   lift, already at bore tier, with the widest spore umbrella.
+   lift, already at bore tier, with its spore colonies already sprouted.
 5. **Lift.** Shuttles land; the cohort boards. The battle can end on the lift
    (the rescue win) with or without the mother bore collapsed. Collapsing it is
    the hive bonus, settled through ordinary mission outcome.
@@ -405,24 +455,10 @@ sends against a bore. Stable membership, traced like any other command role.
 The breach sequence owns the clock and the triggers; beats are what it
 publishes. Beats are presentation and evidence, never inputs to the simulation.
 
-**Built so far.** Landfall, seepage, the release, the tremor and the eruption
-schedule run; each eruption opens a bore, bores grow, surge and are collapsed,
-and the director spawns only from living bores after the tremor, so "spawning
-has a source" is in force. Harvest is not yet built, so nothing feeds a bore in
-a live battle and bores grow on their base clock alone. The lift has no
-countdown yet: the pickup craft comes down at the start of the battle and
-waits, so `lift_inbound` and `lift_down` normally fire before the shelter is
-reached.
-
-**Known gap: the escort can park the cohort on a long walk.** A civilian holds
-while its nearest marine is behind it toward the lift, and the close escort is
-sent to the cohort's own cell, so an escort member standing on the cohort's
-tail holds it indefinitely once the screens are out of leash. The colony's long,
-bending walk found this on the canonical fixture at 0adc5de81 (it timed out
-with the cohort parked); the fixture's trajectory no longer meets it, but the
-rule is unchanged and it is Marine corridor command's to fix
-(`extraction-command.md`). The corridor guide no longer collapses onto the
-cohort when its centroid falls on a wall; it routes from the nearest open cell.
+**Lift timing.** The lift has no countdown: the pickup craft comes down at the
+start of the battle and waits, so `lift_inbound` and `lift_down` normally fire
+before the shelter is reached. Harvest is not built yet, so nothing feeds a
+bore in a live battle and bores grow on their base clock alone.
 
 ## Beats
 
@@ -446,7 +482,7 @@ the evidence; change them here first.
 | `first_harvest` | PLAYER | First body seized and dragged toward a bore |
 | `bore_fed_N` | OBSERVER_ONLY | Biomass delivered into bore N |
 | `surge_N` / `surge_mother` | OBSERVER_ONLY | Bore N (or the mother) starts a surge; published at every surge, not once |
-| `tender_down` | PLAYER | A called-down tender has grounded |
+| `tender_down` | PLAYER | A called-down tender is on station (no producer yet) |
 | `hardpoint_established` | PLAYER | First tender-built defence completes at the lift |
 | `strike_committed_N` | OBSERVER_ONLY | Commander sends a detachment at bore N |
 | `strike_recalled_N` | OBSERVER_ONLY | Readiness gate closed, detachment recalled |
@@ -469,8 +505,8 @@ the evidence; change them here first.
   a stream; the quiet between pulses is real.
 - **Strains by tier.** Which strains spawn is a function of the bore's tier and
   the director's budget, deterministic under the battle seed.
-- **Air cannot clear the map.** Every bore has an umbrella; the umbrella dies
-  with the bore.
+- **Air cannot clear the map.** Every living bore has spore colonies round it
+  until they are killed; they die with the bore.
 - **Posture is frozen, the gate is live.** The hive posture is set at launch;
   the readiness gate is evaluated from the commander's visible picture every
   command pulse.
@@ -486,7 +522,7 @@ the evidence; change them here first.
 - Marine command, cohort, release, escort and lift: `extraction-command.md`.
 - Precinct plans and map requirements: `precincts.md`, `mapgen-nouns.md`.
 - Garrison manning for militia posts: `garrisonables.md`.
-- Tender, grounded construction and build options: `tender-ship.md`.
+- Tender, its construction and build options: `tender-ship.md`.
 - Mech lances and drop allowances: `mechs-nouns.md`.
 - Layered bodies and appearance families: `battle-render-nouns.md`.
 - Radio and narration: `battle-radio-nouns.md`; beats are consumed there, never

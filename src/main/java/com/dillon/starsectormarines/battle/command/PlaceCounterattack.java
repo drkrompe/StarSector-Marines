@@ -156,6 +156,11 @@ final class PlaceCounterattack {
      * has stood down from, or given up); off, nothing on any turned place's ground is manned.
      */
     static volatile boolean manLostGround = knob("manLostGround", 0f) > 0f;
+    /**
+     * Whether a decided counter-attack may draw on quiet garrisons the caller offers ({@code garrisonSortie}); off is the
+     * control in which only the mobile pool is the counter-attack's.
+     */
+    static volatile boolean garrisonSortie = knob("garrisonSortie", 1f) > 0f;
     /** Whether a reserve forms behind a held place whose own alarm stands, before anything is lost. */
     static volatile boolean formOnAlarm = knob("formOnAlarm", 0f) > 0f;
     /** Whether the reserve above the law's share may be lent to man its own place's pressed garrisonables while it holds. */
@@ -301,6 +306,8 @@ final class PlaceCounterattack {
     private final Map<String, Integer> standDowns = new TreeMap<>();
     /** The tick of the last plan, for {@link #claimsGround}. */
     private int lastTick = Integer.MIN_VALUE;
+    /** This pulse's sortie-able garrisons, offered by the caller. */
+    private List<Body> sortieThisPulse = List.of();
     /** This pulse's lendable members ({@link #lendable()}). */
     private List<Integer> lendable = List.of();
     /** Whether any hostile mover has been believed this battle: the attack has begun, and a quiet pulse does not end it. */
@@ -509,7 +516,22 @@ final class PlaceCounterattack {
      */
     Result plan(int tick, List<Place> places, int[] keep, List<Hostile> hostiles, List<int[]> watchers, Losses losses,
                 List<Body> members, List<Body> free, int reserveTarget, int poolSquads, CommandTopology topology) {
+        return plan(tick, places, keep, hostiles, watchers, losses, members, free, List.of(), reserveTarget, poolSquads,
+                topology);
+    }
+
+    /**
+     * As {@link #plan(int, List, int[], List, List, Losses, List, List, int, int, CommandTopology)}, with garrisons
+     * that may sortie: squads the caller holds elsewhere (a quiet compound's garrison above what it keeps home) that a
+     * decided counter-attack may draw on. They count toward what can be raised and a muster recruits them, but nothing
+     * waits on them: no reserve is topped up from them and no probe is drawn from them. The caller hands a recruited
+     * one over to the counter-attack.
+     */
+    Result plan(int tick, List<Place> places, int[] keep, List<Hostile> hostiles, List<int[]> watchers, Losses losses,
+                List<Body> members, List<Body> free, List<Body> sortie, int reserveTarget, int poolSquads,
+                CommandTopology topology) {
         lendable = List.of();
+        sortieThisPulse = garrisonSortie ? sortie : List.of();
         lastTick = tick;
         Map<Integer, Order> orders = new TreeMap<>();
         List<Integer> recruited = new ArrayList<>();
@@ -552,10 +574,12 @@ final class PlaceCounterattack {
             group.members.retainAll(byId.keySet());
             review(tick, byKey, keepThreatened, byId, released, notes);
         }
-        if (group == null && !keepThreatened && home != null && poolSquads >= doctrine.minPoolSquads()
-                && reserveTarget > 0) {
+        boolean pooled = poolSquads >= doctrine.minPoolSquads() && reserveTarget > 0;
+        if (group == null && !keepThreatened && home != null && (pooled || !sortieThisPulse.isEmpty())) {
+            // A pool too small to hold a reserve still answers a lost place when garrisons may sortie to it; it forms
+            // only for a place that has turned, since a garrison never waits behind one that still holds.
             Place best = choose(tick, places, home, keep, hostiles);
-            if (best != null) form(tick, best, home, hostiles, topology, notes);
+            if (best != null && (pooled || best.turned())) form(tick, best, home, hostiles, topology, notes);
         } else if (group != null && group.stage == Stage.RESERVE && !keepThreatened && home != null) {
             // A reserve waiting behind a place that has not turned stands for one that has, when one does.
             Place best = choose(tick, places, home, keep, hostiles);
@@ -592,17 +616,22 @@ final class PlaceCounterattack {
             if (place.turned() && tick >= retryAt.getOrDefault(group.key, Integer.MIN_VALUE)) {
                 if (informed && !observed(tick, group.key)) {
                     // Somebody of ours is watching it already (a picket, a recon car): wait for that, send nobody.
-                    if (!watchedNow(tick, group.key)) startProbe(tick, place, byId, recruitable, recruited, topology, notes);
+                    if (!watchedNow(tick, group.key)) {
+                        startProbe(tick, place, byId, withSortie(recruitable, byId, topology), recruited, topology,
+                                notes);
+                    }
                 } else {
-                    decide(tick, place, hostiles, losses, byId, recruitable, released, notes);
+                    decide(tick, place, hostiles, losses, byId, withSortie(recruitable, byId, topology), released,
+                            notes);
                 }
             }
         }
         if (group != null && group.stage == Stage.PROBE) {
-            probe(tick, place, hostiles, losses, byId, recruitable, released, notes);
+            probe(tick, place, hostiles, losses, byId, withSortie(recruitable, byId, topology), released, notes);
         }
         if (group != null && group.stage == Stage.MUSTER) {
             group.required = Math.max(group.required, requiredFor(place, hostiles, losses));
+            recruitable = withSortie(recruitable, byId, topology);
             float raisable = strength(group.members, byId) + strength(recruitable.subList(0,
                     Math.max(0, recruitable.size() - RESERVE_FLOOR)));
             if (informed && standDown && !worth(raisable, group.required)) {
@@ -644,7 +673,7 @@ final class PlaceCounterattack {
             Estimate estimate = estimates.get(place.key());
             if (estimate == null || estimate.observedTick != tick) continue;
             if (raisable < 0f) {
-                List<Body> recruitable = recruitable(free, byId.keySet(), topology);
+                List<Body> recruitable = withSortie(recruitable(free, byId.keySet(), topology), byId, topology);
                 raisable = strength(byId.values()) + strength(recruitable.subList(0,
                         Math.max(0, recruitable.size() - RESERVE_FLOOR)));
             }
@@ -1046,6 +1075,19 @@ final class PlaceCounterattack {
         group.members.add(body.squadId());
         byId.put(body.squadId(), body);
         recruited.add(body.squadId());
+    }
+
+    /**
+     * The sortie-able garrisons of this pulse ahead of the free patrols: the reserve law's floor is taken from the
+     * patrols at the tail, never from a garrison, so the last free patrol stays the floor it always was.
+     */
+    private List<Body> withSortie(List<Body> recruitable, Map<Integer, Body> byId, CommandTopology topology) {
+        if (sortieThisPulse.isEmpty()) return recruitable;
+        List<Body> out = new ArrayList<>(recruitable(sortieThisPulse, byId.keySet(), topology));
+        for (Body body : recruitable) {
+            if (out.stream().noneMatch(other -> other.squadId() == body.squadId())) out.add(body);
+        }
+        return out;
     }
 
     /** Free squads that may join: out of contact, at useful strength (half what they started with, never fewer than two), and able to walk to the staging cell. */

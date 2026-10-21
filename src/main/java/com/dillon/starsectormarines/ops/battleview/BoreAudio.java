@@ -17,7 +17,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * reached, a collapse and a surge leaving the mouth, played positionally from
  * {@link BoreCues}, and a breathing ambience loop under every living bore whose
  * clip follows its tier. A bore is the swarm's, so it is heard only where the
- * map has been seen. Spore-vent bursts need nothing here: a burst is a shot and
+ * map has been seen. Spore-colony bursts need nothing here: a burst is a shot and
  * the vent weapon names its own fire sound.
  */
 public final class BoreAudio {

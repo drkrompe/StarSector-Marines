@@ -1,9 +1,13 @@
-# Swarm lore guide
+# Rav Bloom lore guide
 
-Status: ACTIVE — implementation reference for the Colony Breach swarm: what it is,
-what people call it, and how briefings, radio and item text speak about it.
+Status: ACTIVE — implementation reference for the Rav Bloom, the Colony Breach
+swarm: what it is, what people call it, and how briefings, radio and item text
+speak about it.
 
 Written: 2026-10-21
+
+Updated: 2026-10-21 — owner settled the name (the Rav Bloom); added the
+whispered-reputation, sporeship-rumour and red-tide direction.
 
 Read `faction-lore-nouns.md` for evidence rules and shared setting laws, and
 `colony-breach-nouns.md` for the mechanics this guide gives a voice to (bores,
@@ -41,6 +45,12 @@ mentions the swarm.
   Crom Cruach. Old-war remnants still wake and kill: Remnant stations are "a relic
   from the First AI War ... fully armed and operational", and Tri-Tachyon left
   booby-trapped hulls in the Second (`descriptions.csv`, `rules.csv`).
+- **Sporeships seeded worlds with Earth life** in the early days of human
+  colonization, long before the Domain's last years: Chalcedon "bloomed green for
+  the first human arrivals", Ailmar and Cibola were seeded under a sporeship's
+  colonization parameters, and Telepylus station is built around an
+  Expansion-era sporeship's core (`descriptions.csv`). What their payloads held,
+  and what else they may have carried, canon does not say.
 - **Tri-Tachyon buys strangeness.** The Company "pays very well indeed for unique
   specimens ... Domain tech, xenobiology" (`rules.csv`, shrouded substrate
   dialogue).
@@ -70,6 +80,15 @@ Conservative readings of the anchors above, true whether or not the swarm exists
 ## Marine Operations direction
 
 ### What it is
+
+**The Rav Bloom** (owner's choice, settled 2026-10-21). The name covers both the
+weapon and an outbreak of it. **Ravager Bloom** is the older, fuller form, seen
+in records and heard from old spacers, and rarely said aloud. "Bloom" works the
+way a red tide does, when a lake or a bay turns overnight: something that was
+always in the water multiplies all at once and kills what lives there.
+Descriptions may use that imagery (a colony "blooming", ground or water
+"turning"), but they never fix a colour for the creep or the bodies. Art decides
+that.
 
 A **self-perpetuating biological denial weapon** from the late Domain or the AI
 Wars, made to make a world unusable and to keep doing that after whoever released
@@ -116,7 +135,7 @@ explains the mechanic; it never adds behaviour the mechanic does not have.
 6. **Surges.** A bore spawns in pulses, a river of bodies and then quiet. Lore
    reading: each pulse is a brood the bore has finished making. The quiet is real
    and is the moment to push.
-7. **Spore umbrella.** Bores defend the sky over themselves. Read it as part of
+7. **Spore colonies.** Bores grow static anti-air growths round their mouths. Read it as part of
    the denial design: the weapon was built expecting aircraft.
 8. **The mother bore.** One bore in a cluster is the deep one, the root of the
    reservoir reaching the surface. It erupts late, already grown, and is the only
@@ -144,44 +163,50 @@ explains the mechanic; it never adds behaviour the mechanic does not have.
 
 ### Names: what people call it
 
+**The settled vocabulary.**
+
+- **The Rav Bloom**: the weapon and the phenomenon. Used in briefings, intel and
+  item text, and by people being careful or formal.
+- **A bloom**: spacers' shorthand for one outbreak, deliberately understated,
+  like a weather event: "There's been a bloom on Asharu." Everybody knows what it
+  means, and nobody needs it explained.
+- **Ravager Bloom**: the full form, rare. Old records, old spacers, a
+  Hegemony file header.
+- **Ravs**: the bodies. Ordinary people talk about them as monsters and
+  creatures, not as a weapon: "ravs", "ravagers", "the things", "bugs". Militia
+  and Marines say **ravs**.
+- **the swarm**: stays the lowercase, generic word in mission UI ("swarm
+  pressure", strain names, bore counts). It is a UI term, not a name.
+
+**Whispered but known.** The Bloom is a story everyone has heard and few have
+lived through. Almost nobody has seen a rav; almost everybody knows someone who
+knew a colony that went quiet. The full name is not said casually. People
+lower their voices, change the subject, or say "a bloom" and let it sit. Write
+it the way the Sector talks about a disaster that happens to other people, until
+it does not.
+
 Each name belongs to who says it. Mixing them in one voice is a tone error; using
 the right one tells the player who is talking.
 
 | Speaker | Calls it | Notes |
 | --- | --- | --- |
-| Colonists | "the rot", "the diggers", "the things under the field", "the ground" ("the ground took them") | Plain, local, often refusing a name. Strains get nicknames: runners "grabbers", brutes "breakers", spitters "spitters". |
-| Colony militia | "the swarm", "bugs", "crawlers" | Practical radio shorthand; calls bores "holes" or "the pit". |
-| Marine company | "the swarm", strain names as in the mission UI, bores by number | The UI register: clear, countable, unexcited. |
-| Hegemony | a classification, not a name: "a restricted biological agent", "Domain-restricted hazard", incident numbers | Treats it as a compliance and quarantine matter. Never confirms what it knows. |
-| Tri-Tachyon | "the organism", "the specimen", "a self-propagating denial organism" | Clinical and acquisitive; wants samples and asks the company to bring them. |
-| Luddic Church | "the Hunger", "the work of the old hands", "the fruit of pride" | A judgement on the Domain's hubris, not a demon. A curate may liken it to Moloch's works; it never says it *is* Moloch. |
-| Luddic Path | "the reckoning", "the harvest the machine-builders sowed" | Sees the Domain's crime coming due; may treat survivors' suffering as deserved. |
-| Pirates / scavengers | "the meat-mines", "dead ground" | Mercenary interest in what a dead colony leaves lying around. |
-| Galatia Academy / scientists | "the agent", "the reservoir organism" | Curious, careful, the voice most likely to say "we don't know". |
+| Colonists | "the things", "ravs", "the ground" ("the ground took them"); the Bloom only in a whisper | Plain, frightened, local. Strain nicknames: runners "grabbers", brutes "breakers", spitters "spitters". |
+| Spacers / traders | "a bloom", "the Rav Bloom" | Understated, weather-like; "Ravager Bloom" from the old hands. |
+| Colony militia | "ravs", "bugs" | Practical radio shorthand; calls bores "holes" or "the pit". |
+| Marine company | "ravs" on the radio; strain names and "the swarm" as in the mission UI; bores by number | Clear, countable, unexcited. |
+| Hegemony | a dry hazard designation and an incident number, never the folk name in an official voice | Treats a bloom as a quarantine matter: the world is cordoned and the records are sealed. Never confirms what it knows. |
+| Tri-Tachyon | "the organism", "the specimen", "Bloom material" | Clinical and acquisitive; wants samples and asks the company to bring them. |
+| Luddic Church | "the Bloom", "a judgement" | A judgement on the Domain's pride, not a demon. A curate may liken it to Moloch's works; it never says it *is* Moloch. |
+| Luddic Path | "the Bloom", "the Domain's sin come back" | Sees the Domain's crime coming due; may treat survivors' suffering as deserved. |
+| Pirates / scavengers | "a bloom world", "dead ground" | Mercenary interest in what a dead colony leaves lying around. |
+| Galatia Academy / scientists | "the agent", "Bloom reservoir" | Curious, careful, the voice most likely to say "we don't know". |
 
-#### Working-name candidates (owner's choice, not settled)
-
-Mission UI and briefings can keep saying **"the swarm"** for the bodies on the map
-whatever is chosen; the candidates below name the weapon itself, for briefing
-headlines, intel and item text. Recommendation first.
-
-1. **Fallow** — what the weapon was for: to leave a world fallow. Reads as a
-   recovered programme codename without saying whose ("the Fallow agent", "a
-   Fallow outbreak"). Short, unused in canon, works in every register.
-2. **Undercrop** — the colonists' word that stuck: what grows under the fields
-   and harvests the farmers. Most grounded; least military.
-3. **Gravebloom** — the eruption seen from the surface; vivid and a little lurid.
-   Good for radio and bar talk, heavier in item text.
-4. **The Deep Harvest** — stresses the biomass economy and the mother bore.
-   Rhetorical; suits Church and Path voices better than UI.
-5. **Hollowseed** — stresses dormancy and seeding; quieter, more literary.
-
-Avoid as the proper name: **Swarm** (vanilla already has the Threat's Attack
-Swarm and Devouring Swarm and the Swarmer missile; keep "swarm" lowercase and
-generic), **Hive** (the Threat's hive unit), **Sleeper** (cryosleepers),
-**Plague** (wrong mechanism: it eats, it does not infect), anything with Moloch,
-Remnant, Threat, Shrouded, Abyss or Dweller (canon entities), and **Tithe**
-(Luddic Path usage).
+Names considered before the owner chose: Fallow, Undercrop, Gravebloom, The Deep
+Harvest, Hollowseed. Still avoid as names: **Swarm** as a proper noun (vanilla's
+Attack Swarm, Devouring Swarm and Swarmer), **Hive** (the Threat's hive unit),
+**Sleeper** (cryosleepers), **Plague** (it eats, it does not infect), anything with
+Moloch, Remnant, Threat, Shrouded, Abyss or Dweller, and **Tithe** (Luddic Path
+usage).
 
 ### The open maker rule
 
@@ -204,6 +229,11 @@ Speculation each voice is allowed to carry:
   the Path is right.
 - **Independents and colonists:** a corp lab, "the old war", or "nobody made it,
   it was always here" (the native-xenolife misreading).
+- **Spacers (the sporeship rumour):** the Bloom was a sporeship payload: the
+  seeding stock that turned dead worlds green, bred into something that turns
+  green worlds dead. It explains why blooms surface on old seeded worlds and why
+  nobody can say who did it. It stays rumour; no text confirms it, and the
+  Hegemony and Tri-Tachyon both dismiss it in the same breath.
 - **Scientists:** something older or stranger than the records admit, offered
   as a question, never a revelation. Do not pay this off into an alien
   precursor.
@@ -242,12 +272,14 @@ people work around and get paid to face, not a cosmic evil.
   sealed sample cases, contaminated core plugs, a survey log with the last
   entries corrupted.
 
-**Words to use:** bore, fissure, maw, mother bore, surge, brood, harvest,
+**Words to use:** the Rav Bloom, a bloom, ravs, bore, fissure, maw, mother bore,
+surge, brood, harvest,
 biomass (in-world: "they're taking the bodies down"), dormant, reservoir,
 seeding, outbreak, eruption, quiet.
 
 **Words to avoid:** queen, hive mind, overmind, evil, demon, invasion, aliens
-(except as a colonist's mistake), infection or zombie framing, "extinct",
+(except as a colonist's mistake; "monsters" and "creatures" are fine in folk
+speech), infection or zombie framing, "extinct",
 "eradicated", "cured".
 
 ## Anti-caricature rules
@@ -265,6 +297,8 @@ seeding, outbreak, eruption, quiet.
 ## Source anchors
 
 - `campaign/special_items.csv`: Planetkiller (*Domain Restricted*).
+- `strings/descriptions.csv`: sporeship seeding (`planet_chalcedon`,
+  `planet_ailmar`, Cibola / `desert_moons_ruins`, `station_telepylus`).
 - `campaign/rules.csv`: research station bioweapons lab (`salSRBW*`); Tri-Tachyon
   specimen buying; Jangala xenolife; Moloch usage; Treaty of Crom Cruach; Second
   AI War EW traps.

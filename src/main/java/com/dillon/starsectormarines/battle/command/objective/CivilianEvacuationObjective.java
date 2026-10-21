@@ -143,9 +143,11 @@ public final class CivilianEvacuationObjective
         }
         payloadCellX = active > 0 ? activeX / active : cellX;
         payloadCellY = active > 0 ? activeY / active : cellY;
-        // An authored escort regroups on a separated rear element instead of
-        // anchoring midway across a gap nobody can cross without that escort.
-        if (requiredPickup != 0 && active > 0
+        // The escort regroups on a separated rear element instead of anchoring
+        // midway across the gap. A civilian left outside the leash waits where
+        // it is, so the mean of it and the group sits behind the group, the
+        // escort forms up there, and the group holds too: nobody moves again.
+        if (active > 0
                 && Math.abs(rearX - payloadCellX) + Math.abs(rearY - payloadCellY) > 5) {
             payloadCellX = rearX; payloadCellY = rearY;
         }

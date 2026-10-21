@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.campaign.AgreusDistrictEscortProgress;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
@@ -75,6 +76,6 @@ record AgreusWorkGuide(AgreusArcProgress progress, OpeningBroker.Destination des
         };
     }
     static String agreementName(AgreusYardAgreement agreement) {
-        return agreement == AgreusYardAgreement.HOUSE_CUSTODY ? "House Custody" : "Yard Compact";
+        return Strings.get(agreement == AgreusYardAgreement.HOUSE_CUSTODY ? "agreusDeskTabCustody" : "agreusDeskTabCompact");
     }
 }

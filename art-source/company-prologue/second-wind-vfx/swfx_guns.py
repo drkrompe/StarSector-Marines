@@ -320,7 +320,7 @@ def energy_tint(a):
     return tuple(swfx_anchors.ENERGY_COLOURS.get(a.turret, ENERGY_DEFAULT))
 
 
-def _flash_material(ctx, label, tint=None):
+def _flash_material(ctx, label, tint=None, gain=1.0):
     """Emission-only volume: mouth core + forward tongue + brake side jets,
     broken up by seeded noise. Object coordinates are mount units (the box
     is scaled by the mount scale), origin at the brake mouth, +X downrange."""
@@ -392,7 +392,7 @@ def _flash_material(ctx, label, tint=None):
         mix.inputs['A'].default_value = (*tint, 1)
         mix.inputs['B'].default_value = (1, 1, 1, 1)
         links.new(mix.outputs['Result'], em.inputs['Color'])
-    links.new(g.mul(g.mul(field, env), 45.0), em.inputs['Strength'])
+    links.new(g.mul(g.mul(field, env), 45.0 * gain), em.inputs['Strength'])
     links.new(em.outputs[0], out.inputs['Volume'])
     return m
 
@@ -835,7 +835,7 @@ def _hull_glow(k):
 def _mg(**kw):
     w = dict(energy=False, burst=5, burst_delay=.1, cooldown=.4, barrels='alternating', spread=.0035,
              flash=(1.0, .5, .2), flash_tint=None, flash_size=(1.0, 1.0, 1.0), flash_light=(255, 240, 165),
-             cloud=dict(rgb=(255, 240, 165), r=(.35, 1.1), frames=4, peak=4.0),
+             cloud=dict(rgb=(255, 240, 165), r=(.35, 1.1), frames=4, peak=2),
              round=dict(speed=450, range=350, length=8.0, core=.09, corona=.32, fringe=(240, 220, 220),
                         hot=(245, 245, 245), core_gain=22, corona_gain=1.6),
              puff=True, brass=True)
@@ -847,7 +847,7 @@ def _ac(**kw):
     w = dict(energy=False, burst=1, burst_delay=0, cooldown=.5, barrels='alternating', spread=.003,
              flash=(1.0, .55, .25, .1), flash_tint=(165, 225, 185), flash_size=(1.25, 1.35, 1.35),
              flash_light=(165, 225, 185),
-             cloud=dict(rgb=(165, 225, 185), r=(.8, 2.6), frames=5, peak=4.0),
+             cloud=dict(rgb=(165, 225, 185), r=(.8, 2.6), frames=5, peak=2),
              round=dict(speed=360, range=600, length=2.6, core=.14, corona=.9, fringe=(235, 255, 215),
                         hot=(225, 255, 200), glow=(120, 235, 150), core_gain=14, corona_gain=3.5),
              puff=True, brass=True)
@@ -863,18 +863,18 @@ WEAPONS = {
     # Vulcan: twin barrels alternating at 20 rounds/s, pale gold; the two streams cross
     # (braid, metres to the crossing) so the stream zig-zags.
     'vulcan': _mg(name='Vulcan Cannon', burst=1, burst_delay=0, cooldown=.05, braid=60.0, flash=(1.0, .4), puff=False,
-                  cloud=dict(rgb=(255, 240, 165), r=(.3, .9), frames=3, peak=3.5),
+                  cloud=dict(rgb=(255, 240, 165), r=(.3, .9), frames=3, peak=1.75),
                   round=dict(speed=480, range=300, length=7.0, core=.08, corona=.28, fringe=(240, 220, 180),
                              hot=(245, 245, 225), core_gain=22, corona_gain=1.6)),
     # Autocannons: visible green-white shells with a broad pale-green flash.
     'lightac': _ac(name='Light Autocannon'),
     'heavyac': _ac(name='Heavy Autocannon', burst=3, burst_delay=.2, cooldown=1.0, flash_size=(1.5, 1.6, 1.6),
-                   cloud=dict(rgb=(165, 225, 185), r=(1.2, 3.6), frames=4, peak=4.0),
+                   cloud=dict(rgb=(165, 225, 185), r=(1.2, 3.6), frames=4, peak=2),
                    round=dict(speed=380, range=800, length=3.6, core=.2, corona=1.2, fringe=(235, 255, 215),
                               hot=(225, 255, 205), glow=(120, 235, 150), core_gain=14, corona_gain=3.5)),
     # Mark IX: the four-round slam every 2 s.
     'mark9': _ac(name='Mark IX Autocannon', burst=4, burst_delay=.1, cooldown=2.0, flash=(1.0, .55, .22, .08),
-                 flash_size=(1.4, 1.5, 1.5), cloud=dict(rgb=(165, 225, 185), r=(1.4, 4.2), frames=4, peak=4.0),
+                 flash_size=(1.4, 1.5, 1.5), cloud=dict(rgb=(165, 225, 185), r=(1.4, 4.2), frames=4, peak=2),
                  round=dict(speed=400, range=800, length=3.8, core=.22, corona=1.3, fringe=(235, 255, 215),
                             hot=(225, 255, 205), glow=(120, 235, 150), core_gain=14, corona_gain=3.5)),
     # Hellbore: one heavy HE slug every 3 s, slow, orange-white in a 60-unit glow; the game's
@@ -883,25 +883,25 @@ WEAPONS = {
                      barrels='alternating', spread=.001,
                      flash=(1.0, .85, .65, .48, .34, .24, .16, .1, .06), flash_tint=(255, 120, 50),
                      flash_size=(1.5, 1.6, 1.6), flash_light=(255, 120, 50), flash_light_gain=4.0,
-                     cloud=dict(rgb=(255, 120, 50), r=(2.0, 9.0), frames=18, peak=5.0),
+                     cloud=dict(rgb=(255, 120, 50), r=(2.0, 9.0), frames=18, peak=3.0),
                      round=dict(speed=170, range=900, length=5.5, core=.6, corona=1.9, fringe=(255, 165, 30),
-                                hot=(255, 255, 255), core_gain=18, corona_gain=3.0, light=40000,
-                                halo=dict(r=5.0, peak=2.5)),
+                                hot=(255, 230, 170), core_gain=10, corona_gain=1.8, light=40000,
+                                halo=dict(r=5.0, peak=1.5)),
                      puff=True, brass=False),
     # High explosive: orange shells.
     'lightag': _ac(name='Light Assault Gun', cooldown=.25, flash=(1.0, .6, .35, .18, .08), flash_tint=(255, 155, 105),
                    flash_size=(1.1, 1.2, 1.2), flash_light=(255, 155, 105),
-                   cloud=dict(rgb=(255, 155, 105), r=(.7, 2.4), frames=8, peak=4.0),
+                   cloud=dict(rgb=(255, 155, 105), r=(.7, 2.4), frames=8, peak=2),
                    round=dict(speed=380, range=600, length=3.0, core=.15, corona=.6, fringe=(255, 200, 70),
                               hot=(255, 235, 210), core_gain=16, corona_gain=2.2)),
     'chaingun': _mg(name='Assault Chaingun', burst=1, burst_delay=0, cooldown=.15, flash_size=(1.5, .8, .8),
-                    cloud=dict(rgb=(255, 240, 165), r=(.5, 1.4), frames=4, peak=4.0),
+                    cloud=dict(rgb=(255, 240, 165), r=(.5, 1.4), frames=4, peak=2),
                     round=dict(speed=420, range=450, length=5.0, core=.12, corona=.45, fringe=(255, 200, 70),
                                hot=(255, 230, 200), core_gain=18, corona_gain=2.0)),
     # Needler: 15-round bursts 0.05 s apart, long white needles, much the fastest round.
     'lightneedler': _mg(name='Light Needler', burst=15, burst_delay=.05, cooldown=4.3, spread=.002, flash=(1.0, .3),
                         flash_tint=(255, 255, 255), flash_size=(1.4, .55, .55), flash_light=(255, 255, 255),
-                        cloud=dict(rgb=(255, 255, 255), r=(.3, .9), frames=5, peak=3.0),
+                        cloud=dict(rgb=(255, 255, 255), r=(.3, .9), frames=5, peak=1.5),
                         round=dict(speed=900, range=700, length=22.0, core=.05, corona=.16, fringe=(255, 255, 255),
                                    hot=(255, 255, 255), core_gain=25, corona_gain=1.2),
                         brass=False),
@@ -909,7 +909,7 @@ WEAPONS = {
     'ioncannon': dict(name='Ion Cannon', energy=True, burst=1, burst_delay=0, cooldown=0.0, chargeup=.5,
                       barrels='alternating', spread=.002, flash=(1.0, .4, .12), flash_tint=(100, 200, 255),
                       flash_size=(1.0, 1.0, 1.0), flash_light=(100, 200, 255),
-                      cloud=dict(rgb=(100, 200, 255), r=(.5, 1.6), frames=3, peak=4.0),
+                      cloud=dict(rgb=(100, 200, 255), r=(.5, 1.6), frames=3, peak=2),
                       charge=dict(rgb=(100, 200, 255), r=(.4, 2.0), peak=6.0, light=6000),
                       round=dict(speed=700, range=500, length=30.0, core=.22, corona=1.3, fringe=(25, 100, 155),
                                  hot=(225, 225, 255), core_gain=20, corona_gain=2.5, jag=True, light=8000,
@@ -919,7 +919,7 @@ WEAPONS = {
     'miningblaster': dict(name='Mining Blaster', energy=True, burst=1, burst_delay=0, cooldown=.2,
                           barrels='alternating', spread=.002, flash=(1.0, .45, .15), flash_tint=(255, 100, 100),
                           flash_size=(1.25, 1.4, 1.4), flash_light=(255, 100, 100),
-                          cloud=dict(rgb=(255, 100, 100), r=(.6, 2.0), frames=3, peak=4.0),
+                          cloud=dict(rgb=(255, 100, 100), r=(.6, 2.0), frames=3, peak=2),
                           round=dict(speed=600, range=500, length=9.0, core=.35, corona=1.6, fringe=(255, 100, 100),
                                      hot=(255, 255, 255), core_gain=22, corona_gain=3.0, light=10000,
                                      light_rgb=(255, 60, 60)),
@@ -927,12 +927,20 @@ WEAPONS = {
     'heavyblaster': dict(name='Heavy Blaster', energy=True, burst=1, burst_delay=0, cooldown=1.0,
                          barrels='alternating', spread=.002, flash=(1.0, .45, .15), flash_tint=(100, 100, 255),
                          flash_size=(1.25, 1.4, 1.4), flash_light=(100, 100, 255),
-                         cloud=dict(rgb=(100, 100, 255), r=(.6, 2.0), frames=3, peak=4.0),
+                         cloud=dict(rgb=(100, 100, 255), r=(.6, 2.0), frames=3, peak=2),
                          round=dict(speed=600, range=600, length=9.0, core=.4, corona=1.8, fringe=(100, 100, 255),
                                     hot=(255, 255, 255), core_gain=22, corona_gain=3.0, light=12000,
                                     light_rgb=(100, 100, 255)),
                          puff=False, brass=False),
 }
+# The game's turn rates (weapon_data.csv "turn rate", degrees per second): how fast aim()
+# swings each turret onto its target. A Hellbore takes six seconds over thirty degrees.
+TURN_RATES = {'lightmg': 50, 'lightdualmg': 50, 'vulcan': 75, 'lightac': 20, 'heavyac': 7, 'mark9': 10,
+              'hellbore': 5, 'lightag': 40, 'chaingun': 30, 'lightneedler': 20, 'ioncannon': 40,
+              'miningblaster': 7, 'heavyblaster': 15}
+for _k, _v in TURN_RATES.items():
+    WEAPONS[_k].setdefault('turn', _v)
+
 FEEDER_RGB = (255, 200, 0)          # Accelerated Ammo Feeder weapon glow
 
 
@@ -961,7 +969,9 @@ def arm(ctx, turret, weapon, tag=None):
         rig['weapon'] = weapon
         box = rig.get('flash') or bpy.data.objects.get(f'{PREFIX} flash {label}')
         if box is not None:
-            mat = _flash_material(ctx, label, _lin(w['flash_tint']) if w.get('flash_tint') else None)
+            # flash_gain (default 1) scales a weapon's flash gas, for a flash that wants it.
+            mat = _flash_material(ctx, label, _lin(w['flash_tint']) if w.get('flash_tint') else None,
+                                  w.get('flash_gain', 1.0))
             box.data.materials[0] = mat
             s = a.scale
             box.scale = tuple(s * k for k in w['flash_size'])
@@ -1022,7 +1032,7 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
         mode = w['barrels']
         pick = guns if mode == 'linked' else [guns[(k if mode == 'alternating_burst' else n) % len(guns)]]
         if target is not None and train:
-            aim(ctx, turret, target, f, tag=tag)
+            aim(ctx, turret, target, f, tag=tag, turn_rate=w.get('turn'))
         for g in pick:
             if w.get('charge') and w.get('chargeup'):
                 _charge(ctx, g, f, int(round(w['chargeup'] * fps)), w)
@@ -1067,6 +1077,17 @@ def _weapon_shot(ctx, a, frame, lead=0.0, target=None):
     return rec
 
 
+def _object_colour(nodes):
+    """The object's own colour, keyed per object. Object Info's Color is the instancer's for an
+    object drawn through a collection instance (every per-ship copy is), which read (1, 1, 1) and
+    drove every glow at full strength into a white disc (passes 1-4); an Object attribute looks
+    on the object itself first. Its output is named Color as Object Info's is."""
+    at = nodes.new('ShaderNodeAttribute')
+    at.attribute_type = 'OBJECT'
+    at.attribute_name = 'color'
+    return at
+
+
 def _glow_material(ctx, rgb):
     """Soft emissive gas: the weapon's colour, whiter where densest. Object colour R is the fade,
     G a seed, B a twentieth of the emission per metre (peak radiance / diameter in metres), so a
@@ -1083,7 +1104,7 @@ def _glow_material(ctx, rgb):
     x, y, z = g.xyz(p)
     r2 = g.add(g.add(g.sq(x), g.sq(y)), g.sq(z))
     shell = g.pow(g.mx(g.sub(1.0, r2), 0.0), 2.0)
-    info = nodes.new('ShaderNodeObjectInfo')
+    info = _object_colour(nodes)
     sep = nodes.new('ShaderNodeSeparateColor')
     links.new(info.outputs['Color'], sep.inputs[0])
     fade, seed, k = sep.outputs[0], sep.outputs[1], sep.outputs[2]
@@ -1168,6 +1189,7 @@ def _charge(ctx, a, frame, frames, w):
     _visible_between(ob, f0, frame - 1)
     light = swfx_core.point_light(f'{PREFIX} charge light {label} f{frame:04d}', coll, rgb, 0.0,
                                   radius=swfx_core.units(r1 * .5))
+    light.visible_camera = False      # a light with a radius is a sphere the camera sees
     swfx_core.attach(light, a.empty, local=(swfx_core.units(.2), 0, 0))
     _bake(light.data, 'energy', -1, [f0 - 1] + fr + [frame], [0.0] + [_hull_watts(spec['light']) * v for v in fade] + [0.0])
     return ob.name
@@ -1187,7 +1209,7 @@ def _round_material(ctx, weapon, part):
     out = nodes.new('ShaderNodeOutputMaterial')
     tc = nodes.new('ShaderNodeTexCoord')
     gx, _, _ = g.xyz(tc.outputs['Generated'])
-    info = nodes.new('ShaderNodeObjectInfo')
+    info = _object_colour(nodes)
     sep = nodes.new('ShaderNodeSeparateColor')
     links.new(info.outputs['Color'], sep.inputs[0])
     burn = sep.outputs[0]
@@ -1321,12 +1343,45 @@ def _key_constant(ob, path, index, frame):
             kp.interpolation = 'CONSTANT'
 
 
-def aim(ctx, turret, target, frame, tag=None, slew_frames=0, iterations=4):
-    """Train a turret onto `target` (a point in the ship's own copy space, units) at `frame`:
+def _pose_at(ob, index, frame):
+    """A rotation channel's value at `frame` (its keys, else its current value), and the last
+    key before `frame` (None if it has none)."""
+    fc = swfx_core.find_fcurve(ob, 'rotation_euler', index)
+    if fc is None or not len(fc.keyframe_points):
+        return ob.rotation_euler[index], None
+    before = [kp.co.x for kp in fc.keyframe_points if kp.co.x < frame - 1e-4]
+    return fc.evaluate(frame), (max(before) if before else None)
+
+
+def _key_slew(ob, index, f0, v0, f1, v1):
+    """Hold v0 to f0, swing eased to v1 at f1, hold there (CONSTANT) until the next key."""
+    ob.rotation_euler[index] = v0
+    ob.keyframe_insert('rotation_euler', index=index, frame=f0)
+    ob.rotation_euler[index] = v1
+    ob.keyframe_insert('rotation_euler', index=index, frame=f1)
+    fc = swfx_core.find_fcurve(ob, 'rotation_euler', index)
+    for kp in fc.keyframe_points:
+        if abs(kp.co.x - f0) < 1e-4:
+            kp.interpolation = 'BEZIER'
+            kp.easing = 'AUTO'
+            kp.handle_left_type = kp.handle_right_type = 'AUTO_CLAMPED'
+        elif abs(kp.co.x - f1) < 1e-4:
+            kp.interpolation = 'CONSTANT'
+            kp.handle_left_type = kp.handle_right_type = 'AUTO_CLAMPED'
+    fc.update()
+
+
+def aim(ctx, turret, target, frame, tag=None, slew_frames=None, turn_rate=None, iterations=4):
+    """Train a turret onto `target` (a point in the ship's own copy space, units) by `frame`:
     its pivot traverses about its own Z and its elevation lifts about its own Y until the
-    muzzle's line of fire passes through the target, keyed CONSTANT there, so the flash, which
-    rides the muzzle, points where the rounds go. slew_frames > 0 keys the previous pose that many
-    frames earlier, so the turret swings over rather than snapping. Elevation is not clamped.
+    muzzle's line of fire passes through the target, so the flash, which rides the muzzle,
+    points where the rounds go.
+
+    The turret swings there from the pose it has at that frame (its earlier keys), eased, over
+    `slew_frames`, or over the time `turn_rate` (degrees per second; the game's "turn rate":
+    a Hellbore 5, a light MG 50) takes for the larger of the two angles. The swing starts no
+    earlier than the turret's previous key, so a turret given too little time turns faster
+    than its rate rather than late. Neither: it snaps, keyed CONSTANT. Elevation is not clamped.
 
     The pivot is a hull object. A ship placed without its own hull copy (ship_fx.ShipFx
     own_hull) shares its turrets with every other copy of that build, and training one trains
@@ -1340,15 +1395,14 @@ def aim(ctx, turret, target, frame, tag=None, slew_frames=0, iterations=4):
     if piv is None:
         return None
     T = Vector(target)
-    if slew_frames > 0:
-        _key_constant(piv, 'rotation_euler', 2, frame - slew_frames)
-        if elev is not None:
-            _key_constant(elev, 'rotation_euler', 1, frame - slew_frames)
-        for ob, i in ((piv, 2), (elev, 1)):
-            fc = swfx_core.find_fcurve(ob, 'rotation_euler', i) if ob is not None else None
-            for kp in fc.keyframe_points if fc else ():
-                if abs(kp.co.x - (frame - slew_frames)) < 1e-4:
-                    kp.interpolation = 'BEZIER'
+    chans = [(piv, 2)] + ([(elev, 1)] if elev is not None else [])
+    start, prev = {}, []
+    for ob, i in chans:
+        v, k = _pose_at(ob, i, frame)
+        ob.rotation_euler[i] = v
+        start[ob.name] = v
+        if k is not None:
+            prev.append(k)
     X, Y, Z = Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1))
     for _ in range(iterations):
         m = anchor_matrix(a.empty)
@@ -1358,9 +1412,21 @@ def aim(ctx, turret, target, frame, tag=None, slew_frames=0, iterations=4):
             m = anchor_matrix(a.empty)
             elev.rotation_euler.y += _signed_angle(m.to_3x3() @ X, T - m.translation,
                                                    (anchor_matrix(elev).to_3x3() @ Y).normalized())
-    _key_constant(piv, 'rotation_euler', 2, frame)
-    if elev is not None:
-        _key_constant(elev, 'rotation_euler', 1, frame)
+    swing = max(abs(math.degrees(ob.rotation_euler[i] - start[ob.name])) for ob, i in chans)
+    dur = 0.0
+    if slew_frames:
+        dur = float(slew_frames)
+    elif turn_rate:
+        dur = swing / turn_rate * (ctx.scene.render.fps or swfx_core.FPS)
+    f0 = frame - dur
+    if prev:
+        f0 = max(f0, max(prev))
+    if dur > 0 and swing > .05 and f0 < frame - .5:
+        for ob, i in chans:
+            _key_slew(ob, i, round(f0), start[ob.name], frame, ob.rotation_euler[i])
+    else:
+        for ob, i in chans:
+            _key_constant(ob, 'rotation_euler', i, frame)
     return (round(math.degrees(piv.rotation_euler.z), 2),
             round(math.degrees(elev.rotation_euler.y), 2) if elev is not None else None)
 
@@ -1461,6 +1527,7 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
         light = swfx_core.point_light(f'{PREFIX} round light {label} f{frame:04d}', coll,
                                       _lin(r.get('light_rgb', r['fringe'])), 0.0,
                                       radius=swfx_core.units(r['corona']))
+        light.visible_camera = False
         for i in range(3):
             _bake(light, 'location', i, frames, [(M @ (d * (hh - L * .3)))[i] for hh in heads])
         _bake(light.data, 'energy', -1, [frame - 1] + frames + [frame + life + 1],
@@ -1523,6 +1590,7 @@ def emp_arcs(ctx, frame, paths, frames=8, rgb=(140, 200, 255), seed=0, light=300
                 ob.hide_render = True
     if paths:
         lt = swfx_core.point_light(f'{PREFIX} emp light f{frame:04d}', coll, lin, 0.0, radius=swfx_core.units(.5))
+        lt.visible_camera = False
         lt.location = Vector(paths[0][0])
         _bake(lt.data, 'energy', -1, [frame - 1] + [frame + j for j in range(frames)] + [frame + frames],
               [0.0] + [_hull_watts(light) * rnd.uniform(.3, 1.0) for _ in range(frames)] + [0.0])
@@ -1542,12 +1610,12 @@ def _feeder_material(ctx, knob):
     gx, _, _ = g.xyz(tc.outputs['Generated'])
     lw = nodes.new('ShaderNodeLayerWeight')
     lw.inputs['Blend'].default_value = .5
-    facing = g.pow(g.clamp01(g.sub(1.0, lw.outputs['Facing'])), 1.2)
+    facing = g.add(.35, g.mul(g.pow(g.clamp01(g.sub(1.0, lw.outputs['Facing'])), 1.2), .65))
     on = swfx_core.value_node(ctx, nodes, 'feeder', knob, (knob,))
     ends = g.mul(g.smooth(0.0, .2, gx), g.sub(1.0, g.smooth(.85, 1.0, gx)))
     em = nodes.new('ShaderNodeEmission')
     em.inputs['Color'].default_value = (*_lin(FEEDER_RGB), 1)
-    links.new(g.mul(g.mul(g.mul(facing, ends), on), 14.0), em.inputs['Strength'])
+    links.new(g.mul(g.mul(g.mul(facing, ends), on), 6.0), em.inputs['Strength'])
     tr = nodes.new('ShaderNodeBsdfTransparent')
     add = nodes.new('ShaderNodeAddShader')
     links.new(tr.outputs[0], add.inputs[0])
@@ -1573,13 +1641,14 @@ def feeder(ctx, turret, start_frame, end_frame, ramp_frames=6, light=2500.0):
             continue
         s = a.scale
         ob = bpy.data.objects.new(f'{PREFIX} feeder {gun_label(a)}',
-                                  _cylinder_mesh(f'{PREFIX} feeder mesh t{turret}', .75, -6.0, -.2, 12, mat))
+                                  _cylinder_mesh(f'{PREFIX} feeder mesh t{turret}', 1.5, -6.0, -.2, 12, mat))
         coll.objects.link(ob)
         swfx_core.attach(ob, a.empty)
         ob.scale = (s, s, s)
         ob.visible_shadow = False
         lt = swfx_core.point_light(f'{PREFIX} feeder light {gun_label(a)}', coll, _lin(FEEDER_RGB), 0.0,
                                    radius=.6 * s)
+        lt.visible_camera = False
         swfx_core.attach(lt, a.empty, local=(-3.0 * s, 0, .8 * s))
         ctx.drive(lt.data, 'energy', f'{knob}*{_hull_watts(light):g}', (knob,))
         names += [ob.name, lt.name]

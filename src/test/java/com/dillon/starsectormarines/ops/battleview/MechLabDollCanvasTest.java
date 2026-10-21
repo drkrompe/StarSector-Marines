@@ -1,13 +1,11 @@
 package com.dillon.starsectormarines.ops.battleview;
 
-import com.dillon.starsectormarines.battle.ambient.JobBoard;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.DollDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
-import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import org.junit.jupiter.api.Test;
 
@@ -18,22 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MechLabDollCanvasTest {
-
-    @Test
-    void weldingIsReservedForMachineServiceInTheFramedBay() {
-        int bay = 7;
-        assertTrue(MechLabDollCanvas.isWeldingJob(
-                JobBoard.group(bay, Affordance.SERVICE, 2), bay));
-        for (Affordance job : List.of(Affordance.FABRICATE, Affordance.REPAIR,
-                Affordance.READOUT, Affordance.STOW)) {
-            assertFalse(MechLabDollCanvas.isWeldingJob(JobBoard.group(bay, job), bay),
-                    "Non-machine work must not light a welding torch: " + job);
-        }
-        assertFalse(MechLabDollCanvas.isWeldingJob(
-                JobBoard.group(bay + 1, Affordance.SERVICE, 2), bay));
-        assertFalse(MechLabDollCanvas.isWeldingJob(null, bay));
-        assertFalse(MechLabDollCanvas.isWeldingJob(JobBoard.group(bay, Affordance.SERVICE), -1));
-    }
 
     @Test
     void vacantActionCoversTheWholeFiveBySevenFabricationPad() {

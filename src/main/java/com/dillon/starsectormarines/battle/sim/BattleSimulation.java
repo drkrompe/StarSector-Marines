@@ -675,7 +675,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     private ThunderRunSequence thunderRun;
     private final GroundAntiAirSystem groundAntiAir = new GroundAntiAirSystem();
-    /** Aimed flak and guided missiles from ground anti-air mounts, including a swarm bore's spore umbrella. */
+    /** Aimed flak and guided missiles from ground anti-air mounts, including a swarm bore's spore colonies. */
     public GroundAntiAirSystem groundAntiAir() { return groundAntiAir; }
     private final SwarmStrikeSystem swarmStrikes = new SwarmStrikeSystem();
     private final AirToAirFire airToAir = new AirToAirFire();
@@ -1315,6 +1315,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.ambientTasks = new AmbientTaskService(
                 rosterService, navigation, taskPoints);
         deathDispatcher.subscribe(event -> ambientTasks.release(event.unitId()));
+        ambientTasks.setFixtureLookup((x, y) -> doodadService.definitionsAt(x, y));
         this.swarmAvoidance = new SwarmAvoidanceSystem(
                 rosterService, unitIndex, grid);
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
@@ -1430,7 +1431,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     @Override public void addTender(Tender tender) { tenders.add(this, tender); }
-    @Override public void landTender(Tender tender, float siteX, float siteY) { tenders.land(this, tender, siteX, siteY); }
     /** Published derived navigation geometry; exposed for battle diagnostics. */
     public GreedyNavigationMesh getNavigationMesh() {
         return navigation.getNavigationMesh();

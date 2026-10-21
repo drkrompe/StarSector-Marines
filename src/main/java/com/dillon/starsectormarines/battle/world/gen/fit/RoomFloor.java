@@ -395,6 +395,25 @@ public final class RoomFloor {
         return true;
     }
 
+    /**
+     * Lay a nonblocking piece over deck the room already owns, in canonical coordinates and turned with the room,
+     * without claiming a cell: overhead structure such as a gantry crane's runway, which spans a berth that has to
+     * stay clear for the machine standing in it.
+     *
+     * @return whether it went down; a piece that does not lie wholly on the room's own floor is refused
+     */
+    public boolean overlay(int x, int y, String doodadId) {
+        DoodadDef def = TileRegistry.installed().doodad(doodadId);
+        if (def == null) return false;
+        if (def.cover.level() != 0 || def.ballisticHalfHeight != 0)
+            throw new IllegalArgumentException("An overlay must be nonblocking: " + doodadId);
+        for (int dy = 0; dy < def.footprintCellsY; dy++) for (int dx = 0; dx < def.footprintCellsX; dx++)
+            if (!contains(x + dx, y + dy)) return false;
+        report(new LayoutOp.Overlay(x, y, doodadId));
+        assemblyLayer(x, y, def);
+        return true;
+    }
+
     private void assemblyLayer(int x, int y, DoodadDef def) {
         int[] rect = toLocalRect(x, y, def.footprintCellsX, def.footprintCellsY);
         ctx.doodads.add(new Doodad(left + rect[0], top + rect[1], def, pose().quarterTurns(), pose().mirrored()));

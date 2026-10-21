@@ -253,9 +253,6 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
     /** Puts a drone tender over the battle, its hull among the warships and its drones launching. */
     default void addTender(Tender tender) {}
 
-    /** Sends a flown tender to set down at the site, where it becomes a grounded builder ({@code TenderLanding}). */
-    default void landTender(Tender tender, float siteX, float siteY) {}
-
     /** What the player's company is doing about the objective: attacking it or holding it. */
     default MissionStance companyStance() { return MissionStance.ATTACK; }
 }

@@ -11,7 +11,7 @@ import java.util.List;
  * <p>The simulation only records here and never reads back, so a headless run
  * stays silent and nothing presented reaches the simulation. Requests last one
  * advance ({@link #beginFrame()}). The ambience loop is not a cue: a player
- * reads the living bores and their tiers every frame. Spore-vent bursts are not
+ * reads the living bores and their tiers every frame. Spore-colony bursts are not
  * cues either: a burst is a shot, and the vent weapon names its own fire sound.
  */
 public final class BoreCues {
