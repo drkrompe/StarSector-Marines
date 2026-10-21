@@ -56,7 +56,7 @@ NECK = (512, 470)
 GAPE = (0.690, (52, 44), (177, 26))      # scale, source top-left, destination top-left
 SHANK_W = {"F": 175, "H": 185}
 LEG_ROOT_IN = 0.55       # leg roots sit this fraction of the way out to the foot, well inside the body
-HEAD_TURN = 180          # degrees the crown-and-head layer is turned (owner's experiment); 0 is the design
+HEAD_TURN = 0            # degrees the crown-and-head layer is turned; the owner tried 180 and rejected it
 HEAD_TURN_Y = 300        # hero row it turns about
 FOOT_SCALE = 1.1
 
@@ -324,7 +324,7 @@ def wall_damage(tile, ppc, origin, t, row):
             tile.alpha_composite(dust.filter(ImageFilter.GaussianBlur(0.15 * ppc)))
 
 
-def build(root, cid, out, title="MOTION STUDY 2 / head turned 180"):
+def build(root, cid, out, title="MOTION STUDY 3"):
     """One clip per GIF (the three together pass the 8 MB preview limit): 64 px per cell at left, 32 px per
     cell (play zoom) at right. Returns the frames, the clip and the panel's top row in the ground frame."""
     rig = Rig()
@@ -346,7 +346,7 @@ def build(root, cid, out, title="MOTION STUDY 2 / head turned 180"):
         d = ImageDraw.Draw(img)
         d.text((24, 10), f"RAV MATRIARCH  /  {title}  /  {cid}  {ttl}", font=font(22, True), fill=INK)
         d.text((24, 40), "Real time. Left: 64 px per cell. Right: 32 px per cell (play zoom). Charcoal Siege Crown "
-                         "(round 3 #5), crown and head turned 180 degrees; Marines for scale.", font=font(14), fill=DIM)
+                         "(round 3 #5), about 4.5 cells nose to tail; Marines for scale.", font=font(14), fill=DIM)
         tile = g64.copy()
         if cid == "C":
             wall_damage(tile, 64, o64, t, clip.row)
