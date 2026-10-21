@@ -2,7 +2,12 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.command.ConquestLaneChain;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.command.objective.CivilianEvacuationObjective;
+import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
+import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
+import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
@@ -30,6 +35,7 @@ public final class BattleReviewAnnotations {
     /** Nothing at all for a null simulation, so a caller may be careless. */
     public static ReviewAnnotations forBattle(BattleSimulation simulation) {
         if (simulation == null) return ReviewAnnotations.NONE;
+        if (simulation.getColonyBreach() != null) return forColonyBreach(simulation);
         ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
         // Routes first, so the compound boxes and their words draw over them
         // rather than under: a lane runs through the places it joins, and the
@@ -50,6 +56,47 @@ public final class BattleReviewAnnotations {
         }
         return marks.build();
     }
+
+    /**
+     * A Colony Breach frame: where the company landed, the shelter, the lift,
+     * and every eruption site — numbered as the beats number them, pending
+     * until it opens — with the walk in to the shelter and out to the lift.
+     * Compounds are not drawn: a colony's held buildings are militia posts,
+     * and Conquest's keep-and-barracks words would say the wrong battle.
+     */
+    private static ReviewAnnotations forColonyBreach(BattleSimulation simulation) {
+        ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
+        CivilianEvacuationObjective cohort = null;
+        for (Objective objective : simulation.getObjectives()) {
+            if (objective instanceof CivilianEvacuationObjective evacuation) cohort = evacuation;
+        }
+        float[] landing = addLandingZones(marks, simulation);
+        ColonyBreachSequence breach = simulation.getColonyBreach();
+        List<ColonyEruptionPlan.Site> sites = breach.plan().sites();
+        for (int i = 0; i < sites.size(); i++) {
+            ColonyEruptionPlan.Site site = sites.get(i);
+            boolean open = breach.isErupted(i);
+            String name = site.mother() ? "MOTHER BORE" : "BORE " + site.number();
+            marks.box(site.x() - BORE_HALF, site.y() - BORE_HALF, site.x() + BORE_HALF, site.y() + BORE_HALF,
+                    open ? name : name + " · pending", open ? ReviewStyle.KEEP : ReviewStyle.NOTE);
+        }
+        if (cohort == null) return marks.build();
+        int sx = cohort.sourceCellX(), sy = cohort.sourceCellY();
+        int lx = cohort.egressCellX(), ly = cohort.egressCellY();
+        int shelter = CivilianEvacuationPlacement.SHELTER_ZONE_RADIUS;
+        marks.box(sx - shelter, sy - shelter, sx + shelter, sy + shelter, "SHELTER", ReviewStyle.OBJECTIVE);
+        marks.box(lx - LIFT_HALF, ly - LIFT_HALF, lx + LIFT_HALF, ly + LIFT_HALF, "LIFT", ReviewStyle.POSITION);
+        if (landing != null) {
+            marks.arrow(landing[0], landing[1], sx + 0.5f, sy + 0.5f, "to the shelter", ReviewStyle.APPROACH);
+        }
+        marks.arrow(sx + 0.5f, sy + 0.5f, lx + 0.5f, ly + 0.5f, "to the lift", ReviewStyle.ROUTE);
+        return marks.build();
+    }
+
+    /** Half-width of the box an eruption site is drawn in. */
+    private static final int BORE_HALF = 3;
+    /** Half-width of the lift's box: its pickup formation, not just the pad. */
+    private static final int LIFT_HALF = 8;
 
     /** The two ends of the approach, whichever of them the battle has. */
     private record Ends(TacticalNode keep, TacticalNode beachhead) { }
