@@ -4,7 +4,7 @@ Status: ACTIVE — reactive manning is shipped for fighting-position runs, a str
 
 Written: 2026-10-13
 
-Updated: 2026-10-21 — parties are sides of the garrison system, a mission speaks to any party's commander through place directives and their triggers, and a locked position is a place a party must take and hold (parties, place directives, locked positions, parties wired); the fight mix is measured on every mission against each garrison feature's control, and building envelopes are what move it (fight mix by mission); the trial-ground hold and mission-defender figures are refreshed on the current build; the mission defenders stage their roving reserve toward pressure, half waiting at the places and half meeting the attack in the street (mission defenders, flow); every story commander has a commander-evidence harness, A Small War's commander offers its posts clear of the stages and the other eight have no standing hostile duty to offer (story commanders, below); story commanders man reactively through a hosted planner and a holder share; a sally door shuts again: its holder shuts it behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body, and an open door of a place its holder lost stays open (sally doors, below); not every fight is into prepared positions is a law; a holder sorties from a walled place it holds through a sally door in its own wall (sally doors, below); the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
+Updated: 2026-10-21 — the Raid, Assault, Sabotage and Extraction defenders push for a place they lose, bounded, and read counter-attack directives (mission defenders, place directives); parties are sides of the garrison system, a mission speaks to any party's commander through place directives and their triggers, and a locked position is a place a party must take and hold (parties, place directives, locked positions, parties wired); the fight mix is measured on every mission against each garrison feature's control, and building envelopes are what move it (fight mix by mission); the trial-ground hold and mission-defender figures are refreshed on the current build; the mission defenders stage their roving reserve toward pressure, half waiting at the places and half meeting the attack in the street (mission defenders, flow); every story commander has a commander-evidence harness, A Small War's commander offers its posts clear of the stages and the other eight have no standing hostile duty to offer (story commanders, below); story commanders man reactively through a hosted planner and a holder share; a sally door shuts again: its holder shuts it behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body, and an open door of a place its holder lost stays open (sally doors, below); not every fight is into prepared positions is a law; a holder sorties from a walled place it holds through a sally door in its own wall (sally doors, below); the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
 
 ## Why this exists
 
@@ -427,6 +427,16 @@ fun of these missions is the target network holding out from its buildings.
   the place, is attached to a manned, pressed place by the machine guard's
   director and bounds, and stands down with the garrison; while it guards it
   carries no mission order.
+- **A place the defender loses is pushed for.** The counter-attack goes
+  ahead of manning on these commanders (`conquest-command.md`, a place the
+  defender loses): the mission plans its duties, the shared counter-attack takes
+  what it may of the held reserve and the quiet authored garrisons for its
+  objective places and key buildings, and only then is the rest offered here.
+  A squad in its group is never offered; a squad it lets go is offered roving
+  again. It is bounded — half the side, two pushes a battle, gone at half of
+  parity or not at all — so a capture is contested on these maps without each
+  one turning into a siege of the defender's own building.
+  `-Dbattle.mission.counterattack=false` is its control.
 - A mission's published picture keeps each squad's mission role and names the
   manning in its reason, so the mission's own memory of routine and response is
   read as before. `-Dbattle.mission.reactiveDefence=false` is the control and
@@ -727,8 +737,16 @@ before; a directive adds to them.
   position (below). `COUNTER_ATTACK`: retake the target. A counter-attack
   directive names the place and when; how and with what is the commander's
   counter-attack's (`conquest-command.md`, Defender command), which reads the
-  active ones each pulse. A new kind joins this list rather than starting a
-  parallel mechanism.
+  active ones each pulse. The Raid, Assault, Sabotage and Extraction defenders
+  read them today (`MissionCounterattack`): an active one is offered to the
+  shared planner as a lost place of its own, worth more than any objective the
+  mission reads for itself, and the mission places inside its target are
+  folded into it. The trigger says when and nothing else; the doctrine's
+  bounds, its observation and its stand-down still decide whether a push goes,
+  so a counter-attack authored against more than the side can raise is stood
+  down like any other. The Raid discloses its alarm and a secured target as
+  flags. `-Dbattle.mission.counterattack.triggered=false` is the control. A
+  new kind joins this list rather than starting a parallel mechanism.
 - **Target.** A region of public geometry: a centre cell and a radius (cells,
   square). Its places are the garrisonables whose centre lies in it. A lock may
   also name posts, its own cells to stand on.
@@ -1112,13 +1130,6 @@ of raiders come up to it). Every loop asks that no door shuts on a body.
   seam is wired and nothing is manned. Whether a one-squad pool should man its
   home's windows, and whether a story ally holding a gain (Junction's and Relay
   Nine's militia) should, is open.
-- **Counter-attacks on the procedural missions.** Raid, Assault, Sabotage and
-  Extraction have no counter-attack, so a place the defender loses there is
-  never pushed for, and a hold never meets one. Whether their defenders should
-  retake a lost building or site with the shared counter-attack
-  (`conquest-command.md`), and what it would cost the missions' tempo, is open;
-  it is what would make taking a place contested across missions rather than
-  on Conquest only.
 - **Missions without a reserve.** Assault and Sabotage spend nearly every squad
   on posts and responders on their fixtures, so flow has almost nothing roving
   to stage there; whether a quiet post's squad should ever be lent to an area's

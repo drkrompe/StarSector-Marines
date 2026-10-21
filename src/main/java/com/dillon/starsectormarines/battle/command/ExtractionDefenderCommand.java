@@ -63,6 +63,15 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
     }
 
     @Override public Faction faction() { return Faction.DEFENDER; }
+    /**
+     * The mission's place directives (`garrisonables.md`, place directives); this commander reads its counter-attack
+     * ones ({@link MissionCounterattack}). Call once, at setup.
+     */
+    public ExtractionDefenderCommand placeDirectives(List<PlaceDirective> mission) {
+        counter.directives(mission, faction());
+        return this;
+    }
+
     @Override public String strategyId() { return "extraction-defender"; }
     @Override public void afterCommit(CommandEffects effects) {
         garrisons.afterCommit(effects, faction());
@@ -75,7 +84,7 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
             ExtractionDefenderCommandFrame frame) {
         ExtractionObjectiveFacts payload = frame.facts().payload();
         boolean terminal = payload.complete() || payload.failed();
-        boolean countering = MissionCounterattack.enabled() && !terminal;
+        boolean countering = counter.active() && !terminal;
         Set<Integer> claimed = countering ? counter.claimed() : Set.of();
         List<CommandSquadState> pool = frame.squads().stream()
                 .filter(squad -> squad.aliveMembers() > 0)
@@ -194,7 +203,8 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
         }
         MissionCounterattack.Result retake = countering
                 ? counter.plan(frame.tick(), sites(payload, frame), members, reserve,
-                pool.size() + members.size(), frame.squads(), frame.influence(), frame.topology())
+                pool.size() + members.size(), frame.squads(), frame.influence(), frame.topology(),
+                PlaceSignals.of(frame))
                 : MissionCounterattack.Result.NONE;
         proposals = MissionCounterattack.apply(proposals, retake, frame.squads());
         offers = MissionCounterattack.offers(offers, retake);
