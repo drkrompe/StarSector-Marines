@@ -78,10 +78,12 @@ public final class CivilDefenceCompound {
 
     /**
      * The places the colony's shelter may be: on a plan with a compound, its
-     * shelter hall alone, or {@code null} when the map did not build one (the
-     * caller re-rolls). Every point of interest on any other map.
+     * shelter hall alone, re-anchored in {@code points} where its people stand,
+     * or {@code null} when the map did not build one (the caller re-rolls).
+     * Every point of interest on any other map.
      */
-    public static List<PointOfInterest> shelters(List<PointOfInterest> points, PrecinctPlan plan) {
+    public static List<PointOfInterest> shelters(NavigationGrid grid, List<PointOfInterest> points,
+                                                 PrecinctPlan plan) {
         Precinct compound = null;
         if (plan != null) {
             for (Precinct precinct : plan.precincts()) if (precinct.name().equals(PLACE)) compound = precinct;
@@ -97,7 +99,45 @@ public final class CivilDefenceCompound {
                 bestDistance = dx * dx + dy * dy;
             }
         }
-        return best == null ? null : List.of(best);
+        if (best == null) return null;
+        int[] inside = throughTheDoor(grid, best);
+        if (inside == null) return null;
+        PointOfInterest hall = new PointOfInterest(best.kind, best.left, best.top, best.right,
+                best.bottom, best.anchorCellX, best.anchorCellY, inside[0], inside[1]);
+        // Replaced where it stands, so the militia and the colony's people find the same hall.
+        points.set(points.indexOf(best), hall);
+        return List.of(hall);
+    }
+
+    /**
+     * The hall's floor cell nearest its middle that the door reaches. The hall
+     * is furnished with bunks, and a stand cell chosen on the bare plan can end
+     * up in a corner the bunks wall off; the colony's people wait in the aisle.
+     */
+    private static int[] throughTheDoor(NavigationGrid grid, PointOfInterest hall) {
+        ArrayDeque<int[]> queue = new ArrayDeque<>();
+        Set<Long> seen = new HashSet<>();
+        queue.add(new int[]{hall.anchorCellX, hall.anchorCellY});
+        seen.add(key(hall.anchorCellX, hall.anchorCellY));
+        int[] best = null;
+        int bestDistance = Integer.MAX_VALUE;
+        while (!queue.isEmpty()) {
+            int[] c = queue.poll();
+            boolean in = c[0] > hall.left && c[0] < hall.right && c[1] > hall.top && c[1] < hall.bottom;
+            int distance = Math.abs(c[0] - hall.centerX()) + Math.abs(c[1] - hall.centerY());
+            if (in && !grid.isDoorway(c[0], c[1]) && distance < bestDistance) {
+                best = c;
+                bestDistance = distance;
+            }
+            for (int[] d : STEPS) {
+                int nx = c[0] + d[0], ny = c[1] + d[1];
+                // The hall's bounds are its floor; its walls and door stand one cell out.
+                boolean inside = nx >= hall.left - 1 && nx <= hall.right + 1 && ny >= hall.top - 1 && ny <= hall.bottom + 1;
+                if (!inside || !grid.isWalkable(nx, ny) || !seen.add(key(nx, ny))) continue;
+                queue.add(new int[]{nx, ny});
+            }
+        }
+        return best;
     }
 
     /** Plans the dressing of the wall round {@code shelter}; null when the shelter stands in no closed wall. */

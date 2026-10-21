@@ -2531,6 +2531,10 @@ public final class BattleSetup {
                 missing = MissionMapRequirements.missingFromColony(map);
                 if (!missing.isEmpty()) continue;
             }
+            // On the colony the shelter is the civil-defence compound's hall, settled before
+            // the colony's places are published so everything reads the same hall.
+            List<PointOfInterest> shelters = CivilDefenceCompound.shelters(map.grid, map.pointsOfInterest, colonyPlan);
+            if (shelters == null) continue;
             publishHeldPlaces(map, Faction.CIVILIAN);
             Random rng = new Random(battleSeed);
             List<ShuttleAssignment> assignments = resolveManifest(manifest);
@@ -2550,9 +2554,6 @@ public final class BattleSetup {
             // declared; deriving one from the same mechs would field them twice.
             if (profile != null) sim.setMechDrops(new MechDropService(profile.declaredMechDrops()));
 
-            // On the colony the shelter is the civil-defence compound's hall.
-            List<PointOfInterest> shelters = CivilDefenceCompound.shelters(map.pointsOfInterest, colonyPlan);
-            if (shelters == null) continue;
             CivilianEvacuationPayload payload =
                     CivilianEvacuationPayload.install(sim, shelters, battleSeed);
             if (payload == null) continue;

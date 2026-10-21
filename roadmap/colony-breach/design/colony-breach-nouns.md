@@ -214,7 +214,8 @@ a shelter hall of bunks, a sick bay, a canteen and a store round a muster
 yard, each furnished as what it is. Because it is planned
 with the colony, the town's streets run up to it, its gates are where they
 cross its wall, and its neighbours are built against it: it fits the layout by
-construction. The colony re-rolls a map that did not build it. The shelter is
+construction, with a strip of cleared earth between its wall and the houses
+round it. The colony re-rolls a map that did not build it. The shelter is
 always its hall.
 
 It is a proper work, but a civil one, partway between a house with sandbags and
