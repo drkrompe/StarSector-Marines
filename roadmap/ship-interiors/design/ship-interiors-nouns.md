@@ -211,6 +211,10 @@ authored content.
   reads as manning the console rather than waiting near it. A sentry, rounds,
   a firing lane, the gym and the lounge keep the cell's centre. Circulation,
   claims and which cell is reserved are unchanged.
+  Where the hands are on the work (consoles, benches, counters, plant, the
+  galley, a mess table; not a bunk or a washstand) a family that ships
+  station arms draws its forearms out onto the fixture in place of its
+  weapon, for as long as it stands at the job.
 - A **room program is gated by size as well as role.** Room footprints do not
   shrink, so a hull below destroyer size cannot hold a range, a briefing room,
   or a proper sick bay without those rooms becoming the ship. A frigate keeps a

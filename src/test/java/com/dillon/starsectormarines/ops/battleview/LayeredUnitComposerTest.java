@@ -348,6 +348,26 @@ class LayeredUnitComposerTest {
         assertTrue(assets.layers().contains(assets.shoulderRight));
     }
 
+    @Test
+    void atAStationTheArmsReplaceTheRifleBetweenBodyAndHeadOnTheBodysGrid() {
+        LayeredUnitAssets assets = assets(false);
+        assets.registerStationArms(LayeredSpriteCache.headless("arm-left", 150, 190),
+                LayeredSpriteCache.headless("arm-right", 150, 190));
+        List<Layer> working = draw(assets, null, LayeredAppearance.FLAG_AT_STATION);
+        assertEquals(List.of("foot", "foot", "body", "arm-left", "arm-right", "head"),
+                working.stream().map(Layer::id).toList());
+        // The body canvas is the arm canvas's bottom rows: the arm's centre sits
+        // half the extra height forward of the body's, at shoulder width 150 px.
+        Layer body = working.get(2), arm = working.get(3);
+        assertEquals((190 - 95) / 2f, (float) Math.hypot(arm.x() - body.x(), arm.y() - body.y()), 0.01f);
+
+        assertEquals(List.of("foot", "foot", "rifle", "body", "head"),
+                draw(assets, null, 0).stream().map(Layer::id).toList(), "no arms away from a station");
+        assertEquals(List.of("foot", "foot", "rifle", "body", "head"),
+                draw(assets(false), null, LayeredAppearance.FLAG_AT_STATION).stream().map(Layer::id).toList(),
+                "a family without station arms keeps its rifle");
+    }
+
     private static List<Layer> draw(LayeredUnitAssets assets, LayerPose pose, int flags) {
         List<Layer> layers = new ArrayList<>();
         LayeredUnitComposer.emit((sprite, x, y, width, height, angle, r, g, b, alpha) ->

@@ -520,6 +520,10 @@ final class HeadlessBattleSprites extends BattleSprites {
                 loaded.registerDowned(layer(root + "downed-" + pose + ".png"));
             }
         }
+        if (family.hasStationArms()) {
+            loaded.registerStationArms(layer(root + "station-arm-left.png"),
+                    layer(root + "station-arm-right.png"));
+        }
         infantry.put(family, loaded);
     }
 

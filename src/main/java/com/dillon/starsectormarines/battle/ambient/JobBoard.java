@@ -37,7 +37,7 @@ public final class JobBoard {
      * its cell's centre, as before.
      */
     static final float FIXTURE_LEAN_CELLS =
-            Float.parseFloat(System.getProperty("battle.ambient.fixtureLeanCells", "0.3"));
+            Float.parseFloat(System.getProperty("battle.ambient.fixtureLeanCells", "0.4"));
 
     /**
      * Where somebody doing {@code task} stands, in world cells: its standing
@@ -107,6 +107,19 @@ public final class JobBoard {
      * Affordance)}, because a bench really is interchangeable with the bench
      * beside it.
      */
+    /** The job a claim group is for, read back out of {@link #group}; null for a group not made there. */
+    public static Affordance affordance(String group) {
+        if (group == null) return null;
+        int start = group.indexOf(':');
+        if (start < 0) return null;
+        int end = group.indexOf('@', start);
+        String name = group.substring(start + 1, end < 0 ? group.length() : end);
+        for (Affordance affordance : Affordance.values()) {
+            if (affordance.name().equalsIgnoreCase(name)) return affordance;
+        }
+        return null;
+    }
+
     public static String group(int siteId, Affordance affordance, int berth) {
         if (berth == FixtureTask.NO_BERTH) return group(siteId, affordance);
         return group(siteId, affordance) + "@" + berth;

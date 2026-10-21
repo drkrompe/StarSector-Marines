@@ -1018,6 +1018,10 @@ public class BattleSprites {
                 assets.registerDowned(loadLayeredSprite(familyRoot + "downed-" + pose + ".png"));
             }
         }
+        if (familyId.hasStationArms()) {
+            assets.registerStationArms(loadLayeredSprite(familyRoot + "station-arm-left.png"),
+                    loadLayeredSprite(familyRoot + "station-arm-right.png"));
+        }
         layeredUnitSprites.put(familyId, assets);
     }
 

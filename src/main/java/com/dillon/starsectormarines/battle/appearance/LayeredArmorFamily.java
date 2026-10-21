@@ -78,6 +78,21 @@ public enum LayeredArmorFamily {
         }
     }
 
+    /**
+     * Whether this family ships forearm-and-hand layers ({@code station-arm-left.png} and
+     * {@code station-arm-right.png}) drawn while it works a console or bench. Declared, not
+     * probed, for the same reason as {@link #hasDownedArt}.
+     */
+    public boolean hasStationArms() {
+        switch (this) {
+            case CIVILIAN_COLONIST: case ENGINEER: case SCIENTIST:
+            case SHIP_COMMAND: case SHIP_ENGINEERING: case SHIP_MEDICAL: case SHIP_SERVICE:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     public boolean articulatedShoulders() {
         return this == SPECTER_HEAVY || this == ARBALEST_HEAVY || this == BOARDING_JACK
                 || this == BOARDING_JACK_PIRATE;
