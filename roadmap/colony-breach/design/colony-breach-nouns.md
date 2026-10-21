@@ -184,14 +184,39 @@ diagnostics. It never reads hidden Marine state the swarm could not sense.
 behaviour:
 
 - **Runner** — the shipped 20 HP melee body. Volume.
-- **Brute** — slow, armoured, melee; breaks doors, windows and light walls so
-  that a garrisoned building is not a permanent safe room. Draws fire.
-- **Spitter** — fragile, keeps distance, lobs acid at infantry and low fliers.
-  Punishes standing still behind cover.
+- **Brute** — slow, plated, heavy melee; the strain that makes a garrisoned
+  building stop being a safe room. Its plate (20 points at rating 10) is what
+  small arms struggle with: a DMR or rocket goes through it, an SMG barely
+  scratches it. A sensed emplacement outranks infantry as its target. When its
+  prey stands inside a building it is not in and no opening into that building
+  is near, it makes one: it walks to the nearest *light* wall or window of that
+  building, breaks it through the ordinary structural path, and goes in through
+  the hole. A door is already an opening, so a Brute uses a near door rather
+  than breaking the wall beside it. "Light" means a colony wall (at most 120 of
+  wall left); fortified and fort walls are out of its reach until something
+  else has worn them down. Its blow carries penetration, so it hurts plated
+  bodies and emplacements where a Runner's slash only scratches.
+- **Spitter** — fragile, keeps its distance, lobs acid. It backs away from any
+  ground enemy that closes inside its charge radius and does not lob while it
+  runs. Otherwise a low hostile craft in reach comes first, then the sensed
+  enemy with the most others inside the splash; the glob is a real arcing
+  projectile whose splash goes through the ordinary detonation path, spares the
+  swarm and is stopped by an intact roof. Acid on a low flier lands on the hull
+  through the aimed-damage path; a craft at cruise altitude is out of reach.
+  It stops advancing as soon as something is in range, so the Runners it came
+  with close past it and it ends up behind them. No damage over time: the
+  damage model has none for ground bodies.
 - **Matriarch** — one per mother bore at maw tier: large, slow, very durable,
   wrecks emplacements. Answered by mechs, heavy weapons or a lot of satchels.
 
 Strains are added to a bore's mix by tier, not chosen per wave by hand.
+Every strain is the same swarm to everything outside it: one side, one
+pressure role, one sensing law, one strategic move toward its quarry
+(`SwarmPressureBehavior.pressToward`, the call a flow field speeds for all of
+them at once). What differs is what a body does once it has a target. Every
+strain body enters the battle through `SwarmStrains`, which issues the
+strain's kit (the Brute's plate), so a director, a scene and a debug mission
+spawn the same Brute.
 
 **Swarm goal.** A place the swarm is drawn toward: the shelter, the lift, the
 nearest Marine body. Swarm movement toward a goal is a shared **flow field** per

@@ -167,6 +167,7 @@ import com.dillon.starsectormarines.battle.setup.RelayNineSequence;
 import com.dillon.starsectormarines.battle.setup.ThunderRunSequence;
 import com.dillon.starsectormarines.battle.setup.WaylineGunship;
 import com.dillon.starsectormarines.battle.turret.GroundAntiAirSystem;
+import com.dillon.starsectormarines.battle.evacuation.SwarmStrikeSystem;
 import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
 import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
 import com.dillon.starsectormarines.battle.command.objective.FreightConvoyObjective;
@@ -673,6 +674,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     private ThunderRunSequence thunderRun;
     private final GroundAntiAirSystem groundAntiAir = new GroundAntiAirSystem();
+    private final SwarmStrikeSystem swarmStrikes = new SwarmStrikeSystem();
     private final AirToAirFire airToAir = new AirToAirFire();
     private WaylineGunship waylineGunship;
     public WaylineGunship getWaylineGunship() { return waylineGunship; }
@@ -3198,6 +3200,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         tickProfile.lap(TickProfile.Phase.HEAVY_TICK);
         // Squads told to open a wall spend what their ordinary firing left on it.
         wallBreach.tick(this);
+        // Brute blows on walls and Spitter acid on low fliers, posted from the parallel update.
+        swarmStrikes.tick(this);
         // Armed contact charges follow their target and resolve through the
         // ordinary AoE/durability pipeline when their fixed fuse expires.
         satchelCharges.tick(TICK_DT, this);
@@ -3764,6 +3768,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** The wall-breach pass, for readings of how many rounds and charges it has spent. */
     public WallBreachSystem wallBreach() { return wallBreach; }
+
+    /** Where swarm strains post the blows and acid that land in the serial pass. */
+    public SwarmStrikeSystem swarmStrikes() { return swarmStrikes; }
 
     @Override
     public boolean applyContactStrike(long carrier, long target) {

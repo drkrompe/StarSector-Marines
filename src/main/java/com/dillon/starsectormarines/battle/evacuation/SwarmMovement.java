@@ -51,7 +51,8 @@ public final class SwarmMovement {
                 && moveToward(body, SwarmGoal.PREY, sim)) {
             return;
         }
-        pathDirect(body, target, retargeted, sim);
+        pathDirect(body, sim.world().cellX(target), sim.world().cellY(target),
+                retargeted, sim);
     }
 
     /**
@@ -134,11 +135,9 @@ public final class SwarmMovement {
         return dx * dx + dy * dy <= LOCAL_PURSUIT_RANGE * LOCAL_PURSUIT_RANGE;
     }
 
-    /** The body's own path to the target's cell, repathed on the movement clock. */
-    static void pathDirect(long body, long target, boolean retargeted,
+    /** The body's own path to a cell, repathed on the movement clock or at once when retargeted. */
+    static void pathDirect(long body, int targetX, int targetY, boolean retargeted,
                            BattleSimulation sim) {
-        int targetX = sim.world().cellX(target);
-        int targetY = sim.world().cellY(target);
         if ((retargeted || sim.movement().mayRepath(body))
                 && needsPath(body, targetX, targetY, sim)) {
             int bodyX = sim.world().cellX(body);

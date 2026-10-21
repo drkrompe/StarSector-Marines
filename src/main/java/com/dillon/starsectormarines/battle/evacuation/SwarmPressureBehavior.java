@@ -29,7 +29,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
      * — the cohort is reached through the evacuation tracker, which knows
      * which of them the swarm has actually discovered.
      */
-    private static final Faction[] PREY;
+    static final Faction[] PREY;
 
     static {
         List<Faction> prey = new ArrayList<>();
@@ -49,6 +49,13 @@ public final class SwarmPressureBehavior implements UnitBehavior {
 
     @Override
     public void update(long runner, BattleSimulation sim) {
+        // Every strain keeps the SWARM_PRESSURE role, so the director, hit response and
+        // evidence see one swarm; what differs is what a body does with a target.
+        switch (sim.identity().type(runner)) {
+            case SWARM_BRUTE: SwarmBruteBehavior.update(runner, sim); return;
+            case SWARM_SPITTER: SwarmSpitterBehavior.update(runner, sim); return;
+            default: break;
+        }
         tickCooldown(runner, sim);
         long previousTarget = sim.combat().targetId(runner);
         long target = selectTarget(runner, sim);
@@ -77,9 +84,13 @@ public final class SwarmPressureBehavior implements UnitBehavior {
     }
 
     /**
-     * The swarm's strategic move toward a chosen target, shared by every
-     * strain so that one change to how the swarm moves reaches all of them.
-     * See {@link SwarmMovement#pursue}.
+     * The swarm's one strategic movement call: move {@code body} a tick toward
+     * {@code target}. Every strain moves through here (the Brute toward what it
+     * means to break, the Spitter toward lobbing range), so a change to how the
+     * swarm travels lands on the whole swarm at once: far off, the body
+     * descends the prey flow field; close in, it paths to its victim. Local
+     * manoeuvres (a Spitter backing off) are the strain's own. See
+     * {@link SwarmMovement#pursue}.
      */
     public static void pressToward(long body, long target, boolean targetChanged,
                                    BattleSimulation sim) {
@@ -87,11 +98,21 @@ public final class SwarmPressureBehavior implements UnitBehavior {
     }
 
     /**
+     * {@link #pressToward(long, long, boolean, BattleSimulation)} toward a cell
+     * rather than a body: the body's own path, since a cell picked for one body
+     * (a breach's approach) is nobody else's goal.
+     */
+    public static void pressToward(long body, int targetX, int targetY,
+                                   boolean targetChanged, BattleSimulation sim) {
+        SwarmMovement.pathDirect(body, targetX, targetY, targetChanged, sim);
+    }
+
+    /**
      * Keeps an undiscovered swarm visibly roving before the first ground force
      * arrives. Destinations are deterministic per runner/tick and paths may not
      * enter the protected shelter or pickup footprints.
      */
-    private static void updateRoaming(long runner, long previousTarget,
+    static void updateRoaming(long runner, long previousTarget,
                                       BattleSimulation sim) {
         if (previousTarget != 0L) sim.clearPath(runner);
         int[] currentPath = sim.movement().path(runner);
@@ -292,7 +313,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                 || (distance == bestDistance && (best == 0L || candidate < best));
     }
 
-    private static boolean canSense(int runnerCellX, int runnerCellY,
+    static boolean canSense(int runnerCellX, int runnerCellY,
                                     float candidateX, float candidateY,
                                     float senseRange, BattleSimulation sim) {
         return sim.getGrid().hasLineOfSightWithin(
@@ -301,7 +322,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                 senseRange);
     }
 
-    private static void tickCooldown(long runner, BattleSimulation sim) {
+    static void tickCooldown(long runner, BattleSimulation sim) {
         float cooldown = sim.combat().cooldownTimer(runner);
         if (cooldown > 0f) {
             sim.combat().setCooldownTimer(runner,

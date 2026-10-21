@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f39-510c-7d13-b7f0-2a4fffddb3c2",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f39-510c-7d13-b7f0-2a4fffddb3c2\\exec-2c7e4431-72b0-459e-8700-7ea399d86f9a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\swarm-strains\\raw\\spitter-body.raw.png",
+    "sha256": "0289c0759c14e4135a05a9ba4fc4cf427909b257249313372153e0af4fbdb806",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\swarm-strains\\prompts\\spitter-body.prompt.txt",
+  "promptSha256": "3e63bd8a53504246e0f32263d663e20ce1f64a67c2efcda9e5fb42f815988b2e",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry guide and edit target: exact silhouette, placement and scale authority; reskin it, never move or reshape it\nImage 2: Material and style reference only (the existing swarm runner's matching part); match its chitin, colours and rendering, never its shape\n\nUse case: sketch-to-render. Asset: the torso/shoulder layer of the swarm SPITTER, a fragile ranged alien strain that lobs acid, for a top-down tactical game. Image 1 is the authoritative geometry guide and edit target. Reskin this exact shape into a finished painted sprite, preserving its outline and placement exactly. Seen from above: slim chitin shoulders with two small pauldron plates at the front, a dark socket at the front where the separate head layer sits, and behind them a large swollen translucent acid sac (the big rounded shape at the back), its membrane stretched thin and veined, glowing sickly yellow-green from within, the brightest glow at its centre. The sac is the strain's signature silhouette and must read instantly; the shoulders stay lightly armoured and delicate compared with the runner. No head, no arms, no claws, no legs, no tail, no spray, no liquid outside the sac. Straight overhead orthographic zenith camera looking down on the top of the part, forward (the creature's front) is up, no perspective, no cast shadow, no ground, no floor, no border, no text, no labels, no watermark. Genuine transparent background outside the silhouette, including any negative space. Crisp hand-painted 2D strategy-game sprite matching the existing swarm creature in the material reference: dark charcoal-purple segmented chitin, organic gunmetal-green ridges and under-plates, restrained bone-grey claw and plate edges, tiny warm amber sensory nodes. It will be shown only about 40 to 90 pixels wide in play, so keep bold readable plate shapes, clear dark separations and strong value contrast rather than fine noise. Change only material, detail and subtle ambient shading; never the silhouette, placement, scale or the transparent space. The pale yellow dots in the guide mark where small glowing nodes go; they are not shapes to copy literally.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\swarm-spitter-body-guide.png",
+      "sha256": "1c47a5540863967299e14f0d3f4eb34dd39e5e8a62481c63677eef24af41eb9d",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry guide and edit target: exact silhouette, placement and scale authority; reskin it, never move or reshape it"
+    },
+    {
+      "path": "art-source\\alien-modular-topdown\\sources\\alien-body-source.png",
+      "sha256": "6c1cd9a54e6b39cb668a5eb8ece0147af382571ad7fe3db1e0e6af4e45755c5c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only (the existing swarm runner's matching part); match its chitin, colours and rendering, never its shape"
+    }
+  ],
+  "agentMessages": [
+    "I’ll reskin the guide with the reference’s painted chitin materials, preserving the silhouette and making the acid sac the focal point.\n"
+  ],
+  "usage": {
+    "input_tokens": 43007,
+    "cached_input_tokens": 28416,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 522,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 58.8
+}
