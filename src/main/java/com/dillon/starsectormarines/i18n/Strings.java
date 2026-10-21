@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.i18n;
 
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 import java.text.MessageFormat;
 import java.util.Locale;
 
@@ -38,20 +39,51 @@ public final class Strings {
     }
 
     /**
-     * The translation's own language, which the copy names under {@code locale}. Case changes
-     * follow it, because uppercasing is language-dependent (Turkish dotted i is the classic case).
+     * The language the game is running in, read from the one place the base game keeps it:
+     * {@code localeOverride} in {@code settings.json}, which a translation mod overrides along
+     * with its strings. The copy's own {@code locale} entry is only a fallback for when the
+     * setting cannot be read (headless runs). Case changes and number formats follow it,
+     * because both are language-dependent (Turkish dotted i is the classic case).
      */
     public static Locale locale() {
         Locale cached = locale;
         if (cached == null) {
-            String tag = get("locale");
-            cached = tag.equals("locale") || tag.isBlank() ? Locale.ROOT : Locale.forLanguageTag(tag);
+            cached = readLocale();
             locale = cached;
         }
         return cached;
     }
 
+    private static Locale readLocale() {
+        String tag = "";
+        try {
+            JSONObject settings = Global.getSettings().getSettingsJSON();
+            if (settings != null) tag = settings.optString("localeOverride", "");
+        } catch (Exception e) {
+            // no settings outside the game; fall through to the copy
+        }
+        if (tag.isBlank()) {
+            tag = get("locale");
+            if (tag.equals("locale")) tag = "";
+        }
+        return tag.isBlank() ? Locale.ROOT : Locale.forLanguageTag(tag.replace('_', '-'));
+    }
+
+    /** Whether the game is set up for Chinese, Japanese or Korean text ({@code cjkMode}), which wraps by character. */
+    public static boolean cjk() {
+        try {
+            return Global.getSettings().getBoolean("cjkMode");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private static volatile Locale locale;
+
+    /** Forgets the cached language so the next lookup rereads the setting. */
+    public static void refreshLocale() {
+        locale = null;
+    }
 
     /** Translated text set in capitals, by the rules of the translation's language. */
     public static String upper(String text) {
