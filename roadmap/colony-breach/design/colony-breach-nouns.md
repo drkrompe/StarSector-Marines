@@ -351,7 +351,12 @@ its own small destroyable structure with its own body on the map, and fires
 spore bursts at hostile aircraft in its reach through the ground anti-air
 system, exactly as a flak position does: aimed bursts at the nearest airborne
 craft, never at the ground. A bore's own body never fires. Each burst is a shot,
-so it is heard and drawn through the weapon's own fire sound and effects.
+so it is heard and drawn through the weapon's own fire sound and effects. The
+look follows the grade: the firing sac flares and spits, and the shot is a
+lobbed spore clump (burst), a slower three-clot cluster that bursts into three
+puffs (flak) or a fast white-amber streak (lance). It bursts in the air at the
+craft's drawn height, hit or miss, in an amber flash, and leaves spore haze
+drifting there; it never marks the ground beneath.
 
 Bores and colonies are grown, not built, and look it: the runner's chitin
 and amber in every body, standing on the ground with no hardstanding pad,
@@ -366,7 +371,9 @@ flank at maw grade, each larger than the last. Each body carries several
 paintings chosen per structure, so a map of them does not look stamped, and
 their depth (the lit far wall of a shaft, shadows cast plate on plate and onto
 the ground) is lit by the battle's own default sun, so the paintings are
-never rotated or mirrored.
+never rotated or mirrored. They are drawn somewhat larger than their bodies
+(hit radius and footprint) so that they read as structures among a mass of
+creep and bodies.
 
 A colony keeps the **grade** of the tier that grew it: a fissure-grade colony
 threatens light craft at short reach, a bore-grade one reaches further and

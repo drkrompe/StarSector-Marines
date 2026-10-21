@@ -32,16 +32,23 @@ public final class StructureArt {
      * centre). {@code spinDegPerSec} turns it; {@code pulseDepth} (0 to 1) swings its brightness at {@code pulseHz}.
      * A {@code tintByHolder} layer is multiplied by the colour of the side that holds the structure's dome, so one
      * neutral sprite serves both sides. A {@code dome} layer follows the dome's state: it stops spinning and dims
-     * while the dome is down, and flares when the dome takes a round.
+     * while the dome is down, and flares when the dome takes a round. {@code fireFlash} (0 to 1) makes the layer
+     * answer the structure's own fire: it snaps to full brightness and swells by up to a quarter of its size at that
+     * strength, settling over {@link #FIRE_FLASH_SECONDS} (a spore sac flaring as it spits a burst).
      */
     public record Layer(String spritePath, float cells, float spinDegPerSec,
-                        float pulseHz, float pulseDepth, boolean tintByHolder, boolean dome) {
+                        float pulseHz, float pulseDepth, boolean tintByHolder, boolean dome, float fireFlash) {
 
         /** This layer's sprite for one painting, {@code variant} counted from 1. */
         public String spritePath(int variant) {
             return spritePath.replace(VARIANT_TOKEN, Integer.toString(variant));
         }
     }
+
+    /** How long a {@link Layer#fireFlash} layer takes to settle after a shot. */
+    public static final float FIRE_FLASH_SECONDS = 0.4f;
+    /** How much a {@code fireFlash: 1} layer swells at the moment of the shot. */
+    public static final float FIRE_FLASH_SWELL = 0.25f;
 
     /** Placeholder in a layer path that a variant number replaces. */
     public static final String VARIANT_TOKEN = "{variant}";
@@ -88,14 +95,16 @@ public final class StructureArt {
             float spin = (float) l.optDouble("spinDegPerSec", 0.0);
             float pulseHz = (float) l.optDouble("pulseHz", 0.0);
             float pulseDepth = (float) l.optDouble("pulseDepth", 0.0);
+            float fireFlash = (float) l.optDouble("fireFlash", 0.0);
             TurretMountDef.requirePositiveFinite(cells, structureId, "art layer cells");
             if (!Float.isFinite(spin) || !Float.isFinite(pulseHz) || pulseHz < 0f
-                    || !Float.isFinite(pulseDepth) || pulseDepth < 0f || pulseDepth > 1f) {
+                    || !Float.isFinite(pulseDepth) || pulseDepth < 0f || pulseDepth > 1f
+                    || !Float.isFinite(fireFlash) || fireFlash < 0f || fireFlash > 1f) {
                 throw new JSONException("Structure '" + structureId + "' art layer " + i
-                        + " has a non-finite or out-of-range spin or pulse");
+                        + " has a non-finite or out-of-range spin, pulse or fire flash");
             }
             layers.add(new Layer(sprite, cells, spin, pulseHz, pulseDepth,
-                    l.optBoolean("tintByHolder", false), l.optBoolean("dome", false)));
+                    l.optBoolean("tintByHolder", false), l.optBoolean("dome", false), fireFlash));
         }
         int variants = json.optInt("variants", 1);
         if (variants < 1 || variants > MAX_VARIANTS) {
