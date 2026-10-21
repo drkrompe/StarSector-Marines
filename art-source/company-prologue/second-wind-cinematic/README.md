@@ -48,7 +48,8 @@ Every render goes through the shared render queue (`render-queue` skill,
 `python tools/render_queue.py status`). The render coordinator chat owns the queue and gives the
 go-ahead (owner, 2026-10-20); nobody starts Blender by hand. Gates are open: renders run day and
 night, and the owner can ask for a pause at any time. A final rendered in chunks resumes where it
-stopped, so a pause costs at most the frame in progress.
+stopped, so a pause costs at most the frame in progress: C1 skips frames it already has, and C4/C5
+do the same under `CINE_RESUME=1` (without it they clear their frames folder and start clean).
 
 **Second Wind is the two-Vulcan build `dc62710dc`** everywhere her guns show (owner,
 2026-10-20); each shot pins it with `SW_PIN` and `pins/second-wind-dc62710dc-patched.manifest.json`
@@ -56,10 +57,10 @@ and refuses any other .blend. Everything rendered on `80c78dfac` before that is 
 
 | Shot | State |
 |---|---|
-| C1 | Rendering: all 905 frames with `--profile cheap` (64 samples, adaptive 0.02, 6 bounces, GPU denoise), chosen from a measured A/B (review `review/cinematic-c1/2026-10-20_settings-ab_windows/`): about half the time, no visible loss. 18 queue chunks `c1-final-cheap-e0c15dc08-*`, either machine, to Drive `builds/c1-final-dc62710dc-e0c15dc08/frames/`. |
-| C2 | Rendering: `c2-final-dc62710dc-71c4b051b` (bulkhead detail on, 64 samples) then its movie job, to Drive `builds/c2-final-dc62710dc-71c4b051b/`. |
-| C4 | Held: joined C4+C5 check and yard vehicles round 2 with the owner. |
-| C5 | Held: the Nessa fix, then a whole-shot re-render on `dc62710dc`, title and mp4. |
+| C1 | Done: all 905 frames with `--profile cheap` (64 samples, adaptive 0.02, 6 bounces, GPU denoise), chosen from a measured A/B (review `review/cinematic-c1/2026-10-20_settings-ab_windows/`): about half the time, no visible loss. 18 queue chunks `c1-final-cheap-e0c15dc08-*`, either machine, to Drive `builds/c1-final-dc62710dc-e0c15dc08/frames/`. |
+| C2 | Done: `c2-final-dc62710dc-71c4b051b` (bulkhead detail on, 64 samples), frames and `c2-bridge.mp4` in Drive `builds/c2-final-dc62710dc-71c4b051b/`. |
+| C4 | Rendering: content final at `f2323ac8f` (port roads, yard vehicles, effects-kit drive plumes), `CINE_FINAL=1` (64 EEVEE samples, full shadows; owner 2026-10-21 from a layout/final A/B, about 34 s a frame), 60-frame chunks `c4-final-dc62710dc-f2323ac8f-*` on the Mac, then a movie job, to Drive `builds/c4-final-dc62710dc-f2323ac8f/`. |
+| C5 | Rendering: same content and settings (about 50 s a frame), 60-frame chunks `c5-final-dc62710dc-f2323ac8f-*` on Windows, then the title job (`c5_title.py`), to Drive `builds/c5-final-dc62710dc-f2323ac8f/`. Nessa keeps the stand-in (`C5_NESSA` off). |
 | Entry, C3 | Need C3's layer build first. |
 
 Faster settings not yet used: biased volume stepping (`--volume-step-rate`) is about 8x faster

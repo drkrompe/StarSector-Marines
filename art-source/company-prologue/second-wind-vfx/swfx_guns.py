@@ -320,7 +320,7 @@ def energy_tint(a):
     return tuple(swfx_anchors.ENERGY_COLOURS.get(a.turret, ENERGY_DEFAULT))
 
 
-def _flash_material(ctx, label, tint=None):
+def _flash_material(ctx, label, tint=None, gain=1.0):
     """Emission-only volume: mouth core + forward tongue + brake side jets,
     broken up by seeded noise. Object coordinates are mount units (the box
     is scaled by the mount scale), origin at the brake mouth, +X downrange."""
@@ -392,7 +392,7 @@ def _flash_material(ctx, label, tint=None):
         mix.inputs['A'].default_value = (*tint, 1)
         mix.inputs['B'].default_value = (1, 1, 1, 1)
         links.new(mix.outputs['Result'], em.inputs['Color'])
-    links.new(g.mul(g.mul(field, env), 45.0), em.inputs['Strength'])
+    links.new(g.mul(g.mul(field, env), 45.0 * gain), em.inputs['Strength'])
     links.new(em.outputs[0], out.inputs['Volume'])
     return m
 
@@ -845,7 +845,7 @@ def _mg(**kw):
 
 def _ac(**kw):
     w = dict(energy=False, burst=1, burst_delay=0, cooldown=.5, barrels='alternating', spread=.003,
-             flash=(1.0, .55, .25, .1), flash_tint=(165, 225, 185), flash_size=(1.25, 1.35, 1.35),
+             flash=(1.0, .55, .25, .1), flash_tint=(165, 225, 185), flash_size=(1.25, 1.35, 1.35), flash_gain=.35,
              flash_light=(165, 225, 185),
              cloud=dict(rgb=(165, 225, 185), r=(.8, 2.6), frames=5, peak=2),
              round=dict(speed=360, range=600, length=2.6, core=.14, corona=.9, fringe=(235, 255, 215),
@@ -882,10 +882,10 @@ WEAPONS = {
     'hellbore': dict(name='Hellbore Cannon', energy=False, burst=1, burst_delay=0, cooldown=3.0,
                      barrels='alternating', spread=.001,
                      flash=(1.0, .85, .65, .48, .34, .24, .16, .1, .06), flash_tint=(255, 120, 50),
-                     flash_size=(1.5, 1.6, 1.6), flash_light=(255, 120, 50), flash_light_gain=4.0,
+                     flash_size=(1.5, 1.6, 1.6), flash_gain=.25, flash_light=(255, 120, 50), flash_light_gain=4.0,
                      cloud=dict(rgb=(255, 120, 50), r=(2.0, 9.0), frames=18, peak=1.4),
                      round=dict(speed=170, range=900, length=5.5, core=.6, corona=1.9, fringe=(255, 165, 30),
-                                hot=(255, 225, 160), core_gain=9, corona_gain=1.4, light=40000,
+                                hot=(255, 200, 110), core_gain=3, corona_gain=.9, light=40000,
                                 halo=dict(r=5.0, peak=.7)),
                      puff=True, brass=False),
     # High explosive: orange shells.
@@ -961,7 +961,10 @@ def arm(ctx, turret, weapon, tag=None):
         rig['weapon'] = weapon
         box = rig.get('flash') or bpy.data.objects.get(f'{PREFIX} flash {label}')
         if box is not None:
-            mat = _flash_material(ctx, label, _lin(w['flash_tint']) if w.get('flash_tint') else None)
+            # A big mount's flash box is a long path through the gas, so a heavy gun's flash is
+            # turned down (flash_gain) or it bleaches to a white ball under AgX (pass 3).
+            mat = _flash_material(ctx, label, _lin(w['flash_tint']) if w.get('flash_tint') else None,
+                                  w.get('flash_gain', 1.0))
             box.data.materials[0] = mat
             s = a.scale
             box.scale = tuple(s * k for k in w['flash_size'])
