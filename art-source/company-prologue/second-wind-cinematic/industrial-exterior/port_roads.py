@@ -1,5 +1,5 @@
-"""PORT_ROADS=1: the public port's road network as `port-roads.md` plans it (off by default until the
-owner passes the light checks).
+"""The public port's road network as `port-roads.md` plans it. On by default (owner, 2026-10-21);
+PORT_ROADS=0 is the roads-off control.
 
 The roads as built:
 
@@ -42,7 +42,7 @@ import math
 import os
 from pathlib import Path
 
-ON = os.environ.get('PORT_ROADS', '0') not in ('', '0')
+ON = os.environ.get('PORT_ROADS', '1') not in ('', '0')
 
 HERE = Path(__file__).resolve().parent
 PORT_Y = (366.0, 378.0)                 # the port road's edges

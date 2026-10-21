@@ -1,4 +1,4 @@
-Status: ACTIVE (plan approved 2026-10-20; built behind PORT_ROADS=1, off by default until the owner passes the light checks)
+Status: SHIPPED (plan approved 2026-10-20; on by default since the owner's approval 2026-10-21; PORT_ROADS=0 is the roads-off control)
 Written: 2026-10-20
 Updated: 2026-10-20 — built (`port_roads.py`); "As built" records where it departs from the plan
 
