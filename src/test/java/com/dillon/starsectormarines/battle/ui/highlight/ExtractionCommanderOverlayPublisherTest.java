@@ -114,7 +114,7 @@ class ExtractionCommanderOverlayPublisherTest {
                 new SwarmPressureSnapshot.WaveIntent(99L,
                         SwarmPressureSnapshot.Approach.NORTH, 12, 0,
                         SwarmPressureSnapshot.TargetContext.MARINE_SCREEN,
-                        "RESTORE_PRESSURE_FLOOR")));
+                        "RESTORE_PRESSURE_FLOOR")), false, List.of());
 
         ExtractionCommanderOverlayPublisher.publish(
                 overlay, commander, 7, director);

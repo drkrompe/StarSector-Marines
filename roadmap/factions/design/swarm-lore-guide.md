@@ -135,7 +135,7 @@ explains the mechanic; it never adds behaviour the mechanic does not have.
 6. **Surges.** A bore spawns in pulses, a river of bodies and then quiet. Lore
    reading: each pulse is a brood the bore has finished making. The quiet is real
    and is the moment to push.
-7. **Spore umbrella.** Bores defend the sky over themselves. Read it as part of
+7. **Spore colonies.** Bores grow static anti-air growths round their mouths. Read it as part of
    the denial design: the weapon was built expecting aircraft.
 8. **The mother bore.** One bore in a cluster is the deep one, the root of the
    reservoir reaching the surface. It erupts late, already grown, and is the only

@@ -10,8 +10,11 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.SatchelChargeSpec;
+import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialAiPolicy;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
@@ -34,6 +37,12 @@ import java.util.Set;
  *   <li>a <b>satchel</b> in a marine's hands is set on the cell when he stands at it, and cuts every wall in its blast
  *       when its fuse runs out.</li>
  * </ul>
+ *
+ * <p>The cell an order names may instead be open ground with a hostile <b>structure</b> standing on it (a swarm
+ * bore, an emplacement, a fort core). Then the order is to demolish that structure, and only a satchel serves: a
+ * carrier within reach of the body sets it on the body through the ordinary charge service, as the contact-range
+ * reflex would, with a wall's slack on the reach. Nothing else fires at a body
+ * here; the ordinary firing passes already do.
  *
  * <p>Every gate the weapon has anywhere else still applies (cycle, magazine, flux, a barrel not through a wall, cooldown),
  * and a member that has a body to fight uses his weapons on it first: this pass runs after the ordinary firing passes
@@ -74,12 +83,19 @@ public final class WallBreachSystem {
             if (order == null || !order.breaches()) continue;
             int cellX = order.breachCellX();
             int cellY = order.breachCellY();
-            if (!grid.inBounds(cellX, cellY) || grid.isWalkable(cellX, cellY)) continue;
+            if (!grid.inBounds(cellX, cellY)) continue;
+            long structure = 0L;
+            if (grid.isWalkable(cellX, cellY)) {
+                structure = hostileStructureAt(sim, squad.faction, cellX, cellY);
+                if (structure == 0L) continue;
+            }
             int count = sim.squadMemberCount(squad.id);
             for (int i = 0; i < count; i++) {
                 long member = sim.squadMemberAt(squad.id, i);
                 if (member == 0L || !world.isAlive(member)) continue;
-                if (world.hasMechLoadout(member)) {
+                if (structure != 0L) {
+                    chargeStructure(sim, world, member, structure);
+                } else if (world.hasMechLoadout(member)) {
                     if (breachWithMech(sim, grid, world, member, cellX, cellY)) aimedNow.add(member);
                 } else {
                     breachWithKit(sim, grid, world, member, cellX, cellY);
@@ -103,6 +119,45 @@ public final class WallBreachSystem {
             world.mechLoadout(member).setBreachAim(null);
         }
         aiming = aimedNow;
+    }
+
+    /** A hardened hostile body standing on the cell, or 0. */
+    private static long hostileStructureAt(BattleSimulation sim, Faction side, int cellX, int cellY) {
+        LongBucket near = new LongBucket();
+        sim.getUnitIndex().gather(cellX + 0.5f, cellY + 0.5f, 1f, near);
+        for (int i = 0; i < near.size; i++) {
+            long body = near.ids[i];
+            if (sim.world().cellX(body) != cellX || sim.world().cellY(body) != cellY) continue;
+            if (!side.hostileTo(sim.identity().faction(body)) || !sim.isHardenedTarget(body)) continue;
+            return body;
+        }
+        return 0L;
+    }
+
+    /**
+     * A satchel carrier at the named structure sets his charge on it, once no charge is already on it. "At" is the
+     * charge's contact range plus the same slack a wall allows, for the same reason: the squad arrives within its
+     * footprint of the place it was sent, and the carrier closes the last cells as part of the work.
+     */
+    private void chargeStructure(BattleSimulation sim, World world, long member, long structure) {
+        if (!world.hasSecondaryWeapon(member) || world.hasMechLoadout(member)) return;
+        SpecialEquipmentDef kit = world.specialEquipment(member);
+        if (kit.activation() != SpecialActivation.UTILITY_SATCHEL
+                || world.secondaryCooldownTimer(member) > 0f || world.secondaryActionTimer(member) > 0f
+                || sim.satchelCharges().hasChargeForTarget(structure)) return;
+        SatchelChargeSpec spec = kit.satchelChargeSpec();
+        float distance = (float) Math.hypot(world.x(structure) - world.renderX(member),
+                world.y(structure) - world.renderY(member));
+        if (distance > spec.contactRange() + CONTACT_SLACK
+                || !sim.satchelCharges().tryReserve(member, structure)) return;
+        if (!sim.satchelCharges().plant(member, structure, sim.identity().faction(member),
+                world.x(structure), world.y(structure), spec)) {
+            sim.satchelCharges().releaseReservation(member);
+        } else {
+            world.setSecondaryCooldownTimer(member, spec.cooldownSeconds());
+            sim.noteSecondaryUsed(member);
+            roundsAtWalls++;
+        }
     }
 
     /** Aims and fires every mount of the chassis that can reach the cell. Whether any could. */

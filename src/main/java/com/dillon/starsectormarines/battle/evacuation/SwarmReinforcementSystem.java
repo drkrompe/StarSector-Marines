@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -14,7 +15,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Maintains rescue-mission swarm pressure with deterministic perimeter waves. */
+/**
+ * The swarm director (`colony-breach-nouns.md`, Swarm director): maintains
+ * rescue-mission swarm pressure.
+ *
+ * <p>Until a Colony Breach's tremor it restores its population floor with
+ * deterministic perimeter waves, at a fraction of the floor while the colony
+ * seeps. From the tremor on ({@link #beginBoreSourcing}) spawning has a
+ * source: every body comes out of a living bore, as a timed surge sized by the
+ * bore's tier and the biomass it was fed, released as a tight stream from its
+ * mouth. The population target is then the sum of the living bores'
+ * capacities, so a collapsed bore takes its share with it for good and a
+ * battle whose bores are all collapsed spawns nothing more. Strains come from
+ * {@link BoreStrainTable} by the surging bore's tier, every body through
+ * {@link SwarmStrains}.
+ */
 public final class SwarmReinforcementSystem {
 
     public static final float WAVE_INTERVAL_SECONDS = 6f;
@@ -30,6 +45,30 @@ public final class SwarmReinforcementSystem {
     public static final float SEEPAGE_FLOOR_FRACTION = 0.40f;
     private static final int MIN_WAVE_SIZE = 4;
     private static final int MIN_RUNNER_SPACING = 2;
+    /** Ticks between two bodies of one surge leaving the mouth: a stream, not a crowd. */
+    public static final int SURGE_RELEASE_SPACING_TICKS = 2;
+    /** A due surge waits until at least this share of it fits under the target. */
+    public static final float SURGE_MIN_FIT = 0.5f;
+    /** Ticks a held surge waits before it asks again. */
+    private static final int SURGE_RECHECK_TICKS = 30;
+
+    /** One surge on its way out of a bore's mouth. */
+    private static final class Release {
+        final SwarmBore bore;
+        final BoreTier tier;
+        final int surgeIndex;
+        final int size;
+        int released;
+        int nextTick;
+
+        Release(SwarmBore bore, int surgeIndex, int size, int tick) {
+            this.bore = bore;
+            this.tier = bore.tier();
+            this.surgeIndex = surgeIndex;
+            this.size = size;
+            this.nextTick = tick;
+        }
+    }
 
     private final CivilianEvacuationTracker tracker;
     private CivilianEvacuationPlacement placement;
@@ -47,6 +86,11 @@ public final class SwarmReinforcementSystem {
             new HashMap<>();
     private List<SwarmPressureSnapshot.WaveIntent> ownedWave = List.of();
     private SwarmPressureSnapshot snapshot;
+    private SwarmBores bores;
+    private boolean boreSourcing;
+    private int boreTarget;
+    private final List<Release> releases = new ArrayList<>();
+    private List<SwarmPressureSnapshot.WaveIntent> surgeWave = new ArrayList<>();
 
     public SwarmReinforcementSystem(CivilianEvacuationTracker tracker) {
         if (tracker == null) throw new IllegalArgumentException("tracker is required");
@@ -88,6 +132,10 @@ public final class SwarmReinforcementSystem {
         }
         if (tracker.isSealed() || tracker.activeCount() == 0) {
             refreshSnapshot(sim, "OBJECTIVE_TERMINAL");
+            return;
+        }
+        if (boreSourcing) {
+            refreshSnapshot(sim, tickBores(sim));
             return;
         }
         accumulator = Math.min(WAVE_INTERVAL_SECONDS, accumulator + Math.max(0f, dt));
@@ -135,6 +183,115 @@ public final class SwarmReinforcementSystem {
     /** Whether the director is still in its opening seepage. */
     public boolean isSeeping() {
         return seepage;
+    }
+
+    /**
+     * From here on every body comes out of a living bore in {@code bores}; the
+     * perimeter is closed. Called at the tremor. Idempotent.
+     */
+    public void beginBoreSourcing(SwarmBores bores) {
+        if (bores == null) throw new IllegalArgumentException("bore sourcing needs the battle's bores");
+        this.bores = bores;
+        boreSourcing = true;
+        seepage = false;
+    }
+
+    /** Whether spawning comes only from bores. */
+    public boolean isBoreSourcing() {
+        return boreSourcing;
+    }
+
+    /** The population target the living bores hold the field at: their capacities summed. */
+    public static int borePopulationTarget(List<SwarmBore> bores) {
+        int target = 0;
+        for (SwarmBore bore : bores) if (!bore.collapsed()) target += bore.tier().capacity;
+        return target;
+    }
+
+    /**
+     * One bore-sourced tick: streams the surges already leaving their mouths,
+     * then starts a surge at each living bore whose clock is due and whose
+     * pulse fits under the target. Returns the snapshot reason.
+     */
+    private String tickBores(BattleSimulation sim) {
+        int tick = sim.getSimTickIndex();
+        List<SwarmBore> all = bores.bores();
+        boreTarget = borePopulationTarget(all);
+        boolean released = false;
+        for (int i = 0; i < releases.size(); ) {
+            Release release = releases.get(i);
+            if (release.bore.collapsed()) {
+                releases.remove(i);
+                continue;
+            }
+            if (tick >= release.nextTick && releaseOne(sim, release, tick)) released = true;
+            if (release.released >= release.size) releases.remove(i);
+            else i++;
+        }
+        int live = liveRunnerCount(sim);
+        int inFlight = 0;
+        for (Release release : releases) inFlight += release.size - release.released;
+        boolean surged = false;
+        for (SwarmBore bore : all) {
+            if (!bore.surgeDue(tick) || releasing(bore)) continue;
+            int headroom = boreTarget - live - inFlight;
+            int size = bore.surgeSize();
+            if (headroom < Math.max(1, (int) Math.ceil(size * SURGE_MIN_FIT))) {
+                bore.deferSurge(tick + SURGE_RECHECK_TICKS);
+                continue;
+            }
+            int bodies = Math.min(size, headroom);
+            if (!surged) surgeWave = new ArrayList<>();
+            releases.add(new Release(bore, bore.surges(), bodies, tick));
+            float jitter = 2f * SwarmBores.unit(SwarmBores.mix(
+                    seed ^ (bore.number() * 0x9E3779B97F4A7C15L) ^ (bore.surges() * 0xC2B2AE3D27D4EB4FL))) - 1f;
+            bore.surged(tick, jitter);
+            bores.surged(bore, tick);
+            inFlight += bodies;
+            waveIndex++;
+            surged = true;
+        }
+        if (surged || released) ownedWave = List.copyOf(surgeWave);
+        if (surged || released) return "BORE_SURGE";
+        if (all.isEmpty()) return "AWAITING_ERUPTION";
+        if (bores.livingCount() == 0) return "NO_LIVING_BORE";
+        if (live >= boreTarget) return "PRESSURE_POPULATION_MET";
+        return releases.isEmpty() ? "BORES_QUIET" : "BORE_SURGE";
+    }
+
+    private boolean releasing(SwarmBore bore) {
+        for (Release release : releases) if (release.bore == bore) return true;
+        return false;
+    }
+
+    /** Puts the next body of a surge on the first free mouth cell, or waits a spacing for one. */
+    private boolean releaseOne(BattleSimulation sim, Release release, int tick) {
+        release.nextTick = tick + SURGE_RELEASE_SPACING_TICKS;
+        NavigationGrid grid = sim.getGrid();
+        byte[] occupancy = sim.getOccupancyMap();
+        List<int[]> mouth = SwarmBores.mouthCells(grid, release.bore);
+        int[] cell = null;
+        for (int i = 0; i < mouth.size(); i++) {
+            int[] candidate = mouth.get((release.released + i) % mouth.size());
+            if ((occupancy[grid.index(candidate[0], candidate[1])] & 0xFF) == 0) {
+                cell = candidate;
+                break;
+            }
+        }
+        if (cell == null) return false;
+        long roll = SwarmBores.mix(seed ^ (release.bore.number() * 0x9E3779B97F4A7C15L)
+                ^ ((long) release.surgeIndex << 20) ^ release.released);
+        BoreStrainTable.Slot slot = BoreStrainTable.pick(release.tier, roll);
+        String strain = slot.name().charAt(0) + slot.name().substring(1).toLowerCase();
+        long body = SwarmStrains.spawn(sim, "Bore " + release.bore.beatKey() + " " + strain + " "
+                + (release.bore.bodiesSpawned() + 1), slot.unitType, cell[0], cell[1]);
+        release.released++;
+        release.bore.released();
+        SwarmPressureSnapshot.Approach approach = approach(cell[0], cell[1], grid.getWidth(), grid.getHeight());
+        approachByRunner.put(body, approach);
+        surgeWave.add(new SwarmPressureSnapshot.WaveIntent(body, approach, cell[0], cell[1],
+                SwarmPressureSnapshot.TargetContext.ROAMING, "BORE_SURGE_" + release.bore.beatKey()));
+        return true;
     }
 
     private int activeFloor() {
@@ -305,17 +462,46 @@ public final class SwarmReinforcementSystem {
             targetStates.add(new SwarmPressureSnapshot.TargetState(context,
                     targets.getOrDefault(context, 0)));
         }
+        List<SwarmPressureSnapshot.BoreState> boreStates = boreStates(sim);
+        StringBuilder boreSignature = new StringBuilder();
+        for (SwarmPressureSnapshot.BoreState bore : boreStates) {
+            boreSignature.append(bore.key()).append(':').append(bore.tier()).append(':')
+                    .append(bore.alive()).append(':').append(bore.surges()).append(':')
+                    .append(bore.feeds()).append(':').append((int) (bore.integrity() * 10f)).append(':')
+                    .append(bore.sporeColonies()).append(';');
+        }
         String signature = phase + "|" + reason + "|" + live + "|"
                 + waveIndex + "|" + approachStates + "|" + targetStates
-                + "|" + ownedWave;
+                + "|" + ownedWave + "|" + boreSignature;
         if (!signature.equals(snapshotSignature)) {
             snapshotSignature = signature;
             snapshotRevision++;
         }
         snapshot = new SwarmPressureSnapshot(snapshotRevision,
-                sim.getSimTickIndex(), phase, reason, targetPopulation,
+                sim.getSimTickIndex(), phase, reason,
+                boreSourcing ? boreTarget : targetPopulation,
                 populationFloor, live, waveIndex, approachStates,
-                targetStates, ownedWave);
+                targetStates, ownedWave, boreSourcing, boreStates);
+    }
+
+    private List<SwarmPressureSnapshot.BoreState> boreStates(BattleSimulation sim) {
+        if (bores == null) return List.of();
+        List<SwarmPressureSnapshot.BoreState> states = new ArrayList<>();
+        for (SwarmBore bore : bores.bores()) {
+            long id = bore.entityId();
+            boolean alive = !bore.collapsed() && sim.resolveUnit(id) != 0L;
+            float integrity = 0f;
+            if (alive) {
+                StructureDef structure = sim.turretState().structure(id);
+                integrity = (sim.world().hp(id) + sim.world().armor(id))
+                        / (structure.maxStructure + structure.armorCapacity);
+            }
+            states.add(new SwarmPressureSnapshot.BoreState(bore.beatKey(), bore.mother(), id,
+                    bore.x(), bore.y(), bore.tier(), alive, integrity, bore.growth(),
+                    bore.biomassFed(), bore.feeds(), bore.surges(), bore.bodiesSpawned(),
+                    SwarmBores.livingColonies(sim, bore), bore.nextSurgeTick(), bore.eruptedTick(), bore.collapsedTick()));
+        }
+        return states;
     }
 
     private SwarmPressureSnapshot.TargetContext targetContext(
@@ -330,7 +516,7 @@ public final class SwarmReinforcementSystem {
 
     private static boolean isOwnedRunner(long unit, BattleSimulation sim) {
         return sim.identity().faction(unit) == Faction.DEFENDER
-                && sim.identity().type(unit) == UnitType.SWARM_RUNNER
+                && sim.identity().type(unit).isSwarm()
                 && sim.role().role(unit) == UnitRole.SWARM_PRESSURE;
     }
 
@@ -371,7 +557,7 @@ public final class SwarmReinforcementSystem {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
             if (sim.identity().faction(unit) == Faction.DEFENDER
-                    && sim.identity().type(unit) == UnitType.SWARM_RUNNER) count++;
+                    && sim.identity().type(unit).isSwarm()) count++;
         }
         return count;
     }
