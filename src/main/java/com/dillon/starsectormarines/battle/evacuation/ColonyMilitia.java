@@ -1,0 +1,351 @@
+package com.dillon.starsectormarines.battle.evacuation;
+
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.setup.InfantryLoadoutRolls;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.dillon.starsectormarines.ops.RiskLevel;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Random;
+
+/**
+ * The colony's own defenders: the people who survived the first night and are
+ * still holding a few buildings when the company lands.
+ *
+ * <p>They are {@link Faction#ALLY}, under garrison authority and outside the
+ * player's command pool, the way the shelter guard always was. The shelter
+ * guard is one post; on the colony map a few more buildings are held, each by
+ * an ordinary hold-the-place order on that building's held place, so the squad
+ * on it mans its windows and doors through the same garrisonable machinery any
+ * held building uses. A couple of the colony's posts still have a working gun
+ * emplacement outside the door, and a couple of militia technicals are parked
+ * where they stopped.
+ *
+ * <p>Every choice is deterministic in the seed and the map. A post is never
+ * inside the shelter's or the lift's protected zones, never on a landing pad,
+ * and never so close to another post that two of them are one position.
+ */
+public final class ColonyMilitia {
+
+    /** Held buildings beyond the shelter on the colony map. */
+    public static final int OUTLYING_POSTS = 3;
+    /** Members per post: a fireteam, like the shelter guard. */
+    public static final int POST_SIZE = RescueShelterGarrison.MEMBER_COUNT;
+    /** Posts with a working emplacement outside the door. */
+    public static final int EMPLACEMENTS = 2;
+    /** Militia technicals parked at the colony's posts. */
+    public static final int TECHNICALS = 2;
+    /** The emplacement a colony post still has. */
+    public static final String EMPLACEMENT_STRUCTURE = "structure.turret-heavy-mg";
+    /** Command issuer the posts are claimed under. */
+    public static final String ISSUER = "colony-militia";
+    private static final int PATROL_RADIUS = 4;
+    private static final int DOORSTEP_RADIUS = 4;
+    private static final int TECHNICAL_RADIUS = 9;
+    /**
+     * How far placed hardware keeps from the cohort's walk to the lift. A gun
+     * or a parked truck on that walk is a wall the cohort has to route round,
+     * and a single-lane street with one in it is a closed one.
+     */
+    private static final int ROUTE_CLEARANCE = 6;
+    private static final long SEED_SALT = 0x4D494C4954494131L;
+
+    /** What went in. The shelter guard is always there; the rest only on the colony map. */
+    public record Installed(RescueShelterGarrison shelterGuard, List<Integer> postSquads,
+                            List<Long> emplacements, List<Long> technicals) {
+        public Installed {
+            postSquads = List.copyOf(postSquads);
+            emplacements = List.copyOf(emplacements);
+            technicals = List.copyOf(technicals);
+        }
+    }
+
+    private ColonyMilitia() {}
+
+    /**
+     * Seats the shelter guard and, on the colony map, the outlying posts, their
+     * emplacements and the technicals. Returns {@code null} when the shelter
+     * cannot hold its guard, which re-rolls the map as it always did.
+     *
+     * @param colony whether this is the Colony Breach colony; a smaller rescue
+     *               map seats the shelter guard alone
+     */
+    public static Installed install(BattleSimulation sim, MapResult map,
+                                    CivilianEvacuationPlacement placement,
+                                    List<LandingPad> pads, RiskLevel risk, long seed,
+                                    boolean colony) {
+        RescueShelterGarrison shelter = RescueShelterGarrison.install(sim, map, placement, risk, seed);
+        if (shelter == null) return null;
+        if (!colony || !enabled()) return new Installed(shelter, List.of(), List.of(), List.of());
+
+        Random rng = new Random(seed ^ SEED_SALT);
+        List<Post> posts = choosePosts(sim, map, placement, pads, seed);
+        List<Integer> squads = new ArrayList<>();
+        for (int i = 0; i < posts.size(); i++) {
+            squads.add(seatPost(sim, posts.get(i), i, risk, rng));
+        }
+        List<Long> emplacements = new ArrayList<>();
+        List<int[]> taken = new ArrayList<>();
+        boolean[] route = routeMask(sim.getGrid(), placement);
+        for (Post post : posts) {
+            if (emplacements.size() >= EMPLACEMENTS) break;
+            StructureDef structure = TurretCatalogRegistry.requireStructure(EMPLACEMENT_STRUCTURE);
+            int[] cell = openCell(sim, placement, pads, post.place.anchorCellX, post.place.anchorCellY,
+                    DOORSTEP_RADIUS, Math.max(structure.footprintCellsX, structure.footprintCellsY) / 2 + 1, taken, route);
+            if (cell == null) continue;
+            taken.add(cell);
+            emplacements.add(seatEmplacement(sim, cell, emplacements.size()));
+        }
+        // Setup-time grid writes, consumed here as buildMap does for defence posts.
+        if (sim.getNavigationMesh().pendingGridChanges() > 0L) sim.getNavigationMesh().rebuild();
+
+        List<Long> technicals = new ArrayList<>();
+        for (Post post : posts) {
+            if (technicals.size() >= TECHNICALS) break;
+            int[] cell = openCell(sim, placement, pads, post.place.anchorCellX, post.place.anchorCellY,
+                    TECHNICAL_RADIUS, 2, taken, route);
+            if (cell == null) continue;
+            taken.add(cell);
+            float x = cell[0] + 0.5f, y = cell[1] + 0.5f;
+            long id = sim.convoy().spawn(VehicleType.MILITIA_TECHNICAL, Faction.ALLY, VehicleMission.deployed(x, y));
+            // Initial map pose, before tick zero; later motion goes through the chassis controller.
+            sim.convoy().body(id).teleport(x, y, -90f);
+            technicals.add(id);
+        }
+        return new Installed(shelter, squads, emplacements, technicals);
+    }
+
+    /**
+     * Whether the colony's outlying militia are seated. {@code -Dbattle.colonyBreach.militia=false}
+     * is the control: the shelter guard alone, as Civilian Rescue had it.
+     */
+    static boolean enabled() {
+        return Boolean.parseBoolean(System.getProperty("battle.colonyBreach.militia", "true"));
+    }
+
+    private record Post(PointOfInterest place, TacticalNode node, List<int[]> cells) { }
+
+    /**
+     * Held buildings near the cohort's walk, spaced apart. Ranked by distance
+     * from the shelter-to-lift line in coarse bands, the seed ordering a band.
+     */
+    private static List<Post> choosePosts(BattleSimulation sim, MapResult map,
+                                          CivilianEvacuationPlacement placement,
+                                          List<LandingPad> pads, long seed) {
+        NavigationGrid grid = sim.getGrid();
+        int spacing = ColonyEruptionPlan.siteSpacing(grid.getWidth(), grid.getHeight());
+        int clearance = ColonyEruptionPlan.shelterClearance(grid.getWidth(), grid.getHeight());
+        List<Post> candidates = new ArrayList<>();
+        for (PointOfInterest place : map.pointsOfInterest) {
+            if (place == null || place.kind == PointOfInterest.Kind.LANDING_SITE) continue;
+            if (place.interiorAnchorX == placement.shelterX && place.interiorAnchorY == placement.shelterY) continue;
+            if (Math.abs(place.interiorAnchorX - placement.shelterX)
+                    + Math.abs(place.interiorAnchorY - placement.shelterY) < clearance) continue;
+            if (sim.isInsideRescueOpeningProtectedZone(place.interiorAnchorX, place.interiorAnchorY)) continue;
+            if (onPad(pads, place.interiorAnchorX, place.interiorAnchorY, 4)) continue;
+            TacticalNode node = heldPlace(map, place);
+            if (node == null) continue;
+            List<int[]> cells = interiorCells(sim, place);
+            if (cells.size() < POST_SIZE) continue;
+            candidates.add(new Post(place, node, cells));
+        }
+        float ax = placement.shelterX, ay = placement.shelterY;
+        float bx = placement.liftX - ax, by = placement.liftY - ay;
+        float lengthSquared = Math.max(1f, bx * bx + by * by);
+        candidates.sort(Comparator
+                .comparingInt((Post p) -> band(p.place, ax, ay, bx, by, lengthSquared))
+                .thenComparingLong(p -> priority(seed, grid.index(p.place.interiorAnchorX, p.place.interiorAnchorY)))
+                .thenComparingInt(p -> grid.index(p.place.interiorAnchorX, p.place.interiorAnchorY)));
+        List<Post> chosen = new ArrayList<>();
+        for (Post post : candidates) {
+            if (chosen.size() >= OUTLYING_POSTS) break;
+            boolean crowded = false;
+            for (Post other : chosen) {
+                int dx = other.place.interiorAnchorX - post.place.interiorAnchorX;
+                int dy = other.place.interiorAnchorY - post.place.interiorAnchorY;
+                if (dx * dx + dy * dy < spacing * spacing) {
+                    crowded = true;
+                    break;
+                }
+            }
+            if (!crowded) chosen.add(post);
+        }
+        return chosen;
+    }
+
+    /** Distance from the shelter-to-lift segment, in bands of twenty cells. */
+    private static int band(PointOfInterest place, float ax, float ay, float bx, float by, float lengthSquared) {
+        float px = place.interiorAnchorX - ax, py = place.interiorAnchorY - ay;
+        float t = Math.max(0f, Math.min(1f, (px * bx + py * by) / lengthSquared));
+        float dx = px - t * bx, dy = py - t * by;
+        return (int) (Math.sqrt(dx * dx + dy * dy) / 20f);
+    }
+
+    private static TacticalNode heldPlace(MapResult map, PointOfInterest place) {
+        if (map.tacticalMap == null) return null;
+        for (TacticalNode node : map.tacticalMap.all()) {
+            if (node.anchorX == place.interiorAnchorX && node.anchorY == place.interiorAnchorY) return node;
+        }
+        return null;
+    }
+
+    private static int seatPost(BattleSimulation sim, Post post, int index, RiskLevel risk, Random rng) {
+        MarineLoadout[] loadouts = InfantryLoadoutRolls.defenderSquad(POST_SIZE, UnitType.MILITIA, risk, rng);
+        int squadId = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
+        Squad squad = sim.getSquad(squadId);
+        squad.assignedNode = post.node;
+        squad.patrolRadius = PATROL_RADIUS;
+        sim.assignSquadCommand(ObjectiveAssignment.holdNode(squadId, post.node),
+                CommandAuthority.GARRISON, ISSUER, "hold a colony building");
+        for (int i = 0; i < POST_SIZE; i++) {
+            int[] cell = post.cells.get(i);
+            EntitySpec spec = new EntitySpec("Colony Militia " + (index + 1) + "-" + (i + 1),
+                    Faction.ALLY, UnitType.MILITIA, cell[0], cell[1])
+                    .role(UnitRole.GARRISON)
+                    .squad(squadId)
+                    .home(cell[0], cell[1]);
+            loadouts[i].seedInto(spec);
+            long id = sim.spawn(spec);
+            if (squad.leaderId == 0L) squad.leaderId = id;
+        }
+        squad.originalSize = POST_SIZE;
+        return squadId;
+    }
+
+    private static long seatEmplacement(BattleSimulation sim, int[] cell, int index) {
+        int x = cell[0], y = cell[1];
+        long turret = sim.spawn(MapTurret.create("colony-gun-" + (index + 1), Faction.ALLY,
+                EMPLACEMENT_STRUCTURE, x, y));
+        NavigationGrid grid = sim.getGrid();
+        grid.setWalkable(x, y, false);
+        grid.setSeeThrough(x, y, true);
+        grid.recomputeCoverAt(x + 1, y);
+        grid.recomputeCoverAt(x - 1, y);
+        grid.recomputeCoverAt(x, y + 1);
+        grid.recomputeCoverAt(x, y - 1);
+        return turret;
+    }
+
+    /** Walkable interior cells of a building, best cover first, as the shelter guard is seated. */
+    private static List<int[]> interiorCells(BattleSimulation sim, PointOfInterest place) {
+        NavigationGrid grid = sim.getGrid();
+        int building = sim.getTopology().getBuildingId(place.interiorAnchorX, place.interiorAnchorY);
+        List<int[]> cells = new ArrayList<>();
+        for (int y = place.top + 1; y < place.bottom; y++) {
+            for (int x = place.left + 1; x < place.right; x++) {
+                if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) continue;
+                if (building > 0 && sim.getTopology().getBuildingId(x, y) != building) continue;
+                int cover = grid.getCoverAt(x, y) + sim.getDoodadCoverAt(x, y);
+                int distance = Math.abs(x - place.interiorAnchorX) + Math.abs(y - place.interiorAnchorY);
+                cells.add(new int[]{x, y, cover, distance, grid.index(x, y)});
+            }
+        }
+        cells.sort(Comparator
+                .comparingInt((int[] c) -> c[2]).reversed()
+                .thenComparingInt(c -> c[3])
+                .thenComparingInt(c -> c[4]));
+        return cells;
+    }
+
+    /**
+     * The nearest outdoor cell to a door whose whole square of {@code half}
+     * cells around it is open ground — so nothing set down on it closes a lane
+     * — away from protected zones, pads and what is already placed.
+     */
+    private static int[] openCell(BattleSimulation sim, CivilianEvacuationPlacement placement,
+                                  List<LandingPad> pads, int doorX, int doorY, int radius, int half,
+                                  List<int[]> taken, boolean[] route) {
+        NavigationGrid grid = sim.getGrid();
+        int[] best = null;
+        int bestDistance = Integer.MAX_VALUE;
+        for (int y = doorY - radius; y <= doorY + radius; y++) {
+            for (int x = doorX - radius; x <= doorX + radius; x++) {
+                int distance = Math.abs(x - doorX) + Math.abs(y - doorY);
+                if (distance >= bestDistance) continue;
+                if (!grid.inBounds(x, y) || route[grid.index(x, y)]) continue;
+                if (!openSquare(sim, x, y, half)) continue;
+                if (sim.isInsideRescueOpeningProtectedZone(x, y)) continue;
+                if (Math.abs(x - placement.shelterApproachX) + Math.abs(y - placement.shelterApproachY) < 6) continue;
+                if (onPad(pads, x, y, half + 2)) continue;
+                boolean near = false;
+                for (int[] other : taken) {
+                    if (Math.max(Math.abs(other[0] - x), Math.abs(other[1] - y)) <= half + 3) {
+                        near = true;
+                        break;
+                    }
+                }
+                if (near) continue;
+                best = new int[]{x, y};
+                bestDistance = distance;
+            }
+        }
+        return best;
+    }
+
+    /** Cells within {@link #ROUTE_CLEARANCE} of the shelter-to-lift path. */
+    private static boolean[] routeMask(NavigationGrid grid, CivilianEvacuationPlacement placement) {
+        boolean[] mask = new boolean[grid.getWidth() * grid.getHeight()];
+        int[] path = GridPathfinder.findPath(grid, placement.shelterApproachX, placement.shelterApproachY,
+                placement.liftX, placement.liftY);
+        if (Paths.isEmpty(path)) return mask;
+        for (int i = 0, n = Paths.cellCount(path); i < n; i++) {
+            int px = Paths.cellX(path, i), py = Paths.cellY(path, i);
+            for (int y = py - ROUTE_CLEARANCE; y <= py + ROUTE_CLEARANCE; y++) {
+                for (int x = px - ROUTE_CLEARANCE; x <= px + ROUTE_CLEARANCE; x++) {
+                    if (grid.inBounds(x, y)) mask[grid.index(x, y)] = true;
+                }
+            }
+        }
+        return mask;
+    }
+
+    private static boolean openSquare(BattleSimulation sim, int cx, int cy, int half) {
+        NavigationGrid grid = sim.getGrid();
+        for (int y = cy - half; y <= cy + half; y++) {
+            for (int x = cx - half; x <= cx + half; x++) {
+                if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || grid.isDoorway(x, y)) return false;
+                if (sim.getTopology().getBuildingId(x, y) != 0) return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean onPad(List<LandingPad> pads, int x, int y, int margin) {
+        if (pads == null) return false;
+        for (LandingPad pad : pads) {
+            if (Math.abs(x - pad.centerX) <= pad.halfWidth + margin
+                    && Math.abs(y - pad.centerY) <= pad.halfHeight + margin) return true;
+        }
+        return false;
+    }
+
+    private static long priority(long seed, int cell) {
+        long value = seed ^ (cell * 0x9E3779B97F4A7C15L);
+        value ^= value >>> 30;
+        value *= 0xBF58476D1CE4E5B9L;
+        value ^= value >>> 27;
+        value *= 0x94D049BB133111EBL;
+        return value ^ (value >>> 31);
+    }
+}
