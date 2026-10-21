@@ -601,7 +601,12 @@ for one job in the cycle, and reads that way on screen.
   than breaking the wall beside it. "Light" means a colony wall (at most 120 of
   wall left); fortified and fort walls are out of its reach until something
   else has worn them down. Its blow carries penetration, so it hurts plated
-  bodies and emplacements where a Runner's slash only scratches. On infantry
+  bodies and emplacements where a Runner's slash only scratches. It strikes
+  what is under its head, about a cell from its centre to the target's surface
+  (a hull's footprint, not a circle round its middle), and its weight lands
+  with the blow: a hull or a mech it strikes takes the same contact a charge
+  gives, at a slower closing speed, so a pickup or a light mech is shoved about
+  as the fight goes on while a tank only rocks. On infantry
   the blow is a **trample**: the body under it is knocked down for a moment and
   bowled a little way, and anyone on foot right beside it takes half the blow
   and goes down too (`-Dbattle.brute.trample=false` is the control).
@@ -648,8 +653,9 @@ for one job in the cycle, and reads that way on screen.
   wedge along the line during the tell, with the other threat warnings; a
   knocked-down body's picture lying as a fallen one does for that second,
   with a ring of dust where it lands, while the sim keeps it upright; a quiet
-  amber arc on the ground under any non-swarm body that can't act, whatever made
-  it so, emptying as the hold runs out; and the squad card's status word naming the cause (knocked down, stalled,
+  amber arc on the ground under a Marine or hull that can't act, whatever made
+  it so, emptying as the hold runs out (a staggered mech shows only in its
+  stilled hips); and the squad card's status word naming the cause (knocked down, stalled,
   staggered, stunned) ahead of engaged or wounded.
 
   Like the Runner it is drawn on its own skeleton (`RavBruteRig`): a plum,

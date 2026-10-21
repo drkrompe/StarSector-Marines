@@ -10,7 +10,10 @@
       "durationSeconds": 1.5,
       "variants": 4,
       "loop": false,
-      "volume": 1.0
+      "volume": 1.0,
+      "cut": [
+        1
+      ]
     },
     {
       "id": "runner_gallop",
@@ -18,7 +21,10 @@
       "durationSeconds": 0.7,
       "variants": 4,
       "loop": false,
-      "volume": 0.8
+      "volume": 0.8,
+      "cut": [
+        4
+      ]
     },
     {
       "id": "runner_clatter",
@@ -34,7 +40,10 @@
       "durationSeconds": 1.0,
       "variants": 4,
       "loop": false,
-      "volume": 1.0
+      "volume": 1.0,
+      "cut": [
+        4
+      ]
     },
     {
       "id": "runner_death",
@@ -123,7 +132,11 @@
       "durationSeconds": 2.5,
       "variants": 4,
       "loop": false,
-      "volume": 1.0
+      "volume": 1.0,
+      "cut": [
+        1,
+        4
+      ]
     },
     {
       "id": "brute_charge_tell",
@@ -139,7 +152,10 @@
       "durationSeconds": 1.2,
       "variants": 4,
       "loop": false,
-      "volume": 1.0
+      "volume": 1.0,
+      "cut": [
+        3
+      ]
     },
     {
       "id": "brute_charge_hit_vehicle",
@@ -294,7 +310,7 @@
     },
     {
       "id": "body_drag",
-      "prompt": "A heavy limp body in armour being hauled backward across rough concrete and gravel: a slow continuous scraping drag of cloth and armour plates, boots and gear bumping and knocking over the ground, no voices, no growling, no music, seamless loop",
+      "prompt": "A heavy sack being dragged slowly across dirt and loose gravel: a soft continuous scrape of rough cloth on earth, grit crunching and shifting under its weight, an occasional dull bump as it rolls over a stone, no voices, no music, seamless loop",
       "durationSeconds": 2.0,
       "variants": 4,
       "loop": true,

@@ -74,8 +74,9 @@ tm.auto(craft, marks, fps, (0, end))  # throttle read off a craft's own keyed mo
 
 `thrust_shots.py` is the per-shot half: one call at the end of each scene's build
 (`mark_c1`, `mark_c2`, `mark_c4`, which also covers C5) gives the named craft their throttle
-from the scene's own constants, and every other craft `auto` (parked: off; climbing, sinking
-or (in the port shot) hovering still in the air: lift; travelling: cruise; vectored drives turn between the two). A ship another session adds is found and marked
+from the scene's own constants, and every other craft `auto`, from its motion (see "Throttle
+follows implied acceleration" below; vectored drives turn between lift and aft). A ship another
+session adds is found and marked
 without a change here. Where a shot already hung a drive glow off an exhaust anchor (C1's and
 C4's Second Wind glows, C2's Broadsword flames), it now hangs off the marker.
 
@@ -94,7 +95,37 @@ seconds with nothing firing). The rule, `thrust_markers.plume_faults`:
 - a craft whose drives the camera can never see carries `thrust_plume_exempt` with the reason (C2's
   Second Wind, filmed from its own bridge); the build prints every exemption.
 
-`thrust_shots.require_plumes(fps, frames, shot)` applies it: `mark_c1` and `mark_c2` call it at
+## Throttle follows implied acceleration
+
+A plume's size says how hard the drive works, so the throttle must agree with the motion (owner,
+2026-10-21, after the first C4 repair drew a steadily cruising Shepherd with full-length mains:
+"make it a more reasonable thrust over a settled area ... make sure this mistake never happens again
+for thrusters"). One model, `thrust_markers.drive_demand`, says what a craft's keyed motion calls
+for, from its velocity and acceleration (each a central difference over half a second either side):
+
+- a steady course is a **trim burn** on the mains, `CRUISE_TRIM` (0.2): a short plume, well under a
+  hull length; the mains rise with the acceleration the motion shows, braking as much as speeding
+  up, to full at `ACCEL_FULL` (8 m/s^2);
+- in air, a craft **low and slow** (under `VECTOR_FULL`, 6 m/s), climbing, sinking or hovering
+  carries its weight on its lift jets, or its mains turned down, at `LIFT_HOLD` (0.5) for a steady
+  1 g, more as it accelerates upward; over that speed the weight is the hull's own business;
+- in space only acceleration costs thrust; parked is off.
+
+`thrust_markers.auto` keys traffic from this model, and `thrust_markers.throttle_faults` holds every
+craft to it, keyed by hand or not. It refuses a craft whose main burns above `CRUISE_CEILING` (0.3)
+while it shows no meaningful acceleration (under 0.8 m/s^2), a craft plainly accelerating or braking
+(over 2 m/s^2) with its drives at or near zero, and, in air, a craft airborne at low speed or climbing
+or sinking with no lift carrying it. A craft whose keyed throttle departs from the model on purpose
+carries `thrust_motion_exempt` with the reason, and the build prints it; a craft declared
+`thrust_plume_exempt` (drives never in frame) is not checked either.
+
+Traffic's plumes (`thrust_shots.far_plume`) are `port_fleet.far_plume` with a short low end: at the
+trim burn a main is about a quarter of its full length and keeps most of its width, and it grows to
+full length with acceleration. The Colossus's departure and Second Wind's landing keep the default.
+`thrust_shots.report_motion` prints each plumed craft's length, its trim and full plume lengths, and
+its speed, acceleration and throttle once a second.
+
+`thrust_shots.require_plumes(fps, frames, shot, air)` applies both rules: `mark_c1` and `mark_c2` call it at
 their end, and `c4x_scene.build` (which C5 builds on) once Second Wind's and the Colossus's plumes are
 hung. A fault stops the build with SystemExit naming each craft and its bare nozzles, and a
 `render_init` handler asks again as any render starts, so a script that forgets the call still

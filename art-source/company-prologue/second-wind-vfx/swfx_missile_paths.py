@@ -42,7 +42,9 @@ a third of the way down the lane).
 - **The end of a flight** is one of:
   - `hit`: a blast at the target point, `on='armour'` or `on='shield'` (the caller supplies the
     point: the hull's surface, or the shield's);
-  - `kill`: killed short (by `swfx_pd`): a pop, the motor dies, the body tumbles on, dark;
+  - `kill`: killed short (by `swfx_pd`): a jagged pop with cooling fragments
+    (`swfx_pd.jagged_burst`; profile `pop='orb'` for the old ball), the motor dies, the body
+    tumbles on, dark;
   - `decoy`: diverted onto a flare (`Flight.divert`) and detonated on it;
   - `burnout`: an unguided round that reached its range without a target.
   `arrivals(flights)` lists every end as a cue (frame, world point, kind, target, by), for the
@@ -732,9 +734,17 @@ def key(ctx, coll, fl, a, motor_mat, body_mat, cylinder_mesh, mpu):
         rec['blast'] = end['frame']
     elif end['kind'] == 'kill':
         # A missile killed short: a small hot pop, orange whatever its motor colour (the warhead
-        # and fuel going), and the motor out.
-        _flash(ctx, coll, f'{PREFIX} pop {fl.label} f{fl.frame:04d}', here, end['frame'], srgb((255, 190, 120)),
-               prof['blast_m'] * .45 / mpu, frames=7, peak=1.4, heat=1.0, light_w=4.0e4, grow=2.0)
+        # and fuel going), and the motor out. 'jagged' (default): torn and angled like the
+        # flak, with cooling fragments; 'orb': the old soft ball.
+        if prof.get('pop', 'jagged') == 'jagged':
+            import swfx_pd
+            swfx_pd.jagged_burst(ctx, coll, f'pop {fl.label} f{fl.frame:04d}', here, end['frame'], mpu,
+                                 random.Random(f'swfx-missile-pop|{fl.label}|{fl.frame}'), srgb((255, 190, 120)),
+                                 size_m=(prof['blast_m'] * .35, prof['blast_m'] * .5), light_w=4.0e4, smoke=.45,
+                                 prefix=PREFIX)
+        else:
+            _flash(ctx, coll, f'{PREFIX} pop {fl.label} f{fl.frame:04d}', here, end['frame'], srgb((255, 190, 120)),
+                   prof['blast_m'] * .45 / mpu, frames=7, peak=1.4, heat=1.0, light_w=4.0e4, grow=2.0)
         rec['pop'] = end['frame']
     elif end['kind'] == 'decoy':
         _flash(ctx, coll, f'{PREFIX} decoyed {fl.label} f{fl.frame:04d}', here, end['frame'], prof['blast'],
