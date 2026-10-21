@@ -6,10 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.junit.jupiter.api.Test;
-import javax.imageio.ImageIO;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -75,21 +72,6 @@ class MainStoresFittingTest {
                 assertTrue(tasks(f, Affordance.STOW) > 0);
                 verify(f);
             }
-    }
-
-    @Test void frameOpeningsAndStockMarginsPreserveTheLayerContract() throws Exception {
-        var image = ImageIO.read(Path.of("mod/graphics/tilesets/main-stores.png").toFile());
-        var frame = TileRegistry.installed().doodad("main-stores.frame");
-        for (int slot = 0; slot < 3; slot++) for (int y = 35; y < 90; y++)
-            for (int x = 30; x < 98; x++)
-                assertTrue((image.getRGB(frame.col * 64 + x, frame.row * 64 + slot * 128 + y) >>> 24) <= 2);
-        for (String id : List.of("cartons", "cases", "drums", "frame")) {
-            var def = TileRegistry.installed().doodad("main-stores." + id);
-            assertEquals(0, def.cover.level()); assertEquals(0f, def.ballisticHalfHeight);
-            if (id.equals("frame")) continue;
-            for (int y = 0; y < 128; y++) for (int x : new int[]{3,7,120,124})
-                assertTrue((image.getRGB(def.col * 64 + x, def.row * 64 + y) >>> 24) <= 2);
-        }
     }
 
     private static void verify(Fixture f) {

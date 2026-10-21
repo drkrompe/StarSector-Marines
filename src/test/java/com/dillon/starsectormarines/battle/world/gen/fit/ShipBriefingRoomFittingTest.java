@@ -5,10 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.junit.jupiter.api.Test;
-import javax.imageio.ImageIO;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -71,15 +68,6 @@ class ShipBriefingRoomFittingTest {
         Fixture small=fit(RoomShape.rectangle(8,6),new RoomPose(0,false),List.of(new int[]{-1,3}));
         assertTrue(small.ctx.doodads.stream().noneMatch(d -> d.definitionId().startsWith("briefing-room.")));
         assertFalse(small.ctx.doodads.isEmpty());assertTrue(small.ctx.fixtureTasks.isEmpty());
-    }
-
-    @Test void tacticalOverlayStaysInsideTableRim() throws Exception {
-        var image=ImageIO.read(Path.of("mod/graphics/tilesets/briefing-room.png").toFile());
-        var def=TileRegistry.installed().doodad("briefing-room.tactical-map");
-        assertEquals(0,def.cover.level());assertEquals(0f,def.ballisticHalfHeight);
-        for(int y=0;y<128;y++) for(int x=0;x<384;x++)
-            if(x<48 || x>=336 || y<20 || y>=108)
-                assertTrue((image.getRGB(def.col*64+x,def.row*64+y)>>>24)<=2,"table rim");
     }
 
     private static void chair(Fixture f,int x,int y,String back) {

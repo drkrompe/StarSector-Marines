@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.command.trace.PlaceFightProbe;
+import com.dillon.starsectormarines.battle.command.trace.ReactiveDefenceEvidence;
 import com.dillon.starsectormarines.testsupport.InstalledWeaponSlots;
 import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import org.junit.jupiter.api.AfterEach;
@@ -443,7 +444,7 @@ class ThunderRunEvidenceTest {
                         .put("alive",sim.world().isAlive(gun)));
                 JSONArray beats=new JSONArray();
                 for(var e:sim.getStoryBeats()) beats.put(new JSONObject().put("tick",e.tick()).put("id",e.id()));
-                var report=new JSONObject().put("fixture",name).put("ticks",sim.getSimTickIndex()).put("landedTick",landedTick)
+                var report=new JSONObject().put("fixture",name).put("placeFight",places.json(sim, sim.getCommandTraceJsonLines())).put("reactiveDefence",ReactiveDefenceEvidence.figures(sim)).put("ticks",sim.getSimTickIndex()).put("landedTick",landedTick)
                         .put("result",sim.isComplete()?String.valueOf(sim.getWinner()):"UNRESOLVED").put("phase",column.phase())
                         .put("delivered",column.deliveredCount()).put("lost",column.lostCount()).put("namedSeats",seats)
                         .put("rearContactTicks",new JSONArray(List.of(rearContactTicks[0],rearContactTicks[1])))

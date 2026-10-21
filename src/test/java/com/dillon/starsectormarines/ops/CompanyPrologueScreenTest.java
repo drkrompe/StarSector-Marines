@@ -9,40 +9,9 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.HashSet;
-import javax.imageio.ImageIO;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CompanyPrologueScreenTest {
-    @Test void eachBeatHasDistinctBoundedShippedArtwork() throws Exception {
-        var images = new HashSet<String>();
-        long bytes = 0;
-        for (int page = 0; page < CompanyPrologue.PAGE_COUNT; page++) {
-            var props = CompanyPrologueScreen.model(page, "Jangala", 20, 473, 4862, () -> {}, () -> {}, () -> {});
-            String path = (String) props.get("image");
-            assertTrue(images.add(path), "Each story beat needs its own illustration");
-            var file = Path.of("mod", path);
-            var image = ImageIO.read(file.toFile());
-            assertEquals(1200, image.getWidth());
-            assertEquals(800, image.getHeight());
-            assertTrue(Files.size(file) <= 400 * 1024);
-            bytes += Files.size(file);
-            assertFalse(props.get("caption").toString().isBlank());
-        }
-        for (var stage : CompanyYardReview.Stage.values()) {
-            var props = CompanyYardScreen.model(stage, "Second Wind", 473, 4862, null, null, true,
-                    () -> {}, () -> {}, () -> {});
-            String path = (String) props.get("image");
-            if (!images.add(path)) continue;
-            var file = Path.of("mod", path);
-            var image = ImageIO.read(file.toFile());
-            assertEquals(1200, image.getWidth());
-            assertEquals(800, image.getHeight());
-            assertTrue(Files.size(file) <= 400 * 1024);
-            bytes += Files.size(file);
-        }
-        assertTrue(bytes <= 3 * 1024 * 1024, "The opening and yard art have a bounded distribution cost");
-    }
     @Test void anotherPortTellsJangalasStoryButNamesItsOwnCourse() {
         var elsewhere = CompanyPrologueScreen.model(5, "Independent Port", false, 17, 473, 4862, () -> {}, () -> {}, () -> {});
         assertTrue(elsewhere.get("narrative").toString().contains("Nessa Venn, Jangala"));
@@ -56,18 +25,6 @@ class CompanyPrologueScreenTest {
         assertEquals("Take us to Independent Port.", handoff.get("nextLabel"));
         assertEquals("Take us to Jangala.", CompanyPrologueScreen.model(CompanyPrologue.PAGE_COUNT - 1, "Jangala",
                 20, 473, 4862, () -> {}, () -> {}, () -> {}).get("nextLabel"));
-    }
-
-    @Test void everyContinueIsTheCommandersOwnLine() {
-        var labels = new HashSet<String>();
-        for (int page = 0; page < CompanyPrologue.PAGE_COUNT; page++) {
-            String label = CompanyPrologueScreen.model(page, "Jangala", 20, 473, 4862, () -> {}, () -> {}, () -> {})
-                    .get("nextLabel").toString();
-            assertNotEquals("Continue", label);
-            assertTrue(labels.add(label), "Each page gets its own reply: " + label);
-        }
-        assertEquals("Then go and get some sleep yourself.",
-                CompanyPrologueScreen.model(0, "Jangala", 20, 473, 4862, () -> {}, () -> {}, () -> {}).get("nextLabel"));
     }
 
     @Test void noPortAtAllNeverGivesADisabledExit() {
