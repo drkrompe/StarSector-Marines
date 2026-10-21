@@ -30,13 +30,16 @@ import java.util.List;
  * rooms the drawing fixes are down before the rest look for space.
  *
  * <p><b>Reserves</b> are compartments the hull keeps sealed for refits she has
- * not had yet. They are no part of the room program: the deck is not sized for
- * them, nothing aboard is owed them, and they are laid after every programmed
- * room and before the pocket fill, so reserving one never moves a room, a door
- * or a berth the program placed. Paying for a refit later opens a reserve where
+ * not had yet. They are no part of the room program: nothing aboard is owed
+ * them and the deck is not sized for them. An ordinary reserve is laid
+ * after every programmed room and before the pocket fill, so reserving it never
+ * moves a room, a door or a berth the program placed; one too big for the floor
+ * the program leaves over is laid ahead of a named purpose instead
+ * ({@link Reserve#laidBefore}), and moves the rooms laid after it. Paying for a refit later opens a reserve where
  * it already stands rather than finding it a place.
  */
-public record DeckArrangement(String name, List<Site> sites, List<Fairing> fairings, List<Reserve> reserves) {
+public record DeckArrangement(String name, List<Site> sites, List<Fairing> fairings, List<Reserve> reserves,
+                              Long layoutSeed) {
 
     public DeckArrangement {
         sites = List.copyOf(sites);
@@ -44,20 +47,43 @@ public record DeckArrangement(String name, List<Site> sites, List<Fairing> fairi
         reserves = List.copyOf(reserves);
     }
 
+    public DeckArrangement(String name, List<Site> sites, List<Fairing> fairings, List<Reserve> reserves) {
+        this(name, sites, fairings, reserves, null);
+    }
+
     public DeckArrangement(String name, List<Site> sites, List<Fairing> fairings) {
         this(name, sites, fairings, List.of());
+    }
+
+    /**
+     * The seed this hull's deck is always laid from, whatever seed the caller
+     * passes, or the caller's own when null. A hull the company owns has one
+     * deck: the layout is authored and checked once, not hoped for across seeds.
+     */
+    public long seedFor(long seed) {
+        return layoutSeed != null ? layoutSeed : seed;
     }
 
     /**
      * A compartment reserved for a future refit: the room it will become, and
      * where on the deck it is kept. A reserve its site cannot hold falls back to
      * its recipe's zone the way a programmed room does.
+     *
+     * <p>{@code laidBefore} names the programmed purpose a large reserve is laid
+     * ahead of, or is null for a reserve laid after the whole program. A reserve
+     * too big for the floor the program leaves over has to claim its ground
+     * before the rooms that would otherwise split it, and those rooms then find
+     * room around it: it moves them, which an ordinary reserve never does.
      */
-    public record Reserve(RoomRecipe recipe, Site site) {
+    public record Reserve(RoomRecipe recipe, Site site, RoomPurpose laidBefore) {
         public Reserve {
             if (site.purpose() != recipe.purpose()) {
                 throw new IllegalArgumentException("a reserve's site names its own purpose: " + site + " for " + recipe);
             }
+        }
+
+        public Reserve(RoomRecipe recipe, Site site) {
+            this(recipe, site, null);
         }
     }
 
@@ -165,6 +191,10 @@ public record DeckArrangement(String name, List<Site> sites, List<Fairing> fairi
         return new Reserve(recipe, span(recipe.purpose(), fore, aft, side));
     }
 
+    private static Reserve reserveBefore(RoomPurpose laidBefore, RoomRecipe recipe, float fore, float aft, DeckSide side) {
+        return new Reserve(recipe, span(recipe.purpose(), fore, aft, side), laidBefore);
+    }
+
     /**
      * Second Wind, the company's original Cerberus, laid out to agree with her
      * model.
@@ -187,14 +217,19 @@ public record DeckArrangement(String name, List<Site> sites, List<Fairing> fairi
      * it, and the plant and the drive to starboard on the transom, under the
      * reactor hatch.
      *
-     * <p>Five reserves follow the program, largest first, which is the order
-     * that leaves each its best ground: the range along the spine in the
-     * starboard waist, the gymnasium in the aft port corner, the sick bay, the
-     * lounge and the brig in the starboard aft block. Their footprints are what
-     * the deck can give up in every layout rather than the destroyer recipes:
-     * measured over two hundred layout seeds, a 30-frame range fits one deck
-     * in five and a 14-by-10 room more than once only by luck, while this set
-     * places on every one. See {@code second-wind-refit-tree.md}.
+     * <p>Five reserves. The gymnasium is the cruise-ship layout, a running
+     * track round its equipment floor and a pool, and at 28 by 14 it is laid
+     * ahead of the mess in the aft port block: laid after the program, as the
+     * others are, it fitted none of two hundred layout seeds, because the
+     * program had already split the floor it needs. The mess and the stores
+     * find room around it. The rest follow the program, largest first: the
+     * range along the spine in the starboard waist, the sick bay, the lounge
+     * and the brig in the starboard aft block. The loading bay goes forward.
+     *
+     * <p>Her layout seed is pinned: she is the company's one ship and has one
+     * deck, laid the same in every campaign, on which every room and every
+     * reserve places in her 106 by 79 envelope. See
+     * {@code second-wind-refit-tree.md}.
      */
     public static final DeckArrangement SECOND_WIND = new DeckArrangement("second-wind", List.of(
             span(RoomPurpose.HANGAR, at(47, 106), at(47, 106), DeckSide.PORT),
@@ -224,9 +259,10 @@ public record DeckArrangement(String name, List<Site> sites, List<Fairing> fairi
             // a diagonal from the pods to the engine block.
             List.of(new Fairing(0.31f, 0.59f, DeckSide.PORT),
                     new Fairing(0.31f, 0.59f, DeckSide.STARBOARD)),
-            List.of(reserve(RoomRecipe.SECOND_WIND_RANGE, 0.44f, 0.66f, DeckSide.STARBOARD),
-                    reserve(RoomRecipe.SECOND_WIND_GYM, 0.76f, 1f, DeckSide.PORT),
+            List.of(reserveBefore(RoomPurpose.MESS_HALL, RoomRecipe.SECOND_WIND_GYM, 0.62f, 1f, DeckSide.PORT),
+                    reserve(RoomRecipe.SECOND_WIND_RANGE, 0.44f, 0.66f, DeckSide.STARBOARD),
                     reserve(RoomRecipe.SECOND_WIND_SICK_BAY, 0.66f, 1f, DeckSide.STARBOARD),
                     reserve(RoomRecipe.SECOND_WIND_LOUNGE, 0.66f, 1f, DeckSide.STARBOARD),
-                    reserve(RoomRecipe.BRIG, 0.44f, 0.80f, DeckSide.STARBOARD)));
+                    reserve(RoomRecipe.BRIG, 0.44f, 0.80f, DeckSide.STARBOARD)),
+            42L);
 }
