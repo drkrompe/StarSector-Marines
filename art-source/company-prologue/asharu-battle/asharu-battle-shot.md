@@ -126,6 +126,19 @@ in it (S1a at 10 s, S1 16 s, S4 40 s, S6 56 s, S6c 72 s, S7 86 s). Formation shi
 authored combat poses, a ship on her gun run, and the powered-down pirates at the platform are
 left as posed. Curved attack runs and breakaways for the pirates belong to the animated pass.
 
+### Morrow's drones
+
+Morrow is a drone tender, so her four Borers work wherever the story lets them. Each is placed
+through ShipFx, so each blinks its beacon, pulses its lift jets and fires its mining laser on its
+own. Placements:
+- **S8-S9:** two Borers hold outboard of and under the Colossus's shot-out port pod, cutting the
+  burning wreckage free with their lasers. A third lifts out of Morrow's bay (launch point 2,
+  straight up, as the cradle check clears) to join them.
+- At that range a Borer is about 9 px. It reads by its work lamps, its beacon and its beam.
+
+`near()` places a craft in its parent's frame with its own attitude, so a drone stays on the
+pod if the Colossus is re-posed.
+
 ### Continuity
 
 Fixed before any production render (owner: make continuity changes without asking):
@@ -241,6 +254,7 @@ Colossus 108 m, Onslaught 301 m.
 |---|---|---|---|---|
 | Colossus | the heavy freighter that falls | 108 m | the reference | **finished** |
 | Shepherd "Morrow" | drone tender, the convoy's repair ship; falls with the Colossus | 67 m | a little longer than a Hound | **finished** (Ko Combine livery) |
+| Borer x4 (Morrow's) | the Shepherd's built-in mining drones, working the convoy's damage | 3.6 m | a small car | **finished** (Drive `builds/borer/8f950d18e`) |
 | Tarsus | freighter: boarded and taken, the pirates' prize | 94 m | 0.9 Colossus, much slimmer | **finished** (accepted by the owner), clean and boarded (drives dead) states |
 | Phaeton | the convoy's tanker, destroyed in the opening | 77 m | 1.24 Hounds, long and thin | **finished** (both states accepted by the owner): destroyed is an eight-blast cook-off over about 6 s |
 | Mule | armed freighter; gets away | 104 m (est.) | about a Colossus | stand-in |
