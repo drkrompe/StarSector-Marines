@@ -481,16 +481,10 @@ public final class ShipTransferViewModel {
 
     /** Who and what the yard is being paid to shift. */
     private static String moved(TransferCost price) {
-        String heads = count(price.marines(), "marine");
-        return price.walkers() > 0 ? Strings.format("openingShipTransferAnd", heads, count(price.walkers(), "walker")) : heads;
-    }
-
-    private static String count(int many, String thing) {
-        return many + " " + thing + (many == 1 ? "" : "s");
-    }
-
-    private static String money(int credits) {
-        return String.format(Locale.US, "%,d", credits);
+        String heads = Strings.format("openingShipTransferMarines", price.marines());
+        return price.walkers() > 0
+                ? Strings.format("openingShipTransferAnd", heads, Strings.format("openingShipTransferWalkers", price.walkers()))
+                : heads;
     }
 
     /** Whether the purse covers the move the player is looking at. */

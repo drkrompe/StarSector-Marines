@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-20
 
-Updated: 2026-10-21 — every battle harness about places prints a `[place-fight]` line: the fight mix (contacts on posts against the open) and whether a counter-attack met a hold; conquest-trial plays its fixtures side by side.
+Updated: 2026-10-21 — every battle harness about places prints a `[place-fight]` line: the fight mix (contacts on posts against the open) and whether a counter-attack met a hold; conquest-trial plays its fixtures side by side. Story summaries carry it and the story commanders' manning.
 
 Per-mission matrices, fixture fields and report contents for `gradlew.bat commanderEvidence -Pmission=<mission>`. How to run the task, the mission list, replay count, parallelism and snapshot flags stay in `CLAUDE.md` (Build & deploy); read this when you need one mission's details. Text is moved verbatim from `CLAUDE.md`; "Fixture fields match Relief" and similar refer to the sections below.
 
@@ -226,3 +226,13 @@ control is `-Pfixture=src/test/resources/battle-fixtures/conquest-forts-reinforc
 (four battery forts and a shield fort; about 50 runs, 5,200 cells).
 The fort report carries a
 `pressure flow:` line and a fighting-position use block per faction. Use
+
+## Story manning
+
+Every story fixture's `summary.json` (Junction, Relay Nine, Relief,
+Counterattack, Last Lift per attempt, Thunder Run per fixture) carries
+`placeFight`, the `PlaceFightProbe` reading above, and `reactiveDefence`, the
+defender commander's manning figures with, for a story commander, the
+squad-pulses it offered and the pulses its holder share was closed
+(`garrisonables.md`, story commanders). Read both against
+`-Dbattle.story.reactiveDefence=false` on the same build.

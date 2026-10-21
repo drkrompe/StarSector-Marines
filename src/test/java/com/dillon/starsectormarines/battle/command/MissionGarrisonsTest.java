@@ -122,6 +122,33 @@ class MissionGarrisonsTest {
     }
 
     @Test
+    void aHolderCapBoundsNewSendsButTurnsNobodyOut() {
+        // Both buildings pressed, a duty squad beside each: uncapped both go, capped at one only the first does.
+        GarrisonDirector.Pressure everywhere = (bx, by) -> 5f;
+        int[] contacts = {48, 38, 102, 54};
+        Map<Integer, MissionGarrisons.Offer> duty = new TreeMap<>();
+        duty.put(1, MissionGarrisons.Offer.duty(47, 34));
+        duty.put(2, MissionGarrisons.Offer.duty(102, 54));
+        List<CommandSquadState> squads = List.of(patrol(1, 47, 34), patrol(2, 102, 54));
+        assertEquals(2, new MissionGarrisons().plan(squads, places, everywhere, contacts, 2,
+                (sx, sy, x, y) -> true, duty, ISSUER).size(), "uncapped, every pressed place gets a picket");
+
+        Map<Integer, MissionGarrisons.Manning> capped = garrisons.plan(squads, places, everywhere, contacts, 2,
+                (sx, sy, x, y) -> true, duty, ISSUER, 1);
+        assertEquals(1, capped.size(), "capped at one holder, one squad is sent");
+        int sent = capped.keySet().iterator().next();
+        ObjectiveAssignment order = capped.get(sent).order();
+        int other = sent == 1 ? 2 : 1;
+        CommandSquadState holder = squad(sent, places.centreX(capped.get(sent).place()),
+                places.centreY(capped.get(sent).place()), UnitRole.PATROL, false, order);
+        CommandSquadState free = sent == 1 ? patrol(2, 102, 54) : patrol(1, 47, 34);
+        Map<Integer, MissionGarrisons.Manning> next = garrisons.plan(List.of(holder, free), places, everywhere,
+                contacts, 2, (sx, sy, x, y) -> true, duty, ISSUER, 1);
+        assertEquals(MissionGarrisons.Kind.STAND, next.get(sent).kind(), "the holder keeps its place");
+        assertFalse(next.containsKey(other), "and the cap keeps the other on its post in the open");
+    }
+
+    @Test
     void aHolderStandsWhilePressedAndIsGivenBackAfterTheDwell() {
         Picture pressed = new Picture(48, 38, 5f);
         ObjectiveAssignment order = pulse(pressed, List.of(patrol(1, 20, 25), patrol(2, 80, 50)), reserve(1, 2))
