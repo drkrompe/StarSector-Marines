@@ -14,6 +14,12 @@ the death roll, and is drawn straight down at the live shoulder scale times
 unit that was never layered, falls through to its unit type's legacy corpse
 sheet. The guide and exporter are `art-source/downed/downed.py`.
 
+Every lying body has a blood pool under it (`graphics/battle/downed/blood-pool-0..3.png`,
+picked by the same death roll). All pools draw before any body, so a pool never covers
+a neighbour. A pool is `BLOOD_POOL_CELLS` across when full and spreads from a third of
+that to full over `BLOOD_SPREAD_SECONDS` after the death tick the corpse records, so a
+fresh casualty visibly bleeds out; the spread reads the simulation clock, not wall time.
+
 ## Anatomical unit
 
 `1 sw` is the rendered shoulder width. At the reference scale it is 150 source

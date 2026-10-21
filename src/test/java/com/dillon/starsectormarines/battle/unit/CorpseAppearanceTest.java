@@ -16,14 +16,18 @@ class CorpseAppearanceTest {
         world.setFloat(marine, c.LAYERED_ANIMATION, BattleComponents.LAYERED_FACING_DEGREES, 137f);
         world.setInt(marine, c.LAYERED_ANIMATION, BattleComponents.LAYERED_BODY_FAMILY,
                 LayeredArmorFamily.SHIP_MEDICAL.ordinal());
-        DeadBodySystem bodies = new DeadBodySystem(world, c);
+        int[] tick = {412};
+        DeadBodySystem bodies = new DeadBodySystem(world, c, () -> tick[0]);
 
         bodies.onDeath(new DeathEvent(marine, 0f, 0f, 2));
+        tick[0] = 500;
         bodies.onDeath(new DeathEvent(marine, 0f, 0f, 2));
 
         assertEquals(137f, world.getFloat(marine, c.CORPSE, BattleComponents.CORPSE_FACING_DEGREES));
         assertEquals(LayeredArmorFamily.SHIP_MEDICAL.ordinal(),
                 world.getInt(marine, c.CORPSE, BattleComponents.CORPSE_BODY_FAMILY));
+        assertEquals(412, world.getInt(marine, c.CORPSE, BattleComponents.CORPSE_DEATH_TICK),
+                "the body keeps the tick it fell on");
     }
 
     @Test void sheetDrawnBodyHasNoOutfit() {

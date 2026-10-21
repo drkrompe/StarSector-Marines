@@ -18,6 +18,12 @@ used the accepted charcoal sheet as its style reference and its own live layers
 (marine sources, or the ship-crew raws) as identity. Prompts are under `prompts/`
 (`<outfit>.full.txt` is the exact text sent), raws and provenance under `raw/`.
 
+Blood pools: `downed.py pool-guide` draws four seeded pool shapes
+(`../templates/blood-pools.png`), one generation reskins them
+(`prompts/blood-pools.txt`, `raw/blood-pools.png`), and `downed.py pool-export` writes
+`mod/graphics/battle/downed/blood-pool-<n>.png` at 240x240. Pools are shared by every
+outfit.
+
 Adding an outfit: write `prompts/<outfit>.txt`, generate, add it to `OUTFITS` in
 `downed.py`, export, then add the family to `LayeredArmorFamily.hasDownedArt` and to
 `DownedArtTest`.

@@ -27,6 +27,24 @@ class DownedArtTest {
             LayeredArmorFamily.SHIP_MEDICAL, CREW + "medical",
             LayeredArmorFamily.SHIP_SERVICE, CREW + "service");
 
+    @Test void bloodPoolsShipOnTheirFrame() throws Exception {
+        for (int pool = 0; pool < BattleSprites.BLOOD_POOLS; pool++) {
+            Path file = Path.of("mod", BattleSprites.BLOOD_POOL_ROOT + pool + ".png");
+            BufferedImage image = ImageIO.read(file.toFile());
+            assertEquals(240, image.getWidth(), file.toString());
+            assertEquals(240, image.getHeight(), file.toString());
+            assertEquals(0, image.getRGB(0, 0) >>> 24, file + " corner must be transparent");
+            assertTrue((image.getRGB(120, 120) >>> 24) > 200, file + " pool centre must be solid");
+        }
+    }
+
+    @Test void aPoolSpreadsFromAThirdToFullAndThenStays() {
+        assertEquals(UnitRenderService.BLOOD_START_FRACTION, UnitRenderService.bloodSpread(0f), 1e-6f);
+        assertTrue(UnitRenderService.bloodSpread(1f) < UnitRenderService.bloodSpread(2f));
+        assertEquals(1f, UnitRenderService.bloodSpread(UnitRenderService.BLOOD_SPREAD_SECONDS), 1e-6f);
+        assertEquals(1f, UnitRenderService.bloodSpread(600f), 1e-6f);
+    }
+
     @Test void declaredFamiliesShipFourTransparentPosesOnTheSharedFrame() throws Exception {
         for (LayeredArmorFamily family : LayeredArmorFamily.values()) {
             if (!family.hasDownedArt()) continue;

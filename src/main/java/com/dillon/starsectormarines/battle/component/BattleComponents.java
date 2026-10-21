@@ -134,6 +134,8 @@ public final class BattleComponents {
      * died, or {@code -1} for a unit that was not drawn in layers (INT).
      */
     public static final int CORPSE_BODY_FAMILY = 1;
+    /** {@link #CORPSE} field 2: the simulation tick the unit died on, which a pool's spread reads (INT). */
+    public static final int CORPSE_DEATH_TICK = 2;
 
     /** {@link #MECH_LAYERED_ANIMATION} field 0: upper chassis facing (FLOAT). */
     public static final int MECH_LAYERED_FACING_DEGREES = 0;
@@ -581,7 +583,8 @@ public final class BattleComponents {
     /**
      * Dead-archetype marker, carrying what a lying body needs once the live layered
      * appearance is gone: the facing and body family it died with
-     * ({@link #CORPSE_FACING_DEGREES}, {@link #CORPSE_BODY_FAMILY}).
+     * ({@link #CORPSE_FACING_DEGREES}, {@link #CORPSE_BODY_FAMILY}), and when it
+     * died ({@link #CORPSE_DEATH_TICK}).
      */
     public final ComponentType CORPSE;
     /**
@@ -1186,7 +1189,7 @@ public final class BattleComponents {
                 FieldKind.OBJECT, FieldKind.OBJECT);
         POSITION        = world.register(1, "Position", FieldKind.FLOAT, FieldKind.FLOAT);
         SPRITE          = world.register(3, "Sprite", FieldKind.INT, FieldKind.INT, FieldKind.INT);
-        CORPSE          = world.register(4, "Corpse", FieldKind.FLOAT, FieldKind.INT);
+        CORPSE          = world.register(4, "Corpse", FieldKind.FLOAT, FieldKind.INT, FieldKind.INT);
         HEALTH          = world.register(5, "Health", FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.FLOAT, FieldKind.FLOAT);
         COMBAT          = world.register(6, "Combat",
