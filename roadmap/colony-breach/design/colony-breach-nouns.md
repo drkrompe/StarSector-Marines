@@ -494,7 +494,16 @@ creep and bodies.
 They show their **damage**. Below half its durability a bore or colony is
 drawn **wounded**: plates torn out of their sockets over raw sinew, gashes
 through the carapace, a sac burst, a spine snapped, its amber dimmed; the same
-painting, hurt. When it dies it leaves its **remains** on the ground for the
+painting, hurt. A wounded body **bleeds**, as the Zerg's buildings did: a
+wound is a puncture in a living membrane, and it pulses to a heartbeat: on
+each beat the torn slit dilates, its flaps lift and a gout of ichor is pushed
+out over the lip to run downhill as a glossy film, which drains and thins
+before the next. The loops are pinned to the wounds its own
+painting shows and running downhill off its body (into the pit from a bore's
+lip). The first wound bleeds as the body turns wounded, and more open the
+further it is hurt, every one by under a third of that; each wound bleeds at
+its own phase so a row of bodies does not pulse in step. The dead do not bleed.
+When it dies it leaves its **remains** on the ground for the
 rest of the battle, under the living: a bore's shaft caved in and choked with
 rubble, its plates slumped and drained to a dry husk; a colony's sacs burst
 and deflated. The remains are of the painting the structure wore, so a
@@ -565,7 +574,11 @@ for one job in the cycle, and reads that way on screen.
   itself stays the ordinary melee hit. A carrier (*Harvest*, *Impale*) is
   drawn hauling: it turns to face the body it drags, so it backs toward the
   bore at a trot with its shoulders heaving, the spike that struck stays in
-  and the jaws latch on beside it. A dead Runner keeps its skeleton, falls
+  and the jaws latch on beside it. The body it hauls, alive or dead, is drawn
+  lying (its outfit's fallen pose), head toward the jaws, jolting with each
+  heave. Through a turn the spine bows into a C toward the inside, the
+  shoulders and the hips swinging the same way while the planted feet hold.
+  A dead Runner keeps its skeleton, falls
   onto its flank with its legs gone slack and lies there, dulled.
 - **Brute** — slow, plated, heavy melee; the strain that makes a garrisoned
   building stop being a safe room. Its plate (20 points at rating 10) is what
@@ -609,6 +622,15 @@ for one job in the cycle, and reads that way on screen.
   amber daze mark over anything that can't act, whatever made it so; and the
   squad card's status word naming the cause (knocked down, stalled,
   staggered, stunned) ahead of engaged or wounded.
+
+  Like the Runner it is drawn on its own skeleton (`RavBruteRig`): a plum,
+  plated rhino-ram with a mace head on four boar's legs, the hooves under the
+  body and the shanks over them. It walks, trots and gallops with the hips
+  and shoulders swaying against each other; it plants its feet to stand, to
+  brace for the tell and while it can't act, gallops through a charge with
+  its head down, and rears and drives the head down for each blow, timed off
+  the attack cooldown as the Runner's arms are. Its corpse is still the old
+  single sprite.
 - **Spitter** — fragile, keeps its distance, lobs acid. It backs away from any
   ground enemy that closes inside its charge radius and does not lob while it
   runs. Otherwise a low hostile craft in reach whose skin its acid can bite

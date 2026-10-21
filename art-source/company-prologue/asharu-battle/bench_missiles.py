@@ -5,11 +5,19 @@ The rig is the S5 lane at bench scale: the Manticore (P) at the origin fires a p
 Harpoons (two per pod, 0.25 s apart in each pod) at a Lasher 3 km down the lane, bow on. The
 Lasher's three light MGs screen it (W2, `swfx_pd`), so the same plan carries the kills short.
 `harpoon_lane()` builds it, and bench_pd's close-up reuses it.
+
+The guided missiles hunt (the seeker's corrections, `swfx_missile_paths.Seeker`), and the curve
+width is the owner's call: `harpoon-wide` (0.28) and `harpoon-narrow` (0.10) fly the same salvo
+from the same camera on the same frames as the default's middle four, so the three read side by
+side.
 """
 import json
+import math
 
 LANE_M = 3000.0
 CURVE_WIDTH = .18          # the Harpoon guide's peak sideways offset, a fraction of the range
+WIDE, NARROW = .28, .10    # the pair the owner picks between
+COMPARE_FRAMES = [46, 62, 78, 94]
 
 
 def harpoon_lane(bench, width=CURVE_WIDTH, kills=2, seed=7):
@@ -29,7 +37,8 @@ def harpoon_lane(bench, width=CURVE_WIDTH, kills=2, seed=7):
         guns = [pd.gun(l, ctx, t, 'barrel 1', 'mg', range_m=850.0) for t in (1, 2, 3)]
     eng = pd.screen(flights, guns, kills=kills, seed=seed)
     with l.kit() as (ctx, kit):
-        pd.key_screen(ctx, eng, mp.space_of(l))
+        for r in pd.key_screen(ctx, eng, mp.space_of(l)):
+            print("BENCH pd keyed", json.dumps(r, default=str), flush=True)
     with m.kit() as (ctx, kit):
         kit.guns.launch_flights(ctx, flights)
     report(flights, eng, target)
@@ -43,6 +52,11 @@ def report(flights, eng, target=None):
         peak = fl.lateral_peak(target) if target is not None else None
         print(f"BENCH plan {fl.kind} {fl.label}: launch f{fl.frame} ignite f{fl.ignite} "
               f"end {fl.end['kind']} f{fl.end['frame']} by {fl.end['by']} peak offset {peak}", flush=True)
+        sk = getattr(fl, 'seeker', None)
+        if sk is not None and sk.updates:
+            worst = max(math.hypot(u[1], u[2]) for u in sk.updates)
+            print(f"BENCH seeker {fl.label}: {len(sk.updates)} corrections every ~{sk.every}s, "
+                  f"worst {worst:.1f} deg, first {sk.updates[:3]}", flush=True)
     for e in eng or ():
         print(f"BENCH pd {e['gun']['label']} -> {e['flight'].label}: open f{e['open']} close f{e['close']} "
               f"{'KILL f%s' % e['K'] if e['kill'] else 'miss'}", flush=True)
@@ -56,6 +70,18 @@ def harpoon_salvo(bench):
     bench.camera((1350, -2650, 1500), (1500, 0, 0), 30)
 
 
+def harpoon_wide(bench):
+    """The same salvo and camera with the guide swung out to 0.28 of the range."""
+    harpoon_lane(bench, width=WIDE)
+    bench.camera((1350, -2650, 1500), (1500, 0, 0), 30)
+
+
+def harpoon_narrow(bench):
+    """The same salvo and camera, the guide held in to 0.10 of the range."""
+    harpoon_lane(bench, width=NARROW)
+    bench.camera((1350, -2650, 1500), (1500, 0, 0), 30)
+
+
 def harpoon_launch(bench):
     """Over the Manticore's shoulder: cold eject, ignition clear of the pods, the turn out."""
     harpoon_lane(bench)
@@ -64,10 +90,18 @@ def harpoon_launch(bench):
 
 TESTS = {
     'harpoon-salvo': dict(
-        builds=['manticore-p', 'lasher'], frames=[16, 30, 46, 62, 78, 94, 103, 116],
-        note='Four Harpoons, 3 km lane, curve width 0.18 of range: fan out, swing wide, converge; '
+        builds=['manticore-p', 'lasher'], frames=[16, 30, 46, 62, 78, 94, 104, 118],
+        note='Four Harpoons, 3 km lane, curve width 0.18 of range: fan out, swing wide, hunt and converge; '
              'the Lasher (far right) kills two short with her MGs, two hit her bow.',
         setup=harpoon_salvo),
+    'harpoon-wide': dict(
+        builds=['manticore-p', 'lasher'], frames=COMPARE_FRAMES,
+        note='Curve width 0.28 (wide): the same salvo, camera and frames as harpoon-salvo f46-f94.',
+        setup=harpoon_wide),
+    'harpoon-narrow': dict(
+        builds=['manticore-p', 'lasher'], frames=COMPARE_FRAMES,
+        note='Curve width 0.10 (narrow): the same salvo, camera and frames as harpoon-salvo f46-f94.',
+        setup=harpoon_narrow),
     'harpoon-launch': dict(
         builds=['manticore-p', 'lasher'], frames=[8, 14, 22, 34],
         note='Over the shoulder: the pods cold-eject (a small gas puff), the motors light clear of the tubes, '

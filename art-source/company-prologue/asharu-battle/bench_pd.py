@@ -4,6 +4,8 @@
 Each test plans the missiles first (swfx_missile_paths), lets point defence pick its kills
 (swfx_pd), and then keys both ships, each inside its own ship.kit().
 """
+import json
+
 import bench_missiles
 
 
@@ -30,7 +32,8 @@ def swarmer_laser(bench):
         guns = [pd.gun(w, ctx, t, 'barrel 1', 'laser', range_m=600.0) for t in (2, 3)]
     eng = pd.screen(flights, guns, kills=2, seed=5)
     with w.kit() as (ctx, kit):
-        pd.key_screen(ctx, eng, mp.space_of(w))
+        for r in pd.key_screen(ctx, eng, mp.space_of(w)):
+            print("BENCH pd keyed", json.dumps(r, default=str), flush=True)
     with k.kit() as (ctx, kit):
         kit.guns.launch_flights(ctx, flights)
     bench_missiles.report(flights, eng, target)
@@ -88,7 +91,7 @@ def flares(bench):
 
 TESTS = {
     'harpoon-screen': dict(
-        builds=['manticore-p', 'lasher'], frames=[98, 103, 110, 116],
+        builds=['manticore-p', 'lasher'], frames=[98, 104, 110, 118],
         note="S5's screen, close on the Lasher: three MG streams walk onto the salvo; two Harpoons pop short, "
              'two get through to her bow.',
         setup=harpoon_screen),

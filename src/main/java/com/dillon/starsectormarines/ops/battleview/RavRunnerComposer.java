@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 final class RavRunnerComposer {
 
     /** Each sprite's bone length in sprite px: the layer row tables times the export scale (0.2). */
-    private static final float TRUNK_PX = 83.4f, FORE_PX = 17.4f;
+    private static final float TRUNK_HALF_PX = 41.7f, FORE_PX = 17.4f;
     private static final float[] FRONT_PX = {116f, 120f};
     private static final float[] HIND_PX = {70f, 84f, 86f};
     private static final float[] ARM_PX = {118f, 88f, 45.8f};
@@ -55,10 +55,15 @@ final class RavRunnerComposer {
                         LEG_WIDTH, i == bones - 1 ? lift : 1f, f.facing, shade, alpha);
             }
         }
-        // trunk: the shoulder row on the shoulders, the hip row on the hips
-        f.screen(RavRunnerRig.SHOULDER, p0);
+        // trunk, in two halves from mid-spine so it bends through a turn: the rear half (tail and all)
+        // out to the hips, then the front half out to the shoulders over it
+        float halfSpine = RavRunnerRig.SPINE / 2 * ppc;
+        f.screen(RavRunnerRig.MID, p0);
         f.screen(RavRunnerRig.HIP, p1);
-        bone(out, art.trunk, TRUNK_PX, p0, p1, RavRunnerRig.SPINE * ppc, 1f, 1f, f.facing + 180f, shade, alpha);
+        bone(out, art.trunkRear, TRUNK_HALF_PX, p0, p1, halfSpine, 1f, 1f, f.facing + 180f, shade, alpha);
+        f.screen(RavRunnerRig.MID, p0);
+        f.screen(RavRunnerRig.SHOULDER, p1);
+        bone(out, art.trunkFront, TRUNK_HALF_PX, p0, p1, halfSpine, 1f, 1f, f.facing, shade, alpha);
         // head and neck: pivots at the neck root toward the skeleton's head
         f.screen(RavRunnerRig.SHOULDER, p0, 0f, NECK_ROOT_CELLS);
         f.screen(RavRunnerRig.HEAD, p1);

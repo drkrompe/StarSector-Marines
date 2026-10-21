@@ -30,10 +30,12 @@ The look, from the game (`asharu-effects.md`, Guns and Missiles):
   anchors, slowing as they go, flickering, trailing a short bright smoke. A seeker diverted
   onto one turns away and detonates on it.
 
-What it does not do: it does not train the turrets. A hull without its own control object
-keeps its build's pose (asharu-effects-plan.md, W0 limits), so a mount's flash points along
-its rest bearing while its tracers fly at the missile. At bench and scene distances the
-tracer line is what reads.
+Turrets train (`key_screen(..., train=True)`, the default): before each round, and every few
+frames of a beam, the mount is swung onto where that round or beam is going through W4's
+`swfx_guns.aim`, at the game's turn rate (`TURN`), so its flash lines up with its tracers.
+A hull without its own copy (ship_fx.ShipFx own_hull) shares its turrets with every other copy
+of that build, so training one trains them all; a mount with no pivot stays at its rest pose.
+Tracers still leave from the rest-pose muzzle, a metre or two off at most.
 """
 import math
 import random
@@ -49,6 +51,8 @@ CADENCE = {'mg': (5, .1, .4), 'vulcan': (20, .05, .0)}
 PD_LASER = dict(core=(1.0, 1.0, 1.0), fringe=mp.srgb((155, 0, 0)), glow=mp.srgb((255, 100, 100)))
 FLAK = dict(flash=mp.srgb((255, 225, 125)), cloud=mp.srgb((155, 125, 75)))
 FLARE = mp.srgb((255, 125, 75))
+# Turn rates (degrees per second, weapon_data.csv) a PD mount trains at.
+TURN = {'mg': 50.0, 'vulcan': 75.0, 'laser': 50.0}
 
 
 def gun(ship, ctx, turret, tag, kind='mg', range_m=800.0):
@@ -328,9 +332,18 @@ def _flash_gun(ctx, label, frame, rnd):
         swfx_guns._rebuild_visibility(box, lit)
 
 
-def key_screen(ctx, engagements, space, tracer_m=(14.0, .35), mpu=None):
+def _train(ctx, g, target_local, frame, trained):
+    """Swing a PD mount onto a point in its ship's copy space by `frame`; remembers the result."""
+    import swfx_guns
+    r = swfx_guns.aim(ctx, g['turret'], target_local, frame, tag=g['tag'], turn_rate=TURN.get(g['kind']))
+    trained.setdefault(g['label'], []).append(r)
+    return r
+
+
+def key_screen(ctx, engagements, space, tracer_m=(14.0, .35), mpu=None, train=True):
     """Key one defending ship's PD fire (inside its ship.kit()): flashes and tracers, or beams.
-    space: that ship's mp.space_of(ship)."""
+    space: that ship's mp.space_of(ship). train: swing each mount onto its rounds and beam
+    (swfx_guns.aim) so its flash points where they go."""
     bpy = _bpy()
     import swfx_core
     import swfx_guns
@@ -339,15 +352,23 @@ def key_screen(ctx, engagements, space, tracer_m=(14.0, .35), mpu=None):
     mpu = mpu or swfx_core.METRES_PER_UNIT
     tmat = swfx_guns._tracer_material(ctx)
     rec = []
-    for e in engagements:
+    trained = {}
+    for e in sorted(engagements, key=lambda e: e['open']):     # a mount's swings in time order
         g = e['gun']
         rnd = random.Random(f"swfx-pd-key|{g['label']}|{e['open']}")
         muzzle = inv @ g['at']
         if e['kind'] == 'laser':
+            if train:
+                beam = e['beam']
+                for f, aim in beam[::3] + ([beam[-1]] if (len(beam) - 1) % 3 else []):
+                    _train(ctx, g, inv @ aim, f, trained)
             rec.append(_key_beam(ctx, coll, e, inv, muzzle, mpu, rnd))
+            rec[-1]['trained'] = trained.get(g['label'], [None])[-1]
             continue
         L, R = tracer_m[0] / mpu, tracer_m[1] / mpu
         for j, (f, arrive, aim) in enumerate(e['rounds']):
+            if train:
+                _train(ctx, g, inv @ aim, f, trained)
             _flash_gun(ctx, g['label'], f, rnd)
             tgt = inv @ aim
             d = (tgt - muzzle)
@@ -372,7 +393,8 @@ def key_screen(ctx, engagements, space, tracer_m=(14.0, .35), mpu=None):
             tr.color = (1, 0, 0, 1)
             swfx_guns._visible_between(tr, f, arrive + over)
         rec.append(dict(gun=g['label'], target=e['flight'].label, open=e['open'], close=e['close'],
-                        kill=e['kill'], K=e.get('K'), rounds=len(e['rounds'])))
+                        kill=e['kill'], K=e.get('K'), rounds=len(e['rounds']),
+                        trained=trained.get(g['label'], [None])[-1]))
     return rec
 
 

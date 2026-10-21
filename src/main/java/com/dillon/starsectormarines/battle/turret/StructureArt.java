@@ -31,6 +31,9 @@ import java.util.List;
  * painting together; a layer without the token looks the same either way. {@code remains} names the painting left on
  * the ground once the structure dies, drawn {@code remainsCells} across (the widest layer when not given), under the
  * living; it may carry {@value #VARIANT_TOKEN}, so the remains are of the same painting.
+ *
+ * <p>A wounded body {@link Bleed bleeds}: small looping ooze animations pinned to the wounds of its painting, more of
+ * them open the further below {@code woundedBelow} it falls.
  */
 public final class StructureArt {
 
@@ -55,6 +58,55 @@ public final class StructureArt {
         public String spritePath(int variant, boolean wounded) {
             return spritePath.replace(VARIANT_TOKEN, Integer.toString(variant))
                     .replace(STATE_TOKEN, wounded ? WOUNDED_SUFFIX : "");
+        }
+    }
+
+    /**
+     * The ooze a wounded body bleeds, the way the Zerg's buildings did: a looping animation on a sheet, pinned to the
+     * wounds its wounded painting shows. {@code wounds} holds, per painting, its wounds largest first, each as
+     * {@code [u, v, degrees]}: the offset from the structure's centre as a share of the widest layer's edge ({@code v}
+     * down the image) and the way the ooze runs from it, downhill on the body. The sheet holds {@code frames} columns
+     * and {@code kinds * directions} rows (row {@code kind * directions + direction}, direction {@code k} running at
+     * {@code k * 360 / directions} degrees, image space), each frame square; a frame is drawn {@code cells} across.
+     *
+     * <p>Wounds open in order as the body is hurt: the first as it is drawn wounded, then evenly until the last opens
+     * at {@link #LAST_OPENS_AT} of {@code woundedBelow}. A wound shows one kind of ooze at its own phase, both chosen
+     * from the structure and the wound, so a row of bodies does not bleed in step. The run's direction is baked into
+     * the sheet rather than turned at runtime, because turning a frame would turn its baked light.
+     */
+    public record Bleed(String sheet, int frames, int kinds, int directions, float fps, float cells,
+                        List<float[][]> wounds) {
+
+        /** The share of {@code woundedBelow} at which the last wound opens. */
+        public static final float LAST_OPENS_AT = 0.3f;
+
+        /** The wounds of one painting, {@code variant} counted from 1; none when the painting has none listed. */
+        public float[][] woundsOf(int variant) {
+            return variant >= 1 && variant <= wounds.size() ? wounds.get(variant - 1) : new float[0][];
+        }
+
+        /**
+         * How many of {@code count} wounds are open at {@code durability} (0 to 1) for a body drawn wounded below
+         * {@code woundedBelow}: none above it, the first at it, all by {@link #LAST_OPENS_AT} of it.
+         */
+        public static int openWounds(int count, float durability, float woundedBelow) {
+            if (count <= 0 || !(durability < woundedBelow)) return 0;
+            if (count == 1) return 1;
+            float last = woundedBelow * LAST_OPENS_AT;
+            float step = (woundedBelow - last) / (count - 1);
+            return Math.min(count, 1 + (int) ((woundedBelow - durability) / step));
+        }
+
+        /** The sheet row for one {@code kind} of ooze running at {@code degrees} (image space). */
+        public int row(int kind, float degrees) {
+            float sector = 360f / directions;
+            int direction = Math.floorMod(Math.round(degrees / sector), directions);
+            return Math.floorMod(kind, kinds) * directions + direction;
+        }
+
+        /** The frame shown at {@code seconds} by a wound whose loop starts {@code phase} (0 to 1) of the way in. */
+        public int frame(float seconds, float phase) {
+            return Math.floorMod((int) Math.floor(seconds * fps + phase * frames), frames);
         }
     }
 
@@ -84,16 +136,19 @@ public final class StructureArt {
     public final String remainsPath;
     /** Edge of the remains painting, in cells. */
     public final float remainsCells;
+    /** The ooze a wounded body bleeds, or null when it bleeds none. */
+    public final Bleed bleed;
     private final List<Layer> layers;
 
     private StructureArt(String basePath, boolean groundPad, int variants, float woundedBelow,
-                         String remainsPath, float remainsCells, List<Layer> layers) {
+                         String remainsPath, float remainsCells, Bleed bleed, List<Layer> layers) {
         this.basePath = basePath;
         this.groundPad = groundPad;
         this.variants = variants;
         this.woundedBelow = woundedBelow;
         this.remainsPath = remainsPath;
         this.remainsCells = remainsCells;
+        this.bleed = bleed;
         this.layers = Collections.unmodifiableList(layers);
     }
 
@@ -160,8 +215,43 @@ public final class StructureArt {
         String remains = text(json, "remains");
         float remainsCells = (float) json.optDouble("remainsCells", widest);
         if (remains != null) TurretMountDef.requirePositiveFinite(remainsCells, structureId, "art remainsCells");
+        JSONObject bleed = json.optJSONObject("bleed");
         return new StructureArt(base, json.optBoolean("groundPad", true), variants, woundedBelow, remains,
-                remainsCells, layers);
+                remainsCells, bleed == null ? null : parseBleed(structureId, bleed, variants), layers);
+    }
+
+    private static Bleed parseBleed(String structureId, JSONObject json, int variants) throws JSONException {
+        String sheet = TurretMountDef.requireText(json, "sheet");
+        int frames = json.getInt("frames");
+        int kinds = json.optInt("kinds", 1);
+        int directions = json.optInt("directions", 1);
+        float fps = (float) json.getDouble("fps");
+        float cells = (float) json.getDouble("cells");
+        if (frames < 1 || kinds < 1 || directions < 1) {
+            throw new JSONException("Structure '" + structureId + "' bleed needs at least one frame, kind and direction");
+        }
+        TurretMountDef.requirePositiveFinite(fps, structureId, "bleed fps");
+        TurretMountDef.requirePositiveFinite(cells, structureId, "bleed cells");
+        JSONArray paintings = json.getJSONArray("wounds");
+        if (paintings.length() > variants) {
+            throw new JSONException("Structure '" + structureId + "' bleed lists wounds for " + paintings.length()
+                    + " paintings but has " + variants);
+        }
+        List<float[][]> wounds = new ArrayList<>();
+        for (int v = 0; v < paintings.length(); v++) {
+            JSONArray painting = paintings.getJSONArray(v);
+            float[][] list = new float[painting.length()][];
+            for (int w = 0; w < painting.length(); w++) {
+                JSONArray wound = painting.getJSONArray(w);
+                if (wound.length() != 3) {
+                    throw new JSONException("Structure '" + structureId + "' bleed wound " + w + " of painting "
+                            + (v + 1) + " is not [u, v, degrees]");
+                }
+                list[w] = new float[]{(float) wound.getDouble(0), (float) wound.getDouble(1), (float) wound.getDouble(2)};
+            }
+            wounds.add(list);
+        }
+        return new Bleed(sheet, frames, kinds, directions, fps, cells, Collections.unmodifiableList(wounds));
     }
 
     private static String text(JSONObject json, String key) {
