@@ -24,7 +24,7 @@ to the shelter where the survivors are sealed in, and has to hold a lift zone
 open long enough for shuttles to take them off. The swarm does not walk in from
 the horizon: it erupts out of bores inside the colony, and every bore left open
 gets worse. The player can spend force to collapse bores and buy quiet, or
-harden the lift with a grounded tender so that the rest of the company is free
+harden the lift with a called-down flying tender so that the rest of the company is free
 to go hunting. Air power can harass but cannot clear the map, because the bores
 defend the sky over themselves.
 
@@ -288,22 +288,17 @@ large map.
   as the swarm did before fields. What the fields buy, by map and swarm size, is
   in `swarm-movement-cost.md`.
 
-**Hardpoint.** A position the player has fortified with tender construction
-(Vulcans and whatever else the tender can build). A hardpoint is how the player
-frees troops: a lift zone that can hold itself is a lift zone that does not
-need the whole company.
+**Hardpoint.** A position the player has fortified with the flying tender's
+construction (Vulcans and whatever else the tender can build). A hardpoint is
+how the player frees troops: a lift zone that can hold itself is a lift zone
+that does not need the whole company.
 
-**Tender call-down.** A command power available only if the fleet brought a
-tender. The player spends it, picks a landing site, and the tender lands and
-grounds there to build. Not every mission brings every tool. The power is
-mission-agnostic (`TenderCallDown`, offered by the catalog for each tender in
-the committed fleet, one charge per tender): the hull comes in through the
-ordinary ship call-in, berths at landed scale on a clear footprint, becomes a
-grounded host and registers the existing yard construction. It announces itself
-with the generic `tender_landed` story beat, which the breach sequence
-re-emits as `colony_breach.tender_down`. A landed hull builds only ahead of its
-bay (the nose heading it came in on), so where the player lands decides which
-way the hardpoint can face.
+**Tender call-down.** The flying tender, called through Ship on Station when
+the fleet brought a Shepherd. It hovers over the ground the player names and
+builds there by its stance director (Vulcans and whatever else the tender can
+build) for its bounded visit. Not every mission brings every tool. A landed,
+grounded tender is campaign-mission and set-dressing machinery, not part of
+Colony Breach.
 
 **Hive posture.** The player's pre-launch answer to the optional hive objective,
 frozen into the Marine command envelope at launch:
@@ -334,8 +329,8 @@ sends against a bore. Stable membership, traced like any other command role.
    breach sequence's first trigger: **tremor**, then the first bores erupt over
    the following minute at precincts between the shelter and the lift and on
    the flanks. Seepage stops.
-3. **Dig in.** The lift countdown runs. A called-down tender can be grounded
-   and building. Bores grow. The director's target climbs with every living bore
+3. **Dig in.** The lift countdown runs. A called-down flying tender can be
+   on station and building. Bores grow. The director's target climbs with every living bore
    and tier.
 4. **Mother bore.** Later in the battle the mother bore erupts away from the
    lift, already at bore tier, with the widest spore umbrella.
@@ -385,7 +380,7 @@ the evidence; change them here first.
 | `first_harvest` | PLAYER | First body seized and dragged toward a bore |
 | `bore_fed_N` | OBSERVER_ONLY | Biomass delivered into bore N |
 | `surge_N` | OBSERVER_ONLY | Bore N spawns a surge |
-| `tender_down` | PLAYER | A called-down tender has grounded |
+| `tender_down` | PLAYER | A called-down tender is on station (no producer yet) |
 | `hardpoint_established` | PLAYER | First tender-built defence completes at the lift |
 | `strike_committed_N` | OBSERVER_ONLY | Commander sends a detachment at bore N |
 | `strike_recalled_N` | OBSERVER_ONLY | Readiness gate closed, detachment recalled |
@@ -425,7 +420,7 @@ the evidence; change them here first.
 - Marine command, cohort, release, escort and lift: `extraction-command.md`.
 - Precinct plans and map requirements: `precincts.md`, `mapgen-nouns.md`.
 - Garrison manning for militia posts: `garrisonables.md`.
-- Tender, grounded construction and build options: `tender-ship.md`.
+- Tender, its construction and build options: `tender-ship.md`.
 - Mech lances and drop allowances: `mechs-nouns.md`.
 - Layered bodies and appearance families: `battle-render-nouns.md`.
 - Radio and narration: `battle-radio-nouns.md`; beats are consumed there, never
