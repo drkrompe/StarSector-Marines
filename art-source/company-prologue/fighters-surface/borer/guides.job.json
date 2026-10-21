@@ -1,0 +1,19 @@
+{
+  "id": "borer-surface-guides-2026-10-21",
+  "machine": "any",
+  "lane": "light",
+  "priority": 0,
+  "after": [],
+  "requires": ["gpu"],
+  "cwd": "{checkout}/art-source/company-prologue/fighters-surface/borer",
+  "command": ["{python}", "queue_guides.py", "{blender}", "{work}/out"],
+  "env": {},
+  "inputs": [{"kind": "git", "commit": "<filled in by --commit>"}],
+  "outputs": [
+    {"from": "{work}/out/guide", "glob": "*.png", "to": "{queue}/out/borer-surface-guides-2026-10-21/guide"},
+    {"from": "{work}/out/part-list", "glob": "*.json", "to": "{queue}/out/borer-surface-guides-2026-10-21/part-list"},
+    {"from": "{work}/out/build", "glob": "*.png", "to": "{queue}/out/borer-surface-guides-2026-10-21/build"},
+    {"from": "{work}/out/build/hull/tiles", "glob": "*.png", "to": "{queue}/out/borer-surface-guides-2026-10-21/build/hull/tiles"},
+    {"from": "{work}/out", "glob": "DONE.txt", "to": "{queue}/out/borer-surface-guides-2026-10-21"}
+  ]
+}
