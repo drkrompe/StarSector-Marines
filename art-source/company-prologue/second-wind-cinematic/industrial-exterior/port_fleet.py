@@ -613,10 +613,13 @@ FAR_SHAPES = {
 }
 
 
-def far_plume(marker, kind, r):
+def far_plume(marker, kind, r, length_floor=0.35, width_floor=0.0):
     """A drive's core and plume as soft emissive cones along the marker's +X (`thrust-markers`
     convention, `radius_m` the bell's radius in metres), each scaled by the marker's throttle through
-    a driver: full length and width at 1, narrowing to nothing at 0."""
+    a driver: full length and width at 1, gone at 0. In between the length runs from length_floor
+    of full and the width from width_floor: the Colossus's and Second Wind's burns keep the defaults
+    (a long plume narrowing to a thread); traffic held to a trim burn (`thrust_shots.hang_plumes`)
+    takes a short plume that keeps most of its width, so a light burn reads as a short one."""
     me = bpy.data.meshes.get('Fleet far plume cone') or far_cone_mesh()
     out = []
     for shell, length, width, strength, alpha in FAR_SHAPES[kind]:
@@ -628,7 +631,11 @@ def far_plume(marker, kind, r):
         ob.matrix_parent_inverse = Matrix.Identity(4)
         ob.visible_shadow = False
         L, W = length * r, width * r
-        for axis, expr in ((0, '%g * (0.35 + 0.65 * t)' % L), (1, '%g * t' % W), (2, '%g * t' % W)):
+        lx = '%g * (%g + %g * t)' % (L, length_floor, 1.0 - length_floor)
+        wx = '%g * t' % W if width_floor == 0 else '%g * (%g + %g * t) * min(1, t * 1000)' % (W, width_floor, 1.0 - width_floor)
+        if length_floor != 0.35:
+            lx += ' * min(1, t * 1000)'
+        for axis, expr in ((0, lx), (1, wx), (2, wx)):
             drv = ob.driver_add('scale', axis).driver
             drv.type = 'SCRIPTED'
             var = drv.variables.new()
