@@ -103,4 +103,19 @@ class CivilianEvacuationTrackerTest {
         }
         return tracker;
     }
+
+    @Test
+    void enlistGrowsAFullyRegisteredCohortUntilSealed() {
+        CivilianEvacuationTracker tracker = new CivilianEvacuationTracker(1);
+        assertFalse(tracker.enlist(7L), "the planned registration comes first");
+        assertTrue(tracker.register(5L));
+        assertTrue(tracker.enlist(7L));
+        assertFalse(tracker.enlist(7L), "one identity, one member");
+        assertEquals(2, tracker.expectedCount());
+        assertEquals(2, tracker.activeCount());
+        assertTrue(tracker.markEvacuated(7L));
+        assertTrue(tracker.markLost(5L));
+        assertTrue(tracker.seal());
+        assertFalse(tracker.enlist(9L), "a sealed cohort takes nobody");
+    }
 }

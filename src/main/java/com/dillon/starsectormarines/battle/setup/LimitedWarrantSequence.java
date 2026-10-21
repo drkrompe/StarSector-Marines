@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.LimitedWarrantCommand;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -125,10 +126,10 @@ public final class LimitedWarrantSequence implements Objective {
     public boolean isComplete() { return progress.phase() == Phase.COMPLETE; }
     public boolean isFailed() { return progress.phase() == Phase.FAILED; }
     public String displayName() { return switch (progress.phase()) {
-        case RECORDS -> "Authenticate the service archive inside the records office";
-        case CALIBRATION -> "Escort the supplier's technician into the calibration cage";
-        case EGRESS -> "Cover the calibration load back to the western egress";
-        case COMPLETE -> "Service archive and calibration kit recovered";
-        case FAILED -> "Recovery incomplete; replenish and commission a new mobilization";
+        case RECORDS -> Strings.get("limitedWarrantRecords");
+        case CALIBRATION -> Strings.get("limitedWarrantCalibration");
+        case EGRESS -> Strings.get("limitedWarrantEgress");
+        case COMPLETE -> Strings.get("limitedWarrantComplete");
+        case FAILED -> Strings.get("limitedWarrantFailed");
     }; }
 }

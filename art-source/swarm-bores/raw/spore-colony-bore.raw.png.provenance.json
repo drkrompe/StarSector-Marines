@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fae-b5c0-75c0-9582-bef7bbb8b32b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fae-b5c0-75c0-9582-bef7bbb8b32b\\exec-e4d2cf6e-50b8-4c87-aa85-2cf1663598cd.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\swarm-bores\\raw\\spore-colony-bore.raw.png",
+    "sha256": "ba1b7559ba3d00f470aa6665bcf9c7a9d17ff6cfe06f52e9ad44a3385fbface1",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\swarm-bores\\prompts\\spore-colony-bore.prompt.txt",
+  "promptSha256": "98a382d52ffd1010015aeea2ad9cdaac0d40870c5693d9906260e0fcaf7e9f8f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry guide and edit target: exact silhouette, placement and scale authority; reskin it, never move or reshape it\nImage 2: Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape\n\nUse case: sketch-to-render. Asset: a grown SPORE COLONY of the alien swarm for a top-down tactical game: a living anti-aircraft growth beside a swarm bore that fires bursts of spores at aircraft, the middle of three grades. Image 1 is the authoritative geometry guide and edit target. Reskin this exact shape into a finished painted sprite, preserving its outline and placement exactly. Seen from above it is a cluster of three swollen spore sacs pressed together, each a lumpy domed bladder of taut gunmetal-green and dusky purple skin laced with dark veins with a puckered firing pore at its crown glowing warm amber from inside (the yellow discs ringed in dark), plus a small amber node where they meet; six heavy curved charcoal-purple chitin plates armour the cluster round its base, and sinew roots reach out into the ground. Sturdier and more armoured than a young colony. Straight overhead orthographic zenith camera looking straight down, no perspective, no cast shadow, no ground, no soil, no floor, no border, no text, no labels, no watermark. Genuine transparent background outside the silhouette, including the gaps between roots and plates. Crisp hand-painted 2D strategy-game sprite matching the existing swarm creature in the material reference: dark charcoal-purple segmented chitin with worn bone-grey edges, organic gunmetal-green ridges, sinew and under-plates, small warm amber glowing nodes. It is one designed bio-weapon organism (the same chitin as the swarm runner, grown for another job), never a plant, never a machine, never a different animal. It will be shown only about 40 to 140 pixels wide in play, so keep bold readable shapes, clear dark separations and strong value contrast rather than fine noise. Change only material, detail and subtle ambient shading; never the silhouette, placement, scale or the transparent space. The pale yellow dots and discs in the guide mark where warm amber glow goes; paint them as glowing organic nodes, not as flat yellow shapes.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\swarm-spore-colony-bore-guide.png",
+      "sha256": "613568bf740ce4060a8a34baaa7d62dd883ffff8bf27afda40d9c55f4bc31fa9",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry guide and edit target: exact silhouette, placement and scale authority; reskin it, never move or reshape it"
+    },
+    {
+      "path": "art-source\\alien-modular-topdown\\sources\\alien-body-source.png",
+      "sha256": "6c1cd9a54e6b39cb668a5eb8ece0147af382571ad7fe3db1e0e6af4e45755c5c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use Image 1 as the fixed geometry and Image 2 as the material reference to generate one transparent sprite.\n"
+  ],
+  "usage": {
+    "input_tokens": 44096,
+    "cached_input_tokens": 36480,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 619,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 66.5
+}

@@ -354,21 +354,21 @@ final class BattleHudOverlayModel {
                             float progress, float duration, Runnable locate) {
         boolean secured = phase == RaidObjective.Phase.EGRESS || phase == RaidObjective.Phase.COMPLETE;
         boolean complete = phase == RaidObjective.Phase.COMPLETE;
-        objectiveTitle.set("MISSION OBJECTIVES");
+        objectiveTitle.set(Strings.get("battleRaidTitle"));
         objectivePanelClasses.set(OBJECTIVE_PANEL);
-        objectiveScore.set((complete ? 2 : secured ? 1 : 0) + " / 2");
+        objectiveScore.set(Strings.format("battleRaidScore", complete ? 2 : secured ? 1 : 0));
         objectiveChips.set(List.of(
-                new ObjectiveChip("battle-raid-seize", "1 / SEIZE" + (secured ? " / DONE" : " / ACTIVE"),
+                new ObjectiveChip("battle-raid-seize", Strings.get(secured ? "battleRaidSeizeDone" : "battleRaidSeizeActive"),
                         "objective-chip objective-raid " + (secured ? "objective-secured" : "objective-contested")),
-                new ObjectiveChip("battle-raid-return", "2 / RETURN" + (complete ? " / DONE" : secured ? " / ACTIVE" : " / NEXT"),
+                new ObjectiveChip("battle-raid-return", Strings.get(complete ? "battleRaidReturnDone" : secured ? "battleRaidReturnActive" : "battleRaidReturnNext"),
                         "objective-chip objective-raid " + (complete ? "objective-secured" : secured ? "objective-contested" : "objective-pending"))));
-        objectiveTally.set(targetName + (secured ? " / SECURED" : ""));
+        objectiveTally.set(secured ? Strings.format("battleRaidTallySecured", targetName) : targetName);
         objectiveFocusClasses.set(OBJECTIVE_FOCUS);
         objectiveFocus.set(switch (phase) {
-            case APPROACH -> "Secure site; hold " + Math.round(duration) + "s without enemies";
-            case SERVICE -> "Securing target / " + Math.round(clamp01(progress / duration) * 100) + "%";
-            case EGRESS -> "Target secured. Return to landing zone.";
-            case COMPLETE -> "Target recovered. Extraction complete.";
+            case APPROACH -> Strings.format("battleRaidApproach", Math.round(duration));
+            case SERVICE -> Strings.format("battleRaidService", Math.round(clamp01(progress / duration) * 100));
+            case EGRESS -> Strings.get("battleRaidEgress");
+            case COMPLETE -> Strings.get("battleRaidComplete");
         });
         objectiveProgressStyle.set("width: " + Math.round(100 * (secured ? 1f : clamp01(progress / duration))) + "%;");
         objectiveLocateClasses.set("objective-locate");
@@ -379,16 +379,15 @@ final class BattleHudOverlayModel {
 
     Presentation updateIntervention(Phase phase, String instruction, int remainingWalls, int initialWalls,
                                     boolean companyRecovered) {
-        objectiveTitle.set(phase == Phase.EVIDENCE ? "A COLD ACCOUNT" : "HEGEMONY / " + phase);
+        objectiveTitle.set(phase == Phase.EVIDENCE ? Strings.get("battleInterventionTitle") : Strings.format("battleInterventionPhaseTitle", Strings.named("battleInterventionPhase", phase.name())));
         objectivePanelClasses.set(OBJECTIVE_PANEL);
         objectiveScore.set("");
         objectiveTally.set(switch (phase) {
-            case EVIDENCE -> "DISPATCH OFFICE / RECOVER RECORDS";
-            case WITHDRAW, WARNING, BOMBARD -> "CLEAR FIRING AREA > SHUTTLE PICKUP";
-            case PATROL, AFTERMATH -> companyRecovered ? "COMPANY RECOVERED / STRONGHOLD SILENCED"
-                    : "STRONGHOLD SILENCED / SHUTTLE PICKUP";
-            case COMPLETE -> "COMPANY RECOVERED / STRONGHOLD SILENCED";
-            case FAILED -> "INTERVENTION FAILED";
+            case EVIDENCE -> Strings.get("battleInterventionEvidence");
+            case WITHDRAW, WARNING, BOMBARD -> Strings.get("battleInterventionClear");
+            case PATROL, AFTERMATH -> Strings.get(companyRecovered ? "battleInterventionRecovered" : "battleInterventionSilenced");
+            case COMPLETE -> Strings.get("battleInterventionRecovered");
+            case FAILED -> Strings.get("battleInterventionFailed");
         });
         objectiveChips.set(List.of());
         objectiveFocusClasses.set(OBJECTIVE_FOCUS);
@@ -399,30 +398,29 @@ final class BattleHudOverlayModel {
 
     /** Read-only convoy report; a captured site is a release condition, never a delivery. */
     void updateFreight(int phase, List<Integer> identities, List<String> cargo, int delivered, int lost) {
-        objectiveTitle.set(phase == 3 ? "THUNDER RUN" : "FREIGHT COLUMN");
+        objectiveTitle.set(Strings.get(phase == 3 ? "battleFreightThunderRun" : "battleFreightColumn"));
         objectivePanelClasses.set(OBJECTIVE_PANEL);
-        objectiveScore.set(delivered + " / " + cargo.size());
+        objectiveScore.set(Strings.format("battleFreightScore", delivered, cargo.size()));
         List<ObjectiveChip> chips = new ArrayList<>();
         for (int i = 0; i < cargo.size(); i++) chips.add(new ObjectiveChip("battle-cargo-" + i,
-                (identities.get(i) + 1) + " / " + (cargo.get(i).equals("DELIVERED") ? "OUT" : cargo.get(i).equals("LOST") ? "LOST" : cargo.get(i).equals("WAITING") ? "WAIT" : "ROAD"), "objective-chip objective-cargo " + (cargo.get(i).equals("DELIVERED") ? "objective-secured"
+                Strings.format("battleFreightChip", identities.get(i) + 1, Strings.get(cargo.get(i).equals("DELIVERED") ? "battleFreightOut" : cargo.get(i).equals("LOST") ? "battleFreightLost" : cargo.get(i).equals("WAITING") ? "battleFreightWait" : "battleFreightRoad")), "objective-chip objective-cargo " + (cargo.get(i).equals("DELIVERED") ? "objective-secured"
                 : cargo.get(i).equals("LOST") ? "objective-hostile" : "objective-contested")));
         objectiveChips.set(List.copyOf(chips));
-        objectiveTally.set(delivered + " DELIVERED  /  " + lost + " LOST");
+        objectiveTally.set(Strings.format("battleFreightTally", delivered, lost));
         objectiveFocusClasses.set(OBJECTIVE_FOCUS);
         objectiveFocus.set(switch (phase) {
-            case 0 -> "SECURE DISPATCH POST";
-            case 1 -> "SECURE EAST CROSSING";
-            case 2 -> "SECURE OUTBOUND GATE";
-            default -> "COVER THE COLUMN TO THE EXIT";
+            case 0 -> Strings.get("battleFreightDispatch");
+            case 1 -> Strings.get("battleFreightCrossing");
+            case 2 -> Strings.get("battleFreightGate");
+            default -> Strings.get("battleFreightExit");
         });
         objectiveProgressStyle.set("width: " + Math.round(100f * (delivered + lost) / Math.max(1, cargo.size())) + "%;");
     }
 
     void updateFreightHold(int site, int ticks) {
         if (site <= 0) return;
-        objectiveTitle.set("HOLD THE FREIGHT ROAD");
-        objectiveFocus.set((site == 1 ? "DISPATCH" : "EAST CROSSING")
-                + " / HOLD " + (ticks + 29) / 30 + "s");
+        objectiveTitle.set(Strings.get("battleFreightHoldTitle"));
+        objectiveFocus.set(Strings.format(site == 1 ? "battleFreightHoldDispatch" : "battleFreightHoldCrossing", (ticks + 29) / 30));
     }
 
     private boolean updateConquestCommand(CommanderSnapshot<?> commander) {

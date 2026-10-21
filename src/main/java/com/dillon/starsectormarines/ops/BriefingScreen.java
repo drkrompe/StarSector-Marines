@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import java.util.Locale;
 import com.dillon.starsectormarines.campaign.refit.RefitText;
 import com.dillon.starsectormarines.campaign.refit.ShipCondition;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
@@ -951,7 +952,7 @@ public class BriefingScreen implements Screen {
             String defendKey = Faction.DEFENDER.name() + "|" + profile.name();
             boolean attack = debugAirSelections.contains(attackKey);
             boolean defend = debugAirSelections.contains(defendKey);
-            rows.add(new BriefingViewModel.AirRow("debug-air-" + profile.name().toLowerCase(),
+            rows.add(new BriefingViewModel.AirRow("debug-air-" + profile.name().toLowerCase(Locale.ROOT),
                     profileDisplayName(profile.name()), profile.spritePath, "ATK",
                     "DEF", attack ? "selected" : "",
                     defend ? "selected" : "", () -> toggleDebugAir(attackKey),
@@ -2328,7 +2329,7 @@ public class BriefingScreen implements Screen {
     /** Title-cases the enum name (TALON → Talon, BROADSWORD → Broadsword). */
     private static String profileDisplayName(String enumName) {
         if (enumName == null || enumName.isEmpty()) return "";
-        return enumName.charAt(0) + enumName.substring(1).toLowerCase();
+        return enumName.charAt(0) + enumName.substring(1).toLowerCase(Strings.locale());
     }
 
     /** Friendly summary of employer-offered power ids ("recon_ping" → "Recon Ping"). */

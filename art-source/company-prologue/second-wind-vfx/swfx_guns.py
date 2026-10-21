@@ -1088,14 +1088,20 @@ def _object_colour(nodes):
     return at
 
 
-def _glow_material(ctx, rgb):
-    """Soft emissive gas: the weapon's colour, whiter where densest. Object colour R is the fade,
-    G a seed, B a twentieth of the emission per metre (peak radiance / diameter in metres), so a
-    glow reads the same however large it is. Object coordinates span -1..1 in the unit box."""
-    name = f'{PREFIX} glow ' + '-'.join(f'{c:.3f}' for c in rgb)
-    m = bpy.data.materials.get(name)
-    if m:
-        return m
+GLOW_NODE = 'swfx glow'
+GLOW_PATH = f'nodes["{GLOW_NODE}"].outputs[0].default_value'
+
+
+def _glow_material(ctx, rgb, name):
+    """Soft emissive gas: the weapon's colour, whiter where densest. One per glow object: its
+    own RGB node GLOW_NODE (keyed through GLOW_PATH, _glow_keys) holds R the fade, G a seed, B a
+    twentieth of the emission per metre (peak radiance / diameter in metres), so a glow reads
+    the same however large it is. Object coordinates span -1..1 in the unit box.
+
+    Not the object's colour: an object drawn through a collection instance (every per-ship
+    copy is) never hands its keyed colour to Cycles, Object Info or Object attribute alike, and
+    every glow rendered at full strength as a white disc (passes 1-5; the diagnostic run showed
+    the discs were these glows)."""
     m, nodes, links = swfx_core.node_material(name)
     g = _G(nodes, links)
     out = nodes.new('ShaderNodeOutputMaterial')
@@ -1104,9 +1110,11 @@ def _glow_material(ctx, rgb):
     x, y, z = g.xyz(p)
     r2 = g.add(g.add(g.sq(x), g.sq(y)), g.sq(z))
     shell = g.pow(g.mx(g.sub(1.0, r2), 0.0), 2.0)
-    info = _object_colour(nodes)
+    ctl = nodes.new('ShaderNodeRGB')
+    ctl.name = ctl.label = GLOW_NODE
+    ctl.outputs[0].default_value = (0, 0, 0, 1)
     sep = nodes.new('ShaderNodeSeparateColor')
-    links.new(info.outputs['Color'], sep.inputs[0])
+    links.new(ctl.outputs[0], sep.inputs[0])
     fade, seed, k = sep.outputs[0], sep.outputs[1], sep.outputs[2]
     n1 = g.noise(p, g.mul(seed, 37.0), 1.8, 3.0, .6)
     lumps = g.add(.55, g.mul(g.clamp01(g.mul(g.sub(n1, .3), 2.0)), .9))
@@ -1126,11 +1134,15 @@ def _glow_material(ctx, rgb):
 
 
 def _glow_object(ctx, coll, name, rgb):
-    ob = bpy.data.objects.new(name, _unit_box_mesh(f'{PREFIX} glow mesh ' + '-'.join(f'{c:.3f}' for c in rgb),
-                                                   _glow_material(ctx, rgb)))
+    ob = bpy.data.objects.new(name, _unit_box_mesh(f'{name} mesh', _glow_material(ctx, rgb, f'{name} gas')))
     coll.objects.link(ob)
     ob.visible_shadow = False
     return ob
+
+
+def _glow_keys(ob):
+    """The node tree a glow object's fade / seed / strength are keyed on (GLOW_PATH)."""
+    return ob.data.materials[0].node_tree
 
 
 def _cloud(ctx, coll, a, label, frame, spec):
@@ -1154,9 +1166,10 @@ def _cloud(ctx, coll, a, label, frame, spec):
     for i in range(3):
         _bake(ob, 'scale', i, fr, sc)
     _bake(ob, 'location', 0, fr, lx)
-    _bake(ob, 'color', 0, fr, fade)
-    _bake(ob, 'color', 1, [frame], [random.Random(f'cloud|{label}|{frame}').random()], 'CONSTANT')
-    _bake(ob, 'color', 2, fr, kk)
+    t = _glow_keys(ob)
+    _bake(t, GLOW_PATH, 0, fr, fade)
+    _bake(t, GLOW_PATH, 1, [frame], [random.Random(f'cloud|{label}|{frame}').random()], 'CONSTANT')
+    _bake(t, GLOW_PATH, 2, fr, kk)
     _visible_between(ob, frame, frame + life)
     return ob.name
 
@@ -1183,9 +1196,10 @@ def _charge(ctx, a, frame, frames, w):
         kk.append(_hull_glow(spec['peak'] / (2 * r)) / 20.0)
     for i in range(3):
         _bake(ob, 'scale', i, fr, sc)
-    _bake(ob, 'color', 0, fr, fade)
-    _bake(ob, 'color', 1, [f0], [rnd.random()], 'CONSTANT')
-    _bake(ob, 'color', 2, fr, kk)
+    t = _glow_keys(ob)
+    _bake(t, GLOW_PATH, 0, fr, fade)
+    _bake(t, GLOW_PATH, 1, [f0], [rnd.random()], 'CONSTANT')
+    _bake(t, GLOW_PATH, 2, fr, kk)
     _visible_between(ob, f0, frame - 1)
     light = swfx_core.point_light(f'{PREFIX} charge light {label} f{frame:04d}', coll, rgb, 0.0,
                                   radius=swfx_core.units(r1 * .5))
@@ -1519,9 +1533,10 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
         for i in range(3):
             _bake(ob, 'location', i, frames, [(M @ (d * (hh - L * .35)))[i] for hh in heads])
         ob.scale = (swfx_core.units(h['r']),) * 3
-        _bake(ob, 'color', 0, frames, burn)
-        _bake(ob, 'color', 1, [frame], [rnd.random()], 'CONSTANT')
-        _bake(ob, 'color', 2, [frame], [_hull_glow(h['peak'] / (2 * h['r'])) / 20.0], 'CONSTANT')
+        t = _glow_keys(ob)
+        _bake(t, GLOW_PATH, 0, frames, burn)
+        _bake(t, GLOW_PATH, 1, [frame], [rnd.random()], 'CONSTANT')
+        _bake(t, GLOW_PATH, 2, [frame], [_hull_glow(h['peak'] / (2 * h['r'])) / 20.0], 'CONSTANT')
         _visible_between(ob, frame, frame + life)
     if r.get('light'):
         light = swfx_core.point_light(f'{PREFIX} round light {label} f{frame:04d}', coll,

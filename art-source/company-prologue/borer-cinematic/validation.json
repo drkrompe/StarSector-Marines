@@ -1,0 +1,106 @@
+{
+ "asset": "borer.blend",
+ "collection": "BORER",
+ "root": "BORER | root",
+ "objects": 178,
+ "meshes": 169,
+ "images": 13,
+ "passed": true,
+ "failed": [],
+ "checks": {
+  "root present": {
+   "ok": true
+  },
+  "anchors collection": {
+   "ok": true
+  },
+  "all under root": {
+   "ok": true,
+   "detail": []
+  },
+  "nothing linked (all appended)": {
+   "ok": true,
+   "detail": []
+  },
+  "images packed": {
+   "ok": true,
+   "detail": []
+  },
+  "object count": {
+   "ok": true,
+   "detail": [
+    169,
+    169
+   ]
+  },
+  "polygon count": {
+   "ok": true
+  },
+  "hull attributes": {
+   "ok": true,
+   "detail": []
+  },
+  "hull_rest is rest position": {
+   "ok": true,
+   "detail": 0.0
+  },
+  "drive anchors": {
+   "ok": true
+  },
+  "drive anchors along the slot headings, running": {
+   "ok": true,
+   "detail": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  "side drives splay outboard": {
+   "ok": true,
+   "detail": [
+    0.342,
+    -0.342
+   ]
+  },
+  "muzzle on the lens, forward": {
+   "ok": true,
+   "detail": [
+    7.1,
+    7.148
+   ]
+  },
+  "tool anchors": {
+   "ok": true
+  },
+  "cradle seat on the pad soles": {
+   "ok": true,
+   "detail": [
+    -3.0,
+    -3.0,
+    -3.0,
+    -3.0
+   ]
+  },
+  "lamps emissive": {
+   "ok": true,
+   "detail": [
+    "Hull spine beacon lamp lens",
+    "Pod port work lamp lens",
+    "Pod starboard work lamp lens"
+   ]
+  },
+  "beam rig rides the muzzle, dark at rest": {
+   "ok": true,
+   "detail": [
+    "SWFX beams ws001",
+    "SWFX beams ws001 core",
+    "SWFX beams ws001 fringe",
+    "SWFX beams ws001 muzzle flare"
+   ]
+  },
+  "root moves the ship rigidly": {
+   "ok": true,
+   "detail": 3.1e-05
+  }
+ }
+}

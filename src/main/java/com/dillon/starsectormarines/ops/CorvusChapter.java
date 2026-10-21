@@ -13,39 +13,38 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+import com.dillon.starsectormarines.i18n.Strings;
 
 import java.util.Set;
 import java.util.List;
 
 /** Authored local raids against the Sable Wake crew, not wars against their host planets. */
 public enum CorvusChapter {
-    DUST_LEDGER("asharu", "Asharu", "The Dust Ledger", MissionType.RAID, RiskLevel.LOW, 2, 22000,
-            SurfacePalette.ARID, EconomicFunction.COMMERCE,
-            "We have spent enough contracts reacting to their attacks. This time we choose where to go. The Sable Wake crew buys departure times from a broker on Asharu. Their inland counting house holds the dispatch archive. Seize the marked high-value target and return to the extraction point with the records. We need their buyers, not a fight with Asharu's authorities.",
-            "The archive names a listening post on Warion. Sable Wake has been matching our manifests to intercepted departure calls. Our own schedules are in it too, released under Teodor Prell's dispatch authority. The last batch is dated the week he left. He built Wayline. I don't understand why he would sell it, and I don't know who he sold it for. You brought back a target we can act on. Put your company in order; when you are ready, we can take that link away."),
-    BLIND_WATCH("corvus_IIIb", "Warion", "Blind Watch", MissionType.SABOTAGE, RiskLevel.LOW, 3, 30000,
-            SurfacePalette.ROCK, EconomicFunction.MILITARY,
-            "Your work on Asharu gave us Sable Wake's listening post on Warion. We have the location, the approaches and a count of their watch. This is an operation we can prepare on our own terms. Plant charges at all three marked installations to disable its interception network. Your squads must cover the planters while the site's security force responds. This is a temporary raider outpost on barren ground, far from any colony. Expect a light local garrison; our route watch has ruled out outside reinforcements.",
-            "Their listening post is silent. You followed the records, reached their outpost and took away the equipment they used to watch our departures. We are choosing the next move now. The routing tables point to their dispatch compound on Garnir. That can wait while you account for your people and equipment. This contract is paid. Let the company have a moment with what it achieved."),
-    COLD_ACCOUNT("corvus_IIIa", "Garnir", "A Cold Account", MissionType.ASSAULT, RiskLevel.HIGH, 4, 42000,
-            SurfacePalette.FROZEN, EconomicFunction.HEAVY_INDUSTRY,
-            "We found their buyers on Asharu and blinded their listening post on Warion. Sable Wake's dispatch compound on Garnir is the last link. Secure the marked pirate dispatch records and transmit the proof. The Hegemony has an Onslaught in the area. Give its captain proof of pirate ownership, and we can get the Navy to finish this for us. Withdraw every surviving squad and your Hound to the marked extraction point. The Onslaught will take station beyond the eastern perimeter. Get clear of the marked bombardment area and reach your pickup. Your shuttles will return for the survivors while the batteries demolish the stronghold. Board as soon as they land. The operation ends when the last shuttle carrying your survivors leaves the area; Resolute will finish its work on its own orders. Expect fortified positions and better-equipped crews; you do not need to clear the entire garrison.",
-            "The records proved the compound belonged to Sable Wake. Your surviving company is clear. Resolute has its proof and its orders; you are not required to wait on the Navy's timetable. You have broken Sable Wake's operation against Wayline in Corvus. Your company found the records, disabled their listening post and brought back the proof that released Resolute's guns. Those achievements belong to you. I mistook the Navy's interest for a partnership; it offered no promise beyond this operation. Wayline knows what your work is worth. Other crews will still work these lanes, and larger powers set their own terms. We have something to build on, and more reason to choose our contracts carefully.");
+    DUST_LEDGER("asharu", "Asharu", "corvusDustLedger", MissionType.RAID, RiskLevel.LOW, 2, 22000,
+            SurfacePalette.ARID, EconomicFunction.COMMERCE),
+    BLIND_WATCH("corvus_IIIb", "Warion", "corvusBlindWatch", MissionType.SABOTAGE, RiskLevel.LOW, 3, 30000,
+            SurfacePalette.ROCK, EconomicFunction.MILITARY),
+    COLD_ACCOUNT("corvus_IIIa", "Garnir", "corvusColdAccount", MissionType.ASSAULT, RiskLevel.HIGH, 4, 42000,
+            SurfacePalette.FROZEN, EconomicFunction.HEAVY_INDUSTRY);
 
-    public final String planetId, planetName, title, briefing, debrief;
+    public final String planetId, planetName;
+    private final String textKey;
     public final MissionType type;
     public final RiskLevel risk;
     public final int squads, payment;
     public final SurfacePalette surface;
     private final EconomicFunction function;
 
-    CorvusChapter(String planetId, String planetName, String title, MissionType type, RiskLevel risk,
-                  int squads, int payment, SurfacePalette surface, EconomicFunction function,
-                  String briefing, String debrief) {
-        this.planetId = planetId; this.planetName = planetName; this.title = title;
+    CorvusChapter(String planetId, String planetName, String textKey, MissionType type, RiskLevel risk,
+                  int squads, int payment, SurfacePalette surface, EconomicFunction function) {
+        this.planetId = planetId; this.planetName = planetName; this.textKey = textKey;
         this.type = type; this.risk = risk; this.squads = squads; this.payment = payment;
-        this.surface = surface; this.function = function; this.briefing = briefing; this.debrief = debrief;
+        this.surface = surface; this.function = function;
     }
+
+    public String title() { return Strings.get(textKey + "Title"); }
+    public String briefing() { return Strings.get(textKey + "Briefing"); }
+    public String debrief() { return Strings.get(textKey + "Debrief"); }
 
     /** A remote compound's scale, with the actual world's surface captured at launch. */
     public TargetProfile profile(SurfacePalette ground) {
@@ -60,7 +59,7 @@ public enum CorvusChapter {
         return switch (this) {
             case DUST_LEDGER -> RaidBattleFixture.fromFactoryInputs(seed, manifest, false,
                     OperationTier.ESTABLISHED, risk, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE)
-                    .withTarget("Dispatch archive", PointOfInterest.Kind.ADMINISTRATIVE);
+                    .withTarget(Strings.get("corvusDustLedgerTarget"), PointOfInterest.Kind.ADMINISTRATIVE);
             case BLIND_WATCH -> SabotageBattleFixture.fromFactoryInputs(seed, manifest, false,
                     OperationTier.ESTABLISHED, risk, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE, false);
             case COLD_ACCOUNT -> new ColdAccountBattleFixture(AssaultBattleFixture.fromFactoryInputs(seed, manifest, false,
@@ -69,14 +68,13 @@ public enum CorvusChapter {
     }
 
     public Mission mission(String id, String actualPlanetName, String priorOutcome) {
-        return Mission.builder().id(id).name(title).source(MissionSource.STORY).type(type)
+        return Mission.builder().id(id).name(title()).source(MissionSource.STORY).type(type)
                 .tier(OperationTier.ESTABLISHED).risk(risk).payout(payment)
                 .targetPlanetName(actualPlanetName).defenderFactionOverride("pirates")
                 .sprawl(PrecinctPlan.Sprawl.REMOTE)
-                .flavor("Mara Venn: " + (this == DUST_LEDGER ? priorOutcome + " " : "") + briefing)
-                .requirements(squads + " squads recommended. Minimum: two squads with four ready marines each. "
-                        + "Up to four fitted company boats can ferry the selected force. Wayline provides heavy lift "
-                        + "for your active mech lance; select Mech Support. No fighter cover or employer infantry.")
+                .flavor(Strings.format("corvusFlavor", OpeningBroker.NAME,
+                        this == DUST_LEDGER ? Strings.join("waylineSentenceJoin", priorOutcome, briefing()) : briefing()))
+                .requirements(Strings.format("corvusRequirements", squads))
                 .requiredDrops(squads * 2).employerShuttles(0)
                 .marineArrivalPolicy(MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                 .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED)

@@ -229,7 +229,7 @@ final class BattleDirectWarshipStatus {
         if (!ship.fluxLimited()) return new FluxStatus(false, 0f, Strings.get("battleWsFluxOff"), Strings.get("battleWsUnlimited"), Tone.READY);
         float fraction = Math.max(0f, Math.min(1f, ship.fluxFraction()));
         String state = Strings.get("battleWsFlux" + ship.fluxState());
-        if (ship.overloaded()) state = Strings.format("battleWsFluxOverload", state, String.format(Locale.ROOT, "%.1f", ship.overloadSecondsRemaining()));
+        if (ship.overloaded()) state = Strings.format("battleWsFluxOverload", state, String.format(Strings.locale(), "%.1f", ship.overloadSecondsRemaining()));
         Tone tone = ship.overloaded() ? Tone.WARN : fraction >= SOFT_FLUX ? Tone.WARN : Tone.READY;
         return new FluxStatus(true, fraction, Strings.format("battleWsFluxPercent", Math.round(fraction * 100f)), state, tone);
     }

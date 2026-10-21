@@ -327,6 +327,58 @@ class CivilianEvacuationSystemTest {
         assertFalse(mission.awaitingEvacuees);
     }
 
+    @Test
+    void aHoldoutWaitsBehindItsOwnDoorUntilAMarineReachesIt() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(residential(12, 10)), 299L);
+        assertNotNull(payload);
+        int[] door = farCorner(payload.placement);
+        long holdout = sim.spawn(new EntitySpec("holdout", Faction.CIVILIAN,
+                UnitType.CIVILIAN, door[0], door[1]).role(UnitRole.VIP));
+        assertEquals(2, sim.addCivilianHoldout(door[0], door[1], door[0] - 1, door[1] - 1,
+                door[0] + 1, door[1] + 1, -1, List.of(holdout)));
+        assertEquals(payload.size() + 1, sim.getCivilianEvacuationTracker().expectedCount());
+
+        long marine = sim.spawn(new EntitySpec("rescue marine", Faction.MARINE,
+                UnitType.MARINE, payload.placement.shelterApproachX, payload.placement.shelterApproachY));
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(sim.getCivilianRedoubts().get(0).released(), "the shelter opens to the marine at its door");
+        assertFalse(sim.getCivilianRedoubts().get(1).released(), "the holdout is nobody's door yet");
+        assertTrue(Paths.isEmpty(sim.movement().path(holdout)));
+
+        sim.world().setCellPos(marine, door[0], door[1]);
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(sim.getCivilianRedoubts().get(1).released());
+        assertEquals(1, sim.getCivilianRedoubts().get(1).walking());
+    }
+
+    @Test
+    void aHoldoutWithNoGarrisonFallsToTheSwarmAtItsWalls() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
+                sim, List.of(residential(12, 10)), 299L);
+        assertNotNull(payload);
+        int[] door = farCorner(payload.placement);
+        long holdout = sim.spawn(new EntitySpec("holdout", Faction.CIVILIAN,
+                UnitType.CIVILIAN, door[0], door[1]).role(UnitRole.VIP));
+        sim.addCivilianHoldout(door[0], door[1], door[0] - 1, door[1] - 1,
+                door[0] + 1, door[1] + 1, -1, List.of(holdout));
+        sim.advance(BattleSimulation.TICK_DT);
+        assertFalse(sim.getCivilianRedoubts().get(1).fallen(), "no swarm at the walls yet");
+
+        sim.spawn(new EntitySpec("runner", Faction.DEFENDER, UnitType.MARINE, door[0] + 2, door[1]));
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(sim.getCivilianRedoubts().get(1).fallen());
+        assertEquals(CivilianEvacuationTracker.State.LOST, sim.getCivilianEvacuationTracker().state(holdout),
+                "an overrun holdout's people leave the cohort");
+    }
+
+    /** A cell in the grid corner farthest from the lift, clear of the shelter. */
+    private static int[] farCorner(CivilianEvacuationPlacement placement) {
+        return new int[]{placement.liftX < 13 ? 23 : 2, placement.liftY < 11 ? 19 : 2};
+    }
+
     private static BattleSimulation simulation() {
         NavigationGrid grid = new NavigationGrid(26, 22);
         for (int y = 0; y < 22; y++) {

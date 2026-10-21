@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 
@@ -308,14 +309,14 @@ public final class BoatDeck implements Serializable {
     private CampaignBoat build(ShuttleType pattern) {
         int tail = nextTailNumber++;
         String number = String.format(Locale.ROOT, "%02d", tail);
-        return new CampaignBoat("boat_" + number, tailName(pattern) + " " + number,
+        return new CampaignBoat("boat_" + number, tailName(pattern) + " " + String.format(Strings.locale(), "%02d", tail),
                 pattern, BoatFitting.STANDARD_PLATING.id(), BoatFitting.STANDARD_DRIVE.id());
     }
 
     /** {@code AEROSHUTTLE} reads as {@code Aeroshuttle}, which is what a tail says. */
     private static String tailName(ShuttleType pattern) {
         String name = pattern.name();
-        return name.charAt(0) + name.substring(1).toLowerCase(Locale.ROOT);
+        return name.charAt(0) + name.substring(1).toLowerCase(Strings.locale());
     }
 
     private Object readResolve() {

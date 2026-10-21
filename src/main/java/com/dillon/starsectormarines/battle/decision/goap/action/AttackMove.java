@@ -10,10 +10,12 @@ import com.dillon.starsectormarines.battle.infantry.ReinforceContact;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.FireTeamGroups;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAssaultPicture;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
+import com.dillon.starsectormarines.marine.SpecialActivation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -211,8 +213,30 @@ public final class AttackMove extends AbstractZoneAction implements SquadRouteGo
         // is to get somewhere and fight. Enabling it here multiplied quiet
         // non-closing time ninefold and cost both canonical fixtures their
         // terminal result.
-        advanceIntoZone(member, squad, sim, aim[0], aim[1], true);
+        //
+        // A sapper is the exception: under an order to demolish a structure
+        // (`phased-assault.md`), a satchel carrier with a charge ready closes on
+        // the body while firing instead of planting at weapon range, because the
+        // structure is both the contact astride the route and the work, and his
+        // charge is only set from beside it (WallBreachSystem).
+        advanceIntoZone(member, squad, sim, aim[0], aim[1], !closesToDemolish(member, assignment, sim));
         return ActionStatus.RUNNING;
+    }
+
+    /**
+     * True when {@code member} carries a ready satchel and the order names a
+     * structure to demolish: a breach cell that is open ground, which is how an
+     * order names the body standing on it rather than a wall.
+     */
+    private static boolean closesToDemolish(long member, ObjectiveAssignment assignment, BattleControl sim) {
+        if (!assignment.breaches()) return false;
+        int cellX = assignment.breachCellX();
+        int cellY = assignment.breachCellY();
+        if (!sim.getGrid().inBounds(cellX, cellY) || !sim.getGrid().isWalkable(cellX, cellY)) return false;
+        World world = sim.world();
+        if (!world.hasSecondaryWeapon(member) || world.hasMechLoadout(member)) return false;
+        return world.specialEquipment(member).activation() == SpecialActivation.UTILITY_SATCHEL
+                && world.secondaryCooldownTimer(member) <= 0f;
     }
 
     /**

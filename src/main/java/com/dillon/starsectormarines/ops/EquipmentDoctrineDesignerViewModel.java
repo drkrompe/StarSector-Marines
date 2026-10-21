@@ -397,13 +397,13 @@ public final class EquipmentDoctrineDesignerViewModel {
                 StatMeter.of(cardId + ":range", Strings.get("openingEquipmentDoctrineDesignerRng"), formatOneDecimal(range),
                         range, CatalogCeilings.weaponRange()),
                 StatMeter.of(cardId + ":accuracy", Strings.get("openingEquipmentDoctrineDesignerAcc"),
-                        String.format(Locale.ROOT, "%.0f%%", accuracy * 100f), accuracy, 1f),
+                        String.format(Strings.locale(), "%.0f%%", accuracy * 100f), accuracy, 1f),
                 StatMeter.of(cardId + ":dps", Strings.get("openingEquipmentDoctrineDesignerDps"), formatOneDecimal(dps),
                         dps, CatalogCeilings.weaponDps(profile)));
     }
 
     private static String formatOneDecimal(float value) {
-        return String.format(Locale.ROOT, "%.1f", value);
+        return String.format(Strings.locale(), "%.1f", value);
     }
 
     private static String roleLabel(String role) {
