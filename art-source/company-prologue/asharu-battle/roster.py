@@ -30,6 +30,8 @@ from starsector_path import GAME_CORE  # noqa: E402
 FINISHED = {
     'colossus': dict(dir='colossus', drive='builds/colossus/139e8b8b6', file='colossus.blend', length_m=108.5),
     'shepherd': dict(dir='shepherd', drive='builds/shepherd/c85fb19b6', file='shepherd.blend', length_m=67.1),
+    # Morrow's mining drones: always through ShipFx (own_fx), so each Borer flies, blinks and cuts on its own
+    'borer': dict(dir='borer', drive='builds/borer/8f950d18e', file='borer.blend', length_m=3.6, own_fx=True),
     'lasher': dict(dir='lasher-independent', drive='builds/lasher-independent/0cb9d83', file='lasher.blend',
                    length_m=90.0),
     'hound': dict(dir='hound-independent', drive='builds/hound-independent/5cb098e10',
@@ -90,6 +92,13 @@ PIRATE = [
     dict(key='kite-p-b', game='kite_pirates.skin', name='Kite (P)', role='boarding shuttle', finished='kite-p'),
 ]
 # Scale references on the roster sheet: finished ships the owner knows.
+# Morrow's Borers (the Shepherd's built-in borer_wing): small craft placed around their tender, kept off
+# the fleet rosters.
+DRONES = [
+    dict(key=f'borer-{c}', game='drone_borer', name=f'Borer {c.upper()} (Morrow)', role="Morrow's mining drone",
+         finished='borer') for c in 'abcd'
+]
+
 REFERENCES = [
     dict(key='ref-hound', game='hound', name='Hound 61 m', finished='hound'),
     dict(key='ref-onslaught', game='onslaught', name='Onslaught 301 m', published_m=301.0),
