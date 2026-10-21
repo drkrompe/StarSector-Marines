@@ -10,11 +10,16 @@ import com.dillon.starsectormarines.ops.OpeningOperationKind;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
-/** Belief-honest small-force command around one authored scenario place. */
+/**
+ * Belief-honest small-force command around one authored scenario place. The depot's defenders on their stages (gate,
+ * yard and rear guards) man the places near their posts, within the story share ({@link StoryGarrisons}); a reserve
+ * committed or a guard falling back goes as authored, and the published picture keeps every authored duty.
+ */
 public final class OpeningOperationCommand implements AutonomousMissionCommand<
-        OpeningOperationCommandFrame, OpeningOperationCommandPicture> {
+        OpeningOperationCommandFrame, OpeningOperationCommandPicture>, ReactiveDefenceSource {
 
     public static final String ISSUER_PREFIX = "opening-operation:";
     private static final int[][] RALLY_OFFSETS = {
@@ -26,6 +31,7 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
     private CounterattackTactics depotTactics;
     private final CompanySupportTactics companySupport = new CompanySupportTactics();
     private volatile OpeningOperationCommandPicture operationPicture;
+    private final StoryGarrisons garrisons = new StoryGarrisons();
 
     public OpeningOperationCommand(Faction faction) {
         if (faction != Faction.MARINE && faction != Faction.DEFENDER && faction != Faction.ALLY) {
@@ -37,6 +43,8 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
 
     @Override public Faction faction() { return faction; }
     @Override public String strategyId() { return issuer(faction); }
+    @Override public void afterCommit(CommandEffects effects) { garrisons.afterCommit(effects, faction); }
+    @Override public Map<String, Integer> reactiveDefenceFigures() { return garrisons.figures(); }
     public OpeningOperationCommandPicture operationPicture() {
         return operationPicture;
     }
@@ -134,10 +142,15 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
             proposals.add(CommandProposal.assign(assignment,
                     CommandAuthority.MISSION_COMMAND, squadReason.name(),
                     stabilityBreak(squad, assignment)));
+            if (faction == Faction.DEFENDER) {
+                garrisons.own(squad);
+                if (standingGuard(squadReason)) garrisons.offerDuty(squad, rally[0], rally[1]);
+            }
             intents.add(new SquadIntent(squad.squadId(), commandedRole,
                     squadReason, assignment.kind(), rally[0], rally[1]));
         }
 
+        if (faction == Faction.DEFENDER) proposals = garrisons.apply(frame, frame.garrisonables(), proposals, strategyId());
         OpeningOperationCommandFacts facts = frame.facts();
         int influenceTick = frame.influence() != null
                 ? frame.influence().updatedTick() : -1;
@@ -156,6 +169,11 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
     @Override
     public void publish(CommanderSnapshot<OpeningOperationCommandPicture> snapshot) {
         operationPicture = snapshot.detail();
+    }
+
+    /** A depot guard standing on its stage: the standing duty a defender offers for manning. */
+    static boolean standingGuard(Reason reason) {
+        return reason == Reason.DEPOT_GATE_GUARD || reason == Reason.DEPOT_YARD_GUARD || reason == Reason.DEPOT_REAR_GUARD;
     }
 
     private boolean ownedByStrategy(CommandSquadState squad, int tick) {

@@ -99,6 +99,7 @@ class LastLiftCommandEvidenceTest {
             JSONArray samples=new JSONArray();
             var renderer=capture?new BattleReviewFrameRenderer(Path.of("mod"),1920,1080):null;
             sim.setCommandTraceEnabled(true,"LAST_LIFT");
+            PlaceFightProbe placeFight = new PlaceFightProbe();
             try(var visuals=CommanderEvidenceCapture.open(capture?dir:null,"last-lift",sim,(battle,caption,marks)->{
                 var labels=ReviewAnnotations.builder();
                 labels.label(96,111,"RILL MOTOR POOL",ReviewStyle.OBJECTIVE);
@@ -113,6 +114,7 @@ class LastLiftCommandEvidenceTest {
             })) {
                 while(!sim.isComplete()&&sim.getSimTickIndex()<maxTicks) {
                     sim.advance(BattleSimulation.TICK_DT);
+                    placeFight.sample(sim);
                     int tick=sim.getSimTickIndex();
                     var tracker=sim.getCivilianEvacuationTracker();
                     if(!killed&&tick>=60&&fixture.optInt("killCivilians",0)>0) {
@@ -159,7 +161,7 @@ class LastLiftCommandEvidenceTest {
             return new JSONObject().put("outcome",sim.isComplete()?sim.getWinner().name():"TIMEOUT")
                     .put("tick",sim.getSimTickIndex()).put("roster",attempt.people())
                     .put("rescued",outcome==null?List.of():outcome.rescued()).put("dead",outcome==null?List.of():outcome.dead())
-                    .put("payment",payment).put("samples",samples).put("storyBeats",StoryBeatEvidence.snapshot(sim))
+                    .put("payment",payment).put("samples",samples).put("storyBeats",StoryBeatEvidence.snapshot(sim)).put("placeFight", placeFight.json(sim, sim.getCommandTraceJsonLines())).put("reactiveDefence", ReactiveDefenceEvidence.figures(sim))
                     .put("traceHash",trace.hashCode());
         }
     }
