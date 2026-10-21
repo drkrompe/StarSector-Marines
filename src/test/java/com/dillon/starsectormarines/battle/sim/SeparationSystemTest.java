@@ -1031,4 +1031,26 @@ public class SeparationSystemTest {
             }
         }
     }
+
+    /**
+     * A mover walking exactly head-on into an immovable body (a route along
+     * cell centres meeting a body on a cell centre) is pushed straight back
+     * along its line, so step and push cancel and it would stand there for
+     * good. It also steps aside, so it can walk round.
+     */
+    @Test
+    public void moverPressedHeadOnIntoAnImmovableBodyStepsAside() {
+        BattleSimulation sim = openArena(20, 20);
+        SeparationSystem separation = separationFor(sim);
+        sim.spawn(new EntitySpec("t", Faction.DEFENDER, UnitType.TURRET, 11, 10).health(50f));
+        long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 10, 10));
+        sim.world().setPos(marine, 11.0f, 10.5f);
+        sim.getRoster().entityWorld().setFloat(marine, sim.getRoster().components().MOVEMENT,
+                BattleComponents.MOVEMENT_VEL_X, 1.28f);
+
+        separation.tick(BattleSimulation.TICK_DT);
+
+        assertTrue(Math.abs(sim.world().y(marine) - 10.5f) > 1e-3f,
+                "head-on mover stepped aside: y=" + sim.world().y(marine));
+    }
 }

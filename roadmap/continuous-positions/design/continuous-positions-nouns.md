@@ -157,6 +157,11 @@ Nearby-unit queries snapshot true positions once per tick. Point-space consumers
    test. The push translates and never turns: facing stays `FacingSystem`'s,
    and a shove reaches it only through the velocity it folds in.
    `-Dbattle.separation.capsules=false` is the control, every body its circle.
+   A mover pressed nearly head-on into an immovable body also steps aside, to a
+   side hashed from the pair, so a route laid along cell centres into a body on
+   a cell centre cannot hold it there with step and push cancelling forever. A
+   body another holds and places every tick (a Runner's load) takes no part, as
+   a flight-slaved drone takes none.
 9. Formation steering may shape a coherent moving allied group, but it must
    remain weaker than physical separation and must yield in constrained
    terrain. A brief movement-derived heading may finish settling infantry that
