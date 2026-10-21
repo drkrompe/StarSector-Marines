@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f7d-b0ae-7622-b101-6e53c0857784",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f7d-b0ae-7622-b101-6e53c0857784\\exec-7496263a-9424-4848-9c3c-795c8961434c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\raw\\cordon-shell.raw.png",
+    "sha256": "0c79e20331696d7ddb0a1afb30e4ce5c5419d32821f1b456af1ad7d8fa6f46b9",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\prompts\\cordon-shell.prompt.txt",
+  "promptSha256": "84c5b2ed61598af7bea3dbc44c3a789eea585aab75a567c809f316b31c862713",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Base design authority: the finished armory image of the suit this pattern varies; design, palette, composition and finish\nImage 2: Identity: the same suit seen from directly overhead in battle; palette and silhouette character\n\nUse case: style-matched variant of an existing product render. Asset: the armory catalogue image of one marine armour suit, for a gritty military dark-science-fiction tactical game in the Starsector setting.\n\nImage 1 is the finished armory image of the base suit this pattern belongs to: it is the authority for the design, palette, plate shapes, markings, composition, camera, lighting and realistic hand-painted finish. Produce a variant of this same suit that a player recognises at once as a sibling of Image 1, changing only what is described below and keeping everything else as Image 1 has it.\n\nImage 2 shows how this suit is drawn in battle, from directly overhead (left: the torso and shoulder plates; right: the helmet top). The variant must still match it in palette and silhouette character. Never show the overhead view itself.\n\nCordon surplus shell: an obsolete station-security cuirass sold off after its seals, shock liners or liability tags failed inspection, made wearable again by a local armourer. Make it older and cruder than the Ward kit: a dented rigid station-security chest cuirass in place of the fabric carrier, mismatched replacement shoulder plates of different metals, a cracked and taped seal ring at the collar, a faded yellow inspection tag tied on with wire (no readable text), tired joints wrapped in tape, a scratched helmet with a taped visor. Fewer pouches. Clearly protection no professional force would trust.\n\nSquare 1:1 canvas with every piece fully inside the frame and a clear margin. True transparent background, including the gaps between pieces; no ground, no cast-shadow slab, no border, no text, letters, numbers, logos or watermark, no person or face inside the suit, no weapon held or worn except an item named above.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\mod\\graphics\\ui\\armory\\armor-militia.png",
+      "sha256": "f3f61ad0a2f4899a97809ea93e75958c38ef6ee1ded91e8076b63261d5bf80dd",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Base design authority: the finished armory image of the suit this pattern varies; design, palette, composition and finish"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\refs\\militia-identity.png",
+      "sha256": "8923f2228e87a8687b4d8a34601ac55f7c10174484047dd27e28892eb7ee71e2",
+      "dimensions": [
+        1191,
+        680
+      ],
+      "mode": "RGB",
+      "role": "Identity: the same suit seen from directly overhead in battle; palette and silhouette character"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one variant using Image 1 as the design authority and the imagegen skill to preserve its finish and composition.\n"
+  ],
+  "usage": {
+    "input_tokens": 77063,
+    "cached_input_tokens": 59648,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 661,
+    "reasoning_output_tokens": 26
+  },
+  "elapsedSeconds": 81.3
+}

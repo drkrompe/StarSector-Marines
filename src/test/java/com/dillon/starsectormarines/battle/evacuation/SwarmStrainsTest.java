@@ -58,6 +58,13 @@ class SwarmStrainsTest {
                 "open floor is not a wall");
     }
 
+    @Test
+    void acidBitesOnlySkinItsPenetrationReaches() {
+        assertFalse(SwarmSpitterBehavior.acidBites(30f, 6f), "an airframe's intact skin turns acid");
+        assertTrue(SwarmSpitterBehavior.acidBites(0f, 6f), "stripped skin leaves bare structure");
+        assertTrue(SwarmSpitterBehavior.acidBites(10f, 4f), "a thin enough skin is bitten");
+    }
+
     private static void wall(NavigationGrid grid, CellTopology topology, int x, int y, int hp) {
         grid.setWalkable(x, y, false);
         grid.setWallHp(x, y, hp);

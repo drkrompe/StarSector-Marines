@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.creep.ColonyCreep;
+import com.dillon.starsectormarines.battle.creep.CreepField;
+import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
+import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
@@ -260,9 +264,15 @@ class RenderBudgetEvidence {
         static final String CANONICAL_CONQUEST =
                 "/battle-fixtures/conquest-reinforced-south-v3.json";
 
+        static final String CANONICAL_COLONY = "/battle-fixtures/colony-breach-v1.json";
+
+        /** Seconds of outbreak the colony's creep is grown for before it is drawn. */
+        static final int COLONY_OUTBREAK_SECONDS = 240;
+
         static final List<MapSpec> MATRIX = List.of(
                 new MapSpec("280x168 control", MapSpec::control),
-                new MapSpec("560x336 conquest", MapSpec::conquest));
+                new MapSpec("560x336 conquest", MapSpec::conquest),
+                new MapSpec("400x240 colony", MapSpec::colony));
 
         BattleSimulation build() throws Exception {
             return builder.build();
@@ -270,6 +280,31 @@ class RenderBudgetEvidence {
 
         private static BattleSimulation conquest() throws Exception {
             return canonical().build();
+        }
+
+        /**
+         * The canonical Colony Breach, with every eruption site open and its
+         * creep grown for {@link #COLONY_OUTBREAK_SECONDS}: the infested colony
+         * the creep layer is measured on. Only the creep field is advanced for
+         * the outbreak, so the battle itself is the ordinary playout.
+         */
+        private static BattleSimulation colony() throws Exception {
+            BattleFixture parsed = BattleFixtureJson.fromJson(new JSONObject(resource(CANONICAL_COLONY)));
+            BattleSimulation sim = (parsed instanceof BattleLaunchFixture launch ? launch.construction() : parsed).build();
+            ColonyBreachSequence breach = sim.getColonyBreach();
+            if (breach == null) throw new IllegalStateException("The colony fixture installs no breach");
+            for (ColonyEruptionPlan.Site site : breach.plan().sites()) ColonyCreep.siteErupted(sim, site, 0);
+            CreepField creep = sim.creepField();
+            int ticks = Math.round(COLONY_OUTBREAK_SECONDS / BattleSimulation.TICK_DT);
+            for (int t = 0; t < ticks; t++) creep.tick(t);
+            return sim;
+        }
+
+        private static String resource(String path) throws Exception {
+            try (InputStream stream = RenderBudgetEvidence.class.getResourceAsStream(path)) {
+                if (stream == null) throw new IllegalStateException("Missing fixture " + path);
+                return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+            }
         }
 
         private static BattleSimulation control() throws Exception {
@@ -669,6 +704,8 @@ class RenderBudgetEvidence {
                 .append(UnitAtlas.enabled() ? "on" : "off")
                 .append("**, resident roofs **")
                 .append(RoofMesh.enabled() ? "on" : "off")
+                .append("**, creep **")
+                .append(CreepLayer.enabled() ? "on" : "off")
                 .append("**, collect culling **")
                 .append(ViewCull.enabled() ? "on" : "off").append("**.\n\n");
 
@@ -756,6 +793,7 @@ class RenderBudgetEvidence {
         root.put("residentDecoration", GroundMesh.decorationEnabled());
         root.put("unitAtlas", UnitAtlas.enabled());
         root.put("residentRoofs", RoofMesh.enabled());
+        root.put("creep", CreepLayer.enabled());
         root.put("collectCulling", ViewCull.enabled());
         List<JSONObject> costs = new ArrayList<>();
         for (FrameCost cost : frameCosts) {

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
+import com.dillon.starsectormarines.battle.appearance.WorkMotion;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerTransform;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -58,9 +59,7 @@ final class LayeredUnitComposer {
                      float facingDeg, float headLookDeg, float locomotionPhase,
                      float weaponPhase, int pose, int flags, float alpha,
                      LayerPose authoredPose, IntegralSystemDef integralSystem) {
-        emit((layer, centerX, centerY, width, height, angleDegrees, red, green, blue, opacity) ->
-                        out.addSprite(RenderLayer.UNITS, layer.sprite, centerX, centerY,
-                                width, height, angleDegrees, red, green, blue, opacity),
+        emit(new DrawListEmitter(out),
                 assets, head, primary, drawWeaponLayers, special, equipmentGrade,
                 actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
                 weaponPhase, pose, flags, alpha, authoredPose, integralSystem);
@@ -112,9 +111,7 @@ final class LayeredUnitComposer {
                      float weaponPhase, int pose, int flags, float alpha,
                      LayerPose authoredPose, IntegralSystemDef integralSystem,
                      IntegralLaunch launch) {
-        emit((layer, x, y, width, height, angle, red, green, blue, opacity) ->
-                        out.addSprite(RenderLayer.UNITS, layer.sprite, x, y, width, height,
-                                angle, red, green, blue, opacity),
+        emit(new DrawListEmitter(out),
                 assets, head, primary, drawWeaponLayers, special, equipmentGrade,
                 actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
                 weaponPhase, pose, flags, alpha, authoredPose, integralSystem, launch);
@@ -165,9 +162,27 @@ final class LayeredUnitComposer {
                 && specialLayer.replacePrimaryWhileUsing();
         // Hands on a console are not holding a rifle; the family's station arms
         // replace it for as long as the actor stands at the work.
-        boolean atStation = (flags & LayeredAppearance.FLAG_AT_STATION) != 0
-                && assets.stationArm(true) != null;
-        boolean drawPrimaryLayers = drawWeaponLayers && !replacePrimary && !atStation;
+        boolean stationFlag = (flags & LayeredAppearance.FLAG_AT_STATION) != 0;
+        boolean atStation = stationFlag && assets.stationArm(true) != null;
+        WorkMotion motion = LayeredAppearance.workMotion(flags);
+        // Exercise is done empty-handed in any outfit: nobody runs, rows, presses or curls with a rifle, so it is
+        // put away even by a family with no station arms to draw the hands with.
+        boolean exercising = stationFlag && (motion == WorkMotion.RUN || motion == WorkMotion.ROW
+                || motion == WorkMotion.PRESS || motion == WorkMotion.LIFT);
+        // A station with no motion named is worked the ordinary way, across a console.
+        if (atStation && motion == WorkMotion.NONE) motion = WorkMotion.CONSOLE;
+        LayeredSpriteCache crate = motion == WorkMotion.CARRY
+                ? assets.specialEquipment(WorkPropLayer.CRATE) : null;
+        boolean drawPrimaryLayers = drawWeaponLayers && !replacePrimary && !atStation && !exercising && crate == null;
+        boolean running = atStation && motion == WorkMotion.RUN;
+        if (atStation && motion == WorkMotion.ROW) {
+            // A rower's whole body slides on the seat: back as the handle comes
+            // in, forward again on the recovery.
+            float[] seat = worldPoint(actorX, actorY, 0f,
+                    ROW_SLIDE_SW * (float) Math.cos(weaponPhase * 2.0 * Math.PI), pxPerSw, facingDeg);
+            actorX = seat[0];
+            actorY = seat[1];
+        }
 
         LayeredWeaponFamily weaponFamily = drawPrimaryLayers
                 ? LayeredWeaponFamily.fromPrimary(primary) : null;
@@ -186,7 +201,8 @@ final class LayeredUnitComposer {
             emitAuthored(out, assets.foot, leftFoot, actorX, actorY, pxPerSw,
                     facingDeg, 0f, alpha);
         } else {
-            float leftReveal = moving ? LayeredAppearance.leftFootReveal(locomotionPhase) : 0f;
+            float leftReveal = moving ? LayeredAppearance.leftFootReveal(locomotionPhase)
+                    : running ? LayeredAppearance.leftFootReveal(weaponPhase) : 0f;
             emitFoot(out, assets.foot, actorX, actorY, pxPerSw, facingDeg,
                     -0.12f, -0.2333f - 0.10f * leftReveal, false, alpha);
         }
@@ -194,7 +210,8 @@ final class LayeredUnitComposer {
             emitAuthored(out, assets.foot, rightFoot, actorX, actorY, pxPerSw,
                     facingDeg, 0f, alpha);
         } else {
-            float rightReveal = moving ? LayeredAppearance.rightFootReveal(locomotionPhase) : 0f;
+            float rightReveal = moving ? LayeredAppearance.rightFootReveal(locomotionPhase)
+                    : running ? LayeredAppearance.rightFootReveal(weaponPhase) : 0f;
             emitFoot(out, assets.foot, actorX, actorY, pxPerSw, facingDeg,
                     0.12f, -0.2333f - 0.10f * rightReveal, true, alpha);
         }
@@ -291,17 +308,16 @@ final class LayeredUnitComposer {
 
         // Station arms go under the torso: the sleeve covers the elbow and only
         // the forearm and hand show past the body, reaching onto the work.
-        if (atStation) {
+        float[] rightArm = null;
+        WorkMotion armMotion = atStation ? motion : crate != null ? WorkMotion.CARRY : WorkMotion.NONE;
+        if (armMotion != WorkMotion.NONE && assets.stationArm(true) != null) {
             LayerTransform authoredBody = layer(authoredPose, "body");
             LayerTransform base = authoredBody != null ? authoredBody : DEFAULT_BODY;
             for (boolean left : new boolean[]{true, false}) {
-                // The two hands work half a cycle apart, each sweeping across the
-                // console about its own elbow and reaching in twice a sweep.
-                double cycle = (weaponPhase + (left ? 0f : 0.5f)) * 2.0 * Math.PI;
-                float swing = (float) Math.sin(cycle) * STATION_HAND_SWING_DEG;
-                float reach = (float) Math.max(0.0, Math.sin(2.0 * cycle)) * STATION_HAND_REACH_SW;
+                float[] arm = workArm(armMotion, left, weaponPhase);
+                if (!left) rightArm = arm;
                 emitAuthored(out, assets.stationArm(left),
-                        stationArmTransform(base, assets.body, assets.stationArm(left), left, swing, reach),
+                        stationArmTransform(base, assets.body, assets.stationArm(left), left, arm[0], arm[1]),
                         actorX, actorY, pxPerSw, facingDeg, 0f, alpha);
             }
         }
@@ -326,6 +342,19 @@ final class LayeredUnitComposer {
         if (integralPlacement != null
                 && integralPlacement.occlusion() == EquipmentLayerDef.Occlusion.OVER_BODY) {
             emitEquipmentLayer(out, integralSprite, integralPlacement, alpha);
+        }
+
+        // What the hands hold is over the torso and the forearms, under the head.
+        if (crate != null) {
+            float[] at = worldPoint(actorX, actorY, 0f, CRATE_FORWARD_SW, pxPerSw, facingDeg);
+            emitSprite(out, crate, at[0], at[1], pxPerSw, facingDeg, alpha);
+        }
+        if (atStation && rightArm != null) {
+            emitHeldTool(out, assets, motion, rightArm, weaponPhase,
+                    actorX, actorY, pxPerSw, facingDeg, alpha);
+        }
+        if (stationFlag && motion == WorkMotion.LIFT) {
+            emitDumbbells(out, assets, weaponPhase, actorX, actorY, pxPerSw, facingDeg, alpha);
         }
 
         if (assets.foreClaw != null && swipe > 0f) {
@@ -395,6 +424,133 @@ final class LayeredUnitComposer {
             emitSprite(out, sprite, center[0], center[1], swPx, facingDeg, alpha);
         }
     }
+
+    /**
+     * Where each forearm is in a work motion at {@code phase}: degrees turned
+     * about its elbow (positive brings the hand inward) and shoulder widths slid
+     * forward. The vocabulary is one table so a motion is a row here rather than
+     * a branch through the compositor.
+     */
+    static float[] workArm(WorkMotion motion, boolean left, float phase) {
+        double turn = phase * 2.0 * Math.PI;
+        return switch (motion) {
+            // The two hands work half a cycle apart, each sweeping across the
+            // console about its own elbow and reaching in twice a sweep.
+            case CONSOLE -> {
+                double cycle = turn + (left ? 0.0 : Math.PI);
+                yield new float[]{(float) Math.sin(cycle) * STATION_HAND_SWING_DEG,
+                        (float) Math.max(0.0, Math.sin(2.0 * cycle)) * STATION_HAND_REACH_SW};
+            }
+            // The torch hand held out on the seam with a small tremor; the other
+            // braced against the work.
+            case WELD -> left ? new float[]{3f, 0.02f}
+                    : new float[]{6f + (float) Math.sin(turn * 3.0) * 1.5f, 0.05f};
+            // The ladle hand circles the pot; the other holds its handle.
+            case STIR -> left ? new float[]{2f, 0.015f}
+                    : new float[]{(float) Math.cos(turn) * 10f,
+                            0.03f + (float) Math.sin(turn) * 0.025f};
+            // The knife hand drops sharply onto the board and lifts back; the
+            // other holds the food still.
+            case CHOP -> left ? new float[]{9f, 0.03f}
+                    : new float[]{4f, 0.06f * (float) Math.pow(1.0 - phase, 3.0)};
+            // Both hands on one wheel or wrench, heaved round together over most
+            // of the cycle and then reset for the next pull.
+            case WRENCH -> {
+                float heave = phase < 0.75f ? smoothstep(phase / 0.75f)
+                        : 1f - smoothstep((phase - 0.75f) / 0.25f);
+                float angle = -12f + 24f * heave;
+                yield new float[]{left ? -angle : angle, 0.03f};
+            }
+            // Arms pumping against the stride, opposite to each other.
+            case RUN -> {
+                float pump = (float) Math.sin(turn + (left ? 0.0 : Math.PI));
+                yield new float[]{pump * 6f, 0.01f + pump * 0.04f};
+            }
+            // Both hands draw the handle in and reach out again together.
+            case ROW -> new float[]{4f, 0.06f * (float) Math.sin(turn)};
+            // The bar pushed up off the chest together, slowly, and lowered.
+            case PRESS -> new float[]{2f, 0.065f * (float) (0.5 - 0.5 * Math.cos(turn))};
+            // A weight curled in each hand in turn.
+            case LIFT -> {
+                float curl = (float) Math.max(0.0, Math.sin(turn + (left ? 0.0 : Math.PI)));
+                yield new float[]{8f * curl, 0.05f * curl};
+            }
+            // Both arms out under a load.
+            case CARRY -> new float[]{4f, 0.04f};
+            case NONE, TREAT -> new float[]{0f, 0f};
+        };
+    }
+
+    /**
+     * The tool in the right hand for a motion that has one, placed at that hand
+     * and turned with its forearm; the welding torch also throws sparks from its
+     * tip onto the work.
+     */
+    private static void emitHeldTool(SpriteEmitter out, LayeredUnitAssets assets, WorkMotion motion,
+                                     float[] rightArm, float phase, float actorX, float actorY,
+                                     float swPx, float facingDeg, float alpha) {
+        String key = WorkPropLayer.toolKey(motion);
+        LayeredSpriteCache tool = key != null ? assets.specialEquipment(key) : null;
+        if (tool == null) return;
+        // The right hand, swung about the elbow with its forearm.
+        float[] hand = rotate(RIGHT_HAND_FROM_ELBOW_X, RIGHT_HAND_FROM_ELBOW_Y, rightArm[0]);
+        float handX = RIGHT_ELBOW_X + hand[0];
+        float handY = RIGHT_ELBOW_Y + hand[1] + rightArm[1];
+        float turn = rightArm[0] + WorkPropLayer.TOOL_TILT_DEG;
+        float length = WorkPropLayer.toolLengthSw(motion);
+        float width = length * tool.pxWidth / Math.max(1f, tool.pxHeight);
+        // The grip sits in the hand and the working end reaches past it.
+        float[] along = rotate(0f, length * 0.35f, turn);
+        float[] at = worldPoint(actorX, actorY, handX + along[0], handY + along[1], swPx, facingDeg);
+        out.add(tool, at[0], at[1], width * swPx, length * swPx, facingDeg + turn, 1f, 1f, 1f, alpha);
+        if (motion != WorkMotion.WELD) return;
+        LayeredSpriteCache sparks = assets.specialEquipment(WorkPropLayer.SPARKS);
+        if (sparks == null) return;
+        float[] tip = rotate(0f, length * 0.9f, turn);
+        float[] work = worldPoint(actorX, actorY, handX + tip[0], handY + tip[1], swPx, facingDeg);
+        int frame = Math.floorMod((int) Math.floor(phase * WorkPropLayer.SPARK_FRAMES),
+                WorkPropLayer.SPARK_FRAMES);
+        int frameWidth = sparks.pxWidth / WorkPropLayer.SPARK_COLUMNS;
+        int frameHeight = sparks.pxHeight / WorkPropLayer.SPARK_ROWS;
+        float size = WorkPropLayer.SPARK_SIZE_SW * swPx;
+        out.frame(sparks, (frame % WorkPropLayer.SPARK_COLUMNS) * frameWidth,
+                (frame / WorkPropLayer.SPARK_COLUMNS) * frameHeight, frameWidth, frameHeight,
+                work[0], work[1], size, size, 0f, alpha);
+    }
+
+    /**
+     * A dumbbell in each hand, across the grip, curled with the forearm. The hands are where the station arms put
+     * them, so a family with arm art holds the weights in its hands; one without still holds them out in front.
+     */
+    private static void emitDumbbells(SpriteEmitter out, LayeredUnitAssets assets, float phase, float actorX,
+                                      float actorY, float swPx, float facingDeg, float alpha) {
+        LayeredSpriteCache weight = assets.specialEquipment(WorkPropLayer.DUMBBELL);
+        if (weight == null) return;
+        float length = WorkPropLayer.DUMBBELL_LENGTH_SW;
+        float width = length * weight.pxHeight / Math.max(1f, weight.pxWidth);
+        for (boolean left : new boolean[]{true, false}) {
+            float[] arm = workArm(WorkMotion.LIFT, left, phase);
+            float side = left ? -1f : 1f;
+            float turn = side * arm[0];
+            float[] hand = rotate(side * RIGHT_HAND_FROM_ELBOW_X, RIGHT_HAND_FROM_ELBOW_Y, turn);
+            float[] at = worldPoint(actorX, actorY, side * RIGHT_ELBOW_X + hand[0],
+                    RIGHT_ELBOW_Y + hand[1] + arm[1], swPx, facingDeg);
+            out.add(weight, at[0], at[1], length * swPx, width * swPx, facingDeg + turn, 1f, 1f, 1f, alpha);
+        }
+    }
+
+    /** How far a rower slides fore and aft on the seat, in shoulder widths. */
+    private static final float ROW_SLIDE_SW = 0.06f;
+    /** Where a carried crate is held, in shoulder widths ahead of the actor. */
+    private static final float CRATE_FORWARD_SW = 0.5f;
+    /**
+     * The right elbow and, from it, the right hand of the station-arm art at
+     * rest, in shoulder widths of the actor's own frame. Read off the art: the
+     * elbow is on the sleeve's outer edge halfway down the torso, and the forearm
+     * reaches forward past the body canvas to the hand.
+     */
+    private static final float RIGHT_ELBOW_X = 0.4f, RIGHT_ELBOW_Y = -0.12f;
+    private static final float RIGHT_HAND_FROM_ELBOW_X = -0.15f, RIGHT_HAND_FROM_ELBOW_Y = 0.52f;
 
     /** The body's placement when no clip authors one: centred 0.12 shoulder widths behind the actor. */
     private static final LayerTransform DEFAULT_BODY =
@@ -737,6 +893,35 @@ final class LayeredUnitComposer {
         void add(LayeredSpriteCache layer, float centerX, float centerY,
                  float width, float height, float angleDegrees,
                  float red, float green, float blue, float alpha);
+
+        /**
+         * One frame of a sheet, in source pixels from the sheet's top left. An
+         * emitter that cannot draw part of an image (a halo silhouette) leaves
+         * it out, which is right for an effect such as sparks.
+         */
+        default void frame(LayeredSpriteCache sheet, int srcX, int srcY, int srcW, int srcH,
+                           float centerX, float centerY, float width, float height,
+                           float angleDegrees, float alpha) {
+        }
+    }
+
+    /** The draw-list emitter every live and headless frame goes through. */
+    private record DrawListEmitter(DrawList out) implements SpriteEmitter {
+        @Override
+        public void add(LayeredSpriteCache layer, float centerX, float centerY,
+                        float width, float height, float angleDegrees,
+                        float red, float green, float blue, float alpha) {
+            out.addSprite(RenderLayer.UNITS, layer.sprite, centerX, centerY,
+                    width, height, angleDegrees, red, green, blue, alpha);
+        }
+
+        @Override
+        public void frame(LayeredSpriteCache sheet, int srcX, int srcY, int srcW, int srcH,
+                          float centerX, float centerY, float width, float height,
+                          float angleDegrees, float alpha) {
+            out.addSheetQuad(RenderLayer.UNITS, sheet.sprite, srcX, srcY, srcW, srcH,
+                    centerX, centerY, width, height, angleDegrees, 1f, 1f, 1f, alpha);
+        }
     }
 
     private static final class WeaponTransform {

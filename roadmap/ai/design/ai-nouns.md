@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-21 — a holder shuts its sally door again behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body (`garrisonables.md`, sally doors); a machine guard is barred only by an enemy seen in its place, and a refused guard passes its place over for the next; a holder sorties through a sally door in its own wall (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
+Updated: 2026-10-21 — an allied party believes from its own picture and mans places by the shared planner, place directives and locked positions (`garrisonables.md`, parties); a holder shuts its sally door again behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body (`garrisonables.md`, sally doors); a machine guard is barred only by an enemy seen in its place, and a refused guard passes its place over for the next; a holder sorties through a sally door in its own wall (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -139,6 +139,11 @@ player's command pool and never take a player order; they plan under garrison
 authority — a hold-node claim from their producer — and under their own
 commander where one is ever registered, using the same per-faction commander
 architecture the defender uses. A claim from another perspective is refused.
+An allied party believes from a picture of its own — its squads' own sightings,
+never the company's — and its commander mans places by the same shared planner
+as the defender's, guarding the place each standing post stands in and taking
+and holding what the mission's place directives and locked positions tell it
+to (`garrisonables.md`, parties, place directives and locked positions).
 
 An ally counts in its own ledger. A mission's terminal check names the sides
 it counts: the marine side's elimination objective counts `DEFENDER`, the
@@ -747,6 +752,30 @@ keeping a routine before it is disturbed, or an individual actor lifted out of
 ordinary behaviour to act out a role for a while and returned to it afterwards.
 The assignment already suspends and restores ordinary dispatch; what a mission
 supplies is the role and the sites.
+
+**Work looks like the work.** What an ambient actor visibly does at a job is a
+**work motion**: welding, carrying a crate, kneeling at a bed with the kit,
+stirring, chopping, heaving a wrench, running, rowing, pressing, lifting, or the
+ordinary two-handed sweep across a console. It is chosen from what the ambient
+model already knows — the job's affordance, refined by the fixture the claimed
+point faces (the same COOK stirs at a range and chops at a prep bench), and, for
+an authored stop that names no job on the board, the stop's activity; the walk
+between two stowage stops is part of stores work and carries a crate. It is
+keyed on nothing narrower. Not on a role, because the motion belongs to the job
+and whoever does it; not on a ship's compartments or watch bill, because a job
+site is a ship's compartment, a building interior or a walled yard alike. So a
+colonist at a workshop bench, a mission's scripted townsfolk and a ship's
+machinist get the same motion for the same work, and nothing a surface job
+needs lives in shipboard hosting. Any layered family with station-arm art shows
+it, the colonist families included; a family without that art shows less of it,
+though exercise is empty-handed in any outfit (the rifle is put away, a curl's
+dumbbells are still drawn). The motion is presentation only: it never changes how
+long a job takes, who may claim it, or where the worker stands, and a body drawn
+onto a machine leaves its claim on the standing cell. Gym machines are drawn at
+real size against a 0.6-cell shoulder (a cell is about 0.75 m), worked from the
+free cell at their foot and up their length, so the drawn reach puts the runner
+on the belt, the rower on the seat and the presser on the bench. Animated fixtures are
+the fixture's own art and meet the worker through the same claim and focus.
 
 A shift derives where it works from what each place publishes, so **posting is
 the only thing a caller decides**. Hand it a role, the place somebody is

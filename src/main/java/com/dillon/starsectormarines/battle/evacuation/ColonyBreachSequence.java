@@ -23,9 +23,11 @@ import java.util.List;
  * presentation half and only ever writes beats: they are evidence and radio
  * cues, never inputs.
  *
- * <p>Until bores exist the handler does nothing and the director keeps spawning
- * at the perimeter after the tremor; the sites are still chosen, scheduled and
- * published so evidence can see where the colony would break open.
+ * <p>The battle installs a handler that opens a bore on each site
+ * ({@link SwarmBores#open}); at the tremor the director stops spawning at the
+ * perimeter and spawns only from living bores. The bores' own facts (a tier
+ * reached, a collapse, a surge) are published here as beats, read off
+ * {@link SwarmBores#events} with a cursor.
  */
 public final class ColonyBreachSequence {
 
@@ -42,8 +44,9 @@ public final class ColonyBreachSequence {
     public enum Phase { LANDFALL, SEEPAGE, BREACH, TERMINAL }
 
     /**
-     * What happens on the field when a site erupts. {@code bore-spawners.md}
-     * installs one that stands a bore up on the site.
+     * What happens on the field when a site erupts. The battle installs one
+     * that opens a bore on the site ({@link SwarmBores#open}), and creep then
+     * spreads from the bore ({@code BoreCreep}); without one nothing happens.
      */
     @FunctionalInterface
     public interface EruptionHandler {
@@ -63,7 +66,11 @@ public final class ColonyBreachSequence {
     public record Snapshot(int tick, Phase phase, int landfallTick, int shelterReachedTick,
                            int tremorTick, List<ColonyEruptionPlan.Site> sites,
                            List<Integer> eruptionTicks, List<Boolean> erupted,
-                           int colonists, int colonistsAlive) { }
+                           int colonists, int colonistsAlive, List<CivilianRedoubt> redoubts) {
+        public Snapshot {
+            redoubts = List.copyOf(redoubts);
+        }
+    }
 
     private final ColonyEruptionPlan plan;
     private final List<Long> colonists;
@@ -76,6 +83,7 @@ public final class ColonyBreachSequence {
     private int tremorTick = -1;
     private boolean militiaSeen;
     private boolean terminal;
+    private int boreEventCursor;
 
     public ColonyBreachSequence(ColonyEruptionPlan plan, List<Long> colonists, StoryBeatLog log) {
         if (plan == null || log == null) throw new IllegalArgumentException("A breach needs its plan and beat log");
@@ -124,7 +132,10 @@ public final class ColonyBreachSequence {
             shelterReachedTick = tick;
             tremorTick = tick + Math.round(TREMOR_DELAY_SECONDS / BattleSimulation.TICK_DT);
         }
-        if (tremorTick >= 0 && tick >= tremorTick) sim.endSwarmSeepage();
+        if (tremorTick >= 0 && tick >= tremorTick) {
+            sim.endSwarmSeepage();
+            sim.beginSwarmBoreSourcing();
+        }
         if (tremorTick < 0) return;
         List<ColonyEruptionPlan.Site> sites = plan.sites();
         for (int i = 0; i < sites.size(); i++) {
@@ -145,12 +156,33 @@ public final class ColonyBreachSequence {
         }
         if (militiaSeen) emit(tick, "militia_contact");
         if (shelterReachedTick >= 0) emit(tick, "shelter_reached");
+        List<CivilianRedoubt> redoubts = sim.getCivilianRedoubts();
+        if (redoubts.size() > 1) {
+            for (CivilianRedoubt redoubt : redoubts) {
+                if (redoubt.released()) emit(tick, "redoubt_reached_" + redoubt.number());
+                if (redoubt.lineBroke()) emit(tick, "redoubt_line_broke_" + redoubt.number());
+                if (redoubt.fallen()) emit(tick, "redoubt_fell_" + redoubt.number());
+            }
+        }
         if (tremorTick >= 0 && tick >= tremorTick) emit(tick, "tremor");
         List<ColonyEruptionPlan.Site> sites = plan.sites();
         for (int i = 0; i < sites.size(); i++) {
             if (!erupted[i]) continue;
             ColonyEruptionPlan.Site site = sites.get(i);
             emit(tick, site.mother() ? "mother_bore_erupted" : "bore_erupted_" + site.number());
+        }
+        List<SwarmBores.Event> boreEvents = sim.swarmBores().events();
+        for (; boreEventCursor < boreEvents.size(); boreEventCursor++) {
+            SwarmBores.Event event = boreEvents.get(boreEventCursor);
+            SwarmBore bore = event.bore();
+            switch (event.kind()) {
+                case GREW -> emit(tick, bore.mother()
+                        ? "mother_bore_grew_" + event.tier().beatName
+                        : "bore_grew_" + bore.number() + "_" + event.tier().beatName);
+                case COLLAPSED -> emit(tick, bore.mother()
+                        ? "mother_bore_collapsed" : "bore_collapsed_" + bore.number());
+                case SURGE -> log.emit(tick, BEAT_PREFIX + "surge_" + bore.beatKey(), Audience.OBSERVER_ONLY);
+            }
         }
         ShuttleMission pickup = sim.getCivilianPickupMission();
         if (pickup != null && pickup.state != ShuttleState.PENDING) emit(tick, "lift_inbound");
@@ -177,7 +209,8 @@ public final class ColonyBreachSequence {
             open.add(erupted[i]);
         }
         return new Snapshot(tick, phase(), landfallTick, shelterReachedTick, tremorTick,
-                plan.sites(), List.copyOf(ticks), List.copyOf(open), colonists.size(), alive);
+                plan.sites(), List.copyOf(ticks), List.copyOf(open), colonists.size(), alive,
+                sim.getCivilianRedoubts());
     }
 
     private void emit(int tick, String key) {

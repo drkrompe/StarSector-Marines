@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.power;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 
@@ -28,7 +29,7 @@ public abstract class CommandPower {
     /** Stable identifier — keys cooldown state and the fleet capability catalog. */
     public final String id;
 
-    /** Human-readable name for the power button. */
+    /** Human-readable name for the power button; a constructor argument may be an {@code @key}. */
     public final String displayName;
 
     /** Command points debited from the player pool when this power fires. */
@@ -64,7 +65,7 @@ public abstract class CommandPower {
                            float cooldownSeconds, int maxCharges, int supplyCost,
                            int slotWeight) {
         this.id = id;
-        this.displayName = displayName;
+        this.displayName = Strings.resolve(displayName);
         this.cpCost = cpCost;
         this.cooldownSeconds = cooldownSeconds;
         this.maxCharges = Math.max(0, maxCharges);

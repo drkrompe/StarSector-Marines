@@ -8,8 +8,8 @@ built onto that ship's copy inside ship.kit() (no build carries the shield group
     f33  volley 1, four hits, flux 0 -> .25: flashes and ripple rings   render f39
     f52  volley 2, flux -> .6: thin patches, wider rings             render f58
     f70  volley 3, flux -> .92: banding, leaking hits                render f76
-    f80  overload from the last hit: the tear runs, shards, arcs, lamps stutter
-                                                                  render f85 (tear) and f95 (shards)
+    f80  overload from the last hit: a forced dissolve from the hit and the thin patches, arcs, lamps stutter
+                                                                  render f85 (holes opening) and f95 (film gone)
     f130 vent: radiators glow and shed vapour, flux bleeds off       render f140
 
 The camera stands 300 m off on the port bow, where the hits land.
@@ -19,6 +19,7 @@ import math
 
 FPS = 24
 DRILL = [12, 30, 39, 58, 76, 85, 95, 140]
+OVERLOAD = [82, 85, 89, 94]    # the dissolve: first holes, spreading, meeting, the last of the film
 VOLLEYS = [  # (first frame, flux at its end, hits as (azimuth, elevation) on the camera's side)
     (33, .25, [(30, 10), (12, 4), (44, 18), (24, -6)]),
     (52, .6, [(18, 14), (40, 2), (6, -4), (34, 22)]),
@@ -71,6 +72,18 @@ def kite_omni(bench):
     _camera(bench, s, 300, 105)
 
 
+def lasher_overload(bench):
+    s = bench.ship('lasher', 'lasher', throttle=.4)
+    drill(s)
+    _camera(bench, s, 160, 70, target=(8, 0, 0))
+
+
+def kite_overload(bench):
+    s = bench.ship('kite', 'kite-p', throttle=.4)
+    drill(s, facing=30.0)
+    _camera(bench, s, 300, 105)
+
+
 def tech_row(bench):
     ships = [bench.ship('lasher', 'lasher', at=(0, 150, 0), throttle=.4),
              bench.ship('kite', 'kite-p', at=(0, 0, 0), throttle=.4),
@@ -90,6 +103,15 @@ TESTS = {
         builds=['kite-p'], frames=DRILL,
         note='Kite (P) OMNI 150 turned 30 deg to the threat, midline (blue, rough): the same drill. 300 m.',
         setup=kite_omni),
+    'lasher-overload': dict(
+        builds=['lasher'], frames=OVERLOAD,
+        note='Lasher overload close (160 m): a forced dissolve, holes burning open at the last hit and the '
+             'thinnest patches, spreading behind bright edges until the film is gone.',
+        setup=lasher_overload),
+    'kite-overload': dict(
+        builds=['kite-p'], frames=OVERLOAD,
+        note='Kite (P) overload at 300 m: the same beats on an omni shield in midline blue.',
+        setup=kite_overload),
     'tech-row': dict(
         builds=['lasher', 'kite-p', 'wolf-p'], frames=[30, 39, 76, 95],
         note='Colour by tech, not faction: Lasher low tech, Kite (P) midline, Wolf (P) high tech (smooth). '

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.battery.FortressBattery;
 import com.dillon.starsectormarines.battle.fort.Fort;
 import com.dillon.starsectormarines.battle.fort.FortAspect;
@@ -9,7 +10,6 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * What the player is shown of a fort: a ring and a label at each aspect saying whose it is and what is happening to
@@ -84,7 +84,7 @@ public final class FortMarkers {
             }
             String label = aspect.label();
             if (place.control().contested()) {
-                label += String.format(Locale.ROOT, " CONTESTED %d%%", Math.round(place.control().captureProgress() * 100f));
+                label += String.format(Strings.locale(), " CONTESTED %d%%", Math.round(place.control().captureProgress() * 100f));
             } else if (!owner.friendlyTo(Faction.DEFENDER)) {
                 label += " TAKEN";
             }
@@ -117,7 +117,7 @@ public final class FortMarkers {
         float progress = fireControl ? battery.fireControl().captureProgress() : place.control().captureProgress();
         String label = aspect.label();
         if (contested) {
-            label += String.format(Locale.ROOT, " CONTESTED %d%%", Math.round(progress * 100f));
+            label += String.format(Strings.locale(), " CONTESTED %d%%", Math.round(progress * 100f));
         } else if (!holder.friendlyTo(battery.originalOwner())) {
             label += " TAKEN";
         }
@@ -132,7 +132,7 @@ public final class FortMarkers {
             parts.add("NO FIRE CONTROL");
         } else if (!fort.magazineSupplies(owner)) {
             parts.add(fort.readyRounds() >= 1f
-                    ? String.format(Locale.ROOT, "RATIONED %d", (int) Math.floor(fort.readyRounds()))
+                    ? String.format(Strings.locale(), "RATIONED %d", (int) Math.floor(fort.readyRounds()))
                     : "OUT OF ROUNDS");
         }
         if (!fort.powered(owner)) parts.add("UNPOWERED");

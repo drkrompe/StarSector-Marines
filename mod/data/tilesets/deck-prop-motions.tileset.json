@@ -1,0 +1,54 @@
+{
+  "note": "Moving parts of shipboard props, keyed by the static base doodad. Hand-authored: tileset exports rewrite their own documents, so motions live here. Coordinates are in the base's source cells from the top-left of its frame. runs: always | power | use | use+power. See PropMotion.",
+  "motions": [
+    {
+      "doodad": "loading-bay.conveyor",
+      "runs": "power",
+      "deficitRate": 0,
+      "spinUpSeconds": 1.5,
+      "parts": [
+        {"part": "deck-motion.conveyor-belt", "kind": "scroll", "window": [0.5, 0.4, 5.1, 1.18], "axis": "x", "period": 0.5, "speed": 0.7}
+      ]
+    },
+    {
+      "doodad": "ship-gym.treadmill",
+      "runs": "use",
+      "spinUpSeconds": 0.8,
+      "parts": [
+        {"part": "deck-motion.treadmill-belt", "kind": "scroll", "window": [0.19, 0.6, 0.63, 2.17], "axis": "y", "period": 0.5, "speed": 1.8}
+      ]
+    },
+    {
+      "doodad": "ship-gym.rower",
+      "runs": "use",
+      "parts": [
+        {"part": "ship-gym.rower-seat", "kind": "slide", "stops": [[0.5, 1.85], [0.5, 2.5]], "travelSeconds": 0.85, "dwellSeconds": 0.25}
+      ]
+    },
+    {
+      "doodad": "ship-engineering.life-support",
+      "runs": "power",
+      "deficitRate": 0.2,
+      "spinUpSeconds": 3,
+      "parts": [
+        {"part": "deck-motion.fan-rotor", "kind": "spin", "at": [1.41, 2.06], "degPerSec": 260}
+      ]
+    },
+    {
+      "doodad": "deck-motion.crane-runway",
+      "runs": "use+power",
+      "spinUpSeconds": 0.6,
+      "parts": [
+        {"part": "deck-motion.crane-bridge", "kind": "slide", "layer": "overhead", "stops": [[2.5, 0.75], [2.5, 3.5], [2.5, 6.25]], "travelSeconds": 4, "dwellSeconds": 3}
+      ]
+    },
+    {
+      "doodad": "deck-motion.rack-lift-rail",
+      "runs": "use+power",
+      "spinUpSeconds": 0.4,
+      "parts": [
+        {"part": "deck-motion.rack-lift-carriage", "kind": "slide", "stops": [[0.5, 1], [0.5, 3], [0.5, 5]], "travelSeconds": 2, "dwellSeconds": 2.5}
+      ]
+    }
+  ]
+}

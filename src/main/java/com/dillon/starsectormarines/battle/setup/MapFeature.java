@@ -5,10 +5,13 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
+import com.dillon.starsectormarines.battle.evacuation.ColonyRedoubts;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.LandingArea;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 
 import java.util.ArrayDeque;
@@ -95,6 +98,30 @@ public enum MapFeature {
     },
 
     /**
+     * Fields outside the colony to come down in, with nothing built, walled or
+     * tall within their clear radius and every arrival area on them.
+     *
+     * <p>Asked of the finished map rather than trusted from the claim that
+     * reserved the ground: the claim keeps a neighbour's houses out and nothing
+     * else, and the promise is about what the force can see from its berths.
+     */
+    OPEN_FIELD_LANDING("an open-field landing zone with its field of fire clear") {
+        @Override
+        public boolean presentIn(MapResult map) {
+            if (map == null || map.grid == null || map.fieldOfFire == null) return false;
+            FieldOfFire field = map.fieldOfFire;
+            if (map.landingAreas.isEmpty()) return false;
+            for (LandingArea area : map.landingAreas) {
+                for (LandingPad berth : area.berths()) {
+                    if (!field.contains(berth.centerX, berth.centerY)) return false;
+                }
+            }
+            return field.contains(map.marineSpawnX, map.marineSpawnY)
+                    && field.firstObstruction(map.grid, map.topology, map.doodads) == null;
+        }
+    },
+
+    /**
      * Enough buildings for the swarm to come up beside.
      *
      * <p>A question about the map, not the placement: whether the eruption
@@ -105,6 +132,20 @@ public enum MapFeature {
         @Override
         public boolean presentIn(MapResult map) {
             return map != null && map.pointsOfInterest.size() >= MIN_BORE_PLACES;
+        }
+    },
+
+    /**
+     * Held buildings big enough to be a holdout: a held place with room
+     * indoors for a militia fireteam and a holdout's people. A colony needs
+     * one more than its fewest holdouts, since the shelter and the lift's
+     * surroundings rule some out; it seats as many of its draw as it has room
+     * for.
+     */
+    REDOUBT_SITES("held buildings with room to hole up in") {
+        @Override
+        public boolean presentIn(MapResult map) {
+            return map != null && ColonyRedoubts.seatableSites(map) >= ColonyRedoubts.MIN_HOLDOUTS + 1;
         }
     },
 

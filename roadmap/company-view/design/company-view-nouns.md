@@ -1556,8 +1556,8 @@ own reviewed yard order under the same home, dock, Relief and funds rechecks, an
 the receipts stay with the hull. Beyond credits, most tiers take materials out of
 fleet cargo (metals for structure and plating, heavy machinery for plant and
 drive, transplutonics for flux and sensors), shown as icon rows with Short by.
-The strongest tiers take AI cores: a gamma core for the processing cluster, a
-beta core for the tactical core, and an alpha core for the military flux grid. Other hulls are neutral on every track.
+The strongest tiers take an AI core as a hard requirement; colony items never go
+into the ship. Other hulls are neutral on every track.
 
 Five reserved compartments (range, gym, sick bay, lounge, brig) open by their
 facility track's Restored order. A sealed one is neutral, so opening one is

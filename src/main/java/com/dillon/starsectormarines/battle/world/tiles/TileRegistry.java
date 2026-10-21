@@ -126,7 +126,9 @@ public final class TileRegistry {
             "data/tilesets/ship-floor-trim.tileset.json",
             "data/tilesets/firing-range-target.tileset.json",
             "data/tilesets/ship-bulkheads.tileset.json",
-            "data/tilesets/ship-interior-materials.tileset.json");
+            "data/tilesets/ship-interior-materials.tileset.json",
+            "data/tilesets/deck-motion.tileset.json",
+            "data/tilesets/deck-prop-motions.tileset.json");
 
     private static volatile TileRegistry installed;
 
@@ -137,6 +139,8 @@ public final class TileRegistry {
     private final Map<String, GridBlockDef> blocksById = new LinkedHashMap<>();
     /** Decorative props (Phase 2), addressed by id — one source cell + an intrinsic tactical cover. */
     private final Map<String, DoodadDef> doodadsById = new LinkedHashMap<>();
+    /** Moving parts drawn over a prop's static base, by the base doodad's id. */
+    private final Map<String, PropMotion> motionsByDoodad = new LinkedHashMap<>();
     /** Provider provenance for the shared tile/block/doodad id namespace. */
     private final Map<String, CatalogSource> sourceById = new LinkedHashMap<>();
     /**
@@ -177,6 +181,22 @@ public final class TileRegistry {
     public DoodadDef doodad(String id)          { return doodadsById.get(id); }
     public boolean hasDoodad(String id)         { return doodadsById.containsKey(id); }
     public Collection<DoodadDef> doodads()      { return doodadsById.values(); }
+
+    /** The moving parts authored for a prop, or null for a prop that stands still. */
+    public PropMotion motion(String doodadId)   { return doodadId == null ? null : motionsByDoodad.get(doodadId); }
+
+    /**
+     * The motion a damaged prop keeps: its intact base's, for a {@code <id>-damaged} doodad whose base still runs at a
+     * nonzero {@link PropMotion#damagedRate}; null otherwise, and always for a destroyed one.
+     */
+    public PropMotion damagedMotion(String doodadId) {
+        if (doodadId == null || !doodadId.endsWith(DAMAGED_SUFFIX)) return null;
+        PropMotion intact = motionsByDoodad.get(doodadId.substring(0, doodadId.length() - DAMAGED_SUFFIX.length()));
+        return intact != null && intact.damagedRate > 0f ? intact : null;
+    }
+
+    /** The suffix a prop's damaged variant is named by ({@code PropDamage}). */
+    private static final String DAMAGED_SUFFIX = "-damaged";
 
     /** Exact provider and catalog resource that declared {@code id}, or null when unknown. */
     public CatalogSource sourceOf(String id) { return sourceById.get(id); }
@@ -228,6 +248,9 @@ public final class TileRegistry {
     }
 
     public void ingestSheet(JSONObject root, CatalogSource source) throws JSONException {
+        JSONArray motions = root.optJSONArray("motions");
+        if (motions != null) ingestMotions(motions);
+        if (!root.has("sheet") && motions != null) return;
         String sheet = root.getString("sheet");
         JSONArray tiles = root.optJSONArray("tiles");
         if (tiles != null) ingestTiles(tiles, sheet, source);
@@ -238,6 +261,18 @@ public final class TileRegistry {
         JSONArray doodads = root.optJSONArray("doodads");
         if (doodads != null) {
             ingestDoodads(doodads, sheet, root.optInt("cellPx", 0), source);
+        }
+    }
+
+    /**
+     * Prop motions. A motion catalog may carry nothing else, and needs no sheet of its own: its parts are doodads on
+     * whatever sheets drew them. Kept out of a tileset's exported document, which its exporter rewrites.
+     */
+    private void ingestMotions(JSONArray motions) throws JSONException {
+        for (int i = 0; i < motions.length(); i++) {
+            PropMotion motion = PropMotion.parse(motions.getJSONObject(i));
+            if (motionsByDoodad.putIfAbsent(motion.baseId, motion) != null)
+                throw new IllegalStateException("TileRegistry: duplicate motion for doodad '" + motion.baseId + "'");
         }
     }
 
@@ -431,6 +466,14 @@ public final class TileRegistry {
      * all {@link #ingestSheet} calls, since references may point across sheets.
      */
     public void validateReferences() {
+        for (PropMotion motion : motionsByDoodad.values()) {
+            if (!doodadsById.containsKey(motion.baseId))
+                throw new IllegalStateException("TileRegistry: motion names unknown doodad '" + motion.baseId + "'");
+            for (PropMotion.Part part : motion.parts())
+                if (!doodadsById.containsKey(part.doodadId()))
+                    throw new IllegalStateException("TileRegistry: motion on '" + motion.baseId
+                            + "' names unknown part '" + part.doodadId() + "'");
+        }
         for (GridBlockDef block : blocksById.values()) {
             validateOpening(block.id, block.windowBlockId);
             validateOpening(block.id, block.doorBlockId);

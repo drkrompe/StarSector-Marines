@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.RescueCommandFacts.AuthoredDu
 import com.dillon.starsectormarines.battle.command.RescueCommandSnapshot.Role;
 import com.dillon.starsectormarines.battle.command.RescueCommandSnapshot.SquadIntent;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
+import com.dillon.starsectormarines.battle.evacuation.CivilianRedoubt;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -27,6 +28,14 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
         RescueCommandFrame, RescueCommandSnapshot> {
 
     public static final int ADVANCE_SCREEN_CELLS = 5;
+    /**
+     * Route cells the close escort's rally anchor leads the cohort by. A civilian
+     * holds while its nearest escort is behind it toward the lift, so an escort
+     * pocket centred on the cohort itself can leave a trailing member as every
+     * civilian's nearest and park the cohort for good. One cell keeps the pocket
+     * on the cohort and the escort's anchor clear of the lead screen's.
+     */
+    static final int ESCORT_LEAD_CELLS = 1;
     /** Compatibility name for the legacy two-cell pressured bound. */
     public static final int ENGAGED_BOUND_CELLS = 2;
     public static final int ENGAGED_BOUND_TICKS = 150;
@@ -42,6 +51,10 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
     private final Map<Integer, Role> roles = new HashMap<>();
     private final Map<Integer, Integer> nextPressureBoundTick = new HashMap<>();
     private volatile RescueCommandSnapshot rescueSnapshot;
+    /** Several redoubts: each walking group's close escort, by redoubt number. */
+    private final Map<Integer, Integer> escortOf = new HashMap<>();
+    /** Several redoubts: the one the mobile force is relieving, or {@code -1}. */
+    private int reliefTarget = -1;
 
     public RescueEscortCommand(CivilianEvacuationPlacement placement) {
         this.placement = Objects.requireNonNull(placement, "placement");
@@ -59,6 +72,7 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
 
     @Override
     public CommandPlan<RescueCommandSnapshot> plan(RescueCommandFrame frame) {
+        if (frame.facts().redoubts().size() > 1) return planRedoubts(frame);
         ExtractionObjectiveFacts cohort = frame.facts().cohort();
         List<CommandSquadState> pool = frame.squads().stream()
                 .filter(squad -> squad.aliveMembers() > 0)
@@ -97,6 +111,10 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
         int guideX = guideIndex >= 0 ? Paths.cellX(route, guideIndex) : anchorX;
         int guideY = guideIndex >= 0 ? Paths.cellY(route, guideIndex) : anchorY;
         int[] forward = direction(anchorX, anchorY, guideX, guideY);
+        int escortIndex = Paths.isEmpty(route) ? -1
+                : Math.min(ESCORT_LEAD_CELLS, Paths.cellCount(route) - 1);
+        int escortX = escortIndex >= 0 ? Paths.cellX(route, escortIndex) : anchorX;
+        int escortY = escortIndex >= 0 ? Paths.cellY(route, escortIndex) : anchorY;
 
         List<CommandProposal> proposals = new ArrayList<>();
         List<SquadIntent> intents = new ArrayList<>();
@@ -123,7 +141,7 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
             int[] ideal = atShelter
                     ? formationCell(role, roleOrdinal,
                     anchorX, anchorY, forward)
-                    : corridorCell(role, anchorX, anchorY, guideX, guideY,
+                    : corridorCell(role, escortX, escortY, guideX, guideY,
                     forward, roleOrdinal);
             int[] target = nearestReachable(squad, ideal[0], ideal[1],
                     anchorX, anchorY, frame.topology(), claimed);
@@ -168,6 +186,240 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
                 frame.tick(), frame.influence() != null
                 ? frame.influence().updatedTick() : -1,
                 pool.size(), 0, List.of(summary(cohort)), proposals, detail);
+    }
+
+    /**
+     * The cohort is holed up in several redoubts ({@code extraction-command.md},
+     * Several redoubts). Every redoubt whose people are walking out gets its
+     * own close escort, the free squad nearest them, kept until they are
+     * aboard. The rest of the force relieves one pending redoubt at a time,
+     * the one its route from where it stands is shortest to, and keeps that
+     * choice until the redoubt is reached or falls. Escorts come before
+     * relief: people in the open are exposed, people behind a door are not.
+     * With nothing left to relieve the force screens the largest walking
+     * group, and with nobody walking it holds at the lift.
+     */
+    private CommandPlan<RescueCommandSnapshot> planRedoubts(RescueCommandFrame frame) {
+        ExtractionObjectiveFacts cohort = frame.facts().cohort();
+        List<CivilianRedoubt> redoubts = frame.facts().redoubts();
+        CommandTopology topology = frame.topology();
+        List<CommandSquadState> pool = frame.squads().stream()
+                .filter(squad -> squad.aliveMembers() > 0)
+                .filter(squad -> frame.facts().authoredDuty(squad.squadId()) == null)
+                .filter(squad -> squad.directive() == null
+                        || squad.directive().authority().priority()
+                        <= CommandAuthority.MISSION_COMMAND.priority())
+                .toList();
+        Set<Integer> poolIds = new HashSet<>();
+        for (CommandSquadState squad : pool) poolIds.add(squad.squadId());
+        roles.keySet().retainAll(poolIds);
+        nextPressureBoundTick.keySet().retainAll(poolIds);
+        boolean terminal = terminal(cohort);
+
+        escortOf.entrySet().removeIf(entry -> !poolIds.contains(entry.getValue())
+                || walkers(redoubts, entry.getKey()) == null);
+        if (!terminal) {
+            for (CivilianRedoubt redoubt : redoubts) {
+                if (redoubt.walking() == 0 || escortOf.containsKey(redoubt.number())) continue;
+                CommandSquadState nearest = null;
+                int best = Integer.MAX_VALUE;
+                for (CommandSquadState squad : pool) {
+                    if (escortOf.containsValue(squad.squadId())) continue;
+                    int distance = Math.abs(squad.anchorCellX() - redoubt.walkingCellX())
+                            + Math.abs(squad.anchorCellY() - redoubt.walkingCellY());
+                    if (distance < best) {
+                        best = distance;
+                        nearest = squad;
+                    }
+                }
+                if (nearest != null) escortOf.put(redoubt.number(), nearest.squadId());
+            }
+        }
+        Map<Integer, Integer> escorting = new HashMap<>();
+        for (Map.Entry<Integer, Integer> entry : escortOf.entrySet()) escorting.put(entry.getValue(), entry.getKey());
+        List<CommandSquadState> force = pool.stream().filter(s -> !escorting.containsKey(s.squadId())).toList();
+        assignScreenRoles(force);
+
+        CivilianRedoubt relief = redoubt(redoubts, reliefTarget);
+        if (relief == null || !relief.pending()) {
+            reliefTarget = chooseRelief(force, redoubts, topology);
+            relief = redoubt(redoubts, reliefTarget);
+        }
+        CivilianRedoubt screened = null;
+        for (CivilianRedoubt redoubt : redoubts) {
+            if (redoubt.walking() > 0 && (screened == null || redoubt.walking() > screened.walking())) {
+                screened = redoubt;
+            }
+        }
+
+        // The force's anchor: the door it relieves, else the walkers it screens, else the lift.
+        int anchorX, anchorY;
+        if (relief != null) {
+            anchorX = relief.approachX();
+            anchorY = relief.approachY();
+        } else if (screened != null) {
+            int[] open = nearestWalkable(topology, screened.walkingCellX(), screened.walkingCellY());
+            anchorX = open != null ? open[0] : screened.walkingCellX();
+            anchorY = open != null ? open[1] : screened.walkingCellY();
+        } else {
+            anchorX = placement.liftX;
+            anchorY = placement.liftY;
+        }
+        int[] route = topology.route(anchorX, anchorY, placement.liftX, placement.liftY);
+        int guideIndex = Paths.isEmpty(route) ? -1 : Math.min(ADVANCE_SCREEN_CELLS, Paths.cellCount(route) - 1);
+        int guideX = guideIndex >= 0 ? Paths.cellX(route, guideIndex) : anchorX;
+        int guideY = guideIndex >= 0 ? Paths.cellY(route, guideIndex) : anchorY;
+        int[] forward = direction(anchorX, anchorY, guideX, guideY);
+        int escortIndex = Paths.isEmpty(route) ? -1 : Math.min(ESCORT_LEAD_CELLS, Paths.cellCount(route) - 1);
+        int forceEscortX = escortIndex >= 0 ? Paths.cellX(route, escortIndex) : anchorX;
+        int forceEscortY = escortIndex >= 0 ? Paths.cellY(route, escortIndex) : anchorY;
+
+        List<CommandProposal> proposals = new ArrayList<>();
+        List<SquadIntent> intents = new ArrayList<>();
+        List<int[]> claimed = new ArrayList<>();
+        int knownPressure = frame.influence() != null ? frame.influence().contacts().size() : 0;
+        for (CommandSquadState squad : frame.squads()) {
+            if (squad.aliveMembers() <= 0) continue;
+            if (!poolIds.contains(squad.squadId())) {
+                intents.add(externalIntent(squad, frame.facts().authoredDuty(squad.squadId())));
+                continue;
+            }
+            if (terminal) {
+                proposals.add(releaseOrRetain(squad, "RESCUE_TERMINAL"));
+                intents.add(new SquadIntent(squad.squadId(), Role.RELEASED, "RESCUE_TERMINAL", null, -1, -1,
+                        squad.localContact(), false));
+                continue;
+            }
+            Role role;
+            String reason;
+            int[] ideal;
+            int fallbackX, fallbackY;
+            Integer escorted = escorting.get(squad.squadId());
+            if (escorted != null) {
+                CivilianRedoubt group = redoubt(redoubts, escorted);
+                int[] open = nearestWalkable(topology, group.walkingCellX(), group.walkingCellY());
+                fallbackX = open != null ? open[0] : group.walkingCellX();
+                fallbackY = open != null ? open[1] : group.walkingCellY();
+                int[] walk = topology.route(fallbackX, fallbackY, placement.liftX, placement.liftY);
+                int lead = Paths.isEmpty(walk) ? -1 : Math.min(ESCORT_LEAD_CELLS, Paths.cellCount(walk) - 1);
+                ideal = lead >= 0 ? new int[]{Paths.cellX(walk, lead), Paths.cellY(walk, lead)}
+                        : new int[]{fallbackX, fallbackY};
+                role = Role.COHORT_ESCORT;
+                reason = "REDOUBT_ESCORT_" + escorted;
+            } else {
+                role = roles.get(squad.squadId());
+                int ordinal = roleOrdinal(squad, force, role);
+                fallbackX = anchorX;
+                fallbackY = anchorY;
+                if (relief != null) {
+                    ideal = formationCell(role, ordinal, anchorX, anchorY, forward);
+                    reason = "REDOUBT_RELIEF_" + relief.number();
+                } else if (screened != null) {
+                    ideal = corridorCell(role, forceEscortX, forceEscortY, guideX, guideY, forward, ordinal);
+                    reason = "MOVING_" + role.name();
+                } else {
+                    ideal = formationCell(role, ordinal, anchorX, anchorY, forward);
+                    reason = "LIFT_HOLD";
+                }
+            }
+            int[] target = nearestReachable(squad, ideal[0], ideal[1], fallbackX, fallbackY, topology, claimed);
+            if (target == null) {
+                proposals.add(releaseOrRetain(squad, "RESCUE_TARGET_UNREACHABLE"));
+                intents.add(new SquadIntent(squad.squadId(), Role.STRANDED, "RESCUE_TARGET_UNREACHABLE", null,
+                        -1, -1, squad.localContact(), false));
+                continue;
+            }
+            boolean slowed = locallySlow(squad, frame.tick(), target);
+            if (slowed) {
+                ObjectiveAssignment incumbent = squad.directive().assignment();
+                target = new int[]{incumbent.targetCellX(), incumbent.targetCellY()};
+                reason = reason + "_LOCAL_PRESSURE_HOLD";
+            }
+            claimed.add(target);
+            ObjectiveAssignment assignment = ObjectiveAssignment.escort(squad.squadId(), target[0], target[1]);
+            proposals.add(CommandProposal.assign(assignment, CommandAuthority.MISSION_COMMAND, reason,
+                    stabilityBreak(squad, assignment)));
+            intents.add(new SquadIntent(squad.squadId(), role, reason, assignment.kind(), target[0], target[1],
+                    squad.localContact(), slowed));
+        }
+
+        RescueCommandSnapshot detail = new RescueCommandSnapshot(
+                frame.tick(), faction(), cohort.phase(), cohort.payloadId(),
+                cohort.payloadName(), placement.shelterX, placement.shelterY,
+                cohort.payloadCellX(), cohort.payloadCellY(), guideX, guideY,
+                placement.liftX, placement.liftY, cohort.initialElements(),
+                cohort.activeElements(), cohort.boardedElements(),
+                cohort.lostElements(), cohort.progress(),
+                cohort.escortPresent(), cohort.controllingSquadId(),
+                knownPressure, cohort.complete(), cohort.failed(),
+                cohort.failure(), intents);
+        return new CommandPlan<>(faction(), strategyId(), cohort.phase(),
+                frame.tick(), frame.influence() != null ? frame.influence().updatedTick() : -1,
+                pool.size(), 0, List.of(summary(cohort) + " relief=" + reliefTarget
+                        + " escorts=" + escortOf.size()), proposals, detail);
+    }
+
+    /** Screen roles for the squads not escorting, spread evenly; an escort's old role gives way. */
+    private void assignScreenRoles(List<CommandSquadState> force) {
+        Set<Integer> ids = new HashSet<>();
+        for (CommandSquadState squad : force) ids.add(squad.squadId());
+        roles.keySet().retainAll(ids);
+        roles.values().removeIf(role -> role == Role.COHORT_ESCORT);
+        Map<Role, Integer> loads = new EnumMap<>(Role.class);
+        for (Role role : roles.values()) loads.merge(role, 1, Integer::sum);
+        for (CommandSquadState squad : force) {
+            if (roles.containsKey(squad.squadId())) continue;
+            Role selected = SCREEN_ROLES.stream()
+                    .min(Comparator.comparingInt((Role role) -> loads.getOrDefault(role, 0))
+                            .thenComparingInt(Enum::ordinal))
+                    .orElse(Role.LEAD_SCREEN);
+            roles.put(squad.squadId(), selected);
+            loads.merge(selected, 1, Integer::sum);
+        }
+    }
+
+    /**
+     * The pending redoubt nearest the force by route from where it stands
+     * (the mean of its squads' cells), the lower number on a tie; a redoubt
+     * with no route is taken by straight distance only when none has one.
+     */
+    static int chooseRelief(List<CommandSquadState> force, List<CivilianRedoubt> redoubts,
+                            CommandTopology topology) {
+        if (force.isEmpty()) return -1;
+        int sumX = 0, sumY = 0;
+        for (CommandSquadState squad : force) {
+            sumX += squad.anchorCellX();
+            sumY += squad.anchorCellY();
+        }
+        int fromX = sumX / force.size(), fromY = sumY / force.size();
+        int[] open = nearestWalkable(topology, fromX, fromY);
+        if (open != null) {
+            fromX = open[0];
+            fromY = open[1];
+        }
+        int best = -1;
+        long bestCost = Long.MAX_VALUE;
+        for (CivilianRedoubt redoubt : redoubts) {
+            if (!redoubt.pending()) continue;
+            int[] route = topology.route(fromX, fromY, redoubt.approachX(), redoubt.approachY());
+            int straight = Math.abs(redoubt.approachX() - fromX) + Math.abs(redoubt.approachY() - fromY);
+            long cost = Paths.isEmpty(route) ? (1L << 32) + straight : Paths.cellCount(route);
+            if (cost < bestCost) {
+                bestCost = cost;
+                best = redoubt.number();
+            }
+        }
+        return best;
+    }
+
+    private static CivilianRedoubt redoubt(List<CivilianRedoubt> redoubts, int number) {
+        for (CivilianRedoubt redoubt : redoubts) if (redoubt.number() == number) return redoubt;
+        return null;
+    }
+
+    private static CivilianRedoubt walkers(List<CivilianRedoubt> redoubts, int number) {
+        CivilianRedoubt redoubt = redoubt(redoubts, number);
+        return redoubt != null && redoubt.walking() > 0 ? redoubt : null;
     }
 
     @Override
@@ -217,10 +469,10 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
                 && current.targetCellY() == desired[1];
     }
 
-    private static int[] corridorCell(Role role, int cohortX, int cohortY,
+    private static int[] corridorCell(Role role, int escortX, int escortY,
                                       int guideX, int guideY, int[] forward,
                                       int roleOrdinal) {
-        if (role == Role.COHORT_ESCORT) return new int[]{cohortX, cohortY};
+        if (role == Role.COHORT_ESCORT) return new int[]{escortX, escortY};
         return formationCell(role, roleOrdinal, guideX, guideY, forward);
     }
 

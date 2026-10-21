@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 
 /** HQ reads the same destination and progression as the local offer board. */
@@ -13,19 +14,20 @@ record CorvusWaylineWorkGuide(CorvusWaylineProgress progress, OpeningBroker.Dest
             case "crest" -> OpeningBroker.CREST;
             case "portrait" -> OpeningBroker.PORTRAIT;
             case "broker" -> OpeningBroker.NAME;
-            case "affiliation" -> "Wayline cooperative";
-            case "heading" -> CorvusWaylineCampaign.TITLE;
-            case "mission" -> chapter != null ? chapter.title + (destination == null ? " (paused)" : "")
-                    : progress.complete() ? "Corvus account closed" : "Operations paused";
-            case "payment" -> chapter != null ? "Cr. " + chapter.payment : "Contract payments: " + progress.paid() + " cr";
+            case "affiliation" -> Strings.get("corvusGuideAffiliation");
+            case "heading" -> CorvusWaylineCampaign.title();
+            case "mission" -> chapter != null ? chapter.title() + (destination == null ? Strings.get("corvusGuidePausedSuffix") : "")
+                    : Strings.get(progress.complete() ? "corvusGuideAccountClosed" : "corvusGuideOperationsPaused");
+            case "payment" -> chapter != null ? Strings.format("corvusGuideChapterPayment", chapter.payment)
+                    : Strings.format("corvusGuideContractPayments", progress.paid());
             case "location" -> destination != null ? destination.label()
-                    : chapter != null ? chapter.planetName + " / Corvus" : "Corvus";
-            case "route" -> chapter == null ? "Local Wayline arrangements remain at the original supply-route site."
-                    : destination == null ? "Paused: " + chapter.planetName + " is not in Corvus in this sector, so Wayline "
-                            + "has no site for this operation. Nothing is lost; the account resumes if the site appears."
-                    : "Marine operations > " + OpeningBroker.NAME;
-            case "preparation" -> chapter != null ? chapter.squads + " squads recommended / owned mech lance supported."
-                    : progress.complete() ? "Sable Wake's operation against Wayline has been broken." : "Unrecognized story record.";
+                    : chapter != null ? Strings.format("corvusGuideLocation", chapter.planetName)
+                    : Strings.get("corvusGuideRegion");
+            case "route" -> chapter == null ? Strings.get("corvusGuideRouteLocal")
+                    : destination == null ? Strings.format("corvusGuideRoutePaused", chapter.planetName)
+                    : Strings.format("corvusGuideRouteBoard", OpeningBroker.NAME);
+            case "preparation" -> chapter != null ? Strings.format("corvusGuidePreparation", chapter.squads)
+                    : Strings.get(progress.complete() ? "corvusGuideBroken" : "corvusGuideUnrecognized");
             case "courseDisabled" -> destination == null;
             case "courseAction" -> plotCourse;
             default -> throw new IllegalArgumentException("Unknown Corvus guidance property: " + property);

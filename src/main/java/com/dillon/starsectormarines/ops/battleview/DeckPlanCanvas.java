@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullSilhouette;
@@ -69,16 +70,16 @@ public final class DeckPlanCanvas implements CanvasProducer {
      * that goes quietly wrong.
      */
     private static final List<Keyed> KEY = List.of(
-            new Keyed(RoomPurpose.BARRACKS, new Color(0x3F, 0x7F, 0xC4), "Berthing"),
-            new Keyed(RoomPurpose.CREW_QUARTERS, new Color(0x2F, 0x5A, 0x8C), "Crew"),
-            new Keyed(RoomPurpose.VEHICLE_BAY, new Color(0xD8, 0x8B, 0x2F), "Mech bay"),
-            new Keyed(RoomPurpose.HANGAR, new Color(0xD8, 0x5C, 0x9A), "Boat bay"),
-            new Keyed(RoomPurpose.ARMORY, new Color(0xC4, 0x4B, 0x4B), "Armory"),
-            new Keyed(RoomPurpose.FIRING_RANGE, new Color(0x9C, 0x4D, 0x2F), "Range"),
-            new Keyed(RoomPurpose.MESS_HALL, new Color(0xC9, 0xA2, 0x5E), "Mess"),
-            new Keyed(RoomPurpose.PATIENT_WARD, new Color(0xE0, 0xE4, 0xEA), "Sick bay"),
-            new Keyed(RoomPurpose.STOCKROOM, new Color(0x9A, 0x7A, 0x45), "Hold"),
-            new Keyed(RoomPurpose.BRIDGE, new Color(0x8D, 0x6F, 0xC9), "Bridge"));
+            new Keyed(RoomPurpose.BARRACKS, new Color(0x3F, 0x7F, 0xC4), "@deckPlanBerthing"),
+            new Keyed(RoomPurpose.CREW_QUARTERS, new Color(0x2F, 0x5A, 0x8C), "@deckPlanCrew"),
+            new Keyed(RoomPurpose.VEHICLE_BAY, new Color(0xD8, 0x8B, 0x2F), "@deckPlanMechBay"),
+            new Keyed(RoomPurpose.HANGAR, new Color(0xD8, 0x5C, 0x9A), "@deckPlanBoatBay"),
+            new Keyed(RoomPurpose.ARMORY, new Color(0xC4, 0x4B, 0x4B), "@deckPlanArmory"),
+            new Keyed(RoomPurpose.FIRING_RANGE, new Color(0x9C, 0x4D, 0x2F), "@deckPlanRange"),
+            new Keyed(RoomPurpose.MESS_HALL, new Color(0xC9, 0xA2, 0x5E), "@deckPlanMess"),
+            new Keyed(RoomPurpose.PATIENT_WARD, new Color(0xE0, 0xE4, 0xEA), "@deckPlanSickBay"),
+            new Keyed(RoomPurpose.STOCKROOM, new Color(0x9A, 0x7A, 0x45), "@deckPlanHold"),
+            new Keyed(RoomPurpose.BRIDGE, new Color(0x8D, 0x6F, 0xC9), "@deckPlanBridge"));
 
     private static final Map<RoomPurpose, Color> NOTABLE = notable();
 
@@ -89,8 +90,8 @@ public final class DeckPlanCanvas implements CanvasProducer {
     }
 
     /** What the legend calls everything the plan does not tint. */
-    private static final String OTHER = "Other spaces";
-    private static final String PASSAGE_LABEL = "Passage";
+    private static final String OTHER = "@deckPlanOther";
+    private static final String PASSAGE_LABEL = "@deckPlanPassage";
 
     /** The body face; the legend is a caption rather than a heading. */
     private static final BitmapFont FONT = Fonts.INSIGNIA_15_AA;
@@ -299,9 +300,9 @@ public final class DeckPlanCanvas implements CanvasProducer {
      * narrows at both ends and the space over the fine end is empty.
      */
     private static void drawEnds(CanvasContext context, Frame frame) {
-        context.text(FONT, "BOW", frame.left() + frame.cell() * 0.5f,
+        context.text(FONT, Strings.get("deckPlanBow"), frame.left() + frame.cell() * 0.5f,
                 frame.top() + 2f, CAPTION);
-        String stern = "STERN";
+        String stern = Strings.get("deckPlanStern");
         context.text(FONT, stern,
                 frame.left() + frame.cell() * frame.frames()
                         - FONT.measureWidth(stern) - frame.cell() * 0.5f,
@@ -331,10 +332,11 @@ public final class DeckPlanCanvas implements CanvasProducer {
         if (hovered != null) {
             // Where in the ship, not just what: two squads berthed port and
             // starboard of the same spine live in different parts of a vessel.
-            text = label(hovered.purpose()) + "  ·  "
-                    + words(hovered.zone().name()) + " " + words(hovered.side().name());
+            text = Strings.join("separatorDot", label(hovered.purpose()),
+                    Strings.get("openingShipWord" + hovered.zone().name()) + " "
+                            + Strings.get("openingShipWord" + hovered.side().name()));
         } else if (map.topology.getRoomPurpose(x, y) == RoomPurpose.CORRIDOR) {
-            text = PASSAGE_LABEL;
+            text = Strings.resolve(PASSAGE_LABEL);
         } else {
             return;
         }
@@ -363,14 +365,14 @@ public final class DeckPlanCanvas implements CanvasProducer {
                                    float available) {
         float x = left;
         for (Keyed keyed : present) {
-            if (!fits(x, left, available, keyed.label())) return;
-            x += drawEntry(context, keyed.color(), keyed.label(), x, top);
+            if (!fits(x, left, available, Strings.resolve(keyed.label()))) return;
+            x += drawEntry(context, keyed.color(), Strings.resolve(keyed.label()), x, top);
         }
-        if (fits(x, left, available, PASSAGE_LABEL)) {
-            x += drawEntry(context, PASSAGE, PASSAGE_LABEL, x, top);
+        if (fits(x, left, available, Strings.resolve(PASSAGE_LABEL))) {
+            x += drawEntry(context, PASSAGE, Strings.resolve(PASSAGE_LABEL), x, top);
         }
-        if (anyOther && fits(x, left, available, OTHER)) {
-            drawEntry(context, UNREMARKABLE, OTHER, x, top);
+        if (anyOther && fits(x, left, available, Strings.resolve(OTHER))) {
+            drawEntry(context, UNREMARKABLE, Strings.resolve(OTHER), x, top);
         }
     }
 
@@ -409,13 +411,9 @@ public final class DeckPlanCanvas implements CanvasProducer {
 
     private static String label(RoomPurpose purpose) {
         for (Keyed keyed : KEY) {
-            if (keyed.purpose() == purpose) return keyed.label();
+            if (keyed.purpose() == purpose) return Strings.resolve(keyed.label());
         }
-        return words(purpose.name());
+        return Strings.get("openingShipWord" + purpose.name());
     }
 
-    private static String words(String constant) {
-        String spaced = constant.replace('_', ' ').toLowerCase(Locale.ROOT);
-        return Character.toUpperCase(spaced.charAt(0)) + spaced.substring(1);
-    }
 }

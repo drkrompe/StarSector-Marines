@@ -110,6 +110,7 @@ com.dillon.starsectormarines.battle.command.MissionEnvelopeScene
 com.dillon.starsectormarines.battle.command.MissionDefenceScene
 com.dillon.starsectormarines.battle.command.MissionFlowScene
 com.dillon.starsectormarines.battle.command.StoryDefenceScene
+com.dillon.starsectormarines.battle.command.PartyPlacesScene
 com.dillon.starsectormarines.battle.command.MachineGuardScene
 com.dillon.starsectormarines.battle.command.SallyPortScene
 com.dillon.starsectormarines.battle.sally.SallyDoorScene
@@ -119,3 +120,5 @@ com.dillon.starsectormarines.battle.evacuation.SwarmSpitterAirScene
 com.dillon.starsectormarines.battle.evacuation.SwarmStrainSkirmishScene
 com.dillon.starsectormarines.battle.evacuation.SwarmChokepointScene
 com.dillon.starsectormarines.battle.command.MissionCounterattackScene
+com.dillon.starsectormarines.battle.evacuation.SwarmBoreCollapseScene
+com.dillon.starsectormarines.battle.evacuation.SwarmSporeColonyScene

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f80-9246-7303-9762-b04550fced1a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f80-9246-7303-9762-b04550fced1a\\exec-497b718f-b71d-4b97-9307-6eb0d9c4008f.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\raw\\lashplate-harness.raw.png",
+    "sha256": "68223f04f347a546e47c6e7d44df5bfbfee9fc3779eeb137c0dc908252c916ca",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\prompts\\lashplate-harness.prompt.txt",
+  "promptSha256": "c40a383497466eb374976557a88e30b0d66d12f07b61622287aa4ee62c82e1c3",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Base design authority: the finished armory image of the suit this pattern varies; design, palette, composition and finish\nImage 2: Identity: the same suit seen from directly overhead in battle; palette and silhouette character\n\nUse case: style-matched variant of an existing product render. Asset: the armory catalogue image of one marine armour suit, for a gritty military dark-science-fiction tactical game in the Starsector setting.\n\nImage 1 is the finished armory image of the base suit this pattern belongs to: it is the authority for the design, palette, plate shapes, markings, composition, camera, lighting and realistic hand-painted finish. Produce a variant of this same suit that a player recognises at once as a sibling of Image 1, changing only what is described below and keeping everything else as Image 1 has it.\n\nImage 2 shows how this suit is drawn in battle, from directly overhead (left: the torso and shoulder plates; right: the helmet top). The variant must still match it in palette and silhouette character. Never show the overhead view itself.\n\nLashplate salvage harness: a cargo frame and pressure web with slabs of whatever a breaker crew could drill and wire into place. Cruder and cheaper than the Blackforge rig: an open tubular cargo frame worn like a harness, a pressure-web of straps, and a few uneven slabs of brick-red, rust and bare steel plate drilled through and wired on with visible twisted wire, exposed hoses and lines, badly balanced. The helmet is a scuffed salvage pressure helmet with one replacement plate. Expendable-hand protection; no spikes or skulls.\n\nSquare 1:1 canvas with every piece fully inside the frame and a clear margin. True transparent background, including the gaps between pieces; no ground, no cast-shadow slab, no border, no text, letters, numbers, logos or watermark, no person or face inside the suit, no weapon held or worn except an item named above.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\mod\\graphics\\ui\\armory\\armor-outlaw.png",
+      "sha256": "de27a9f9e642a255b5ddb6325318b97d072336b9910e4bfc4486fbfc7c26eb15",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Base design authority: the finished armory image of the suit this pattern varies; design, palette, composition and finish"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\refs\\outlaw-identity.png",
+      "sha256": "d077322ab66b64ad8f16f9eb6305643e7b8f55ed4d976cdaea8fd3f7a2a4bf05",
+      "dimensions": [
+        1280,
+        680
+      ],
+      "mode": "RGB",
+      "role": "Identity: the same suit seen from directly overhead in battle; palette and silhouette character"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one Lashplate salvage-harness variant using the supplied suit as the visual authority and preserving the transparent catalogue layout."
+  ],
+  "usage": {
+    "input_tokens": 38621,
+    "cached_input_tokens": 33408,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 545,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 73.9
+}

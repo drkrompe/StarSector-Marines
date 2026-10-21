@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
@@ -109,7 +110,7 @@ final class BattleHudOverlayModel {
         doubleStyle = reactor.signal(TIME_STYLE);
         quadStyle = reactor.signal(TIME_STYLE);
         objectivePanelClasses = reactor.signal(OBJECTIVE_PANEL_HIDDEN);
-        objectiveTitle = reactor.signal("CAPTURE");
+        objectiveTitle = reactor.signal(Strings.get("battleCapture"));
         objectiveScore = reactor.signal("");
         objectiveTally = reactor.signal("");
         objectiveChips = reactor.signal(List.of());
@@ -121,7 +122,7 @@ final class BattleHudOverlayModel {
         commandPanelClasses = reactor.signal(COMMAND_PANEL_HIDDEN);
         commandPhase = reactor.signal("");
         commandForce = reactor.signal("");
-        commandTitle = reactor.signal("COMMANDER");
+        commandTitle = reactor.signal(Strings.get("battleCommander"));
         conquestLanes = reactor.signal(List.of());
         conquestLaneClasses = reactor.signal("conquest-lanes");
         conquestGroupClasses = reactor.signal("conquest-groups conquest-groups-hidden");
@@ -139,7 +140,7 @@ final class BattleHudOverlayModel {
         props.put("missionPanelStyle", missionPanelStyle);
         props.put("missionListStyle", missionListStyle);
         props.put("missionScore", missionScore);
-        props.put("timeLabel", "TIME");
+        props.put("timeLabel", Strings.get("battleTime"));
         props.put("pauseLabel", speedLabels[0]);
         props.put("normalLabel", speedLabels[1]);
         props.put("doubleLabel", speedLabels[2]);
@@ -206,7 +207,7 @@ final class BattleHudOverlayModel {
         missionSquadStyle.set("");
         missionPanelStyle.set("");
         missionListStyle.set("");
-        objectiveTitle.set("CAPTURE");
+        objectiveTitle.set(Strings.get("battleCapture"));
         objectiveLocateClasses.set("objective-locate objective-locate-hidden");
         objectiveLocateDisabled.set(true);
         locateObjective = () -> { };
@@ -272,8 +273,7 @@ final class BattleHudOverlayModel {
             } else {
                 int percent = Math.round(focusProgress * 100f);
                 objectiveFocusClasses.set(OBJECTIVE_FOCUS);
-                objectiveFocus.set(kindName(focus.kind()) + " " + focusIndex
-                        + "  ·  CONTESTED " + percent + "%");
+                objectiveFocus.set(Strings.format("battleObjectiveFocus", kindName(focus.kind()), focusIndex, percent));
                 objectiveProgressStyle.set("width: " + percent + "%;");
             }
         }
@@ -354,21 +354,21 @@ final class BattleHudOverlayModel {
                             float progress, float duration, Runnable locate) {
         boolean secured = phase == RaidObjective.Phase.EGRESS || phase == RaidObjective.Phase.COMPLETE;
         boolean complete = phase == RaidObjective.Phase.COMPLETE;
-        objectiveTitle.set("MISSION OBJECTIVES");
+        objectiveTitle.set(Strings.get("battleRaidTitle"));
         objectivePanelClasses.set(OBJECTIVE_PANEL);
-        objectiveScore.set((complete ? 2 : secured ? 1 : 0) + " / 2");
+        objectiveScore.set(Strings.format("battleRaidScore", complete ? 2 : secured ? 1 : 0));
         objectiveChips.set(List.of(
-                new ObjectiveChip("battle-raid-seize", "1 / SEIZE" + (secured ? " / DONE" : " / ACTIVE"),
+                new ObjectiveChip("battle-raid-seize", Strings.get(secured ? "battleRaidSeizeDone" : "battleRaidSeizeActive"),
                         "objective-chip objective-raid " + (secured ? "objective-secured" : "objective-contested")),
-                new ObjectiveChip("battle-raid-return", "2 / RETURN" + (complete ? " / DONE" : secured ? " / ACTIVE" : " / NEXT"),
+                new ObjectiveChip("battle-raid-return", Strings.get(complete ? "battleRaidReturnDone" : secured ? "battleRaidReturnActive" : "battleRaidReturnNext"),
                         "objective-chip objective-raid " + (complete ? "objective-secured" : secured ? "objective-contested" : "objective-pending"))));
-        objectiveTally.set(targetName + (secured ? " / SECURED" : ""));
+        objectiveTally.set(secured ? Strings.format("battleRaidTallySecured", targetName) : targetName);
         objectiveFocusClasses.set(OBJECTIVE_FOCUS);
         objectiveFocus.set(switch (phase) {
-            case APPROACH -> "Secure site; hold " + Math.round(duration) + "s without enemies";
-            case SERVICE -> "Securing target / " + Math.round(clamp01(progress / duration) * 100) + "%";
-            case EGRESS -> "Target secured. Return to landing zone.";
-            case COMPLETE -> "Target recovered. Extraction complete.";
+            case APPROACH -> Strings.format("battleRaidApproach", Math.round(duration));
+            case SERVICE -> Strings.format("battleRaidService", Math.round(clamp01(progress / duration) * 100));
+            case EGRESS -> Strings.get("battleRaidEgress");
+            case COMPLETE -> Strings.get("battleRaidComplete");
         });
         objectiveProgressStyle.set("width: " + Math.round(100 * (secured ? 1f : clamp01(progress / duration))) + "%;");
         objectiveLocateClasses.set("objective-locate");
@@ -379,16 +379,15 @@ final class BattleHudOverlayModel {
 
     Presentation updateIntervention(Phase phase, String instruction, int remainingWalls, int initialWalls,
                                     boolean companyRecovered) {
-        objectiveTitle.set(phase == Phase.EVIDENCE ? "A COLD ACCOUNT" : "HEGEMONY / " + phase);
+        objectiveTitle.set(phase == Phase.EVIDENCE ? Strings.get("battleInterventionTitle") : Strings.format("battleInterventionPhaseTitle", Strings.named("battleInterventionPhase", phase.name())));
         objectivePanelClasses.set(OBJECTIVE_PANEL);
         objectiveScore.set("");
         objectiveTally.set(switch (phase) {
-            case EVIDENCE -> "DISPATCH OFFICE / RECOVER RECORDS";
-            case WITHDRAW, WARNING, BOMBARD -> "CLEAR FIRING AREA > SHUTTLE PICKUP";
-            case PATROL, AFTERMATH -> companyRecovered ? "COMPANY RECOVERED / STRONGHOLD SILENCED"
-                    : "STRONGHOLD SILENCED / SHUTTLE PICKUP";
-            case COMPLETE -> "COMPANY RECOVERED / STRONGHOLD SILENCED";
-            case FAILED -> "INTERVENTION FAILED";
+            case EVIDENCE -> Strings.get("battleInterventionEvidence");
+            case WITHDRAW, WARNING, BOMBARD -> Strings.get("battleInterventionClear");
+            case PATROL, AFTERMATH -> Strings.get(companyRecovered ? "battleInterventionRecovered" : "battleInterventionSilenced");
+            case COMPLETE -> Strings.get("battleInterventionRecovered");
+            case FAILED -> Strings.get("battleInterventionFailed");
         });
         objectiveChips.set(List.of());
         objectiveFocusClasses.set(OBJECTIVE_FOCUS);
@@ -399,30 +398,29 @@ final class BattleHudOverlayModel {
 
     /** Read-only convoy report; a captured site is a release condition, never a delivery. */
     void updateFreight(int phase, List<Integer> identities, List<String> cargo, int delivered, int lost) {
-        objectiveTitle.set(phase == 3 ? "THUNDER RUN" : "FREIGHT COLUMN");
+        objectiveTitle.set(Strings.get(phase == 3 ? "battleFreightThunderRun" : "battleFreightColumn"));
         objectivePanelClasses.set(OBJECTIVE_PANEL);
-        objectiveScore.set(delivered + " / " + cargo.size());
+        objectiveScore.set(Strings.format("battleFreightScore", delivered, cargo.size()));
         List<ObjectiveChip> chips = new ArrayList<>();
         for (int i = 0; i < cargo.size(); i++) chips.add(new ObjectiveChip("battle-cargo-" + i,
-                (identities.get(i) + 1) + " / " + (cargo.get(i).equals("DELIVERED") ? "OUT" : cargo.get(i).equals("LOST") ? "LOST" : cargo.get(i).equals("WAITING") ? "WAIT" : "ROAD"), "objective-chip objective-cargo " + (cargo.get(i).equals("DELIVERED") ? "objective-secured"
+                Strings.format("battleFreightChip", identities.get(i) + 1, Strings.get(cargo.get(i).equals("DELIVERED") ? "battleFreightOut" : cargo.get(i).equals("LOST") ? "battleFreightLost" : cargo.get(i).equals("WAITING") ? "battleFreightWait" : "battleFreightRoad")), "objective-chip objective-cargo " + (cargo.get(i).equals("DELIVERED") ? "objective-secured"
                 : cargo.get(i).equals("LOST") ? "objective-hostile" : "objective-contested")));
         objectiveChips.set(List.copyOf(chips));
-        objectiveTally.set(delivered + " DELIVERED  /  " + lost + " LOST");
+        objectiveTally.set(Strings.format("battleFreightTally", delivered, lost));
         objectiveFocusClasses.set(OBJECTIVE_FOCUS);
         objectiveFocus.set(switch (phase) {
-            case 0 -> "SECURE DISPATCH POST";
-            case 1 -> "SECURE EAST CROSSING";
-            case 2 -> "SECURE OUTBOUND GATE";
-            default -> "COVER THE COLUMN TO THE EXIT";
+            case 0 -> Strings.get("battleFreightDispatch");
+            case 1 -> Strings.get("battleFreightCrossing");
+            case 2 -> Strings.get("battleFreightGate");
+            default -> Strings.get("battleFreightExit");
         });
         objectiveProgressStyle.set("width: " + Math.round(100f * (delivered + lost) / Math.max(1, cargo.size())) + "%;");
     }
 
     void updateFreightHold(int site, int ticks) {
         if (site <= 0) return;
-        objectiveTitle.set("HOLD THE FREIGHT ROAD");
-        objectiveFocus.set((site == 1 ? "DISPATCH" : "EAST CROSSING")
-                + " / HOLD " + (ticks + 29) / 30 + "s");
+        objectiveTitle.set(Strings.get("battleFreightHoldTitle"));
+        objectiveFocus.set(Strings.format(site == 1 ? "battleFreightHoldDispatch" : "battleFreightHoldCrossing", (ticks + 29) / 30));
     }
 
     private boolean updateConquestCommand(CommanderSnapshot<?> commander) {
@@ -441,10 +439,10 @@ final class BattleHudOverlayModel {
         commandPanelClasses.set(COMMAND_PANEL);
         commandPhase.set(phaseLabel(front.phase()));
         boolean grouped = !front.groups().isEmpty();
-        commandTitle.set(grouped ? "COMMAND GROUPS" : "COMMANDER");
-        commandForce.set(commander.commandPoolSize() + " SQUADS  ·  "
-                + (grouped ? front.groups().size() + " GROUPS  ·  " : "")
-                + commander.reserveCount() + " RESERVE");
+        commandTitle.set(Strings.get(grouped ? "battleCommandGroups" : "battleCommander"));
+        commandForce.set(grouped
+                ? Strings.format("battleCommandForceGroups", commander.commandPoolSize(), front.groups().size(), commander.reserveCount())
+                : Strings.format("battleCommandForce", commander.commandPoolSize(), commander.reserveCount()));
         conquestLaneClasses.set(grouped ? "conquest-lanes conquest-lanes-hidden" : "conquest-lanes");
         conquestGroupClasses.set(grouped ? "conquest-groups"
                 : "conquest-groups conquest-groups-hidden");
@@ -468,13 +466,13 @@ final class BattleHudOverlayModel {
         for (int index = 0; index < individualRows; index++) {
             ConquestFrontSnapshot.GroupState group = ordered.get(index);
             String id = "battle-conquest-group-" + index;
-            String intent = group.task() + (group.rallying() ? " · RALLY" : "");
-            String target = group.targetKind() == null ? "NO TARGET" : switch (group.targetKind()) {
-                case SECURE_COMPOUND -> "COMPOUND";
-                case CLEAR_ZONE -> "OBJECTIVE AREA";
-                case ADVANCE_TRACK, ATTACK_MOVE -> "ROUTE";
-                case HOLD_NODE, DEFEND_AREA, DEFEND_TRACK, DEFEND_SITE -> "POSITION";
-                default -> group.targetKind().name().replace('_', ' ');
+            String intent = group.rallying() ? Strings.format("battleGroupIntentRally", Strings.named("conquestTask", group.task())) : Strings.named("conquestTask", group.task());
+            String target = group.targetKind() == null ? Strings.get("battleTargetNone") : switch (group.targetKind()) {
+                case SECURE_COMPOUND -> Strings.get("battleTargetCompound");
+                case CLEAR_ZONE -> Strings.get("battleTargetArea");
+                case ADVANCE_TRACK, ATTACK_MOVE -> Strings.get("battleTargetRoute");
+                case HOLD_NODE, DEFEND_AREA, DEFEND_TRACK, DEFEND_SITE -> Strings.get("battleTargetPosition");
+                default -> Strings.named("assignmentKind", group.targetKind().name());
             };
             rows.add(new ConquestGroup(id, group.identity().label(),
                     groupForce(front, group.squadIds()), intent, target,
@@ -484,19 +482,20 @@ final class BattleHudOverlayModel {
             List<ConquestFrontSnapshot.GroupState> rest = ordered.subList(individualRows, ordered.size());
             long officers = rest.stream().filter(group -> group.identity().namedOfficer()).count();
             long ncos = rest.size() - officers;
-            String label = officers > 0 ? officers + " OFFICERS + " + ncos + " NCO GROUPS"
-                    : ncos + " ACTING NCO GROUPS";
+            String label = officers > 0 ? Strings.format("battleGroupOfficers", officers, ncos)
+                    : Strings.format("battleGroupActingNcos", ncos);
             Map<String, Integer> tasks = new LinkedHashMap<>();
             for (String task : List.of("HOLD", "ASSAULT", "MIXED", "UNASSIGNED")) {
                 int count = (int) rest.stream().filter(group -> task.equals(group.task())).count();
                 if (count > 0) tasks.put(task, count);
             }
-            String intent = String.join(" · ", tasks.entrySet().stream()
-                    .map(entry -> entry.getValue() + " " + entry.getKey()).toList());
+            String intent = Strings.join("separatorDot", tasks.entrySet().stream()
+                    .map(entry -> Strings.format("battleGroupTaskCount", entry.getValue(), Strings.named("conquestTask", entry.getKey())))
+                    .toArray(String[]::new));
             long rallying = rest.stream().filter(ConquestFrontSnapshot.GroupState::rallying).count();
             rows.add(new ConquestGroup("battle-conquest-group-summary", label,
                     groupForce(front, rest.stream().flatMap(group -> group.squadIds().stream()).toList()),
-                    intent, rallying > 0 ? rallying + " RALLYING" : "VARIED TARGETS",
+                    intent, rallying > 0 ? Strings.format("battleRallying", rallying) : Strings.get("battleVariedTargets"),
                     "conquest-group conquest-group-summary"));
         }
         return List.copyOf(rows);
@@ -510,7 +509,7 @@ final class BattleHudOverlayModel {
             if (state == null) complete = false;
             else live += state.aliveMembers();
         }
-        return squadIds.size() + " SQ" + (complete ? " · " + live + " LIVE" : "");
+        return complete ? Strings.format("battleGroupForceLive", squadIds.size(), live) : Strings.format("battleGroupForce", squadIds.size());
     }
 
     private static ConquestLane projectLane(
@@ -524,30 +523,29 @@ final class BattleHudOverlayModel {
         }
 
         String intent = switch (front.phase()) {
-            case KEEP_CONVERGENCE -> "KEEP ASSAULT";
-            case FINAL_COMPOUND_CONVERGENCE -> "FINAL ASSAULT";
+            case KEEP_CONVERGENCE -> Strings.get("battleLaneKeepAssault");
+            case FINAL_COMPOUND_CONVERGENCE -> Strings.get("battleLaneFinalAssault");
             default -> dominantIntent(assignments, track.effectiveSquads());
         };
         String status;
         String classes = "conquest-lane";
         if (track.effectiveSquads() == 0) {
-            status = "NO FORCE";
+            status = Strings.get("battleLaneNoForce");
             classes += " conquest-lane-empty";
         } else if (track.knownHostileContacts() > 0) {
-            status = track.knownHostileContacts() + (track.knownHostileContacts() == 1
-                    ? " CONTACT" : " CONTACTS");
+            status = Strings.format("battleLaneContacts", track.knownHostileContacts());
             classes += " conquest-lane-contact";
         } else if (track.targetZoneId() >= 0) {
-            status = "OBJECTIVE";
+            status = Strings.get("battleLaneObjective");
             classes += " conquest-lane-objective";
         } else {
-            status = "ON LINE";
+            status = Strings.get("battleLaneOnLine");
         }
         String laneName = switch (track.index()) {
-            case 0 -> "ALPHA";
-            case 1 -> "BRAVO";
-            case 2 -> "CHARLIE";
-            default -> "LANE " + (track.index() + 1);
+            case 0 -> Strings.get("battleLaneAlpha");
+            case 1 -> Strings.get("battleLaneBravo");
+            case 2 -> Strings.get("battleLaneCharlie");
+            default -> Strings.format("battleLaneNumber", track.index() + 1);
         };
         String id = "battle-conquest-lane-" + track.index();
         return new ConquestLane(id, id + "-name", id + "-force", id + "-intent",
@@ -570,25 +568,19 @@ final class BattleHudOverlayModel {
                 bestCount = count;
             }
         }
-        if (best == null) return effectiveSquads > 0 ? "HOLDING" : "UNASSIGNED";
+        if (best == null) return Strings.get(effectiveSquads > 0 ? "battleLaneHolding" : "battleLaneUnassigned");
         String label = switch (best) {
-            case SECURE_COMPOUND -> "SECURE";
-            case ATTACK_MOVE -> "PUSH";
-            case ADVANCE_TRACK -> "ADVANCE";
-            case CLEAR_ZONE -> "CLEAR";
-            case SUPPORT -> "SUPPORT";
-            case HOLD_NODE -> "HOLD";
-            default -> best.name().replace('_', ' ');
+            default -> Strings.named("assignmentKind", best.name());
         };
-        return bestCount > 1 ? label + " x" + bestCount : label;
+        return bestCount > 1 ? Strings.format("battleLaneMultiple", label, bestCount) : label;
     }
 
     private static String phaseLabel(ConquestFrontSnapshot.Phase phase) {
         return switch (phase) {
-            case LANE_ADVANCE -> "ADVANCING THE FRONT";
-            case FRONT_ADJUST -> "SHIFTING SUPPORT";
-            case KEEP_CONVERGENCE -> "CONVERGING ON KEEP";
-            case FINAL_COMPOUND_CONVERGENCE -> "SECURING LAST COMPOUND";
+            case LANE_ADVANCE -> Strings.get("battlePhaseAdvance");
+            case FRONT_ADJUST -> Strings.get("battlePhaseAdjust");
+            case KEEP_CONVERGENCE -> Strings.get("battlePhaseKeep");
+            case FINAL_COMPOUND_CONVERGENCE -> Strings.get("battlePhaseFinal");
         };
     }
 
@@ -613,12 +605,7 @@ final class BattleHudOverlayModel {
     }
 
     private static String kindName(TacticalNode.Kind kind) {
-        return switch (kind) {
-            case COMMAND_POST -> "COMMAND POST";
-            case BARRACKS -> "BARRACKS";
-            case ARMORY -> "ARMORY";
-            default -> kind.name().replace('_', ' ').toUpperCase(Locale.ROOT);
-        };
+        return Strings.upper(Strings.named("tacticalKind", kind.name()));
     }
 
     private static float clamp01(float value) {

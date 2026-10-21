@@ -1,0 +1,78 @@
+{
+ "borer_metres_per_unit": 0.25,
+ "shepherd_metres_per_unit": 0.78,
+ "root_scale": 0.3205,
+ "shepherd_build": "C:/Users/Dillon/IdeaProjects/starsectormarines/.claude/worktrees/keen-chaum-28cdee/build/ships/shepherd/shepherd.blend",
+ "borer_build": "C:/Users/Dillon/IdeaProjects/starsectormarines/.claude/worktrees/keen-chaum-28cdee/art-source/company-prologue/borer-cinematic/borer.blend",
+ "stations": [
+  {
+   "station": 1,
+   "launch_point": [
+    -3.0,
+    19.0,
+    -4.07
+   ],
+   "overlaps": [],
+   "pad_height_above_deck_m": {
+    "Foot port aft pad": 0.0,
+    "Foot port fore pad": 0.0,
+    "Foot starboard aft pad": 0.0,
+    "Foot starboard fore pad": 0.0
+   },
+   "socket_gap_to_contact_m": 0.002,
+   "charging_contact": "Drone bay WS 003 opening 1 charging contact",
+   "nearest_other_geometry_m": 0.396,
+   "nearest_other": "Drone bay WS 003 opening 1 charging umbilical",
+   "lift_to_mouth_clear": true,
+   "lift_steps_m": 10.5,
+   "lift_blocked_by": [],
+   "ok": true
+  },
+  {
+   "station": 2,
+   "launch_point": [
+    12.0,
+    19.0,
+    -4.07
+   ],
+   "overlaps": [],
+   "pad_height_above_deck_m": {
+    "Foot port aft pad": 0.0,
+    "Foot port fore pad": 0.0,
+    "Foot starboard aft pad": 0.0,
+    "Foot starboard fore pad": 0.0
+   },
+   "socket_gap_to_contact_m": 0.002,
+   "charging_contact": "Drone bay WS 003 opening 2 charging contact",
+   "nearest_other_geometry_m": 0.396,
+   "nearest_other": "Drone bay WS 003 opening 2 charging umbilical",
+   "lift_to_mouth_clear": true,
+   "lift_steps_m": 10.5,
+   "lift_blocked_by": [],
+   "ok": true
+  },
+  {
+   "station": 3,
+   "launch_point": [
+    26.0,
+    19.0,
+    -4.07
+   ],
+   "overlaps": [],
+   "pad_height_above_deck_m": {
+    "Foot port aft pad": 0.0,
+    "Foot port fore pad": 0.0,
+    "Foot starboard aft pad": 0.0,
+    "Foot starboard fore pad": 0.0
+   },
+   "socket_gap_to_contact_m": 0.002,
+   "charging_contact": "Drone bay WS 003 opening 3 charging contact",
+   "nearest_other_geometry_m": 0.396,
+   "nearest_other": "Drone bay WS 003 opening 3 charging umbilical",
+   "lift_to_mouth_clear": true,
+   "lift_steps_m": 10.5,
+   "lift_blocked_by": [],
+   "ok": true
+  }
+ ]
+}

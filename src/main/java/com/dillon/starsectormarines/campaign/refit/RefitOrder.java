@@ -196,16 +196,16 @@ public enum RefitOrder {
         bill(REC_LOUNGE_OPEN, Commodities.METALS, 10);
         bill(BRIG_OPEN, Commodities.METALS, 15);
         bill(RANGE_MACHINERY, Commodities.HEAVY_MACHINERY, 6, Commodities.METALS, 20);
-        bill(RANGE_SIMULATOR, Commodities.RARE_METALS, 10, Commodities.HEAVY_MACHINERY, 8);
+        bill(RANGE_SIMULATOR, Commodities.GAMMA_CORE, 1, Commodities.RARE_METALS, 10, Commodities.HEAVY_MACHINERY, 8);
         bill(GYM_CONDITIONING, Commodities.HEAVY_MACHINERY, 4, Commodities.METALS, 15);
         bill(GYM_TRACK, Commodities.METALS, 30, Commodities.HEAVY_MACHINERY, 6);
         bill(SICK_BAY_SURGERY, Commodities.HEAVY_MACHINERY, 5, Commodities.RARE_METALS, 5);
-        bill(SICK_BAY_TRAUMA, Commodities.HEAVY_MACHINERY, 8, Commodities.RARE_METALS, 10);
+        bill(SICK_BAY_TRAUMA, Commodities.GAMMA_CORE, 1, Commodities.HEAVY_MACHINERY, 8, Commodities.RARE_METALS, 10);
         bill(REC_LOUNGE_CENTRE, Commodities.METALS, 15, Commodities.HEAVY_MACHINERY, 2);
         bill(REC_LOUNGE_SHORE_LEAVE, Commodities.METALS, 25, Commodities.RARE_METALS, 5);
         bill(MECH_CALIBRATION_RESTORED, Commodities.HEAVY_MACHINERY, 2);
         bill(MECH_CALIBRATION_I, Commodities.RARE_METALS, 5);
-        bill(MECH_CALIBRATION_II, Commodities.RARE_METALS, 10, Commodities.HEAVY_MACHINERY, 4);
+        bill(MECH_CALIBRATION_II, Commodities.BETA_CORE, 1, Commodities.RARE_METALS, 10, Commodities.HEAVY_MACHINERY, 4);
         bill(MECH_COOLANT_RESTORED, Commodities.HEAVY_MACHINERY, 3);
         bill(MECH_COOLANT_I, Commodities.HEAVY_MACHINERY, 6, Commodities.METALS, 10);
         bill(MECH_COOLANT_II, Commodities.HEAVY_MACHINERY, 10, Commodities.RARE_METALS, 8);
@@ -223,7 +223,7 @@ public enum RefitOrder {
         bill(WARDROOM_II, Commodities.HEAVY_MACHINERY, 4, Commodities.RARE_METALS, 6);
         bill(BRIEFING_RESTORED, Commodities.METALS, 5);
         bill(BRIEFING_I, Commodities.METALS, 15);
-        bill(BRIEFING_II, Commodities.HEAVY_MACHINERY, 2, Commodities.RARE_METALS, 6);
+        bill(BRIEFING_II, Commodities.GAMMA_CORE, 1, Commodities.HEAVY_MACHINERY, 2, Commodities.RARE_METALS, 6);
         bill(HOLDS_RESTORED, Commodities.METALS, 20);
         bill(HOLDS_I, Commodities.METALS, 40);
         bill(HOLDS_II, Commodities.METALS, 60, Commodities.HEAVY_MACHINERY, 6);

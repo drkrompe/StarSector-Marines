@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fb9-b93f-76e2-8128-11b6773b6cfa",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fb9-b93f-76e2-8128-11b6773b6cfa\\exec-709e990d-f6e9-4c65-b67c-346d26ed1ae4.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "rounds\\round-2\\raw\\c7.png",
+    "sha256": "557735c232f044318baa59b7004b19d251f079933f40eaa2cc711dc5fbc6482e",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "rounds\\round-2\\prompts\\c7.prompt.txt",
+  "promptSha256": "7ac80bee16c6ff2c58b26ba8d30abaf72b253179969dc9c74449609e2eebc643",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Spike, banding and finish reference (the owner liked these sickles and stripes); NOT its insect anatomy\n\nTop-down concept for a tactical game (Starsector mod: Marines against an engineered biological weapon). ONE creature, the Runner: the swarm's fast hunter. A BEAST first and an insect second: a four-legged predator with a dog or big-cat frame, a thick muscular neck and shoulders, a deep chest, NO thin waist, strong haunches, legs that read as muscled limbs (not thin jointed sticks), held out in a wide mid-stride lope. Chitin is ARMOUR laid over that body, not the whole anatomy: a shoulder shield, a line of spine plates, a banded armoured tail, with dark leathery hide or membrane showing between the plates. A monster's head: a fanged maw or heavy jaws (small mandibles at most), small amber eye clusters, no antennae. On its back, jointed striking spikes that arch forward over the head, cocked to stab down past it. Strict overhead orthographic view, camera looking straight down at its back, facing UP (head toward the top), centred, filling about two thirds of the frame. Near-black walnut and dark brown chitin plates with pale cream edges, a crisp lacquer sheen, light from the upper left; dark hide between plates. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n\nThis concept: Big-cat beast with twin sickles: two curved sickle spikes rise from between the shoulder blades and cross over the head like scissors; a long banded armoured tail with bright cream bands; cream-rimmed shoulder shield.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "rounds\\round-2\\raw\\c1.png",
+      "sha256": "d54a65d9d3b4e1a89e73eaa6d9f9199f4b2989117505c91b5ab1c9270a8ac2c7",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Spike, banding and finish reference (the owner liked these sickles and stripes); NOT its insect anatomy"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image with the big-cat anatomy, crossed sickles, and cream banding you described.\n"
+  ],
+  "usage": {
+    "input_tokens": 41420,
+    "cached_input_tokens": 32512,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 587,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 53.1
+}

@@ -342,7 +342,7 @@ public final class ArrivalCinematicScreen implements Screen {
         field(centre, top - 66 * s, 1020 * s, 140 * s, 36 * s, 0.42f * (float) state.fieldAlpha() * l.alpha());
         if (state.tagSpeaker() != null) {
             Speaker speaker = sequence.shot(shot).speakers().get(state.tagSpeaker());
-            String label = speaker == null ? state.tagSpeaker().toUpperCase() : Strings.get(speaker.labelKey());
+            String label = speaker == null ? state.tagSpeaker().toUpperCase(Strings.locale()) : Strings.get(speaker.labelKey());
             Color color = speaker == null ? PLAYER : color(speaker.color());
             BitmapFont font = Fonts.ORBITRON_12_BOLD;
             float sc = 1.15f * s;

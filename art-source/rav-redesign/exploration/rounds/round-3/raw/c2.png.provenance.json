@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fbf-9759-7c41-bdbb-b47488bacbec",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fbf-9759-7c41-bdbb-b47488bacbec\\exec-2de76140-a445-4b03-9b92-bfaff6ec74cf.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\round-3\\raw\\c2.png",
+    "sha256": "cbbe9caabc8b9d524ccf305557ee3b1c7c00f4d8e8526f914d193661b6f43fb2",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\round-3\\prompts\\c2.prompt.txt",
+  "promptSha256": "b30ddb990e29ddce48d79f706fc4369670cf39935711fb234f219bb0f08a9fae",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nTop-down concept for a tactical game (Starsector mod: Marines against an engineered biological weapon). ONE creature, the Runner: the swarm's fast hunter, original design. A lean, vicious four-legged predator with a dog or big-cat frame: thick muscular neck and shoulders, deep chest, NO thin waist, strong haunches, muscled legs ending in hooked claws, held out in a wide mid-stride lope. Armoured carapace plates laid over a body of exposed wet sinew and flesh: a shoulder shield, a line of spine plates, a short armoured tail, with ridged flesh showing in every gap and joint. A monster's head: a wide fanged maw, small glowing eyes, no antennae. On its back, jointed striking spikes or blades that arch forward over the head, cocked to stab down past it. Palette: purples. Glossy carapace in deep violet and plum, fleshy gaps in a darker wet magenta-crimson, spike tips and claw tips in ivory bone, eyes a small hot amber glow; organic, alien, menacing, classic RTS alien-swarm finish. Strict overhead orthographic view, camera looking straight down at its back, facing UP (head toward the top), centred, filling about two thirds of the frame, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n\nThis concept: Hyena with twin lances: high hunched shoulders, heavy jaw, two straight jointed lances rise from the shoulders and point forward past the head; plum carapace.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one overhead Runner concept with hunched shoulders, a heavy jaw, and twin forward-pointing lances."
+  ],
+  "usage": {
+    "input_tokens": 37204,
+    "cached_input_tokens": 33152,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 461,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 48.8
+}

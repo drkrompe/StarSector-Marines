@@ -1,10 +1,10 @@
 # Garrisonables
 
-Status: ACTIVE — reactive manning is shipped for fighting-position runs, a stretch at a time, and for building envelopes, on both Conquest sides (the defender's own belts, compound aprons and compound buildings, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans, runs and buildings alike (player on any map, both Conquest commanders on any ground they man), and the Raid, Assault, Sabotage and Extraction defenders man their maps' places reactively too and stage their roving reserve toward pressure, half at the places and half forward in the street, their lances guarding what they man, and the story commanders offer their standing-duty squads to the same planner within a share, and a holder sorties from a walled place it holds through a sally door in its own wall; the compound perimeter and emplacements remain direction.
+Status: ACTIVE — reactive manning is shipped for fighting-position runs, a stretch at a time, and for building envelopes, on both Conquest sides (the defender's own belts, compound aprons and compound buildings, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans, runs and buildings alike (player on any map, both Conquest commanders on any ground they man), and the Raid, Assault, Sabotage and Extraction defenders man their maps' places reactively too and stage their roving reserve toward pressure, half at the places and half forward in the street, their lances guarding what they man, and the story commanders offer their standing-duty squads to the same planner within a share, and a holder sorties from a walled place it holds through a sally door in its own wall; any party, an employer's constables or militia among them, mans places through the same planner by its own picture, and a mission speaks to a party through place directives (hold, lock, counter-attack) with generic triggers; the compound perimeter and emplacements remain direction.
 
 Written: 2026-10-13
 
-Updated: 2026-10-21 — the fight mix is measured on every mission against each garrison feature's control, and building envelopes are what move it (fight mix by mission); the trial-ground hold and mission-defender figures are refreshed on the current build; the mission defenders stage their roving reserve toward pressure, half waiting at the places and half meeting the attack in the street (mission defenders, flow); every story commander has a commander-evidence harness, A Small War's commander offers its posts clear of the stages and the other eight have no standing hostile duty to offer (story commanders, below); story commanders man reactively through a hosted planner and a holder share; a sally door shuts again: its holder shuts it behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body, and an open door of a place its holder lost stays open (sally doors, below); not every fight is into prepared positions is a law; a holder sorties from a walled place it holds through a sally door in its own wall (sally doors, below); the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
+Updated: 2026-10-21 — parties are sides of the garrison system, a mission speaks to any party's commander through place directives and their triggers, and a locked position is a place a party must take and hold (parties, place directives, locked positions, parties wired); the fight mix is measured on every mission against each garrison feature's control, and building envelopes are what move it (fight mix by mission); the trial-ground hold and mission-defender figures are refreshed on the current build; the mission defenders stage their roving reserve toward pressure, half waiting at the places and half meeting the attack in the street (mission defenders, flow); every story commander has a commander-evidence harness, A Small War's commander offers its posts clear of the stages and the other eight have no standing hostile duty to offer (story commanders, below); story commanders man reactively through a hosted planner and a holder share; a sally door shuts again: its holder shuts it behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body, and an open door of a place its holder lost stays open (sally doors, below); not every fight is into prepared positions is a law; a holder sorties from a walled place it holds through a sally door in its own wall (sally doors, below); the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
 
 ## Why this exists
 
@@ -593,7 +593,7 @@ Counterattack depot's guards (gate, yard and rear guard on their stages) and A
 Small War's Greyhook groups on posts clear of the stages (the service-road
 picket and the pier crew).
 
-Not wired, because the hostile side has no standing duty to offer: Relief's
+Not wired as hostile sides, because they have no standing duty to offer: Relief's
 defender assaults the anchor; in The Yard's Owners, Water Under Seal, Limited
 Warrant, District Escort, Salvage Rights, Cold Start and Working Passage every
 hostile squad attack-moves onto the work, the hall, the lane crossing or the
@@ -601,8 +601,9 @@ ambush ground, or walks out; in Terms of Protection Greyhook's sections
 attack-move and the one squad that holds is the mortar team, whose post is its
 tube. Those commanders' standing duties are the company's and the employer's
 parties' (constables at the apron, militia at a workshop or a pump court, the
-estate guards at the Cinder Steps gate), and the company is the player's:
-whether a story ally should man is open (below). Each of the nine has a
+estate guards at the Cinder Steps gate), and the company is the player's. The
+employer's parties man as parties (below): The Yard's Owners' and Limited
+Warrant's constables are wired, the other six are not yet. Each of the nine has a
 zero-input harness all the same (`commander-evidence-missions.md`, story
 missions without a planner), so a later duty change is measured, not assumed.
 
@@ -654,6 +655,208 @@ envelope order, every holder is in the story's roster on its published pulse, a
 holder whose duty moves takes its authored order back within a pulse, no squad
 is sent past the share, and the reserve-committed beat fires when the picture
 commits the reserve.
+
+## Parties
+
+Owner, 2026-10-21: "We should try to model neutral / allied parties as well.
+Missions may have triggers which say when they should consider taking new parts
+of the map or so on to make things interesting, but otherwise I want to have
+generic systems we can re-use. There might also be locked positions that allies
+are meant to take and hold à la Thunder Run."
+
+A **party** is a force on the field under a commander of its own: one per
+faction with strategic agency (`ai-nouns.md`, sides). The company is the
+player's; the opposition is `DEFENDER`; an employer's or patron's force —
+constables, militia, estate guards, a garrison's auxiliaries — is `ALLY`; the
+residents are `CIVILIAN`. The garrison system is keyed by party, never by which
+side of the fight it is on: the planner is handed one party's own picture, the
+squads that party's commander offers and the map's places, and answers for that
+party alone (`MissionGarrisons`; `PartyPlaces` hosts it for any party
+commander).
+
+- **A party's places are its own commander's.** Only a party's commander offers
+  its squads, under its own issuer and authority, so the commander reads a
+  holder as its own on the next pulse. No commander offers another party's
+  squads, and the player's company is never manned by a commander: the occupy
+  and line orders and the GARRISON stance remain its verbs. An ally is not the
+  player's to command (`ai-nouns.md`).
+- **Belief from its own picture.** A party's pressure is its own faction
+  influence, built from its own squads' believed contacts, never the company's
+  and never truth. `ALLY` has a picture of its own, published beside the
+  company's and the defender's whenever the battle fields allied combatants, and
+  an allied holder stands to at its windows by it. Constables at a dispatch house
+  man its windows because they have seen the counter-attack coming, not because
+  the company has.
+- **A party guards the place it was put on.** The story commanders offer an
+  employer's squad only while its duty is a standing one, and only for the place
+  its post stands in or touches: it holds that building from its windows rather
+  than standing in its yard, and is never sent to the next building on its own
+  initiative, since an employer's post is often what a story counts (the Yard's
+  Owners inspection needs a friendly body in every site). A place directive opens
+  more (below).
+- **A share, then the mission's allowance.** The story share (a third of the
+  party's own infantry, none for a lone squad) bounds what a party mans on its own
+  initiative; an active hold directive adds its own allowance for its own places,
+  because a mission that says "hold this" says how many it means.
+- **Civilians are a party with no fighters.** Nothing is offered for them.
+  Whether residents should shelter in buildings is a different question (open).
+- `-Dbattle.party.places=false` is the control: no allied picture, no party
+  manning and no hold directives, the battle as it was. A locked position that
+  re-expresses an authored duty (Thunder Run's militia) does not follow the
+  switch, since it is the story's order and not a feature on top of it.
+
+## Place directives
+
+A **place directive** is a mission's word to one party's commander about one
+place: what to do there (its kind), where (its target), when to begin (its
+`when` trigger) and when to stop (its `until` trigger). It is declared once, at
+mission setup, held by that party's commander and evaluated on every one of its
+pulses over its own frame (`PlaceDirective`, `PlaceDirectives`). It is the one
+seam by which a mission, story or procedural, makes its battle move — "consider
+taking this region once the reserve commits", "hold this gain once the company
+has it", "counter-attack this place when it is lost" — without a mission-specific
+code path in any commander. Commanders may still plan their authored duties as
+before; a directive adds to them.
+
+- **Kinds.** `HOLD`: consider holding the target. Its places are open to the
+  party's reactive manning within the directive's allowance, its free squads
+  offered roving for them and its standing-duty squads beside their posts; belief
+  still decides whether anybody goes, so a hold directive opens places, it never
+  fills them, and its free squads are staged toward pressure, back at the places
+  and forward to meet the attack, by the flow tier's laws. `LOCK`: a locked
+  position (below). `COUNTER_ATTACK`: retake the target. A counter-attack
+  directive names the place and when; how and with what is the commander's
+  counter-attack's (`conquest-command.md`, Defender command), which reads the
+  active ones each pulse. A new kind joins this list rather than starting a
+  parallel mechanism.
+- **Target.** A region of public geometry: a centre cell and a radius (cells,
+  square). Its places are the garrisonables whose centre lies in it. A lock may
+  also name posts, its own cells to stand on.
+- **Lifecycle.** Dormant, active, released. On every pulse each directive is
+  evaluated once, in declaration order, on that pulse's frame: an active one
+  whose `until` holds is released; a dormant one whose `when` holds becomes
+  active unless its `until` already holds too; never both on one pulse, so a
+  directive that comes on is held for at least one. A released directive stays released unless it is declared to
+  **re-arm**, in which case it is dormant again from the next pulse (a
+  counter-attack that may be tried again). The order directives became active in
+  is remembered, ties in declaration order; it is what orders locked positions.
+- **Triggers** are generic predicates, never a mission's own code: always and
+  never; a tick reached; active for a number of ticks; a named mission **stage**
+  at least a value (a phase reached); a named mission **flag** (a beat fired, a
+  public fact such as a site the company holds); the target, or another region,
+  **held** — own, hostile, contested or empty — by the party's own belief (its
+  own squads standing in it, believed hostiles in it); **lost** (seen held by the
+  party on an earlier pulse, and now hostile or contested); believed **pressure**
+  on it at least a level; and any of, all of, not. Each prints as what it reads,
+  so a trace says why a directive moved.
+- **What a trigger may read.** Belief predicates read the party's own picture
+  and nothing else. Stages and flags are the mission's disclosure
+  (`mission-command-nouns.md`, perspective and disclosure): a mission says only
+  what it may say to that party (a site the company holds is public; a hidden
+  enemy's position is not), and the mission answers for it.
+- **Fun is still the test.** A directive is judged by the fights it makes as
+  well as by what it holds (not every fight is into prepared positions, above): a
+  hold that turns every contact into a defence from windows is a siege the
+  mission chose, and its evidence reports the fight mix against the directive
+  switched off.
+
+## Locked positions
+
+A **locked position** is a `LOCK` directive: a place a mission declares a party
+must take and hold. While it is active the party's commander:
+
+- gives it squads before anything else, by **detachments** — the commander's own
+  stable numbering of its squads, first come first numbered. Detachments fill the
+  active locks in the order they became active, one each, oldest first, and
+  detachments beyond them reinforce the newest: a party led forward holds every
+  gain once and leans on the latest;
+- orders each the lock's own hold: a defend area on the lock's post for its
+  detachment (posts cycle by detachment number) or, with no posts and a
+  garrisonable at the lock's centre, that place's manning order. A defend area
+  fights whatever is believed inside it, which is how the party takes a lock held
+  against it; there is no separate assault stage;
+- never offers a squad on a lock to reactive manning, flow or release: the lock
+  outranks the place's pressure, and nothing reactive gives it back. A squad on a
+  lock is also exempt from the share;
+- lets the lock go only when its `until` holds (the mission unlocks it); its
+  squads go to the next lock, or back to the commander's own duties;
+- **holds it, but does not die in it.** A detachment worn to half its strength
+  or less is let go, back to the commander's own duties, unless the lock is
+  declared to hold **to the last** (an authored hold to the end). An employer's
+  section is often what a story still needs later — the Yard's Owners'
+  inspection needs a friendly in the operator entrance — and a lock that spent
+  it would turn a fight into a stalled mission. Strength, not pressure, is what
+  lets go: nothing reactive does. The floor alone is not enough where the walk
+  back is under fire, so a lock is put where its detachment can fight from a
+  place, not stand in the open (parties wired, below).
+
+Thunder Run's militia are the first: four locks, the convoy staging (active from
+the start, unlocked by the company's first gain) and one per road site, each
+locked once the company has held it and never unlocked, all held to the last.
+That is exactly the old stable militia holds, re-expressed (`mission-command-nouns.md`, player
+and faction extensions).
+
+## Parties wired
+
+Three missions' employer parties run on these: Thunder Run's militia on its
+locks (above), and the constables of The Yard's Owners and Limited Warrant as
+parties with places and one lock each.
+
+- **The Yard's Owners.** Each constable section on a standing duty (its wait
+  before its site is taken, then the site) is offered for the place its post
+  stands in. The section still waiting for the operator entrance is locked into
+  the tooling hall at its freight doors (the hall's own manning order, no posts)
+  from the company's first hold of dispatch, when the prize crew commits, until
+  the company holds the entrance and the section goes to keep it. A post in the
+  yard outside the doors was tried first: the section stood in the open across
+  the Cinder Steps group's line and was wiped out on two fixtures of twelve.
+  Inside, it fights from the windows. The inspection needs a friendly at every
+  site, so a site whose constables are all dead is the company's to cover through
+  it (`YardOwnersCommand.orphanedSites`): one company squad goes there instead of
+  waiting at the hall. That never happens in the control, where no constable
+  dies.
+- **Limited Warrant.** The constables are offered for their posts' places, and
+  locked into the gatehouse by its manning order from calibration until egress,
+  where the rearguard's line runs past it. A lock on the lane, and a hold on the
+  gatehouse instead of a lock, were tried: the lane lock cost technicians and
+  constables in the open, and the hold never fired, because the constables never
+  see the rearguard before it is upon them.
+- **Reactive manning by a party has not yet fired in production.** Neither
+  mission's constables believe pressure on the place their own post stands in
+  before the fight reaches them there; the `party-places` scene shows the seam
+  works when they do.
+
+Measured with `commanderEvidence` against the same-build control
+(`-Dbattle.party.places=false`, 2026-10-21): the default matrix and eight extra
+seeded fixtures each. The controls reproduce the previous build byte for byte.
+"From a post" counts the side's shooters standing on one; ally losses include
+the technicians.
+
+| mission | fixtures | beats identical by name | marines win, on / off | mean ticks, on / off | brawls, on / off | defender from a post, on / off | ally from a post | ally lost, on / off |
+|---|---:|---|---|---|---|---|---|---|
+| The Yard's Owners | 4 | 4 | 4 / 4 | 5,153 / 5,801 | 0% / 0% | 87% / 93% | 96% | 2 / 0 |
+| The Yard's Owners, extra | 8 | 8 | 8 / 8 | 5,494 / 5,736 | 1% / 0% | 82% / 92% | 99% | 15 / 0 |
+| Limited Warrant | 4 | 4 | 4 / 4 | 5,407 / 5,459 | 5% / 3% | 99% / 96% | 62% | 7 / 1 |
+| Limited Warrant, extra | 8 | 7 | 7 / 8 | 6,991 / 5,478 | 7% / 4% | 92% / 94% | 43% | 21 / 4 |
+| Thunder Run | 11 | 11 | as the control | 16,456 / 16,456 | 46% / 46% | 30% / 30% | 50% / 50% | 59 / 59 |
+
+- **The fights move off the defender's windows, not onto them.** With the
+  constables in the hall and the gatehouse, the counter-attacks meet a place the
+  employer holds: the defender shoots from a post less on The Yard's Owners
+  (82-87% against 92-93%) and the brawl share rises a little on Limited
+  Warrant. Nobody is besieged who was not before; the allies fight from their
+  own posts, and the company's work finishes sooner on The Yard's Owners (650
+  and 240 ticks on the mean).
+- **The constables pay for it.** None died in either control; with their places
+  they lose about a fifth (The Yard's Owners) to over half (Limited Warrant)
+  of their number. That is the cost of a party that fights rather than watches,
+  and the reason the strength floor exists.
+- **The one lost battle is Limited Warrant's egress.** On one extra fixture a
+  single relief-post squad outlived the battle with a line on the calibration
+  load's route, and the carrier pauses under any hostile in sight, so it never
+  reached the landing. The control's history happened to kill that squad. The
+  mission has no order that clears a threat to the stalled load; that is the
+  mission's flow, not the party's, and open (below).
 
 ## Decided direction
 
@@ -895,12 +1098,16 @@ of raiders come up to it). Every loop asks that no door shuts on a body.
   apron, against seven in ten on a stock map: the places' circulation roads run
   close to their doors. Whether to let an apron stand on a circulation road the
   attack does not use is open.
-- **Story allies and the stages.** Eight story commanders' standing duties
-  are all the employer's (constables, militia, estate guards), and A Small
-  War's Greyhook posts that matter stand on its stages. Whether an employer
-  party on a post should man the places near it, and whether a stage guard
-  could be offered places on the stage's far side from the company, is open;
-  each has a harness to measure it.
+- **Story allies and the stages.** The employer parties man as parties
+  (parties wired, above) on three missions; Water Under Seal, District Escort,
+  Salvage Rights, Cold Start, Working Passage and Terms of Protection have
+  employer posts not yet offered. Whether a stage guard of A Small War could be
+  offered places on the stage's far side from the company is open; each has a
+  harness to measure it.
+- **A load stalled under one survivor.** Limited Warrant's carrier pauses under
+  any hostile in its sight and no order clears one, so a single surviving relief
+  post can hold the egress forever. Whether the company should be sent at a
+  threat to a stalled load is open.
 - **Story maps that offer nothing.** On Junction, Relay Nine and Thunder Run the
   seam is wired and nothing is manned. Whether a one-squad pool should man its
   home's windows, and whether a story ally holding a gain (Junction's and Relay

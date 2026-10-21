@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
@@ -101,14 +102,14 @@ public final class ThunderRunSequence {
     public FreightRunProgress.Outcome outcome() { return outcome; }
     public String status() {
         String beat = switch (phase) {
-            case 0 -> "Secure Dispatch Post / release the column";
-            case 1 -> holdSite() > 0 ? "DEFEND Dispatch / next dispatch in " + (holdRemainingTicks() + 29) / 30 + "s"
-                    : "Secure East Crossing / militia hold Dispatch";
-            case 2 -> holdSite() > 0 ? "DEFEND East Crossing / armor dispatch in " + (holdRemainingTicks() + 29) / 30 + "s"
-                    : "Secure Outbound Gate / prepare the armored run";
-            default -> "THUNDER RUN / cover the column to the exit";
+            case 0 -> Strings.get("thunderRunStatusSecureDispatch");
+            case 1 -> holdSite() > 0 ? Strings.format("thunderRunStatusDefendDispatch", (holdRemainingTicks() + 29) / 30)
+                    : Strings.get("thunderRunStatusSecureEast");
+            case 2 -> holdSite() > 0 ? Strings.format("thunderRunStatusDefendEast", (holdRemainingTicks() + 29) / 30)
+                    : Strings.get("thunderRunStatusSecureGate");
+            default -> Strings.get("thunderRunStatusRun");
         };
-        return beat + "  |  " + deliveredCount() + "/" + cargo.size() + " delivered, " + lostCount() + " lost";
+        return Strings.format("thunderRunStatus", beat, deliveredCount(), cargo.size(), lostCount());
     }
     private void beat(BattleSimulation sim, String key) {
         log.emitOnce(sim.getSimTickIndex(), "supply_route.thunder_run." + key, StoryBeatLog.Audience.PLAYER);

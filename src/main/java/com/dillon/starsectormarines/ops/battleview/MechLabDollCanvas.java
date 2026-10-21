@@ -1,10 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
-import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
-import com.dillon.starsectormarines.battle.ambient.AmbientTaskPose;
-import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
-import com.dillon.starsectormarines.battle.ambient.JobBoard;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.DollDef;
@@ -16,18 +12,14 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechRole;
-import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.Fonts;
-import com.dillon.starsectormarines.ui.retained.CanvasBlend;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
-import com.dillon.starsectormarines.ui.retained.CanvasSpriteRegion;
-import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -43,10 +35,6 @@ import java.util.function.Supplier;
 public final class MechLabDollCanvas implements CanvasProducer {
 
     private static final String ROOT = "graphics/battle/mech-modular-topdown/";
-    static final String WELDING_TORCH_PATH =
-            "graphics/battle/mech-lab/welding-torch.png";
-    static final String WELDING_SPARKS_PATH =
-            "graphics/battle/mech-lab/welding-sparks-sheet.png";
     private static final float MIN_DROP_TARGET_WIDTH = 128f;
     private static final float MIN_DROP_TARGET_HEIGHT = 76f;
     private static final float CAPACITY_INSET = 4f;
@@ -67,8 +55,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private final IntSupplier selectedGantry;
     private final Supplier<SocketId> selectedSocket;
     private final Supplier<LayeredMechAssets> assets;
-    private final Supplier<SpriteAPI> weldingTorch;
-    private final Supplier<SpriteAPI> weldingSparks;
     private final BooleanSupplier fittingOverlaysVisible;
     /**
      * The ship the lab is aboard.
@@ -118,16 +104,13 @@ public final class MechLabDollCanvas implements CanvasProducer {
                              IntSupplier selectedGantry,
                              Supplier<SocketId> selectedSocket,
                              Supplier<LayeredMechAssets> assets,
-                             Supplier<SpriteAPI> weldingTorch,
-                             Supplier<SpriteAPI> weldingSparks,
                              BooleanSupplier fittingOverlaysVisible,
                              Supplier<ShipDeckBattleScene> ship,
                              Supplier<ShipDeckBattleScene.RoomView> roomView,
                              Supplier<List<Gantry>> berths,
                              IntSupplier workSite,
                              DoubleSupplier elapsedSeconds) {
-        this(deployments, selectedGantry, selectedSocket, assets, weldingTorch,
-                weldingSparks, fittingOverlaysVisible, ship, roomView, berths,
+        this(deployments, selectedGantry, selectedSocket, assets, fittingOverlaysVisible, ship, roomView, berths,
                 workSite, elapsedSeconds, () -> null);
     }
 
@@ -135,8 +118,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
                              IntSupplier selectedGantry,
                              Supplier<SocketId> selectedSocket,
                              Supplier<LayeredMechAssets> assets,
-                             Supplier<SpriteAPI> weldingTorch,
-                             Supplier<SpriteAPI> weldingSparks,
                              BooleanSupplier fittingOverlaysVisible,
                              Supplier<ShipDeckBattleScene> ship,
                              Supplier<ShipDeckBattleScene.RoomView> roomView,
@@ -145,7 +126,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
                              DoubleSupplier elapsedSeconds,
                              Supplier<MechWeaponComponent> candidateWeapon) {
         if (deployments == null || selectedGantry == null || selectedSocket == null
-                || assets == null || weldingTorch == null || weldingSparks == null
+                || assets == null
                 || fittingOverlaysVisible == null
                 || ship == null || roomView == null || berths == null || workSite == null
                 || elapsedSeconds == null || candidateWeapon == null) {
@@ -156,8 +137,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
         this.selectedGantry = selectedGantry;
         this.selectedSocket = selectedSocket;
         this.assets = assets;
-        this.weldingTorch = weldingTorch;
-        this.weldingSparks = weldingSparks;
         this.fittingOverlaysVisible = fittingOverlaysVisible;
         this.ship = ship;
         this.roomView = roomView;
@@ -171,7 +150,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
     public void draw(CanvasContext context) {
         float width = context.metrics().surfaceWidth();
         float height = context.metrics().surfaceHeight();
-        float time = (float) elapsedSeconds.getAsDouble();
         List<MechDeploymentSpec> lance = deployments.get();
         int gantryIndex = selectedIndex(selectedGantry.getAsInt());
         MechDeploymentSpec selected = gantryIndex < lance.size() ? lance.get(gantryIndex) : null;
@@ -221,9 +199,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 : null;
 
         context.hostPass(aboard.pass(bay, ACTOR_LAYERS));
-        drawTechnicianFx(context, sceneCamera, host[0],
-                workingPoses(aboard, workSite.getAsInt()), time,
-                weldingTorch.get(), weldingSparks.get());
         drawVacantGantryActions(context, sceneCamera, host[0], standing,
                 Math.max(lance.size(), occupiedGantries != null ? occupiedGantries.getAsInt() : 0));
         if (selected != null && fittingOverlaysVisible.getAsBoolean()) {
@@ -326,41 +301,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
             else right += 1f;
         }
         return new PadBounds(left, bottom, right, top);
-    }
-
-    /**
-     * Where the technicians are actually working.
-     *
-     * <p>Read off the ship rather than off a script laid over the scene. The
-     * welding sparks belong at the point somebody is welding, and on a generated
-     * bay that is wherever the crew have got to — a fixed list would light up
-     * over empty deck the moment the room was laid out differently.
-     */
-    private static List<AmbientTaskPose> workingPoses(ShipDeckBattleScene aboard, int workSite) {
-        List<AmbientTaskPose> working = new ArrayList<>();
-        AmbientTaskService tasks = aboard.simulation().ambientTasks();
-        for (long actor : tasks.assigned()) {
-            AmbientTaskPose pose = tasks.pose(actor);
-            if (pose != null && pose.activity() == AmbientActivity.WORKING
-                    && isWeldingJob(tasks.jobInHand(actor), workSite)) {
-                working.add(pose);
-            }
-        }
-        return working;
-    }
-
-    /**
-     * Only servicing an occupied machine warrants the Mech Lab's welding effect.
-     * General repair and fabrication jobs also use the working pose, but their
-     * targets may be rails, terminals or benches rather than a machine's body.
-     */
-    static boolean isWeldingJob(String pointGroup, int workSite) {
-        return pointGroup != null && workSite >= 0
-                && inGroup(pointGroup, JobBoard.group(workSite, Affordance.SERVICE));
-    }
-
-    private static boolean inGroup(String actual, String expected) {
-        return actual.equals(expected) || actual.startsWith(expected + "@");
     }
 
     private static float berthCellX(List<Gantry> berths, int index) {
@@ -858,48 +798,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     private static Color withAlpha(Color color, int alpha) {
         return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
-    }
-
-    private static void drawTechnicianFx(CanvasContext c, BattleCamera camera,
-                                         CanvasHostViewport viewport,
-                                         List<AmbientTaskPose> work, float time,
-                                         SpriteAPI torch, SpriteAPI sparks) {
-        float cellX = camera.cellPxSize() / viewport.scaleX();
-        float cellY = camera.cellPxSize() / viewport.scaleY();
-        float surfaceWidth = c.metrics().surfaceWidth();
-        float surfaceHeight = c.metrics().surfaceHeight();
-        for (int index = 0; index < work.size(); index++) {
-            AmbientTaskPose pose = work.get(index);
-            if (pose.activity() != AmbientActivity.WORKING) {
-                continue;
-            }
-            float technicianX = camera.cellToScreenX(pose.worldX()) / viewport.scaleX();
-            float technicianY = (viewport.height() - camera.cellToScreenY(pose.worldY()))
-                    / viewport.scaleY();
-            float focusX = camera.cellToScreenX(pose.focusX()) / viewport.scaleX();
-            float focusY = (viewport.height() - camera.cellToScreenY(pose.focusY()))
-                    / viewport.scaleY();
-            if (focusX < -cellX || focusY < -cellY
-                    || focusX > surfaceWidth + cellX || focusY > surfaceHeight + cellY) {
-                continue;
-            }
-            float torchX = lerp(technicianX, focusX, 0.48f);
-            float torchY = lerp(technicianY, focusY, 0.48f);
-            c.sprite(WELDING_TORCH_PATH, torch,
-                    torchX, torchY,
-                    cellX * 0.42f, cellY * 0.72f,
-                    pose.facingDegrees(), WHITE);
-            int frame = Math.floorMod(
-                    (int) Math.floor(time * 12f + index * 1.7f) + 2, 8);
-            c.sprite(WELDING_SPARKS_PATH, sparks,
-                    focusX, focusY,
-                    cellX * 1.08f, cellY * 1.08f,
-                    0f, WHITE, CanvasSpriteRegion.frame(4, 2, frame), CanvasBlend.ADDITIVE);
-        }
-    }
-
-    private static float lerp(float from, float to, float amount) {
-        return from + (to - from) * amount;
     }
 
     private static int appearance(MechWeaponComponent component) {

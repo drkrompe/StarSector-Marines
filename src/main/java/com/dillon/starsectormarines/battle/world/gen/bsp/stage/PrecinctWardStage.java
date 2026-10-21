@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressInterior;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FarmlandGround;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationGround;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
@@ -115,6 +116,11 @@ public final class PrecinctWardStage implements GenStage {
             }
             if (result != null) {
                 InstallationGround.dress(ctx, masks.buildable(), masks.circulation(), result.placed());
+                // An open-field landing is farmland outside the town, not a
+                // margin of bare inland ground.
+                if (precinct.isLanding() && precinct.landing().hasFieldOfFire()) {
+                    FarmlandGround.dress(ctx, masks.buildable(), masks.circulation());
+                }
             }
         }
         ctx.put(BspKeys.UNPLACED_PROGRAM, Map.copyOf(unbuilt));

@@ -83,6 +83,7 @@ import com.dillon.starsectormarines.ops.battleview.BattleShotAudio;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceAudio;
 import com.dillon.starsectormarines.ops.battleview.WarshipAudio;
+import com.dillon.starsectormarines.ops.battleview.BoreAudio;
 import com.dillon.starsectormarines.ops.battleview.TenderAudio;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceFxRuntime;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceTraceFxService;
@@ -1327,6 +1328,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         WarshipAudio.play(sim.warships().cuesThisFrame());
         WarshipAudio.play(sim.shieldDomes().cuesThisFrame());
         TenderAudio.play(sim);
+        BoreAudio.play(sim);
     }
 
     private void spawnImpactFx(BattleSimulation sim) {

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SalvageRightsCommand;
@@ -121,11 +122,11 @@ public final class SalvageRightsSequence implements Objective {
     public boolean isComplete(){return progress.phase()==Phase.SECURED;}
     public boolean isFailed(){return progress.phase()==Phase.FAILED;}
     public String displayName(){return switch(progress.phase()){
-        case RECEIVING->"Clear the receiving store";
-        case WORKSHOP->"Secure the repair workshop for Vale's militia";
-        case CRADLE->"Secure Morrow's southern service access";
-        case INSPECTION->"Secure the work site / inspection "+(int)(progress.inspection()/SalvageRightsProgress.INSPECTION_SECONDS*100)+"%";
-        case SECURED->"Morrow's recovery claim secured";
-        case FAILED->"Inspection team lost";
+        case RECEIVING->Strings.get("salvageRightsReceiving");
+        case WORKSHOP->Strings.get("salvageRightsWorkshop");
+        case CRADLE->Strings.get("salvageRightsCradle");
+        case INSPECTION->Strings.format("salvageRightsInspection",(int)(progress.inspection()/SalvageRightsProgress.INSPECTION_SECONDS*100));
+        case SECURED->Strings.get("salvageRightsSecured");
+        case FAILED->Strings.get("salvageRightsFailed");
     };}
 }

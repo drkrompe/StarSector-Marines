@@ -224,6 +224,7 @@ def train(bench):
         for t in (1, 3):
             k.guns.arm(ctx, t, 'lightmg')
             k.guns.fire_weapon(ctx, t, 4, 1.0, target=to_copy(a, goal))
+    bench.scene.frame_set(12)       # on target while firing; at frame 1 it is still swinging on
     for t in (1, 3):
         p, d = muzzle(a, t, 'barrel 1')
         err = math.degrees(d.angle(goal - p))
@@ -234,11 +235,41 @@ def train(bench):
     bench.camera((150, -120, 70), (110, 60, 20), 30)
 
 
+
+def slew(bench):
+    """Turret slew: Lasher A's bow gun fires a burst at one point, then swings at the light MG's
+    game turn rate (50 deg/s), eased, onto a second point and fires again. Prints the pivot's
+    traverse through the swing; it must move one way only and arrive by the second burst."""
+    from mathutils import Vector
+    import swfx_guns
+    a = bench.ship('lasher-a', 'lasher', at=(0, 40, 0), throttle=.6, own_hull=True)
+    g1, g2 = Vector((220, 160, 60)), Vector((260, 10, -20))
+    with a.kit() as (ctx, k):
+        k.guns.arm(ctx, 1, 'lightmg')
+        k.guns.fire_weapon(ctx, 1, 4, .5, target=to_copy(a, g1))
+        k.guns.fire_weapon(ctx, 1, 40, .5, target=to_copy(a, g2))
+    piv, _ = swfx_guns.trainers(a.object('SWFX anchor turret 1 barrel 1'))
+    fc = next(f for f in piv.animation_data.action.fcurves if f.data_path == 'rotation_euler' and f.array_index == 2)         if hasattr(piv.animation_data.action, 'fcurves') else None
+    import swfx_core
+    fc = fc or swfx_core.find_fcurve(piv, 'rotation_euler', 2)
+    zs = [round(math.degrees(fc.evaluate(f)), 2) for f in range(4, 48, 4)]
+    print('BENCH slew lasher-a t1 traverse by 4 frames', zs, flush=True)
+    steps = [b - a_ for a_, b in zip(zs, zs[1:]) if abs(b - a_) > 1e-3]
+    assert steps and (all(d > 0 for d in steps) or all(d < 0 for d in steps)), steps
+    p, _ = muzzle(a, 1, 'barrel 1')
+    # Close on the bow turret, from above and to starboard: both bursts and the swing between.
+    bench.camera(tuple(p + Vector((14, -30, 16))), tuple(p + Vector((6, 0, 0))), 35)
+
+
+
 TESTS = {
     'survey': dict(builds=SURVEY_BUILDS, frames=[1], note='mount survey (check only)', setup=survey),
     'train': dict(builds=['lasher'], frames=[6, 12, 18, 24], setup=train,
                   note='Turret training: Lasher A (near) trains bow and port guns onto a point up to port; '
                        'Lasher B keeps its rest pose.'),
+    'slew': dict(builds=['lasher'], frames=[12, 26, 34, 44], setup=slew,
+                 note='Turret slew: Lasher bow gun fires up to port (12), swings at the light MG turn rate, '
+                      'eased (26, 34), fires on the new point ahead and low (44).'),
     'hellbore': dict(builds=['manticore-p'], frames=[2, 3, 5, 8, 12, 16], setup=hellbore,
                      note='Manticore (P) Hellbore, one shot: huge lingering orange flash, slow orange-white slug '
                           'in its glow (frames 2-16).'),

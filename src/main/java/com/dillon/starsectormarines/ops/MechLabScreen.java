@@ -149,14 +149,11 @@ public final class MechLabScreen implements Screen {
             // against its own backdrop, so it loads what it draws. Everything
             // the deck itself paints is the deck's own business.
             previewSprites().ensureLayeredMechSprites();
-            previewSprites().ensureMechLabFxSprites();
             dollElement = candidate.requireElement("mech-doll-canvas");
             dollCanvas = new MechLabDollCanvas(viewModel::gantryDeployments,
                             viewModel::selectedGantryIndex,
                             viewModel::selectedSocket,
                             () -> previewSprites().layeredMechSprites(),
-                            () -> previewSprites().mechLabWeldingTorch(),
-                            () -> previewSprites().mechLabWeldingSparks(),
                             viewModel::fittingFocused,
                             deck::scene,
                             this::framing,
@@ -533,7 +530,7 @@ public final class MechLabScreen implements Screen {
         }
         int index = Math.max(0, Math.min(bays.size() - 1, selectedBayIndex.get()));
         selectedBayIndex.set(index);
-        activeBayLabel.set(String.format(Locale.ROOT,
+        activeBayLabel.set(String.format(Strings.locale(),
                 Strings.get("openingMechLabBayDD"), index + 1, bays.size()));
         bayNavigatorClasses.set(bays.size() > 1 ? "bay-navigator" : "bay-navigator hidden");
         bayContextLabel.set(ShipBreadcrumb.of(deck.ship(), bays.get(index)));

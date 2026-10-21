@@ -58,6 +58,11 @@ GROUP = 'Impacts'
 PREFIX = 'SWFX impact'
 FPS = swfx_core.FPS
 LEAK_FLUX = .75
+SHARD_SIDES = 7          # rim points of one debris shard before it is torn
+# The kit draws a spark as a streak two frames of travel long and ~0.1 m thick: at a fast spark's
+# speed that is a 10 m bar, which makes a 60-90 m hull read as a model. Impact sparks are drawn
+# finer: half as thick and under half as long (refine_sparks).
+SPARK_WIDTH, SPARK_STREAK = .5, .4
 # kind -> look. Sizes in metres, times in seconds. Light power is real watts for a hull-unit
 # file (swfx_lighting.watts); ShipFx.metre_scale corrects it once a copy is instanced in metres.
 KINDS = {
@@ -141,6 +146,7 @@ def _sparks(ctx, e, seed, name, count, speed_m, life_s, width, knob, gain, cool,
     heat = g.m('SUBTRACT', 1.0, g.m('DIVIDE', g.m('MAXIMUM', age, 0.0), life), clamp=True)
     mat = _spark_material(ctx, knob=knob, name=f'{PREFIX} {name}', gain=gain, cool=cool, hot=hot)
     _spark_streaks(g, gout, count, pos, vel, heat, alive, mat, width=width)
+    _refine(tree, SPARK_WIDTH, SPARK_STREAK)
     ob = bpy.data.objects.new(f'{PREFIX} {name} | {e.name}', bpy.data.meshes.new(f'{PREFIX} {name} {seed}'))
     ctx.collection(GROUP).objects.link(ob)
     ob.modifiers.new('Sparks', 'NODES').node_group = tree
@@ -298,7 +304,7 @@ def he(ctx, frame, at_m, normal, size_m=None, scale=1.0, flash_colour=(1.0, .62,
     obs = [_sparks(ctx, e, seed, 'he spark', k['sparks'], [v * s ** .5 for v in k['spark_speed']], k['spark_life'],
                    k['spark_width'], 'imp_sparks', k['spark_gain'], (1.0, .5, .12, 1), (1.0, .9, .65, 1)),
            _sparks(ctx, e, seed + 11, 'he spall', k['spall'], (6.0 * s ** .5, 24.0 * s ** .5), (.4, 1.2),
-                   60.0 * s ** .5, 'imp_sparks', 10.0, (.6, .12, .02, 1), (1.0, .55, .16, 1), spread=1.2, lift=1.0)]
+                   26.0 * s ** .5, 'imp_sparks', 10.0, (.6, .12, .02, 1), (1.0, .55, .16, 1), spread=1.2, lift=1.0)]
     obs += _flash(ctx, e, seed, k['flash_m'] * s, k['flash_s'], k['flash_W'] * s ** 2, colour=flash_colour)
     obs.append(_fireball(ctx, e, seed, k['fireball_m'] * s))
     obs.append(_pock(ctx, e, seed, k['pock_m'] * s, k['pock_gain']))
@@ -369,32 +375,58 @@ def debris(ctx, frame, at_m, normal, count=60, speed_m=(4.0, 38.0), size_m=(.6, 
     pts.inputs['Count'].default_value = count
     g.links.new(pos, pts.inputs['Position'])
     heat = g.m('EXPONENT', g.m('MULTIPLY', secs, -3.0))
-    st = g.node('GeometryNodeStoreNamedAttribute', data_type='FLOAT', domain='POINT')
-    g.links.new(pts.outputs[0], st.inputs['Geometry'])
-    st.inputs['Name'].default_value = 'swfx_heat'
-    g.links.new(heat, _sock(st, 'Value'))
-    dele = g.node('GeometryNodeDeleteGeometry', domain='POINT')
-    g.links.new(st.outputs[0], dele.inputs['Geometry'])
-    g.links.new(g.m('LESS_THAN', age, 0.0), dele.inputs['Selection'])
-    plate = g.node('GeometryNodeMeshCube')
-    plate.inputs['Size'].default_value = (1, 1, 1)
-    inst = g.node('GeometryNodeInstanceOnPoints')
-    g.links.new(dele.outputs[0], inst.inputs['Points'])
-    g.links.new(plate.outputs['Mesh'], inst.inputs['Instance'])
     # Tumble: a random attitude turning at a random rate about a random axis.
     spin = g.v('ADD', g.v('SCALE', _rnd(g, 'FLOAT_VECTOR', (0, 0, 0), (1, 1, 1), idx, seed + 6), scale=6.283),
                g.v('SCALE', _rnd(g, 'FLOAT_VECTOR', (-5, -5, -5), (5, 5, 5), idx, seed + 7), scale=secs))
-    try:
-        eul = g.node('FunctionNodeEulerToRotation')
-        g.links.new(spin, eul.inputs[0])
-        g.links.new(eul.outputs[0], inst.inputs['Rotation'])
-    except RuntimeError:
-        g.links.new(spin, inst.inputs['Rotation'])
     big = _rnd(g, 'FLOAT', units(size_m[0]), units(size_m[1]), idx, seed + 8)
-    shape = _rnd(g, 'FLOAT_VECTOR', (.6, .35, .06), (1.0, .8, .12), idx, seed + 9)
-    g.links.new(g.v('SCALE', shape, scale=big), inst.inputs['Scale'])
+    shape = g.v('SCALE', _rnd(g, 'FLOAT_VECTOR', (.6, .35, .05), (1.0, .8, .1), idx, seed + 9), scale=big)
+    geo = pts.outputs[0]
+    for name, kind, value in (('swfx_heat', 'FLOAT', heat), ('swfx_id', 'FLOAT', idx), ('swfx_p0', 'FLOAT_VECTOR', pos),
+                              ('swfx_spin', 'FLOAT_VECTOR', spin), ('swfx_shape', 'FLOAT_VECTOR', shape)):
+        st = g.node('GeometryNodeStoreNamedAttribute', data_type=kind, domain='POINT')
+        g.links.new(geo, st.inputs['Geometry'])
+        st.inputs['Name'].default_value = name
+        g.links.new(value, _sock(st, 'Value'))
+        geo = st.outputs[0]
+    dele = g.node('GeometryNodeDeleteGeometry', domain='POINT')
+    g.links.new(geo, dele.inputs['Geometry'])
+    g.links.new(g.m('LESS_THAN', age, 0.0), dele.inputs['Selection'])
+    # Each fragment is its own torn shard, not a shared box: a thin SHARD_SIDES-gon whose rim
+    # points are pulled in or pushed out by their own random amounts (wedges, slivers, ragged
+    # plates), shaped after realizing so no two pieces match, then sized and turned.
+    plate = g.node('GeometryNodeMeshCylinder', fill_type='NGON')
+    plate.inputs['Vertices'].default_value = SHARD_SIDES
+    plate.inputs['Radius'].default_value = .5
+    plate.inputs['Depth'].default_value = 1.0
+    inst = g.node('GeometryNodeInstanceOnPoints')
+    g.links.new(dele.outputs[0], inst.inputs['Points'])
+    g.links.new(plate.outputs['Mesh'], inst.inputs['Instance'])
     real = g.node('GeometryNodeRealizeInstances')
     g.links.new(inst.outputs[0], real.inputs['Geometry'])
+
+    def named(attr, kind):
+        n = g.node('GeometryNodeInputNamedAttribute', data_type=kind)
+        n.inputs['Name'].default_value = attr
+        return _sock(n, 'Attribute', out=True)
+
+    vi = g.node('GeometryNodeInputIndex').outputs[0]
+    rim = g.m('ADD', g.m('MULTIPLY', named('swfx_id', 'FLOAT'), float(SHARD_SIDES)),
+              g.m('FLOORED_MODULO', vi, float(SHARD_SIDES)))
+    p0 = named('swfx_p0', 'FLOAT_VECTOR')
+    local = g.v('SUBTRACT', g.node('GeometryNodeInputPosition').outputs[0], p0)
+    lx, ly, lz = g.sep(local)
+    reach = _rnd(g, 'FLOAT', .25, 1.15, rim, seed + 10)            # this rim point's distance out
+    slide = _rnd(g, 'FLOAT_VECTOR', (-.12, -.12, 0), (.12, .12, 0), rim, seed + 11)
+    thick = _rnd(g, 'FLOAT', .55, 1.4, vi, seed + 12)               # uneven plate thickness
+    torn = g.v('ADD', g.comb(g.m('MULTIPLY', lx, reach), g.m('MULTIPLY', ly, reach), g.m('MULTIPLY', lz, thick)), slide)
+    sized = g.v('MULTIPLY', torn, named('swfx_shape', 'FLOAT_VECTOR'))
+    turn = g.node('ShaderNodeVectorRotate', rotation_type='EULER_XYZ')
+    g.links.new(sized, turn.inputs['Vector'])
+    g.links.new(named('swfx_spin', 'FLOAT_VECTOR'), turn.inputs['Rotation'])
+    setp = g.node('GeometryNodeSetPosition')
+    g.links.new(real.outputs[0], setp.inputs['Geometry'])
+    g.links.new(g.v('ADD', p0, turn.outputs['Vector']), setp.inputs['Position'])
+    real = setp
     sm = g.node('GeometryNodeSetMaterial')
     g.links.new(real.outputs[0], sm.inputs['Geometry'])
     sm.inputs['Material'].default_value = _debris_material(ctx)
@@ -510,6 +542,50 @@ def strike(ctx, frame, at_m, normal, kind='kinetic', shield_centre_m=(0, 0, 0), 
         hit(ctx, frame, at_m, normal, scale=.6, **kw)
         return 'leak'
     return 'shield'
+
+
+# ======================================================================================= spark scale
+
+def _refine(tree, width, streak, count=1.0):
+    """Scale one spark-streak tree (swfx_smoke._spark_streaks): streak thickness by width, streak
+    length (frames of travel) by streak, spark count by count. Idempotent per tree. Returns True
+    when the tree is a streak tree."""
+    if tree.get('imp_refined'):
+        return True
+    length = thick = None
+    for n in tree.nodes:
+        if n.bl_idname != 'ShaderNodeMath' or n.operation != 'MULTIPLY_ADD':
+            continue
+        if abs(n.inputs[1].default_value - 2.0 / FPS) < 1e-6 and n.inputs[0].is_linked:
+            length = n
+        elif any(l.to_node.bl_idname == 'ShaderNodeCombineXYZ' and l.to_socket.identifier != 'X'
+                 for l in n.outputs[0].links):
+            thick = n
+    if length is None or thick is None:
+        return False
+    length.inputs[1].default_value *= streak
+    thick.inputs[1].default_value *= width
+    thick.inputs[2].default_value *= width
+    if count != 1.0:
+        for n in tree.nodes:
+            if n.bl_idname == 'GeometryNodePoints' and not n.inputs['Count'].is_linked:
+                n.inputs['Count'].default_value = max(1, round(n.inputs['Count'].default_value * count))
+    tree['imp_refined'] = True
+    return True
+
+
+def refine_sparks(ctx, width=.4, streak=.4, count=2.0, prefix='SWFX fire embers'):
+    """Draw a build's baked spark streaks finer, on this ship's copy only (a wreck's cook-off
+    embers by default): thinner, shorter, and more of them, so a ship-killing blast throws sparks
+    at the scale of the ship rather than of a model. Opt-in; returns how many trees it scaled."""
+    n = 0
+    for o in ctx.root.all_objects:
+        if not o.name.startswith(prefix):
+            continue
+        for mod in o.modifiers:
+            if mod.type == 'NODES' and mod.node_group is not None and _refine(mod.node_group, width, streak, count):
+                n += 1
+    return n
 
 
 # ======================================================================================= placing

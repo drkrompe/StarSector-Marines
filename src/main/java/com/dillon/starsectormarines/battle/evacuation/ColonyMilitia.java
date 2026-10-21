@@ -48,7 +48,7 @@ import java.util.Random;
  */
 public final class ColonyMilitia {
 
-    /** Held buildings beyond the shelter on the colony map. */
+    /** Held buildings beyond the shelter on the colony map, when they hold no colonists. */
     public static final int OUTLYING_POSTS = 3;
     /** Members per post: a fireteam, like the shelter guard. */
     public static final int POST_SIZE = RescueShelterGarrison.MEMBER_COUNT;
@@ -73,9 +73,10 @@ public final class ColonyMilitia {
 
     /** What went in. The shelter guard is always there; the rest only on the colony map. */
     public record Installed(RescueShelterGarrison shelterGuard, List<Integer> postSquads,
-                            List<Long> emplacements, List<Long> technicals) {
+                            List<Long> emplacements, List<Long> technicals, List<Integer> holdouts) {
         public Installed {
             postSquads = List.copyOf(postSquads);
+            holdouts = List.copyOf(holdouts);
             emplacements = List.copyOf(emplacements);
             technicals = List.copyOf(technicals);
         }
@@ -97,34 +98,59 @@ public final class ColonyMilitia {
                                     boolean colony) {
         RescueShelterGarrison shelter = RescueShelterGarrison.install(sim, map, placement, risk, seed);
         if (shelter == null) return null;
-        if (!colony || !enabled()) return new Installed(shelter, List.of(), List.of(), List.of());
+        if (!colony || !enabled()) return new Installed(shelter, List.of(), List.of(), List.of(), List.of());
 
         Random rng = new Random(seed ^ SEED_SALT);
-        List<Post> posts = choosePosts(sim, map, placement, pads, seed);
+        boolean redoubts = ColonyRedoubts.enabled();
+        int wanted = redoubts ? ColonyRedoubts.holdoutsFor(seed) : OUTLYING_POSTS;
+        int seats = POST_SIZE + (redoubts ? ColonyRedoubts.MAX_COHORT : 0);
+        List<Post> posts = choosePosts(sim, map, placement, pads, seed, wanted, seats);
+        if (redoubts && posts.size() < ColonyRedoubts.MIN_HOLDOUTS) return null;
         List<Integer> squads = new ArrayList<>();
-        for (int i = 0; i < posts.size(); i++) {
-            squads.add(seatPost(sim, posts.get(i), i, risk, rng));
-        }
+        List<Integer> holdouts = new ArrayList<>();
         List<Long> emplacements = new ArrayList<>();
+        List<RedoubtWorks.Plan> works = new ArrayList<>();
+        boolean[] walk = routeMask(sim.getGrid(), placement, 1);
+        RedoubtWorks.Keep keep = (x, y) -> !walk[sim.getGrid().index(x, y)]
+                && !sim.isInsideRescueOpeningProtectedZone(x, y) && !onPad(pads, x, y, 2);
+        for (int i = 0; i < posts.size(); i++) {
+            Post post = posts.get(i);
+            int squadId = seatPost(sim, post, i, risk, rng);
+            squads.add(squadId);
+            if (!redoubts) continue;
+            ColonyRedoubts.Holdout holdout = ColonyRedoubts.fortify(sim, post.place, post.node,
+                    post.cells.subList(POST_SIZE, post.cells.size()), squadId, placement, keep, i, risk, rng, seed + i);
+            if (holdout == null) return null;
+            holdouts.add(holdout.number());
+            if (holdout.lineSquadId() >= 0) squads.add(holdout.lineSquadId());
+            if (holdout.gun() != 0L) emplacements.add(holdout.gun());
+            if (holdout.works() != null) works.add(holdout.works());
+        }
         List<int[]> taken = new ArrayList<>();
-        boolean[] route = routeMask(sim.getGrid(), placement);
+        boolean[] route = routeMask(sim.getGrid(), placement, ROUTE_CLEARANCE);
+        // A redoubt with works carries its own gun at its gate; the rest keep one outside the door.
+        int doorGuns = 0;
         for (Post post : posts) {
-            if (emplacements.size() >= EMPLACEMENTS) break;
+            if (doorGuns >= EMPLACEMENTS) break;
+            if (fortified(works, post)) continue;
             StructureDef structure = TurretCatalogRegistry.requireStructure(EMPLACEMENT_STRUCTURE);
             int[] cell = openCell(sim, placement, pads, post.place.anchorCellX, post.place.anchorCellY,
-                    DOORSTEP_RADIUS, Math.max(structure.footprintCellsX, structure.footprintCellsY) / 2 + 1, taken, route);
+                    DOORSTEP_RADIUS, Math.max(structure.footprintCellsX, structure.footprintCellsY) / 2 + 1, taken, route, works);
             if (cell == null) continue;
             taken.add(cell);
-            emplacements.add(seatEmplacement(sim, cell, emplacements.size()));
+            doorGuns++;
+            emplacements.add(seatEmplacement(sim, cell, "colony-gun-" + doorGuns));
         }
-        // Setup-time grid writes, consumed here as buildMap does for defence posts.
+        // Setup-time grid writes, consumed here as buildMap does for defence posts; the works
+        // closed ground off, so the zones a building's frontage is read from are rebuilt too.
         if (sim.getNavigationMesh().pendingGridChanges() > 0L) sim.getNavigationMesh().rebuild();
+        if (!works.isEmpty()) sim.getZoneGraph().rebuild();
 
         List<Long> technicals = new ArrayList<>();
         for (Post post : posts) {
             if (technicals.size() >= TECHNICALS) break;
             int[] cell = openCell(sim, placement, pads, post.place.anchorCellX, post.place.anchorCellY,
-                    TECHNICAL_RADIUS, 2, taken, route);
+                    TECHNICAL_RADIUS, 2, taken, route, works);
             if (cell == null) continue;
             taken.add(cell);
             float x = cell[0] + 0.5f, y = cell[1] + 0.5f;
@@ -133,7 +159,7 @@ public final class ColonyMilitia {
             sim.convoy().body(id).teleport(x, y, -90f);
             technicals.add(id);
         }
-        return new Installed(shelter, squads, emplacements, technicals);
+        return new Installed(shelter, squads, emplacements, technicals, holdouts);
     }
 
     /**
@@ -147,12 +173,16 @@ public final class ColonyMilitia {
     private record Post(PointOfInterest place, TacticalNode node, List<int[]> cells) { }
 
     /**
-     * Held buildings near the cohort's walk, spaced apart. Ranked by distance
-     * from the shelter-to-lift line in coarse bands, the seed ordering a band.
+     * Held buildings spread across the colony: each pick is the candidate
+     * farthest from the shelter, the lift and the posts already chosen, out to
+     * a third of the map's short side (past that every candidate is as good
+     * and the seed decides), and never closer than the eruption-site spacing.
+     * A candidate must seat {@code seats} people indoors and have a walk to
+     * the lift, so a holdout's people can leave.
      */
     private static List<Post> choosePosts(BattleSimulation sim, MapResult map,
                                           CivilianEvacuationPlacement placement,
-                                          List<LandingPad> pads, long seed) {
+                                          List<LandingPad> pads, long seed, int wanted, int seats) {
         NavigationGrid grid = sim.getGrid();
         int spacing = ColonyEruptionPlan.siteSpacing(grid.getWidth(), grid.getHeight());
         int clearance = ColonyEruptionPlan.shelterClearance(grid.getWidth(), grid.getHeight());
@@ -167,39 +197,49 @@ public final class ColonyMilitia {
             TacticalNode node = heldPlace(map, place);
             if (node == null) continue;
             List<int[]> cells = interiorCells(sim, place);
-            if (cells.size() < POST_SIZE) continue;
+            if (cells.size() < seats) continue;
             candidates.add(new Post(place, node, cells));
         }
-        float ax = placement.shelterX, ay = placement.shelterY;
-        float bx = placement.liftX - ax, by = placement.liftY - ay;
-        float lengthSquared = Math.max(1f, bx * bx + by * by);
         candidates.sort(Comparator
-                .comparingInt((Post p) -> band(p.place, ax, ay, bx, by, lengthSquared))
-                .thenComparingLong(p -> priority(seed, grid.index(p.place.interiorAnchorX, p.place.interiorAnchorY)))
+                .comparingLong((Post p) -> priority(seed, grid.index(p.place.interiorAnchorX, p.place.interiorAnchorY)))
                 .thenComparingInt(p -> grid.index(p.place.interiorAnchorX, p.place.interiorAnchorY)));
+        int reach = Math.min(grid.getWidth(), grid.getHeight()) / 3;
+        List<int[]> fixed = new ArrayList<>();
+        fixed.add(new int[]{placement.shelterX, placement.shelterY});
+        fixed.add(new int[]{placement.liftX, placement.liftY});
         List<Post> chosen = new ArrayList<>();
-        for (Post post : candidates) {
-            if (chosen.size() >= OUTLYING_POSTS) break;
-            boolean crowded = false;
-            for (Post other : chosen) {
-                int dx = other.place.interiorAnchorX - post.place.interiorAnchorX;
-                int dy = other.place.interiorAnchorY - post.place.interiorAnchorY;
-                if (dx * dx + dy * dy < spacing * spacing) {
-                    crowded = true;
-                    break;
+        while (chosen.size() < wanted) {
+            Post best = null;
+            int bestScore = -1;
+            for (Post post : candidates) {
+                if (chosen.contains(post)) continue;
+                int nearest = Integer.MAX_VALUE;
+                for (int[] other : fixed) nearest = Math.min(nearest, distance(post.place, other[0], other[1]));
+                for (Post other : chosen) {
+                    nearest = Math.min(nearest, distance(post.place,
+                            other.place.interiorAnchorX, other.place.interiorAnchorY));
+                }
+                if (nearest < spacing) continue;
+                int score = Math.min(nearest, reach);
+                if (score > bestScore) {
+                    best = post;
+                    bestScore = score;
                 }
             }
-            if (!crowded) chosen.add(post);
+            if (best == null) break;
+            if (Paths.isEmpty(GridPathfinder.findPath(grid, best.place.anchorCellX, best.place.anchorCellY,
+                    placement.liftX, placement.liftY))) {
+                candidates.remove(best);
+                continue;
+            }
+            chosen.add(best);
         }
         return chosen;
     }
 
-    /** Distance from the shelter-to-lift segment, in bands of twenty cells. */
-    private static int band(PointOfInterest place, float ax, float ay, float bx, float by, float lengthSquared) {
-        float px = place.interiorAnchorX - ax, py = place.interiorAnchorY - ay;
-        float t = Math.max(0f, Math.min(1f, (px * bx + py * by) / lengthSquared));
-        float dx = px - t * bx, dy = py - t * by;
-        return (int) (Math.sqrt(dx * dx + dy * dy) / 20f);
+    private static int distance(PointOfInterest place, int x, int y) {
+        int dx = place.interiorAnchorX - x, dy = place.interiorAnchorY - y;
+        return (int) Math.sqrt(dx * dx + dy * dy);
     }
 
     private static TacticalNode heldPlace(MapResult map, PointOfInterest place) {
@@ -211,31 +251,47 @@ public final class ColonyMilitia {
     }
 
     private static int seatPost(BattleSimulation sim, Post post, int index, RiskLevel risk, Random rng) {
-        MarineLoadout[] loadouts = InfantryLoadoutRolls.defenderSquad(POST_SIZE, UnitType.MILITIA, risk, rng);
         int squadId = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
         Squad squad = sim.getSquad(squadId);
         squad.assignedNode = post.node;
         squad.patrolRadius = PATROL_RADIUS;
         sim.assignSquadCommand(ObjectiveAssignment.holdNode(squadId, post.node),
                 CommandAuthority.GARRISON, ISSUER, "hold a colony building");
+        seatMembers(sim, squad, post.cells, "Colony Militia " + (index + 1), risk, rng);
+        return squadId;
+    }
+
+    /**
+     * A militia fireteam of {@link #POST_SIZE} on the given cells, one each,
+     * with no order yet: the caller says what it holds.
+     */
+    static int seatTeam(BattleSimulation sim, List<int[]> cells, String name, RiskLevel risk, Random rng) {
+        int squadId = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
+        seatMembers(sim, sim.getSquad(squadId), cells, name, risk, rng);
+        return squadId;
+    }
+
+    private static void seatMembers(BattleSimulation sim, Squad squad, List<int[]> cells, String name,
+                                    RiskLevel risk, Random rng) {
+        MarineLoadout[] loadouts = InfantryLoadoutRolls.defenderSquad(POST_SIZE, UnitType.MILITIA, risk, rng);
         for (int i = 0; i < POST_SIZE; i++) {
-            int[] cell = post.cells.get(i);
-            EntitySpec spec = new EntitySpec("Colony Militia " + (index + 1) + "-" + (i + 1),
+            int[] cell = cells.get(i);
+            EntitySpec spec = new EntitySpec(name + "-" + (i + 1),
                     Faction.ALLY, UnitType.MILITIA, cell[0], cell[1])
                     .role(UnitRole.GARRISON)
-                    .squad(squadId)
+                    .squad(squad.id)
                     .home(cell[0], cell[1]);
             loadouts[i].seedInto(spec);
             long id = sim.spawn(spec);
             if (squad.leaderId == 0L) squad.leaderId = id;
         }
         squad.originalSize = POST_SIZE;
-        return squadId;
     }
 
-    private static long seatEmplacement(BattleSimulation sim, int[] cell, int index) {
+    /** A colony gun on one cell: the post's heavy machine gun, sealed into its cell. */
+    static long seatEmplacement(BattleSimulation sim, int[] cell, String name) {
         int x = cell[0], y = cell[1];
-        long turret = sim.spawn(MapTurret.create("colony-gun-" + (index + 1), Faction.ALLY,
+        long turret = sim.spawn(MapTurret.create(name, Faction.ALLY,
                 EMPLACEMENT_STRUCTURE, x, y));
         NavigationGrid grid = sim.getGrid();
         grid.setWalkable(x, y, false);
@@ -275,7 +331,7 @@ public final class ColonyMilitia {
      */
     private static int[] openCell(BattleSimulation sim, CivilianEvacuationPlacement placement,
                                   List<LandingPad> pads, int doorX, int doorY, int radius, int half,
-                                  List<int[]> taken, boolean[] route) {
+                                  List<int[]> taken, boolean[] route, List<RedoubtWorks.Plan> works) {
         NavigationGrid grid = sim.getGrid();
         int[] best = null;
         int bestDistance = Integer.MAX_VALUE;
@@ -284,6 +340,7 @@ public final class ColonyMilitia {
                 int distance = Math.abs(x - doorX) + Math.abs(y - doorY);
                 if (distance >= bestDistance) continue;
                 if (!grid.inBounds(x, y) || route[grid.index(x, y)]) continue;
+                if (insideWorks(works, x, y, half + 1)) continue;
                 if (!openSquare(sim, x, y, half)) continue;
                 if (sim.isInsideRescueOpeningProtectedZone(x, y)) continue;
                 if (Math.abs(x - placement.shelterApproachX) + Math.abs(y - placement.shelterApproachY) < 6) continue;
@@ -303,16 +360,29 @@ public final class ColonyMilitia {
         return best;
     }
 
-    /** Cells within {@link #ROUTE_CLEARANCE} of the shelter-to-lift path. */
-    private static boolean[] routeMask(NavigationGrid grid, CivilianEvacuationPlacement placement) {
+    /** Whether a cell lies on or within {@code margin} of a redoubt's works, where nothing else is parked. */
+    private static boolean insideWorks(List<RedoubtWorks.Plan> works, int x, int y, int margin) {
+        for (RedoubtWorks.Plan plan : works) {
+            if (x >= plan.left() - margin && x <= plan.right() + margin
+                    && y >= plan.top() - margin && y <= plan.bottom() + margin) return true;
+        }
+        return false;
+    }
+
+    private static boolean fortified(List<RedoubtWorks.Plan> works, Post post) {
+        return insideWorks(works, post.place.interiorAnchorX, post.place.interiorAnchorY, 0);
+    }
+
+    /** Cells within {@code clearance} of the shelter-to-lift path. */
+    private static boolean[] routeMask(NavigationGrid grid, CivilianEvacuationPlacement placement, int clearance) {
         boolean[] mask = new boolean[grid.getWidth() * grid.getHeight()];
         int[] path = GridPathfinder.findPath(grid, placement.shelterApproachX, placement.shelterApproachY,
                 placement.liftX, placement.liftY);
         if (Paths.isEmpty(path)) return mask;
         for (int i = 0, n = Paths.cellCount(path); i < n; i++) {
             int px = Paths.cellX(path, i), py = Paths.cellY(path, i);
-            for (int y = py - ROUTE_CLEARANCE; y <= py + ROUTE_CLEARANCE; y++) {
-                for (int x = px - ROUTE_CLEARANCE; x <= px + ROUTE_CLEARANCE; x++) {
+            for (int y = py - clearance; y <= py + clearance; y++) {
+                for (int x = px - clearance; x <= px + clearance; x++) {
                     if (grid.inBounds(x, y)) mask[grid.index(x, y)] = true;
                 }
             }

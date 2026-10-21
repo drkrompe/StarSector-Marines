@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.campaign;
 
+import com.dillon.starsectormarines.i18n.Strings;
+
 import java.io.Serializable;
 
 /** Save-owned chapter progression and exactly-once job ledger. No campaign API handles. */
@@ -123,10 +125,10 @@ public final class BrokenSupplyRouteProgress implements Serializable {
     }
 
     public String status() {
-        if (!readable()) return "Unrecognized supply-route record; operations paused.";
-        if (!junctionWon) return "Open the Junction / route access contested";
-        if (!closed) return "Junction held / Thunder Run pending. " + freight.summary() + ".";
-        return "Thunder Run: " + freight.summary() + ". "
-                + (successful ? "Freight delivered / Mara's Route Security available." : "Freight lost / commercial route remains suspended.");
+        if (!readable()) return Strings.get("supplyRouteStatusUnreadable");
+        if (!junctionWon) return Strings.get("supplyRouteStatusJunction");
+        if (!closed) return Strings.format("supplyRouteStatusThunderPending", freight.summary());
+        return Strings.format(successful ? "supplyRouteStatusThunderDelivered" : "supplyRouteStatusThunderLost",
+                freight.summary());
     }
 }

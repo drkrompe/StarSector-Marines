@@ -220,6 +220,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
+import java.util.SplittableRandom;
 
 /**
  * Builds a battle scenario for the auto-battler. v3: marines arrive via
@@ -2588,7 +2589,9 @@ public final class BattleSetup {
                     risk, battleSeed, colony) == null) {
                 continue;
             }
-            installRescuePickup(sim, payload.placement, payload.size(), battleSeed,
+            // The cohort is the shelter's people and every holdout's.
+            installRescuePickup(sim, payload.placement,
+                    sim.getCivilianEvacuationTracker().expectedCount(), battleSeed,
                     risk, scale.width, scale.height);
             SwarmDefenseRoster swarm = stressTest
                     ? SwarmDefenseRoster.install(
@@ -2651,10 +2654,27 @@ public final class BattleSetup {
      * grown at a town's density and the outlying places at a hamlet's, the
      * {@code BALANCED} reading of a colony that has a centre and ground around
      * it. Which side the installation stands on is the seed's.
+     *
+     * <p><b>The company lands in the fields, not in the town.</b> Shuttles
+     * cannot set down amid an infested colony: bores open underfoot, spore
+     * colonies cover the sky over them, and every building is cover for the
+     * swarm right up to the hull. So the colony is laid out with an
+     * {@link LandingKind#OPEN_FIELD open-field} landing outside its edge, and
+     * the company comes down where it can see them coming and fights its way
+     * in — which is why it does not land beside the colonists. The fields are
+     * north or south of the town, the seed's choice: the three places run
+     * across the map's long axis, so that is the colony's far side from every
+     * place a bore comes up beside. They lie against the map edge the shuttles
+     * arrive across, so a lift pays only the field's own radius in flight.
+     * {@code -Dbattle.colonyBreach.fieldLanding=false} is the control: no
+     * landing place, and the arrival scans the whole map as it used to.
      */
     static PrecinctPlan colonyPlanFor(MapScale scale, long seed) {
         Random rng = new Random(seed ^ PRECINCT_SEED_SALT);
         boolean installationEast = rng.nextBoolean();
+        MapPlacement fields = !colonyLandsInFields() ? null
+                : new SplittableRandom(seed ^ FIELD_SIDE_SALT).nextBoolean()
+                        ? MapPlacement.NORTH : MapPlacement.SOUTH;
         return PrecinctPlan.laidOut(List.of(
                         PrecinctBrief.settlement("colony", MapPlacement.CENTRE,
                                 GrownTrunkPlan.Profile.town(), PrecinctCharacter.TOWN),
@@ -2664,8 +2684,22 @@ public final class BattleSetup {
                         PrecinctBrief.settlement("suburb",
                                 installationEast ? MapPlacement.WEST : MapPlacement.EAST,
                                 GrownTrunkPlan.Profile.hamlet(), PrecinctCharacter.SUBURB)),
-                null, scale.width, scale.height, rng);
+                fields, fields == null ? null : LandingKind.OPEN_FIELD,
+                scale.width, scale.height, rng);
     }
+
+    /** Whether the colony is laid out with fields to land in; false is the control. */
+    static boolean colonyLandsInFields() {
+        return Boolean.parseBoolean(System.getProperty("battle.colonyBreach.fieldLanding", "true"));
+    }
+
+    /**
+     * Salt for the fields' side, its own draw so the control's map is the old
+     * map. A splittable stream because the first draw of an ordinary
+     * {@code Random} barely moves between neighbouring seeds: twelve seeds in
+     * a row all put the fields north.
+     */
+    private static final long FIELD_SIDE_SALT = 0x4649454C44534944L;
 
     /**
      * Dedicated Silent Colony expedition. The frozen threat seed owns the
@@ -5262,6 +5296,18 @@ public final class BattleSetup {
                                               boolean[][] reserved) {
         NavigationGrid grid = map.grid;
         CellTopology topology = map.topology;
+        // A parked truck is cover, and a field promised to stay clear of cover
+        // does not get one on the track across it.
+        if (map.fieldOfFire != null) {
+            boolean[][] field = new boolean[grid.getWidth()][grid.getHeight()];
+            for (int x = 0; x < grid.getWidth(); x++) {
+                for (int y = 0; y < grid.getHeight(); y++) {
+                    field[x][y] = (reserved != null && reserved[x][y])
+                            || map.fieldOfFire.contains(x, y);
+                }
+            }
+            reserved = field;
+        }
         GenMappingRegistry mappings = GenMappingRegistry.installed();
         List<DoodadDef> kinds = mappings.doodadPool(PARKED_VEHICLE_POOL);
         List<DoodadDef> serviceKinds = mappings.doodadPool(SERVICE_VEHICLE_POOL);

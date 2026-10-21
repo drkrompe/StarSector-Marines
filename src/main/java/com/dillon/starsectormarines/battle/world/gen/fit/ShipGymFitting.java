@@ -29,11 +29,16 @@ public final class ShipGymFitting implements RoomFitting {
         floor.markGround(basin[0],basin[1],basin[2],basin[3],GroundKind.WATER);
         surface(floor,8,3,4,4,"water");
 
-        reserve(floor,1,5,2,3);surface(floor,1,5,2,3,"mat");
-        task(floor,1,5,2,5);task(floor,1,7,2,7);
-        station(floor,"treadmill",1,1,1,4,1,3);
-        station(floor,"rower",4,1,4,4,4,3);
-        station(floor,"bench-press",4,6,3,7,4,7);
+        // Machines at their real size, a crewman's shoulders being 0.6 of a cell: treadmills and rowers one cell
+        // wide and three long, the press a 2.2 m bar over a narrow bench. A sprite's top edge lies at its
+        // footprint's highest row, so the console, flywheel and bar are up and the foot is the lowest row; each is
+        // worked from the free cell below its foot, facing up its length, and the user is drawn on it
+        // (WorkMotion.mountCells).
+        for(int x:new int[]{1,2}) station(floor,KIT+"treadmill",x,5,x,4,x,5);
+        for(int x:new int[]{4,5}) station(floor,KIT+"rower",x,5,x,4,x,5);
+        reserve(floor,1,1,2,3);surface(floor,1,1,2,3,"mat");
+        task(floor,1,1,2,1);task(floor,1,3,2,3);
+        station(floor,KIT+"bench-press",3,2,4,1,4,2);
         if(floor.placeAssembly(8,8,KIT+"weights",List.of())) {
             task(floor,9,7,9,8);task(floor,11,7,11,8);
         }
@@ -46,7 +51,7 @@ public final class ShipGymFitting implements RoomFitting {
         return true;
     }
     private void station(RoomFloor floor,String id,int x,int y,int sx,int sy,int fx,int fy) {
-        if(floor.placeAssembly(x,y,KIT+id,List.of())) task(floor,sx,sy,fx,fy);
+        if(floor.placeAssembly(x,y,id,List.of())) task(floor,sx,sy,fx,fy);
     }
     private void task(RoomFloor floor,int sx,int sy,int fx,int fy) {
         int[] s=floor.toLocal(sx,sy),f=floor.toLocal(fx,fy);

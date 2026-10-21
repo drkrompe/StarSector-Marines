@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.DevConfig;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -16,7 +17,7 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
     private List<Mission> catalog = List.of();
     private Mission selected;
     private int group, page;
-    private String location = "All locations";
+    private String location = allLocations();
     private static final int PAGE_SIZE = 8;
     public DebugMissionScreen() { super(ROOT, COMPONENTS); }
     @Override protected void onAttach() {
@@ -27,9 +28,10 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
     @Override protected Map<String, Object> props() {
         return model(catalog, selected, group, page, location, this::location, this::select, this::group, this::page, this::launch, this::onCancel);
     }
+    static String allLocations() { return Strings.get("debugMissionAllLocations"); }
     private void select(Mission m) { selected = m; rebuildDocument(); }
     private void group(int value) {
-        group = value; page = 0; location = "All locations";
+        group = value; page = 0; location = allLocations();
         selected = visible(catalog, group, location).stream().findFirst().orElse(null);
         rebuildDocument();
     }
@@ -48,7 +50,7 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
     static List<Mission> visible(List<Mission> catalog, int group, String location) {
         var planets = locations(catalog, group);
         return catalog.stream().filter(m -> groupOf(m) == group)
-                .filter(m -> "All locations".equals(location) || location.equals(locationOf(m)))
+                .filter(m -> allLocations().equals(location) || location.equals(locationOf(m)))
                 .sorted(Comparator.comparingInt(m -> planets.indexOf(locationOf(m)))).toList();
     }
     private void page(int value) { page = Math.max(0, value); rebuildDocument(); }
@@ -75,7 +77,7 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
     static Map<String, Object> model(List<Mission> catalog, Mission selected, int group, int page,
                                      Consumer<Mission> choose, Consumer<Integer> filter, Consumer<Integer> turn,
                                      Runnable launch, Runnable back) {
-        return model(catalog, selected, group, page, "All locations", place -> {}, choose, filter, turn, launch, back);
+        return model(catalog, selected, group, page, allLocations(), place -> {}, choose, filter, turn, launch, back);
     }
     static Map<String, Object> model(List<Mission> catalog, Mission selected, int group, int page,
                                      String location, Consumer<String> setLocation,
@@ -84,7 +86,7 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
         Map<String, Object> props = new LinkedHashMap<>();
         List<Mission> visible = visible(catalog, group, location);
         List<MarkupPropertySource> places = new ArrayList<>();
-        var labels = new ArrayList<>(List.of("All locations"));
+        var labels = new ArrayList<>(List.of(allLocations()));
         labels.addAll(locations(catalog, group));
         for (int i = 0; i < labels.size(); i++) {
             String label = labels.get(i);
@@ -107,9 +109,12 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
             row.put("id", "debug-card-" + i);
             row.put("groupId", "debug-card-group-" + i);
             row.put("titleId", "debug-card-title-" + i);
-            row.put("forceId", "debug-card-force-" + i); row.put("title", (story == null ? "" : story.sequence() + " / ") + m.name);
-            row.put("group", locationOf(m) + " / " + (story == null ? m.tier.displayName : story.group));
-            row.put("force", preset.squads() + (preset.squads() == 1 ? " SQUAD / " : " SQUADS / ") + preset.squads() * 12 + " MARINES" + (preset.mechs() > 0 ? " + ARMOR" : ""));
+            row.put("forceId", "debug-card-force-" + i); row.put("title", story == null ? m.name : Strings.join("separatorPath", story.sequence(), m.name));
+            row.put("group", Strings.join("separatorPath", locationOf(m),
+                    story == null ? Strings.get("missionSelectTier" + m.tier.name()) : story.group));
+            String force = Strings.format("debugMissionForce", preset.squads(), preset.squads() * 12);
+            if (preset.mechs() > 0) force = Strings.format("debugMissionForceArmor", force);
+            row.put("force", Strings.upper(force));
             row.put("classes", "debug-card" + (selected != null && selected.id.equals(m.id) ? " selected" : ""));
             row.put("action", (Runnable) () -> choose.accept(m));
             cards.add(row::get);
@@ -120,16 +125,16 @@ public final class DebugMissionScreen extends MissionFlowMlxScreen {
             props.put("tab" + i, (Runnable) () -> filter.accept(index));
             props.put("tabClass" + i, "debug-tab" + (group == i ? " selected" : ""));
         }
-        props.put("pageLabel", (current + 1) + " / " + pages + "   |   " + visible.size() + " missions");
+        props.put("pageLabel", Strings.format("debugMissionPageLabel", current + 1, pages, visible.size()));
         props.put("previous", (Runnable) () -> turn.accept(current - 1));
         props.put("next", (Runnable) () -> turn.accept(current + 1));
         props.put("previousDisabled", current == 0); props.put("nextDisabled", current + 1 >= pages);
         props.put("launch", launch); props.put("back", back); props.put("launchDisabled", selected == null);
-        props.put("title", selected == null ? "DEBUG unavailable" : selected.name);
+        props.put("title", selected == null ? Strings.get("debugMissionUnavailable") : selected.name);
         var selectedStory = DebugMissionCatalog.scenario(selected);
         props.put("sequence", selected == null ? "" : selectedStory == null ? locationOf(selected)
-                : selectedStory.location() + " / " + selectedStory.sequence() + " / " + selectedStory.sequenceHint());
-        props.put("description", selected == null ? "Enable the developer mission catalog to use this screen." : selected.flavor);
+                : Strings.join("separatorPath", selectedStory.location(), selectedStory.sequence(), selectedStory.sequenceHint()));
+        props.put("description", selected == null ? Strings.get("debugMissionCatalogDisabled") : selected.flavor);
         props.put("preset", selected == null ? "" : DebugMissionCatalog.preset(selected).summary());
         var scene = StoryScene.forMission(selected);
         props.put("image", scene == null ? "graphics/ui/console/operation-scope.svg" : scene.image);

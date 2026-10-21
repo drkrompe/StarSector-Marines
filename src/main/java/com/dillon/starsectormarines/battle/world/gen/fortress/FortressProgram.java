@@ -351,6 +351,19 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
         return new FortressProgram(List.of(), 0, LANDING_APRON);
     }
 
+    /**
+     * Fields round a landing: bare ground the size of the field of fire, plus
+     * a few cells of margin so the place's own claim runs past the radius it
+     * promises to keep clear and a neighbour's first wall stands outside it.
+     */
+    public static FortressProgram openField(int fieldOfFire) {
+        int reach = fieldOfFire + OPEN_FIELD_MARGIN;
+        return new FortressProgram(List.of(), 0, (int) Math.round(Math.PI * reach * reach));
+    }
+
+    /** Cells of claim beyond an open field's clear radius. */
+    private static final int OPEN_FIELD_MARGIN = 4;
+
     private static final RoomShape TERMINAL = RoomShape.rectangle(14, 8);
     private static final RoomShape LANDING_HANGAR = RoomShape.rectangle(12, 10);
     private static final RoomShape CONTROL_OFFICE = RoomShape.rectangle(6, 5);

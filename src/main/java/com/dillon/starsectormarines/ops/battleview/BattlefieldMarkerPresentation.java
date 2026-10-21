@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -104,18 +105,18 @@ public final class BattlefieldMarkerPresentation {
 
     /** A machine sent to stand by its own side's garrison: carried out, and said in the friendly colour. */
     public static TargetMarker guard(String displayName, String status) {
-        return new TargetMarker(displayName.toUpperCase(Locale.ROOT), status, SECURED, 0f, true);
+        return new TargetMarker(displayName.toUpperCase(Strings.locale()), status, SECURED, 0f, true);
     }
 
     /** A ground order into ground the enemy holds: carried out, but said in the hostile colour. */
     public static TargetMarker assault(String displayName, String status) {
-        return new TargetMarker(displayName.toUpperCase(Locale.ROOT), status, HOSTILE, 0f, true);
+        return new TargetMarker(displayName.toUpperCase(Strings.locale()), status, HOSTILE, 0f, true);
     }
 
     public static TargetMarker target(String displayName, boolean valid,
                                       float radiusCells) {
         String label = displayName == null || displayName.isBlank()
-                ? "COMMAND POWER" : displayName.toUpperCase(Locale.ROOT);
+                ? "COMMAND POWER" : displayName.toUpperCase(Strings.locale());
         return new TargetMarker(label, valid ? "VALID" : "BLOCKED",
                 valid ? VALID : INVALID, Math.max(0f, radiusCells), valid);
     }

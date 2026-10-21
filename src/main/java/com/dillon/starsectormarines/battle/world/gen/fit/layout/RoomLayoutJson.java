@@ -91,6 +91,8 @@ public final class RoomLayoutJson {
             case "ground":
                 return new LayoutOp.Ground(x, y, span(op, "spanX"), span(op, "spanY"),
                         enumValue(GroundKind.class, op.optString("kind", null), "ground kind"));
+            case "overlay":
+                return new LayoutOp.Overlay(x, y, requireId(op, index));
             case "pave":
                 return new LayoutOp.Paving(x, y, requireId(op, index));
             case "partition":
@@ -256,6 +258,9 @@ public final class RoomLayoutJson {
             json.put("op", "ground").put("x", ground.x()).put("y", ground.y())
                     .put("spanX", ground.spanX()).put("spanY", ground.spanY())
                     .put("kind", ground.kind().name());
+        } else if (op instanceof LayoutOp.Overlay overlay) {
+            json.put("op", "overlay").put("x", overlay.x()).put("y", overlay.y())
+                    .put("id", overlay.doodadId());
         } else if (op instanceof LayoutOp.Paving paving) {
             json.put("op", "pave").put("x", paving.x()).put("y", paving.y())
                     .put("id", paving.doodadId());

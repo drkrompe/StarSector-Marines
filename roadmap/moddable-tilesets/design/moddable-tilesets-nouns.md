@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 - blast aftermath covers ordinary terrain and retains material-specific floor pairs.
+Updated: 2026-10-21 - prop motion: a doodad may carry moving parts, on any battle map, gated by generic power, damage and use.
 
 Read `stories.md` for open work.
 
@@ -47,6 +47,31 @@ override layer: changing core generation policy remains a deliberate core edit.
   domain name. One placement may carry a quarter-turn: the source span remains
   the definition's, while its rendered and tactical world footprint turns with
   the art.
+- A **prop motion** is the moving parts of one doodad: other doodads drawn
+  over its static base that spin about a pivot, slide along a track of stops
+  with a dwell at each, or scroll as a seamless tile run along a window. It is
+  presentation, which is why a prop that moves is still a doodad: the parts
+  never move its footprint, cover or blocking, the prop neither ticks nor
+  becomes an entity, and a part turns and mirrors with the placement. Motion is
+  a capability of the doodad on **any battle map** - a ship's room, a colony
+  depot, a factory floor, a fort - and is keyed by the base doodad's stable id
+  in its own motion catalog, never in a tileset's exported definition, which
+  its exporter rewrites.
+  A prop runs on three generic inputs and nothing map-specific:
+  - **power**: the map's answer to how well its machinery is powered at a
+    point. Each kind of map answers for itself - a ship's deck from her power
+    core, a fort or a depot from its own state - and a map that says nothing is
+    fully powered. A powered prop keeps an authored share of its speed at a
+    deficit;
+  - **damage**: a damaged prop is its own `-damaged` doodad and runs only at
+    its motion's authored damaged rate (by default not at all, its damaged art
+    standing for the machine); a destroyed prop never runs;
+  - **use**: a worked machine runs only while somebody is at work on it - a
+    task point on its footprint whose claimant has that job in hand, the same
+    fact an actor's work motion reads, so the two cannot disagree.
+  A machine that stops keeps its place in its cycle and runs down rather than
+  snapping to rest. The fort's roof machinery is building art rather than a
+  doodad and keeps its own rules, sharing only the running clock.
 - A **mapping definition** is the selection policy between generated concepts
   and registry ids: render-surface dispatch, named doodad pools, and tunables
   for an existing filler. It does not currently select or define a filler

@@ -526,9 +526,10 @@ shades in its own frame. Hits lift the whole film and throw ripple rings
 (`shield_ring_<k>`, keyed by `hit()`); `shield_flux` opens moving thin
 patches, spreads the rings wider and longer, bands the thinnest film in
 soap-bubble colours and dims hits that land on a thin patch;
-`shield_overload` tears the film from `shield_tear_az` / `_el` across the
-arc behind a hot edge, breaks it into shards that flare, scatter and fade,
-crawls arcs over the hull and flashes a light at the tear; `shield_vent`
+`shield_overload` dissolves the film by force: holes burn open at the last hit
+(`shield_tear_az` / `_el`) and at the thinnest patches at once and spread
+behind bright edges until they meet (`shield_shards` also breaks it into
+ragged burning pieces, off by default), crawls arcs over the hull and flashes a light at the tear; `shield_vent`
 lights the hull parts named in `SHIELD['vents']` with heat and sheds vapour
 jets from them. Helpers: `flux()`, `overload()` (also stutters
 `lit_ship_master`), `recover()`, `vent()`. `arc_material()` / `arc_curve()` /

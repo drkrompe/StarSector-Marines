@@ -213,7 +213,7 @@ KEYFRAMES = {
             ('fire_on', 'lasher-a', (-20, 10, 6)),
             ('blast_on', 'lasher-lead', 14, (8, 6, 6))],
         cues={'lasher-lead': {'fire': 'all'}, 'lasher-b': {'fire': ['t3_1']},
-              'manticore-p': {'fire': ['t1_1']}},
+              'manticore-p': {'fire': ['t1_1']}, 'phaeton': {'impacts': 'cookoff'}},
         labels=['lasher-lead', 'lasher-a', 'phaeton', 'colossus', 'morrow', 'falcon-p', 'manticore-p', 'wolf-p-a']),
     'k3c': dict(
         shot='S6b', title='The escorts answer',
@@ -1063,13 +1063,22 @@ def blender_main(cfg):
         obj('Platform spine', plume_me, mat, Matrix.Translation(base + Vector((-380, 0, 0)))
             @ Vector((1, 0, 0)).to_track_quat('Z', 'Y').to_matrix().to_4x4() @ Matrix.Diagonal((12, 12, 760, 1)))
 
-    def apply_cue(s, cue):
+    def apply_cue(key, s, cue):
         """One ship's effects cue for this frame (KEYFRAMES 'cues'): 'fire' lists the guns flashing
-        ('t1_1' ..., or 'all'); any other entry sets that knob on this ship only."""
+        ('t1_1' ..., or 'all'); 'impacts': 'cookoff' marks the wreck with W6's cause (the lead
+        Lasher's bursts and the Harpoons, timed against her own break_frame) and draws her embers
+        at ship scale; any other entry sets that knob on this ship only."""
         for name, val in cue.items():
             if name == 'fire':
                 for lab in (s.gun_labels() if val == 'all' else val):
                     s.flash(lab)
+            elif name == 'impacts' and val == 'cookoff':
+                import bench_impacts
+                with s.kit() as (ctx, _kit):
+                    imp = bench_impacts._imp()
+                    imp.apply_cue(ctx, bench_impacts.cookoff_entries(int(s.get('break_frame'))),
+                                  matrix=placed[key]['matrix'])
+                    imp.refine_sparks(ctx)
             else:
                 s.set(name, val)
 
@@ -1101,6 +1110,10 @@ def blender_main(cfg):
                          if top else '')
                       + f' volumes {len(mats)} unscaled {len(unscaled)}' + (f' {off[:3]} {unscaled[:3]}' if off or unscaled else ''),
                       flush=True)
+                # Per-object colour (ship_fx.own_colours): nothing may still read the drawing object's
+                # colour, and every routed node must carry the object's own colour curve.
+                c = ship_fx.colour_audit(pl['fx'])
+                print(f'ASHARU colour {kf} {k:12} {json.dumps(c)}', flush=True)
                 # Stale transforms: the copy is only ever instanced, never evaluated, so a stored
                 # matrix_world can disagree with its parent chain; anything reading it is off by this.
                 worst, name = 0.0, ''
@@ -1261,7 +1274,7 @@ def blender_main(cfg):
                     else:
                         placed[key]['lib']['ctl'][name] = val
             for key, cue in spec.get('cues', {}).items() if cfg.get('swfx') else ():
-                apply_cue(placed[key]['fx'], cue)
+                apply_cue(key, placed[key]['fx'], cue)
             if ships_fx or any(lib.get('ctl') is not None for lib in library.values()):
                 ship_fx.refresh(scene)     # drivers read the knobs
                 bpy.context.view_layer.update()
