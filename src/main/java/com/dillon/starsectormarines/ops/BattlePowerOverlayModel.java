@@ -251,7 +251,7 @@ final class BattlePowerOverlayModel {
         if (Math.abs(value - Math.round(value)) < 0.05f) {
             return Integer.toString(Math.round(value));
         }
-        return String.format(Locale.ROOT, "%.1f", value);
+        return String.format(Strings.locale(), "%.1f", value);
     }
 
     /** The tray's short card name for a power when the copy gives one, else its name in capitals. */

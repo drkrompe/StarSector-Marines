@@ -1,0 +1,16 @@
+Use case: precise-object-edit / texture reskin of a technical render sheet.
+INPUT 1 is a sheet of FOUR separate orthographic renders of surfaces of one 3D crewless mining drone (a Borer, about 3.6 metres long), each seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background:
+top-left: the top of the long centre spine, burnt orange armour with its blunt tail to the left and its narrowing nose to the right, crossed by thin engraved panel lines and an engraved octagonal hatch outline near the tail;
+top-right: the top of one broad armour pod, a large burnt orange plate with chamfered corners and thin engraved panel lines;
+bottom-left: the top of one drive pod, light-to-mid grey machinery plating with a near-black triangular recess and thin engraved lines;
+bottom-right: a group of small underside pieces seen from below: burnt orange plates and grey machinery pieces with two small near-black triangles.
+INPUT 2 is the SAME drone already painted: it is the finish to match. Use its paint colours, its semi-matte industrial enamel, its light service wear, and its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.
+
+Paint each of the four tiles in INPUT 1 as that surface of a working utility drone in service. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:
+- Keep the four tiles exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Every shape occupies exactly the same pixels as in INPUT 1, with exactly the same outline, and the background between, around and inside the holes of the shapes stays plain blue.
+- Each shape is a flat armour or machinery surface. Add painted surface detail inside its outline only: fine plate seams and welded joints, neat rows of small fasteners along plate edges, flush access-panel outlines, faint even scuffing. The thin darker lines and slots already drawn on the shapes are engraved panel lines and vents: keep them exactly where they are. Nothing may stand out from the surface or cross the outline.
+- Keep each shape's colour exactly: orange shapes stay the burnt orange enamel of INPUT 2, grey shapes stay its neutral light-to-mid grey machinery paint, near-black areas stay near-black. Do not repaint any shape or any part of a shape another colour. No repair plates, no patches, no different-coloured panels, no stripes or hazard bands, no lettering, numbers, markings, insignia or decals.
+- Wear is light and even across each whole shape: faint scuffs at edges, a thin film of rock dust and grime in seams. No rust, soot, scorch marks, burns, streaks, impact damage, dents, holes, stains, chipping clusters or any single concentrated area of wear.
+- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no rim light, no bright bevelled edge highlights, no directional light, no shading or gradients across a shape.
+- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, vignette, text, labels or borders.
+Output: one landscape 16:9 image, same composition as INPUT 1.

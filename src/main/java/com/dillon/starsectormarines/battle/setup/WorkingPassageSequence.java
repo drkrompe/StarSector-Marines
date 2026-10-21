@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.WorkingPassageCommand;
@@ -161,14 +162,14 @@ public final class WorkingPassageSequence implements Objective {
     public boolean isComplete(){return progress.phase()==Phase.COMPLETE;}
     public boolean isFailed(){return progress.phase()==Phase.FAILED;}
     public String displayName(){return switch(progress.phase()){
-        case BEND->"Clear the pump bend and escort Morrow forward";
-        case BEND_BUILD->"Build a Vulcan turret at the pump bend; hold the haul-road response";
-        case NARROWS->"Clear the narrows while militia hold the pump bend";
-        case NARROWS_BUILD->"Build a Vulcan turret at the narrows; contain both road approaches";
-        case CLIMB_OUT->"Secure the climb-out yard and escort Morrow into it";
-        case SPOOL->"Hold the climb-out approach / drives "+(int)(100*progress.work()/WorkingPassageProgress.SPOOL_SECONDS)+"%";
-        case DEPARTURE->"Defend Morrow's physical climb-out";
-        case COMPLETE->"Morrow has departed; registry transfer authorized";
-        case FAILED->"Departure aborted; recovery claim and repairs retained";
+        case BEND->Strings.get("workingPassageBend");
+        case BEND_BUILD->Strings.get("workingPassageBendBuild");
+        case NARROWS->Strings.get("workingPassageNarrows");
+        case NARROWS_BUILD->Strings.get("workingPassageNarrowsBuild");
+        case CLIMB_OUT->Strings.get("workingPassageClimbOut");
+        case SPOOL->Strings.format("workingPassageSpool",(int)(100*progress.work()/WorkingPassageProgress.SPOOL_SECONDS));
+        case DEPARTURE->Strings.get("workingPassageDeparture");
+        case COMPLETE->Strings.get("workingPassageComplete");
+        case FAILED->Strings.get("workingPassageFailed");
     };}
 }

@@ -11,10 +11,17 @@ import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
+import java.nio.file.Path;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AgreusArcCampaignTest {
+    private static HeadlessStrings copy;
+    @BeforeAll static void shippedCopy() throws Exception { copy = new HeadlessStrings(Path.of("mod")); }
+    @AfterAll static void closeCopy() { copy.close(); }
     @Test void onlyTheActualDepartureReceiptEstablishesReferralHistory() {
         assertFalse(AgreusArcCampaign.eligibleHistory(null));
         var p = new ShepherdRecoveryProgress(); assertFalse(AgreusArcCampaign.eligibleHistory(p));
