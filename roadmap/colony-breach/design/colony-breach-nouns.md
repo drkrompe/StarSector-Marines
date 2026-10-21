@@ -571,7 +571,10 @@ for one job in the cycle, and reads that way on screen.
   spine flexing and the shoulders and hips swaying against each other, with two
   jointed spike arms on its shoulders. Each blow is one arm, alternating, and
   is either a stab (the elbow bows out away from the body, then the point
-  drives straight forward) or a side swipe. The wind-up runs off the attack
+  drives straight forward) or a side swipe. The body is in every blow: a stab
+  draws the trunk back on its planted feet, then lunges it forward onto the
+  point, and a swipe winds the striking shoulder back and twists the trunk
+  through the cut, the hips countering. The wind-up runs off the attack
   cooldown, so the blow arrives on the tick its damage is dealt. The rig is
   presentation only: nothing in the simulation reads it, and the strike rule
   itself stays the ordinary melee hit. A carrier (*Harvest*, *Impale*) is

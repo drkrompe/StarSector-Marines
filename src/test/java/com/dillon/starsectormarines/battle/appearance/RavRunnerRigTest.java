@@ -131,6 +131,32 @@ class RavRunnerRigTest {
     }
 
     @Test
+    void theBodyWindsBackAndDrivesThroughEachBlow() {
+        RavRunnerRig rig = new RavRunnerRig(3L);
+        float cooldown = 0.7f;
+        float wound = 0f;
+        int blows = 0;
+        for (int tick = 0; tick < 120; tick++) {
+            boolean lands = cooldown <= 0f;
+            if (lands) cooldown = 0.7f;
+            rig.advance(5f, 5f, 0f, cooldown, true, DT);
+            cooldown = Math.max(0f, cooldown - DT);
+            // positive: the striking arm's shoulder is turned back
+            float side = rig.strikeArm() == 0 ? 1f : -1f;
+            float back = rig.twistDegrees() * side;
+            if (lands) {
+                assertTrue(wound > 5f, "blow " + blows + " wound the shoulder back first: " + wound);
+                assertTrue(back < 0f, "blow " + blows + " drives the shoulder through as it lands: " + back);
+                blows++;
+                wound = 0f;
+            } else if (cooldown < 0.25f) {
+                wound = Math.max(wound, back);
+            }
+        }
+        assertTrue(blows >= 3);
+    }
+
+    @Test
     void ikKeepsBoneLengths() {
         float[] j = new float[4];
         RavRunnerRig.ik2(0f, 0.4f, 0.1f, 0f, 0.22f, 0.22f, -1f, j);
