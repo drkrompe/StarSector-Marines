@@ -2786,7 +2786,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             viewModel::selectedGantryIndex,
                             viewModel::selectedSocket,
                             MechLabDollCanvas::headlessAssets,
-                            () -> null, () -> null,
                             viewModel::fittingFocused,
                             ship::scene,
                             () -> framing.lookingAt(camera.pose().worldX(),

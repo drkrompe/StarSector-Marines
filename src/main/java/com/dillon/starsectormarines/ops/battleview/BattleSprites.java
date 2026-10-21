@@ -192,13 +192,6 @@ public class BattleSprites {
     private SpriteAPI satchelChargeSprite;
     private boolean satchelSpriteLoadAttempted;
 
-
-    // ---- embedded Mech Lab workshop FX ------------------------------------
-
-    private SpriteAPI mechLabWeldingTorch;
-    private SpriteAPI mechLabWeldingSparks;
-    private boolean mechLabFxLoadAttempted;
-
     // =========================================================================
     // Accessors
     // =========================================================================
@@ -249,8 +242,6 @@ public class BattleSprites {
     /** The deployed smoke field's flipbook sheet; frames are addressed by {@code SpecialEquipmentPresentationDef.Field}. */
     public SpriteAPI smokeFieldSheet() { return smokeFieldSheet; }
     public SpriteAPI satchelChargeSprite() { return satchelChargeSprite; }
-    public SpriteAPI mechLabWeldingTorch() { return mechLabWeldingTorch; }
-    public SpriteAPI mechLabWeldingSparks() { return mechLabWeldingSparks; }
     public SpriteAPI decalSheet()                  { return decalSheet; }
     public SpriteSheetFrames decalFrames()         { return decalFrames; }
     public ShuttleSpriteCache droneHubSprite()     { return droneHubSprite; }
@@ -346,29 +337,6 @@ public class BattleSprites {
 
     /** Lazy-loads the road sheet (urban-tileset-2.png) — its own PNG so road art iterates independently of the indoor floors. */
     public void ensureRoadSheet()       { roadTex.ensureLoaded(); }
-
-    public void ensureMechLabFxSprites() {
-        if (mechLabFxLoadAttempted) return;
-        mechLabFxLoadAttempted = true;
-        mechLabWeldingTorch = loadMechLabFxSpriteOrNull(
-                MechLabDollCanvas.WELDING_TORCH_PATH);
-        mechLabWeldingSparks = loadMechLabFxSpriteOrNull(
-                MechLabDollCanvas.WELDING_SPARKS_PATH);
-    }
-
-    private SpriteAPI loadMechLabFxSpriteOrNull(String path) {
-        try {
-            Global.getSettings().loadTexture(path);
-            SpriteAPI sprite = Global.getSettings().getSprite(path);
-            if (sprite == null) {
-                LOG.warn("BattleSprites: getSprite returned null for " + path);
-            }
-            return sprite;
-        } catch (Exception failure) {
-            LOG.warn("BattleSprites: could not load Mech Lab FX sprite " + path, failure);
-            return null;
-        }
-    }
 
     /** Lazy-loads the high-resolution outdoor surfaces sheet (Floors_Tiles.png), with 56px source cells drawn into the 32px nav grid. */
     public void ensureFloorsSheet()     { floorsTex.ensureLoaded(); }
@@ -780,6 +748,11 @@ public class BattleSprites {
         // Not a special, but drawn the way one is: a medic's kit while treating.
         LayeredSpriteCache treatmentKit = loadLayeredSprite(TreatmentKitLayer.SPRITE);
         if (treatmentKit != null) specialEquipmentLayers.put(TreatmentKitLayer.ASSET_KEY, treatmentKit);
+        // Nor is what a crew member holds at work, and it is registered the same way.
+        for (Map.Entry<String, String> prop : WorkPropLayer.SPRITES.entrySet()) {
+            LayeredSpriteCache sprite = loadLayeredSprite(prop.getValue());
+            if (sprite != null) specialEquipmentLayers.put(prop.getKey(), sprite);
+        }
         if (foot == null || rifle == null || laser == null || smg == null || dmr == null
                 || rocket == null || amr == null || flash == null || surplusRifle == null
                 || masterworkDmr == null) {

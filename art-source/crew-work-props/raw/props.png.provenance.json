@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f6f-f17c-72a2-99b7-f71ccf1a5f23",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f6f-f17c-72a2-99b7-f71ccf1a5f23\\exec-05f9b908-4112-4249-ae6f-cde43534a472.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\crew-work-props\\raw\\props.png",
+    "sha256": "4b67d82729024b26477c47fd4d36f862ae47a5c11c93aa2557d06129680baaa3",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\crew-work-props\\prompts\\props.txt",
+  "promptSha256": "3976e0314d9a7262ddd2521b140e8065bc1ed3f15a128acd934105d8e4338371",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority and edit target: keep every silhouette exactly\nImage 2: Pixel-art style and palette only; not layout or content\n\nUse case: sketch-to-render. Production overhead sprite layers: four small hand props that starship crew hold while working, drawn over the existing marine and crew infantry sprites in a top-down tactical game.\n\nReference 1 is the authoritative SILHOUETTE GUIDE and edit target, 1536x1024. Reskin only its four flat gray shapes; keep every shape's exact outline, position and scale, including the open jaw of the spanner and the hole in its ring end. Everything outside the shapes must be genuinely transparent: no background, ground, glow, cast shadow, border, labels or grid.\n\nCamera: TRUE STRAIGHT-DOWN 90-degree overhead view. Each prop points UP the image (away from the hand that holds it). Left to right:\n- A stores crate seen from directly above: a sturdy olive-drab composite lid with a raised rim and a dark strap or batten across the middle, small stencil-free corner fittings.\n- A heavy steel spanner (open-end jaw at the top, ring at the bottom), worn blued steel.\n- A cook's knife: bright steel blade at the top, dark grip at the bottom.\n- A galley ladle: round steel bowl at the top, dark handle running down.\n\nStyle: match the crew reference sprite exactly — chunky crisp pixel art with a clean one-step dark outline around every shape, a limited muted palette, light from the upper left, restrained detail that still reads when shrunk to under 90 pixels. Not painterly, not smooth airbrushed, not photographic.\n\nAvoid: text, lettering, insignia, neon, noise, hands or people, extra objects.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\crew-work-props-guide.png",
+      "sha256": "a8c3928eb9393c23e0ba785383b36adb4b7dd2c575a9ed94f35a0dfd873831fd",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority and edit target: keep every silhouette exactly"
+    },
+    {
+      "path": "art-source\\ship-crew\\raw\\command.png",
+      "sha256": "3a9191975131217b5257512e762124b23445c9bef4c863d5dea55db2663d5290",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Pixel-art style and palette only; not layout or content"
+    }
+  ],
+  "agentMessages": [
+    "I’ll render the four props using the first image’s silhouettes and the second image’s pixel-art style, with transparent surroundings.\n"
+  ],
+  "usage": {
+    "input_tokens": 44945,
+    "cached_input_tokens": 36992,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 557,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 53.9
+}

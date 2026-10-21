@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
 import com.dillon.starsectormarines.battle.ambient.CrewRole;
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
+import com.dillon.starsectormarines.battle.appearance.WorkMotion;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
@@ -17,7 +21,11 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -70,6 +78,9 @@ public final class ShipDutySnapshotSuite implements SnapshotSuite {
                 if (first) named = present;
                 first = false;
             }
+            // Machines in the bay, so its technicians have something to weld.
+            var bay = scene.room(RoomPurpose.VEHICLE_BAY);
+            if (bay != null) scene.occupyGantries(Collections.nCopies(scene.berthsIn(bay).size(), MechVariant.BULWARK));
             long[] hired = scene.manDeck(Integer.MAX_VALUE, hull.minCrew());
             if (scene.manDeck(Integer.MAX_VALUE, hull.minCrew()).length != 0)
                 throw new IllegalStateException("Repeated manning duplicated population");
@@ -144,7 +155,8 @@ public final class ShipDutySnapshotSuite implements SnapshotSuite {
                     boolean workplace = workplaces.containsValue(room.purpose()) && rooms.compartments().stream()
                             .noneMatch(other -> other.purpose() == room.purpose()
                                     && other.width() * other.depth() > room.width() * room.depth());
-                    if (!core && !workplace && (tick != 3600 || !staffed)) continue;
+                    boolean motions = room.purpose() == RoomPurpose.GYMNASIUM || room.purpose() == RoomPurpose.VEHICLE_BAY;
+                    if (!core && !workplace && !motions && (tick != 3600 || !staffed)) continue;
                     for (int scale : new int[]{24, 64}) images.add(new SnapshotArtifact(
                             "ship-duty-" + room.purpose().name().toLowerCase() + "-" + room.id() + "-" + tick / 30 + "s-" + scale + "px.png",
                             drain.renderHostPass(scene.pass(ShipDeckBattleScene.DeckView.over(room, 2, scale),
@@ -158,6 +170,122 @@ public final class ShipDutySnapshotSuite implements SnapshotSuite {
                 if (stations < 2) throw new IllegalStateException(role + " did not work a room round: " + stations);
             }
         }
+        images.addAll(motionBoard(context));
         return images;
+    }
+
+    /** The motions the board shows, in reading order. */
+    private static final List<WorkMotion> BOARD = List.of(WorkMotion.WELD, WorkMotion.CARRY, WorkMotion.TREAT,
+            WorkMotion.STIR, WorkMotion.CHOP, WorkMotion.WRENCH, WorkMotion.RUN, WorkMotion.ROW,
+            WorkMotion.PRESS, WorkMotion.LIFT, WorkMotion.CONSOLE);
+    private static final int CLOSE_PX = 128, CLOSE_TILE = 320, GAME_PX = 24, GAME_TILE = 168, BOARD_FRAMES = 45;
+    /** How long the ship is watched for every motion to turn up: six minutes of its day. */
+    private static final int BOARD_SEARCH_TICKS = 6 * 60 * 30;
+
+    /**
+     * One worker per work motion, followed for a few seconds: a close-up of each
+     * and the same worker at game zoom beneath, on one 1920x1080 frame. Which
+     * motion an actor shows is read off its layered flags, the renderer's own
+     * input, so the board shows what the compositor was asked to draw.
+     */
+    private static List<SnapshotArtifact> motionBoard(SnapshotContext context) throws Exception {
+        // A capital's gym is the full ship gym, with the rower and the bench press.
+        var hull = new VanillaHullSilhouettes(context.starsectorCore()).read("conquest");
+        var generator = new ShipDeckGenerator();
+        var deck = generator.generateDeck(DeckSizing.planFor(hull.hullClass(), hull.role(),
+                hull.minCrew(), hull.maxCrew(), hull.cargo(), hull.silhouette().aspect()), 42, hull.silhouette());
+        var drain = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
+                new HeadlessBattleSceneRenderer(context.modRoot(), true));
+        try (var scene = new ShipDeckBattleScene(deck, generator.getLastDeckGraph(), 42, null)) {
+            var bay = scene.room(RoomPurpose.VEHICLE_BAY);
+            if (bay != null) scene.occupyGantries(Collections.nCopies(scene.berthsIn(bay).size(), MechVariant.BULWARK));
+            scene.manDeck(Integer.MAX_VALUE, hull.minCrew());
+            return motionBoard(scene, drain);
+        }
+    }
+
+    private static List<SnapshotArtifact> motionBoard(ShipDeckBattleScene scene, HeadlessUiRenderer drain) {
+        var sim = scene.simulation();
+        // Each motion is filmed from the moment somebody is first seen doing it,
+        // following that one worker; a tile is a clip of its own, so a board
+        // does not need every job on the ship to be worked at the same instant.
+        Map<WorkMotion, Long> actors = new EnumMap<>(WorkMotion.class);
+        Map<WorkMotion, List<BufferedImage[]>> clips = new EnumMap<>(WorkMotion.class);
+        for (int tick = 0; tick < BOARD_SEARCH_TICKS; tick++) {
+            if (tick % 2 == 0) {
+                // Keep following the same worker while they keep at it, and
+                // change to somebody else only once they have stopped.
+                Map<WorkMotion, Long> now = showing(scene);
+                for (var seen : now.entrySet()) {
+                    Long current = actors.get(seen.getKey());
+                    if (current == null || !now.containsValue(current)) actors.put(seen.getKey(), seen.getValue());
+                }
+                for (var entry : actors.entrySet()) {
+                    List<BufferedImage[]> clip = clips.computeIfAbsent(entry.getKey(), key -> new ArrayList<>());
+                    if (clip.size() >= BOARD_FRAMES) continue;
+                    float x = sim.world().x(entry.getValue()), y = sim.world().y(entry.getValue());
+                    clip.add(new BufferedImage[]{
+                            drain.renderHostPass(scene.pass(new ShipDeckBattleScene.DeckView(x, y, CLOSE_PX),
+                                    BOARD_LAYERS), CLOSE_TILE, CLOSE_TILE),
+                            drain.renderHostPass(scene.pass(new ShipDeckBattleScene.DeckView(x, y, GAME_PX),
+                                    BOARD_LAYERS), GAME_TILE, GAME_TILE)});
+                }
+                if (clips.size() == BOARD.size()
+                        && clips.values().stream().allMatch(clip -> clip.size() >= BOARD_FRAMES)) break;
+            }
+            sim.advance(BattleSimulation.TICK_DT);
+        }
+        System.out.println("ship-duty: motion board shows " + actors.keySet() + "; never seen "
+                + BOARD.stream().filter(m -> !actors.containsKey(m)).toList());
+        List<BufferedImage> frames = new ArrayList<>();
+        for (int frame = 0; frame < BOARD_FRAMES; frame++) {
+            var board = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_ARGB);
+            var g = board.createGraphics();
+            g.setColor(new Color(0x0b, 0x10, 0x16));
+            g.fillRect(0, 0, 1920, 1080);
+            g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
+            g.setColor(new Color(0xd8, 0xdc, 0xd0));
+            for (int i = 0; i < BOARD.size(); i++) {
+                WorkMotion motion = BOARD.get(i);
+                int closeX = (i % 6) * CLOSE_TILE, closeY = (i / 6) * (CLOSE_TILE + 30);
+                int gameX = 12 + i * (GAME_TILE + 6), gameY = 2 * (CLOSE_TILE + 30) + 60;
+                List<BufferedImage[]> clip = clips.getOrDefault(motion, List.of());
+                String label = clip.isEmpty() ? motion.name() + " (not seen)" : motion.name();
+                g.drawString(label, closeX + 10, closeY + CLOSE_TILE + 22);
+                g.drawString(motion.name(), gameX, gameY - 8);
+                if (clip.isEmpty()) continue;
+                BufferedImage[] shot = clip.get(Math.min(frame, clip.size() - 1));
+                g.drawImage(shot[0], closeX, closeY, null);
+                g.drawImage(shot[1], gameX, gameY, null);
+            }
+            g.drawString("Top: close-up, " + CLOSE_PX + " px/cell.  Bottom: the same worker at game zoom, "
+                    + GAME_PX + " px/cell.  Each tile follows one worker from when the motion was first seen.",
+                    12, 1060);
+            g.dispose();
+            frames.add(board);
+        }
+        return List.of(new SnapshotArtifact("ship-duty-motion-board.png", frames.get(BOARD_FRAMES / 2)),
+                SnapshotArtifact.colorAnimation("ship-duty-motion-board.gif", frames, 66));
+    }
+
+    private static final EnumSet<RenderLayer> BOARD_LAYERS =
+            EnumSet.of(RenderLayer.GROUND, RenderLayer.DOODADS, RenderLayer.VEHICLES, RenderLayer.UNITS);
+
+    /** The first actor showing each board motion this tick. */
+    private static Map<WorkMotion, Long> showing(ShipDeckBattleScene scene) {
+        var sim = scene.simulation();
+        BattleComponents components = sim.getBattleComponents();
+        Map<WorkMotion, Long> found = new EnumMap<>(WorkMotion.class);
+        for (long actor : sim.ambientTasks().assigned()) {
+            if (!sim.getEntityWorld().has(actor, components.LAYERED_ANIMATION)) continue;
+            int flags = sim.getEntityWorld().getInt(actor, components.LAYERED_ANIMATION, BattleComponents.LAYERED_FLAGS);
+            WorkMotion motion = (flags & LayeredAppearance.FLAG_TREATING) != 0 ? WorkMotion.TREAT
+                    : LayeredAppearance.workMotion(flags);
+            if ((flags & LayeredAppearance.FLAG_AT_STATION) != 0 && motion == WorkMotion.NONE) {
+                motion = WorkMotion.CONSOLE;
+            }
+            if (BOARD.contains(motion)) found.putIfAbsent(motion, actor);
+        }
+        return found;
     }
 }
