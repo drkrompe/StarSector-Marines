@@ -1,0 +1,167 @@
+BORER | geometry: 169 meshes, 110 pass-2 detail
+detail meeting detail within one fitting: 66 pairs (counted, not listed)
+detail crossing detail across fittings: 0 pairs
+floating detail (touches nothing): 0
+body crossing body (pass 1): 80 pairs
+    Drive port axle | Drive port axle web
+    Drive port axle | Drive port pod housing
+    Drive port axle | Hull spine
+    Drive port axle web | Drive port pod housing
+    Drive port axle web | Hull spine
+    Drive port axle web | Pod port armour shell
+    Drive port axle web | Pod port root web
+    Drive port gimbal drum | Drive port pod housing
+    Drive port pod housing | Engine 2 mouth lip
+    Drive port pod housing | Hull spine
+    Drive starboard axle | Drive starboard axle web
+    Drive starboard axle | Drive starboard pod housing
+    Drive starboard axle | Hull spine
+    Drive starboard axle web | Drive starboard pod housing
+    Drive starboard axle web | Hull spine
+    Drive starboard axle web | Pod starboard armour shell
+    Drive starboard axle web | Pod starboard root web
+    Drive starboard gimbal drum | Drive starboard pod housing
+    Drive starboard pod housing | Engine 3 mouth lip
+    Drive starboard pod housing | Hull spine
+    Engine 1 aft-facing bell | Engine 1 dark throat
+    Engine 1 aft-facing bell | Engine 1 mouth lip
+    Engine 1 centre body | Engine 1 dark throat
+    Engine 1 centre body | Engine 1 stator vane 1
+    Engine 1 centre body | Engine 1 stator vane 2
+    Engine 1 centre body | Engine 1 stator vane 3
+    Engine 1 centre body | Engine 1 stator vane 4
+    Engine 1 centre body | Engine 1 stator vane 5
+    Engine 1 centre body | Engine 1 stator vane 6
+    Engine 1 mouth lip | Hull spine
+    Engine 2 aft-facing bell | Engine 2 dark throat
+    Engine 2 aft-facing bell | Engine 2 mouth lip
+    Engine 2 centre body | Engine 2 dark throat
+    Engine 2 centre body | Engine 2 stator vane 1
+    Engine 2 centre body | Engine 2 stator vane 2
+    Engine 2 centre body | Engine 2 stator vane 3
+    Engine 2 centre body | Engine 2 stator vane 4
+    Engine 2 centre body | Engine 2 stator vane 5
+    Engine 2 centre body | Engine 2 stator vane 6
+    Engine 3 aft-facing bell | Engine 3 dark throat
+    Engine 3 aft-facing bell | Engine 3 mouth lip
+    Engine 3 centre body | Engine 3 dark throat
+    Engine 3 centre body | Engine 3 stator vane 1
+    Engine 3 centre body | Engine 3 stator vane 2
+    Engine 3 centre body | Engine 3 stator vane 3
+    Engine 3 centre body | Engine 3 stator vane 4
+    Engine 3 centre body | Engine 3 stator vane 5
+    Engine 3 centre body | Engine 3 stator vane 6
+    Hull spine | Pod port armour shell
+    Hull spine | Pod port root drum
+    Hull spine | Pod port root web
+    Hull spine | Pod starboard armour shell
+    Hull spine | Pod starboard root drum
+    Hull spine | Pod starboard root web
+    Hull spine | Tool head housing
+    Pod port armour shell | Pod port outer cheek
+    Pod port armour shell | Pod port root drum
+    Pod port armour shell | Pod port root web
+    Pod port armour shell | Pod port tine inner
+    Pod port armour shell | Pod port tine inner knuckle
+    Pod port armour shell | Pod port tine outer
+    Pod port armour shell | Pod port tine outer knuckle
+    Pod port root drum | Pod port root web
+    Pod port root web | Tool head housing
+    Pod port tine inner | Pod port tine inner knuckle
+    Pod port tine outer | Pod port tine outer knuckle
+    Pod starboard armour shell | Pod starboard outer cheek
+    Pod starboard armour shell | Pod starboard root drum
+    Pod starboard armour shell | Pod starboard root web
+    Pod starboard armour shell | Pod starboard tine inner
+    Pod starboard armour shell | Pod starboard tine inner knuckle
+    Pod starboard armour shell | Pod starboard tine outer
+    Pod starboard armour shell | Pod starboard tine outer knuckle
+    Pod starboard root drum | Pod starboard root web
+    Pod starboard root web | Tool head housing
+    Pod starboard tine inner | Pod starboard tine inner knuckle
+    Pod starboard tine outer | Pod starboard tine outer knuckle
+    Tool head emitter barrel | Tool head emitter rim
+    Tool head emitter barrel | Tool head housing
+    Tool head emitter glass | Tool head emitter rim
+detail bedded into body (part: body parts it meets):
+    Arm port damper cylinder: Drive port pod housing, Pod port armour shell
+    Arm port damper eye: Drive port pod housing
+    Arm port damper rod: Drive port pod housing
+    Arm port knuckle post: Pod port armour shell
+    Arm port strut: Drive port pod housing, Pod port armour shell
+    Arm starboard damper cylinder: Drive starboard pod housing, Pod starboard armour shell
+    Arm starboard damper eye: Drive starboard pod housing
+    Arm starboard damper rod: Drive starboard pod housing
+    Arm starboard knuckle post: Pod starboard armour shell
+    Arm starboard strut: Drive starboard pod housing, Pod starboard armour shell
+    Belly charging socket housing: Hull spine
+    Drive port RCS housing: Drive port pod housing
+    Drive port aft vent slat 1: Drive port pod housing
+    Drive port aft vent slat 2: Drive port pod housing
+    Drive port aft vent slat 3: Drive port pod housing
+    Drive port aft vent slat 4: Drive port pod housing
+    Drive port aft vent well: Drive port pod housing
+    Drive port axle collar: Drive port axle
+    Drive port gimbal band 1: Drive port gimbal drum, Drive port pod housing
+    Drive port gimbal band 2: Drive port gimbal drum, Drive port pod housing
+    Drive port gimbal hub: Drive port gimbal drum, Drive port pod housing
+    Drive starboard RCS housing: Drive starboard pod housing
+    Drive starboard aft vent slat 1: Drive starboard pod housing
+    Drive starboard aft vent slat 2: Drive starboard pod housing
+    Drive starboard aft vent slat 3: Drive starboard pod housing
+    Drive starboard aft vent slat 4: Drive starboard pod housing
+    Drive starboard aft vent well: Drive starboard pod housing
+    Drive starboard axle collar: Drive starboard axle
+    Drive starboard gimbal band 1: Drive starboard gimbal drum, Drive starboard pod housing
+    Drive starboard gimbal band 2: Drive starboard gimbal drum, Drive starboard pod housing
+    Drive starboard gimbal hub: Drive starboard gimbal drum, Drive starboard pod housing
+    Foot port aft leg: Drive port pod housing
+    Foot port fore leg: Pod port armour shell
+    Foot starboard aft leg: Drive starboard pod housing
+    Foot starboard fore leg: Pod starboard armour shell
+    Hull spine antenna: Hull spine
+    Hull spine beacon lamp bracket: Hull spine
+    Hull spine dorsal vent slat 1: Hull spine
+    Hull spine dorsal vent slat 2: Hull spine
+    Hull spine dorsal vent slat 3: Hull spine
+    Hull spine dorsal vent slat 4: Hull spine
+    Hull spine dorsal vent slat 5: Hull spine
+    Hull spine dorsal vent well: Hull spine
+    Hull spine hatch bolt 1: Hull spine
+    Hull spine hatch bolt 2: Hull spine
+    Hull spine hatch bolt 3: Hull spine
+    Hull spine hatch bolt 4: Hull spine
+    Hull spine hoist eye 1: Hull spine
+    Hull spine hoist eye 2: Hull spine
+    Hull spine hoist ring 1: Hull spine
+    Hull spine hoist ring 2: Hull spine
+    Pod port RCS housing: Pod port outer cheek
+    Pod port bolt 1: Pod port armour shell
+    Pod port bolt 2: Pod port armour shell
+    Pod port bolt 3: Pod port armour shell
+    Pod port bolt 4: Pod port armour shell
+    Pod port top vent slat 1: Pod port armour shell
+    Pod port top vent slat 2: Pod port armour shell
+    Pod port top vent slat 3: Pod port armour shell
+    Pod port top vent slat 4: Pod port armour shell
+    Pod port top vent well: Pod port armour shell
+    Pod starboard RCS housing: Pod starboard outer cheek
+    Pod starboard bolt 1: Pod starboard armour shell
+    Pod starboard bolt 2: Pod starboard armour shell
+    Pod starboard bolt 3: Pod starboard armour shell
+    Pod starboard bolt 4: Pod starboard armour shell
+    Pod starboard top vent slat 1: Pod starboard armour shell
+    Pod starboard top vent slat 2: Pod starboard armour shell
+    Pod starboard top vent slat 3: Pod starboard armour shell
+    Pod starboard top vent slat 4: Pod starboard armour shell
+    Pod starboard top vent well: Pod starboard armour shell
+    Tool head port coil drum: Hull spine, Pod port root web, Tool head housing
+    Tool head port coil rib 1: Hull spine, Tool head housing
+    Tool head port coil rib 2: Tool head housing
+    Tool head port coil rib 3: Tool head housing
+    Tool head port coil rib 4: Tool head housing
+    Tool head starboard coil drum: Hull spine, Pod starboard root web, Tool head housing
+    Tool head starboard coil rib 1: Hull spine, Tool head housing
+    Tool head starboard coil rib 2: Tool head housing
+    Tool head starboard coil rib 3: Tool head housing
+    Tool head starboard coil rib 4: Tool head housing

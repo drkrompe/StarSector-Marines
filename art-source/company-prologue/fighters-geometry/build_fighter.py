@@ -33,6 +33,8 @@ Options after a literal "--":
   --blockout     the pass-1 build (no detail), for the before half of a
                  before/after: --blockout --out <id>/reference-history/v1-blockout
   --cam NAME:PX,PY,PZ:TX,TY,TZ:SCALE   an ad-hoc ortho camera (units), rendered too
+  (a module may set SHADING = 'as-built' to keep its parts' own smooth shading, and
+  ENGINE_ANGLES to give each engine its .ship angle; the defaults are flat and 180)
   --gear-knob K  for a fighter with retractable gear (fg_gear): the gear_down knob the
                  renders (all but 'parked', always 1) and the saved .blend take
                  (default 0, flying; 1 is landed, as the surfacing build uses)
@@ -106,6 +108,9 @@ def check_against_install():
     engines = [(e['location'][0], e['location'][1], e['width']) for e in ship['engineSlots']]
     if engines != [tuple(e) for e in ft.ENGINES]:
         raise RuntimeError(f'engine slots differ from {ft.SHIP}: {engines}')
+    angles = [e['angle'] for e in ship['engineSlots']]
+    if hasattr(ft, 'ENGINE_ANGLES') and angles != list(ft.ENGINE_ANGLES):
+        raise RuntimeError(f'engine angles differ from {ft.SHIP}: {angles}')
     return ship, f'verified against the installed {ft.SHIP}'
 
 
@@ -153,8 +158,8 @@ root['axes'] = f'+X nose, +Y port, +Z dorsal; origin at the {ft.HULL_ID}.ship ce
 for ob in model.objects:
     if ob is not root and ob.parent is None:
         ob.parent = root
-    if ob.type == 'MESH':
-        for poly in ob.data.polygons:
+    if ob.type == 'MESH' and getattr(ft, 'SHADING', 'flat') != 'as-built':
+        for poly in ob.data.polygons:  # a module built to the detail guide keeps its rounds smooth
             poly.use_smooth = False
 
 # Model bounds, canopy and pilot fit, all measured in units.
@@ -486,9 +491,10 @@ if not args.no_save:
         'root': {'name': ROOT, 'location': [0, 0, 0], 'note': 'the .ship centre: the game\'s rotation pivot'},
         'collections': {'model': COLLECTION, 'review_rig': RIG},
         'weapon_slots': [dict(s, location=list(s['location']), anchor=f"Weapon {s['id']} anchor") for s in ft.SLOTS],
-        'engines': [{'index': i, 'slot_location': [x, y], 'width': w, 'angle': 180,
+        'engines': [{'index': i, 'slot_location': [x, y], 'width': w, 'angle': ang,
                      'parts': [f'Engine {i} mouth lip', f'Engine {i} aft-facing bell', f'Engine {i} dark throat'],
-                     'exhaust_direction': [-1, 0, 0]} for i, (x, y, w) in enumerate(ft.ENGINES, 1)],
+                     'exhaust_direction': [round(math.cos(math.radians(ang)), 4), round(math.sin(math.radians(ang)), 4), 0]}
+                    for i, ((x, y, w), ang) in enumerate(zip(ft.ENGINES, getattr(ft, 'ENGINE_ANGLES', [180]*len(ft.ENGINES))), 1)],
         'anchors': anchors,
         'anchor_convention': 'ARROWS empties; local +X points along the slot angle (0 = nose, 180 = aft)',
         'notes': getattr(ft, 'NOTES', []),
