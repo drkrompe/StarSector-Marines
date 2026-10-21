@@ -57,6 +57,8 @@ class StructureArtTest {
                 "{ \"layers\": [ { \"sprite\": \"a.png\", \"cells\": 1.0, \"pulseHz\": 1.0, \"pulseDepth\": 1.5 } ] }")));
         assertThrows(JSONException.class, () -> StructureArt.parse("s", new JSONObject(
                 "{ \"layers\": [ { \"cells\": 1.0 } ] }")));
+        assertThrows(JSONException.class, () -> StructureArt.parse("s", new JSONObject(
+                "{ \"layers\": [ { \"sprite\": \"a.png\", \"cells\": 1.0, \"fireFlash\": 1.5 } ] }")));
     }
 
     @Test

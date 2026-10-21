@@ -103,7 +103,7 @@ PALETTES = {
 
 
 def edge_px(part: str) -> int:
-    return 2 * round(make_guide.CANVAS_CELLS[part] * PX_PER_CELL / 2)
+    return 2 * round(make_guide.display_cells(part) * PX_PER_CELL / 2)
 
 
 def mask(image: Image.Image) -> list[bool]:
