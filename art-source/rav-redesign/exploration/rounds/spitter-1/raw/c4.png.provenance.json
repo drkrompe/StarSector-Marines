@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fe6-6923-76e3-ae9b-b0b4c8bc48a1",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fe6-6923-76e3-ae9b-b0b4c8bc48a1\\exec-9b291371-7d50-49ab-884f-f44edca717ae.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-1\\raw\\c4.png",
+    "sha256": "5ab43dada0950f2e0b467877c73809d276aee1a2f884de3460df80ccae5cdcb7",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\spitter-1\\prompts\\c4.prompt.txt",
+  "promptSha256": "eaf1a4f7ac1def54330a3e6d512e86c5521a9236d3d4193121b1ac6af9057daa",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity, palette and finish of the same organism (the Runner); body plan, organ and silhouette change per the brief\n\nTop-down concept for a tactical game (Starsector mod: Marines against an engineered biological weapon, the Rav Bloom). ONE creature, the SPITTER: the swarm's fragile ranged strain, which hangs back behind the Runners and lobs arcing globs of acid that splash infantry and can hit low drones. Original design, not StarCraft. Reference image 1 is the Runner, the same organism's fast melee strain: keep its identity, palette and finish exactly (pale lilac and mauve glossy chitin plates worn as armour over a muscled predator beast body, deep purple-magenta sinew in the gaps, ivory tips and spurs, a pale spine ridge, small amber eyes). Beast first, chitin as armour, never insect-dominant; no bug wings, no zooid colony bodies. It must read at a glance as \"the ranged one\" and NOT as the Runner: no forward-pointing arm blades, a different silhouette built around its ACID ORGAN, which is translucent and glows from inside so it is the brightest thing on the body. Asymmetry and depth over a balanced, mirrored design. Strict overhead orthographic view, camera looking straight down at its back, facing UP (head toward the top), centred, filling about two thirds of the frame, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no acid puddle, no projectile, no text, no border.\n\nThis concept: BLADES TURNED LAUNCHER. The Runner's two back-mounted blades have grown together into a single curved ivory catapult arm that rises from the middle of the back and arcs forward over the head, ending in a cupped, hollow tip that holds a glowing amber-gold acid bead; at its base a translucent glowing reservoir sac. The arm is set off-centre, rooted over the left shoulder. Four legs, compact body.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\hero.png",
+      "sha256": "1fd084bdf713b942ea09dca5767d4ee1ac913bf17c5bcea8ae0d6ac62bcb41e8",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity, palette and finish of the same organism (the Runner); body plan, organ and silhouette change per the brief"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one Spitter concept using the Runner’s palette and finish, with the acid launcher defining its silhouette."
+  ],
+  "usage": {
+    "input_tokens": 41270,
+    "cached_input_tokens": 35200,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 539,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 52.1
+}

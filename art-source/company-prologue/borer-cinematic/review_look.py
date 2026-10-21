@@ -7,12 +7,13 @@ DIR for --borer and --shepherd holds the exported build (borer.blend / shepherd.
 manifest.json); the Talon comes from the committed geometry blend. Each panel is appended into a
 fresh factory scene under the same neutral sun studio (key, fill, rim; dark world) and rendered
 at 960x540, which compose_review.py tiles into one 1920x1080 sheet at 100%:
-  hero      port-bow quarter, drives running, the mining laser on a rock 2.5 m off the nose
-  stern     port-aft quarter, drives running, beam dark: the three bells and the 20 degree splay
+  hero      port-bow quarter, drives running, the slung mining laser on a rock 2.5 m off the nose
+  under     from below the port bow: the sling, the four lift jets puffing, the skids and the keel
   cradle    the Shepherd's drone bay with Borers on cradles 1 and 3 and one lifted out over
             opening 2, all at the Shepherd's scale (root 0.25 / 0.78), launch-point anchors
-  talon     beside a Talon (geometry build, gear down) and a 1.8 m figure on one deck, at
-            common scale: each root scaled by its own metres_per_unit, in metres
+  sizes     three Borers over the Shepherd at its scale: the 2D ground battle's proportion (1.9 m),
+            as built (3.6 m) and the fleet-combat sprites' (11.7 m), left to right
+  (stern and talon remain as panels on request: the drives astern; beside a Talon and a figure)
 --dry builds every panel's scene and saves it under <out>/dry/ without rendering.
 """
 from pathlib import Path
@@ -30,7 +31,7 @@ ap.add_argument('--borer', default=str(HERE))
 ap.add_argument('--shepherd', required=True)
 ap.add_argument('--out', required=True)
 ap.add_argument('--samples', type=int, default=16)
-ap.add_argument('--panels', default='hero,stern,cradle,talon')
+ap.add_argument('--panels', default='hero,under,cradle,sizes')
 ap.add_argument('--device', default='GPU', choices=('GPU', 'CPU'))
 ap.add_argument('--dry', action='store_true')
 args = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
@@ -189,7 +190,7 @@ def panel_hero(scene, rig, cam):
     rock(rig, (lens.x + reach + 2.6, 0, lens.z), 3.0)
     bpy.data.objects['SWFX controls']['beam_len_ws001'] = reach
     settle()
-    aim(cam, 41, 26, 34, (5.0, 0, -.6))
+    aim(cam, 41, 24, 40, (4.5, 0, -2.6))
 
 
 def panel_stern(scene, rig, cam):
@@ -216,7 +217,7 @@ def panel_cradle(scene, rig, cam):
         rig.objects.link(inst)
         inst.matrix_world = Matrix.Translation(at) @ Matrix.Scale(k, 4) @ Matrix.Translation(-Vector(seat))
     bpy.context.view_layer.update()
-    aim(cam, 30, 38, 50, (11.0, 15.0, 2.0), dist=900)
+    aim(cam, 30, 38, 50, (11.5, 18.0, -1.0), dist=900)
 
 
 def panel_talon(scene, rig, cam):
@@ -233,7 +234,41 @@ def panel_talon(scene, rig, cam):
     aim(cam, 62, 18, 19.5, (1.1, -4.7, 1.4), dist=200)
 
 
-PANELS = {'hero': panel_hero, 'stern': panel_stern, 'cradle': panel_cradle, 'talon': panel_talon}
+def panel_under(scene, rig, cam):
+    # From below the port bow: the slung laser, the four lift jets puffing, the skids and keel.
+    borer_fx(beam=False)
+    ctl = bpy.data.objects['SWFX controls']
+    for k in list(ctl.keys()):
+        if k.startswith('thr_rcs_') and k != 'thr_rcs_gain':
+            ctl[k] = .35
+    settle()
+    aim(cam, 38, -24, 32, (0.5, 0, -2.3))
+
+
+# The size question on one picture: three Borers over the Shepherd, at the 2D ground battle's
+# proportion, as built, and at the fleet-combat sprites' proportion (geometry size_readings_m).
+SIZES = [('ground 2D', 1.9), ('as built', 3.6), ('fleet combat', 11.7)]
+
+
+def panel_sizes(scene, rig, cam):
+    append(SDIR / sman['asset'], [sman['append_collection']])
+    coll = append(BDIR / bman['asset'], [bman['append_collection']])[0]
+    bpy.context.scene.collection.children.unlink(coll)
+    seat = Vector(bman['cradle_seat']['at'])
+    built = bman['size_metres_rest'][0]
+    top = sman['bounds_units_rest'][1][2]
+    for (label, length), x in zip(SIZES, (24.0, 6.0, -20.0)):     # left to right in this camera
+        k = BMPU / SMPU * length / built
+        inst = bpy.data.objects.new(f'Review Borer {label}', None)
+        inst.instance_type, inst.instance_collection = 'COLLECTION', coll
+        rig.objects.link(inst)
+        inst.matrix_world = Matrix.Translation((x, 0, top + 4)) @ Matrix.Scale(k, 4) @ Matrix.Translation(-seat)
+    bpy.context.view_layer.update()
+    aim(cam, 22, 20, 126, (2.0, 0, 9.5), dist=1200)
+
+
+PANELS = {'hero': panel_hero, 'under': panel_under, 'stern': panel_stern, 'cradle': panel_cradle,
+          'talon': panel_talon, 'sizes': panel_sizes}
 OUT.mkdir(parents=True, exist_ok=True)
 for name in [p for p in args.panels.split(',') if p]:
     scene, rig, cam = fresh()

@@ -4,7 +4,7 @@ Status: READY once `swarm-harvest.md` has landed its carrier — design settled 
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — owner answers folded in: pure chance on any victim, taken means killed, power suits immune, no squad pursuit, no harm while held.
+Updated: 2026-10-21 — owner answers folded in; the revised Runner's blade, bite and swipe variants are presentation of one strike.
 
 Model: `colony-breach-nouns.md` (Harvest, Swarm strain, The feed seam, Bore).
 Art and the motion study (blades swept back at rest, the forward strike, the
@@ -76,6 +76,21 @@ tune once the scene shows how often that reads.
 The draw is keyed by the strike (tick, Runner, target) rather than taken from
 the shared random stream, so turning impales off changes no other roll in the
 battle.
+
+### What the strike looks like
+
+The owner's revised Runner has short, incised arm blades as well as its jaws
+and clawed forearms. **Which of them a strike shows is presentation, not
+rule.** A Runner has one strike, with one damage figure and one impale draw:
+
+- an ordinary strike is drawn as a lunging chomp or a forearm swipe;
+- an impale is drawn as one blade or both striking forward and going in, then
+  reeling the victim back to the jaws before the drag-off begins.
+
+The renderer picks the variant from a seeded draw keyed like the impale draw,
+so replays look the same. Splitting bite and swipe damage, or giving a
+two-blade impale its own odds, would mean two rules a player cannot tell apart
+on screen, so this story doesn't do it.
 
 ### 2. The impaled body
 

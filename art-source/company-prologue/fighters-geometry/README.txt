@@ -251,18 +251,23 @@ which build_fighter.py honours), armour pods and spine as plate prisms whose cor
 45 degrees or more (a shallower bevelled corner reads to check_detail as a coarse round), side
 drives in the drive pods' aft faces canted along their slot angles (ENGINE_ANGLES; the
 manifest's exhaust_direction follows them).
+- Round 2 (owner: a flat chip, a laser set into the body, piston legs on round pads): the spine
+  and pods are a hull mass 2.3 m deep overall with deep chamfered bellies and four ventral lift
+  thrusters; the mining laser hangs under the nose on a sling (yoke head, hanger arms to
+  trunnions, rear link); the drone stands on two skid rails with bolted wear shoes (the parked
+  feet), and a centre docking keel carries clamp lugs and the charging socket.
 - Scale 0.25 m/unit, from the Shepherd's servicing cradle (shepherd-geometry sh_dronebay.py):
-  3.6 x 4.0 x 1.5 m, the bay's assumed 4.0 m span. At the game's own pixel scale the sprite
-  would be 7-12 m and fit no cradle; that disagreement is recorded in geometry.json
-  (scale.sprite_disagreement) and nothing was resized on either side. Beside the Talon
-  (12.1 m) it is a third of the length.
-- Silhouette 0.909 (top_silhouette.py, below): the misses are single pixel-stair corners on
-  a 16 x 14 px sprite; the sprite wins over the battle-map up-res master where they disagree
-  (the drive pods come in to Y 6 forward of X -4).
+  3.6 x 4.0 x 2.3 m. The drone against the Shepherd (67.1 m) reads three ways, recorded in
+  geometry.json (scale.size_readings_m) for the owner to decide, nothing resized: 11.7 m by the
+  fleet-combat sprites (16 px against 92), 1.9 m in the 2D ground battle (TenderDroneArt.cells
+  omits WarshipScale.HULL_PRESENCE, which the Shepherd is drawn with), 3.6 m as built.
+- Silhouette 0.894 (top_silhouette.py, below; round 1 0.909): the misses are single pixel-stair
+  corners on a 16 x 14 px sprite plus the sling's trunnion caps; the sprite wins over the
+  battle-map up-res master where they disagree (the drive pods come in to Y 6 forward of X -4).
 - Cradle: borer_cradle.py appends the accepted Shepherd build and seats the Borer on each
   WS 003 launch point by its 'Borer cradle seat' empty (root scaled 0.25 / 0.78): no overlap,
-  all four pads on the deck, the belly socket 2 mm over the cradle's charging contact, 0.40 m
-  to the nearest bay fitting, and a clear straight lift to the bay mouth
+  all four skid shoes on the deck, the keel's socket 2 mm over the cradle's charging contact,
+  0.57 m to the nearest bay fitting, and a clear straight lift to the bay mouth
   (borer/cradle-check.json).
 - check_detail: 0 faceted, 0 below rule, 0 unbevelled, 0 off-layer emissive (no lights layer
   exists; the only emissives are lamp lenses named as lamps).
