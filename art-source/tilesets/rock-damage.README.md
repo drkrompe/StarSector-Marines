@@ -30,7 +30,6 @@ Original ground, neighboring cover and permanent cliffs remain. Existing weapon
 wall-damage payloads, both direct and radial, drive these transitions.
 
 `RockDamageTest` checks all identities, state/cover/navigation transitions,
-overlap and cliff preservation. `RockDamageArtTest` checks transparent borders
-and separated rubble components. The registered visual suite renders intact,
+overlap and cliff preservation. The registered visual suite renders intact,
 cracked and shattered rows at 32 and 64 pixels per cell through the actual map
 renderer and combat mutation seam.

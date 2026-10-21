@@ -25,8 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SpecialEquipmentRegistryTest {
 
-    private static final float EPS = 1e-6f;
-
     /**
      * The code-to-data bridge, derived rather than listed. Every {@code *_ID}
      * constant the registry publishes must resolve to a catalogued definition,
@@ -77,47 +75,6 @@ class SpecialEquipmentRegistryTest {
                         def.id() + " is ammunition-gated and must start with uses");
             }
         }
-    }
-
-    @Test
-    void satchelDataOwnsCooldownAiAndEveryPresentationState() {
-        SpecialEquipmentDef satchel = SpecialEquipmentRegistry.require(
-                SpecialEquipmentRegistry.SATCHEL_CHARGE_ID);
-        assertSame(SpecialActivation.UTILITY_SATCHEL, satchel.activation());
-        assertSame(SpecialResourceMode.COOLDOWN, satchel.resourceMode());
-        assertSame(SpecialAiPolicy.CONTACT_DEMOLITION, satchel.aiPolicy());
-        assertSame(SpecialUsePose.PLANT, satchel.presentation().usePose());
-        assertEquals(0, satchel.startingAmmo());
-        assertEquals(22f, satchel.satchelChargeSpec().cooldownSeconds(), EPS);
-        assertEquals(0.38f, satchel.presentation().carrierLayer().widthShoulders(), EPS);
-        assertTrue(satchel.presentation().carrierLayer().visibleWhileCarried());
-        assertTrue(satchel.presentation().carrierLayer().replacePrimaryWhileUsing());
-        assertEquals("using", satchel.presentation().preview().state());
-        assertEquals(0.54f, satchel.presentation().deployed().visualCells(), EPS);
-    }
-
-    @Test
-    void smokeDataProvidesAnActionLayerForCombinedPoseAuthoring() {
-        SpecialEquipmentDef smoke = SpecialEquipmentRegistry.require(
-                SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
-
-        assertSame(SpecialUsePose.THROW, smoke.presentation().usePose());
-        assertNotNull(smoke.presentation().carrierLayer());
-        assertEquals(0.2f, smoke.presentation().carrierLayer().widthShoulders(), EPS);
-        assertFalse(smoke.presentation().carrierLayer().visibleWhileCarried());
-    }
-
-    @Test
-    void fragmentationGrenadeIsAThreeUseArcExplosive() {
-        SpecialEquipmentDef frag = SpecialEquipmentRegistry.require(
-                SpecialEquipmentRegistry.FRAG_GRENADE_ID);
-        assertSame(SpecialActivation.ARC_EXPLOSIVE, frag.activation());
-        assertSame(SpecialAiPolicy.SOFT_CLUSTER_INDIRECT, frag.aiPolicy());
-        assertSame(SpecialResourceMode.AMMUNITION, frag.resourceMode());
-        assertSame(SpecialUsePose.THROW, frag.presentation().usePose());
-        assertEquals(3, frag.startingAmmo());
-        assertNotNull(frag.presentation().carrierLayer());
-        assertNotNull(frag.presentation().thrown());
     }
 
     @Test

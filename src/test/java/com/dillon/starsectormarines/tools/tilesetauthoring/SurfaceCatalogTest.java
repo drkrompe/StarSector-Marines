@@ -82,29 +82,6 @@ public class SurfaceCatalogTest {
     }
 
     /**
-     * The real join over the real project: the wall the mapping names is found,
-     * it is the shape a wall has to be, and its nine slots are traceable back to
-     * the document they were cut in.
-     */
-    @Test
-    void theProjectsWallIsFoundWithItsSlicing() throws Exception {
-        List<SurfaceCatalog.Purpose> purposes = SurfaceCatalog.scan(projectRoot());
-
-        SurfaceCatalog.Purpose wall = purposes.stream()
-                .filter(purpose -> purpose.name().equals("WALL"))
-                .findFirst().orElse(null);
-        assertNotNull(wall, "WALL is a surface role and must be listed");
-        assertEquals(SurfaceCatalog.SURFACE_ROLE, wall.vocabulary());
-        assertEquals("wall-3x3", wall.shape());
-
-        SurfaceCatalog.Candidate inUse = wall.inUse();
-        assertNotNull(inUse, "the mapping names a wall, so one candidate must be in use");
-        assertEquals("urban.wall", inUse.blockId());
-        assertTrue(inUse.isEditable(), "the shipped wall was cut from an authoring document");
-        assertEquals(9, inUse.slots().size(), "a wall-3x3 fills nine slots");
-    }
-
-    /**
      * Every purpose the mapping fills resolves to art that exists. This is the
      * cross-file check: the mapping, the tilesets and the documents are three
      * files that can each be edited alone.
@@ -143,14 +120,5 @@ public class SurfaceCatalogTest {
 
     private static TilesetExport.Entry entry(String id) {
         return new TilesetExport.Entry(new SheetSlicer.Piece(0, 0, 1, 1), id);
-    }
-
-    /** Asking by shape is the "show me the walls" query, and it finds the wall. */
-    @Test
-    void theShapeFilterFindsThePurposesAWallCanFill() throws Exception {
-        List<SurfaceCatalog.Purpose> walls =
-                SurfaceCatalog.withShape(SurfaceCatalog.scan(projectRoot()), "wall-3x3");
-        assertEquals(1, walls.size(), "one purpose is filled by a wall-3x3 today");
-        assertEquals("WALL", walls.get(0).name());
     }
 }

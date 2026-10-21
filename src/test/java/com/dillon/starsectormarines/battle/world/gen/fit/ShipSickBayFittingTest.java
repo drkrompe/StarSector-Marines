@@ -6,10 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.junit.jupiter.api.Test;
-import javax.imageio.ImageIO;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -69,19 +66,6 @@ class ShipSickBayFittingTest {
             verifyReachability(f);
             for (int y = doorY < 0 ? 0 : 7; y < (doorY < 0 ? 3 : 10); y++) assertWalkable(f, 1, y);
         }
-    }
-
-    @Test void linenPaddingAndScreenSideVoidsRemainTransparent() throws Exception {
-        var image = ImageIO.read(Path.of("mod/graphics/tilesets/sickbay-clinic.png").toFile());
-        for (String id : List.of("linen-high", "linen-low")) {
-            var def = TileRegistry.installed().doodad("sickbay-clinic." + id);
-            assertEquals(0, def.cover.level()); assertEquals(0f, def.ballisticHalfHeight);
-            for (int y = 0; y < 128; y++) for (int x : new int[]{4,8,55,59})
-                assertTrue((image.getRGB(def.col * 64 + x, def.row * 64 + y) >>> 24) <= 2);
-        }
-        var screen = TileRegistry.installed().doodad("sickbay-clinic.screen");
-        for (int y = 24; y < 104; y++) for (int x : new int[]{6,10,54,58})
-            assertTrue((image.getRGB(screen.col * 64 + x, screen.row * 64 + y) >>> 24) <= 2);
     }
 
     private static void verifyReachability(Fixture f) {

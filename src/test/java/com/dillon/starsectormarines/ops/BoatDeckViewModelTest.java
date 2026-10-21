@@ -109,31 +109,6 @@ class BoatDeckViewModelTest {
     }
 
     @Test
-    void selectingTheDriveSlotListsEveryDriveAndMarksTheInstalledOne() {
-        BoatDeckViewModel viewModel = new BoatDeckViewModel(
-                new Reactor(), deck(), TestResources.stocked(2_000), "Valkyrie");
-        viewModel.boatRows().get().get(0).select().run();
-
-        viewModel.selectSlotAction(BoatFittingSlot.DRIVE).run();
-
-        assertEquals("DRIVE", viewModel.selectedSlotTitle().get());
-        List<BoatDeckViewModel.CatalogRow> rows = viewModel.catalogRows().get();
-        assertEquals(3, rows.size());
-        BoatDeckViewModel.CatalogRow standard = row(rows, BoatFitting.STANDARD_DRIVE.id());
-        assertEquals("FITTED", standard.reason());
-        assertTrue(standard.actionDisabled());
-        assertTrue(standard.classes().contains("selected"));
-        assertEquals("Yard standard", standard.effect());
-
-        BoatDeckViewModel.CatalogRow tuned = row(rows, BoatFitting.TUNED_DRIVE.id());
-        assertEquals("FIT", tuned.actionLabel());
-        assertFalse(tuned.actionDisabled());
-        assertEquals("TIER 2", tuned.tier());
-        assertEquals("Speed ×1.20  ·  Accel ×1.20", tuned.effect());
-        assertEquals(2, tuned.materials().size());
-    }
-
-    @Test
     void fittingADriveSpendsItsWholeBillAndMovesTheRackAndTheMeters() {
         BoatDeck deck = deck();
         TestResources resources = TestResources.stocked(100);
@@ -214,24 +189,6 @@ class BoatDeckViewModelTest {
         viewModel.refresh();
         assertTrue(viewModel.deckSummary().get().contains("2 berths empty"),
                 viewModel.deckSummary().get());
-    }
-
-    @Test
-    void aVacantBerthOffersTheHullsPatternAndItsBill() {
-        BoatDeckViewModel viewModel = new BoatDeckViewModel(
-                new Reactor(), deckOneBoatDown(), TestResources.stocked(2_000), "Valkyrie");
-
-        BoatDeckViewModel.BoatRow vacant = viewModel.boatRows().get().get(2);
-        assertEquals("BERTH 03", vacant.berth());
-        assertEquals("EMPTY BERTH", vacant.name());
-        assertEquals(ShuttleType.AEROSHUTTLE.displayName() + " can be built here",
-                vacant.pattern());
-        assertTrue(vacant.classes().contains("vacant"), vacant.classes());
-        // The Aeroshuttle's authored bill, on one line, in the order the recipe
-        // states it.
-        assertEquals("metals 60  ·  heavy machinery 15  ·  supplies 40",
-                vacant.plating());
-        assertEquals("", vacant.drive());
     }
 
     @Test

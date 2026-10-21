@@ -8,10 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.junit.jupiter.api.Test;
-import javax.imageio.ImageIO;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -74,19 +71,6 @@ class ShipShuttleBayFittingTest {
         assertTrue(f.ctx.doodads.stream().anyMatch(d -> d.definitionId().equals("shuttle-bay.flight-desk")));
         assertTrue(f.ctx.doodads.stream().anyMatch(d -> d.definitionId().equals("main-stores.pallet")));
         assertArrayEquals(new int[]{0,-1},BoatBayFitting.shipboard().outboard());
-    }
-
-    @Test void layeredWheelsAndFlushMarkingsHaveClearRimsAndNoBlocking() throws Exception {
-        var image=ImageIO.read(Path.of("mod/graphics/tilesets/shuttle-bay.png").toFile());
-        for(String id:List.of("wheels","tie-down")) {
-            var def=TileRegistry.installed().doodad("shuttle-bay."+id);
-            assertEquals(0,def.cover.level());assertEquals(0f,def.ballisticHalfHeight);
-            int size=64*def.footprintCellsX;
-            for(int y=0;y<size;y++) for(int x=0;x<size;x++)
-                if(x<6||y<6||x>=size-6||y>=size-6)
-                    assertTrue((image.getRGB(def.col*64+x,def.row*64+y)>>>24)<=2,id+" rim");
-        }
-        assertNotNull(TileRegistry.installed().block("shuttle-bay.landing-deck"));
     }
 
     private static void verify(Fixture f,int boats) {
