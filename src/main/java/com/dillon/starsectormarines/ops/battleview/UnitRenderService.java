@@ -460,9 +460,10 @@ public final class UnitRenderService implements RenderSystem {
                 break;
             }
         }
+        int variant = structure.art.variantFor(id);
         for (int i = 0; i < layers.size(); i++) {
             StructureArt.Layer layer = layers.get(i);
-            ShuttleSpriteCache sprite = sprites.spriteByPath(layer.spritePath());
+            ShuttleSpriteCache sprite = sprites.spriteByPath(layer.spritePath(variant));
             if (sprite == null) continue;
             float spin = 1f;
             float bright = 1f;
