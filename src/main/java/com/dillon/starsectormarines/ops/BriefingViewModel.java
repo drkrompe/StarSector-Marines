@@ -318,7 +318,7 @@ final class BriefingViewModel {
         props.put("operationRisk", Strings.upper(Strings.format("briefingVmRiskLabel", riskName)));
         props.put("scaleIndicators", indicators("scale", tier.ordinal() + 1, 5, "chevron"));
         props.put("riskIndicators", indicators("risk", risk.ordinal() + 1, 3, "skull"));
-        props.put("forceSelected", String.format(Locale.ROOT, "%,d", selected));
+        props.put("forceSelected", String.format(Strings.locale(), "%,d", selected));
         props.put("forceRecommended", Strings.format("briefingVmRecommended", recommended));
         int filled = recommended > 0 ? (int) Math.min(10, (long) selected * 10 / recommended) : 0;
         props.put("forceSegments", indicators("force", filled, 10, ""));

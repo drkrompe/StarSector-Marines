@@ -17,7 +17,7 @@ from PIL import Image, ImageDraw
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from review_font import review_font  # noqa: E402
 
-from creatures import DIRECTIONS, st  # noqa: E402
+from creatures import DIRECTIONS, PAL, st  # noqa: E402
 from rig import render  # noqa: E402
 
 CELL = 1920 / 112  # 17.142857: battle zoom
@@ -102,7 +102,7 @@ def scroll_marks(img, box, offset_px, col=(74, 70, 64)):
                 d.rectangle([x, y, x + 18, y + 4], fill=col)
 
 
-def save_gif(frames, out, fps):
+def save_gif(frames, out, fps, accents=None):
     """One shared palette; every frame after the first stores only the pixels
     that changed (the rest transparent over the previous frame), so the static
     panels cost nothing and the GIF stays under the preview limit."""
@@ -111,7 +111,19 @@ def save_gif(frames, out, fps):
     sheet = Image.new("RGB", (w, h * len(picks)))
     for i, fr in enumerate(picks):
         sheet.paste(fr, (0, h * i))
-    ref = sheet.resize((w // 2, h * len(picks) // 2), Image.NEAREST).quantize(colors=255, method=Image.MEDIANCUT)
+    small = sheet.resize((w // 2, h * len(picks) // 2), Image.NEAREST)
+    if accents:
+        # small accents (glow nodes) are too few pixels to win a palette slot on their own
+        block = Image.new("RGB", (small.width, 120), accents[0])
+        bd = ImageDraw.Draw(block)
+        step = small.width // len(accents)
+        for i, c in enumerate(accents):
+            bd.rectangle([i * step, 0, (i + 1) * step, 120], fill=c)
+        grown = Image.new("RGB", (small.width, small.height + 120))
+        grown.paste(small, (0, 0))
+        grown.paste(block, (0, small.height))
+        small = grown
+    ref = small.quantize(colors=255, method=Image.MEDIANCUT)
     palette = ref.getpalette()[: 255 * 3] + [0, 0, 0]
     arrays = [np.asarray(fr.quantize(palette=ref, dither=Image.NONE)) for fr in frames]
     images = []
@@ -219,10 +231,12 @@ def build(key, frame_path, out_dir):
         frames.append(img.convert("RGB"))
 
     out = Path(out_dir) / f"motion-{key}.gif"
-    save_gif(frames, out, FPS)
+    accents = [c for c in PAL.get(key + "_accents", [])]
+    save_gif(frames, out, FPS, accents)
     return out
 
 
 if __name__ == "__main__":
+    import chitin  # noqa: F401  (registers D1, D2)
     for k in sys.argv[3:]:
         print(build(k, sys.argv[1], sys.argv[2]))

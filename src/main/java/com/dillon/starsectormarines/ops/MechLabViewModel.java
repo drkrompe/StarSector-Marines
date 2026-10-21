@@ -192,7 +192,7 @@ public final class MechLabViewModel {
             int index = selectedGantryIndex();
             boolean occupied = selectedMech() != null || selectedVehicle() != null
                     || gantryOccupied(selectedSquad(), index);
-            return String.format(Locale.ROOT, Strings.get("openingMechLabGantryDDS"), index + 1,
+            return String.format(Strings.locale(), Strings.get("openingMechLabGantryDDS"), index + 1,
                     physicalGantries, occupied ? "" : Strings.get("openingMechLabVacant"));
         });
         selectedMechName = reactor.computed(() -> {
@@ -200,7 +200,7 @@ public final class MechLabViewModel {
             CampaignVehicle vehicle = selectedVehicle();
             if (vehicle != null) return vehicle.displayName();
             return mech != null ? mech.displayName() : fabricatingChassis()
-                    ? String.format(Locale.ROOT, Strings.get("openingMechLabVacantGantryD"), selectedGantryIndex() + 1)
+                    ? String.format(Strings.locale(), Strings.get("openingMechLabVacantGantryD"), selectedGantryIndex() + 1)
                     : Strings.get("openingMechLabNoAssetSelected");
         });
         selectedMechNameClasses = reactor.computed(() -> selectedAssetName() == null
@@ -743,7 +743,7 @@ public final class MechLabViewModel {
                     base + ":detail", mech != null && heldBack(mech)
                             ? "overview-gantry occupied held-back"
                             : occupied ? "overview-gantry occupied" : "overview-gantry vacant",
-                    String.format(Locale.ROOT, Strings.get("openingMechLabGantryD"), index + 1),
+                    String.format(Strings.locale(), Strings.get("openingMechLabGantryD"), index + 1),
                     mech != null ? mech.displayName() : vehicle != null ? vehicle.displayName()
                             : Strings.get("openingMechLabVacant2"),
                     mech != null && heldBack(mech) ? readinessText(mech)
@@ -1282,7 +1282,7 @@ public final class MechLabViewModel {
     /** Signed, and finer than {@link #number} so a speed step of 0.05 does not read as 0. */
     private static String signed(float value) {
         String text = Math.abs(value) >= 1f ? number(value)
-                : String.format(Locale.ROOT, "%.2f", value).replaceAll("0+$", "").replaceAll("\\.$", "");
+                : String.format(Strings.locale(), "%.2f", value).replaceAll("0+$", "").replaceAll("\\.$", "");
         return (value > 0 ? "+" : "") + text;
     }
 
@@ -1490,8 +1490,8 @@ public final class MechLabViewModel {
         fittingFocused.set(true);
         assetPickerOpen.set(false);
         feedbackText.set(occupant != null
-                ? Strings.format("openingMechLabGantrySelectedNoCampaignHardwareChanged", String.format(Locale.ROOT, "%02d", index + 1), occupant)
-                : Strings.format("openingMechLabGantryIsVacantSelectAChassisPattern", String.format(Locale.ROOT, "%02d", index + 1)));
+                ? Strings.format("openingMechLabGantrySelectedNoCampaignHardwareChanged", String.format(Strings.locale(), "%02d", index + 1), occupant)
+                : Strings.format("openingMechLabGantryIsVacantSelectAChassisPattern", String.format(Strings.locale(), "%02d", index + 1)));
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
@@ -2034,7 +2034,7 @@ public final class MechLabViewModel {
 
     private static String number(float value) {
         if (Math.abs(value - Math.round(value)) < 0.001f) return Integer.toString(Math.round(value));
-        return String.format(Locale.ROOT, "%.1f", value);
+        return String.format(Strings.locale(), "%.1f", value);
     }
 
     private interface VariantMetric { float value(MechVariant variant); }

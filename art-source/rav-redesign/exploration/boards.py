@@ -153,7 +153,7 @@ BRIEFS = {
 
 
 def swatches(d, x, y, key, names):
-    P = PAL[key]
+    P = PAL.get(key + "_swatch", PAL[key])
     for i, n in enumerate(names):
         c = P[n]
         d.rectangle([x + i * 76, y, x + i * 76 + 64, y + 40], fill=c, outline=(0, 0, 0))

@@ -10,6 +10,12 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Serial movement and boarding driver for the registered rescue cohort.
  * Squadless VIPs idle in ordinary unit dispatch; this system is their sole
@@ -81,6 +87,44 @@ public final class CivilianEvacuationSystem {
      */
     private int shelterGuardSquadId = Squad.NO_SQUAD;
 
+    /**
+     * Where the cohort is holed up: the main redoubt (the shelter) first, then
+     * any holdouts ({@code colony-breach-nouns.md}, Redoubt). With the main
+     * redoubt alone the system plays exactly as a single-shelter rescue.
+     */
+    private final List<Redoubt> redoubts = new ArrayList<>();
+    /** Holdout members by identity; a member not listed belongs to the main redoubt. */
+    private final Map<Long, Integer> redoubtOf = new HashMap<>();
+    /** A holdout falls once its garrison is dead and a swarm body stands this close to its walls. */
+    static final int FALL_PERIMETER = 1;
+
+    private static final class Redoubt {
+        final int number, approachX, approachY, left, top, right, bottom;
+        int garrisonSquadId;
+        int cohort;
+        int releasedTick = -1;
+        int fellTick = -1;
+        int sealed, walking, walkingCellX = -1, walkingCellY = -1;
+
+        Redoubt(int number, int approachX, int approachY, int left, int top, int right, int bottom,
+                int garrisonSquadId) {
+            this.number = number;
+            this.approachX = approachX;
+            this.approachY = approachY;
+            this.left = left;
+            this.top = top;
+            this.right = right;
+            this.bottom = bottom;
+            this.garrisonSquadId = garrisonSquadId;
+        }
+
+        CivilianRedoubt status() {
+            return new CivilianRedoubt(number, approachX, approachY, left, top, right, bottom,
+                    garrisonSquadId, cohort, releasedTick, fellTick, sealed, walking,
+                    walkingCellX, walkingCellY);
+        }
+    }
+
     public CivilianEvacuationSystem(CivilianEvacuationTracker tracker) {
         if (tracker == null) {
             throw new IllegalArgumentException("tracker is required");
@@ -100,8 +144,55 @@ public final class CivilianEvacuationSystem {
         shelterApproachY = placement.shelterApproachY;
         radius = CivilianEvacuationPlacement.LIFT_ZONE_RADIUS;
         this.placement = placement;
+        int r = CivilianEvacuationPlacement.SHELTER_ZONE_RADIUS;
+        Redoubt main = new Redoubt(1, shelterApproachX, shelterApproachY,
+                placement.shelterX - r, placement.shelterY - r,
+                placement.shelterX + r, placement.shelterY + r, shelterGuardSquadId);
+        main.cohort = tracker.registeredCount();
+        redoubts.add(main);
         configured = true;
         return true;
+    }
+
+    /**
+     * Adds a holdout: a building away from the shelter holding a few of the
+     * cohort behind its own garrison. Its people join the cohort and stay put
+     * until a Marine reaches {@code (approachX, approachY)}.
+     *
+     * @return the holdout's redoubt number, or {@code -1} when refused
+     */
+    public int addHoldout(int approachX, int approachY, int left, int top, int right, int bottom,
+                          int garrisonSquadId, List<Long> members) {
+        if (!configured || tracker.isSealed() || members.isEmpty()) return -1;
+        Redoubt holdout = new Redoubt(redoubts.size() + 1, approachX, approachY,
+                left, top, right, bottom, garrisonSquadId);
+        for (long id : members) {
+            if (!tracker.enlist(id)) throw new IllegalStateException("holdout member " + id + " refused");
+            redoubtOf.put(id, redoubts.size());
+            holdout.cohort++;
+        }
+        redoubts.add(holdout);
+        return holdout.number;
+    }
+
+    /** The redoubts in number order; empty before configuration. */
+    public List<CivilianRedoubt> redoubts() {
+        List<CivilianRedoubt> out = new ArrayList<>(redoubts.size());
+        for (Redoubt redoubt : redoubts) out.add(redoubt.status());
+        return out;
+    }
+
+    private boolean multipleRedoubts() {
+        return redoubts.size() > 1;
+    }
+
+    private int redoubtIndex(long id) {
+        Integer index = redoubtOf.get(id);
+        return index != null ? index : 0;
+    }
+
+    private boolean released(long id) {
+        return multipleRedoubts() ? redoubts.get(redoubtIndex(id)).releasedTick >= 0 : evacuationTriggered;
     }
 
     /**
@@ -114,6 +205,7 @@ public final class CivilianEvacuationSystem {
             return false;
         }
         shelterGuardSquadId = squadId;
+        if (!redoubts.isEmpty()) redoubts.get(0).garrisonSquadId = squadId;
         return true;
     }
 
@@ -135,7 +227,9 @@ public final class CivilianEvacuationSystem {
         if (!configured || tracker.isSealed()) return;
         if (storyEscort) escortSquad = assignedEscort(sim);
         unescorted = 0; blocked = 0; awaitingPickup = 0; screened = 0; shelterThreat = false;
-        if (!evacuationTriggered) {
+        if (multipleRedoubts()) {
+            releaseRedoubts(sim);
+        } else if (!evacuationTriggered) {
             boolean respondingMarineAlive = hasRespondingMarine(sim);
             respondingMarineObserved |= respondingMarineAlive;
             boolean reached = marineWithin(shelterApproachX, shelterApproachY, RELIEF_TRIGGER_RADIUS, sim);
@@ -151,6 +245,7 @@ public final class CivilianEvacuationSystem {
             } else if (reached || (respondingMarineObserved && !respondingMarineAlive)) {
                 evacuationTriggered = true;
             }
+            if (evacuationTriggered && !redoubts.isEmpty()) redoubts.get(0).releasedTick = sim.getSimTickIndex();
         }
         for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
             long id = tracker.entityIdAt(i);
@@ -171,7 +266,12 @@ public final class CivilianEvacuationSystem {
                 }
                 continue;
             }
-            long escort = evacuationTriggered ? nearestMarine(id, sim) : 0L;
+            if (multipleRedoubts() && !released(id)) {
+                // Behind its own redoubt's door until somebody reaches it.
+                sim.clearPath(id);
+                continue;
+            }
+            long escort = released(id) ? nearestMarine(id, sim) : 0L;
             if (escort == 0L || !withinLeash(id, escort, sim)) {
                 unescorted++;
                 sim.clearPath(id);
@@ -217,7 +317,109 @@ public final class CivilianEvacuationSystem {
                 if (pickupReady(sim)) board(id, sim);
             }
         }
+        countRedoubts(sim);
         releasePickupWhenResolved(sim);
+    }
+
+    /**
+     * Releases each redoubt a Marine has reached and marks the holdouts that
+     * have fallen. The main redoubt is sealed and hidden, so only a holdout
+     * falls: when its garrison is dead and a swarm body is at its walls, or
+     * when nobody behind its door is still alive. A fallen holdout's survivors
+     * leave the cohort: overrun, they are the swarm's.
+     */
+    private void releaseRedoubts(BattleSimulation sim) {
+        boolean respondingMarineAlive = hasRespondingMarine(sim);
+        respondingMarineObserved |= respondingMarineAlive;
+        boolean abandoned = respondingMarineObserved && !respondingMarineAlive;
+        int tick = sim.getSimTickIndex();
+        for (int r = 0; r < redoubts.size(); r++) {
+            Redoubt redoubt = redoubts.get(r);
+            if (redoubt.releasedTick >= 0 || redoubt.fellTick >= 0) continue;
+            if (abandoned || marineWithin(redoubt.approachX, redoubt.approachY, RELIEF_TRIGGER_RADIUS, sim)) {
+                redoubt.releasedTick = tick;
+                if (r == 0) evacuationTriggered = true;
+                continue;
+            }
+            if (r == 0) continue;
+            int sealedAlive = 0;
+            for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
+                long id = tracker.entityIdAt(i);
+                if (redoubtIndex(id) == r && tracker.state(id) == CivilianEvacuationTracker.State.ACTIVE
+                        && sim.resolveUnit(id) != 0L) sealedAlive++;
+            }
+            Squad garrison = redoubt.garrisonSquadId >= 0 ? sim.getSquad(redoubt.garrisonSquadId) : null;
+            boolean garrisonAlive = garrison != null && garrison.aliveMembers > 0;
+            if (sealedAlive == 0 || (!garrisonAlive && swarmAtWalls(redoubt, sim))) {
+                redoubt.fellTick = tick;
+                for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
+                    long id = tracker.entityIdAt(i);
+                    if (redoubtIndex(id) == r) tracker.markLost(id);
+                }
+            }
+        }
+    }
+
+    private static boolean swarmAtWalls(Redoubt redoubt, BattleSimulation sim) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) != Faction.DEFENDER) continue;
+            int x = sim.world().cellX(unit), y = sim.world().cellY(unit);
+            if (x >= redoubt.left - FALL_PERIMETER && x <= redoubt.right + FALL_PERIMETER
+                    && y >= redoubt.top - FALL_PERIMETER && y <= redoubt.bottom + FALL_PERIMETER) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Each redoubt's people behind the door and walking out, and where the
+     * walkers are: their mean cell, or the rearmost of them when it has fallen
+     * more than five cells behind, the regroup law the cohort objective uses.
+     */
+    private void countRedoubts(BattleSimulation sim) {
+        int n = redoubts.size();
+        int[] sumX = new int[n], sumY = new int[n];
+        int[] rearX = new int[n], rearY = new int[n], rearDistance = new int[n];
+        for (Redoubt redoubt : redoubts) {
+            redoubt.sealed = 0;
+            redoubt.walking = 0;
+        }
+        Arrays.fill(rearDistance, -1);
+        for (int i = 0, count = tracker.registeredCount(); i < count; i++) {
+            long id = tracker.entityIdAt(i);
+            if (tracker.state(id) != CivilianEvacuationTracker.State.ACTIVE || sim.resolveUnit(id) == 0L) continue;
+            int r = redoubtIndex(id);
+            Redoubt redoubt = redoubts.get(r);
+            if (redoubt.releasedTick < 0) {
+                redoubt.sealed++;
+                continue;
+            }
+            int x = sim.world().cellX(id), y = sim.world().cellY(id);
+            redoubt.walking++;
+            sumX[r] += x;
+            sumY[r] += y;
+            int distance = Math.abs(x - liftX) + Math.abs(y - liftY);
+            if (distance > rearDistance[r]) {
+                rearDistance[r] = distance;
+                rearX[r] = x;
+                rearY[r] = y;
+            }
+        }
+        for (int r = 0; r < n; r++) {
+            Redoubt redoubt = redoubts.get(r);
+            if (redoubt.walking == 0) {
+                redoubt.walkingCellX = -1;
+                redoubt.walkingCellY = -1;
+                continue;
+            }
+            int cx = sumX[r] / redoubt.walking, cy = sumY[r] / redoubt.walking;
+            if (Math.abs(rearX[r] - cx) + Math.abs(rearY[r] - cy) > 5) {
+                cx = rearX[r];
+                cy = rearY[r];
+            }
+            redoubt.walkingCellX = cx;
+            redoubt.walkingCellY = cy;
+        }
     }
 
     public boolean isConfigured() {

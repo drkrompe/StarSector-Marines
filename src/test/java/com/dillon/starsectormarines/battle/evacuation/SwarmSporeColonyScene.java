@@ -73,8 +73,8 @@ public final class SwarmSporeColonyScene implements BehaviorScene {
             return List.of(
                     playOne("fissure-light", ShuttleType.KITE, INSIDE_ORBIT, 0f, frames),
                     playOne("fissure-wide", ShuttleType.KITE, WIDE_ORBIT, 0f, FrameSink.NONE),
-                    playOne("maw-heavy", ShuttleType.VALKYRIE, WIDE_ORBIT, 9f, FrameSink.NONE),
-                    playOne("colonies-killed", ShuttleType.KITE, INSIDE_ORBIT, 4f, FrameSink.NONE),
+                    playOne("maw-heavy", ShuttleType.VALKYRIE, WIDE_ORBIT, 9f, frames),
+                    playOne("colonies-killed", ShuttleType.KITE, INSIDE_ORBIT, 4f, frames),
                     playOne("collapsed", ShuttleType.KITE, INSIDE_ORBIT, 4f, FrameSink.NONE));
         } finally {
             TurretSlotResolver.useHullSpecs(null);
