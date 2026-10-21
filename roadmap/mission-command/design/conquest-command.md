@@ -618,7 +618,9 @@ retakes that are authored lesson beats stay authored: Junction's reserve walking
 onto the first gain is what the lesson teaches, and on the shared mechanism it
 observed the gain, found it held and never went (the `reserve_committed` and
 `weigh_station_retaken` beats vanished from every fixture), and the depot
-Counterattack's waves are a hold-out the mission scripts.
+Counterattack's waves are a hold-out the mission scripts. Both keep those duties, and offer only a squad on a
+standing one to man the places beside its post (`garrisonables.md`, story
+commanders).
 
 What it did against its same-build control (2026-10-20, one replay a fixture;
 outcomes are readings, and nine seeds swing by a few wins either way). Read from

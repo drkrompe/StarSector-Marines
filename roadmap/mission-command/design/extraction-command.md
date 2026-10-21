@@ -157,9 +157,11 @@ no diagnostic overlay is required to understand the mission.
 
 The existing `commanderEvidence -Pmission=extraction` selector runs both generic
 Extraction and Rescue adapters; no scenario-specific Gradle task is required.
-The canonical Rescue fixture uses two six-seat Aeroshuttles, completes with all
-six surviving civilians boarded at tick 3,502, publishes 46 Marine command
-pictures and 156 swarm-director revisions, and replays byte-identically. This is
+The canonical Rescue fixture uses two six-seat Aeroshuttles on the low-risk
+map, completes with the cohort boarded at tick 4,239 under the Colony Breach
+sequence's opening seepage, publishes 151 swarm-director revisions, and replays
+byte-identically. The high-risk colony has its own selector,
+`commanderEvidence -Pmission=colony-breach` (`colony-breach-nouns.md`). This is
 deterministic correctness evidence, not a pressure or balance target; live
 pressure tuning remains in the campaign Rescue acceptance story.
 

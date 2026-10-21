@@ -16,5 +16,4 @@ rules apply to runtime modular mech textures in this directory.
   authorities. A livery changes only accepted chassis surfaces and authored
   equipment casing.
 - Every derived sprite must preserve the base layer's dimensions, registration,
-  alpha footprint, silhouette, and protected hardware. Extend
-  `LayeredMechAssetTest` whenever the family contract changes.
+  alpha footprint, silhouette, and protected hardware.

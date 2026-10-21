@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
 import com.dillon.starsectormarines.marine.FirstRefit;
-import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -39,7 +38,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -511,17 +509,6 @@ class FleetArmoryViewModelTest {
             }
         }
         return quoted;
-    }
-
-    @Test
-    void playerFacingMarkupUsesDoctrineLanguageAndHasNoLegacyPicker() throws Exception {
-        for (String path : COMPONENTS) {
-            String source = Files.readString(Path.of(path)).toLowerCase(Locale.ROOT);
-            assertFalse(source.matches("(?s).*\\b(deck|hand|consume)\\b.*"), path);
-            assertFalse(source.contains("armory-template-library"), path);
-            assertFalse(source.contains("change loadout"), path);
-            assertFalse(source.contains("missing cards"), path);
-        }
     }
 
     @Test

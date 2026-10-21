@@ -54,22 +54,25 @@ def main():
     ap.add_argument('--out', required=True)
     ap.add_argument('--samples', type=int, default=48)
     ap.add_argument('--machine', default='any', choices=('any', 'windows', 'mac'))
+    ap.add_argument('--light', action='store_true', help='light lane: half size (use --samples 16 or fewer)')
     ap.add_argument('--date', required=True, help='the job id date, YYYY-MM-DD')
     ap.add_argument('sets', nargs='+')
     a = ap.parse_args()
+    if a.light and a.samples > 16:
+        raise SystemExit('a light job renders at 16 samples or fewer')
     ins = inputs()
     for frames in a.sets:
         names = frames.split(',')
         job = {
             'id': f"asharu-{a.run}-{'-'.join(names)}-{a.date}",
             'machine': a.machine,
-            'lane': 'review',
+            'lane': 'light' if a.light else 'review',
             'priority': 0,
             'after': [],
             'requires': ['gpu'],
             'cwd': '{checkout}/art-source/company-prologue/asharu-battle',
             'command': ['{python}', 'battle_blockout.py', '--frames', frames, '--samples', str(a.samples),
-                        '--root', '{work}', '--run', a.run, '--date', a.date, '--post', '{machine}', '--what', a.what],
+                        '--root', '{work}', '--run', a.run, '--date', a.date, '--post', '{machine}', '--what', a.what] + (['--half'] if a.light else []),
             'env': {},
             'inputs': ins,
             'frames': {'dir': '{work}/' + a.run + '/raw',

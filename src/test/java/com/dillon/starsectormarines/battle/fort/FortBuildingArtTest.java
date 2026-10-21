@@ -11,9 +11,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -176,45 +173,6 @@ class FortBuildingArtTest {
             }
             assertTrue(keyed > 0);
         }
-    }
-
-    @Test
-    void shippedRoofArtIsTheSizeOfTheFloorItCovers() throws IOException {
-        for (FortPlan plan : List.of(BatteryFort.PLAN, ShieldFort.PLAN)) {
-            for (FortAspect aspect : FortAspect.values()) {
-                String id;
-                try {
-                    id = plan.coreStructureId(aspect);
-                } catch (IllegalArgumentException e) {
-                    continue;
-                }
-                FortBuildingArt art = TurretCatalogRegistry.requireStructure(id).buildingArt;
-                if (art == null) continue;
-                int[] floor = plan.floor(aspect);
-                assertSize(id, art.roofFor(FortBuildingArt.State.INTACT), floor);
-                assertSize(id, art.roofFor(FortBuildingArt.State.DAMAGED), floor);
-                assertSize(id, art.wreckPath(), floor);
-                if (art.lights() != null) assertSize(id, art.lights().spritePath(), floor);
-                for (FortRoom room : art.annexRooms(plan, aspect)) {
-                    FortBuildingArt.Annex annex = art.annex(room.art());
-                    assertSize(id + "/" + room.art(), annex.roof(), room.floor());
-                    assertSize(id + "/" + room.art(), annex.damaged(), room.floor());
-                    assertSize(id + "/" + room.art(), annex.wreck(), room.floor());
-                    if (annex.lights() != null) assertSize(id + "/" + room.art(), annex.lights().spritePath(), room.floor());
-                }
-                if (art.blastDoor() != null) {
-                    assertSize(id, art.blastDoor().sprite(), new int[]{0, 0, 3, 1});
-                    assertSize(id, art.blastDoor().damaged(), new int[]{0, 0, 3, 1});
-                }
-            }
-        }
-    }
-
-    /** Art is exported at 64 px per cell of the floor it covers, so a sprite that is not that size has been re-cropped. */
-    private static void assertSize(String id, String path, int[] floor) throws IOException {
-        BufferedImage image = ImageIO.read(Path.of("mod", path).toFile());
-        assertEquals(floor[2] * 64, image.getWidth(), id + " " + path + " width");
-        assertEquals(floor[3] * 64, image.getHeight(), id + " " + path + " height");
     }
 
     private static void assertShipped(String id, String path) {

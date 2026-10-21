@@ -221,7 +221,7 @@ class RelayNineCommandEvidenceTest {
                     .put("peakPlayerSquads", peakPlayerSquads).put("uniqueRaiders", observedRaiders.size()).put("reserveArrivalTick", reserveTick).put("militiaFootprintArrivalTick", holdArrivalTick)
                     .put("militiaFootprintOccupancyTicks", holdOccupancyTicks).put("playerRemaining", count(sim, Faction.MARINE))
                     .put("alliesRemaining", count(sim, Faction.ALLY)).put("raidersRemaining", count(sim, Faction.DEFENDER))
-                    .put("storyBeats", StoryBeatEvidence.snapshot(sim)).put("transitions", transitions).put("samples", samples).put("finalSquads", finalSquads).toString(2), sim.getCommandTraceJsonLines());
+                    .put("storyBeats", StoryBeatEvidence.snapshot(sim)).put("placeFight", places.json(sim, sim.getCommandTraceJsonLines())).put("reactiveDefence", ReactiveDefenceEvidence.figures(sim)).put("transitions", transitions).put("samples", samples).put("finalSquads", finalSquads).toString(2), sim.getCommandTraceJsonLines());
         }
     }
     private static boolean inside(BattleSimulation sim, Faction faction, TacticalNode node) {

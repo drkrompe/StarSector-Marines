@@ -22,8 +22,6 @@ import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
  */
 final class ShipBreadcrumb {
 
-    private static final String SEPARATOR = " / ";
-
     private ShipBreadcrumb() { }
 
     /**
@@ -36,7 +34,7 @@ final class ShipBreadcrumb {
         if (ship == null) return "";
         String vessel = designation(ship);
         if (room == null) return vessel;
-        return vessel + SEPARATOR + station(room) + SEPARATOR + words(room.purpose().name());
+        return Strings.join("separatorPath", vessel, station(room), words(room.purpose().name()));
     }
 
     /**

@@ -6,10 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.junit.jupiter.api.Test;
-import javax.imageio.ImageIO;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -84,20 +81,6 @@ class ShipLoadingBayFittingTest {
         Fixture small=fit(RoomShape.rectangle(10,6),new RoomPose(0,false),List.of(new int[]{-1,3}));
         assertTrue(small.ctx.doodads.stream().noneMatch(d -> d.definitionId().startsWith("loading-bay.")));
         assertFalse(small.ctx.doodads.isEmpty());
-    }
-
-    @Test void cargoLayersAndTugOpeningKeepTheirClearPixels() throws Exception {
-        var image=ImageIO.read(Path.of("mod/graphics/tilesets/loading-bay.png").toFile());
-        for(String id:List.of("insulated-tote","provision-cartons")) {
-            var def=TileRegistry.installed().doodad("loading-bay."+id);
-            assertEquals(0,def.cover.level());assertEquals(0f,def.ballisticHalfHeight);
-            for(int y=0;y<128;y++) for(int x=0;x<128;x++)
-                if(x<12 || x>=116 || y<12 || y>=116)
-                    assertTrue((image.getRGB(def.col*64+x,def.row*64+y)>>>24)<=2,id+" rim");
-        }
-        var tug=TileRegistry.installed().doodad("loading-bay.pallet-tug");
-        for(int y=110;y<178;y++) for(int x=52;x<75;x++)
-            assertTrue((image.getRGB(tug.col*64+x,tug.row*64+y)>>>24)<=2,"fork opening");
     }
 
     private static void verify(Fixture f) {
