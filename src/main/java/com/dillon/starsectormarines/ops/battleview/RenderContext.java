@@ -35,6 +35,8 @@ public final class RenderContext {
     final ShipDeckDressing deckDressing;
     /** Which cores' dressing is cleared; meaningful only with {@link #deckDressing}. */
     final CoreDressing coreDressing;
+    /** A dressing change still playing out toward {@link #coreDressing}, or null. */
+    final DressingWave dressingWave;
 
     public RenderContext(BattleSimulation sim, BattleCamera camera, BattleLayout layout,
                   float alphaMult, float realDt, boolean debugZonesVisible,
@@ -64,14 +66,14 @@ public final class RenderContext {
                   HighlightOverlay highlights, Selection selection,
                   BattleRenderHostProfile hostProfile, float animationTimeSeconds, ShipDeckLighting deckLighting) {
         this(sim, camera, layout, alphaMult, realDt, debugZonesVisible, highlights, selection,
-                hostProfile, animationTimeSeconds, deckLighting, null, CoreDressing.RESTORED);
+                hostProfile, animationTimeSeconds, deckLighting, null, CoreDressing.RESTORED, null);
     }
 
     RenderContext(BattleSimulation sim, BattleCamera camera, BattleLayout layout,
                   float alphaMult, float realDt, boolean debugZonesVisible,
                   HighlightOverlay highlights, Selection selection,
                   BattleRenderHostProfile hostProfile, float animationTimeSeconds, ShipDeckLighting deckLighting,
-                  ShipDeckDressing deckDressing, CoreDressing coreDressing) {
+                  ShipDeckDressing deckDressing, CoreDressing coreDressing, DressingWave dressingWave) {
         if (hostProfile == null) throw new IllegalArgumentException("host profile is required");
         this.sim = sim;
         this.camera = camera;
@@ -86,5 +88,6 @@ public final class RenderContext {
         this.deckLighting = deckLighting;
         this.deckDressing = deckDressing;
         this.coreDressing = coreDressing == null ? CoreDressing.RESTORED : coreDressing;
+        this.dressingWave = dressingWave;
     }
 }

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
+import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.PolyMesh;
@@ -42,34 +44,88 @@ final class ShipDressingRenderSystem {
      */
     void collectBeneath(RenderContext ctx, DrawList out) {
         if (ctx.hostProfile != BattleRenderHostProfile.DECK_SCENE) return;
+        DressingWave wave = ctx.dressingWave;
+        float time = ctx.animationTimeSeconds;
         ShipDeckLighting lights = ctx.deckLighting;
         if (lights != null) {
-            doodads.collectPlacements(lights.cables, out, ctx.camera, view(ctx), ctx.alphaMult);
-            housings.clear();
-            for (var fixture : lights.fixtures)
-                if (lights.present(fixture.lamp()))
-                    housings.add(lights.dead(fixture.lamp()) ? fixture.dead() : fixture.lit());
-            doodads.collectPlacements(housings, out, ctx.camera, view(ctx), ctx.alphaMult);
+            ShipDeckLighting before = wave != null && wave.moves(ShipCore.POWER) ? wave.fromLighting : null;
+            if (before != null && before.cables.size() == lights.cables.size()
+                    && before.lamps.size() == lights.lamps.size()) {
+                // The cable is taken up, and the lamps catch, as the wave reaches them.
+                for (int i = 0; i < lights.cables.size(); i++) {
+                    Doodad now = lights.cables.get(i), was = before.cables.get(i);
+                    float w = wave.weight(ShipCore.POWER, now.cellX + .5f, now.cellY + .5f, time);
+                    doodads.collectOne(was, out, ctx.camera, view(ctx), (1f - w) * ctx.alphaMult);
+                    doodads.collectOne(now, out, ctx.camera, view(ctx), w * ctx.alphaMult);
+                }
+                for (var fixture : lights.fixtures) {
+                    int lamp = fixture.lamp();
+                    if (!lights.present(lamp)) continue;
+                    Doodad was = before.dead(lamp) ? fixture.dead() : fixture.lit();
+                    Doodad now = lights.dead(lamp) ? fixture.dead() : fixture.lit();
+                    float w = was == now ? 1f : wave.flicker(ShipCore.POWER, now.cellX + .5f, now.cellY + .5f, time, lamp);
+                    if (w < 1f) doodads.collectOne(was, out, ctx.camera, view(ctx), ctx.alphaMult);
+                    if (w > 0f) doodads.collectOne(now, out, ctx.camera, view(ctx), w * ctx.alphaMult);
+                }
+            } else {
+                doodads.collectPlacements(lights.cables, out, ctx.camera, view(ctx), ctx.alphaMult);
+                housings.clear();
+                for (var fixture : lights.fixtures)
+                    if (lights.present(fixture.lamp()))
+                        housings.add(lights.dead(fixture.lamp()) ? fixture.dead() : fixture.lit());
+                doodads.collectPlacements(housings, out, ctx.camera, view(ctx), ctx.alphaMult);
+            }
         }
         ShipDeckDressing dressing = ctx.deckDressing;
-        if (dressing == null || ctx.coreDressing.clean()) return;
-        doodads.collectPlacements(dressing.doodads(ctx.coreDressing), out, ctx.camera, view(ctx), ctx.alphaMult);
+        if (dressing == null) return;
+        if (wave == null) {
+            if (ctx.coreDressing.clean()) return;
+            doodads.collectPlacements(dressing.doodads(ctx.coreDressing), out, ctx.camera, view(ctx), ctx.alphaMult);
+            return;
+        }
+        // Mid-wave every piece of the full plan shows as much as its core's Deficit does where it lies.
+        var pieces = dressing.pieces();
+        var drawn = dressing.doodads(CoreDressing.DEFICIT);
+        for (int i = 0; i < pieces.size(); i++) {
+            var piece = pieces.get(i);
+            Doodad d = drawn.get(i);
+            float shown = wave.deficit(piece.kind().core, d.cellX + d.footprintCellsX * .5f,
+                    d.cellY + d.footprintCellsY * .5f, time);
+            doodads.collectOne(d, out, ctx.camera, view(ctx), shown * ctx.alphaMult);
+        }
     }
 
     /** Over the fixtures: a dead screen is the fixture itself, unlit. */
     void collectOver(RenderContext ctx, DrawList out) {
         ShipDeckDressing dressing = ctx.deckDressing;
         if (dressing == null || ctx.hostProfile != BattleRenderHostProfile.DECK_SCENE) return;
-        var dead = dressing.deadConsoles(ctx.coreDressing);
-        if (dead.isEmpty()) return;
-        doodads.collectTinted(dead, out, ctx.camera, view(ctx), .07f, .08f, .10f, .45f * ctx.alphaMult);
+        DressingWave wave = ctx.dressingWave;
+        if (wave == null || !wave.moves(ShipCore.COMPUTE)) {
+            var dead = dressing.deadConsoles(ctx.coreDressing);
+            if (dead.isEmpty()) return;
+            doodads.collectTinted(dead, out, ctx.camera, view(ctx), .07f, .08f, .10f, .45f * ctx.alphaMult);
+            return;
+        }
+        // Screens catch one by one as processing reaches them, or die the same way.
+        var screens = dressing.deadConsoles(CoreDressing.DEFICIT);
+        for (int i = 0; i < screens.size(); i++) {
+            Doodad screen = screens.get(i);
+            float x = screen.cellX + screen.footprintCellsX * .5f, y = screen.cellY + screen.footprintCellsY * .5f;
+            float lit = wave.to.compute() ? wave.flicker(ShipCore.COMPUTE, x, y, ctx.animationTimeSeconds, 31 + i)
+                    : 1f - wave.weight(ShipCore.COMPUTE, x, y, ctx.animationTimeSeconds);
+            float dead = 1f - lit;
+            if (dead > 0f) doodads.collectTinted(List.of(screen), out, ctx.camera, view(ctx),
+                    .07f, .08f, .10f, .45f * dead * ctx.alphaMult);
+        }
     }
 
     /** Dead air: a faint grey-green that thickens and thins slowly over the deck. */
     void collectHaze(RenderContext ctx, DrawList out) {
         ShipDeckDressing dressing = ctx.deckDressing;
+        DressingWave wave = ctx.dressingWave;
+        boolean moving = wave != null && wave.moves(ShipCore.LIFE_SUPPORT);
         if (dressing == null || ctx.hostProfile != BattleRenderHostProfile.DECK_SCENE
-                || ctx.coreDressing.lifeSupport() || !hazeEnabled()) return;
+                || (ctx.coreDressing.lifeSupport() && !moving) || !hazeEnabled()) return;
         BattleCamera camera = ctx.camera;
         var visible = camera.visibleCells(1, dressing.width, dressing.height);
         float time = Float.isFinite(ctx.animationTimeSeconds) ? ctx.animationTimeSeconds : 0f;
@@ -81,7 +137,10 @@ final class ShipDressingRenderSystem {
             for (int sy = 0; sy < steps; sy++) for (int sx = 0; sx < steps; sx++) {
                 float px = x + (sx + .5f) * step, py = y + (sy + .5f) * step;
                 float density = density(px, py, time);
-                float alpha = (.07f + .24f * density) * ctx.alphaMult;
+                // The dead air drains, or gathers, as the wave reaches it.
+                float present = moving ? wave.deficit(ShipCore.LIFE_SUPPORT, px, py, time) : 1f;
+                if (present <= 0f) continue;
+                float alpha = (.07f + .24f * density) * present * ctx.alphaMult;
                 float x0 = Math.round(camera.cellToScreenX(x + sx * step));
                 float x1 = Math.round(camera.cellToScreenX(x + (sx + 1) * step));
                 float y0 = Math.round(camera.cellToScreenY(y + sy * step));
