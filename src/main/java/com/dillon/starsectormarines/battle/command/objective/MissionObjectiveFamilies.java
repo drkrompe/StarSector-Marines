@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command.objective;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Item;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Marker;
@@ -147,13 +148,12 @@ public final class MissionObjectiveFamilies {
         String focus = switch (phase) {
             case ESCORT -> "weir-escort"; case NORTH_ROOM -> "weir-north"; case SOUTH_ROOM -> "weir-south"; default -> "weir-road-gun";
         };
-        String blocker = p.terminal() ? "" : build && !sequence.tenderAvailable() ? p.positionLost() ? "Call another already committed tender source, or withdraw for a new mobilization." : "Call the selected owned tender using Ship on Station."
-                : build && !building ? p.positionLost() ? "Replace the destroyed road gun: select the surviving tender and place another Vulcan turret at the marked position." : "Select the tender, choose Build Vulcan Turret, and place it in the marked road position."
-                : building && order.contested() ? "Clear known hostiles near the construction site and protect the builders."
-                : phase == WaterUnderSealProgress.Phase.ESCORT && !p.carrierArrived() ? "The repair load must physically reach the isolation switch."
-                : !p.safeWork() ? duration > 0 ? "Keep company troops and living technicians in the marked work area, uncontested."
-                : "Keep company troops at the road position, clear hostile pressure, and protect the repair watch in the secured gallery."
-                : phase == WaterUnderSealProgress.Phase.ATTACK ? "Defend the road gun until Edek confirms handover." : "";
+        String blocker = p.terminal() ? "" : build && !sequence.tenderAvailable() ? Strings.get(p.positionLost() ? "weirBlockerTenderLost" : "weirBlockerCallTender")
+                : build && !building ? Strings.get(p.positionLost() ? "weirBlockerGunLost" : "weirBlockerBuildGun")
+                : building && order.contested() ? Strings.get("weirBlockerClearSite")
+                : phase == WaterUnderSealProgress.Phase.ESCORT && !p.carrierArrived() ? Strings.get("weirBlockerRepairLoad")
+                : !p.safeWork() ? Strings.get(duration > 0 ? "weirBlockerKeepWorkArea" : "weirBlockerKeepRoadPosition")
+                : phase == WaterUnderSealProgress.Phase.ATTACK ? Strings.get("weirBlockerDefendGun") : "";
         return new Item("water-under-seal", "North Weir", state, phase.name(), "Repair load > North switch > South switch > Road gun > Handover",
                 sequence.displayName(), duration > 0 ? timed("Protected work", p.work(), duration)
                         : building ? "Construction / " + Math.round(100 * order.fraction()) + "%"

@@ -20,13 +20,23 @@ public final class ReactiveDefenceEvidence {
 
     private ReactiveDefenceEvidence() {}
 
-    /** The defender commander's manning figures, or an empty object when it mans nothing reactively. */
+    /**
+     * The defender commander's manning figures, or an empty object when it mans nothing reactively; with, under
+     * {@code ally}, the allied party's (`garrisonables.md`, parties) when its commander has places of its own.
+     */
     public static JSONObject figures(BattleSimulation sim) throws JSONException {
         JSONObject out = new JSONObject();
         if (sim.getCommander(Faction.DEFENDER) instanceof ReactiveDefenceSource source) {
             for (Map.Entry<String, Integer> entry : source.reactiveDefenceFigures().entrySet()) {
                 out.put(entry.getKey(), entry.getValue().intValue());
             }
+        }
+        if (sim.getCommander(Faction.ALLY) instanceof ReactiveDefenceSource source) {
+            JSONObject ally = new JSONObject();
+            for (Map.Entry<String, Integer> entry : source.reactiveDefenceFigures().entrySet()) {
+                ally.put(entry.getKey(), entry.getValue().intValue());
+            }
+            out.put("ally", ally);
         }
         return out;
     }

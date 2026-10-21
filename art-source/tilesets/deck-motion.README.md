@@ -15,6 +15,8 @@ material references only.
   bordered swatch, so each is one measured period cut from inside it (treadmill ribs every
   19 px, conveyor cleats every 31 px); laid end to end they join without a seam.
 - Runtime: `mod/graphics/tilesets/deck-motion.png` and `deck-motion.tileset.json`.
+- The rower base and seat slots are still on the raw but excluded from export: the
+  real-size gym sheet carries its own seatless rower and `ship-gym.rower-seat`.
 
 | Piece | Base it moves over | Motion |
 |---|---|---|
@@ -22,8 +24,6 @@ material references only.
 | `crane-bridge` (5x1) | `crane-runway` | slides head to mouth, overhead |
 | `rack-lift-rail` (2x6) | is the base: a guide rail layered on the provisions bay's picking rack | - |
 | `rack-lift-carriage` (1x2) | `rack-lift-rail` | slides between the three shelves |
-| `rower` (2x3) | is the base: the gym's rower with its seat off the rail | - |
-| `rower-seat` (1x1) | `rower` | slides along the rail |
 | `fan-rotor` (2x2) | `ship-engineering.life-support`; covers its painted grille | spins |
 | `treadmill-belt` (1x1 tile) | `ship-gym.treadmill`; covers its painted belt | scrolls |
 | `conveyor-belt` (1x1 tile) | `loading-bay.conveyor`; covers its roller bed | scrolls |

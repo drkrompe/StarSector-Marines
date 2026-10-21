@@ -1,24 +1,30 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
+
 /** Stable story and recurring identities sharing the opening tactical setups. */
 public enum OpeningOperationKind {
-    RELIEF("story_opening_relief", "Hold Until Relieved", "repeatable_militia_relief", "Militia Relief", 6_000),
-    COUNTERATTACK("story_opening_counterattack", "Take Back the Depot", "repeatable_depot_clearance", "Depot Clearance", 9_000);
+    RELIEF("story_opening_relief", "openingKindReliefName", "repeatable_militia_relief", "openingKindReliefRecurringName", 6_000),
+    COUNTERATTACK("story_opening_counterattack", "openingKindCounterattackName", "repeatable_depot_clearance", "openingKindCounterattackRecurringName", 9_000);
 
     public final String missionId;
 
-    public final String displayName;
+    private final String displayNameKey;
     public final String recurringId;
-    public final String recurringName;
+    private final String recurringNameKey;
     public final int payout;
 
-    OpeningOperationKind(String missionId, String displayName, String recurringId, String recurringName, int payout) {
+    OpeningOperationKind(String missionId, String displayNameKey, String recurringId, String recurringNameKey, int payout) {
         this.missionId = missionId;
-        this.displayName = displayName;
+        this.displayNameKey = displayNameKey;
         this.recurringId = recurringId;
-        this.recurringName = recurringName;
+        this.recurringNameKey = recurringNameKey;
         this.payout = payout;
     }
+
+    public String displayName() { return Strings.get(displayNameKey); }
+
+    public String recurringName() { return Strings.get(recurringNameKey); }
 
     public static OpeningOperationKind fromMission(Mission mission) {
         if (mission == null) return null;

@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.LandingArea;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.precinct.ApproachRegion;
+import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 
@@ -92,6 +93,16 @@ public final class PrecinctLandingAreaStage implements GenStage {
 
         int lateralLow = advanceAlongY ? scan[0] : scan[1];
         int lateralHigh = advanceAlongY ? scan[2] : scan[3];
+        // A field keeps its berths near its centre, because the clear radius is
+        // measured from there: a berth scanned in from the approach side would
+        // stand at the field's edge with half its field of fire behind it.
+        FieldOfFire field = onItsPlace ? FieldOfFire.of(plan) : null;
+        if (field != null) {
+            scan = fieldBerthBox(field, advanceAlongY);
+            int centre = advanceAlongY ? field.centerX() : field.centerY();
+            lateralLow = centre - FIELD_LATERAL_REACH;
+            lateralHigh = centre + FIELD_LATERAL_REACH;
+        }
         if (!onItsPlace) {
             // The margin keeps a map-edge band's areas out of the corners. A
             // claim has already stopped well short of them.
@@ -150,6 +161,32 @@ public final class PrecinctLandingAreaStage implements GenStage {
                 anchor.centerX, anchor.centerY,
                 footprint[0], footprint[1], footprint[2], footprint[3],
                 Faction.MARINE, BEACHHEAD_WEIGHT, 0, false));
+    }
+
+    /**
+     * How far either side of a field's centre an arrival area's lateral line
+     * may run: two lines, one either side, which with a berth's own offset and
+     * half-width keeps every berth cell within {@link com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind#BERTH_REACH}
+     * of the centre. A larger lift takes the remaining pads from the fallback
+     * scan round the spawn, which is the same centre.
+     */
+    private static final int FIELD_LATERAL_REACH = ConquestLandingAreaStage.LATERAL_STEP / 2;
+
+    /** How far either side of the centre a berth's own centre may stand along the approach. */
+    private static final int FIELD_FORWARD_REACH = 4;
+
+    /**
+     * The rect a field's arrival areas are scanned in: the lateral reach plus a
+     * berth's offset and half-width either side, and the forward reach plus the
+     * two cells of inset {@code firstClearArea} keeps.
+     */
+    private static int[] fieldBerthBox(FieldOfFire field, boolean advanceAlongY) {
+        int lateral = FIELD_LATERAL_REACH + ConquestLandingAreaStage.BERTH_OFFSET + 2;
+        int forward = FIELD_FORWARD_REACH + 2;
+        int across = advanceAlongY ? lateral : forward;
+        int along = advanceAlongY ? forward : lateral;
+        return new int[]{field.centerX() - across, field.centerY() - along,
+                field.centerX() + across, field.centerY() + along};
     }
 
     /** The two rects' shared ground, or {@code null} when they do not meet. */

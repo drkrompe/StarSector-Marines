@@ -139,7 +139,7 @@ public final class DeckPropMotionSnapshotSuite implements SnapshotSuite {
             // Staged: a lone exerciser always takes the nearest free station, so the rower is only ever reached when
             // the others are busy. Hold every other exercise stand with a placeholder claim and record the rower.
             for (var room : chosen.values()) {
-                Doodad rower = props.get(room).stream().filter(d -> d.definitionId().equals("deck-motion.rower"))
+                Doodad rower = props.get(room).stream().filter(d -> d.definitionId().equals("ship-gym.rower"))
                         .findFirst().orElse(null);
                 if (rower == null) continue;
                 var points = sim.taskPoints();

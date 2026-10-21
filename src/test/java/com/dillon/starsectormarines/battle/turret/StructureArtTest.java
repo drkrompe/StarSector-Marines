@@ -43,6 +43,9 @@ class StructureArtTest {
         StructureArt layersOnly = StructureArt.parse("s", new JSONObject(
                 "{ \"layers\": [ { \"sprite\": \"a.png\", \"cells\": 1.0 } ] }"));
         assertNull(layersOnly.basePath);
+        assertTrue(layersOnly.groundPad, "a structure stands on its footprint pad unless it says otherwise");
+        assertFalse(StructureArt.parse("s", new JSONObject(
+                "{ \"groundPad\": false, \"layers\": [ { \"sprite\": \"a.png\", \"cells\": 1.0 } ] }")).groundPad);
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.StationingIncidentMissionKey;
 import com.dillon.starsectormarines.campaign.StationingIncidentPayload;
 import com.dillon.starsectormarines.campaign.StationingIncidentType;
@@ -19,16 +20,15 @@ public final class StationingIncidentMissionFactory {
         MissionType missionType = missionType(payload.type);
         RiskLevel risk = risk(payload.type);
         int drops = Math.max(2, Math.min(10, (payload.activeSeats + 9) / 10));
-        String title = title(payload.type) + " — " + planetName;
-        String flavor = "The stationed Cadre is already on site. Respond with the assigned "
-                + "captain and " + payload.committedMarines + " committed marines.";
+        String title = Strings.format("stationingIncidentTitle", title(payload.type), planetName);
+        String flavor = Strings.format("stationingIncidentFlavor", payload.committedMarines);
         return Mission.builder()
                 .id(StationingIncidentMissionKey.encode(payload))
                 .name(title)
                 .type(missionType)
                 .source(MissionSource.STATIONING)
                 .risk(risk)
-                .requirements("Stationed detachment")
+                .requirements(Strings.get("stationingIncidentRequirements"))
                 .flavor(flavor)
                 .mapPosition(0.5f, 0.5f)
                 .requiredDrops(drops)
@@ -60,11 +60,11 @@ public final class StationingIncidentMissionFactory {
 
     private static String title(StationingIncidentType type) {
         switch (type) {
-            case FACTORY_ACCIDENT: return "Cadre Incident: Factory Accident";
-            case LIVE_FIRE_RAID: return "Cadre Incident: Live-Fire Raid";
-            case DEFECTOR_LEAD: return "Cadre Incident: Defector Lead";
+            case FACTORY_ACCIDENT: return Strings.get("stationingIncidentTitleFactoryAccident");
+            case LIVE_FIRE_RAID: return Strings.get("stationingIncidentTitleLiveFireRaid");
+            case DEFECTOR_LEAD: return Strings.get("stationingIncidentTitleDefectorLead");
             case NONE:
-            default: return "Cadre Incident";
+            default: return Strings.get("stationingIncidentTitleDefault");
         }
     }
 }

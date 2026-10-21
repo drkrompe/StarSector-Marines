@@ -156,7 +156,8 @@ class GroundShaderGlEvidence {
                 new Shader("GroundParallax", sourceField("VERTEX_SRC"), sourceField("FRAGMENT_SRC")),
                 new Shader("GroundHeightCompose",
                         sourceField(GroundHeightPass.class, "VERTEX_SRC"),
-                        sourceField(GroundHeightPass.class, "FRAGMENT_SRC")));
+                        sourceField(GroundHeightPass.class, "FRAGMENT_SRC")),
+                new Shader("Creep", CreepShader.VERTEX_SRC, CreepShader.FRAGMENT_SRC));
     }
 
     private static String sourceField(String name) throws Exception {

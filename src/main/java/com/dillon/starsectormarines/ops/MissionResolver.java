@@ -68,7 +68,6 @@ import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.campaign.rules.MemoryAPI;
 import org.apache.log4j.Logger;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -562,8 +561,8 @@ public final class MissionResolver {
                             captain.addXp(-captain.rank().xpToNext());
                             Rank next = captain.rank().promote();
                             captain.setRank(next);
-                            captain.commendations().add(MessageFormat.format(
-                                    "Day {0}: Promoted to {1}.", day, next.displayName()));
+                            captain.commendations().add(Strings.format(
+                                    "resolverCommendationPromoted", day, next.displayName()));
                         }
                     }
                     if (outcome.newCaptainStatus != null
@@ -735,17 +734,16 @@ public final class MissionResolver {
 
     private static void appendOutcomeCommendation(MarineCaptain captain, MissionOutcome outcome, int day) {
         if (outcome.victory) {
-            captain.commendations().add(MessageFormat.format(
-                    "Day {0}: Led successful op — {1}.", day, outcome.missionName));
+            captain.commendations().add(Strings.format(
+                    "resolverCommendationSuccess", day, outcome.missionName));
         } else if (outcome.newCaptainStatus == Status.KIA) {
-            captain.commendations().add(MessageFormat.format(
-                    "Day {0}: Killed in action — {1}.", day, outcome.missionName));
+            captain.commendations().add(Strings.format(
+                    "resolverCommendationKia", day, outcome.missionName));
         } else if (outcome.newCaptainStatus == Status.INJURED
                 && outcome.injuredUntilDay - day >= WIPE_INJURED_DAYS - 1f) {
             // Long recovery only happens on a wipe-survived roll.
-            captain.commendations().add(MessageFormat.format(
-                    "Day {0}: Survived FoB overrun at {1}; extracted with serious wounds.",
-                    day, outcome.missionName));
+            captain.commendations().add(Strings.format(
+                    "resolverCommendationSurvived", day, outcome.missionName));
         }
     }
 

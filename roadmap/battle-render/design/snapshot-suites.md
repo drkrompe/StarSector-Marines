@@ -15,6 +15,7 @@ by name.
 
 | Suite | Evidence | Output |
 |-------|----------|--------|
+| `hive-creep` | Hive creep on the canonical colony: every eruption site opened on the breach schedule and only the creep field advanced, whole map at two, four and six minutes (with roofs, and annotated), a bore and a spreading edge close up, the pulse (`08-pulse.gif`, clock-driven) and a source removed dying back (`09-dying-back.gif`); 1920x1080/100% look evidence, not mission acceptance. `-Dbattle.render.creepPalette=bloom` draws the superseded red palette | `build/snapshots/hive-creep/` |
 | Suite | Evidence | Output |
 |-------|----------|--------|
 | `deck-props` | The generated, manned Valkyrie's moving props: belt conveyor, rack lift, treadmill and rower, engine-room fans, the vehicle bay's travelling cranes over alternately occupied berths. One 1920x1080 GIF per room on the deck's own clock, power up for the first half and at a deficit for the second; the console says how often each worked machine was worked | `build/snapshots/deck-props/` |
