@@ -121,11 +121,11 @@ def draw_runner(tile, art, s, ppc, to_screen):
             wk = (seg3d * ppc) / native  # screen px per layer px along this bone at full length
             put_bone(tile, piece, p0, p1, wk * 1.25, native * wk, mirror, lift if i == len(pieces) - 1 else 1.0)
     # trunk: shoulder row on the shoulders, hip row on the hips
-    s0, s1 = to_screen((0, sh[0], sh[1])), to_screen((0, hp[0], hp[1]))
+    s0, s1 = to_screen((s["shx"], sh[0], sh[1])), to_screen((s["hpx"], hp[0], hp[1]))
     trunk = (art.trunk, (512, BODY_ROWS["shoulder"]), BODY_ROWS["hip"] - BODY_ROWS["shoulder"])
     put_bone(tile, trunk, s0, s1, k_body, (BODY_ROWS["hip"] - BODY_ROWS["shoulder"]) * k_body)
     # head and neck: the neck row near the shoulders, the head row on the skeleton's head
-    neck_root = (0, sh[0] + (BODY_ROWS["shoulder"] - BODY_ROWS["neck"]) / BODY_PX_PER_CELL, sh[1])
+    neck_root = (s["shx"], sh[0] + (BODY_ROWS["shoulder"] - BODY_ROWS["neck"]) / BODY_PX_PER_CELL, sh[1])
     n0, n1 = to_screen(neck_root), to_screen(s["head"])
     native_px = (BODY_ROWS["neck"] - BODY_ROWS["head"]) / BODY_PX_PER_CELL * ppc  # the head pivots, never stretches
     dl = math.hypot(n1[0] - n0[0], n1[1] - n0[1]) or 1.0
