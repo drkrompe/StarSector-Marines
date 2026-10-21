@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.ambient;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -680,6 +681,9 @@ public final class AmbientTaskService {
             if (fired && cycle < FIRE_BEGIN + 0.055f) {
                 flags |= LayeredAppearance.FLAG_MUZZLE_FLASH;
             }
+        } else if (!pose.moving() && handsOnFixture(actorId)) {
+            flags |= LayeredAppearance.FLAG_AT_STATION;
+            weaponPhase = pose.actionPhase();
         } else if (pose.activity() == AmbientActivity.FIRING_PRIMARY || practiceEquipment) {
             float cycle = primaryCycle(carriedSpecial != null, pose);
             if (cycle >= FIRE_BEGIN && cycle < FIRE_END) {
@@ -703,6 +707,12 @@ public final class AmbientTaskService {
                 BattleComponents.LAYERED_WEAPON_POSE, authoredPose);
         entities.setInt(actorId, components.LAYERED_ANIMATION,
                 BattleComponents.LAYERED_FLAGS, flags);
+    }
+
+    /** Whether the job this actor is at puts its hands on the fixture. */
+    private boolean handsOnFixture(long actorId) {
+        Affordance job = JobBoard.affordance(jobInHand(actorId));
+        return job != null && job.handsOnFixture();
     }
 
     private boolean isPrimaryFireWindow(long actorId, AmbientTaskPose pose) {

@@ -4,7 +4,7 @@ Status: ACTIVE — reactive manning is shipped for fighting-position runs, a str
 
 Written: 2026-10-13
 
-Updated: 2026-10-21 — story commanders man reactively through a hosted planner and a holder share (story commanders, below); not every fight is into prepared positions is a law; a holder sorties from a walled place it holds through a sally door in its own wall (sally doors, below); the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
+Updated: 2026-10-21 — story commanders man reactively through a hosted planner and a holder share (story commanders, below); a sally door shuts again: its holder shuts it behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body, and an open door of a place its holder lost stays open (sally doors, below); not every fight is into prepared positions is a law; a holder sorties from a walled place it holds through a sally door in its own wall (sally doors, below); the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
 
 ## Why this exists
 
@@ -617,20 +617,56 @@ machines go out by it too. Where doors are:
 
 - A door serves the side that holds its place **whole**: a fort's side holding
   every aspect; a compound's side by its capture record, uncontested; any other
-  place, the side with people inside it and nobody hostile inside. A split,
-  contested or empty place opens nothing.
-- It opens when that side has a squad or a machine with a member inside the
-  place ordered to ground beyond the door's face, outside the place and within
-  reach of the mouth, by a commander or by the player. Never while a hostile
-  body stands near its mouth: a door is not opened in the face of the enemy.
-- Opened, it is built passage (not rubble), and it stays open for everybody for
-  the rest of the battle: the map only becomes more permissive at runtime, so
-  no door can close behind a sortie or be held for one side. That is the price
-  of a sortie, and the reason nothing opens a door except the holder's own
-  order: the place has another way in, and the attack can find it.
-- Closed, it is wall with the wall's strength, breached as any wall is. An
-  attacker is never given a door it did not cut, and a place that changes hands
-  serves its new holder: marines who take a fort sortie by its ports.
+  place, the side with people inside it and nobody hostile inside. A sortie
+  often empties a small place, so a place nobody stands in still serves the
+  side that last held it whole until somebody hostile to that side comes in. A
+  split or contested place opens and shuts nothing.
+- It opens when that side has a squad or a machine ordered through it: a member
+  inside the place ordered to ground beyond the door's face, outside the place
+  and within reach of the mouth, or a member out on that ground ordered home
+  into the place, by a commander or by the player, and only while the door is
+  still ahead of the body and of its squad (a squad that has reached its ground
+  does not hold its door open for a straggler on the works). Never while a
+  hostile body stands near its mouth: a door is not opened in the face of the
+  enemy.
+- Opened, it is built passage (not rubble). The same side **shuts** it again:
+  at once when a hostile body comes as near its mouth as would have kept it
+  shut, and when the sortie has passed, nothing of the side's having wanted it
+  or stood near it for five seconds. A sortie is therefore a choice taken for
+  as long as it is needed, not a hole made for good: the attack is given a way
+  in only while the holder is using it. A door that changed state does not
+  open again for three seconds, so it cannot flap; shutting in the enemy's face
+  is never held.
+- **A door never shuts on a body.** Anybody of any side standing in or across
+  its cells keeps it open; it shuts on the first look that finds it clear.
+  Nothing is pushed out or crushed.
+- **The holder losing the place shuts nothing.** A door left open when its
+  side loses the place stays open while the place is split or contested, and
+  then serves whoever holds it whole: the hole a sortie made is the attack's if
+  the sortie goes wrong, which is its risk. Shutting on loss would hand the
+  loser a free wall at the moment it lost and cut the assault's routes under it.
+- Shut, it is wall with the wall's strength, breached as any wall is: an
+  attacker forces a shut door by breaching it, with what any wall costs, and is
+  never given a door it did not cut. A door is not made weaker than its wall,
+  which would make every door the attack's way in, nor stronger, which would
+  make it a keep. A door breached while shut is broken, a hole for good. A
+  place that changes hands serves its new holder: marines who take a fort
+  sortie by its ports and shut them behind them.
+- **The player's bar.** The player bars or unbars a door of a place their side
+  holds whole (key B over it). A barred door shuts now, or as soon as nobody
+  stands in it, and nothing opens it; an unbarred door opens at once, the enemy
+  near or not, and the side's reflexes leave it open. Either lasts until the
+  player orders the door again or the place changes hands.
+
+**Shutting is the one runtime write that closes ground.** It puts every door
+cell back exactly as it stood before it opened (its wall, hit points, ground and
+surface, and the cover it gave), and every derivation of the map sees the cell
+close: the grid's revision and change log retire path components, line of sight,
+the vehicle clearance mask and its labels, the greedy mesh, clearance searches,
+route proofs and the commanders' frozen topology as they do for an opening; the
+zone graph, whose incremental update only merges, is rebuilt whole at the tick's
+flush; and every route that crosses the door is dropped, so nobody walks into
+the wall and whoever meant to go through plans again.
 
 **Measured** (`garrisonEvidence`: `HolderRouteEvidence`, `FortWorksRouteEvidence`;
 map evidence, every door opened against none). From each node's anchor to the
@@ -664,10 +700,30 @@ defenders keep authored posts and never order a sortie beyond a doored face,
 so their doors wait for a player's order (scene `sally-door`, taken yard) or a
 reactive commander.
 
+**Shutting, in play**, against a same-build control with
+`-Dbattle.sallyDoors.closable=false` (conquest-trial, fort on the lane, seeds
+41 to 80 at the combined-arms force, and seeds 41 to 64 rifles-only; each
+first time a body stood in an open door opened for a side hostile to its own
+is counted, which includes marines in a port the defender opened before the
+marines took the fort): with the combined-arms force the attack's use of doors
+opened for the other side fell from 1,141 such crossings in 39 of 40 battles
+to 75 in 3, the 75 all through doors whose holder lost its place with them
+open. Doors opened 118 times against 49 and shut 117 times (108 behind a
+sortie, 9 in the enemy's face): marines who took the fort opened its ports for
+their own sorties 56 times against 7, because a shut port is theirs to open
+where an open one was simply walked through. Marines won 39 of 40 either way,
+losing 2,173 against 2,396, defenders 2,164 against 2,216. Rifles-only, the
+crossings fell from 4 to none; marines won 4 of 24 against 3. Both readings are
+findings, not balance acceptance.
+
 The scenes are `sally-door` (a walled yard that is not a fort: a sortie by
 infantry, the walk round with doors closed, the enemy at the door, an attack on
-the door, a taken yard where the player sends a squad and a Sirocco out, and a
-contested yard) and `sally-port` (the fort, with the defender's commander).
+the door, a taken yard where the player sends a squad and a Sirocco out, a
+contested yard, the door shut behind a sortie, shut in the face of raiders
+marching on it with no route left through it, barred by the player over a body
+standing in it, and a round trip out and home) and `sally-port` (the fort, with
+the defender's commander, and the port barred behind a sortie and in the face
+of raiders come up to it). Every loop asks that no door shuts on a body.
 
 ## Open questions
 

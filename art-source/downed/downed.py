@@ -8,7 +8,7 @@
 A fallen body is drawn the way a live one is: straight down, head toward the sprite's
 north, at the layered compositor's shoulder scale (150 source pixels to one shoulder
 width), and rotated at runtime to the facing the unit died with. Each pose frame is
-FRAME_W x FRAME_H source pixels with the body's centre at the frame centre.
+FRAME_W x FRAME_H source pixels (the 300x460 guide figure plus a PAD margin) with the body's centre at the frame centre.
 
 The guide is built from anatomy in shoulder widths, not drawn by hand, so every outfit
 shares the same four bodies: 0 face down, 1 on the back with arms flung out, 2 curled
@@ -24,7 +24,12 @@ import sys
 from PIL import Image, ImageDraw, ImageFilter
 
 SW = 150
-FRAME_W, FRAME_H = 300, 460
+# The pose guide's figure box, and the shipped frame: the guide figure sits centred in a
+# frame PAD px larger on every side, so a limb that drifts outward in a generation
+# survives instead of being cut flat at the frame edge.
+POSE_W, POSE_H = 300, 460
+PAD = 30
+FRAME_W, FRAME_H = POSE_W + 2 * PAD, POSE_H + 2 * PAD
 POSES = 4
 GUIDE_SCALE = 1.2
 CANVAS = (1536, 1024)
@@ -112,7 +117,7 @@ def oval(d, centre, size, scale, angle=0.0):
 
 def torso(d, top, bottom, top_w, bottom_w, scale, lean=0.0):
     """Shoulders, waist and hips as one smooth back, leaned by `lean` px at the hips."""
-    cx = FRAME_W / 2
+    cx = POSE_W / 2
     h = bottom - top
     half, hip = top_w / 2, bottom_w / 2
     waist = hip * 0.97
@@ -132,9 +137,9 @@ BOOT = (34, 50)
 
 
 def pose_mask(pose: int, scale: int) -> Image.Image:
-    img = Image.new("L", (FRAME_W * scale, FRAME_H * scale), 0)
+    img = Image.new("L", (POSE_W * scale, POSE_H * scale), 0)
     d = ImageDraw.Draw(img)
-    cx = FRAME_W / 2
+    cx = POSE_W / 2
     if pose == 0:  # face down, arms along the sides
         capsule(d, (cx - 26, 256), (cx - 42, 345), LEG, scale)
         capsule(d, (cx - 42, 345), (cx - 46, 405), SHIN, scale)
@@ -198,17 +203,29 @@ def pose_mask(pose: int, scale: int) -> Image.Image:
 
 
 def frame_mask(pose: int) -> Image.Image:
-    """The pose at 1x (FRAME_W x FRAME_H), hard-edged."""
+    """The pose at 1x, hard-edged, centred in the padded FRAME_W x FRAME_H."""
     big = pose_mask(pose, SUPER).filter(ImageFilter.GaussianBlur(SUPER))
-    return big.resize((FRAME_W, FRAME_H), Image.Resampling.BOX).point(lambda a: 255 if a >= 128 else 0)
+    mask = big.resize((POSE_W, POSE_H), Image.Resampling.BOX).point(lambda a: 255 if a >= 128 else 0)
+    framed = Image.new("L", (FRAME_W, FRAME_H), 0)
+    framed.paste(mask, (PAD, PAD))
+    return framed
 
 
 def frame_box(pose: int) -> tuple[int, int, int, int]:
-    w, h = round(FRAME_W * GUIDE_SCALE), round(FRAME_H * GUIDE_SCALE)
+    """The pose's figure box on the 1536x1024 raw sheet (the guide's layout, unpadded)."""
+    w, h = round(POSE_W * GUIDE_SCALE), round(POSE_H * GUIDE_SCALE)
     gap = (CANVAS[0] - POSES * w) // (POSES + 1)
     x = gap + pose * (w + gap)
     y = (CANVAS[1] - h) // 2
     return x, y, x + w, y + h
+
+
+def padded_box(pose: int) -> tuple[int, int, int, int]:
+    """frame_box grown by PAD frame pixels per side. Neighbours' margins overlap it, so
+    export keeps only the connected shapes that belong to this pose."""
+    x0, y0, x1, y1 = frame_box(pose)
+    m = round(PAD * GUIDE_SCALE)
+    return x0 - m, y0 - m, x1 + m, y1 + m
 
 
 def guide() -> None:
@@ -223,20 +240,68 @@ def guide() -> None:
     print(out)
 
 
+def owners(alpha, bounds):
+    """Label the sheet's 8-connected opaque shapes and give each to the pose whose bound
+    it overlaps most. Returns a dict pose -> set of pixel indices (flattened)."""
+    import numpy as np
+    h, w = alpha.shape
+    opaque = alpha > 0
+    label = np.zeros((h, w), dtype=np.int32)
+    count = 0
+    stack = []
+    ys, xs = np.nonzero(opaque)
+    for y0, x0 in zip(ys.tolist(), xs.tolist()):
+        if label[y0, x0]:
+            continue
+        count += 1
+        label[y0, x0] = count
+        stack.append((y0, x0))
+        while stack:
+            y, x = stack.pop()
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    yy, xx = y + dy, x + dx
+                    if 0 <= yy < h and 0 <= xx < w and opaque[yy, xx] and not label[yy, xx]:
+                        label[yy, xx] = count
+                        stack.append((yy, xx))
+    best = np.zeros(count + 1, dtype=np.int64)
+    owner = np.full(count + 1, -1, dtype=np.int32)
+    for pose, bound in enumerate(bounds):
+        overlap = np.bincount(label[bound & opaque], minlength=count + 1)
+        better = overlap > best
+        owner[better] = pose
+        best[better] = overlap[better]
+    return label, owner
+
+
 def export(outfits) -> None:
+    import numpy as np
     for outfit in outfits:
         raw = Image.open(SOURCE / "raw" / f"{outfit}.png").convert("RGBA")
         sx, sy = raw.width / CANVAS[0], raw.height / CANVAS[1]
         target = Path(OUTFITS[outfit])
+        # The reskin keeps its own limbs where it moved them a little; the guide, grown
+        # generously, only removes strays far from the body.
+        bounds = []
         for pose in range(POSES):
-            x0, y0, x1, y1 = frame_box(pose)
-            cut = raw.crop((round(x0 * sx), round(y0 * sy), round(x1 * sx), round(y1 * sy)))
+            x0, y0, x1, y1 = padded_box(pose)
+            region = (round(x0 * sx), round(y0 * sy), round(x1 * sx), round(y1 * sy))
+            grown = frame_mask(pose).filter(ImageFilter.MaxFilter(41))
+            full = Image.new("L", raw.size, 0)
+            full.paste(grown.resize((region[2] - region[0], region[3] - region[1]),
+                                    Image.Resampling.NEAREST), region[:2])
+            bounds.append(np.array(full) > 0)
+        label, owner = owners(np.array(raw.split()[3]), bounds)
+        for pose in range(POSES):
+            x0, y0, x1, y1 = padded_box(pose)
+            box = (round(x0 * sx), round(y0 * sy), round(x1 * sx), round(y1 * sy))
+            cut = raw.crop(box)
+            mine = (owner[label] == pose) & bounds[pose]
+            keep = Image.fromarray((mine * 255).astype("uint8")).crop(box)
             layer = cut.resize((FRAME_W, FRAME_H), Image.Resampling.NEAREST)
+            keep = keep.resize((FRAME_W, FRAME_H), Image.Resampling.NEAREST)
             r, g, b, a = layer.split()
-            # The reskin keeps its own limbs where it moved them a little; the guide,
-            # grown generously, only removes strays far from the body.
-            bound = frame_mask(pose).filter(ImageFilter.MaxFilter(41))
-            a = Image.composite(a, Image.new("L", a.size, 0), bound)
+            a = Image.composite(a, Image.new("L", a.size, 0), keep)
             out = target / f"downed-{pose}.png"
             Image.merge("RGBA", (r, g, b, a)).save(out, optimize=True)
             print(out)

@@ -3,73 +3,44 @@
   "codexVersion": "codex-cli 0.159.0",
   "model": "codex default",
   "effort": "codex default",
-  "thread": "01a15f0e-d020-79d0-83da-5a1f97c00f78",
-  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f0e-d020-79d0-83da-5a1f97c00f78\\exec-47a35ab9-2ffa-4ab3-85e8-18e70373ee7a.png",
+  "thread": "01a15f24-ff01-7a20-8303-21dcacc00755",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f24-ff01-7a20-8303-21dcacc00755\\exec-2dafc5fb-618c-415f-a86f-be03ebcdeb9c.png",
   "otherImagesInThread": [],
   "output": {
     "path": "art-source\\downed\\raw\\lions-mantle.png",
-    "sha256": "dad809a3fe12232326c77cf19633714c688d632333f19a469a080a315507d75c",
+    "sha256": "7c8038fc683706e861744e0cf3d6e83c7cf93ab077be95a484cf975d7792c091",
     "dimensions": [
       1536,
       1024
     ],
     "mode": "RGBA"
   },
-  "promptFile": "art-source\\downed\\prompts\\lions-mantle.full.txt",
-  "promptSha256": "b380b34e689eaf392cce2acddf7e89233035a4e9db2d528315fc8cb39020202c",
-  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the four lying figures to reskin, exact outlines, limbs, positions and scale\nImage 2: Style and pose rendering only: the accepted sibling sheet; match its pixel-art rendering, outline, shading and how it reads each pose, but not its armor or colors\nImage 3: Identity and style: this outfit's live layers seen from above; copy its clothing, armor, palette and head, not its layout\nImage 4: Identity and style: this outfit's live layers seen from above; copy its clothing, armor, palette and head, not its layout\n\nUse case: sketch-to-render. Production sprites of fallen infantry for a top-down tactical game, to lie on the ground beside the existing live overhead sprites.\n\nReference 1 is the authoritative POSE GUIDE and edit target, 1536x1024. Reskin only its four flat gray figures; keep every figure's exact outline, limb positions, position on the canvas and scale. Everything outside the figures must be genuinely transparent: no background, ground, floor, shadow, blood pool, border, labels or grid.\n\nCamera: TRUE STRAIGHT-DOWN 90-degree overhead view of four people lying flat on the ground, heads toward the TOP of the image. No perspective, no isometric or three-quarter view.\n- Figure 1: lying face down, arms along the sides; we see the back of the head, back, backs of the legs and the soles/heels of the boots.\n- Figure 2: lying on the back, arms flung out, one knee fallen outward; we see the face from directly above (eyes closed, simple features), chest, fronts of the legs and the toes of the boots.\n- Figure 3: lying curled on one side, knees drawn up, arms forward.\n- Figure 4: sprawled face down, one arm thrown overhead, legs apart.\nEach figure is the same person in the same outfit, limp and still: incapacitated or dead, not posing.\n\nStyle: match the live-sprite references exactly — chunky crisp pixel art with a clean one-step dark outline around every figure, a limited muted palette, broad readable planes, light from the upper left, restrained detail that still reads at 300x460 pixels per figure. Not painterly, not smooth airbrushed, not photographic. No weapons, dropped gear, gore, wounds, blood or text.\nThis outfit: LION'S MANTLE guard battlesuit (Sindrian Lion's Guard), prestigious heavy armor. Deep polished crimson angular laminate plate with enormous pauldrons, blackened gunmetal frame, black cooling loops, heat-stained copper, muted brass edge guards, tiny amber lights and a small abstract golden chevron on the chest. Crimson and gunmetal heavy helmet with brass trim (figure 2 shows the helmet's dark faceplate from above, no skin). Blackened gunmetal boots. Copy the plates, helmet and colors from the lion's mantle references.\nFit: every figure must stay the size and shape of its gray guide figure. Do not enlarge, widen or shift any figure; head, torso, limbs and boots stay at the gray outline, with armor plates adding at most a thin rim past it.\n",
+  "promptFile": "art-source\\downed\\prompts\\_wear.txt",
+  "promptSha256": "fac0d1e59eee0ac4b65f00ebfaee25c26f0a4358a84e0c6ddd13b758fd84d83b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Edit target and authority for everything except surface wear: exact figures, outlines, positions, armor design, colors and pixel-art style\n\nUse case: edit. Reference 1 is a finished production sprite sheet of four fallen armored soldiers for a top-down tactical game, 1536x1024, on a genuinely transparent background. It is the exact edit target.\n\nChange ONLY the surface wear: make the armor look like it has been through a hard fight instead of fresh from the depot.\n- Scorch and carbon soot: dark blast scorching on a few plates, soot streaks.\n- Chipped and scraped paint: worn edges and chips showing dull bare metal underneath, deep scratches.\n- Impact damage: a handful of bullet pocks and gouges, one or two cracked or dented plates per figure, a frayed or torn strap or cloth seam.\n- Grime: dust and dried mud caked on the boots and lower legs, grime in the joints and seams, the colors slightly dulled and dirtier overall.\nSpread the damage unevenly and believably, more on the front-facing and lower surfaces; every figure gets some.\n\nKeep EVERYTHING else exactly as it is: every figure's outline, pose, limb positions, size and position on the canvas; the armor design, plate shapes, helmet, insignia and base colors; the pixel-art rendering, one-step dark outline and lighting from the upper left. Do not add or remove any part, do not move anything, do not crop or resize. Everything outside the figures stays genuinely transparent: no background, ground, shadow, border or text. No blood, gore, wounds or bodies' skin damage; no weapons or dropped gear.\n\nThis is an in-place surface edit: laid over Reference 1, every figure must match it outline for outline, at the same size. Do not redraw the figures bigger, bulkier or in a new style. Wear, soot and grime only darken and dull the existing base colors; never lighten, bleach or repaint them (a dark charcoal suit stays dark charcoal, an olive suit stays olive).\n",
   "adopted": false,
   "references": [
     {
-      "path": "art-source\\templates\\downed-poses.png",
-      "sha256": "258356b848e570ef25b0e902e5cdbc17b7b04a665d2cf2b7f97c1336e01b111b",
+      "path": "art-source\\downed\\raw\\lions-mantle.png",
+      "sha256": "dad809a3fe12232326c77cf19633714c688d632333f19a469a080a315507d75c",
       "dimensions": [
         1536,
         1024
       ],
       "mode": "RGBA",
-      "role": "Geometry/layout authority: the four lying figures to reskin, exact outlines, limbs, positions and scale"
-    },
-    {
-      "path": "art-source\\downed\\raw\\charcoal.png",
-      "sha256": "87a1f07b753fd4ce4391d9405ef5dca4ec71ade85de10aedac100f02934a55b6",
-      "dimensions": [
-        1536,
-        1024
-      ],
-      "mode": "RGBA",
-      "role": "Style and pose rendering only: the accepted sibling sheet; match its pixel-art rendering, outline, shading and how it reads each pose, but not its armor or colors"
-    },
-    {
-      "path": "art-source\\marine-modular-topdown\\sources\\faction-armor\\lions-mantle\\body.png",
-      "sha256": "6824799fbfd6faa714fcc1e9a4257f28f356345a15c827591ecac7144cc86909",
-      "dimensions": [
-        1536,
-        1024
-      ],
-      "mode": "RGBA",
-      "role": "Identity and style: this outfit's live layers seen from above; copy its clothing, armor, palette and head, not its layout"
-    },
-    {
-      "path": "art-source\\marine-modular-topdown\\sources\\faction-armor\\lions-mantle\\head.png",
-      "sha256": "30d2b8f6d4c0a499680e43fcfa97ef5a1cb629bd8faf183bd6a6ca10391bd300",
-      "dimensions": [
-        1254,
-        1254
-      ],
-      "mode": "RGBA",
-      "role": "Identity and style: this outfit's live layers seen from above; copy its clothing, armor, palette and head, not its layout"
+      "role": "Edit target and authority for everything except surface wear: exact figures, outlines, positions, armor design, colors and pixel-art style"
     }
   ],
   "agentMessages": [
-    "I’ll use the imagegen skill to render one transparent sprite sheet, preserving the pose guide’s layout and applying the Lion’s Mantle armor.\n"
+    "I\u00e2\u20ac\u2122ll use the imagegen skill to apply surface wear while preserving the four figures\u00e2\u20ac\u2122 poses, outlines, colors, and placement.\n"
   ],
   "usage": {
-    "input_tokens": 95888,
-    "cached_input_tokens": 59904,
+    "input_tokens": 61923,
+    "cached_input_tokens": 48512,
     "cache_write_input_tokens": 0,
-    "output_tokens": 935,
-    "reasoning_output_tokens": 18
+    "output_tokens": 568,
+    "reasoning_output_tokens": 24
   },
-  "elapsedSeconds": 77.1
+  "elapsedSeconds": 63.7,
+  "note": "Battle-wear edit of the previous clean sheet (git history), made with prompts/_wear.txt; the clean sheet was the edit target."
 }

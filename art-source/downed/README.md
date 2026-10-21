@@ -8,7 +8,7 @@ alien keeps its unit type's sheet.
 
 `downed.py guide` builds the pose guide (`../templates/downed-poses.png`) from
 anatomy in shoulder widths, so every outfit shares the same four bodies at the live
-compositor's scale (150 source px per shoulder width; frames 300x460, head toward the
+compositor's scale (150 source px per shoulder width; frames 360x520: the 300x460 guide figure plus a 30 px margin so drift is not clipped, head toward the
 top). `downed.py export [outfit ...]` cuts each raw back into
 `downed-<pose>.png` beside the outfit's body and head with nearest sampling, keeping
 the generated alpha near the guide figure. The reskin may move a limb a little;
@@ -29,5 +29,11 @@ Blood pools: `downed.py pool-guide` draws four seeded pool shapes
 `mod/graphics/battle/downed/blood-pool-<n>.png` at 240x240. Pools are shared by every
 outfit.
 
+Armored outfits get a battle-wear pass: the accepted clean sheet is the edit
+target for `prompts/_wear.txt` (scorch, chipped paint, pocks, cracked plates, mud), and
+the worn result replaces the raw; the clean sheet stays in Git history. Cloth outfits
+(armorless, ship crew, colonists) stay as generated. An edit that redraws its figures
+larger or bleaches the suit is regenerated, like any raw that drifts from the guide.
+
 Adding an outfit: write `prompts/<outfit>.txt`, generate, add it to `OUTFITS` in
-`downed.py`, export, then add the family to `LayeredArmorFamily.hasDownedArt`.
+`downed.py`, give it the wear pass if it is armored, export, then add the family to `LayeredArmorFamily.hasDownedArt`.
