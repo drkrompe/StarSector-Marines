@@ -830,22 +830,13 @@ engineering, medical and service uniforms use independent overhead body, head
 and foot layers through the ordinary infantry compositor. Clothing changes no
 combat statistics or marine equipment.
 
-**Work looks like the work.** A job is shown by a **work motion**, chosen from
-the affordance and refined by the fixture it is done at: the same COOK is
-stirring at the range and chopping at the prep bench, TEND is a wrench at the
-machinery and a hand on the board at its control console, EXERCISE is running
-on a treadmill, rowing, pressing or lifting. Servicing a berthed machine is
-welding, with the torch and its sparks drawn on the technician wherever the bay
-is seen from, not by one screen's overlay. A ship's medic at a ward bed kneels
-with the kit open, exactly as a squad medic does over a casualty. Stores
-handling is the one job done between points, so the walk from one stowage stop
-to the next carries a crate. The motion is a presentation of the job and never
-its substance: it does not change how long a job takes, who may claim it, or
-where the worker stands — a treadmill's runner is drawn on the belt while their
-claim stays on the cell beside it. Motions are one vocabulary
-(`WorkMotion`), not per-role code; animated fixtures such as belts and lifts are
-the fixture's own art and meet the worker through the same claim and focus. A
-family without station arms simply shows less of the motion.
+Aboard, work motions (`ai-nouns.md`) give the deck's trades their look:
+servicing a berthed machine is welding, drawn on the technician wherever the bay
+is seen from rather than by one screen's overlay; the medic kneels at a ward
+bed; the galley stirs and chops; the plant is worked with a wrench and its
+control board by hand; the gym's machines are run, rowed and pressed. None of
+it is shipboard machinery — the deck only furnishes the fixtures the motions
+read.
 
 **The ship runs; a screen is a camera.** A deck is manned everywhere it has work
 and advanced as a whole, and the screens that look at parts of it choose a
