@@ -81,11 +81,23 @@ def shove(t, t0):
     return 0.30 * (1 - s), -0.08 * (1 - s), dict(dy=-90 * (1 - s), k=0.94 + 0.06 * s), "recover"
 
 
+LOOK = [(0.0, 0.0), (0.6, 0.0), (1.4, -14.0), (2.3, -14.0), (3.3, 16.0), (4.2, 16.0), (5.2, 0.0), (9.0, 0.0)]
+
+
+def look(t):
+    """Clip A's head yaw in degrees (+ toward the creature's right): it looks left, then right, then ahead."""
+    for (t0, a0), (t1, a1) in zip(LOOK, LOOK[1:]):
+        if t0 <= t < t1:
+            return a0 + (a1 - a0) * smooth((t - t0) / (t1 - t0))
+    return 0.0
+
+
 def track(clip, t):
     """Body position along the path, gait ('plant' pins the feet), crouch, head, scythes, label."""
-    head = dict(dy=0.0, k=1.0, gape=0.0)
+    head = dict(dy=0.0, k=1.0, gape=0.0, yaw=0.0)
     blades = {"L": (0.0, 0.0), "R": (0.0, 0.0)}
     if clip == "A":
+        head["yaw"] = look(t)
         return WALK * t, "walk", 0.0, head, blades, 0.0, "walk"
     if clip == "B":
         x, lunge, label, plant = WALK * t, 0.0, "walk", False
@@ -98,7 +110,9 @@ def track(clip, t):
             if ph:
                 blades[side] = (a, reach)
                 lunge, label, plant = lg, f"{ph} ({'right' if side == 'R' else 'left'})", True
-                head = dict(dy=-20 * min(1, max(0, lg) / 0.16), k=1.0, gape=0.6 * (ph == "REAP"))
+                turn = min(1.0, (t - t0) / S_WIND) if ph != "recover" else max(0.0, 1 - (t - t0 - S_WIND - S_LASH - S_HOLD) / S_BACK)
+                head = dict(dy=-20 * min(1, max(0, lg) / 0.16), k=1.0, gape=0.6 * (ph == "REAP"),
+                            yaw=(1 if side == "R" else -1) * 16 * smooth(turn))
         return x + lunge, "plant" if plant else "walk", 0.0, head, blades, lunge, label
     # clip C
     if t < WALL_STOP:
@@ -109,11 +123,13 @@ def track(clip, t):
             off, crouch, h, ph = shove(t, t0)
             if ph:
                 h["gape"] = 0.0
+                h["yaw"] = 0.0
                 return x + off, "plant", crouch, h, blades, off, f"{ph} {i + 1}"
         r0, rd = ROAR
         if r0 <= t < r0 + rd:
             g = math.sin(math.pi * (t - r0) / rd)
-            return x, "plant", 0.0, dict(dy=-30 * g, k=1 + 0.05 * g, gape=min(1.0, 1.6 * g)), blades, 0.0, "ROAR"
+            shake = 7 * g * math.sin(2 * math.pi * 3.5 * (t - r0))
+            return x, "plant", 0.0, dict(dy=-30 * g, k=1 + 0.05 * g, gape=min(1.0, 1.6 * g), yaw=shake), blades, 0.0, "ROAR"
         return x, "plant", 0.0, head, blades, 0.0, "brace"
     return x + WALK * (t - T_THROUGH), "walk", 0.0, head, blades, 0.0, "through the breach"
 
