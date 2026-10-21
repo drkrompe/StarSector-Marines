@@ -55,6 +55,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Locale;
 import java.util.Random;
+import java.util.concurrent.Callable;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -129,10 +130,15 @@ class ConquestTrialEvidenceTest {
                 .append("|---|---|---|---|---|---|---|---|---|---|---|---|---|\n");
         JSONArray summaries = new JSONArray();
         StringBuilder detail = new StringBuilder();
+        // Fixtures play side by side (`EvidenceFanOut`); each is its own simulation and the report keeps fixture order.
+        List<Callable<Outcome>> jobs = new ArrayList<>();
         for (int i = 0; i < fixtures.length(); i++) {
             JSONObject fixture = fixtures.getJSONObject(i);
             int ticks = Integer.getInteger(PREFIX + ".maxTicks") != null ? maxTicks : fixture.optInt("maxTicks", maxTicks);
-            Outcome o = play(fixture, ticks, output);
+            jobs.add(() -> play(fixture, ticks, output));
+        }
+        List<Outcome> outcomes = EvidenceFanOut.run(jobs);
+        for (Outcome o : outcomes) {
             md.append(o.row()).append('\n');
             detail.append("\n## ").append(o.id()).append("\n\n").append(o.detail());
             summaries.put(o.json());
@@ -386,6 +392,7 @@ class ConquestTrialEvidenceTest {
             BunkerProbe bunkerProbe = new BunkerProbe();
             MechTimeToKillProbe mechs = new MechTimeToKillProbe();
             AttackerHoldProbe holdProbe = new AttackerHoldProbe();
+            PlaceFightProbe places = new PlaceFightProbe();
             int wallOpenAtStart = openedWallCells(sim, ground);
             FightingPositionIndex startPositions = sim.fightingPositions();
             assertTrue(startPositions.runCount() > 0, "the trial fort stands a belt of fighting positions");
@@ -411,6 +418,7 @@ class ConquestTrialEvidenceTest {
                 bunkerProbe.sample(sim);
                 mechs.sample(sim);
                 holdProbe.sample(sim);
+                places.sample(sim);
                 for (SatchelChargeService.ChargeView charge : sim.satchelCharges().activeCharges()) {
                     if (charge.targetId() == 0L) wallCharges.add(charge.id());
                 }
@@ -429,6 +437,8 @@ class ConquestTrialEvidenceTest {
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
             String trace = sim.getCommandTraceJsonLines();
+            JSONObject placeFight = places.json(sim, trace);
+            System.out.println("[place-fight] " + id + " " + placeFight);
             int wallOpenAtEnd = openedWallCells(sim, ground);
             int[] life = companyLife(trace);
             int marinesEnd = count(sim, Faction.MARINE);
@@ -484,6 +494,7 @@ class ConquestTrialEvidenceTest {
                     .put("mechs", mechs.json())
                     .put("attackerHold", holdProbe.json())
                     .put("counterattack", counterattackNotes(trace))
+                    .put("placeFight", placeFight)
                     .put("wallChargesSet", wallCharges.size())
                     .put("potCloudsStood", screenClouds.size())
                     .put("sectionsOpened", sim.fieldMortars().sections().opened())
