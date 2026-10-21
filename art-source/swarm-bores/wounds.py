@@ -30,7 +30,7 @@ import ooze  # noqa: E402
 
 CATALOG = "mod/data/marines/turret-emplacements.turret.json"
 SHEET = "graphics/structures/swarm-ooze.png"
-FPS = 10.0
+FPS = ooze.FPS
 GRID = 128
 MAX_WOUNDS = {"bore": 5, "mother-bore": 6, "spore-colony-fissure": 3, "spore-colony-bore": 4,
               "spore-colony-maw": 4}

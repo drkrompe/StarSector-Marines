@@ -36,8 +36,10 @@ colour.
 
 **Bleeding** (`StructureArt.Bleed`). A wounded body bleeds from its painted
 wounds. `ooze.py` draws the loop procedurally, because its frames have to agree
-pixel for pixel: a heightfield lit by the game's sun in the bloom sinew ramp,
-three kinds of ooze in eight run directions, twelve frames each (the direction
+pixel for pixel: a punctured membrane pulsing to a double heartbeat, its slit
+dilating and its flaps lifting as each beat pushes a film of ichor out to run
+downhill and drain. A heightfield lit by the game's sun in the bloom sinew
+ramp; three kinds of puncture in eight run directions, 24 frames at 12 fps (the direction
 is baked rather than turned, since turning would turn the light). `wounds.py`
 reads each painting's wounds out of its guides, as the raw flesh the wounded
 guide shows and the intact one does not, largest first, with the way downhill
