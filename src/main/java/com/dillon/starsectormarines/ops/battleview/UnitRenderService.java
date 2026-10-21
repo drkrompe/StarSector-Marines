@@ -327,6 +327,7 @@ public final class UnitRenderService implements RenderSystem {
             int spanY = 1;
             if (turretState.isTurret(u)) {
                 StructureDef structure = turretState.structure(u);
+                if (structure.art != null && !structure.art.groundPad) continue;
                 spanX = structure.footprintCellsX;
                 spanY = structure.footprintCellsY;
                 cx = StructureFootprint.minX(structure, cx);

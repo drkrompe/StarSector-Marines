@@ -53,7 +53,7 @@ public final class OpeningOperationStory implements StoryMissionDef {
         boolean groundStart = !recurring && kind == OpeningOperationKind.RELIEF;
         int playerSorties = groundStart ? 0 : kind == OpeningOperationKind.RELIEF ? 1 : 2;
         Mission.Builder builder = Mission.builder()
-                .id(id).name(recurring ? kind.recurringName : kind.displayName)
+                .id(id).name(recurring ? kind.recurringName() : kind.displayName())
                 .type(MissionType.ASSAULT).source(recurring ? MissionSource.RECURRING : MissionSource.STORY)
                 .payout(kind.payout).risk(RiskLevel.LOW)
                 .requirements(groundStart ? Strings.get("storyOpeningRequirementsGround")
