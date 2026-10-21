@@ -28,12 +28,37 @@ import java.util.List;
  * rooms than sites falls back to its zone for the rest. Rooms are laid in the
  * order their purposes first appear here rather than largest first, so the
  * rooms the drawing fixes are down before the rest look for space.
+ *
+ * <p><b>Reserves</b> are compartments the hull keeps sealed for refits she has
+ * not had yet. They are no part of the room program: the deck is not sized for
+ * them, nothing aboard is owed them, and they are laid after every programmed
+ * room and before the pocket fill, so reserving one never moves a room, a door
+ * or a berth the program placed. Paying for a refit later opens a reserve where
+ * it already stands rather than finding it a place.
  */
-public record DeckArrangement(String name, List<Site> sites, List<Fairing> fairings) {
+public record DeckArrangement(String name, List<Site> sites, List<Fairing> fairings, List<Reserve> reserves) {
 
     public DeckArrangement {
         sites = List.copyOf(sites);
         fairings = List.copyOf(fairings);
+        reserves = List.copyOf(reserves);
+    }
+
+    public DeckArrangement(String name, List<Site> sites, List<Fairing> fairings) {
+        this(name, sites, fairings, List.of());
+    }
+
+    /**
+     * A compartment reserved for a future refit: the room it will become, and
+     * where on the deck it is kept. A reserve its site cannot hold falls back to
+     * its recipe's zone the way a programmed room does.
+     */
+    public record Reserve(RoomRecipe recipe, Site site) {
+        public Reserve {
+            if (site.purpose() != recipe.purpose()) {
+                throw new IllegalArgumentException("a reserve's site names its own purpose: " + site + " for " + recipe);
+            }
+        }
     }
 
     /**
@@ -136,6 +161,10 @@ public record DeckArrangement(String name, List<Site> sites, List<Fairing> fairi
         return new Site(purpose, fore, aft, side);
     }
 
+    private static Reserve reserve(RoomRecipe recipe, float fore, float aft, DeckSide side) {
+        return new Reserve(recipe, span(recipe.purpose(), fore, aft, side));
+    }
+
     /**
      * Second Wind, the company's original Cerberus, laid out to agree with her
      * model.
@@ -157,6 +186,15 @@ public record DeckArrangement(String name, List<Site> sites, List<Fairing> fairi
      * walks from its gantry to its boat, the machine shop and stores behind
      * it, and the plant and the drive to starboard on the transom, under the
      * reactor hatch.
+     *
+     * <p>Five reserves follow the program, largest first, which is the order
+     * that leaves each its best ground: the range along the spine in the
+     * starboard waist, the gymnasium in the aft port corner, the sick bay, the
+     * lounge and the brig in the starboard aft block. Their footprints are what
+     * the deck can give up in every layout rather than the destroyer recipes:
+     * measured over two hundred layout seeds, a 30-frame range fits one deck
+     * in five and a 14-by-10 room more than once only by luck, while this set
+     * places on every one. See {@code second-wind-refit-tree.md}.
      */
     public static final DeckArrangement SECOND_WIND = new DeckArrangement("second-wind", List.of(
             span(RoomPurpose.HANGAR, at(47, 106), at(47, 106), DeckSide.PORT),
@@ -185,5 +223,10 @@ public record DeckArrangement(String name, List<Site> sites, List<Fairing> fairi
             // where both apertures are cut; the collision polygon runs it as
             // a diagonal from the pods to the engine block.
             List.of(new Fairing(0.31f, 0.59f, DeckSide.PORT),
-                    new Fairing(0.31f, 0.59f, DeckSide.STARBOARD)));
+                    new Fairing(0.31f, 0.59f, DeckSide.STARBOARD)),
+            List.of(reserve(RoomRecipe.SECOND_WIND_RANGE, 0.44f, 0.66f, DeckSide.STARBOARD),
+                    reserve(RoomRecipe.SECOND_WIND_GYM, 0.76f, 1f, DeckSide.PORT),
+                    reserve(RoomRecipe.SECOND_WIND_SICK_BAY, 0.66f, 1f, DeckSide.STARBOARD),
+                    reserve(RoomRecipe.SECOND_WIND_LOUNGE, 0.66f, 1f, DeckSide.STARBOARD),
+                    reserve(RoomRecipe.BRIG, 0.44f, 0.80f, DeckSide.STARBOARD)));
 }

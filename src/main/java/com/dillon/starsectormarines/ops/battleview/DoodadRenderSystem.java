@@ -104,6 +104,19 @@ public final class DoodadRenderSystem implements RenderSystem {
         }
     }
 
+    /**
+     * Draw placements again over themselves in one flat tint: how an unpowered
+     * screen reads without a second sheet of dead variants. Presentation only.
+     */
+    void collectTinted(Iterable<Doodad> placements, DrawList out, BattleCamera cam, VisibleCellRect view,
+                       float r, float g, float b, float alpha) {
+        for (Doodad d : placements) {
+            if (!view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY)) continue;
+            SpriteAPI sheet = sheetFor(d);
+            if (sheet != null) emit(out, cam, sheet, d, cam.cellPxSize(), alpha, RenderLayer.DOODADS, r, g, b);
+        }
+    }
+
     private static boolean isLegacySheet(String path) {
         return path.equals(TileManifest.SHEET) || path.equals(TileManifest.ROAD_SHEET)
                 || path.equals(TileManifest.DOODAD_SHEET) || path.equals(TileManifest.PARKED_VEHICLE_SHEET);
@@ -136,6 +149,12 @@ public final class DoodadRenderSystem implements RenderSystem {
 
     private static void emit(DrawList out, BattleCamera cam, SpriteAPI sheet,
                              Doodad d, float cellPx, float alphaMult, RenderLayer layer) {
+        emit(out, cam, sheet, d, cellPx, alphaMult, layer, 1f, 1f, 1f);
+    }
+
+    private static void emit(DrawList out, BattleCamera cam, SpriteAPI sheet,
+                             Doodad d, float cellPx, float alphaMult, RenderLayer layer,
+                             float r, float g, float b) {
         // Source rectangle is read at the sheet's own cell size, not the
         // game's. A sheet drawn finer than the grid keeps its detail; one drawn
         // at the grid behaves exactly as before. The quad then stretches that
@@ -159,13 +178,13 @@ public final class DoodadRenderSystem implements RenderSystem {
                     srcX, srcY, sourceWidth, sourceHeight,
                     cx, cy, cellPx * d.sourceCellsX, cellPx * d.sourceCellsY,
                     d.quarterTurns * 90f + 180f,
-                    1f, 1f, 1f, alphaMult);
+                    r, g, b, alphaMult);
             return;
         }
         out.addSheetQuad(layer, sheet,
                 srcX, srcY, sourceWidth, sourceHeight,
                 cx, cy, cellPx * d.sourceCellsX, cellPx * d.sourceCellsY,
                 d.quarterTurns * 90f,
-                1f, 1f, 1f, alphaMult);
+                r, g, b, alphaMult);
     }
 }

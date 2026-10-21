@@ -184,6 +184,21 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
                 frames.add(new SnapshotArtifact("07-reclamation.png", renderer.render(document, 1920, 1080)));
                 return List.copyOf(frames);
             }
+            // The hull's reserves are on the plan, sealed and inspectable, before
+            // any refit opens them.
+            var reserves = ship.rooms().compartments().stream().filter(r -> ship.rooms().reserved(r.id())).toList();
+            require(reserves.size() == 5, "Second Wind should keep five sealed reserves, found " + reserves.size());
+            for (var reserve : reserves) markup.requireElement("survey-room-" + reserve.id());
+            var range = ship.rooms().largest(RoomPurpose.FIRING_RANGE);
+            require(range != null && ship.rooms().reserved(range.id()) && !ship.has(RoomPurpose.FIRING_RANGE),
+                    "The reserved range must be on the plan and out of service");
+            int shown = 0;
+            for (var reserve : reserves) {
+                overlay.select(reserve.id()); overlay.update(0f, ship, canvas);
+                require(model.selectedRoomId() == reserve.id(), "A reserve could not be inspected: " + reserve.purpose());
+                frames.add(new SnapshotArtifact(String.format("07-reserve-%d-%s.png", ++shown,
+                        reserve.purpose().name().toLowerCase().replace('_', '-')), renderer.render(document, 1920, 1080)));
+            }
             overlay.select(mess.id()); overlay.update(0f, ship, canvas);
             // Zoom on the mess itself, wherever the hull keeps it, so the
             // projection is checked on a marker that stays on the stage.

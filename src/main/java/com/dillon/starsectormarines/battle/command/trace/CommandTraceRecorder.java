@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective
 import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.sally.SallyDoor;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -77,6 +78,7 @@ public final class CommandTraceRecorder {
         sampleCompounds(sim);
         sampleChargeSites(sim);
         sampleExtractionPayloads(sim);
+        sampleSallyDoors(sim);
         if (sim.isComplete() && !terminalRecorded) {
             terminalRecorded = true;
             StringBuilder out = begin("referee", sim.getSimTickIndex());
@@ -279,6 +281,24 @@ public final class CommandTraceRecorder {
             appendLine(end(out));
         }
     }
+
+    /** One referee line per sally door the moment it opens: which place's, where, and for whom. */
+    private void sampleSallyDoors(BattleSimulation sim) {
+        List<int[]> openings = sim.sallyDoors().openings();
+        for (; sallyDoorsReported < openings.size(); sallyDoorsReported++) {
+            int[] opening = openings.get(sallyDoorsReported);
+            SallyDoor door = sim.sallyDoors().doors(sim).get(opening[0]);
+            StringBuilder out = begin("referee", opening[1]);
+            field(out, "event", "sally-door-opened");
+            field(out, "place", door.place().label());
+            numberField(out, "mouthX", door.mouthX());
+            numberField(out, "mouthY", door.mouthY());
+            field(out, "holder", opening[2] < 0 ? "none" : Faction.values()[opening[2]].name());
+            appendLine(end(out));
+        }
+    }
+
+    private int sallyDoorsReported;
 
     /** Full payload progress belongs only to the neutral referee stream. */
     private void sampleExtractionPayloads(BattleSimulation sim) {

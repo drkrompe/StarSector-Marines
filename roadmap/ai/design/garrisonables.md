@@ -1,10 +1,10 @@
 # Garrisonables
 
-Status: ACTIVE — reactive manning is shipped for fighting-position runs, a stretch at a time, and for building envelopes, on both Conquest sides (the defender's own belts, compound aprons and compound buildings, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans, runs and buildings alike (player on any map, both Conquest commanders on any ground they man), and the Raid, Assault, Sabotage and Extraction defenders man their maps' places reactively too, their lances guarding what they man; the compound perimeter and emplacements remain direction.
+Status: ACTIVE — reactive manning is shipped for fighting-position runs, a stretch at a time, and for building envelopes, on both Conquest sides (the defender's own belts, compound aprons and compound buildings, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans, runs and buildings alike (player on any map, both Conquest commanders on any ground they man), and the Raid, Assault, Sabotage and Extraction defenders man their maps' places reactively too, their lances guarding what they man, and a holder sorties from a walled place it holds through a sally door in its own wall; the compound perimeter and emplacements remain direction.
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
+Updated: 2026-10-20 — a holder sorties from a walled place it holds through a sally door in its own wall (sally doors, below); the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
 
 ## Why this exists
 
@@ -492,15 +492,98 @@ beyond reach of the first; the new stretch is held and the old one given back
 within a few pulses. Its whole-run control holds the gate run for the rest of
 the battle and never mans the new ground.
 
+## Sally doors
+
+A holder inside a walled place it holds (a fort's works, a walled compound or
+yard, a building with few exits) reached the ground it owns beyond a gateless
+face by walking out of its one gate and round its own walls. That was the
+"marching late" reading below at its worst: a garrison in a fort's works walked
+up to four times the straight line to a belt stretch beyond a gateless face, and
+a stand-to sent round the walls arrived after the attack it was sent against.
+The answer is a door the holder opens from inside, not a faster march.
+
+A **sally door** is a short span of a walled place's own wall, two cells along
+it and as deep as the wall (one or two cells), standing closed as wall. Two
+cells is wide enough for every chassis that fights on foot, so the holder's
+machines go out by it too. Where doors are:
+
+- a fort authors a **sally port** on each face of its works with no gate
+  (`forts.md`, sally ports);
+- every other tactical node's building and compound get one per face where
+  `SallyDoorSurvey` finds a clean span of built wall with the place's floor on
+  one side and open ground on the other, nearest the face's middle, **and**
+  opening it saves the holder at least twenty cells of walk from its anchor.
+  Only a walled place qualifies: built wall along at least half the edge of
+  the place's rectangle. Open ground with somebody else's wall at its edge (a
+  landing zone beside a warehouse) gets none; neither does natural rock, a
+  doorway, or a fort's works outside its authored ports.
+
+**Laws.**
+
+- A door serves the side that holds its place **whole**: a fort's side holding
+  every aspect; a compound's side by its capture record, uncontested; any other
+  place, the side with people inside it and nobody hostile inside. A split,
+  contested or empty place opens nothing.
+- It opens when that side has a squad or a machine with a member inside the
+  place ordered to ground beyond the door's face, outside the place and within
+  reach of the mouth, by a commander or by the player. Never while a hostile
+  body stands near its mouth: a door is not opened in the face of the enemy.
+- Opened, it is built passage (not rubble), and it stays open for everybody for
+  the rest of the battle: the map only becomes more permissive at runtime, so
+  no door can close behind a sortie or be held for one side. That is the price
+  of a sortie, and the reason nothing opens a door except the holder's own
+  order: the place has another way in, and the attack can find it.
+- Closed, it is wall with the wall's strength, breached as any wall is. An
+  attacker is never given a door it did not cut, and a place that changes hands
+  serves its new holder: marines who take a fort sortie by its ports.
+
+**Measured** (`garrisonEvidence`: `HolderRouteEvidence`, `FortWorksRouteEvidence`;
+map evidence, every door opened against none). From each node's anchor to the
+garrisonable stretches on its ground and to the open ground just beyond each
+face, the worst detour (walk minus straight line) fell on Relief from 51 cells
+to 16 (the checkpoint's yard wall), on Counterattack from 77 to 24, on Relay
+Nine from 22 to 21 with every face detour but one gone, on Junction from 20 to
+17, and on Conquest's map from 71 to 53 (a walled armory's north face 71 to 1);
+Salvage Rights and Cold Start had none and get none. A fort's garrison walks at
+worst 3.0 times the straight line to its belt instead of 3.8 (battery fort) and
+2.7 instead of 4.3 (shield fort). What is left is not a holder's own wall: map
+edge pockets behind a diagonal perimeter, and walks across a town block where a
+stretch stands in a neighbour's yard (Dust Ledger's ten, the Conquest keep's
+block).
+
+**In play**, against a same-build control with `-Dbattle.sallyDoors=false`
+(76 trial-ground fixtures: 40 fort-on-lane at the combined-arms force, seeds 41
+to 80; 22 rifles-only on the lane; 14 offset): the fort's ports opened in 68
+places, 39 times for the defender's own garrison and 29 for marines who had
+taken the fort and went on to the keep. Garrisons stranded on ground nobody was
+near fell on the rifles-only fixtures from 121 samples to 53; on the
+combined-arms fixtures, where the attack comes at the gate faces and little is
+stranded, the marching share near a fight did not fall (424 to 489 samples
+marching to the fight, most of them through a gate the port does not replace).
+Readings: marines won 36 against 31 on the lane (defender holds 4 against 9),
+of the five extra wins four came after the marines had opened a port of a fort
+they had taken; marine losses 2,305 against 2,379, defender losses 2,226
+against 2,164; the offset and rifles-only results were level. Relief,
+Counterattack and Junction played byte for byte as their controls: their
+defenders keep authored posts and never order a sortie beyond a doored face,
+so their doors wait for a player's order (scene `sally-door`, taken yard) or a
+reactive commander.
+
+The scenes are `sally-door` (a walled yard that is not a fort: a sortie by
+infantry, the walk round with doors closed, the enemy at the door, an attack on
+the door, a taken yard where the player sends a squad and a Sirocco out, and a
+contested yard) and `sally-port` (the fort, with the defender's commander).
+
 ## Open questions
 
 - **Marching late.** A stretch is pressed only when an attack is near it, and
   the pool waits at the works, so a garrison often walks forty to sixty cells
-  round the works and arrives as the attack does: half of the garrison samples
-  near a fight are squads still on the way. Staging nearer the belt, or a way
-  through the works rather than round them, is the likely next step; a garrison
-  stand-to at the work being lost, sent round the walls, was tried and cost more
-  than it saved.
+  and arrives as the attack does: half of the garrison samples near a fight are
+  squads still on the way. The walk round a gateless face is answered by sally
+  doors (above); what remains is the walk out of a gate to the gate's own face,
+  which is the march itself. Staging nearer the belt is the likely next step; a
+  garrison stand-to at the work being lost, sent round the walls, was tried and
+  cost more than it saved.
 - **Alarm-held stretches.** What little stranding is left is mostly a fort's
   alarm holding stretches while the defender believes nothing anywhere near: an
   attack inside the works, unseen. Whether the floor should fall to the

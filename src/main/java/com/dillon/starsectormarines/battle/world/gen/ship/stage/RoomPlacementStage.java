@@ -23,7 +23,9 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Step 3 (ship) — pack the deck's room program into the hull.
@@ -40,7 +42,9 @@ import java.util.List;
  * the small ones fill in around them, and a room the hull could not hold is
  * published as unplaced rather than quietly dropped — a deck short of its
  * program is a sizing defect, and hiding it would turn a measurable shortfall
- * into a deck that merely looks a little empty.
+ * into a deck that merely looks a little empty. A hull's reserves (see
+ * {@link DeckArrangement#reserves()}) are laid after the program and published
+ * the same way when they do not fit.
  */
 public final class RoomPlacementStage implements GenStage {
 
@@ -131,6 +135,22 @@ public final class RoomPlacementStage implements GenStage {
                 placed.add(compartment);
             }
         }
+        // A hull's reserves come after everything she owes and before the
+        // pockets, so a reserve takes only floor the program left over and
+        // never moves a room it placed. The same random stream reaches every
+        // programmed room whether or not the hull reserves anything.
+        Set<Integer> reserved = new HashSet<>();
+        if (arrangement != null) {
+            for (DeckArrangement.Reserve reserve : arrangement.reserves()) {
+                RoomPacker.Placed room = packer.place(request(profile, reserve.recipe(), fit, reserve.site()), true);
+                if (room == null) {
+                    unplaced.add(reserve.recipe());
+                } else {
+                    reserved.add(placed.size());
+                    placed.add(describe(profile, room, placed.size()));
+                }
+            }
+        }
         fillPockets(profile, packer, placed);
         // Last, because it is a judgement about the finished network. Every
         // passage above reached the nearest thing already connected, which is
@@ -141,8 +161,8 @@ public final class RoomPlacementStage implements GenStage {
             BayAperture door = doorOnto(ctx, hull, room, placed);
             if (door != null) apertures.add(door);
         }
-        ctx.put(ShipKeys.DECK_GRAPH,
-                new DeckGraph(placed, unplaced, apertures, ctx.get(ShipKeys.SHIPS_BOATS)));
+        ctx.put(ShipKeys.DECK_GRAPH, new DeckGraph(placed, unplaced, apertures,
+                ctx.get(ShipKeys.SHIPS_BOATS), Set.of(), Set.of(), reserved));
     }
 
     /**

@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.mech.MechLocomotion;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderService.ActiveOrder;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
@@ -81,10 +82,10 @@ import java.util.Random;
  * </ul>
  *
  * <p>{@code defender-lances}: the reactive-belt production fort, the defender's Conquest commander with four patrols and
- * two mech lances in its pool, and a tough raiding party put beside the gate stretch at tick 30. The commander mans the
+ * two mech lances in its pool standing in the works' yard, and a tough raiding party put beside the gate stretch at tick 30. The commander mans the
  * stretch; the loop asserts that it attaches no more lances at once than its bound, that any guard it gives stands
  * outside the run it guards and never on it, and that a guard is attached once a run is manned under pressure (when a
- * free lance can reach it).
+ * free lance can reach it) and that the guard, sent from the yard, reaches its cell outside the works.
  *
  * <p>{@code mission-building} and {@code mission-building-commander}: the same two questions on a building of a
  * mission map rather than a fort's trench, on the Raid's production map with none of its forces. A building there is a
@@ -870,9 +871,9 @@ public final class MachineGuardScene implements BehaviorScene {
                     .at(cell[0], cell[1]).primary("weapon.smg").health(TOUGH).done();
         }
         for (int i = 0; i < LANCES; i++) {
-            // Outside the works on the open ground north-west of the fort: free to walk to the belt, and out of sight of
-            // the raiders at the south gate, so the lances are idle in the pool rather than already in contact.
-            int[] cell = walkable(probeSim, centre[0] - 45 + 8 * i, centre[1] - 30);
+            // In the works' yard, as a fort's own lances stand: the guard has to find its way out of the works to the belt.
+            // (They stood outside the works while a lance sent from the yard was dropped from the pool a pulse later.)
+            int[] cell = mechStand(probeSim, centre[0] - 4 + 8 * i, centre[1]);
             builder.squad("lance-" + i).faction(Faction.DEFENDER).size(1).at(cell[0], cell[1])
                     .mech(MechVariant.SIROCCO, MechRole.BALANCED).done();
         }
@@ -922,6 +923,9 @@ public final class MachineGuardScene implements BehaviorScene {
                             && trace.minGuardCellGap >= MachineGuards.GUARD_NEAR_CELLS,
                     "nearest guard cell " + trace.minGuardCellGap + " cells from its run's footprint; "
                             + trace.guardCellsInside + " guard cells on the run"));
+            verdicts.add(Verdict.of("guard-reaches-its-cell", trace.firstStoodTick >= 0,
+                    "a guard sent from the works' yard first stood on its cell at tick " + trace.firstStoodTick
+                            + " (attached at tick " + trace.firstGuardTick + ")"));
             verdicts.add(Verdict.of("never-stands-on-the-run", trace.ticksOnRun == 0,
                     "guarding chassis stood guard on the guarded run on " + trace.ticksOnRun + " ticks (crossed it on "
                             + trace.ticksCrossing + " ticks of the walk)"));
@@ -931,6 +935,7 @@ public final class MachineGuardScene implements BehaviorScene {
         metrics.put("firstGuardTick", trace.firstGuardTick);
         metrics.put("maxGuarding", trace.maxGuarding);
         metrics.put("guardTicks", trace.guardTicks);
+        metrics.put("firstStoodTick", trace.firstStoodTick);
         metrics.put("garrisonTicks", trace.garrisonTicks);
         metrics.put("ticksCrossingRun", trace.ticksCrossing);
         metrics.put("peakPressure", Math.round(trace.peakPressure * 100f) / 100f);
@@ -948,6 +953,7 @@ public final class MachineGuardScene implements BehaviorScene {
         int garrisonTicks;
         int mannedPressedTick = -1, firstGuardTick = -1, maxGuarding, maxDirectorGuards, guardTicks;
         int guardCellsInside, minGuardCellGap = Integer.MAX_VALUE, ticksOnRun, ticksCrossing;
+        int firstStoodTick = -1;
         private String state = "";
 
         final int run;
@@ -1000,6 +1006,14 @@ public final class MachineGuardScene implements BehaviorScene {
                     }
                 }
                 if (any) guarding++;
+                for (int i = 0, n = sim.squadMemberCount(lance); i < n; i++) {
+                    long mech = sim.squadMemberAt(lance, i);
+                    ActiveOrder order = sim.getMechMoveOrderService().activeOrder(mech);
+                    if (order != null && order.guard() != null && order.commanded()
+                            && sim.movement().atCell(mech, order.destinationX(), order.destinationY())) {
+                        if (firstStoodTick < 0) firstStoodTick = tick;
+                    }
+                }
             }
             if (guarding > 0) {
                 guardTicks++;
@@ -1031,6 +1045,24 @@ public final class MachineGuardScene implements BehaviorScene {
             }
         }
         return best != null ? best : walkable(sim, cx, cy);
+    }
+
+    /** The nearest cell to (x, y) whose centre a Sirocco can stand on, off prepared ground. */
+    private static int[] mechStand(BattleSimulation sim, int x, int y) {
+        for (int r = 0; r < 20; r++) {
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    int cx = x + dx;
+                    int cy = y + dy;
+                    if (!sim.getGrid().inBounds(cx, cy) || sim.fightingPositions().isFightingPositionCell(cx, cy)) continue;
+                    if (ManualTerrainMotion.canStand(sim.getGrid(), cx + 0.5f, cy + 0.5f, MechVariant.SIROCCO.radius)) {
+                        return new int[]{cx, cy};
+                    }
+                }
+            }
+        }
+        return new int[]{x, y};
     }
 
     private static int[] walkable(BattleSimulation sim, int x, int y) {

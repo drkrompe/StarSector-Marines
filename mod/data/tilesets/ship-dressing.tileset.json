@@ -1,0 +1,200 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "ship-dressing.grime",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "ship-dressing.condensation",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "ship-dressing.debris",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "ship-dressing.cable-spill",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "ship-dressing.hull-patch",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "ship-dressing.buckled-plate",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "ship-dressing.dead-panel",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "name": "ship-dressing.conduit",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "ship-dressing.grille",
+      "row": 2
+    },
+    {
+      "col": 2,
+      "name": "ship-dressing.buckled-panel",
+      "row": 2
+    },
+    {
+      "col": 4,
+      "name": "ship-dressing.bracing",
+      "row": 2
+    },
+    {
+      "col": 6,
+      "name": "ship-dressing.cable-run",
+      "row": 2
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "ship-dressing.grime",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "ship-dressing.condensation",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 4,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "ship-dressing.debris",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "ship-dressing.cable-spill",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "ship-dressing.hull-patch",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 10,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "ship-dressing.buckled-plate",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 12,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "ship-dressing.dead-panel",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 14,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "ship-dressing.conduit",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "ship-dressing.grille",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "ship-dressing.buckled-panel",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 4,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "ship-dressing.bracing",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "ship-dressing.cable-run",
+      "row": 2
+    }
+  ],
+  "sheet": "graphics/tilesets/ship-dressing.png"
+}

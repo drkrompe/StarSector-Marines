@@ -399,7 +399,9 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             allSquads.put(squad.id, squad);
             if (squad.aliveMembers <= 0) continue;
             int home = homeTrack(squad);
-            if (!isCommandPoolSquad(squad)) {
+            // A lance on guard is this commander's even when its last plan proposed nothing to it: a guard order is a
+            // mech's, and a lance sent with no squad order of its own otherwise fell out of the pool a pulse later.
+            if (!isCommandPoolSquad(squad) && !(squad.machine && machineGuards.holds(squad.id))) {
                 AssignmentReason reason = squad.role == UnitRole.GARRISON
                         ? AssignmentReason.DEFENDER_GARRISON_HOLD
                         : AssignmentReason.DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED;

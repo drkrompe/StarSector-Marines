@@ -1,8 +1,8 @@
 # Second Wind refit tree
 
-Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks and the Ship Systems card are implemented; the new facilities, dressing and mech passives are not.
+Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Ship Systems card and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review; opening the new facilities, Improved-tier dressing and mech passives are not.
 Written: 2026-10-20
-Updated: 2026-10-21 — combat refit tracks (hull, flux, sensors, drive) added as a long liability; model and Engineering card shipped.
+Updated: 2026-10-21 — deck capacity survey: five sealed reserves fit every layout, the other facilities share a compartment; combat refit tracks added earlier the same day.
 
 The Engineering tab today sells a short list of one-off yard orders: the
 workshop chain (750 / 3,000 / 4,500), the second bay (8,000), three Mech Lab
@@ -89,6 +89,12 @@ fixed form, so it never moves a room or a door. It also reuses the damage
 vocabulary (damaged props, rubble decals) the d-mod damage model wants. It
 needs new battered corridor and wall art; the clean art already shipped is the
 target, not something to replace.
+
+The deck reads the record's restored cores (`ShipCondition.restoredCores`) as a
+per-core flag (`CoreDressing`) and applies it to the running deck, so buying a
+core's Restored order clears its look without laying the ship out again. The
+first-pass art is one sheet, `ship-dressing`; Improved-tier dressing (better
+lighting, fresh paint, running displays) is not built.
 
 ## Facilities and their passives
 
@@ -192,6 +198,65 @@ receipt.
 - **One order, one review.** Each tier is its own reviewed yard order:
   inspection spends nothing, payment rechecks gate, funds, home and dock.
 
+## Deck capacity
+
+Measured 2026-10-20 on the converted Second Wind (106×79, the real Cerberus
+outline) over 200 layout seeds. The production seed differs per save, because
+it mixes the company's seed with the hull's fleet-member id, so a facility
+must fit every layout, not most of them.
+
+**What the deck has.** The hull encloses 6,347 cells. The 22 programmed
+rooms take 3,025, passages 830–950, and the pocket lockers 145–250. The rest
+is bulkheads and fragments: the aft port corner, the starboard aft block,
+the starboard waist beside the spine, and the tapered forward pods. The pods
+are too narrow for anything over about 10×6.
+
+**At the existing recipe footprints, almost nothing fits.** Laid after the
+program, alone: the 30×8 L-shaped range fits 1 layout in 5. A 14×10 gym, sick
+bay or briefing room usually fits, but in the worst layout only one 14×10 room
+fits at all, and none once a range is down. The 16×12 lounge fits 38 of 40.
+All eight together never fit (0/40).
+
+**What is reserved.** Five sealed compartments, at frigate footprints, place
+on all 200 layouts. Across those layouts no programmed room's position,
+floor, furniture, doors or berths change, and the envelope stays 106×79:
+
+| Reserve | Footprint | Shares with | Where it lands |
+|---|---|---|---|
+| Firing range | 16×6, three short lanes | — | starboard waist beside the spine (72%), else aft |
+| Gymnasium | 12×8 | indoor track (a loop round its edge) | aft port corner (197/200) |
+| Sick bay | 10×6 | rehab pool | starboard aft block (82%), else aft port |
+| Rec lounge | 8×6 | chapel (a quiet end) | starboard aft (75%), aft port (20%) |
+| Brig | 6×6 | — | starboard waist (79%), else aft |
+
+**Facilities that take no new compartment** go into rooms already on the
+deck, and their tiers dress that room:
+
+- the briefing room into the **mess**: a plot table, then a holo-tank, at one
+  end;
+- hydroponics into the **provisions** store: grow racks;
+- the wardroom / staff college into the **mess** as well (an officers' end).
+  The owner should confirm this one; the lounge is the other candidate.
+
+Boat bay services, the Mech Lab tracks and the holds already have their rooms.
+
+**How they are reserved.** `DeckArrangement.SECOND_WIND` lists the five as
+reserves. They are not part of `programFor`, so the general program and the
+deck's size are untouched. They are laid after every programmed room and
+before the pocket fill, so the same random stream reaches the program with
+or without them. A reserve is furnished like any room and then sealed:
+stripped, salvage left on the bare deck, pressure hatches on its doors, out
+of service. Engineering lists it as *sealed / reserved for refit*; the ship
+comparison does not count it. A refit story opens one where it stands.
+`SecondWindReservesEvidence` (`generatedSpaceEvidence`) holds all of this
+over 60 layouts.
+
+**What this leaves open.** Reserves supply nothing yet. Each facility's
+Restored order opens its compartment and installs the fitting at this
+footprint. The range fitting is authored for the 30×8 L and must be checked
+at 16×6 when the firing range story (slice 5) lands. If a later program change
+moves rooms, the reserve evidence fails before a save notices.
+
 ## Credit curve
 
 The current total is ~46k. A full tree of five cores × 3 tiers and ~14
@@ -204,11 +269,8 @@ not a checklist. That measurement comes first in the balance story.
 
 ## First slices
 
-1. **Deck capacity survey.** Measure how much sealed floor the 106×79 Second
-   Wind envelope can actually give up for range, gym/track, sick bay, briefing,
-   pool, chapel, brig and hydroponics, and reserve them in the arrangement. This
-   decides how many facilities fit, and which share a compartment (gym with
-   track, sick bay with pool).
+1. **Deck capacity survey.** Done: five sealed reserves, with the shares and
+   placements recorded in *Deck capacity* above.
 2. **Ship-condition record and the band model.** Replace the single morale
    float with one frozen record, re-base the mess, and add the Engineering
    band display and the briefing line.

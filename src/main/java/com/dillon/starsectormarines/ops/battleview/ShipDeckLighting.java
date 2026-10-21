@@ -6,8 +6,10 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /** Baked, compartment-local light pools. No simulation RNG, navigation or combat lighting ownership. */
 final class ShipDeckLighting {
@@ -16,12 +18,23 @@ final class ShipDeckLighting {
     record Cell(int x, int y, boolean emergency, int[] lamps, float[] pools) {}
     private record Mount(int x, int y, boolean wall) {}
     private final List<Mount> mounts = new ArrayList<>();
+    /** Fixtures with no supply at all: drawn as dark housings, lighting nothing. */
+    private final Set<Integer> deadLamps = new HashSet<>();
     private final CellTopology topology;
     final List<Lamp> lamps = new ArrayList<>();
     final Cell[] cells;
     final int width, height;
 
     ShipDeckLighting(CellTopology topology, DeckGraph graph, long seed) {
+        this(topology, graph, seed, true);
+    }
+
+    /**
+     * @param passagePower whether the passages' own circuit is live. Without it
+     *     (the Power core at Deficit) passage fixtures fall back to the same short
+     *     emergency pools as a faulty room, and one in three is dead outright.
+     */
+    ShipDeckLighting(CellTopology topology, DeckGraph graph, long seed, boolean passagePower) {
         this.topology = topology;
         width = topology.getWidth(); height = topology.getHeight();
         cells = new Cell[width * height];
@@ -43,10 +56,20 @@ final class ShipDeckLighting {
             }
         }
         // Passage fixtures sit against actual walls; their circuit never illuminates through a room wall.
+        boolean dark = !passagePower;
+        int passageLamp = 0;
         for (int y = 1; y < height - 1; y++) for (int x = 1; x < width - 1; x++) {
             if (owners[y * width + x] != -1 || !floor(topology, x, y) || (x + y) % 7 != 0) continue;
-            if (topology.isWall(x, y + 1)) add(circuits, -1, x + .5f, y + .85f, false, false, false, seed, new Mount(x, y + 1, true));
-            else if (topology.isWall(x - 1, y)) add(circuits, -1, x + .15f, y + .5f, true, false, false, seed, new Mount(x - 1, y, true));
+            boolean faulty = dark && passageLamp % 2 == 0;
+            if (topology.isWall(x, y + 1)) {
+                add(circuits, -1, x + .5f, y + .85f, false, dark, faulty, seed, new Mount(x, y + 1, true));
+                if (dark && passageLamp % 3 == 1) deadLamps.add(lamps.size() - 1);
+                passageLamp++;
+            } else if (topology.isWall(x - 1, y)) {
+                add(circuits, -1, x + .15f, y + .5f, true, dark, faulty, seed, new Mount(x - 1, y, true));
+                if (dark && passageLamp % 3 == 1) deadLamps.add(lamps.size() - 1);
+                passageLamp++;
+            }
         }
         for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) {
             if (!floor(topology, x, y)) continue;
@@ -68,12 +91,14 @@ final class ShipDeckLighting {
                     } else if (d2 < second) { second = d2; selected[index + 1] = id; }
                 }
                 // Emergency lamps throw short pools; healthy circuits spread usable light farther.
-                float spread = graph != null && owner >= 0 && graph.emergencyLighting(owner) ? 9f : 18f;
+                float spread = owner < 0 ? (dark ? 9f : 18f)
+                        : graph != null && graph.emergencyLighting(owner) ? 9f : 18f;
                 float a = (float) Math.exp(-nearest / spread), b = (float) Math.exp(-second / spread);
                 // Overlapping fixtures soften local faults instead of exposing a nearest-lamp boundary.
                 if (a + b > 0f) { pool[index] = a * a / (a + b); pool[index + 1] = a * b / (a + b); }
             }
-            cells[y * width + x] = new Cell(x, y, graph != null && owner >= 0 && graph.emergencyLighting(owner), selected, pool);
+            boolean emergency = owner < 0 ? dark : graph != null && graph.emergencyLighting(owner);
+            cells[y * width + x] = new Cell(x, y, emergency, selected, pool);
         }
     }
 
@@ -100,7 +125,7 @@ final class ShipDeckLighting {
     }
 
     float gain(int index, float seconds) {
-        return present(index) ? gain(lamps.get(index), seconds) : 0f;
+        return present(index) && !deadLamps.contains(index) ? gain(lamps.get(index), seconds) : 0f;
     }
 
     static float gain(Lamp lamp, float seconds) {
