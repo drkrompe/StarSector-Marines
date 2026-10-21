@@ -592,6 +592,7 @@ tasks.register('commanderEvidence', Test) {
                 snapshotHeight: 'commander.evidence.snapshot.height',
                 snapshotAnnotations: 'commander.evidence.snapshot.annotations',
                 snapshotFocus: 'commander.evidence.snapshot.focus',
+                snapshotFromTick: 'commander.evidence.snapshot.fromTick',
         ]
         visualArguments.each { argument, property ->
             def value = providers.gradleProperty(argument)

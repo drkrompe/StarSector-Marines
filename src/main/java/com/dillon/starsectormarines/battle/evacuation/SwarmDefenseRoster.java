@@ -65,6 +65,7 @@ public final class SwarmDefenseRoster {
         NavigationGrid grid = sim.getGrid();
         boolean[] reachable = reachableFromShelter(grid, placement);
         boolean[] occupied = occupiedCells(sim, grid);
+        List<CivilianRedoubt> redoubts = sim.getCivilianRedoubts();
         List<Integer> candidates = new ArrayList<>();
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
@@ -73,7 +74,8 @@ public final class SwarmDefenseRoster {
                         || insideShelterZone(x, y, placement)
                         || shelterDistance(x, y, placement)
                                 < minimumShelterDistance
-                        || insideLiftZone(x, y, placement)) {
+                        || insideLiftZone(x, y, placement)
+                        || insideRedoubt(x, y, redoubts)) {
                     continue;
                 }
                 candidates.add(cell);
@@ -170,6 +172,14 @@ public final class SwarmDefenseRoster {
             if (grid.inBounds(x, y)) occupied[grid.index(x, y)] = true;
         }
         return occupied;
+    }
+
+    /** Whether a cell is on a redoubt's ground: nothing of the swarm starts inside a redoubt's works. */
+    private static boolean insideRedoubt(int x, int y, List<CivilianRedoubt> redoubts) {
+        for (CivilianRedoubt redoubt : redoubts) {
+            if (redoubt.contains(x, y, 2)) return true;
+        }
+        return false;
     }
 
     static boolean insideShelterZone(
