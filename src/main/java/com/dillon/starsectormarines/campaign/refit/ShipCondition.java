@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.refit;
 
+import com.dillon.starsectormarines.battle.world.gen.ship.ReservedFacility;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 import java.util.Collections;
@@ -51,6 +52,15 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
         for (RefitTrack track : RefitTrack.values())
             if (track.core != null && band(track).atLeast(RefitBand.RESTORED)) cores.add(track.core);
         return cores;
+    }
+
+    /** Reserved compartments whose facility has been opened; the deck seals the rest. */
+    public Set<ReservedFacility> openReserves() {
+        var open = EnumSet.noneOf(ReservedFacility.class);
+        if (!applies) return open;
+        for (RefitTrack track : RefitTrack.values())
+            if (track.reserve != null && band(track).atLeast(RefitBand.RESTORED)) open.add(track.reserve);
+        return open;
     }
 
     /** The order that would advance {@code track}, or null when it is at its ceiling. */
