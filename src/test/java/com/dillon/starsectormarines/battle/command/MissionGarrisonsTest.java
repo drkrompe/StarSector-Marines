@@ -149,6 +149,72 @@ class MissionGarrisonsTest {
     }
 
     @Test
+    void theDutyShareIsAThirdOfTheDutySquadsAndAtLeastOne() {
+        assertEquals(0, MissionGarrisons.dutyCap(0, 1f / 3f));
+        assertEquals(1, MissionGarrisons.dutyCap(1, 1f / 3f), "a lone post may still take its building");
+        assertEquals(1, MissionGarrisons.dutyCap(5, 1f / 3f));
+        assertEquals(2, MissionGarrisons.dutyCap(6, 1f / 3f));
+        assertEquals(Integer.MAX_VALUE, MissionGarrisons.dutyCap(6, 1f), "a share of one bounds nothing");
+    }
+
+    /** The mission's share of duty squads, with no pressure bound. */
+    private static final MissionGarrisons.Duty SHARE_ONLY = new MissionGarrisons.Duty(1f / 3f, 0f);
+
+    @Test
+    void aDutySquadTakesItsBuildingOnlyUnderHeavyPressure() {
+        Map<Integer, MissionGarrisons.Offer> duty = new TreeMap<>();
+        duty.put(3, MissionGarrisons.Offer.duty(47, 34));
+        MissionGarrisons.Duty bound = new MissionGarrisons.Duty(1f, 8f);
+        int[] contact = {48, 38};
+        assertTrue(new MissionGarrisons().plan(List.of(patrol(3, 47, 34)), places, new Picture(48, 38, 5f).field(),
+                contact, 1, (sx, sy, x, y) -> true, (x, y) -> true, duty, ISSUER, Integer.MAX_VALUE, bound).isEmpty(),
+                "pressed as a reserve squad would be sent, the post is held from the open");
+        Map<Integer, MissionGarrisons.Manning> heavy = new MissionGarrisons().plan(List.of(patrol(3, 47, 34)), places,
+                new Picture(48, 38, 9f).field(), contact, 1, (sx, sy, x, y) -> true, (x, y) -> true, duty, ISSUER,
+                Integer.MAX_VALUE, bound);
+        assertEquals(MissionGarrisons.Kind.MAN, heavy.get(3).kind(), "pressed hard, the post takes the building");
+    }
+
+    @Test
+    void theDutyShareKeepsMostPostsInTheOpenButNotTheReserve() {
+        // Both buildings pressed, three duty squads (a share of one) and a roving pair.
+        GarrisonDirector.Pressure everywhere = (bx, by) -> 5f;
+        int[] contacts = {48, 38, 102, 54};
+        Map<Integer, MissionGarrisons.Offer> duty = new TreeMap<>();
+        duty.put(1, MissionGarrisons.Offer.duty(47, 34));
+        duty.put(2, MissionGarrisons.Offer.duty(102, 54));
+        duty.put(3, MissionGarrisons.Offer.duty(100, 54));
+        List<CommandSquadState> squads = List.of(patrol(1, 47, 34), patrol(2, 102, 54), patrol(3, 100, 54));
+        assertEquals(2, new MissionGarrisons().plan(squads, places, everywhere, contacts, 2, (sx, sy, x, y) -> true,
+                (x, y) -> true, duty, ISSUER, Integer.MAX_VALUE, MissionGarrisons.Duty.NONE).size(), "unbounded, both buildings are taken");
+
+        Map<Integer, MissionGarrisons.Manning> shared = garrisons.plan(squads, places, everywhere, contacts, 2,
+                (sx, sy, x, y) -> true, (x, y) -> true, duty, ISSUER, Integer.MAX_VALUE, SHARE_ONLY);
+        assertEquals(1, shared.size(), "a third of three duty squads holds a place; the other posts keep to the open");
+
+        // The share binds duty squads only: a roving squad already in the fight there still takes the other building.
+        Map<Integer, MissionGarrisons.Offer> mixed = new TreeMap<>(duty);
+        mixed.put(4, MissionGarrisons.Offer.reserve());
+        Map<Integer, MissionGarrisons.Manning> withReserve = new MissionGarrisons().plan(List.of(patrol(1, 47, 34),
+                        patrol(2, 102, 54), patrol(3, 100, 54), squad(4, 104, 52, UnitRole.PATROL, true, null)), places,
+                everywhere, contacts, 2, (sx, sy, x, y) -> true, (x, y) -> true, mixed, ISSUER, Integer.MAX_VALUE,
+                SHARE_ONLY);
+        assertEquals(2, withReserve.size(), "one post and one reserve squad");
+        assertTrue(withReserve.containsKey(4), "the reserve squad at the far building takes it");
+        assertTrue(withReserve.containsKey(1), "and the one post the share allows takes the barracks");
+
+        // Next pulse, the share spent by the holder: the other posts are kept out of it altogether.
+        CommandSquadState holder = squad(1, places.centreX(barracks), places.centreY(barracks), UnitRole.PATROL, false,
+                withReserve.get(1).order());
+        MissionGarrisons again = new MissionGarrisons();
+        Map<Integer, MissionGarrisons.Manning> next = again.plan(List.of(holder, patrol(2, 102, 54), patrol(3, 100, 54)),
+                places, everywhere, contacts, 2, (sx, sy, x, y) -> true, (x, y) -> true, duty, ISSUER,
+                Integer.MAX_VALUE, SHARE_ONLY);
+        assertEquals(1, next.size(), "the holder alone: " + next);
+        assertEquals(2, again.stats().dutyShareWithheld, "both other posts were kept to the open");
+    }
+
+    @Test
     void aHolderStandsWhilePressedAndIsGivenBackAfterTheDwell() {
         Picture pressed = new Picture(48, 38, 5f);
         ObjectiveAssignment order = pulse(pressed, List.of(patrol(1, 20, 25), patrol(2, 80, 50)), reserve(1, 2))
