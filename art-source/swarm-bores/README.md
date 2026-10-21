@@ -10,6 +10,8 @@ and the three spore-colony grades (`structure.spore-colony-fissure`, `-bore`,
 | Guides | `python art-source/swarm-bores/make_guide.py [part or state ...]` | `art-source/templates/swarm-<part>-<n>[-<state>]-guide.png` |
 | Reskin one variant (one paid call) | `bash art-source/swarm-bores/generate.sh <part> <n> [wounded\|remains]` | `raw/<part>-<n>[-<state>].raw.png` + provenance |
 | Export | `python art-source/swarm-bores/export.py [--part P] [--state S]` | `mod/graphics/structures/<name>-<n>[-wounded].png` and its `-glow.png`; `<name>-<n>-remains.png` |
+| Bleed ooze sheet (code-drawn) | `python art-source/swarm-bores/ooze.py` | `mod/graphics/structures/swarm-ooze.png` |
+| Wound anchors (after any guide change) | `python art-source/swarm-bores/wounds.py` | each grown structure's `"bleed"` block in `turret-emplacements.turret.json` |
 | Spore shots (code-drawn) | `python art-source/swarm-bores/spore_shots.py` | `mod/graphics/fx/spore-clump.png`, `spore-cluster.png`, `spore-lance.png` |
 | Other-palette preview | `python art-source/swarm-bores/export.py --palette raw` (or `purple`, `chitin`) | `build/swarm-bores/<palette>/` |
 
@@ -31,6 +33,16 @@ is the part's prompt plus `prompts/state-<state>.prompt.txt`, and the
 variant's intact raw rides along as its identity reference. The export drains
 the remains towards grey (`husk`) and gives their berm the creep's withered
 colour.
+
+**Bleeding** (`StructureArt.Bleed`). A wounded body bleeds from its painted
+wounds. `ooze.py` draws the loop procedurally, because its frames have to agree
+pixel for pixel: a heightfield lit by the game's sun in the bloom sinew ramp,
+three kinds of ooze in eight run directions, twelve frames each (the direction
+is baked rather than turned, since turning would turn the light). `wounds.py`
+reads each painting's wounds out of its guides, as the raw flesh the wounded
+guide shows and the intact one does not, largest first, with the way downhill
+from each on the body's heightfield, and writes the structure's whole `"bleed"`
+block, so re-run it whenever `make_guide.py` changes.
 
 **Geometry and light come from code.** Each guide is a seeded heightfield of
 lopsided primitives (plates of differing size and lean, tusks, tilted paving
