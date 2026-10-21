@@ -2,7 +2,7 @@
 
 The Shepherd's built-in mining drone (`borer_wing`, four Borers; `drone_borer.ship`), exported
 as one appendable Blender collection. Geometry: `../fighters-geometry/ft_borer.py`
-(0.25 m/unit, 3.6 x 4.0 x 1.5 m). Surfacing: `../fighters-surface/borer/` in the Shepherd's Ko
+(0.25 m/unit, 3.6 x 4.0 x 2.3 m). Surfacing: `../fighters-surface/borer/` in the Shepherd's Ko
 Combine livery family.
 
 ## Using it
@@ -11,13 +11,15 @@ Append `BORER` from `borer.blend` for the bare drone. Append `BORER` and `SWFX` 
 for the effects, which ride the drone's own anchors. Move, rotate or scale only the root,
 `BORER | root`.
 
+- **Size.** 3.6 m long, sized to fit in the Shepherd (owner, 2026-10-21): the bay's cradles and
+  mouths hold it. The fleet-combat sprites would make it 11.7 m, which no bay holds.
 - **Scale.** In a metre scene, scale the root by 0.25. Beside the Shepherd (0.78 m/u), scale it
   by 0.25 / 0.78 = 0.3205.
-- **On a cradle.** Put `Anchor cradle seat`, which sits on the pad plane under the .ship centre,
+- **On a cradle.** Put `Anchor cradle seat`, which sits on the skid shoes' plane under the .ship centre,
   on a Shepherd `Drone bay WS 003 launch point <i>`, heading 0 degrees. The drone then stands on
-  the cradle deck with its belly socket over the charging contact.
+  the cradle deck on its four skid shoes, with the docking keel's socket over the charging contact.
   - `../fighters-geometry/borer_cradle.py` checks this on all three stations with no render:
-    no overlap, pads on the deck, a 2 mm socket gap, and a clear lift to the bay mouth.
+    no overlap, skid shoes on the deck, a 2 mm socket gap, and a clear lift to the bay mouth.
   - Its result is `cradle-check.json`.
 - **Drives.** The anchors are `Engine 1|2|3 exhaust anchor`, with +X down each slot's exhaust
   heading. The two side drives splay 20 degrees outboard (slot angles 160 and 200).
@@ -30,11 +32,14 @@ for the effects, which ride the drone's own anchors. Move, rotate or scale only 
     in hull units.
   - Colours, charge-down and range are vanilla. The width is sized to the 0.24 m emitter rather
     than vanilla's 17 px, which would be a 4 m beam at this scale.
+  - The laser hangs under the nose on a sling (yoke, hanger arms to trunnions, rear link).
   - `Anchor tool cutting head` and `Anchor tool grab port|starboard` mark where a shot puts the
     work: the barrel's root, and between each pair of grab tines.
+- **Lift jets.** `RCS <side> <fore|aft> lift jet anchor` on the four ventral lift thrusters, +X
+  straight down; the kit gives them cold-gas puffs (`thr_rcs_*`, `thr_rcs_gain` on `SWFX controls`).
 - **Lamps.** Two warm work lamps on the pod noses and an amber beacon on the spine that blinks.
   `lit_*` on `SWFX controls`.
-- **Nothing moves.** There are no gear, doors or folds, so there is no control empty.
+- **Nothing moves.** There are no gear, doors or folds (skids are fixed), so there is no control empty.
 
 `manifest.json` lists every anchor with its position, the Shepherd's launch points, the lamps,
 counts and source hashes. `validation.json` is `verify_ship.py`'s result on an append.

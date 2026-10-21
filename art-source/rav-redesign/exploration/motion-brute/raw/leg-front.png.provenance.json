@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ff9-1cd7-76d2-a873-e71071a96e97",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ff9-1cd7-76d2-a873-e71071a96e97\\exec-c5206578-e68b-4a1c-ad25-45947574f13a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\motion-brute\\raw\\leg-front.png",
+    "sha256": "19d692fd698a6902c670e11ca4b3e4dfadd0ac85c95fc5b91ae62713d1da1232",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\motion-brute\\prompts\\leg-front.prompt.txt",
+  "promptSha256": "abcc7595b83386fed846247d73b83b0717b3ade73c8dece7e17aaeca9770e2e6",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry, identity, palette and registration authority: the chosen Brute\n\nReference image 1 is the chosen Brute design from the Rav Bloom swarm (a heavy, old, dark plum-violet armoured hoofed beast with a knobbed ivory mace head), seen strictly from above, facing up. This is a rig layer for animating it: keep its palette, finish, scale and lighting (from the upper left) exactly, and keep every part you draw in EXACTLY the same position and size as in reference image 1 so the layer registers over it pixel for pixel. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n\nThis layer: ONE FRONT LEG ONLY, as a drone directly overhead sees a standing cow's leg once the body is taken away: the heavy armoured knee plate, the thick muscled forearm foreshortened beneath it, and the armoured hoof with short ivory claws, the toes pointing up (forward). Centred in the frame, about a quarter of the frame tall; no body.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-brute\\raw\\hero.png",
+      "sha256": "cc2fa7dae723cb7b4b30435b9535051272d91848cc652d61cd28ec8d2121453e",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry, identity, palette and registration authority: the chosen Brute"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate the single front-leg layer using the Brute reference for its design, palette, and lighting.\n"
+  ],
+  "usage": {
+    "input_tokens": 38855,
+    "cached_input_tokens": 33792,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 344,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 33.2
+}

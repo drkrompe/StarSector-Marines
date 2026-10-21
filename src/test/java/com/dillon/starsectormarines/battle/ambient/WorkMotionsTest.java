@@ -35,7 +35,7 @@ class WorkMotionsTest {
             WorkMotion motion = WorkMotions.forJob(job, null);
             if (job.handsOnFixture()) {
                 assertTrue(motion.handsOn(), job + " is hands-on but plays " + motion);
-            } else if (job != Affordance.EXERCISE) {
+            } else if (job != Affordance.EXERCISE && job != Affordance.LAP) {
                 assertEquals(WorkMotion.NONE, motion, job + " has no hands on a fixture");
             }
         }

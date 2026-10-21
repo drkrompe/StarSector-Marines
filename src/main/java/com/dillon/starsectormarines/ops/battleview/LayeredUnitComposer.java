@@ -167,14 +167,14 @@ final class LayeredUnitComposer {
         WorkMotion motion = LayeredAppearance.workMotion(flags);
         // Exercise is done empty-handed in any outfit: nobody runs, rows, presses or curls with a rifle, so it is
         // put away even by a family with no station arms to draw the hands with.
-        boolean exercising = stationFlag && (motion == WorkMotion.RUN || motion == WorkMotion.ROW
-                || motion == WorkMotion.PRESS || motion == WorkMotion.LIFT);
+        boolean exercising = stationFlag && (motion == WorkMotion.RUN || motion == WorkMotion.JOG
+                || motion == WorkMotion.ROW || motion == WorkMotion.PRESS || motion == WorkMotion.LIFT);
         // A station with no motion named is worked the ordinary way, across a console.
         if (atStation && motion == WorkMotion.NONE) motion = WorkMotion.CONSOLE;
         LayeredSpriteCache crate = motion == WorkMotion.CARRY
                 ? assets.specialEquipment(WorkPropLayer.CRATE) : null;
         boolean drawPrimaryLayers = drawWeaponLayers && !replacePrimary && !atStation && !exercising && crate == null;
-        boolean running = atStation && motion == WorkMotion.RUN;
+        boolean running = atStation && (motion == WorkMotion.RUN || motion == WorkMotion.JOG);
         if (atStation && motion == WorkMotion.ROW) {
             // A rower's whole body slides on the seat: back as the handle comes
             // in, forward again on the recovery.
@@ -182,6 +182,23 @@ final class LayeredUnitComposer {
                     ROW_SLIDE_SW * (float) Math.cos(weaponPhase * 2.0 * Math.PI), pxPerSw, facingDeg);
             actorX = seat[0];
             actorY = seat[1];
+        }
+        if (atStation && (motion == WorkMotion.RUN || motion == WorkMotion.JOG)) {
+            // A runner bounds rather than glides. Seen from above that is the
+            // body rising toward the camera between footfalls (drawn larger),
+            // the weight rolling onto each stance foot in turn, a surge along the
+            // belt at each push-off and the shoulders twisting against the arms.
+            // The arms pump and the feet show on the same cycle, so a footfall is
+            // where the feet cross and the body is lowest.
+            double turn = weaponPhase * 2.0 * Math.PI;
+            float stride = (float) Math.sin(turn);
+            float flight = Math.abs(stride);
+            float[] body = worldPoint(actorX, actorY, BOUND_SWAY_SW * stride,
+                    BOUND_SURGE_SW * (flight - 0.5f), pxPerSw, facingDeg);
+            actorX = body[0];
+            actorY = body[1];
+            pxPerSw *= 1f + BOUND_RISE * flight;
+            facingDeg += BOUND_TWIST_DEG * stride;
         }
 
         LayeredWeaponFamily weaponFamily = drawPrimaryLayers
@@ -462,7 +479,7 @@ final class LayeredUnitComposer {
                 yield new float[]{left ? -angle : angle, 0.03f};
             }
             // Arms pumping against the stride, opposite to each other.
-            case RUN -> {
+            case RUN, JOG -> {
                 float pump = (float) Math.sin(turn + (left ? 0.0 : Math.PI));
                 yield new float[]{pump * 6f, 0.01f + pump * 0.04f};
             }
@@ -539,6 +556,14 @@ final class LayeredUnitComposer {
         }
     }
 
+    /** How much larger a runner is drawn at the top of a stride than at a footfall: the bound toward the camera. */
+    private static final float BOUND_RISE = 0.08f;
+    /** How far a runner's weight rolls onto each stance foot, in shoulder widths. */
+    private static final float BOUND_SWAY_SW = 0.06f;
+    /** How far a runner surges forward at each push-off, in shoulder widths. */
+    private static final float BOUND_SURGE_SW = 0.05f;
+    /** How far a runner's shoulders twist against the arm swing, in degrees. */
+    private static final float BOUND_TWIST_DEG = 6f;
     /** How far a rower slides fore and aft on the seat, in shoulder widths. */
     private static final float ROW_SLIDE_SW = 0.06f;
     /** Where a carried crate is held, in shoulder widths ahead of the actor. */

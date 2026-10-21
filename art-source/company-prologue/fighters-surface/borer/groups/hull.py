@@ -8,20 +8,23 @@ because the engraved panel lines' groove walls turn out of any part's cone.
 
   hull-top   the spine, the port armour pod and the port drive pod from above, and the belly
   hull-low   the port drive pod's outboard side, the port cheek, the bow faces, the stern faces
-Pass-2 fittings (vents, tines, drums, struts, pads, lamps) and the drive bells keep their swatches.
+Pass-2 fittings (vents, tines, drums, struts, lamps), the slung laser and its sling, the nose cap,
+the lift thrusters, the skids and the docking keel, and the drive bells keep their swatches. The
+spine's and pods' deeper flanks sit behind the pods and cheeks from either side, so they take the
+orange swatch rather than a tile of their own.
 """
 from parts_common import PORT, STARBOARD, UP_Z, DOWN_Z, BOW, STERN
 
 # World bounding boxes of the clean build (x0, x1, y0, y1, z0, z1), measured on the build of
-# 2026-10-21 (fighters-geometry/borer).
+# 2026-10-21 (fighters-geometry/borer), round 2 (the deeper hull).
 BOX = {
-    'Hull spine': (-6.45, 4.6, -2.4, 2.4, -1.8, 2.0),
-    'Pod port armour shell': (-0.75, 4.9, 1.9, 7.15, -1.3, 1.65),
-    'Pod starboard armour shell': (-0.75, 4.9, -7.15, -1.9, -1.3, 1.65),
-    'Pod port outer cheek': (1.05, 5.95, 7.1, 8.0, -1.05, 1.3),
-    'Pod starboard outer cheek': (1.05, 5.95, -8.0, -7.1, -1.05, 1.3),
-    'Drive port pod housing': (-7.0, -1.0, 2.35, 7.9, -2.3, 0.85),
-    'Drive starboard pod housing': (-7.0, -1.0, -7.9, -2.35, -2.3, 0.85),
+    'Hull spine': (-6.45, 4.6, -2.4, 2.4, -3.7, 2.45),
+    'Pod port armour shell': (-0.75, 4.9, 1.9, 7.15, -3.0, 1.95),
+    'Pod starboard armour shell': (-0.75, 4.9, -7.15, -1.9, -3.0, 1.95),
+    'Pod port outer cheek': (1.02, 5.98, 7.1, 8.0, -1.85, 1.6),
+    'Pod starboard outer cheek': (1.02, 5.98, -8.0, -7.1, -1.85, 1.6),
+    'Drive port pod housing': (-7.0, -1.0, 2.35, 7.9, -3.35, 1.25),
+    'Drive starboard pod housing': (-7.0, -1.0, -7.9, -2.35, -3.35, 1.25),
 }
 STEP = 0.4
 

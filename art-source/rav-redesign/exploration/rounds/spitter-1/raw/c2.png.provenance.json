@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fe6-4eeb-7191-8f0e-06c909ac8948",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fe6-4eeb-7191-8f0e-06c909ac8948\\exec-d864083f-956f-473b-85f2-385b37c2fa25.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-1\\raw\\c2.png",
+    "sha256": "f7969705fb44119b68d05dc5db5941f4e8eb15e8df7ec20a8a5e0092fb2ad3cd",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\spitter-1\\prompts\\c2.prompt.txt",
+  "promptSha256": "786856155bbcf8ebc102161320010b3efb47408c65de5bbb84dce66a1cb8a55a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity, palette and finish of the same organism (the Runner); body plan, organ and silhouette change per the brief\n\nTop-down concept for a tactical game (Starsector mod: Marines against an engineered biological weapon, the Rav Bloom). ONE creature, the SPITTER: the swarm's fragile ranged strain, which hangs back behind the Runners and lobs arcing globs of acid that splash infantry and can hit low drones. Original design, not StarCraft. Reference image 1 is the Runner, the same organism's fast melee strain: keep its identity, palette and finish exactly (pale lilac and mauve glossy chitin plates worn as armour over a muscled predator beast body, deep purple-magenta sinew in the gaps, ivory tips and spurs, a pale spine ridge, small amber eyes). Beast first, chitin as armour, never insect-dominant; no bug wings, no zooid colony bodies. It must read at a glance as \"the ranged one\" and NOT as the Runner: no forward-pointing arm blades, a different silhouette built around its ACID ORGAN, which is translucent and glows from inside so it is the brightest thing on the body. Asymmetry and depth over a balanced, mirrored design. Strict overhead orthographic view, camera looking straight down at its back, facing UP (head toward the top), centred, filling about two thirds of the frame, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no acid puddle, no projectile, no text, no border.\n\nThis concept: SQUAT ARTILLERY BEAST. Low, wide and heavy-shouldered like a toad or a badger, legs splayed far out to the sides as braces with broad clawed feet. Its whole hindquarter is one swollen, translucent acid gland glowing amber-gold, bigger than its head, held under a cage of lilac chitin plates. A stubby mortar-like bony tube rises from the middle of the back, angled forward, its rim ivory. Short thick neck, small head.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\hero.png",
+      "sha256": "1fd084bdf713b942ea09dca5767d4ee1ac913bf17c5bcea8ae0d6ac62bcb41e8",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity, palette and finish of the same organism (the Runner); body plan, organ and silhouette change per the brief"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one Spitter concept using the Runner’s palette and finish, with the glowing acid gland defining its silhouette.\n"
+  ],
+  "usage": {
+    "input_tokens": 41331,
+    "cached_input_tokens": 35200,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 579,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 47.8
+}

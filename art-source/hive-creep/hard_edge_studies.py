@@ -131,6 +131,7 @@ def plan_field(cx, cy, src, radius):
 # ----------------------------------------------------------------- rims ----
 
 PLATEAU = 0.09   # metres
+ORGANIC_PLATES = False   # round 3: warped, pillowed chitin plates
 
 def rim_height(v, d, cx, cy):
     if v == 1:   # rolled bead: a fat rounded lip with a sheer outer wall
@@ -186,11 +187,19 @@ def surface(v, d, cx, cy, src):
         alb = BASE[None, None] * (0.7 + 0.45 * dome[..., None]) + (CREAM - BASE)[None, None] * (0.35 * dome ** 3)[..., None]
         alb = np.where(pore[..., None], VEIN[None, None] * 0.5, alb)
         spec = 0.16
-    else:   # chitin plates: overlapping scales with dark seams
-        f1, f2, hh = worley(cx * 3.0, cy * 3.0, 4)
-        seam = smooth(0.09, 0.0, f2 - f1)
-        tilt = (f1 * 0.6)
-        micro = 0.02 * (1 - seam) - 0.01 * tilt + 0.004 * (hh - 0.5)
+    else:   # chitin plates: grown scales, warped so no seam runs straight, each one pillowed
+        if ORGANIC_PLATES:
+            wx = (fbm(cx * 1.6, cy * 1.6, 9, 2) - 0.5) * 0.55
+            wy = (fbm(cx * 1.6 + 11, cy * 1.6 + 5, 10, 2) - 0.5) * 0.55
+            f1, f2, hh = worley((cx + wx) * 3.0, (cy + wy) * 3.0, 4)
+            edge = f2 - f1
+            seam = smooth(0.10, 0.0, edge)
+            pillow = smooth(0.0, 0.30, edge)          # rounds every plate down into its seam
+            micro = 0.022 * pillow - 0.006 * f1 + 0.004 * (hh - 0.5)
+        else:
+            f1, f2, hh = worley(cx * 3.0, cy * 3.0, 4)
+            seam = smooth(0.09, 0.0, f2 - f1)
+            micro = 0.02 * (1 - seam) - 0.01 * (f1 * 0.6) + 0.004 * (hh - 0.5)
         plate = CHITIN[None, None] * (0.78 + 0.4 * hh[..., None]) + (CREAM - CHITIN)[None, None] * (0.18 * smooth(0.5, 0.0, f1))[..., None]
         alb = plate * (1 - 0.6 * seam[..., None]) + BASE[None, None] * 0.6 * seam[..., None]
         # plates only away from the edge; nearer the lip it is bare membrane

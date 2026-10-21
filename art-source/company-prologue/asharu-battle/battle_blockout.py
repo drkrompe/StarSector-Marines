@@ -154,6 +154,35 @@ def aboard(parent, offset, thr=0):
     return (x + ox, y + oy, z + oz, hd, pt, rl, thr)
 
 
+def _attitude(hd, pt, rl):
+    """frame_of's rotation, Rz(hd) Ry(-pt) Rx(rl), as rows."""
+    def mul(a, b):
+        return [[sum(a[i][k] * b[k][j] for k in range(3)) for j in range(3)] for i in range(3)]
+    h, p, r = math.radians(hd), math.radians(-pt), math.radians(rl)
+    rz = [[math.cos(h), -math.sin(h), 0], [math.sin(h), math.cos(h), 0], [0, 0, 1]]
+    ry = [[math.cos(p), 0, math.sin(p)], [0, 1, 0], [-math.sin(p), 0, math.cos(p)]]
+    rx = [[1, 0, 0], [0, math.cos(r), -math.sin(r)], [0, math.sin(r), math.cos(r)]]
+    return mul(mul(rz, ry), rx), mul
+
+
+def near(parent, offset, hd=0.0, pt=0.0, rl=0.0, thr=.3):
+    """A small craft working about another ship: at offset (metres, the parent's frame) with its
+    own heading, pitch and roll relative to the parent's, composed into the battle frame."""
+    x, y, z = aboard(parent, offset)[:3]
+    m, mul = _attitude(*parent[3:6])
+    m = mul(m, _attitude(hd, pt, rl)[0])
+    pitch = math.degrees(math.asin(max(-1.0, min(1.0, m[2][0]))))
+    return (x, y, z, math.degrees(math.atan2(m[1][0], m[0][0])), pitch,
+            math.degrees(math.atan2(m[2][1], m[2][2])), thr)
+
+
+# Morrow's drone bay (Shepherd hull units x 0.78): the three Borer launch points, cradle seat on the
+# point, the drone's root 1.44 m above it (Borer manifest cradle_seat). The bay lifts straight up (+Z).
+BORER_BAY_M = [(-2.34, 14.82, -1.73), (9.36, 14.82, -1.73), (20.28, 14.82, -1.73)]
+K4_COLOSSUS = (0, 0, 0, 0, -3, 6, .2)
+K4_MORROW = (-10, 35, -78, 0, 8, 4, 1)
+COLOSSUS_PORT_POD_M = (-62, 30, 0)    # the shot-out port drive pod (k4's blast, fire and debris)
+
 STAR_GAIN = 1.0      # starfield brightness on the key frames (0 hides it)
 
 C3_PRIZE = (-150, 330, 60, 30, -4, -6, .3)
@@ -270,10 +299,17 @@ KEYFRAMES = {
         shot='S8-S9', title='She will not be taken',
         caption='The Colossus Mk.III closes from above to take the Colossus too. Her port drive pod is shot out, '
                 'but she fights: flares out, both turrets firing, a Kite (P) driven off. Morrow is under her keel '
-                'with her drives lit, holding her up.',
+                'with her drives lit, holding her up, and her Borers are already out: two cut the burning pod '
+                'free with their mining lasers while a third lifts out of the bay to join them.',
         camera=dict(loc=(-420, 470, 120), target=(-40, 20, 20), lens=28),
-        knobs={'colossus3': {'grapples': 0.5}},
-        ships={'colossus': (0, 0, 0, 0, -3, 6, .2), 'morrow': (-10, 35, -78, 0, 8, 4, 1),
+        knobs={'colossus3': {'grapples': 0.5},
+               'borer-a': {'beam_t_ws001': 1.0, 'beam_len_ws001': 30.0},      # 7.5 m to the pod's skin
+               'borer-b': {'beam_t_ws001': 1.0, 'beam_len_ws001': 34.0}},
+        ships={'colossus': K4_COLOSSUS, 'morrow': K4_MORROW,
+               # outboard of the pod, nose in; under its lip, nose up; out of Morrow's bay, climbing
+               'borer-a': near(K4_COLOSSUS, (-60, 45, -4), hd=-95, pt=8, rl=6, thr=.25),
+               'borer-b': near(K4_COLOSSUS, (-70, 36, -13), hd=-70, pt=40, rl=-10, thr=.25),
+               'borer-c': near(K4_MORROW, (BORER_BAY_M[1][0], BORER_BAY_M[1][1], 18), hd=10, pt=30, thr=.8),
                'colossus3': (-60, 70, 175, -4, -8, 64, .6),
                'kite-p-b': (110, 210, 40, -60, 6, 32, 1),
                'wolf-p-a': (260, 160, 110, -150, 2, -40, 1)},
@@ -669,7 +705,7 @@ def blender_main(cfg):
             coll, fx = append(build_file(f), m['append_collection'], (m['effects']['collection'],))
         else:
             coll = append(build_file(f), m['append_collection'])
-        ctl = m.get('control', {}).get('object') or m.get('break_up', {}).get('controls')
+        ctl = (m.get('control') or {}).get('object') or (m.get('break_up') or {}).get('controls')
         ctl = next((o for o in coll.all_objects if ctl and o.name.split('.')[0] == ctl), None) or (
             bpy.data.objects.get(ctl) if ctl else None)
         eng = []
@@ -682,7 +718,7 @@ def blender_main(cfg):
             eng.append((Vector(e.get('mouth') or e['location']), Vector(e.get('axis') or e['exhaust_direction']),
                         e.get('radius') or e['mouth_radius'], e.get('style', 'LOW_TECH')))
         knobs = {}
-        if ctl and 'control' in m:      # knobs: a list of {name, ...}, or a dict of name -> description
+        if ctl and m.get('control'):      # knobs: a list of {name, ...}, or a dict of name -> description
             ks = m['control'].get('knobs') or []
             pose = m['control'].get('saved_pose') or {}
             knobs = {n: pose.get(n, 0.0) for n in (ks if isinstance(ks, dict) else [k['name'] for k in ks])}
@@ -692,7 +728,7 @@ def blender_main(cfg):
                              (o.data if o.type == 'LIGHT' else None, *(sl.material for sl in o.material_slots))
                              if d is not None}, m['metres_per_unit'])
         return dict(coll=coll, fx=fx, mpu=m['metres_per_unit'], engines=eng, length_m=f['length_m'], ctl=ctl,
-                    knobs=knobs, manifest=m, hull_ctl=hull_ctl, swfx=bool(f.get('swfx')))
+                    knobs=knobs, manifest=m, hull_ctl=hull_ctl, swfx=bool(f.get('swfx')), own_fx=bool(f.get('own_fx')))
 
     def standin(game, length_m=None):
         """The sprite's silhouette as a lens-shaped slab in hull units (one sprite px per unit,
@@ -795,7 +831,7 @@ def blender_main(cfg):
             library[k] = standin(m['game'], m.get('published_m'))
         return library[k]
 
-    members = {m['key']: m for m in roster.MERCHANT + roster.PIRATE + roster.REFERENCES}
+    members = {m['key']: m for m in roster.MERCHANT + roster.PIRATE + roster.REFERENCES + roster.DRONES}
 
     # ---------------------------------------------------------------------------- plumes, fx
     plume_me = bpy.data.meshes.new('Plume unit')
@@ -840,11 +876,12 @@ def blender_main(cfg):
         (gear, grapples) or carries scene effects (the wreck), and for every build under --swfx."""
         if lib.get('manifest') is None:
             return None
-        if not (lib['hull_ctl'] is not None or lib['swfx'] or (cfg.get('swfx') and lib['fx'] is not None)):
+        if not (lib['hull_ctl'] is not None or lib['swfx'] or lib.get('own_fx')
+                or (cfg.get('swfx') and lib['fx'] is not None)):
             return None
         k = (key, m['finished'])
         if k not in ships_fx:
-            fx = lib['fx'] if (cfg.get('swfx') or lib['swfx']) else None
+            fx = lib['fx'] if (cfg.get('swfx') or lib['swfx'] or lib.get('own_fx')) else None
             s = ship_fx.ShipFx(key, lib['coll'], fx, lib['manifest'], hull_ctl=lib['hull_ctl'],
                                clock=not lib['swfx'])
             for c in (s.hull if s.hull is not lib['coll'] else None, s.fx):
@@ -1414,7 +1451,7 @@ def label_frames(run):
     from review_font import review_font
     labels = json.loads((run / 'raw' / 'labels.json').read_text())
     f_title, f_cap, f_lab = review_font(30, True), review_font(21), review_font(19, True)
-    names = {m['key']: m['name'] for m in roster.MERCHANT + roster.PIRATE + roster.REFERENCES}
+    names = {m['key']: m['name'] for m in roster.MERCHANT + roster.PIRATE + roster.REFERENCES + roster.DRONES}
     names.update({'platform': 'Asharu platform (derelict)', 'trail-colossus': 'Colossus', 'trail-morrow': 'Morrow'})
     pirates = {m['key'] for m in roster.PIRATE}
     order = [k for k in KEYFRAMES] + list(ROSTER_SHEETS)
@@ -1590,7 +1627,7 @@ def orbit_diagram(run):
 def check(frames):
     """Where each ship lands in each key frame, without rendering: centre pixel, length in
     pixels, and whether it is in frame. The camera math is Blender's track ('-Z', 'Y')."""
-    lengths = {m['key']: roster.size_row(m)['length_m'] for m in roster.MERCHANT + roster.PIRATE}
+    lengths = {m['key']: roster.size_row(m)['length_m'] for m in roster.MERCHANT + roster.PIRATE + roster.DRONES}
     for kf in frames:
         if kf not in KEYFRAMES:
             continue

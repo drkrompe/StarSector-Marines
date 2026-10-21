@@ -51,6 +51,7 @@ public final class AssaultDefenderCommand implements AutonomousMissionCommand<
     private final Map<Integer, Integer> squadResponseArea = new HashMap<>();
     private final Map<Long, ContactReport> contactReports = new HashMap<>();
     private final MissionGarrisons garrisons = new MissionGarrisons();
+    private final MissionCounterattack counter = new MissionCounterattack();
     /**
      * Re-derived from the live candidate pool on every pulse rather than
      * latched from the first one. A squad may join the pool later — an
@@ -72,8 +73,20 @@ public final class AssaultDefenderCommand implements AutonomousMissionCommand<
     }
 
     @Override public Faction faction() { return Faction.DEFENDER; }
+    /**
+     * The mission's place directives (`garrisonables.md`, place directives); this commander reads its counter-attack
+     * ones ({@link MissionCounterattack}). Call once, at setup.
+     */
+    public AssaultDefenderCommand placeDirectives(List<PlaceDirective> mission) {
+        counter.directives(mission, faction());
+        return this;
+    }
+
     @Override public String strategyId() { return "assault-defender"; }
-    @Override public void afterCommit(CommandEffects effects) { garrisons.afterCommit(effects, faction()); }
+    @Override public void afterCommit(CommandEffects effects) {
+        garrisons.afterCommit(effects, faction());
+        counter.afterCommit(effects, strategyId());
+    }
     @Override public Map<String, Integer> reactiveDefenceFigures() { return ReactiveDefenceSource.figures(garrisons); }
     public AssaultDefenseSnapshot defenseSnapshot() { return defenseSnapshot; }
 
@@ -87,6 +100,9 @@ public final class AssaultDefenderCommand implements AutonomousMissionCommand<
                 new HashMap<>(squadRoutineArea);
         Map<Integer, SquadDirective> directives = new LinkedHashMap<>();
         List<CommandSquadState> candidates = new ArrayList<>();
+        boolean countering = counter.active();
+        Set<Integer> claimed = countering ? counter.claimed() : Set.of();
+        List<CommandSquadState> members = new ArrayList<>();
 
         for (CommandSquadState squad : frame.squads()) {
             if (squad.aliveMembers() <= 0) continue;
@@ -120,6 +136,10 @@ public final class AssaultDefenderCommand implements AutonomousMissionCommand<
                                 ? incumbent.assignment().targetCellX() : -1,
                         incumbent.assignment() != null
                                 ? incumbent.assignment().targetCellY() : -1));
+                continue;
+            }
+            if (claimed.contains(squad.squadId())) {
+                members.add(squad);
                 continue;
             }
             candidates.add(squad);
@@ -240,6 +260,25 @@ public final class AssaultDefenderCommand implements AutonomousMissionCommand<
             }
         }
 
+        List<CommandSquadState> held = reserve.stream()
+                .filter(squad -> !selectedResponders.contains(squad.squadId())).toList();
+        MissionCounterattack.Result retake = countering
+                ? counter.plan(frame.tick(), MissionPlaces.buildings(frame.keyBuildings()), members, held,
+                candidates.size() + members.size(), frame.squads(), frame.influence(), frame.topology(),
+                PlaceSignals.of(frame))
+                : MissionCounterattack.Result.NONE;
+        proposals = MissionCounterattack.apply(proposals, retake, frame.squads());
+        offers = MissionCounterattack.offers(offers, retake);
+        for (Map.Entry<Integer, MissionCounterattack.Duty> duty : retake.duties().entrySet()) {
+            ObjectiveAssignment order = duty.getValue().assignment();
+            directives.put(duty.getKey(), new SquadDirective(duty.getKey(),
+                    frame.facts().layout().sectorForCell(order.targetCellX(), order.targetCellY()),
+                    Role.RESERVE, Reason.valueOf(duty.getValue().reason()), order.kind(),
+                    order.targetCellX(), order.targetCellY()));
+        }
+        for (int id : retake.released()) {
+            directives.put(id, new SquadDirective(id, -1, Role.RESERVE, Reason.MOBILE_RESERVE_HELD, null, -1, -1));
+        }
         Map<Integer, MissionGarrisons.Manning> manning = garrisons.plan(frame,
                 frame.garrisonables(), offers, strategyId());
         if (!manning.isEmpty()) {
@@ -260,16 +299,17 @@ public final class AssaultDefenderCommand implements AutonomousMissionCommand<
         Phase phase = threatened.isEmpty() ? Phase.AREA_SECURITY
                 : Phase.REPORTED_CONTACT_RESPONSE;
         AssaultDefenseSnapshot detail = buildSnapshot(frame, phase,
-                candidates.size(), reserveCount, directives, reports);
-        List<String> objectives = detail.areas().stream()
+                candidates.size() + members.size(), reserveCount, directives, reports);
+        List<String> objectives = new ArrayList<>(detail.areas().stream()
                 .map(area -> "area-" + area.index() + "=" + area.reportState()
                         + ":posts=" + area.strongpoints()
                         + ":response=" + area.respondingSquads())
-                .toList();
+                .toList());
+        objectives.addAll(retake.notes());
         return new CommandPlan<>(faction(), strategyId(), phase.name(),
                 frame.tick(), frame.influence() != null
                 ? frame.influence().updatedTick() : -1,
-                candidates.size(), reserveCount, objectives, proposals, detail);
+                candidates.size() + members.size(), reserveCount, objectives, proposals, detail);
     }
 
     @Override

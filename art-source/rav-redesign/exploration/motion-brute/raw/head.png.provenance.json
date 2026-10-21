@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ff9-16c6-7c33-b64f-6fda91a6de46",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ff9-16c6-7c33-b64f-6fda91a6de46\\exec-8cbd85b3-3358-42d6-a249-882e800a8d91.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\motion-brute\\raw\\head.png",
+    "sha256": "3b0784a300b3fe9a888f1885effddead1644e89ef46799c09ed1ab4de555fe6b",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\motion-brute\\prompts\\head.prompt.txt",
+  "promptSha256": "236269919b0a918ee3af764b7fd21d3f0eca62ae77a50356760a1c5fe594aef0",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry, identity, palette and registration authority: the chosen Brute\n\nReference image 1 is the chosen Brute design from the Rav Bloom swarm (a heavy, old, dark plum-violet armoured hoofed beast with a knobbed ivory mace head), seen strictly from above, facing up. This is a rig layer for animating it: keep its palette, finish, scale and lighting (from the upper left) exactly, and keep every part you draw in EXACTLY the same position and size as in reference image 1 so the layer registers over it pixel for pixel. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n\nThis layer: the HEAD ONLY: the knobbed and spiked ivory mace head and its jaw, plus a short length of thick armoured neck behind it ending in sinew, in exactly the same place and size as in the reference; the whole body, legs and tail removed.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-brute\\raw\\hero.png",
+      "sha256": "cc2fa7dae723cb7b4b30435b9535051272d91848cc652d61cd28ec8d2121453e",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry, identity, palette and registration authority: the chosen Brute"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one head-and-neck layer aligned to the reference, using the imagegen skill.\n"
+  ],
+  "usage": {
+    "input_tokens": 63968,
+    "cached_input_tokens": 56192,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 522,
+    "reasoning_output_tokens": 23
+  },
+  "elapsedSeconds": 39.9
+}

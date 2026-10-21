@@ -19,6 +19,11 @@ import java.util.List;
  *
  * <p>{@code groundPad: false} drops the flat footprint pad under a structure that has no base: a body that is grown
  * rather than built (a swarm bore, a spore colony) stands on the ground itself, not on a square of hardstanding.
+ *
+ * <p>{@code variants: N} gives a grown body several paintings so a map of them does not look stamped. A layer path
+ * containing {@value #VARIANT_TOKEN} is resolved per structure to one of {@code 1..N}, the same number for every layer
+ * of that structure (a body and its glow stay a pair), chosen from the structure's entity id. The lighting is baked
+ * into each painting, so a variant is never rotated or mirrored to make another.
  */
 public final class StructureArt {
 
@@ -27,21 +32,52 @@ public final class StructureArt {
      * centre). {@code spinDegPerSec} turns it; {@code pulseDepth} (0 to 1) swings its brightness at {@code pulseHz}.
      * A {@code tintByHolder} layer is multiplied by the colour of the side that holds the structure's dome, so one
      * neutral sprite serves both sides. A {@code dome} layer follows the dome's state: it stops spinning and dims
-     * while the dome is down, and flares when the dome takes a round.
+     * while the dome is down, and flares when the dome takes a round. {@code fireFlash} (0 to 1) makes the layer
+     * answer the structure's own fire: it snaps to full brightness and swells by up to a quarter of its size at that
+     * strength, settling over {@link #FIRE_FLASH_SECONDS} (a spore sac flaring as it spits a burst).
      */
     public record Layer(String spritePath, float cells, float spinDegPerSec,
-                        float pulseHz, float pulseDepth, boolean tintByHolder, boolean dome) {}
+                        float pulseHz, float pulseDepth, boolean tintByHolder, boolean dome, float fireFlash) {
+
+        /** This layer's sprite for one painting, {@code variant} counted from 1. */
+        public String spritePath(int variant) {
+            return spritePath.replace(VARIANT_TOKEN, Integer.toString(variant));
+        }
+    }
+
+    /** How long a {@link Layer#fireFlash} layer takes to settle after a shot. */
+    public static final float FIRE_FLASH_SECONDS = 0.4f;
+    /** How much a {@code fireFlash: 1} layer swells at the moment of the shot. */
+    public static final float FIRE_FLASH_SWELL = 0.25f;
+
+    /** Placeholder in a layer path that a variant number replaces. */
+    public static final String VARIANT_TOKEN = "{variant}";
+    /** The most paintings one structure may carry. */
+    static final int MAX_VARIANTS = 9;
 
     /** Static base sprite path, or null to keep the flat footprint pad. */
     public final String basePath;
     /** Whether a structure without a base still stands on the flat footprint pad. */
     public final boolean groundPad;
+    /** How many paintings the layers carry; 1 for an ordinary structure. */
+    public final int variants;
     private final List<Layer> layers;
 
-    private StructureArt(String basePath, boolean groundPad, List<Layer> layers) {
+    private StructureArt(String basePath, boolean groundPad, int variants, List<Layer> layers) {
         this.basePath = basePath;
         this.groundPad = groundPad;
+        this.variants = variants;
         this.layers = Collections.unmodifiableList(layers);
+    }
+
+    /** The painting, from 1 to {@link #variants}, that the structure with this entity id wears. */
+    public int variantFor(long entityId) {
+        if (variants <= 1) return 1;
+        long z = entityId + 0x9E3779B97F4A7C15L;
+        z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
+        z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
+        z ^= z >>> 31;
+        return 1 + (int) Math.floorMod(z, (long) variants);
     }
 
     public List<Layer> layers() {
@@ -59,19 +95,26 @@ public final class StructureArt {
             float spin = (float) l.optDouble("spinDegPerSec", 0.0);
             float pulseHz = (float) l.optDouble("pulseHz", 0.0);
             float pulseDepth = (float) l.optDouble("pulseDepth", 0.0);
+            float fireFlash = (float) l.optDouble("fireFlash", 0.0);
             TurretMountDef.requirePositiveFinite(cells, structureId, "art layer cells");
             if (!Float.isFinite(spin) || !Float.isFinite(pulseHz) || pulseHz < 0f
-                    || !Float.isFinite(pulseDepth) || pulseDepth < 0f || pulseDepth > 1f) {
+                    || !Float.isFinite(pulseDepth) || pulseDepth < 0f || pulseDepth > 1f
+                    || !Float.isFinite(fireFlash) || fireFlash < 0f || fireFlash > 1f) {
                 throw new JSONException("Structure '" + structureId + "' art layer " + i
-                        + " has a non-finite or out-of-range spin or pulse");
+                        + " has a non-finite or out-of-range spin, pulse or fire flash");
             }
             layers.add(new Layer(sprite, cells, spin, pulseHz, pulseDepth,
-                    l.optBoolean("tintByHolder", false), l.optBoolean("dome", false)));
+                    l.optBoolean("tintByHolder", false), l.optBoolean("dome", false), fireFlash));
+        }
+        int variants = json.optInt("variants", 1);
+        if (variants < 1 || variants > MAX_VARIANTS) {
+            throw new JSONException("Structure '" + structureId + "' art declares " + variants
+                    + " variants; 1 to " + MAX_VARIANTS + " are allowed");
         }
         if (base == null && layers.isEmpty()) {
             throw new JSONException("Structure '" + structureId + "' declares an art block with no base and no layers");
         }
-        return new StructureArt(base, json.optBoolean("groundPad", true), layers);
+        return new StructureArt(base, json.optBoolean("groundPad", true), variants, layers);
     }
 
     private static String text(JSONObject json, String key) {

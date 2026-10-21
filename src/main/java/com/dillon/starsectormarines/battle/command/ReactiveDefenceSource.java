@@ -42,6 +42,7 @@ public interface ReactiveDefenceSource {
         out.put("arrivedFirst", stats.arrivedFirst);
         out.put("contactFirst", stats.contactFirst);
         out.put("arrivalUnresolved", stats.arrivalUnresolved);
+        out.put("dutyShareWithheld", stats.dutyShareWithheld);
         return out;
     }
 }

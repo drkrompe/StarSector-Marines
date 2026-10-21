@@ -52,7 +52,7 @@ def box_sdf(cx, cy, box):
     return out + np.minimum(np.maximum(qx, qy), 0)
 
 
-def render(ground, ox, oy, w, h, cell_px, src, radius, outer_px, treatment, lit):
+def render(ground, ox, oy, w, h, cell_px, src, radius, outer_px, treatment, lit, age=1.0, crease=False):
     crop = np.asarray(ground.crop((ox, oy, ox + w, oy + h)).convert('RGB'), float) / 255
     ys, xs = np.mgrid[0:h, 0:w].astype(float)
     cx = (xs + 0.5) / cell_px
@@ -78,23 +78,35 @@ def render(ground, ox, oy, w, h, cell_px, src, radius, outer_px, treatment, lit)
     if treatment == 1:   # heaped bank at the wall foot, blistered like the rim
         f1, _, hh = he.worley(cx * 2.6, cy * 2.6, 6)
         bead = he.smooth(0.62, 0.05, f1) * (0.7 + 0.6 * hh)
-        bank = he.bump(np.maximum(sd, 0), 0.0, 0.45) * (0.16 + 0.18 * bead) * he.smooth(0.0, 0.4, dd)
+        peak = 0.2 if crease else 0.0
+        bank = he.bump(np.maximum(sd, 0), peak, 0.45) * (0.16 + 0.18 * bead) * he.smooth(0.0, 0.4, dd)
         hgt = hgt + np.where(on_ground, bank, 0)
+    contact = np.zeros_like(hgt)
+    if crease:   # where creep meets a wall it tucks down into a dark crease
+        contact = he.smooth(0.12, 0.0, sd) * (sd > 0) * on_ground
+        hgt = hgt - 0.08 * contact
 
     # crust on the wall top: only where the creep reaches the wall's foot
     crust_cover = np.zeros_like(hgt)
     crust_h = np.zeros_like(hgt)
-    if treatment in (2, 4):
-        reach = 0.55 + 0.3 * he.fbm(cx * 1.1, cy * 1.1, 8, 2) if treatment == 2 else 0.22 + 0.1 * he.fbm(cx * 1.6, cy * 1.6, 8, 2)
+    if treatment in (2, 4, 5):
+        if treatment == 2:
+            reach = 0.55 + 0.3 * he.fbm(cx * 1.1, cy * 1.1, 8, 2)
+        elif treatment == 4:
+            reach = 0.22 + 0.1 * he.fbm(cx * 1.6, cy * 1.6, 8, 2)
+        else:   # staged: the crust follows the veins the longer the creep has held the wall
+            reach = he.smooth(0.3, 1.0, age) * (0.8 + 0.35 * he.fbm(cx * 1.1, cy * 1.1, 8, 2)) - 0.05
         dc = np.minimum(reach - depth, plan - 0.35)     # crust edge distance
         crust_cover = np.clip(dc * cell_px + 0.5, 0, 1) * wall
         dcc = np.clip(dc, 0, 2.0)
         crust_h = WALL_M + he.rim_height(4, dcc, cx, cy) * 0.6
     veins = np.zeros_like(hgt)
-    if treatment == 4:
-        rg = 1 - np.abs(2 * he.fbm(cx * 1.2 + 3, cy * 1.2 + 8, 9, 3) - 1)
-        veins = he.smooth(0.90, 0.97, rg) * wall * (plan > 0.2) * he.smooth(1.6, 0.4, depth - 0.0)
-        veins = np.maximum(veins, 0)
+    if treatment in (4, 5):
+        vs = 1.2 if treatment == 4 else 2.4
+        rg = 1 - np.abs(2 * he.fbm(cx * vs + 3, cy * vs + 8, 9, 3) - 1)
+        span = 1.6 if treatment == 4 else 0.25 + 1.4 * he.smooth(0.0, 0.6, age)
+        veins = he.smooth(0.80 if treatment == 5 else 0.90, 0.93, rg) * wall * (plan > 0.2) * he.smooth(span, span - 0.4, depth)
+        veins = np.maximum(veins, 0) * (1 if treatment == 4 else he.smooth(0.0, 0.15, age))
 
     # height field for shading: walls stand 3 m, the building inside its roof line too
     full_h = np.where(wall, WALL_M, np.where(sd <= 0, 0.3, hgt))   # wall band 3 m, floor inside 0.3 m
@@ -154,11 +166,15 @@ def render(ground, ox, oy, w, h, cell_px, src, radius, outer_px, treatment, lit)
         del dcl
 
     out = np.where((sd <= 0)[..., None], wall_col, ground_col)
+    creep_col = creep_col * (1 - 0.6 * contact)[..., None]
     out = out * (1 - cover[..., None]) + np.clip(creep_col, 0, 1) * cover[..., None]
     out = out * (1 - crust_cover[..., None]) + np.clip(crust_col, 0, 1) * crust_cover[..., None]
-    if treatment == 4:
-        vcol = (he.VEIN * 0.5 + he.BASE * 0.5)[None, None]
-        out = out * (1 - veins[..., None] * 0.85) + vcol * veins[..., None] * 0.85
+    if treatment in (4, 5):
+        vcol = ((he.VEIN * 0.5 + he.BASE * 0.5) if treatment == 4 else (he.CHITIN * 0.8 + he.VEIN * 0.2))[None, None]
+        if treatment == 5:   # raised: a lit crown and a shadowed flank, so they stand proud of the wall
+            vgy, vgx = np.gradient(veins)
+            vcol = vcol * (1 + 0.9 * np.clip(-(vgx * he.SUN_XY[0] + vgy * he.SUN_XY[1]), -0.6, 0.6))[..., None]
+        out = out * (1 - veins[..., None] * 0.9) + vcol * veins[..., None] * 0.9
     if treatment == 3:   # the gap reads dark: a shadowed seam at the wall foot
         seam = (sd > 0) & (sd < gap) & (plan > 0)
         out = np.where(seam[..., None], out * 0.55, out)
@@ -189,26 +205,55 @@ def advance(ground, crop, cell_px, src, radii, outer, treatment, lit, title):
     return sheet
 
 
+STAGE_NAMES = ('veins reach the wall top', 'veins cross it', 'a narrow crust forms', 'the crust takes the wall top')
+
+
 def main():
     g17 = Image.open(sys.argv[1])
     g36 = Image.open(sys.argv[2])
     out = sys.argv[3]
     os.makedirs(out, exist_ok=True)
     crop36, src36, r = (330, 440), (7.4, 8.0), 5.0
-    world = (crop36[0] + src36[0] * C36, crop36[1] + src36[1] * C36)
-    w17 = to17(*world)
-    crop17 = (600, 330)
-    src17 = ((w17[0] - crop17[0]) / C17, (w17[1] - crop17[1]) / C17)
-    o0 = to17(OUTER36[0], OUTER36[1])
-    o1 = to17(OUTER36[2], OUTER36[3])
-    outer17 = (o0[0], o0[1], o1[0], o1[1])
-    tag = 'creep #4 (beaded blisters, chitin plates) meeting a wall'
-    grid(g36, crop36, C36, src36, r, OUTER36, True, f'Round 2 -- {tag} -- close zoom {C36:.1f} px/cell -- LIT').save(f'{out}/01-walls-close-lit.png')
-    grid(g36, crop36, C36, src36, r, OUTER36, False, f'Round 2 -- {tag} -- close zoom -- REVIEW-FRAME FALLBACK').save(f'{out}/02-walls-close-fallback.png')
-    grid(g17, crop17, C17, src17, r, outer17, True, f'Round 2 -- {tag} -- battle zoom {C17:.1f} px/cell -- LIT').save(f'{out}/03-walls-battle-lit.png')
-    grid(g17, crop17, C17, src17, r, outer17, False, f'Round 2 -- {tag} -- battle zoom -- REVIEW-FRAME FALLBACK').save(f'{out}/04-walls-battle-fallback.png')
-    advance(g36, crop36, C36, src36, (2.4, 3.3, 4.2, 5.2), OUTER36, 2, True,
-            f'Round 2 -- W2 crust reaching the wall in four steps -- close zoom -- LIT').save(f'{out}/05-walls-advance-w2-lit.png')
+    pw, ph = 950, 520
+
+    def sheet(title, panels):
+        img = Image.new('RGB', (1920, 1080), (12, 12, 14))
+        for i, (lab, tile) in enumerate(panels):
+            px = 7 + (i % 2) * (pw + 6)
+            py = 34 + (i // 2) * (ph + 6)
+            img.paste(tile, (px, py))
+            he.label(img, (px + 12, py + 10), lab)
+        he.label(img, (10, 6), title, 16)
+        return img
+
+    for lit, name in ((True, 'lit'), (False, 'fallback')):
+        he.ORGANIC_PLATES = True
+        panels = [(f'S{i + 1}   {STAGE_NAMES[i]}', render(g36, crop36[0], crop36[1], pw, ph, C36, src36, r, OUTER36, 5, lit,
+                                                           age=a, crease=True))
+                  for i, a in enumerate((0.22, 0.45, 0.7, 1.0))]
+        sheet(f'Round 3 -- the wall over time: veins, then crust -- close zoom {C36:.1f} px/cell -- {name.upper()}',
+              panels).save(f'{out}/0{1 if lit else 2}-wall-stages-{name}.png')
+
+    # W1 with and without the contact crease, organic plates
+    he.ORGANIC_PLATES = True
+    panels = [('W1 round 2 (no crease)', render(g36, crop36[0], crop36[1], pw, ph, C36, src36, r, OUTER36, 1, True)),
+              ('W1 with the contact crease', render(g36, crop36[0], crop36[1], pw, ph, C36, src36, r, OUTER36, 1, True, crease=True)),
+              ('W1 no crease -- fallback', render(g36, crop36[0], crop36[1], pw, ph, C36, src36, r, OUTER36, 1, False)),
+              ('W1 with the contact crease -- fallback', render(g36, crop36[0], crop36[1], pw, ph, C36, src36, r, OUTER36, 1, False, crease=True))]
+    sheet('Round 3 -- W1 banked, with a dark crease where creep meets the wall -- close zoom', panels).save(f'{out}/03-w1-crease.png')
+
+    # the plates: round 2 straight seams against warped, pillowed ones, at close zoom and twice that
+    tiles = []
+    for organic in (False, True):
+        he.ORGANIC_PLATES = organic
+        tiles.append(he.render(g36, 960, 100, pw, ph, C36, (11.5, 9.5), 6.2, 4, True))
+    big = []
+    for t in tiles:
+        big.append(t.crop((240, 130, 715, 390)).resize((pw, ph), Image.LANCZOS))
+    sheet('Round 3 -- chitin plates: straight seams (round 2) against warped, pillowed plates -- close zoom, and 2x below',
+          [('round 2 plates', tiles[0]), ('organic plates', tiles[1]),
+           ('round 2 plates, 2x', big[0]), ('organic plates, 2x', big[1])]).save(f'{out}/04-plates-organic.png')
+    del g17
 
 
 if __name__ == '__main__':

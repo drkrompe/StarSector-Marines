@@ -526,6 +526,24 @@ reading either as a station would make every compartment on the ship a posting
 and put a watch in each of them; and a patrol of every compartment on a capital
 is a rotation nobody completes, whose walker is permanently in a passage.
 
+A **lap** is the third shape, and the inverse of a circuit: a circuit is one stop
+in each of several rooms, a lap is every stop in one. A running track publishes
+**lap markers** round its ring in running order, each faced at the next, so the
+published order is the loop and nothing downstream re-derives it; a fitting lists
+the corners as well as the straights, because a runner keeps to the track only
+while consecutive markers share a lane. A lap takes every marker of the track in
+that order, starting at the member's own and closing back on it, each held for a
+moment, and nothing else on the rotation is dealt in between — a boat between
+two markers would send the runner off the track mid-lap. Each marker is claimed
+as that specific marker rather than as any free one, for the reason a berth is
+its own group: one group answered with the claim already held is a runner who
+arrives at once and stands on the start line. Given a bench's single stop or a
+circuit's one stop per room, a lap collapses to the same thing, somebody standing
+on the track. The leg between two markers is jogged: covered faster than a walk
+and drawn running, and the walk onto the track from anywhere else is a walk. A
+lap is not a trade and posts nobody; how many run at once is bounded by the
+markers, since each runner holds the one they are making for.
+
 **Work on a machine is a round of the machines.** A berth-bound job is not a
 circuit — it happens in one room — but it takes the circuit's treatment for a
 related reason: the room holds several machines, and each is its own piece of
@@ -755,12 +773,13 @@ supplies is the role and the sites.
 
 **Work looks like the work.** What an ambient actor visibly does at a job is a
 **work motion**: welding, carrying a crate, kneeling at a bed with the kit,
-stirring, chopping, heaving a wrench, running, rowing, pressing, lifting, or the
+stirring, chopping, heaving a wrench, running, rowing, pressing, lifting, jogging, or the
 ordinary two-handed sweep across a console. It is chosen from what the ambient
 model already knows — the job's affordance, refined by the fixture the claimed
 point faces (the same COOK stirs at a range and chops at a prep bench), and, for
 an authored stop that names no job on the board, the stop's activity; the walk
-between two stowage stops is part of stores work and carries a crate. It is
+between two stowage stops is part of stores work and carries a crate, and the
+walk between two lap markers is the run itself. It is
 keyed on nothing narrower. Not on a role, because the motion belongs to the job
 and whoever does it; not on a ship's compartments or watch bill, because a job
 site is a ship's compartment, a building interior or a walled yard alike. So a
@@ -774,7 +793,10 @@ long a job takes, who may claim it, or where the worker stands, and a body drawn
 onto a machine leaves its claim on the standing cell. Gym machines are drawn at
 real size against a 0.6-cell shoulder (a cell is about 0.75 m), worked from the
 free cell at their foot and up their length, so the drawn reach puts the runner
-on the belt, the rower on the seat and the presser on the bench. Animated fixtures are
+on the belt, the rower on the seat and the presser on the bench. A runner, on a belt
+or round a track, bounds: drawn rising toward the camera between footfalls,
+rolling onto each stance foot and twisting against the arm swing, so running
+in place does not read as standing still. Animated fixtures are
 the fixture's own art and meet the worker through the same claim and focus.
 
 A shift derives where it works from what each place publishes, so **posting is

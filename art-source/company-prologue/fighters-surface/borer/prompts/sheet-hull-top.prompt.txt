@@ -3,7 +3,7 @@ INPUT 1 is a sheet of FOUR separate orthographic renders of surfaces of one 3D c
 top-left: the top of the long centre spine, burnt orange armour with its blunt tail to the left and its narrowing nose to the right, crossed by thin engraved panel lines and an engraved octagonal hatch outline near the tail;
 top-right: the top of one broad armour pod, a large burnt orange plate with chamfered corners and thin engraved panel lines;
 bottom-left: the top of one drive pod, light-to-mid grey machinery plating with a near-black triangular recess and thin engraved lines;
-bottom-right: a group of small underside pieces seen from below: burnt orange plates and grey machinery pieces with two small near-black triangles.
+bottom-right: a group of small underside pieces seen from below: burnt orange plates and grey machinery pieces, two small near-black triangles, and four round thruster wells (two shaded orange, two dark grey) that stay exactly as drawn.
 INPUT 2 is the SAME drone already painted: it is the finish to match. Use its paint colours, its semi-matte industrial enamel, its light service wear, and its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.
 
 Paint each of the four tiles in INPUT 1 as that surface of a working utility drone in service. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:

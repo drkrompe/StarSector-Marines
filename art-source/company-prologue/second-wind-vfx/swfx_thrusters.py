@@ -62,9 +62,13 @@ COLOURS = {
 COLOURS = {**COLOURS, **swfx_hull.get('COLOURS', {})}
 
 # RCS sizes, from physical metres so a ship rescale is one edit in swfx_core:
-# a ~0.25 m cold-gas nozzle, a puff reaching ~4 m before it is gone.
-RCS_NOZZLE_R = swfx_core.units(.25)
-RCS_PUFF_LEN = swfx_core.units(4.0)
+# a ~0.25 m cold-gas nozzle, a puff reaching ~4 m before it is gone. A hull
+# profile may size them to its own jets (RCS_NOZZLE_M, RCS_PUFF_M) and thin the
+# gas (RCS_PUFF_DENSITY, a multiplier on density and self-light): a 3.6 m drone's
+# lift jets want a short faint pulse, not a frigate's 4 m plume.
+RCS_NOZZLE_R = swfx_core.units(swfx_hull.get('RCS_NOZZLE_M', .25))
+RCS_PUFF_LEN = swfx_core.units(swfx_hull.get('RCS_PUFF_M', 4.0))
+RCS_PUFF_DENSITY = float(swfx_hull.get('RCS_PUFF_DENSITY', 1.0))
 
 # RCS quads: name -> (hull-local seed position, outward thrust direction).
 # Positions are pushed onto the nearest ship surface at build time.
@@ -450,10 +454,10 @@ def _rcs_material(ctx, quad):
     vol = nodes.new('ShaderNodeVolumePrincipled')
     vol.inputs['Color'].default_value = (.92, .94, .97, 1)
     vol.inputs['Anisotropy'].default_value = .4
-    links.new(math_node(nodes, links, 'MULTIPLY', field, 1.2), vol.inputs['Density'])
+    links.new(math_node(nodes, links, 'MULTIPLY', field, 1.2 * RCS_PUFF_DENSITY), vol.inputs['Density'])
     # A trace of self-light so a puff in an unlit quarter still reads at all.
     vol.inputs['Emission Color'].default_value = (.8, .85, .95, 1)
-    links.new(math_node(nodes, links, 'MULTIPLY', field, .06), vol.inputs['Emission Strength'])
+    links.new(math_node(nodes, links, 'MULTIPLY', field, .06 * RCS_PUFF_DENSITY), vol.inputs['Emission Strength'])
     links.new(vol.outputs[0], out.inputs['Volume'])
     return m
 

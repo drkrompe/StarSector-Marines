@@ -129,6 +129,35 @@ public interface PrecinctClaim {
                         pooling.add(new long[]{0L, x, y});
                     }
                 }
+                // And the open country it lies in: the band along its edge out
+                // past the disc, so the town is on one side of the fields and
+                // not round them. Not pooled from; the band is already more
+                // than any allowance a landing is given.
+                for (int x = 0; x < width; x++) {
+                    for (int y = 0; y < height; y++) {
+                        if (claim[x][y] != GrownTrunkPlan.UNOWNED
+                                || !field.inCountry(x, y, width, height)) continue;
+                        claim[x][y] = i;
+                        taken[i]++;
+                    }
+                }
+            }
+            // A place laid out square takes its square whole, for the same
+            // reason, and is not pooled: noise would bulge it off the square.
+            for (int i = 0; i < precincts.size(); i++) {
+                Precinct precinct = precincts.get(i);
+                if (budget == null || !precinct.isProgrammed() || precinct.fortification() == null
+                        || !precinct.fortification().square()) continue;
+                int side = (int) Math.ceil(Math.sqrt(budget[i]));
+                int x0 = Math.max(0, precinct.seedX() - side / 2);
+                int y0 = Math.max(0, precinct.seedY() - side / 2);
+                for (int x = x0; x < Math.min(width, x0 + side); x++) {
+                    for (int y = y0; y < Math.min(height, y0 + side); y++) {
+                        if (claim[x][y] != GrownTrunkPlan.UNOWNED) continue;
+                        claim[x][y] = i;
+                        taken[i]++;
+                    }
+                }
             }
             for (int i = 0; i < precincts.size(); i++) {
                 if (!precincts.get(i).isProgrammed()) continue;

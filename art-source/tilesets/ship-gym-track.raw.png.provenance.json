@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fcd-6b91-79e2-8da7-b89b4abb4dcc",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fcd-6b91-79e2-8da7-b89b4abb4dcc\\exec-a19aed98-8a51-4764-a3f6-02bc3f5d92e6.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\ship-gym-track.raw.png",
+    "sha256": "bd639dc55fb93d7dab66f42f1b6ce82f5e2b3c9d921a5403889bda4786e1576f",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\ship-gym-track.prompt.txt",
+  "promptSha256": "515f541cd74f55ea0b0f23eb58281ee881007f533f203e296518cb7cf27bf65c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout/scale authority and edit target: reskin in place\nImage 2: Material/style reference only (the gym's equipment sheet); not layout, not scale\n\nReskin the attached geometry guide into finished top-down game art for a spaceship gymnasium prop sheet. Strict overhead orthographic view, soft light from the upper left, the same muted worn look as the material reference sheet: dull brushed steel, muted olive-grey enamel, charcoal rubber, small bolts, modest edge wear. No saturated colours, no hazard stripes, no text.\n\nThe guide is the geometry, scale and layout authority, and the result is cut mechanically from the guide's exact pixel rectangles: keep every piece exactly where it is, at exactly its size, outline and orientation; do not move, widen, lengthen, rescale, rotate, merge or add pieces. Keep all empty canvas fully transparent: true transparent background; no floor, no ground, no shadow slab, no border, no people, no labels.\n\nPieces:\n1. Top: a pool lounger seen from directly above, lying horizontally: a slatted steel frame with a raised padded backrest at the left end and a thin pale-grey cushion along the rest. Slim, exactly the guide's outline.\n2. Below: one opaque square material sample, edge to edge, seamless and without borders, seams, lines or markings: muted terracotta-brown rubberised running-track surface with a fine granular texture, quiet and low contrast so it tiles over a large loop.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\ship-gym-track-guide.png",
+      "sha256": "ec579e07fe2155c3df978562feca55c31c41769b38e48a4cfabc40c92f0d942a",
+      "dimensions": [
+        1280,
+        1280
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout/scale authority and edit target: reskin in place"
+    },
+    {
+      "path": "mod\\graphics\\tilesets\\ship-gym.png",
+      "sha256": "50f2b8098e5f411ce0e1491c1e3c0dcae58240d6f12c16c6c72018ede46f5ec5",
+      "dimensions": [
+        832,
+        192
+      ],
+      "mode": "RGBA",
+      "role": "Material/style reference only (the gym's equipment sheet); not layout, not scale"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the guide for exact placement and geometry, with the equipment sheet as the material reference."
+  ],
+  "usage": {
+    "input_tokens": 41730,
+    "cached_input_tokens": 35328,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 548,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 51.6
+}

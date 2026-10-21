@@ -13,9 +13,10 @@ checks, writing validation.json beside the asset (exit 1 on any failure):
   drives splayed 20 degrees outboard);
 - the WS 001 muzzle anchor on the lens, +X forward, ahead of everything but the beam; the
   cutting-head and both grab anchors present, forward of the pods;
-- the cradle seat on the pad plane: every foot pad's sole within 1 mm of it;
+- the cradle seat on the skid shoes' plane: every shoe's sole within 1 mm of it;
+- four lift jet anchors under the pods, pointing straight down;
 - the lamps are emissive;
-- with effects: the beam rig rides the muzzle anchor and is dark at rest (beam_t_ws001 = 0);
+- with effects: four lift-jet puffs under a metre long and no smoke group (owner, round 2); the beam rig rides the muzzle anchor and is dark at rest (beam_t_ws001 = 0);
 - moving the root (translate, yaw, pitch, scale) moves every part rigidly.
 The Borer has no moving parts, so there is no knob to exercise.
 """
@@ -101,11 +102,13 @@ check('muzzle on the lens, forward', muz is not None and xaxis(muz).x > .9999
 tools = [anchors.get(t['anchor']) for t in man['tool']['anchors']]
 check('tool anchors', len(tools) == 3 and all(tools) and all(t.matrix_world.translation.x > 4.5 for t in tools if t))
 seat = anchors.get(man['cradle_seat']['anchor'])
-pads = [o for o in meshes if o.name.startswith('Foot ') and o.name.endswith(' pad')]
+pads = [o for o in meshes if o.name.startswith('Skid ') and o.name.endswith(' shoe')]
 soles = [min((o.matrix_world @ Vector(c)).z for c in o.bound_box) for o in pads]
 sz = seat.matrix_world.translation.z if seat else None
-check('cradle seat on the pad soles', seat is not None and len(pads) == 4 and max(abs(s - sz) for s in soles) < 1e-3,
+check('cradle seat on the skid shoe soles', seat is not None and len(pads) == 4 and max(abs(s - sz) for s in soles) < 1e-3,
       [round(s, 4) for s in soles])
+lj = [anchors.get(j['anchor']) for j in man['lift_jets']]
+check('four lift jets pointing down', len(lj) == 4 and all(a and xaxis(a).z < -.9999 for a in lj))
 lit = [o for o in meshes if any(sl.material and sl.material.node_tree and (b := sl.material.node_tree.nodes.get('Principled BSDF'))
                                 and b.inputs['Emission Strength'].default_value > 0 for sl in o.material_slots)]
 check('lamps emissive', len(lit) >= 3 and man['lamps_lit'] == len(man['lamps']) >= 3, [o.name for o in lit])
@@ -115,6 +118,11 @@ if man.get('effects'):
     beam = [o for o in fx if o.name.startswith('SWFX beams') and 'ws001' in o.name]
     rides = [o for o in beam if o.parent is not None and (o.parent == muz or o.parent.parent == muz)]
     ctl = bpy.data.objects.get('SWFX controls')
+    puffs = [o for o in fx if o.type == 'MESH' and ' rcs puff ' in o.name]
+    reach = max((max(v.co.x for v in o.data.vertices) - min(v.co.x for v in o.data.vertices)) * man['metres_per_unit']
+                for o in puffs) if puffs else 0
+    check('four short lift-jet puffs, no smoke group', len(puffs) == 4 and reach < 1.0
+          and not any(o.name.startswith('SWFX smoke') for o in fx), [len(puffs), round(reach, 2)])
     check('beam rig rides the muzzle, dark at rest', beam and rides and ctl is not None
           and float(ctl.get('beam_t_ws001', 0)) == 0.0, [o.name for o in beam][:4])
 
