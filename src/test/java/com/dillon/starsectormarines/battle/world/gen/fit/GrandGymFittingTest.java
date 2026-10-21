@@ -46,8 +46,10 @@ class GrandGymFittingTest {
     private static void verify(Fitted f) {
         long exercise = f.ctx.fixtureTasks.stream().filter(t -> t.affordance() == Affordance.EXERCISE).count();
         long unwind = f.ctx.fixtureTasks.stream().filter(t -> t.affordance() == Affordance.UNWIND).count();
+        long laps = f.ctx.fixtureTasks.stream().filter(t -> t.affordance() == Affordance.LAP).count();
         assertEquals(16, exercise);
         assertEquals(3, unwind);
+        assertEquals(12, laps, "a lap marker at each corner of the track and along its straights");
         assertTrue(f.floor.circulationSurvives());
         assertEquals(0, f.floor.dropUnreachableWork());
         f.floor.seal();
@@ -69,9 +71,22 @@ class GrandGymFittingTest {
         assertEquals(40, water, "a ten by four basin");
         HashSet<String> stands = new HashSet<>();
         for (var task : f.ctx.fixtureTasks) {
+            // The track is run, not stood on: its markers are on it and nothing else is.
+            int[] c = canonical(f.floor, task.cellX() - 4, task.cellY() - 4);
+            boolean ring = c[0] < 2 || c[1] < 2 || c[0] >= GrandGymFitting.WIDTH - 2 || c[1] >= GrandGymFitting.HEIGHT - 2;
+            assertEquals(task.affordance() == Affordance.LAP, ring, task.affordance() + " at " + c[0] + "," + c[1]);
             assertTrue(stands.add(task.cellX() + "," + task.cellY()));
             assertTrue(f.ctx.grid.isWalkable(task.cellX(), task.cellY()));
             assertFalse(f.ctx.topology.isWater(task.cellX(), task.cellY()));
         }
+    }
+
+    /** The canonical cell a local one is, found by asking the floor's own mapping the other way. */
+    private static int[] canonical(RoomFloor floor, int localX, int localY) {
+        for (int y = 0; y < GrandGymFitting.HEIGHT; y++) for (int x = 0; x < GrandGymFitting.WIDTH; x++) {
+            int[] c = floor.toLocal(x, y);
+            if (c[0] == localX && c[1] == localY) return new int[]{x, y};
+        }
+        throw new AssertionError("outside the room: " + localX + "," + localY);
     }
 }

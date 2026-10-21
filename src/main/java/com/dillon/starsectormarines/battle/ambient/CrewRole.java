@@ -145,7 +145,7 @@ public enum CrewRole {
          * room a posting. Somewhere to wash is not a billet.
          */
         private static final List<Affordance> ANY_ROOM = List.of(
-                Affordance.WASH, Affordance.UNWIND, Affordance.EXERCISE);
+                Affordance.WASH, Affordance.UNWIND, Affordance.EXERCISE, Affordance.LAP);
 
         /** A bunk, which is the one thing that is genuinely one's own. */
         private static final List<Affordance> AND_A_BUNK = List.of(Affordance.REST);
@@ -241,6 +241,25 @@ public enum CrewRole {
         return affordance == Affordance.ROUNDS || affordance == Affordance.REPAIR;
     }
 
+    /**
+     * Whether this job is a loop of places inside one room, done one after
+     * another in the order they were published.
+     *
+     * <p>The third shape a job can take, and the inverse of a {@linkplain
+     * #isCircuit circuit}: a circuit is one stop in each of several rooms, a lap
+     * is every stop in one. A running track publishes its markers round the
+     * ring; given one stop like a bench, a runner jogs to the nearest marker and
+     * stands on it, and given a circuit's one stop per room, the same. So a lap
+     * earns a stop at every marker of the track, consecutively, all the way
+     * round and back to the marker it started from, each a moment long, and
+     * nothing else on the rotation is dealt in between them. Members start at
+     * different markers, so runners are spread round the track rather than in
+     * a pack.
+     */
+    public static boolean isLap(Affordance affordance) {
+        return affordance == Affordance.LAP;
+    }
+
     /** The jobs this role works in a compartment that is somebody's workplace. */
     public List<Affordance> onWatch() {
         return onWatch;
@@ -290,7 +309,7 @@ public enum CrewRole {
             case STOW, READOUT, WATCH, ROUNDS, GUARD -> AmbientActivity.INSPECTING;
             case REST, WASH -> AmbientActivity.RESTING;
             case MESS, UNWIND -> AmbientActivity.SOCIALIZING;
-            case EXERCISE -> AmbientActivity.EXERCISING;
+            case EXERCISE, LAP -> AmbientActivity.EXERCISING;
             case PRACTICE -> AmbientActivity.PRACTICING_EQUIPMENT;
         };
     }
@@ -334,6 +353,10 @@ public enum CrewRole {
             case REPAIR -> 37f;
             case UNWIND -> 44f;
             case EXERCISE -> 27f;
+            // A marker is passed rather than stood at: the lap is the walk, and
+            // the dwell only has to be long enough to read as the turn onto the
+            // next leg.
+            case LAP -> 0.4f;
             // A compartment looked into and left. The shortest job aboard,
             // because what rounds are made of is the walk between them.
             case ROUNDS -> 6f;

@@ -167,14 +167,14 @@ final class LayeredUnitComposer {
         WorkMotion motion = LayeredAppearance.workMotion(flags);
         // Exercise is done empty-handed in any outfit: nobody runs, rows, presses or curls with a rifle, so it is
         // put away even by a family with no station arms to draw the hands with.
-        boolean exercising = stationFlag && (motion == WorkMotion.RUN || motion == WorkMotion.ROW
-                || motion == WorkMotion.PRESS || motion == WorkMotion.LIFT);
+        boolean exercising = stationFlag && (motion == WorkMotion.RUN || motion == WorkMotion.JOG
+                || motion == WorkMotion.ROW || motion == WorkMotion.PRESS || motion == WorkMotion.LIFT);
         // A station with no motion named is worked the ordinary way, across a console.
         if (atStation && motion == WorkMotion.NONE) motion = WorkMotion.CONSOLE;
         LayeredSpriteCache crate = motion == WorkMotion.CARRY
                 ? assets.specialEquipment(WorkPropLayer.CRATE) : null;
         boolean drawPrimaryLayers = drawWeaponLayers && !replacePrimary && !atStation && !exercising && crate == null;
-        boolean running = atStation && motion == WorkMotion.RUN;
+        boolean running = atStation && (motion == WorkMotion.RUN || motion == WorkMotion.JOG);
         if (atStation && motion == WorkMotion.ROW) {
             // A rower's whole body slides on the seat: back as the handle comes
             // in, forward again on the recovery.
@@ -462,7 +462,7 @@ final class LayeredUnitComposer {
                 yield new float[]{left ? -angle : angle, 0.03f};
             }
             // Arms pumping against the stride, opposite to each other.
-            case RUN -> {
+            case RUN, JOG -> {
                 float pump = (float) Math.sin(turn + (left ? 0.0 : Math.PI));
                 yield new float[]{pump * 6f, 0.01f + pump * 0.04f};
             }

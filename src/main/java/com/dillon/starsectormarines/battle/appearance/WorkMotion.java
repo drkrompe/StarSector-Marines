@@ -38,7 +38,13 @@ public enum WorkMotion {
     /** Lying on a bench, arms pressing a bar up and lowering it. */
     PRESS(2.4f, true),
     /** Standing, curling a weight in each hand alternately. */
-    LIFT(1.8f, true);
+    LIFT(1.8f, true),
+    /**
+     * Running along the ground: arms pumping as {@link #RUN}'s do, but on the
+     * deck rather than on a machine, so nothing draws the body ahead of where it
+     * is. Played round a running track, while moving and at each marker.
+     */
+    JOG(0.5f, true);
 
     private final float periodSeconds;
     private final boolean handsOn;
