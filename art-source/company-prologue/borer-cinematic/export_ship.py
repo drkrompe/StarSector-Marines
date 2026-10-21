@@ -23,7 +23,8 @@ What the export does to the build, in order (the Broadsword's export is the patt
      declared-muzzle name; the beams group rides it);
    - `Anchor tool cutting head` at the emitter barrel's root and `Anchor tool grab port|starboard`
      between each pair of grab tines, +X forward: where a shot puts the work;
-   - `Anchor cradle seat` on the pad plane under the .ship centre, +X forward: put it on a
+   - `RCS <side> <fore|aft> lift jet anchor` on the four ventral lift thrusters, +X straight down;
+   - `Anchor cradle seat` on the skid shoes' plane under the .ship centre, +X forward: put it on a
      Shepherd `Drone bay WS 003 launch point <i>` with the root scaled by 0.25 / 0.78.
 Nothing on the Borer moves (it has no gear, doors or fold), so there is no control empty.
 """
@@ -62,7 +63,7 @@ bpy.context.view_layer.update()
 src = {}
 for ob in bpy.data.objects:
     if ob.type == 'EMPTY' and (ob.name.endswith(' exhaust anchor') or ob.name.startswith('Weapon ')
-                               or ob.name == 'Borer cradle seat'):
+                               or ob.name.endswith(' thruster anchor') or ob.name == 'Borer cradle seat'):
         src[ob.name] = ob.matrix_world.copy()
 for ob in list(bpy.data.objects):
     if ob.type in ('CAMERA', 'LIGHT') or ob.name in src:
@@ -173,6 +174,17 @@ for e in geom['engines']:
                     'running': True})
 root['engines_running'] = [e['index'] for e in engines]
 
+# 5a'. The four ventral lift thrusters, as the kit's RCS jets (cold-gas puffs; the Shepherd's
+# manoeuvring jets are declared the same way), +X straight down.
+lifts = []
+for name in sorted(n for n in src if n.endswith(' thruster anchor')):
+    _, side, fore = name.split(' ')[:3]
+    at = src[name].translation.copy()
+    r_m = .2 if fore == 'fore' else .17
+    a = declare(f'RCS {side} {fore} lift jet anchor', at, (0, 0, -1), r_m / MPU, working=True, radius_m=r_m)
+    lifts.append({'anchor': a.name, 'side': side, 'position': fore, 'at': [round(c, 3) for c in at],
+                  'exhaust_dir': [0, 0, -1], 'radius_m': r_m, 'working': True})
+
 # 5b. The mining laser's muzzle, and the tool anchors.
 lens = src['Weapon WS 001 muzzle'].translation.copy()
 muzzle = declare('Anchor weapon WS 001 muzzle', lens, (1, 0, 0), .8, slot='WS 001', weapon='mininglaser',
@@ -188,7 +200,7 @@ for side, sg in (('port', 1), ('starboard', -1)):
                          note='between the tine tips: where a held piece of rock or salvage sits'))
 seat_at = src['Borer cradle seat'].translation.copy()
 seat = declare('Anchor cradle seat', seat_at, (1, 0, 0), 1.2, root_scale_in_shepherd=round(MPU / SHEPHERD_MPU, 6),
-               note='the pad plane under the .ship centre: place it on a Shepherd "Drone bay WS 003 launch point <i>", '
+               note='the skid shoe plane under the .ship centre: place it on a Shepherd "Drone bay WS 003 launch point <i>", '
                     'heading the slot angle (0 deg, +X forward), root scaled by 0.25 / 0.78')
 
 root['metres_per_unit'] = MPU
@@ -248,6 +260,7 @@ manifest = {
     'size_metres_rest': [round((h - l) * MPU, 2) for l, h in zip(lo, hi)],
     'engines': engines,
     'engines_running': root['engines_running'][:],
+    'lift_jets': lifts,
     'tool': {'weapon': 'mininglaser (WS 001, HIDDEN, small energy beam)',
              'muzzle': {'anchor': muzzle.name, 'at': at(muzzle), 'axis': [1, 0, 0]},
              'anchors': [{'anchor': t.name, 'at': at(t)} for t in tools],
@@ -261,7 +274,7 @@ manifest = {
                                  'heading_deg': 0,
                                  'checked': 'fighters-geometry/borer_cradle.py: no overlap, pads on the deck, '
                                             'socket over the charging contact, clear lift to the bay mouth'},
-                    'pad_soles_z_units': round(seat_at.z, 3)},
+                    'skid_shoe_soles_z_units': round(seat_at.z, 3)},
     'control': None,
     'lamps_lit': len(lamps),
     'lamps': lamps,
@@ -270,7 +283,7 @@ manifest = {
     'baked_meshes': len(baked),
     'images': sorted(i.name for i in bpy.data.images if i.packed_file),
     'effects': None,
-    'sources': {'skinned_blend': str(SKINNED.relative_to(PROLOGUE)).replace('\\', '/'),
+    'sources': {'skinned_blend': (SKINNED.relative_to(PROLOGUE) if SKINNED.is_relative_to(PROLOGUE) else SKINNED).as_posix(),
                 'geometry_json_sha256': sha(GEOM_JSON),
                 'skin_manifest_sha256': sha(SURFACE / 'skin-manifest.json') if (SURFACE / 'skin-manifest.json').exists() else None},
     'conventions': {

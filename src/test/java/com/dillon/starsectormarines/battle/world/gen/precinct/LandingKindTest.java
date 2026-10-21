@@ -72,8 +72,15 @@ class LandingKindTest {
     @Test
     void everyKindClaimsTheGroundItsBerthsStandOn() {
         for (LandingKind kind : LandingKind.values()) {
-            assertEquals(FortressProgram.LANDING_APRON, kind.program().apron(),
-                    kind + " owes no apron, so its berths have no ground of their own");
+            if (kind.hasFieldOfFire()) {
+                // A field's ground is the disc it keeps clear, not the shipped apron.
+                double disc = Math.PI * kind.fieldOfFire() * kind.fieldOfFire();
+                assertTrue(kind.program().apron() >= disc,
+                        kind + " owes less ground than the field of fire it promises");
+            } else {
+                assertEquals(FortressProgram.LANDING_APRON, kind.program().apron(),
+                        kind + " owes no apron, so its berths have no ground of their own");
+            }
             assertEquals(0, kind.program().airfields(),
                     kind + " orders an airfield lot, which would fence its own apron");
             assertEquals(0, kind.program().countOf(RoomPurpose.KEEP_THRONE),

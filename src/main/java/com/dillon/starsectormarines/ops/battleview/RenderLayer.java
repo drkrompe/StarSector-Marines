@@ -26,6 +26,9 @@ public enum RenderLayer {
     VEHICLES,
     /** Props / overlays (rocks, plants, road markings). */
     DOODADS,
+    /** Hive creep: growth over the ground, the props and parked wrecks it overgrows, and the
+     *  walls it climbs. Below highlights and units, which stand on it. */
+    CREEP,
     /** Debug cell highlights (plan-step cells, selected squad, captain). Above
      *  ground/doodads, below units so unit sprites stay legible over the tint. */
     HIGHLIGHTS,

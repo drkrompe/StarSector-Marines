@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.precinct.ApproachRegion;
+import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -120,6 +121,14 @@ public final class SpawnAnchorStage implements GenStage {
         // put in. Intersected rather than substituted, so a plan whose estimate
         // missed still spawns where the standoff says.
         int landing = claim == null ? -1 : plan.landingIndex();
+        // A field's force stands where its berths are, at the centre of the
+        // ground it keeps clear, rather than anywhere in a claim that runs to
+        // the edge of its field of fire. No draw: the centre is a statement.
+        FieldOfFire field = landing < 0 ? null : FieldOfFire.of(plan);
+        if (field != null) {
+            int[] centre = nearestWalkable(grid, field.centerX(), field.centerY(), field.radius());
+            if (centre != null) return centre;
+        }
         if (landing >= 0) {
             int[] place = ApproachRegion.claimBounds(claim, landing, ctx.width, ctx.height);
             if (place != null) {
@@ -134,6 +143,21 @@ public final class SpawnAnchorStage implements GenStage {
         }
         return pickSpawnAnchor(grid, region.x0(), region.y0(),
                 region.x1(), region.y1(), rng);
+    }
+
+    /** The walkable cell nearest a point by a fixed ring scan, or {@code null} within {@code reach}. */
+    private static int[] nearestWalkable(NavigationGrid grid, int x, int y, int reach) {
+        for (int ring = 0; ring <= reach; ring++) {
+            for (int dy = -ring; dy <= ring; dy++) {
+                for (int dx = -ring; dx <= ring; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != ring) continue;
+                    int cx = x + dx;
+                    int cy = y + dy;
+                    if (grid.inBounds(cx, cy) && grid.isWalkable(cx, cy)) return new int[]{cx, cy};
+                }
+            }
+        }
+        return null;
     }
 
     /**

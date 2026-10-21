@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.evacuation.CivilianRedoubt;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
@@ -15,6 +17,7 @@ import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,7 +29,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -79,6 +84,8 @@ class ColonyBreachEvidenceTest {
         int repeat = Integer.getInteger("commander.evidence.repeat", 1);
         String firstTrace = null;
         JSONObject summary = null;
+        JSONArray shuttleTouchdowns = null;
+        JSONObject marineContact = null;
         for (int run = 0; run < Math.max(1, repeat); run++) {
             try (BattleSimulation sim = fixture.build();
                  CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(
@@ -114,11 +121,32 @@ class ColonyBreachEvidenceTest {
                 }
 
                 sim.setCommandTraceEnabled(true, fixture.kind());
+                // Each company shuttle's touchdowns on its pad: the gap between
+                // two is its re-arm cycle, which is what a far landing costs.
+                Map<Long, ShuttleState> lastState = new HashMap<>();
+                JSONArray touchdowns = new JSONArray();
+                // The company's first contact: the first tick a marine fired a
+                // round or took damage, and where it stood.
+                JSONObject contact = null;
                 SpawnAudit audit = new SpawnAudit(sim);
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                     sim.advance(BattleSimulation.TICK_DT);
                     capture.afterAdvance();
                     audit.afterAdvance(sim, breach);
+                    if (contact == null) contact = firstMarineContact(sim);
+                    for (long id : sim.getAirEntityIds()) {
+                        ShuttleMission mission = sim.world().mission(id);
+                        if (mission == null || !onMarinePad(sim, mission)) continue;
+                        ShuttleState before = lastState.put(id, mission.state);
+                        if (mission.state == ShuttleState.LANDED && before != ShuttleState.LANDED) {
+                            touchdowns.put(new JSONObject().put("shuttle", id)
+                                    .put("tick", sim.getSimTickIndex()));
+                        }
+                    }
+                }
+                if (run == 0) {
+                    shuttleTouchdowns = touchdowns;
+                    marineContact = contact;
                 }
                 assertEquals(0, audit.sourceless, "swarm bodies spawned away from a living bore after the tremor: "
                         + audit.firstSourceless);
@@ -128,7 +156,7 @@ class ColonyBreachEvidenceTest {
                 String trace = sim.getCommandTraceJsonLines();
                 if (firstTrace == null) {
                     firstTrace = trace;
-                    summary = summarize(sim, breach, fixture, maxTicks);
+                    summary = summarize(sim, breach, fixture, maxTicks, trace);
                     summary.put("boreSpawns", audit.boreSpawns);
                 } else {
                     assertEquals(firstTrace, trace, "Colony Breach must replay byte-identically");
@@ -136,6 +164,8 @@ class ColonyBreachEvidenceTest {
             }
         }
 
+        summary.put("shuttleTouchdowns", shuttleTouchdowns);
+        summary.put("marineContact", marineContact == null ? JSONObject.NULL : marineContact);
         JSONArray beats = summary.getJSONArray("beats");
         List<String> fired = new ArrayList<>();
         for (int i = 0; i < beats.length(); i++) {
@@ -208,8 +238,25 @@ class ColonyBreachEvidenceTest {
     }
 
     private static JSONObject summarize(BattleSimulation sim, ColonyBreachSequence breach,
-                                        BattleFixture fixture, int maxTicks) throws Exception {
+                                        BattleFixture fixture, int maxTicks, String trace) throws Exception {
         ColonyBreachSequence.Snapshot snapshot = breach.snapshot(sim);
+        // Where the company came down, and how long before anyone died: the
+        // first casualty of either side, and the first of the company's own.
+        JSONArray pads = new JSONArray();
+        for (LandingPad pad : sim.getMarineLandingPads()) {
+            pads.put(new JSONObject().put("x", pad.centerX).put("y", pad.centerY)
+                    .put("approach", pad.approach.name()));
+        }
+        int firstContact = -1;
+        int firstMarineCasualty = -1;
+        for (String line : trace.split("\n")) {
+            if (!line.contains("\"event\": \"casualty\"") && !line.contains("\"event\":\"casualty\"")) continue;
+            JSONObject event = new JSONObject(line);
+            int tick = event.getInt("tick");
+            if (firstContact < 0) firstContact = tick;
+            if (firstMarineCasualty < 0 && "MARINE".equals(event.optString("faction"))) firstMarineCasualty = tick;
+            if (firstMarineCasualty >= 0) break;
+        }
         JSONArray sites = new JSONArray();
         for (int i = 0; i < snapshot.sites().size(); i++) {
             ColonyEruptionPlan.Site site = snapshot.sites().get(i);
@@ -264,6 +311,9 @@ class ColonyBreachEvidenceTest {
                 .put("landfallTick", snapshot.landfallTick())
                 .put("shelterReachedTick", snapshot.shelterReachedTick())
                 .put("tremorTick", snapshot.tremorTick())
+                .put("firstContactTick", firstContact)
+                .put("firstMarineCasualtyTick", firstMarineCasualty)
+                .put("marinePads", pads)
                 .put("colonists", snapshot.colonists())
                 .put("colonistsAlive", snapshot.colonistsAlive())
                 .put("evacuated", tracker.evacuatedCount())
@@ -275,6 +325,26 @@ class ColonyBreachEvidenceTest {
                 .put("directorTarget", director == null ? 0 : director.targetPopulation())
                 .put("liveSwarm", director == null ? 0 : director.liveRunners())
                 .put("beats", beats);
+    }
+
+    /** The first marine to have fired or been hurt, as {tick, x, y}, or {@code null}. */
+    private static JSONObject firstMarineContact(BattleSimulation sim) throws Exception {
+        for (int i = 0, count = sim.liveUnitCount(); i < count; i++) {
+            long id = sim.liveUnitAt(i);
+            if (sim.identity().faction(id) != Faction.MARINE || !sim.identity().type(id).combatant) continue;
+            if (sim.telemetry().roundsFired(id) == 0 && sim.telemetry().damageTaken(id) <= 0f) continue;
+            return new JSONObject().put("tick", sim.getSimTickIndex())
+                    .put("x", (int) sim.world().x(id)).put("y", (int) sim.world().y(id));
+        }
+        return null;
+    }
+
+    /** Whether a shuttle is one of the company's, setting down on a marine pad. */
+    private static boolean onMarinePad(BattleSimulation sim, ShuttleMission mission) {
+        for (LandingPad pad : sim.getMarineLandingPads()) {
+            if (pad.contains((int) mission.lzX, (int) mission.lzY)) return true;
+        }
+        return false;
     }
 
     private static JSONArray redoubts(ColonyBreachSequence.Snapshot snapshot) throws Exception {
@@ -302,7 +372,13 @@ class ColonyBreachEvidenceTest {
                 .append(s.getInt("ticks")).append(", winner ").append(s.get("winner"))
                 .append(", ").append(s.getInt("evacuated")).append('/').append(s.getInt("registered"))
                 .append(" evacuated; ").append(s.getInt("colonistsAlive")).append('/')
-                .append(s.getInt("colonists")).append(" colonists alive outside the shelter.\n\n## Eruption sites\n\n| # | role | cell | place | erupts | open |\n|---|---|---|---|---|---|\n");
+                .append(s.getInt("colonists")).append(" colonists alive outside the shelter.\n\n")
+                .append("Landfall at tick ").append(s.getInt("landfallTick"))
+                .append(", the company's first contact at ").append(s.get("marineContact"))
+                .append(", first casualty of any side at ").append(s.getInt("firstContactTick"))
+                .append(", first marine casualty at ").append(s.getInt("firstMarineCasualtyTick"))
+                .append(", shelter reached at ").append(s.getInt("shelterReachedTick"))
+                .append(". Marine pads: ").append(s.getJSONArray("marinePads")).append(".\n\n## Eruption sites\n\n| # | role | cell | place | erupts | open |\n|---|---|---|---|---|---|\n");
         JSONArray sites = s.getJSONArray("sites");
         for (int i = 0; i < sites.length(); i++) {
             JSONObject site = sites.getJSONObject(i);

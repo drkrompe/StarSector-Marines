@@ -1,0 +1,53 @@
+{
+  "sheetName": "ship-gym-track",
+  "sheet": "art-source/tilesets/ship-gym-track.raw.png",
+  "cellPx": 64,
+  "gridCols": 10,
+  "gridRows": 10,
+  "idPrefix": "ship-gym-track",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/ship-gym-track.png",
+  "note": "Geometry-first cruise-ship gymnasium pieces (ship-gym-track-guide.py, 128 px per cell on the guide, 125.4 on the raw). The lounger came back about 15% longer than its guide, so it is cut by its own opaque extent padded to its 3:1 frame (a uniform 0.86x scale) rather than by the guide frame. The track is one opaque interior cut.",
+  "entries": [
+    {
+      "id": "ship-gym-track.lounger",
+      "rect": [
+        136,
+        121,
+        413,
+        138
+      ],
+      "footprintCells": [
+        3,
+        1
+      ],
+      "cover": "light",
+      "ballisticHalfHeight": 0.25,
+      "included": true
+    },
+    {
+      "id": "ship-gym-track.track",
+      "rect": [
+        141,
+        518,
+        344,
+        344
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true,
+      "block": "ship-gym-track.track",
+      "slot": "v1"
+    }
+  ],
+  "blocks": [
+    {
+      "id": "ship-gym-track.track",
+      "layout": "variants"
+    }
+  ]
+}

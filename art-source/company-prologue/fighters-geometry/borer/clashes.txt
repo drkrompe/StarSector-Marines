@@ -1,8 +1,18 @@
-BORER | geometry: 169 meshes, 110 pass-2 detail
-detail meeting detail within one fitting: 66 pairs (counted, not listed)
+BORER | geometry: 225 meshes, 98 pass-2 detail
+detail meeting detail within one fitting: 58 pairs (counted, not listed)
 detail crossing detail across fittings: 0 pairs
 floating detail (touches nothing): 0
-body crossing body (pass 1): 80 pairs
+body crossing body (pass 1): 173 pairs
+    Belly charging socket contact plate | Belly charging socket housing
+    Belly charging socket contact plate | Docking keel
+    Belly charging socket housing | Docking keel
+    Belly charging socket housing | Docking keel port clamp lug 1
+    Belly charging socket housing | Docking keel starboard clamp lug 1
+    Docking keel | Docking keel port clamp lug 1
+    Docking keel | Docking keel port clamp lug 2
+    Docking keel | Docking keel starboard clamp lug 1
+    Docking keel | Docking keel starboard clamp lug 2
+    Docking keel | Hull spine
     Drive port axle | Drive port axle web
     Drive port axle | Drive port pod housing
     Drive port axle | Hull spine
@@ -13,6 +23,11 @@ body crossing body (pass 1): 80 pairs
     Drive port gimbal drum | Drive port pod housing
     Drive port pod housing | Engine 2 mouth lip
     Drive port pod housing | Hull spine
+    Drive port pod housing | Lift port aft lift ring
+    Drive port pod housing | Skid port aft shoe bolt 1
+    Drive port pod housing | Skid port aft shoe bolt 2
+    Drive port pod housing | Skid port strut 2
+    Drive port pod housing | Skid port strut 2 shoe plate
     Drive starboard axle | Drive starboard axle web
     Drive starboard axle | Drive starboard pod housing
     Drive starboard axle | Hull spine
@@ -23,6 +38,11 @@ body crossing body (pass 1): 80 pairs
     Drive starboard gimbal drum | Drive starboard pod housing
     Drive starboard pod housing | Engine 3 mouth lip
     Drive starboard pod housing | Hull spine
+    Drive starboard pod housing | Lift starboard aft lift ring
+    Drive starboard pod housing | Skid starboard aft shoe bolt 1
+    Drive starboard pod housing | Skid starboard aft shoe bolt 2
+    Drive starboard pod housing | Skid starboard strut 2
+    Drive starboard pod housing | Skid starboard strut 2 shoe plate
     Engine 1 aft-facing bell | Engine 1 dark throat
     Engine 1 aft-facing bell | Engine 1 mouth lip
     Engine 1 centre body | Engine 1 dark throat
@@ -51,13 +71,42 @@ body crossing body (pass 1): 80 pairs
     Engine 3 centre body | Engine 3 stator vane 4
     Engine 3 centre body | Engine 3 stator vane 5
     Engine 3 centre body | Engine 3 stator vane 6
+    Hull nose cap | Hull spine
+    Hull nose cap | Pod port root web
+    Hull nose cap | Pod starboard root web
+    Hull nose cap | Sling yoke head
     Hull spine | Pod port armour shell
     Hull spine | Pod port root drum
     Hull spine | Pod port root web
     Hull spine | Pod starboard armour shell
     Hull spine | Pod starboard root drum
     Hull spine | Pod starboard root web
-    Hull spine | Tool head housing
+    Hull spine | Sling rear link
+    Hull spine | Sling rear link upper clevis
+    Hull spine | Sling yoke head
+    Lift port aft lift bell | Lift port aft lift ring
+    Lift port aft lift bell | Lift port aft lift throat
+    Lift port aft lift bell | Lift port aft lift vane 1
+    Lift port aft lift bell | Lift port aft lift vane 2
+    Lift port aft lift bell | Lift port aft lift vane 3
+    Lift port fore lift bell | Lift port fore lift ring
+    Lift port fore lift bell | Lift port fore lift throat
+    Lift port fore lift bell | Lift port fore lift vane 1
+    Lift port fore lift bell | Lift port fore lift vane 2
+    Lift port fore lift bell | Lift port fore lift vane 3
+    Lift port fore lift ring | Pod port armour shell
+    Lift starboard aft lift bell | Lift starboard aft lift ring
+    Lift starboard aft lift bell | Lift starboard aft lift throat
+    Lift starboard aft lift bell | Lift starboard aft lift vane 1
+    Lift starboard aft lift bell | Lift starboard aft lift vane 2
+    Lift starboard aft lift bell | Lift starboard aft lift vane 3
+    Lift starboard fore lift bell | Lift starboard fore lift ring
+    Lift starboard fore lift bell | Lift starboard fore lift throat
+    Lift starboard fore lift bell | Lift starboard fore lift vane 1
+    Lift starboard fore lift bell | Lift starboard fore lift vane 2
+    Lift starboard fore lift bell | Lift starboard fore lift vane 3
+    Lift starboard fore lift bell | Pod starboard armour shell
+    Lift starboard fore lift ring | Pod starboard armour shell
     Pod port armour shell | Pod port outer cheek
     Pod port armour shell | Pod port root drum
     Pod port armour shell | Pod port root web
@@ -65,8 +114,12 @@ body crossing body (pass 1): 80 pairs
     Pod port armour shell | Pod port tine inner knuckle
     Pod port armour shell | Pod port tine outer
     Pod port armour shell | Pod port tine outer knuckle
+    Pod port armour shell | Skid port fore shoe bolt 1
+    Pod port armour shell | Skid port fore shoe bolt 2
+    Pod port armour shell | Skid port strut 1
+    Pod port armour shell | Skid port strut 1 shoe plate
     Pod port root drum | Pod port root web
-    Pod port root web | Tool head housing
+    Pod port root web | Sling yoke head
     Pod port tine inner | Pod port tine inner knuckle
     Pod port tine outer | Pod port tine outer knuckle
     Pod starboard armour shell | Pod starboard outer cheek
@@ -76,10 +129,50 @@ body crossing body (pass 1): 80 pairs
     Pod starboard armour shell | Pod starboard tine inner knuckle
     Pod starboard armour shell | Pod starboard tine outer
     Pod starboard armour shell | Pod starboard tine outer knuckle
+    Pod starboard armour shell | Skid starboard fore shoe bolt 1
+    Pod starboard armour shell | Skid starboard fore shoe bolt 2
+    Pod starboard armour shell | Skid starboard strut 1
+    Pod starboard armour shell | Skid starboard strut 1 shoe plate
     Pod starboard root drum | Pod starboard root web
-    Pod starboard root web | Tool head housing
+    Pod starboard root web | Sling yoke head
     Pod starboard tine inner | Pod starboard tine inner knuckle
     Pod starboard tine outer | Pod starboard tine outer knuckle
+    Skid port aft shoe | Skid port clamp lug 2
+    Skid port aft shoe | Skid port rail
+    Skid port clamp lug 1 | Skid port fore shoe
+    Skid port clamp lug 1 | Skid port rail
+    Skid port clamp lug 2 | Skid port rail
+    Skid port fore shoe | Skid port rail
+    Skid port rail | Skid port strut 1
+    Skid port rail | Skid port strut 2
+    Skid port strut 1 | Skid port strut 1 shoe plate
+    Skid port strut 2 | Skid port strut 2 shoe plate
+    Skid starboard aft shoe | Skid starboard clamp lug 2
+    Skid starboard aft shoe | Skid starboard rail
+    Skid starboard clamp lug 1 | Skid starboard fore shoe
+    Skid starboard clamp lug 1 | Skid starboard rail
+    Skid starboard clamp lug 2 | Skid starboard rail
+    Skid starboard fore shoe | Skid starboard rail
+    Skid starboard rail | Skid starboard strut 1
+    Skid starboard rail | Skid starboard strut 2
+    Skid starboard strut 1 | Skid starboard strut 1 shoe plate
+    Skid starboard strut 2 | Skid starboard strut 2 shoe plate
+    Sling port hanger arm | Sling port trunnion
+    Sling port hanger arm | Sling port trunnion cap
+    Sling port hanger arm | Sling yoke head
+    Sling port hanger arm | Tool head housing
+    Sling port trunnion | Sling port trunnion cap
+    Sling port trunnion | Tool head housing
+    Sling rear link | Sling rear link lower clevis
+    Sling rear link | Sling rear link upper clevis
+    Sling rear link | Tool head housing
+    Sling rear link lower clevis | Tool head housing
+    Sling starboard hanger arm | Sling starboard trunnion
+    Sling starboard hanger arm | Sling starboard trunnion cap
+    Sling starboard hanger arm | Sling yoke head
+    Sling starboard hanger arm | Tool head housing
+    Sling starboard trunnion | Sling starboard trunnion cap
+    Sling starboard trunnion | Tool head housing
     Tool head emitter barrel | Tool head emitter rim
     Tool head emitter barrel | Tool head housing
     Tool head emitter glass | Tool head emitter rim
@@ -87,14 +180,13 @@ detail bedded into body (part: body parts it meets):
     Arm port damper cylinder: Drive port pod housing, Pod port armour shell
     Arm port damper eye: Drive port pod housing
     Arm port damper rod: Drive port pod housing
-    Arm port knuckle post: Pod port armour shell
     Arm port strut: Drive port pod housing, Pod port armour shell
     Arm starboard damper cylinder: Drive starboard pod housing, Pod starboard armour shell
     Arm starboard damper eye: Drive starboard pod housing
     Arm starboard damper rod: Drive starboard pod housing
-    Arm starboard knuckle post: Pod starboard armour shell
     Arm starboard strut: Drive starboard pod housing, Pod starboard armour shell
-    Belly charging socket housing: Hull spine
+    Belly charging socket contact plate.001: Belly charging socket housing, Docking keel
+    Belly charging socket housing.001: Belly charging socket contact plate, Belly charging socket housing, Docking keel, Docking keel port clamp lug 1, Docking keel starboard clamp lug 1
     Drive port RCS housing: Drive port pod housing
     Drive port aft vent slat 1: Drive port pod housing
     Drive port aft vent slat 2: Drive port pod housing
@@ -115,10 +207,6 @@ detail bedded into body (part: body parts it meets):
     Drive starboard gimbal band 1: Drive starboard gimbal drum, Drive starboard pod housing
     Drive starboard gimbal band 2: Drive starboard gimbal drum, Drive starboard pod housing
     Drive starboard gimbal hub: Drive starboard gimbal drum, Drive starboard pod housing
-    Foot port aft leg: Drive port pod housing
-    Foot port fore leg: Pod port armour shell
-    Foot starboard aft leg: Drive starboard pod housing
-    Foot starboard fore leg: Pod starboard armour shell
     Hull spine antenna: Hull spine
     Hull spine beacon lamp bracket: Hull spine
     Hull spine dorsal vent slat 1: Hull spine
@@ -155,13 +243,13 @@ detail bedded into body (part: body parts it meets):
     Pod starboard top vent slat 3: Pod starboard armour shell
     Pod starboard top vent slat 4: Pod starboard armour shell
     Pod starboard top vent well: Pod starboard armour shell
-    Tool head port coil drum: Hull spine, Pod port root web, Tool head housing
-    Tool head port coil rib 1: Hull spine, Tool head housing
+    Tool head port coil drum: Tool head emitter barrel, Tool head housing
+    Tool head port coil rib 1: Tool head housing
     Tool head port coil rib 2: Tool head housing
     Tool head port coil rib 3: Tool head housing
-    Tool head port coil rib 4: Tool head housing
-    Tool head starboard coil drum: Hull spine, Pod starboard root web, Tool head housing
-    Tool head starboard coil rib 1: Hull spine, Tool head housing
+    Tool head port coil rib 4: Tool head emitter barrel, Tool head housing
+    Tool head starboard coil drum: Tool head emitter barrel, Tool head housing
+    Tool head starboard coil rib 1: Tool head housing
     Tool head starboard coil rib 2: Tool head housing
     Tool head starboard coil rib 3: Tool head housing
-    Tool head starboard coil rib 4: Tool head housing
+    Tool head starboard coil rib 4: Tool head emitter barrel, Tool head housing

@@ -247,6 +247,7 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
+import com.dillon.starsectormarines.battle.creep.BoreCreep;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
@@ -707,6 +708,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         relayNineStory = new RelayNineStoryObserver(storyBeats);
     }
     private CreepField creep;
+    private final BoreCreep boreCreep = new BoreCreep();
     /**
      * The battle's hive creep, created on first use by whatever declares a
      * source (a bore, a scene); call only from the simulation thread.
@@ -1637,6 +1639,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return civilianEvacuationSystem.addHoldout(approachX, approachY, left, top, right, bottom,
                 garrisonSquadId, members);
     }
+    /** Gives a holdout the team on its firing step; see {@link CivilianEvacuationSystem#setHoldoutLine}. */
+    public boolean setCivilianHoldoutLine(int number, int lineSquadId, TacticalNode building) {
+        return civilianEvacuationSystem.setHoldoutLine(number, lineSquadId, building);
+    }
     @Override
     public List<CivilianRedoubt> getCivilianRedoubts() {
         return civilianEvacuationSystem.redoubts();
@@ -1775,6 +1781,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public void addDoodad(Doodad d) {
         doodadService.addDoodad(d);
         if (d.hasFogSurface()) fogOfWar.registerSolidProp(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY);
+    }
+
+    /** Whether a structural blow on this cell lands on a sandbag, fence or crate barricade; see {@link DoodadService#barricadeAt}. */
+    public boolean isBarricadeAt(int x, int y) {
+        return doodadService.barricadeAt(x, y, topology);
     }
 
     /** Publishes rendered nature-overlay metadata into tactical and ballistic cover without adding render doodads. */
@@ -3461,6 +3472,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmBores.tick(this);
         if (colonyBreach != null) colonyBreach.tick(this);
         swarmReinforcements.tick(TICK_DT, this);
+        boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);
         if (reliefAssault != null) reliefAssault.tick(this);
         if (lastLiftSequence != null) lastLiftSequence.tick(this);

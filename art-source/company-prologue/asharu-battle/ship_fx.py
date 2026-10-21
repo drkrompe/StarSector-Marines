@@ -25,6 +25,13 @@ power and a volume's per-length density as they were. `metre_scale` gives each l
 2*log2(mpu) and divides each volume's density and emission by mpu, so the copy lights and
 fogs the metre scene as it did its own file.
 
+And every object of a copy whose material reads its per-object colour (Object Info Color/Alpha,
+or an Object attribute `color`: a tracer's burn, a puff's fade and seed) gets a material of its
+own with that colour keyed on a node. Drawn through a collection instance, Cycles hands such a
+material the instancer's colour, so a keyed `ob.color` never arrived and the puffs never faded.
+`own_colours` copies the object's colour curves onto the node; the kit's shared materials are
+untouched.
+
 Runs inside Blender only. Used by `battle_blockout.py` (the scene) and `effects_bench.py`.
 """
 import contextlib
@@ -191,7 +198,33 @@ class ShipFx:
         self.hull_rest = {k: v for k, v in (self.hull_ctl.items() if self.hull_ctl is not None else ())
                           if isinstance(v, (int, float)) and k != 'ship_fx_hull_control'}
         self.groups = {base_name(c.name): c for c in ([self.fx, *self.fx.children_recursive] if self.fx else ())}
+        self.own_colours()
         self.metre_scale()
+
+    # ----------------------------------------------------------------------- per-object colour
+    def own_colours(self):
+        """Each object here whose material reads its object colour: its own material, with the
+        colour keyed on a node from the object's own colour curves (idempotent: re-run after the
+        kit's helpers key more). Returns how many objects it routed."""
+        n = 0
+        for ob in [o for o in self.ids if isinstance(o, bpy.types.Object)]:
+            for slot in ob.material_slots:
+                m = slot.material
+                if m is None or m.node_tree is None:
+                    continue
+                if m.get(OWN_COLOUR) is None:
+                    if not _colour_readers(m.node_tree):
+                        continue
+                    m2 = m.copy()
+                    m2.name = f'{base_name(m.name)} | {base_name(ob.name)} @{self.key}'
+                    _route_colour(m2.node_tree)
+                    m2[OWN_COLOUR] = base_name(ob.name)
+                    self.ids.add(m2)
+                    slot.link = 'OBJECT'
+                    slot.material = m = m2
+                _key_colour(ob, m.node_tree)
+                n += 1
+        return n
 
     # ----------------------------------------------------------------------- metre scale
     def metre_scale(self):
@@ -442,6 +475,7 @@ class ShipFx:
                 for idb in set(getattr(bpy.data, s)) - before[s]:
                     self.ids.add(idb)
                     idb.name = f'{base_name(idb.name)} @{self.key}'
+            self.own_colours()      # the helpers key ob.color, which an instance never shows
             self.metre_scale()      # whatever the helpers made is at hull scale too
             if env_old is None:
                 os.environ.pop('SWFX_HULL', None)
@@ -501,6 +535,134 @@ class _Kit:
 _TYPES = {'objects': bpy.types.Object, 'meshes': bpy.types.Mesh, 'lights': bpy.types.Light,
           'materials': bpy.types.Material, 'node_groups': bpy.types.NodeTree, 'curves': bpy.types.Curve,
           'actions': bpy.types.Action}
+
+
+OWN_COLOUR = 'ship_fx_own_colour'   # on a material: the object whose colour it carries on a node
+COLOUR_NODE, ALPHA_NODE = 'ShipFx object colour', 'ShipFx object alpha'
+
+
+def _colour_readers(tree):
+    """(node, output) pairs that read the drawing object's colour, with links out."""
+    out = []
+    for n in tree.nodes:
+        if n.type == 'OBJECT_INFO':
+            names = ('Color', 'Alpha')
+        elif n.type == 'ATTRIBUTE' and n.attribute_type == 'OBJECT' and n.attribute_name == 'color':
+            names = ('Color', 'Vector', 'Fac', 'Alpha')
+        else:
+            continue
+        out += [(n, n.outputs[k]) for k in names if k in n.outputs and n.outputs[k].is_linked]
+    return out
+
+
+def _route_colour(tree):
+    """Relink every reader of the object colour to an RGB node (colour) and a Value node (alpha)."""
+    rgb = tree.nodes.new('ShaderNodeRGB')
+    rgb.name = rgb.label = COLOUR_NODE
+    alpha = tree.nodes.new('ShaderNodeValue')
+    alpha.name = alpha.label = ALPHA_NODE
+    for n, sock in _colour_readers(tree):
+        src = alpha.outputs[0] if sock.name == 'Alpha' else rgb.outputs[0]
+        if sock.name == 'Fac':       # an attribute's Fac is the colour's average
+            avg = tree.nodes.new('ShaderNodeRGBToBW')
+            tree.links.new(rgb.outputs[0], avg.inputs[0])
+            src = avg.outputs[0]
+        for link in list(sock.links):
+            tree.links.new(src, link.to_socket)
+        rgb.location, alpha.location = n.location, (n.location.x, n.location.y - 160)
+
+
+def _key_colour(ob, tree):
+    """Copy ob.color (keyed or still) onto the material's colour and alpha nodes."""
+    rgb, alpha = tree.nodes.get(COLOUR_NODE), tree.nodes.get(ALPHA_NODE)
+    if rgb is None:
+        return
+    for i in range(4):
+        sock, idx = (rgb.outputs[0], i) if i < 3 else (alpha.outputs[0], -1)
+        path = sock.path_from_id('default_value')
+        src = find_fcurve(ob, 'color', i)
+        dst = find_fcurve(tree, path, max(idx, 0))
+        if src is None or len(src.keyframe_points) == 0:
+            if dst is not None:
+                dst.keyframe_points.clear()
+                dst.keyframe_points.insert(0.0, ob.color[i]).interpolation = 'CONSTANT'
+            if idx < 0:
+                sock.default_value = ob.color[i]
+            else:
+                sock.default_value[idx] = ob.color[i]
+            continue
+        if dst is None:
+            if idx < 0:
+                sock.keyframe_insert('default_value', frame=src.keyframe_points[0].co[0])
+            else:
+                sock.keyframe_insert('default_value', index=idx, frame=src.keyframe_points[0].co[0])
+            dst = find_fcurve(tree, path, max(idx, 0))
+        k = len(src.keyframe_points)
+        flat = [0.0] * (2 * k)
+        dst.keyframe_points.clear()
+        dst.keyframe_points.add(k)
+        for prop in ('co', 'handle_left', 'handle_right'):
+            src.keyframe_points.foreach_get(prop, flat)
+            dst.keyframe_points.foreach_set(prop, flat)
+        for prop in ('interpolation', 'handle_left_type', 'handle_right_type', 'easing'):
+            vals = [getattr(p, prop) for p in src.keyframe_points]
+            for p, v in zip(dst.keyframe_points, vals):
+                setattr(p, prop, v)
+        dst.extrapolation = src.extrapolation
+        dst.update()
+
+
+def colour_audit(ship):
+    """Proof of own_colours on one ShipFx copy: objects still reading their object colour
+    directly (want 0), objects routed, keyed colour curves, and the worst difference between an
+    object's colour curve and its material node's, sampled across the keys (want 0)."""
+    direct, routed, keyed, worst = set(), 0, 0, 0.0
+    for o in ship.ids:
+        if not isinstance(o, bpy.types.Object):
+            continue
+        for sl in o.material_slots:
+            m = sl.material
+            if m is None or m.node_tree is None:
+                continue
+            if m.get(OWN_COLOUR) is None:
+                if _colour_readers(m.node_tree):
+                    direct.add(base_name(o.name))
+                continue
+            routed += 1
+            nodes = m.node_tree.nodes
+            for i in range(4):
+                src = find_fcurve(o, 'color', i)
+                if src is None or not len(src.keyframe_points):
+                    continue
+                keyed += 1
+                sock = (nodes[COLOUR_NODE] if i < 3 else nodes[ALPHA_NODE]).outputs[0]
+                dst = find_fcurve(m.node_tree, sock.path_from_id('default_value'), i if i < 3 else 0)
+                f0, f1 = src.keyframe_points[0].co[0], src.keyframe_points[-1].co[0]
+                for j in range(9):
+                    f = f0 - 1 + (f1 - f0 + 2) * j / 8
+                    worst = max(worst, abs(src.evaluate(f) - dst.evaluate(f)) if dst else float('inf'))
+    return dict(routed=routed, keyed_curves=keyed, worst=worst, direct=len(direct),
+                direct_names=sorted(direct)[:4])
+
+
+def find_fcurve(idb, path, index=0):
+    """An F-curve of idb's action, legacy or layered (Blender 5)."""
+    ad = getattr(idb, 'animation_data', None)
+    act = ad.action if ad else None
+    if act is None:
+        return None
+    curves = getattr(act, 'fcurves', None)
+    if curves is not None:
+        return curves.find(path, index=index)
+    slot = getattr(ad, 'action_slot', None)       # this ID's own slot, not another user's of the action
+    for layer in act.layers:
+        for strip in layer.strips:
+            bag = strip.channelbag(slot) if slot is not None else None
+            for b in ([bag] if bag is not None else [] if slot is not None else strip.channelbags):
+                fc = b.fcurves.find(path, index=index)
+                if fc:
+                    return fc
+    return None
 
 
 SCALED = 'ship_fx_metre_scale'    # on a light or material: the mpu it was put to metre scale for

@@ -39,7 +39,46 @@ public enum LandingKind {
      * settlement's {@link SettlementLink#LANDING} lifeline already implies —
      * somewhere ships put down, run from a hut, with nothing else round it.
      */
-    STRIP;
+    STRIP,
+
+    /**
+     * Fields outside a settlement's edge, chosen for what they let the force
+     * see: nothing built, walled or tall within {@link #fieldOfFire()} cells of
+     * the berths' centre, so the company lands with long, clear fields of fire
+     * on every side and walks into the town across open ground.
+     *
+     * <p>Never derived. It is what a mission asks for when the town itself is
+     * the danger — a colony whose ground opens under it, whose sky the spores
+     * deny and whose buildings would give the swarm cover to the hull — and
+     * the reason for landing out there rather than beside the people being
+     * rescued is the mission's to state, not the world's.
+     */
+    OPEN_FIELD;
+
+    /**
+     * How far from the field's centre nothing may stand, in cells, or zero for
+     * a kind that promises no field of fire.
+     *
+     * <p>Forty: the berths stand within {@link #BERTH_REACH} of the centre, so
+     * every berth keeps at least twenty-four cells of open ground on every
+     * side, which is a service rifle's reach and most of a marksman's. Less,
+     * and a runner is on the berth before a squad has fired twice; much more,
+     * and the field stops fitting between a 400x240 colony's places.
+     */
+    public int fieldOfFire() {
+        return this == OPEN_FIELD ? 40 : 0;
+    }
+
+    /**
+     * How far from a field's centre its berths may stand: the box the arrival
+     * areas are scanned in, measured to the far corner of a berth.
+     */
+    public static final int BERTH_REACH = 16;
+
+    /** Whether this kind promises a clear field of fire round its berths. */
+    public boolean hasFieldOfFire() {
+        return fieldOfFire() > 0;
+    }
 
     /**
      * What a world offers to land on.
@@ -100,6 +139,7 @@ public enum LandingKind {
             case SPACEPORT -> FortressProgram.spaceport();
             case STRIP -> FortressProgram.landingStrip();
             case FIELD -> FortressProgram.landingField();
+            case OPEN_FIELD -> FortressProgram.openField(fieldOfFire());
         };
         if (arrivalAreas <= AREAS_THE_APRON_SEATS) return base;
         // Frontage scales with the areas and the claim is roughly square, so

@@ -9,12 +9,11 @@ import java.util.List;
 /** Dry cardio, strength and mat stations beside a compact pool with a complete walking surround. */
 public final class ShipGymFitting implements RoomFitting {
     private static final String KIT="ship-gym.";
-    /** The rower with its seat off the rail, so the seat can slide; the gym's own rower stands in without it. */
-    private static final String SLIDING_ROWER="deck-motion.rower";
     @Override public RoomPurpose purpose() { return RoomPurpose.GYMNASIUM; }
 
     @Override public void fit(RoomFloor floor) {
         int w=floor.canonicalWidth(), h=floor.canonicalHeight();
+        if(GrandGymFitting.fits(w,h)) { new GrandGymFitting().fit(floor); return; }
         if(w<14 || h<10 || !available()) { new GymFitting().fit(floor); return; }
         reserve(floor,0,0,w,1);reserve(floor,0,h-1,w,1);
         reserve(floor,0,0,1,h);reserve(floor,w-1,0,1,h);
@@ -31,11 +30,16 @@ public final class ShipGymFitting implements RoomFitting {
         floor.markGround(basin[0],basin[1],basin[2],basin[3],GroundKind.WATER);
         surface(floor,8,3,4,4,"water");
 
-        reserve(floor,1,5,2,3);surface(floor,1,5,2,3,"mat");
-        task(floor,1,5,2,5);task(floor,1,7,2,7);
-        station(floor,KIT+"treadmill",1,1,1,4,1,3);
-        station(floor,TileRegistry.installed().doodad(SLIDING_ROWER)!=null?SLIDING_ROWER:KIT+"rower",4,1,4,4,4,3);
-        station(floor,KIT+"bench-press",4,6,3,7,4,7);
+        // Machines at their real size, a crewman's shoulders being 0.6 of a cell: treadmills and rowers one cell
+        // wide and three long, the press a 2.2 m bar over a narrow bench. A sprite's top edge lies at its
+        // footprint's highest row, so the console, flywheel and bar are up and the foot is the lowest row; each is
+        // worked from the free cell below its foot, facing up its length, and the user is drawn on it
+        // (WorkMotion.mountCells).
+        for(int x:new int[]{1,2}) station(floor,KIT+"treadmill",x,5,x,4,x,5);
+        for(int x:new int[]{4,5}) station(floor,KIT+"rower",x,5,x,4,x,5);
+        reserve(floor,1,1,2,3);surface(floor,1,1,2,3,"mat");
+        task(floor,1,1,2,1);task(floor,1,3,2,3);
+        station(floor,KIT+"bench-press",3,2,4,1,4,2);
         if(floor.placeAssembly(8,8,KIT+"weights",List.of())) {
             task(floor,9,7,9,8);task(floor,11,7,11,8);
         }

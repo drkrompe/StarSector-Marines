@@ -2,7 +2,7 @@
 
   python compose_review.py <panels dir> <out dir>
 
-Reads hero/stern/cradle/talon.png (960x540 each, review_look.py) and writes
+Reads hero/under/cradle/sizes.png (960x540 each, review_look.py) and writes
   01-sheet.png      1920x1080, 100%: the 2x2 sheet with a caption strip on each panel
   01-sheet.jpg      the same at 1600 px wide, for the review page
   02-<panel>.jpg    each panel alone at 1600 px wide (upscaled from 960; the page's close look)
@@ -12,9 +12,10 @@ import sys
 from PIL import Image, ImageDraw, ImageFont
 
 SRC, OUT = Path(sys.argv[1]), Path(sys.argv[2])
-ORDER = [('hero', 'Mining laser on, three drives running'), ('stern', 'Stern: centre drive and two splayed side drives'),
+ORDER = [('hero', 'Mining laser on the rock, slung under the nose'),
+         ('under', 'From below: sling, four lift jets, skids and docking keel'),
          ('cradle', 'On the Shepherd: cradles 1 and 3, lifting out of bay 2'),
-         ('talon', 'Common scale: Borer 3.6 m, Talon 12 m, figure 1.8 m')]
+         ('sizes', 'Over the Shepherd: 1.9 m (2D ground), 3.6 m (built), 11.7 m (fleet sprites)')]
 try:
     FONT = ImageFont.truetype('bahnschrift.ttf', 22)
 except OSError:

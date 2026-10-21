@@ -23,26 +23,16 @@
     },
     {
       "col": 13,
-      "name": "deck-motion.rower",
+      "name": "deck-motion.fan-rotor",
       "row": 0
     },
     {
       "col": 15,
-      "name": "deck-motion.rower-seat",
+      "name": "deck-motion.treadmill-belt",
       "row": 0
     },
     {
       "col": 0,
-      "name": "deck-motion.fan-rotor",
-      "row": 7
-    },
-    {
-      "col": 2,
-      "name": "deck-motion.treadmill-belt",
-      "row": 7
-    },
-    {
-      "col": 3,
       "name": "deck-motion.conveyor-belt",
       "row": 7
     }
@@ -93,44 +83,26 @@
       "row": 0
     },
     {
-      "ballisticHalfHeight": 0.5,
+      "ballisticHalfHeight": 0,
       "col": 13,
-      "cover": "med",
-      "footprintCells": [
-        2,
-        3
-      ],
-      "id": "deck-motion.rower",
-      "row": 0
-    },
-    {
-      "ballisticHalfHeight": 0,
-      "col": 15,
-      "cover": "none",
-      "id": "deck-motion.rower-seat",
-      "row": 0
-    },
-    {
-      "ballisticHalfHeight": 0,
-      "col": 0,
       "cover": "none",
       "footprintCells": [
         2,
         2
       ],
       "id": "deck-motion.fan-rotor",
-      "row": 7
+      "row": 0
     },
     {
       "ballisticHalfHeight": 0,
-      "col": 2,
+      "col": 15,
       "cover": "none",
       "id": "deck-motion.treadmill-belt",
-      "row": 7
+      "row": 0
     },
     {
       "ballisticHalfHeight": 0,
-      "col": 3,
+      "col": 0,
       "cover": "none",
       "id": "deck-motion.conveyor-belt",
       "row": 7

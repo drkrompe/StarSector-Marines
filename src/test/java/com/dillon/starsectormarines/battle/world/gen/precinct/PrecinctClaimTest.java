@@ -147,4 +147,41 @@ class PrecinctClaimTest {
                 + " against an allowance of " + contested + ", so contesting a neighbour "
                 + "let it past its own budget");
     }
+
+    /**
+     * An open field's disc is its own however little ground it was allowed and
+     * whoever else wants it: a town's streets run through it and a garrison
+     * listed first sits just outside it, and still every cell within the field
+     * of fire is the field's, because a field of fire is a promise about
+     * distance and pooling would bulge past it on one side and fall short on
+     * another.
+     */
+    @Test
+    void anOpenFieldTakesItsWholeDiscBeforeAnyonePools() {
+        int width = 120;
+        int height = 100;
+        int[][] owner = new int[width][height];
+        for (int[] column : owner) Arrays.fill(column, GrownTrunkPlan.UNOWNED);
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (x % 6 == 0 || y % 6 == 0) owner[x][y] = 0;
+            }
+        }
+        Precinct field = Precinct.landing("landing", 60, 48, GrownTrunkPlan.Profile.hamlet(),
+                LandingKind.OPEN_FIELD, LandingKind.OPEN_FIELD.program());
+        List<Precinct> precincts = List.of(town(), garrison("garrison", 60, 94), field);
+        int[][] claim = PrecinctClaim.byKind(precincts).assign(owner, width, height,
+                new int[]{TOWN_BUDGET, GARRISON_BUDGET, 100});
+
+        FieldOfFire disc = new FieldOfFire(60, 48, LandingKind.OPEN_FIELD.fieldOfFire());
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (!disc.contains(x, y)) continue;
+                assertTrue(claim[x][y] == 2, "cell " + x + "," + y + " inside the field of fire went to "
+                        + claim[x][y] + ", so a neighbour can build inside the radius the field promised");
+            }
+        }
+        assertTrue(PrecinctClaim.sizes(claim, 3)[1] > 0,
+                "the garrison beside the field claimed nothing at all");
+    }
 }

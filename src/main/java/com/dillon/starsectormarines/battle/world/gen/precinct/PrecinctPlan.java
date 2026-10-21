@@ -95,10 +95,16 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      * <p>The first programmed precinct. A map with two garrisons has to pick
      * one to be the climax, and the order a mission listed them in is the
      * honest answer — it is the only statement of intent there is.
+     *
+     * <p><b>Never the landing place</b>, which is programmed too: the ground a
+     * force comes down on is not what it came for. On a Conquest the garrison
+     * is listed first and this never mattered; on a map whose only programmed
+     * place is the landing — a colony with fields outside it — reading the
+     * beachhead as the objective would put the defender's spawn on it.
      */
     public Precinct objective() {
         for (Precinct precinct : precincts) {
-            if (precinct.isProgrammed()) return precinct;
+            if (precinct.isProgrammed() && !precinct.isLanding()) return precinct;
         }
         return null;
     }
@@ -318,14 +324,34 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      */
     public static PrecinctPlan laidOut(List<PrecinctBrief> briefs, MapPlacement attackerFrom,
                                        int width, int height, Random rng) {
+        return laidOut(briefs, attackerFrom, null, width, height, rng);
+    }
+
+    /**
+     * A mission's layout with a landing place of its own in the attacker's band.
+     *
+     * <p>The landing is seeded first, against the band's approach side, and the
+     * briefs are then spaced from it as from each other — so a town asked for
+     * the centre grows round the fields rather than being seeded on them. It
+     * takes no draw of its own. Listed last, the way a derived plan lists it,
+     * so a brief's index is the same with a landing or without one.
+     *
+     * @param landing what the force comes down on, or {@code null} for none
+     */
+    public static PrecinctPlan laidOut(List<PrecinctBrief> briefs, MapPlacement attackerFrom,
+                                       LandingKind landing, int width, int height, Random rng) {
         if (briefs.isEmpty()) {
             throw new IllegalArgumentException("a map with no places in it is not a map");
         }
         List<Precinct> out = new ArrayList<>();
         List<int[]> taken = new ArrayList<>();
+        Precinct landingPlace = landing == null || attackerFrom == null ? null
+                : seedLanding(landing, Standoff.FAR, null, attackerFrom, taken,
+                        EDGE_MARGIN, LandingKind.AREAS_THE_APRON_SEATS, width, height);
         for (PrecinctBrief brief : briefs) {
             out.add(spaced(brief, taken, width, height, rng));
         }
+        if (landingPlace != null) out.add(landingPlace);
         return new PrecinctPlan(out, attackerFrom);
     }
 
@@ -662,14 +688,21 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                                         Precinct objectivePlace, MapPlacement attackerFrom,
                                         List<int[]> taken, int margin, int arrivalAreas,
                                         int width, int height) {
-        int budget = Math.round(LANDING_FIT * width * height);
         FortressProgram program = kind.program(arrivalAreas);
-        if (program.apron() > budget) program = program.withApron(budget);
-        program = program.fittedTo(budget);
+        if (!kind.hasFieldOfFire()) {
+            // A field of fire is a promise about distance, and a promise is not
+            // trimmed to fit: the claim takes the disc outright.
+            int budget = Math.round(LANDING_FIT * width * height);
+            if (program.apron() > budget) program = program.withApron(budget);
+            program = program.fittedTo(budget);
+        }
 
         ApproachRegion region = ApproachRegion.resolve(attackerFrom, standoff,
                 estimatedClaim(objectivePlace, width, height), width, height);
-        int radius = claimRadius(program);
+        // A field sits its clear radius in from the edge it lands across, so the
+        // whole disc is on the map and the shuttles fly no further inland than
+        // it takes to keep it there.
+        int radius = kind.hasFieldOfFire() ? kind.fieldOfFire() : claimRadius(program);
         boolean forwardIsY = region.approach() == LandingPad.Approach.SOUTH
                 || region.approach() == LandingPad.Approach.NORTH;
         boolean towardHigher = region.approach() == LandingPad.Approach.SOUTH
