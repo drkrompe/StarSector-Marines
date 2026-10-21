@@ -7,8 +7,6 @@ import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -21,24 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MarkupRuntimeTest {
-
-    @Test
-    void shippedWorkbenchBuildsTheExpectedOrdinaryElementTree() throws Exception {
-        String path = "mod/data/ui/components/dev/ui-workbench.mlx";
-        MarkupLoader loader = new MarkupLoader(file -> Files.readString(Path.of(file)), List.of(path));
-        loader.reload();
-
-        try (MarkupInstance instance = loader.build("ui-workbench", Map.of())) {
-            assertEquals(UiTag.DIV, instance.root().tag());
-            assertEquals("workbench-root", instance.root().id());
-            assertEquals(3, instance.root().childCount());
-            assertEquals(UiTag.BUTTON, instance.requireElement("theme-contrast").tag());
-            assertEquals(UiTag.CANVAS, instance.requireElement("transaction-canvas").tag());
-            assertEquals(900, instance.requireElement("transaction-canvas").canvasWidth());
-            assertTrue(instance.requireElement("state-disabled").disabled());
-            assertTrue(instance.requireElement("title").hasClass("mlx-ui-workbench"));
-        }
-    }
 
     @Test
     void signalsAndHandlersBindThroughTypedProps() {

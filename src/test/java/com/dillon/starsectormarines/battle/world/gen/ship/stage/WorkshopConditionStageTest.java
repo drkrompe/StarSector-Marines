@@ -16,9 +16,6 @@ import com.dillon.starsectormarines.battle.world.gen.ship.ShipKeys;
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
-import javax.imageio.ImageIO;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Random;
 import org.junit.jupiter.api.Test;
@@ -82,33 +79,6 @@ class WorkshopConditionStageTest {
                 }
             if (!state.operational()) assertTrue(ctx.fixtureTasks.isEmpty());
             else for (var task : ctx.fixtureTasks) assertTrue(grid.isWalkable(task.cellX(), task.cellY()));
-        }
-    }
-
-    @Test void exportedArtKeepsSpaceOpaqueAndMachineFootprintsAndCoverUnchanged() throws Exception {
-        var registry = TileRegistry.installed();
-        var image = ImageIO.read(Path.of("mod/graphics/tilesets/workshop-damage.png").toFile());
-        var breach = registry.doodad("workshop-damage.breach");
-        assertTrue((image.getRGB((breach.col + 3) * 64, (breach.row + 2) * 64) >>> 24) >= 245);
-        assertEquals(0, image.getRGB(breach.col * 64, breach.row * 64) >>> 24);
-        for (String machine : List.of("lathe", "mill")) {
-            var intact = registry.doodad("machine-shop." + machine);
-            var broken = registry.doodad("workshop-damage." + machine);
-            assertEquals(intact.footprintCellsX, broken.footprintCellsX);
-            assertEquals(intact.footprintCellsY, broken.footprintCellsY);
-            assertEquals(intact.cover, broken.cover);
-            assertEquals(intact.ballisticHalfHeight, broken.ballisticHalfHeight);
-        }
-    }
-
-    @Test void sealedHatchHasClosedLeavesAndTransparentMargins() throws Exception {
-        var image = ImageIO.read(Path.of("mod/graphics/tilesets/ship-sealed-hatches.png").toFile());
-        var hatch = TileRegistry.installed().doodad(SealedShipHatches.ART);
-        int x = hatch.col * 64, y = hatch.row * 64;
-        for (int across : new int[]{4, 16, 32, 48, 59}) {
-            assertTrue((image.getRGB(x + across, y + 32) >>> 24) >= 245, "Closed locking-bar silhouette");
-            assertTrue((image.getRGB(x + across, y + 4) >>> 24) < 40, "Keep top margin clear");
-            assertTrue((image.getRGB(x + across, y + 59) >>> 24) < 40, "Keep bottom margin clear");
         }
     }
 

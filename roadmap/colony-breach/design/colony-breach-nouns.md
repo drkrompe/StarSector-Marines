@@ -26,6 +26,35 @@ harden the lift with a grounded tender so that the rest of the company is free
 to go hunting. Air power can harass but cannot clear the map, because the bores
 defend the sky over themselves.
 
+## Origin (mod choice)
+
+Evidence tier: **mod choice** (`faction-lore-nouns.md`). Nothing in Starsector
+0.98a canon describes this organism; it is ours, and it must be written so that
+it never contradicts canon.
+
+The swarm is not an alien species that arrived from outside. It is a weapon. A
+self-perpetuating biological weapon from the late Domain / AI War period,
+engineered to deny worlds and outlast whoever released it. It does not need its
+makers: it lies dormant underground in reservoirs and old seeding sites, and it
+wakes when a colony grows dense enough above it to be worth eating. That is why
+it surfaces across the Persean Sector from time to time as a recurring problem
+rather than a war with a front: a mining colony goes quiet, a relief call comes
+in, and somebody's company is paid to get people out.
+
+Consequences that the design keeps:
+
+- **It is a system, not a society.** No diplomacy, no faction relations, no
+  commander with intent. The swarm director is a process, and the strains are
+  stages of a life cycle that someone designed.
+- **It eats to grow.** Biomass is its economy. Colonists are its food (see
+  *Harvest*), which is why the colony is the target and why rescue starves it.
+- **It recurs.** Outbreaks are a sector phenomenon: they show up at colonies
+  across the campaign, are never "defeated" for good, and a collapsed mother
+  bore ends an outbreak, not the weapon.
+- **Who made it is a question, not an answer.** Briefings and radio may
+  speculate (Domain denial programme, a Tri-Tachyon-era leak, something older);
+  no text states the maker as fact.
+
 ## Vocabulary
 
 **Colony.** The generated settlement the battle is fought in: a town plus an
@@ -60,9 +89,37 @@ edge.
 
 **Bore tier.** A bore grows while it stays open: **fissure** (runners only, low
 rate) → **bore** (adds brutes and spitters) → **maw** (adds heavy strains, higher
-rate, a wider spore umbrella). Growth is on a clock from eruption, reset or
-slowed by damage taken. Tier is what makes leaving a bore alone a decision with
-a cost.
+rate, a wider spore umbrella). Growth runs on a slow base clock from eruption,
+is slowed by damage taken, and is **driven mainly by biomass fed to it** (see
+*Harvest*). Tier is what makes leaving a bore alone a decision with a cost.
+
+**Harvest.** The swarm's economy. Colonists are food. A runner that brings down
+a colonist (ambient colony civilians, militia, and in the end Marines) does not
+just kill it: it seizes the body and drags it back toward the nearest living
+bore, slowed, as a visible carrier. A carried body delivered into a bore is
+**biomass**: it advances that bore's growth and buys the director a burst of
+spawn capacity there. A carrier killed on the way drops the body, and the
+delivery is lost. Laws:
+
+- Biomass is the only fast path to growth. A starved bore stays a fissure for
+  a long time; a fed one reaches maw quickly.
+- Every colonist the company gets out, or keeps alive, is biomass the hive
+  never gets. Rescue and hive pressure are the same fight seen from two sides.
+- Carriers are readable and interceptable: a stream of bodies being dragged to
+  a bore is the player's signal that a bore is about to grow.
+- Evacuees in the cohort are never harvested while their escort lives. A lost
+  evacuee may be.
+- Harvest is deterministic and traced: deliveries per bore appear in the
+  director snapshot.
+
+**Spawning surge.** How the swarm moves out of a bore. Bodies do not trickle
+out one at a time: a bore **spawns**, pushing a dense pulse of bodies out of
+its mouth that pours along the flow field in a tight stream (a river, not a
+crowd), then breaks apart and fans out on contact or at the end of the run,
+and the bore goes quiet until its next pulse. Surges are timed by the director
+and sized by tier and fresh biomass, so a just-fed bore answers with a big
+surge. A surge is what the player sees and hears coming; the gap between surges
+is the window to push a bore.
 
 **Mother bore.** The one bore whose collapse ends spawning from its precinct
 cluster and is the target of the optional hive objective. It erupts later than
@@ -167,6 +224,9 @@ the evidence; change them here first.
 | `mother_bore_erupted` | PLAYER | Mother bore opens |
 | `mother_bore_collapsed` | PLAYER | Mother bore destroyed |
 | `matriarch_emerged` | PLAYER | A matriarch spawns |
+| `first_harvest` | PLAYER | First body seized and dragged toward a bore |
+| `bore_fed_N` | OBSERVER_ONLY | Biomass delivered into bore N |
+| `surge_N` | OBSERVER_ONLY | Bore N spawns a surge |
 | `tender_down` | PLAYER | A called-down tender has grounded |
 | `hardpoint_established` | PLAYER | First tender-built defence completes at the lift |
 | `strike_committed_N` | OBSERVER_ONLY | Commander sends a detachment at bore N |
@@ -184,6 +244,10 @@ the evidence; change them here first.
   capacity to another bore.
 - **Bores are fought, not scripted.** A bore dies to ordinary damage through
   ordinary durability; nothing collapses a bore by fiat.
+- **Biomass drives growth.** A bore that is not fed grows slowly; a bore that
+  is fed grows fast. Saving colonists starves the hive.
+- **Surges, not trickles.** Bores release bodies in timed pulses that move as
+  a stream; the quiet between pulses is real.
 - **Strains by tier.** Which strains spawn is a function of the bore's tier and
   the director's budget, deterministic under the battle seed.
 - **Air cannot clear the map.** Every bore has an umbrella; the umbrella dies
@@ -209,3 +273,8 @@ the evidence; change them here first.
 - Radio and narration: `battle-radio-nouns.md`; beats are consumed there, never
   the other way round.
 - Structure durability: `combat-durability-nouns.md`.
+- Setting and canon tiers: `faction-lore-nouns.md`; the swarm's own lore
+  guide is `swarm-lore-guide.md` once written.
+- Where and how often outbreaks appear in the campaign: the Civilian Rescue
+  campaign event (`CivilianRescueSpawnSystem`), extended by
+  `sector-outbreaks.md`.
