@@ -680,8 +680,7 @@ public final class MechLabViewModel {
         revision.get();
         CampaignMechSquad active = bay.activeSquad();
         int chassis = active != null ? active.occupied() : 0;
-        return Strings.format("openingMechLabHeavyAssetsAssignedLoadoutFreezesAtMission", bay.squads().size() + (bay.squads().size() == 1
-                ? Strings.get("openingMechLabSupportLance") : Strings.get("openingMechLabSupportLances")), chassis, CampaignMechSquad.CAPACITY);
+        return Strings.format("mechLabBuildSummary", bay.squads().size(), chassis, CampaignMechSquad.CAPACITY);
     }
 
     private List<SquadRow> buildSquadRows() {

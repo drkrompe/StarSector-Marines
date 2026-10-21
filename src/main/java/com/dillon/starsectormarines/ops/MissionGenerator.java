@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
@@ -102,10 +103,10 @@ public final class MissionGenerator {
      */
     static List<Mission> generateDebugGrid(PlanetAPI planet, Client client) {
         MarketAPI market = planet == null ? null : planet.getMarket();
-        String planetName = planet == null ? "Debug proving ground" : planet.getName();
+        String planetName = planet == null ? Strings.get("missionGenDebugProvingGround") : planet.getName();
         String industryId = market == null ? null : pickFirstNonDisruptedIndustry(market);
 
-        long seed = ("debug:" + planetName).hashCode();
+        long seed = ("debug:" + (planet == null ? "Debug proving ground" : planetName)).hashCode();
         Random r = new Random(seed);
 
         List<Mission> out = new ArrayList<>();
@@ -132,11 +133,10 @@ public final class MissionGenerator {
                 }
                 int employerShuttles = rollEmployerShuttles(r, risk, requiredDrops);
                 String id = "debug:" + type.name() + ":" + tier.name() + ":" + index++;
-                String name = type.name() + " — " + tier.displayName;
+                String tierName = Strings.get("missionSelectTier" + tier.name());
+                String name = Strings.format("missionGenDebugName", type.name(), tierName);
                 int recommendedSquads = MissionForceEnvelope.recommendedSquads(type, tier);
-                String flavor = "DEBUG: " + type.name() + " at " + tier.displayName
-                        + " — wants " + recommendedSquads
-                        + (recommendedSquads == 1 ? " squad." : " squads.");
+                String flavor = Strings.format("missionGenDebugFlavor", type.name(), tierName, recommendedSquads);
 
                 out.add(Mission.builder()
                         .id(id)
@@ -201,15 +201,14 @@ public final class MissionGenerator {
             String defender = defenderDisplayName(profile);
             missions.add(Mission.builder()
                     .id("debug:CONQUEST_DEFENDER:" + profile.id() + ":" + index++)
-                    .name("CONQUEST — " + defender)
+                    .name(Strings.format("missionGenConquestDefenderName", defender))
                     .type(type)
                     .source(MissionSource.DEBUG)
                     .risk(risk)
                     .tier(tier)
                     .requirements(requirementsFor(risk))
-                    .flavor("DEBUG COMPARISON: " + tier.displayName + " CONQUEST on one"
-                            + " pinned battlefield — only the defender changes. Holding it: "
-                            + defender + " (" + profile.id() + ").")
+                    .flavor(Strings.format("missionGenConquestDefenderFlavor",
+                            Strings.get("missionSelectTier" + tier.name()), defender, profile.id()))
                     .mapPosition(x, y)
                     .requiredDrops(requiredDrops)
                     .targetPlanetName(planetName)
@@ -263,12 +262,12 @@ public final class MissionGenerator {
         float canonicalY = 0.08f + random.nextFloat() * 0.84f;
         missions.add(Mission.builder()
                 .id("debug:CIVILIAN_RESCUE:CANONICAL:" + index++)
-                .name("SWARM RESCUE — CANONICAL")
+                .name(Strings.get("missionGenRescueCanonicalName"))
                 .type(MissionType.EXTRACTION)
                 .source(MissionSource.DEBUG_CANONICAL_CIVILIAN_RESCUE)
                 .risk(RiskLevel.HIGH)
                 .requirements(requirementsFor(RiskLevel.HIGH))
-                .flavor("DEBUG: production rescue pressure and four-drop response budget.")
+                .flavor(Strings.get("missionGenRescueCanonicalFlavor"))
                 .mapPosition(canonicalX, canonicalY)
                 .requiredDrops(4)
                 .targetPlanetName(planetName)
@@ -288,13 +287,12 @@ public final class MissionGenerator {
                     + risk.name() + ":" + index++;
             missions.add(Mission.builder()
                     .id(id)
-                    .name("SWARM RESCUE STRESS — " + risk.name())
+                    .name(Strings.format("missionGenRescueStressName", risk.name()))
                     .type(MissionType.EXTRACTION)
                     .source(MissionSource.DEBUG_CIVILIAN_RESCUE)
                     .risk(risk)
                     .requirements(requirementsFor(risk))
-                    .flavor("DEBUG STRESS TEST: evacuate the registered civilian cohort under "
-                            + risk.name() + " force-scaled swarm pressure.")
+                    .flavor(Strings.format("missionGenRescueStressFlavor", risk.name()))
                     .mapPosition(x, y)
                     .requiredDrops(requiredDrops)
                     .employerShuttles(employerShuttles)
@@ -371,7 +369,7 @@ public final class MissionGenerator {
         MissionType missionType = assaultPhase != null
                 ? assaultPhase.missionType : profile.missionType;
         String missionTitle = assaultPhase != null
-                ? "Planetary Assault — " + assaultPhase.title : profile.title;
+                ? Strings.format("missionGenPlanetaryAssaultTitle", assaultPhase.title) : profile.title;
         if (assaultPhase != null) {
             long phaseSeed = contractId * 0x9E3779B97F4A7C15L
                     ^ (long) assaultPhase.index * 0xC2B2AE3D27D4EB4FL
@@ -591,9 +589,9 @@ public final class MissionGenerator {
 
     private static String requirementsFor(RiskLevel risk) {
         switch (risk) {
-            case LOW:    return "20+ marines";
-            case MEDIUM: return "50+ marines, officer recommended";
-            case HIGH:   return "100+ marines, veteran officer";
+            case LOW:    return Strings.get("missionGenRequirementsLow");
+            case MEDIUM: return Strings.get("missionGenRequirementsMedium");
+            case HIGH:   return Strings.get("missionGenRequirementsHigh");
             default:     return "";
         }
     }
@@ -686,8 +684,7 @@ public final class MissionGenerator {
     static String forceEnvelopeRequirements(MissionType type, OperationTier tier) {
         OperationTier resolved = tier != null ? tier : OperationTier.ESTABLISHED;
         int recommendedSquads = MissionForceEnvelope.recommendedSquads(type, resolved);
-        return "Minimum 1 fire team · Recommended " + recommendedSquads
-                + (recommendedSquads == 1 ? " squad" : " squads");
+        return Strings.format("missionGenForceEnvelope", recommendedSquads);
     }
 
     /**

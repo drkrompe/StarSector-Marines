@@ -25,7 +25,6 @@ import com.dillon.starsectormarines.ops.loot.LootManifest;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.fs.starfarer.api.Global;
 
-import java.util.stream.Collectors;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -73,7 +72,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         if (resultMarkup == null) return;
         var current = debriefNarration.current();
         resultMarkup.requireElement("salvage-conversation-status").text(current == null
-                ? MissionDebriefConversation.title(presentedOutcome) : "TRANSMITTING / " + current.speaker());
+                ? MissionDebriefConversation.title(presentedOutcome) : Strings.format("resultsScreenTransmitting", current.speaker()));
     }
 
     @Override protected void onDetach() {
@@ -99,7 +98,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         props.put("outcomeClasses", "results-outcome " + (victory ? "victory" : "defeat"));
         props.put("outcomeLabel", Strings.get(victory ? "battleVictory" : "battleDefeat"));
         props.put("missionName", outcome != null && outcome.missionName != null
-                ? outcome.missionName : "Operation record unavailable");
+                ? outcome.missionName : Strings.get("resultsScreenRecordUnavailable"));
         props.put("missionMeta", outcomeMeta(outcome, manifest));
         props.put("resultRows", resultRows(outcome, manifest));
         putStoryDebrief(props, outcome);
@@ -108,7 +107,8 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         props.put("rewardPrompt", rewardPrompt.row());
         boolean preparation = outcome != null && !outcome.missionSource.isDebug();
         props.put("preparationClasses", preparation ? "console-action" : "hidden");
-        props.put("preparationLabel", manifest != null && !manifest.isEmpty() ? "SALVAGE / PREPARE COMPANY" : "PREPARE COMPANY");
+        props.put("preparationLabel", Strings.get(manifest != null && !manifest.isEmpty()
+                ? "resultsScreenSalvagePrepare" : "resultsScreenPrepare"));
         props.put("preparationAction", (Runnable) this::prepareCompany);
         props.put("salvageReplay", (Runnable) () -> debriefNarration.start(
                 MissionDebriefConversation.recordings(outcome, WaylineNarration.builtins())));
@@ -127,7 +127,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             props.put("secondaryClasses", "hidden");
             props.put("secondaryLabel", "");
             props.put("secondaryAction", (Runnable) () -> { });
-            props.put("primaryLabel", WaylineHoundAward.eligible(outcome) ? "VISIT MECH LAB" : Strings.get("resultsReturn"));
+            props.put("primaryLabel", WaylineHoundAward.eligible(outcome) ? Strings.get("resultsScreenVisitMechLab") : Strings.get("resultsReturn"));
             props.put("primaryAction", (Runnable) this::returnToMissions);
         }
         return props;
@@ -171,7 +171,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         props.put("rewardPrompt", DebriefRewardPrompt.hidden());
         props.put("title", Strings.get("resultsHeader"));
         props.put("preparationClasses", "hidden");
-        props.put("preparationLabel", "PREPARE COMPANY");
+        props.put("preparationLabel", Strings.get("resultsScreenPrepare"));
         props.put("preparationAction", (Runnable) () -> { });
         putStoryDebrief(props, null);
         putFirstRefit(props, null, null, () -> { });
@@ -182,7 +182,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     static void putFirstRefit(Map<String, Object> props, MissionOutcome outcome, MarineRoster roster, Runnable open) {
         boolean available = outcome != null && !outcome.missionSource.isDebug() && FirstRefit.available(roster);
         props.put("refitClasses", available ? "results-refit console-readout" : "hidden");
-        props.put("refitCopy", "Wayline offers one free technology transfer. Compare both paths in Equipment, then fit learned gear for free, even while marines recover. Pending salvage stays here.");
+        props.put("refitCopy", Strings.get("resultsScreenRefitCopy"));
         props.put("refitAction", open);
     }
 
@@ -190,13 +190,15 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         StoryScene scene = outcome == null ? null : StoryScene.forRecord(outcome.missionId, outcome.missionSource);
         props.put("sceneClasses", scene == null ? "hidden" : "results-scene console-well");
         props.put("sceneImage", scene == null ? null : scene.image);
-        props.put("sceneCaption", scene == null ? "" : "LOCATION ARCHIVE / " + scene.location);
+        props.put("sceneCaption", scene == null ? "" : Strings.format("resultsScreenLocationArchive", scene.location));
         OpeningOperationKind chapter = WaylineArc.chapter(outcome);
         props.put("storyClasses", chapter != null ? "story-dispatch console-readout" : "hidden");
         props.put("storyPortrait", chapter != null ? OpeningBroker.PORTRAIT : null);
-        props.put("storySender", chapter != null ? OpeningBroker.NAME + " / WAYLINE" : "");
-        props.put("storyProgress", chapter == null ? "" : !outcome.victory ? "CONTRACT REMAINS OPEN"
-                : chapter == OpeningOperationKind.RELIEF ? "CHAPTER 1 COMPLETE / DEPOT JOB AVAILABLE" : "AN OPEN ROAD / ARC COMPLETE");
+        props.put("storySender", chapter != null ? Strings.format("resultsScreenSenderWayline", OpeningBroker.NAME) : "");
+        props.put("storyProgress", chapter == null ? "" : Strings.get(!outcome.victory
+                ? "resultsScreenContractOpen"
+                : chapter == OpeningOperationKind.RELIEF ? "resultsScreenChapterOneComplete"
+                : "resultsScreenArcComplete"));
         props.put("storyMessage", WaylineArc.debrief(outcome));
         putSalvageConversation(props, MissionDebriefConversation.lines(outcome, WaylineNarration.builtins()));
         props.put("conversationTitle", MissionDebriefConversation.title(outcome));
@@ -205,23 +207,31 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         if (corvus != null) {
             props.put("storyClasses", "story-dispatch console-readout");
             props.put("storyPortrait", OpeningBroker.PORTRAIT);
-            props.put("storySender", OpeningBroker.NAME + " / WAYLINE");
-            props.put("storyProgress", CorvusWaylineCampaign.TITLE + (outcome.victory ? " / CHAPTER COMPLETE" : " / RETRY AVAILABLE"));
-            props.put("storyMessage", outcome.victory ? corvus.debrief + (outcome.marinesLost > 0 ? " Your company paid for this in lives. The achievement does not cancel that cost." : "")
-                    : "The objective remains unresolved. Bring the company home and refit before trying again. No contract payment; confirmed losses remain on record.");
+            props.put("storySender", Strings.format("resultsScreenSenderWayline", OpeningBroker.NAME));
+            props.put("storyProgress", Strings.format(outcome.victory
+                    ? "resultsScreenCorvusComplete" : "resultsScreenCorvusRetry",
+                    CorvusWaylineCampaign.TITLE));
+            props.put("storyMessage", outcome.victory
+                    ? Strings.format(outcome.marinesLost > 0
+                            ? "resultsScreenCorvusVictoryCost" : "resultsScreenCorvusVictory",
+                            corvus.debrief)
+                    : Strings.get("resultsScreenCorvusUnresolved"));
         }
         if (outcome != null && SupplyRouteCampaign.owns(outcome.missionId)) {
             props.put("storyClasses", "story-dispatch console-readout");
             props.put("storyPortrait", OpeningBroker.PORTRAIT);
-            props.put("storySender", OpeningBroker.NAME + " / WAYLINE DISPATCH");
-            props.put("storyProgress", outcome.missionSource == MissionSource.RECURRING ? "RECURRING WORK / JOB REPORT" : "BROKEN SUPPLY ROUTE");
-            String report = outcome.victory ? "Objective confirmed. Payment: " + outcome.payoutEarned + " cr." : "Operation withdrawn. No payment; confirmed losses remain on record.";
+            props.put("storySender", Strings.format("resultsScreenSenderDispatch", OpeningBroker.NAME));
+            props.put("storyProgress", Strings.get(outcome.missionSource == MissionSource.RECURRING
+                    ? "resultsScreenRecurringJobReport" : "resultsScreenBrokenSupplyRoute"));
+            String report = outcome.victory
+                    ? Strings.format("resultsScreenSupplyConfirmed", outcome.payoutEarned)
+                    : Strings.get("resultsScreenSupplyWithdrawn");
             if (outcome.freightOutcome != null) {
                 var freight = outcome.freightOutcome;
                 int waiting = freight.attempt().cargo().size() - freight.delivered().size() - freight.lost().size();
-                report += " This sortie: " + freight.delivered().size() + " freight carriers delivered / "
-                        + freight.lost().size() + " lost / " + waiting + " awaiting transport."
-                        + (waiting > 0 ? " Only unresolved freight returns on a retry." : " This column is fully accounted for.");
+                report += " " + Strings.format(waiting > 0
+                        ? "resultsScreenFreightWaiting" : "resultsScreenFreightAccounted",
+                        freight.delivered().size(), freight.lost().size(), waiting);
             }
             report += SupplyRouteCampaign.recoveryDebrief(outcome);
             var route = SupplyRouteCampaign.current();
@@ -234,11 +244,12 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             props.put("storyClasses", "story-dispatch console-readout");
             props.put("storyPortrait", OpeningBroker.CREST);
             props.put("storySender", letterhead.sender);
-            props.put("storyProgress", "RECURRING WORK / DISTRICT ESCORT");
+            props.put("storyProgress", Strings.get("resultsScreenDistrictEscort"));
             var r = outcome.districtEscort;
-            props.put("storyMessage", DistrictEscortCampaign.debrief(outcome, agreement)
-                    + " Party lost: " + r.partyLost() + " of 2. Constables lost: " + r.constablesLost() + "."
-                    + (r.cargoLost() ? " The consignment was destroyed." : ""));
+            props.put("storyMessage", DistrictEscortCampaign.debrief(outcome, agreement) + " "
+                    + Strings.format(r.cargoLost()
+                            ? "resultsScreenDistrictLossesCargo" : "resultsScreenDistrictLosses",
+                            r.partyLost(), r.constablesLost()));
         }
         if(outcome!=null && outcome.workingPassage!=null) {
             var passage=outcome.workingPassage;
@@ -297,11 +308,11 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     }
 
     private static String outcomeMeta(MissionOutcome outcome, LootManifest manifest) {
-        if (outcome == null) return "No frozen outcome is attached to this debrief.";
+        if (outcome == null) return Strings.get("resultsScreenMetaNoOutcome");
         if (manifest != null && !manifest.isEmpty()) {
-            return "Operation settled · recovery claim ready for review";
+            return Strings.get("resultsScreenMetaClaimReady");
         }
-        return "Operation settled · no recovery claim remains";
+        return Strings.get("resultsScreenMetaNoClaim");
     }
 
     static List<ResultRow> resultRows(MissionOutcome outcome, LootManifest manifest) {
@@ -330,11 +341,12 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                     salvageSummary(outcome, manifest), "tone-accent"));
         }
         if (!outcome.fieldSalvage.isEmpty()) {
-            String finds = outcome.fieldSalvage.stream()
-                    .map(f -> f.quantity() + " " + f.resource().displayName)
-                    .collect(Collectors.joining(" · "));
-            rows.add(row("result-field-salvage", "Field finds",
-                    outcome.victory ? finds : "Left behind · " + finds,
+            String finds = Strings.join("separatorDot", outcome.fieldSalvage.stream()
+                    .map(f -> Strings.format("resultsScreenFieldFind", f.quantity(),
+                            f.resource().displayName))
+                    .toArray(String[]::new));
+            rows.add(row("result-field-salvage", Strings.get("resultsScreenFieldFinds"),
+                    outcome.victory ? finds : Strings.format("resultsScreenLeftBehind", finds),
                     outcome.victory ? "tone-good" : "tone-muted"));
         }
         rows.add(row("result-casualties", trimLabel(copy.apply("resultsCasualtiesLabel")),
@@ -361,7 +373,8 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         }
         if (!outcome.officers.isEmpty()) {
             for (OfficerMissionResult officer : outcome.officers) {
-                rows.add(row("result-officer-" + officer.officer().id(), "Officer",
+                rows.add(row("result-officer-" + officer.officer().id(),
+                        Strings.get("resultsScreenOfficer"),
                         officer.summary(), statusTone(officer.status())));
             }
             return List.copyOf(rows);
@@ -447,7 +460,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                                                Map<String, MarineSoldierStatus> dispositions,
                                                int index) {
         int rtd = 0, wia = 0, mia = 0, kia = 0;
-        StringBuilder members = new StringBuilder();
+        List<String> members = new ArrayList<>();
         for (MarineSoldier soldier : roster.squadMembers(squad)) {
             MarineSoldierStatus status = dispositions.get(soldier.id());
             if (status == null) continue;
@@ -457,30 +470,30 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                 case MIA -> mia++;
                 case KIA -> kia++;
             }
-            if (members.length() > 0) members.append(" · ");
-            members.append(shortName(soldier.name())).append(' ')
-                    .append(status == MarineSoldierStatus.ACTIVE ? 'R' : status.name().charAt(0));
+            members.add(Strings.format("resultsScreenMember", shortName(soldier.name()),
+                    Strings.named("resultsScreenMemberCode", status.name())));
         }
         String tone = kia > 0 || mia > 0 ? "tone-danger" : wia > 0 ? "tone-accent" : "tone-good";
         return new PersonnelRow("result-squad-" + index, squad.name(),
-                rtd + "R " + wia + "W " + mia + "M " + kia + "K",
-                "label heading results-squad-summary " + tone, members.toString());
+                Strings.format("resultsScreenSquadTally", rtd, wia, mia, kia),
+                "label heading results-squad-summary " + tone,
+                Strings.join("separatorDot", members.toArray(new String[0])));
     }
 
     static String personnelHeader(MissionOutcome outcome) {
         if (outcome != null && outcome.missionSource == MissionSource.STATIONING) {
             return outcome.deployedFireteamIds.isEmpty()
-                    ? "STATIONING PERSONNEL — AGGREGATE REPORT"
-                    : "STATIONED DETACHMENT — RTD / WIA / MIA / KIA";
+                    ? Strings.get("resultsScreenPersonnelStationingAggregate")
+                    : Strings.get("resultsScreenPersonnelStationed");
         }
-        return "PERSONNEL — RTD / WIA / MIA / KIA";
+        return Strings.get("resultsScreenPersonnel");
     }
 
     static String noPersonnelMessage(MissionOutcome outcome) {
         return outcome != null && outcome.missionSource == MissionSource.STATIONING
                 && outcome.deployedFireteamIds.isEmpty()
-                ? "Legacy anonymous detachment — aggregate casualties only."
-                : "No persistent personnel assigned.";
+                ? Strings.get("resultsScreenNoPersonnelLegacy")
+                : Strings.get("resultsScreenNoPersonnel");
     }
 
     static String formatEvacuation(MissionOutcome outcome) {
@@ -507,14 +520,13 @@ public class ResultsScreen extends MissionFlowMlxScreen {
      */
     static String shipsCalledSummary(MissionOutcome outcome) {
         if (outcome == null || outcome.shipsCalled.isEmpty()) return "—";
-        StringBuilder out = new StringBuilder();
+        List<String> out = new ArrayList<>();
         for (ShipSupportResult ship : outcome.shipsCalled) {
-            if (out.length() > 0) out.append(", ");
             int hull = Math.round((ship.destroyed() ? ShipSupportSettlement.HULL_FLOOR : ship.hullFraction()) * 100f);
-            out.append(MessageFormat.format(Strings.get(ship.destroyed() ? "resultsShipCrippledFmt" : "resultsShipHullFmt"),
+            out.add(MessageFormat.format(Strings.get(ship.destroyed() ? "resultsShipCrippledFmt" : "resultsShipHullFmt"),
                     ship.shipName(), hull));
         }
-        return out.toString();
+        return Strings.join("resultsScreenSeparatorComma", out.toArray(new String[0]));
     }
 
     static String formatBoatsLost(MissionOutcome outcome) {
@@ -530,12 +542,9 @@ public class ResultsScreen extends MissionFlowMlxScreen {
      * the sentence around them is in.
      */
     static String boatLossNames(MissionOutcome outcome) {
-        StringBuilder names = new StringBuilder();
-        for (MissionOutcome.BoatLoss loss : outcome.boatsLost) {
-            if (names.length() > 0) names.append(", ");
-            names.append(loss.displayName());
-        }
-        return names.toString();
+        List<String> names = new ArrayList<>();
+        for (MissionOutcome.BoatLoss loss : outcome.boatsLost) names.add(loss.displayName());
+        return Strings.join("resultsScreenSeparatorComma", names.toArray(new String[0]));
     }
 
     static String formatColonyArchive(MissionOutcome outcome) {
@@ -548,7 +557,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     }
 
     private static String shortName(String name) {
-        if (name == null || name.isEmpty()) return "???";
+        if (name == null || name.isEmpty()) return Strings.get("resultsScreenUnknownName");
         int split = name.lastIndexOf(' ');
         String value = split >= 0 ? name.substring(split + 1) : name;
         return value.substring(0, Math.min(7, value.length()));
@@ -564,12 +573,13 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             case INJURED -> {
                 float currentDay = Global.getSector() != null ? CampaignClock.dayFloat() : 0f;
                 int days = Math.max(1, (int) Math.ceil(outcome.injuredUntilDay - currentDay));
-                yield outcome.captainName + " — " + MessageFormat.format(
-                        Strings.get("resultsStatusInjuredFmt"), days);
+                yield Strings.format("resultsScreenCaptainStatus", outcome.captainName,
+                        MessageFormat.format(Strings.get("resultsStatusInjuredFmt"), days));
             }
-            case KIA -> outcome.captainName + " — " + Strings.get("resultsStatusKia");
-            case ACTIVE, GARRISONED -> outcome.captainName + " — "
-                    + Strings.get("resultsStatusActive");
+            case KIA -> Strings.format("resultsScreenCaptainStatus", outcome.captainName,
+                    Strings.get("resultsStatusKia"));
+            case ACTIVE, GARRISONED -> Strings.format("resultsScreenCaptainStatus",
+                    outcome.captainName, Strings.get("resultsStatusActive"));
         };
     }
 
