@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-20
 
-Updated: 2026-10-20 — conquest-trial reports the defender's place counter-attack: probes, observations, launches and retakes by fort and compound.
+Updated: 2026-10-21 — story summaries report the contact mix and the story commanders' manning.
 
 Per-mission matrices, fixture fields and report contents for `gradlew.bat commanderEvidence -Pmission=<mission>`. How to run the task, the mission list, replay count, parallelism and snapshot flags stay in `CLAUDE.md` (Build & deploy); read this when you need one mission's details. Text is moved verbatim from `CLAUDE.md`; "Fixture fields match Relief" and similar refer to the sections below.
 
@@ -206,3 +206,14 @@ control is `-Pfixture=src/test/resources/battle-fixtures/conquest-forts-reinforc
 (four battery forts and a shield fort; about 50 runs, 5,200 cells).
 The fort report carries a
 `pressure flow:` line and a fighting-position use block per faction. Use
+
+## Contact mix and story manning
+
+Every story fixture's `summary.json` (Junction, Relay Nine, Relief,
+Counterattack, Last Lift per attempt, Thunder Run per fixture) carries
+`contactMix` — per side, squad-samples in actionable contact every fifteen ticks
+standing on a garrisonable (`onPost`) against in the open (`open`) — and
+`reactiveDefence`, the defender commander's manning figures with, for a story
+commander, the squad-pulses it offered and the pulses its holder share was
+closed (`garrisonables.md`, story commanders). Read both against
+`-Dbattle.story.reactiveDefence=false` on the same build.

@@ -209,6 +209,7 @@ class ReliefCommandEvidenceTest {
             int assembled = -1, firstRaiderAtGate = -1, firstPlayerLoss = -1;
             int firstLocalShot = -1;
             int firstShot = -1, firstLanding = -1, firstPlayerShot = -1, firstLocalLoss = -1, localAtLanding = -1;
+            ContactMixEvidence mix = new ContactMixEvidence();
             try (CommanderEvidenceCapture visuals = CommanderEvidenceCapture.open(capture ? output : null, "relief", sim,
                     (battle, caption, marks) -> {
                         ReviewAnnotations.Builder extra = ReviewAnnotations.builder();
@@ -235,6 +236,7 @@ class ReliefCommandEvidenceTest {
                     })) {
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                     sim.advance(BattleSimulation.TICK_DT);
+                    mix.sample(sim);
                     int tick = sim.getSimTickIndex();
                     if (tick == holdTicks) for (int squad : heldSquads)
                         if (sim.getSquad(squad) != null) sim.handoffSquadCommand(squad, HOLD_ISSUER,
@@ -312,7 +314,7 @@ class ReliefCommandEvidenceTest {
                     .put("playerType", boat == null ? JSONObject.NULL : boat.pattern().name())
                     .put("playerPlating", boat == null ? JSONObject.NULL : boat.plating().id())
                     .put("playerDrive", boat == null ? JSONObject.NULL : boat.drive().id())
-                    .put("storyBeats", StoryBeatEvidence.snapshot(sim))
+                    .put("storyBeats", StoryBeatEvidence.snapshot(sim)).put("contactMix", mix.json()).put("reactiveDefence", ReactiveDefenceEvidence.figures(sim))
                     .put("termination", sim.isComplete() ? "COMPLETE" : "TIMEOUT")
                     .put("winner", sim.getWinner() == null ? JSONObject.NULL : sim.getWinner().name())
                     .put("ticks", sim.getSimTickIndex()).put("firstMilitiaOrRaiderShotTick", firstShot)

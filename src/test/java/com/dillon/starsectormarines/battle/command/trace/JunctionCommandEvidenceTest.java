@@ -136,6 +136,7 @@ class JunctionCommandEvidenceTest {
             int peakPlayerSquads = 0;
             BattleReviewFrameRenderer renderer = capture ? frames() : null;
             sim.setCommandTraceEnabled(true, "JUNCTION");
+            ContactMixEvidence mix = new ContactMixEvidence();
             try (CommanderEvidenceCapture visuals = CommanderEvidenceCapture.open(capture ? output : null, "junction", sim,
                     (battle, caption, marks) -> {
                         ReviewAnnotations.Builder extra = ReviewAnnotations.builder();
@@ -151,6 +152,7 @@ class JunctionCommandEvidenceTest {
                     })) {
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                     sim.advance(BattleSimulation.TICK_DT);
+                    mix.sample(sim);
                     int tick = sim.getSimTickIndex();
                     if (firstLanding < 0 && count(sim, Faction.MARINE) > 0) firstLanding = tick;
                     for (int i = 0; i < sim.liveUnitCount(); i++) {
@@ -198,7 +200,7 @@ class JunctionCommandEvidenceTest {
                     .put("peakPlayerSquads", peakPlayerSquads).put("reserveCommittedTick", reserveTick).put("militiaFootprintArrivalTick", holdArrivalTick)
                     .put("militiaFootprintOccupancyTicks", holdOccupancyTicks).put("playerRemaining", count(sim, Faction.MARINE))
                     .put("alliesRemaining", count(sim, Faction.ALLY)).put("raidersRemaining", count(sim, Faction.DEFENDER))
-                    .put("storyBeats", StoryBeatEvidence.snapshot(sim)).put("transitions", transitions).put("samples", samples).put("finalSquads", finalSquads).toString(2), sim.getCommandTraceJsonLines());
+                    .put("storyBeats", StoryBeatEvidence.snapshot(sim)).put("contactMix", mix.json()).put("reactiveDefence", ReactiveDefenceEvidence.figures(sim)).put("transitions", transitions).put("samples", samples).put("finalSquads", finalSquads).toString(2), sim.getCommandTraceJsonLines());
         }
     }
     private static boolean inside(BattleSimulation sim, Faction faction, TacticalNode node) {

@@ -157,6 +157,17 @@ final class MissionGarrisons {
      */
     Map<Integer, Manning> plan(CommandFrame frame, GarrisonableRegistry places, Map<Integer, Offer> offers,
                                String issuer) {
+        return plan(frame, places, offers, issuer, Integer.MAX_VALUE);
+    }
+
+    /**
+     * As {@link #plan(CommandFrame, GarrisonableRegistry, Map, String)}, with at most {@code maxHolders} squads holding
+     * a place (standing on it, falling back or in its rooms) after this pulse: a caller that keeps most of its force
+     * out of prepared positions (`garrisonables.md`, not every fight is into prepared positions) says how many may be.
+     * It bounds new sends only; nobody already holding is turned out by it.
+     */
+    Map<Integer, Manning> plan(CommandFrame frame, GarrisonableRegistry places, Map<Integer, Offer> offers,
+                               String issuer, int maxHolders) {
         CommanderInfluenceSnapshot influence = frame.influence();
         if (!enabled() || !HeldGround.usable(places, influence)) return new TreeMap<>();
         int count = contacts(influence);
@@ -164,7 +175,7 @@ final class MissionGarrisons {
         return plan(frame.squads(), places, (bx, by) -> influence.hostileAt(bx, by), contactScratch, count,
                 (sx, sy, x, y) -> topology.inBounds(sx, sy) && topology.isWalkable(sx, sy)
                         && (sx == x && sy == y || topology.reachable(sx, sy, x, y)),
-                offers, issuer);
+                offers, issuer, maxHolders);
     }
 
     /**
@@ -174,6 +185,13 @@ final class MissionGarrisons {
     Map<Integer, Manning> plan(List<CommandSquadState> roster, GarrisonableRegistry places,
                                GarrisonDirector.Pressure field, int[] contactXY, int contactCount,
                                HeldGround.Reach reach, Map<Integer, Offer> offers, String issuer) {
+        return plan(roster, places, field, contactXY, contactCount, reach, offers, issuer, Integer.MAX_VALUE);
+    }
+
+    /** As the seam above, with at most {@code maxHolders} squads holding a place after this pulse. */
+    Map<Integer, Manning> plan(List<CommandSquadState> roster, GarrisonableRegistry places,
+                               GarrisonDirector.Pressure field, int[] contactXY, int contactCount,
+                               HeldGround.Reach reach, Map<Integer, Offer> offers, String issuer, int maxHolders) {
         Map<Integer, Manning> out = new TreeMap<>();
         stats.pulses++;
 
@@ -273,7 +291,7 @@ final class MissionGarrisons {
             if (squad.localContact() && gapTo(place, squad.anchorCellX(), squad.anchorCellY(), places)
                     > IN_FIGHT_REACH_CELLS) return false;
             return reach.to(squad.anchorCellX(), squad.anchorCellY(), places.centreX(place), places.centreY(place));
-        });
+        }, null, maxHolders == Integer.MAX_VALUE ? GarrisonDirector.MAX_NEW_PER_PULSE : maxHolders - out.size());
         for (GarrisonDirector.Man man : sent) {
             out.put(man.squadId(), new Manning(man.squadId(), Kind.MAN,
                     GarrisonDirector.orderFor(man.squadId(), man.garrisonable(), places), man.garrisonable()));

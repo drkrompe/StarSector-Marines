@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.command.trace.ContactMixEvidence;
+import com.dillon.starsectormarines.battle.command.trace.ReactiveDefenceEvidence;
 import com.dillon.starsectormarines.testsupport.InstalledWeaponSlots;
 import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import org.junit.jupiter.api.AfterEach;
@@ -80,6 +82,7 @@ class ThunderRunEvidenceTest {
             Mission mission = staged.mission();
             int companySize = staged.companySize();
             var manifest = staged.manifest();
+            ContactMixEvidence mix = new ContactMixEvidence();
             try (var sim = staged.sim()) {
                 // Measure the intact map, before any destruction changes its routes.
                 var grid = sim.getGrid();
@@ -214,6 +217,7 @@ class ThunderRunEvidenceTest {
                     }
                     sim.advance(BattleSimulation.TICK_DT);
                     impacts.feed(sim);
+                    mix.sample(sim);
                     if (column.phase() == 1 || column.phase() == 2) {
                         for (int i = 0; i < sim.liveUnitCount(); i++) {
                             long unit = sim.liveUnitAt(i);
@@ -437,7 +441,7 @@ class ThunderRunEvidenceTest {
                         .put("alive",sim.world().isAlive(gun)));
                 JSONArray beats=new JSONArray();
                 for(var e:sim.getStoryBeats()) beats.put(new JSONObject().put("tick",e.tick()).put("id",e.id()));
-                var report=new JSONObject().put("fixture",name).put("ticks",sim.getSimTickIndex()).put("landedTick",landedTick)
+                var report=new JSONObject().put("fixture",name).put("contactMix",mix.json()).put("reactiveDefence",ReactiveDefenceEvidence.figures(sim)).put("ticks",sim.getSimTickIndex()).put("landedTick",landedTick)
                         .put("result",sim.isComplete()?String.valueOf(sim.getWinner()):"UNRESOLVED").put("phase",column.phase())
                         .put("delivered",column.deliveredCount()).put("lost",column.lostCount()).put("namedSeats",seats)
                         .put("rearContactTicks",new JSONArray(List.of(rearContactTicks[0],rearContactTicks[1])))
