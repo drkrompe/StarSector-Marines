@@ -79,7 +79,6 @@ public final class TenderSystem {
     private static final float DESTROY = 1.0e6f;
 
     private final List<Tender> tenders = new ArrayList<>();
-    private final List<TenderLanding> landings = new ArrayList<>();
     private float clock;
     private int nextDrone = 1;
     private int nextSite = 1;
@@ -115,22 +114,7 @@ public final class TenderSystem {
         return cues;
     }
 
-    /**
-     * Puts a flown tender on its way to set down at the site. Its hull is over the battle from now; the tender is
-     * listed, and its drones and construction begin, only when it is down ({@link TenderLanding}).
-     */
-    public void land(BattleSimulation sim, Tender tender, float siteX, float siteY) {
-        sim.addWarship(tender.ship());
-        landings.add(new TenderLanding(tender, siteX, siteY));
-    }
-
-    /** Tenders on their way down, for evidence. */
-    public List<TenderLanding> landings() {
-        return Collections.unmodifiableList(landings);
-    }
-
     public void tick(float dt, BattleSimulation sim) {
-        landings.removeIf(landing -> landing.tick(dt, sim));
         if (tenders.isEmpty()) return;
         clock += dt;
         cues.prune(sim.getSimTickIndex());
