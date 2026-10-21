@@ -15,13 +15,13 @@ public final class RelayNineCommand implements AutonomousMissionCommand<Conquest
     private final RelayNineTactics tactics = new RelayNineTactics();
     private final Map<Integer, Integer> detachments = new LinkedHashMap<>();
     private volatile Picture picture;
-    /** The defender's finite pool on the shared counter-attack (`place-counterattack.md`); {@code null} for the other sides. */
+    /** The defender's finite pool on the shared counter-attack (`conquest-command.md`, Defender command); {@code null} for the other sides. */
     private final SiteCounterattack counter;
     public RelayNineCommand(Faction faction) {
         if (faction != Faction.MARINE && faction != Faction.ALLY && faction != Faction.DEFENDER)
             throw new IllegalArgumentException("Relay Nine requires a fighting faction");
         this.faction = faction;
-        this.counter = faction == Faction.DEFENDER ? new SiteCounterattack(3, 1, 3) : null;
+        this.counter = faction == Faction.DEFENDER ? new SiteCounterattack(3) : null;
     }
     public static String issuer(Faction faction) { return "relay-nine:" + faction; }
     @Override public Faction faction() { return faction; }
@@ -35,7 +35,7 @@ public final class RelayNineCommand implements AutonomousMissionCommand<Conquest
         List<CommandProposal> proposals = new ArrayList<>();
         List<Duty> duties = new ArrayList<>();
         Map<Integer, SiteCounterattack.Duty> retake = counter != null && PlaceCounterattack.isEnabled()
-                ? counter.plan(frame.tick(), sites, owned(frame), frame.squads(), frame.influence(), frame.topology(), "RELAY")
+                ? counter.planRoadSites(frame.tick(), sites, owned(frame), frame.squads(), frame.influence(), frame.topology(), "RELAY")
                 : null;
         for (var squad : frame.squads()) {
             if (squad.aliveMembers() <= 0) continue;

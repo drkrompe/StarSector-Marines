@@ -12,13 +12,19 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
-/** Bounded source security and belief-driven interdiction for Extraction. */
+/**
+ * Bounded source security and belief-driven interdiction for Extraction. The held reserve, and the source guard and
+ * alarm responders within reach of their posts, man the garrisonables believed pressure reaches
+ * ({@link MissionGarrisons}); an interdicting squad is never offered.
+ */
 public final class ExtractionDefenderCommand implements AutonomousMissionCommand<
-        ExtractionDefenderCommandFrame, ExtractionDefenseSnapshot> {
+        ExtractionDefenderCommandFrame, ExtractionDefenseSnapshot>, ReactiveDefenceSource {
 
     static final int ALARM_RESPONSE_LIMIT = 3;
     /**
@@ -45,6 +51,7 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
 
     private final Set<Integer> initialMobileSquads = new TreeSet<>();
     private volatile ExtractionDefenseSnapshot defenseSnapshot;
+    private final MissionGarrisons garrisons = new MissionGarrisons();
 
     public ExtractionDefenderCommand(Set<Integer> mobileSquadIds) {
         if (mobileSquadIds != null) initialMobileSquads.addAll(mobileSquadIds);
@@ -56,6 +63,8 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
 
     @Override public Faction faction() { return Faction.DEFENDER; }
     @Override public String strategyId() { return "extraction-defender"; }
+    @Override public void afterCommit(CommandEffects effects) { garrisons.afterCommit(effects, faction()); }
+    @Override public Map<String, Integer> reactiveDefenceFigures() { return ReactiveDefenceSource.figures(garrisons.stats()); }
 
     @Override
     public CommandPlan<ExtractionDefenseSnapshot> plan(
@@ -90,6 +99,7 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
 
         List<CommandProposal> proposals = new ArrayList<>();
         List<SquadIntent> intents = new ArrayList<>();
+        Map<Integer, MissionGarrisons.Offer> offers = new TreeMap<>();
         for (CommandSquadState squad : frame.squads()) {
             if (squad.aliveMembers() <= 0) continue;
             int index = pool.indexOf(squad);
@@ -131,6 +141,7 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
                 intents.add(new SquadIntent(squad.squadId(), Role.RESERVE,
                         "MOBILE_RESERVE_HELD", null, -1, -1,
                         squad.localContact()));
+                offers.put(squad.squadId(), MissionGarrisons.Offer.reserve());
                 continue;
             }
 
@@ -163,6 +174,23 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
             intents.add(new SquadIntent(squad.squadId(), role, reason,
                     assignment.kind(), rally.cellX(), rally.cellY(),
                     squad.localContact()));
+            if (role != Role.INTERDICTION) {
+                offers.put(squad.squadId(), MissionGarrisons.Offer.duty(rally.cellX(), rally.cellY()));
+            }
+        }
+        Map<Integer, MissionGarrisons.Manning> manning = terminal ? Map.of()
+                : garrisons.plan(frame, frame.garrisonables(), offers, strategyId());
+        if (!manning.isEmpty()) {
+            proposals = new ArrayList<>(MissionGarrisons.rewrite(proposals, manning, frame.squads()));
+            for (int i = 0; i < intents.size(); i++) {
+                SquadIntent intent = intents.get(i);
+                MissionGarrisons.Manning m = manning.get(intent.squadId());
+                if (m == null) continue;
+                intents.set(i, new SquadIntent(intent.squadId(), intent.role(),
+                        m.kind().reason(), m.assignmentKind(),
+                        m.cellX(), m.cellY(),
+                        intent.localContact()));
+            }
         }
 
         Phase phase = terminal ? Phase.TERMINAL

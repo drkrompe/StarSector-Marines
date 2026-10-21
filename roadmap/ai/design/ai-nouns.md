@@ -2227,6 +2227,17 @@ pool at once, and never in the convergence phases. Only a believed mover, not a
 nest left standing, presses taken ground (`garrisonables.md`, holding taken
 ground; scene `attacker-holds-ground`).
 
+The Raid, Assault, Sabotage and Extraction defenders man their maps' places by
+the same assignment (`MissionGarrisons`; `garrisonables.md`, mission
+defenders). The mission commander decides its own duties first and then
+offers squads: its held reserve as roving, a squad on a stationary mission
+post only for a place beside that post, so the post is held from a window
+rather than given up. A squad in a fight is offered only the cover beside it,
+and a squad the mission takes back is forgotten at once: the mission outranks
+the place. Authored garrisons, chasers and the alarm's own mobilization are
+never touched, and a free lance of the reserve guards what the defender mans
+within the machine guard's bounds (scene `mission-defence`).
+
 **A holder goes out by its own sally door, not round its own walls.** A walled place a side holds (a fort's works, a
 walled compound or yard, a building with few exits) has a closed **sally door** in each face its walls would otherwise
 send the holder round: wall until the holder orders people inside the place to ground beyond that face, then opened as

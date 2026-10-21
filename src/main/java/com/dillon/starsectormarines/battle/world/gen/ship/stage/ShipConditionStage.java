@@ -28,8 +28,9 @@ public final class ShipConditionStage implements GenStage {
                         .thenComparingInt(DeckGraph.Compartment::id)).toList();
         return rooms.subList(Math.min(rooms.size(), Math.max(3, rooms.size() - 2)), rooms.size());
     }
+    /** Whether this room is closed: a hull reserve, or a facility the original wreck has not had repaired. */
     public static boolean sealed(DeckGraph graph, DeckGraph.Compartment room, ShipRestoration state) {
-        return state.applies() && (room.purpose() == RoomPurpose.VEHICLE_BAY && !state.mechBay()
+        return graph.reserved(room.id()) || state.applies() && (room.purpose() == RoomPurpose.VEHICLE_BAY && !state.mechBay()
                 || room.purpose() == RoomPurpose.MESS_HALL && !state.messHall()
                 || !state.billets() && spareBillets(graph).contains(room));
     }
@@ -45,6 +46,8 @@ public final class ShipConditionStage implements GenStage {
             if (!state.power() && room.purpose() != RoomPurpose.VEHICLE_BAY
                     && room.purpose() != RoomPurpose.HANGAR && room.purpose() != RoomPurpose.PARTS_CAGE
                     && (room.id() % 3 != 0 || room.purpose() == RoomPurpose.ENGINE_ROOM)) faults.add(room.id());
+            // Reserves are sealed by their own stage, whatever the wreck's state.
+            if (graph.reserved(room.id())) continue;
             if (!sealed(graph, room, state)) {
                 if (room.purpose() == RoomPurpose.VEHICLE_BAY || room.purpose() == RoomPurpose.MESS_HALL || spareBillets(graph).contains(room))
                     WorkshopConditionStage.overlay(ctx, room, new RoomFloor(ctx, room, RoomFit.STANDARD), room.purpose() == RoomPurpose.VEHICLE_BAY ? 5 : 1,
@@ -95,7 +98,7 @@ public final class ShipConditionStage implements GenStage {
             tasks.add(new FixtureTask(task.cellX(), task.cellY(), task.affordance(), task.fixtureX(), task.fixtureY(), berth, task.inService()));
         }
         ctx.fixtureTasks.clear(); ctx.fixtureTasks.addAll(tasks);
-        ctx.put(ShipKeys.DECK_GRAPH, new DeckGraph(graph.compartments(), graph.unplaced(), graph.apertures(), graph.boats(), damaged, faults));
+        ctx.put(ShipKeys.DECK_GRAPH, graph.withCondition(graph.apertures(), damaged, faults));
     }
 
     /** Damage stays within this berth's five-by-seven servicing module, clear of the shared aisle. */

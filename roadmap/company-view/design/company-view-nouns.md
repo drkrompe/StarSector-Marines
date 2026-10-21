@@ -1476,12 +1476,14 @@ for fabrication. The workshop checks this capacity again before spending materia
 Each completed repair refreshes the shared deck, room view and capacity together.
 
 The original hull's mess hall starts sealed. Field rations in working quarters
-keep the first mission available. A 2,500-credit yard order after Relief restores
-its pressure skin, galley and tables, crew meal routines, and a company welfare
-benefit: infantry morale recovers 25% faster once the normal incoming-fire delay
-has elapsed. Morale still starts full, retains casualty ceilings and break/clear
-thresholds, and has no additional food upkeep. Castle explains both the temporary
-arrangement and the exact benefit beside her portrait in Engineering.
+keep the first mission available, at a cost: company infantry recover morale 15%
+slower. A 2,500-credit yard order after Relief restores its pressure skin, galley
+and tables and brings recovery to neutral; a proper galley (+15%) and a galley
+with cold store (+25%) follow as refit tiers. Recovery applies once the normal
+incoming-fire delay has elapsed. Morale still starts full, retains casualty
+ceilings and break/clear thresholds, and has no additional food upkeep. Castle
+explains the current arrangement and the exact figure beside her portrait in
+Engineering.
 
 The benefit belongs to the active converted original company home and freezes
 with the selected personnel at launch. Later shuttle trips and split landings
@@ -1500,6 +1502,24 @@ at an accessible planetary spaceport, include labor and materials, and recheck
 funds and completion at payment. Inspection and review spend nothing. Every view
 rebuilds from the same current condition after an order. `ship-condition-survey.md`
 owns live acceptance of this survey and its new restoration paths.
+
+**The refit tree** (`second-wind-refit-tree.md`) generalises these orders. Every
+track of the founding hull stands at a band: Deficit (the battered start), Restored
+(neutral, the figures every mission and evidence harness is tuned at), Improved I
+and II. Five cores (Power, Life support, Structure, Compute, and Fabrication, which
+is the workshop chain) gate the other tracks' tiers. A locked tier names what it
+waits on in Castle's terms ("no power for it yet"). The distribution order is Power's
+Restored tier and the mess order is the mess's; their prices and receipts stand.
+Degraded scrubbers add a day to every wound's recovery until life support is
+restored. The combat tracks (hull, flux, sensors, drive) are the hull's own
+figures, applied through the conversion hull mod, so the refit screen shows them
+and every fight she is in uses them. They start below a stock Cerberus and stay a
+liability until the cores behind them are paid for; flux waits on the reactor
+overhaul. Engineering's Ship Systems control opens a card listing every track
+grouped as cores, facilities and combat refit, with the selected track's current
+and next tier, its bill, its lock reason and the reviewed order. Each tier is its
+own reviewed yard order under the same home, dock, Relief and funds rechecks, and
+the receipts stay with the hull. Other hulls are neutral on every track.
 
 Interior restoration is saved by the original hull's identity, independently of
 company designation and vanilla hull damage. Moving company, reopening screens and

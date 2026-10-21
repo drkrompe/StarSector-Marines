@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-20
 
-Updated: 2026-10-20 — conquest-trial reports the defender's fort counter-attack.
+Updated: 2026-10-20 — conquest-trial reports the defender's place counter-attack: probes, observations, launches and retakes by fort and compound.
 
 Per-mission matrices, fixture fields and report contents for `gradlew.bat commanderEvidence -Pmission=<mission>`. How to run the task, the mission list, replay count, parallelism and snapshot flags stay in `CLAUDE.md` (Build & deploy); read this when you need one mission's details. Text is moved verbatim from `CLAUDE.md`; "Fixture fields match Relief" and similar refer to the sections below.
 

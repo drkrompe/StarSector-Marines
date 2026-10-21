@@ -10,6 +10,11 @@ import com.dillon.starsectormarines.battle.world.gen.ship.ShipRestoration;
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
+import com.dillon.starsectormarines.campaign.refit.RefitBand;
+import com.dillon.starsectormarines.campaign.refit.RefitOrder;
+import com.dillon.starsectormarines.campaign.refit.RefitTrack;
+import com.dillon.starsectormarines.campaign.refit.ShipCondition;
+import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.campaign.start.CompanyShipRestoration;
 import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
@@ -83,6 +88,9 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
                 work -> new CompanyShipRestoration.Offer(ship.ship().restoration(), 20000, null),
                 work -> { payments[0]++; return "Evidence: no campaign mutation"; },
                 () -> new CompanyBayRestoration.Offer(true, 20000, null), () -> "Evidence only",
+                () -> REFIT, order -> new ShipRefits.Offer(REFIT, 20000,
+                        ShipRefits.refusal(order, REFIT, true, true, true, true, 20000)),
+                order -> { payments[0]++; return "Evidence: no campaign mutation"; },
                 ignored -> {}, () -> {});
         var offer = new CompanyWorkshopRestoration.Offer[]{new CompanyWorkshopRestoration.Offer(WorkshopState.BURIED, 20000, null, null, 3, 20)};
         var workshop = new WorkshopRestorationModel(reactor,
@@ -144,7 +152,19 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
             overlay.update(0f, ship, canvas);
             require(card.opacity() == 0f, "Close did not dismiss the inspection");
             overlay.select(-1); overlay.update(0f, ship, canvas);
-            frames.add(new SnapshotArtifact("04-distribution.png", renderer.render(document, 1920, 1080)));
+            require(markup.requireElement("survey-tracks").opacity() > 0f, "Ship systems card lists no tracks");
+            frames.add(new SnapshotArtifact("04-systems-power.png", renderer.render(document, 1920, 1080)));
+            click(document, markup.requireElement("refit-track-flux"));
+            markup.flush(); overlay.update(0f, ship, canvas);
+            require(model.row().get().get("reason").equals(ShipRefits.refusal(RefitOrder.FLUX_RESTORED, REFIT, true, true, true, true, 20000)),
+                    "A locked combat tier did not name what it waits on");
+            frames.add(new SnapshotArtifact("04-systems-flux-locked.png", renderer.render(document, 1920, 1080)));
+            click(document, markup.requireElement("refit-track-hull"));
+            markup.flush(); overlay.update(0f, ship, canvas);
+            click(document, markup.requireElement("ship-condition-action"));
+            markup.flush(); overlay.update(0f, ship, canvas);
+            require(payments[0] == 1, "Reviewing a refit tier spent credits");
+            frames.add(new SnapshotArtifact("04-systems-hull-review.png", renderer.render(document, 1920, 1080)));
             overlay.select(ship.rooms().largest(RoomPurpose.PARTS_CAGE).id());
             overlay.update(0f, ship, canvas);
             frames.add(new SnapshotArtifact("05-workshop.png", renderer.render(document, 1920, 1080)));
@@ -163,6 +183,21 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
                 require(markup.requireElement("engineering-credit-stock:label").text().equals("15,000,000"), "Large stock did not refresh");
                 frames.add(new SnapshotArtifact("07-reclamation.png", renderer.render(document, 1920, 1080)));
                 return List.copyOf(frames);
+            }
+            // The hull's reserves are on the plan, sealed and inspectable, before
+            // any refit opens them.
+            var reserves = ship.rooms().compartments().stream().filter(r -> ship.rooms().reserved(r.id())).toList();
+            require(reserves.size() == 5, "Second Wind should keep five sealed reserves, found " + reserves.size());
+            for (var reserve : reserves) markup.requireElement("survey-room-" + reserve.id());
+            var range = ship.rooms().largest(RoomPurpose.FIRING_RANGE);
+            require(range != null && ship.rooms().reserved(range.id()) && !ship.has(RoomPurpose.FIRING_RANGE),
+                    "The reserved range must be on the plan and out of service");
+            int shown = 0;
+            for (var reserve : reserves) {
+                overlay.select(reserve.id()); overlay.update(0f, ship, canvas);
+                require(model.selectedRoomId() == reserve.id(), "A reserve could not be inspected: " + reserve.purpose());
+                frames.add(new SnapshotArtifact(String.format("07-reserve-%d-%s.png", ++shown,
+                        reserve.purpose().name().toLowerCase().replace('_', '-')), renderer.render(document, 1920, 1080)));
             }
             overlay.select(mess.id()); overlay.update(0f, ship, canvas);
             // Zoom on the mess itself, wherever the hull keeps it, so the
@@ -186,6 +221,10 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
             return List.copyOf(frames);
         }
     }
+
+    /** Mid-way through the cores: power and structure restored, everything else as found. */
+    private static final ShipCondition REFIT = ShipCondition.battered()
+            .with(RefitTrack.POWER, RefitBand.RESTORED).with(RefitTrack.STRUCTURE, RefitBand.RESTORED);
 
     private static void click(UiDocument document, UiElement element) {
         Rect box = element.box().borderBox();

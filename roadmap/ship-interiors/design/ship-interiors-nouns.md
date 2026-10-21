@@ -5,7 +5,11 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-20 — Second Wind's deck follows her model: a deck arrangement sites each room, both bays stand abreast in a faired waist, open to port and sealed to starboard.
+Updated: 2026-10-21 — Second Wind's arrangement also carries sealed reserves for her refit tree, laid after the program so they never move it.
+
+Earlier 2026-10-20 — the founding hull's per-core Deficit dressing: presentation-only state over the fixed form, cleared core by core.
+
+Earlier 2026-10-20 — Second Wind's deck follows her model: a deck arrangement sites each room, both bays stand abreast in a faired waist, open to port and sealed to starboard.
 
 Earlier 2026-10-20 — the Second Wind is never lost for good: any yard sells her back at once, one d-mod worse; campaign missions need her with the company aboard.
 
@@ -1571,6 +1575,18 @@ the hold inboard of the bays, the Mech Lab hard abaft the working bay, the mess
 beside the provisions, and the machine shop, the plant and the drive together
 to starboard aft. Every other hull is packed by zone alone.
 
+An arrangement may also carry **reserves**: compartments a hull keeps sealed
+for refits she has not had. A reserve is no part of the room program. The
+deck is not sized for it, the ship is not owed it and no facility count reads
+it. It is laid after every programmed room and before the pocket fill, so
+reserving one never moves a room, door or berth the program placed. It is
+furnished, then stripped and closed behind pressure hatches, and stays out of
+service until a refit opens it where it stands. Second Wind reserves a firing
+range, a gymnasium, a sick bay, a rec lounge and a brig for her refit tree, at
+footprints her deck can spare in every layout (`second-wind-refit-tree.md`).
+These are the founding hull's exception to the destroyer-size gate on those
+rooms, not a change to the general program.
+
 The custom start's original Cerberus reserves two bay compartments even before
 conversion. The starboard bay is damaged: its hatch and launch aperture are sealed,
 its deck carries debris, and it offers no working berth or crew duties. Its
@@ -1603,6 +1619,23 @@ The hull also carries **persistent wear**: sparse boot/cargo scuffs, chipped pai
 old welded plates and soot scars outside the active restoration work. Those marks
 survive facility repair, so a working ship still has a history. They decorate
 actual floor beneath furnishings and own no navigation, cover or capacity.
+
+Over that history the founding hull carries a **Deficit dressing**, one set per
+core: dead wall panels, torn-down conduit and passages on emergency light for
+Power; grime, condensation, stained scrubber grilles and a drifting dead-air haze
+for Life support; buckled wall panels, bracing, flat debris and patched plating
+for Structure; dead screens and cable pulled out of the overhead for Compute.
+Each core's Restored tier clears its own set everywhere on the deck, so the ship
+comes back core by core (`second-wind-refit-tree.md`). Dressing is state over
+fixed form and is presentation only: it is drawn by the deck scene and never
+enters the map, so it moves no room, door, berth or lane and owns no navigation,
+cover or sight. The whole Deficit plan is derived from the deck and its seed, and
+the condition only chooses which cores' pieces show, so the same cells are dirty
+on every visit and clearing one core never moves another's. It keeps off
+doorways, berths, bay apertures, sealed or shut deck and firing ranges; anything
+that reads as standing on the deck hugs a straight run of bulkhead and leaves the
+lane beside it clear, and only flat stains lie mid-lane. The haze's control is
+`-Dbattle.render.deadAirHaze=false`.
 
 **Deck lighting** belongs to the company interior presentation. Compartments and
 passages have visible fixtures and readable pools of light. Damaged facilities

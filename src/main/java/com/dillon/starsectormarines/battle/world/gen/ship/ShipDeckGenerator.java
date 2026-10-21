@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalLinkStage
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.CompartmentFillStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.ReservedBoatBayStage;
+import com.dillon.starsectormarines.battle.world.gen.ship.stage.ReservedFacilityStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.WorkshopConditionStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.ShipConditionStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.BayApertureStage;
@@ -68,6 +69,7 @@ public final class ShipDeckGenerator {
                 new ReservedBoatBayStage(boatBay),
                 new WorkshopConditionStage(workshop),
                 new ShipConditionStage(restoration),
+                new ReservedFacilityStage(),             // sealed reserves, after the wreck's own condition
                 new DeckEndSpawnStage(),                 // bow / stern anchors
                 new TacticalLinkStage(),                 // (no nodes yet -> empty map)
                 new FinalizeStage(),                    // wall HP / cover / wall tags / buildings

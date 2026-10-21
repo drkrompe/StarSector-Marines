@@ -28,7 +28,12 @@ public record SabotageDefenseSnapshot(
         BELIEVED_SITE_THREAT_RESPONSE,
         MOBILE_RESERVE_HELD,
         NO_REACHABLE_SITE,
-        ALL_SITES_COMPLETE
+        ALL_SITES_COMPLETE,
+        GARRISONABLE_MAN,
+        GARRISONABLE_STAND,
+        GARRISONABLE_FALL_BACK,
+        GARRISONABLE_ROOMS,
+        GARRISONABLE_GUARD
     }
 
     public record SiteState(
