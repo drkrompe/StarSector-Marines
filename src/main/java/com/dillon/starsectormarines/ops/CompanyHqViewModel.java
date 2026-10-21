@@ -330,7 +330,7 @@ final class CompanyHqViewModel {
         String confidence = entry.confidence() == ChronicleConfidence.RUMOR
                 ? Strings.get("companyHqNewsRumor")
                 : Strings.get("companyHqNewsConfirmed");
-        String kicker = confidence + "  /  " + ageText(age);
+        String kicker = Strings.join("separatorWide", confidence, ageText(age));
         String actor = fallback(entry.actorName(), Strings.get("companyHqNewsUnknownHouse"));
         String target = fallback(entry.targetName(), Strings.get("companyHqNewsUnknownHouse"));
         String headline;
@@ -414,8 +414,7 @@ final class CompanyHqViewModel {
 
     private static String runwayText(float months) {
         return months < 0f ? Strings.get("companyHqRunwayUnknown")
-                : MessageFormat.format(Strings.get("companyHqRunwayCompact"),
-                        String.format("%.1f", months));
+                : Strings.format("companyHqRunwayCompact", months);
     }
 
     private static String runwayClasses(float months) {
@@ -452,7 +451,7 @@ final class CompanyHqViewModel {
     private static String join(String first, String second) {
         if (first == null || first.isBlank()) return second == null ? "" : second;
         if (second == null || second.isBlank()) return first;
-        return first + "  /  " + second;
+        return Strings.join("separatorWide", first, second);
     }
 
     private static String fallback(String value, String fallback) {

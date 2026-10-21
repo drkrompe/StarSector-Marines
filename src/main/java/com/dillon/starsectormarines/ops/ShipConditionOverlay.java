@@ -261,7 +261,7 @@ public final class ShipConditionOverlay {
                     RefitText.tier(reveal.order.track, reveal.order.band)));
             captionHint.text("");
         } else {
-            captionTitle.text(RefitText.tier(reveal.order.track, reveal.order.band).toUpperCase(Locale.ROOT));
+            captionTitle.text(Strings.upper(RefitText.tier(reveal.order.track, reveal.order.band)));
             captionEffect.text(RefitText.effect(reveal.order.track, reveal.order.band));
             captionHint.text(Strings.get("openingRefitRevealContinue"));
         }

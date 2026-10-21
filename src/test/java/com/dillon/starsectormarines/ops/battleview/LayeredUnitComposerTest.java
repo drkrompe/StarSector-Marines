@@ -368,6 +368,37 @@ class LayeredUnitComposerTest {
                 "a family without station arms keeps its rifle");
     }
 
+    @Test
+    void aWorkingHandSweepsAboutAnElbowThatStaysInTheSleeve() {
+        LayeredUnitAssets assets = assets(false);
+        assets.registerStationArms(LayeredSpriteCache.headless("arm-left", 150, 190),
+                LayeredSpriteCache.headless("arm-right", 150, 190));
+        Layer still = armAt(assets, 0f), swept = armAt(assets, 0.25f);
+        assertEquals(7f, Math.abs(swept.angle() - still.angle()), 0.01f, "the forearm turns");
+        // The elbow is 0.1 of the width in and halfway down the body rows: 60 px
+        // left of the layer's centre and 47.5 px behind it on a 150x190 arm over a 95-row body.
+        float[] a = elbow(still), b = elbow(swept);
+        assertEquals(a[0], b[0], 0.01f);
+        assertEquals(a[1], b[1], 0.01f);
+    }
+
+    private static Layer armAt(LayeredUnitAssets assets, float phase) {
+        List<Layer> layers = new ArrayList<>();
+        LayeredUnitComposer.emit((sprite, x, y, width, height, angle, r, g, b, alpha) ->
+                        layers.add(new Layer(sprite.sourcePath, x, y, angle)),
+                assets, assets.head, null, true, null, EquipmentGrade.SERVICE,
+                100f, 200f, 150f, 90f, -31f, 0f, phase,
+                LayeredAppearance.POSE_IDLE, LayeredAppearance.FLAG_AT_STATION, 1f, null);
+        return layers.stream().filter(layer -> layer.id().equals("arm-left")).findFirst().orElseThrow();
+    }
+
+    private static float[] elbow(Layer arm) {
+        double rad = Math.toRadians(arm.angle());
+        float x = -60f, y = -47.5f;
+        return new float[]{arm.x() + (float) (x * Math.cos(rad) - y * Math.sin(rad)),
+                arm.y() + (float) (x * Math.sin(rad) + y * Math.cos(rad))};
+    }
+
     private static List<Layer> draw(LayeredUnitAssets assets, LayerPose pose, int flags) {
         List<Layer> layers = new ArrayList<>();
         LayeredUnitComposer.emit((sprite, x, y, width, height, angle, r, g, b, alpha) ->
