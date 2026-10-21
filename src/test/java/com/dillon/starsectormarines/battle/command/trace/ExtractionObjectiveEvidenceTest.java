@@ -203,12 +203,14 @@ class ExtractionObjectiveEvidenceTest {
              CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(
                      visualRoot, runId, sim)) {
             sim.setCommandTraceEnabled(true, fixture.kind());
+            ReactiveDefenceEvidence.Mix mix = new ReactiveDefenceEvidence.Mix();
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 sim.advance(BattleSimulation.TICK_DT);
                 capture.afterAdvance();
+                mix.sample(sim);
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
-            System.out.println(ReactiveDefenceEvidence.line(runId, sim, sim.getCommandTraceJsonLines()));
+            System.out.println(ReactiveDefenceEvidence.line(runId, sim, sim.getCommandTraceJsonLines(), mix));
             ExtractionObjectiveFacts payload = ExtractionObjectiveDisclosure
                     .freezeNeutral(sim).stream()
                     .filter(row -> "EXTRACTION-01".equals(row.payloadId()))

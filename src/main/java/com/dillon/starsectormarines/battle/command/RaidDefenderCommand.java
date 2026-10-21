@@ -37,7 +37,7 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
     @Override public Faction faction() { return Faction.DEFENDER; }
     @Override public String strategyId() { return "raid-defender"; }
     @Override public void afterCommit(CommandEffects effects) { garrisons.afterCommit(effects, faction()); }
-    @Override public Map<String, Integer> reactiveDefenceFigures() { return ReactiveDefenceSource.figures(garrisons.stats()); }
+    @Override public Map<String, Integer> reactiveDefenceFigures() { return ReactiveDefenceSource.figures(garrisons); }
 
     @Override
     public CommandPlan<RaidCommandSnapshot> plan(RaidDefenderCommandFrame frame) {

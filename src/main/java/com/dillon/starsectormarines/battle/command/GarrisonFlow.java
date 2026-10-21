@@ -32,6 +32,11 @@ import java.util.List;
  * <p><b>Order.</b> {@link #sendOrder}: every area with nobody local gets one squad before any area gets a second,
  * most pressed first, within a per-plan bound. Cost is arithmetic over the contact blocks and the areas; nothing
  * here searches.
+ *
+ * <p><b>Without an axis.</b> {@link #towardPlaces} and {@link #forwardOf} measure the staging cell from an area
+ * toward the places it presses instead, for a commander that has no command axis (the mission defenders,
+ * {@link MissionGarrisons}), and {@link #nextIsForward} splits an area's squads between waiting at the places and
+ * meeting the attack in the street. Conquest's defender stages along its track axis and does not use them yet.
  */
 final class GarrisonFlow {
 
@@ -188,6 +193,64 @@ final class GarrisonFlow {
         int y = axis.cellY(lateral, forward);
         int[] offset = SPREAD[Math.floorMod(spread, SPREAD.length)];
         return new int[]{x + offset[0], y + offset[1]};
+    }
+
+    /**
+     * Cells from an area's centre toward its places at which a <b>forward</b> squad meets the attack: in the street
+     * between the attack and what it is coming for, not behind a parapet. UNTUNED.
+     */
+    static final int FORWARD_STANDOFF_CELLS = 6;
+    /** A forward post needs at least this much ground between it and the places, or the meeting is at the places anyway. */
+    static final int FORWARD_CLEARANCE_CELLS = 4;
+
+    /**
+     * The staging cell for an area measured toward the places it presses rather than along a command axis: the line
+     * from the threat to what it threatens is the defender's side by construction, so this needs no notion of a rear
+     * and serves any side on any map. A squad waits at the places themselves when they lie a standoff or more from the
+     * area's centre, and {@link #STANDOFF_CELLS} from the centre (behind the places) when they lie nearer. {@code spread}
+     * offsets it as {@link #desiredStage} does. With the places on the centre itself there is no direction and the
+     * places' cell is the answer.
+     *
+     * @param placesX the (mean) cell of the places the area presses
+     */
+    static int[] towardPlaces(int centreX, int centreY, int placesX, int placesY, int spread) {
+        double dx = placesX - centreX;
+        double dy = placesY - centreY;
+        double d = Math.sqrt(dx * dx + dy * dy);
+        int x = placesX;
+        int y = placesY;
+        if (d >= 1 && d < STANDOFF_CELLS) {
+            x = (int) Math.round(centreX + dx / d * STANDOFF_CELLS);
+            y = (int) Math.round(centreY + dy / d * STANDOFF_CELLS);
+        }
+        int[] offset = SPREAD[Math.floorMod(spread, SPREAD.length)];
+        return new int[]{x + offset[0], y + offset[1]};
+    }
+
+    /**
+     * Where a forward squad meets an area's attack: {@link #FORWARD_STANDOFF_CELLS} from the area's centre toward its
+     * places, or {@code null} when the places stand too near the attack for there to be any street between them
+     * (closer than the standoff plus {@link #FORWARD_CLEARANCE_CELLS}).
+     */
+    static int[] forwardOf(int centreX, int centreY, int placesX, int placesY) {
+        double dx = placesX - centreX;
+        double dy = placesY - centreY;
+        double d = Math.sqrt(dx * dx + dy * dy);
+        if (d < FORWARD_STANDOFF_CELLS + FORWARD_CLEARANCE_CELLS) return null;
+        return new int[]{(int) Math.round(centreX + dx / d * FORWARD_STANDOFF_CELLS),
+                (int) Math.round(centreY + dy / d * FORWARD_STANDOFF_CELLS)};
+    }
+
+    /**
+     * Whether an area's next staged squad should meet the attack forward rather than wait at the places (`garrisonables.md`,
+     * not every fight is into prepared positions): the first squad of an area goes back, so its places have somebody to
+     * man them, and from then on back and forward alternate, back first.
+     *
+     * @param back    squads the area already has at or on its places (staged back, or manning there)
+     * @param forward squads the area already has forward
+     */
+    static boolean nextIsForward(int back, int forward) {
+        return back > forward;
     }
 
     /** The acceptable cell nearest {@code (x, y)} on the smallest diamond ring up to {@code maxRadius}, or {@code null}. */
