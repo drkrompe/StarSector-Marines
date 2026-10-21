@@ -54,7 +54,10 @@ FEET = {"FL": ((185, 860), (80, 95)), "FR": ((850, 885), (78, 98)),
         "HL": ((255, 1255), (82, 95)), "HR": ((775, 1300), (88, 102))}
 NECK = (512, 470)
 GAPE = (0.690, (52, 44), (177, 26))      # scale, source top-left, destination top-left
-SHANK_W = {"F": 140, "H": 150}
+SHANK_W = {"F": 175, "H": 185}
+LEG_ROOT_IN = 0.55       # leg roots sit this fraction of the way out to the foot, well inside the body
+HEAD_TURN = 180          # degrees the crown-and-head layer is turned (owner's experiment); 0 is the design
+HEAD_TURN_Y = 300        # hero row it turns about
 FOOT_SCALE = 1.1
 
 
@@ -79,6 +82,14 @@ def sway_warp(img, s, U, row0=0, scale=1.0):
     al = out[..., 3:4]
     out[..., :3] = np.where(al > 0, out[..., :3] * 255 / np.maximum(al, 1e-6), 0)
     return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8), "RGBA")
+
+
+def trim(img, px=3):
+    """Pull a cut's alpha in by a few pixels: the keyed edge keeps a pale fringe of the plate's grey."""
+    a = img.getchannel("A").filter(ImageFilter.MinFilter(2 * px + 1))
+    out = img.copy()
+    out.putalpha(a)
+    return out
 
 
 def poly_mask(size, pts, blur=4):
@@ -110,10 +121,17 @@ class Rig:
         gl = Image.new("RGBA", size, (0, 0, 0, 0))
         gl.alpha_composite(g, (round(dx - sx * k), round(dy - sy * k)))
         self.gape = on_canvas(gl)
+        if HEAD_TURN:
+            centre = L(512, HEAD_TURN_Y)
+            self.head = self.head.rotate(HEAD_TURN, center=centre, resample=Image.BICUBIC)
+            self.gape = self.gape.rotate(HEAD_TURN, center=centre, resample=Image.BICUBIC)
+        self.neck = (512, 2 * HEAD_TURN_Y - NECK[1]) if HEAD_TURN == 180 else NECK
+        top = self.head.getchannel("A").point(lambda v: 255 if v > 100 else 0).getbbox()[1]
+        self.nose = (ANCHOR_Y - (top / S - PAD)) / U_LAYER       # cells from the anchor to the front
         self.blades = {s: on_canvas(with_alpha(hero, ha * m)) for s, m in blade_m.items()}
         self.feet = {}
         for n, m in foot_m.items():
-            cut = with_alpha(hero, ha * m)
+            cut = trim(with_alpha(hero, ha * m))
             box = Image.fromarray((m * 255).astype(np.uint8)).point(lambda v: 255 if v > 4 else 0).getbbox()
             cut = cut.crop(box)
             cut = cut.resize((max(1, int(cut.width * S)), max(1, int(cut.height * S))), Image.LANCZOS)
@@ -121,9 +139,9 @@ class Rig:
             self.feet[n] = (cut, ((c[0] - box[0]) * S, (c[1] - box[1]) * S))
         self.shanks = {}
         for part, path in (("F", "leg-front.png"), ("H", "leg-hind.png")):
-            leg = largest_blob(key(RAW / path))
+            leg = trim(largest_blob(key(RAW / path)))
             leg = leg.crop(leg.getchannel("A").point(lambda v: 255 if v > 60 else 0).getbbox())
-            leg = leg.crop((0, 0, leg.width, int(leg.height * 0.78)))     # hip at the top, without the foot
+            leg = leg.crop((0, 0, leg.width, int(leg.height * 0.80)))     # hip at the top, without the foot
             w = SHANK_W[part] * S
             self.shanks[part] = leg.resize((int(w), int(leg.height * w / leg.width)), Image.LANCZOS)
         self.hero_area = float((ha > 128).sum()) * S * S
@@ -135,26 +153,31 @@ class Rig:
         def lp(p):   # skeleton (x, y) in cells -> layer px
             return 512 + p[0] * U_LAYER, ANCHOR_Y - (p[1] - y0) * U_LAYER
 
-        ends = {n: (L(*lp(sk["legs"][n][0])), L(*lp(sk["feet"][n])), sk["feet"][n][2]) for n in FEET}
-        for n in ("HL", "HR", "FL", "FR"):
-            _, b, z = ends[n]
-            img, (ox, oy) = self.feet[n]
-            k = FOOT_SCALE * (1 + 1.2 * z)
-            im = img.resize((max(1, int(img.width * k)), max(1, int(img.height * k))), Image.LANCZOS)
-            c.alpha_composite(im, (int(b[0] - ox * k), int(b[1] - oy * k)))
-        for n in ("HL", "HR", "FL", "FR"):
+        (sx, sy), (hx, hy) = body_offsets(sk)
+        ends = {}
+        for n in FEET:
+            fx, fy, fz = sk["feet"][n]
+            ox = sx if n[0] == "F" else hx
+            root_y = sk["legs"][n][0][1]
+            ends[n] = (L(*lp((fx * LEG_ROOT_IN + ox, root_y))), L(*lp((fx, fy))), fz)
+        for n in ("HL", "HR", "FL", "FR"):   # legs first, from inside the body out past the foot's centre
             a, b, _ = ends[n]
             shank = self.shanks[n[0]]
             ln = max(1.0, math.hypot(b[0] - a[0], b[1] - a[1]))
-            im = shank.resize((shank.width, int(ln + shank.width * 0.5)), Image.LANCZOS)
+            im = shank.resize((shank.width, int(ln * 1.25 + shank.width * 0.3)), Image.LANCZOS)
             if n[1] == "R":
                 im = im.transpose(Image.FLIP_LEFT_RIGHT)
             ang = math.degrees(math.atan2(b[0] - a[0], b[1] - a[1]))
             im = im.rotate(ang, expand=True, resample=Image.BICUBIC)
             mx, my = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
             c.alpha_composite(im, (int(mx - im.width / 2), int(my - im.height / 2)))
+        for n in ("HL", "HR", "FL", "FR"):   # the feet over the legs, the body over both
+            _, b, z = ends[n]
+            img, (ox_, oy_) = self.feet[n]
+            k = FOOT_SCALE * (1 + 1.2 * z)
+            im = img.resize((max(1, int(img.width * k)), max(1, int(img.height * k))), Image.LANCZOS)
+            c.alpha_composite(im, (int(b[0] - ox_ * k), int(b[1] - oy_ * k)))
         c.alpha_composite(sway_warp(self.body, sk, U_LAYER * S, row0=-PAD, scale=S))
-        (sx, sy), _ = body_offsets(sk)
         shift = (sx * U_LAYER * S, -sy * U_LAYER * S)       # the shoulders carry the scythes and the head
         over = []
         for side in ("L", "R"):
@@ -171,7 +194,7 @@ class Rig:
             else:
                 c.alpha_composite(img)
         hd = sk["head"]
-        pivot = L(*NECK)
+        pivot = L(*self.neck)
         h = self.gape if hd["gape"] >= 0.5 else self.head     # the two heads do not register well enough to blend
         if abs(hd["k"] - 1) > 1e-3:
             h = scale_about(h, hd["k"], pivot)
@@ -202,7 +225,7 @@ class Clip:
         self.rig, self.cid = rig, cid
         self.frames = simulate(cid, n)
         self.row = ROW[cid]
-        self.x0 = {"A": 189.9, "B": 191.0, "C": WALL_X + 0.25 + NOSE + WALK * WALL_STOP}[cid]
+        self.x0 = {"A": 189.9, "B": 191.0, "C": WALL_X + 0.25 + rig.nose + WALK * WALL_STOP}[cid]
         self.cache = {}
         self.victims = []
         if cid == "B":   # one Marine where each blade's tip passes mid-sweep
@@ -301,7 +324,7 @@ def wall_damage(tile, ppc, origin, t, row):
             tile.alpha_composite(dust.filter(ImageFilter.GaussianBlur(0.15 * ppc)))
 
 
-def build(root, cid, out, title="MOTION STUDY 1"):
+def build(root, cid, out, title="MOTION STUDY 2 / head turned 180"):
     """One clip per GIF (the three together pass the 8 MB preview limit): 64 px per cell at left, 32 px per
     cell (play zoom) at right. Returns the frames, the clip and the panel's top row in the ground frame."""
     rig = Rig()
@@ -323,7 +346,7 @@ def build(root, cid, out, title="MOTION STUDY 1"):
         d = ImageDraw.Draw(img)
         d.text((24, 10), f"RAV MATRIARCH  /  {title}  /  {cid}  {ttl}", font=font(22, True), fill=INK)
         d.text((24, 40), "Real time. Left: 64 px per cell. Right: 32 px per cell (play zoom). Charcoal Siege Crown "
-                         "(round 3 #5), about 4.5 cells nose to tail; Marines for scale.", font=font(14), fill=DIM)
+                         "(round 3 #5), crown and head turned 180 degrees; Marines for scale.", font=font(14), fill=DIM)
         tile = g64.copy()
         if cid == "C":
             wall_damage(tile, 64, o64, t, clip.row)
