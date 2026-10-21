@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16036-4795-7853-b5a1-1a49e9b0c123",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16036-4795-7853-b5a1-1a49e9b0c123\\exec-da2ea3bc-62fd-4911-a23c-73e44a07b031.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\matriarch\\round-1\\raw\\c2.png",
+    "sha256": "652672bd4e4db79e2ff612975ef4d1f54678a4fd602f26d01996a9d661e526a3",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\matriarch\\round-1\\prompts\\c2.prompt.txt",
+  "promptSha256": "4f08e55d12a755e170793e716512140476ddabd7e4e97ef9255b25004a7712e6",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Family identity: the settled young Runner (pale lilac palette, plate-over-sinew finish, shoulder spike arms); not its size or body plan\nImage 2: Family identity: the approved Brute (old dark plum plates, ivory bone, legs under the body); not its head or body plan\n\nTop-down concept for a tactical game (Starsector mod: Marines against an engineered biological weapon, the Rav Bloom). ONE creature, the MATRIARCH: the oldest, largest strain of the Rav Bloom, which crawls out of a mother bore. It is a boss-scale juggernaut, many times a man's size and bigger than a walking war mech: a huge, heavily plated four-legged beast with great bone scything blades, slow and unstoppable, that wades through sandbags, bunkers and walls. It is the MOTHER of the family: reference image 1 is its young Runner and reference image 2 is its Brute; it must read at a glance as the same species grown ancient and enormous, NOT as a StarCraft Ultralisk or any other existing creature. Shared family language, keep it exactly: overlapping glossy carapace plates over a muscled beast body, with deep magenta-crimson sinew visible in every gap and joint; bone weapons (blades, claws, fangs, spikes) in ivory; a few small hot amber eye points and nothing else glowing; a pale ridge of spine plates. Carapace colour: old and heavy like the Brute, deep dark plum-violet plates with pale lilac on worn edges, ridges and newer growth. No outline rim, no cream border. BEAST, not insect: muscled legs, no antennae, no thin waist, no mantis forelegs. LEGS stand DOWN UNDER the body like an elephant's or a rhino's, so from directly above the massive body hides most of them: only the knees and the clawed, armoured feet show just past the body's outline, close to the flanks, never splayed sideways like a lizard. POSE: not symmetric and not flat; the head turned a little to one side, the blades held at different angles, as if caught mid-stride. Strict overhead orthographic view, camera looking straight down at its back, facing UP (head toward the top), centred, the whole creature including its blades inside the frame and filling about three quarters of it, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n\nThis concept: FOUR BLADES: two pairs of shoulder scythes stacked one behind the other, the front pair huge, the rear pair shorter; uneven, one rear blade snapped off short and healed over in pale lilac new plate. A long heavy body, the blades fanned at different angles like a half-opened hand.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\round-5\\raw\\c4.png",
+      "sha256": "3bf54e3a0eca3ac32d7f93324957f780a4f6cd7a538777543b2431e772a08bf6",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Family identity: the settled young Runner (pale lilac palette, plate-over-sinew finish, shoulder spike arms); not its size or body plan"
+    },
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-brute\\raw\\hero.png",
+      "sha256": "cc2fa7dae723cb7b4b30435b9535051272d91848cc652d61cd28ec8d2121453e",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Family identity: the approved Brute (old dark plum plates, ivory bone, legs under the body); not its head or body plan"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one Matriarch concept using the references and your four-blade design."
+  ],
+  "usage": {
+    "input_tokens": 44802,
+    "cached_input_tokens": 25728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 842,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 62.7
+}

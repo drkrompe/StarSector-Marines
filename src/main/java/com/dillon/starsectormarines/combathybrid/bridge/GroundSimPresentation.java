@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.ops.battleview.BattleRenderer;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceAudio;
 import com.dillon.starsectormarines.ops.battleview.WarshipAudio;
 import com.dillon.starsectormarines.ops.battleview.BoreAudio;
+import com.dillon.starsectormarines.ops.battleview.SwarmAudio;
 import com.dillon.starsectormarines.ops.battleview.TenderAudio;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceFxRuntime;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceTraceFxService;
@@ -148,6 +149,7 @@ public final class GroundSimPresentation {
         WarshipAudio.play(sim.shieldDomes().cuesThisFrame());
         TenderAudio.play(sim);
         BoreAudio.play(sim);
+        SwarmAudio.play(sim);
     }
 
     /** Line-tracer impacts land instantly (the beam covers its whole travel at fire), plus per-shot

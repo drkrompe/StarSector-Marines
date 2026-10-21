@@ -11,7 +11,7 @@ and the three spore-colony grades (`structure.spore-colony-fissure`, `-bore`,
 | Reskin one variant (one paid call) | `bash art-source/swarm-bores/generate.sh <part> <n>` | `raw/<part>-<n>.raw.png` + provenance |
 | Export | `python art-source/swarm-bores/export.py` | `mod/graphics/structures/<name>-<n>.png` and `<name>-<n>-glow.png` |
 | Spore shots (code-drawn) | `python art-source/swarm-bores/spore_shots.py` | `mod/graphics/fx/spore-clump.png`, `spore-cluster.png`, `spore-lance.png` |
-| Recolour preview | `python art-source/swarm-bores/export.py --palette purple` (or `chitin`) | `build/swarm-bores/<palette>/` |
+| Other-palette preview | `python art-source/swarm-bores/export.py --palette raw` (or `purple`, `chitin`) | `build/swarm-bores/<palette>/` |
 
 Parts and variant counts are `make_guide.VARIANTS`: `bore` 3, `mother-bore` 2,
 `spore-colony-fissure`, `spore-colony-bore`, `spore-colony-maw` 3 each. The
@@ -44,14 +44,19 @@ of glow and loose spores, an airburst, drifting spore haze); `flightSec` and
 `arcHeight` lob the slower grades. The glow layers set `fireFlash`, so a sac
 flares and swells as it fires. Review: `createSnapshots -Psnapshot=spore-colony-fire`.
 
-**Palette.** The shipped sprites are in the current runner palette. The
-guide's material map records which pixels are creature (chitin, sinew, bone,
-flesh, sac) and which are earth or paving, so `--palette purple` recolours
-only the creature by luminance gradient maps: carapace to the Rav Bloom
-round-3 violet and plum running up to ivory, roots and a shaft's lining to its
-magenta-crimson sinew (ramps sampled from the round-3 Runner plates).
-`--palette chitin` is the earlier brown proposal. When the creature redesign
-settles, the recolour is a ramp edit and that switch, not a new generation.
+**Palette.** The shipped sprites are in the settled Rav Bloom palette,
+`bloom` (owner, 2026-10-21). The guide's material map records which pixels are
+creature (chitin, sinew, bone, flesh, sac) and which are earth or paving, so
+the export recolours only the creature by luminance gradient maps sampled from
+the approved Runner and Brute plates (rav-redesign `motion-runner` and
+`motion-brute` heroes): carapace to lilac and dusky violet, roots and a shaft's
+lining to crimson-magenta sinew, bone to ivory; amber stays amber. The raws
+keep the generations' own colours (`--palette raw` previews them), so a
+palette change is a ramp edit, not a new generation. The thrown earth of a
+berm is creep heaved up out of the shaft: the export maps it to the creep's
+default palette, read from `CreepPalette.java`, so **re-export after the creep
+palette changes**. `purple` (round 3) and
+`chitin` (the brown proposal) remain as previews.
 
 The `-glow` layer is the reskin's own amber pixels lifted out by colour and
 drawn over the body with a pulse; the structures set `groundPad: false`, so
