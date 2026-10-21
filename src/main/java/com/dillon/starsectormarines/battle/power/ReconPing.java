@@ -24,7 +24,7 @@ public final class ReconPing extends CommandPower {
     private static final float REVEAL_SECONDS = 15f;
 
     public ReconPing() {
-        super(ID, "Recon Ping", CP_COST, COOLDOWN_SECONDS);
+        super(ID, "@battlePowerReconPing", CP_COST, COOLDOWN_SECONDS);
     }
 
     @Override

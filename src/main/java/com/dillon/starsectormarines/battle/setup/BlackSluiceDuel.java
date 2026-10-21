@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.warship.HullFireHold;
@@ -15,7 +16,6 @@ import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * The duel over Black Sluice ({@code warship-behaviours.md}, ship against ship). The <i>Greyhook</i>, Voss's Venture,
@@ -402,12 +402,8 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     @Override
     public String outcomeSummary() {
         if (!ordered || ledger == null) return null;
-        StringBuilder s = new StringBuilder("Overhead: ");
-        s.append(rigLine()).append(' ');
-        s.append(rusk.isEmpty() ? "Rusk's ships never came." : ruskLine());
-        String ground = groundLine();
-        if (ground != null) s.append(' ').append(ground);
-        return s.toString();
+        return Strings.format("blackSluiceDuelSummary", Strings.join("blackSluiceDuelSentenceJoin", rigLine(),
+                rusk.isEmpty() ? Strings.get("blackSluiceDuelRuskNeverCame") : ruskLine(), groundLine()));
     }
 
     private String rigLine() {
@@ -416,26 +412,26 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         boolean ran = breakOff != BreakOff.NONE;
         return switch (o) {
             case DESTROYED -> ran
-                    ? "the Greyhook broke for the south edge and was shot down onto the basin short of it; Voss walked out of the wreck."
-                    : "the Greyhook was shot down onto the basin, and Voss walked out of the wreck.";
+                    ? Strings.get("blackSluiceDuelRigDestroyedRan")
+                    : Strings.get("blackSluiceDuelRigDestroyed");
             case ESCAPED -> rusk.isEmpty() || allDown(rusk)
-                    ? "the Greyhook flew out across the south edge with nothing left to stop her, " + state(rig) + "."
-                    : "the Greyhook broke for the south edge with Rusk's ships on her and got away, " + state(rig) + ".";
+                    ? Strings.format("blackSluiceDuelRigEscapedClear", state(rig))
+                    : Strings.format("blackSluiceDuelRigEscapedPursued", state(rig));
             // The battle waits for her ending; only a withdrawal of our own leaves her still up there.
-            case OVER_THE_BATTLE -> ran ? "the Greyhook was still running for the south edge when we pulled out, " + state(rig) + "."
-                    : rusk.isEmpty() ? "the Greyhook was still overhead when we pulled out."
-                    : "the Greyhook was still fighting when we pulled out, " + state(rig) + ".";
-            case BROKE_OFF, DEPARTED -> "the Greyhook left the field, " + state(rig) + ".";
+            case OVER_THE_BATTLE -> ran ? Strings.format("blackSluiceDuelRigRunning", state(rig))
+                    : rusk.isEmpty() ? Strings.get("blackSluiceDuelRigOverhead")
+                    : Strings.format("blackSluiceDuelRigFighting", state(rig));
+            case BROKE_OFF, DEPARTED -> Strings.format("blackSluiceDuelRigLeft", state(rig));
         };
     }
 
     /** How a hull looked at the end: untouched, scarred, badly hurt or barely flying. */
     static String state(Warship ship) {
         float f = ship.hullFraction();
-        if (f >= 0.95f) return "untouched";
-        if (f >= 0.7f) return "scarred";
-        if (f >= 0.35f) return "badly hurt";
-        return "barely flying";
+        if (f >= 0.95f) return Strings.get("blackSluiceDuelStateUntouched");
+        if (f >= 0.7f) return Strings.get("blackSluiceDuelStateScarred");
+        if (f >= 0.35f) return Strings.get("blackSluiceDuelStateBadlyHurt");
+        return Strings.get("blackSluiceDuelStateBarelyFlying");
     }
 
     /** One clause per lent hull, by name: "Rusk's Enforcer was still overhead, scarred; his Wolf was shot down." */
@@ -445,15 +441,14 @@ public final class BlackSluiceDuel implements SmallWarDuel {
             Warship ship = rusk.get(i);
             WarshipDuelLedger.Entry e = ledger.entry(ship);
             WarshipDuelLedger.Outcome o = e == null ? WarshipDuelLedger.Outcome.OVER_THE_BATTLE : e.outcome();
-            String fate = switch (o) {
-                case DESTROYED -> " was shot down";
-                case OVER_THE_BATTLE -> " was still overhead, " + state(ship);
-                case ESCAPED, BROKE_OFF, DEPARTED -> " left the field, " + state(ship);
-            };
-            parts.add((i == 0 ? "Rusk's " : "his ") + pair.get(i).name() + fate);
+            String owned = Strings.format(i == 0 ? "blackSluiceDuelRuskFirst" : "blackSluiceDuelRuskNext", pair.get(i).name());
+            parts.add(switch (o) {
+                case DESTROYED -> Strings.format("blackSluiceDuelRuskDown", owned);
+                case OVER_THE_BATTLE -> Strings.format("blackSluiceDuelRuskOverhead", owned, state(ship));
+                case ESCAPED, BROKE_OFF, DEPARTED -> Strings.format("blackSluiceDuelRuskLeft", owned, state(ship));
+            });
         }
-        String line = String.join("; ", parts) + ".";
-        return Character.toUpperCase(line.charAt(0)) + line.substring(1);
+        return Strings.format("blackSluiceDuelRuskLine", Strings.join("separatorList", parts.toArray(new String[0])));
     }
 
     private String groundLine() {
@@ -463,12 +458,12 @@ public final class BlackSluiceDuel implements SmallWarDuel {
             allies += ledger.killed(c, Faction.ALLY);
             theirs += ledger.killed(c, Faction.DEFENDER);
         }
-        if (ours + allies + theirs == 0) return "Nothing that fell out of that fight killed anyone on the ground.";
+        if (ours + allies + theirs == 0) return Strings.get("blackSluiceDuelGroundNone");
         List<String> parts = new ArrayList<>();
-        if (ours > 0) parts.add(ours + " of ours");
-        if (allies > 0) parts.add(allies + " of Rusk's people");
-        if (theirs > 0) parts.add(theirs + " of Greyhook's");
-        return String.format(Locale.ROOT, "Stray fire and falling wreckage killed %s.", String.join(", ", parts));
+        if (ours > 0) parts.add(Strings.format("blackSluiceDuelGroundOurs", ours));
+        if (allies > 0) parts.add(Strings.format("blackSluiceDuelGroundAllies", allies));
+        if (theirs > 0) parts.add(Strings.format("blackSluiceDuelGroundTheirs", theirs));
+        return Strings.format("blackSluiceDuelGroundKilled", Strings.join("blackSluiceDuelGroundJoin", parts.toArray(new String[0])));
     }
 
     /** The ledger's line for one hull of the duel, for evidence. */

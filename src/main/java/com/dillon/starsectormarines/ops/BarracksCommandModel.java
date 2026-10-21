@@ -653,7 +653,7 @@ public final class BarracksCommandModel {
         if (profile != null) notes.add(Strings.format("openingBarracksCommandProfile", roster.armory().weaponDoctrineById(profile.weaponDoctrineId()).displayName(), ArmorPlanPresentation.label(roster.armory(), profile.armorDoctrineId())));
         notes.add(armor == null ? Strings.get("openingBarracksCommandNoIssuedArmorAllBilletsVacant") : Strings.format("openingBarracksCommandArmorImageTheMostCommonCurrentIssue", armor.displayName()));
         notes.add(Strings.format("openingBarracksCommandAssigningAProfileNeverChangesIssuedEquipment", issue));
-        if (muster.woundedCount() > 0) notes.add(String.format(Locale.ROOT,
+        if (muster.woundedCount() > 0) notes.add(String.format(Strings.locale(),
                 Strings.get("openingBarracksCommandWoundedPersonnelKeepTheirBilletsNextReturn"), muster.earliestRecoveryDays()));
         notes.add(squad.stationed() ? Strings.get("openingBarracksCommandOnStationInspectIsAvailableBulkOrders")
                 : Strings.get("openingBarracksCommandClickTheCardToSelectItFor"));

@@ -479,7 +479,7 @@ public final class FleetArmoryViewModel {
             // this company would actually put in the field today. Showing both
             // is the point of the picker under role-and-access.md — a sheet does
             // not get better, the kit filling it does.
-            String metadata = Strings.format("openingFleetArmoryFieldsTier", plan.armorClassDisplayName(), titleCase(plan.tradition().key.replace('_', ' ')), tierMark(maximumArmorTier(issued)));
+            String metadata = Strings.format("openingFleetArmoryFieldsTier", plan.armorClassDisplayName(), titleCase(plan.tradition().key), tierMark(maximumArmorTier(issued)));
             List<DoctrineSpan> patterns = armorDistributionSpans(id, issued);
             List<DoctrineSpan> capabilities = armorCapabilitySpans(id, issued);
             tiles.add(doctrineTile(id, plan.id().equals(selected),
@@ -647,13 +647,13 @@ public final class FleetArmoryViewModel {
         float evasion = CatalogCeilings.evasionOf(armor);
         return List.of(
                 StatMeter.of(cardId + ":armor-value", Strings.get("openingFleetArmoryArmor"),
-                        String.format(Locale.ROOT, "%.0f", armor.armorCapacity()),
+                        String.format(Strings.locale(), "%.0f", armor.armorCapacity()),
                         armor.armorCapacity(), CatalogCeilings.armorCapacity()),
                 StatMeter.of(cardId + ":resist", Strings.get("openingFleetArmoryResist"),
-                        String.format(Locale.ROOT, "%.0f", armor.armorRating()),
+                        String.format(Strings.locale(), "%.0f", armor.armorRating()),
                         armor.armorRating(), CatalogCeilings.armorRating()),
                 StatMeter.of(cardId + ":move", Strings.get("openingFleetArmoryMove"),
-                        String.format(Locale.ROOT, "%.0f%%", armor.moveSpeedMult() * 100f),
+                        String.format(Strings.locale(), "%.0f%%", armor.moveSpeedMult() * 100f),
                         armor.moveSpeedMult(), CatalogCeilings.moveSpeedMult()),
                 StatMeter.of(cardId + ":evasion", Strings.get("openingFleetArmoryEvasion"),
                         signedPercent(evasion), evasion, CatalogCeilings.armorEvasion()));
@@ -676,8 +676,7 @@ public final class FleetArmoryViewModel {
 
     private static String titleCase(String value) {
         if (value == null || value.isBlank()) return Strings.get("openingFleetArmoryUnclassified");
-        String lower = value.toLowerCase(Locale.ROOT).replace('_', ' ');
-        return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
+        return Strings.named("armorTradition", value);
     }
 
     private static SquadLoadoutPresentationDef loadoutPresentation(
@@ -1033,7 +1032,7 @@ public final class FleetArmoryViewModel {
             for (ArmorRole role : ArmorRole.values()) {
                 Integer count = counts.get(role);
                 if (count == null) continue;
-                String part = count + " " + role.displayName().toLowerCase(Locale.ROOT);
+                String part = count + " " + role.displayName().toLowerCase(Strings.locale());
                 if (plan.isMixedClass()) part += " (" + armorClass.displayName() + ")";
                 if (!ownsAnyPatternFor(role, armorClass)) part += Strings.get("openingFleetArmoryNoKit");
                 parts.add(part);
@@ -1287,8 +1286,8 @@ public final class FleetArmoryViewModel {
     private static String personnelSummary(MarineSoldier soldier) {
         if (soldier == null) return Strings.get("openingFleetArmoryNoPersonnelRecordIsAttachedToThis");
         String experience = soldier.profile().experienceTier().displayName
-                .toLowerCase(Locale.ROOT);
-        String aptitude = soldier.aptitude().displayName.toLowerCase(Locale.ROOT);
+                .toLowerCase(Strings.locale());
+        String aptitude = soldier.aptitude().displayName.toLowerCase(Strings.locale());
         SoldierCareer career = soldier.career();
         String record = career.missionsDeployed() == 0
                 ? Strings.get("openingFleetArmoryNoCombatDeploymentsAreRecordedYet")
@@ -1312,7 +1311,7 @@ public final class FleetArmoryViewModel {
                 StatMeter.of(cardId + ":range", Strings.get("openingFleetArmoryRng"), formatOneDecimal(range),
                         range, CatalogCeilings.weaponRange()),
                 StatMeter.of(cardId + ":accuracy", Strings.get("openingFleetArmoryAcc"),
-                        String.format(Locale.ROOT, "%.0f%%", accuracy * 100f),
+                        String.format(Strings.locale(), "%.0f%%", accuracy * 100f),
                         accuracy, 1f),
                 StatMeter.of(cardId + ":dps", Strings.get("openingFleetArmoryDps"), formatOneDecimal(dps),
                         dps, CatalogCeilings.weaponDps(profile)));
@@ -1333,7 +1332,7 @@ public final class FleetArmoryViewModel {
         float dps = InfantryCombatStats.estimatedDps(billet.primaryDef(), billet.grade(), profile)
                 - InfantryCombatStats.estimatedDps(
                 soldier.primaryDef(), soldier.primaryGrade(), profile);
-        return String.format(Locale.ROOT,
+        return String.format(Strings.locale(),
                 Strings.get("openingFleetArmoryDmgFRngFAccFDps"),
                 damage, range, accuracy, dps);
     }
@@ -1361,23 +1360,23 @@ public final class FleetArmoryViewModel {
         MarineArmorCatalogDef armor = billet.armorDef();
         return List.of(
                 StatMeter.of(cardId + ":health", Strings.get("openingFleetArmoryHealth"),
-                        String.format(Locale.ROOT, "%.0f", UnitType.MARINE.maxHp),
+                        String.format(Strings.locale(), "%.0f", UnitType.MARINE.maxHp),
                         UnitType.MARINE.maxHp, UnitType.MARINE.maxHp),
                 StatMeter.of(cardId + ":armor-value", Strings.get("openingFleetArmoryArmor"),
-                        String.format(Locale.ROOT, "%.0f", armor.armorCapacity()),
+                        String.format(Strings.locale(), "%.0f", armor.armorCapacity()),
                         armor.armorCapacity(), CatalogCeilings.armorCapacity()),
                 StatMeter.of(cardId + ":resist", Strings.get("openingFleetArmoryResist"),
-                        String.format(Locale.ROOT, "%.0f", armor.armorRating()),
+                        String.format(Strings.locale(), "%.0f", armor.armorRating()),
                         armor.armorRating(), CatalogCeilings.armorRating()),
                 StatMeter.of(cardId + ":speed", Strings.get("openingFleetArmorySpeed"),
-                        String.format(Locale.ROOT, "%.1f",
+                        String.format(Strings.locale(), "%.1f",
                                 UnitType.MARINE.moveSpeed * armor.moveSpeedMult()),
                         UnitType.MARINE.moveSpeed * armor.moveSpeedMult(),
                         UnitType.MARINE.moveSpeed * CatalogCeilings.moveSpeedMult()));
     }
 
     private static String formatOneDecimal(float value) {
-        return String.format(Locale.ROOT, "%.1f", value);
+        return String.format(Strings.locale(), "%.1f", value);
     }
 
     private static String armorDelta(
@@ -1385,7 +1384,7 @@ public final class FleetArmoryViewModel {
         if (!previewing || billet == null || soldier == null) return "";
         MarineArmorCatalogDef next = billet.armorDef();
         MarineArmorCatalogDef current = soldier.armorDef();
-        return String.format(Locale.ROOT,
+        return String.format(Strings.locale(),
                 Strings.get("openingFleetArmoryArmorFResistFSpeedF"),
                 next.armorCapacity() - current.armorCapacity(),
                 next.armorRating() - current.armorRating(),

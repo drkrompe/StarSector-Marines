@@ -1,6 +1,6 @@
 # Swarm harvest
 
-Status: QUEUED on `bore-spawners.md` (bores and the biomass feed seam)
+Status: READY — bores and the biomass feed seam (`SwarmBores.feed`) are on main; see `colony-breach-nouns.md` (Bore tier, The feed seam)
 
 Written: 2026-10-21
 

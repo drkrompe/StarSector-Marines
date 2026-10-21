@@ -224,8 +224,8 @@ public class BitmapFont {
     public float measureWidth(String s) {
         if (!ensureMetricsLoaded() || s == null) return 0f;
         float w = 0f;
-        for (int i = 0; i < s.length(); i++) {
-            Glyph g = glyphs.get((int) s.charAt(i));
+        for (int i = 0; i < s.length(); i += Character.charCount(s.codePointAt(i))) {
+            Glyph g = glyphs.get(s.codePointAt(i));
             if (g != null) w += g.xadvance;
         }
         return w;
@@ -267,8 +267,8 @@ public class BitmapFont {
         float texV = page.getTextureHeight();
 
         float cursorX = x;
-        for (int i = 0; i < s.length(); i++) {
-            Glyph g = glyphs.get((int) s.charAt(i));
+        for (int i = 0; i < s.length(); i += Character.charCount(s.codePointAt(i))) {
+            Glyph g = glyphs.get(s.codePointAt(i));
             if (g == null) continue;
             if (g.w > 0 && g.h > 0) {
                 float qx0 = x + (cursorX - x + g.xoffset) * drawScaleX;
@@ -305,18 +305,19 @@ public class BitmapFont {
         int i = 0;
         while (i < n) {
             // Skip a run of whitespace between words. A leading space on a new line is dropped.
-            while (i < n && isWrapSpace(paragraph.charAt(i))) i++;
+            boolean spaced = false;
+            while (i < n && isWrapSpace(paragraph.charAt(i))) { i++; spaced = true; }
             if (i >= n) break;
 
-            // Find end of this word (next whitespace or end-of-string).
-            int wordEnd = i;
-            while (wordEnd < n && !isWrapSpace(paragraph.charAt(wordEnd))) wordEnd++;
+            // Find end of this word: the next whitespace, or one ideograph with its closing marks,
+            // since scripts written without spaces may break between any two characters.
+            int wordEnd = wordEnd(paragraph, i);
             String word = paragraph.substring(i, wordEnd);
             i = wordEnd;
             sawAnyWord = true;
 
             float wordWidth = measureWidth(word);
-            float spaceWidth = current.length() == 0 ? 0f : measureWidth(" ");
+            float spaceWidth = current.length() == 0 || !spaced ? 0f : measureWidth(" ");
 
             if (current.length() == 0) {
                 // First word on the line: take it as-is, char-break only if it itself overflows.
@@ -328,7 +329,8 @@ public class BitmapFont {
                     currentWidth = measureWidth(current.toString());
                 }
             } else if (currentWidth + spaceWidth + wordWidth <= maxWidth) {
-                current.append(' ').append(word);
+                if (spaced) current.append(' ');
+                current.append(word);
                 currentWidth += spaceWidth + wordWidth;
             } else {
                 // Word doesn't fit on current line: flush and start fresh.
@@ -347,6 +349,35 @@ public class BitmapFont {
 
         if (current.length() > 0) out.add(current.toString());
         else if (!sawAnyWord) out.add(""); // whitespace-only paragraph still consumes a line
+    }
+
+    /** End of the wrap unit starting at {@code start}: a whole spaced word, or a single CJK character plus any closing punctuation. */
+    static int wordEnd(String text, int start) {
+        int n = text.length();
+        if (isBreakEverywhere(text.codePointAt(start))) {
+            int end = start + Character.charCount(text.codePointAt(start));
+            while (end < n && isClosingMark(text.codePointAt(end))) end += Character.charCount(text.codePointAt(end));
+            return end;
+        }
+        int end = start;
+        while (end < n && !isWrapSpace(text.charAt(end)) && !isBreakEverywhere(text.codePointAt(end))) {
+            end += Character.charCount(text.codePointAt(end));
+        }
+        return end;
+    }
+
+    /** Han, kana, hangul and CJK symbols: scripts that wrap by character rather than by word. */
+    static boolean isBreakEverywhere(int cp) {
+        Character.UnicodeScript script = Character.UnicodeScript.of(cp);
+        return script == Character.UnicodeScript.HAN || script == Character.UnicodeScript.HIRAGANA
+                || script == Character.UnicodeScript.KATAKANA || script == Character.UnicodeScript.HANGUL
+                || (cp >= 0x3000 && cp <= 0x303F) || (cp >= 0xFF00 && cp <= 0xFFEF);
+    }
+
+    /** Punctuation that must not start a line, so it stays with the character before it. */
+    private static boolean isClosingMark(int cp) {
+        return "、。，．！？：；）」』】〕ー,.!?:;)".indexOf(cp) >= 0
+                || cp == 0x2026;
     }
 
     /** Spaces/tabs separate words during wrapping. '\n' is consumed by the paragraph splitter. */
@@ -368,16 +399,16 @@ public class BitmapFont {
 
         StringBuilder chunk = new StringBuilder();
         float chunkWidth = 0f;
-        for (int i = 0; i < word.length(); i++) {
-            char c = word.charAt(i);
-            Glyph g = glyphs.get((int) c);
+        for (int i = 0; i < word.length(); i += Character.charCount(word.codePointAt(i))) {
+            int c = word.codePointAt(i);
+            Glyph g = glyphs.get(c);
             float adv = g == null ? 0f : g.xadvance;
             if (chunk.length() > 0 && chunkWidth + adv > maxWidth) {
                 out.add(chunk.toString());
                 chunk.setLength(0);
                 chunkWidth = 0f;
             }
-            chunk.append(c);
+            chunk.appendCodePoint(c);
             chunkWidth += adv;
         }
         // Leave the trailing partial chunk in current so the next word can extend the line.

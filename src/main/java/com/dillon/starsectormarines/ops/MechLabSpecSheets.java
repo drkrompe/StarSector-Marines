@@ -106,7 +106,7 @@ final class MechLabSpecSheets {
 
     private static String number(float value) {
         if (Math.abs(value - Math.round(value)) < 0.001f) return Integer.toString(Math.round(value));
-        return String.format(Locale.ROOT, "%.2f", value).replaceAll("0+$", "");
+        return String.format(Strings.locale(), "%.2f", value).replaceAll("0+$", "");
     }
 
     private static String signed(float value) {

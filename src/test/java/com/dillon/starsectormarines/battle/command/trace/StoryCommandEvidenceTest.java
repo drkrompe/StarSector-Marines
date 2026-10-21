@@ -146,7 +146,7 @@ class StoryCommandEvidenceTest {
             new Object[]{"custody-15400", 15400, 24, "custody"}, new Object[]{"compact-15401", 15401, 24, "compact"},
             new Object[]{"compact-16211", 16211, 24, "compact"}, new Object[]{"custody-15400-36", 15400, 36, "custody"}), new Story() {
         public BattleSimulation build(Fixture f) {
-            String party = DistrictEscortCampaign.Letterhead.of(agreement(f)).partyName;
+            String party = DistrictEscortCampaign.Letterhead.of(agreement(f)).partyName();
             return deploy(BattleSetup.createDistrictEscort(f.seed(), lift(f), ROCK, party), expected(f), f.personnel());
         }
         public Enum<?> phase(BattleSimulation sim) { return sim.getDistrictEscort().progress().phase(); }

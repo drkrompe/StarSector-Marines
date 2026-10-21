@@ -130,6 +130,14 @@ cell; a cutter cuts it. Every gate the weapon has elsewhere still applies. The
 support mech's cannon carries the wall damage that makes it a reliable distance
 breacher over a number of shells (see `mechs-nouns.md`).
 
+The cell may instead be open ground a hostile **structure** stands on (a swarm
+bore, an emplacement, a fort core): the order is then to demolish that body, and
+only a satchel serves. A carrier within the charge's reach, with the same slack a
+wall allows, sets it on the body itself through the ordinary charge service;
+everything else in the squad fights the body through the ordinary firing passes.
+This is how a squad is pointed at a structure, since the contact-range reflex
+alone never walks a sapper to one (`colony-breach-nouns.md`, Bore).
+
 ### Mortar teams as a capability source
 
 A nest outranges a rifle squad, so the base of fire needs something that kills nests from beyond their reach.

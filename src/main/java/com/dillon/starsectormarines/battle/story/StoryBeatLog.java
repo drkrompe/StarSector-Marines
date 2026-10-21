@@ -28,6 +28,20 @@ public final class StoryBeatLog {
         published = List.copyOf(events);
     }
 
+    /**
+     * A recurring fact (a bore's surge): published every time it happens, in
+     * producer order. Keep these to observer-only evidence; a player-facing key
+     * that recurs would repeat its line.
+     */
+    public void emit(int tick, String id, Audience audience) {
+        if (tick < 0 || id == null || id.isBlank() || audience == null)
+            throw new IllegalArgumentException("A story beat needs a tick, stable key and audience");
+        if (!events.isEmpty() && tick < events.get(events.size() - 1).tick())
+            throw new IllegalArgumentException("Story beats cannot precede already published facts");
+        events.add(new Event(events.size() + 1, tick, id, audience));
+        published = List.copyOf(events);
+    }
+
     /** Immutable neutral-observer history; never feed this into a faction planner. */
     public List<Event> events() { return published; }
 

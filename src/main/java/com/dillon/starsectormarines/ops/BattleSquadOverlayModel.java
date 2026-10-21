@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
@@ -140,7 +141,7 @@ final class BattleSquadOverlayModel {
     Presentation updateProjected(SquadState squad, long selectedMemberId,
                                  boolean memberSelectionEnabled) {
         if (squad == null || squad.alive() <= 0) return hide();
-        squadTitle.set(squad.label().toUpperCase(Locale.ROOT));
+        squadTitle.set(squad.label().toUpperCase(Strings.locale()));
         squadStrength.set(squad.alive() + "/" + Math.max(squad.alive(), squad.original()));
         float morale = clamp01(squad.morale());
         moraleLabel.set("MORALE " + Math.round(morale * 100f) + "%");
@@ -348,19 +349,19 @@ final class BattleSquadOverlayModel {
 
     private static String specialStatus(SpecialEquipmentDef special, int ammo, float cooldown) {
         if (special == null) return "";
-        if (special.usesAmmunition()) return Math.max(0, ammo) + " LEFT";
-        return cooldown > 0f ? (int) Math.ceil(cooldown) + "S COOLDOWN" : "READY";
+        if (special.usesAmmunition()) return Strings.format("battleSystemAmmo", Math.max(0, ammo));
+        return cooldown > 0f ? Strings.format("battleSystemCooldown", (int) Math.ceil(cooldown)) : Strings.get("battleSystemReady");
     }
 
     private static String systemStatus(IntegralSystemService systems,
                                        IntegralSystemDef system, long unit) {
         if (system == null) return "";
         if (systems.isActive(unit)) {
-            return (int) Math.ceil(systems.activeRemaining(unit)) + "S ACTIVE";
+            return Strings.format("battleSystemActive", (int) Math.ceil(systems.activeRemaining(unit)));
         }
-        if (system.usesAmmunition()) return systems.ammo(unit) + " LEFT";
+        if (system.usesAmmunition()) return Strings.format("battleSystemAmmo", systems.ammo(unit));
         float cooldown = systems.cooldownRemaining(unit);
-        return cooldown > 0f ? (int) Math.ceil(cooldown) + "S COOLDOWN" : "READY";
+        return cooldown > 0f ? Strings.format("battleSystemCooldown", (int) Math.ceil(cooldown)) : Strings.get("battleSystemReady");
     }
 
     private static String roleBadge(UnitRole role) {
@@ -369,9 +370,7 @@ final class BattleSquadOverlayModel {
     }
 
     private static String roleName(UnitRole role) {
-        if (role == null) return "Combatant";
-        String lower = role.name().toLowerCase(Locale.ROOT).replace('_', ' ');
-        return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
+        return Strings.named("unitRole", role == null ? UnitRole.COMBATANT.name() : role.name());
     }
 
     private static String number(float value) {

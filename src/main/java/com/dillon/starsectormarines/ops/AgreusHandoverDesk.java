@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
@@ -140,34 +141,32 @@ final class AgreusHandoverDesk {
             String hiddenPart = "aux-hidden-part";
             return switch (key) {
                 case "resumeClasses" -> awaiting ? "hq-wings console-action" : hiddenPart;
-                case "resumeLabel" -> "Latchkey custody: two written agreements await your decision";
+                case "resumeLabel" -> Strings.get("agreusDeskResume");
                 case "classes" -> visible ? "aux-backdrop" : "aux-hidden";
                 case "crest" -> OpeningBroker.CREST;
                 case "title" -> switch (page) {
-                    case CUSTODY -> "HOUSE CUSTODY / WRITTEN AGREEMENT";
-                    case COMPACT -> "YARD COMPACT / WRITTEN AGREEMENT";
-                    case COMPARE -> "CASTLE / COMPARING THE TWO AGREEMENTS";
-                    case CONFIRM_CUSTODY -> "SIGN HOUSE CUSTODY?";
-                    case CONFIRM_COMPACT -> "SIGN THE YARD COMPACT?";
-                    case CONFIRM_DECLINE -> "DECLINE FURTHER LATCHKEY WORK?";
-                    case SIGNED -> "SIGNED / " + (signed == null ? "AGREEMENT" : AgreusWorkGuide.agreementName(signed).toUpperCase());
-                    case DECLINED -> "FURTHER WORK DECLINED";
+                    case CUSTODY -> Strings.get("agreusDeskTitleCustody");
+                    case COMPACT -> Strings.get("agreusDeskTitleCompact");
+                    case COMPARE -> Strings.get("agreusDeskTitleCompare");
+                    case CONFIRM_CUSTODY -> Strings.get("agreusDeskTitleConfirmCustody");
+                    case CONFIRM_COMPACT -> Strings.get("agreusDeskTitleConfirmCompact");
+                    case CONFIRM_DECLINE -> Strings.get("agreusDeskTitleConfirmDecline");
+                    case SIGNED -> Strings.format("agreusDeskTitleSigned", Strings.upper(signed == null ? Strings.get("agreusDeskAgreement") : AgreusWorkGuide.agreementName(signed)));
+                    case DECLINED -> Strings.get("agreusDeskTitleDeclined");
                 };
-                case "from" -> "Latchkey Yard custody / House Rusk, Latchkey Yard Association, Ko Combine registry";
+                case "from" -> Strings.get("agreusDeskFrom");
                 case "record" -> switch (page) {
-                    case CUSTODY, COMPACT -> AgreusArcCampaign.AGREEMENT_COMMON;
-                    case COMPARE -> AgreusArcCampaign.CASTLE_COMPARISON;
-                    case CONFIRM_CUSTODY, CONFIRM_COMPACT -> AgreusArcCampaign.SIGNING_NOTE;
-                    case CONFIRM_DECLINE -> "Declining ends the company's Latchkey work before any signature. Rusk's three completion fees and both recovered section cards are kept. "
-                            + "No custody agreement is signed, no fourth commission is offered, and this cannot be reopened.";
-                    case SIGNED -> "The signature is recorded. Victory in Terms of Protection ratifies it; defeat leaves it standing for the next attempt. "
-                            + "Terms of Protection is in preparation and cannot be deployed yet.";
-                    case DECLINED -> AgreusArcCampaign.DECLINED_RECORD;
+                    case CUSTODY, COMPACT -> Strings.get("agreusArcAgreementCommon");
+                    case COMPARE -> Strings.get("agreusArcCastleComparison");
+                    case CONFIRM_CUSTODY, CONFIRM_COMPACT -> Strings.get("agreusArcSigningNote");
+                    case CONFIRM_DECLINE -> Strings.get("agreusDeskRecordConfirmDecline");
+                    case SIGNED -> Strings.get("agreusDeskRecordSigned");
+                    case DECLINED -> Strings.get("agreusArcDeclinedRecord");
                 };
-                case "undertaking" -> agreementPage() ? "UNDERTAKING: " + (custodyText() ? AgreusArcCampaign.CUSTODY_UNDERTAKING : AgreusArcCampaign.COMPACT_UNDERTAKING) : "";
-                case "benefit" -> agreementPage() ? "BENEFIT: " + (custodyText() ? AgreusArcCampaign.CUSTODY_BENEFIT : AgreusArcCampaign.COMPACT_BENEFIT) : "";
-                case "cost" -> agreementPage() ? "COST: " + (custodyText() ? AgreusArcCampaign.CUSTODY_COST : AgreusArcCampaign.COMPACT_COST) : "";
-                case "letter" -> page == Page.SIGNED ? AgreusArcCampaign.VOSS_WARNING.speaker() + ": “" + AgreusArcCampaign.VOSS_WARNING.text() + "”" : "";
+                case "undertaking" -> agreementPage() ? Strings.get("agreusDeskUndertaking") + Strings.get(custodyText() ? "agreusArcCustodyUndertaking" : "agreusArcCompactUndertaking") : "";
+                case "benefit" -> agreementPage() ? Strings.get("agreusDeskBenefit") + Strings.get(custodyText() ? "agreusArcCustodyBenefit" : "agreusArcCompactBenefit") : "";
+                case "cost" -> agreementPage() ? Strings.get("agreusDeskCost") + Strings.get(custodyText() ? "agreusArcCustodyCost" : "agreusArcCompactCost") : "";
+                case "letter" -> page == Page.SIGNED ? Strings.format("agreusDeskLetter", AgreusArcCampaign.VOSS_WARNING.speaker(), AgreusArcCampaign.VOSS_WARNING.text()) : "";
                 case "termsClasses" -> agreementPage() ? "label aux-part aux-grants" : hiddenPart;
                 case "partClasses" -> agreementPage() ? part : hiddenPart;
                 case "letterClasses" -> page == Page.SIGNED ? "label tone-muted aux-part" : hiddenPart;
@@ -175,21 +174,21 @@ final class AgreusHandoverDesk {
                 case "custodyTabClasses" -> tab(Page.CUSTODY);
                 case "compactTabClasses" -> tab(Page.COMPACT);
                 case "compareTabClasses" -> tab(Page.COMPARE);
-                case "custodyTabLabel" -> "House Custody";
-                case "compactTabLabel" -> "Yard Compact";
-                case "compareTabLabel" -> "Ask Castle to compare";
+                case "custodyTabLabel" -> Strings.get("agreusDeskTabCustody");
+                case "compactTabLabel" -> Strings.get("agreusDeskTabCompact");
+                case "compareTabLabel" -> Strings.get("agreusDeskTabCompare");
                 case "primaryClasses" -> page == Page.CUSTODY || page == Page.COMPACT || confirming() ? "aux-action console-action" : hiddenPart;
                 case "primaryLabel" -> switch (page) {
-                    case CUSTODY -> "Sign House Custody...";
-                    case COMPACT -> "Sign the Yard Compact...";
-                    case CONFIRM_CUSTODY -> "Sign House Custody";
-                    case CONFIRM_COMPACT -> "Sign the Yard Compact";
-                    case CONFIRM_DECLINE -> "Decline further work";
+                    case CUSTODY -> Strings.get("agreusDeskPrimaryCustody");
+                    case COMPACT -> Strings.get("agreusDeskPrimaryCompact");
+                    case CONFIRM_CUSTODY -> Strings.get("agreusDeskPrimaryConfirmCustody");
+                    case CONFIRM_COMPACT -> Strings.get("agreusDeskPrimaryConfirmCompact");
+                    case CONFIRM_DECLINE -> Strings.get("agreusDeskPrimaryConfirmDecline");
                     default -> "";
                 };
                 case "secondaryClasses" -> reading() || confirming() ? "aux-action console-action" : hiddenPart;
-                case "secondaryLabel" -> reading() ? "Decline further work..." : "Back";
-                case "closeLabel" -> reading() || confirming() ? "Later" : "Done";
+                case "secondaryLabel" -> Strings.get(reading() ? "agreusDeskSecondaryDecline" : "agreusDeskSecondaryBack");
+                case "closeLabel" -> Strings.get(reading() || confirming() ? "agreusDeskLater" : "agreusDeskDone");
                 case "open" -> open;
                 case "custody" -> custody;
                 case "compact" -> compact;

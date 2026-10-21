@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.LiftClass;
 import com.dillon.starsectormarines.battle.power.BayManifest;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.LiftBudget;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.battle.power.CommandPowerService;
@@ -40,8 +41,6 @@ final class BattlePowerOverlayModel {
     private static final String CHIP_SELECTED = "pick-chip pick-selected";
     private static final String CHIP_AVAILABLE = "pick-chip pick-available";
     private static final String CHIP_REFUSED = "pick-chip pick-refused";
-    private static final String TARGET_HINT = "LMB CONFIRM · RMB CANCEL";
-    private static final String PICK_HINT = "LMB DROP · RMB CANCEL";
     private static final String NORMAL_STYLE = "";
     private static final String ARMED_STYLE =
             "background-color: #3a3018; border-color: #ffd464; color: #ffd464;";
@@ -75,14 +74,14 @@ final class BattlePowerOverlayModel {
                             IntConsumer pickToggle, CommodityPresentation commodities) {
         this.targetingToggle = targetingToggle;
         this.pickToggle = pickToggle;
-        commandPoints = reactor.signal("CP 0 / 0");
+        commandPoints = reactor.signal(Strings.format("battleCpReadout", "0", "0"));
         commandPointFillStyle = reactor.signal("width: 0%;");
-        supplies = reactor.signal("SUP 0");
+        supplies = reactor.signal(Strings.format("battleSupReadout", "0"));
         suppliesIcon = reactor.signal(commodities.commodityIcon(Commodities.SUPPLIES));
         powerCards = reactor.signal(List.of());
         targetingClasses = reactor.signal(TARGETING_HIDDEN);
         targetingLabel = reactor.signal("");
-        targetingHint = reactor.signal(TARGET_HINT);
+        targetingHint = reactor.signal(Strings.get("battleTargetHint"));
         pickerClasses = reactor.signal(PICKER_HIDDEN);
         pickerChips = reactor.signal(List.of());
     }
@@ -140,10 +139,10 @@ final class BattlePowerOverlayModel {
                                  List<PowerState> powers, String targetingPowerId) {
         List<PowerState> stable = powers == null ? List.of() : List.copyOf(powers);
         float cpPercent = maxCp <= 0f ? 0f : clamp01(cp / maxCp) * 100f;
-        commandPoints.set("CP " + number(cp) + " / " + number(maxCp));
+        commandPoints.set(Strings.format("battleCpReadout", number(cp), number(maxCp)));
         commandPointFillStyle.set("width: " + Math.round(cpPercent) + "%;");
         supplies.set(availableSupplies == Integer.MAX_VALUE
-                ? "SUP --" : "SUP " + Math.max(0, availableSupplies));
+                ? Strings.get("battleSupNone") : Strings.format("battleSupReadout", Math.max(0, availableSupplies)));
 
         List<PowerCard> cards = new ArrayList<>(stable.size());
         String armedName = null;
@@ -156,37 +155,38 @@ final class BattlePowerOverlayModel {
                     && availableSupplies >= power.supplyCost();
             String status;
             if (armed) {
-                status = "TARGET";
+                status = Strings.get("battlePowerStatusTarget");
                 armedName = power.name();
             } else if (power.locked()) {
-                status = "LOCKED";
+                status = Strings.get("battlePowerStatusLocked");
             } else if (power.cooldownSeconds() > 0f) {
-                status = (int) Math.ceil(power.cooldownSeconds()) + "S";
+                status = Strings.format("battlePowerStatusCooldown", (int) Math.ceil(power.cooldownSeconds()));
             } else if (power.charges() == 0) {
-                status = "SPENT";
+                status = Strings.get("battlePowerStatusSpent");
             } else if (cp < power.cpCost()) {
-                status = "LOW CP";
+                status = Strings.get("battlePowerStatusLowCp");
             } else if (availableSupplies < power.supplyCost()) {
-                status = "LOW SUP";
+                status = Strings.get("battlePowerStatusLowSup");
             } else {
                 status = power.supplyCost() > 0
-                        ? power.supplyCost() + " SUP"
-                        : power.charges() > 0 ? power.charges() + "x" : "READY";
+                        ? Strings.format("battlePowerStatusSupplyCost", power.supplyCost())
+                        : power.charges() > 0 ? Strings.format("battlePowerStatusCharges", power.charges())
+                        : Strings.get("battlePowerStatusReady");
             }
-            String cost = number(power.cpCost()) + " CP";
+            String cost = Strings.format("battlePowerCost", number(power.cpCost()));
             Runnable action = actions.computeIfAbsent(power.id(),
                     id -> () -> targetingToggle.accept(id));
             String cardId = "battle-power-" + power.id();
             cards.add(new PowerCard(cardId, cardId + "-name", cardId + "-meta",
                     cardId + "-cost", cardId + "-status",
-                    compactName(power.name()), cost, status,
+                    compactName(power.id(), power.name()), cost, status,
                     armed ? ARMED : ready ? READY : DISABLED,
                     armed ? ARMED_STYLE : NORMAL_STYLE, !ready && !armed, action, SpecSheets.commandPowerIcon(power.id())));
         }
         powerCards.set(List.copyOf(cards));
         boolean targeting = armedName != null;
         targetingClasses.set(targeting ? TARGETING_VISIBLE : TARGETING_HIDDEN);
-        targetingLabel.set(targeting ? "TARGETING · " + armedName.toUpperCase(Locale.ROOT) : "");
+        targetingLabel.set(targeting ? Strings.format("battleTargeting", upper(armedName)) : "");
         return new Presentation(!stable.isEmpty(), stable.size(), targeting);
     }
 
@@ -209,7 +209,7 @@ final class BattlePowerOverlayModel {
             String callsign = entry.callsign();
             chips.add(new PickerChip(chipId,
                     upper(entry.typeName()),
-                    (entry.isVehicle() ? "VEHICLE · " : "MECH · ") + liftName(entry.weightClass()),
+                    Strings.format(entry.isVehicle() ? "battlePickerVehicle" : "battlePickerMech", liftName(entry.weightClass())),
                     callsign == null ? "" : upper(callsign),
                     pickState(row),
                     row.selected() ? CHIP_SELECTED : clickable ? CHIP_AVAILABLE : CHIP_REFUSED,
@@ -218,50 +218,47 @@ final class BattlePowerOverlayModel {
         boolean picking = !chips.isEmpty();
         pickerChips.set(List.copyOf(chips));
         pickerClasses.set(picking ? PICKER_VISIBLE : PICKER_HIDDEN);
-        targetingHint.set(picking ? PICK_HINT : TARGET_HINT);
+        targetingHint.set(Strings.get(picking ? "battlePickHint" : "battleTargetHint"));
         if (picking) {
-            targetingLabel.set(targetingLabel.get() + " · " + picked + " OF " + chips.size() + " PICKED");
+            targetingLabel.set(Strings.format("battleTargetingPicked", targetingLabel.get(), picked, chips.size()));
         }
         return new Presentation(cards.visible(), cards.powerCount(), cards.targeting(), chips.size());
     }
 
     /** A chip's state line: a prior call or lift refusal, else whether it is in the pick. */
     static String pickState(MechSupport.PickerRow row) {
-        if (row.called()) return "CALLED";
+        if (row.called()) return Strings.get("battlePickCalled");
         LiftBudget.Refusal refusal = row.refusal();
         if (refusal != null) {
             return switch (refusal) {
-                case NO_LIFT -> "NO " + liftName(row.entry().weightClass()) + " LIFT";
-                case LIFT_SPENT -> "LIFT SPENT";
-                case CARRIER_AWAY -> "CARRIER AWAY";
+                case NO_LIFT -> Strings.format("battlePickNoLift", liftName(row.entry().weightClass()));
+                case LIFT_SPENT -> Strings.get("battlePickLiftSpent");
+                case CARRIER_AWAY -> Strings.get("battlePickCarrierAway");
             };
         }
-        return row.selected() ? "SELECTED" : "AVAILABLE";
+        return Strings.get(row.selected() ? "battlePickSelected" : "battlePickAvailable");
     }
 
     private static String liftName(LiftClass weightClass) {
-        return weightClass == null ? "" : weightClass.name();
+        return weightClass == null ? "" : Strings.get("battleLift" + weightClass.name());
     }
 
     private static String upper(String text) {
-        return text == null ? "" : text.toUpperCase(Locale.ROOT);
+        return text == null ? "" : Strings.upper(text);
     }
 
     private static String number(float value) {
         if (Math.abs(value - Math.round(value)) < 0.05f) {
             return Integer.toString(Math.round(value));
         }
-        return String.format(Locale.ROOT, "%.1f", value);
+        return String.format(Strings.locale(), "%.1f", value);
     }
 
-    private static String compactName(String name) {
-        String upper = name == null ? "" : name.toUpperCase(Locale.ROOT);
-        return switch (upper) {
-            case "MECH SUPPORT" -> "MECH DROP";
-            case "ORBITAL BARRAGE" -> "BARRAGE";
-            case "MARINE DROP" -> "MARINES";
-            default -> upper;
-        };
+    /** The tray's short card name for a power when the copy gives one, else its name in capitals. */
+    private static String compactName(String id, String name) {
+        String key = "battlePowerCompact_" + id;
+        String compact = Strings.get(key);
+        return compact.equals(key) ? upper(name) : compact;
     }
 
     private static float clamp01(float value) {

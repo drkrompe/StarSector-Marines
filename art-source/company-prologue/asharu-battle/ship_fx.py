@@ -236,8 +236,30 @@ class ShipFx:
                     for slot in o.material_slots:
                         if slot.link == 'OBJECT' and slot.material is not None and slot.material not in M:
                             M[slot.material] = slot.material.copy()
+                    for mod in o.modifiers:
+                        if mod.type == 'NODES' and mod.node_group is not None:
+                            self._copy_node_group(mod.node_group)
                 M[c].objects.link(M[o])
         return new_root
+
+    def _copy_node_group(self, tree):
+        """A geometry-nodes tree with drivers (the fire group's embers read fir_exp_frame) is this
+        ship's own, with the materials its Set Material sockets name; _remap then points the
+        modifier, its drivers and those sockets at the copies. Shared, the embers of every copy
+        kept the library original's clock."""
+        M, key = self.M, self.key
+        if tree in M or not _has_drivers(tree):
+            return
+        t2 = M[tree] = tree.copy()
+        t2.name = f'{base_name(tree.name)} @{key}'
+        for n in t2.nodes:
+            for sock in n.inputs:
+                m = getattr(sock, 'default_value', None) if sock.type == 'MATERIAL' else None
+                if m is not None:
+                    if m not in M:
+                        M[m] = m.copy()
+                        M[m].name = f'{base_name(m.name)} @{key}'
+                    sock.default_value = M[m]
 
     # ----------------------------------------------------------------------- knobs
     def reset(self):

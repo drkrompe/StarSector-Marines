@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
@@ -92,5 +93,5 @@ public final class DepotHoldSequence implements Objective {
     @Override public void tick(BattleView sim) { /* Advanced before objective evaluation by the simulation. */ }
     @Override public boolean isComplete() { return progress.complete(); }
     @Override public boolean isFailed() { return false; }
-    @Override public String displayName() { return "Capture dispatch and defeat both road attacks"; }
+    @Override public String displayName() { return Strings.get("depotHoldObjective"); }
 }

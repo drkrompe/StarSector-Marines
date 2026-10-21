@@ -14,8 +14,8 @@ record CorvusWaylineWorkGuide(CorvusWaylineProgress progress, OpeningBroker.Dest
             case "portrait" -> OpeningBroker.PORTRAIT;
             case "broker" -> OpeningBroker.NAME;
             case "affiliation" -> "Wayline cooperative";
-            case "heading" -> CorvusWaylineCampaign.TITLE;
-            case "mission" -> chapter != null ? chapter.title + (destination == null ? " (paused)" : "")
+            case "heading" -> CorvusWaylineCampaign.title();
+            case "mission" -> chapter != null ? chapter.title() + (destination == null ? " (paused)" : "")
                     : progress.complete() ? "Corvus account closed" : "Operations paused";
             case "payment" -> chapter != null ? "Cr. " + chapter.payment : "Contract payments: " + progress.paid() + " cr";
             case "location" -> destination != null ? destination.label()

@@ -8,8 +8,8 @@ built onto that ship's copy inside ship.kit() (no build carries the shield group
     f33  volley 1, four hits, flux 0 -> .25: flashes and ripple rings   render f39
     f52  volley 2, flux -> .6: thin patches, wider rings             render f58
     f70  volley 3, flux -> .92: banding, leaking hits                render f76
-    f80  overload from the last hit: the tear runs, shards, arcs, lamps stutter
-                                                                  render f85 (tear) and f95 (shards)
+    f80  overload from the last hit: a forced dissolve from the hit and the thin patches, arcs, lamps stutter
+                                                                  render f85 (holes opening) and f95 (film gone)
     f130 vent: radiators glow and shed vapour, flux bleeds off       render f140
 
 The camera stands 300 m off on the port bow, where the hits land.
@@ -19,7 +19,7 @@ import math
 
 FPS = 24
 DRILL = [12, 30, 39, 58, 76, 85, 95, 140]
-OVERLOAD = [83, 87, 92, 100]   # the tear running, then the pieces burning away
+OVERLOAD = [82, 85, 89, 94]    # the dissolve: first holes, spreading, meeting, the last of the film
 VOLLEYS = [  # (first frame, flux at its end, hits as (azimuth, elevation) on the camera's side)
     (33, .25, [(30, 10), (12, 4), (44, 18), (24, -6)]),
     (52, .6, [(18, 14), (40, 2), (6, -4), (34, 22)]),
@@ -105,8 +105,8 @@ TESTS = {
         setup=kite_omni),
     'lasher-overload': dict(
         builds=['lasher'], frames=OVERLOAD,
-        note='Lasher overload close (160 m): the tear running, then the torn plasma pieces glowing at their rims '
-             'and burning away from within as they drift off.',
+        note='Lasher overload close (160 m): a forced dissolve, holes burning open at the last hit and the '
+             'thinnest patches, spreading behind bright edges until the film is gone.',
         setup=lasher_overload),
     'kite-overload': dict(
         builds=['kite-p'], frames=OVERLOAD,

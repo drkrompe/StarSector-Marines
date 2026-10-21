@@ -9,6 +9,8 @@ import java.util.List;
 /** Dry cardio, strength and mat stations beside a compact pool with a complete walking surround. */
 public final class ShipGymFitting implements RoomFitting {
     private static final String KIT="ship-gym.";
+    /** The rower with its seat off the rail, so the seat can slide; the gym's own rower stands in without it. */
+    private static final String SLIDING_ROWER="deck-motion.rower";
     @Override public RoomPurpose purpose() { return RoomPurpose.GYMNASIUM; }
 
     @Override public void fit(RoomFloor floor) {
@@ -31,9 +33,9 @@ public final class ShipGymFitting implements RoomFitting {
 
         reserve(floor,1,5,2,3);surface(floor,1,5,2,3,"mat");
         task(floor,1,5,2,5);task(floor,1,7,2,7);
-        station(floor,"treadmill",1,1,1,4,1,3);
-        station(floor,"rower",4,1,4,4,4,3);
-        station(floor,"bench-press",4,6,3,7,4,7);
+        station(floor,KIT+"treadmill",1,1,1,4,1,3);
+        station(floor,TileRegistry.installed().doodad(SLIDING_ROWER)!=null?SLIDING_ROWER:KIT+"rower",4,1,4,4,4,3);
+        station(floor,KIT+"bench-press",4,6,3,7,4,7);
         if(floor.placeAssembly(8,8,KIT+"weights",List.of())) {
             task(floor,9,7,9,8);task(floor,11,7,11,8);
         }
@@ -46,7 +48,7 @@ public final class ShipGymFitting implements RoomFitting {
         return true;
     }
     private void station(RoomFloor floor,String id,int x,int y,int sx,int sy,int fx,int fy) {
-        if(floor.placeAssembly(x,y,KIT+id,List.of())) task(floor,sx,sy,fx,fy);
+        if(floor.placeAssembly(x,y,id,List.of())) task(floor,sx,sy,fx,fy);
     }
     private void task(RoomFloor floor,int sx,int sy,int fx,int fy) {
         int[] s=floor.toLocal(sx,sy),f=floor.toLocal(fx,fy);

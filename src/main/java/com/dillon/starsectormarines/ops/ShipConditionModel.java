@@ -366,7 +366,7 @@ public final class ShipConditionModel {
             case PATIENT_WARD -> Strings.get("openingShipConditionSickBay");
             case CREW_LOUNGE -> Strings.get("openingShipConditionRecLounge");
             case BRIG -> Strings.get("openingShipConditionBrig");
-            default -> room.purpose().name().replace('_', ' ');
+            default -> Strings.get("openingShipWord" + room.purpose().name());
         };
     }
     private static String function(RoomPurpose purpose) {
