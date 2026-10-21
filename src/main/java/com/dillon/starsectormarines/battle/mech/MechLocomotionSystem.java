@@ -71,6 +71,11 @@ public final class MechLocomotionSystem {
                 // Crippled legs cannot walk the route, so the hips answer the fight instead of it:
                 // the chassis pivots onto its target like one with no route at all.
                 boolean crippled = MechSectionModifier.crippled(roster.world(), id);
+                // A staggered mech's hips hold still: no walk, no pivot, until it has its feet back.
+                if (roster.stagger().isStaggered(id)) {
+                    MechLocomotion.stopTurning(world, components, id, dt);
+                    continue;
+                }
                 if (hasMovement && pathIdx[row] < Paths.cellCount((int[]) paths[row]) && !crippled) {
                     // Walking anywhere ends the heading a move order left the mech standing on.
                     if (orders != null) orders.releaseHeldFacing(id);

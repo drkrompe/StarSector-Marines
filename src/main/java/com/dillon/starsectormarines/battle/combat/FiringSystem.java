@@ -158,6 +158,10 @@ public final class FiringSystem {
                     lastFireGate[r] = FireGate.TARGET_GONE.ordinal();
                     continue; // killed earlier this walk
                 }
+                if (roster.stagger().isStaggered(shooterId)) {
+                    lastFireGate[r] = FireGate.STAGGERED.ordinal();
+                    continue;
+                }
                 if (aim != null) {
                     if (!PointFireAim.supports(combat.primaryWeaponDef(shooterId))) {
                         lastFireGate[r] = FireGate.UNSUPPORTED_WEAPON.ordinal();

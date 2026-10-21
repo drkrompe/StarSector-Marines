@@ -69,7 +69,7 @@ public final class SwarmBores {
     public static final float RATE_SPREAD = 0.15f;
 
     /** What happened to a bore, for the beats. */
-    public enum EventKind { GREW, COLLAPSED, SURGE }
+    public enum EventKind { GREW, COLLAPSED, SURGE, FED }
 
     /** One fact about a bore on a tick. {@code tier} is the tier reached, or the bore's tier at the time. */
     public record Event(int tick, EventKind kind, SwarmBore bore, BoreTier tier) { }
@@ -142,7 +142,7 @@ public final class SwarmBores {
     }
 
     /**
-     * The biomass seam (`swarm-harvest.md`): {@code amount} delivered into
+     * The biomass seam (`colony-breach-nouns.md`, Harvest): {@code amount} delivered into
      * {@code bore}, in colonists' bodies. It advances the bore's growth fast
      * and sizes and brings forward its next surge. Returns {@code false},
      * having changed nothing, for a collapsed bore or a non-positive amount:
@@ -153,6 +153,7 @@ public final class SwarmBores {
         int tick = sim.getSimTickIndex();
         BoreTier from = bore.tier();
         BoreTier reached = bore.feed(amount, tick);
+        events.add(new Event(tick, EventKind.FED, bore, bore.tier()));
         if (reached != null) grew(sim, bore, from, reached, tick);
         return true;
     }
