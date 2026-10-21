@@ -1,7 +1,7 @@
 {
   "blocks": [{
     "cells": [[
-      14,
+      13,
       0
     ]],
     "id": "shuttle-bay.landing-deck"
@@ -19,28 +19,28 @@
       "row": 0
     },
     {
-      "col": 4,
+      "col": 3,
       "name": "shuttle-bay.ground-power",
       "row": 0
     },
     {
-      "col": 8,
+      "col": 7,
       "name": "shuttle-bay.fluid-skid",
       "row": 0
     },
     {
-      "col": 12,
+      "col": 11,
       "name": "shuttle-bay.wheels",
       "row": 0
     },
     {
-      "col": 14,
+      "col": 13,
       "description": "variant 1 of the pool",
       "name": "shuttle-bay.landing-deck v1",
       "row": 0
     },
     {
-      "col": 15,
+      "col": 14,
       "name": "shuttle-bay.tie-down",
       "row": 0
     }
@@ -52,7 +52,7 @@
       "cover": "med",
       "footprintCells": [
         2,
-        3
+        1
       ],
       "id": "shuttle-bay.flight-desk",
       "row": 0
@@ -62,15 +62,15 @@
       "col": 2,
       "cover": "med",
       "footprintCells": [
-        2,
-        3
+        1,
+        2
       ],
       "id": "shuttle-bay.service-cart",
       "row": 0
     },
     {
       "ballisticHalfHeight": 0.6,
-      "col": 4,
+      "col": 3,
       "cover": "med",
       "footprintCells": [
         4,
@@ -81,7 +81,7 @@
     },
     {
       "ballisticHalfHeight": 0.6,
-      "col": 8,
+      "col": 7,
       "cover": "med",
       "footprintCells": [
         4,
@@ -92,7 +92,7 @@
     },
     {
       "ballisticHalfHeight": 0,
-      "col": 12,
+      "col": 11,
       "cover": "none",
       "footprintCells": [
         2,
@@ -103,7 +103,7 @@
     },
     {
       "ballisticHalfHeight": 0,
-      "col": 15,
+      "col": 14,
       "cover": "none",
       "id": "shuttle-bay.tie-down",
       "row": 0

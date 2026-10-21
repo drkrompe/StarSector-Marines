@@ -653,8 +653,9 @@ for one job in the cycle, and reads that way on screen.
   wedge along the line during the tell, with the other threat warnings; a
   knocked-down body's picture lying as a fallen one does for that second,
   with a ring of dust where it lands, while the sim keeps it upright; a quiet
-  amber arc on the ground under any non-swarm body that can't act, whatever made
-  it so, emptying as the hold runs out; and the squad card's status word naming the cause (knocked down, stalled,
+  amber arc on the ground under a Marine or hull that can't act, whatever made
+  it so, emptying as the hold runs out (a staggered mech shows only in its
+  stilled hips); and the squad card's status word naming the cause (knocked down, stalled,
   staggered, stunned) ahead of engaged or wounded.
 
   Like the Runner it is drawn on its own skeleton (`RavBruteRig`): a plum,

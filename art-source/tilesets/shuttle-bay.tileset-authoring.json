@@ -7,19 +7,19 @@
   "idPrefix": "shuttle-bay",
   "alphaMin": 40,
   "outputSheet": "graphics/tilesets/shuttle-bay.png",
-  "note": "Geometry-first ship shuttle bay. Measured RGBA cuts; landing material cropped from seamless interior, decorative loads retain clear full-canvas margins.",
+  "note": "Geometry-first ImageGen reskins on a 2508x1254 raw: the left half is the original built-in generation (ground-power unit, fluid skid, wheel overlay, landing deck; measured cuts); the right half, from x=1254, is the real-size refit (ShuttleBayTemplate, 320 px per cell on the guide) of the 2x1 flight desk, the 1x2 service cart and the 1x1 tie-down, cut as placement frames scaled by the generation's own 1.11-1.16x zoom. See shuttle-bay.README.md.",
   "entries": [
     {
       "id": "shuttle-bay.flight-desk",
       "rect": [
-        48,
-        84,
-        172,
-        251
+        1348,
+        207,
+        698,
+        349
       ],
       "footprintCells": [
         2,
-        3
+        1
       ],
       "cover": "med",
       "ballisticHalfHeight": 0.6,
@@ -28,14 +28,14 @@
     {
       "id": "shuttle-bay.service-cart",
       "rect": [
-        451,
-        75,
-        156,
-        267
+        2092,
+        182,
+        363,
+        724
       ],
       "footprintCells": [
-        2,
-        3
+        1,
+        2
       ],
       "cover": "med",
       "ballisticHalfHeight": 0.6,
@@ -110,10 +110,10 @@
     {
       "id": "shuttle-bay.tie-down",
       "rect": [
-        47,
-        965,
-        205,
-        205
+        1361,
+        753,
+        358,
+        358
       ],
       "footprintCells": [
         1,
