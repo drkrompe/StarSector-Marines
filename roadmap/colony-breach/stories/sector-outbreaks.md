@@ -1,6 +1,6 @@
 # Sector outbreaks
 
-Status: QUEUED on `swarm-lore-guide.md` and the spine
+Status: QUEUED on the spine (lore: `swarm-lore-guide.md`)
 
 Written: 2026-10-21
 
