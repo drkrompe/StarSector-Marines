@@ -57,6 +57,9 @@ Consequences that the design keeps:
   speculate (Domain denial programme, a Tri-Tachyon-era leak, something older);
   no text states the maker as fact.
 
+Names, the life cycle in in-world terms, each faction's view and the tone and
+vocabulary for briefings, radio and item text are in `swarm-lore-guide.md`.
+
 ## Vocabulary
 
 **Colony.** The generated settlement the battle is fought in: a town plus an
@@ -329,7 +332,7 @@ the evidence; change them here first.
   the other way round.
 - Structure durability: `combat-durability-nouns.md`.
 - Setting and canon tiers: `faction-lore-nouns.md`; the swarm's own lore
-  guide is `swarm-lore-guide.md` once written.
+  guide is `swarm-lore-guide.md`.
 - Where and how often outbreaks appear in the campaign: the Civilian Rescue
   campaign event (`CivilianRescueSpawnSystem`), extended by
   `sector-outbreaks.md`.
