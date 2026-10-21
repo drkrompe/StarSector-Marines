@@ -4,7 +4,7 @@ Status: ACTIVE — reactive manning is shipped for fighting-position runs, a str
 
 Written: 2026-10-13
 
-Updated: 2026-10-21 — the mission defenders stage their roving reserve toward pressure, half waiting at the places and half meeting the attack in the street (mission defenders, flow); story commanders man reactively through a hosted planner and a holder share (story commanders, below); a sally door shuts again: its holder shuts it behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body, and an open door of a place its holder lost stays open (sally doors, below); not every fight is into prepared positions is a law; a holder sorties from a walled place it holds through a sally door in its own wall (sally doors, below); the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
+Updated: 2026-10-21 — the mission defenders stage their roving reserve toward pressure, half waiting at the places and half meeting the attack in the street (mission defenders, flow); every story commander has a commander-evidence harness, A Small War's commander offers its posts clear of the stages and the other eight have no standing hostile duty to offer (story commanders, below); story commanders man reactively through a hosted planner and a holder share; a sally door shuts again: its holder shuts it behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body, and an open door of a place its holder lost stays open (sally doors, below); not every fight is into prepared positions is a law; a holder sorties from a walled place it holds through a sally door in its own wall (sally doors, below); the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
 
 ## Why this exists
 
@@ -531,16 +531,38 @@ that (`conquest-command.md`, Defender command) and was reverted.
   lone squad, so the rest keep their posts in the street and the yard. The share
   bounds new sends; nobody already holding is turned out by it, and pickets
   before massing still picks which pressed place gets the squad.
+- **A stage is the story's, not a place to hold.** A squad whose post is on a
+  stage the company has to take, or near enough that a place it could man
+  reaches the stage, is not offered. Holed up in the stage's rooms after the
+  company has taken it, it re-contests the stage and walks the story back. A
+  Small War measured it: offered every post, the customs watch fell back into
+  the customs block's rooms and returned one battle from fuel control to
+  customs, and Rusk's warship went down overhead in three battles of six, which
+  it never did in the control. A Small War now offers only posts more than
+  twice the duty radius from every stage.
 - `-Dbattle.story.reactiveDefence=false` is the control (and
   `-Dbattle.story.reactiveDefence.share=` the share);
   `-Dbattle.mission.reactiveDefence=false` switches the planner off for story
   and procedural commanders alike.
 
 Wired: Junction's raiders (the reserve and the road column while they wait),
-Relay Nine's and Thunder Run's pools (squads holding home or their ground) and
-the Counterattack depot's guards (gate, yard and rear guard on their stages).
-Relief's defender assaults the anchor and has no standing duty. The Agreus and
-Black Sluice commanders are not wired yet (open question below).
+Relay Nine's and Thunder Run's pools (squads holding home or their ground), the
+Counterattack depot's guards (gate, yard and rear guard on their stages) and A
+Small War's Greyhook groups on posts clear of the stages (the service-road
+picket and the pier crew).
+
+Not wired, because the hostile side has no standing duty to offer: Relief's
+defender assaults the anchor; in The Yard's Owners, Water Under Seal, Limited
+Warrant, District Escort, Salvage Rights, Cold Start and Working Passage every
+hostile squad attack-moves onto the work, the hall, the lane crossing or the
+ambush ground, or walks out; in Terms of Protection Greyhook's sections
+attack-move and the one squad that holds is the mortar team, whose post is its
+tube. Those commanders' standing duties are the company's and the employer's
+parties' (constables at the apron, militia at a workshop or a pump court, the
+estate guards at the Cinder Steps gate), and the company is the player's:
+whether a story ally should man is open (below). Each of the nine has a
+zero-input harness all the same (`commander-evidence-missions.md`, story
+missions without a planner), so a later duty change is measured, not assumed.
 
 Measured with `commanderEvidence` against the same-build control (2026-10-21),
 every fixture of each mission's matrix. The beat lists came out identical by
@@ -557,6 +579,8 @@ defender's shooters standing on one.
 | Thunder Run | 11 | 0 | 0 | identical | 46% / 46% | 30% / 30% | byte for byte |
 | Relief | 12 | 0 | 0 | identical | 92% / 92% | 4% / 4% | byte for byte |
 | Last Lift | 13 attempts | 7 (Extraction's) | 4 (4) | identical | 96% / 96% | 0% / 0% | unaffected by the story switch |
+| A Small War | 6 | 0 | 0 | identical | 39% / 39% | 51% / 51% | byte for byte: marines 5, Greyhook 1 |
+| A Small War, every post offered (not kept) | 6 | 20 | 18 (18) | 5 of 6 differ | 35% / 39% | 54% / 51% | marines 5, Greyhook 1 in both; customs walked back once, Rusk lost three times |
 
 - **Counterattack** is where it bites: the rear guard, and on two fixtures the
   yard guard, takes the warehouse beside its stage when the company presses it
@@ -573,6 +597,14 @@ defender's shooters standing on one.
   Nine**'s pool is one squad, which the share keeps on its post (225 offered
   pulses, all closed). **Thunder Run** offered nobody: no pool squad held home
   or ground on these fixtures.
+- **A Small War** offers its service-road picket and pier crew (about 115
+  offered squad-pulses a battle) and neither was pressed: the company's road
+  runs through the three stages, and the Greyhook groups it meets there keep
+  their authored posts. The nine story missions without a planner of their own
+  were measured on the same day as baselines (`commander-evidence-missions.md`):
+  brawls are 0-3% on The Yard's Owners and Limited Warrant, where Greyhook
+  attacks into the hall or the galleries and fights under a roof, and 85-90% on
+  Terms of Protection, Cold Start and Working Passage.
 
 The scene `story-defence` plays the production Counterattack depot with its own
 story commander: a guard on a standing duty holds a building by the story's own
@@ -821,11 +853,12 @@ of raiders come up to it). Every loop asks that no door shuts on a body.
   apron, against seven in ten on a stock map: the places' circulation roads run
   close to their doors. Whether to let an apron stand on a circulation road the
   attack does not use is open.
-- **The rest of the story commanders.** Yard Owners, Water Under Seal,
-  Limited Warrant, District Escort, Terms of Protection, A Small War, Salvage
-  Rights, Cold Start and Working Passage plan standing duties too, but have no
-  commander-evidence harness that shows their beats survive; each needs one (or
-  a scene verdict on its beats) before it offers squads through the seam.
+- **Story allies and the stages.** Eight story commanders' standing duties
+  are all the employer's (constables, militia, estate guards), and A Small
+  War's Greyhook posts that matter stand on its stages. Whether an employer
+  party on a post should man the places near it, and whether a stage guard
+  could be offered places on the stage's far side from the company, is open;
+  each has a harness to measure it.
 - **Story maps that offer nothing.** On Junction, Relay Nine and Thunder Run the
   seam is wired and nothing is manned. Whether a one-squad pool should man its
   home's windows, and whether a story ally holding a gain (Junction's and Relay
