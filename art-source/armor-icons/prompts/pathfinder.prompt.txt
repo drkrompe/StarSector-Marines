@@ -1,0 +1,9 @@
+Use case: style-matched variant of an existing product render. Asset: the armory catalogue image of one marine armour suit, for a gritty military dark-science-fiction tactical game in the Starsector setting.
+
+Image 1 is the finished armory image of the base suit this pattern belongs to: it is the authority for the design, palette, plate shapes, markings, composition, camera, lighting and realistic hand-painted finish. Produce a variant of this same suit that a player recognises at once as a sibling of Image 1, changing only what is described below and keeping everything else as Image 1 has it.
+
+Image 2 shows how this suit is drawn in battle, from directly overhead (left: the torso and shoulder plates; right: the helmet top). The variant must still match it in palette and silhouette character. Never show the overhead view itself.
+
+Pathfinder recon suit: the Hegemony does not buy corporate sensor suits, it strips a Legionary to the frame and hangs a surveying array off it. Keep the dark navy and slate plate palette so it matches the battle sprite, but make it blunter and military rather than corporate: squared rugged plates with exposed frame members, khaki Hegemony stencil marks (no letters), and a boxy surveying array on a short mast clamped to the back of the vest: a rangefinder box, a small dish and a folded antenna. Heavier, louder, easy to fix.
+
+Square 1:1 canvas with every piece fully inside the frame and a clear margin. True transparent background, including the gaps between pieces; no ground, no cast-shadow slab, no border, no text, letters, numbers, logos or watermark, no person or face inside the suit, no weapon held or worn except an item named above.

@@ -830,6 +830,14 @@ engineering, medical and service uniforms use independent overhead body, head
 and foot layers through the ordinary infantry compositor. Clothing changes no
 combat statistics or marine equipment.
 
+Aboard, work motions (`ai-nouns.md`) give the deck's trades their look:
+servicing a berthed machine is welding, drawn on the technician wherever the bay
+is seen from rather than by one screen's overlay; the medic kneels at a ward
+bed; the galley stirs and chops; the plant is worked with a wrench and its
+control board by hand; the gym's machines are run, rowed and pressed. None of
+it is shipboard machinery — the deck only furnishes the fixtures the motions
+read.
+
 **The ship runs; a screen is a camera.** A deck is manned everywhere it has work
 and advanced as a whole, and the screens that look at parts of it choose a
 framing and nothing else. Framing must not decide what exists: staff only the

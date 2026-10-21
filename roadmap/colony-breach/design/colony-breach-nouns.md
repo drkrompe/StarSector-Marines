@@ -237,8 +237,9 @@ for one job in the cycle, and reads that way on screen.
   bodies and emplacements where a Runner's slash only scratches.
 - **Spitter** — fragile, keeps its distance, lobs acid. It backs away from any
   ground enemy that closes inside its charge radius and does not lob while it
-  runs. Otherwise a low hostile craft in reach comes first, then the sensed
-  enemy with the most others inside the splash; the glob is a real arcing
+  runs. Otherwise a low hostile craft in reach whose skin its acid can bite
+  comes first (see *Air threat ladder*), then the sensed enemy with the most
+  others inside the splash; the glob is a real arcing
   projectile whose splash goes through the ordinary detonation path, spares the
   swarm and is stopped by an intact roof. Acid on a low flier lands on the hull
   through the aimed-damage path; a craft at cruise altitude is out of reach.
@@ -247,6 +248,25 @@ for one job in the cycle, and reads that way on screen.
   damage model has none for ground bodies.
 - **Matriarch** — one per mother bore at maw tier: large, slow, very durable,
   wrecks emplacements. Answered by mechs, heavy weapons or a lot of satchels.
+
+**Air threat ladder.** What the swarm can do to what flies, rung by rung:
+
+- **Light air: Spitters.** Mobile, everywhere the swarm is, and only good for
+  light air. A drone is an ordinary unarmoured body and takes the ordinary lob.
+  A craft takes acid only while it flies low and only if the acid can bite its
+  skin: acid is a corrosive, not a penetrator, so its penetration is a third of
+  an airframe's skin rating and an intact skin turns it. A Spitter does not
+  waste lobs on a craft it cannot hurt, but finishes one whose skin something
+  else has stripped.
+- **Armoured air: spore vents.** Gunships, dropships and warship-class
+  overflights shrug Spitters off. What denies them is static: the vents a bore
+  grows by tier.
+
+The ladder is read from durability, never from a list of craft: whether a rung
+reaches a flier is the shared armour law against that flier's own skin. Today
+every airframe carries the same skin rating, fighters included, so a fighter is
+armoured air until the air model gives light airframes a lighter skin; when it
+does, they fall onto the Spitters' rung without this rule changing.
 
 Strains are added to a bore's mix by tier, not chosen per wave by hand.
 Every strain is the same swarm to everything outside it: one side, one
@@ -360,23 +380,11 @@ sends against a bore. Stable membership, traced like any other command role.
 The breach sequence owns the clock and the triggers; beats are what it
 publishes. Beats are presentation and evidence, never inputs to the simulation.
 
-**Built so far.** Landfall, seepage, the release, the tremor and the eruption
-schedule run, and every beat through `mother_bore_erupted` and the lift beats
-fires. Until bores exist an eruption stands nothing up and the director keeps
-spawning at the perimeter after the tremor, so the "spawning has a source" law
-is not yet in force. The lift has no countdown yet: the pickup craft comes down
-at the start of the battle and waits, so `lift_inbound` and `lift_down`
-normally fire before the shelter is reached.
-
-**Known gap: the escort can park the cohort on a long walk.** A civilian holds
-while its nearest marine is behind it toward the lift, and the close escort is
-sent to the cohort's own cell, so an escort member standing on the cohort's
-tail holds it indefinitely once the screens are out of leash. The colony's long,
-bending walk found this on the canonical fixture at 0adc5de81 (it timed out
-with the cohort parked); the fixture's trajectory no longer meets it, but the
-rule is unchanged and it is Marine corridor command's to fix
-(`extraction-command.md`). The corridor guide no longer collapses onto the
-cohort when its centroid falls on a wall; it routes from the nearest open cell.
+**Lift timing.** The lift has no countdown: the pickup craft comes down at the
+start of the battle and waits, so `lift_inbound` and `lift_down` normally fire
+before the shelter is reached. Until bores stand up on eruption sites
+(`bore-spawners.md`), an eruption opens a site and nothing more, and the
+director keeps spawning at the perimeter after the tremor.
 
 ## Beats
 
