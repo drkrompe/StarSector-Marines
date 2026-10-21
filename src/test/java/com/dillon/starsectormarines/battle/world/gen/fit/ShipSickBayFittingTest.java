@@ -41,7 +41,7 @@ class ShipSickBayFittingTest {
             assertEquals(1, tasks(f, Affordance.STOW));
             assertEquals(1, tasks(f, Affordance.WASH));
             verifyReachability(f);
-            for (int x = 0; x < 14; x++) for (int y = 3; y < 7; y++) assertWalkable(f, x, y);
+            for (int x = 0; x < 14; x++) for (int y = 4; y < 6; y++) assertWalkable(f, x, y);
             for (int x = 5; x < 14; x += 2) for (int y = 0; y < 10; y++) assertWalkable(f, x, y);
         }
     }
@@ -54,7 +54,7 @@ class ShipSickBayFittingTest {
             assertEquals(9, f.ops.stream().filter(op -> op instanceof LayoutOp.Assembly a
                     && a.layers().stream().anyMatch(l -> l.doodadId().startsWith("sickbay-clinic.linen"))).count());
             verifyReachability(f);
-            for (int y = doorY < 0 ? 0 : 7; y < (doorY < 0 ? 3 : 10); y++) assertWalkable(f, 6, y);
+            for (int y = doorY < 0 ? 0 : 6; y < (doorY < 0 ? 4 : 10); y++) assertWalkable(f, 6, y);
         }
     }
 
@@ -64,7 +64,7 @@ class ShipSickBayFittingTest {
             assertEquals(1, pieces(f, "station"));
             assertEquals(1, pieces(f, "exam"));
             verifyReachability(f);
-            for (int y = doorY < 0 ? 0 : 7; y < (doorY < 0 ? 3 : 10); y++) assertWalkable(f, 1, y);
+            for (int y = doorY < 0 ? 0 : 6; y < (doorY < 0 ? 4 : 10); y++) assertWalkable(f, 1, y);
         }
     }
 
