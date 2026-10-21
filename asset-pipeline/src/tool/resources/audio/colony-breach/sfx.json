@@ -21,7 +21,10 @@
       "durationSeconds": 0.7,
       "variants": 4,
       "loop": false,
-      "volume": 0.8
+      "volume": 0.8,
+      "cut": [
+        4
+      ]
     },
     {
       "id": "runner_clatter",
