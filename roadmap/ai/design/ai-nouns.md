@@ -762,10 +762,14 @@ site is a ship's compartment, a building interior or a walled yard alike. So a
 colonist at a workshop bench, a mission's scripted townsfolk and a ship's
 machinist get the same motion for the same work, and nothing a surface job
 needs lives in shipboard hosting. Any layered family with station-arm art shows
-it, the colonist families included; a family without that art shows less of it.
-The motion is presentation only: it never changes how long a job takes, who may
-claim it, or where the worker stands, and a body drawn onto a machine (a
-treadmill's belt) leaves its claim on the standing cell. Animated fixtures are
+it, the colonist families included; a family without that art shows less of it,
+though exercise is empty-handed in any outfit (the rifle is put away, a curl's
+dumbbells are still drawn). The motion is presentation only: it never changes how
+long a job takes, who may claim it, or where the worker stands, and a body drawn
+onto a machine leaves its claim on the standing cell. Gym machines are drawn at
+real size against a 0.6-cell shoulder (a cell is about 0.75 m), worked from the
+free cell at their foot and up their length, so the drawn reach puts the runner
+on the belt, the rower on the seat and the presser on the bench. Animated fixtures are
 the fixture's own art and meet the worker through the same claim and focus.
 
 A shift derives where it works from what each place publishes, so **posting is

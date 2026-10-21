@@ -162,14 +162,18 @@ final class LayeredUnitComposer {
                 && specialLayer.replacePrimaryWhileUsing();
         // Hands on a console are not holding a rifle; the family's station arms
         // replace it for as long as the actor stands at the work.
-        boolean atStation = (flags & LayeredAppearance.FLAG_AT_STATION) != 0
-                && assets.stationArm(true) != null;
+        boolean stationFlag = (flags & LayeredAppearance.FLAG_AT_STATION) != 0;
+        boolean atStation = stationFlag && assets.stationArm(true) != null;
         WorkMotion motion = LayeredAppearance.workMotion(flags);
+        // Exercise is done empty-handed in any outfit: nobody runs, rows, presses or curls with a rifle, so it is
+        // put away even by a family with no station arms to draw the hands with.
+        boolean exercising = stationFlag && (motion == WorkMotion.RUN || motion == WorkMotion.ROW
+                || motion == WorkMotion.PRESS || motion == WorkMotion.LIFT);
         // A station with no motion named is worked the ordinary way, across a console.
         if (atStation && motion == WorkMotion.NONE) motion = WorkMotion.CONSOLE;
         LayeredSpriteCache crate = motion == WorkMotion.CARRY
                 ? assets.specialEquipment(WorkPropLayer.CRATE) : null;
-        boolean drawPrimaryLayers = drawWeaponLayers && !replacePrimary && !atStation && crate == null;
+        boolean drawPrimaryLayers = drawWeaponLayers && !replacePrimary && !atStation && !exercising && crate == null;
         boolean running = atStation && motion == WorkMotion.RUN;
         if (atStation && motion == WorkMotion.ROW) {
             // A rower's whole body slides on the seat: back as the handle comes
@@ -349,6 +353,9 @@ final class LayeredUnitComposer {
             emitHeldTool(out, assets, motion, rightArm, weaponPhase,
                     actorX, actorY, pxPerSw, facingDeg, alpha);
         }
+        if (stationFlag && motion == WorkMotion.LIFT) {
+            emitDumbbells(out, assets, weaponPhase, actorX, actorY, pxPerSw, facingDeg, alpha);
+        }
 
         if (assets.foreClaw != null && swipe > 0f) {
             emitClaw(out, assets.foreClaw, leftStrikes ? leftClaw : rightClaw,
@@ -509,6 +516,27 @@ final class LayeredUnitComposer {
         out.frame(sparks, (frame % WorkPropLayer.SPARK_COLUMNS) * frameWidth,
                 (frame / WorkPropLayer.SPARK_COLUMNS) * frameHeight, frameWidth, frameHeight,
                 work[0], work[1], size, size, 0f, alpha);
+    }
+
+    /**
+     * A dumbbell in each hand, across the grip, curled with the forearm. The hands are where the station arms put
+     * them, so a family with arm art holds the weights in its hands; one without still holds them out in front.
+     */
+    private static void emitDumbbells(SpriteEmitter out, LayeredUnitAssets assets, float phase, float actorX,
+                                      float actorY, float swPx, float facingDeg, float alpha) {
+        LayeredSpriteCache weight = assets.specialEquipment(WorkPropLayer.DUMBBELL);
+        if (weight == null) return;
+        float length = WorkPropLayer.DUMBBELL_LENGTH_SW;
+        float width = length * weight.pxHeight / Math.max(1f, weight.pxWidth);
+        for (boolean left : new boolean[]{true, false}) {
+            float[] arm = workArm(WorkMotion.LIFT, left, phase);
+            float side = left ? -1f : 1f;
+            float turn = side * arm[0];
+            float[] hand = rotate(side * RIGHT_HAND_FROM_ELBOW_X, RIGHT_HAND_FROM_ELBOW_Y, turn);
+            float[] at = worldPoint(actorX, actorY, side * RIGHT_ELBOW_X + hand[0],
+                    RIGHT_ELBOW_Y + hand[1] + arm[1], swPx, facingDeg);
+            out.add(weight, at[0], at[1], length * swPx, width * swPx, facingDeg + turn, 1f, 1f, 1f, alpha);
+        }
     }
 
     /** How far a rower slides fore and aft on the seat, in shoulder widths. */

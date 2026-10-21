@@ -2,6 +2,8 @@
 
     python art-source/crew-work-props/props.py guide    # writes ../templates/crew-work-props-guide.png
     python art-source/crew-work-props/props.py export   # raw/props.png -> mod/graphics/battle/crew-work-props/
+    python art-source/crew-work-props/props.py dumbbell-guide   # ../templates/crew-work-props-dumbbell-guide.png
+    python art-source/crew-work-props/props.py dumbbell-export  # raw/dumbbell.png -> .../crew-work-props/dumbbell.png
 
 The guide is the geometry authority: one flat grey silhouette per prop on a
 1536x1024 transparent sheet, each prop pointing UP the image (away from the
@@ -92,5 +94,46 @@ def export():
         print("wrote", OUT / f"{name}.png", size)
 
 
+# The gym's dumbbell, a later sheet of its own so the accepted props raw stays valid. Held across the hand, so
+# unlike the props above its long axis runs ACROSS the image. 0.3 m long and 0.12 m across the plates, against a
+# 0.45 m shoulder width. Drawn three times down the sheet so the generation holds its size; the top one ships.
+DUMBBELL_GUIDE = ROOT / "art-source/templates/crew-work-props-dumbbell-guide.png"
+DUMBBELL_RAW = HERE / "raw/dumbbell.png"
+DUMBBELL_SIZE = (100, 40)
+DUMBBELL_SLOTS = [(0, y, 1536, y + 340) for y in (0, 340, 680)]
+
+
+def dumbbell_guide():
+    sheet = Image.new("RGBA", (1536, 1024), (0, 0, 0, 0))
+    d = ImageDraw.Draw(sheet)
+    for slot in DUMBBELL_SLOTS:
+        x0, y0, x1, y1 = centred(slot, DUMBBELL_SIZE)
+        cy = (y0 + y1) // 2
+        # Hex heads at both ends, a knurled grip between them.
+        for hx0 in (x0, x1 - 170):
+            d.polygon([(hx0 + 30, y0), (hx0 + 140, y0), (hx0 + 170, cy), (hx0 + 140, y1), (hx0 + 30, y1), (hx0, cy)],
+                      fill=DARK)
+        d.rectangle((x0 + 170, cy - 30, x1 - 170, cy + 30), fill=LIGHT)
+    DUMBBELL_GUIDE.parent.mkdir(parents=True, exist_ok=True)
+    sheet.save(DUMBBELL_GUIDE)
+    print("wrote", DUMBBELL_GUIDE)
+
+
+def dumbbell_export():
+    raw = Image.open(DUMBBELL_RAW).convert("RGBA")
+    shape = Image.open(DUMBBELL_GUIDE).convert("RGBA")
+    if raw.size != shape.size:
+        raw = raw.resize(shape.size, Image.LANCZOS)
+    x0, y0, x1, y1 = centred(DUMBBELL_SLOTS[0], DUMBBELL_SIZE)
+    box = (x0 - SCALE, y0 - SCALE, x1 + SCALE, y1 + SCALE)
+    art = raw.crop(box)
+    mask = shape.crop(box).getchannel("A").filter(ImageFilter.MaxFilter(9))
+    art.putalpha(Image.composite(art.getchannel("A"), Image.new("L", art.size, 0), mask))
+    size = (DUMBBELL_SIZE[0] + 2, DUMBBELL_SIZE[1] + 2)
+    art.resize(size, Image.NEAREST).save(OUT / "dumbbell.png")
+    print("wrote", OUT / "dumbbell.png", size)
+
+
 if __name__ == "__main__":
-    {"guide": guide, "export": export}[sys.argv[1]]()
+    {"guide": guide, "export": export, "dumbbell-guide": dumbbell_guide,
+     "dumbbell-export": dumbbell_export}[sys.argv[1]]()
