@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.AirLocomotion;
+import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
@@ -22,7 +23,12 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
  *       sends it backing away from that enemy; it does not lob while it runs.</li>
  *   <li><b>Low flier:</b> a hostile airborne craft below {@link #LOW_ALTITUDE}
  *       within lob range takes acid, applied to the hull in the serial pass
- *       ({@link SwarmStrikeSystem}). High craft are out of its reach.</li>
+ *       ({@link SwarmStrikeSystem}), but only a craft the acid can bite
+ *       ({@link #acidBites}). Acid is a corrosive, not a penetrator: an
+ *       airframe's intact skin turns it, so an armoured gunship or dropship is
+ *       not worth a lob until something else has stripped it. High craft are
+ *       out of its reach. Drones are not craft: they are ordinary bodies and
+ *       take the ground lob below.</li>
  *   <li><b>Densest infantry:</b> of the enemies it senses within range, it
  *       lobs at the one with the most others inside the splash. The glob is a
  *       real arcing projectile ({@code weapon.swarm-acid}) that splashes
@@ -43,9 +49,16 @@ final class SwarmSpitterBehavior {
     static final int RETREAT_CELLS = 6;
     /** Craft at or below this altitude (0 on the ground, 1 at cruise) are in reach. */
     static final float LOW_ALTITUDE = 0.6f;
-    /** Acid eats a hull faster than it hurts a plated body: the air hit's multiplier and penetration. */
+    /** Acid on bare structure eats fast: the air hit's multiplier. */
     static final float AIR_DAMAGE_MULTIPLIER = 2f;
-    static final float AIR_PENETRATION = 10f;
+    /** Acid's penetration against a hull: a third of an airframe's skin rating, so intact skin turns it. */
+    static final float AIR_PENETRATION = 2f;
+    /**
+     * The share of a craft's armour rating the acid has to reach to be worth a
+     * lob: the shared bite threshold below which a round does a material no
+     * harm ({@link DurabilityModel#MATERIAL_BITE_RATIO}).
+     */
+    static final float AIR_BITE_RATIO = DurabilityModel.MATERIAL_BITE_RATIO;
 
     private static final ThreadLocal<LongBucket> CANDIDATES =
             ThreadLocal.withInitial(LongBucket::new);
@@ -170,7 +183,19 @@ final class SwarmSpitterBehavior {
         return best;
     }
 
-    /** The nearest hostile craft flying low within lob range, or 0. */
+    /**
+     * Whether acid hurts a craft with this much skin left at this rating: its
+     * skin is gone, or the acid's penetration reaches {@link #AIR_BITE_RATIO}
+     * of the rating. Read from the craft's own durability rather than from a
+     * list of craft, so a lighter-skinned airframe falls inside it the moment
+     * the air model gives one a lower rating.
+     */
+    static boolean acidBites(float armor, float armorRating) {
+        if (armor <= 0f || armorRating <= 0f) return true;
+        return DurabilityModel.penetrationRatio(AIR_PENETRATION, armorRating) >= AIR_BITE_RATIO;
+    }
+
+    /** The nearest hostile craft flying low within lob range whose skin the acid can bite, or 0. */
     static long lowFlierInRange(long spitter, BattleSimulation sim) {
         float x = sim.world().x(spitter);
         float y = sim.world().y(spitter);
@@ -183,7 +208,8 @@ final class SwarmSpitterBehavior {
             if (mission == null || mission.destroyed || !mission.isOnMap()
                     || !AirLocomotion.of(mission.state).airborne()
                     || !Faction.DEFENDER.hostileTo(sim.world().airFaction(craft))
-                    || sim.world().altitudeT(craft) > LOW_ALTITUDE) {
+                    || sim.world().altitudeT(craft) > LOW_ALTITUDE
+                    || !acidBites(sim.world().armor(craft), sim.world().armorRating(craft))) {
                 continue;
             }
             float dx = sim.world().x(craft) - x;

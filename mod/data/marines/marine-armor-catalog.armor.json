@@ -22,7 +22,7 @@
         "tradition": "independent",
         "description": "@gearCatalogArmorCordonShellDescription",
         "tier": 1,
-        "iconPath": "graphics/ui/armory/armor-militia.png"
+        "iconPath": "graphics/ui/armory/armor-cordon-shell.png"
       },
       "battle": { "appearanceFamily": "MILITIA", "armorCapacity": 3.0, "armorRating": 2.0, "moveSpeedMult": 0.99, "incomingAccuracyMult": 0.99 }
     },
@@ -35,7 +35,7 @@
         "tradition": "independent",
         "description": "@gearCatalogArmorLashplateHarnessDescription",
         "tier": 1,
-        "iconPath": "graphics/ui/armory/armor-outlaw.png"
+        "iconPath": "graphics/ui/armory/armor-lashplate-harness.png"
       },
       "battle": { "appearanceFamily": "OUTLAW", "armorCapacity": 5.0, "armorRating": 1.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 1.03 }
     },
@@ -473,7 +473,7 @@
         "tradition": "hegemony",
         "description": "@gearCatalogArmorPathfinderDescription",
         "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-blue-scout.png"
+        "iconPath": "graphics/ui/armory/armor-pathfinder.png"
       },
       "battle": {
         "appearanceFamily": "BLUE_SCOUT",
@@ -506,7 +506,7 @@
         "tradition": "persean",
         "description": "@gearCatalogArmorOutriderDescription",
         "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-blue-scout.png"
+        "iconPath": "graphics/ui/armory/armor-outrider.png"
       },
       "battle": {
         "appearanceFamily": "BLUE_SCOUT",
@@ -539,7 +539,7 @@
         "tradition": "hegemony",
         "description": "@gearCatalogArmorRedoubtDescription",
         "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-charcoal.png"
+        "iconPath": "graphics/ui/armory/armor-redoubt.png"
       },
       "battle": {
         "appearanceFamily": "CHARCOAL",
@@ -573,7 +573,7 @@
         "tradition": "tritachyon",
         "description": "@gearCatalogArmorRiotShellDescription",
         "tier": 2,
-        "iconPath": "graphics/ui/armory/armor-militia.png"
+        "iconPath": "graphics/ui/armory/armor-riot-shell.png"
       },
       "battle": {
         "appearanceFamily": "MILITIA",
@@ -608,7 +608,7 @@
         "tradition": "independent",
         "description": "@gearCatalogArmorPackframeDescription",
         "tier": 2,
-        "iconPath": "graphics/ui/armory/armor-outlaw.png"
+        "iconPath": "graphics/ui/armory/armor-packframe.png"
       },
       "battle": {
         "appearanceFamily": "OUTLAW",
@@ -688,7 +688,7 @@
         "tradition": "sindrian_diktat",
         "description": "@gearCatalogArmorVigilDescription",
         "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-furnace-line.png"
+        "iconPath": "graphics/ui/armory/armor-vigil.png"
       },
       "battle": {
         "appearanceFamily": "FURNACE_LINE",
@@ -723,7 +723,7 @@
         "tradition": "luddic_church",
         "description": "@gearCatalogArmorOrderlyDescription",
         "tier": 2,
-        "iconPath": "graphics/ui/armory/armor-militia.png"
+        "iconPath": "graphics/ui/armory/armor-orderly.png"
       },
       "battle": {
         "appearanceFamily": "MILITIA",
@@ -756,7 +756,7 @@
         "tradition": "hegemony",
         "description": "@gearCatalogArmorCorpsmanDescription",
         "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-army-green.png"
+        "iconPath": "graphics/ui/armory/armor-corpsman.png"
       },
       "battle": {
         "appearanceFamily": "ARMY_GREEN",
@@ -789,7 +789,7 @@
         "tradition": "tritachyon",
         "description": "@gearCatalogArmorSpecterRecoveredDescription",
         "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-specter-heavy.png"
+        "iconPath": "graphics/ui/armory/armor-specter-recovered.png"
       },
       "battle": {
         "appearanceFamily": "SPECTER_HEAVY",
@@ -853,7 +853,7 @@
         "tradition": "hegemony",
         "description": "@gearCatalogArmorArbalestRecoveredDescription",
         "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-arbalest-heavy.png"
+        "iconPath": "graphics/ui/armory/armor-arbalest-recovered.png"
       },
       "battle": {
         "appearanceFamily": "ARBALEST_HEAVY",

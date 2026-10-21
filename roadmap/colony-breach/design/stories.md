@@ -20,3 +20,5 @@ these stories.
 
 Live pressure and balance acceptance continues in `rescue-pressure-acceptance.md`
 once the spine, bores and strains have landed.
+
+Preview page media: producers follow `preview-contract.md`.
