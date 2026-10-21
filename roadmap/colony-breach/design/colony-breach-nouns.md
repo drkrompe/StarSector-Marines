@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — breach clock, eruption sites and the colony map as built by the mission spine.
+Updated: 2026-10-21 — bores, tiers, surges, spore umbrella and the bore-sourced director as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -149,17 +149,49 @@ and its full floor from the tremor on.
 **Bore.** A physical hole in the ground that the swarm comes out of. A bore is a
 destroyable structure on a cell footprint with durability, a death cascade and
 a map decal. The swarm director spawns only from living bores (plus a thin
-perimeter seepage in the opening, before the first eruption). Collapsing a bore
+perimeter seepage in the opening, before the tremor). Collapsing a bore
 removes its spawn capacity for the rest of the battle. Bores erupt at
 authored-by-rule places in the colony (inside precincts, never inside the
 shelter or lift protected zones, never on top of a Marine), not at the map
 edge.
+
+A bore's body is an ordinary structure on the swarm's side, the kind a fort
+aspect core is: it is shot, satchelled and broken through ordinary durability
+and dies through the ordinary death and demolition path, which leaves a smoking
+wreck; a crater marks where it opened and a second where it collapsed. Its
+plate is heavy, so small arms wear it slowly and satchels, heavy weapons and
+mechs are what collapse it. Its mouth is one cell of open ground it does not
+seal: the swarm climbs out of it and anything can cross the lip, so opening a
+bore changes no route, and a sapper can stand at it to set a charge. A bore
+opens on the first clear cell outward from its site (a few cells at most),
+never with a body on or beside that cell and never close to another bore; a
+site whose ground is not clear waits and opens as soon as it is. Its cells are
+declared to the bore goal when it opens and withdrawn when it collapses.
+
+A squad is pointed at a bore the way it is pointed at any structure: an order
+naming the bore's cell as the thing to open (`phased-assault.md`, A breach is a
+real act). The squad walks there and its satchel carriers set charges on the
+body; nothing about a bore is special-cased in Marine fire or demolition.
 
 **Bore tier.** A bore grows while it stays open: **fissure** (runners only, low
 rate) → **bore** (adds brutes and spitters) → **maw** (adds heavy strains, higher
 rate, a wider spore umbrella). Growth runs on a slow base clock from eruption,
 is slowed by damage taken, and is **driven mainly by biomass fed to it** (see
 *Harvest*). Tier is what makes leaving a bore alone a decision with a cost.
+
+Growth is points toward fixed tier thresholds. The base clock runs at a seeded
+per-bore rate a little either side of the common one, so first-wave bores do not
+step up in lockstep, and it is scaled down by the share of durability the bore
+has lost, to a floor: a battered bore still grows, slowly. An unfed fissure
+takes minutes to become a bore and longer again to become a maw. A tier once
+reached is never lost. The mother bore opens at bore tier.
+
+**The feed seam.** Biomass reaches a bore through one call,
+`SwarmBores.feed(sim, bore, amount)`, with `amount` in colonists' bodies; the
+bore to deliver to is found with `nearestLiving`. A feed buys growth at once
+(a handful of bodies takes a fissure to bore, roughly twice that to maw), adds
+to the bore's fresh biomass, and brings its next surge forward. A feed into a
+collapsed bore is refused and changes nothing: the delivery is lost.
 
 **Harvest.** The swarm's economy. Colonists are food. A runner that brings down
 a colonist (ambient colony civilians, militia, and in the end Marines) does not
@@ -189,6 +221,16 @@ and sized by tier and fresh biomass, so a just-fed bore answers with a big
 surge. A surge is what the player sees and hears coming; the gap between surges
 is the window to push a bore.
 
+Each bore keeps its own surge clock: the first pulse a few seconds after it
+opens, then one per tier interval (shorter at higher tiers) swung by a seeded
+jitter. A pulse is the tier's size plus a few bodies per unit of fresh biomass,
+which the pulse spends. A due pulse waits while less than half of it fits under
+the director's population target, so a bore whose bodies are still alive on
+the field stays quiet. A released pulse leaves the mouth as a stream, one body
+every couple of ticks from the open cells around the hole, each body's strain
+drawn from the tier's table; a bore that collapses mid-pulse releases no
+more.
+
 **Mother bore.** The one bore whose collapse ends spawning from its precinct
 cluster and is the target of the optional hive objective. It erupts later than
 the others, starts at bore tier and is the only bore that can produce a
@@ -200,11 +242,28 @@ Radius grows with tier. Collapsing the bore kills its vents. Spitters can also
 engage low fliers. Law: no air sortie should be able to collapse a bore that
 still has its umbrella without taking losses; air is for after the ground push.
 
+The vent is the bore's own anti-air mount, flown by the ground anti-air system
+exactly as a flak position is: aimed bursts at the nearest hostile airborne
+craft in reach, never at the ground. Its reach is the vent weapon's range
+scaled by tier, so a maw's umbrella covers ground a fissure's does not, and the
+umbrella goes with the body. Each burst is a shot, so it is heard and drawn
+through the weapon's own fire sound and effects.
+
 **Swarm director.** The non-human pressure owner (today
 `SwarmReinforcementSystem`). It decides how many, from which bore, and of which
 strain, against a population target that scales with the number and tier of
 living bores. It publishes an immutable pressure snapshot for evidence and
 diagnostics. It never reads hidden Marine state the swarm could not sense.
+
+Until the tremor it restores a perimeter floor (a fraction of it while the
+colony seeps). From the tremor on it is **bore-sourced**: the perimeter is
+closed for good, the population target is the sum of the living bores'
+capacities by tier, and bodies enter only as surges from living bores. Between
+the tremor and the first eruption nothing spawns; once every bore has
+collapsed, nothing spawns again. Every swarm strain counts toward the
+population. The snapshot carries each bore that has opened: its tier, whether
+it lives, integrity, growth, biomass fed, surges, bodies released, next surge
+and the ticks it opened and collapsed.
 
 **Swarm strain.** A kind of swarm body with its own stats, appearance family and
 behaviour. A strain is a designed stage of the one organism (see *Origin*), not
@@ -347,12 +406,13 @@ The breach sequence owns the clock and the triggers; beats are what it
 publishes. Beats are presentation and evidence, never inputs to the simulation.
 
 **Built so far.** Landfall, seepage, the release, the tremor and the eruption
-schedule run, and every beat through `mother_bore_erupted` and the lift beats
-fires. Until bores exist an eruption stands nothing up and the director keeps
-spawning at the perimeter after the tremor, so the "spawning has a source" law
-is not yet in force. The lift has no countdown yet: the pickup craft comes down
-at the start of the battle and waits, so `lift_inbound` and `lift_down`
-normally fire before the shelter is reached.
+schedule run; each eruption opens a bore, bores grow, surge and are collapsed,
+and the director spawns only from living bores after the tremor, so "spawning
+has a source" is in force. Harvest is not yet built, so nothing feeds a bore in
+a live battle and bores grow on their base clock alone. The lift has no
+countdown yet: the pickup craft comes down at the start of the battle and
+waits, so `lift_inbound` and `lift_down` normally fire before the shelter is
+reached.
 
 **Known gap: the escort can park the cohort on a long walk.** A civilian holds
 while its nearest marine is behind it toward the lift, and the close escort is
@@ -378,13 +438,14 @@ the evidence; change them here first.
 | `tremor` | PLAYER | Breach begins (before the first eruption) |
 | `bore_erupted_N` | PLAYER | Bore N opens |
 | `bore_grew_N_bore` / `bore_grew_N_maw` | PLAYER | Bore N reaches that tier |
+| `mother_bore_grew_maw` | PLAYER | The mother bore reaches maw (it opens at bore tier) |
 | `bore_collapsed_N` | PLAYER | Bore N destroyed |
 | `mother_bore_erupted` | PLAYER | Mother bore opens |
 | `mother_bore_collapsed` | PLAYER | Mother bore destroyed |
 | `matriarch_emerged` | PLAYER | A matriarch spawns |
 | `first_harvest` | PLAYER | First body seized and dragged toward a bore |
 | `bore_fed_N` | OBSERVER_ONLY | Biomass delivered into bore N |
-| `surge_N` | OBSERVER_ONLY | Bore N spawns a surge |
+| `surge_N` / `surge_mother` | OBSERVER_ONLY | Bore N (or the mother) starts a surge; published at every surge, not once |
 | `tender_down` | PLAYER | A called-down tender has grounded |
 | `hardpoint_established` | PLAYER | First tender-built defence completes at the lift |
 | `strike_committed_N` | OBSERVER_ONLY | Commander sends a detachment at bore N |

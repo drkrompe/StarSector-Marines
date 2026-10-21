@@ -246,6 +246,7 @@ import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
@@ -674,6 +675,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     private ThunderRunSequence thunderRun;
     private final GroundAntiAirSystem groundAntiAir = new GroundAntiAirSystem();
+    /** Aimed flak and guided missiles from ground anti-air mounts, including a swarm bore's spore umbrella. */
+    public GroundAntiAirSystem groundAntiAir() { return groundAntiAir; }
     private final SwarmStrikeSystem swarmStrikes = new SwarmStrikeSystem();
     private final AirToAirFire airToAir = new AirToAirFire();
     private WaylineGunship waylineGunship;
@@ -701,6 +704,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         relayNineStory = new RelayNineStoryObserver(storyBeats);
     }
     private ColonyBreachSequence colonyBreach;
+    /** Salt for the bores' own draws, so they are not the battle stream read again. */
+    private static final long BORE_SEED_SALT = 0x53574152_4D424F52L;
+    private final SwarmBores swarmBores;
+    /** The battle's swarm bores: empty until something opens one. */
+    public SwarmBores swarmBores() { return swarmBores; }
+    /** From the tremor on, the swarm director spawns only from living bores. */
+    public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
     /** The Colony Breach story, or {@code null} on every other battle. */
     public ColonyBreachSequence getColonyBreach() { return colonyBreach; }
     /**
@@ -715,6 +725,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (!swarmReinforcements.isConfigured())
             throw new IllegalStateException("Colony Breach needs a configured swarm director");
         colonyBreach = new ColonyBreachSequence(plan, colonists, storyBeats);
+        colonyBreach.setEruptionHandler((sim, site, tick) ->
+                sim.swarmBores().open(sim, site.number(), site.mother(), site.x(), site.y()));
         swarmReinforcements.beginSeepage();
     }
     /** Ends the swarm director's opening seepage; the breach has begun. Idempotent. */
@@ -1151,6 +1163,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     public BattleSimulation(NavigationGrid grid, CellTopology topology, long seed) {
         this.generationSeed = seed;
+        this.swarmBores = new SwarmBores(seed ^ BORE_SEED_SALT);
         this.rng = new Random(seed);
         this.noiseEvents = new NoiseEventBus(() -> simTickIndex);
         this.shots = new ShotService(noiseEvents);
@@ -3404,8 +3417,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         resupplySystem.tick(TICK_DT);
         civilianEvacuationSystem.tick(this);
         rescuePickupSupport.tick(TICK_DT, this);
-        swarmReinforcements.tick(TICK_DT, this);
+        // Bores first (growth, collapses), then the breach clock (the tremor
+        // closes the perimeter, a site erupts), then the director, so a tick
+        // that starts bore sourcing spawns only from bores.
+        swarmBores.tick(this);
         if (colonyBreach != null) colonyBreach.tick(this);
+        swarmReinforcements.tick(TICK_DT, this);
         if (reliefAssault != null) reliefAssault.tick(this);
         if (lastLiftSequence != null) lastLiftSequence.tick(this);
         if (relayNineSequence != null) relayNineSequence.tick(this);

@@ -71,10 +71,9 @@ edited:
 3. **Swarm bodies** (`colony-breach-nouns.md`, Swarm strain): a presentation cue feed, as `TenderCues` does, for
    body attack, death and per-strain bellow/lob; a `TenderAudio`-style player admits them
    under a per-kind gap and plays them positionally with pitch jitter.
-4. **Bores** (`bore-spawners.md`): cues for eruption (`bore_eruption`), tier growth (loop
-   swap to `bore_ambience_bore|maw`), collapse (`bore_collapse`), and a positional ambience
-   loop per living bore.
-5. **Spore vents** (`bore-spawners.md`): `spore_vent_burst` per burst.
+4. **Bores**: hooked. `BoreCues` feeds `BoreAudio` (eruption, collapse, surge one-shots and a
+   positional ambience loop per living bore that follows its tier).
+5. **Spore vents**: hooked. `weapon.spore-burst` names `spore_vent_burst` as its fire sound.
 6. **Matriarch** (`matriarch.md`): `matriarch_roar` at emergence; spitter splash on acid impact.
 
-7. **Harvest and surge** (`swarm-harvest.md`, `bore-spawners.md`): `body_drag` while a body is carried to a bore; `bore_surge` at each `surge_N` pulse. `first_harvest` has a militia line; `bore_fed_N` and `surge_N` are OBSERVER_ONLY and stay silent as beats.
+7. **Harvest and surge** (`swarm-harvest.md`): `body_drag` while a body is carried to a bore is pending; `bore_surge` at each surge is hooked through `BoreCues`. `first_harvest` has a militia line; `bore_fed_N` and `surge_N` are OBSERVER_ONLY and stay silent as beats.

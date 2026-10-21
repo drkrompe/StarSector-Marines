@@ -1,6 +1,6 @@
 # Hive posture and strike detachments
 
-Status: QUEUED on `breach-mission-spine.md` and `bore-spawners.md`
+Status: QUEUED on `breach-mission-spine.md` (bores are on main; a squad is pointed at one by an order naming its cell, `colony-breach-nouns.md` Bore)
 
 Written: 2026-10-21
 

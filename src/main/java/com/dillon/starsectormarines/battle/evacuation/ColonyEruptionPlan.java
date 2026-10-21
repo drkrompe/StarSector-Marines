@@ -14,7 +14,7 @@ import java.util.List;
  * Where and when the colony breaks open: the eruption sites of one Colony
  * Breach battle, chosen at setup and fixed for the rest of it.
  *
- * <p>This is the seam {@code bore-spawners.md} plugs into. The breach sequence
+ * <p>This is the seam bores plug into ({@link SwarmBores#open}, `colony-breach-nouns.md` Bore). The breach sequence
  * owns the clock and publishes each site as it erupts; whatever stands a bore
  * up on a site reads it from here. Nothing in this class spawns anything.
  *

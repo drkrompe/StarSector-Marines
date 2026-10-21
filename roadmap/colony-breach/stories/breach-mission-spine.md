@@ -24,7 +24,7 @@ Turn `BattleSetup.createCivilianRescue` into the Colony Breach battle, in place:
    method, tick line). It owns the breach clock and emits the beat table in the
    noun doc. In this story it drives what exists: perimeter seepage before
    `tremor`, then the existing director. It exposes a narrow seam for
-   `bore-spawners.md` to plug eruption into: a list of **eruption sites**
+   bores to plug eruption into (`colony-breach-nouns.md`, Bore): a list of **eruption sites**
    chosen deterministically from precinct places (outside shelter/lift
    protected zones, minimum spacing, spread between shelter, lift and flanks;
    one mother-bore site far from the lift) and the times they erupt. The sites
@@ -74,7 +74,7 @@ wiring. `SwarmReinforcementSystem` only for the seepage-then-director switch.
 
 ## Merge early
 
-`bore-spawners.md` is blocked on this story's skeleton: land the sequence,
+Bores (now shipped, `colony-breach-nouns.md`) were blocked on this story's skeleton: land the sequence,
 eruption-site seam and map plan to `main` as soon as they are green, then
 continue with militia and heavy assets.
 
