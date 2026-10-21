@@ -31,7 +31,8 @@ import java.util.Set;
  * <p><b>Rules, written for sides.</b> A door serves the side that holds its place whole
  * ({@link SallyDoor.Holding#holder}): for a fort, the side holding every aspect; for a compound with a capture record,
  * the side that record says holds it uncontested; for any other place, the side with people inside it and nobody hostile
- * inside it. That side opens a shut door when one of its squads or machines is ordered through it: a member inside the
+ * inside it; while the place stands empty, the side that last held it whole, until somebody hostile to it comes in. That
+ * side opens a shut door when one of its squads or machines is ordered through it: a member inside the
  * place ordered to ground beyond the door's face, outside the place and within {@link #REACH_CELLS} of the mouth, or a
  * member outside on that face near the mouth ordered home into the place. Never while a hostile body stands within
  * {@link #SAFE_CELLS} of the mouth, and never within {@link #DWELL_TICKS} of the door's last change. Opening makes the

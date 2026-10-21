@@ -617,6 +617,22 @@ defenders keep authored posts and never order a sortie beyond a doored face,
 so their doors wait for a player's order (scene `sally-door`, taken yard) or a
 reactive commander.
 
+**Shutting, in play**, against a same-build control with
+`-Dbattle.sallyDoors.closable=false` (conquest-trial, fort on the lane, seeds
+41 to 80 at the combined-arms force, and seeds 41 to 64 rifles-only; each
+first time a body stood in an open door opened for a side hostile to its own
+is counted, which includes marines in a port the defender opened before the
+marines took the fort): with the combined-arms force the attack's use of doors
+opened for the other side fell from 1,141 such crossings in 39 of 40 battles
+to 75 in 3, the 75 all through doors whose holder lost its place with them
+open. Doors opened 118 times against 49 and shut 117 times (108 behind a
+sortie, 9 in the enemy's face): marines who took the fort opened its ports for
+their own sorties 56 times against 7, because a shut port is theirs to open
+where an open one was simply walked through. Marines won 39 of 40 either way,
+losing 2,173 against 2,396, defenders 2,164 against 2,216. Rifles-only, the
+crossings fell from 4 to none; marines won 4 of 24 against 3. Both readings are
+findings, not balance acceptance.
+
 The scenes are `sally-door` (a walled yard that is not a fort: a sortie by
 infantry, the walk round with doors closed, the enemy at the door, an attack on
 the door, a taken yard where the player sends a squad and a Sirocco out, a
