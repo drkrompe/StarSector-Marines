@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
@@ -200,11 +201,11 @@ public final class UiWorkbenchScreen implements Screen {
     private void reloadDocument() {
         try {
             installDocument(true);
-            retainedStatus.text("MLX reloaded  |  View-model state preserved  |  U4 proof");
+            retainedStatus.text(Strings.get("uiWorkbenchReloaded"));
             LOG.info("Reloaded " + COMPONENT_PATH);
         } catch (RuntimeException failure) {
             LOG.error("MLX reload refused; keeping the previous document", failure);
-            if (retainedStatus != null) retainedStatus.text("MLX reload refused  |  Previous document retained");
+            if (retainedStatus != null) retainedStatus.text(Strings.get("uiWorkbenchReloadRefused"));
         }
     }
 
@@ -216,10 +217,11 @@ public final class UiWorkbenchScreen implements Screen {
         float nodeHeight = 62f;
         float top = 42f;
         float[] x = {28f, width * 0.28f, width * 0.54f, width - nodeWidth - 28f};
-        String[] labels = {"Free Stock", "Returns", "Required", "Valid Issue"};
+        String[] labels = {Strings.get("uiWorkbenchNodeFreeStock"), Strings.get("uiWorkbenchNodeReturns"),
+                Strings.get("uiWorkbenchNodeRequired"), Strings.get("uiWorkbenchNodeValidIssue")};
         Color[] colors = {palette.button(), palette.selected(), palette.danger(), palette.valid()};
 
-        canvas.text(font, "Captured canvas drag  ·  Move issue marker", 24f, 12f, palette.muted());
+        canvas.text(font, Strings.get("uiWorkbenchCanvasHint"), 24f, 12f, palette.muted());
         for (int index = 0; index < x.length; index++) {
             if (index > 0) {
                 canvas.line(x[index - 1] + nodeWidth, top + nodeHeight * 0.5f,
@@ -263,9 +265,12 @@ public final class UiWorkbenchScreen implements Screen {
     }
 
     private void updateSelectionReadouts() {
-        String[] teams = {"Alpha", "Bravo", "Charlie"};
-        String[] templates = {"Line", "Recon", "Fire Support", "Breach",
-                "Boarding", "Anti-Armor", "Security", "Hazard Response"};
+        String[] teams = new String[3];
+        for (int index = 0; index < teams.length; index++) teams[index] = Strings.get("uiWorkbenchTeam" + index);
+        String[] templates = new String[8];
+        for (int index = 0; index < templates.length; index++) {
+            templates[index] = Strings.get("uiWorkbenchTemplate" + index);
+        }
         for (int index = 0; index < teamButtons.size(); index++) {
             teamButtons.get(index).selected(index == selectedTeam);
         }
@@ -276,24 +281,25 @@ public final class UiWorkbenchScreen implements Screen {
             themeButtons.get(index).selected(highContrast == (index == 1));
         }
         if (selectedTeamReadout != null) {
-            selectedTeamReadout.text("Target  ·  1st Squad / " + teams[selectedTeam]);
+            selectedTeamReadout.text(Strings.format("uiWorkbenchTarget", teams[selectedTeam]));
         }
         if (selectedTemplateReadout != null) {
-            selectedTemplateReadout.text("Candidate  ·  " + templates[selectedTemplate] + " template");
+            selectedTemplateReadout.text(Strings.format("uiWorkbenchCandidate", templates[selectedTemplate]));
         }
         if (transactionReadout != null) {
-            transactionReadout.text("Valid  ·  Issue " + templates[selectedTemplate]
-                    + " to " + teams[selectedTeam] + " in one atomic transaction");
+            transactionReadout.text(Strings.format("uiWorkbenchTransaction",
+                    templates[selectedTemplate], teams[selectedTeam]));
         }
     }
 
     private void updateViewportReadout() {
         if (viewportReadout == null || viewport == null) return;
-        viewportReadout.text(String.format(Locale.ROOT,
-                "Granted %.1f x %.1f  ·  Document %.1f x %.1f @ %.2fx",
-                viewport.width(), viewport.height(),
-                viewport.documentWidth(), viewport.documentHeight(),
-                viewport.documentScale()));
+        viewportReadout.text(Strings.format("uiWorkbenchViewport",
+                String.format(Locale.ROOT, "%.1f", viewport.width()),
+                String.format(Locale.ROOT, "%.1f", viewport.height()),
+                String.format(Locale.ROOT, "%.1f", viewport.documentWidth()),
+                String.format(Locale.ROOT, "%.1f", viewport.documentHeight()),
+                String.format(Locale.ROOT, "%.2f", viewport.documentScale())));
     }
 
     private record Wiring(UiElement viewportReadout,

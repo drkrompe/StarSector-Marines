@@ -42,7 +42,7 @@ final class LoadoutInspection {
                 if (differs) changed++;
                 String id = "loadout-billet:" + index;
                 Map<String, Object> billet = row(id, "name", "art", "armorIcon", "weaponIcon", "status", "change");
-                billet.put("name", (slot + 1) + " / " + (soldier == null ? Strings.get("openingLoadoutVacant") : soldier.name()));
+                billet.put("name", Strings.join("separatorPath", String.valueOf(slot + 1), soldier == null ? Strings.get("openingLoadoutVacant") : soldier.name()));
                 billet.put("status", soldier == null ? Strings.get("openingLoadoutVacantPlanOnly2") : soldier.status().toString());
                 billet.put("change", after == null ? Strings.get("openingLoadoutChooseALoadout") : differs ? Strings.get("openingLoadoutEquipmentChanges") : Strings.get("openingLoadoutKeepCurrentKit"));
                 billet.put("armor", before == null ? "graphics/ui/formation/marine-cutout-vacant.svg" : before.armorDef().iconPath());
@@ -58,7 +58,7 @@ final class LoadoutInspection {
         List<Map<String, Object>> items = new ArrayList<>();
         for (int kind = 0; kind < 3; kind++) items.add(item(kind, current, proposed, focused));
         return Map.of("teams", teams, "items", items,
-                "title", focused == null ? Strings.get("openingLoadoutVacantBilletPlannedEquipment") : focused.name() + " / " + focused.status(),
+                "title", focused == null ? Strings.get("openingLoadoutVacantBilletPlannedEquipment") : Strings.join("separatorPath", focused.name(), String.valueOf(focused.status())),
                 "summary", Strings.format("openingLoadoutChangedBillets", changed),
                 "scope", Strings.get("openingLoadoutCurrentKitInTheGridSelectABillet"));
     }
