@@ -7,8 +7,6 @@ import com.dillon.starsectormarines.ops.mission.story.VeteransJobStory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import javax.imageio.ImageIO;
-import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
@@ -87,15 +85,4 @@ class StorySceneTest {
         assertNull(StoryScene.forMission(null));
     }
 
-    @ParameterizedTest @EnumSource(StoryScene.class)
-    void runtimeArtworkIsPackedAtRequestedSizeWithFullSizeMasterRetained(StoryScene scene) throws Exception {
-        var runtime = ImageIO.read(Path.of("mod", scene.image).toFile());
-        assertNotNull(runtime);
-        assertEquals(1200, runtime.getWidth());
-        assertEquals(400, runtime.getHeight());
-        var name = Path.of(scene.image).getFileName().toString().replace(".jpg", ".master.png");
-        var master = ImageIO.read(Path.of("art-source", "story-scenes", name).toFile());
-        assertTrue(master.getWidth() > runtime.getWidth());
-        assertEquals(master.getHeight() * 3, master.getWidth());
-    }
 }

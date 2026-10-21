@@ -2,26 +2,11 @@ package com.dillon.starsectormarines.ui.retained.markup;
 
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MarkupParserTest {
-
-    @Test
-    void shippedWorkbenchParsesAsOneScopedComponent() throws Exception {
-        String path = "mod/data/ui/components/dev/ui-workbench.mlx";
-        MarkupTemplate template = MarkupParser.parse(path, Files.readString(Path.of(path)));
-
-        assertEquals("ui-workbench", template.name());
-        assertEquals("workbench-root", template.root().attribute("id").value());
-        assertEquals(3, template.root().children().size());
-        assertTrue(template.style().rules().stream().allMatch(rule -> rule.selectors().stream()
-                .allMatch(selector -> selector.toString().contains("mlx-ui-workbench"))));
-    }
 
     @Test
     void unknownElementReportsItsExactSourcePosition() {

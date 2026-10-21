@@ -122,7 +122,10 @@ def _offset_clock(ids, offset):
     for idb in ids:
         for fc in _drivers(idb):
             d = fc.driver
-            if 'frame' not in d.expression or any('frame' in v.name for v in d.variables):
+            # A variable reading a '*_frame' knob keeps the clock whatever it is called (the
+            # wreck's sections read break_frame as 'bf').
+            if 'frame' not in d.expression or any('frame' in v.name or 'frame' in v.targets[0].data_path
+                                                  for v in d.variables):
                 continue
             expr = re.sub(r'\bframe\b', f'(frame+{offset})', d.expression)
             if len(expr) < 250:

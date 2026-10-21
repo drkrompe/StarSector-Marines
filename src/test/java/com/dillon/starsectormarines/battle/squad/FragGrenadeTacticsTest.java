@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics;
 import com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep;
-import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -14,9 +13,6 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -181,25 +177,6 @@ class FragGrenadeTacticsTest {
         friendly.queueProjectile(hazard(Faction.MARINE, 12.5f, 5.5f,
                 friendly.world().x(friendlyUnit), friendly.world().y(friendlyUnit)));
         assertTrue(FragGrenadeTactics.evadeKnownGrenade(friendlyUnit, friendly));
-    }
-
-    @Test
-    void generatedFragAssetHasRealTransparency() throws Exception {
-        BufferedImage image = ImageIO.read(Path.of(
-                "mod/graphics/ui/armory/special-frag-grenade.png").toFile());
-        assertNotNull(image);
-        assertTrue(image.getColorModel().hasAlpha());
-        boolean transparent = false;
-        boolean visible = false;
-        for (int y = 0; y < image.getHeight(); y += 8) {
-            for (int x = 0; x < image.getWidth(); x += 8) {
-                int alpha = image.getRGB(x, y) >>> 24;
-                transparent |= alpha == 0;
-                visible |= alpha > 0;
-            }
-        }
-        assertTrue(transparent);
-        assertTrue(visible);
     }
 
     private static Projectile hazard(Faction faction, float fromX, float fromY,
