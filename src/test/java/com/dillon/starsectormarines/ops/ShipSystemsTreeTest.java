@@ -59,7 +59,6 @@ class ShipSystemsTreeTest {
         for (RefitTrack track : RefitTrack.values()) names.add(ShipSystemsTree.icon(track));
         for (int tier = 1; tier <= 3; tier++)
             for (String state : List.of("owned", "available", "locked")) names.add("graphics/ui/refit/node-" + tier + "-" + state + ".svg");
-        names.add("graphics/ui/refit/root-second-wind.svg");
         for (String name : names) {
             Path file = Path.of("mod").resolve(name);
             assertTrue(Files.isRegularFile(file), name);

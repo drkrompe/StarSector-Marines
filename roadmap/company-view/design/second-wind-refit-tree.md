@@ -66,13 +66,19 @@ a paid room never sits dark (owner, 2026-10-20).
 | **Compute** | Crashed cores → Restored → Processing cluster → Tactical core | "no processing": simulators, holo-tank, briefing intel, fire-control calibration | none; a gate like Power |
 | **Fabrication** | the existing workshop chain (Buried → Cleared → Repaired → Equipped), plus Precision | "no tooling": production, mech and vehicle work | existing reclamation and 20% supplies discount; Precision adds a part-quality or time benefit |
 
-Engineering draws this as a tree flowing down from the hull (owner,
-2026-10-21: "an upgrade tree similar to our commander skill tree, but actually
-connected together flowing downward"), entered from core icons on the deck
-rather than a list of buttons. Each track hangs under one parent core; a
-tier's other requirements are marked as small core icons beside its node (and
-listed on its card), not drawn as cross-links, because crossing lines would turn
-the tree into a wiring diagram.
+Engineering draws this as a tree flowing downward (owner, 2026-10-21: "an
+upgrade tree similar to our commander skill tree, but actually connected
+together flowing downward"), entered from core icons on the deck rather than a
+list of buttons. The five cores stand side by side under one bar; every other
+track is a row of its own down its parent core's spine, its tiers drawn left to
+right inside the row. Tiers do not share a level across the tree: with some
+twenty tracks and sixty tiers, one row of tier squares per level could not fit
+(owner, same day: "consider not placing every 'level' of the tree on the same
+level"). Only what a track's *next* tier needs from other cores is marked, as
+small core icons at the row's end (all of it is listed on its card), and none
+of it is drawn as cross-links, because crossing lines would turn the tree into
+a wiring diagram. The modal carries no title, emblem or guide text, only the
+progress count and the way back to the deck.
 
 The tree should feel like *X and Y to get Z*, not a ladder (owner,
 2026-10-21): a first pass funnelled nearly everything through Power. So
