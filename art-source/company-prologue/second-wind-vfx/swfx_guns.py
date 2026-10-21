@@ -845,7 +845,7 @@ def _mg(**kw):
 
 def _ac(**kw):
     w = dict(energy=False, burst=1, burst_delay=0, cooldown=.5, barrels='alternating', spread=.003,
-             flash=(1.0, .55, .25, .1), flash_tint=(165, 225, 185), flash_size=(1.25, 1.35, 1.35), flash_gain=.35,
+             flash=(1.0, .55, .25, .1), flash_tint=(165, 225, 185), flash_size=(1.25, 1.35, 1.35),
              flash_light=(165, 225, 185),
              cloud=dict(rgb=(165, 225, 185), r=(.8, 2.6), frames=5, peak=2),
              round=dict(speed=360, range=600, length=2.6, core=.14, corona=.9, fringe=(235, 255, 215),
@@ -882,11 +882,11 @@ WEAPONS = {
     'hellbore': dict(name='Hellbore Cannon', energy=False, burst=1, burst_delay=0, cooldown=3.0,
                      barrels='alternating', spread=.001,
                      flash=(1.0, .85, .65, .48, .34, .24, .16, .1, .06), flash_tint=(255, 120, 50),
-                     flash_size=(1.5, 1.6, 1.6), flash_gain=.25, flash_light=(255, 120, 50), flash_light_gain=4.0,
-                     cloud=dict(rgb=(255, 120, 50), r=(2.0, 9.0), frames=18, peak=1.4),
+                     flash_size=(1.5, 1.6, 1.6), flash_light=(255, 120, 50), flash_light_gain=4.0,
+                     cloud=dict(rgb=(255, 120, 50), r=(2.0, 9.0), frames=18, peak=3.0),
                      round=dict(speed=170, range=900, length=5.5, core=.6, corona=1.9, fringe=(255, 165, 30),
-                                hot=(255, 200, 110), core_gain=3, corona_gain=.9, light=40000,
-                                halo=dict(r=5.0, peak=.7)),
+                                hot=(255, 230, 170), core_gain=10, corona_gain=1.8, light=40000,
+                                halo=dict(r=5.0, peak=1.5)),
                      puff=True, brass=False),
     # High explosive: orange shells.
     'lightag': _ac(name='Light Assault Gun', cooldown=.25, flash=(1.0, .6, .35, .18, .08), flash_tint=(255, 155, 105),
@@ -961,8 +961,7 @@ def arm(ctx, turret, weapon, tag=None):
         rig['weapon'] = weapon
         box = rig.get('flash') or bpy.data.objects.get(f'{PREFIX} flash {label}')
         if box is not None:
-            # A big mount's flash box is a long path through the gas, so a heavy gun's flash is
-            # turned down (flash_gain) or it bleaches to a white ball under AgX (pass 3).
+            # flash_gain (default 1) scales a weapon's flash gas, for a flash that wants it.
             mat = _flash_material(ctx, label, _lin(w['flash_tint']) if w.get('flash_tint') else None,
                                   w.get('flash_gain', 1.0))
             box.data.materials[0] = mat
@@ -1070,6 +1069,17 @@ def _weapon_shot(ctx, a, frame, lead=0.0, target=None):
     return rec
 
 
+def _object_colour(nodes):
+    """The object's own colour, keyed per object. Object Info's Color is the instancer's for an
+    object drawn through a collection instance (every per-ship copy is), which read (1, 1, 1) and
+    drove every glow at full strength into a white disc (passes 1-4); an Object attribute looks
+    on the object itself first. Its output is named Color as Object Info's is."""
+    at = nodes.new('ShaderNodeAttribute')
+    at.attribute_type = 'OBJECT'
+    at.attribute_name = 'color'
+    return at
+
+
 def _glow_material(ctx, rgb):
     """Soft emissive gas: the weapon's colour, whiter where densest. Object colour R is the fade,
     G a seed, B a twentieth of the emission per metre (peak radiance / diameter in metres), so a
@@ -1086,7 +1096,7 @@ def _glow_material(ctx, rgb):
     x, y, z = g.xyz(p)
     r2 = g.add(g.add(g.sq(x), g.sq(y)), g.sq(z))
     shell = g.pow(g.mx(g.sub(1.0, r2), 0.0), 2.0)
-    info = nodes.new('ShaderNodeObjectInfo')
+    info = _object_colour(nodes)
     sep = nodes.new('ShaderNodeSeparateColor')
     links.new(info.outputs['Color'], sep.inputs[0])
     fade, seed, k = sep.outputs[0], sep.outputs[1], sep.outputs[2]
@@ -1191,7 +1201,7 @@ def _round_material(ctx, weapon, part):
     out = nodes.new('ShaderNodeOutputMaterial')
     tc = nodes.new('ShaderNodeTexCoord')
     gx, _, _ = g.xyz(tc.outputs['Generated'])
-    info = nodes.new('ShaderNodeObjectInfo')
+    info = _object_colour(nodes)
     sep = nodes.new('ShaderNodeSeparateColor')
     links.new(info.outputs['Color'], sep.inputs[0])
     burn = sep.outputs[0]
