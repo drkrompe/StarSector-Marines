@@ -78,6 +78,25 @@ public final class CivilianEvacuationTracker {
         return true;
     }
 
+    /**
+     * Grows a fully registered cohort by one member and registers it, for a
+     * mission whose cohort is gathered from more than one place (Colony
+     * Breach's holdouts). Refused once sealed, while the planned registration
+     * is incomplete, and for an identity already registered.
+     */
+    public boolean enlist(long entityId) {
+        if (entityId <= 0L || sealed || registered != entityIds.length
+                || indexOf(entityId) >= 0) {
+            return false;
+        }
+        int grown = entityIds.length + 1;
+        entityIds = Arrays.copyOf(entityIds, grown);
+        states = Arrays.copyOf(states, grown);
+        confirmedDead = Arrays.copyOf(confirmedDead, grown);
+        entityIds[registered] = -1L;
+        return register(entityId);
+    }
+
     /** Marks a registered active civilian as having crossed into safety. */
     public boolean markEvacuated(long entityId) {
         return transition(entityId, EVACUATED);

@@ -385,7 +385,7 @@ public final class CompoundPreparedGround {
     }
 
     /** The piece's art name: a straight face's letter, or a corner's north-south then east-west letters. */
-    static String artName(Bag bag) {
+    public static String artName(Bag bag) {
         if (!bag.corner()) return String.valueOf(letter(bag.dx, bag.dy));
         boolean firstNs = bag.dy != 0;
         char ns = firstNs ? letter(bag.dx, bag.dy) : letter(bag.cornerDx, bag.cornerDy);

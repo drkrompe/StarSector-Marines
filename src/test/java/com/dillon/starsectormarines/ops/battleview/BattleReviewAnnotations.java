@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.command.objective.CivilianEvacuationO
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
+import com.dillon.starsectormarines.battle.evacuation.CivilianRedoubt;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -61,6 +62,8 @@ public final class BattleReviewAnnotations {
      * A Colony Breach frame: where the company landed, the shelter, the lift,
      * and every eruption site — numbered as the beats number them, pending
      * until it opens — with the walk in to the shelter and out to the lift.
+     * Each holdout is boxed as REDOUBT N with whether it is holding, reached
+     * or fallen; the shelter is REDOUBT 1 when there are others.
      * Compounds are not drawn: a colony's held buildings are militia posts,
      * and Conquest's keep-and-barracks words would say the wrong battle.
      */
@@ -84,7 +87,17 @@ public final class BattleReviewAnnotations {
         int sx = cohort.sourceCellX(), sy = cohort.sourceCellY();
         int lx = cohort.egressCellX(), ly = cohort.egressCellY();
         int shelter = CivilianEvacuationPlacement.SHELTER_ZONE_RADIUS;
-        marks.box(sx - shelter, sy - shelter, sx + shelter, sy + shelter, "SHELTER", ReviewStyle.OBJECTIVE);
+        List<CivilianRedoubt> redoubts = simulation.getCivilianRedoubts();
+        boolean several = redoubts.size() > 1;
+        marks.box(sx - shelter, sy - shelter, sx + shelter, sy + shelter,
+                several ? "REDOUBT 1 · SHELTER" : "SHELTER", ReviewStyle.OBJECTIVE);
+        for (CivilianRedoubt redoubt : redoubts) {
+            if (redoubt.isMain()) continue;
+            String state = redoubt.fallen() ? "FALLEN" : redoubt.released() ? "reached" : "holding";
+            marks.box(redoubt.left(), redoubt.top(), redoubt.right(), redoubt.bottom(),
+                    "REDOUBT " + redoubt.number() + " · " + state,
+                    redoubt.fallen() ? ReviewStyle.KEEP : redoubt.released() ? ReviewStyle.NOTE : ReviewStyle.OBJECTIVE);
+        }
         marks.box(lx - LIFT_HALF, ly - LIFT_HALF, lx + LIFT_HALF, ly + LIFT_HALF, "LIFT", ReviewStyle.POSITION);
         if (landing != null) {
             marks.arrow(landing[0], landing[1], sx + 0.5f, sy + 0.5f, "to the shelter", ReviewStyle.APPROACH);

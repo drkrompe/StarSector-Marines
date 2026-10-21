@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f9f-f938-75b3-903e-640216ae424a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f9f-f938-75b3-903e-640216ae424a\\exec-70db9ed1-da66-4cb4-b442-bc2622249261.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "raw\\plate-D2.png",
+    "sha256": "b64e0e7464a996abce3fae8d81030a1d8cd9bd5337a7a3985b756f202eadafc1",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\plate-D2.prompt.txt",
+  "promptSha256": "98f011a1166bfaf3d5dc45165c19d07a75ee999ddebed70874a5fba082dd8b07",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact silhouettes, positions, sizes, poses and palette intent; render material onto it, never move or redesign\n\nConcept plate for a top-down tactical game (Starsector mod, Marines fighting a biological weapon in a frontier colony). Strict overhead orthographic view, camera looking straight down, light from the upper left, soft contact shadows only. Painterly-realistic game concept art, crisp readable silhouettes, wet organic detail. Keep every creature exactly where it is in the guide, at the same size, outline, facing (all face up) and pose; you are rendering surface material and form onto the guide, not redesigning it. From left: a Runner at rest, the same Runner mid-strike with its limbs fully extended, a Brute, a Spitter, and a large Matriarch thumbnail lower right. Plain flat neutral grey background, no ground, no scenery, no text, no labels, no border, no humans.\n\nDirection: CHITIN LANCE. The Rav Bloom is an engineered organism grown from sporeship seeding stock, armoured in lacquered chitin: hard glossy husk plates in dark umber and walnut brown, every plate rimmed and every joint picked out in pale cream bone, a crisp lacquer sheen on the light side, and only one small accent: tiny amber glow nodes. Designed symmetry: three-lobed and hexagonal plans. Runner: a three-lobed husk on three jointed legs (tripod), with a single long three-segment lance arm with cream joints that folds flat on its back at rest and unfolds into a straight cream bone spike in the strike. Brute: a heavy ovoid husk with a ridged cream bone ram-cap at the front, four short jointed legs with cream feet, two telescoping hammer pistons. Spitter: a hexagonal husk on three legs with a long cream-rimmed launch tube forward and a small amber node behind. Matriarch: a hexagonal plated core with six amber seed bays and six jointed legs. Hard chitin and bone, not a robot and not a beetle; no red.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guides\\guide-D2.png",
+      "sha256": "c114cfe86fdb44d170df737ea0b33bc1d11fad332ea2d4a8bb62571335ce6ccb",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: exact silhouettes, positions, sizes, poses and palette intent; render material onto it, never move or redesign"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the guide’s exact layout and silhouettes, with the chitin-and-bone finish you described.\n"
+  ],
+  "usage": {
+    "input_tokens": 39715,
+    "cached_input_tokens": 31744,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 576,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 55.9
+}
