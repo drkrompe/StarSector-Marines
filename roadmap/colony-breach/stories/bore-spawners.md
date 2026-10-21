@@ -4,6 +4,8 @@ Status: BLOCKED on `breach-mission-spine.md` (eruption-site seam)
 
 Written: 2026-10-21
 
+Updated: 2026-10-21 — biomass-driven growth and spawning surges added from owner themes.
+
 Model: `colony-breach-nouns.md` (Bore, Bore tier, Mother bore, Spore vent,
 Swarm director).
 
@@ -23,8 +25,15 @@ Swarm director).
    mouth), with population target and wave rate a function of living bores and
    their tiers. Collapse removes capacity permanently. Extend the pressure
    snapshot with per-bore state for evidence.
-4. **Tiers.** Fissure → bore → maw on a seeded growth clock from eruption,
-   slowed by damage taken. Emit `bore_grew_N_*`. Tier picks the strain mix
+4. **Tiers.** Fissure → bore → maw on a slow seeded base clock from eruption,
+   slowed by damage taken, plus a **biomass** input that advances growth fast
+   (a narrow `feed(bore, amount)` seam that `swarm-harvest.md` calls; this story
+   can prove it with a test feed).
+   Bodies leave a bore as **spawning surges**: timed dense pulses sized by tier
+   and recent biomass, emitted as `surge_N`, with real quiet between pulses
+   (noun doc *Spawning surge*). Release the pulse as a tight stream from the
+   mouth; how the stream holds together en route belongs to the flow-field
+   movement, not to this story. Emit `bore_grew_N_*`. Tier picks the strain mix
    through a small table keyed by tier; this story fills it with runners only
    and leaves named slots for brute, spitter and matriarch, which
    `swarm-strains.md` and `matriarch.md` fill.
