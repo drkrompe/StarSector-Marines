@@ -29,17 +29,17 @@
     {
       "col": 0,
       "name": "armory-workshop.bench-tools",
-      "row": 2
+      "row": 1
     },
     {
       "col": 3,
       "name": "armory-workshop.ready-locker",
-      "row": 2
+      "row": 1
     },
     {
       "col": 6,
       "name": "armory-workshop.ammo",
-      "row": 2
+      "row": 1
     }
   ],
   "doodads": [
@@ -93,7 +93,7 @@
       "cover": "med",
       "footprintCells": [
         3,
-        2
+        1
       ],
       "id": "armory-workshop.bench",
       "row": 0
@@ -104,10 +104,10 @@
       "cover": "none",
       "footprintCells": [
         3,
-        2
+        1
       ],
       "id": "armory-workshop.bench-tools",
-      "row": 2
+      "row": 1
     },
     {
       "ballisticHalfHeight": 1.1,
@@ -115,10 +115,10 @@
       "cover": "heavy",
       "footprintCells": [
         3,
-        2
+        1
       ],
       "id": "armory-workshop.ready-locker",
-      "row": 2
+      "row": 1
     },
     {
       "ballisticHalfHeight": 1.1,
@@ -129,7 +129,7 @@
         2
       ],
       "id": "armory-workshop.ammo",
-      "row": 2
+      "row": 1
     }
   ],
   "sheet": "graphics/tilesets/armory-workshop.png"

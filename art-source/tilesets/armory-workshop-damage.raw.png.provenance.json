@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160ba-4f20-7642-8c7b-94431fa27d2a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160ba-4f20-7642-8c7b-94431fa27d2a\\exec-0890c0af-a7cd-4e9a-9c3a-acb28c143768.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\armory-workshop-refit-damage.raw.png",
+    "sha256": "28a835984c74c11fdcab22dd79fe3b63a560bd04e2c9fe35473197c00a6293d0",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\armory-workshop-refit-damage.prompt.txt",
+  "promptSha256": "b0c20c82ae65e1e0c83765d4d89a7b92505f5c8027a2721ab07cd2f3f5f517e8",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry-locked edit target: slots, sizes and positions\nImage 2: Intact materials and identity for the same slots\n\nEdit the FIRST image, a geometry-locked sprite atlas. The SECOND image supplies the intact materials and identity for the same slots. Preserve the exact canvas, grid, slot centers, object orientations, footprints and scale: every piece is a long narrow strip three times as long as it is deep, and must stay exactly that long and that shallow; do not make any piece deeper or larger. Orthographic straight overhead, no perspective or cast shadows, gritty detailed military science fiction metal, matching the reference. True transparent RGBA background and gutters. No text, labels, captions, floor tiles, borders or extra objects. Three equal columns and two equal rows. Row 1 damaged, retaining recognizable standing silhouettes and the reference surface identity, adding dents, scorches and broken surfaces: a narrow repair bench; a separate stripped rifle, barrel, vise and tool tray ONLY with transparent space between (no bench); a shallow bank of three equipment lockers. Row 2 destroyed variants of the same three: replace each object with LOW collapsed separated fragments within its original footprint, with transparent gaps between fragments, no intact box shell. The tools must remain separate overlays. Preserve all whitespace, do not enlarge objects or move between slots. Respect the width/height of every guide silhouette exactly.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\console-bank\\damage\\armory-workshop-refit-guide.png",
+      "sha256": "7374d8684ee265cd3056f89f0d14a20ec17025c7e69d6dcb999c0f824ec02922",
+      "dimensions": [
+        1152,
+        768
+      ],
+      "mode": "RGBA",
+      "role": "Geometry-locked edit target: slots, sizes and positions"
+    },
+    {
+      "path": "art-source\\console-bank\\damage\\armory-workshop-refit-reference.png",
+      "sha256": "743eb31a2f1cdb4a66f84329f97fb03f181ef268de946e563b06c2a8705736d4",
+      "dimensions": [
+        1152,
+        768
+      ],
+      "mode": "RGBA",
+      "role": "Intact materials and identity for the same slots"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first reference to lock the geometry and the second for materials and detail."
+  ],
+  "usage": {
+    "input_tokens": 41571,
+    "cached_input_tokens": 35328,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 566,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 52.5
+}
