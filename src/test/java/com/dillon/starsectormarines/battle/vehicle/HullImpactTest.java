@@ -30,6 +30,15 @@ class HullImpactTest {
     }
 
     @Test
+    void reachIsMeasuredToTheFootprintNotACircle() {
+        // A 2 x 1 hull facing north: its side is half a cell from the centre, its nose a whole one.
+        assertEquals(.5f, HullImpact.surfaceDistance(0f, 0f, 0f, 1f, .5f, -1f, 0f), 1e-5f);
+        assertEquals(.5f, HullImpact.surfaceDistance(0f, 0f, 0f, 1f, .5f, 0f, 1.5f), 1e-5f);
+        assertEquals(0f, HullImpact.surfaceDistance(0f, 0f, 0f, 1f, .5f, .2f, .3f));
+        assertEquals(.5f, HullImpact.surfaceDistance(0f, 0f, 90f, 1f, .5f, 0f, -1f), 1e-5f, "turned side-on");
+    }
+
+    @Test
     void partingBodiesExchangeNothing() {
         HullImpact.Result r = HullImpact.strike(0f, 0f, 0f, 1f, .5f, 2.5f, 0f, 0f, 0f,
                 -1f, 0f, -4f, 0f, 3f, .2f);
