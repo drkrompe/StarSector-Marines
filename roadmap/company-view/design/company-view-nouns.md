@@ -1517,9 +1517,19 @@ restored. The combat tracks (hull, flux, sensors, drive) are the hull's own
 figures, applied through the conversion hull mod, so the refit screen shows them
 and every fight she is in uses them. They start below a stock Cerberus and stay a
 liability until the cores behind them are paid for; flux waits on the reactor
-overhaul. Engineering's Ship Systems control opens a card listing every track
-grouped as cores, facilities and combat refit, with the selected track's current
-and next tier, its bill, its lock reason and the reviewed order. Each tier is its
+overhaul. The deck carries one icon chip per core in its top-left corner, ringed
+in the colour of that core's band; a chip opens the **systems tree** over the
+deck. The tree flows downward from the hull: the five cores hang from her, and
+every other track hangs from the core it leans on most (drive and flux from
+Power; mess, gym, sick bay and lounge from Life support; hull, brig and range
+from Structure; sensors from Compute). Each track is a column of tier nodes,
+owned, available (nothing but the price in the way) or locked. Further
+requirements across branches are listed on the detail card instead of drawn, so
+the tree stays a tree. The card docks down the tree's right edge and carries
+Castle's account of how the system works aboard her, the current and next tier,
+what the next tier needs, its bill, its lock reason and the reviewed order. The
+workshop's stages appear under Fabrication but are still ordered from the
+workshop card. Each tier is its
 own reviewed yard order under the same home, dock, Relief and funds rechecks, and
 the receipts stay with the hull. Beyond credits, most tiers take materials out of
 fleet cargo (metals for structure and plating, heavy machinery for plant and

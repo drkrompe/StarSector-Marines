@@ -19,6 +19,9 @@ public final class RefitText {
         return Strings.get("openingRefitEffect" + track.name() + band.name());
     }
 
+    /** Castle on how the system works aboard her, for the systems tree. */
+    public static String lore(RefitTrack track) { return Strings.get("openingRefitLore" + track.name()); }
+
     public static String band(RefitBand band) { return Strings.get("openingRefitBand" + band.name()); }
 
     /** Castle's reason a tier is locked: the core it needs, in the core's own terms. */

@@ -1,6 +1,6 @@
 # Second Wind refit tree
 
-Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Ship Systems card and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review, and each reserve is furnished and can be opened on the deck; the facility tracks that open them, their passives, Improved-tier dressing and mech passives are not.
+Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Ship Systems tree and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review, and each reserve is furnished and can be opened on the deck; the facility tracks that open them, their passives, Improved-tier dressing and mech passives are not.
 Written: 2026-10-20
 Updated: 2026-10-21 — the reserves are furnished at their footprints and open where they stand when the hull says so; the facility tracks still have to say it.
 
@@ -60,6 +60,15 @@ a paid room never sits dark (owner, 2026-10-20).
 | **Structure** | Faulty hull → Pressure-tested → Reinforced frames | "compartment sealed" / "frames won't take the load": reopens the new compartments; reinforced frames carry the large ones (range, pool, track, heavy gantries) | Reinforced: hull and armor via the conversion hull mod (vanilla-visible) |
 | **Compute** | Crashed cores → Restored → Processing cluster → Tactical core | "no processing": simulators, holo-tank, briefing intel, fire-control calibration | none; a gate like Power |
 | **Fabrication** | the existing workshop chain (Buried → Cleared → Repaired → Equipped), plus Precision | "no tooling": production, mech and vehicle work | existing reclamation and 20% supplies discount; Precision adds a part-quality or time benefit |
+
+Engineering draws this as a tree flowing down from the hull (owner,
+2026-10-21: "an upgrade tree similar to our commander skill tree, but actually
+connected together flowing downward"), entered from core icons on the deck
+rather than a list of buttons. Each track hangs under one parent core; a
+tier's other requirements are listed on its card, not drawn as cross-links,
+because crossing lines would turn the tree into a wiring diagram. Each system's
+card opens with Castle explaining how it works aboard her. That is the point of
+the view: learning the ship as well as buying from her.
 
 A facility tier names the core tiers it needs. Engineering shows a locked tier
 with its reason in Castle's voice ("the range has no power", "the frames won't
