@@ -200,6 +200,7 @@ import com.dillon.starsectormarines.battle.infantry.SquadMedicSystem;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
 import com.dillon.starsectormarines.battle.mech.MechGaitSystem;
+import com.dillon.starsectormarines.battle.appearance.RavRunnerRigSystem;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.MechDoctrineService;
 import com.dillon.starsectormarines.battle.mech.MechDoctrineSystem;
@@ -478,6 +479,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final MechLocomotionSystem mechLocomotionSystem;
     /** Fixed-tick, presentation-only planted-foot and waist solver. */
     private final MechGaitSystem mechGaitSystem;
+    private final RavRunnerRigSystem ravRunnerRigSystem;
     /** Simulation-authoritative upper-torso traverse; gates mech weapons as well as their render heading. */
     private final MechTurretSystem mechTurretSystem;
     private final MechSectionFxSystem mechSectionFx;
@@ -1306,6 +1308,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.mechLocomotionSystem = new MechLocomotionSystem(
                 entityWorld, battleComponents, rosterService, mechMoveOrders);
         this.mechGaitSystem = new MechGaitSystem(entityWorld, battleComponents);
+        this.ravRunnerRigSystem = new RavRunnerRigSystem(entityWorld, battleComponents);
         this.mechTurretSystem = new MechTurretSystem(
                 entityWorld, battleComponents, rosterService);
         this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects, rosterService);
@@ -3541,6 +3544,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         directControl.validate();
         facingSystem.tick(directControl.activeUnitId(), directControl.intent().aimX(),
                 directControl.intent().aimY(), directControl.sprintStatus().sprinting());
+        ravRunnerRigSystem.tick(TICK_DT);
         // Authors what a running integral system looks like, from the same
         // settled state and for the same reason: a treatment written here is
         // present on the tick of activation and gone on the tick the effect

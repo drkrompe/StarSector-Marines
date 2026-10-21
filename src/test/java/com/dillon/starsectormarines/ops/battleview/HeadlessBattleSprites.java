@@ -303,6 +303,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites() {
         return infantry;
     }
+    @Override public RavRunnerAssets ravRunnerSprites() { return ravRunner; }
     @Override public LayeredMechAssets layeredMechSprites() { return mech; }
     @Override public EnumMap<VehicleType, UnitSpriteCache> convoySprites() { return vehicles; }
     @Override public Map<Airframe, ShuttleSpriteCache> airframeSprites() { return airframes; }
@@ -480,6 +481,13 @@ final class HeadlessBattleSprites extends BattleSprites {
                 layer(brute + "fore-claw.png"), rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
         loadFamily(LayeredArmorFamily.XENO_SPITTER, "graphics/battle/swarm-spitter-modular-topdown/",
                 alienFoot, alienClaw, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+        ravRunner = RavRunnerAssets.load(path -> {
+            try {
+                return layer(path);
+            } catch (IOException e) {
+                return null;
+            }
+        });
         // Families without lying poses fall through their unit type's corpse sheet, which the
         // base class would load through the game.
         for (UnitType type : UnitType.values()) {
@@ -490,6 +498,7 @@ final class HeadlessBattleSprites extends BattleSprites {
         }
     }
 
+    private RavRunnerAssets ravRunner;
     private final EnumMap<UnitType, UnitSpriteCache> deadSheets = new EnumMap<>(UnitType.class);
 
     @Override public EnumMap<UnitType, UnitSpriteCache> unitDeadSprites() { return deadSheets; }
