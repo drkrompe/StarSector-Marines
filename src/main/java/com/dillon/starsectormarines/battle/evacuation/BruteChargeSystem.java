@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.combat.BodyPart;
 import com.dillon.starsectormarines.battle.combat.StaggerService;
+import com.dillon.starsectormarines.battle.combat.StaggerService.Cause;
 import com.dillon.starsectormarines.battle.evacuation.BruteChargeRules.Kind;
 import com.dillon.starsectormarines.battle.evacuation.BruteChargeRules.Outcome;
 import com.dillon.starsectormarines.battle.nav.Direction;
@@ -29,7 +30,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * A Brute's charge ({@code brute-charge.md}): the tell, the straight run at charge speed, and what the
+ * A Brute's charge ({@code colony-breach-nouns.md}, Brute): the tell, the straight run at charge speed, and what the
  * run does to what it hits.
  *
  * <p>{@link SwarmBruteBehavior} decides, in the parallel unit update, that a charge should begin and
@@ -111,6 +112,9 @@ public final class BruteChargeSystem {
         Charge c = charges.get(brute);
         return c == null ? 0f : c.reach;
     }
+
+    /** Ticks a tell lasts, for the presentation's fade. */
+    public int tellTicks() { return BruteChargeRules.ticks(BruteChargeRules.TELL); }
 
     /** Ticks left in the current phase. */
     public int phaseTicks(long brute) {
@@ -194,6 +198,7 @@ public final class BruteChargeSystem {
         c.struck.clear();
         c.reach = openReach(sim.getGrid(), x, y, c.heading, BruteChargeRules.MAX_RUN);
         sim.clearPath(r.brute());
+        sim.swarmCues().post(SwarmCues.Kind.CHARGE, r.brute(), sim);
         log(now, r.brute(), "tell", r.target(), -1, -1);
     }
 
@@ -287,10 +292,11 @@ public final class BruteChargeSystem {
         if (alive && outcome.throwCells() > 0f) throwBody(target, brute, outcome.throwCells(), sim, hx, hy);
         if (alive && outcome.shoveCells() > 0f) shove(target, outcome.shoveCells(), sim, hx, hy);
         if (alive && outcome.holdSeconds() > 0f) {
-            sim.stagger().stagger(target, BruteChargeRules.ticks(outcome.holdSeconds()));
+            sim.stagger().stagger(target, BruteChargeRules.ticks(outcome.holdSeconds()),
+                    BruteChargeRules.holdCause(kind));
         }
         if (outcome.bruteStunSeconds() > 0f) {
-            sim.stagger().stagger(brute, BruteChargeRules.ticks(outcome.bruteStunSeconds()));
+            sim.stagger().stagger(brute, BruteChargeRules.ticks(outcome.bruteStunSeconds()), Cause.STUNNED);
             log(now, brute, "stunned", target, -1, -1);
         }
         if (outcome.goesOn() && ++c.bodies <= BruteChargeRules.MAX_BODIES) {
@@ -326,7 +332,7 @@ public final class BruteChargeSystem {
         body.teleport(moved.x(), moved.y(), body.facingDegrees);
     }
 
-    /** Rule 5: every squad mate within reach of a thrown body takes a near-miss drain. */
+    /** Every squad mate within reach of a thrown body takes a near-miss drain. */
     private void frighten(long thrown, float x, float y, long brute, BattleSimulation sim) {
         UnitRosterService roster = sim.getRoster();
         Faction side = sim.identity().faction(thrown);
@@ -365,10 +371,11 @@ public final class BruteChargeSystem {
                 return false;
             }
             if (light && (topology.isWall(cx, cy) || topology.isWindow(cx, cy))) {
-                sim.mapEditor().damageWall(cx, cy, BruteChargeRules.WALL_BLOW);
+                boolean broke = sim.mapEditor().damageWall(cx, cy, BruteChargeRules.WALL_BLOW);
+                sim.swarmCues().postAt(broke ? SwarmCues.Kind.WALL_BREAK : SwarmCues.Kind.WALL_BLOW, brute, cx, cy, sim);
                 log(now, brute, "ram", 0L, cx, cy);
             } else if (hp > 0 || topology.isWall(cx, cy) || topology.isWindow(cx, cy)) {
-                sim.stagger().stagger(brute, BruteChargeRules.ticks(BruteChargeRules.STUN));
+                sim.stagger().stagger(brute, BruteChargeRules.ticks(BruteChargeRules.STUN), Cause.STUNNED);
                 log(now, brute, "stunned", 0L, cx, cy);
             } else {
                 log(now, brute, "blocked", 0L, cx, cy);
@@ -381,10 +388,11 @@ public final class BruteChargeSystem {
             SharedEdgeBarrier barrier = grid.getEdgeBarrier(ox, oy, step);
             if (barrier != null && barrier.kind().blocksMovement()) {
                 if (barrier.kind() == SharedEdgeBarrier.Kind.WINDOW) {
-                    sim.mapEditor().damageEdgeBarrier(ox, oy, step, BruteChargeRules.WALL_BLOW);
+                    boolean broke = sim.mapEditor().damageEdgeBarrier(ox, oy, step, BruteChargeRules.WALL_BLOW);
+                    sim.swarmCues().postAt(broke ? SwarmCues.Kind.WALL_BREAK : SwarmCues.Kind.WALL_BLOW, brute, ox, oy, sim);
                     log(now, brute, "ram", 0L, ox, oy);
                 } else {
-                    sim.stagger().stagger(brute, BruteChargeRules.ticks(BruteChargeRules.STUN));
+                    sim.stagger().stagger(brute, BruteChargeRules.ticks(BruteChargeRules.STUN), Cause.STUNNED);
                     log(now, brute, "stunned", 0L, ox, oy);
                 }
                 pullUp(c);

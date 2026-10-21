@@ -1,10 +1,11 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.combat.StaggerService.Cause;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 /**
- * The numbers and the pure decisions of a Brute's charge ({@code brute-charge.md}). Every number is
+ * The numbers and the pure decisions of a Brute's charge ({@code colony-breach-nouns.md}, Brute). Every number is
  * a starting value to feel out, so each is a {@code -Dbattle.brute.*} switch: a feel pass is a command
  * line, not an edit.
  */
@@ -55,7 +56,7 @@ final class BruteChargeRules {
     enum Kind { INFANTRY, EMPLACEMENT, LIGHT_VEHICLE, MEDIUM_VEHICLE, HEAVY_VEHICLE, LIGHT_MECH, MEDIUM_MECH, HEAVY_MECH }
 
     /**
-     * What a charge's hit does to a body of one {@link Kind} (rule 4): how far it is thrown sideways or
+     * What a charge's hit does to a body of one {@link Kind}: how far it is thrown sideways or
      * shoved along the line, how long it can't act, how long the Brute is stunned, whether the blow is
      * aimed at the legs, and whether the charge goes on through it.
      */
@@ -71,6 +72,15 @@ final class BruteChargeRules {
             case HEAVY_VEHICLE -> new Outcome(0f, 0f, 0f, STUN, false, false);
             case LIGHT_MECH, MEDIUM_MECH -> new Outcome(0f, 0f, MECH_STAGGER, 0f, true, false);
             case HEAVY_MECH -> new Outcome(0f, 0f, 0f, 0f, true, false);
+        };
+    }
+
+    /** What a held body of {@code kind} is shown as. */
+    static Cause holdCause(Kind kind) {
+        return switch (kind) {
+            case INFANTRY -> Cause.KNOCKED_DOWN;
+            case LIGHT_VEHICLE, MEDIUM_VEHICLE, HEAVY_VEHICLE, EMPLACEMENT -> Cause.STALLED;
+            case LIGHT_MECH, MEDIUM_MECH, HEAVY_MECH -> Cause.STAGGERED;
         };
     }
 

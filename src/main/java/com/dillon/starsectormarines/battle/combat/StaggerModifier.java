@@ -17,7 +17,7 @@ public final class StaggerModifier implements UnitModifier {
         this.stagger = stagger;
     }
 
-    @Override public String name(long unit) { return "unitModifierStaggered"; }
+    @Override public String name(long unit) { return stagger.cause(unit).nameKey; }
 
     @Override public Set<UnitStat> stats() { return STATS; }
 

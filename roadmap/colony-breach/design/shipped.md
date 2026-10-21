@@ -14,3 +14,4 @@ Written: 2026-10-21
 | `bore-spawners.md` | 2026-10-21 | 8acbc9c3f | `colony-breach-nouns.md` (Bore, Bore tier, Spawning surge, Spore colony, Swarm director, Beats); `phased-assault.md` (an order naming a structure's cell) |
 | `militia-redoubts.md` | 2026-10-21 | affbe2f42 | `colony-breach-nouns.md` (Redoubt, Colony militia, Colony, Flow, Beats); `extraction-command.md` (Civilian Rescue: Several redoubts) |
 | `breach-audio.md` | 2026-10-21 | c7a8b5e1b, dd78721e1, 30a206bd9, 3e20684c9 | `colony-breach-nouns.md` (Beats: Sound) |
+| `brute-charge.md` | 2026-10-21 | 2e9718d5a and the presentation commit after it | `colony-breach-nouns.md` (Swarm strain: Brute) |

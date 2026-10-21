@@ -28,9 +28,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A Brute's charge ({@code brute-charge.md}) against one kind of target per loop. The Brute has a deep
+ * A Brute's charge ({@code colony-breach-nouns.md}, Brute) against one kind of target per loop. The Brute has a deep
  * health pool and the marines are squadless and hold their fire: the scene is about what the charge
- * does, not who wins. Verdicts assert the mechanics of rule 4's table; counts are metrics.
+ * does, not who wins. Verdicts assert what the charge does to each kind of target; counts are metrics.
  * <ul>
  *   <li>{@code infantry-line}: three marines along the line, the first in the charge band. The Brute
  *       decides to charge on its own; the first two are thrown and held and the charge goes on, the
