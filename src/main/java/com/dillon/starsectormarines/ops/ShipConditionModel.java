@@ -26,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -45,6 +46,7 @@ public final class ShipConditionModel {
     private final Map<RefitTrack, Runnable> chipSelections = new LinkedHashMap<>();
     private RefitTrack track = RefitTrack.POWER;
     private boolean systems;
+    private BiConsumer<RefitOrder, Supplier<String>> stage = (order, commit) -> commit.get();
     private final Consumer<Compartment> focus;
     private final Runnable changed;
     private final MutableSignal<Map<String, Object>> row;
@@ -263,9 +265,14 @@ public final class ShipConditionModel {
         String key = (String) row.get().get("order");
         if (key == null) return;
         if (!key.equals(reviewed)) { reviewed = key; feedback = Strings.get("openingShipConditionReviewTheCostAndRestoredFacilitiesBefore"); }
-        else {
+        else if (key.startsWith("refit:")) {
+            // A refit is paid for where the player can watch it land; see RefitReveal.
+            RefitOrder order = RefitOrder.valueOf(key.substring(6));
+            reviewed = null;
+            feedback = "";
+            stage.accept(order, () -> commit(order));
+        } else {
             String refusal = key.equals("bay") ? repairBay.get()
-                    : key.startsWith("refit:") ? refit.apply(RefitOrder.valueOf(key.substring(6)))
                     : repair.apply(Work.valueOf(key));
             feedback = refusal == null ? Strings.get("openingShipConditionYardWorkComplete") : refusal;
             reviewed = null;
@@ -273,6 +280,21 @@ public final class ShipConditionModel {
         }
         refresh();
     }
+    /**
+     * Who plays an authorized refit out before it is paid for. The default pays at once; the deck
+     * overlay stages it on the ship and calls {@code commit} under its curtain.
+     */
+    public void stageWith(BiConsumer<RefitOrder, Supplier<String>> stage) { this.stage = stage; }
+
+    /** Pays for {@code order} now; the yard's refusal, or null once the work is done. */
+    private String commit(RefitOrder order) {
+        String refusal = refit.apply(order);
+        feedback = refusal == null ? Strings.get("openingShipConditionYardWorkComplete") : refusal;
+        if (refusal == null) changed.run();
+        refresh();
+        return refusal;
+    }
+
     /** Selecting a track keeps the systems view open on it; a review never carries across tracks. */
     public void selectTrack(RefitTrack chosen) { track = chosen; selected = -1; reviewed = null; feedback = ""; refresh(); }
 

@@ -1519,7 +1519,8 @@ and every fight she is in uses them. They start below a stock Cerberus and stay 
 liability until the cores behind them are paid for; flux waits on the reactor
 overhaul. The deck carries one icon chip per core in its top-left corner, ringed
 in the colour of that core's band; a chip opens the **systems tree** over the
-deck. The tree flows downward from the hull: the five cores hang from her, and
+deck. The tree opens as a modal over the live ship, which stays visible
+around and faintly behind it. The tree flows downward from the hull: the five cores hang from her, and
 every other track hangs from the core it leans on most (drive and flux from
 Power; mess, gym, sick bay and lounge from Life support; hull, brig and range
 from Structure; sensors from Compute). Each track is a column of tier nodes,
@@ -1530,7 +1531,13 @@ rather than drawn as lines across branches, so the tree stays a tree. The card d
 Castle's account of how the system works aboard her, the current and next tier,
 what the next tier needs, its bill, its lock reason and the reviewed order. The
 workshop's stages appear under Fabrication but are still ordered from the
-workshop card. Each tier is its
+workshop card. Authorizing a tier plays it out on the deck rather than
+in the card: the tree steps aside, the camera flies to the room the work is in
+(the whole ship for the combat tracks), a curtain falls while the yard works,
+and it lifts on the changed room with the tier's name and effect before the
+tree returns. The order is paid under the curtain, not at the click, so a
+deck that is laid out again for a newly opened compartment is never seen
+blank, and a refusal at that moment lifts on the unchanged room. Each tier is its
 own reviewed yard order under the same home, dock, Relief and funds rechecks, and
 the receipts stay with the hull. Beyond credits, most tiers take materials out of
 fleet cargo (metals for structure and plating, heavy machinery for plant and

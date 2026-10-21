@@ -100,6 +100,17 @@ its intent, to be tuned in play. Each system's
 card opens with Castle explaining how it works aboard her. That is the point of
 the view: learning the ship as well as buying from her.
 
+The tree is a modal over the live ship, not a page in place of it, and a
+purchase is watched (owner, 2026-10-21: "I want the player to see the upgrade
+occur, to see the room change"). The camera flies to the room, the yard works
+behind a curtain, and the room is revealed changed (`RefitReveal`). The cut is
+deliberate: opening a compartment lays the deck out again, and a curtain
+reads as the yard's days of work where an animated swap would show a blank
+deck and a re-mustered crew. Changes that are only dressing (a core's
+Deficit look clearing) could instead play as a wave across the deck, lights
+coming on room by room from the engine room; that wants a progressive
+version of the deck's dressing and is the next step if the cut feels abrupt.
+
 A facility tier names the core tiers it needs. Engineering shows a locked tier
 with its reason in Castle's voice ("the range has no power", "the frames won't
 take a pool") and a link to the order that clears it. The tree then reads as
