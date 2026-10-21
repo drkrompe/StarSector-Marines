@@ -1,0 +1,205 @@
+{
+  "sheetName": "ship-dressing",
+  "sheet": "art-source/tilesets/ship-dressing.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "ship-dressing",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/ship-dressing.png",
+  "note": "Registered transparent ImageGen reskin; the founding hull's per-core Deficit dressing, drawn by the deck scene only. Edge pieces face their bulkhead at the top of the frame. No collision, cover or ballistic ownership.",
+  "entries": [
+    {
+      "id": "ship-dressing.grime",
+      "rect": [
+        0,
+        0,
+        418,
+        418
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "ship-dressing.condensation",
+      "rect": [
+        418,
+        0,
+        418,
+        418
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "ship-dressing.debris",
+      "rect": [
+        836,
+        0,
+        418,
+        418
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "ship-dressing.cable-spill",
+      "rect": [
+        0,
+        418,
+        418,
+        418
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "ship-dressing.hull-patch",
+      "rect": [
+        418,
+        418,
+        418,
+        418
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "ship-dressing.buckled-plate",
+      "rect": [
+        836,
+        418,
+        418,
+        418
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "ship-dressing.dead-panel",
+      "rect": [
+        0,
+        836,
+        418,
+        209
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "ship-dressing.conduit",
+      "rect": [
+        418,
+        836,
+        418,
+        209
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "ship-dressing.grille",
+      "rect": [
+        836,
+        836,
+        418,
+        209
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "ship-dressing.buckled-panel",
+      "rect": [
+        0,
+        1045,
+        418,
+        209
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "ship-dressing.bracing",
+      "rect": [
+        418,
+        1045,
+        418,
+        209
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "ship-dressing.cable-run",
+      "rect": [
+        836,
+        1045,
+        418,
+        209
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    }
+  ]
+}

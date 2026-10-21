@@ -60,6 +60,7 @@ import com.dillon.starsectormarines.battle.fort.FortKind;
 import com.dillon.starsectormarines.battle.fort.FortRestraint;
 import com.dillon.starsectormarines.battle.fort.FortService;
 import com.dillon.starsectormarines.battle.fort.FortSystem;
+import com.dillon.starsectormarines.battle.sally.SallyDoors;
 import com.dillon.starsectormarines.battle.fort.FortTag;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
@@ -936,6 +937,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final FortressBatteryService fortressBatteries = new FortressBatteryService();
     private final FortService forts = new FortService();
     private final FortSystem fortSystem = new FortSystem();
+    /** The walled places' sally doors and the rule by which their holders open them. */
+    private final SallyDoors sallyDoors = new SallyDoors();
     private final FortressBatterySystem fortressBatterySystem = new FortressBatterySystem();
     private final TenderSystem tenders = new TenderSystem();
     private final ShipCommandService shipCommands = new ShipCommandService();
@@ -2149,6 +2152,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** The battle's forts: the walled compounds built round a battery, and the aspects housed in them. */
     public FortService forts() { return forts; }
 
+    /** The runtime map-modification ops: breaches, rubble, and opened sally doors. */
+    public MapEditor mapEditor() { return mapEditor; }
+
+    /** The battle's sally doors: forts' ports and the doors walled places have where their walls send a holder round. */
+    public SallyDoors sallyDoors() { return sallyDoors; }
+
     /** Records that the spawned structure {@code id} is a part of a fort: its platform, an aspect core or a nest. */
     public void tagFortPart(FortTag tag, long id, StructureDef structure, Faction holder) {
         forts.tagFrame(tag.fortId(), tag);
@@ -3197,6 +3206,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         mechDrops.advance(this);
         airPool.advance(this);
         fortSystem.tick(TICK_DT, this);
+        sallyDoors.tick(this);
         fortressBatterySystem.tick(TICK_DT, this);
         warships.tick(TICK_DT, this);
         detonations.tick();

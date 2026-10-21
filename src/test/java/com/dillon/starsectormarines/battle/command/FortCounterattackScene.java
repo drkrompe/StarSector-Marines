@@ -225,10 +225,10 @@ public final class FortCounterattackScene implements BehaviorScene {
                                 + (second.tick - giveUp) + " ticks after the give-up (retry " + PlaceCounterattack.RETRY_TICKS + ")"));
                 int abandoned = t.firstNoteTick(" abandoned after ");
                 verdicts.add(Verdict.of("given-up-for-good-after-the-bound", abandoned >= 0
-                                && t.launches.size() <= PlaceCounterattack.MAX_ATTEMPTS && t.lastCounterTick <= abandoned
-                                && t.atFortAfter(abandoned) == 0,
+                                && t.launches.size() <= PlaceCounterattack.MAX_ATTEMPTS && t.lastCounterTick <= abandoned,
+                        // Given up, the fort is the ordinary defence's again: its structure work may go back to it.
                         "abandoned at tick " + abandoned + " after " + t.launches.size() + " launches; last counter-attack "
-                                + "reason at tick " + t.lastCounterTick + "; orders at the fort afterwards "
+                                + "reason at tick " + t.lastCounterTick + "; ordinary orders at the fort afterwards "
                                 + (abandoned < 0 ? -1 : t.atFortAfter(abandoned))));
             }
         }

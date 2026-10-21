@@ -10,9 +10,11 @@ import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CoverPropDamage;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -215,5 +217,25 @@ public class DefensePostFootprintTest {
             assertFalse(topology.isWall(sandbag.cellX, sandbag.cellY));
             assertEquals(0, grid.getWallHp(sandbag.cellX, sandbag.cellY));
         }
+    }
+
+    @Test
+    public void aPostLiftsTheFillClutterStandingOnItsFootprint() {
+        // A crate stack is walkable, so the footprint test lets a post land on it; the concrete ring is then laid over
+        // it, and two cover props claim one cell of the destructible-cover channel.
+        NavigationGrid grid = openGrid();
+        CellTopology topology = new CellTopology(W, H);
+        TileRegistry registry = TileRegistry.installed();
+        List<Doodad> doodads = new ArrayList<>();
+        doodads.add(new Doodad(CX + 1, CY, registry.doodad("doodad.industrial-crate-stack")));
+        Doodad outside = new Doodad(CX + 5, CY, registry.doodad("doodad.industrial-crate-stack"));
+        doodads.add(outside);
+        DefensePostStamper.stampPost(grid, topology, doodads, DefensePostKind.MEDIUM, null, CX, CY, new Random(1));
+
+        assertTrue(doodads.contains(outside), "clutter off the footprint stays");
+        assertTrue(doodads.stream().noneMatch(d -> d.cellX == CX + 1 && d.cellY == CY
+                && "doodad.industrial-crate-stack".equals(d.definitionId())), "the crate under the ring is lifted");
+        CoverPropDamage cover = new CoverPropDamage(grid, doodads);
+        for (int i = 0; i < doodads.size(); i++) cover.register(i, doodads.get(i), registry);
     }
 }

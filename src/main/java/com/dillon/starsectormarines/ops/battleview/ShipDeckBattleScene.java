@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
 import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.ShipBayRoute;
@@ -166,7 +167,12 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      */
     private final Map<String, Shift> watchBills = new HashMap<>();
     private final DeckGraph rooms;
-    private final ShipDeckLighting lighting;
+    private ShipDeckLighting lighting;
+    private final MapResult deck;
+    private final long seed;
+    /** The founding hull's Deficit dressing, planned the first time anything is left unrestored. */
+    private ShipDeckDressing dressing;
+    private CoreDressing coreDressing = CoreDressing.RESTORED;
     /**
      * Which boat berths still have a boat, by the Boat Deck's own numbering, or
      * null when nobody has said and every berth is therefore held. Copied on
@@ -247,6 +253,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         this.groundedBoats = groundedBoats == null ? null : groundedBoats.clone();
         if (deck == null) throw new IllegalArgumentException("a generated deck is required");
         this.rooms = rooms;
+        this.deck = deck;
+        this.seed = seed;
         lighting = new ShipDeckLighting(deck.topology, rooms, seed);
         this.boatsHeld = boatsHeld == null ? null : boatsHeld.clone();
         this.boatWrecks = boatWrecks == null ? null : boatWrecks.clone();
@@ -286,6 +294,30 @@ public final class ShipDeckBattleScene implements AutoCloseable {
 
     public BattleSimulation simulation() {
         return simulation;
+    }
+
+    /**
+     * Show each core's Deficit dressing, or clear it, over this deck.
+     *
+     * <p>The one door the ship-condition record feeds. Presentation only: the
+     * deck, its crew and its simulation are untouched, the plan is derived once
+     * from the deck and its seed, and the same condition always dresses the
+     * same cells. A scene starts clean, which is every hull but the founding one.
+     */
+    public void dress(CoreDressing state) {
+        CoreDressing next = state == null ? CoreDressing.RESTORED : state;
+        if (next.equals(coreDressing)) return;
+        if (!next.clean() && dressing == null)
+            dressing = ShipDeckDressing.of(deck.topology, simulation.getGrid(), rooms, gantries,
+                    simulation.getDoodads(), seed);
+        if (next.power() != coreDressing.power())
+            lighting = new ShipDeckLighting(deck.topology, rooms, seed, next.power());
+        coreDressing = next;
+    }
+
+    /** Which cores this deck currently shows restored. */
+    public CoreDressing coreDressing() {
+        return coreDressing;
     }
 
     /** The berths this deck authored, in generation order. */
@@ -1081,7 +1113,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                 viewport.width(), viewport.height());
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
-                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting);
+                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing);
         return new BattleSceneFrame(context, layers);
     }
 
@@ -1097,7 +1129,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         camera.centerOn(view.centerCellX(), view.centerCellY());
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
-                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting);
+                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing);
         return new BattleSceneFrame(context, layers);
     }
 

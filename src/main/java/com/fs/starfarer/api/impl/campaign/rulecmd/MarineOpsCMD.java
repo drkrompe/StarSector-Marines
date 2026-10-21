@@ -108,11 +108,10 @@ public class MarineOpsCMD extends BaseCommandPlugin {
 
     /** The buy-back storybook over the port menu; the menu is rebuilt behind it so the option reads true again. */
     private static void openBuyBack(InteractionDialogAPI dialog, Map<String, MemoryAPI> memoryMap) {
-        MarketAPI market = market(dialog);
         dialog.hideTextPanel();
         dialog.hideVisualPanel();
         dialog.showCustomVisualDialog(Global.getSettings().getScreenWidth(), Global.getSettings().getScreenHeight(),
-                CompanyStoryDialogDelegate.storybook(new SecondWindBuyBackScreen(market == null ? null : market.getName(),
+                CompanyStoryDialogDelegate.storybook(new SecondWindBuyBackScreen(
                         () -> Global.getSector().getCampaignUI().addMessage(Strings.get("secondWindKeepBoughtBack"),
                                 Misc.getHighlightColor())), () -> {
                     dialog.showTextPanel();

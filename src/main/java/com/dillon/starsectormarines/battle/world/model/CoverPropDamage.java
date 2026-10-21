@@ -64,7 +64,8 @@ public final class CoverPropDamage {
         int key = grid.index(prop.cellX, prop.cellY);
         Entry previous = entries.get(key);
         if (previous != null && (!crate || !CRATES.contains(previous.original.definitionId())))
-            throw new IllegalStateException("Overlapping destructible cover props");
+            throw new IllegalStateException("Overlapping destructible cover props at (" + prop.cellX + ","
+                    + prop.cellY + "): " + id + " laid over " + previous.original.definitionId());
         Entry entry = new Entry(index, prop, damaged, destroyed, physical, previous);
         entries.put(key, entry);
         if (!physical && grid.getWallHp(prop.cellX, prop.cellY) <= 0)

@@ -101,6 +101,9 @@ public record ShipInterior(CompanyShip ship, Map<RoomPurpose, Facility> faciliti
         // by having awkward corners.
         Map<RoomPurpose, Integer> rooms = new EnumMap<>(RoomPurpose.class);
         for (DeckGraph.Compartment compartment : deck.compartments()) {
+            // A reserve is kept for a refit the ship has not had; until then she
+            // has no such facility to compare.
+            if (deck.reserved(compartment.id())) continue;
             rooms.merge(compartment.purpose(), 1, Integer::sum);
         }
 

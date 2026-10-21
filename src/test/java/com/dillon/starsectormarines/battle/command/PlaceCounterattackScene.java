@@ -31,7 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * The defender counter-attacks a lost <em>compound</em> (`place-counterattack.md`): a place that is not a fort, because
+ * The defender counter-attacks a lost <em>compound</em> (`conquest-command.md`, Defender command): a place that is not a fort, because
  * the game is much larger than forts. One barracks taken by a party of marines, and the defender's Conquest commander
  * with a pool of patrols a long way south of it. Each loop changes one thing.
  *
@@ -39,7 +39,8 @@ import java.util.regex.Pattern;
  *   <li>{@code retake}: frail holders inside. A probe goes first and watches from short of the barracks; the group is
  *       sized from what it observed, mustered, and launched together only with that strength at the staging cell.</li>
  *   <li>{@code outmatched}: thirty holders in plain sight and a small pool. The probe observes, and the group does not
- *       go: the place is left, observed again after the retry, and given up.</li>
+ *       go: it stands down, the pool holds nothing for the place while it waits, and it is observed again after the
+ *       wait.</li>
  *   <li>{@code repulsed}: a few holders in the yard and many unseen inside, none of whom can be killed. The probe sees
  *       the few; the push meets the many, fails, and the estimate is raised to what it met.</li>
  * </ul>
@@ -144,11 +145,18 @@ public final class PlaceCounterattackScene implements BehaviorScene {
                 LEFT, TOP, RIGHT, BOTTOM, Faction.DEFENDER, 60, 0);
         sim.setTacticalMap(new TacticalMap(List.of(barracks)));
         sim.random().setSeed(20261020L);
-        ConquestDefenderCommand defenders = new ConquestDefenderCommand(
-                new ConquestTrackLayout(TraversalAxis.SOUTH_TO_NORTH, WIDTH, HEIGHT));
         int[] pool = new int[patrols];
+        Set<Integer> mobile = new TreeSet<>();
         for (int i = 0; i < patrols; i++) {
             pool[i] = world.squadId("patrol-" + i);
+            mobile.add(pool[i]);
+        }
+        // The pool is the defender's starting patrol force, as a Conquest battle discloses it: a squad the counter-attack
+        // gives back stays the commander's to use, rather than leaving its command with the order it was released from.
+        ConquestDefenderCommand defenders = new ConquestDefenderCommand(
+                new ConquestTrackLayout(TraversalAxis.SOUTH_TO_NORTH, WIDTH, HEIGHT),
+                new ConquestDefenderStartingForce(mobile, Map.of()));
+        for (int i = 0; i < patrols; i++) {
             sim.claimSquadCommand(pool[i], CommandAuthority.MISSION_COMMAND, defenders.strategyId(), "scene patrol pool");
         }
         sim.setAutonomousCommander(Faction.DEFENDER, defenders, ConquestCommandDisclosure.INSTANCE);
@@ -184,10 +192,15 @@ public final class PlaceCounterattackScene implements BehaviorScene {
                 verdicts.add(Verdict.of("does-not-launch-against-more-than-it-can-raise", t.launches.isEmpty()
                         && t.count("(outmatched: ") >= 1, t.launches.size() + " launches, " + t.count("(outmatched: ")
                         + " outmatched decisions"));
-                verdicts.add(Verdict.of("given-up-after-the-bound", t.firstNoteTick(" abandoned after ") >= 0
-                                && t.count(" probes: ") >= 2,
-                        "abandoned at tick " + t.firstNoteTick(" abandoned after ") + " after " + t.count(" probes: ")
-                                + " observations"));
+                int stoodDown = t.firstNoteTick(" stands down (");
+                verdicts.add(Verdict.of("stands-down-and-observes-again-after-the-wait", stoodDown >= 0
+                                && t.count(" probes: ") >= 2 && t.firstNoteTick(" abandoned after ") < 0,
+                        "stood down at tick " + stoodDown + ", " + t.count(" stands down (") + " stand-downs, "
+                                + t.count(" probes: ") + " probes, abandoned at " + t.firstNoteTick(" abandoned after ")));
+                verdicts.add(Verdict.of("holds-nothing-back-while-it-waits", stoodDown >= 0 && t.heldWhileWaiting == 0
+                                && t.waitingSamples > 0,
+                        t.heldWhileWaiting + " pool squad-samples held for the counter-attack over " + t.waitingSamples
+                                + " samples while the place waited"));
                 verdicts.add(Verdict.of("no-squad-sent-at-the-place", t.firstAtPlaceTick == Integer.MAX_VALUE,
                         "first pool order at the place at tick " + t.firstAtPlaceTick + " (" + t.firstAtPlaceReason + ")"));
             }
@@ -232,6 +245,7 @@ public final class PlaceCounterattackScene implements BehaviorScene {
         metrics.put("giveUps", t.count(" gives up ("));
         metrics.put("retakenTick", t.retakenTick);
         metrics.put("abandonedTick", t.firstNoteTick(" abandoned after "));
+        metrics.put("standDowns", t.count(" stands down ("));
         metrics.put("poolAlive", t.poolAlive);
         return new SceneReport(id(), loop, ticks, verdicts, metrics);
     }
@@ -241,6 +255,7 @@ public final class PlaceCounterattackScene implements BehaviorScene {
     private static final Pattern LAUNCH = Pattern.compile("launches \\(.*\\): (\\d+) squads, strength (\\d+) against (\\d+) believed");
     private static final Pattern OBSERVED = Pattern.compile("observed it \\(.*\\): (\\d+) holders believed, (\\d+) remembered");
     private static final Pattern SIZED = Pattern.compile("believed to take (\\d+) \\((\\d+) holders, (\\d+) losses\\)");
+    private static final Pattern WAIT = Pattern.compile(" stands down \\(.*observed again from tick (\\d+)");
     private static final Pattern OUTMATCHED = Pattern.compile("outmatched: believed to take (\\d+)");
 
     private static final class Trace implements TickObserver {
@@ -261,6 +276,11 @@ public final class PlaceCounterattackScene implements BehaviorScene {
         int firstAtPlaceTick = Integer.MAX_VALUE;
         String firstAtPlaceReason = "none";
         int poolAlive;
+        /** While a stood-down place waits: samples taken, and pool squads still holding a counter-attack order in them. */
+        int waitingSamples;
+        int heldWhileWaiting;
+        private int waitFrom = -1;
+        private int waitEnd = -1;
         private int lastSummaryTick = -1;
         private String state = "";
 
@@ -328,6 +348,11 @@ public final class PlaceCounterattackScene implements BehaviorScene {
                 }
             }
             poolAlive = alive;
+            // One pulse for the stand-down's own orders to reach the squads, then nothing is the counter-attack's.
+            if (waitFrom >= 0 && tick > waitFrom + 2 * PULSE_TICKS && tick < waitEnd) {
+                waitingSamples++;
+                heldWhileWaiting += mustering.size();
+            }
             if (!fresh) return;
             lastSummaryTick = snapshot.tick();
             for (String summary : snapshot.objectiveSummaries()) {
@@ -373,6 +398,11 @@ public final class PlaceCounterattackScene implements BehaviorScene {
             if (out.find(0)) {
                 requireds.add(Integer.parseInt(out.group(1)));
                 sizings++;
+            }
+            Matcher w = WAIT.matcher(text);
+            if (w.find()) {
+                waitFrom = tick;
+                waitEnd = Integer.parseInt(w.group(1));
             }
             Matcher m = LAUNCH.matcher(text);
             if (m.find()) {

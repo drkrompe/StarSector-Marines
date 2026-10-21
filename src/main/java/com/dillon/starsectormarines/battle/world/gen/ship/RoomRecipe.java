@@ -251,6 +251,37 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
             DeckZone.MIDSHIPS, 90);
 
     /**
+     * Holding cells for prisoners brought back from a battle, and the guard's
+     * desk outside them. No program owes one; Second Wind reserves it.
+     */
+    public static final RoomRecipe BRIG = new RoomRecipe(
+            RoomPurpose.BRIG, RoomShape.rectangle(6, 6), DeckZone.AFT, 0);
+
+    /*
+     * Second Wind's reserves: the facilities her refit tree opens, at the size
+     * her deck can spare in every layout rather than at the destroyer recipes
+     * above. They supply nothing while sealed, and a compartment some of them
+     * share (the gymnasium with its track, the sick bay with its rehab pool,
+     * the lounge with a chapel) is one room here. See DeckArrangement.SECOND_WIND.
+     */
+
+    /** Three short lanes along the spine: a frigate's range, not a transport's. */
+    public static final RoomRecipe SECOND_WIND_RANGE = new RoomRecipe(
+            RoomPurpose.FIRING_RANGE, RoomShape.rectangle(16, 6), DeckZone.MIDSHIPS, 0);
+
+    /** Gymnasium, with room for a running loop round its edge once it is fitted. */
+    public static final RoomRecipe SECOND_WIND_GYM = new RoomRecipe(
+            RoomPurpose.GYMNASIUM, RoomShape.rectangle(12, 8), DeckZone.MIDSHIPS, 0);
+
+    /** Sick bay: a few beds and a treatment station, and later a rehab pool. */
+    public static final RoomRecipe SECOND_WIND_SICK_BAY = new RoomRecipe(
+            RoomPurpose.PATIENT_WARD, RoomShape.rectangle(10, 6), DeckZone.MIDSHIPS, 0);
+
+    /** Rec lounge, with a quiet end kept for services. */
+    public static final RoomRecipe SECOND_WIND_LOUNGE = new RoomRecipe(
+            RoomPurpose.CREW_LOUNGE, RoomShape.rectangle(8, 6), DeckZone.MIDSHIPS, 0);
+
+    /**
      * The small rooms that exist because the packing left somewhere to put
      * them: lockers, cable trunks, a pump room, a spares cage. They have no
      * zone, are never owed by the program, and are fitted last into whatever

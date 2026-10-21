@@ -49,6 +49,14 @@ public final class BatteryFort {
             new int[]{OX + 22, OY}, new int[]{OX + 23, OY}, new int[]{OX + 24, OY},
             new int[]{OX + 22, OY + 1}, new int[]{OX + 23, OY + 1}, new int[]{OX + 24, OY + 1});
 
+    /**
+     * The sally ports, one in the middle of each face that has no gate: the south face and the east. Each is two cells of
+     * the two-deep wall, closed until the fort's holder unbars it.
+     */
+    public static final List<FortPlan.SallyPort> SALLY_PORTS = List.of(
+            FortPlan.SallyPort.onFace(OX + 24, OY + 35, 0, 1, 2),
+            FortPlan.SallyPort.onFace(OX + 47, OY + 17, 1, 0, 2));
+
     /** The open cell just outside the middle of each gate, which is where the way out to the road network begins. */
     public static final List<int[]> GATE_MOUTHS = List.of(new int[]{OX - 1, OY + 17}, new int[]{OX + 23, OY - 1});
 
@@ -181,6 +189,7 @@ public final class BatteryFort {
         @Override public List<int[]> clearCells() { return BatteryFort.clearCells(); }
         @Override public List<Gate> gates() { return GATES; }
         @Override public List<int[]> gateCells() { return GATE_CELLS; }
+        @Override public List<FortPlan.SallyPort> sallyPorts() { return SALLY_PORTS; }
         @Override public List<int[]> nests() { return NESTS; }
         @Override public int[][] lanes() { return LANES; }
         @Override public List<FortBelt.Cell> belt() { return FortBelt.cells(); }

@@ -98,7 +98,8 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                             throw new AssertionError("Repair resized the hull");
                         if (graph.apertures().size() != 1 || after.apertures().size() != 2)
                             throw new AssertionError("Repair must open exactly one sealed launch door");
-                        var sealed = graph.compartments().stream().filter(r -> graph.damaged(r.id())).findFirst().orElseThrow();
+                        var sealed = graph.compartments().stream().filter(r -> r.purpose() == RoomPurpose.HANGAR
+                                && graph.damaged(r.id())).findFirst().orElseThrow();
                         for (var door : sealed.doors()) {
                             if (map.grid.isWalkable(door.x(), door.y()))
                                 throw new AssertionError("Damaged bay hatch remains open");
@@ -113,7 +114,9 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                             if (!restoredMap.grid.isWalkable(door.x(), door.y()))
                                 throw new AssertionError("Repair did not reopen the personnel hatch");
                         }
-                        if (restoredMap.doodads.stream().anyMatch(d -> "ship-sealed-hatches.pressure-hatch".equals(d.definitionId())))
+                        // The hull's reserves stay sealed; only the bay's own hatches go.
+                        if (restoredMap.doodads.stream().anyMatch(d -> "ship-sealed-hatches.pressure-hatch".equals(d.definitionId())
+                                && sealed.doors().stream().anyMatch(door -> door.x() == d.cellX && door.y() == d.cellY)))
                             throw new AssertionError("Restored bay retained a sealed-hatch sprite");
                     }
                     if (conversion && seed == 42) {

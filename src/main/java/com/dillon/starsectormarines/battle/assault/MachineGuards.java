@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,11 +24,11 @@ import java.util.Map;
 
 /**
  * The machine guard (`garrisonables.md`, Decided direction): a mech or an armed vehicle, which takes no posts, stands
- * beside a trench or a held building its own side mans as the garrison's heavy support. It stands on a cell outside
- * the place, off the garrison's lines of fire, with a view along the believed threat axis; it faces that axis while
- * nothing is in its sights, engages what comes with its own doctrine or turret, never enters, and stands down once
- * the garrison has gone. This class owns the questions the order systems, the cursor, the commanders and the scene
- * all ask, so the verb the cursor promises is the one the click gives.
+ * beside a trench, a held place or a compound building its own side mans as the garrison's heavy support. It stands
+ * on a cell outside the place, off the garrison's lines of fire, with a view along the believed threat axis; it faces
+ * that axis while nothing is in its sights, engages what comes with its own doctrine or turret, never enters, and
+ * stands down once the garrison has gone. This class owns the questions the order systems, the cursor, the
+ * commanders and the scene all ask, so the verb the cursor promises is the one the click gives.
  *
  * <p><b>Own-force facts and belief.</b> Whether the side mans a place is its own knowledge of its own people: somebody
  * of the side standing in it, or a squad of the side ordered to it. The threat axis is the side's belief: contacts its
@@ -69,12 +70,24 @@ public final class MachineGuards {
     public static AssaultTarget targetUnderClick(BattleSimulation sim, Faction side, int cellX, int cellY) {
         AssaultTarget target = AssaultTarget.underClick(sim.fightingPositions(), DigInSystem.isEnabled(),
                 sim.getTacticalMap(), cellX, cellY);
+        if (target == null) target = envelopeUnderClick(sim.garrisonables(), cellX, cellY);
         if (target == null || MachineAssaults.believedHeld(sim, side, target)) return null;
         // A run is guarded by the stretch under the click: the garrison there, not the whole belt.
         if (target.kind() == AssaultTarget.Kind.FIGHTING_POSITION) {
             target = AssaultTarget.stretch(sim.fightingPositions(), target.runId(), cellX, cellY, STRETCH_REACH_CELLS);
         }
         return manned(sim, side, target) ? target : null;
+    }
+
+    /**
+     * The building whose envelope the cell lies in, as a place to guard, or null: a compound's command post, barracks
+     * or armory is a garrisonable its side mans as much as a held place is (`garrisonables.md`, building envelopes),
+     * though no infantry click names it as one. Asked only after the run and held-place lookups have found nothing.
+     */
+    static AssaultTarget envelopeUnderClick(GarrisonableRegistry places, int cellX, int cellY) {
+        if (places == null) return null;
+        int place = places.idAt(cellX, cellY);
+        return place >= 0 && places.isEnvelope(place) ? AssaultTarget.place(places.building(place)) : null;
     }
 
     // ----- own-force facts ------------------------------------------------------------------
@@ -109,7 +122,8 @@ public final class MachineGuards {
             if (squad.faction != side || squad.isMechSquad() || squad.isDroneSquad() || squad.aliveMembers <= 0) continue;
             SquadMoveOrderService.ActiveOrder order = orders.activeOrder(squad.id);
             if (target.kind() == AssaultTarget.Kind.HELD_PLACE) {
-                if (order instanceof ActiveHoldPlaceOrder hold && hold.targetNode() == target.heldPlace()) return true;
+                if (order instanceof ActiveHoldPlaceOrder hold
+                        && GarrisonableRegistry.sameBuilding(hold.targetNode(), target.heldPlace())) return true;
             } else if (order instanceof ActiveDefendAreaOrder defend && defend.isOccupy()
                     && defend.occupyRunId() == target.runId()
                     && target.gap(defend.destinationX(), defend.destinationY()) <= STRETCH_REACH_CELLS) {
@@ -118,7 +132,8 @@ public final class MachineGuards {
             ObjectiveAssignment assignment = squad.assignmentForExecution();
             if (assignment == null) continue;
             if (target.kind() == AssaultTarget.Kind.HELD_PLACE) {
-                if (assignment.kind() == AssignmentKind.HOLD_NODE && assignment.targetNode() == target.heldPlace()) {
+                if (assignment.kind() == AssignmentKind.HOLD_NODE
+                        && GarrisonableRegistry.sameBuilding(assignment.targetNode(), target.heldPlace())) {
                     return true;
                 }
             } else if (assignment.isGarrison() && target.contains(assignment.targetCellX(), assignment.targetCellY())) {

@@ -373,6 +373,35 @@ public final class MapEditor {
         return !grid.isWalkable(cellX, cellY);
     }
 
+    /**
+     * Opens a standing wall cell as a built passage rather than a breach: walkable, no wall, on the same ground as the
+     * floor cell ({@code likeX}, {@code likeY}) beside it, with no rubble and no roof peeled, since nothing broke. A
+     * fort's sally port is unbarred through this. Like every runtime change to the map it only ever makes the grid more
+     * permissive. Returns {@code false} for a cell that is already open.
+     */
+    public boolean openPassage(int x, int y, int likeX, int likeY) {
+        if (!grid.inBounds(x, y) || grid.isWalkable(x, y)) return false;
+        grid.setWalkable(x, y, true);
+        grid.setSeeThrough(x, y, false);
+        grid.setDoorway(x, y, false);
+        grid.setWallHp(x, y, 0);
+        grid.openAllEdges(x, y);
+        topology.setWall(x, y, false);
+        topology.setWindow(x, y, false);
+        topology.setFixture(x, y, false);
+        if (grid.inBounds(likeX, likeY)) {
+            topology.setGroundKind(x, y, topology.getGroundKind(likeX, likeY));
+            topology.setSurface(x, y, topology.getSurface(likeX, likeY));
+        }
+        grid.recomputeCoverAt(x, y);
+        grid.recomputeCoverAt(x + 1, y);
+        grid.recomputeCoverAt(x - 1, y);
+        grid.recomputeCoverAt(x, y + 1);
+        grid.recomputeCoverAt(x, y - 1);
+        navigation.markCellOpened(x, y);
+        return true;
+    }
+
     public void flipCellToRubble(int cellX, int cellY) {
         // Destroying a summit emplacement does not demolish the mountain beneath it.
         if (grid.hasTag(cellX, cellY, NavigationGrid.CellTag.NATURAL_SOLID)) return;

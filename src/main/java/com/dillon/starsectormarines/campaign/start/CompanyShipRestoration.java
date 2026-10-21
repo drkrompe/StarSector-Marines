@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.campaign.start;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipRestoration;
+import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
@@ -53,14 +54,9 @@ public final class CompanyShipRestoration {
         }
         return count;
     }
-    /** Captured at launch, never looked up by a running battle. */
+    /** Captured at launch, never looked up by a running battle; the mess's band on the refit tree. */
     public static float moraleRecoveryAboard() {
-        var ship = CompanyShipDesignation.aboard();
-        return moraleRecovery(state(ship), ship != null && !ship.isMothballed()
-                && MercenaryCompanyConversion.installed(ship));
-    }
-    public static float moraleRecovery(ShipRestoration state, boolean activeHome) {
-        return activeHome && state.applies() && state.messHall() ? 1.25f : 1f;
+        return ShipRefits.aboard().moraleRecovery();
     }
     public static boolean mechBayRestored(MarineRoster roster) {
         return roster != null && roster.hasCompletedStory(OpeningOperationKind.COUNTERATTACK.missionId);

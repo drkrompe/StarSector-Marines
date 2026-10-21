@@ -1,16 +1,19 @@
 package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.assault.AssaultTarget;
+import com.dillon.starsectormarines.battle.assault.MachineAssaults;
 import com.dillon.starsectormarines.battle.assault.MachineGuard;
 import com.dillon.starsectormarines.battle.assault.MachineGuards;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.fort.FortKind;
+import com.dillon.starsectormarines.battle.mech.MechDamageDoctrine;
 import com.dillon.starsectormarines.battle.mech.MechLocomotion;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderService.ActiveOrder;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
@@ -21,7 +24,9 @@ import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.scene.ScriptedPlayer;
 import com.dillon.starsectormarines.battle.scene.TickObserver;
 import com.dillon.starsectormarines.battle.scene.Verdict;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadBeliefs;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
@@ -46,7 +51,13 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
+import com.dillon.starsectormarines.testsupport.DiskRegistries;
+import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
+import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
+import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
 
+import java.nio.file.Path;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -71,10 +82,17 @@ import java.util.Random;
  * </ul>
  *
  * <p>{@code defender-lances}: the reactive-belt production fort, the defender's Conquest commander with four patrols and
- * two mech lances in its pool, and a tough raiding party put beside the gate stretch at tick 30. The commander mans the
+ * two mech lances in its pool standing in the works' yard, and a tough raiding party put beside the gate stretch at tick 30. The commander mans the
  * stretch; the loop asserts that it attaches no more lances at once than its bound, that any guard it gives stands
  * outside the run it guards and never on it, and that a guard is attached once a run is manned under pressure (when a
- * free lance can reach it).
+ * free lance can reach it) and that the guard, sent from the yard, reaches its cell outside the works.
+ *
+ * <p>{@code mission-building} and {@code mission-building-commander}: the same two questions on a building of a
+ * mission map rather than a fort's trench, on the Raid's production map with none of its forces. A building there is a
+ * garrisonable as any held place or compound building is (`garrisonables.md`, building envelopes). In the first a
+ * marine squad in the GARRISON stance takes the best-posted held place under a militia party's pressure and the player
+ * clicks a Bulwark onto the building it holds; in the second the defender's commander mans a building under a marine
+ * party's pressure and attaches a lance to it within the bound.
  *
  * <p>Verdicts assert mechanics, never who won: the cursor, the order, the cell outside and off the garrison's lanes,
  * never inside, facing the threat while nothing is in its sights, firing at the approach, and the stand-down once the
@@ -86,6 +104,8 @@ public final class MachineGuardScene implements BehaviorScene {
     public static final String TANK = "tank";
     public static final String CONTROL = "control";
     public static final String DEFENDER_LANCES = "defender-lances";
+    public static final String MISSION_PLAYER = "mission-building";
+    public static final String MISSION_COMMANDER = "mission-building-commander";
 
     private static final int WIDTH = 170;
     private static final int HEIGHT = 72;
@@ -113,6 +133,16 @@ public final class MachineGuardScene implements BehaviorScene {
     private static final int FORT_TICKS = 3600;
     private static final int STANDOFF_CELLS = 6;
 
+    /** The Raid map's seed: the one `mission-envelopes` plays its Raid loop on. */
+    private static final long MISSION_SEED = 15311L;
+    private static final int MISSION_TICKS = 1800;
+    /** Long enough for a Bulwark to walk round the block to its guard cell and settle there. */
+    private static final int MISSION_PLAYER_TICKS = 2400;
+    /** The player looks every this many ticks for the building the stance holds, and clicks once it holds one. */
+    private static final int MISSION_CLICK_EVERY = 75;
+    private static final int MISSION_CLICK_BY = 900;
+    private static final int MISSION_PATROLS = 4;
+
     private final int frameEvery;
 
     public MachineGuardScene() { this(15); }
@@ -124,7 +154,7 @@ public final class MachineGuardScene implements BehaviorScene {
     @Override public String label() {
         return "Machine guard: a mech or tank sent to its own side's garrison stands beside it off its lanes, faces the "
                 + "threat, fires at the approach and stands down when the garrison leaves; a commander attaches lances "
-                + "within its bound";
+                + "within its bound, at a fort's trench and at a mission map's building";
     }
 
     @Override public int frameDelayMillis() { return 90; }
@@ -135,7 +165,378 @@ public final class MachineGuardScene implements BehaviorScene {
         reports.add(playerLoop(TANK, frames));
         reports.add(playerLoop(CONTROL, frames));
         reports.add(defenderLoop(frames));
+        Path root = Path.of(System.getProperty("user.dir"));
+        DiskRegistries.installMapGeneration(root);
+        TileRegistryTestInstaller.install(root);
+        InstalledHullSpecs.install();
+        InstalledVanillaData.install();
+        reports.add(missionPlayerLoop(frames));
+        reports.add(missionCommanderLoop(frames));
         return reports;
+    }
+
+    // ----- a manned building on a mission map -----------------------------------------------
+
+    /** The Raid's map, its terrain and held places, and the held place offering the most posts. */
+    private record MissionGround(NavigationGrid grid, CellTopology topology, List<TacticalNode> nodes,
+                                 TacticalNode building, int posts, int[] beside, int[] party, int[] lance,
+                                 int[] farOne, int[] farTwo) {}
+
+    /**
+     * Generates the Raid's production map (seed {@link #MISSION_SEED}) and picks its held place with the most posts:
+     * open ground beside it for the garrison, ground in sight of that for the party pressing it, and ground further out
+     * on the far side from the party for the lance. Null when the map offers no such building.
+     */
+    private static MissionGround missionGround() {
+        try (BattleSimulation source = BattleSetup.createRaid(MISSION_SEED)) {
+            NavigationGrid grid = source.getGrid();
+            List<TacticalNode> nodes = source.getTacticalMap() == null ? List.of() : source.getTacticalMap().all();
+            GarrisonableRegistry offered = source.garrisonables();
+            TacticalNode chosen = null;
+            int posts = 0;
+            for (TacticalNode node : nodes) {
+                int g = offered.envelopeOf(node);
+                if (g >= 0 && offered.size(g) > posts && offered.size(g) >= 4) {
+                    chosen = node;
+                    posts = offered.size(g);
+                }
+            }
+            if (chosen == null) return null;
+            int g = offered.envelopeOf(chosen);
+            int[] beside = ground(grid, chosen, offered.centreX(g), offered.centreY(g), 3, 6, null, null);
+            if (beside == null) return null;
+            int[] party = ground(grid, chosen, beside[0], beside[1], 10, 16, beside, null);
+            if (party == null) return null;
+            int[] lance = ground(grid, chosen, beside[0], beside[1], 8, 14, null, party);
+            if (lance == null) return null;
+            return new MissionGround(grid, source.getTopology(), new ArrayList<>(nodes), chosen, posts, beside, party,
+                    lance, far(grid, party[0], party[1]), far(grid, beside[0], beside[1]));
+        }
+    }
+
+    /**
+     * The player's guard on a building of a mission map (`mission-building`): a marine squad in the GARRISON stance
+     * beside the Raid's best-posted held place, a tough militia party in sight of it, and a Bulwark further out. Once
+     * the stance holds a building, the player clicks the Bulwark onto it; the verdicts are the player loops' own.
+     */
+    private SceneReport missionPlayerLoop(FrameSink frames) {
+        MissionGround ground = missionGround();
+        if (ground == null) {
+            return new SceneReport(id(), MISSION_PLAYER, 0, List.of(Verdict.of("building-found", false,
+                    "the Raid's map offered no held place with posts and open ground beside it")), Map.of());
+        }
+        SceneBuilder builder = SceneBuilder.over(ground.grid(), ground.topology()).missionCompletion(false);
+        builder.unit("far-marine", Faction.MARINE, UnitType.MARINE, ground.farOne()[0], ground.farOne()[1],
+                spec -> spec.moveSpeed(0f).health(TOUGH));
+        builder.unit("far-defender", Faction.DEFENDER, UnitType.MARINE, ground.farTwo()[0], ground.farTwo()[1],
+                spec -> spec.moveSpeed(0f).health(TOUGH));
+        builder.squad("garrison").faction(Faction.MARINE).size(6).at(ground.beside()[0] + 2, ground.beside()[1])
+                .primary("weapon.smg").health(TOUGH).done();
+        builder.squad("party").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(4)
+                .at(ground.party()[0] + 2, ground.party()[1]).primary("weapon.smg").health(TOUGH).stationary().done();
+        // A Bulwark: the party cannot be killed, so a lighter chassis is crippled under its fire before it settles.
+        builder.squad("lance").faction(Faction.MARINE).size(1).at(ground.lance()[0], ground.lance()[1])
+                .mech(MechVariant.BULWARK, MechRole.BALANCED)
+                .assigned(id -> ObjectiveAssignment.defendArea(id, ground.lance()[0], ground.lance()[1])).done();
+        SceneWorld world = builder.build();
+        BattleSimulation sim = world.sim();
+        sim.setTacticalMap(new TacticalMap(new ArrayList<>(ground.nodes())));
+        sim.random().setSeed(20261020L);
+        int garrisonSquad = world.squadId("garrison");
+        sim.getReactiveManning().setEnabled(garrisonSquad, true);
+        long[] garrison = world.members("garrison");
+        long[] party = world.members("party");
+        long machine = world.members("lance")[0];
+        int lanceSquad = world.squadId("lance");
+
+        PlayerTrace[] trace = new PlayerTrace[1];
+        int[] clicked = {-1, -1, -1};
+        TacticalNode[] held = new TacticalNode[1];
+        ScriptedPlayer player = ScriptedPlayer.on(world);
+        for (int tick = MISSION_CLICK_EVERY; tick <= MISSION_CLICK_BY; tick += MISSION_CLICK_EVERY) {
+            player.at(tick, s -> {
+                if (trace[0] != null) return;
+                TacticalNode node = heldBuilding(s, garrisonSquad);
+                if (node == null) return;
+                GarrisonableRegistry places = s.garrisonables();
+                int envelope = places.envelopeOf(node);
+                if (envelope < 0) return;
+                int x = places.centreX(envelope), y = places.centreY(envelope);
+                held[0] = node;
+                trace[0] = new PlayerTrace(false, machine, AssaultTarget.place(node));
+                Selection selection = new Selection();
+                selection.selectUnit(lanceSquad, machine);
+                trace[0].intent = TacticalOrderIntent.resolve(s, selection, x, y);
+                s.getMechMoveOrderService().requestMove(machine, x, y);
+                clicked[0] = s.getSimTickIndex();
+                clicked[1] = x;
+                clicked[2] = y;
+            });
+        }
+        TickObserver observer = (s, tick) -> {
+            if (trace[0] != null) trace[0].observe(s, tick, garrison, party);
+        };
+        SceneRun.of(world).player(player).observe(observer)
+                .frames(frames, MISSION_PLAYER, 30, tick -> MISSION_PLAYER + " / tick " + tick + " / "
+                        + (trace[0] == null ? "watching" : trace[0].caption()))
+                .run(MISSION_PLAYER_TICKS);
+
+        List<Verdict> verdicts = new ArrayList<>();
+        PlayerTrace t = trace[0];
+        verdicts.add(Verdict.of("building-held", t != null,
+                "the GARRISON stance held " + (held[0] == null ? "no building" : held[0].kind + " at "
+                        + held[0].anchorX + "," + held[0].anchorY) + " by tick " + MISSION_CLICK_BY
+                        + "; the click came at tick " + clicked[0]));
+        if (t != null) {
+            verdicts.add(Verdict.of("cursor-guard", t.intent == TacticalOrderIntent.GUARD,
+                    "the cursor over the manned building at " + clicked[1] + "," + clicked[2] + " read " + t.intent));
+            verdicts.add(Verdict.of("order-is-guard", t.acceptedGuard,
+                    "the click was accepted as a guard at " + t.guardX + "," + t.guardY));
+            verdicts.add(Verdict.of("guard-cell-outside", t.acceptedGuard
+                            && t.guardGap >= MachineGuards.GUARD_NEAR_CELLS && t.guardGap <= MachineGuards.GUARD_FAR_CELLS,
+                    "the guard cell stands " + t.guardGap + " cells outside the footprint"));
+            verdicts.add(Verdict.of("off-the-garrisons-lanes", t.acceptedGuard && !t.guardInLane,
+                    "the guard cell is " + (t.guardInLane ? "" : "not ") + "in front of the garrison along the axis "
+                            + String.format(Locale.ROOT, "(%.2f, %.2f)", t.axisX, t.axisY)));
+            verdicts.add(Verdict.of("never-enters", t.acceptedGuard && t.ticksInside == 0 && t.minGapWhileGuarding >= 1,
+                    "while the guard stood the machine came no nearer the footprint than " + t.minGapWhileGuarding
+                            + " cells, and stood inside it on " + t.ticksInside + " ticks"));
+            if (t.idleSamples > 0) {
+                verdicts.add(Verdict.of("faces-the-threat", t.facingSamples * 10 >= t.idleSamples * 9,
+                        t.facingSamples + " of " + t.idleSamples + " settled idle ticks faced within "
+                                + FACING_TOLERANCE_DEG + " degrees of the threat axis"));
+            }
+            verdicts.add(Verdict.of("holds-while-manned", t.endedWhileManned < 0,
+                    "the guard ended with the garrison still in place, the chassis still fit to fight, at tick "
+                            + t.endedWhileManned + " (crippled or disarmed at tick " + t.disabledTick + ")"));
+        }
+        Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("buildingPosts", ground.posts());
+        metrics.put("clickTick", clicked[0]);
+        if (t != null) {
+            metrics.put("guardGap", t.guardGap);
+            metrics.put("arrivedTick", t.arrivedTick);
+            metrics.put("minGapWhileGuarding", t.minGapWhileGuarding == Integer.MAX_VALUE ? -1 : t.minGapWhileGuarding);
+            metrics.put("idleSamples", t.idleSamples);
+            metrics.put("facingSamples", t.facingSamples);
+            metrics.put("approachShots", t.approachShots);
+            metrics.put("lastGuardX", t.lastGuardX);
+            metrics.put("lastGuardY", t.lastGuardY);
+            metrics.put("lastCellsFromGuardCell", t.lastGapToGuardCell);
+            metrics.put("standingTicks", t.standingTicks);
+            metrics.put("disabledTick", t.disabledTick);
+        }
+        sim.close();
+        return new SceneReport(id(), MISSION_PLAYER, MISSION_PLAYER_TICKS, verdicts, metrics);
+    }
+
+    /** The building the squad holds as a garrisonable, or null: its own hold of a building that offers an envelope. */
+    private static TacticalNode heldBuilding(BattleSimulation sim, int squadId) {
+        Squad squad = sim.getSquad(squadId);
+        if (squad == null || squad.aliveMembers <= 0) return null;
+        ObjectiveAssignment order = squad.assignedObjective;
+        if (order == null || order.kind() != AssignmentKind.HOLD_NODE || order.targetNode() == null) return null;
+        return sim.garrisonables().envelopeOf(order.targetNode()) >= 0 ? order.targetNode() : null;
+    }
+
+    /**
+     * The commander's guard on a building of a mission map (`mission-building-commander`): the defender's commander,
+     * four tough patrols beside the Raid's best-posted held place and two Sirocco lances further out, against a tough,
+     * stationary marine party in sight of the building. The map has no fort and no prepared ground in the scene, so the
+     * only garrisonables are buildings. Verdicts: never more lances on guard than the bound; once the commander mans a
+     * building under pressure, a lance stands guard by a building (when a free lance can reach it); and a guard's cell
+     * is outside its building and no guarding chassis stands inside one.
+     */
+    private SceneReport missionCommanderLoop(FrameSink frames) throws Exception {
+        MissionGround ground = missionGround();
+        if (ground == null) {
+            return new SceneReport(id(), MISSION_COMMANDER, 0, List.of(Verdict.of("building-found", false,
+                    "the Raid's map offered no held place with posts and open ground beside it")), Map.of());
+        }
+        SceneBuilder builder = SceneBuilder.over(ground.grid(), ground.topology()).missionCompletion(false);
+        builder.unit("far-marine", Faction.MARINE, UnitType.MARINE, ground.farTwo()[0], ground.farTwo()[1],
+                spec -> spec.moveSpeed(0f).health(TOUGH));
+        builder.unit("far-defender", Faction.DEFENDER, UnitType.MARINE, ground.farOne()[0], ground.farOne()[1],
+                spec -> spec.moveSpeed(0f).health(TOUGH));
+        for (int i = 0; i < MISSION_PATROLS; i++) {
+            builder.squad("patrol-" + i).faction(Faction.DEFENDER).type(UnitType.MILITIA).size(6)
+                    .at(ground.beside()[0] + (i % 2) * 4, ground.beside()[1] + (i / 2) * 2)
+                    .primary("weapon.smg").health(TOUGH).done();
+        }
+        for (int i = 0; i < LANCES; i++) {
+            builder.squad("lance-" + i).faction(Faction.DEFENDER).size(1)
+                    .at(ground.lance()[0] + 4 * i, ground.lance()[1]).mech(MechVariant.SIROCCO, MechRole.BALANCED).done();
+        }
+        builder.squad("raiders").faction(Faction.MARINE).size(6).at(ground.party()[0] + 2, ground.party()[1])
+                .primary("weapon.smg").health(TOUGH).stationary().done();
+        SceneWorld world = builder.build();
+        BattleSimulation sim = world.sim();
+        sim.setTacticalMap(new TacticalMap(new ArrayList<>(ground.nodes())));
+        sim.random().setSeed(20261020L);
+        ConquestDefenderCommand defenders = new ConquestDefenderCommand(new ConquestTrackLayout(
+                TraversalAxis.SOUTH_TO_NORTH, ground.grid().getWidth(), ground.grid().getHeight()));
+        for (int i = 0; i < MISSION_PATROLS; i++) {
+            sim.claimSquadCommand(world.squadId("patrol-" + i), CommandAuthority.MISSION_COMMAND,
+                    defenders.strategyId(), "scene patrol pool");
+        }
+        int[] lanceIds = new int[LANCES];
+        for (int i = 0; i < LANCES; i++) {
+            lanceIds[i] = world.squadId("lance-" + i);
+            sim.claimSquadCommand(lanceIds[i], CommandAuthority.MISSION_COMMAND, defenders.strategyId(), "scene lance pool");
+        }
+        sim.setAutonomousCommander(Faction.DEFENDER, defenders, ConquestCommandDisclosure.INSTANCE);
+
+        BuildingGuardTrace trace = new BuildingGuardTrace(lanceIds, defenders);
+        SceneRun.of(world).observe(trace)
+                .frames(frames, MISSION_COMMANDER, 60, tick -> MISSION_COMMANDER + " / tick " + tick + " / "
+                        + trace.caption())
+                .run(MISSION_TICKS);
+
+        int cap = MachineGuardDirector.cap(LANCES);
+        List<Verdict> verdicts = new ArrayList<>();
+        verdicts.add(Verdict.of("within-the-bound", trace.maxGuarding <= cap && trace.maxDirectorGuards <= cap,
+                "most lances on guard at once " + trace.maxGuarding + " (the director counted " + trace.maxDirectorGuards
+                        + "), bound " + cap + " of " + LANCES));
+        if (trace.buildingMannedTick >= 0) {
+            verdicts.add(Verdict.of("guard-attached-to-a-manned-building", trace.firstBuildingGuardTick >= 0,
+                    "the commander manned a building (only under pressure) from tick " + trace.buildingMannedTick
+                            + "; the first guard by a building stood at tick " + trace.firstBuildingGuardTick));
+        }
+        if (trace.firstBuildingGuardTick >= 0) {
+            verdicts.add(Verdict.of("guard-outside-its-building", trace.guardCellsInside == 0
+                            && trace.minGuardCellGap >= MachineGuards.GUARD_NEAR_CELLS,
+                    "nearest guard cell " + trace.minGuardCellGap + " cells from its building's footprint; "
+                            + trace.guardCellsInside + " guard cells inside it"));
+            verdicts.add(Verdict.of("never-stands-inside", trace.ticksInside == 0,
+                    "guarding chassis stood inside the guarded building on " + trace.ticksInside + " ticks"));
+        }
+        Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("buildingPosts", ground.posts());
+        metrics.put("buildingMannedTick", trace.buildingMannedTick);
+        metrics.put("firstBuildingGuardTick", trace.firstBuildingGuardTick);
+        metrics.put("maxGuarding", trace.maxGuarding);
+        metrics.put("buildingGuardTicks", trace.guardTicks);
+        metrics.put("minGuardCellGap", trace.minGuardCellGap == Integer.MAX_VALUE ? -1 : trace.minGuardCellGap);
+        sim.close();
+        return new SceneReport(id(), MISSION_COMMANDER, MISSION_TICKS, verdicts, metrics);
+    }
+
+    /** The defender's building garrisons and the lances guarding buildings, read off the simulation every tick. */
+    private static final class BuildingGuardTrace implements TickObserver {
+        final int[] lances;
+        final ConquestDefenderCommand command;
+        int buildingMannedTick = -1, firstBuildingGuardTick = -1, maxGuarding, maxDirectorGuards, guardTicks;
+        int guardCellsInside, minGuardCellGap = Integer.MAX_VALUE, ticksInside;
+        private String state = "";
+
+        BuildingGuardTrace(int[] lances, ConquestDefenderCommand command) {
+            this.lances = lances;
+            this.command = command;
+        }
+
+        String caption() { return state; }
+
+        @Override public void observe(BattleSimulation sim, int tick) {
+            boolean manning = false;
+            for (Squad squad : sim.getSquads()) {
+                if (squad.faction != Faction.DEFENDER || squad.isMechSquad() || squad.aliveMembers <= 0) continue;
+                ObjectiveAssignment order = squad.assignedObjective;
+                if (order != null && order.isEnvelope()) manning = true;
+            }
+            if (manning && buildingMannedTick < 0) buildingMannedTick = tick;
+            int guarding = 0;
+            boolean byBuilding = false;
+            for (int lance : lances) {
+                boolean any = false;
+                for (int i = 0, n = sim.squadMemberCount(lance); i < n; i++) {
+                    long mech = sim.squadMemberAt(lance, i);
+                    ActiveOrder order = sim.getMechMoveOrderService().activeOrder(mech);
+                    if (order == null || order.guard() == null || !order.commanded()) continue;
+                    any = true;
+                    AssaultTarget target = order.guard().target();
+                    if (target.kind() != AssaultTarget.Kind.HELD_PLACE) continue;
+                    byBuilding = true;
+                    minGuardCellGap = Math.min(minGuardCellGap, target.gap(order.destinationX(), order.destinationY()));
+                    if (target.contains(order.destinationX(), order.destinationY())) guardCellsInside++;
+                    if (target.contains(sim.world().cellX(mech), sim.world().cellY(mech))) ticksInside++;
+                }
+                if (any) guarding++;
+            }
+            if (byBuilding) {
+                guardTicks++;
+                if (firstBuildingGuardTick < 0) firstBuildingGuardTick = tick;
+            }
+            maxGuarding = Math.max(maxGuarding, guarding);
+            maxDirectorGuards = Math.max(maxDirectorGuards, command.machineGuardCount());
+            state = (manning ? "building manned" : "no building manned") + ", lances on guard " + guarding;
+        }
+    }
+
+    /**
+     * Open ground reached on foot from {@code (fromX, fromY)} whose gap to the building's box is within
+     * {@code [minGap, maxGap]}, with room for a squad's cluster (four by two), in sight of {@code sees} if given, and,
+     * if {@code awayFrom} is given, the qualifying cell furthest from it rather than the first found.
+     */
+    private static int[] ground(NavigationGrid grid, TacticalNode building, int fromX, int fromY, int minGap, int maxGap,
+                                int[] sees, int[] awayFrom) {
+        int w = grid.getWidth();
+        int h = grid.getHeight();
+        boolean[] seen = new boolean[w * h];
+        ArrayDeque<int[]> queue = new ArrayDeque<>();
+        queue.add(new int[]{fromX, fromY});
+        seen[fromY * w + fromX] = true;
+        int[][] steps = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        int[] best = null;
+        long bestDistance = -1;
+        while (!queue.isEmpty()) {
+            int[] c = queue.poll();
+            int gap = Math.max(Math.max(building.left - c[0], c[0] - building.right),
+                    Math.max(building.top - c[1], c[1] - building.bottom));
+            if (gap >= minGap && gap <= maxGap && roomy(grid, c[0], c[1])
+                    && (sees == null || grid.hasLineOfSight(c[0], c[1], sees[0], sees[1]))) {
+                if (awayFrom == null) return c;
+                long d = (long) (c[0] - awayFrom[0]) * (c[0] - awayFrom[0]) + (long) (c[1] - awayFrom[1]) * (c[1] - awayFrom[1]);
+                if (d > bestDistance) {
+                    bestDistance = d;
+                    best = c;
+                }
+            }
+            if (gap > maxGap + 4) continue;
+            for (int[] s : steps) {
+                int x = c[0] + s[0];
+                int y = c[1] + s[1];
+                if (x < 0 || y < 0 || x >= w || y >= h || seen[y * w + x] || !grid.isWalkable(x, y)) continue;
+                seen[y * w + x] = true;
+                queue.add(new int[]{x, y});
+            }
+        }
+        return best;
+    }
+
+    private static boolean roomy(NavigationGrid grid, int x, int y) {
+        for (int dy = 0; dy <= 1; dy++) {
+            for (int dx = 0; dx <= 7; dx++) {
+                if (!grid.inBounds(x + dx, y + dy) || !grid.isWalkable(x + dx, y + dy)) return false;
+            }
+        }
+        return true;
+    }
+
+    /** A walkable cell far from {@code (x, y)}: a corner of the map's open ground, out of the scene's way. */
+    private static int[] far(NavigationGrid grid, int x, int y) {
+        int[] best = null;
+        long bestDistance = -1;
+        for (int cy = 0; cy < grid.getHeight(); cy += 4) {
+            for (int cx = 0; cx < grid.getWidth(); cx += 4) {
+                if (!grid.isWalkable(cx, cy)) continue;
+                long d = (long) (cx - x) * (cx - x) + (long) (cy - y) * (cy - y);
+                if (d > bestDistance) {
+                    bestDistance = d;
+                    best = new int[]{cx, cy};
+                }
+            }
+        }
+        return best;
     }
 
     // ----- the player's guard ---------------------------------------------------------------
@@ -287,6 +688,8 @@ public final class MachineGuardScene implements BehaviorScene {
         int arrivedTick = -1, idleSamples, facingSamples;
         int attackersSeenTick = -1, approachShots, firstApproachShotTick = -1;
         int leftTick = -1, goneTick = -1, releaseTick = -1, endedWhileManned = -1;
+        int disabledTick = -1;
+        int lastGuardX = -1, lastGuardY = -1, lastGapToGuardCell = -1, standingTicks;
         boolean guarding;
 
         PlayerTrace(boolean tank, long machine, AssaultTarget place) {
@@ -328,6 +731,13 @@ public final class MachineGuardScene implements BehaviorScene {
                 minGapWhileGuarding = Math.min(minGapWhileGuarding, gap);
                 if (gap == 0) ticksInside++;
             }
+            if (guard != null) {
+                lastGuardX = guard.guardX();
+                lastGuardY = guard.guardY();
+                lastGapToGuardCell = Math.max(Math.abs((int) Math.floor(mx) - lastGuardX),
+                        Math.abs((int) Math.floor(my) - lastGuardY));
+                if (holding) standingTicks++;
+            }
             if (holding && arrivedTick < 0) arrivedTick = tick;
             if (holding && arrivedTick >= 0 && tick - arrivedTick >= SETTLE_TICKS) {
                 float want = tank ? TurretAim.bearingTo(0f, 0f, guard.axisX(), guard.axisY())
@@ -368,7 +778,12 @@ public final class MachineGuardScene implements BehaviorScene {
             if (acceptedGuard && !inside && goneTick < 0) goneTick = tick;
             if (guarding && guard == null) {
                 if (releaseTick < 0) releaseTick = tick;
-                if (inside && endedWhileManned < 0) endedWhileManned = tick;
+                // A crippled chassis or a disarmed hull ends its guard by law; that is the fight, not the garrison.
+                boolean disabled = tank ? !MachineAssaults.vehicleArmed(sim, machine)
+                        : !sim.world().isAlive(machine) || !sim.world().hasMechLoadout(machine)
+                        || MechDamageDoctrine.crippled(sim.world().mechLoadout(machine).sections());
+                if (disabled && disabledTick < 0) disabledTick = tick;
+                if (inside && !disabled && endedWhileManned < 0) endedWhileManned = tick;
             }
             guarding = guard != null;
         }
@@ -456,9 +871,9 @@ public final class MachineGuardScene implements BehaviorScene {
                     .at(cell[0], cell[1]).primary("weapon.smg").health(TOUGH).done();
         }
         for (int i = 0; i < LANCES; i++) {
-            // Outside the works on the open ground north-west of the fort: free to walk to the belt, and out of sight of
-            // the raiders at the south gate, so the lances are idle in the pool rather than already in contact.
-            int[] cell = walkable(probeSim, centre[0] - 45 + 8 * i, centre[1] - 30);
+            // In the works' yard, as a fort's own lances stand: the guard has to find its way out of the works to the belt.
+            // (They stood outside the works while a lance sent from the yard was dropped from the pool a pulse later.)
+            int[] cell = mechStand(probeSim, centre[0] - 4 + 8 * i, centre[1]);
             builder.squad("lance-" + i).faction(Faction.DEFENDER).size(1).at(cell[0], cell[1])
                     .mech(MechVariant.SIROCCO, MechRole.BALANCED).done();
         }
@@ -508,6 +923,9 @@ public final class MachineGuardScene implements BehaviorScene {
                             && trace.minGuardCellGap >= MachineGuards.GUARD_NEAR_CELLS,
                     "nearest guard cell " + trace.minGuardCellGap + " cells from its run's footprint; "
                             + trace.guardCellsInside + " guard cells on the run"));
+            verdicts.add(Verdict.of("guard-reaches-its-cell", trace.firstStoodTick >= 0,
+                    "a guard sent from the works' yard first stood on its cell at tick " + trace.firstStoodTick
+                            + " (attached at tick " + trace.firstGuardTick + ")"));
             verdicts.add(Verdict.of("never-stands-on-the-run", trace.ticksOnRun == 0,
                     "guarding chassis stood guard on the guarded run on " + trace.ticksOnRun + " ticks (crossed it on "
                             + trace.ticksCrossing + " ticks of the walk)"));
@@ -517,6 +935,7 @@ public final class MachineGuardScene implements BehaviorScene {
         metrics.put("firstGuardTick", trace.firstGuardTick);
         metrics.put("maxGuarding", trace.maxGuarding);
         metrics.put("guardTicks", trace.guardTicks);
+        metrics.put("firstStoodTick", trace.firstStoodTick);
         metrics.put("garrisonTicks", trace.garrisonTicks);
         metrics.put("ticksCrossingRun", trace.ticksCrossing);
         metrics.put("peakPressure", Math.round(trace.peakPressure * 100f) / 100f);
@@ -534,6 +953,7 @@ public final class MachineGuardScene implements BehaviorScene {
         int garrisonTicks;
         int mannedPressedTick = -1, firstGuardTick = -1, maxGuarding, maxDirectorGuards, guardTicks;
         int guardCellsInside, minGuardCellGap = Integer.MAX_VALUE, ticksOnRun, ticksCrossing;
+        int firstStoodTick = -1;
         private String state = "";
 
         final int run;
@@ -586,6 +1006,14 @@ public final class MachineGuardScene implements BehaviorScene {
                     }
                 }
                 if (any) guarding++;
+                for (int i = 0, n = sim.squadMemberCount(lance); i < n; i++) {
+                    long mech = sim.squadMemberAt(lance, i);
+                    ActiveOrder order = sim.getMechMoveOrderService().activeOrder(mech);
+                    if (order != null && order.guard() != null && order.commanded()
+                            && sim.movement().atCell(mech, order.destinationX(), order.destinationY())) {
+                        if (firstStoodTick < 0) firstStoodTick = tick;
+                    }
+                }
             }
             if (guarding > 0) {
                 guardTicks++;
@@ -617,6 +1045,24 @@ public final class MachineGuardScene implements BehaviorScene {
             }
         }
         return best != null ? best : walkable(sim, cx, cy);
+    }
+
+    /** The nearest cell to (x, y) whose centre a Sirocco can stand on, off prepared ground. */
+    private static int[] mechStand(BattleSimulation sim, int x, int y) {
+        for (int r = 0; r < 20; r++) {
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    int cx = x + dx;
+                    int cy = y + dy;
+                    if (!sim.getGrid().inBounds(cx, cy) || sim.fightingPositions().isFightingPositionCell(cx, cy)) continue;
+                    if (ManualTerrainMotion.canStand(sim.getGrid(), cx + 0.5f, cy + 0.5f, MechVariant.SIROCCO.radius)) {
+                        return new int[]{cx, cy};
+                    }
+                }
+            }
+        }
+        return new int[]{x, y};
     }
 
     private static int[] walkable(BattleSimulation sim, int x, int y) {

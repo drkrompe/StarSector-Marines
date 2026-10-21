@@ -246,24 +246,92 @@ class PlaceCounterattackTest {
         assertEquals(-1, counter.probeId());
     }
 
-    @Test
-    void aPlaceHeldByMoreThanCanBeRaisedIsNotAttemptedAndIsGivenUpAfterTheBound() {
-        PlaceCounterattack counter = new PlaceCounterattack();
+    /** Probed and observed held by more than can be raised: returns the pulse on which the group stood down. */
+    private static Pulse outmatched(PlaceCounterattack counter) {
         Pulse p = pulse(counter, 0, lost(), holders(40), List.of(), Losses.NONE);
         p = pulse(counter, 75, lost(), holders(40), p.members(), Losses.NONE);
-        p = pulse(counter, 150, lost(), holders(40), p.members(), Losses.NONE);
-        assertEquals(Stage.RESERVE, counter.stage(), "outmatched: it waits rather than going in: " + p.result().notes());
-        assertEquals(1, counter.failures(KEY));
-        assertTrue(p.result().notes().stream().anyMatch(n -> n.contains("outmatched")));
-        Pulse waiting = pulse(counter, 300, lost(), holders(40), p.members(), Losses.NONE);
-        assertEquals(Stage.RESERVE, counter.stage(), "left alone until the retry: " + waiting.result().notes());
-        int retry = 150 + PlaceCounterattack.RETRY_TICKS;
-        // Observed afresh after the retry, still too many: the place is given up.
-        p = pulse(counter, retry, lost(), holders(40), waiting.members(), Losses.NONE);
-        p = pulse(counter, retry + 75, lost(), holders(40), p.members(), Losses.NONE);
-        p = pulse(counter, retry + 150, lost(), holders(40), p.members(), Losses.NONE);
-        assertTrue(counter.abandoned(KEY), String.join("\n", p.result().notes()));
+        return pulse(counter, 150, lost(), holders(40), p.members(), Losses.NONE);
+    }
+
+    @Test
+    void aPlaceHeldByMoreThanCanBeRaisedIsNotAttemptedAndItsReserveGoesBackToThePool() {
+        PlaceCounterattack counter = new PlaceCounterattack();
+        Pulse p = outmatched(counter);
+        assertNull(counter.stage(), "outmatched: nobody waits for it: " + p.result().notes());
+        assertFalse(p.result().released().isEmpty(), "the reserve is given back");
+        assertTrue(p.result().orders().isEmpty());
+        assertEquals(0, counter.failures(KEY), "standing down is not a failed attempt");
+        assertFalse(counter.abandoned(KEY));
+        assertTrue(counter.waiting(KEY));
+        assertFalse(counter.claimsGround(KEY), "its ground is the ordinary defence's while it waits");
+        assertTrue(p.result().notes().stream().anyMatch(n -> n.contains("(outmatched: ")));
+        Pulse waiting = pulse(counter, 300, lost(), holders(40), List.of(), Losses.NONE);
+        assertNull(counter.stage(), "no reserve forms for a waiting place: " + waiting.result().notes());
+    }
+
+    @Test
+    void aWaitingPlaceIsObservedAgainAfterItsWaitAndEachWaitIsLonger() {
+        PlaceCounterattack counter = new PlaceCounterattack();
+        outmatched(counter);
+        int again = 150 + PlaceCounterattack.waitTicks(1);
+        Pulse p = pulse(counter, again - 75, lost(), holders(40), List.of(), Losses.NONE);
         assertNull(counter.stage());
+        p = pulse(counter, again, lost(), holders(40), List.of(), Losses.NONE);
+        assertNotNull(counter.stage(), "the wait is over: a reserve forms and probes again: " + p.result().notes());
+        assertTrue(counter.claimsGround(KEY));
+        p = pulse(counter, again + 75, lost(), holders(40), p.members(), Losses.NONE);
+        p = pulse(counter, again + 150, lost(), holders(40), p.members(), Losses.NONE);
+        p = pulse(counter, again + 225, lost(), holders(40), p.members(), Losses.NONE);
+        assertTrue(counter.waiting(KEY), "still too many: it waits again: " + p.result().notes());
+        assertEquals(0, counter.failures(KEY));
+        assertTrue(PlaceCounterattack.waitTicks(2) > PlaceCounterattack.waitTicks(1));
+        assertEquals(PlaceCounterattack.waitTicks(PlaceCounterattack.MAX_WAIT_RETRIES),
+                PlaceCounterattack.waitTicks(PlaceCounterattack.MAX_WAIT_RETRIES + 5), "the wait is bounded");
+    }
+
+    @Test
+    void aWaitingPlaceSeenToThinIsAttemptedAgainAtOnce() {
+        PlaceCounterattack counter = new PlaceCounterattack();
+        outmatched(counter);
+        List<Body> free = pool(150);
+        List<int[]> watching = new ArrayList<>(cells(free));
+        watching.add(new int[] {PX, PY + 12});
+        // A picket standing by the place sees only four there now, two pulses running.
+        Result first = counter.plan(300, lost(), KEEP, holders(4), watching, Losses.NONE, List.of(), free, 2, 8, topology);
+        assertTrue(counter.waiting(KEY), "one pulse is not an observation: " + first.notes());
+        Result second = counter.plan(375, lost(), KEEP, holders(4), watching, Losses.NONE, List.of(), free, 2, 8, topology);
+        assertFalse(counter.waiting(KEY), String.join("\n", second.notes()));
+        assertTrue(second.notes().stream().anyMatch(n -> n.contains("seen to have thinned")), String.join("\n", second.notes()));
+        assertEquals(4f, counter.believedHolders(KEY), 1e-6f);
+        assertNotNull(counter.stage(), "a reserve forms for it again");
+    }
+
+    @Test
+    void aMusterThatComesToBeOutmatchedStandsDownAtOnce() {
+        PlaceCounterattack counter = new PlaceCounterattack();
+        Pulse p = pulse(counter, 0, lost(), holders(14), List.of(), Losses.NONE);
+        p = pulse(counter, 75, lost(), holders(14), p.members(), Losses.NONE);
+        p = pulse(counter, 150, lost(), holders(14), p.members(), Losses.NONE);
+        assertEquals(Stage.MUSTER, counter.stage(), String.join("\n", p.result().notes()));
+        // While it gathers, the place is seen to hold far more than the side can raise.
+        Pulse grown = pulse(counter, 225, lost(), holders(40), p.members(), Losses.NONE);
+        assertNull(counter.stage(), "it does not wait out the muster's bound: " + grown.result().notes());
+        assertTrue(counter.waiting(KEY));
+        assertEquals(0, counter.failures(KEY));
+    }
+
+    @Test
+    void theFirstFormCountsAnOutmatchedPlaceAsAFailedAttempt() {
+        boolean was = PlaceCounterattack.standDown;
+        PlaceCounterattack.standDown = false;
+        try {
+            PlaceCounterattack counter = new PlaceCounterattack();
+            Pulse p = outmatched(counter);
+            assertEquals(Stage.RESERVE, counter.stage(), String.join("\n", p.result().notes()));
+            assertEquals(1, counter.failures(KEY));
+        } finally {
+            PlaceCounterattack.standDown = was;
+        }
     }
 
     @Test
@@ -278,8 +346,8 @@ class PlaceCounterattackTest {
             pulse(counter, 150, lost(), holders(6), p.members(), losses);
         }
         assertTrue(quiet.stage() == Stage.MUSTER || quiet.stage() == Stage.LAUNCHED, "six seen and nothing lost: it goes");
-        assertEquals(Stage.RESERVE, costly.stage(), "six seen where a hundred of ours fell: more than six hold it");
-        assertEquals(1, costly.failures(KEY));
+        assertNull(costly.stage(), "six seen where a hundred of ours fell: more than six hold it");
+        assertTrue(costly.waiting(KEY));
     }
 
     // ------------------------------------------------------------------------------------------------- launch
@@ -362,18 +430,28 @@ class PlaceCounterattackTest {
     }
 
     @Test
-    void aQuietPlaceHoldsNobodyBackUntilTheBattleReachesTheSideAndAnAlarmedOneDoes() {
+    void nothingIsHeldBackBeforeAPlaceIsLostUnlessAnAlarmReserveIsAsked() {
         PlaceCounterattack quiet = new PlaceCounterattack();
         quiet.plan(0, List.of(place(Status.HELD, false)), KEEP, List.of(), List.of(), Losses.NONE, List.of(), pool(150),
                 2, 8, topology);
         assertNull(quiet.stage());
-        PlaceCounterattack alarmed = new PlaceCounterattack();
-        Result result = alarmed.plan(0, List.of(place(Status.HELD, true)), KEEP, List.of(), List.of(), Losses.NONE,
-                List.of(), pool(150), 2, 8, topology);
-        assertEquals(Stage.RESERVE, alarmed.stage());
-        assertEquals(2, result.recruited().size(), "before anything is lost the reserve is the law's share");
-        assertEquals(new TreeSet<>(result.recruited()), new TreeSet<>(alarmed.lendable()),
-                "the law's share may all man its own place's garrisonables while nothing is lost");
+        PlaceCounterattack alarmedByDefault = new PlaceCounterattack();
+        alarmedByDefault.plan(0, List.of(place(Status.HELD, true)), KEEP, List.of(), List.of(), Losses.NONE, List.of(),
+                pool(150), 2, 8, topology);
+        assertNull(alarmedByDefault.stage(), "an alarmed place that still holds is the ordinary defence's");
+        boolean was = PlaceCounterattack.formOnAlarm;
+        PlaceCounterattack.formOnAlarm = true;
+        try {
+            PlaceCounterattack alarmed = new PlaceCounterattack();
+            Result result = alarmed.plan(0, List.of(place(Status.HELD, true)), KEEP, List.of(), List.of(), Losses.NONE,
+                    List.of(), pool(150), 2, 8, topology);
+            assertEquals(Stage.RESERVE, alarmed.stage());
+            assertEquals(2, result.recruited().size(), "before anything is lost the reserve is the law's share");
+            assertEquals(new TreeSet<>(result.recruited()), new TreeSet<>(alarmed.lendable()),
+                    "the law's share may all man its own place's garrisonables while nothing is lost");
+        } finally {
+            PlaceCounterattack.formOnAlarm = was;
+        }
         PlaceCounterattack finite = new PlaceCounterattack(PlaceCounterattack.Doctrine.finitePool(12));
         Result all = finite.plan(0, List.of(place(Status.HELD, false)), KEEP, List.of(), List.of(), Losses.NONE,
                 List.of(), pool(150), 0, 8, topology);
@@ -382,12 +460,19 @@ class PlaceCounterattackTest {
 
     @Test
     void aReserveBehindAHeldPlaceMovesToOneThatTurns() {
-        PlaceCounterattack counter = new PlaceCounterattack();
-        Place held = new Place("compound 2", PX, 120, 20, Status.HELD, 1f, true, false, place(Status.HELD, false).assault());
-        Pulse p = pulse(counter, 0, List.of(held, place(Status.HELD, false)), List.of(), List.of(), Losses.NONE);
-        assertEquals("compound 2", counter.placeKey(), "the nearer home, alarmed");
-        pulse(counter, 75, List.of(held, place(Status.LOST, false)), holders(4), p.members(), Losses.NONE);
-        assertEquals(KEY, counter.placeKey());
+        boolean was = PlaceCounterattack.formOnAlarm;
+        PlaceCounterattack.formOnAlarm = true;
+        try {
+            PlaceCounterattack counter = new PlaceCounterattack();
+            Place held = new Place("compound 2", PX, 120, 20, Status.HELD, 1f, true, false,
+                    place(Status.HELD, false).assault());
+            Pulse p = pulse(counter, 0, List.of(held, place(Status.HELD, false)), List.of(), List.of(), Losses.NONE);
+            assertEquals("compound 2", counter.placeKey(), "the nearer home, alarmed");
+            pulse(counter, 75, List.of(held, place(Status.LOST, false)), holders(4), p.members(), Losses.NONE);
+            assertEquals(KEY, counter.placeKey());
+        } finally {
+            PlaceCounterattack.formOnAlarm = was;
+        }
     }
 
     private static ConquestCommandFacts.Compound compound(CompoundState state, TacticalNode node) {

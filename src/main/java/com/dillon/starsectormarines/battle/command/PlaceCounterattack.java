@@ -20,16 +20,20 @@ import java.util.TreeSet;
  *
  * <p>One group at a time, for one place, through four stages:
  * <ul>
- *   <li><b>Reserve.</b> A share of the mobile pool waits at a staging cell behind the place most worth guarding, on the
- *       line from home (the keep, or the side's home site) and clear of believed contact ({@link AssaultMuster#rallyCell}).
- *       It is the counter-attack's core and counts as the reserve law's share, not in addition to it.</li>
+ *   <li><b>Reserve.</b> Once a place has turned, a share of the mobile pool waits at a staging cell behind the turned
+ *       place most worth retaking, on the line from home (the keep, or the side's home site) and clear of believed
+ *       contact ({@link AssaultMuster#rallyCell}). It is the counter-attack's core and counts as the reserve law's share,
+ *       not in addition to it. Nothing is held back before a place is lost unless {@link #formOnAlarm} asks for it.</li>
  *   <li><b>Probe.</b> Once the place has turned, and before anything commits, the side establishes what holds it. If no
  *       own squad has watched the place lately, one member of the group closes to an observation post short of it and
  *       watches for a couple of pulses; any own squad already standing within observation range (a picket, a recon car,
  *       a drone flight) serves as well. The group is then sized from the <b>observed holders</b> with a
  *       {@link #MARGIN margin}, plus a weight for the side's own <b>remembered losses</b> on that ground, raised for each
- *       failed attempt ({@link #required}). If that cannot be raised the place is not attempted: it counts as a failed
- *       attempt, the place is left for {@link #RETRY_TICKS}, and it is observed afresh before the next decision.</li>
+ *       failed attempt ({@link #required}). If that cannot be raised the place is not attempted and the group stands
+ *       down: its squads go back to the ordinary pool, the place's ground is the ordinary defence's again, and the
+ *       place <b>waits</b>. It is observed afresh after a while ({@link #waitTicks}), or sooner when own squads watching
+ *       it see its holders thin to what could be raised. Standing down is not a failed attempt: the holders may move
+ *       on.</li>
  *   <li><b>Muster.</b> The group recruits the nearest free squads at useful strength until it holds what the place takes,
  *       never the last free squad, and gathers at the staging cell. The probe keeps its post and keeps watching.</li>
  *   <li><b>Launched.</b> When what stands at the staging cell (and the probe at its post) reaches what the place takes, or
@@ -101,6 +105,11 @@ final class PlaceCounterattack {
     static final int ASSAULT_TICKS = 3600;
     /** Ticks a place is left after a failed attempt before the next decision (80 s). UNTUNED. */
     static final int RETRY_TICKS = 2400;
+    /**
+     * The longest a place judged outmatched waits before it is observed again, in {@link #RETRY_TICKS}: each stand-down
+     * waits one longer than the last, up to this many. UNTUNED.
+     */
+    static final int MAX_WAIT_RETRIES = 3;
     /** Failed attempts after which a place is given up for good. UNTUNED. */
     static final int MAX_ATTEMPTS = 2;
     /** The least mobile pool, in squads, that holds a reserve for a counter-attack at all. */
@@ -131,6 +140,24 @@ final class PlaceCounterattack {
      * small garrison mans its compound with, and the law already keeps that share from the track response.
      */
     static volatile boolean formOnContact = knob("formOnContact", 0f) > 0f;
+    /**
+     * Whether a place judged outmatched waits (its group stands down to the ordinary pool, and the place is observed again
+     * later) rather than counting as a failed attempt with the reserve held at its staging cell. Off is the first form.
+     */
+    static volatile boolean standDown = knob("standDown", 1f) > 0f;
+    /**
+     * Whether the reserve grows past the law's share as soon as a place has turned, before anything has decided the place
+     * is worth attempting; off, the larger share is drawn by the muster itself, so a reserve waiting on a probe is the
+     * law's share and no more.
+     */
+    static volatile boolean growBeforeMuster = knob("growBeforeMuster", 1f) > 0f;
+    /**
+     * Whether the ordinary defence may man the garrisonables of a turned place the counter-attack does not claim (one it
+     * has stood down from, or given up); off, nothing on any turned place's ground is manned.
+     */
+    static volatile boolean manLostGround = knob("manLostGround", 0f) > 0f;
+    /** Whether a reserve forms behind a held place whose own alarm stands, before anything is lost. */
+    static volatile boolean formOnAlarm = knob("formOnAlarm", 0f) > 0f;
     /** Whether the reserve above the law's share may be lent to man its own place's pressed garrisonables while it holds. */
     static volatile boolean lendToBelt = knob("lendToBelt", 1f) > 0f;
 
@@ -236,6 +263,8 @@ final class PlaceCounterattack {
         float repulsedBy;
         /** The most believed at the place during the current push. */
         float pushPeak;
+        /** Consecutive pulses a waiting place has been watched holding no more than could now be raised against it. */
+        int thinPulses;
     }
 
     private static final class Group {
@@ -267,6 +296,11 @@ final class PlaceCounterattack {
     private final Map<String, Integer> retryAt = new TreeMap<>();
     private final Set<String> abandoned = new TreeSet<>();
     private final Map<String, Estimate> estimates = new TreeMap<>();
+    /** Places judged outmatched: the tick each is observed again, and how many times each has stood down. */
+    private final Map<String, Integer> waitUntil = new TreeMap<>();
+    private final Map<String, Integer> standDowns = new TreeMap<>();
+    /** The tick of the last plan, for {@link #claimsGround}. */
+    private int lastTick = Integer.MIN_VALUE;
     /** This pulse's lendable members ({@link #lendable()}). */
     private List<Integer> lendable = List.of();
     /** Whether any hostile mover has been believed this battle: the attack has begun, and a quiet pulse does not end it. */
@@ -326,6 +360,32 @@ final class PlaceCounterattack {
 
     boolean abandoned(String key) {
         return abandoned.contains(key);
+    }
+
+    /** Whether a place judged outmatched is waiting to be observed again, as of the last plan. */
+    boolean waiting(String key) {
+        return waiting(lastTick, key);
+    }
+
+    private boolean waiting(int tick, String key) {
+        Integer until = waitUntil.get(key);
+        return until != null && tick < until;
+    }
+
+    /**
+     * Whether a turned place's ground is the counter-attack's question, as of the last plan: a group with squads in it
+     * stands for the place, which is neither given up nor waiting after a stand-down. Any other turned place (one it
+     * has stepped back from, or has nobody for) is the ordinary defence's, so the track response, flow and its
+     * garrisonables answer what is on it.
+     */
+    boolean claimsGround(String key) {
+        return group != null && group.key.equals(key) && !group.members.isEmpty() && !abandoned.contains(key)
+                && !waiting(key);
+    }
+
+    /** How long a place waits after its n-th stand-down. */
+    static int waitTicks(int standDowns) {
+        return RETRY_TICKS * Math.max(1, Math.min(MAX_WAIT_RETRIES, standDowns));
     }
 
     /** The group's stage, or {@code null} with no group. */
@@ -450,6 +510,7 @@ final class PlaceCounterattack {
     Result plan(int tick, List<Place> places, int[] keep, List<Hostile> hostiles, List<int[]> watchers, Losses losses,
                 List<Body> members, List<Body> free, int reserveTarget, int poolSquads, CommandTopology topology) {
         lendable = List.of();
+        lastTick = tick;
         Map<Integer, Order> orders = new TreeMap<>();
         List<Integer> recruited = new ArrayList<>();
         List<Integer> released = new ArrayList<>();
@@ -464,14 +525,18 @@ final class PlaceCounterattack {
             if (place.turned()) continue;
             abandoned.remove(place.key());
             estimates.remove(place.key());
+            waitUntil.remove(place.key());
         }
         if (!hostiles.isEmpty()) contactSeen = true;
         int lawTarget = reserveTarget;
         // Before anything is lost the reserve is the law's share, waiting where it is most useful; the counter-attack's
         // larger share is drawn once a place has turned (or from the start for a pool that is all counter-attack).
         boolean anyTurned = false;
-        for (Place place : places) anyTurned |= place.turned() && !abandoned.contains(place.key());
-        if (doctrine.reserveShare() > 0f && (anyTurned || doctrine.formAtOnce())) {
+        for (Place place : places) {
+            anyTurned |= place.turned() && !abandoned.contains(place.key()) && !waiting(tick, place.key());
+        }
+        boolean deciding = group != null && (group.stage == Stage.MUSTER || group.stage == Stage.LAUNCHED);
+        if (doctrine.reserveShare() > 0f && (anyTurned && (growBeforeMuster || deciding) || doctrine.formAtOnce())) {
             reserveTarget = Math.max(reserveTarget, Math.round(poolSquads * doctrine.reserveShare()));
         }
         boolean keepThreatened = keep != null && anyWithin(hostiles, keep[0], keep[1], KEEP_GUARD_CELLS);
@@ -481,6 +546,7 @@ final class PlaceCounterattack {
         if (group != null && group.stage == Stage.PROBE && byId.containsKey(group.probeId)
                 && byId.get(group.probeId).inContact()) engaged = group.key;
         observe(tick, places, hostiles, watchers, engaged);
+        thinning(tick, places, hostiles, losses, byId, free, topology, notes);
 
         if (group != null) {
             group.members.retainAll(byId.keySet());
@@ -526,7 +592,7 @@ final class PlaceCounterattack {
             if (place.turned() && tick >= retryAt.getOrDefault(group.key, Integer.MIN_VALUE)) {
                 if (informed && !observed(tick, group.key)) {
                     // Somebody of ours is watching it already (a picket, a recon car): wait for that, send nobody.
-                    if (!watchedNow(tick, group.key)) startProbe(tick, place, byId, topology, notes);
+                    if (!watchedNow(tick, group.key)) startProbe(tick, place, byId, recruitable, recruited, topology, notes);
                 } else {
                     decide(tick, place, hostiles, losses, byId, recruitable, released, notes);
                 }
@@ -537,7 +603,15 @@ final class PlaceCounterattack {
         }
         if (group != null && group.stage == Stage.MUSTER) {
             group.required = Math.max(group.required, requiredFor(place, hostiles, losses));
-            muster(tick, recruitable, byId, recruited, released, notes);
+            float raisable = strength(group.members, byId) + strength(recruitable.subList(0,
+                    Math.max(0, recruitable.size() - RESERVE_FLOOR)));
+            if (informed && standDown && !worth(raisable, group.required)) {
+                // What the place takes has outgrown what can be raised while the group gathered: waiting at the staging
+                // cell for the muster's bound would only hold the pool out of the fight.
+                standDown(tick, place, group.required, raisable, released, notes);
+            } else {
+                muster(tick, recruitable, byId, recruited, released, notes);
+            }
         }
         if (group == null) return new Result(orders, recruited, released, notes);
         if (group.stage == Stage.LAUNCHED) {
@@ -555,6 +629,39 @@ final class PlaceCounterattack {
         }
         if (group != null) notes.add(standing(byId, place, hostiles, losses));
         return new Result(orders, recruited, released, notes);
+    }
+
+    /**
+     * A waiting place watched by own squads (whoever stands near it) for a couple of pulses holding no more than could now
+     * be raised against it has thinned: it stops waiting, and what was seen is the estimate, a push's old peak included.
+     */
+    private void thinning(int tick, List<Place> places, List<Hostile> hostiles, Losses losses, Map<Integer, Body> byId,
+                          List<Body> free, CommandTopology topology, List<String> notes) {
+        if (waitUntil.isEmpty()) return;
+        float raisable = -1f;
+        for (Place place : places) {
+            if (!place.turned() || !waiting(tick, place.key())) continue;
+            Estimate estimate = estimates.get(place.key());
+            if (estimate == null || estimate.observedTick != tick) continue;
+            if (raisable < 0f) {
+                List<Body> recruitable = recruitable(free, byId.keySet(), topology);
+                raisable = strength(byId.values()) + strength(recruitable.subList(0,
+                        Math.max(0, recruitable.size() - RESERVE_FLOOR)));
+            }
+            float seen = believedAt(hostiles, place);
+            int required = required(seen, losses.near(place.x(), place.y(), place.radius()), failures(place.key()),
+                    doctrine.floor());
+            estimate.thinPulses = worth(raisable, required) ? estimate.thinPulses + 1 : 0;
+            if (estimate.thinPulses < OBSERVE_PULSES) continue;
+            waitUntil.remove(place.key());
+            estimate.holders = seen;
+            estimate.repulsedBy = 0f;
+            estimate.watchedPulses = OBSERVE_PULSES;
+            estimate.thinPulses = 0;
+            notes.add(String.format(Locale.ROOT, "counter-attack for %s: its holders are seen to have thinned (%.0f "
+                    + "believed, %d needed, %.0f can be raised); it is attempted again", place.key(), seen, required,
+                    raisable));
+        }
     }
 
     /** Every turned place an own squad stands near: what is believed there now is what it observed. */
@@ -606,8 +713,8 @@ final class PlaceCounterattack {
     }
 
     /** Sends one member to watch the place from an observation post short of it. */
-    private void startProbe(int tick, Place place, Map<Integer, Body> byId, CommandTopology topology,
-                            List<String> notes) {
+    private void startProbe(int tick, Place place, Map<Integer, Body> byId, List<Body> recruitable,
+                            List<Integer> recruited, CommandTopology topology, List<String> notes) {
         int[] post = observationPost(place, topology);
         Body probe = null;
         double best = Double.MAX_VALUE;
@@ -620,7 +727,21 @@ final class PlaceCounterattack {
                 probe = body;
             }
         }
-        if (probe == null) return;
+        if (probe == null) {
+            // A reserve with nobody in it (its share is the law's, and the pool is busy) still looks: the nearest free
+            // squad goes, never the last.
+            for (int i = 0; i < recruitable.size() - RESERVE_FLOOR; i++) {
+                Body body = recruitable.get(i);
+                double gap = Math.hypot(body.x() - post[0], body.y() - post[1]);
+                if (gap < best) {
+                    best = gap;
+                    probe = body;
+                }
+            }
+            if (probe == null) return;
+            take(probe, byId, recruited);
+            recruitable.remove(probe);
+        }
         group.stage = Stage.PROBE;
         group.probeId = probe.squadId();
         group.probeX = post[0];
@@ -681,12 +802,31 @@ final class PlaceCounterattack {
                     informed ? believedHolders(place.key()) : believedAt(hostiles, place),
                     losses.near(place.x(), place.y(), place.radius()), raisable, group.stageX, group.stageY,
                     group.musterUntil));
+        } else if (informed && standDown) {
+            standDown(tick, place, required, raisable, released, notes);
         } else if (informed) {
             // Outmatched: the place is not attempted, which is an attempt spent. It is observed afresh before the next.
             group.probeId = -1;
             fail(tick, String.format(Locale.ROOT, "outmatched: believed to take %d, %.0f can be raised", required,
                     raisable), released, notes);
         }
+    }
+
+    /**
+     * Outmatched: the place is not attempted, and the group is no use waiting for it. It stands down to the ordinary
+     * pool, and the place is observed again later (or sooner, if it is seen to thin).
+     */
+    private void standDown(int tick, Place place, int required, float raisable, List<Integer> released,
+                           List<String> notes) {
+        int count = standDowns.merge(place.key(), 1, Integer::sum);
+        int until = tick + waitTicks(count);
+        waitUntil.put(place.key(), until);
+        Estimate estimate = estimates.get(place.key());
+        if (estimate != null) estimate.thinPulses = 0;
+        notes.add(String.format(Locale.ROOT, "counter-attack for %s stands down (outmatched: believed to take %d, "
+                + "%.0f can be raised); its squads go back to the pool, observed again from tick %d", place.key(),
+                required, raisable, until));
+        dissolve(released, notes, null);
     }
 
     /** Ends or advances the group already standing: success, failure, home, a place back in hand and quiet. */
@@ -741,7 +881,7 @@ final class PlaceCounterattack {
         float bestValue = -1f;
         double bestGap = Double.MAX_VALUE;
         for (Place place : places) {
-            if (abandoned.contains(place.key())) continue;
+            if (abandoned.contains(place.key()) || waiting(tick, place.key())) continue;
             double gap = Math.hypot(place.x() - home[0], place.y() - home[1]);
             if (keep != null && gap > doctrine.maxRetakeCells()) continue;
             float value = value(place.worth(), gap, doctrine.maxRetakeCells());
@@ -749,7 +889,7 @@ final class PlaceCounterattack {
             int tier;
             if (place.turned()) {
                 tier = 0;
-            } else if (place.alarmed()) {
+            } else if (place.alarmed() && formOnAlarm) {
                 tier = 1;
             } else if (doctrine.formAtOnce() || doctrine.formOnContact() && contactSeen) {
                 tier = 2;
@@ -930,6 +1070,8 @@ final class PlaceCounterattack {
     }
 
     private boolean reaches(Body body, CommandTopology topology) {
+        // With no group there is no staging cell yet: what could be raised is judged on strength alone.
+        if (group == null) return true;
         if (body.x() == group.stageX && body.y() == group.stageY) return true;
         return topology.inBounds(body.x(), body.y()) && topology.reachable(body.x(), body.y(), group.stageX, group.stageY);
     }

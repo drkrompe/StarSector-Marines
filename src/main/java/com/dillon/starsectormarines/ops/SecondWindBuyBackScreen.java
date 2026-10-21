@@ -18,16 +18,11 @@ import java.util.Map;
  * is never refused: what the account cannot cover becomes debt at the month's end.
  */
 public final class SecondWindBuyBackScreen extends MissionFlowMlxScreen {
-    private final String port;
     private final Runnable bought;
 
-    /**
-     * @param port the port she is bought back at, for Castle's line
-     * @param bought runs after the purchase, before the page closes
-     */
-    public SecondWindBuyBackScreen(String port, Runnable bought) {
+    /** @param bought runs after the purchase, before the page closes */
+    public SecondWindBuyBackScreen(Runnable bought) {
         super(CompanyPrologueScreen.ROOT, CompanyPrologueScreen.COMPONENTS);
-        this.port = port;
         this.bought = bought;
     }
     @Override protected List<String> requiredElementIds() {
@@ -37,7 +32,7 @@ public final class SecondWindBuyBackScreen extends MissionFlowMlxScreen {
         SecondWindLoss loss = SecondWindKeeper.loss();
         int credits = (int) Global.getSector().getPlayerFleet().getCargo().getCredits().get();
         return model(loss == null ? Cause.BATTLE : loss.cause(),
-                loss == null || loss.ship() == null ? null : loss.ship().getShipName(), port, credits,
+                loss == null || loss.ship() == null ? null : loss.ship().getShipName(), credits,
                 loss == null ? 0 : loss.bill(), loss == null ? null : loss.dMod(), this::buy, () -> dismissDialog.run());
     }
     private void buy() {
@@ -46,7 +41,7 @@ public final class SecondWindBuyBackScreen extends MissionFlowMlxScreen {
     }
     @Override protected void onCancel() { dismissDialog.run(); }
 
-    static Map<String, Object> model(Cause cause, String shipName, String port, int credits, int bill, String dMod,
+    static Map<String, Object> model(Cause cause, String shipName, int credits, int bill, String dMod,
                                      Runnable buy, Runnable leave) {
         String name = shipName == null || shipName.isBlank() ? "Second Wind" : shipName;
         boolean market = cause.onTheMarket();
@@ -54,7 +49,7 @@ public final class SecondWindBuyBackScreen extends MissionFlowMlxScreen {
         props.put("heading", Strings.get("secondWindBuyBackHeading"));
         props.put("page", "");
         props.put("portrait", CompanyManagementGuide.portrait());
-        props.put("image", CompanyPrologueScreen.image(market ? "buyback-open-market" : "buyback-towed-in"));
+        props.put("image", CompanyPrologueScreen.image(market ? "yard-chits" : "yard-hull"));
         props.put("title", Strings.get(market ? "secondWindBuyBackMarketTitle" : "secondWindBuyBackBattleTitle"));
         props.put("caption", Strings.get(market ? "secondWindBuyBackMarketCaption" : "secondWindBuyBackBattleCaption"));
         props.put("narrative", Strings.format(switch (cause) {
@@ -64,7 +59,7 @@ public final class SecondWindBuyBackScreen extends MissionFlowMlxScreen {
             case OTHER -> "secondWindBuyBackOtherNarrative";
         }, name));
         props.put("dialogue", Strings.format(market ? "secondWindBuyBackMarketDialogue" : "secondWindBuyBackBattleDialogue",
-                name, port == null ? "" : port));
+                name));
         props.put("manifest", dMod == null ? Strings.get("secondWindBuyBackNoDMod")
                 : Strings.format("secondWindBuyBackDMod", dMod));
         int after = credits - bill;
@@ -77,6 +72,7 @@ public final class SecondWindBuyBackScreen extends MissionFlowMlxScreen {
         props.put("skipClasses", CompanyPrologueScreen.SKIP_CLASSES);
         props.put("nextDisabled", false);
         props.put("backDisabled", true);
+        props.put("backClasses", CompanyPrologueScreen.BACK_OFF_CLASSES);
         props.put("next", buy); props.put("back", (Runnable) () -> { }); props.put("skip", leave);
         return props;
     }

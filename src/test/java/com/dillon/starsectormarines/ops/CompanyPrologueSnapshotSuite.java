@@ -51,7 +51,7 @@ public final class CompanyPrologueSnapshotSuite implements SnapshotSuite {
     /** Getting Second Wind back after each kind of loss: the bill, the account, and the d-mod she carries. */
     private SnapshotArtifact buyBackFrame(MarkupLoader loader, HeadlessUiRenderer renderer, Cause cause,
                                           int credits, int bill, String dMod, String name) {
-        var props = SecondWindBuyBackScreen.model(cause, "Second Wind", "Jangala", credits, bill, dMod, () -> {}, () -> {});
+        var props = SecondWindBuyBackScreen.model(cause, "Second Wind", credits, bill, dMod, () -> {}, () -> {});
         return renderFrame(loader, renderer, props, name);
     }
     /**
