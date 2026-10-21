@@ -18,10 +18,15 @@ empty carries the impact's start frame (`imp_frame`), and every driver of that i
 there, so any number of hits land at their own times without a knob each.
 
 The looks, from asharu-effects.md:
-  kinetic   a spray of white-yellow sparks thrown off the face, a tight flash for two or
-            three frames, and a small pock left glowing orange that cools to a dark scorch.
-  he        an orange flash with a short fireball that goes to dark smoke fast in vacuum,
-            slow orange spall flung off the face, and a wider glowing crater.
+  kinetic   a spray of white-yellow sparks thrown off the face, a tight jagged flash for two
+            or three frames, and a small pock left glowing orange that cools to a dark scorch.
+  he        an orange jagged burst thrown out of the face (lobed flash, shrapnel cooling
+            fast, torn smoke that thins in vacuum), slow orange spall, a wider glowing crater.
+
+Bursts, not orbs (owner, 2026-10-21): the flash and the HE blast are `swfx_burst`'s, leaning
+along the surface normal. STYLE (or style= on kinetic/he/breach) 'orb' brings back the old
+flash sphere and volume fireball as the control. A burst is keyed from the impact's frame at
+build time and hangs from the impact's empty.
   breach    an HE blast at the hole, then the fire group's own flame, smoke and flickering
             light coming up over a second and a vent of pale vapour along the normal; timed by
             the breach's own empty, not by the build's fir_exp_frame.
@@ -56,6 +61,7 @@ from swfx_smoke import G, _ballistic, _sock, _no_shadow_catch, _rnd, _spark_grou
 
 GROUP = 'Impacts'
 PREFIX = 'SWFX impact'
+STYLE = 'jagged'         # 'orb': the old flash sphere and volume fireball
 FPS = swfx_core.FPS
 LEAK_FLUX = .75
 SHARD_SIDES = 7          # rim points of one debris shard before it is torn
@@ -154,9 +160,22 @@ def _sparks(ctx, e, seed, name, count, speed_m, life_s, width, knob, gain, cool,
     return _child(ob, e)
 
 
-def _flash(ctx, e, seed, radius_m, decay_s, metre_watts, colour=(1.0, .86, .6)):
+def _burst(ctx, e, flash_rgb, size_m, **kw):
+    """swfx_burst's jagged burst at the impact, thrown along its normal, hanging from its empty."""
+    import random
+    import swfx_burst
+    import swfx_missile_paths as mp
+    m = mp.anchor_matrix(e)
+    return swfx_burst.burst(ctx, ctx.collection(GROUP), f'{e.name[len(PREFIX) + 1:]}', m.translation,
+                            int(round(e['imp_frame'])), swfx_core.METRES_PER_UNIT, random.Random(f'swfx-impact|{e.name}'),
+                            flash_rgb, size_m=size_m, axis=m.to_3x3() @ Vector((0, 0, 1)), parent=e,
+                            prefix=PREFIX, **kw)
+
+
+def _flash(ctx, e, seed, radius_m, decay_s, metre_watts, colour=(1.0, .86, .6), body=True, style=None):
     """The flash: a point light and a small white-hot body over the impact, gone in a few frames
-    (held a touch longer than vacuum would, owner 2026-10-20)."""
+    (held a touch longer than vacuum would, owner 2026-10-20). The body is a jagged burst flash
+    (style 'jagged', the default) or the old soft sphere ('orb'); body=False: the light only."""
     from swfx_lighting import watts
     coll = ctx.collection(GROUP)
     te = f'((frame-t0)/{FPS})'
@@ -164,6 +183,11 @@ def _flash(ctx, e, seed, radius_m, decay_s, metre_watts, colour=(1.0, .86, .6)):
     light = swfx_core.point_light(f'{PREFIX} flash light | {e.name}', coll, colour, 0.0, radius=units(radius_m * .5))
     _child(light, e, (0, 0, units(radius_m * .6)))
     ctx.drive(light.data, 'energy', f'{watts(metre_watts):.1f}*{env}', ('imp_flash',), extra=_start(e))
+    if not body:
+        return [light]
+    if (style or STYLE) == 'jagged':
+        return [light] + _burst(ctx, e, colour, (radius_m * .8, radius_m * 1.2), shrapnel=None, smoke=0,
+                                flash_frames=max(2, int(round(decay_s * FPS * 2))))
     m, nodes, links = node_material(f'{PREFIX} flash body {seed}')
     g = G(m.node_tree)
     strength = value_node(ctx, nodes, 'strength', f'{25.0:.1f}*{env}', ('imp_flash',), extra=_start(e))
@@ -283,18 +307,18 @@ def _pock(ctx, e, seed, radius_m, gain, scorch=.85):
 
 # ======================================================================================= impacts
 
-def kinetic(ctx, frame, at_m, normal, scale=1.0):
+def kinetic(ctx, frame, at_m, normal, scale=1.0, style=None):
     """A kinetic round on armour: sparks, a tight flash, a glowing pock. Returns its record."""
     k = KINDS['kinetic']
     e, seed = anchor(ctx, 'kinetic', frame, at_m, normal)
     obs = [_sparks(ctx, e, seed, 'kinetic spark', k['sparks'], [v * scale for v in k['spark_speed']], k['spark_life'],
                    k['spark_width'] * scale ** .5, 'imp_sparks', k['spark_gain'], (1.0, .5, .12, 1), (1.0, .92, .7, 1))]
-    obs += _flash(ctx, e, seed, k['flash_m'] * scale, k['flash_s'], k['flash_W'] * scale ** 2)
+    obs += _flash(ctx, e, seed, k['flash_m'] * scale, k['flash_s'], k['flash_W'] * scale ** 2, style=style)
     obs.append(_pock(ctx, e, seed, k['pock_m'] * scale, k['pock_gain']))
     return _record('kinetic', frame, at_m, e, obs)
 
 
-def he(ctx, frame, at_m, normal, size_m=None, scale=1.0, flash_colour=(1.0, .62, .3)):
+def he(ctx, frame, at_m, normal, size_m=None, scale=1.0, flash_colour=(1.0, .62, .3), style=None):
     """A high-explosive shell on armour: an orange flash and short fireball, slow spall, sparks,
     a wider glowing crater. size_m sets the fireball radius (default KINDS['he']); flash_colour
     tints the flash and its light (a Harpoon warhead's is the game's blue, 100,165,255)."""
@@ -305,19 +329,29 @@ def he(ctx, frame, at_m, normal, size_m=None, scale=1.0, flash_colour=(1.0, .62,
                    k['spark_width'], 'imp_sparks', k['spark_gain'], (1.0, .5, .12, 1), (1.0, .9, .65, 1)),
            _sparks(ctx, e, seed + 11, 'he spall', k['spall'], (6.0 * s ** .5, 24.0 * s ** .5), (.4, 1.2),
                    26.0 * s ** .5, 'imp_sparks', 10.0, (.6, .12, .02, 1), (1.0, .55, .16, 1), spread=1.2, lift=1.0)]
-    obs += _flash(ctx, e, seed, k['flash_m'] * s, k['flash_s'], k['flash_W'] * s ** 2, colour=flash_colour)
-    obs.append(_fireball(ctx, e, seed, k['fireball_m'] * s))
+    if (style or STYLE) == 'jagged':
+        # One burst: the jagged flash, shrapnel cooling fast and torn smoke, all thrown out of
+        # the face; the flash light stays the kit's own.
+        R = k['fireball_m'] * s
+        obs += _flash(ctx, e, seed, k['flash_m'] * s, k['flash_s'], k['flash_W'] * s ** 2, colour=flash_colour,
+                      body=False)
+        obs += _burst(ctx, e, flash_colour, (R * .55, R * .8), lean=1.2, shrapnel=(3, 6), smoke=.6,
+                      smoke_life=(14, 22), flash_frames=4)
+    else:
+        obs += _flash(ctx, e, seed, k['flash_m'] * s, k['flash_s'], k['flash_W'] * s ** 2, colour=flash_colour,
+                      style='orb')
+        obs.append(_fireball(ctx, e, seed, k['fireball_m'] * s))
     obs.append(_pock(ctx, e, seed, k['pock_m'] * s, k['pock_gain']))
     return _record('he', frame, at_m, e, obs)
 
 
-def breach(ctx, frame, at_m, normal, size_m=3.0, vent=True, vent_m=24.0, ignite_s=.15, blast_m=None):
+def breach(ctx, frame, at_m, normal, size_m=3.0, vent=True, vent_m=24.0, ignite_s=.15, blast_m=None, style=None):
     """The hull opens at at_m on `frame`: an HE blast in the hole, then the fire group's flame,
     smoke and flickering light coming up over a second (from ignite_s after the blast), and,
     with vent, a cone of pale vapour along the normal. The fire group's knobs (fir_fire,
     fir_smoke, fir_vent) scale it; its timing is the breach's own (imp_frame, imp_ignite)."""
     import swfx_fire
-    rec = he(ctx, frame, at_m, normal, size_m=blast_m or size_m * 1.1)
+    rec = he(ctx, frame, at_m, normal, size_m=blast_m or size_m * 1.1, style=style)
     e, seed = anchor(ctx, 'breach', frame, at_m, normal, size_m=size_m, imp_ignite=ignite_s, length_m=vent_m)
     swfx_fire._knobs(ctx)
     coll = ctx.collection(GROUP)
