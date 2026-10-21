@@ -9,37 +9,33 @@ import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceS
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.IntPredicate;
 
 /**
- * A story mission's finite counter-attack pool on the shared {@link PlaceCounterattack}: the defender's sites are
- * places, the site it holds to the last is home, and the whole pool it commands is the counter-attack's from the start.
- * A lost site is observed before anything goes, retaken by the pool as one push sized to what it observed, or not at
- * all; whatever is not in the push holds home. Before this, the pool converged on the lost site squad by squad.
+ * A story mission's finite counter-attack pool on the shared {@link PlaceCounterattack}: the mission's sites are
+ * places, the whole pool this instance is given is the counter-attack's from the start, and it waits at home. A lost
+ * site is observed before anything goes and retaken by the pool as one push sized to what it observed, or not at all;
+ * whatever is not in the push holds home. Before this, a story pool converged on its lost site squad by squad, whatever
+ * held it.
  */
 final class SiteCounterattack {
 
-    /** One owned squad's order this pulse, with its reason. */
+    /** The least a story site is believed to take: one squad, sized against what holds it by the margin. */
+    static final int STORY_FLOOR = 6;
+
+    /** One squad's order this pulse, with its reason. */
     record Duty(ObjectiveAssignment assignment, String reason) { }
 
     private final PlaceCounterattack counter;
     private final CompoundPlaces sites = new CompoundPlaces();
-    private final int homeSite;
-    private final int firstSite;
     private final int holdRadius;
     private List<String> notes = List.of();
 
-    /**
-     * @param homeSite   the site the defender holds to the last, and stages from while it holds it
-     * @param firstSite  the lowest site index that is the defender's at all (a landing ground before it is not)
-     * @param holdRadius the radius of the area a squad holds at home
-     */
-    SiteCounterattack(int homeSite, int firstSite, int holdRadius) {
-        this.counter = new PlaceCounterattack(PlaceCounterattack.Doctrine.finitePool(PlaceCounterattack.MIN_STRENGTH));
-        this.homeSite = homeSite;
-        this.firstSite = firstSite;
+    /** @param holdRadius the radius of the area a squad not in the push holds at home */
+    SiteCounterattack(int holdRadius) {
+        this.counter = new PlaceCounterattack(PlaceCounterattack.Doctrine.finitePool(STORY_FLOOR));
         this.holdRadius = holdRadius;
     }
 
@@ -48,19 +44,24 @@ final class SiteCounterattack {
         return notes;
     }
 
+    /** Whether this squad is in the counter-attack's group. */
+    boolean claims(int squadId) {
+        return counter.claims(squadId);
+    }
+
     /**
      * One pulse.
      *
-     * @param owned the squads this commander moves this pulse
+     * @param include which site indices are this pool's places this pulse (a landing ground, or home, is not)
+     * @param home    the cell the pool waits at and stages from, or {@code null} when it has none left
+     * @param owned   the squads of this pool this pulse
+     * @param all     every own squad: one standing near a site is watching it
      * @return each owned squad's duty, by squad id
      */
-    Map<Integer, Duty> plan(int tick, List<ConquestCommandFacts.Compound> compounds, List<CommandSquadState> owned,
-                            List<CommandSquadState> all, CommanderInfluenceSnapshot influence, CommandTopology topology,
-                            String reasonPrefix) {
-        ConquestCommandFacts.Compound home = compounds.get(homeSite);
-        boolean homeHeld = home.state() != CompoundState.MARINE_HELD;
-        List<Place> places = sites.places(compounds, i -> i >= firstSite && (i != homeSite || !homeHeld));
-        int[] keep = homeHeld ? new int[] {home.captureCellX(), home.captureCellY()} : null;
+    Map<Integer, Duty> plan(int tick, List<ConquestCommandFacts.Compound> compounds, IntPredicate include, int[] home,
+                            List<CommandSquadState> owned, List<CommandSquadState> all,
+                            CommanderInfluenceSnapshot influence, CommandTopology topology, String reasonPrefix) {
+        List<Place> places = sites.places(compounds, include);
         List<Body> members = new ArrayList<>();
         List<Body> free = new ArrayList<>();
         for (CommandSquadState squad : owned) {
@@ -73,19 +74,17 @@ final class SiteCounterattack {
         for (CommandSquadState squad : all) {
             if (squad.aliveMembers() > 0) watchers.add(new int[] {squad.anchorCellX(), squad.anchorCellY()});
         }
-        Result result = counter.plan(tick, places, keep, PlaceCounterattack.hostiles(influence), watchers,
+        Result result = counter.plan(tick, places, home, PlaceCounterattack.hostiles(influence), watchers,
                 PlaceCounterattack.losses(influence), members, free, 0, owned.size(), topology);
         notes = result.notes();
         Map<Integer, Duty> duties = new TreeMap<>();
-        int homeX = home.captureCellX();
-        int homeY = home.captureCellY();
         for (CommandSquadState squad : owned) {
             Order order = result.orders().get(squad.squadId());
             if (order != null) {
                 duties.put(squad.squadId(), new Duty(order.assignment(),
                         reasonPrefix + "_COUNTERATTACK_" + order.stage().name()));
-            } else if (homeHeld) {
-                duties.put(squad.squadId(), new Duty(ObjectiveAssignment.defendArea(squad.squadId(), homeX, homeY,
+            } else if (home != null) {
+                duties.put(squad.squadId(), new Duty(ObjectiveAssignment.defendArea(squad.squadId(), home[0], home[1],
                         holdRadius), reasonPrefix + "_HOLD_HOME"));
             } else {
                 // Home is lost and this squad is not in the push: it holds where it stands rather than walk in alone.
@@ -96,9 +95,16 @@ final class SiteCounterattack {
         return duties;
     }
 
-    /** The group's standing for a plan's phase line. */
-    String phase() {
-        PlaceCounterattack.Stage stage = counter.stage();
-        return stage == null ? "HOLD" : "COUNTERATTACK_" + stage.name().toUpperCase(Locale.ROOT);
+    /**
+     * Relay Nine's and Thunder Run's layout: site 0 is the landing, sites 1 and 2 the road gains, site 3 the hall the
+     * defender holds to the last and stages from while it holds it.
+     */
+    Map<Integer, Duty> planRoadSites(int tick, List<ConquestCommandFacts.Compound> compounds,
+                                     List<CommandSquadState> owned, List<CommandSquadState> all,
+                                     CommanderInfluenceSnapshot influence, CommandTopology topology, String reasonPrefix) {
+        ConquestCommandFacts.Compound hall = compounds.get(3);
+        boolean held = hall.state() != CompoundState.MARINE_HELD;
+        int[] home = held ? new int[] {hall.captureCellX(), hall.captureCellY()} : null;
+        return plan(tick, compounds, i -> i >= 1 && (i != 3 || !held), home, owned, all, influence, topology, reasonPrefix);
     }
 }
