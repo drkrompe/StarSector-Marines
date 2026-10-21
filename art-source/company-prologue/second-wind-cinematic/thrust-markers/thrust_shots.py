@@ -13,8 +13,15 @@ Every craft the scene shows gets markers (thrust_markers.find_craft finds them b
 so a ship another session adds is covered without a change here). The craft named below get the
 throttle their shot gives them; anything else gets thrust_markers.auto, which reads it off the
 craft's own keyed motion (parked: off; climbing or sinking: lift; travelling: cruise).
+
+No craft flies without its drive showing (`require_plumes`): before a shot renders, every craft
+whose main or lift nozzles thrust on any frame must have plume geometry driven by its markers, or
+carry its own drive effects, or be declared never in frame. Otherwise the build stops with the
+craft's names. In C4/C5 every craft the port flies is given `far_plume` on its markers here
+(CINE_PLUMES=0 leaves them off, as a control that may not be rendered as a final).
 """
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -73,10 +80,13 @@ def pulses(times, width, level, base=0.0):
     return keys
 
 
-def _rest(found, done, fps, frames, lift=False):
+def _rest(found, done, fps, frames, lift=False, plume=None):
     """Every craft the shot did not name: markers, and throttle from its own motion. lift: in
     air, a hull with no belly jets gets its mains vectored down as lift markers too, and a craft
-    standing still in the air reads as hovering."""
+    standing still in the air reads as hovering. plume: a function (marker, kind, radius_m) that
+    hangs a drive plume on a marker and returns its objects (`port_fleet.far_plume`); every craft
+    that thrusts then gets one on each nozzle it fires (`hang_plumes`). Returns {craft: plumes}."""
+    hung = {}
     for name, ob in sorted(found.items()):
         if name in done:
             continue
@@ -84,6 +94,101 @@ def _rest(found, done, fps, frames, lift=False):
         if lift:
             marks += tm.lift_from_mains(ob)
         ob['thrust_activity'] = tm.auto(ob, marks, fps, frames, hover=lift)
+        if plume is not None:
+            objs = hang_plumes(ob, marks, plume, frames)
+            if objs:
+                hung[name] = objs
+    return hung
+
+
+# ---------------------------------------------------------------- plumes
+
+PLUMES = os.environ.get('CINE_PLUMES', '1') != '0'
+NEW_PLUME = 'thrust_plume_added'        # on each plume `hang_plumes` adds: the craft's name
+
+
+def hang_plumes(craft_obj, marks, plume, frames):
+    """A drive plume on each of the craft's working main and lift nozzles that fires somewhere in
+    frames, sized by its marker's throttle, so the plume follows what the motion says the engines
+    are doing: cruising on the mains (pointing aft), climbing, sinking or hovering on lift, and a
+    vectored drive swinging between the two. A craft that already draws its drives (the VFX kit's
+    thruster volumes, or a glow tagged as its drive) is left as it is. Each plume hides when its
+    craft does. Returns the plume objects."""
+    if craft_obj.get('swfx_controls') or tm.craft_drive_fx(craft_obj):
+        return []                      # linked with the kit's effects, or already drawing its drives
+    out = []
+    for m in marks:
+        if (m['thrust_kind'] not in tm.PLUMED_KINDS or not m['thrust_working']
+                or tm.max_throttle(m, frames) <= 1e-3):
+            continue
+        for ob in plume(m, m['thrust_kind'], float(m.get('radius_m', 1.5))):
+            ob[NEW_PLUME] = craft_obj.name
+            _hide_with(ob, craft_obj)
+            out.append(ob)
+    return out
+
+
+def _hide_with(ob, craft_obj):
+    """Copy the craft's keyed hide_render (port_life puts climbers away above C5's camera)."""
+    keys = [tuple(k.co) for fc in tm.fcurves(craft_obj) if fc.data_path == 'hide_render'
+            for k in fc.keyframe_points]
+    if not keys:
+        ob.hide_render = craft_obj.hide_render
+        return
+    for f, v in keys:
+        ob.hide_render = bool(v > 0.5)
+        ob.keyframe_insert('hide_render', frame=int(round(f)))
+    for fc in tm.fcurves(ob):
+        if fc.data_path == 'hide_render':
+            for k in fc.keyframe_points:
+                k.interpolation = 'CONSTANT'
+
+
+_GUARD = {}
+
+
+def require_plumes(fps, frames, shot):
+    """Refuse a shot in which a craft thrusts with nothing drawing its drive (`tm.plume_faults`):
+    SystemExit naming each craft and its bare nozzles. With CINE_PLUMES=0 (the plumes-off control)
+    a review build only warns; a final (CINE_FINAL=1) is refused all the same. Also arms a
+    render_init handler that asks again as the render starts, so a shot whose script forgets to
+    call this cannot render past it either. Returns the faults (empty when it passes)."""
+    _GUARD.update(fps=fps, frames=tuple(frames), shot=shot)
+    if _check_plumes not in bpy.app.handlers.render_init:
+        bpy.app.handlers.render_init.append(_check_plumes)
+    return _plume_verdict(exit_on_fault=True)
+
+
+def _refusing():
+    return PLUMES or os.environ.get('CINE_FINAL', '0') == '1'
+
+
+def _plume_verdict(exit_on_fault):
+    faults, exempt = tm.plume_faults(_GUARD['frames'])
+    shot = _GUARD['shot']
+    for name, why in exempt:
+        print('THRUST_PLUMES %s exempt %s: %s' % (shot, name, why), flush=True)
+    if not faults:
+        print('THRUST_PLUMES %s PASS: every craft that thrusts shows its drive' % shot, flush=True)
+        return []
+    lines = ['%s (%s)' % (name, ', '.join(n.split(' | ')[-1] for n in bare)) for name, bare in faults]
+    msg = ('THRUST_PLUMES %s FAIL: %d craft thrust with no plume drawn: %s'
+           % (shot, len(faults), '; '.join(lines)))
+    print(msg, flush=True)
+    if not _refusing():
+        print('THRUST_PLUMES %s: CINE_PLUMES=0 control, not a final: building anyway' % shot, flush=True)
+    elif exit_on_fault:
+        raise SystemExit(msg)
+    return faults
+
+
+def _check_plumes(scene, *_):
+    if _plume_verdict(exit_on_fault=False) and _refusing():
+        # An exception in a handler is printed and the render carries on: stop the process instead.
+        if bpy.app.background:
+            sys.stdout.flush()
+            os._exit(1)
+        raise RuntimeError('THRUST_PLUMES: craft thrust with no plume drawn (see the console)')
 
 
 def _label(name):
@@ -139,6 +244,7 @@ def mark_c1(c1):
         m = tm.card(card, 'Atlas outbound', img, activity='outbound, under drive')
         tm.key(m, [(0, 0.8)], fps)
     _rest(found, done, fps, frames)
+    require_plumes(fps, frames, 'c1')
 
 
 # ---------------------------------------------------------------- C2 patrol-abeam (bridge)
@@ -157,6 +263,7 @@ def mark_c2(scene, p):
     for name, ob in found.items():
         if name == 'C2B | ship frame':
             m = mark_any(ob, 'Second Wind', working=sw_working(), activity='coasting, then the de-orbit burn')
+            ob[tm.PLUME_EXEMPT] = 'the camera is on its bridge: its drives are never in frame'
             tm.key(m, [(0, 0.0), (drop, 0.0), (drop + 0.6, 1.0), (p['samples'][-1]['t'], 1.0)], fps, kinds=('main',))
             tm.key(m, pulses((drop + 0.3, drop + 1.6, drop + 2.9), 0.25, 0.7), fps, kinds=('maneuver', 'lift'))
         elif name in ('C2B | Legion root', 'LEGION | root'):
@@ -178,6 +285,7 @@ def mark_c2(scene, p):
         done.add(name)
     end = max(s['frame'] for s in p['samples'])
     _rest(found, done, fps, (0, end))
+    require_plumes(fps, (0, end), 'c2')
 
 
 # ---------------------------------------------------------------- C4 + C5 industrial-exterior
@@ -186,7 +294,10 @@ def mark_c4(c4):
     """C4 and C5: Second Wind braking in on its mains, hovering on its belly jets over Kilo Nine,
     down at T_DOWN and spooled off; afterwards parked through C5. The port's traffic (berthed
     Hounds, the Hermes lighters and Mudskipper ferry, the lifters climbing off and coming down,
-    and whatever else the port is given) is read from its own motion."""
+    and whatever else the port is given) is read from its own motion, and each one that thrusts is
+    given `port_fleet.far_plume` on the nozzles it fires (the look the departing Colossus already
+    has), unless CINE_PLUMES=0. Second Wind's and the Colossus's plumes are hung later in
+    c4x_scene.build, which calls `require_plumes` once every plume is on. Returns the last frame."""
     scene = bpy.context.scene
     fps = c4.FPS
     try:
@@ -212,4 +323,14 @@ def mark_c4(c4):
             if mk is not None:
                 follow(part, mk)
         done.add(hero)
-    _rest(found, done, fps, (0, end), lift=True)
+    plume = None
+    if PLUMES:
+        import port_fleet
+        plume = port_fleet.far_plume
+    hung = _rest(found, done, fps, (0, end), lift=True, plume=plume)
+    if hung:
+        import port_fleet                   # nobody walks into a plume (C5's walk maps skip these)
+        port_fleet.PARTS.update(o.name for objs in hung.values() for o in objs)
+    print('THRUST_PLUMES c4 added on %d craft: %s' % (len(hung), ', '.join(
+        '%s x%d' % (n, len(o)) for n, o in sorted(hung.items())) or '-'), flush=True)
+    return end

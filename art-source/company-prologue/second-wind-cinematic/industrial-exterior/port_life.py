@@ -1292,6 +1292,7 @@ def lifters(F):
         bm = bmesh.new()
         bmesh.ops.create_uvsphere(bm, u_segments=10, v_segments=6, radius=1.0)
         g = c4.mesh(ob.name + ' plume', bm, glow)
+        g['thrust_plume'] = ob.name        # this craft's drive (`thrust_markers.craft_drive_fx`)
         on = (z > z.min() + 0.3) | (np.gradient(z) != 0)
         sc = np.where(on, 1.0, 0.001) * size
         bake_pose(g, frames, x, y, z - size * 0.8, hd, scale=(sc, sc, sc * 0.6))

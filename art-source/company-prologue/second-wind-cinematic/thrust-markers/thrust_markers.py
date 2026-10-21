@@ -541,6 +541,91 @@ def _simplify(keys):
     return out
 
 
+# ---------------------------------------------------------------- plumes: no drive without one
+
+# A craft that flies on its drives must show them (owner, 2026-10-21: "plumes should match forward
+# momentum or implied acceleration ... We cannot make this mistake again in cinematics"). C4's
+# inbound Shepherd once let down through the opening seconds with nothing firing, because only the
+# hero and the Colossus had plumes hung on their markers. `plume_faults` is the rule every shot is
+# held to before it renders (`thrust_shots.require_plumes`).
+PLUME_TAG = 'thrust_plume'              # on an object drawing a craft's drive: True, or the craft's name
+PLUME_EXEMPT = 'thrust_plume_exempt'    # on a craft whose drives are never in frame: the reason
+SWFX_THRUSTER = re.compile(r'^SWFX thrusters (?:core|plume)\b')   # the VFX kit's own drive volumes
+PLUMED_KINDS = ('main', 'lift')         # attitude jets (maneuver) are puffs, not drives
+
+
+def max_throttle(marker, frames):
+    """Highest throttle the marker reaches in frames (first, last), keys held linear between."""
+    f0, f1 = frames
+    for fc in fcurves(marker):
+        if fc.data_path == '["%s"]' % PROP:
+            vals = [fc.evaluate(f0), fc.evaluate(f1)]
+            vals += [k.co[1] for k in fc.keyframe_points if f0 <= k.co[0] <= f1]
+            return max(vals)
+    return float(marker.get(PROP, 0.0))
+
+
+def renders(ob):
+    """Seen by the camera on at least some frame: not hidden for good, not invisible to camera rays."""
+    if not getattr(ob, 'visible_camera', True):
+        return False
+    if not ob.hide_render:
+        return True
+    return any(fc.data_path == 'hide_render' and any(k.co[1] < 0.5 for k in fc.keyframe_points)
+               for fc in fcurves(ob))
+
+
+def marker_plumes(marker):
+    """The plume geometry a marker drives: meshes hung under it that render."""
+    return [o for o in marker.children_recursive if o.type == 'MESH' and renders(o)]
+
+
+def craft_drive_fx(craft_obj):
+    """Drive effects a craft carries in its own hierarchy (or its instanced collection) rather than
+    on its markers: the VFX kit's thruster volumes, or anything a shot tagged `thrust_plume`
+    (True, or this craft's name) as this craft's drive, such as C1's stand-in drive glows or the
+    port's Hermes lifter glow."""
+    objs = list(craft_obj.children_recursive)
+    if craft_obj.instance_type == 'COLLECTION' and craft_obj.instance_collection is not None:
+        objs += list(_instance_objects(craft_obj.instance_collection))
+    out = [o for o in objs if renders(o) and (SWFX_THRUSTER.match(o.name) or _tagged_any(o))]
+    out += [o for o in bpy.data.objects if o.get(PLUME_TAG) == craft_obj.name and renders(o)]
+    return out
+
+
+def _tagged_any(ob):
+    v = ob.get(PLUME_TAG)
+    return isinstance(v, (bool, int)) and bool(v)
+
+
+def plume_faults(frames):
+    """(faults, exempt): faults is [(craft name, [marker names])] for every craft with a working main
+    or lift nozzle that thrusts somewhere in frames (first, last) and nothing drawing it. A craft
+    passes when it carries its own drive effects (`craft_drive_fx`), or when every such nozzle has
+    plume geometry under its marker (`marker_plumes`). exempt is [(craft name, reason)] for a craft
+    declared `thrust_plume_exempt` (its drives never in frame, as a ship seen from its own bridge)."""
+    by_craft = {}
+    for m in markers():
+        if m.parent is not None:
+            by_craft.setdefault(m.parent.name, (m.parent, []))[1].append(m)
+    faults, exempt = [], []
+    for name in sorted(by_craft):
+        craft_obj, ms = by_craft[name]
+        hot = [m for m in ms if m.get('thrust_kind') in PLUMED_KINDS and m.get('thrust_working', True)
+               and max_throttle(m, frames) > 1e-3]
+        if not hot:
+            continue
+        if craft_obj.get(PLUME_EXEMPT):
+            exempt.append((name, craft_obj[PLUME_EXEMPT]))
+            continue
+        if craft_drive_fx(craft_obj):
+            continue
+        bare = [m.name for m in hot if not marker_plumes(m)]
+        if bare:
+            faults.append((name, bare))
+    return faults, exempt
+
+
 # ---------------------------------------------------------------- report
 
 def report(scene=None, fps=None, extra_suspects=()):
