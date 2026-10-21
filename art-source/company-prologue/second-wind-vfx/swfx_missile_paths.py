@@ -34,7 +34,8 @@ a third of the way down the lane).
 - **Contrails** are one tube mesh per missile along its whole path, each ring stamped with the
   frame the missile passed it (`birth`). The shader shows a ring once its frame has come and
   thins it with age: the core spreads toward `trail_spread` times its width and fades over
-  `trail_life_s`. Nothing moves, so in vacuum the trail stays where the motor spent it.
+  `trail_life_s` (times `trail_scale`, default 1: pass `trail_scale=1.5` to `plan`/`salvo`
+  for a hero shot's longer trails). Nothing moves, so in vacuum the trail stays where the motor spent it.
   Colours are vanilla: the Harpoon's blue (100,165,255), grey smoke (100,100,100,150) for the
   others. The Harpoon's trail is denser than the game's alpha 75 (.45 against .29) and glows a
   little, so it still reads as a line at 3 km: the curving contrails are the S5 shot.
@@ -74,24 +75,24 @@ def srgb(c):
 PROFILES = {
     'harpoon': dict(guide='swing', width=.18, seek_s=.3, seek_deg=8.0, lift=.04, turn_deg_s=70.0, eject_mps=18.0, ignite_s=.35,
                     accel=650.0, vmax=950.0, engine=srgb((100, 165, 255)), trail=srgb((100, 165, 255)),
-                    trail_alpha=.45, trail_glow=1.4, trail_r_m=3.0, trail_spread=2.5, trail_life_s=2.6,
+                    trail_alpha=.45, trail_glow=1.4, trail_r_m=3.0, trail_spread=2.5, trail_life_s=1.7,
                     glare_m=5.0, blast=srgb((100, 100, 255)), blast_m=24.0),
     'swarmer': dict(guide='weave', width=.05, seek_s=.18, seek_deg=10.0, lift=.02, weave=.035, weave_cycles=(2.5, 4.0), turn_deg_s=240.0,
                     eject_mps=12.0, ignite_s=.2, accel=1400.0, vmax=700.0, engine=srgb((255, 145, 75)),
                     trail=srgb((100, 100, 100)), trail_alpha=150 / 255, trail_glow=0.0, trail_r_m=1.2,
-                    trail_spread=1.6, trail_life_s=1.0, glare_m=3.0, blast=srgb((255, 155, 75)), blast_m=10.0),
+                    trail_spread=1.6, trail_life_s=.7, glare_m=3.0, blast=srgb((255, 155, 75)), blast_m=10.0),
     'pilum': dict(guide='arc', width=.08, seek_s=.5, seek_deg=5.0, lift=.10, turn_deg_s=35.0, eject_mps=10.0, ignite_s=.4,
                   accel=150.0, vmax=260.0, dart_at=.78, dart_vmax=1100.0, dart_accel=2500.0,
                   engine=srgb((255, 145, 75)), trail=srgb((100, 100, 100)), trail_alpha=150 / 255,
-                  trail_glow=0.0, trail_r_m=2.0, trail_spread=2.0, trail_life_s=4.0, glare_m=4.0,
+                  trail_glow=0.0, trail_r_m=2.0, trail_spread=2.0, trail_life_s=2.6, glare_m=4.0,
                   blast=srgb((255, 155, 75)), blast_m=16.0),
     'rocket': dict(guide='straight', fan_deg=(-7.0, -3.5, 0.0, 3.5, 7.0), turn_deg_s=0.0, eject_mps=0.0,
                    ignite_s=0.0, accel=900.0, vmax=800.0, range_m=1800.0, engine=srgb((255, 190, 140)),
                    trail=srgb((190, 180, 160)), trail_alpha=.45, trail_glow=0.0, trail_r_m=1.4,
-                   trail_spread=1.8, trail_life_s=1.2, glare_m=3.0, blast=srgb((255, 155, 75)), blast_m=12.0),
+                   trail_spread=1.8, trail_life_s=.8, glare_m=3.0, blast=srgb((255, 155, 75)), blast_m=12.0),
     'torpedo': dict(guide='straight', turn_deg_s=0.0, eject_mps=14.0, ignite_s=.5, accel=120.0, vmax=420.0,
                     range_m=3000.0, engine=srgb((255, 100, 100)), trail=srgb((255, 100, 100)), trail_alpha=.35,
-                    trail_glow=1.0, trail_r_m=3.0, trail_spread=2.0, trail_life_s=3.0, glare_m=7.0,
+                    trail_glow=1.0, trail_r_m=3.0, trail_spread=2.0, trail_life_s=2.0, glare_m=7.0,
                     blast=srgb((255, 100, 100)), blast_m=45.0),
 }
 
@@ -595,8 +596,9 @@ def _contrail(ctx, coll, fl, inv, mpu, sides=6):
     coll.objects.link(ob)
     ob.visible_shadow = False
     fps = ctx.scene.render.fps or 24
-    ob.color = (1.0 / (prof['trail_life_s'] * fps), prof['trail_alpha'], prof['trail_spread'], 1)
-    _visible_between(ob, f0, f_end + int(prof['trail_life_s'] * fps * 3))
+    life = prof['trail_life_s'] * prof.get('trail_scale', 1.0)
+    ob.color = (1.0 / (life * fps), prof['trail_alpha'], prof['trail_spread'], 1)
+    _visible_between(ob, f0, f_end + int(life * fps * 3))
     return ob
 
 

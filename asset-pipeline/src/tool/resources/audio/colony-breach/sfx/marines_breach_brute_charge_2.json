@@ -1,11 +1,11 @@
 {
   "requestId": null,
   "characterCost": "28",
-  "inputSha256": "c7a50b2c849693e2c5ecba5cd89efd22e8670c0f482a635e76138b4e6913d1dc",
-  "audioSha256": "77b64b690879858a5ec27b44fb87d7c74dba99b10e117812ce022d7e58bedec9",
+  "inputSha256": "d80184e4d74e046ee2bcb70ef28a07d0ec2c8c5441893a2bd3375b1775fbc67d",
+  "audioSha256": "dce7442b7167a87e657f77fe31fd37688e13bd2e0f35fddaa83b2a892fc2fcbb",
   "voiceId": "",
   "modelId": "eleven_text_to_sound_v2",
   "durationSeconds": 2.48,
   "outputFormat": "mp3_44100_128",
-  "take": 1
+  "take": 2
 }
