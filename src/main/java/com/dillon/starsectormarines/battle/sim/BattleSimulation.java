@@ -169,6 +169,7 @@ import com.dillon.starsectormarines.battle.setup.ThunderRunSequence;
 import com.dillon.starsectormarines.battle.setup.WaylineGunship;
 import com.dillon.starsectormarines.battle.turret.GroundAntiAirSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmStrikeSystem;
+import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
 import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
 import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
 import com.dillon.starsectormarines.battle.command.objective.FreightConvoyObjective;
@@ -200,6 +201,7 @@ import com.dillon.starsectormarines.battle.infantry.SquadMedicSystem;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
 import com.dillon.starsectormarines.battle.mech.MechGaitSystem;
+import com.dillon.starsectormarines.battle.appearance.RavRunnerRigSystem;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.MechDoctrineService;
 import com.dillon.starsectormarines.battle.mech.MechDoctrineSystem;
@@ -250,6 +252,7 @@ import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
 import com.dillon.starsectormarines.battle.creep.BoreCreep;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
+import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
@@ -479,6 +482,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final MechLocomotionSystem mechLocomotionSystem;
     /** Fixed-tick, presentation-only planted-foot and waist solver. */
     private final MechGaitSystem mechGaitSystem;
+    private final RavRunnerRigSystem ravRunnerRigSystem;
     /** Simulation-authoritative upper-torso traverse; gates mech weapons as well as their render heading. */
     private final MechTurretSystem mechTurretSystem;
     private final MechSectionFxSystem mechSectionFx;
@@ -683,6 +687,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Aimed flak and guided missiles from ground anti-air mounts, including a swarm bore's spore colonies. */
     public GroundAntiAirSystem groundAntiAir() { return groundAntiAir; }
     private final SwarmStrikeSystem swarmStrikes = new SwarmStrikeSystem();
+    private final SwarmCues swarmCues = new SwarmCues();
     private final AirToAirFire airToAir = new AirToAirFire();
     private WaylineGunship waylineGunship;
     public WaylineGunship getWaylineGunship() { return waylineGunship; }
@@ -724,6 +729,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Salt for the bores' own draws, so they are not the battle stream read again. */
     private static final long BORE_SEED_SALT = 0x53574152_4D424F52L;
     private final SwarmBores swarmBores;
+    private final CreepOutposts creepOutposts;
     /** The battle's swarm bores: empty until something opens one. */
     public SwarmBores swarmBores() { return swarmBores; }
     private final SwarmHarvest swarmHarvest = new SwarmHarvest(SwarmHarvest.enabledByDefault());
@@ -1185,6 +1191,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public BattleSimulation(NavigationGrid grid, CellTopology topology, long seed) {
         this.generationSeed = seed;
         this.swarmBores = new SwarmBores(seed ^ BORE_SEED_SALT);
+        this.creepOutposts = new CreepOutposts(seed ^ BORE_SEED_SALT);
         this.rng = new Random(seed);
         this.noiseEvents = new NoiseEventBus(() -> simTickIndex);
         this.shots = new ShotService(noiseEvents);
@@ -1313,6 +1320,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.mechLocomotionSystem = new MechLocomotionSystem(
                 entityWorld, battleComponents, rosterService, mechMoveOrders);
         this.mechGaitSystem = new MechGaitSystem(entityWorld, battleComponents);
+        this.ravRunnerRigSystem = new RavRunnerRigSystem(entityWorld, battleComponents);
         this.mechTurretSystem = new MechTurretSystem(
                 entityWorld, battleComponents, rosterService);
         this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects, rosterService);
@@ -2948,6 +2956,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         warships.beginFrame();
         shieldDomes.beginFrame();
         tenders.cues().beginFrame();
+        swarmCues.beginFrame();
         systemFxSystem.beginFrame();
         directControl.validate();
         if (isComplete()) return;
@@ -3488,6 +3497,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmReinforcements.tick(TICK_DT, this);
         boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);
+        // Outposts after the creep has spread: they root on ground it has held a while.
+        creepOutposts.tick(this);
         if (reliefAssault != null) reliefAssault.tick(this);
         if (lastLiftSequence != null) lastLiftSequence.tick(this);
         if (relayNineSequence != null) relayNineSequence.tick(this);
@@ -3551,6 +3562,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         directControl.validate();
         facingSystem.tick(directControl.activeUnitId(), directControl.intent().aimX(),
                 directControl.intent().aimY(), directControl.sprintStatus().sprinting());
+        ravRunnerRigSystem.tick(TICK_DT);
         // Authors what a running integral system looks like, from the same
         // settled state and for the same reason: a treatment written here is
         // present on the tick of activation and gone on the tick the effect
@@ -3853,6 +3865,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Where swarm strains post the blows and acid that land in the serial pass. */
     public SwarmStrikeSystem swarmStrikes() { return swarmStrikes; }
+    /** What swarm bodies ask the presentation to sound this advance; presentation-only. */
+    public SwarmCues swarmCues() { return swarmCues; }
 
     @Override
     public boolean applyContactStrike(long carrier, long target) {

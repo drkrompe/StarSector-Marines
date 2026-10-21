@@ -2,12 +2,12 @@
 
 The creep is the hive-creep look studies' own renderer (`art-source/hive-creep/hard_edge_studies.py`, round 3:
 variant #4, organic chitin plates, lit by its CPU model of the ground composite), grown from a bore's real cell on
-a real colony-breach review frame taken before the bore opened. The bodies are the shipped sprites, and the same
-paintings recoloured to the round-3 purples (``export.py --palette purple``), side by side. Colonies of all three
+a real colony-breach review frame taken before the bore opened. The bodies are the shipped sprites (the settled Rav Bloom palette) and the same
+paintings in the generations' own colours (``export.py --palette raw``), side by side. Colonies of all three
 grades are placed by hand round the mouth so each grade is seen on creep; in a battle a bore grows colonies of its
 own tier only.
 
-Usage, from the repository root, after ``export.py --palette purple``:
+Usage, from the repository root, after ``export.py --palette raw``:
 ``python art-source/swarm-bores/creep_sheet.py <frame-32px.png> <frame-64px.png> <out-dir> [hive-creep-06.png]``
 where the frames are ``commanderEvidence -Pmission=colony-breach -PsnapshotAnnotations=false`` tick-0 frames
 focused on cell 158,68, 60 and 30 cells across. Writes three 1920x1080 sheets, and a fourth on the creep layer as
@@ -54,7 +54,7 @@ def label(img, xy, text, size=18):
 
 
 def sprite(part, variant, palette):
-    folder = ROOT / "mod" / "graphics" / "structures" if palette == "runner" else ROOT / "build" / "swarm-bores" / palette
+    folder = ROOT / "mod" / "graphics" / "structures" if palette == "bloom" else ROOT / "build" / "swarm-bores" / palette
     return Image.open(folder / f"{NAMES[part]}-{variant}.png").convert("RGBA")
 
 
@@ -89,7 +89,7 @@ def panel(ground, ppc, centre_px, radius_cells, bodies, palette):
 def sheet(ground, ppc, centre_cell, radius, bodies, title):
     out = Image.new("RGBA", (W, H), (12, 12, 14))
     centre = screen(centre_cell, ppc)
-    for i, (palette, name) in enumerate((("runner", "shipped (runner palette)"), ("purple", "round-3 purples"))):
+    for i, (palette, name) in enumerate((("raw", "generations' own colours"), ("bloom", "shipped: settled Rav Bloom palette"))):
         img = panel(ground, ppc, centre, radius, bodies, palette)
         out.alpha_composite(img, (8 + i * 960, 34))
         label(out, (20 + i * 960, 44), name, 16)
@@ -101,7 +101,7 @@ def ingame_sheet(frame, bodies):
     """The bodies on the hive-creep suite's close frame of bore 1, which centres the bore 72 cells across."""
     ppc = W / 72
     out = Image.new("RGBA", (W, H), (12, 12, 14))
-    for i, (palette, name) in enumerate((("runner", "shipped (runner palette)"), ("purple", "round-3 purples"))):
+    for i, (palette, name) in enumerate((("raw", "generations' own colours"), ("bloom", "shipped: settled Rav Bloom palette"))):
         crop = frame.crop((W // 2 - 476, 40, W // 2 + 476, H)).copy()
         for part, variant, (dx, dy) in bodies:
             place(crop, sprite(part, variant, palette), make_guide.display_cells(part), ppc, 476 + dx * ppc,

@@ -288,6 +288,9 @@ public final class SwarmBores {
         for (long colony : bore.colonies()) {
             if (sim.resolveUnit(colony) != 0L) sim.applyDamage(colony, WITHER_DAMAGE, WITHER_DAMAGE);
         }
+        for (long outpost : bore.outposts()) {
+            if (sim.resolveUnit(outpost) != 0L) sim.applyDamage(outpost, WITHER_DAMAGE, WITHER_DAMAGE);
+        }
         float cx = bore.x() + 0.5f, cy = bore.y() + 0.5f;
         sim.addDecal(new Decal(cx, cy, DecalKind.CRATER_MEDIUM_B.index, rotation(bore.number(), 3),
                 bore.mother() ? 2.8f : 2.3f));
@@ -340,7 +343,7 @@ public final class SwarmBores {
         return false;
     }
 
-    private static boolean nearBody(BattleSimulation sim, int x, int y, float clearance) {
+    static boolean nearBody(BattleSimulation sim, int x, int y, float clearance) {
         float cx = x + 0.5f, cy = y + 0.5f;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);

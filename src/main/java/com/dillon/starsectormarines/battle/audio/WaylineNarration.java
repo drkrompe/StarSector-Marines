@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.audio;
 
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.ops.DebugMissionCatalog;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.Mission;
@@ -29,6 +30,8 @@ public final class WaylineNarration {
     public static final String PATH = "data/marines/wayline_narration.json";
     /** Per-feature catalogs of the same shape, merged into the built-ins; a missing one costs only its own lines. */
     public static final List<String> FEATURE_PATHS = List.of("data/marines/colony_breach_narration.json");
+    /** The Colony Breach catalog's mission id: the breach is a campaign event, not a story chapter, so it is keyed by the battle. */
+    public static final String COLONY_BREACH = "story_colony_breach";
     private static final Pattern SUPPLY_STORY_ID = Pattern.compile(
             Pattern.quote(BrokenSupplyRouteProgress.PREFIX) + "([14])_0_[1-9][0-9]*");
     private static final Map<Integer, String> SUPPLY_CHAPTERS = Map.of(
@@ -130,6 +133,16 @@ public final class WaylineNarration {
                     entry.optBoolean("interrupts", false)));
         }
         return new WaylineNarration(result);
+    }
+
+    /**
+     * The catalog a battle's beats are looked up in: its story chapter's, or Colony Breach's when the
+     * battle carries the breach sequence, whichever mission launched it.
+     */
+    public static String narrationMissionId(Mission mission, BattleSimulation sim) {
+        String story = storyMissionId(mission);
+        if (story == null && sim != null && sim.getColonyBreach() != null) return COLONY_BREACH;
+        return story;
     }
 
     /** Scenario hooks are shared with recurring jobs, but Mara's chapter recordings are not. */

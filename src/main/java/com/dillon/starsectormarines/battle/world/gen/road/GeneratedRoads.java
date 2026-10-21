@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.road;
 
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Point;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Route;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface.Marking;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.EndCap;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
 
@@ -69,18 +70,26 @@ public final class GeneratedRoads {
      * rather than becoming a square of carriageway.
      */
     public static List<Route> routes(boolean[][] road, long seed, int maxBreadth) {
-        return routes(road, null, null, seed, maxBreadth, StreetStyle.ROUND_BARE);
+        return routes(road, null, null, seed, maxBreadth, StreetStyle.ROUND_BARE).routes();
     }
 
     /**
      * How a city street is finished. {@code squareEnds} ends each street flush
      * with the band it was found in instead of with a round brush end;
      * {@code sidewalks} keeps room for a sidewalk on a side with no footway
-     * beside the band (the sidewalk itself is ground, laid by the caller).
+     * beside the band (the sidewalk itself is ground, laid by the caller);
+     * {@code markings} paints a dashed centre line down each street, broken
+     * at every junction and short of each end.
      */
-    public record StreetStyle(boolean squareEnds, boolean sidewalks) {
-        public static final StreetStyle ROUND_BARE = new StreetStyle(false, false);
+    public record StreetStyle(boolean squareEnds, boolean sidewalks, boolean markings) {
+        public static final StreetStyle ROUND_BARE = new StreetStyle(false, false, false);
     }
+
+    /** A swept network: its pavement routes, asphalt before concrete, and the paint laid on them. */
+    public record Network(List<Route> routes, List<Marking> markings) {}
+
+    /** A centre-line dash and the gap after it, in cells, and the paint's width. */
+    static final double DASH = 1.5, GAP = 1.5, LINE_WIDTH = .14;
 
     /**
      * A city's street network, whose carriageway is the street less its kerbs
@@ -100,14 +109,14 @@ public final class GeneratedRoads {
      * to it, so long as three cells of asphalt remain; a narrower street goes
      * without on that side.
      */
-    public static List<Route> streets(boolean[][] road, boolean[][] city, boolean[][] footway,
-                                      long seed, int maxBreadth, StreetStyle style) {
+    public static Network streets(boolean[][] road, boolean[][] city, boolean[][] footway,
+                                  long seed, int maxBreadth, StreetStyle style) {
         return routes(road, city, footway, seed, maxBreadth, style);
     }
 
-    private static List<Route> routes(boolean[][] road, boolean[][] city, boolean[][] footway,
-                                      long seed, int maxBreadth, StreetStyle style) {
-        if (road.length == 0 || road[0].length == 0) return List.of();
+    private static Network routes(boolean[][] road, boolean[][] city, boolean[][] footway,
+                                  long seed, int maxBreadth, StreetStyle style) {
+        if (road.length == 0 || road[0].length == 0) return new Network(List.of(), List.of());
         Set<Band> candidates = new LinkedHashSet<>();
         int cap = city == null ? Math.min(maxBreadth, MAX_BREADTH) : MAX_BREADTH;
         bands(road, false, cap, candidates);
@@ -161,7 +170,40 @@ public final class GeneratedRoads {
                 add(routes, turn, width, seed, Material.ASPHALT, EndCap.ROUND);
             }
         }
-        return List.copyOf(routes);
+        List<Marking> paint = new ArrayList<>();
+        if (city != null && style.markings())
+            for (Band b : bands) if (b.holds(city) && b.width() != b.height()) centreLine(b, lanes.get(b), bands, paint);
+        return new Network(List.copyOf(routes), List.copyOf(paint));
+    }
+
+    /**
+     * Dashes down the middle of a street's asphalt, kept a cell clear of each
+     * end and of every crossing street, so a junction is left unpainted. Where
+     * two bands running the same way overlap, only the broader (then the
+     * longer) one is painted there, so one carriageway carries one line.
+     */
+    private static void centreLine(Band b, Carriageway c, List<Band> bands, List<Marking> out) {
+        boolean horizontal = b.horizontal();
+        double from = (horizontal ? b.left : b.bottom) + .5, to = (horizontal ? b.right : b.top) - .5;
+        List<double[]> clear = new ArrayList<>();
+        for (Band o : bands) {
+            if (o == b || o.left > b.right || o.right < b.left || o.bottom > b.top || o.top < b.bottom) continue;
+            if (o.horizontal() != horizontal)
+                clear.add(horizontal ? new double[]{o.left - 1.5, o.right + 1.5} : new double[]{o.bottom - 1.5, o.top + 1.5});
+            else if (o.breadth() > b.breadth() || (o.breadth() == b.breadth() && o.length() > b.length()))
+                clear.add(horizontal ? new double[]{o.left - 1, o.right + 1} : new double[]{o.bottom - 1, o.top + 1});
+        }
+        clear.sort((p, q) -> Double.compare(p[0], q[0]));
+        double at = from;
+        for (int i = 0; i <= clear.size(); i++) {
+            double end = i < clear.size() ? clear.get(i)[0] : to;
+            for (double dash = at + .25; dash + DASH <= end; dash += DASH + GAP) {
+                Point a = horizontal ? new Point(dash, c.centre()) : new Point(c.centre(), dash);
+                Point z = horizontal ? new Point(dash + DASH, c.centre()) : new Point(c.centre(), dash + DASH);
+                out.add(new Marking(a, z, LINE_WIDTH));
+            }
+            if (i < clear.size()) at = Math.max(at, clear.get(i)[1]);
+        }
     }
 
     /** The asphalt across a band: its centre line across the band's axis, and its width. */

@@ -56,6 +56,24 @@ class RoadSurfaceTest {
         surface=RoadSurface.build(plan,RoadRasterizer.rasterize(plan),new CellTopology(24,24));
         assertNull(surface.patch(8,6,1));assertTrue(surface.underlay(8,6).hard());
     }
+    @Test void paintKeepsAThinLineExactlyAndOnlyOverWholeAsphalt() {
+        Route street=new Route("street",List.of(new Point(2.5,10),new Point(21.5,10)),4.6,0,0,1,Material.ASPHALT,EndCap.BUTT);
+        var topology=new CellTopology(24,24);
+        var allowed=new RoadSurface.Underlay[24][24];
+        for(int x=0;x<24;x++)for(int y=0;y<24;y++)allowed[x][y]=new RoadSurface.Underlay(CellTopology.GroundKind.STREET,0,false,false);
+        var line=new RoadSurface.Marking(new Point(4,10),new Point(8,10),.14);
+        var edge=new RoadSurface.Marking(new Point(4,12.4),new Point(8,12.4),.14);
+        var surface=RoadSurface.generated(List.of(street),List.of(line,edge),topology,allowed);
+        var dash=surface.patch(5,10,RoadSurface.MARKING);
+        assertNotNull(dash,"a line narrower than the cell still paints it");
+        assertEquals(.14,dash.area(),1e-5);
+        assertArrayEquals(new float[]{0,.43f,1,.43f,1,.57f,0,.57f},dash.first(),1e-5f);
+        assertEquals(.5,surface.patch(8,10,RoadSurface.MARKING).area()/.14,1e-4,"flush at its end");
+        assertNull(surface.patch(9,10,RoadSurface.MARKING));
+        assertNull(surface.patch(5,12,RoadSurface.MARKING),"never over the ragged edge of the asphalt");
+        assertTrue(topology.surfaceId(dash.pavement()).startsWith(RoadSurface.MARKING_BLOCK));
+        assertThrows(IllegalArgumentException.class,()->new RoadSurface.Marking(new Point(0,0),new Point(3,1),.1));
+    }
     private static double area(float[] p) {
         if(p==null)return 0;
         double sum=0;

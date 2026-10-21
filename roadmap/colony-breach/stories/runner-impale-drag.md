@@ -188,7 +188,7 @@ Added to the beat table in `colony-breach-nouns.md` when the story ships:
 | `marine_taken` | PLAYER | A carrier delivers a Marine into a bore |
 
 Militia and colonist impales publish no beat; the breach snapshot counts them.
-Radio lines ("They've got Okafor!") are `breach-audio.md`'s.
+Radio lines ("They've got Okafor!") follow `colony-breach-nouns.md` (Sound); the impale and drag sounds are wired, so a carrier posts `SwarmCues.Kind.IMPALE` and `DRAG`.
 
 ## Scope
 
