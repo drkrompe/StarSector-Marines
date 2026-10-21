@@ -534,8 +534,11 @@ tasks.register('commanderEvidence', Test) {
                 raid: 'raid.command.evidence',
                 extraction: 'extraction.command.evidence',
         ][commanderEvidenceMission]
-        systemProperty "${prefix}.outputDir",
-                layout.buildDirectory.dir(
+        // -PevidenceDir=<path> writes this run's report elsewhere, so a run and its control run can sit side by side.
+        def evidenceDir = providers.gradleProperty('evidenceDir').getOrElse('').trim()
+        systemProperty "${prefix}.outputDir", !evidenceDir.isBlank()
+                ? file(evidenceDir).absolutePath
+                : layout.buildDirectory.dir(
                         "reports/commander/${commanderEvidenceMission}")
                         .get().asFile.absolutePath
         def fixture = providers.gradleProperty('fixture')

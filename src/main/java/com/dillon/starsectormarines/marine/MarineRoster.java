@@ -867,7 +867,12 @@ public class MarineRoster implements Serializable {
 
     /** Hires one replacement into an open line-squad billet. */
     public MarineSoldier recruitToSquad(String squadId) {
-        List<MarineSoldier> recruits = recruitToSquad(squadId, 1);
+        return recruitToSquad(squadId, RecruitIntake.NEUTRAL);
+    }
+
+    /** Hires one replacement whose aptitude is read against the company home's {@code intake}. */
+    public MarineSoldier recruitToSquad(String squadId, RecruitIntake intake) {
+        List<MarineSoldier> recruits = recruitToSquad(squadId, 1, intake);
         return recruits.isEmpty() ? null : recruits.get(0);
     }
 
@@ -881,6 +886,10 @@ public class MarineRoster implements Serializable {
      * arrive identical; what makes a squad good is the kit it is then issued.
      */
     public List<MarineSoldier> recruitToSquad(String squadId, int count) {
+        return recruitToSquad(squadId, count, RecruitIntake.NEUTRAL);
+    }
+
+    private List<MarineSoldier> recruitToSquad(String squadId, int count, RecruitIntake intake) {
         MarineSquad squad = squadById(squadId);
         if (squad == null || squad.stationed() || count <= 0) {
             return Collections.emptyList();
@@ -890,7 +899,7 @@ public class MarineRoster implements Serializable {
         if (recruitCount <= 0) return Collections.emptyList();
         List<MarineSoldier> recruits = new ArrayList<>(recruitCount);
         for (int index = 0; index < recruitCount; index++) {
-            MarineSoldier recruit = createRecruit();
+            MarineSoldier recruit = createRecruit(intake);
             squad.add(recruit.id());
             recruits.add(recruit);
         }
@@ -900,6 +909,10 @@ public class MarineRoster implements Serializable {
 
     /** Materializes one cargo-backed replacement in the first available line billet. */
     MarineSoldier createLineReplacement() {
+        return createLineReplacement(RecruitIntake.NEUTRAL);
+    }
+
+    MarineSoldier createLineReplacement(RecruitIntake intake) {
         MarineSquad target = null;
         for (MarineSquad squad : squads) {
             if (!squad.reserve() && !squad.stationed() && vacancies(squad) > 0) {
@@ -908,7 +921,7 @@ public class MarineRoster implements Serializable {
             }
         }
         if (target == null) target = createSquad();
-        MarineSoldier recruit = createRecruit();
+        MarineSoldier recruit = createRecruit(intake);
         target.add(recruit.id());
         refreshLeadership();
         return recruit;
@@ -1335,12 +1348,8 @@ public class MarineRoster implements Serializable {
         return count;
     }
 
-    private static SoldierAptitude aptitudeFor(int number) {
-        int roll = Math.floorMod(number * 37, 100);
-        if (roll < 5) return SoldierAptitude.EXCEPTIONAL;
-        if (roll < 25) return SoldierAptitude.GIFTED;
-        if (roll < 90) return SoldierAptitude.STEADY;
-        return SoldierAptitude.LIMITED;
+    static SoldierAptitude aptitudeFor(int number, RecruitIntake intake) {
+        return intake.aptitude(Math.floorMod(number * 37, 100));
     }
 
     /**
@@ -1461,9 +1470,13 @@ public class MarineRoster implements Serializable {
     }
 
     private MarineSoldier createRecruit() {
+        return createRecruit(RecruitIntake.NEUTRAL);
+    }
+
+    private MarineSoldier createRecruit(RecruitIntake intake) {
         int number = nextSoldierNumber++;
         MarineSoldier recruit = new MarineSoldier(
-                String.format("Marine %03d", number), aptitudeFor(number));
+                String.format("Marine %03d", number), aptitudeFor(number, intake));
         soldiers.add(recruit);
         if (soldierIndex != null) soldierIndex.put(recruit.id(), recruit);
         autoIssueRecruit(recruit);

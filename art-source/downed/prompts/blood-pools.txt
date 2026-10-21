@@ -1,0 +1,7 @@
+Use case: sketch-to-render. Production ground decals for a top-down tactical game: pools of blood that spread under fallen soldiers.
+
+Reference 1 is the authoritative SHAPE GUIDE and edit target, 1536x1024. Reskin only its four flat gray shapes, keeping each one's outline, position and scale, including the small separate drops. Everything outside the shapes must be genuinely transparent: no ground, floor, background, border, labels or grid.
+
+Camera: TRUE STRAIGHT-DOWN overhead view of liquid lying flat on the ground. Each shape is one pool of blood: deep dark crimson, almost black-red in the thick centre, slightly lighter and thinner toward the edges, with a few small glossy highlight pixels from light at the upper left, and a darker one-step outline at the rim. Smooth liquid edges, gently rounded lobes; the small round drops are separate spatters.
+
+Style: match the sprite reference exactly — chunky crisp pixel art, limited muted palette, restrained detail that still reads at 240 pixels per pool. Muted and grim, not bright red, not cartoon, not splattered gore. No bodies, footprints, text or anything else.

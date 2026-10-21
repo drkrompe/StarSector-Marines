@@ -28,6 +28,34 @@ public final class JobBoard {
 
     private JobBoard() { }
 
+    /**
+     * How far, in cells, a stand moves from its cell's centre toward the fixture
+     * when the work {@link Affordance#closesOnFixture closes on it}. The body
+     * stays inside its own standing cell, so circulation and claims are
+     * unchanged; only where it is drawn and faces from moves up to the fixture.
+     * {@code -Dbattle.ambient.fixtureLeanCells=0} is the control: every stand at
+     * its cell's centre, as before.
+     */
+    static final float FIXTURE_LEAN_CELLS =
+            Float.parseFloat(System.getProperty("battle.ambient.fixtureLeanCells", "0.3"));
+
+    /**
+     * Where somebody doing {@code task} stands, in world cells: its standing
+     * cell's centre, moved {@link #FIXTURE_LEAN_CELLS} toward the fixture when
+     * the work {@link Affordance#closesOnFixture closes on it}. Routes name their
+     * stops by these coordinates and claim the published point at them, so every
+     * stop built from a fixture task takes its position from here.
+     */
+    public static float[] stand(FixtureTask task) {
+        float standX = task.cellX() + 0.5f, standY = task.cellY() + 0.5f;
+        if (!task.affordance().closesOnFixture()) return new float[]{standX, standY};
+        float dx = task.fixtureX() + 0.5f - standX, dy = task.fixtureY() + 0.5f - standY;
+        float length = (float) Math.sqrt(dx * dx + dy * dy);
+        if (length == 0f) return new float[]{standX, standY};
+        return new float[]{standX + dx / length * FIXTURE_LEAN_CELLS,
+                standY + dy / length * FIXTURE_LEAN_CELLS};
+    }
+
     /** A runtime replacement for a work stand and its point of contact. */
     public record Placement(float worldX, float worldY, float focusX, float focusY) {
         public Placement {
@@ -139,10 +167,9 @@ public final class JobBoard {
             Placement resolved = placementResolver.resolve(task);
             float focusX = resolved != null ? resolved.focusX() : task.fixtureX() + 0.5f;
             float focusY = resolved != null ? resolved.focusY() : task.fixtureY() + 0.5f;
-            service.register(new TaskPoint(id, group,
-                    resolved != null ? resolved.worldX() : task.cellX() + 0.5f,
-                    resolved != null ? resolved.worldY() : task.cellY() + 0.5f,
-                    focusX, focusY));
+            float[] stand = resolved != null
+                    ? new float[]{resolved.worldX(), resolved.worldY()} : stand(task);
+            service.register(new TaskPoint(id, group, stand[0], stand[1], focusX, focusY));
         }
         return List.copyOf(counts.keySet());
     }

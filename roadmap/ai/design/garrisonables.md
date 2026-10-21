@@ -4,7 +4,7 @@ Status: ACTIVE — reactive manning is shipped for fighting-position runs, a str
 
 Written: 2026-10-13
 
-Updated: 2026-10-21 — a sally door shuts again: its holder shuts it behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body, and an open door of a place its holder lost stays open (sally doors, below); a holder sorties from a walled place it holds through a sally door in its own wall; the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
+Updated: 2026-10-21 — a sally door shuts again: its holder shuts it behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body, and an open door of a place its holder lost stays open (sally doors, below); not every fight is into prepared positions is a law; a holder sorties from a walled place it holds through a sally door in its own wall (sally doors, below); the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
 
 ## Why this exists
 
@@ -84,6 +84,18 @@ neither renumbers nor drops it.
   a gap to close, not a design; a place is valued by what it means to its side,
   not by being a fort. Retaking a lost place is the counter-attack's
   (`conquest-command.md`, Defender command), for every kind of place.
+- **Not every fight is into prepared positions.** Always assaulting dug-in
+  defenders is not fun; sometimes a brawl is (owner, 2026-10-21). Garrisoning
+  is one texture of a battle, never its default shape. A defender that mans
+  every place it can reach, or stages its whole reserve behind them, turns
+  every contact into a siege. Commanders must leave room for fights in the
+  open: meeting engagements in streets and yards, sorties, a reserve that
+  meets the attack forward rather than waiting behind a parapet, defenders
+  caught moving between places. A manning or staging rule is judged by the
+  mix of fights it produces as well as by its losses, and its evidence reports
+  that mix (for example, the share of contacts fought by squads on posts
+  against squads in the open) across missions. A change that drives the
+  open-ground share toward zero is a regression even when it wins battles.
 - **Reactive manning.** A garrisonable is manned in proportion to believed
   pressure on it, read from the side's own faction influence, never from hostile
   truth. A quiet garrisonable is empty and its would-be garrison stays in the

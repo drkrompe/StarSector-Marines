@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f0b-c37e-7911-a692-ab695b1348dc",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f0b-c37e-7911-a692-ab695b1348dc\\exec-3aca1bf0-7fc9-4632-83f6-5ca75e4ba5bf.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\downed\\raw\\engineer.png",
+    "sha256": "e68e72fc5d15c2c4b90b9468902dee0610fe742db86c523c4e669fc522f41178",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\downed\\prompts\\engineer.full.txt",
+  "promptSha256": "331b5a9a6eaefeec91b1e96ad9b1f7268419598d33cf16f290fead2f55d00ab2",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the four lying figures to reskin, exact outlines, limbs, positions and scale\nImage 2: Style and pose rendering only: the accepted sibling sheet; match its pixel-art rendering, outline, shading and how it reads each pose, but not its armor or colors\nImage 3: Identity and style: this outfit's live layers seen from above; copy its clothing, armor, palette and head, not its layout\n\nUse case: sketch-to-render. Production sprites of fallen infantry for a top-down tactical game, to lie on the ground beside the existing live overhead sprites.\n\nReference 1 is the authoritative POSE GUIDE and edit target, 1536x1024. Reskin only its four flat gray figures; keep every figure's exact outline, limb positions, position on the canvas and scale. Everything outside the figures must be genuinely transparent: no background, ground, floor, shadow, blood pool, border, labels or grid.\n\nCamera: TRUE STRAIGHT-DOWN 90-degree overhead view of four people lying flat on the ground, heads toward the TOP of the image. No perspective, no isometric or three-quarter view.\n- Figure 1: lying face down, arms along the sides; we see the back of the head, back, backs of the legs and the soles/heels of the boots.\n- Figure 2: lying on the back, arms flung out, one knee fallen outward; we see the face from directly above (eyes closed, simple features), chest, fronts of the legs and the toes of the boots.\n- Figure 3: lying curled on one side, knees drawn up, arms forward.\n- Figure 4: sprawled face down, one arm thrown overhead, legs apart.\nEach figure is the same person in the same outfit, limp and still: incapacitated or dead, not posing.\n\nStyle: match the live-sprite references exactly \u00e2\u20ac\u201d chunky crisp pixel art with a clean one-step dark outline around every figure, a limited muted palette, broad readable planes, light from the upper left, restrained detail that still reads at 300x460 pixels per figure. Not painterly, not smooth airbrushed, not photographic. No weapons, dropped gear, gore, wounds, blood or text.\nThis outfit: colony ENGINEER, unarmored. Dark navy-slate work coveralls with worn ochre-yellow hazard panels over both shoulders, a heavy ribbed gray sealing ring at the neck and grimy gray harness straps down the chest; grease-darkened patches. Head: a SEALED HAZARD HELMET, dull gunmetal shell with a broad ochre-yellow stripe front to back and small round ear pods (figure 2 shows the helmet's dark faceplate from above, no skin). Heavy dark gray safety boots with ochre-yellow toe caps. Copy the coveralls, helmet and boots from the engineer reference.\nFit: every figure must stay exactly the size and shape of its gray guide figure. Do not enlarge, bulk up, widen or shift any figure; head, torso, limbs and boots stay inside the gray outline, and clothing fits close to it (no flared coat tails or wide padding past the outline).\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\downed-poses.png",
+      "sha256": "258356b848e570ef25b0e902e5cdbc17b7b04a665d2cf2b7f97c1336e01b111b",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the four lying figures to reskin, exact outlines, limbs, positions and scale"
+    },
+    {
+      "path": "art-source\\downed\\raw\\charcoal.png",
+      "sha256": "87a1f07b753fd4ce4391d9405ef5dca4ec71ade85de10aedac100f02934a55b6",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Style and pose rendering only: the accepted sibling sheet; match its pixel-art rendering, outline, shading and how it reads each pose, but not its armor or colors"
+    },
+    {
+      "path": "art-source\\colonist-modular-topdown\\raw\\engineer.png",
+      "sha256": "dfd78608218113526a6f6225774f0a954ad4e037422c4f36297dee9dba3076b5",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Identity and style: this outfit's live layers seen from above; copy its clothing, armor, palette and head, not its layout"
+    }
+  ],
+  "agentMessages": [
+    "I\u00e2\u20ac\u2122ll generate one image using the pose guide\u00e2\u20ac\u2122s exact silhouettes, the sibling sheet\u00e2\u20ac\u2122s pixel style, and the engineer outfit, with a transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 49547,
+    "cached_input_tokens": 29312,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 803,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 69.3
+}

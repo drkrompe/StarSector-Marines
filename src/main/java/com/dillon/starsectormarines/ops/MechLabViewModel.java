@@ -5,9 +5,12 @@ import com.dillon.starsectormarines.ops.CompanyResources.Row;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechSection;
 import com.dillon.starsectormarines.campaign.CampaignClock;
+import com.dillon.starsectormarines.campaign.refit.RefitText;
+import com.dillon.starsectormarines.campaign.refit.ShipCondition;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechRefit;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
@@ -43,6 +46,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 /** Spatial doll projection and command surface for the campaign-authoritative {@link MechBay}. */
 public final class MechLabViewModel {
@@ -78,6 +82,9 @@ public final class MechLabViewModel {
     private final ComputedSignal<String> budgetClasses;
     private final ComputedSignal<String> platingText;
     private final ComputedSignal<String> platingClasses;
+    private final ComputedSignal<String> shipRefitText;
+    /** The company ship's refits, read live here; a launch freezes them into each deployment. */
+    private final Supplier<ShipCondition> shipCondition;
     private final ComputedSignal<List<FilterPill>> categoryFilterPills;
     private final ComputedSignal<String> categoryFilterClasses;
     private final ComputedSignal<String> labSummary;
@@ -134,17 +141,26 @@ public final class MechLabViewModel {
     /** @param campaignDay the campaign day source; repair clocks and readiness are read against it */
     public MechLabViewModel(Reactor reactor, MechBay bay, FabricationResources resources,
                             Runnable bayChanged, DoubleSupplier campaignDay) {
+        this(reactor, bay, resources, bayChanged, campaignDay, () -> ShipCondition.NONE);
+    }
+
+    /** @param shipCondition the company ship's refit tree, whose Mech Lab tracks the sheet shows */
+    public MechLabViewModel(Reactor reactor, MechBay bay, FabricationResources resources,
+                            Runnable bayChanged, DoubleSupplier campaignDay,
+                            Supplier<ShipCondition> shipCondition) {
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
         if (bay == null) throw new IllegalArgumentException("mech bay is required");
-        if (resources == null || bayChanged == null || campaignDay == null) {
+        if (resources == null || bayChanged == null || campaignDay == null || shipCondition == null) {
             throw new IllegalArgumentException(
                     "fabrication resources, change callback and campaign day are required");
         }
         this.campaignDay = campaignDay;
+        this.shipCondition = shipCondition;
         this.reactor = reactor;
         this.bay = bay;
         this.resources = resources;
-        workshop = new MechWorkshop(bay, resources, () -> physicalGantries);
+        workshop = new MechWorkshop(bay, resources, () -> physicalGantries,
+                () -> shipCondition.get().mechFieldRepair());
         this.bayChanged = bayChanged;
         CampaignMechSquad initialSquad = bay.activeSquad();
         revision = reactor.signal(0);
@@ -230,6 +246,10 @@ public final class MechLabViewModel {
             CampaignMech mech = selectedMech();
             return mech != null ? Strings.format("openingMechLabPlatingRow",
                     mech.internal(MechInternal.Role.PLATING).displayName()) : "";
+        });
+        shipRefitText = reactor.computed(() -> {
+            revision.get();
+            return selectedMech() == null ? "" : RefitText.mechLine(shipCondition.get());
         });
         platingClasses = reactor.computed(() -> selectedMech() == null ? "plating-select hidden"
                 : platingSelected.get() ? "plating-select console-action selected"
@@ -419,6 +439,8 @@ public final class MechLabViewModel {
     public Signal<String> budgetClasses() { return budgetClasses; }
     public Signal<String> platingText() { return platingText; }
     public Signal<String> platingClasses() { return platingClasses; }
+    /** The ship's Mech Lab refits as the selected mech will deploy with them; empty when neutral. */
+    public Signal<String> shipRefitText() { return shipRefitText; }
     public Runnable selectPlatingAction() { return this::selectPlating; }
     public boolean platingSelected() { return platingSelected.get(); }
 
@@ -428,6 +450,7 @@ public final class MechLabViewModel {
         props.put("budgetClasses", budgetClasses);
         props.put("platingText", platingText);
         props.put("platingClasses", platingClasses);
+        props.put("shipRefitText", shipRefitText);
         props.put("selectPlating", selectPlatingAction());
     }
 
@@ -453,7 +476,12 @@ public final class MechLabViewModel {
     /** Dissipation a weapon sheet reads against: the selected mech's, or the stock frame's. */
     public float selectedDissipationPerSecond() {
         MechFrameBudget.Fit fit = selectedFit();
-        return fit != null ? fit.dissipationPerSecond() : MechInternal.FACTORY_CAPACITOR_BANK.dissipation;
+        float base = fit != null ? fit.dissipationPerSecond() : MechInternal.FACTORY_CAPACITOR_BANK.dissipation;
+        return base * refit().dissipationMult();
+    }
+
+    private MechRefit refit() {
+        return shipCondition.get().mechRefit();
     }
 
     /**
@@ -522,8 +550,8 @@ public final class MechLabViewModel {
         if (mech.weaponAt(mount) == component || bay.availableWeapon(component.id) > 0) {
             return true;
         }
-        MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.weapon(component);
-        return bay.canFabricate(component) && recipe != null && resources.canAfford(resources.quote(recipe.cost()));
+        FabricationCost bill = workshop.weaponQuote(component);
+        return bay.canFabricate(component) && bill != null && resources.canAfford(bill);
     }
 
     /** Installed assemblies can move only to vacant, compatible hardpoints. */
@@ -750,16 +778,22 @@ public final class MechLabViewModel {
         }
         MechFrameBudget.Fit ghost = candidateFit(mech);
         if (ghost == null) ghost = fit;
+        // What the mech deploys on: the armor shop's plate and the coolant plant over the fit.
+        MechRefit refit = refit();
+        float armor = fit.armorCapacity() * refit.armorMult();
+        float dissipation = fit.dissipationPerSecond() * refit.dissipationMult();
 
         return List.of(
-                meter("armor", Strings.get("openingMechLabArmor"), Strings.format("openingMechLabPlate", Math.round(fit.armorCapacity())),
-                        fit.armorCapacity(), maximum(MechFrameBudget::refitArmorCapacity), ghost.armorCapacity()),
+                meter("armor", Strings.get("openingMechLabArmor"), Strings.format("openingMechLabPlate", Math.round(armor)),
+                        armor, maximum(MechFrameBudget::refitArmorCapacity) * refit.armorMult(),
+                        ghost.armorCapacity() * refit.armorMult()),
                 meter("mobility", Strings.get("openingMechLabMobility"), Strings.format("openingMechLabCellsS", number(fit.moveSpeed())),
                         fit.moveSpeed(), maximum(MechFrameBudget::refitMoveSpeed), ghost.moveSpeed()),
                 meter("flux", Strings.get("openingMechLabCapacitorBank"), Strings.format("openingMechLabFluxValue", number(fit.fluxCapacity())),
                         fit.fluxCapacity(), maximumFluxCapacity(), ghost.fluxCapacity()),
-                meter("dissipation", Strings.get("openingMechLabDissipation"), Strings.format("openingMechLabDissipationValue", number(fit.dissipationPerSecond())),
-                        fit.dissipationPerSecond(), maximumDissipation(), ghost.dissipationPerSecond()),
+                meter("dissipation", Strings.get("openingMechLabDissipation"), Strings.format("openingMechLabDissipationValue", number(dissipation)),
+                        dissipation, maximumDissipation() * refit.dissipationMult(),
+                        ghost.dissipationPerSecond() * refit.dissipationMult()),
                 meter("range", Strings.get("openingMechLabMaxRange"), Strings.format("openingMechLabCells", number(currentRange)),
                         currentRange, maximumWeaponRange(), ghostRange),
                 meter("endurance", Strings.get("openingMechLabMissiles"), Strings.format("openingMechLabTriggers", currentMissiles),
@@ -959,7 +993,8 @@ public final class MechLabViewModel {
             boolean installed = mech.weaponAt(mount) == component;
             boolean inCargo = free > 0;
             boolean fabricate = !inCargo;
-            boolean affordable = resources.canAfford(resources.quote(recipe.cost()));
+            FabricationCost bill = workshop.weaponQuote(component);
+            boolean affordable = resources.canAfford(bill);
             boolean locked = !bay.canFabricate(component);
             MechFrameBudget.Fit proposed = mech.fit().withWeapon(mount, component);
             boolean withinBudget = installed || bay.withinBudget(mech.id(), proposed);
@@ -1000,7 +1035,7 @@ public final class MechLabViewModel {
 
             String base = "mech-catalog:" + component.id;
             boolean showMaterials = !inCargo && !installed && fits && !locked;
-            List<Row> materials = showMaterials ? materialRows(base, resources.quote(recipe.cost())) : List.of();
+            List<Row> materials = showMaterials ? materialRows(base, bill) : List.of();
             String materialsClasses = showMaterials ? "material-costs" : "material-costs hidden";
 
             rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",

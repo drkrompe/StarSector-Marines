@@ -99,9 +99,11 @@ final class ShipDeckLighting {
     }
 
     /**
-     * @param passagePower whether the passages' own circuit is live. Without it
-     *     (the Power core at Deficit) two strung lamps in three are dead and half
-     *     the rest flicker on what is left.
+     * @param passagePower whether the ship's distribution is live (the Power core
+     *     restored). Without it two strung lamps in three are dead and half the
+     *     rest flicker on what is left, and rooms the restoration record lists
+     *     with faulty circuits run on emergency strips. With it only damaged
+     *     rooms do, so restoring Power relights rooms without a new deck.
      * @param screens the deck's screens and consoles, which light the floor in front of them
      * @param processing whether the ship's processing runs (Compute restored): teal screens, else amber standby
      */
@@ -117,7 +119,9 @@ final class ShipDeckLighting {
         if (graph != null) for (var room : graph.compartments()) {
             for (int y = room.top(); y <= room.bottom(); y++) for (int x = room.left(); x <= room.right(); x++)
                 if (room.contains(x, y)) owners[y * width + x] = room.id();
-            boolean emergency = graph.emergencyLighting(room.id());
+            // A damaged room is dark whatever the plant does; an intact room's faulty circuit
+            // is the Power core's own symptom, so it follows the passages' supply.
+            boolean emergency = graph.damaged(room.id()) || !passagePower && graph.emergencyLighting(room.id());
             if (emergency) emergencyRooms.add(room.id());
             int number = 0;
             for (int x = room.left() + 1; x <= room.right(); x += 6) {
@@ -340,6 +344,23 @@ final class ShipDeckLighting {
      * keeps the floor readable between pools, and a dark one falls to deep
      * shadow broken by the lamps that still burn.
      */
+    /**
+     * As {@link #colour(Cell, int, float[], float[])}, with each lamp's colour
+     * read from {@code colours} (three per lamp) instead of the lamp itself:
+     * how a frame mid-way through a dressing wave mixes two conditions' light.
+     */
+    static float colour(Cell cell, int sample, float[] gains, float[] colours, float[] rgb) {
+        rgb[0] = rgb[1] = rgb[2] = 0f;
+        int i = sample * PER_SAMPLE;
+        for (int j = i; j < i + PER_SAMPLE; j++) {
+            int id = cell.lamps()[j];
+            if (id < 0) continue;
+            float w = cell.pools()[j] * gains[id];
+            rgb[0] += w * colours[id * 3]; rgb[1] += w * colours[id * 3 + 1]; rgb[2] += w * colours[id * 3 + 2];
+        }
+        return Math.max(rgb[0], Math.max(rgb[1], rgb[2]));
+    }
+
     static float shade(Cell cell, float pool) {
         if (!cell.passage()) return shade(cell.emergency(), pool);
         return cell.emergency() ? .62f - .58f * pool : .46f - .44f * pool;
