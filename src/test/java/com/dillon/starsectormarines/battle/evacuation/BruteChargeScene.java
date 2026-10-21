@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.HullImpact;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
@@ -152,6 +153,11 @@ public final class BruteChargeScene implements BehaviorScene {
                 trace.shortestGap < 0 ? "one charge" : "shortest gap between tells " + trace.shortestGap + " ticks"));
         verdicts.add(Verdict.of("spares-its-own-side", !trace.hitOwnSide, "own side struck " + trace.hitOwnSide));
         // Whatever it hits is carried there over ticks, not set down there: nothing struck jumps.
+        // A blow lands on what is under the Brute's head, not at a circle about the target's centre.
+        // The trace samples the hull a tick after the behaviour judged the reach, so it allows one tick of slide.
+        verdicts.add(Verdict.of("blows-land-in-reach", trace.blowGap <= BruteChargeRules.BLOW_REACH + MAX_STEP * .6f,
+                trace.targetBlows == 0 ? "no blow on the target" : trace.targetBlows
+                        + " blows on the target, struck from at most " + trace.blowGap + " cells off its surface"));
         verdicts.add(Verdict.of("slides-not-jumps", trace.maxStep <= MAX_STEP,
                 "largest move of a struck body in one tick " + trace.maxStep + " cells"));
         switch (loop) {
@@ -217,6 +223,9 @@ public final class BruteChargeScene implements BehaviorScene {
         metrics.put("hullTurnDegrees", trace.turn);
         metrics.put("tramples", trace.tramples);
         metrics.put("maxStep", trace.maxStep);
+        metrics.put("blows", trace.blows);
+        metrics.put("blowGap", trace.blowGap);
+        metrics.put("pushedOverTheFight", trace.blowShove);
         metrics.put("firstTellDistance", Float.isNaN(trace.firstTellDistance) ? -1f : trace.firstTellDistance);
         metrics.put("bruteDamageDealt", trace.damageDealt(sim));
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
@@ -250,6 +259,9 @@ public final class BruteChargeScene implements BehaviorScene {
         private int infantryHits, infantryHeld, tramples, trampleHeld;
         private boolean recoiled;
         private float maxStep;
+        private int blows, targetBlows;
+        private float blowShove;
+        private float blowGap;
         private float hitFacing = Float.NaN, turn;
         /** Where each struck body stood the tick before it was hit, and the furthest it has gone since. */
         private final Map<Long, float[]> hitFrom = new LinkedHashMap<>();
@@ -332,6 +344,15 @@ public final class BruteChargeScene implements BehaviorScene {
                     }
                     case "stunned" -> bruteStunned = true;
                     case "recoil" -> recoiled = true;
+                    case "blow" -> {
+                        blows++;
+                        if (e.target() == target) {
+                            targetBlows++;
+                            // Measured where the blow was struck from: the tick before, as the push lands this one.
+                            float[] at = lastPos.get(brute);
+                            if (at != null) blowGap = Math.max(blowGap, gapFrom(sim, at[0], at[1]));
+                        }
+                    }
                     case "trample" -> {
                         tramples++;
                         if (sim.stagger().isStaggered(e.target()) || !sim.world().isAlive(e.target())) trampleHeld++;
@@ -393,6 +414,18 @@ public final class BruteChargeScene implements BehaviorScene {
             remember(sim);
         }
 
+        /** How far a point stands from the target's surface, as the Brute's reach measures it. */
+        private float gapFrom(BattleSimulation sim, float x, float y) {
+            if (sim.convoy().isVehicle(target)) {
+                var hull = sim.convoy().body(target);
+                var type = sim.convoy().vehicleType(target);
+                return HullImpact.surfaceDistance(hull.x, hull.y, hull.facingDegrees,
+                        type.visualLengthCells / 2f, type.visualWidthCells / 2f, x, y);
+            }
+            return Math.max(0f, (float) Math.hypot(sim.world().x(target) - x, sim.world().y(target) - y)
+                    - sim.getRoster().radius(target));
+        }
+
         /** Thrown bodies: how many went at least half a cell. */
         int thrown() {
             int n = 0;
@@ -413,11 +446,15 @@ public final class BruteChargeScene implements BehaviorScene {
                 float x = sim.world().x(id), y = sim.world().y(id);
                 float d = (float) Math.hypot(x - e.getValue()[0], y - e.getValue()[1]);
                 carried.merge(id, d, Math::max);
-                if (id == target && sim.convoy().isVehicle(id)) {
-                    shove = Math.max(shove, d);
-                    float facing = sim.convoy().body(id).facingDegrees;
-                    if (Float.isNaN(hitFacing)) hitFacing = facing;
-                    turn = Math.max(turn, Math.abs(((facing - hitFacing) % 360f + 540f) % 360f - 180f));
+                if (id == target && (sim.convoy().isVehicle(id) || sim.identity().type(id).isMech())) {
+                    // The charge's push, until the first blow; the blows' pushes after it.
+                    if (targetBlows == 0) shove = Math.max(shove, d);
+                    else blowShove = Math.max(blowShove, d);
+                    if (sim.convoy().isVehicle(id) && targetBlows == 0) {
+                        float facing = sim.convoy().body(id).facingDegrees;
+                        if (Float.isNaN(hitFacing)) hitFacing = facing;
+                        turn = Math.max(turn, Math.abs(((facing - hitFacing) % 360f + 540f) % 360f - 180f));
+                    }
                 }
                 float[] last = lastPos.get(id);
                 if (last != null) maxStep = Math.max(maxStep, (float) Math.hypot(x - last[0], y - last[1]));
@@ -439,6 +476,7 @@ public final class BruteChargeScene implements BehaviorScene {
         }
 
         private void remember(BattleSimulation sim) {
+            if (sim.getRoster().isAliveById(brute)) lastPos.put(brute, new float[]{sim.world().x(brute), sim.world().y(brute)});
             for (long id : watched) {
                 if (sim.getRoster().isAliveById(id)) lastPos.put(id, new float[]{sim.world().x(id), sim.world().y(id)});
             }

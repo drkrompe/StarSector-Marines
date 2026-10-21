@@ -53,6 +53,16 @@ final class BruteChargeRules {
     /** Decelerations, cells a second squared, of a thrown body sliding to rest and of a Brute's rebound. */
     static final float BODY_SLIDE = f("bodySlide", 9f);
     static final float BRUTE_SLIDE = f("bruteSlide", 8f);
+    /**
+     * How far a Brute's blow reaches, from its centre to the surface of what it strikes: its head, about a
+     * cell. Measured to a hull's footprint, not to a circle about its centre.
+     */
+    static final float BLOW_REACH = f("blowReach", 1.0f);
+    /** The speed a blow drives the Brute's weight into what it strikes, cells a second: what a hull or mech takes. */
+    static final float BLOW_SPEED = f("blowSpeed", 2.5f);
+    /** A mech's tonnes per unit of its variant's relative mass, and how hard its feet hold a slide. */
+    static final float MECH_TONNES = f("mechTonnes", 10f);
+    static final float MECH_SLIDE = f("mechSlide", 4f);
     /** {@code -Dbattle.brute.trample=false} keeps the Brute's blow on infantry an ordinary hit: the control. */
     static final boolean TRAMPLE = Boolean.parseBoolean(System.getProperty("battle.brute.trample", "true"));
     /** A trampled body's time down, how far it is bowled, and the ground under the hooves (cells). */
@@ -145,6 +155,14 @@ final class BruteChargeRules {
     /** What a Brute takes from an impulse it could not shed: nothing up to {@link #SAFE_IMPULSE}. */
     static float recoilDamage(float impulse) {
         return Math.max(0f, impulse - SAFE_IMPULSE) * RECOIL_DAMAGE;
+    }
+
+    /**
+     * The velocity change a body of {@code mass} takes, struck head-on by a Brute closing at {@code speed}:
+     * momentum conserved between two point masses, bouncing by {@link #RESTITUTION}.
+     */
+    static float pointPush(float speed, float mass) {
+        return (1f + RESTITUTION) * speed / (1f / MASS + 1f / mass) / mass;
     }
 
     /** Speed a body must leave at to slide {@code cells} against a deceleration of {@code decel}. */
