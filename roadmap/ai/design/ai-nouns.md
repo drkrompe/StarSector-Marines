@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — a manned building draws a machine guard as a manned run does: the player's GUARD click names a compound building as well as a held place, on any map, and a commander attaches a lance to a building envelope it mans or a building its own garrison holds (see machine guard under "Fighting positions"). Earlier: the counter-attack is for places, not forts: a lost place (a compound, a fort as one case) is observed by a probe and retaken in proportion to its observed holders or not at all (`PlaceCounterattack`, scenes `place-counterattack`, `fort-counterattack`), and a turned place's ground is the counter-attack's alone; a machine sent to a garrisonable its own side mans stands guard beside it as heavy support, by the player's click or a commander's bounded attachment (see machine guard under "Fighting positions"). Earlier: a machine clicked onto a garrisonable its side believes is enemy-held assaults it by fire from a stand-off and never enters.
+Updated: 2026-10-20 — a lost place judged outmatched is stood down from, its squads and ground back to the ordinary defence, and observed again later (place counter-attack); earlier today, a manned building draws a machine guard as a manned run does.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2173,16 +2173,17 @@ piecemeal, and retaking it is the structure planner's question. Its answer is a
 **counter-attack** (`conquest-command.md`, Defender command), and it is the answer
 for every kind of place, not only forts: the game is much larger than forts
 (`garrisonables.md`, places not forts). From the moment a place turns — a fort's
-most critical aspect falls, a compound objective is taken — its ground is the
-counter-attack's alone. The track response does not rally into it, flow does
-not stage toward it, its garrisonables are not manned and no single squad is
-sent to retake it; the commander observes what holds it (a probe, or any own
-squad already watching), sizes the push from the observed holders and its own
-remembered losses there, and retakes it in proportion, as one push, or not at
-all. Before anything is lost its reserve forms only behind a place whose alarm
-stands, as the reserve law's share, and may man that place's own garrisonables
-and do nothing else; once a place has turned it grows, and only what it holds
-above the law's share may be lent.
+most critical aspect falls, a compound objective is taken — and while the
+counter-attack stands for it, its ground is the counter-attack's alone. The
+track response does not rally into it, flow does not stage toward it, its
+garrisonables are not manned and no single squad is sent to retake it; the
+commander observes what holds it (a probe, or any own squad already watching),
+sizes the push from the observed holders and its own remembered losses there,
+and retakes it in proportion, as one push, or not at all. Nothing is held back
+before a place is lost. A place judged outmatched is stood down from: its squads
+and its ground go back to the ordinary defence (its garrisonables stay unmanned),
+and it is observed again later, or at once when it is seen to thin. A reserve
+never waits for a place nobody means to attempt.
 
 A belt squad is sent only if it can arrive in time, and one still closing is not
 recalled by a lull. Pressure also draws free patrols toward the pressed area,

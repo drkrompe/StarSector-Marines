@@ -445,6 +445,13 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 directives.put(squad.id, directive(squad, home, home, AssignmentReason.DEFENDER_GARRISONABLE_FALL_BACK));
                 continue;
             }
+            if (counterOn && leftByCounterattack(squad)) {
+                // The counter-attack has let it go (a stand-down, a retake, a failure): its staging post or retake
+                // order was the counter-attack's, not an external task, so it is the pool's again.
+                squad.assignedObjective = null;
+            } else {
+                counterLeft.remove(squad.id);
+            }
             if (squad.localContact) {
                 if (squad.machine) contactMachines.add(squad);
                 clearMissionRally(squad);
@@ -959,8 +966,13 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     private List<DefenceStructureFact> structures = List.of();
     /** This plan's places for the counter-attack: its own forts and compounds ({@link PlaceCounterattack}). */
     private List<PlaceCounterattack.Place> counterPlaces = List.of();
-    /** Those of them turned and within reach of the keep, whose ground is the counter-attack's alone. */
+    /**
+     * Those of them turned, within reach of the keep and still the counter-attack's question, whose ground is the
+     * counter-attack's alone. A place it has given up or stood down from as outmatched is the ordinary defence's again.
+     */
     private List<PlaceCounterattack.Place> turnedGround = List.of();
+    /** Every turned place within reach of the keep, claimed or not: its garrisonables are never manned. */
+    private List<PlaceCounterattack.Place> lostGround = List.of();
     /** The forts among them that have turned. */
     private Set<Integer> turnedFortIds = Set.of();
 
@@ -969,6 +981,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         if (!PlaceCounterattack.isEnabled()) {
             counterPlaces = List.of();
             turnedGround = List.of();
+            lostGround = List.of();
             turnedFortIds = Set.of();
             return;
         }
@@ -977,10 +990,16 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         places.addAll(compoundPlaces.places(compounds,
                 i -> compounds.get(i).node().kind != TacticalNode.Kind.COMMAND_POST));
         counterPlaces = places;
-        turnedGround = PlaceCounterattack.turnedGround(places, keepCell(frame), PlaceCounterattack.MAX_RETAKE_CELLS);
+        List<PlaceCounterattack.Place> turned = new ArrayList<>(
+                PlaceCounterattack.turnedGround(places, keepCell(frame), PlaceCounterattack.MAX_RETAKE_CELLS));
+        List<PlaceCounterattack.Place> lost = List.copyOf(turned);
+        turned.removeIf(place -> !counter.claimsGround(place.key()));
+        lostGround = PlaceCounterattack.manLostGround ? List.copyOf(turned) : lost;
+        turnedGround = turned;
         Set<Integer> forts = new TreeSet<>();
         for (Map.Entry<Integer, List<DefenceStructureFact>> fort : FortPlaces.ownForts(faction(), structures).entrySet()) {
-            if (FortPlaces.status(faction(), fort.getValue()) != PlaceCounterattack.Status.HELD) forts.add(fort.getKey());
+            if (FortPlaces.status(faction(), fort.getValue()) != PlaceCounterattack.Status.HELD
+                    && counter.claimsGround(FortPlaces.key(fort.getKey()))) forts.add(fort.getKey());
         }
         turnedFortIds = forts;
     }
@@ -1002,6 +1021,25 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         return squad.originalDirective != null
                 && squad.originalDirective.authority().priority()
                 > CommandAuthority.MISSION_COMMAND.priority();
+    }
+
+    /**
+     * Squads the counter-attack has let go, with the order it last gave each. Until a squad's directive no longer holds
+     * that order it is still the counter-attack's leftover, not an external task: without this a squad released from a
+     * staging post kept it, read as an external assignment every pulse after, and was lost to the pool for the battle.
+     */
+    private final Map<Integer, ObjectiveAssignment> counterLeft = new TreeMap<>();
+
+    /** Whether a squad still holds an order the counter-attack gave it, though the counter-attack no longer claims it. */
+    private boolean leftByCounterattack(PlanningSquad squad) {
+        ObjectiveAssignment left = counterLeft.get(squad.id);
+        return left != null && squad.assignedObjective != null && !counter.claims(squad.id)
+                && sameTask(left, squad.assignedObjective);
+    }
+
+    private static boolean sameTask(ObjectiveAssignment a, ObjectiveAssignment b) {
+        return a.kind() == b.kind() && a.targetCellX() == b.targetCellX() && a.targetCellY() == b.targetCellY()
+                && a.targetZoneId() == b.targetZoneId();
     }
 
     private boolean isCommandPoolSquad(PlanningSquad squad) {
@@ -1692,7 +1730,9 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         String counterPlace = counter.placeKey();
         List<GarrisonDirector.Man> sent = garrisons.assign(free, (squadId, place) -> {
             if (turnedFortIds.contains(places.fortId(place))) return false;
-            if (onTurnedGround(places.centreX(place), places.centreY(place))) return false;
+            // Inside a lost place's ground nothing is manned, claimed or not: a post among its holders is not a retake.
+            if (!lostGround.isEmpty() && PlaceCounterattack.onTurnedGround(lostGround, counterPlaces,
+                    places.centreX(place), places.centreY(place))) return false;
             if (lent.contains(squadId) && !belongsTo(places, place, counterPlace)) return false;
             PlanningSquad squad = allSquads.get(squadId);
             int x = places.centreX(place);
@@ -1775,9 +1815,9 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         for (int id : result.released()) {
             PlanningSquad squad = countering.remove(id);
             if (squad == null) continue;
-            // The staging post was the counter-attack's; a squad given back holds nothing of it.
-            if (squad.assignedObjective != null && squad.assignedObjective.kind() == AssignmentKind.DEFEND_AREA
-                    && !squad.assignedObjective.isGarrison()) {
+            if (squad.assignedObjective != null) counterLeft.put(id, squad.assignedObjective);
+            // The staging post (or the retake order) was the counter-attack's; a squad given back holds nothing of it.
+            if (squad.assignedObjective != null && !squad.assignedObjective.isGarrison()) {
                 squad.assignedObjective = null;
             }
             candidates.add(squad);
@@ -1845,7 +1885,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         Set<Integer> tasked = new HashSet<>();
         // A fort whose critical aspect is lost is the counter-attack's to retake, in proportion or not at all.
         List<DefenceStructureFact> work = PlaceCounterattack.isEnabled()
-                ? FortPlaces.withheld(frame.perspective(), structures) : structures;
+                ? FortPlaces.withheld(frame.perspective(), structures, fort -> counter.claimsGround(FortPlaces.key(fort)))
+                : structures;
         for (DefenceStructureTactics.Task task : DefenceStructureTactics.plan(
                 frame.perspective(), work, offered, frame.topology())) {
             PlanningSquad squad = candidateById(candidates, task.squadId());
@@ -2029,8 +2070,11 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 proposals.add(CommandProposal.assign(planned.assignedObjective,
                         CommandAuthority.MISSION_COMMAND, reason, stabilityBreak));
             } else if (frozen.assignment() != null) {
+                // A squad the counter-attack let go is released now: the post it held is gone, not merely superseded.
+                CommandStabilityBreak release = counterLeft.containsKey(squadId)
+                        ? CommandStabilityBreak.CONTEXT_INVALIDATED : stabilityBreak;
                 proposals.add(CommandProposal.release(squadId,
-                        CommandAuthority.MISSION_COMMAND, reason, stabilityBreak));
+                        CommandAuthority.MISSION_COMMAND, reason, release));
             } else {
                 proposals.add(CommandProposal.retain(squadId,
                         CommandAuthority.MISSION_COMMAND, reason));

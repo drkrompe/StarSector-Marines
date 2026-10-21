@@ -67,10 +67,18 @@ final class FortPlaces {
      * never retaken piecemeal; standing to at the aspects still held is left alone.
      */
     static List<DefenceStructureFact> withheld(Faction side, List<DefenceStructureFact> structures) {
+        return withheld(side, structures, fortId -> true);
+    }
+
+    /**
+     * As {@link #withheld(Faction, List)}, for the forts the counter-attack still claims: one it has given up, or stood
+     * down from as outmatched, is ordinary structure work again.
+     */
+    static List<DefenceStructureFact> withheld(Faction side, List<DefenceStructureFact> structures, IntPredicate claimed) {
         Map<Integer, List<DefenceStructureFact>> forts = ownForts(side, structures);
         Set<Integer> turned = new TreeSet<>();
         for (Map.Entry<Integer, List<DefenceStructureFact>> entry : forts.entrySet()) {
-            if (status(side, entry.getValue()) != Status.HELD) turned.add(entry.getKey());
+            if (status(side, entry.getValue()) != Status.HELD && claimed.test(entry.getKey())) turned.add(entry.getKey());
         }
         if (turned.isEmpty()) return structures;
         List<DefenceStructureFact> out = new ArrayList<>(structures.size());
