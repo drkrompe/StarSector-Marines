@@ -242,18 +242,42 @@ final class PlaceCounterattack {
     /**
      * What one commander's counter-attack is allowed: how much of the pool waits for it, the floor a place takes, and
      * whether the reserve waits for contact or forms at once (a finite counter-attack pool whose whole purpose it is).
+     *
+     * @param margin      marines brought for each observed holder; zero or less is the shared {@link #margin} knob
+     * @param maxShare    the most of the pool, as a share of its squads, the group may ever hold (never fewer than one
+     *                    squad); one or more is no bound beyond the pool itself
+     * @param maxLaunches pushes the side may launch in a battle; once spent no group forms again
+     * @param floorOnPool whether the reserve law's floor is kept only out of the free pool, never out of garrisons
+     *                    offered to sortie: a side whose pool is spent may still sortie its last garrison
+     * @param commitShare the share of what a place takes the side must raise to go; zero or less is the shared
+     *                    {@link #commitShare} knob
      */
     record Doctrine(float reserveShare, int floor, boolean formOnContact, boolean formAtOnce, int maxRetakeCells,
-                    int minPoolSquads) {
+                    int minPoolSquads, float margin, float maxShare, int maxLaunches, boolean floorOnPool,
+                    float commitShare) {
         /** The Conquest defender's: the knobs above. */
         static Doctrine conquest() {
             return new Doctrine(PlaceCounterattack.reserveShare, minStrength, PlaceCounterattack.formOnContact, false,
-                    MAX_RETAKE_CELLS, PlaceCounterattack.minPoolSquads);
+                    MAX_RETAKE_CELLS, PlaceCounterattack.minPoolSquads, 0f, 1f, Integer.MAX_VALUE, false, 0f);
         }
 
         /** A story mission's finite counter-attack pool: all of it waits for the counter-attack from the start. */
         static Doctrine finitePool(int floor) {
-            return new Doctrine(1f, floor, true, true, MAX_RETAKE_CELLS, 1);
+            return new Doctrine(1f, floor, true, true, MAX_RETAKE_CELLS, 1, 0f, 1f, Integer.MAX_VALUE, false, 0f);
+        }
+
+        /**
+         * A procedural mission defender's (`MissionCounterattack`): a bounded share of a small pool, nothing held back
+         * before a place turns, and a budget of pushes a battle, so a capture is answered once or twice and not forever.
+         */
+        static Doctrine mission(float share, int floor, float margin, float commitShare, int maxLaunches) {
+            return new Doctrine(share, floor, false, false, MAX_RETAKE_CELLS, 1, margin, share, maxLaunches, true,
+                    commitShare);
+        }
+
+        /** The most squads the group may hold out of a pool of this many: no bound at a share of one or more. */
+        int cap(int poolSquads) {
+            return maxShare >= 1f ? Integer.MAX_VALUE : Math.max(1, Math.round(poolSquads * maxShare));
         }
     }
 
@@ -312,6 +336,10 @@ final class PlaceCounterattack {
     private List<Integer> lendable = List.of();
     /** Whether any hostile mover has been believed this battle: the attack has begun, and a quiet pulse does not end it. */
     private boolean contactSeen;
+    /** Pushes launched this battle, against the doctrine's budget. */
+    private int launches;
+    /** The most squads the group may hold this pulse ({@link Doctrine#cap}). */
+    private int capThisPulse = Integer.MAX_VALUE;
 
     PlaceCounterattack() {
         this(Doctrine.conquest());
@@ -452,6 +480,11 @@ final class PlaceCounterattack {
      * losses on its ground, never below the floor, raised for each failed attempt.
      */
     static int required(float holders, float losses, int failures, int floor) {
+        return required(holders, losses, failures, floor, margin);
+    }
+
+    /** As {@link #required(float, float, int, int)}, at a doctrine's own margin. */
+    static int required(float holders, float losses, int failures, int floor, float margin) {
         float base = Math.max(floor, margin * Math.max(0f, holders) + lossWeight * Math.max(0f, losses));
         return (int) Math.ceil(base * (1f + FAILURE_GROWTH * Math.max(0, failures)));
     }
@@ -459,6 +492,12 @@ final class PlaceCounterattack {
     /** Whether what the side can raise is enough to go: at least the commit share of what the place takes. */
     static boolean worth(float raisable, int required) {
         return raisable > 0f && raisable >= commitShare * required;
+    }
+
+    /** As {@link #worth}, at the doctrine's own commit share. */
+    private boolean goes(float raisable, int required) {
+        float share = doctrine.commitShare() > 0f ? doctrine.commitShare() : commitShare;
+        return raisable > 0f && raisable >= share * required;
     }
 
     /** The turned places within reach of home: ground that is the counter-attack's question and nobody else's. */
@@ -533,6 +572,7 @@ final class PlaceCounterattack {
         lendable = List.of();
         sortieThisPulse = garrisonSortie ? sortie : List.of();
         lastTick = tick;
+        capThisPulse = doctrine.cap(poolSquads);
         Map<Integer, Order> orders = new TreeMap<>();
         List<Integer> recruited = new ArrayList<>();
         List<Integer> released = new ArrayList<>();
@@ -562,7 +602,9 @@ final class PlaceCounterattack {
             reserveTarget = Math.max(reserveTarget, Math.round(poolSquads * doctrine.reserveShare()));
         }
         boolean keepThreatened = keep != null && anyWithin(hostiles, keep[0], keep[1], KEEP_GUARD_CELLS);
+        // With no home, staging runs from the pool; a pool with nobody free stages from the garrisons that may sortie.
         int[] home = keep != null ? keep : centroid(members, free);
+        if (home == null) home = centroid(sortieThisPulse, List.of());
         // A probe in a fight sees what it is fighting, from wherever it was stopped.
         String engaged = null;
         if (group != null && group.stage == Stage.PROBE && byId.containsKey(group.probeId)
@@ -574,8 +616,12 @@ final class PlaceCounterattack {
             group.members.retainAll(byId.keySet());
             review(tick, byKey, keepThreatened, byId, released, notes);
         }
+        if (group != null && group.stage != Stage.LAUNCHED && launches >= doctrine.maxLaunches()) {
+            dissolve(released, notes, "the side's pushes for this battle are spent");
+        }
         boolean pooled = poolSquads >= doctrine.minPoolSquads() && reserveTarget > 0;
-        if (group == null && !keepThreatened && home != null && (pooled || !sortieThisPulse.isEmpty())) {
+        if (group == null && launches < doctrine.maxLaunches() && !keepThreatened && home != null
+                && (pooled || !sortieThisPulse.isEmpty())) {
             // A pool too small to hold a reserve still answers a lost place when garrisons may sortie to it; it forms
             // only for a place that has turned, since a garrison never waits behind one that still holds.
             Place best = choose(tick, places, home, keep, hostiles);
@@ -608,7 +654,7 @@ final class PlaceCounterattack {
         }
         List<Body> recruitable = recruitable(free, byId.keySet(), topology);
         if (group.stage == Stage.RESERVE) {
-            topUp(reserveTarget, centre, recruitable, byId, recruited);
+            topUp(Math.min(reserveTarget, capThisPulse), centre, recruitable, byId, recruited);
             // Before anything is lost the whole reserve is the law's share and all of it may man its own place; once a
             // place has turned, only what it holds above the law's share may.
             if (lendToBelt && !place.turned()) lendable = frontmost(anyTurned ? lawTarget : 0, centre, byId);
@@ -632,9 +678,8 @@ final class PlaceCounterattack {
         if (group != null && group.stage == Stage.MUSTER) {
             group.required = Math.max(group.required, requiredFor(place, hostiles, losses));
             recruitable = withSortie(recruitable, byId, topology);
-            float raisable = strength(group.members, byId) + strength(recruitable.subList(0,
-                    Math.max(0, recruitable.size() - RESERVE_FLOOR)));
-            if (informed && standDown && !worth(raisable, group.required)) {
+            float raisable = raisable(strength(group.members, byId), group.members.size(), recruitable);
+            if (informed && standDown && !goes(raisable, group.required)) {
                 // What the place takes has outgrown what can be raised while the group gathered: waiting at the staging
                 // cell for the muster's bound would only hold the pool out of the fight.
                 standDown(tick, place, group.required, raisable, released, notes);
@@ -674,13 +719,12 @@ final class PlaceCounterattack {
             if (estimate == null || estimate.observedTick != tick) continue;
             if (raisable < 0f) {
                 List<Body> recruitable = withSortie(recruitable(free, byId.keySet(), topology), byId, topology);
-                raisable = strength(byId.values()) + strength(recruitable.subList(0,
-                        Math.max(0, recruitable.size() - RESERVE_FLOOR)));
+                raisable = raisable(strength(byId.values()), byId.size(), recruitable);
             }
             float seen = believedAt(hostiles, place);
             int required = required(seen, losses.near(place.x(), place.y(), place.radius()), failures(place.key()),
-                    doctrine.floor());
-            estimate.thinPulses = worth(raisable, required) ? estimate.thinPulses + 1 : 0;
+                    doctrine.floor(), margin());
+            estimate.thinPulses = goes(raisable, required) ? estimate.thinPulses + 1 : 0;
             if (estimate.thinPulses < OBSERVE_PULSES) continue;
             waitUntil.remove(place.key());
             estimate.holders = seen;
@@ -738,7 +782,41 @@ final class PlaceCounterattack {
     private int requiredFor(Place place, List<Hostile> hostiles, Losses losses) {
         float holders = informed ? believedHolders(place.key()) : believedAt(hostiles, place);
         float lost = informed ? losses.near(place.x(), place.y(), place.radius()) : 0f;
-        return required(holders, lost, failures(place.key()), doctrine.floor());
+        return required(holders, lost, failures(place.key()), doctrine.floor(), margin());
+    }
+
+    /**
+     * How many of these squads the reserve law's floor keeps back: one, or with {@link Doctrine#floorOnPool} one only if
+     * one of them is a free squad of the pool rather than a garrison offered to sortie.
+     */
+    private int floorIn(List<Body> recruitable) {
+        if (!doctrine.floorOnPool() || sortieThisPulse.isEmpty()) return RESERVE_FLOOR;
+        int pool = 0;
+        for (Body body : recruitable) {
+            boolean sortie = false;
+            for (Body garrison : sortieThisPulse) {
+                if (garrison.squadId() == body.squadId()) {
+                    sortie = true;
+                    break;
+                }
+            }
+            if (!sortie && ++pool >= RESERVE_FLOOR) return RESERVE_FLOOR;
+        }
+        return pool;
+    }
+
+    /** The doctrine's margin, or the shared knob. */
+    private float margin() {
+        return doctrine.margin() > 0f ? doctrine.margin() : margin;
+    }
+
+    /**
+     * What the side could raise: what the group holds, and the free squads it could still take within its cap, less the
+     * reserve law's floor.
+     */
+    private float raisable(float inGroup, int groupSquads, List<Body> recruitable) {
+        int n = Math.max(0, Math.min(recruitable.size() - floorIn(recruitable), capThisPulse - groupSquads));
+        return inGroup + strength(recruitable.subList(0, n));
     }
 
     /** Sends one member to watch the place from an observation post short of it. */
@@ -759,7 +837,7 @@ final class PlaceCounterattack {
         if (probe == null) {
             // A reserve with nobody in it (its share is the law's, and the pool is busy) still looks: the nearest free
             // squad goes, never the last.
-            for (int i = 0; i < recruitable.size() - RESERVE_FLOOR; i++) {
+            for (int i = 0; i < recruitable.size() - floorIn(recruitable); i++) {
                 Body body = recruitable.get(i);
                 double gap = Math.hypot(body.x() - post[0], body.y() - post[1]);
                 if (gap < best) {
@@ -817,11 +895,10 @@ final class PlaceCounterattack {
     private void decide(int tick, Place place, List<Hostile> hostiles, Losses losses, Map<Integer, Body> byId,
                         List<Body> recruitable, List<Integer> released, List<String> notes) {
         int required = requiredFor(place, hostiles, losses);
-        float raisable = strength(group.members, byId) + strength(recruitable.subList(0,
-                Math.max(0, recruitable.size() - RESERVE_FLOOR)));
+        float raisable = raisable(strength(group.members, byId), group.members.size(), recruitable);
         group.raisable = raisable;
         group.recruitable = recruitable.size();
-        if (worth(raisable, required)) {
+        if (goes(raisable, required)) {
             group.stage = Stage.MUSTER;
             group.required = required;
             group.musterUntil = tick + MUSTER_TICKS;
@@ -951,7 +1028,7 @@ final class PlaceCounterattack {
         nearest.removeIf(body -> group.members.contains(body.squadId()));
         nearest.sort(Comparator.<Body>comparingDouble(b -> Math.hypot(b.x() - group.stageX, b.y() - group.stageY))
                 .thenComparingInt(Body::squadId));
-        int room = nearest.size() - RESERVE_FLOOR;
+        int room = Math.min(nearest.size() - floorIn(nearest), capThisPulse - group.members.size());
         for (Body body : nearest) {
             if (room <= 0 || strength(group.members, byId) >= group.required) break;
             take(body, byId, recruited);
@@ -976,10 +1053,10 @@ final class PlaceCounterattack {
             // Ready only once the whole group stands at the staging cell: a straggler still walking up is waited for
             // (to the muster's bound), so the push goes in together rather than with its last squad behind it.
             why = "ready";
-        } else if (allArrived && exhausted && worth(arrived, group.required)) {
+        } else if (allArrived && exhausted && goes(arrived, group.required)) {
             why = "everything it can raise is at the staging cell";
         } else if (tick >= group.musterUntil) {
-            if (worth(arrived, group.required)) {
+            if (goes(arrived, group.required)) {
                 why = "timed out";
             } else {
                 fail(tick, String.format(Locale.ROOT, "stands down: %.0f at the staging cell of %d believed needed",
@@ -990,6 +1067,7 @@ final class PlaceCounterattack {
         if (why == null) return;
         group.stage = Stage.LAUNCHED;
         group.launchTick = tick;
+        launches++;
         group.launchedStrength = strength(group.members, byId);
         Estimate estimate = estimates.get(group.key);
         if (estimate != null) estimate.pushPeak = 0f;

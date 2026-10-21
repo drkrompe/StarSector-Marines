@@ -4,7 +4,7 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-10-21 — quiet compound garrisons sortie into a decided counter-attack, so a place is answered when the mobile pool is spent; `formOnAlarm` stays off, with its reasons; the counter-attack's figures are refreshed against same-build controls, with how often a launch meets a hold (see "A place the defender loses" under Defender command).
+Updated: 2026-10-21 — the procedural missions counter-attack the places that matter to them on a bounded doctrine of their own (see "A place the defender loses" under Defender command).
 
 Earlier 2026-10-11 — the force is spread across the three tracks, the zone cap
 and transit spacing are on by default, and the clumps were found on the approach
@@ -696,17 +696,56 @@ one of them a dug-in hold, none winning the fort back).
   Lowering the margin to 1.25 changed nothing on the trial ground or Relay
   Nine and lost one more push on Conquest, so the margin stays at two: the
   side declining a hopeless push is right.
-- **Where the hold exists the counter-attack does not.** Raid, Assault, Sabotage
-  and Extraction have no counter-attack at all (their defenders man and
-  respond, and lose nothing they win back), and Thunder Run's pool never forms
-  a group on these fixtures (9,596 hold samples, none pressed). The trial
-  ground's fort is retaken once in nine by the ordinary defence, not by a push.
+- **Where the hold exists the counter-attack was not.** Until the procedural
+  missions had one (below), Raid, Assault, Sabotage and Extraction lost nothing
+  they won back, and Thunder Run's pool never forms a group on these fixtures
+  (9,596 hold samples, none pressed). The trial ground's fort is retaken once in
+  nine by the ordinary defence, not by a push.
 
-So the two meet in a meaningful share of battles only where the side has a
-reserve standing before the place turns, and that reserve costs the defence
-more than the meeting is worth. Making them meet across missions needs a
-counter-attack on the procedural missions, which is open work rather than a
-tuning of this one.
+**The procedural missions counter-attack the places that matter to them, on the
+same planner and a bounded doctrine of their own** (`MissionCounterattack`,
+`MissionPlaces`). Raid, Assault, Sabotage and Extraction keep the mission first:
+the commander plans its own duty, and only then is the counter-attack offered
+the squads the mission held back as reserve and the quiet authored garrisons
+(`MissionGarrisons`) — never a post, an objective's own garrison, an
+interdictor or a crew — before reactive manning sees what is left.
+
+- **Places that matter.** The mission's objective place (the Raid target until
+  it is secured, each unfinished Sabotage site, the Extraction source until the
+  payload is decided), taking the building that holds it as its ground, and the
+  key buildings — those the side's born garrisons were posted to — within thirty
+  cells of an objective. Assault, which has no objective place, counts every key
+  building. An objective is worth twice a building.
+- **How a place stands is belief and own force,** because these maps keep no
+  capture record: lost once hostiles have been believed on its ground for two
+  pulses with no squad of ours on it, losing while ours are on it after that,
+  whole again after three quiet pulses.
+- **Reasonable is a bound, not a margin.** The group is at most half the side's
+  infantry, the side has two pushes a battle, and its last garrison may sortie
+  (the floor is kept out of the free pool, not out of the group). It sizes what
+  a place takes at parity with what it observed (margin one, a squad's floor)
+  and goes once it can raise half of that. Conquest's figures — two to one,
+  three quarters to go — never launched once in twenty-four procedural battles:
+  every place was probed, sized and stood down outmatched, because a mission
+  defender is spread across posts and its spare is a squad or two against a
+  party of four to seventy. A garrison sorties only when quiet (nothing hostile
+  believed within twenty-four cells, not under fire), within eighty cells of
+  the place, and not from an objective or a lost place.
+- **What it changed, six seeds each against `-Dbattle.mission.counterattack=false`:**
+  outcomes and timeouts are unchanged on all four (Raid three and three,
+  Assault two defender wins and four timeouts, Sabotage six defender wins,
+  Extraction six marine wins), and losses move within the seeds' spread. Assault
+  launched four pushes, all of which met marines and two of which retook their
+  building, and the share of the defender's fights that were brawls rather than
+  fire from a post rose from 76% to 86%. Sabotage launched once and retook a site
+  from an objective hold; Extraction launched once against an objective hold and
+  gave up. Raid formed reserves eleven times and stood down outmatched eight:
+  its spare is one or two squads against a raiding party. Loosening the bounds
+  (share one, ninety-nine pushes) changed nothing, so on these fixtures the
+  margin decides and the bounds are the guarantee; a margin of 1.25 with
+  commit 0.6 launched four and turned all six Assaults into timeouts, so the
+  side's willingness to go is the dial that can stall a mission, and it stays
+  at parity and half.
 
 ## Picture and evidence
 

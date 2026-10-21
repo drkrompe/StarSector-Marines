@@ -118,3 +118,4 @@ com.dillon.starsectormarines.battle.evacuation.SwarmSpitterScene
 com.dillon.starsectormarines.battle.evacuation.SwarmSpitterAirScene
 com.dillon.starsectormarines.battle.evacuation.SwarmStrainSkirmishScene
 com.dillon.starsectormarines.battle.evacuation.SwarmChokepointScene
+com.dillon.starsectormarines.battle.command.MissionCounterattackScene
