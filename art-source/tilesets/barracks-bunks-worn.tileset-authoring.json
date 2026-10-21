@@ -1,0 +1,109 @@
+{
+  "sheetName": "barracks-bunks-worn",
+  "sheet": "art-source/tilesets/barracks-bunks-worn.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "barracks-bunks",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/barracks-bunks-worn.png",
+  "note": "Worn condition of barracks-bunks: ImageGen repaint of barracks-bunks.raw.png (geometry and identity authority) with the cargo-billets still as material reference. Component masks register at IoU 0.86-0.98, so the cuts are barracks-bunks' own. See barracks-bunks.README.md.",
+  "entries": [
+    {
+      "id": "barracks-bunks.bed-worn",
+      "rect": [
+        100,
+        64,
+        236,
+        468
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.38,
+      "included": true
+    },
+    {
+      "id": "barracks-bunks.bedding-high-worn",
+      "rect": [
+        488,
+        34,
+        280,
+        550
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "barracks-bunks.bedding-low-worn",
+      "rect": [
+        880,
+        34,
+        280,
+        550
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "barracks-bunks.frame-worn",
+      "rect": [
+        100,
+        688,
+        236,
+        460
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "barracks-bunks.locker-worn",
+      "rect": [
+        508,
+        688,
+        240,
+        460
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    },
+    {
+      "id": "barracks-bunks.locker-open-worn",
+      "rect": [
+        900,
+        688,
+        240,
+        460
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    }
+  ]
+}

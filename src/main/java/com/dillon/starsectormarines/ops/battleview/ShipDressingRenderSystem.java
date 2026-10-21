@@ -1,8 +1,11 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Draws the founding hull's Deficit dressing ({@link ShipDeckDressing}) in a deck
@@ -23,6 +26,7 @@ final class ShipDressingRenderSystem {
 
     private final DoodadRenderSystem doodads;
     private final PolyMesh haze = new PolyMesh(4096);
+    private final List<Doodad> housings = new ArrayList<>();
 
     ShipDressingRenderSystem(DoodadRenderSystem doodads) {
         this.doodads = doodads;
@@ -32,10 +36,23 @@ final class ShipDressingRenderSystem {
         return !"false".equalsIgnoreCase(System.getProperty(HAZE_PROPERTY));
     }
 
-    /** Beneath the fixtures: stains on the deck and pieces hugging the bulkheads. */
+    /**
+     * Beneath the fixtures: the passages' strung lamps and their cable, on every
+     * deck, then the Deficit pieces on the deck and hugging the bulkheads.
+     */
     void collectBeneath(RenderContext ctx, DrawList out) {
+        if (ctx.hostProfile != BattleRenderHostProfile.DECK_SCENE) return;
+        ShipDeckLighting lights = ctx.deckLighting;
+        if (lights != null) {
+            doodads.collectPlacements(lights.cables, out, ctx.camera, view(ctx), ctx.alphaMult);
+            housings.clear();
+            for (var fixture : lights.fixtures)
+                if (lights.present(fixture.lamp()))
+                    housings.add(lights.dead(fixture.lamp()) ? fixture.dead() : fixture.lit());
+            doodads.collectPlacements(housings, out, ctx.camera, view(ctx), ctx.alphaMult);
+        }
         ShipDeckDressing dressing = ctx.deckDressing;
-        if (dressing == null || ctx.hostProfile != BattleRenderHostProfile.DECK_SCENE || ctx.coreDressing.clean()) return;
+        if (dressing == null || ctx.coreDressing.clean()) return;
         doodads.collectPlacements(dressing.doodads(ctx.coreDressing), out, ctx.camera, view(ctx), ctx.alphaMult);
     }
 
@@ -45,7 +62,7 @@ final class ShipDressingRenderSystem {
         if (dressing == null || ctx.hostProfile != BattleRenderHostProfile.DECK_SCENE) return;
         var dead = dressing.deadConsoles(ctx.coreDressing);
         if (dead.isEmpty()) return;
-        doodads.collectTinted(dead, out, ctx.camera, view(ctx), .07f, .08f, .10f, .58f * ctx.alphaMult);
+        doodads.collectTinted(dead, out, ctx.camera, view(ctx), .07f, .08f, .10f, .45f * ctx.alphaMult);
     }
 
     /** Dead air: a faint grey-green that thickens and thins slowly over the deck. */

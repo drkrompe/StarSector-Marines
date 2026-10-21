@@ -5,7 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-21 — a reserve is furnished as its facility and opens where it stands when the hull's restoration names it; nothing on the deck moves.
+Updated: 2026-10-21 — interior tech styles named; low-tech is the strung-lamp, plate-deck, stored-cargo look from Deficit to Restored; midline and high-tech open.
 
 Earlier 2026-10-21 — Second Wind's arrangement also carries sealed reserves for her refit tree, laid after the program so they never move it.
 
@@ -389,6 +389,19 @@ authored content.
 - A **deck graph** is the published topology: the shared layout-neutral tier plus
   this family's annotation — each compartment's frame span, zone, and side of the
   spine.
+- An **interior tech style** is the material and light language a hull's
+  interior is drawn in, after the game's own hull families: **low-tech**,
+  **midline** and **high-tech**. A style owns its whole condition range, from a
+  wreck through Deficit to Restored, so restoring a ship makes it a better ship
+  of the same kind, never a different kind of ship. **Low-tech** is the one that
+  exists. Its passages are bolted steel plate lit by caged amber lamps strung
+  along both walls on exposed cable, with cool white rooms and console-lit
+  command spaces against them. Battered, it is told by dark passages, stored
+  cargo along the walls and worn fittings; restored, by every lamp lit and the
+  passages cleared. Midline and high-tech are open: they will be designed as
+  styles of their own, with their own condition range, rather than as upgrades
+  to low-tech. Until they exist, every generated hull is drawn low-tech. A
+  style is presentation: it never changes a hull's rooms, doors, berths or lanes.
 
 ## Home decks and prize decks
 
@@ -1630,35 +1643,49 @@ old welded plates and soot scars outside the active restoration work. Those mark
 survive facility repair, so a working ship still has a history. They decorate
 actual floor beneath furnishings and own no navigation, cover or capacity.
 
-Over that history the founding hull carries a **Deficit dressing**, one set per
-core: dead wall panels, torn-down conduit and passages on emergency light for
-Power; grime, condensation, stained scrubber grilles and a drifting dead-air haze
-for Life support; buckled wall panels, bracing, flat debris and patched plating
-for Structure; dead screens and cable pulled out of the overhead for Compute.
-Each core's Restored tier clears its own set everywhere on the deck, so the ship
-comes back core by core (`second-wind-refit-tree.md`). Dressing is state over
-fixed form and is presentation only: it is drawn by the deck scene and never
+Over that history the founding hull carries a **Deficit dressing**: the
+low-tech style's battered end, one set per core, after the deck look-dev (`art-source/ship-deck-lookdev`): the passages go
+dark, with two strung lamps in three dead, their cable hanging slack, dead wall
+panels and torn-down conduit, for Power; the company camping in its passages, with
+crates, lashed cargo, duffels and bedrolls along both walls, grime at the wall
+foot, stained scrubber grilles, worn furniture and a drifting dead-air haze, for
+Life support; buckled and mismatched patched wall plating, bracing and patched
+deck for Structure; dead screens and cable pulled out of the overhead for
+Compute. Each core's Restored tier clears its own set everywhere on the deck, so
+the ship comes back core by core (`second-wind-refit-tree.md`). Dressing is state
+over fixed form and is presentation only: it is drawn by the deck scene and never
 enters the map, so it moves no room, door, berth or lane and owns no navigation,
 cover or sight. The whole Deficit plan is derived from the deck and its seed, and
 the condition only chooses which cores' pieces show, so the same cells are dirty
 on every visit and clearing one core never moves another's. It keeps off
 doorways, berths, bay apertures, sealed or shut deck and firing ranges; anything
 that reads as standing on the deck hugs a straight run of bulkhead and leaves the
-lane beside it clear, and only flat stains lie mid-lane. The haze's control is
-`-Dbattle.render.deadAirHaze=false`.
+lane beside it clear, stored cargo lines only passages wide enough to keep two
+clear cells past it, and only flat patches lie mid-lane. **Worn furniture** is a
+condition twin: a fitting whose sheet has an `<id>-worn` piece draws that art on
+the same cells, turn and mirror, keeping its own footprint, cover and blocking.
+The haze's control is `-Dbattle.render.deadAirHaze=false`.
 
-**Deck lighting** belongs to the company interior presentation. Compartments and
-passages have visible fixtures and readable pools of light. Damaged facilities
-use short, warm pools of emergency light with staggered local faults and deep,
-readable shadow between fixtures. Rooms with working distribution have broader, steady
-illumination from fixtures in the same locations. Second Wind also carries
-faulty distribution in otherwise usable rooms; those local faults do not close
-facilities or remove work stations. A distribution repair restores those circuits
-without repairing sealed structural rooms. Clearing workshop rubble alone does
-not restore its faulty lights; machinery repair does. Bay restoration restores
-its lights with its other facilities. Room masks confine the shading; space and
-management controls retain their own appearance. Lighting follows the shared
-deck clock across views, and has no combat visibility or simulation effect.
+**Deck lighting** belongs to the company interior presentation. In the low-tech
+interior style it has three kinds of light. Rooms keep fixtures on their long walls: cool white and broad on
+working distribution, short warm pools of emergency light with staggered local
+faults and deep, readable shadow between fixtures where distribution has failed.
+Passages are lit by **strung lamps**, small caged amber lamps on both walls of
+every straight passage, staggered between the walls and fed by a cable run along
+the wall foot; each throws a warm pool that runs inboard from its wall, and the
+passage curve keeps the floor readable between pools. Screens light the deck in
+front of them, teal while the ship's processing runs and a faint amber standby
+when it does not. Beneath the light lies a static shade: contact shadow at the
+foot of every bulkhead and, in the passages, the shadow of overhead beams. Warm
+passages against cool rooms is the deck's palette; command spaces read cool and
+console-lit. Second Wind also carries faulty distribution in otherwise usable
+rooms; those local faults do not close facilities or remove work stations. A
+distribution repair restores those circuits without repairing sealed structural
+rooms. Clearing workshop rubble alone does not restore its faulty lights;
+machinery repair does. Bay restoration restores its lights with its other
+facilities. Room masks confine the shading; space and management controls retain
+their own appearance. Lighting follows the shared deck clock across views, and has
+no combat visibility or simulation effect.
 
 The starting hull's converted Mech Lab, mess hall and two spare troop bunkrooms
 are also sealed wrecks. Their permanent compartments carry breached plating, collapsed

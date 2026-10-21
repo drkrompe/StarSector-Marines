@@ -1,0 +1,543 @@
+{
+  "sheetName": "ship-hold",
+  "sheet": "art-source/tilesets/ship-hold.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "ship-hold",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/ship-hold.png",
+  "note": "Geometry-first ImageGen kit from art-source/templates/ship-hold-guide.py (6x6 slots); the 1254px RGBA result keeps the guide's slots on a 209px pitch. Floor tiles are inset 2px. See ship-hold.README.md.",
+  "entries": [
+    {
+      "id": "ship-hold.plate-1",
+      "rect": [
+        2,
+        2,
+        205,
+        205
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true,
+      "block": "ship-hold.plate",
+      "slot": "v1",
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-hold.rail-1",
+      "rect": [
+        629,
+        2,
+        205,
+        205
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.plate-worn-1",
+      "rect": [
+        2,
+        211,
+        205,
+        205
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true,
+      "block": "ship-hold.plate-worn",
+      "slot": "v1",
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-hold.rail-worn-1",
+      "rect": [
+        629,
+        211,
+        205,
+        205
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.plate-2",
+      "rect": [
+        211,
+        2,
+        205,
+        205
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true,
+      "block": "ship-hold.plate",
+      "slot": "v2",
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-hold.rail-2",
+      "rect": [
+        838,
+        2,
+        205,
+        205
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.plate-worn-2",
+      "rect": [
+        211,
+        211,
+        205,
+        205
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true,
+      "block": "ship-hold.plate-worn",
+      "slot": "v2",
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-hold.rail-worn-2",
+      "rect": [
+        838,
+        211,
+        205,
+        205
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.plate-3",
+      "rect": [
+        420,
+        2,
+        205,
+        205
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true,
+      "block": "ship-hold.plate",
+      "slot": "v3",
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-hold.rail-3",
+      "rect": [
+        1047,
+        2,
+        205,
+        205
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.plate-worn-3",
+      "rect": [
+        420,
+        211,
+        205,
+        205
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true,
+      "block": "ship-hold.plate-worn",
+      "slot": "v3",
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship-hold.rail-worn-3",
+      "rect": [
+        1047,
+        211,
+        205,
+        205
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.cable",
+      "rect": [
+        0,
+        418,
+        209,
+        209
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.cable-slack",
+      "rect": [
+        209,
+        418,
+        209,
+        209
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.lamp",
+      "rect": [
+        418,
+        418,
+        209,
+        209
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.lamp-dead",
+      "rect": [
+        627,
+        418,
+        209,
+        209
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.wall-patch",
+      "rect": [
+        836,
+        418,
+        209,
+        209
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.wall-grime",
+      "rect": [
+        1045,
+        418,
+        209,
+        209
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.crate-stack",
+      "rect": [
+        0,
+        627,
+        418,
+        209
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.pallet",
+      "rect": [
+        418,
+        627,
+        418,
+        209
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "included": true
+    },
+    {
+      "id": "ship-hold.duffels",
+      "rect": [
+        836,
+        627,
+        418,
+        209
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "light",
+      "ballisticHalfHeight": 0.3,
+      "included": true
+    },
+    {
+      "id": "ship-hold.ammo-cans",
+      "rect": [
+        0,
+        836,
+        418,
+        209
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "included": true
+    },
+    {
+      "id": "ship-hold.netted-cargo",
+      "rect": [
+        418,
+        836,
+        418,
+        209
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "included": true
+    },
+    {
+      "id": "ship-hold.bedroll-camp",
+      "rect": [
+        836,
+        836,
+        418,
+        209
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.crate",
+      "rect": [
+        0,
+        1045,
+        209,
+        209
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.ammo-pair",
+      "rect": [
+        209,
+        1045,
+        209,
+        209
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.duffel",
+      "rect": [
+        418,
+        1045,
+        209,
+        209
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.drum",
+      "rect": [
+        627,
+        1045,
+        209,
+        209
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.cable-coil",
+      "rect": [
+        836,
+        1045,
+        209,
+        209
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    },
+    {
+      "id": "ship-hold.toolbox",
+      "rect": [
+        1045,
+        1045,
+        209,
+        209
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0.0,
+      "included": true
+    }
+  ],
+  "blocks": [
+    {
+      "id": "ship-hold.plate",
+      "layout": "variants",
+      "doorBlock": "ship.neutral-door",
+      "windowBlock": "ship.neutral-window"
+    },
+    {
+      "id": "ship-hold.plate-worn",
+      "layout": "variants",
+      "doorBlock": "ship.neutral-door",
+      "windowBlock": "ship.neutral-window"
+    }
+  ]
+}
