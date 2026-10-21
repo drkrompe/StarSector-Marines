@@ -98,6 +98,25 @@ public final class UnitRenderService implements RenderSystem {
      * about 1.2 cells long: plainly a person on the ground, not a giant.
      */
     static final float DOWNED_BODY_SCALE = 0.65f;
+    /**
+     * A full pool's width in cells at render scale 1. A body lies about 1.2 cells long, and
+     * the pool spreads past its torso and out from under its arms rather than hiding beneath it.
+     */
+    static final float BLOOD_POOL_CELLS = 1.4f;
+    /** How long a pool takes to spread to its full size under a fresh body. */
+    static final float BLOOD_SPREAD_SECONDS = 4f;
+    /** A pool's size the moment its body falls, as a fraction of its full spread. */
+    static final float BLOOD_START_FRACTION = 0.3f;
+
+    /**
+     * A pool's size as a fraction of its full spread, {@code ageSeconds} after the body fell:
+     * quick at first and easing out, the way a wound drains, then still.
+     */
+    static float bloodSpread(float ageSeconds) {
+        float t = Math.max(0f, Math.min(1f, ageSeconds / BLOOD_SPREAD_SECONDS));
+        float eased = 1f - (1f - t) * (1f - t);
+        return BLOOD_START_FRACTION + (1f - BLOOD_START_FRACTION) * eased;
+    }
 
     /**
      * How much wider than its nominal cell size a body's drawn silhouette may
@@ -833,6 +852,13 @@ public final class UnitRenderService implements RenderSystem {
      * mints handles into {@code SPRITE.sheet}. No vision gate: corpses persist
      * through fog.
      */
+    /** Whether a corpse lies as a layered body, and so has a pool under it. */
+    private boolean bleeds(int bodyFamily, int poseIndex) {
+        if (bodyFamily < 0) return false;
+        LayeredUnitAssets outfit = sprites.layeredUnitSprites().get(LayeredArmorFamily.fromOrdinal(bodyFamily));
+        return outfit != null && outfit.downed(poseIndex) != null;
+    }
+
     private void sweepDeadSprites(RenderContext ctx, DrawList out) {
         BattleComponents c = ctx.sim.getBattleComponents();
         BattleCamera cam = ctx.camera;
@@ -844,6 +870,33 @@ public final class UnitRenderService implements RenderSystem {
         // Base cell-sprite size shared across UNITS strata; renderScale applied below.
         float unitSize = cam.cellPxSize() * BattleRenderer.UNIT_FRAC;
         float alphaMult = ctx.alphaMult;
+
+        // Pools first, every one of them, so a pool never paints over a neighbouring body.
+        List<LayeredSpriteCache> pools = sprites.bloodPools();
+        if (!pools.isEmpty()) {
+            int now = ctx.sim.getSimTickIndex();
+            for (ArchetypeTable t : ctx.sim.getEntityWorld().matched(c.corpses)) {
+                Object[] types = t.objects(c.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
+                int[] poseIdx = t.ints(c.SPRITE, BattleComponents.SPRITE_INDEX).array();
+                float[] rx = t.floats(c.POSITION, BattleComponents.POSITION_X).array();
+                float[] ry = t.floats(c.POSITION, BattleComponents.POSITION_Y).array();
+                float[] facing = t.floats(c.CORPSE, BattleComponents.CORPSE_FACING_DEGREES).array();
+                int[] family = t.ints(c.CORPSE, BattleComponents.CORPSE_BODY_FAMILY).array();
+                int[] deathTick = t.ints(c.CORPSE, BattleComponents.CORPSE_DEATH_TICK).array();
+                for (int r = 0, n = t.rowCount(); r < n; r++) {
+                    if (poseIdx[r] < 0 || !bleeds(family[r], poseIdx[r])) continue;
+                    if (rx[r] < cullMinX || rx[r] > cullMaxX
+                            || ry[r] < cullMinY || ry[r] > cullMaxY) continue;
+                    LayeredSpriteCache pool = pools.get(Math.floorMod(poseIdx[r], pools.size()));
+                    float size = cam.cellPxSize() * BLOOD_POOL_CELLS * ((UnitType) types[r]).renderScale
+                            * bloodSpread((now - deathTick[r]) * BattleSimulation.TICK_DT);
+                    out.addSprite(RenderLayer.UNITS, pool.sprite,
+                            cam.cellToScreenX(rx[r]), cam.cellToScreenY(ry[r]),
+                            size, size * pool.pxHeight / pool.pxWidth, facing[r],
+                            1f, 1f, 1f, alphaMult);
+                }
+            }
+        }
 
         for (ArchetypeTable t : ctx.sim.getEntityWorld().matched(c.corpses)) {
             Object[] types = t.objects(c.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
