@@ -1,0 +1,16 @@
+Reskin the attached geometry guide into finished top-down game art for a spaceship interior prop sheet. Strict overhead orthographic view, soft light from the upper left, the same muted worn-steel ship-equipment look as the material reference sheets: gunmetal and grey-green enamel, brushed steel, dark rubber, small bolts and panel seams, faded safety-yellow on stops and end trucks only.
+
+The guide is the geometry and layout authority. Keep every piece exactly where it is, at exactly its size, outline and orientation; do not move, rescale, rotate, merge or add pieces. Keep all empty canvas fully transparent: true transparent background, including the gaps between parts and inside the crane runway frame; no floor, no ground, no shadow slab, no border, no labels or text.
+
+Pieces, left to right and top to bottom:
+1. Two long overhead crane runway girders (vertical, top left): riveted steel I-beams with end stops. Nothing between them.
+2. One thin vertical guide rail with yellow buffers at both ends.
+3. A rowing machine seen from above: flywheel housing with a mesh fan cover at the top, handle bar, two foot plates, a long bare steel slide rail and a rear foot crossbar. There is NO seat on the rail: the rail runs bare and continuous where a seat would sit.
+4. A round axial fan rotor: dark recessed well, five swept steel blades and a central hub, inside a thin bright bezel ring.
+5. A small padded rowing-machine seat on a little roller carriage.
+6. A narrow lift carriage platform with two short steel forks pointing right.
+7. A square tile of black ribbed treadmill belt rubber; ribs run horizontally; the tile must tile seamlessly top to bottom.
+8. A square tile of dark conveyor belt with two raised vertical cleats and dark side edges; it must tile seamlessly left to right.
+9. A long horizontal overhead crane bridge: box girder with diagonal stiffeners, yellow end trucks at both ends, and a central hoist trolley with a round hook block.
+
+The two belt tiles stay completely filled edge to edge. Everything else keeps the guide's transparent surroundings.

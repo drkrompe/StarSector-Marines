@@ -79,9 +79,9 @@ FIGHTERS_M = {
     'broadsword': (15.5, 14.1, 3.3), 'hoplon': (18.0, 19.0, 4.0), 'piranha': (17.0, 15.0, 3.3),
     'longbow': (15.0, 14.4, 2.6), 'thunder': (18.5, 10.8, 2.6), 'dagger': (16.4, 12.1, 2.3),
     'talon': (12.1, 12.1, 2.5), 'wasp': (9.8, 8.1, 2.4),
-    # The Shepherd's Borer drones: an assumption (4.4 m long, 4.0 m across the arms,
-    # 1.8 m high) until a Borer is modelled.
-    'borer': (4.4, 4.0, 1.8),
+    # The Shepherd's Borer drones as modelled (fighters-geometry/borer, 0.25 m/unit, sized to
+    # the Shepherd's servicing cradle; the bay was laid out for an assumed 4.4 x 4.0 x 1.8 m).
+    'borer': (3.6, 4.0, 1.5),
 }
 
 # Plan-area estimate before a model exists: volume = k x (sprite alpha area)^1.5,

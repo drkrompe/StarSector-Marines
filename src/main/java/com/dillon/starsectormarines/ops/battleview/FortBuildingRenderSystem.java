@@ -52,7 +52,7 @@ public final class FortBuildingRenderSystem implements RenderSystem {
     private static final float TAKEN_BANNER_SCALE = 1.35f;
 
     private final BattleSprites sprites;
-    private final Map<Long, Float> rotorAngles = new HashMap<>();
+    private final Map<Long, MotionPhase> rotorPhases = new HashMap<>();
     private float clock;
 
     public FortBuildingRenderSystem(BattleSprites sprites) {
@@ -69,14 +69,13 @@ public final class FortBuildingRenderSystem implements RenderSystem {
         FortService forts = ctx.sim.forts();
         if (forts.isEmpty()) return;
         float now = Float.isFinite(ctx.animationTimeSeconds) ? ctx.animationTimeSeconds : clock + Math.max(0f, ctx.realDt);
-        float dt = Math.max(0f, Math.min(0.25f, now - clock));
         clock = now;
         ViewCull view = ViewCull.of(ctx.camera);
         for (Fort fort : forts.forts()) {
             FortFrame frame = fort.frame();
             if (frame == null) continue;
             for (Fort.Place place : fort.places()) {
-                drawBuilding(ctx, out, view, fort, frame, place, dt);
+                drawBuilding(ctx, out, view, fort, frame, place);
             }
             drawGatehouse(ctx, out, view, fort, frame);
         }
@@ -85,7 +84,7 @@ public final class FortBuildingRenderSystem implements RenderSystem {
     // ------------------------------------------------------------------------------------------- buildings
 
     private void drawBuilding(RenderContext ctx, DrawList out, ViewCull view, Fort fort, FortFrame frame,
-                              Fort.Place place, float dt) {
+                              Fort.Place place) {
         FortressBattery battery = fort.battery();
         if (place.structureId() == null) return;
         StructureDef def = TurretCatalogRegistry.installed().getStructure(place.structureId());
@@ -164,10 +163,9 @@ public final class FortBuildingRenderSystem implements RenderSystem {
             ShuttleSpriteCache sprite = sprites.spriteByPath(rotor.spritePath());
             if (sprite == null) continue;
             float scale = state == FortBuildingArt.State.DAMAGED ? rotor.damagedSpin() : 1f;
-            float spin = rotor.spinDegPerSec() * scale * (powered ? 1f : 0f) * dt;
-            float turn = rotorAngles.getOrDefault(key + i, 0f) + spin;
-            turn %= 360f;
-            rotorAngles.put(key + i, turn);
+            float run = rotorPhases.computeIfAbsent(key + i, k -> new MotionPhase(0f))
+                    .advance(clock, powered ? scale : 0f, 0f);
+            float turn = (float) ((double) rotor.spinDegPerSec() * run % 360.0);
             float shade = powered ? 1f : 0.6f;
             put(out, RenderLayer.ROOFS, cam, frame, floor, sprite, rotor.cells(), rotor.cells(), rotor.x(), rotor.y(),
                     angle + turn, shade, shade, shade, standing, false, flipped);
