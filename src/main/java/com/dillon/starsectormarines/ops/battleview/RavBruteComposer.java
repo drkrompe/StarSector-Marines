@@ -21,6 +21,8 @@ final class RavBruteComposer {
     private static final float[] SHANK_W = {120f, 135f};
     /** The owner asked for bigger feet; a raised hoof is nearer the camera. */
     private static final float HOOF_SCALE = 1.3f, HOOF_LIFT = 2.5f;
+    /** A reared forequarter is nearer the camera: the body and head grow by this per cell of rear. */
+    private static final float REAR_SCALE = 0.9f;
     /** Hind legs under the front ones, as the study layers them. */
     private static final int[] LEG_ORDER = {2, 3, 0, 1};
 
@@ -68,18 +70,23 @@ final class RavBruteComposer {
         float span = RavBruteRig.HIP_ROW - RavBruteRig.SHOULDER_ROW;
         float axX = (shX - hpX) / span, axY = (shY - hpY) / span;     // cells per layer row, toward the head
         float bodyAngle = facing + (float) Math.toDegrees(Math.atan2(-axX, axY));
-        float k = spritePx;
+        float k = spritePx * (1f + REAR_SCALE * rig.rear());
         rowPoint(shX, shY, axX, axY, CANVAS_CENTRE_ROW, cx, cy, ppc, fx, fy, a);
         out.addSprite(RenderLayer.UNITS, art.body.sprite, a[0], a[1], art.body.pxWidth * k, art.body.pxHeight * k,
                 bodyAngle, 1f, 1f, 1f, alpha);
 
-        // the head: slides along the axis by its dy, and scales about the neck
+        // the head: slides along the axis by its dy, scales about the neck, and turns about it
         float hk = rig.headK();
         float neckRow = NECK_ROW + rig.headDy();
         float centreRow = neckRow - (NECK_ROW - HEAD_CENTRE_ROW) * hk;
+        rowPoint(shX, shY, axX, axY, neckRow, cx, cy, ppc, fx, fy, b);
         rowPoint(shX, shY, axX, axY, centreRow, cx, cy, ppc, fx, fy, a);
-        out.addSprite(RenderLayer.UNITS, art.head.sprite, a[0], a[1], art.head.pxWidth * k * hk,
-                art.head.pxHeight * k * hk, bodyAngle, 1f, 1f, 1f, alpha);
+        double yaw = Math.toRadians(rig.headYaw());
+        float ox = a[0] - b[0], oy = a[1] - b[1];
+        float cos = (float) Math.cos(yaw), sin = (float) Math.sin(yaw);
+        out.addSprite(RenderLayer.UNITS, art.head.sprite, b[0] + ox * cos - oy * sin, b[1] + ox * sin + oy * cos,
+                art.head.pxWidth * k * hk, art.head.pxHeight * k * hk, bodyAngle + rig.headYaw(),
+                1f, 1f, 1f, alpha);
     }
 
     /** The screen point of layer row {@code row} on the body axis. */

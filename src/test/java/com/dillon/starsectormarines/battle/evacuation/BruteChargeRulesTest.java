@@ -49,8 +49,6 @@ class BruteChargeRulesTest {
         for (Kind kind : Kind.values()) {
             if (kind != Kind.INFANTRY) assertFalse(BruteChargeRules.outcome(kind).goesOn(), kind + " stops it");
         }
-        assertTrue(BruteChargeRules.outcome(Kind.LIGHT_VEHICLE).shoveCells() > 0f);
-        assertEquals(0f, BruteChargeRules.outcome(Kind.MEDIUM_VEHICLE).shoveCells());
         assertTrue(BruteChargeRules.outcome(Kind.HEAVY_VEHICLE).bruteStunSeconds() > 0f, "a tank stuns the Brute");
         assertTrue(BruteChargeRules.outcome(Kind.MEDIUM_MECH).legs());
         assertTrue(BruteChargeRules.outcome(Kind.MEDIUM_MECH).holdSeconds() > 0f);

@@ -7,19 +7,19 @@
   "idPrefix": "loading-bay",
   "alphaMin": 40,
   "outputSheet": "graphics/tilesets/loading-bay.png",
-  "note": "Geometry-first provisions handling kit. Measured RGBA cuts, padded equipment, full square overlay canvases and opaque floor interior.",
+  "note": "Geometry-first ImageGen reskins on a 2702x1254 raw: the left half is the original built-in generation (conveyor, insulated tote, provision cartons, staging deck; measured RGBA cuts, padded equipment, full square overlay canvases, opaque floor interior); the right half, from x=1448, is the real-size refit (LoadingBayTemplate, 320 px per cell on the guide) of the 2x1 manifest desk and the 1x3 pallet tug, cut as full placement frames. See loading-bay.README.md.",
   "entries": [
     {
       "id": "loading-bay.manifest-desk",
       "rect": [
-        40,
-        175,
-        370,
-        188
+        1592,
+        72,
+        641,
+        320
       ],
       "footprintCells": [
-        4,
-        2
+        2,
+        1
       ],
       "cover": "med",
       "ballisticHalfHeight": 0.6,
@@ -28,13 +28,13 @@
     {
       "id": "loading-bay.pallet-tug",
       "rect": [
-        529,
-        154,
-        154,
-        255
+        2317,
+        60,
+        330,
+        990
       ],
       "footprintCells": [
-        2,
+        1,
         3
       ],
       "cover": "med",
