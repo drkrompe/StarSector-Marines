@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.campaign.refit;
 
+import com.dillon.starsectormarines.battle.mech.MechRefit;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.MechFieldRepair;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,13 +33,37 @@ public final class RefitText {
     }
 
     /**
+     * What the Mech Lab's refits add to every company mech, as the mech's sheet and the briefing
+     * show it: "Mech Lab: aim +3%  ·  vents +10%  ·  plate +5%". Empty while every mech track is
+     * neutral, so a sheet without refits stays quiet.
+     */
+    public static String mechLine(ShipCondition condition) {
+        MechRefit refit = condition.mechRefit();
+        List<String> parts = new ArrayList<>();
+        if (refit.accuracyMult() != 1f) parts.add(Strings.format("openingRefitMechAim", percent(refit.accuracyMult())));
+        if (refit.traverseMult() != 1f) parts.add(Strings.format("openingRefitMechTraverse", percent(refit.traverseMult())));
+        if (refit.dissipationMult() != 1f) parts.add(Strings.format("openingRefitMechVents", percent(refit.dissipationMult())));
+        if (refit.armorMult() != 1f) parts.add(Strings.format("openingRefitMechPlate", percent(refit.armorMult())));
+        MechFieldRepair repair = condition.mechFieldRepair();
+        if (repair.repairDaysMult() != 1f) parts.add(Strings.format("openingRefitMechRepairDays", percent(repair.repairDaysMult())));
+        if (repair.weaponBillMult() != 1f) parts.add(Strings.format("openingRefitMechSpares", percent(repair.weaponBillMult())));
+        return parts.isEmpty() ? "" : Strings.format("openingRefitMechLine", String.join("  ·  ", parts));
+    }
+
+    /** A multiplier as a signed whole percentage: 1.06 is "+6", 0.75 is "-25". */
+    static String percent(float mult) {
+        int points = Math.round((mult - 1f) * 100f);
+        return (points > 0 ? "+" : "") + points;
+    }
+
+    /**
      * The briefing's line for what the company's home is worth in this
      * operation, frozen at launch: the mess's morale band; while the scrubbers
      * are degraded, the extra day every wound will take; once the staff college
-     * is running, the officer XP it adds; and each training or medical room once
-     * it changes the fight (the range from its target machinery, the gym and
-     * sick bay from opening). Null off the founding hull, where every track is
-     * neutral.
+     * is running, the officer XP it adds; each training or medical room once it
+     * changes the fight (the range from its target machinery, the gym and sick
+     * bay from opening); and the Mech Lab's refits once any is improved. Null
+     * off the founding hull, where every track is neutral.
      */
     public static String briefingLine(ShipCondition condition) {
         if (!condition.applies()) return null;
@@ -48,6 +74,8 @@ public final class RefitText {
             if (!onBriefing(track, band)) continue;
             parts.add(Strings.format("openingRefitTooltipRow", track(track), tier(track, band), effect(track, band)));
         }
+        String mechs = mechLine(condition);
+        if (!mechs.isEmpty()) parts.add(mechs);
         return String.join("  ·  ", parts);
     }
 

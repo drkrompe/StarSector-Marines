@@ -1,9 +1,11 @@
 package com.dillon.starsectormarines.campaign.refit;
 
+import com.dillon.starsectormarines.battle.mech.MechRefit;
 import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.battle.world.gen.ship.ReservedFacility;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
+import com.dillon.starsectormarines.marine.MechFieldRepair;
 import com.dillon.starsectormarines.marine.RecruitIntake;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -131,6 +133,38 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
             case RESTORED -> open;
             case IMPROVED_I -> first;
             case IMPROVED_II -> second;
+        };
+    }
+
+    // --- Mech Lab: frozen into each company mech's deployment at launch, or read at a quote ---
+
+    /**
+     * What the Mech Lab's refits are worth to a deployed company mech: calibration's aim (and
+     * the tactical core link's torso traverse), the coolant plant's dissipation, the armor shop's
+     * plate. Neutral until a track is improved; nothing in the Mech Lab starts at a deficit.
+     */
+    public MechRefit mechRefit() {
+        RefitBand calibration = band(RefitTrack.MECH_CALIBRATION);
+        return new MechRefit(
+                facility(RefitTrack.MECH_CALIBRATION, 1.03f, 1.06f),
+                facility(RefitTrack.MECH_COOLANT, 1.10f, 1.20f),
+                facility(RefitTrack.MECH_ARMOR, 1.05f, 1.10f),
+                calibration == RefitBand.IMPROVED_II ? 1.25f : 1f);
+    }
+
+    /** Field repair: a quarter off every repair clock, and with the spares rack a quarter off a weapon assembly. */
+    public MechFieldRepair mechFieldRepair() {
+        RefitBand repair = band(RefitTrack.MECH_REPAIR);
+        return new MechFieldRepair(repair.atLeast(RefitBand.IMPROVED_I) ? 0.75f : 1f,
+                repair == RefitBand.IMPROVED_II ? 0.75f : 1f);
+    }
+
+    /** A facility's figure: neutral until improved. */
+    private float facility(RefitTrack track, float first, float second) {
+        return switch (band(track)) {
+            case IMPROVED_I -> first;
+            case IMPROVED_II -> second;
+            default -> 1f;
         };
     }
 

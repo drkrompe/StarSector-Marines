@@ -213,6 +213,8 @@ final class MarineOpsThemes {
                     background-color: #20291f; border-color: #a89b70; color: #e9d29b;
                     border-style: inset; background-image: none;
                 }
+                /* A command key's label sits in the middle of the key; set here so no screen has to. */
+                .console-action { text-align: center; }
                 .console-action.danger-surface { color: #e98b83; border-color: #a4756c; }
                 .console-action.good-surface { color: #e8d9a7; }
                 .console-toggle-lamp { width: 6px; height: 6px; border-width: 1px; pointer-events: none; }
@@ -299,6 +301,7 @@ final class MarineOpsThemes {
                 .console-toggle, .fire-team-tab, .equipment-picker-tab,
                 .loadout-filter, .supply-filter, .catalog-filter-pill,
                 .team-tab { background-color: #102b42; border-color: #d2f3ff; color: #ffffff; }
+                .console-action { text-align: center; }
                 .console-action:hover, .slot-strip-action:hover, .fabricate-action:hover,
                 #compare-armor-patterns:hover, #fireteam-breadcrumb button:hover,
                 #comparison-breadcrumb button:hover, #designer-breadcrumb button:hover, #marine-ops-page-routes button:hover,

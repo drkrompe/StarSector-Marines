@@ -48,8 +48,10 @@ class ShipConditionTest {
             assertFalse(order.requires.containsKey(order.track), order.name());
             assertSame(order, RefitOrder.after(order.track, RefitBand.values()[order.band.ordinal() - 1]));
         }
+        // Fabrication is the workshop chain's; the vehicle bay waits on deployable vehicles.
         for (RefitTrack track : RefitTrack.values())
-            if (track != RefitTrack.FABRICATION) assertNotNull(RefitOrder.after(track, track.start()), track.name());
+            if (track != RefitTrack.FABRICATION && track != RefitTrack.VEHICLE_BAY)
+                assertNotNull(RefitOrder.after(track, track.start()), track.name());
         assertNull(RefitOrder.after(RefitTrack.FABRICATION, RefitBand.DEFICIT));
     }
 

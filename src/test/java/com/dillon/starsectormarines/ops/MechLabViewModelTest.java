@@ -11,6 +11,9 @@ import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.campaign.refit.RefitBand;
+import com.dillon.starsectormarines.campaign.refit.RefitTrack;
+import com.dillon.starsectormarines.campaign.refit.ShipCondition;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignVehicle;
 import com.dillon.starsectormarines.marine.MechBay;
@@ -304,6 +307,26 @@ class MechLabViewModelTest {
         assertEquals(2, bay.activeSquad().mechs().size());
         assertEquals(MechVariant.HOUND, viewModel.selectedVariant());
         assertTrue(viewModel.feedbackText().get().contains("standard roll-out fit"));
+    }
+
+    @Test
+    void theSheetShowsTheShipsMechLabRefits() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        ShipCondition shop = ShipCondition.battered().with(RefitTrack.MECH_ARMOR, RefitBand.IMPROVED_II)
+                .with(RefitTrack.MECH_COOLANT, RefitBand.IMPROVED_I);
+        MechLabViewModel plain = new MechLabViewModel(new Reactor(), bay);
+        MechLabViewModel refitted = new MechLabViewModel(new Reactor(), bay, FabricationResources.NONE,
+                () -> { }, () -> 0d, () -> shop);
+        plain.selectGantryAction(0).run();
+        refitted.selectGantryAction(0).run();
+        float armor = plain.selectedFit().armorCapacity();
+
+        assertEquals("", plain.shipRefitText().get());
+        assertTrue(refitted.shipRefitText().get().contains("plate +10%"), refitted.shipRefitText().get());
+        assertTrue(refitted.shipRefitText().get().contains("vents +10%"), refitted.shipRefitText().get());
+        assertTrue(refitted.performanceMeters().get().get(0).value().contains(String.valueOf(Math.round(armor * 1.10f))),
+                refitted.performanceMeters().get().get(0).value());
+        assertEquals(plain.selectedDissipationPerSecond() * 1.10f, refitted.selectedDissipationPerSecond(), 1e-4f);
     }
 
     @Test

@@ -28,6 +28,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechFrame;
+import com.dillon.starsectormarines.battle.mech.MechRefit;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolAllowance;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolDeclaration;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
@@ -702,6 +703,14 @@ public final class BattleFixtureJson {
                 frame.put("fluxCapacity", deployment.frame().fluxCapacity());
                 frame.put("dissipationPerSecond", deployment.frame().dissipationPerSecond());
                 mech.put("frame", frame);
+                if (!deployment.refit().neutral()) {
+                    JSONObject refit = new JSONObject();
+                    refit.put("accuracyMult", deployment.refit().accuracyMult());
+                    refit.put("dissipationMult", deployment.refit().dissipationMult());
+                    refit.put("armorMult", deployment.refit().armorMult());
+                    refit.put("traverseMult", deployment.refit().traverseMult());
+                    mech.put("refit", refit);
+                }
                 deployments.put(mech);
             }
             encoded.put("mechDeployments", deployments);
@@ -771,6 +780,15 @@ public final class BattleFixtureJson {
                             (float) encodedFrame.getDouble("fluxCapacity"),
                             (float) encodedFrame.getDouble("dissipationPerSecond"));
                 }
+                MechRefit refit = MechRefit.NEUTRAL;
+                JSONObject encodedRefit = mech.optJSONObject("refit");
+                if (encodedRefit != null) {
+                    refit = new MechRefit(
+                            (float) encodedRefit.getDouble("accuracyMult"),
+                            (float) encodedRefit.getDouble("dissipationMult"),
+                            (float) encodedRefit.getDouble("armorMult"),
+                            (float) encodedRefit.getDouble("traverseMult"));
+                }
                 deployments.add(new MechDeploymentSpec(
                         variant,
                         enumValue(MechRole.class, mech.getString("role"), "mech role"),
@@ -778,7 +796,7 @@ public final class BattleFixtureJson {
                         component(mech, "armsComponentId", variant.arms),
                         component(mech, "leftShoulderComponentId", variant.leftShoulder),
                         component(mech, "rightShoulderComponentId", variant.rightShoulder),
-                        displayName, frame));
+                        displayName, frame, null, refit));
             }
             List<ShipSupportSource> ships = new ArrayList<>();
             JSONArray encodedShips = encoded.optJSONArray("ships");

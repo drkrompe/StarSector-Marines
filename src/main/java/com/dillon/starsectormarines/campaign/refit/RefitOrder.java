@@ -81,6 +81,30 @@ public enum RefitOrder {
     /** A shore-leave deck of projected views: the cluster, the overhauled plant, and the workshop's frames. */
     REC_LOUNGE_SHORE_LEAVE(RefitTrack.REC_LOUNGE, RefitBand.IMPROVED_II, 26_000,
             RefitTrack.COMPUTE, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.FABRICATION, RefitBand.RESTORED),
+    MECH_CALIBRATION_RESTORED(RefitTrack.MECH_CALIBRATION, RefitBand.RESTORED, 3_000,
+            RefitTrack.COMPUTE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
+    MECH_CALIBRATION_I(RefitTrack.MECH_CALIBRATION, RefitBand.IMPROVED_I, 12_000,
+            RefitTrack.COMPUTE, RefitBand.IMPROVED_I, RefitTrack.FABRICATION, RefitBand.RESTORED),
+    MECH_CALIBRATION_II(RefitTrack.MECH_CALIBRATION, RefitBand.IMPROVED_II, 28_000,
+            RefitTrack.COMPUTE, RefitBand.IMPROVED_II, RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.FABRICATION, RefitBand.IMPROVED_I),
+    MECH_COOLANT_RESTORED(RefitTrack.MECH_COOLANT, RefitBand.RESTORED, 3_000,
+            RefitTrack.POWER, RefitBand.RESTORED, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED),
+    MECH_COOLANT_I(RefitTrack.MECH_COOLANT, RefitBand.IMPROVED_I, 12_000,
+            RefitTrack.POWER, RefitBand.IMPROVED_I, RefitTrack.STRUCTURE, RefitBand.RESTORED),
+    MECH_COOLANT_II(RefitTrack.MECH_COOLANT, RefitBand.IMPROVED_II, 26_000,
+            RefitTrack.POWER, RefitBand.IMPROVED_II, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.COMPUTE, RefitBand.IMPROVED_I),
+    MECH_ARMOR_RESTORED(RefitTrack.MECH_ARMOR, RefitBand.RESTORED, 3_500,
+            RefitTrack.FABRICATION, RefitBand.RESTORED, RefitTrack.STRUCTURE, RefitBand.RESTORED),
+    MECH_ARMOR_I(RefitTrack.MECH_ARMOR, RefitBand.IMPROVED_I, 12_000,
+            RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.POWER, RefitBand.RESTORED),
+    MECH_ARMOR_II(RefitTrack.MECH_ARMOR, RefitBand.IMPROVED_II, 25_000,
+            RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.IMPROVED_I),
+    MECH_REPAIR_RESTORED(RefitTrack.MECH_REPAIR, RefitBand.RESTORED, 2_500,
+            RefitTrack.FABRICATION, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
+    MECH_REPAIR_I(RefitTrack.MECH_REPAIR, RefitBand.IMPROVED_I, 10_000,
+            RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.COMPUTE, RefitBand.RESTORED),
+    MECH_REPAIR_II(RefitTrack.MECH_REPAIR, RefitBand.IMPROVED_II, 20_000,
+            RefitTrack.FABRICATION, RefitBand.IMPROVED_I, RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.COMPUTE, RefitBand.IMPROVED_I),
     HYDROPONICS_RESTORED(RefitTrack.HYDROPONICS, RefitBand.RESTORED, 4_000,
             RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
     HYDROPONICS_I(RefitTrack.HYDROPONICS, RefitBand.IMPROVED_I, 12_000,
@@ -171,6 +195,18 @@ public enum RefitOrder {
         bill(SICK_BAY_TRAUMA, Commodities.HEAVY_MACHINERY, 8, Commodities.RARE_METALS, 10);
         bill(REC_LOUNGE_CENTRE, Commodities.METALS, 15, Commodities.HEAVY_MACHINERY, 2);
         bill(REC_LOUNGE_SHORE_LEAVE, Commodities.METALS, 25, Commodities.RARE_METALS, 5);
+        bill(MECH_CALIBRATION_RESTORED, Commodities.HEAVY_MACHINERY, 2);
+        bill(MECH_CALIBRATION_I, Commodities.RARE_METALS, 5);
+        bill(MECH_CALIBRATION_II, Commodities.RARE_METALS, 10, Commodities.HEAVY_MACHINERY, 4);
+        bill(MECH_COOLANT_RESTORED, Commodities.HEAVY_MACHINERY, 3);
+        bill(MECH_COOLANT_I, Commodities.HEAVY_MACHINERY, 6, Commodities.METALS, 10);
+        bill(MECH_COOLANT_II, Commodities.HEAVY_MACHINERY, 10, Commodities.RARE_METALS, 8);
+        bill(MECH_ARMOR_RESTORED, Commodities.METALS, 20);
+        bill(MECH_ARMOR_I, Commodities.METALS, 40);
+        bill(MECH_ARMOR_II, Commodities.METALS, 60, Commodities.RARE_METALS, 10);
+        bill(MECH_REPAIR_RESTORED, Commodities.METALS, 10);
+        bill(MECH_REPAIR_I, Commodities.HEAVY_MACHINERY, 4);
+        bill(MECH_REPAIR_II, Commodities.METALS, 30, Commodities.HEAVY_MACHINERY, 6);
         bill(HYDROPONICS_RESTORED, Commodities.METALS, 10, Commodities.ORGANICS, 10);
         bill(HYDROPONICS_I, Commodities.HEAVY_MACHINERY, 4, Commodities.ORGANICS, 20);
         bill(HYDROPONICS_II, Commodities.HEAVY_MACHINERY, 8, Commodities.ORGANICS, 40);
