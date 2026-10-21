@@ -16,16 +16,34 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class DownedArtTest {
     private static final String ARMOR = "mod/graphics/battle/marine-modular-topdown/variants/armor/";
     private static final String CREW = "mod/graphics/battle/ship-crew-modular-topdown/";
-    private static final Map<LayeredArmorFamily, String> ROOTS = Map.of(
-            LayeredArmorFamily.ARMORLESS, ARMOR + "armorless",
-            LayeredArmorFamily.CHARCOAL, ARMOR + "charcoal",
-            LayeredArmorFamily.BLUE_SCOUT, ARMOR + "blue-scout",
-            LayeredArmorFamily.OUTLAW, ARMOR + "outlaw",
-            LayeredArmorFamily.MILITIA, ARMOR + "militia",
-            LayeredArmorFamily.SHIP_COMMAND, CREW + "command",
-            LayeredArmorFamily.SHIP_ENGINEERING, CREW + "engineering",
-            LayeredArmorFamily.SHIP_MEDICAL, CREW + "medical",
-            LayeredArmorFamily.SHIP_SERVICE, CREW + "service");
+    private static final String COLONIST = "mod/graphics/battle/colonist-modular-topdown/";
+    private static final Map<LayeredArmorFamily, String> ROOTS = Map.ofEntries(
+            Map.entry(LayeredArmorFamily.ARMORLESS, ARMOR + "armorless"),
+            Map.entry(LayeredArmorFamily.CHARCOAL, ARMOR + "charcoal"),
+            Map.entry(LayeredArmorFamily.BLUE_SCOUT, ARMOR + "blue-scout"),
+            Map.entry(LayeredArmorFamily.RED_ELITE, ARMOR + "red-heavy"),
+            Map.entry(LayeredArmorFamily.OUTLAW, ARMOR + "outlaw"),
+            Map.entry(LayeredArmorFamily.ARMY_GREEN, ARMOR + "army-green"),
+            Map.entry(LayeredArmorFamily.MILITIA, ARMOR + "militia"),
+            Map.entry(LayeredArmorFamily.CIVILIAN_COLONIST, COLONIST + "civilian"),
+            Map.entry(LayeredArmorFamily.ENGINEER, COLONIST + "engineer"),
+            Map.entry(LayeredArmorFamily.SCIENTIST, COLONIST + "scientist"),
+            Map.entry(LayeredArmorFamily.AEGIS_COMPOSITE, ARMOR + "aegis"),
+            Map.entry(LayeredArmorFamily.PALATINE, ARMOR + "palatine"),
+            Map.entry(LayeredArmorFamily.FURNACE_LINE, ARMOR + "furnace-line"),
+            Map.entry(LayeredArmorFamily.REAVER, ARMOR + "reaver"),
+            Map.entry(LayeredArmorFamily.SPECTER_HEAVY, ARMOR + "specter-heavy"),
+            Map.entry(LayeredArmorFamily.BULWARK_HEAVY, ARMOR + "bulwark-heavy"),
+            Map.entry(LayeredArmorFamily.RELIQUARY_HEAVY, ARMOR + "reliquary-heavy"),
+            Map.entry(LayeredArmorFamily.LIONS_MANTLE, ARMOR + "lions-mantle"),
+            Map.entry(LayeredArmorFamily.FOUNDRY_BREAKER, ARMOR + "foundry-breaker"),
+            Map.entry(LayeredArmorFamily.SHIP_COMMAND, CREW + "command"),
+            Map.entry(LayeredArmorFamily.SHIP_ENGINEERING, CREW + "engineering"),
+            Map.entry(LayeredArmorFamily.SHIP_MEDICAL, CREW + "medical"),
+            Map.entry(LayeredArmorFamily.SHIP_SERVICE, CREW + "service"),
+            Map.entry(LayeredArmorFamily.ARBALEST_HEAVY, ARMOR + "specter-heavy/paints/olive"),
+            Map.entry(LayeredArmorFamily.BOARDING_JACK, ARMOR + "boarding-jack"),
+            Map.entry(LayeredArmorFamily.BOARDING_JACK_PIRATE, ARMOR + "boarding-jack/paints/pirate"));
 
     @Test void bloodPoolsShipOnTheirFrame() throws Exception {
         for (int pool = 0; pool < BattleSprites.BLOOD_POOLS; pool++) {

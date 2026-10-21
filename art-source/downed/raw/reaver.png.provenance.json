@@ -1,0 +1,75 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f0d-ac74-7692-a611-e253205fb082",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f0d-ac74-7692-a611-e253205fb082\\exec-bd9dbe8f-c8aa-4565-9ebc-3a88ecc07624.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\downed\\raw\\reaver.png",
+    "sha256": "3287d96c77c98cb52556c23d85674e8ec710a41abce7c9bad2cf1533ec26d3c2",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\downed\\prompts\\reaver.full.txt",
+  "promptSha256": "1990612bcb97c178b61de7083991e5e8e308c6774e84b29126c46ff4544d98c7",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the four lying figures to reskin, exact outlines, limbs, positions and scale\nImage 2: Style and pose rendering only: the accepted sibling sheet; match its pixel-art rendering, outline, shading and how it reads each pose, but not its armor or colors\nImage 3: Identity and style: this outfit's live layers seen from above; copy its clothing, armor, palette and head, not its layout\nImage 4: Identity and style: this outfit's live layers seen from above; copy its clothing, armor, palette and head, not its layout\n\nUse case: sketch-to-render. Production sprites of fallen infantry for a top-down tactical game, to lie on the ground beside the existing live overhead sprites.\n\nReference 1 is the authoritative POSE GUIDE and edit target, 1536x1024. Reskin only its four flat gray figures; keep every figure's exact outline, limb positions, position on the canvas and scale. Everything outside the figures must be genuinely transparent: no background, ground, floor, shadow, blood pool, border, labels or grid.\n\nCamera: TRUE STRAIGHT-DOWN 90-degree overhead view of four people lying flat on the ground, heads toward the TOP of the image. No perspective, no isometric or three-quarter view.\n- Figure 1: lying face down, arms along the sides; we see the back of the head, back, backs of the legs and the soles/heels of the boots.\n- Figure 2: lying on the back, arms flung out, one knee fallen outward; we see the face from directly above (eyes closed, simple features), chest, fronts of the legs and the toes of the boots.\n- Figure 3: lying curled on one side, knees drawn up, arms forward.\n- Figure 4: sprawled face down, one arm thrown overhead, legs apart.\nEach figure is the same person in the same outfit, limp and still: incapacitated or dead, not posing.\n\nStyle: match the live-sprite references exactly — chunky crisp pixel art with a clean one-step dark outline around every figure, a limited muted palette, broad readable planes, light from the upper left, restrained detail that still reads at 300x460 pixels per figure. Not painterly, not smooth airbrushed, not photographic. No weapons, dropped gear, gore, wounds, blood or text.\nThis outfit: REAVER reinforced rig, an outlaw powered line rig rebuilt from scavenged parts. Asymmetric overlapping ship-plate slabs in oxidized brown and faded brick red over a soot-black exoframe, bare dark steel braces, welded ribs, one replacement mustard panel, tiny scavenged cyan lights. Asymmetric pressure helmet, brick-red on one side and dark steel on the other, with a welded brow (figure 2 shows the helmet's dark faceplate from above, no skin). Dark steel boots. Copy the plates, helmet and colors from the reaver references.\nFit: every figure must stay the size and shape of its gray guide figure. Do not enlarge, widen or shift any figure; head, torso, limbs and boots stay at the gray outline, with armor plates adding at most a thin rim past it.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\downed-poses.png",
+      "sha256": "258356b848e570ef25b0e902e5cdbc17b7b04a665d2cf2b7f97c1336e01b111b",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the four lying figures to reskin, exact outlines, limbs, positions and scale"
+    },
+    {
+      "path": "art-source\\downed\\raw\\charcoal.png",
+      "sha256": "87a1f07b753fd4ce4391d9405ef5dca4ec71ade85de10aedac100f02934a55b6",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Style and pose rendering only: the accepted sibling sheet; match its pixel-art rendering, outline, shading and how it reads each pose, but not its armor or colors"
+    },
+    {
+      "path": "art-source\\marine-modular-topdown\\sources\\faction-armor\\reaver\\body.png",
+      "sha256": "f9626a09dc3e90d4113ab0a68f58b9397baf6fa7f68ef8b2163440c654f71c1f",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Identity and style: this outfit's live layers seen from above; copy its clothing, armor, palette and head, not its layout"
+    },
+    {
+      "path": "art-source\\marine-modular-topdown\\sources\\faction-armor\\reaver\\head.png",
+      "sha256": "96ad7764d9c867af4fabaf5922d9d1f32693106a81d024704f9f0d523422f08c",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Identity and style: this outfit's live layers seen from above; copy its clothing, armor, palette and head, not its layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one Reaver sheet using the pose guide’s exact layout and the supplied armor references, with a transparent background."
+  ],
+  "usage": {
+    "input_tokens": 53700,
+    "cached_input_tokens": 41344,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 810,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 72.0
+}

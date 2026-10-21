@@ -7,7 +7,8 @@ as a marine does. Each profession has its own boot. Noncombatants never emit
 weapon or muzzle-flash layers.
 
 Runtime files: `<role>/body.png`, `<role>/head.png` and `<role>/foot.png` for
-`civilian`, `engineer` and `scientist`.
+`civilian`, `engineer` and `scientist`, plus `<role>/downed-0..3.png`, the lying
+bodies made under `art-source/downed/`.
 
 The generation prompts, raw masters and export script live under
 `art-source/colonist-modular-topdown/`.
