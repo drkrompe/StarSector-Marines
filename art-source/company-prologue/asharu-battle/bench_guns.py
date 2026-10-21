@@ -13,10 +13,11 @@ Builds and the weapons on them (game variants):
   colossus-mk3  t7/t8 light autocannons (WS 011/012), t1-t6 light machine guns
   hound-p       t1 assault chaingun, t2 light dual MG; no finished build carries a Vulcan (the
                 Buffalo Mk.II and Dram are not built), so its twin mount stands in for one.
+
+A turret trains onto a target (swfx_guns.aim, through fire_weapon's target) only on a ship placed
+with own_hull=True: otherwise its pivot is the build's, shared by every copy.
 """
-import contextlib
 import math
-import os
 import random
 
 SURVEY_BUILDS = ['lasher', 'manticore-p', 'wolf-p', 'wolf', 'colossus-mk3', 'hound-p']
@@ -41,29 +42,10 @@ def to_copy(ship, p):
     return _M(ship).inverted() @ Vector(p)
 
 
-@contextlib.contextmanager
-def kit(ship, merchant=False):
-    """ship.kit(), with the merchant Wolf's own profile when `merchant`: wolf-cinematic/vfx_hull.py
-    reads WOLF_VARIANT, which ship_fx does not set, so without it the merchant's mounts 2-4 load
-    as the pirate's (3-4 as launchers)."""
-    old = os.environ.get('WOLF_VARIANT')
-    if merchant:
-        os.environ['WOLF_VARIANT'] = 'merchant'
-    try:
-        with ship.kit() as (ctx, k):
-            yield ctx, k
-    finally:
-        if merchant:
-            if old is None:
-                os.environ.pop('WOLF_VARIANT', None)
-            else:
-                os.environ['WOLF_VARIANT'] = old
-
-
 def survey(bench):
     for i, b in enumerate(SURVEY_BUILDS):
         s = bench.ship(b if b != 'wolf' else 'wolf-m', b, at=(0, 400 * i, 0))
-        with kit(s, merchant=b == 'wolf') as (ctx, k):
+        with s.kit() as (ctx, k):
             for a in sorted(ctx.anchors.guns, key=lambda g: (g.turret, g.tag)):
                 p, d = muzzle(s, a.turret, a.tag)
                 print(f'SURVEY {b:13} t{a.turret} {a.tag:14} {a.kind:8} scale {a.scale:.2f} '
@@ -186,7 +168,7 @@ def wolf_blasters(bench):
     with wp.kit() as (ctx, k):
         k.guns.arm(ctx, 2, 'miningblaster')
         k.guns.fire_weapon(ctx, 2, 1, 1.2)
-    with kit(wm, merchant=True) as (ctx, k):
+    with wm.kit() as (ctx, k):
         k.guns.arm(ctx, 4, 'heavyblaster')
         k.guns.fire_weapon(ctx, 4, 2, 1.2)
     bench.camera((90, -130, -15), (100, 0, 0), 30)     # both are chin mounts: from below
@@ -215,8 +197,34 @@ def hound_vulcan(bench):
     bench.camera((4, 132, 68), (-59, 42, 8), 32)
 
 
+def train(bench):
+    """Turret training: Lasher A (own hull) trains its bow and port guns onto a point up and off
+    to port and fires on it, its flash along its rounds; Lasher B, the same build, keeps its
+    rest pose. Prints each trained gun's aim error (degrees) and B's untouched pivot."""
+    from mathutils import Vector
+    import swfx_guns
+    a = bench.ship('lasher-a', 'lasher', at=(0, 40, 0), throttle=.6, own_hull=True)
+    b = bench.ship('lasher-b', 'lasher', at=(0, -40, 0), throttle=.6, own_hull=True)
+    goal = Vector((220, 160, 60))
+    with a.kit() as (ctx, k):
+        for t in (1, 3):
+            k.guns.arm(ctx, t, 'lightmg')
+            k.guns.fire_weapon(ctx, t, 4, 1.0, target=to_copy(a, goal))
+    for t in (1, 3):
+        p, d = muzzle(a, t, 'barrel 1')
+        err = math.degrees(d.angle(goal - p))
+        print(f'BENCH train lasher-a t{t} aim error {err:.3f} deg', flush=True)
+        assert err < .5, err
+    piv_b, _ = swfx_guns.trainers(b.object('SWFX anchor turret 3 barrel 1'))
+    print('BENCH train lasher-b t3 pivot z', round(math.degrees(piv_b.rotation_euler.z), 3), flush=True)
+    bench.camera((150, -120, 70), (110, 60, 20), 30)
+
+
 TESTS = {
     'survey': dict(builds=SURVEY_BUILDS, frames=[1], note='mount survey (check only)', setup=survey),
+    'train': dict(builds=['lasher'], frames=[6, 12, 18, 24], setup=train,
+                  note='Turret training: Lasher A (near) trains bow and port guns onto a point up to port; '
+                       'Lasher B keeps its rest pose.'),
     'hellbore': dict(builds=['manticore-p'], frames=[2, 3, 5, 8, 12, 16], setup=hellbore,
                      note='Manticore (P) Hellbore, one shot: huge lingering orange flash, slow orange-white slug '
                           'in its glow (frames 2-16).'),
