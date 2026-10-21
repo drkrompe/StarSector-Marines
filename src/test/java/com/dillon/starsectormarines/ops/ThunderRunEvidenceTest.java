@@ -150,7 +150,7 @@ class ThunderRunEvidenceTest {
                 int firstFinalShot = -1;
                 int[] rearContactTicks = new int[2];
                 Map<Long, Integer> rearGunRounds = new LinkedHashMap<>();
-                int rearStart = -1, advanceWreckTick = -1;
+                int rearStart = -1, advanceWreckTick = -1, retreatTick = -1;
                 int openingRocketShots = 0;
                 var rearCamera = new BattleReviewFrameRenderer(Path.of("mod"),1920,1080,150,75,112);
                 var truckCamera = new BattleReviewFrameRenderer(Path.of("mod"),1920,1080,119,73,40);
@@ -324,7 +324,9 @@ class ThunderRunEvidenceTest {
                         }
                     }
                     for (long gun : roadGuns) if (!sim.world().isAlive(gun)) gunDown.putIfAbsent(gun, tick);
-                    if(fixture.optBoolean("retreat") && column.deliveredCount()>0 && !sim.isComplete()) assertTrue(sim.retreat());
+                    if(fixture.optBoolean("retreat") && retreatTick < 0 && column.deliveredCount()>0 && !sim.isComplete()) {
+                        assertTrue(sim.retreat()); retreatTick = tick;
+                    }
                     if (landedTick < 0 && count(sim,Faction.MARINE)>0) landedTick=tick;
                     if (tick % 300 == 0 || column.phase()!=previousPhase || sim.isComplete()) {
                         JSONArray vehicles = new JSONArray();
@@ -450,7 +452,7 @@ class ThunderRunEvidenceTest {
                         .put("result",sim.isComplete()?String.valueOf(sim.getWinner()):"UNRESOLVED").put("phase",column.phase())
                         .put("delivered",column.deliveredCount()).put("lost",column.lostCount()).put("namedSeats",seats)
                         .put("rearContactTicks",new JSONArray(List.of(rearContactTicks[0],rearContactTicks[1])))
-                        .put("rearStart",rearStart).put("openingRocketShots",openingRocketShots).put("advanceWreckTick",advanceWreckTick)
+                        .put("retreatTick",retreatTick).put("rearStart",rearStart).put("openingRocketShots",openingRocketShots).put("advanceWreckTick",advanceWreckTick)
                         .put("supportGunsBuilt", column.supportGuns().size()).put("fieldGuns",fieldGuns)
                         .put("sharedAutomaticDefenseTargets", sharedDefenseTargets)
                         .put("pendingRaiders", column.pendingMembers())
@@ -479,7 +481,9 @@ class ThunderRunEvidenceTest {
                     int paid=route.settle(mission.id,sim.getWinner()==Faction.MARINE,null,column.outcome());
                     assertTrue(paid>=0); assertEquals(-1,route.settle(mission.id,sim.getWinner()==Faction.MARINE,null,column.outcome()));
                     report.put("paid",paid).put("campaignStatus",route.status());
-                    if(fixture.optBoolean("retreat")) {
+                    // The withdrawal needs a delivery to happen first, which the fight may not supply: a convoy lost
+                    // whole is an ordinary defeat with nothing left waiting. Its ledger is asserted only once confirmed.
+                    if(fixture.optBoolean("retreat") && retreatTick >= 0) {
                         assertEquals(0,paid);assertFalse(route.freight().waiting().isEmpty());
                         assertEquals(column.deliveredCount(),route.freight().deliveredCount());
                         for(int carrier:route.freight().waiting()) assertTrue(column.cargo().containsKey(carrier));
