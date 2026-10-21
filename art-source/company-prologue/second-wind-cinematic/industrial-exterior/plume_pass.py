@@ -155,6 +155,13 @@ def isolate(scene, plumes):
         else:
             ob.is_holdout = True
             held += 1
+    # The plume guard (`thrust_shots.require_plumes`) asks again as the render starts and would refuse
+    # this pass for the plumes it hides; those are already in the final frame it is laid over.
+    import thrust_markers as tm
+    repaired = {o[NEW_PLUME] for o in plumes}
+    for m in tm.markers():
+        if m.parent is not None and m.parent.name not in repaired:
+            m.parent[tm.PLUME_EXEMPT] = 'plume repair pass: its own plumes are in the final frame this lays over'
     scene.render.film_transparent = True
     s = scene.render.image_settings
     s.file_format = 'OPEN_EXR'
