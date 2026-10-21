@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.systems;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CivilWarOfferAcceptance;
 import com.dillon.starsectormarines.campaign.ContractState;
@@ -123,7 +124,7 @@ public final class StationingAssignmentService {
         state.contractCashMultiplier[row] = 100;
         captain.setStatus(Status.GARRISONED);
         captain.commendations().add("Day " + day + ": Assigned to "
-                + type.name().toLowerCase() + " duty.");
+                + type.name().toLowerCase(Strings.locale()) + " duty.");
         if (CivilWarOfferAcceptance.isParticipation(state, contractId)) {
             CivilWarOfferAcceptance.onStationingAccepted(state, contractId);
         }

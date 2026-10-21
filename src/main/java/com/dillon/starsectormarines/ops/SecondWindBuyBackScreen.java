@@ -77,5 +77,5 @@ public final class SecondWindBuyBackScreen extends MissionFlowMlxScreen {
         return props;
     }
 
-    private static String credits(int amount) { return String.format(Locale.ROOT, "%,d", amount); }
+    private static String credits(int amount) { return String.format(Strings.locale(), "%,d", amount); }
 }

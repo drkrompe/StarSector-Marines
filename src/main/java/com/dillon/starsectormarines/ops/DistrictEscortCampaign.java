@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -140,7 +141,7 @@ public final class DistrictEscortCampaign {
     static String debrief(MissionOutcome o, AgreusYardAgreement agreement) {
         var letterhead = Letterhead.of(agreement);
         if (o.victory) return letterhead.signatory + ": The consignment is signed over at the apron. "
-                + String.format("%,d", o.payoutEarned) + " credits paid. The next load is new freight and new people; post again when the company is ready.";
+                + String.format(Strings.locale(), "%,d", o.payoutEarned) + " credits paid. The next load is new freight and new people; post again when the company is ready.";
         return letterhead.signatory + ": The consignment did not arrive. No fee. Confirmed losses stay on record; "
                 + "the next posting is a new consignment with new people, not this load retried.";
     }

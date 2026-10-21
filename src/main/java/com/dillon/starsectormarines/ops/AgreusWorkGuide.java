@@ -44,7 +44,7 @@ record AgreusWorkGuide(AgreusArcProgress progress, OpeningBroker.Destination des
             case SIGNED -> "32,000 cr + Boarding Jack section entitlement / " + agreementName(progress.signedAgreement()) + " ratified only on victory"
                     + (progress.custodyPremiumDue() > 0 ? " / 12,000 cr premium on Chapter 5 victory" : " / premium forgone");
             case RATIFIED -> (progress.smallWarSettled()
-                    ? String.format("%,d", AgreusDistrictEscortProgress.PAYMENT) + " cr per delivered consignment / " + agreementName(progress.signedAgreement())
+                    ? String.format(Strings.locale(), "%,d", AgreusDistrictEscortProgress.PAYMENT) + " cr per delivered consignment / " + agreementName(progress.signedAgreement())
                     + " / A Small War settled" + (progress.smallWarPremiumPaid() > 0 ? " with the 12,000 cr premium" : "")
                     : "44,000 cr / " + agreementName(progress.signedAgreement())
                     + (progress.custodyPremiumDue() > 0 ? " / 12,000 cr premium on Chapter 5 victory" : " / premium forgone"))

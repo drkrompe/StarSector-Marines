@@ -723,7 +723,7 @@ public final class ShipTransferViewModel {
     private static String designation(FleetMemberAPI ship) {
         return words(ship.getHullSpec().getHullSize().name()) + ", "
                 + (ship.getHullSpec().hasDesignation()
-                        ? ship.getHullSpec().getDesignation().toLowerCase(Locale.ROOT)
+                        ? ship.getHullSpec().getDesignation().toLowerCase(Strings.locale())
                         : "unclassified");
     }
 
