@@ -110,6 +110,7 @@ import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import com.dillon.starsectormarines.battle.air.AirCoverSystem;
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.AirToAirFire;
 import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
@@ -241,6 +242,8 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
+import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
+import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.profile.TickStallWatchdog;
@@ -693,6 +696,27 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         relayNineSequence = new RelayNineSequence(reserve);
         relayNineStory = new RelayNineStoryObserver(storyBeats);
     }
+    private ColonyBreachSequence colonyBreach;
+    /** The Colony Breach story, or {@code null} on every other battle. */
+    public ColonyBreachSequence getColonyBreach() { return colonyBreach; }
+    /**
+     * Installs the Colony Breach story over an installed rescue: the breach
+     * clock, the eruption schedule and its beats. The swarm director starts in
+     * perimeter seepage and leaves it at the tremor.
+     */
+    public void installColonyBreach(ColonyEruptionPlan plan) {
+        if (simTickIndex != 0 || colonyBreach != null || lastLiftAttempt != null || openingStory != null
+                || junctionStory != null || relayNineStory != null)
+            throw new IllegalStateException("Install Colony Breach once at setup");
+        if (!swarmReinforcements.isConfigured())
+            throw new IllegalStateException("Colony Breach needs a configured swarm director");
+        colonyBreach = new ColonyBreachSequence(plan, storyBeats);
+        swarmReinforcements.beginSeepage();
+    }
+    /** Ends the swarm director's opening seepage; the breach has begun. Idempotent. */
+    public void endSwarmSeepage() { swarmReinforcements.endSeepage(); }
+    /** The rescue's pickup craft, or {@code null} when it has none. */
+    public ShuttleMission getCivilianPickupMission() { return civilianEvacuationSystem.pickupMission(this); }
     private LastLiftAttempt lastLiftAttempt;
     private LastLiftSequence lastLiftSequence;
     public LastLiftAttempt getLastLiftAttempt() { return lastLiftAttempt; }
@@ -3363,6 +3387,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         civilianEvacuationSystem.tick(this);
         rescuePickupSupport.tick(TICK_DT, this);
         swarmReinforcements.tick(TICK_DT, this);
+        if (colonyBreach != null) colonyBreach.tick(this);
         if (reliefAssault != null) reliefAssault.tick(this);
         if (lastLiftSequence != null) lastLiftSequence.tick(this);
         if (relayNineSequence != null) relayNineSequence.tick(this);
@@ -3409,6 +3434,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (openingStory != null) openingStory.observe(this);
         if (junctionStory != null) junctionStory.observe(this);
         if (relayNineStory != null) relayNineStory.observe(this);
+        if (colonyBreach != null) colonyBreach.observe(this);
         if (thunderRun != null && isComplete()) thunderRun.freeze(this, false);
         if (lastLiftSequence != null) {
             lastLiftSequence.observe(this);

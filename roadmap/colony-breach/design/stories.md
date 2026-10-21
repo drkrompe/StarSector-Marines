@@ -9,8 +9,8 @@ these stories.
 
 | Story | State and dependency |
 | --- | --- |
-| `breach-mission-spine.md` | **READY.** 400x240 precinct colony, breach sequence and beats, militia garrisons and vehicles, player lance allowance, `colony-breach` evidence argument. Lands first; `bore-spawners.md` builds on its skeleton. |
-| `bore-spawners.md` | **BLOCKED on the spine skeleton.** Destroyable bores, director spawning from living bores, tiers, spore vents. |
+| `breach-mission-spine.md` | **IN PROGRESS.** Skeleton on main: 400x240 colony, breach sequence and beats, eruption-site seam, `colony-breach` evidence. Open: militia garrisons and vehicles, player lance allowance. |
+| `bore-spawners.md` | **READY.** Destroyable bores, director spawning from living bores, tiers, spore vents. Plugs into the eruption handler on the breach sequence. |
 | `swarm-strains.md` | **READY.** Brute and Spitter: unit types, layered bodies (ImageGen art), stats and behaviour, behaviour scenes. |
 | `swarm-flow-fields.md` | **READY.** Shared per-goal flow fields for swarm movement; performance evidence at 400x240 and 560x336. |
 | `tender-call-down.md` | **READY.** Tender as a call-down command power when the fleet brought one; grounded construction in the rescue battle. |
