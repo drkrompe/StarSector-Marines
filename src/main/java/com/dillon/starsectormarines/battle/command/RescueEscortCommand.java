@@ -376,6 +376,21 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
             roles.put(squad.squadId(), selected);
             loads.merge(selected, 1, Integer::sum);
         }
+        // The lead screen stands on the door being relieved. When its squad left to escort a
+        // redoubt's people, the others kept their flank and rear slots and nobody reached the
+        // door: the squad on the most crowded slot, the rearmost on a tie, steps up.
+        if (!force.isEmpty() && !loads.containsKey(Role.LEAD_SCREEN)) {
+            CommandSquadState step = null;
+            for (CommandSquadState squad : force) {
+                if (step == null || slotOrder(roles.get(squad.squadId()), loads)
+                        > slotOrder(roles.get(step.squadId()), loads)) step = squad;
+            }
+            roles.put(step.squadId(), Role.LEAD_SCREEN);
+        }
+    }
+
+    private static int slotOrder(Role role, Map<Role, Integer> loads) {
+        return loads.getOrDefault(role, 0) * SCREEN_ROLES.size() + SCREEN_ROLES.indexOf(role);
     }
 
     /**
