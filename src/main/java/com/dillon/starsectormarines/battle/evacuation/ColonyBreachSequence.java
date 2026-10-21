@@ -57,12 +57,16 @@ public final class ColonyBreachSequence {
      *                      the tick it erupted or will erupt, or {@code -1}
      *                      before the tremor has scheduled it
      * @param erupted       per site, whether it has opened
+     * @param colonists     colonists placed outside the shelter at setup
+     * @param colonistsAlive of those, how many are still on the field
      */
     public record Snapshot(int tick, Phase phase, int landfallTick, int shelterReachedTick,
                            int tremorTick, List<ColonyEruptionPlan.Site> sites,
-                           List<Integer> eruptionTicks, List<Boolean> erupted) { }
+                           List<Integer> eruptionTicks, List<Boolean> erupted,
+                           int colonists, int colonistsAlive) { }
 
     private final ColonyEruptionPlan plan;
+    private final List<Long> colonists;
     private final StoryBeatLog log;
     private final boolean[] erupted;
     private final int[] eruptedAt;
@@ -73,14 +77,18 @@ public final class ColonyBreachSequence {
     private boolean militiaSeen;
     private boolean terminal;
 
-    public ColonyBreachSequence(ColonyEruptionPlan plan, StoryBeatLog log) {
+    public ColonyBreachSequence(ColonyEruptionPlan plan, List<Long> colonists, StoryBeatLog log) {
         if (plan == null || log == null) throw new IllegalArgumentException("A breach needs its plan and beat log");
         this.plan = plan;
+        this.colonists = colonists == null ? List.of() : List.copyOf(colonists);
         this.log = log;
         this.erupted = new boolean[plan.sites().size()];
         this.eruptedAt = new int[plan.sites().size()];
         Arrays.fill(eruptedAt, -1);
     }
+
+    /** The colony's population outside the shelter, in spawn order: what the swarm harvests. */
+    public List<Long> colonists() { return colonists; }
 
     /** The sites this battle breaks open at, and when relative to the tremor. */
     public ColonyEruptionPlan plan() { return plan; }
@@ -158,7 +166,10 @@ public final class ColonyBreachSequence {
     }
 
     /** The published picture. Built per call; read it once. */
-    public Snapshot snapshot(int tick) {
+    public Snapshot snapshot(BattleSimulation sim) {
+        int tick = sim.getSimTickIndex();
+        int alive = 0;
+        for (long id : colonists) if (sim.resolveUnit(id) != 0L) alive++;
         List<Integer> ticks = new ArrayList<>();
         List<Boolean> open = new ArrayList<>();
         for (int i = 0; i < plan.sites().size(); i++) {
@@ -166,7 +177,7 @@ public final class ColonyBreachSequence {
             open.add(erupted[i]);
         }
         return new Snapshot(tick, phase(), landfallTick, shelterReachedTick, tremorTick,
-                plan.sites(), List.copyOf(ticks), List.copyOf(open));
+                plan.sites(), List.copyOf(ticks), List.copyOf(open), colonists.size(), alive);
     }
 
     private void emit(int tick, String key) {

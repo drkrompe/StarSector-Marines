@@ -706,13 +706,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * clock, the eruption schedule and its beats. The swarm director starts in
      * perimeter seepage and leaves it at the tremor.
      */
-    public void installColonyBreach(ColonyEruptionPlan plan) {
+    public void installColonyBreach(ColonyEruptionPlan plan, List<Long> colonists) {
         if (simTickIndex != 0 || colonyBreach != null || lastLiftAttempt != null || openingStory != null
                 || junctionStory != null || relayNineStory != null)
             throw new IllegalStateException("Install Colony Breach once at setup");
         if (!swarmReinforcements.isConfigured())
             throw new IllegalStateException("Colony Breach needs a configured swarm director");
-        colonyBreach = new ColonyBreachSequence(plan, storyBeats);
+        colonyBreach = new ColonyBreachSequence(plan, colonists, storyBeats);
         swarmReinforcements.beginSeepage();
     }
     /** Ends the swarm director's opening seepage; the breach has begun. Idempotent. */

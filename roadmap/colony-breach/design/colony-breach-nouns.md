@@ -95,6 +95,15 @@ cohort's walk to the lift, because a gun or a truck in a one-lane street closes
 it. Lower risks keep the shelter guard alone, and
 `-Dbattle.colonyBreach.militia=false` is the control that drops the rest.
 
+**Colony population.** The colonists outside the shelter: ordinary fleeing
+civilians, not part of the cohort and not counted by the evacuation, spread
+through the colony's buildings a few to a house (every house before any gets a
+second), clear of the shelter and the lift. They are what *Harvest* feeds on, so
+there are bodies at stake wherever a bore comes up. The count is drawn from the
+seed between 48 and 64, and the breach snapshot records how many were placed
+and how many are still alive. Lower risks keep the stock handful of ambient
+civilians.
+
 **Heavy assets are what the fleet brought.** The company's mechs and vehicles
 reach the battle through its own Mech Support power, which every battle
 honours; the rescue adds nothing to that. A mech-lance allowance for the
@@ -318,8 +327,9 @@ normally fire before the shelter is reached.
 while its nearest marine is behind it toward the lift, and the close escort is
 sent to the cohort's own cell, so an escort member standing on the cohort's
 tail holds it indefinitely once the screens are out of leash. The colony's long,
-bending walk finds this on the canonical fixture with the militia seated (the
-control without them completes); it is Marine corridor command's to fix
+bending walk found this on the canonical fixture at 0adc5de81 (it timed out
+with the cohort parked); the fixture's trajectory no longer meets it, but the
+rule is unchanged and it is Marine corridor command's to fix
 (`extraction-command.md`). The corridor guide no longer collapses onto the
 cohort when its centroid falls on a wall; it routes from the nearest open cell.
 
