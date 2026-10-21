@@ -498,7 +498,10 @@ painting, hurt. A wounded body **bleeds**, as the Zerg's buildings did: a
 wound is a puncture in a living membrane, and it pulses to a heartbeat: on
 each beat the torn slit dilates, its flaps lift and a gout of ichor is pushed
 out over the lip to run downhill as a glossy film, which drains and thins
-before the next. The loops are pinned to the wounds its own
+before the next. A long wound (a gash, a torn plate's socket) is a **fissure**
+instead and sprays on the same beat: its lips part and throw a fan of droplets
+downhill, arcing with their shadows under them, landing as splats that soak
+away before the next beat. The loops are pinned to the wounds its own
 painting shows and running downhill off its body (into the pit from a bore's
 lip). The first wound bleeds as the body turns wounded, and more open the
 further it is hurt, every one by under a third of that; each wound bleeds at
@@ -568,7 +571,10 @@ for one job in the cycle, and reads that way on screen.
   spine flexing and the shoulders and hips swaying against each other, with two
   jointed spike arms on its shoulders. Each blow is one arm, alternating, and
   is either a stab (the elbow bows out away from the body, then the point
-  drives straight forward) or a side swipe. The wind-up runs off the attack
+  drives straight forward) or a side swipe. The body is in every blow: a stab
+  draws the trunk back on its planted feet, then lunges it forward onto the
+  point, and a swipe winds the striking shoulder back and twists the trunk
+  through the cut, the hips countering. The wind-up runs off the attack
   cooldown, so the blow arrives on the tick its damage is dealt. The rig is
   presentation only: nothing in the simulation reads it, and the strike rule
   itself stays the ordinary melee hit. A carrier (*Harvest*, *Impale*) is
