@@ -1363,6 +1363,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.swarmAvoidance = new SwarmAvoidanceSystem(
                 rosterService, unitIndex, grid);
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
+        separation.spareHeld(swarmHarvest::isCarried);
         this.vehicleRepulsion = new VehicleRepulsionSystem(rosterService, unitIndex, grid);
         this.squadTraffic = Boolean.getBoolean(SquadTrafficSystem.PROPERTY)
                 ? new SquadTrafficSystem(grid, rosterService) : null;
