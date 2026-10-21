@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.battleview.ShipViewCanvas;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
@@ -96,6 +97,8 @@ public final class ShipViewScreen implements Screen {
                 work -> CompanyShipRestoration.offer(ship, roster, work),
                 work -> CompanyShipRestoration.repair(ship, roster, work),
                 () -> CompanyBayRestoration.offer(ship, roster), () -> CompanyBayRestoration.repair(ship, roster),
+                () -> ShipRefits.condition(ship), order -> ShipRefits.offer(ship, roster, order),
+                order -> ShipRefits.purchase(ship, roster, order),
                 room -> { if (deck != null) deck.select(room); }, () -> deckChanged = true);
         viewport = MarineOpsUiViewport.from(position);
         installDocument();
