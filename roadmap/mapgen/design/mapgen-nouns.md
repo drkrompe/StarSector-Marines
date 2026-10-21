@@ -634,9 +634,20 @@ are the controls; precinct roads keep round ends and no sidewalk. The paving is 
 ground kind, surface, walkability, road graph, width or random draw changes,
 so navigation, convoy routing, garrisons and mission map requirements are
 untouched. `-Dbattle.mapgen.cityRoads=false` is the control; it leaves the city
-paved and sweeps only precinct roads. The pavement has no lane markings yet;
-junctions, T-junctions, turns and dead ends are all composed from the sweep
-rather than from tiles, so no piece is missing from the set.
+paved and sweeps only precinct roads. Junctions, T-junctions, turns and dead
+ends are all composed from the sweep rather than from tiles, so no piece is
+missing from the set.
+
+**Road paint** is a *marking*: a straight, flush-ended stroke along a grid
+axis, drawn as its own layer over the asphalt. It is laid only on cells the
+asphalt covers whole, so it never reaches a ragged edge, a sidewalk or bare
+ground, and its share of a cell is the exact overlap of two rectangles, which
+keeps a line far thinner than a cell. A city street carries a dashed centre
+line down its carriageway, kept a cell clear of each crossing street, so a
+junction is left unpainted; a square or a precinct road carries none. Paint
+is a pavement material of its own, worn rather than cracked with age.
+`-Dbattle.mapgen.cityLaneMarkings=false` is the control. Like the rest of the
+finish it changes nothing the simulation reads.
 
 Intersecting carriageways form one paved footprint. The first declared road
 owns material where carriageways overlap, and a shoulder never erases a road.

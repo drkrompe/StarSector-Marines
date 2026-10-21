@@ -328,7 +328,7 @@ public final class GroundRenderSystem implements RenderSystem {
         GroundMesh.CellResolver[] sublayers = topology.roadSurface()==null
                 ? new GroundMesh.CellResolver[]{base,base::resolveEdge,new GroundDamage(topology),new Scatter(topology),new DoorDecals(grid,topology)}
                 : new GroundMesh.CellResolver[]{base,base::resolveEdge,base::resolveSecondEdge,
-                        base::resolveConcrete,base::resolveSecondConcrete,new GroundDamage(topology),new Scatter(topology),new DoorDecals(grid,topology)};
+                        base::resolveConcrete,base::resolveSecondConcrete,base::resolveMarking,new GroundDamage(topology),new Scatter(topology),new DoorDecals(grid,topology)};
         if(topology.terrainSurface()!=null) {
             int existing=sublayers.length-DECORATION_LAYERS;
             GroundMesh.CellResolver[] expanded=new GroundMesh.CellResolver[sublayers.length+TerrainSurface.LAYERS];
@@ -564,6 +564,7 @@ public final class GroundRenderSystem implements RenderSystem {
         private void resolveSecondEdge(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,0,true); }
         private void resolveConcrete(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,1,false); }
         private void resolveSecondConcrete(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,1,true); }
+        private void resolveMarking(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,RoadSurface.MARKING,false); }
         private void resolveEdge(int x,int y,GroundMesh.CellSink sink) {
             if(topology.roadSurface()!=null){smoothEdge(x,y,sink,0,false);return;}
             int mask=edgeMask(x,y);

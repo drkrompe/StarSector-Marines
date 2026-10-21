@@ -163,6 +163,8 @@ public final class BattleComponents {
     public static final int MECH_LOCOMOTION_TURN_RATE = 2;
     /** {@link #MECH_GAIT_STATE} field 0: persistent planted-foot state (OBJECT). */
     public static final int MECH_GAIT_STATE_STATE = 0;
+    /** {@link #RAV_RIG} field 0: the Runner's skeleton ({@code RavRunnerRig}) (OBJECT). */
+    public static final int RAV_RIG_STATE = 0;
 
     /** {@link #HEALTH} field 0: current hp (FLOAT). */
     public static final int HEALTH_HP = 0;
@@ -580,6 +582,8 @@ public final class BattleComponents {
     public final ComponentType MECH_LOCOMOTION;
     /** Live-only persistent planted-foot and waist presentation state. */
     public final ComponentType MECH_GAIT_STATE;
+    /** Live-only skeleton of a Rav Bloom Runner: planted feet, sway and spike-arm strikes. */
+    public final ComponentType RAV_RIG;
     /**
      * Dead-archetype marker, carrying what a lying body needs once the live layered
      * appearance is gone: the facing and body family it died with
@@ -1260,6 +1264,7 @@ public final class BattleComponents {
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.FLOAT, FieldKind.FLOAT);
         HULL_LOCATIONS  = world.register(41, "HullLocations", FieldKind.OBJECT);
+        RAV_RIG         = world.register(42, "RavRig", FieldKind.OBJECT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, SPRITE, CORPSE}, null);
         liveSprites = world.query(

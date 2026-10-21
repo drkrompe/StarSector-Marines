@@ -479,7 +479,17 @@ behaviour. A strain is a designed stage of the one organism (see *Origin*), not
 another animal: every strain is the Runner's body plan and chitin specialised
 for one job in the cycle, and reads that way on screen.
 
-- **Runner** — the shipped 20 HP melee body. Volume.
+- **Runner** — the shipped 20 HP melee body. Volume. It is drawn on its own
+  skeleton (`RavRunnerRig`), not on the layered infantry composition: a hunched
+  hound whose feet stay planted on the ground, galloping and trotting with the
+  spine flexing and the shoulders and hips swaying against each other, with two
+  jointed spike arms on its shoulders. Each blow is one arm, alternating, and
+  is either a stab (the elbow bows out away from the body, then the point
+  drives straight forward) or a side swipe. The wind-up runs off the attack
+  cooldown, so the blow arrives on the tick its damage is dealt. The rig is
+  presentation only: nothing in the simulation reads it, and the strike rule
+  itself stays the ordinary melee hit. The impale and drag pose belongs to
+  `runner-impale-drag.md`.
 - **Brute** — slow, plated, heavy melee; the strain that makes a garrisoned
   building stop being a safe room. Its plate (20 points at rating 10) is what
   small arms struggle with: a DMR or rocket goes through it, an SMG barely
@@ -703,6 +713,29 @@ the evidence; change them here first.
 | `lift_down` | PLAYER | First shuttle landed |
 | `cohort_boarded` | PLAYER | Last surviving evacuee aboard |
 | `colony_lost` | PLAYER | Cohort lost |
+
+**Sound.** Beats are voiced from the Colony Breach narration catalog, which a
+battle hears whenever it carries the breach sequence, whatever mission launched
+it. A PLAYER beat with no line is silent: `redoubt_reached_1` is spoken as
+`shelter_reached`, and observer-only beats never speak. Who speaks a beat
+follows the lore guide's names: the company officer calls them ravs and names
+strains and bores by number, the militia sergeant says ravs, holes, grabbers and
+breakers, and the shelter administrator says the ground and only whispers the
+bloom. A numbered beat has lines up to four; a higher number needs lines added.
+Lines are generated from tracked prompts by `tools/generate_colony_breach_audio.py`
+and registered like every other clip. A beat that adds a line names its speaker
+by these rules, and a line that a later beat makes stale is superseded by it.
+
+Bores and bodies sound through presentation cues the simulation writes and
+never reads (`BoreCues`, `SwarmCues`), so a headless run is silent and nothing
+heard reaches the battle. A bore is heard erupting, growing to each tier,
+surging and collapsing, and breathes a tier ambience while it lives. A swarm
+body cries when it takes new quarry, and is heard striking, ramming a wall,
+breaking it and dying; a Brute's charge, a Runner's impale and a seized body
+being dragged have their own sounds, posted as cues by the stories that add
+those acts. Each strain's sound is admitted under its own gap so a pack reads as
+a pack, and the swarm is heard only on ground the player has seen. The Spitter
+has no voice.
 
 ## Laws
 

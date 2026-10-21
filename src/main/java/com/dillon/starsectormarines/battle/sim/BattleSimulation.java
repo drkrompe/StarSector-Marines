@@ -169,6 +169,7 @@ import com.dillon.starsectormarines.battle.setup.ThunderRunSequence;
 import com.dillon.starsectormarines.battle.setup.WaylineGunship;
 import com.dillon.starsectormarines.battle.turret.GroundAntiAirSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmStrikeSystem;
+import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
 import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
 import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention;
 import com.dillon.starsectormarines.battle.command.objective.FreightConvoyObjective;
@@ -200,6 +201,7 @@ import com.dillon.starsectormarines.battle.infantry.SquadMedicSystem;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
 import com.dillon.starsectormarines.battle.mech.MechGaitSystem;
+import com.dillon.starsectormarines.battle.appearance.RavRunnerRigSystem;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.MechDoctrineService;
 import com.dillon.starsectormarines.battle.mech.MechDoctrineSystem;
@@ -479,6 +481,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final MechLocomotionSystem mechLocomotionSystem;
     /** Fixed-tick, presentation-only planted-foot and waist solver. */
     private final MechGaitSystem mechGaitSystem;
+    private final RavRunnerRigSystem ravRunnerRigSystem;
     /** Simulation-authoritative upper-torso traverse; gates mech weapons as well as their render heading. */
     private final MechTurretSystem mechTurretSystem;
     private final MechSectionFxSystem mechSectionFx;
@@ -683,6 +686,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Aimed flak and guided missiles from ground anti-air mounts, including a swarm bore's spore colonies. */
     public GroundAntiAirSystem groundAntiAir() { return groundAntiAir; }
     private final SwarmStrikeSystem swarmStrikes = new SwarmStrikeSystem();
+    private final SwarmCues swarmCues = new SwarmCues();
     private final AirToAirFire airToAir = new AirToAirFire();
     private WaylineGunship waylineGunship;
     public WaylineGunship getWaylineGunship() { return waylineGunship; }
@@ -1309,6 +1313,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.mechLocomotionSystem = new MechLocomotionSystem(
                 entityWorld, battleComponents, rosterService, mechMoveOrders);
         this.mechGaitSystem = new MechGaitSystem(entityWorld, battleComponents);
+        this.ravRunnerRigSystem = new RavRunnerRigSystem(entityWorld, battleComponents);
         this.mechTurretSystem = new MechTurretSystem(
                 entityWorld, battleComponents, rosterService);
         this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects, rosterService);
@@ -2944,6 +2949,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         warships.beginFrame();
         shieldDomes.beginFrame();
         tenders.cues().beginFrame();
+        swarmCues.beginFrame();
         systemFxSystem.beginFrame();
         directControl.validate();
         if (isComplete()) return;
@@ -3546,6 +3552,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         directControl.validate();
         facingSystem.tick(directControl.activeUnitId(), directControl.intent().aimX(),
                 directControl.intent().aimY(), directControl.sprintStatus().sprinting());
+        ravRunnerRigSystem.tick(TICK_DT);
         // Authors what a running integral system looks like, from the same
         // settled state and for the same reason: a treatment written here is
         // present on the tick of activation and gone on the tick the effect
@@ -3848,6 +3855,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Where swarm strains post the blows and acid that land in the serial pass. */
     public SwarmStrikeSystem swarmStrikes() { return swarmStrikes; }
+    /** What swarm bodies ask the presentation to sound this advance; presentation-only. */
+    public SwarmCues swarmCues() { return swarmCues; }
 
     @Override
     public boolean applyContactStrike(long carrier, long target) {

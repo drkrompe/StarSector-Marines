@@ -83,6 +83,7 @@ public class BattleSprites {
 
     private static final String MODULAR_ROOT =
             "graphics/battle/marine-modular-topdown/variants/";
+    private RavRunnerAssets ravRunner;
     private final java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites =
             new java.util.EnumMap<>(LayeredArmorFamily.class);
     private final Map<String, LayeredSpriteCache> specialEquipmentLayers = new LinkedHashMap<>();
@@ -199,6 +200,8 @@ public class BattleSprites {
     public java.util.EnumMap<UnitType, UnitSpriteCache> unitSprites()          { return unitSprites; }
     public java.util.EnumMap<UnitType, UnitSpriteCache> unitDeadSprites()      { return unitDeadSprites; }
     public java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites() { return layeredUnitSprites; }
+    /** The Runner's skeleton bones, or null when they did not all load. */
+    public RavRunnerAssets ravRunnerSprites() { return ravRunner; }
     public LayeredMechAssets layeredMechSprites() { return layeredMechSprites; }
     /** Pools under fallen layered bodies; empty when the art did not load. */
     public List<LayeredSpriteCache> bloodPools() { return bloodPools; }
@@ -827,6 +830,10 @@ public class BattleSprites {
                 "graphics/battle/swarm-spitter-modular-topdown/",
                 alienFoot, alienForeClaw, rifle, laser, smg, dmr, rocket, amr, flash,
                 surplusRifle, masterworkDmr);
+        ravRunner = RavRunnerAssets.load(this::loadLayeredSprite);
+        if (ravRunner == null) {
+            LOG.warn("BattleSprites: Rav Runner bones incomplete; the Runner keeps its layered art");
+        }
         for (int pool = 0; pool < BLOOD_POOLS; pool++) {
             LayeredSpriteCache sprite = loadLayeredSprite(BLOOD_POOL_ROOT + pool + ".png");
             if (sprite != null) bloodPools.add(sprite);
