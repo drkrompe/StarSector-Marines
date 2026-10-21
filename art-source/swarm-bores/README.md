@@ -10,7 +10,7 @@ and the three spore-colony grades (`structure.spore-colony-fissure`, `-bore`,
 | Guides | `python art-source/swarm-bores/make_guide.py` | `art-source/templates/swarm-<part>-<n>-guide.png` |
 | Reskin one variant (one paid call) | `bash art-source/swarm-bores/generate.sh <part> <n>` | `raw/<part>-<n>.raw.png` + provenance |
 | Export | `python art-source/swarm-bores/export.py` | `mod/graphics/structures/<name>-<n>.png` and `<name>-<n>-glow.png` |
-| Recolour preview | `python art-source/swarm-bores/export.py --palette chitin` | `build/swarm-bores/chitin/` |
+| Recolour preview | `python art-source/swarm-bores/export.py --palette purple` (or `chitin`) | `build/swarm-bores/<palette>/` |
 
 Parts and variant counts are `make_guide.VARIANTS`: `bore` 3, `mother-bore` 2,
 `spore-colony-fissure`, `spore-colony-bore`, `spore-colony-maw` 3 each. The
@@ -36,10 +36,12 @@ the body (`CANVAS_CELLS`) so the shadow fits; the layer's `cells` in
 
 **Palette.** The shipped sprites are in the current runner palette. The
 guide's material map records which pixels are creature (chitin, sinew, bone,
-flesh, sac) and which are earth or paving, so `--palette chitin` recolours
-only the creature to the Rav Bloom chitin proposal by a luminance gradient
-map. When the creature redesign lands, the recolour is that switch (or a new
-ramp), not a new generation.
+flesh, sac) and which are earth or paving, so `--palette purple` recolours
+only the creature by luminance gradient maps: carapace to the Rav Bloom
+round-3 violet and plum running up to ivory, roots and a shaft's lining to its
+magenta-crimson sinew (ramps sampled from the round-3 Runner plates).
+`--palette chitin` is the earlier brown proposal. When the creature redesign
+settles, the recolour is a ramp edit and that switch, not a new generation.
 
 The `-glow` layer is the reskin's own amber pixels lifted out by colour and
 drawn over the body with a pulse; the structures set `groundPad: false`, so
