@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
@@ -30,6 +31,10 @@ public final class RenderContext {
     final Selection selection;
     final BattleRenderHostProfile hostProfile;
     final ShipDeckLighting deckLighting;
+    /** The founding hull's Deficit dressing plan, or null for a deck that carries none. */
+    final ShipDeckDressing deckDressing;
+    /** Which cores' dressing is cleared; meaningful only with {@link #deckDressing}. */
+    final CoreDressing coreDressing;
 
     public RenderContext(BattleSimulation sim, BattleCamera camera, BattleLayout layout,
                   float alphaMult, float realDt, boolean debugZonesVisible,
@@ -58,6 +63,15 @@ public final class RenderContext {
                   float alphaMult, float realDt, boolean debugZonesVisible,
                   HighlightOverlay highlights, Selection selection,
                   BattleRenderHostProfile hostProfile, float animationTimeSeconds, ShipDeckLighting deckLighting) {
+        this(sim, camera, layout, alphaMult, realDt, debugZonesVisible, highlights, selection,
+                hostProfile, animationTimeSeconds, deckLighting, null, CoreDressing.RESTORED);
+    }
+
+    RenderContext(BattleSimulation sim, BattleCamera camera, BattleLayout layout,
+                  float alphaMult, float realDt, boolean debugZonesVisible,
+                  HighlightOverlay highlights, Selection selection,
+                  BattleRenderHostProfile hostProfile, float animationTimeSeconds, ShipDeckLighting deckLighting,
+                  ShipDeckDressing deckDressing, CoreDressing coreDressing) {
         if (hostProfile == null) throw new IllegalArgumentException("host profile is required");
         this.sim = sim;
         this.camera = camera;
@@ -70,5 +84,7 @@ public final class RenderContext {
         this.selection = selection;
         this.hostProfile = hostProfile;
         this.deckLighting = deckLighting;
+        this.deckDressing = deckDressing;
+        this.coreDressing = coreDressing == null ? CoreDressing.RESTORED : coreDressing;
     }
 }

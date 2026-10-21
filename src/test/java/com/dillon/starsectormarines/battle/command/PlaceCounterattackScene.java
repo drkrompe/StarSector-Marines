@@ -31,7 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * The defender counter-attacks a lost <em>compound</em> (`place-counterattack.md`): a place that is not a fort, because
+ * The defender counter-attacks a lost <em>compound</em> (`conquest-command.md`, Defender command): a place that is not a fort, because
  * the game is much larger than forts. One barracks taken by a party of marines, and the defender's Conquest commander
  * with a pool of patrols a long way south of it. Each loop changes one thing.
  *

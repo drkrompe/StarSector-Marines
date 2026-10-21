@@ -273,6 +273,7 @@ public class BattleRenderer {
         // Stateful/own-GL passes keep their state + render* bodies on this class and
         // join via RenderSystem.of(...) emitting a Custom (the FBO/own-GL escape hatch).
         DoodadRenderSystem doodads = new DoodadRenderSystem(sprites);
+        ShipDressingRenderSystem dressing = new ShipDressingRenderSystem(doodads);
         this.nightLighting = new NightLightingRenderSystem(sprites);
         this.aircraft = new ShuttleRenderSystem(sprites);
         this.worldSystems = List.of(
@@ -289,7 +290,10 @@ public class BattleRenderer {
                             ctx.camera,ctx.alphaMult,out);
                 }),
                 new ParkedAircraftRenderSystem(sprites),
+                // A deck's Deficit dressing lies under its fixtures; its dead screens are the fixtures, unlit.
+                RenderSystem.of(RenderLayer.DOODADS, dressing::collectBeneath),
                 doodads,
+                RenderSystem.of(RenderLayer.DOODADS, dressing::collectOver),
                 // Bodies cast here rather than through the ground composite:
                 // terrain carries a height per cell and a marine does not.
                 new UnitShadowRenderSystem(sprites, sun),
@@ -342,6 +346,8 @@ public class BattleRenderer {
                         })),
                 aircraft,
                 new ShipLightingRenderSystem(),
+                // Dead air over the shade: it hangs in front of the deck rather than being darkened with it.
+                RenderSystem.of(RenderLayer.DECK_LIGHTING, dressing::collectHaze),
                 nightLighting,
                 new WarshipRenderSystem(sprites),
                 new LanceSweepRenderSystem(),

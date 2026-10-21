@@ -101,6 +101,7 @@ class RaidCommandEvidenceTest {
                 capture.afterAdvance();
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
+            System.out.println(ReactiveDefenceEvidence.line(runId, sim, sim.getCommandTraceJsonLines()));
             return new RunResult(sim.getCommandTraceJsonLines(),
                     sim.getSimTickIndex(), sim.isComplete(),
                     sim.getWinner() != null ? sim.getWinner().name() : null);

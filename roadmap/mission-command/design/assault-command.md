@@ -57,6 +57,11 @@ not become hidden death knowledge. Response rallies snap to walkable
 strongpoint/area context and never reveal the contact cell. Expiry returns the
 responder to readiness.
 
+Under believed pressure the reserve, and routine and responding squads for a
+building beside their own rallies, man the map's garrisonables
+(`garrisonables.md`, mission defenders). The role a squad holds is unchanged
+by it, so routine coverage and response memory read as before.
+
 `DEFEND_AREA` is Assault-specific. It is distinct from Conquest tracks and
 Sabotage sites, and it composes with local contact doctrine after the squad
 develops its own belief.

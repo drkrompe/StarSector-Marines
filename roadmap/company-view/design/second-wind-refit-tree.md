@@ -1,8 +1,8 @@
 # Second Wind refit tree
 
-Status: ACTIVE — direction; owner decisions recorded 2026-10-20. Slice 1 (deck capacity survey, sealed reserves) is implemented; nothing else is.
+Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Ship Systems card and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review; opening the new facilities, Improved-tier dressing and mech passives are not.
 Written: 2026-10-20
-Updated: 2026-10-20 — deck capacity survey: five sealed reserves fit every layout; the other facilities share a compartment.
+Updated: 2026-10-21 — deck capacity survey: five sealed reserves fit every layout, the other facilities share a compartment; combat refit tracks added earlier the same day.
 
 The Engineering tab today sells a short list of one-off yard orders: the
 workshop chain (750 / 3,000 / 4,500), the second bay (8,000), three Mech Lab
@@ -90,6 +90,12 @@ vocabulary (damaged props, rubble decals) the d-mod damage model wants. It
 needs new battered corridor and wall art; the clean art already shipped is the
 target, not something to replace.
 
+The deck reads the record's restored cores (`ShipCondition.restoredCores`) as a
+per-core flag (`CoreDressing`) and applies it to the running deck, so buying a
+core's Restored order clears its look without laying the ship out again. The
+first-pass art is one sheet, `ship-dressing`; Improved-tier dressing (better
+lighting, fresh paint, running displays) is not built.
+
 ## Facilities and their passives
 
 Effects are grouped by where they land. The figures are starting proposals
@@ -135,6 +141,25 @@ between battles).
 | **Boat bay services** | — | grounded-boat recovery one day faster | deck crane: boat and Hermes material bills −15% |
 | **Mech Lab field repair** | — | damaged mechs repair between missions faster | spares rack: lost mounts refit cheaper |
 | **Holds / bonded stores** | — | more cargo via the conversion hull mod | shielded stores |
+
+### Combat refit: the hull as a fighting ship
+
+The founding hull fights in ordinary fleet battles too, so her own figures are
+tracks of the tree (owner, 2026-10-20). They go through the conversion hull mod,
+so the base game's refit screen shows them and every fight she is in uses them.
+**They are a liability for a long time** (owner, 2026-10-20): each starts below a
+stock Cerberus, and its Restored tier waits on the cores, flux on the reactor
+overhaul.
+
+| Track | Deficit | Restored needs | Improved I | Improved II |
+|---|---|---|---|---|
+| **Hull** | hull −20%, armor −15% | Structure restored | hull +15%, armor +10% (tooling) | +30% / +20% (auxiliary plant) |
+| **Flux** | capacity and dissipation −20% | reactor overhaul | +15% / +10% (auxiliary plant) | +30% / +20% (and processing cluster) |
+| **Sensors** | strength −30% | Compute restored | +25% (processing cluster) | +50%, profile −25% (and auxiliary plant) |
+| **Drive** | speed and acceleration −10%, burn −1 | Power and Structure restored | speed +10%, acceleration +15% (reactor overhaul) | +20% / +25%, burn +1 (auxiliary plant) |
+
+The catalog of tiers, prices and requirements is `RefitOrder`; what a band is
+worth is `ShipCondition`.
 
 ### Fleet stats (vanilla, through the conversion hull mod)
 

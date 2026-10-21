@@ -137,6 +137,7 @@ class SabotageCommandEvidenceTest {
                         "headless runner must advance exactly one fixed tick");
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
+            System.out.println(ReactiveDefenceEvidence.line(runId, sim, sim.getCommandTraceJsonLines()));
             String trace = sim.getCommandTraceJsonLines();
             return new RunResult(trace,
                     SabotageCommandTraceAnalyzer.analyze(trace));
