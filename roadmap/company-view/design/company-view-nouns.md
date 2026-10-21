@@ -1530,7 +1530,11 @@ holds from Structure, and the wardroom and briefing room from Compute: facilitie
 fitted into rooms she already has (the provisions store, the mess, the holds), so
 buying one opens no compartment. Hydroponics and the holds act through the hull
 mod (her supplies per month, her cargo); the wardroom scales officers' mission XP
-when a mission resolves and is named on the briefing once it pays. Each track is a column of tier nodes,
+when a mission resolves and is named on the briefing once it pays. The briefing
+room's holo-tank shows the briefing the garrison the operation faces. It reads the
+same target profile launch builds the battle from, so its headcount is the battle's;
+its mechs are given as *up to*, because the landing caps them. The plot table below it is the tank's mount and has
+no battle passive yet. Each track is a column of tier nodes,
 owned, available (nothing but the price in the way) or locked. Most tiers need
 two or three cores, so beside each unbought node sit small icons of the cores it
 waits on, gold once met and red until then; requirements are marked this way
@@ -1551,6 +1555,19 @@ fleet cargo (metals for structure and plating, heavy machinery for plant and
 drive, transplutonics for flux and sensors), shown as icon rows with Short by.
 The strongest tiers take AI cores: a gamma core for the processing cluster, a
 beta core for the tactical core, and an alpha core for the military flux grid. Other hulls are neutral on every track.
+
+Five reserved compartments (range, gym, sick bay, lounge, brig) open by their
+facility track's Restored order. A sealed one is neutral, so opening one is
+already a gain, and other hulls read as sealed. The range opens trials aboard
+and then sharpens company infantry's primary fire; the gym makes them faster
+and, at its top tier, steadier under fire. With the mess's morale recovery these
+freeze onto every squad at launch as one hull-welfare record and reach the fight
+as one named unit modifier. The sick bay brings a share of the would-be dead home
+wounded when a battle is settled. The lounge raises the aptitude cargo
+replacements arrive with. The brig opens its cells; interrogation waits on a
+battle that takes prisoners, since no defender is ever captured and the outcome
+records none. The briefing's Ship row names each room that changes the
+operation.
 
 The **Mech Lab tracks** reach the company's own mechs. Nothing there starts
 at a deficit: an absent bench and a Restored one are both neutral, and the

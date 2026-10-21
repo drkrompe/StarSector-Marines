@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
@@ -122,6 +123,21 @@ class BattleFixtureJsonTest {
         var fixture = new ColdAccountBattleFixture(base);
         assertEquals(fixture, BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture)));
         assertEquals(base, BattleFixtureJson.fromJson(BattleFixtureJson.toJson(base)));
+    }
+
+    @Test void launchRoundTripPreservesTheTrainingRoomsAndAMessOnlySeatWritesNoneOfThem() throws Exception {
+        var roster = new MarineRoster(); roster.bootstrapInitialComplement(12);
+        var ids = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
+        var welfare = new HullWelfare(1.15f, 1.03f, 1.04f, 0.9f);
+        var deployment = CampaignMarineDeployment.freezeSelection(roster, ids, 12, null, welfare);
+        var fixture = new BattleLaunchFixture(canonicalFixture(), new BattleLaunchOverlay(0,
+                deployment.commitments(), List.of(), List.of(), List.of(), 0));
+        assertEquals(fixture, BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture)));
+        assertEquals(welfare, CampaignMarineDeployment.fromCommitments(deployment.commitments()).seat(0).campaignSquad.welfare);
+        var messOnly = CampaignMarineDeployment.freezeSelection(roster, ids, 12, null, 1.25f);
+        var json = BattleFixtureJson.toJson(new BattleLaunchFixture(canonicalFixture(), new BattleLaunchOverlay(0,
+                messOnly.commitments(), List.of(), List.of(), List.of(), 0)));
+        assertFalse(json.toString().contains("hullWelfare"));
     }
 
     @Test void launchRoundTripPreservesOfficerSpecialtiesWelfareAndAlreadyModifiedArmor() throws Exception {
