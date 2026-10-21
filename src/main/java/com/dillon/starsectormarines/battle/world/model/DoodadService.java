@@ -100,6 +100,22 @@ public final class DoodadService {
 
     public List<Doodad> getDoodads() { return doodads; }
 
+    /**
+     * Every definition id of the doodads standing on a cell, space-separated, or
+     * null where there are none. A linear scan, for callers that ask once per
+     * place and remember the answer, such as what a work point's fixture is.
+     */
+    public String definitionsAt(int x, int y) {
+        StringBuilder ids = null;
+        for (Doodad doodad : doodads) {
+            if (doodad.definitionId() == null || !doodad.occupiesCell(x, y)) continue;
+            if (ids == null) ids = new StringBuilder();
+            else ids.append(' ');
+            ids.append(doodad.definitionId());
+        }
+        return ids != null ? ids.toString() : null;
+    }
+
     public void setPropEffectSink(PropDamage.EffectSink sink) { destructibleProps.setEffectSink(sink); }
 
     /**

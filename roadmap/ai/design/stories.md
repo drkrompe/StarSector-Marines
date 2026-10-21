@@ -9,6 +9,7 @@ firing positions remain opt-in experiments.
 
 | Story | State | Intent |
 |---|---|---|
+| `party-places.md` | IN PROGRESS | Parties (allied, neutral) man places through the shared planner; place directives with generic triggers; locked positions (Thunder Run re-expressed). |
 | `squad-traffic.md` | EXPERIMENT | Compare local lateral spreading, terrain compression, and soft yielding without replacing squad goals or routes. |
 | `squad-flank-preparation.md` | DRAFT | Publish one coherent squad flank answer before parallel member execution; retire the legacy worker-written memo. |
 | `squad-firing-positions.md` | EXPERIMENT | Compare bounded shared firing geometry and stable individual reservations against repeated member searches. |
