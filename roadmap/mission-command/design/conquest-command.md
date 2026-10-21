@@ -526,7 +526,7 @@ within reach of home.
   and only what it holds above the law's share may still be lent. It counts as
   the reserve, not in addition to it, so the track response's pickets come first
   and what it denies is concentration. Held from the battle's first contact, as
-  the fort counter-attack first had it, even the law's share at a staging cell
+  the first fort counter-attack had it, even the law's share at a staging cell
   took the patrol a small garrison mans its compound with once every compound was
   a place (`compound-apron`), and the law already keeps that share from the track
   response; `formOnContact` restores it as a knob.
@@ -595,7 +595,36 @@ The same mechanism is the story missions' finite counter-attack pools where a
 pool retakes a lost site (`SiteCounterattack`: Relay Nine and Thunder Run, whose
 defender pool used to converge on the lost site squad by squad). The whole pool
 is the counter-attack's from the start, the site it holds to the last is home,
-and what is not in the push holds home.
+and what is not in the push holds home. A story site is believed to take at least
+one patrol rather than two, so a gain left lightly held can be won back. The
+retakes that are authored lesson beats stay authored: Junction's reserve walking
+onto the first gain is what the lesson teaches, and on the shared mechanism it
+observed the gain, found it held and never went (the `reserve_committed` and
+`weigh_station_retaken` beats vanished from every fixture), and the depot
+Counterattack's waves are a hold-out the mission scripts.
+
+What it did against its same-build control (2026-10-20, one replay a fixture;
+outcomes are readings, and nine seeds swing by a few wins either way):
+
+- **Trial ground, default garrison** (nine seeds): two probes a battle, every
+  place observed and then not attempted — what the probe saw took more than the
+  side could raise — and given up after two such decisions; no push was fed into
+  a consolidated hold. Marines won 8 of 9 against the control's 6, with 427
+  marines left alive against 349; the control's defenders, converging unordered,
+  won the fort back three times and the informed arm never did.
+- **Trial ground, militia 90**: six launches (five forts, one compound), each as
+  one push of two to four squads sized against what the probe saw, none won the
+  place back; marines won 6 against 8, defenders left 54 against 37.
+- **Conquest**: on `full-strength-west` two launches, one into a compound
+  believed to take 29 broken at a quarter of its strength, one at the battle's
+  end, both arms timing out with fewer losses on either side (marines 232 against
+  252, defenders 372 against 395); on `reinforced-south` the place it had observed
+  held by thirty was not attempted, the reserve stood behind it, and the battle
+  timed out where the control's marines won at tick 17,430.
+- **Relay Nine** (eleven fixtures): two launches, both retaking their site; the
+  marines won 9 against 10 (the unguarded fixture, whose gain the pool won back
+  fifteen times, timed out), and 54 raiders were left against 34. Junction on
+  the same pool lost its lesson's retake beat and stays authored (above).
 
 Explicit hold, recapture, and relief tasks outrank soft track response. A
 Conquest convoy enters through the strict defender rear edge, uses a frozen

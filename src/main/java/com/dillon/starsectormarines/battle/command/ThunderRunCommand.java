@@ -16,13 +16,13 @@ public final class ThunderRunCommand implements AutonomousMissionCommand<Thunder
     private final RelayNineTactics tactics = new RelayNineTactics();
     private final Map<Integer, Integer> detachments = new LinkedHashMap<>();
     private volatile Picture picture;
-    /** The defender's finite pool on the shared counter-attack (`place-counterattack.md`); {@code null} for the other sides. */
+    /** The defender's finite pool on the shared counter-attack (`conquest-command.md`, Defender command); {@code null} for the other sides. */
     private final SiteCounterattack counter;
     public ThunderRunCommand(Faction faction) {
         if (faction != Faction.MARINE && faction != Faction.ALLY && faction != Faction.DEFENDER)
             throw new IllegalArgumentException("Thunder Run requires a fighting faction");
         this.faction = faction;
-        this.counter = faction == Faction.DEFENDER ? new SiteCounterattack(3, 1, 5) : null;
+        this.counter = faction == Faction.DEFENDER ? new SiteCounterattack(5) : null;
     }
     public static String issuer(Faction faction) { return "thunder-run:" + faction; }
     @Override public Faction faction() { return faction; }
@@ -36,7 +36,7 @@ public final class ThunderRunCommand implements AutonomousMissionCommand<Thunder
         List<CommandProposal> proposals = new ArrayList<>();
         List<Duty> duties = new ArrayList<>();
         Map<Integer, SiteCounterattack.Duty> retake = counter != null && PlaceCounterattack.isEnabled()
-                ? counter.plan(frame.tick(), sites, owned(frame), frame.squads(), frame.influence(), frame.topology(), "FREIGHT")
+                ? counter.planRoadSites(frame.tick(), sites, owned(frame), frame.squads(), frame.influence(), frame.topology(), "FREIGHT")
                 : null;
         for (var squad : frame.squads()) {
             if (squad.aliveMembers() <= 0) continue;

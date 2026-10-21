@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.campaign.nexerelin.NexInvasionSettlement;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.AirLoss;
@@ -685,7 +686,8 @@ public final class MissionResolver {
         MarineRoster roster = personnelScript.roster();
         // Wounds heal over one day of ship time whatever the risk; stamped from the
         // precise clock so a marine hurt late in a day still gets the whole day.
-        float wiaDays = MarineRoster.WIA_RECOVERY_DAYS;
+        // Degraded scrubbers aboard the founding hull add a day of their own.
+        float wiaDays = MarineRoster.WIA_RECOVERY_DAYS + ShipRefits.aboard().woundRecoveryExtraDays();
         float day = Global.getSector() != null ? CampaignClock.dayFloat() : 0f;
         roster.applySoldierOutcome(
                 resolvePersonnelOutcomes(outcome), day, wiaDays,

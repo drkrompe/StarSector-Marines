@@ -60,3 +60,4 @@ Updated: 2026-10-20 — folded reactive garrisons, the machine garrison assault,
 | `tiled-navigation-derivations.md` | 2026-09-03 | `b00ba1430`, `08bf8ea23`, `7629478f1`, `b2d9c6e01` | `battle.nav` package charter (`package-info.java`), `convoy-nouns.md` |
 | `attacker-holds-ground.md` | 2026-10-20 | `be349ff91`, this change | `garrisonables.md` (holding taken ground), `ai-nouns.md` |
 | `garrison-stretches.md` | 2026-10-20 | this change | `garrisonables.md` (stretches, holding the stretch facing the threat, the trial-ground reading), `ai-nouns.md` |
+| `mission-reactive-defence.md` | 2026-10-20 | this change | `garrisonables.md` (mission defenders), `ai-nouns.md`, `raid-command.md`, `assault-command.md`, `sabotage-command.md`, `extraction-command.md` |

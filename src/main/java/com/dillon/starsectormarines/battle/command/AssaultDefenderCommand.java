@@ -24,11 +24,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
-/** Defender strongpoint security with a belief-driven bounded mobile reserve. */
+/**
+ * Defender strongpoint security with a belief-driven bounded mobile reserve. The reserve, and routine posts and
+ * responders within reach of their rallies, man the garrisonables believed pressure reaches ({@link MissionGarrisons}).
+ */
 public final class AssaultDefenderCommand implements AutonomousMissionCommand<
-        AssaultDefenderCommandFrame, AssaultDefenseSnapshot> {
+        AssaultDefenderCommandFrame, AssaultDefenseSnapshot>, ReactiveDefenceSource {
 
     public static final int MAX_RESPONDERS_PER_AREA = 2;
     private static final int FRESH_DIRECT_TICKS =
@@ -46,6 +50,7 @@ public final class AssaultDefenderCommand implements AutonomousMissionCommand<
     private final Map<Integer, Integer> squadRoutineArea = new HashMap<>();
     private final Map<Integer, Integer> squadResponseArea = new HashMap<>();
     private final Map<Long, ContactReport> contactReports = new HashMap<>();
+    private final MissionGarrisons garrisons = new MissionGarrisons();
     /**
      * Re-derived from the live candidate pool on every pulse rather than
      * latched from the first one. A squad may join the pool later — an
@@ -68,6 +73,8 @@ public final class AssaultDefenderCommand implements AutonomousMissionCommand<
 
     @Override public Faction faction() { return Faction.DEFENDER; }
     @Override public String strategyId() { return "assault-defender"; }
+    @Override public void afterCommit(CommandEffects effects) { garrisons.afterCommit(effects, faction()); }
+    @Override public Map<String, Integer> reactiveDefenceFigures() { return ReactiveDefenceSource.figures(garrisons.stats()); }
     public AssaultDefenseSnapshot defenseSnapshot() { return defenseSnapshot; }
 
     @Override
@@ -201,10 +208,15 @@ public final class AssaultDefenderCommand implements AutonomousMissionCommand<
         }
 
         List<CommandProposal> proposals = new ArrayList<>();
+        Map<Integer, MissionGarrisons.Offer> offers = new TreeMap<>();
         for (CommandSquadState squad : candidates) {
             SquadDirective directive = directives.get(squad.squadId());
             if (directive != null && directive.assignmentKind()
                     == AssignmentKind.DEFEND_AREA) {
+                offers.put(squad.squadId(), directive.role() == Role.RESERVE
+                        ? MissionGarrisons.Offer.reserve()
+                        : MissionGarrisons.Offer.duty(directive.markerCellX(),
+                        directive.markerCellY()));
                 ObjectiveAssignment assignment = ObjectiveAssignment.defendArea(
                         squad.squadId(), directive.markerCellX(),
                         directive.markerCellY());
@@ -228,6 +240,20 @@ public final class AssaultDefenderCommand implements AutonomousMissionCommand<
             }
         }
 
+        Map<Integer, MissionGarrisons.Manning> manning = garrisons.plan(frame,
+                frame.garrisonables(), offers, strategyId());
+        if (!manning.isEmpty()) {
+            proposals = new ArrayList<>(MissionGarrisons.rewrite(proposals, manning, frame.squads()));
+            for (MissionGarrisons.Manning m : manning.values()) {
+                SquadDirective was = directives.get(m.squadId());
+                if (was == null) continue;
+                // The role stays: it is what the next pulse's routine and response memory is read from.
+                directives.put(m.squadId(), new SquadDirective(m.squadId(),
+                        was.areaIndex(), was.role(),
+                        Reason.valueOf(m.kind().reason()), m.assignmentKind(),
+                        m.cellX(), m.cellY()));
+            }
+        }
         int reserveCount = (int) reserve.stream()
                 .filter(squad -> !selectedResponders.contains(squad.squadId()))
                 .filter(squad -> !squad.localContact()).count();

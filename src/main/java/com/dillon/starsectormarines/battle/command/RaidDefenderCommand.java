@@ -6,13 +6,18 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
-/** Defender Raid security: one routine guard and bounded alarm mobilization. */
+/**
+ * Defender Raid security: one routine guard and bounded alarm mobilization. The held reserve, and the guard and
+ * responders within reach of their posts, man the garrisonables believed pressure reaches ({@link MissionGarrisons}).
+ */
 public final class RaidDefenderCommand implements AutonomousMissionCommand<
-        RaidDefenderCommandFrame, RaidCommandSnapshot> {
+        RaidDefenderCommandFrame, RaidCommandSnapshot>, ReactiveDefenceSource {
 
     static final int ALARM_RESPONSE_LIMIT = 3;
     private static final int[][] RALLY_OFFSETS = {
@@ -22,6 +27,7 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
 
     private final Set<Integer> initialMobileSquads = new TreeSet<>();
     private volatile RaidCommandSnapshot raidSnapshot;
+    private final MissionGarrisons garrisons = new MissionGarrisons();
 
     public RaidDefenderCommand(Set<Integer> mobileSquadIds) {
         if (mobileSquadIds != null) initialMobileSquads.addAll(mobileSquadIds);
@@ -30,6 +36,8 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
     public RaidCommandSnapshot raidSnapshot() { return raidSnapshot; }
     @Override public Faction faction() { return Faction.DEFENDER; }
     @Override public String strategyId() { return "raid-defender"; }
+    @Override public void afterCommit(CommandEffects effects) { garrisons.afterCommit(effects, faction()); }
+    @Override public Map<String, Integer> reactiveDefenceFigures() { return ReactiveDefenceSource.figures(garrisons.stats()); }
 
     @Override
     public CommandPlan<RaidCommandSnapshot> plan(RaidDefenderCommandFrame frame) {
@@ -51,6 +59,7 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
                 : Math.min(1, pool.size());
         List<CommandProposal> proposals = new ArrayList<>();
         List<SquadIntent> intents = new ArrayList<>();
+        Map<Integer, MissionGarrisons.Offer> offers = new TreeMap<>();
         for (CommandSquadState squad : frame.squads()) {
             if (squad.aliveMembers() <= 0) continue;
             int index = pool.indexOf(squad);
@@ -65,6 +74,7 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
                         CommandStabilityBreak.CONTEXT_INVALIDATED));
                 intents.add(new SquadIntent(squad.squadId(), "RESERVE",
                         "MOBILE_RESERVE_HELD", null, -1, -1));
+                offers.put(squad.squadId(), MissionGarrisons.Offer.reserve());
                 continue;
             }
             int[] rally = rally(squad, index, facts, frame);
@@ -87,6 +97,20 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
                     stabilityBreak(squad, assignment)));
             intents.add(new SquadIntent(squad.squadId(), role, reason,
                     assignment.kind(), rally[0], rally[1]));
+            offers.put(squad.squadId(), MissionGarrisons.Offer.duty(rally[0], rally[1]));
+        }
+        Map<Integer, MissionGarrisons.Manning> manning = garrisons.plan(frame,
+                frame.garrisonables(), offers, strategyId());
+        if (!manning.isEmpty()) {
+            proposals = new ArrayList<>(MissionGarrisons.rewrite(proposals, manning, frame.squads()));
+            for (int i = 0; i < intents.size(); i++) {
+                SquadIntent intent = intents.get(i);
+                MissionGarrisons.Manning m = manning.get(intent.squadId());
+                if (m == null) continue;
+                intents.set(i, new SquadIntent(intent.squadId(), intent.role(),
+                        m.kind().reason(), m.assignmentKind(),
+                        m.cellX(), m.cellY()));
+            }
         }
         String phase = facts.targetSecured() ? "TARGET_LOST"
                 : facts.alarmActive() ? "ALARM_RESPONSE" : "ROUTINE_SECURITY";
