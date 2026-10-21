@@ -19,6 +19,9 @@ import java.util.function.BiPredicate;
  * {@link #MIN_SAVING_CELLS} longer than the walk to the door's inside cell and through it. A face that already has a way
  * out near where it is wanted gets no door, so doors go only where a place's own walls send its holder round.
  *
+ * <p>Only a walled place gets doors: at least {@link #MIN_ENCLOSED_SHARE} of its rectangle's edge is built wall, so open
+ * ground with somebody's wall at its edge (a landing zone beside a warehouse) gets none.
+ *
  * <p>Only built wall is a door candidate: never natural rock, never a cell the caller excludes (a fort's works, which
  * carry their own authored ports), never a doorway. Two cells wide is wide enough for every chassis that fights on foot
  * (the widest, a Bulwark, is 1.2 cells across).
@@ -29,6 +32,12 @@ public final class SallyDoorSurvey {
     public static final int WIDTH = 2;
     /** Thickest wall a door is cut through. */
     public static final int MAX_DEPTH = 2;
+    /**
+     * Share of a rectangle's edge that must be built wall (or a window or a doorway in it) for the rectangle to be a
+     * walled place at all: below it the place is open ground (a landing zone, a field position) and any wall at its edge
+     * is somebody else's. UNTUNED.
+     */
+    public static final float MIN_ENCLOSED_SHARE = 0.5f;
     /** A door is kept only where it saves its holder at least this walk, in cells. UNTUNED. */
     public static final float MIN_SAVING_CELLS = 20f;
     /** How far outside the rectangle the walk out is measured: past this, the way round is as good as none. */
@@ -58,6 +67,7 @@ public final class SallyDoorSurvey {
         anchorX = start[0];
         anchorY = start[1];
         if (right - left + 1 < WIDTH + 2 || bottom - top + 1 < WIDTH + 2) return out;
+        if (enclosedShare(grid, topology, left, top, right, bottom) < MIN_ENCLOSED_SHARE) return out;
         int bx0 = Math.max(0, left - SEARCH_MARGIN), by0 = Math.max(0, top - SEARCH_MARGIN);
         int bx1 = Math.min(grid.getWidth() - 1, right + SEARCH_MARGIN), by1 = Math.min(grid.getHeight() - 1, bottom + SEARCH_MARGIN);
         float[] walk = walk(grid, anchorX, anchorY, bx0, by0, bx1, by1);
@@ -138,6 +148,31 @@ public final class SallyDoorSurvey {
             return new int[]{s0, depth};
         }
         return null;
+    }
+
+    /**
+     * How walled the rectangle is: the share of its edge cells along which a built wall, window or doorway stands within
+     * one cell inside the edge or {@link #YARD_CELLS} outside it. A walled place reads at least {@link #MIN_ENCLOSED_SHARE}.
+     */
+    public static float enclosedShare(NavigationGrid grid, CellTopology topology, int left, int top, int right, int bottom) {
+        int edge = 0, walled = 0;
+        int[][] faces = {{0, -1, 1, 0, left, top, right - left + 1}, {0, 1, 1, 0, left, bottom, right - left + 1},
+                {-1, 0, 0, 1, left, top, bottom - top + 1}, {1, 0, 0, 1, right, top, bottom - top + 1}};
+        for (int[] f : faces) {
+            for (int p = 0; p < f[6]; p++) {
+                edge++;
+                for (int s = -1; s <= YARD_CELLS; s++) {
+                    int x = f[4] + f[2] * p + f[0] * s, y = f[5] + f[3] * p + f[1] * s;
+                    if (!grid.inBounds(x, y)) continue;
+                    if (grid.isDoorway(x, y) || (!grid.hasTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID)
+                            && (topology.isWall(x, y) || topology.isWindow(x, y)))) {
+                        walled++;
+                        break;
+                    }
+                }
+            }
+        }
+        return edge == 0 ? 0f : walled / (float) edge;
     }
 
     /** The open cell inside the rectangle nearest (x, y), by rings, or null. */

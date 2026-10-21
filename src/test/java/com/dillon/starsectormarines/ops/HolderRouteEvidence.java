@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.nav.ClearanceRoutePlanner;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sally.SallyDoorSurvey;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -147,8 +148,8 @@ class HolderRouteEvidence {
 
     private static void write(BattleSimulation sim, List<List<Leg>> before, List<List<Leg>> after, StringBuilder out) {
         List<TacticalNode> nodes = nodes(sim);
-        out.append("| node | kind | footprint | legs | detours | worst leg | excess | doors: excess |\n")
-                .append("|---|---|---|---|---|---|---|---|\n");
+        out.append("| node | kind | footprint | walled (bldg / cmpd) | legs | detours | worst leg | excess | doors: excess |\n")
+                .append("|---|---|---|---|---|---|---|---|---|\n");
         for (int n = 0; n < nodes.size(); n++) {
             TacticalNode node = nodes.get(n);
             List<Leg> legs = before.get(n);
@@ -161,8 +162,11 @@ class HolderRouteEvidence {
             if (worst == null) continue;
             Leg same = null;
             for (Leg leg : after.get(n)) if (leg.what.equals(worst.what)) same = leg;
-            out.append(String.format(Locale.ROOT, "| %d | %s | %dx%d | %d | %d | %s | %s | %s |%n", n, node.kind,
-                    node.compoundRight() - node.compoundLeft() + 1, node.compoundBottom() - node.compoundTop() + 1,
+            float bldg = SallyDoorSurvey.enclosedShare(sim.getGrid(), sim.getTopology(), node.left, node.top, node.right, node.bottom);
+            float cmpd = SallyDoorSurvey.enclosedShare(sim.getGrid(), sim.getTopology(), node.compoundLeft(),
+                    node.compoundTop(), node.compoundRight(), node.compoundBottom());
+            out.append(String.format(Locale.ROOT, "| %d | %s | %dx%d | %.2f / %.2f | %d | %d | %s | %s | %s |%n", n, node.kind,
+                    node.compoundRight() - node.compoundLeft() + 1, node.compoundBottom() - node.compoundTop() + 1, bldg, cmpd,
                     legs.size(), detours, worst.what, excess(worst), same == null ? "-" : excess(same)));
         }
         out.append('\n');

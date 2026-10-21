@@ -97,4 +97,11 @@ class SallyDoorSurveyTest {
         wall(29, 20);
         assertEquals(3, SallyDoorSurvey.derive(grid, topology, L, T, R, B, 29, 20, (x, y) -> false).size());
     }
+
+    @Test
+    void openGroundWithAWallAtItsEdgeIsNoWalledPlace() {
+        yard(false);
+        // A rectangle on the open ground west of the yard whose east edge runs along the yard's west wall.
+        assertTrue(SallyDoorSurvey.derive(grid, topology, 2, T, L - 1, B, 10, 30, (x, y) -> false).isEmpty());
+    }
 }

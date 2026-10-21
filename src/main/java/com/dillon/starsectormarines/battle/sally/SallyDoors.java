@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.FortPlan;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -55,6 +56,8 @@ public final class SallyDoors {
 
     private List<SallyDoor> doors;
     private boolean[] open = new boolean[0];
+    /** Doors in the order they opened, each {door, tick, holder ordinal}: for evidence. */
+    private final List<int[]> openings = new ArrayList<>();
     private float[][] middles = new float[0][];
 
     /** Whether doors may be opened in this process. */
@@ -85,6 +88,11 @@ public final class SallyDoors {
 
     public boolean isOpen(int door) {
         return door >= 0 && door < open.length && open[door];
+    }
+
+    /** Doors in the order they opened: {door, tick, holder's {@link Faction} ordinal or -1}. Read-only. */
+    public List<int[]> openings() {
+        return Collections.unmodifiableList(openings);
     }
 
     /** The door that is port {@code port} of the fort, or -1. */
@@ -125,9 +133,10 @@ public final class SallyDoors {
         for (int[] cell : door.cells()) sim.mapEditor().openPassage(cell[0], cell[1], door.insideX(), door.insideY());
         open[index] = true;
         door.place().opened(door.placeDoor());
+        Faction holder = door.place().holder(sim);
+        openings.add(new int[]{index, sim.getSimTickIndex(), holder == null ? -1 : holder.ordinal()});
         // A route planned before the door opened is still legal and still goes round: the holder's people inside drop
         // theirs and plan again through the open door, which is what it was opened for.
-        Faction holder = door.place().holder(sim);
         if (holder == null) return;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
