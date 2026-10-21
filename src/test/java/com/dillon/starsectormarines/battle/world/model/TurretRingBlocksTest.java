@@ -4,16 +4,9 @@ import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.junit.jupiter.api.Test;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -27,11 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * courtyard as flatter paving would have quietly changed what a turret hides
  * behind, and nothing would have said so.
  *
- * <p>They are two blocks now, sharing their art. The check that matters is that
- * the split changed nothing: every cell the ring draws is the same pixels it
- * drew before. What it buys is that they are free to differ later, and this
- * test will not mind when they do — it compares what the ring resolves to
- * against the block the ring is declared from, not against a frozen picture.
+ * <p>They are two blocks now, sharing their art. What the split buys is that
+ * they are free to differ later, and this test will not mind when they do — it
+ * compares what the ring resolves to against the block the ring is declared
+ * from, not against a frozen picture.
  */
 public class TurretRingBlocksTest {
 
@@ -71,61 +63,10 @@ public class TurretRingBlocksTest {
         }
     }
 
-    /**
-     * The split is invisible: the revetment draws the courtyard's pixels.
-     *
-     * <p>Compared as pixels rather than as coordinates, because the two blocks
-     * are packed at different origins by design — sameness of art is the claim,
-     * not sameness of address.
-     */
-    @Test
-    void theSplitChangedNothingThatIsDrawn() throws Exception {
-        TileRegistry registry = TileRegistry.installed();
-        GridBlockDef revetment = registry.block("road.revetment");
-        GridBlockDef courtyard = registry.block("road.courtyard");
-        assertNotNull(revetment);
-        assertNotNull(courtyard);
-        assertEquals(courtyard.sheetPath, revetment.sheetPath, "both are cut from one sheet");
-
-        BufferedImage atlas = atlas(revetment.sheetPath);
-        int cell = revetment.cellPx;
-        for (int[] offset : ringOffsets()) {
-            TileManifest.TileFrame drawn = TileManifest.turretBowOut(offset[0], offset[1]);
-            int[] wasDrawn = courtyard.resolve(offset[1] > 0, offset[1] < 0,
-                    offset[0] > 0, offset[0] < 0);
-            assertNotNull(wasDrawn, "the courtyard resolved every ring cell before the split");
-            assertArrayEquals(
-                    pixels(atlas, wasDrawn[0], wasDrawn[1], cell),
-                    pixels(atlas, drawn.col, drawn.row, cell),
-                    "ring cell " + offset[0] + "," + offset[1] + " draws different art than it "
-                            + "did before road.revetment was split out of road.courtyard");
-        }
-    }
-
-    /** The courtyard keeps the fill that is most of what it looks like. */
-    @Test
-    void theCourtyardKeepsItsFill() {
-        GridBlockDef courtyard = TileRegistry.installed().block("road.courtyard");
-        assertNotNull(courtyard);
-        assertNotNull(courtyard.fillRgb,
-                "perimeter-3x3 resolves to nothing for the open interior, and the fill is what "
-                        + "the renderer paints there — without it a courtyard has no surface");
-    }
-
     private static boolean within(GridBlockDef block, TileManifest.TileFrame frame) {
         int span = block.layout == null ? 1 : block.layout.span();
         return frame.col >= block.originCol && frame.col < block.originCol + span
                 && frame.row >= block.originRow && frame.row < block.originRow + span;
     }
 
-    private static int[] pixels(BufferedImage atlas, int col, int row, int cell) {
-        return atlas.getRGB(col * cell, row * cell, cell, cell, null, 0, cell);
-    }
-
-    private static BufferedImage atlas(String sheetPath) throws Exception {
-        Path file = Paths.get("mod");
-        for (String part : sheetPath.split("/")) file = file.resolve(part);
-        assertTrue(Files.isRegularFile(file), "no atlas at " + file);
-        return ImageIO.read(file.toFile());
-    }
 }

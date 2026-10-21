@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.ops.ModStrings;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,10 +31,12 @@ class MechDoctrineDispatchTest {
         assertEquals("LR_SUPPORT", MechRole.LR_SUPPORT.name());
         assertEquals("ARMORED_SUPPORT", MechRole.ARMORED_SUPPORT.name());
         assertEquals("ASSAULT", MechRole.ASSAULT.name());
-        assertEquals("Long Range Support", MechRole.LR_SUPPORT.displayName());
-        assertEquals("Tank", MechRole.ARMORED_SUPPORT.displayName());
-        assertEquals("Brawler", MechRole.ASSAULT.displayName());
-        assertEquals("Balanced", MechRole.BALANCED.displayName());
+        // Headless, a label reads as its key; the shipped copy holds the words.
+        var copy = ModStrings.fromDisk(Path.of("mod"));
+        assertEquals("Long Range Support", copy.apply(MechRole.LR_SUPPORT.displayName()));
+        assertEquals("Tank", copy.apply(MechRole.ARMORED_SUPPORT.displayName()));
+        assertEquals("Brawler", copy.apply(MechRole.ASSAULT.displayName()));
+        assertEquals("Balanced", copy.apply(MechRole.BALANCED.displayName()));
     }
 
     @Test

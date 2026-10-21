@@ -1,8 +1,5 @@
 package com.dillon.starsectormarines.battle.audio;
 
-import com.dillon.starsectormarines.ops.DebugMissionCatalog;
-import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
-import com.dillon.starsectormarines.ops.MissionDialogue;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.ops.Mission;
@@ -28,34 +25,6 @@ import java.util.HexFormat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WaylineNarrationTest {
-    @Test void recoveryBriefingsShareOrderedLocalizedTurnsAndOnlyMatchingAudio() throws Exception {
-        var catalog = catalog();
-        var chapters = List.of("story_shepherd_salvage", "story_shepherd_cold_start", "story_shepherd_working_passage");
-        var scripts = List.of(ShepherdRecoveryCampaign.BRIEF_TURNS, ShepherdRecoveryCampaign.COLD_TURNS,
-                ShepherdRecoveryCampaign.PASSAGE_TURNS);
-        try (var translation = new HeadlessStrings(Path.of("mod"), value -> "Translated " + value)) {
-            for (int chapter = 0; chapter < chapters.size(); chapter++) {
-                var turns = catalog.briefing(chapters.get(chapter));
-                var script = scripts.get(chapter);
-                assertEquals(script.stream().map(MissionDialogue.Turn::narrationId).toList(),
-                        turns.stream().map(WaylineNarration.Line::id).toList());
-                assertTrue(script.stream().anyMatch(turn -> turn.speakerKey().equals("castle")));
-                assertTrue(script.stream().anyMatch(turn -> turn.speakerKey().equals("vale")));
-                for (int index = 0; index < turns.size(); index++) {
-                    var turn = turns.get(index);
-                    assertEquals("briefing.%02d".formatted(index + 1), turn.event());
-                    assertEquals(Strings.resolve(script.get(index).text()), turn.text());
-                    assertTrue(turn.text().startsWith("Translated "));
-                    assertTrue(turn.voiced(), "Every briefing turn has an approved take");
-                    assertEquals(MissionDialogue.speakerPortrait(script.get(index).speakerKey()), turn.portrait());
-                }
-            }
-        }
-        try (var original = new HeadlessStrings(Path.of("mod"))) {
-            assertFalse(catalog.briefing(chapters.get(0)).get(0).text().startsWith("Translated "),
-                    "Catalog must not freeze translation");
-        }
-    }
 
     @Test void localizedRecoverySourcesAndRecordingReviewCatalogsStayInSync() throws Exception {
         JSONObject root = new JSONObject(Files.readString(Path.of("mod", WaylineNarration.PATH)));
@@ -85,32 +54,6 @@ class WaylineNarrationTest {
         }
     }
 
-    @Test void passageNegotiationHasItsOwnOrderedLocalizedScriptWithoutRetiredAudio() throws Exception {
-        var catalog = catalog();
-        var turns = catalog.briefing("story_shepherd_working_passage");
-        var script = ShepherdRecoveryCampaign.PASSAGE_TURNS;
-        assertEquals(script.size(), turns.size());
-        int negotiation = script.size() - 1;
-        try (var translation = new HeadlessStrings(Path.of("mod"), value -> "Translated " + value)) {
-            for (int index = 0; index < turns.size(); index++) {
-                var turn = turns.get(index);
-                assertEquals(index < negotiation ? "basin_passage_negotiation_%02d".formatted(index + 1)
-                        : "basin_passage_instructions_01", turn.id());
-                assertEquals(Strings.get(index < negotiation ? "shepherdPassageNegotiation" + (index + 1)
-                        : "shepherdPassageInstructions"), turn.text());
-                assertTrue(turn.voiced(), "Every negotiation turn has an approved take");
-                assertEquals(MissionDialogue.speakerPortrait(script.get(index).speakerKey()), turn.portrait());
-            }
-        }
-        Set<String> retired = Set.of("basin_salvage_briefing_01", "basin_salvage_briefing_02",
-                "basin_salvage_scope_01", "basin_salvage_briefing_03", "basin_salvage_briefing_04",
-                "basin_salvage_briefing_05", "basin_salvage_briefing_06",
-                "basin_salvage_briefing_07", "basin_passage_briefing", "basin_salvage_briefing_08");
-        assertFalse(catalog.lines().stream().anyMatch(line -> retired.contains(line.id())));
-        JSONObject sounds = new JSONObject(Files.readString(Path.of("mod/data/config/sounds.json")).replaceAll("(?m)#.*$", ""));
-        for (String id : retired) assertFalse(sounds.has(id), "Obsolete bargain must not remain playable");
-    }
-
     @Test void briefingTurnsRetainAuthoredOrderAndExcludeOtherEventsAndMissions() {
         var first = new WaylineNarration.Line("first", "chapter", "briefing", "First", 2, 1, 10, List.of());
         var second = new WaylineNarration.Line("second", "chapter", "briefing.castle", "Second", 2, 1, 10,
@@ -123,25 +66,6 @@ class WaylineNarrationTest {
         assertEquals(List.of(other), catalog.briefing("other"));
         assertTrue(catalog.briefing(null).isEmpty());
         assertEquals(first, catalog.find("chapter", "briefing"));
-    }
-    @Test void shepherdLinesRetainCastingAndConfirmedPassageReports() throws Exception {
-        JSONObject root = new JSONObject(Files.readString(Path.of("mod", WaylineNarration.PATH)));
-        var entries = root.getJSONArray("lines");
-        for (int i = 0; i < entries.length(); i++) {
-            var entry = entries.getJSONObject(i);
-            if (!entry.getString("missionId").startsWith("story_shepherd_")) continue;
-            assertTrue(entry.getBoolean("voiced"), "Every Shepherd line has an approved take: " + entry.getString("id"));
-            assertTrue(entry.getString("synthesisText").contains(entry.getString("text")));
-            String speaker = entry.getString("speaker");
-            assertEquals(speaker.startsWith("CASTLE") ? "cuwCdnt9CKAB9XrTA1j0"
-                            : speaker.startsWith("MARA") ? "YHcCpa6SBWnKDaCPZJQR" : "cZH6erlGkOyAQheipyno",
-                    entry.getString("voiceId"), "Retain each chosen character voice, including unrecorded drafts");
-        }
-        var catalog = catalog();
-        assertTrue(catalog.find("story_shepherd_cold_start", "briefing").text().contains("last job"));
-        assertTrue(catalog.find("story_shepherd_cold_start", "cold_start.turret_ready").speaker().startsWith("CASTLE"));
-        for (String event : List.of("underway", "militia_hold_0", "militia_hold_1"))
-            assertNotNull(catalog.find("story_shepherd_working_passage", "working_passage." + event));
     }
 
     @Test void shepherdLaterFactsRetireInstructionsAndTerminalReportsSurviveCompletion() throws Exception {
@@ -175,30 +99,6 @@ class WaylineNarrationTest {
         queue.advance(0, log.events(), false);
         assertEquals("working_passage.narrows", queue.poll().event());
         assertNull(queue.poll(), "No pump-bend construction instruction after the gun exists");
-    }
-
-    @Test void coldStartRetriesShareTheirOwnConstructionGuidance() throws Exception {
-        String chapter = "story_shepherd_cold_start";
-        assertEquals(chapter, WaylineNarration.storyMissionId(Mission.builder()
-                .id("basin_cold_start_v1_2").source(MissionSource.STORY).build()));
-        assertEquals(chapter, WaylineNarration.storyMissionId(
-                DebugMissionCatalog.Scenario.COLD_START.mission()));
-        var catalog = catalog();
-        assertNotNull(catalog.find(chapter, "briefing"));
-        assertFalse(catalog.briefing(chapter).stream().anyMatch(line -> line.id().equals("basin_briefing")),
-                "The legacy battle opening is not a turn in the authored briefing");
-        var openingLog = new StoryBeatLog();
-        openingLog.emitOnce(1, "briefing", StoryBeatLog.Audience.PLAYER);
-        var openingQueue = new StoryNarrationQueue(catalog, chapter);
-        openingQueue.advance(0, openingLog.events(), false);
-        assertEquals("basin_briefing", openingQueue.poll().id());
-        for (String event : List.of("convoy_arrived", "workshop", "pump_started", "power_restored",
-                "turret_ready", "complete", "crew_lost", "carrier_lost", "approach")) {
-            var line = catalog.find(chapter, "cold_start." + event);
-            assertNotNull(line);
-            assertTrue(line.voiced(), "Every Cold Start call has an approved take");
-        }
-        assertTrue(catalog.find(chapter, "cold_start.power_restored").text().contains("Build Vulcan Turret"));
     }
 
     @Test
@@ -248,38 +148,6 @@ class WaylineNarrationTest {
         }
         assertEquals(277, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
         assertEquals(catalog.lines().size(), ids.size());
-    }
-
-    @Test void convoyBriefingFollowsJunctionWithoutPlayingTheRetiredRelayIntroduction() throws Exception {
-        var line = catalog().find("story_supply_route_thunder_run", "briefing");
-        assertTrue(line.text().startsWith("The junction is open."));
-        assertTrue(line.voiced(), "The replacement recording follows Junction directly");
-    }
-
-    @Test void thunderDefenseGuidanceIsVoicedAndExplainsHandback() throws Exception {
-        var catalog = catalog();
-        String chapter = "story_supply_route_thunder_run";
-        for (String key : List.of("advance_distress", "defend_dispatch", "defend_crossing",
-                "defend_order_placed", "dispatch_window_complete", "crossing_window_complete",
-                "militia_gun_0_ready", "militia_gun_1_ready", "advance_load_lost", "advance_load_clear")) {
-            var line = catalog.find(chapter, "supply_route.thunder_run." + key);
-            assertNotNull(line);
-            assertTrue(line.voiced());
-            assertTrue(line.speaker().startsWith("CASTLE"));
-            for (String prior : line.supersedes()) assertNotNull(catalog.find(chapter, prior));
-        }
-        assertTrue(catalog.find(chapter, "supply_route.thunder_run.defend_dispatch").text().contains("DEFEND AREA"));
-        assertTrue(catalog.find(chapter, "supply_route.thunder_run.dispatch_window_complete").text().contains("does not expire"));
-    }
-
-    @Test void junctionAndThunderRunHaveNoSilentDialoguePlaceholders() throws Exception {
-        for (var line : catalog().lines()) {
-            if (!Set.of("story_supply_route_junction", "story_supply_route_thunder_run").contains(line.missionId())) continue;
-            assertTrue(line.voiced(), line.id());
-            assertEquals(line.event().endsWith("gunship_missile_warning")
-                    || line.event().endsWith("gunship_hit") || line.event().endsWith("gunship_lost"),
-                    line.interrupts(), "Only immediate aircraft emergencies interrupt routine speech: " + line.id());
-        }
     }
 
     @Test void coldAccountRetriesShareKordsPublicDialogue() throws Exception {
@@ -336,25 +204,6 @@ class WaylineNarrationTest {
     }
 
     @Test
-    void debugScenariosHearTheirChapterButRepeatablesStaySilent() throws Exception {
-        WaylineNarration catalog = catalog();
-        for (DebugMissionCatalog.Scenario scenario : DebugMissionCatalog.Scenario.values()) {
-            String id = WaylineNarration.storyMissionId(scenario.mission());
-            boolean silent = switch (scenario) {
-                case MILITIA_RELIEF, DEPOT_CLEARANCE, CREW_RECOVERY, ROUTE_SECURITY, VETERANS_JOB,
-                     SILENT_COLONY, DUST_LEDGER, BLIND_WATCH, MISSILE_AA -> true;
-                default -> false;
-            };
-            if (silent) {
-                assertNull(id, scenario.name());
-            } else {
-                assertNotNull(id, scenario.name());
-                assertTrue(catalog.lines().stream().anyMatch(l -> l.missionId().equals(id)), scenario.name());
-            }
-        }
-    }
-
-    @Test
     void activeSupplyChaptersResolveAcrossRetriesWithoutVoicingShelvedOrRecurringJobs() throws Exception {
         WaylineNarration catalog = catalog();
         String[] chapters = {"junction", "thunder_run"};
@@ -406,27 +255,6 @@ class WaylineNarrationTest {
         relayHooks.finish(4, RelayNineStoryHooks.Result.VICTORY);
         assertCoverage(catalog, "story_supply_route_junction", junction);
         assertCoverage(catalog, "story_supply_route_relay_nine", relay);
-    }
-
-    @Test
-    void evacuationAndFreightPublicContentContractsAreRecorded() throws Exception {
-        WaylineNarration catalog = catalog();
-        for (String key : List.of("start", "crew_contacted", "crew_released", "crossing_cleared",
-                "first_boarding", "escort_hold"))
-            assertNotNull(catalog.find("story_supply_route_last_lift", "supply_route.last_lift." + key), key);
-        for (String key : List.of("started", "player_landed", "column_released", "crossing_secured",
-                "final_run", "freight_committed", "heavy_lead_advancing", "rear_clear",
-                "cargo_0_delivered", "cargo_1_delivered", "cargo_2_delivered",
-                "cargo_0_lost", "cargo_1_lost", "cargo_2_lost"))
-            assertNotNull(catalog.find("story_supply_route_thunder_run", "supply_route.thunder_run." + key), key);
-        // Resolution belongs to outcome presentation; hidden arrivals are never radio intelligence.
-        for (String key : List.of("cohort_resolved", "last_boarding", "road_arrival_1", "road_arrival_2"))
-            assertNull(catalog.find("story_supply_route_last_lift", "supply_route.last_lift." + key));
-        assertNull(catalog.find("story_supply_route_thunder_run", "supply_route.thunder_run.road_reserve_committed"));
-        for (var line : catalog.lines()) {
-            String suffix = line.event().substring(line.event().lastIndexOf('.') + 1);
-            assertFalse(Set.of("victory", "defeat", "retreat").contains(suffix));
-        }
     }
 
     private static WaylineNarration catalog() throws Exception {

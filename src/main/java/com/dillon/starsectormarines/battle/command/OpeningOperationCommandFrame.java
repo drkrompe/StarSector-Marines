@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command;
 
+import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.SquadFormUpSystem;
@@ -12,18 +13,21 @@ public final class OpeningOperationCommandFrame extends CommandFrame {
     private final OpeningOperationCommandFacts facts;
     private final int placeZoneId;
     private final List<CompanyReport> company;
+    private final GarrisonableRegistry garrisonables;
 
     /** Friendly radio report only: no company contacts, orders, or enemy truth. */
     public record CompanyReport(int squadId, int cellX, int cellY, boolean ready, boolean infantry) { }
 
     private OpeningOperationCommandFrame(CommandFrame common,
                                          OpeningOperationCommandFacts facts,
-                                         int placeZoneId, List<CompanyReport> company) {
+                                         int placeZoneId, List<CompanyReport> company,
+                                         GarrisonableRegistry garrisonables) {
         super(common.tick(), common.perspective(), common.squads(),
                 common.influence(), common.topology(), common.assignments());
         this.facts = facts;
         this.placeZoneId = placeZoneId;
         this.company = List.copyOf(company);
+        this.garrisonables = garrisonables;
     }
 
     static OpeningOperationCommandFrame disclose(
@@ -32,7 +36,8 @@ public final class OpeningOperationCommandFrame extends CommandFrame {
             OpeningOperationCommandFacts facts) {
         return new OpeningOperationCommandFrame(
                 CommandFrame.freeze(sim, perspective, topology, assignments),
-                facts, topology.zoneIdAt(facts.cellX(), facts.cellY()), companyReports(sim, perspective));
+                facts, topology.zoneIdAt(facts.cellX(), facts.cellY()), companyReports(sim, perspective),
+                StoryGarrisons.enabled() ? sim.garrisonables() : null);
     }
 
     private static List<CompanyReport> companyReports(BattleView sim, Faction perspective) {
@@ -52,4 +57,7 @@ public final class OpeningOperationCommandFrame extends CommandFrame {
     public List<CompanyReport> company() { return company; }
     public OpeningOperationCommandFacts facts() { return facts; }
     public int placeZoneId() { return placeZoneId; }
+
+    /** The map's garrisonables, for the story's reactive manning; {@code null} with it switched off. */
+    GarrisonableRegistry garrisonables() { return garrisonables; }
 }

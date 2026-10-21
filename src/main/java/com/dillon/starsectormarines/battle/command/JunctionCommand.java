@@ -5,10 +5,16 @@ import com.dillon.starsectormarines.battle.world.gen.JunctionCompound;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-/** Mission-specific duties over frozen public territory and own-force reports only. */
-public final class JunctionCommand implements AutonomousMissionCommand<ConquestCommandFrame, JunctionCommand.Picture> {
+/**
+ * Mission-specific duties over frozen public territory and own-force reports only. The raiders' reserve and road column
+ * man the places near their waiting posts while they wait, within the story share ({@link StoryGarrisons}); once
+ * committed they march as authored.
+ */
+public final class JunctionCommand implements AutonomousMissionCommand<ConquestCommandFrame, JunctionCommand.Picture>,
+        ReactiveDefenceSource {
     public record Picture(int targetSite, boolean reserveCommitted, List<Integer> commandedSquads) {
         public Picture { commandedSquads = List.copyOf(commandedSquads); }
     }
@@ -21,6 +27,7 @@ public final class JunctionCommand implements AutonomousMissionCommand<ConquestC
     private boolean reserveOnApproach, roadOnTarget, classified;
     /** Defender squads that started at the Rill road post rather than in the maintenance building. */
     private final Set<Integer> roadColumn = new HashSet<>();
+    private final StoryGarrisons garrisons = new StoryGarrisons();
     public JunctionCommand(Faction faction, int reserveX, int reserveY, int roadX, int roadY) {
         if (faction != Faction.MARINE && faction != Faction.ALLY && faction != Faction.DEFENDER)
             throw new IllegalArgumentException("Junction command requires a fighting faction");
@@ -33,6 +40,8 @@ public final class JunctionCommand implements AutonomousMissionCommand<ConquestC
     @Override public String strategyId() { return issuer(faction); }
     public Picture picture() { return picture; }
     @Override public void publish(CommanderSnapshot<Picture> snapshot) { picture = snapshot.detail(); }
+    @Override public void afterCommit(CommandEffects effects) { garrisons.afterCommit(effects, faction); }
+    @Override public Map<String, Integer> reactiveDefenceFigures() { return garrisons.figures(); }
 
     @Override public CommandPlan<Picture> plan(ConquestCommandFrame frame) {
         var sites = frame.facts().compounds();
@@ -75,6 +84,13 @@ public final class JunctionCommand implements AutonomousMissionCommand<ConquestC
                 continue;
             }
             commanded.add(squad.squadId());
+            if (faction == Faction.DEFENDER) {
+                garrisons.own(squad);
+                // A column waiting at its post holds the windows near it; a committed one marches as authored.
+                if (roadColumn.contains(squad.squadId())) {
+                    if (!tactics.roadColumnCommitted()) garrisons.offerDuty(squad, roadX, roadY);
+                } else if (!tactics.reserveCommitted()) garrisons.offerDuty(squad, reserveX, reserveY);
+            }
             if (faction == Faction.DEFENDER && roadColumn.contains(squad.squadId())) {
                 ObjectiveAssignment road = roadAssignment(squad.squadId(), sites);
                 String roadReason = !tactics.roadColumnCommitted() ? "JUNCTION_ROAD_WAIT"
@@ -95,6 +111,7 @@ public final class JunctionCommand implements AutonomousMissionCommand<ConquestC
             proposals.add(CommandProposal.assign(assignment, CommandAuthority.MISSION_COMMAND, reason,
                     assignment == old.assignment() ? CommandStabilityBreak.NONE : CommandStabilityBreak.CONTEXT_INVALIDATED));
         }
+        if (faction == Faction.DEFENDER) proposals = garrisons.apply(frame, frame.facts().garrisonables(), proposals, strategyId());
         int influenceTick = frame.influence() == null ? -1 : frame.influence().updatedTick();
         return new CommandPlan<>(faction, strategyId(), reason, frame.tick(), influenceTick,
                 commanded.size(), faction == Faction.DEFENDER && !tactics.reserveCommitted() ? commanded.size() : 0,

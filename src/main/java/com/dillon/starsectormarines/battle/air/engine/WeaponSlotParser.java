@@ -30,8 +30,8 @@ import java.util.List;
  *
  * <p>Returns <em>every</em> slot with a valid location (type unfiltered) so the
  * preview can show the full hardpoint set; {@link TurretSlotResolver} applies the
- * mountable-type filter. Pure (no {@code Global}) so the offline
- * {@code TurretSlotPreviewTest} exercises the exact in-game transform.
+ * mountable-type filter. Pure (no {@code Global}), so offline tools can run
+ * the exact in-game transform.
  */
 public final class WeaponSlotParser {
 

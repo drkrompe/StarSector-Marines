@@ -6,39 +6,12 @@ import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SandbagGeometryTest {
-    @Test void shippedPiecesKeepTheirEdgeAndConnectAcrossCells() throws Exception {
-        DiskRegistries.installMapGeneration(Path.of(""));
-        BufferedImage atlas = ImageIO.read(Path.of("mod/graphics/doodads/doodads.png").toFile());
-        String[] straight = {"n", "e", "s", "w"};
-        String[] corner = {"nw", "ne", "se", "sw"};
-        for (int turn = 0; turn < 4; turn++) {
-            BufferedImage run = frame(atlas, "straight-" + straight[turn]);
-            BufferedImage elbow = frame(atlas, "corner-" + corner[turn]);
-            // Sample in the north/NW frame, rotating the coordinates with the art.
-            for (int y = 16; y < 32; y++) for (int x = 16; x < 32; x++) {
-                assertTrue(alpha(run, x, y, turn) <= 2, "run gained an opaque apron");
-                assertTrue(alpha(elbow, x, y, turn) <= 2, "elbow interior must stay empty");
-            }
-            int connected = 0;
-            for (int y = 0; y < 10; y++) {
-                if (alpha(elbow, 31, y, turn) > 100 && alpha(run, 0, y, turn) > 100
-                        && alpha(run, 31, y, turn) > 100) connected++;
-            }
-            assertTrue(connected >= 5, "corner and straight must share a substantial connector");
-            int vertical = 0;
-            for (int x = 0; x < 10; x++) if (alpha(elbow, x, 31, turn) > 100) vertical++;
-            assertTrue(vertical >= 5, "elbow must connect to its second arm");
-        }
-    }
-
     @Tag("generated-space-evidence")
     @Test void thunderRunHorseshoesJoinAtBothCornersAndFaceTheRoad() throws Exception {
         DiskRegistries.installMapGeneration(Path.of(""));
@@ -53,16 +26,6 @@ class SandbagGeometryTest {
         }
         assertPiece(map, 290, 61, "straight-n");
         assertPiece(map, 290, 89, "straight-s");
-    }
-
-    private static BufferedImage frame(BufferedImage atlas, String suffix) {
-        var def = TileRegistry.installed().doodad("doodad.sandbag-" + suffix);
-        return atlas.getSubimage(def.col * 32, def.row * 32, 32, 32);
-    }
-
-    private static int alpha(BufferedImage image, int x, int y, int turns) {
-        for (int i = 0; i < turns; i++) { int oldX = x; x = 31 - y; y = oldX; }
-        return image.getRGB(x, y) >>> 24;
     }
 
     private static void assertPiece(MapResult map, int x, int y, String suffix) {

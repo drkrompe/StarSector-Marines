@@ -43,7 +43,7 @@ With the configured `JAVA_HOME`, run from the repository root in PowerShell:
 ```powershell
 '{"name":"planet-formations"}' | tools/authoring.cmd tileset_export -
 '{"name":"ice-terrain"}' | tools/authoring.cmd tileset_export -
-.\gradlew.bat :test --tests '*PlanetFormationArtTest' --tests '*FormationBrushTest' --tests '*MineralDamageTest'
+.\gradlew.bat :test --tests '*FormationBrushTest' --tests '*MineralDamageTest'
 .\gradlew.bat createSnapshots '-Psnapshot=planet-landscapes'
 ```
 

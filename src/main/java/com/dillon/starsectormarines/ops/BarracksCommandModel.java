@@ -454,8 +454,8 @@ public final class BarracksCommandModel {
             case FIELD_MEDIC -> Strings.get("openingBarracksCommandFieldMedicNamedPersonnelEffectPending");
             case IDEALIST -> Strings.get("openingBarracksCommandIdealistOutlook");
             case CYNICAL -> Strings.get("openingBarracksCommandCynicalOutlook");
-            default -> Strings.format("openingBarracksCommandBackgroundNoPassiveEffectYet", trait.name().replace('_', ' '));
-        }).reduce((a, c) -> a + "; " + c).orElse(""));
+            default -> Strings.format("openingBarracksCommandBackgroundNoPassiveEffectYet", trait.displayName());
+        }).reduce((a, c) -> Strings.join("separatorList", a, c)).orElse(""));
     }
     private List<Map<String, Object>> officerHistory() {
         MarineCaptain officer = selectedOfficer();
@@ -658,7 +658,7 @@ public final class BarracksCommandModel {
         notes.add(squad.stationed() ? Strings.get("openingBarracksCommandOnStationInspectIsAvailableBulkOrders")
                 : Strings.get("openingBarracksCommandClickTheCardToSelectItFor"));
         return new SpecSheet(squad.name(), profileName(squad), armor == null ? "" : armor.iconPath(), "item",
-                List.of(SpecSheet.Stat.of(Strings.get("openingBarracksCommandReady2"), muster.readyCount() + " / 12"),
+                List.of(SpecSheet.Stat.of(Strings.get("openingBarracksCommandReady2"), Strings.format("openingBarracksCommandReadyOfBillets", muster.readyCount(), 12)),
                         SpecSheet.Stat.of(Strings.get("openingBarracksCommandWounded"), Integer.toString(muster.woundedCount())),
                         SpecSheet.Stat.of(Strings.get("openingBarracksCommandVacant"), Integer.toString(muster.vacantCount())),
                         SpecSheet.Stat.of(Strings.get("openingBarracksCommandHomeCommand2"), captainName(roster.byId(squad.homeCaptainId())))), notes);
@@ -871,7 +871,7 @@ public final class BarracksCommandModel {
         if (guideStep == 4) return localMissions ? Strings.get("openingBarracksCommandUseMissionsWhenYouAreReadyFor") : Strings.get("openingBarracksCommandUseReturnWhenYouAreReadyTo");
         if (organizing || editing) return Strings.get("openingBarracksCommandChoosePreparationToReturnToThePersonnel");
         if (selected.isEmpty() || guideStep <= 1) return Strings.get("openingBarracksCommandSelectAReceivingSquadOnTheBoard");
-        if (guideStep == 2) return Strings.format("openingBarracksCommandFillVacanciesIfNeededOrNextTo", recruitment().replace("\n", " / "));
+        if (guideStep == 2) return Strings.format("openingBarracksCommandFillVacanciesIfNeededOrNextTo", recruitment().replace("\n", Strings.get("separatorPath")));
         return Strings.get("openingBarracksCommandReviewTheAssignedEquipmentAndSkippedSquad");
     }
 

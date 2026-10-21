@@ -175,6 +175,17 @@ final class MissionGarrisons {
      */
     Map<Integer, Manning> plan(CommandFrame frame, GarrisonableRegistry places, Map<Integer, Offer> offers,
                                String issuer) {
+        return plan(frame, places, offers, issuer, Integer.MAX_VALUE);
+    }
+
+    /**
+     * As {@link #plan(CommandFrame, GarrisonableRegistry, Map, String)}, with at most {@code maxHolders} squads holding
+     * a place (standing on it, falling back or in its rooms) after this pulse: a caller that keeps most of its force
+     * out of prepared positions (`garrisonables.md`, not every fight is into prepared positions) says how many may be.
+     * It bounds new sends only; nobody already holding is turned out by it.
+     */
+    Map<Integer, Manning> plan(CommandFrame frame, GarrisonableRegistry places, Map<Integer, Offer> offers,
+                               String issuer, int maxHolders) {
         CommanderInfluenceSnapshot influence = frame.influence();
         if (!enabled() || !HeldGround.usable(places, influence)) return new TreeMap<>();
         int count = contacts(influence);
@@ -182,14 +193,7 @@ final class MissionGarrisons {
         return plan(frame.squads(), places, (bx, by) -> influence.hostileAt(bx, by), contactScratch, count,
                 (sx, sy, x, y) -> topology.inBounds(sx, sy) && topology.isWalkable(sx, sy)
                         && (sx == x && sy == y || topology.reachable(sx, sy, x, y)),
-                (x, y) -> topology.inBounds(x, y) && topology.isWalkable(x, y), offers, issuer);
-    }
-
-    /** As the full seam, with every cell standable: the unit tests' grid-free form. */
-    Map<Integer, Manning> plan(List<CommandSquadState> roster, GarrisonableRegistry places,
-                               GarrisonDirector.Pressure field, int[] contactXY, int contactCount,
-                               HeldGround.Reach reach, Map<Integer, Offer> offers, String issuer) {
-        return plan(roster, places, field, contactXY, contactCount, reach, (x, y) -> true, offers, issuer);
+                (x, y) -> topology.inBounds(x, y) && topology.isWalkable(x, y), offers, issuer, maxHolders);
     }
 
     /**
@@ -198,8 +202,22 @@ final class MissionGarrisons {
      */
     Map<Integer, Manning> plan(List<CommandSquadState> roster, GarrisonableRegistry places,
                                GarrisonDirector.Pressure field, int[] contactXY, int contactCount,
+                               HeldGround.Reach reach, Map<Integer, Offer> offers, String issuer) {
+        return plan(roster, places, field, contactXY, contactCount, reach, offers, issuer, Integer.MAX_VALUE);
+    }
+
+    /** As the seam above, with at most {@code maxHolders} squads holding a place after this pulse. */
+    Map<Integer, Manning> plan(List<CommandSquadState> roster, GarrisonableRegistry places,
+                               GarrisonDirector.Pressure field, int[] contactXY, int contactCount,
+                               HeldGround.Reach reach, Map<Integer, Offer> offers, String issuer, int maxHolders) {
+        return plan(roster, places, field, contactXY, contactCount, reach, (x, y) -> true, offers, issuer, maxHolders);
+    }
+
+    /** The full seam: as above, with a test for the cells a waiting squad may stand on. */
+    Map<Integer, Manning> plan(List<CommandSquadState> roster, GarrisonableRegistry places,
+                               GarrisonDirector.Pressure field, int[] contactXY, int contactCount,
                                HeldGround.Reach reach, GarrisonFlow.CellOk stand, Map<Integer, Offer> offers,
-                               String issuer) {
+                               String issuer, int maxHolders) {
         Map<Integer, Manning> out = new TreeMap<>();
         stats.pulses++;
 
@@ -313,7 +331,7 @@ final class MissionGarrisons {
             // The squads waiting for the place's own area are drawn on before any other.
             int own = PlaceFlow.areaOf(flow.post(squadId), areas);
             return own >= 0 && own == GarrisonFlow.matchingArea(areas, places.centreX(place), places.centreY(place));
-        });
+        }, maxHolders == Integer.MAX_VALUE ? GarrisonDirector.MAX_NEW_PER_PULSE : maxHolders - out.size());
         for (GarrisonDirector.Man man : sent) {
             out.put(man.squadId(), new Manning(man.squadId(), Kind.MAN,
                     GarrisonDirector.orderFor(man.squadId(), man.garrisonable(), places), man.garrisonable()));

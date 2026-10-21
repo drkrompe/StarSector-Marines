@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
 import com.dillon.starsectormarines.campaign.start.SecondWindKeeper;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullClass;
@@ -131,17 +132,13 @@ public final class CompanyShipDesignation {
         if (Global.getSector() == null || !toll.anything()) return;
         CampaignUIAPI ui = Global.getSector().getCampaignUI();
         if (ui == null || ui.getMessageDisplay() == null) return;
-        StringBuilder message = new StringBuilder(String.valueOf(lost))
-                .append(" is lost. ");
-        if (toll.marinesLost() > 0) {
-            message.append(toll.marinesLost()).append(" marines went down with her; ")
-                    .append(toll.marinesSurvived()).append(" were picked up. ");
-        }
-        if (toll.storesLost() > 0 || toll.sparesLost() > 0) {
-            message.append("The bay's spares and ").append(toll.storesLost())
-                    .append(" units of stores went down in her holds. ");
-        }
-        if (displaced) message.append("The company needs somewhere to live.");
+        // Each sentence is one whole translated message; only finished sentences are joined.
+        StringBuilder message = new StringBuilder(Strings.format("companyShipLost", String.valueOf(lost)));
+        if (toll.marinesLost() > 0)
+            message.append(' ').append(Strings.format("companyShipLostMarines", toll.marinesLost(), toll.marinesSurvived()));
+        if (toll.storesLost() > 0 || toll.sparesLost() > 0)
+            message.append(' ').append(Strings.format("companyShipLostStores", toll.storesLost()));
+        if (displaced) message.append(' ').append(Strings.get("companyShipLostDisplaced"));
         ui.getMessageDisplay().addMessage(message.toString());
     }
 

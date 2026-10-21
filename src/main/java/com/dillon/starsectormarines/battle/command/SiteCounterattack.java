@@ -25,6 +25,11 @@ final class SiteCounterattack {
     /** The least a story site is believed to take: one squad, sized against what holds it by the margin. */
     static final int STORY_FLOOR = 6;
 
+    /** Reason suffix of a pool squad waiting at home: a standing duty a story commander may offer for manning. */
+    static final String HOLD_HOME = "_HOLD_HOME";
+    /** Reason suffix of a pool squad holding where it stands once home is lost: a standing duty too. */
+    static final String HOLD_GROUND = "_HOLD_GROUND";
+
     /** One squad's order this pulse, with its reason. */
     record Duty(ObjectiveAssignment assignment, String reason) { }
 
@@ -85,11 +90,11 @@ final class SiteCounterattack {
                         reasonPrefix + "_COUNTERATTACK_" + order.stage().name()));
             } else if (home != null) {
                 duties.put(squad.squadId(), new Duty(ObjectiveAssignment.defendArea(squad.squadId(), home[0], home[1],
-                        holdRadius), reasonPrefix + "_HOLD_HOME"));
+                        holdRadius), reasonPrefix + HOLD_HOME));
             } else {
                 // Home is lost and this squad is not in the push: it holds where it stands rather than walk in alone.
                 duties.put(squad.squadId(), new Duty(ObjectiveAssignment.defendArea(squad.squadId(), squad.anchorCellX(),
-                        squad.anchorCellY(), holdRadius), reasonPrefix + "_HOLD_GROUND"));
+                        squad.anchorCellY(), holdRadius), reasonPrefix + HOLD_GROUND));
             }
         }
         return duties;

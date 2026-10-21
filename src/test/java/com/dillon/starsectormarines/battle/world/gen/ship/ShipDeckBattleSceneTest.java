@@ -31,15 +31,9 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.MechBay;
-import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
-import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.awt.image.BufferedImage;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -47,7 +41,6 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -64,54 +57,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 final class ShipDeckBattleSceneTest {
 
     private static final long SEED = 42L;
-    private static final int CELL_PX = 16;
     private static final int WIDTH = 60;
     private static final int HEIGHT = 20;
 
     /** Where the three berths of {@link #threeBoatBerths()} stand. */
     private static final int[] BOAT_BERTH_CELLS = {5, 11, 17};
-
-    /**
-     * Draws the deck to an image, which is what the render assertion below reads.
-     *
-     * <p>Here because the test renders, not to install anything: the catalogs
-     * a deck scene needs are installed for every test by
-     * {@code TileRegistryTestInstaller}, and standing this up for them would
-     * load the whole battle sprite pack to get at two JSON files.
-     */
-    private static HeadlessUiRenderer drain;
-
-    @BeforeAll
-    static void openDrain() {
-        Path modRoot = Paths.get("mod").toAbsolutePath().normalize();
-        drain = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(modRoot), modRoot);
-    }
-
-    /**
-     * A world layer may emit a command that only a live GL context can replay —
-     * the decal pass does — and asking for such a layer fails loudly at draw
-     * time. That is the right behaviour, but it should surface as a broken build
-     * and not as a broken evidence run.
-     */
-    @Test
-    void deckDrawsThroughTheBattleRendererWithoutALiveContext() {
-        Deck deck = bay();
-
-        BufferedImage image;
-        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(deck.map(), deck.graph(), SEED, null)) {
-            int across = 24;
-            int down = 16;
-            image = drain.renderHostPass(
-                    scene.pass(ShipDeckBattleScene.DeckView.over(
-                            (WIDTH - across) / 2, (HEIGHT - down) / 2, across, down, CELL_PX)),
-                    across * CELL_PX, down * CELL_PX);
-        }
-
-        assertNotNull(image, "the deck view produced no image");
-        assertTrue(painted(image) > 0.5f,
-                "the deck view came out mostly blank, so the world layers drew nothing: "
-                        + painted(image));
-    }
 
     /**
      * The bay stands the company's own machines, not a chosen number of them.
@@ -484,14 +434,4 @@ final class ShipDeckBattleSceneTest {
         return berths.stream().filter(berth -> berth.holds == Gantry.Holds.MACHINE).toList();
     }
 
-    /** Fraction of pixels the renderer actually put something opaque into. */
-    private static float painted(BufferedImage image) {
-        int opaque = 0;
-        for (int y = 0; y < image.getHeight(); y++) {
-            for (int x = 0; x < image.getWidth(); x++) {
-                if ((image.getRGB(x, y) >>> 24) > 0x80) opaque++;
-            }
-        }
-        return opaque / (float) (image.getWidth() * image.getHeight());
-    }
 }

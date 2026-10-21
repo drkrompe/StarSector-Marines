@@ -83,7 +83,7 @@ final class CompanyHqNewsDesk {
             long count = posts.stream().filter(candidate::accepts).count();
             String id = "hq-wire-tab-" + candidate.name().toLowerCase();
             tabs.add(new Key(id, "wire-tab console-toggle" + (candidate == channel ? " selected" : ""),
-                    candidate.label() + "  /  " + count, () -> choose(candidate)));
+                    Strings.join("separatorWide", candidate.label(), Long.toString(count)), () -> choose(candidate)));
             if (candidate != Channel.ALL) {
                 List<Report> teasers = posts.stream().filter(candidate::accepts).limit(1)
                         .map(post -> report(post, "hq-source-" + candidate.name().toLowerCase() + "-" + post.id()))

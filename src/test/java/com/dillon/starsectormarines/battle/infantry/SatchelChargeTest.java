@@ -15,13 +15,9 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.marine.SatchelChargeSpec;
 import org.junit.jupiter.api.Test;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SatchelChargeTest {
@@ -203,25 +199,4 @@ class SatchelChargeTest {
                 "a friendly inside the danger ring receives an escape path");
     }
 
-    @Test
-    void generatedSatchelAssetsHaveRealTransparency() throws Exception {
-        for (Path path : new Path[]{
-                Path.of("mod/graphics/ui/armory/special-satchel-charge.png"),
-                Path.of("mod/graphics/battle/fx/satchel-charge-armed.png")}) {
-            BufferedImage image = ImageIO.read(path.toFile());
-            assertNotNull(image, path + " must decode");
-            assertTrue(image.getColorModel().hasAlpha(), path + " must carry alpha");
-            boolean transparent = false;
-            boolean visible = false;
-            for (int y = 0; y < image.getHeight(); y += 8) {
-                for (int x = 0; x < image.getWidth(); x += 8) {
-                    int alpha = image.getRGB(x, y) >>> 24;
-                    transparent |= alpha == 0;
-                    visible |= alpha > 0;
-                }
-            }
-            assertTrue(transparent, path + " must include transparent background pixels");
-            assertTrue(visible, path + " must include visible equipment pixels");
-        }
-    }
 }

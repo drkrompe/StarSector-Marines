@@ -313,14 +313,16 @@ final class LayeredUnitComposer {
 
         if (atStation) {
             LayerTransform base = bodyTransform != null ? bodyTransform : DEFAULT_BODY;
-            float reach = (float) Math.sin(weaponPhase * STATION_HAND_CYCLES * 2.0 * Math.PI)
-                    * STATION_HAND_REACH_SW;
-            emitAuthored(out, assets.stationArm(true),
-                    stationArmTransform(base, assets.body, assets.stationArm(true), reach),
-                    actorX, actorY, pxPerSw, facingDeg, 0f, alpha);
-            emitAuthored(out, assets.stationArm(false),
-                    stationArmTransform(base, assets.body, assets.stationArm(false), -reach),
-                    actorX, actorY, pxPerSw, facingDeg, 0f, alpha);
+            for (boolean left : new boolean[]{true, false}) {
+                // The two hands work half a cycle apart, each sweeping across the
+                // console about its own elbow and reaching in twice a sweep.
+                double cycle = (weaponPhase + (left ? 0f : 0.5f)) * 2.0 * Math.PI;
+                float swing = (float) Math.sin(cycle) * STATION_HAND_SWING_DEG;
+                float reach = (float) Math.max(0.0, Math.sin(2.0 * cycle)) * STATION_HAND_REACH_SW;
+                emitAuthored(out, assets.stationArm(left),
+                        stationArmTransform(base, assets.body, assets.stationArm(left), left, swing, reach),
+                        actorX, actorY, pxPerSw, facingDeg, 0f, alpha);
+            }
         }
 
         if (assets.foreClaw != null && swipe > 0f) {
@@ -394,23 +396,37 @@ final class LayeredUnitComposer {
     /** The body's placement when no clip authors one: centred 0.12 shoulder widths behind the actor. */
     private static final LayerTransform DEFAULT_BODY =
             new LayerTransform("body", null, 0f, -0.12f, 1f, 1f, 0f, 0.5f, 0.5f, 0, true);
-    /** Hand movements over one job at a console; the job's progress is the clock. */
-    private static final float STATION_HAND_CYCLES = 16f;
-    /** How far a hand moves forward and back while working, in shoulder widths. */
-    private static final float STATION_HAND_REACH_SW = 0.02f;
+    /** How far a forearm sweeps either way about its elbow while working, in degrees. */
+    private static final float STATION_HAND_SWING_DEG = 7f;
+    /** How far a hand reaches in at the top of its stroke, in shoulder widths. */
+    private static final float STATION_HAND_REACH_SW = 0.035f;
+    /**
+     * Where the elbow sits, as a fraction of the body canvas: at the sleeve's
+     * outer edge, halfway down the torso. The art is drawn to this point.
+     */
+    private static final float STATION_ELBOW_X = 0.1f, STATION_ELBOW_BODY_ROW = 0.5f;
 
     /**
-     * A station arm placed exactly as the body is. The arm layer is the body
-     * canvas extended forward, so the body canvas is its bottom rows: the body's
-     * pivot keeps its x and moves to the same pixel in those rows. {@code reach}
-     * slides the arm along the facing.
+     * A station arm placed exactly as the body is, then turned {@code swing}
+     * degrees about its elbow and slid {@code reach} forward. The arm layer is
+     * the body canvas extended forward, so the body canvas is its bottom rows and
+     * the elbow is a fixed point of the body's own grid: the sleeve it leaves
+     * stays put while the hand moves.
      */
     private static LayerTransform stationArmTransform(LayerTransform body, LayeredSpriteCache bodySprite,
-                                                      LayeredSpriteCache arm, float reach) {
-        float bodyRows = bodySprite.pxHeight, armRows = arm.pxHeight;
-        float pivotY = (armRows - bodyRows + body.pivotY() * bodyRows) / armRows;
-        return new LayerTransform(body.id(), body.spritePath(), body.offsetX(), body.offsetY() + reach,
-                body.scaleX(), body.scaleY(), body.angleDegrees(), body.pivotX(), pivotY, body.z(), true);
+                                                      LayeredSpriteCache arm, boolean left,
+                                                      float swing, float reach) {
+        float width = arm.pxWidth, bodyRows = bodySprite.pxHeight, armRows = arm.pxHeight;
+        float bodyPivotY = (armRows - bodyRows + body.pivotY() * bodyRows) / armRows;
+        float elbowX = left ? STATION_ELBOW_X : 1f - STATION_ELBOW_X;
+        float elbowY = (armRows - bodyRows + STATION_ELBOW_BODY_ROW * bodyRows) / armRows;
+        float[] toElbow = rotate((elbowX - body.pivotX()) * width / SOURCE_SHOULDER_PX * body.scaleX(),
+                (bodyPivotY - elbowY) * armRows / SOURCE_SHOULDER_PX * body.scaleY(),
+                body.angleDegrees());
+        return new LayerTransform(body.id(), body.spritePath(),
+                body.offsetX() + toElbow[0], body.offsetY() + toElbow[1] + reach,
+                body.scaleX(), body.scaleY(), body.angleDegrees() + (left ? -swing : swing),
+                elbowX, elbowY, body.z(), true);
     }
 
     private static LayerTransform layer(LayerPose pose, String id) {

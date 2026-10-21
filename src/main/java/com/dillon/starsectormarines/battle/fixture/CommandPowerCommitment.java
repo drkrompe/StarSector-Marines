@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.ShipOnStation;
+import com.dillon.starsectormarines.battle.power.TenderCallDown;
 import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
@@ -63,7 +64,7 @@ public record CommandPowerCommitment(
         List<MechDeploymentSpec> deployments = power instanceof MechSupport mechSupport
                 ? mechSupport.deployments() : List.of();
         List<ShipSupportSource> ships = power instanceof ShipOnStation shipPower
-                ? shipPower.sources() : List.of();
+                ? shipPower.sources() : power instanceof TenderCallDown landing ? landing.sources() : List.of();
         List<VehicleDeploymentSpec> vehicles = power instanceof VehicleSupport vehicleSupport
                 ? vehicleSupport.deployments()
                 : power instanceof MechSupport mechSupport ? mechSupport.vehicles() : List.of();
