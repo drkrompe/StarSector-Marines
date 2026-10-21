@@ -245,6 +245,7 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
+import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
@@ -700,6 +701,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         relayNineSequence = new RelayNineSequence(reserve);
         relayNineStory = new RelayNineStoryObserver(storyBeats);
     }
+    private CreepField creep;
+    /**
+     * The battle's hive creep, created on first use by whatever declares a
+     * source (a bore, a scene); call only from the simulation thread.
+     */
+    public CreepField creepField() {
+        if (creep == null) creep = new CreepField(grid, topology, generationSeed);
+        return creep;
+    }
+    /** The creep field if anything has created one, else {@code null}; safe for renderers. */
+    public CreepField creepFieldIfPresent() { return creep; }
     private ColonyBreachSequence colonyBreach;
     /** The Colony Breach story, or {@code null} on every other battle. */
     public ColonyBreachSequence getColonyBreach() { return colonyBreach; }
@@ -3406,6 +3418,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rescuePickupSupport.tick(TICK_DT, this);
         swarmReinforcements.tick(TICK_DT, this);
         if (colonyBreach != null) colonyBreach.tick(this);
+        if (creep != null) creep.tick(simTickIndex);
         if (reliefAssault != null) reliefAssault.tick(this);
         if (lastLiftSequence != null) lastLiftSequence.tick(this);
         if (relayNineSequence != null) relayNineSequence.tick(this);

@@ -289,7 +289,23 @@ unmistakably wrong, and it is the only ground the hive's static growths stand on
 away from a bore's mouth. A ground colony (anti-infantry, anti-emplacement)
 roots only on creep. Creep recedes when its bore collapses. Mobile strains never
 gain ranged attacks to answer fortifications: static growth on creep does that.
-Planned in `hive-creep.md`.
+In `hive-creep.md`.
+
+- **Creep is a field the battle owns** (`CreepField`): per cell, how much
+  growth stands there, whether it is alive, and how far it is from the source
+  that reached it (the pulse runs along that). It belongs to one simulation and
+  is deterministic in the seed.
+- **Sources spread it.** A source is declared at a cell with a growth (reach
+  per second, the reach it stops at; bore tiers have presets) and may be fed,
+  which speeds it for a while. It claims what lies within its reach by path
+  cost along walkable ground, weighted by seeded noise so the front runs out in
+  fingers, dearer on pavement; walls beside claimed ground are climbed, never
+  crossed. Until bores stand up on eruption sites, each opened site is itself a
+  source that never dies.
+- **Removing a source withers what it alone held**, from the outer edge back to
+  the hole over a visible interval: the growth dies first, then clears. Ground a
+  living source also reaches stays, and a living source reaching dying ground
+  revives it.
 
 **Swarm goal.** A place the swarm is drawn toward: the shelter, the lift, the
 nearest Marine body. Swarm movement toward a goal is a shared **flow field** per
