@@ -689,6 +689,29 @@ the evidence; change them here first.
 | `cohort_boarded` | PLAYER | Last surviving evacuee aboard |
 | `colony_lost` | PLAYER | Cohort lost |
 
+**Sound.** Beats are voiced from the Colony Breach narration catalog, which a
+battle hears whenever it carries the breach sequence, whatever mission launched
+it. A PLAYER beat with no line is silent: `redoubt_reached_1` is spoken as
+`shelter_reached`, and observer-only beats never speak. Who speaks a beat
+follows the lore guide's names: the company officer calls them ravs and names
+strains and bores by number, the militia sergeant says ravs, holes, grabbers and
+breakers, and the shelter administrator says the ground and only whispers the
+bloom. A numbered beat has lines up to four; a higher number needs lines added.
+Lines are generated from tracked prompts by `tools/generate_colony_breach_audio.py`
+and registered like every other clip. A beat that adds a line names its speaker
+by these rules, and a line that a later beat makes stale is superseded by it.
+
+Bores and bodies sound through presentation cues the simulation writes and
+never reads (`BoreCues`, `SwarmCues`), so a headless run is silent and nothing
+heard reaches the battle. A bore is heard erupting, growing to each tier,
+surging and collapsing, and breathes a tier ambience while it lives. A swarm
+body cries when it takes new quarry, and is heard striking, ramming a wall,
+breaking it and dying; a Brute's charge, a Runner's impale and a seized body
+being dragged have their own sounds, posted as cues by the stories that add
+those acts. Each strain's sound is admitted under its own gap so a pack reads as
+a pack, and the swarm is heard only on ground the player has seen. The Spitter
+has no voice.
+
 ## Laws
 
 - **Spawning has a source.** After the first eruption, every swarm body comes

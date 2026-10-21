@@ -46,7 +46,7 @@ Mobile strains stay what they are: no melee body gains a ranged attack.
    in creeped buildings. Keep effects few until play shows a need.
 5. **Lore and audio.** Creep is the weapon converting a world (see
    `swarm-lore-guide.md`); ask for a creep-spread ambience and ground-colony
-   strike sound through `breach-audio.md`'s pipeline.
+   strike sound through the Colony Breach audio pipeline (`colony-breach-nouns.md`, Sound).
 6. **Evidence.** A behaviour scene: a bore left alone creeps toward a
    hardpoint and a ground colony roots and wrecks it; a second loop where the
    bore is collapsed and the creep recedes. A `renderEvidence` comparison with
