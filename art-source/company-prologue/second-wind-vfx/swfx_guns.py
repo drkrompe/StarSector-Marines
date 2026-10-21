@@ -74,6 +74,7 @@ Other hulls' mounts (swfx_hull MOUNTS, swfx_anchors.GunAnchor):
 """
 import math
 import random
+import re
 
 import bpy
 from mathutils import Matrix, Vector
@@ -983,12 +984,13 @@ def cadence(weapon, seconds, feeder=False):
     return out
 
 
-def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, tag=None):
+def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, tag=None, train=True):
     """Fire an armed mount for `seconds` from `start_frame` at the game's cadence (cadence()):
     barrels alternate per round ('alternating'), per burst ('alternating_burst') or fire together
     ('linked'). target: a point in the ship's own (copy) space the rounds fly to and stop at, as
-    on a hit; None flies them down the bore to their range. Returns one record per round, with
-    'hit_frame' when a target was given."""
+    on a hit; None flies them down the bore to their range. With a target and `train`, the
+    turret is trained onto it (aim()) before each round, so the flash points along the rounds.
+    Returns one record per round, with 'hit_frame' when a target was given."""
     guns = [g for g in ctx.anchors.guns if g.turret == turret and getattr(g, 'kind', 'gun') != 'launcher'
             and (tag is None or g.tag == tag)]
     if not guns or not ctx.spec.get('guns', True):
@@ -1005,6 +1007,8 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
         f = int(round(exact))
         mode = w['barrels']
         pick = guns if mode == 'linked' else [guns[(k if mode == 'alternating_burst' else n) % len(guns)]]
+        if target is not None and train:
+            aim(ctx, turret, target, f, tag=tag)
         for g in pick:
             if w.get('charge') and w.get('chargeup'):
                 _charge(ctx, g, f, int(round(w['chargeup'] * fps)), w)
@@ -1263,6 +1267,88 @@ def anchor_matrix(ob):
     return m
 
 
+def _kit_name(name):
+    """'Turret 1 pivot.001 @lasher-a' -> 'Turret 1 pivot' (a per-ship copy's own name)."""
+    name = re.sub(r' ~?@[^@]*$', '', name)
+    return re.sub(r'\.\d{3}$', '', name)
+
+
+def trainers(empty):
+    """(pivot, elevation) objects a gun anchor rides, found up its parent chain by name
+    ('<mount> pivot', '<mount> elevation', as the turret kit names them). (None, None) for a
+    fixed hardpoint; elevation None for a mount that only traverses."""
+    piv = elev = None
+    o = empty.parent
+    while o is not None and piv is None:
+        n = _kit_name(o.name)
+        if elev is None and n.endswith(' elevation'):
+            elev = o
+        elif n.endswith(' pivot'):
+            piv = o
+        o = o.parent
+    return piv, elev
+
+
+def _signed_angle(a, b, axis):
+    a = (a - axis * a.dot(axis))
+    b = (b - axis * b.dot(axis))
+    if a.length < 1e-9 or b.length < 1e-9:
+        return 0.0
+    return math.atan2(axis.dot(a.cross(b)), a.dot(b))
+
+
+def _key_constant(ob, path, index, frame):
+    ob.keyframe_insert(path, index=index, frame=frame)
+    fc = swfx_core.find_fcurve(ob, path, index)
+    for kp in fc.keyframe_points if fc else ():
+        if abs(kp.co.x - frame) < 1e-4:
+            kp.interpolation = 'CONSTANT'
+
+
+def aim(ctx, turret, target, frame, tag=None, slew_frames=0, iterations=4):
+    """Train a turret onto `target` (a point in the ship's own copy space, units) at `frame`:
+    its pivot traverses about its own Z and its elevation lifts about its own Y until the
+    muzzle's line of fire passes through the target, keyed CONSTANT there, so the flash, which
+    rides the muzzle, points where the rounds go. slew_frames > 0 keys the previous pose that many
+    frames earlier, so the turret swings over rather than snapping. Elevation is not clamped.
+
+    The pivot is a hull object. A ship placed without its own hull copy (ship_fx.ShipFx
+    own_hull) shares its turrets with every other copy of that build, and training one trains
+    them all. Returns (traverse, elevation) in degrees, or None for a mount with no pivot."""
+    guns = sorted((g for g in ctx.anchors.guns if g.turret == turret and (tag is None or g.tag == tag)),
+                  key=gun_index)
+    if not guns:
+        return None
+    a = guns[0]
+    piv, elev = trainers(a.empty)
+    if piv is None:
+        return None
+    T = Vector(target)
+    if slew_frames > 0:
+        _key_constant(piv, 'rotation_euler', 2, frame - slew_frames)
+        if elev is not None:
+            _key_constant(elev, 'rotation_euler', 1, frame - slew_frames)
+        for ob, i in ((piv, 2), (elev, 1)):
+            fc = swfx_core.find_fcurve(ob, 'rotation_euler', i) if ob is not None else None
+            for kp in fc.keyframe_points if fc else ():
+                if abs(kp.co.x - (frame - slew_frames)) < 1e-4:
+                    kp.interpolation = 'BEZIER'
+    X, Y, Z = Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1))
+    for _ in range(iterations):
+        m = anchor_matrix(a.empty)
+        piv.rotation_euler.z += _signed_angle(m.to_3x3() @ X, T - m.translation,
+                                              (anchor_matrix(piv).to_3x3() @ Z).normalized())
+        if elev is not None:
+            m = anchor_matrix(a.empty)
+            elev.rotation_euler.y += _signed_angle(m.to_3x3() @ X, T - m.translation,
+                                                   (anchor_matrix(elev).to_3x3() @ Y).normalized())
+    _key_constant(piv, 'rotation_euler', 2, frame)
+    if elev is not None:
+        _key_constant(elev, 'rotation_euler', 1, frame)
+    return (round(math.degrees(piv.rotation_euler.z), 2),
+            round(math.degrees(elev.rotation_euler.y), 2) if elev is not None else None)
+
+
 def _braid_dir(a, converge_m):
     """Bore direction (anchor space) that crosses the mount's other barrels' streams converge_m
     downrange: alternate rounds zig-zag across one braid."""
@@ -1291,7 +1377,10 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
         d = _braid_dir(a, w['braid'])
     yaw, pitch = rnd.gauss(0, w['spread']), rnd.gauss(0, w['spread'])
     d = (Matrix.Rotation(yaw, 3, 'Z') @ Matrix.Rotation(-pitch, 3, 'Y') @ d).normalized()
-    rot = d.to_track_quat('X', 'Z').to_euler()
+    # Rounds live in the ship's own space, not on the anchor: once fired they no longer
+    # follow the turret, so a turret that trains on (aim()) never swings them.
+    M = anchor_matrix(a.empty)
+    rot = (M.to_3x3().normalized() @ d.to_track_quat('X', 'Z').to_matrix()).to_euler()
     L = swfx_core.units(r['length'])
     heads = []
     j = 0
@@ -1310,10 +1399,10 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
 
     def mover(ob):
         coll.objects.link(ob)
-        swfx_core.attach(ob, a.empty, rotation=rot)
+        ob.rotation_euler = rot
         ob.visible_shadow = False
         for i in range(3):
-            _bake(ob, 'location', i, frames, [(d * hh)[i] for hh in heads])
+            _bake(ob, 'location', i, frames, [(M @ (d * hh))[i] for hh in heads])
         _bake(ob, 'scale', 0, frames, [max(.05, min(1.0, hh / L)) for hh in heads])
         _bake(ob, 'color', 0, frames, burn)
         ob.color = (1, 0, 0, 1)
@@ -1333,7 +1422,7 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
                                       _jag_mesh(f'{PREFIX} bolt mesh {label} f{frame:04d} {j}', lines,
                                                 swfx_core.units(r['core']), 5, mat))
             coll.objects.link(ob)
-            swfx_core.attach(ob, a.empty, local=d * heads[j], rotation=rot)
+            ob.location, ob.rotation_euler = M @ (d * heads[j]), rot
             ob.scale.x = max(.05, min(1.0, heads[j] / L))
             ob.visible_shadow = False
             ob.color = (burn[j], 0, 0, 1)
@@ -1345,9 +1434,8 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
     if r.get('halo'):
         h = r['halo']
         ob = _glow_object(ctx, coll, f'{PREFIX} round halo {label} f{frame:04d}', _lin(r['fringe']))
-        swfx_core.attach(ob, a.empty)
         for i in range(3):
-            _bake(ob, 'location', i, frames, [(d * (hh - L * .35))[i] for hh in heads])
+            _bake(ob, 'location', i, frames, [(M @ (d * (hh - L * .35)))[i] for hh in heads])
         ob.scale = (swfx_core.units(h['r']),) * 3
         _bake(ob, 'color', 0, frames, burn)
         _bake(ob, 'color', 1, [frame], [rnd.random()], 'CONSTANT')
@@ -1357,9 +1445,8 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
         light = swfx_core.point_light(f'{PREFIX} round light {label} f{frame:04d}', coll,
                                       _lin(r.get('light_rgb', r['fringe'])), 0.0,
                                       radius=swfx_core.units(r['corona']))
-        swfx_core.attach(light, a.empty)
         for i in range(3):
-            _bake(light, 'location', i, frames, [(d * (hh - L * .3))[i] for hh in heads])
+            _bake(light, 'location', i, frames, [(M @ (d * (hh - L * .3)))[i] for hh in heads])
         _bake(light.data, 'energy', -1, [frame - 1] + frames + [frame + life + 1],
               [0.0] + [r['light'] * b for b in burn] + [0.0])
     return rec
