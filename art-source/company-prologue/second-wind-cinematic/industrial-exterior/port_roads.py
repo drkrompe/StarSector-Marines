@@ -1,5 +1,5 @@
-"""PORT_ROADS=1: the public port's road network as `port-roads.md` plans it (off by default until the
-owner passes the light checks).
+"""The public port's road network as `port-roads.md` plans it (owner-approved for the C4/C5 finals,
+2026-10-21).
 
 The roads as built:
 
@@ -34,15 +34,12 @@ lines), and each removed road, or clutter that had to move, is covered by a patc
 painted apron (or lot asphalt, inside the truck park). Both sit just above the ground and are left
 out of the overhead paint, which skips image-textured materials.
 
-    ON              the switch
     ROADS, rings()  the network, for `port_detail` (keep clear), `port_life` (traffic) and the checks
     build(c4, ghosts)  ribbons and patches, from `c4x_scene.build()` after `port_detail`
 """
 import math
 import os
 from pathlib import Path
-
-ON = os.environ.get('PORT_ROADS', '0') not in ('', '0')
 
 HERE = Path(__file__).resolve().parent
 PORT_Y = (366.0, 378.0)                 # the port road's edges
@@ -105,8 +102,6 @@ def links(c4):
 def crate_ghosts(c4):
     """Where the crates south of each parked lighter stood before they moved inside its ring
     (`c4x_scene.add_port`)."""
-    if not ON:
-        return []
     y = c4.LIGHTER_Y - c4.LIGHTER_R - 3
     return [('apron', (x - 7.5, x + 7.5, y - 9.5, y - 3.5)) for x, who in c4.LIGHTERS if who == 'parked']
 
@@ -278,8 +273,6 @@ def _patch(sheet, rect, kind, z):
 def build(c4, ghosts=()):
     """Ribbons for the new roads and rings, patches over what went (the two removed roads and the
     clutter `port_detail` and `c4x_scene` moved off them: `ghosts`, as (kind, rect))."""
-    if not ON:
-        return
     tile, mat = _materials(c4)
     sheet = _Sheet(c4, tile, mat)
     patches = [('apron', r) for _, r in REMOVED] + list(ghosts)

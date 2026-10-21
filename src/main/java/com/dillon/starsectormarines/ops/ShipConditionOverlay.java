@@ -22,7 +22,7 @@ public final class ShipConditionOverlay {
     private final UiDocument document;
     private final MarkupInstance markup;
     private final ShipConditionModel model;
-    private final UiElement stage, canvas, card, power;
+    private final UiElement stage, canvas, card, power, systems, tree, strip;
     private final Map<UiElement, String> styles = new IdentityHashMap<>();
     private final Map<UiElement, Integer> markers = new IdentityHashMap<>();
     private final Map<Integer, Rect> anchors = new HashMap<>();
@@ -40,7 +40,11 @@ public final class ShipConditionOverlay {
         canvas = markup.requireElement("ship-view-deck");
         card = markup.requireElement("ship-condition");
         power = markup.requireElement("survey-power");
+        systems = markup.requireElement("ship-systems");
+        tree = markup.requireElement("systems-tree");
+        strip = markup.requireElement("systems-strip");
         markup.requireElement("survey-close").onClick(this::dismiss);
+        markup.requireElement("systems-back").onClick(this::dismiss);
         card.onPointerDown(event -> {
             if (event.button() == PointerButton.PRIMARY) pinned = true;
         });
@@ -48,6 +52,16 @@ public final class ShipConditionOverlay {
     }
 
     public boolean dismiss() {
+        if (model.systemsOpen()) {
+            model.closeSystems();
+            markup.flush();
+            active = NONE;
+            suppressed = NONE;
+            pinned = false;
+            style(card, HIDDEN);
+            style(systems, HIDDEN);
+            return true;
+        }
         if (active == NONE) return false;
         suppressed = active;
         active = NONE;
@@ -74,6 +88,7 @@ public final class ShipConditionOverlay {
     public void update(float dt, CompanyDeck ship, ShipViewCanvas deck) {
         if (ship == null || !ship.ready() || deck.camera() == null) {
             style(card, HIDDEN);
+            style(systems, HIDDEN);
             return;
         }
         document.advance(0f);
@@ -87,6 +102,7 @@ public final class ShipConditionOverlay {
         });
         markers.clear();
         anchors.clear();
+        boolean inTree = model.systemsOpen();
         for (var room : ship.rooms().compartments()) {
             UiElement marker = markup.requireElement("survey-room-" + room.id());
             Rect anchor = deck.markerBounds(room, metrics);
@@ -97,7 +113,7 @@ public final class ShipConditionOverlay {
             }
             markers.put(marker, room.id());
             marker.onClick(() -> select(room.id()));
-            if (bounds.contains(anchor.x(), anchor.y()) && anchor.right() <= bounds.right() && anchor.bottom() <= bounds.bottom()) {
+            if (!inTree && bounds.contains(anchor.x(), anchor.y()) && anchor.right() <= bounds.right() && anchor.bottom() <= bounds.bottom()) {
                 style(marker, position(anchor.x() - bounds.x(), anchor.y() - bounds.y())
                         + String.format(Locale.ROOT, "width: %.1fpx; height: %.1fpx; ", anchor.width(), anchor.height())
                         + "opacity: 1; pointer-events: auto; transition: none; background-color: transparent; background-image: none;");
@@ -105,6 +121,8 @@ public final class ShipConditionOverlay {
         }
         power.onClick(() -> select(-1));
         anchors.put(-1, power.box().borderBox());
+        if (inTree) { showTree(bounds); deck.select(null); return; }
+        style(systems, HIDDEN);
         int hovered = NONE;
         for (UiElement element : document.hoverChain()) {
             if (element == card) { hovered = active; break; }
@@ -140,24 +158,50 @@ public final class ShipConditionOverlay {
             document.advance(0f);
             measuredWidth = width;
         }
-        // The retained subset measures wrapped leaves, not auto-sized container trees.
-        // Fit the three content columns from those same measured leaf boxes.
-        fitColumn(markup.requireElement("workshop-reclaim"));
-        for (String list : new String[]{"refit-core-list", "refit-facility-list", "refit-combat-list"})
-            fitColumn(markup.requireElement(list));
-        document.advance(0f);
-        fitColumn(markup.requireElement("survey-tracks"));
-        document.advance(0f);
-        fitColumn(markup.requireElement("ship-condition-detail"));
-        fitColumn(markup.requireElement("workshop-restoration"));
-        document.advance(0f);
-        float naturalHeight = columnHeight(card);
-        float height = Math.min(naturalHeight, bounds.height() - 16f);
+        fitCard();
+        float height = Math.min(columnHeight(card), bounds.height() - 16f);
         Rect placement = place(bounds, anchor, width, height);
         style(card, position(placement.x() - bounds.x(), placement.y() - bounds.y())
                 + String.format(Locale.ROOT, "width: %.1fpx; height: %.1fpx; opacity: 1; pointer-events: auto;",
                 Math.max(0f, width - 36f), Math.max(0f, height - 36f)));
         markup.requireElement("survey-card-hint").text(pinned ? Strings.get("openingShipInspectionPinned") : Strings.get("openingShipInspectionPinHint"));
+        document.advance(0f);
+    }
+
+    /**
+     * The systems tree covers the deck; the inspection card docks down its right edge and reads the
+     * track the tree has selected.
+     */
+    private void showTree(Rect bounds) {
+        active = -1;
+        pinned = true;
+        float width = Math.min(420f, bounds.width() * 0.4f);
+        style(systems, position(0f, 0f) + String.format(Locale.ROOT,
+                "width: %.1fpx; height: %.1fpx; opacity: 1; pointer-events: auto; transition: none;", bounds.width(), bounds.height()));
+        style(tree, String.format(Locale.ROOT, "padding: 12px %.1fpx 12px 16px;", width + 24f));
+        if (measuredWidth != width) {
+            style(card, "width: " + Math.max(0f, width - 36f) + "px; height: auto; " + HIDDEN);
+            document.advance(0f);
+            measuredWidth = width;
+        }
+        fitCard();
+        float height = Math.min(columnHeight(card), bounds.height() - 16f);
+        style(card, position(bounds.width() - width - 8f, 8f)
+                + String.format(Locale.ROOT, "width: %.1fpx; height: %.1fpx; opacity: 1; pointer-events: auto;",
+                Math.max(0f, width - 36f), Math.max(0f, height - 36f)));
+        markup.requireElement("survey-card-hint").text(Strings.get("openingRefitSystemsTitle"));
+        document.advance(0f);
+    }
+
+    /** The retained subset measures wrapped leaves, not auto-sized container trees, so fit columns from them. */
+    private void fitCard() {
+        fitColumn(markup.requireElement("workshop-reclaim"));
+        fitColumn(markup.requireElement("survey-needs-list"));
+        document.advance(0f);
+        fitColumn(markup.requireElement("survey-needs"));
+        document.advance(0f);
+        fitColumn(markup.requireElement("ship-condition-detail"));
+        fitColumn(markup.requireElement("workshop-restoration"));
         document.advance(0f);
     }
 
@@ -193,7 +237,8 @@ public final class ShipConditionOverlay {
     public boolean blocksCamera(float x, float y) {
         UiElement element = document.elementAt(x, y);
         while (element != null) {
-            if (element == card || element == power || markers.containsKey(element)) return true;
+            if (element == card || element == power || element == strip || markers.containsKey(element)
+                    || element == systems && model.systemsOpen()) return true;
             element = element.parent();
         }
         return false;

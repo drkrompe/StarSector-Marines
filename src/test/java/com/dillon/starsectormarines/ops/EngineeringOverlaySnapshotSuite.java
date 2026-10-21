@@ -153,20 +153,28 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
             click(document, markup.requireElement("survey-close"));
             overlay.update(0f, ship, canvas);
             require(card.opacity() == 0f, "Close did not dismiss the inspection");
-            overlay.select(-1); overlay.update(0f, ship, canvas);
-            require(markup.requireElement("survey-tracks").opacity() > 0f, "Ship systems card lists no tracks");
+            require(markup.requireElement("systems-strip").opacity() > 0f, "The deck lost its core-system chips");
+            click(document, markup.requireElement("systems-chip-power"));
+            markup.flush(); overlay.update(0f, ship, canvas);
+            require(model.systemsOpen() && markup.requireElement("ship-systems").opacity() > 0f, "A core chip did not open the systems tree");
+            require(card.opacity() > 0f, "The systems tree opened without its detail card");
+            require(markup.requireElement("survey-needs").opacity() > 0f, "The next Power tier did not list what it needs");
             frames.add(new SnapshotArtifact("04-systems-power.png", renderer.render(document, 1920, 1080)));
-            click(document, markup.requireElement("refit-track-flux"));
+            click(document, markup.requireElement("systems-flux-header"));
             markup.flush(); overlay.update(0f, ship, canvas);
             require(model.row().get().get("reason").equals(ShipRefits.refusal(RefitOrder.FLUX_RESTORED, REFIT, true, true, true, true, 20000, CARGO, goods::commodityName)),
                     "A locked combat tier did not name what it waits on");
             frames.add(new SnapshotArtifact("04-systems-flux-locked.png", renderer.render(document, 1920, 1080)));
-            click(document, markup.requireElement("refit-track-hull"));
+            click(document, markup.requireElement("systems-hull-node-1"));
             markup.flush(); overlay.update(0f, ship, canvas);
             click(document, markup.requireElement("ship-condition-action"));
             markup.flush(); overlay.update(0f, ship, canvas);
             require(payments[0] == 1, "Reviewing a refit tier spent credits");
             frames.add(new SnapshotArtifact("04-systems-hull-review.png", renderer.render(document, 1920, 1080)));
+            click(document, markup.requireElement("systems-back"));
+            markup.flush(); overlay.update(0f, ship, canvas);
+            require(!model.systemsOpen() && markup.requireElement("ship-systems").opacity() == 0f && card.opacity() == 0f,
+                    "Back to deck left the systems tree up: open=" + model.systemsOpen() + " tree=" + markup.requireElement("ship-systems").opacity() + " card=" + card.opacity());
             overlay.select(ship.rooms().largest(RoomPurpose.PARTS_CAGE).id());
             overlay.update(0f, ship, canvas);
             frames.add(new SnapshotArtifact("05-workshop.png", renderer.render(document, 1920, 1080)));
