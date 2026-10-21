@@ -25,12 +25,24 @@ public final class GeneratedRoads {
         }
     }
 
+    /** The widest band a sweep may take; a route cannot be wider. */
+    public static final int MAX_BREADTH = 32;
+
     /** No RNG consumption; straight service runs plus tangent-controlled junction turns. */
     public static List<Route> routes(boolean[][] road, long seed) {
+        return routes(road, seed, MAX_BREADTH);
+    }
+
+    /**
+     * As {@link #routes(boolean[][], long)}, refusing any band broader than
+     * {@code maxBreadth}: open ground wider than a street keeps its own paving
+     * rather than becoming a square of carriageway.
+     */
+    public static List<Route> routes(boolean[][] road, long seed, int maxBreadth) {
         if (road.length == 0 || road[0].length == 0) return List.of();
         Set<Band> candidates = new LinkedHashSet<>();
-        bands(road, false, candidates);
-        bands(road, true, candidates);
+        bands(road, false, Math.min(maxBreadth, MAX_BREADTH), candidates);
+        bands(road, true, Math.min(maxBreadth, MAX_BREADTH), candidates);
         List<Band> bands = candidates.stream().filter(b -> candidates.stream()
                 .noneMatch(other -> !other.equals(b) && other.contains(b))).toList();
         List<Route> routes = new ArrayList<>();
@@ -67,7 +79,7 @@ public final class GeneratedRoads {
     }
 
     /** Maximal horizontal and vertical rectangles, not the obsolete pre-pruning trunks. */
-    private static void bands(boolean[][] road, boolean transpose, Set<Band> out) {
+    private static void bands(boolean[][] road, boolean transpose, int maxBreadth, Set<Band> out) {
         int length = transpose ? road[0].length : road.length;
         int rows = transpose ? road.length : road[0].length;
         for (int row = 0; row < rows; row++) for (int start = 0; start < length;) {
@@ -79,7 +91,7 @@ public final class GeneratedRoads {
                 while (lo > 0 && full(road, transpose, start, end, lo - 1)) lo--;
                 while (hi + 1 < rows && full(road, transpose, start, end, hi + 1)) hi++;
                 int breadth = hi - lo + 1;
-                if (breadth >= 3 && breadth <= 32 && end - start + 1 >= breadth)
+                if (breadth >= 3 && breadth <= maxBreadth && end - start + 1 >= breadth)
                     out.add(transpose ? new Band(lo, start, hi, end) : new Band(start, lo, end, hi));
             }
             start = end + 1;

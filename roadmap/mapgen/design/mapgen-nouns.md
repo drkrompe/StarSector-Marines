@@ -598,6 +598,23 @@ clearance and layout randomness. It cannot repave a structure, threshold, pad
 or natural obstacle. The generated bands remain the routing authority; their
 visual curves do not replace the vehicle graph or imply new drivable ground.
 
+**A generated city's streets take the same finish.** One closing pass sweeps
+the precinct roads and the city's own street network together, so the town
+around a precinct and the stock Conquest crossroad city share one asphalt.
+The city street is unsurfaced urban paving; its *carriageway* is every such
+cell with no wall or building among its eight neighbours, which is exactly the
+kerb strip the renderer draws beside a frontage. The asphalt stops at that
+kerb. Pedestrian frames, explicit sidewalk flanks, plazas broader than a
+street (nine cells) and lanes too narrow for a sweep (under three) keep their
+paving, which also shows in the corners a round end or a junction turn
+leaves uncovered. The paving is the underlay rather than being replaced: no
+ground kind, surface, walkability, road graph, width or random draw changes,
+so navigation, convoy routing, garrisons and mission map requirements are
+untouched. `-Dbattle.mapgen.cityRoads=false` is the control; it leaves the city
+paved and sweeps only precinct roads. The pavement has no lane markings yet;
+junctions, T-junctions, turns and dead ends are all composed from the sweep
+rather than from tiles, so no piece is missing from the set.
+
 Intersecting carriageways form one paved footprint. The first declared road
 owns material where carriageways overlap, and a shoulder never erases a road.
 Widths and map edges still obey grid quantization. A smooth centerline does not
