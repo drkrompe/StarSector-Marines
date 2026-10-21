@@ -177,9 +177,9 @@ class Rig:
             self.hooves[name] = (cut, ((c[0] - box[0]) * S, (c[1] - box[1]) * S), c)
 
     def pose(self, sk):
-        """Draw one skeleton frame (brute_skeleton) head-up on the rig canvas. Legs go first, under the body:
-        a shank from the hip down to the hoof, and the hoof itself, bigger than the hero drew it, so its
-        claws stand out past the flank and never part from the leg. The body then bends with the
+        """Draw one skeleton frame (brute_skeleton) head-up on the rig canvas. Hooves go on the bottom layer,
+        bigger than the hero drew them, so their claws stand out past the flank; the shank from the hip
+        down to each hoof goes over it, and the body over both. The body then bends with the
         shoulder and hip sway, and the head rides on the shoulders."""
         c = Image.new("RGBA", (CW, CH), (0, 0, 0, 0))
         y0 = sk["y"]
@@ -187,11 +187,18 @@ class Rig:
         def lp(p):   # skeleton (x, y) in cells -> layer px
             return 512 + p[0] * U_LAYER, ANCHOR_Y - (p[1] - y0) * U_LAYER
 
-        for name in ("HL", "HR", "FL", "FR"):
+        ends = {}
+        for name in FEET:
             leg = sk["legs"][name]
-            hip, foot = lp(leg[0]), lp(sk["feet"][name])
-            z = sk["feet"][name][2]
-            a, b = L(*hip), L(*foot)
+            ends[name] = (L(*lp(leg[0])), L(*lp(sk["feet"][name])), sk["feet"][name][2])
+        for name in ("HL", "HR", "FL", "FR"):   # hooves on the bottom layer: shanks and body over them
+            _, b, z = ends[name]
+            img, (ox, oy), _ = self.hooves[name]
+            k = HOOF_SCALE * (1 + 2.5 * z)            # a raised hoof is nearer the camera
+            im = img.resize((max(1, int(img.width * k)), max(1, int(img.height * k))), Image.LANCZOS)
+            c.alpha_composite(im, (int(b[0] - ox * k), int(b[1] - oy * k)))
+        for name in ("HL", "HR", "FL", "FR"):
+            a, b, _ = ends[name]
             shank = self.shanks[name[0]]
             ln = max(1.0, math.hypot(b[0] - a[0], b[1] - a[1]))
             sh_img = shank.resize((shank.width, int(ln + shank.width)), Image.LANCZOS)
@@ -201,10 +208,6 @@ class Rig:
             sh_img = sh_img.rotate(ang, expand=True, resample=Image.BICUBIC)
             mx, my = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
             c.alpha_composite(sh_img, (int(mx - sh_img.width / 2), int(my - sh_img.height / 2)))
-            img, (ox, oy), _ = self.hooves[name]
-            k = HOOF_SCALE * (1 + 2.5 * z)            # a raised hoof is nearer the camera
-            im = img.resize((max(1, int(img.width * k)), max(1, int(img.height * k))), Image.LANCZOS)
-            c.alpha_composite(im, (int(b[0] - ox * k), int(b[1] - oy * k)))
         body = sway_warp(self.body, sk, U_LAYER * S, row0=-PAD, scale=S)
         c.alpha_composite(body)
         (sx, sy), _ = body_offsets(sk)
