@@ -311,8 +311,7 @@ def main():
     step = int(argv[argv.index('--step') + 1]) if '--step' in argv else 24
     target = OUT / 'frames'
     target.mkdir(parents=True, exist_ok=True)
-    for old in target.glob('*.png'):
-        old.unlink()
+    c4.resume_or_clear(scene, target)
     a = round(float(argv[argv.index('--from') + 1]) * c4.FPS) if '--from' in argv else 0
     b = round(float(argv[argv.index('--to') + 1]) * c4.FPS) if '--to' in argv else FRAMES
     frames = range(C4_END + a, C4_END + min(b, FRAMES), step)

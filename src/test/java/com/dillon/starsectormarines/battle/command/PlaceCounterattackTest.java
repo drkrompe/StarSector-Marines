@@ -487,4 +487,49 @@ class PlaceCounterattackTest {
     private static DefenceStructureFact aspect(Kind kind, int x, int y, Faction holder) {
         return new DefenceStructureFact(kind, x, y, holder, D, false, 4, x, y, 0, Family.BATTERY_FORT);
     }
+
+    // ------------------------------------------------------------------------------------------- garrison sortie
+
+    /** Four quiet garrisons standing between home and the place, offered to sortie. */
+    private static List<Body> garrisons() {
+        List<Body> out = new ArrayList<>();
+        for (int i = 0; i < 4; i++) out.add(squad(40 + i, 80 + 10 * i, 120));
+        return out;
+    }
+
+    /** Two pulses with no mobile pool at all, a watcher on the place, and the garrisons offered to sortie. */
+    private static Result sortiePulses(PlaceCounterattack counter, List<Place> places) {
+        List<int[]> watchers = List.of(new int[] {PX, PY + 10});
+        counter.plan(0, places, KEEP, holders(6), watchers, Losses.NONE, List.of(), List.of(), garrisons(), 0, 0,
+                topology);
+        return counter.plan(75, places, KEEP, holders(6), watchers, Losses.NONE, List.of(), List.of(), garrisons(), 0,
+                0, topology);
+    }
+
+    @Test
+    void quietGarrisonsAnswerALostPlaceWhenTheMobilePoolHasNothingLeft() {
+        PlaceCounterattack counter = new PlaceCounterattack();
+        Result result = sortiePulses(counter, lost());
+        assertEquals(Stage.MUSTER, counter.stage(), String.join("\n", result.notes()));
+        assertFalse(result.recruited().isEmpty(), "the muster draws on the garrisons");
+        for (int id : result.recruited()) assertTrue(id >= 40 && id < 44, "only the offered garrisons are recruited");
+    }
+
+    @Test
+    void noGarrisonSortiesWithTheSwitchOffOrForAPlaceThatStillHolds() {
+        boolean before = PlaceCounterattack.garrisonSortie;
+        try {
+            PlaceCounterattack.garrisonSortie = false;
+            PlaceCounterattack off = new PlaceCounterattack();
+            Result control = sortiePulses(off, lost());
+            assertNull(off.stage(), "with no pool and no sortie there is nothing to counter-attack with");
+            assertTrue(control.recruited().isEmpty());
+        } finally {
+            PlaceCounterattack.garrisonSortie = before;
+        }
+        PlaceCounterattack held = new PlaceCounterattack();
+        Result waiting = sortiePulses(held, List.of(place(Status.HELD, true)));
+        assertNull(held.stage(), "a garrison never waits behind a place that still holds");
+        assertTrue(waiting.recruited().isEmpty());
+    }
 }

@@ -43,6 +43,16 @@ it surfaces across the Persean Sector from time to time as a recurring problem
 rather than a war with a front: a mining colony goes quiet, a relief call comes
 in, and somebody's company is paid to get people out.
 
+**Name.** It is **the Rav Bloom** (owner, 2026-10-21): the weapon and an outbreak
+of it. **Ravager Bloom** is the older, fuller form, rare. Spacers call an
+outbreak **a bloom**, understated like weather ("There's been a bloom on
+Asharu"), and the bodies are **ravs**, talked about as monsters rather than as a
+weapon. "the swarm" stays the lowercase generic word in mission UI. The Bloom is
+whispered but known: few have seen one, almost everyone knows of a colony that
+went quiet. "Bloom" carries red-tide imagery without fixing a colour; art decides
+that. A spacer rumour says it was a sporeship payload turned into a weapon; under
+the maker rule below it stays rumour.
+
 Consequences that the design keeps:
 
 - **It is a system, not a society.** No diplomacy, no faction relations, no
@@ -54,7 +64,8 @@ Consequences that the design keeps:
   across the campaign, are never "defeated" for good, and a collapsed mother
   bore ends an outbreak, not the weapon.
 - **Who made it is a question, not an answer.** Briefings and radio may
-  speculate (Domain denial programme, a Tri-Tachyon-era leak, something older);
+  speculate (Domain denial programme, a Tri-Tachyon-era leak, a sporeship payload,
+  something older);
   no text states the maker as fact.
 
 Names, the life cycle in in-world terms, each faction's view and the tone and

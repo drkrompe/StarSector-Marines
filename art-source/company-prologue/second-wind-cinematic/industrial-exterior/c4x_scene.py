@@ -1857,13 +1857,23 @@ def main():
             print('C4X_FRAME', f, flush=True)
         return
     # One animation job: the scene is synced once and kept between frames.
-    for old in target.glob('*.png'):
-        old.unlink()
+    resume_or_clear(scene, target)
     scene.frame_start, scene.frame_end, scene.frame_step = frames.start, frames.stop - 1, frames.step
     scene.render.filepath = str(target / 'f#####')
     bpy.ops.render.render(animation=True)
     for i, f in enumerate(frames):            # a contiguous sequence for ffmpeg, whatever the step
         (target / ('f%05d.png' % f)).rename(target / ('%05d.png' % i))
+
+
+def resume_or_clear(scene, target):
+    """CINE_RESUME=1 (queued finals): keep the frames a stopped run already wrote and skip them, so a
+    chunk swapped out by the render queue picks up where it stopped. Otherwise start clean."""
+    if os.environ.get('CINE_RESUME', '0') == '1':
+        scene.render.use_overwrite = False
+        scene.render.use_placeholder = True
+        return
+    for old in target.glob('*.png'):
+        old.unlink()
 
 
 if __name__ == '__main__':
