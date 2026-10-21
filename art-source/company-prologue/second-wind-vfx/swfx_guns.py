@@ -835,7 +835,7 @@ def _hull_glow(k):
 def _mg(**kw):
     w = dict(energy=False, burst=5, burst_delay=.1, cooldown=.4, barrels='alternating', spread=.0035,
              flash=(1.0, .5, .2), flash_tint=None, flash_size=(1.0, 1.0, 1.0), flash_light=(255, 240, 165),
-             cloud=dict(rgb=(255, 240, 165), r=(.35, 1.1), frames=4, peak=4.0),
+             cloud=dict(rgb=(255, 240, 165), r=(.35, 1.1), frames=4, peak=2),
              round=dict(speed=450, range=350, length=8.0, core=.09, corona=.32, fringe=(240, 220, 220),
                         hot=(245, 245, 245), core_gain=22, corona_gain=1.6),
              puff=True, brass=True)
@@ -847,7 +847,7 @@ def _ac(**kw):
     w = dict(energy=False, burst=1, burst_delay=0, cooldown=.5, barrels='alternating', spread=.003,
              flash=(1.0, .55, .25, .1), flash_tint=(165, 225, 185), flash_size=(1.25, 1.35, 1.35),
              flash_light=(165, 225, 185),
-             cloud=dict(rgb=(165, 225, 185), r=(.8, 2.6), frames=5, peak=4.0),
+             cloud=dict(rgb=(165, 225, 185), r=(.8, 2.6), frames=5, peak=2),
              round=dict(speed=360, range=600, length=2.6, core=.14, corona=.9, fringe=(235, 255, 215),
                         hot=(225, 255, 200), glow=(120, 235, 150), core_gain=14, corona_gain=3.5),
              puff=True, brass=True)
@@ -863,18 +863,18 @@ WEAPONS = {
     # Vulcan: twin barrels alternating at 20 rounds/s, pale gold; the two streams cross
     # (braid, metres to the crossing) so the stream zig-zags.
     'vulcan': _mg(name='Vulcan Cannon', burst=1, burst_delay=0, cooldown=.05, braid=60.0, flash=(1.0, .4), puff=False,
-                  cloud=dict(rgb=(255, 240, 165), r=(.3, .9), frames=3, peak=3.5),
+                  cloud=dict(rgb=(255, 240, 165), r=(.3, .9), frames=3, peak=1.75),
                   round=dict(speed=480, range=300, length=7.0, core=.08, corona=.28, fringe=(240, 220, 180),
                              hot=(245, 245, 225), core_gain=22, corona_gain=1.6)),
     # Autocannons: visible green-white shells with a broad pale-green flash.
     'lightac': _ac(name='Light Autocannon'),
     'heavyac': _ac(name='Heavy Autocannon', burst=3, burst_delay=.2, cooldown=1.0, flash_size=(1.5, 1.6, 1.6),
-                   cloud=dict(rgb=(165, 225, 185), r=(1.2, 3.6), frames=4, peak=4.0),
+                   cloud=dict(rgb=(165, 225, 185), r=(1.2, 3.6), frames=4, peak=2),
                    round=dict(speed=380, range=800, length=3.6, core=.2, corona=1.2, fringe=(235, 255, 215),
                               hot=(225, 255, 205), glow=(120, 235, 150), core_gain=14, corona_gain=3.5)),
     # Mark IX: the four-round slam every 2 s.
     'mark9': _ac(name='Mark IX Autocannon', burst=4, burst_delay=.1, cooldown=2.0, flash=(1.0, .55, .22, .08),
-                 flash_size=(1.4, 1.5, 1.5), cloud=dict(rgb=(165, 225, 185), r=(1.4, 4.2), frames=4, peak=4.0),
+                 flash_size=(1.4, 1.5, 1.5), cloud=dict(rgb=(165, 225, 185), r=(1.4, 4.2), frames=4, peak=2),
                  round=dict(speed=400, range=800, length=3.8, core=.22, corona=1.3, fringe=(235, 255, 215),
                             hot=(225, 255, 205), glow=(120, 235, 150), core_gain=14, corona_gain=3.5)),
     # Hellbore: one heavy HE slug every 3 s, slow, orange-white in a 60-unit glow; the game's
@@ -883,25 +883,25 @@ WEAPONS = {
                      barrels='alternating', spread=.001,
                      flash=(1.0, .85, .65, .48, .34, .24, .16, .1, .06), flash_tint=(255, 120, 50),
                      flash_size=(1.5, 1.6, 1.6), flash_light=(255, 120, 50), flash_light_gain=4.0,
-                     cloud=dict(rgb=(255, 120, 50), r=(2.0, 9.0), frames=18, peak=5.0),
+                     cloud=dict(rgb=(255, 120, 50), r=(2.0, 9.0), frames=18, peak=1.4),
                      round=dict(speed=170, range=900, length=5.5, core=.6, corona=1.9, fringe=(255, 165, 30),
-                                hot=(255, 255, 255), core_gain=18, corona_gain=3.0, light=40000,
-                                halo=dict(r=5.0, peak=2.5)),
+                                hot=(255, 225, 160), core_gain=9, corona_gain=1.4, light=40000,
+                                halo=dict(r=5.0, peak=.7)),
                      puff=True, brass=False),
     # High explosive: orange shells.
     'lightag': _ac(name='Light Assault Gun', cooldown=.25, flash=(1.0, .6, .35, .18, .08), flash_tint=(255, 155, 105),
                    flash_size=(1.1, 1.2, 1.2), flash_light=(255, 155, 105),
-                   cloud=dict(rgb=(255, 155, 105), r=(.7, 2.4), frames=8, peak=4.0),
+                   cloud=dict(rgb=(255, 155, 105), r=(.7, 2.4), frames=8, peak=2),
                    round=dict(speed=380, range=600, length=3.0, core=.15, corona=.6, fringe=(255, 200, 70),
                               hot=(255, 235, 210), core_gain=16, corona_gain=2.2)),
     'chaingun': _mg(name='Assault Chaingun', burst=1, burst_delay=0, cooldown=.15, flash_size=(1.5, .8, .8),
-                    cloud=dict(rgb=(255, 240, 165), r=(.5, 1.4), frames=4, peak=4.0),
+                    cloud=dict(rgb=(255, 240, 165), r=(.5, 1.4), frames=4, peak=2),
                     round=dict(speed=420, range=450, length=5.0, core=.12, corona=.45, fringe=(255, 200, 70),
                                hot=(255, 230, 200), core_gain=18, corona_gain=2.0)),
     # Needler: 15-round bursts 0.05 s apart, long white needles, much the fastest round.
     'lightneedler': _mg(name='Light Needler', burst=15, burst_delay=.05, cooldown=4.3, spread=.002, flash=(1.0, .3),
                         flash_tint=(255, 255, 255), flash_size=(1.4, .55, .55), flash_light=(255, 255, 255),
-                        cloud=dict(rgb=(255, 255, 255), r=(.3, .9), frames=5, peak=3.0),
+                        cloud=dict(rgb=(255, 255, 255), r=(.3, .9), frames=5, peak=1.5),
                         round=dict(speed=900, range=700, length=22.0, core=.05, corona=.16, fringe=(255, 255, 255),
                                    hot=(255, 255, 255), core_gain=25, corona_gain=1.2),
                         brass=False),
@@ -909,7 +909,7 @@ WEAPONS = {
     'ioncannon': dict(name='Ion Cannon', energy=True, burst=1, burst_delay=0, cooldown=0.0, chargeup=.5,
                       barrels='alternating', spread=.002, flash=(1.0, .4, .12), flash_tint=(100, 200, 255),
                       flash_size=(1.0, 1.0, 1.0), flash_light=(100, 200, 255),
-                      cloud=dict(rgb=(100, 200, 255), r=(.5, 1.6), frames=3, peak=4.0),
+                      cloud=dict(rgb=(100, 200, 255), r=(.5, 1.6), frames=3, peak=2),
                       charge=dict(rgb=(100, 200, 255), r=(.4, 2.0), peak=6.0, light=6000),
                       round=dict(speed=700, range=500, length=30.0, core=.22, corona=1.3, fringe=(25, 100, 155),
                                  hot=(225, 225, 255), core_gain=20, corona_gain=2.5, jag=True, light=8000,
@@ -919,7 +919,7 @@ WEAPONS = {
     'miningblaster': dict(name='Mining Blaster', energy=True, burst=1, burst_delay=0, cooldown=.2,
                           barrels='alternating', spread=.002, flash=(1.0, .45, .15), flash_tint=(255, 100, 100),
                           flash_size=(1.25, 1.4, 1.4), flash_light=(255, 100, 100),
-                          cloud=dict(rgb=(255, 100, 100), r=(.6, 2.0), frames=3, peak=4.0),
+                          cloud=dict(rgb=(255, 100, 100), r=(.6, 2.0), frames=3, peak=2),
                           round=dict(speed=600, range=500, length=9.0, core=.35, corona=1.6, fringe=(255, 100, 100),
                                      hot=(255, 255, 255), core_gain=22, corona_gain=3.0, light=10000,
                                      light_rgb=(255, 60, 60)),
@@ -927,7 +927,7 @@ WEAPONS = {
     'heavyblaster': dict(name='Heavy Blaster', energy=True, burst=1, burst_delay=0, cooldown=1.0,
                          barrels='alternating', spread=.002, flash=(1.0, .45, .15), flash_tint=(100, 100, 255),
                          flash_size=(1.25, 1.4, 1.4), flash_light=(100, 100, 255),
-                         cloud=dict(rgb=(100, 100, 255), r=(.6, 2.0), frames=3, peak=4.0),
+                         cloud=dict(rgb=(100, 100, 255), r=(.6, 2.0), frames=3, peak=2),
                          round=dict(speed=600, range=600, length=9.0, core=.4, corona=1.8, fringe=(100, 100, 255),
                                     hot=(255, 255, 255), core_gain=22, corona_gain=3.0, light=12000,
                                     light_rgb=(100, 100, 255)),
@@ -1168,6 +1168,7 @@ def _charge(ctx, a, frame, frames, w):
     _visible_between(ob, f0, frame - 1)
     light = swfx_core.point_light(f'{PREFIX} charge light {label} f{frame:04d}', coll, rgb, 0.0,
                                   radius=swfx_core.units(r1 * .5))
+    light.visible_camera = False      # a light with a radius is a sphere the camera sees
     swfx_core.attach(light, a.empty, local=(swfx_core.units(.2), 0, 0))
     _bake(light.data, 'energy', -1, [f0 - 1] + fr + [frame], [0.0] + [_hull_watts(spec['light']) * v for v in fade] + [0.0])
     return ob.name
@@ -1461,6 +1462,7 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
         light = swfx_core.point_light(f'{PREFIX} round light {label} f{frame:04d}', coll,
                                       _lin(r.get('light_rgb', r['fringe'])), 0.0,
                                       radius=swfx_core.units(r['corona']))
+        light.visible_camera = False
         for i in range(3):
             _bake(light, 'location', i, frames, [(M @ (d * (hh - L * .3)))[i] for hh in heads])
         _bake(light.data, 'energy', -1, [frame - 1] + frames + [frame + life + 1],
@@ -1523,6 +1525,7 @@ def emp_arcs(ctx, frame, paths, frames=8, rgb=(140, 200, 255), seed=0, light=300
                 ob.hide_render = True
     if paths:
         lt = swfx_core.point_light(f'{PREFIX} emp light f{frame:04d}', coll, lin, 0.0, radius=swfx_core.units(.5))
+        lt.visible_camera = False
         lt.location = Vector(paths[0][0])
         _bake(lt.data, 'energy', -1, [frame - 1] + [frame + j for j in range(frames)] + [frame + frames],
               [0.0] + [_hull_watts(light) * rnd.uniform(.3, 1.0) for _ in range(frames)] + [0.0])
@@ -1542,12 +1545,12 @@ def _feeder_material(ctx, knob):
     gx, _, _ = g.xyz(tc.outputs['Generated'])
     lw = nodes.new('ShaderNodeLayerWeight')
     lw.inputs['Blend'].default_value = .5
-    facing = g.pow(g.clamp01(g.sub(1.0, lw.outputs['Facing'])), 1.2)
+    facing = g.add(.35, g.mul(g.pow(g.clamp01(g.sub(1.0, lw.outputs['Facing'])), 1.2), .65))
     on = swfx_core.value_node(ctx, nodes, 'feeder', knob, (knob,))
     ends = g.mul(g.smooth(0.0, .2, gx), g.sub(1.0, g.smooth(.85, 1.0, gx)))
     em = nodes.new('ShaderNodeEmission')
     em.inputs['Color'].default_value = (*_lin(FEEDER_RGB), 1)
-    links.new(g.mul(g.mul(g.mul(facing, ends), on), 14.0), em.inputs['Strength'])
+    links.new(g.mul(g.mul(g.mul(facing, ends), on), 6.0), em.inputs['Strength'])
     tr = nodes.new('ShaderNodeBsdfTransparent')
     add = nodes.new('ShaderNodeAddShader')
     links.new(tr.outputs[0], add.inputs[0])
@@ -1573,13 +1576,14 @@ def feeder(ctx, turret, start_frame, end_frame, ramp_frames=6, light=2500.0):
             continue
         s = a.scale
         ob = bpy.data.objects.new(f'{PREFIX} feeder {gun_label(a)}',
-                                  _cylinder_mesh(f'{PREFIX} feeder mesh t{turret}', .75, -6.0, -.2, 12, mat))
+                                  _cylinder_mesh(f'{PREFIX} feeder mesh t{turret}', 1.5, -6.0, -.2, 12, mat))
         coll.objects.link(ob)
         swfx_core.attach(ob, a.empty)
         ob.scale = (s, s, s)
         ob.visible_shadow = False
         lt = swfx_core.point_light(f'{PREFIX} feeder light {gun_label(a)}', coll, _lin(FEEDER_RGB), 0.0,
                                    radius=.6 * s)
+        lt.visible_camera = False
         swfx_core.attach(lt, a.empty, local=(-3.0 * s, 0, .8 * s))
         ctx.drive(lt.data, 'energy', f'{knob}*{_hull_watts(light):g}', (knob,))
         names += [ob.name, lt.name]
