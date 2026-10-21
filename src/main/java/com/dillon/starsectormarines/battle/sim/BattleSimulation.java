@@ -1643,6 +1643,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public boolean setCivilianHoldoutLine(int number, int lineSquadId, TacticalNode building) {
         return civilianEvacuationSystem.setHoldoutLine(number, lineSquadId, building);
     }
+    /** Widens a redoubt's ground to its works; see {@link CivilianEvacuationSystem#setRedoubtGround}. */
+    public boolean setCivilianRedoubtGround(int number, int left, int top, int right, int bottom) {
+        return civilianEvacuationSystem.setRedoubtGround(number, left, top, right, bottom);
+    }
     @Override
     public List<CivilianRedoubt> getCivilianRedoubts() {
         return civilianEvacuationSystem.redoubts();

@@ -154,7 +154,9 @@ public final class ColonyRedoubts {
         long gun = works.gunX() >= 0
                 ? ColonyMilitia.seatEmplacement(sim, new int[]{works.gunX(), works.gunY()}, "redoubt-gun-" + number)
                 : 0L;
-        int line = seatLine(sim, works, index, risk, militiaRng);
+        int line = seatLine(sim, works.step(), works.gateX(), works.gateY(),
+                works.left(), works.top(), works.right(), works.bottom(),
+                "Redoubt Line " + (index + 1), "man the redoubt's firing step", risk, militiaRng);
         // Relief arrives at the gate: a Marine in it has reached the redoubt, and its people walk out through it.
         int registered = sim.addCivilianHoldout(works.gateX(), works.gateY(),
                 works.left(), works.top(), works.right(), works.bottom(), garrisonSquadId, members);
@@ -164,15 +166,18 @@ public final class ColonyRedoubts {
     }
 
     /**
-     * The line: a militia fireteam on the works' firing step, the bags nearest
-     * the gate first, ordered to man the step's run the way a commander mans a
-     * stretch of trench, its claims kept to the run.
+     * A line: a militia fireteam on a firing step, the bags nearest the gate
+     * first, ordered to man the step's run the way a commander mans a stretch
+     * of trench, its claims kept to the run. Returns its squad, or {@code -1}
+     * when the step is too short to seat it.
      */
-    private static int seatLine(BattleSimulation sim, RedoubtWorks.Plan works, int index, RiskLevel risk, Random rng) {
-        if (works.step().size() < ColonyMilitia.POST_SIZE) return -1;
-        List<RedoubtWorks.Bag> bags = new ArrayList<>(works.step());
+    static int seatLine(BattleSimulation sim, List<RedoubtWorks.Bag> step, int gateX, int gateY,
+                        int left, int top, int right, int bottom, String name, String reason,
+                        RiskLevel risk, Random rng) {
+        if (step.size() < ColonyMilitia.POST_SIZE) return -1;
+        List<RedoubtWorks.Bag> bags = new ArrayList<>(step);
         bags.sort(Comparator.comparingInt((RedoubtWorks.Bag b) ->
-                Math.abs(b.x() - works.gateX()) + Math.abs(b.y() - works.gateY())));
+                Math.abs(b.x() - gateX) + Math.abs(b.y() - gateY)));
         List<int[]> cells = new ArrayList<>();
         // Every other bag nearest the gate, so the team spreads along the step rather than bunching on it.
         for (int i = 0; i < bags.size() && cells.size() < ColonyMilitia.POST_SIZE; i += 2) {
@@ -181,14 +186,14 @@ public final class ColonyRedoubts {
         for (int i = 1; i < bags.size() && cells.size() < ColonyMilitia.POST_SIZE; i += 2) {
             cells.add(new int[]{bags.get(i).x(), bags.get(i).y()});
         }
-        int squadId = ColonyMilitia.seatTeam(sim, cells, "Redoubt Line " + (index + 1), risk, rng);
-        RedoubtWorks.Bag first = works.step().get(0);
+        int squadId = ColonyMilitia.seatTeam(sim, cells, name, risk, rng);
+        RedoubtWorks.Bag first = bags.get(0);
         int run = sim.fightingPositions().runIdAt(first.x(), first.y());
-        int centreX = (works.left() + works.right()) / 2, centreY = (works.top() + works.bottom()) / 2;
-        int radius = Math.max(works.right() - works.left(), works.bottom() - works.top()) / 2 + 2;
+        int centreX = (left + right) / 2, centreY = (top + bottom) / 2;
+        int radius = Math.max(right - left, bottom - top) / 2 + 2;
         if (run >= 0) {
             sim.assignSquadCommand(ObjectiveAssignment.defendRun(squadId, centreX, centreY, radius, run),
-                    CommandAuthority.GARRISON, ColonyMilitia.ISSUER, "man the redoubt's firing step");
+                    CommandAuthority.GARRISON, ColonyMilitia.ISSUER, reason);
         }
         return squadId;
     }

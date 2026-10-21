@@ -102,7 +102,8 @@ public final class CivilianEvacuationSystem {
     static final int FALL_PERIMETER = 1;
 
     private static final class Redoubt {
-        final int number, approachX, approachY, left, top, right, bottom;
+        final int number, approachX, approachY;
+        int left, top, right, bottom;
         int garrisonSquadId;
         /** The team on the yard's firing step, or {@code -1}; it falls back to {@link #building} once the yard is entered. */
         int lineSquadId = -1;
@@ -190,10 +191,24 @@ public final class CivilianEvacuationSystem {
      * the line is down, so a perimeter that breaks is seen to be pushed back.
      */
     public boolean setHoldoutLine(int number, int lineSquadId, TacticalNode building) {
-        if (number < 2 || number > redoubts.size() || building == null) return false;
+        if (number < 1 || number > redoubts.size() || building == null) return false;
         Redoubt holdout = redoubts.get(number - 1);
         holdout.lineSquadId = lineSquadId;
         holdout.building = building;
+        return true;
+    }
+
+    /**
+     * Widens a redoubt's ground to the works round it, so its line's fall
+     * back and its fall are read against the works rather than the building.
+     */
+    public boolean setRedoubtGround(int number, int left, int top, int right, int bottom) {
+        if (number < 1 || number > redoubts.size() || left > right || top > bottom) return false;
+        Redoubt redoubt = redoubts.get(number - 1);
+        redoubt.left = left;
+        redoubt.top = top;
+        redoubt.right = right;
+        redoubt.bottom = bottom;
         return true;
     }
 
@@ -357,6 +372,8 @@ public final class CivilianEvacuationSystem {
         int tick = sim.getSimTickIndex();
         for (int r = 0; r < redoubts.size(); r++) {
             Redoubt redoubt = redoubts.get(r);
+            // A line holds its works whether or not its people have gone: the fight there is the redoubt's own.
+            if (redoubt.fellTick < 0) holdLine(redoubt, sim, tick);
             if (redoubt.releasedTick >= 0 || redoubt.fellTick >= 0) continue;
             if (abandoned || marineWithin(redoubt.approachX, redoubt.approachY, RELIEF_TRIGGER_RADIUS, sim)) {
                 redoubt.releasedTick = tick;
@@ -374,12 +391,6 @@ public final class CivilianEvacuationSystem {
             Squad line = redoubt.lineSquadId >= 0 ? sim.getSquad(redoubt.lineSquadId) : null;
             boolean garrisonAlive = (garrison != null && garrison.aliveMembers > 0)
                     || (line != null && line.aliveMembers > 0);
-            if (line != null && redoubt.lineBrokeTick < 0 && line.aliveMembers > 0
-                    && (line.aliveMembers * 2 <= line.originalSize || swarmInYard(redoubt, sim))) {
-                redoubt.lineBrokeTick = tick;
-                sim.assignSquadCommand(ObjectiveAssignment.holdNode(line.id, redoubt.building),
-                        CommandAuthority.GARRISON, ColonyMilitia.ISSUER, "fall back into the building");
-            }
             if (sealedAlive == 0 || (!garrisonAlive && swarmAtWalls(redoubt, sim))) {
                 redoubt.fellTick = tick;
                 for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
@@ -388,6 +399,20 @@ public final class CivilianEvacuationSystem {
                 }
             }
         }
+    }
+
+    /**
+     * Pushes a redoubt's line off its works into the building once a swarm
+     * body is inside them or half the line is down. Once, and never back out.
+     */
+    private static void holdLine(Redoubt redoubt, BattleSimulation sim, int tick) {
+        if (redoubt.lineSquadId < 0 || redoubt.lineBrokeTick >= 0) return;
+        Squad line = sim.getSquad(redoubt.lineSquadId);
+        if (line == null || line.aliveMembers <= 0) return;
+        if (line.aliveMembers * 2 > line.originalSize && !swarmInYard(redoubt, sim)) return;
+        redoubt.lineBrokeTick = tick;
+        sim.assignSquadCommand(ObjectiveAssignment.holdNode(line.id, redoubt.building),
+                CommandAuthority.GARRISON, ColonyMilitia.ISSUER, "fall back into the building");
     }
 
     /** Whether a swarm body stands inside a holdout's barricade: the perimeter has been broken or the gate rushed. */

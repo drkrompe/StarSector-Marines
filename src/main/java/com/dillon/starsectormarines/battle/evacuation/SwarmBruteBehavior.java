@@ -27,8 +27,9 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
  * into a bunker until something else has worn it down.
  *
  * <p>A barricade is broken the same way. When its prey stands in the open but
- * behind a fence, a crate stack or any other destructible cover prop that
- * closes the ground between them (a redoubt's perimeter, a fenced yard), the
+ * behind a fence, a crate stack, any other destructible cover prop or a light
+ * free-standing wall that closes the ground between them (a redoubt's works, a
+ * colony compound's curtain, a fenced yard), the
  * Brute strikes the nearest light piece that stands between and goes through,
  * rather than walking round to the gate the Runners crowd into.
  */
@@ -255,6 +256,7 @@ final class SwarmBruteBehavior {
      */
     static BreachPoint barricadeToward(long brute, long target, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
+        CellTopology topology = sim.getTopology();
         int bruteX = sim.world().cellX(brute), bruteY = sim.world().cellY(brute);
         int preyX = sim.world().cellX(target), preyY = sim.world().cellY(target);
         int reach = BREACH_SEARCH_RADIUS * 2;
@@ -267,7 +269,10 @@ final class SwarmBruteBehavior {
             for (int x = bruteX - BREACH_SEARCH_RADIUS; x <= bruteX + BREACH_SEARCH_RADIUS; x++) {
                 if (!grid.inBounds(x, y) || grid.isWalkable(x, y)) continue;
                 int hp = grid.getWallHp(x, y);
-                if (hp <= 0 || hp > LIGHT_WALL_HP || !sim.isBarricadeAt(x, y)) continue;
+                if (hp <= 0 || hp > LIGHT_WALL_HP) continue;
+                // A barricade prop, or a free-standing wall such as a compound's curtain: no building's own wall.
+                boolean freeWall = (topology.isWall(x, y) || topology.isWindow(x, y)) && freeStanding(x, y, grid, topology);
+                if (!freeWall && !sim.isBarricadeAt(x, y)) continue;
                 for (Direction d : Direction.CARDINALS) {
                     int nearX = x - d.dx, nearY = y - d.dy, farX = x + d.dx, farY = y + d.dy;
                     if (!grid.inBounds(nearX, nearY) || !grid.inBounds(farX, farY)
@@ -284,6 +289,16 @@ final class SwarmBruteBehavior {
             }
         }
         return best;
+    }
+
+    /** Whether a wall cell belongs to no building: neither it nor any cell beside it is a building's. */
+    private static boolean freeStanding(int x, int y, NavigationGrid grid, CellTopology topology) {
+        for (int ny = y - 1; ny <= y + 1; ny++) {
+            for (int nx = x - 1; nx <= x + 1; nx++) {
+                if (grid.inBounds(nx, ny) && topology.getBuildingId(nx, ny) != 0) return false;
+            }
+        }
+        return true;
     }
 
     /** Whether a cell that cannot be walked lies on the straight line between two cells. */

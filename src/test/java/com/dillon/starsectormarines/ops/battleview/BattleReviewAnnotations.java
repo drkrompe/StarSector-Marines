@@ -89,8 +89,14 @@ public final class BattleReviewAnnotations {
         int shelter = CivilianEvacuationPlacement.SHELTER_ZONE_RADIUS;
         List<CivilianRedoubt> redoubts = simulation.getCivilianRedoubts();
         boolean several = redoubts.size() > 1;
-        marks.box(sx - shelter, sy - shelter, sx + shelter, sy + shelter,
-                several ? "REDOUBT 1 · SHELTER" : "SHELTER", ReviewStyle.OBJECTIVE);
+        // The main redoubt's ground: the shelter's zone, or the compound walled round it.
+        CivilianRedoubt main = redoubts.isEmpty() ? null : redoubts.get(0);
+        if (main != null) {
+            marks.box(main.left(), main.top(), main.right(), main.bottom(),
+                    several ? "REDOUBT 1 · SHELTER" : "SHELTER", ReviewStyle.OBJECTIVE);
+        } else {
+            marks.box(sx - shelter, sy - shelter, sx + shelter, sy + shelter, "SHELTER", ReviewStyle.OBJECTIVE);
+        }
         for (CivilianRedoubt redoubt : redoubts) {
             if (redoubt.isMain()) continue;
             String state = redoubt.fallen() ? "FALLEN" : redoubt.released() ? "reached" : "holding";
