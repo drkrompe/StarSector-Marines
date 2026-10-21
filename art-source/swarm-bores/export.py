@@ -12,14 +12,14 @@ sprite carries its own shadow and the reskin never has to paint one.
 Each variant also gets a ``-glow`` layer: the reskin's own warm amber pixels lifted out by colour, drawn over
 the body with a pulse, so the nodes and the heat in a pit breathe while the chitin stays still.
 
-``--palette chitin`` recolours the creature materials (chitin, sinew, bone, flesh, sac; read from the guide's
-material map, so thrown earth and paving keep their colours) to the Rav Bloom chitin proposal by a luminance
-gradient map, and writes under ``build/swarm-bores/chitin/`` instead of the mod: a preview of the recolour,
-not a shipped palette, until the creature redesign lands.
+``--palette purple`` (or ``chitin``) recolours the creature materials (chitin, sinew, bone, flesh, sac; read from
+the guide's material map, so thrown earth and paving keep their colours) to a proposed creature palette by
+luminance gradient maps, and writes under ``build/swarm-bores/<palette>/`` instead of the mod: a preview of the
+recolour, not a shipped palette, until the creature redesign settles.
 
 Prints the silhouette IoU of each raw against its guide (the registration check) and the glow coverage.
 
-Run from the repository root: ``python art-source/swarm-bores/export.py [--palette runner|chitin]``.
+Run from the repository root: ``python art-source/swarm-bores/export.py [--palette runner|purple|chitin]``.
 """
 
 import argparse
@@ -61,6 +61,45 @@ CHITIN_RAMP = [
 # A shaft's lining keeps its own value, so its lit far wall still reads as depth; only its hue goes to umber.
 FLESH_TINT = (1.0, 0.80, 0.62)
 CHITIN_AMBER = (0xff, 0xa8, 0x36)
+
+# Rav Bloom round 3 (purples): ramps sampled from the round-3 Runner plates (rav-redesign
+# `rounds/round-3/raw/c1-c4`), by luminance. Violet and plum carapace running up to ivory blade highlights;
+# magenta-crimson sinew for roots and a shaft's lining.
+PURPLE_RAMP = [
+    (0, (6, 3, 7)),
+    (20, (21, 11, 21)),
+    (40, (42, 26, 43)),
+    (60, (62, 40, 65)),
+    (80, (83, 57, 88)),
+    (100, (105, 75, 111)),
+    (120, (126, 95, 133)),
+    (140, (147, 114, 155)),
+    (165, (180, 150, 170)),
+    (195, (205, 188, 184)),
+    (220, (226, 208, 198)),
+    (245, (242, 232, 226)),
+    (255, (251, 246, 243)),
+]
+PURPLE_SINEW = [
+    (0, (8, 2, 4)),
+    (20, (28, 5, 9)),
+    (40, (56, 17, 26)),
+    (60, (86, 31, 43)),
+    (80, (115, 46, 60)),
+    (100, (142, 63, 79)),
+    (120, (166, 80, 98)),
+    (140, (190, 96, 120)),
+    (160, (213, 112, 143)),
+    (255, (240, 170, 195)),
+]
+PURPLE_AMBER = (0xf2, 0x9a, 0x3c)
+
+# palette -> (creature ramp, sinew ramp or None, materials the sinew ramp takes, amber). Without a sinew ramp a
+# shaft's lining keeps its value and only takes FLESH_TINT.
+PALETTES = {
+    "chitin": (CHITIN_RAMP, None, (make_guide.FLESH,), CHITIN_AMBER),
+    "purple": (PURPLE_RAMP, PURPLE_SINEW, (make_guide.FLESH, make_guide.UNDER), PURPLE_AMBER),
+}
 
 
 def edge_px(part: str) -> int:
@@ -120,28 +159,42 @@ def glow(layer: Image.Image) -> Image.Image:
     return out
 
 
-def chitin(body: Image.Image, materials: np.ndarray) -> Image.Image:
-    """Recolours the creature materials to the chitin proposal by a luminance gradient map; amber stays amber."""
+def gradient(lum: np.ndarray, ramp) -> np.ndarray:
+    xs = [p for p, _ in ramp]
+    return np.dstack([np.interp(lum, xs, [c[i] for _, c in ramp]) for i in range(3)])
+
+
+def soft_mask(materials: np.ndarray, which) -> np.ndarray:
+    hit = np.isin(materials, which).astype(np.uint8) * 255
+    return np.asarray(Image.fromarray(hit).filter(ImageFilter.GaussianBlur(1.0)), np.float32)[..., None] / 255
+
+
+def recolour(body: Image.Image, materials: np.ndarray, palette: str) -> Image.Image:
+    """Recolours the creature materials to a proposed creature palette by luminance gradient maps; amber stays amber.
+
+    Earth and paving are not creature and keep their colours.
+    """
+    ramp, sinew_ramp, sinew_materials, amber_colour = PALETTES[palette]
     arr = np.asarray(body).astype(np.float32)
     lum = 0.299 * arr[..., 0] + 0.587 * arr[..., 1] + 0.114 * arr[..., 2]
-    xs = [p for p, _ in CHITIN_RAMP]
-    mapped = np.dstack([np.interp(lum, xs, [c[i] for _, c in CHITIN_RAMP]) for i in range(3)])
-    creature = np.isin(materials, make_guide.CREATURE)
-    creature = np.asarray(Image.fromarray(creature.astype(np.uint8) * 255).filter(ImageFilter.GaussianBlur(1.0)),
-                          np.float32)[..., None] / 255
     amber = amber_weight(arr.astype(np.uint8))[..., None]
-    target = mapped * (1 - amber) + (np.array(CHITIN_AMBER, np.float32) * np.clip(lum[..., None] / 200, 0.6, 1.2)) * amber
-    flesh = np.asarray(Image.fromarray((materials == make_guide.FLESH).astype(np.uint8) * 255).filter(
-        ImageFilter.GaussianBlur(1.0)), np.float32)[..., None] / 255
-    umber = np.clip(lum[..., None] * 0.9 * np.array(FLESH_TINT, np.float32), 0, 255)
-    target = target * (1 - flesh) + (umber * (1 - amber) + target * amber) * flesh
+    glowing = np.array(amber_colour, np.float32) * np.clip(lum[..., None] / 200, 0.6, 1.2)
+    target = gradient(lum, ramp)
+    sinew = soft_mask(materials, sinew_materials)
+    if sinew_ramp is not None:
+        lining = gradient(lum, sinew_ramp)
+    else:
+        lining = np.clip(lum[..., None] * 0.9 * np.array(FLESH_TINT, np.float32), 0, 255)
+    target = target * (1 - sinew) + lining * sinew
+    target = target * (1 - amber) + glowing * amber
+    creature = soft_mask(materials, make_guide.CREATURE)
     rgb = arr[..., :3] * (1 - creature) + target * creature
     return Image.fromarray(np.dstack([np.clip(rgb, 0, 255), arr[..., 3]]).astype(np.uint8), "RGBA")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--palette", choices=("runner", "chitin"), default="runner")
+    parser.add_argument("--palette", choices=("runner", *PALETTES), default="runner")
     parser.add_argument("--part", action="append", help="limit to these parts")
     args = parser.parse_args()
     here = Path(__file__).resolve().parent
@@ -169,8 +222,8 @@ def main() -> None:
             score = iou(mask(raw.resize(small)), mask(guide.resize(small)))
             raw.putalpha(raw.getchannel("A").point(lambda value: 0 if value < ALPHA_FLOOR else value))
             field = make_guide.build(part, v)
-            if args.palette == "chitin":
-                raw = chitin(raw, field.m)
+            if args.palette != "runner":
+                raw = recolour(raw, field.m, args.palette)
             lit = glow(raw).resize((edge, edge), Image.Resampling.LANCZOS)
             sprite = make_guide.ground_layer(field)
             sprite.alpha_composite(raw)

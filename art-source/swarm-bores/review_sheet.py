@@ -1,11 +1,11 @@
 """Review sheets for the swarm bore and spore-colony art: pass 1 against the current sprites, at two zooms,
-and the chitin recolour beside the pass-1 palette. 1920x1080, written under ``build/swarm-bores/review/``.
+and the round-3 purple recolour beside the pass-1 palette. 1920x1080, written under ``build/swarm-bores/review/``.
 
 Pass 1 is read out of Git (``PASS1_COMMIT``), so the comparison needs nothing kept on disk. The grounds are flat
-swatches of the colony's measured paving and grass and of the proposed creep (rav-palettes), so a sprite's
+swatches of the colony's measured paving and grass and of a dull creep stand-in, so a sprite's
 legibility is judged against each.
 
-Run from the repository root after ``export.py`` (and ``export.py --palette chitin`` for sheet 05):
+Run from the repository root after ``export.py`` (and ``export.py --palette purple`` for sheet 05):
 ``python art-source/swarm-bores/review_sheet.py``.
 """
 
@@ -146,13 +146,13 @@ def field_sheet(ppc: float) -> Image.Image:
 
 
 def palette_sheet(ppc: float, colony_ppc: float) -> Image.Image:
-    """One painting of each body: pass 1's palette, pass 2 as shipped (runner palette), pass 2 recoloured to chitin."""
-    chitin_dir = ROOT / "build" / "swarm-bores" / "chitin"
+    """One painting of each body: pass 1's palette, pass 2 as shipped (runner palette), pass 2 recoloured to the round-3 purples."""
+    purple_dir = ROOT / "build" / "swarm-bores" / "purple"
     sheet = Image.new("RGBA", (W, H), BACKDROP)
     draw = ImageDraw.Draw(sheet)
-    heading(draw, f"Palette: pass 1 | pass 2, runner palette (shipped) | pass 2, chitin proposal. "
+    heading(draw, f"Palette: pass 1 | pass 2, runner palette (shipped) | pass 2, Rav Bloom round-3 purples. "
                   f"Bores {ppc:.0f}, colonies {colony_ppc:.0f} px/cell")
-    rows = [("pass 1 palette", None), ("pass 2, runner palette", "runner"), ("pass 2, chitin proposal", "chitin")]
+    rows = [("pass 1 palette", None), ("pass 2, runner palette", "runner"), ("pass 2, round-3 purple", "purple")]
     parts = make_guide.PARTS
     band_h = (H - 100) / len(rows)
     slot_w = (W - 260) / len(parts)
@@ -168,7 +168,7 @@ def palette_sheet(ppc: float, colony_ppc: float) -> Image.Image:
                 place(sheet, at(pass1(part), PASS1_CELLS[part], scale), cx, cy)
                 place(sheet, at(pass1(part, glow=True), PASS1_CELLS[part], scale), cx, cy)
             else:
-                folder = chitin_dir if which == "chitin" else None
+                folder = purple_dir if which == "purple" else None
                 place(sheet, at(current(part, 1, folder), make_guide.CANVAS_CELLS[part], scale), cx, cy)
             if row == 0:
                 label(draw, cx, y0 + band_h - 36, LABELS[part], 18)
@@ -187,7 +187,7 @@ def main() -> None:
             "Spore colonies at 64 px per cell: pass 1, then each pass-2 variant (square = one cell)"),
         "03-play-zoom-32px.png": field_sheet(32),
     }
-    if (ROOT / "build" / "swarm-bores" / "chitin").is_dir():
+    if (ROOT / "build" / "swarm-bores" / "purple").is_dir():
         sheets["05-palette-swatches.png"] = palette_sheet(64, 128)
     for name, image in sheets.items():
         image.convert("RGB").save(out / name)
