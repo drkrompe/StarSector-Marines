@@ -1,8 +1,8 @@
 # Second Wind refit tree
 
-Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Ship Systems tree and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review, and each reserve is furnished and can be opened on the deck; the facility tracks that open them, their passives, Improved-tier dressing and mech passives are not.
+Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Mech Lab tracks and their mech passives, the Ship Systems tree and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review, and each reserve is furnished and can be opened on the deck; the facility tracks that open them, their passives, Improved-tier dressing (the Mech Lab's included) and the vehicle bay's passives are not.
 Written: 2026-10-20
-Updated: 2026-10-21 — the reserves are furnished at their footprints and open where they stand when the hull says so; the facility tracks still have to say it.
+Updated: 2026-10-21 — Mech Lab tracks (calibration, coolant plant, armor shop, field repair) and the vehicle bay placeholder.
 
 The Engineering tab today sells a short list of one-off yard orders: the
 workshop chain (750 / 3,000 / 4,500), the second bay (8,000), three Mech Lab
@@ -93,6 +93,10 @@ cluster, the workshop to cut plate):
 | Flux R / I / II | Power I + Structure R / Power II + Compute I / Power II + Compute II, alpha core |
 | Sensors R / I / II | Compute R + Structure R (mast mount) / Compute I + Power I / Compute II + Power II |
 | Drive R / I / II | Power R + Structure R / Power I + Compute R (governor) / Power II + Structure R + Fabrication I |
+| Mech calibration R / I / II | Compute R + Power R (bench) / Compute I + Fabrication R / Compute II + Power I + Fabrication I |
+| Mech coolant R / I / II | Power R + Life support R (scrubber loop) / Power I + Structure R (chiller mount) / Power II + Life support R + Compute I |
+| Mech armor shop R / I / II | Fabrication R + Structure R / Fabrication I + Power R (plate press) / Fabrication I + Structure R + Power I |
+| Mech field repair R / I / II | Fabrication R + Power R / Fabrication I + Compute R (diagnostics) / Fabrication I + Structure R + Compute I |
 
 Power restored, Structure restored and the mess's opening order need nothing:
 they are where a battered start begins. The table is `RefitOrder`; this is
@@ -154,19 +158,29 @@ for a balance pass, not tuned values.
 ### Battle layer: mechs and vehicles
 
 Mechs are already company assets with visible fittings in the Mech Lab, so a
-ship passive shows on the mech's sheet there as well as on the briefing.
+ship passive shows on the mech's sheet there as well as on the briefing. The
+Mech Lab has no deficit: an absent shop is neutral, like an absent range.
 
 | Facility | Restored | Improved I | Improved II |
 |---|---|---|---|
-| **Mech Lab calibration** (Compute) | neutral | fire-control calibration: mech weapon accuracy +3% | tactical core link: +6%, and faster target reacquisition |
+| **Mech Lab calibration** (Compute) | bench: neutral | fire-control calibration: mech weapon accuracy +3% | tactical core link: +6%, and torso traverse +25% (onto a new target faster) |
 | **Mech Lab coolant plant** (Power) | neutral | flux dissipation +10% | +20% |
-| **Mech Lab armor shop** (Fabrication, Structure) | neutral | section armor +5% at deployment | +10% |
-| **Vehicle bay** | neutral | — | — |
+| **Mech Lab armor shop** (Fabrication, Structure) | neutral | armor capacity +5% at deployment | +10% |
+| **Vehicle bay** | — | — | — |
+
+The battle passives are one frozen value per deployed mech (`MechRefit`), set
+over each owned mech's deployment when the launch takes the active lance
+(`DetachmentResolver`). The deployment keeps its fit's own frame beside it, so
+the refit is never folded in twice: armor and dissipation scale the frame the
+mech lands on, the accuracy factor multiplies every mount's hit roll with the
+head-loss penalty, and the traverse factor scales the torso's turn rate. A mech
+the company does not own is neutral, and so is every mech off the founding
+hull. A recorded fixture carries the refit with the frame.
 
 Player-side vehicles are not deployable yet (`c12-the-debug-company.md` waits on
-them). The vehicle bay keeps its track so the passives exist when they are:
-engine tuning (speed), turret calibration (accuracy), field repair (integrity
-between battles).
+them). The vehicle bay is a track with no orders, so its passives have a home
+when they are: engine tuning (speed), turret calibration (accuracy), field
+repair (integrity between battles).
 
 ### Campaign layer (outside battle)
 
@@ -178,7 +192,7 @@ between battles).
 | **Brig / interrogation** | — | prisoners from a battle yield intel on the next contract in that system | — |
 | **Hydroponics** (Life support) | — | supplies upkeep −5% | −10% |
 | **Boat bay services** | — | grounded-boat recovery one day faster | deck crane: boat and Hermes material bills −15% |
-| **Mech Lab field repair** | — | damaged mechs repair between missions faster | spares rack: lost mounts refit cheaper |
+| **Mech Lab field repair** (Fabrication) | neutral | repair clock −25% | spares rack: repair clock −25%, and a weapon assembly fabricates at −25% on every line, which is what refitting a lost mount costs |
 | **Holds / bonded stores** | — | more cargo via the conversion hull mod | shielded stores |
 
 ### Combat refit: the hull as a fighting ship
@@ -358,7 +372,8 @@ not a checklist. That measurement comes first in the balance story.
    each core's Restored order.
 5. **Firing range**, the first new facility: compartment, range trials aboard,
    accuracy tiers.
-6. **Mech Lab passives**, the first of them through the mech sheet.
+6. **Mech Lab passives.** Done: calibration, coolant plant, armor shop and
+   field repair, on the mech sheet and the briefing line.
 7. **Hull-mod fleet stats** (supplies, CR) for the campaign-layer deficit and
    its recovery.
 8. Remaining facilities, one story each.

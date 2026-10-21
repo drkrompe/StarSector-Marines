@@ -22,6 +22,14 @@ public enum RefitTrack {
     SICK_BAY(ReservedFacility.SICK_BAY),
     REC_LOUNGE(ReservedFacility.REC_LOUNGE),
     BRIG(ReservedFacility.BRIG),
+    // Mech Lab refits: passives on the company's own mechs, frozen into each deployment at launch.
+    MECH_CALIBRATION(Group.FACILITY, null),
+    MECH_COOLANT(Group.FACILITY, null),
+    MECH_ARMOR(Group.FACILITY, null),
+    /** Campaign-side: repair clocks and the spares rack, read when an order is quoted. */
+    MECH_REPAIR(Group.FACILITY, null),
+    /** A placeholder with no orders until the company's vehicles can deploy. */
+    VEHICLE_BAY(Group.FACILITY, null),
     HULL(Group.COMBAT, null),
     FLUX(Group.COMBAT, null),
     SENSORS(Group.COMBAT, null),

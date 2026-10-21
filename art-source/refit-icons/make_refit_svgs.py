@@ -17,7 +17,7 @@ GOLD, PALE, DARK, MUTED, RED, TEAL = "#dec58a", "#f3d98e", "#1d2822", "#738578",
 
 def svg(name, body, box=64):
     (out / f"{name}.svg").write_text(
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {box} {box}">\n{body}\n</svg>\n', encoding="utf-8")
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {box} {box}">\n{body}\n</svg>\n', encoding="utf-8", newline="\n")
 
 
 def line(d, color=PALE, w=3.5):
@@ -45,6 +45,17 @@ icons = {
     "sensors": line("M8 40A32 32 0 0 1 40 8", w=3) + line("M8 40A21 21 0 0 1 29 19", w=3) + line("M8 40A10 10 0 0 1 18 30", w=3)
                + f'<circle cx="8" cy="40" r="3.5" fill="{PALE}"/>',
     "drive": line("M10 12L22 24L10 36M24 12L36 24L24 36"),
+    # Mech Lab refits: a boresight reticle, a coolant snowflake, lapped plate, a repair gear, and the vehicle bay.
+    "mech-calibration": line("M8 16V8H16M32 8H40V16M40 32V40H32M16 40H8V32", w=3) + line("M24 14V20M24 28V34M14 24H20M28 24H34", w=2.5)
+                        + f'<circle cx="24" cy="24" r="2.5" fill="{PALE}"/>',
+    "mech-coolant": line("M24 6V42M8.4 15L39.6 33M8.4 33L39.6 15", w=3)
+                    + line("M19 9L24 14L29 9M19 39L24 34L29 39M8 21L14 22L12 16M40 27L34 26L36 32M8 27L14 26L12 32M40 21L34 22L36 16", w=2),
+    "mech-armor": line("M8 14L24 8L40 14V22L24 16L8 22Z", w=3) + line("M8 24L24 18L40 24V32L24 26L8 32Z", w=3)
+                  + line("M8 34L24 28L40 34V38L24 42L8 38Z", w=3),
+    "mech-repair": line("M24 24m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0", w=3) + f'<circle cx="24" cy="24" r="3" fill="{PALE}"/>'
+                   + line("M24 6V12M24 36V42M6 24H12M36 24H42M11.3 11.3L15.5 15.5M32.5 32.5L36.7 36.7M11.3 36.7L15.5 32.5M32.5 15.5L36.7 11.3", w=4),
+    "vehicle-bay": line("M6 28H42L38 36H10Z", w=3) + line("M14 28V22H30V28M30 24H43", w=3)
+                   + line("M14 40m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M24 40m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M34 40m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0", w=2),
 }
 for name, body in icons.items():
     svg("track-" + name, body, 48)
