@@ -27,8 +27,9 @@ public final class RavRunnerRig {
     public static final float SPINE = 0.50f;
     static final float SHOULDER_Z = 0.40f;
     static final float HIP_Z = 0.38f;
-    static final float FRONT_X = 0.17f, FRONT_A = 0.22f, FRONT_B = 0.22f;
-    static final float HIND_X = 0.17f, HIND_A = 0.19f, HIND_B = 0.20f, HIND_C = 0.12f;
+    // the stance is a little wider than the study's 0.17, so the paws show past the slim flanks
+    static final float FRONT_X = 0.20f, FRONT_A = 0.22f, FRONT_B = 0.22f;
+    static final float HIND_X = 0.20f, HIND_A = 0.19f, HIND_B = 0.20f, HIND_C = 0.12f;
     static final float ARM_X = 0.12f, ARM_UP = 0.07f, ARM_A = 0.30f, ARM_B = 0.30f, ARM_SPIKE = 0.18f;
 
     /** Leg order: front left, front right, hind left, hind right. */
@@ -65,6 +66,17 @@ public final class RavRunnerRig {
     private static final float[] THRUST = {0f, 0.31f * G, -0.08f * G, 25f};
     private static final float[] SWIPE_OUT = {80f, 0.22f * G, 0.07f * G, 0f};
     private static final float[] SWIPE_CUT_POSE = {-30f, 0.30f * G, -0.02f * G, 0f};
+    /** Hauling a load: the spike stays in, the elbow still bowed a little out. */
+    private static final float[] CARRY = {0f, 0.17f * G, -0.08f * G, 35f};
+    /** How fast a carrier turns to keep its load in front of its jaws, degrees a second. */
+    private static final float CARRY_TURN = 360f;
+    /** A carrier is drawn this far behind its sim position, so its load shows ahead of its jaws. */
+    private static final float CARRY_BACK = 0.25f;
+    /** The jaws reach this far toward the load, at most; the neck does not stretch further. */
+    private static final float LATCH_REACH = 0.10f;
+    /** Death: seconds the body takes to fall onto its flank, and how far it rolls. */
+    private static final float FALL_SECONDS = 0.35f;
+    private static final float FALL_ROLL = 80f;
 
     // ------------------------------------------------------------------ pose layout
     /** First point of each leg; front legs have three points, hind legs four. */
@@ -73,7 +85,7 @@ public final class RavRunnerRig {
     /** First point of each arm (left, right): base, elbow, wrist, spike tip. */
     public static final int[] ARM_START = {14, 18};
     public static final int SHOULDER = 22, HIP = 23, NECK = 24, HEAD = 25;
-    static final int POINTS = 26;
+    public static final int POINTS = 26;
 
     private enum Mode { GALLOP, TROT, PLANT }
 
@@ -103,6 +115,13 @@ public final class RavRunnerRig {
     private float lastCooldown;
     private final float[][] arm = {REST.clone(), REST.clone()};
 
+    // carrying and dying
+    private boolean carrying;
+    private float latch;            // 0..1, how far the jaws have closed on the load
+    private boolean dead;
+    private float sinceDeath;
+    private final float[] alivePose = new float[POINTS * 3];
+
     public RavRunnerRig(long seed) {
         this.seed = seed;
     }
@@ -118,6 +137,31 @@ public final class RavRunnerRig {
      * @param dt         tick length, seconds
      */
     public void advance(float posX, float posY, float facing, float cooldown, boolean engaged, float dt) {
+        advance(posX, posY, facing, cooldown, engaged, false, 0f, 0f, dt);
+    }
+
+    /**
+     * Advances the rig one tick, hauling a load when {@code carrying}: the Runner turns to face
+     * the body it drags, so it backs toward the bore at a trot, the impaling spike stays in and
+     * the jaws latch on beside it.
+     *
+     * @param loadX world position of the dragged body; read only while carrying
+     * @param loadY world position of the dragged body
+     */
+    public void advance(float posX, float posY, float facing, float cooldown, boolean engaged,
+                        boolean carrying, float loadX, float loadY, float dt) {
+        if (dead) return;
+        if (carrying && started) {
+            float want = (float) Math.toDegrees(Math.atan2(-(loadX - posX), loadY - posY));
+            float turn = ((want - facingDeg) % 360f + 540f) % 360f - 180f;
+            float step = CARRY_TURN * dt;
+            facing = facingDeg + Math.max(-step, Math.min(step, turn));
+        } else if (this.carrying && !carrying && started) {
+            // the load is gone: hand the heading back to the sim gently next tick
+            facing = facingDeg + Math.max(-CARRY_TURN * dt, Math.min(CARRY_TURN * dt,
+                    ((facing - facingDeg) % 360f + 540f) % 360f - 180f));
+        }
+        this.carrying = carrying;
         if (!started) {
             bodyX = posX;
             bodyY = posY;
@@ -140,7 +184,17 @@ public final class RavRunnerRig {
         float along = dx * fwdX + dy * fwdY;
         float speed = moved / dt;
 
-        advanceStrike(cooldown, engaged, dt);
+        if (carrying) {
+            winding = false;
+            sinceHit = Float.MAX_VALUE;
+            cooldown = Math.max(cooldown, 1f);
+        }
+        advanceStrike(cooldown, engaged && !carrying, dt);
+        latch += ((carrying ? 1f : 0f) - latch) * Math.min(1f, dt / 0.25f);
+        if (carrying) {
+            float k = Math.min(1f, dt / 0.35f);
+            for (int q = 0; q < 4; q++) arm[strikeArm][q] += (CARRY[q] - arm[strikeArm][q]) * k;
+        }
         boolean striking = winding || sinceHit < strikeLength();
 
         Mode next;
@@ -193,6 +247,7 @@ public final class RavRunnerRig {
         solveArms(shY, shZ);
         set(NECK, shx * 1.2f, shY + 0.12f, shZ + 0.03f);
         set(HEAD, shx * 1.4f, shY + 0.25f + 0.03f * s * run, shZ - 0.01f);
+        if (latch > 0.001f && carrying) latchOn(loadX, loadY, fwdX, fwdY);
     }
 
     private void solveFeet(Mode m, float dt, float fwdX, float fwdY) {
@@ -419,6 +474,75 @@ public final class RavRunnerRig {
             set(p + 3, w[0] + ARM_SPIKE * dx / n, w[1] + ARM_SPIKE * dy / n, w[2] + ARM_SPIKE * dz / n);
         }
     }
+
+    /** The jaws close on the load beside the spike, the neck reaching no further than it can. */
+    private void latchOn(float loadX, float loadY, float fwdX, float fwdY) {
+        float dx = loadX - bodyX, dy = loadY - bodyY;
+        // the body is drawn CARRY_BACK behind the sim position, so the load sits that much further ahead
+        float lx = dx * fwdY - dy * fwdX, ly = dx * fwdX + dy * fwdY + CARRY_BACK * latch, lz = 0.18f;
+        float hx = x(HEAD), hy = y(HEAD), hz = z(HEAD);
+        float d = (float) Math.sqrt((lx - hx) * (lx - hx) + (ly - hy) * (ly - hy) + (lz - hz) * (lz - hz));
+        float k = latch * Math.min(1f, LATCH_REACH / Math.max(1e-6f, d));
+        set(HEAD, hx + (lx - hx) * k, hy + (ly - hy) * k, hz + (lz - hz) * k);
+    }
+
+    // ------------------------------------------------------------------ death
+
+    /**
+     * Advances a dead Runner: it falls onto its flank over {@link #FALL_SECONDS}, legs going
+     * slack, and then lies there. A body dragged off by another Runner moves with its position.
+     */
+    public void advanceDead(float posX, float posY, float dt) {
+        if (!started) {
+            bodyX = posX;
+            bodyY = posY;
+            started = true;
+            solveLegs(SPINE / 2, SHOULDER_Z, -SPINE / 2, HIP_Z);
+            solveArms(SPINE / 2, SHOULDER_Z);
+        }
+        bodyX = posX;
+        bodyY = posY;
+        if (!dead) {
+            dead = true;
+            sinceDeath = 0f;
+            System.arraycopy(pose, 0, alivePose, 0, pose.length);
+        } else if (sinceDeath >= FALL_SECONDS) {
+            return;
+        }
+        sinceDeath = Math.min(FALL_SECONDS, sinceDeath + dt);
+        float k = smooth(sinceDeath / FALL_SECONDS);
+        // falls to the side away from the arm it last struck with, so the pair differ
+        float side = (seed & 1L) == 0L ? 1f : -1f;
+        double roll = Math.toRadians(side * FALL_ROLL * k);
+        float c = (float) Math.cos(roll), sn = (float) Math.sin(roll);
+        for (int p = 0; p < POINTS; p++) {
+            float px = alivePose[p * 3], py = alivePose[p * 3 + 1], pz = alivePose[p * 3 + 2];
+            boolean armPoint = p >= ARM_START[0] && p < ARM_START[0] + 8;
+            boolean foot = p < 14 && (p == LEG_START[0] + 2 || p == LEG_START[1] + 2
+                    || p == LEG_START[2] + 3 || p == LEG_START[3] + 3);
+            if (foot) {
+                // slack legs: the feet swing out from under the body instead of standing
+                pz = pz + (0.12f - pz) * k;
+                px = px * (1f + 0.6f * k);
+            }
+            if (armPoint) {
+                pz = pz - 0.05f * k;                 // the arms drop
+            }
+            // roll about the spine line on the ground, then settle the body down onto it
+            float rz = pz - 0.0f;
+            float nx = px * c - rz * sn;
+            float nz = px * sn + rz * c;
+            pose[p * 3] = nx;
+            pose[p * 3 + 1] = py;
+            pose[p * 3 + 2] = Math.max(0f, nz * (1f - 0.6f * k));
+        }
+    }
+
+    /** How far forward of the sim position the drawn body sits, cells; negative while hauling. */
+    public float drawOffset() { return dead ? 0f : -CARRY_BACK * latch; }
+
+    /** Whether the Runner is dead and lying (or falling). */
+    public boolean dead() { return dead; }
 
     // ------------------------------------------------------------------ solvers
 

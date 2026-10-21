@@ -1,7 +1,7 @@
 """Lay the plume repair pass (`plume_pass.py`) over finished C4/C5 frames, in scene-linear light.
 
     blender -b --factory-startup --python-exit-code 1 --python plume_composite.py -- \
-        --final DIR --plume DIR --out DIR [--mode linear|display] [--only 0,24]
+        --final DIR --plume DIR --out DIR [--mode linear|display] [--only 0,24] [--look NAME]
 
 For every frame in --final (one chunk folder of a final, 00000.png ...), writes a frame of the same
 name to --out: the final with the plumes laid over where --plume has an EXR for it, and an exact
@@ -14,7 +14,8 @@ light adds to the scene's before the view transform compresses the sum: a faint 
 bright ground blows out to near white there, which no blend of two display images reproduces.
 `linear` (the default) therefore undoes the view transform on the final, lays the plume over it
 there (plume + (1 - alpha) * final) and applies the view transform again, through the same OCIO
-config and look the render used. Pixels the plume does not touch are copied unchanged, so the
+config and look the render used (--look: C4/C5 'AgX - Medium High Contrast', the default; C1
+'AgX - Base Contrast'). Pixels the plume does not touch are copied unchanged, so the
 round trip only ever runs under a plume. `display` blends the two display images instead
 (the tone-mapped plume over the final, by its alpha), kept for the comparison that chose `linear`.
 
@@ -35,7 +36,7 @@ VIEW, DISPLAY, LOOK, LINEAR = 'AgX', 'sRGB', 'AgX - Medium High Contrast', 'Line
 
 def args():
     a = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else sys.argv[1:]
-    o = {'final': None, 'plume': None, 'out': None, 'mode': 'linear', 'only': None, 'config': None}
+    o = {'final': None, 'plume': None, 'out': None, 'mode': 'linear', 'only': None, 'config': None, 'look': LOOK}
     for i, x in enumerate(a):
         if x.startswith('--') and x[2:] in o:
             o[x[2:]] = a[i + 1]
@@ -61,12 +62,12 @@ def config_path(given=None):
 class ViewTransform:
     """Scene-linear Rec.709 to the finals' display encoding and back."""
 
-    def __init__(self, path):
+    def __init__(self, path, look=LOOK):
         cfg = OCIO.Config.CreateFromFile(path)
         vp = OCIO.LegacyViewingPipeline()
         vp.setDisplayViewTransform(OCIO.DisplayViewTransform(src=LINEAR, display=DISPLAY, view=VIEW))
         vp.setLooksOverrideEnabled(True)
-        vp.setLooksOverride(LOOK)
+        vp.setLooksOverride(look)
         proc = vp.getProcessor(cfg)
         self._fwd = proc.getDefaultCPUProcessor()
         grp = proc.createGroupTransform()
@@ -144,7 +145,7 @@ def main():
     if out.resolve() == final.resolve():
         raise SystemExit('PLUME_COMPOSITE: --out must not be the final frames folder')
     out.mkdir(parents=True, exist_ok=True)
-    vt = ViewTransform(config_path(o['config']))
+    vt = ViewTransform(config_path(o['config']), o['look'])
     frames = sorted(final.glob('[0-9]*.png'))
     if o['only']:
         keep = {'%05d.png' % int(k) for k in o['only'].split(',')}

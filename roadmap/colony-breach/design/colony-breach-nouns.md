@@ -569,8 +569,11 @@ for one job in the cycle, and reads that way on screen.
   drives straight forward) or a side swipe. The wind-up runs off the attack
   cooldown, so the blow arrives on the tick its damage is dealt. The rig is
   presentation only: nothing in the simulation reads it, and the strike rule
-  itself stays the ordinary melee hit. The impale and the drag pose are the
-  art's to draw over the same strike (*Impale*).
+  itself stays the ordinary melee hit. A carrier (*Harvest*, *Impale*) is
+  drawn hauling: it turns to face the body it drags, so it backs toward the
+  bore at a trot with its shoulders heaving, the spike that struck stays in
+  and the jaws latch on beside it. A dead Runner keeps its skeleton, falls
+  onto its flank with its legs gone slack and lies there, dulled.
 - **Brute** — slow, plated, heavy melee; the strain that makes a garrisoned
   building stop being a safe room. Its plate (20 points at rating 10) is what
   small arms struggle with: a DMR or rocket goes through it, an SMG barely

@@ -23,6 +23,8 @@ from motion_runner import key  # noqa: E402
 from render_runner import ARM_ROWS, BODY_ROWS, FRONT_ROWS, HIND_ROWS, slices  # noqa: E402
 
 LAYERS = HERE / "exploration" / "rounds" / "round-5" / "layers"
+# round 6 slimmed the body from side to side so the stride shows past the flanks; same rows as round 5
+BODY = HERE / "exploration" / "rounds" / "round-6" / "layers" / "body-slim-b.png"
 OUT = HERE.parent.parent / "mod" / "graphics" / "battle" / "rav-runner"
 SCALE = 0.2          # sprite px per layer px; the trunk is the largest sprite and stays under 320 px
 MAX_PX = 320
@@ -49,7 +51,7 @@ def centred(piece):
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    body = key(LAYERS / "body.png")
+    body = key(BODY)
     n = BODY_ROWS["neck"]
     # the trunk fades out over the neck, where the head piece takes over
     trunk = body.copy()

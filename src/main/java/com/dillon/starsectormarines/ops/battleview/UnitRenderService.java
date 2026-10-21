@@ -989,11 +989,22 @@ public final class UnitRenderService implements RenderSystem {
             float[] ry = t.floats(c.POSITION, BattleComponents.POSITION_Y).array();
             float[] corpseFacing = t.floats(c.CORPSE, BattleComponents.CORPSE_FACING_DEGREES).array();
             int[] corpseFamily = t.ints(c.CORPSE, BattleComponents.CORPSE_BODY_FAMILY).array();
+            RavRunnerAssets ravArt = sprites.ravRunnerSprites();
+            Object[] ravRigs = ravArt != null && t.has(c.RAV_RIG)
+                    ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 if (poseIdx[r] < 0) continue;
                 if (rx[r] < cullMinX || rx[r] > cullMaxX
                         || ry[r] < cullMinY || ry[r] > cullMaxY) continue;
                 UnitType type = (UnitType) types[r];
+                RavRunnerRig ravRig = ravRigs != null ? (RavRunnerRig) ravRigs[r] : null;
+                if (ravRig != null && ravRig.dead()) {
+                    // A dead Runner lies on its own skeleton, fallen onto its flank, its colour gone dull.
+                    RavRunnerComposer.emit(out, ravArt, ravRig,
+                            cam.cellToScreenX(ravRig.bodyX()), cam.cellToScreenY(ravRig.bodyY()),
+                            cam.cellPxSize() * type.renderScale, RavRunnerComposer.DEAD_SHADE, alphaMult);
+                    continue;
+                }
                 // A body that wore layered art lies as itself: its outfit's own pose,
                 // at the live shoulder scale, turned to the facing it fell with.
                 LayeredUnitAssets outfit = corpseFamily[r] >= 0
@@ -1232,7 +1243,7 @@ public final class UnitRenderService implements RenderSystem {
                     // The Runner is drawn on its own skeleton, solved at the position it was posed at.
                     RavRunnerComposer.emit(out, ravArt, ravRig,
                             cam.cellToScreenX(ravRig.bodyX()), cam.cellToScreenY(ravRig.bodyY()),
-                            cam.cellPxSize() * type.renderScale, unitAlpha);
+                            cam.cellPxSize() * type.renderScale, 1f, unitAlpha);
                     continue;
                 }
                 LayeredArmorFamily bodyFamily = hasLayered
