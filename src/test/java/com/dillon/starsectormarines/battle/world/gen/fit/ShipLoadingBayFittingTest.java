@@ -50,7 +50,8 @@ class ShipLoadingBayFittingTest {
             assertEquals(List.of(new LayoutOp.Layer(0,0,"loading-bay.insulated-tote"),
                     new LayoutOp.Layer(0,2,"loading-bay.insulated-tote"),
                     new LayoutOp.Layer(0,4,"loading-bay.provision-cartons"),
-                    new LayoutOp.Layer(0,0,"main-stores.frame")),rack.layers());
+                    new LayoutOp.Layer(0,0,"main-stores.frame"),
+                    new LayoutOp.Layer(0,0,"deck-motion.rack-lift-rail")),rack.layers());
             assertEquals(1,f.ctx.fixtureTasks.stream().filter(t -> t.affordance()==Affordance.READOUT).count());
             assertEquals(1,f.ctx.fixtureTasks.stream().filter(t -> t.affordance()==Affordance.TEND).count());
             assertEquals(1,f.ctx.fixtureTasks.stream().filter(t -> t.affordance()==Affordance.REPAIR).count());

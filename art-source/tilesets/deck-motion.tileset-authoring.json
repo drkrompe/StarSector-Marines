@@ -1,0 +1,158 @@
+{
+  "sheetName": "deck-motion",
+  "sheet": "art-source/tilesets/deck-motion.raw.png",
+  "cellPx": 64,
+  "gridCols": 16,
+  "gridRows": 16,
+  "idPrefix": "deck-motion",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/deck-motion.png",
+  "note": "Geometry-first moving parts cut from their static bases (deck-motion-guide.py). Every part is a full placement-frame cut of the 1254px raw (78.375 px per guide cell), so it keeps its registration against its base; the two belt tiles are one measured rib or cleat period each, cut from inside the generated swatch so they lay end to end without a seam.",
+  "entries": [
+    {
+      "id": "deck-motion.crane-runway",
+      "rect": [
+        0,
+        0,
+        392,
+        549
+      ],
+      "footprintCells": [
+        5,
+        7
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "deck-motion.crane-bridge",
+      "rect": [
+        0,
+        627,
+        392,
+        78
+      ],
+      "footprintCells": [
+        5,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "deck-motion.rack-lift-rail",
+      "rect": [
+        470,
+        0,
+        157,
+        470
+      ],
+      "footprintCells": [
+        2,
+        6
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "deck-motion.rack-lift-carriage",
+      "rect": [
+        940,
+        235,
+        78,
+        157
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "deck-motion.rower",
+      "rect": [
+        705,
+        0,
+        157,
+        235
+      ],
+      "footprintCells": [
+        2,
+        3
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    },
+    {
+      "id": "deck-motion.rower-seat",
+      "rect": [
+        1097,
+        0,
+        78,
+        78
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "deck-motion.fan-rotor",
+      "rect": [
+        940,
+        0,
+        157,
+        157
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "deck-motion.treadmill-belt",
+      "rect": [
+        1110,
+        244,
+        78,
+        38
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "deck-motion.conveyor-belt",
+      "rect": [
+        1145,
+        398,
+        31,
+        70
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    }
+  ],
+  "blocks": []
+}
