@@ -497,7 +497,7 @@ public final class MissionLaunch {
             } else if (personnel != null) {
                 deployment = CampaignMarineDeployment.freezeSelection(personnel.roster(),
                         ctx.getSelectedMarineSquadIds(), playerSeats, ctx.getSelectedCaptain(),
-                        CompanyShipRestoration.moraleRecoveryAboard());
+                        CompanyShipRestoration.hullWelfareAboard());
             }
 
             // Generic factories leave only the enemy wings that fit their shared

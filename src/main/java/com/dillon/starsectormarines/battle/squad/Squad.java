@@ -421,6 +421,8 @@ public final class Squad {
 
     /** Frozen at campaign squad landing; never reads the live company ship. */
     public float moraleRecoveryMultiplier = 1f;
+    /** The company home's training rooms, frozen with the squad at landing; read by {@link HullWelfareModifier}. */
+    public HullWelfare hullWelfare = HullWelfare.NEUTRAL;
     /**
      * True when <em>every</em> live fire team has broken — a derived
      * aggregate over {@link FireTeamMorale#broken}, and the point at which

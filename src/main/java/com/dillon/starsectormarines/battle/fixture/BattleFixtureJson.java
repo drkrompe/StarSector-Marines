@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.ArmorClass;
@@ -565,6 +566,13 @@ public final class BattleFixtureJson {
                 squad.put("strength", seat.campaignSquadStrength());
                 squad.put("fireTeamIndex", seat.campaignFireTeamIndex());
                 squad.put("moraleRecoveryMultiplier", seat.moraleRecoveryMultiplier());
+                if (seat.welfare().changesUnitStats()) {
+                    JSONObject welfare = new JSONObject();
+                    welfare.put("accuracy", seat.welfare().accuracy());
+                    welfare.put("moveSpeed", seat.welfare().moveSpeed());
+                    welfare.put("moraleDrain", seat.welfare().moraleDrain());
+                    squad.put("hullWelfare", welfare);
+                }
                 CommandGroupIdentity identity = seat.commandGroupIdentity();
                 if (identity != null) {
                     JSONObject group = new JSONObject();
@@ -650,11 +658,21 @@ public final class BattleFixtureJson {
                     squad != null && squad.getBoolean("leader"),
                     squad != null ? squad.getInt("strength") : 0,
                     squad != null ? squad.getInt("fireTeamIndex") : -1, identity,
-                    squad != null ? (float) squad.optDouble("moraleRecoveryMultiplier", 1d) : 1f,
+                    hullWelfareFromJson(squad),
                     encoded.has("armorClass") ? ArmorClass.parse(encoded.optString("armorClass", null), "committed seat")
                             : ArmorClass.STANDARD, integralSystemFromJson(encoded)));
         }
         return List.copyOf(seats);
+    }
+
+    /** The squad's frozen welfare; a seat saved before the facilities carries only the mess's figure. */
+    private static HullWelfare hullWelfareFromJson(JSONObject squad) {
+        if (squad == null) return HullWelfare.NEUTRAL;
+        float morale = (float) squad.optDouble("moraleRecoveryMultiplier", 1d);
+        JSONObject welfare = squad.optJSONObject("hullWelfare");
+        if (welfare == null) return HullWelfare.mess(morale);
+        return new HullWelfare(morale, (float) welfare.optDouble("accuracy", 1d),
+                (float) welfare.optDouble("moveSpeed", 1d), (float) welfare.optDouble("moraleDrain", 1d));
     }
 
     private static JSONArray powersToJson(
