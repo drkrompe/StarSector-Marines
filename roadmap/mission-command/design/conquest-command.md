@@ -732,20 +732,36 @@ interdictor or a crew — before reactive manning sees what is left.
   believed within twenty-four cells, not under fire), within eighty cells of
   the place, and not from an objective or a lost place.
 - **What it changed, six seeds each against `-Dbattle.mission.counterattack=false`:**
-  outcomes and timeouts are unchanged on all four (Raid three and three,
-  Assault two defender wins and four timeouts, Sabotage six defender wins,
-  Extraction six marine wins), and losses move within the seeds' spread. Assault
-  launched four pushes, all of which met marines and two of which retook their
-  building, and the share of the defender's fights that were brawls rather than
-  fire from a post rose from 76% to 86%. Sabotage launched once and retook a site
-  from an objective hold; Extraction launched once against an objective hold and
-  gave up. Raid formed reserves eleven times and stood down outmatched eight:
-  its spare is one or two squads against a raiding party. Loosening the bounds
-  (share one, ninety-nine pushes) changed nothing, so on these fixtures the
-  margin decides and the bounds are the guarantee; a margin of 1.25 with
-  commit 0.6 launched four and turned all six Assaults into timeouts, so the
+  Raid (three and three), Sabotage (six defender wins) and Extraction (six
+  marine wins) end as their controls do, and Assault turns one of its four
+  timeouts into a defender win; losses move within the seeds' spread. Assault
+  launched five pushes, every one of which met marines and four of which retook
+  their building, and the share of the defender's fights that were brawls rather
+  than fire from a post rose from 76% to 84%. Sabotage launched once and retook
+  a site from an objective hold; Extraction launched once against an objective
+  hold and gave up, and its objective holds were pressed on 153 samples where
+  the control's never were. Raid formed reserves seven times and stood down
+  outmatched six: its spare is one or two squads against a raiding party.
+  Loosening the bounds (share one, ninety-nine pushes) changed nothing, so on
+  these fixtures the margin decides and the bounds are the guarantee; a margin
+  of 1.25 with commit 0.6 launched four and turned all six Assaults into timeouts, so the
   side's willingness to go is the dial that can stall a mission, and it stays
   at parity and half.
+- **A mission may author when.** A place directive of kind counter-attack
+  (`garrisonables.md`, place directives) is read by the same commanders: while
+  its trigger has it active, its target is a lost place of its own, worth more
+  than any objective, standing in for the mission places inside it. The
+  trigger is when and nothing else; the bounds, the observation before a
+  muster and the stand-down are unchanged, so an authored push the side cannot
+  raise is declined like any other. The scene `mission-counterattack`'s
+  triggered loop authors one on a Raid hall the mission does not count, from a
+  named hour: nothing goes before it, and from it the side probes, sizes and
+  launches as for its own places. `-Dbattle.mission.counterattack.triggered=false`
+  is its control.
+- **Staging runs from where the side stands.** With no keep, home is the squad
+  standing nearest the pool's mean, never the mean itself: a mean between
+  buildings fell in a wall, every staging cell is chosen among cells reachable
+  from home, and a group staged there could recruit nobody.
 
 ## Picture and evidence
 

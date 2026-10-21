@@ -59,8 +59,9 @@ class ColonyLandingFieldEvidenceTest {
                 .append(" cells. One row per seed: the map the rescue would play, then the battle"
                         + " stood up on it.\n\n")
                 .append("| seed | attempts | side | centre | clear | berth reach | inland | walk to shelter"
-                        + " | to first building | vehicles off it | battle clear | technicals in it |\n")
-                .append("|---:|---:|---|---|---:|---:|---:|---:|---:|---|---|---:|\n");
+                        + " | shelter to lift | lift on field | to first building | town edge"
+                        + " | vehicles off it | battle clear | technicals in it |\n")
+                .append("|---:|---:|---|---|---:|---:|---:|---:|---:|---|---:|---:|---|---|---:|\n");
         List<String> failures = new ArrayList<>();
         BspCityGenerator generator = new BspCityGenerator();
         for (long seed = 1; seed <= SEEDS; seed++) {
@@ -82,7 +83,7 @@ class ColonyLandingFieldEvidenceTest {
             if (map == null) {
                 failures.add("seed " + seed + ": no colony in " + ATTEMPTS + " attempts, last missing " + missing);
                 md.append("| ").append(seed).append(" | ").append(ATTEMPTS).append(" | failed: ")
-                        .append(missing).append(" |||||||||\n");
+                        .append(missing).append(" ||||||||||||\n");
                 continue;
             }
             FieldOfFire field = map.fieldOfFire;
@@ -108,13 +109,22 @@ class ColonyLandingFieldEvidenceTest {
             String side = field.centerY() > grid.getHeight() / 2 ? "north" : "south";
 
             CivilianEvacuationPlacement placement = CivilianEvacuationPlacement.find(
-                    grid, map.topology, map.pointsOfInterest, battleSeed, 8);
+                    grid, map.topology, map.pointsOfInterest, battleSeed, 8, field);
             String walk = "-";
+            String liftWalk = "-";
+            String liftOn = "-";
             if (placement != null) {
-                int[] path = GridPathfinder.findPath(grid, map.marineSpawnX, map.marineSpawnY,
-                        placement.shelterX, placement.shelterY);
-                walk = Paths.isEmpty(path) ? "unreachable" : String.valueOf(Paths.cellCount(path));
+                walk = walk(grid, map.marineSpawnX, map.marineSpawnY, placement.shelterX, placement.shelterY);
+                liftWalk = walk(grid, placement.shelterX, placement.shelterY, placement.liftX, placement.liftY);
+                boolean onField = field.contains(placement.liftX, placement.liftY);
+                liftOn = onField ? "yes" : "no";
+                if (!onField) {
+                    failures.add("seed " + seed + ": the lift at " + placement.liftX + "," + placement.liftY
+                            + " is off the field");
+                }
             }
+            // The country is the field's: the town begins past it.
+            int townEdge = field.countryDepth(grid.getWidth(), grid.getHeight());
             int toBuilding = stepsToBuilding(map);
 
             // Parked vehicles are stamped after generation; they must stay off it.
@@ -154,7 +164,10 @@ class ColonyLandingFieldEvidenceTest {
                     .append(" | ").append(String.format("%.1f", reach))
                     .append(" | ").append(inland)
                     .append(" | ").append(walk)
+                    .append(" | ").append(liftWalk)
+                    .append(" | ").append(liftOn)
                     .append(" | ").append(toBuilding)
+                    .append(" | ").append(townEdge)
                     .append(" | ").append(afterVehicles == null ? "yes" : "no")
                     .append(" | ").append(battleClear)
                     .append(" | ").append(technicalsInside)
@@ -176,13 +189,20 @@ class ColonyLandingFieldEvidenceTest {
         CivilianEvacuationPlacement placement = CivilianEvacuationPlacement.find(
                 map.grid, map.topology, map.pointsOfInterest, battleSeed, 8);
         String walk = "-";
+        String liftWalk = "-";
         if (placement != null) {
-            int[] path = GridPathfinder.findPath(map.grid, map.marineSpawnX, map.marineSpawnY,
-                    placement.shelterX, placement.shelterY);
-            walk = Paths.isEmpty(path) ? "unreachable" : String.valueOf(Paths.cellCount(path));
+            walk = walk(map.grid, map.marineSpawnX, map.marineSpawnY, placement.shelterX, placement.shelterY);
+            liftWalk = walk(map.grid, placement.shelterX, placement.shelterY, placement.liftX, placement.liftY);
         }
         return "| " + seed + " | " + attempts + " | control | " + map.marineSpawnX + ',' + map.marineSpawnY
-                + " | - | - | " + inland + " | " + walk + " | " + stepsToBuilding(map) + " | - | - | - |\n";
+                + " | - | - | " + inland + " | " + walk + " | " + liftWalk + " | - | " + stepsToBuilding(map)
+                + " | - | - | - | - |\n";
+    }
+
+    /** Cells walked between two cells, or why there is no walk. */
+    private static String walk(NavigationGrid grid, int fromX, int fromY, int toX, int toY) {
+        int[] path = GridPathfinder.findPath(grid, fromX, fromY, toX, toY);
+        return Paths.isEmpty(path) ? "unreachable" : String.valueOf(Paths.cellCount(path));
     }
 
     /** Cells from the berth's centre to the map edge its approach comes across. */

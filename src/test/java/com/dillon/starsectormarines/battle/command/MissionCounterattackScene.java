@@ -47,14 +47,20 @@ import java.util.regex.Pattern;
  * party would turn it too. A party of marines, too tough to be shot down so the
  * question stays about command, is set down in the building and stays.
  *
- * <p>Loops: <b>light</b>, four marines in the building, which half the defender can retake at its margin; and
- * <b>outmatched</b>, ninety, which it cannot (it goes at half of parity, so a party it believes twice what it can raise).
+ * <p>Loops: <b>light</b>, four marines in the building, which the defender can retake at its margin; <b>outmatched</b>,
+ * ninety, which it cannot (it goes at half of parity, so a party it believes twice what it can raise); and
+ * <b>triggered</b>, four marines in a posted building beyond the reach in which the Raid counts one, and a place
+ * directive authored on the commander: counter-attack that hall from tick {@value #TRIGGER_TICK}
+ * (`garrisonables.md`, place directives).
  *
  * <p>Verdicts, light: the building turns lost on belief; the side observes it (a probe goes, or a squad of its own
  * already watches) before it commits anybody to a muster; what it believes the place takes is sized from what it
- * observed, at the mission margin with a floor of one squad; the group launches together, every member on the same pulse; and it
- * never holds more than its share of the side. Outmatched: the side observes, does not launch, stands down, and forms
- * no group for that building again until its wait has run out. Whether the push wins the building back is a metric: the party cannot be killed.
+ * observed, at the mission margin with a floor of one squad; the group launches together, every member on the same
+ * pulse; and it never holds more than its share of the side. Outmatched: the side observes, does not launch, stands
+ * down, and forms no group for that building again until its wait has run out. Triggered: the mission never speaks of
+ * the hall on its own; nothing counter-attacks it before the directive's hour; the directive comes on at it; and from
+ * then the light loop's mechanics hold for the directive's place. Whether a push wins its building back is a metric: the
+ * party cannot be killed.
  */
 public final class MissionCounterattackScene implements BehaviorScene {
 
@@ -65,13 +71,17 @@ public final class MissionCounterattackScene implements BehaviorScene {
     private static final int SQUADS = 6;
     private static final int SQUAD_SIZE = 6;
     private static final float TOUGH = 1_000_000f;
+    /** The hour the triggered loop's mission names for retaking its hall. */
+    private static final int TRIGGER_TICK = 900;
+    private static final String DIRECTIVE_ID = "retake-far-hall";
     private static final Pattern TAKES = Pattern.compile("believed to take (\\d+)");
 
     @Override public String id() { return "mission-counterattack"; }
 
     @Override public String label() {
         return "Mission counter-attack: a Raid's defender observes a lost key building, sizes a push from what it saw "
-                + "and launches it together within its share, or stands down when outmatched";
+                + "and launches it together within its share, or stands down when outmatched; and retakes a hall the "
+                + "mission does not count only when an authored directive's trigger says so";
     }
 
     @Override
@@ -82,7 +92,8 @@ public final class MissionCounterattackScene implements BehaviorScene {
         InstalledHullSpecs.install();
         InstalledVanillaData.install();
         long seed = seed();
-        return List.of(playOne(seed, "light", 4, frames), playOne(seed, "outmatched", 90, frames));
+        return List.of(playOne(seed, "light", 4, frames), playOne(seed, "outmatched", 90, frames),
+                playOne(seed, "triggered", 4, frames));
     }
 
     /** The Raid's production construction, as its commander evidence builds it, at a seed offset from its fixture. */
@@ -101,7 +112,7 @@ public final class MissionCounterattackScene implements BehaviorScene {
     private static long seed() throws Exception {
         for (long offset = 0; offset < SEED_TRIES; offset++) {
             try (BattleSimulation source = build(offset)) {
-                if (pick(source) != null) return offset;
+                if (pick(source, false) != null && pick(source, true) != null) return offset;
             }
         }
         return 0;
@@ -109,10 +120,11 @@ public final class MissionCounterattackScene implements BehaviorScene {
 
     private record Pick(TacticalNode building, int[] inside, int[] home) { }
 
-    private static Pick pick(BattleSimulation source) {
+    /** A building with room in it and open ground back from it: beside the target, or {@code far} beyond its reach. */
+    private static Pick pick(BattleSimulation source, boolean far) {
         RaidObjective raid = raid(source);
         List<TacticalNode> nodes = source.getTacticalMap() == null ? List.of() : source.getTacticalMap().all();
-        for (TacticalNode candidate : candidates(nodes, raid)) {
+        for (TacticalNode candidate : candidates(nodes, raid, far)) {
             int[] in = MissionEnvelopeScene.ground(source.getGrid(), candidate, candidate.anchorX, candidate.anchorY, 0,
                     2, null);
             int[] back = in == null ? null
@@ -134,7 +146,8 @@ public final class MissionCounterattackScene implements BehaviorScene {
             NavigationGrid grid = source.getGrid();
             List<TacticalNode> nodes = source.getTacticalMap() == null ? List.of() : source.getTacticalMap().all();
             RaidObjective raid = raid(source);
-            Pick pick = pick(source);
+            boolean triggered = loop.equals("triggered");
+            Pick pick = pick(source, triggered);
             if (raid == null || pick == null) {
                 return new SceneReport(id(), loop, 0, List.of(Verdict.of("ground-found", false,
                         "no Raid seed offset below " + SEED_TRIES + " has a key building beside its target with room "
@@ -162,6 +175,15 @@ public final class MissionCounterattackScene implements BehaviorScene {
             sim.addObjective(new RaidObjective(raid.targetId(), raid.targetName(), raid.targetCellX(),
                     raid.targetCellY(), sim.getZoneGraph().zoneIdAt(raid.targetCellX(), raid.targetCellY()), -1, -1));
             RaidDefenderCommand command = new RaidDefenderCommand(pool);
+            String key = site.key();
+            if (triggered) {
+                // The mission's word: retake this hall at the hour, whoever is believed in it by then.
+                int half = Math.max(chosen.right - chosen.left, chosen.bottom - chosen.top) / 2 + 1;
+                command.placeDirectives(List.of(PlaceDirective.counterAttack(DIRECTIVE_ID, Faction.DEFENDER,
+                                PlaceTarget.region((chosen.left + chosen.right) / 2, (chosen.top + chosen.bottom) / 2, half))
+                        .when(PlaceTrigger.tickAtLeast(TRIGGER_TICK)).build()));
+                key = MissionCounterattack.DIRECTIVE_KEY_PREFIX + DIRECTIVE_ID;
+            }
             sim.setAutonomousCommander(Faction.DEFENDER, command, RaidDefenderCommandDisclosure.INSTANCE);
             for (int id : pool) {
                 sim.claimSquadCommand(id, CommandAuthority.MISSION_COMMAND, command.strategyId(), "scene mobile security");
@@ -174,17 +196,20 @@ public final class MissionCounterattackScene implements BehaviorScene {
                     s.world().setCellPos(party[i], in[0] + (i % 3) - 1, in[1] + (i / 3) % 3 - 1);
                 }
             });
-            Trace trace = new Trace(pool, command.strategyId(), site.key());
+            Trace trace = new Trace(pool, command.strategyId(), key, triggered ? site.key() : null);
             SceneRun.of(world).player(player).observe(trace)
                     .frames(frames, loop, 60, tick -> String.format(Locale.ROOT, "%s / tick %d / %s", loop, tick,
                             trace.state))
                     .run(TICKS);
-            return report(loop, holders, site.key(), trace);
+            return report(loop, holders, key, trace);
         }
     }
 
-    /** The posted defender buildings beside the Raid target that do not hold it, nearest first. */
-    private static List<TacticalNode> candidates(List<TacticalNode> nodes, RaidObjective raid) {
+    /**
+     * The posted defender buildings beside the Raid target that do not hold it, nearest first; or, {@code far}, those
+     * beyond the reach in which the mission counts a key building, nearest first.
+     */
+    private static List<TacticalNode> candidates(List<TacticalNode> nodes, RaidObjective raid, boolean far) {
         List<TacticalNode> out = new ArrayList<>();
         if (raid == null) return out;
         int x = raid.targetCellX();
@@ -192,7 +217,8 @@ public final class MissionCounterattackScene implements BehaviorScene {
         for (TacticalNode node : nodes) {
             if (node.defaultGuard != Faction.DEFENDER || HeldPlaces.isUnposted(node)) continue;
             if (node.left <= x && x <= node.right && node.top <= y && y <= node.bottom) continue;
-            if (gap(node, x, y) > MissionPlaces.KEY_REACH_CELLS) continue;
+            int gap = gap(node, x, y);
+            if (far ? gap <= MissionPlaces.KEY_REACH_CELLS + 6 : gap > MissionPlaces.KEY_REACH_CELLS) continue;
             if (!apart(node, nodes)) continue;
             out.add(node);
         }
@@ -224,15 +250,29 @@ public final class MissionCounterattackScene implements BehaviorScene {
         List<Verdict> verdicts = new ArrayList<>();
         int cap = PlaceCounterattack.Doctrine.mission(MissionCounterattack.share, MissionCounterattack.floor,
                 MissionCounterattack.margin, MissionCounterattack.commitShare, MissionCounterattack.maxLaunches).cap(SQUADS);
-        verdicts.add(Verdict.of("place-lost", t.lostTick >= 0,
-                key + " turned lost at tick " + t.lostTick + " (" + holders + " marines put in it at tick " + ENTER_TICK + ")"));
+        boolean triggered = loop.equals("triggered");
+        if (triggered) {
+            verdicts.add(Verdict.of("mission-ignores-it", t.strayNotes == 0,
+                    t.strayNotes + " notes for " + t.stray + ", beyond the reach in which the Raid counts a building"));
+            verdicts.add(Verdict.of("waits-for-trigger", t.activeTick >= TRIGGER_TICK && t.earlyNotes == 0,
+                    "directive active at tick " + t.activeTick + " (its hour " + TRIGGER_TICK + "); " + t.earlyNotes
+                            + " counter-attack notes for the hall before it, " + holders + " marines in it from tick "
+                            + ENTER_TICK));
+            verdicts.add(Verdict.of("active-on-trigger", t.activeTick >= TRIGGER_TICK
+                            && t.activeTick < TRIGGER_TICK + 150, // two command pulses
+                    "active at tick " + t.activeTick + ", the hour " + TRIGGER_TICK));
+        } else {
+            verdicts.add(Verdict.of("place-lost", t.lostTick >= 0,
+                    key + " turned lost at tick " + t.lostTick + " (" + holders + " marines put in it at tick "
+                            + ENTER_TICK + ")"));
+        }
         verdicts.add(Verdict.of("observed-before-commit",
                 t.observedTick >= 0 && (t.musterTick < 0 || t.observedTick <= t.musterTick),
                 "observed at tick " + t.observedTick + " (" + t.observedWhy + "), first muster at tick " + t.musterTick));
         verdicts.add(Verdict.of("within-share", t.maxGroup <= cap,
                 "the group held at most " + t.maxGroup + " squads; its share of " + SQUADS + " is " + cap));
         int floor = MissionCounterattack.floor;
-        if (loop.equals("light")) {
+        if (!loop.equals("outmatched")) {
             int expectLo = Math.max(floor, (int) Math.floor(MissionCounterattack.margin * (holders - 1)));
             verdicts.add(Verdict.of("sized-from-observed", t.required >= expectLo
                             && t.required <= Math.max(floor, (int) Math.ceil(MissionCounterattack.margin * (holders + 1))) + 4,
@@ -250,6 +290,7 @@ public final class MissionCounterattackScene implements BehaviorScene {
         }
         Map<String, Number> metrics = new LinkedHashMap<>();
         metrics.put("lostTick", t.lostTick);
+        metrics.put("activeTick", t.activeTick);
         metrics.put("observedTick", t.observedTick);
         metrics.put("musterTick", t.musterTick);
         metrics.put("launchTick", t.launchTick);
@@ -277,14 +318,21 @@ public final class MissionCounterattackScene implements BehaviorScene {
         int reformedWhileWaiting;
         String reformedNote = "";
         final String key;
+        /** The building's own mission-place key, in the triggered loop: the mission should never speak of it. */
+        final String stray;
+        int strayNotes;
+        int activeTick = -1;
+        /** Counter-attack notes for the place before its directive came on. */
+        int earlyNotes;
         final Set<Integer> launched = new TreeSet<>();
         int lastNotesTick = -1;
         String state = "";
 
-        Trace(Set<Integer> pool, String strategy, String key) {
+        Trace(Set<Integer> pool, String strategy, String key, String stray) {
             this.pool = pool;
             this.strategy = strategy;
             this.key = key;
+            this.stray = stray;
         }
 
         @Override public void observe(BattleSimulation sim, int tick) {
@@ -318,7 +366,12 @@ public final class MissionCounterattackScene implements BehaviorScene {
         private void notes(List<String> lines, int tick) {
             for (String line : lines) {
                 // Only this place's notes: a party that spills onto the buildings beside it turns them too.
+                if (stray != null && (line.contains(stray + " ") || line.contains(stray + ":"))) strayNotes++;
                 if (!line.contains(key + " ") && !line.contains(key + ":")) continue;
+                if (line.startsWith("place directive ") && line.contains(" is active") && activeTick < 0) {
+                    activeTick = tick;
+                }
+                if (stray != null && activeTick < 0 && line.startsWith("counter-attack")) earlyNotes++;
                 if (line.startsWith("mission place ") && line.contains(" is lost") && lostTick < 0) lostTick = tick;
                 if (line.contains(" probes: squad ") && observedTick < 0) {
                     observedWhy = "a probe was sent";

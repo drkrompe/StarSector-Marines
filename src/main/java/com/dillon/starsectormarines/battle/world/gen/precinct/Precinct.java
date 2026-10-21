@@ -147,6 +147,13 @@ public record Precinct(String name, int seedX, int seedY,
                 character, landing);
     }
 
+    /** This place with its seed moved, for a brief laid out on part of the map. */
+    public Precinct movedBy(int dx, int dy) {
+        if (dx == 0 && dy == 0) return this;
+        return new Precinct(name, seedX + dx, seedY + dy, growth, program, boundary,
+                fortification, character, landing);
+    }
+
     /** Whether the attacking force comes ashore here. */
     public boolean isLanding() {
         return landing != null;

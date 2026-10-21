@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fdf-1ccf-72b3-ab9a-3bcb58806bf8",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fdf-1ccf-72b3-ab9a-3bcb58806bf8\\exec-ec93ee6e-e99b-450c-9705-0fec686c39a8.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\body-nolegs.png",
+    "sha256": "4e7dc078f6f3e8cee1ace898c29343d981f226db9470fcc48268cb1449404966",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\motion-runner\\prompts\\body-nolegs.prompt.txt",
+  "promptSha256": "248f0ca9f8f46800c96f1802832d74274e51e07f56d373a12fc5657da82b0748",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity, geometry and layout authority\n\nLayer for a 2D rig. Reproduce reference 1 exactly (same creature, same position, same scale, same lighting and finish, jaws closed) with ONE change: remove all four walking legs, leaving only smooth armoured hip and shoulder sockets where each leg attaches (the leg art is a separate layer). Keep the torso, armour plates, shoulder sockets for the arm blades, head and tail exactly as they are. Strict overhead orthographic view, same framing so the layer registers over reference 1. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\body-closed.png",
+      "sha256": "af6bd9512777475653366f1e70ef2f75a564f3dd13aeeb98241783cd47ea4456",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity, geometry and layout authority"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image with all four walking legs removed, preserving the creature’s body, framing, and finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 39631,
+    "cached_input_tokens": 28416,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 388,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 44.3
+}

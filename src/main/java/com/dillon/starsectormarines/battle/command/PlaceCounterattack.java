@@ -1258,6 +1258,7 @@ final class PlaceCounterattack {
         return false;
     }
 
+    /** Where the side stands: the cell of the squad nearest the bodies' mean, or {@code null} with none. */
     private static int[] centroid(List<Body> members, List<Body> free) {
         long x = 0;
         long y = 0;
@@ -1272,7 +1273,23 @@ final class PlaceCounterattack {
             y += body.y();
             n++;
         }
-        return n == 0 ? null : new int[] {(int) (x / n), (int) (y / n)};
+        if (n == 0) return null;
+        // The squad standing nearest the mean, not the mean itself: a mean between buildings can fall in a wall, and a
+        // staging cell is only ever chosen among cells reachable from home.
+        float mx = (float) x / n;
+        float my = (float) y / n;
+        Body nearest = null;
+        double best = Double.MAX_VALUE;
+        for (List<Body> bodies : List.of(members, free)) {
+            for (Body body : bodies) {
+                double d = Math.hypot(body.x() - mx, body.y() - my);
+                if (d < best) {
+                    best = d;
+                    nearest = body;
+                }
+            }
+        }
+        return new int[] {nearest.x(), nearest.y()};
     }
 
     private static float weight(Body body) {
