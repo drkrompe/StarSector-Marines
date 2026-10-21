@@ -6,7 +6,7 @@ three clips side by side:
   C  wall: it walks up to a colony building, rears and rams the wall twice; the first blow cracks it,
      the second breaks a hole, and it walks in through the hole
 
-  python motion_brute.py <render root> <out.gif> [<key frames.png> [<layers.png>]]
+  python motion_brute.py <render root> <out.gif> [<key frames.png> [<close-up.gif>]]
 
 Rig: the hero (round 3 #6) itself is cut into a body, the head and four hooves, so at rest the composite
 is the chosen design. Under it lies body-nohead.png (generated over the hero: a legless, headless body
@@ -38,7 +38,9 @@ from PIL import Image, ImageDraw, ImageFilter
 from boards import font
 from motion import save_gif
 from motion_runner import marine_sprites
-from rig import ease_out, smooth
+from brute_skeleton import (ANCHOR_Y, BLOWS, SLAM, T_END, U_LAYER, WALL_STOP, WIND, TROT, body_offsets, simulate,
+                            sway_warp, T_HIT_B)
+from rig import ease_out
 from round2 import shadow_blob
 from round_sheet import RUNNER_AREA_PX
 
@@ -49,12 +51,10 @@ DIM = (150, 156, 166)
 ACC = (240, 196, 120)
 PPC17 = 1920 / 112
 FPS = 20
-T_END = 5.6
 S = 0.4                          # working scale of the rig canvas against the 1024x1536 layers
 PAD = 200
 CW, CH = int((1024 + 2 * PAD) * S), int((1536 + 2 * PAD) * S)
 BRUTE_LINEAR = 0.45 / 0.30       # UnitType radius against the Runner's
-WALK, CHARGE = 1.8, 4.2          # cells per second: the sim's move speed, and a charge
 
 
 def key(path):
@@ -160,6 +160,14 @@ class Rig:
         self.head = on_canvas(with_alpha(hero, ha * np.asarray(head_m) / 255))
         self.neck = (512, 384)
         self.head_front = (512, 30)
+        self.shanks = {}
+        for part, path in (("F", "leg-front.png"), ("H", "leg-hind.png")):
+            leg = largest_blob(key(RAW / path))
+            leg = leg.crop(leg.getchannel("A").point(lambda v: 255 if v > 60 else 0).getbbox())
+            leg = leg.crop((0, int(leg.height * 0.3), leg.width, leg.height))   # the shank, without the hoof
+            leg = leg.transpose(Image.FLIP_TOP_BOTTOM)                           # knee at the top (the hip end)
+            w = SHANK_W[part] * S
+            self.shanks[part] = leg.resize((int(w), int(leg.height * w / leg.width)), Image.LANCZOS)
         self.hooves = {}
         for name, (m, c) in hoof_ms.items():
             cut = with_alpha(hero, ha * np.asarray(m) / 255)
@@ -168,209 +176,67 @@ class Rig:
             cut = cut.resize((max(1, int(cut.width * S)), max(1, int(cut.height * S))), Image.LANCZOS)
             self.hooves[name] = (cut, ((c[0] - box[0]) * S, (c[1] - box[1]) * S), c)
 
-    def rest(self, foot):
-        return self.hooves[foot][2]
-
-    def pose(self, feet, lifts, bob, roll, head):
-        """feet: name -> hoof centre (layer px); lifts: name -> 0..1 swing height;
-        bob: body rise (0 at rest; drawn larger when the body is high); roll: + toward the right side;
-        head: dict(dy=offset in layer px along the body, negative forward; k=scale)."""
+    def pose(self, sk):
+        """Draw one skeleton frame (brute_skeleton) head-up on the rig canvas. Legs go first, under the body:
+        a shank from the hip down to the hoof, and the hoof itself, bigger than the hero drew it, so its
+        claws stand out past the flank and never part from the leg. The body then bends with the
+        shoulder and hip sway, and the head rides on the shoulders."""
         c = Image.new("RGBA", (CW, CH), (0, 0, 0, 0))
-        hooves = Image.new("RGBA", (CW, CH), (0, 0, 0, 0))
+        y0 = sk["y"]
+
+        def lp(p):   # skeleton (x, y) in cells -> layer px
+            return 512 + p[0] * U_LAYER, ANCHOR_Y - (p[1] - y0) * U_LAYER
+
         for name in ("HL", "HR", "FL", "FR"):
+            leg = sk["legs"][name]
+            hip, foot = lp(leg[0]), lp(sk["feet"][name])
+            z = sk["feet"][name][2]
+            a, b = L(*hip), L(*foot)
+            shank = self.shanks[name[0]]
+            ln = max(1.0, math.hypot(b[0] - a[0], b[1] - a[1]))
+            sh_img = shank.resize((shank.width, int(ln + shank.width)), Image.LANCZOS)
+            if name[1] == "R":
+                sh_img = sh_img.transpose(Image.FLIP_LEFT_RIGHT)
+            ang = math.degrees(math.atan2(b[0] - a[0], b[1] - a[1]))   # image axis runs hip (top) to hoof
+            sh_img = sh_img.rotate(ang, expand=True, resample=Image.BICUBIC)
+            mx, my = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
+            c.alpha_composite(sh_img, (int(mx - sh_img.width / 2), int(my - sh_img.height / 2)))
             img, (ox, oy), _ = self.hooves[name]
-            lift = lifts.get(name, 0.0)
-            k = 1 + 0.14 * lift
-            if lift > 0.01:
-                img = img.resize((max(1, int(img.width * k)), max(1, int(img.height * k))), Image.LANCZOS)
-            x, y = feet[name]
-            x += (10 if name[1] == "R" else -10) * lift          # a lifted hoof swings a little wide
-            px, py = L(x, y)
-            hooves.alpha_composite(img, (int(px - ox * k), int(py - oy * k)))
-        body = self.body
-        k = 1 + 0.025 * bob
-        if abs(k - 1) > 1e-3:
-            body = scale_about(body, k, L(512, 760))
-        sway = (roll * 5 * S, 0)
-        if abs(roll) > 0.01:
-            body = body.rotate(-1.2 * roll, center=L(512, 760), resample=Image.BICUBIC, translate=sway)
+            k = HOOF_SCALE * (1 + 2.5 * z)            # a raised hoof is nearer the camera
+            im = img.resize((max(1, int(img.width * k)), max(1, int(img.height * k))), Image.LANCZOS)
+            c.alpha_composite(im, (int(b[0] - ox * k), int(b[1] - oy * k)))
+        body = sway_warp(self.body, sk, U_LAYER * S, row0=-PAD, scale=S)
         c.alpha_composite(body)
-        c.alpha_composite(hooves)        # hoof cuts sit where the hero drew them: over the flank's edge
+        (sx, sy), _ = body_offsets(sk)
         h = self.head
         pivot = L(*self.neck)
-        hk = head.get("k", 1.0) * k
-        if abs(hk - 1) > 1e-3:
-            h = scale_about(h, hk, pivot)
-        h = h.rotate(-1.2 * roll, center=pivot, resample=Image.BICUBIC,
-                     translate=(sway[0], head.get("dy", 0.0) * S))
+        head = sk["head"]
+        if abs(head["k"] - 1) > 1e-3:
+            h = scale_about(h, head["k"], pivot)
+        h = h.transform(h.size, Image.AFFINE, (1, 0, -sx * U_LAYER * S, 0, 1, -(head["dy"] - sy * U_LAYER) * S),
+                        resample=Image.BICUBIC)
         c.alpha_composite(h)
         return c
 
 
-# ----------------------------------------------------------------------------- planted-foot gait
+SHANK_W = {"F": 120, "H": 135}     # layer px
+HOOF_SCALE = 1.3                   # the owner asked for bigger feet
 
-
-REACH = 0.16   # cells a hoof may sit ahead of or behind its hip's rest spot
-
-
-class Gait:
-    """World-anchored hooves (cells along the path), stepping when the body leaves one behind."""
-
-    SEQ = {"walk": ["HL", "FL", "HR", "FR"], "gallop": ["HL", "HR", "FL", "FR"]}
-
-    def __init__(self, rig, U, x):
-        self.rig, self.U = rig, U
-        self.rest_off = {f: (760 - rig.rest(f)[1]) / U for f in FEET}
-        self.anchor = {f: x + self.rest_off[f] for f in FEET}
-        self.swing = {}
-        self.next = 0
-        self.mode = "walk"
-
-    def step(self, x, v, dt, mode, frozen):
-        if mode != self.mode:
-            self.mode, self.next = mode, 0
-        th, ahead, dur, overlap = {"walk": (0.08, 0.10, 0.24, 0.25), "gallop": (0.06, 0.14, 0.14, 0.2)}[mode]
-        for f, sw in list(self.swing.items()):
-            sw["k"] += dt / sw["dur"]
-            if sw["k"] >= 1:
-                self.anchor[f] = sw["target"](x)
-                del self.swing[f]
-        if frozen or abs(v) < 0.05:
-            return
-        # one foot leaves at a time, in sequence; the next may lift once the last is `overlap` through its swing
-        if any(sw["k"] < overlap for sw in self.swing.values()):
-            return
-        f = self.SEQ[mode][self.next % 4]
-        if f in self.swing:
-            return
-        if (x + self.rest_off[f]) - self.anchor[f] > th:
-            off = self.rest_off[f]
-            self.swing[f] = dict(k=0.0, dur=dur, start=self.anchor[f], target=lambda xx, off=off: xx + off + ahead)
-            self.next += 1
-
-    def feet(self, x):
-        pos, lifts = {}, {}
-        for f in FEET:
-            rx, ry = self.rig.rest(f)
-            if f in self.swing:
-                sw = self.swing[f]
-                k = smooth(min(1, sw["k"]))
-                fw = sw["start"] + (sw["target"](x) - sw["start"]) * k
-                lifts[f] = math.sin(math.pi * min(1, sw["k"]))
-            else:
-                fw = self.anchor[f]
-                lifts[f] = 0.0
-            rel = max(-REACH, min(REACH, fw - (x + self.rest_off[f])))   # a hoof stays within a leg's reach
-            pos[f] = (rx, ry - rel * self.U)
-        return pos, lifts
-
-    def body_motion(self, lifts):
-        """Bob, roll and nod read off the swinging feet: the body rises as it vaults over a planted leg,
-        rolls toward the side still supporting, and the head nods down as a fore hoof lands."""
-        swing = sum(lifts.values())
-        bob = 0.5 - 0.5 * math.cos(math.pi * min(1, swing))
-        roll = sum(l for f, l in lifts.items() if f[1] == "L") - sum(l for f, l in lifts.items() if f[1] == "R")
-        nod = lifts.get("FL", 0) + lifts.get("FR", 0)
-        return bob, roll, nod
-
-
-# ----------------------------------------------------------------------------- the three clips
 CLIPS = [
-    ("A", "walk: four-beat, legs under the body"),
-    ("B", "charge: head down, gallop, bowls a Marine aside"),
-    ("C", "wall: rears and rams twice, then walks through"),
+    ("A", "walk 0.8 cells/s: four-beat, legs under the body"),
+    ("B", "trot at sim speed 1.8, then a head-down gallop that bowls a Marine aside"),
+    ("C", "wall: trots in, rears and rams twice, then walks through"),
 ]
-T_DROP, T_GALLOP, T_HIT_B = 0.9, 1.25, 2.35
-WALL_STOP = 2.4                    # clip C arrives at the wall
-BLOWS = [(2.55, 0.0), (3.45, 0.0)]  # wind-up start of each ram
-WIND, SLAM, HOLD = 0.32, 0.07, 0.25
-T_THROUGH = 4.25
-
-
-def ram_e(t, t0):
-    """Body offset (cells along the path) and head pose over one ram starting at t0."""
-    u = t - t0
-    if u < 0 or u > WIND + SLAM + HOLD + 0.35:
-        return 0.0, dict(dy=0.0, k=1.0), False
-    if u < WIND:   # rear back, head up
-        s = smooth(u / WIND)
-        return -0.16 * s, dict(dy=40 * s, k=1 + 0.07 * s), False
-    if u < WIND + SLAM:  # slam: head down and through
-        s = ease_out((u - WIND) / SLAM)
-        return -0.16 + 0.36 * s, dict(dy=40 - 110 * s, k=1.07 - 0.12 * s), False
-    if u < WIND + SLAM + HOLD:
-        return 0.2, dict(dy=-70, k=0.95), True
-    s = smooth((u - WIND - SLAM - HOLD) / 0.35)
-    return 0.2 - 0.2 * s, dict(dy=-70 * (1 - s), k=0.95 + 0.05 * s), True
-
-
-def body_x(clip, t):
-    """Position along the path (cells), speed, gait mode, whether feet are frozen, head pose, phase."""
-    head = dict(dy=0.0, k=1.0)
-    if clip == "A":
-        return WALK * t, WALK, "walk", False, head, "walk"
-    if clip == "B":
-        if t < T_GALLOP:
-            x, v, mode, phase = WALK * t, WALK, "walk", "walk"
-            if t > T_DROP:
-                s = smooth((t - T_DROP) / (T_GALLOP - T_DROP))
-                head, phase = dict(dy=-45 * s, k=1 - 0.07 * s), "head down"
-            return x, v, mode, False, head, phase
-        x0 = WALK * T_GALLOP
-        u = t - T_GALLOP
-        acc = (CHARGE - WALK) / 0.5
-        if u < 0.5:
-            x, v = x0 + WALK * u + 0.5 * acc * u * u, WALK + acc * u
-        else:
-            x, v = x0 + WALK * 0.5 + 0.5 * acc * 0.25 + CHARGE * (u - 0.5), CHARGE
-        phase = "charge"
-        if t > T_HIT_B + 0.25:   # pull up after bowling through
-            uu = t - T_HIT_B - 0.25
-            dec = min(uu, 0.6)
-            xs = x0 + WALK * 0.5 + 0.5 * acc * 0.25 + CHARGE * (T_HIT_B + 0.25 - T_GALLOP - 0.5)
-            x = xs + CHARGE * dec - CHARGE / 1.2 * dec * dec
-            v = max(0.0, CHARGE - CHARGE / 0.6 * dec)
-            phase = "pull up"
-        return x, v, ("gallop" if v > 2.4 else "walk"), False, dict(dy=-45, k=0.93), phase
-    # C: walk to the wall, ram twice, walk through
-    if t < WALL_STOP:
-        return WALK * t, WALK, "walk", False, head, "walk"
-    x = WALK * WALL_STOP
-    if t < T_THROUGH:
-        for i, (t0, _) in enumerate(BLOWS):
-            if t0 <= t < t0 + WIND + SLAM + HOLD + 0.35:
-                off, head, _ = ram_e(t, t0)
-                phase = "rear" if t - t0 < WIND else ("RAM" if t - t0 < WIND + SLAM + HOLD else "recover")
-                return x + off, 0.0, "walk", True, head, f"{phase} {i + 1}"
-        return x, 0.0, "walk", True, head, "brace"
-    return x + WALK * 0.8 * (t - T_THROUGH), WALK * 0.8, "walk", False, head, "through the hole"
-
-
-def simulate(rig, clip, U, n):
-    x, *_ = body_x(clip, 0)
-    gait = Gait(rig, U, x)
-    out = []
-    for f in range(n):
-        t = f / FPS
-        x, v, mode, frozen, head, phase = body_x(clip, t)
-        gait.step(x, v, 1 / FPS, mode, frozen)
-        feet, lifts = gait.feet(x)
-        bob, roll, nod = gait.body_motion(lifts)
-        h = dict(head)
-        amp = 18 if mode == "walk" else 10
-        h["dy"] = h.get("dy", 0.0) + amp * nod      # a nod forward as a fore hoof reaches
-        out.append((t, x, phase, feet, lifts, bob * (0.6 if mode == "walk" else 1.0), roll, h))
-    return out
 
 
 # ----------------------------------------------------------------------------- world, wall and drawing
 # World cells are map cells; every scene runs along a row in the -x direction, toward a building's east wall.
 WALL_X = 185.0           # outer face of the east wall (cell column 184) of the house at the top left of brute-wall96
 PATH_Y = 181.8           # clip C's row, against that wall
-SCENE = {"A": (191.6, 183.65),   # start x, row: the dirt strip south of the house
-         "B": (192.8, 186.1),   # across the road toward the stone yard
+SCENE = {"A": (191.2, 183.65),   # start x, row: the dirt strip south of the house
+         "B": (192.7, 186.1),   # across the road toward the stone yard
          "C": (None, PATH_Y)}
-CENTRE = {"A": 186.6, "B": 188.0, "C": 188.0}   # fixed 96 px windows (cells), so the GIF stays small
+CENTRE = {"A": 188.6, "B": 187.8, "C": 188.0}   # fixed 96 px windows (cells), so the GIF stays small
 
 
 def frame_path(root, name):
@@ -394,39 +260,40 @@ class World:
 class Clip:
     def __init__(self, rig, cid, U, n):
         self.rig, self.cid, self.U = rig, cid, U
-        self.frames = simulate(rig, cid, U, n)
-        x_stop = WALK * WALL_STOP
-        nose = (760 - rig.head_front[1]) / U       # cells from the body anchor to the front of the head
-        # every clip starts at the same distance; C's path ends with the head just short of the wall
+        self.frames = simulate(cid, n)
+        nose = (ANCHOR_Y - rig.head_front[1]) / U_LAYER
         self.x0, self.y = SCENE[cid]
-        if self.x0 is None:
-            self.x0 = WALL_X + 0.3 + nose + x_stop
+        if self.x0 is None:   # C's path ends with the head just short of the wall
+            self.x0 = WALL_X + 0.3 + nose + TROT * WALL_STOP
         if cid == "B":
-            hx = self.x0 - body_x("B", T_HIT_B)[0] - nose
-            self.victim = (hx, self.y + 0.1)
+            f = int(round(T_HIT_B * FPS))
+            self.victim = (self.x0 - self.frames[f]["y"] - nose - 0.15, self.y + 0.1)
+        self.cache = {}
 
     def world(self, x):
         return (self.x0 - x, self.y)
 
     def draw_body(self, tile, f, ppc, origin, sc):
-        t, x, phase, feet, lifts, bob, roll, head = self.frames[f]
-        body = self.rig.pose(feet, lifts, bob, roll, head)
+        sk = self.frames[f]
+        if f not in self.cache:
+            self.cache = {f: self.rig.pose(sk)}
+        body = self.cache[f]
         body = body.resize((max(1, int(CW * sc)), max(1, int(CH * sc))), Image.LANCZOS).rotate(
             90, expand=True, resample=Image.BICUBIC)       # head up -> head toward -x
-        ax, ay = L(512, 760)
+        ax, ay = L(512, ANCHOR_Y)
         anc = (ay * sc, (CW - ax) * sc)
-        bx, by = self.world(x)
+        bx, by = self.world(sk["y"])
         cx, cy = origin[0] + bx * ppc, origin[1] + by * ppc
         sh, (ox, oy) = shadow_blob(ppc, 0.45)
         tile.alpha_composite(sh, (int(cx + ox - sh.width / 2), int(cy + oy - sh.height / 2)))
         tile.alpha_composite(body, (int(cx - anc[0]), int(cy - anc[1])))
-        return phase
+        return sk["phase"]
 
 
 def wall_damage(tile, ppc, origin, t):
     """Cracks after the first ram, a hole and rubble after the second, with dust and flying chunks."""
-    hit1 = BLOWS[0][0] + WIND + SLAM
-    hit2 = BLOWS[1][0] + WIND + SLAM
+    hit1 = BLOWS[0] + WIND + SLAM
+    hit2 = BLOWS[1] + WIND + SLAM
     if t < hit1:
         return
     d = ImageDraw.Draw(tile)
@@ -524,10 +391,10 @@ def build(root, out):
         t = f / FPS
         img = Image.new("RGB", (1920, 1080), BG)
         d = ImageDraw.Draw(img)
-        d.text((24, 10), "RAV BLOOM BRUTE  /  MOTION STUDY  /  mace head, legs under the body",
+        d.text((24, 10), "RAV BLOOM BRUTE  /  MOTION STUDY 2  /  skeleton legs, bigger hooves, body sway",
                font=font(24, True), fill=INK)
-        d.text((24, 40), "Real time. 96 px per cell in the three large panels; 32 px per cell on the right. Hooves "
-                         "step at the body's edge; the body rises, rolls and the head nods with the stride.",
+        d.text((24, 40), "Real time. 96 px per cell in the three large panels; 32 px per cell on the right. Legs from "
+                         "the skeleton; the shoulders and hips sway toward the loaded side and drive on push-off.",
                font=font(14), fill=DIM)
         for i, ((cid, title), clip) in enumerate(zip(CLIPS, clips)):
             gx, gy = 12 + (i % 2) * (W96 + 8), 66 + (i // 2) * (H96 + 34)
@@ -562,9 +429,57 @@ def build(root, out):
     return frames, clips
 
 
+def build_close(root, out, ppc=192, only=None):
+    """The same three clips in rows at 2x the 96 px zoom, for reading the legs and the sway; the ground is the
+    96 px frame enlarged, the Brute and everything on it drawn at this zoom."""
+    rig = Rig()
+    world = World(root)
+    marines = marine_sprites(root)
+    sc = BRUTE_LINEAR * (RUNNER_AREA_PX * (ppc / PPC17) ** 2 / rig.hero_area) ** 0.5
+    n = int(T_END * FPS)
+    rows = [(cid, title) for cid, title in CLIPS if only is None or cid in only]
+    clips = [Clip(rig, cid, None, n) for cid, _ in rows]
+    W, H = 1896, 316
+    k = ppc / 96
+    o96 = (-(FRAMES[96][1][0] * 96) + 960, -(FRAMES[96][1][1] * 96) + 540)
+    centre = {"A": 188.6, "B": 187.0, "C": 188.4}
+    bases = []
+    for cid, clip in zip([c for c, _ in rows], clips):
+        cx, cy = World.px(96, (centre[cid], clip.y))
+        box = (int(cx - W / k / 2), int(cy - H / k / 2))
+        base = world.g[96].crop((box[0], box[1], box[0] + int(W / k), box[1] + int(H / k)))
+        base = base.resize((W, H), Image.LANCZOS)
+        bases.append((base, (k * (o96[0] - box[0]), k * (o96[1] - box[1]))))
+    frames = []
+    for f in range(n):
+        t = f / FPS
+        img = Image.new("RGB", (1920, 1080), BG)
+        d = ImageDraw.Draw(img)
+        d.text((24, 10), f"RAV BLOOM BRUTE  /  MOTION STUDY 2  /  close-up, {ppc} px per cell", font=font(24, True),
+               fill=INK)
+        d.text((24, 40), "Twice the 96 px zoom, so the legs can be read: shanks and hooves from the skeleton under the "
+                         "body, the shoulders and hips swaying toward the loaded side and surging on push-off. Real time.",
+               font=font(14), fill=DIM)
+        for i, ((cid, title), clip) in enumerate(zip(rows, clips)):
+            base, origin = bases[i]
+            tile = base.copy()
+            if cid == "C":
+                wall_damage(tile, ppc, origin, t)
+            if cid == "B":
+                draw_victim(tile, clip, t, ppc, origin, marines)
+            phase = clip.draw_body(tile, f, ppc, origin, sc)
+            y0 = 70 + i * 336 + (336 * (3 - len(rows))) // 2
+            img.paste(tile.convert("RGB"), (12, y0 + 20))
+            d.text((12, y0), f"{cid}  {title}", font=font(16, True), fill=ACC)
+            d.text((1700, y0), phase, font=font(16, True), fill=INK)
+        d.text((1700, 14), f"t = {t:4.2f} s", font=font(16, True), fill=DIM)
+        frames.append(img)
+    save_gif(frames, out, FPS, accents=[(255, 168, 54), (120, 60, 110), (150, 40, 90), (236, 226, 206)])
+
+
 def key_sheet(frames, clips, out):
-    picks = [(0, 1.2, "walk"), (0, 1.4, "walk"), (1, 1.7, "head down, gallop"), (1, 2.4, "bowls through"),
-             (2, 2.85, "rear"), (2, 2.95, "ram 1: cracks"), (2, 3.85, "ram 2: wall breaks"), (2, 5.0, "through")]
+    picks = [(0, 1.0, "walk"), (0, 1.15, "walk"), (1, 1.5, "head down"), (1, 2.65, "bowls through"),
+             (2, 2.45, "rear"), (2, 2.6, "ram 1: cracks"), (2, 3.6, "ram 2: wall breaks"), (2, 4.8, "through")]
     sheet = Image.new("RGB", (1920, 1080), BG)
     d = ImageDraw.Draw(sheet)
     d.text((24, 10), "BRUTE MOTION STUDY  /  key moments at 96 px per cell, 1:1", font=font(22, True), fill=INK)
@@ -573,7 +488,7 @@ def key_sheet(frames, clips, out):
         fr = frames[fi]
         gx, gy = 12 + (clip % 2) * 952, 66 + (clip // 2) * 438
         c = clips[clip]
-        bx = c.world(c.frames[fi][1])[0]
+        bx = c.world(c.frames[fi]["y"])[0]
         tx = int((bx - CENTRE[c.cid]) * 96 + 472 - 230 - 30)    # centred a little ahead of the Brute
         tx = max(0, min(944 - 460, tx))
         crop = fr.crop((gx + tx, gy + 26 + 2, gx + tx + 460, gy + 26 + 2 + 400))
@@ -602,5 +517,7 @@ if __name__ == "__main__":
     fr, cl = build(sys.argv[1], sys.argv[2])
     if len(sys.argv) > 3:
         key_sheet(fr, cl, sys.argv[3])
-    if len(sys.argv) > 4:
-        layers_sheet(sys.argv[4])
+    if len(sys.argv) > 4:   # one close-up GIF per clip: <close-up>-A.gif, -B, -C (each under the 8 MB limit)
+        stem = sys.argv[4][:-4] if sys.argv[4].endswith(".gif") else sys.argv[4]
+        for cid, _ in CLIPS:
+            build_close(sys.argv[1], f"{stem}-{cid}.gif", only=(cid,))
