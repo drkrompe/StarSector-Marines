@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 
 import java.util.List;
@@ -44,10 +45,13 @@ public final class CivilianEvacuationPayload {
         this.entityIds = entityIds;
     }
 
+    /** On a map with a landing field, the lift comes down on the field. */
     public static CivilianEvacuationPayload install(
             BattleSimulation sim, MapResult map, long seed) {
         return map == null ? null
-                : install(sim, map.pointsOfInterest, seed);
+                : install(sim, map.pointsOfInterest, seed, V1_TYPES.length, true,
+                CivilianEvacuationObjective.DEFAULT_PAYLOAD_ID,
+                "civilian cohort", map.fieldOfFire);
     }
 
     public static CivilianEvacuationPayload install(
@@ -57,7 +61,7 @@ public final class CivilianEvacuationPayload {
                 : install(sim, map.pointsOfInterest, seed,
                 representativeCount, requireAnyEvacuated,
                 CivilianEvacuationObjective.DEFAULT_PAYLOAD_ID,
-                "civilian cohort");
+                "civilian cohort", map.fieldOfFire);
     }
 
     public static CivilianEvacuationPayload install(
@@ -67,7 +71,7 @@ public final class CivilianEvacuationPayload {
         return map == null ? null
                 : install(sim, map.pointsOfInterest, seed,
                 representativeCount, requireAnyEvacuated,
-                payloadId, payloadName);
+                payloadId, payloadName, map.fieldOfFire);
     }
 
     public static CivilianEvacuationPayload install(
@@ -75,7 +79,7 @@ public final class CivilianEvacuationPayload {
             long seed) {
         return install(sim, pointsOfInterest, seed, V1_TYPES.length, true,
                 CivilianEvacuationObjective.DEFAULT_PAYLOAD_ID,
-                "civilian cohort");
+                "civilian cohort", null);
     }
 
     public static CivilianEvacuationPayload install(
@@ -85,14 +89,14 @@ public final class CivilianEvacuationPayload {
         return install(sim, pointsOfInterest, seed, representativeCount,
                 requireAnyEvacuated,
                 CivilianEvacuationObjective.DEFAULT_PAYLOAD_ID,
-                "civilian cohort");
+                "civilian cohort", null);
     }
 
     private static CivilianEvacuationPayload install(
             BattleSimulation sim, List<PointOfInterest> pointsOfInterest,
             long seed, int representativeCount,
             boolean requireAnyEvacuated, String payloadId,
-            String payloadName) {
+            String payloadName, FieldOfFire field) {
         if (sim == null) return null;
         CivilianEvacuationTracker tracker =
                 sim.getCivilianEvacuationTracker();
@@ -101,7 +105,7 @@ public final class CivilianEvacuationPayload {
         CivilianEvacuationPlacement placement =
                 CivilianEvacuationPlacement.find(
                         sim.getGrid(), sim.getTopology(), pointsOfInterest, seed,
-                        representativeCount);
+                        representativeCount, field);
         if (placement == null
                 || placement.spawnCount() != representativeCount
                 || tracker.expectedCount() != representativeCount) {

@@ -63,9 +63,22 @@ worktree.
    git merge origin/main
    ```
 
-6. Return to the main workspace, verify that it is still on `main` and clean,
-   then integrate with a fast-forward-only merge, publish `main` to GitHub
-   with an ordinary (fast-forward) push, and then mirror it to the Mac:
+6. Integrate with the script, which does everything below and stops at the
+   first failure: `powershell -File tools/integrate.ps1 session/<unique-name>`
+   (`tools/integrate.sh session/<unique-name>` on the Mac). It checks that the
+   main workspace is on `main` and clean, fetches, fast-forwards `main` to
+   `origin/main`, fast-forward-merges the session branch, pushes `origin`, and
+   only then pushes `hub` (skipped with a message when the Mac is unreachable).
+   Use it rather than typing the commands: three sessions (2026-10-20 and
+   2026-10-21) pushed other sessions' commits early after a failed
+   `--ff-only`, because the push was chained unconditionally or a pipe hid the
+   exit code.
+
+   The manual fallback: return to the main workspace, verify that it is still
+   on `main` and clean, then integrate with a fast-forward-only merge, publish
+   `main` to GitHub with an ordinary (fast-forward) push, and then mirror it to
+   the Mac. Never chain the push after the merge unconditionally, and never
+   pipe these commands; check each exit code.
 
    ```powershell
    git merge --ff-only session/<unique-name>

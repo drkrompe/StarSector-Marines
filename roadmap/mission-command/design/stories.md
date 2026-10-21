@@ -20,7 +20,6 @@ implementation story.
 | `commander-trace-and-balance-harness.md` | IN PROGRESS | Replace construction-only Conquest evidence with launch-faithful fixtures and later compare bounded intervention. |
 | `player-command-interventions.md` | PLANNED | Tactical squad orders lease through the arbiter and hand back (shipped 2026-09-01). Add the strategic priority/rally/reserve/fallback vocabulary, refuse a lease over a higher authority, and bound pacing. |
 | `target-faction-command-doctrine.md` | PLANNED | Bias established legal choices with frozen faction profiles after paired baselines exist. |
-| `mission-counterattack.md` | IN PROGRESS | Raid, Assault, Sabotage and Extraction defenders retake the places that matter to their mission on the shared counter-attack, bounded; triggered counter-attacks for mission design. |
 
 ## Conquest
 

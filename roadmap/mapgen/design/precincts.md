@@ -10,7 +10,8 @@ Conquest at 560x336. What remains is the shape work below.
 Written: 2026-09-01
 
 Updated: 2026-10-21 — an `OPEN_FIELD` landing kind promises a clear field of
-fire round its berths; Colony Breach lands in one outside the colony.
+fire round its berths and owns the open country along its edge; Colony Breach
+lands in one outside the colony.
 
 Earlier 2026-09-01 — Conquest generates as places at 560x336; the front is a
 depth from the objective rather than a biome; a mission states its sprawl and
@@ -683,65 +684,85 @@ things make that a property of the place rather than a hope:
   one side and falls short on the other, and the short side is where a
   neighbour's first house stands inside the radius. A field of fire is a
   promise about distance, so it is not trimmed to the map either.
+- **The fields are outside the town, not a clearing in it.** A disc alone
+  leaves the town free to grow up both its flanks to the map edge, and on the
+  first colony maps it did: the town wrapped the field on three sides, and the
+  company was landing inside what it came to fight into. So the field also
+  claims its **open country**, the whole band along the edge it lies against,
+  out to eight cells past the disc's far side (`FieldOfFire.countryDepth`), and
+  a mission's briefs are laid out on the map the country leaves, so a town
+  asked for the centre is the centre of what is left and nothing is seeded in
+  the fields. The town is on one side; open fields run the length of the edge
+  behind it.
 - **What is not built still has to be kept off.** A claim keeps a neighbour's
   parcels out and nothing else: the landscape pass reserves the disc against
   trees, hills and rock formations, and parked vehicles are kept off the track
-  across it. The field is dressed as cultivated plots of crop and turned earth,
-  green on every world by the cultivated-ground law, so it reads as farmland
-  rather than as a cleared circle.
+  across it. The country is dressed as cultivated plots of crop and turned
+  earth, green on every world by the cultivated-ground law, so it reads as
+  farmland rather than as a cleared circle.
 - **It is checked on the finished map**, not trusted from the claim:
   `MissionMapRequirements` asks that the disc be clear of buildings, walls,
   fixtures, vehicles, natural solids, anything that blocks sight and any prop
   that gives cover, that the marine spawn and every arrival area stand on it,
-  and re-rolls the seed otherwise. The map edge is not an obstruction: ground
-  off the map is ground nobody stands on.
+  that it has room for the evacuation lift, and re-rolls the seed otherwise.
+  The map edge is not an obstruction: ground off the map is ground nobody
+  stands on.
 
 **Its standoff is the field itself, and it lies against the edge it lands
 across.** The measured lesson above is that a landing slid inland is paid for
 twice on every re-arm run, at about 5.3 ticks a cell. A field has no objective
-claim to slide toward, so the seed sits its clear radius in from the edge of
-the stated band, the whole disc on the map and no further: the berths stand
-about thirty-six cells inland. The walk is what the field's open ground and the
-town's streets make it.
+claim to slide toward, so the seed sits three quarters of its radius in from
+the edge (`LandingKind.fieldSetback`): a quarter of the disc lies off the map,
+behind the company, where nothing comes from, and the berths stand about
+twenty-six cells inland. Sitting at the full radius instead put them at
+thirty-six and gave the town ten rows less. The walk is the field's open
+ground and then the town's streets.
+
+**The people leave from where the company landed.** The reason the company
+lands in the fields is the reason the survivors leave from them, so on a map
+with a field the evacuation lift is the clear pickup site on the field nearest
+the shelter, past the berths' reach (`CivilianEvacuationPlacement`), rather
+than the site furthest from the shelter as elsewhere. The battle's shape is
+land in the fields, fight in to the people, bring them back out.
 
 Measured on the 400x240 colony against `-Dbattle.colonyBreach.fieldLanding=false`,
-which lands the old way, wherever open ground is first found:
+which lands the old way, wherever open ground is first found, and keeps the
+old lift:
 
-- **The promise holds without re-rolls.** Over twelve seeds every colony passed
-  its requirements on the first map; the nearest thing standing was 44 to 55
-  cells from the centre against the 40 promised, and nothing stood in the disc
-  once parked vehicles, militia emplacements and technicals were placed
-  (`ColonyLandingFieldEvidenceTest`, under `generatedSpaceEvidence`).
+- **The promise holds.** Over twelve seeds the nearest thing standing was 49
+  to 61 cells from the centre against the 40 promised, the lift came down on
+  the field every time, and nothing stood in the disc once parked vehicles,
+  militia emplacements and technicals were placed. Taking the country costs
+  re-rolls: eight seeds passed on the first map, three on the second, one on
+  the third (`ColonyLandingFieldEvidenceTest`, under `generatedSpaceEvidence`).
 - **The flight costs what the lesson predicts.** A shuttle's re-arm cycle on
-  the canonical fixture went from 476 ticks to 680: the berths stand 36 cells
-  inland, and 36 cells at 5.3 ticks is 191. Conquest's slide doubled its cycle;
-  this adds two fifths.
-- **The walk did not get longer.** From the spawn to the shelter, twelve seeds
-  walk 75 to 216 cells, mean 137, against the old landing's 52 to 318, mean
-  154. The old landing was wherever the scan first found room, often a street
-  a few cells from a house; the field puts the nearest building 51 to 95
-  steps away.
+  the two-cycle fixture is 620 ticks on the field against 476 on the old
+  landing: about a quarter longer.
+- **The walk in is longer.** The town begins 78 cells in from the edge and the
+  shelter is wherever the seed puts it, so the company walks 96 to 200 cells to
+  it, mean 168, and reaches it thousands of ticks later than a landing in the
+  streets did. The cohort's walk out to the lift is about as long again.
 
-| fixture seed | landing | result | ticks | evacuated | company's first contact | marines killed |
+| fixture seed | landing | result | ticks | evacuated | company's first contact | shelter reached |
 |---|---|---|---:|---:|---:|---:|
-| 7117 | field | MARINE | 9651 | 3/8 | 186, on the pads | 0 |
-| 7117 | old | MARINE | 12475 | 6/8 | 152 | 9 |
-| 7118 | field | MARINE | 13066 | 5/8 | 209, on the pads | 0 |
-| 7118 | old | MARINE | 17326 | 6/8 | 264 | 6 |
-| 7119 | field | MARINE | 13849 | 8/8 | 209, on the pads | 6 |
-| 7119 | old | MARINE | 10337 | 8/8 | 396 | 0 |
-| 7120 | field | MARINE | 17366 | 1/8 | 209, on the pads | 1 |
-| 7120 | old | MARINE | 14884 | 8/8 | 102 | 5 |
+| 7117 | field | MARINE | 15624 | 6/14 | 282 | 5307 |
+| 7117 | old | MARINE | 11577 | 3/14 | 189 | 1154 |
+| 7118 | field | MARINE | 15949 | 16/16 | 161 | 9109 |
+| 7118 | old | timeout | 24000 | 3/11 | 107 | 12930 |
+| 7119 | field | MARINE | 18739 | 4/17 | 161 | 3971 |
+| 7119 | old | MARINE | 21424 | 14/17 | 316 | 8780 |
+| 7120 | field | MARINE | 18660 | 16/17 | 210 | 11611 |
+| 7120 | old | MARINE | 12102 | 4/12 | 102 | 4049 |
+| 7117, two cycles | field | MARINE | 13252 | 6/14 | 263 | 5013 |
+| 7117, two cycles | old | MARINE | 16999 | 11/14 | 188 | 1190 |
 
-The company meets the opening runners on the field within half a minute of
-landing and shoots them crossing open ground; it loses 7 marines across the
-four battles against 20. **It also gets fewer people out, 17 of 32 against
-28, and that is not explained here.** Each seed is a different map, with the
-shelter and the lift placed afresh, and the cohort is lost on the walk between
-them, which this change does not touch; the two-cycle fixture on the field map
-stalls with the cohort parked short of the lift, the latent escort deadlock.
-Four seeds cannot separate the landing from that lottery, and it wants a
-reading of its own before anyone tunes against it.
+Over the four seeds the field gets 42 of 64 out against 24 of 54, and every
+field battle completes. The company meets the opening runners on the field and
+shoots them crossing open ground. Each seed is still a different map with its
+shelter and redoubts placed afresh, and a shelter at the town's far side is a
+long fight in and out again (seed 7119), so four seeds read the direction and
+not a rate. The two-cycle fixture that stalled on the first field map, with
+the cohort parked short of a lift across the town, completes on this one.
 
 **The standoff enters the derivation rather than being layered on.** A landing
 place is seeded *against* the standoff — where the force lands is what a
@@ -1127,7 +1148,8 @@ budget and the arrival cadence rather than about the map, and it belongs with
 market. Sabotage, Extraction, Silent Colony and the opening operations keep
 the recipe they have. Civilian Rescue's high-risk colony (Colony Breach) is
 laid out rather than derived — town, installation and suburb at 400x240, with
-an `OPEN_FIELD` landing north or south of the town — and its lower risks keep
+an `OPEN_FIELD` landing in open country along the north or south edge, the
+town laid out on the rest — and its lower risks keep
 the stock map; see `colony-breach-nouns.md`. A landing place is never the
 objective, even where it is the only programmed place on the map. The gate is the market: a battle with no
 market behind it — a headless fixture, an operation against no planet — has no

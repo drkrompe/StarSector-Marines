@@ -547,8 +547,8 @@ real size against the crew, so a gym is read as a room people use rather than
 a showroom of oversized machines. The track is run: it publishes **lap markers**
 on its inner lane, corners and straights in running order, and a crew member's
 rotation takes them as one lap (the **lap** shape in `ai-nouns.md`), jogged, while
-the outer lane stays clear for whoever is crossing to a hatch. A frigate's gym
-runs the same way on its one-cell loop. Nothing on a track is a place to stand
+the outer lane stays clear for whoever is crossing to a hatch. Second Wind's
+reserved gym is this same cruise-ship room, laid in her aft port block. Nothing on a track is a place to stand
 and exercise; the dumbbells are at the rack.
 
 They are not decoration. The whole ambient model exists so that nobody stands
@@ -1639,10 +1639,16 @@ beside the provisions, and the machine shop, the plant and the drive together
 to starboard aft. Every other hull is packed by zone alone.
 
 An arrangement may also carry **reserves**: compartments a hull keeps sealed
-for refits she has not had. A reserve is no part of the room program. The
+for refits she has not had. A reserve is no part of the room program: the
 deck is not sized for it, the ship is not owed it and no facility count reads
-it. It is laid after every programmed room and before the pocket fill, so
-reserving one never moves a room, door or berth the program placed. It is
+it. An ordinary reserve is laid after every programmed room and before
+the pocket fill, so reserving one never moves a room, door or berth the program
+placed. A reserve too big for the floor the program leaves over is laid ahead
+of a named purpose instead, and the rooms laid after it find room around it;
+Second Wind's cruise-ship gymnasium is laid that way, ahead of her mess.
+An arrangement may also **pin its layout seed**, so the hull lays one deck
+whatever seed the caller passes: a ship the company owns is authored and
+checked once, not across seeds. Second Wind's is pinned. A reserve is
 furnished as the facility it is kept for, at its reserved footprint, then
 stripped and closed behind pressure hatches, and stays out of service until a
 refit opens it where it stands. Opening is condition, not form: the hull's

@@ -99,7 +99,8 @@ public enum MapFeature {
 
     /**
      * Fields outside the colony to come down in, with nothing built, walled or
-     * tall within their clear radius and every arrival area on them.
+     * tall within their clear radius, every arrival area on them and room on
+     * them for the evacuation lift.
      *
      * <p>Asked of the finished map rather than trusted from the claim that
      * reserved the ground: the claim keeps a neighbour's houses out and nothing
@@ -117,7 +118,8 @@ public enum MapFeature {
                 }
             }
             return field.contains(map.marineSpawnX, map.marineSpawnY)
-                    && field.firstObstruction(map.grid, map.topology, map.doodads) == null;
+                    && field.firstObstruction(map.grid, map.topology, map.doodads) == null
+                    && CivilianEvacuationPlacement.hasClearFieldLiftSite(map.grid, map.topology, field);
         }
     },
 
