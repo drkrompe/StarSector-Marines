@@ -331,8 +331,9 @@ changes no compartment's state. Their passives:
   like the scrubbers' wound day, and only where the defenders are derived from
   the mission. Debug missions and scripted battles that bring their own force
   (the opening operations, the story arcs, the supply route, the silent colony
-  and the civilian rescue) show nothing. The **plot table** (Improved I) is sold
-  as the tank's mount and changes nothing in battle yet: its passive, a faster
+  and the civilian rescue) show nothing. The **plot table** (Improved I) is a plot
+  table in the briefing corner that the holo-tank is built on, sold for metals
+  alone, and it changes nothing in battle yet: its passive, a faster
   first action against a new threat, needs a reaction axis no seat carries.
 - **Boat bay services** is not a track yet: a boat grounded in battle has no
   timed recovery to shorten, and the deck crane's discount needs the boat
