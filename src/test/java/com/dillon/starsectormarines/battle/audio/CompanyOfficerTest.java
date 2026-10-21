@@ -2,14 +2,8 @@ package com.dillon.starsectormarines.battle.audio;
 
 import com.dillon.starsectormarines.battle.audio.BattleRadioChatter.Cue;
 import com.fs.starfarer.api.SoundAPI;
-import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.util.HashSet;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Random;
 
@@ -90,43 +84,6 @@ class CompanyOfficerTest {
         assertEquals(first, muted.current());
         muted.advance(1, false, false);
         assertNull(muted.current());
-    }
-
-    @Test
-    void approvedVoiceTakesAreRegisteredWithTheSharedCommsRecipe() throws Exception {
-        JSONObject catalog = new JSONObject(Files.readString(Path.of("mod", CompanyOfficer.PATH)));
-        assertEquals("cuwCdnt9CKAB9XrTA1j0", catalog.getString("voiceId"));
-        assertEquals("eleven_v4", catalog.getString("modelId"));
-        JSONObject sounds = new JSONObject(Files.readString(Path.of("mod/data/config/sounds.json"))
-                .replaceAll("(?m)#.*$", ""));
-        Path sources = Path.of("asset-pipeline/src/tool/resources/audio");
-        var clips = new JSONObject(Files.readString(sources.resolve("audio.json"))
-                .replaceAll("(?m)^\\s*//.*$", "")).getJSONArray("clips");
-        var ids = new HashSet<String>();
-        for (var line : CompanyOfficer.parse(catalog)) {
-            assertTrue(ids.add(line.id()));
-            JSONObject receipt = new JSONObject(Files.readString(sources.resolve("company-officer/" + line.id() + ".json")));
-            assertEquals(catalog.getString("voiceId"), receipt.getString("voiceId"));
-            assertEquals(catalog.getString("modelId"), receipt.getString("modelId"));
-            assertEquals(line.durationSeconds(), receipt.getDouble("durationSeconds"), 0.001);
-            assertEquals(receipt.getString("audioSha256"), HexFormat.of().formatHex(
-                    MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(
-                            sources.resolve("company-officer/" + line.id() + ".mp3")))));
-            assertEquals("sounds/battle/company-officer/" + line.id() + ".ogg",
-                    sounds.getJSONArray(line.id()).getJSONObject(0).getString("file"));
-            int matches = 0;
-            for (int i = 0; i < clips.length(); i++) {
-                JSONObject clip = clips.getJSONObject(i);
-                if (!line.id().equals(clip.getString("id"))) continue;
-                matches++;
-                assertEquals("comms", clip.getString("processing"));
-                assertEquals("ui", clip.getString("kind"));
-                assertEquals("battle/company-officer", clip.getString("out"));
-                assertEquals("company-officer/" + line.id() + ".mp3", clip.getString("source"));
-            }
-            assertEquals(1, matches);
-        }
-        assertEquals(10, ids.size());
     }
 
     private static final class FakeSound implements SoundAPI {

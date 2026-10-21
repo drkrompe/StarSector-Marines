@@ -1,7 +1,7 @@
 """Review the kit's shields on any hull: front arcs, colour schemes, strength.
 
   blender --background --factory-startup --python review_shields.py --
-      --hull DIR --blend PATH --collection NAME --set front|hero|tech|schemes|strength|flicker|paragon
+      --hull DIR --blend PATH --collection NAME --set front|hero|tech|schemes|strength|flicker|paragon|film
       [--out DIR] [--samples 32] [--kit DIR] [--distance 1.02] [--device GPU|CPU]
 
 Appends one hull's ship collection (from its built cinematic .blend, without
@@ -19,6 +19,9 @@ world) from high on the port bow:
 - strength: fully open with one hit at each strength in STRENGTHS;
 - flicker:  a weak shield (strength .3) on four frames a few apart, to show
             that the weakness moves;
+- film:     the film (swfx_shield build(film=True)) through its drill on a
+            24 fps timeline: half raised, idle, three volleys as flux climbs,
+            the overload tear, the shards and arcs, the vent (FILM_FRAMES);
 - paragon:  the Paragon's own shield stills (its review camera), for an A/B
             of the kit: run once with --kit pointing at another checkout's
             second-wind-vfx and compare the PNGs.
@@ -39,7 +42,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument('--hull', required=True)
 ap.add_argument('--blend', required=True)
 ap.add_argument('--collection', required=True)
-ap.add_argument('--set', required=True, choices=('front', 'hero', 'tech', 'schemes', 'strength', 'flicker', 'paragon'))
+ap.add_argument('--set', required=True, choices=('front', 'hero', 'tech', 'schemes', 'strength', 'flicker', 'paragon', 'film'))
 ap.add_argument('--out', default=None)
 ap.add_argument('--samples', type=int, default=32)
 ap.add_argument('--kit', default=str(HERE))
@@ -56,6 +59,13 @@ SCHEMES_SHOWN = ('low-tech', 'midline', 'high-tech', 'hegemony', 'tritachyon', '
                  'sindrian_diktat', 'luddic_church', 'pirates')
 TECH_SHOWN = ('low-tech', 'midline', 'high-tech')
 STRENGTHS = (.3, .6, .8, 1.0, 1.25, 1.5)
+# The film drill (the effects bench's bench_shields.py runs the same one per ship):
+# (frame, what it shows). Volleys of four hits from the camera's side.
+FILM_FRAMES = ((12, 'raising'), (30, 'idle'), (39, 'volley-1'), (58, 'volley-2-flux-6'), (76, 'volley-3-flux-9'),
+               (85, 'overload-tear'), (95, 'overload-shards'), (140, 'vent'))
+FILM_VOLLEYS = ((33, .25, ((30, 10), (12, 4), (44, 18), (24, -6))),
+                (52, .6, ((18, 14), (40, 2), (6, -4), (34, 22))),
+                (70, .92, ((26, 8), (48, 12), (14, 18), (36, -2))))
 # Stills: (name, shield_t, facing, [(hit, azimuth, elevation, strength)], extra knobs, frame).
 FRONT = [
     ('closed', .06, 0.0, [], {}, 1),
@@ -178,6 +188,24 @@ elif args.set == 'strength':
     ctx, ctrl = build()
     for i, sig in enumerate(STRENGTHS, 1):
         still(ctrl, f'strength-{i}-{sig:.2f}', 1.0, 0.0, [(1, 15, 10, .8)], {'shield_strength': sig}, 1)
+elif args.set == 'film':
+    ctx, ctrl = build(film=True)
+    import swfx_shield  # as swfx.apply reloaded it, for this hull
+    swfx_shield.raise_shield(ctx, 1)
+    swfx_shield.flux(ctx, FILM_VOLLEYS[0][0] - 1, 0.0)
+    for start, level, hits in FILM_VOLLEYS:
+        for k, (a, e) in enumerate(hits, 1):
+            swfx_shield.hit(ctx, k, start + 2 * (k - 1), a, e)
+        swfx_shield.flux(ctx, start + 2 * (len(hits) - 1), level)
+    swfx_shield.overload(ctx, 80, *FILM_VOLLEYS[-1][2][-1])
+    swfx_shield.vent(ctx, 130)
+    import swfx_core
+    swfx_core.refresh_drivers(scene)
+    for i, (frame, what) in enumerate(FILM_FRAMES, 1):
+        scene.frame_set(frame)
+        scene.render.filepath = str(OUT / f'film-{i}-{what}.png')
+        bpy.ops.render.render(write_still=True)
+        print('REVIEW', scene.render.filepath, flush=True)
 else:
     ctx, ctrl = build()
     for i, frame in enumerate((1, 4, 7, 10), 1):

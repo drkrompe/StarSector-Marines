@@ -1,0 +1,160 @@
+{
+  "prefix": "marines_breach_",
+  "modelId": "eleven_text_to_sound_v2",
+  "promptInfluence": 0.4,
+  "out": "battle/colony-breach",
+  "sounds": [
+    {
+      "id": "runner_chitter",
+      "prompt": "Small insectoid alien creature chittering and clicking, wet, agitated, close, no music",
+      "durationSeconds": 1.5,
+      "variants": 4,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "runner_attack",
+      "prompt": "Small alien creature lunging and biting, snapping mandibles, wet impact",
+      "durationSeconds": 1.2,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "runner_death",
+      "prompt": "Small alien insect creature dying squeal and wet splat",
+      "durationSeconds": 1.2,
+      "variants": 4,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "brute_bellow",
+      "prompt": "Huge armoured alien beast bellowing, deep guttural roar with a rattling chitin undertone",
+      "durationSeconds": 2.5,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "brute_impact",
+      "prompt": "Heavy alien beast body-slamming into a wall, crunch and thud",
+      "durationSeconds": 1.5,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "brute_wall_break",
+      "prompt": "Heavy alien beast smashing through a wall, concrete and metal splintering and collapsing",
+      "durationSeconds": 2.5,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "brute_death",
+      "prompt": "Giant alien beast dying with a long low groan and heavy crash to the ground",
+      "durationSeconds": 2.5,
+      "variants": 2,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "spitter_lob",
+      "prompt": "Alien creature spitting a glob of acid, wet hawking and whoosh",
+      "durationSeconds": 1.0,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "spitter_splash",
+      "prompt": "Acid glob splashing on metal and concrete with sizzling hiss",
+      "durationSeconds": 1.5,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "spitter_death",
+      "prompt": "Fragile alien creature shrieking and bursting with a wet pop",
+      "durationSeconds": 1.2,
+      "variants": 2,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "bore_eruption",
+      "prompt": "Ground rupturing as a massive alien tunnel bursts open, rock cracking, earth collapsing, deep rumble and roaring swarm",
+      "durationSeconds": 4.0,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "bore_ambience_fissure",
+      "prompt": "Faint wet scratching and low tremor from a crack in the ground, eerie, seamless loop",
+      "durationSeconds": 8.0,
+      "variants": 2,
+      "loop": true,
+      "volume": 0.8
+    },
+    {
+      "id": "bore_ambience_bore",
+      "prompt": "Deep rumbling hive hum with dripping and skittering from a wide hole in the ground, ominous, seamless loop",
+      "durationSeconds": 8.0,
+      "variants": 2,
+      "loop": true,
+      "volume": 0.9
+    },
+    {
+      "id": "bore_ambience_maw",
+      "prompt": "Massive alien pit roaring with low sub bass rumble, wet breathing and swarming chitter, threatening, seamless loop",
+      "durationSeconds": 8.0,
+      "variants": 2,
+      "loop": true,
+      "volume": 1.0
+    },
+    {
+      "id": "bore_collapse",
+      "prompt": "Alien tunnel collapsing, rock and earth caving in with a dying shriek and thundering rumble",
+      "durationSeconds": 4.0,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "spore_vent_burst",
+      "prompt": "Alien vent expelling a burst of spores, pressurised wet puff then hissing cloud",
+      "durationSeconds": 1.5,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "matriarch_roar",
+      "prompt": "Colossal alien queen roaring, deep thunderous bellow with screeching overtones, terrifying",
+      "durationSeconds": 4.0,
+      "variants": 2,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "bore_surge",
+      "prompt": "Pulse of countless alien creatures pouring out of a hole in the ground, rushing skittering swarm, wet chitin, rising roar then fading",
+      "durationSeconds": 3.5,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "body_drag",
+      "prompt": "Alien creature seizing and dragging a limp body across rubble and dirt, scraping, wet tearing, labored chitter",
+      "durationSeconds": 2.5,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    }
+  ]
+}

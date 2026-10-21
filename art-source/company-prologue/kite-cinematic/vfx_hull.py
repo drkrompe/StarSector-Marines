@@ -61,3 +61,17 @@ LAMPS = [
     ('Lamp starboard landing light', 'work', WHITE),
     ('Dorsal spotlight lens', 'work', WHITE),
 ]
+
+
+# Shield (../second-wind-vfx/swfx_shield.py): vanilla OMNI, arc 150, radius 58,
+# shieldCenter (0, 0) (kite.ship, ship_data.csv), efficiency 0.8. Colour by
+# technology, not faction: the MIDLINE hull style, so the 'midline' scheme.
+# Not in this export's groups: a shot builds it per ship with the film
+# (swfx_shield.build(ctx, film=True, hull_collection=...), asharu-effects-plan.md W1).
+# Fitted ~7 m clear of the hull (9 units at 0.8 m/u). vents: the hull parts
+# that glow and shed vapour when she vents (shield_vent).
+SHIELD = dict(
+    type='OMNI', anchor='KITE (P) | root', center=(0, 0), radius=58.0, arc=150.0, nodes=[],
+    scheme='midline', efficiency=0.8, fit=dict(margin=9.0), raise_s=1.0, lower_s=1.0,
+    vents=['Hull port wing heat shield', 'Hull starboard wing heat shield'],
+)

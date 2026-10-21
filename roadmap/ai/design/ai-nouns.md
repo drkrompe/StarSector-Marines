@@ -2237,7 +2237,13 @@ rather than given up. A squad in a fight is offered only the cover beside it,
 and a squad the mission takes back is forgotten at once: the mission outranks
 the place. Authored garrisons, chasers and the alarm's own mobilization are
 never touched, and a free lance of the reserve guards what the defender mans
-within the machine guard's bounds (scene `mission-defence`).
+within the machine guard's bounds (scene `mission-defence`). Their roving
+reserve also **flows** toward pressure before it is needed (`PlaceFlow`;
+`garrisonables.md`, flow, then local assignment): an area pressing a place
+draws a free reserve squad to wait at the places, drawn first when they are
+manned, and the next one forward, an area defence in the street that meets the
+attack rather than a post; at most half the reserve waits, and a quiet area
+gives it back (scene `mission-flow`).
 
 **A holder goes out by its own sally door, not round its own walls.** A walled place a side holds (a fort's works, a
 walled compound or yard, a building with few exits) has a closed **sally door** in each face its walls would otherwise

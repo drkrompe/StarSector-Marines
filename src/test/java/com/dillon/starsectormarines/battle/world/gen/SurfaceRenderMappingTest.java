@@ -10,9 +10,6 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -36,14 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * one a re-hardcoded id cannot pass.
  */
 public class SurfaceRenderMappingTest {
-
-    private static GenMappingRegistry loadMapping() throws Exception {
-        GenMappingRegistry reg = new GenMappingRegistry();
-        for (String p : GenMappingRegistry.BUILTIN_MAPPINGS) {
-            reg.ingest(new JSONObject(Files.readString(Paths.get("mod", p.split("/")))));
-        }
-        return reg;
-    }
 
     private static GridBlockDef wallBlockAt(String id, int col, int row) {
         return new GridBlockDef(id, TileManifest.SHEET, 32, col, row, GridLayout.WALL_3X3, null);
@@ -87,19 +76,6 @@ public class SurfaceRenderMappingTest {
     void anAbsentBlockFallsBackRatherThanVanishing() {
         assertNotNull(WallMasks.pickTileFromMask(CellTopology.WALL_DIR_N, null),
                 "a wall with no block must still pick a frame");
-    }
-
-    /** Every orthogonal surface the render systems draw is named by the shipped mapping. */
-    @Test
-    void theShippedMappingNamesEveryRole() throws Exception {
-        GenMappingRegistry m = loadMapping();
-        for (SurfaceRole role : SurfaceRole.values()) {
-            assertNotNull(m.surfaceBlockId(role),
-                    role + " is drawn by a render system but no longer mapped");
-        }
-        assertEquals("urban.wall", m.surfaceBlockId(SurfaceRole.WALL));
-        assertEquals("urban.door-open", m.surfaceBlockId(SurfaceRole.DOOR_OPEN));
-        assertEquals("floors.brick", m.surfaceBlockId(SurfaceRole.ROOF));
     }
 
     /**

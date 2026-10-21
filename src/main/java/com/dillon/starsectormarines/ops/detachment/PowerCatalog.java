@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.power.MarineInsertion;
 import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.power.ShipOnStation;
+import com.dillon.starsectormarines.battle.power.TenderCallDown;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.ops.Mission;
@@ -170,7 +171,7 @@ public final class PowerCatalog {
         if (committedShips != null) {
             for (FleetMemberAPI ship : committedShips) {
                 for (CommandPower power : contributedBy(ship)) {
-                    if (!(power instanceof ShipOnStation)) ids.add(power.id);
+                    if (!(power instanceof ShipOnStation) && !(power instanceof TenderCallDown)) ids.add(power.id);
                 }
             }
         }
@@ -285,11 +286,13 @@ public final class PowerCatalog {
         }
 
         List<ShipSupportSource> ships = new ArrayList<>();
+        List<ShipSupportSource> tenderSources = new ArrayList<>();
         if (committedShips != null) {
             for (FleetMemberAPI ship : committedShips) {
                 for (CommandPower power : contributedBy(ship)) {
                     // Ships are separate sources of one power: each is its own charge.
                     if (power instanceof ShipOnStation shipPower) ships.addAll(shipPower.sources());
+                    else if (power instanceof TenderCallDown landing) tenderSources.addAll(landing.sources());
                     else byId.putIfAbsent(power.id, power);
                 }
             }
@@ -304,6 +307,7 @@ public final class PowerCatalog {
             if (p != null) byId.putIfAbsent(p.id, p);
         }
         if (!ships.isEmpty()) byId.put(ShipOnStation.ID, new ShipOnStation(ships));
+        if (!tenderSources.isEmpty()) byId.put(TenderCallDown.ID, new TenderCallDown(tenderSources));
         if (byId.containsKey(MechSupport.ID)
                 && configuredMechs != null && !configuredMechs.isEmpty()) {
             byId.put(MechSupport.ID, MechSupport.configured(configuredMechs));
@@ -372,6 +376,7 @@ public final class PowerCatalog {
         List<MechDeploymentSpec> deployments = mechDeployments == null
                 ? List.of() : List.copyOf(mechDeployments);
         if (ShipOnStation.ID.equals(id)) return new ShipOnStation(ships == null ? List.of() : ships);
+        if (TenderCallDown.ID.equals(id)) return new TenderCallDown(ships == null ? List.of() : ships);
         if (ships != null && !ships.isEmpty()) {
             throw new IllegalArgumentException("Power '" + id + "' cannot carry ships");
         }
@@ -409,6 +414,7 @@ public final class PowerCatalog {
         }
         ShipSupportSource source = shipSourceOf(ship);
         if (source != null) out.add(new ShipOnStation(List.of(source)));
+        if (source != null && source.tender()) out.add(new TenderCallDown(List.of(source)));
         return out;
     }
 

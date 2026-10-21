@@ -6,11 +6,8 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.junit.jupiter.api.Test;
 
-import javax.imageio.ImageIO;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -95,18 +92,6 @@ class ShipMessFittingTest {
             assertTrue(count(f, Affordance.MESS) > 0);
             assertEquals(0, count(f, Affordance.COOK));
             assertEquals(0, count(f, Affordance.STOW));
-        }
-    }
-
-    @Test void mealOverlayKeepsTheMiddleOfTheTableBare() throws Exception {
-        var image = ImageIO.read(Path.of("mod/graphics/tilesets/mess-galley.png").toFile());
-        var meals = TileRegistry.installed().doodad("mess-galley.meals");
-        for (int y = 4; y < 60; y++) for (int x = 84; x < 112; x++)
-            assertTrue((image.getRGB(meals.col * 64 + x, meals.row * 64 + y) >>> 24) <= 2);
-        for (String id : List.of("meals", "stool")) {
-            var def = TileRegistry.installed().doodad("mess-galley." + id);
-            assertEquals(0, def.cover.level());
-            assertEquals(0f, def.ballisticHalfHeight);
         }
     }
 

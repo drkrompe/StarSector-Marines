@@ -404,13 +404,14 @@ def sheet(kf, n):
     return out
 
 
-SHOTS = [('S1', 8, 'Establishing: the convoy over the day side', 'k1'),
+SHOTS = [('S1a', 6, 'Overhead: the view the player knows', 'k0'),
+         ('S1', 8, 'Establishing: the convoy over the day side', 'k1'),
          ('S2', 6, 'Alongside the Colossus, Morrow at her quarter', None),
          ('S3', 8, 'Running dark: the platform, then a hulk lights up', 'k1b'),
          ('S4', 6, 'First contact: twelve hulls climb out', 'k2'),
          ('S5', 6, 'The Manticore (P) opens at long range', None),
          ('S6', 8, 'The screen breaks: Phaeton cooks off', 'k3'),
-         ('S6b', 8, 'The escorts answer: a Buffalo Mk.II breaks up', 'k3c'),
+         ('S6b', 8, 'The escorts answer: a Hound (P) breaks up', 'k3c'),
          ('S6c', 8, 'The column is cut: Wolves (P) blink through', 'k3d'),
          ('S6d', 6, 'The rear guard: Hound against Hounds (P)', 'k3e'),
          ('S7', 8, 'Boarding the Tarsus', 'k3b'),

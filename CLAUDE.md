@@ -260,7 +260,7 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   mission's documented construction-fixture matrix in a forced-serial,
   zero-input simulation and writes canonical traces plus `summary.json` /
   `summary.md` under `build/reports/commander/<mission>/`. Supported mission
-  arguments are currently `conquest`, `conquest-trial`, `sabotage`, `assault`, `raid`, `extraction`, `relief`, `counterattack`, `junction`, `last-lift`, `relay-nine`, `thunder-run`, `supply-route`, `corvus`, and the story missions `yard-owners`, `water-under-seal`, `limited-warrant`, `district-escort`, `terms-of-protection`, `small-war`, `salvage-rights`, `cold-start` and `working-passage`; later mission harnesses
+  arguments are currently `conquest`, `conquest-trial`, `sabotage`, `assault`, `raid`, `extraction`, `relief`, `counterattack`, `junction`, `last-lift`, `relay-nine`, `thunder-run`, `supply-route`, `corvus`, `colony-breach`, and the story missions `yard-owners`, `water-under-seal`, `limited-warrant`, `district-escort`, `terms-of-protection`, `small-war`, `salvage-rights`, `cold-start` and `working-passage`; later mission harnesses
   extend that argument instead of creating another Gradle task. The run is
   opt-in and excluded from ordinary `test` / `build`.
   **Each fixture is replayed once.** It used to be replayed twice, with the two

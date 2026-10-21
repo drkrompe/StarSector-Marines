@@ -57,8 +57,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Protection call Ship on Station and order the road gun, Cold Start requests yard construction, and Working Passage
  * orders a gun at each stop, when the snapshot suite does; a gun order is given again until it is laid, as a player
  * would. Every such request is listed in the
- * fixture's {@code playerInputs}. Opt-in and excluded from {@code test}; select with {@code -Pmission=<id>}.
+ * fixture's {@code playerInputs}. Opt-in and excluded from {@code test} (the class tag); select with
+ * {@code -Pmission=<id>}, whose tag is the method's.
  */
+@Tag("story-command-evidence")
 class StoryCommandEvidenceTest {
 
     private static final String PREFIX = "story.command.evidence";

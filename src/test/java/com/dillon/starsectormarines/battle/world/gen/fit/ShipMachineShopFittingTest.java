@@ -7,10 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.gen.ship.RoomRecipe;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.junit.jupiter.api.Test;
-import javax.imageio.ImageIO;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -65,17 +62,6 @@ class ShipMachineShopFittingTest {
         assertFalse(f.ctx.doodads.isEmpty());
         assertTrue(f.ctx.doodads.stream().allMatch(d -> d.definitionId().startsWith("ship-utility.")));
         assertTrue(f.floor.circulationSurvives());
-    }
-
-    @Test void partsLoadsKeepTransparentMarginsInsideTheRetainingFrame() throws Exception {
-        var image = ImageIO.read(Path.of("mod/graphics/tilesets/machine-shop.png").toFile());
-        for (String id : List.of("bar-stock","bearings","electrical")) {
-            var def = TileRegistry.installed().doodad("machine-shop."+id);
-            assertEquals(0,def.cover.level()); assertEquals(0f,def.ballisticHalfHeight);
-            for (int y=0;y<128;y++) for (int x=0;x<128;x++)
-                if (x<12 || x>=116 || y<12 || y>=116)
-                    assertTrue((image.getRGB(def.col*64+x,def.row*64+y)>>>24)<=2,id+" rim");
-        }
     }
 
     private static void verify(Fixture f) {

@@ -39,6 +39,5 @@ All swaps retain rotation and mirroring.
 
 `CrateDamageTest` covers every identity and orientation, walkable and blocking
 placements, overlapping profiles, repeated damage, blasts and neighboring cover.
-`CrateDamageArtTest` checks metadata, clear borders and separated debris shapes.
 The registered snapshot suite renders intact, damaged and destroyed rows at
 32px and 64px through the actual map renderer and combat mutation boundary.

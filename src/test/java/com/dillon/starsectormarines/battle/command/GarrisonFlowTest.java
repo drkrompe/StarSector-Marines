@@ -233,4 +233,30 @@ class GarrisonFlowTest {
         assertEquals(0, GarrisonFlow.demand(weight, 0), "too faint to stage anybody new");
         assertEquals(0, GarrisonFlow.matchingArea(between, 100, 100), "but a squad already waiting there stays");
     }
+
+    @Test
+    void aStageTowardThePlacesWaitsAtThemWhenFarAndAStandoffOutWhenNear() {
+        assertArrayEquals(new int[]{50, 20}, GarrisonFlow.towardPlaces(50, 50, 50, 20, 0),
+                "places thirty cells from the attack: wait at them");
+        assertArrayEquals(new int[]{50, 38}, GarrisonFlow.towardPlaces(50, 50, 50, 45, 0),
+                "places five cells from the attack: wait a standoff out, behind them");
+        assertArrayEquals(new int[]{30, 30}, GarrisonFlow.towardPlaces(30, 30, 30, 30, 0),
+                "no direction: the places themselves");
+        assertArrayEquals(new int[]{46, 20}, GarrisonFlow.towardPlaces(50, 50, 50, 20, 1), "spread like the axis stage");
+    }
+
+    @Test
+    void aForwardPostMeetsTheAttackShortOfThePlacesOnlyWhereThereIsStreetBetween() {
+        assertArrayEquals(new int[]{50, 44}, GarrisonFlow.forwardOf(50, 50, 50, 20));
+        assertNull(GarrisonFlow.forwardOf(50, 50, 50, 41), "nine cells: the meeting is at the places anyway");
+        assertNotNull(GarrisonFlow.forwardOf(50, 50, 50, 40));
+    }
+
+    @Test
+    void anAreasSquadsAlternateBackAndForwardBackFirst() {
+        assertEquals(false, GarrisonFlow.nextIsForward(0, 0), "the first squad goes to the places");
+        assertEquals(true, GarrisonFlow.nextIsForward(1, 0));
+        assertEquals(false, GarrisonFlow.nextIsForward(1, 1));
+        assertEquals(true, GarrisonFlow.nextIsForward(2, 1));
+    }
 }
