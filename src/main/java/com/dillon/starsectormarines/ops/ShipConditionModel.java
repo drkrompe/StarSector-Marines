@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 import com.dillon.starsectormarines.battle.world.gen.ship.RoomRecipe;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.ShipConditionStage;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.campaign.CommodityPresentation;
 import com.dillon.starsectormarines.campaign.refit.RefitBand;
 import com.dillon.starsectormarines.campaign.refit.RefitOrder;
 import com.dillon.starsectormarines.campaign.refit.RefitText;
@@ -39,6 +40,7 @@ public final class ShipConditionModel {
     private final Supplier<ShipCondition> condition;
     private final Function<RefitOrder, ShipRefits.Offer> refitOffers;
     private final Function<RefitOrder, String> refit;
+    private final CommodityPresentation goods;
     private final Map<RefitTrack, Runnable> trackSelections = new LinkedHashMap<>();
     private RefitTrack track = RefitTrack.POWER;
     private final Consumer<Compartment> focus;
@@ -54,15 +56,17 @@ public final class ShipConditionModel {
                               Supplier<CompanyBayRestoration.Offer> bayOffer, Supplier<String> repairBay,
                               Consumer<Compartment> focus, Runnable changed) {
         this(reactor, deck, offers, repair, bayOffer, repairBay, () -> ShipCondition.NONE,
-                order -> new ShipRefits.Offer(ShipCondition.NONE, 0, ""), order -> "", focus, changed);
+                order -> new ShipRefits.Offer(ShipCondition.NONE, 0, ""), order -> "", CommodityPresentation.NONE, focus, changed);
     }
     public ShipConditionModel(Reactor reactor, Supplier<CompanyDeck> deck,
                               Function<Work, CompanyShipRestoration.Offer> offers, Function<Work, String> repair,
                               Supplier<CompanyBayRestoration.Offer> bayOffer, Supplier<String> repairBay,
                               Supplier<ShipCondition> condition, Function<RefitOrder, ShipRefits.Offer> refitOffers,
-                              Function<RefitOrder, String> refit, Consumer<Compartment> focus, Runnable changed) {
+                              Function<RefitOrder, String> refit, CommodityPresentation goods,
+                              Consumer<Compartment> focus, Runnable changed) {
         this.deck = deck; this.offers = offers; this.repair = repair; this.bayOffer = bayOffer;
         this.repairBay = repairBay; this.condition = condition; this.refitOffers = refitOffers; this.refit = refit;
+        this.goods = goods;
         this.focus = focus; this.changed = changed;
         row = reactor.signal(workshopOnly());
         refresh();
@@ -80,10 +84,11 @@ public final class ShipConditionModel {
         m.put("title", Strings.get("openingShipConditionShipCondition")); m.put("copy", ""); m.put("benefit", ""); m.put("bill", ""); m.put("billRows", List.of()); m.put("reason", "");
         m.put("action", (Runnable) () -> {}); m.put("actionLabel", Strings.get("openingShipConditionReviewRepair")); m.put("disabled", true);
         m.put("actionClasses", "hidden"); m.put("detailClasses", "hidden"); m.put("workshopClasses", "restoration-panel");
-        m.put("feedback", ""); m.put("summary", Strings.get("openingShipConditionRoomSurvey"));
+        m.put("feedback", "");
         m.put("powerClasses", "hidden"); m.put("powerLabel", Strings.get("openingShipConditionDistributionCircuits"));
         m.put("powerAction", (Runnable) () -> {});
         m.put("status", "");
+        m.put("billStyle", "height: 36px;");
         m.put("tracksClasses", "hidden"); m.put("coreTracks", List.of()); m.put("facilityTracks", List.of()); m.put("combatTracks", List.of());
         m.put("coreHeading", Strings.get("openingRefitGroupCORE")); m.put("facilityHeading", Strings.get("openingRefitGroupFACILITY"));
         m.put("combatHeading", Strings.get("openingRefitGroupCOMBAT"));
@@ -122,7 +127,6 @@ public final class ShipConditionModel {
                 : Strings.format("openingShipConditionPowerStatus", state.power() ? Strings.get("openingShipConditionRestored") : Strings.get("openingShipConditionFaultyPower")));
         m.put("powerAction", selection(-1));
         m.put("rooms", List.copyOf(rooms));
-        m.put("summary", Strings.format("openingShipConditionDamageInspectionSummary", graph.compartments().stream().filter(r -> graph.damaged(r.id())).count()));
         m.put("workshopClasses", workshop ? "restoration-panel" : "hidden");
         m.put("detailClasses", workshop ? "hidden" : "condition-detail");
         m.put("title", selectedRoom == null ? (state.applies() ? (refitState.applies() ? Strings.get("openingRefitSystemsTitle")
@@ -206,8 +210,15 @@ public final class ShipConditionModel {
                 var offer = refitOffers.apply(next);
                 String key = "refit:" + next.name();
                 bill = CompanyResources.creditBill(next.price, offer.credits());
-                m.put("billRows", CompanyResources.credits("survey-repair-cost", offer.credits(), next.price));
-                reason = offer.refusal() == null ? Strings.get("openingShipConditionPlanetaryYardLaborAndMaterialsIncluded") : offer.refusal();
+                var rows = new ArrayList<CompanyResources.Row>(CompanyResources.credits("survey-repair-cost", offer.credits(), next.price));
+                for (var need : next.materials().entrySet())
+                    rows.add(CompanyResources.cost("survey-repair-" + slug(need.getKey()), goods.commodityName(need.getKey()),
+                            goods.commodityIcon(need.getKey()), offer.held(need.getKey()), need.getValue()));
+                m.put("billRows", List.copyOf(rows));
+                m.put("billStyle", CompanyResources.billHeight(rows));
+                reason = offer.refusal() != null ? offer.refusal() : next.materials().isEmpty()
+                        ? Strings.get("openingShipConditionPlanetaryYardLaborAndMaterialsIncluded")
+                        : Strings.get("openingRefitMaterialsFromCargo");
                 m.put("actionClasses", "restoration-action console-action");
                 m.put("actionLabel", key.equals(reviewed) ? Strings.get("openingShipConditionAuthorizeD") : Strings.get("openingShipConditionReviewRepair"));
                 m.put("disabled", offer.refusal() != null && key.equals(reviewed));

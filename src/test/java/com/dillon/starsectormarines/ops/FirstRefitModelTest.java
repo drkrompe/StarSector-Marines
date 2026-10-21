@@ -93,35 +93,5 @@ class FirstRefitModelTest {
         model.selectPath(Path.STEADY_LINE); model.claim(); model.issue();
         assertTrue(roster.firstRefit().complete());
     }
-    @Test void machineShopButtonOpensFittingWithoutWorkshopRestoration() throws Exception {
-        var context = new MarineOpsContext(null);
-        context.goTo(ScreenId.SHIP_VIEW);
-        var props = new LinkedHashMap<String, Object>();
-        props.put("equipmentAction", ShipViewScreen.equipmentAction(context));
-        var survey = ShipConditionModel.workshopOnly();
-        survey.put("classes", "hidden");
-        props.put("survey", survey);
-        props.put("workshop", WorkshopRestorationModel.Row.hidden());
-        props.put("roomTitle", "COMPANY SHIP / WALK THE SHIP");
-        props.put("roomCopy", "Select a room to inspect. Right-drag to pan; wheel to zoom.");
-        props.put("contextLabel", "COMPANY SHIP / CONDITION");
-        Runnable noop = () -> {};
-        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_VIEW, MarineOpsPageNav.ANY_SHIP,
-                noop, noop, noop, noop, noop, noop);
-        var mod = new File("mod").toPath();
-        var loader = new MarkupLoader(file -> Files.readString(mod.resolve(file)), List.of(
-                "data/ui/components/company/company-resource-stock.mlx",
-            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/company/ship-view.mlx"));
-        try (var markup = loader.reloadAndBuild(new Reactor(), "ship-view", props)) {
-            var document = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
-            markup.styles().forEach(document::addStyleSheet);
-            document.layout(1920, 1080);
-            var box = markup.requireElement("machine-shop-equipment").box().borderBox();
-            assertTrue(box.width() > 300 && box.right() <= 1920 && box.bottom() <= 1080);
-            document.pointerDown(box.x() + box.width()/2, box.y() + box.height()/2);
-            document.pointerUp(box.x() + box.width()/2, box.y() + box.height()/2);
-            assertEquals(ScreenId.FLEET_ARMORY, context.getCurrentScreen());
-        }
-    }
 
 }

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
+import com.dillon.starsectormarines.testsupport.HeadlessCommodityPresentation;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
@@ -257,7 +258,8 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                                         WorkshopRestorationModel.Row.hidden(), 1f, close)));
                         var row = new WorkshopRestorationModel.Row(new Offer(state, 12000,
                                 state == WorkshopState.EQUIPPED ? "Workshop fully equipped." : null,
-                                state.operational() ? null : "Repair the workshop first.", 2, 10), true, false, "", () -> {}, () -> {}, () -> {});
+                                state.operational() ? null : "Repair the workshop first.", 2, 10), true, false, "", () -> {}, () -> {}, () -> {},
+                                HeadlessCommodityPresentation.from(context.starsectorCore()));
                         for (float scale : new float[]{1f, 1.5f}) frames.add(new SnapshotArtifact(
                                 "workshop-" + state.name().toLowerCase() + "-" + scale + ".png",
                                 UiSnapshotSuite.renderWorkshopRestoration(context, deck, row, scale)));

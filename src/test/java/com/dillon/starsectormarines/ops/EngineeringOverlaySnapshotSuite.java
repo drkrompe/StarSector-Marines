@@ -16,6 +16,8 @@ import com.dillon.starsectormarines.campaign.refit.RefitTrack;
 import com.dillon.starsectormarines.campaign.refit.ShipCondition;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.campaign.start.CompanyShipRestoration;
+import com.dillon.starsectormarines.testsupport.HeadlessCommodityPresentation;
+import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
@@ -83,25 +85,25 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
 
     private List<SnapshotArtifact> render(SnapshotContext context, CompanyDeck ship, boolean resourceBills) throws Exception {
         var reactor = new Reactor();
+        var goods = HeadlessCommodityPresentation.from(context.starsectorCore());
         int[] payments = {0};
         var model = new ShipConditionModel(reactor, () -> ship,
                 work -> new CompanyShipRestoration.Offer(ship.ship().restoration(), 20000, null),
                 work -> { payments[0]++; return "Evidence: no campaign mutation"; },
                 () -> new CompanyBayRestoration.Offer(true, 20000, null), () -> "Evidence only",
-                () -> REFIT, order -> new ShipRefits.Offer(REFIT, 20000,
-                        ShipRefits.refusal(order, REFIT, true, true, true, true, 20000)),
-                order -> { payments[0]++; return "Evidence: no campaign mutation"; },
+                () -> REFIT, order -> new ShipRefits.Offer(REFIT, 20000, CARGO,
+                        ShipRefits.refusal(order, REFIT, true, true, true, true, 20000, CARGO, goods::commodityName)),
+                order -> { payments[0]++; return "Evidence: no campaign mutation"; }, goods,
                 ignored -> {}, () -> {});
         var offer = new CompanyWorkshopRestoration.Offer[]{new CompanyWorkshopRestoration.Offer(WorkshopState.BURIED, 20000, null, null, 3, 20)};
         var workshop = new WorkshopRestorationModel(reactor,
                 () -> offer[0],
-                state -> "Evidence only", () -> "Evidence only", () -> {}, () -> {});
+                state -> "Evidence only", () -> "Evidence only", () -> {}, () -> {}, goods);
         var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), List.of(
                 "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/company/ship-view.mlx"));
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("survey", model.row()); props.put("workshop", workshop.row());
-        props.put("equipmentAction", (Runnable) () -> {});
         props.put("roomTitle", "ENGINEERING // SHIP CONDITION");
         props.put("roomCopy", "Hover to inspect; click to pin. Right-drag to pan; wheel to zoom.");
         props.put("contextLabel", "SHIP SERVICES");
@@ -156,7 +158,7 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
             frames.add(new SnapshotArtifact("04-systems-power.png", renderer.render(document, 1920, 1080)));
             click(document, markup.requireElement("refit-track-flux"));
             markup.flush(); overlay.update(0f, ship, canvas);
-            require(model.row().get().get("reason").equals(ShipRefits.refusal(RefitOrder.FLUX_RESTORED, REFIT, true, true, true, true, 20000)),
+            require(model.row().get().get("reason").equals(ShipRefits.refusal(RefitOrder.FLUX_RESTORED, REFIT, true, true, true, true, 20000, CARGO, goods::commodityName)),
                     "A locked combat tier did not name what it waits on");
             frames.add(new SnapshotArtifact("04-systems-flux-locked.png", renderer.render(document, 1920, 1080)));
             click(document, markup.requireElement("refit-track-hull"));
@@ -179,7 +181,7 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
                 offer[0] = new CompanyWorkshopRestoration.Offer(WorkshopState.REPAIRED, 15000000, null, null, 15000000, 15000000);
                 workshop.refresh(); markup.flush(); overlay.update(0f, ship, canvas);
                 document.advance(.2f);
-                require(markup.requireElement("engineering-credit-stock:name").text().equals("Credits"), "Credit identity lost during refresh");
+                require(markup.requireElement("engineering-credit-stock:icon").svgImage() != null, "Credit icon lost during refresh");
                 require(markup.requireElement("engineering-credit-stock:label").text().equals("15,000,000"), "Large stock did not refresh");
                 frames.add(new SnapshotArtifact("07-reclamation.png", renderer.render(document, 1920, 1080)));
                 return List.copyOf(frames);
@@ -223,6 +225,10 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
     }
 
     /** Mid-way through the cores: power and structure restored, everything else as found. */
+    /** A mid-campaign hold: metals to spare, a little machinery, and no AI cores yet. */
+    private static final Map<String, Integer> CARGO = Map.of(Commodities.METALS, 140,
+            Commodities.HEAVY_MACHINERY, 6, Commodities.RARE_METALS, 4);
+
     private static final ShipCondition REFIT = ShipCondition.battered()
             .with(RefitTrack.POWER, RefitBand.RESTORED).with(RefitTrack.STRUCTURE, RefitBand.RESTORED);
 
