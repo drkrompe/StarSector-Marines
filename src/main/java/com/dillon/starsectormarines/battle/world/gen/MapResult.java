@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
+import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
@@ -164,6 +165,13 @@ public final class MapResult {
      * {@code precincts.md}.
      */
     public final List<LaneRoute> lanes;
+    /**
+     * The ground an open-field landing promised to keep clear, or {@code null}
+     * on every map whose landing promised none. Carried so the promise can be
+     * checked against the finished map, and kept by whatever stamps it after
+     * generation (parked vehicles stay off it).
+     */
+    public final FieldOfFire fieldOfFire;
 
     public MapResult(NavigationGrid grid, CellTopology topology,
                      int marineSpawnX, int marineSpawnY,
@@ -428,12 +436,16 @@ public final class MapResult {
         this.runways = runways == null ? Collections.emptyList() : List.copyOf(runways);
         this.shelters = shelters == null ? Collections.emptyList() : List.copyOf(shelters);
         this.lanes = lanes == null ? Collections.emptyList() : List.copyOf(lanes);
+        this.fieldOfFire = null;
     }
 
     /** Keeps recipe output intact until the shared map-to-battle assembly consumes the layer. */
-    public MapResult withInitialDamage(DamagePlan damage) { return new MapResult(this, damage); }
+    public MapResult withInitialDamage(DamagePlan damage) { return new MapResult(this, damage, fieldOfFire); }
 
-    private MapResult(MapResult base, DamagePlan damage) {
+    /** The same map, carrying the field of fire its landing promised. */
+    public MapResult withFieldOfFire(FieldOfFire field) { return new MapResult(this, initialDamage, field); }
+
+    private MapResult(MapResult base, DamagePlan damage, FieldOfFire field) {
         if (damage != null && (damage.width() > base.grid.getWidth() || damage.height() > base.grid.getHeight()))
             throw new IllegalArgumentException("Damage extent exceeds map");
         initialDamage = damage;
@@ -459,5 +471,6 @@ public final class MapResult {
         biomeMap = base.biomeMap;
         frontDepth = base.frontDepth;
         lanes = base.lanes;
+        fieldOfFire = field;
     }
 }

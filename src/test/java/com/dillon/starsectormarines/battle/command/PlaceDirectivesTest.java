@@ -95,14 +95,16 @@ class PlaceDirectivesTest {
 
     @Test
     void oneTransitionAPulseAndReleasedStaysReleased() {
-        PlaceDirectives book = book(hold("once", PlaceTrigger.always(), PlaceTrigger.always()));
+        PlaceDirectives book = book(hold("once", PlaceTrigger.always(), PlaceTrigger.tickAtLeast(0)),
+                hold("later", PlaceTrigger.always(), PlaceTrigger.tickAtLeast(75)));
         List<PlaceDirectives.Transition> first = book.evaluate(PlaceSignals.at(0));
         assertEquals(1, first.size());
-        assertEquals(PlaceDirectives.State.ACTIVE, book.state("once"), "a directive that comes on is held a pulse");
+        assertEquals(PlaceDirectives.State.DORMANT, book.state("once"), "a directive whose until already holds stays dormant");
+        assertEquals(PlaceDirectives.State.ACTIVE, book.state("later"));
         book.evaluate(PlaceSignals.at(75));
-        assertEquals(PlaceDirectives.State.RELEASED, book.state("once"));
+        assertEquals(PlaceDirectives.State.RELEASED, book.state("later"));
         book.evaluate(PlaceSignals.at(150));
-        assertEquals(PlaceDirectives.State.RELEASED, book.state("once"), "without re-arming it stays released");
+        assertEquals(PlaceDirectives.State.RELEASED, book.state("later"), "without re-arming it stays released");
         assertEquals("always", book.log().get(0).trigger());
     }
 

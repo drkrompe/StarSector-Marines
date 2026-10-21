@@ -22,7 +22,8 @@ variant pool has no geometry and is picked by hashing the cell.
 
 | id | cells | cover | half height | wall side | note | tags |
 |---|---|---|---|---|---|---|
-| `ship-gym.treadmill` | 2x3 | med | 0.5 | — | — | — |
-| `ship-gym.rower` | 2x3 | med | 0.5 | — | — | — |
-| `ship-gym.bench-press` | 2x3 | med | 0.5 | — | — | — |
+| `ship-gym.treadmill` | 1x3 | med | 0.5 | — | — | — |
+| `ship-gym.rower` | 1x3 | med | 0.5 | — | — | — |
+| `ship-gym.rower-seat` | 1x1 | none | 0.0 | — | — | — |
+| `ship-gym.bench-press` | 3x2 | med | 0.5 | — | — | — |
 | `ship-gym.weights` | 4x1 | med | 0.5 | — | — | — |

@@ -19,10 +19,12 @@ import java.util.Objects;
  * @param reason    the reason a commander publishes for an order it gives under this directive
  * @param key       the mission's own number for the place (a site index), echoed back; -1 when it has none
  * @param rearms    whether a released directive is dormant again from the next pulse
+ * @param toTheLast whether a lock keeps a detachment however worn it is; otherwise a detachment at half its strength or
+ *                  less is let go (`garrisonables.md`, locked positions)
  */
 public record PlaceDirective(String id, Faction party, Kind kind, PlaceTarget target, List<Post> posts, int radius,
                              int allowance, String reason, int key, PlaceTrigger when, PlaceTrigger until,
-                             boolean rearms) {
+                             boolean rearms, boolean toTheLast) {
 
     /** What a party's commander does with a directive's place. */
     public enum Kind {
@@ -80,6 +82,7 @@ public record PlaceDirective(String id, Faction party, Kind kind, PlaceTarget ta
         private PlaceTrigger when = PlaceTrigger.always();
         private PlaceTrigger until = PlaceTrigger.never();
         private boolean rearms;
+        private boolean toTheLast;
 
         private Builder(String id, Faction party, Kind kind, PlaceTarget target) {
             this.id = id;
@@ -104,9 +107,12 @@ public record PlaceDirective(String id, Faction party, Kind kind, PlaceTarget ta
 
         public Builder rearms(boolean value) { rearms = value; return this; }
 
+        /** A lock that keeps its detachments however worn they are, as an authored hold to the end does. */
+        public Builder toTheLast() { toTheLast = true; return this; }
+
         public PlaceDirective build() {
             return new PlaceDirective(id, party, kind, target, posts, radius, allowance, reason, key, when, until,
-                    rearms);
+                    rearms, toTheLast);
         }
     }
 }

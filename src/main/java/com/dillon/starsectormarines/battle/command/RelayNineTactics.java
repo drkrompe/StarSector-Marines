@@ -14,6 +14,8 @@ public final class RelayNineTactics {
         if (reserveTarget < 0) for (int site : gains) if (site == 1 || site == 2) { reserveTarget = site; break; }
     }
     public int firstRoadLoss() { return reserveTarget; }
+    /** Whether the company has held this site on any pulse observed so far: public history, never forgotten. */
+    public boolean gained(int site) { return gains.contains(site); }
     public int assaultTarget(List<CompoundState> states) {
         if (states.get(0) != CompoundState.MARINE_HELD) return 0;
         for (int site : gains) if (states.get(site) == CompoundState.DEFENDER_HELD) return site;

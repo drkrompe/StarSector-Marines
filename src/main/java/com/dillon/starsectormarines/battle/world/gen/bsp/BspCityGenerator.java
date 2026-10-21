@@ -63,6 +63,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctSkeletonS
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctDefenceStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctLandingAreaStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctWardStage;
+import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitFloorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitSolidStage;
@@ -803,7 +804,8 @@ public final class BspCityGenerator implements MapGenerator {
                 ctx.landingPads, ctx.landingAreas,
                 biomeMap, ctx.gantries, ctx.fixtureTasks,
                 ctx.runways, ctx.shelters, ctx.get(BspKeys.VEHICLE_CORRIDOR),
-                ctx.get(BspKeys.FRONT_DEPTH), ctx.get(BspKeys.LANES));
+                ctx.get(BspKeys.FRONT_DEPTH), ctx.get(BspKeys.LANES))
+                .withFieldOfFire(FieldOfFire.of(ctx.get(BspKeys.PRECINCTS)));
 
         this.lastBiomeMap = biomeMap;
         this.lastDistrictMap = ctx.get(BspKeys.DISTRICT_MAP);

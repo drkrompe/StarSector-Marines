@@ -611,7 +611,7 @@ public final class BoatDeckViewModel {
     }
 
     private static String factor(float value) {
-        return String.format(Locale.ROOT, "%.2f", value);
+        return String.format(Strings.locale(), "%.2f", value);
     }
 
     private static String tierLabel(BoatFitting fitting) {
@@ -644,7 +644,7 @@ public final class BoatDeckViewModel {
 
 
     private static String berthLabel(int index) {
-        return String.format(Locale.ROOT, Strings.get("openingBoatDeckBerthD"), index + 1);
+        return String.format(Strings.locale(), Strings.get("openingBoatDeckBerthD"), index + 1);
     }
 
     private static PerformanceMeter meter(String suffix, String label, String value,
@@ -658,7 +658,7 @@ public final class BoatDeckViewModel {
 
     private static String number(float value) {
         if (Math.abs(value - Math.round(value)) < 0.001f) return Integer.toString(Math.round(value));
-        return String.format(Locale.ROOT, "%.1f", value);
+        return String.format(Strings.locale(), "%.1f", value);
     }
 
     private interface FittingFactor { float of(BoatFitting fitting); }

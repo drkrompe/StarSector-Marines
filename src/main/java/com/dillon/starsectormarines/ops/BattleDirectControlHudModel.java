@@ -327,7 +327,7 @@ final class BattleDirectControlHudModel {
         };
     }
 
-    private static String seconds(float value) { return String.format(Locale.ROOT, "%.1fs", value); }
+    private static String seconds(float value) { return String.format(Strings.locale(), "%.1fs", value); }
     private static String percent(float fraction) {
         return Math.round(Math.max(0f, Math.min(1f, fraction)) * 100f) + "%";
     }

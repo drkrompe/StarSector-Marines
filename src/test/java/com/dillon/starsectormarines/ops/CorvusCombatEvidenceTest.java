@@ -335,7 +335,7 @@ class CorvusCombatEvidenceTest {
                     }
                     if (tick % 1800 == 0 || phaseChanged || sim.isComplete() || tick == maxTicks) {
                         Files.writeString(dir.resolve(String.format(Locale.ROOT,"units-%05d.json",tick)), units(sim).toString(2));
-                        System.out.println("[corvus] " + chapter.title + " tick=" + tick + " landed=" + landed.size()
+                        System.out.println("[corvus] " + chapter.title() + " tick=" + tick + " landed=" + landed.size()
                                 + " fallen=" + fallen.size() + " defenders=" + count(sim,Faction.DEFENDER)
                                 + (sim.getColdAccount() == null ? "" : " " + sim.getColdAccount().displayName()));
                     }
@@ -353,7 +353,7 @@ class CorvusCombatEvidenceTest {
                 for (var seat : deployment.commitments()) kits.put(new JSONObject().put("soldier", seat.campaignSoldierId())
                         .put("weapon", seat.primaryWeaponId()).put("grade", seat.equipmentGrade().name())
                         .put("armorCapacity", seat.armorCapacity()).put("armorRating", seat.armorRating()));
-                var report = new JSONObject().put("chapter", chapter.title).put("seed",mission.battleSeed)
+                var report = new JSONObject().put("chapter", chapter.title()).put("seed",mission.battleSeed)
                         .put("companyBoats",boatCount).put("captainBonuses",false)
                         .put("weapons",SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS)
                         .put("armor",SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR)
@@ -470,7 +470,7 @@ class CorvusCombatEvidenceTest {
     }
 
     private void writeFrame(BattleReviewFrameRenderer renderer, BattleSimulation sim, CorvusChapter chapter, Path dir) throws Exception {
-        var frame = renderer.render(sim, chapter.title + " / " + sim.getSimTickIndex()/30 + "s"
+        var frame = renderer.render(sim, chapter.title() + " / " + sim.getSimTickIndex()/30 + "s"
                 + (sim.getColdAccount() == null ? "" : " / " + sim.getColdAccount().displayName()));
         var line = narration == null ? null : narration.current();
         if (line != null) {

@@ -87,7 +87,7 @@
       ],
       "cover": "med",
       "ballisticHalfHeight": 0.5,
-      "included": true
+      "included": false
     },
     {
       "id": "deck-motion.rower-seat",
@@ -103,7 +103,7 @@
       ],
       "cover": "none",
       "ballisticHalfHeight": 0,
-      "included": true
+      "included": false
     },
     {
       "id": "deck-motion.fan-rotor",

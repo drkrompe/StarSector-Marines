@@ -4,13 +4,11 @@ import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
 /**
- * Creep on a Colony Breach battle while nothing stands up on an eruption site:
- * each opened site becomes a creep source, the mother at maw growth and the
- * first wave at bore growth, and nothing ever removes them.
- *
- * <p>This is the breach sequence's default eruption handler. A handler that
- * builds bores replaces it and declares creep from each living bore instead
- * (`hive-creep.md`), so a collapsed bore's creep can recede.
+ * Creep studies without bores: each eruption site as a creep source that never
+ * dies, the mother at maw growth and the first wave at bore growth. For look
+ * and cost evidence that advances the creep field alone (the {@code hive-creep}
+ * snapshot suite, {@code renderEvidence}'s colony); a battle's creep comes from
+ * its bores ({@link BoreCreep}).
  */
 public final class ColonyCreep {
 

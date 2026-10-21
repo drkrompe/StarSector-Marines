@@ -180,7 +180,7 @@ public final class MissionSelectScreen implements Screen {
                 ? Strings.get("missionSelectRuskTheLowQuayRecoveryIsSettledNow")
                 : p != null && p.completed()
                 ? Strings.get("missionSelectRuskNorthWeirIsWorkingRecoverTheLow")
-                : AgreusArcCampaign.REFERRAL);
+                : Strings.get("agreusArcReferral"));
         props.put("brokerProgress", p != null && p.smallWarSettled()
                 ? Strings.get("missionSelectSMALLWARCLOSED")
                 : p != null && p.smallWarAvailable()
@@ -205,7 +205,7 @@ public final class MissionSelectScreen implements Screen {
         props.put("brokerClasses", "broker-dossier console-readout");
         props.put("brokerPortrait", OpeningBroker.CREST);
         props.put("brokerName", letterhead.signatory);
-        props.put("brokerRole", letterhead.sender);
+        props.put("brokerRole", letterhead.sender());
         props.put("brokerIntroduction", letterhead == DistrictEscortCampaign.Letterhead.RUSK_OFFICE
                 ? Strings.get("missionSelectDistrictEscortRuskIntro") : Strings.get("missionSelectDistrictEscortLennaIntro"));
         props.put("brokerProgress", Strings.format("missionSelectDistrictEscortProgress", p.jobsCompleted(), p.paid()));
@@ -216,7 +216,7 @@ public final class MissionSelectScreen implements Screen {
         props.put("detailKicker", Strings.get("missionSelectOPTIONALAFTERMORROWSHANDOVER"));
         props.put("detailTitle", Strings.format("missionSelectMeet", AgreusArcCampaign.NAME));
         props.put("detailMeta", d == null ? Strings.get("missionSelectAgreusArcadiaAccessPaused") : Strings.format("missionSelectRuskLocation", d.label()));
-        props.put("detailFlavor", AgreusArcCampaign.REFERRAL + " " + AgreusArcCampaign.accessReason());
+        props.put("detailFlavor", Strings.get("agreusArcReferral") + " " + AgreusArcCampaign.accessReason());
     }
 
     static void putCorvus(Map<String, Object> props, BrokenSupplyRouteProgress route, Mission selectedMission) {
@@ -231,7 +231,7 @@ public final class MissionSelectScreen implements Screen {
                 ? Strings.get("missionSelectTheListeningPostIsSilentYourCompany")
                 : CorvusWaylineCampaign.introduction(route));
         props.put("brokerProgress", CorvusWaylineCampaign.isBattle(selectedMission)
-                ? selectedMission.name + " / " + selectedMission.targetPlanetName : Strings.get("missionSelectSABLEWAKEROUTEINTERDICTION"));
+                ? Strings.join("separatorPath", selectedMission.name, selectedMission.targetPlanetName) : Strings.get("missionSelectSABLEWAKEROUTEINTERDICTION"));
     }
 
     static void putSupplyRoute(Map<String, Object> props, BrokenSupplyRouteProgress route, Mission selectedMission, boolean accessible) {
@@ -348,7 +348,7 @@ public final class MissionSelectScreen implements Screen {
                     Strings.format("missionSelectRowMeta", mission.source == MissionSource.RECURRING
                             ? Strings.get("missionSelectRepeatable") : mission.source == MissionSource.STORY
                             ? Strings.get("missionSelectStory") : tierName(mission.tier), recommended, active),
-                    ShepherdRecoveryProgress.workingPassage(mission.id) ? "MORROW"
+                    ShepherdRecoveryProgress.workingPassage(mission.id) ? Strings.get("missionSelectPayoutMorrow")
                             : SupplyRouteCampaign.freight(mission) ? Strings.format("missionSelectMaximumCredits", credits.format(payout)) : Strings.format("missionSelectCompactCredits", credits.format(payout)), () -> select.accept(mission)));
         }
         return List.copyOf(rows);

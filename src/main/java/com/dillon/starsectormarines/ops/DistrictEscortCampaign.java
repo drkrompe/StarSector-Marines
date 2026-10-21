@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -7,6 +8,7 @@ import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.campaign.AgreusDistrictEscortProgress;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.mission.story.StoryEligibilityContext;
 import com.fs.starfarer.api.Global;
 
@@ -19,35 +21,25 @@ import java.util.Set;
  * changes the letterhead and the party's names, never the support, fee or terms.
  */
 public final class DistrictEscortCampaign {
-    public static final String NAME = "District Escort";
     public static final String LENNA_NAME = "Lenna Saye";
-    public static final String TERMS = "Terms: 24,000 credits once, on delivery of this consignment with its party and your company at the western apron. "
-            + "No equipment award, premium, house promotion, MRB standing, stationing contract or faction commission; the signed agreement and its ratification are unchanged. "
-            + "Four district constables hold the apron. Two squads recommended; your fitted boats carry your selected marines. "
-            + "If the consignment or both of its party are lost, or the company withdraws, the job is unpaid and the next posting is a new consignment with new people.";
     private DistrictEscortCampaign() { }
+
+    public static String name() { return Strings.get("districtEscortCampaignName"); }
+    public static String terms() { return Strings.format("districtEscortCampaignTerms", AgreusDistrictEscortProgress.PAYMENT); }
 
     /** How the issuing office writes; identical support behind either letterhead. */
     public enum Letterhead {
-        RUSK_OFFICE("OFFICE OF BARONET ELIAN RUSK / CONCESSION SECURITY", AgreusArcCampaign.NAME,
-                "Rusk custodial clerk",
-                "Rusk's office: Under the custody agreement, the concession ships its own freight on its own schedule. "
-                        + "Consignment %s leaves the Low Quay loading lane for the western apron with two of my custodial clerks, who sign it over at the gate. "
-                        + "Raiders still work the freight lane; two pickets have been seen on it and more will come onto the lane once your boats are down. "
-                        + "Meet the carrier, then keep it covered. My managers expect it delivered, not defended in place."),
-        LENNA_ASSOCIATION("LATCHKEY YARD ASSOCIATION / COMMON SERVICE DESK", LENNA_NAME,
-                "Association service delegate",
-                "Lenna Saye: The compact lets the benches ship common-service work without asking Rusk's office for a lease. "
-                        + "Consignment %s is pump parts and recovered stock for the weir and the yard; two of our delegates travel with it and sign it over at the western apron. "
-                        + "Raiders still work the freight lane. Two pickets sit on it, and more will come onto the lane once your boats are down. "
-                        + "Meet the carrier at the loading lane and get it, and our people, across.");
+        RUSK_OFFICE("districtEscortCampaignRusk", AgreusArcCampaign.NAME),
+        LENNA_ASSOCIATION("districtEscortCampaignLenna", LENNA_NAME);
 
-        public final String sender, signatory, partyName;
-        private final String brief;
-        Letterhead(String sender, String signatory, String partyName, String brief) {
-            this.sender = sender; this.signatory = signatory; this.partyName = partyName; this.brief = brief;
+        public final String signatory;
+        private final String textKey;
+        Letterhead(String textKey, String signatory) {
+            this.textKey = textKey; this.signatory = signatory;
         }
-        public String brief(String consignment) { return String.format(brief, consignment); }
+        public String sender() { return Strings.get(textKey + "Sender"); }
+        public String partyName() { return Strings.get(textKey + "Party"); }
+        public String brief(String consignment) { return Strings.format(textKey + "Brief", consignment); }
         public static Letterhead of(AgreusYardAgreement agreement) {
             return agreement == AgreusYardAgreement.HOUSE_CUSTODY ? RUSK_OFFICE : LENNA_ASSOCIATION;
         }
@@ -92,13 +84,12 @@ public final class DistrictEscortCampaign {
         if (p == null || p.active()) throw new IllegalArgumentException("No open District Escort posting");
         var letterhead = Letterhead.of(p.agreement());
         String history = p.jobsCompleted() + p.partyLost() + p.consignmentsLost() == 0 ? ""
-                : " Escort record: " + p.status() + ". This posting is a new consignment with new people.";
-        return Mission.builder().id(p.missionId()).name(NAME).source(MissionSource.RECURRING)
+                : Strings.format("districtEscortCampaignHistory", p.status());
+        return Mission.builder().id(p.missionId()).name(name()).source(MissionSource.RECURRING)
                 .type(MissionType.RAID).tier(OperationTier.ESTABLISHED).risk(RiskLevel.MEDIUM)
                 .payout(AgreusDistrictEscortProgress.PAYMENT).targetPlanetName(planetName).defenderFactionOverride("pirates")
-                .flavor(letterhead.brief(p.consignmentId()) + history + "\n\n" + TERMS)
-                .requirements("Two squads recommended; two selected squads with at least four ready marines each required. "
-                        + "Up to four fitted company boats. Four constables and a two-person handover party. No tender or mech required.")
+                .flavor(Strings.join("waylineSentenceJoin", letterhead.brief(p.consignmentId()), history) + "\n\n" + terms())
+                .requirements(Strings.get("districtEscortCampaignRequirements"))
                 .requiredDrops(4).employerShuttles(0).marineArrivalPolicy(MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                 .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED)
                 .battleSeed(15400L + 7919L * p.job() + p.attempt()).build();
@@ -111,7 +102,7 @@ public final class DistrictEscortCampaign {
             throw new IllegalStateException("This District Escort posting is no longer current. " + AgreusArcCampaign.accessReason());
         return p;
     }
-    static String partyName(Mission m) { return Letterhead.of(requireCurrent(m).agreement()).partyName; }
+    static String partyName(Mission m) { return Letterhead.of(requireCurrent(m).agreement()).partyName(); }
     static TargetProfile profile(Mission m) {
         requireCurrent(m);
         return new TargetProfile(0, 0, 0, 0, "pirates", Set.of(),
@@ -139,9 +130,7 @@ public final class DistrictEscortCampaign {
     /** Results-screen dispatch: factual, attributable to the issuing office. */
     static String debrief(MissionOutcome o, AgreusYardAgreement agreement) {
         var letterhead = Letterhead.of(agreement);
-        if (o.victory) return letterhead.signatory + ": The consignment is signed over at the apron. "
-                + String.format("%,d", o.payoutEarned) + " credits paid. The next load is new freight and new people; post again when the company is ready.";
-        return letterhead.signatory + ": The consignment did not arrive. No fee. Confirmed losses stay on record; "
-                + "the next posting is a new consignment with new people, not this load retried.";
+        return Strings.format(o.victory ? "districtEscortCampaignDebriefWon" : "districtEscortCampaignDebriefLost",
+                letterhead.signatory, o.payoutEarned);
     }
 }

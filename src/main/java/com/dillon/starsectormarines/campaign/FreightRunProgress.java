@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.campaign;
 
+import com.dillon.starsectormarines.i18n.Strings;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +81,6 @@ public final class FreightRunProgress implements Serializable {
     public boolean victorious() { return victorious; }
     public boolean isClosed() { return victorious || waiting().isEmpty(); }
     public String summary() {
-        return deliveredCount() + " delivered / " + lostCount() + " lost / " + waiting().size() + " awaiting transport";
+        return Strings.format("freightRunSummary", deliveredCount(), lostCount(), waiting().size());
     }
 }

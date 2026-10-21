@@ -141,7 +141,7 @@ final class BattleSquadOverlayModel {
     Presentation updateProjected(SquadState squad, long selectedMemberId,
                                  boolean memberSelectionEnabled) {
         if (squad == null || squad.alive() <= 0) return hide();
-        squadTitle.set(squad.label().toUpperCase(Locale.ROOT));
+        squadTitle.set(squad.label().toUpperCase(Strings.locale()));
         squadStrength.set(squad.alive() + "/" + Math.max(squad.alive(), squad.original()));
         float morale = clamp01(squad.morale());
         moraleLabel.set("MORALE " + Math.round(morale * 100f) + "%");

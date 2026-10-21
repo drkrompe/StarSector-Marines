@@ -116,7 +116,7 @@ public final class FirstContractSnapshotSuite implements SnapshotSuite {
 
     private BufferedImage renderDebrief(SnapshotContext context, HeadlessUiRenderer renderer,
                                          OpeningOperationKind kind, boolean victory, int lost) throws Exception {
-        MissionOutcome outcome = MissionOutcome.builder().missionId(kind.missionId).missionName(kind.displayName)
+        MissionOutcome outcome = MissionOutcome.builder().missionId(kind.missionId).missionName(kind.displayName())
                 .missionSource(MissionSource.STORY).victory(victory).payoutEarned(victory ? kind.payout : 0)
                 .marinesEngaged(12).marinesLost(lost).alliesEngaged(12).alliesLost(victory ? 3 : 12).build();
         Map<String, Object> props = ResultsScreen.previewProps(victory, false);

@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fbf-9759-7f10-8dbd-b4a139ad7175",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fbf-9759-7f10-8dbd-b4a139ad7175\\exec-122df7fb-19bd-40a9-9de5-24aa8a2e3d31.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\round-3\\raw\\c1.png",
+    "sha256": "333688cb2f5bcb63afe5ae122b6b13e9f5962d1c67586746a9a51566e8f52247",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\round-3\\prompts\\c1.prompt.txt",
+  "promptSha256": "28720fb61ab2002cb27a90b6cc7683259405a2b5982371c9ccccb1b8671fc8a1",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nTop-down concept for a tactical game (Starsector mod: Marines against an engineered biological weapon). ONE creature, the Runner: the swarm's fast hunter, original design. A lean, vicious four-legged predator with a dog or big-cat frame: thick muscular neck and shoulders, deep chest, NO thin waist, strong haunches, muscled legs ending in hooked claws, held out in a wide mid-stride lope. Armoured carapace plates laid over a body of exposed wet sinew and flesh: a shoulder shield, a line of spine plates, a short armoured tail, with ridged flesh showing in every gap and joint. A monster's head: a wide fanged maw, small glowing eyes, no antennae. On its back, jointed striking spikes or blades that arch forward over the head, cocked to stab down past it. Palette: purples. Glossy carapace in deep violet and plum, fleshy gaps in a darker wet magenta-crimson, spike tips and claw tips in ivory bone, eyes a small hot amber glow; organic, alien, menacing, classic RTS alien-swarm finish. Strict overhead orthographic view, camera looking straight down at its back, facing UP (head toward the top), centred, filling about two thirds of the frame, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n\nThis concept: Hound with twin sickles: a narrow wolf-like head, two long curved scythe blades rise from the shoulder shield and arch forward over the head like folded mantis blades; banded violet spine plates.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one image of the Runner with twin sickles in the overhead view you specified."
+  ],
+  "usage": {
+    "input_tokens": 37102,
+    "cached_input_tokens": 33152,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 422,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 45.2
+}

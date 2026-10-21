@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fba-ab98-72b1-9860-dfe59e3e1e7a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fba-ab98-72b1-9860-dfe59e3e1e7a\\exec-ec0d9216-8e37-46e8-89a6-529ea3a25f1a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\crew-work-props\\raw\\dumbbell.png",
+    "sha256": "9d7ef5c3f6bc94082daa67d09541d1f92c7a40fb7a4b40365c5bb75200bdf326",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\crew-work-props\\prompts\\dumbbell.txt",
+  "promptSha256": "5bb18f276264286aa19a2676728ab20e9c390fcd866931b19f81e9f326612e65",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Silhouette guide and edit target: exact outline, position and scale\nImage 2: Material/style reference only (the accepted crew hand props); not layout\n\nUse case: sketch-to-render. Production overhead sprite layer: a small hand dumbbell that a starship crewman curls in the gym, drawn over the existing marine and crew infantry sprites in a top-down tactical game.\n\nReference 1 is the authoritative SILHOUETTE GUIDE and edit target, 1536x1024. It holds the same dumbbell three times, one above the other. Reskin only the flat gray shapes; keep every shape's exact outline, position and scale. Everything outside the shapes must be genuinely transparent: no background, ground, glow, cast shadow, border, labels or grid.\n\nCamera: TRUE STRAIGHT-DOWN 90-degree overhead view of a dumbbell lying across the image: two dark rubber-coated hexagonal heads at the left and right ends, and a short knurled bright steel grip between them. All three copies identical.\n\nStyle: match the material reference sprite exactly: chunky crisp pixel art with a clean one-step dark outline around every shape, a limited muted palette, light from the upper left, restrained detail that still reads when shrunk to 100 pixels wide. Not painterly, not smooth airbrushed, not photographic.\n\nAvoid: text, lettering, numbers on the heads, insignia, neon, noise, hands or people, extra objects.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\crew-work-props-dumbbell-guide.png",
+      "sha256": "48ec56fa3840f38a531b4d9db40f914b594a428edb8ea3cd6ccd0463323826a5",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Silhouette guide and edit target: exact outline, position and scale"
+    },
+    {
+      "path": "art-source\\crew-work-props\\raw\\props.png",
+      "sha256": "4b67d82729024b26477c47fd4d36f862ae47a5c11c93aa2557d06129680baaa3",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material/style reference only (the accepted crew hand props); not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one image, preserving the guide’s silhouettes and using the second image for materials only."
+  ],
+  "usage": {
+    "input_tokens": 114298,
+    "cached_input_tokens": 94336,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 698,
+    "reasoning_output_tokens": 33
+  },
+  "elapsedSeconds": 51.1
+}

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.DistrictEscortCommand;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -175,9 +176,9 @@ public final class DistrictEscortSequence implements Objective {
     public boolean isComplete() { return progress.phase() == Phase.COMPLETE; }
     public boolean isFailed() { return progress.phase() == Phase.FAILED; }
     public String displayName() { return switch (progress.phase()) {
-        case LINK_UP -> "Link up with the consignment at the loading lane";
-        case ESCORT -> "Cover the consignment and its party to the western apron";
-        case COMPLETE -> "Consignment and handover party delivered";
-        case FAILED -> "Escort incomplete; the next job is a new consignment";
+        case LINK_UP -> Strings.get("districtEscortLinkUp");
+        case ESCORT -> Strings.get("districtEscortEscort");
+        case COMPLETE -> Strings.get("districtEscortComplete");
+        case FAILED -> Strings.get("districtEscortFailed");
     }; }
 }
