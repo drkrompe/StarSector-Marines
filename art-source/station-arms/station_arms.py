@@ -4,8 +4,8 @@
     python art-source/station-arms/station_arms.py export
 
 A body layer's arms hang at its sides. Somebody working a console has theirs out
-in front of them, so two extra layers (left and right) are drawn between the body
-and the head while an actor stands at hands-on work. Each arm layer shares the body
+in front of them, so two extra layers (left and right) are drawn under the body
+while an actor stands at hands-on work. Each arm layer shares the body
 layer's grid: a canvas 120 rows taller than the body whose bottom rows are the body canvas, so it
 is placed exactly as the body is and only extends forward of it (up the image).
 The forearm leaves the sleeve at the body's side and the hand rests just ahead of

@@ -3,8 +3,8 @@
 Forearm-and-hand layers drawn while somebody works a fixture with their hands: a
 console, a bench, a counter, a mess table (`Affordance.handsOnFixture`). A body
 layer's arms hang at its sides; these two layers put the forearms out in front
-and the hands on the work. The compositor draws them between the body and the
-head, in place of the primary weapon. While they are drawn each forearm sweeps a
+and the hands on the work. The compositor draws them under the torso, so the sleeve covers the elbow and
+only the forearm and hand show past the body, in place of the primary weapon. While they are drawn each forearm sweeps a
 few degrees either way about its elbow, the two hands half a cycle apart and
 reaching in at the top of each stroke, on a 1.7 s clock of its own offset per
 person, so the elbow stays in the sleeve while the hand works the console.

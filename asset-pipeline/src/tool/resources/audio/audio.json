@@ -881,6 +881,14 @@
     {"id": "marines_breach_spore_vent_burst_2", "source": "colony-breach/sfx/marines_breach_spore_vent_burst_2.mp3", "kind": "positional", "out": "battle/colony-breach"},
     {"id": "marines_breach_spore_vent_burst_3", "source": "colony-breach/sfx/marines_breach_spore_vent_burst_3.mp3", "kind": "positional", "out": "battle/colony-breach"},
     {"id": "marines_breach_matriarch_roar_1", "source": "colony-breach/sfx/marines_breach_matriarch_roar_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
-    {"id": "marines_breach_matriarch_roar_2", "source": "colony-breach/sfx/marines_breach_matriarch_roar_2.mp3", "kind": "positional", "out": "battle/colony-breach"}
+    {"id": "marines_breach_matriarch_roar_2", "source": "colony-breach/sfx/marines_breach_matriarch_roar_2.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    // Colony Breach (tools/generate_colony_breach_audio.py)
+    {"id": "breach_first_harvest", "source": "colony-breach/speech/breach_first_harvest.mp3", "kind": "ui", "out": "story/colony-breach", "processing": "comms"},
+    {"id": "marines_breach_bore_surge_1", "source": "colony-breach/sfx/marines_breach_bore_surge_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_bore_surge_2", "source": "colony-breach/sfx/marines_breach_bore_surge_2.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_bore_surge_3", "source": "colony-breach/sfx/marines_breach_bore_surge_3.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_body_drag_1", "source": "colony-breach/sfx/marines_breach_body_drag_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_body_drag_2", "source": "colony-breach/sfx/marines_breach_body_drag_2.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_body_drag_3", "source": "colony-breach/sfx/marines_breach_body_drag_3.mp3", "kind": "positional", "out": "battle/colony-breach"}
   ]
 }
