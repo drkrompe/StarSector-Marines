@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
@@ -112,6 +113,9 @@ public interface BattleView {
 
     /** Whether the player can see this cell now; a power that works unseen ground asks this. */
     default boolean playerSeesCell(int x, int y) { return true; }
+
+    /** The map's traversal axis, which decides which edge a side's overhead ship arrives from. */
+    default TraversalAxis shipAxis() { return TraversalAxis.WEST_TO_EAST; }
 
     /** Raw grid structural revision; changes with authored or runtime cell/edge mutation. */
     long getNavigationGridRevision();

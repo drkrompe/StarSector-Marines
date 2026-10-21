@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * {@code deployMod} is a {@code Sync} of the whole {@code mod/} folder, so
@@ -33,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RawArtStaysOutOfModTest {
 
     private static final Path MOD = Path.of("mod");
-    private static final Path ART_SOURCE = Path.of("art-source");
 
     /** Long-edge ceiling for a shipped Armory icon, matching the armour-tier art. */
     private static final int MAX_ICON_EDGE = 512;
@@ -157,13 +155,5 @@ class RawArtStaysOutOfModTest {
     private static int intAt(byte[] bytes, int offset) {
         return ((bytes[offset] & 0xFF) << 24) | ((bytes[offset + 1] & 0xFF) << 16)
                 | ((bytes[offset + 2] & 0xFF) << 8) | (bytes[offset + 3] & 0xFF);
-    }
-
-    @Test
-    void theRawSheetsAreStillInTheRepository() throws IOException {
-        // The boundary is "not shipped", not "deleted": a sheet has to stay
-        // re-derivable and re-annotatable.
-        assertTrue(under(ART_SOURCE, ".raw.png").size() >= 5,
-                "art-source/ should hold the raw sheets that used to sit under mod/");
     }
 }

@@ -231,7 +231,7 @@ public final class MechLabViewModel {
             CampaignVehicle vehicle = selectedVehicle();
             if (vehicle != null) return vehicleArmament(vehicle.type());
             if (mech == null) return fabricatingChassis() ? Strings.get("openingMechLabChassisForge") : Strings.get("openingMechLabDoctrineUnavailable");
-            return roleLabel(mech.role()) + "  ·  " + doctrineAdvice(mech.role());
+            return Strings.join("separatorDot", roleLabel(mech.role()), doctrineAdvice(mech.role()));
         });
         performanceMeters = reactor.computed(this::buildPerformanceMeters);
         budgetText = reactor.computed(this::buildBudgetText);
@@ -712,7 +712,7 @@ public final class MechLabViewModel {
             rows.add(new MechRow(base, base + ":name", base + ":chassis", base + ":subsystem",
                     base + ":action",
                     mech.id().equals(selected) ? "mech-row selected" : "mech-row",
-                    mech.displayName(), mech.variant().displayName() + "  ·  " + roleLabel(mech.role()),
+                    mech.displayName(), Strings.join("separatorDot", mech.variant().displayName(), roleLabel(mech.role())),
                     mech.missileReplenisher().displayName(), readinessText(mech),
                     readinessClasses(mech, "label heading mech-card-action"),
                     () -> selectMech(mech.id())));
@@ -748,7 +748,7 @@ public final class MechLabViewModel {
                     mech != null ? mech.displayName() : vehicle != null ? vehicle.displayName()
                             : Strings.get("openingMechLabVacant2"),
                     mech != null && heldBack(mech) ? readinessText(mech)
-                            : mech != null ? mech.variant().displayName() + "  ·  " + roleLabel(mech.role())
+                            : mech != null ? Strings.join("separatorDot", mech.variant().displayName(), roleLabel(mech.role()))
                             : vehicle != null ? vehicleIdentity(vehicle.type())
                             : Strings.get("openingMechLabPressOnPadToFabricate"),
                     mech != null ? readinessClasses(mech, "label overview-detail")
@@ -1018,7 +1018,7 @@ public final class MechLabViewModel {
                     sb.append(Strings.get("openingMechLabRng")).append(deltaRng > 0 ? "+" : "").append(number(deltaRng));
                 }
                 if (Math.abs(deltaDmg) > 0.01f) {
-                    if (!sb.isEmpty()) sb.append("  ·  ");
+                    if (!sb.isEmpty()) sb.append(Strings.get("separatorDot"));
                     sb.append(Strings.get("openingMechLabDmg")).append(deltaDmg > 0 ? "+" : "").append(number(deltaDmg));
                 }
                 if (!sb.isEmpty()) {
@@ -1271,7 +1271,7 @@ public final class MechLabViewModel {
         for (int i = 0; i < stats.length; i++) {
             float value = stats[i];
             if (Math.abs(value) <= 0.01f) continue;
-            if (!text.isEmpty()) text.append("  ·  ");
+            if (!text.isEmpty()) text.append(Strings.get("separatorDot"));
             text.append(Strings.get(labels[i])).append(signed(value));
             if (value > 0) gains++; else losses++;
         }
@@ -1348,7 +1348,7 @@ public final class MechLabViewModel {
         if (mech.damage() == null) return "";
         StringBuilder text = new StringBuilder();
         for (Map.Entry<MechSection, Float> entry : mech.damage().wearBySection().entrySet()) {
-            if (text.length() > 0) text.append("  ·  ");
+            if (text.length() > 0) text.append(Strings.get("separatorDot"));
             text.append(Strings.format("mechLabRepairSection",
                     Strings.get("mechLabSection" + entry.getKey().name()),
                     String.valueOf(Math.max(1, Math.round(entry.getValue() * 100f)))));
@@ -2030,7 +2030,7 @@ public final class MechLabViewModel {
     }
 
     private static String roleLabel(MechRole role) {
-        return role.displayName().toUpperCase(Locale.ROOT);
+        return Strings.upper(role.displayName());
     }
 
     private static String number(float value) {

@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f31-0c2a-7223-869e-a99def5fe6ac",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f31-0c2a-7223-869e-a99def5fe6ac\\exec-6e7fe634-866e-4a34-bee6-1fcdffa5666c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\station-arms\\raw\\outlaw.png",
+    "sha256": "6e0cd71d53e0162edbdbb36f421d16b1f67ccb6bde27df926d78759ebf82f49c",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\station-arms\\prompts\\outlaw.full.txt",
+  "promptSha256": "c21a38d43228e6631955efa80edbc7498ebaf003984b348c33d422ec9e7c531c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the two forearm-and-hand shapes to reskin, exact outlines, positions and angles\nImage 2: Style and identity: this same character's torso and helmet or head sprites, enlarged; match its pixel-art rendering, outline, palette, armour and sleeve colours, but not its layout\nImage 3: Style only: an accepted arm pair for a ship's officer; match its pixel-art rendering, outline weight and hand drawing, not its colours\n\nUse case: sketch-to-render. Production overhead sprite layers for a tactical game: the two FOREARMS AND HANDS of a person working at a console, seen from directly above, drawn as separate layers that sit over their torso layer.\n\nReference 1 is the authoritative SILHOUETTE GUIDE and edit target, 1536x1024. Reskin only its two flat gray shapes; keep each shape's exact outline, position, scale and angle. Everything outside the shapes must be genuinely transparent: no background, glow, ground, shadow, body, head, console, border, labels or grid.\n\nCamera: TRUE STRAIGHT-DOWN 90-degree overhead view. Each shape is one forearm: the wide rounded lower end is the sleeve at the elbow, the narrow upper part is the forearm, and the round blob at the top is the HAND seen from above, palm down, fingers together pointing up the image, resting on a console surface. Left shape is the person's left arm, right shape the right arm. Show a sleeve cuff where the sleeve ends at the wrist, then the bare (or gloved) hand: knuckles and four short fingers readable, thumb tucked on the inner side.\n\nStyle: match reference 2 exactly — the same character's torso and head sprites — chunky crisp pixel art with a clean one-step dark outline around every shape, the same limited muted palette, sleeve fabric and skin tone, light from the upper left, restrained detail that reads at 25 pixels wide. Not painterly, not smooth airbrushed, not photographic.\n\nAvoid: tools, pens, tablets, weapons, watches with text, neon, text, insignia lettering, noise, cast shadows outside the shapes.\nThis person: an OUTLAW raider in dark red and black scavenged armour. Forearms: a dark undersuit sleeve under a scuffed red-and-black forearm guard matching reference 2. Hands: black gloves.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\station-arms-silhouettes.png",
+      "sha256": "3296fa1d5965aae7e123755580c879cab1ba99ece8a9ed5289f39d1eddef28f8",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the two forearm-and-hand shapes to reskin, exact outlines, positions and angles"
+    },
+    {
+      "path": "build\\station-arms-refs\\outlaw.png",
+      "sha256": "6abd34b1ac871a91d3da36f50a293e9d1bb207daaefcb314a58c29a7044b07d0",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Style and identity: this same character's torso and helmet or head sprites, enlarged; match its pixel-art rendering, outline, palette, armour and sleeve colours, but not its layout"
+    },
+    {
+      "path": "art-source\\station-arms\\raw\\command.png",
+      "sha256": "1e0759fbb150608eae753fa5ae1bffced2d0acd925f2a8ba9d6a99bd94614d4b",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Style only: an accepted arm pair for a ship's officer; match its pixel-art rendering, outline weight and hand drawing, not its colours"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to make one outlaw arm pair, preserving the silhouette guide and transparent surroundings."
+  ],
+  "usage": {
+    "input_tokens": 73779,
+    "cached_input_tokens": 60288,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 744,
+    "reasoning_output_tokens": 26
+  },
+  "elapsedSeconds": 64.5
+}

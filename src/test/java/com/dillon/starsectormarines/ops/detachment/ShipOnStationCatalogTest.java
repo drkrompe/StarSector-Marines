@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.detachment;
 import com.dillon.starsectormarines.battle.fixture.CommandPowerCommitment;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.ShipOnStation;
+import com.dillon.starsectormarines.battle.power.TenderCallDown;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.warship.VanillaData;
 import com.dillon.starsectormarines.battle.warship.VanillaWeapons;
@@ -105,6 +106,29 @@ class ShipOnStationCatalogTest {
         assertEquals("id-ISS Capital", shipPower(PowerCatalog.contributedBy(capital)).sources().get(0).memberId(),
                 "a committed member is written back to by its id");
         assertNull(shipPower(PowerCatalog.contributedBy(frigate)));
+    }
+
+    @Test
+    void aTenderInTheFleetOffersLandTenderAndOtherShipsDoNot() {
+        List<CommandPower> withTender = PowerCatalog.resolve(List.of(
+                member("shepherd", HullSize.FRIGATE, "Fold", Map.of()),
+                member("eagle", HullSize.CRUISER, "A", GUNS)), mission(List.of()));
+        TenderCallDown landing = (TenderCallDown) withTender.stream()
+                .filter(p -> p instanceof TenderCallDown).findFirst().orElseThrow();
+        assertEquals(1, landing.sources().size());
+        assertTrue(landing.sources().get(0).tender());
+        assertEquals(2, shipPower(withTender).sources().size(), "Ship on Station is unchanged by the new power");
+
+        List<CommandPower> without = PowerCatalog.resolve(List.of(
+                member("eagle", HullSize.CRUISER, "A", GUNS)), mission(List.of()));
+        assertTrue(without.stream().noneMatch(p -> p instanceof TenderCallDown), "no tender, no power");
+    }
+
+    @Test
+    void landTenderRoundTripsThroughACommitment() {
+        TenderCallDown landing = new TenderCallDown(List.of(new ShipSupportSource("shepherd", "Fold", true, Map.of())));
+        CommandPower restored = CommandPowerCommitment.capture(landing).toPower();
+        assertEquals(1, ((TenderCallDown) restored).sources().size());
     }
 
     @Test

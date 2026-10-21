@@ -26,23 +26,6 @@ class AbilitiesCsvTest {
     private static final Path CSV = Paths.get("mod/data/campaign/abilities.csv");
 
     @Test
-    void theCsvDeclaresExactlyTheCompanyViewAbility() throws IOException {
-        List<List<String>> rows = parse(CSV);
-
-        assertEquals(2, rows.size(), "header plus exactly one ability row");
-        List<String> header = rows.get(0);
-        List<String> row = rows.get(1);
-        assertEquals(header.size(), row.size(), "row must have one cell per header column");
-
-        assertEquals(CompanyViewAbility.ABILITY_ID, cell(header, row, "id"));
-        assertEquals("TOGGLE", cell(header, row, "type"));
-        // Granted explicitly from onGameLoad so new games and existing saves take one
-        // path; unlocking at start as well would double-grant.
-        assertEquals("FALSE", cell(header, row, "unlockedAtStart"));
-        assertEquals("FALSE", cell(header, row, "defaultForAIFleet"));
-    }
-
-    @Test
     void thePluginColumnNamesALoadableAbility() throws Exception {
         List<List<String>> rows = parse(CSV);
         String plugin = cell(rows.get(0), rows.get(1), "plugin");

@@ -1411,6 +1411,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     @Override public void addTender(Tender tender) { tenders.add(this, tender); }
+    @Override public void landTender(Tender tender, float siteX, float siteY) { tenders.land(this, tender, siteX, siteY); }
     /** Published derived navigation geometry; exposed for battle diagnostics. */
     public GreedyNavigationMesh getNavigationMesh() {
         return navigation.getNavigationMesh();
