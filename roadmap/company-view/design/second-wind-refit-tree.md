@@ -65,8 +65,38 @@ Engineering draws this as a tree flowing down from the hull (owner,
 2026-10-21: "an upgrade tree similar to our commander skill tree, but actually
 connected together flowing downward"), entered from core icons on the deck
 rather than a list of buttons. Each track hangs under one parent core; a
-tier's other requirements are listed on its card, not drawn as cross-links,
-because crossing lines would turn the tree into a wiring diagram. Each system's
+tier's other requirements are marked as small core icons beside its node (and
+listed on its card), not drawn as cross-links, because crossing lines would turn
+the tree into a wiring diagram.
+
+The tree should feel like *X and Y to get Z*, not a ladder (owner,
+2026-10-21): a first pass funnelled nearly everything through Power. So
+every opening and Improved I tier needs two different cores, and the larger
+rooms and the top tiers need three. Each requirement has a reason in the
+ship (a sound frame for racks and mounts, the thermal loop to cool the
+cluster, the workshop to cut plate):
+
+| Tier | Needs |
+|---|---|
+| Life support restored | Power R, Structure R (sealed bulkheads) |
+| Compute restored | Power R, Life support R (cooling) |
+| Power I (reactor overhaul) | Structure R, Fabrication R (new trunk cut in the workshop) |
+| Compute I (cluster) | Power I, Life support R, gamma core |
+| Power II (auxiliary plant) | Fabrication I, Compute I (load balancing) |
+| Compute II (tactical core) | Power II, Fabrication I, beta core |
+| Range | Power R, Structure R, Compute R (target machinery) |
+| Sick bay | Life support R, Power R, Compute R (diagnostics) |
+| Gym, lounge | Life support R, Structure R |
+| Brig | Structure R, Power R (cell locks) |
+| Mess galley / cold store | Power R + Life support R / Power I + Compute R (stock control) |
+| Hull R / I / II | Structure R + Fabrication R / Fabrication I + Power I / Fabrication I + Power II + Compute I |
+| Flux R / I / II | Power I + Structure R / Power II + Compute I / Power II + Compute II, alpha core |
+| Sensors R / I / II | Compute R + Structure R (mast mount) / Compute I + Power I / Compute II + Power II |
+| Drive R / I / II | Power R + Structure R / Power I + Compute R (governor) / Power II + Structure R + Fabrication I |
+
+Power restored, Structure restored and the mess's opening order need nothing:
+they are where a battered start begins. The table is `RefitOrder`; this is
+its intent, to be tuned in play. Each system's
 card opens with Castle explaining how it works aboard her. That is the point of
 the view: learning the ship as well as buying from her.
 

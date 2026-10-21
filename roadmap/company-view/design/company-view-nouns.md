@@ -1523,9 +1523,10 @@ deck. The tree flows downward from the hull: the five cores hang from her, and
 every other track hangs from the core it leans on most (drive and flux from
 Power; mess, gym, sick bay and lounge from Life support; hull, brig and range
 from Structure; sensors from Compute). Each track is a column of tier nodes,
-owned, available (nothing but the price in the way) or locked. Further
-requirements across branches are listed on the detail card instead of drawn, so
-the tree stays a tree. The card docks down the tree's right edge and carries
+owned, available (nothing but the price in the way) or locked. Most tiers need
+two or three cores, so beside each unbought node sit small icons of the cores it
+waits on, gold once met and red until then; requirements are marked this way
+rather than drawn as lines across branches, so the tree stays a tree. The card docks down the tree's right edge and carries
 Castle's account of how the system works aboard her, the current and next tier,
 what the next tier needs, its bill, its lock reason and the reviewed order. The
 workshop's stages appear under Fabrication but are still ordered from the

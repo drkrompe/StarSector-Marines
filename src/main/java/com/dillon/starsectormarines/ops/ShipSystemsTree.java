@@ -105,6 +105,28 @@ final class ShipSystemsTree {
             m.put("node" + k + "Classes", absent ? "hidden" : size + "-node");
             m.put("node" + k + "Icon", absent ? "" : "graphics/ui/refit/node-" + k + "-" + node.name().toLowerCase(Locale.ROOT) + ".svg");
             m.put("node" + k + "Select", pick);
+            m.put("spacer" + k + "Id", id + "-spacer-" + k);
+            m.put("center" + k + "Id", id + "-center-" + k);
+            m.put("needs" + k + "Id", id + "-needs-" + k);
+            // What this tier waits on, read at a glance: gold once met, red until then.
+            var order = absent || node == Node.OWNED ? null : RefitOrder.after(track, RefitBand.values()[tier.ordinal() - 1]);
+            var needs = order == null ? List.<Map.Entry<RefitTrack, RefitBand>>of() : List.copyOf(order.requires.entrySet());
+            for (int j = 1; j <= 3; j++) {
+                String need = "need" + k + j;
+                m.put(need + "Id", id + "-need-" + k + "-" + j);
+                m.put(need + "IconId", id + "-need-" + k + "-" + j + "-icon");
+                if (j <= needs.size()) {
+                    var entry = needs.get(j - 1);
+                    boolean met = state.band(entry.getKey()).atLeast(entry.getValue());
+                    m.put(need + "Classes", size + "-need");
+                    m.put(need + "Style", "border-color: " + (met ? LINE_ON : "#d88a6c") + ";");
+                    m.put(need + "Icon", icon(entry.getKey()));
+                } else {
+                    m.put(need + "Classes", "hidden");
+                    m.put(need + "Style", "");
+                    m.put(need + "Icon", "");
+                }
+            }
             m.put("stem" + k + "Id", id + "-stem-" + k);
             m.put("stem" + k + "Classes", absent && stems ? size + "-stem" : "hidden");
             m.put("stem" + k + "Style", line(band.atLeast(RefitBand.RESTORED)));

@@ -35,24 +35,48 @@
               <div id="{core.stateId}" class="{core.stateClasses}">{core.state}</div>
             </button>
             <div id="{core.slot1Id}" class="{core.slot1Classes}">
-              <button id="{core.node1Id}" class="{core.node1Classes}" style="background-color: transparent; background-image: none; border-width: 0px;" onclick="{core.node1Select}">
-                <img id="{core.node1ImageId}" class="systems-core-node-image" src="{core.node1Icon}" />
-              </button>
-              <div id="{core.stem1Id}" class="{core.stem1Classes}" style="{core.stem1Style}"></div>
+              <div id="{core.spacer1Id}" class="systems-core-spacer"></div>
+              <div id="{core.center1Id}" class="systems-core-center">
+                <button id="{core.node1Id}" class="{core.node1Classes}" style="background-color: transparent; background-image: none; border-width: 0px;" onclick="{core.node1Select}">
+                  <img id="{core.node1ImageId}" class="systems-core-node-image" src="{core.node1Icon}" />
+                </button>
+                <div id="{core.stem1Id}" class="{core.stem1Classes}" style="{core.stem1Style}"></div>
+              </div>
+              <div id="{core.needs1Id}" class="systems-core-needs">
+                <div id="{core.need11Id}" class="{core.need11Classes}" style="{core.need11Style}"><img id="{core.need11IconId}" class="systems-core-need-icon" src="{core.need11Icon}" /></div>
+                <div id="{core.need12Id}" class="{core.need12Classes}" style="{core.need12Style}"><img id="{core.need12IconId}" class="systems-core-need-icon" src="{core.need12Icon}" /></div>
+                <div id="{core.need13Id}" class="{core.need13Classes}" style="{core.need13Style}"><img id="{core.need13IconId}" class="systems-core-need-icon" src="{core.need13Icon}" /></div>
+              </div>
             </div>
             <div id="{core.link2Id}" class="{core.link2Classes}" style="{core.link2Style}"></div>
             <div id="{core.slot2Id}" class="{core.slot2Classes}">
-              <button id="{core.node2Id}" class="{core.node2Classes}" style="background-color: transparent; background-image: none; border-width: 0px;" onclick="{core.node2Select}">
-                <img id="{core.node2ImageId}" class="systems-core-node-image" src="{core.node2Icon}" />
-              </button>
-              <div id="{core.stem2Id}" class="{core.stem2Classes}" style="{core.stem2Style}"></div>
+              <div id="{core.spacer2Id}" class="systems-core-spacer"></div>
+              <div id="{core.center2Id}" class="systems-core-center">
+                <button id="{core.node2Id}" class="{core.node2Classes}" style="background-color: transparent; background-image: none; border-width: 0px;" onclick="{core.node2Select}">
+                  <img id="{core.node2ImageId}" class="systems-core-node-image" src="{core.node2Icon}" />
+                </button>
+                <div id="{core.stem2Id}" class="{core.stem2Classes}" style="{core.stem2Style}"></div>
+              </div>
+              <div id="{core.needs2Id}" class="systems-core-needs">
+                <div id="{core.need21Id}" class="{core.need21Classes}" style="{core.need21Style}"><img id="{core.need21IconId}" class="systems-core-need-icon" src="{core.need21Icon}" /></div>
+                <div id="{core.need22Id}" class="{core.need22Classes}" style="{core.need22Style}"><img id="{core.need22IconId}" class="systems-core-need-icon" src="{core.need22Icon}" /></div>
+                <div id="{core.need23Id}" class="{core.need23Classes}" style="{core.need23Style}"><img id="{core.need23IconId}" class="systems-core-need-icon" src="{core.need23Icon}" /></div>
+              </div>
             </div>
             <div id="{core.link3Id}" class="{core.link3Classes}" style="{core.link3Style}"></div>
             <div id="{core.slot3Id}" class="{core.slot3Classes}">
-              <button id="{core.node3Id}" class="{core.node3Classes}" style="background-color: transparent; background-image: none; border-width: 0px;" onclick="{core.node3Select}">
-                <img id="{core.node3ImageId}" class="systems-core-node-image" src="{core.node3Icon}" />
-              </button>
-              <div id="{core.stem3Id}" class="{core.stem3Classes}" style="{core.stem3Style}"></div>
+              <div id="{core.spacer3Id}" class="systems-core-spacer"></div>
+              <div id="{core.center3Id}" class="systems-core-center">
+                <button id="{core.node3Id}" class="{core.node3Classes}" style="background-color: transparent; background-image: none; border-width: 0px;" onclick="{core.node3Select}">
+                  <img id="{core.node3ImageId}" class="systems-core-node-image" src="{core.node3Icon}" />
+                </button>
+                <div id="{core.stem3Id}" class="{core.stem3Classes}" style="{core.stem3Style}"></div>
+              </div>
+              <div id="{core.needs3Id}" class="systems-core-needs">
+                <div id="{core.need31Id}" class="{core.need31Classes}" style="{core.need31Style}"><img id="{core.need31IconId}" class="systems-core-need-icon" src="{core.need31Icon}" /></div>
+                <div id="{core.need32Id}" class="{core.need32Classes}" style="{core.need32Style}"><img id="{core.need32IconId}" class="systems-core-need-icon" src="{core.need32Icon}" /></div>
+                <div id="{core.need33Id}" class="{core.need33Classes}" style="{core.need33Style}"><img id="{core.need33IconId}" class="systems-core-need-icon" src="{core.need33Icon}" /></div>
+              </div>
             </div>
             <div id="{core.subDropId}" class="{core.subDropClasses}" style="{core.subDropStyle}"></div>
             <div id="{core.subsId}" class="systems-subs">
@@ -68,24 +92,48 @@
                 <div id="{sub.stateId}" class="{sub.stateClasses}">{sub.state}</div>
               </button>
               <div id="{sub.slot1Id}" class="{sub.slot1Classes}">
-                <button id="{sub.node1Id}" class="{sub.node1Classes}" style="background-color: transparent; background-image: none; border-width: 0px;" onclick="{sub.node1Select}">
-                  <img id="{sub.node1ImageId}" class="systems-sub-node-image" src="{sub.node1Icon}" />
-                </button>
-                <div id="{sub.stem1Id}" class="{sub.stem1Classes}" style="{sub.stem1Style}"></div>
+                <div id="{sub.spacer1Id}" class="systems-sub-spacer"></div>
+                <div id="{sub.center1Id}" class="systems-sub-center">
+                  <button id="{sub.node1Id}" class="{sub.node1Classes}" style="background-color: transparent; background-image: none; border-width: 0px;" onclick="{sub.node1Select}">
+                    <img id="{sub.node1ImageId}" class="systems-sub-node-image" src="{sub.node1Icon}" />
+                  </button>
+                  <div id="{sub.stem1Id}" class="{sub.stem1Classes}" style="{sub.stem1Style}"></div>
+                </div>
+                <div id="{sub.needs1Id}" class="systems-sub-needs">
+                  <div id="{sub.need11Id}" class="{sub.need11Classes}" style="{sub.need11Style}"><img id="{sub.need11IconId}" class="systems-sub-need-icon" src="{sub.need11Icon}" /></div>
+                  <div id="{sub.need12Id}" class="{sub.need12Classes}" style="{sub.need12Style}"><img id="{sub.need12IconId}" class="systems-sub-need-icon" src="{sub.need12Icon}" /></div>
+                  <div id="{sub.need13Id}" class="{sub.need13Classes}" style="{sub.need13Style}"><img id="{sub.need13IconId}" class="systems-sub-need-icon" src="{sub.need13Icon}" /></div>
+                </div>
               </div>
               <div id="{sub.link2Id}" class="{sub.link2Classes}" style="{sub.link2Style}"></div>
               <div id="{sub.slot2Id}" class="{sub.slot2Classes}">
-                <button id="{sub.node2Id}" class="{sub.node2Classes}" style="background-color: transparent; background-image: none; border-width: 0px;" onclick="{sub.node2Select}">
-                  <img id="{sub.node2ImageId}" class="systems-sub-node-image" src="{sub.node2Icon}" />
-                </button>
-                <div id="{sub.stem2Id}" class="{sub.stem2Classes}" style="{sub.stem2Style}"></div>
+                <div id="{sub.spacer2Id}" class="systems-sub-spacer"></div>
+                <div id="{sub.center2Id}" class="systems-sub-center">
+                  <button id="{sub.node2Id}" class="{sub.node2Classes}" style="background-color: transparent; background-image: none; border-width: 0px;" onclick="{sub.node2Select}">
+                    <img id="{sub.node2ImageId}" class="systems-sub-node-image" src="{sub.node2Icon}" />
+                  </button>
+                  <div id="{sub.stem2Id}" class="{sub.stem2Classes}" style="{sub.stem2Style}"></div>
+                </div>
+                <div id="{sub.needs2Id}" class="systems-sub-needs">
+                  <div id="{sub.need21Id}" class="{sub.need21Classes}" style="{sub.need21Style}"><img id="{sub.need21IconId}" class="systems-sub-need-icon" src="{sub.need21Icon}" /></div>
+                  <div id="{sub.need22Id}" class="{sub.need22Classes}" style="{sub.need22Style}"><img id="{sub.need22IconId}" class="systems-sub-need-icon" src="{sub.need22Icon}" /></div>
+                  <div id="{sub.need23Id}" class="{sub.need23Classes}" style="{sub.need23Style}"><img id="{sub.need23IconId}" class="systems-sub-need-icon" src="{sub.need23Icon}" /></div>
+                </div>
               </div>
               <div id="{sub.link3Id}" class="{sub.link3Classes}" style="{sub.link3Style}"></div>
               <div id="{sub.slot3Id}" class="{sub.slot3Classes}">
-                <button id="{sub.node3Id}" class="{sub.node3Classes}" style="background-color: transparent; background-image: none; border-width: 0px;" onclick="{sub.node3Select}">
-                  <img id="{sub.node3ImageId}" class="systems-sub-node-image" src="{sub.node3Icon}" />
-                </button>
-                <div id="{sub.stem3Id}" class="{sub.stem3Classes}" style="{sub.stem3Style}"></div>
+                <div id="{sub.spacer3Id}" class="systems-sub-spacer"></div>
+                <div id="{sub.center3Id}" class="systems-sub-center">
+                  <button id="{sub.node3Id}" class="{sub.node3Classes}" style="background-color: transparent; background-image: none; border-width: 0px;" onclick="{sub.node3Select}">
+                    <img id="{sub.node3ImageId}" class="systems-sub-node-image" src="{sub.node3Icon}" />
+                  </button>
+                  <div id="{sub.stem3Id}" class="{sub.stem3Classes}" style="{sub.stem3Style}"></div>
+                </div>
+                <div id="{sub.needs3Id}" class="systems-sub-needs">
+                  <div id="{sub.need31Id}" class="{sub.need31Classes}" style="{sub.need31Style}"><img id="{sub.need31IconId}" class="systems-sub-need-icon" src="{sub.need31Icon}" /></div>
+                  <div id="{sub.need32Id}" class="{sub.need32Classes}" style="{sub.need32Style}"><img id="{sub.need32IconId}" class="systems-sub-need-icon" src="{sub.need32Icon}" /></div>
+                  <div id="{sub.need33Id}" class="{sub.need33Classes}" style="{sub.need33Style}"><img id="{sub.need33IconId}" class="systems-sub-need-icon" src="{sub.need33Icon}" /></div>
+                </div>
               </div>
             </div>
             </div>
@@ -254,7 +302,12 @@
   .systems-core-icon { width: 36px; height: 36px; pointer-events: none; }
   .systems-core-name { width: 100%; height: 18px; text-align: center; pointer-events: none; }
   .systems-state { width: 100%; height: 16px; text-align: center; pointer-events: none; }
-  .systems-core-slot { flex-direction: column; align-items: center; width: 64px; height: 56px; }
+  .systems-core-slot { flex-direction: row; width: 152px; height: 56px; gap: 0px; }
+  .systems-core-spacer { width: 44px; height: 56px; }
+  .systems-core-center { flex-direction: column; align-items: center; width: 64px; height: 56px; }
+  .systems-core-needs { flex-direction: column; align-items: flex-start; width: 44px; height: 56px; gap: 2px; padding-left: 4px; }
+  .systems-core-need { width: 16px; height: 16px; padding: 0px; border-width: 1px; background-color: #121a17; }
+  .systems-core-need-icon { width: 14px; height: 14px; }
   .systems-core-node { width: 56px; height: 56px; padding: 0px; }
   .systems-core-node-image { width: 56px; height: 56px; pointer-events: none; }
   .systems-core-stem { height: 56px; }
@@ -264,7 +317,12 @@
   .systems-sub-header { width: 104px; height: 68px; }
   .systems-sub-icon { width: 28px; height: 28px; pointer-events: none; }
   .systems-sub-name { width: 100%; height: 30px; white-space: normal; text-align: center; pointer-events: none; }
-  .systems-sub-slot { flex-direction: column; align-items: center; width: 48px; height: 44px; }
+  .systems-sub-slot { flex-direction: row; width: 96px; height: 44px; gap: 0px; }
+  .systems-sub-spacer { width: 24px; height: 44px; }
+  .systems-sub-center { flex-direction: column; align-items: center; width: 48px; height: 44px; }
+  .systems-sub-needs { flex-direction: column; align-items: flex-start; width: 24px; height: 44px; gap: 1px; padding-left: 3px; }
+  .systems-sub-need { width: 14px; height: 14px; padding: 0px; border-width: 1px; background-color: #121a17; }
+  .systems-sub-need-icon { width: 12px; height: 12px; }
   .systems-sub-node { width: 44px; height: 44px; padding: 0px; }
   .systems-sub-node-image { width: 44px; height: 44px; pointer-events: none; }
   .systems-sub-stem { height: 44px; }

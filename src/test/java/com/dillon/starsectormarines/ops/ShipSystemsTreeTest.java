@@ -39,7 +39,9 @@ class ShipSystemsTreeTest {
 
         var powered = start.with(RefitTrack.POWER, RefitBand.RESTORED);
         assertEquals(Node.OWNED, ShipSystemsTree.node(powered, RefitTrack.POWER, RefitBand.RESTORED));
-        assertEquals(Node.AVAILABLE, ShipSystemsTree.node(powered, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED));
+        assertEquals(Node.LOCKED, ShipSystemsTree.node(powered, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED), "and sealed bulkheads");
+        var sealed = powered.with(RefitTrack.STRUCTURE, RefitBand.RESTORED);
+        assertEquals(Node.AVAILABLE, ShipSystemsTree.node(sealed, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED));
     }
 
     @Test
