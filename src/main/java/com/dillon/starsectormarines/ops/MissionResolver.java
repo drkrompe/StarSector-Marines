@@ -237,6 +237,21 @@ public final class MissionResolver {
                 }
             }
         }
+        // A Marine a swarm carrier took into a bore alive is a corpse already;
+        // one still on a carrier's blades when the battle ends is lost with it.
+        // Either way the fate is fixed rather than rolled.
+        Set<String> takenSoldierIds = new HashSet<>();
+        for (long body : sim.swarmHarvest().takenMarines(sim)) {
+            String id = (String) sim.getEntityWorld().getObject(body, c.IDENTITY,
+                    BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID);
+            if (id == null) continue;
+            takenSoldierIds.add(id);
+            if (survivingSoldierIds.remove(id)) {
+                fallenSoldierIds.add(id);
+                marinesAlive--;
+                rawMarinesLost++;
+            }
+        }
         int alliesEngaged = alliesAlive + alliesLost;
 
         // The boats the battle burned, and whoever was still strapped into
@@ -415,6 +430,7 @@ public final class MissionResolver {
                 .mechDamage(sim.companyMechs().damage())
                 .survivingSoldierIds(survivingSoldierIds)
                 .fallenSoldierIds(fallenSoldierIds)
+                .takenSoldierIds(takenSoldierIds)
                 .deployedFireteamIds(deployedFireteamIds)
                 .soldierTelemetry(soldierTelemetry)
                 .build();
@@ -724,7 +740,13 @@ public final class MissionResolver {
         for (String id : outcome.survivingSoldierIds) {
             result.put(id, MarineSoldierStatus.ACTIVE);
         }
+        Set<String> taken = outcome.takenSoldierIds != null ? outcome.takenSoldierIds : Set.of();
         for (String id : outcome.fallenSoldierIds) {
+            if (taken.contains(id)) {
+                // Taken into a bore: no roll, and nothing for the sick bay to save.
+                result.put(id, MarineSoldierStatus.KIA);
+                continue;
+            }
             long seed = CasualtyFate.seed(
                     outcome.missionId != null ? outcome.missionId.hashCode() : 0, id);
             result.put(id, CasualtyFate.roll(seed, outcome.victory, saved));

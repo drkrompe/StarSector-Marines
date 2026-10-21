@@ -27,8 +27,8 @@ walks up and strikes, at one speed, and breaks light walls.
   and `MechSectionModifier` do).
 - **No knockback, stagger, stun or downed state.** A hit changes hp, armour,
   limb wounds and morale. The only displacement is `SeparationSystem`'s overlap
-  push, clamped to 1.5 cells/s. `runner-impale-drag.md` keeps a downed state
-  out, and so does this story.
+  push, clamped to 1.5 cells/s. The Runner's impale (`colony-breach-nouns.md`,
+  Impale) keeps a downed state out, and so does this story.
 - **The Brute's blow**: 14 damage, penetration 8, every 1.2 s at 1.7 cells;
   wall blows of 25 through `SwarmStrikeSystem` on walls of at most 120 left.
   Its morale impact (2.0) is the highest of any type.

@@ -578,6 +578,8 @@ public final class UnitUpdateSystem implements AutoCloseable {
         // rather than inferred from a missing POSITION, so a unit that lost its
         // position by accident still fails loudly instead of going quiet.
         if (sim.transport().isRiding(u)) return;
+        // Held on a carrier's blades, or getting up after being freed: the body does nothing.
+        if (sim.swarmHarvest().holdsStill(u)) return;
         // First participation must capture CPU before the first behavior, not
         // in its finally block; existing workers were sampled by tick's reset.
         WorkerDiagnostics diagnostics = captureDiagnostics ? currentDiagnostics.get() : null;

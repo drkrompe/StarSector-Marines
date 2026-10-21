@@ -155,6 +155,13 @@ public final class MissionOutcome {
     public final List<CompanyMechLedger.Damage> mechDamage;
     public final Set<String> survivingSoldierIds;
     public final Set<String> fallenSoldierIds;
+    /**
+     * Of the fallen, those a swarm carrier took into a bore alive, or was still
+     * holding when the battle ended (`colony-breach-nouns.md`, Harvest): killed
+     * in action without a roll and past any sick bay's saving. Null on an
+     * outcome saved before it existed.
+     */
+    public final Set<String> takenSoldierIds;
     /** Mission-time persistent squad selection, in briefing order. */
     public final Set<String> deployedFireteamIds;
     /**
@@ -247,6 +254,7 @@ public final class MissionOutcome {
         this.mechDamage = b.mechDamage == null ? Collections.emptyList() : List.copyOf(b.mechDamage);
         this.survivingSoldierIds = immutableIds(b.survivingSoldierIds);
         this.fallenSoldierIds = immutableIds(b.fallenSoldierIds);
+        this.takenSoldierIds = immutableIds(b.takenSoldierIds);
         this.deployedFireteamIds = immutableOrderedIds(b.deployedFireteamIds);
         this.soldierTelemetry = immutableTelemetry(b.soldierTelemetry);
     }
@@ -348,6 +356,7 @@ public final class MissionOutcome {
         private List<CompanyMechLedger.Damage> mechDamage = Collections.emptyList();
         private Set<String> survivingSoldierIds = Collections.emptySet();
         private Set<String> fallenSoldierIds = Collections.emptySet();
+        private Set<String> takenSoldierIds = Collections.emptySet();
         private Set<String> deployedFireteamIds = Collections.emptySet();
         private Map<String, CombatTelemetryRow> soldierTelemetry = Collections.emptyMap();
 
@@ -595,6 +604,11 @@ public final class MissionOutcome {
 
         public Builder fallenSoldierIds(Set<String> fallenSoldierIds) {
             this.fallenSoldierIds = fallenSoldierIds;
+            return this;
+        }
+
+        public Builder takenSoldierIds(Set<String> takenSoldierIds) {
+            this.takenSoldierIds = takenSoldierIds;
             return this;
         }
 

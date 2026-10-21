@@ -75,11 +75,13 @@ public final class ColonyBreachSequence {
     }
 
     /**
-     * Harvest so far: bodies seized (a re-seizure of a dropped body counts
-     * again), delivered into a bore, dropped by a carrier that died, and being
-     * dragged now.
+     * Harvest so far: bodies seized (a re-seizure of a dropped body and an
+     * impale count again), delivered into a bore, dropped dead by a carrier that
+     * died, and being dragged now; and of the living, how many were impaled,
+     * freed and taken.
      */
-    public record Harvest(int firstTick, int seized, int delivered, int dropped, int carrying) { }
+    public record Harvest(int firstTick, int seized, int delivered, int dropped, int carrying,
+                          int impaled, int freed, int taken) { }
 
     private final ColonyEruptionPlan plan;
     private final List<Long> colonists;
@@ -93,6 +95,7 @@ public final class ColonyBreachSequence {
     private boolean militiaSeen;
     private boolean terminal;
     private int boreEventCursor;
+    private int harvestEventCursor;
 
     public ColonyBreachSequence(ColonyEruptionPlan plan, List<Long> colonists, StoryBeatLog log) {
         if (plan == null || log == null) throw new IllegalArgumentException("A breach needs its plan and beat log");
@@ -175,6 +178,17 @@ public final class ColonyBreachSequence {
         }
         if (tremorTick >= 0 && tick >= tremorTick) emit(tick, "tremor");
         if (sim.swarmHarvest().firstHarvestTick() >= 0) emit(tick, "first_harvest");
+        List<SwarmHarvest.Event> held = sim.swarmHarvest().events();
+        for (; harvestEventCursor < held.size(); harvestEventCursor++) {
+            SwarmHarvest.Event event = held.get(harvestEventCursor);
+            if (event.faction() != Faction.MARINE) continue;
+            String key = switch (event.kind()) {
+                case IMPALED -> "marine_impaled";
+                case FREED -> "marine_freed";
+                case TAKEN -> "marine_taken";
+            };
+            log.emit(tick, BEAT_PREFIX + key, Audience.PLAYER);
+        }
         List<ColonyEruptionPlan.Site> sites = plan.sites();
         for (int i = 0; i < sites.size(); i++) {
             if (!erupted[i]) continue;
@@ -226,7 +240,7 @@ public final class ColonyBreachSequence {
 
     private static Harvest harvest(SwarmHarvest harvest) {
         return new Harvest(harvest.firstHarvestTick(), harvest.seized(), harvest.delivered(),
-                harvest.dropped(), harvest.carrying());
+                harvest.dropped(), harvest.carrying(), harvest.impaled(), harvest.freed(), harvest.taken());
     }
 
     private void emit(int tick, String key) {

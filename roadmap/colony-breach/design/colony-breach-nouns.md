@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — the shelter stands in a civil-defence compound, a square walled place in the colony plan dressed with towers, gate guns, slits and floodlights; a holdout claims a block behind works (barricade, firing step, gate, gun) with a line team that falls back into the building; the company lands in open fields outside the colony and the lift comes down on them; bores, tiers, surges, spore colonies, the bore-sourced director and harvest as built.
+Updated: 2026-10-21 — the shelter stands in a civil-defence compound, a square walled place in the colony plan dressed with towers, gate guns, slits and floodlights; a holdout claims a block behind works (barricade, firing step, gate, gun) with a line team that falls back into the building; the company lands in open fields outside the colony and the lift comes down on them; bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -376,13 +376,62 @@ Laws:
   dropped and still being dragged.
 - `-Dbattle.colonyBreach.harvest=false` is the control: Runners leave the dead
   where they fall and do not hunt colonists.
-- **A dragged body is safe from its own side's direct fire** (owner,
-  2026-10-21). Fire at a carrier, a miss that strays into its load and a round
-  that would go through the carrier never hurt the body being dragged, Marine,
-  militia or colonist; the ray passes it. Area weapons still reach it, behind a
-  switch while the owner decides. It matters once the load can be alive: a
-  Runner can impale a living body and drag it off, and killing the carrier
-  frees it (`runner-impale-drag.md`).
+
+**Impale.** Harvest's living version, which makes it a fight instead of a
+funeral. Any blow a Runner lands has a one-in-twenty chance to go in and hold
+instead of wounding: the Runner becomes a carrier and its load is a living
+body, **held** on its blades. Chance is the only thing about the fight that
+decides it, so a fresh Marine in the middle of the line can be taken; the draw
+is keyed by the strike itself (tick, Runner, target) rather than taken from the
+battle's shared stream, so turning impales off changes no other roll. Only a
+body harvest may take is impaled (a Marine on foot, a militia fighter, a
+colonist; never a power suit, never an escorted evacuee), only by a Runner
+that is not already carrying, and only while a bore lives. There is no new
+kind of casualty and no downed state: a held body is a living body that is
+being held. Laws:
+
+- **The impaling blow does no damage**, and a held body takes no harm from the
+  swarm: it is nobody's prey but its carrier's. It does nothing while held (it
+  does not move, fire or take orders) and moves with the carrier, drawn at the
+  carrier's trail point; the drag pose is the Runner art's to draw.
+- **Direct fire never touches a held body** (owner, 2026-10-21). Fire at a
+  carrier, a miss that strays into its load and a round that would go through
+  the carrier never hurt the body on the blades, Marine, militia or colonist:
+  the ray passes it, though the body stays in the battle for everything else.
+  A blast's direct payload is direct fire and never lands on it either.
+- **Area weapons still reach it** (grenades, mortars, rocket blasts, ordnance
+  from the air): calling a blast down on a carrier costs the victim too, and a
+  blast aimed at the held body itself still splashes it.
+  `-Dbattle.colonyBreach.impale.areaHitsHeld=false` is the other answer to
+  the owner's open question, ready to flip. A body killed on the blades is
+  dragged on as an ordinary harvest corpse.
+- **Kill the carrier and the body is freed**: alive where the carrier fell,
+  with a wound in each leg where the blades went through, and back to what it
+  was doing after three seconds. A freed Marine goes back under orders and a
+  medic treats them as any wounded squadmate; a militia fighter goes back to
+  its post; a colonist flees again.
+- **A carrier holding one of a squad's own Marines is that squad's priority
+  target** while it is in sight: a bump to the target choice and nothing more.
+  No squad chases a carrier on its own; going after one is the player's call,
+  and medics never approach a held Marine.
+- **At the bore the body is taken**: killed there and fed in as one body of
+  biomass. A body still held when the battle ends counts as taken.
+- **Morale**: impaling a Marine costs their fire team what a death would, at
+  the moment of the impale and once. Being freed gives nothing back, and being
+  taken costs nothing more.
+- **Casualties**: a freed body is alive like anyone else. One killed while held
+  falls and is rolled as usual. A taken Marine is fallen with a fixed killed in
+  action, no roll and nothing for a sick bay to save: the mission outcome
+  carries the taken beside the fallen. Taken militia and colonists are simply
+  dead, and the breach snapshot counts impales, frees and takings of every
+  kind.
+- A carrier cannot strike and carries one body at most, at Harvest's carrier
+  pace.
+- `-Dbattle.colonyBreach.impale=false` is the control: every blow lands as an
+  ordinary blow.
+
+A Brute that carries a power suit off would be a rule of its own; suits are
+beyond a Runner.
 
 **Spawning surge.** How the swarm moves out of a bore. Bodies do not trickle
 out one at a time: a bore **spawns**, pushing a dense pulse of bodies out of
@@ -502,8 +551,8 @@ for one job in the cycle, and reads that way on screen.
   drives straight forward) or a side swipe. The wind-up runs off the attack
   cooldown, so the blow arrives on the tick its damage is dealt. The rig is
   presentation only: nothing in the simulation reads it, and the strike rule
-  itself stays the ordinary melee hit. The impale and drag pose belongs to
-  `runner-impale-drag.md`.
+  itself stays the ordinary melee hit. The impale and the drag pose are the
+  art's to draw over the same strike (*Impale*).
 - **Brute** — slow, plated, heavy melee; the strain that makes a garrisoned
   building stop being a safe room. Its plate (20 points at rating 10) is what
   small arms struggle with: a DMR or rocket goes through it, an SMG barely
@@ -738,6 +787,9 @@ the evidence; change them here first.
 | `matriarch_emerged` | PLAYER | A matriarch spawns |
 | `first_harvest` | PLAYER | First body seized and dragged toward a bore |
 | `bore_fed_N` / `bore_fed_mother` | OBSERVER_ONLY | A body delivered into bore N (or the mother); published at every delivery |
+| `marine_impaled` | PLAYER | A Runner impales a Marine; at every impale (militia and colonist impales publish none) |
+| `marine_freed` | PLAYER | A held Marine's carrier dies |
+| `marine_taken` | PLAYER | A carrier delivers a living Marine into a bore |
 | `surge_N` / `surge_mother` | OBSERVER_ONLY | Bore N (or the mother) starts a surge; published at every surge, not once |
 | `tender_down` | PLAYER | A called-down tender is on station (no producer yet) |
 | `hardpoint_established` | PLAYER | First tender-built defence completes at the lift |

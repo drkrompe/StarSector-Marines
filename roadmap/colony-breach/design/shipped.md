@@ -15,3 +15,4 @@ Written: 2026-10-21
 | `militia-redoubts.md` | 2026-10-21 | affbe2f42 | `colony-breach-nouns.md` (Redoubt, Colony militia, Colony, Flow, Beats); `extraction-command.md` (Civilian Rescue: Several redoubts) |
 | `breach-audio.md` | 2026-10-21 | c7a8b5e1b, dd78721e1, 30a206bd9, 3e20684c9 | `colony-breach-nouns.md` (Beats: Sound) |
 | `swarm-harvest.md` | 2026-10-21 | the commit deleting `roadmap/colony-breach/stories/swarm-harvest.md` | `colony-breach-nouns.md` (Harvest, Redoubt, Swarm strain, Swarm goal, Lift timing, Beats) |
+| `runner-impale-drag.md` | 2026-10-21 | the commit deleting `roadmap/colony-breach/stories/runner-impale-drag.md` | `colony-breach-nouns.md` (Impale, Swarm strain, Beats) |

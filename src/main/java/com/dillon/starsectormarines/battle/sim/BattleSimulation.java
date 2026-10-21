@@ -1343,6 +1343,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.attackerIndex = new com.dillon.starsectormarines.battle.decision.AttackerIndexService(rosterService);
         this.tacticalScoring = new com.dillon.starsectormarines.battle.decision.TacticalScoring(
                 navigation, rosterService, attackerIndex, shots, doodadService);
+        tacticalScoring.carriedBy(swarmHarvest::loadOf);
         this.squadContactOnset = new SquadContactOnsetSystem(
                 rosterService, tacticalScoring);
         this.unitUpdate = new com.dillon.starsectormarines.battle.decision.UnitUpdateSystem(
@@ -1373,6 +1374,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.airframeCookOff = new AirframeCookOffSystem(effects, detonations, rosterService);
         deathDispatcher.subscribe(airframeCookOff::onDeath);
         this.ballisticResolver = new BallisticResolver(grid, doodadService, unitIndex, rosterService);
+        // A body on a carrier's blades: direct fire never touches it, a blast does behind a switch.
+        ballisticResolver.spareHeld(swarmHarvest::isCarried);
+        detonations.spareHeld(swarmHarvest::isCarried, swarmHarvest.areaHitsHeld());
         // Constructed here (rather than alongside the other early per-unit
         // systems above) because a missile-pod salvo needs the same
         // resolver/shots pipeline InfantryWeapons uses, and both exist only
