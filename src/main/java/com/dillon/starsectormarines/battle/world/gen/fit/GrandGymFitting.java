@@ -15,8 +15,10 @@ import java.util.List;
  * worked from the free cell below its foot, as in the smaller gym.
  *
  * <p>The track is the room's circulation as well as its track: every hatch opens onto it, and the floor and the pool
- * deck are reached across it. Nobody runs it yet; a lap is a walk round a loop, which the ambient model has no job
- * for, so the places published here are the machines, the mat, the racks and the loungers.
+ * deck are reached across it. It is run on its inner lane: twelve {@link Affordance#LAP} markers round the ring, at
+ * the four corners and every six or seven cells between, published in running order and each faced at the next, so
+ * a runner keeps to the lane and turns the corners rather than cutting across the floor. The outer lane is left to
+ * whoever is crossing to a hatch.
  */
 public final class GrandGymFitting implements RoomFitting {
     static final int WIDTH = 28, HEIGHT = 14;
@@ -44,6 +46,9 @@ public final class GrandGymFitting implements RoomFitting {
         surface(floor, 0, 0, w, 2, TRACK); surface(floor, 0, h - 2, w, 2, TRACK);
         surface(floor, 0, 2, 2, h - 4, TRACK); surface(floor, w - 2, 2, 2, h - 4, TRACK);
         for (Doorway door : floor.localDoors()) floor.reserveLane(door.x() - 1, door.y() - 1, 3, 3);
+        int east = w - 2, south = h - 2;
+        floor.runningTrack(new int[][]{{1, 1}, {7, 1}, {14, 1}, {20, 1}, {east, 1}, {east, h / 2},
+                {east, south}, {20, south}, {14, south}, {7, south}, {1, south}, {1, h / 2}});
         // The aisle between the floor and the pool deck, the cardio stands and the rack stands.
         reserve(floor, 13, 2, 1, h - 4);
         reserve(floor, 2, 7, 11, 1);

@@ -526,6 +526,24 @@ reading either as a station would make every compartment on the ship a posting
 and put a watch in each of them; and a patrol of every compartment on a capital
 is a rotation nobody completes, whose walker is permanently in a passage.
 
+A **lap** is the third shape, and the inverse of a circuit: a circuit is one stop
+in each of several rooms, a lap is every stop in one. A running track publishes
+**lap markers** round its ring in running order, each faced at the next, so the
+published order is the loop and nothing downstream re-derives it; a fitting lists
+the corners as well as the straights, because a runner keeps to the track only
+while consecutive markers share a lane. A lap takes every marker of the track in
+that order, starting at the member's own and closing back on it, each held for a
+moment, and nothing else on the rotation is dealt in between — a boat between
+two markers would send the runner off the track mid-lap. Each marker is claimed
+as that specific marker rather than as any free one, for the reason a berth is
+its own group: one group answered with the claim already held is a runner who
+arrives at once and stands on the start line. Given a bench's single stop or a
+circuit's one stop per room, a lap collapses to the same thing, somebody standing
+on the track. The leg between two markers is jogged: covered faster than a walk
+and drawn running, and the walk onto the track from anywhere else is a walk. A
+lap is not a trade and posts nobody; how many run at once is bounded by the
+markers, since each runner holds the one they are making for.
+
 **Work on a machine is a round of the machines.** A berth-bound job is not a
 circuit — it happens in one room — but it takes the circuit's treatment for a
 related reason: the room holds several machines, and each is its own piece of
@@ -755,12 +773,13 @@ supplies is the role and the sites.
 
 **Work looks like the work.** What an ambient actor visibly does at a job is a
 **work motion**: welding, carrying a crate, kneeling at a bed with the kit,
-stirring, chopping, heaving a wrench, running, rowing, pressing, lifting, or the
+stirring, chopping, heaving a wrench, running, rowing, pressing, lifting, jogging, or the
 ordinary two-handed sweep across a console. It is chosen from what the ambient
 model already knows — the job's affordance, refined by the fixture the claimed
 point faces (the same COOK stirs at a range and chops at a prep bench), and, for
 an authored stop that names no job on the board, the stop's activity; the walk
-between two stowage stops is part of stores work and carries a crate. It is
+between two stowage stops is part of stores work and carries a crate, and the
+walk between two lap markers is the run itself. It is
 keyed on nothing narrower. Not on a role, because the motion belongs to the job
 and whoever does it; not on a ship's compartments or watch bill, because a job
 site is a ship's compartment, a building interior or a walled yard alike. So a

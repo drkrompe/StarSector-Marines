@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fdf-1d08-7832-ae9d-7ca3f2033e34",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fdf-1d08-7832-ae9d-7ca3f2033e34\\exec-df28ab09-67f6-4f93-a0cb-f1e92fda17ac.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\leg-front.png",
+    "sha256": "9f84afd06d678236693f6f3cf021d4cc2334f8ffe9e855a20562921cae5e5e11",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\motion-runner\\prompts\\leg-front.prompt.txt",
+  "promptSha256": "1e863d38c71f7fdb7a1c999964c8c7393f0486c7aa05c296b6879efafbabddeb",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity, geometry and layout authority\n\nLayer for a 2D rig: ONE isolated FRONT walking leg of the creature in reference 1 (its left front leg), alone, no creature. Same finish and scale as in reference 1: pale lilac armour plates over deep purple-magenta sinew, ivory claws. Lay it out straight and fully extended, seen from directly above, pointing DOWN: the hip/shoulder joint at the top centre of the frame, then the upper leg, the knee, the lower leg, and the clawed foot at the bottom, claws spread. The upper and lower leg should be about the same length, with a clear knee joint halfway. Spanning about three quarters of the frame height. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\body-closed.png",
+      "sha256": "af6bd9512777475653366f1e70ef2f75a564f3dd13aeeb98241783cd47ea4456",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity, geometry and layout authority"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one isolated front leg, matching the reference’s materials and top-down view."
+  ],
+  "usage": {
+    "input_tokens": 40645,
+    "cached_input_tokens": 32000,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 403,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 42.1
+}
