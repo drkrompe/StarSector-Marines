@@ -1331,7 +1331,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         WarshipAudio.play(sim.shieldDomes().cuesThisFrame());
         TenderAudio.play(sim);
         BoreAudio.play(sim);
-        SwarmAudio.play(sim);
+        SwarmAudio.play(sim, camera.panCellX(), camera.panCellY());
     }
 
     private void spawnImpactFx(BattleSimulation sim) {

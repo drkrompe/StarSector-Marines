@@ -256,6 +256,7 @@ import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
+import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
@@ -734,6 +735,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final CreepOutposts creepOutposts;
     /** The battle's swarm bores: empty until something opens one. */
     public SwarmBores swarmBores() { return swarmBores; }
+    private final SwarmHarvest swarmHarvest = new SwarmHarvest(SwarmHarvest.enabledByDefault());
+    /** Runners dragging the dead to the bores (`colony-breach-nouns.md`, Harvest). */
+    public SwarmHarvest swarmHarvest() { return swarmHarvest; }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
     /** The Colony Breach story, or {@code null} on every other battle. */
@@ -1304,6 +1308,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         deathDispatcher.subscribe(commanderInfluence.casualties()::onDeath);
         this.deadBodySystem = new DeadBodySystem(entityWorld, battleComponents, this::getSimTickIndex);
         deathDispatcher.subscribe(deadBodySystem::onDeath);
+        // After the corpse transmute: harvest takes up the body the transmute just made.
+        deathDispatcher.subscribe(swarmHarvest::onDeath);
+        rosterService.modifiers().register(swarmHarvest.carrierModifier());
         deathDispatcher.subscribe(event -> taskPoints.release(event.unitId()));
         // Registered rescue civilians report loss through the same once-only
         // death mailbox as every other post-death reaction. Non-cohort deaths
@@ -3494,6 +3501,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // that starts bore sourcing spawns only from bores.
         swarmBores.tick(this);
         if (colonyBreach != null) colonyBreach.tick(this);
+        // After the bores and the eruptions, so a body is delivered only into a
+        // bore that still lives and harvest opens on the tick a bore does.
+        swarmHarvest.tick(this);
         swarmReinforcements.tick(TICK_DT, this);
         boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);

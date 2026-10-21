@@ -163,7 +163,7 @@ public final class BruteChargeSystem {
                     if (stagger.isStaggered(brute)) pullUp(c);
                     else if (--c.phaseTicks <= 0) {
                         c.phase = Phase.RUN;
-                        log(now, brute, "run", c.target, -1, -1);
+                        log(sim, now, brute, "run", c.target, -1, -1);
                     }
                 }
                 case RUN -> {
@@ -198,8 +198,7 @@ public final class BruteChargeSystem {
         c.struck.clear();
         c.reach = openReach(sim.getGrid(), x, y, c.heading, BruteChargeRules.MAX_RUN);
         sim.clearPath(r.brute());
-        sim.swarmCues().post(SwarmCues.Kind.CHARGE, r.brute(), sim);
-        log(now, r.brute(), "tell", r.target(), -1, -1);
+        log(sim, now, r.brute(), "tell", r.target(), -1, -1);
     }
 
     private void run(long brute, Charge c, BattleSimulation sim, int now) {
@@ -226,7 +225,7 @@ public final class BruteChargeSystem {
         if (hitBodies(brute, c, sim, now, hx, hy)) return;
         if (applied < intended * .3f && terrain(brute, c, sim, now, hx, hy)) return;
         if (c.run >= BruteChargeRules.MAX_RUN) {
-            log(now, brute, "spent", 0L, -1, -1);
+            log(sim, now, brute, "spent", 0L, -1, -1);
             pullUp(c);
         }
     }
@@ -287,7 +286,7 @@ public final class BruteChargeSystem {
         } else {
             sim.applyDamage(target, brute, damage, SwarmBruteBehavior.MELEE_PENETRATION, type.moraleImpact);
         }
-        log(now, brute, kind.name().toLowerCase(), target, -1, -1);
+        log(sim, now, brute, kind.name().toLowerCase(), target, -1, -1);
         boolean alive = roster.isAliveById(target);
         if (alive && outcome.throwCells() > 0f) throwBody(target, brute, outcome.throwCells(), sim, hx, hy);
         if (alive && outcome.shoveCells() > 0f) shove(target, outcome.shoveCells(), sim, hx, hy);
@@ -297,7 +296,7 @@ public final class BruteChargeSystem {
         }
         if (outcome.bruteStunSeconds() > 0f) {
             sim.stagger().stagger(brute, BruteChargeRules.ticks(outcome.bruteStunSeconds()), Cause.STUNNED);
-            log(now, brute, "stunned", target, -1, -1);
+            log(sim, now, brute, "stunned", target, -1, -1);
         }
         if (outcome.goesOn() && ++c.bodies <= BruteChargeRules.MAX_BODIES) {
             c.pace *= BruteChargeRules.BODY_SLOW;
@@ -367,18 +366,17 @@ public final class BruteChargeSystem {
             if (light && sim.isBarricadeAt(cx, cy)) {
                 sim.mapEditor().damageWall(cx, cy, hp);
                 c.pace *= BruteChargeRules.BODY_SLOW;
-                log(now, brute, "prop", 0L, cx, cy);
+                log(sim, now, brute, "prop", 0L, cx, cy);
                 return false;
             }
             if (light && (topology.isWall(cx, cy) || topology.isWindow(cx, cy))) {
-                boolean broke = sim.mapEditor().damageWall(cx, cy, BruteChargeRules.WALL_BLOW);
-                sim.swarmCues().postAt(broke ? SwarmCues.Kind.WALL_BREAK : SwarmCues.Kind.WALL_BLOW, brute, cx, cy, sim);
-                log(now, brute, "ram", 0L, cx, cy);
+                sim.mapEditor().damageWall(cx, cy, BruteChargeRules.WALL_BLOW);
+                log(sim, now, brute, "ram", 0L, cx, cy);
             } else if (hp > 0 || topology.isWall(cx, cy) || topology.isWindow(cx, cy)) {
                 sim.stagger().stagger(brute, BruteChargeRules.ticks(BruteChargeRules.STUN), Cause.STUNNED);
-                log(now, brute, "stunned", 0L, cx, cy);
+                log(sim, now, brute, "stunned", 0L, cx, cy);
             } else {
-                log(now, brute, "blocked", 0L, cx, cy);
+                log(sim, now, brute, "blocked", 0L, cx, cy);
             }
             pullUp(c);
             return true;
@@ -388,18 +386,17 @@ public final class BruteChargeSystem {
             SharedEdgeBarrier barrier = grid.getEdgeBarrier(ox, oy, step);
             if (barrier != null && barrier.kind().blocksMovement()) {
                 if (barrier.kind() == SharedEdgeBarrier.Kind.WINDOW) {
-                    boolean broke = sim.mapEditor().damageEdgeBarrier(ox, oy, step, BruteChargeRules.WALL_BLOW);
-                    sim.swarmCues().postAt(broke ? SwarmCues.Kind.WALL_BREAK : SwarmCues.Kind.WALL_BLOW, brute, ox, oy, sim);
-                    log(now, brute, "ram", 0L, ox, oy);
+                    sim.mapEditor().damageEdgeBarrier(ox, oy, step, BruteChargeRules.WALL_BLOW);
+                    log(sim, now, brute, "ram", 0L, ox, oy);
                 } else {
                     sim.stagger().stagger(brute, BruteChargeRules.ticks(BruteChargeRules.STUN), Cause.STUNNED);
-                    log(now, brute, "stunned", 0L, ox, oy);
+                    log(sim, now, brute, "stunned", 0L, ox, oy);
                 }
                 pullUp(c);
                 return true;
             }
         }
-        log(now, brute, "blocked", 0L, cx, cy);
+        log(sim, now, brute, "blocked", 0L, cx, cy);
         pullUp(c);
         return true;
     }
@@ -424,7 +421,31 @@ public final class BruteChargeSystem {
         return max;
     }
 
-    private void log(int tick, long brute, String what, long target, int cellX, int cellY) {
+    private void log(BattleSimulation sim, int tick, long brute, String what, long target, int cellX, int cellY) {
         if (events.size() < EVENT_CAP) events.add(new Event(tick, brute, what, target, cellX, cellY));
+        // A stun with no target is a heavy wall: the boom, then the groan.
+        if (what.equals("stunned") && target == 0L) cue(sim, SwarmCues.Kind.CHARGE_HIT_WALL, brute, cellX, cellY);
+        SwarmCues.Kind kind = cueKind(what);
+        if (kind != null) cue(sim, kind, brute, cellX, cellY);
+    }
+
+    /** The sound a logged charge event asks for (`colony-breach-nouns.md`, Sound), or null for a silent one. */
+    static SwarmCues.Kind cueKind(String what) {
+        return switch (what) {
+            case "tell" -> SwarmCues.Kind.CHARGE_TELL;
+            case "run" -> SwarmCues.Kind.CHARGE_RUN;
+            case "infantry" -> SwarmCues.Kind.CHARGE_HIT_BODY;
+            case "ram" -> SwarmCues.Kind.CHARGE_HIT_WALL;
+            case "prop" -> SwarmCues.Kind.WALL_BREAK;
+            case "stunned" -> SwarmCues.Kind.STUNNED;
+            case "emplacement", "light_vehicle", "medium_vehicle", "heavy_vehicle",
+                 "light_mech", "medium_mech", "heavy_mech" -> SwarmCues.Kind.CHARGE_HIT_VEHICLE;
+            default -> null;
+        };
+    }
+
+    private static void cue(BattleSimulation sim, SwarmCues.Kind kind, long brute, int cellX, int cellY) {
+        if (cellX >= 0) sim.swarmCues().postAt(kind, brute, cellX, cellY, sim);
+        else sim.swarmCues().post(kind, brute, sim);
     }
 }
