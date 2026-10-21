@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.ambient;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
+import com.dillon.starsectormarines.battle.appearance.WorkMotion;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
@@ -103,6 +104,9 @@ public final class AmbientTaskService {
     /** Below this, a difference in structure is arithmetic rather than a hit. */
     private static final float HIT_EPSILON = 1e-3f;
     private AmbientLiveFireSink liveFireSink = AmbientLiveFireSink.NONE;
+    private FixtureLookup fixtures = FixtureLookup.NONE;
+    /** A point's fixture never changes, so its motion is worked out once. */
+    private final Map<String, WorkMotion> motionAtPoint = new ConcurrentHashMap<>();
     private float elapsedSeconds;
 
     public AmbientTaskService(
@@ -654,6 +658,7 @@ public final class AmbientTaskService {
         int authoredPose = LayeredAppearance.POSE_IDLE;
         float weaponPhase = 0f;
         int flags = pose.moving() ? LayeredAppearance.FLAG_MOVING : 0;
+        WorkMotion motion;
         boolean practiceEquipment = pose.activity() == AmbientActivity.PRACTICING_EQUIPMENT;
         SpecialEquipmentDef carriedSpecial = practiceEquipment && world.hasSecondaryWeapon(actorId)
                 ? world.specialEquipment(actorId) : null;
@@ -681,11 +686,19 @@ public final class AmbientTaskService {
             if (fired && cycle < FIRE_BEGIN + 0.055f) {
                 flags |= LayeredAppearance.FLAG_MUZZLE_FLASH;
             }
-        } else if (!pose.moving() && handsOnFixture(actorId)) {
-            flags |= LayeredAppearance.FLAG_AT_STATION;
+        } else if ((motion = workMotion(actorId, pose)) == WorkMotion.TREAT) {
+            // Kneeling at the bed with the kit open, exactly as a squad medic
+            // kneels over a casualty.
+            authoredPose = LayeredAppearance.POSE_SATCHEL_PLANT;
+            weaponPhase = LayeredAppearance.TREATING_PHASE;
+            flags |= LayeredAppearance.FLAG_TREATING;
+        } else if (motion.handsOn()) {
+            flags = LayeredAppearance.withWorkMotion(flags | LayeredAppearance.FLAG_AT_STATION, motion);
             AmbientTaskRoute route = assignments.get(actorId);
             float offset = route != null ? route.phaseOffsetSeconds() : 0f;
-            weaponPhase = positiveModulo((elapsedSeconds + offset) / STATION_HAND_PERIOD_SECONDS, 1f);
+            weaponPhase = positiveModulo((elapsedSeconds + offset) / motion.periodSeconds(), 1f);
+        } else if (motion == WorkMotion.CARRY) {
+            flags = LayeredAppearance.withWorkMotion(flags, motion);
         } else if (pose.activity() == AmbientActivity.FIRING_PRIMARY || practiceEquipment) {
             float cycle = primaryCycle(carriedSpecial != null, pose);
             if (cycle >= FIRE_BEGIN && cycle < FIRE_END) {
@@ -712,17 +725,54 @@ public final class AmbientTaskService {
     }
 
     /**
-     * One sweep of the hands across a console, in seconds. A clock of its own
-     * rather than the job's progress, which would run the same motion ten times
-     * faster on a short job than on a long one; each route's phase offset keeps
-     * a room of operators from moving in step.
+     * What this actor's body is visibly doing at, or between, its jobs.
+     *
+     * <p>Each motion runs on a clock of its own ({@link WorkMotion#periodSeconds})
+     * rather than off the job's progress, which would play the same motion ten
+     * times faster on a short job than on a long one; each route's phase offset
+     * keeps a room of operators from moving in step. A walk is part of the work
+     * only for stores handling, whose job is between points: somebody going from
+     * one stowage stop to the next carries what they are restowing.
      */
-    private static final float STATION_HAND_PERIOD_SECONDS = 1.7f;
-
-    /** Whether the job this actor is at puts its hands on the fixture. */
-    private boolean handsOnFixture(long actorId) {
+    private WorkMotion workMotion(long actorId, AmbientTaskPose pose) {
+        if (pose.moving()) {
+            AmbientTaskRoute route = assignments.get(actorId);
+            Progress state = progress.get(actorId);
+            if (route == null || state == null || state.working
+                    || state.stopIndex < 0 || state.stopIndex >= route.stops().size()) {
+                return WorkMotion.NONE;
+            }
+            return WorkMotion.between(JobBoard.affordance(state.lastGroup),
+                    JobBoard.affordance(route.stops().get(state.stopIndex).pointGroup()));
+        }
         Affordance job = JobBoard.affordance(jobInHand(actorId));
-        return job != null && job.handsOnFixture();
+        if (job == null || !job.handsOnFixture() && job != Affordance.EXERCISE) {
+            return WorkMotion.NONE;
+        }
+        TaskPoint point = taskPoints.claimedPoint(actorId);
+        if (point == null) return WorkMotion.of(job, null);
+        return motionAtPoint.computeIfAbsent(point.id(), id -> WorkMotion.of(job,
+                fixtures.definitionsAt((int) Math.floor(point.focusX()),
+                        (int) Math.floor(point.focusY()))));
+    }
+
+    /**
+     * Installs what the work points' fixtures are, so a motion can tell the
+     * range from the prep bench. Without one every job plays its affordance's
+     * ordinary motion.
+     */
+    public void setFixtureLookup(FixtureLookup lookup) {
+        fixtures = lookup != null ? lookup : FixtureLookup.NONE;
+        motionAtPoint.clear();
+    }
+
+    /** The definition ids of whatever fixtures stand on a cell. */
+    @FunctionalInterface
+    public interface FixtureLookup {
+        FixtureLookup NONE = (x, y) -> null;
+
+        /** Every fixture definition id on the cell, space-separated, or null for none. */
+        String definitionsAt(int cellX, int cellY);
     }
 
     private boolean isPrimaryFireWindow(long actorId, AmbientTaskPose pose) {
@@ -895,6 +945,9 @@ public final class AmbientTaskService {
         /** @see #focusX */
         private float focusY;
 
+        /** The claim group of the last job begun, for telling a walk that is part of the work. */
+        private String lastGroup;
+
         /** How long this actor has been unable to reach the job it is bound for. */
         private float blockedSeconds;
 
@@ -916,6 +969,7 @@ public final class AmbientTaskService {
         /** Begin the stop just arrived at, facing what it is done to. */
         private void startWork(AmbientTaskRoute.Stop stop, float focusX, float focusY) {
             working = true;
+            lastGroup = stop.pointGroup();
             dwellSeconds = stop.dwellSeconds();
             dwellRemaining = firstDwellPending ? firstDwellRemaining : dwellSeconds;
             firstDwellPending = false;

@@ -1302,6 +1302,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.ambientTasks = new AmbientTaskService(
                 rosterService, navigation, taskPoints);
         deathDispatcher.subscribe(event -> ambientTasks.release(event.unitId()));
+        ambientTasks.setFixtureLookup((x, y) -> doodadService.definitionsAt(x, y));
         this.swarmAvoidance = new SwarmAvoidanceSystem(
                 rosterService, unitIndex, grid);
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
