@@ -247,6 +247,7 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
+import com.dillon.starsectormarines.battle.creep.BoreCreep;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
@@ -707,6 +708,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         relayNineStory = new RelayNineStoryObserver(storyBeats);
     }
     private CreepField creep;
+    private final BoreCreep boreCreep = new BoreCreep();
     /**
      * The battle's hive creep, created on first use by whatever declares a
      * source (a bore, a scene); call only from the simulation thread.
@@ -3461,6 +3463,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmBores.tick(this);
         if (colonyBreach != null) colonyBreach.tick(this);
         swarmReinforcements.tick(TICK_DT, this);
+        boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);
         if (reliefAssault != null) reliefAssault.tick(this);
         if (lastLiftSequence != null) lastLiftSequence.tick(this);

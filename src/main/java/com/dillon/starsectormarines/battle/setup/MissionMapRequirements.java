@@ -65,15 +65,22 @@ public final class MissionMapRequirements {
 
     private MissionMapRequirements() { }
 
-    /** What a Colony Breach colony needs a map to contain. */
+    /**
+     * What a Colony Breach colony needs a map to contain: the house, the lift
+     * site and the bore places always, and the fields the company lands in
+     * whenever the colony is laid out with them — which is always, but for the
+     * {@code battle.colonyBreach.fieldLanding=false} control.
+     */
     public static EnumSet<MapFeature> colonyBreach() {
-        return EnumSet.copyOf(COLONY_BREACH);
+        EnumSet<MapFeature> required = EnumSet.copyOf(COLONY_BREACH);
+        if (BattleSetup.colonyLandsInFields()) required.add(MapFeature.OPEN_FIELD_LANDING);
+        return required;
     }
 
     /** Which of the Colony Breach requirements this map fails to meet. */
     public static EnumSet<MapFeature> missingFromColony(MapResult map) {
         EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);
-        for (MapFeature feature : COLONY_BREACH) {
+        for (MapFeature feature : colonyBreach()) {
             if (!feature.presentIn(map)) missing.add(feature);
         }
         return missing;

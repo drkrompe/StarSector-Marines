@@ -42,6 +42,7 @@ public final class BattleReviewFrameRenderer {
      */
     static final float REVIEW_CLOCK_SECONDS = 0f;
 
+    private float clockSeconds = REVIEW_CLOCK_SECONDS;
     private static final int CAPTION_MARGIN = 12;
     private static final int MAX_CAPTION_POINTS = 14;
     private static final int MIN_CAPTION_POINTS = 9;
@@ -61,7 +62,7 @@ public final class BattleReviewFrameRenderer {
      * for. Places are named by the frame's own annotations; the live HUD is unchanged.
      */
     static final EnumSet<RenderLayer> REVIEW_LAYERS = EnumSet.of(
-            RenderLayer.GROUND, RenderLayer.DECALS, RenderLayer.VEHICLES, RenderLayer.DOODADS,
+            RenderLayer.GROUND, RenderLayer.DECALS, RenderLayer.CREEP, RenderLayer.VEHICLES, RenderLayer.DOODADS,
             RenderLayer.UNITS, RenderLayer.HAZARDS, RenderLayer.SMOKE,
             RenderLayer.DRONES, RenderLayer.OBJECTIVES, RenderLayer.COMPOUND,
             RenderLayer.CONVOY, RenderLayer.SHUTTLES, RenderLayer.NIGHT_LIGHTING, RenderLayer.AIRCRAFT_LIGHTS);
@@ -122,6 +123,16 @@ public final class BattleReviewFrameRenderer {
      */
     public BattleReviewFrameRenderer withRoofs() {
         this.roofs = true;
+        return this;
+    }
+
+    /**
+     * Pins the presentation clock to {@code seconds} instead of {@link #REVIEW_CLOCK_SECONDS}, for a recording whose
+     * subject is an animation driven by that clock (the creep's pulse). The frame stays a pure function of what it
+     * is given.
+     */
+    public BattleReviewFrameRenderer atClock(float seconds) {
+        this.clockSeconds = seconds;
         return this;
     }
 
@@ -320,7 +331,7 @@ public final class BattleReviewFrameRenderer {
                 RenderContext context = new RenderContext(simulation, camera,
                         null, alphaMult, 0f, false,
                         new HighlightOverlay(), new Selection(),
-                        BattleRenderHostProfile.EMBEDDED_SCENE, REVIEW_CLOCK_SECONDS);
+                        BattleRenderHostProfile.EMBEDDED_SCENE, clockSeconds);
                 EnumSet<RenderLayer> layers = EnumSet.copyOf(REVIEW_LAYERS);
                 if (impactEffects || Float.isFinite(focusX)) { layers.add(RenderLayer.SHOTS); layers.add(RenderLayer.IMPACT_FX); }
                 if (unitShadows) layers.add(RenderLayer.UNIT_SHADOWS);

@@ -64,12 +64,35 @@ final class MissionGarrisons {
 
     /**
      * A squad the commander puts at this planner's disposal for one pulse. A roving one is a reserve squad; a duty one
-     * stands on a post at {@code (dutyX, dutyY)} and may man only what is near it.
+     * stands on a post at {@code (dutyX, dutyY)} and may man only a place within {@code dutyRadius} of it. Either may
+     * also man the places inside {@code regions} (a party's hold directives, `garrisonables.md`, place directives); a
+     * roving offer with regions is bounded to them, one without may man anything.
      */
-    record Offer(boolean roving, int dutyX, int dutyY) {
-        static Offer reserve() { return new Offer(true, -1, -1); }
+    record Offer(boolean roving, int dutyX, int dutyY, int dutyRadius, List<PlaceTarget> regions) {
+        Offer {
+            regions = List.copyOf(regions);
+        }
 
-        static Offer duty(int x, int y) { return new Offer(false, x, y); }
+        static Offer reserve() { return new Offer(true, -1, -1, 0, List.of()); }
+
+        static Offer duty(int x, int y) { return new Offer(false, x, y, DUTY_RADIUS_CELLS, List.of()); }
+
+        /** A duty post that may man places within {@code radius} of it, and the places in {@code regions}. */
+        static Offer duty(int x, int y, int radius, List<PlaceTarget> regions) {
+            return new Offer(false, x, y, radius, regions);
+        }
+
+        /** A roving squad bounded to the places in {@code regions}. */
+        static Offer within(List<PlaceTarget> regions) {
+            if (regions.isEmpty()) throw new IllegalArgumentException("A bounded roving offer needs a region");
+            return new Offer(true, -1, -1, 0, regions);
+        }
+
+        /** Whether a cell lies in one of this offer's regions. */
+        boolean inRegion(int x, int y) {
+            for (PlaceTarget region : regions) if (region.contains(x, y)) return true;
+            return false;
+        }
     }
 
     /** What this planner does with a squad this pulse. */
@@ -391,7 +414,7 @@ final class MissionGarrisons {
                     || squad.aliveMembers() < GarrisonDirector.usefulFloor(squad.originalMembers(), squad.aliveMembers())) {
                 continue;
             }
-            free.add(new PlaceFlow.Candidate(id, squad.anchorCellX(), squad.anchorCellY()));
+            free.add(new PlaceFlow.Candidate(id, squad.anchorCellX(), squad.anchorCellY(), entry.getValue().regions()));
         }
         int size = places.blockSize();
         flow.stage(areas, director.warmPlaces(), director.hotPlaces(), director::isManned, places, heldIn, free, pool,
@@ -574,7 +597,9 @@ final class MissionGarrisons {
 
     /** Whether a duty squad may man this place: a building within the duty radius of its post, or a stretch centred within it. */
     static boolean withinDuty(Offer offer, int place, GarrisonableRegistry places) {
-        return offer.roving() || gapTo(place, offer.dutyX(), offer.dutyY(), places) <= DUTY_RADIUS_CELLS;
+        if (offer.roving() && offer.regions().isEmpty()) return true;
+        if (offer.inRegion(places.centreX(place), places.centreY(place))) return true;
+        return !offer.roving() && gapTo(place, offer.dutyX(), offer.dutyY(), places) <= offer.dutyRadius();
     }
 
     /** Chebyshev cells from a cell to a place: to a building's box (0 inside it), or to a stretch's centre. */
@@ -647,9 +672,10 @@ final class MissionGarrisons {
     }
 
     private static boolean nearDuty(Offer offer, TacticalNode b) {
+        if (offer.inRegion(b.anchorX, b.anchorY)) return true;
         int gap = Math.max(Math.max(b.left - offer.dutyX(), offer.dutyX() - b.right),
                 Math.max(b.top - offer.dutyY(), offer.dutyY() - b.bottom));
-        return gap <= DUTY_RADIUS_CELLS;
+        return gap <= offer.dutyRadius();
     }
 
     /**

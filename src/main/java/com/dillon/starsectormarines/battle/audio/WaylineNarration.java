@@ -46,6 +46,8 @@ public final class WaylineNarration {
                        boolean voiced, boolean terminal, boolean interrupts) {
         /** Resolve at presentation time so catalog loading does not freeze a translation. */
         public String text() { return Strings.resolve(text); }
+        /** A speaker may be an {@code @key} reference, resolved at presentation time like the text. */
+        public String speaker() { return Strings.resolve(speaker); }
 
         public Line(String id, String missionId, String event, String text,
                     float durationSeconds, int priority, float expiresSeconds, List<String> supersedes,

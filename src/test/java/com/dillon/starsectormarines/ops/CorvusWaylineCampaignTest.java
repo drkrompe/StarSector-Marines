@@ -12,7 +12,11 @@ import com.dillon.starsectormarines.ops.detachment.PowerCatalog;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.StarSystemAPI;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.nio.file.Path;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -25,6 +29,11 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CorvusWaylineCampaignTest {
+    private HeadlessStrings strings;
+    /** Reads the shipped copy, so what these tests pin is the text the player sees. */
+    @BeforeEach void shippedCopy() throws Exception { strings = new HeadlessStrings(Path.of("mod")); }
+    @AfterEach void restoreSettings() { strings.close(); }
+
     @Test void freightSuccessAndExhaustedFailureContinueWithoutRewritingHistory() {
         assertFalse(CorvusWaylineCampaign.unlocked(null));
         for (boolean success : List.of(false, true)) {

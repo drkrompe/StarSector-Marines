@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.command.ColdStartCommand;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
@@ -303,11 +304,11 @@ public final class ColdStartSequence implements Objective {
     public boolean isComplete() { return progress.phase() == Phase.COMPLETE; }
     public boolean isFailed() { return progress.phase() == Phase.FAILED; }
     public String displayName() { return switch (progress.phase()) {
-        case ESCORT -> "Escort the repair carrier to the workshop";
-        case POWER -> "Protect the pump crew / shore power " + (int) (100 * progress.work() / ColdStartProgress.POWER_SECONDS) + "%";
-        case CONSTRUCTION -> "Select Build Vulcan Turret; place it outside Morrow's east bay";
-        case REPAIR -> "Hold Morrow's work site / repairs " + (int) (100 * progress.work() / ColdStartProgress.REPAIR_SECONDS) + "%";
-        case COMPLETE -> "Morrow powered and repaired; departure clearance still required";
-        case FAILED -> "Repair operation lost; completed deliveries and power retained";
+        case ESCORT -> Strings.get("coldStartEscort");
+        case POWER -> Strings.format("coldStartPower", (int) (100 * progress.work() / ColdStartProgress.POWER_SECONDS));
+        case CONSTRUCTION -> Strings.get("coldStartConstruction");
+        case REPAIR -> Strings.format("coldStartRepair", (int) (100 * progress.work() / ColdStartProgress.REPAIR_SECONDS));
+        case COMPLETE -> Strings.get("coldStartComplete");
+        case FAILED -> Strings.get("coldStartFailed");
     }; }
 }

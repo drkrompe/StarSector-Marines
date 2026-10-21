@@ -530,7 +530,7 @@ public final class MechLabScreen implements Screen {
         }
         int index = Math.max(0, Math.min(bays.size() - 1, selectedBayIndex.get()));
         selectedBayIndex.set(index);
-        activeBayLabel.set(String.format(Locale.ROOT,
+        activeBayLabel.set(String.format(Strings.locale(),
                 Strings.get("openingMechLabBayDD"), index + 1, bays.size()));
         bayNavigatorClasses.set(bays.size() > 1 ? "bay-navigator" : "bay-navigator hidden");
         bayContextLabel.set(ShipBreadcrumb.of(deck.ship(), bays.get(index)));

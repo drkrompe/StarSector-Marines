@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import java.util.Locale;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipPlating;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -280,7 +281,7 @@ final class WarshipHullDamageRenderer {
 
     /** The hull's metal, by its builder: warm and rusted low tech, grey-green midline, cool high tech. */
     static float[] palette(String techStyle) {
-        String t = techStyle == null ? "" : techStyle.toLowerCase();
+        String t = techStyle == null ? "" : techStyle.toLowerCase(Locale.ROOT);
         if (t.contains("low")) return new float[] {1f, 0.86f, 0.72f};
         if (t.contains("high")) return new float[] {0.82f, 0.9f, 1f};
         if (t.contains("mid")) return new float[] {0.92f, 0.93f, 0.86f};

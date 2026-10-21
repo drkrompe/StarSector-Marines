@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.YardOwnersCommand;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -86,11 +87,11 @@ public final class YardOwnersSequence implements Objective {
     public boolean isComplete() { return progress.phase() == YardOwnersProgress.Phase.COMPLETE; }
     public boolean isFailed() { return progress.phase() == YardOwnersProgress.Phase.FAILED; }
     public String displayName() { return switch(progress.phase()) {
-        case DISPATCH -> "Secure dispatch and the freight gate";
-        case TOOLING -> "Secure the tooling hall; preserve the marked calibration machine";
-        case ENTRANCE -> "Secure the operator entrance";
-        case INSPECTION -> "Hold all three sites and protect the tooling inspection";
-        case COMPLETE -> "Latchkey inspected; custody agreement remains unsigned";
-        case FAILED -> "Inspection failed; replenish for a new mobilization";
+        case DISPATCH -> Strings.get("yardOwnersDispatch");
+        case TOOLING -> Strings.get("yardOwnersTooling");
+        case ENTRANCE -> Strings.get("yardOwnersEntrance");
+        case INSPECTION -> Strings.get("yardOwnersInspection");
+        case COMPLETE -> Strings.get("yardOwnersComplete");
+        case FAILED -> Strings.get("yardOwnersFailed");
     }; }
 }

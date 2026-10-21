@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.mech.CompanyMechLedger;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechSections;
@@ -210,10 +211,9 @@ public final class MechBay implements Serializable {
     public CampaignVehicle fabricateVehicle(String squadId, VehicleType type) {
         if (type == null || !canAddMech(squadId)) return null;
         int serial = Math.max(1, nextVehicleSerial);
-        while (vehicleById(vehicleId(serial)) != null) serial++;
         String number = String.format(Locale.ROOT, "%02d", serial);
         CampaignVehicle vehicle = new CampaignVehicle(vehicleId(serial),
-                CampaignVehicle.typeName(type) + " " + number, type);
+                CampaignVehicle.typeName(type) + " " + String.format(Strings.locale(), "%02d", serial), type);
         if (!addVehicle(squadId, vehicle)) return null;
         nextVehicleSerial = serial + 1;
         return vehicle;
@@ -348,7 +348,7 @@ public final class MechBay implements Serializable {
         int serial = nextAvailableSerial();
         CampaignMech mech = new CampaignMech("support_mech_"
                 + String.format(Locale.ROOT, "%02d", serial),
-                variant.displayName() + " " + String.format(Locale.ROOT, "%02d", serial), variant,
+                variant.displayName() + " " + String.format(Strings.locale(), "%02d", serial), variant,
                 variant.defaultRole, MissileReplenisherComponent.STANDARD.id());
         if (!addMech(squadId, mech)) return null;
         nextFabricatedSerial = serial + 1;

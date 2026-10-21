@@ -42,7 +42,7 @@ record OpeningWorkGuide(boolean visible, OpeningOperationKind kind, String prepa
             case "broker" -> OpeningBroker.NAME;
             case "affiliation" -> Strings.get("openingOpeningWorkGuideWaylineIndependent");
             case "heading" -> kind == OpeningOperationKind.RELIEF ? Strings.get("openingOpeningWorkGuideFirstContract") : Strings.get("openingOpeningWorkGuideTheDepotJob");
-            case "mission" -> kind.displayName;
+            case "mission" -> kind.displayName();
             case "payment" -> Strings.format("openingOpeningWorkGuideCr", NumberFormat.getIntegerInstance().format(kind.payout));
             case "location" -> destination == null ? Strings.get("openingOpeningWorkGuideContactUnavailable") : destination.label();
             case "route" -> destination == null

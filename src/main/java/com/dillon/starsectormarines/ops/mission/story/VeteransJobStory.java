@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.mission.story;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
@@ -49,11 +50,7 @@ public final class VeteransJobStory implements StoryMissionDef {
         float x = 0.12f + r.nextFloat() * 0.76f;
         float y = 0.12f + r.nextFloat() * 0.76f;
 
-        String flavor =
-                "A broker on the back-channel reached out — your name's getting around, " +
-                "and apparently that's worth something. The job is straightforward on paper: " +
-                "hit a specific cache, get out clean, no questions asked about what's inside. " +
-                "The pay is real money. The broker's name isn't.";
+        String flavor = Strings.get("storyVeteransFlavor");
 
         // Payout sized like a MEDIUM mission with a story premium — meaningful without
         // being a balance break. Risk is MEDIUM regardless of the planet's defense rating;
@@ -62,12 +59,12 @@ public final class VeteransJobStory implements StoryMissionDef {
 
         return Mission.builder()
                 .id(ID)
-                .name("The Veteran's Job")
+                .name(Strings.get("storyVeteransName"))
                 .type(MissionType.RAID)
                 .source(MissionSource.STORY)
                 .payout(payout)
                 .risk(RiskLevel.MEDIUM)
-                .requirements("50+ marines, discretion")
+                .requirements(Strings.get("storyVeteransRequirements"))
                 .flavor(flavor)
                 .mapPosition(x, y)
                 .requiredDrops(3)

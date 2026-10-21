@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fa6-b5af-76c3-8ea2-79a604085bd8",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fa6-b5af-76c3-8ea2-79a604085bd8\\exec-3133fc58-4967-474e-a761-af9e95377e4b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "generated\\sheet-swatch.png",
+    "sha256": "76fd3ce874bc73cfc5a77cfe0e0f6fb6b7d4e8237e7a05dd1f97fd5d838c75bb",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\sheet-swatch.prompt.txt",
+  "promptSha256": "4535a103eed68ff1a206dcbd75ff0ab3194a405b54598ec4c6240f759e762713",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: INPUT 1: the swatch layout (layout authority)\nImage 2: INPUT 2: the finish to match (material only; not layout)\n\nUse case: texture map generation / material swatch sheet for a 3D model.\nINPUT 1 is a layout sheet of FIVE flat-coloured squares, three in the top row and two in the bottom row, on a plain flat mid-blue background. Each square is one material of a single 3D crewless mining drone (a Borer, a working Ko Combine utility drone in service), to be painted as a flat, square-on texture sample of that material:\ntop-left square: the burnt orange armour enamel;\ntop-middle square: the neutral light-to-mid grey machinery paint;\ntop-right square: dark grey gunmetal, bare-ish steel structure;\nbottom-left square: brighter polished steel, as on rings, lips and grab tines;\nbottom-middle square: the recess and machinery material, near-black dull steel.\nINPUT 2 is the SAME drone, already painted: it is the finish to match. Use its paint colours, sheen, fine seams, fasteners and its light, even service wear. Never copy INPUT 2's composition, view or shapes.\n\nPaint each square as a texture swatch of its material. Each square will be cut out and tiled many times across the model's small fittings, so:\n- Keep the five squares exactly where they are, the same size, with the same plain blue gutters between them. Do not zoom, crop, shift, rotate, enlarge or shrink anything. Each square is filled edge to edge with its material, right up to its straight edges, with nothing drawn outside it.\n- Each square is a flat, seen-square-on sample of plate in good working order: a fine, even, all-over surface. Only sparse, small detail: a few thin, faint plate seams and a few small scattered fasteners, faint even scuffing, a very thin even film of dust and grime. The detail is small and evenly distributed over the whole square, with no single dominant feature: no large rivet rows, no seam or panel line across the middle, no hatches, panels, grilles, labels, stripes or markings, nothing centred.\n- Keep each square's colour exactly: orange stays the burnt orange enamel, grey stays the light-to-mid grey paint, gunmetal stays dark grey steel, polished steel stays brighter steel, near-black stays near-black. No colour changes, no repair patches, no different-coloured plates.\n- Wear is light and even across each whole square. No rust, soot, scorch marks, burns, impact damage, dents, holes, large stains or any concentrated area of wear.\n- Lighting: flat, even, shadowless, like an albedo/diffuse texture map. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no directional light, no gradient across a square, no bright border or chipped edge line round a square.\n- Background and gutters: the same plain flat uniform mid-blue as INPUT 1, with no floor, shadow, text, labels or borders.\nOutput: one landscape 16:9 image, same composition as INPUT 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guide\\sheet-swatch-guide.png",
+      "sha256": "68681ead15cd8310c2aa5ca87e0bf15f81a61a33bc212219c20d455e46e877f6",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "INPUT 1: the swatch layout (layout authority)"
+    },
+    {
+      "path": "reference\\finish-reference.png",
+      "sha256": "44b4c95febe4684ab568f374a91cab3d2e4afa2eee0b1e9bbf6cbe454ae5f001",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "INPUT 2: the finish to match (material only; not layout)"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one swatch sheet using Image 1’s exact layout and Image 2’s material finish."
+  ],
+  "usage": {
+    "input_tokens": 46210,
+    "cached_input_tokens": 25728,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 706,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 49.9
+}

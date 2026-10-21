@@ -186,13 +186,13 @@ FILM_KNOBS = [
     ('shield_band', 1.0, 0.0, 4.0, 'thin-film banding brightness'),
     ('shield_arcs', 1.0, 0.0, 4.0, 'overload arc brightness'),
 ]
-HIT_LIFT = .25          # whole-film brightening per unit of live hit flash (opacity tied to hits)
+HIT_LIFT = .08          # whole-film brightening per unit of live hit flash: slight, so a volley stays local
 FILM_FACE, FILM_RIM = .45, .8      # the film at rest: fainter than the bubble's face and rim (owner, 2026-10-21)
-FILM_HIT_PEAK = 2.0     # a hit's flash on the film: local and dimmer than the bubble's HIT_PEAK
-RING_PEAK = 1.0         # ripple ring brightness at impact
+FILM_HIT_PEAK = 1.2     # a hit's flash on the film: local and dimmer than the bubble's HIT_PEAK (owner, 2026-10-21)
+RING_PEAK = .6          # ripple ring brightness at impact
 RING_REACH = (.35, .8)  # how far a ring runs, in mean radii: at flux 0, and the extra at flux 1
 RING_WIDTH = (.7, .25)  # ring half-width as a share of the hit spread: flux 0, extra at flux 1
-FILM_HIT_SIZE = .09     # the film's hit spread (shield_hit_size): a tight local flash; the ring carries it outward
+FILM_HIT_SIZE = .065    # the film's hit spread (shield_hit_size): a tight local flash; the ring carries it outward
 RING_S = .7             # seconds a ring takes to run out at flux 0 (x (1 + 1.5 flux))
 FLUX_SCALE, FLUX_RATE = 2.6, .45   # thin patches: noise scale over R, drift (per second of clock)
 THIN_FACE, THIN_RIM = .85, .5      # how much a fully thin patch dims the face and the rim
@@ -755,7 +755,7 @@ def _film_material(ctx, s, R, Rm):
     rim_s = g.mul(rim_s, rim_f)
     hit_w = g.mul(g.mul(hit_s, FILM_HIT_PEAK), g.sub(1.0, g.mul(fort, .75)))
     # Rings stay mostly in the film's tint: overlapping wide rings at high flux washed it white.
-    ring_mix = g.clamp01(g.mul(g.add(g.add(rim_s, edge), g.add(hit_w, g.mul(ring_w, .3))), .5))
+    ring_mix = g.clamp01(g.mul(g.add(g.add(rim_s, edge), g.add(g.mul(hit_w, .5), g.mul(ring_w, .3))), .5))
     colour = g.mix_rgb(ring_mix, inner_c, ring_c)
     body = g.add(g.mul(g.mul(face_s, face_k), lift), rim_s)
     lit = g.add(g.mul(g.add(body, edge), solid), g.mul(g.add(g.mul(hit_s, FILM_HIT_PEAK), ring_w), waver))

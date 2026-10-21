@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ops.BattleDirectControlStatus.Carrier;
 
+import com.dillon.starsectormarines.i18n.Strings;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,8 +41,8 @@ final class BattleDirectControlHelp {
         switch (carrier) {
             case MARINE -> {
                 add(out, "WASD", "MarineMove");
-                add(out, "Mouse", "MarineAim");
-                add(out, "LMB hold", "MarineFire");
+                add(out, Strings.get("battleDirectHelpKeyMouse"), "MarineAim");
+                add(out, Strings.get("battleDirectHelpKeyLmbHold"), "MarineFire");
                 add(out, "RMB", "MarineSecondary");
                 add(out, "E", "MarineShield");
                 add(out, "G", "MarineSmoke");
@@ -50,9 +52,9 @@ final class BattleDirectControlHelp {
             }
             case MECH -> {
                 add(out, "WASD", "MechMove");
-                add(out, "Mouse", "MechAim");
-                add(out, "LMB hold", "MechPrimary");
-                add(out, "RMB hold", "MechSecondary");
+                add(out, Strings.get("battleDirectHelpKeyMouse"), "MechAim");
+                add(out, Strings.get("battleDirectHelpKeyLmbHold"), "MechPrimary");
+                add(out, Strings.get("battleDirectHelpKeyRmbHold"), "MechSecondary");
                 add(out, "1", "MechDefault");
                 add(out, "2 3 4", "MechPick");
                 add(out, "", "MechFlux");
@@ -63,15 +65,15 @@ final class BattleDirectControlHelp {
             case VEHICLE -> {
                 add(out, "W / S", "VehicleDrive");
                 add(out, "A / D", "VehicleSteer");
-                add(out, "Mouse", "VehicleAim");
-                add(out, "LMB hold", "VehicleFire");
+                add(out, Strings.get("battleDirectHelpKeyMouse"), "VehicleAim");
+                add(out, Strings.get("battleDirectHelpKeyLmbHold"), "VehicleFire");
                 add(out, "Tab / Esc", "Leave");
                 add(out, "Space", "Pause");
             }
             case WARSHIP -> {
                 add(out, "WASD", "ShipFly");
-                add(out, "LMB hold", "ShipGuns");
-                add(out, "RMB hold", "ShipMissiles");
+                add(out, Strings.get("battleDirectHelpKeyLmbHold"), "ShipGuns");
+                add(out, Strings.get("battleDirectHelpKeyRmbHold"), "ShipMissiles");
                 add(out, "1", "ShipHold");
                 add(out, "2", "ShipDirector");
                 add(out, "3", "ShipPreset");
@@ -90,7 +92,7 @@ final class BattleDirectControlHelp {
             }
             case TENDER -> {
                 add(out, "WASD", "ShipFly");
-                add(out, "LMB hold", "TenderBuild");
+                add(out, Strings.get("battleDirectHelpKeyLmbHold"), "TenderBuild");
                 add(out, "RMB", "TenderDrones");
                 add(out, "1", "TenderOption");
                 add(out, "2 3 4", "TenderSoon");

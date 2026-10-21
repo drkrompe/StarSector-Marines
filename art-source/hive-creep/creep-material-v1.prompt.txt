@@ -1,0 +1,14 @@
+Reskin the attached guide into a top-down texture of alien biological growth ("creep") that has overgrown the ground of a colony: a living, wet, fungal / red-tide-like biomass mat seen straight down from directly overhead, as in a 2D top-down strategy game ground texture.
+
+Reference 1 is the edit target and the exact layout authority. Keep every vein, tube, ridge, loop and nodule cluster exactly where it is, at the same width and scale; do not add, move or remove structures, and do not zoom, crop, rotate or re-frame. Fill it in with material only.
+
+Material:
+- The thick raised tubes are swollen, glistening veins of living tissue, slightly translucent with a fibrous sheath.
+- The lumpy clusters are clumps of soft fleshy nodules / spore-sac bulbs, some slightly cratered or pored.
+- The flat areas between are a thin, damp, membranous film with fine fibres, pores, slime sheen and faint capillaries, thin enough that it looks like a skin laid over ground.
+- Small wet specular glints on raised surfaces; soft ambient occlusion in crevices.
+- Lighting: soft, even, from the upper left, matching the guide's relief; no cast shadows from outside objects.
+
+Colour: render it as a NEUTRAL, near-greyscale value study (desaturated grey to off-white, very slight warm tint at most). Colour will be applied later by a palette ramp, so tone and value contrast matter, hue does not. Veins should read darker than the film, nodules lighter.
+
+Hard requirements: perfectly seamless and tileable on all four edges exactly as the guide is; flat orthographic top-down; fill the entire square canvas edge to edge; no perspective, no horizon, no vignette, no border, no text, no ground, rocks, buildings, creatures or other objects.

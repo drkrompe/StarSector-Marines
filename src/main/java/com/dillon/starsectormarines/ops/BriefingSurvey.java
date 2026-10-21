@@ -19,7 +19,6 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.EnumMap;
-import java.util.Locale;
 import java.util.Map;
 
 /** Immutable intelligence projection of an unstarted production scenario, never a second map generator. */
@@ -71,7 +70,7 @@ record BriefingSurvey(int width, int height, List<Terrain> terrain, List<Area> a
                 boolean primary = node.kind == TacticalNode.Kind.COMMAND_POST;
                 areas.add(new Area(node.left, node.top, node.right - node.left + 1,
                         node.bottom - node.top + 1, primary));
-                markers.add(new Marker(primary ? "COMMAND" : "", node.centerX(), node.centerY(), false));
+                markers.add(new Marker(primary ? Strings.upper(Strings.get("briefingSurveyCommandMarker")) : "", node.centerX(), node.centerY(), false));
                 siteCounts.merge(node.kind, 1, Integer::sum);
             }
         }
@@ -86,12 +85,12 @@ record BriefingSurvey(int width, int height, List<Terrain> terrain, List<Area> a
             int i = 0;
             for (var compound : sim.getCompoundService().getRecords()) {
                 var node = compound.node;
-                markers.add(new Marker(ThunderRunCompound.SITE_NAMES.get(i++).toUpperCase(Locale.ROOT), node.anchorX, node.anchorY, false));
+                markers.add(new Marker(Strings.upper(ThunderRunCompound.SITE_NAMES.get(i++)), node.anchorX, node.anchorY, false));
                 areas.add(new Area(node.left, node.top, node.right - node.left + 1, node.bottom - node.top + 1, false));
             }
-            markers.add(new Marker("FREIGHT EXIT", ThunderRunCompound.WIDTH - 8, 75, false));
-            objectives.add("Dispatch Post > East Crossing > Outbound Gate");
-            objectives.add("Escort the freight through the marked exit");
+            markers.add(new Marker(Strings.upper(Strings.get("briefingSurveyFreightExit")), ThunderRunCompound.WIDTH - 8, 75, false));
+            objectives.add(Strings.get("briefingSurveyThunderRoute"));
+            objectives.add(Strings.get("briefingSurveyThunderEscort"));
         }
         if (sim.getColdAccount() != null) {
             var intervention = sim.getColdAccount();
@@ -109,11 +108,11 @@ record BriefingSurvey(int width, int height, List<Terrain> terrain, List<Area> a
                 for (var item : picture.objectives()) {
                     for (var marker : item.markers())
                         markers.add(new Marker(marker.name(), marker.x(), marker.y(), false));
-                    objectives.add(item.name() + (item.steps().isBlank() ? "" : " / " + item.steps()));
+                    objectives.add(Strings.join("separatorPath", item.name(), item.steps()));
                     objectives.add(item.instruction());
                 }
                 if (sim.getThunderRun() != null)
-                    markers.add(new Marker("FREIGHT EXIT", ThunderRunCompound.WIDTH - 8, 75, false));
+                    markers.add(new Marker(Strings.upper(Strings.get("briefingSurveyFreightExit")), ThunderRunCompound.WIDTH - 8, 75, false));
                 if (sim.getColdAccount() != null) for (var marker : ColdAccountMarkers.forPhase(
                         sim.getColdAccount().phase(), sim.getColdAccount().layout(), sim.getColdAccount().companyRecovered()))
                     if (marker.kind() == ColdAccountMarkers.Kind.DANGER)

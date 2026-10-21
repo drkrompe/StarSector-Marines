@@ -237,6 +237,7 @@ public class BattleRenderer {
      * state.
      */
     private final FogField fogField = new FogField();
+    private final CreepLayer creep = new CreepLayer();
 
     /** S3 render-side event lights consumed by the surface-relief composite. */
     private final GroundLightService groundLights = new GroundLightService();
@@ -296,6 +297,7 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.DOODADS, dressing::collectBeneath),
                 doodads,
                 RenderSystem.of(RenderLayer.DOODADS, dressing::collectOver),
+                creep,
                 // Moving parts ride on top of their static bases: belts, fans, sliding seats.
                 new PropMotionRenderSystem(sprites, PropMotion.Layer.DECK, propPhases),
                 // Bodies cast here rather than through the ground composite:
@@ -545,8 +547,9 @@ public class BattleRenderer {
     /** Accessor for the host's combat-event presentation pass. */
     public GroundLightService getGroundLights() { return groundLights; }
 
-    /** Releases night lighting targets and the aircraft's reflected-light shader. */
+    /** Releases night lighting targets, the aircraft's reflected-light shader and the creep's textures. */
     public void disposeLighting() {
+        creep.dispose();
         nightLighting.dispose();
         aircraft.disposeLighting();
     }
