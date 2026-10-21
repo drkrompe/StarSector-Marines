@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.appearance;
 
+import java.util.SplittableRandom;
+
 /**
  * The Rav Bloom Runner's skeleton, advanced once per simulation tick: a hunched four-legged hound
  * whose feet stay planted on the ground, with two jointed spike arms mounted on its shoulders.
@@ -83,9 +85,14 @@ public final class RavRunnerRig {
     private static final float CARRY_BACK = 0.25f;
     /** The jaws reach this far toward the load, at most; the neck does not stretch further. */
     private static final float LATCH_REACH = 0.10f;
-    /** Death: seconds the body takes to fall onto its flank, and how far it rolls. */
-    private static final float FALL_SECONDS = 0.35f;
-    private static final float FALL_ROLL = 80f;
+    /** Death: gravity on the burst pieces and ichor, cells/s^2, and how hard the burst throws them back. */
+    private static final float GRAVITY = 12f;
+    private static final float BURST_BACK = 0.8f;
+    /** Seconds until the pieces lie flat, the pool has spread, and everything is still. */
+    private static final float FLATTEN_SECONDS = 0.45f;
+    private static final float POOL_SECONDS = 0.6f;
+    private static final float POOL_CELLS = 1.1f;
+    private static final float SETTLE_SECONDS = 2.5f;
 
     // ------------------------------------------------------------------ pose layout
     /** First point of each leg; front legs have three points, hind legs four. */
@@ -116,6 +123,31 @@ public final class RavRunnerRig {
         BEND_SHARE[24] = 1.2f;   // neck, and the head looks further into the turn
         BEND_SHARE[25] = 1.4f;
     }
+
+    /**
+     * What a Runner bursts into: the trunk's two halves, the head, each leg and each spike arm,
+     * as the points that move with each piece.
+     */
+    public static final int PIECE_REAR = 0, PIECE_FRONT = 1, PIECE_HEAD = 2, PIECE_LEG = 3, PIECE_ARM = 7;
+    public static final int PIECES = 9;
+    private static final int[][] PIECE_POINTS = new int[PIECES][];
+    static {
+        PIECE_POINTS[PIECE_REAR] = new int[]{MID, HIP};
+        PIECE_POINTS[PIECE_FRONT] = new int[]{MID, SHOULDER};
+        PIECE_POINTS[PIECE_HEAD] = new int[]{NECK, HEAD};
+        for (int leg = 0; leg < 4; leg++) {
+            PIECE_POINTS[PIECE_LEG + leg] = new int[LEG_POINTS[leg]];
+            for (int i = 0; i < LEG_POINTS[leg]; i++) PIECE_POINTS[PIECE_LEG + leg][i] = LEG_START[leg] + i;
+        }
+        for (int a = 0; a < 2; a++) {
+            PIECE_POINTS[PIECE_ARM + a] = new int[]{ARM_START[a], ARM_START[a] + 1, ARM_START[a] + 2, ARM_START[a] + 3};
+        }
+    }
+    private static final int DROPS = 18;
+    /** Fields of a piece's or a droplet's state. */
+    private static final int P_X = 0, P_Y = 1, P_Z = 2, P_VX = 3, P_VY = 4, P_VZ = 5, P_SPIN = 6, P_SPIN_RATE = 7,
+            P_PIVOT_X = 8, P_PIVOT_Y = 9, P_PIVOT_Z = 10, P_BOUNCED = 11, P_RESTING = 12, P_SIZE = 13, P_VARIANT = 14,
+            P_FIELDS = 15;
 
     private enum Mode { GALLOP, TROT, PLANT }
 
@@ -157,6 +189,10 @@ public final class RavRunnerRig {
     private boolean dead;
     private float sinceDeath;
     private final float[] alivePose = new float[POINTS * 3];
+    private final float[][] piece = new float[PIECES][P_FIELDS];
+    private final float[][] drops = new float[DROPS][P_FIELDS];
+    private float poolAngle;
+    private int poolVariant;
 
     public RavRunnerRig(long seed) {
         this.seed = seed;
@@ -583,8 +619,12 @@ public final class RavRunnerRig {
     // ------------------------------------------------------------------ death
 
     /**
-     * Advances a dead Runner: it falls onto its flank over {@link #FALL_SECONDS}, legs going
-     * slack, and then lies there. A body dragged off by another Runner moves with its position.
+     * Advances a dead Runner: on its first dead tick it bursts. The trunk splits at mid-spine and
+     * the head, the legs and the spike arms come away; each piece is flung outward (biased behind
+     * it, away from what it was charging), spins, bounces once and lies flat where it lands. Ichor
+     * sprays out in droplets that land as small splats around a pool spreading under the middle.
+     * Seeded by the rig, so every replay bursts the same way. A body dragged off by another
+     * Runner moves with its position.
      */
     public void advanceDead(float posX, float posY, float dt) {
         if (!started) {
@@ -600,37 +640,148 @@ public final class RavRunnerRig {
             dead = true;
             sinceDeath = 0f;
             System.arraycopy(pose, 0, alivePose, 0, pose.length);
-        } else if (sinceDeath >= FALL_SECONDS) {
-            return;
+            burst();
         }
-        sinceDeath = Math.min(FALL_SECONDS, sinceDeath + dt);
-        float k = smooth(sinceDeath / FALL_SECONDS);
-        // falls to the side away from the arm it last struck with, so the pair differ
-        float side = (seed & 1L) == 0L ? 1f : -1f;
-        double roll = Math.toRadians(side * FALL_ROLL * k);
-        float c = (float) Math.cos(roll), sn = (float) Math.sin(roll);
-        for (int p = 0; p < POINTS; p++) {
-            float px = alivePose[p * 3], py = alivePose[p * 3 + 1], pz = alivePose[p * 3 + 2];
-            boolean armPoint = p >= ARM_START[0] && p < ARM_START[0] + 8;
-            boolean foot = p < 14 && (p == LEG_START[0] + 2 || p == LEG_START[1] + 2
-                    || p == LEG_START[2] + 3 || p == LEG_START[3] + 3);
-            if (foot) {
-                // slack legs: the feet swing out from under the body instead of standing
-                pz = pz + (0.12f - pz) * k;
-                px = px * (1f + 0.6f * k);
+        if (sinceDeath > SETTLE_SECONDS) return;
+        sinceDeath += dt;
+        for (int i = 0; i < PIECES; i++) {
+            float[] q = piece[i];
+            if (q[P_RESTING] > 0f) continue;
+            fly(q, dt, i <= PIECE_FRONT ? 0.25f : 0.35f);
+            q[P_SPIN] += q[P_SPIN_RATE] * dt;
+        }
+        for (float[] d : drops) {
+            if (d[P_RESTING] > 0f) continue;
+            d[P_VZ] -= GRAVITY * dt;
+            d[P_X] += d[P_VX] * dt;
+            d[P_Y] += d[P_VY] * dt;
+            d[P_Z] += d[P_VZ] * dt;
+            if (d[P_Z] <= 0f) {
+                d[P_Z] = 0f;
+                d[P_RESTING] = 1f;
             }
-            if (armPoint) {
-                pz = pz - 0.05f * k;                 // the arms drop
-            }
-            // roll about the spine line on the ground, then settle the body down onto it
-            float rz = pz - 0.0f;
-            float nx = px * c - rz * sn;
-            float nz = px * sn + rz * c;
-            pose[p * 3] = nx;
-            pose[p * 3 + 1] = py;
-            pose[p * 3 + 2] = Math.max(0f, nz * (1f - 0.6f * k));
         }
     }
+
+    /** One ballistic step for a piece; it bounces once, losing most of its speed, then rests. */
+    private static void fly(float[] q, float dt, float restitution) {
+        q[P_VZ] -= GRAVITY * dt;
+        q[P_X] += q[P_VX] * dt;
+        q[P_Y] += q[P_VY] * dt;
+        q[P_Z] += q[P_VZ] * dt;
+        if (q[P_Z] > 0f || q[P_VZ] > 0f) return;
+        q[P_Z] = 0f;
+        if (q[P_BOUNCED] == 0f && -q[P_VZ] > 0.6f) {
+            q[P_BOUNCED] = 1f;
+            q[P_VZ] = -q[P_VZ] * restitution;
+            q[P_VX] *= 0.45f;
+            q[P_VY] *= 0.45f;
+            q[P_SPIN_RATE] *= 0.4f;
+        } else {
+            q[P_RESTING] = 1f;
+        }
+    }
+
+    /** Sets every piece and droplet flying from the pose the Runner died in. */
+    private void burst() {
+        SplittableRandom rng = new SplittableRandom(seed * 0x9E3779B97F4A7C15L + 17L);
+        float mx = alivePose[MID * 3], my = alivePose[MID * 3 + 1];
+        for (int i = 0; i < PIECES; i++) {
+            float[] q = piece[i];
+            int[] points = PIECE_POINTS[i];
+            float px = 0f, py = 0f, pz = 0f;
+            for (int point : points) {
+                px += alivePose[point * 3];
+                py += alivePose[point * 3 + 1];
+                pz += alivePose[point * 3 + 2];
+            }
+            px /= points.length;
+            py /= points.length;
+            pz /= points.length;
+            q[P_PIVOT_X] = px;
+            q[P_PIVOT_Y] = py;
+            q[P_PIVOT_Z] = pz;
+            q[P_X] = px;
+            q[P_Y] = py;
+            q[P_Z] = pz;
+            boolean trunk = i <= PIECE_FRONT;
+            float ox = px - mx, oy = py - my;
+            float on = (float) Math.hypot(ox, oy);
+            double a = rng.nextDouble(0, Math.PI * 2);
+            float dirX = on > 0.02f ? ox / on : (float) Math.cos(a);
+            float dirY = on > 0.02f ? oy / on : (float) Math.sin(a);
+            // thrown out from the middle, and back: the blow that killed it came from ahead
+            dirX += (float) rng.nextDouble(-0.45, 0.45);
+            dirY += (float) rng.nextDouble(-0.45, 0.45) - BURST_BACK;
+            float dn = Math.max(1e-4f, (float) Math.hypot(dirX, dirY));
+            float speed = trunk ? (float) rng.nextDouble(0.45, 0.85) : (float) rng.nextDouble(1.1, 2.0);
+            q[P_VX] = dirX / dn * speed;
+            q[P_VY] = dirY / dn * speed;
+            q[P_VZ] = trunk ? (float) rng.nextDouble(0.7, 1.1) : (float) rng.nextDouble(1.1, 1.9);
+            float spin = trunk ? (float) rng.nextDouble(60, 200) : (float) rng.nextDouble(260, 760);
+            q[P_SPIN_RATE] = rng.nextBoolean() ? spin : -spin;
+        }
+        for (float[] d : drops) {
+            double a = rng.nextDouble(0, Math.PI * 2);
+            float speed = (float) rng.nextDouble(0.8, 3.0);
+            d[P_X] = mx + (float) rng.nextDouble(-0.08, 0.08);
+            d[P_Y] = my + (float) rng.nextDouble(-0.15, 0.15);
+            d[P_Z] = 0.3f;
+            d[P_VX] = (float) Math.cos(a) * speed;
+            d[P_VY] = (float) Math.sin(a) * speed - BURST_BACK * 0.6f * speed;
+            d[P_VZ] = (float) rng.nextDouble(0.6, 2.4);
+            d[P_SIZE] = (float) rng.nextDouble(0.10, 0.24);
+            d[P_SPIN] = (float) rng.nextDouble(0, 360);
+            d[P_VARIANT] = rng.nextInt(4);
+        }
+        poolAngle = (float) rng.nextDouble(0, 360);
+        poolVariant = rng.nextInt(4);
+    }
+
+    /**
+     * Where point lies now in the rig frame (x right, y forward, z up) as part of the given piece,
+     * offset by (addX, addY) in the pose it died in; out gets x, y, z. Only meaningful once dead.
+     */
+    public void deadPoint(int pieceIndex, int point, float addX, float addY, float[] out) {
+        float[] q = piece[pieceIndex];
+        float lx = alivePose[point * 3] + addX - q[P_PIVOT_X];
+        float ly = alivePose[point * 3 + 1] + addY - q[P_PIVOT_Y];
+        float lz = (alivePose[point * 3 + 2] - q[P_PIVOT_Z]) * (1f - flat());
+        double r = Math.toRadians(q[P_SPIN]);
+        float c = (float) Math.cos(r), sn = (float) Math.sin(r);
+        out[0] = q[P_X] + lx * c - ly * sn;
+        out[1] = q[P_Y] + lx * sn + ly * c;
+        out[2] = Math.max(0f, q[P_Z] + lz);
+    }
+
+    /** 0 at the burst, 1 once the pieces have gone limp and lie flat on the ground. */
+    public float flat() { return smooth(sinceDeath / FLATTEN_SECONDS); }
+
+    /** Seconds since the Runner burst. */
+    public float sinceDeath() { return sinceDeath; }
+
+    /** Where piece i lies in the rig frame, and whether it has come to rest (and left a smear). */
+    public float pieceX(int i) { return piece[i][P_X]; }
+    public float pieceY(int i) { return piece[i][P_Y]; }
+    public boolean pieceResting(int i) { return piece[i][P_RESTING] > 0f; }
+
+    public int dropCount() { return drops.length; }
+
+    /** Droplet i in the rig frame, whether it has landed, and the size in cells of its splat. */
+    public float dropX(int i) { return drops[i][P_X]; }
+    public float dropY(int i) { return drops[i][P_Y]; }
+    public float dropZ(int i) { return drops[i][P_Z]; }
+    public boolean dropLanded(int i) { return drops[i][P_RESTING] > 0f; }
+    public float dropSize(int i) { return drops[i][P_SIZE]; }
+    public float dropAngle(int i) { return drops[i][P_SPIN]; }
+    public int dropVariant(int i) { return (int) drops[i][P_VARIANT]; }
+
+    /** The pool spreading under the middle: its diameter in cells, its turn and which splat it is. */
+    public float poolCells() { return POOL_CELLS * easeOut(sinceDeath / POOL_SECONDS); }
+    public float poolX() { return alivePose[MID * 3]; }
+    public float poolY() { return alivePose[MID * 3 + 1]; }
+    public float poolAngle() { return poolAngle; }
+    public int poolVariant() { return poolVariant; }
 
     /** How far forward of the sim position the drawn body sits, cells; negative while hauling. */
     public float drawOffset() { return dead ? 0f : -CARRY_BACK * latch; }

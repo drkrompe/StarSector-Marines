@@ -293,6 +293,13 @@ turret validity.
   sprite's scale. Detail stays at real size; add more of it instead.
 - **Large flat untouched faces** (over about 100 m²).
 
+## Effects notes
+
+- **No orb explosions** (owner, 2026-10-21): "they don't make sense." A blast, pop, flash or
+  fireball is an irregular, directional burst: jagged lobed flash, shrapnel that cools fast,
+  torn smoke that disperses. Use `swfx_burst.burst`; never a sphere or a round volume. A light
+  that flashes with it is fine; the shape it lights is not a ball.
+
 ## Checking a build
 
 Run `ship-detail-kit/check_detail.py` after the build driver, in the same

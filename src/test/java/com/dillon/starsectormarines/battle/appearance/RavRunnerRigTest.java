@@ -102,14 +102,35 @@ class RavRunnerRigTest {
     }
 
     @Test
-    void aDeadRunnerFallsAndLiesLow() {
+    void aDeadRunnerBurstsAndItsPiecesComeToRestOnTheGround() {
         RavRunnerRig rig = new RavRunnerRig(9L);
         for (int tick = 0; tick < 10; tick++) rig.advance(3f, 3f, 0f, 0f, false, DT);
-        for (int tick = 0; tick < 30; tick++) rig.advanceDead(3f, 3f, DT);
-        assertTrue(rig.dead());
-        for (int p = 0; p < RavRunnerRig.POINTS; p++) {
-            assertTrue(rig.z(p) < 0.25f, "point " + p + " still stands at " + rig.z(p));
+        float[] p = new float[3];
+        rig.advanceDead(3f, 3f, DT);
+        rig.deadPoint(RavRunnerRig.PIECE_HEAD, RavRunnerRig.HEAD, 0f, 0f, p);
+        float headX = p[0], headY = p[1];
+        boolean airborne = false;
+        for (int tick = 0; tick < 6; tick++) {
+            rig.advanceDead(3f, 3f, DT);
+            rig.deadPoint(RavRunnerRig.PIECE_LEG, RavRunnerRig.LEG_START[0], 0f, 0f, p);
+            airborne |= p[2] > 0.45f;
         }
+        assertTrue(airborne, "the burst throws the pieces up");
+        for (int tick = 0; tick < 120; tick++) rig.advanceDead(3f, 3f, DT);
+        assertTrue(rig.dead());
+        rig.deadPoint(RavRunnerRig.PIECE_HEAD, RavRunnerRig.HEAD, 0f, 0f, p);
+        assertTrue(Math.hypot(p[0] - headX, p[1] - headY) > 0.4f, "the head was flung clear");
+        float[] still = new float[3];
+        for (int piece = 0; piece < RavRunnerRig.PIECES; piece++) {
+            for (int point = 0; point < RavRunnerRig.POINTS; point++) {
+                rig.deadPoint(piece, point, 0f, 0f, p);
+                assertTrue(p[2] < 1e-3f, "piece " + piece + " point " + point + " still off the ground at " + p[2]);
+                rig.advanceDead(3f, 3f, DT);
+                rig.deadPoint(piece, point, 0f, 0f, still);
+                assertEquals(p[0], still[0], 0f, "piece " + piece + " still moving");
+            }
+        }
+        for (int i = 0; i < rig.dropCount(); i++) assertTrue(rig.dropLanded(i), "droplet " + i + " landed");
     }
 
     @Test
