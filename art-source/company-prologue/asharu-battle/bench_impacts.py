@@ -147,6 +147,10 @@ def cookoff_caused(bench):
         recs = imp.apply_cue(ctx, cookoff_entries(BREAK), matrix=p.matrix)
     print('BENCH cook-off cause', [(r['kind'], r['frame'], r['at_m']) for r in recs], flush=True)
     bench.camera((95, 150, 85), (8, 0, 0), 50)
+    # The cook-off fills this framing with volumes; coarser volume steps keep the light job in
+    # its 30 minutes (k3, with the wreck 1.3 km off, took ~10 min a frame at full step rate).
+    bench.scene.cycles.volume_step_rate = 2.0
+    bench.scene.cycles.volume_max_steps = 256
     framing(bench, p, recs, 'cookoff-caused')
     liveness(bench, p, TESTS['cookoff-caused']['frames'], 'cookoff-caused')
 
