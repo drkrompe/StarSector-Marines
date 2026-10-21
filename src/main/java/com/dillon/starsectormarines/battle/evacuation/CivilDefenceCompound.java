@@ -2,9 +2,10 @@ package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
-import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
@@ -20,204 +21,255 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The colony's civil-defence compound round the shelter: the main redoubt
- * ({@code colony-breach-nouns.md}, Redoubt). A frontier settlement that always
- * knew something might come out of the wilderness put it up when the colony
- * was laid out, so it is a proper work, but a civil one: thinner walls, fewer
- * guns, no layers.
+ * The colony's civil-defence compound: the main redoubt
+ * ({@code colony-breach-nouns.md}, Redoubt).
  *
- * <ul>
- *   <li>A <b>curtain wall</b> of prefab concrete panels a few cells out from the
- *       shelter, with firing slits along its straight runs. It is ordinary wall:
- *       impassable, opaque except at its slits, and light enough at
- *       {@link #WALL_HP} that a Brute, a charge or a shell breaches it.</li>
- *   <li>A squat <b>tower</b> at each corner.</li>
- *   <li>A <b>gatehouse</b> on the side toward the lift: a gate two cells wide
- *       between two gun towers, each a heavy machine gun behind slitted walls.
- *       Those two guns are the compound's whole armament.</li>
- *   <li>A <b>firing step</b> of sandbag behind the wall, one course all the way
- *       round, which the militia's wall team mans.</li>
- *   <li><b>Floodlights</b> on tripods inside each corner and at the gate,
- *       facing out.</li>
- * </ul>
+ * <p>A frontier colony that always knew something might come out of the
+ * wilderness built it when the colony was laid out, so it is a place in the
+ * colony's plan rather than works thrown up round a house: a walled precinct
+ * ({@link #PLACE}) with a shelter hall, a clinic and a store round a muster
+ * yard, its wall light concrete at {@link #WALL_HP} and its gates where the
+ * colony's roads meet it. Roads, gates and neighbours fit it by construction.
  *
- * <p>Where another building stands on the line of the wall it closes that
- * stretch itself. Planning is read-only and refuses rather than half-builds:
- * no gate, or a shelter door that no longer reaches the open ground, is no
- * compound.
+ * <p>What the generator leaves is a wall. This class is what the militia make
+ * of it when the battle is set up, and it is civil rather than military: a
+ * squat <b>tower</b> on each outer corner, a heavy machine gun in a slitted
+ * <b>gun tower</b> beside each gate (the compound's whole armament: no layers,
+ * no bunkers, no anti-air), <b>firing slits</b> along the straight runs, a
+ * sandbag <b>firing step</b> along the inside of the wall, and
+ * <b>floodlights</b> on tripods in the corners and at the gates, facing out.
  */
-final class CivilDefenceCompound {
+public final class CivilDefenceCompound {
 
+    /** The precinct's name in the colony plan. */
+    public static final String PLACE = "civil-defence";
     /** Wall left in a civil panel: a colony wall's, inside what a Brute can break. */
-    static final int WALL_HP = 110;
-    static final int GATE_WIDTH = 2;
-    /** Wall margins tried round the shelter, in order of preference. */
-    private static final int[] MARGINS = {6, 7, 5, 8};
-    private static final String WALL_SURFACE = "installation.dark-concrete-wall";
+    public static final int WALL_HP = 110;
+    /** Ways in: a colony keeps a main gate and a back gate. */
+    public static final int GATES = 2;
+
+    /** How far from its plan seed the compound's shelter hall may be found. */
+    private static final int SHELTER_REACH = 45;
+    /** How far from the shelter the compound's wall is looked for. */
+    private static final int WALL_REACH = 60;
+    /** The widest crossing read as a gate rather than as a gap in the reading. */
+    private static final int MAX_GATE = 10;
+    /** How far past the wall's extent the yard may run before the wall is read as open. */
+    private static final int LEAK = 6;
     private static final String LIGHT_CIRCUIT = "civil-defence";
 
     enum Kind { WALL, SLIT, GUN }
 
     /**
-     * A planned compound.
+     * The dressing planned for one compound.
      *
-     * @param cells     what stands on each cell of the works, keyed by packed cell
-     * @param guns      the gun towers' centre cells
-     * @param gateX     the gate's first cell, on the line of the wall
-     * @param gateY     the gate's first cell, on the line of the wall
-     * @param inwardX   the step from the gate into the compound
-     * @param inwardY   the step from the gate into the compound
+     * @param cells what the dressing makes of each cell, keyed by packed cell
+     * @param guns  the gun towers' centre cells
+     * @param gateX the first cell of the gate nearest the lift
+     * @param gateY the first cell of the gate nearest the lift
      */
     record Plan(int left, int top, int right, int bottom, Map<Long, Kind> cells, List<int[]> guns,
-                List<RedoubtWorks.Bag> step, List<NightLighting.Lamp> lamps,
-                int gateX, int gateY, int inwardX, int inwardY) {
-
-        boolean inside(int x, int y) {
-            return x > left && x < right && y > top && y < bottom;
-        }
-    }
+                List<RedoubtWorks.Bag> step, List<NightLighting.Lamp> lamps, int gateX, int gateY) {}
 
     private CivilDefenceCompound() {}
 
-    /** Whether the shelter stands in a civil-defence compound. {@code -Dbattle.colonyBreach.civilDefence=false} is the control. */
-    static boolean enabled() {
+    /** Whether the colony has a civil-defence compound. {@code -Dbattle.colonyBreach.civilDefence=false} is the control. */
+    public static boolean enabled() {
         return Boolean.parseBoolean(System.getProperty("battle.colonyBreach.civilDefence", "true"));
     }
 
-    /** Plans the compound round {@code shelter}, gate toward the lift; null when none fits. */
-    static Plan plan(BattleSimulation sim, PointOfInterest shelter, CivilianEvacuationPlacement placement,
-                     List<LandingPad> pads) {
+    /**
+     * The places the colony's shelter may be: on a plan with a compound, its
+     * shelter hall alone, or {@code null} when the map did not build one (the
+     * caller re-rolls). Every point of interest on any other map.
+     */
+    public static List<PointOfInterest> shelters(List<PointOfInterest> points, PrecinctPlan plan) {
+        Precinct compound = null;
+        if (plan != null) {
+            for (Precinct precinct : plan.precincts()) if (precinct.name().equals(PLACE)) compound = precinct;
+        }
+        if (compound == null) return points;
+        PointOfInterest best = null;
+        int bestDistance = SHELTER_REACH * SHELTER_REACH + 1;
+        for (PointOfInterest poi : points) {
+            if (poi == null || poi.kind != PointOfInterest.Kind.RESIDENTIAL) continue;
+            int dx = poi.centerX() - compound.seedX(), dy = poi.centerY() - compound.seedY();
+            if (dx * dx + dy * dy < bestDistance) {
+                best = poi;
+                bestDistance = dx * dx + dy * dy;
+            }
+        }
+        return best == null ? null : List.of(best);
+    }
+
+    /** Plans the dressing of the wall round {@code shelter}; null when the shelter stands in no closed wall. */
+    static Plan plan(BattleSimulation sim, PointOfInterest shelter, CivilianEvacuationPlacement placement) {
+        NavigationGrid grid = sim.getGrid();
+        CellTopology topology = sim.getTopology();
         TileRegistry registry = TileRegistry.installed();
         if (registry == null || registry.doodad("doodad.fort-sandbag-n") == null) return null;
-        Plan best = null;
-        int bestCost = Integer.MAX_VALUE;
-        for (int margin : MARGINS) {
-            Plan plan = planAt(sim, registry, shelter, placement, pads, margin);
-            if (plan == null) continue;
-            // Prefer the line that cuts fewest other buildings: each one is a stretch the wall does not close.
-            int cost = crossings(sim, plan, shelter);
-            if (cost < bestCost) {
-                best = plan;
-                bestCost = cost;
+        Set<Long> wall = new HashSet<>();
+        int sx = shelter.centerX(), sy = shelter.centerY();
+        for (int y = Math.max(0, sy - WALL_REACH); y <= Math.min(grid.getHeight() - 1, sy + WALL_REACH); y++) {
+            for (int x = Math.max(0, sx - WALL_REACH); x <= Math.min(grid.getWidth() - 1, sx + WALL_REACH); x++) {
+                if (topology.isWall(x, y) && InstallationWalls.PERIMETER.equals(topology.getSurfaceId(x, y))) {
+                    wall.add(key(x, y));
+                }
             }
         }
-        return best;
-    }
-
-    private static Plan planAt(BattleSimulation sim, TileRegistry registry, PointOfInterest shelter,
-                               CivilianEvacuationPlacement placement, List<LandingPad> pads, int margin) {
-        NavigationGrid grid = sim.getGrid();
-        int l = shelter.left - margin, t = shelter.top - margin, r = shelter.right + margin, b = shelter.bottom + margin;
-        if (l < 3 || t < 3 || r >= grid.getWidth() - 3 || b >= grid.getHeight() - 3) return null;
-        int shelterBuilding = sim.getTopology().getBuildingId(shelter.interiorAnchorX, shelter.interiorAnchorY);
-        Set<Long> dressed = dressedCells(sim, l - 2, t - 2, r + 2, b + 2);
-        Open open = (x, y) -> openGround(sim, dressed, pads, placement, shelterBuilding, x, y);
-
-        int dx = placement.liftX - shelter.centerX(), dy = placement.liftY - shelter.centerY();
-        int[] toward = Math.abs(dx) >= Math.abs(dy) ? new int[]{Integer.signum(dx), 0} : new int[]{0, Integer.signum(dy)};
-        if (toward[0] == 0 && toward[1] == 0) toward[0] = 1;
-        int[][] sides = {toward, {toward[1], toward[0]}, {-toward[1], -toward[0]}, {-toward[0], -toward[1]}};
-        for (int[] side : sides) {
-            int[] gate = gateOn(grid, open, l, t, r, b, side, placement.shelterApproachX, placement.shelterApproachY);
-            if (gate == null) continue;
-            Plan plan = build(sim, registry, open, l, t, r, b, side, gate);
-            if (reaches(grid, plan, placement.shelterApproachX, placement.shelterApproachY)) return plan;
-        }
-        return null;
-    }
-
-    /** A gate on one side: two open cells with open ground either side, and room for a gun tower either flank. */
-    private static int[] gateOn(NavigationGrid grid, Open open, int l, int t, int r, int b, int[] side,
-                                int doorX, int doorY) {
-        boolean vertical = side[0] != 0;
-        int fixed = vertical ? (side[0] > 0 ? r : l) : (side[1] > 0 ? b : t);
-        int min = (vertical ? t : l) + 5, max = (vertical ? b : r) - 4 - GATE_WIDTH;
-        if (max < min) return null;
-        int preferred = Math.max(min, Math.min(max, vertical ? doorY : doorX));
-        for (int offset = 0; offset <= max - min; offset++) {
-            for (int sign : new int[]{1, -1}) {
-                int start = preferred + sign * offset;
-                if (start < min || start > max) continue;
-                boolean ok = true;
-                for (int along = start - 3; along <= start + GATE_WIDTH + 2 && ok; along++) {
-                    for (int depth = -1; depth <= 1 && ok; depth++) {
-                        int x = vertical ? fixed + side[0] * depth : along, y = vertical ? along : fixed + side[1] * depth;
-                        ok = open.at(x, y);
-                    }
-                }
-                for (int k = 0; k < GATE_WIDTH && ok; k++) {
-                    int x = vertical ? fixed : start + k, y = vertical ? start + k : fixed;
-                    ok = grid.isWalkable(x + side[0] * 2, y + side[1] * 2) && grid.isWalkable(x - side[0] * 2, y - side[1] * 2);
-                }
-                if (ok) return vertical ? new int[]{fixed, start} : new int[]{start, fixed};
-            }
-        }
-        return null;
-    }
-
-    private static Plan build(BattleSimulation sim, TileRegistry registry, Open open,
-                              int l, int t, int r, int b, int[] side, int[] gate) {
-        boolean vertical = side[0] != 0;
-        Map<Long, Kind> cells = new LinkedHashMap<>();
-        Set<Long> keepOpen = new HashSet<>();
-        for (int k = 0; k < GATE_WIDTH; k++) {
-            int gx = vertical ? gate[0] : gate[0] + k, gy = vertical ? gate[1] + k : gate[1];
-            for (int depth = -2; depth <= 3; depth++) keepOpen.add(key(gx - side[0] * depth, gy - side[1] * depth));
+        if (wall.isEmpty()) return null;
+        int l = Integer.MAX_VALUE, t = Integer.MAX_VALUE, r = -1, b = -1;
+        for (long k : wall) {
+            int x = x(k), y = y(k);
+            l = Math.min(l, x); t = Math.min(t, y); r = Math.max(r, x); b = Math.max(b, y);
         }
 
-        // The gatehouse: a gun tower either side of the gate, its gun behind slits on every face.
-        List<int[]> guns = new ArrayList<>();
-        for (int along : new int[]{-2, GATE_WIDTH + 1}) {
-            int cx = vertical ? gate[0] : gate[0] + along, cy = vertical ? gate[1] + along : gate[1];
-            guns.add(new int[]{cx, cy});
-            for (int y = cy - 1; y <= cy + 1; y++)
-                for (int x = cx - 1; x <= cx + 1; x++) cells.put(key(x, y), x == cx && y == cy ? Kind.GUN : Kind.SLIT);
-        }
-        // A squat tower at each corner, wherever its ground is open.
-        for (int[] corner : new int[][]{{l, t}, {r, t}, {l, b}, {r, b}}) {
-            for (int y = corner[1] - 1; y <= corner[1] + 1; y++)
-                for (int x = corner[0] - 1; x <= corner[0] + 1; x++)
-                    if (!cells.containsKey(key(x, y)) && open.at(x, y)) cells.put(key(x, y), Kind.WALL);
-        }
-        // The curtain, with a slit every third panel on its straight runs.
+        // Gates: open cells on the line of the wall, with wall either side along it.
+        Set<Long> gate = new HashSet<>();
         for (int y = t; y <= b; y++) {
             for (int x = l; x <= r; x++) {
-                if (x != l && x != r && y != t && y != b) continue;
-                long k = key(x, y);
-                if (cells.containsKey(k) || keepOpen.contains(k) || !open.at(x, y)) continue;
-                boolean nearCorner = (Math.abs(x - l) <= 2 || Math.abs(x - r) <= 2) && (Math.abs(y - t) <= 2 || Math.abs(y - b) <= 2);
-                int[] in = inward(x, y, l, t, r, b);
-                boolean slit = !nearCorner && (x == l || x == r ? y : x) % 3 == 1
-                        && sim.getGrid().isWalkable(x + in[0], y + in[1]) && sim.getGrid().isWalkable(x - in[0], y - in[1]);
-                cells.put(k, slit ? Kind.SLIT : Kind.WALL);
+                if (wall.contains(key(x, y)) || !grid.isWalkable(x, y)) continue;
+                if (spans(wall, grid, x, y, 1, 0) || spans(wall, grid, x, y, 0, 1)) gate.add(key(x, y));
             }
+        }
+        // Inside: what the shelter door reaches without crossing the wall or a gate.
+        Set<Long> inside = new HashSet<>();
+        ArrayDeque<int[]> queue = new ArrayDeque<>();
+        queue.add(new int[]{placement.shelterApproachX, placement.shelterApproachY});
+        inside.add(key(placement.shelterApproachX, placement.shelterApproachY));
+        while (!queue.isEmpty()) {
+            int[] c = queue.poll();
+            // Past the wall's own extent is out of the compound: a wall with a hole in it.
+            if (c[0] < l - LEAK || c[0] > r + LEAK || c[1] < t - LEAK || c[1] > b + LEAK) return null;
+            for (int[] d : STEPS) {
+                int nx = c[0] + d[0], ny = c[1] + d[1];
+                long k = key(nx, ny);
+                if (!grid.isWalkable(nx, ny) || wall.contains(k) || gate.contains(k) || !inside.add(k)) continue;
+                queue.add(new int[]{nx, ny});
+            }
+        }
+        // A neighbour's building may close a side, so the ground is what the wall and the yard cover.
+        for (long k : inside) {
+            l = Math.min(l, x(k) - 1); t = Math.min(t, y(k) - 1); r = Math.max(r, x(k) + 1); b = Math.max(b, y(k) + 1);
+        }
+        List<List<int[]>> gates = groups(gate, inside);
+        if (gates.isEmpty()) return null;
+        Set<Long> dressed = dressedCells(sim, l - 2, t - 2, r + 2, b + 2);
+        Open open = (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y) && !grid.isDoorway(x, y)
+                && topology.getBuildingId(x, y) == 0 && !topology.isFixture(x, y) && !topology.isWall(x, y)
+                && !dressed.contains(key(x, y)) && !gate.contains(key(x, y));
+
+        Map<Long, Kind> cells = new LinkedHashMap<>();
+        Set<Long> keepOpen = new HashSet<>();
+        List<int[]> guns = new ArrayList<>();
+        List<NightLighting.Lamp> lamps = new ArrayList<>();
+        int[] main = null;
+        int mainDistance = Integer.MAX_VALUE;
+        for (List<int[]> crossing : gates) {
+            int[] first = crossing.get(0);
+            int[] in = inward(first, inside);
+            if (in == null) continue;
+            int distance = Math.abs(first[0] - placement.liftX) + Math.abs(first[1] - placement.liftY);
+            if (distance < mainDistance) {
+                main = first;
+                mainDistance = distance;
+            }
+            for (int[] cell : crossing) {
+                for (int depth = -3; depth <= 3; depth++) keepOpen.add(key(cell[0] + in[0] * depth, cell[1] + in[1] * depth));
+            }
+            gunTower(crossing, in, wall, inside, open, cells, guns, lamps);
+        }
+        if (main == null) return null;
+
+        // A squat tower on each outer corner of the wall, the one furthest out each way.
+        for (int[] diagonal : new int[][]{{-1, -1}, {1, -1}, {-1, 1}, {1, 1}}) {
+            long best = -1;
+            int bestReach = Integer.MIN_VALUE;
+            for (long k : wall) {
+                int x = x(k), y = y(k);
+                if (!wall.contains(key(x - diagonal[0], y)) || !wall.contains(key(x, y - diagonal[1]))) continue;
+                // The corner's inner diagonal is the yard, or a building standing in the corner.
+                int ix = x - diagonal[0], iy = y - diagonal[1];
+                if (!inside.contains(key(ix, iy)) && (grid.isWalkable(ix, iy) || wall.contains(key(ix, iy)))) continue;
+                int reach = x * diagonal[0] + y * diagonal[1];
+                if (reach > bestReach) {
+                    bestReach = reach;
+                    best = k;
+                }
+            }
+            if (best < 0) continue;
+            int cx = x(best), cy = y(best);
+            for (int y = cy - 1; y <= cy + 1; y++) {
+                for (int x = cx - 1; x <= cx + 1; x++) {
+                    long k = key(x, y);
+                    if (inside.contains(k) || wall.contains(k) || cells.containsKey(k) || !open.at(x, y)) continue;
+                    cells.put(k, Kind.WALL);
+                }
+            }
+            int lx = cx - diagonal[0] * 3, ly = cy - diagonal[1] * 3;
+            if (open.at(lx, ly) && inside.contains(key(lx, ly))) lamps.add(floodlight(lx, ly, diagonal[0], diagonal[1]));
+        }
+
+        // Firing slits along the straight runs, a panel in three.
+        for (long k : wall) {
+            int x = x(k), y = y(k);
+            if (cells.containsKey(k) || near(cells, x, y, 2) || near(gate, x, y, 3)) continue;
+            boolean horizontal = wall.contains(key(x - 1, y)) && wall.contains(key(x + 1, y));
+            boolean vertical = wall.contains(key(x, y - 1)) && wall.contains(key(x, y + 1));
+            if (horizontal == vertical || (horizontal ? x : y) % 3 != 1) continue;
+            int px = horizontal ? 0 : 1, py = horizontal ? 1 : 0;
+            boolean faces = inside.contains(key(x + px, y + py)) && grid.isWalkable(x - px, y - py)
+                    || inside.contains(key(x - px, y - py)) && grid.isWalkable(x + px, y + py);
+            if (faces) cells.put(k, Kind.SLIT);
         }
 
         // The firing step: a course of sandbag along the inside of the wall, bags facing out.
         List<RedoubtWorks.Bag> step = new ArrayList<>();
-        int sl = l + 1, st = t + 1, sr = r - 1, sb = b - 1;
-        for (int y = st; y <= sb; y++) {
-            for (int x = sl; x <= sr; x++) {
-                if (x != sl && x != sr && y != st && y != sb) continue;
-                long k = key(x, y);
-                if (cells.containsKey(k) || keepOpen.contains(k) || !open.at(x, y)) continue;
-                int ox = x == sl ? -1 : x == sr ? 1 : 0;
-                int oy = y == st ? -1 : y == sb ? 1 : 0;
-                String name = ox != 0 && oy != 0 ? "corner-" + letter(0, oy) + letter(ox, 0) : String.valueOf(letter(ox, oy));
-                if (registry.doodad("doodad.fort-sandbag-" + name) == null) continue;
-                step.add(new RedoubtWorks.Bag(x, y, "doodad.fort-sandbag-" + name));
-            }
+        for (long k : inside) {
+            int x = x(k), y = y(k);
+            if (keepOpen.contains(k) || !open.at(x, y)) continue;
+            int ox = 0, oy = 0;
+            if (solid(wall, cells, x - 1, y)) ox = -1;
+            else if (solid(wall, cells, x + 1, y)) ox = 1;
+            if (solid(wall, cells, x, y - 1)) oy = -1;
+            else if (solid(wall, cells, x, y + 1)) oy = 1;
+            if (ox == 0 && oy == 0) continue;
+            String name = ox != 0 && oy != 0 ? "corner-" + letter(0, oy) + letter(ox, 0) : String.valueOf(letter(ox, oy));
+            if (registry.doodad("doodad.fort-sandbag-" + name) == null) continue;
+            step.add(new RedoubtWorks.Bag(x, y, "doodad.fort-sandbag-" + name));
         }
+        if (step.isEmpty()) return null;
+        return new Plan(l, t, r, b, cells, guns, step, lamps, main[0], main[1]);
+    }
 
-        // Floodlights on tripods inside each corner, and one either side of the gate, all facing out.
-        List<NightLighting.Lamp> lamps = new ArrayList<>();
-        for (int[] corner : new int[][]{{l + 3, t + 3, -1, -1}, {r - 3, t + 3, 1, -1}, {l + 3, b - 3, -1, 1}, {r - 3, b - 3, 1, 1}}) {
-            lamps.add(floodlight(corner[0], corner[1], corner[2], corner[3]));
+    /** A gun tower on one flank of a gate: its gun on the line of the wall behind slits, a floodlight inside the other flank. */
+    private static void gunTower(List<int[]> crossing, int[] in, Set<Long> wall, Set<Long> inside, Open open,
+                                 Map<Long, Kind> cells, List<int[]> guns, List<NightLighting.Lamp> lamps) {
+        int ax = in[1] != 0 ? 1 : 0, ay = in[0] != 0 ? 1 : 0;
+        int[] first = crossing.get(0), last = crossing.get(crossing.size() - 1);
+        int[][] flanks = {{first[0] - ax * 2, first[1] - ay * 2}, {last[0] + ax * 2, last[1] + ay * 2}};
+        for (int f = 0; f < flanks.length; f++) {
+            int gx = flanks[f][0], gy = flanks[f][1];
+            if (!wall.contains(key(gx, gy))) continue;
+            boolean fits = true;
+            for (int dy = -1; dy <= 1 && fits; dy++) {
+                for (int dx = -1; dx <= 1 && fits; dx++) {
+                    long k = key(gx + dx, gy + dy);
+                    fits = !cells.containsKey(k) && (wall.contains(k) || open.at(gx + dx, gy + dy));
+                }
+            }
+            if (!fits) continue;
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dx = -1; dx <= 1; dx++) cells.put(key(gx + dx, gy + dy), dx == 0 && dy == 0 ? Kind.GUN : Kind.SLIT);
+            }
+            guns.add(new int[]{gx, gy});
+            int[] other = flanks[1 - f];
+            int lx = other[0] + in[0] * 2, ly = other[1] + in[1] * 2;
+            if (open.at(lx, ly) && inside.contains(key(lx, ly))) {
+                lamps.add(floodlight(lx, ly, -in[0], -in[1]));
+            }
+            return;
         }
-        for (int[] gun : guns) {
-            lamps.add(floodlight(gun[0] - side[0] * 3, gun[1] - side[1] * 3, side[0], side[1]));
-        }
-        return new Plan(l, t, r, b, cells, guns, step, lamps, gate[0], gate[1], -side[0], -side[1]);
     }
 
     private static NightLighting.Lamp floodlight(int x, int y, int outX, int outY) {
@@ -227,19 +279,26 @@ final class CivilDefenceCompound {
     }
 
     /**
-     * Raises the compound on the live map before the first tick, the way a
-     * generator raises a walled bed: panels are impassable, opaque wall at
-     * {@link #WALL_HP}, slits see-through, every face that meets open ground
-     * shown. Guns are seated by the caller on {@link Plan#guns()}.
+     * Dresses the wall on the live map before the first tick: towers are the
+     * wall's own panels, slits are panels that can be seen and shot through, a
+     * gun tower's centre is opened for its gun. Guns are seated by the caller
+     * on {@link Plan#guns()}.
      */
     static void lay(BattleSimulation sim, Plan plan) {
         NavigationGrid grid = sim.getGrid();
         CellTopology topology = sim.getTopology();
-        int surface = topology.surfaceIndex(WALL_SURFACE);
+        int surface = topology.surfaceIndex(InstallationWalls.PERIMETER);
         for (Map.Entry<Long, Kind> e : plan.cells().entrySet()) {
-            int x = (int) (e.getKey() >> 32), y = (int) (long) e.getKey();
-            topology.setGroundKind(x, y, GroundKind.STONE);
-            if (e.getValue() == Kind.GUN) continue;
+            int x = x(e.getKey()), y = y(e.getKey());
+            if (e.getValue() == Kind.GUN) {
+                grid.setWalkable(x, y, true);
+                grid.setSeeThrough(x, y, true);
+                grid.setWallHp(x, y, 0);
+                topology.setWall(x, y, false);
+                topology.setWindow(x, y, false);
+                topology.setGroundKind(x, y, CellTopology.GroundKind.STRIPED);
+                continue;
+            }
             grid.setWalkable(x, y, false);
             grid.setSeeThrough(x, y, e.getValue() == Kind.SLIT);
             grid.setDoorway(x, y, false);
@@ -247,24 +306,24 @@ final class CivilDefenceCompound {
             topology.setWall(x, y, true);
             topology.setWindow(x, y, e.getValue() == Kind.SLIT);
             topology.setSurface(x, y, surface);
+            topology.setGroundKind(x, y, CellTopology.GroundKind.STRIPED);
         }
         for (long k : plan.cells().keySet()) {
-            int x = (int) (k >> 32), y = (int) k;
-            if (!topology.isWall(x, y)) continue;
-            int mask = 0;
-            if (!wallAt(topology, x, y + 1)) mask |= CellTopology.WALL_DIR_N;
-            if (!wallAt(topology, x, y - 1)) mask |= CellTopology.WALL_DIR_S;
-            if (!wallAt(topology, x + 1, y)) mask |= CellTopology.WALL_DIR_E;
-            if (!wallAt(topology, x - 1, y)) mask |= CellTopology.WALL_DIR_W;
-            topology.setWallDirMask(x, y, mask);
-            for (int ny = y - 1; ny <= y + 1; ny++)
-                for (int nx = x - 1; nx <= x + 1; nx++) if (grid.inBounds(nx, ny)) grid.recomputeCoverAt(nx, ny);
-        }
-        // The gate: a striped apron through the wall, marked as the way in.
-        for (int k = 0; k < GATE_WIDTH; k++) {
-            int gx = plan.gateX() + (plan.inwardY() != 0 ? k : 0), gy = plan.gateY() + (plan.inwardX() != 0 ? k : 0);
-            grid.setDoorway(gx, gy, true);
-            topology.setGroundKind(gx, gy, GroundKind.STRIPED);
+            int cx = x(k), cy = y(k);
+            for (int y = cy - 1; y <= cy + 1; y++) {
+                for (int x = cx - 1; x <= cx + 1; x++) {
+                    if (!grid.inBounds(x, y)) continue;
+                    if (topology.isWall(x, y)) {
+                        int mask = 0;
+                        if (!wallAt(topology, x, y + 1)) mask |= CellTopology.WALL_DIR_N;
+                        if (!wallAt(topology, x, y - 1)) mask |= CellTopology.WALL_DIR_S;
+                        if (!wallAt(topology, x + 1, y)) mask |= CellTopology.WALL_DIR_E;
+                        if (!wallAt(topology, x - 1, y)) mask |= CellTopology.WALL_DIR_W;
+                        topology.setWallDirMask(x, y, mask);
+                    }
+                    grid.recomputeCoverAt(x, y);
+                }
+            }
         }
         TileRegistry registry = TileRegistry.installed();
         for (RedoubtWorks.Bag bag : plan.step()) {
@@ -281,70 +340,75 @@ final class CivilDefenceCompound {
         topology.setNightLighting(new NightLighting(night == null ? 0f : night.darkness(), lamps, powered));
     }
 
-    /** How many cells of the wall's line other buildings stand on. */
-    private static int crossings(BattleSimulation sim, Plan plan, PointOfInterest shelter) {
-        CellTopology topology = sim.getTopology();
-        int shelterBuilding = topology.getBuildingId(shelter.interiorAnchorX, shelter.interiorAnchorY);
-        int count = 0;
-        for (int y = plan.top(); y <= plan.bottom(); y++) {
-            for (int x = plan.left(); x <= plan.right(); x++) {
-                if (x != plan.left() && x != plan.right() && y != plan.top() && y != plan.bottom()) continue;
-                if (plan.cells().containsKey(key(x, y))) continue;
-                int building = topology.getBuildingId(x, y);
-                if (building != 0 && building != shelterBuilding) count += 1;
-                else if (!sim.getGrid().isWalkable(x, y) || topology.isWall(x, y)) count += 1;
-                else count += 3;
-            }
+    /** Whether an open cell lies across a gap in the wall along one axis, the gap no wider than a gate. */
+    private static boolean spans(Set<Long> wall, NavigationGrid grid, int x, int y, int dx, int dy) {
+        if (wall.contains(key(x + dy, y + dx)) || wall.contains(key(x - dy, y - dx))) return false;
+        int width = 1;
+        int a = 1;
+        while (!wall.contains(key(x - dx * a, y - dy * a))) {
+            if (!grid.inBounds(x - dx * a, y - dy * a) || !grid.isWalkable(x - dx * a, y - dy * a) || ++width > MAX_GATE) return false;
+            a++;
         }
-        return count;
-    }
-
-    private static boolean reaches(NavigationGrid grid, Plan plan, int doorX, int doorY) {
-        if (!grid.inBounds(doorX, doorY) || !grid.isWalkable(doorX, doorY)) return false;
-        ArrayDeque<int[]> queue = new ArrayDeque<>();
-        Set<Long> seen = new HashSet<>();
-        queue.add(new int[]{doorX, doorY});
-        seen.add(key(doorX, doorY));
-        while (!queue.isEmpty()) {
-            int[] c = queue.poll();
-            if (!plan.inside(c[0], c[1])) return !plan.cells().containsKey(key(c[0], c[1]));
-            for (int[] d : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
-                int nx = c[0] + d[0], ny = c[1] + d[1];
-                long k = key(nx, ny);
-                if (!grid.inBounds(nx, ny) || !grid.isWalkable(nx, ny) || plan.cells().containsKey(k) || !seen.add(k)) continue;
-                queue.add(new int[]{nx, ny});
-            }
-        }
-        return false;
-    }
-
-    private interface Open {
-        boolean at(int x, int y);
-    }
-
-    /** Open ground the works can stand on: walkable, no other building, no door, no prop, off the pads and the lift. */
-    private static boolean openGround(BattleSimulation sim, Set<Long> dressed, List<LandingPad> pads,
-                                      CivilianEvacuationPlacement placement, int shelterBuilding, int x, int y) {
-        NavigationGrid grid = sim.getGrid();
-        CellTopology topology = sim.getTopology();
-        if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || grid.isDoorway(x, y)) return false;
-        int building = topology.getBuildingId(x, y);
-        if (building != 0 || topology.isFixture(x, y) || topology.isWall(x, y) || dressed.contains(key(x, y))) return false;
-        int lift = CivilianEvacuationPlacement.LIFT_ZONE_RADIUS + 3;
-        if (Math.abs(x - placement.liftX) <= lift && Math.abs(y - placement.liftY) <= lift) return false;
-        if (pads != null) {
-            for (LandingPad pad : pads) {
-                if (Math.abs(x - pad.centerX) <= pad.halfWidth + 2 && Math.abs(y - pad.centerY) <= pad.halfHeight + 2) return false;
-            }
+        int b = 1;
+        while (!wall.contains(key(x + dx * b, y + dy * b))) {
+            if (!grid.inBounds(x + dx * b, y + dy * b) || !grid.isWalkable(x + dx * b, y + dy * b) || ++width > MAX_GATE) return false;
+            b++;
         }
         return true;
     }
 
-    private static int[] inward(int x, int y, int l, int t, int r, int b) {
-        if (x == l) return new int[]{1, 0};
-        if (x == r) return new int[]{-1, 0};
-        if (y == t) return new int[]{0, 1};
-        return new int[]{0, -1};
+    /** Gate cells grouped into crossings that touch the inside, each in order along the wall. */
+    private static List<List<int[]>> groups(Set<Long> gate, Set<Long> inside) {
+        List<List<int[]>> out = new ArrayList<>();
+        Set<Long> seen = new HashSet<>();
+        for (long start : gate) {
+            if (!seen.add(start)) continue;
+            List<int[]> group = new ArrayList<>();
+            ArrayDeque<Long> queue = new ArrayDeque<>();
+            queue.add(start);
+            while (!queue.isEmpty()) {
+                long k = queue.poll();
+                group.add(new int[]{x(k), y(k)});
+                for (int[] d : STEPS) {
+                    long n = key(x(k) + d[0], y(k) + d[1]);
+                    if (gate.contains(n) && seen.add(n)) queue.add(n);
+                }
+            }
+            if (group.stream().noneMatch(c -> inward(c, inside) != null)) continue;
+            group.sort((p, q) -> p[0] != q[0] ? Integer.compare(p[0], q[0]) : Integer.compare(p[1], q[1]));
+            out.add(group);
+        }
+        out.sort((p, q) -> p.get(0)[0] != q.get(0)[0] ? Integer.compare(p.get(0)[0], q.get(0)[0])
+                : Integer.compare(p.get(0)[1], q.get(0)[1]));
+        return out;
+    }
+
+    /** The step from a gate cell into the compound, or null. */
+    private static int[] inward(int[] cell, Set<Long> inside) {
+        for (int[] d : STEPS) if (inside.contains(key(cell[0] + d[0], cell[1] + d[1]))) return d;
+        return null;
+    }
+
+    private static boolean near(Map<Long, Kind> cells, int x, int y, int reach) {
+        for (int dy = -reach; dy <= reach; dy++)
+            for (int dx = -reach; dx <= reach; dx++) if (cells.containsKey(key(x + dx, y + dy))) return true;
+        return false;
+    }
+
+    private static boolean near(Set<Long> cells, int x, int y, int reach) {
+        for (int dy = -reach; dy <= reach; dy++)
+            for (int dx = -reach; dx <= reach; dx++) if (cells.contains(key(x + dx, y + dy))) return true;
+        return false;
+    }
+
+    private static boolean solid(Set<Long> wall, Map<Long, Kind> cells, int x, int y) {
+        long k = key(x, y);
+        Kind kind = cells.get(k);
+        return kind != null ? kind != Kind.GUN : wall.contains(k);
+    }
+
+    private interface Open {
+        boolean at(int x, int y);
     }
 
     private static boolean wallAt(CellTopology topology, int x, int y) {
@@ -367,7 +431,17 @@ final class CivilDefenceCompound {
         return dx > 0 ? 'e' : 'w';
     }
 
+    private static final int[][] STEPS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
     static long key(int x, int y) {
         return ((long) x << 32) | (y & 0xFFFFFFFFL);
+    }
+
+    private static int x(long k) {
+        return (int) (k >> 32);
+    }
+
+    private static int y(long k) {
+        return (int) k;
     }
 }

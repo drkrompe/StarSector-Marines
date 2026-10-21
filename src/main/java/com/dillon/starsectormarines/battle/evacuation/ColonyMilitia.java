@@ -381,10 +381,10 @@ public final class ColonyMilitia {
     }
 
     /**
-     * Raises the civil-defence compound round the shelter, the main redoubt:
-     * its wall, towers and gatehouse, the two gate guns, and a wall team on its
-     * firing step that falls back into the shelter once the wall is breached.
-     * Nothing is raised where it does not fit; the shelter then stands bare.
+     * Mans the civil-defence compound round the shelter, the main redoubt: the
+     * generated wall dressed with its towers, gate guns, slits, firing step and
+     * floodlights, and a wall team on the step that falls back into the shelter
+     * once the wall is breached. A shelter in no compound stands bare.
      */
     private static void raiseCompound(BattleSimulation sim, MapResult map, CivilianEvacuationPlacement placement,
                                       List<LandingPad> pads, RiskLevel risk, Random rng, List<Long> emplacements,
@@ -392,7 +392,7 @@ public final class ColonyMilitia {
         if (!CivilDefenceCompound.enabled()) return;
         PointOfInterest shelter = RescueShelterGarrison.selectedShelter(map.pointsOfInterest, placement);
         if (shelter == null) return;
-        CivilDefenceCompound.Plan compound = CivilDefenceCompound.plan(sim, shelter, placement, pads);
+        CivilDefenceCompound.Plan compound = CivilDefenceCompound.plan(sim, shelter, placement);
         if (compound == null) return;
         CivilDefenceCompound.lay(sim, compound);
         for (int[] gun : compound.guns()) {
