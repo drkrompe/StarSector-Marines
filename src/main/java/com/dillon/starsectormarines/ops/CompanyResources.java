@@ -12,7 +12,7 @@ public final class CompanyResources {
     private CompanyResources() { }
 
     public static String number(long amount) {
-        return NumberFormat.getIntegerInstance(Locale.getDefault()).format(Math.max(0, amount));
+        return NumberFormat.getIntegerInstance(Strings.locale()).format(Math.max(0, amount));
     }
 
     public static Row stock(String id, String name, String icon, long available) {

@@ -259,6 +259,7 @@ def slew(bench):
     bench.camera((95, -60, 45), (60, 50, 15), 30)
 
 
+
 TESTS = {
     'survey': dict(builds=SURVEY_BUILDS, frames=[1], note='mount survey (check only)', setup=survey),
     'train': dict(builds=['lasher'], frames=[6, 12, 18, 24], setup=train,

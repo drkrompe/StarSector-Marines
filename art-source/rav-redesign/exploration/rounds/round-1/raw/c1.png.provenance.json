@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fad-8b1d-7460-b4ad-63c767464faa",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fad-8b1d-7460-b4ad-63c767464faa\\exec-b5859345-a22a-4b52-b30c-ef601fd86f4a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "rounds\\round-1\\raw\\c1.png",
+    "sha256": "3187c56fdf3b4b3a6ed484337c495beb66e2f6381fe7f9df743278f559c145a5",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "rounds\\round-1\\prompts\\c1.prompt.txt",
+  "promptSha256": "0fa78190654eeea209138cf80fc33d1d012c3a06327742518731108dc5380bc9",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Camera, lighting, rendering finish and palette reference only: strictly overhead, the same lacquered brown and cream chitin; do NOT copy its anatomy or layout\n\nTop-down concept for a tactical game (Starsector mod: Marines against an engineered biological weapon). ONE creature, the Runner: the swarm's fast hunter, a cross between a LOCUST and a DOG. Strict overhead orthographic view, camera looking straight down at its back, creature facing UP (head toward the top of the image), centred, filling about two thirds of the frame. A dog's four-legged frame read from above: deep chest and shoulders, narrow waist, haunches, legs in a mid-stride lope, head carried forward. Locust anatomy on that frame: a saddle-shaped pronotum shield over the shoulders, big compound eyes, mandibles, a segmented abdomen behind, powerful locust jumping hind legs folded at the haunches. Its weapon is on TOP of the body: jointed striking spikes mounted on the back that arch forward over the head, shown cocked and poised to stab down past the head. Material: hard lacquered chitin in near-black walnut and dark brown, every plate edge, suture and joint membrane picked out in pale cream bone, a crisp lacquer sheen on the light side, light from the upper left; the only accent is small amber in the compound eyes. No red, nothing wet, not a robot. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border, no other creatures.\n\nThis concept: Twin scorpion lances: two long slender spikes of four segments each rise from the rear corners of the pronotum, curve up over the back and forward in parallel arcs so their cream-tipped points hang just ahead of the head. Greyhound-lean body, long legs, long tapering abdomen. Mostly dark with cream suture bands across each abdomen segment.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "raw\\plate-D1.png",
+      "sha256": "344411fd9f887180cf1b7f7d13a54a0a73b4bf07d49d09295bd1f050e6016eff",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Camera, lighting, rendering finish and palette reference only: strictly overhead, the same lacquered brown and cream chitin; do NOT copy its anatomy or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one overhead Runner concept using the reference’s palette and finish."
+  ],
+  "usage": {
+    "input_tokens": 41429,
+    "cached_input_tokens": 35328,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 562,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 48.6
+}

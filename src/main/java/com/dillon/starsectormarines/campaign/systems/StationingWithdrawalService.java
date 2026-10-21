@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign.systems;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractReputation;
@@ -53,7 +54,7 @@ public final class StationingWithdrawalService {
         if (captain != null && captain.status() == Status.GARRISONED) {
             captain.setStatus(Status.ACTIVE);
             captain.commendations().add("Day " + day + ": Withdrawn early from "
-                    + type.name().toLowerCase() + " duty.");
+                    + type.name().toLowerCase(Strings.locale()) + " duty.");
         }
         state.contractMarinesCommitted[row] = 0;
         state.contractCaptainId[row] = -1;

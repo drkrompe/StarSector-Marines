@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
@@ -202,14 +203,14 @@ public final class WaterUnderSealSequence implements Objective {
     public boolean isComplete() { return progress.phase() == Phase.COMPLETE; }
     public boolean isFailed() { return progress.phase() == Phase.FAILED; }
     public String displayName() { return switch (progress.phase()) {
-        case ESCORT -> "Escort the repair load to the isolation switch";
-        case NORTH_ROOM -> "Protect reconnection inside the north switching room";
-        case SOUTH_ROOM -> "Protect reconnection inside the south switching room";
-        case CONSTRUCTION -> progress.positionLost() ? "Replace the destroyed road gun using surviving committed tender support"
-                : "Call the selected tender; build a road gun at the maintenance road";
-        case ATTACK -> "Defend the road gun until Edek confirms handover";
-        case COMPLETE -> "North Weir reconnected and defensive position handed over";
-        case FAILED -> constructionExhausted ? "Construction support exhausted; withdraw for a new mobilization"
-                : "North Weir mobilization lost; replacement load and technicians required";
+        case ESCORT -> Strings.get("waterUnderSealEscort");
+        case NORTH_ROOM -> Strings.get("waterUnderSealNorthRoom");
+        case SOUTH_ROOM -> Strings.get("waterUnderSealSouthRoom");
+        case CONSTRUCTION -> progress.positionLost() ? Strings.get("waterUnderSealConstructionRebuild")
+                : Strings.get("waterUnderSealConstruction");
+        case ATTACK -> Strings.get("waterUnderSealAttack");
+        case COMPLETE -> Strings.get("waterUnderSealComplete");
+        case FAILED -> constructionExhausted ? Strings.get("waterUnderSealFailedExhausted")
+                : Strings.get("waterUnderSealFailed");
     }; }
 }

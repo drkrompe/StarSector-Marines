@@ -486,6 +486,30 @@ public final class CommandTraceRecorder {
             field(out, "reason", intent.reason());
             out.append('}');
         }
+        out.append(']');
+        booleanField(out, "boreSourcing", snapshot.boreSourcing());
+        out.append(",\"bores\":[");
+        for (int i = 0; i < snapshot.bores().size(); i++) {
+            if (i > 0) out.append(',');
+            SwarmPressureSnapshot.BoreState bore = snapshot.bores().get(i);
+            out.append('{');
+            rawField(out, "bore", bore.key());
+            numberField(out, "x", bore.x());
+            numberField(out, "y", bore.y());
+            field(out, "tier", bore.tier().name());
+            booleanField(out, "alive", bore.alive());
+            floatField(out, "integrity", bore.integrity());
+            floatField(out, "growth", bore.growth());
+            floatField(out, "biomassFed", bore.biomassFed());
+            numberField(out, "feeds", bore.feeds());
+            numberField(out, "surges", bore.surges());
+            numberField(out, "bodiesSpawned", bore.bodiesSpawned());
+            numberField(out, "sporeColonies", bore.sporeColonies());
+            numberField(out, "nextSurgeTick", bore.nextSurgeTick());
+            numberField(out, "eruptedTick", bore.eruptedTick());
+            numberField(out, "collapsedTick", bore.collapsedTick());
+            out.append('}');
+        }
         out.append("]}");
         appendLine(out.toString());
     }

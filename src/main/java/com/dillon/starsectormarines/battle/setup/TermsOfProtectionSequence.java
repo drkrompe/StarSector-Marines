@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.TermsOfProtectionCommand;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -307,16 +308,16 @@ public final class TermsOfProtectionSequence implements Objective {
     public boolean isComplete() { return progress.phase() == Phase.COMPLETE; }
     public boolean isFailed() { return progress.phase() == Phase.FAILED; }
     public String displayName() { return switch (progress.phase()) {
-        case ESCORT -> "Escort the custody party to the dispatch handover bay";
-        case SIGNING -> "Hold dispatch while the representatives sign at the handover bay";
-        case COMMISSIONING -> "Protect the tooling hall while a technician commissions the captured rig tooling";
-        case DEFENCE -> "Resolve Berth Four's committed assaults; keep a representative at dispatch to ratify";
-        case COMPLETE -> "Handover ratified at Latchkey dispatch";
+        case ESCORT -> Strings.get("termsOfProtectionEscort");
+        case SIGNING -> Strings.get("termsOfProtectionSigning");
+        case COMMISSIONING -> Strings.get("termsOfProtectionCommissioning");
+        case DEFENCE -> Strings.get("termsOfProtectionDefence");
+        case COMPLETE -> Strings.get("termsOfProtectionComplete");
         case FAILED -> switch (progress.failure()) {
-            case REPRESENTATIVES_LOST -> "Every custody representative lost; a new mobilization is required";
-            case CARRIER_LOST -> "Custody records carrier lost; a new mobilization is required";
-            case TECHNICIANS_LOST -> "Every technician lost before commissioning; a new mobilization is required";
-            default -> "Handover not ratified; replenish for a new mobilization";
+            case REPRESENTATIVES_LOST -> Strings.get("termsOfProtectionRepresentativesLost");
+            case CARRIER_LOST -> Strings.get("termsOfProtectionCarrierLost");
+            case TECHNICIANS_LOST -> Strings.get("termsOfProtectionTechniciansLost");
+            default -> Strings.get("termsOfProtectionFailed");
         };
     }; }
 }

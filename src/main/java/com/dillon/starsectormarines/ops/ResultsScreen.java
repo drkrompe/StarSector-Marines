@@ -206,8 +206,8 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             props.put("storyClasses", "story-dispatch console-readout");
             props.put("storyPortrait", OpeningBroker.PORTRAIT);
             props.put("storySender", OpeningBroker.NAME + " / WAYLINE");
-            props.put("storyProgress", CorvusWaylineCampaign.TITLE + (outcome.victory ? " / CHAPTER COMPLETE" : " / RETRY AVAILABLE"));
-            props.put("storyMessage", outcome.victory ? corvus.debrief + (outcome.marinesLost > 0 ? " Your company paid for this in lives. The achievement does not cancel that cost." : "")
+            props.put("storyProgress", CorvusWaylineCampaign.title() + (outcome.victory ? " / CHAPTER COMPLETE" : " / RETRY AVAILABLE"));
+            props.put("storyMessage", outcome.victory ? corvus.debrief() + (outcome.marinesLost > 0 ? " Your company paid for this in lives. The achievement does not cancel that cost." : "")
                     : "The objective remains unresolved. Bring the company home and refit before trying again. No contract payment; confirmed losses remain on record.");
         }
         if (outcome != null && SupplyRouteCampaign.owns(outcome.missionId)) {
@@ -233,7 +233,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             var letterhead = DistrictEscortCampaign.Letterhead.of(agreement);
             props.put("storyClasses", "story-dispatch console-readout");
             props.put("storyPortrait", OpeningBroker.CREST);
-            props.put("storySender", letterhead.sender);
+            props.put("storySender", letterhead.sender());
             props.put("storyProgress", "RECURRING WORK / DISTRICT ESCORT");
             var r = outcome.districtEscort;
             props.put("storyMessage", DistrictEscortCampaign.debrief(outcome, agreement)
