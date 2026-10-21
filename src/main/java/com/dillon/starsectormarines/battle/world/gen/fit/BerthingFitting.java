@@ -32,8 +32,17 @@ import java.util.List;
  */
 public final class BerthingFitting implements RoomFitting {
 
-    /** Cells one rack takes, head to foot. A bunk is two metres of somebody. */
+    /**
+     * Cells one rack takes, head to foot, on the ground: the residential beds
+     * there are two cells long.
+     */
     private static final int RACK_DEPTH = 2;
+    /**
+     * Cells a shipboard bunk takes, head to foot. A cell is about 0.75 m, so a
+     * bunk is 2.25 m of frame round a two-metre mattress: what a crewman of 1.8 m
+     * actually lies in. Two cells was a metre and a half and nobody fitted.
+     */
+    private static final int SHIP_RACK_DEPTH = 3;
     /** Clear deck between the ranks. Two abreast, as everywhere else. */
     private static final int AISLE = 2;
 
@@ -127,15 +136,21 @@ public final class BerthingFitting implements RoomFitting {
         return Hookup.DoorSlot.run(along, -1, 2, 1);
     }
 
+    /** Cells this fitting's racks take, head to foot. */
+    private int rackDepth() {
+        return shipboard ? SHIP_RACK_DEPTH : RACK_DEPTH;
+    }
+
     @Override
     public void fit(RoomFloor floor) {
         int along = floor.canonicalWidth();
         int across = floor.canonicalHeight();
-        if (along < 1 || across < RACK_DEPTH + AISLE) return;
+        int depth = rackDepth();
+        if (along < 1 || across < depth + AISLE) return;
 
-        boolean facingRanks = across >= 2 * RACK_DEPTH + AISLE;
-        int aisleFrom = RACK_DEPTH;
-        int aisleSpan = across - (facingRanks ? 2 * RACK_DEPTH : RACK_DEPTH);
+        boolean facingRanks = across >= 2 * depth + AISLE;
+        int aisleFrom = depth;
+        int aisleSpan = across - (facingRanks ? 2 * depth : depth);
 
         // The passage is reserved before a single rack goes down, so what the
         // ranks get is what is left over rather than the other way round.
@@ -147,7 +162,7 @@ public final class BerthingFitting implements RoomFitting {
 
         layRank(floor, along, 0, true, nearTaken, true);
         if (facingRanks) {
-            layRank(floor, along, across - RACK_DEPTH, false, farTaken, false);
+            layRank(floor, along, across - depth, false, farTaken, false);
         }
     }
 
@@ -190,8 +205,9 @@ public final class BerthingFitting implements RoomFitting {
      */
     private void layRank(RoomFloor floor, int along, int band,
                          boolean headOutboard, boolean[] taken, boolean doorSide) {
-        int outboard = headOutboard ? band : band + RACK_DEPTH - 1;
-        int inboard = headOutboard ? band + RACK_DEPTH - 1 : band;
+        int depth = rackDepth();
+        int outboard = headOutboard ? band : band + depth - 1;
+        int inboard = headOutboard ? band + depth - 1 : band;
         // The head points at the bulkhead the rank backs onto. Chosen on the
         // deck, not in the frame: a compass-named sprite cannot be turned with
         // the room, so a rank that is athwartships once the berth is quarter
@@ -203,15 +219,21 @@ public final class BerthingFitting implements RoomFitting {
         for (int slot = 0; slot < along; slot++) {
             if (taken[slot]) continue;
             if (shipboard) {
+                // A bunk is worked from the passage at its foot. A locker bank is
+                // a cell shorter than a bunk, so it stands against the hull and is
+                // opened from the alcove that leaves between the bunks either side.
                 boolean storage = doorSide ? slot == 0 || slot == along - 1 : slot == divider;
-                int standingRow = headOutboard ? band + RACK_DEPTH : band - 1;
+                int standingRow = storage ? (headOutboard ? band + depth - 1 : band)
+                        : headOutboard ? band + depth : band - 1;
+                int fixtureRow = storage ? (headOutboard ? band + depth - 2 : band + 1) : inboard;
+                int baseRow = storage && !headOutboard ? band + 1 : band;
                 String id = storage ? (doorSide ? "locker" : "locker-open") : "bed";
                 List<LayoutOp.Layer> layers = storage ? List.of() : List.of(
                         new LayoutOp.Layer(0, 0, SHIP_KIT + (headOutboard ? "bedding-low" : "bedding-high")),
                         new LayoutOp.Layer(0, 0, SHIP_KIT + "frame"));
-                if (floor.placeAssembly(slot, band, SHIP_KIT + id, layers)) {
+                if (floor.placeAssembly(slot, baseRow, SHIP_KIT + id, layers)) {
                     int[] stand = floor.toLocal(slot, standingRow);
-                    int[] fixture = floor.toLocal(slot, inboard);
+                    int[] fixture = floor.toLocal(slot, fixtureRow);
                     floor.fixtureTask(stand[0], stand[1], storage ? Affordance.STOW : Affordance.REST,
                             fixture[0], fixture[1]);
                 }
