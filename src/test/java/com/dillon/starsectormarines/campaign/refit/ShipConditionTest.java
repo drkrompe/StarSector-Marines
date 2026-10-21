@@ -149,7 +149,10 @@ class ShipConditionTest {
         assertEquals(0.90f, start.with(RefitTrack.HYDROPONICS, RefitBand.IMPROVED_II).suppliesPerMonthMult());
         assertEquals(20, start.with(RefitTrack.HOLDS, RefitBand.IMPROVED_I).cargoBonus());
         assertEquals(40, start.with(RefitTrack.HOLDS, RefitBand.IMPROVED_II).cargoBonus());
-        assertEquals(RefitBand.RESTORED, RefitOrder.ceiling(RefitTrack.BRIEFING), "plot table and holo-tank wait on a hook");
+        assertEquals(RefitBand.IMPROVED_II, RefitOrder.ceiling(RefitTrack.BRIEFING));
+        assertFalse(ShipCondition.NONE.garrisonIntel(), "another hull has no holo-tank");
+        assertFalse(start.with(RefitTrack.BRIEFING, RefitBand.IMPROVED_I).garrisonIntel(), "the plot table shows no garrison");
+        assertTrue(start.with(RefitTrack.BRIEFING, RefitBand.IMPROVED_II).garrisonIntel());
     }
 
     @Test void roomlessFacilitiesNeedTwoCoresAndTheirTopTierThree() {

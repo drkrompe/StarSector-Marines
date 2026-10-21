@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.refit.RefitText;
+import com.dillon.starsectormarines.campaign.refit.ShipCondition;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.campaign.start.SecondWindKeeper;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
@@ -599,9 +600,23 @@ public class BriefingScreen implements Screen {
         if (hostileShip != null) {
             rows.add(BriefingViewModel.info("hostile-ship", Strings.get("briefingHostileShip"), hostileShip, ""));
         }
-        String ship = mission.source.isDebug() ? null : RefitText.briefingLine(ShipRefits.aboard());
+        ShipCondition home = mission.source.isDebug() ? ShipCondition.NONE : ShipRefits.aboard();
+        String ship = RefitText.briefingLine(home);
         if (ship != null) rows.add(BriefingViewModel.info("ship-condition", Strings.get("openingRefitBriefingLabel"), ship, ""));
+        GarrisonIntel garrison = home.garrisonIntel() ? garrisonIntel(mission) : null;
+        if (garrison != null) rows.add(BriefingViewModel.info("garrison-intel",
+                Strings.get("briefingGarrisonIntelLabel"), garrison.line(), ""));
         return List.copyOf(rows);
+    }
+
+    /** The holo-tank's read, or null where the mission's defenders are its own or the world cannot be read. */
+    private GarrisonIntel garrisonIntel(Mission mission) {
+        try {
+            return MissionLaunch.garrisonIntel(ctx, launchMission(mission));
+        } catch (RuntimeException failure) {
+            LOG.warn("Briefing garrison intel could not be read", failure);
+            return null;
+        }
     }
 
     private List<BriefingViewModel.ChoiceRow> retainedCaptainRows(Mission mission) {

@@ -1,8 +1,8 @@
 # Second Wind refit tree
 
-Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Mech Lab tracks and their mech passives, the Ship Systems tree and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review. Each reserve is furnished and opened by its facility track; the range, gym, sick bay and lounge carry passives through both Improved tiers. Hydroponics, the wardroom, the briefing room and the holds are tracks fitted into existing rooms, with their supplies, officer-XP and cargo passives. The brig's improvements, the briefing room's plot table and holo-tank, and Improved-tier dressing are not built.
+Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Mech Lab tracks and their mech passives, the Ship Systems tree and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review. Each reserve is furnished and opened by its facility track; the range, gym, sick bay and lounge carry passives through both Improved tiers. Hydroponics, the wardroom, the briefing room and the holds are tracks fitted into existing rooms, with their supplies, officer-XP, cargo and garrison-intel passives. The brig's improvements, the plot table's own battle passive, Improved-tier dressing (the Mech Lab's included) and the vehicle bay's passives are not built.
 Written: 2026-10-20
-Updated: 2026-10-21 — the reserved facilities' passives and Improved tiers, the facilities that take no new compartment, and the Mech Lab's tracks; the brig waits on contract intel.
+Updated: 2026-10-21 — the reserved facilities' passives and Improved tiers; the briefing room's holo-tank shows the garrison; the brig waits on contract intel.
 
 The Engineering tab today sells a short list of one-off yard orders: the
 workshop chain (750 / 3,000 / 4,500), the second bay (8,000), three Mech Lab
@@ -108,7 +108,7 @@ cluster, the workshop to cut plate):
 | Mech field repair R / I / II | Fabrication R + Power R / Fabrication I + Compute R (diagnostics) / Fabrication I + Structure R + Compute I |
 | Hydroponics R / I / II | Life support R + Power R (water feed, grow lights) / Power I + Life support R / Life support R + Power I + Compute I (climate control) |
 | Wardroom R / I / II | Life support R + Structure R / Compute R (war-game console) + Life support R / Compute I + Power I + Life support R |
-| Briefing room R | Compute R + Power R (the screen) |
+| Briefing room R / I / II | Compute R + Power R (the screen) / Compute R + Structure R (the table's frame) / Compute I + Power I + Life support R (the tank, run off the processing cluster) |
 | Holds R / I / II | Structure R + Power R / Structure R + Fabrication R (racking) / Structure R + Fabrication I + Power I (bonded stores' climate) |
 
 Power restored, Structure restored and the mess's opening order need nothing:
@@ -346,10 +346,22 @@ changes no compartment's state. Their passives:
   the way the scrubbers' wound day is. The briefing names it once it pays.
 - **Holds** wins back cargo the conversion took (+20, +40), also through the
   hull mod.
-- **Briefing room** sells only its Restored tier. The holo-tank's intel would
-  be the defender headcount, which is decided at launch from the mission's
-  own target profile and nowhere earlier, and the plot table is a battle
-  passive no seat carries; both stay *not yet offered* until those exist.
+- **Briefing room**: the **holo-tank** (Improved II) shows the briefing the
+  garrison the operation will face: every defender on the ground, the regulars
+  and militia among them, and the most mechs it can field. The headcount is the
+  battle's own. Launch and the briefing resolve the mission's target profile
+  through one function (`MissionLaunch.targetProfile`), and the estimate is
+  `DefenderRoster.forMission` over that profile with nothing held back. The
+  total depends only on type, tier, risk and the market's garrison. Mechs are
+  priced against the committed landing, so the briefing says *up to*; a mech
+  the landing does not draw is fielded as infantry, which makes the regulars
+  and militia shown the least of each. It is read when the briefing is drawn,
+  like the scrubbers' wound day, and only where the defenders are derived from
+  the mission. Debug missions and scripted battles that bring their own force
+  (the opening operations, the story arcs, the supply route, the silent colony
+  and the civilian rescue) show nothing. The **plot table** (Improved I) is sold
+  as the tank's mount and changes nothing in battle yet: its passive, a faster
+  first action against a new threat, needs a reaction axis no seat carries.
 - **Boat bay services** is not a track yet: a boat grounded in battle has no
   timed recovery to shorten, and the deck crane's discount needs the boat
   bill to read the condition record.
