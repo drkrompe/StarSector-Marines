@@ -80,8 +80,13 @@ final class SwarmBruteBehavior {
         if (distance <= reach) {
             sim.clearPath(brute);
             if (sim.combat().cooldownTimer(brute) <= 0f) {
-                sim.applyDamage(target, brute, sim.combat().attackDamage(brute), MELEE_PENETRATION,
-                        sim.identity().type(brute).moraleImpact);
+                if (BruteChargeSystem.trampling() && BruteChargeSystem.kind(target, sim) == BruteChargeRules.Kind.INFANTRY) {
+                    // On infantry the blow is a trample: rear, and come down on them with the whole body.
+                    sim.bruteCharges().trample(brute, target);
+                } else {
+                    sim.applyDamage(target, brute, sim.combat().attackDamage(brute), MELEE_PENETRATION,
+                            sim.identity().type(brute).moraleImpact);
+                }
                 sim.swarmCues().post(SwarmCues.Kind.STRIKE, brute, sim);
                 sim.combat().setCooldownTimer(brute, sim.combat().attackCooldown(brute));
             }

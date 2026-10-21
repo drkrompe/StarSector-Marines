@@ -465,6 +465,34 @@ public enum VehicleType {
         return Weight.LIGHT;
     }
 
+    /**
+     * Mass in tonnes, for a body running into the hull ({@link HullImpact}): a pickup or a hover hull is
+     * about a Brute's weight, an APC several times it, a gun tank many.
+     */
+    public float massTonnes() {
+        if (isHover()) return 1.5f;
+        return switch (weight()) {
+            case LIGHT -> 2.5f;
+            case MEDIUM -> 12f;
+            case HEAVY -> 45f;
+        };
+    }
+
+    /**
+     * How hard the ground holds the hull against a slide, as decelerations in cells a second squared: along
+     * the hull, where a wheel rolls and a track does not, and across it, where both scrub. A hover hull
+     * barely touches the ground either way.
+     */
+    public float gripAlong() {
+        if (isHover()) return .8f;
+        return hasAnimatedTreads() ? 5f : 1.5f;
+    }
+
+    public float gripAcross() {
+        if (isHover()) return .8f;
+        return hasAnimatedTreads() ? 7f : 6f;
+    }
+
     /** Only exposed tire/track tops scroll; covered technical/hauler wheels stay hidden. */
     public boolean hasAnimatedTreads() { return isApc() || isTank(); }
 
