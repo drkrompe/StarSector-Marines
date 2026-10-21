@@ -35,7 +35,11 @@ public record SabotageDefenseSnapshot(
         GARRISONABLE_ROOMS,
         GARRISONABLE_GUARD,
         GARRISONABLE_STAGE,
-        GARRISONABLE_FORWARD
+        GARRISONABLE_FORWARD,
+        COUNTERATTACK_RESERVE,
+        COUNTERATTACK_PROBE,
+        COUNTERATTACK_MUSTER,
+        COUNTERATTACK_LAUNCHED
     }
 
     public record SiteState(

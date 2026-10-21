@@ -28,6 +28,7 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
     private final Set<Integer> initialMobileSquads = new TreeSet<>();
     private volatile RaidCommandSnapshot raidSnapshot;
     private final MissionGarrisons garrisons = new MissionGarrisons();
+    private final MissionCounterattack counter = new MissionCounterattack();
 
     public RaidDefenderCommand(Set<Integer> mobileSquadIds) {
         if (mobileSquadIds != null) initialMobileSquads.addAll(mobileSquadIds);
@@ -36,12 +37,17 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
     public RaidCommandSnapshot raidSnapshot() { return raidSnapshot; }
     @Override public Faction faction() { return Faction.DEFENDER; }
     @Override public String strategyId() { return "raid-defender"; }
-    @Override public void afterCommit(CommandEffects effects) { garrisons.afterCommit(effects, faction()); }
+    @Override public void afterCommit(CommandEffects effects) {
+        garrisons.afterCommit(effects, faction());
+        counter.afterCommit(effects, strategyId());
+    }
     @Override public Map<String, Integer> reactiveDefenceFigures() { return ReactiveDefenceSource.figures(garrisons); }
 
     @Override
     public CommandPlan<RaidCommandSnapshot> plan(RaidDefenderCommandFrame frame) {
         RaidDefenderCommandFacts facts = frame.facts();
+        boolean countering = MissionCounterattack.enabled();
+        Set<Integer> claimed = countering ? counter.claimed() : Set.of();
         List<CommandSquadState> pool = frame.squads().stream()
                 .filter(squad -> squad.aliveMembers() > 0)
                 .filter(squad -> initialMobileSquads.contains(squad.squadId())
@@ -50,6 +56,7 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
                 .filter(squad -> squad.directive() == null
                         || squad.directive().authority().priority()
                         <= CommandAuthority.MISSION_COMMAND.priority())
+                .filter(squad -> !claimed.contains(squad.squadId()))
                 .sorted(Comparator.comparingInt(squad -> frame.topology().routeLength(
                         squad.anchorCellX(), squad.anchorCellY(),
                         facts.targetCellX(), facts.targetCellY())))
@@ -60,8 +67,14 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
         List<CommandProposal> proposals = new ArrayList<>();
         List<SquadIntent> intents = new ArrayList<>();
         Map<Integer, MissionGarrisons.Offer> offers = new TreeMap<>();
+        List<CommandSquadState> members = new ArrayList<>();
+        List<CommandSquadState> reserve = new ArrayList<>();
         for (CommandSquadState squad : frame.squads()) {
             if (squad.aliveMembers() <= 0) continue;
+            if (claimed.contains(squad.squadId()) && ownedByStrategy(squad)) {
+                members.add(squad);
+                continue;
+            }
             int index = pool.indexOf(squad);
             if (index < 0) {
                 intents.add(new SquadIntent(squad.squadId(), "AUTHORED_POST",
@@ -75,6 +88,7 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
                 intents.add(new SquadIntent(squad.squadId(), "RESERVE",
                         "MOBILE_RESERVE_HELD", null, -1, -1));
                 offers.put(squad.squadId(), MissionGarrisons.Offer.reserve());
+                reserve.add(squad);
                 continue;
             }
             int[] rally = rally(squad, index, facts, frame);
@@ -99,6 +113,21 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
                     assignment.kind(), rally[0], rally[1]));
             offers.put(squad.squadId(), MissionGarrisons.Offer.duty(rally[0], rally[1]));
         }
+        MissionCounterattack.Result retake = countering
+                ? counter.plan(frame.tick(), sites(facts, frame), members, reserve,
+                pool.size() + members.size(), frame.squads(), frame.influence(), frame.topology())
+                : MissionCounterattack.Result.NONE;
+        proposals = MissionCounterattack.apply(proposals, retake, frame.squads());
+        offers = MissionCounterattack.offers(offers, retake);
+        intents.removeIf(intent -> retake.duties().containsKey(intent.squadId()));
+        for (Map.Entry<Integer, MissionCounterattack.Duty> duty : retake.duties().entrySet()) {
+            ObjectiveAssignment order = duty.getValue().assignment();
+            intents.add(new SquadIntent(duty.getKey(), "COUNTERATTACK", duty.getValue().reason(),
+                    order.kind(), order.targetCellX(), order.targetCellY()));
+        }
+        for (int id : retake.released()) {
+            intents.add(new SquadIntent(id, "RESERVE", MissionCounterattack.RELEASED_REASON, null, -1, -1));
+        }
         Map<Integer, MissionGarrisons.Manning> manning = garrisons.plan(frame,
                 frame.garrisonables(), offers, strategyId());
         if (!manning.isEmpty()) {
@@ -119,11 +148,29 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
                 facts.targetCellX(), facts.targetCellY(), facts.targetZoneId(),
                 -1, -1, 0f, 0f, facts.targetSecured(), facts.alarmActive(),
                 facts.alarmRaisedTick(), intents);
+        List<String> objectives = new ArrayList<>();
+        objectives.add(facts.targetName() + "=" + phase.toLowerCase());
+        objectives.addAll(retake.notes());
         return new CommandPlan<>(faction(), strategyId(), phase, frame.tick(),
                 frame.influence() != null ? frame.influence().updatedTick() : -1,
-                pool.size(), pool.size() - assigned,
-                List.of(facts.targetName() + "=" + phase.toLowerCase()),
-                proposals, detail);
+                pool.size() + members.size(), pool.size() - assigned,
+                objectives, proposals, detail);
+    }
+
+    /**
+     * The places that matter to a Raid: the target and the key buildings beside it, until the target is seized. Once the
+     * package is gone, nothing here is worth retaking.
+     */
+    private static List<MissionPlaces.Site> sites(RaidDefenderCommandFacts facts, RaidDefenderCommandFrame frame) {
+        if (facts.targetSecured()) return List.of();
+        return MissionPlaces.around(List.of(MissionPlaces.objective("target " + facts.targetId(),
+                facts.targetCellX(), facts.targetCellY(), frame.keyBuildings())), frame.keyBuildings());
+    }
+
+    private boolean ownedByStrategy(CommandSquadState squad) {
+        CommandDirective directive = squad.directive();
+        return directive != null && strategyId().equals(directive.issuer())
+                && directive.authority().priority() <= CommandAuthority.MISSION_COMMAND.priority();
     }
 
     @Override

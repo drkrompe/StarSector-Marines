@@ -52,6 +52,7 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
     private final Set<Integer> initialMobileSquads = new TreeSet<>();
     private volatile ExtractionDefenseSnapshot defenseSnapshot;
     private final MissionGarrisons garrisons = new MissionGarrisons();
+    private final MissionCounterattack counter = new MissionCounterattack();
 
     public ExtractionDefenderCommand(Set<Integer> mobileSquadIds) {
         if (mobileSquadIds != null) initialMobileSquads.addAll(mobileSquadIds);
@@ -63,13 +64,19 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
 
     @Override public Faction faction() { return Faction.DEFENDER; }
     @Override public String strategyId() { return "extraction-defender"; }
-    @Override public void afterCommit(CommandEffects effects) { garrisons.afterCommit(effects, faction()); }
+    @Override public void afterCommit(CommandEffects effects) {
+        garrisons.afterCommit(effects, faction());
+        counter.afterCommit(effects, strategyId());
+    }
     @Override public Map<String, Integer> reactiveDefenceFigures() { return ReactiveDefenceSource.figures(garrisons); }
 
     @Override
     public CommandPlan<ExtractionDefenseSnapshot> plan(
             ExtractionDefenderCommandFrame frame) {
         ExtractionObjectiveFacts payload = frame.facts().payload();
+        boolean terminal = payload.complete() || payload.failed();
+        boolean countering = MissionCounterattack.enabled() && !terminal;
+        Set<Integer> claimed = countering ? counter.claimed() : Set.of();
         List<CommandSquadState> pool = frame.squads().stream()
                 .filter(squad -> squad.aliveMembers() > 0)
                 .filter(squad -> initialMobileSquads.contains(squad.squadId())
@@ -78,6 +85,7 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
                         || strategyOwned(squad.directive())
                         || squad.directive().authority().priority()
                         <= CommandAuthority.MISSION_COMMAND.priority())
+                .filter(squad -> !claimed.contains(squad.squadId()))
                 .sorted(Comparator
                         .comparingInt((CommandSquadState squad) ->
                                 frame.topology().routeLength(
@@ -86,7 +94,6 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
                                         payload.sourceCellY()))
                         .thenComparingInt(CommandSquadState::squadId))
                 .toList();
-        boolean terminal = payload.complete() || payload.failed();
         int assigned = terminal ? 0 : payload.alarmActive()
                 ? Math.min(ALARM_RESPONSE_LIMIT, pool.size())
                 : Math.min(1, pool.size());
@@ -100,8 +107,14 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
         List<CommandProposal> proposals = new ArrayList<>();
         List<SquadIntent> intents = new ArrayList<>();
         Map<Integer, MissionGarrisons.Offer> offers = new TreeMap<>();
+        List<CommandSquadState> members = new ArrayList<>();
+        List<CommandSquadState> reserve = new ArrayList<>();
         for (CommandSquadState squad : frame.squads()) {
             if (squad.aliveMembers() <= 0) continue;
+            if (claimed.contains(squad.squadId()) && strategyOwned(squad.directive())) {
+                members.add(squad);
+                continue;
+            }
             int index = pool.indexOf(squad);
             if (index < 0) {
                 Role role = squad.role() == UnitRole.GARRISON
@@ -142,6 +155,7 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
                         "MOBILE_RESERVE_HELD", null, -1, -1,
                         squad.localContact()));
                 offers.put(squad.squadId(), MissionGarrisons.Offer.reserve());
+                reserve.add(squad);
                 continue;
             }
 
@@ -178,6 +192,26 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
                 offers.put(squad.squadId(), MissionGarrisons.Offer.duty(rally.cellX(), rally.cellY()));
             }
         }
+        MissionCounterattack.Result retake = countering
+                ? counter.plan(frame.tick(), sites(payload, frame), members, reserve,
+                pool.size() + members.size(), frame.squads(), frame.influence(), frame.topology())
+                : MissionCounterattack.Result.NONE;
+        proposals = MissionCounterattack.apply(proposals, retake, frame.squads());
+        offers = MissionCounterattack.offers(offers, retake);
+        intents.removeIf(intent -> retake.duties().containsKey(intent.squadId()));
+        Map<Integer, CommandSquadState> byId = new TreeMap<>();
+        for (CommandSquadState squad : frame.squads()) byId.put(squad.squadId(), squad);
+        for (Map.Entry<Integer, MissionCounterattack.Duty> duty : retake.duties().entrySet()) {
+            ObjectiveAssignment order = duty.getValue().assignment();
+            CommandSquadState squad = byId.get(duty.getKey());
+            intents.add(new SquadIntent(duty.getKey(), Role.RESERVE, duty.getValue().reason(), order.kind(),
+                    order.targetCellX(), order.targetCellY(), squad != null && squad.localContact()));
+        }
+        for (int id : retake.released()) {
+            CommandSquadState squad = byId.get(id);
+            intents.add(new SquadIntent(id, Role.RESERVE, MissionCounterattack.RELEASED_REASON, null, -1, -1,
+                    squad != null && squad.localContact()));
+        }
         Map<Integer, MissionGarrisons.Manning> manning = terminal ? Map.of()
                 : garrisons.plan(frame, frame.garrisonables(), offers, strategyId());
         if (!manning.isEmpty()) {
@@ -206,9 +240,22 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
         return new CommandPlan<>(faction(), strategyId(), phase.name(),
                 frame.tick(), frame.influence() != null
                 ? frame.influence().updatedTick() : -1,
-                pool.size(), Math.max(0, pool.size() - assigned),
-                List.of(payload.payloadName() + "="
-                        + phase.name().toLowerCase()), proposals, detail);
+                pool.size() + members.size(), Math.max(0, pool.size() - assigned),
+                objectives(payload.payloadName() + "=" + phase.name().toLowerCase(), retake), proposals, detail);
+    }
+
+    private static List<String> objectives(String first, MissionCounterattack.Result retake) {
+        List<String> out = new ArrayList<>();
+        out.add(first);
+        out.addAll(retake.notes());
+        return out;
+    }
+
+    /** The places that matter to Extraction: the source and the key buildings beside it, until the payload is decided. */
+    private static List<MissionPlaces.Site> sites(ExtractionObjectiveFacts payload,
+                                                  ExtractionDefenderCommandFrame frame) {
+        return MissionPlaces.around(List.of(MissionPlaces.objective("source " + payload.payloadId(),
+                payload.sourceCellX(), payload.sourceCellY(), frame.keyBuildings())), frame.keyBuildings());
     }
 
     @Override
