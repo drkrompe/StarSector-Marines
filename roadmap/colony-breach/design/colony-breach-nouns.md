@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — bores, tiers, surges, spore colonies and the bore-sourced director as built.
+Updated: 2026-10-21 — a holdout claims a block behind works (barricade, firing step, gate, gun) with a line team that falls back into the building; bores, tiers, surges, spore colonies and the bore-sourced director as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -103,10 +103,13 @@ from the shelter, the lift and the posts already chosen (out to a third of the
 map's short side, past which the seed decides), clear of the landing pads and
 with a walk to the lift. Each fireteam holds its building's held place under
 garrison authority, so it mans the building's windows and doors the way any
-held building is manned. Two of those posts keep a working
-heavy-machine-gun emplacement outside the door and two a parked militia
+held building is manned; a holdout with works adds a second team on its
+firing step (see *Redoubt*). A holdout with works has its heavy gun just
+inside its gate; of the posts without, two keep a working
+heavy-machine-gun emplacement outside the door. Two posts have a parked militia
 technical. Placed hardware stands on open ground away from the cohort's walk to
-the lift, because a gun or a truck in a one-lane street closes it. Lower risks
+the lift and outside every redoubt's works, because a gun or a truck in a
+one-lane street, or in a yard, closes it. Lower risks
 keep the shelter guard alone, and `-Dbattle.colonyBreach.militia=false` is the
 control that drops the rest.
 
@@ -135,19 +138,58 @@ is physically down. On the colony the cohort is spread over several redoubts.
 shelter, with the largest share of the cohort and the sealed, hidden shelter
 guard; it is redoubt 1. The colony has one to three **holdouts** besides
 (seeded, so two to four redoubts in all): a militia post with three or four of
-the cohort inside, deeper in than the fireteam's firing cells, and sandbag
-aprons across its doors — the compound prepared-ground courses a held base
-gets, the door toward the lift first. A holdout is built from existing pieces:
-a building, its held place and garrison, aprons, and perhaps a colony
-emplacement; it reads as a desperate holdout because it is one.
+the cohort inside, deeper in than the fireteam's firing cells.
+
+A holdout **claims a block, not a building**. Its people have thrown up
+**works** round the building they hold, a few cells out, so a yard lies
+between:
+
+- the **barricade**, a ring of industrial fence broken by stacked crates and
+  scrap, closed to movement and open to sight, with a parked truck dragged
+  across each street it crosses. Wherever another building or a wall already
+  stands on the ring, that structure closes the side itself;
+- the **firing step**, one course of sandbag just inside the barricade all the
+  way round, which is a fighting-position run;
+- one **gate**, on the side toward the lift, the way relief comes in and the
+  people walk out, with the post's heavy gun just inside it beside the lane.
+
+The works are the ordinary pieces with their ordinary rules: fence, crates and
+sandbag are destructible cover props, so a charge, a shell, a dozer or a Brute
+opens them as it opens any fence; the trucks do not break. They never stand on
+the cohort's walk to the lift, a pad or a protected zone, and they are refused
+outright, leaving the holdout with sandbag aprons across its doors (the
+compound prepared-ground courses a held base gets), when no gate can be cut or
+the building's door would be shut in. Nothing is invented for them. Nothing
+stands on a roof, and there is no floodlight or watch post, because the
+battle has no roof posts and no such props to stand there.
+
+A holdout with works has two militia teams. The **house** team holds the
+building's held place and mans its windows and doors. The **line** team mans
+the firing step, an area defence whose claims are kept to the step's run, the
+order a commander gives to man a stretch of trench. The line **falls back**
+into the building once a swarm body is inside the barricade or half the line
+is down, so a perimeter that breaks is seen to be pushed back to the house.
+Militia have no commander of their own, so the fall back is the mission's,
+made once, in place of the commander-tier fall back through layers that
+`garrisonables.md` describes. A Brute whose prey stands in the open behind a
+light barricade breaks the nearest piece between them rather than walking
+round to the gate the Runners crowd into.
+
+A redoubt's ground is its works' rectangle. A Marine at its **gate** relieves
+it, and the people walk out through the gate. The main redoubt is the shelter
+and has no works yet: it is sealed and hidden, and its guard is not seen.
+`-Dbattle.colonyBreach.redoubtWorks=false` is the control: every holdout is the
+bare building with aprons.
 
 Every redoubt's people are one cohort for the objective, the outcome and the
 campaign. Each member belongs to one redoubt and waits behind its door until a
-Marine reaches *that* door; then it walks to the lift under the ordinary
+Marine reaches *that* redoubt (its door, or its gate where it has works);
+then it walks to the lift under the ordinary
 per-member escort law. A holdout is not hidden as the shelter is: its militia
 are prey like any of the swarm's, and once the shelter has opened its people
 are too. A holdout **falls** when its garrison is dead and a swarm body is at
-its walls, or when nobody behind its door is still alive. Its survivors leave
+its works (or its walls, without works), or when nobody behind its door is
+still alive. Its survivors leave
 the cohort — overrun, they are the swarm's (harvest's biomass, once harvest
 exists) — and the holdout is no longer anyone's to relieve. The shelter is
 sealed and does not fall. That asymmetry is the triage: the main cohort is
@@ -527,6 +569,7 @@ the evidence; change them here first.
 | `militia_contact` | PLAYER | First Marine within sight of a militia post |
 | `shelter_reached` | PLAYER | Cohort released (the main redoubt) |
 | `redoubt_reached_N` | PLAYER | A Marine reaches redoubt N (1 is the shelter); several redoubts only |
+| `redoubt_line_broke_N` | PLAYER | Holdout N's line is pushed off its works into the building |
 | `redoubt_fell_N` | PLAYER | Holdout N falls |
 | `tremor` | PLAYER | Breach begins (before the first eruption) |
 | `bore_erupted_N` | PLAYER | Bore N opens |

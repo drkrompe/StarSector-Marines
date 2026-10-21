@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
@@ -34,6 +38,10 @@ import java.util.Map;
  *       the far side. Nothing is light enough to break; the Brute walks round.</li>
  *   <li>{@code emplacement}: the far-door building plus an anti-air
  *       emplacement in the open. The Brute goes for the emplacement first.</li>
+ *   <li>{@code fenced-yard}: the marines stand in the open inside a ring of
+ *       industrial fence beyond the building, its only gate on the far side,
+ *       as a colony redoubt's works are laid. The Brute breaks the fence
+ *       between it and them rather than walking round to the gate.</li>
  * </ul>
  */
 public final class SwarmBruteBreachScene implements BehaviorScene {
@@ -52,7 +60,7 @@ public final class SwarmBruteBreachScene implements BehaviorScene {
     @Override
     public List<SceneReport> play(FrameSink frames) throws Exception {
         List<SceneReport> reports = new ArrayList<>();
-        for (String loop : List.of("far-door", "near-door", "fortified", "emplacement")) {
+        for (String loop : List.of("far-door", "near-door", "fortified", "emplacement", "fenced-yard")) {
             reports.add(playOne(loop, frames));
         }
         return reports;
@@ -61,19 +69,33 @@ public final class SwarmBruteBreachScene implements BehaviorScene {
     private SceneReport playOne(String loop, FrameSink frames) throws Exception {
         boolean fortified = loop.equals("fortified");
         boolean emplacement = loop.equals("emplacement");
-        SwarmStrainGround ground = new SwarmStrainGround(48, 28, 22, 10, 29, 17,
+        boolean yard = loop.equals("fenced-yard");
+        SwarmStrainGround ground = new SwarmStrainGround(yard ? 56 : 48, 28, 22, 10, 29, 17,
                 fortified ? FORTIFIED_WALL_HP : COLONY_WALL_HP)
                 .window(21, 12).window(21, 15);
         if (loop.equals("near-door")) ground.door(21, 13);
         else ground.door(30, 14);
+        // The yard's fence: closed to movement, open to sight, its gate on the side away from the Brute.
+        if (yard) {
+            for (int y = YARD_TOP; y <= YARD_BOTTOM; y++) {
+                for (int x = YARD_LEFT; x <= YARD_RIGHT; x++) {
+                    if (!onYardFence(x, y)) continue;
+                    ground.grid.setWalkable(x, y, false);
+                    ground.grid.setSeeThrough(x, y, true);
+                    ground.topology.setFixture(x, y, true);
+                }
+            }
+        }
+        int mx = yard ? 46 : 23, my = yard ? 46 : 23, mz = yard ? 48 : 26;
 
         SceneWorld world = SceneBuilder.over(ground.grid, ground.topology).seed(20261021L)
                 .missionCompletion(false)
-                .unit("m1", Faction.MARINE, UnitType.MARINE, 23, 12, spec -> spec.health(5000f))
-                .unit("m2", Faction.MARINE, UnitType.MARINE, 23, 15, spec -> spec.health(5000f))
-                .unit("m3", Faction.MARINE, UnitType.MARINE, 26, 14, spec -> spec.health(5000f))
+                .unit("m1", Faction.MARINE, UnitType.MARINE, mx, 12, spec -> spec.health(5000f))
+                .unit("m2", Faction.MARINE, UnitType.MARINE, my, 15, spec -> spec.health(5000f))
+                .unit("m3", Faction.MARINE, UnitType.MARINE, mz, 14, spec -> spec.health(5000f))
                 .build();
         try (BattleSimulation sim = world.sim()) {
+            int fence = yard ? layYardFence(sim) : 0;
             long turret = emplacement
                     ? sim.spawn(MapTurret.create("aa", Faction.MARINE, "structure.aa-locust", 12, 22))
                     : 0L;
@@ -84,8 +106,60 @@ public final class SwarmBruteBreachScene implements BehaviorScene {
             SceneRun.of(world).observe(trace)
                     .frames(frames, loop, 30, tick -> loop + " / brute / tick " + tick)
                     .run(TICKS);
-            return report(loop, trace, sim, ground, turret);
+            return yard ? yardReport(trace, sim, fence) : report(loop, trace, sim, ground, turret);
         }
+    }
+
+    private static final int YARD_LEFT = 40, YARD_RIGHT = 52, YARD_TOP = 7, YARD_BOTTOM = 21;
+    private static final int GATE_TOP = 13, GATE_BOTTOM = 14;
+
+    private static boolean onYardFence(int x, int y) {
+        boolean ring = x == YARD_LEFT || x == YARD_RIGHT || y == YARD_TOP || y == YARD_BOTTOM;
+        boolean gate = x == YARD_RIGHT && y >= GATE_TOP && y <= GATE_BOTTOM;
+        return ring && !gate;
+    }
+
+    /** Sets the fence art on the closed cells, which makes each a destructible barricade; returns the pieces laid. */
+    private static int layYardFence(BattleSimulation sim) {
+        TileRegistry registry = TileRegistry.installed();
+        if (registry == null) return 0;
+        int laid = 0;
+        for (int y = YARD_TOP; y <= YARD_BOTTOM; y++) {
+            for (int x = YARD_LEFT; x <= YARD_RIGHT; x++) {
+                if (!onYardFence(x, y)) continue;
+                DoodadDef def = registry.doodad("doodad.industrial-fence-straight-"
+                        + (y == YARD_TOP || y == YARD_BOTTOM ? "h" : "v"));
+                if (def == null) return laid;
+                sim.addDoodad(new Doodad(x, y, def));
+                laid++;
+            }
+        }
+        return laid;
+    }
+
+    private SceneReport yardReport(Trace trace, BattleSimulation sim, int fence) {
+        SwarmStrikeSystem strikes = sim.swarmStrikes();
+        int opened = 0;
+        for (int y = YARD_TOP; y <= YARD_BOTTOM; y++) {
+            for (int x = YARD_LEFT; x <= YARD_RIGHT; x++) {
+                if (onYardFence(x, y) && sim.getGrid().isWalkable(x, y)) opened++;
+            }
+        }
+        List<Verdict> verdicts = new ArrayList<>();
+        verdicts.add(Verdict.of("fence-is-a-barricade", fence > 0,
+                fence + " fence pieces laid (none without the tile registry)"));
+        verdicts.add(Verdict.of("strikes-the-fence", fence == 0 || strikes.blowsLanded() > 0,
+                strikes.blowsLanded() + " blows landed"));
+        verdicts.add(Verdict.of("breaks-through", fence == 0 || strikes.blowsLanded() == 0 || opened > 0,
+                opened + " fence cells opened"));
+        verdicts.add(Verdict.of("spares-the-building", trace.ringHpUnchanged(),
+                "building ring hp unchanged " + trace.ringHpUnchanged()));
+        Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("fencePieces", fence);
+        metrics.put("blows", strikes.blowsLanded());
+        metrics.put("fenceCellsOpened", opened);
+        metrics.put("marineDamage", trace.marineDamage());
+        return new SceneReport(id(), "fenced-yard", TICKS, verdicts, metrics);
     }
 
     private SceneReport report(String loop, Trace trace, BattleSimulation sim,
