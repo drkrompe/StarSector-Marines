@@ -69,6 +69,23 @@ class MissionPersonnelOutcomeTest {
                 () -> outcome.deployedFireteamIds.add("fireteam-c"));
     }
 
+    @Test
+    void aMarineTakenIntoABoreIsKilledWithoutARollAndPastTheSickBay() {
+        Set<String> fallen = new LinkedHashSet<>();
+        for (int i = 0; i < 40; i++) fallen.add("fallen-" + i);
+        MissionOutcome rolled = outcome(true, Set.of(), fallen);
+        MissionOutcome taken = MissionOutcome.builder()
+                .victory(true).missionId("personnel-outcome-test").missionName("Personnel Test")
+                .missionType(MissionType.ASSAULT).risk(RiskLevel.MEDIUM).missionSource(MissionSource.GENERATED)
+                .marinesEngaged(fallen.size()).marinesLost(fallen.size())
+                .survivingSoldierIds(Set.of()).fallenSoldierIds(fallen).takenSoldierIds(fallen)
+                .build();
+        Map<String, MarineSoldierStatus> rolls = MissionResolver.resolvePersonnelOutcomes(rolled, 1f);
+        Map<String, MarineSoldierStatus> fates = MissionResolver.resolvePersonnelOutcomes(taken, 1f);
+        assertTrue(rolls.containsValue(MarineSoldierStatus.WIA), "control: a full sick bay saves the rolled fallen");
+        for (String id : fallen) assertEquals(MarineSoldierStatus.KIA, fates.get(id), id);
+    }
+
     private static MissionOutcome outcome(boolean victory, Set<String> survivors,
                                           Set<String> fallen) {
         return outcome(victory, survivors, fallen, Collections.emptySet());

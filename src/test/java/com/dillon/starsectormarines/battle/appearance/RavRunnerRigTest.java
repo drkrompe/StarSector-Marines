@@ -87,6 +87,32 @@ class RavRunnerRigTest {
     }
 
     @Test
+    void aCarrierFacesItsLoadAndLatchesOn() {
+        RavRunnerRig rig = new RavRunnerRig(5L);
+        float x = 10f, y = 10f;
+        // the carrier walks east toward the bore; the body trails half a cell behind it, to the west
+        for (int tick = 0; tick < 60; tick++) {
+            rig.advance(x, y, -90f, 1f, false, tick > 5, x - 0.55f, y, DT);
+            x += 1.28f * DT;
+        }
+        double rad = Math.toRadians(rig.facingDegrees());
+        assertTrue(-Math.sin(rad) < -0.95, "the carrier faces the body it drags");
+        float[] head = world(rig, RavRunnerRig.HEAD);
+        assertTrue(head[0] < rig.bodyX() - 0.2f, "the jaws are on the load side");
+    }
+
+    @Test
+    void aDeadRunnerFallsAndLiesLow() {
+        RavRunnerRig rig = new RavRunnerRig(9L);
+        for (int tick = 0; tick < 10; tick++) rig.advance(3f, 3f, 0f, 0f, false, DT);
+        for (int tick = 0; tick < 30; tick++) rig.advanceDead(3f, 3f, DT);
+        assertTrue(rig.dead());
+        for (int p = 0; p < RavRunnerRig.POINTS; p++) {
+            assertTrue(rig.z(p) < 0.25f, "point " + p + " still stands at " + rig.z(p));
+        }
+    }
+
+    @Test
     void ikKeepsBoneLengths() {
         float[] j = new float[4];
         RavRunnerRig.ik2(0f, 0.4f, 0.1f, 0f, 0.22f, 0.22f, -1f, j);

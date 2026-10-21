@@ -254,6 +254,7 @@ import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
 import com.dillon.starsectormarines.battle.creep.BoreCreep;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
@@ -735,6 +736,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final CreepOutposts creepOutposts;
     /** The battle's swarm bores: empty until something opens one. */
     public SwarmBores swarmBores() { return swarmBores; }
+    @Override public List<SwarmBore> getSwarmBores() { return swarmBores.bores(); }
     private final SwarmHarvest swarmHarvest = new SwarmHarvest(SwarmHarvest.enabledByDefault());
     /** Runners dragging the dead to the bores (`colony-breach-nouns.md`, Harvest). */
     public SwarmHarvest swarmHarvest() { return swarmHarvest; }
@@ -1327,6 +1329,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.ravRunnerRigSystem = new RavRunnerRigSystem(entityWorld, battleComponents);
         this.ravRunnerRigSystem.bruteState(id -> bruteCharges.phase(id).ordinal(),
                 id -> rosterService.stagger().isStaggered(id));
+        ravRunnerRigSystem.setLoads(swarmHarvest::loadOf);
         this.mechTurretSystem = new MechTurretSystem(
                 entityWorld, battleComponents, rosterService);
         this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects, rosterService);
@@ -1345,6 +1348,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.attackerIndex = new com.dillon.starsectormarines.battle.decision.AttackerIndexService(rosterService);
         this.tacticalScoring = new com.dillon.starsectormarines.battle.decision.TacticalScoring(
                 navigation, rosterService, attackerIndex, shots, doodadService);
+        tacticalScoring.carriedBy(swarmHarvest::loadOf);
         this.squadContactOnset = new SquadContactOnsetSystem(
                 rosterService, tacticalScoring);
         this.unitUpdate = new com.dillon.starsectormarines.battle.decision.UnitUpdateSystem(
@@ -1375,6 +1379,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.airframeCookOff = new AirframeCookOffSystem(effects, detonations, rosterService);
         deathDispatcher.subscribe(airframeCookOff::onDeath);
         this.ballisticResolver = new BallisticResolver(grid, doodadService, unitIndex, rosterService);
+        // A body on a carrier's blades: direct fire never touches it, a blast does behind a switch.
+        ballisticResolver.spareHeld(swarmHarvest::isCarried);
+        detonations.spareHeld(swarmHarvest::isCarried, swarmHarvest.areaHitsHeld());
         // Constructed here (rather than alongside the other early per-unit
         // systems above) because a missile-pod salvo needs the same
         // resolver/shots pipeline InfantryWeapons uses, and both exist only
@@ -2229,6 +2236,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         sealMultiCellStructure(id, spec);
         registerShieldDome(id, spec);
         registerFortressBattery(id, spec);
+        if (spec.turretStructureId != null) {
+            turretDemolition.registerRemains(id, TurretCatalogRegistry.requireStructure(spec.turretStructureId));
+        }
         if (fogOfWar.getVisionState().isContributor(rosterService.identity().faction(id))) {
             fogOfWar.addContributor(id, rosterService);
         }

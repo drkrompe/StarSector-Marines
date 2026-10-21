@@ -7,9 +7,9 @@ and the three spore-colony grades (`structure.spore-colony-fissure`, `-bore`,
 
 | Step | Command | Writes |
 | --- | --- | --- |
-| Guides | `python art-source/swarm-bores/make_guide.py` | `art-source/templates/swarm-<part>-<n>-guide.png` |
-| Reskin one variant (one paid call) | `bash art-source/swarm-bores/generate.sh <part> <n>` | `raw/<part>-<n>.raw.png` + provenance |
-| Export | `python art-source/swarm-bores/export.py` | `mod/graphics/structures/<name>-<n>.png` and `<name>-<n>-glow.png` |
+| Guides | `python art-source/swarm-bores/make_guide.py [part or state ...]` | `art-source/templates/swarm-<part>-<n>[-<state>]-guide.png` |
+| Reskin one variant (one paid call) | `bash art-source/swarm-bores/generate.sh <part> <n> [wounded\|remains]` | `raw/<part>-<n>[-<state>].raw.png` + provenance |
+| Export | `python art-source/swarm-bores/export.py [--part P] [--state S]` | `mod/graphics/structures/<name>-<n>[-wounded].png` and its `-glow.png`; `<name>-<n>-remains.png` |
 | Spore shots (code-drawn) | `python art-source/swarm-bores/spore_shots.py` | `mod/graphics/fx/spore-clump.png`, `spore-cluster.png`, `spore-lance.png` |
 | Other-palette preview | `python art-source/swarm-bores/export.py --palette raw` (or `purple`, `chitin`) | `build/swarm-bores/<palette>/` |
 
@@ -18,6 +18,19 @@ Parts and variant counts are `make_guide.VARIANTS`: `bore` 3, `mother-bore` 2,
 structure's art block declares `"variants": N` and names its layers with
 `{variant}`; `StructureArt.variantFor` picks one per structure from its entity
 id, the same for the body and its glow.
+
+**Damage states** (`make_guide.STATES`). `wounded` is drawn below half the
+structure's durability (`"woundedBelow": 0.5`, layer paths carry `{state}`):
+plates torn out of their sockets over raw sinew, gashes, a sac burst, a spine
+snapped, the amber dimmed. `remains` is left on the ground when it dies
+(`"remains"`): a bore caved in and choked with rubble, a colony's sacs burst
+and deflated, no glow. Both are built from the variant's own seeded geometry,
+with a separate draw stream deciding the damage, so the intact guides do not
+change and each damaged painting keeps its structure's shape. A state's brief
+is the part's prompt plus `prompts/state-<state>.prompt.txt`, and the
+variant's intact raw rides along as its identity reference. The export drains
+the remains towards grey (`husk`) and gives their berm the creep's withered
+colour.
 
 **Geometry and light come from code.** Each guide is a seeded heightfield of
 lopsided primitives (plates of differing size and lean, tusks, tilted paving

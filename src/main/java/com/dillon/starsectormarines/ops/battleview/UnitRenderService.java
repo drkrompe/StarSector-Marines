@@ -31,6 +31,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.turret.StructureArt;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -377,6 +378,7 @@ public final class UnitRenderService implements RenderSystem {
         float alphaMult = ctx.alphaMult;
         float dt = advanceStructureClock(ctx);
         float clock = structureClock;
+        emitRemains(ctx, out, view, cellPx, alphaMult);
         for (int i = 0, n = turrets.size(); i < n; i++) {
             long id = turrets.id(i);
             StructureDef structure = turretState.structure(id);
@@ -464,9 +466,10 @@ public final class UnitRenderService implements RenderSystem {
             }
         }
         int variant = structure.art.variantFor(id);
+        boolean wounded = structure.art.woundedBelow > 0f && structure.art.woundedAt(durability(ctx, structure, id));
         for (int i = 0; i < layers.size(); i++) {
             StructureArt.Layer layer = layers.get(i);
-            ShuttleSpriteCache sprite = sprites.spriteByPath(layer.spritePath(variant));
+            ShuttleSpriteCache sprite = sprites.spriteByPath(layer.spritePath(variant, wounded));
             if (sprite == null) continue;
             float spin = 1f;
             float bright = 1f;
@@ -502,6 +505,33 @@ public final class UnitRenderService implements RenderSystem {
             }
             out.addSprite(RenderLayer.UNITS, sprite.sprite, cx, cy, size * sprite.aspect, size, angle,
                     r * bright, g * bright, b * bright, alphaMult);
+        }
+    }
+
+    /** The share of a structure's structure and armour left, 0 to 1. */
+    private static float durability(RenderContext ctx, StructureDef structure, long id) {
+        float full = structure.maxStructure + structure.armorCapacity;
+        if (full <= 0f) return 1f;
+        World world = ctx.sim.world();
+        return Math.max(0f, Math.min(1f, (world.hp(id) + world.armor(id)) / full));
+    }
+
+    /**
+     * What dead grown structures left on the ground (a caved-in bore, a burst colony), under every living body.
+     * Upright and centre-pivoted on where the structure stood, in the painting it wore.
+     */
+    private void emitRemains(RenderContext ctx, DrawList out, ViewCull view, float cellPx, float alphaMult) {
+        List<TurretDemolitionSystem.Remains> remains = ctx.sim.getTurretDemolitionSystem().remains();
+        BattleCamera cam = ctx.camera;
+        for (int i = 0, n = remains.size(); i < n; i++) {
+            TurretDemolitionSystem.Remains r = remains.get(i);
+            StructureArt art = r.structure().art;
+            if (!view.visible(r.x(), r.y(), art.remainsCells * AUTHORED_EXTENT_SLACK)) continue;
+            ShuttleSpriteCache sprite = sprites.spriteByPath(art.remainsPath(r.variant()));
+            if (sprite == null) continue;
+            float size = art.remainsCells * cellPx;
+            out.addSprite(RenderLayer.UNITS, sprite.sprite, cam.cellToScreenX(r.x()), cam.cellToScreenY(r.y()),
+                    size * sprite.aspect, size, 0f, 1f, 1f, 1f, alphaMult);
         }
     }
 
@@ -917,11 +947,22 @@ public final class UnitRenderService implements RenderSystem {
             float[] ry = t.floats(c.POSITION, BattleComponents.POSITION_Y).array();
             float[] corpseFacing = t.floats(c.CORPSE, BattleComponents.CORPSE_FACING_DEGREES).array();
             int[] corpseFamily = t.ints(c.CORPSE, BattleComponents.CORPSE_BODY_FAMILY).array();
+            RavRunnerAssets ravArt = sprites.ravRunnerSprites();
+            Object[] ravRigs = ravArt != null && t.has(c.RAV_RIG)
+                    ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 if (poseIdx[r] < 0) continue;
                 if (rx[r] < cullMinX || rx[r] > cullMaxX
                         || ry[r] < cullMinY || ry[r] > cullMaxY) continue;
                 UnitType type = (UnitType) types[r];
+                RavRunnerRig ravRig = ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead ? dead : null;
+                if (ravRig != null && ravRig.dead()) {
+                    // A dead Runner lies on its own skeleton, fallen onto its flank, its colour gone dull.
+                    RavRunnerComposer.emit(out, ravArt, ravRig,
+                            cam.cellToScreenX(ravRig.bodyX()), cam.cellToScreenY(ravRig.bodyY()),
+                            cam.cellPxSize() * type.renderScale, RavRunnerComposer.DEAD_SHADE, alphaMult);
+                    continue;
+                }
                 // A body that wore layered art lies as itself: its outfit's own pose,
                 // at the live shoulder scale, turned to the facing it fell with.
                 LayeredUnitAssets outfit = corpseFamily[r] >= 0
@@ -1169,7 +1210,7 @@ public final class UnitRenderService implements RenderSystem {
                     // The Runner is drawn on its own skeleton, solved at the position it was posed at.
                     RavRunnerComposer.emit(out, ravArt, ravRig,
                             cam.cellToScreenX(ravRig.bodyX()), cam.cellToScreenY(ravRig.bodyY()),
-                            cam.cellPxSize() * type.renderScale, unitAlpha);
+                            cam.cellPxSize() * type.renderScale, 1f, unitAlpha);
                     continue;
                 }
                 LayeredArmorFamily bodyFamily = hasLayered

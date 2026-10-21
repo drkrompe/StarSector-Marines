@@ -8,19 +8,24 @@ import com.dillon.starsectormarines.engine.ecs.Query;
 
 import java.util.function.LongPredicate;
 import java.util.function.LongToIntFunction;
+import java.util.function.LongUnaryOperator;
 
 /**
  * Advances every live Runner's and Brute's skeleton from the tick's settled state: where the body stands,
  * which way {@link FacingSystem} turned it, and the attack cooldown that times its strikes.
  * Presentation only, like {@code MechGaitSystem}; it runs after facing so the pose is solved on
- * this tick's heading. A Brute's rig also reads its charge phase and whether it is stunned, through
- * providers the simulation sets, so this package does not reach into the charge's.
+ * this tick's heading. A Runner hauling a body ({@link #setLoads}) is posed facing it, and a dead
+ * Runner keeps its rig and falls onto its flank, then lies where its corpse is. A Brute's rig also
+ * reads its charge phase and whether it is stunned, through providers the simulation sets, so this
+ * package does not reach into the charge's.
  */
 public final class RavRunnerRigSystem {
 
     private final EntityWorld world;
     private final BattleComponents components;
     private final Query runners;
+    private final Query dead;
+    private LongUnaryOperator loadOf = runner -> 0L;
     private LongToIntFunction chargePhase = id -> RavBruteRig.IDLE;
     private LongPredicate stunned = id -> false;
 
@@ -29,6 +34,13 @@ public final class RavRunnerRigSystem {
         this.components = components;
         this.runners = world.query(new ComponentType[]{components.RAV_RIG, components.POSITION,
                 components.LAYERED_ANIMATION, components.COMBAT, components.HEALTH}, null);
+        this.dead = world.query(new ComponentType[]{components.RAV_RIG, components.POSITION,
+                components.CORPSE}, null);
+    }
+
+    /** Who each Runner is dragging ({@code 0} for none), so its rig hauls the body. */
+    public void setLoads(LongUnaryOperator loadOf) {
+        this.loadOf = loadOf;
     }
 
     /** Where a Brute's charge phase ({@link RavBruteRig#IDLE} ...) and its stun come from. */
@@ -48,15 +60,29 @@ public final class RavRunnerRigSystem {
                     BattleComponents.COMBAT_COOLDOWN_TIMER).array();
             long[] target = table.longs(components.COMBAT, BattleComponents.COMBAT_TARGET_ID).array();
             for (int row = 0, n = table.rowCount(); row < n; row++) {
-                Object rig = rigs[row];
-                if (rig instanceof RavRunnerRig runner) {
-                    runner.advance(posX[row], posY[row], facing[row], cooldown[row],
-                            target[row] != 0L, dt);
-                } else if (rig instanceof RavBruteRig brute) {
+                Object state = rigs[row];
+                if (state instanceof RavBruteRig brute) {
                     long id = table.entityAt(row);
                     brute.advance(posX[row], posY[row], facing[row], cooldown[row],
                             chargePhase.applyAsInt(id), stunned.test(id), dt);
+                    continue;
                 }
+                if (!(state instanceof RavRunnerRig rig)) continue;
+                long load = loadOf.applyAsLong(table.entityAt(row));
+                boolean carrying = load != 0L && world.has(load, components.POSITION);
+                float loadX = carrying ? world.getFloat(load, components.POSITION, BattleComponents.POSITION_X) : 0f;
+                float loadY = carrying ? world.getFloat(load, components.POSITION, BattleComponents.POSITION_Y) : 0f;
+                rig.advance(posX[row], posY[row], facing[row], cooldown[row],
+                        target[row] != 0L, carrying, loadX, loadY, dt);
+            }
+        }
+        for (ArchetypeTable table : world.matched(dead)) {
+            Object[] rigs = table.objects(components.RAV_RIG, BattleComponents.RAV_RIG_STATE).array();
+            float[] posX = table.floats(components.POSITION, BattleComponents.POSITION_X).array();
+            float[] posY = table.floats(components.POSITION, BattleComponents.POSITION_Y).array();
+            for (int row = 0, n = table.rowCount(); row < n; row++) {
+                // A dead Brute is drawn by its corpse sprite; only a Runner's rig falls.
+                if (rigs[row] instanceof RavRunnerRig rig) rig.advanceDead(posX[row], posY[row], dt);
             }
         }
     }

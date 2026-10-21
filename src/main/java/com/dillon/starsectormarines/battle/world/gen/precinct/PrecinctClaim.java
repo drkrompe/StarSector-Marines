@@ -148,7 +148,7 @@ public interface PrecinctClaim {
                 Precinct precinct = precincts.get(i);
                 if (budget == null || !precinct.isProgrammed() || precinct.fortification() == null
                         || !precinct.fortification().square()) continue;
-                int side = (int) Math.ceil(Math.sqrt(budget[i]));
+                int side = (int) Math.ceil(Math.sqrt(budget[i])) + 2 * Fortification.GLACIS;
                 int x0 = Math.max(0, precinct.seedX() - side / 2);
                 int y0 = Math.max(0, precinct.seedY() - side / 2);
                 for (int x = x0; x < Math.min(width, x0 + side); x++) {

@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160a6-8e12-76f0-a39f-ef831160da45",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160a6-8e12-76f0-a39f-ef831160da45\\exec-8cc08e3c-6623-401e-a761-7bd48569eba8.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\matriarch\\round-2\\raw\\c5.png",
+    "sha256": "6967929514cf0b32067ca79e4922f08c85e0eda4611476d149bc940155e84db9",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\matriarch\\round-2\\prompts\\c5.prompt.txt",
+  "promptSha256": "6b3d7b0009afdb3a64c24e67741add9a0b4371a7c3511acff18274a668f32f32",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and identity authority: the chosen Siege Crown Matriarch; keep body plan, pose and silhouette; only the colours change\n\nTop-down concept for a tactical game (Starsector mod: Marines against an engineered biological weapon, the Rav Bloom). ONE creature, the MATRIARCH: the oldest, largest strain of the Rav Bloom, a boss-scale plated quadruped that wades through walls and bunkers. Reference image 1 is the chosen design, SIEGE CROWN: keep its body plan, pose and silhouette exactly (the vast fan-shaped crown of thick calcified bone spikes sweeping back over the neck and wider than the shoulders, the two curved scythes coming out from under the crown's rim beside the jaws, the heavy plated body, the four legs standing under the body with clawed feet just showing, the spine ridge and the short tail). ONLY THE COLOURS CHANGE, as described below. Keep the tissue structure of the family: overlapping glossy carapace plates over a muscled body with sinew visible in every gap and joint; the crown, scythes, claws and fangs are bone; a few small hot amber eye points and nothing else glowing. The palette must read as clearly different from the young Runner (pale lilac plates, magenta sinew) and the Brute (dark plum plates, crimson sinew), both of which are on screen beside it, and must NOT look like StarCraft's zerg purple. No outline rim, no cream border. Strict overhead orthographic view, camera looking straight down at its back, facing UP, centred, the whole creature inside the frame filling about three quarters of it, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n\nThis palette: VERDIGRIS: dark petrol teal-green plates with a blue-green patina on the ridges, like old weathered bronze; sinew deep crimson-magenta; crown and scythes ivory.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\matriarch\\round-1\\raw\\c4.png",
+      "sha256": "f8eb07b866c31530cd163d88b5b16f5fb29def55edd9619c97dc4bab65204505",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry and identity authority: the chosen Siege Crown Matriarch; keep body plan, pose and silhouette; only the colours change"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one Verdigris colour variant, preserving the reference’s shape and pose.\n"
+  ],
+  "usage": {
+    "input_tokens": 39402,
+    "cached_input_tokens": 31616,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 496,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 44.7
+}
