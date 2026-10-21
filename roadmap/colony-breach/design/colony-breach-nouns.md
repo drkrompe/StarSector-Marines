@@ -746,9 +746,9 @@ never reads (`BoreCues`, `SwarmCues`), so a headless run is silent and nothing
 heard reaches the battle. A bore is heard erupting, growing to each tier,
 surging and collapsing, and breathes a tier ambience while it lives. A swarm
 body cries when it takes new quarry, and is heard striking, ramming a wall,
-breaking it and dying; a Brute's charge, a Runner's impale and a seized body
-being dragged have their own sounds, posted as cues by the stories that add
-those acts. Each strain's sound is admitted under its own gap so a pack reads as
+breaking it and dying, and a Runner is heard taking up a body to drag it; a
+Brute's charge and a Runner's impale have their own sounds, posted as cues by
+the stories that add those acts. Each strain's sound is admitted under its own gap so a pack reads as
 a pack, and the swarm is heard only on ground the player has seen. The Spitter
 has no voice.
 

@@ -227,6 +227,7 @@ public final class SwarmHarvest {
         sim.clearPath(runner);
         sim.combat().setTargetId(runner, 0L);
         trail(sim, body, sim.world().x(runner), sim.world().y(runner));
+        sim.swarmCues().post(SwarmCues.Kind.DRAG, runner, sim);
         seized++;
         if (firstHarvestTick < 0) firstHarvestTick = sim.getSimTickIndex();
     }
