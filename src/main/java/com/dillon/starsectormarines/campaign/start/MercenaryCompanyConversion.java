@@ -64,7 +64,14 @@ public final class MercenaryCompanyConversion extends BaseHullMod {
         stats.getAcceleration().modifyMult(id, refit.accelerationMult());
         stats.getDeceleration().modifyMult(id, refit.accelerationMult());
         stats.getMaxBurnLevel().modifyFlat(id, refit.burnDelta());
+        // Facilities whose passive is one of her own fleet figures. The cargo id is
+        // separate so it does not replace the berths' cargo cost above.
+        stats.getSuppliesPerMonth().modifyMult(id, refit.suppliesPerMonthMult());
+        stats.getCargoMod().modifyFlat(id + "_holds", refit.cargoBonus());
     }
+
+    /** Facility tracks whose passive this hull mod applies, listed on her refit-screen tooltip. */
+    static final RefitTrack[] FLEET_FACILITIES = {RefitTrack.HYDROPONICS, RefitTrack.HOLDS};
 
     @Override public void addPostDescriptionSection(TooltipMakerAPI tooltip, ShipAPI.HullSize size, ShipAPI ship,
                                                     float width, boolean isForModSpec) {
@@ -73,6 +80,12 @@ public final class MercenaryCompanyConversion extends BaseHullMod {
         tooltip.addSectionHeading(Strings.get("openingRefitGroupCOMBAT"), Alignment.MID, 10f);
         for (RefitTrack track : RefitTrack.values()) {
             if (track.group != RefitTrack.Group.COMBAT) continue;
+            RefitBand band = refit.band(track);
+            tooltip.addPara(Strings.format("openingRefitTooltipRow", RefitText.track(track),
+                    RefitText.tier(track, band), RefitText.effect(track, band)), 4f);
+        }
+        tooltip.addSectionHeading(Strings.get("openingRefitGroupSTORES"), Alignment.MID, 10f);
+        for (RefitTrack track : FLEET_FACILITIES) {
             RefitBand band = refit.band(track);
             tooltip.addPara(Strings.format("openingRefitTooltipRow", RefitText.track(track),
                     RefitText.tier(track, band), RefitText.effect(track, band)), 4f);

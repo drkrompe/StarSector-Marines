@@ -33,16 +33,17 @@ public final class RefitText {
     /**
      * The briefing's line for what the company's home is worth in this
      * operation, frozen at launch: the mess's morale band; while the scrubbers
-     * are degraded, the extra day every wound will take; and each training or
-     * medical room once it changes the fight (the range from its target
-     * machinery, the gym and sick bay from opening). Null off the founding
-     * hull, where every track is neutral.
+     * are degraded, the extra day every wound will take; once the staff college
+     * is running, the officer XP it adds; and each training or medical room once
+     * it changes the fight (the range from its target machinery, the gym and
+     * sick bay from opening). Null off the founding hull, where every track is
+     * neutral.
      */
     public static String briefingLine(ShipCondition condition) {
         if (!condition.applies()) return null;
         List<String> parts = new ArrayList<>();
         for (RefitTrack track : new RefitTrack[]{RefitTrack.MESS, RefitTrack.LIFE_SUPPORT,
-                RefitTrack.RANGE, RefitTrack.GYM, RefitTrack.SICK_BAY}) {
+                RefitTrack.WARDROOM, RefitTrack.RANGE, RefitTrack.GYM, RefitTrack.SICK_BAY}) {
             RefitBand band = condition.band(track);
             if (!onBriefing(track, band)) continue;
             parts.add(Strings.format("openingRefitTooltipRow", track(track), tier(track, band), effect(track, band)));
@@ -54,6 +55,7 @@ public final class RefitText {
         return switch (track) {
             case MESS -> true;
             case LIFE_SUPPORT -> band == RefitBand.DEFICIT;
+            case WARDROOM -> band.atLeast(RefitBand.IMPROVED_I);
             // An open range trains aboard but does not yet change the fight.
             case RANGE -> band.atLeast(RefitBand.IMPROVED_I);
             default -> band.atLeast(RefitBand.RESTORED);

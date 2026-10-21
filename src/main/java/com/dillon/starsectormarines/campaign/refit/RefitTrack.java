@@ -22,6 +22,15 @@ public enum RefitTrack {
     SICK_BAY(ReservedFacility.SICK_BAY),
     REC_LOUNGE(ReservedFacility.REC_LOUNGE),
     BRIG(ReservedFacility.BRIG),
+    // Facilities fitted into rooms the deck already has: no reserve to open.
+    /** Grow racks in the provisions store. */
+    HYDROPONICS(Group.FACILITY, null),
+    /** The officers' end of the mess, then a staff college. */
+    WARDROOM(Group.FACILITY, null),
+    /** A plot table, then a holo-tank, at the other end of the mess. */
+    BRIEFING(Group.FACILITY, null),
+    /** The cargo holds and, at the top, bonded stores. */
+    HOLDS(Group.FACILITY, null),
     HULL(Group.COMBAT, null),
     FLUX(Group.COMBAT, null),
     SENSORS(Group.COMBAT, null),
