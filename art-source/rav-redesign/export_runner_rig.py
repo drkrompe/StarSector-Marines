@@ -58,9 +58,21 @@ def main():
     a = np.asarray(trunk.getchannel("A")).astype(float)
     ramp = np.clip((np.arange(1536) - (n - 30)) / 40, 0, 1)[:, None]
     trunk.putalpha(Image.fromarray((a * ramp).astype(np.uint8)))
+    # the trunk splits at mid-spine so it can bend through a turn: a front half (mid to the shoulders) and a
+    # rear half (mid to the hips, tail and all), feathered across the joint so the seam never shows
+    mid = (BODY_ROWS["shoulder"] + BODY_ROWS["hip"]) / 2
+    half = BODY_ROWS["hip"] - mid
+    rows = np.arange(1536)[:, None]
+    ta = np.asarray(trunk.getchannel("A")).astype(float)
+    front_half = trunk.copy()
+    front_half.putalpha(Image.fromarray((ta * np.clip((mid + 24 - rows) / 24, 0, 1)).astype(np.uint8)))
+    rear_half = trunk.copy()
+    rear_half.putalpha(Image.fromarray((ta * np.clip((rows - (mid - 24)) / 24, 0, 1)).astype(np.uint8)))
     sprites = {
-        # the whole trunk and tail, root at the shoulder row, end at the hip row
-        "trunk": (trunk, (512, BODY_ROWS["shoulder"]), BODY_ROWS["hip"] - BODY_ROWS["shoulder"]),
+        # root at mid-spine, end at the shoulder row (turned so the shoulders lie below the root, as slices do)
+        "trunk-front": (front_half.rotate(180), (512, 1536 - mid), half),
+        # root at mid-spine, end at the hip row
+        "trunk-rear": (rear_half, (512, mid), half),
         # root at the neck row, end at the head row: the flipped head-and-neck crop
         "fore": (ImageOps.flip(body.crop((0, 0, 1024, n + 40))), (512, 40), n - BODY_ROWS["head"]),
     }
@@ -76,7 +88,7 @@ def main():
             out = centred((img.rotate(180), (512, 40), n - BODY_ROWS["head"]))
         else:
             out = centred(piece)
-        if name in ("trunk", "fore"):
+        if name in ("trunk-front", "trunk-rear", "fore"):
             out.save(OUT / f"{name}.png")
         else:
             out.save(OUT / f"{name}-l.png")

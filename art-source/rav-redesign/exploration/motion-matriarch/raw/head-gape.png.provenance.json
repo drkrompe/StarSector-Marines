@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160b1-1d7e-7e32-8b2e-ae1a032348e1",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160b1-1d7e-7e32-8b2e-ae1a032348e1\\exec-c907d77c-71c5-4178-a8d6-23bbf1ea5f34.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\motion-matriarch\\raw\\head-gape.png",
+    "sha256": "0070a7b5940774e9f1ec289ed9c7ef56fb46502638f1bde2f13cbb578012028d",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\motion-matriarch\\prompts\\head-gape.prompt.txt",
+  "promptSha256": "acabb1ef24ebd834ea143f9b28a99dbedfaa9e6b48f609ae3102acdf3ca2a3da",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and identity authority: the chosen Matriarch (round 3 #5); register every kept part to it\n\nReference image 1 is the chosen Matriarch design from the Rav Bloom swarm (a huge, old, heavily plated quadruped: matte charcoal-black plates with dried-blood red on worn edges, deep wine-red sinew in every gap, a vast fan-shaped crown of yellowed ivory bone spikes over the head, two curved ivory scythes coming out from under the crown's rim, clawed feet under the body), seen strictly from above, facing up. This is a rig layer for animating it: keep its palette, finish, scale and lighting (from the upper left) exactly, and keep every part you draw in EXACTLY the same position and size as in reference image 1 so the layer registers over it pixel for pixel, unless this layer says otherwise. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n\nThis layer: the CROWN AND HEAD ONLY, in the same place and size as reference image 1, but ROARING: the jaws gape wide open, the lower jaw dropped and the mouth's wine-red inside and rows of ivory fangs showing, the crown spikes flared a little wider. It ends at the back in a short plated neck stub. Nothing else: no body, no scythes, no legs.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-matriarch\\raw\\hero.png",
+      "sha256": "9f2820dbf0752bc5172bbd209d0de312eee14488150839bcd23c368429ea33b6",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry and identity authority: the chosen Matriarch (round 3 #5); register every kept part to it"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one crown-and-head roaring layer, aligned to the reference, with a flat grey background."
+  ],
+  "usage": {
+    "input_tokens": 39063,
+    "cached_input_tokens": 33792,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 400,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 40.2
+}

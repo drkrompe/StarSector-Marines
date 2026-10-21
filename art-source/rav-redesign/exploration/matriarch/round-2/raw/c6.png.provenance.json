@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160a6-99a0-74c2-8aac-5479cc7c3bf0",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160a6-99a0-74c2-8aac-5479cc7c3bf0\\exec-a7bf0309-fd43-4571-8202-cd7ce4b2c18e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\matriarch\\round-2\\raw\\c6.png",
+    "sha256": "ee43d54e2d972e7d28d362ea60ff2878af9515f94ea7d1521d499201bf9c297b",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\matriarch\\round-2\\prompts\\c6.prompt.txt",
+  "promptSha256": "e136380cc0d427ee423f25e3efbf2a9e782a70b3fa4ae2569603c36a14b0148b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and identity authority: the chosen Siege Crown Matriarch; keep body plan, pose and silhouette; only the colours change\n\nTop-down concept for a tactical game (Starsector mod: Marines against an engineered biological weapon, the Rav Bloom). ONE creature, the MATRIARCH: the oldest, largest strain of the Rav Bloom, a boss-scale plated quadruped that wades through walls and bunkers. Reference image 1 is the chosen design, SIEGE CROWN: keep its body plan, pose and silhouette exactly (the vast fan-shaped crown of thick calcified bone spikes sweeping back over the neck and wider than the shoulders, the two curved scythes coming out from under the crown's rim beside the jaws, the heavy plated body, the four legs standing under the body with clawed feet just showing, the spine ridge and the short tail). ONLY THE COLOURS CHANGE, as described below. Keep the tissue structure of the family: overlapping glossy carapace plates over a muscled body with sinew visible in every gap and joint; the crown, scythes, claws and fangs are bone; a few small hot amber eye points and nothing else glowing. The palette must read as clearly different from the young Runner (pale lilac plates, magenta sinew) and the Brute (dark plum plates, crimson sinew), both of which are on screen beside it, and must NOT look like StarCraft's zerg purple. No outline rim, no cream border. Strict overhead orthographic view, camera looking straight down at its back, facing UP, centred, the whole creature inside the frame filling about three quarters of it, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n\nThis palette: ROSE QUARTZ: pale dusty rose-pink and blush plates with a faint pearly sheen, soft and fleshy, like the inside of a shell; sinew deep maroon; crown and scythes ivory, slightly warmer than the plates.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\matriarch\\round-1\\raw\\c4.png",
+      "sha256": "f8eb07b866c31530cd163d88b5b16f5fb29def55edd9619c97dc4bab65204505",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry and identity authority: the chosen Siege Crown Matriarch; keep body plan, pose and silhouette; only the colours change"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to create one Rose Quartz variant, preserving the reference’s shape and pose.\n"
+  ],
+  "usage": {
+    "input_tokens": 103345,
+    "cached_input_tokens": 88576,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 644,
+    "reasoning_output_tokens": 34
+  },
+  "elapsedSeconds": 52.0
+}
