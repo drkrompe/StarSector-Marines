@@ -566,7 +566,11 @@ for one job in the cycle, and reads that way on screen.
   drawn hauling: it turns to face the body it drags, so it backs toward the
   bore at a trot with its shoulders heaving, the spike that struck stays in
   and the jaws latch on beside it. A dead Runner keeps its skeleton, falls
-  onto its flank with its legs gone slack and lies there, dulled.
+  onto its flank with its legs gone slack and lies there, dulled. In a crowd it
+  is shoved as the shape it is drawn as, a capsule along its facing (the
+  separation shape in `continuous-positions-nouns.md`), so a pack queues nose to
+  tail and packs flank to flank rather than stacking into one another; its
+  0.3-cell footprint radius stays its size to everything else.
 - **Brute** — slow, plated, heavy melee; the strain that makes a garrisoned
   building stop being a safe room. Its plate (20 points at rating 10) is what
   small arms struggle with: a DMR or rocket goes through it, an SMG barely
