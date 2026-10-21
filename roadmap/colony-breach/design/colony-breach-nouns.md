@@ -362,6 +362,13 @@ delivery is lost. Laws:
   evacuee may be.
 - Harvest is deterministic and traced: deliveries per bore appear in the
   director snapshot.
+- **A dragged body is safe from its own side's direct fire** (owner,
+  2026-10-21). Fire at a carrier, a miss that strays into its load and a round
+  that would go through the carrier never hurt the body being dragged, Marine,
+  militia or colonist; the ray passes it. Area weapons still reach it, behind a
+  switch while the owner decides. It matters once the load can be alive: a
+  Runner can impale a living body and drag it off, and killing the carrier
+  frees it (`runner-impale-drag.md`).
 
 **Spawning surge.** How the swarm moves out of a bore. Bodies do not trickle
 out one at a time: a bore **spawns**, pushing a dense pulse of bodies out of
