@@ -15,8 +15,8 @@ import java.util.Set;
  * for a locked position {@link #lockFor which lock a detachment holds}.
  *
  * <p>The lifecycle: every directive is evaluated once a pulse, in declaration order, on the same signals. An active one
- * whose {@code until} holds is released; a dormant one whose {@code when} holds becomes active; never both on one
- * pulse. A released directive that {@link PlaceDirective#rearms re-arms} is dormant again from the next pulse. The order
+ * whose {@code until} holds is released; a dormant one whose {@code when} holds becomes active unless its {@code until}
+ * already holds too; never both on one pulse. A released directive that {@link PlaceDirective#rearms re-arms} is dormant again from the next pulse. The order
  * directives became active in is kept, ties in declaration order. Pure and deterministic; one book per commander, so
  * per simulation.
  */
@@ -100,7 +100,7 @@ public final class PlaceDirectives {
                     changed.add(new Transition(tick, directive.id(), directive.kind(), State.RELEASED,
                             String.valueOf(directive.until())));
                 }
-            } else if (states[i] == State.DORMANT && directive.when().test(context)) {
+            } else if (states[i] == State.DORMANT && directive.when().test(context) && !directive.until().test(context)) {
                 states[i] = State.ACTIVE;
                 activeSince[i] = tick;
                 activeOrder.add(i);
