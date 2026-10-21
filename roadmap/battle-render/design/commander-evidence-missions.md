@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-20
 
-Updated: 2026-10-21 — the nine story missions without a planner of their own have harnesses (story missions without a planner); every battle harness about places prints a `[place-fight]` line, and story summaries carry it and the story commanders' manning.
+Updated: 2026-10-21 — Conquest traces name the garrisons a counter-attack takes to sortie; the nine story missions without a planner of their own have harnesses (story missions without a planner); every battle harness about places prints a `[place-fight]` line, and story summaries carry it and the story commanders' manning.
 
 Per-mission matrices, fixture fields and report contents for `gradlew.bat commanderEvidence -Pmission=<mission>`. How to run the task, the mission list, replay count, parallelism and snapshot flags stay in `CLAUDE.md` (Build & deploy); read this when you need one mission's details. Text is moved verbatim from `CLAUDE.md`; "Fixture fields match Relief" and similar refer to the sections below.
 
@@ -26,7 +26,11 @@ and whether a place was won back in the window (from the trace's retake notes
 or a compound flipping back to the defender). `hold` counts holder
 squad-samples and those with a counter-attack squad of any stage within 40
 cells. Read a run against its control run: same fixture, one `-Dbattle.*`
-switch, `-PevidenceDir` set apart.
+switch, `-PevidenceDir` set apart. A Conquest trace's `draws garrisons out to sortie` notes name
+the garrisons a counter-attack took (`conquest-command.md`, garrisons sortie;
+`-Dbattle.counterattack.garrisonSortie=false` is its control). The figures
+these lines produce live with the mechanisms they measure: `garrisonables.md`
+(fight mix by mission) and `conquest-command.md` (a place the defender loses).
 
 ## Relief
 
