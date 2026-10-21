@@ -4,6 +4,9 @@ import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.HullImpact;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -76,8 +79,7 @@ final class SwarmBruteBehavior {
         float dx = sim.world().x(target) - sim.world().x(brute);
         float dy = sim.world().y(target) - sim.world().y(brute);
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
-        float reach = sim.combat().attackRange(brute) + sim.getRoster().radius(target);
-        if (distance <= reach) {
+        if (gap(brute, target, sim) <= BruteChargeRules.BLOW_REACH) {
             sim.clearPath(brute);
             if (sim.combat().cooldownTimer(brute) <= 0f) {
                 if (BruteChargeSystem.trampling() && BruteChargeSystem.kind(target, sim) == BruteChargeRules.Kind.INFANTRY) {
@@ -86,6 +88,8 @@ final class SwarmBruteBehavior {
                 } else {
                     sim.applyDamage(target, brute, sim.combat().attackDamage(brute), MELEE_PENETRATION,
                             sim.identity().type(brute).moraleImpact);
+                    // The weight behind it lands too: a hull or a mech is pushed by it.
+                    sim.bruteCharges().blow(brute, target);
                 }
                 sim.swarmCues().post(SwarmCues.Kind.STRIKE, brute, sim);
                 sim.combat().setCooldownTimer(brute, sim.combat().attackCooldown(brute));
@@ -174,6 +178,24 @@ final class SwarmBruteBehavior {
         return true;
     }
 
+    /**
+     * How far the Brute's centre stands from {@code target}'s surface: a hull's footprint, or the circle of
+     * any other body. Its blow lands within {@link BruteChargeRules#BLOW_REACH} of it.
+     */
+    static float gap(long brute, long target, BattleSimulation sim) {
+        float bx = sim.world().x(brute), by = sim.world().y(brute);
+        if (sim.convoy().isVehicle(target)) {
+            GroundBody hull = sim.convoy().body(target);
+            VehicleType type = sim.convoy().vehicleType(target);
+            if (hull != null && type != null) {
+                return HullImpact.surfaceDistance(hull.x, hull.y, hull.facingDegrees,
+                        type.visualLengthCells / 2f, type.visualWidthCells / 2f, bx, by);
+            }
+        }
+        float d = (float) Math.hypot(sim.world().x(target) - bx, sim.world().y(target) - by);
+        return Math.max(0f, d - sim.getRoster().radius(target));
+    }
+
     /** The walkable cell nearest the Brute from which it can reach {@code target}, or null. */
     static int[] standBeside(long brute, long target, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
@@ -181,7 +203,7 @@ final class SwarmBruteBehavior {
         float ty = sim.world().y(target);
         float px = sim.world().x(brute);
         float py = sim.world().y(brute);
-        float reach = sim.combat().attackRange(brute) + sim.getRoster().radius(target);
+        float reach = BruteChargeRules.BLOW_REACH + sim.getRoster().radius(target);
         int span = (int) Math.ceil(reach);
         int[] best = null;
         float bestDistance = Float.MAX_VALUE;

@@ -77,6 +77,17 @@ public final class HullImpact {
                 j * nx / strikerMass, j * ny / strikerMass, j, hx + px, hy + py);
     }
 
+    /** How far {@code (px, py)} stands from the hull's footprint, cells; zero inside it. */
+    public static float surfaceDistance(float hx, float hy, float facing, float halfLength, float halfWidth,
+                                        float px, float py) {
+        double rad = Math.toRadians(facing);
+        float fx = (float) -Math.sin(rad), fy = (float) Math.cos(rad);
+        float dx = px - hx, dy = py - hy;
+        float lf = Math.abs(dx * fx + dy * fy) - halfLength;
+        float lr = Math.abs(dx * fy - dy * fx) - halfWidth;
+        return (float) Math.hypot(Math.max(0f, lf), Math.max(0f, lr));
+    }
+
     private static float clamp(float v, float half) {
         return Math.max(-half, Math.min(half, v));
     }
