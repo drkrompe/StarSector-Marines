@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
@@ -468,7 +469,30 @@ final class HeadlessBattleSprites extends BattleSprites {
         loadFamily(LayeredArmorFamily.SCIENTIST,
                 "graphics/battle/colonist-modular-topdown/scientist/", layer("graphics/battle/colonist-modular-topdown/scientist/foot.png"),
                 null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+        // The swarm, as BattleSprites loads it: the Spitter walks and strikes on the Runner's feet and claws.
+        String alien = "graphics/battle/alien-modular-topdown/";
+        LayeredSpriteCache alienFoot = layer(alien + "foot.png");
+        LayeredSpriteCache alienClaw = layer(alien + "fore-claw.png");
+        loadFamily(LayeredArmorFamily.XENO, alien, alienFoot, alienClaw,
+                rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+        String brute = "graphics/battle/swarm-brute-modular-topdown/";
+        loadFamily(LayeredArmorFamily.XENO_BRUTE, brute, layer(brute + "foot.png"),
+                layer(brute + "fore-claw.png"), rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+        loadFamily(LayeredArmorFamily.XENO_SPITTER, "graphics/battle/swarm-spitter-modular-topdown/",
+                alienFoot, alienClaw, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+        // Families without lying poses fall through their unit type's corpse sheet, which the
+        // base class would load through the game.
+        for (UnitType type : UnitType.values()) {
+            if (type.deadSpritePath == null || !type.drawnAsLayers()
+                    || LayeredArmorFamily.spawnDefault(type).hasDownedArt()) continue;
+            deadSheets.put(type, new UnitSpriteCache(sprite(type.deadSpritePath),
+                    slice(type.deadSpritePath)));
+        }
     }
+
+    private final EnumMap<UnitType, UnitSpriteCache> deadSheets = new EnumMap<>(UnitType.class);
+
+    @Override public EnumMap<UnitType, UnitSpriteCache> unitDeadSprites() { return deadSheets; }
 
     private void loadFamily(LayeredArmorFamily family, String root,
                             LayeredSpriteCache foot, LayeredSpriteCache claw,

@@ -843,6 +843,17 @@ public class BattleSprites {
                 "graphics/battle/alien-modular-topdown/",
                 alienFoot, alienForeClaw, rifle, laser, smg, dmr, rocket, amr, flash,
                 surplusRifle, masterworkDmr);
+        // The Brute walks and strikes on its own heavier foot and claw; the Spitter is the
+        // Runner's lineage below the shoulders and keeps its feet and claws.
+        loadLayeredFamilyAt(LayeredArmorFamily.XENO_BRUTE,
+                "graphics/battle/swarm-brute-modular-topdown/",
+                loadLayeredSprite("graphics/battle/swarm-brute-modular-topdown/foot.png"),
+                loadLayeredSprite("graphics/battle/swarm-brute-modular-topdown/fore-claw.png"),
+                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamilyAt(LayeredArmorFamily.XENO_SPITTER,
+                "graphics/battle/swarm-spitter-modular-topdown/",
+                alienFoot, alienForeClaw, rifle, laser, smg, dmr, rocket, amr, flash,
+                surplusRifle, masterworkDmr);
         for (int pool = 0; pool < BLOOD_POOLS; pool++) {
             LayeredSpriteCache sprite = loadLayeredSprite(BLOOD_POOL_ROOT + pool + ".png");
             if (sprite != null) bloodPools.add(sprite);
@@ -996,7 +1007,7 @@ public class BattleSprites {
         LayeredSpriteCache body = loadLayeredSprite(familyRoot + "body.png");
         LayeredSpriteCache head = loadLayeredSprite(familyRoot + "head.png");
         if (body == null || head == null || foot == null
-                || (familyId == LayeredArmorFamily.XENO && foreClaw == null)) {
+                || (familyId.isXeno() && foreClaw == null)) {
             LOG.warn("BattleSprites: modular family " + familyId
                     + " incomplete; actors using it keep their legacy sheet");
             return;

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f39-50e4-7950-908e-3da31748752e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f39-50e4-7950-908e-3da31748752e\\exec-aa421f76-0b12-47d1-8b8a-e4de4f2869b1.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\swarm-strains\\raw\\brute-head.raw.png",
+    "sha256": "bd778410cae5dae0f3db9da8282a425a79e333f0c29b3f36a41a0ecd9549d679",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\swarm-strains\\prompts\\brute-head.prompt.txt",
+  "promptSha256": "53fc48d46db927cad6e2e6b9b35a76800feb45f4cb01f9fa9264679adb80ee1e",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry guide and edit target: exact silhouette, placement and scale authority; reskin it, never move or reshape it\nImage 2: Material and style reference only (the existing swarm runner's matching part); match its chitin, colours and rendering, never its shape\n\nUse case: sketch-to-render. Asset: the head layer of the swarm BRUTE, a heavy armoured alien strain, for a top-down tactical game. Image 1 is the authoritative geometry guide and edit target. Reskin this exact shape into a finished painted sprite, preserving its outline and placement exactly. It is a broad, blunt, battering-ram skull seen from above: the pale forward wedge in the guide is a thick bone-grey crest plate used to smash doors, the two round bosses at the front corners are short blunt horn knobs, and the rest is layered heavy chitin plating running back to the neck. Low, wide and brutal, not elegant. One head only; no shoulders, torso, arms, legs or tail. Straight overhead orthographic zenith camera looking down on the top of the part, forward (the creature's front) is up, no perspective, no cast shadow, no ground, no floor, no border, no text, no labels, no watermark. Genuine transparent background outside the silhouette, including any negative space. Crisp hand-painted 2D strategy-game sprite matching the existing swarm creature in the material reference: dark charcoal-purple segmented chitin, organic gunmetal-green ridges and under-plates, restrained bone-grey claw and plate edges, tiny warm amber sensory nodes. It will be shown only about 40 to 90 pixels wide in play, so keep bold readable plate shapes, clear dark separations and strong value contrast rather than fine noise. Change only material, detail and subtle ambient shading; never the silhouette, placement, scale or the transparent space. The pale yellow dots in the guide mark where small glowing nodes go; they are not shapes to copy literally.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\swarm-brute-head-guide.png",
+      "sha256": "ea6961faf68a9e749095a7bb7a7c8e122ef7b02f0252785aaafc875e2082521f",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry guide and edit target: exact silhouette, placement and scale authority; reskin it, never move or reshape it"
+    },
+    {
+      "path": "art-source\\alien-modular-topdown\\sources\\alien-head-source.png",
+      "sha256": "6962d56930ef2c9ecb93a3888a4e057ce04fd020068ba79d264e2508048aa437",
+      "dimensions": [
+        1312,
+        1199
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only (the existing swarm runner's matching part); match its chitin, colours and rendering, never its shape"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use imagegen to render the brute’s head, preserving the guide’s geometry and matching the second image’s chitin materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 64823,
+    "cached_input_tokens": 49408,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 700,
+    "reasoning_output_tokens": 22
+  },
+  "elapsedSeconds": 72.9
+}

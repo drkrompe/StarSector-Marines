@@ -165,7 +165,7 @@ public final class SwarmAvoidanceSystem {
         if (!roster.isAliveById(id)
                 || !marineFaction.hostileTo(roster.identity().faction(id))) return false;
         UnitType type = roster.identity().type(id);
-        return type == UnitType.ALIEN || type == UnitType.SWARM_RUNNER;
+        return type == UnitType.ALIEN || type.isSwarm();
     }
 
     private void foldIntoVelocity(long id, float dvx, float dvy) {
