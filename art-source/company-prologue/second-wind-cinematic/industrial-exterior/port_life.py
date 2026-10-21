@@ -26,7 +26,7 @@ What is at work:
               each with its drive glow and a puff of apron dust.
   signs       amber beacons on the working vehicles, more steam off the belt's roofs.
 
-With PORT_ROADS=1 (`port_roads`, `port-roads.md`) the traffic follows the road network by job: the
+The traffic follows the road network (`port_roads`, `port-roads.md`) by job: the
 belt and port loops turn on the container yard's loading strip instead of the port road; the heavy
 berth's tugs and dollies run a circuit down the heavy berth road, round pad 5's and pad 95's service
 rings and back; and the port road carries trips (`TRIPS`): the second bowser on its way from the fuel
@@ -336,7 +336,7 @@ ROUTES = {
 }
 
 
-# PORT_ROADS: the loops off the port road onto the loading strip (keeping right: east along y 341
+# The loops off the port road onto the loading strip (keeping right: east along y 341
 # and west along 354, or 348 and 354 for the two belt loops), and the heavy berth's tugs on a circuit
 # down the heavy berth road, west along the port road, clockwise round pad 5's ring, east, round pad
 # 95's and back up: in at each ring's west link, out at its east one.
@@ -351,16 +351,17 @@ def _lighters():
     return pts
 
 
-ROUTES_OFF = {k: dict(v) for k, v in ROUTES.items()}   # the approved loops, which port_detail keeps clear either way
-if port_roads.ON:
-    ROUTES.update({
-        'belt-east-outer': dict(pts=[(303, 203), (303, 354), (-3, 354), (-3, 203)], radius=11),
-        'belt-east-inner': dict(pts=[(3, 209), (3, 348), (297, 348), (297, 209)], radius=8),
-        'port-west': dict(pts=[(-590, 354), (-590, 341), (-326, 341), (-326, 354)], radius=6.5),
-        'port-mid': dict(pts=[(-284, 354), (-284, 341), (-150, 341), (-150, 354)], radius=6.5),
-    })
-    del ROUTES['heavy']
-    ROUTES['lighters'] = dict(pts=_lighters(), radius=5.0)
+# The loops as they ran before the roads: port_detail still keeps them clear, so that everything it
+# places off the roads is where the approved scene had it.
+ROUTES_BEFORE = {k: dict(v) for k, v in ROUTES.items()}
+ROUTES.update({
+    'belt-east-outer': dict(pts=[(303, 203), (303, 354), (-3, 354), (-3, 203)], radius=11),
+    'belt-east-inner': dict(pts=[(3, 209), (3, 348), (297, 348), (297, 209)], radius=8),
+    'port-west': dict(pts=[(-590, 354), (-590, 341), (-326, 341), (-326, 354)], radius=6.5),
+    'port-mid': dict(pts=[(-284, 354), (-284, 341), (-150, 341), (-150, 354)], radius=6.5),
+})
+del ROUTES['heavy']
+ROUTES['lighters'] = dict(pts=_lighters(), radius=5.0)
 
 
 def _tanker():
@@ -372,10 +373,10 @@ def _tanker():
             + R.ring_points(5.0, 412.0, R.junction_angle(-1), top) + [(-1.0, 511.0)])
 
 
-# Trips (PORT_ROADS): open routes, one vehicle each, simulated in this order. `start` is where the
+# Trips: open routes, one vehicle each, simulated in this order. `start` is where the
 # vehicle is at frame 0; `go` the second it pulls away, or None if it is already driving. Lanes keep
 # right: the back road's 2.25 m either side of its line, the connector's 3 m.
-TRIPS = {} if not port_roads.ON else {
+TRIPS = {
     # It starts east of berth -310's cargo lane, whose three carriers leave no gap to cross from a stop.
     'fuel': dict(kind='bowser', pts=_tanker(), start=(-285.0, 369.0), go=None, cruise=10.0,
                  name='Port bowser in -40'),
@@ -1025,18 +1026,14 @@ def add(c4x):
     terminal.append(Car('Port bus 1', bus.parts, 7.0, rt.L * 0.56, stops=[(hall, 9.0), (ferry, 9.0)]))
     sims.append((rt, terminal, 0.0))
 
-    # The heavy berth road: tugs with dollies between the staging and the lighter pads. With
-    # PORT_ROADS they serve pads 5 and 95 from their rings, stopping on the far side of each.
-    if port_roads.ON:
-        rt = route('lighters')
-        pads = [(rt.nearest_s(29, 412), 10.0), (rt.nearest_s(71, 412), 10.0)]
-    else:
-        rt = route('heavy')
-        pads = [(rt.nearest_s(46, 412), 10.0)]
+    # The heavy berth road: tugs with dollies between the staging and the lighter pads. They serve
+    # pads 5 and 95 from their rings, stopping on the far side of each.
+    rt = route('lighters')
+    pads = [(rt.nearest_s(29, 412), 10.0), (rt.nearest_s(71, 412), 10.0)]
     heavy = []
     for k in range(3):
         parts = with_beacon(baggage_tug_parts(tugp), -0.5, 2.15, 0.5)
-        car = Car('Baggage tug heavy %d' % k, parts, 5.0, rt.L * k / 3, stops=pads + [(rt.nearest_s(54 if port_roads.ON else 46, 590), 8.0)])
+        car = Car('Baggage tug heavy %d' % k, parts, 5.0, rt.L * k / 3, stops=pads + [(rt.nearest_s(54, 590), 8.0)])
         car.train = [('Cargo dolly heavy %d %d' % (k, j), dolly_parts(deck, bpy.data.materials['Module %d' % j]),
                       4.6 + 3.9 * j) for j in range(2)]
         car.rear = 4.6 + 3.9 + 1.6
@@ -1097,7 +1094,7 @@ def add(c4x):
 
 
 def trips(kinds, movers, F):
-    """PORT_ROADS: each trip driven in turn on its open route, yielding at crossings to everything
+    """Each trip driven in turn on its open route, yielding at crossings to everything
     already moving, the trips before it included; each then joins `movers` for the ones after it."""
     r = random.Random(78)
     white = bpy.data.materials['Hauler load']
@@ -1266,19 +1263,8 @@ def berth_work(r, F):
             continue
         cy = c4.BERTH_Y + c4.BERTH_DY[x]
         gx = x + 39.0
-        if who == 'fuelling' and port_roads.ON:
-            continue                                   # it drives in from the port road (`TRIPS`)
         if who == 'fuelling':
-            white = bpy.data.materials['Hauler load']
-            parts = with_beacon(c4.bowser_parts(white), 5.0, 3.55)
-            root = make('Port bowser in %d' % int(x), parts)
-            frames = list(range(0, F, KEY_STEP))
-            t = np.array(frames) / c4.FPS
-            k = np.clip((t - 3.0) / 9.0, 0, 1)
-            k = k * k * (3 - 2 * k)
-            ys = (cy - 60) + ((cy - 9) - (cy - 60)) * k
-            bake_pose(root, frames, np.full(len(t), gx), ys, np.zeros(len(t)), np.full(len(t), h))
-            continue
+            continue                                   # its bowser drives in from the port road (`TRIPS`)
         root = make('Yard forklift berth %d' % int(x), c4.forklift_parts(paint, mods[r.randrange(4)]))
         root.rotation_euler.z = h
         shuttle(root, (gx, cy - 40), (gx, cy + 22), 3.0, r.uniform(3, 6), r.random(), F - 1)

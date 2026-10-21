@@ -12,6 +12,8 @@ import java.util.List;
 /** Visual trim follows existing structure and material regions; never reserves or obstructs deck. */
 public final class ShipDeckTrim {
     private static final String KIT = "ship-floor-trim.";
+    /** The plate deck of passages and lived-in rooms takes the same wall-foot trim. */
+    private static final String HOLD = "ship-hold.";
     // Image top is world +Y; positive sprite turns are counterclockwise on screen.
     private static final int[][] DIRECTIONS = {{0, 1}, {-1, 0}, {0, -1}, {1, 0}};
 
@@ -83,7 +85,7 @@ public final class ShipDeckTrim {
     private static boolean floor(GenContext ctx, int x, int y) {
         if (!deck(ctx, x, y)) return false;
         String surface = ctx.topology.getSurfaceId(x, y);
-        return surface != null && surface.startsWith(KIT);
+        return surface != null && (surface.startsWith(KIT) || surface.startsWith(HOLD));
     }
     private static boolean deck(GenContext ctx, int x, int y) {
         return inside(ctx, x, y) && !ctx.topology.isWall(x, y)

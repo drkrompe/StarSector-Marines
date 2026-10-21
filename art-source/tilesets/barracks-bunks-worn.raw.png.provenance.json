@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ecd-5c1a-7402-b35a-20a2acf199ac",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ecd-5c1a-7402-b35a-20a2acf199ac\\exec-e0438db3-dba2-49dd-9878-ee25ba1bbed2.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\tilesets\\barracks-bunks-worn.raw.png",
+    "sha256": "3b64079efe6c4e84445400a20fb6b5437181c90058e834ac14543e475d548163",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\barracks-bunks-worn.prompt.txt",
+  "promptSha256": "2af2d21c3be28eb6847ef4089a1170305dee528534a46cc762380832721ce289",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and identity authority: exact components, positions, outlines and canvas; change surface condition only\nImage 2: Material and mood only; first-person, not layout\n\nRepaint reference 1, a sheet of six top-down game sprites (bunk base, bedding with pillow at top, bedding with pillow at bottom, open bunk frame, closed locker bank, locker bank with one open compartment), as the WORN version of the same furniture on a run-down ship whose crew are camping in it.\n\nReference 1 is the exact GEOMETRY AND IDENTITY authority: same six components, same positions on the canvas, same outlines, sizes and proportions, same top-down orthographic view and lighting direction, same 1254x1254 canvas. Every component must register over its original pixel for pixel at its edges; change surface condition only, never shape, position or size.\nReference 2 is MATERIAL AND MOOD ONLY (a first-person corridor of the same ship; never copy its perspective or layout).\n\nWorn condition:\n- Bunk base: paint chipped through to dull steel on edges and corners, grime in the recesses, a scuffed and stained deck panel, one bent drawer handle.\n- Both beddings: bare, stained, sagging mattress; a rumpled, tangled olive-drab blanket half off; the pillow flattened and greyed. Keep the pillow at the same end as the original.\n- Open frame: chipped, one corner plate missing a bolt, a little grime.\n- Closed locker bank: dented doors, scratched and chipped paint, one door slightly ajar, worn labels, grime packed round the handles and hinges.\n- Open locker bank: same wear; the open compartment holds a messy, unfolded heap of clothing instead of a neat stack.\nKeep the palette: graphite steel and grey-green olive, with only small spots of dull rust at chips. Not orange.\n\nTrue transparent background, including inside the open frame; no ground, no shadow slab, no border, no text, no labels.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\tilesets\\barracks-bunks.raw.png",
+      "sha256": "b6c3ce218bbb9de7528abd0c54571d4b71a7d9fe7a370d0f289fb7e1d3cc6c90",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Geometry and identity authority: exact components, positions, outlines and canvas; change surface condition only"
+    },
+    {
+      "path": "art-source\\company-prologue\\story-stills\\cargo-billets.master.png",
+      "sha256": "d39a6877035a8a200508e4feb31d802d3a31766a2b699d5d5123ab3c307cb4bb",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Material and mood only; first-person, not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one worn version, preserving the six sprites’ layout and silhouettes with a transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 45387,
+    "cached_input_tokens": 34432,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 635,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 71.5
+}

@@ -1,6 +1,6 @@
 # Ship interior story board
 
-Status: ACTIVE — seven bounded stories are open; two have shipped.
+Status: ACTIVE — eight bounded stories are open; two have shipped.
 
 Written: 2026-08-26
 
@@ -18,6 +18,7 @@ The first two stories are sequenced and the second depends on the first.
 | `company-ship-selection.md` | IN PROGRESS | Founding, transfer, the refit fee and the loss toll all land: the player picks the company ship, pays the yard to move it, and is displaced - and cut down - when it does not come home. Left: whether named officers are at risk with her. |
 | `deck-capacity-upgrades.md` | PROPOSED | Make facility capacity spatial and let a bounded upgrade transaction change the room. Needs a named economic owner first. |
 | `ship-ambient-wear.md` | IMPLEMENTED | Persistent restoration-hull scars, steady room lights and local emergency-light faults; live visual/performance acceptance remains. |
+| `interior-tech-styles.md` | PROPOSED | Midline and high-tech interior styles, each with its own condition range, look-developed the way low-tech was. Every hull is drawn low-tech until then. |
 | `boarding-deck-missions.md` | PARKED | Generate hostile prize decks for boarding once a mission model owns objectives and extraction. |
 
 `cerberus-company-start.md` implements the optional permanent frigate conversion and

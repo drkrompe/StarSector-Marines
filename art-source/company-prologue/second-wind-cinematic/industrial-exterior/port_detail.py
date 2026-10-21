@@ -17,7 +17,7 @@ reads as one working port from C4's 480 m to C5's 1.8 km:
   apron          painted lanes and bays, light masts on a grid, puddles
 
 Nothing here moves. Moving traffic (port-life) keeps to `LANES`, which nothing here stands on.
-With PORT_ROADS=1 the new roads and pad rings (`port_roads`) are kept clear too, and whatever would
+The roads and pad rings (`port_roads`) are kept clear too, and whatever would
 have stood on them is moved or left out; `GHOSTS` lists where it stood, for `port_roads` to cover
 the overhead painting's picture of it.
 Parked port vehicles are built from the yard's own part shapes and named for their slot on the
@@ -43,7 +43,7 @@ import port_roads
 LANES = []
 # What this module put down, (x0, x1, y0, y1): for anyone placing walkers or vehicles later.
 FOOTPRINTS = []
-# PORT_ROADS: (sample kind, rect) of things the roads displaced, still in the overhead painting.
+# (sample kind, rect) of things the roads displaced, still in the overhead painting.
 GHOSTS = []
 
 
@@ -52,7 +52,7 @@ class Ground:
 
     def __init__(self):
         self.rects, self.circles = [], []
-        self.roads, self.rings = [], []        # PORT_ROADS keep-outs: rects, annuli (cx, cy, r_in, r_out)
+        self.roads, self.rings = [], []        # the roads' keep-outs: rects, annuli (cx, cy, r_in, r_out)
 
     def rect(self, x0, x1, y0, y1):
         self.rects.append((min(x0, x1), max(x0, x1), min(y0, y1), max(y0, y1)))
@@ -128,7 +128,7 @@ class Parts:
         self.c4 = c4
         self.bms = {}
         self.label = label
-        # PORT_ROADS: clutter moved to where the overhead painting shows bare ground, drawn in its own
+        # Clutter moved off the roads to where the overhead painting shows bare ground, drawn in its own
         # colours (left out of the paint, `ortho_paint.moving_or_textured`).
         self.inner = Parts.__new__(Parts) if label == 'Port detail ' else None
         if self.inner is not None:
@@ -236,17 +236,16 @@ def keep_out(c4, g):
              (-600.0, 600.0, 334.0, 362.0),                   # loading strip
              (43.0 - 3, 57.0 + 3, 378.0, c4.HEAVY[2]),          # heavy berth road
              (-2000.0, 2000.0, -98.0, -72.0)]                 # freight road
-    # The two roads PORT_ROADS removes stay clear (a patch covers them) so that every placement
-    # and random draw off the new roads is the one the approved scene makes.
+    # The two roads the network removed stay clear (a patch covers them) so that every placement
+    # and random draw off the roads is the one the approved scene made.
     lanes += [(-302.0, -283.0, 556.0, 645.0),                 # fuel farm road
               (57.0, 182.0, 677.0, 695.0)]                    # terminal road
-    if port_roads.ON:
-        g.roads, g.rings = port_roads.keep_out(c4)
-        for x, off, who in c4.BERTHS:                         # the fuel bowser's way up from pad 5's ring
-            if who == 'fuelling':
-                gx = x + 39.0
-                g.roads.append((gx - 5, gx + 5, c4.LIGHTER_Y + port_roads.RING_R, c4.BERTH_Y + c4.BERTH_DY[x] - 60))
-        g.roads += moving_ground(c4, new=True)             # not in LANES: puddles draw as they do without the roads
+    g.roads, g.rings = port_roads.keep_out(c4)
+    for x, off, who in c4.BERTHS:                             # the fuel bowser's way up from pad 5's ring
+        if who == 'fuelling':
+            gx = x + 39.0
+            g.roads.append((gx - 5, gx + 5, c4.LIGHTER_Y + port_roads.RING_R, c4.BERTH_Y + c4.BERTH_DY[x] - 60))
+    g.roads += moving_ground(c4, new=True)                    # not in LANES: puddles draw as they did before the roads
     for x in c4.CROSS_STREETS:
         lanes.append((x - 9, x + 9, -75.0, 362.0))
     for x, off, who in c4.BERTHS:
@@ -301,7 +300,7 @@ def moving_ground(c4, new=False):
     """Where port-life's vehicles drive (`port_life.ROUTES`, a lane centre each, vehicles up to 3 m
     wide), and the paths its berth forklifts and second bowser take up the berth gaps
     (`port_life.berth_work`): rectangles nothing standing may overlap. The approved loops
-    (`ROUTES_OFF`) are kept clear either way; `new` gives PORT_ROADS' loops and trips instead,
+    (`ROUTES_BEFORE`) are kept clear; `new` gives the loops and trips on the roads instead,
     which go in with the roads."""
     out = []
     try:
@@ -309,13 +308,13 @@ def moving_ground(c4, new=False):
     except ImportError:
         return out
     w = 4.0
-    routes = port_life.ROUTES if new else getattr(port_life, 'ROUTES_OFF', port_life.ROUTES)
+    routes = port_life.ROUTES if new else port_life.ROUTES_BEFORE
     for name, rt in routes.items():
         pts = rt['pts'] + ([rt['pts'][0]] if rt.get('closed', True) else [])
         for (ax, ay), (bx, by) in zip(pts, pts[1:]):
             out.append((min(ax, bx) - w, max(ax, bx) + w, min(ay, by) - w, max(ay, by) + w))
     if new:
-        for name, t in port_life.TRIPS.items():             # PORT_ROADS: the trips' ways
+        for name, t in port_life.TRIPS.items():             # the trips' ways
             for (ax, ay), (bx, by) in zip(t['pts'], t['pts'][1:]):
                 out.append((min(ax, bx) - w, max(ax, bx) + w, min(ay, by) - w, max(ay, by) + w))
         return out
@@ -620,7 +619,7 @@ def west_end(c4, g, P, r):
             x += 6.0
     for x in (x0 + 2, x1 - 2):
         light_mast(P, x, y1 - 2, 24.0)
-    fence_box(P, x0, x1, y0, y1, 'S', (60.0, 76.0), ('E', port_roads.WEST_LOT_GATE) if port_roads.ON else None)
+    fence_box(P, x0, x1, y0, y1, 'S', (60.0, 76.0), ('E', port_roads.WEST_LOT_GATE))
     g.take(x0, x1, y0, y1)
 
 
@@ -668,42 +667,31 @@ def fuel_loading(c4, g, P, r):
 
 def lighter_pads(c4, g, P, r):
     """Each Hermes pad's own clutter, on the apron beside it: a dolly train, a power cart, a fuel
-    cart, a stores cage. With PORT_ROADS its service ring runs there, so a smaller set stands inside
-    the ring instead (the dolly trains drive the ring now), and the draws the old set made are still
-    made, so everything placed after it stays where it was."""
+    cart, a stores cage, until its service ring ran there: a smaller set stands inside the ring now
+    (the dolly trains drive the ring), and the draws the old set made are still made, so everything
+    placed after it stays where it was."""
     for i, (x, who) in enumerate(c4.LIGHTERS):
         y = c4.LIGHTER_Y
         for side in (-1, 1):
             cx = x + side * (c4.LIGHTER_R + 12)
-            if port_roads.ON:
-                # Free but for the ring (and noted for a patch) is where the old set stood: only
-                # there does it make the old set's draws.
-                old = g.free(cx - 4, cx + 4, y - 10, y + 10) or g.road_blocked
-                null = Null(P)
-                if side < 0:
-                    if old:
-                        dolly_train(null, r, cx, y + 6, -math.pi / 2, 3)
-                    ix = x - 17.5
-                    power_cart(P.inner, ix, y + 0.5, math.pi / 2)
-                else:
-                    if old:
-                        crate_stack(null, r, cx - 1.2, y - 6.2, 2, 1)
-                    ix = x + 17.5
-                    fuel_cart(P.inner, ix, y - 4.0, math.pi / 2)
-                    P.inner.box('fence', (3.4, 3.0, 2.4), (ix, y + 3.0, 1.2))           # stores cage
+            # Free but for the ring (and noted for a patch) is where the old set stood: only there
+            # does it make the old set's draws.
+            old = g.free(cx - 4, cx + 4, y - 10, y + 10) or g.road_blocked
+            null = Null(P)
+            if side < 0:
                 if old:
-                    g.take(cx - 4, cx + 4, y - 10, y + 10)
-                g.take(ix - 2, ix + 2, y - 6, y + 6)
-                continue
-            if g.free(cx - 4, cx + 4, y - 10, y + 10):
-                if side < 0:
-                    dolly_train(P, r, cx, y + 6, -math.pi / 2, 3)
-                    power_cart(P, cx + 3, y - 6, math.pi / 2)
-                else:
-                    fuel_cart(P, cx, y + 5, math.pi / 2)
-                    P.box('fence', (4.0, 3.0, 2.4), (cx, y - 5, 1.2))          # stores cage
-                    crate_stack(P, r, cx - 1.2, y - 6.2, 2, 1)
+                    dolly_train(null, r, cx, y + 6, -math.pi / 2, 3)
+                ix = x - 17.5
+                power_cart(P.inner, ix, y + 0.5, math.pi / 2)
+            else:
+                if old:
+                    crate_stack(null, r, cx - 1.2, y - 6.2, 2, 1)
+                ix = x + 17.5
+                fuel_cart(P.inner, ix, y - 4.0, math.pi / 2)
+                P.inner.box('fence', (3.4, 3.0, 2.4), (ix, y + 3.0, 1.2))               # stores cage
+            if old:
                 g.take(cx - 4, cx + 4, y - 10, y + 10)
+            g.take(ix - 2, ix + 2, y - 6, y + 6)
 
 
 def pipe_bridge(c4, g, P):
@@ -730,8 +718,7 @@ def pipe_bridge(c4, g, P):
         tx, ty, _ = c4.at(x, cy, h, c4.BERTH_R + 12, -23.5)
         P.strut('pipe', (tx, y, z), (tx, ty + 5, 4.0), 0.7)
         py = (y + ty) / 2
-        if port_roads.ON:                  # off the back road (y 603.5-612.5); the pipe crosses it 4.8 m up
-            py = min(py, 600.5)
+        py = min(py, 600.5)                # off the back road (y 603.5-612.5); the pipe crosses it 4.8 m up
         P.strut('steel', (tx, py, 0), (tx, py, 4.0 + (py - ty - 5) / (y - ty - 5) * (z - 4.0)), 0.5)
     g.take(xw, xe, y - 2, y + 2)
 
@@ -741,22 +728,21 @@ def truck_park(c4, g, P, r):
     and the bonded stores along the tree line it serves."""
     x0, x1, y0, y1 = -270.0, -76.0, 628.0, 718.0
     c4.plane('Truck park', x0, x1, y0, y1, P.m['lot'], 0.06)
-    # With PORT_ROADS the back road comes in at the west end: the gate is there, and the bays across
+    # The back road comes in at the west end: the gate is there, and the bays across
     # the way in to the aisle are left empty.
-    fence_box(P, x0, x1, y0, y1, 'S', port_roads.TRUCK_PARK_GATE if port_roads.ON else (88.0, 104.0))
+    fence_box(P, x0, x1, y0, y1, 'S', port_roads.TRUCK_PARK_GATE)
     ax0, ax1 = port_roads.TRUCK_PARK_AISLE
     # Three rows of articulated trucks, the first two back to back, nose out to an aisle.
     for row, (cab_y, h) in enumerate(((y0 + 8, -math.pi / 2), (y0 + 46, math.pi / 2), (y0 + 64, -math.pi / 2))):
         x = x0 + 8
         while x < x1 - 6:
-            way_in = port_roads.ON and row < 2 and ax0 < x < ax1
+            way_in = row < 2 and ax0 < x < ax1
             if not way_in:
                 P.box('white line', (0.4, 17.0, 0.05), (x - 3.0, cab_y + (8.5 if h < 0 else -8.5), 0.1))
             if r.random() < 0.78:
                 truck(Null(P) if way_in else P, r, x, cab_y, h)
             x += 6.0
-    if port_roads.ON:
-        GHOSTS.append(('lot', (ax0, ax1, y0 + 0.5, y0 + 49.0)))
+    GHOSTS.append(('lot', (ax0, ax1, y0 + 0.5, y0 + 49.0)))
     hut(P, r, x0 + 96, y0 + 4, 5.0, 4.0, 3.2, P.m['roofs'][2])      # the gate office
     for x in (x0 + 4, (x0 + x1) / 2, x1 - 4):
         light_mast(P, x, y1 - 4, 26.0)
@@ -786,27 +772,23 @@ def west_depot(c4, g, P, r):
             P.cyl('tank', 9.0, 11.0, (tx0 + 14 + i * 26, ty0 + 15 + j * 30, 0.3), 24)
     fence_box(P, tx0 - 3, tx1 + 3, ty0 - 3, ty1 + 3, 'S', (30.0, 40.0))
     g.take(tx0 - 3, tx1 + 3, ty0 - 3, ty1 + 3)
-    # Pumps and a manifold between the two farms. With PORT_ROADS the fuel spur runs between them:
+    # Pumps and a manifold between the two farms. The fuel spur runs between them:
     # the pumps stand back from it and the manifold goes over it on two posts.
-    px = -432.0 if port_roads.ON else -428.0
+    px = -432.0
     for k in range(3):
         P.box('gse white', (3.0, 2.0, 2.0), (px, 662 + k * 8, 1.0))
-    if not port_roads.ON:
-        P.strut('pipe', (-440, 700, 1.5), (-410, 676, 1.5), 0.9)
-        P.strut('pipe', (-440, 702, 1.2), (-410, 678, 1.2), 0.9)
-    else:
-        for dz, dy in ((0.0, 0.0), (0.5, 2.0)):
-            a, b = (-440, 700 + dy), (-410, 676 + dy)
-            up_a, up_b = (-432, 693.6 + dy), (-412, 677.6 + dy)
-            P.strut('pipe', (*a, 1.5 - dz), (*up_a, 6.5 + dz), 0.9)
-            P.strut('pipe', (*up_a, 6.5 + dz), (*up_b, 6.5 + dz), 0.9)
-            P.strut('pipe', (*up_b, 6.5 + dz), (*b, 1.5 - dz), 0.9)
-        for x, y in ((-431.0, 693.8), (-413.0, 679.4)):
-            P.strut('steel', (x, y, 0), (x, y, 6.2), 0.5)
-        GHOSTS.append(('apron', (-430.5, -425.5, 659.0, 681.0)))
+    for dz, dy in ((0.0, 0.0), (0.5, 2.0)):
+        a, b = (-440, 700 + dy), (-410, 676 + dy)
+        up_a, up_b = (-432, 693.6 + dy), (-412, 677.6 + dy)
+        P.strut('pipe', (*a, 1.5 - dz), (*up_a, 6.5 + dz), 0.9)
+        P.strut('pipe', (*up_a, 6.5 + dz), (*up_b, 6.5 + dz), 0.9)
+        P.strut('pipe', (*up_b, 6.5 + dz), (*b, 1.5 - dz), 0.9)
+    for x, y in ((-431.0, 693.8), (-413.0, 679.4)):
+        P.strut('steel', (x, y, 0), (x, y, 6.2), 0.5)
+    GHOSTS.append(('apron', (-430.5, -425.5, 659.0, 681.0)))
     # The vehicle shed and its yard, south-west.
     dx0, dx1, dy0, dy1 = -524.0, -440.0, 590.0, 680.0
-    ex = port_roads.DEPOT_EAST if port_roads.ON else dx1           # its east fence: in 6 m for the back road
+    ex = port_roads.DEPOT_EAST                                      # its east fence: in 6 m for the back road
     c4.plane('Depot yard', dx0, ex, dy0, dy1, P.m['gravel'], 0.06)
     w, d, hh = 46.0, 24.0, 11.0
     P.box(P.m['roofs'][1], (w, d, hh), (dx0 + 26, dy1 - 16, hh / 2))
@@ -816,7 +798,7 @@ def west_depot(c4, g, P, r):
     park(c4, 'Yard forklift depot', c4.forklift_parts(P.m['yellow'], P.m['modules'][0]), dx1 - 14, dy0 + 30, 0.0)
     park(c4, 'Flatbed depot', c4.flatbed_parts(P.m['cab'], P.m['steel'], P.m['stock']), dx0 + 18, dy0 + 34, 0.0)
     stair_truck(P, dx1 - 10, dy0 + 12, math.pi / 2)
-    stair_truck(P, dx1 - 4 if ex == dx1 else dx1 - 16, dy0 + 12, math.pi / 2)
+    stair_truck(P, dx1 - 16, dy0 + 12, math.pi / 2)
     for _ in range(26):                                                 # scrap and cast-offs in the corner
         size = (r.uniform(1.5, 5), r.uniform(1.5, 4), r.uniform(0.6, 2.2))
         sx, sy, sz, sh = r.uniform(dx1 - 22, dx1 - 6), r.uniform(dy1 - 20, dy1 - 6), r.uniform(0.3, 1.5), r.uniform(0, math.pi)
@@ -826,8 +808,7 @@ def west_depot(c4, g, P, r):
     fence_box(P, dx0, ex, dy0, dy1, 'E', (10.0, 24.0))
     light_mast(P, ex - 3, dy0 + 3, 26.0)
     g.take(dx0, ex, dy0, dy1)
-    if ex != dx1:
-        GHOSTS.append(('apron', (ex + 0.5, dx1 + 1.0, dy0 - 1.0, dy1 + 1.0)))
+    GHOSTS.append(('apron', (ex + 0.5, dx1 + 1.0, dy0 - 1.0, dy1 + 1.0)))
     # The apron west of the first berth: a parked hauler line and a mast.
     for k in range(5):
         x, y = -505.0 + k * 0, 470.0 + k * 9

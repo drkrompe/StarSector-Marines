@@ -47,6 +47,6 @@ class ShipRefitsRefusalTest {
         assertNotNull(refuse(RefitOrder.MESS_GALLEY, START, true, true, true, true, 99_999));
         assertNotNull(refuse(RefitOrder.LIFE_SUPPORT_RESTORED, START, true, true, true, true, 99_999));
         assertNull(refuse(RefitOrder.LIFE_SUPPORT_RESTORED,
-                START.with(RefitTrack.POWER, RefitBand.RESTORED), true, true, true, true, 99_999));
+                START.with(RefitTrack.POWER, RefitBand.RESTORED).with(RefitTrack.STRUCTURE, RefitBand.RESTORED), true, true, true, true, 99_999));
     }
 }

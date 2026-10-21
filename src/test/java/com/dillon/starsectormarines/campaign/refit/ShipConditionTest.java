@@ -67,7 +67,8 @@ class ShipConditionTest {
         for (RefitTrack core : new RefitTrack[]{RefitTrack.POWER, RefitTrack.LIFE_SUPPORT, RefitTrack.STRUCTURE, RefitTrack.COMPUTE})
             cheap = cheap.with(core, RefitBand.RESTORED);
         assertNotNull(cheap.missing(RefitOrder.FLUX_RESTORED), "flux waits on the reactor overhaul");
-        assertNull(cheap.missing(RefitOrder.HULL_RESTORED));
+        assertEquals(RefitTrack.FABRICATION, cheap.missing(RefitOrder.HULL_RESTORED).getKey(), "new plate is cut in the workshop");
+        assertNull(cheap.with(RefitTrack.FABRICATION, RefitBand.RESTORED).missing(RefitOrder.HULL_RESTORED));
         for (RefitOrder order : RefitOrder.values())
             if (order.track.group == RefitTrack.Group.COMBAT && order.band == RefitBand.RESTORED)
                 assertFalse(order.requires.isEmpty(), order.name());

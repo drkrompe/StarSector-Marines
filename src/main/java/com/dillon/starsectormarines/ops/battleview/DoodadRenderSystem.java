@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.fs.starfarer.api.graphics.SpriteAPI;
+import java.util.function.UnaryOperator;
 
 /**
  * Emits the {@link RenderLayer#DOODADS} layer — props (rocks, plants, debris,
@@ -39,7 +40,11 @@ public final class DoodadRenderSystem implements RenderSystem {
         VisibleCellRect view = cam.visibleCells(
                 VisibleCellRect.GEOMETRY_MARGIN_CELLS,
                 ctx.sim.getGrid().getWidth(), ctx.sim.getGrid().getHeight());
-        collectPlacements(ctx.sim.getDoodads(), out, cam, view, ctx.alphaMult);
+        ShipDeckDressing dressing = ctx.deckDressing;
+        // A ship whose Life support is at Deficit shows worn furniture where a worn twin exists.
+        UnaryOperator<Doodad> drawn = dressing != null && ctx.hostProfile == BattleRenderHostProfile.DECK_SCENE
+                && !ctx.coreDressing.lifeSupport() ? dressing::worn : UnaryOperator.identity();
+        collectPlacements(ctx.sim.getDoodads(), out, cam, view, ctx.alphaMult, drawn);
     }
 
     /**
@@ -85,6 +90,15 @@ public final class DoodadRenderSystem implements RenderSystem {
 
     void collectPlacements(Iterable<Doodad> placements, DrawList out, BattleCamera cam,
                            VisibleCellRect view, float alphaMult) {
+        collectPlacements(placements, out, cam, view, alphaMult, UnaryOperator.identity());
+    }
+
+    /**
+     * @param drawn the art each placement is drawn as. Presentation only: a
+     *     condition twin shares its placement's footprint, cover and blocking.
+     */
+    void collectPlacements(Iterable<Doodad> placements, DrawList out, BattleCamera cam,
+                           VisibleCellRect view, float alphaMult, UnaryOperator<Doodad> drawn) {
         boolean additionalSheet = false;
         for (Doodad d : placements) {
             if (!isLegacySheet(d.sheetPath)) { additionalSheet = true; break; }
@@ -97,8 +111,9 @@ public final class DoodadRenderSystem implements RenderSystem {
             emitLegacySheet(placements, out, cam, view, sprites.tileSheet(), TileManifest.SHEET, alphaMult);
             return;
         }
-        for (Doodad d : placements) {
-            if (!view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY)) continue;
+        for (Doodad placed : placements) {
+            if (!view.intersectsCells(placed.cellX, placed.cellY, placed.footprintCellsX, placed.footprintCellsY)) continue;
+            Doodad d = drawn.apply(placed);
             SpriteAPI sheet = sheetFor(d);
             if (sheet != null) emit(out, cam, sheet, d, cam.cellPxSize(), alphaMult);
         }

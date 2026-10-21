@@ -61,6 +61,7 @@ class OpeningLocalizationTest {
         for (var grade : EquipmentGrade.values()) assertTrue(catalog.has("openingEquipmentGrade" + grade.name()));
         for (var track : RefitTrack.values()) {
             assertTrue(catalog.has("openingRefitTrack" + track.name()), track.name());
+            assertTrue(catalog.has("openingRefitLore" + track.name()), track.name());
             if (track.core != null) assertTrue(catalog.has("openingRefitLock" + track.name()), track.name());
             for (var band : RefitBand.values()) {
                 assertTrue(catalog.has("openingRefitTier" + track.name() + band.name()), track + " " + band);

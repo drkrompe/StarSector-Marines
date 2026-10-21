@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import java.util.ArrayList;
@@ -46,9 +47,11 @@ class ShipDeckDressingTest {
     private static Function<String, DoodadDef> registry() {
         Map<String, DoodadDef> defs = new HashMap<>();
         return id -> defs.computeIfAbsent(id, key -> {
-            boolean edge = List.of("dead-panel", "conduit", "grille", "buckled-panel", "bracing", "cable-run")
-                    .contains(key.substring(key.indexOf('.') + 1));
-            return new DoodadDef(key, "sheet.png", 0, 0, DoodadCover.NONE, 0f, 2, edge ? 1 : 2);
+            String name = key.substring(key.indexOf('.') + 1);
+            boolean strip = List.of("wall-grime", "wall-patch", "crate", "ammo-pair", "duffel", "drum", "cable-coil", "toolbox").contains(name);
+            boolean edge = strip || List.of("dead-panel", "conduit", "grille", "buckled-panel", "bracing", "cable-run",
+                    "crate-stack", "pallet", "duffels", "ammo-cans", "netted-cargo", "bedroll-camp").contains(name);
+            return new DoodadDef(key, "sheet.png", 0, 0, DoodadCover.NONE, 0f, strip ? 1 : 2, edge ? 1 : 2);
         });
     }
 
@@ -144,6 +147,23 @@ class ShipDeckDressingTest {
                 ? new DoodadDef(id, "sheet.png", 0, 0, DoodadCover.NONE, 0f, 2, 2) : null);
         for (var piece : plan.pieces())
             assertTrue(piece.def().id.equals("ship-wear.patch") || piece.def().id.equals("doodad.decal-rubble-2"));
+    }
+
+    @Test
+    void wornTwinsTakeOnlyTheArtAndKeepThePlacement() {
+        DoodadDef bed = new DoodadDef("barracks-bunks.bed", "a.png", 0, 0, DoodadCover.MED, .38f, 1, 2);
+        DoodadDef wornBed = new DoodadDef("barracks-bunks.bed-worn", "b.png", 1, 0, DoodadCover.NONE, 0f, 1, 2);
+        DoodadDef locker = new DoodadDef("barracks-bunks.locker", "a.png", 2, 0, DoodadCover.HEAVY, 1.1f, 1, 2);
+        Doodad placedBed = new Doodad(4, 7, bed, 1, true), placedLocker = new Doodad(9, 2, locker, 0);
+        var twins = ShipDeckDressing.wornTwins(List.of(placedBed, placedLocker),
+                id -> id.equals(wornBed.id) ? wornBed : null);
+        Doodad twin = twins.get(placedBed);
+        assertEquals("b.png", twin.sheetPath);
+        assertEquals(placedBed.cellX, twin.cellX);
+        assertEquals(placedBed.cellY, twin.cellY);
+        assertEquals(placedBed.quarterTurns, twin.quarterTurns);
+        assertEquals(placedBed.mirrored, twin.mirrored);
+        assertFalse(twins.containsKey(placedLocker), "a piece with no worn art draws as itself");
     }
 
     @Test

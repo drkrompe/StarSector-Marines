@@ -15,13 +15,15 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 /**
- * The founding hull's Deficit dressing: grime, buckled panels, debris, hanging
- * conduit and dead screens laid over a deck whose form is already fixed.
+ * The founding hull's Deficit dressing: storage camped along the passages,
+ * grime at the wall foot, patched and buckled panels, hanging conduit, worn
+ * furniture and dead screens laid over a deck whose form is already fixed.
  *
  * <p>Presentation only. Nothing here enters the simulation: no doodad is added
  * to the map, no cell changes walkability, cover or sight, and the deck the crew
@@ -40,7 +42,8 @@ import java.util.function.Function;
  *   <li>Lanes stay readable. Anything that looks like it stands on the deck is
  *       an <em>edge</em> piece: it hugs a straight run of bulkhead, its art sits
  *       in the wall-side strip of its cells, and the cell inboard of it stays
- *       clear of other edge pieces. Mid-lane pieces are flat stains only.</li>
+ *       clear of other edge pieces. Stored cargo lines only passages wide enough to
+ *       keep two clear cells past it. Mid-lane pieces are flat patches only.</li>
  *   <li>Firing ranges are never dressed: their lanes are shut deck.</li>
  * </ul>
  */
@@ -55,16 +58,29 @@ final class ShipDeckDressing {
      * leaves a worse-looking deck rather than a bare one.
      */
     enum Kind {
+        // The company camps in its passages: storage stands along both walls, the lane stays clear.
+        // First in the queue, so a passage wall goes to storage before smaller pieces claim it.
+        CRATE_STACK(ShipCore.LIFE_SUPPORT, Placement.EDGE, "ship-hold.crate-stack", null, 5, true),
+        PALLET(ShipCore.LIFE_SUPPORT, Placement.EDGE, "ship-hold.pallet", null, 5, true),
+        DUFFELS(ShipCore.LIFE_SUPPORT, Placement.EDGE, "ship-hold.duffels", null, 5, true),
+        AMMO_CANS(ShipCore.LIFE_SUPPORT, Placement.EDGE, "ship-hold.ammo-cans", null, 5, true),
+        NETTED_CARGO(ShipCore.LIFE_SUPPORT, Placement.EDGE, "ship-hold.netted-cargo", null, 5, true),
+        BEDROLL_CAMP(ShipCore.LIFE_SUPPORT, Placement.EDGE, "ship-hold.bedroll-camp", null, 5, true),
+        // Single pieces fill the gaps the long stacks leave.
+        CRATE(ShipCore.LIFE_SUPPORT, Placement.EDGE, "ship-hold.crate", null, 4, true),
+        AMMO_PAIR(ShipCore.LIFE_SUPPORT, Placement.EDGE, "ship-hold.ammo-pair", null, 5, true),
+        DUFFEL(ShipCore.LIFE_SUPPORT, Placement.EDGE, "ship-hold.duffel", null, 5, true),
+        DRUM(ShipCore.LIFE_SUPPORT, Placement.EDGE, "ship-hold.drum", null, 6, true),
+        CABLE_COIL(ShipCore.LIFE_SUPPORT, Placement.EDGE, "ship-hold.cable-coil", null, 8, true),
+        TOOLBOX(ShipCore.LIFE_SUPPORT, Placement.EDGE, "ship-hold.toolbox", null, 9, true),
         DEAD_PANEL(ShipCore.POWER, Placement.EDGE, "ship-dressing.dead-panel", null, 13, false),
         CONDUIT(ShipCore.POWER, Placement.EDGE, "ship-dressing.conduit", null, 17, false),
-        GRIME(ShipCore.LIFE_SUPPORT, Placement.FLOOR, "ship-dressing.grime", "ship-wear.scuffs", 30, false),
-        CONDENSATION(ShipCore.LIFE_SUPPORT, Placement.FLOOR, "ship-dressing.condensation", null, 44, false),
+        WALL_GRIME(ShipCore.LIFE_SUPPORT, Placement.EDGE, "ship-hold.wall-grime", null, 9, false),
         GRILLE(ShipCore.LIFE_SUPPORT, Placement.EDGE, "ship-dressing.grille", null, 19, false),
         BUCKLED_PANEL(ShipCore.STRUCTURE, Placement.EDGE, "ship-dressing.buckled-panel", null, 15, false),
         BRACING(ShipCore.STRUCTURE, Placement.EDGE, "ship-dressing.bracing", null, 23, false),
-        DEBRIS(ShipCore.STRUCTURE, Placement.FLOOR, "ship-dressing.debris", "doodad.decal-rubble-2", 40, false),
+        WALL_PATCH(ShipCore.STRUCTURE, Placement.EDGE, "ship-hold.wall-patch", null, 11, false),
         PATCH(ShipCore.STRUCTURE, Placement.FLOOR, "ship-dressing.hull-patch", "ship-wear.patch", 26, true),
-        BUCKLED_PLATE(ShipCore.STRUCTURE, Placement.FLOOR, "ship-dressing.buckled-plate", null, 52, false),
         CABLE_SPILL(ShipCore.COMPUTE, Placement.FLOOR, "ship-dressing.cable-spill", null, 0, false),
         CABLE_RUN(ShipCore.COMPUTE, Placement.EDGE, "ship-dressing.cable-run", null, 21, false);
 
@@ -74,7 +90,11 @@ final class ShipDeckDressing {
         final String standIn;
         /** One anchor in this many eligible cells, before overlap; zero places only beside a console. */
         final int rarity;
-        /** Passages only: patched plating belongs in the corridors. */
+        /**
+         * Passages only: patched plating and stored cargo belong in the corridors.
+         * A passage edge piece also leaves two clear cells inboard of it, so storage
+         * only lines a passage wide enough to keep a lane past it.
+         */
         final boolean passagesOnly;
 
         Kind(ShipCore core, Placement placement, String art, String standIn, int rarity, boolean passagesOnly) {
@@ -106,6 +126,8 @@ final class ShipDeckDressing {
     private final boolean[] hazeFloor;
     final int width, height;
     private final Map<CoreDressing, List<Doodad>> drawn = new HashMap<>();
+    /** Each fitted piece's worn twin, where its sheet has one. */
+    private Map<Doodad, Doodad> worn = Map.of();
 
     private ShipDeckDressing(List<Piece> pieces, List<Doodad> consoles, boolean[] hazeFloor, int width, int height) {
         this.pieces = List.copyOf(pieces);
@@ -129,6 +151,27 @@ final class ShipDeckDressing {
         return drawn.computeIfAbsent(state, s -> pieces(s).stream().map(Piece::doodad).toList());
     }
 
+    /** The art a fitted piece shows while Life support is at Deficit: its worn twin, or itself. */
+    Doodad worn(Doodad placed) {
+        return worn.getOrDefault(placed, placed);
+    }
+
+    /**
+     * Pairs each placement with its {@code <id>-worn} twin, set on the same
+     * cells, turn and mirror. A twin is art only: the placement keeps its own
+     * footprint, cover and blocking.
+     */
+    static Map<Doodad, Doodad> wornTwins(List<Doodad> placed, Function<String, DoodadDef> registry) {
+        Map<Doodad, Doodad> twins = new IdentityHashMap<>();
+        for (Doodad doodad : placed) {
+            if (doodad.definitionId() == null) continue;
+            DoodadDef def = registry.apply(doodad.definitionId() + "-worn");
+            if (def != null) twins.put(doodad, new Doodad(doodad.cellX, doodad.cellY, def,
+                    doodad.quarterTurns, doodad.mirrored));
+        }
+        return twins;
+    }
+
     /** Screens and terminals that read as dead while Compute is at Deficit. */
     List<Doodad> deadConsoles(CoreDressing state) { return state.compute() ? List.of() : consoles; }
 
@@ -141,8 +184,10 @@ final class ShipDeckDressing {
     static ShipDeckDressing of(CellTopology topology, NavigationGrid grid, DeckGraph graph,
                                List<Gantry> gantries, List<Doodad> doodads, long seed) {
         TileRegistry registry = TileRegistry.installed();
-        return plan(read(topology, grid, graph, gantries, doodads), seed,
-                id -> registry == null ? null : registry.doodad(id));
+        Function<String, DoodadDef> lookup = id -> registry == null ? null : registry.doodad(id);
+        ShipDeckDressing dressing = plan(read(topology, grid, graph, gantries, doodads), seed, lookup);
+        dressing.worn = wornTwins(doodads, lookup);
+        return dressing;
     }
 
     static Deck read(CellTopology topology, NavigationGrid grid, DeckGraph graph,
@@ -282,6 +327,8 @@ final class ShipDeckDressing {
     private static Piece edge(Deck deck, boolean[] eligible, boolean[] used, boolean[] inboard,
                               Kind kind, DoodadDef def, int x, int y, long roll) {
         int length = def.footprintCellsX, depth = def.footprintCellsY;
+        if (kind.passagesOnly && deck.region()[deck.index(x, y)] != Deck.PASSAGE) return null;
+        int lane = kind.passagesOnly ? 2 : 1;
         // North, east, south, west walls in turn, starting from a stable roll.
         int[][] walls = {{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
         int start = (int) Math.floorMod(roll >>> 12, 4);
@@ -301,8 +348,10 @@ final class ShipDeckDressing {
                     int i = deck.index(px, py);
                     ok = eligible[i] && !used[i] && !inboard[i];
                 }
-                int ix = cx - wx * depth, iy = cy - wy * depth;
-                ok &= deck.in(ix, iy) && deck.walkable()[deck.index(ix, iy)];
+                for (int d = depth; d < depth + lane && ok; d++) {
+                    int ix = cx - wx * d, iy = cy - wy * d;
+                    ok = deck.in(ix, iy) && deck.walkable()[deck.index(ix, iy)];
+                }
             }
             if (!ok) continue;
             int x0 = Math.min(x, x + ax * (length - 1) - wx * (depth - 1));
