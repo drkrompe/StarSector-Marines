@@ -40,9 +40,10 @@ def swarmer_laser(bench):
     bench.camera((-420, -520, 200), (-260, 0, 0), 30)
 
 
-def flak(bench):
+def flak(bench, close=False):
     """The merchant Wolf's Harpoons into the Manticore (P): her canister flak throws a ring of
-    bursts and kills two of the three crossing it."""
+    bursts and kills two of the three crossing it. close: frame the first kill from 150 m, to
+    judge a burst's shape."""
     import swfx_missile_paths as mp
     import swfx_pd as pd
     m = bench.ship('manticore', 'manticore-p', at=(0, 0, 0), heading=0, throttle=.35)
@@ -62,7 +63,15 @@ def flak(bench):
         kit.guns.launch_flights(ctx, flights)
     bench_missiles.report(flights, [], target)
     print('BENCH flak bursts', sorted(b.frame for b in bursts), flush=True)
-    bench.camera(tuple(bench.at(m, (-120, -620, 230))), tuple(bench.at(m, (150, 0, 0))), 30)
+    if close:
+        kill = next(fl for fl in flights if fl.end['kind'] == 'kill').end['point']
+        bench.camera((kill.x - 70, kill.y - 135, kill.z + 35), tuple(kill), 35)
+    else:
+        bench.camera(tuple(bench.at(m, (-120, -620, 230))), tuple(bench.at(m, (150, 0, 0))), 30)
+
+
+def flak_close(bench):
+    flak(bench, close=True)
 
 
 def flares(bench):
@@ -103,6 +112,10 @@ TESTS = {
         builds=['manticore-p', 'wolf'], frames=[56, 62, 66, 72],
         note='Canister flak: a ring of small bursts around the Manticore (P) kills two of three incoming Harpoons.',
         setup=flak),
+    'flak-close': dict(
+        builds=['manticore-p', 'wolf'], frames=[61, 62, 63, 65],
+        note='Close on the first flak kill (150 m): jagged flashes, shrapnel streaks, broken smoke; no two bursts alike.',
+        setup=flak_close),
     'flares': dict(
         builds=['colossus', 'kite-p'], frames=[30, 38, 44, 49],
         note='The Colossus throws white-orange flares; one Swarmer peels off onto a flare, the other holds on.',

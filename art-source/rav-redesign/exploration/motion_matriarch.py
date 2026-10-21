@@ -56,6 +56,9 @@ NECK = (512, 470)
 GAPE = (0.690, (52, 44), (177, 26))      # scale, source top-left, destination top-left
 SHANK_W = {"F": 175, "H": 185}
 LEG_ROOT_IN = 0.55       # leg roots sit this fraction of the way out to the foot, well inside the body
+HEAD_STRAIGHT = True     # the generated straight-ahead head (head-straight*.png) instead of the plate's cocked one
+STRAIGHT = (0.77, (512.5, 19), (512, 26))      # scale, source centre-x/top, destination centre-x/top
+STRAIGHT_GAPE = (0.715, (511.5, 11), (512, 20))
 HEAD_TURN = 0            # degrees the crown-and-head layer is turned; the owner tried 180 and rejected it
 HEAD_TURN_Y = 300        # hero row it turns about
 FOOT_SCALE = 1.1
@@ -128,6 +131,16 @@ class Rig:
         self.neck = (512, 2 * HEAD_TURN_Y - NECK[1]) if HEAD_TURN == 180 else NECK
         top = self.head.getchannel("A").point(lambda v: 255 if v > 100 else 0).getbbox()[1]
         self.nose = (ANCHOR_Y - (top / S - PAD)) / U_LAYER       # cells from the anchor to the front
+        if HEAD_STRAIGHT:
+            def placed(name, spec):
+                k_, (sx_, sy_), (dx_, dy_) = spec
+                g_ = largest_blob(key(RAW / name))
+                g_ = g_.resize((round(g_.width * k_), round(g_.height * k_)), Image.LANCZOS)
+                lay = Image.new("RGBA", size, (0, 0, 0, 0))
+                lay.alpha_composite(g_, (round(dx_ - sx_ * k_), round(dy_ - sy_ * k_)))
+                return on_canvas(lay)
+            self.head = placed("head-straight.png", STRAIGHT)
+            self.gape = placed("head-straight-gape.png", STRAIGHT_GAPE)
         self.blades = {s: on_canvas(with_alpha(hero, ha * m)) for s, m in blade_m.items()}
         self.feet = {}
         for n, m in foot_m.items():
@@ -196,6 +209,8 @@ class Rig:
         hd = sk["head"]
         pivot = L(*self.neck)
         h = self.gape if hd["gape"] >= 0.5 else self.head     # the two heads do not register well enough to blend
+        if abs(hd.get("yaw", 0.0)) > 0.05:     # + yaw turns toward the creature's right: clockwise from above
+            h = h.rotate(-hd["yaw"], center=pivot, resample=Image.BICUBIC)
         if abs(hd["k"] - 1) > 1e-3:
             h = scale_about(h, hd["k"], pivot)
         h = h.transform(h.size, Image.AFFINE, (1, 0, -shift[0], 0, 1, -(shift[1] + hd["dy"] * S)),
@@ -324,7 +339,7 @@ def wall_damage(tile, ppc, origin, t, row):
             tile.alpha_composite(dust.filter(ImageFilter.GaussianBlur(0.15 * ppc)))
 
 
-def build(root, cid, out, title="MOTION STUDY 3"):
+def build(root, cid, out, title="MOTION STUDY 4"):
     """One clip per GIF (the three together pass the 8 MB preview limit): 64 px per cell at left, 32 px per
     cell (play zoom) at right. Returns the frames, the clip and the panel's top row in the ground frame."""
     rig = Rig()
