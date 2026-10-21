@@ -39,6 +39,29 @@ class ShipDeckLightingTest {
         assertFalse(after.cells[5 * 20 + 5].emergency());
     }
 
+    @Test void restoringPowerRelightsRoomsWithFaultyCircuitsButNotDamagedOnes() {
+        var topology = new CellTopology(30, 12);
+        for (int y = 0; y < 12; y++) for (int x = 0; x < 30; x++) topology.setGroundKind(x, y, GroundKind.INDOOR);
+        var faulty = new DeckGraph.Compartment(1, RoomShape.rectangle(10, 6), 2, 3,
+                RoomPose.CANONICAL, DeckSide.PORT, DeckZone.MIDSHIPS, RoomPurpose.BARRACKS, List.of());
+        var wrecked = new DeckGraph.Compartment(2, RoomShape.rectangle(10, 6), 16, 3,
+                RoomPose.CANONICAL, DeckSide.PORT, DeckZone.MIDSHIPS, RoomPurpose.BARRACKS, List.of());
+        var plain = new DeckGraph(List.of(faulty, wrecked), List.of());
+        var graph = new DeckGraph(List.of(faulty, wrecked), List.of(), List.of(), plain.boats(), Set.of(2), Set.of(1));
+        var dark = new ShipDeckLighting(topology, graph, 42, false);
+        var lit = new ShipDeckLighting(topology, graph, 42, true);
+        assertTrue(dark.cells[5 * 30 + 5].emergency());
+        assertFalse(lit.cells[5 * 30 + 5].emergency());
+        assertTrue(dark.cells[5 * 30 + 20].emergency());
+        assertTrue(lit.cells[5 * 30 + 20].emergency());
+        // The same fixtures either way, so a wave can blend one lamp into its own other state.
+        assertEquals(dark.lamps.size(), lit.lamps.size());
+        for (int i = 0; i < dark.lamps.size(); i++) {
+            assertEquals(dark.lamps.get(i).x(), lit.lamps.get(i).x());
+            assertEquals(dark.lamps.get(i).y(), lit.lamps.get(i).y());
+        }
+    }
+
     @Test void emergencyPowerLeavesDistinctDarkGapsAndRepairRestoresCoverage() {
         var topology = new CellTopology(20, 16);
         for (int y = 0; y < 16; y++) for (int x = 0; x < 20; x++) topology.setGroundKind(x, y, GroundKind.INDOOR);

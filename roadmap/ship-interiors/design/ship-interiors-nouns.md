@@ -1685,9 +1685,11 @@ when it does not. Beneath the light lies a static shade: contact shadow at the
 foot of every bulkhead and, in the passages, the shadow of overhead beams. Warm
 passages against cool rooms is the deck's palette; command spaces read cool and
 console-lit. Second Wind also carries faulty distribution in otherwise usable
-rooms; those local faults do not close facilities or remove work stations. A
-distribution repair restores those circuits without repairing sealed structural
-rooms. Clearing workshop rubble alone does not restore its faulty lights;
+rooms; those local faults do not close facilities or remove work stations. They
+are the Power core's symptom and follow it: while Power is restored they light as
+any intact room does, so restoring Power relights them in the same wave as the
+passages, without a new deck. A distribution repair restores those circuits
+without repairing sealed structural rooms, which stay on emergency strips. Clearing workshop rubble alone does not restore its faulty lights;
 machinery repair does. Bay restoration restores its lights with its other
 facilities. Room masks confine the shading; space and management controls retain
 their own appearance. Lighting follows the shared deck clock across views, and has
