@@ -139,6 +139,22 @@
       "variants": 2,
       "loop": false,
       "volume": 1.0
+    },
+    {
+      "id": "bore_surge",
+      "prompt": "Pulse of countless alien creatures pouring out of a hole in the ground, rushing skittering swarm, wet chitin, rising roar then fading",
+      "durationSeconds": 3.5,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "body_drag",
+      "prompt": "Alien creature seizing and dragging a limp body across rubble and dirt, scraping, wet tearing, labored chitter",
+      "durationSeconds": 2.5,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
     }
   ]
 }

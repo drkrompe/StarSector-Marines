@@ -349,16 +349,16 @@ class LayeredUnitComposerTest {
     }
 
     @Test
-    void atAStationTheArmsReplaceTheRifleBetweenBodyAndHeadOnTheBodysGrid() {
+    void atAStationTheArmsReplaceTheRifleUnderTheTorsoOnTheBodysGrid() {
         LayeredUnitAssets assets = assets(false);
         assets.registerStationArms(LayeredSpriteCache.headless("arm-left", 150, 190),
                 LayeredSpriteCache.headless("arm-right", 150, 190));
         List<Layer> working = draw(assets, null, LayeredAppearance.FLAG_AT_STATION);
-        assertEquals(List.of("foot", "foot", "body", "arm-left", "arm-right", "head"),
+        assertEquals(List.of("foot", "foot", "arm-left", "arm-right", "body", "head"),
                 working.stream().map(Layer::id).toList());
         // The body canvas is the arm canvas's bottom rows: the arm's centre sits
         // half the extra height forward of the body's, at shoulder width 150 px.
-        Layer body = working.get(2), arm = working.get(3);
+        Layer body = working.get(4), arm = working.get(2);
         assertEquals((190 - 95) / 2f, (float) Math.hypot(arm.x() - body.x(), arm.y() - body.y()), 0.01f);
 
         assertEquals(List.of("foot", "foot", "rifle", "body", "head"),

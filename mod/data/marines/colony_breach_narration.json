@@ -527,6 +527,23 @@
       "interrupts": false,
       "synthesisText": "[flat, heavy] We have lost the survivors. Pull the company back to the ships.",
       "durationSeconds": 3.68
+    },
+    {
+      "id": "breach_first_harvest",
+      "missionId": "story_colony_breach",
+      "event": "colony_breach.first_harvest",
+      "text": "They're taking the fallen. The bugs grab the bodies and drag them down the holes. Whatever they want them for, don't let them have it.",
+      "priority": 35,
+      "expiresSeconds": 30,
+      "supersedes": [],
+      "speaker": "SGT. TOLLIVER / COLONY MILITIA",
+      "portrait": "",
+      "voiceId": "bD9maNcCuQQS75DGuteM",
+      "voiced": true,
+      "terminal": false,
+      "interrupts": false,
+      "synthesisText": "[horrified, low] They're taking the fallen. The bugs grab the bodies and drag them down the holes. Whatever they want them for, don't let them have it.",
+      "durationSeconds": 8.24
     }
   ]
 }

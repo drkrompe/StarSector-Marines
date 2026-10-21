@@ -171,6 +171,21 @@ public final class CivilianEvacuationPlacement {
                 spawns, lift.formationCells);
     }
 
+    /**
+     * Whether any cell in the pickup band has a clear lift footprint. A map
+     * question asked before any shelter is chosen; no path is walked.
+     */
+    public static boolean hasClearLiftSite(NavigationGrid grid, CellTopology topology) {
+        int formationRadius = formationRadius(grid);
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                if (inPickupBand(grid, x, y, formationRadius)
+                        && clearLiftFootprint(grid, topology, x, y)) return true;
+            }
+        }
+        return false;
+    }
+
     private static LiftSite farthestReachableLift(NavigationGrid grid,
                                                    CellTopology topology,
                                                    int sx, int sy) {

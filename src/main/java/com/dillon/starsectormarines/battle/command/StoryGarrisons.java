@@ -86,7 +86,7 @@ final class StoryGarrisons {
 
     /** The planner's figures ({@link ReactiveDefenceSource#figures}) and this story's offers. */
     Map<String, Integer> figures() {
-        Map<String, Integer> out = ReactiveDefenceSource.figures(planner.stats());
+        Map<String, Integer> out = ReactiveDefenceSource.figures(planner);
         out.put("offeredSquadPulses", offeredSquadPulses);
         out.put("shareClosedPulses", shareClosedPulses);
         return out;

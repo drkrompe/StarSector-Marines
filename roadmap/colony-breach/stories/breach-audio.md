@@ -76,3 +76,5 @@ edited:
    loop per living bore.
 5. **Spore vents** (`bore-spawners.md`): `spore_vent_burst` per burst.
 6. **Matriarch** (`matriarch.md`): `matriarch_roar` at emergence; spitter splash on acid impact.
+
+7. **Harvest and surge** (`swarm-strains.md`, `bore-spawners.md`): `body_drag` while a body is carried to a bore; `bore_surge` at each `surge_N` pulse. `first_harvest` has a militia line; `bore_fed_N` and `surge_N` are OBSERVER_ONLY and stay silent as beats.

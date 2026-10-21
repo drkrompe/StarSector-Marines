@@ -1050,8 +1050,10 @@ budget and the arrival cadence rather than about the map, and it belongs with
 ## Which battles are made of places
 
 `BattleSetup` derives a plan for **Conquest, Assault and Raid** against a real
-market. Sabotage, Extraction, Civilian Rescue, Silent Colony and the opening
-operations keep the recipe they have. The gate is the market: a battle with no
+market. Sabotage, Extraction, Silent Colony and the opening operations keep
+the recipe they have. Civilian Rescue's high-risk colony (Colony Breach) is
+laid out rather than derived — town, installation and suburb at 400x240 — and
+its lower risks keep the stock map; see `colony-breach-nouns.md`. The gate is the market: a battle with no
 market behind it — a headless fixture, an operation against no planet — has no
 size, rating or economy to derive from and takes the stock map, which is the
 rule `BspCityGenerator.recipeFor` already applies to the grown recipe.

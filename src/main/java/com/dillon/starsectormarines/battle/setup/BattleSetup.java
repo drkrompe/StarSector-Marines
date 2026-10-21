@@ -48,6 +48,7 @@ import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.RescueShelterGarrison;
+import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
@@ -171,6 +172,9 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LanePath;
 import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBrief;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctCharacter;
+import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
@@ -2509,11 +2513,17 @@ public final class BattleSetup {
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, RiskLevel risk, int swarmCount,
             TargetProfile profile, boolean stressTest) {
+        boolean colony = isColonyBreachColony(risk, stressTest);
+        EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);
         for (int attempt = 0; attempt < 8; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
-            MapScale scale = MapScale.forRisk(risk);
-            MapResult map = MAP_GEN.generate(
-                    scale.width, scale.height, battleSeed, null, profile);
+            MapScale scale = colony ? MapScale.COLONY : MapScale.forRisk(risk);
+            MapResult map = MAP_GEN.generate(scale.width, scale.height, battleSeed, null,
+                    profile, colony ? colonyPlanFor(scale, battleSeed) : null);
+            if (colony) {
+                missing = MissionMapRequirements.missingFromColony(map);
+                if (!missing.isEmpty()) continue;
+            }
             publishHeldPlaces(map, Faction.CIVILIAN);
             Random rng = new Random(battleSeed);
             List<ShuttleAssignment> assignments = resolveManifest(manifest);
@@ -2583,10 +2593,61 @@ public final class BattleSetup {
                 throw new IllegalStateException(
                         "civilian rescue swarm reinforcement configuration failed");
             }
+            if (!stressTest) {
+                // The breach: where the colony breaks open and when. The colony
+                // path owes a full plan and re-rolls without one; a smaller
+                // map carries whatever sites it can seat.
+                ColonyEruptionPlan eruption = ColonyEruptionPlan.forColony(
+                        sim.getGrid(), sim.getTopology(), map.pointsOfInterest,
+                        payload.placement, lzCells, battleSeed ^ ERUPTION_SEED_SALT);
+                if (colony && !eruption.isComplete()) continue;
+                sim.installColonyBreach(eruption);
+            }
             return sim;
+        }
+        if (colony && !missing.isEmpty()) {
+            throw new IllegalStateException(MissionMapRequirements.describeFailure(
+                    MissionType.EXTRACTION, seed, 8, missing));
         }
         throw new IllegalStateException(
                 "unable to place civilian rescue payload after 8 map attempts");
+    }
+
+    /** Salt for the eruption-site draw, so it is not the battle stream read again. */
+    private static final long ERUPTION_SEED_SALT = 0x424F52455349544EL;
+
+    /**
+     * Whether this rescue is fought on the Colony Breach colony: the campaign's
+     * high-risk path. Lower risks and the debug stress path keep their tier map.
+     */
+    public static boolean isColonyBreachColony(RiskLevel risk, boolean stressTest) {
+        return !stressTest && risk == RiskLevel.HIGH;
+    }
+
+    /**
+     * The colony's places: a town in the middle, a working installation off to
+     * one side and a dormitory suburb on the other.
+     *
+     * <p>Laid out rather than derived, because the colony is the same kind of
+     * place whatever market the event names, and a rescue fixture carries no
+     * market at all — a derivation would hand it the stock city. The town is
+     * grown at a town's density and the outlying places at a hamlet's, the
+     * {@code BALANCED} reading of a colony that has a centre and ground around
+     * it. Which side the installation stands on is the seed's.
+     */
+    static PrecinctPlan colonyPlanFor(MapScale scale, long seed) {
+        Random rng = new Random(seed ^ PRECINCT_SEED_SALT);
+        boolean installationEast = rng.nextBoolean();
+        return PrecinctPlan.laidOut(List.of(
+                        PrecinctBrief.settlement("colony", MapPlacement.CENTRE,
+                                GrownTrunkPlan.Profile.town(), PrecinctCharacter.TOWN),
+                        PrecinctBrief.settlement("installation",
+                                installationEast ? MapPlacement.EAST : MapPlacement.WEST,
+                                GrownTrunkPlan.Profile.hamlet(), PrecinctCharacter.DEPOT),
+                        PrecinctBrief.settlement("suburb",
+                                installationEast ? MapPlacement.WEST : MapPlacement.EAST,
+                                GrownTrunkPlan.Profile.hamlet(), PrecinctCharacter.SUBURB)),
+                null, scale.width, scale.height, rng);
     }
 
     /**

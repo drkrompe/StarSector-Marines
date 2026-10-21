@@ -3,10 +3,13 @@ package com.dillon.starsectormarines.battle.setup;
 import com.dillon.starsectormarines.battle.world.gen.HeldPlaces;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
+import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -73,6 +76,38 @@ public enum MapFeature {
         }
     },
 
+    /** A house the rescue cohort can be sealed in. */
+    RESIDENTIAL_SHELTER("a residential shelter") {
+        @Override
+        public boolean presentIn(MapResult map) {
+            return map != null && map.pointsOfInterest.stream()
+                    .anyMatch(poi -> poi != null && poi.kind == PointOfInterest.Kind.RESIDENTIAL);
+        }
+    },
+
+    /** Open ground near the map edge clear enough to set a pickup lift down on. */
+    CLEAR_LIFT_SITE("a clear lift footprint") {
+        @Override
+        public boolean presentIn(MapResult map) {
+            return map != null && map.grid != null
+                    && CivilianEvacuationPlacement.hasClearLiftSite(map.grid, map.topology);
+        }
+    },
+
+    /**
+     * Enough buildings for the swarm to come up beside.
+     *
+     * <p>A question about the map, not the placement: whether the eruption
+     * sites clear the shelter and the lift is asked of the plan once both are
+     * placed, and an incomplete plan re-rolls the map the same way.
+     */
+    BORE_PLACES("enough places for the swarm to erupt at") {
+        @Override
+        public boolean presentIn(MapResult map) {
+            return map != null && map.pointsOfInterest.size() >= MIN_BORE_PLACES;
+        }
+    },
+
     /**
      * A way to walk to every compound from where the marines come ashore.
      *
@@ -107,6 +142,13 @@ public enum MapFeature {
             return true;
         }
     };
+
+    /**
+     * Buildings a colony needs for its eruption sites: twice the first wave and
+     * the mother, so that the shelter's and the lift's clearances and the
+     * spacing between sites still leave a full plan.
+     */
+    public static final int MIN_BORE_PLACES = 2 * (ColonyEruptionPlan.FIRST_WAVE_SITES + 1);
 
     private static final int[][] STEPS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 

@@ -1,6 +1,6 @@
 # Bore spawners
 
-Status: BLOCKED on `breach-mission-spine.md` (eruption-site seam)
+Status: READY — the spine's eruption-site seam is on main
 
 Written: 2026-10-21
 
@@ -17,9 +17,11 @@ Swarm director).
    targets that Marine target selection, satchel/demolition and mech fire
    already know how to attack; prove that with a behaviour scene rather than
    special-casing.
-2. **Eruption.** Consume the spine's eruption sites and times: spawn the bore
-   structure, emit `bore_erupted_N` / `mother_bore_erupted`, clear or crater the
-   cells it opens on, and never erupt on a body.
+2. **Eruption.** Consume the spine's eruption sites and times: install an
+   `EruptionHandler` on the battle's `ColonyBreachSequence` (sites in
+   `ColonyEruptionPlan`), spawn the bore structure there, clear or crater the
+   cells it opens on, and never erupt on a body. The sequence already emits
+   `bore_erupted_N` / `mother_bore_erupted` when a site opens.
 3. **Director from bores.** Rework `SwarmReinforcementSystem` so that after the
    first eruption it spawns only at living bores (in the ring around the bore's
    mouth), with population target and wave rate a function of living bores and

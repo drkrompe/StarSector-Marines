@@ -289,6 +289,23 @@ final class LayeredUnitComposer {
             }
         }
 
+        // Station arms go under the torso: the sleeve covers the elbow and only
+        // the forearm and hand show past the body, reaching onto the work.
+        if (atStation) {
+            LayerTransform authoredBody = layer(authoredPose, "body");
+            LayerTransform base = authoredBody != null ? authoredBody : DEFAULT_BODY;
+            for (boolean left : new boolean[]{true, false}) {
+                // The two hands work half a cycle apart, each sweeping across the
+                // console about its own elbow and reaching in twice a sweep.
+                double cycle = (weaponPhase + (left ? 0f : 0.5f)) * 2.0 * Math.PI;
+                float swing = (float) Math.sin(cycle) * STATION_HAND_SWING_DEG;
+                float reach = (float) Math.max(0.0, Math.sin(2.0 * cycle)) * STATION_HAND_REACH_SW;
+                emitAuthored(out, assets.stationArm(left),
+                        stationArmTransform(base, assets.body, assets.stationArm(left), left, swing, reach),
+                        actorX, actorY, pxPerSw, facingDeg, 0f, alpha);
+            }
+        }
+
         // Body and helmet have independent rotations but share the actor pivot.
         LayerTransform bodyTransform = layer(authoredPose, "body");
         if (bodyTransform != null) {
@@ -309,20 +326,6 @@ final class LayeredUnitComposer {
         if (integralPlacement != null
                 && integralPlacement.occlusion() == EquipmentLayerDef.Occlusion.OVER_BODY) {
             emitEquipmentLayer(out, integralSprite, integralPlacement, alpha);
-        }
-
-        if (atStation) {
-            LayerTransform base = bodyTransform != null ? bodyTransform : DEFAULT_BODY;
-            for (boolean left : new boolean[]{true, false}) {
-                // The two hands work half a cycle apart, each sweeping across the
-                // console about its own elbow and reaching in twice a sweep.
-                double cycle = (weaponPhase + (left ? 0f : 0.5f)) * 2.0 * Math.PI;
-                float swing = (float) Math.sin(cycle) * STATION_HAND_SWING_DEG;
-                float reach = (float) Math.max(0.0, Math.sin(2.0 * cycle)) * STATION_HAND_REACH_SW;
-                emitAuthored(out, assets.stationArm(left),
-                        stationArmTransform(base, assets.body, assets.stationArm(left), left, swing, reach),
-                        actorX, actorY, pxPerSw, facingDeg, 0f, alpha);
-            }
         }
 
         if (assets.foreClaw != null && swipe > 0f) {
