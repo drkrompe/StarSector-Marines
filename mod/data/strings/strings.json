@@ -495,6 +495,7 @@
     "unitModifierLegWound": "Leg wound",
     "unitModifierArmWound": "Arm wound",
     "unitModifierMechCrippled": "Legs destroyed",
+    "unitModifierStaggered": "Knocked down",
     "unitModifierHullWelfare": "Ship's training rooms",
     "battleOrderSecureCompound": "SECURE COMPOUND",
     "battleShipMove": "Move",

@@ -69,7 +69,7 @@ public final class SwarmBores {
     public static final float RATE_SPREAD = 0.15f;
 
     /** What happened to a bore, for the beats. */
-    public enum EventKind { GREW, COLLAPSED, SURGE }
+    public enum EventKind { GREW, COLLAPSED, SURGE, FED }
 
     /** One fact about a bore on a tick. {@code tier} is the tier reached, or the bore's tier at the time. */
     public record Event(int tick, EventKind kind, SwarmBore bore, BoreTier tier) { }
@@ -142,7 +142,7 @@ public final class SwarmBores {
     }
 
     /**
-     * The biomass seam (`swarm-harvest.md`): {@code amount} delivered into
+     * The biomass seam (`colony-breach-nouns.md`, Harvest): {@code amount} delivered into
      * {@code bore}, in colonists' bodies. It advances the bore's growth fast
      * and sizes and brings forward its next surge. Returns {@code false},
      * having changed nothing, for a collapsed bore or a non-positive amount:
@@ -153,6 +153,7 @@ public final class SwarmBores {
         int tick = sim.getSimTickIndex();
         BoreTier from = bore.tier();
         BoreTier reached = bore.feed(amount, tick);
+        events.add(new Event(tick, EventKind.FED, bore, bore.tier()));
         if (reached != null) grew(sim, bore, from, reached, tick);
         return true;
     }
@@ -287,6 +288,9 @@ public final class SwarmBores {
         for (long colony : bore.colonies()) {
             if (sim.resolveUnit(colony) != 0L) sim.applyDamage(colony, WITHER_DAMAGE, WITHER_DAMAGE);
         }
+        for (long outpost : bore.outposts()) {
+            if (sim.resolveUnit(outpost) != 0L) sim.applyDamage(outpost, WITHER_DAMAGE, WITHER_DAMAGE);
+        }
         float cx = bore.x() + 0.5f, cy = bore.y() + 0.5f;
         sim.addDecal(new Decal(cx, cy, DecalKind.CRATER_MEDIUM_B.index, rotation(bore.number(), 3),
                 bore.mother() ? 2.8f : 2.3f));
@@ -339,7 +343,7 @@ public final class SwarmBores {
         return false;
     }
 
-    private static boolean nearBody(BattleSimulation sim, int x, int y, float clearance) {
+    static boolean nearBody(BattleSimulation sim, int x, int y, float clearance) {
         float cx = x + 0.5f, cy = y + 0.5f;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);

@@ -94,6 +94,7 @@ class RoadSurfaceStageTest {
         assertTrue(concrete(ctx, surface, 20, 4));
         assertNull(surface.patch(20, 4, 1), "a sidewalk is ground, never a second painted layer");
         assertNull(surface.underlay(20, 2), "grass beyond the sidewalk keeps its own ground");
+        assertFalse(concrete(ctx, surface, 18, 20), "a square away from the road keeps its paving");
         assertNull(surface.patch(18, 20, 0), "a square is not a street");
         assertArrayEquals(kinds, ctx.topology.copyGroundKinds());
         assertEquals(0, ctx.topology.getSurface(20, 6), "a finish, not a repaving");

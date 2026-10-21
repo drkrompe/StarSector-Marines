@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +58,10 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             default: break;
         }
         tickCooldown(runner, sim);
+        if (sim.swarmHarvest().isCarrier(runner)) {
+            carryHome(runner, sim);
+            return;
+        }
         long previousTarget = sim.combat().targetId(runner);
         long target = selectTarget(runner, sim);
         sim.combat().setTargetId(runner, target);
@@ -64,6 +69,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             updateRoaming(runner, previousTarget, sim);
             return;
         }
+        if (target != previousTarget) sim.swarmCues().post(SwarmCues.Kind.ALERT, runner, sim);
 
         float dx = sim.world().x(target) - sim.world().x(runner);
         float dy = sim.world().y(target) - sim.world().y(runner);
@@ -74,6 +80,8 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                 sim.applyDamage(target, runner,
                         sim.combat().attackDamage(runner), 0f,
                         sim.identity().type(runner).moraleImpact);
+                sim.swarmHarvest().struck(target, runner);
+                sim.swarmCues().post(SwarmCues.Kind.STRIKE, runner, sim);
                 sim.combat().setCooldownTimer(runner,
                         sim.combat().attackCooldown(runner));
             }
@@ -81,6 +89,18 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         }
 
         pressToward(runner, target, target != previousTarget, sim);
+    }
+
+    /**
+     * A carrier drags its load home (`colony-breach-nouns.md`, Harvest): down
+     * the bore field to the nearest living bore, or its own path there while
+     * the field is not built. It does not strike while it carries.
+     */
+    private static void carryHome(long runner, BattleSimulation sim) {
+        sim.combat().setTargetId(runner, 0L);
+        if (SwarmMovement.moveToward(runner, SwarmGoal.BORE, sim)) return;
+        SwarmBore bore = sim.swarmBores().nearestLiving(sim.world().x(runner), sim.world().y(runner));
+        if (bore != null) SwarmMovement.pathDirect(runner, bore.x(), bore.y(), false, sim);
     }
 
     /**
@@ -248,6 +268,26 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             }
         }
 
+        if (sim.identity().type(runner) == UnitType.SWARM_RUNNER && sim.swarmHarvest().isOpen()) {
+            // Harvest: a Runner hunts the colonists it can sense while there is a bore to take them to.
+            sim.getUnitIndex().gatherFaction(runnerPosX, runnerPosY,
+                    senseRange + SENSE_GATHER_PADDING, Faction.CIVILIAN, nearby);
+            for (int i = 0, n = nearby.size; i < n; i++) {
+                long candidate = nearby.ids[i];
+                if (!isHarvestPrey(candidate, tracker, sim)) continue;
+                float candidateX = sim.world().x(candidate);
+                float candidateY = sim.world().y(candidate);
+                if (!canSense(runnerCellX, runnerCellY,
+                        candidateX, candidateY, senseRange, sim)) continue;
+                float distance = distanceSquared(runnerPosX, runnerPosY,
+                        candidateX, candidateY);
+                if (isBetter(candidate, distance, best, bestDistance)) {
+                    best = candidate;
+                    bestDistance = distance;
+                }
+            }
+        }
+
         if (best != 0L) {
             if (currentValid) {
                 if (current == best) return current;
@@ -295,8 +335,17 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             return eligiblePreyKnownFaction(
                     candidate, shelterProtected, sim);
         }
+        if (isHarvestPrey(candidate, tracker, sim)) return sim.swarmHarvest().isOpen();
         return !shelterProtected
                 && tracker.state(candidate) == CivilianEvacuationTracker.State.ACTIVE;
+    }
+
+    /** An ambient colonist, outside the cohort: what harvest feeds on. */
+    private static boolean isHarvestPrey(long candidate, CivilianEvacuationTracker tracker,
+                                         BattleSimulation sim) {
+        return sim.resolveUnit(candidate) != 0L
+                && sim.identity().faction(candidate) == Faction.CIVILIAN
+                && tracker.state(candidate) == null;
     }
 
     /** Caller has already established that the candidate is a prey faction. */

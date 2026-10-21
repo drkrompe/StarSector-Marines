@@ -411,9 +411,11 @@ class ColonyBreachEvidenceTest {
                     .put("integrity", Math.round(bore.integrity() * 1000f) / 1000.0)
                     .put("growth", Math.round(bore.growth() * 10f) / 10.0)
                     .put("biomassFed", bore.biomassFed())
+                    .put("feeds", bore.feeds())
                     .put("surges", bore.surges())
                     .put("bodiesSpawned", bore.bodiesSpawned())
                     .put("sporeColonies", bore.sporeColonies() + "/" + state.colonies().size())
+                    .put("outposts", livingOutposts(sim, state) + "/" + state.outposts().size())
                     .put("eruptedTick", bore.eruptedTick())
                     .put("boreTierTick", state.tierTick(BoreTier.BORE))
                     .put("mawTierTick", state.tierTick(BoreTier.MAW))
@@ -439,6 +441,12 @@ class ColonyBreachEvidenceTest {
                 .put("marinePads", pads)
                 .put("colonists", snapshot.colonists())
                 .put("colonistsAlive", snapshot.colonistsAlive())
+                .put("harvest", new JSONObject()
+                        .put("firstTick", snapshot.harvest().firstTick())
+                        .put("seized", snapshot.harvest().seized())
+                        .put("delivered", snapshot.harvest().delivered())
+                        .put("dropped", snapshot.harvest().dropped())
+                        .put("carrying", snapshot.harvest().carrying()))
                 .put("evacuated", tracker.evacuatedCount())
                 .put("registered", tracker.registeredCount())
                 .put("sites", sites)
@@ -496,6 +504,11 @@ class ColonyBreachEvidenceTest {
                 .append(", ").append(s.getInt("evacuated")).append('/').append(s.getInt("registered"))
                 .append(" evacuated; ").append(s.getInt("colonistsAlive")).append('/')
                 .append(s.getInt("colonists")).append(" colonists alive outside the shelter.\n\n")
+                .append("Harvest: ").append(s.getJSONObject("harvest").getInt("seized"))
+                .append(" seized (first at tick ").append(s.getJSONObject("harvest").getInt("firstTick")).append("), ")
+                .append(s.getJSONObject("harvest").getInt("delivered")).append(" delivered into bores, ")
+                .append(s.getJSONObject("harvest").getInt("dropped")).append(" dropped by a dead carrier, ")
+                .append(s.getJSONObject("harvest").getInt("carrying")).append(" still being dragged.\n\n")
                 .append("Landfall at tick ").append(s.getInt("landfallTick"))
                 .append(", the company's first contact at ").append(s.get("marineContact"))
                 .append(", first casualty of any side at ").append(s.getInt("firstContactTick"))
@@ -528,8 +541,8 @@ class ColonyBreachEvidenceTest {
                 .append(" bodies came out of bore mouths after the tremor; director ")
                 .append(s.get("directorReason")).append(", target ").append(s.getInt("directorTarget"))
                 .append(", ").append(s.getInt("liveSwarm")).append(" swarm on the field at the end.\n\n")
-                .append("| bore | cell | tier | alive | integrity | growth | biomass | surges | bodies | spore colonies | erupted | bore tier | maw | collapsed |\n")
-                .append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n");
+                .append("| bore | cell | tier | alive | integrity | growth | biomass | surges | bodies | spore colonies | outposts | erupted | bore tier | maw | collapsed |\n")
+                .append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n");
         JSONArray bores = s.getJSONArray("bores");
         for (int i = 0; i < bores.length(); i++) {
             JSONObject b = bores.getJSONObject(i);
@@ -539,6 +552,7 @@ class ColonyBreachEvidenceTest {
                     .append(b.get("growth")).append(" | ").append(b.get("biomassFed")).append(" | ")
                     .append(b.getInt("surges")).append(" | ").append(b.getInt("bodiesSpawned")).append(" | ")
                     .append(b.getString("sporeColonies")).append(" | ")
+                    .append(b.getString("outposts")).append(" | ")
                     .append(b.getInt("eruptedTick")).append(" | ").append(b.getInt("boreTierTick")).append(" | ")
                     .append(b.getInt("mawTierTick")).append(" | ").append(b.getInt("collapsedTick")).append(" |\n");
         }
@@ -561,6 +575,13 @@ class ColonyBreachEvidenceTest {
             out.append("| ").append(beat.getInt("tick")).append(" | `").append(beat.getString("id")).append("` |\n");
         }
         return out.toString();
+    }
+
+    /** Outposts the bore's creep seeded that still stand. */
+    private static int livingOutposts(BattleSimulation sim, SwarmBore bore) {
+        int n = 0;
+        for (long id : bore.outposts()) if (sim.resolveUnit(id) != 0L) n++;
+        return n;
     }
 
     private static BattleFixture loadFixture(String selected) throws Exception {

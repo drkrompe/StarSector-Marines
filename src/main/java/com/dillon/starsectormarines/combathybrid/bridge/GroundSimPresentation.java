@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.ops.battleview.BattleRenderer;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceAudio;
 import com.dillon.starsectormarines.ops.battleview.WarshipAudio;
 import com.dillon.starsectormarines.ops.battleview.BoreAudio;
+import com.dillon.starsectormarines.ops.battleview.SwarmAudio;
 import com.dillon.starsectormarines.ops.battleview.TenderAudio;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceFxRuntime;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceTraceFxService;
@@ -70,6 +71,9 @@ public final class GroundSimPresentation {
     private final GroundBattleConfig cfg;
     private final BattleRadioChatter radioChatter = new BattleRadioChatter();
     private final MechFootstepAudio mechFootsteps = new MechFootstepAudio();
+    /** The listener's cell, as the footstep pass last placed it; swarm footfalls are drawn nearest it. */
+    private float listenerCellX;
+    private float listenerCellY;
     private final Vector2f scratch = new Vector2f();
     private final Vector2f zeroVel = new Vector2f(0f, 0f);
     /** Weapon and impact cues for rounds delivered onto the ground. Host parity with BattleScreen. */
@@ -106,9 +110,9 @@ public final class GroundSimPresentation {
         spawnFireFx(fx, sim, grid, rng);
         spawnImpactFxAndSounds(fx, sim, grid, rng);
         playFireSounds(sim, rng);
-        for (MechFootstepAudio.Cue cue : mechFootsteps.advance(sim,
-                scratch.x / cfg.worldUnitsPerCell() + cfg.gridW() * 0.5f,
-                scratch.y / cfg.worldUnitsPerCell() + cfg.gridH() * 0.5f)) {
+        listenerCellX = scratch.x / cfg.worldUnitsPerCell() + cfg.gridW() * 0.5f;
+        listenerCellY = scratch.y / cfg.worldUnitsPerCell() + cfg.gridH() * 0.5f;
+        for (MechFootstepAudio.Cue cue : mechFootsteps.advance(sim, listenerCellX, listenerCellY)) {
             playAtCell(cue.soundId(), cue.pitch(), cue.volume(), cue.cellX(), cue.cellY());
         }
         playDeathVoice(sim);
@@ -148,6 +152,7 @@ public final class GroundSimPresentation {
         WarshipAudio.play(sim.shieldDomes().cuesThisFrame());
         TenderAudio.play(sim);
         BoreAudio.play(sim);
+        SwarmAudio.play(sim, listenerCellX, listenerCellY);
     }
 
     /** Line-tracer impacts land instantly (the beam covers its whole travel at fire), plus per-shot

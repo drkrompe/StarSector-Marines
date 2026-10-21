@@ -622,8 +622,9 @@ on the street's own ground: the kerb, the flank, or a yard's paving where one
 is beside the asphalt, and otherwise the carriageway's outer cell, provided
 three cells of asphalt remain. A narrower street goes without on that side.
 **The sidewalk is ground, never a second painted layer.** It is the underlay
-of every city street cell the asphalt touches or neighbours (two deep on a
-sidewalk flank), so asphalt is the only subcell paint. A cell the asphalt only
+of every city street cell the asphalt touches or neighbours, and of every
+building apron and sidewalk flank in the city whether a road runs past or not,
+so a city has one sidewalk material and asphalt is the only subcell paint. A cell the asphalt only
 partly covers shows concrete beside the curve, and the concrete meets the
 untouched paving on whole cell edges. A sidewalk swept as a second subcell
 layer over the old kerb and paver tiles left half-cell triangles of the tile
@@ -633,9 +634,20 @@ are the controls; precinct roads keep round ends and no sidewalk. The paving is 
 ground kind, surface, walkability, road graph, width or random draw changes,
 so navigation, convoy routing, garrisons and mission map requirements are
 untouched. `-Dbattle.mapgen.cityRoads=false` is the control; it leaves the city
-paved and sweeps only precinct roads. The pavement has no lane markings yet;
-junctions, T-junctions, turns and dead ends are all composed from the sweep
-rather than from tiles, so no piece is missing from the set.
+paved and sweeps only precinct roads. Junctions, T-junctions, turns and dead
+ends are all composed from the sweep rather than from tiles, so no piece is
+missing from the set.
+
+**Road paint** is a *marking*: a straight, flush-ended stroke along a grid
+axis, drawn as its own layer over the asphalt. It is laid only on cells the
+asphalt covers whole, so it never reaches a ragged edge, a sidewalk or bare
+ground, and its share of a cell is the exact overlap of two rectangles, which
+keeps a line far thinner than a cell. A city street carries a dashed centre
+line down its carriageway, kept a cell clear of each crossing street, so a
+junction is left unpainted; a square or a precinct road carries none. Paint
+is a pavement material of its own, worn rather than cracked with age.
+`-Dbattle.mapgen.cityLaneMarkings=false` is the control. Like the rest of the
+finish it changes nothing the simulation reads.
 
 Intersecting carriageways form one paved footprint. The first declared road
 owns material where carriageways overlap, and a shoulder never erases a road.

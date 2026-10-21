@@ -6,39 +6,79 @@
   "sounds": [
     {
       "id": "runner_chitter",
-      "prompt": "Small insectoid alien creature chittering and clicking, wet, agitated, close, no music",
+      "prompt": "Lean hunched alien hound with a hard chitin hide catching a scent, a dry hissing snarl breaking into rapid bony clicking, close, no music",
       "durationSeconds": 1.5,
       "variants": 4,
       "loop": false,
       "volume": 1.0
     },
     {
+      "id": "runner_gallop",
+      "prompt": "Lean four-legged predator galloping past on concrete, quick hard claw and chitin footfalls in a galloping rhythm, a few strides, no vocals, no music",
+      "durationSeconds": 0.8,
+      "variants": 4,
+      "loop": false,
+      "volume": 0.8
+    },
+    {
+      "id": "runner_clatter",
+      "prompt": "Hard chitin carapace plates clattering and clicking as a lean four-legged creature twists and runs, dry bony rattle, close, no vocals, no music",
+      "durationSeconds": 0.8,
+      "variants": 3,
+      "loop": false,
+      "volume": 0.7
+    },
+    {
       "id": "runner_attack",
-      "prompt": "Small alien creature lunging and biting, snapping mandibles, wet impact",
-      "durationSeconds": 1.2,
+      "prompt": "Alien hound lunging and stabbing with a jointed bone spike arm, sharp swish then a wet piercing thrust and a clicking snarl, close, no music",
+      "durationSeconds": 1.0,
       "variants": 3,
       "loop": false,
       "volume": 1.0
     },
     {
       "id": "runner_death",
-      "prompt": "Small alien insect creature dying squeal and wet splat",
-      "durationSeconds": 1.2,
+      "prompt": "Alien hound with a chitin hide shot dead mid-gallop, a strangled yelp collapsing into a rattling click, body skidding onto concrete, no music",
+      "durationSeconds": 1.3,
       "variants": 4,
       "loop": false,
       "volume": 1.0
     },
     {
+      "id": "runner_pain",
+      "prompt": "Alien hound with a chitin hide hit by a bullet, a sharp high yelp and a pained hiss with a carapace crack, short, no music",
+      "durationSeconds": 0.7,
+      "variants": 4,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "runner_impale",
+      "prompt": "Bone spike punching through body armour and flesh, heavy wet crunch and a grunt, then an alien hound's low guttural snarl as it braces to drag, no music",
+      "durationSeconds": 1.6,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
       "id": "brute_bellow",
-      "prompt": "Huge armoured alien beast bellowing, deep guttural roar with a rattling chitin undertone",
+      "prompt": "Massive armoured beast built like a rhino crossed with a wild boar, deep grunting bellow rising into a hoarse roar, heavy chitin plates rattling, huge chest, no music",
       "durationSeconds": 2.5,
       "variants": 3,
       "loop": false,
       "volume": 1.0
     },
     {
+      "id": "brute_footfall",
+      "prompt": "Single heavy footstep of a huge hooved armoured beast on concrete, a deep thud with a slight ground shake and a chitin plate rattle, no vocals, no music",
+      "durationSeconds": 0.9,
+      "variants": 4,
+      "loop": false,
+      "volume": 0.9
+    },
+    {
       "id": "brute_impact",
-      "prompt": "Heavy alien beast body-slamming into a wall, crunch and thud",
+      "prompt": "Huge armoured beast ramming its heavy bony mace-shaped head into a concrete wall, deep booming thud and crunch, dust and grit falling, no music",
       "durationSeconds": 1.5,
       "variants": 3,
       "loop": false,
@@ -46,7 +86,7 @@
     },
     {
       "id": "brute_wall_break",
-      "prompt": "Heavy alien beast smashing through a wall, concrete and metal splintering and collapsing",
+      "prompt": "Huge horned beast bursting through a colony building wall, concrete and sheet metal splintering and collapsing, snorting grunt, debris raining, no music",
       "durationSeconds": 2.5,
       "variants": 3,
       "loop": false,
@@ -54,9 +94,65 @@
     },
     {
       "id": "brute_death",
-      "prompt": "Giant alien beast dying with a long low groan and heavy crash to the ground",
+      "prompt": "Giant armoured beast collapsing dead, a long wheezing groan, a heavy plated body crashing onto the ground, armour plates clattering, no music",
       "durationSeconds": 2.5,
       "variants": 2,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "brute_pain",
+      "prompt": "Huge armoured beast hit by gunfire, a short deep pained grunt and snort, rounds pinging off its armour plates, no music",
+      "durationSeconds": 0.9,
+      "variants": 4,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "brute_charge",
+      "prompt": "Huge heavy hooved beast breaking into a thundering charge, hooves pounding faster and faster on hard ground, furious snorting bellow, rising rumble, no music",
+      "durationSeconds": 2.5,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "brute_charge_tell",
+      "prompt": "Huge beast lowering its armoured head and snorting hard, a hoof scraping the ground and a rising growl, about to charge, no music",
+      "durationSeconds": 0.9,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "brute_charge_hit_body",
+      "prompt": "Huge charging beast slamming into armoured soldiers, heavy meaty thud, armour plates clanging, bodies thrown onto the ground, no screaming, no music",
+      "durationSeconds": 1.2,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "brute_charge_hit_vehicle",
+      "prompt": "Huge charging beast ramming the side of a light armoured vehicle, a crunching metal boom, panels denting, the vehicle scraping sideways, no music",
+      "durationSeconds": 1.5,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "brute_charge_hit_wall",
+      "prompt": "Huge charging beast crashing head first into a thick reinforced wall, a dull massive boom, stone grinding, a dazed snort, no music",
+      "durationSeconds": 1.5,
+      "variants": 3,
+      "loop": false,
+      "volume": 1.0
+    },
+    {
+      "id": "brute_stun",
+      "prompt": "Huge armoured beast dazed after a collision, a long low groaning grunt and heavy staggered breathing, no music",
+      "durationSeconds": 1.8,
+      "variants": 3,
       "loop": false,
       "volume": 1.0
     },
@@ -91,6 +187,14 @@
       "variants": 3,
       "loop": false,
       "volume": 1.0
+    },
+    {
+      "id": "bore_growth",
+      "prompt": "Ground slowly tearing wider around an alien pit, deep grinding groan of earth and rock splitting, wet organic stretching, swelling low rumble, no music",
+      "durationSeconds": 3.0,
+      "variants": 2,
+      "loop": false,
+      "volume": 0.9
     },
     {
       "id": "bore_ambience_fissure",
@@ -150,7 +254,7 @@
     },
     {
       "id": "body_drag",
-      "prompt": "Alien creature seizing and dragging a limp body across rubble and dirt, scraping, wet tearing, labored chitter",
+      "prompt": "Bone spike hooking into a body and wrenching it, then a heavy limp body scraping across concrete and rubble as a growling creature drags it off, no music",
       "durationSeconds": 2.5,
       "variants": 3,
       "loop": false,
