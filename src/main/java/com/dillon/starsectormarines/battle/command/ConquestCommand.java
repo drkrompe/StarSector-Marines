@@ -1276,7 +1276,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         for (int squadId : guardsToStandDown) effects.standDownGuard(squadId);
         for (MachineGuardDirector.Attach attach : guardsToOrder) {
             if (effects.guardPlace(faction(), attach.squadId(), attach.cellX(), attach.cellY()) == 0) {
-                machineGuards.forget(attach.squadId());
+                machineGuards.refused(attach.squadId(), attach.garrisonable());
             }
         }
         guardsToOrder = List.of();

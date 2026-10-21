@@ -70,6 +70,12 @@ final class MachineGuardDirector {
     }
 
     private final Map<Integer, Guard> guards = new TreeMap<>();
+    /**
+     * Places whose guard order was refused (the machine tier sees the enemy holding the place, or the side not manning
+     * it), with the pulses left before one is attached there again. Without it the most pressed place was attached, refused
+     * and attached again every pulse, and no other place the side mans was ever given a guard.
+     */
+    private final Map<Integer, Integer> refused = new TreeMap<>();
 
     /** Lances on guard at once for a side fielding {@code machineSquads}: half rounded up, never above {@link #MAX_GUARDS}. */
     static int cap(int machineSquads) {
@@ -97,6 +103,15 @@ final class MachineGuardDirector {
     }
 
     /**
+     * Drops a guard whose order was refused at {@code garrisonable}, and passes that place over for {@link #COOL_PULSES}
+     * pulses so the lance is offered to the next place the side mans.
+     */
+    void refused(int squadId, int garrisonable) {
+        guards.remove(squadId);
+        refused.put(garrisonable, COOL_PULSES);
+    }
+
+    /**
      * Stands or stands down every guard for this pulse. A guard whose lance is not among {@code guarding} (gone, under
      * another authority, or taken up by higher-value work), whose place is not manned or has cooled for the dwell, or
      * whose lance is below useful strength stands down.
@@ -105,6 +120,8 @@ final class MachineGuardDirector {
      * @return the lances standing down this pulse, in id order
      */
     List<Integer> review(Map<Integer, Machine> guarding, List<Place> manned, IntBinaryOperator placeAt) {
+        refused.replaceAll((place, pulses) -> pulses - 1);
+        refused.values().removeIf(pulses -> pulses <= 0);
         List<Integer> down = new ArrayList<>();
         for (var it = guards.entrySet().iterator(); it.hasNext(); ) {
             var entry = it.next();
@@ -144,7 +161,7 @@ final class MachineGuardDirector {
         Set<Integer> used = new HashSet<>();
         for (Place place : manned) {
             if (out.size() >= budget) break;
-            if (!place.hot() || guarded.contains(place.garrisonable())) continue;
+            if (!place.hot() || guarded.contains(place.garrisonable()) || refused.containsKey(place.garrisonable())) continue;
             Machine best = null;
             int bestEta = Integer.MAX_VALUE;
             for (Machine machine : free) {

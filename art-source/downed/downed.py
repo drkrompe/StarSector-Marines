@@ -35,6 +35,7 @@ SOURCE = Path("art-source/downed")
 # outfit -> directory its downed-<pose>.png files ship in
 CREW = "mod/graphics/battle/ship-crew-modular-topdown/"
 ARMOR = "mod/graphics/battle/marine-modular-topdown/variants/armor/"
+COLONIST = "mod/graphics/battle/colonist-modular-topdown/"
 OUTFITS = {
     "command": CREW + "command",
     "engineering": CREW + "engineering",
@@ -45,6 +46,25 @@ OUTFITS = {
     "blue-scout": ARMOR + "blue-scout",
     "outlaw": ARMOR + "outlaw",
     "militia": ARMOR + "militia",
+    "army-green": ARMOR + "army-green",
+    "red-heavy": ARMOR + "red-heavy",
+    "aegis": ARMOR + "aegis",
+    "palatine": ARMOR + "palatine",
+    "furnace-line": ARMOR + "furnace-line",
+    "reaver": ARMOR + "reaver",
+    "bulwark-heavy": ARMOR + "bulwark-heavy",
+    "reliquary-heavy": ARMOR + "reliquary-heavy",
+    "lions-mantle": ARMOR + "lions-mantle",
+    "foundry-breaker": ARMOR + "foundry-breaker",
+    # Articulated shells: the lying body is the whole suit, shoulders and all, so it
+    # ships beside the paint's own torso layer.
+    "specter": ARMOR + "specter-heavy",
+    "arbalest": ARMOR + "specter-heavy/paints/olive",
+    "boarding-jack": ARMOR + "boarding-jack",
+    "boarding-jack-pirate": ARMOR + "boarding-jack/paints/pirate",
+    "civilian": COLONIST + "civilian",
+    "engineer": COLONIST + "engineer",
+    "scientist": COLONIST + "scientist",
 }
 
 

@@ -4,7 +4,7 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-10-10 — freight territorial orders and physical column release remain separate.
+Updated: 2026-10-21 — a released squad stays in the pool it was handed to.
 from independent acting-NCO leadership and physical mission routes.
 Earlier 2026-08-31 — active player infantry context now exclusively owns the
 squad's mission-tier plan, including specialist and rescue pickup squads, while
@@ -100,7 +100,13 @@ which lets a delivery or special-task system reserve a squad without inventing
 a destination. Squads enter and leave the pool over a battle — a release, a
 handoff — so anything a strategy sizes from the pool, such as a reserve bound,
 is re-derived from the pool as it stands on each pulse rather than latched at
-the opening one.
+the opening one. A strategy releasing a squad's order ends the order, not the
+membership: a release removes the directive, so a squad handed to a strategy
+after setup (a claim or a delivery in its name) stays in that strategy's pool
+until another owner takes it, as the starting force does. Read from the
+directive alone, the Conquest defender lost every such squad the first time its
+track response ended, which in `machine-guard`'s `defender-lances` loop was a
+lance and three patrols in the first forty seconds.
 
 A **directive** records the optional `ObjectiveAssignment`, issuer, authority,
 reason, issue tick, target meaning, and stability or lease state. The shared

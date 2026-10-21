@@ -69,13 +69,8 @@ public enum LayeredArmorFamily {
      * it is asked to load that is not there.
      */
     public boolean hasDownedArt() {
-        switch (this) {
-            case ARMORLESS: case CHARCOAL: case BLUE_SCOUT: case OUTLAW: case MILITIA:
-            case SHIP_COMMAND: case SHIP_ENGINEERING: case SHIP_MEDICAL: case SHIP_SERVICE:
-                return true;
-            default:
-                return false;
-        }
+        // Every infantry outfit falls as itself; only the alien keeps its unit type's sheet.
+        return this != XENO;
     }
 
     public boolean articulatedShoulders() {
