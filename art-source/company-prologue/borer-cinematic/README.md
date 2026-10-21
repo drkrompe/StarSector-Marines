@@ -11,6 +11,8 @@ Append `BORER` from `borer.blend` for the bare drone. Append `BORER` and `SWFX` 
 for the effects, which ride the drone's own anchors. Move, rotate or scale only the root,
 `BORER | root`.
 
+- **Size.** 3.6 m long, sized to fit in the Shepherd (owner, 2026-10-21): the bay's cradles and
+  mouths hold it. The fleet-combat sprites would make it 11.7 m, which no bay holds.
 - **Scale.** In a metre scene, scale the root by 0.25. Beside the Shepherd (0.78 m/u), scale it
   by 0.25 / 0.78 = 0.3205.
 - **On a cradle.** Put `Anchor cradle seat`, which sits on the skid shoes' plane under the .ship centre,
