@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160da-1c35-7a13-9010-2f12ede9a0a5",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160da-1c35-7a13-9010-2f12ede9a0a5\\exec-1047038b-011e-4091-9f6b-04b9170fd996.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\matriarch\\corpse-1\\raw\\c3.png",
+    "sha256": "e6eabe98a5cbe4d4f92dd9947b6e68ae2683e605a8ab094b2f95858142b854bb",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\matriarch\\corpse-1\\prompts\\c3.prompt.txt",
+  "promptSha256": "85643179b017f25cba944ffc6a6e901766595a95c9abf2c22b677224c9d8f418",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity, palette, finish and scale authority: the living Matriarch (round 3 #5); the corpse is this creature dead\n\nTop-down concept for a tactical game (Starsector mod: Marines against an engineered biological weapon, the Rav Bloom). The CORPSE of the MATRIARCH, the swarm's boss-scale mother strain, killed in battle, lying where it fell on the ground of a colony. Reference image 1 is the living Matriarch: keep its identity, palette, finish and scale exactly (a huge, heavily plated quadruped: matte charcoal-black plates with dried-blood red on the worn edges, deep wine-red sinew in every gap, a vast fan-shaped crown of yellowed ivory bone spikes over the head, two curved ivory scythes from under the crown's rim, clawed feet). It must read at a glance, at small size, as the same creature now DEAD: no amber in the eyes (dull and dark), limp, broken, with dark wine-red ichor pooled around it and splashed on the ground, a few shed plates and bone splinters scattered nearby. The silhouette must differ clearly from the living creature standing. It stays about the same size as reference image 1. Not gory close-up: a game corpse sprite seen from high above. Strict overhead orthographic view, camera looking straight down, the whole corpse and its ichor pool inside the frame, light from the upper left. Plain flat light grey background (#b4b4b4), no ground texture, no shadow beyond the ichor, no text, no border.\n\nThis corpse: CROWN SHATTERED: belly-down and slumped, the great bone crown cracked apart, half its spikes snapped off and scattered around the head, the head lolling to one side, one scythe broken off and lying apart from the body.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-matriarch\\raw\\hero.png",
+      "sha256": "9f2820dbf0752bc5172bbd209d0de312eee14488150839bcd23c368429ea33b6",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity, palette, finish and scale authority: the living Matriarch (round 3 #5); the corpse is this creature dead"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one overhead corpse image, preserving the Matriarch’s identity with a shattered crown and slumped pose."
+  ],
+  "usage": {
+    "input_tokens": 41104,
+    "cached_input_tokens": 32512,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 447,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 46.4
+}
