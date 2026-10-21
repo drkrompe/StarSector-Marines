@@ -23,9 +23,10 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.Tag;
  * {@link GroundKind#STREET} with no surface of its own, the urban paving — gains
  * asphalt over its carriageway: every such cell except the kerb strip the
  * renderer draws wherever a wall or building is within one cell. The kerb, the
- * pedestrian frames, plazas wider than {@link #CITY_MAX_BREADTH} and lanes
- * narrower than a sweep keep the paving, which also shows through in the
- * corners a round end or a junction turn leaves uncovered.
+ * pedestrian frames, plazas wider than {@link #CITY_MAX_BREADTH}, lanes
+ * narrower than a sweep, and the bulges and pills {@link GeneratedRoads#streets}
+ * refuses keep the paving, which also shows through in the corners a round end
+ * or a junction turn leaves uncovered.
  *
  * <p>This is a finish, not a repaving: no cell's ground kind, surface,
  * walkability or tag other than {@link Tag#ROAD_EDGE_BLEND} changes, and no
@@ -59,15 +60,16 @@ public final class RoadSurfaceStage implements GenStage {
                     || precincts.precincts().get(claim[x][y]).isProgrammed());
             street[x][y] = city && !road[x][y] && carriageway(ctx, x, y);
         }
+        if (city) bridgeSidewalks(ctx, road, street);
         boolean[][] swept = new boolean[ctx.width][ctx.height];
         boolean anyStreet = false;
         for (int x = 0; x < ctx.width; x++) for (int y = 0; y < ctx.height; y++) {
             swept[x][y] = road[x][y] || street[x][y];
             anyStreet |= street[x][y];
         }
-        // Precinct-only maps keep their own bound, so the control reproduces them.
-        var routes = GeneratedRoads.routes(swept, ctx.seed,
-                anyStreet ? CITY_MAX_BREADTH : GeneratedRoads.MAX_BREADTH);
+        // Precinct roads are swept as they always were; only bands holding a city street are judged as streets.
+        var routes = anyStreet ? GeneratedRoads.streets(swept, street, ctx.seed, CITY_MAX_BREADTH)
+                : GeneratedRoads.routes(swept, ctx.seed);
         if (routes.isEmpty()) return;
         TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
         var margin = (profile == null ? SurfacePalette.ROCK : profile.surface()).inlandGround();
@@ -109,20 +111,63 @@ public final class RoadSurfaceStage implements GenStage {
                 && !ctx.isMadeGround(x, y) && kind != GroundKind.INDOOR;
     }
 
+    /** The widest sidewalk flank a side street's mouth crosses (a primary trunk's is two). */
+    static final int MOUTH_DEPTH = 3;
+
+    /**
+     * A boulevard's {@link GroundKind#SIDEWALK} flank runs across every side
+     * street's mouth, and left out it would stop each side street a cell short
+     * of the road it joins. A run of flank no deeper than {@link #MOUTH_DEPTH}
+     * with carriageway at both ends, across the flank, is such a mouth and is
+     * carriageway; the rest of the flank stays paved.
+     */
+    static void bridgeSidewalks(GenContext ctx, boolean[][] road, boolean[][] street) {
+        int w = ctx.width, h = ctx.height;
+        boolean[][] mouth = new boolean[w][h];
+        for (int pass = 0; pass < 2; pass++) {
+            boolean vertical = pass == 1;
+            int lines = vertical ? w : h, length = vertical ? h : w;
+            for (int line = 0; line < lines; line++) for (int i = 0; i < length;) {
+                int x = vertical ? line : i, y = vertical ? i : line;
+                if (!flank(ctx, x, y)) { i++; continue; }
+                int end = i;
+                while (end + 1 < length && flank(ctx, vertical ? line : end + 1, vertical ? end + 1 : line)) end++;
+                if (end - i + 1 <= MOUTH_DEPTH && i > 0 && end + 1 < length
+                        && paved(road, street, vertical ? line : i - 1, vertical ? i - 1 : line)
+                        && paved(road, street, vertical ? line : end + 1, vertical ? end + 1 : line))
+                    for (int k = i; k <= end; k++) mouth[vertical ? line : k][vertical ? k : line] = true;
+                i = end + 1;
+            }
+        }
+        for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) street[x][y] |= mouth[x][y];
+    }
+
+    private static boolean paved(boolean[][] road, boolean[][] street, int x, int y) {
+        return road[x][y] || street[x][y];
+    }
+
+    private static boolean flank(GenContext ctx, int x, int y) {
+        return ctx.topology.getGroundKind(x, y) == GroundKind.SIDEWALK && ctx.topology.getSurface(x, y) == 0
+                && outdoorOpen(ctx, x, y) && !kerb(ctx, x, y);
+    }
+
     /**
      * A city carriageway cell: an unsurfaced street with no wall or building in
      * its eight neighbours. The renderer draws exactly those neighbours as kerb
      * ({@code GroundTileSelector.isSidewalkCell}), so the asphalt stops at the kerb.
      */
     static boolean carriageway(GenContext ctx, int x, int y) {
-        if (ctx.topology.getGroundKind(x, y) != GroundKind.STREET || ctx.topology.getSurface(x, y) != 0
-                || !outdoorOpen(ctx, x, y)) return false;
+        return ctx.topology.getGroundKind(x, y) == GroundKind.STREET && ctx.topology.getSurface(x, y) == 0
+                && outdoorOpen(ctx, x, y) && !kerb(ctx, x, y);
+    }
+
+    private static boolean kerb(GenContext ctx, int x, int y) {
         for (int dy = -1; dy <= 1; dy++) for (int dx = -1; dx <= 1; dx++) {
             int nx = x + dx, ny = y + dy;
             if ((dx != 0 || dy != 0) && ctx.topology.inBounds(nx, ny)
-                    && (ctx.topology.isWall(nx, ny) || ctx.topology.hasBuildingKindHint(nx, ny))) return false;
+                    && (ctx.topology.isWall(nx, ny) || ctx.topology.hasBuildingKindHint(nx, ny))) return true;
         }
-        return true;
+        return false;
     }
 
     private static boolean adjacent(boolean[][] road, int x, int y) {

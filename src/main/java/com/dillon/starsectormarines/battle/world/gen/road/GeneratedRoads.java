@@ -23,10 +23,37 @@ public final class GeneratedRoads {
         boolean contains(Band b) {
             return left <= b.left && right >= b.right && bottom <= b.bottom && top >= b.top;
         }
+        double length() { return Math.max(width(), height()); }
+        boolean holds(boolean[][] cells) {
+            for (int x = left; x <= right; x++) for (int y = bottom; y <= top; y++) if (cells[x][y]) return true;
+            return false;
+        }
+        /** Runs the same way over all of {@code b}'s length and overlaps it, narrower. */
+        boolean alongside(Band b) {
+            if (horizontal() != b.horizontal() || breadth() >= b.breadth()) return false;
+            return horizontal()
+                    ? left <= b.left && right >= b.right && bottom <= b.top && top >= b.bottom
+                    : bottom <= b.bottom && top >= b.top && left <= b.right && right >= b.left;
+        }
+        /** Whether the first (or last) cell line of this band meets another band or the map's edge. */
+        boolean endMet(boolean first, List<Band> others, int mapW, int mapH) {
+            Band end = horizontal()
+                    ? (first ? new Band(left, bottom, left, top) : new Band(right, bottom, right, top))
+                    : (first ? new Band(left, bottom, right, bottom) : new Band(left, top, right, top));
+            if (end.left == 0 || end.bottom == 0 || end.right == mapW - 1 || end.top == mapH - 1) return true;
+            for (Band o : others) if (o != this && o.horizontal() != horizontal() && o.touches(end)) return true;
+            return false;
+        }
+        /** Overlaps or shares an edge with {@code b}. */
+        boolean touches(Band b) {
+            return left <= b.right + 1 && right >= b.left - 1 && bottom <= b.top + 1 && top >= b.bottom - 1;
+        }
     }
 
     /** The widest band a sweep may take; a route cannot be wider. */
     public static final int MAX_BREADTH = 32;
+    /** A street band at least this many breadths long stands on its own; a shorter one must meet another. */
+    static final int PILL_LENGTH = 4;
 
     /** No RNG consumption; straight service runs plus tangent-controlled junction turns. */
     public static List<Route> routes(boolean[][] road, long seed) {
@@ -39,12 +66,45 @@ public final class GeneratedRoads {
      * rather than becoming a square of carriageway.
      */
     public static List<Route> routes(boolean[][] road, long seed, int maxBreadth) {
+        return routes(road, null, seed, maxBreadth);
+    }
+
+    /**
+     * A city's street network, whose carriageway is the street less its kerbs
+     * and so widens wherever a frontage gives way to a yard. A band holding any
+     * {@code city} cell is a street and must also be no broader than
+     * {@code maxBreadth}; two more are refused: a <em>bulge</em>, broader than a
+     * band running the same way along its whole length, which would swell the
+     * road where the kerb steps back; and a <em>pill</em>, a short band not met
+     * by a crossing street at both ends, which would float a capsule of asphalt
+     * in a gap between buildings or swell a junction into a yard. Both keep
+     * their paving. Bands of {@code road} alone are swept as
+     * {@link #routes(boolean[][], long)} sweeps them.
+     */
+    public static List<Route> streets(boolean[][] road, boolean[][] city, long seed, int maxBreadth) {
+        return routes(road, city, seed, maxBreadth);
+    }
+
+    private static List<Route> routes(boolean[][] road, boolean[][] city, long seed, int maxBreadth) {
         if (road.length == 0 || road[0].length == 0) return List.of();
         Set<Band> candidates = new LinkedHashSet<>();
-        bands(road, false, Math.min(maxBreadth, MAX_BREADTH), candidates);
-        bands(road, true, Math.min(maxBreadth, MAX_BREADTH), candidates);
+        int cap = city == null ? Math.min(maxBreadth, MAX_BREADTH) : MAX_BREADTH;
+        bands(road, false, cap, candidates);
+        bands(road, true, cap, candidates);
+        if (city != null) candidates.removeIf(b -> b.breadth() > maxBreadth && b.holds(city));
         List<Band> bands = candidates.stream().filter(b -> candidates.stream()
                 .noneMatch(other -> !other.equals(b) && other.contains(b))).toList();
+        if (city != null) {
+            List<Band> all = bands;
+            bands = all.stream().filter(b -> !b.holds(city) || all.stream().noneMatch(a -> a.alongside(b))).toList();
+            // A short band is a street only when each of its ends meets another
+            // street; a stub off one road, or across it, opens into a yard, and
+            // its turns would swell into the yard.
+            List<Band> kept = bands;
+            int w = road.length, h = road[0].length;
+            bands = kept.stream().filter(b -> !b.holds(city) || b.length() >= PILL_LENGTH * b.breadth()
+                    || (b.endMet(true, kept, w, h) && b.endMet(false, kept, w, h))).toList();
+        }
         List<Route> routes = new ArrayList<>();
         for (Band b : bands) {
             double inset = b.breadth() / 2 - .5;

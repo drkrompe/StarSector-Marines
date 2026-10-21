@@ -604,10 +604,17 @@ around a precinct and the stock Conquest crossroad city share one asphalt.
 The city street is unsurfaced urban paving; its *carriageway* is every such
 cell with no wall or building among its eight neighbours, which is exactly the
 kerb strip the renderer draws beside a frontage. The asphalt stops at that
-kerb. Pedestrian frames, explicit sidewalk flanks, plazas broader than a
-street (nine cells) and lanes too narrow for a sweep (under three) keep their
-paving, which also shows in the corners a round end or a junction turn
-leaves uncovered. The paving is the underlay rather than being replaced: no
+kerb. A boulevard's sidewalk flank is crossed only at a side street's mouth,
+where carriageway lies on both sides of it, so side streets reach the road
+they join and its junction turns give the corner a kerb radius. Because the
+carriageway is the street less its kerbs, it widens wherever a frontage gives
+way to a yard; the sweep refuses a *bulge* (a band broader than one running
+the same way along its whole length) and a *pill* (a short band whose ends
+are not both met by a crossing street), which would otherwise swell the road
+into the yard or float asphalt in a gap between buildings. Pedestrian frames,
+the rest of the flank, plazas broader than a street (nine cells) and lanes too
+narrow for a sweep (under three) keep their paving, which also shows in the
+corners a round end or a junction turn leaves uncovered. The paving is the underlay rather than being replaced: no
 ground kind, surface, walkability, road graph, width or random draw changes,
 so navigation, convoy routing, garrisons and mission map requirements are
 untouched. `-Dbattle.mapgen.cityRoads=false` is the control; it leaves the city

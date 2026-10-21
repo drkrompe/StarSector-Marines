@@ -104,4 +104,25 @@ class RoadSurfaceStageTest {
         }
         assertNull(ctx.topology.roadSurface());
     }
+
+    @Test void aSideStreetCrossesTheBoulevardsFlankToReachIt() {
+        var grid = new NavigationGrid(48, 40);
+        var topology = new CellTopology(48, 40);
+        var ctx = new GenContext(grid, topology, new Random(5), 48, 40, 5);
+        for (int y = 0; y < 40; y++) for (int x = 0; x < 48; x++) {
+            grid.setWalkableFloor(x, y);
+            GroundKind kind = GroundKind.GRASS;
+            if (y >= 10 && y <= 12) kind = GroundKind.STREET;                 // boulevard core
+            else if (y == 13 || y == 14) kind = GroundKind.SIDEWALK;          // its flank
+            else if (y >= 15 && x >= 20 && x <= 24) kind = GroundKind.STREET; // side street
+            topology.setGroundKind(x, y, kind);
+        }
+
+        new RoadSurfaceStage().run(ctx);
+
+        var surface = ctx.topology.roadSurface();
+        assertNotNull(surface.patch(22, 13, 0), "the mouth crosses the flank");
+        assertNotNull(surface.patch(22, 14, 0));
+        assertNull(surface.patch(35, 14, 0), "the flank elsewhere stays paved");
+    }
 }

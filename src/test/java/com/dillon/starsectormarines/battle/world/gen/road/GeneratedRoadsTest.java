@@ -83,4 +83,20 @@ class GeneratedRoadsTest {
         }
         return Math.abs(sum) / 2;
     }
+
+    @Test void streetsRefuseBulgesAndPills() {
+        boolean[][] road = new boolean[48][32];
+        fill(road, 2, 10, 45, 12);   // a street three wide ...
+        fill(road, 20, 13, 27, 14);  // ... widening to five where a frontage steps back
+        fill(road, 10, 20, 13, 29);  // a short gap between buildings, touching nothing
+        var streets = GeneratedRoads.streets(road, road, 3, 9);
+        var straight = streets.stream().filter(r -> r.points().size() == 2).toList();
+        assertEquals(1, straight.size(), "only the street itself: " + streets);
+        assertEquals(3, straight.get(0).width());
+        assertTrue(GeneratedRoads.routes(road, 3).stream().anyMatch(r -> r.width() == 5),
+                "the plain sweep takes the bulge; streets do not");
+        assertTrue(GeneratedRoads.routes(road, 3).stream().anyMatch(r -> r.width() == 4), "and the pill");
+        assertEquals(GeneratedRoads.routes(road, 3), GeneratedRoads.streets(road, new boolean[48][32], 3, 9),
+                "roads holding no city street are swept as roads");
+    }
 }
