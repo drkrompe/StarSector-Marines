@@ -710,6 +710,9 @@ public final class AmbientTaskService {
             weaponPhase = positiveModulo((elapsedSeconds + offset) / motion.periodSeconds(), 1f);
         } else if (motion == WorkMotion.CARRY) {
             flags = LayeredAppearance.withWorkMotion(flags, motion);
+        } else if (motion == WorkMotion.SLEEP) {
+            // In the bunk rather than beside it; the renderer lays the body down.
+            flags = LayeredAppearance.withWorkMotion(flags | LayeredAppearance.FLAG_AT_STATION, motion);
         } else if (pose.activity() == AmbientActivity.FIRING_PRIMARY || practiceEquipment) {
             float cycle = primaryCycle(carriedSpecial != null, pose);
             if (cycle >= FIRE_BEGIN && cycle < FIRE_END) {
@@ -760,7 +763,8 @@ public final class AmbientTaskService {
         // A stop authored without a job on the board still says what it is
         // doing, and that is enough to show it.
         if (job == null) return WorkMotions.forActivity(pose.activity());
-        if (!job.handsOnFixture() && job != Affordance.EXERCISE && job != Affordance.LAP) return WorkMotion.NONE;
+        if (!job.handsOnFixture() && job != Affordance.EXERCISE && job != Affordance.LAP
+                && job != Affordance.REST) return WorkMotion.NONE;
         TaskPoint point = taskPoints.claimedPoint(actorId);
         if (point == null) return WorkMotions.forJob(job, null);
         return motionAtPoint.computeIfAbsent(point.id(), id -> WorkMotions.forJob(job,

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160c9-4d55-7090-a023-155c232b2c63",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160c9-4d55-7090-a023-155c232b2c63\\exec-dcd56f3d-3509-4bc2-9d87-489a66a3b126.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\beds\\barracks-worn-refit.png",
+    "sha256": "037d62d958696a366639444a4b6cb5998ee9a17c6d5bf6bfda7a4052ee0c87f8",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\beds\\barracks-worn-refit.prompt.txt",
+  "promptSha256": "fcf55b788c816e55bae41ed5a8b95fa5ac3f0319ad83148d9e37f3ad76983f6c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and identity authority: repaint these exact pieces in place, worn\nImage 2: Material and condition reference only; its pieces are shorter and laid out differently, ignore their proportions\n\nRepaint reference 1, a sheet of four top-down game sprites (long bunk base, bedding with pillow at top, bedding with pillow at bottom, open bunk frame), as the WORN version of the same furniture on a run-down ship whose crew are camping in it.\n\nReference 1 is the exact GEOMETRY AND IDENTITY authority: same four components, same positions on the canvas, same outlines, sizes and proportions, same top-down orthographic view and lighting direction, same canvas size. Every component must register over its original pixel for pixel at its edges; change surface condition only, never shape, position or size. Each piece stays a long slim upright strip.\nReference 2 is MATERIAL AND CONDITION ONLY: the worn versions of an older, shorter set of the same furniture. Match its wear, grime and fabric, but ignore its sizes and layout.\n\nWorn condition:\n- Bunk base: paint chipped through to dull steel on edges and corners, grime in the recesses, scuffed and stained deck panels, one bent cross member.\n- Both beddings: bare, stained, sagging mattress; a rumpled, tangled olive-drab blanket half off; the pillow flattened and greyed. Keep the pillow at the same end as in reference 1.\n- Open frame: chipped, one corner plate missing a bolt, a little grime. The long centre stays fully transparent.\nKeep the palette: graphite steel and grey-green olive, with only small spots of dull rust at chips. Not orange.\n\nTrue transparent background, including inside the open frame; no ground, no shadow slab, no border, no text, no labels, no people.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\beds\\barracks-refit.png",
+      "sha256": "275777a8d388e0fae92384e9acb4233b70f5a7f2b36f33eb190eaa60c5a5b7f8",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry and identity authority: repaint these exact pieces in place, worn"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\fsc\\beds\\barracks-worn-old.raw.png",
+      "sha256": "3b64079efe6c4e84445400a20fb6b5437181c90058e834ac14543e475d548163",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material and condition reference only; its pieces are shorter and laid out differently, ignore their proportions"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to repaint the four pieces with worn materials, preserving the first reference’s layout and proportions on a transparent background."
+  ],
+  "usage": {
+    "input_tokens": 45005,
+    "cached_input_tokens": 37120,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 508,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 55.1
+}

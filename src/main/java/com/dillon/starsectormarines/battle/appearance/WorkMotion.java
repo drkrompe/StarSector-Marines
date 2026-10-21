@@ -44,7 +44,12 @@ public enum WorkMotion {
      * deck rather than on a machine, so nothing draws the body ahead of where it
      * is. Played round a running track, while moving and at each marker.
      */
-    JOG(0.5f, true);
+    JOG(0.5f, true),
+    /**
+     * Asleep in a bunk: the body lies along it, head on the pillow, drawn in the
+     * bunk rather than on the passage cell the rest point stands on.
+     */
+    SLEEP(0f, false);
 
     private final float periodSeconds;
     private final boolean handsOn;
@@ -66,7 +71,8 @@ public enum WorkMotion {
      * the machine blocks, but nobody runs beside a treadmill: the user is drawn
      * on it. The machines are real-size and worked up their length from the
      * foot, so each reach lands the body where the machine holds it: the rear
-     * of the belt, the middle of the seat's travel, the bench under the bar.
+     * of the belt, the middle of the seat's travel, the bench under the bar, and a
+     * sleeper's head on the pillow at the far end of the bunk.
      * Presentation only; the actor's position and claim stay on the standing cell.
      */
     public float mountCells() {
@@ -74,6 +80,9 @@ public enum WorkMotion {
             case RUN -> 1.6f;
             case ROW -> 1.5f;
             case PRESS -> 1.4f;
+            // A real-length bunk is three cells from the passage at its foot to
+            // the pillow, and the sleeper's head is on the pillow.
+            case SLEEP -> 2.55f;
             default -> 0f;
         };
     }

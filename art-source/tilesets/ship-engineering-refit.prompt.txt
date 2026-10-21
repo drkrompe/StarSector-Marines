@@ -1,0 +1,10 @@
+Reskin the attached geometry guide into finished top-down game art for three spaceship engineering-room props. Strict overhead orthographic view, soft light from the upper left, the same look as the material reference sheet: muted grey-green enamel, graphite steel, dull silver trim, small bolts and panel seams, light edge wear, realistic painted game-asset finish. No saturated colour, no glow, no hazard stripes.
+
+The guide is the geometry, scale and layout authority, and the result will be cut mechanically from the guide's exact pixel rectangles. Each piece is a long narrow strip and must overlay its grey guide shape almost exactly: the same left and right ends, the same top and bottom edges. Do not make any piece deeper, longer, taller or larger than its grey shape; do not move, rescale, rotate, merge or add pieces. Keep all empty canvas fully transparent: true transparent background, including gaps between parts; no floor, no ground, no shadow slab, no border, no people, no labels or text.
+
+Pieces, top to bottom:
+1. A shallow electrical switchgear bank seen from directly above: three side-by-side cabinet tops in grey-green enamel with ventilation louvres, the strip about three and a half times as long as it is deep. Their breaker-panel doors face the bottom edge: a slim front strip with a small dark indicator window and a silver handle on each door, along the bottom (near) edge only.
+2. A shallow spares rack, the same size as the switchgear: three bays whose open top shelf holds small grey-green parts bins and boxed spare components, neatly organised. Along its bottom (near) edge, a slim front strip with two small drawer pulls per bay.
+3. A narrow engineer's service bench, about four times as long as it is deep: a steel top with bevelled edges, a broad dark grey-green work pad on its left, one steel bench vise at the right end close to the bottom (near) edge, and four drawer pulls along the bottom (near) fascia. No loose tools.
+
+Broad readable forms, soft restrained highlights, sparse wear, low surface noise.

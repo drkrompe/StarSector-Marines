@@ -29,7 +29,7 @@ class ShipFacilityDressingTest {
             Map.entry("ship-utility.shelf", new int[]{2, 1}), Map.entry("ship-utility.parts", new int[]{2, 1}),
             Map.entry("crew-lounge.planter", new int[]{1, 1}), Map.entry("crew-lounge.books", new int[]{1, 3}),
             Map.entry("crew-lounge.refreshments", new int[]{1, 3}), Map.entry("crew-lounge.media", new int[]{3, 1}),
-            Map.entry("briefing-room.display", new int[]{4, 1}), Map.entry("briefing-room.lectern", new int[]{2, 1}),
+            Map.entry("briefing-room.display", new int[]{4, 1}), Map.entry("briefing-room.lectern", new int[]{1, 1}),
             Map.entry("main-stores.tally", new int[]{3, 1}), Map.entry("main-stores.pallet", new int[]{2, 2}),
             Map.entry("main-stores.rack", new int[]{2, 6}), Map.entry("main-stores.cartons", new int[]{2, 2}),
             Map.entry("main-stores.cases", new int[]{2, 2}), Map.entry("main-stores.drums", new int[]{2, 2}),
