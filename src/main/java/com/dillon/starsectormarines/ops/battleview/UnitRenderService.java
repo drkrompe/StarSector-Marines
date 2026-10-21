@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.SystemFxService;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.appearance.RavBruteRig;
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
@@ -997,7 +998,7 @@ public final class UnitRenderService implements RenderSystem {
                 if (rx[r] < cullMinX || rx[r] > cullMaxX
                         || ry[r] < cullMinY || ry[r] > cullMaxY) continue;
                 UnitType type = (UnitType) types[r];
-                RavRunnerRig ravRig = ravRigs != null ? (RavRunnerRig) ravRigs[r] : null;
+                RavRunnerRig ravRig = ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead ? dead : null;
                 if (ravRig != null && ravRig.dead()) {
                     // A dead Runner lies on its own skeleton, fallen onto its flank, its colour gone dull.
                     RavRunnerComposer.emit(out, ravArt, ravRig,
@@ -1135,7 +1136,8 @@ public final class UnitRenderService implements RenderSystem {
             boolean hasMechLayered = t.has(c.MECH_LAYERED_ANIMATION);
             boolean hasMechGait = t.has(c.MECH_GAIT_STATE);
             RavRunnerAssets ravArt = sprites.ravRunnerSprites();
-            Object[] ravRigs = ravArt != null && t.has(c.RAV_RIG)
+            RavBruteAssets bruteArt = sprites.ravBruteSprites();
+            Object[] ravRigs = (ravArt != null || bruteArt != null) && t.has(c.RAV_RIG)
                     ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             Object[] secSpec = hasSecondary
                     ? t.objects(c.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC).array() : null;
@@ -1238,7 +1240,15 @@ public final class UnitRenderService implements RenderSystem {
                             authoredPose, gaitPose);
                     continue;
                 }
-                RavRunnerRig ravRig = ravRigs != null ? (RavRunnerRig) ravRigs[r] : null;
+                Object rig = ravRigs != null ? ravRigs[r] : null;
+                if (bruteArt != null && rig instanceof RavBruteRig bruteRig && bruteRig.posed()) {
+                    // The Brute too; its rig is sized in cells, so no render scale.
+                    RavBruteComposer.emit(out, bruteArt, bruteRig,
+                            cam.cellToScreenX(bruteRig.bodyX()), cam.cellToScreenY(bruteRig.bodyY()),
+                            cam.cellPxSize(), unitAlpha);
+                    continue;
+                }
+                RavRunnerRig ravRig = ravArt != null && rig instanceof RavRunnerRig runnerRig ? runnerRig : null;
                 if (ravRig != null && ravRig.posed()) {
                     // The Runner is drawn on its own skeleton, solved at the position it was posed at.
                     RavRunnerComposer.emit(out, ravArt, ravRig,
