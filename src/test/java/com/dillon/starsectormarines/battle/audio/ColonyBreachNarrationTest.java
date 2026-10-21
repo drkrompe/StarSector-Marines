@@ -30,6 +30,18 @@ class ColonyBreachNarrationTest {
         }
     }
 
+    @Test void nameBearingVariantsAreRegisteredAndNeverLookedUp() throws Exception {
+        var root = new JSONObject(Files.readString(Path.of("mod/data/marines/colony_breach_narration.json")));
+        String sounds = Files.readString(Path.of("mod/data/config/sounds.json"));
+        var catalog = catalog();
+        var variants = root.getJSONArray("variants");
+        for (int i = 0; i < variants.length(); i++) {
+            var variant = variants.getJSONObject(i);
+            assertNotNull(catalog.find(MISSION, variant.getString("replaces")), "replaces a real line");
+            assertTrue(sounds.contains("\"" + variant.getString("id") + "\":"), variant.getString("id"));
+        }
+    }
+
     @Test void aBeatPlaysItsLineAndAnObsoleteOneIsSuperseded() throws Exception {
         var log = new StoryBeatLog();
         log.emitOnce(1, "colony_breach.bore_erupted_1", StoryBeatLog.Audience.PLAYER);

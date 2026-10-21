@@ -6,7 +6,7 @@ Colony has stable Marine expedition branches; live acceptance remains open.
 
 Written: 2026-08-27
 
-Updated: 2026-09-01 — every rally cell of one Extraction defender pulse is distinct, across roles rather than only within the source-perimeter fallback.
+Updated: 2026-10-21 — Rescue close escort leads the cohort by a route cell, and a dispersed rear civilian anchors every rescue, closing the forward-lead deadlock.
 
 Read `mission-command-nouns.md` for the shared architecture and
 `campaign-event-nouns.md` for the authored event stakes.
@@ -121,7 +121,17 @@ lead, left, right, and rear screen roles. Before release, separate shelter-
 approach cells organize relief; after release, route-relative guide and screen
 cells form the corridor to the lift. The guide is routed from the cohort's
 cell, or from the nearest open cell when the cohort's centroid falls on a
-wall between its members, so it never collapses onto the cohort itself. Repeated role echelons receive stable
+wall between its members, so it never collapses onto the cohort itself. The
+close escort rallies one route cell ahead of the cohort rather than on it: a
+civilian holds while its nearest escort is more than two cells behind it toward
+the lift, and a pocket centred on the cohort can leave a trailing member as
+every civilian's nearest, which holds the cohort for good. A dispersed rear
+civilian becomes the cohort's anchor instead of being averaged into the main
+group. A civilian outside the leash waits where it stands, so the mean of it
+and the group lies behind the group; an escort formed there holds the group as
+well, and nothing moves again until the straggler dies. Anchored on the
+straggler, the escort fetches it while the group waits outside the leash.
+Repeated role echelons receive stable
 offsets instead of forming one brick. A local actionable contact may hold only
 the affected squad's current target for a bounded interval; it does not freeze
 the whole formation.
@@ -160,8 +170,8 @@ no diagnostic overlay is required to understand the mission.
 The existing `commanderEvidence -Pmission=extraction` selector runs both generic
 Extraction and Rescue adapters; no scenario-specific Gradle task is required.
 The canonical Rescue fixture uses two six-seat Aeroshuttles on the low-risk
-map, completes with the cohort boarded at tick 4,239 under the Colony Breach
-sequence's opening seepage, publishes 151 swarm-director revisions, and replays
+map, completes with the cohort boarded at tick 3,954 under the Colony Breach
+sequence's opening seepage, publishes 142 swarm-director revisions, and replays
 byte-identically. The high-risk colony has its own selector,
 `commanderEvidence -Pmission=colony-breach` (`colony-breach-nouns.md`). This is
 deterministic correctness evidence, not a pressure or balance target; live
@@ -171,8 +181,8 @@ pressure tuning remains in the campaign Rescue acceptance story.
 
 The authored Rill evacuation uses the same corridor roles against conventional
 raiders. Its selected escort must secure the shelter before release; living
-workers follow that element and wait outside its leash. A dispersed rear worker
-becomes the regrouping anchor instead of being averaged into the main group.
+workers follow that element and wait outside its leash, and a dispersed rear
+worker becomes the regrouping anchor as in Civilian Rescue.
 If the escort leaves the eligible command pool, an existing screen takes over;
 reassignment does not require a newly arrived, previously unassigned squad.
 
