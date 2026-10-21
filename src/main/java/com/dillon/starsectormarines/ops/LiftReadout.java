@@ -110,7 +110,6 @@ public final class LiftReadout {
     }
 
     private static String vehicleName(String enumName) {
-        String spaced = enumName.replace('_', ' ').toLowerCase(Locale.ROOT);
-        return Character.toUpperCase(spaced.charAt(0)) + spaced.substring(1);
+        return Strings.named("vehicleType", enumName);
     }
 }

@@ -149,14 +149,11 @@ public final class MechLabScreen implements Screen {
             // against its own backdrop, so it loads what it draws. Everything
             // the deck itself paints is the deck's own business.
             previewSprites().ensureLayeredMechSprites();
-            previewSprites().ensureMechLabFxSprites();
             dollElement = candidate.requireElement("mech-doll-canvas");
             dollCanvas = new MechLabDollCanvas(viewModel::gantryDeployments,
                             viewModel::selectedGantryIndex,
                             viewModel::selectedSocket,
                             () -> previewSprites().layeredMechSprites(),
-                            () -> previewSprites().mechLabWeldingTorch(),
-                            () -> previewSprites().mechLabWeldingSparks(),
                             viewModel::fittingFocused,
                             deck::scene,
                             this::framing,

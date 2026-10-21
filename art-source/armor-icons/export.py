@@ -5,14 +5,15 @@
 Nothing here repaints. Each family's accepted raw (raw/<slug>.raw.png, or the version named in
 ACCEPTED) keeps the alpha the generator returned, with faint haze below a small threshold cleared,
 is cropped square about its opaque bounds with a margin matching the former tier icons, and is
-downsampled to the armory's 512 px. Families without an accepted raw are skipped and keep
-whatever the catalog points them at.
+downsampled to the armory's 512 px. Variant patterns (variants.py) export the same way to
+armor-<pattern>.png. Anything without a raw is skipped and keeps whatever the catalog points at.
 """
 import sys
 
 from PIL import Image
 
 from families import FAMILIES, ROOT, icon_path, slug
+from variants import VARIANTS, variant_icon_path
 
 RAW = ROOT / 'art-source/armor-icons/raw'
 SIZE = 512
@@ -20,12 +21,13 @@ MARGIN = 0.03  # of the square side; the tier icons sat 5-20 px inside 512
 HAZE = 10
 
 # family -> raw version suffix, when the accepted master is not the first generation
-ACCEPTED = {}
+ACCEPTED = {'orderly': 'v2'}  # also keyed by variant pattern slug; v1 read as a bundle of barrels
 
 
 def raw_path(family):
     version = ACCEPTED.get(family)
-    return RAW / f'{slug(family)}{"-" + version if version else ""}.raw.png'
+    name = family if family in VARIANTS else slug(family)
+    return RAW / f'{name}{"-" + version if version else ""}.raw.png'
 
 
 def export(family):
@@ -40,13 +42,13 @@ def export(family):
     half = side / 2
     crop = raw.crop((round(cx - half), round(cy - half), round(cx + half), round(cy + half)))
     icon = crop.resize((SIZE, SIZE), Image.LANCZOS)
-    out = ROOT / 'mod' / icon_path(family)
+    out = ROOT / 'mod' / (variant_icon_path(family) if family in VARIANTS else icon_path(family))
     icon.save(out, optimize=True)
     print(out.relative_to(ROOT), icon.size)
 
 
 def main():
-    families = sys.argv[1:] or list(FAMILIES)
+    families = sys.argv[1:] or list(FAMILIES) + list(VARIANTS)
     for family in families:
         if raw_path(family).exists():
             export(family)

@@ -1149,8 +1149,13 @@ public final class UnitRenderService implements RenderSystem {
                 LayeredUnitAssets layeredHeadAssets = hasLayered
                         ? sprites.layeredUnitSprites().get(headFamily) : null;
                 if (layeredAssets != null && layeredHeadAssets != null) {
-                    float cx = cam.cellToScreenX(rx[r]);
-                    float cy = cam.cellToScreenY(ry[r]);
+                    // A runner is drawn on the treadmill's belt, not on the cell beside it.
+                    float onMachine = (layeredFlags[r] & LayeredAppearance.FLAG_AT_STATION) != 0
+                            ? LayeredAppearance.workMotion(layeredFlags[r]).mountCells()
+                                    * cam.cellPxSize() : 0f;
+                    double mountFacing = Math.toRadians(layeredFacing[r]);
+                    float cx = cam.cellToScreenX(rx[r]) - (float) Math.sin(mountFacing) * onMachine;
+                    float cy = cam.cellToScreenY(ry[r]) + (float) Math.cos(mountFacing) * onMachine;
                     SpecialEquipmentDef secondary = secSpec != null
                             ? (SpecialEquipmentDef) secSpec[r] : null;
                     LayerPose authoredPose = infantryPoseDef(sprites.unitLayerLayouts(),
@@ -1249,7 +1254,9 @@ public final class UnitRenderService implements RenderSystem {
     static LayerPose infantryPoseDef(UnitLayerLayouts layouts, boolean drawsLayeredWeapon,
                                      SpecialEquipmentDef secondary, int pose,
                                      float locomotionPhase, float actionPhase, int flags) {
-        if (!drawsLayeredWeapon) return null;
+        // A ship's medic kneels at a bed with no weapon to draw; every other
+        // authored clip is a weapon pose.
+        if (!drawsLayeredWeapon && (flags & LayeredAppearance.FLAG_TREATING) == 0) return null;
         boolean moving = (flags & LayeredAppearance.FLAG_MOVING) != 0;
         String variantId = "rifle";
         String animationId;
