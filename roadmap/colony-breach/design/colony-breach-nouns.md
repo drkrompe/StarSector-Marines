@@ -368,16 +368,6 @@ is not yet in force. The lift has no countdown yet: the pickup craft comes down
 at the start of the battle and waits, so `lift_inbound` and `lift_down`
 normally fire before the shelter is reached.
 
-**Known gap: the escort can park the cohort on a long walk.** A civilian holds
-while its nearest marine is behind it toward the lift, and the close escort is
-sent to the cohort's own cell, so an escort member standing on the cohort's
-tail holds it indefinitely once the screens are out of leash. The colony's long,
-bending walk found this on the canonical fixture at 0adc5de81 (it timed out
-with the cohort parked); the fixture's trajectory no longer meets it, but the
-rule is unchanged and it is Marine corridor command's to fix
-(`extraction-command.md`). The corridor guide no longer collapses onto the
-cohort when its centroid falls on a wall; it routes from the nearest open cell.
-
 ## Beats
 
 All beats are prefixed `colony_breach.`. Numbered beats index first-wave bores

@@ -78,6 +78,24 @@ class CivilianEvacuationObjectiveTest {
         assertEquals(8, tracker.report().lost);
     }
 
+    @Test
+    void separatedRearCivilianAnchorsTheCohortWithoutAStoryPickup() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationTracker tracker =
+                sim.getCivilianEvacuationTracker();
+        CivilianEvacuationObjective objective =
+                new CivilianEvacuationObjective(tracker, 9, 9, 0);
+        long[] cohort = spawnCohort(sim, tracker, 6, 6);
+        sim.world().setCellPos(cohort[0], 0, 0);
+
+        objective.tick(sim);
+
+        // The mean of the group and the straggler is ground nobody stands on,
+        // behind the group; an escort formed there holds both of them.
+        assertEquals(0, objective.payloadCellX());
+        assertEquals(0, objective.payloadCellY());
+    }
+
     private static BattleSimulation simulation() {
         NavigationGrid grid = new NavigationGrid(10, 10);
         for (int y = 0; y < 10; y++) {
