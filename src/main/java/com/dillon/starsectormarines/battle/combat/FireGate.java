@@ -15,7 +15,9 @@ public enum FireGate {
     NO_LOS,
     INVALID_AIM,
     UNSUPPORTED_WEAPON,
-    FRIENDLY_TARGET;
+    FRIENDLY_TARGET,
+    /** The shooter {@linkplain StaggerService can't act}: knocked down, stalled or staggered. */
+    STAGGERED;
 
     public static final FireGate[] VALUES = values();
 }

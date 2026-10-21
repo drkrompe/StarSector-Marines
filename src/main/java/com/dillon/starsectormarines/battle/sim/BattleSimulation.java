@@ -86,6 +86,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.combat.EnvironmentWear;
 import com.dillon.starsectormarines.battle.combat.fx.Decal;
+import com.dillon.starsectormarines.battle.combat.StaggerService;
 import com.dillon.starsectormarines.battle.combat.WoundService;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
@@ -168,6 +169,7 @@ import com.dillon.starsectormarines.battle.setup.RelayNineSequence;
 import com.dillon.starsectormarines.battle.setup.ThunderRunSequence;
 import com.dillon.starsectormarines.battle.setup.WaylineGunship;
 import com.dillon.starsectormarines.battle.turret.GroundAntiAirSystem;
+import com.dillon.starsectormarines.battle.evacuation.BruteChargeSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmStrikeSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
 import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
@@ -687,6 +689,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Aimed flak and guided missiles from ground anti-air mounts, including a swarm bore's spore colonies. */
     public GroundAntiAirSystem groundAntiAir() { return groundAntiAir; }
     private final SwarmStrikeSystem swarmStrikes = new SwarmStrikeSystem();
+    private final BruteChargeSystem bruteCharges = new BruteChargeSystem();
     private final SwarmCues swarmCues = new SwarmCues();
     private final AirToAirFire airToAir = new AirToAirFire();
     private WaylineGunship waylineGunship;
@@ -1281,6 +1284,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         navigation.setOccupancyDeltaSink(damageService::applyOccupancyDelta);
         navigation.setRoster(rosterService);
         rosterService.setDamageService(damageService);
+        rosterService.stagger().setClock(() -> simTickIndex);
         rosterService.setNavigationGrid(grid);
         // Entity-access facade — by-id accessors that read the archetype entity
         // world's component columns directly. Owned by the roster service (which
@@ -1405,6 +1409,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // A gun on a turning hull shakes the way a moving shooter's does.
         turretFire.setShooterAccuracy(new HullPivot(rosterService.convoy()));
         groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
+        groundSystem.setStall(id -> rosterService.stagger().isStaggered(id));
         groundSystem.setAssaultPlanner((vehicle, cellX, cellY) -> MachineAssaults.planVehicle(this, vehicle, cellX, cellY));
         groundSystem.setGuardPlanner((vehicle, cellX, cellY) -> MachineGuards.planVehicle(this, vehicle, cellX, cellY));
         groundSystem.setSpotting(new SideObservers(rosterService.convoy(), rosterService, unitIndex, grid, scoutSight,
@@ -2097,6 +2102,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Limb wounds carried this battle ({@code body-part-cover.md}, Part consequences). */
     public WoundService wounds() { return rosterService.wounds(); }
+
+    /** Who can't act this tick ({@code brute-charge.md}). */
+    public StaggerService stagger() { return rosterService.stagger(); }
     /**
      * Returns the entity id {@code u} is currently targeting, or {@code 0L} when
      * none is set <em>or the target is no longer live</em>. The lazy-validity
@@ -3284,6 +3292,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         wallBreach.tick(this);
         // Brute blows on walls and Spitter acid on low fliers, posted from the parallel update.
         swarmStrikes.tick(this);
+        // Brute charges: the tell, the run and what it hits, requested from the parallel update.
+        bruteCharges.tick(this);
         // Armed contact charges follow their target and resolve through the
         // ordinary AoE/durability pipeline when their fixed fuse expires.
         satchelCharges.tick(TICK_DT, this);
@@ -3867,6 +3877,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public SwarmStrikeSystem swarmStrikes() { return swarmStrikes; }
     /** What swarm bodies ask the presentation to sound this advance; presentation-only. */
     public SwarmCues swarmCues() { return swarmCues; }
+
+    /** Brute charges in progress and their record ({@code brute-charge.md}). */
+    public BruteChargeSystem bruteCharges() { return bruteCharges; }
 
     @Override
     public boolean applyContactStrike(long carrier, long target) {
