@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.refit.RefitText;
+import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.campaign.start.SecondWindKeeper;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 
@@ -597,6 +599,8 @@ public class BriefingScreen implements Screen {
         if (hostileShip != null) {
             rows.add(BriefingViewModel.info("hostile-ship", Strings.get("briefingHostileShip"), hostileShip, ""));
         }
+        String ship = mission.source.isDebug() ? null : RefitText.briefingLine(ShipRefits.aboard());
+        if (ship != null) rows.add(BriefingViewModel.info("ship-condition", Strings.get("openingRefitBriefingLabel"), ship, ""));
         return List.copyOf(rows);
     }
 

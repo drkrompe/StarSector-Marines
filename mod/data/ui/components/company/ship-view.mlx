@@ -32,6 +32,29 @@
         </div>
         <div id="survey-title" class="label heading tone-accent survey-title">{survey.title}</div>
         <div id="survey-state" class="label tone-edge survey-state">{survey.status}</div>
+        <div id="survey-tracks" class="{survey.tracksClasses}">
+          <div id="refit-core-heading" class="label heading tone-muted refit-heading">{survey.coreHeading}</div>
+          <div id="refit-core-list" class="refit-list">
+          <button each="t in survey.coreTracks" key="{t.id}" id="{t.id}" class="{t.classes}" onclick="{t.select}">
+            <div id="{t.nameId}" class="label refit-track-name">{t.label}</div>
+            <div id="{t.stateId}" class="{t.stateClasses}">{t.state}</div>
+          </button>
+          </div>
+          <div id="refit-facility-heading" class="label heading tone-muted refit-heading">{survey.facilityHeading}</div>
+          <div id="refit-facility-list" class="refit-list">
+          <button each="t in survey.facilityTracks" key="{t.id}" id="{t.id}" class="{t.classes}" onclick="{t.select}">
+            <div id="{t.nameId}" class="label refit-track-name">{t.label}</div>
+            <div id="{t.stateId}" class="{t.stateClasses}">{t.state}</div>
+          </button>
+          </div>
+          <div id="refit-combat-heading" class="label heading tone-muted refit-heading">{survey.combatHeading}</div>
+          <div id="refit-combat-list" class="refit-list">
+          <button each="t in survey.combatTracks" key="{t.id}" id="{t.id}" class="{t.classes}" onclick="{t.select}">
+            <div id="{t.nameId}" class="label refit-track-name">{t.label}</div>
+            <div id="{t.stateId}" class="{t.stateClasses}">{t.state}</div>
+          </button>
+          </div>
+        </div>
         <div id="survey-copy" class="label wrapped survey-copy">{survey.copy}</div>
         <div id="survey-benefit" class="label wrapped survey-benefit tone-edge">{survey.benefit}</div>
         <div id="survey-bill" class="company-credit-bill"><company-resource-cost each="row in survey.billRows" key="{row.id}" row="{row}" /></div>
@@ -121,5 +144,15 @@
   .survey-reason { height: auto; }
   #survey-feedback { height: auto; }
   #survey-bill { height: 36px; }
+  .refit-tracks { flex-direction: column; width: 100%; height: auto; gap: 3px; }
+  .refit-list { flex-direction: column; width: 100%; height: auto; gap: 3px; }
+  .refit-heading { width: 100%; height: 18px; padding-top: 4px; }
+  .refit-track { flex-direction: row; width: 100%; height: 24px; padding: 2px 6px; gap: 6px; align-items: center; }
+  .refit-track-name { width: 110px; height: 18px; pointer-events: none; }
+  .refit-track-state { width: 0px; flex-grow: 1; height: 18px; text-align: right; pointer-events: none; }
+  .refit-track.refit-current { border-width: 1px; border-color: #e6d28c; background-color: #3a3524; background-image: none; }
+  .refit-state-deficit { color: #d88a6c; }
+  .refit-state-restored { color: #c9c2a8; }
+  .refit-state-improved { color: #8fd0b8; }
   .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
 </style>
