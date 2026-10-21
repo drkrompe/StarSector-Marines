@@ -85,3 +85,19 @@ AMBER, WHITE = (1.0, .78, .38), (1.0, .95, .85)
 LAMPS = [(l['name'], 'running' if l['colour'] in ('red', 'green') else 'masthead',
           None if l['colour'] in ('red', 'green') else (AMBER if l['colour'] == 'amber' else WHITE))
          for l in _geom['running_lights']]
+
+
+# Shield (../second-wind-vfx/swfx_shield.py): vanilla FRONT, arc 150, radius 70,
+# shieldCenter (7, 0) (wolf.ship, ship_data.csv), efficiency 0.7. Colour by
+# technology, not faction: the HIGH_TECH hull style, so the 'high-tech' scheme
+# (the merchant Wolf and the Wolf (P) alike).
+# Not in this export's groups: a shot builds it per ship with the film
+# (swfx_shield.build(ctx, film=True, hull_collection=...), asharu-effects-plan.md W1).
+# Fitted ~7 m clear of the hull (9 units at 0.76 m/u). vents: the hull parts
+# that glow and shed vapour when she vents (shield_vent).
+SHIELD = dict(
+    type='FRONT', anchor='WOLF | root' if MERCHANT else 'WOLF_P | root', center=(7, 0), radius=70.0,
+    arc=150.0, nodes=[],
+    scheme='high-tech', efficiency=0.7, fit=dict(margin=9.0), raise_s=1.0, lower_s=1.0,
+    vents=['Hull engine port radiator fins', 'Hull engine starboard radiator fins'],
+)

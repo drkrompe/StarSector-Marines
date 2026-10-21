@@ -83,7 +83,11 @@ final class MissionGarrisons {
         /** Driven out of an envelope, or still holding, its building's rooms. */
         ROOMS,
         /** A lance standing guard beside a place its side mans: no mission order, the guard is given after commit. */
-        GUARD;
+        GUARD,
+        /** A reserve squad waiting near the places a pressure area presses, still offered and free to man them. */
+        STAGE,
+        /** A reserve squad meeting a pressure area's attack in the street, short of the places it is coming for. */
+        FORWARD;
 
         /** The proposal and directive reason a commander publishes for it. */
         String reason() { return "GARRISONABLE_" + name(); }
@@ -113,6 +117,14 @@ final class MissionGarrisons {
         int guardAttaches;
         int guardStandDowns;
         int peakGuards;
+        /** Manning orders given to a squad the flow tier had staged for the place's area. */
+        int manFromStage;
+        /** Manning orders whose squad stood on its place before a believed contact reached the place. */
+        int arrivedFirst;
+        /** Manning orders whose squad was reached by the contact (at the place, or in a fight on the way) first. */
+        int contactFirst;
+        /** Manning orders that ended (given back, taken back, lost) before either. */
+        int arrivalUnresolved;
         final Set<Integer> placesManned = new TreeSet<>();
 
         int distinctPlaces() { return placesManned.size(); }
@@ -142,11 +154,17 @@ final class MissionGarrisons {
     private final Set<Integer> tracked = new TreeSet<>();
     private final Stats stats = new Stats();
     private final MachineGuardDirector guards = new MachineGuardDirector();
+    private final PlaceFlow flow = new PlaceFlow();
+    /** Squads sent to man a place and not yet resolved as arriving before or after the attack: squad to place. */
+    private final Map<Integer, Integer> arriving = new TreeMap<>();
     private List<MachineGuardDirector.Attach> guardsToOrder = List.of();
     private List<Integer> guardsToStandDown = List.of();
     private int[] contactScratch = new int[64];
 
     Stats stats() { return stats; }
+
+    /** The flow tier's figures; for evidence. */
+    PlaceFlow flow() { return flow; }
 
     /**
      * One pulse: which offered squads man, stand, fall back or hold rooms. Squads not in the answer keep the mission's
@@ -175,7 +193,7 @@ final class MissionGarrisons {
         return plan(frame.squads(), places, (bx, by) -> influence.hostileAt(bx, by), contactScratch, count,
                 (sx, sy, x, y) -> topology.inBounds(sx, sy) && topology.isWalkable(sx, sy)
                         && (sx == x && sy == y || topology.reachable(sx, sy, x, y)),
-                offers, issuer, maxHolders);
+                (x, y) -> topology.inBounds(x, y) && topology.isWalkable(x, y), offers, issuer, maxHolders);
     }
 
     /**
@@ -192,6 +210,14 @@ final class MissionGarrisons {
     Map<Integer, Manning> plan(List<CommandSquadState> roster, GarrisonableRegistry places,
                                GarrisonDirector.Pressure field, int[] contactXY, int contactCount,
                                HeldGround.Reach reach, Map<Integer, Offer> offers, String issuer, int maxHolders) {
+        return plan(roster, places, field, contactXY, contactCount, reach, (x, y) -> true, offers, issuer, maxHolders);
+    }
+
+    /** The full seam: as above, with a test for the cells a waiting squad may stand on. */
+    Map<Integer, Manning> plan(List<CommandSquadState> roster, GarrisonableRegistry places,
+                               GarrisonDirector.Pressure field, int[] contactXY, int contactCount,
+                               HeldGround.Reach reach, GarrisonFlow.CellOk stand, Map<Integer, Offer> offers,
+                               String issuer, int maxHolders) {
         Map<Integer, Manning> out = new TreeMap<>();
         stats.pulses++;
 
@@ -216,6 +242,12 @@ final class MissionGarrisons {
             }
         }
         inside.keySet().removeIf(id -> !squads.containsKey(id) || !offerable(squads.get(id), offers.get(id)));
+        for (Integer id : new ArrayList<>(flow.posts().keySet())) {
+            Offer offer = offers.get(id);
+            if (offer == null || !offer.roving() || !offerable(squads.get(id), offer)) flow.forget(id);
+        }
+        boolean flowOn = PlaceFlow.enabled();
+        List<GarrisonFlow.Area> areas = flowOn ? areas(places, field, contactXY, contactCount) : List.of();
 
         List<GarrisonDirector.Garrison> held = new ArrayList<>();
         Set<Integer> busy = new HashSet<>();
@@ -242,6 +274,7 @@ final class MissionGarrisons {
             int id = garrison.squadId();
             CommandSquadState squad = squads.get(id);
             int place = garrison.garrisonable();
+            resolveArrival(id, place, garrison.arrived(), squad.localContact(), places, contactXY, contactCount);
             boolean breached = fallingBack.contains(id)
                     || !garrison.arrived() && director.lockedOut(places.centreX(place), places.centreY(place));
             if (breached) {
@@ -279,7 +312,10 @@ final class MissionGarrisons {
             if (!offerable(squad, entry.getValue()) || busy.contains(id) || justReleased.contains(id)) continue;
             // A duty squad's post is covered by the squad itself, and a squad already fighting is not held in reserve:
             // neither is the roving reserve the floor protects.
-            boolean staged = !entry.getValue().roving() || squad.localContact();
+            PlaceFlow.Post post = flow.post(id);
+            // A forward squad meets the attack in the street: it is not sent to man.
+            if (post != null && post.forward) continue;
+            boolean staged = !entry.getValue().roving() || squad.localContact() || post != null;
             free.add(new GarrisonDirector.Free(id, squad.anchorCellX(), squad.anchorCellY(), staged,
                     squad.aliveMembers(), squad.originalMembers()));
         }
@@ -291,18 +327,140 @@ final class MissionGarrisons {
             if (squad.localContact() && gapTo(place, squad.anchorCellX(), squad.anchorCellY(), places)
                     > IN_FIGHT_REACH_CELLS) return false;
             return reach.to(squad.anchorCellX(), squad.anchorCellY(), places.centreX(place), places.centreY(place));
-        }, null, maxHolders == Integer.MAX_VALUE ? GarrisonDirector.MAX_NEW_PER_PULSE : maxHolders - out.size());
+        }, areas.isEmpty() ? null : (squadId, place) -> {
+            // The squads waiting for the place's own area are drawn on before any other.
+            int own = PlaceFlow.areaOf(flow.post(squadId), areas);
+            return own >= 0 && own == GarrisonFlow.matchingArea(areas, places.centreX(place), places.centreY(place));
+        }, maxHolders == Integer.MAX_VALUE ? GarrisonDirector.MAX_NEW_PER_PULSE : maxHolders - out.size());
         for (GarrisonDirector.Man man : sent) {
             out.put(man.squadId(), new Manning(man.squadId(), Kind.MAN,
                     GarrisonDirector.orderFor(man.squadId(), man.garrisonable(), places), man.garrisonable()));
             tracked.add(man.squadId());
+            if (flow.post(man.squadId()) != null) {
+                flow.forget(man.squadId());
+                stats.manFromStage++;
+            }
+            arriving.put(man.squadId(), man.garrisonable());
             stats.manOrders++;
             stats.placesManned.add(man.garrisonable());
         }
         stats.holderPulses += out.size();
         stats.peakHolders = Math.max(stats.peakHolders, out.size());
+        for (Integer id : new ArrayList<>(arriving.keySet())) {
+            if (tracked.contains(id)) continue;
+            arriving.remove(id);
+            stats.arrivalUnresolved++;
+        }
+        if (flowOn) {
+            flowToPressure(areas, squads, offers, out, busy, justReleased, ownGarrisoned, places, reach, stand, field);
+        }
         planGuards(squads, offers, out, ownGarrisoned, places);
         return out;
+    }
+
+    /**
+     * The flow tier ({@link PlaceFlow}): gives back the squads whose area has gone quiet, stages free roving squads for
+     * the areas that press a place, back at the places or forward to meet the attack, and keeps every waiting squad on
+     * its post. Only roving offers are staged -- never a duty post, a squad fighting, one too weak to man, a machine --
+     * and a staged squad is still offered: local assignment draws it first for its area's places.
+     */
+    private void flowToPressure(List<GarrisonFlow.Area> areas, Map<Integer, CommandSquadState> squads,
+                                Map<Integer, Offer> offers, Map<Integer, Manning> out, Set<Integer> busy,
+                                Set<Integer> justReleased, Set<Integer> ownGarrisoned, GarrisonableRegistry places,
+                                HeldGround.Reach reach, GarrisonFlow.CellOk stand, GarrisonDirector.Pressure field) {
+        flow.cool(areas);
+        int[] heldIn = new int[areas.size()];
+        for (Manning m : out.values()) {
+            if (m.place() < 0) continue;
+            int a = GarrisonFlow.matchingArea(areas, places.centreX(m.place()), places.centreY(m.place()));
+            if (a >= 0) heldIn[a]++;
+        }
+        for (int place : ownGarrisoned) {
+            int a = GarrisonFlow.matchingArea(areas, places.centreX(place), places.centreY(place));
+            if (a >= 0) heldIn[a]++;
+        }
+        List<PlaceFlow.Candidate> free = new ArrayList<>();
+        int pool = 0;
+        for (Map.Entry<Integer, Offer> entry : offers.entrySet()) {
+            int id = entry.getKey();
+            CommandSquadState squad = squads.get(id);
+            if (!entry.getValue().roving() || !offerable(squad, entry.getValue())) continue;
+            pool++;
+            if (out.containsKey(id) || busy.contains(id) || justReleased.contains(id) || flow.post(id) != null
+                    || fighting(squad)
+                    || squad.aliveMembers() < GarrisonDirector.usefulFloor(squad.originalMembers(), squad.aliveMembers())) {
+                continue;
+            }
+            free.add(new PlaceFlow.Candidate(id, squad.anchorCellX(), squad.anchorCellY()));
+        }
+        int size = places.blockSize();
+        flow.stage(areas, director.warmPlaces(), director.hotPlaces(), director::isManned, places, heldIn, free, pool,
+                reach, stand, (x, y) -> field.hostileAt(Math.max(0, x / size), Math.max(0, y / size))
+                        < GarrisonDirector.FLOW_PRESSURE);
+        for (Map.Entry<Integer, PlaceFlow.Post> entry : flow.posts().entrySet()) {
+            int id = entry.getKey();
+            if (out.containsKey(id)) continue;
+            PlaceFlow.Post post = entry.getValue();
+            out.put(id, new Manning(id, post.forward ? Kind.FORWARD : Kind.STAGE, post.order, -1));
+        }
+    }
+
+    /**
+     * Whether a squad is in a fight rather than merely aware of one: shot at in the last moments or firing itself. A
+     * squad's local contact is any hostile its side believes in and it could act on, which on a mission's small map is
+     * nearly every squad as soon as a sentry has seen the attack; staging only spares the squads actually fighting.
+     */
+    private static boolean fighting(CommandSquadState squad) {
+        return squad.underFireRecently() || squad.coolingDownMembers() > 0;
+    }
+
+    /** The pressure areas of this plan: the distinct blocks the believed contacts stand in, clustered. */
+    private static List<GarrisonFlow.Area> areas(GarrisonableRegistry places, GarrisonDirector.Pressure field,
+                                                 int[] contactXY, int contactCount) {
+        int size = places.blockSize();
+        int bw = places.blockWidth();
+        int bh = places.blockHeight();
+        Set<Integer> seen = new TreeSet<>();
+        for (int i = 0; i < contactCount; i++) {
+            int bx = Math.min(bw - 1, Math.max(0, contactXY[2 * i] / size));
+            int by = Math.min(bh - 1, Math.max(0, contactXY[2 * i + 1] / size));
+            seen.add(by * bw + bx);
+        }
+        int[] blocks = new int[seen.size()];
+        float[] pressure = new float[seen.size()];
+        int n = 0;
+        for (int block : seen) {
+            blocks[n] = block;
+            pressure[n] = field.hostileAt(block % bw, block / bw);
+            n++;
+        }
+        return GarrisonFlow.areas(blocks, pressure, n, bw, size);
+    }
+
+    /** How near a believed contact must stand to a place (cells, as {@link #gapTo} measures) to have reached it. */
+    static final int ARRIVAL_CONTACT_CELLS = 3;
+
+    /**
+     * Resolves a manning order once: arrived first when the squad stands on its place while no believed contact has
+     * reached the place; contact first when a contact reached it, or the squad is in a fight, before it got there.
+     */
+    private void resolveArrival(int id, int place, boolean arrived, boolean inFight, GarrisonableRegistry places,
+                                int[] contactXY, int contactCount) {
+        Integer sentTo = arriving.get(id);
+        if (sentTo == null) return;
+        // Shifted along its run: judge the stretch it now holds.
+        if (sentTo != place) arriving.put(id, place);
+        boolean reached = false;
+        for (int i = 0; i < contactCount && !reached; i++) {
+            reached = gapTo(place, contactXY[2 * i], contactXY[2 * i + 1], places) <= ARRIVAL_CONTACT_CELLS;
+        }
+        if (arrived && !reached) {
+            stats.arrivedFirst++;
+            arriving.remove(id);
+        } else if (reached || inFight) {
+            stats.contactFirst++;
+            arriving.remove(id);
+        }
     }
 
     /**

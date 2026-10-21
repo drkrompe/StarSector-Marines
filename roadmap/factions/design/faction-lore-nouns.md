@@ -4,7 +4,7 @@ Status: ACTIVE — canonical reference for translating Starsector faction identi
 
 Written: 2026-08-26
 
-Updated: 2026-08-26 — linked shipped equipment provenance and faction availability to the faction guide catalog.
+Updated: 2026-10-21 — added the Colony Breach swarm guide to the catalog.
 
 ## Purpose
 
@@ -17,7 +17,8 @@ preferences, while the owning feature documents still define mechanics.
 origins, credible circulation, and deliberate faction absences.
 
 The guide catalog covers the human factions most likely to own a market, hire the
-player, or field ground forces, plus Remnants as a distinct non-human adversary.
+player, or field ground forces, plus Remnants as a distinct non-human adversary and the Colony Breach swarm, a
+mod-invented biological weapon with no vanilla identity.
 Lion's Guard is treated inside the Sindrian Diktat guide because it is an elite
 institution of that polity rather than a general fallback faction.
 
@@ -55,6 +56,7 @@ inventing a definitive answer.
 | `pirates` | `pirates-lore-guide.md` |
 | `independent`, `mercenary` | `independents-lore-guide.md` |
 | `remnant` | `remnants-lore-guide.md` |
+| none (mod-invented; Colony Breach swarm) | `swarm-lore-guide.md` |
 
 Unknown or modded factions use the Independent gameplay fallback unless merged
 content supplies a profile. That technical fallback does not assert that every

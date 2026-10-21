@@ -50,7 +50,8 @@ REPO = ART.parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(PROLOGUE))
 sys.path.insert(0, str(ART))
-import roster  # noqa: E402
+import roster
+from motion import fleet_at   # ships move about their stations: seeded weave, bank and breathing spacing  # noqa: E402
 
 # One folder per finished build (roster.FINISHED's dir), copied whole from Drive.
 BUILDS = Path(os.environ.get('ASHARU_BUILDS') or REPO / 'build' / 'asharu-battle' / 'builds')
@@ -163,7 +164,7 @@ KEYFRAMES = {
         caption='Straight down on the convoy, prograde up the frame: the ships as the player has always seen them, '
                 'small against the desert far below. From here the camera tips down into the 3D fight.',
         camera=dict(loc=(80, 120, 11000), lens=100, look=(0.01, 0.0, -1.0)),
-        ships=CONVOY,
+        ships=fleet_at(CONVOY, 10),
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'lasher-a']),
     'k1': dict(
         shot='S1', title='Low orbit over Asharu',
@@ -171,7 +172,7 @@ KEYFRAMES = {
                 'with Morrow alongside, a Tarsus, a Mule, a Phaeton tanker, Buffalos and a Dram, escorted by '
                 'three Lashers, a Wolf and a Hound.',
         camera=dict(loc=(-1900, 2700, 1500), target=(300, -80, -150), lens=35),
-        ships=CONVOY,
+        ships=fleet_at(CONVOY, 16),
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'buffalo-b', 'dram',
                 'lasher-lead', 'lasher-a', 'lasher-b', 'wolf-m', 'hound-m']),
     'k1b': dict(
@@ -188,7 +189,7 @@ KEYFRAMES = {
         caption='Behind and below: drives light up in the derelict Asharu platform the convoy has just passed. '
                 'Twelve pirate hulls climb out of it toward the column.',
         camera=dict(loc=(-4800, -2600, -1700), target=(-6500, 200, -3100), lens=35),
-        ships={**{k: CONVOY[k] for k in ('hound-m', 'tarsus')}, **PIRATES_RISING},
+        ships=fleet_at({**{k: CONVOY[k] for k in ('hound-m', 'tarsus')}, **PIRATES_RISING}, 40),
         platform=PLATFORM,
         labels=['falcon-p', 'colossus3', 'manticore-p', 'wolf-p-a', 'kite-p-a', 'hound-p-b', 'platform']),
     'k3': dict(
@@ -199,7 +200,8 @@ KEYFRAMES = {
         camera=dict(loc=(860, 640, 200), target=(-1300, -420, -280), lens=35),
         states={'phaeton': 'phaeton-wreck'},
         knobs={'phaeton': {'break_frame': {'ago_s': 2.0}}},     # 2 s into the cook-off: tank 1 has just gone
-        ships={**{k: v for k, v in CONVOY.items() if k not in ('lasher-lead', 'lasher-a', 'phaeton', 'wolf-m')},
+        ships={**fleet_at({k: v for k, v in CONVOY.items() if k not in ('lasher-lead', 'lasher-a', 'phaeton', 'wolf-m')}, 56,
+                           keep=('lasher-b',)),   # steadied on her gun run at the Wolf (P)
                'lasher-lead': (330, 430, 70, 165, 4, -15, 1), 'lasher-a': (-150, 560, 160, 10, 6, 40, .2),
                'phaeton': (-350, 300, 20, 8, -4, 30, 0),
                'falcon-p': (-3100, -700, -650, 6, 4, -3, 1), 'manticore-p': (-2500, -1000, -480, 8, 3, 4, 1),
@@ -231,7 +233,7 @@ KEYFRAMES = {
                 'raking the Tarsus\'s drives as they pass. The Mule\'s guns and the merchant Wolf chase them; '
                 'shields flare on both sides.',
         camera=dict(loc=(-250, -760, 90), target=(-200, 20, -10), lens=28),
-        ships={**{k: CONVOY[k] for k in ('colossus', 'morrow', 'tarsus', 'buffalo-b', 'mule')},
+        ships={**fleet_at({k: CONVOY[k] for k in ('colossus', 'morrow', 'tarsus', 'buffalo-b', 'mule')}, 72),
                'wolf-p-a': (-380, -60, -30, 75, 6, -60, 1), 'wolf-p-b': (-180, 80, 10, 95, 4, -70, 1),
                'wolf-m': (-560, -300, -60, 70, 4, -20, 1)},
         fx=[('tracer', 'wolf-p-a', 'tarsus'), ('tracer', 'wolf-p-b', 'tarsus'),
@@ -259,8 +261,8 @@ KEYFRAMES = {
         ships={'tarsus': (-650, 90, 30, 6, -2, 9, 0),
                'kite-p-a': (-620, 160, 40, 6, -1, 9, .2), 'kite-p-b': (-700, 25, 0, 4, 2, 6, .2),
                'wolf-p-b': (-420, 330, 120, -20, -32, 110, 1),
-               'colossus': (1200, -80, 40, 0, 0, 2, .9), 'morrow': (1150, -250, 0, 0, 1, -3, .9),
-               'mule': (1900, 260, 20, 0, 0, -2, .9), 'buffalo-a': (1600, -350, 80, 0, 1, 4, .9)},
+               **fleet_at({'colossus': (1200, -80, 40, 0, 0, 2, .9), 'morrow': (1150, -250, 0, 0, 1, -3, .9),
+                           'mule': (1900, 260, 20, 0, 0, -2, .9), 'buffalo-a': (1600, -350, 80, 0, 1, 4, .9)}, 86)},
         fx=[('tracer', 'wolf-p-b', 'tarsus', (30, 0, 10)), ('fire_on', 'tarsus', (-38, 6, 8), (-.2, .5, 1)),
             ('smoke', 'tarsus', (-38, 6, 8), (-.3, .4, 1))],
         labels=['tarsus', 'kite-p-a', 'kite-p-b', 'wolf-p-b', 'colossus', 'mule']),

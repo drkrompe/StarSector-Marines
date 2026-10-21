@@ -68,7 +68,7 @@ edited:
    for N=1..4, `mother_bore_erupted|collapsed`, `matriarch_emerged`, `tender_down`,
    `hardpoint_established`, `lift_inbound`, `lift_down`, `cohort_boarded`, `colony_lost`.
    A beat with no line is silent, so numbers above 4 need lines added to the catalog.
-3. **Swarm bodies** (`swarm-strains.md`): a presentation cue feed, as `TenderCues` does, for
+3. **Swarm bodies** (`colony-breach-nouns.md`, Swarm strain): a presentation cue feed, as `TenderCues` does, for
    body attack, death and per-strain bellow/lob; a `TenderAudio`-style player admits them
    under a per-kind gap and plays them positionally with pitch jitter.
 4. **Bores** (`bore-spawners.md`): cues for eruption (`bore_eruption`), tier growth (loop
@@ -77,4 +77,4 @@ edited:
 5. **Spore vents** (`bore-spawners.md`): `spore_vent_burst` per burst.
 6. **Matriarch** (`matriarch.md`): `matriarch_roar` at emergence; spitter splash on acid impact.
 
-7. **Harvest and surge** (`swarm-strains.md`, `bore-spawners.md`): `body_drag` while a body is carried to a bore; `bore_surge` at each `surge_N` pulse. `first_harvest` has a militia line; `bore_fed_N` and `surge_N` are OBSERVER_ONLY and stay silent as beats.
+7. **Harvest and surge** (`swarm-harvest.md`, `bore-spawners.md`): `body_drag` while a body is carried to a bore; `bore_surge` at each `surge_N` pulse. `first_harvest` has a militia line; `bore_fed_N` and `surge_N` are OBSERVER_ONLY and stay silent as beats.

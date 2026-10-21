@@ -154,14 +154,16 @@ class ShipFx:
 
     hull_coll / fx_coll: the build's appended (excluded) library collections.
     hull_ctl: the build's hull-side control object (manifest 'control.object'), or None.
-    manifest: the build's manifest.json (effects anchors, metres per unit, kit profile)."""
+    manifest: the build's manifest.json (effects anchors, metres per unit, kit profile).
+    own_hull: copy the hull's objects (meshes shared) even without a hull control, so this
+    ship's turrets train on their own (swfx_guns.aim)."""
 
-    def __init__(self, key, hull_coll, fx_coll, manifest, hull_ctl=None, clock=True):
+    def __init__(self, key, hull_coll, fx_coll, manifest, hull_ctl=None, clock=True, own_hull=False):
         self.key = key
         self.manifest = manifest
         self.mpu = float(manifest['metres_per_unit'])
         self.M = {}
-        own_hull = hull_ctl is not None
+        own_hull = hull_ctl is not None or own_hull
         if own_hull:
             # Hull parts are copied (their meshes shared) so this ship's gear moves on its own.
             self.hull = self._copy_tree(hull_coll, copy_data=lambda o: _has_drivers(o.data))
@@ -359,6 +361,13 @@ class ShipFx:
         the helpers create is this ship's and is renamed out of the way on exit."""
         scene = scene or bpy.context.scene
         env_old = os.environ.get('SWFX_HULL')
+        variant_old = os.environ.get('WOLF_VARIANT')
+        # A profile that dresses more than one build reads which one from the environment
+        # (wolf-cinematic: WOLF_VARIANT=merchant), as export_effects.py set it.
+        if self.manifest.get('variant') == 'merchant':
+            os.environ['WOLF_VARIANT'] = 'merchant'
+        else:
+            os.environ.pop('WOLF_VARIANT', None)
         prof = self.profile()
         if prof:
             os.environ['SWFX_HULL'] = str(prof)
@@ -399,6 +408,10 @@ class ShipFx:
                 os.environ.pop('SWFX_HULL', None)
             else:
                 os.environ['SWFX_HULL'] = env_old
+            if variant_old is None:
+                os.environ.pop('WOLF_VARIANT', None)
+            else:
+                os.environ['WOLF_VARIANT'] = variant_old
 
     def _claim_names(self):
         """Give this ship's IDs their kit names for the duration of kit(); returns the undo list."""

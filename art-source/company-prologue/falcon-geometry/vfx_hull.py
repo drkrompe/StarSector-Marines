@@ -61,3 +61,17 @@ LAMPS = [
     ('Light centre dome masthead 1', 'masthead', WHITE),
     ('Light centre stern 1', 'beacon', WHITE),
 ]
+
+
+# Shield (../second-wind-vfx/swfx_shield.py): vanilla FRONT, arc 270, radius 155,
+# shieldCenter (23, 0) (falcon.ship, ship_data.csv), efficiency 0.8. Colour by
+# technology, not faction: the MIDLINE hull style, so the 'midline' scheme.
+# Not in this export's groups: a shot builds it per ship with the film
+# (swfx_shield.build(ctx, film=True, hull_collection=...), asharu-effects-plan.md W1).
+# Fitted ~10 m clear of the hull (12 units at 0.81 m/u). vents: the hull parts
+# that glow and shed vapour when she vents (shield_vent).
+SHIELD = dict(
+    type='FRONT', anchor='FALCON (P) | root', center=(23, 0), radius=155.0, arc=270.0, nodes=[],
+    scheme='midline', efficiency=0.8, fit=dict(margin=12.0), raise_s=1.0, lower_s=1.0,
+    vents=['Hull port drive block radiator fins', 'Hull starboard drive block radiator fins', 'Hull spine radiator fins'],
+)
