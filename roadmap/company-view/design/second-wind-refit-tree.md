@@ -399,7 +399,7 @@ many are drawn, so a tier adds pieces and never moves one already standing.
 |---|---|---|---|---|
 | Hydroponics | provisions store | three grow trays along the bulkheads, away from the hatch | six | ten |
 | Wardroom | mess, the beam half away from the hatches at the dining end | a bookcase screen across the lane before the last rank of tables | a sideboard on the end bulkhead, a planter | the staff college's wall screen on the long bulkhead, a second planter |
-| Briefing room | mess, the far (dining) end | a display on the end bulkhead and a lectern beside it; the mess tables are the seating | — | — |
+| Briefing room | mess, the far (dining) end | a display on the end bulkhead and a lectern beside it; the mess tables are the seating | the plot table in the briefing corner | the holo-tank's processor and console beside the briefing screen |
 | Holds | hold | a tally desk by the hatch and a stowed pallet | a rack with cargo in its bays | two more racks, or shelving where a rack does not fit |
 
 The dining end is the end away from the galley, so both mess facilities share
@@ -421,10 +421,12 @@ layouts, every tier changing its room on each.
 The first pass reuses shipped furniture: grow trays are a utility shelf with
 a lounge planter in each cell, the wardroom uses the lounge's bookcase,
 refreshment counter and media wall, the briefing room its own display and
-lectern, the hold the main stores' tally desk, pallet and racks. Purpose-made
-art is still wanted for a lit hydroponic tray, a wardroom screen panel and a
-wardroom table setting. The plot table and the holo-tank (the briefing room's
-own table and the bridge's plot are the stand-ins to hand) wait on their tiers.
+lectern, the hold the main stores' tally desk, pallet and racks. The plot
+table is the lounge's card table and the holo-tank the utility server and
+console, because the briefing room's own table and the bridge's plot are too
+deep for the two cells left at the mess's end. Purpose-made art is still
+wanted for a lit hydroponic tray, a wardroom screen panel and table setting, a
+plot table that fits a two-cell end, and the holo-tank's projection over it.
 
 **How they are reserved.** `DeckArrangement.SECOND_WIND` lists the five as
 reserves. They are not part of `programFor`, so the general program and the

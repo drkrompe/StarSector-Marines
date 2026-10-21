@@ -32,7 +32,7 @@ public record FacilityDressing(int hydroponics, int wardroom, int briefing, int 
         holds = clamp(holds);
     }
 
-    /** Every facility at the same tier; the briefing room shows at most what it sells. */
+    /** Every facility at the same tier. */
     public static FacilityDressing uniform(int tier) {
         return new FacilityDressing(tier, tier, tier, tier);
     }

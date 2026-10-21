@@ -89,7 +89,7 @@ class SecondWindFacilitiesEvidence {
             for (Facility facility : Facility.values()) {
                 var room = graph.largest(ROOMS.get(facility));
                 assertTrue(room != null, "seed " + seed + ": no room for " + facility);
-                int top = facility == Facility.BRIEFING ? 1 : FacilityDressing.TOP;
+                int top = FacilityDressing.TOP;
                 int[] counts = fewest.computeIfAbsent(facility, f -> new int[]{Integer.MAX_VALUE, Integer.MAX_VALUE,
                         Integer.MAX_VALUE, Integer.MAX_VALUE});
                 List<ShipFacilityDressing.Piece> shown = List.of();

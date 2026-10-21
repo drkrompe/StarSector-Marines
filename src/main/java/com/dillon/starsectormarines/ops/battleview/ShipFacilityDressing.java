@@ -26,8 +26,8 @@ import java.util.function.ToDoubleFunction;
 /**
  * The Second Wind's facilities that take no compartment of their own, dressed
  * into the rooms that carry them: grow trays in the provisions store, the
- * wardroom's screened officers' end and the briefing screen at the dining end
- * of the mess, and racking in the hold.
+ * wardroom's screened officers' end and the briefing corner (screen, plot
+ * table, holo-tank) at the dining end of the mess, and racking in the hold.
  *
  * <p>Presentation only, the sibling of {@link ShipDeckDressing}. Nothing here
  * enters the simulation: no doodad is added to the map, no cell changes
@@ -59,9 +59,13 @@ final class ShipFacilityDressing {
     static final String SCREEN = "crew-lounge.books";
     static final String SIDEBOARD = "crew-lounge.refreshments";
     static final String WALL_SCREEN = "crew-lounge.media";
-    // The briefing room's Restored tier: a display on the end bulkhead and a lectern beside it.
+    // The briefing room: a display on the end bulkhead and a lectern beside it, then the plot table in
+    // the briefing corner, then the holo-tank's processor and console beside it. A plot table sized for
+    // the mess's end and the tank's projection are missing art; the card table and utility units stand in.
     static final String DISPLAY = "briefing-room.display";
     static final String LECTERN = "briefing-room.lectern";
+    static final String PLOT_TABLE = "crew-lounge.card-table";
+    static final String[] HOLO_TANK = {"ship-utility.server", "ship-utility.console"};
     // The hold: a tally desk, stowed pallets, then racking with cargo in its bays.
     static final String TALLY = "main-stores.tally";
     static final String PALLET = "main-stores.pallet";
@@ -265,6 +269,30 @@ final class ShipFacilityDressing {
                 if (spot != null) wallPiece(Facility.BRIEFING, 1, lectern, spot);
             }
 
+            // Improved I: the plot table in the briefing corner, against the end bulkhead by the display.
+            DoodadDef plot = registry.apply(PLOT_TABLE);
+            Spot table = null;
+            if (plot != null) {
+                Spot anchor = shown;
+                table = best(sided(wallSpots(plot), farSide), s -> (inHalf(s, alongX, acrossCentre, wardHigh) ? 50 : 0)
+                        + (anchor == null ? 0 : Math.abs(across(s, alongX) - across(anchor, alongX))));
+                if (table == null) table = best(wallSpots(plot), s -> -3 * farness(s, alongX, farHigh)
+                        + (inHalf(s, alongX, acrossCentre, wardHigh) ? 50 : 0));
+                if (table != null) wallPiece(Facility.BRIEFING, 2, plot, table);
+            }
+            // Improved II: the holo-tank built on it, its processor by the table and its console by the processor.
+            Spot near = table != null ? table : shown;
+            for (String id : HOLO_TANK) {
+                DoodadDef unit = registry.apply(id);
+                if (unit == null) continue;
+                Spot by = near;
+                Spot spot = best(wallSpots(unit), s -> by == null ? -farness(s, alongX, farHigh)
+                        : Math.abs(s.cx() - by.cx()) + Math.abs(s.cy() - by.cy()));
+                if (spot == null) continue;
+                wallPiece(Facility.BRIEFING, 3, unit, spot);
+                near = spot;
+            }
+
             // Restored: a bookcase screen across the lane in front of the last tables, in the wardroom's half.
             DoodadDef screen = registry.apply(SCREEN);
             if (screen != null) {
@@ -289,8 +317,8 @@ final class ShipFacilityDressing {
             // Improved I: a sideboard against the end bulkhead, a planter in the corner.
             DoodadDef sideboard = registry.apply(SIDEBOARD);
             if (sideboard != null) {
-                Spot spot = best(sided(wallSpots(sideboard), farSide),
-                        s -> (inHalf(s, alongX, acrossCentre, wardHigh) ? 0 : 1e6) - corner(s, alongX, wardHigh));
+                Spot spot = best(wallSpots(sideboard), s -> (inHalf(s, alongX, acrossCentre, wardHigh) ? 0 : 1e6)
+                        + (s.side() == farSide ? 0 : 20) - corner(s, alongX, wardHigh) - farness(s, alongX, farHigh));
                 if (spot != null) wallPiece(Facility.WARDROOM, 2, sideboard, spot);
             }
             DoodadDef plant = registry.apply(PLANT);

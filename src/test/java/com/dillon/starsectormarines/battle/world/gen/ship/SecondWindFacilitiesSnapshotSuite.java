@@ -125,7 +125,6 @@ public final class SecondWindFacilitiesSnapshotSuite implements SnapshotSuite {
     private static String caption(FacilityDressing state) {
         if (state.equals(FacilityDressing.NONE)) return "No facility tier bought (today's deck)";
         String[] tiers = {"", "Restored", "Improved I", "Improved II"};
-        return "Hydroponics, wardroom, holds at " + tiers[state.hydroponics()]
-                + (state.briefing() > 0 ? "; briefing room Restored" : "");
+        return "Hydroponics, wardroom, briefing room, holds at " + tiers[state.hydroponics()];
     }
 }

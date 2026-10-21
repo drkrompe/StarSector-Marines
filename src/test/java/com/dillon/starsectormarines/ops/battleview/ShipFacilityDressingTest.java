@@ -33,7 +33,8 @@ class ShipFacilityDressingTest {
             Map.entry("main-stores.tally", new int[]{3, 1}), Map.entry("main-stores.pallet", new int[]{2, 2}),
             Map.entry("main-stores.rack", new int[]{2, 6}), Map.entry("main-stores.cartons", new int[]{2, 2}),
             Map.entry("main-stores.cases", new int[]{2, 2}), Map.entry("main-stores.drums", new int[]{2, 2}),
-            Map.entry("mess-galley.range", new int[]{1, 2}), Map.entry("mess-galley.table", new int[]{3, 1}));
+            Map.entry("crew-lounge.card-table", new int[]{2, 2}), Map.entry("ship-utility.server", new int[]{1, 1}),
+            Map.entry("ship-utility.console", new int[]{1, 1}), Map.entry("mess-galley.range", new int[]{1, 2}), Map.entry("mess-galley.table", new int[]{3, 1}));
 
     private static Function<String, DoodadDef> registry() {
         Map<String, DoodadDef> defs = new HashMap<>();
@@ -111,7 +112,7 @@ class ShipFacilityDressingTest {
                 Facility.BRIEFING, MESS, Facility.HOLDS, HOLD);
         var deck = deck();
         for (Facility facility : Facility.values()) {
-            int top = facility == Facility.BRIEFING ? 1 : FacilityDressing.TOP;
+            int top = FacilityDressing.TOP;
             List<ShipFacilityDressing.Piece> before = List.of();
             for (int tier = 1; tier <= top; tier++) {
                 int t = tier;
