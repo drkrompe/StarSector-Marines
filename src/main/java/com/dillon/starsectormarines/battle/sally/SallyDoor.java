@@ -4,8 +4,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
- * A door in a walled place's own wall that stands closed, as wall, until the place's holder opens it from inside for a
- * sortie (see {@code garrisonables.md}, sally doors). A fort's sally port is one, authored into its plan; a walled
+ * A door in a walled place's own wall that stands shut, as wall, until the place's holder opens it for a sortie, and that
+ * the holder shuts again behind it (see {@code garrisonables.md}, sally doors). A fort's sally port is one, authored into its plan; a walled
  * compound or a building with few exits gets one where {@link SallyDoorSurvey} finds its walls send the holder round.
  *
  * @param cells the wall cells the door opens, in world cells
@@ -43,6 +43,9 @@ public record SallyDoor(int[][] cells, int insideX, int insideY, int mouthX, int
 
         /** Told when one of its doors opens, for a place that draws its doors (a fort's port carries leaves). */
         default void opened(int placeDoor) { }
+
+        /** Told when one of its doors shuts again. */
+        default void closed(int placeDoor) { }
 
         /** A short name for evidence. */
         String label();

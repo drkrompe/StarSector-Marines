@@ -40,6 +40,11 @@
  * those derivations a sweep of 188,160 cells on the tick it happened, and the
  * zone graph ({@code zone/ZoneGraph.applyCellsOpened}) was the only one that
  * did not. A new whole-map derivation of the grid follows the same shape.
+ * The replay is symmetric: a logged cell is recomputed from the grid as it
+ * stands, so a cell that closes again (a sally door shut,
+ * {@code world/MapEditor.closePassage}) is handled like one that opened. The
+ * zone graph's incremental update is the exception, since it only merges, and
+ * a closing therefore forces its full rebuild at the tick's flush.
  *
  * <p>See {@link com.dillon.starsectormarines.battle} for the full taxonomy.
  */

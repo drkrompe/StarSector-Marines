@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — a lost place judged outmatched is stood down from, its squads and ground back to the ordinary defence, and observed again later (place counter-attack); a holder sorties from a walled place it holds through a sally door in its own wall instead of walking round (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
+Updated: 2026-10-21 — a holder shuts its sally door again behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body (`garrisonables.md`, sally doors); earlier: a lost place judged outmatched is stood down from, its squads and ground back to the ordinary defence, and observed again later (place counter-attack); a holder sorties from a walled place it holds through a sally door in its own wall instead of walking round (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2241,10 +2241,12 @@ within the machine guard's bounds (scene `mission-defence`).
 
 **A holder goes out by its own sally door, not round its own walls.** A walled place a side holds (a fort's works, a
 walled compound or yard, a building with few exits) has a closed **sally door** in each face its walls would otherwise
-send the holder round: wall until the holder orders people inside the place to ground beyond that face, then opened as
-built passage when no hostile stands at it, and open for everybody after (`garrisonables.md`, sally doors). It is the
-holder's way to the ground it owns, never an attacker's way in: a closed door is wall and is breached as wall. Scenes
-`sally-door` (a walled yard, infantry and a mech) and `sally-port` (a fort).
+send the holder round: wall until the holder orders people through it (out to ground beyond that face, or home), then
+opened as built passage when no hostile stands at it, and shut again by the same side behind the sortie or in the face
+of an approaching enemy, or on the player's bar, never on a body (`garrisonables.md`, sally doors). It is the holder's
+way to the ground it owns, open only while it is used, never an attacker's way in: a shut door is wall and is breached
+as wall, and a door left open when its holder loses the place is the attack's. Scenes `sally-door` (a walled yard,
+infantry and a mech) and `sally-port` (a fort).
 
 **What it pays is composure and reach, never protection.** Cover already
 reduces damage and stops rounds, and the cells of a position already carry it;
