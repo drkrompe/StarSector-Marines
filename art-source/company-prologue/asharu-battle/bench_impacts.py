@@ -103,33 +103,34 @@ def mg_bursts(first, bursts):
 
 
 def armour_breach(bench):
-    """W5's two beats on a Buffalo Mk.II stand-in (the Tarsus, 94 m, no shield): the armour soaks
+    """W5's two beats on a Hound (P) (61 m, no shield; S6b's victim since the continuity pass,
+    hound-p-c in k3c): the armour soaks
     a light MG stream (sparks, pocks) and then light assault gun HE (orange flashes, spall,
     craters); then a breach opens where the HE pounded, burns and vents, and plate fragments
     tumble clear."""
     bench.bpy.context.view_layer.update()
     imp = _imp()
-    t = bench.ship('target', 'tarsus', at=(0, 0, 0), heading=0, throttle=.4)
+    t = bench.ship('target', 'hound-p', at=(0, 0, 0), heading=0, throttle=.4)
     bench.bpy.context.view_layer.update()
-    port = lambda x, z: ((x, 80, z + 6), (x, 0, z))        # noqa: E731  a round from the port beam
+    port = lambda x, z: ((x, 60, z + 5), (x, 0, z))        # noqa: E731  a round from the port beam
     recs = []
     with t.kit() as (ctx, kit):
         for i, (a, b) in enumerate(mg_bursts(6, 3)):         # beat 1: the MG stream walks aft to fore
-            x0, x1 = -24 + i * 12, -16 + i * 12
+            x0, x1 = -18 + i * 9, -12 + i * 9
             recs += imp.stream(ctx, 'kinetic', a, b, MG_ROUND_S * 24, None, None, None, seed=i, matrix=t.matrix,
                                aim=(port(x0, 2), port(x1, 3)))
         for k, f in enumerate((44, 50, 56)):                  # light assault gun, 2 s apart in game, closer here
-            got = imp.ray_to_hull(bench.scene, t.matrix, *port(18 + 4 * k, 1 + k))
+            got = imp.ray_to_hull(bench.scene, t.matrix, *port(6 + 3 * k, .5 + .5 * k))
             if got:
                 recs.append(imp.he(ctx, f, *got))
-        got = imp.ray_to_hull(bench.scene, t.matrix, *port(24, 2))   # beat 2: she breaks open
+        got = imp.ray_to_hull(bench.scene, t.matrix, *port(10, 1))   # beat 2: she breaks open
         if got:
             recs.append(imp.breach(ctx, 62, *got, size_m=5.0, vent_m=30.0))
             recs.append(imp.debris(ctx, 62, *got))
     print('BENCH impacts', len(recs), 'placed:',
           {k: sum(1 for r in recs if r['kind'] == k) for k in ('kinetic', 'he', 'debris')},
           'breach retimed', [r['breach']['drivers_retimed'] for r in recs if 'breach' in r], flush=True)
-    bench.camera((40, 175, 45), (2, 0, 0), 50)
+    bench.camera((28, 120, 32), (0, 0, 0), 50)
     framing(bench, t, recs, 'armour-breach')
     liveness(bench, t, TESTS['armour-breach']['frames'], 'armour-breach')
 
@@ -159,7 +160,7 @@ BREAK = 30
 
 TESTS = {
     'armour-breach': dict(
-        builds=['tarsus'], frames=[8, 14, 30, 45, 51, 63, 72, 90],
+        builds=['hound-p'], frames=[8, 14, 30, 45, 51, 63, 72, 90],
         note='Beat 1, armour soaks it: MG sparks and glowing pocks (8-30), HE flashes and craters (45, 51). '
              'Beat 2, she breaks up: breach blast and debris (63), burning and venting (72, 90).',
         setup=armour_breach),
