@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.evacuation;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
-import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -86,34 +85,26 @@ public final class SwarmPressureBehavior implements UnitBehavior {
 
     /**
      * The swarm's one strategic movement call: move {@code body} a tick toward
-     * {@code target}, repathing only when the target changed or the repath window
-     * allows. Every strain moves through here (the Brute toward what it means to
-     * break, the Spitter toward lobbing range), so a faster movement model lands
-     * on the whole swarm at once. Local manoeuvres (a Spitter backing off) are
-     * the strain's own.
+     * {@code target}. Every strain moves through here (the Brute toward what it
+     * means to break, the Spitter toward lobbing range), so a change to how the
+     * swarm travels lands on the whole swarm at once: far off, the body
+     * descends the prey flow field; close in, it paths to its victim. Local
+     * manoeuvres (a Spitter backing off) are the strain's own. See
+     * {@link SwarmMovement#pursue}.
      */
     public static void pressToward(long body, long target, boolean targetChanged,
                                    BattleSimulation sim) {
-        pressToward(body, sim.world().cellX(target), sim.world().cellY(target),
-                targetChanged, sim);
+        SwarmMovement.pursue(body, target, targetChanged, sim);
     }
 
-    /** {@link #pressToward(long, long, boolean, BattleSimulation)} toward a cell rather than a body. */
+    /**
+     * {@link #pressToward(long, long, boolean, BattleSimulation)} toward a cell
+     * rather than a body: the body's own path, since a cell picked for one body
+     * (a breach's approach) is nobody else's goal.
+     */
     public static void pressToward(long body, int targetX, int targetY,
                                    boolean targetChanged, BattleSimulation sim) {
-        if ((targetChanged || sim.movement().mayRepath(body))
-                && needsPath(body, targetX, targetY, sim)) {
-            int bodyX = sim.world().cellX(body);
-            int bodyY = sim.world().cellY(body);
-            int[] path = SharedGoalPolicy.usesSharedGoalFields(sim.liveUnitCount())
-                    ? sim.findSharedPathToGoal(
-                            bodyX, bodyY, targetX, targetY)
-                    : GridPathfinder.findPath(sim.getGrid(),
-                            bodyX, bodyY, targetX, targetY,
-                            sim.getOccupancyMap());
-            sim.setPath(body, path);
-        }
-        sim.advanceMovement(body);
+        SwarmMovement.pathDirect(body, targetX, targetY, targetChanged, sim);
     }
 
     /**
@@ -329,14 +320,6 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                 runnerCellX, runnerCellY,
                 (int) Math.floor(candidateX), (int) Math.floor(candidateY),
                 senseRange);
-    }
-
-    private static boolean needsPath(long runner, int targetX, int targetY,
-                                     BattleSimulation sim) {
-        int[] path = sim.movement().path(runner);
-        return sim.movement().pathIdx(runner) >= Paths.cellCount(path)
-                || Paths.destX(path) != targetX
-                || Paths.destY(path) != targetY;
     }
 
     static void tickCooldown(long runner, BattleSimulation sim) {

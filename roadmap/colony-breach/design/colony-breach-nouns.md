@@ -257,6 +257,37 @@ nearest Marine body. Swarm movement toward a goal is a shared **flow field** per
 goal rather than a path per body, which is what lets the swarm be large on a
 large map.
 
+- **Prey** is the goal a hunting body descends when its target is far off: every
+  combatant the swarm is hostile to, less the shelter guard while the shelter is
+  sealed. It is gathered from the battle each refresh, so "nearest" means
+  nearest by the way the ground runs, not as the crow flies. Civilians are never
+  prey sources; a body that has found one chases it directly.
+- **Shelter** and **lift** are disclosed, so the mission declares their cells;
+  the swarm knows where they are without sensing them, as the noun's law allows.
+- **Bore** is the goal of a body carrying biomass home: the nearest living
+  bore. The swarm's own holes, so their cells are declared and redeclared as a
+  bore opens or collapses.
+- **A field makes a stream.** The descent is the same from every cell and has
+  no crowd term, so bodies released together follow one lane down it, which is
+  the river a spawning surge needs; they break apart where local pursuit takes
+  over. Nothing separates swarm bodies from each other today (Marines steer
+  away from them, not they from one another), so a later separation pass must
+  leave a surging body on its lane to keep the stream.
+- **Strategic movement and local pursuit.** A body whose target is more than a
+  few cells away moves down its goal's field; within that range it runs its own
+  short path to the one victim it has chosen. Every strain moves through the
+  same call, so a change to how the swarm travels reaches all of them at once.
+- **A field belongs to the battle's navigation grid.** It is derived from that
+  grid's walls and retired by its topology changing, so two battles in one
+  process can never read each other's fields (the `LosCache` lesson). It is
+  rebuilt when its sources move or the walls change, at a bounded cadence and a
+  bounded amount of work per tick, and published whole: a body always descends
+  a complete field, an older one at worst, against the current walls. Fields
+  are deterministic under the seed, so replays match byte for byte.
+- `-Dbattle.swarm.flowField=false` is the control: every body paths for itself,
+  as the swarm did before fields. What the fields buy, by map and swarm size, is
+  in `swarm-movement-cost.md`.
+
 **Hardpoint.** A position the player has fortified with tender construction
 (Vulcans and whatever else the tender can build). A hardpoint is how the player
 frees troops: a lift zone that can hold itself is a lift zone that does not

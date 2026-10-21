@@ -1077,6 +1077,31 @@ def blender_main(cfg):
                 row = pl['fx'].reading(dg)
                 FX_ROWS.append(dict(frame=kf, ship=k, **row))
                 print(f'ASHARU fx {kf} {k:12} {json.dumps(row)}', flush=True)
+                # Light scale: the kit sizes its lights for a hull-unit file (watts / mpu^2); placed at
+                # Scale(mpu) in this metre scene the distances grow by mpu but Cycles leaves a light's
+                # power alone, so each lit lamp reads 1/mpu^2 too bright here.
+                lights = [o for o in pl['fx'].ids if isinstance(o, bpy.types.Object) and o.type == 'LIGHT'
+                          and o.users_collection]
+                lit = [(o, o.data.evaluated_get(dg).energy) for o in lights]
+                lit = [(o, e) for o, e in lit if e > 0]
+                vols = sum(1 for o in pl['fx'].ids if isinstance(o, bpy.types.Material) and o.node_tree
+                           and any(n.type in ('PRINCIPLED_VOLUME', 'VOLUME_SCATTER', 'VOLUME_ABSORPTION', 'EMISSION')
+                                   and any(l.to_socket.name == 'Volume' for l in n.outputs[0].links)
+                                   for n in o.node_tree.nodes if n.outputs))
+                top = max(lit, key=lambda t: t[1]) if lit else None
+                print(f'ASHARU light {kf} {k:12} mpu {pl["mpu"]:.3f} over x{1 / pl["mpu"] ** 2:.2f} '
+                      f'lights {len(lights)} lit {len(lit)} sum {sum(e for _, e in lit):.0f} W'
+                      + (f' top {ship_fx.base_name(top[0].name)} {top[1]:.0f} W -> {top[1] * pl["mpu"] ** 2:.0f} W'
+                         if top else '') + f' volume-mats {vols}', flush=True)
+                # Stale transforms: the copy is only ever instanced, never evaluated, so a stored
+                # matrix_world can disagree with its parent chain; anything reading it is off by this.
+                worst, name = 0.0, ''
+                for o in pl['fx'].ids:
+                    if isinstance(o, bpy.types.Object) and o.parent is not None:
+                        d = (o.matrix_world.translation - mat_chain(o).translation).length
+                        if d > worst:
+                            worst, name = d, ship_fx.base_name(o.name)
+                print(f'ASHARU stale {kf} {k:12} worst {worst:.2f} u = {worst * pl["mpu"]:.1f} m {name}', flush=True)
 
     def clear_stage():
         for o in list(stage.objects):
