@@ -2,7 +2,10 @@
 32 and 17.1 px per cell next to the chosen Runner and a Marine, with live unit
 shadows.
 
-  python brute_sheet.py <round dir> <render root> <out.png> "<title>" <names...>
+  python brute_sheet.py <round dir> <render root> <out.png> "<title>" [--ramp=1,2,3] <names...>
+
+--ramp fills the slots after the last concept with those concepts beside the Runner on
+three grounds at 32 px per cell, for judging a value change.
 
 <render root> holds the colony close-ups round2.py documents. The Brute is drawn
 at its sim size against the Runner's: UnitType radius 0.45 against 0.30, so
@@ -31,7 +34,27 @@ def sized(cut, ppc, linear=1.0):
                                     Image.LANCZOS).convert("RGBA")
 
 
-def sheet(round_dir, root, out, title, names):
+def ramp(img, root, box, cuts, labels):
+    """Runner then each cut at 32 px per cell, on paving, grass and the creep stand-in."""
+    x0, y0, w, h = box
+    d = ImageDraw.Draw(img)
+    d.rectangle([x0, y0, x0 + w, y0 + h], fill=(24, 28, 36))
+    d.text((x0 + 10, y0 + 8), "AGE RAMP at 32 px/cell: Runner, then " + ", ".join(labels), font=font(16, True), fill=ACC)
+    runner = key_plate(RUNNER).rotate(-90, expand=True, resample=Image.BICUBIC)
+    bodies = [sized(runner, PPC32)] + [sized(c.rotate(-90, expand=True, resample=Image.BICUBIC), PPC32, BRUTE_LINEAR)
+                                       for c in cuts]
+    tiles = [t for t in ground_tiles(root, (min(600, w - 130), 132)) if t[0] != "field"]
+    for j, (gname, g) in enumerate(tiles):
+        t = g.copy()
+        step = (t.width - 60) / len(bodies)
+        for k, b in enumerate(bodies):
+            place(t, b, 60 + step * k, 66, PPC32, radius=0.3 if k == 0 else 0.45)
+        ty = y0 + 36 + j * 150
+        img.paste(t.convert("RGB"), (x0 + 120, ty))
+        d.text((x0 + 10, ty + 56), gname, font=font(14, True), fill=INK)
+
+
+def sheet(round_dir, root, out, title, names, ramp_nums=None):
     raws = sorted((p for p in Path(round_dir, "raw").glob("c*.png") if p.stem[1:].isdigit()),
                   key=lambda p: int(p.stem[1:]))
     runner = key_plate(RUNNER).rotate(-90, expand=True, resample=Image.BICUBIC)
@@ -75,8 +98,18 @@ def sheet(round_dir, root, out, title, names):
         d.text((x0 + 350, y0 + 250), "17.1 px/cell 1:1", font=font(13), fill=DIM)
         img.paste(t17.resize((242, 150), Image.NEAREST).convert("RGB"), (x0 + 218, y0 + 326))
         d.text((x0 + 218, y0 + 480), "17.1 px/cell x2", font=font(13), fill=DIM)
+    if ramp_nums:
+        cuts = [key_plate(Path(round_dir, "raw", f"c{n}.png")) for n in ramp_nums]
+        n = len(raws)
+        x0, y0 = 12 + (n % 4) * (cw + 6), 66 + (n // 4) * (ch + 6)
+        ramp(img, root, (x0, y0, 1908 - x0, ch), cuts, [f"#{n}" for n in ramp_nums])
     img.save(out)
 
 
 if __name__ == "__main__":
-    sheet(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5:])
+    args = sys.argv[5:]
+    ramp_nums = None
+    if args and args[0].startswith("--ramp="):
+        ramp_nums = [int(v) for v in args[0][7:].split(",")]
+        args = args[1:]
+    sheet(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], args, ramp_nums)
