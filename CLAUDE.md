@@ -303,7 +303,8 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   is a picture of a city in which nothing says which grey rectangle is the
   headquarters. `-PsnapshotAnnotations=false` renders the bare scene.
   `-PsnapshotFocus=x,y,cellsAcross` frames a close view on that cell, with
-  shots and impacts, instead of the whole map. Optional
+  shots and impacts, instead of the whole map. `-PsnapshotFromTick=T` plays
+  the ticks before `T` undrawn, so a GIF opens on the moment it is about. Optional
   `-PgifFrameDelayMillis=125`, `-PsnapshotWidth=960`, and
   `-PsnapshotHeight=640` arguments control review playback and output size.
 - `gradlew.bat simDeterminism` → replays the Conquest matrix twice for a bounded

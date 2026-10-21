@@ -45,6 +45,14 @@ final class CommanderEvidenceCapture implements AutoCloseable {
     static final String FOCUS_PROPERTY =
             "commander.evidence.snapshot.focus";
 
+    /**
+     * The first tick to frame; earlier ticks are played but not drawn, so a
+     * GIF can open just before the moment it is about. Zero frames from the
+     * opening tick.
+     */
+    static final String FROM_TICK_PROPERTY =
+            "commander.evidence.snapshot.fromTick";
+
     private static final int DEFAULT_FRAME_DELAY_MILLIS = 125;
     private static final int DEFAULT_WIDTH = 960;
     private static final int DEFAULT_HEIGHT = 640;
@@ -147,17 +155,18 @@ final class CommanderEvidenceCapture implements AutoCloseable {
         Files.createDirectories(frames);
         gif = new AnimatedGifWriter(output.resolve("review.gif"),
                 frameDelayMillis);
+        int fromTick = Math.max(0, integerProperty(FROM_TICK_PROPERTY, 0));
         // A constructor that throws hands the caller nothing to close, so the
         // opening frame is taken under a guard of its own: without it a first
         // frame that fails leaves the encoder holding review.gif for the rest
         // of the run, and nothing can ever delete the staging tree again.
         try {
-            capture();
+            if (fromTick == 0) capture();
         } catch (Throwable failure) {
             closeWriter(failure);
             throw failure;
         }
-        nextTick = cadenceTicks;
+        nextTick = fromTick == 0 ? cadenceTicks : fromTick;
     }
 
     void afterAdvance() throws IOException {
