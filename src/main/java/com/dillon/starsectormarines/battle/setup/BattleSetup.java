@@ -49,6 +49,7 @@ import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
+import com.dillon.starsectormarines.battle.evacuation.ColonyPopulation;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
@@ -2612,7 +2613,12 @@ public final class BattleSetup {
                         sim.getGrid(), sim.getTopology(), map.pointsOfInterest,
                         payload.placement, lzCells, battleSeed ^ ERUPTION_SEED_SALT);
                 if (colony && !eruption.isComplete()) continue;
-                sim.installColonyBreach(eruption);
+                // The colony's people outside the shelter: what the swarm feeds on.
+                List<Long> colonists = colony
+                        ? ColonyPopulation.install(sim, map.pointsOfInterest, payload.placement,
+                                battleSeed ^ ERUPTION_SEED_SALT)
+                        : List.of();
+                sim.installColonyBreach(eruption, colonists);
             }
             return sim;
         }

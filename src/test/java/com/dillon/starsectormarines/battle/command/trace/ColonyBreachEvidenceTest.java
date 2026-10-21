@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command.trace;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
+import com.dillon.starsectormarines.battle.evacuation.ColonyPopulation;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -73,6 +74,8 @@ class ColonyBreachEvidenceTest {
                 ColonyEruptionPlan plan = breach.plan();
                 assertTrue(plan.isComplete(), "the colony path owes a full eruption plan");
                 assertEquals(replayedSites, plan.sites(), "eruption sites must be stable across constructions");
+                assertTrue(breach.colonists().size() >= ColonyPopulation.MIN_COLONISTS,
+                        "the colony carries " + breach.colonists().size() + " colonists outside the shelter");
                 for (ColonyEruptionPlan.Site site : plan.sites()) {
                     assertFalse(sim.isInsideRescueOpeningProtectedZone(site.x(), site.y()),
                             "site " + site + " stands in the shelter or lift zone");
@@ -124,7 +127,7 @@ class ColonyBreachEvidenceTest {
 
     private static JSONObject summarize(BattleSimulation sim, ColonyBreachSequence breach,
                                         BattleFixture fixture, int maxTicks) throws Exception {
-        ColonyBreachSequence.Snapshot snapshot = breach.snapshot(sim.getSimTickIndex());
+        ColonyBreachSequence.Snapshot snapshot = breach.snapshot(sim);
         JSONArray sites = new JSONArray();
         for (int i = 0; i < snapshot.sites().size(); i++) {
             ColonyEruptionPlan.Site site = snapshot.sites().get(i);
@@ -158,6 +161,8 @@ class ColonyBreachEvidenceTest {
                 .put("landfallTick", snapshot.landfallTick())
                 .put("shelterReachedTick", snapshot.shelterReachedTick())
                 .put("tremorTick", snapshot.tremorTick())
+                .put("colonists", snapshot.colonists())
+                .put("colonistsAlive", snapshot.colonistsAlive())
                 .put("evacuated", tracker.evacuatedCount())
                 .put("registered", tracker.registeredCount())
                 .put("sites", sites)
@@ -171,7 +176,8 @@ class ColonyBreachEvidenceTest {
                 .append(" map: ").append(s.getString("termination")).append(" at tick ")
                 .append(s.getInt("ticks")).append(", winner ").append(s.get("winner"))
                 .append(", ").append(s.getInt("evacuated")).append('/').append(s.getInt("registered"))
-                .append(" evacuated.\n\n## Eruption sites\n\n| # | role | cell | place | erupts | open |\n|---|---|---|---|---|---|\n");
+                .append(" evacuated; ").append(s.getInt("colonistsAlive")).append('/')
+                .append(s.getInt("colonists")).append(" colonists alive outside the shelter.\n\n## Eruption sites\n\n| # | role | cell | place | erupts | open |\n|---|---|---|---|---|---|\n");
         JSONArray sites = s.getJSONArray("sites");
         for (int i = 0; i < sites.length(); i++) {
             JSONObject site = sites.getJSONObject(i);

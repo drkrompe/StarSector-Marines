@@ -834,8 +834,8 @@ def _ac(**kw):
              flash=(1.0, .55, .25, .1), flash_tint=(165, 225, 185), flash_size=(1.25, 1.35, 1.35),
              flash_light=(165, 225, 185),
              cloud=dict(rgb=(165, 225, 185), r=(.8, 2.6), frames=5, peak=4.0),
-             round=dict(speed=360, range=600, length=2.6, core=.14, corona=.6, fringe=(235, 255, 215),
-                        hot=(225, 255, 200), core_gain=16, corona_gain=2.2),
+             round=dict(speed=360, range=600, length=2.6, core=.14, corona=.9, fringe=(235, 255, 215),
+                        hot=(225, 255, 200), glow=(120, 235, 150), core_gain=14, corona_gain=3.5),
              puff=True, brass=True)
     w.update(kw)
     return w
@@ -848,7 +848,7 @@ WEAPONS = {
     'lightdualmg': _mg(name='Light Dual Machine Gun', cooldown=.2, barrels='alternating_burst'),
     # Vulcan: twin barrels alternating at 20 rounds/s, pale gold; the two streams cross
     # (braid, metres to the crossing) so the stream zig-zags.
-    'vulcan': _mg(name='Vulcan Cannon', burst=1, burst_delay=0, cooldown=.05, braid=110.0, flash=(1.0, .4),
+    'vulcan': _mg(name='Vulcan Cannon', burst=1, burst_delay=0, cooldown=.05, braid=60.0, flash=(1.0, .4), puff=False,
                   cloud=dict(rgb=(255, 240, 165), r=(.3, .9), frames=3, peak=3.5),
                   round=dict(speed=480, range=300, length=7.0, core=.08, corona=.28, fringe=(240, 220, 180),
                              hot=(245, 245, 225), core_gain=22, corona_gain=1.6)),
@@ -856,13 +856,13 @@ WEAPONS = {
     'lightac': _ac(name='Light Autocannon'),
     'heavyac': _ac(name='Heavy Autocannon', burst=3, burst_delay=.2, cooldown=1.0, flash_size=(1.5, 1.6, 1.6),
                    cloud=dict(rgb=(165, 225, 185), r=(1.2, 3.6), frames=4, peak=4.0),
-                   round=dict(speed=380, range=800, length=3.6, core=.2, corona=.85, fringe=(235, 255, 215),
-                              hot=(225, 255, 205), core_gain=16, corona_gain=2.2)),
+                   round=dict(speed=380, range=800, length=3.6, core=.2, corona=1.2, fringe=(235, 255, 215),
+                              hot=(225, 255, 205), glow=(120, 235, 150), core_gain=14, corona_gain=3.5)),
     # Mark IX: the four-round slam every 2 s.
     'mark9': _ac(name='Mark IX Autocannon', burst=4, burst_delay=.1, cooldown=2.0, flash=(1.0, .55, .22, .08),
                  flash_size=(1.4, 1.5, 1.5), cloud=dict(rgb=(165, 225, 185), r=(1.4, 4.2), frames=4, peak=4.0),
-                 round=dict(speed=400, range=800, length=3.8, core=.22, corona=.9, fringe=(235, 255, 215),
-                            hot=(225, 255, 205), core_gain=16, corona_gain=2.2)),
+                 round=dict(speed=400, range=800, length=3.8, core=.22, corona=1.3, fringe=(235, 255, 215),
+                            hot=(225, 255, 205), glow=(120, 235, 150), core_gain=14, corona_gain=3.5)),
     # Hellbore: one heavy HE slug every 3 s, slow, orange-white in a 60-unit glow; the game's
     # biggest flash (50 particles, 0.75 s, 255,120,50), lingering.
     'hellbore': dict(name='Hellbore Cannon', energy=False, burst=1, burst_delay=0, cooldown=3.0,
@@ -896,7 +896,7 @@ WEAPONS = {
                       barrels='alternating', spread=.002, flash=(1.0, .4, .12), flash_tint=(100, 200, 255),
                       flash_size=(1.0, 1.0, 1.0), flash_light=(100, 200, 255),
                       cloud=dict(rgb=(100, 200, 255), r=(.5, 1.6), frames=3, peak=4.0),
-                      charge=dict(rgb=(100, 200, 255), r=(.25, 1.2), peak=6.0, light=2500),
+                      charge=dict(rgb=(100, 200, 255), r=(.4, 2.0), peak=6.0, light=6000),
                       round=dict(speed=700, range=500, length=30.0, core=.22, corona=1.3, fringe=(25, 100, 155),
                                  hot=(225, 225, 255), core_gain=20, corona_gain=2.5, jag=True, light=8000,
                                  light_rgb=(100, 200, 255)),
@@ -1078,7 +1078,9 @@ def _glow_material(ctx, rgb):
     dens = g.mul(g.mul(shell, lumps), fade)
     mix = nodes.new('ShaderNodeMix')
     mix.data_type = 'RGBA'
-    links.new(g.clamp01(g.mul(g.sub(dens, .45), 1.1)), mix.inputs['Factor'])
+    # Only the densest heart goes toward white, and only part way: AgX already washes strong
+    # emitters, and a glow that whitened everywhere above .45 read as a white ball (pass 1).
+    links.new(g.mul(g.clamp01(g.mul(g.sub(dens, 1.15), 1.5)), .45), mix.inputs['Factor'])
     mix.inputs['A'].default_value = (*rgb, 1)
     mix.inputs['B'].default_value = (1, 1, 1, 1)
     em = nodes.new('ShaderNodeEmission')
@@ -1195,7 +1197,7 @@ def _round_material(ctx, weapon, part):
         facing = g.pow(g.clamp01(g.sub(1.0, lw.outputs['Facing'])), 1.4)
         ends = g.mul(g.smooth(0.0, .35, gx), g.sub(1.0, g.smooth(.8, 1.0, gx)))
         strength = g.mul(g.mul(g.mul(facing, ends), burn), g.mul(gain, float(r['corona_gain'])))
-        em.inputs['Color'].default_value = (*fringe, 1)
+        em.inputs['Color'].default_value = (*_lin(r.get('glow', r['fringe'])), 1)
     links.new(strength, em.inputs['Strength'])
     tr = nodes.new('ShaderNodeBsdfTransparent')
     add = nodes.new('ShaderNodeAddShader')
@@ -1531,7 +1533,7 @@ def _feeder_material(ctx, knob):
     ends = g.mul(g.smooth(0.0, .2, gx), g.sub(1.0, g.smooth(.85, 1.0, gx)))
     em = nodes.new('ShaderNodeEmission')
     em.inputs['Color'].default_value = (*_lin(FEEDER_RGB), 1)
-    links.new(g.mul(g.mul(g.mul(facing, ends), on), 4.0), em.inputs['Strength'])
+    links.new(g.mul(g.mul(g.mul(facing, ends), on), 14.0), em.inputs['Strength'])
     tr = nodes.new('ShaderNodeBsdfTransparent')
     add = nodes.new('ShaderNodeAddShader')
     links.new(tr.outputs[0], add.inputs[0])
@@ -1540,7 +1542,7 @@ def _feeder_material(ctx, knob):
     return m
 
 
-def feeder(ctx, turret, start_frame, end_frame, ramp_frames=6, light=600.0):
+def feeder(ctx, turret, start_frame, end_frame, ramp_frames=6, light=2500.0):
     """The Accelerated Ammo Feeder on one turret: its barrels glow amber (255,200,0) from
     start_frame to end_frame on the knob gun_feeder_t<turret>. Fire it with
     fire_weapon(..., feeder=True) over the same frames for the doubled rate."""
@@ -1557,7 +1559,7 @@ def feeder(ctx, turret, start_frame, end_frame, ramp_frames=6, light=600.0):
             continue
         s = a.scale
         ob = bpy.data.objects.new(f'{PREFIX} feeder {gun_label(a)}',
-                                  _cylinder_mesh(f'{PREFIX} feeder mesh t{turret}', .5, -6.0, -.2, 12, mat))
+                                  _cylinder_mesh(f'{PREFIX} feeder mesh t{turret}', .75, -6.0, -.2, 12, mat))
         coll.objects.link(ob)
         swfx_core.attach(ob, a.empty)
         ob.scale = (s, s, s)
