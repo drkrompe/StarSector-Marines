@@ -693,19 +693,36 @@ def ship_path(t):
     return p
 
 
+def hang_drive_plumes():
+    """The Second Wind's drive plumes, the way `port_fleet.hang_effects` draws the other hulls': the
+    effects kit's core and plume as soft emissive cones on each of her own thruster markers
+    (`thrust_shots.mark_c4`), the mains long and the belly lift jets short, each sized by its
+    marker's throttle. So they burn on the way in, the lift jets light for the hover, and both spool
+    off after touchdown; a dead bell's marker stays at 0 and shows nothing. Named 'Drive ...' so the
+    paint and C5's walk map treat them as the ship's own, as they did the stand-in cores."""
+    import port_fleet
+    n = 0
+    for m in bpy.data.objects:
+        if m.get('thrust_craft') != 'Second Wind' or m.get('thrust_kind') not in ('main', 'lift'):
+            continue
+        for ob in port_fleet.far_plume(m, m['thrust_kind'], float(m.get('radius_m', 1.5))):
+            ob.name = 'Drive ' + ob.name[len('Fleet '):]
+        n += 1
+    print('C4X drive plumes on %d markers' % n, flush=True)
+
+
 def add_ship():
+    import port_fleet
     manifest = json.loads(SW_MANIFEST.read_text())
     check_pinned_blend(INPUTS / 'second-wind-patched.blend', manifest)
     append_collection(INPUTS / 'second-wind-patched.blend', manifest['append_collection'])
     root = bpy.data.objects[manifest['root']]
     # The exhaust anchors are the root's children in a collection that never reaches the scene, so
     # they are not moved with the ship. Read each one's place relative to the root and hang the
-    # drive glows on the root itself.
+    # drive glow lights on the root itself. The plumes themselves are the effects kit's, hung on her
+    # thruster markers once they exist (`hang_drive_plumes`).
     root.scale = (manifest['metres_per_unit'],) * 3
     root.rotation_mode = 'XYZ'
-    glow = material('Drive plume', (0.6, 0.8, 1.0))
-    glow.node_tree.nodes['Principled BSDF'].inputs['Emission Color'].default_value = (0.6, 0.8, 1.0, 1)
-    glow.node_tree.nodes['Principled BSDF'].inputs['Emission Strength'].default_value = 25.0
     # The anchor is looked up among the root's own children: every hull in the port is built from the
     # same kit, so a bare 'Engine 3 exhaust anchor' is whichever ship took the name first (Hermes's,
     # Colossus's), and its offset hung the glow tens of metres off the Second Wind.
@@ -717,22 +734,13 @@ def add_ship():
         local = anchor.matrix_parent_inverse @ anchor.matrix_basis
         light = bpy.data.objects.new('Drive %d glow' % i, bpy.data.lights.new('Drive %d glow' % i, 'POINT'))
         light.data.energy = 6.0e5
-        light.data.color = (0.55, 0.75, 1.0)
+        light.data.color = port_fleet.CORE_RGB                       # the kit's hot core
         light.parent = root
         light.matrix_basis = local @ Matrix.Translation((3.0, 0, 0))
         link(light)
-        bm = bmesh.new()
-        bmesh.ops.create_uvsphere(bm, u_segments=12, v_segments=8, radius=1.0)
-        core = mesh('Drive %d core' % i, bm, glow)
-        core.parent = root
-        core.matrix_basis = local @ Matrix.Translation((2.5, 0, 0)) @ Matrix.Diagonal((5.0, 2.2, 2.2, 1.0))
-        full = core.scale.copy()
         for t, e in ((T_DOWN, 1.0), (T_DOWN + 1.5, 0.0)):           # spooling down after touchdown
-            f = round(t * FPS)
             light.data.energy = 6.0e5 * e
-            light.data.keyframe_insert('energy', frame=f)
-            core.scale = full * max(e, 0.001)
-            core.keyframe_insert('scale', frame=f)
+            light.data.keyframe_insert('energy', frame=round(t * FPS))
     dt = 1.0 / FPS
     for f in range(FRAMES):
         t = f / FPS
@@ -1799,13 +1807,14 @@ def build():
     darken_pads()
     import wall_paint                                   # painted walls and roof plant
     wall_paint.apply(WAREHOUSES)
-    add_haze(skip={'Steam', 'Drive plume', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'} | c4_farm.HAZE_SKIP
+    add_haze(skip={'Steam', 'Customs lights', 'Cloud shadow', 'Landing dust', 'Arc light'} | c4_farm.HAZE_SKIP
              | port_life.HAZE_SKIP | port_fleet.HAZE_SKIP)
     add_camera(scene)
     sys.path.insert(0, str(CINE / 'thrust-markers'))
     import thrust_shots                                  # every craft's nozzles marked, through C5
     thrust_shots.mark_c4(sys.modules[__name__])
     port_fleet.after_markers(sys.modules[__name__])     # the departing Colossus's burn, off its markers
+    hang_drive_plumes()
     scene.render.engine = 'BLENDER_EEVEE'
     scene.eevee.taa_render_samples = 6     # layout pass: speed over smoothness
     scene.render.use_persistent_data = True   # keep the synced scene and shaders between frames
