@@ -205,6 +205,12 @@ authored content.
   rank. They replace loose kit without consuming another berth. The central
   aisle and whole hatch approaches stay clear, and rest and stowage happen
   from reachable standing cells beside the fixtures.
+  Work done with hands on a fixture (consoles, benches, counters, plant,
+  bunks, tables, the galley) is drawn up against it: the stand stays inside
+  its exclusive standing cell but leans toward the fixture, so an operator
+  reads as manning the console rather than waiting near it. A sentry, rounds,
+  a firing lane, the gym and the lounge keep the cell's centre. Circulation,
+  claims and which cell is reserved are unchanged.
 - A **room program is gated by size as well as role.** Room footprints do not
   shrink, so a hull below destroyer size cannot hold a range, a briefing room,
   or a proper sick bay without those rooms becoming the ship. A frigate keeps a
