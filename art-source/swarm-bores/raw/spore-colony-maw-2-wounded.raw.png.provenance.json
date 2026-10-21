@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16060-8e38-7de3-97d8-ee791242dee5",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16060-8e38-7de3-97d8-ee791242dee5\\exec-454899b7-0d71-4509-ac95-e4e095d32ea6.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\swarm-bores\\raw\\spore-colony-maw-2-wounded.raw.png",
+    "sha256": "707042bfdcb3423b055e736edbc024bf8b2f626bf23c3a2eab14acf786602483",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "build\\swarm-bores\\prompts\\spore-colony-maw-wounded.prompt.txt",
+  "promptSha256": "0fcf57323a21ad4c443476a293bbded0dbd53d04f50b40eefdd752aae954055b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and lighting guide and edit target for this damage state: exact silhouette, placement, scale and light-and-shadow authority, including every torn socket, gash, burst sac and snapped spine it shows; reskin it, never move, reshape, re-light or symmetrise it\nImage 2: Identity reference: the same structure undamaged, as already painted; keep its painting, colours and rendering, never its undamaged shape where the guide shows damage\nImage 3: Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape\n\nUse case: sketch-to-render. Asset: a mature SPORE COLONY of the alien swarm grown beside a maw, for a top-down tactical game: the largest living anti-aircraft growth, firing heavy spore bursts that bring down gunships. It is a heavy uneven cluster, grown, not designed: one big dominant sac set off-centre and leaning, three smaller sacs crowded against it at uneven angles, several buds, a partial crown of heavy chitin plates on one flank, a bunch of bone spines on one side, sinew roots reaching out mostly one way, all on a heaved mound of soil. Each sac is a domed bladder of taut skin laced with dark veins, its firing pore glowing amber from inside, lit on its upper-left shoulder and dark beneath. Massive, armoured and dangerous. Image 1 is the authoritative geometry AND lighting guide and the edit target: a code-built relief, lit by the game's sun from the upper left. Reskin it into a finished painted sprite, preserving its outline, placement, scale, transparent space and its light and shadow exactly: faces turned up and left are lit, faces turned down and right are in shade, and every shadow one part casts on another stays where the guide puts it. Do not re-light it, do not even it out, do not make it symmetrical. Read the guide's flat colours as materials: grey-violet = the swarm's chitin plates: smooth, curved, overlapping carapace like a beetle's wing-case or a crab's shell, glossy and organic with soft rounded edges and fine growth lines, never faceted, never stone, never masonry blocks; pale ivory = bone (tusks, spines); dark grey-green tubes = sinew roots; brown = churned, thrown-up soil; pale grey-tan blocks = broken slabs of human colony paving, real concrete pavers with chipped edges; dusky mauve = wet dark flesh; orange-amber spots = glowing amber nodes, painted as light coming from inside, not as flat dots. Straight overhead orthographic zenith camera looking straight down, no perspective. Genuine transparent background outside the silhouette, including the gaps between roots, slabs and plates; no ground plane, no cast shadow on the ground (that is drawn separately), no border, no text, no labels, no watermark. Crisp hand-painted 2D strategy-game sprite matching the existing swarm creature in the material reference: dark charcoal-purple segmented chitin with worn bone-grey edges, organic gunmetal-green sinew and under-plates, small warm amber glowing nodes. It is one designed bio-weapon organism (the same chitin as the swarm runner, grown for another job), never a plant, never a machine, never a different animal. It will be shown only about 60 to 160 pixels wide in play, so keep bold readable shapes, clear dark separations and strong value contrast rather than fine noise. Add material, surface detail, scratches, plate seams and wet highlights; never change the silhouette, the placement, the lighting direction or the transparent space.\n\nDAMAGE STATE: WOUNDED. This is the same structure as the undamaged painting in the identity reference, after it has taken heavy fire and lost about half its strength. Keep its painting identity exactly: the same plates, tusks, sacs, slabs and roots in the same places, the same colours, the same glossy hand-painted rendering, the same sun from the upper left. Show the damage the guide adds, and only that: where the guide shows a plate replaced by a low dusky-mauve patch with a jagged stump at its root, the plate has been torn out of its socket, leaving raw wet sinew and torn membrane, the broken stump's edge splintered and pale; where the guide cuts a dark groove across carapace or a sac, it is a fresh gash through the shell showing wet flesh beneath, edges cracked and chipped; a sac shown deflated with a raw crater at its crown has burst, its skin sagging and torn open, a little dark ichor around the wound; a short tusk or spine is snapped off, its broken end raw bone. The amber glow is weaker and fewer: the creature is hurt, not dead. It must still read at a glance as the same living structure, now visibly wounded.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\swarm-spore-colony-maw-2-wounded-guide.png",
+      "sha256": "dec0300e7eb52a4d98d4dddb0d1cf07a12ced751f315f188855eeae4da2fef93",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry and lighting guide and edit target for this damage state: exact silhouette, placement, scale and light-and-shadow authority, including every torn socket, gash, burst sac and snapped spine it shows; reskin it, never move, reshape, re-light or symmetrise it"
+    },
+    {
+      "path": "art-source\\swarm-bores\\raw\\spore-colony-maw-2.raw.png",
+      "sha256": "a29f030fc8405dd64f7b298374e5e80abfde9b0aa2c784949e960ecf0430b151",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Identity reference: the same structure undamaged, as already painted; keep its painting, colours and rendering, never its undamaged shape where the guide shows damage"
+    },
+    {
+      "path": "art-source\\alien-modular-topdown\\sources\\alien-body-source.png",
+      "sha256": "6c1cd9a54e6b39cb668a5eb8ece0147af382571ad7fe3db1e0e6af4e45755c5c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one wounded sprite, keeping Image 1’s geometry and lighting authoritative.\n"
+  ],
+  "usage": {
+    "input_tokens": 74274,
+    "cached_input_tokens": 62080,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1014,
+    "reasoning_output_tokens": 17
+  },
+  "elapsedSeconds": 74.8
+}

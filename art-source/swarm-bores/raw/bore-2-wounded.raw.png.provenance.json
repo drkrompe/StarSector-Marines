@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16058-ed09-7211-a617-f71d4d7ebda1",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16058-ed09-7211-a617-f71d4d7ebda1\\exec-93722029-fa1e-41a7-996d-881d8a54b49a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\swarm-bores\\raw\\bore-2-wounded.raw.png",
+    "sha256": "f22e81ff786026541f46c23671ff7af8eb4c6c54e897195aaf1aff02ef1b815a",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "build\\swarm-bores\\prompts\\bore-wounded.prompt.txt",
+  "promptSha256": "3547498e551f32af70bd441a2a968ed281144aa86ba4b0278a3d10242de67ce9",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and lighting guide and edit target for this damage state: exact silhouette, placement, scale and light-and-shadow authority, including every torn socket, gash, burst sac and snapped spine it shows; reskin it, never move, reshape, re-light or symmetrise it\nImage 2: Identity reference: the same structure undamaged, as already painted; keep its painting, colours and rendering, never its undamaged shape where the guide shows damage\nImage 3: Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape\n\nUse case: sketch-to-render. Asset: a swarm BORE for a top-down tactical game: a hole the alien swarm has torn up through the ground of a human colony, at a slant, through which its bodies climb out. Nothing about it is regular. On one side the ground has heaved up: heavy chitin jaw-plates reared up at the lip, bone tusks leaning in over the hole, paving slabs and soil thrown up and cracked. On the other side the rim has collapsed: torn, slumped plates, a broken berm, plates and slabs slid down into the funnel. The pit is a deep slanted shaft, not a flat black disc: the far wall, lower right, catches the sun as glistening ribbed flesh; the near wall falls into shadow; fleshy rings of the throat recede into darkness, and far down a pale limb is climbing and a few amber embers glow. Image 1 is the authoritative geometry AND lighting guide and the edit target: a code-built relief, lit by the game's sun from the upper left. Reskin it into a finished painted sprite, preserving its outline, placement, scale, transparent space and its light and shadow exactly: faces turned up and left are lit, faces turned down and right are in shade, and every shadow one part casts on another stays where the guide puts it. Do not re-light it, do not even it out, do not make it symmetrical. Read the guide's flat colours as materials: grey-violet = the swarm's chitin plates: smooth, curved, overlapping carapace like a beetle's wing-case or a crab's shell, glossy and organic with soft rounded edges and fine growth lines, never faceted, never stone, never masonry blocks; pale ivory = bone (tusks, spines); dark grey-green tubes = sinew roots; brown = churned, thrown-up soil; pale grey-tan blocks = broken slabs of human colony paving, real concrete pavers with chipped edges; dusky mauve = wet dark flesh; orange-amber spots = glowing amber nodes, painted as light coming from inside, not as flat dots. Straight overhead orthographic zenith camera looking straight down, no perspective. Genuine transparent background outside the silhouette, including the gaps between roots, slabs and plates; no ground plane, no cast shadow on the ground (that is drawn separately), no border, no text, no labels, no watermark. Crisp hand-painted 2D strategy-game sprite matching the existing swarm creature in the material reference: dark charcoal-purple segmented chitin with worn bone-grey edges, organic gunmetal-green sinew and under-plates, small warm amber glowing nodes. It is one designed bio-weapon organism (the same chitin as the swarm runner, grown for another job), never a plant, never a machine, never a different animal. It will be shown only about 60 to 160 pixels wide in play, so keep bold readable shapes, clear dark separations and strong value contrast rather than fine noise. Add material, surface detail, scratches, plate seams and wet highlights; never change the silhouette, the placement, the lighting direction or the transparent space.\n\nDAMAGE STATE: WOUNDED. This is the same structure as the undamaged painting in the identity reference, after it has taken heavy fire and lost about half its strength. Keep its painting identity exactly: the same plates, tusks, sacs, slabs and roots in the same places, the same colours, the same glossy hand-painted rendering, the same sun from the upper left. Show the damage the guide adds, and only that: where the guide shows a plate replaced by a low dusky-mauve patch with a jagged stump at its root, the plate has been torn out of its socket, leaving raw wet sinew and torn membrane, the broken stump's edge splintered and pale; where the guide cuts a dark groove across carapace or a sac, it is a fresh gash through the shell showing wet flesh beneath, edges cracked and chipped; a sac shown deflated with a raw crater at its crown has burst, its skin sagging and torn open, a little dark ichor around the wound; a short tusk or spine is snapped off, its broken end raw bone. The amber glow is weaker and fewer: the creature is hurt, not dead. It must still read at a glance as the same living structure, now visibly wounded.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\swarm-bore-2-wounded-guide.png",
+      "sha256": "3d5dc6228c3e7f9505825ad2cd5536110527f33e741dfe6807ddfb2e9260877a",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry and lighting guide and edit target for this damage state: exact silhouette, placement, scale and light-and-shadow authority, including every torn socket, gash, burst sac and snapped spine it shows; reskin it, never move, reshape, re-light or symmetrise it"
+    },
+    {
+      "path": "art-source\\swarm-bores\\raw\\bore-2.raw.png",
+      "sha256": "674c32de4e88e69e3ff5ecc83e02443fe4c30cb4bb5ce14116a5403dd42af93f",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Identity reference: the same structure undamaged, as already painted; keep its painting, colours and rendering, never its undamaged shape where the guide shows damage"
+    },
+    {
+      "path": "art-source\\alien-modular-topdown\\sources\\alien-body-source.png",
+      "sha256": "6c1cd9a54e6b39cb668a5eb8ece0147af382571ad7fe3db1e0e6af4e45755c5c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one wounded sprite, preserving the guide’s geometry and lighting."
+  ],
+  "usage": {
+    "input_tokens": 87911,
+    "cached_input_tokens": 68992,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1028,
+    "reasoning_output_tokens": 24
+  },
+  "elapsedSeconds": 70.7
+}
