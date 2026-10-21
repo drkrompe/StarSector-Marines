@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ff6-9a2d-72e3-a5b3-bc4ead8b1a31",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ff6-9a2d-72e3-a5b3-bc4ead8b1a31\\exec-b4ecb5c6-ec59-4e89-8f7c-32369dc52fc6.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-2\\raw\\s7.png",
+    "sha256": "bb26088869425c86056bca4bc3aed113eef0039d7a1525436db687f2c39d50f7",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\spitter-2\\prompts\\s7.prompt.txt",
+  "promptSha256": "3f2e30d05ddc45b670ac2a961a94c89c963dea92cbcba158c6fb452b3c75ec3d",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Tissue, palette and finish of the same organism (the Runner) only\nImage 2: Identity: this exact creature design, seen from above; draw it from the side\n\nConcept art for a tactical game. ONE creature, the SPITTER: the Rav Bloom swarm's fragile ranged strain (Starsector mod: Marines against an engineered biological weapon). It hangs back behind the melee Runners and lobs arcing globs of acid that splash infantry and can hit low drones. Original design, not StarCraft. Reference image 1 is the Runner, the same organism's melee strain: keep its tissue, palette and finish exactly (pale lilac and mauve glossy chitin plates worn as armour over muscled flesh, deep purple-magenta sinew in the gaps, ivory claws and spurs, a pale spine ridge of plates, small amber eyes). Beast first, chitin as armour, never insect-dominant; no wings, no antennae. This strain stands on TWO or THREE legs, not four, and is bilaterally SYMMETRIC (no lopsided growths). Its acid is a DEEP, DARK VENOM GREEN, dark bottle-green that glows from inside (not lime, not neon): the acid organ is translucent and shows that dark green glow through it. No forward arm blades.\n\nThis concept: SCORPION-TAILED BIPED. A compact biped with strong hind legs and short forelimbs, its long segmented armoured tail carried arched up and forward over its back and head, ending in a heavy translucent acid bulb with an ivory nozzle. It FIRES FROM THE TAIL: it plants its feet and the tail whips forward over its head, flinging the glob like a catapult.\n\nSIDE VIEW concept of the same creature in reference image 2 (keep its design exactly), seen in profile facing RIGHT, caught at the instant it FIRES: braced, the acid organ visibly squeezing, a single glob of dark glowing green acid just leaving the firing opening on a high upward arc toward the upper right. The firing mechanism must be clear. Full body visible, centred, wide landscape canvas. Plain flat light grey background (#b4b4b4), no ground line, no shadow, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\hero.png",
+      "sha256": "1fd084bdf713b942ea09dca5767d4ee1ac913bf17c5bcea8ae0d6ac62bcb41e8",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Tissue, palette and finish of the same organism (the Runner) only"
+    },
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-2\\raw\\c7.png",
+      "sha256": "76305515e8c56f332b90e5fb0c87452af7ef2bcb045e556430b0555bea0c68ed",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity: this exact creature design, seen from above; draw it from the side"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one side-view image, using Image 2 for the Spitter’s design and Image 1 for its tissue, palette, and finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 45382,
+    "cached_input_tokens": 32000,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 722,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 48.9
+}

@@ -10,6 +10,7 @@ and the three spore-colony grades (`structure.spore-colony-fissure`, `-bore`,
 | Guides | `python art-source/swarm-bores/make_guide.py` | `art-source/templates/swarm-<part>-<n>-guide.png` |
 | Reskin one variant (one paid call) | `bash art-source/swarm-bores/generate.sh <part> <n>` | `raw/<part>-<n>.raw.png` + provenance |
 | Export | `python art-source/swarm-bores/export.py` | `mod/graphics/structures/<name>-<n>.png` and `<name>-<n>-glow.png` |
+| Spore shots (code-drawn) | `python art-source/swarm-bores/spore_shots.py` | `mod/graphics/fx/spore-clump.png`, `spore-cluster.png`, `spore-lance.png` |
 | Recolour preview | `python art-source/swarm-bores/export.py --palette purple` (or `chitin`) | `build/swarm-bores/<palette>/` |
 
 Parts and variant counts are `make_guide.VARIANTS`: `bore` 3, `mother-bore` 2,
@@ -31,8 +32,17 @@ or mirrors these sprites. The reskin is asked to keep that light and shadow.
 shadow, a contact shade and the cracks the body heaved into the ground from
 the same heightfield, translucent and dark so it reads on paving, grass or
 creep; `export.py` lays it under the fitted reskin. The canvas is larger than
-the body (`CANVAS_CELLS`) so the shadow fits; the layer's `cells` in
-`turret-emplacements.turret.json` is that canvas size.
+the body (`CANVAS_CELLS`) so the shadow fits, and each part is drawn larger
+than it is modelled (`DISPLAY_SCALE`: bores 1.3, mother bore 1.25, colonies
+1.4) so it reads as a structure on a mass of creep; the layer's `cells` in
+`turret-emplacements.turret.json` is `make_guide.display_cells(part)`. The
+structure's hit radius and footprint are not scaled.
+
+**Anti-air look.** The colonies' weapons (`weapon.spore-burst-*`) carry
+`spore_shots.py`'s sprites and an `fx` block per grade (muzzle spit, a trail
+of glow and loose spores, an airburst, drifting spore haze); `flightSec` and
+`arcHeight` lob the slower grades. The glow layers set `fireFlash`, so a sac
+flares and swells as it fires. Review: `createSnapshots -Psnapshot=spore-colony-fire`.
 
 **Palette.** The shipped sprites are in the current runner palette. The
 guide's material map records which pixels are creature (chitin, sinew, bone,

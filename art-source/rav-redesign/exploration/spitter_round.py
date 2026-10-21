@@ -123,7 +123,55 @@ def pack_sheet(round_dir, root, out, title, names, nums=None):
     img.save(out)
 
 
+def fire_sheet(round_dir, root, out, title, names, nums=None):
+    """Like sheet(), with each concept's side view caught firing (raw/s<N>.png) beside its top-down plate,
+    so the sheet shows how the acid leaves the body as well as what the player sees from above."""
+    raws = concepts(round_dir, nums)
+    runner = facing_right(key_plate(RUNNER))
+    m32 = cut_marines(root, "rav-zoom32-marines", PPC32)
+    m17 = marine_cutouts(str(frames(root, "rav-zoom")[1]))
+    pav32 = ground_tiles(root, (290, 128))[0][1]
+    f17 = Image.open(frames(root, "rav-zoom")[0]).convert("RGBA")
+    img = Image.new("RGB", (1920, 1080), BG)
+    d = ImageDraw.Draw(img)
+    d.text((24, 10), title, font=font(24, True), fill=INK)
+    d.text((24, 40), "top-down plate | side view at the moment it fires | 32 px per cell: Spitter behind a Runner, a "
+                     "Marine ahead, live unit shadows | 17.1 px per cell at x2", font=font(14), fill=DIM)
+    cw, ch = 472, 500
+    for i, p in enumerate(raws):
+        col, row = i % 4, i // 4
+        x0, y0 = 12 + col * (cw + 6), 66 + row * (ch + 6)
+        d.rectangle([x0, y0, x0 + cw, y0 + ch], fill=(24, 28, 36))
+        num = int(p.stem[1:])
+        d.text((x0 + 10, y0 + 6), f"#{num}", font=font(26, True), fill=ACC)
+        if num - 1 < len(names):
+            d.text((x0 + 58, y0 + 12), names[num - 1], font=font(16, True), fill=INK)
+        cut = key_plate(p)
+        for path, (bx, bw) in ((p, (8, 140)), (p.with_name("s" + p.stem[1:] + ".png"), (154, 310))):
+            pb = Image.new("RGBA", (bw, 290), (180, 180, 180, 255))
+            if path.exists():
+                c = key_plate(path)
+                k = min((bw - 6) / c.width, 284 / c.height)
+                pl = c.convert("RGBa").resize((int(c.width * k), int(c.height * k)), Image.LANCZOS).convert("RGBA")
+                pb.alpha_composite(pl, ((bw - pl.width) // 2, (290 - pl.height) // 2))
+            img.paste(pb.convert("RGB"), (x0 + bx, y0 + 46))
+        rot = facing_right(cut)
+        t32 = pav32.copy()
+        place(t32, at_zoom(rot, PPC32, SPITTER_AREA), 55, 64, PPC32)
+        place(t32, at_zoom(runner, PPC32), 150, 64, PPC32)
+        place(t32, m32[i % len(m32)], 245, 64, PPC32)
+        img.paste(t32.convert("RGB"), (x0 + 8, y0 + 344))
+        d.text((x0 + 8, y0 + 478), "32 px/cell", font=font(13), fill=DIM)
+        t17 = f17.crop((700 + i * 24, 995, 700 + i * 24 + 82, 1055)).copy()
+        place(t17, at_zoom(rot, PPC17, SPITTER_AREA), 14, 30, PPC17)
+        place(t17, at_zoom(runner, PPC17), 42, 30, PPC17)
+        place(t17, m17[i % len(m17)], 70, 30, PPC17)
+        img.paste(t17.resize((164, 120), Image.NEAREST).convert("RGB"), (x0 + 302, y0 + 344))
+        d.text((x0 + 302, y0 + 478), "17.1 px/cell x2", font=font(13), fill=DIM)
+    img.save(out)
+
+
 if __name__ == "__main__":
-    fn = pack_sheet if "--pack" in sys.argv else sheet
-    a = [x for x in sys.argv[1:] if x != "--pack"]
+    fn = pack_sheet if "--pack" in sys.argv else fire_sheet if "--fire" in sys.argv else sheet
+    a = [x for x in sys.argv[1:] if x not in ("--pack", "--fire")]
     fn(a[0], a[1], a[2], a[3], a[4:])

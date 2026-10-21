@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ffb-fab9-77c3-865e-b212911d4ec1",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ffb-fab9-77c3-865e-b212911d4ec1\\exec-36db1d1f-a318-4474-b0d7-4b42cfc1ac7b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-3\\raw\\s4.png",
+    "sha256": "4ed972117b5e57c2495b3537790384b6b71054d35cbc93a7ed686bc2e8c97f99",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\spitter-3\\prompts\\s4.prompt.txt",
+  "promptSha256": "96033fb0cd190edef138f91e2c26e1aa6fb217401667858a100a1c4b8078ee64",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The Runner: tissue structure only; not its colours or body plan\nImage 2: Identity: this exact creature design and colours, seen from above; draw it from the side\n\nConcept art for a tactical game. ONE creature, the SPITTER: the Rav Bloom swarm's fragile ranged strain (Starsector mod: Marines against an engineered biological weapon). It hangs back behind the melee Runners and lobs arcing globs of acid that splash infantry and can hit low drones. Original design, not StarCraft. It must look clearly DIFFERENT from the Runner (reference image 1, a pale lilac blade-armed hound): a different colour scheme and a different, heavier, rounder body mass, so a player tells them apart at a glance from far above. It is still the same engineered organism, so keep only the tissue STRUCTURE of reference 1 (armour plates over muscled flesh, sinew in the gaps, bone claws), NOT its colours. Beast first, never insect-dominant; no wings, no antennae, no forward arm blades. It stands on TWO or THREE legs and is bilaterally SYMMETRIC. Its acid is a DEEP, DARK VENOM GREEN that glows from inside a translucent acid organ.\n\nCOLOURS: deep INDIGO and blue-violet carapace (cool, dark, glossy), teal-tinged sinew, dark green glowing reservoir. Ivory claws.\n\nBODY AND FIRING: A squat, very wide toad-like biped, legs splayed out to the sides as braces, a broad flat head. On its back a round reservoir with twin short bone mortar tubes side by side. It squats and pumps two globs at once out of the twin tubes.\n\nSIDE VIEW concept of the same creature in reference image 2 (keep its design and colours exactly), seen in profile facing RIGHT, caught at the instant it FIRES: braced, the acid organ visibly squeezing, a single glob of dark glowing green acid just leaving the firing opening on a high upward arc toward the upper right. The firing mechanism must be clear. Full body visible, centred, wide landscape canvas. Plain flat light grey background (#b4b4b4), no ground line, no shadow, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\hero.png",
+      "sha256": "1fd084bdf713b942ea09dca5767d4ee1ac913bf17c5bcea8ae0d6ac62bcb41e8",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "The Runner: tissue structure only; not its colours or body plan"
+    },
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-3\\raw\\c4.png",
+      "sha256": "28db873e6bddea1b3af7995bc4cf72b5d926bebf17536c9beedff012d37255c1",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity: this exact creature design and colours, seen from above; draw it from the side"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one side-profile image of the Spitter, preserving its design and colours and showing the acid-firing mechanism.\n"
+  ],
+  "usage": {
+    "input_tokens": 45358,
+    "cached_input_tokens": 37120,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 716,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 64.1
+}

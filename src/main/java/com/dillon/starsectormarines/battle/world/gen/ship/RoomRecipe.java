@@ -281,9 +281,13 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
     public static final RoomRecipe SECOND_WIND_RANGE = new RoomRecipe(
             RoomPurpose.FIRING_RANGE, RoomShape.rectangle(16, 6), DeckZone.MIDSHIPS, 0);
 
-    /** Gymnasium, with room for a running loop round its edge once it is fitted. */
+    /**
+     * Gymnasium, the cruise-ship layout once it is fitted: a running track round
+     * the compartment, the equipment floor and a pool. The size of
+     * {@link #GRAND_GYM}, but supplying nothing until the refit opens it.
+     */
     public static final RoomRecipe SECOND_WIND_GYM = new RoomRecipe(
-            RoomPurpose.GYMNASIUM, RoomShape.rectangle(12, 8), DeckZone.MIDSHIPS, 0);
+            RoomPurpose.GYMNASIUM, GRAND_GYM.shape(), DeckZone.MIDSHIPS, 0);
 
     /** Sick bay: a few beds and a treatment station, and later a rehab pool. */
     public static final RoomRecipe SECOND_WIND_SICK_BAY = new RoomRecipe(

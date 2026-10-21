@@ -26,24 +26,26 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Second Wind's reserves across layout seeds: every one is placed, sealed and
- * walled off, and reserving them leaves every programmed room exactly as it
- * was laid without them — its place, floor, furniture, doors and berths.
+ * Second Wind's reserves on her one deck: her arrangement pins the layout
+ * seed, so every campaign lays the same deck, and on it every reserve is
+ * placed, sealed and walled off. The gymnasium is laid ahead of the mess and
+ * owns its ground; the other reserves are laid after the program and leave
+ * every room before them exactly as it was laid without them — its place,
+ * floor, furniture, doors and berths.
  *
- * <p>Evidence rather than a unit test: it lays the real hull's deck twice per
- * seed to ask its question. See {@code second-wind-refit-tree.md}.
+ * <p>Evidence rather than a unit test: it lays the real hull's deck several
+ * times to ask its question. See {@code second-wind-refit-tree.md}.
  */
 @Tag("generated-space-evidence")
 class SecondWindReservesEvidence {
 
-    private static final int SEEDS = 60;
-    /** Layouts the opened reserves are checked on; each costs two deck generations. */
-    private static final int OPEN_SEEDS = 20;
+    /** Seeds a caller might pass; the pinned layout ignores every one. */
+    private static final List<Long> CALLER_SEEDS = List.of(42L, 81L, 417L, 2026L, 987654L);
 
-    /** What each opened reserve publishes, and the fewest such places it keeps on any layout. */
+    /** What each opened reserve publishes on her deck. */
     private static final Map<ReservedFacility, Map<Affordance, Integer>> PUBLISHES = Map.of(
             ReservedFacility.FIRING_RANGE, Map.of(Affordance.PRACTICE, 3),
-            ReservedFacility.GYMNASIUM, Map.of(Affordance.EXERCISE, 6),
+            ReservedFacility.GYMNASIUM, Map.of(Affordance.EXERCISE, 16, Affordance.UNWIND, 3),
             ReservedFacility.SICK_BAY, Map.of(Affordance.TREAT, 4),
             ReservedFacility.REC_LOUNGE, Map.of(Affordance.UNWIND, 6),
             ReservedFacility.BRIG, Map.of(Affordance.GUARD, 1));
@@ -65,18 +67,33 @@ class SecondWindReservesEvidence {
     }
 
     @Test
-    void reservesPlaceOnEveryLayoutWithoutMovingTheProgram() throws Exception {
+    void everySeedLaysTheSameDeck() throws Exception {
+        var plan = secondWind().deckPlan();
+        var first = new ShipDeckGenerator();
+        MapResult m0 = first.generateDeck(plan, CALLER_SEEDS.get(0), outline);
+        for (long seed : CALLER_SEEDS.subList(1, CALLER_SEEDS.size())) {
+            var gen = new ShipDeckGenerator();
+            MapResult m = gen.generateDeck(plan, seed, outline);
+            assertEquals(first.getLastDeckGraph().compartments(), gen.getLastDeckGraph().compartments(),
+                    "seed " + seed + " laid a different deck");
+            assertEquals(berths(m0), berths(m), "seed " + seed + " moved a berth");
+        }
+    }
+
+    @Test
+    void reservesPlaceWithoutMovingTheProgram() throws Exception {
         var ship = secondWind();
         var plan = ship.deckPlan();
         assertEquals(106, plan.frames(), "reserves never size the deck");
         assertEquals(79, plan.height(), "reserves never size the deck");
         var arrangement = plan.arrangement();
-        var bare = plan.withArrangement(new DeckArrangement(arrangement.name(), arrangement.sites(), arrangement.fairings()));
-        int program = plan.rooms().size();
+        // Reserves laid ahead of a programmed room own their ground; the rest must not move anything.
+        var early = arrangement.reserves().stream().filter(r -> r.laidBefore() != null).toList();
+        var bare = plan.withArrangement(new DeckArrangement(arrangement.name(), arrangement.sites(),
+                arrangement.fairings(), early, arrangement.layoutSeed()));
+        int program = plan.rooms().size() + early.size();
 
-        List<Long> seeds = new ArrayList<>(List.of(42L, 81L, 417L, 2026L, 987654L));
-        for (long i = 1; seeds.size() < SEEDS; i++) seeds.add(i * 7919L);
-        for (long seed : seeds) {
+        for (long seed : List.of(42L)) {
             var without = new ShipDeckGenerator();
             MapResult m0 = without.generateDeck(bare, seed, outline);
             var with = new ShipDeckGenerator();
@@ -118,7 +135,7 @@ class SecondWindReservesEvidence {
     }
 
     /**
-     * Opening every reserve on the same layout moves nothing: every compartment,
+     * Opening every reserve on her deck moves nothing: every compartment,
      * door and berth is where the sealed deck has it, and everything outside the
      * reserves is furnished and worked exactly as before. Inside, each reserve is
      * in service, entered through working hatches, publishing its work where
@@ -133,9 +150,7 @@ class SecondWindReservesEvidence {
         assertEquals(closedPlan.frames(), openPlan.frames());
         assertEquals(closedPlan.height(), openPlan.height());
 
-        List<Long> seeds = new ArrayList<>(List.of(42L, 81L, 417L, 2026L, 987654L));
-        for (long i = 1; seeds.size() < OPEN_SEEDS; i++) seeds.add(i * 104729L);
-        for (long seed : seeds) {
+        for (long seed : List.of(42L)) {
             var sealedGen = new ShipDeckGenerator();
             MapResult m0 = sealedGen.generateDeck(closedPlan, seed, outline);
             var openGen = new ShipDeckGenerator();
