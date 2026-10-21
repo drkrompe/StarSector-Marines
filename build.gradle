@@ -243,6 +243,15 @@ def commanderEvidenceTags = [
         corvus: 'corvus-command-evidence',
         raid: 'raid-command-evidence',
         extraction: 'extraction-command-evidence',
+        'yard-owners': 'yard-owners-command-evidence',
+        'water-under-seal': 'water-under-seal-command-evidence',
+        'limited-warrant': 'limited-warrant-command-evidence',
+        'district-escort': 'district-escort-command-evidence',
+        'terms-of-protection': 'terms-of-protection-command-evidence',
+        'small-war': 'small-war-command-evidence',
+        'salvage-rights': 'salvage-rights-command-evidence',
+        'cold-start': 'cold-start-command-evidence',
+        'working-passage': 'working-passage-command-evidence',
 ]
 
 // Crewing two whole hulls and running each for four minutes of ship's time is
@@ -533,6 +542,15 @@ tasks.register('commanderEvidence', Test) {
                 corvus: 'corvus.command.evidence',
                 raid: 'raid.command.evidence',
                 extraction: 'extraction.command.evidence',
+                'yard-owners': 'story.command.evidence',
+                'water-under-seal': 'story.command.evidence',
+                'limited-warrant': 'story.command.evidence',
+                'district-escort': 'story.command.evidence',
+                'terms-of-protection': 'story.command.evidence',
+                'small-war': 'story.command.evidence',
+                'salvage-rights': 'story.command.evidence',
+                'cold-start': 'story.command.evidence',
+                'working-passage': 'story.command.evidence',
         ][commanderEvidenceMission]
         // -PevidenceDir=<path> writes this run's report elsewhere, so a run and its control run can sit side by side.
         def evidenceDir = providers.gradleProperty('evidenceDir').getOrElse('').trim()
@@ -583,7 +601,7 @@ tasks.register('commanderEvidence', Test) {
     doFirst {
         if (!commanderEvidenceTags.containsKey(commanderEvidenceMission)) {
             throw new GradleException(
-                    'commanderEvidence requires -Pmission=conquest, conquest-trial, sabotage, assault, relief, counterattack, junction, relay-nine, thunder-run, last-lift, supply-route, power-suit-campaign, corvus, raid, or extraction')
+                    'commanderEvidence requires -Pmission=' + commanderEvidenceTags.keySet().join(', '))
         }
     }
     testLogging {
