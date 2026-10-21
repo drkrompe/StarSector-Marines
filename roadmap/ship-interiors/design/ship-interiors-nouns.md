@@ -5,7 +5,9 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-21 — interior tech styles named; low-tech is the strung-lamp, plate-deck, stored-cargo look from Deficit to Restored; midline and high-tech open.
+Updated: 2026-10-21 — moving props: a fixture may carry a part that runs (belt, fan, crane bridge, lift carriage), gated by power and by somebody actually at work on it.
+
+Earlier 2026-10-21 — interior tech styles named; low-tech is the strung-lamp, plate-deck, stored-cargo look from Deficit to Restored; midline and high-tech open.
 
 Earlier 2026-10-21 — Second Wind's arrangement also carries sealed reserves for her refit tree, laid after the program so they never move it.
 
@@ -114,6 +116,9 @@ authored content.
   parked asset uses its continuous centre and the gantry's authored cardinal heading
   along its long axis toward the berth mouth and shared inboard service lane. That
   heading is both the storage pose and the deployment route.
+  A full-depth ship's bay carries a travelling crane on runway girders over
+  its frame columns; the crane is overhead structure, so the berth beneath it
+  stays clear.
   Generation authors the berth; a host decides what occupies it. This is the
   same division a landing pad has with a shuttle, and it is what lets one
   generated bay be the player's own lab on the home deck, a half-empty bay on a
@@ -348,6 +353,22 @@ authored content.
   tactical effect — cover, blocking, sightline — and its **ambient affordance**,
   the activity an idle crew member performs at it. A berth affords rest; a gantry
   affords work; a firing lane affords practice.
+- A **moving prop** is a fixture with a part that runs: a fan turning, a belt
+  conveyor or treadmill belt running, a rowing seat sliding, a lift carriage
+  working a rack, a travelling crane crossing a bay overhead. The part is
+  presentation over a static base and never moves the fixture's footprint,
+  cover or blocking; it stays over deck the fixture, or the bay it spans,
+  already owns. What makes it run is what the deck already knows: the ship's
+  power, so a plant at Deficit turns its fans slowly and stops its belts, and,
+  for a machine that is worked, **somebody at work on it** — a task point on
+  the fixture whose claimant has that job in hand, not one walking toward it.
+  A crane over an empty berth stands still, because a berth's work exists only
+  while something is parked there. A machine that stops stops where it stands
+  and picks up from there. Motion belongs to the fixture's identity rather than
+  to a room, so a conveyor runs in every room that holds one; a wrecked fixture
+  is a different fixture and does not run. A crew member's work motion and the
+  prop's own motion read the same fact, so the two cannot disagree about
+  whether the job is being done.
 - A **job** is one thing a fixture affords, sited at the cell it is done from.
   It is the authored half: generation knows which berth a job belongs to and
   whether its fixture is in service, and both are spent when the deck is staffed
@@ -578,10 +599,11 @@ intelligence or introduce a briefing simulation.
 
 Provisions bays receive cargo through the near short bulkhead onto a clear
 four-cell apron. A manifest desk faces the receiving floor; a parked pallet
-tug and a short continuous roller conveyor form the handling flank. Three
+tug and a short continuous belt conveyor form the handling flank. Three
 staged pallet loads sit apart from one layered picking rack, with insulated
 totes and strapped dry provisions drawn separately from their physical beds
-and retaining frame. Quiet staging surfaces identify the pallet positions.
+and retaining frame, and a lift carriage on a guide rail down its aisle face
+works the shelves while stowage is under way. Quiet staging surfaces identify the pallet positions.
 The central handling aisle and perimeter routes connect all work to the hatch;
 whole assemblies yield to obstructed approaches. Readings belong to the desk,
 tending to the tug, repair and handling to the conveyor, and stowage to the
@@ -830,22 +852,13 @@ engineering, medical and service uniforms use independent overhead body, head
 and foot layers through the ordinary infantry compositor. Clothing changes no
 combat statistics or marine equipment.
 
-**Work looks like the work.** A job is shown by a **work motion**, chosen from
-the affordance and refined by the fixture it is done at: the same COOK is
-stirring at the range and chopping at the prep bench, TEND is a wrench at the
-machinery and a hand on the board at its control console, EXERCISE is running
-on a treadmill, rowing, pressing or lifting. Servicing a berthed machine is
-welding, with the torch and its sparks drawn on the technician wherever the bay
-is seen from, not by one screen's overlay. A ship's medic at a ward bed kneels
-with the kit open, exactly as a squad medic does over a casualty. Stores
-handling is the one job done between points, so the walk from one stowage stop
-to the next carries a crate. The motion is a presentation of the job and never
-its substance: it does not change how long a job takes, who may claim it, or
-where the worker stands — a treadmill's runner is drawn on the belt while their
-claim stays on the cell beside it. Motions are one vocabulary
-(`WorkMotion`), not per-role code; animated fixtures such as belts and lifts are
-the fixture's own art and meet the worker through the same claim and focus. A
-family without station arms simply shows less of the motion.
+Aboard, work motions (`ai-nouns.md`) give the deck's trades their look:
+servicing a berthed machine is welding, drawn on the technician wherever the bay
+is seen from rather than by one screen's overlay; the medic kneels at a ward
+bed; the galley stirs and chops; the plant is worked with a wrench and its
+control board by hand; the gym's machines are run, rowed and pressed. None of
+it is shipboard machinery — the deck only furnishes the fixtures the motions
+read.
 
 **The ship runs; a screen is a camera.** A deck is manned everywhere it has work
 and advanced as a whole, and the screens that look at parts of it choose a

@@ -470,22 +470,37 @@ If a later program change moves rooms, the reserve evidence fails before a
 save notices; the same evidence opens every reserve on the same layouts and
 fails if anything moves or a range lane is crossed.
 
-## Materials and AI cores
+## Materials and exotic parts
 
 Credits are not the only price (owner, 2026-10-21). Most tiers also take
 materials from fleet cargo: metals for structure and plating, heavy machinery for
 the plant, the drive and the galley, transplutonics for flux and sensor work. The
-original distribution and mess orders stay credits-only. The tiers that start
-making her more than a frigate are gated on AI cores, the base game's own measure
-of something powerful:
+original distribution and mess orders stay credits-only.
 
-| Tier | Core |
-|---|---|
-| Compute: processing cluster | gamma |
-| Compute: tactical core (gates the military flux grid and sensor suite) | beta |
-| Flux: military flux grid | alpha |
+The top of the tree is end-game content, gated on exotic parts the player
+already hunts for on the sector's outskirts (owner, same day). An exotic part
+is a hard requirement: there is no credit-heavy alternative, because everything
+below it stays reachable without one. The exotic parts are the alpha, beta and
+gamma cores and nothing else for now: **colony items never go into the ship**,
+the Threat's and the abyss's special items were tried and dropped, and a relic
+part (the owner's "relics") must work in the base game without another mod,
+so it waits for a source the game itself provides. The comfort rooms (mess,
+gym, lounge, hydroponics, wardroom, holds) take no core, and nothing asks for
+one to reach Restored.
 
-The bill is `RefitOrder.materials()`; quantities are placeholders with the prices.
+| Tier | Core | Why there |
+|---|---|---|
+| Compute: processing cluster | gamma | |
+| Compute: tactical core (gates the military flux grid and sensor suite) | beta | |
+| Flux: military flux grid | alpha | |
+| Range: simulator | gamma | runs the opposing force |
+| Sick bay: trauma | gamma | diagnostics |
+| Briefing room II | gamma | threat projection on the holo-tank |
+| Mech calibration II | beta | mech fire control |
+
+The physical-plant tops (auxiliary plant, Drive II, Sensors II, mech field
+repair II) are where a relic part would go. The bill is
+`RefitOrder.materials()`; quantities are placeholders with the prices.
 
 ## Credit curve
 

@@ -33,7 +33,7 @@ public final class MarineInsertion extends AirDeliveryPower {
     }
 
     MarineInsertion(Random loadoutRng) {
-        super(ID, "Marine Drop", 3f, 1, 2, 2,
+        super(ID, "@battlePowerMarineDrop", 3f, 1, 2, 2,
                 ShuttleType.VALKYRIE, InfantryPayload.INSTANCE, 4);
         this.loadoutRng = Objects.requireNonNull(loadoutRng, "loadoutRng");
     }

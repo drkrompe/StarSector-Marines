@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.warship.LowPass;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipOrder;
@@ -71,18 +72,18 @@ final class BattleDirectWarshipStatus {
                 + (ship.laidArea(Warship.FireGroup.MISSILES) != null ? 1 : 0);
         int held = ship.areas().size() - laidCount;
         if (guns.total > 0) {
-            cards.add(batteryCard("GUNS", "[LMB] GUNS", ship, guns, Warship.FireGroup.GUNS, held, gunsExposed));
+            cards.add(batteryCard("GUNS", Strings.get("battleWsGuns"), ship, guns, Warship.FireGroup.GUNS, held, gunsExposed));
         }
         if (lances.total > 0) {
             cards.add(lanceCard(ship, lances));
         }
         if (missiles.total > 0) {
-            cards.add(batteryCard("MISSILES", "[RMB] MISSILES", ship, missiles,
+            cards.add(batteryCard("MISSILES", Strings.get("battleWsMissiles"), ship, missiles,
                     Warship.FireGroup.MISSILES, held, missilesExposed));
         }
         if (pointDefence > 0) {
-            cards.add(new ShipCard("PD", "POINT DEF", "intercepts " + intercepts,
-                    pointDefence + " mounts", "AUTO", Tone.READY, 1f));
+            cards.add(new ShipCard("PD", Strings.get("battleWsPd"), Strings.format("battleWsPdIntercepts", intercepts),
+                    Strings.format("battleWsPdMounts", pointDefence), Strings.get("battleWsAuto"), Tone.READY, 1f));
         }
         if (!ship.shieldType().equals("none")) {
             cards.add(shieldCard(ship));
@@ -115,37 +116,37 @@ final class BattleDirectWarshipStatus {
     private static ShipCard batteryCard(String key, String name, Warship ship, Battery b,
                                         Warship.FireGroup group, int held, boolean exposed) {
         WarshipOrder.FireOnArea laid = ship.laidArea(group);
-        String hold = group == Warship.FireGroup.GUNS ? "HOLD LMB ON MAP" : "HOLD RMB ON MAP";
-        String detail = laid != null ? area(laid) : held > 0 ? "AUTO " + held : hold;
-        String resource = b.limitedAmmo ? b.ammo + " rd" : b.ready + "/" + b.total;
+        String hold = group == Warship.FireGroup.GUNS ? Strings.get("battleWsHoldLmb") : Strings.get("battleWsHoldRmb");
+        String detail = laid != null ? area(laid) : held > 0 ? Strings.format("battleWsAutoCount", held) : hold;
+        String resource = b.limitedAmmo ? Strings.format("battleWsRounds", b.ammo) : Strings.format("battleWsReadyOfTotal", b.ready, b.total);
         String state;
         Tone tone;
         if (ship.groundFire() == Warship.GroundFire.HOLD) {
-            state = "HOLD";
+            state = Strings.get("battleWsHold");
             tone = Tone.WARN;
         } else if (ship.overloaded()) {
-            state = "OVERLOAD";
+            state = Strings.get("battleWsOverload");
             tone = Tone.WARN;
         } else if (b.limitedAmmo && b.ammo <= 0) {
-            state = "EMPTY";
+            state = Strings.get("battleWsEmpty");
             tone = Tone.WARN;
         } else if (laid != null && exposed) {
-            state = "DANGER";
+            state = Strings.get("battleWsDanger");
             tone = Tone.WARN;
         } else if (b.bursting > 0) {
-            state = "FIRING";
+            state = Strings.get("battleWsFiring");
             tone = Tone.BUSY;
         } else if (ship.groundFire() == Warship.GroundFire.HEAVY && group == Warship.FireGroup.GUNS) {
-            state = "HEAVY";
+            state = Strings.get("battleWsHeavy");
             tone = Tone.BUSY;
         } else if (laid != null) {
-            state = "LAID";
+            state = Strings.get("battleWsLaid");
             tone = Tone.READY;
         } else if (held > 0) {
-            state = "AUTO";
+            state = Strings.get("battleWsAuto");
             tone = Tone.READY;
         } else {
-            state = "IDLE";
+            state = Strings.get("battleWsIdle");
             tone = Tone.BUSY;
         }
         return new ShipCard(key, name, detail, resource, state, tone, fraction(b.ready, b.total));
@@ -155,41 +156,41 @@ final class BattleDirectWarshipStatus {
         String state;
         Tone tone;
         if (ship.groundFire() == Warship.GroundFire.HOLD) {
-            state = "HOLD";
+            state = Strings.get("battleWsHold");
             tone = Tone.WARN;
         } else if (ship.overloaded()) {
-            state = "OVERLOAD";
+            state = Strings.get("battleWsOverload");
             tone = Tone.WARN;
         } else if (b.sweeping > 0) {
-            state = "BURNING";
+            state = Strings.get("battleWsBurning");
             tone = Tone.BUSY;
         } else if (b.ready > 0) {
-            state = "READY";
+            state = Strings.get("battleWsReady");
             tone = Tone.READY;
         } else {
-            state = "RESTING";
+            state = Strings.get("battleWsResting");
             tone = Tone.BUSY;
         }
-        return new ShipCard("LANCES", "LANCES", "with LMB",
-                b.limitedAmmo ? b.ammo + " rd" : b.ready + "/" + b.total, state, tone, fraction(b.ready, b.total));
+        return new ShipCard("LANCES", Strings.get("battleWsLances"), Strings.get("battleWsLancesHint"),
+                b.limitedAmmo ? Strings.format("battleWsRounds", b.ammo) : Strings.format("battleWsReadyOfTotal", b.ready, b.total), state, tone, fraction(b.ready, b.total));
     }
 
     /** What the pilot flies with, and how to get out, so the strip says how to start. */
     static ShipCard helmCard(Warship ship) {
         float speed = ship.speed();
-        return new ShipCard("HELM", "[WASD] FLY", "[TAB] LEAVE", "",
-                speed > 0.05f ? "UNDERWAY" : "HOVER", speed > 0.05f ? Tone.BUSY : Tone.READY, 1f);
+        return new ShipCard("HELM", Strings.get("battleWsHelmFly"), Strings.get("battleWsHelmLeave"), "",
+                speed > 0.05f ? Strings.get("battleWsUnderway") : Strings.get("battleWsHover"), speed > 0.05f ? Tone.BUSY : Tone.READY, 1f);
     }
 
     static ShipCard shieldCard(Warship ship) {
-        String state = ship.shieldState().toUpperCase(Locale.ROOT);
+        String state = Strings.get("battleWsShield" + ship.shieldState());
         Tone tone = switch (ship.shieldState()) {
             case "up" -> Tone.READY;
             case "off" -> Tone.WARN;
             default -> Tone.BUSY;
         };
-        return new ShipCard("SHIELD", "[E] SHIELD", ship.shieldType().toUpperCase(Locale.ROOT)
-                + (ship.shieldAuto() ? " AUTO" : " HELD"), Math.round(ship.shieldLevel() * 100f) + "%",
+        return new ShipCard("SHIELD", Strings.get("battleWsShieldKey"), Strings.format(ship.shieldAuto() ? "battleWsShieldAuto" : "battleWsShieldHeld",
+                Strings.get("battleWsShieldType" + ship.shieldType())), Math.round(ship.shieldLevel() * 100f) + "%",
                 state, tone, ship.shieldLevel());
     }
 
@@ -197,44 +198,44 @@ final class BattleDirectWarshipStatus {
     static ShipCard passCard(Warship ship) {
         LowPass pass = ship.lowPass();
         float left = ship.stationSecondsRemaining();
-        String time = left == Float.POSITIVE_INFINITY ? "" : Math.round(left) + " s station";
+        String time = left == Float.POSITIVE_INFINITY ? "" : Strings.format("battleWsStationSeconds", Math.round(left));
         if (ship.lowPassing()) {
             boolean onLine = pass.onLine();
-            return new ShipCard("PASS", "[F] LOW PASS", onLine ? "ON THE LINE" : "RUNNING IN", time,
-                    onLine ? "PASSING" : "RUN-IN", Tone.BUSY,
+            return new ShipCard("PASS", Strings.get("battleWsPassKey"), Strings.get(onLine ? "battleWsPassOnLine" : "battleWsPassRunningIn"), time,
+                    Strings.get(onLine ? "battleWsPassing" : "battleWsRunIn"), Tone.BUSY,
                     Math.max(0f, Math.min(1f, pass.progress() / Math.max(1f, pass.length()))));
         }
         float least = LowPass.stationCost(LowPass.secondsToCover(LowPass.MIN_LENGTH_CELLS,
                 ship.maxSpeed, ship.acceleration));
         boolean affordable = left == Float.POSITIVE_INFINITY || left >= least;
-        return new ShipCard("PASS", "[F] LOW PASS", "TO CURSOR  x2 TIME", time,
-                affordable ? "READY" : "NO TIME", affordable ? Tone.READY : Tone.WARN, affordable ? 1f : 0f);
+        return new ShipCard("PASS", Strings.get("battleWsPassKey"), Strings.get("battleWsPassToCursor"), time,
+                Strings.get(affordable ? "battleWsReady" : "battleWsNoTime"), affordable ? Tone.READY : Tone.WARN, affordable ? 1f : 0f);
     }
 
     private static ShipCard automationCard(Warship ship) {
         boolean on = ship.isDirected();
         String detail = ship.hasBattery(Warship.FireGroup.MISSILES)
-                ? "[1] HOLD  [3] MSL " + ship.missilePreset().name() : "[1] HOLD FIRE";
+                ? Strings.format("battleWsDirectorMissiles", ship.missilePreset().name()) : Strings.get("battleWsDirectorHold");
         String policy = switch (ship.groundFire()) {
-            case ALL -> "ALL";
-            case HEAVY -> "HEAVY";
-            case HOLD -> "NONE";
+            case ALL -> Strings.get("battleWsPolicyAll");
+            case HEAVY -> Strings.get("battleWsPolicyHeavy");
+            case HOLD -> Strings.get("battleWsPolicyNone");
         };
-        return new ShipCard("DIRECTOR", "[2] DIRECTOR", detail, "[4] " + policy, on ? "ON" : "OFF",
+        return new ShipCard("DIRECTOR", Strings.get("battleWsDirectorKey"), detail, Strings.format("battleWsPolicy", policy), Strings.get(on ? "battleWsOn" : "battleWsOff"),
                 on ? Tone.READY : Tone.BUSY, on ? 1f : 0f);
     }
 
     static FluxStatus flux(Warship ship) {
-        if (!ship.fluxLimited()) return new FluxStatus(false, 0f, "FLUX OFF", "UNLIMITED", Tone.READY);
+        if (!ship.fluxLimited()) return new FluxStatus(false, 0f, Strings.get("battleWsFluxOff"), Strings.get("battleWsUnlimited"), Tone.READY);
         float fraction = Math.max(0f, Math.min(1f, ship.fluxFraction()));
-        String state = ship.fluxState().toUpperCase(Locale.ROOT);
-        if (ship.overloaded()) state += String.format(Locale.ROOT, " %.1fs", ship.overloadSecondsRemaining());
+        String state = Strings.get("battleWsFlux" + ship.fluxState());
+        if (ship.overloaded()) state = Strings.format("battleWsFluxOverload", state, String.format(Locale.ROOT, "%.1f", ship.overloadSecondsRemaining()));
         Tone tone = ship.overloaded() ? Tone.WARN : fraction >= SOFT_FLUX ? Tone.WARN : Tone.READY;
-        return new FluxStatus(true, fraction, "FLUX " + Math.round(fraction * 100f) + "%", state, tone);
+        return new FluxStatus(true, fraction, Strings.format("battleWsFluxPercent", Math.round(fraction * 100f)), state, tone);
     }
 
     private static String area(WarshipOrder.FireOnArea area) {
-        return "AREA " + Math.round(area.x()) + "," + Math.round(area.y());
+        return Strings.format("battleWsArea", Math.round(area.x()), Math.round(area.y()));
     }
 
     private static float fraction(int part, int whole) {

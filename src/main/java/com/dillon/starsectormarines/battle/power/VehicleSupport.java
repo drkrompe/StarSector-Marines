@@ -43,7 +43,7 @@ public final class VehicleSupport extends AirDeliveryPower {
 
     private VehicleSupport(List<VehicleDeploymentSpec> deployments, FittedBoat companyCarrier,
                            boolean syntheticLift) {
-        super(ID, "Armour Support", 3f,
+        super(ID, "@battlePowerArmourSupport", 3f,
                 deployments.isEmpty() ? UNCONFIGURED_CHARGES : deployments.size(), 0, 2,
                 ShuttleType.VALKYRIE, VehicleSupportPayload.INSTANCE, 5,
                 companyCarrier, syntheticLift);

@@ -1,0 +1,9 @@
+Use case: style-matched variant of an existing product render. Asset: the armory catalogue image of one marine armour suit, for a gritty military dark-science-fiction tactical game in the Starsector setting.
+
+Image 1 is the finished armory image of the base suit this pattern belongs to: it is the authority for the design, palette, plate shapes, markings, composition, camera, lighting and realistic hand-painted finish. Produce a variant of this same suit that a player recognises at once as a sibling of Image 1, changing only what is described below and keeping everything else as Image 1 has it.
+
+Image 2 shows how this suit is drawn in battle, from directly overhead (left: the torso and shoulder plates; right: the helmet top). The variant must still match it in palette and silhouette character. Never show the overhead view itself.
+
+Outrider deep-recon suit: a Persean League coalition scout suit a section can live in for a week. Keep the dark navy and slate plate palette, add a large rugged endurance pack with water bladders and a bedroll standing behind the vest, a tall folding net antenna and a compact array block, faded teal coalition maintenance tags and a small plate of three abstract bars (no letters). Long-endurance, well kept, more kit than armour.
+
+Square 1:1 canvas with every piece fully inside the frame and a clear margin. True transparent background, including the gaps between pieces; no ground, no cast-shadow slab, no border, no text, letters, numbers, logos or watermark, no person or face inside the suit, no weapon held or worn except an item named above.

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f7e-bba4-7a21-a40c-4d5d73c0f617",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f7e-bba4-7a21-a40c-4d5d73c0f617\\exec-2c79d052-f55d-431e-9a5c-08b8f1581168.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\raw\\corpsman.raw.png",
+    "sha256": "e534c29b57ebbcd3f84aa786cd2dd41e6212ba49c64e6fc88fb4c090117b6cf9",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\prompts\\corpsman.prompt.txt",
+  "promptSha256": "2dc7d330d3f57b9d0fceca6978c186f5498b8d909930ca082a1fb3a4c6a3b2c9",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Base design authority: the finished armory image of the suit this pattern varies; design, palette, composition and finish\nImage 2: Identity: the same suit seen from directly overhead in battle; palette and silhouette character\n\nUse case: style-matched variant of an existing product render. Asset: the armory catalogue image of one marine armour suit, for a gritty military dark-science-fiction tactical game in the Starsector setting.\n\nImage 1 is the finished armory image of the base suit this pattern belongs to: it is the authority for the design, palette, plate shapes, markings, composition, camera, lighting and realistic hand-painted finish. Produce a variant of this same suit that a player recognises at once as a sibling of Image 1, changing only what is described below and keeping everything else as Image 1 has it.\n\nImage 2 shows how this suit is drawn in battle, from directly overhead (left: the torso and shoulder plates; right: the helmet top). The variant must still match it in palette and silhouette character. Never show the overhead view itself.\n\nCorpsman field rig: the Hegemony's section corpsman, equipped properly. Keep the olive-drab Legionary suit, add a compact powered harness carrying a surgeon's worth of consumables: a refrigerated medical case on the back with a small pale frost-blue status lamp, rows of olive medical pouches, a clamp rack of injector tubes on the chest, and an off-white helmet band and shoulder patch with a small khaki medical mark of a plain ring and bar (no red cross, no text). Both hands free: nothing in the gauntlets.\n\nSquare 1:1 canvas with every piece fully inside the frame and a clear margin. True transparent background, including the gaps between pieces; no ground, no cast-shadow slab, no border, no text, letters, numbers, logos or watermark, no person or face inside the suit, no weapon held or worn except an item named above.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\mod\\graphics\\ui\\armory\\armor-army-green.png",
+      "sha256": "6af6d4cc2050fdc19a64632cad8ab44709e128327d728fa9f2b8e7f19d94c904",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Base design authority: the finished armory image of the suit this pattern varies; design, palette, composition and finish"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\refs\\army-green-identity.png",
+      "sha256": "be6b9a2abaca624ae0422d9d5672a7fd36e153f8689f94bec9f0163c81fda981",
+      "dimensions": [
+        1280,
+        680
+      ],
+      "mode": "RGB",
+      "role": "Identity: the same suit seen from directly overhead in battle; palette and silhouette character"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one corpsman variant, preserving the base suit’s design and finish with a transparent background.\n"
+  ],
+  "usage": {
+    "input_tokens": 57361,
+    "cached_input_tokens": 49280,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 698,
+    "reasoning_output_tokens": 40
+  },
+  "elapsedSeconds": 56.1
+}

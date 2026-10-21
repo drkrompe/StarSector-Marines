@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComp
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.world.tiles.PropMotion;
 import com.dillon.starsectormarines.battle.world.model.Building;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -274,6 +275,7 @@ public class BattleRenderer {
         // join via RenderSystem.of(...) emitting a Custom (the FBO/own-GL escape hatch).
         DoodadRenderSystem doodads = new DoodadRenderSystem(sprites);
         ShipDressingRenderSystem dressing = new ShipDressingRenderSystem(doodads);
+        PropMotionRenderSystem.Phases propPhases = new PropMotionRenderSystem.Phases();
         this.nightLighting = new NightLightingRenderSystem(sprites);
         this.aircraft = new ShuttleRenderSystem(sprites);
         this.worldSystems = List.of(
@@ -294,6 +296,8 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.DOODADS, dressing::collectBeneath),
                 doodads,
                 RenderSystem.of(RenderLayer.DOODADS, dressing::collectOver),
+                // Moving parts ride on top of their static bases: belts, fans, sliding seats.
+                new PropMotionRenderSystem(sprites, PropMotion.Layer.DECK, propPhases),
                 // Bodies cast here rather than through the ground composite:
                 // terrain carries a height per cell and a marine does not.
                 new UnitShadowRenderSystem(sprites, sun),
@@ -326,6 +330,8 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.ROOFS, (ctx, out) ->
                         collectRoofs(ctx.sim, out, ctx.alphaMult)),
                 new FortBuildingRenderSystem(sprites),
+                // Overhead machinery such as a bay's travelling crane passes over whoever stands beneath it.
+                new PropMotionRenderSystem(sprites, PropMotion.Layer.OVERHEAD, propPhases),
                 new DroneRenderSystem(sprites),
                 new SalvageCacheRenderSystem(sprites),
                 new MissionMarkerRenderSystem(),

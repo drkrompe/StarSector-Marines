@@ -241,3 +241,33 @@ Blockout before-shots for new close-up cameras:
 Options: --views (top, port-side, front, three-quarter, cockpit-check,
 parked, details or a close-up's name), --cam, --samples, --no-save,
 --blockout (see the driver's docstring).
+
+Borer (the Shepherd's drone; 2026-10-21)
+The Shepherd's built-in wing (borer_wing, four craft): drone_borer.ship, 18 x 16 sprite,
+crew 0, WS 001 HIDDEN mining laser, three LOW_TECH drives (main at (-6, 0), side drives at
+(-6, +-6) angled 160/200). ft_borer.py builds it straight to the ship detail guide rather than
+through a flat blockout: rounds by the segment rule and smooth-shaded (SHADING = 'as-built',
+which build_fighter.py honours), armour pods and spine as plate prisms whose corners all turn
+45 degrees or more (a shallower bevelled corner reads to check_detail as a coarse round), side
+drives in the drive pods' aft faces canted along their slot angles (ENGINE_ANGLES; the
+manifest's exhaust_direction follows them).
+- Scale 0.25 m/unit, from the Shepherd's servicing cradle (shepherd-geometry sh_dronebay.py):
+  3.6 x 4.0 x 1.5 m, the bay's assumed 4.0 m span. At the game's own pixel scale the sprite
+  would be 7-12 m and fit no cradle; that disagreement is recorded in geometry.json
+  (scale.sprite_disagreement) and nothing was resized on either side. Beside the Talon
+  (12.1 m) it is a third of the length.
+- Silhouette 0.909 (top_silhouette.py, below): the misses are single pixel-stair corners on
+  a 16 x 14 px sprite; the sprite wins over the battle-map up-res master where they disagree
+  (the drive pods come in to Y 6 forward of X -4).
+- Cradle: borer_cradle.py appends the accepted Shepherd build and seats the Borer on each
+  WS 003 launch point by its 'Borer cradle seat' empty (root scaled 0.25 / 0.78): no overlap,
+  all four pads on the deck, the belly socket 2 mm over the cradle's charging contact, 0.40 m
+  to the nearest bay fitting, and a clear straight lift to the bay mouth
+  (borer/cradle-check.json).
+- check_detail: 0 faceted, 0 below rule, 0 unbevelled, 0 off-layer emissive (no lights layer
+  exists; the only emissives are lamp lenses named as lamps).
+  sh ../../blender.sh --background --factory-startup --python build_fighter.py       --python ../ship-detail-kit/check_detail.py --python top_silhouette.py --python check_clashes.py       -- --fighter borer --views none          (SDK_CHECK="--mpu 0.25 --label borer")
+  sh ../../blender.sh --background --factory-startup --python borer_cradle.py -- --shepherd <shepherd.blend>
+top_silhouette.py   the top-view IoU from the geometry (evaluated triangles rasterised on
+                    the sprite's pixel grid), for a session that may not render; it writes
+                    'silhouette' into geometry.json, top-overlay.png and a per-pixel map

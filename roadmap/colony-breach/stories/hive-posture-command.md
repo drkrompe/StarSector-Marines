@@ -1,6 +1,6 @@
 # Hive posture and strike detachments
 
-Status: QUEUED on `breach-mission-spine.md` and `bore-spawners.md`
+Status: QUEUED on `bore-spawners.md` (the mission spine has shipped)
 
 Written: 2026-10-21
 

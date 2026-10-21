@@ -1,17 +1,13 @@
 package com.dillon.starsectormarines.battle.appearance;
 
-import com.dillon.starsectormarines.battle.world.gen.Affordance;
-
 /**
  * What a body visibly does while at a job: the motion a renderer plays, as
  * opposed to the job the simulation assigned.
  *
- * <p>An {@link Affordance} names the work and a job site's fixture names the
- * thing it is done to; together they choose one of these. The same affordance
- * reads differently at different fixtures — a cook stirs at the range and chops
- * at the prep bench, a gym hand runs on the treadmill and rows at the rower — so
- * the fixture's definition id refines the choice, and an unknown fixture falls
- * back to the affordance's ordinary motion rather than to nothing.
+ * <p>This is the drawn vocabulary only. Which motion a job shows is the ambient
+ * model's decision ({@code battle.ambient.WorkMotions}), keyed on the job's
+ * affordance, its fixture and the stop's activity, so it is the same for any
+ * ambient actor on any map.
  *
  * <p>Presentation only. A motion never changes how long a job takes, where it
  * is done, or who may claim it; the ambient service writes it into the layered
@@ -71,41 +67,5 @@ public enum WorkMotion {
     /** Whether the family's station arms are drawn out on the work for this motion. */
     public boolean handsOn() {
         return handsOn;
-    }
-
-    /**
-     * The motion for {@code job} done at the fixture defined as {@code fixtureId},
-     * which may be null where nothing is known about the fixture. A cell can hold
-     * an assembly's several layers (a bed and its linen), so {@code fixtureId} may
-     * be every definition id on the cell, space-separated.
-     */
-    public static WorkMotion of(Affordance job, String fixtureId) {
-        if (job == null) return NONE;
-        String fixture = fixtureId != null ? fixtureId : "";
-        return switch (job) {
-            case SERVICE -> WELD;
-            case REPAIR -> WRENCH;
-            case TEND -> fixture.contains("control") || fixture.contains("switchgear")
-                    ? CONSOLE : WRENCH;
-            case TREAT -> fixture.contains("bed") || fixture.contains("couch")
-                    || fixture.contains("exam") || fixture.contains("treatment-table")
-                    ? TREAT : CONSOLE;
-            case COOK -> fixture.contains("range") || fixture.contains("stove") ? STIR
-                    : fixture.contains("prep") ? CHOP : CONSOLE;
-            case EXERCISE -> fixture.contains("treadmill") ? RUN
-                    : fixture.contains("rower") || fixture.contains("ergometer") ? ROW
-                    : fixture.contains("bench-press") ? PRESS : LIFT;
-            case FABRICATE, STOW, READOUT, WATCH, ISSUE, MESS -> CONSOLE;
-            case REST, WASH, PRACTICE, UNWIND, ROUNDS, GUARD -> NONE;
-        };
-    }
-
-    /**
-     * What is in the arms of somebody walking from {@code from} to the next stop.
-     * Stores handling is the one job done between points rather than at one, so
-     * the walk between two stowage stops is part of the work and carries a crate.
-     */
-    public static WorkMotion between(Affordance from, Affordance to) {
-        return from == Affordance.STOW && to == Affordance.STOW ? CARRY : NONE;
     }
 }
