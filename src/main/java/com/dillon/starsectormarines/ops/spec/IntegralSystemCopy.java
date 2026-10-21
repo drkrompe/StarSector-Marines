@@ -183,6 +183,6 @@ public final class IntegralSystemCopy {
     private static String seconds(float value) {
         return value == Math.rint(value)
                 ? String.valueOf(Math.round(value))
-                : String.format(Locale.ROOT, "%.1f", value);
+                : String.format(Strings.locale(), "%.1f", value);
     }
 }

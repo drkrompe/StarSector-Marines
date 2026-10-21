@@ -47,6 +47,8 @@ public final class LowQuay {
     public static final int[][] GUARD_POSTS = {{RECORDS_X - 2, RECORDS_Y}, {92, 40}};
     /** The secure gate: the only opening in the compound's western wall. */
     public static final int GATE_X = 44, GATE_BOTTOM = 55, GATE_TOP = 63;
+    /** The gatehouse's middle: the office block (44..61, 64..74) whose firing recesses overlook the secure gate. */
+    public static final int GATEHOUSE_X = 52, GATEHOUSE_Y = 69, GATEHOUSE_HALF_WIDTH = 9;
 
     // Interior bounds of the two work rooms (walls excluded).
     private static final int ARCHIVE_L = 67, ARCHIVE_B = 69, ARCHIVE_R = 79, ARCHIVE_T = 83;

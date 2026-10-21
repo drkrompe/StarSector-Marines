@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.SmallWarCommand;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -234,12 +235,12 @@ public final class SmallWarSequence implements Objective {
     public boolean isComplete() { return progress.phase() == Phase.COMPLETE; }
     public boolean isFailed() { return progress.phase() == Phase.FAILED; }
     public String displayName() { return switch (progress.phase()) {
-        case CUSTOMS -> "Seize the causeway customs block";
-        case FUEL_CONTROL -> "Take fuel control; the service galleries flank the exposed causeway";
-        case DISPATCH -> "Capture dispatch and its transfer records";
-        case HANDOVER -> "Hold all three sites; escort the custody party into fuel control";
-        case COMPLETE -> "Black Sluice handed over to its local holders";
-        case FAILED -> progress.report(0, 0, 0, houseCustody).infrastructureLost() ? "Marked fuel infrastructure destroyed; the handover has failed"
-                : "Black Sluice handover failed; a new mobilization is required";
+        case CUSTOMS -> Strings.get("smallWarCustoms");
+        case FUEL_CONTROL -> Strings.get("smallWarFuelControl");
+        case DISPATCH -> Strings.get("smallWarDispatch");
+        case HANDOVER -> Strings.get("smallWarHandover");
+        case COMPLETE -> Strings.get("smallWarComplete");
+        case FAILED -> progress.report(0, 0, 0, houseCustody).infrastructureLost() ? Strings.get("smallWarFailedInfrastructure")
+                : Strings.get("smallWarFailed");
     }; }
 }

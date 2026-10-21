@@ -40,4 +40,13 @@ class PropMotionTest {
         PropMotion treadmill = parse("{doodad:'b',runs:'use',parts:[{part:'p',at:[0,0]}]}");
         assertEquals(1f, treadmill.targetRate(true, 1f), "a human-powered machine ignores the ship's power");
     }
+
+    @Test
+    void aDamagedMachineRunsAtItsDamagedRateAndByDefaultNotAtAll() throws Exception {
+        PropMotion fan = parse("{doodad:'b',runs:'power',deficitRate:0.5,damagedRate:0.4,parts:[{part:'p',at:[0,0]}]}");
+        assertEquals(0.4f, fan.targetRate(false, 0f, true), 1e-6f);
+        assertEquals(0.2f, fan.targetRate(false, 1f, true), 1e-6f, "damage and a power deficit compound");
+        PropMotion belt = parse("{doodad:'b',runs:'power',parts:[{part:'p',at:[0,0]}]}");
+        assertEquals(0f, belt.targetRate(false, 0f, true));
+    }
 }

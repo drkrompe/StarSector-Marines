@@ -421,11 +421,11 @@ public final class SpecSheets {
     }
 
     private static String oneDecimal(float value) {
-        return String.format(Locale.ROOT, "%.1f", value);
+        return String.format(Strings.locale(), "%.1f", value);
     }
 
     private static String whole(float value) {
-        return String.format(Locale.ROOT, "%.0f", value);
+        return String.format(Strings.locale(), "%.0f", value);
     }
 
     /** A share the wearer may also be on the wrong side of, so it carries its sign. */
@@ -435,7 +435,7 @@ public final class SpecSheets {
     }
 
     private static String percent(float fraction) {
-        return String.format(Locale.ROOT, "%.0f%%", fraction * 100f);
+        return String.format(Strings.locale(), "%.0f%%", fraction * 100f);
     }
 
     private static Stat stat(String id, String value) {

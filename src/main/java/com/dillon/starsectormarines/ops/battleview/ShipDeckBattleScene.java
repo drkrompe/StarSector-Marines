@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
+import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
+import com.dillon.starsectormarines.battle.world.model.PropPower;
 import com.dillon.starsectormarines.battle.world.gen.ship.FacilityDressing;
 import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
@@ -280,6 +282,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         // it to run. A boarding action hosted here registers its own objectives
         // and turns this back on.
         simulation.setMissionCompletionEnabled(false);
+        // The deck answers its machinery's power from her own power core, following a dressing wave as it plays.
+        simulation.setPropPower(this::powerDeficitAt);
         openTheBoatBays();
         simulation.getFogOfWar().tick(0, simulation.getRoster());
         if (sprites != null) attachRenderer(sprites);
@@ -375,6 +379,14 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     }
 
     /** The wave the next frame draws, if one is still playing. */
+    /** The ship's power deficit at a deck point, on the scene's own clock: her answer to {@link PropPower}. */
+    private float powerDeficitAt(float cellX, float cellY) {
+        DressingWave live = wave;
+        if (live != null && live.moves(ShipCore.POWER) && !live.done(simulatedSeconds))
+            return live.deficit(ShipCore.POWER, cellX, cellY, simulatedSeconds);
+        return coreDressing.power() ? 0f : 1f;
+    }
+
     private DressingWave liveWave() {
         if (wave != null && wave.done(simulatedSeconds)) wave = null;
         return wave;

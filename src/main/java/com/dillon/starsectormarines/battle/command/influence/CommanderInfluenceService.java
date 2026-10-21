@@ -60,6 +60,13 @@ public final class CommanderInfluenceService implements AutoCloseable {
     private final CasualtyMemory casualties;
     private GunWatch gunWatch = sink -> { };
     private SightingWatch sightingWatch = (side, sink) -> { };
+    /**
+     * {@code -Dbattle.party.places=false} leaves the allied party without a picture of its own (`garrisonables.md`,
+     * parties). On, the allied picture is built from allied squads' believed contacts, beside the company's and the
+     * defender's, on every refresh while the battle fields allied combatants; otherwise it is {@code null}.
+     */
+    public static final String ALLIED_PICTURE_PROPERTY = "battle.party.places";
+    private final boolean alliedPicture = !"false".equalsIgnoreCase(System.getProperty(ALLIED_PICTURE_PROPERTY, "true"));
     private int captureTick;
     private InfluenceTopology cachedTopology;
     private long cachedTopologyRevision = Long.MIN_VALUE;
@@ -81,14 +88,16 @@ public final class CommanderInfluenceService implements AutoCloseable {
                           long workerNanos, long maxWorkerNanos,
                           boolean inFlight, int publishedCaptureTick) { }
 
+    /** The company's and the defender's pictures, and the allied party's when the battle fields one (else {@code null}). */
     private record SnapshotPair(CommanderInfluenceSnapshot marine,
-                                CommanderInfluenceSnapshot defender) { }
+                                CommanderInfluenceSnapshot defender,
+                                CommanderInfluenceSnapshot ally) { }
     private record Sources(Faction faction, List<InfluenceSource> friendly,
                            List<InfluenceSource> hostile, float[] losses,
                            List<CommanderContact> contacts) { }
     private record Capture(int tick, long topologyRevision,
                            InfluenceTopology topology, int width, int height,
-                           Sources marine, Sources defender) { }
+                           Sources marine, Sources defender, Sources ally) { }
     private record Pending(Capture capture, BuildTask task) { }
 
     private static final class BuildTask extends FutureTask<SnapshotPair> {
@@ -126,7 +135,7 @@ public final class CommanderInfluenceService implements AutoCloseable {
         this.casualties = new CasualtyMemory(roster, BLOCK_SIZE,
                 grid.getWidth(), grid.getHeight());
         snapshots = new SnapshotPair(emptySnapshot(Faction.MARINE, width, height),
-                emptySnapshot(Faction.DEFENDER, width, height));
+                emptySnapshot(Faction.DEFENDER, width, height), null);
     }
 
     private static ExecutorService newWorker() {
@@ -245,7 +254,8 @@ public final class CommanderInfluenceService implements AutoCloseable {
         return new Capture(simTick, cachedTopologyRevision, topology,
                 grid.getWidth(), grid.getHeight(),
                 captureSources(Faction.MARINE, profile),
-                captureSources(Faction.DEFENDER, profile));
+                captureSources(Faction.DEFENDER, profile),
+                alliedPicture && fieldsAllies() ? captureSources(Faction.ALLY, profile) : null);
     }
 
     private InfluenceTopology topologyForCurrentRevision(TickInnerProfile profile) {
@@ -266,6 +276,7 @@ public final class CommanderInfluenceService implements AutoCloseable {
         SnapshotPair pair = snapshots;
         if (faction == Faction.MARINE) return pair.marine();
         if (faction == Faction.DEFENDER) return pair.defender();
+        if (faction == Faction.ALLY) return pair.ally();
         return null;
     }
 
@@ -297,7 +308,8 @@ public final class CommanderInfluenceService implements AutoCloseable {
 
     private static SnapshotPair buildPair(Capture capture, TickInnerProfile profile) {
         return new SnapshotPair(buildSnapshot(capture, capture.marine(), profile),
-                buildSnapshot(capture, capture.defender(), profile));
+                buildSnapshot(capture, capture.defender(), profile),
+                capture.ally() == null ? null : buildSnapshot(capture, capture.ally(), profile));
     }
 
     private static CommanderInfluenceSnapshot buildSnapshot(
@@ -314,6 +326,14 @@ public final class CommanderInfluenceService implements AutoCloseable {
                 topology.blockWidth(), topology.blockHeight(),
                 capture.width(), capture.height(),
                 friendly, hostile, sources.losses(), sources.contacts());
+    }
+
+    /** Whether any allied squad still fields a member. */
+    private boolean fieldsAllies() {
+        for (Squad squad : roster.getSquads()) {
+            if (squad.faction == Faction.ALLY && squad.aliveMembers > 0) return true;
+        }
+        return false;
     }
 
     /** Installs the guns whose targets are reported; the simulation hands over its forts' nests. */

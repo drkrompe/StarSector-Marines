@@ -110,8 +110,8 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
         props.put("skipClasses", SKIP_CLASSES);
         props.put("nextDisabled", false);
         props.put("page", (index + 1) + " / " + CompanyPrologue.PAGE_COUNT);
-        props.put("manifest", Strings.format("openingCompanyPrologueCrewAboardSpendableCredits", crew, String.format(Locale.ROOT, "%,d", credits)));
-        props.put("reserve", reserve > 0 ? Strings.format("openingCompanyPrologueCreditsHeldForTheConversionFirstBoat", String.format(Locale.ROOT, "%,d", reserve))
+        props.put("manifest", Strings.format("openingCompanyPrologueCrewAboardSpendableCredits", crew, String.format(Strings.locale(), "%,d", credits)));
+        props.put("reserve", reserve > 0 ? Strings.format("openingCompanyPrologueCreditsHeldForTheConversionFirstBoat", String.format(Strings.locale(), "%,d", reserve))
                 : Strings.get("openingCompanyPrologueConversionPaymentDueFromFleetFundsPreparation"));
         props.put("destination", destination == null ? Strings.get("openingCompanyPrologueFindAWorkingPlanetarySpaceport") : Strings.format("openingCompanyPrologueReach", destination));
         props.put("nextLabel", replies[index]);

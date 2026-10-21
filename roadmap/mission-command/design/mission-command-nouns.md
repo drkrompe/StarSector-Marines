@@ -4,7 +4,7 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-10-21 — a released squad stays in the pool it was handed to.
+Updated: 2026-10-21 — Thunder Run's militia holds are locked positions (`garrisonables.md`); a released squad stays in the pool it was handed to.
 from independent acting-NCO leadership and physical mission routes.
 Earlier 2026-08-31 — active player infantry context now exclusively owns the
 squad's mission-tier plan, including specialist and rescue pickup squads, while
@@ -441,7 +441,10 @@ interventions retain their claims. The scenario separately authorizes employer
 vehicle travel from held-site facts and finite dispatch windows. The frame also
 carries the public active hold site: mission-owned company squads defend that
 post during the window, while lost territory takes priority. Militia retain
-stable first/second-post duties behind reachable roadside gun mounts. Company
+stable first/second-post duties behind reachable roadside gun mounts; the
+militia's holds are the generic locked positions (`garrisonables.md`, locked
+positions): the staging until the first gain, then each gain once the company
+has held it, oldest first, the surplus on the newest. Company
 sections take separate, stable roadside defense sectors on both flanks, apart
 from the militia crew positions; the final capture switches them to screening
 the exit crossing. Before a second gain is available, militia sections occupy

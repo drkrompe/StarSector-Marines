@@ -4,10 +4,19 @@ import com.dillon.starsectormarines.battle.story.DistrictEscortProgress;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.campaign.AgreusDistrictEscortProgress;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.*;
 
 class DistrictEscortCampaignTest {
+    private HeadlessStrings strings;
+    /** Reads the shipped copy, so what these tests pin is the text the player sees. */
+    @BeforeEach void shippedCopy() throws Exception { strings = new HeadlessStrings(Path.of("mod")); }
+    @AfterEach void restoreSettings() { strings.close(); }
+
     @Test void bothOfficesPostTheSameJobUnderTheirOwnLetterhead() {
         var custody = DistrictEscortCampaign.offer(new AgreusDistrictEscortProgress(AgreusYardAgreement.HOUSE_CUSTODY), "Agreus");
         var compact = DistrictEscortCampaign.offer(new AgreusDistrictEscortProgress(AgreusYardAgreement.YARD_COMPACT), "Agreus");
@@ -15,7 +24,7 @@ class DistrictEscortCampaignTest {
             assertTrue(DistrictEscortCampaign.isBattle(m)); assertFalse(AgreusArcCampaign.isBattle(m));
             assertEquals(MissionSource.RECURRING, m.source);
             assertEquals(24_000, m.payout);
-            assertTrue(m.flavor.contains(DistrictEscortCampaign.TERMS));
+            assertTrue(m.flavor.contains(DistrictEscortCampaign.terms()));
             assertTrue(m.flavor.contains("DE-1-1"));
         }
         assertEquals(custody.requirements, compact.requirements, "no hidden buff behind either letterhead");
@@ -23,7 +32,7 @@ class DistrictEscortCampaignTest {
         assertEquals(custody.tier, compact.tier); assertEquals(custody.risk, compact.risk);
         assertNotEquals(custody.flavor, compact.flavor);
         assertTrue(custody.flavor.startsWith("Rusk's office:")); assertTrue(compact.flavor.startsWith("Lenna Saye:"));
-        assertNotEquals(DistrictEscortCampaign.Letterhead.RUSK_OFFICE.partyName, DistrictEscortCampaign.Letterhead.LENNA_ASSOCIATION.partyName);
+        assertNotEquals(DistrictEscortCampaign.Letterhead.RUSK_OFFICE.partyName(), DistrictEscortCampaign.Letterhead.LENNA_ASSOCIATION.partyName());
     }
 
     @Test void onlyTheRatifiedRoutesContactIsOfferedTheWork() {

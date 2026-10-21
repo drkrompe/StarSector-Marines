@@ -9,13 +9,8 @@ Conquest at 560x336. What remains is the shape work below.
 
 Written: 2026-09-01
 
-Updated: 2026-09-02 — the landing zone is a precinct with a kind, claimed
-before the town grows and held as a compound the marines can lose; each Conquest
-command track carries a lane with a ladder of garrison places on it, so the
-ground between the beachhead and the fortress holds compounds a track has to
-take; the ladder's own separation is a real relaxation rather than dead code,
-its rungs are bounded by the map margin rather than by their lane, and the
-deepest waypoint no longer slides off the end of its own path.
+Updated: 2026-10-21 — an `OPEN_FIELD` landing kind promises a clear field of
+fire round its berths; Colony Breach lands in one outside the colony.
 
 Earlier 2026-09-01 — Conquest generates as places at 560x336; the front is a
 depth from the objective rather than a biome; a mission states its sprawl and
@@ -662,12 +657,91 @@ too tight to seat its areas.
 | `SPACEPORT` | a programmed place: a terminal, a hangar, a control office and a fuel yard set back from the apron — the civil spaceport vocabulary the stock recipe's fills already use | the market reports a real spaceport |
 | `FIELD` | apron and nothing built | no spaceport, or a `REMOTE` world |
 | `STRIP` | apron with one hut on it, the off-grid `LANDING` link's shape | a settlement supplied by ship |
+| `OPEN_FIELD` | farmland outside a town's edge, nothing built, walled or tall within its field of fire | never; a mission states it (Colony Breach) |
 
 A remote world is a field whatever its market reports: the sprawl already said
 there is no settlement on this map, and a civil spaceport campus standing alone
 in that country is the town it declined. Stated on the mission, the fixture and
 the debug stepper the way sprawl, standoff and lanes are, and derived from the
 target world when nobody says.
+
+**A field is chosen for what it lets the force see.** The other kinds are
+where a world already puts ships down; `OPEN_FIELD` is where a force puts
+itself down when the place it came for is the danger. Colony Breach is the case
+that names it: shuttles cannot land amid an infested colony, where bores open
+underfoot, spore colonies cover the sky and every building gives the swarm
+cover to the hull, so the company lands in the fields outside, where it can see
+them coming, and fights its way in. That is why it does not land beside the
+colonists it came to take off. What the kind promises is a **field of fire**: a
+disc of forty cells round the field's centre with nothing built, walled or tall
+in it, and every berth within sixteen of the centre, so each keeps at least
+twenty-four cells of open ground on every side, a service rifle's reach. Three
+things make that a property of the place rather than a hope:
+
+- **The claim takes the disc outright** before any programmed place pools.
+  Pooling is noisy on purpose, so a claim of the disc's area bulges past it on
+  one side and falls short on the other, and the short side is where a
+  neighbour's first house stands inside the radius. A field of fire is a
+  promise about distance, so it is not trimmed to the map either.
+- **What is not built still has to be kept off.** A claim keeps a neighbour's
+  parcels out and nothing else: the landscape pass reserves the disc against
+  trees, hills and rock formations, and parked vehicles are kept off the track
+  across it. The field is dressed as cultivated plots of crop and turned earth,
+  green on every world by the cultivated-ground law, so it reads as farmland
+  rather than as a cleared circle.
+- **It is checked on the finished map**, not trusted from the claim:
+  `MissionMapRequirements` asks that the disc be clear of buildings, walls,
+  fixtures, vehicles, natural solids, anything that blocks sight and any prop
+  that gives cover, that the marine spawn and every arrival area stand on it,
+  and re-rolls the seed otherwise. The map edge is not an obstruction: ground
+  off the map is ground nobody stands on.
+
+**Its standoff is the field itself, and it lies against the edge it lands
+across.** The measured lesson above is that a landing slid inland is paid for
+twice on every re-arm run, at about 5.3 ticks a cell. A field has no objective
+claim to slide toward, so the seed sits its clear radius in from the edge of
+the stated band, the whole disc on the map and no further: the berths stand
+about thirty-six cells inland. The walk is what the field's open ground and the
+town's streets make it.
+
+Measured on the 400x240 colony against `-Dbattle.colonyBreach.fieldLanding=false`,
+which lands the old way, wherever open ground is first found:
+
+- **The promise holds without re-rolls.** Over twelve seeds every colony passed
+  its requirements on the first map; the nearest thing standing was 44 to 55
+  cells from the centre against the 40 promised, and nothing stood in the disc
+  once parked vehicles, militia emplacements and technicals were placed
+  (`ColonyLandingFieldEvidenceTest`, under `generatedSpaceEvidence`).
+- **The flight costs what the lesson predicts.** A shuttle's re-arm cycle on
+  the canonical fixture went from 476 ticks to 680: the berths stand 36 cells
+  inland, and 36 cells at 5.3 ticks is 191. Conquest's slide doubled its cycle;
+  this adds two fifths.
+- **The walk did not get longer.** From the spawn to the shelter, twelve seeds
+  walk 75 to 216 cells, mean 137, against the old landing's 52 to 318, mean
+  154. The old landing was wherever the scan first found room, often a street
+  a few cells from a house; the field puts the nearest building 51 to 95
+  steps away.
+
+| fixture seed | landing | result | ticks | evacuated | company's first contact | marines killed |
+|---|---|---|---:|---:|---:|---:|
+| 7117 | field | MARINE | 9651 | 3/8 | 186, on the pads | 0 |
+| 7117 | old | MARINE | 12475 | 6/8 | 152 | 9 |
+| 7118 | field | MARINE | 13066 | 5/8 | 209, on the pads | 0 |
+| 7118 | old | MARINE | 17326 | 6/8 | 264 | 6 |
+| 7119 | field | MARINE | 13849 | 8/8 | 209, on the pads | 6 |
+| 7119 | old | MARINE | 10337 | 8/8 | 396 | 0 |
+| 7120 | field | MARINE | 17366 | 1/8 | 209, on the pads | 1 |
+| 7120 | old | MARINE | 14884 | 8/8 | 102 | 5 |
+
+The company meets the opening runners on the field within half a minute of
+landing and shoots them crossing open ground; it loses 7 marines across the
+four battles against 20. **It also gets fewer people out, 17 of 32 against
+28, and that is not explained here.** Each seed is a different map, with the
+shelter and the lift placed afresh, and the cohort is lost on the walk between
+them, which this change does not touch; the two-cycle fixture on the field map
+stalls with the cohort parked short of the lift, the latent escort deadlock.
+Four seeds cannot separate the landing from that lottery, and it wants a
+reading of its own before anyone tunes against it.
 
 **The standoff enters the derivation rather than being layered on.** A landing
 place is seeded *against* the standoff — where the force lands is what a
@@ -1052,8 +1126,10 @@ budget and the arrival cadence rather than about the map, and it belongs with
 `BattleSetup` derives a plan for **Conquest, Assault and Raid** against a real
 market. Sabotage, Extraction, Silent Colony and the opening operations keep
 the recipe they have. Civilian Rescue's high-risk colony (Colony Breach) is
-laid out rather than derived — town, installation and suburb at 400x240 — and
-its lower risks keep the stock map; see `colony-breach-nouns.md`. The gate is the market: a battle with no
+laid out rather than derived — town, installation and suburb at 400x240, with
+an `OPEN_FIELD` landing north or south of the town — and its lower risks keep
+the stock map; see `colony-breach-nouns.md`. A landing place is never the
+objective, even where it is the only programmed place on the map. The gate is the market: a battle with no
 market behind it — a headless fixture, an operation against no planet — has no
 size, rating or economy to derive from and takes the stock map, which is the
 rule `BspCityGenerator.recipeFor` already applies to the grown recipe.

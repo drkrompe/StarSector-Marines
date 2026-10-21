@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
@@ -219,16 +220,14 @@ public final class ColdAccountIntervention implements Objective {
     @Override public boolean isFailed() { return phase == Phase.FAILED; }
     @Override public String displayName() {
         return switch (phase) {
-            case EVIDENCE -> "Secure the dispatch office and recover proof of Sable Wake's operations";
-            case WITHDRAW -> "Clear the bombardment zone, then reach shuttle pickup (" + outsideWithdrawal
-                    + " still in danger)";
-            case WARNING -> "Hegemony batteries engaging";
-            case BOMBARD -> "Demolition sector " + demolition.sectorNumber() + "/" + demolition.sectorCount()
-                    + "; shuttle pickup / stronghold walls " + remainingWalls + "/" + walls.size();
-            case PATROL -> "HSS Resolute resuming patrol" + (companyRecovered ? "" : "; reach shuttle pickup");
-            case AFTERMATH -> "Stronghold silenced" + (companyRecovered ? "" : "; recover remaining survivors at shuttle pickup");
-            case COMPLETE -> "Pirate evidence secured; surviving company extracted";
-            case FAILED -> "Hegemony intervention failed to destroy the stronghold";
+            case EVIDENCE -> Strings.get("coldAccountEvidence");
+            case WITHDRAW -> Strings.format("coldAccountWithdraw", outsideWithdrawal);
+            case WARNING -> Strings.get("coldAccountWarning");
+            case BOMBARD -> Strings.format("coldAccountBombard", demolition.sectorNumber(), demolition.sectorCount(), remainingWalls, walls.size());
+            case PATROL -> Strings.get(companyRecovered ? "coldAccountPatrolRecovered" : "coldAccountPatrol");
+            case AFTERMATH -> Strings.get(companyRecovered ? "coldAccountAftermathRecovered" : "coldAccountAftermath");
+            case COMPLETE -> Strings.get("coldAccountComplete");
+            case FAILED -> Strings.get("coldAccountFailed");
         };
     }
 }

@@ -52,27 +52,35 @@ public final class MissionMapRequirements {
 
     /**
      * What a Colony Breach colony must contain: a house to seal the cohort in,
-     * open ground at the edge for the lift, and enough buildings for the swarm
-     * to come up beside. Keyed on its own rather than on the mission type,
+     * open ground at the edge for the lift, enough buildings for the swarm
+     * to come up beside, and held buildings for the holdouts. Keyed on its own rather than on the mission type,
      * because the rescue shares {@code EXTRACTION} with the generic recovery
      * battle, which promises none of this.
      */
     private static final EnumSet<MapFeature> COLONY_BREACH = EnumSet.of(
             MapFeature.RESIDENTIAL_SHELTER,
             MapFeature.CLEAR_LIFT_SITE,
-            MapFeature.BORE_PLACES);
+            MapFeature.BORE_PLACES,
+            MapFeature.REDOUBT_SITES);
 
     private MissionMapRequirements() { }
 
-    /** What a Colony Breach colony needs a map to contain. */
+    /**
+     * What a Colony Breach colony needs a map to contain: the house, the lift
+     * site and the bore places always, and the fields the company lands in
+     * whenever the colony is laid out with them — which is always, but for the
+     * {@code battle.colonyBreach.fieldLanding=false} control.
+     */
     public static EnumSet<MapFeature> colonyBreach() {
-        return EnumSet.copyOf(COLONY_BREACH);
+        EnumSet<MapFeature> required = EnumSet.copyOf(COLONY_BREACH);
+        if (BattleSetup.colonyLandsInFields()) required.add(MapFeature.OPEN_FIELD_LANDING);
+        return required;
     }
 
     /** Which of the Colony Breach requirements this map fails to meet. */
     public static EnumSet<MapFeature> missingFromColony(MapResult map) {
         EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);
-        for (MapFeature feature : COLONY_BREACH) {
+        for (MapFeature feature : colonyBreach()) {
             if (!feature.presentIn(map)) missing.add(feature);
         }
         return missing;

@@ -98,16 +98,18 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         Map<String, Object> props = commonProps(Strings.get("postingTitle"),
                 Strings.get("postingOfferSubtitle"), Strings.get("postingOfferKicker"));
         props.put("overviewRows", List.of(
-                row("stationing-state", "Status", Strings.get("postingStatusUnposted")),
-                row("stationing-command", "Command",
-                        captain != null ? captain.name() : "No captain"),
-                row("stationing-strength", "Detachment", selectedSquads + " / " + commandCap
-                        + " squads · " + active + " RTD · " + wia + " WIA")));
-        props.put("captainHeader", "COMMANDING CAPTAIN");
+                row("stationing-state", Strings.get("stationingScreenStatusLabel"),
+                        Strings.get("postingStatusUnposted")),
+                row("stationing-command", Strings.get("stationingScreenCommandLabel"),
+                        captain != null ? captain.name() : Strings.get("stationingScreenNoCaptain")),
+                row("stationing-strength", Strings.get("stationingScreenDetachmentLabel"),
+                        Strings.format("stationingScreenOfferStrength", selectedSquads, commandCap,
+                                active, wia))));
+        props.put("captainHeader", Strings.get("stationingScreenCaptainHeader"));
         props.put("captainRows", captainRows());
-        props.put("formationHeader", "AVAILABLE LINE SQUADS");
-        props.put("formationSummary",
-                commandValid ? "DETACHMENT READY" : "DETACHMENT INCOMPLETE");
+        props.put("formationHeader", Strings.get("stationingScreenFormationHeader"));
+        props.put("formationSummary", Strings.get(commandValid
+                ? "stationingScreenDetachmentReady" : "stationingScreenDetachmentIncomplete"));
         props.put("squadRows", offerSquadRows(roster, captain));
         props.put("noticeClasses", "stationing-notice neutral");
         props.put("noticeTitle", Strings.get("postingCommitmentHeader"));
@@ -149,26 +151,32 @@ public final class StationingScreen extends MissionFlowMlxScreen {
                 && CaptainDeploymentPolicy.isValidNamedCommand(roster, captain, selectedSquadIds)
                 && selectionAvailable(roster);
 
-        Map<String, Object> props = commonProps(displayType(type) + " contract",
-                "Configure the named detachment and commercial term before accepting.",
-                "OFFERED ASSIGNMENT");
+        Map<String, Object> props = commonProps(
+                Strings.format("stationingScreenOfferTitle", displayType(type)),
+                Strings.get("stationingScreenOfferSubtitle"),
+                Strings.get("stationingScreenOfferKicker"));
         props.put("overviewRows", List.of(
-                row("stationing-state", "Status", "Offer pending"),
-                row("stationing-command", "Command", captain != null ? captain.name() : "No captain"),
-                row("stationing-strength", "Detachment", selectedSquads + " / " + commandCap
-                        + " squads · " + active + " RTD · " + wia + " WIA")));
-        props.put("captainHeader", "COMMANDING CAPTAIN");
+                row("stationing-state", Strings.get("stationingScreenStatusLabel"),
+                        Strings.get("stationingScreenStatusOfferPending")),
+                row("stationing-command", Strings.get("stationingScreenCommandLabel"),
+                        captain != null ? captain.name() : Strings.get("stationingScreenNoCaptain")),
+                row("stationing-strength", Strings.get("stationingScreenDetachmentLabel"),
+                        Strings.format("stationingScreenOfferStrength", selectedSquads, commandCap,
+                                active, wia))));
+        props.put("captainHeader", Strings.get("stationingScreenCaptainHeader"));
         props.put("captainRows", captainRows());
-        props.put("formationHeader", "AVAILABLE LINE SQUADS");
-        props.put("formationSummary", commandValid ? "DETACHMENT READY" : "DETACHMENT INCOMPLETE");
+        props.put("formationHeader", Strings.get("stationingScreenFormationHeader"));
+        props.put("formationSummary", Strings.get(commandValid
+                ? "stationingScreenDetachmentReady" : "stationingScreenDetachmentIncomplete"));
         props.put("squadRows", offerSquadRows(roster, captain));
         props.put("noticeClasses", "stationing-notice neutral");
-        props.put("noticeTitle", "AVAILABILITY COMMITMENT");
-        props.put("noticeBody", "Selected squads and their captain remain unavailable for ordinary operations until this posting settles.");
+        props.put("noticeTitle", Strings.get("stationingScreenCommitmentHeader"));
+        props.put("noticeBody", Strings.get("stationingScreenCommitmentBody"));
         props.put("termClasses", "stationing-term-controls surface-dark");
-        props.put("termLabel", "CONTRACT TERM");
-        props.put("termValue", (terms != null ? terms.termDays : requestedMonths * 30) + " days");
-        props.put("retainerLabel", "MONTHLY RETAINER");
+        props.put("termLabel", Strings.get("stationingScreenTermLabel"));
+        props.put("termValue", Strings.format("stationingScreenTermDays",
+                terms != null ? terms.termDays : requestedMonths * 30));
+        props.put("retainerLabel", Strings.get("stationingScreenMonthlyRetainer"));
         props.put("retainerValue", credits(terms != null ? terms.monthlyRetainer : 0));
         props.put("minusDisabled", requestedMonths <= 1);
         props.put("minusAction", (Runnable) () -> adjustMonths(-1));
@@ -202,26 +210,34 @@ public final class StationingScreen extends MissionFlowMlxScreen {
 
         Map<String, Object> props = commonProps(
                 posting ? Strings.get("postingActiveTitle")
-                        : "Active " + displayType(type) + " assignment",
+                        : Strings.format("stationingScreenActiveTitle", displayType(type)),
                 posting ? Strings.get("postingActiveSubtitle")
-                        : "Review the bound detachment, remaining term, and any response owed.",
-                posting ? Strings.get("postingActiveKicker") : "ACTIVE POSTING");
+                        : Strings.get("stationingScreenActiveSubtitle"),
+                posting ? Strings.get("postingActiveKicker")
+                        : Strings.get("stationingScreenActiveKicker"));
         props.put("overviewRows", List.of(
-                row("stationing-state", "Status", incident != null || defense != null
-                        ? "Response pending" : "In good standing"),
-                row("stationing-command", "Command", captainName),
-                row("stationing-strength", "Detachment", stationed.isEmpty()
-                        ? state.contractMarinesCommitted[row] + " committed marines"
-                        : stationed.size() + " squads · " + active + " RTD · " + wia + " WIA"),
-                row("stationing-remaining", "Time remaining", posting
-                        ? Strings.get("postingNoTerm") : daysRemaining + " days")));
-        props.put("captainHeader", "POSTED COMMAND");
+                row("stationing-state", Strings.get("stationingScreenStatusLabel"),
+                        Strings.get(incident != null || defense != null
+                                ? "stationingScreenStatusResponsePending"
+                                : "stationingScreenStatusGood")),
+                row("stationing-command", Strings.get("stationingScreenCommandLabel"), captainName),
+                row("stationing-strength", Strings.get("stationingScreenDetachmentLabel"),
+                        stationed.isEmpty()
+                        ? Strings.format("stationingScreenCommittedMarines",
+                                state.contractMarinesCommitted[row])
+                        : Strings.format("stationingScreenStationedStrength", stationed.size(),
+                                active, wia)),
+                row("stationing-remaining", Strings.get("stationingScreenRemainingLabel"), posting
+                        ? Strings.get("postingNoTerm")
+                        : Strings.format("stationingScreenTermDays", daysRemaining))));
+        props.put("captainHeader", Strings.get("stationingScreenPostedCommand"));
         props.put("captainRows", List.of(captainCard("stationing-posted-captain",
-                captainName, captain != null ? captain.rank().displayName() : "Bound captain",
+                captainName, captain != null ? captain.rank().displayName()
+                        : Strings.get("stationingScreenBoundCaptain"),
                 true, () -> { })));
-        props.put("formationHeader", "STATIONED DETACHMENT");
-        props.put("formationSummary", active + " RTD · " + wia + " WIA · "
-                + state.contractMarinesCommitted[row] + " LIVING");
+        props.put("formationHeader", Strings.get("stationingScreenStationedDetachment"));
+        props.put("formationSummary", Strings.format("stationingScreenLivingSummary",
+                active, wia, state.contractMarinesCommitted[row]));
         props.put("squadRows", managementSquadRows(roster, stationed));
         if (posting) {
             putNoTerms(props);
@@ -229,7 +245,7 @@ public final class StationingScreen extends MissionFlowMlxScreen {
             props.put("termClasses", "stationing-term-controls hidden");
             props.put("termLabel", "");
             props.put("termValue", "");
-            props.put("retainerLabel", "MONTHLY RETAINER");
+            props.put("retainerLabel", Strings.get("stationingScreenMonthlyRetainer"));
             props.put("retainerValue", credits(state.contractRetainerPerMonth[row]));
             props.put("minusDisabled", true);
             props.put("minusAction", (Runnable) () -> { });
@@ -269,7 +285,8 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         } else {
             props.put("noticeClasses", "stationing-notice danger");
             props.put("noticeTitle", posting
-                    ? Strings.get("postingReleaseHeader") : "EARLY WITHDRAWAL");
+                    ? Strings.get("postingReleaseHeader")
+                    : Strings.get("stationingScreenEarlyWithdrawal"));
             props.put("noticeBody", Strings.get(posting
                     ? "postingReleaseWarning" : "stationingWithdrawWarning"));
             hideSecondary(props);
@@ -294,24 +311,28 @@ public final class StationingScreen extends MissionFlowMlxScreen {
     }
 
     private Map<String, Object> unavailableProps() {
-        Map<String, Object> props = commonProps("Stationing unavailable",
-                "This offer or assignment no longer exists.", "NO ACTIVE RECORD");
-        props.put("overviewRows", List.of(row("stationing-state", "Status", "Closed")));
-        props.put("captainHeader", "COMMANDING CAPTAIN");
+        Map<String, Object> props = commonProps(
+                Strings.get("stationingScreenClosedTitle"),
+                Strings.get("stationingScreenClosedSubtitle"),
+                Strings.get("stationingScreenClosedKicker"));
+        props.put("overviewRows", List.of(row("stationing-state",
+                Strings.get("stationingScreenStatusLabel"), Strings.get("stationingScreenStatusClosed"))));
+        props.put("captainHeader", Strings.get("stationingScreenCaptainHeader"));
         props.put("captainRows", List.of());
-        props.put("formationHeader", "DETACHMENT");
-        props.put("formationSummary", "NO PERSONNEL BOUND");
+        props.put("formationHeader", Strings.get("stationingScreenDetachmentHeader"));
+        props.put("formationSummary", Strings.get("stationingScreenNoPersonnel"));
         props.put("squadRows", List.of());
         props.put("noticeClasses", "stationing-notice danger");
-        props.put("noticeTitle", "CONTRACT CLOSED");
-        props.put("noticeBody", "Return to the contract board for current work.");
+        props.put("noticeTitle", Strings.get("stationingScreenClosedNoticeTitle"));
+        props.put("noticeBody", Strings.get("stationingScreenClosedNoticeBody"));
         props.put("termClasses", "stationing-term-controls hidden");
         props.put("termLabel", ""); props.put("termValue", "");
-        props.put("retainerLabel", "MONTHLY RETAINER"); props.put("retainerValue", "—");
+        props.put("retainerLabel", Strings.get("stationingScreenMonthlyRetainer"));
+        props.put("retainerValue", "—");
         props.put("minusDisabled", true); props.put("plusDisabled", true);
         props.put("minusAction", (Runnable) () -> { }); props.put("plusAction", (Runnable) () -> { });
         props.put("primaryDisabled", true); props.put("primaryClasses", "");
-        props.put("primaryLabel", "UNAVAILABLE"); props.put("primaryAction", (Runnable) () -> { });
+        props.put("primaryLabel", Strings.get("stationingScreenUnavailable")); props.put("primaryAction", (Runnable) () -> { });
         hideSecondary(props);
         return props;
     }
@@ -384,8 +405,8 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         MarineCaptain selected = context.getSelectedCaptain();
         for (MarineCaptain captain : activeCaptains()) {
             rows.add(captainCard("stationing-captain-" + rows.size(), captain.name(),
-                    captain.rank().displayName() + " · " + captain.rank().squadCommandCap()
-                            + " squad command",
+                    Strings.format("stationingScreenCaptainDetail",
+                            captain.rank().displayName(), captain.rank().squadCommandCap()),
                     selected != null && selected.id().equals(captain.id()),
                     () -> selectCaptain(captain.id())));
         }
@@ -402,9 +423,9 @@ public final class StationingScreen extends MissionFlowMlxScreen {
                     roster, captain, selectedSquadIds, squad.id());
             int ready = roster.readyCount(squad);
             int wia = statusCount(roster, List.of(squad.id()), MarineSoldierStatus.WIA);
-            String status = ready + " RTD" + (wia > 0 ? " · " + wia + " WIA" : "");
-            String detail = !available ? "Away on another commitment"
-                    : !canToggle ? "Command capacity reached" : "Available for stationing";
+            String status = rtdStatus(ready, wia);
+            String detail = Strings.get(!available ? "stationingScreenDetailAway"
+                    : !canToggle ? "stationingScreenDetailCapacity" : "stationingScreenDetailAvailable");
             rows.add(squadCard("stationing-squad-" + rows.size(), squad.name(), status,
                     detail, selected, !canToggle, () -> toggleSquad(squad.id())));
         }
@@ -419,8 +440,8 @@ public final class StationingScreen extends MissionFlowMlxScreen {
             int active = statusCount(roster, List.of(squad.id()), MarineSoldierStatus.ACTIVE);
             int wia = statusCount(roster, List.of(squad.id()), MarineSoldierStatus.WIA);
             rows.add(squadCard("stationing-posted-squad-" + rows.size(), squad.name(),
-                    active + " RTD" + (wia > 0 ? " · " + wia + " WIA" : ""),
-                    "Bound to this posting", true, true, () -> { }));
+                    rtdStatus(active, wia),
+                    Strings.get("stationingScreenDetailBound"), true, true, () -> { }));
         }
         return List.copyOf(rows);
     }
@@ -580,14 +601,19 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         return result;
     }
 
+    private static String rtdStatus(int ready, int wia) {
+        return wia > 0 ? Strings.format("stationingScreenRtdWiaStatus", ready, wia)
+                : Strings.format("stationingScreenRtdStatus", ready);
+    }
+
     private static String displayType(ContractType type) {
-        if (type == ContractType.GARRISON) return "Garrison";
-        if (type == ContractType.CADRE) return "Cadre";
-        return "Unknown";
+        if (type == ContractType.GARRISON) return Strings.get("stationingScreenTypeGarrison");
+        if (type == ContractType.CADRE) return Strings.get("stationingScreenTypeCadre");
+        return Strings.get("stationingScreenTypeUnknown");
     }
 
     private static String credits(int value) {
-        return NumberFormat.getIntegerInstance().format(value) + " credits";
+        return Strings.format("stationingScreenCredits", NumberFormat.getIntegerInstance().format(value));
     }
 
     private static String incidentLabel(StationingIncidentType type) {

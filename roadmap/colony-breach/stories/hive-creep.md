@@ -1,6 +1,6 @@
 # Hive creep
 
-Status: IN PROGRESS — creep field built and driven by eruption sites; look, art and the bore hookup open. Ground colonies wait on `bore-spawners.md` (the growth-site seam).
+Status: IN PROGRESS — creep field built and driven by eruption sites; look, art and the bore hookup open. Bores and the growth-site seam (`BoreGrowthSites`) are on main.
 
 Written: 2026-10-21
 

@@ -6,13 +6,22 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SupplyRouteCampaignTest {
+    private HeadlessStrings strings;
+    /** Reads the shipped copy, so what these tests pin is the text the player sees. */
+    @BeforeEach void shippedCopy() throws Exception { strings = new HeadlessStrings(Path.of("mod")); }
+    @AfterEach void restoreSettings() { strings.close(); }
+
     @Test void junctionOffersThunderRunDirectlyAndInspectionStartsNoAttempt() {
         var p = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
         Mission junction = SupplyRouteCampaign.offers(p).get(0);

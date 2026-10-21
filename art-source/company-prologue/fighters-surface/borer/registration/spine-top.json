@@ -1,0 +1,59 @@
+{
+ "part": "spine-top",
+ "sheet": "hull-top",
+ "tile": 0,
+ "tile_size": [
+  912,
+  513
+ ],
+ "segmentation_selfcheck_iou_on_guide": 0.9877,
+ "raw_iou": 0.9634,
+ "best_fit": "identity",
+ "fitted_iou": 0.9634,
+ "fits": {
+  "identity": {
+   "scale": [
+    1.0,
+    1.0
+   ],
+   "offset_px": [
+    0.0,
+    0.0
+   ],
+   "iou": 0.9634
+  },
+  "bounds_affine": {
+   "scale": [
+    1.00255,
+    0.91409
+   ],
+   "offset_px": [
+    -1.16,
+    8.54
+   ],
+   "iou": 0.8149
+  },
+  "iou_refined_affine": {
+   "scale": [
+    1.00655,
+    0.99009
+   ],
+   "offset_px": [
+    -1.16,
+    2.54
+   ],
+   "iou": 0.9529
+  }
+ },
+ "boundary_raw_px": {
+  "mean_px": 5.81,
+  "p95_px": 33.06,
+  "max_px": 84.05
+ },
+ "boundary_fitted_px": {
+  "mean_px": 5.81,
+  "p95_px": 33.06,
+  "max_px": 84.05
+ },
+ "mapping": "T maps guide tile pixels to generated tile pixels: gen = (sx*x + tx, sy*y + ty)"
+}

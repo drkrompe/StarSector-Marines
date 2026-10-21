@@ -3,12 +3,17 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress;
 import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress.Route;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.fs.starfarer.api.campaign.SpecialItemData;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
+import java.nio.file.Path;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,6 +23,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * through the card gate's back door.
  */
 class TermsOfProtectionRewardTest {
+    private static HeadlessStrings copy;
+    @BeforeAll static void shippedCopy() throws Exception { copy = new HeadlessStrings(Path.of("mod")); }
+    @AfterAll static void closeCopy() { copy.close(); }
     @Test void eitherRouteRecordsTheEntitlementAndPlacesTheCardOnce() {
         assertTrue(LoadoutCard.parse(AgreusArcProgress.BOARDING_JACK_CARD).presentationDeclared(),
                 "the Boarding Jack's layered art has shipped, so its card is awardable");
@@ -26,7 +34,7 @@ class TermsOfProtectionRewardTest {
             assertEquals("Terms of Protection", m.name);
             assertEquals(AgreusArcProgress.TERMS_PAYMENT, m.payout);
             assertEquals(route == AgreusYardAgreement.HOUSE_CUSTODY, AgreusArcCampaign.custodyRoute(m));
-            assertTrue(m.flavor.contains(AgreusArcCampaign.TERMS_AWARD), "the award is disclosed before launch");
+            assertTrue(m.flavor.contains(Strings.get("agreusArcTermsAward")), "the award is disclosed before launch");
             assertTrue(p.begin(m.id, "agreus", "Agreus"));
             var cards = new ArrayList<SpecialItemData>(); var cargo = YardOwnersRewardTest.cargo(cards);
             assertEquals(32000, AgreusArcCampaign.settleTerms(p, victory(m, AgreusArcCampaign.route(route)), cargo, Set.of()));

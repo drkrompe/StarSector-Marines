@@ -1,0 +1,98 @@
+{
+ "bow": {
+  "unit_offset_L_a_b": [
+   0.514,
+   -0.067,
+   0.373
+  ],
+  "note": "hash default; edit freely"
+ },
+ "cheek-port": {
+  "unit_offset_L_a_b": [
+   -0.702,
+   -0.38,
+   0.663
+  ],
+  "note": "hash default; edit freely"
+ },
+ "cheek-stbd": {
+  "unit_offset_L_a_b": [
+   -0.396,
+   -0.208,
+   -0.153
+  ],
+  "note": "hash default; edit freely"
+ },
+ "drive-side-port": {
+  "unit_offset_L_a_b": [
+   -0.514,
+   0.349,
+   -0.216
+  ],
+  "note": "hash default; edit freely"
+ },
+ "drive-side-stbd": {
+  "unit_offset_L_a_b": [
+   0.647,
+   0.294,
+   -0.145
+  ],
+  "note": "hash default; edit freely"
+ },
+ "drive-top-port": {
+  "unit_offset_L_a_b": [
+   -0.271,
+   0.412,
+   0.945
+  ],
+  "note": "hash default; edit freely"
+ },
+ "drive-top-stbd": {
+  "unit_offset_L_a_b": [
+   -0.475,
+   -0.216,
+   0.976
+  ],
+  "note": "hash default; edit freely"
+ },
+ "pod-top-port": {
+  "unit_offset_L_a_b": [
+   -0.827,
+   -0.451,
+   -0.294
+  ],
+  "note": "hash default; edit freely"
+ },
+ "pod-top-stbd": {
+  "unit_offset_L_a_b": [
+   0.506,
+   0.341,
+   -0.145
+  ],
+  "note": "hash default; edit freely"
+ },
+ "spine-top": {
+  "unit_offset_L_a_b": [
+   0.224,
+   0.624,
+   -0.914
+  ],
+  "note": "hash default; edit freely"
+ },
+ "stern": {
+  "unit_offset_L_a_b": [
+   -0.718,
+   -0.686,
+   -0.122
+  ],
+  "note": "hash default; edit freely"
+ },
+ "underside": {
+  "unit_offset_L_a_b": [
+   0.914,
+   -0.576,
+   0.678
+  ],
+  "note": "hash default; edit freely"
+ }
+}

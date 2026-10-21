@@ -256,23 +256,10 @@ def slew(bench):
     print('BENCH slew lasher-a t1 traverse by 4 frames', zs, flush=True)
     steps = [b - a_ for a_, b in zip(zs, zs[1:]) if abs(b - a_) > 1e-3]
     assert steps and (all(d > 0 for d in steps) or all(d < 0 for d in steps)), steps
-    bench.camera((95, -60, 45), (60, 50, 15), 30)
+    p, _ = muzzle(a, 1, 'barrel 1')
+    # Close on the bow turret, from above and to starboard: both bursts and the swing between.
+    bench.camera(tuple(p + Vector((14, -30, 16))), tuple(p + Vector((6, 0, 0))), 35)
 
-
-
-def _hellbore_without(*parts):
-    """The Hellbore shot with the weapon objects whose names hold any of `parts` removed: a
-    diagnostic for what in the shot is drawing what."""
-    def setup(bench):
-        hellbore(bench)
-        bpy = bench.bpy
-        gone = [o for o in bpy.data.objects
-                if o.name.startswith('SWFX guns') and o.name.endswith('@manticore') and any(p in o.name for p in parts)]
-        print('BENCH hellbore without', parts, len(gone), sorted(o.name for o in gone)[:12], flush=True)
-        for o in gone:                  # unlinked, not removed: the ship still lists them
-            for c in list(o.users_collection):
-                c.objects.unlink(o)
-    return setup
 
 
 TESTS = {
@@ -280,13 +267,6 @@ TESTS = {
     'train': dict(builds=['lasher'], frames=[6, 12, 18, 24], setup=train,
                   note='Turret training: Lasher A (near) trains bow and port guns onto a point up to port; '
                        'Lasher B keeps its rest pose.'),
-    'hellbore-no-lights': dict(builds=['manticore-p'], frames=[3, 8], setup=_hellbore_without('light'),
-                               note='Diagnostic: the Hellbore shot without its weapon lights.'),
-    'hellbore-no-glow': dict(builds=['manticore-p'], frames=[3, 8], setup=_hellbore_without('cloud', 'halo'),
-                             note='Diagnostic: the Hellbore shot without its cloud and halo glows.'),
-    'hellbore-no-rods': dict(builds=['manticore-p'], frames=[3, 8],
-                             setup=_hellbore_without('round t', 'round core', 'flash t1', 'puff'),
-                             note="Diagnostic: the Hellbore shot without the round's rods, the flash and the puff."),
     'slew': dict(builds=['lasher'], frames=[12, 26, 34, 44], setup=slew,
                  note='Turret slew: Lasher bow gun fires up to port (12), swings at the light MG turn rate, '
                       'eased (26, 34), fires on the new point ahead and low (44).'),

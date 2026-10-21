@@ -1,0 +1,9 @@
+Use case: sketch-to-render. Production overhead sprite layer: a small hand dumbbell that a starship crewman curls in the gym, drawn over the existing marine and crew infantry sprites in a top-down tactical game.
+
+Reference 1 is the authoritative SILHOUETTE GUIDE and edit target, 1536x1024. It holds the same dumbbell three times, one above the other. Reskin only the flat gray shapes; keep every shape's exact outline, position and scale. Everything outside the shapes must be genuinely transparent: no background, ground, glow, cast shadow, border, labels or grid.
+
+Camera: TRUE STRAIGHT-DOWN 90-degree overhead view of a dumbbell lying across the image: two dark rubber-coated hexagonal heads at the left and right ends, and a short knurled bright steel grip between them. All three copies identical.
+
+Style: match the material reference sprite exactly: chunky crisp pixel art with a clean one-step dark outline around every shape, a limited muted palette, light from the upper left, restrained detail that still reads when shrunk to 100 pixels wide. Not painterly, not smooth airbrushed, not photographic.
+
+Avoid: text, lettering, numbers on the heads, insignia, neon, noise, hands or people, extra objects.

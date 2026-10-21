@@ -2,23 +2,23 @@
   "sheetName": "ship-gym",
   "sheet": "art-source/tilesets/ship-gym.raw.png",
   "cellPx": 64,
-  "gridCols": 3,
-  "gridRows": 3,
+  "gridCols": 10,
+  "gridRows": 10,
   "idPrefix": "ship-gym",
   "alphaMin": 40,
   "outputSheet": "graphics/tilesets/ship-gym.png",
-  "note": "Geometry-first gym fixtures plus opaque material interior cuts. Pool water topology owns animated identity; coping and mats remain walkable.",
+  "note": "Geometry-first gym fixtures at real size (ShipGymTemplate, 128 px per cell on the guide, 125.4 on the raw) plus opaque material interior cuts. Every fixture is a full placement-frame cut, so the rower's seat keeps its registration against its rail. Pool water topology owns animated identity; coping and mats remain walkable.",
   "entries": [
     {
       "id": "ship-gym.treadmill",
       "rect": [
-        85,
-        54,
-        172,
-        309
+        125,
+        125,
+        126,
+        377
       ],
       "footprintCells": [
-        2,
+        1,
         3
       ],
       "cover": "med",
@@ -28,13 +28,13 @@
     {
       "id": "ship-gym.rower",
       "rect": [
-        545,
-        26,
-        153,
-        342
+        376,
+        125,
+        126,
+        377
       ],
       "footprintCells": [
-        2,
+        1,
         3
       ],
       "cover": "med",
@@ -42,16 +42,32 @@
       "included": true
     },
     {
-      "id": "ship-gym.bench-press",
+      "id": "ship-gym.rower-seat",
       "rect": [
-        877,
-        54,
-        305,
-        304
+        627,
+        125,
+        125,
+        126
       ],
       "footprintCells": [
-        2,
-        3
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "ship-gym.bench-press",
+      "rect": [
+        627,
+        376,
+        376,
+        251
+      ],
+      "footprintCells": [
+        3,
+        2
       ],
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -60,10 +76,10 @@
     {
       "id": "ship-gym.weights",
       "rect": [
-        46,
-        537,
-        347,
-        128
+        125,
+        627,
+        502,
+        125
       ],
       "footprintCells": [
         4,
@@ -76,10 +92,10 @@
     {
       "id": "ship-gym.mat",
       "rect": [
-        492,
-        476,
-        260,
-        260
+        137,
+        890,
+        227,
+        227
       ],
       "footprintCells": [
         1,
@@ -94,10 +110,10 @@
     {
       "id": "ship-gym.coping",
       "rect": [
-        908,
-        476,
-        260,
-        260
+        514,
+        890,
+        226,
+        227
       ],
       "footprintCells": [
         1,
@@ -112,10 +128,10 @@
     {
       "id": "ship-gym.water",
       "rect": [
-        72,
-        873,
-        288,
-        288
+        890,
+        890,
+        227,
+        227
       ],
       "footprintCells": [
         1,
