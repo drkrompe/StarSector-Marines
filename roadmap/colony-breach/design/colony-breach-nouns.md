@@ -291,8 +291,14 @@ its own small destroyable structure with its own body on the map, and fires
 spore bursts at hostile aircraft in its reach through the ground anti-air
 system, exactly as a flak position does: aimed bursts at the nearest airborne
 craft, never at the ground. A bore's own body never fires. Each burst is a shot,
-so it is heard and drawn through the weapon's own fire sound and effects. The
-colony art is a placeholder awaiting an art pass.
+so it is heard and drawn through the weapon's own fire sound and effects.
+
+Bores and colonies are grown, not built, and look it: the runner's chitin
+and amber in every body, standing on the ground with no hardstanding pad,
+their amber nodes breathing. A bore is a ring of hooked plates round an open
+pit, the mother bore a wider, deeper, tusked one. A colony's grade shows in
+its body as well as its numbers: one spore sac at fissure grade, a triad at
+bore grade, a spined crown of six at maw grade, each larger than the last.
 
 A colony keeps the **grade** of the tier that grew it: a fissure-grade colony
 threatens light craft at short reach, a bore-grade one reaches further and
