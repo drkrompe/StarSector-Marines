@@ -214,6 +214,13 @@
       <div id="workshop-feedback" class="label wrapped workshop-feedback tone-accent">{workshop.feedback}</div>
     </div>
     </div>
+      <div id="reveal-curtain" class="reveal-curtain"></div>
+      <div id="reveal-frame" class="reveal-frame"></div>
+      <div id="reveal-caption" class="reveal-caption">
+        <div id="reveal-title" class="label heading tone-accent reveal-title"></div>
+        <div id="reveal-effect" class="label wrapped reveal-effect"></div>
+        <div id="reveal-hint" class="label tone-muted reveal-hint"></div>
+      </div>
     </div>
     </div>
   </div>
@@ -280,7 +287,13 @@
   .systems-chip:hover, .systems-chip:active, .systems-chip:focus-visible { background-color: #2c3a33; background-image: none; }
   .systems-chip-icon { width: 30px; height: 30px; pointer-events: none; }
   .systems-strip-label { width: 0px; flex-grow: 1; height: 18px; }
-  .systems-view { position: absolute; left: 0px; top: 0px; flex-direction: row; width: 0px; height: 0px; padding: 0px; background-color: #121a17; opacity: 0; pointer-events: none; }
+  .systems-view { position: absolute; left: 0px; top: 0px; flex-direction: row; width: 0px; height: 0px; padding: 0px; border-width: 2px; border-color: #b99f65; background-color: #0b120fe0; opacity: 0; pointer-events: none; }
+  .reveal-curtain { position: absolute; left: 0px; top: 0px; width: 0px; height: 0px; background-color: #060a08; opacity: 0; pointer-events: none; }
+  .reveal-frame { position: absolute; left: 0px; top: 0px; width: 0px; height: 0px; border-width: 3px; border-color: #e6d28c; background-color: transparent; opacity: 0; pointer-events: none; }
+  .reveal-caption { position: absolute; left: 0px; top: 0px; flex-direction: column; align-items: center; width: 640px; height: 112px; padding: 14px 20px; gap: 6px; border-width: 2px; border-color: #b99f65; background-color: #121a17ee; opacity: 0; pointer-events: none; }
+  .reveal-title { width: 100%; height: 26px; text-align: center; }
+  .reveal-effect { width: 100%; height: 36px; text-align: center; }
+  .reveal-hint { width: 100%; height: 16px; text-align: center; }
   .systems-tree { flex-direction: column; align-items: center; width: 0px; flex-grow: 1; height: 100%; padding: 12px 16px; gap: 0px; }
   .systems-heading-row { flex-direction: row; width: 100%; height: 30px; gap: 12px; align-items: center; }
   .systems-heading { width: 0px; flex-grow: 1; height: 24px; }
