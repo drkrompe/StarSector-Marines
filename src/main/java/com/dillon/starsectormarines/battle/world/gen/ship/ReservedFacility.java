@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.fit.ChapelLoungeFitting;
 import com.dillon.starsectormarines.battle.world.gen.fit.FiringRangeFitting;
 import com.dillon.starsectormarines.battle.world.gen.fit.RehabSickBayFitting;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFitting;
-import com.dillon.starsectormarines.battle.world.gen.fit.TrackGymFitting;
+import com.dillon.starsectormarines.battle.world.gen.fit.GrandGymFitting;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 /**
@@ -24,7 +24,7 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 public enum ReservedFacility {
     /** Three short lanes along the spine; practice at the firing line, shut deck downrange. */
     FIRING_RANGE(RoomRecipe.SECOND_WIND_RANGE),
-    /** Equipment inside a running loop round the bulkheads. */
+    /** A running track round the bulkheads, the equipment floor inside it, and a pool. */
     GYMNASIUM(RoomRecipe.SECOND_WIND_GYM),
     /** A short ward and its clinic beside a rehab pool. */
     SICK_BAY(RoomRecipe.SECOND_WIND_SICK_BAY),
@@ -56,7 +56,7 @@ public enum ReservedFacility {
     public RoomFitting fitting() {
         return switch (this) {
             case FIRING_RANGE -> FiringRangeFitting.shipboard();
-            case GYMNASIUM -> new TrackGymFitting();
+            case GYMNASIUM -> new GrandGymFitting();
             case SICK_BAY -> new RehabSickBayFitting();
             case REC_LOUNGE -> new ChapelLoungeFitting();
             case BRIG -> new BrigFitting();

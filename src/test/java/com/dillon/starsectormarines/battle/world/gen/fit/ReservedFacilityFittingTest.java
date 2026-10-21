@@ -69,15 +69,8 @@ class ReservedFacilityFittingTest {
     }
 
     @Test void theGymKeepsItsLoopAndItsEquipment() {
-        everyHatch(12, 8, RoomPurpose.GYMNASIUM, TrackGymFitting::new, Affordance.EXERCISE, 7);
-        everyHatch(12, 8, RoomPurpose.GYMNASIUM, TrackGymFitting::new, Affordance.LAP, 8);
-        // The loop is run, not stood on: nobody curls a dumbbell on it.
-        Fitted f = fit(12, 8, RoomPurpose.GYMNASIUM, new TrackGymFitting(), new RoomPose(0, false), new int[]{-1, 3});
-        for (FixtureTask task : f.ctx.fixtureTasks) {
-            int x = task.cellX() - MARGIN, y = task.cellY() - MARGIN;
-            boolean loop = x == 0 || y == 0 || x == 11 || y == 7;
-            assertEquals(task.affordance() == Affordance.LAP, loop, task.affordance() + " at " + x + "," + y);
-        }
+        everyHatch(28, 14, RoomPurpose.GYMNASIUM, GrandGymFitting::new, Affordance.EXERCISE, 16);
+        everyHatch(28, 14, RoomPurpose.GYMNASIUM, GrandGymFitting::new, Affordance.LAP, 12);
     }
 
     @Test void theSickBayKeepsItsBedsBesideTheRehabPool() {

@@ -336,14 +336,23 @@ bay or briefing room usually fits, but in the worst layout only one 14×10 room
 fits at all, and none once a range is down. The 16×12 lounge fits 38 of 40.
 All eight together never fit (0/40).
 
-**What is reserved.** Five sealed compartments, at frigate footprints, place
-on all 200 layouts. Across those layouts no programmed room's position,
-floor, furniture, doors or berths change, and the envelope stays 106×79:
+**What is reserved.** Five sealed compartments. Four are frigate footprints
+laid after the program, so they never move a programmed room's position,
+floor, furniture, doors or berths. The gymnasium is the cruise-ship layout at
+28×14, which fits none of 200 layouts when laid last, so it is laid ahead of
+the mess in the aft port block and the rooms after it find room around it; the
+loading bay goes forward. The envelope stays 106×79.
+
+**Her layout is owned, not rolled.** The company has one ship and she has one
+deck, so her arrangement pins the layout seed (42): every campaign lays the
+same rooms in the same places, and the layout is checked once rather than
+hoped for across seeds. The placement shares below are from the unpinned
+survey that chose it:
 
 | Reserve | Footprint | Shares with | Where it lands |
 |---|---|---|---|
 | Firing range | 16×6, three short lanes | — | starboard waist beside the spine (72%), else aft |
-| Gymnasium | 12×8 | indoor track (a loop round its edge) | aft port corner (197/200) |
+| Gymnasium | 28×14, laid ahead of the mess | two-lane track round the room, equipment floor, pool | aft port block |
 | Sick bay | 10×6 | rehab pool | starboard aft block (82%), else aft port |
 | Rec lounge | 8×6 | chapel (a quiet end) | starboard aft (75%), aft port (20%) |
 | Brig | 6×6 | — | starboard waist (79%), else aft |
@@ -457,7 +466,7 @@ What each opened room is:
 | Reserve | Furnished as | Publishes |
 |---|---|---|
 | Firing range 16×6 | three 10-cell lanes, shut deck downrange with a trap behind each target; a range control and prep bench beside the run to the line where the hatch leaves room | practice at the firing line |
-| Gymnasium 12×8 | a running loop round the bulkheads, cardio and a press inside it, a weights rack and a mat | exercise (recreation), on the loop as well as at the equipment |
+| Gymnasium 28×14 | a two-lane running track round the bulkheads; four treadmills, four rowers, two presses and a mat inside it; a 10×4 pool with three loungers and two weights racks on its deck | exercise (recreation) at the equipment, the mat and the racks; unwind at the loungers |
 | Sick bay 10×6 | up to three beds across a stretcher aisle from the nurse station, cabinet and sink; a narrow rehab pool in a walkable coping ring at the end with fewer hatches | treatment at the beds, the station and the poolside; the medic's work |
 | Rec lounge 8×6 | a sofa and low table, a card table with stools, and at the quieter end a chapel of two pews facing a small altar | unwind (recreation), the pews included |
 | Brig 6×6 | two cells, each a bunk and a head behind bars, a bulkhead between them, on the side with fewer hatches; a desk and a property locker outside | one guard post facing the bars; the bunks publish no rest |

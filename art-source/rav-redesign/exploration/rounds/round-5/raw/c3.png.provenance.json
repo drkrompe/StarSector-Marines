@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16001-5a2b-7ca1-a1e7-22d1061a0c93",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16001-5a2b-7ca1-a1e7-22d1061a0c93\\exec-c39d657f-d779-469e-878a-545f79fb434b.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\round-5\\raw\\c3.png",
+    "sha256": "d6501c1b95a2ba0435c735443ec4115f4496a6ebae30c7f2e3473ddbaf37ea17",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\round-5\\prompts\\c3.prompt.txt",
+  "promptSha256": "dd13bbe0ff0af113329a4ba4ff64e811c2f115e8f88d79fdaeb72f4ed79b7d34",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity: head, palette and finish only; body, legs and weapons change per the brief\n\nReference image 1 is the creature's identity: keep its head (heavy fanged jaw, small amber eyes), its palette and finish exactly (glossy pale lilac and mauve carapace plates, deep purple-magenta sinew in every gap, ivory claws and spike tips). Original design. BODY CHANGE: it is a HOUND, not a lizard: a hunched, deep-chested hound build with high muscular shoulders and a tucked waist, its four legs carried UNDER the body (not sprawled out to the sides): front legs straight down from the shoulders with the elbow pointing back, hind legs with a forward stifle and a backward hock, standing on clawed digitigrade paws. WEAPONS CHANGE: instead of long swept blades, two jointed raptorial SPIKE ARMS mounted on top of the shoulders, like a mantis or mantis shrimp: an upper arm, a forearm, and a short barbed ivory spike at the tip. TOP-DOWN view, strict overhead orthographic, facing UP, centred, filling two thirds of the frame, light from upper left: the same creature standing; because the legs are under the body only the paws and the bulge of shoulders and haunches show past the body outline; the spike arms folded tight on top of the shoulders with spike tips pointing forward beside the jaw. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\hero.png",
+      "sha256": "1fd084bdf713b942ea09dca5767d4ee1ac913bf17c5bcea8ae0d6ac62bcb41e8",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity: head, palette and finish only; body, legs and weapons change per the brief"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the reference’s head, palette, and finish with the hound anatomy and folded spike arms you specified.\n"
+  ],
+  "usage": {
+    "input_tokens": 40999,
+    "cached_input_tokens": 35200,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 461,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 42.2
+}
