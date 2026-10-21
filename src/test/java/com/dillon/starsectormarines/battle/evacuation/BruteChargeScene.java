@@ -95,6 +95,11 @@ public final class BruteChargeScene implements BehaviorScene {
                     .stationary().health(DEEP).done();
             default -> { }
         }
+        if (!building && !loop.equals("infantry-line") && !loop.equals("far-target")) {
+            // A marine well outside the charge band, so the player's side sees the Brute: without
+            // one nothing of ours has eyes on it and the frames draw it hidden by the fog.
+            builder.unit("observer", Faction.MARINE, UnitType.MARINE, 24, lane - 5, spec -> spec.health(DEEP));
+        }
         SceneWorld world = builder.build();
         try (BattleSimulation sim = world.sim()) {
             long target = switch (loop) {
@@ -126,7 +131,7 @@ public final class BruteChargeScene implements BehaviorScene {
                     ground, sim);
             trace.remember(sim);
             SceneRun.of(world).observe(trace)
-                    .frames(frames, loop, 6, tick -> loop + " / brute charge / tick " + tick)
+                    .frames(frames, loop, 3, tick -> loop + " / brute charge / tick " + tick)
                     .run(TICKS);
             return report(loop, trace, sim);
         }
