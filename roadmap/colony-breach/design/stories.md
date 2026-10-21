@@ -11,6 +11,7 @@ these stories.
 | --- | --- |
 | `hive-creep.md` | **IN PROGRESS.** Creep field spreads from eruption sites (interim); look and art next; the bore hookup, creep effects and ground colonies are unblocked now that bores and `BoreGrowthSites` are on main. |
 | `swarm-harvest.md` | **READY.** Runners seize colonists and drag them to bores as biomass through `SwarmBores.feed`; interceptable carriers. |
+| `runner-impale-drag.md` | **READY after harvest.** Any Runner strike has a small chance to impale a Marine, militia fighter or colonist alive and drag them to a bore; kill the carrier to free them. Needs `swarm-harvest.md`'s carrier first. |
 | `sector-outbreaks.md` | **QUEUED on the spine.** Lore in `swarm-lore-guide.md`. Outbreaks as a recurring campaign phenomenon. |
 | `breach-audio.md` | **READY.** ElevenLabs strain voices, bore SFX, militia and administrator radio lines keyed to the beat table. |
 | `hive-posture-command.md` | **READY.** Hive posture in the briefing and command envelope; readiness gate; strike detachments. |

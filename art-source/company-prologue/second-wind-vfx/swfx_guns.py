@@ -1571,11 +1571,55 @@ def crawl_path(cast, p, n, rnd, steps=7, step_m=3.0, lift_m=.25):
     return pts
 
 
+def _fractal(points, rnd, rough=.16, decay=1.0, levels=5, cap_m=1.2):
+    """Lightning: every segment split at its midpoint, the midpoint kicked sideways by `rough`
+    x the segment's length, and again on the halves at `decay` of that, `levels` deep, so the
+    line zig-zags at every scale (a crawl step of 3 m ends in pieces of about 10 cm) instead of
+    running straight between a few kinks (owner, 2026-10-21: arcs read linear up close).
+    Self-similar (decay 1) turns about 27 degrees a vertex, median; the old four-cut jag ran
+    1.2 m straight between kicks. Segments longer than cap_m kick as if cap_m long, so the
+    arc keeps to its crawl path over the hull and the jaggedness is at the small scale."""
+    pts = [Vector(p) for p in points]
+    amp = rough
+    for _ in range(levels):
+        out = [pts[0]]
+        for a, b in zip(pts, pts[1:]):
+            seg = b - a
+            ln = seg.length
+            if ln > 1e-9:
+                t = seg / ln
+                u = t.orthogonal().normalized()
+                v = t.cross(u)
+                ang = rnd.uniform(0, math.tau)
+                kick = (u * math.cos(ang) + v * math.sin(ang)) * rnd.gauss(0, 1) * amp * min(ln, swfx_core.units(cap_m))
+                out.append((a + b) * .5 + kick)
+            out.append(b)
+        pts = out
+        amp *= decay
+    return pts
+
+
+def _forks(main, rnd, n, length=(.06, .18)):
+    """n short side branches off a fractal arc, each its own fractal, as fractions of the arc's
+    length: the hair that makes lightning read as lightning."""
+    total = sum((b - a).length for a, b in zip(main, main[1:]))
+    out = []
+    for _ in range(n):
+        i = rnd.randrange(1, len(main) - 1)
+        d = (main[i + 1] - main[i - 1]).normalized()
+        side = (d.orthogonal().normalized() * rnd.choice((-1, 1)) + d * rnd.uniform(.3, .9)).normalized()
+        side = (Matrix.Rotation(rnd.uniform(-1, 1), 3, d) @ side).normalized()
+        end = main[i] + side * total * rnd.uniform(*length)
+        out.append(_fractal([main[i], end], rnd, rough=.22, levels=4))
+    return out
+
+
 def emp_arcs(ctx, frame, paths, frames=8, rgb=(140, 200, 255), seed=0, light=3000.0):
     """The ion cannon's EMP on a hit: lightning crawling over the hull along each path (points
     in the ship's own copy space, units; crawl_path() makes them) for `frames`, flickering, with
-    a flickering light at the strike. The arcs are W1's (swfx_shield.arc_material / arc_curve /
-    jag, shared with the shield overload) on the knob gun_emp, keyed per strike; two jags per
+    a flickering light at the strike. The arcs are W1's material and tube (swfx_shield.arc_material
+    / arc_curve, shared with the shield overload) on the knob gun_emp, keyed per strike, drawn
+    along a fractal of each path (_fractal) with a few hair-thin forks (_forks); two fractals per
     path alternate frame by frame so the bolt re-strikes. Returns the object names."""
     import swfx_shield
     coll = ctx.collection(GROUP)
@@ -1594,9 +1638,15 @@ def emp_arcs(ctx, frame, paths, frames=8, rgb=(140, 200, 255), seed=0, light=300
         if len(path) < 2:
             continue
         for alt in (0, 1):
+            main = _fractal(path, rnd)
             ob = swfx_shield.arc_curve(f'{PREFIX} emp arc f{frame:04d} {k} {alt}', coll,
-                                       swfx_shield.jag(path, rnd, amount=.22, cuts=4),
-                                       swfx_core.units(.07), mat)
+                                       [tuple(p) for p in main], swfx_core.units(.06), mat)
+            for fork in _forks(main, rnd, rnd.randint(2, 4)):
+                sp = ob.data.splines.new('POLY')
+                sp.points.add(len(fork) - 1)
+                for j, (q, c) in enumerate(zip(sp.points, fork)):
+                    q.co = (*c, 1.0)
+                    q.radius = .6 - .4 * j / max(1, len(fork) - 1)      # hair-thin, tapering
             shown = set(range(frame + alt, frame + frames, 2))
             if shown:
                 _rebuild_visibility(ob, shown)

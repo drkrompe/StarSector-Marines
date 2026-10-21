@@ -88,7 +88,9 @@ report = {'borer_metres_per_unit': mpu, 'shepherd_metres_per_unit': SHEP_MPU, 'r
           'shepherd_build': str(SHEP.as_posix()), 'borer_build': str(BORER.as_posix()), 'stations': []}
 failed = False
 borer_meshes = [o for o in bor.all_objects if o.type == 'MESH' and not o.hide_render]
-pads = [o for o in borer_meshes if o.name.startswith('Foot ') and o.name.endswith(' pad')]
+# What stands on the deck: round 1's pads, or round 2's skid wear shoes.
+pads = [o for o in borer_meshes if (o.name.startswith('Foot ') and o.name.endswith(' pad'))
+        or (o.name.startswith('Skid ') and o.name.endswith(' shoe'))]
 contact_names = [n for n in shep_parts if 'charging contact' in n]
 for i in (1, 2, 3):
     lp = bpy.data.objects[f'Drone bay WS 003 launch point {i}']

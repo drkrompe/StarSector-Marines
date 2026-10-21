@@ -240,6 +240,9 @@ def blender_main(cfg):
             rows[f] = {s.key: s.reading(dg) for s in bench.ships}
             for k, r in rows[f].items():
                 print(f'BENCH {tid} f{f} {k:12} {json.dumps(r)}', flush=True)
+        import ship_fx
+        for s in bench.ships:       # per-object colour routed onto each copy's own materials
+            print(f'BENCH {tid} colour {s.key:12} {json.dumps(ship_fx.colour_audit(s))}', flush=True)
         report[tid] = dict(setup_s=round(time.time() - t0, 1), foreign=foreign, readings=rows, frames={})
         if foreign:
             print('BENCH FOREIGN references', json.dumps(foreign), flush=True)
