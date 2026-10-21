@@ -1,8 +1,10 @@
 # Runner impale and drag
 
-Status: PROPOSED — design only, open questions below for the owner; builds on `swarm-harvest.md` (the carrier) and cannot start before it
+Status: READY once `swarm-harvest.md` has landed its carrier — design settled with the owner; nothing built
 
 Written: 2026-10-21
+
+Updated: 2026-10-21 — owner answers folded in: pure chance on any victim, taken means killed, power suits immune, no squad pursuit, no harm while held.
 
 Model: `colony-breach-nouns.md` (Harvest, Swarm strain, The feed seam, Bore).
 Art and the motion study (blades swept back at rest, the forward strike, the
@@ -13,23 +15,23 @@ jaws, the drag pose) belong to the Rav redesign art session
 
 The redesigned Runner carries long arm blades swept back along its flanks and a
 heavy jaw. The owner: it "might be able to impale and drag / carry off victims".
-Harvest already says a Runner seizes what it brings down and drags it to a bore,
-"and in the end Marines". This story is that last step, with one difference
-that makes it a fight instead of a funeral: **the Marine is still alive while
-the Runner drags them away**, so their squad can get them back.
+Harvest already says a Runner seizes what it brings down and drags it to a bore.
+This story adds the version that makes it a fight instead of a funeral: **the
+victim is still alive while the Runner drags them away**, so somebody can get
+them back. The picture the owner wants is a melee where some Runners keep
+attacking while others are already hauling people off.
 
 ## What the battle has today
 
 Read before planning; these are what the rules lean on.
 
-- **No downed state.** A Marine is alive or dead (`DamageResolver`, hp at or
+- **No downed state.** A body is alive or dead (`DamageResolver`, hp at or
   below zero). The only lasting non-fatal harm is the limb wound
   (`WoundService`), which a medic dresses. `squad-medic.md` put "a downed
-  state" out of scope on purpose, and this story keeps it out: an impaled Marine
-  is a living Marine who is being held, not a new kind of casualty.
+  state" out of scope on purpose, and this story keeps it out: an impaled body
+  is a living body that is being held, not a new kind of casualty.
 - **The Runner's strike** (`SwarmPressureBehavior`): 5 damage every 0.7 s at
-  1.5 cells, zero penetration, through the ordinary damage path. Plated Marines
-  soak most of it into armor, so structure falls slowly.
+  1.5 cells, zero penetration, through the ordinary damage path.
 - **Medics** (`SquadMedicSystem`) treat living squadmates in reach: structure,
   armor and limb wounds. They never carry anyone.
 - **Morale** is per fire team (`SquadMoraleSystem`): a hit drains a little, a
@@ -42,99 +44,100 @@ Read before planning; these are what the rules lean on.
 
 No new strain and no new casualty kind. Two words, both fitted to Harvest:
 
-- **Impale.** A Runner's strike that seizes a *living* Marine instead of
-  wounding them. The Runner becomes a **carrier** in Harvest's sense, and the
-  Marine becomes its load.
-- **Impaled.** The state of a Marine held by a carrier: alive, out of the
-  fight, moving with the carrier. It ends one of three ways: **freed** (the
-  carrier dies), **taken** (the carrier reaches a bore), or **killed** (the
-  Marine dies while held).
+- **Impale.** A Runner's strike that seizes a *living* body instead of wounding
+  it. The Runner becomes a **carrier** in Harvest's sense, and the body its
+  load.
+- **Impaled.** The state of a body held by a carrier: alive, out of the fight,
+  moving with the carrier. It ends one of three ways: **freed** (the carrier
+  dies), **taken** (the carrier reaches a bore), or **killed** (the body dies
+  while held, from something else).
 
 ## Rules
 
 ### 1. When an impale happens
 
-A Runner's strike that lands on a Marine impales them instead of doing its
-damage when **all** of these hold:
+It is **chance, and nothing else about the fight**. Any Runner strike that
+lands can impale its target instead of doing its damage, on a seeded draw of
+**5% per strike**, when:
 
-- the Marine is **infantry**: not a power suit, not mech or vehicle crew;
-- after the blow, the Marine's structure would be **at or below a third** of
-  its maximum, and the Marine would still be alive;
-- the Marine is **alone**: no other living Marine within 3 cells. A Marine in
-  their fire team's shadow can be cut but not taken;
-- the Runner is not already carrying, and at least one **living bore** exists
-  (no impales during seepage or after the last bore collapses: there is nowhere
-  to go);
-- a seeded draw passes: **20%** per qualifying strike.
+- the target is a **living infantry body the swarm hunts**: a Marine, a
+  militia fighter, or a colonist. Not a power suit (too heavy for a Runner),
+  not a mech, vehicle or emplacement, and not a cohort evacuee while their
+  escort lives (Harvest's law);
+- the Runner is not already carrying;
+- at least one **living bore** exists. No impales during seepage or after the
+  last bore collapses: there is nowhere to take anyone.
 
-So whether it can happen is something you can see and act on (a hurt marine on
-their own near a living bore), while the draw keeps it from being certain.
-Several Runners on one isolated, hurt Marine will usually take them within a
-few seconds. A squad that keeps together almost never loses anyone this way.
+So a pack in contact mostly fights and now and then one of them comes away
+with someone on its blades. Health, isolation and armor do not matter, so a
+fresh Marine in the middle of the line can be taken; the 5% is the number to
+tune once the scene shows how often that reads.
 
-The draw is keyed by the strike (tick, Runner, Marine) rather than taken from
+The draw is keyed by the strike (tick, Runner, target) rather than taken from
 the shared random stream, so turning impales off changes no other roll in the
 battle.
 
-### 2. The impaled Marine
+### 2. The impaled body
 
-- Alive, with the structure and armor they had before the blow (the impaling
-  blow does no damage of its own). They do not move, fire, take orders or count
-  toward their squad's fighting strength while held.
-- Held Marines take no further damage from the swarm; other swarm bodies
-  ignore them as prey, because they already belong to the carrier.
+- Alive, with the structure and armor it had before the blow (the impaling
+  blow does no damage of its own), and **it takes no harm while held**: there
+  is no bleed and no clock except the distance to the bore. It does not move,
+  fire, take orders or count toward its squad's fighting strength.
+- Other swarm bodies ignore it as prey, because it already belongs to the
+  carrier.
 - Drawn on the carrier, run through on its blades (the art session's drag
   pose), through Harvest's one-more-attached-sprite seam.
 
 ### 3. Rescue
 
 - **Kill the carrier.** It is an ordinary 20 HP Runner, so one or two hits
-  from any rifle. When it dies the Marine is **freed**: dropped where the
-  carrier fell, alive, back under orders after a **3-second** recovery, with a
-  limb wound in each leg (the blades went through). A medic then treats them as
-  any wounded squadmate.
-- **The victim's squad shoots the carrier first.** A carrier holding one of a
-  squad's own Marines is that squad's priority target while it is in sight.
-  That is a target-priority bump, not a new order: the squad does not break
-  formation to chase. Running after a carrier is the player's call, made with
-  an ordinary move order.
-- Shots at the carrier resolve against the carrier alone; the held Marine is
-  not hit by them.
+  from any rifle. When it dies the body is **freed**: dropped where the carrier
+  fell, alive, and back to what it was doing after a **3-second** recovery,
+  with a limb wound in each leg (the blades went through). A Marine goes back
+  under orders and a medic treats them as any wounded squadmate; a militia
+  fighter goes back to its post; a colonist flees again.
+- **A carrier holding one of a squad's own Marines is that squad's priority
+  target** while it is in sight. That is a target-priority bump only. Squads do
+  not chase carriers on their own: going after one is the player's call, made
+  with an ordinary move order.
+- Shots at the carrier resolve against the carrier alone; the held body is not
+  hit by them.
 
 ### 4. Where the carrier goes, and what happens there
 
-- The carrier drags its Marine down the **bore** flow field to the nearest
-  living bore, exactly as Harvest drags a colonist.
+- The carrier drags its load down the **bore** flow field to the nearest
+  living bore, exactly as Harvest drags a corpse.
 - If that bore collapses on the way, it turns for the next nearest. If none is
-  left, it drops the Marine where it stands and the Marine is freed.
-- On reaching the bore's mouth the Marine is **taken**: removed from the battle
-  and delivered through `SwarmBores.feed` as **one body** of biomass, the same
-  as a colonist. The bore grows and its next surge comes forward; nothing else
-  is special about a Marine being fed.
-- A Marine still held when the battle ends counts as taken.
+  left, it drops its load where it stands and the body is freed.
+- On reaching the bore's mouth the body is **taken**: killed and delivered
+  through `SwarmBores.feed` as **one body** of biomass, the same as a
+  harvested corpse. The bore grows and its next surge comes forward.
+- A body still held when the battle ends counts as taken.
 
 ### 5. Morale, medics and the casualty count
 
-- **Morale.** The impale itself costs the victim's fire team the drain of a
-  death (0.30), at the moment of the impale, once. Being freed gives nothing
-  back and being taken costs nothing more: the team has already reacted.
+- **Morale.** Impaling a Marine costs their fire team the drain of a death
+  (0.30), at the moment of the impale, once. Being freed gives nothing back and
+  being taken costs nothing more: the team has already reacted.
 - **Medics** never approach a held Marine and never chase a carrier. A freed
   Marine is an ordinary patient.
 - **Casualty count.**
-  - Freed: a survivor, like anyone else alive at the end.
+  - Freed: alive, like anyone else alive at the end.
   - Killed while held: fallen, rolled by `CasualtyFate` as usual.
-  - Taken: fallen with a **fixed MIA** fate, no roll and no sick-bay save. The
-    body was never recovered, which is what MIA already means in
-    `personnel-nouns.md`. The outcome needs a third list beside surviving and
-    fallen (taken soldier ids) so the resolver can skip the roll.
+  - Taken: a Marine is fallen with a **fixed KIA** fate, no roll and no
+    sick-bay save. The outcome needs a list beside surviving and fallen (taken
+    soldier ids) so the resolver can skip the roll. Taken militia and colonists
+    are simply dead, and the breach snapshot counts them with the colony's
+    losses.
 
 ### 6. What it costs the Runner
 
 - A carrier **cannot strike**. It fights back only in melee if attacked, as
-  Harvest's carriers do (that is already Harvest's rule; this inherits it).
+  Harvest's carriers do (Harvest's rule, inherited).
 - It moves at Harvest's carrier speed; this story assumes **40% of a Runner's
-  speed**, slower than a walking Marine, so a squad that moves can catch it.
-- It carries one Marine at most, and it drops out of its surge's stream.
+  speed**, slower than a walking Marine, so a squad that is sent after it can
+  catch it.
+- It carries one body at most, and it drops out of its surge's stream.
 
 ## Beats
 
@@ -146,50 +149,38 @@ Added to the beat table in `colony-breach-nouns.md` when the story ships:
 | `marine_freed` | PLAYER | A held Marine's carrier dies |
 | `marine_taken` | PLAYER | A carrier delivers a Marine into a bore |
 
-Radio lines for them ("They've got Okafor!") are `breach-audio.md`'s.
+Militia and colonist impales publish no beat; the breach snapshot counts them.
+Radio lines ("They've got Okafor!") are `breach-audio.md`'s.
 
 ## Scope
 
-1. The impale check in the Runner's strike, the impaled state on the Marine,
-   and the carrier hookup from `swarm-harvest.md`.
-2. Freed, taken and killed-while-held endings; the taken list in the mission
-   outcome and its fixed MIA fate.
+1. The impale draw in the Runner's strike, the impaled state, and the carrier
+   hookup from `swarm-harvest.md`.
+2. Freed, taken and killed-while-held endings for Marines, militia and
+   colonists; the taken list in the mission outcome and its fixed KIA fate.
 3. Carrier priority in squad target selection.
 4. Morale drain on impale; medics skip held Marines.
-5. The three beats.
+5. The three beats, and impale / freed / taken counts in the breach snapshot.
 6. `-Dbattle.colonyBreach.impale=false` as the control: strikes resolve as
    today.
-7. Evidence: a behaviour scene with two loops. In the first, a hurt Marine
-   alone near a bore is impaled and dragged and the squad does not reach them:
-   verdicts that the impale happened only under the rule's conditions, that the
-   carrier did not strike while carrying, and that a delivered Marine is
-   reported taken and fed the bore. In the second the squad shoots the carrier:
-   verdicts that the Marine was freed alive with two leg wounds and rejoined.
-   Mechanics only; who wins goes in the metrics.
+7. Evidence: a behaviour scene with two loops. In the first a Runner pack
+   meets a squad near a bore and nobody goes after the carriers: verdicts that
+   impales happened only on eligible targets with a bore open, that a carrier
+   never struck while carrying, and that a delivered Marine is reported taken
+   (KIA) and fed the bore. In the second the squad shoots a carrier: verdicts
+   that the Marine was freed alive with two leg wounds and rejoined. Mechanics
+   only; impale counts and who won go in the metrics.
 
 ## Acceptance
 
-- Impales happen only to hurt, isolated infantry, near a living bore.
-- Killing the carrier always frees a living Marine.
-- A taken Marine writes back MIA without a roll.
+- Impales happen only on eligible targets while a bore is open, never to power
+  suits, never to an escorted evacuee.
+- Killing the carrier always frees a living body.
+- A taken Marine writes back KIA without a roll.
 - Deterministic; the control switch changes no other roll; unit tests on the
-  impale check and the outcome mapping each run under a second.
+  impale draw and the outcome mapping each run under a second.
 
-## Open questions for the owner
+## Later, not in this story
 
-1. **Taken fate: MIA or KIA?** This draft says MIA (never recovered). KIA is
-   bleaker and more honest about what a bore does.
-2. **Who can be impaled?** This draft says Marines only. Militia and colonists
-   could be too, but Harvest already takes them once they are dead, and
-   impaling them alive only matters if someone would come for them.
-3. **Is "alone within 3 cells" the right rule?** It makes the lesson "keep
-   together" and keeps impales rare. Without it, a Runner pack could take
-   Marines out of a fighting line.
-4. **Should power suits be immune?** This draft says yes (too heavy to carry).
-   A Brute could be the strain that carries a suit, as a later rule.
-5. **Should the victim's squad chase on its own?** This draft only makes the
-   carrier a priority target; chasing is the player's order. A short automatic
-   pursuit would save more Marines, but it pulls squads off their tasks.
-6. **Does a held Marine get hurt?** This draft says no, so the only clock is
-   the distance to the bore. Bleeding while held would need a damage-over-time
-   rule the ground model does not have.
+- **A Brute that carries a power suit.** Suits are immune to Runners; letting
+  the heavier strain take one would be its own rule and its own story.
