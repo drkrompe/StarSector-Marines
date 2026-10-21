@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 
 /** Atomic campaign authority for Mech Lab fabrication and fitting. */
 public final class MechWorkshop {
@@ -12,6 +13,7 @@ public final class MechWorkshop {
     private final MechBay bay;
     private final FabricationResources resources;
     private final IntSupplier workingBerths;
+    private final Supplier<MechFieldRepair> fieldRepair;
 
     public MechWorkshop(MechBay bay, FabricationResources resources) {
         this(bay, resources, () -> CampaignMechSquad.CAPACITY);
@@ -19,12 +21,25 @@ public final class MechWorkshop {
 
     /** The host supplies its current physical capacity; a command rechecks it before spending. */
     public MechWorkshop(MechBay bay, FabricationResources resources, IntSupplier workingBerths) {
-        if (bay == null || resources == null || workingBerths == null) {
+        this(bay, resources, workingBerths, () -> MechFieldRepair.NEUTRAL);
+    }
+
+    /** {@code fieldRepair} is the ship's field-repair refit, read whenever an order is quoted. */
+    public MechWorkshop(MechBay bay, FabricationResources resources, IntSupplier workingBerths,
+                        Supplier<MechFieldRepair> fieldRepair) {
+        if (bay == null || resources == null || workingBerths == null || fieldRepair == null) {
             throw new IllegalArgumentException("mech bay and fabrication resources are required");
         }
         this.bay = bay;
         this.resources = resources;
         this.workingBerths = workingBerths;
+        this.fieldRepair = fieldRepair;
+    }
+
+    /** What fabricating one {@code component} costs now: the workshop's quote with the spares rack's share off. */
+    public FabricationCost weaponQuote(MechWeaponComponent component) {
+        MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.weapon(component);
+        return recipe == null ? null : resources.quote(fieldRepair.get().weaponBill(recipe.cost()));
     }
 
     public Result fitWeapon(String mechId, MechMountSlot slot,
@@ -43,8 +58,8 @@ public final class MechWorkshop {
                     ? Result.of(Status.INSTALLED_FROM_STORES) : Result.of(Status.INVALID);
         }
         if (!bay.canFabricate(component)) return Result.of(Status.PATTERN_LOCKED);
-        MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.weapon(component);
-        if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
+        FabricationCost bill = weaponQuote(component);
+        if (bill == null || !resources.spend(bill)) {
             return Result.of(Status.INSUFFICIENT_MATERIALS);
         }
         bay.addWeapon(component.id, 1);
@@ -149,7 +164,7 @@ public final class MechWorkshop {
         CampaignMech mech = bay.mechById(mechId);
         MechRepairs.Estimate estimate = MechRepairs.estimate(mech);
         if (estimate == null) return null;
-        return new RepairQuote(mechId, estimate.wear(), estimate.days(),
+        return new RepairQuote(mechId, estimate.wear(), fieldRepair.get().repairDays(estimate.days()),
                 resources.quote(estimate.bill()));
     }
 

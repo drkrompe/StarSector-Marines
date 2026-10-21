@@ -55,6 +55,18 @@ class MechWorkshopRepairTest {
         assertEquals(CampaignMech.Readiness.DAMAGED, mech.readiness(10f));
     }
 
+    @Test void fieldRepairShortensTheQuotedClockButNotTheBill() {
+        MechBay bay = new MechBay();
+        CampaignMech mech = damagedBulwark(bay);
+        MechWorkshopTest.TestResources resources = MechWorkshopTest.TestResources.stocked(500);
+        MechWorkshop.RepairQuote plain = new MechWorkshop(bay, resources).repairQuote(mech.id());
+        MechWorkshop.RepairQuote jigs = new MechWorkshop(bay, resources, () -> CampaignMechSquad.CAPACITY,
+                () -> new MechFieldRepair(0.75f, 1f)).repairQuote(mech.id());
+
+        assertEquals(plain.days() * 0.75f, jigs.days(), 1e-4f);
+        assertEquals(plain.bill(), jigs.bill());
+    }
+
     @Test void aWholeMechHasNothingToRepair() {
         MechBay bay = new MechBay();
         CampaignMech mech = bay.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND);
