@@ -1,8 +1,10 @@
 # Brute charge
 
-Status: PROPOSED — design for the owner's numbered answers; nothing built
+Status: READY — owner answers folded in; nothing built
 
 Written: 2026-10-21
+
+Updated: 2026-10-21 — owner answers: knocked down 1 s (and show it), through two bodies, light and medium mechs stagger, weight classes as written, numbers are starting values to feel out.
 
 Model: `colony-breach-nouns.md` (Swarm strain: Brute). Art and motion belong to
 the Brute art pass (`art-source/rav-redesign/exploration/motion_brute.py`, the
@@ -98,11 +100,11 @@ where the target has arcs. What follows depends on what was hit:
 | Light vehicle (technical, scout car, hover scout, supply and cargo trucks, drone skimmer) | Shoved 0.6 cells along the charge and **stalled** 0.8 s (no move). Side and rear hits land on its flat plate. | No. |
 | APC (every APC line, LRM and SRM carriers, the dozer) | Stalled 0.4 s. | No. The Brute stops against it. |
 | Tank | The tank's arc decides the damage; its front shrugs most of it off. | No. The Brute is **stunned** 1.0 s. |
-| Mech | The hit is aimed at the **legs** (the section that cripples). A mech lighter than the Brute is **staggered** 0.6 s (no move, no turn); a heavier one is not. | No. |
+| Mech | The hit is aimed at the **legs** (the section that cripples). A light or medium mech is **staggered** 0.6 s (no move, no turn); a heavy one is not. | No. |
 
 Vehicle weight is new: a **weight class** (light / medium / heavy) on
-`VehicleType`, which this table needs and nothing else uses yet. Mech weight
-reads `MechVariant.relativeMass` against a fixed Brute weight.
+`VehicleType`, which this table needs and nothing else uses yet. Mechs get the
+same three classes, read off `MechVariant.relativeMass`.
 
 **Knocked down, stalled, staggered and stunned are one short state**: "can't
 act" for a fixed time. It is not a downed casualty state: the body is upright
@@ -123,17 +125,34 @@ drain — the fear of the thing going through the line. No new morale system.
 - Its plate is unchanged by charging; DMR and rocket fire into a charging Brute
   is the answer, as it is to a walking one.
 
-## Owner decisions (answer by number)
+### 7. Showing it to the player
 
-1. **Infantry hit**: thrown and knocked down 1 s (as written), or thrown only?
-2. **Through-going**: bowls through up to two bodies (as written), or stops on
-   the first?
-3. **Mechs**: hit aimed at the legs, light mechs staggered, heavy ones not (as
-   written)? Or should a charge stagger every mech?
-4. **Vehicles**: the three weight classes with light vehicles shoved and
-   stalled, and tanks stunning the Brute (as written)?
-5. **Numbers**: charge speed 4.0 cells/s, band 3–8 cells, cooldown 8 s, tell
-   0.35 s. Keep, or change any?
+A second of not being able to act is confusing unless the player sees why. Four
+cues, all presentation over the rule:
+
+- **The tell is on the ground.** For the 0.35 s tell a faint amber wedge is
+  drawn along the line the Brute will run, as long as the run can go, under
+  the units. The head drops at the same moment. The player sees where it is
+  going before it goes.
+- **The thrown body lies down.** For the knocked-down second the body's sprite
+  lies on its side where it landed (the pose a fallen body already uses),
+  with a dust ring on landing, then gets up. It is upright in the sim
+  throughout; only the picture lies down.
+- **A daze mark.** A small amber ring circles above anything that can't act:
+  a thrown Marine, a stalled vehicle, a staggered mech, and the Brute itself
+  when it is stunned. The same mark everywhere means the same thing.
+- **The squad panel says so.** A knocked-down Marine's card reads "Knocked
+  down" for the second, as a wounded one reads its wound.
+
+## Owner decisions (2026-10-21)
+
+1. Infantry: thrown and knocked down 1 s — "sounds fun". Shown as rule 7.
+2. Through-going: up to two bodies (owner: "do whatever feels right").
+3. Mechs: light and medium are staggered; heavy are not.
+4. Vehicles: the three weight classes as written.
+5. Numbers (speed 4.0, band 3–8, cooldown 8 s, tell 0.35 s, the effect times)
+   are starting values: "we haven't felt any of this out yet". Each is a
+   `-Dbattle.brute.*` switch, so a feel pass is a command line, not an edit.
 
 ## Acceptance
 
@@ -162,6 +181,7 @@ throw landing cell, and the outcome table's lookup by target kind.
 3. The outcome table: throw, shove, stall, stagger, stun, the double-weight
    ram, prop breaking. `VehicleType` weight class.
 4. Morale near-miss on throws.
-5. The `brute-charge` scene; the art hookup (head-down pose on the tell,
-   gallop on the run, a thrown Marine's down second) with the Brute
-   production pass.
+5. The `brute-charge` scene.
+6. Presentation (rule 7): the ground wedge, the daze mark, the lying pose,
+   the squad-card line. The Brute's own head-down and gallop art lands with
+   the Brute production pass.
