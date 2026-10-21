@@ -1039,6 +1039,7 @@
     "gearPowerEffectMechSupport": "Calls a heavy transport to land supporting mechs.",
     "gearPowerEffectOrbitalBarrage": "Marks a zone for a delayed orbital strike. The blast can hit friendly units and structures.",
     "gearPowerEffectReconPing": "Temporarily reveals an area of the battlefield.",
+    "gearPowerEffectTenderCallDown": "Calls a committed tender down onto clear ground you choose. It lands and stays, and you build Vulcan turrets beside it. One tender per charge.",
     "gearPowerEffectShipOnStation": "Calls a committed ship in from your map edge to hold station over the targeted ground and work it, then depart. One ship per charge.",
     "gearPowerEffectVehicleSupport": "Calls a transport to deliver armoured support.",
     "gearReplenisherAccelerated": "Accelerated feed system",
