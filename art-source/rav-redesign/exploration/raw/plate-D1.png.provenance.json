@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f9f-f936-79a3-9f5e-8432c7b9c88e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f9f-f936-79a3-9f5e-8432c7b9c88e\\exec-6792ab5d-f44b-4acd-943f-9e139767e28e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "raw\\plate-D1.png",
+    "sha256": "344411fd9f887180cf1b7f7d13a54a0a73b4bf07d49d09295bd1f050e6016eff",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\plate-D1.prompt.txt",
+  "promptSha256": "e632941e11067de760b4964a91f4916302239831ece3595d8dc5607e1d08eca1",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact silhouettes, positions, sizes, poses and palette intent; render material onto it, never move or redesign\n\nConcept plate for a top-down tactical game (Starsector mod, Marines fighting a biological weapon in a frontier colony). Strict overhead orthographic view, camera looking straight down, light from the upper left, soft contact shadows only. Painterly-realistic game concept art, crisp readable silhouettes, wet organic detail. Keep every creature exactly where it is in the guide, at the same size, outline, facing (all face up) and pose; you are rendering surface material and form onto the guide, not redesigning it. From left: a Runner at rest, the same Runner mid-strike with its limbs fully extended, a Brute, a Spitter, and a large Matriarch thumbnail lower right. Plain flat neutral grey background, no ground, no scenery, no text, no labels, no border, no humans.\n\nDirection: CHITIN TIDE. The Rav Bloom is an engineered organism whose stages are armoured in lacquered chitin: hard, glossy, segmented plates in dark umber and walnut brown, every plate rimmed and every joint and suture picked out in pale cream bone, a crisp lacquer sheen on the light side, and only one small accent: tiny amber glow nodes. Engineered regularity: identical repeated segments and plates laid in a pattern, like something designed. Runner: a chain of armoured ring segments rowing on rows of short jointed paddle legs, cerci trailing behind, a small amber node on its back, and two long multi-segmented armoured whip-arms with cream joint rings and barbed cream tips (curled along its sides at rest, whipped straight forward in the strike). Brute: a wide plated disc ringed by short thick jointed legs, crusted with cream calcified bosses (its armour), two segmented club arms in front. Spitter: a round armoured sac with cream meridian sutures and crest over a small dark body with a forward siphon, a skirt of jointed trailing feelers. Matriarch: a wide plated disc ringed with amber nodes around a dark central maw, many jointed feelers. Hard chitin, not jelly, not wet; no red; no eyes.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guides\\guide-D1.png",
+      "sha256": "cd1b56a4182481a4234f27643651de0e3c319232f025ddb70d6e76a06779a9a6",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: exact silhouettes, positions, sizes, poses and palette intent; render material onto it, never move or redesign"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the guide’s exact layout and silhouettes, with the Chitin Tide materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 41644,
+    "cached_input_tokens": 32640,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 620,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 47.8
+}
