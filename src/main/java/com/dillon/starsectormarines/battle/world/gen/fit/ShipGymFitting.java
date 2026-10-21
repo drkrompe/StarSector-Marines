@@ -13,6 +13,7 @@ public final class ShipGymFitting implements RoomFitting {
 
     @Override public void fit(RoomFloor floor) {
         int w=floor.canonicalWidth(), h=floor.canonicalHeight();
+        if(GrandGymFitting.fits(w,h)) { new GrandGymFitting().fit(floor); return; }
         if(w<14 || h<10 || !available()) { new GymFitting().fit(floor); return; }
         reserve(floor,0,0,w,1);reserve(floor,0,h-1,w,1);
         reserve(floor,0,0,1,h);reserve(floor,w-1,0,1,h);

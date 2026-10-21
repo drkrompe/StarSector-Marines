@@ -34,6 +34,7 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
     private final Set<Integer> initialMobileSquads = new TreeSet<>();
     private final Map<Integer, Integer> squadSite = new HashMap<>();
     private final MissionGarrisons garrisons = new MissionGarrisons();
+    private final MissionCounterattack counter = new MissionCounterattack();
     private volatile SabotageDefenseSnapshot defenseSnapshot =
             SabotageDefenseSnapshot.empty();
 
@@ -52,7 +53,10 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
 
     @Override public Faction faction() { return Faction.DEFENDER; }
     @Override public String strategyId() { return "sabotage-defender"; }
-    @Override public void afterCommit(CommandEffects effects) { garrisons.afterCommit(effects, faction()); }
+    @Override public void afterCommit(CommandEffects effects) {
+        garrisons.afterCommit(effects, faction());
+        counter.afterCommit(effects, strategyId());
+    }
     @Override public Map<String, Integer> reactiveDefenceFigures() { return ReactiveDefenceSource.figures(garrisons); }
 
     @Override
@@ -62,6 +66,9 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
                 .stream().filter(site -> !site.complete()).toList();
         Map<Integer, SquadDirective> directives = new LinkedHashMap<>();
         List<CommandSquadState> candidates = new ArrayList<>();
+        boolean countering = MissionCounterattack.enabled();
+        Set<Integer> claimed = countering ? counter.claimed() : Set.of();
+        List<CommandSquadState> members = new ArrayList<>();
 
         for (CommandSquadState squad : frame.squads()) {
             if (squad.aliveMembers() <= 0) continue;
@@ -87,6 +94,10 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
                 directives.put(squad.squadId(), directive(squad, nearest,
                         Role.EXTERNAL, Reason.EXTERNAL_OWNERSHIP_PRESERVED,
                         null, frame));
+                continue;
+            }
+            if (claimed.contains(squad.squadId())) {
+                members.add(squad);
                 continue;
             }
             candidates.add(squad);
@@ -137,6 +148,7 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
 
         List<CommandProposal> proposals = new ArrayList<>();
         Map<Integer, MissionGarrisons.Offer> offers = new TreeMap<>();
+        List<CommandSquadState> held = new ArrayList<>();
         for (CommandSquadState squad : candidates) {
             SquadDirective directive = directives.get(squad.squadId());
             if (directive != null) {
@@ -157,6 +169,7 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
                     Role.RESERVE, reason, null, frame));
             if (reason == Reason.MOBILE_RESERVE_HELD) {
                 offers.put(squad.squadId(), MissionGarrisons.Offer.reserve());
+                held.add(squad);
             }
             squadSite.remove(squad.squadId());
             if (squad.directive() != null
@@ -169,6 +182,20 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
             }
         }
 
+        MissionCounterattack.Result retake = countering
+                ? counter.plan(frame.tick(), sites(activeSites, frame), members, held,
+                candidates.size() + members.size(), frame.squads(), frame.influence(), frame.topology())
+                : MissionCounterattack.Result.NONE;
+        proposals = MissionCounterattack.apply(proposals, retake, frame.squads());
+        offers = MissionCounterattack.offers(offers, retake);
+        for (Map.Entry<Integer, MissionCounterattack.Duty> duty : retake.duties().entrySet()) {
+            ObjectiveAssignment order = duty.getValue().assignment();
+            directives.put(duty.getKey(), new SquadDirective(duty.getKey(), -1, Role.RESERVE,
+                    Reason.valueOf(duty.getValue().reason()), order.kind(), order.targetCellX(), order.targetCellY()));
+        }
+        for (int id : retake.released()) {
+            directives.put(id, new SquadDirective(id, -1, Role.RESERVE, Reason.MOBILE_RESERVE_HELD, null, -1, -1));
+        }
         Map<Integer, MissionGarrisons.Manning> manning = garrisons.plan(frame,
                 frame.garrisonables(), offers, strategyId());
         if (!manning.isEmpty()) {
@@ -188,16 +215,29 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
                 : completedSiteCount(frame.facts()) > 0
                 ? Phase.REDISTRIBUTION : Phase.ROUTINE_SECURITY;
         SabotageDefenseSnapshot detail = buildSnapshot(frame, phase,
-                candidates.size(), reserve, directives, routineCount,
+                candidates.size() + members.size(), reserve, directives, routineCount,
                 responseCount);
-        List<String> objectives = frame.facts().sites().stream()
+        List<String> objectives = new ArrayList<>(frame.facts().sites().stream()
                 .map(site -> site.name() + "=" + (site.complete() ? "complete"
                         : site.alarm().active() ? "alarm" : "secure"))
-                .toList();
+                .toList());
+        objectives.addAll(retake.notes());
         return new CommandPlan<>(faction(), strategyId(), phase.name(),
                 frame.tick(), frame.influence() != null
                 ? frame.influence().updatedTick() : -1,
-                candidates.size(), reserve, objectives, proposals, detail);
+                candidates.size() + members.size(), reserve, objectives, proposals, detail);
+    }
+
+    /** The places that matter to Sabotage: the unfinished sites and the key buildings beside them. */
+    private static List<MissionPlaces.Site> sites(List<SabotageDefenderCommandFacts.Site> active,
+                                                  SabotageDefenderCommandFrame frame) {
+        if (active.isEmpty()) return List.of();
+        List<MissionPlaces.Site> objectives = new ArrayList<>();
+        for (SabotageDefenderCommandFacts.Site site : active) {
+            objectives.add(MissionPlaces.objective("site " + site.id(), site.cellX(), site.cellY(),
+                    frame.keyBuildings()));
+        }
+        return MissionPlaces.around(objectives, frame.keyBuildings());
     }
 
     @Override

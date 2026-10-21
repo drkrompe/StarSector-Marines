@@ -538,6 +538,16 @@ asked and could not solve inside a berth — eight by six holds two ranks of rac
 and the passage between them and nothing else, so a lounge is a room of its own,
 which is what a ship actually does.
 
+A big complement trains the way a liner's passengers do. Once a ship would owe
+three or more small gymnasia she gets one large one per two hundred and fifty
+aboard instead, in about the same deck area: a two-lane running track round the
+whole compartment, which is also its circulation, the cardio and strength floor
+inside it, and a pool with loungers along its deck. Its equipment is drawn at
+real size against the crew, so a gym is read as a room people use rather than
+a showroom of oversized machines. The track publishes no work yet: a lap is a
+walk round a loop inside one room, and the ambient model has no job of that
+shape.
+
 They are not decoration. The whole ambient model exists so that nobody stands
 about for want of something to do, and the only idleness worth having is the kind
 somebody chose. Without a room to choose, there is nowhere for that choice to

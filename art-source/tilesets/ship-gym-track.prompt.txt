@@ -1,0 +1,7 @@
+Reskin the attached geometry guide into finished top-down game art for a spaceship gymnasium prop sheet. Strict overhead orthographic view, soft light from the upper left, the same muted worn look as the material reference sheet: dull brushed steel, muted olive-grey enamel, charcoal rubber, small bolts, modest edge wear. No saturated colours, no hazard stripes, no text.
+
+The guide is the geometry, scale and layout authority, and the result is cut mechanically from the guide's exact pixel rectangles: keep every piece exactly where it is, at exactly its size, outline and orientation; do not move, widen, lengthen, rescale, rotate, merge or add pieces. Keep all empty canvas fully transparent: true transparent background; no floor, no ground, no shadow slab, no border, no people, no labels.
+
+Pieces:
+1. Top: a pool lounger seen from directly above, lying horizontally: a slatted steel frame with a raised padded backrest at the left end and a thin pale-grey cushion along the rest. Slim, exactly the guide's outline.
+2. Below: one opaque square material sample, edge to edge, seamless and without borders, seams, lines or markings: muted terracotta-brown rubberised running-track surface with a fine granular texture, quiet and low contrast so it tiles over a large loop.
