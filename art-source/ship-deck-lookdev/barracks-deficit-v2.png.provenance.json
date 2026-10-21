@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ecc-ffd4-7853-b2e3-6d99491acbbc",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ecc-ffd4-7853-b2e3-6d99491acbbc\\exec-93f93ae6-454f-4371-b828-87aece4a640e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ship-deck-lookdev\\barracks-deficit-v2.png",
+    "sha256": "b55bb8a9d7e4b99453f2ba46fa957890015735d37d190f0d40103d08765df0df",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\ship-deck-lookdev\\barracks-deficit-v2.prompt.txt",
+  "promptSha256": "e4412e34eb70b7ee0d9bf8869a3dba70fd7d575f42d035cc20edc87ccf7de437",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Layout authority: exact walls, rooms, doors, corridors, furniture footprints, camera and framing\nImage 2: Material, lighting and mood only; first-person, not layout\nImage 3: Material, lighting and mood only; first-person, not layout\n\nTop-down orthographic game view of the interior deck of a battered ex-military transport starship (the \"Second Wind\"), seen straight down from above with the ceiling removed, as in a tactical top-down game. Painted-realistic, gritty industrial sci-fi, readable at game scale.\n\nReference 1 is the LAYOUT AUTHORITY: keep every room, wall, door gap, corridor and furniture footprint exactly where it is and the same size and shape. Do not move, add or remove walls, doors or rooms; do not change the camera, framing or scale. Repaint it in the target look.\nReferences 2 and 3 are MATERIAL, LIGHTING AND MOOD ONLY (they are first-person views of the same ship's corridors; never copy their perspective or layout): riveted and bolted steel plating with welded patch plates, cable bundles running along the walls, hazard-striped hatch frames, cargo-rail floors with rows of tie-down slots, wet reflective deck, crates, net-strapped cargo and gear.\n\nLighting model to show, seen from above:\n- Strung lighting: small caged amber bulkhead lamps mounted on the corridor and room walls at regular spacing (about every three floor tiles), joined by a thin drooping cable run along the wall. Each lamp makes a bright warm spot on its wall and a soft half-oval pool of warm light on the floor in front of it.\n- Floor sheen: soft specular highlights on the wet steel deck near each lamp.\n- The overhead is not visible, but its shadows are: faint cargo-netting, beam and cable-tray shadow patterns fall across the floor between lamps.\n- Screens and consoles cast small cool teal pools of their own.\n- Walls are drawn as thick dark bulkheads seen from above with bolted top edges.\n\nNo people, no text, no UI, no labels, no captions, no border. Keep the black void outside the hull black. Same 16:9 framing as reference 1.\n\nSTATE: the battered start, with the power failure clearly visible. About two lamps in three are dead (dark caged housings, cable slack), so most of the deck is near-black and the light comes in separate, isolated warm pools with deep shadow between them; the far ends of corridors fade to black. The corridors are used as storage: crate stacks, strapped cargo pallets, duffel bags, bedrolls and loose gear line both walls, always leaving a clear centre lane. Patched mismatched wall plating, sagging cables, grime collected along wall bases and in corners (not blotches in open floor; no rust stains on the floor). Bunks have bare stained mattresses and tangled blankets; lockers dented, some doors open. Consoles dark or dim amber standby.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\ship-deck-lookdev\\guides\\barracks-restored-layout.png",
+      "sha256": "9d31360d39232715bb3cc83f510046fbf98f66e64de16e945e333e23fe18cf47",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Layout authority: exact walls, rooms, doors, corridors, furniture footprints, camera and framing"
+    },
+    {
+      "path": "art-source\\company-prologue\\story-stills\\cargo-billets.master.png",
+      "sha256": "d39a6877035a8a200508e4feb31d802d3a31766a2b699d5d5123ab3c307cb4bb",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Material, lighting and mood only; first-person, not layout"
+    },
+    {
+      "path": "art-source\\company-prologue\\story-stills\\berths-fitted.master.png",
+      "sha256": "f11a66445444aac9d7650ce51f0394f2f434459ab7a5371aef71b9e80d7f1651",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Material, lighting and mood only; first-person, not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one repaint using Image 1’s exact layout and the other references’ materials and mood, with isolated amber light pools showing the power failure."
+  ],
+  "usage": {
+    "input_tokens": 50849,
+    "cached_input_tokens": 37120,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 820,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 83.3
+}

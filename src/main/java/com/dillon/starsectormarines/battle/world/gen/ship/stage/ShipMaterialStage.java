@@ -10,6 +10,9 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 /** Ship-only material defaults; authored surfaces, fixtures and physical topology remain authoritative. */
 public final class ShipMaterialStage implements GenStage {
+    /** Bolted steel deck plate: the passages and lived-in rooms, after the deck look-dev. */
+    static final String PLATE = "ship-hold.plate";
+
     @Override
     public void run(GenContext ctx) {
         SealedShipHatches.revealThresholds(ctx);
@@ -24,7 +27,7 @@ public final class ShipMaterialStage implements GenStage {
                 String existing = topology.getSurfaceId(x, y);
                 if (existing != null && !existing.equals("urban.wall")) continue;
                 String material = topology.isWall(x, y) ? "ship.neutral-bulkhead"
-                        : ctx.grid.isDoorway(x, y) ? "ship-floor-trim.passage"
+                        : ctx.grid.isDoorway(x, y) ? PLATE
                         : floor(topology.getRoomPurpose(x, y));
                 topology.setSurface(x, y, topology.surfaceIndex(material));
             }
@@ -46,16 +49,16 @@ public final class ShipMaterialStage implements GenStage {
     }
 
     private static String floor(RoomPurpose purpose) {
-        if (purpose == null) return "ship-floor-trim.passage";
+        if (purpose == null) return PLATE;
         return switch (purpose) {
-            case CORRIDOR -> "ship-floor-trim.passage";
+            case CORRIDOR -> PLATE;
             case CREW_LOUNGE -> "ship-floor-trim.lounge";
             case PATIENT_WARD -> "ship-floor-trim.clinical";
             case ENGINE_ROOM, PRODUCTION_FLOOR -> "ship-floor-trim.engineering";
             case BARRACKS, CREW_QUARTERS, MESS_HALL, CONFERENCE_ROOM,
-                    BRIDGE, WASHROOM, GYMNASIUM -> "ship.crew-deck";
+                    BRIDGE, WASHROOM, GYMNASIUM -> PLATE;
             case VEHICLE_BAY, HANGAR, STOCKROOM, LOADING_BAY, PARTS_CAGE -> "auto-shop.concrete";
-            default -> "ship.passage-deck";
+            default -> PLATE;
         };
     }
 }

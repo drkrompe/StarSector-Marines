@@ -48,3 +48,14 @@ hatches, reachable rest/stowage and the frame's transparent opening.
 
 The same suite also checks the corrected dark upper armory wall: hull boundary
 walls can retain VOID ground, but still need the ship's structural wall material.
+
+## Worn condition
+
+`barracks-bunks-worn.raw.png` repaints this sheet as the same six components
+worn: chipped paint, a bare stained mattress under a tangled blanket, dented and
+ajar locker doors, unfolded clothing. ImageGen was given `barracks-bunks.raw.png`
+as geometry and identity authority and the cargo-billets still as material
+reference (`barracks-bunks-worn.prompt.txt`). Each component's alpha mask
+registers with the original at IoU 0.86 (the thin open frame) to 0.98, so
+`barracks-bunks-worn.tileset-authoring.json` reuses these cuts with `-worn` ids.
+The deck draws a worn twin over the fitting while Life support is at Deficit.

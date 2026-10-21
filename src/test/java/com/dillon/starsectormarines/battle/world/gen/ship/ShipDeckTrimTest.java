@@ -26,8 +26,8 @@ class ShipDeckTrimTest {
         for (int x = 0; x < 6; x++) ctx.topology.setRoomPurpose(x, 0, purposes[x]);
         ctx.topology.setSurface(5, 0, ctx.topology.surfaceIndex("authored.floor"));
         new ShipMaterialStage().run(ctx);
-        String[] expected = {"passage", "lounge", "clinical", "engineering", "engineering"};
-        for (int x = 0; x < 5; x++) assertEquals(KIT + expected[x], ctx.topology.getSurfaceId(x, 0));
+        String[] expected = {"ship-hold.plate", KIT + "lounge", KIT + "clinical", KIT + "engineering", KIT + "engineering"};
+        for (int x = 0; x < 5; x++) assertEquals(expected[x], ctx.topology.getSurfaceId(x, 0));
         assertEquals("authored.floor", ctx.topology.getSurfaceId(5, 0));
         for (int x = 0; x < 6; x++) assertTrue(ctx.grid.isWalkable(x, 0));
     }

@@ -31,6 +31,7 @@ import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.ship.BayAperture;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -255,7 +256,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         this.rooms = rooms;
         this.deck = deck;
         this.seed = seed;
-        lighting = new ShipDeckLighting(deck.topology, rooms, seed);
+        lighting = lighting(CoreDressing.RESTORED);
         this.boatsHeld = boatsHeld == null ? null : boatsHeld.clone();
         this.boatWrecks = boatWrecks == null ? null : boatWrecks.clone();
         gantries = deck.gantries;
@@ -310,9 +311,17 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         if (!next.clean() && dressing == null)
             dressing = ShipDeckDressing.of(deck.topology, simulation.getGrid(), rooms, gantries,
                     simulation.getDoodads(), seed);
-        if (next.power() != coreDressing.power())
-            lighting = new ShipDeckLighting(deck.topology, rooms, seed, next.power());
+        if (next.power() != coreDressing.power() || next.compute() != coreDressing.compute())
+            lighting = lighting(next);
         coreDressing = next;
+    }
+
+    private ShipDeckLighting lighting(CoreDressing state) {
+        List<Doodad> screens = new ArrayList<>();
+        for (Doodad doodad : deck.doodads)
+            if (ShipDeckDressing.isScreen(doodad.definitionId())) screens.add(doodad);
+        return new ShipDeckLighting(deck.topology, rooms, seed, state.power(), screens, state.compute(),
+                ShipDeckLighting.registry());
     }
 
     /** Which cores this deck currently shows restored. */
