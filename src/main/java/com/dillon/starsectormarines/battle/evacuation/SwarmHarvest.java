@@ -172,6 +172,12 @@ public final class SwarmHarvest {
         return carriers.containsKey(body) || recovering.containsKey(body);
     }
 
+    /** The Runner dragging {@code body}, or {@code 0}. */
+    public long carrierOf(long body) {
+        Long carrier = carriers.get(body);
+        return carrier == null ? 0L : carrier;
+    }
+
     /** The body {@code carrier} drags, or {@code 0}. */
     public long loadOf(long carrier) {
         Long load = loads.get(carrier);
