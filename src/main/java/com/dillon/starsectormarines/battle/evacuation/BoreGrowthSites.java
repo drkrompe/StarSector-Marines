@@ -24,10 +24,21 @@ public final class BoreGrowthSites {
     /** Sites around the ring. */
     public static final int SLOTS = 8;
 
+    /** Which open cells a kind of growth may stand on (a ground colony, say, only on creep). */
+    @FunctionalInterface
+    public interface SiteFilter {
+        boolean accepts(int x, int y);
+    }
+
     private BoreGrowthSites() {}
 
     /** The open growth sites around {@code bore}, in the order growths take them. */
     public static List<int[]> cells(NavigationGrid grid, SwarmBore bore, long seed) {
+        return cells(grid, bore, seed, (x, y) -> true);
+    }
+
+    /** The open growth sites around {@code bore} that {@code filter} accepts, in the order growths take them. */
+    public static List<int[]> cells(NavigationGrid grid, SwarmBore bore, long seed, SiteFilter filter) {
         double turn = SwarmBores.unit(SwarmBores.mix(seed ^ (bore.number() * 0xD6E8FEB86659FD93L))) * Math.PI * 2.0;
         List<int[]> cells = new ArrayList<>();
         // Alternate across the ring (0, 4, 2, 6, 1, 5, 3, 7) so the first few growths stand apart.
@@ -36,7 +47,7 @@ public final class BoreGrowthSites {
             double angle = turn + slot * Math.PI * 2.0 / SLOTS;
             int x = (int) Math.floor(bore.x() + 0.5 + Math.cos(angle) * RADIUS);
             int y = (int) Math.floor(bore.y() + 0.5 + Math.sin(angle) * RADIUS);
-            if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) continue;
+            if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || !filter.accepts(x, y)) continue;
             boolean duplicate = false;
             for (int[] c : cells) duplicate |= c[0] == x && c[1] == y;
             if (!duplicate) cells.add(new int[]{x, y});
