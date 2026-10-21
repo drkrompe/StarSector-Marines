@@ -96,6 +96,9 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
         };
     }
 
+    /** The holo-tank shows the briefing the garrison the operation faces; read when the briefing is drawn. */
+    public boolean garrisonIntel() { return applies && band(RefitTrack.BRIEFING).atLeast(RefitBand.IMPROVED_II); }
+
     // --- Hull figures, applied by the conversion hull mod ---
 
     /** Her own supplies per month: hydroponic racks grow part of what the company eats. */
