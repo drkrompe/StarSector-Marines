@@ -584,8 +584,11 @@ for one job in the cycle, and reads that way on screen.
   lying (its outfit's fallen pose), head toward the jaws, jolting with each
   heave. Through a turn the spine bows into a C toward the inside, the
   shoulders and the hips swinging the same way while the planted feet hold.
-  A dead Runner keeps its skeleton, falls
-  onto its flank with its legs gone slack and lies there, dulled. In a crowd it
+  A dead Runner bursts: the trunk splits at mid-spine and the head, legs
+  and spike arms come away, flung out (mostly behind it), spinning, bouncing
+  once and lying flat where they land, while its ichor sprays into splats
+  around a pool spreading under where it died. Seeded per Runner, so a replay
+  bursts the same way; presentation only, like the rest of the rig. In a crowd it
   is shoved as the shape it is drawn as, a capsule along its facing (the
   separation shape in `continuous-positions-nouns.md`), so a pack queues nose to
   tail and packs flank to flank rather than stacking into one another; its
