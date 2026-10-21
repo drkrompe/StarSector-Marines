@@ -1,7 +1,7 @@
 """Matriarch concept rounds: numbered ImageGen plates judged at play zoom beside the
 rest of the family and a mech.
 
-  python matriarch_sheet.py <round dir> <render root> <out dir> "<title>" [--linear=3.9] <names...>
+  python matriarch_sheet.py <round dir> <render root> <out dir> "<title>" [--linear=3.9] [--control=<plate>] <names...>
 
 Writes two 1920x1080 sheets into <out dir>:
   01-concepts.png  each plate beside the same design at 32 px per cell with a Bulwark,
@@ -9,7 +9,11 @@ Writes two 1920x1080 sheets into <out dir>:
                    17.1 px per cell 1:1;
   02-lineup.png    every concept in one line-up on colony ground at 32 px per cell,
                    then the same at 17.1 px per cell, each labelled with its length;
-  03-plates.png    the plates themselves, large.
+  03-plates.png    the plates themselves, large;
+  04-grounds.png   every concept on paving, grass and hive creep at 32 px per cell (creep from
+                   <render root>/creep-play-zoom.png, the hive-creep build-1 GL play-zoom frame,
+                   else round2's stand-in),
+                   after the Runner, the Brute and --control=<plate> (a previous pick) if given.
 
 <render root> holds the colony close-ups round2.py documents. Sizes: the Runner by
 round_sheet.RUNNER_AREA_PX, the Brute 1.5x its length (UnitType radius 0.45 against
@@ -25,7 +29,7 @@ from PIL import Image, ImageDraw
 
 from boards import font
 from motion import marine_cutouts
-from round2 import ACC, BG, DIM, INK, PPC17, PPC32, cut_marines, frames, place, scaled
+from round2 import ACC, BG, DIM, INK, PPC17, PPC32, cut_marines, frames, ground_tiles, place, scaled
 from round_sheet import key_plate
 
 HERE = Path(__file__).resolve().parent
@@ -185,12 +189,53 @@ def sheet_plates(round_dir, out, title, names):
     img.save(out)
 
 
+def tiled(tile, w):
+    out = Image.new("RGBA", (w, tile.height))
+    for x in range(0, w, tile.width):
+        out.paste(tile, (x, 0))
+    return out
+
+
+def sheet_grounds(items, root, cast, out, title, linear, control=None):
+    """Runner, Brute, then every concept (after an optional control) on three grounds at 32 px per cell."""
+    img = Image.new("RGB", (1920, 1080), BG)
+    d = ImageDraw.Draw(img)
+    d.text((24, 10), title + " - palettes on the ground at 32 px per cell", font=font(24, True), fill=INK)
+    d.text((24, 40), "Runner and Brute at left, then " + ("the round-1 colours (R1), then " if control else "")
+           + "each palette; rows are paving, grass and hive creep", font=font(14), fill=DIM)
+    bodies = ([("R1", control)] if control is not None else []) + [(f"#{n}", c) for n, c in items]
+    rows = [t for t in ground_tiles(root, (600, 320)) if t[0] in ("paving", "grass")]
+    creep = Path(root) / "creep-play-zoom.png"
+    if creep.exists():
+        rows.append(("hive creep (in game)", Image.open(creep).convert("RGBA").crop((0, 0, 1200, 320))))
+    else:
+        rows += [t for t in ground_tiles(root, (600, 320)) if t[0] == "creep stand-in"]
+    step = (1880 - 170) / len(bodies)
+    for j, (gname, g) in enumerate(rows):
+        band = tiled(g, 1880)
+        u = PPC32
+        place(band, cast.runner[u], 50, 120, u)
+        place(band, cast.brute[u], 110, 200, u, radius=0.45)
+        for k, (label, cut) in enumerate(bodies):
+            place(band, sized(facing_right(cut), u, linear), 170 + step * (k + 0.5), 150, u, radius=1.0)
+        y = 66 + j * 335
+        img.paste(band.crop((0, 0, 1880, 320)).convert("RGB"), (20, y))
+        d.text((28, y + 6), gname, font=font(16, True), fill=INK)
+        for k, (label, _) in enumerate(bodies):
+            d.text((20 + 170 + step * (k + 0.5) - 14, y + 290), label, font=font(18, True), fill=ACC)
+    img.save(out)
+
+
 def main(argv):
     round_dir, root, out_dir, title = argv[:4]
     args = argv[4:]
     linear = 3.9
-    if args and args[0].startswith("--linear="):
-        linear = float(args[0][9:])
+    control = None
+    while args and args[0].startswith("--"):
+        if args[0].startswith("--linear="):
+            linear = float(args[0][9:])
+        elif args[0].startswith("--control="):
+            control = key_plate(Path(args[0][10:]))
         args = args[1:]
     items = concepts(round_dir, root, linear)
     cast = Cast(root)
@@ -198,6 +243,7 @@ def main(argv):
     sheet_concepts(items, root, cast, Path(out_dir, "01-concepts.png"), title, args, linear)
     sheet_lineup(items, root, cast, Path(out_dir, "02-lineup.png"), title, linear)
     sheet_plates(round_dir, Path(out_dir, "03-plates.png"), title, args)
+    sheet_grounds(items, root, cast, Path(out_dir, "04-grounds.png"), title, linear, control)
 
 
 if __name__ == "__main__":
