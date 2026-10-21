@@ -63,6 +63,24 @@ class MachineGuardDirectorTest {
     }
 
     @Test
+    void aPlaceWhoseGuardWasRefusedIsPassedOverForTheNextOneTheSideMans() {
+        MachineGuardDirector director = new MachineGuardDirector();
+        List<MachineGuardDirector.Place> manned = List.of(HOT_ONE, HOT_TWO);
+        assertEquals(1, director.attach(List.of(lance(5, 150)), manned, 2, PLACE_AT).get(0).garrisonable());
+        director.refused(5, 1);
+        assertFalse(director.holds(5));
+
+        director.review(Map.of(), manned, PLACE_AT);
+        List<MachineGuardDirector.Attach> next = director.attach(List.of(lance(5, 150)), manned, 2, PLACE_AT);
+        assertEquals(2, next.get(0).garrisonable(), "the refused place does not hold the lance back from the next one");
+
+        director.forget(5);
+        for (int pulse = 0; pulse < MachineGuardDirector.COOL_PULSES; pulse++) director.review(Map.of(), manned, PLACE_AT);
+        assertEquals(1, director.attach(List.of(lance(5, 150)), manned, 2, PLACE_AT).get(0).garrisonable(),
+                "asked again once the dwell has passed");
+    }
+
+    @Test
     void aCoolPlaceAFarLanceOrAWeakLanceIsNotSent() {
         MachineGuardDirector director = new MachineGuardDirector();
         assertTrue(director.attach(List.of(lance(5, 120)), List.of(COOL_ONE), 2, PLACE_AT).isEmpty(),
