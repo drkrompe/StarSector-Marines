@@ -2234,6 +2234,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         sealMultiCellStructure(id, spec);
         registerShieldDome(id, spec);
         registerFortressBattery(id, spec);
+        if (spec.turretStructureId != null) {
+            turretDemolition.registerRemains(id, TurretCatalogRegistry.requireStructure(spec.turretStructureId));
+        }
         if (fogOfWar.getVisionState().isContributor(rosterService.identity().faction(id))) {
             fogOfWar.addContributor(id, rosterService);
         }

@@ -32,6 +32,7 @@ Writes ``art-source/templates/swarm-<part>-<variant>-guide.png``.
 
 import math
 import random
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -94,6 +95,13 @@ VARIANTS = {
     "spore-colony-maw": 3,
 }
 PARTS = tuple(CANVAS_CELLS)
+# Damage states. ``wounded`` is drawn once a structure has lost half its durability: plates torn out of their
+# sockets over raw sinew, a sac burst, a spine snapped, scars across the carapace, the amber dimmed. ``remains``
+# is what stays on the ground after it dies: a bore's shaft caved in and choked with rubble, its plates slumped
+# and its tusks snapped; a colony's sacs burst and deflated; no amber at all. Both are built from the same seeded
+# geometry as the intact painting (a separate draw stream decides the damage), so a structure keeps its own shape
+# through all three.
+STATES = ("intact", "wounded", "remains")
 SEEDS = {"bore": 1100, "mother-bore": 2300, "spore-colony-fissure": 3100, "spore-colony-bore": 3700,
          "spore-colony-maw": 4100}
 
@@ -119,6 +127,10 @@ class Field:
         self.y = (yy + 0.5 - N / 2) / self.ppc
         self.rng = random.Random(seed)
         self.cracks: list[tuple[list[tuple[float, float]], float]] = []
+        self.state = "intact"
+        self.tears = []
+        # Damage decisions draw from their own stream, so the intact geometry's draws are the same in every state.
+        self.dmg = random.Random(seed * 7919 + 13)
 
     # --- masks -------------------------------------------------------------------------------------------
 
@@ -153,6 +165,7 @@ class Field:
         self.over |= mask
 
     def node(self, x: float, y: float, r: float, strength: float = 1.0):
+        strength *= {"intact": 1.0, "wounded": 0.55, "remains": 0.0}[self.state]
         d = np.hypot(self.x - x, self.y - y) / r
         self.glow = np.maximum(self.glow, strength * np.clip(1.2 - d, 0.0, 1.0) ** 1.2)
 
@@ -164,11 +177,13 @@ class Field:
     # --- primitives --------------------------------------------------------------------------------------
 
     def plate(self, cx, cy, angle, length, width, h_in, h_out, bulge=0.08, jagged=0.0, material=CHITIN,
-              drape=False, round_=0.035):
+              drape=False, round_=0.035, torn=False, slump=1.0):
         """A curved chitin plate whose spine runs from (cx, cy) outward along ``angle``.
 
         Height runs from ``h_in`` at the inner end to ``h_out`` at the outer end, bowed up across its width.
-        ``jagged`` tears the outer end. A draped plate is laid over the surface beneath it instead.
+        ``jagged`` tears the outer end. A draped plate is laid over the surface beneath it instead. A ``torn``
+        plate has been ripped out of its socket: a jagged stump stands at its root and raw sinew lies where the
+        rest of it was. ``slump`` lowers a dead plate.
         """
         rng = self.rng
         ux, uy = math.cos(angle), math.sin(angle)
@@ -208,6 +223,14 @@ class Field:
         # Overlapping scales: a ridge across the plate at two thirds throws its own little shadow.
         height += 0.035 * np.exp(-((t - 0.42) / 0.05) ** 2) + 0.025 * np.exp(-((t - 0.7) / 0.04) ** 2)
         shoulder = self.soft(mask, round_)
+        height = height * slump
+        if torn:
+            # Opened after every plate is laid (``open_tears``), so the hole goes through whatever overlapped it.
+            ragged = 0.18 + 0.12 * np.sin(v * 9.0 + cx * 13.0)
+            stump = mask & (u < ragged)
+            self.tears.append((mask & (shoulder > 0.25) & ~stump, 0.012 + 0.02 * np.clip(1.0 - v * v, 0.0, 1.0),
+                               stump, height * 0.6 * (0.35 + 0.65 * shoulder), material))
+            return (cx + ux * length * 0.55, cy + uy * length * 0.55)
         if drape:
             self.drape(mask, (0.04 + bulge * np.clip(1.0 - v * v, 0.0, 1.0)) * shoulder, material)
         else:
@@ -284,8 +307,11 @@ class Field:
         else:
             self.raise_(mask, profile, material)
 
-    def sac(self, cx, cy, r, h, lean_angle, lean, material=SAC, pore=True):
-        """A spore sac: a swollen dome whose crown is pushed off-centre by ``lean``, with a glowing pore on it."""
+    def sac(self, cx, cy, r, h, lean_angle, lean, material=SAC, pore=True, burst=0.0):
+        """A spore sac: a swollen dome whose crown is pushed off-centre by ``lean``, with a glowing pore on it.
+
+        ``burst`` from 0 to 1 ruptures it: the dome sags and the crown is torn open on raw flesh, and it has no pore.
+        """
         rng = self.rng
         px, py = cx + math.cos(lean_angle) * lean * r, cy + math.sin(lean_angle) * lean * r
         dx, dy = self.x - cx, self.y - cy
@@ -302,7 +328,18 @@ class Field:
         bend = (dx * math.cos(ph) + dy * math.sin(ph)) / r
         across = (-dx * math.sin(ph) + dy * math.cos(ph)) / r - 0.25 * bend * bend - 0.15
         furrow = 1 - 0.06 * np.exp(-(across ** 2) / 0.006) * (d < 0.8)
-        self.raise_(mask, h * np.sqrt(np.clip(1 - d * d, 0, 1)) * furrow, material)
+        dome = h * np.sqrt(np.clip(1 - d * d, 0, 1)) * furrow
+        if burst > 0:
+            # Deflated: the dome sags to a wrinkled skin, torn open at the crown on raw flesh.
+            sag = 1 - 0.72 * burst
+            wrinkle = 1 + 0.12 * burst * np.sin(theta * 7 + ph) * np.clip(d, 0, 1)
+            dome = dome * sag * wrinkle
+            self.raise_(mask, dome, material)
+            hole = mask & (d < 0.25 + 0.22 * burst + 0.05 * np.sin(theta * 5 + ph))
+            self.h[hole] = np.minimum(self.h[hole], h * sag * 0.25)
+            self.m[hole] = FLESH
+            return px, py
+        self.raise_(mask, dome, material)
         if pore:
             self.node(px, py, r * 0.17, 1.0)
         return px, py
@@ -342,6 +379,51 @@ class Field:
             pts.append((x, y))
         return pts
 
+    def open_tears(self):
+        """Opens the torn plates' sockets: raw sinew lying low where each plate was, and a broken stump at its root.
+
+        Low means at most a few centimetres up: a socket over the pit keeps the pit's depth.
+        """
+        for socket, lift, stump, stump_h, material in self.tears:
+            self.h[socket] = np.minimum(self.h[socket], lift[socket])
+            self.m[socket] = FLESH
+            self.over |= socket
+            self.h[stump] = stump_h[stump]
+            self.m[stump] = material
+            self.over |= stump
+        self.tears = []
+
+    def scar(self, pts, width, depth):
+        """A gash across the carapace and sacs along a polyline: the surface cut down by ``depth``."""
+        image = Image.new("L", (N, N), 0)
+        draw = ImageDraw.Draw(image)
+        xy = [self.px(x, y) for x, y in pts]
+        for i in range(len(xy) - 1):
+            draw.line(xy[i:i + 2], fill=255, width=max(1, int(width * self.ppc * (1 - 0.6 * i / len(xy)))))
+        cut = np.asarray(image.filter(ImageFilter.GaussianBlur(1.0)), np.float32) / 255.0
+        on = np.isin(self.m, (CHITIN, SAC)) & (cut > 0.05)
+        self.h[on] -= depth * cut[on]
+        self.m[on & (cut > 0.6)] = FLESH
+
+    def scars(self, count, centre, radius):
+        """Damage scars scattered over a body, from the damage stream."""
+        dmg = self.dmg
+        # Scars start on carapace or a sac, where a round would have struck.
+        ys, xs = np.nonzero(np.isin(self.m, (CHITIN, SAC)) & (np.hypot(self.x - centre[0], self.y - centre[1]) < radius))
+        if len(xs) == 0:
+            return
+        for _ in range(count):
+            k = dmg.randrange(len(xs))
+            x, y = float(self.x[ys[k], xs[k]]), float(self.y[ys[k], xs[k]])
+            pts = [(x, y)]
+            heading = dmg.uniform(0, 2 * math.pi)
+            for _ in range(4):
+                heading += dmg.uniform(-0.5, 0.5)
+                x += math.cos(heading) * radius * 0.12
+                y += math.sin(heading) * radius * 0.12
+                pts.append((x, y))
+            self.scar(pts, radius * dmg.uniform(0.03, 0.05), dmg.uniform(0.08, 0.14))
+
     def crack(self, x, y, angle, length, width):
         pts = self.wander(x, y, angle, length, steps=6, jitter=0.6)
         self.cracks.append((pts, width))
@@ -363,6 +445,11 @@ def bore_body(f: Field, mother: bool):
     half = f.cells / 2
     R = 0.78 if mother else 0.58          # pit rim radius
     D = 2.6 if mother else 1.8            # shaft depth
+    dead = f.state == "remains"
+    hurt = f.state == "wounded"
+    dmg = f.dmg
+    if dead:
+        D *= 0.28                         # caved in: the throat has fallen in on itself
     up = rng.uniform(0, 2 * math.pi)      # the upheaved side
     down = up + math.pi + rng.uniform(-0.4, 0.4)  # the collapsed side
     # The pit sits off-centre, nudged away from the shadow side so the cast shadow stays on the canvas.
@@ -405,6 +492,13 @@ def bore_body(f: Field, mother: bool):
         f.m[inside] = FLESH
         f.over |= inside
     bottom = (c0[0] + math.cos(up) * slant, c0[1] + math.sin(up) * slant)
+    if dead:
+        # Rubble choking the hole: the berm and the lip slid in on top of the throat.
+        for _ in range(dmg.randint(7, 11) if mother else dmg.randint(5, 8)):
+            a = dmg.uniform(0, 2 * math.pi)
+            q = R * dmg.uniform(0.0, 0.7)
+            f.blob(c0[0] + math.cos(a) * q, c0[1] + math.sin(a) * q, R * dmg.uniform(0.18, 0.34),
+                   dmg.uniform(0.04, 0.14), EARTH, lumps=dmg.randint(3, 6))
 
     # Far down: a pale limb climbing and a few embers.
     a = rng.uniform(0, 2 * math.pi)
@@ -421,6 +515,9 @@ def bore_body(f: Field, mother: bool):
     # Crowded where the ground rose, sparse where it fell in.
     angles = sorted(up + rng.gauss(0, 1.35) for _ in range(count))
     nodes = rng.sample(range(count), k=min(count, rng.randint(2, 4)))
+    # Torn out of their sockets: two of a wounded bore's plates, more of a dead one's.
+    tear_left = (3 if hurt else 4 if dead else 0) + (1 if mother and f.state != "intact" else 0)
+    slump = 0.4 if dead else 1.0
     for i, a in enumerate(angles):
         k = math.cos(a - up)
         rim_here = float(rim_radius(np.array(a), R, phases, down, 0.22))
@@ -433,15 +530,20 @@ def bore_body(f: Field, mother: bool):
                     jagged=0.35, drape=True)
             continue
         big = max(0.0, k)
+        # Torn out of their sockets: the big reared plates on the upheaved side, where it shows.
+        torn_here = tear_left > 0 and big > 0.1 and dmg.random() < 0.75
+        tear_left -= 1 if torn_here else 0
         length = R * (0.55 + 0.6 * big) * rng.uniform(0.75, 1.25) * (1.1 if mother else 1)
         width = R * rng.uniform(0.75, 1.1) * (0.8 + 0.35 * big)
         h_in = 0.10 + (0.95 if mother else 0.7) * big ** 1.2 * rng.uniform(0.7, 1.15)
         h_out = 0.06 + 0.22 * big
         r_in = rim_here * rng.uniform(0.74, 0.92)
         mid = f.plate(c0[0] + math.cos(a) * r_in, c0[1] + math.sin(a) * r_in, a + twist, length, width,
-                      h_in, h_out, bulge=0.06 + 0.06 * big, jagged=0.0 if k > -0.2 else rng.uniform(0.2, 0.45))
+                      h_in, h_out, bulge=0.06 + 0.06 * big, jagged=0.0 if k > -0.2 else rng.uniform(0.2, 0.45),
+                      torn=torn_here, slump=slump)
         if i in nodes:
             f.node(mid[0], mid[1], 0.028 * (1.2 if mother else 1), 1.0)
+    f.open_tears()
     if mother:
         # The mother bore's second, inner terrace of plates, only on the side that rose.
         for _ in range(rng.randint(4, 6)):
@@ -449,7 +551,7 @@ def bore_body(f: Field, mother: bool):
             rim_here = float(rim_radius(np.array(a), R, phases, down, 0.22))
             f.plate(c0[0] + math.cos(a) * rim_here * 0.62, c0[1] + math.sin(a) * rim_here * 0.62, a + rng.uniform(-0.4, 0.4),
                     R * rng.uniform(0.3, 0.45), R * rng.uniform(0.5, 0.7), rng.uniform(0.5, 0.9), 0.35,
-                    bulge=0.05)
+                    bulge=0.05, slump=slump)
 
     # Tusks: bone hooks leaning in over the hole from the upheaved side, each its own length, some snapped.
     for _ in range(rng.randint(5, 8) if mother else rng.randint(2, 4)):
@@ -457,6 +559,8 @@ def bore_body(f: Field, mother: bool):
         rim_here = float(rim_radius(np.array(a), R, phases, down, 0.22))
         base = rim_here * rng.uniform(1.0, 1.25)
         length = R * rng.uniform(0.35, 0.8) * (0.5 if rng.random() < 0.25 else 1.0)
+        if dead or (hurt and dmg.random() < 0.4):
+            length *= dmg.uniform(0.3, 0.5)  # snapped
         f.tusk(c0[0] + math.cos(a) * base, c0[1] + math.sin(a) * base, a + math.pi + rng.uniform(-0.35, 0.35),
                length, R * rng.uniform(0.09, 0.15), rng.uniform(0.35, 0.6), rng.uniform(0.75, 1.15) * (1.2 if mother else 1),
                curl=rng.uniform(-0.9, 0.9))
@@ -488,19 +592,24 @@ def bore_body(f: Field, mother: bool):
         length = min(room, (R * rng.uniform(0.9, 1.6)) if near else R * rng.uniform(0.25, 0.55))
         if length > 0.08:
             f.tube(f.wander(sx, sy, a, length, steps=8, jitter=0.4), rng.uniform(0.035, 0.06) * (1.2 if mother else 1),
-                   rng.uniform(0.05, 0.09), UNDER)
+                   rng.uniform(0.05, 0.09) * (0.5 if dead else 1.0), UNDER)
 
     # Cracks in the ground the body lifted.
     for _ in range(rng.randint(9, 13) if mother else rng.randint(6, 9)):
         a = up + rng.gauss(0, 1.4)
         r0 = R * rng.uniform(1.3, 1.7)
         f.crack(c0[0] + math.cos(a) * r0, c0[1] + math.sin(a) * r0, a, R * rng.uniform(0.4, 1.0), 0.012)
+    if f.state != "intact":
+        f.scars((6 if hurt else 10) * (2 if mother else 1), c0, R * 1.6)
 
 
 def colony_body(f: Field, grade: str):
     rng = f.rng
     body = {"spore-colony-fissure": 0.5, "spore-colony-bore": 0.675, "spore-colony-maw": 0.85}[grade]
     lean = rng.uniform(0, 2 * math.pi)
+    dead = f.state == "remains"
+    hurt = f.state == "wounded"
+    dmg = f.dmg
     cx, cy = rng.uniform(-0.1, 0.06) * body, rng.uniform(-0.1, 0.06) * body
 
     # Footing: lopsided mound of earth and under-plate the cluster has pushed up.
@@ -516,7 +625,7 @@ def colony_body(f: Field, grade: str):
         length = min(room, body * rng.uniform(0.35, 0.8))
         if length > 0.05:
             f.tube(f.wander(sx, sy, a, length, steps=6, jitter=0.45), body * rng.uniform(0.04, 0.06),
-                   rng.uniform(0.03, 0.05), UNDER)
+                   rng.uniform(0.03, 0.05) * (0.5 if dead else 1.0), UNDER)
 
     # Cupping plates on one flank only, splayed and of differing size.
     flank = rng.uniform(0, 2 * math.pi)
@@ -527,12 +636,18 @@ def colony_body(f: Field, grade: str):
         r_in = body * rng.uniform(0.25, 0.4)
         f.plate(cx + math.cos(a) * r_in, cy + math.sin(a) * r_in, a + rng.uniform(-0.3, 0.3),
                 body * rng.uniform(0.42, 0.62), body * rng.uniform(0.55, 0.85), rng.uniform(0.18, 0.3) * body / 0.5,
-                0.05, bulge=0.04, jagged=rng.uniform(0, 0.3), round_=0.02)
+                0.05, bulge=0.04, jagged=rng.uniform(0, 0.3), round_=0.02,
+                torn=(dead and dmg.random() < 0.5) or (hurt and dmg.random() < 0.3), slump=0.5 if dead else 1.0)
+
+    f.open_tears()
 
     # The dominant sac, then secondaries pressed against it at uneven angles, then buds.
     dom_r = body * {"spore-colony-fissure": 0.62, "spore-colony-bore": 0.5, "spore-colony-maw": 0.48}[grade]
     dom_h = dom_r * rng.uniform(1.15, 1.4)
-    crown = f.sac(cx, cy, dom_r, dom_h, lean, rng.uniform(0.2, 0.35))
+    # A wounded colony has one sac burst: the dominant one when it stands alone, else the first secondary.
+    # A dead one has them all burst and deflated.
+    burst_dominant = 1.0 if dead else (0.65 if hurt and grade == "spore-colony-fissure" else 0.0)
+    crown = f.sac(cx, cy, dom_r, dom_h, lean, rng.uniform(0.2, 0.35), burst=burst_dominant)
     sacs = [(cx, cy, dom_r, dom_h)]
     secondaries = {"spore-colony-fissure": 0, "spore-colony-bore": 2, "spore-colony-maw": 3}[grade]
     a = rng.uniform(0, 2 * math.pi)
@@ -542,7 +657,8 @@ def colony_body(f: Field, grade: str):
         d = dom_r + r * rng.uniform(0.25, 0.55)
         sx, sy = cx + math.cos(a) * d, cy + math.sin(a) * d
         h = r * rng.uniform(1.0, 1.35)
-        f.sac(sx, sy, r, h, a + rng.uniform(-0.6, 0.6), rng.uniform(0.15, 0.4))
+        burst = 1.0 if dead or (hurt and len(sacs) == 1) else 0.0
+        f.sac(sx, sy, r, h, a + rng.uniform(-0.6, 0.6), rng.uniform(0.15, 0.4), burst=burst)
         sacs.append((sx, sy, r, h))
     buds = {"spore-colony-fissure": rng.randint(1, 2), "spore-colony-bore": rng.randint(2, 4),
             "spore-colony-maw": rng.randint(3, 5)}[grade]
@@ -552,7 +668,7 @@ def colony_body(f: Field, grade: str):
         r = dom_r * rng.uniform(0.18, 0.3)
         d = pr + r * 0.3
         f.sac(px_ + math.cos(a) * d, py_ + math.sin(a) * d, r, r * rng.uniform(0.9, 1.3), a, 0.3,
-              pore=rng.random() < 0.5)
+              pore=rng.random() < 0.5, burst=0.9 if dead else 0.0)
 
     # Spines bunched on one flank of the crown, each its own length and lean.
     spines = {"spore-colony-fissure": rng.randint(1, 3), "spore-colony-bore": rng.randint(3, 5),
@@ -564,18 +680,25 @@ def colony_body(f: Field, grade: str):
         q = rng.uniform(0.55, 0.85)
         bx, by = sx + math.cos(a) * r * q, sy + math.sin(a) * r * q
         base_h = f.height_at(bx, by)
-        f.tusk(bx, by, a + rng.uniform(-0.4, 0.4), body * rng.uniform(0.16, 0.34), body * rng.uniform(0.05, 0.08),
+        heading = a + rng.uniform(-0.4, 0.4)
+        length = body * rng.uniform(0.16, 0.34)
+        if dead or (hurt and dmg.random() < 0.35):
+            length *= dmg.uniform(0.3, 0.5)  # snapped
+        f.tusk(bx, by, heading, length, body * rng.uniform(0.05, 0.08),
                base_h, base_h + rng.uniform(0.05, 0.14), curl=rng.uniform(-0.6, 0.6))
 
     # Cracks where the footing heaved.
     for _ in range({"spore-colony-fissure": 3, "spore-colony-bore": 4, "spore-colony-maw": 6}[grade]):
         a = rng.uniform(0, 2 * math.pi)
         f.crack(cx + math.cos(a) * body * 0.8, cy + math.sin(a) * body * 0.8, a, body * rng.uniform(0.3, 0.6), 0.008)
+    if f.state != "intact":
+        f.scars(4 if hurt else 6, (cx, cy), body)
     return crown
 
 
-def build(part: str, variant: int) -> Field:
+def build(part: str, variant: int, state: str = "intact") -> Field:
     f = Field(CANVAS_CELLS[part], SEEDS[part] + 17 * variant)
+    f.state = state
     if part == "bore":
         bore_body(f, mother=False)
     elif part == "mother-bore":
@@ -686,18 +809,23 @@ def material_image(f: Field) -> Image.Image:
     return Image.fromarray(f.m, "L")
 
 
-def guide_path(templates: Path, part: str, variant: int) -> Path:
-    return templates / f"swarm-{part}-{variant}-guide.png"
+def guide_path(templates: Path, part: str, variant: int, state: str = "intact") -> Path:
+    suffix = "" if state == "intact" else f"-{state}"
+    return templates / f"swarm-{part}-{variant}{suffix}-guide.png"
 
 
 def main() -> None:
     templates = Path(__file__).resolve().parent.parent / "templates"
+    only = set(sys.argv[1:])
     for part in PARTS:
         for v in range(1, VARIANTS[part] + 1):
-            f = build(part, v)
-            out = guide_path(templates, part, v)
-            guide_image(f).save(out, optimize=True)
-            print(out)
+            for state in STATES:
+                if only and state not in only and part not in only:
+                    continue
+                f = build(part, v, state)
+                out = guide_path(templates, part, v, state)
+                guide_image(f).save(out, optimize=True)
+                print(out)
 
 
 if __name__ == "__main__":
