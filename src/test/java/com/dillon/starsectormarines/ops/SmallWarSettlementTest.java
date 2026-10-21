@@ -6,11 +6,18 @@ import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import java.util.ArrayList;
 import java.util.List;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
+import java.nio.file.Path;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /** Chapter 5 offer, settlement routing and debrief, read only from frozen outcomes. */
 class SmallWarSettlementTest {
+    private static HeadlessStrings copy;
+    @BeforeAll static void shippedCopy() throws Exception { copy = new HeadlessStrings(Path.of("mod")); }
+    @AfterAll static void closeCopy() { copy.close(); }
     @Test void theOfferNamesTheRatifiedRouteAndIsAbsentBeforeRatification() {
         var signed = afterYard();
         assertTrue(signed.signAgreement(AgreusYardAgreement.YARD_COMPACT));

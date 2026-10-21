@@ -12,19 +12,20 @@ record AgreusWorkGuide(AgreusArcProgress progress, OpeningBroker.Destination des
         case "classes" -> "opening-guide console-readout";
         case "crest", "portrait" -> OpeningBroker.CREST;
         case "broker" -> AgreusArcCampaign.NAME;
-        case "affiliation" -> "House Rusk / Ko Combine concession";
-        case "heading" -> AgreusArcCampaign.TITLE;
-        case "mission" -> progress.yardCompleted() ? handoverMission() : progress.warrantCompleted() ? "NEW / The Yard's Owners" : progress.completed() ? "NEW / Limited Warrant" : "NEW / Water Under Seal";
+        case "affiliation" -> Strings.get("agreusGuideAffiliation");
+        case "heading" -> Strings.get("agreusArcTitle");
+        case "mission" -> progress.yardCompleted() ? handoverMission()
+                : Strings.get(progress.warrantCompleted() ? "agreusGuideMissionYard" : progress.completed() ? "agreusGuideMissionWarrant" : "agreusGuideMissionWater");
         case "payment" -> progress.yardCompleted() ? handoverPayment()
-                : progress.warrantCompleted() ? "36,000 cr + Recovered Arbalest card / qualifying victory"
-                : progress.completed() ? "30,000 cr + Recovered Specter card / qualifying victory" : "26,000 cr / victory fee / no suit award";
-        case "location" -> destination == null ? "Agreus / Arcadia" : destination.label();
+                : Strings.get(progress.warrantCompleted() ? "agreusGuidePaymentYard"
+                : progress.completed() ? "agreusGuidePaymentWarrant" : "agreusGuidePaymentWater");
+        case "location" -> destination == null ? Strings.get("agreusGuideLocationFallback") : destination.label();
         case "route" -> progress.yardCompleted() ? handoverRoute()
-                : destination == null ? AgreusArcCampaign.accessReason() : "Marine operations > Baronet Elian Rusk / " + (progress.warrantCompleted() ? "The Yard's Owners" : progress.completed() ? "Limited Warrant" : "North Weir");
+                : destination == null ? AgreusArcCampaign.accessReason() : Strings.format("agreusGuideRouteRusk",
+                progress.warrantCompleted() ? Strings.get("agreusArcMissionYardOwners") : progress.completed() ? Strings.get("agreusArcMissionLimitedWarrant") : Strings.get("agreusGuideRouteNorthWeir"));
         case "preparation" -> progress.yardCompleted() ? handoverPreparation()
-                : progress.warrantCompleted() ? "Three full squads recommended, fitted boats and working tender. Hold three sites and protect the tooling inspection. Optional owned mech; no bombardment."
-                : progress.completed() ? "Review Rusk's bounded procurement warrant. Two squads, fitted boats and a working tender. Protect the supplier and bring the calibration load back. No deadline or yard agreement."
-                : "Vale's departure reference, forwarded by Mara. Two squads, fitted boats and an owned working tender required. Replenish before leaving Corvus; no deadline.";
+                : Strings.get(progress.warrantCompleted() ? "agreusGuidePrepYard"
+                : progress.completed() ? "agreusGuidePrepWarrant" : "agreusGuidePrepWater");
         case "courseDisabled" -> destination == null;
         case "courseAction" -> plotCourse;
         default -> throw new IllegalArgumentException("Unknown Agreus guide property: " + property);
@@ -32,47 +33,48 @@ record AgreusWorkGuide(AgreusArcProgress progress, OpeningBroker.Destination des
 
     private String handoverMission() {
         return switch (progress.handoverStage()) {
-            case OPEN -> "DECISION / Latchkey custody agreements";
-            case SIGNED -> "NEW / Terms of Protection";
-            case RATIFIED -> progress.smallWarSettled() ? "OPEN / " + DistrictEscortCampaign.NAME + " (recurring)" : "NEW / A Small War";
-            case DECLINED -> "CLOSED / Further work declined";
-            case NOT_REACHED -> "COMPLETE / Latchkey inspection";
+            case OPEN -> Strings.get("agreusGuideHandoverOpen");
+            case SIGNED -> Strings.get("agreusGuideHandoverSigned");
+            case RATIFIED -> progress.smallWarSettled() ? Strings.format("agreusGuideHandoverRatifiedSettled", DistrictEscortCampaign.name()) : Strings.get("agreusGuideHandoverRatified");
+            case DECLINED -> Strings.get("agreusGuideHandoverDeclined");
+            case NOT_REACHED -> Strings.get("agreusGuideHandoverComplete");
         };
+    }
+    private String premiumSuffix() {
+        return Strings.get(progress.custodyPremiumDue() > 0 ? "agreusGuidePremiumDue" : "agreusGuidePremiumForgone");
     }
     private String handoverPayment() {
         return switch (progress.handoverStage()) {
-            case SIGNED -> "32,000 cr + Boarding Jack section entitlement / " + agreementName(progress.signedAgreement()) + " ratified only on victory"
-                    + (progress.custodyPremiumDue() > 0 ? " / 12,000 cr premium on Chapter 5 victory" : " / premium forgone");
+            case SIGNED -> Strings.format("agreusGuidePaySigned", agreementName(progress.signedAgreement()), premiumSuffix());
             case RATIFIED -> (progress.smallWarSettled()
-                    ? String.format(Strings.locale(), "%,d", AgreusDistrictEscortProgress.PAYMENT) + " cr per delivered consignment / " + agreementName(progress.signedAgreement())
-                    + " / A Small War settled" + (progress.smallWarPremiumPaid() > 0 ? " with the 12,000 cr premium" : "")
-                    : "44,000 cr / " + agreementName(progress.signedAgreement())
-                    + (progress.custodyPremiumDue() > 0 ? " / 12,000 cr premium on Chapter 5 victory" : " / premium forgone"))
-                    + (progress.boardingJackDeferred() ? " / Boarding Jack card held until its pattern is ready" : "");
-            default -> "92,000 cr settled / Recovered Specter and Arbalest entitlements fulfilled";
+                    ? Strings.format("agreusGuidePaySettled", AgreusDistrictEscortProgress.PAYMENT, agreementName(progress.signedAgreement()),
+                    progress.smallWarPremiumPaid() > 0 ? Strings.get("agreusGuidePremiumPaid") : "")
+                    : Strings.format("agreusGuidePayRatified", agreementName(progress.signedAgreement()), premiumSuffix()))
+                    + (progress.boardingJackDeferred() ? Strings.get("agreusGuideJackDeferred") : "");
+            default -> Strings.get("agreusGuidePayDefault");
         };
     }
     private String handoverRoute() {
         return switch (progress.handoverStage()) {
-            case OPEN -> "Company HQ > Latchkey custody: read both agreements, ask Castle to compare, or leave them. Nothing is signed.";
-            case SIGNED -> "Marine operations > Baronet Elian Rusk / Terms of Protection at Latchkey. Later escort work: "
-                    + (progress.signedAgreement() == AgreusYardAgreement.HOUSE_CUSTODY ? "Rusk's office." : "Lenna Saye's association.");
+            case OPEN -> Strings.get("agreusGuideRouteOpen");
+            case SIGNED -> Strings.format("agreusGuideRouteSigned",
+                    Strings.get(progress.signedAgreement() == AgreusYardAgreement.HOUSE_CUSTODY ? "agreusGuideLaterRusk" : "agreusGuideLaterLenna"));
             case RATIFIED -> progress.smallWarSettled()
-                    ? "Marine operations > " + (progress.signedAgreement() == AgreusYardAgreement.HOUSE_CUSTODY
-                    ? AgreusArcCampaign.NAME + " / " : DistrictEscortCampaign.LENNA_NAME + " / ") + DistrictEscortCampaign.NAME + " on the Low Quay freight lane"
-                    : "Marine operations > Baronet Elian Rusk / A Small War at Black Sluice";
-            default -> "Learn both recovered-suit cargo cards, then fit Salvage-assisted Section in the Armory.";
+                    ? Strings.format("agreusGuideRouteSettled", progress.signedAgreement() == AgreusYardAgreement.HOUSE_CUSTODY
+                    ? AgreusArcCampaign.NAME : DistrictEscortCampaign.LENNA_NAME, DistrictEscortCampaign.name())
+                    : Strings.get("agreusGuideRouteRatified");
+            default -> Strings.get("agreusGuideRouteDefault");
         };
     }
     private String handoverPreparation() {
         return switch (progress.handoverStage()) {
-            case OPEN -> "Signing commits one route and closes the other. You may instead decline further work and keep completed fees and cards.";
-            case RATIFIED -> progress.smallWarSettled() ? AgreusArcCampaign.VOSS_LAST.speaker() + ": “" + AgreusArcCampaign.VOSS_LAST.text() + "” "
-                    + "Escort postings recur: two squads, fitted boats; each consignment is new freight and new people."
-                    : "Three full squads recommended, fitted boats and working tender. Take customs, fuel control and dispatch; preserve the marked fuel tanks. Optional owned mech.";
-            case SIGNED -> AgreusArcCampaign.VOSS_WARNING.speaker() + ": “" + AgreusArcCampaign.VOSS_WARNING.text() + "”";
-            case DECLINED -> AgreusArcCampaign.DECLINED_RECORD;
-            case NOT_REACHED -> "Issued gear is unchanged. Already learned or carried cards satisfy the award; selling a card does not renew it. Recovered equipment is below military issue.";
+            case OPEN -> Strings.get("agreusGuidePrepOpen");
+            case RATIFIED -> progress.smallWarSettled()
+                    ? Strings.format("agreusGuidePrepSettled", AgreusArcCampaign.VOSS_LAST.speaker(), AgreusArcCampaign.VOSS_LAST.text())
+                    : Strings.get("agreusGuidePrepRatified");
+            case SIGNED -> Strings.format("agreusGuidePrepSigned", AgreusArcCampaign.VOSS_WARNING.speaker(), AgreusArcCampaign.VOSS_WARNING.text());
+            case DECLINED -> Strings.get("agreusArcDeclinedRecord");
+            case NOT_REACHED -> Strings.get("agreusGuidePrepComplete");
         };
     }
     static String agreementName(AgreusYardAgreement agreement) {

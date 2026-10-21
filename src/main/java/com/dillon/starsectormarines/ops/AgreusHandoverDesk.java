@@ -156,16 +156,16 @@ final class AgreusHandoverDesk {
                 };
                 case "from" -> Strings.get("agreusDeskFrom");
                 case "record" -> switch (page) {
-                    case CUSTODY, COMPACT -> AgreusArcCampaign.AGREEMENT_COMMON;
-                    case COMPARE -> AgreusArcCampaign.CASTLE_COMPARISON;
-                    case CONFIRM_CUSTODY, CONFIRM_COMPACT -> AgreusArcCampaign.SIGNING_NOTE;
+                    case CUSTODY, COMPACT -> Strings.get("agreusArcAgreementCommon");
+                    case COMPARE -> Strings.get("agreusArcCastleComparison");
+                    case CONFIRM_CUSTODY, CONFIRM_COMPACT -> Strings.get("agreusArcSigningNote");
                     case CONFIRM_DECLINE -> Strings.get("agreusDeskRecordConfirmDecline");
                     case SIGNED -> Strings.get("agreusDeskRecordSigned");
-                    case DECLINED -> AgreusArcCampaign.DECLINED_RECORD;
+                    case DECLINED -> Strings.get("agreusArcDeclinedRecord");
                 };
-                case "undertaking" -> agreementPage() ? Strings.get("agreusDeskUndertaking") + (custodyText() ? AgreusArcCampaign.CUSTODY_UNDERTAKING : AgreusArcCampaign.COMPACT_UNDERTAKING) : "";
-                case "benefit" -> agreementPage() ? Strings.get("agreusDeskBenefit") + (custodyText() ? AgreusArcCampaign.CUSTODY_BENEFIT : AgreusArcCampaign.COMPACT_BENEFIT) : "";
-                case "cost" -> agreementPage() ? Strings.get("agreusDeskCost") + (custodyText() ? AgreusArcCampaign.CUSTODY_COST : AgreusArcCampaign.COMPACT_COST) : "";
+                case "undertaking" -> agreementPage() ? Strings.get("agreusDeskUndertaking") + Strings.get(custodyText() ? "agreusArcCustodyUndertaking" : "agreusArcCompactUndertaking") : "";
+                case "benefit" -> agreementPage() ? Strings.get("agreusDeskBenefit") + Strings.get(custodyText() ? "agreusArcCustodyBenefit" : "agreusArcCompactBenefit") : "";
+                case "cost" -> agreementPage() ? Strings.get("agreusDeskCost") + Strings.get(custodyText() ? "agreusArcCustodyCost" : "agreusArcCompactCost") : "";
                 case "letter" -> page == Page.SIGNED ? Strings.format("agreusDeskLetter", AgreusArcCampaign.VOSS_WARNING.speaker(), AgreusArcCampaign.VOSS_WARNING.text()) : "";
                 case "termsClasses" -> agreementPage() ? "label aux-part aux-grants" : hiddenPart;
                 case "partClasses" -> agreementPage() ? part : hiddenPart;

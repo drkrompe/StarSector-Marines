@@ -210,11 +210,11 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             props.put("storySender", Strings.format("resultsScreenSenderWayline", OpeningBroker.NAME));
             props.put("storyProgress", Strings.format(outcome.victory
                     ? "resultsScreenCorvusComplete" : "resultsScreenCorvusRetry",
-                    CorvusWaylineCampaign.TITLE));
+                    CorvusWaylineCampaign.title()));
             props.put("storyMessage", outcome.victory
                     ? Strings.format(outcome.marinesLost > 0
                             ? "resultsScreenCorvusVictoryCost" : "resultsScreenCorvusVictory",
-                            corvus.debrief)
+                            corvus.debrief())
                     : Strings.get("resultsScreenCorvusUnresolved"));
         }
         if (outcome != null && SupplyRouteCampaign.owns(outcome.missionId)) {
@@ -243,7 +243,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             var letterhead = DistrictEscortCampaign.Letterhead.of(agreement);
             props.put("storyClasses", "story-dispatch console-readout");
             props.put("storyPortrait", OpeningBroker.CREST);
-            props.put("storySender", letterhead.sender);
+            props.put("storySender", letterhead.sender());
             props.put("storyProgress", Strings.get("resultsScreenDistrictEscort"));
             var r = outcome.districtEscort;
             props.put("storyMessage", DistrictEscortCampaign.debrief(outcome, agreement) + " "
