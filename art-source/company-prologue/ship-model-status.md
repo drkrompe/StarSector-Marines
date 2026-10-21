@@ -66,6 +66,12 @@ scope unless the owner asks for it.
 
 ## Standing decisions
 
+- No orb explosions (owner, 2026-10-21: "I don't like orb explosions - they
+  don't make sense"). Every blast, pop, fireball and impact flash is an
+  irregular, directional, short-lived burst: a jagged lobed flash, shrapnel
+  and debris that cool fast with distance, and smoke broken up by noise that
+  disperses rather than billowing. Missile trails stay short (2026-10-21:
+  the tails were too long; Harpoon 1.7 s).
 - Render only what the owner has something new to judge (owner,
   2026-10-20). A ship round or pass that changes what the owner sees gets one
   small look render (one light queue job). Completeness renders do not: no
