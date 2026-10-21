@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ui.retained.markup;
 
+import java.util.Locale;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiTag;
 import com.dillon.starsectormarines.ui.retained.reactive.ElementBindings;
@@ -140,7 +141,7 @@ final class MarkupBuilder {
                             : target.canvasHeight();
                     target.canvasSize(width, height);
                 }
-                default -> throw error(frame, attribute, "<" + tag.name().toLowerCase()
+                default -> throw error(frame, attribute, "<" + tag.name().toLowerCase(Locale.ROOT)
                         + "> does not accept attribute \"" + name + "\".");
             }
         } catch (UiMarkupException failure) {
@@ -329,7 +330,7 @@ final class MarkupBuilder {
 
     private static void requireTag(UiTag actual, UiTag expected, MarkupAttribute attribute, Frame frame) {
         if (actual != expected) throw error(frame, attribute, "Attribute \"" + attribute.name()
-                + "\" is accepted only by <" + expected.name().toLowerCase() + ">.");
+                + "\" is accepted only by <" + expected.name().toLowerCase(Locale.ROOT) + ">.");
     }
 
     private static UiMarkupException error(Frame frame, MarkupNode node, String message) {

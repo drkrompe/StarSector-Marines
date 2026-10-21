@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
+import com.dillon.starsectormarines.battle.evacuation.CivilianRedoubt;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -9,15 +10,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Mission-owned Rescue facts available to the Marine corridor strategy. */
+/**
+ * Mission-owned Rescue facts available to the Marine corridor strategy: the
+ * cohort, the authored duties, and the redoubts the cohort is holed up in
+ * (one for a single-shelter rescue).
+ */
 public record RescueCommandFacts(
         ExtractionObjectiveFacts cohort,
-        Map<Integer, AuthoredDuty> authoredDuties) {
+        Map<Integer, AuthoredDuty> authoredDuties,
+        List<CivilianRedoubt> redoubts) {
 
     public enum AuthoredDuty { SHELTER_GUARD, PICKUP_GUARD }
 
     public RescueCommandFacts {
         authoredDuties = Map.copyOf(authoredDuties);
+        redoubts = List.copyOf(redoubts);
+    }
+
+    public RescueCommandFacts(ExtractionObjectiveFacts cohort, Map<Integer, AuthoredDuty> authoredDuties) {
+        this(cohort, authoredDuties, List.of());
     }
 
     static RescueCommandFacts freeze(BattleView sim) {
@@ -42,7 +53,7 @@ public record RescueCommandFacts(
                 duties.put(squad.id, AuthoredDuty.PICKUP_GUARD);
             }
         }
-        return new RescueCommandFacts(cohorts.get(0), duties);
+        return new RescueCommandFacts(cohorts.get(0), duties, sim.getCivilianRedoubts());
     }
 
     public AuthoredDuty authoredDuty(int squadId) {

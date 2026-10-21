@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.campaign.start.CerberusCompanyStart;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.mission.story.StoryEligibilityContext;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
@@ -16,7 +17,7 @@ import java.util.List;
 
 /** Live boundary for Wayline's fixed Corvus destinations, including unpopulated moons. */
 public final class CorvusWaylineCampaign {
-    public static final String TITLE = "WAYLINE / THE CORVUS ACCOUNT";
+    public static String title() { return Strings.get("corvusWaylineTitle"); }
     private CorvusWaylineCampaign() { }
 
     public static boolean unlocked(BrokenSupplyRouteProgress route) {
@@ -63,20 +64,18 @@ public final class CorvusWaylineCampaign {
     public static String introduction(BrokenSupplyRouteProgress route) {
         if (route == null) {
             PlanetAPI start = CerberusCompanyStart.destination();
-            return "Our dispatch records point beyond " + (start == null ? "Jangala" : start.getName()) + ".";
+            return Strings.format("corvusIntroNoRoute", start == null ? "Jangala" : start.getName());
         }
         if (!route.readable() || !route.closed()) return route.status();
         String recovery;
         if (route.freight() != null) {
             int delivered = route.freight().deliveredCount();
             recovery = delivered > 0
-                    ? "Dispatch has receipts for delivered loads: " + delivered + ". That is work Wayline can build on."
-                        + (route.freight().lostCount() > 0 ? " The lost loads remain on the ledger too." : "")
-                    : "No freight made it through. The depot is still ours, but this route has not recovered.";
-        } else recovery = "The relay contract is closed. Its payment and your work remain on our books.";
-        return route.status() + " " + recovery
-                + " When we met, Wayline was coming apart. You gave us room to act."
-                + " See to your company first. The work on Asharu can wait until you are ready.";
+                    ? Strings.join("waylineSentenceJoin", Strings.format("corvusIntroDelivered", delivered),
+                        route.freight().lostCount() > 0 ? Strings.get("corvusIntroLostLoads") : "")
+                    : Strings.get("corvusIntroNoFreight");
+        } else recovery = Strings.get("corvusIntroRelayClosed");
+        return Strings.join("waylineSentenceJoin", route.status(), recovery, Strings.get("corvusIntroTail"));
     }
     static CorvusWaylineProgress requireCurrent(Mission m) {
         CorvusWaylineProgress p = current();

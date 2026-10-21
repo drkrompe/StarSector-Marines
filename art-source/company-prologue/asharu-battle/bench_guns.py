@@ -256,7 +256,10 @@ def slew(bench):
     print('BENCH slew lasher-a t1 traverse by 4 frames', zs, flush=True)
     steps = [b - a_ for a_, b in zip(zs, zs[1:]) if abs(b - a_) > 1e-3]
     assert steps and (all(d > 0 for d in steps) or all(d < 0 for d in steps)), steps
-    bench.camera((95, -60, 45), (60, 50, 15), 30)
+    p, _ = muzzle(a, 1, 'barrel 1')
+    # Close on the bow turret, from above and to starboard: both bursts and the swing between.
+    bench.camera(tuple(p + Vector((14, -30, 16))), tuple(p + Vector((6, 0, 0))), 35)
+
 
 
 TESTS = {

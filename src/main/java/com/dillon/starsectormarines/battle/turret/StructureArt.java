@@ -16,6 +16,9 @@ import java.util.List;
  * <p>The base replaces the flat footprint pad and is never rotated. A rotating gun is not a layer here: it stays the
  * mount's own {@code sprite} / {@code recoilSprite} pair, which already turn and recoil with the structure's facing.
  * Layers are for what moves without aiming: an emitter ring turning, a core pulsing.
+ *
+ * <p>{@code groundPad: false} drops the flat footprint pad under a structure that has no base: a body that is grown
+ * rather than built (a swarm bore, a spore colony) stands on the ground itself, not on a square of hardstanding.
  */
 public final class StructureArt {
 
@@ -31,10 +34,13 @@ public final class StructureArt {
 
     /** Static base sprite path, or null to keep the flat footprint pad. */
     public final String basePath;
+    /** Whether a structure without a base still stands on the flat footprint pad. */
+    public final boolean groundPad;
     private final List<Layer> layers;
 
-    private StructureArt(String basePath, List<Layer> layers) {
+    private StructureArt(String basePath, boolean groundPad, List<Layer> layers) {
         this.basePath = basePath;
+        this.groundPad = groundPad;
         this.layers = Collections.unmodifiableList(layers);
     }
 
@@ -65,7 +71,7 @@ public final class StructureArt {
         if (base == null && layers.isEmpty()) {
             throw new JSONException("Structure '" + structureId + "' declares an art block with no base and no layers");
         }
-        return new StructureArt(base, layers);
+        return new StructureArt(base, json.optBoolean("groundPad", true), layers);
     }
 
     private static String text(JSONObject json, String key) {

@@ -186,25 +186,25 @@ FILM_KNOBS = [
     ('shield_band', 1.0, 0.0, 4.0, 'thin-film banding brightness'),
     ('shield_arcs', 1.0, 0.0, 4.0, 'overload arc brightness'),
 ]
-HIT_LIFT = .25          # whole-film brightening per unit of live hit flash (opacity tied to hits)
+HIT_LIFT = .08          # whole-film brightening per unit of live hit flash: slight, so a volley stays local
 FILM_FACE, FILM_RIM = .45, .8      # the film at rest: fainter than the bubble's face and rim (owner, 2026-10-21)
-FILM_HIT_PEAK = 2.0     # a hit's flash on the film: local and dimmer than the bubble's HIT_PEAK
-RING_PEAK = 1.6         # ripple ring brightness at impact
+FILM_HIT_PEAK = 1.2     # a hit's flash on the film: local and dimmer than the bubble's HIT_PEAK (owner, 2026-10-21)
+RING_PEAK = .6          # ripple ring brightness at impact
 RING_REACH = (.35, .8)  # how far a ring runs, in mean radii: at flux 0, and the extra at flux 1
-RING_WIDTH = (.7, .8)  # ring half-width as a share of the hit spread: flux 0, extra at flux 1
-FILM_HIT_SIZE = .09     # the film's hit spread (shield_hit_size): a tight local flash; the ring carries it outward
+RING_WIDTH = (.7, .25)  # ring half-width as a share of the hit spread: flux 0, extra at flux 1
+FILM_HIT_SIZE = .065    # the film's hit spread (shield_hit_size): a tight local flash; the ring carries it outward
 RING_S = .7             # seconds a ring takes to run out at flux 0 (x (1 + 1.5 flux))
 FLUX_SCALE, FLUX_RATE = 2.6, .45   # thin patches: noise scale over R, drift (per second of clock)
 THIN_FACE, THIN_RIM = .85, .5      # how much a fully thin patch dims the face and the rim
 LEAK = .65              # how much a hit on a fully thin patch dims (it leaks through)
-BANDS, BAND_PEAK = 2.2, .55        # thin-film interference bands across the thinness, and their brightness
+BANDS, BAND_PEAK = 2.2, .4        # thin-film interference bands across the thinness, and their brightness
 TEAR_SPAN = .45         # share of the overload timeline the dissolve takes to eat the whole film
 # The dissolve: the order the film goes in (0 first, 1 last) mixes where it is thinnest
 # (DISSOLVE_THIN), how far from the last hit (DISSOLVE_HIT) and a fine ragged grain.
 DISSOLVE_THIN, DISSOLVE_HIT, DISSOLVE_GRAIN, DISSOLVE_GRAIN_SCALE = .6, .4, .12, 16.0
-DISSOLVE_SOFT, DISSOLVE_EDGE, DISSOLVE_PEAK = .012, .03, 3.2   # hole softness, edge half-width, edge glow
+DISSOLVE_SOFT, DISSOLVE_EDGE, DISSOLVE_PEAK = .008, .012, 2.4   # hole softness, edge half-width, edge glow
 TEAR_PEAK = 6.0         # the dissolve edge's glow is scaled against this
-TEAR_W = 20000.0        # the tear light at its flash (W)
+TEAR_W = 6000.0         # the tear light at its flash (W): a flicker on the hull, not a white-out
 SHARD_PEAK, SHARD_DECAY, SHARD_LIFT = 2.5, 1.6, .16   # shard glow, burn rate, scatter (mean radii)
 SHARD_SUBDIV, SHARD_PIECES = 5, 150  # the shard mesh: a fine icosphere grown into this many ragged pieces
 SHARD_GAP, SHARD_SHRINK = .93, .45   # pieces pulled in from each other; shrunk to this as they burn
@@ -754,7 +754,8 @@ def _film_material(ctx, s, R, Rm):
     # Colour: inner across the face; ring at the rim, the edges, the hits and the rings.
     rim_s = g.mul(rim_s, rim_f)
     hit_w = g.mul(g.mul(hit_s, FILM_HIT_PEAK), g.sub(1.0, g.mul(fort, .75)))
-    ring_mix = g.clamp01(g.mul(g.add(g.add(g.add(rim_s, edge), g.add(hit_w, ring_w)), g.mul(tear, 3.0)), .5))
+    # Rings stay mostly in the film's tint: overlapping wide rings at high flux washed it white.
+    ring_mix = g.clamp01(g.mul(g.add(g.add(rim_s, edge), g.add(g.mul(hit_w, .5), g.mul(ring_w, .3))), .5))
     colour = g.mix_rgb(ring_mix, inner_c, ring_c)
     body = g.add(g.mul(g.mul(face_s, face_k), lift), rim_s)
     lit = g.add(g.mul(g.add(body, edge), solid), g.mul(g.add(g.mul(hit_s, FILM_HIT_PEAK), ring_w), waver))

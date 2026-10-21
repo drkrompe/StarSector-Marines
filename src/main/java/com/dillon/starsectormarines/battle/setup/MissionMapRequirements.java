@@ -52,15 +52,16 @@ public final class MissionMapRequirements {
 
     /**
      * What a Colony Breach colony must contain: a house to seal the cohort in,
-     * open ground at the edge for the lift, and enough buildings for the swarm
-     * to come up beside. Keyed on its own rather than on the mission type,
+     * open ground at the edge for the lift, enough buildings for the swarm
+     * to come up beside, and held buildings for the holdouts. Keyed on its own rather than on the mission type,
      * because the rescue shares {@code EXTRACTION} with the generic recovery
      * battle, which promises none of this.
      */
     private static final EnumSet<MapFeature> COLONY_BREACH = EnumSet.of(
             MapFeature.RESIDENTIAL_SHELTER,
             MapFeature.CLEAR_LIFT_SITE,
-            MapFeature.BORE_PLACES);
+            MapFeature.BORE_PLACES,
+            MapFeature.REDOUBT_SITES);
 
     private MissionMapRequirements() { }
 

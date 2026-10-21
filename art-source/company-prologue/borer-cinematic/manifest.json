@@ -1,0 +1,380 @@
+{
+ "asset": "borer.blend",
+ "append_collection": "BORER",
+ "root": "BORER | root",
+ "anchors_collection": "BORER | anchors",
+ "state": "clean",
+ "metres_per_unit": 0.25,
+ "axes": {
+  "+X": "nose",
+  "+Y": "port",
+  "+Z": "dorsal"
+ },
+ "units": "One sprite pixel per unit about the .ship centre; multiply by metres_per_unit for metres",
+ "bounds_units_rest": [
+  [
+   -7.34,
+   -8.0,
+   -3.0
+  ],
+  [
+   7.15,
+   8.0,
+   3.15
+  ]
+ ],
+ "size_metres_rest": [
+  3.62,
+  4.0,
+  1.54
+ ],
+ "engines": [
+  {
+   "index": 1,
+   "side": "centre",
+   "anchor": "Engine 1 exhaust anchor",
+   "mouth": [
+    -6.45,
+    0.0,
+    -0.1
+   ],
+   "axis": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "radius": 0.88,
+   "width": 6,
+   "angle": 180,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 2,
+   "side": "port",
+   "anchor": "Engine 2 exhaust anchor",
+   "mouth": [
+    -6.92,
+    6.0,
+    -0.7
+   ],
+   "axis": [
+    -0.9397,
+    0.342,
+    0.0
+   ],
+   "radius": 0.7,
+   "width": 4,
+   "angle": 160,
+   "style": "LOW_TECH",
+   "running": true
+  },
+  {
+   "index": 3,
+   "side": "starboard",
+   "anchor": "Engine 3 exhaust anchor",
+   "mouth": [
+    -6.92,
+    -6.0,
+    -0.7
+   ],
+   "axis": [
+    -0.9397,
+    -0.342,
+    0.0
+   ],
+   "radius": 0.7,
+   "width": 4,
+   "angle": 200,
+   "style": "LOW_TECH",
+   "running": true
+  }
+ ],
+ "engines_running": [
+  1,
+  2,
+  3
+ ],
+ "tool": {
+  "weapon": "mininglaser (WS 001, HIDDEN, small energy beam)",
+  "muzzle": {
+   "anchor": "Anchor weapon WS 001 muzzle",
+   "at": [
+    7.1,
+    0.0,
+    -0.3
+   ],
+   "axis": [
+    1,
+    0,
+    0
+   ]
+  },
+  "anchors": [
+   {
+    "anchor": "Anchor tool cutting head",
+    "at": [
+     6.0,
+     0.0,
+     -0.3
+    ]
+   },
+   {
+    "anchor": "Anchor tool grab port",
+    "at": [
+     7.0,
+     5.475,
+     -0.325
+    ]
+   },
+   {
+    "anchor": "Anchor tool grab starboard",
+    "at": [
+     7.0,
+     -5.475,
+     -0.325
+    ]
+   }
+  ],
+  "beam": "second-wind-vfx beams group, id ws001: dark until beam_t_ws001 is raised (opt-in); beam_len_ws001 is the distance to the work in hull units"
+ },
+ "cradle_seat": {
+  "anchor": "Anchor cradle seat",
+  "at": [
+   0.0,
+   0.0,
+   -3.0
+  ],
+  "shepherd": {
+   "metres_per_unit": 0.78,
+   "root_scale": 0.320513,
+   "launch_points": [
+    [
+     -3.0,
+     19.0,
+     -4.07
+    ],
+    [
+     12.0,
+     19.0,
+     -4.07
+    ],
+    [
+     26.0,
+     19.0,
+     -4.07
+    ]
+   ],
+   "launch_point_anchors": [
+    "Drone bay WS 003 launch point 1",
+    "Drone bay WS 003 launch point 2",
+    "Drone bay WS 003 launch point 3"
+   ],
+   "heading_deg": 0,
+   "checked": "fighters-geometry/borer_cradle.py: no overlap, pads on the deck, socket over the charging contact, clear lift to the bay mouth"
+  },
+  "pad_soles_z_units": -3.0
+ },
+ "control": null,
+ "lamps_lit": 3,
+ "lamps": [
+  {
+   "object": "Hull spine beacon lamp lens",
+   "material": "Borer beacon lens",
+   "lit": true,
+   "at": [
+    -3.92,
+    0.9,
+    2.19
+   ]
+  },
+  {
+   "object": "Pod port work lamp lens",
+   "material": "Borer lamp lens",
+   "lit": true,
+   "at": [
+    5.21,
+    5.48,
+    0.53
+   ]
+  },
+  {
+   "object": "Pod starboard work lamp lens",
+   "material": "Borer lamp lens",
+   "lit": true,
+   "at": [
+    5.21,
+    -5.48,
+    0.53
+   ]
+  }
+ ],
+ "objects": 169,
+ "polygons": 8873,
+ "baked_meshes": 38,
+ "images": [
+  "Skin bow",
+  "Skin cheek-port",
+  "Skin drive-side-port",
+  "Skin drive-top-port",
+  "Skin pod-top-port",
+  "Skin spine-top",
+  "Skin stern",
+  "Skin underside",
+  "Swatch bright",
+  "Swatch dark",
+  "Swatch grey",
+  "Swatch gunmetal",
+  "Swatch orange"
+ ],
+ "effects": {
+  "collection": "SWFX",
+  "kit": "second-wind-vfx (swfx.apply, hull profile borer-cinematic/vfx_hull.py, state clean, groups thrusters, smoke, beams, lighting; no rig preset)",
+  "beam": "ws001 (mininglaser): dark until beam_t_ws001 is raised; beam_len_ws001 is the distance to the work",
+  "objects": 37,
+  "anchors": {
+   "engines": [
+    {
+     "index": 1,
+     "side": "centre",
+     "radius": 0.88,
+     "mouth": [
+      -6.45,
+      0.0,
+      -0.1
+     ],
+     "axis": [
+      -1.0,
+      -0.0,
+      0.0
+     ]
+    },
+    {
+     "index": 2,
+     "side": "port",
+     "radius": 0.7,
+     "mouth": [
+      -6.92,
+      6.0,
+      -0.7
+     ],
+     "axis": [
+      -0.94,
+      0.342,
+      0.0
+     ]
+    },
+    {
+     "index": 3,
+     "side": "starboard",
+     "radius": 0.7,
+     "mouth": [
+      -6.92,
+      -6.0,
+      -0.7
+     ],
+     "axis": [
+      -0.94,
+      -0.342,
+      0.0
+     ]
+    }
+   ],
+   "guns": [
+    {
+     "turret": 1,
+     "tag": "gun",
+     "muzzle": [
+      7.1,
+      0.0,
+      -0.3
+     ],
+     "axis": [
+      1.0,
+      0.0,
+      0.0
+     ]
+    }
+   ],
+   "lamps": [
+    {
+     "name": "Pod port work lamp lens",
+     "role": "masthead",
+     "at": [
+      5.207,
+      5.482,
+      0.529
+     ]
+    },
+    {
+     "name": "Pod starboard work lamp lens",
+     "role": "masthead",
+     "at": [
+      5.207,
+      -5.482,
+      0.529
+     ]
+    },
+    {
+     "name": "Hull spine beacon lamp lens",
+     "role": "beacon",
+     "at": [
+      -3.917,
+      0.9,
+      2.194
+     ]
+    }
+   ],
+   "sparks": [],
+   "bounds": [
+    [
+     -7.34,
+     -8.0,
+     -3.0
+    ],
+    [
+     7.15,
+     8.0,
+     3.15
+    ]
+   ]
+  },
+  "controls": "SWFX controls (animatable custom properties; see second-wind-vfx/README.md)",
+  "groups": {
+   "thrusters": {
+    "engines": 3,
+    "rcs": 0,
+    "note": "RCS quad positions are art placement, not canon.",
+    "invalid_drivers": 0
+   },
+   "smoke": {
+    "state": "clean",
+    "haze": 3,
+    "dust": 4,
+    "seal_wisps": 0,
+    "welds": 0,
+    "sparks": 0
+   },
+   "beams": {
+    "beams": 1,
+    "missing": 0
+   },
+   "lighting": {
+    "ship": 4
+   }
+  },
+  "append": "load both 'BORER' and 'SWFX' in one call; the ship alone works without it"
+ },
+ "sources": {
+  "skinned_blend": "fighters-surface/borer/build/skinned.blend",
+  "geometry_json_sha256": "4f1b87831e38778e89db803dbda9bc36449b60a0a4784410b0743ae39f46f807",
+  "skin_manifest_sha256": "2acddcabaf47eb6862f32ee5218ff99044b4a1bbe4f0e00846e597285a5af6a6"
+ },
+ "conventions": {
+  "root": "Every part and anchor descends from the root; move, rotate or scale the root only.",
+  "anchors": "Local +X is the effect axis (exhaust aft and splayed; line of the beam; forward for tools and the seat); +Z as near hull-dorsal as that allows.",
+  "scale": "Beside the Shepherd (0.78 m/u) scale the root by 0.25 / 0.78 = 0.3205; in a metre scene by 0.25.",
+  "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
+ },
+ "asset_sha256": "4c6037787092bff993e4b1fd28ac4bfa275007bf16b55b0920c250c63f143bce"
+}

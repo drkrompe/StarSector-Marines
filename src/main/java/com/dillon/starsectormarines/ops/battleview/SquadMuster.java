@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.infantry.SquadMedicine;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -11,7 +12,6 @@ import com.dillon.starsectormarines.marine.OfficerSpecialty;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -44,7 +44,7 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
             String identity = rankLabel + " " + name;
             if (state == State.WOUNDED) {
                 return identity + " | WIA | Return in "
-                        + String.format(Locale.ROOT, "%.1f days", recoveryDays);
+                        + String.format(Strings.locale(), "%.1f days", recoveryDays);
             }
             return identity + " | Ready" + (leader ? " | Squad NCO" : "")
                     + (medic ? " | Squad medic" : "");

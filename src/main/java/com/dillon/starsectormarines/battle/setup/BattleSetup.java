@@ -2589,7 +2589,9 @@ public final class BattleSetup {
                     risk, battleSeed, colony) == null) {
                 continue;
             }
-            installRescuePickup(sim, payload.placement, payload.size(), battleSeed,
+            // The cohort is the shelter's people and every holdout's.
+            installRescuePickup(sim, payload.placement,
+                    sim.getCivilianEvacuationTracker().expectedCount(), battleSeed,
                     risk, scale.width, scale.height);
             SwarmDefenseRoster swarm = stressTest
                     ? SwarmDefenseRoster.install(

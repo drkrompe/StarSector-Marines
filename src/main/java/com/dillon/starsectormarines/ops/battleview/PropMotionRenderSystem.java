@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.task.TaskPoint;
 import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
-import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.PropMotion;
@@ -24,9 +23,11 @@ import java.util.WeakHashMap;
  * after every static doodad), another the overhead ones ({@link RenderLayer#ROOFS}, above the people under them);
  * both read one shared {@link Phases}, so a prop with parts in both passes runs as one machine.
  *
- * <p>A prop runs while what it needs holds: the ship's power ({@link RenderContext#coreDressing}, following a dressing
- * wave across the deck as it plays), and for a worked machine somebody actually at work on it ({@link FixtureUse}).
- * Presentation only: nothing here touches a footprint, cover or line of sight.
+ * <p>Any battle map, not only a ship's deck. A prop runs while what it needs holds, read from generic inputs: the map's
+ * power ({@link BattleSimulation#propPower}, which each kind of map answers for itself), whether it is damaged (a
+ * damaged prop is its own {@code -damaged} doodad, and runs only at its motion's damaged rate; a destroyed one does
+ * not run), and for a worked machine somebody actually at work on it ({@link FixtureUse}). Presentation only: nothing
+ * here touches a footprint, cover or line of sight.
  */
 final class PropMotionRenderSystem implements RenderSystem {
 
@@ -58,12 +59,18 @@ final class PropMotionRenderSystem implements RenderSystem {
         boolean fogged = fog != null && fog.isInitialized();
         for (Doodad d : sim.getDoodads()) {
             PropMotion motion = registry.motion(d.definitionId());
+            boolean damaged = false;
+            if (motion == null) {
+                // A damaged machine is its own doodad; it keeps running, slower, only where its motion says it may.
+                motion = registry.damagedMotion(d.definitionId());
+                damaged = motion != null;
+            }
             if (motion == null || !motion.draws(layer)
                     || !view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY)) continue;
             float centreX = d.cellX + d.footprintCellsX * 0.5f;
             float centreY = d.cellY + d.footprintCellsY * 0.5f;
             if (fogged && !fog.isCellRevealed((int) centreX, (int) centreY)) continue;
-            float phase = phases.advance(ctx, d, motion, now, centreX, centreY);
+            float phase = phases.advance(ctx, d, motion, damaged, now, centreX, centreY);
             for (PropMotion.Part part : motion.parts()) {
                 if (part.layer() != layer) continue;
                 DoodadDef def = registry.doodad(part.doodadId());
@@ -167,16 +174,11 @@ final class PropMotionRenderSystem implements RenderSystem {
             return fallbackClock;
         }
 
-        float advance(RenderContext ctx, Doodad d, PropMotion motion, float now, float x, float y) {
+        float advance(RenderContext ctx, Doodad d, PropMotion motion, boolean damaged, float now, float x, float y) {
             MotionPhase phase = phases.computeIfAbsent(d, k -> new MotionPhase(startPhase(k)));
             boolean inUse = !motion.runs.needsUse() || inUse(ctx.sim, d);
-            float deficit = 0f;
-            if (motion.runs.needsPower()) {
-                DressingWave wave = ctx.dressingWave;
-                deficit = wave != null && wave.moves(ShipCore.POWER) ? wave.deficit(ShipCore.POWER, x, y, now)
-                        : ctx.coreDressing.power() ? 0f : 1f;
-            }
-            return phase.advance(now, motion.targetRate(inUse, deficit), motion.spinUpSeconds);
+            float deficit = motion.runs.needsPower() ? ctx.sim.propPower().deficitAt(x, y) : 0f;
+            return phase.advance(now, motion.targetRate(inUse, deficit, damaged), motion.spinUpSeconds);
         }
 
         private boolean inUse(BattleSimulation sim, Doodad d) {

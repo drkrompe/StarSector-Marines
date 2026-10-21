@@ -847,6 +847,66 @@
         ],
         "aftermath": [ { "kind": "smoke", "radius": 0.6, "lifetime": 1.2 } ]
       }
+    },
+    {
+      "id": "weapon.spore-burst-fissure", "mount": "turret-mount",
+      "catalog": { "displayName": "Spore burst", "modelName": "Spore colony (fissure)", "designation": "SPR", "designationTiered": false },
+      "sim": { "range": 12.0, "damage": 14.0, "accuracy": 0.45, "cooldown": 1.1, "penetration": 3.0 },
+      "render": {
+        "projectileSprite": "graphics/missiles/shell_medium_green.png",
+        "projectileVisualCells": 0.28
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.6, "lifetime": 0.18, "color": "A8D040" },
+          { "kind": "smoke", "radius": 0.45, "lifetime": 0.9 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.7, "lifetime": 0.25, "color": "B8E040" },
+          { "kind": "smoke", "radius": 0.6, "lifetime": 1.1 }
+        ]
+      },
+      "audio": { "fireSound": "marines_breach_spore_vent_burst" }
+    },
+    {
+      "id": "weapon.spore-burst-bore", "mount": "turret-mount",
+      "catalog": { "displayName": "Spore flak", "modelName": "Spore colony (bore)", "designation": "SPR", "designationTiered": false },
+      "sim": { "range": 17.0, "damage": 26.0, "accuracy": 0.5, "cooldown": 1.0, "penetration": 9.0 },
+      "render": {
+        "projectileSprite": "graphics/missiles/shell_medium_green.png",
+        "projectileVisualCells": 0.34
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.6, "lifetime": 0.18, "color": "A8D040" },
+          { "kind": "smoke", "radius": 0.45, "lifetime": 0.9 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.7, "lifetime": 0.25, "color": "B8E040" },
+          { "kind": "smoke", "radius": 0.6, "lifetime": 1.1 }
+        ]
+      },
+      "audio": { "fireSound": "marines_breach_spore_vent_burst" }
+    },
+    {
+      "id": "weapon.spore-burst-maw", "mount": "turret-mount",
+      "catalog": { "displayName": "Spore lance", "modelName": "Spore colony (maw)", "designation": "SPR", "designationTiered": false },
+      "sim": { "range": 23.0, "damage": 44.0, "accuracy": 0.55, "cooldown": 1.2, "penetration": 18.0 },
+      "render": {
+        "projectileSprite": "graphics/missiles/shell_medium_green.png",
+        "projectileVisualCells": 0.42
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.6, "lifetime": 0.18, "color": "A8D040" },
+          { "kind": "smoke", "radius": 0.45, "lifetime": 0.9 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.7, "lifetime": 0.25, "color": "B8E040" },
+          { "kind": "smoke", "radius": 0.6, "lifetime": 1.1 }
+        ]
+      },
+      "audio": { "fireSound": "marines_breach_spore_vent_burst" }
     }
   ]
 }
