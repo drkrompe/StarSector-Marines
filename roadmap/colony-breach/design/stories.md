@@ -10,7 +10,7 @@ these stories.
 | Story | State and dependency |
 | --- | --- |
 | `bore-spawners.md` | **READY.** Destroyable bores, director spawning from living bores, biomass-driven tiers (fills the Brute and Spitter strain slots), spawning surges, spore vents. Plugs into the eruption handler on the breach sequence. |
-| `hive-creep.md` | **QUEUED on bores.** Creep spreads from living bores and visibly infests the colony; ground colonies root on creep and siege hardpoints; recedes when a bore dies. |
+| `hive-creep.md` | **IN PROGRESS.** Creep field spreads from eruption sites (interim, until bores declare it); look and art next; bore hookup, creep effects and ground colonies wait on bores. |
 | `swarm-harvest.md` | **QUEUED on bores.** Runners seize colonists and drag them to bores as biomass; interceptable carriers. |
 | `sector-outbreaks.md` | **QUEUED on the spine.** Lore in `swarm-lore-guide.md`. Outbreaks as a recurring campaign phenomenon. |
 | `breach-audio.md` | **READY.** ElevenLabs strain voices, bore SFX, militia and administrator radio lines keyed to the beat table. |
