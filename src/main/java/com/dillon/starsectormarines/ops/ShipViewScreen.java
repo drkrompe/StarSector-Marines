@@ -100,7 +100,11 @@ public final class ShipViewScreen implements Screen {
                 () -> CompanyBayRestoration.offer(ship, roster), () -> CompanyBayRestoration.repair(ship, roster),
                 () -> ShipRefits.condition(ship), order -> ShipRefits.offer(ship, roster, order),
                 order -> ShipRefits.purchase(ship, roster, order), CampaignCommodityPresentation.INSTANCE,
-                room -> { if (deck != null) deck.select(room); }, () -> deckChanged = true);
+                room -> { if (deck != null) deck.select(room); }, () -> {
+                    deckChanged = true;
+                    // A cleared core plays across the deck; the reveal waits for it.
+                    if (context != null) context.redressCompanyDeck(RefitReveal.WAVE);
+                });
         viewport = MarineOpsUiViewport.from(position);
         installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
