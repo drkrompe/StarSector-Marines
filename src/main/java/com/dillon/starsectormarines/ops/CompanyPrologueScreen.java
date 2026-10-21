@@ -116,6 +116,7 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
         props.put("destination", destination == null ? Strings.get("openingCompanyPrologueFindAWorkingPlanetarySpaceport") : Strings.format("openingCompanyPrologueReach", destination));
         props.put("nextLabel", replies[index]);
         props.put("backDisabled", index == 0);
+        props.put("backClasses", BACK_CLASSES);
         props.put("next", next); props.put("back", back); props.put("skip", skip);
         return props;
     }
@@ -123,6 +124,9 @@ public final class CompanyPrologueScreen extends MissionFlowMlxScreen {
     /** The footer Skip control's classes; {@link #SKIP_OFF_CLASSES} removes it from a straight click-through. */
     static final String SKIP_CLASSES = "prologue-skip";
     static final String SKIP_OFF_CLASSES = "prologue-skip prologue-skip-off";
+    /** The footer Back control's classes; {@link #BACK_OFF_CLASSES} removes it from a single page. */
+    static final String BACK_CLASSES = "prologue-back";
+    static final String BACK_OFF_CLASSES = "prologue-back prologue-back-off";
 
     static String image(String scene) { return "graphics/illustrations/company/" + scene + ".jpg"; }
 }

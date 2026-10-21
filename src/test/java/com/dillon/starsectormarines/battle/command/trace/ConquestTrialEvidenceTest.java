@@ -263,21 +263,22 @@ class ConquestTrialEvidenceTest {
     }
 
     /**
-     * The defender's counter-attacks on its lost fort, counted from the notes its commander writes into its plan summaries:
+     * The defender's counter-attacks on its lost places (forts and compounds alike), counted from the notes its commander writes into its plan summaries:
      * reserves formed, musters, launches (with the squads and strength they went with), retakes, give-ups and the forts
-     * given up for good. Readings against the {@code -Dbattle.conquest.fortCounterattack=false} control, never assertions.
+     * given up for good. Readings against the {@code -Dbattle.counterattack=false} control, never assertions.
      */
     static JSONObject counterattackNotes(String trace) throws JSONException {
         Pattern tickOf = Pattern.compile("\"tick\":(\\d+)");
         Pattern launch = Pattern.compile("launches \\(([^)]*)\\): (\\d+) squads, strength (\\d+) against (\\d+) believed");
         int reserves = 0, musters = 0, launches = 0, launchSquads = 0, launchStrength = 0, retook = 0, gaveUp = 0, abandoned = 0;
+        int probes = 0, outmatched = 0, fortLaunches = 0, compoundLaunches = 0, fortRetook = 0, compoundRetook = 0;
         int firstReserve = -1, firstMuster = -1, firstLaunch = -1, firstRetook = -1;
         JSONArray launchList = new JSONArray();
         for (String line : trace.split("\n")) {
             if (!line.contains("\"perspective\":\"DEFENDER\"") || !line.contains("counter-attack")) continue;
             Matcher t = tickOf.matcher(line);
             int tick = t.find() ? Integer.parseInt(t.group(1)) : -1;
-            if (line.contains("counter-attack reserve for fort")) {
+            if (line.contains("counter-attack reserve for ")) {
                 reserves++;
                 if (firstReserve < 0) firstReserve = tick;
             }
@@ -291,21 +292,29 @@ class ConquestTrialEvidenceTest {
                 launchSquads += Integer.parseInt(m.group(2));
                 launchStrength += Integer.parseInt(m.group(3));
                 if (firstLaunch < 0) firstLaunch = tick;
+                if (line.contains("counter-attack for fort ") && line.contains("launches (")) fortLaunches++;
+                if (line.contains("counter-attack for compound ") && line.contains("launches (")) compoundLaunches++;
                 launchList.put(new JSONObject().put("tick", tick).put("why", m.group(1))
                         .put("squads", Integer.parseInt(m.group(2))).put("strength", Integer.parseInt(m.group(3)))
                         .put("required", Integer.parseInt(m.group(4))));
             }
+            if (line.contains(" probes: squad ")) probes++;
+            if (line.contains("(outmatched: ")) outmatched++;
             if (line.contains(" retook it at tick ")) {
                 retook++;
+                if (line.contains("counter-attack for fort ")) fortRetook++;
+                if (line.contains("counter-attack for compound ")) compoundRetook++;
                 if (firstRetook < 0) firstRetook = tick;
             }
             if (line.contains(" gives up (")) gaveUp++;
-            if (line.contains("fort abandoned after")) abandoned++;
+            if (line.contains(" abandoned after ")) abandoned++;
         }
         return new JSONObject().put("reserves", reserves).put("musters", musters).put("launches", launches)
                 .put("launchSquads", launchSquads).put("launchStrength", launchStrength).put("retook", retook)
                 .put("gaveUp", gaveUp).put("abandoned", abandoned).put("firstReserveTick", firstReserve)
                 .put("firstMusterTick", firstMuster).put("firstLaunchTick", firstLaunch).put("firstRetookTick", firstRetook)
+                .put("probes", probes).put("outmatched", outmatched).put("fortLaunches", fortLaunches)
+                .put("compoundLaunches", compoundLaunches).put("fortRetook", fortRetook).put("compoundRetook", compoundRetook)
                 .put("launchList", launchList);
     }
 
