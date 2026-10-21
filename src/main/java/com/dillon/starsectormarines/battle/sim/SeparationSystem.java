@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 import java.util.Arrays;
+import java.util.function.LongPredicate;
 
 /**
  * Post-movement separation pass. It pushes overlapping ground units apart
@@ -171,6 +172,9 @@ public final class SeparationSystem {
     /** Compression-floor radius plus enough slack for one tick of ordinary mech movement. */
     private static final float MECH_FORMATION_QUERY_RADIUS = 2.75f;
 
+    /** Below this ratio of sideways to inward walking speed, a mover meets an immovable body head-on and steps aside. */
+    private static final float HEAD_ON_TANGENT = 0.25f;
+
     /** Below this separation distance, two units are treated as coincident and steered apart by the deterministic id-hash tiebreak instead of a (division-by-zero) normalized delta. */
     private static final float COINCIDENT_EPS = 1e-4f;
 
@@ -234,12 +238,17 @@ public final class SeparationSystem {
     private float[] shapeHalfY = new float[0];
     private float[] shapeRadius = new float[0];
     private float[] shapeReach = new float[0];
+    /** The velocity each slot's mover applied this tick, before this pass: what it was walking at. */
+    private float[] collisionVelX = new float[0];
+    private float[] collisionVelY = new float[0];
     private boolean[] elongated = new boolean[0];
     /** Farthest any elongated participant reaches from its position this pass, or 0. */
     private float maxCapsuleReach;
     /** Closest-points return buffer. */
     private final float[] closest = new float[4];
     private final boolean capsules;
+    /** Bodies whose position another body owns this tick (a Runner's load); they take no part. */
+    private LongPredicate held = id -> false;
     /**
      * Entity id to collision-slot-plus-one for the current pass. Entries are
      * grow-and-stay and need no full-array clear: {@link #collisionSlot}
@@ -285,6 +294,15 @@ public final class SeparationSystem {
     }
 
     /**
+     * Bodies held by another body sit where their holder puts them every tick,
+     * so they take no part: a shove would be overwritten, and the holder would
+     * be shoved off its course by its own load.
+     */
+    public void spareHeld(LongPredicate held) {
+        this.held = held;
+    }
+
+    /**
      * Runs one relaxation pass over the current roster. Sole caller is
      * {@code BattleSimulation.tick()}, right after the occupancy-delta drain
      * and before the spawn flush — see the story doc's "Tick slot" section
@@ -309,12 +327,12 @@ public final class SeparationSystem {
         cacheCollisionSlots(dense, liveCount);
         cacheCollisionState(dense, liveCount);
 
-        accumulate(dense, liveCount, controlledUnitId);
+        accumulate(dense, liveCount, dt, controlledUnitId);
         accumulateSquadFormations(dense, liveCount, dt, controlledUnitId);
         apply(dense, liveCount, dt, controlledUnitId);
     }
 
-    private void accumulate(long[] dense, int liveCount, long controlledUnitId) {
+    private void accumulate(long[] dense, int liveCount, float dt, long controlledUnitId) {
         for (int i = 0; i < liveCount; i++) {
             long a = dense[i];
             byte aFlags = collisionFlags[i];
@@ -414,8 +432,36 @@ public final class SeparationSystem {
                 float mag = weight * correction;
                 impulseX[i] += dirX * mag;
                 impulseY[i] += dirY * mag;
+                if (physicalOverlap > 0f && hasFlag(bFlags, IMMOVABLE)) {
+                    slideRound(i, a, b, dirX, dirY, physicalOverlap, dt);
+                }
             }
         }
+    }
+
+    /**
+     * A mover walking nearly head-on into an immovable body is pushed straight
+     * back along its own line, so its step and the push cancel and it stands
+     * there for good: a route laid along cell centres meets a body on a cell
+     * centre exactly head-on. Such a mover also steps aside, as fast as it was
+     * walking in, up to the overlap; once off the line the ordinary push has a
+     * sideways part of its own and carries it round. Which side is a hash of
+     * the pair, never a random draw.
+     */
+    private void slideRound(int i, long a, long b, float dirX, float dirY,
+                            float overlap, float dt) {
+        float vx = collisionVelX[i];
+        float vy = collisionVelY[i];
+        float inward = -(vx * dirX + vy * dirY);
+        if (inward <= 0f) return;
+        float tangentX = vx + inward * dirX;
+        float tangentY = vy + inward * dirY;
+        if (tangentX * tangentX + tangentY * tangentY
+                > HEAD_ON_TANGENT * HEAD_ON_TANGENT * inward * inward) return;
+        float side = (coincidentAngle(a, b) < (float) Math.PI) ? 1f : -1f;
+        float slide = Math.min(inward * dt, overlap);
+        impulseX[i] += -dirY * side * slide;
+        impulseY[i] += dirX * side * slide;
     }
 
     private void cacheCollisionSlots(long[] dense, int liveCount) {
@@ -492,6 +538,10 @@ public final class SeparationSystem {
             Object[] mechLoadouts = hasMechLoadout
                     ? table.objects(components.MECH_LOADOUT,
                     BattleComponents.MECH_LOADOUT_STATE).array() : null;
+            float[] velXs = hasMovement
+                    ? table.floats(components.MOVEMENT, BattleComponents.MOVEMENT_VEL_X).array() : null;
+            float[] velYs = hasMovement
+                    ? table.floats(components.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y).array() : null;
             float[] facings = table.has(components.LAYERED_ANIMATION)
                     ? table.floats(components.LAYERED_ANIMATION,
                     BattleComponents.LAYERED_FACING_DEGREES).array() : null;
@@ -521,7 +571,7 @@ public final class SeparationSystem {
                         type);
                 byte flags = POPULATED;
                 if (hasHealth && hp[row] > 0f
-                        && !hasKinematics && radius > 0f) {
+                        && !hasKinematics && radius > 0f && !held.test(id)) {
                     flags |= PARTICIPATES;
                 }
                 if (type.isStatic()
@@ -548,6 +598,8 @@ public final class SeparationSystem {
                 collisionFlags[slot] = flags;
                 collisionFaction[slot] =
                         (byte) ((Faction) factions[row]).ordinal();
+                collisionVelX[slot] = hasMovement ? velXs[row] : 0f;
+                collisionVelY[slot] = hasMovement ? velYs[row] : 0f;
                 cacheShape(slot, type, posX[row], posY[row], radius,
                         facings != null ? facings[row] : Float.NaN,
                         hasFlag(flags, PARTICIPATES));
@@ -1195,6 +1247,8 @@ public final class SeparationSystem {
         shapeHalfY = new float[newCap];
         shapeRadius = new float[newCap];
         shapeReach = new float[newCap];
+        collisionVelX = new float[newCap];
+        collisionVelY = new float[newCap];
         elongated = new boolean[newCap];
     }
 
