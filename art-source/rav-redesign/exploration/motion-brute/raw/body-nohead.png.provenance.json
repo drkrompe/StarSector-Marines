@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ff9-0e67-7242-9043-ce2ee2144b7a",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ff9-0e67-7242-9043-ce2ee2144b7a\\exec-6c84e882-2c2b-4f1b-aa86-9e9b1a7f2f70.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\motion-brute\\raw\\body-nohead.png",
+    "sha256": "f98efb642d0b0d1c90478ee16433ffbf40dc1709f7190bd73e55bd789e13a9b1",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\motion-brute\\prompts\\body-nohead.prompt.txt",
+  "promptSha256": "7580acda889e7a82434da4a2ee8d985ecc1b96f6d0a2e309137310c5641e7899",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry, identity, palette and registration authority: the chosen Brute\n\nReference image 1 is the chosen Brute design from the Rav Bloom swarm (a heavy, old, dark plum-violet armoured hoofed beast with a knobbed ivory mace head), seen strictly from above, facing up. This is a rig layer for animating it: keep its palette, finish, scale and lighting (from the upper left) exactly, and keep every part you draw in EXACTLY the same position and size as in reference image 1 so the layer registers over it pixel for pixel. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n\nThis layer: the BODY ONLY. Remove the head: in its place leave a short, thick armoured neck stump at the front of the shoulders, ending in plates and magenta sinew, so a separate head layer can sit on it. Remove all four legs: no knees, hooves or claws showing past the body anywhere; the barrel body's outline is smooth plated flank all round. The tail and spine plates stay exactly as they are.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-brute\\raw\\hero.png",
+      "sha256": "cc2fa7dae723cb7b4b30435b9535051272d91848cc652d61cd28ec8d2121453e",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry, identity, palette and registration authority: the chosen Brute"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one body-only rig layer, keeping the body, spine plates, and tail aligned with the reference.\n"
+  ],
+  "usage": {
+    "input_tokens": 40811,
+    "cached_input_tokens": 35072,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 443,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 41.6
+}

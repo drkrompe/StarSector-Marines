@@ -97,7 +97,9 @@ public final class ShipDeckGenerator {
     /**
      * Generate the deck a {@link DeckSizing.DeckPlan} describes, tracing
      * {@code silhouette} when supplied so it inherits a real hull's proportions
-     * and asymmetry. Identical inputs produce an identical deck.
+     * and asymmetry. Identical inputs produce an identical deck, and a hull
+     * whose arrangement pins its layout seed produces the same deck for every
+     * {@code seed}.
      */
     public MapResult generateDeck(DeckSizing.DeckPlan plan, long seed, HullSilhouette silhouette) {
         return generateDeck(plan, seed, silhouette, RoomFit.STANDARD);
@@ -106,6 +108,7 @@ public final class ShipDeckGenerator {
     /** Generate one deck furnished at {@code fit} — how well its rooms are fitted out. */
     public MapResult generateDeck(DeckSizing.DeckPlan plan, long seed,
                                   HullSilhouette silhouette, RoomFit fit) {
+        if (plan.arrangement() != null) seed = plan.arrangement().seedFor(seed);
         int width = plan.frames();
         int height = plan.height();
         GenRecipe deckRecipe = buildDeckRecipe(silhouette, fit, plan.boatBay(), plan.workshop(), plan.restoration());

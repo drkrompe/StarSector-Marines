@@ -183,6 +183,23 @@ final class LayeredUnitComposer {
             actorX = seat[0];
             actorY = seat[1];
         }
+        if (atStation && (motion == WorkMotion.RUN || motion == WorkMotion.JOG)) {
+            // A runner bounds rather than glides. Seen from above that is the
+            // body rising toward the camera between footfalls (drawn larger),
+            // the weight rolling onto each stance foot in turn, a surge along the
+            // belt at each push-off and the shoulders twisting against the arms.
+            // The arms pump and the feet show on the same cycle, so a footfall is
+            // where the feet cross and the body is lowest.
+            double turn = weaponPhase * 2.0 * Math.PI;
+            float stride = (float) Math.sin(turn);
+            float flight = Math.abs(stride);
+            float[] body = worldPoint(actorX, actorY, BOUND_SWAY_SW * stride,
+                    BOUND_SURGE_SW * (flight - 0.5f), pxPerSw, facingDeg);
+            actorX = body[0];
+            actorY = body[1];
+            pxPerSw *= 1f + BOUND_RISE * flight;
+            facingDeg += BOUND_TWIST_DEG * stride;
+        }
 
         LayeredWeaponFamily weaponFamily = drawPrimaryLayers
                 ? LayeredWeaponFamily.fromPrimary(primary) : null;
@@ -539,6 +556,14 @@ final class LayeredUnitComposer {
         }
     }
 
+    /** How much larger a runner is drawn at the top of a stride than at a footfall: the bound toward the camera. */
+    private static final float BOUND_RISE = 0.08f;
+    /** How far a runner's weight rolls onto each stance foot, in shoulder widths. */
+    private static final float BOUND_SWAY_SW = 0.06f;
+    /** How far a runner surges forward at each push-off, in shoulder widths. */
+    private static final float BOUND_SURGE_SW = 0.05f;
+    /** How far a runner's shoulders twist against the arm swing, in degrees. */
+    private static final float BOUND_TWIST_DEG = 6f;
     /** How far a rower slides fore and aft on the seat, in shoulder widths. */
     private static final float ROW_SLIDE_SW = 0.06f;
     /** Where a carried crate is held, in shoulder widths ahead of the actor. */

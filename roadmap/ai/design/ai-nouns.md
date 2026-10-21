@@ -793,7 +793,10 @@ long a job takes, who may claim it, or where the worker stands, and a body drawn
 onto a machine leaves its claim on the standing cell. Gym machines are drawn at
 real size against a 0.6-cell shoulder (a cell is about 0.75 m), worked from the
 free cell at their foot and up their length, so the drawn reach puts the runner
-on the belt, the rower on the seat and the presser on the bench. Animated fixtures are
+on the belt, the rower on the seat and the presser on the bench. A runner, on a belt
+or round a track, bounds: drawn rising toward the camera between footfalls,
+rolling onto each stance foot and twisting against the arm swing, so running
+in place does not read as standing still. Animated fixtures are
 the fixture's own art and meet the worker through the same claim and focus.
 
 A shift derives where it works from what each place publishes, so **posting is

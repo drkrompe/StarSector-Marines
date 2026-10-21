@@ -43,8 +43,9 @@ import java.util.Set;
  * published as unplaced rather than quietly dropped — a deck short of its
  * program is a sizing defect, and hiding it would turn a measurable shortfall
  * into a deck that merely looks a little empty. A hull's reserves (see
- * {@link DeckArrangement#reserves()}) are laid after the program and published
- * the same way when they do not fit.
+ * {@link DeckArrangement#reserves()}) are laid after the program, or ahead of
+ * the purpose a large one names ({@link DeckArrangement.Reserve#laidBefore()}),
+ * and published the same way when they do not fit.
  */
 public final class RoomPlacementStage implements GenStage {
 
@@ -125,7 +126,18 @@ public final class RoomPlacementStage implements GenStage {
         List<DeckGraph.Compartment> placed = new ArrayList<>();
         List<RoomRecipe> unplaced = new ArrayList<>();
         List<BayAperture> apertures = new ArrayList<>();
+        // A reserve laid ahead of a programmed purpose claims its ground first,
+        // and the rooms of that purpose and after it find room around it.
+        Set<Integer> reserved = new HashSet<>();
+        List<DeckArrangement.Reserve> pending = arrangement == null ? new ArrayList<>()
+                : new ArrayList<>(arrangement.reserves());
         for (RoomRecipe recipe : ordered) {
+            for (var it = pending.iterator(); it.hasNext(); ) {
+                DeckArrangement.Reserve reserve = it.next();
+                if (reserve.laidBefore() != recipe.purpose()) continue;
+                it.remove();
+                placeReserve(profile, packer, reserve, placed, unplaced, reserved);
+            }
             DeckArrangement.Site site = sites == null ? null : sites.next(recipe.purpose());
             RoomPacker.Placed room = packer.place(request(profile, recipe, fit, site), true);
             if (room == null) {
@@ -139,18 +151,7 @@ public final class RoomPlacementStage implements GenStage {
         // pockets, so a reserve takes only floor the program left over and
         // never moves a room it placed. The same random stream reaches every
         // programmed room whether or not the hull reserves anything.
-        Set<Integer> reserved = new HashSet<>();
-        if (arrangement != null) {
-            for (DeckArrangement.Reserve reserve : arrangement.reserves()) {
-                RoomPacker.Placed room = packer.place(request(profile, reserve.recipe(), fit, reserve.site()), true);
-                if (room == null) {
-                    unplaced.add(reserve.recipe());
-                } else {
-                    reserved.add(placed.size());
-                    placed.add(describe(profile, room, placed.size()));
-                }
-            }
-        }
+        for (DeckArrangement.Reserve reserve : pending) placeReserve(profile, packer, reserve, placed, unplaced, reserved);
         fillPockets(profile, packer, placed);
         // Last, because it is a judgement about the finished network. Every
         // passage above reached the nearest thing already connected, which is
@@ -163,6 +164,17 @@ public final class RoomPlacementStage implements GenStage {
         }
         ctx.put(ShipKeys.DECK_GRAPH, new DeckGraph(placed, unplaced, apertures,
                 ctx.get(ShipKeys.SHIPS_BOATS), Set.of(), Set.of(), reserved));
+    }
+
+    private void placeReserve(DeckProfile profile, RoomPacker packer, DeckArrangement.Reserve reserve,
+                              List<DeckGraph.Compartment> placed, List<RoomRecipe> unplaced, Set<Integer> reserved) {
+        RoomPacker.Placed room = packer.place(request(profile, reserve.recipe(), fit, reserve.site()), true);
+        if (room == null) {
+            unplaced.add(reserve.recipe());
+        } else {
+            reserved.add(placed.size());
+            placed.add(describe(profile, room, placed.size()));
+        }
     }
 
     /**
