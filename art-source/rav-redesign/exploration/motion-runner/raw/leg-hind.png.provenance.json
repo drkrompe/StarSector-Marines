@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fdf-1d01-7280-b3bb-0ca8cf9e1980",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fdf-1d01-7280-b3bb-0ca8cf9e1980\\exec-4d71987b-159b-452a-a190-b0e655304be4.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\leg-hind.png",
+    "sha256": "9920861828d6bc289880450603f41924067b5f2fc37992e0b0d351c026479163",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\motion-runner\\prompts\\leg-hind.prompt.txt",
+  "promptSha256": "b48573c12bf2dbb6ce156bdcea95b1b7f2143e72eed0c10773bafc40e0b8526e",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity, geometry and layout authority\n\nLayer for a 2D rig: ONE isolated HIND walking leg of the creature in reference 1 (its left hind leg), alone, no creature. Same finish and scale as in reference 1: pale lilac armour plates (the thigh plate) over deep purple-magenta sinew, ivory claws. Lay it out straight and fully extended, seen from directly above, pointing DOWN: the hip joint at the top centre of the frame, then the muscular thigh, the hock joint, the lower leg, and the clawed foot at the bottom, claws spread. Thigh and lower leg about the same length, with a clear joint halfway. Spanning about three quarters of the frame height. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\body-closed.png",
+      "sha256": "af6bd9512777475653366f1e70ef2f75a564f3dd13aeeb98241783cd47ea4456",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity, geometry and layout authority"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one isolated hind leg using the reference’s anatomy, colors, and finish."
+  ],
+  "usage": {
+    "input_tokens": 40571,
+    "cached_input_tokens": 32000,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 326,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 47.1
+}
