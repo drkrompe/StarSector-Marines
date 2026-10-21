@@ -306,6 +306,14 @@ In `hive-creep.md`.
   the hole over a visible interval: the growth dies first, then clears. Ground a
   living source also reaches stays, and a living source reaching dying ground
   revives it.
+- **The look is the field drawn, never a second model.** One ground-level
+  layer, under the bodies and over the props it overgrows, shades the field
+  from a painted greyscale material whose values the palette colours: dark
+  veins, thin film the town still shows through, nodules, a lumpy edge, a
+  pulse running toward the source, climbed walls as dark ridges, and dead
+  growth as a grey husk. Colour is data: the swarm owns no red (the owner's
+  chitin direction), so the default creep is grey-umber, duller than the
+  paving and lighter than the near-black bodies, with sparse dim amber.
 
 **Swarm goal.** A place the swarm is drawn toward: the shelter, the lift, the
 nearest Marine body. Swarm movement toward a goal is a shared **flow field** per

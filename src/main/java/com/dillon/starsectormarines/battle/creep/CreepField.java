@@ -52,12 +52,12 @@ public final class CreepField {
     static final int FILL_PER_TICK = 3;
     /** Vitality a reviving cell regains per tick. */
     static final int REVIVE_PER_TICK = 8;
-    /** Vitality a withering cell loses per tick (under two seconds to die). */
-    static final int WITHER_PER_TICK = 5;
-    /** Coverage a dead cell loses per tick (about four seconds to clear). */
-    static final int CLEAR_PER_TICK = 2;
+    /** Vitality a withering cell loses per tick (about three seconds to die). */
+    static final int WITHER_PER_TICK = 3;
+    /** Coverage a dead husk loses per tick (about eight seconds to clear). */
+    static final int CLEAR_PER_TICK = 1;
     /** Ticks per cell of path distance the dying-back takes to run from the edge to the hole. */
-    static final int RECEDE_TICKS_PER_CELL = 15;
+    static final int RECEDE_TICKS_PER_CELL = 20;
     /** Seeded jitter, in ticks, on when each cell starts to wither. */
     static final int RECEDE_JITTER_TICKS = 24;
     /** Cells a source settles per tick at most; bounds a large feed or a fresh maw. */
@@ -323,10 +323,10 @@ public final class CreepField {
     /** Seeded cost to step onto a cell, about {@link #COST_SCALE} on average; pavement costs half again. */
     private int baseStepCost(int x, int y) {
         double fine = hash01(y * width + x, 0xC4EE9L);
-        double coarse = latticeNoise(x, y, 7);
-        double factor = 0.5 + 0.35 * fine + 0.65 * coarse;
+        double coarse = latticeNoise(x, y, 9);
+        double factor = 0.3 + 0.3 * fine + 1.6 * coarse * coarse;
         if (topology != null && topology.inBounds(x, y) && topology.isStreet(x, y)) factor += 0.5;
-        return (int) Math.max(4, Math.min(24, Math.round(factor * COST_SCALE)));
+        return (int) Math.max(3, Math.min(30, Math.round(factor * COST_SCALE)));
     }
 
     /** A non-walkable cell creep may climb: walls, fixtures and growth, not water or open void. */
