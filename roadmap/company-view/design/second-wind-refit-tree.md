@@ -470,22 +470,41 @@ If a later program change moves rooms, the reserve evidence fails before a
 save notices; the same evidence opens every reserve on the same layouts and
 fails if anything moves or a range lane is crossed.
 
-## Materials and AI cores
+## Materials and exotic parts
 
 Credits are not the only price (owner, 2026-10-21). Most tiers also take
 materials from fleet cargo: metals for structure and plating, heavy machinery for
 the plant, the drive and the galley, transplutonics for flux and sensor work. The
-original distribution and mess orders stay credits-only. The tiers that start
-making her more than a frigate are gated on AI cores, the base game's own measure
-of something powerful:
+original distribution and mess orders stay credits-only.
 
-| Tier | Core |
-|---|---|
-| Compute: processing cluster | gamma |
-| Compute: tactical core (gates the military flux grid and sensor suite) | beta |
-| Flux: military flux grid | alpha |
+The top of the tree is end-game content, gated on exotic parts the player
+already hunts for on the sector's outskirts (owner, same day). An exotic part
+is a hard requirement: there is no credit-heavy alternative, because everything
+below it stays reachable without one. Exotic parts are AI cores, and the
+Threat's and the abyss's special items. **Colony items never go into the
+ship**: they belong in industries, and AI cores are the one exception. Each
+part goes where its own description says it would work, so a system with no
+fitting part is left to bulk goods rather than given an arbitrary one; the
+comfort rooms (mess, gym, lounge, hydroponics, wardroom, holds) take none, and
+nothing is asked to reach Restored.
 
-The bill is `RefitOrder.materials()`; quantities are placeholders with the prices.
+| Tier | Exotic part | Why there |
+|---|---|---|
+| Compute: processing cluster | gamma core | |
+| Compute: tactical core (gates the military flux grid and sensor suite) | beta core | |
+| Flux: military flux grid | alpha core | |
+| Range: simulator | gamma core | runs the opposing force |
+| Sick bay: trauma | gamma core | diagnostics |
+| Briefing room II | gamma core | threat projection on the holo-tank |
+| Mech calibration II | beta core | mech fire control |
+| Sensors II | Threat Processing Unit | modular computation, below the AI threshold |
+| Power: auxiliary plant | Shrouded Thunderhead | self-sustaining energy differentials |
+| Drive II | Shrouded Mantle | flickers the drive field |
+| Mech field repair II | Fragment Fabricator | self-repairing fragment swarms |
+
+The Shrouded Substrate and Shrouded Lens have no fitting system yet. The bill is
+`RefitOrder.materials()`, with the special items listed in
+`RefitOrder.SPECIAL_ITEMS`; quantities are placeholders with the prices.
 
 ## Credit curve
 

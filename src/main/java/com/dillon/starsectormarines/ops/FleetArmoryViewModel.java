@@ -479,7 +479,7 @@ public final class FleetArmoryViewModel {
             // this company would actually put in the field today. Showing both
             // is the point of the picker under role-and-access.md — a sheet does
             // not get better, the kit filling it does.
-            String metadata = Strings.format("openingFleetArmoryFieldsTier", plan.armorClassDisplayName(), titleCase(plan.tradition().key.replace('_', ' ')), tierMark(maximumArmorTier(issued)));
+            String metadata = Strings.format("openingFleetArmoryFieldsTier", plan.armorClassDisplayName(), titleCase(plan.tradition().key), tierMark(maximumArmorTier(issued)));
             List<DoctrineSpan> patterns = armorDistributionSpans(id, issued);
             List<DoctrineSpan> capabilities = armorCapabilitySpans(id, issued);
             tiles.add(doctrineTile(id, plan.id().equals(selected),
@@ -676,8 +676,7 @@ public final class FleetArmoryViewModel {
 
     private static String titleCase(String value) {
         if (value == null || value.isBlank()) return Strings.get("openingFleetArmoryUnclassified");
-        String lower = value.toLowerCase(Locale.ROOT).replace('_', ' ');
-        return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
+        return Strings.named("armorTradition", value);
     }
 
     private static SquadLoadoutPresentationDef loadoutPresentation(

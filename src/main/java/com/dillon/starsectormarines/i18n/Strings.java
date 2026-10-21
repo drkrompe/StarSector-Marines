@@ -73,6 +73,19 @@ public final class Strings {
         return out.toString();
     }
 
+    /**
+     * Display name of an enum constant or data id: the copy's {@code prefix + id} entry when it has
+     * one, else the id read as words ({@code HOLD_NODE} becomes "Hold node"), so an id an addon
+     * adds still shows something sensible until its translation catches up.
+     */
+    public static String named(String prefix, String id) {
+        String key = prefix + id;
+        String text = get(key);
+        if (!text.equals(key)) return text;
+        String spaced = id.replace('_', ' ').toLowerCase(locale());
+        return spaced.isEmpty() ? spaced : Character.toUpperCase(spaced.charAt(0)) + spaced.substring(1);
+    }
+
     public static String get(String key) {
         try {
             String v = Global.getSettings().getString(NS, key);

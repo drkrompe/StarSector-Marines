@@ -46,7 +46,7 @@ public final class ShipOnStation extends CommandPower {
     private final List<ShipSupportSource> sources;
 
     public ShipOnStation(List<ShipSupportSource> sources) {
-        super(ID, "Ship on Station", CP_COST, COOLDOWN_SECONDS, requireSources(sources).size(),
+        super(ID, "@battlePowerShipOnStation", CP_COST, COOLDOWN_SECONDS, requireSources(sources).size(),
                 SUPPLY_COST, SLOT_WEIGHT);
         this.sources = Collections.unmodifiableList(new ArrayList<>(sources));
     }

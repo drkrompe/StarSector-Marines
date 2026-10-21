@@ -1,5 +1,6 @@
 package com.fs.starfarer.api.impl.campaign.rulecmd;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.personnel.CaptainDiscoverySalvageListener;
 import com.dillon.starsectormarines.marine.CaptainCandidate;
 import com.dillon.starsectormarines.marine.CaptainCandidateState;
@@ -135,9 +136,8 @@ public class CaptainDiscoveryCMD extends BaseCommandPlugin {
 
     private static String traitSummary(CaptainCandidate candidate) {
         return candidate.startingTrait() == null
-                ? "No surviving specialist record accompanies the pod."
-                : "Service records note the "
-                        + candidate.startingTrait().displayName() + " specialty.";
+                ? Strings.get("captainDiscoveryNoRecord")
+                : Strings.format("captainDiscoverySpecialty", candidate.startingTrait().displayName());
     }
 
     private static void finish(InteractionDialogAPI dialog, MemoryAPI memory) {
