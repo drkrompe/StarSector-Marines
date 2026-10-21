@@ -471,35 +471,35 @@ Black Sluice commanders are not wired yet (open question below).
 
 Measured with `commanderEvidence` against the same-build control (2026-10-21),
 every fixture of each mission's matrix. The beat lists came out identical by
-name and order on every fixture of every mission. The contact mix counts
-squad-samples in actionable contact, every fifteen ticks, as **on a post** when
-the squad's leader stands on a garrisonable (whoever put it there: an authored
-garrison in its building counts) and **in the open** otherwise.
+name and order on every fixture of every mission. The fight mix is
+`PlaceFightProbe`'s (`commander-evidence-missions.md`, places and fights): a
+brawl is a contact with both ends in the open, and "from a post" counts the
+defender's shooters standing on one.
 
-| mission | fixtures | manning orders | fall backs (rooms) | beats | defender contacts on posts, on / off | outcomes |
-|---|---:|---:|---:|---|---|---|
-| Counterattack | 12 | 12 | 8 (8) | identical | 45% / 34% (298 of 658 / 195 of 575) | marines 9, unresolved 3, in both arms |
-| Junction | 11 | 0 | 0 | identical | 63% / 63% | byte for byte as the control |
-| Relay Nine | 11 | 0 | 0 | identical | 79% / 79% | byte for byte |
-| Thunder Run | 11 | 0 | 0 | identical | 62% / 62% | byte for byte |
-| Relief | 12 | 0 | 0 | identical | 20% / 20% | byte for byte |
-| Last Lift | 13 attempts | 7 (Extraction's) | 4 (4) | identical | 51% / 51% | unaffected by the story switch |
+| mission | fixtures | manning orders | fall backs (rooms) | beats | brawls, on / off | defender shooting from a post, on / off | outcomes |
+|---|---:|---:|---:|---|---|---|---|
+| Counterattack | 12 | 12 | 8 (8) | identical | 64% / 64% | 24% / 23% | marines 9, unresolved 3, in both arms |
+| Junction | 11 | 0 | 0 | identical | 39% / 39% | 53% / 53% | byte for byte as the control |
+| Relay Nine | 11 | 0 | 0 | identical | 23% / 23% | 75% / 75% | byte for byte |
+| Thunder Run | 11 | 0 | 0 | identical | 46% / 46% | 30% / 30% | byte for byte |
+| Relief | 12 | 0 | 0 | identical | 92% / 92% | 4% / 4% | byte for byte |
+| Last Lift | 13 attempts | 7 (Extraction's) | 4 (4) | identical | 96% / 96% | 0% / 0% | unaffected by the story switch |
 
 - **Counterattack** is where it bites: the rear guard, and on two fixtures the
   yard guard, takes the warehouse beside its stage when the company presses it
   (one squad at a time), and is driven into its rooms when the company gets in.
-  More than half of the defender's fighting is still in the open, the gate and
-  yard are still met in the yard, and the marines' own share of fights on posts
-  barely moves (15% against 18%). The company won every battle it won in the
-  control, 39 ticks later on the mean, with 6 more marines left over the nine
-  (100 against 94). On the depot-hold harness the marines won three of four in
-  both arms, losing a different seed in each.
-- **Junction** offered its waiting reserve and road column on 3,236
+  The mix hardly moves — two fights in three are still brawls, the gate and yard
+  are still met in the open — because the share lets one guard of the depot's
+  handful hold at a time. The company won every battle it won in the control,
+  39 ticks later on the mean, losing 8 marines over the twelve against 14. On
+  the depot-hold harness the marines won three of four in both arms, losing a
+  different seed in each.
+- **Junction** offered its waiting reserve and road column on 1,618
   squad-pulses and nothing near their posts was ever pressed while they
   waited: the lesson's reserve waits out of the fight by design. **Relay
-  Nine**'s pool is one squad, which the share keeps on its post (450 offered
-  pulses, all closed). **Thunder Run** offered nobody: no pool squad held home or ground on
-  these fixtures.
+  Nine**'s pool is one squad, which the share keeps on its post (225 offered
+  pulses, all closed). **Thunder Run** offered nobody: no pool squad held home
+  or ground on these fixtures.
 
 The scene `story-defence` plays the production Counterattack depot with its own
 story commander: a guard on a standing duty holds a building by the story's own
