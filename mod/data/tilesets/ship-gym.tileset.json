@@ -30,12 +30,17 @@
       "row": 0
     },
     {
-      "col": 2,
+      "col": 1,
       "name": "ship-gym.rower",
       "row": 0
     },
     {
-      "col": 4,
+      "col": 2,
+      "name": "ship-gym.rower-seat",
+      "row": 0
+    },
+    {
+      "col": 3,
       "name": "ship-gym.bench-press",
       "row": 0
     },
@@ -69,7 +74,7 @@
       "col": 0,
       "cover": "med",
       "footprintCells": [
-        2,
+        1,
         3
       ],
       "id": "ship-gym.treadmill",
@@ -77,22 +82,29 @@
     },
     {
       "ballisticHalfHeight": 0.5,
-      "col": 2,
+      "col": 1,
       "cover": "med",
       "footprintCells": [
-        2,
+        1,
         3
       ],
       "id": "ship-gym.rower",
       "row": 0
     },
     {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "id": "ship-gym.rower-seat",
+      "row": 0
+    },
+    {
       "ballisticHalfHeight": 0.5,
-      "col": 4,
+      "col": 3,
       "cover": "med",
       "footprintCells": [
-        2,
-        3
+        3,
+        2
       ],
       "id": "ship-gym.bench-press",
       "row": 0

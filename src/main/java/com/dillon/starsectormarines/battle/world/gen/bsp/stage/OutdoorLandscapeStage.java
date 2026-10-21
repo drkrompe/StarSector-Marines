@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.forest.ForestField;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestPlan;
 import com.dillon.starsectormarines.battle.world.gen.forest.LandscapeAccess;
 import com.dillon.starsectormarines.battle.world.gen.nature.FormationBrush;
+import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainBrush;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainField;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan;
@@ -87,6 +88,16 @@ public final class OutdoorLandscapeStage implements GenStage {
         for (var prop : c.doodads)
             reserve(c, reserved, prop.cellX - 1, prop.cellY - 1,
                     prop.cellX + prop.footprintCellsX, prop.cellY + prop.footprintCellsY);
+        // An open-field landing keeps its whole disc clear: a grove or a hill
+        // there is cover for whatever comes at the berths.
+        FieldOfFire field = FieldOfFire.of(c.get(BspKeys.PRECINCTS));
+        if (field != null) {
+            int r = field.radius();
+            for (int y = field.centerY() - r; y <= field.centerY() + r; y++)
+                for (int x = field.centerX() - r; x <= field.centerX() + r; x++)
+                    if (x >= 0 && y >= 0 && x < c.width && y < c.height && field.contains(x, y))
+                        reserved[y * c.width + x] = true;
+        }
         var lanes = c.get(BspKeys.LANES);
         if (lanes != null) for (var lane : lanes) for (var cell : lane.route())
             reserve(c, reserved, cell.x() - 2, cell.y() - 2, cell.x() + 2, cell.y() + 2);

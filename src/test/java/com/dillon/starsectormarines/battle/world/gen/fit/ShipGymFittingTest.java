@@ -51,8 +51,8 @@ class ShipGymFittingTest {
         for(int y=0;y<small.ctx.height;y++) for(int x=0;x<small.ctx.width;x++) assertFalse(small.ctx.topology.isWater(x,y));
     }
     private static void verify(Fixture f) {
-        assertEquals(4,f.ops.stream().filter(op -> op instanceof LayoutOp.Assembly).count());
-        assertEquals(7,f.ctx.fixtureTasks.size());
+        assertEquals(6,f.ops.stream().filter(op -> op instanceof LayoutOp.Assembly).count());
+        assertEquals(9,f.ctx.fixtureTasks.size());
         assertTrue(f.floor.circulationSurvives());assertEquals(0,f.floor.dropUnreachableWork());
         f.floor.seal();
         for(int y=0;y<10;y++) for(int x=0;x<14;x++) {
@@ -67,7 +67,7 @@ class ShipGymFittingTest {
                 assertEquals("ship-gym.coping",f.ctx.topology.getSurfaceId(gx,gy));walkable(f,x,y);
             }
         }
-        for(int y=5;y<8;y++) for(int x=1;x<3;x++) walkable(f,x,y);
+        for(int y=1;y<4;y++) for(int x=1;x<3;x++) walkable(f,x,y);
         HashSet<String> stands=new HashSet<>();
         for(var task:f.ctx.fixtureTasks) {
             assertTrue(stands.add(task.cellX()+","+task.cellY()));
