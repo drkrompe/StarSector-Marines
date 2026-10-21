@@ -74,6 +74,13 @@ public final class AmbientTaskService {
      * out, short enough that a genuinely unreachable fixture is not a career.
      */
     private static final float PATIENCE_SECONDS = 6f;
+    /**
+     * How much faster than their walk somebody covers the leg between two
+     * markers of a lap. {@code -Dbattle.ambient.jogPace=1} is the control: a lap
+     * walked at the ordinary pace.
+     */
+    static final float JOG_PACE =
+            Float.parseFloat(System.getProperty("battle.ambient.jogPace", "1.7"));
 
     /**
      * How long a stood-down actor must go undisturbed before going back to work.
@@ -565,7 +572,11 @@ public final class AmbientTaskService {
                 if (!Paths.isEmpty(path)) navigation.clearPath(actorId);
             }
         }
-        movement.advanceAlongPath(world, actorId, dt);
+        // A jog covers ground faster than a walk; the time is the mover's own, so
+        // only the pace changes, never the path or the arrival.
+        float pace = WorkMotions.between(JobBoard.affordance(state.lastGroup),
+                JobBoard.affordance(stop.pointGroup())) == WorkMotion.JOG ? JOG_PACE : 1f;
+        movement.advanceAlongPath(world, actorId, dt * pace);
         arrived = movement.atCell(actorId, destinationCellX, destinationCellY)
                 && movement.settled(actorId);
 
@@ -749,7 +760,7 @@ public final class AmbientTaskService {
         // A stop authored without a job on the board still says what it is
         // doing, and that is enough to show it.
         if (job == null) return WorkMotions.forActivity(pose.activity());
-        if (!job.handsOnFixture() && job != Affordance.EXERCISE) return WorkMotion.NONE;
+        if (!job.handsOnFixture() && job != Affordance.EXERCISE && job != Affordance.LAP) return WorkMotion.NONE;
         TaskPoint point = taskPoints.claimedPoint(actorId);
         if (point == null) return WorkMotions.forJob(job, null);
         return motionAtPoint.computeIfAbsent(point.id(), id -> WorkMotions.forJob(job,

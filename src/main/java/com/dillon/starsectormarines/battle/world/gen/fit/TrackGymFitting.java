@@ -13,9 +13,10 @@ import java.util.List;
  * <p>The loop is the room's circulation as well as its track. It is the whole
  * one-cell ring inside the bulkheads, so every hatch opens onto it wherever the
  * deck cut one, and every piece of equipment is reached off the cross-aisle
- * that joins it. Two exercise places stand on the loop itself, away from the
- * hatches; the rest are at the machines, the weights and the mat. All of them
- * are recreation, not anybody's watch.
+ * that joins it. The loop is run: eight {@link Affordance#LAP} markers stand on
+ * it, at its corners and the middle of each side, in running order. The
+ * exercise places are at the machines, the weights and the mat. All of them are
+ * recreation, not anybody's watch.
  *
  * <p>Drawn for Second Wind's 12-by-8 reserve. A smaller room falls back to the
  * general gymnasium.
@@ -57,13 +58,9 @@ public final class TrackGymFitting implements RoomFitting {
             room.task(7, 2, Affordance.EXERCISE, 7, 1);
             room.task(9, 2, Affordance.EXERCISE, 9, 1);
         }
-        // Somebody out on the loop, at the two middles furthest from any hatch.
-        int laps = 0;
-        for (int[] lap : new int[][]{{w / 2 - 1, 0, w / 2, 0}, {w / 2, h - 1, w / 2 - 1, h - 1},
-                {0, h / 2, 0, h / 2 - 1}, {w - 1, h / 2 - 1, w - 1, h / 2}}) {
-            if (laps < 2 && !room.besideHatch(lap[0], lap[1])
-                    && room.task(lap[0], lap[1], Affordance.EXERCISE, lap[2], lap[3])) laps++;
-        }
+        // The loop, run round its corners and the middle of each side.
+        floor.runningTrack(new int[][]{{0, 0}, {w / 2, 0}, {w - 1, 0}, {w - 1, h / 2},
+                {w - 1, h - 1}, {w / 2, h - 1}, {0, h - 1}, {0, h / 2}});
     }
 
     /** A machine whose foot is on row 4, worked from the cross-aisle below it at {@code standX}. */
