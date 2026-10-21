@@ -1,0 +1,7 @@
+Reskin the attached geometry guide into finished top-down game art for one spaceship briefing-room prop: a compact presenter's lectern. Strict overhead orthographic view, soft light from the upper left, the same look as the material reference sheet: muted worn olive-grey enamel, charcoal recesses, dull steel edging, modest edge wear, realistic painted game-asset finish. No saturated colour, no glow, no hazard stripes.
+
+The guide is the geometry, scale and layout authority, and the result will be cut mechanically from the guide's exact pixel rectangle. The lectern is small: slightly wider than it is deep, about six to five (length to depth), and it must overlay its grey guide shape almost exactly: the same left and right ends, the same top and bottom edges. Do not make it wider, deeper or larger than its grey shape; do not move, rescale or rotate it, and do not add any other piece. Keep all empty canvas fully transparent: true transparent background; no floor, no ground, no shadow slab, no border, no people, no labels or text.
+
+The lectern: a plain raised front panel along its top edge (the side facing the audience), and below it the speaker's sloped reading desk, which fills the lower part and carries a small dim green-grey screen on the left and a few flat briefing sheets on the right, with a thin steel ledge along the bottom (speaker's) edge.
+
+Broad readable forms, soft restrained highlights, sparse wear, low surface noise.

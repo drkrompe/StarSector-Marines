@@ -10,7 +10,7 @@ and the three spore-colony grades (`structure.spore-colony-fissure`, `-bore`,
 | Guides | `python art-source/swarm-bores/make_guide.py [part or state ...]` | `art-source/templates/swarm-<part>-<n>[-<state>]-guide.png` |
 | Reskin one variant (one paid call) | `bash art-source/swarm-bores/generate.sh <part> <n> [wounded\|remains]` | `raw/<part>-<n>[-<state>].raw.png` + provenance |
 | Export | `python art-source/swarm-bores/export.py [--part P] [--state S]` | `mod/graphics/structures/<name>-<n>[-wounded].png` and its `-glow.png`; `<name>-<n>-remains.png` |
-| Bleed ooze sheet (code-drawn) | `python art-source/swarm-bores/ooze.py` | `mod/graphics/structures/swarm-ooze.png` |
+| Bleed sheets (code-drawn) | `python art-source/swarm-bores/ooze.py` | `mod/graphics/structures/swarm-ooze.png` (punctures), `swarm-spray.png` (fissures) |
 | Wound anchors (after any guide change) | `python art-source/swarm-bores/wounds.py` | each grown structure's `"bleed"` block in `turret-emplacements.turret.json` |
 | Spore shots (code-drawn) | `python art-source/swarm-bores/spore_shots.py` | `mod/graphics/fx/spore-clump.png`, `spore-cluster.png`, `spore-lance.png` |
 | Other-palette preview | `python art-source/swarm-bores/export.py --palette raw` (or `purple`, `chitin`) | `build/swarm-bores/<palette>/` |
@@ -39,12 +39,17 @@ wounds. `ooze.py` draws the loop procedurally, because its frames have to agree
 pixel for pixel: a punctured membrane pulsing to a double heartbeat, its slit
 dilating and its flaps lifting as each beat pushes a film of ichor out to run
 downhill and drain. A heightfield lit by the game's sun in the bloom sinew
-ramp; three kinds of puncture in eight run directions, 24 frames at 12 fps (the direction
+ramp; three kinds of puncture in eight run directions, 24 frames at 12 fps.
+A long wound is a fissure instead, on its own sheet with a larger frame: on the
+same beat its lips part and spray a fan of droplets downhill, each with the
+sun's shadow under it at its height, landing as splats that soak away (the direction
 is baked rather than turned, since turning would turn the light). `wounds.py`
 reads each painting's wounds out of its guides, as the raw flesh the wounded
 guide shows and the intact one does not, largest first, with the way downhill
-from each on the body's heightfield, and writes the structure's whole `"bleed"`
-block, so re-run it whenever `make_guide.py` changes.
+from each on the body's heightfield. A patch twice as long as it is wide is a
+fissure, its slit laid along the painted gash (every painting gets at least
+one); the rest are punctures. It writes the structure's whole `"bleed"` block
+(both families and every wound), so re-run it whenever `make_guide.py` changes.
 
 **Geometry and light come from code.** Each guide is a seeded heightfield of
 lopsided primitives (plates of differing size and lean, tusks, tilted paving
