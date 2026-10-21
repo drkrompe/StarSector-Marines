@@ -114,6 +114,14 @@ public sealed interface LayoutOp {
     }
 
     /** Floor covering, which does not claim its cell — something may still stand on it. */
+    /** A nonblocking piece laid over the room's own floor, turned with the room, claiming no cell. */
+    record Overlay(int x, int y, String doodadId) implements LayoutOp {
+        @Override
+        public void apply(RoomFloor floor, Replay replay) {
+            floor.overlay(x, y, doodadId);
+        }
+    }
+
     record Paving(int x, int y, String doodadId) implements LayoutOp {
         @Override
         public void apply(RoomFloor floor, Replay replay) {

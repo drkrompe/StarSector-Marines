@@ -1,0 +1,140 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "deck-motion.crane-runway",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "deck-motion.crane-bridge",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "deck-motion.rack-lift-rail",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "deck-motion.rack-lift-carriage",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "name": "deck-motion.rower",
+      "row": 0
+    },
+    {
+      "col": 15,
+      "name": "deck-motion.rower-seat",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "deck-motion.fan-rotor",
+      "row": 7
+    },
+    {
+      "col": 2,
+      "name": "deck-motion.treadmill-belt",
+      "row": 7
+    },
+    {
+      "col": 3,
+      "name": "deck-motion.conveyor-belt",
+      "row": 7
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        5,
+        7
+      ],
+      "id": "deck-motion.crane-runway",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "footprintCells": [
+        5,
+        1
+      ],
+      "id": "deck-motion.crane-bridge",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 10,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        6
+      ],
+      "id": "deck-motion.rack-lift-rail",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 12,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "id": "deck-motion.rack-lift-carriage",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 13,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        3
+      ],
+      "id": "deck-motion.rower",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 15,
+      "cover": "none",
+      "id": "deck-motion.rower-seat",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "deck-motion.fan-rotor",
+      "row": 7
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "id": "deck-motion.treadmill-belt",
+      "row": 7
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "id": "deck-motion.conveyor-belt",
+      "row": 7
+    }
+  ],
+  "sheet": "graphics/tilesets/deck-motion.png"
+}

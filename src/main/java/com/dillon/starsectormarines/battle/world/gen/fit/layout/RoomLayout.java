@@ -211,6 +211,7 @@ public record RoomLayout(RoomPurpose purpose, RoomFit fit, RoomShape shape,
                 for (LayoutOp.Layer layer : assembly.layers()) ids.add(layer.doodadId());
             }
             if (op instanceof LayoutOp.Paving paving) ids.add(paving.doodadId());
+            if (op instanceof LayoutOp.Overlay overlay) ids.add(overlay.doodadId());
         }
         return ids;
     }
