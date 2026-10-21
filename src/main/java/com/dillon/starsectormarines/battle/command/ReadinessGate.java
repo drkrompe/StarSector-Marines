@@ -14,8 +14,10 @@ import java.util.List;
  *       at the lift and has lost nobody on the lift line for a sustained
  *       window;</li>
  *   <li><b>the strength left behind meets the escort's need</b>: after the
- *       detachment leaves, there is still a squad for every walking group, a
- *       squad for every redoubt not yet relieved, and one more at the lift;</li>
+ *       detachment leaves, there is still a squad for every walking group and
+ *       one screening their walk, a squad for every redoubt not yet relieved,
+ *       and one more at the lift; and
+ *       the escort is holding, with no evacuee lost for the same window;</li>
  *   <li><b>a detachment exists</b>: some squad free of escort duty carries
  *       demolition, heavy weapons or is a machine.</li>
  * </ol>
@@ -46,13 +48,20 @@ public record ReadinessGate(boolean liftHardened, boolean strengthHolds, boolean
      * @param leftBehind     squads of the mobile force that would stay with the cohort
      * @param escortNeed     squads the cohort needs ({@link #escortNeed})
      * @param capableSquads  squads that could form a detachment
+     * @param cohortQuietTicks ticks since an evacuee was last lost ({@link Integer#MAX_VALUE} for never)
      */
-    public record Inputs(int liftDefences, int liftQuietTicks, int leftBehind, int escortNeed, int capableSquads) { }
+    public record Inputs(int liftDefences, int liftQuietTicks, int leftBehind, int escortNeed, int capableSquads,
+                         int cohortQuietTicks) {
+        /** Inputs for a cohort that has lost nobody. */
+        public Inputs(int liftDefences, int liftQuietTicks, int leftBehind, int escortNeed, int capableSquads) {
+            this(liftDefences, liftQuietTicks, leftBehind, escortNeed, capableSquads, Integer.MAX_VALUE);
+        }
+    }
 
     /** The gate for {@code posture} against one target. */
     public static ReadinessGate evaluate(HivePosture posture, boolean againstMother, Inputs in) {
         boolean hardened = in.liftDefences() > 0 && in.liftQuietTicks() >= HARDENED_WINDOW_TICKS;
-        boolean strength = in.leftBehind() >= in.escortNeed();
+        boolean strength = in.leftBehind() >= in.escortNeed() && in.cohortQuietTicks() >= HARDENED_WINDOW_TICKS;
         boolean detachment = in.capableSquads() > 0;
         boolean relaxed = posture == HivePosture.PURGE && againstMother;
         boolean open = switch (posture) {
@@ -64,19 +73,25 @@ public record ReadinessGate(boolean liftHardened, boolean strengthHolds, boolean
     }
 
     /**
-     * Squads the cohort needs kept with it: one escort per group walking out,
-     * one for every redoubt still waiting to be relieved (a holdout left
-     * pending is unmet need, not spare strength), and the lift reserve. A
-     * rescue with no redoubt list is one cohort: an escort or a relief.
+     * Squads the cohort needs kept with it: one escort per group walking out
+     * and a screen along their walk while anyone is walking, one for every
+     * redoubt still waiting to be relieved (a holdout left pending is unmet
+     * need, not spare strength), and the lift reserve. A rescue with no
+     * redoubt list is one cohort: an escort or a relief.
      */
     public static int escortNeed(List<CivilianRedoubt> redoubts) {
         if (redoubts.isEmpty()) return 1 + LIFT_RESERVE_SQUADS;
         int need = LIFT_RESERVE_SQUADS;
+        boolean walking = false;
         for (CivilianRedoubt redoubt : redoubts) {
-            if (redoubt.walking() > 0) need++;
+            if (redoubt.walking() > 0) {
+                need++;
+                walking = true;
+            }
             if (redoubt.pending()) need++;
         }
-        return need;
+        // People in the open are screened along their walk as well as escorted.
+        return walking ? need + 1 : need;
     }
 
     /** One line for traces: {@code H S D} flags, upper case when met. */

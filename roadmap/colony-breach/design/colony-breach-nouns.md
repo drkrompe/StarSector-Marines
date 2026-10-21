@@ -696,10 +696,16 @@ from what it can see at every command pulse:
   a sustained window (twenty seconds);
 - (b) **the strength left behind meets the escort's need**: after the
   detachment leaves, the mobile force still has a squad for every group walking
-  out, a squad for every redoubt still waiting to be relieved (a pending holdout
-  is unmet need, not spare strength), and one more at the lift;
+  out and one screening their walk, a squad for every redoubt still waiting to
+  be relieved (a pending holdout is unmet need, not spare strength), and one
+  more at the lift; and the escort is holding, with no evacuee lost for the
+  same window. A cohort that bleeds closes the gate and brings the detachment
+  home;
 - (c) **a detachment exists**: a squad free of escort duty that can hurt a bore,
   one carrying satchels, firing on structures, or a machine.
+
+`-Dbattle.colonyBreach.strikes=false` is the control: the gate is read and
+published, and nobody is ever sent.
 
 Purge relaxes (a) and (b) against the mother bore and nowhere else; (c) is never
 relaxed. Evacuate never asks about the lift, because the only bore it engages is

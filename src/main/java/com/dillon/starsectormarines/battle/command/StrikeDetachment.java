@@ -52,10 +52,14 @@ public final class StrikeDetachment {
     }
 
     private final HivePosture posture;
+    private final boolean enabled;
     private final TreeSet<Integer> members = new TreeSet<>();
     private KnownBore target;
     private int recalledTick = Integer.MIN_VALUE / 2;
     private int lastLiftLossTick = -1;
+    private int lastCohortLossTick = -1;
+    private int lastLost = -1;
+    private int cohortQuiet = Integer.MAX_VALUE;
     private int defencesSinceTick = -1;
     private final Map<Integer, Integer> lastAlive = new HashMap<>();
     private final Map<Integer, Boolean> lastOnLiftLine = new HashMap<>();
@@ -64,7 +68,17 @@ public final class StrikeDetachment {
     private ReadinessGate gate;
 
     StrikeDetachment(HivePosture posture) {
+        this(posture, Boolean.parseBoolean(System.getProperty("battle.colonyBreach.strikes", "true")));
+    }
+
+    /**
+     * @param enabled {@code false} is the control
+     *                ({@code -Dbattle.colonyBreach.strikes=false}): the gate is
+     *                still read and published, and nobody is ever sent
+     */
+    StrikeDetachment(HivePosture posture, boolean enabled) {
         this.posture = HivePosture.orDefault(posture);
+        this.enabled = enabled;
     }
 
     HivePosture posture() { return posture; }
@@ -108,6 +122,16 @@ public final class StrikeDetachment {
     }
 
     /**
+     * Reads the cohort's losses: an evacuee lost is the escort failing, which
+     * the gate reads as strength not met until the window has passed.
+     */
+    void observeCohort(int tick, int lostCivilians) {
+        if (lastLost >= 0 && lostCivilians > lastLost) lastCohortLossTick = tick;
+        lastLost = lostCivilians;
+        cohortQuiet = lastCohortLossTick < 0 ? Integer.MAX_VALUE : tick - lastCohortLossTick;
+    }
+
+    /**
      * One pulse's decision.
      *
      * @param candidates the mobile squads free of escort duty, members included
@@ -135,7 +159,7 @@ public final class StrikeDetachment {
                 return;
             }
             inputs = new ReadinessGate.Inputs(defences, quiet, mobileForce - members.size(), escortNeed,
-                    members.size());
+                    members.size(), cohortQuiet);
             gate = ReadinessGate.evaluate(posture, target.mother(), inputs);
             boolean stillOnRoute = posture != HivePosture.EVACUATE || onRoute.test(target.x(), target.y());
             if (!gate.open() || !stillOnRoute) {
@@ -156,9 +180,9 @@ public final class StrikeDetachment {
         KnownBore choice = chooseTarget(bores, liftX, liftY, onRoute);
         int size = choice != null && choice.mother() && posture == HivePosture.PURGE ? MOTHER_SQUADS : STRIKE_SQUADS;
         inputs = new ReadinessGate.Inputs(defences, quiet,
-                mobileForce - Math.min(size, Math.max(1, capable.size())), escortNeed, capable.size());
+                mobileForce - Math.min(size, Math.max(1, capable.size())), escortNeed, capable.size(), cohortQuiet);
         gate = ReadinessGate.evaluate(posture, choice != null && choice.mother(), inputs);
-        if (choice == null || !gate.open() || tick < recalledTick + RECOMMIT_COOLDOWN_TICKS) return;
+        if (!enabled || choice == null || !gate.open() || tick < recalledTick + RECOMMIT_COOLDOWN_TICKS) return;
         List<CommandSquadState> chosen = new ArrayList<>(capable);
         chosen.sort(Comparator.comparingInt((CommandSquadState s) -> s.machine() ? 0 : s.demolition() ? 1 : 2)
                 .thenComparingInt(s -> Math.abs(s.anchorCellX() - choice.x()) + Math.abs(s.anchorCellY() - choice.y()))
@@ -218,7 +242,7 @@ public final class StrikeDetachment {
 
     private void end(int tick, Kind kind, int defences, int quiet, int mobileForce, int escortNeed) {
         if (gate == null || kind != Kind.RECALLED) {
-            inputs = new ReadinessGate.Inputs(defences, quiet, mobileForce, escortNeed, 0);
+            inputs = new ReadinessGate.Inputs(defences, quiet, mobileForce, escortNeed, 0, cohortQuiet);
             gate = ReadinessGate.evaluate(posture, target.mother(), inputs);
         }
         decisions.add(new Decision(tick, kind, target.key(), List.copyOf(members), gateLine(gate, inputs)));
@@ -238,6 +262,7 @@ public final class StrikeDetachment {
 
     static String gateLine(ReadinessGate gate, ReadinessGate.Inputs in) {
         return gate.describe() + " defences=" + in.liftDefences() + " quiet=" + in.liftQuietTicks()
-                + " left=" + in.leftBehind() + " need=" + in.escortNeed() + " capable=" + in.capableSquads();
+                + " left=" + in.leftBehind() + " need=" + in.escortNeed() + " capable=" + in.capableSquads()
+                + (in.cohortQuietTicks() == Integer.MAX_VALUE ? "" : " cohortQuiet=" + in.cohortQuietTicks());
     }
 }

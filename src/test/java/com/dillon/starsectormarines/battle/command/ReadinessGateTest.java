@@ -19,6 +19,8 @@ class ReadinessGateTest {
         assertFalse(gate(HivePosture.OPPORTUNISTIC, false, 2, HELD - 1, 3, 3, 1).open(), "a loss inside the window");
         assertFalse(gate(HivePosture.OPPORTUNISTIC, false, 2, HELD, 2, 3, 1).open(), "the escort left short");
         assertFalse(gate(HivePosture.OPPORTUNISTIC, false, 2, HELD, 3, 3, 0).open(), "nobody who can hurt a bore");
+        assertFalse(ReadinessGate.evaluate(HivePosture.OPPORTUNISTIC, false,
+                new ReadinessGate.Inputs(2, HELD, 3, 3, 1, HELD - 1)).open(), "an evacuee lost inside the window");
     }
 
     @Test
@@ -37,12 +39,12 @@ class ReadinessGateTest {
     }
 
     @Test
-    void escortNeedCountsWalkersPendingDoorsAndTheLiftReserve() {
+    void escortNeedCountsWalkersTheirScreenPendingDoorsAndTheLiftReserve() {
         CivilianRedoubt walking = redoubt(1, 10, -1, 0, 6);
         CivilianRedoubt pending = redoubt(2, -1, -1, 4, 0);
         CivilianRedoubt fallen = redoubt(3, -1, 50, 0, 0);
         CivilianRedoubt boarded = redoubt(4, 20, -1, 0, 0);
-        assertEquals(1 + 1 + ReadinessGate.LIFT_RESERVE_SQUADS,
+        assertEquals(1 + 1 + 1 + ReadinessGate.LIFT_RESERVE_SQUADS,
                 ReadinessGate.escortNeed(List.of(walking, pending, fallen, boarded)));
         assertEquals(1 + ReadinessGate.LIFT_RESERVE_SQUADS, ReadinessGate.escortNeed(List.of()));
     }

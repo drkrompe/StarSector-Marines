@@ -26,6 +26,16 @@
       "type": "AEROSHUTTLE",
       "cycles": 1,
       "seatsPerSortie": 6
+    },
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    },
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
     }
   ],
   "targetProfile": {

@@ -103,6 +103,7 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
         roles.keySet().retainAll(poolIds);
         nextPressureBoundTick.keySet().retainAll(poolIds);
         strike.observeLift(frame.tick(), frame.squads(), frame.facts().emplacements(), placement.liftX, placement.liftY);
+        strike.observeCohort(frame.tick(), cohort.lostElements());
         List<CommandSquadState> screens = pool;
         if (!terminal(cohort)) {
             screens = pool.stream().filter(s -> !strike.members().contains(s.squadId())).toList();
@@ -256,6 +257,7 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
         escortOf.entrySet().removeIf(entry -> !poolIds.contains(entry.getValue())
                 || walkers(redoubts, entry.getKey()) == null);
         strike.observeLift(frame.tick(), frame.squads(), frame.facts().emplacements(), placement.liftX, placement.liftY);
+        strike.observeCohort(frame.tick(), cohort.lostElements());
         if (!terminal) {
             // The strike is decided before new escorts are drawn, from the squads
             // not already escorting; a squad on strike is not drawn as an escort.

@@ -37,14 +37,16 @@ these lines produce live with the mechanisms they measure: `garrisonables.md`
 One fixture per hive posture (`colony-breach-nouns.md`, Hive posture), side by
 side: the canonical colony (Evacuate, no posture key), Opportunistic with two
 Vulcans standing at the lift from the start (`liftHardpoints`, a fixture
-statement for a tender's finished builds) so the readiness gate can open,
+statement for a tender's finished builds) and six boats rather than four, a
+company with strength to spare, so the readiness gate can open,
 Opportunistic without them so it is seen to hold, and Purge. Each writes its own
 folder under the report; the top `summary.md` tabulates posture, end, evacuated,
 commits, recalls and whether the mother collapsed. Asserted as mechanics: every
 commit was made with the gate open, Opportunistic only with all three
 conditions met, every recall with it closed, Purge commits only at the mother
 once she is open, and every commit and recall is its beat. Who collapsed what is
-a reading. `-Pfixture` plays one fixture alone.
+a reading; read it against `-Dbattle.colonyBreach.strikes=false` on the same
+fixture. `-Pfixture` plays one fixture alone.
 
 ## Relief
 
