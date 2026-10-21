@@ -180,7 +180,7 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
             require(model.row().get().get("reason").equals(ShipRefits.refusal(RefitOrder.FLUX_RESTORED, REFIT, true, true, true, true, 20000, CARGO, goods::commodityName)),
                     "A locked combat tier did not name what it waits on");
             frames.add(new SnapshotArtifact("04-systems-flux-locked.png", renderer.render(document, 1920, 1080)));
-            click(document, markup.requireElement("systems-hull-node-1"));
+            click(document, markup.requireElement("systems-hull-header"));
             markup.flush(); overlay.update(0f, ship, canvas);
             click(document, markup.requireElement("ship-condition-action"));
             markup.flush(); overlay.update(0f, ship, canvas);

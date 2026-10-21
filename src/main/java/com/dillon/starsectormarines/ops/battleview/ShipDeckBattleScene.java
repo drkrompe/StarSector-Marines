@@ -174,6 +174,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     /** The founding hull's Deficit dressing, planned the first time anything is left unrestored. */
     private ShipDeckDressing dressing;
     private CoreDressing coreDressing = CoreDressing.RESTORED;
+    /** A dressing change still playing out, or null. */
+    private DressingWave wave;
     /**
      * Which boat berths still have a boat, by the Boat Deck's own numbering, or
      * null when nobody has said and every berth is therefore held. Copied on
@@ -298,22 +300,56 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     }
 
     /**
-     * Show each core's Deficit dressing, or clear it, over this deck.
+     * Show each core's Deficit dressing, or clear it, over this deck, at once.
      *
      * <p>The one door the ship-condition record feeds. Presentation only: the
      * deck, its crew and its simulation are untouched, the plan is derived once
      * from the deck and its seed, and the same condition always dresses the
      * same cells. A scene starts clean, which is every hull but the founding one.
+     * A wave still running is finished first.
      */
     public void dress(CoreDressing state) {
+        dress(state, 0f);
+    }
+
+    /**
+     * Change the deck's dressing to {@code state} over {@code seconds} of this
+     * scene's own clock ({@link #advanceTo}), as a wave: each changing core's
+     * look clears, or returns, outward from its source room along the deck,
+     * lamps and screens stuttering on as it reaches them. When it has run the
+     * deck is exactly what {@link #dress(CoreDressing)} gives. A wave still
+     * running is finished first; zero seconds changes the deck at once.
+     * {@link #coreDressing()} names the target from the moment of the call.
+     */
+    public void dress(CoreDressing state, float seconds) {
         CoreDressing next = state == null ? CoreDressing.RESTORED : state;
+        wave = null;
         if (next.equals(coreDressing)) return;
         if (!next.clean() && dressing == null)
             dressing = ShipDeckDressing.of(deck.topology, simulation.getGrid(), rooms, gantries,
                     simulation.getDoodads(), seed);
+        ShipDeckLighting before = lighting;
         if (next.power() != coreDressing.power() || next.compute() != coreDressing.compute())
             lighting = lighting(next);
+        if (seconds > 0f && Float.isFinite(seconds))
+            wave = new DressingWave(coreDressing, next, simulatedSeconds, seconds, before, deck.topology, rooms, seed);
         coreDressing = next;
+    }
+
+    /** Whether a dressing wave is still playing on this deck's clock. */
+    public boolean dressing() {
+        return wave != null && !wave.done(simulatedSeconds);
+    }
+
+    /** How far the current dressing wave has come: 0 at its start, 1 once it has finished or when none is playing. */
+    public float dressingProgress() {
+        return wave == null ? 1f : wave.progress(simulatedSeconds);
+    }
+
+    /** The wave the next frame draws, if one is still playing. */
+    private DressingWave liveWave() {
+        if (wave != null && wave.done(simulatedSeconds)) wave = null;
+        return wave;
     }
 
     private ShipDeckLighting lighting(CoreDressing state) {
@@ -1122,7 +1158,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                 viewport.width(), viewport.height());
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
-                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing);
+                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing, liveWave());
         return new BattleSceneFrame(context, layers);
     }
 
@@ -1138,7 +1174,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         camera.centerOn(view.centerCellX(), view.centerCellY());
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
-                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing);
+                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing, liveWave());
         return new BattleSceneFrame(context, layers);
     }
 

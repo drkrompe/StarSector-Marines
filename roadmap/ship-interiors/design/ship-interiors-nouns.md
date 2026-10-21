@@ -1670,7 +1670,13 @@ lane beside it clear, stored cargo lines only passages wide enough to keep two
 clear cells past it, and only flat patches lie mid-lane. **Worn furniture** is a
 condition twin: a fitting whose sheet has an `<id>-worn` piece draws that art on
 the same cells, turn and mirror, keeping its own footprint, cover and blocking.
-The haze's control is `-Dbattle.render.deadAirHaze=false`.
+A change of condition may be shown at once or played as a **dressing wave**:
+each changing core's look clears, or returns, outward from its source room by
+walking distance along the deck (Power and Life support from the engine room,
+Compute from the bridge, Structure from the middle of the hull), lamps and
+screens stuttering on as it reaches them. A wave runs on the deck's own clock,
+is deterministic for the deck's seed, and ends exactly in the condition shown at
+once. The haze's control is `-Dbattle.render.deadAirHaze=false`.
 
 **Deck lighting** belongs to the company interior presentation. In the low-tech
 interior style it has three kinds of light. Rooms keep fixtures on their long walls: cool white and broad on
@@ -1685,9 +1691,11 @@ when it does not. Beneath the light lies a static shade: contact shadow at the
 foot of every bulkhead and, in the passages, the shadow of overhead beams. Warm
 passages against cool rooms is the deck's palette; command spaces read cool and
 console-lit. Second Wind also carries faulty distribution in otherwise usable
-rooms; those local faults do not close facilities or remove work stations. A
-distribution repair restores those circuits without repairing sealed structural
-rooms. Clearing workshop rubble alone does not restore its faulty lights;
+rooms; those local faults do not close facilities or remove work stations. They
+are the Power core's symptom and follow it: while Power is restored they light as
+any intact room does, so restoring Power relights them in the same wave as the
+passages, without a new deck. A distribution repair restores those circuits
+without repairing sealed structural rooms, which stay on emergency strips. Clearing workshop rubble alone does not restore its faulty lights;
 machinery repair does. Bay restoration restores its lights with its other
 facilities. Room masks confine the shading; space and management controls retain
 their own appearance. Lighting follows the shared deck clock across views, and has

@@ -2448,8 +2448,6 @@
     "openingRefitMechPlate": "plate {0}%",
     "openingRefitMechRepairDays": "repair time {0}%",
     "openingRefitMechSpares": "weapon refit {0}%",
-    "openingRefitSystemsHeading": "SECOND WIND // SHIP SYSTEMS",
-    "openingRefitSystemsGuide": "Each system feeds the ones that hang below it. Select a node to read how she works and what the next tier takes.",
     "openingRefitSystemsProgress": "{0} OF {1} TIERS",
     "openingRefitSystemsBack": "BACK TO DECK",
     "openingRefitNeedsHeading": "NEEDS",
