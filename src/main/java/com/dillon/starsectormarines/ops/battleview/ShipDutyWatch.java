@@ -85,8 +85,9 @@ public final class ShipDutyWatch {
                         && task.affordance() == Affordance.WATCH;
                 if (task.affordance() != role.trade() && !plantConsole) continue;
                 String group = JobBoard.group(room.id(), task.affordance(), task.berth());
-                AmbientTaskRoute.Stop stop = new AmbientTaskRoute.Stop(task.cellX() + .5f,
-                        task.cellY() + .5f, CrewRole.dwellFor(task.affordance()),
+                float[] stand = JobBoard.stand(task);
+                AmbientTaskRoute.Stop stop = new AmbientTaskRoute.Stop(stand[0],
+                        stand[1], CrewRole.dwellFor(task.affordance()),
                         CrewRole.activityFor(task.affordance()), task.fixtureX() + .5f,
                         task.fixtureY() + .5f, group);
                 AmbientTaskRoute route = new AmbientTaskRoute("duty-" + group + "-" + result.size(),

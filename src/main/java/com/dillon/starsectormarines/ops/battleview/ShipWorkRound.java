@@ -43,7 +43,8 @@ public final class ShipWorkRound {
             FixtureTask task = work.get(Math.floorMod(member + i, work.size()));
             String group = JobBoard.group(room.id(), task.affordance());
             localGroups.add(group);
-            stops.add(new AmbientTaskRoute.Stop(task.cellX() + .5f, task.cellY() + .5f,
+            float[] stand = JobBoard.stand(task);
+            stops.add(new AmbientTaskRoute.Stop(stand[0], stand[1],
                     CrewRole.dwellFor(task.affordance()), CrewRole.activityFor(task.affordance()),
                     task.fixtureX() + .5f, task.fixtureY() + .5f, group, true));
         }
