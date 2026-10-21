@@ -99,6 +99,15 @@ public final class DeadBodySystem {
     public void onDeath(DeathEvent event) {
         long id = event.unitId();
         BattleComponents c = components;
+        // The layered appearance is live-only and leaves with the transmute, so the
+        // body keeps the two things it needs to lie as itself: which way it faced
+        // and what it wore. A duplicate death finds it already a corpse and keeps them.
+        boolean firstDeath = !world.has(id, c.CORPSE);
+        boolean layered = world.has(id, c.LAYERED_ANIMATION);
+        float facing = layered
+                ? world.getFloat(id, c.LAYERED_ANIMATION, BattleComponents.LAYERED_FACING_DEGREES) : 0f;
+        int bodyFamily = layered
+                ? world.getInt(id, c.LAYERED_ANIMATION, BattleComponents.LAYERED_BODY_FAMILY) : -1;
         // IDENTITY and POSITION ride the row-move — the live cell IS the death
         // cell (the event's snapshot is the same value; demolition handlers
         // still read it off the event, this transmute just doesn't re-write it).
@@ -115,5 +124,9 @@ public final class DeadBodySystem {
         // first time.
         world.setInt(id, c.SPRITE, BattleComponents.SPRITE_SHEET, 0);
         world.setInt(id, c.SPRITE, BattleComponents.SPRITE_FLIP_V, 0);
+        if (firstDeath) {
+            world.setFloat(id, c.CORPSE, BattleComponents.CORPSE_FACING_DEGREES, facing);
+            world.setInt(id, c.CORPSE, BattleComponents.CORPSE_BODY_FAMILY, bodyFamily);
+        }
     }
 }

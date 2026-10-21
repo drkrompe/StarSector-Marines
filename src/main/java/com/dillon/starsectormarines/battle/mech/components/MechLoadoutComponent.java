@@ -66,6 +66,8 @@ public final class MechLoadoutComponent {
     public float torsoFacingDegrees = 180f;
     /** Maximum upper-torso traverse speed, in degrees per sim-second. */
     public float torsoTurnRateDegrees = DEFAULT_TORSO_TURN_RATE_DEGREES;
+    /** The company ship's fire-control calibration over every mount's accuracy; 1 for any other mech. */
+    public float fireControlAccuracy = 1f;
     /** Current upper-torso angular velocity, in degrees per sim-second. */
     public float torsoAngularVelocityDegrees;
     /** Target this torso state was last evaluated against. {@code 0L} means neutral/no target. */

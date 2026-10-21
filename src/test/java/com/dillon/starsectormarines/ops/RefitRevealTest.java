@@ -61,6 +61,18 @@ class RefitRevealTest {
         reveal.advance(0.01f, true);
         assertEquals(0f, reveal.caption());
         run(reveal, RefitReveal.OPEN + 0.1f, true);
+        assertEquals(Phase.RETURN, reveal.phase(), "the camera still goes home after a refusal");
+        run(reveal, RefitReveal.RETURN + 0.1f, true);
+        assertEquals(Phase.DONE, reveal.phase());
+    }
+
+    @Test
+    void theCameraFliesHomeBeforeTheTreeReturns() {
+        var reveal = reveal(null);
+        reveal.skip();
+        run(reveal, RefitReveal.OPEN + RefitReveal.SHOW + 0.2f, true);
+        assertEquals(Phase.RETURN, reveal.phase());
+        reveal.skip();
         assertEquals(Phase.DONE, reveal.phase());
     }
 
