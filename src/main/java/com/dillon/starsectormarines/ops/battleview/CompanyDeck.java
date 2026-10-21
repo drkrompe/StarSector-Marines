@@ -471,8 +471,28 @@ public final class CompanyDeck {
      * scene when it is ready.
      */
     public void dress(CoreDressing state) {
+        dress(state, 0f);
+    }
+
+    /**
+     * Dress the deck for a new core condition over {@code seconds} of the
+     * deck's own clock, as a wave from each core's source room
+     * ({@link ShipDeckBattleScene#dress(CoreDressing, float)}). A scene not
+     * yet built simply starts in the new condition.
+     */
+    public void dress(CoreDressing state, float seconds) {
         dressing = state;
-        if (scene != null) scene.dress(state);
+        if (scene != null) scene.dress(state, seconds);
+    }
+
+    /** Whether a dressing wave is still playing on the running deck. */
+    public boolean dressingWave() {
+        return scene != null && scene.dressing();
+    }
+
+    /** How far the running deck's dressing wave has come, 0 to 1; 1 when none is playing. */
+    public float dressingProgress() {
+        return scene == null ? 1f : scene.dressingProgress();
     }
 
     /** Whether the ship has been built and crewed yet. */

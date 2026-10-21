@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.command.trace.PlaceFightProbe;
 import com.dillon.starsectormarines.testsupport.InstalledWeaponSlots;
 import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import org.junit.jupiter.api.AfterEach;
@@ -184,6 +185,7 @@ class ThunderRunEvidenceTest {
                             "png",dir.resolve("checkpoint-before.png").toFile());
                 }
                 var close = new BattleReviewFrameRenderer(Path.of("mod"),1920,1080,282,75,80);
+                PlaceFightProbe places = new PlaceFightProbe();
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                     for (long gun : column.supportGuns()) if (!measuredGuns.contains(gun)) {
                         measuredGuns.add(gun);
@@ -214,6 +216,7 @@ class ThunderRunEvidenceTest {
                     }
                     sim.advance(BattleSimulation.TICK_DT);
                     impacts.feed(sim);
+                    places.sample(sim);
                     if (column.phase() == 1 || column.phase() == 2) {
                         for (int i = 0; i < sim.liveUnitCount(); i++) {
                             long unit = sim.liveUnitAt(i);
@@ -408,6 +411,7 @@ class ThunderRunEvidenceTest {
                     if(fixture.optBoolean("absent") && tick>=9000) break;
                 }
                 if (reviewGif != null) { reviewGif.close(); convoyGif.close(); crossroadsGif.close(); }
+                System.out.println(places.line(name, sim, null));
                 if(fixture.optBoolean("absent")) { assertEquals(0,column.phase()); assertEquals(0,column.deliveredCount()); }
                 if(fixture.optBoolean("destroyCargo")) { assertTrue(sim.isComplete()); assertNotEquals(Faction.MARINE,sim.getWinner()); assertEquals(column.cargo().size(),column.lostCount()); }
                 if (!fixture.optBoolean("absent") && !fixture.optBoolean("unarmedFinal") && !fixture.optBoolean("silentTankFinal") && maxTicks >= 18000) {

@@ -127,6 +127,14 @@ public final class BattleComponents {
     /** Field 7: independently swappable helmet-family ordinal (INT). */
     public static final int LAYERED_HEAD_FAMILY = 7;
 
+    /** {@link #CORPSE} field 0: the layered torso facing the unit died with, sprite degrees (FLOAT). */
+    public static final int CORPSE_FACING_DEGREES = 0;
+    /**
+     * {@link #CORPSE} field 1: the {@code LayeredArmorFamily} ordinal the unit's body wore when it
+     * died, or {@code -1} for a unit that was not drawn in layers (INT).
+     */
+    public static final int CORPSE_BODY_FAMILY = 1;
+
     /** {@link #MECH_LAYERED_ANIMATION} field 0: upper chassis facing (FLOAT). */
     public static final int MECH_LAYERED_FACING_DEGREES = 0;
     /** Field 1: repeating locomotion phase [0,1) (FLOAT). */
@@ -570,7 +578,11 @@ public final class BattleComponents {
     public final ComponentType MECH_LOCOMOTION;
     /** Live-only persistent planted-foot and waist presentation state. */
     public final ComponentType MECH_GAIT_STATE;
-    /** Dead-archetype marker — pure presence tag, no columns. */
+    /**
+     * Dead-archetype marker, carrying what a lying body needs once the live layered
+     * appearance is gone: the facing and body family it died with
+     * ({@link #CORPSE_FACING_DEGREES}, {@link #CORPSE_BODY_FAMILY}).
+     */
     public final ComponentType CORPSE;
     /**
      * Live damageable state — {@code float hp, maxHp}. Live-only by design: a
@@ -1174,7 +1186,7 @@ public final class BattleComponents {
                 FieldKind.OBJECT, FieldKind.OBJECT);
         POSITION        = world.register(1, "Position", FieldKind.FLOAT, FieldKind.FLOAT);
         SPRITE          = world.register(3, "Sprite", FieldKind.INT, FieldKind.INT, FieldKind.INT);
-        CORPSE          = world.register(4, "Corpse");
+        CORPSE          = world.register(4, "Corpse", FieldKind.FLOAT, FieldKind.INT);
         HEALTH          = world.register(5, "Health", FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.FLOAT, FieldKind.FLOAT);
         COMBAT          = world.register(6, "Combat",

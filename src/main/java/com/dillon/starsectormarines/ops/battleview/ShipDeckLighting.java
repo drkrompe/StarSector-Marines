@@ -340,6 +340,23 @@ final class ShipDeckLighting {
      * keeps the floor readable between pools, and a dark one falls to deep
      * shadow broken by the lamps that still burn.
      */
+    /**
+     * As {@link #colour(Cell, int, float[], float[])}, with each lamp's colour
+     * read from {@code colours} (three per lamp) instead of the lamp itself:
+     * how a frame mid-way through a dressing wave mixes two conditions' light.
+     */
+    static float colour(Cell cell, int sample, float[] gains, float[] colours, float[] rgb) {
+        rgb[0] = rgb[1] = rgb[2] = 0f;
+        int i = sample * PER_SAMPLE;
+        for (int j = i; j < i + PER_SAMPLE; j++) {
+            int id = cell.lamps()[j];
+            if (id < 0) continue;
+            float w = cell.pools()[j] * gains[id];
+            rgb[0] += w * colours[id * 3]; rgb[1] += w * colours[id * 3 + 1]; rgb[2] += w * colours[id * 3 + 2];
+        }
+        return Math.max(rgb[0], Math.max(rgb[1], rgb[2]));
+    }
+
     static float shade(Cell cell, float pool) {
         if (!cell.passage()) return shade(cell.emergency(), pool);
         return cell.emergency() ? .62f - .58f * pool : .46f - .44f * pool;

@@ -91,6 +91,13 @@ public final class UnitRenderService implements RenderSystem {
     private static final Color CIVILIAN_COLOR = new Color(0xC8, 0xC8, 0x80);
     /** Composition-wide scale relative to the original layered infantry sizing. */
     static final float LAYERED_INFANTRY_SCALE = 0.60f;
+    /**
+     * A lying body against the live shoulder scale. At 1.0 a body is anatomically long beside
+     * its own shoulders (about 1.8 cells), but the live figure shows only head and shoulders,
+     * so a fallen marine read as four times the size of a standing one. Two thirds lays a body
+     * about 1.2 cells long: plainly a person on the ground, not a giant.
+     */
+    static final float DOWNED_BODY_SCALE = 0.65f;
 
     /**
      * How much wider than its nominal cell size a body's drawn silhouette may
@@ -843,11 +850,28 @@ public final class UnitRenderService implements RenderSystem {
             int[] poseIdx = t.ints(c.SPRITE, BattleComponents.SPRITE_INDEX).array();
             float[] rx = t.floats(c.POSITION, BattleComponents.POSITION_X).array();
             float[] ry = t.floats(c.POSITION, BattleComponents.POSITION_Y).array();
+            float[] corpseFacing = t.floats(c.CORPSE, BattleComponents.CORPSE_FACING_DEGREES).array();
+            int[] corpseFamily = t.ints(c.CORPSE, BattleComponents.CORPSE_BODY_FAMILY).array();
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 if (poseIdx[r] < 0) continue;
                 if (rx[r] < cullMinX || rx[r] > cullMaxX
                         || ry[r] < cullMinY || ry[r] > cullMaxY) continue;
                 UnitType type = (UnitType) types[r];
+                // A body that wore layered art lies as itself: its outfit's own pose,
+                // at the live shoulder scale, turned to the facing it fell with.
+                LayeredUnitAssets outfit = corpseFamily[r] >= 0
+                        ? sprites.layeredUnitSprites().get(
+                                LayeredArmorFamily.fromOrdinal(corpseFamily[r])) : null;
+                LayeredSpriteCache lying = outfit != null ? outfit.downed(poseIdx[r]) : null;
+                if (lying != null) {
+                    float shoulderPx = layeredInfantryShoulderWidth(cam.cellPxSize(), type.renderScale);
+                    float scale = shoulderPx * DOWNED_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
+                    out.addSprite(RenderLayer.UNITS, lying.sprite,
+                            cam.cellToScreenX(rx[r]), cam.cellToScreenY(ry[r]),
+                            lying.pxWidth * scale, lying.pxHeight * scale, corpseFacing[r],
+                            1f, 1f, 1f, alphaMult);
+                    continue;
+                }
                 RenderAppearance app = RenderAppearance.of(type);
                 if (!app.hasDeathPose) continue;
                 UnitSpriteCache cache = sprites.unitDeadSprites().get(type);

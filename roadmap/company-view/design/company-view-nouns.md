@@ -1565,7 +1565,8 @@ freeze onto every squad at launch as one hull-welfare record and reach the fight
 as one named unit modifier. The sick bay brings a share of the would-be dead home
 wounded when a battle is settled. The lounge raises the aptitude cargo
 replacements arrive with. The brig opens its cells; interrogation waits on a
-contract-intel system. The briefing's Ship row names each room that changes the
+battle that takes prisoners, since no defender is ever captured and the outcome
+records none. The briefing's Ship row names each room that changes the
 operation.
 
 The **Mech Lab tracks** reach the company's own mechs. Nothing there starts

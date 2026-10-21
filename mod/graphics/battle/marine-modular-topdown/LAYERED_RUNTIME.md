@@ -2,7 +2,17 @@
 
 Converted infantry render as a runtime composition instead of a directional
 sprite sheet. Legacy live sheets remain available when any modular texture
-fails to load, and remain the corpse representation after death.
+fails to load.
+
+## Downed bodies
+
+A fallen unit lies as itself when its body family ships the four lying poses
+(`downed-0..3.png` beside its body and head; `LayeredArmorFamily.hasDownedArt`).
+The corpse keeps the facing and body family it died with, picks its pose from
+the death roll, and is drawn straight down at the live shoulder scale times
+`DOWNED_BODY_SCALE`, turned to that facing. A family without the poses, and a
+unit that was never layered, falls through to its unit type's legacy corpse
+sheet. The guide and exporter are `art-source/downed/downed.py`.
 
 ## Anatomical unit
 
