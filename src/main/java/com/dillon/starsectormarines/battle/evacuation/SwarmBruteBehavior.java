@@ -25,6 +25,12 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
  * <p>"Light" is a wall a colony builds: at most {@link #LIGHT_WALL_HP} of wall
  * left. Fortified and fort walls start far above that, so a Brute cannot dig
  * into a bunker until something else has worn it down.
+ *
+ * <p>A barricade is broken the same way. When its prey stands in the open but
+ * behind a fence, a crate stack or any other destructible cover prop that
+ * closes the ground between them (a redoubt's perimeter, a fenced yard), the
+ * Brute strikes the nearest light piece that stands between and goes through,
+ * rather than walking round to the gate the Runners crowd into.
  */
 final class SwarmBruteBehavior {
 
@@ -75,6 +81,7 @@ final class SwarmBruteBehavior {
         }
 
         BreachPoint breach = breachPointToward(brute, target, sim);
+        if (breach == null) breach = barricadeToward(brute, target, sim);
         if (breach != null) {
             if (breach.inReach) {
                 sim.clearPath(brute);
@@ -237,6 +244,70 @@ final class SwarmBruteBehavior {
             }
         }
         return best;
+    }
+
+    /**
+     * The barricade the Brute should break to reach prey in the open behind
+     * it: null when the prey is far, when nothing closes the straight way to
+     * it, or when no light barricade piece within the search radius stands
+     * between them. A piece qualifies when the Brute can stand on its near
+     * side and its far side is open ground nearer the prey than the Brute is.
+     */
+    static BreachPoint barricadeToward(long brute, long target, BattleSimulation sim) {
+        NavigationGrid grid = sim.getGrid();
+        int bruteX = sim.world().cellX(brute), bruteY = sim.world().cellY(brute);
+        int preyX = sim.world().cellX(target), preyY = sim.world().cellY(target);
+        int reach = BREACH_SEARCH_RADIUS * 2;
+        int toPrey = sq(preyX - bruteX) + sq(preyY - bruteY);
+        if (toPrey > reach * reach || !blockedBetween(grid, bruteX, bruteY, preyX, preyY)) return null;
+        float px = sim.world().x(brute), py = sim.world().y(brute);
+        BreachPoint best = null;
+        int bestScore = Integer.MAX_VALUE;
+        for (int y = bruteY - BREACH_SEARCH_RADIUS; y <= bruteY + BREACH_SEARCH_RADIUS; y++) {
+            for (int x = bruteX - BREACH_SEARCH_RADIUS; x <= bruteX + BREACH_SEARCH_RADIUS; x++) {
+                if (!grid.inBounds(x, y) || grid.isWalkable(x, y)) continue;
+                int hp = grid.getWallHp(x, y);
+                if (hp <= 0 || hp > LIGHT_WALL_HP || !sim.isBarricadeAt(x, y)) continue;
+                for (Direction d : Direction.CARDINALS) {
+                    int nearX = x - d.dx, nearY = y - d.dy, farX = x + d.dx, farY = y + d.dy;
+                    if (!grid.inBounds(nearX, nearY) || !grid.inBounds(farX, farY)
+                            || !grid.isWalkable(nearX, nearY) || !grid.isWalkable(farX, farY)) continue;
+                    int far = sq(preyX - farX) + sq(preyY - farY);
+                    if (far >= toPrey || far >= sq(preyX - nearX) + sq(preyY - nearY)) continue;
+                    int score = sq(nearX - bruteX) + sq(nearY - bruteY) + far;
+                    if (score >= bestScore) continue;
+                    float mx = x + 0.5f - px, my = y + 0.5f - py;
+                    best = new BreachPoint(x, y, null, nearX, nearY,
+                            mx * mx + my * my <= STRUCTURE_REACH * STRUCTURE_REACH);
+                    bestScore = score;
+                }
+            }
+        }
+        return best;
+    }
+
+    /** Whether a cell that cannot be walked lies on the straight line between two cells. */
+    private static boolean blockedBetween(NavigationGrid grid, int x0, int y0, int x1, int y1) {
+        int dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+        int err = dx + dy, x = x0, y = y0;
+        while (x != x1 || y != y1) {
+            int e2 = 2 * err;
+            if (e2 >= dy) {
+                err += dy;
+                x += sx;
+            }
+            if (e2 <= dx) {
+                err += dx;
+                y += sy;
+            }
+            if ((x != x1 || y != y1) && grid.inBounds(x, y) && !grid.isWalkable(x, y)) return true;
+        }
+        return false;
+    }
+
+    private static int sq(int v) {
+        return v * v;
     }
 
     /**

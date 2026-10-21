@@ -1,9 +1,12 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
 import com.dillon.starsectormarines.battle.command.RescueCommandSnapshot;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -101,6 +104,10 @@ public final class CivilianEvacuationSystem {
     private static final class Redoubt {
         final int number, approachX, approachY, left, top, right, bottom;
         int garrisonSquadId;
+        /** The team on the yard's firing step, or {@code -1}; it falls back to {@link #building} once the yard is entered. */
+        int lineSquadId = -1;
+        TacticalNode building;
+        int lineBrokeTick = -1;
         int cohort;
         int releasedTick = -1;
         int fellTick = -1;
@@ -121,7 +128,7 @@ public final class CivilianEvacuationSystem {
         CivilianRedoubt status() {
             return new CivilianRedoubt(number, approachX, approachY, left, top, right, bottom,
                     garrisonSquadId, cohort, releasedTick, fellTick, sealed, walking,
-                    walkingCellX, walkingCellY);
+                    walkingCellX, walkingCellY, lineBrokeTick);
         }
     }
 
@@ -173,6 +180,21 @@ public final class CivilianEvacuationSystem {
         }
         redoubts.add(holdout);
         return holdout.number;
+    }
+
+    /**
+     * Gives a holdout its line: the team manning the firing step of the works
+     * round its building ({@code colony-breach-nouns.md}, Redoubt). The line
+     * counts as the holdout's garrison as the house team does, and falls back
+     * into {@code building} once a swarm body is inside the barricade or half
+     * the line is down, so a perimeter that breaks is seen to be pushed back.
+     */
+    public boolean setHoldoutLine(int number, int lineSquadId, TacticalNode building) {
+        if (number < 2 || number > redoubts.size() || building == null) return false;
+        Redoubt holdout = redoubts.get(number - 1);
+        holdout.lineSquadId = lineSquadId;
+        holdout.building = building;
+        return true;
     }
 
     /** The redoubts in number order; empty before configuration. */
@@ -349,7 +371,15 @@ public final class CivilianEvacuationSystem {
                         && sim.resolveUnit(id) != 0L) sealedAlive++;
             }
             Squad garrison = redoubt.garrisonSquadId >= 0 ? sim.getSquad(redoubt.garrisonSquadId) : null;
-            boolean garrisonAlive = garrison != null && garrison.aliveMembers > 0;
+            Squad line = redoubt.lineSquadId >= 0 ? sim.getSquad(redoubt.lineSquadId) : null;
+            boolean garrisonAlive = (garrison != null && garrison.aliveMembers > 0)
+                    || (line != null && line.aliveMembers > 0);
+            if (line != null && redoubt.lineBrokeTick < 0 && line.aliveMembers > 0
+                    && (line.aliveMembers * 2 <= line.originalSize || swarmInYard(redoubt, sim))) {
+                redoubt.lineBrokeTick = tick;
+                sim.assignSquadCommand(ObjectiveAssignment.holdNode(line.id, redoubt.building),
+                        CommandAuthority.GARRISON, ColonyMilitia.ISSUER, "fall back into the building");
+            }
             if (sealedAlive == 0 || (!garrisonAlive && swarmAtWalls(redoubt, sim))) {
                 redoubt.fellTick = tick;
                 for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
@@ -358,6 +388,17 @@ public final class CivilianEvacuationSystem {
                 }
             }
         }
+    }
+
+    /** Whether a swarm body stands inside a holdout's barricade: the perimeter has been broken or the gate rushed. */
+    private static boolean swarmInYard(Redoubt redoubt, BattleSimulation sim) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) != Faction.DEFENDER) continue;
+            int x = sim.world().cellX(unit), y = sim.world().cellY(unit);
+            if (x > redoubt.left && x < redoubt.right && y > redoubt.top && y < redoubt.bottom) return true;
+        }
+        return false;
     }
 
     private static boolean swarmAtWalls(Redoubt redoubt, BattleSimulation sim) {

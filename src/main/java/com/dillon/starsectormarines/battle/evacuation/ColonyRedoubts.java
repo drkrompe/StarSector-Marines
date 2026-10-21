@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -14,8 +16,10 @@ import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,11 +31,14 @@ import java.util.Random;
  * ({@code colony-breach-nouns.md}, Redoubt).
  *
  * <p>A holdout is built from what exists. {@link ColonyMilitia} chooses the
- * building and seats its garrison on the building's held place; this class
+ * building and seats its house team on the building's held place; this class
  * puts the holdout's own people inside, deeper than the militia's firing
- * cells, sandbags the doors with the compound prepared-ground aprons a held
- * base uses, and registers the holdout with the evacuation so its people join
- * the cohort and wait behind their own door.
+ * cells, throws the {@link RedoubtWorks} up round the block (barricade, firing
+ * step, gate and gun) with a second militia team on the step, and registers
+ * the holdout with the evacuation so its people join the cohort and wait
+ * behind their own door. Where the works cannot be laid it falls back to
+ * sandbagging the doors with the compound prepared-ground aprons a held base
+ * uses.
  */
 public final class ColonyRedoubts {
 
@@ -50,6 +57,22 @@ public final class ColonyRedoubts {
             UnitType.CIVILIAN, UnitType.CIVILIAN, UnitType.ENGINEER, UnitType.CIVILIAN, UnitType.SCIENTIST};
 
     private ColonyRedoubts() {}
+
+    /**
+     * A holdout as set up: its redoubt number, its works (or {@code null} when
+     * only aprons were laid), the gun at its gate (or {@code 0}) and the team
+     * on its firing step (or {@code -1}).
+     */
+    record Holdout(int number, RedoubtWorks.Plan works, long gun, int lineSquadId) { }
+
+    /**
+     * Whether a holdout throws up works round its block.
+     * {@code -Dbattle.colonyBreach.redoubtWorks=false} is the control: the
+     * holdout is the bare building with sandbag aprons at its doors.
+     */
+    public static boolean worksEnabled() {
+        return Boolean.parseBoolean(System.getProperty("battle.colonyBreach.redoubtWorks", "true"));
+    }
 
     /**
      * Whether the colony's outlying posts are redoubts with people in them.
@@ -94,17 +117,21 @@ public final class ColonyRedoubts {
     }
 
     /**
-     * Makes a held building a holdout: its people inside, its doors
-     * sandbagged, and the holdout registered with the evacuation.
+     * Makes a held building a holdout: its people inside, the works round its
+     * block with a team on the firing step and a gun at the gate (or, where no
+     * works fit, its doors sandbagged), and the holdout registered with the
+     * evacuation.
      *
      * @param cells the building's open interior cells the garrison did not take
-     * @return the holdout's redoubt number, or {@code -1} when it cannot be seated
+     * @param keep  ground the works may not stand on
+     * @return the holdout, or {@code null} when it cannot be seated
      */
-    static int fortify(BattleSimulation sim, PointOfInterest place, TacticalNode node, List<int[]> cells,
-                       int garrisonSquadId, CivilianEvacuationPlacement placement, long seed) {
+    static Holdout fortify(BattleSimulation sim, PointOfInterest place, TacticalNode node, List<int[]> cells,
+                           int garrisonSquadId, CivilianEvacuationPlacement placement, RedoubtWorks.Keep keep,
+                           int index, RiskLevel risk, Random militiaRng, long seed) {
         Random rng = new Random(seed ^ SEED_SALT);
         int count = MIN_COHORT + rng.nextInt(MAX_COHORT - MIN_COHORT + 1);
-        if (cells.size() < count) return -1;
+        if (cells.size() < count) return null;
         int number = sim.getCivilianRedoubts().size() + 1;
         List<Long> members = new ArrayList<>();
         // The garrison took the best-covered cells; the people go deepest in, the last of the list.
@@ -113,9 +140,57 @@ public final class ColonyRedoubts {
             members.add(sim.spawn(new EntitySpec("Holdout " + number + "-" + (i + 1), Faction.CIVILIAN,
                     TRADES[rng.nextInt(TRADES.length)], cell[0], cell[1]).role(UnitRole.VIP)));
         }
-        layAprons(sim, node, place, placement);
-        return sim.addCivilianHoldout(place.anchorCellX, place.anchorCellY,
-                place.left, place.top, place.right, place.bottom, garrisonSquadId, members);
+        RedoubtWorks.Plan works = worksEnabled()
+                ? RedoubtWorks.plan(sim, place, place.anchorCellX, place.anchorCellY,
+                        placement.liftX, placement.liftY, RedoubtWorks.HOLDOUT_MARGIN, keep, seed)
+                : null;
+        if (works == null) {
+            layAprons(sim, node, place, placement);
+            int plain = sim.addCivilianHoldout(place.anchorCellX, place.anchorCellY,
+                    place.left, place.top, place.right, place.bottom, garrisonSquadId, members);
+            return plain < 0 ? null : new Holdout(plain, null, 0L, -1);
+        }
+        RedoubtWorks.lay(sim, works);
+        long gun = works.gunX() >= 0
+                ? ColonyMilitia.seatEmplacement(sim, new int[]{works.gunX(), works.gunY()}, "redoubt-gun-" + number)
+                : 0L;
+        int line = seatLine(sim, works, index, risk, militiaRng);
+        // Relief arrives at the gate: a Marine in it has reached the redoubt, and its people walk out through it.
+        int registered = sim.addCivilianHoldout(works.gateX(), works.gateY(),
+                works.left(), works.top(), works.right(), works.bottom(), garrisonSquadId, members);
+        if (registered < 0) return null;
+        if (line >= 0) sim.setCivilianHoldoutLine(registered, line, node);
+        return new Holdout(registered, works, gun, line);
+    }
+
+    /**
+     * The line: a militia fireteam on the works' firing step, the bags nearest
+     * the gate first, ordered to man the step's run the way a commander mans a
+     * stretch of trench, its claims kept to the run.
+     */
+    private static int seatLine(BattleSimulation sim, RedoubtWorks.Plan works, int index, RiskLevel risk, Random rng) {
+        if (works.step().size() < ColonyMilitia.POST_SIZE) return -1;
+        List<RedoubtWorks.Bag> bags = new ArrayList<>(works.step());
+        bags.sort(Comparator.comparingInt((RedoubtWorks.Bag b) ->
+                Math.abs(b.x() - works.gateX()) + Math.abs(b.y() - works.gateY())));
+        List<int[]> cells = new ArrayList<>();
+        // Every other bag nearest the gate, so the team spreads along the step rather than bunching on it.
+        for (int i = 0; i < bags.size() && cells.size() < ColonyMilitia.POST_SIZE; i += 2) {
+            cells.add(new int[]{bags.get(i).x(), bags.get(i).y()});
+        }
+        for (int i = 1; i < bags.size() && cells.size() < ColonyMilitia.POST_SIZE; i += 2) {
+            cells.add(new int[]{bags.get(i).x(), bags.get(i).y()});
+        }
+        int squadId = ColonyMilitia.seatTeam(sim, cells, "Redoubt Line " + (index + 1), risk, rng);
+        RedoubtWorks.Bag first = works.step().get(0);
+        int run = sim.fightingPositions().runIdAt(first.x(), first.y());
+        int centreX = (works.left() + works.right()) / 2, centreY = (works.top() + works.bottom()) / 2;
+        int radius = Math.max(works.right() - works.left(), works.bottom() - works.top()) / 2 + 2;
+        if (run >= 0) {
+            sim.assignSquadCommand(ObjectiveAssignment.defendRun(squadId, centreX, centreY, radius, run),
+                    CommandAuthority.GARRISON, ColonyMilitia.ISSUER, "man the redoubt's firing step");
+        }
+        return squadId;
     }
 
     /**
