@@ -84,6 +84,29 @@ class StructureArtTest {
     }
 
     @Test
+    void aWoundedBodyChangesEveryStateLayerTogetherAndLeavesItsRemains() throws Exception {
+        StructureArt art = StructureArt.parse("s", new JSONObject("""
+                { "variants": 2, "woundedBelow": 0.5, "remains": "g/body-{variant}-remains.png", "layers": [
+                  { "sprite": "g/body-{variant}{state}.png", "cells": 3.0 },
+                  { "sprite": "g/body-{variant}{state}-glow.png", "cells": 3.0 },
+                  { "sprite": "g/halo.png", "cells": 4.0 } ] }
+                """));
+        assertFalse(art.woundedAt(0.5f));
+        assertTrue(art.woundedAt(0.49f));
+        assertEquals("g/body-2.png", art.layers().get(0).spritePath(2, false));
+        assertEquals("g/body-2-wounded.png", art.layers().get(0).spritePath(2, true));
+        assertEquals("g/body-2-wounded-glow.png", art.layers().get(1).spritePath(2, true));
+        assertEquals("g/halo.png", art.layers().get(2).spritePath(2, true), "a layer without the token is the same hurt");
+        assertEquals("g/body-1-remains.png", art.remainsPath(1));
+        assertEquals(4f, art.remainsCells, "remains are drawn as wide as the widest layer unless told");
+        StructureArt plain = StructureArt.parse("s", new JSONObject("{ \"layers\": [ { \"sprite\": \"a.png\", \"cells\": 1.0 } ] }"));
+        assertFalse(plain.woundedAt(0f), "a body with no wounded painting is never drawn wounded");
+        assertNull(plain.remainsPath(1));
+        assertThrows(JSONException.class, () -> StructureArt.parse("s", new JSONObject(
+                "{ \"woundedBelow\": 1.0, \"layers\": [ { \"sprite\": \"a.png\", \"cells\": 1.0 } ] }")));
+    }
+
+    @Test
     void everyShippedArtPathAndMountSpriteExistsOnDisk() {
         int withArt = 0;
         for (StructureDef structure : TurretCatalogRegistry.installed().structures()) {
@@ -91,7 +114,13 @@ class StructureArtTest {
             withArt++;
             if (structure.art.basePath != null) assertShipped(structure.id, structure.art.basePath);
             for (StructureArt.Layer layer : structure.art.layers()) {
-                for (int v = 1; v <= structure.art.variants; v++) assertShipped(structure.id, layer.spritePath(v));
+                for (int v = 1; v <= structure.art.variants; v++) {
+                    assertShipped(structure.id, layer.spritePath(v, false));
+                    if (structure.art.woundedBelow > 0f) assertShipped(structure.id, layer.spritePath(v, true));
+                }
+            }
+            for (int v = 1; v <= structure.art.variants && structure.art.remainsPath != null; v++) {
+                assertShipped(structure.id, structure.art.remainsPath(v));
             }
             // A mod-owned mount sprite is checked too; vanilla weapon sprites live in the game install.
             for (String path : new String[]{structure.mount.spritePath, structure.mount.recoilSpritePath}) {

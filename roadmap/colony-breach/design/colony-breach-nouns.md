@@ -427,6 +427,16 @@ never rotated or mirrored. They are drawn somewhat larger than their bodies
 (hit radius and footprint) so that they read as structures among a mass of
 creep and bodies.
 
+They show their **damage**. Below half its durability a bore or colony is
+drawn **wounded**: plates torn out of their sockets over raw sinew, gashes
+through the carapace, a sac burst, a spine snapped, its amber dimmed; the same
+painting, hurt. When it dies it leaves its **remains** on the ground for the
+rest of the battle, under the living: a bore's shaft caved in and choked with
+rubble, its plates slumped and drained to a dry husk; a colony's sacs burst
+and deflated. The remains are of the painting the structure wore, so a
+battlefield's dead bores are as varied as its living ones, and a dead bore's
+berm takes the colour of withered creep.
+
 A colony keeps the **grade** of the tier that grew it: a fissure-grade colony
 threatens light craft at short reach, a bore-grade one reaches further and
 bites harder, and a maw-grade one reaches furthest and penetrates enough to

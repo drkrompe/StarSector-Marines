@@ -24,6 +24,13 @@ import java.util.List;
  * containing {@value #VARIANT_TOKEN} is resolved per structure to one of {@code 1..N}, the same number for every layer
  * of that structure (a body and its glow stay a pair), chosen from the structure's entity id. The lighting is baked
  * into each painting, so a variant is never rotated or mirrored to make another.
+ *
+ * <p>A grown body shows its damage. {@code woundedBelow} (0 to 1) is the share of its durability (structure plus
+ * armour) below which it is drawn <b>wounded</b>: a layer path containing {@value #STATE_TOKEN} then resolves to the
+ * path with {@value #WOUNDED_SUFFIX} in its place, and to nothing in it otherwise, so a body and its glow change
+ * painting together; a layer without the token looks the same either way. {@code remains} names the painting left on
+ * the ground once the structure dies, drawn {@code remainsCells} across (the widest layer when not given), under the
+ * living; it may carry {@value #VARIANT_TOKEN}, so the remains are of the same painting.
  */
 public final class StructureArt {
 
@@ -39,9 +46,15 @@ public final class StructureArt {
     public record Layer(String spritePath, float cells, float spinDegPerSec,
                         float pulseHz, float pulseDepth, boolean tintByHolder, boolean dome, float fireFlash) {
 
-        /** This layer's sprite for one painting, {@code variant} counted from 1. */
+        /** This layer's sprite for one painting, {@code variant} counted from 1, unhurt. */
         public String spritePath(int variant) {
-            return spritePath.replace(VARIANT_TOKEN, Integer.toString(variant));
+            return spritePath(variant, false);
+        }
+
+        /** This layer's sprite for one painting, {@code variant} counted from 1, wounded or not. */
+        public String spritePath(int variant, boolean wounded) {
+            return spritePath.replace(VARIANT_TOKEN, Integer.toString(variant))
+                    .replace(STATE_TOKEN, wounded ? WOUNDED_SUFFIX : "");
         }
     }
 
@@ -52,6 +65,10 @@ public final class StructureArt {
 
     /** Placeholder in a layer path that a variant number replaces. */
     public static final String VARIANT_TOKEN = "{variant}";
+    /** Placeholder in a layer path that the damage state replaces: nothing, or {@link #WOUNDED_SUFFIX}. */
+    public static final String STATE_TOKEN = "{state}";
+    /** What {@link #STATE_TOKEN} becomes while the structure is wounded. */
+    public static final String WOUNDED_SUFFIX = "-wounded";
     /** The most paintings one structure may carry. */
     static final int MAX_VARIANTS = 9;
 
@@ -61,13 +78,33 @@ public final class StructureArt {
     public final boolean groundPad;
     /** How many paintings the layers carry; 1 for an ordinary structure. */
     public final int variants;
+    /** Durability share below which the body is drawn wounded; 0 when it never is. */
+    public final float woundedBelow;
+    /** The painting left on the ground once the structure dies, or null when it leaves none. */
+    public final String remainsPath;
+    /** Edge of the remains painting, in cells. */
+    public final float remainsCells;
     private final List<Layer> layers;
 
-    private StructureArt(String basePath, boolean groundPad, int variants, List<Layer> layers) {
+    private StructureArt(String basePath, boolean groundPad, int variants, float woundedBelow,
+                         String remainsPath, float remainsCells, List<Layer> layers) {
         this.basePath = basePath;
         this.groundPad = groundPad;
         this.variants = variants;
+        this.woundedBelow = woundedBelow;
+        this.remainsPath = remainsPath;
+        this.remainsCells = remainsCells;
         this.layers = Collections.unmodifiableList(layers);
+    }
+
+    /** Whether a structure with {@code durability} (0 to 1) of its structure and armour left is drawn wounded. */
+    public boolean woundedAt(float durability) {
+        return durability < woundedBelow;
+    }
+
+    /** The remains painting for one painting, {@code variant} counted from 1, or null when it leaves none. */
+    public String remainsPath(int variant) {
+        return remainsPath == null ? null : remainsPath.replace(VARIANT_TOKEN, Integer.toString(variant));
     }
 
     /** The painting, from 1 to {@link #variants}, that the structure with this entity id wears. */
@@ -114,7 +151,17 @@ public final class StructureArt {
         if (base == null && layers.isEmpty()) {
             throw new JSONException("Structure '" + structureId + "' declares an art block with no base and no layers");
         }
-        return new StructureArt(base, json.optBoolean("groundPad", true), variants, layers);
+        float woundedBelow = (float) json.optDouble("woundedBelow", 0.0);
+        if (!Float.isFinite(woundedBelow) || woundedBelow < 0f || woundedBelow >= 1f) {
+            throw new JSONException("Structure '" + structureId + "' art woundedBelow must be at least 0 and under 1");
+        }
+        float widest = 0f;
+        for (Layer layer : layers) widest = Math.max(widest, layer.cells());
+        String remains = text(json, "remains");
+        float remainsCells = (float) json.optDouble("remainsCells", widest);
+        if (remains != null) TurretMountDef.requirePositiveFinite(remainsCells, structureId, "art remainsCells");
+        return new StructureArt(base, json.optBoolean("groundPad", true), variants, woundedBelow, remains,
+                remainsCells, layers);
     }
 
     private static String text(JSONObject json, String key) {
