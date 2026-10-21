@@ -1327,6 +1327,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 entityWorld, battleComponents, rosterService, mechMoveOrders);
         this.mechGaitSystem = new MechGaitSystem(entityWorld, battleComponents);
         this.ravRunnerRigSystem = new RavRunnerRigSystem(entityWorld, battleComponents);
+        ravRunnerRigSystem.setLoads(swarmHarvest::loadOf);
         this.mechTurretSystem = new MechTurretSystem(
                 entityWorld, battleComponents, rosterService);
         this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects, rosterService);

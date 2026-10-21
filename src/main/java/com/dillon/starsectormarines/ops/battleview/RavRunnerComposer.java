@@ -22,6 +22,8 @@ final class RavRunnerComposer {
     /** The neck root sits this far ahead of the shoulders. */
     private static final float NECK_ROOT_CELLS = (541f - 420f) / BODY_LAYER_PX_PER_CELL;
     private static final float LEG_WIDTH = 1.25f, ARM_WIDTH = 1.1f;
+    /** How bright a dead Runner is drawn: the carapace dulls once it lies still. */
+    static final float DEAD_SHADE = 0.62f;
     /** Hind legs under the front ones. */
     private static final int[] LEG_ORDER = {2, 3, 0, 1};
 
@@ -31,10 +33,11 @@ final class RavRunnerComposer {
     /**
      * @param cx  screen position of the rig's body
      * @param cy  screen position of the rig's body
-     * @param ppc screen px per cell
+     * @param ppc   screen px per cell
+     * @param shade brightness the sprites are drawn at, 1 for a living Runner
      */
     static void emit(DrawList out, RavRunnerAssets art, RavRunnerRig rig,
-                     float cx, float cy, float ppc, float alpha) {
+                     float cx, float cy, float ppc, float shade, float alpha) {
         Frame f = new Frame(rig, cx, cy, ppc);
         float[] p0 = new float[2], p1 = new float[2];
         for (int leg : LEG_ORDER) {
@@ -49,13 +52,13 @@ final class RavRunnerComposer {
                 f.screen(start + i, p0);
                 f.screen(start + i + 1, p1);
                 bone(out, sprite, px, p0, p1, dist3(rig, start + i, start + i + 1) * ppc,
-                        LEG_WIDTH, i == bones - 1 ? lift : 1f, f.facing, alpha);
+                        LEG_WIDTH, i == bones - 1 ? lift : 1f, f.facing, shade, alpha);
             }
         }
         // trunk: the shoulder row on the shoulders, the hip row on the hips
         f.screen(RavRunnerRig.SHOULDER, p0);
         f.screen(RavRunnerRig.HIP, p1);
-        bone(out, art.trunk, TRUNK_PX, p0, p1, RavRunnerRig.SPINE * ppc, 1f, 1f, f.facing + 180f, alpha);
+        bone(out, art.trunk, TRUNK_PX, p0, p1, RavRunnerRig.SPINE * ppc, 1f, 1f, f.facing + 180f, shade, alpha);
         // head and neck: pivots at the neck root toward the skeleton's head
         f.screen(RavRunnerRig.SHOULDER, p0, 0f, NECK_ROOT_CELLS);
         f.screen(RavRunnerRig.HEAD, p1);
@@ -66,7 +69,7 @@ final class RavRunnerComposer {
             p1[0] = p0[0] + dx / d * full;
             p1[1] = p0[1] + dy / d * full;
         }
-        bone(out, art.fore, FORE_PX, p0, p1, full, 1f, 1f, f.facing, alpha);
+        bone(out, art.fore, FORE_PX, p0, p1, full, 1f, 1f, f.facing, shade, alpha);
         // spike arms on top
         for (int a = 0; a < 2; a++) {
             int start = RavRunnerRig.ARM_START[a];
@@ -74,7 +77,7 @@ final class RavRunnerComposer {
                 f.screen(start + i, p0);
                 f.screen(start + i + 1, p1);
                 bone(out, art.arm[i][a], ARM_PX[i], p0, p1,
-                        dist3(rig, start + i, start + i + 1) * ppc, ARM_WIDTH, 1f, f.facing, alpha);
+                        dist3(rig, start + i, start + i + 1) * ppc, ARM_WIDTH, 1f, f.facing, shade, alpha);
             }
         }
     }
@@ -84,7 +87,8 @@ final class RavRunnerComposer {
      * the sprite's scale across, and the projected length its scale along (never under a fifth).
      */
     static void bone(DrawList out, LayeredSpriteCache sprite, float bonePx, float[] p0, float[] p1,
-                     float full, float widthMul, float lift, float fallbackFacing, float alpha) {
+                     float full, float widthMul, float lift, float fallbackFacing, float shade,
+                     float alpha) {
         float dx = p1[0] - p0[0], dy = p1[1] - p0[1];
         float length = (float) Math.hypot(dx, dy);
         float angle, ux, uy;
@@ -102,7 +106,7 @@ final class RavRunnerComposer {
         float along = Math.max(0.2f * full, length) / bonePx * widthMul;
         float toCentre = bonePx / 2f * along;
         out.addSprite(RenderLayer.UNITS, sprite.sprite, p0[0] + ux * toCentre, p0[1] + uy * toCentre,
-                sprite.pxWidth * across * lift, sprite.pxHeight * along, angle, 1f, 1f, 1f, alpha);
+                sprite.pxWidth * across * lift, sprite.pxHeight * along, angle, shade, shade, shade, alpha);
     }
 
     private static float dist3(RavRunnerRig rig, int a, int b) {
@@ -132,7 +136,7 @@ final class RavRunnerComposer {
         }
 
         void screen(int point, float[] out, float addX, float addY) {
-            float x = rig.x(point) + addX, y = rig.y(point) + addY;
+            float x = rig.x(point) + addX, y = rig.y(point) + addY + rig.drawOffset();
             // right is forward turned clockwise: (fy, -fx)
             out[0] = cx + (x * fy + y * fx) * ppc;
             out[1] = cy + (-x * fx + y * fy) * ppc;
