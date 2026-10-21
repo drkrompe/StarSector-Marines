@@ -159,3 +159,26 @@ Coverage at 1920x1080 (part skin / swatch / textured): three-quarter 48 / 48 /
 96%, top 56 / 40 / 96%, port side 17 / 79 / 96%, front 28 / 69 / 97%,
 starboard quarter 49 / 48 / 96%, port-aft quarter 43 / 54 / 97%, under
 quarter 56 / 43 / 100%. The rest is the canopy glass.
+
+## Borer
+
+The Shepherd's built-in mining drone (`../fighters-geometry/ft_borer.py`, 0.25 m/unit).
+Livery is the Shepherd's own Ko Combine family, not a sprite of its own: burnt orange
+armour (the tender's drive-pod orange), light grey machinery (its drum paint), gunmetal
+structure, polished steel rings, lips and tines, near-black recesses. `derive_palette`
+grades every shared class onto the Shepherd's graded means, so a drone on its cradle
+reads as the tender's own; its wear colours are copied from the Shepherd's palette too.
+Light `service` wear with more grime than a warship's fighter, soot at the three drives.
+
+- **Renders went through the render queue** (`guides.job.json`, light lane:
+  `queue_guides.py` builds, strips and renders the reference guide and every part's
+  guide at 16 samples); `rebuild.sh` skips those steps with `BORER_SKIP_RENDERS=1`.
+- **Finish reference** registered at IoU 0.993, with the upscaled sprite
+  (`reference/sprite-livery.png`) as colour key and the Shepherd's finish reference as
+  the material standard.
+- **Parts**: one group, two sheets, 8 sources and 4 mirror reuses (pod top, drive top,
+  drive side, cheek). Fitted IoU 0.981-1.000, except the spine top at 0.963 (identity
+  fit, a few pixels short along its lower edge; chamfer faces take the swatch there).
+  Orange in family 99%, grey 100%, no swaps.
+- **Swatches**: one sheet of five squares (3x2), 6 hull units (1.5 m) per image.
+- 4 Codex generations in all, no retries.
