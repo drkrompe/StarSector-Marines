@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import java.util.Locale;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -81,14 +82,14 @@ final class CompanyHqNewsDesk {
         List<Source> sources = new ArrayList<>();
         for (Channel candidate : Channel.values()) {
             long count = posts.stream().filter(candidate::accepts).count();
-            String id = "hq-wire-tab-" + candidate.name().toLowerCase();
+            String id = "hq-wire-tab-" + candidate.name().toLowerCase(Locale.ROOT);
             tabs.add(new Key(id, "wire-tab console-toggle" + (candidate == channel ? " selected" : ""),
                     Strings.join("separatorWide", candidate.label(), Long.toString(count)), () -> choose(candidate)));
             if (candidate != Channel.ALL) {
                 List<Report> teasers = posts.stream().filter(candidate::accepts).limit(1)
-                        .map(post -> report(post, "hq-source-" + candidate.name().toLowerCase() + "-" + post.id()))
+                        .map(post -> report(post, "hq-source-" + candidate.name().toLowerCase(Locale.ROOT) + "-" + post.id()))
                         .toList();
-                sources.add(new Source("hq-source-" + candidate.name().toLowerCase(),
+                sources.add(new Source("hq-source-" + candidate.name().toLowerCase(Locale.ROOT),
                         candidate.label(), Strings.format("openingNewsRecentCount", count), teasers,
                         teasers.isEmpty() ? Strings.get("openingCompanyHqNewsDeskNoReportsReceivedOnThisChannel") : ""));
             }

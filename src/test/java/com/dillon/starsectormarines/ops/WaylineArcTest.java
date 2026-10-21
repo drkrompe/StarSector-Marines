@@ -1,10 +1,19 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WaylineArcTest {
+    private HeadlessStrings strings;
+    /** Reads the shipped copy, so what these tests pin is the text the player sees. */
+    @BeforeEach void shippedCopy() throws Exception { strings = new HeadlessStrings(Path.of("mod")); }
+    @AfterEach void restoreSettings() { strings.close(); }
+
     @Test void oldVictoryFactsAdvanceWithoutNewMeetingFlags() {
         MarineRoster roster = new MarineRoster();
         assertEquals(WaylineArc.Stage.RELIEF, WaylineArc.stage(roster));

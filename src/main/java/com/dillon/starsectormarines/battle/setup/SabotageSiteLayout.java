@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
@@ -37,8 +38,7 @@ public final class SabotageSiteLayout {
         }
 
         public String displayName() {
-            return "Plant charge " + id
-                    + ": " + kind.name().toLowerCase(Locale.ROOT);
+            return Strings.format("sabotageSiteName", id, Strings.named("sabotageSiteKind", kind.name()));
         }
     }
 

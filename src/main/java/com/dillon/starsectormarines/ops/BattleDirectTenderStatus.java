@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.control.DirectControlSession;
 import com.dillon.starsectormarines.battle.tender.BuildOption;
 import com.dillon.starsectormarines.battle.tender.ConstructionOrder;
@@ -16,7 +17,6 @@ import com.dillon.starsectormarines.ops.BattleDirectControlStatus.WarshipStatus;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Read-only values for a piloted drone tender: helm, what is selected to build, the site being
@@ -139,7 +139,7 @@ final class BattleDirectTenderStatus {
         int alive = tender.defendersOut() + tender.defenceReserve();
         String state = alive == 0 ? "NONE LEFT" : tender.defenceOut() ? "DEPLOYED" : "RECALLED";
         Tone tone = alive == 0 ? Tone.WARN : tender.defenceOut() ? Tone.READY : Tone.BUSY;
-        String detail = String.format(Locale.ROOT, "OUT %d  LOST %d", tender.defendersOut(), tender.defendersLost());
+        String detail = String.format(Strings.locale(), "OUT %d  LOST %d", tender.defendersOut(), tender.defendersLost());
         return new ShipCard("DEFENCE", "[RMB] DEFENCE", detail,
                 tender.defenceReserve() + "/" + tender.defenceComplement() + " READY", state, tone,
                 fraction(alive, tender.defenceComplement()));
@@ -158,7 +158,7 @@ final class BattleDirectTenderStatus {
     }
 
     private static String upper(String s) {
-        return s.toUpperCase(Locale.ROOT);
+        return s.toUpperCase(Strings.locale());
     }
 
     private static float fraction(int part, int whole) {
