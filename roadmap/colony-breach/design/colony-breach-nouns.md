@@ -494,7 +494,14 @@ creep and bodies.
 They show their **damage**. Below half its durability a bore or colony is
 drawn **wounded**: plates torn out of their sockets over raw sinew, gashes
 through the carapace, a sac burst, a spine snapped, its amber dimmed; the same
-painting, hurt. When it dies it leaves its **remains** on the ground for the
+painting, hurt. A wounded body **bleeds**, as the Zerg's buildings did: small
+looping ooze, a pool welling over the wound, a bubble rising in it and popping,
+a run of ichor with beads travelling down it, pinned to the wounds its own
+painting shows and running downhill off its body (into the pit from a bore's
+lip). The first wound bleeds as the body turns wounded, and more open the
+further it is hurt, every one by under a third of that; each wound bleeds at
+its own phase so a row of bodies does not pulse in step. The dead do not bleed.
+When it dies it leaves its **remains** on the ground for the
 rest of the battle, under the living: a bore's shaft caved in and choked with
 rubble, its plates slumped and drained to a dry husk; a colony's sacs burst
 and deflated. The remains are of the painting the structure wore, so a

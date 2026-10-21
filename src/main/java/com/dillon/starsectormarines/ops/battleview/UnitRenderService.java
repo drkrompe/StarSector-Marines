@@ -466,7 +466,8 @@ public final class UnitRenderService implements RenderSystem {
             }
         }
         int variant = structure.art.variantFor(id);
-        boolean wounded = structure.art.woundedBelow > 0f && structure.art.woundedAt(durability(ctx, structure, id));
+        float durability = durability(ctx, structure, id);
+        boolean wounded = structure.art.woundedBelow > 0f && structure.art.woundedAt(durability);
         for (int i = 0; i < layers.size(); i++) {
             StructureArt.Layer layer = layers.get(i);
             ShuttleSpriteCache sprite = sprites.spriteByPath(layer.spritePath(variant, wounded));
@@ -506,6 +507,48 @@ public final class UnitRenderService implements RenderSystem {
             out.addSprite(RenderLayer.UNITS, sprite.sprite, cx, cy, size * sprite.aspect, size, angle,
                     r * bright, g * bright, b * bright, alphaMult);
         }
+        if (wounded && structure.art.bleed != null) {
+            emitBleed(out, structure.art, id, variant, durability, cx, cy, cellPx, alphaMult, clock);
+        }
+    }
+
+    /**
+     * The ooze a wounded body bleeds from its open wounds (`StructureArt.Bleed`): one looping frame per open wound,
+     * pinned to the wound on the painting, upright, the run's direction chosen from the sheet rather than turned.
+     */
+    private void emitBleed(DrawList out, StructureArt art, long id, int variant, float durability,
+                           float cx, float cy, float cellPx, float alphaMult, float clock) {
+        StructureArt.Bleed bleed = art.bleed;
+        float[][] wounds = bleed.woundsOf(variant);
+        int open = StructureArt.Bleed.openWounds(wounds.length, durability, art.woundedBelow);
+        if (open == 0) return;
+        ShuttleSpriteCache sheet = sprites.spriteByPath(bleed.sheet());
+        if (sheet == null) return;
+        int sheetW = sheet.pxW > 0 ? sheet.pxW : (int) sheet.sprite.getWidth();
+        int framePx = sheetW / bleed.frames();
+        if (framePx <= 0) return;
+        float edge = 0f;
+        for (StructureArt.Layer layer : art.layers()) edge = Math.max(edge, layer.cells());
+        edge *= cellPx;
+        float size = bleed.cells() * cellPx;
+        for (int w = 0; w < open; w++) {
+            float[] wound = wounds[w];
+            long mix = mix(id * 31L + w);
+            int kind = (int) Math.floorMod(mix, (long) bleed.kinds());
+            float phase = ((mix >>> 16) & 0xFFFF) / 65536f;
+            int frame = bleed.frame(clock, phase);
+            int row = bleed.row(kind, wound[2]);
+            // The anchor is in image space, v down; the screen's y runs up.
+            out.addSheetQuad(RenderLayer.UNITS, sheet.sprite, frame * framePx, row * framePx, framePx, framePx,
+                    cx + wound[0] * edge, cy - wound[1] * edge, size, size, 1f, 1f, 1f, alphaMult);
+        }
+    }
+
+    private static long mix(long z) {
+        z += 0x9E3779B97F4A7C15L;
+        z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
+        z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
+        return z ^ (z >>> 31);
     }
 
     /** The share of a structure's structure and armour left, 0 to 1. */

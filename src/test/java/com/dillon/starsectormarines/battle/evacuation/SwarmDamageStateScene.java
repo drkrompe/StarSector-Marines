@@ -19,14 +19,18 @@ import java.util.Map;
 
 /**
  * A bore and its colonies drawn through their damage states (`colony-breach-nouns.md`, Bore): whole, then every
- * body hurt below half its durability (the wounded painting), then one colony killed, then the bore, which withers
- * the rest. Every death leaves the structure's remains on the ground. Scripted damage, so the verdicts are
+ * body hurt below half its durability (the wounded painting, its first wound bleeding), then hurt deeper (every
+ * wound bleeding), then one colony killed, then the bore, which withers the rest. Every death leaves the structure's remains on the ground. Scripted damage, so the verdicts are
  * mechanics: each death that has remains art records them, where the body stood, in the painting it wore.
  */
 public final class SwarmDamageStateScene implements BehaviorScene {
 
     static final int CENTRE = 45;
     private static final int HURT_TICK = 60;
+    private static final int DEEP_TICK = 105;
+    /** Durability left after the first hurt (just wounded) and after the deep one (every wound open). */
+    private static final float HURT_LEFT = 0.45f;
+    static final float DEEP_LEFT = 0.12f;
     private static final int COLONY_TICK = 150;
     private static final int BORE_TICK = 240;
     private static final int TICKS = 330;
@@ -40,16 +44,45 @@ public final class SwarmDamageStateScene implements BehaviorScene {
 
     @Override
     public List<SceneReport> play(FrameSink frames) throws Exception {
-        return List.of(playOne("maw", 9f, frames), playOne("mother", 0f, frames));
+        return List.of(playOne("maw", frames), playOne("mother", frames));
     }
 
-    private SceneReport playOne(String loop, float biomass, FrameSink frames) throws Exception {
-        SceneWorld world = SceneBuilder.openGround(90, 90).seed(20261021L).missionCompletion(false).build();
+    /** One loop's bore, opened and fed on open ground. */
+    static SwarmBore open(BattleSimulation sim, String loop) {
+        boolean mother = loop.equals("mother");
+        SwarmBore bore = sim.swarmBores().open(sim, mother ? 0 : 1, mother, CENTRE, CENTRE);
+        if (bore == null) throw new IllegalStateException("open ground refused a bore");
+        if (!mother) sim.swarmBores().feed(sim, bore, 9f);
+        return bore;
+    }
+
+    /** The world one loop stands in. */
+    static SceneWorld world() {
+        return SceneBuilder.openGround(90, 90).seed(20261021L).missionCompletion(false).build();
+    }
+
+    /** Hurts every living body of {@code bore} down to {@code left} of its durability (armour first). */
+    static void hurtTo(BattleSimulation sim, SwarmBore bore, float left) {
+        for (long id : bodies(bore)) {
+            if (sim.resolveUnit(id) == 0L) continue;
+            StructureDef structure = sim.turretState().structure(id);
+            float full = structure.maxStructure + structure.armorCapacity;
+            float now = sim.world().hp(id) + sim.world().armor(id);
+            if (now > full * left) sim.applyDamage(id, now - full * left, 100f);
+        }
+    }
+
+    private static List<Long> bodies(SwarmBore bore) {
+        List<Long> bodies = new ArrayList<>();
+        bodies.add(bore.entityId());
+        bodies.addAll(bore.colonies());
+        return bodies;
+    }
+
+    private SceneReport playOne(String loop, FrameSink frames) throws Exception {
+        SceneWorld world = world();
         try (BattleSimulation sim = world.sim()) {
-            boolean mother = loop.equals("mother");
-            SwarmBore bore = sim.swarmBores().open(sim, mother ? 0 : 1, mother, CENTRE, CENTRE);
-            if (bore == null) throw new IllegalStateException("open ground refused a bore");
-            if (biomass > 0f) sim.swarmBores().feed(sim, bore, biomass);
+            SwarmBore bore = open(sim, loop);
             Script script = new Script(bore);
             SceneRun.of(world).observe(script)
                     .frames(frames, loop, FRAME_EVERY, tick -> loop + " / " + phase(tick) + " / tick " + tick)
@@ -79,7 +112,8 @@ public final class SwarmDamageStateScene implements BehaviorScene {
 
     private static String phase(int tick) {
         if (tick < HURT_TICK) return "whole";
-        if (tick < COLONY_TICK) return "wounded";
+        if (tick < DEEP_TICK) return "wounded";
+        if (tick < COLONY_TICK) return "bleeding";
         if (tick < BORE_TICK) return "a colony killed";
         return "bore killed";
     }
@@ -111,9 +145,7 @@ public final class SwarmDamageStateScene implements BehaviorScene {
         }
 
         @Override public void observe(BattleSimulation sim, int tick) {
-            List<Long> bodies = new ArrayList<>();
-            bodies.add(bore.entityId());
-            bodies.addAll(bore.colonies());
+            List<Long> bodies = bodies(bore);
             for (long id : bodies) {
                 if (sim.resolveUnit(id) == 0L) {
                     Death last = standing.remove(id);
@@ -124,15 +156,9 @@ public final class SwarmDamageStateScene implements BehaviorScene {
                 if (structure.art == null || structure.art.remainsPath == null) continue;
                 standing.put(id, new Death(structure, structure.art.variantFor(id), sim.world().x(id), sim.world().y(id)));
             }
-            if (tick == HURT_TICK) {
-                for (long id : bodies) {
-                    if (sim.resolveUnit(id) == 0L) continue;
-                    StructureDef structure = sim.turretState().structure(id);
-                    // Below half of structure and armour together: armour first, then structure.
-                    float full = structure.maxStructure + structure.armorCapacity;
-                    sim.applyDamage(id, full * 0.6f, 100f);
-                }
-            }
+            // Below half of structure and armour together, then deeper.
+            if (tick == HURT_TICK) hurtTo(sim, bore, HURT_LEFT);
+            if (tick == DEEP_TICK) hurtTo(sim, bore, DEEP_LEFT);
             if (tick == HURT_TICK + 1) {
                 for (long id : bodies) {
                     hurt++;
