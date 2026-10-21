@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.mission.story;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
@@ -44,13 +45,8 @@ public final class OpeningOperationStory implements StoryMissionDef {
         Random random = new Random(ctx.seed ^ id.hashCode());
         String planet = ctx.planet != null ? ctx.planet.getName() : null;
         String flavor = recurring ? switch (kind) {
-            case RELIEF -> "A freight checkpoint is under bandit attack. Land on the rear apron, reinforce the gate, and eliminate "
-                    + "the assault force, including groups approaching along both access roads. The employer provides militia and one shuttle. "
-                    + "The posting covers this relief sortie; other militia crews continue to need help.";
-            case COUNTERATTACK -> "A local freight crew needs an occupied depot cleared. Join the militia "
-                    + "advance from the western apron through the gate and loading yard into dispatch. "
-                    + "Eliminate the depot guards; expect a reserve inside. The employer provides one shuttle. "
-                    + "Independent freight crews pool their security funds for jobs like this.";
+            case RELIEF -> Strings.get("storyRecurringReliefFlavor");
+            case COUNTERATTACK -> Strings.get("storyRecurringCounterattackFlavor");
         } : WaylineArc.briefing(kind, planet);
         // The story chapter's company rides up on Wayline's truck as its ore dust's escort and starts ashore;
         // only the employer's militia shuttle flies. The repeatable posting still needs company lift.
@@ -60,8 +56,8 @@ public final class OpeningOperationStory implements StoryMissionDef {
                 .id(id).name(recurring ? kind.recurringName : kind.displayName)
                 .type(MissionType.ASSAULT).source(recurring ? MissionSource.RECURRING : MissionSource.STORY)
                 .payout(kind.payout).risk(RiskLevel.LOW)
-                .requirements(groundStart ? "Company rides up with the Wayline consignment; no company lift needed"
-                        : "Company lift for " + playerSorties + (playerSorties == 1 ? " sortie" : " sorties"))
+                .requirements(groundStart ? Strings.get("storyOpeningRequirementsGround")
+                        : Strings.format("storyOpeningRequirementsLift", playerSorties))
                 .flavor(flavor).mapPosition(0.12f + random.nextFloat() * 0.76f, 0.12f + random.nextFloat() * 0.76f)
                 .requiredDrops(playerSorties + 1).employerShuttles(1).targetPlanetName(planet);
         if (groundStart) builder.marineArrivalPolicy(MarineArrivalPolicy.SECURED_GROUND);

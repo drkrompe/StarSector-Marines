@@ -92,9 +92,9 @@ public final class DistrictEscortSnapshotSuite implements SnapshotSuite {
         var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, boats, deployment.size());
         var letterhead = DistrictEscortCampaign.Letterhead.of(ledger.agreement());
         report.append("\n").append(fixture).append(" id=").append(mission.id).append(" consignment=").append(ledger.consignmentId())
-                .append(" office=").append(letterhead.sender).append(" seed=").append(seed).append("\n");
+                .append(" office=").append(letterhead.sender()).append(" seed=").append(seed).append("\n");
         try (var sim = BattleSetup.createDistrictEscort(seed, manifest,
-                new TargetProfile(0, 0, 0, 0, "pirates", Set.of(), SurfacePalette.ROCK, SettlementLink.ROAD), letterhead.partyName)) {
+                new TargetProfile(0, 0, 0, 0, "pirates", Set.of(), SurfacePalette.ROCK, SettlementLink.ROAD), letterhead.partyName())) {
             deployment.applyToAuthoredPlayerLift(sim);
             var sequence = sim.getDistrictEscort();
             var scheduled = new HashSet<String>(); int aircraft = 0;

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress.HandoverStage;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
@@ -11,11 +12,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
+import java.nio.file.Path;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /** Reading, comparing and leaving commit nothing; only a confirmed signature reaches the campaign. */
 class AgreusHandoverDeskTest {
+    private static HeadlessStrings copy;
+    @BeforeAll static void shippedCopy() throws Exception { copy = new HeadlessStrings(Path.of("mod")); }
+    @AfterAll static void closeCopy() { copy.close(); }
     @Test void readingComparingAndLeavingCommitNothing() {
         var signatures = new ArrayList<AgreusYardAgreement>();
         var desk = desk(() -> HandoverStage.OPEN, a -> { signatures.add(a); return true; }, () -> true, new AtomicInteger());
@@ -25,7 +33,7 @@ class AgreusHandoverDeskTest {
         run(desk, "compact");
         assertTrue(((String) prop(desk, "cost")).contains("forgoes the 12,000-credit premium"));
         run(desk, "compare");
-        assertEquals(AgreusArcCampaign.CASTLE_COMPARISON, prop(desk, "record"));
+        assertEquals(Strings.get("agreusArcCastleComparison"), prop(desk, "record"));
         run(desk, "custody");
         assertTrue(((String) prop(desk, "benefit")).contains("payable only with Chapter 5 victory"));
         run(desk, "primary");
