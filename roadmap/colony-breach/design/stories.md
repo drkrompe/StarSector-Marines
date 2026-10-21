@@ -9,7 +9,6 @@ these stories.
 
 | Story | State and dependency |
 | --- | --- |
-| `militia-redoubts.md` | **IN PROGRESS.** Cohort holed up in 2-4 redoubts; holdouts fall; per-redoubt release, escorts and relief. Built; preview pending. |
 | `hive-creep.md` | **IN PROGRESS.** Creep field spreads from eruption sites (interim); look and art next; the bore hookup, creep effects and ground colonies are unblocked now that bores and `BoreGrowthSites` are on main. |
 | `swarm-harvest.md` | **READY.** Runners seize colonists and drag them to bores as biomass through `SwarmBores.feed`; interceptable carriers. |
 | `sector-outbreaks.md` | **QUEUED on the spine.** Lore in `swarm-lore-guide.md`. Outbreaks as a recurring campaign phenomenon. |
