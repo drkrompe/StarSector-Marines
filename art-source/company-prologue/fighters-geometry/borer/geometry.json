@@ -31,6 +31,13 @@
       0.27
     ],
     "sprite_disagreement": "Measured at the game's own pixel scale the Borer is much bigger: at the Shepherd's 0.78 m/unit it would be 11 x 12.5 m, at the fighters' 0.45-0.55 m/unit about 7 x 8 m (the sprite is 16 px across against the Talon's 22). Neither fits a cradle. The model keeps the cradle; nothing was resized on either side.",
+    "size_readings_m": {
+      "_doc": "Length of the Borer against the Shepherd (67.1 m) by each picture of the pair. The owner decides; nothing is resized until then.",
+      "model_as_built": 3.6,
+      "fleet_combat_sprites": 11.7,
+      "ground_battle_2d": 1.9,
+      "how": "fleet combat draws both sprites at one pixel scale: 16 px against 92 px is 17%. The ground battle draws the Shepherd at WarshipScale.hullCells (92 px x 0.045 x HULL_PRESENCE 6 = 24.8 cells) and the drone at TenderDroneArt.cells, which multiplies by WarshipScale.cells without the hull presence (16 px x 0.045 = 0.72 cells): 2.9%, although its Javadoc says hull scale. As built the drone is 5.4%."
+    },
     "cross_checks_m": {
       "length_overall": 3.5,
       "span_across_pods": 4.0,
@@ -58,28 +65,28 @@
     "size_m": [
       3.6,
       4.0,
-      1.5
+      2.3
     ],
     "canopy": null,
     "cockpit_fit": []
   },
   "parked_check": {
     "feet": [
-      "Foot port fore pad",
-      "Foot port aft pad",
-      "Foot starboard fore pad",
-      "Foot starboard aft pad"
+      "Skid port fore shoe",
+      "Skid port aft shoe",
+      "Skid starboard fore shoe",
+      "Skid starboard aft shoe"
     ],
     "deck_plane_units": {
-      "z0": -3.0,
+      "z0": -5.75,
       "dz_dx": 0.0,
       "dz_dy": 0.0
     },
     "stance_pitch_deg_nose_down": 0.0,
     "stance_roll_deg": 0.0,
     "foot_level_spread_m": 0.0,
-    "lowest_other_part": "Belly charging socket contact plate",
-    "deck_clearance_m": 0.064,
+    "lowest_other_part": "Skid port clamp lug 1",
+    "deck_clearance_m": 0.043,
     "lowest_body_part": "Belly charging socket contact plate",
     "body_clearance_m": 0.064
   },
@@ -98,17 +105,17 @@
     "min": [
       -7.34,
       -8.0,
-      -3.0
+      -5.75
     ],
     "max": [
       7.15,
       8.0,
-      3.15
+      3.51
     ],
     "size": [
       14.49,
       16.0,
-      6.15
+      9.26
     ]
   },
   "root": {
@@ -222,12 +229,37 @@
     "Weapon WS 001 muzzle": [
       7.1,
       0.0,
-      -0.3
+      -4.35
+    ],
+    "Lift port fore thruster anchor": [
+      2.55,
+      5.05,
+      -3.0
+    ],
+    "Lift port aft thruster anchor": [
+      -2.15,
+      4.3,
+      -3.35
+    ],
+    "Lift starboard fore thruster anchor": [
+      2.55,
+      -5.05,
+      -3.0
+    ],
+    "Lift starboard aft thruster anchor": [
+      -2.15,
+      -4.3,
+      -3.35
     ],
     "Borer cradle seat": [
       0.0,
       0.0,
-      -3.0
+      -5.75
+    ],
+    "Borer cradle seat.001": [
+      0.0,
+      0.0,
+      -5.75
     ]
   },
   "anchor_convention": "ARROWS empties; local +X points along the slot angle (0 = nose, 180 = aft)",
@@ -236,8 +268,10 @@
     "Sprite symmetric about Y = 0 (even width); WS 001 HIDDEN at (0, 0) carries its anchor there and its muzzle at the cutting head's lens on the nose, where the beam leaves the hull.",
     "Engines: main drive on the spine's tail, side drives in the drive pods' slanted aft faces, each face square to its slot angle (160 / 200) so the bell points along the game's exhaust heading. Bell mouths sit on the slot XY for the side drives; the main bell is on the tail face 0.4 units aft of its slot, where the sprite's tail ends. Exhaust anchors are at the mouths, +X down the exhaust.",
     "The four grey points on the sprite's top row are grab tines on the armour pods' noses.",
+    "Round 2 (owner: a flat chip): the spine and pods are a hull mass 2.3 m deep overall, keel to deck 1.5 m amidships, with deep chamfered bellies; four ventral lift thrusters (one under each armour pod and drive pod, `Lift <side> <fore|aft> thruster anchor`, +X straight down) hold the hover.",
+    "The mining laser hangs under the nose on a sling: a yoke head under the nose cap, two hanger arms to trunnions on the casing's flanks and a rear link to the spine's belly; the emitter reaches past the nose, so the plan view still shows the sprite's grey nose.",
     "The drive pods hang off the spine on transverse axles (the dark drums between spine and pod on the master) and are braced to the armour pods by a strut and a damper; nothing folds, so there is no deployed/stowed knob. The span (4.0 m) already fits the cradle.",
-    "Four fixed pads stand on the cradle deck (parked_check); the belly charging socket sits 12 mm above the cradle's charging contact when the drone is seated.",
+    "Docking, no legs: two skid rails under the pods, each on two struts, bear on bolted wear shoes (the parked feet); clamp lugs on the skids and on the centre docking keel are what the cradle grabs, and the keel's sole carries the charging socket 12 mm over the cradle's contact.",
     "No lights layer exists for this hull; the only emissives are the two work-lamp lenses and the beacon lens, named as lamps."
   ],
   "cameras": {
@@ -245,7 +279,7 @@
       "position": [
         0.0,
         0.0,
-        72.07351684570312
+        70.87876892089844
       ],
       "orthographic_scale": 35.84
     },
@@ -253,7 +287,7 @@
       "position": [
         0.0,
         72.0,
-        0.07351768016815186
+        -1.1212278604507446
       ],
       "orthographic_scale": 24.11576783657074
     },
@@ -261,7 +295,7 @@
       "position": [
         72.0,
         0.0,
-        0.07351768016815186
+        -1.1212278604507446
       ],
       "orthographic_scale": 34.199999999999996
     },
@@ -269,7 +303,7 @@
       "position": [
         46.79999923706055,
         52.20000076293945,
-        36.073516845703125
+        34.8787727355957
       ],
       "orthographic_scale": 30.599999999999998
     },
@@ -277,7 +311,7 @@
       "position": [
         43.20000076293945,
         61.20000076293945,
-        9.973517417907715
+        8.77877140045166
       ],
       "orthographic_scale": 36.0
     }
@@ -285,16 +319,16 @@
   "closeup_cameras": {
     "head-detail": {
       "position": [
-        45.302,
-        27.791,
-        23.821
+        46.386,
+        33.109,
+        6.946
       ],
       "target": [
-        5.6,
+        5.0,
         0.0,
-        0.0
+        -3.4
       ],
-      "orthographic_scale": 6.4
+      "orthographic_scale": 8.0
     },
     "pod-detail": {
       "position": [
@@ -324,26 +358,26 @@
     },
     "belly-detail": {
       "position": [
-        24.083,
-        33.61,
-        -38.324
+        25.543,
+        37.391,
+        -35.567
       ],
       "target": [
-        0.0,
-        1.5,
-        -2.2
+        -1.0,
+        2.0,
+        -4.6
       ],
-      "orthographic_scale": 9.6
+      "orthographic_scale": 12.0
     }
   },
   "object_count": {
-    "meshes": 169,
-    "empties": 7,
-    "pass2_detail_meshes": 110
+    "meshes": 225,
+    "empties": 12,
+    "pass2_detail_meshes": 98
   },
   "silhouette": {
-    "iou": 0.9088,
-    "sprite_not_covered": 0.0685,
+    "iou": 0.8941,
+    "sprite_not_covered": 0.0835,
     "model_outside_sprite": 0.025,
     "method": "geometry: evaluated triangles projected on XY, 16 samples per sprite pixel, sprite alpha > 0.5; no render (top_silhouette.py)"
   }

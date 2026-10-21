@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
  * <p><b>Hold meets counter-attack.</b> A counter-attack is the run of samples during which a side has squads its
  * commander gave a counter-attack launch ({@code ..._COUNTERATTACK_LAUNCH}, {@code ..._COUNTERATTACK_LAUNCHED}). It
  * <em>met a hold</em> if one of its squads came within {@value #MEET_CELLS} cells of a hostile squad holding taken ground
- * ({@code HOLD_GROUND_*}), <em>met a post</em> if it came that close to a hostile squad whose order mans a place or holds
+ * ({@code HOLD_GROUND_*}, or a procedural mission's marines on their objective), <em>met a post</em> if it came that close to a hostile squad whose order mans a place or holds
  * a building or which has a member dug in, and <em>met</em> anybody if any hostile squad was that close. Whether it won
  * its place back is read off the trace's own "retook it at tick" notes. A hold is <em>pressed by the counter-attack</em>
  * on a sample when a counter-attack squad of any stage (reserve, probe, muster, launch) stands within
@@ -315,15 +315,23 @@ public final class PlaceFightProbe {
 
     /**
      * Which kind of hold a reason is: {@code ground} (the attacker's hold of taken ground), {@code garrison} (the squad a
-     * captured compound is sent to hold it), {@code gain} (a story mission's militia on a gain or a dispatch window), or
-     * {@code null} for none.
+     * captured compound is sent to hold it), {@code gain} (a story mission's militia on a gain or a dispatch window),
+     * {@code objective} (a procedural mission's marines on the place they came for: the Raid target's service element and
+     * cordon, a Sabotage site's planter and security, the Extraction pickup at the source), or {@code null} for none.
      */
     static String holdKind(String reason) {
         if (reason.startsWith("HOLD_GROUND_")) return "ground";
         if (reason.equals("GARRISON_HOLD")) return "garrison";
         if (reason.endsWith("_HOLD_GAIN") || reason.endsWith("_DEFEND_DISPATCH_WINDOW")) return "gain";
+        if (OBJECTIVE_HOLDS.contains(reason) || reason.endsWith("_AT_SOURCE") || reason.endsWith("_SECURING")) {
+            return "objective";
+        }
         return null;
     }
+
+    private static final Set<String> OBJECTIVE_HOLDS = Set.of("PRIMARY_TARGET_SERVICE", "TARGET_CORDON",
+            "PLANTER_OBJECTIVE_PRESERVED", "SITE_SECURITY_PRESERVED", "SITE_SECURITY_ASSIGNED",
+            "SITE_REINFORCEMENT_ASSIGNED", "PACKAGE_PICKUP");
 
     private static boolean launched(String reason) {
         return reason.endsWith("COUNTERATTACK_LAUNCH") || reason.endsWith("COUNTERATTACK_LAUNCHED");

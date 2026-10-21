@@ -1,9 +1,9 @@
 Use case: precise-object-edit / texture reskin of a technical render sheet.
 INPUT 1 is a sheet of FOUR separate orthographic renders of surfaces of one 3D crewless mining drone (a Borer, about 3.6 metres long), each seen square-on and drawn alone as a flat-coloured shape on a plain flat mid-blue background:
-top-left: the outer side of one drive pod, a grey machinery plate with three near-black slots;
-top-right: the outer face of one armour pod's cheek, a long grey machinery plate with chamfered ends and three shallow louvre slots;
+top-left: the outer side of one drive pod, a tall grey machinery plate with three near-black slots;
+top-right: the outer face of one armour pod's cheek, a long grey machinery plate with three shallow louvre slots;
 bottom-left: the front faces of the spine and the armour pods, small burnt orange shapes;
-bottom-right: the aft faces of the drive pods and the spine, two grey plates and one burnt orange plate, each with a round opening where an engine bell sits (the openings stay plain blue).
+bottom-right: the aft faces of the drive pods and the spine, two grey plates and one burnt orange plate with a thin dark outline, each with a round opening where an engine bell sits (the openings stay plain blue).
 INPUT 2 is the SAME drone already painted: it is the finish to match. Use its paint colours, its semi-matte industrial enamel, its light service wear, and its seam and fastener treatment. Never copy INPUT 2's composition, view or shapes.
 
 Paint each of the four tiles in INPUT 1 as that surface of a working utility drone in service. This image will be cut into its four tiles and projected back onto the 3D model as a texture, so geometry must not move:

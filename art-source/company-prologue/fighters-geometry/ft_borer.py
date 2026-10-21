@@ -71,6 +71,18 @@ SCALE = {
                             '0.78 m/unit it would be 11 x 12.5 m, at the fighters\' 0.45-0.55 m/unit about '
                             '7 x 8 m (the sprite is 16 px across against the Talon\'s 22). Neither fits a cradle. '
                             'The model keeps the cradle; nothing was resized on either side.'),
+    'size_readings_m': {
+        '_doc': ('Length of the Borer against the Shepherd (67.1 m) by each picture of the pair. The owner '
+                 'decides; nothing is resized until then.'),
+        'model_as_built': 3.6,
+        'fleet_combat_sprites': 11.7,
+        'ground_battle_2d': 1.9,
+        'how': ('fleet combat draws both sprites at one pixel scale: 16 px against 92 px is 17%. The ground '
+                'battle draws the Shepherd at WarshipScale.hullCells (92 px x 0.045 x HULL_PRESENCE 6 = 24.8 '
+                'cells) and the drone at TenderDroneArt.cells, which multiplies by WarshipScale.cells without '
+                'the hull presence (16 px x 0.045 = 0.72 cells): 2.9%, although its Javadoc says hull scale. '
+                'As built the drone is 5.4%.'),
+    },
     'cross_checks_m': {
         'length_overall': 3.5,
         'span_across_pods': 4.0,
@@ -87,10 +99,13 @@ PILOTS = []   # crewless
 # Cradle seat: the four pads stand on the Shepherd's launch cradle, the .ship centre over the
 # station's centre, so the cradle's charging contact (0.94 m square, 0.06 m proud) meets the
 # belly socket. 'Borer cradle seat' marks the pad plane under the centre.
-SOLE_Z = -3.0
+SOLE_Z = -5.75
 CONTACT_M = .0624            # the cradle's charging contact stands 0.08 Shepherd units (0.78 m/u) proud
-FEET = [f'Foot {s} {e} pad' for s in ('port', 'starboard') for e in ('fore', 'aft')]
-LEG_PARTS = ['Foot ']
+# Round 2 (owner: no piston legs on round pads): the drone stands on two skid rails, and a centre
+# docking keel carries the charging socket and the clamp lugs the cradle grabs. Each rail bears on
+# two bolted wear shoes, which are what touches the deck.
+FEET = [f'Skid {s} {e} shoe' for s in ('port', 'starboard') for e in ('fore', 'aft')]
+LEG_PARTS = ['Skid ', 'Docking keel']
 
 NOTES = [
     'Crewless drone (crew 0): no canopy or seat; scale from the tender\'s cradle (SCALE).',
@@ -101,54 +116,75 @@ NOTES = [
     'on the slot XY for the side drives; the main bell is on the tail face 0.4 units aft of its slot, where '
     'the sprite\'s tail ends. Exhaust anchors are at the mouths, +X down the exhaust.',
     'The four grey points on the sprite\'s top row are grab tines on the armour pods\' noses.',
+    'Round 2 (owner: a flat chip): the spine and pods are a hull mass 2.3 m deep overall, keel to deck '
+    '1.5 m amidships, with deep chamfered bellies; four ventral lift thrusters (one under each armour pod '
+    'and drive pod, `Lift <side> <fore|aft> thruster anchor`, +X straight down) hold the hover.',
+    'The mining laser hangs under the nose on a sling: a yoke head under the nose cap, two hanger arms to '
+    'trunnions on the casing\'s flanks and a rear link to the spine\'s belly; the emitter reaches past the '
+    'nose, so the plan view still shows the sprite\'s grey nose.',
     'The drive pods hang off the spine on transverse axles (the dark drums between spine and pod on the '
     'master) and are braced to the armour pods by a strut and a damper; nothing folds, so there is no '
     'deployed/stowed knob. The span (4.0 m) already fits the cradle.',
-    'Four fixed pads stand on the cradle deck (parked_check); the belly charging socket sits 12 mm above the '
-    'cradle\'s charging contact when the drone is seated.',
+    'Docking, no legs: two skid rails under the pods, each on two struts, bear on bolted wear shoes (the '
+    'parked feet); clamp lugs on the skids and on the centre docking keel are what the cradle grabs, and the '
+    'keel\'s sole carries the charging socket 12 mm over the cradle\'s contact.',
     'No lights layer exists for this hull; the only emissives are the two work-lamp lenses and the beacon '
     'lens, named as lamps.',
 ]
 
 # Pass-2 close-up cameras: (name, view direction from the target, target in units, frame width in metres).
 CLOSEUPS = [
-    ('head-detail', (1.0, .7, .6), (5.6, 0.0, 0.0), 1.6),
+    ('head-detail', (1.0, .8, .25), (5.0, 0.0, -3.4), 2.0),
     ('pod-detail', (.9, 1.0, .8), (2.4, 4.6, .4), 2.0),
     ('drive-detail', (-1.0, .8, .5), (-5.4, 4.6, -.6), 2.0),
-    ('belly-detail', (.6, .8, -.9), (0.0, 1.5, -2.2), 2.4),
+    ('belly-detail', (.6, .8, -.7), (-1.0, 2.0, -4.6), 3.0),
 ]
 
 # --- spine: (x, half width, keel z, deck z, top chamfer, keel chamfer) ---
+# Round 2 (owner: "flat chip"): the spine is the drone's main mass, 1.5 m keel to deck amidships,
+# with a deep chamfered belly the slung laser and the docking keel hang from.
 SPINE = [
-    (4.6, .85, -1.0, 1.0, .42, .38),
-    (3.2, 1.0, -1.25, 1.35, .5, .45),
-    (1.0, 1.45, -1.55, 1.75, .62, .55),
-    (0.0, 1.95, -1.7, 1.95, .75, .6),
-    (-3.6, 2.05, -1.8, 2.0, .8, .65),
-    (-5.3, 2.4, -1.7, 1.85, .8, .6),     # the sprite's tail flare (+-3 at X -5..-6): the main drive housing
-    (-6.0, 2.05, -1.5, 1.55, .65, .55),
-    (-6.45, 1.25, -1.3, 1.15, .42, .42),
+    (4.6, .85, -2.3, 1.25, .42, .62),
+    (3.2, 1.0, -2.9, 1.7, .5, .8),
+    (1.0, 1.45, -3.45, 2.15, .62, 1.0),
+    (0.0, 1.95, -3.7, 2.4, .75, 1.15),
+    (-3.6, 2.05, -3.7, 2.45, .8, 1.15),
+    (-5.3, 2.4, -3.2, 2.2, .8, 1.0),     # the sprite's tail flare (+-3 at X -5..-6): the main drive housing
+    (-6.0, 2.05, -2.6, 1.85, .65, .8),
+    (-6.45, 1.25, -1.95, 1.4, .42, .55),
 ]
 # --- armour pod (port; starboard mirrored): plan and section ---
 # Every plan corner turns 45 degrees (or 90+): a plate break, never a coarse round (check_detail).
 POD_PLAN = [(4.9, 2.3), (4.9, 5.95), (3.75, 7.15), (-.2, 7.15), (-.75, 6.6), (-.75, 2.6), (-.05, 1.9),
             (4.5, 1.9)]
-POD_Z = (-1.3, 1.65)
+POD_Z = (-3.0, 1.95)                               # 1.24 m deep: a hull pod, not a plate
+POD_KEEL_C = 1.05                                  # the deep keel chamfer that turns the pod's belly in
 CHEEK_Y, CHEEK_W = 7.55, .45                       # grey outer cheek, centre and half width
 # --- drive pod (port) ---
 # The sprite pulls the drive pods in to Y 6 forward of X -4, widens them to 8 aft and leaves a notch
 # between pod and spine at X -5..-6; the side drive's bell is canted 20 degrees out of the flat aft face.
 DRIVE_PLAN = [(-1.0, 2.35), (-1.0, 5.4), (-1.6, 6.0), (-3.9, 6.0), (-5.8, 7.9), (-6.6, 7.9), (-7.0, 7.5),
               (-7.0, 3.0), (-6.1, 3.0), (-6.1, 4.8), (-5.0, 4.8), (-5.0, 2.35)]
-DRIVE_Z = (-2.3, .85)
+DRIVE_Z = (-3.35, 1.25)
 AXLE = (-2.5, -.55)                                 # transverse axle (x, z) out of the spine
-GIMBAL = (-4.6, .95)                                # gimbal drum on the pod's back (x, z)
+GIMBAL = (-4.6, 1.35)                               # gimbal drum on the pod's back (x, z)
 # --- engines: (mouth xyz, angle, lip radius m, bell radius m) ---
 ENGINE_SET = [((-6.45, 0.0, -.1), 180, .27, .22),
               ((-6.92, 6.0, -.7), 160, .215, .175),
               ((-6.92, -6.0, -.7), 200, .215, .175)]
-TOOL_Z = -.3                                        # cutting-head axis height
+# --- the slung mining laser (round 2: hung under the nose, not set into it) ---
+TOOL_Z = -4.35                                      # laser axis: below the spine's keel, on its sling
 LENS_X = 7.1                                        # front of the emitter lens
+LASER_X = (2.7, 6.55)                               # laser casing, aft to fore
+LASER_HW, LASER_HH = .9, .72                        # casing half width and half height
+TRUNNION_X = 4.55                                   # the yoke's trunnions on the casing's flanks
+# --- lift thrusters (ventral, the hover the owner asked for): (name, x, |y|, host, ring radius m) ---
+LIFTS = [('fore', 2.55, 5.05, 'Pod {side} armour shell', .2), ('aft', -2.15, 4.3, 'Drive {side} pod housing', .17)]
+# --- docking hard points: two skids and a centre keel the cradle's clamps grab ---
+SKID_Y = 3.85
+SKID_X = (-4.15, 2.25)
+SKID_STRUTS = [(1.1, 'Pod {side} armour shell'), (-3.5, 'Drive {side} pod housing')]
+KEEL_X = (-3.9, 1.7)
 
 
 def _mats(kit):
@@ -266,20 +302,20 @@ def build(kit):
     # Armour pods: chamfered plate prisms, the grey outer cheek and the root drum into the spine.
     for side, sg in (('port', 1), ('starboard', -1)):
         plan = POD_PLAN if sg > 0 else mirror_y(POD_PLAN)
-        pod = _shell(kit, f'Pod {side} armour shell', plan, POD_Z[0], POD_Z[1], .5, .62, kit.armour)
+        pod = _shell(kit, f'Pod {side} armour shell', plan, POD_Z[0], POD_Z[1], POD_KEEL_C, .7, kit.armour)
         kit.hull.append(pod)
         cy = sg*CHEEK_Y
-        st = [(5.95, K.octagon(cy-CHEEK_W*.8, cy+CHEEK_W*.8, -.85, .9, .25)),
-              (5.55, K.octagon(cy-CHEEK_W, cy+CHEEK_W, -1.05, 1.3, .32)),
-              (1.45, K.octagon(cy-CHEEK_W, cy+CHEEK_W, -1.05, 1.3, .32)),
-              (1.05, K.octagon(cy-CHEEK_W*.8, cy+CHEEK_W*.8, -.85, .9, .25))]
-        cheek = K.loft_x(kit, f'Pod {side} outer cheek', st, kit.grey, 0)
-        _plate_bevel(cheek, 'small')
+        # A plate prism: plan corners turn 45 degrees, one keel and one shoulder chamfer (round 2:
+        # the deeper cheek as a loft read as a coarse round at its tapered ends).
+        w, c = CHEEK_W, .4
+        cplan = [(5.95, cy-w+c), (5.95, cy+w-c), (5.95-c, cy+w), (1.05+c, cy+w), (1.05, cy+w-c), (1.05, cy-w+c),
+                 (1.05+c, cy-w), (5.95-c, cy-w)]
+        cheek = _shell(kit, f'Pod {side} outer cheek', cplan, -1.85, 1.6, .3, .32, kit.grey, 'small')
         kit.hull.append(cheek)
-        _drum(kit, f'Pod {side} root drum', (2.6, sg*1.15, .05), (2.6, sg*2.2, .05), .8, kit.grey)
+        _drum(kit, f'Pod {side} root drum', (2.6, sg*1.15, .35), (2.6, sg*2.2, .35), .8, kit.grey)
         # Mounting webs under the gaps between spine and pods (the sprite's dark columns there).
-        for nm, lo, hi in ((f'Pod {side} root web', (-1.1, .7, -1.05), (4.5, 2.1, -.15)),
-                           (f'Drive {side} axle web', (-4.8, 1.75, -1.55), (-.6, 2.6, -.55))):
+        for nm, lo, hi in ((f'Pod {side} root web', (-1.1, .7, -2.4), (4.5, 2.1, -.15)),
+                           (f'Drive {side} axle web', (-4.8, 1.75, -2.6), (-.6, 2.6, -.55))):
             lo, hi = (lo[0], min(sg*lo[1], sg*hi[1]), lo[2]), (hi[0], max(sg*lo[1], sg*hi[1]), hi[2])
             v, f = [], []
             sdk.block(v, f, lo, hi)
@@ -301,17 +337,28 @@ def build(kit):
     mouth, ang, lip, bell = ENGINE_SET[0]
     _engine(kit, 1, mouth, ang, lip, bell, spine)
 
-    # Cutting head: housing, nose plate and the emitter barrel with its recessed lens.
-    st = [(6.95, K.octagon(-.85, .85, -.9, .3, .3)),     # a shroud round the emitter: the sprite's nose
-          (5.6, K.octagon(-1.0, 1.0, -1.05, .8, .36)),
-          (4.2, K.octagon(-1.05, 1.05, -1.1, .95, .38))]
+    # Nose cap on the spine's bow, where the laser's sling hangs from.
+    st = [(5.35, K.octagon(-.62, .62, -1.55, .55, .22)),
+          (4.95, K.octagon(-.8, .8, -1.95, .95, .3)),
+          (4.3, K.octagon(-.92, .92, -2.25, 1.15, .34))]
+    cap = K.loft_x(kit, 'Hull nose cap', st, kit.grey, 0)
+    _plate_bevel(cap, 'small')
+    kit.hull.append(cap)
+    # The mining laser, slung under the nose: a casing hung on a yoke's trunnions and a rear link,
+    # its emitter reaching past the nose, so the cut happens below the drone and ahead of it.
+    hw, hh, z = LASER_HW, LASER_HH, TOOL_Z
+    st = [(LASER_X[1], K.octagon(-hw*.78, hw*.78, z-hh*.78, z+hh*.78, .24)),
+          (LASER_X[1]-.45, K.octagon(-hw, hw, z-hh, z+hh, .3)),
+          (LASER_X[0]+.4, K.octagon(-hw, hw, z-hh, z+hh, .3)),
+          (LASER_X[0], K.octagon(-hw*.8, hw*.8, z-hh*.8, z+hh*.8, .25))]
     head = K.loft_x(kit, 'Tool head housing', st, kit.grey, 0)
     _plate_bevel(head, 'small')
     kit.hull.append(head)
     rb = S.u(.12)
-    # The shroud's bore: the emitter barrel sits in it, its rim just proud of the shroud's face.
+    # The casing's bore: the emitter barrel sits in it, its rim just proud of the casing's face.
     boolean(head, sdk.revolve_dir(kit, 'Temporary bore', [(0, 0), (0, rb*1.18), (2, rb*1.18), (2, 0)],
-                                  (6.15, 0, TOOL_Z), (1, 0, 0), kit.dark, n=S.n(rb*1.18)))
+                                  (6.15, 0, TOOL_Z), (1, 0, 0), kit.dark, n=S.n(rb*1.4)))
+    _sling(kit)
     lb = LENS_X-6.0-S.u(.055)      # barrel from inside the housing to just behind the lens
     _lathe(kit, 'Tool head emitter barrel',
            [(0, 0), (0, rb*1.1), (lb*.15, rb*1.12), (lb*.32, rb*1.12), (lb*.38, rb*.95), (lb*.72, rb*.92),
@@ -336,6 +383,13 @@ def build(kit):
             t = K.loft_x(kit, f'Pod {side} tine {tag}', st, kit.bright, 0)
             sdk.bevel(t, S.bevel('small')*.5, angle=PLATE_BEVEL_DEG)
 
+    # Ventral lift thrusters: the hover. Docking gear: skids and the centre keel.
+    for side, sg in (('port', 1), ('starboard', -1)):
+        for tag, x, y, host, r_m in LIFTS:
+            _lift(kit, f'Lift {side} {tag}', (x, sg*y), bpy.data.objects[host.format(side=side)], r_m)
+        _skid(kit, side, sg)
+    _docking_keel(kit)
+
     if kit.detail:
         detail(kit)
 
@@ -355,26 +409,112 @@ def _struts(kit, side, sg):
     _drum(kit, f'Arm {side} knuckle post', (0.0, sg*4.6, -1.35), (0.0, sg*4.6, -.2), .42, kit.grey)
 
 
-def _feet(kit, side, sg):
-    """Fixed landing pads: a box-section leg under each pod, a round pad on a ball foot."""
-    for end, (x, y, z_top) in (('fore', (2.5, 4.6, POD_Z[0]+.15)), ('aft', (-4.2, 5.2, DRIVE_Z[0]+.15))):
-        y *= sg
-        pr = S.u(.17)
-        top = Vector((x, y, z_top))
-        foot = Vector((x, y, SOLE_Z+S.u(.07)))
-        _bar(kit, f'Foot {side} {end} leg', top, foot+Vector((0, 0, S.u(.05))), .09, .09, kit.steel, (1, 0, 0))
-        _drum(kit, f'Foot {side} {end} ankle', foot+Vector((0, -S.u(.06), S.u(.05))), foot+Vector((0, S.u(.06), S.u(.05))),
-              S.u(.055), kit.grey)
-        _lathe(kit, f'Foot {side} {end} pad',
-               [(0, 0), (0, pr), (S.u(.02), pr), (S.u(.045), pr*.82), (S.u(.07), pr*.35), (S.u(.07), 0)],
-               (x, y, SOLE_Z), (0, 0, 1), kit.steel, pr)
+def _block(kit, name, lo, hi, mat, bevel_kind='small'):
+    v, f = [], []
+    sdk.block(v, f, lo, hi)
+    ob = sdk.solid(kit, name, v, f, mat)
+    sdk.bevel(ob, S.bevel(bevel_kind)*.6)
+    return ob
+
+
+def _sling(kit):
+    """The laser's sling: a yoke head under the nose cap, two hanger arms down to trunnions on the
+    casing's flanks, and a rear link from the spine's belly to the casing's back, with clevises."""
+    x, z = TRUNNION_X, TOOL_Z
+    _block(kit, 'Sling yoke head', (x-.38, -1.3, -2.55), (x+.38, 1.3, -1.95), kit.steel)
+    for side, sg in (('port', 1), ('starboard', -1)):
+        top, low = Vector((x, sg*1.12, -2.45)), Vector((x, sg*1.12, z))
+        _bar(kit, f'Sling {side} hanger arm', top, low, .1, .16, kit.steel, (1, 0, 0))
+        _drum(kit, f'Sling {side} trunnion', (x, sg*(LASER_HW-.05), z), (x, sg*(LASER_HW+.42), z), .34, kit.grey)
+        _drum(kit, f'Sling {side} trunnion cap', (x, sg*(LASER_HW+.42), z), (x, sg*(LASER_HW+.52), z), .22, kit.bright)
+    a, b = Vector((2.95, 0, -2.95)), Vector((3.25, 0, z+LASER_HH-.05))
+    _bar(kit, 'Sling rear link', a, b, .12, .1, kit.steel, (0, 1, 0))
+    for tag, p in (('upper', a), ('lower', b)):
+        _drum(kit, f'Sling rear link {tag} clevis', p+Vector((0, -.42, 0)), p+Vector((0, .42, 0)), .28, kit.grey)
+
+
+def _lift(kit, name, xy, host, r_m):
+    """A ventral lift thruster set into a pod's belly: a well, a bright lip ring, a dark bell and
+    throat, guide vanes across the mouth, and `<name> thruster anchor` (+X straight down)."""
+    x, y = xy
+    z = min((host.matrix_world @ v.co).z for v in host.data.vertices)     # the flat belly under the chamfer
+    m, d = Vector((x, y, z)), Vector((0, 0, -1))
+    br = S.u(r_m)
+    lip = br+S.u(.035)
+    depth, wall = S.u(.22), S.u(.016)
+    well = sdk.revolve_dir(kit, 'Temporary lift well', [(-depth-.1, 0), (-depth-.1, br+wall*1.5), (2, br+wall*1.5), (2, 0)],
+                           m, d, kit.dark, n=S.n(br))
+    boolean(host, well)
+    _lathe(kit, f'{name} lift ring', [(-S.u(.03), br+wall*.6), (-S.u(.03), lip), (S.u(.012), lip),
+                                       (S.u(.02), lip-S.u(.01)), (S.u(.02), br+wall*.6)], m, d, kit.bright, lip)
+    _lathe(kit, f'{name} lift bell', [(-depth, br*.7), (0, br), (0, br+wall), (-depth, br*.7+wall)], m, d, kit.dark, br)
+    _lathe(kit, f'{name} lift throat', [(-depth-.03, 0), (-depth-.03, br*.74), (-depth+.03, br*.74), (-depth+.03, 0)],
+           m, d, kit.dark, br)
+    for k, t in enumerate((-.5, 0, .5), 1):
+        q = m+Vector((t*br, 0, S.u(.05)))
+        half = br*math.sqrt(1-t*t)*.92
+        _bar(kit, f'{name} lift vane {k}', q+Vector((0, -half, 0)), q+Vector((0, half, 0)), .012, .05, kit.steel, (1, 0, 0))
+    ob = bpy.data.objects.new(f'{name} thruster anchor', None)
+    ob.empty_display_type, ob.empty_display_size = 'SINGLE_ARROW', 1.0
+    ob.location, ob.rotation_euler = m, (0, math.pi/2, 0)
+    bpy.context.collection.objects.link(ob)
+    kit.anchors.append(ob)
+    ob['radius_m'] = r_m
+    ob['kind'] = 'lift'
+
+
+def _skid(kit, side, sg):
+    """A skid rail under the pods on two struts, with bolted wear shoes at its ends (the feet) and
+    clamp lugs on its outer face that the cradle's clamps close on."""
+    y = sg*SKID_Y
+    x0, x1 = SKID_X
+    shoe_t = S.u(.05)
+    rz0, rz1 = SOLE_Z+shoe_t, SOLE_Z+shoe_t+S.u(.13)
+    hw = S.u(.08)
+    st = [(x1+.55, K.octagon(y-hw*.8, y+hw*.8, rz1-.12, rz1, .08)),     # toe turned up at the bow
+          (x1, K.octagon(y-hw, y+hw, rz0, rz1, .1)),
+          (x0, K.octagon(y-hw, y+hw, rz0, rz1, .1)),
+          (x0-.45, K.octagon(y-hw*.8, y+hw*.8, rz1-.12, rz1, .08))]
+    rail = K.loft_x(kit, f'Skid {side} rail', st, kit.steel, 0)
+    _plate_bevel(rail, 'small')
+    for end, x in (('fore', x1-.55), ('aft', x0+.55)):
+        L = S.u(.2)
+        _block(kit, f'Skid {side} {end} shoe', (x-L, y-hw*1.05, SOLE_Z), (x+L, y+hw*1.05, rz0+.02), kit.dark)
+        for k, dx in enumerate((-L*.6, L*.6), 1):
+            kit.bolt(f'Skid {side} {end} shoe bolt {k}', x+dx, y, S.u(.012))
+    for k, (x, host) in enumerate(SKID_STRUTS, 1):
+        host = bpy.data.objects[host.format(side=side)]
+        top_z = min((host.matrix_world @ v.co).z for v in host.data.vertices)+.25
+        _bar(kit, f'Skid {side} strut {k}', (x, y, rz1-.05), (x, y, top_z), .12, .16, kit.steel, (1, 0, 0))
+        _block(kit, f'Skid {side} strut {k} shoe plate', (x-.5, y-.45, top_z-.35), (x+.5, y+.45, top_z-.05), kit.grey)
+        _drum(kit, f'Skid {side} clamp lug {k}', (x+(.75 if k == 1 else -.75), y+sg*hw*.9, (rz0+rz1)/2),
+              (x+(.75 if k == 1 else -.75), y+sg*(hw+S.u(.07)), (rz0+rz1)/2), .3, kit.bright)
+
+
+def _docking_keel(kit):
+    """The centre docking keel under the spine: a chamfered box beam with clamp lugs both sides and
+    the charging socket in its sole, which stands 12 mm over the cradle's charging contact."""
+    x0, x1 = KEEL_X
+    z_face = SOLE_Z+S.u(CONTACT_M)+S.u(.012)
+    hw = .55
+    st = [(x1, K.octagon(-hw*.8, hw*.8, z_face+.25, -3.2, .2)),
+          (x1-.4, K.octagon(-hw, hw, z_face, -3.2, .25)),
+          (x0+.4, K.octagon(-hw, hw, z_face, -3.2, .25)),
+          (x0, K.octagon(-hw*.8, hw*.8, z_face+.25, -3.2, .2))]
+    keel = K.loft_x(kit, 'Docking keel', st, kit.grey, 0)
+    _plate_bevel(keel, 'small')
+    for k, x in enumerate((x1-1.0, x0+1.0), 1):
+        for side, sg in (('port', 1), ('starboard', -1)):
+            _drum(kit, f'Docking keel {side} clamp lug {k}', (x, sg*hw, z_face+.45), (x, sg*(hw+S.u(.08)), z_face+.45),
+                  .32, kit.bright)
+    _belly_socket(kit)
 
 
 def _belly_socket(kit):
     """The charging socket the cradle's contact meets: a boss under the spine, a bright contact face."""
     z_face = SOLE_Z+S.u(CONTACT_M)+S.u(.012)
     r = S.u(.30)
-    t_top = -1.5-z_face            # up into the spine's belly (keel -1.7 at the centre)
+    t_top = S.u(.06)               # a flush boss in the docking keel's sole
     _lathe(kit, 'Belly charging socket housing',
            [(0, 0), (0, r), (S.u(.03), r), (S.u(.05), r*.9), (S.u(.05), r*.82), (t_top, r*.82), (t_top, 0)],
            (0, 0, z_face), (0, 0, 1), kit.grey, r)
@@ -382,7 +522,7 @@ def _belly_socket(kit):
            [(-S.u(.01), 0), (-S.u(.01), r*.62), (S.u(.004), r*.62), (S.u(.004), 0)],
            (0, 0, z_face), (0, 0, 1), kit.bright, r*.62)
     seat = kit.empty('Borer cradle seat', (0, 0, SOLE_Z), 0)
-    seat['note'] = ('the pad plane under the .ship centre; place it on a Shepherd "Drone bay WS 003 launch point <i>" '
+    seat['note'] = ('the skid shoe plane under the .ship centre; place it on a Shepherd "Drone bay WS 003 launch point <i>" '
                     'with the Borer root scaled by 0.25 / 0.78')
 
 
@@ -424,7 +564,7 @@ def detail(kit):
     for k, x in enumerate((1.4, -3.0), 1):
         p, n = kit.surface(x, 0)
         _lathe(kit, f'Hull spine hoist ring {k}',
-               [(0, S.u(.035)), (0, S.u(.065)), (S.u(.02), S.u(.065)), (S.u(.02), S.u(.035))], p, n, kit.bright, S.u(.065))
+               [(-S.u(.01), S.u(.035)), (-S.u(.01), S.u(.065)), (S.u(.02), S.u(.065)), (S.u(.02), S.u(.035))], p, n, kit.bright, S.u(.065))
         _lathe(kit, f'Hull spine hoist eye {k}', [(-S.u(.01), 0), (-S.u(.01), S.u(.03)), (S.u(.06), S.u(.026)),
                                                   (S.u(.06), 0)], p, n, kit.steel, S.u(.03))
     # Blade antenna and beacon on the spine's aft deck.
@@ -435,12 +575,13 @@ def detail(kit):
     # Cutting head: coil drums either side, cooling ribs on the housing, focusing rings.
     head = bpy.data.objects['Tool head housing']
     for side, sg in (('port', 1), ('starboard', -1)):
-        y = sg*1.2
-        _drum(kit, f'Tool head {side} coil drum', (4.35, y, -.15), (6.0, y, -.15), .52, kit.steel)
+        # Coil drums along the casing's shoulders, forward of the trunnions.
+        y, zc = sg*.5, TOOL_Z+LASER_HH-.05
+        _drum(kit, f'Tool head {side} coil drum', (5.0, y, zc), (6.35, y, zc), .4, kit.steel)
         for k in range(4):
-            x = 4.6+k*.3
-            _drum(kit, f'Tool head {side} coil rib {k+1}', (x-S.u(.012), y, -.15), (x+S.u(.012), y, -.15), .58, kit.bright)
-    kit.engrave(head, [kit.band_slab(4.9+k*.26, .018, -3, 3, .3, 3) for k in range(3)], .01)
+            x = 5.2+k*.3
+            _drum(kit, f'Tool head {side} coil rib {k+1}', (x-S.u(.012), y, zc), (x+S.u(.012), y, zc), .46, kit.bright)
+    kit.engrave(head, [kit.band_slab(3.2+k*.26, .018, -3, 3, TOOL_Z-3, 3) for k in range(3)], .01)
 
     for side, sg in (('port', 1), ('starboard', -1)):
         pod = bpy.data.objects[f'Pod {side} armour shell']
@@ -472,8 +613,7 @@ def detail(kit):
         _drum(kit, f'Drive {side} axle collar', (AXLE[0], sg*2.95, AXLE[1]), (AXLE[0], sg*3.15, AXLE[1]), .86, kit.bright)
 
         _struts(kit, side, sg)
-        _feet(kit, side, sg)
         # RCS blocks on the outer corners: fore on the armour pod, aft on the drive pod.
-        _rcs(kit, f'Pod {side} RCS', (3.7, sg*7.45, 1.45), (0, sg, 0), 1)
-        _rcs(kit, f'Drive {side} RCS', (-3.1, sg*5.62, .95), (0, sg, 0), -1)
+        _rcs(kit, f'Pod {side} RCS', (3.7, sg*7.45, 1.75), (0, sg, 0), 1)
+        _rcs(kit, f'Drive {side} RCS', (-3.1, sg*5.62, 1.3), (0, sg, 0), -1)
     _belly_socket(kit)

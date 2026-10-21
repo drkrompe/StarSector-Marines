@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fca-9088-7a82-8dc9-af9d55bd0227",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fca-9088-7a82-8dc9-af9d55bd0227\\exec-ec46ff54-0603-4b39-a2d8-4d042688a6f2.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\blade.png",
+    "sha256": "d2173338ce63f348476bbe9253b5e1985349acfb1cd86dced3b6dee3823b3cc6",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\motion-runner\\prompts\\blade.prompt.txt",
+  "promptSha256": "0760efc35797a344d19da4310aaca4ed7ae8b47cf58225dfb1c64ba33ecd87e0",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity, geometry and layout authority\n\nLayer for a 2D rig: ONE isolated arm blade from reference 1 (its right-hand arm blade, the one on the right of the image), alone, with no creature. Same shape, finish and scale as in reference 1: a pale lilac armoured upper arm segment, then the long ivory blade with hooked, barbed gaff tip. Lay it straight, pointing UP, root (where it joins the shoulder) at the bottom centre of the frame, barbs facing left, the blade spanning about three quarters of the frame height. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\hero.png",
+      "sha256": "1fd084bdf713b942ea09dca5767d4ee1ac913bf17c5bcea8ae0d6ac62bcb41e8",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity, geometry and layout authority"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one isolated arm blade using the reference’s shape and finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 40539,
+    "cached_input_tokens": 34944,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 354,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 43.0
+}

@@ -251,6 +251,18 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
             DeckZone.MIDSHIPS, 90);
 
     /**
+     * A big ship's gymnasium, laid out the way a cruise liner's is: a two-lane
+     * running track round the whole compartment, the cardio and strength floor
+     * inside it, and a pool with loungers on its deck. One serves a complement
+     * of two hundred and fifty, where the {@link #GYM} serves ninety, so a ship
+     * that would have owed three or more small gyms gets one of these per two
+     * hundred and fifty aboard instead, in about the same deck area.
+     */
+    public static final RoomRecipe GRAND_GYM = new RoomRecipe(
+            RoomPurpose.GYMNASIUM, RoomShape.rectangle(28, 14),
+            DeckZone.MIDSHIPS, 250);
+
+    /**
      * Holding cells for prisoners brought back from a battle, and the guard's
      * desk outside them. No program owes one; Second Wind reserves it.
      */

@@ -1,0 +1,35 @@
+{
+  "blocks": [{
+    "cells": [[
+      3,
+      0
+    ]],
+    "id": "ship-gym-track.track"
+  }],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "ship-gym-track.lounger",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "variant 1 of the pool",
+      "name": "ship-gym-track.track v1",
+      "row": 0
+    }
+  ],
+  "doodads": [{
+    "ballisticHalfHeight": 0.25,
+    "col": 0,
+    "cover": "light",
+    "footprintCells": [
+      3,
+      1
+    ],
+    "id": "ship-gym-track.lounger",
+    "row": 0
+  }],
+  "sheet": "graphics/tilesets/ship-gym-track.png"
+}
