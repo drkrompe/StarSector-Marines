@@ -1,6 +1,6 @@
 # Second Wind refit tree
 
-Status: ACTIVE — direction; owner decisions recorded 2026-10-20. Nothing here is implemented.
+Status: ACTIVE — direction; owner decisions recorded 2026-10-20. Only the first pass of the Deficit dressing (slice 4) is implemented, for art review.
 Written: 2026-10-20
 Updated: 2026-10-20 — owner answers: mess re-based, battle deficits cleared by cheap orders, tier gating with a Compute core, Second Wind only, every proposed room in, cores restore the interior's look, mech and vehicle passives added.
 
@@ -89,6 +89,13 @@ fixed form, so it never moves a room or a door. It also reuses the damage
 vocabulary (damaged props, rubble decals) the d-mod damage model wants. It
 needs new battered corridor and wall art; the clean art already shipped is the
 target, not something to replace.
+
+The deck reads a per-core Restored flag (`CoreDressing`), fed through one seam
+(`CoreDressing.of`) that the ship-condition record will own; until it does, every
+core but Power shows its Deficit on the converted hull, and Power follows the
+existing circuits order. `ShipDeckBattleScene.dress` is the one door into the
+scene. The first-pass art is one sheet, `ship-dressing`; Improved-tier dressing
+(better lighting, fresh paint, running displays) is not built.
 
 ## Facilities and their passives
 
