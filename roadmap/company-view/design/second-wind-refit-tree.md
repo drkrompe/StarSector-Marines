@@ -1,8 +1,8 @@
 # Second Wind refit tree
 
-Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Ship Systems tree and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review, and each reserve is furnished and can be opened on the deck. Hydroponics, the wardroom, the briefing room and the holds are tracks fitted into existing rooms, with their supplies, officer-XP and cargo passives; the briefing room's plot table and holo-tank, the reserves' own passives, Improved-tier dressing and mech passives are not built.
+Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Ship Systems tree and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review, and each reserve is furnished and can be opened on the deck. Hydroponics, the wardroom, the briefing room and the holds are tracks fitted into existing rooms, with their supplies, officer-XP and cargo passives and a first pass of their room dressing for art review; the briefing room's plot table and holo-tank, the reserves' own passives, the cores' Improved-tier dressing and mech passives are not built.
 Written: 2026-10-20
-Updated: 2026-10-21 — the facilities that take no new compartment are tracks; boat bay services is left out for want of a hook.
+Updated: 2026-10-21 — the facilities that take no new compartment dress their rooms per tier; the wardroom and briefing room need the mess in service.
 
 The Engineering tab today sells a short list of one-off yard orders: the
 workshop chain (750 / 3,000 / 4,500), the second bay (8,000), three Mech Lab
@@ -286,8 +286,8 @@ floor, furniture, doors or berths change, and the envelope stays 106×79:
 **Facilities that take no new compartment** go into rooms already on the
 deck, and their tiers dress that room:
 
-- the briefing room into the **mess**: a plot table, then a holo-tank, at one
-  end;
+- the briefing room into the **mess**: a briefing screen, later a plot table
+  and a holo-tank, at its dining end;
 - hydroponics into the **provisions** store: grow racks;
 - the wardroom / staff college into the **mess** as well (an officers' end).
   The owner should confirm this one; the lounge is the other candidate.
@@ -312,8 +312,44 @@ changes no compartment's state. Their passives:
   timed recovery to shorten, and the deck crane's discount needs the boat
   bill to read the condition record.
 
-Their tiers do not yet change the room (grow racks in the provisions store,
-the screened officers' end, the plot table); that dressing is still to come.
+**Their tiers dress the room.** Each tier is presentation laid over the
+room's fixed fill, the way a core's Deficit dressing is: the deck reads the
+record's bands (`ShipCondition.facilityDressing`) as a tier per facility
+(`FacilityDressing`) and applies it to the running deck, so buying a tier
+changes the room at once without laying the ship out again. Every tier's
+pieces are planned once from the deck and its seed and a tier only chooses how
+many are drawn, so a tier adds pieces and never moves one already standing.
+
+| Facility | Room | Restored | Improved I | Improved II |
+|---|---|---|---|---|
+| Hydroponics | provisions store | three grow trays along the bulkheads, away from the hatch | six | ten |
+| Wardroom | mess, the beam half away from the hatches at the dining end | a bookcase screen across the lane before the last rank of tables | a sideboard on the end bulkhead, a planter | the staff college's wall screen on the long bulkhead, a second planter |
+| Briefing room | mess, the far (dining) end | a display on the end bulkhead and a lectern beside it; the mess tables are the seating | — | — |
+| Holds | hold | a tally desk by the hatch and a stowed pallet | a rack with cargo in its bays | two more racks, or shelving where a rack does not fit |
+
+The dining end is the end away from the galley, so both mess facilities share
+it: the briefing screen faces the whole room down its length, and the
+wardroom is screened off in the half of the beam away from the hatches.
+Because the mess is their room, the wardroom's and briefing room's Restored
+orders need the mess in service as well as their cores; a wrecked room carries
+its own condition art and is never dressed.
+
+The pieces stand only on open floor of their own room, off every work point
+and seat and two cells clear of every doorway; a wall piece backs onto
+bulkhead along its whole length with open deck in front of it, a free-standing
+rack keeps open deck all round, and with every tier standing every work point
+and reachable cell of the room stays reachable round them. The crew walk the
+deck generation made, so that is what keeps their way to work clear of a rack.
+`SecondWindFacilitiesEvidence` (`generatedSpaceEvidence`) holds this over 40
+layouts, every tier changing its room on each.
+
+The first pass reuses shipped furniture: grow trays are a utility shelf with
+a lounge planter in each cell, the wardroom uses the lounge's bookcase,
+refreshment counter and media wall, the briefing room its own display and
+lectern, the hold the main stores' tally desk, pallet and racks. Purpose-made
+art is still wanted for a lit hydroponic tray, a wardroom screen panel and a
+wardroom table setting. The plot table and the holo-tank (the briefing room's
+own table and the bridge's plot are the stand-ins to hand) wait on their tiers.
 
 **How they are reserved.** `DeckArrangement.SECOND_WIND` lists the five as
 reserves. They are not part of `programFor`, so the general program and the

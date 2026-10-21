@@ -110,7 +110,9 @@ final class RefitReveal {
             case LIFE_SUPPORT -> RoomPurpose.BARRACKS;
             case COMPUTE -> RoomPurpose.BRIDGE;
             case FABRICATION -> RoomPurpose.PARTS_CAGE;
-            case MESS -> RoomPurpose.MESS_HALL;
+            case MESS, WARDROOM, BRIEFING -> RoomPurpose.MESS_HALL;
+            case HYDROPONICS -> RoomPurpose.LOADING_BAY;
+            case HOLDS -> RoomPurpose.STOCKROOM;
             default -> null;
         };
         return purpose == null ? null : graph.largest(purpose);

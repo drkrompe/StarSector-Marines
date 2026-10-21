@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
+import com.dillon.starsectormarines.battle.world.gen.ship.FacilityDressing;
 import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.ShipBayRoute;
@@ -174,6 +175,10 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     /** The founding hull's Deficit dressing, planned the first time anything is left unrestored. */
     private ShipDeckDressing dressing;
     private CoreDressing coreDressing = CoreDressing.RESTORED;
+    /** The facility pieces fitted into existing rooms, planned the first time any tier is shown. */
+    private ShipFacilityDressing facilities;
+    private FacilityDressing facilityDressing = FacilityDressing.NONE;
+    private List<Doodad> facilityPieces = List.of();
     /**
      * Which boat berths still have a boat, by the Boat Deck's own numbering, or
      * null when nobody has said and every berth is therefore held. Copied on
@@ -314,6 +319,28 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         if (next.power() != coreDressing.power() || next.compute() != coreDressing.compute())
             lighting = lighting(next);
         coreDressing = next;
+    }
+
+    /**
+     * Show the facility tiers bought for the rooms that carry them: the
+     * provisions store's grow racks, the mess's wardroom and briefing ends and
+     * the hold's racking. Presentation only, as {@link #dress(CoreDressing)} is:
+     * every tier's pieces are planned once from the deck and its seed, and a
+     * tier only chooses how many are drawn.
+     */
+    public void dress(FacilityDressing state) {
+        FacilityDressing next = state == null ? FacilityDressing.NONE : state;
+        if (next.equals(facilityDressing)) return;
+        if (!next.none() && facilities == null)
+            facilities = ShipFacilityDressing.of(deck.topology, simulation.getGrid(), rooms,
+                    simulation.getDoodads(), fixtureTasks, seed);
+        facilityPieces = facilities == null ? List.of() : facilities.doodads(next);
+        facilityDressing = next;
+    }
+
+    /** Which facility tiers this deck currently shows. */
+    public FacilityDressing facilityDressing() {
+        return facilityDressing;
     }
 
     private ShipDeckLighting lighting(CoreDressing state) {
@@ -1122,7 +1149,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                 viewport.width(), viewport.height());
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
-                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing);
+                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing, facilityPieces);
         return new BattleSceneFrame(context, layers);
     }
 
@@ -1138,7 +1165,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         camera.centerOn(view.centerCellX(), view.centerCellY());
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
-                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing);
+                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing, facilityPieces);
         return new BattleSceneFrame(context, layers);
     }
 

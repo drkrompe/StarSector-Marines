@@ -216,12 +216,16 @@ public class MarineOpsContext {
 
     /**
      * Each core's Deficit dressing follows the ship-condition record: a core
-     * brought to Restored clears its own look from the deck. Presentation only,
-     * so it is applied to the running deck rather than laying the ship out again.
+     * brought to Restored clears its own look from the deck, and the facilities
+     * fitted into existing rooms dress those rooms for the tiers bought.
+     * Presentation only, so it is applied to the running deck rather than
+     * laying the ship out again.
      */
     private void dressFromCondition(FleetMemberAPI aboard) {
         if (companyDeck == null || aboard == null) return;
-        companyDeck.dress(CoreDressing.restored(ShipRefits.condition(aboard).restoredCores()));
+        var condition = ShipRefits.condition(aboard);
+        companyDeck.dress(CoreDressing.restored(condition.restoredCores()));
+        companyDeck.dress(condition.facilityDressing());
     }
 
     /**

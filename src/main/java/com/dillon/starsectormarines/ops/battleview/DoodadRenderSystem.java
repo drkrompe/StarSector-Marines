@@ -45,6 +45,9 @@ public final class DoodadRenderSystem implements RenderSystem {
         UnaryOperator<Doodad> drawn = dressing != null && ctx.hostProfile == BattleRenderHostProfile.DECK_SCENE
                 && !ctx.coreDressing.lifeSupport() ? dressing::worn : UnaryOperator.identity();
         collectPlacements(ctx.sim.getDoodads(), out, cam, view, ctx.alphaMult, drawn);
+        // Facility tiers fitted into existing rooms stand with the furniture, presentation only.
+        if (!ctx.facilityPieces.isEmpty() && ctx.hostProfile == BattleRenderHostProfile.DECK_SCENE)
+            collectPlacements(ctx.facilityPieces, out, cam, view, ctx.alphaMult);
     }
 
     /**

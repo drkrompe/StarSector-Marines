@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import java.util.List;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
@@ -35,6 +37,8 @@ public final class RenderContext {
     final ShipDeckDressing deckDressing;
     /** Which cores' dressing is cleared; meaningful only with {@link #deckDressing}. */
     final CoreDressing coreDressing;
+    /** Facility pieces fitted into existing rooms, drawn with the furniture; empty off a dressed deck. */
+    final List<Doodad> facilityPieces;
 
     public RenderContext(BattleSimulation sim, BattleCamera camera, BattleLayout layout,
                   float alphaMult, float realDt, boolean debugZonesVisible,
@@ -64,14 +68,14 @@ public final class RenderContext {
                   HighlightOverlay highlights, Selection selection,
                   BattleRenderHostProfile hostProfile, float animationTimeSeconds, ShipDeckLighting deckLighting) {
         this(sim, camera, layout, alphaMult, realDt, debugZonesVisible, highlights, selection,
-                hostProfile, animationTimeSeconds, deckLighting, null, CoreDressing.RESTORED);
+                hostProfile, animationTimeSeconds, deckLighting, null, CoreDressing.RESTORED, List.of());
     }
 
     RenderContext(BattleSimulation sim, BattleCamera camera, BattleLayout layout,
                   float alphaMult, float realDt, boolean debugZonesVisible,
                   HighlightOverlay highlights, Selection selection,
                   BattleRenderHostProfile hostProfile, float animationTimeSeconds, ShipDeckLighting deckLighting,
-                  ShipDeckDressing deckDressing, CoreDressing coreDressing) {
+                  ShipDeckDressing deckDressing, CoreDressing coreDressing, List<Doodad> facilityPieces) {
         if (hostProfile == null) throw new IllegalArgumentException("host profile is required");
         this.sim = sim;
         this.camera = camera;
@@ -86,5 +90,6 @@ public final class RenderContext {
         this.deckLighting = deckLighting;
         this.deckDressing = deckDressing;
         this.coreDressing = coreDressing == null ? CoreDressing.RESTORED : coreDressing;
+        this.facilityPieces = facilityPieces == null ? List.of() : facilityPieces;
     }
 }

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
+import com.dillon.starsectormarines.battle.world.gen.ship.FacilityDressing;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
@@ -101,6 +102,8 @@ public final class CompanyDeck {
      * changed on the scene in place rather than by laying the ship out again.
      */
     private volatile CoreDressing dressing;
+    /** Which facility tiers fitted into existing rooms the deck shows; presentation only, like {@link #dressing}. */
+    private volatile FacilityDressing facilities = FacilityDressing.NONE;
     /** Her deck being laid out and her watch mustered, off the frame. @see #ready() */
     private CompletableFuture<ShipDeckBattleScene> gettingReady;
     /** What she is doing meanwhile; written where the work is and read here. */
@@ -351,6 +354,7 @@ public final class CompanyDeck {
         work = Work.MUSTERING;
         ShipDeckBattleScene manned = new ShipDeckBattleScene(deck, rooms, seed, null, held, wrecks, grounded);
         manned.dress(dressing == null ? CoreDressing.of(ship) : dressing);
+        manned.dress(facilities);
         manned.occupyGantries(berthed);
         // The company musters before the ship is crewed, so the berthing is
         // filled by marines who are on the roster rather than topped up with
@@ -370,6 +374,7 @@ public final class CompanyDeck {
         manned.attachRenderer(sprites);
         scene = manned;
         if (dressing != null) scene.dress(dressing);
+        scene.dress(facilities);
     }
 
     /**
@@ -473,6 +478,16 @@ public final class CompanyDeck {
     public void dress(CoreDressing state) {
         dressing = state;
         if (scene != null) scene.dress(state);
+    }
+
+    /**
+     * Dress the rooms that carry a facility for the tiers bought: grow racks in
+     * the provisions store, the wardroom and briefing ends of the mess, racking
+     * in the hold. Applied in place, like the cores' dressing.
+     */
+    public void dress(FacilityDressing state) {
+        facilities = state == null ? FacilityDressing.NONE : state;
+        if (scene != null) scene.dress(facilities);
     }
 
     /** Whether the ship has been built and crewed yet. */
