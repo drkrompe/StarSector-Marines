@@ -113,6 +113,19 @@ reads wrong without them. Every key frame has a starfield, faint and sparse, mos
 few bright, warm and cool. It is seen only by the camera, so it lights nothing. It is off on the
 roster sheets.
 
+### Ships in motion
+
+The owner (2026-10-21): no fleet flies in lockstep or on rails. Each ship's spec is its station,
+and `motion.py` moves the ship about it by its mass. It weaves across and over its line, its
+spacing to its neighbours breathes fore and aft, its heading follows the weave, it banks into
+each turn and its throttle surges as it closes up. Frigates jink hard (about 25 degrees of
+heading and 30 of bank); destroyers swing wider and slower; freighters and the Colossus barely
+wander. Civilian hulls move a class heavier. The motion is seeded by the ship's key, so it is
+deterministic, ships of one build never move alike, and each key frame stills the shot's moment
+in it (S1a at 10 s, S1 16 s, S4 40 s, S6 56 s, S6c 72 s, S7 86 s). Formation ships move;
+authored combat poses, a ship on her gun run, and the powered-down pirates at the platform are
+left as posed. Curved attack runs and breakaways for the pirates belong to the animated pass.
+
 ### Continuity
 
 Fixed before any production render (owner: make continuity changes without asking):
