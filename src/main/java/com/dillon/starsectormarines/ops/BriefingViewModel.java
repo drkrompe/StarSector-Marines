@@ -41,7 +41,7 @@ final class BriefingViewModel {
         props.put("prepareReplay", (Runnable) () -> { });
         props.put("prepareArmory", (Runnable) () -> { });
         props.put("prepareBarracks", (Runnable) () -> { });
-        props.put("screenHeader", "Mission Briefing");
+        props.put("screenHeader", Strings.get("briefingVmScreenHeader"));
         props.put("missionDialogue", List.of());
         props.put("missionDialogueStyle", MissionDialogue.HIDDEN_STYLE);
         props.put("missionFlavorStyle", "");
@@ -50,19 +50,19 @@ final class BriefingViewModel {
         props.put("replayNarrationAction", (Runnable) () -> { });
         props.put("stopNarrationAction", (Runnable) () -> { });
         putLeadership(props, false, false);
-        props.put("debugHeader", "Mission DEBUG");
-        props.put("commitmentHeader", "01 / FORCE COMMITMENT");
-        props.put("commandHeader", "02 / COMMAND DECK");
-        props.put("sourceHeader", "Fleet Support");
-        props.put("transportHeader", "Landing Craft");
-        props.put("carrierHeader", "Fighter Cover");
-        props.put("employerHeader", "Employer Provides");
-        props.put("rewardHeader", "CONTRACT AUTHORIZATION");
-        putFactionIdentity(props, "employer", "Undisclosed", null);
-        putFactionIdentity(props, "opposition", "Unidentified", null);
-        props.put("rewardValue", "Payment not specified");
-        props.put("rewardTerms", "Terms supplied by the employer");
-        putSurvey(props, null, "Compiling terrain and landing intelligence...");
+        props.put("debugHeader", Strings.get("briefingVmDebugHeader"));
+        props.put("commitmentHeader", Strings.get("briefingVmCommitmentHeader"));
+        props.put("commandHeader", Strings.get("briefingVmCommandHeader"));
+        props.put("sourceHeader", Strings.get("briefingVmSourceHeader"));
+        props.put("transportHeader", Strings.get("briefingVmTransportHeader"));
+        props.put("carrierHeader", Strings.get("briefingVmCarrierHeader"));
+        props.put("employerHeader", Strings.get("briefingVmEmployerHeader"));
+        props.put("rewardHeader", Strings.get("briefingVmContractHeader"));
+        putFactionIdentity(props, "employer", Strings.get("briefingVmEmployerUndisclosed"), null);
+        putFactionIdentity(props, "opposition", Strings.get("briefingVmOppositionUnidentified"), null);
+        props.put("rewardValue", Strings.get("briefingVmPaymentUnspecified"));
+        props.put("rewardTerms", Strings.get("briefingVmTermsFromEmployer"));
+        putSurvey(props, null, Strings.get("briefingVmSurveyPending"));
         props.put("assignClasses", "");
         props.put("assignDisabled", false);
         putDebugDrawer(props, false, false, () -> { });
@@ -179,7 +179,7 @@ final class BriefingViewModel {
         props.put("debugAvailable", available);
         props.put("debugExpanded", open);
         props.put("debugToggleClasses", "debug-drawer-toggle" + (open ? " expanded" : ""));
-        props.put("debugToggleLabel", open ? "CLOSE" : "DEBUG");
+        props.put("debugToggleLabel", Strings.get(open ? "briefingVmDebugClose" : "briefingVmDebugOpen"));
         props.put("debugToggleArrow", "graphics/ui/console/drawer-" + (open ? "close" : "open") + ".svg");
         props.put("debugToggleDisabled", !available);
         props.put("debugToggleAction", available ? toggle : (Runnable) () -> { });
@@ -280,25 +280,27 @@ final class BriefingViewModel {
         if (multiplier == 0) multiplier = 100;
         long payment = (long) mission.payout * multiplier / 100;
         if (SupplyRouteCampaign.freight(mission)) {
-            props.put("rewardHeader", "FREIGHT DELIVERY AUTHORIZATION");
-            props.put("rewardValue", "Up to 18,000 credits");
-            props.put("rewardTerms", "6,000 + 4,000 per carrier delivered / once on victory");
+            props.put("rewardHeader", Strings.get("briefingVmFreightHeader"));
+            props.put("rewardValue", Strings.get("briefingVmFreightValue"));
+            props.put("rewardTerms", Strings.get("briefingVmFreightTerms"));
             return;
         }
-        props.put("rewardHeader", mission.source.isDebug() ? "SIMULATION CONTRACT" : "CONTRACT AUTHORIZATION");
-        props.put("rewardValue", payment > 0 ? String.format(Strings.locale(), "%,d credits", payment) : "No credit payment");
+        props.put("rewardHeader", Strings.get(mission.source.isDebug()
+                ? "briefingVmSimulationHeader" : "briefingVmContractHeader"));
+        props.put("rewardValue", payment > 0 ? Strings.format("briefingVmCredits", payment)
+                : Strings.get("briefingVmNoCredits"));
         int salvage = mission.contractSalvageNegotiated & 0xff;
         props.put("rewardTerms", (mission.contractSalvageBaseline & 0xff) > 0
-                ? salvage + "% salvage rights / negotiated terms"
-                : payment > 0 ? "Payable on successful completion" : "Operation without a cash reward");
+                ? Strings.format("briefingVmSalvageTerms", salvage)
+                : Strings.get(payment > 0 ? "briefingVmPayableOnSuccess" : "briefingVmNoCashReward"));
     }
 
     static void putSurvey(Map<String, Object> props, BriefingSurvey map, String pending) {
         props.put("surveyMap", map);
-        props.put("surveyStatus", map == null ? pending : "Terrain confirmed / deployment area prepared");
-        props.put("surveyDetails", map == null ? "Locating objectives and insertion points"
-                : (map.lanes().isEmpty() ? "Direct insertion" : map.lanes().size() + " approach lanes")
-                        + " / objectives marked in amber");
+        props.put("surveyStatus", map == null ? pending : Strings.get("briefingVmSurveyConfirmed"));
+        props.put("surveyDetails", map == null ? Strings.get("briefingVmSurveyLocating")
+                : map.lanes().isEmpty() ? Strings.get("briefingVmSurveyDirect")
+                : Strings.format("briefingVmSurveyLanes", map.lanes().size()));
         List<InfoRow> rows = new ArrayList<>();
         if (map != null) {
             int i = 0;
@@ -310,25 +312,27 @@ final class BriefingViewModel {
     /** The recommendation meter is advisory; deployment eligibility remains screen-owned. */
     static void putForceComparison(Map<String, Object> props, OperationTier tier, RiskLevel risk,
                                    int selected, int recommended) {
-        props.put("operationScale", tier.displayName);
-        props.put("operationRisk", risk.name() + " RISK");
+        String tierName = Strings.get("missionSelectTier" + tier.name());
+        String riskName = Strings.get(risk.displayKey);
+        props.put("operationScale", tierName);
+        props.put("operationRisk", Strings.upper(Strings.format("briefingVmRiskLabel", riskName)));
         props.put("scaleIndicators", indicators("scale", tier.ordinal() + 1, 5, "chevron"));
         props.put("riskIndicators", indicators("risk", risk.ordinal() + 1, 3, "skull"));
         props.put("forceSelected", String.format(Strings.locale(), "%,d", selected));
-        props.put("forceRecommended", String.format(Strings.locale(), "%,d recommended", recommended));
+        props.put("forceRecommended", Strings.format("briefingVmRecommended", recommended));
         int filled = recommended > 0 ? (int) Math.min(10, (long) selected * 10 / recommended) : 0;
         props.put("forceSegments", indicators("force", filled, 10, ""));
-        props.put("forceAssessment", selected >= recommended ? "Recommendation met" : "Below recommended strength");
+        props.put("forceAssessment", Strings.get(selected >= recommended ? "briefingVmRecommendationMet" : "briefingVmBelowRecommended"));
         props.put("forceAssessmentClasses", "label " + (selected >= recommended ? "tone-good" : "tone-accent"));
-        props.put("forceComparisonHint", new SpecSheet("Force commitment", "Personnel recommendation",
+        props.put("forceComparisonHint", new SpecSheet(Strings.get("briefingVmForceHintTitle"), Strings.get("briefingVmForceHintSubtitle"),
                 "graphics/ui/briefing/infantry.svg", "command", List.of(), List.of(
-                selected + " selected ready marines / " + recommended + " recommended.",
-                "The meter compares personnel only. Experience, equipment, officers, and support still matter.",
-                "A recommendation is not a launch requirement or a prediction of victory.")));
-        props.put("missionThreatHint", new SpecSheet("Operation profile", tier.displayName, null,
-                "command", List.of(), List.of("Chevrons show operation scale: " + tier.displayName + ".",
-                "Skulls show risk within that scale: " + risk.name().toLowerCase(Strings.locale()) + ".",
-                "Risk describes uncertainty and defender quality; it does not replace operation scale.")));
+                Strings.format("briefingVmForceHintSelected", selected, recommended),
+                Strings.get("briefingVmForceHintMeter"),
+                Strings.get("briefingVmForceHintNotRequirement"))));
+        props.put("missionThreatHint", new SpecSheet(Strings.get("briefingVmThreatHintTitle"), tierName, null,
+                "command", List.of(), List.of(Strings.format("briefingVmThreatHintScale", tierName),
+                Strings.format("briefingVmThreatHintRisk", riskName.toLowerCase(Strings.locale())),
+                Strings.get("briefingVmThreatHintNote"))));
     }
 
     private static List<Indicator> indicators(String prefix, int filled, int total, String symbol) {
@@ -370,29 +374,27 @@ final class BriefingViewModel {
         String tone = "tone-good";
         String note;
         if (mission.marineArrivalPolicy == MarineArrivalPolicy.SECURED_GROUND) {
-            title = "Company already ashore";
-            capacity = selectedPersonnel + " selected ready marines";
-            schedule = OpeningOperationKind.fromMission(mission) == OpeningOperationKind.RELIEF
-                    ? "Off Wayline's truck at the rear apron / no insertion flights"
-                    : "Secured receiving apron / no insertion flights";
-            note = boats.isEmpty() ? "Boats are optional for this ground mobilization."
-                    : boats.size() + " fitted company boats remain in reserve; no inbound passengers.";
+            title = Strings.get("briefingVmAshoreTitle");
+            capacity = Strings.format("briefingVmAshoreCapacity", selectedPersonnel);
+            schedule = Strings.get(OpeningOperationKind.fromMission(mission) == OpeningOperationKind.RELIEF
+                    ? "briefingVmAshoreScheduleRelief" : "briefingVmAshoreSchedule");
+            note = boats.isEmpty() ? Strings.get("briefingVmAshoreBoatsOptional")
+                    : Strings.format("briefingVmAshoreBoatsReserve", boats.size());
         } else if (local) {
-            title = "Local lifts";
-            capacity = "Stationed detachment";
-            schedule = "No company boats committed";
-            note = "This detachment is already stationed here and uses local lift.";
+            title = Strings.get("briefingVmLocalTitle");
+            capacity = Strings.get("briefingVmLocalCapacity");
+            schedule = Strings.get("briefingVmLocalSchedule");
+            note = Strings.get("briefingVmLocalNote");
         } else if (boats.isEmpty()) {
-            title = "No boats aboard";
-            capacity = "0 available";
+            title = Strings.get("briefingVmNoBoatsTitle");
+            capacity = Strings.get("briefingVmNoBoatsCapacity");
             boolean employerOnly = DetachmentResolver.hasRequiredTransport(mission, boats);
-            schedule = employerOnly ? "Employer lift provided" : "Company lift unavailable";
+            schedule = Strings.get(employerOnly ? "briefingVmEmployerLift" : "briefingVmCompanyLiftUnavailable");
             tone = employerOnly ? "tone-muted" : "tone-danger";
             boolean firstFerry = mission.source == MissionSource.STORY
                     && OpeningOperationKind.fromMission(mission) == OpeningOperationKind.COUNTERATTACK;
-            note = employerOnly ? "Employer-provided craft supply this operation's lift."
-                    : firstFerry ? "The depot is the company's first ferry job. Repair our first Hermes on the Boat Deck."
-                    : "The company needs at least one boat aboard its host ship to deploy.";
+            note = Strings.get(employerOnly ? "briefingVmNoteEmployerCraft"
+                    : firstFerry ? "briefingVmNoteFirstFerry" : "briefingVmNoteNeedBoat");
         } else {
             ShuttleType type = boats.get(0).pattern();
             List<FittedBoat> seated = DetachmentResolver.seatedBoats(boats);
@@ -403,20 +405,20 @@ final class BriefingViewModel {
             int trips = player.stream().mapToInt(assignment -> assignment.cycles).sum();
             title = type.displayName();
             image = type.spritePath;
-            capacity = seated.size() + " available  ·  "
-                    + mission.marineArrivalPolicy.seatsPerSortie(type) + " seats / boat trip";
-            schedule = trips + (trips == 1 ? " boat trip planned" : " boat trips planned");
-            note = player.size() + " of " + seated.size() + " available boats assigned. "
-                    + "Each trip is one boat landing; boats return and repeat as needed. "
-                    + "Employer trips are listed separately.";
+            capacity = Strings.join("separatorDot",
+                    Strings.format("briefingVmBoatsAvailable", seated.size()),
+                    Strings.format("briefingVmSeatsPerTrip", mission.marineArrivalPolicy.seatsPerSortie(type)));
+            schedule = Strings.format("briefingVmTripsPlanned", trips);
+            note = Strings.format("briefingVmBoatsAssigned", player.size(), seated.size());
             String cradled = LiftReadout.cradledNote(boats);
             if (cradled != null) {
-                note = note + " " + cradled;
+                note = Strings.format("briefingVmNoteWithCradled", note, cradled);
                 if (seated.isEmpty()) tone = "tone-danger";
             }
         }
-        String origin = local ? "Local support" : debug ? "DEBUG override"
-                : carrier == null ? "Company ship" : "Aboard " + carrier;
+        String origin = local ? Strings.get("briefingVmOriginLocal") : debug ? Strings.get("briefingVmOriginDebug")
+                : carrier == null ? Strings.get("briefingVmOriginCompanyShip")
+                : Strings.format("briefingVmOriginAboard", carrier);
         props.put("landingCraftTitle", title);
         props.put("landingCraftCapacity", capacity);
         props.put("landingCraftSchedule", schedule);
@@ -424,21 +426,19 @@ final class BriefingViewModel {
         props.put("landingCraftImage", image);
         props.put("landingCraftImageStyle", image == null ? "width: 0px;" : "width: 48px;");
         props.put("landingCraftScheduleClasses", "label landing-craft-line " + tone);
-        props.put("landingCraftHint", new SpecSheet(title, "Landing craft", image, "command", List.of(),
-                List.of(capacity, schedule, origin, note, local ? "Fleet boats remain aboard their ship."
-                        : debug ? "Type and count come from the debug picker."
-                        : "Boat type and berths come from the company ship. The Boat Deck retains losses and fittings.")));
+        props.put("landingCraftHint", new SpecSheet(title, Strings.get("briefingVmLandingCraftSubtitle"), image, "command", List.of(),
+                List.of(capacity, schedule, origin, note, Strings.get(local ? "briefingVmHintLocal"
+                        : debug ? "briefingVmHintDebug" : "briefingVmHintCompany"))));
     }
 
     static void putLeadership(Map<String, Object> props, boolean conquest, boolean stationed) {
-        props.put("captainHeader", stationed ? "Stationed Officer" : "Operation Commander / Optional");
-        props.put("captainRoleSummary", stationed
-                ? "Leads the force assigned to this posting."
-                : "Takes squads without a home officer, up to rank capacity. Other officers keep their groups.");
-        props.put("groupCommandHeading", conquest ? "FIELD COMMAND / CONQUEST" : "FIELD LEADERSHIP");
-        props.put("groupCommandSummary", conquest
-                ? "Officers coordinate their squads' advance, regrouping and objective changes. Acting NCOs lead one squad independently."
-                : "Home officers lead their assigned squads. Acting NCOs lead squads without an available officer.");
+        props.put("captainHeader", Strings.get(stationed ? "briefingVmCaptainStationed" : "briefingVmCaptainOptional"));
+        props.put("captainRoleSummary", Strings.get(stationed
+                ? "briefingVmCaptainStationedSummary" : "briefingVmCaptainOptionalSummary"));
+        props.put("groupCommandHeading", Strings.get(conquest
+                ? "briefingVmGroupHeadingConquest" : "briefingVmGroupHeading"));
+        props.put("groupCommandSummary", Strings.get(conquest
+                ? "briefingVmGroupSummaryConquest" : "briefingVmGroupSummary"));
     }
 
     static void putFactionIdentity(Map<String, Object> props, String role, String name, String crest) {
@@ -452,7 +452,7 @@ final class BriefingViewModel {
         props.put("termActionsStyle", ((List<?>) props.getOrDefault("termActions", List.of())).isEmpty()
                 ? "height: 0px; overflow: hidden" : "height: 100px");
         boolean hasCarriers = !((List<?>) props.getOrDefault("carrierRows", List.of())).isEmpty();
-        props.put("carrierEmpty", hasCarriers ? "" : "No fighter cover");
+        props.put("carrierEmpty", hasCarriers ? "" : Strings.get("briefingVmNoFighterCover"));
         props.put("carrierEmptyStyle", hasCarriers ? "height: 0px; padding: 0px;" : "height: 20px;");
         boolean hasForceCards = !((List<?>) props.getOrDefault("taskForceRows", List.of())).isEmpty();
         int cards = ((List<?>) props.getOrDefault("taskForceRows", List.of())).size();
@@ -516,14 +516,15 @@ final class BriefingViewModel {
                                String tone, boolean namedOfficer) {
         return new ForceCard("briefing-info-" + key, name, detail, portrait,
                 "label force-card-detail " + tone, namedOfficer,
-                namedOfficer ? "SUB-COMMANDER" : "ACTING NCO");
+                Strings.get(namedOfficer ? "briefingVmRoleSubCommander" : "briefingVmRoleActingNco"));
     }
 
     record ForceCard(String id, String name, String detail, String portrait, String detailClasses,
                      boolean namedOfficer, String role)
             implements MarkupPropertySource {
         ForceCard asOperationCommander() {
-            return new ForceCard(id, name, detail, portrait, detailClasses, namedOfficer, "OP COMMANDER");
+            return new ForceCard(id, name, detail, portrait, detailClasses, namedOfficer,
+                    Strings.get("briefingVmRoleOpCommander"));
         }
         @Override public Object markupProperty(String property) {
             return switch (property) {
@@ -532,7 +533,7 @@ final class BriefingViewModel {
                 case "copyId" -> id + "-copy"; case "portraitId" -> id + "-portrait";
                 case "roleId" -> id + "-role"; case "role" -> role;
                 case "roleClasses" -> "label heading force-card-role "
-                        + ("OP COMMANDER".equals(role) ? "tone-accent" : "tone-muted");
+                        + (Strings.get("briefingVmRoleOpCommander").equals(role) ? "tone-accent" : "tone-muted");
                 case "name" -> name; case "detail" -> detail; case "portrait" -> portrait;
                 case "detailClasses" -> detailClasses;
                 case "portraitClasses" -> "force-card-portrait console-well"
