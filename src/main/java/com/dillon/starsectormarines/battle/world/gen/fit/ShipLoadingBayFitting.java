@@ -27,10 +27,12 @@ public final class ShipLoadingBayFitting implements RoomFitting {
         reserve(floor,w-1,0,1,h); reserve(floor,w-4,0,1,h);
         for (Doorway door : floor.localDoors()) floor.reserveLane(door.x()-1,door.y()-1,3,3);
 
-        if (floor.placeAssembly(4,1,KIT+"manifest-desk",List.of()))
-            task(floor,5,3,5,2,Affordance.READOUT);
+        // The desk and the tug are worked on their bottom edge (a sprite's top edge lies at its footprint's highest
+        // row): the clerk sits on the row below the desk facing the hold, and the tug's tiller faces the aisle.
+        if (floor.placeAssembly(4,2,KIT+"manifest-desk",List.of()))
+            task(floor,5,1,5,2,Affordance.READOUT);
         if (floor.placeAssembly(4,h-4,KIT+"pallet-tug",List.of()))
-            task(floor,3,h-3,4,h-3,Affordance.TEND);
+            task(floor,4,h-5,4,h-4,Affordance.TEND);
         if (floor.placeAssembly(7,h-3,KIT+"conveyor",List.of())) {
             task(floor,8,h-4,8,h-3,Affordance.STOW);
             task(floor,11,h-4,11,h-3,Affordance.REPAIR);
