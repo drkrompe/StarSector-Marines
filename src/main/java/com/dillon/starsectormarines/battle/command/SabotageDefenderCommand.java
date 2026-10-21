@@ -52,6 +52,7 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
 
     @Override public Faction faction() { return Faction.DEFENDER; }
     @Override public String strategyId() { return "sabotage-defender"; }
+    @Override public void afterCommit(CommandEffects effects) { garrisons.afterCommit(effects, faction()); }
     @Override public Map<String, Integer> reactiveDefenceFigures() { return ReactiveDefenceSource.figures(garrisons.stats()); }
 
     @Override
@@ -177,8 +178,8 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
                 if (was == null) continue;
                 directives.put(m.squadId(), new SquadDirective(m.squadId(),
                         was.siteIndex(), was.role(),
-                        Reason.valueOf(m.kind().reason()), m.order().kind(),
-                        m.order().targetCellX(), m.order().targetCellY()));
+                        Reason.valueOf(m.kind().reason()), m.assignmentKind(),
+                        m.cellX(), m.cellY()));
             }
         }
         int reserve = candidates.size() - selected.size();

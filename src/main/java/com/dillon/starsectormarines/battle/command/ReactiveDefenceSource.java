@@ -4,14 +4,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * A mission defender commander that mans garrisonables reactively (`garrisonables.md`, Beyond Conquest), as evidence
+ * A mission defender commander that mans garrisonables reactively (`garrisonables.md`, mission defenders), as evidence
  * reads it: running totals over the battle so far.
  */
 public interface ReactiveDefenceSource {
 
     /**
      * Pulses planned, manning orders, releases, fall backs, rooms holds, shifts, holder-pulses, the most squads holding
-     * at once and the distinct places manned, by name.
+     * at once, the distinct places manned, and machine guards attached, stood down and at most at once, by name.
      */
     Map<String, Integer> reactiveDefenceFigures();
 
@@ -27,6 +27,9 @@ public interface ReactiveDefenceSource {
         out.put("holderPulses", stats.holderPulses);
         out.put("peakHolders", stats.peakHolders);
         out.put("placesManned", stats.distinctPlaces());
+        out.put("guardAttaches", stats.guardAttaches);
+        out.put("guardStandDowns", stats.guardStandDowns);
+        out.put("peakGuards", stats.peakGuards);
         return out;
     }
 }

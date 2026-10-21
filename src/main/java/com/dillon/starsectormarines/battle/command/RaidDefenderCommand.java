@@ -36,6 +36,7 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
     public RaidCommandSnapshot raidSnapshot() { return raidSnapshot; }
     @Override public Faction faction() { return Faction.DEFENDER; }
     @Override public String strategyId() { return "raid-defender"; }
+    @Override public void afterCommit(CommandEffects effects) { garrisons.afterCommit(effects, faction()); }
     @Override public Map<String, Integer> reactiveDefenceFigures() { return ReactiveDefenceSource.figures(garrisons.stats()); }
 
     @Override
@@ -107,8 +108,8 @@ public final class RaidDefenderCommand implements AutonomousMissionCommand<
                 MissionGarrisons.Manning m = manning.get(intent.squadId());
                 if (m == null) continue;
                 intents.set(i, new SquadIntent(intent.squadId(), intent.role(),
-                        m.kind().reason(), m.order().kind(),
-                        m.order().targetCellX(), m.order().targetCellY()));
+                        m.kind().reason(), m.assignmentKind(),
+                        m.cellX(), m.cellY()));
             }
         }
         String phase = facts.targetSecured() ? "TARGET_LOST"

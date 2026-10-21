@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.assault.AssaultTarget;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -8,6 +9,9 @@ import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.infantry.ApertureHold;
+import com.dillon.starsectormarines.battle.mech.MechMoveOrderService.ActiveOrder;
+import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
@@ -41,7 +45,7 @@ import java.util.TreeSet;
 import java.util.function.Supplier;
 
 /**
- * Mission defenders man garrisonables reactively (`garrisonables.md`, Beyond Conquest): on the production map of a
+ * Mission defenders man garrisonables reactively (`garrisonables.md`, mission defenders): on the production map of a
  * Raid and of an Assault, the mission's own defender commander — {@link RaidDefenderCommand},
  * {@link AssaultDefenderCommand} — is given three mobile squads beside a held place's building, and a party of marines,
  * too tough to be shot down so the question stays about command, is set down in front of it and later walks away.
@@ -65,14 +69,18 @@ public final class MissionDefenceScene implements BehaviorScene {
     private static final float TOUGH = 1_000_000f;
     private static final int MIN_POSTS = 4;
 
-    private record Mission(String loop, Supplier<BattleSimulation> build) {}
+    private static final int LANCES = 2;
+
+    /** {@code lances}: the pool also holds {@link #LANCES} Sirocco lances, offered to guard what the commander mans. */
+    private record Mission(String loop, Supplier<BattleSimulation> build, boolean lances) {}
 
     private static List<Mission> missions() {
         List<ShuttleAssignment> lift = List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 2, 6),
                 new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 2, 6));
         return List.of(
-                new Mission("raid", () -> BattleSetup.createRaid(15311)),
-                new Mission("assault", () -> BattleSetup.createPlaceholder(15312, lift)));
+                new Mission("raid", () -> BattleSetup.createRaid(15311), false),
+                new Mission("assault", () -> BattleSetup.createPlaceholder(15312, lift), false),
+                new Mission("raid-lances", () -> BattleSetup.createRaid(15311), true));
     }
 
     @Override public String id() { return "mission-defence"; }
@@ -133,6 +141,12 @@ public final class MissionDefenceScene implements BehaviorScene {
                 builder.squad("defenders-" + i).faction(Faction.DEFENDER).type(UnitType.MILITIA).size(SQUAD_SIZE)
                         .at(at[0] + 2 * (i % 2), at[1] + (i / 2)).primary("weapon.smg").health(TOUGH).done();
             }
+            if (mission.lances()) {
+                for (int i = 0; i < LANCES; i++) {
+                    builder.squad("lance-" + i).faction(Faction.DEFENDER).size(1).at(back[0] + 4 * i, back[1] + 3)
+                            .mech(MechVariant.SIROCCO, MechRole.BALANCED).done();
+                }
+            }
             // The party waits at the far corner until it is set down in front of the building.
             builder.squad("party").faction(Faction.MARINE).size(RAIDERS).at(farMarine[0], farMarine[1] - 3)
                     .primary("weapon.smg").health(TOUGH).stationary().done();
@@ -142,6 +156,11 @@ public final class MissionDefenceScene implements BehaviorScene {
             sim.random().setSeed(20261020L);
             Set<Integer> pool = new TreeSet<>();
             for (int i = 0; i < SQUADS; i++) pool.add(world.squadId("defenders-" + i));
+            int[] lanceIds = new int[mission.lances() ? LANCES : 0];
+            for (int i = 0; i < lanceIds.length; i++) {
+                lanceIds[i] = world.squadId("lance-" + i);
+                pool.add(lanceIds[i]);
+            }
             String strategy;
             if (raid != null) {
                 sim.addObjective(new RaidObjective(raid.targetId(), raid.targetName(), raid.targetCellX(),
@@ -171,12 +190,14 @@ public final class MissionDefenceScene implements BehaviorScene {
                     s.world().setCellPos(raiders[i], farMarine[0] + (i % 2), farMarine[1] - 3 + (i / 2));
                 }
             });
-            Trace trace = new Trace(pool, chosen, strategy);
+            Trace trace = new Trace(pool, lanceIds, chosen, strategy);
             SceneRun.of(world).player(player).observe(trace)
                     .frames(frames, mission.loop(), 60, tick -> String.format(Locale.ROOT, "%s / tick %d / %s",
                             mission.loop(), tick, trace.caption()))
                     .run(TICKS);
-            return report(mission.loop(), trace, chosen, offered.size(centre));
+            int peakGuards = sim.getCommander(Faction.DEFENDER) instanceof ReactiveDefenceSource figures
+                    ? figures.reactiveDefenceFigures().getOrDefault("peakGuards", 0) : 0;
+            return report(mission.loop(), trace, chosen, offered.size(centre), lanceIds.length, peakGuards);
         }
     }
 
@@ -203,7 +224,7 @@ public final class MissionDefenceScene implements BehaviorScene {
         return best;
     }
 
-    private SceneReport report(String loop, Trace t, TacticalNode chosen, int posts) {
+    private SceneReport report(String loop, Trace t, TacticalNode chosen, int posts, int lances, int peakGuards) {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("envelope-offered", t.envelope >= 0,
                 "the " + chosen.kind + " at " + chosen.anchorX + "," + chosen.anchorY + " offers " + posts + " posts"));
@@ -220,6 +241,25 @@ public final class MissionDefenceScene implements BehaviorScene {
                 "the party left at tick " + LEAVE_TICK + ", belief on the building cooled at tick " + t.coolTick
                         + ", the building was given back at tick " + t.releaseTick + " (bound " + RELEASE_BOUND_TICKS
                         + ")"));
+        if (lances > 0) {
+            int cap = MachineGuardDirector.cap(lances);
+            verdicts.add(Verdict.of("guards-within-the-bound", t.maxGuarding <= cap && peakGuards <= cap,
+                    "most lances on guard at once " + t.maxGuarding + " (the commander counted " + peakGuards
+                            + "), bound " + cap + " of " + lances));
+            verdicts.add(Verdict.of("lance-guards-the-manned-building",
+                    t.firstManTick >= 0 && t.firstGuardTick >= t.firstManTick
+                            && t.firstGuardTick - t.firstManTick <= MAN_BOUND_TICKS,
+                    "the building was first manned at tick " + t.firstManTick + ", a lance first ordered to guard it at "
+                            + "tick " + t.firstGuardTick + " (bound " + MAN_BOUND_TICKS + ")"));
+            verdicts.add(Verdict.of("guard-stands-outside", t.guardCellsInside == 0 && t.minGuardGap >= 1,
+                    t.guardCellsInside + " guard cells inside the building; nearest guard cell " + t.minGuardGap
+                            + " cells off it"));
+            if (t.releaseTick >= 0) {
+                verdicts.add(Verdict.of("guard-stands-down-with-the-garrison",
+                        t.guardDownTick >= 0 && t.guardDownTick - t.releaseTick <= RELEASE_BOUND_TICKS,
+                        "given back at tick " + t.releaseTick + ", the last guard stood down at tick " + t.guardDownTick));
+            }
+        }
         Map<String, Number> metrics = new LinkedHashMap<>();
         metrics.put("posts", posts);
         metrics.put("pressedTick", t.hotTick);
@@ -228,11 +268,17 @@ public final class MissionDefenceScene implements BehaviorScene {
         metrics.put("maxHolding", t.maxHolding);
         metrics.put("coolTick", t.coolTick);
         metrics.put("releaseTick", t.releaseTick);
+        if (lances > 0) {
+            metrics.put("firstGuardTick", t.firstGuardTick);
+            metrics.put("maxGuarding", t.maxGuarding);
+            metrics.put("guardDownTick", t.guardDownTick);
+        }
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
     }
 
     private static final class Trace implements TickObserver {
         final Set<Integer> pool;
+        final int[] lances;
         final TacticalNode chosen;
         final String strategy;
         int envelope = -1;
@@ -242,10 +288,16 @@ public final class MissionDefenceScene implements BehaviorScene {
         int coolTick = -1;
         int releaseTick = -1;
         int maxHolding;
+        int firstGuardTick = -1;
+        int guardDownTick = -1;
+        int maxGuarding;
+        int guardCellsInside;
+        int minGuardGap = Integer.MAX_VALUE;
         private String state = "";
 
-        Trace(Set<Integer> pool, TacticalNode chosen, String strategy) {
+        Trace(Set<Integer> pool, int[] lances, TacticalNode chosen, String strategy) {
             this.pool = pool;
+            this.lances = lances;
             this.chosen = chosen;
             this.strategy = strategy;
         }
@@ -276,6 +328,24 @@ public final class MissionDefenceScene implements BehaviorScene {
             if (holding > 0 && firstManTick < 0) firstManTick = tick;
             if (holding == 0 && firstManTick >= 0 && tick >= LEAVE_TICK && releaseTick < 0) releaseTick = tick;
             maxHolding = Math.max(maxHolding, holding);
+            int guarding = 0;
+            for (int lance : lances) {
+                boolean any = false;
+                for (int i = 0, n = sim.squadMemberCount(lance); i < n; i++) {
+                    long mech = sim.squadMemberAt(lance, i);
+                    ActiveOrder guard = sim.getMechMoveOrderService().activeOrder(mech);
+                    if (guard == null || guard.guard() == null || !guard.commanded()) continue;
+                    AssaultTarget target = guard.guard().target();
+                    if (target.kind() != AssaultTarget.Kind.HELD_PLACE) continue;
+                    any = true;
+                    minGuardGap = Math.min(minGuardGap, target.gap(guard.destinationX(), guard.destinationY()));
+                    if (target.contains(guard.destinationX(), guard.destinationY())) guardCellsInside++;
+                }
+                if (any) guarding++;
+            }
+            if (guarding > 0 && firstGuardTick < 0) firstGuardTick = tick;
+            if (guarding == 0 && firstGuardTick >= 0 && releaseTick >= 0 && guardDownTick < 0) guardDownTick = tick;
+            maxGuarding = Math.max(maxGuarding, guarding);
             state = holding > 0 ? holding + " holding the " + chosen.kind : "pool on its duties";
         }
 

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 
@@ -18,7 +19,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
- * Reactive manning for a mission defender commander (`garrisonables.md`, Beyond Conquest): the Raid, Assault,
+ * Reactive manning for a mission defender commander (`garrisonables.md`, mission defenders): the Raid, Assault,
  * Sabotage and Extraction defenders man the garrisonables of their maps — building envelopes, fighting-position
  * stretches, compound aprons — in answer to their own believed pressure, through the same side-neutral assignment tier
  * Conquest's defender uses ({@link GarrisonDirector}) and under its laws.
@@ -80,14 +81,24 @@ final class MissionGarrisons {
         /** Driven off a place into the next layer in: the envelope behind an apron. */
         FALL_BACK,
         /** Driven out of an envelope, or still holding, its building's rooms. */
-        ROOMS;
+        ROOMS,
+        /** A lance standing guard beside a place its side mans: no mission order, the guard is given after commit. */
+        GUARD;
 
         /** The proposal and directive reason a commander publishes for it. */
         String reason() { return "GARRISONABLE_" + name(); }
     }
 
     /** One squad's order from this planner. */
-    record Manning(int squadId, Kind kind, ObjectiveAssignment order, int place) { }
+    record Manning(int squadId, Kind kind, ObjectiveAssignment order, int place, int cellX, int cellY) {
+        /** A squad's manning order, at the order's own cell. */
+        Manning(int squadId, Kind kind, ObjectiveAssignment order, int place) {
+            this(squadId, kind, order, place, order.targetCellX(), order.targetCellY());
+        }
+
+        /** The kind of the order it carries, or {@code null} for a guard, which carries none. */
+        AssignmentKind assignmentKind() { return order == null ? null : order.kind(); }
+    }
 
     /** Running totals over a battle; for evidence. */
     static final class Stats {
@@ -99,6 +110,9 @@ final class MissionGarrisons {
         int shifts;
         int holderPulses;
         int peakHolders;
+        int guardAttaches;
+        int guardStandDowns;
+        int peakGuards;
         final Set<Integer> placesManned = new TreeSet<>();
 
         int distinctPlaces() { return placesManned.size(); }
@@ -127,6 +141,9 @@ final class MissionGarrisons {
     /** Squads this planner holds a place with (or has just sent): forgotten the moment they are no longer offered. */
     private final Set<Integer> tracked = new TreeSet<>();
     private final Stats stats = new Stats();
+    private final MachineGuardDirector guards = new MachineGuardDirector();
+    private List<MachineGuardDirector.Attach> guardsToOrder = List.of();
+    private List<Integer> guardsToStandDown = List.of();
     private int[] contactScratch = new int[64];
 
     Stats stats() { return stats; }
@@ -266,7 +283,73 @@ final class MissionGarrisons {
         }
         stats.holderPulses += out.size();
         stats.peakHolders = Math.max(stats.peakHolders, out.size());
+        planGuards(squads, offers, out, ownGarrisoned, places);
         return out;
+    }
+
+    /**
+     * The machine guard's commander half for a mission defender (`garrisonables.md`, machine guard): reviews every
+     * lance on guard and stands down those whose place is no longer manned, has cooled for the dwell, or that the
+     * mission stopped offering (it took them for other work); then attaches a free lance — one the mission offers as
+     * reserve, or one already fighting near the place — to a manned, pressed place nobody guards, within
+     * {@link MachineGuardDirector}'s bounds. Guarding lances join the answer as {@link Kind#GUARD}, so the commander
+     * gives them no order of its own; the guards themselves are given in {@link #afterCommit}.
+     */
+    private void planGuards(Map<Integer, CommandSquadState> squads, Map<Integer, Offer> offers,
+                            Map<Integer, Manning> out, Set<Integer> ownGarrisoned, GarrisonableRegistry places) {
+        Set<Integer> mannedIds = new TreeSet<>(ownGarrisoned);
+        for (Manning m : out.values()) {
+            int place = m.kind() == Kind.ROOMS ? places.idAt(m.cellX(), m.cellY()) : m.place();
+            if (place >= 0) mannedIds.add(place);
+        }
+        List<MachineGuardDirector.Place> manned = MachineGuardDirector.manned(mannedIds, director.hotPlaces(), places);
+        Map<Integer, MachineGuardDirector.Machine> guarding = new TreeMap<>();
+        List<MachineGuardDirector.Machine> free = new ArrayList<>();
+        int machineSquads = 0;
+        for (CommandSquadState squad : squads.values()) {
+            if (!squad.machine()) continue;
+            machineSquads++;
+            Offer offer = offers.get(squad.squadId());
+            if (offer == null || !offer.roving()) continue;
+            MachineGuardDirector.Machine machine = new MachineGuardDirector.Machine(squad.squadId(),
+                    squad.anchorCellX(), squad.anchorCellY(), squad.aliveMembers(), squad.originalMembers(),
+                    squad.localContact());
+            if (guards.holds(squad.squadId())) guarding.put(squad.squadId(), machine);
+            else free.add(machine);
+        }
+        List<Integer> down = guards.review(guarding, manned, places::idAt);
+        stats.guardStandDowns += down.size();
+        List<MachineGuardDirector.Attach> sent = guards.attach(free, manned, machineSquads, places::idAt);
+        stats.guardAttaches += sent.size();
+        for (Map.Entry<Integer, MachineGuardDirector.Machine> entry : guarding.entrySet()) {
+            int id = entry.getKey();
+            if (!guards.holds(id)) continue;
+            out.put(id, new Manning(id, Kind.GUARD, null, -1, entry.getValue().x(), entry.getValue().y()));
+        }
+        for (MachineGuardDirector.Attach attach : sent) {
+            out.put(attach.squadId(), new Manning(attach.squadId(), Kind.GUARD, null, attach.garrisonable(),
+                    attach.cellX(), attach.cellY()));
+        }
+        stats.peakGuards = Math.max(stats.peakGuards, guards.count());
+        guardsToOrder = sent;
+        guardsToStandDown = down;
+    }
+
+    /** Gives the guards this pulse attached and stands down the ones it ended; call from the commander's afterCommit. */
+    void afterCommit(CommandEffects effects, Faction side) {
+        for (int squadId : guardsToStandDown) effects.standDownGuard(squadId);
+        for (MachineGuardDirector.Attach attach : guardsToOrder) {
+            if (effects.guardPlace(side, attach.squadId(), attach.cellX(), attach.cellY()) == 0) {
+                guards.forget(attach.squadId());
+            }
+        }
+        guardsToOrder = List.of();
+        guardsToStandDown = List.of();
+    }
+
+    /** Lances on guard by a manned place; for tests and evidence. */
+    int guardCount() {
+        return guards.count();
     }
 
     /**
@@ -297,6 +380,11 @@ final class MissionGarrisons {
     private static CommandProposal proposalFor(Manning manning, CommandSquadState squad) {
         ObjectiveAssignment current = squad == null ? null
                 : squad.directive() != null ? squad.directive().assignment() : squad.assignment();
+        if (manning.kind() == Kind.GUARD) {
+            // The lance holds no mission order while it guards: its guard is the machine tier's.
+            return CommandProposal.claim(manning.squadId(), CommandAuthority.MISSION_COMMAND, manning.kind().reason(),
+                    current == null ? CommandStabilityBreak.NONE : CommandStabilityBreak.CONTEXT_INVALIDATED);
+        }
         boolean same = Objects.equals(current, manning.order());
         return CommandProposal.assign(manning.order(), CommandAuthority.MISSION_COMMAND, manning.kind().reason(),
                 same ? CommandStabilityBreak.NONE : CommandStabilityBreak.CONTEXT_INVALIDATED);

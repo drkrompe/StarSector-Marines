@@ -32,7 +32,8 @@ public record SabotageDefenseSnapshot(
         GARRISONABLE_MAN,
         GARRISONABLE_STAND,
         GARRISONABLE_FALL_BACK,
-        GARRISONABLE_ROOMS
+        GARRISONABLE_ROOMS,
+        GARRISONABLE_GUARD
     }
 
     public record SiteState(

@@ -79,7 +79,10 @@ authored garrisons retain their posts. One patrol guards the public source and
 the rest remain an explicit reserve until the identity-free alarm mobilizes at
 most three squads. Responders use defender-local contact beliefs for
 interdiction when one is actionable; otherwise they reinforce reachable
-source-perimeter positions. Every rally cell of one pulse is distinct, whichever
+source-perimeter positions. Under believed pressure the reserve, and the guard
+and perimeter responders for a building beside their rallies, man the map's
+garrisonables (`garrisonables.md`, mission defenders); an interdicting squad
+is never offered. Every rally cell of one pulse is distinct, whichever
 centre selected it: the source guard chooses first and each later squad's search
 declines the cells already taken. Bounded source security means security spread
 around the source, and an interdiction cell derived from a contact standing near

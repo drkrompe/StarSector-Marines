@@ -73,6 +73,7 @@ public final class AssaultDefenderCommand implements AutonomousMissionCommand<
 
     @Override public Faction faction() { return Faction.DEFENDER; }
     @Override public String strategyId() { return "assault-defender"; }
+    @Override public void afterCommit(CommandEffects effects) { garrisons.afterCommit(effects, faction()); }
     @Override public Map<String, Integer> reactiveDefenceFigures() { return ReactiveDefenceSource.figures(garrisons.stats()); }
     public AssaultDefenseSnapshot defenseSnapshot() { return defenseSnapshot; }
 
@@ -249,8 +250,8 @@ public final class AssaultDefenderCommand implements AutonomousMissionCommand<
                 // The role stays: it is what the next pulse's routine and response memory is read from.
                 directives.put(m.squadId(), new SquadDirective(m.squadId(),
                         was.areaIndex(), was.role(),
-                        Reason.valueOf(m.kind().reason()), m.order().kind(),
-                        m.order().targetCellX(), m.order().targetCellY()));
+                        Reason.valueOf(m.kind().reason()), m.assignmentKind(),
+                        m.cellX(), m.cellY()));
             }
         }
         int reserveCount = (int) reserve.stream()

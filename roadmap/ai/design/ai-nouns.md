@@ -2227,6 +2227,17 @@ pool at once, and never in the convergence phases. Only a believed mover, not a
 nest left standing, presses taken ground (`garrisonables.md`, holding taken
 ground; scene `attacker-holds-ground`).
 
+The Raid, Assault, Sabotage and Extraction defenders man their maps' places by
+the same assignment (`MissionGarrisons`; `garrisonables.md`, mission
+defenders). The mission commander decides its own duties first and then
+offers squads: its held reserve as roving, a squad on a stationary mission
+post only for a place beside that post, so the post is held from a window
+rather than given up. A squad in a fight is offered only the cover beside it,
+and a squad the mission takes back is forgotten at once: the mission outranks
+the place. Authored garrisons, chasers and the alarm's own mobilization are
+never touched, and a free lance of the reserve guards what the defender mans
+within the machine guard's bounds (scene `mission-defence`).
+
 **What it pays is composure and reach, never protection.** Cover already
 reduces damage and stops rounds, and the cells of a position already carry it;
 a dug-in damage bonus would count the same ground twice. (A trench covers the
