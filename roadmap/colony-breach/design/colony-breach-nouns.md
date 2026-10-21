@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-21 — breach clock, eruption sites and the colony map as built by the mission spine.
+
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
 fixture lineage and Marine rescue commander, with a colony worth fighting
@@ -63,6 +65,17 @@ precinct plan rather than the stock city. About 400x240 cells. Places in the
 colony are where bores erupt, so the precinct layout is gameplay, not set
 dressing.
 
+The colony is the campaign's high-risk rescue. It is laid out rather than
+derived from the event's market — a town at the centre, a working
+installation (depot character) to one side and a dormitory suburb to the
+other, the side seeded — because the colony is the same kind of place whatever
+world the event names, and a rescue fixture has no market to derive from. Its
+map is mission-owned (`MapScale.COLONY`, 400x240) and must contain a
+residential shelter, a clear lift footprint and enough buildings for the
+eruption sites; a map that lacks any re-rolls the seed. Lower risks and the
+debug stress path keep their tier map and run the same breach on it, seating
+whatever eruption sites that smaller map has room for.
+
 **Colony militia.** Allied, non-player defenders who survived the first night.
 They hold a few buildings through ordinary garrison manning, crew whatever
 colony turret emplacements still work, and may run a technical or two. They
@@ -77,6 +90,32 @@ is physically down.
 **Breach.** The mission-level event of the swarm coming up through the colony.
 The breach has a shape over time (see *Flow*) driven by the **breach sequence**,
 the one story sequence the battle runs.
+
+**Breach clock.** The breach sequence's own time. It starts at the cohort's
+release: the **tremor** follows four seconds later, the first wave of
+eruptions opens over the minute after that (the first six seconds in, then
+every fifteen), and the mother bore three minutes after the tremor. The clock
+is relative to the release and nothing else, so the same colony breaks open on
+the same schedule however long the company took to reach the shelter.
+
+**Eruption site.** Where a bore will come up, chosen once at setup and fixed
+for the battle (`ColonyEruptionPlan`). A site is the open ground outside a
+colony building's door — a place, not a cell picked off the map — and is never
+inside the shelter's clearance, the lift's safe ring or a marine landing pad's
+clearance, never closer to another site than an eighth of the map's short side,
+and always on ground the swarm can walk from to the shelter. The first wave is
+four sites: up to half on the corridor between shelter and lift, one on each
+flank of it, the rest from whatever is left; the mother site is the eligible
+place furthest from the lift. The first wave is numbered in eruption order from
+1, corridor sites first; the mother is named rather than numbered. Sites and
+their scheduled ticks are published in the breach snapshot from the start, and
+each eruption as its beat, whether or not anything yet stands up on the site.
+Eruption is the seam: the sequence opens a site at its tick and hands it to the
+installed eruption handler, which is where a bore is built.
+
+**Seepage.** The thin perimeter pressure before the tremor. The swarm director
+restores only a fraction of its population floor while the colony is seeping,
+and its full floor from the tremor on.
 
 **Bore.** A physical hole in the ground that the swarm comes out of. A bore is a
 destroyable structure on a cell footprint with durability, a death cascade and
@@ -214,10 +253,18 @@ sends against a bore. Stable membership, traced like any other command role.
 The breach sequence owns the clock and the triggers; beats are what it
 publishes. Beats are presentation and evidence, never inputs to the simulation.
 
+**Built so far.** Landfall, seepage, the release, the tremor and the eruption
+schedule run, and every beat through `mother_bore_erupted` and the lift beats
+fires. Until bores exist an eruption stands nothing up and the director keeps
+spawning at the perimeter after the tremor, so the "spawning has a source" law
+is not yet in force. The lift has no countdown yet: the pickup craft comes down
+at the start of the battle and waits, so `lift_inbound` and `lift_down`
+normally fire before the shelter is reached.
+
 ## Beats
 
-All beats are prefixed `colony_breach.`. Numbered beats index bores in eruption
-order from 1. These ids are the contract between the sequence, the audio and
+All beats are prefixed `colony_breach.`. Numbered beats index first-wave bores
+in eruption order from 1; the mother bore is not numbered. These ids are the contract between the sequence, the audio and
 the evidence; change them here first.
 
 | Beat | Audience | When |
