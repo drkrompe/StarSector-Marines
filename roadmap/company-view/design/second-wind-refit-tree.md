@@ -1,8 +1,8 @@
 # Second Wind refit tree
 
-Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Ship Systems tree and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review, and each reserve is furnished and can be opened on the deck; the facility tracks that open them, their passives, Improved-tier dressing and mech passives are not.
+Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Ship Systems tree and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review, and each reserve is furnished and can be opened on the deck. Hydroponics, the wardroom, the briefing room and the holds are tracks fitted into existing rooms, with their supplies, officer-XP and cargo passives; the briefing room's plot table and holo-tank, the reserves' own passives, Improved-tier dressing and mech passives are not built.
 Written: 2026-10-20
-Updated: 2026-10-21 — the reserves are furnished at their footprints and open where they stand when the hull says so; the facility tracks still have to say it.
+Updated: 2026-10-21 — the facilities that take no new compartment are tracks; boat bay services is left out for want of a hook.
 
 The Engineering tab today sells a short list of one-off yard orders: the
 workshop chain (750 / 3,000 / 4,500), the second bay (8,000), three Mech Lab
@@ -93,6 +93,10 @@ cluster, the workshop to cut plate):
 | Flux R / I / II | Power I + Structure R / Power II + Compute I / Power II + Compute II, alpha core |
 | Sensors R / I / II | Compute R + Structure R (mast mount) / Compute I + Power I / Compute II + Power II |
 | Drive R / I / II | Power R + Structure R / Power I + Compute R (governor) / Power II + Structure R + Fabrication I |
+| Hydroponics R / I / II | Life support R + Power R (water feed, grow lights) / Power I + Life support R / Life support R + Power I + Compute I (climate control) |
+| Wardroom R / I / II | Life support R + Structure R / Compute R (war-game console) + Life support R / Compute I + Power I + Life support R |
+| Briefing room R | Compute R + Power R (the screen) |
+| Holds R / I / II | Structure R + Power R / Structure R + Fabrication R (racking) / Structure R + Fabrication I + Power I (bonded stores' climate) |
 
 Power restored, Structure restored and the mess's opening order need nothing:
 they are where a battered start begins. The table is `RefitOrder`; this is
@@ -190,7 +194,7 @@ between battles).
 | **Hydroponics** (Life support) | — | supplies upkeep −5% | −10% |
 | **Boat bay services** | — | grounded-boat recovery one day faster | deck crane: boat and Hermes material bills −15% |
 | **Mech Lab field repair** | — | damaged mechs repair between missions faster | spares rack: lost mounts refit cheaper |
-| **Holds / bonded stores** | — | more cargo via the conversion hull mod | shielded stores |
+| **Holds / bonded stores** | — | racked holds: cargo +20 via the conversion hull mod | bonded stores: cargo +40 |
 
 ### Combat refit: the hull as a fighting ship
 
@@ -289,6 +293,27 @@ deck, and their tiers dress that room:
   The owner should confirm this one; the lounge is the other candidate.
 
 Boat bay services, the Mech Lab tracks and the holds already have their rooms.
+
+These are tracks of their own with no reserve to open, so buying a tier
+changes no compartment's state. Their passives:
+
+- **Hydroponics** lowers her own supplies per month (−5%, −10%) through the
+  conversion hull mod, so the refit screen shows it under *Ship's stores*.
+- **Wardroom** scales the XP an officer earns from a mission (+15%, +30%),
+  applied after the natural-leader bonus and read when the mission resolves,
+  the way the scrubbers' wound day is. The briefing names it once it pays.
+- **Holds** wins back cargo the conversion took (+20, +40), also through the
+  hull mod.
+- **Briefing room** sells only its Restored tier. The holo-tank's intel would
+  be the defender headcount, which is decided at launch from the mission's
+  own target profile and nowhere earlier, and the plot table is a battle
+  passive no seat carries; both stay *not yet offered* until those exist.
+- **Boat bay services** is not a track yet: a boat grounded in battle has no
+  timed recovery to shorten, and the deck crane's discount needs the boat
+  bill to read the condition record.
+
+Their tiers do not yet change the room (grow racks in the provisions store,
+the screened officers' end, the plot table); that dressing is still to come.
 
 **How they are reserved.** `DeckArrangement.SECOND_WIND` lists the five as
 reserves. They are not part of `programFor`, so the general program and the

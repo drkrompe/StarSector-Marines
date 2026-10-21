@@ -16,6 +16,9 @@ class RefitBriefingLineTest {
                     .with(RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED).with(RefitTrack.MESS, RefitBand.IMPROVED_I));
             assertTrue(fixed.contains("Proper galley") && fixed.contains("15% faster"), fixed);
             assertFalse(fixed.contains("Life support"), fixed);
+            assertFalse(fixed.contains("Wardroom"), fixed);
+            String college = RefitText.briefingLine(ShipCondition.battered().with(RefitTrack.WARDROOM, RefitBand.IMPROVED_I));
+            assertTrue(college.contains("Staff college") && college.contains("15%"), college);
         }
     }
 }
