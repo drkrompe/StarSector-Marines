@@ -172,4 +172,36 @@ public enum Affordance {
             case REST, MESS, PRACTICE, WASH, UNWIND, EXERCISE -> false;
         };
     }
+
+    /**
+     * Whether this work is done with hands on the fixture, so the one doing it
+     * stands up against it rather than in the middle of the cell beside it.
+     *
+     * <p>A standing cell is a whole cell away from the fixture's centre, and a
+     * body at that cell's centre reads as somebody waiting near a console rather
+     * than somebody manning it. Work at arm's length closes in; a sentry keeps its
+     * approach, rounds and a firing lane stand off by design, and the gym and the
+     * lounge are rooms one is in rather than fixtures one works at.
+     */
+    public boolean closesOnFixture() {
+        return switch (this) {
+            case SERVICE, FABRICATE, STOW, READOUT, TREAT, WATCH, ISSUE, TEND,
+                    REPAIR, COOK, MESS, WASH, REST -> true;
+            case PRACTICE, UNWIND, EXERCISE, ROUNDS, GUARD -> false;
+        };
+    }
+
+    /**
+     * Whether the hands are out on the fixture while this work is done: a console
+     * worked, a bench used, a meal eaten. It is what puts a family's station arms
+     * in the picture. Narrower than {@link #closesOnFixture}, which a bunk and a
+     * washstand also do without anybody reaching onto them.
+     */
+    public boolean handsOnFixture() {
+        return switch (this) {
+            case SERVICE, FABRICATE, STOW, READOUT, TREAT, WATCH, ISSUE, TEND,
+                    REPAIR, COOK, MESS -> true;
+            case REST, WASH, PRACTICE, UNWIND, EXERCISE, ROUNDS, GUARD -> false;
+        };
+    }
 }

@@ -30,9 +30,11 @@ import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -383,7 +385,12 @@ final class HeadlessBattleSprites extends BattleSprites {
         return asset;
     }
 
+    @Override public List<LayeredSpriteCache> bloodPools() { return bloodPools; }
+
+    private final List<LayeredSpriteCache> bloodPools = new ArrayList<>();
+
     private void loadInfantry() throws IOException {
+        for (int pool = 0; pool < BLOOD_POOLS; pool++) bloodPools.add(layer(BLOOD_POOL_ROOT + pool + ".png"));
         LayeredSpriteCache foot = layer(
                 "graphics/battle/marine-modular-topdown/marine-foot.png");
         LayeredSpriteCache rifle = layer(INFANTRY_ROOT + "weapons/rifle.png");
@@ -452,9 +459,15 @@ final class HeadlessBattleSprites extends BattleSprites {
         loadFamily(LayeredArmorFamily.SHIP_SERVICE,
                 "graphics/battle/ship-crew-modular-topdown/service/", layer("graphics/battle/ship-crew-modular-topdown/service/foot.png"),
                 null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+        loadFamily(LayeredArmorFamily.CIVILIAN_COLONIST,
+                "graphics/battle/colonist-modular-topdown/civilian/", layer("graphics/battle/colonist-modular-topdown/civilian/foot.png"),
+                null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
         loadFamily(LayeredArmorFamily.ENGINEER,
-                "graphics/battle/colonist-modular-topdown/engineer/",
-                foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+                "graphics/battle/colonist-modular-topdown/engineer/", layer("graphics/battle/colonist-modular-topdown/engineer/foot.png"),
+                null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+        loadFamily(LayeredArmorFamily.SCIENTIST,
+                "graphics/battle/colonist-modular-topdown/scientist/", layer("graphics/battle/colonist-modular-topdown/scientist/foot.png"),
+                null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
     }
 
     private void loadFamily(LayeredArmorFamily family, String root,
@@ -501,6 +514,15 @@ final class HeadlessBattleSprites extends BattleSprites {
                             layer(system.carrierLayer().spritePath()));
                 }
             }
+        }
+        if (family.hasDownedArt()) {
+            for (int pose = 0; pose < LayeredUnitAssets.DOWNED_POSES; pose++) {
+                loaded.registerDowned(layer(root + "downed-" + pose + ".png"));
+            }
+        }
+        if (family.hasStationArms()) {
+            loaded.registerStationArms(layer(root + "station-arm-left.png"),
+                    layer(root + "station-arm-right.png"));
         }
         infantry.put(family, loaded);
     }

@@ -85,7 +85,12 @@ import java.util.Random;
  * two mech lances in its pool standing in the works' yard, and a tough raiding party put beside the gate stretch at tick 30. The commander mans the
  * stretch; the loop asserts that it attaches no more lances at once than its bound, that any guard it gives stands
  * outside the run it guards and never on it, and that a guard is attached once a run is manned under pressure (when a
- * free lance can reach it) and that the guard, sent from the yard, reaches its cell outside the works.
+ * free lance can reach it) and that the guard, sent from the yard, reaches its cell outside the works. Manning waits on
+ * belief: from inside the works nobody sees more than one or two of the party (a Sirocco sees 55 cells, a militiaman 28,
+ * and the walls stand between), so the run is first believed pressed, and manned, when the patrols sent after the one
+ * raider they did see have walked out round the works, near tick 1,200. Lances standing outside the works saw the whole
+ * party at once and the run was manned on the first pulse; {@code believedPressedTick} beside {@code mannedPressedTick}
+ * is that reading.
  *
  * <p>{@code mission-building} and {@code mission-building-commander}: the same two questions on a building of a
  * mission map rather than a fort's trench, on the Raid's production map with none of its forces. A building there is a
@@ -931,6 +936,7 @@ public final class MachineGuardScene implements BehaviorScene {
                             + trace.ticksCrossing + " ticks of the walk)"));
         }
         Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("believedPressedTick", trace.pressedTick);
         metrics.put("mannedPressedTick", trace.mannedPressedTick);
         metrics.put("firstGuardTick", trace.firstGuardTick);
         metrics.put("maxGuarding", trace.maxGuarding);
@@ -958,6 +964,8 @@ public final class MachineGuardScene implements BehaviorScene {
 
         final int run;
         float peakPressure;
+        /** The first tick the commander believed the gate run pressed at the manning level. */
+        int pressedTick = -1;
 
         DefenderTrace(SceneWorld world, int[] lances, ConquestDefenderCommand command, int run) {
             this.run = run;
@@ -974,7 +982,9 @@ public final class MachineGuardScene implements BehaviorScene {
             if (picture != null && run >= 0 && run < places.count()) {
                 int bw = places.blockWidth();
                 for (int block : places.coveredBlocks(run)) {
-                    peakPressure = Math.max(peakPressure, picture.hostileAt(block % bw, block / bw));
+                    float hostile = picture.hostileAt(block % bw, block / bw);
+                    peakPressure = Math.max(peakPressure, hostile);
+                    if (hostile >= GarrisonDirector.START_PRESSURE && pressedTick < 0) pressedTick = tick;
                 }
             }
             boolean manning = false;

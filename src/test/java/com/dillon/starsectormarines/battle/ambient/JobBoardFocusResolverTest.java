@@ -63,4 +63,33 @@ class JobBoardFocusResolverTest {
         assertEquals(8.5f, published.focusX(), 0.001f);
         assertEquals(9.5f, published.focusY(), 0.001f);
     }
+
+    @Test
+    void workAtAFixtureStandsUpAgainstItAndASentryKeepsItsCellCentre() {
+        NavigationGrid grid = new NavigationGrid(12, 12);
+        for (int y = 0; y < 12; y++) {
+            for (int x = 0; x < 12; x++) grid.setWalkableFloor(x, y);
+        }
+        TaskPointService points = new TaskPointService(grid);
+        FixtureTask console = FixtureTask.at(4, 6, Affordance.WATCH, 5, 6);
+        FixtureTask hatch = FixtureTask.at(4, 2, Affordance.GUARD, 4, 1);
+        Site bridge = new Site(9, RoomPurpose.BRIDGE, 6, 6);
+
+        JobBoard.publish(points, List.of(console, hatch), bridge, new boolean[0], ignored -> null);
+        TaskPoint watch = points.claimNearest(1L, JobBoard.group(bridge.id(), Affordance.WATCH), 0f, 0f);
+        TaskPoint guard = points.claimNearest(2L, JobBoard.group(bridge.id(), Affordance.GUARD), 0f, 0f);
+
+        assertEquals(4.5f + JobBoard.FIXTURE_LEAN_CELLS, watch.worldX(), 0.001f);
+        assertEquals(6.5f, watch.worldY(), 0.001f);
+        assertEquals(4.5f, guard.worldX(), 0.001f);
+        assertEquals(2.5f, guard.worldY(), 0.001f);
+    }
+
+    @Test
+    void aClaimGroupNamesTheJobItWasMadeFor() {
+        assertEquals(Affordance.WATCH, JobBoard.affordance(JobBoard.group(11, Affordance.WATCH)));
+        assertEquals(Affordance.SERVICE, JobBoard.affordance(JobBoard.group(4, Affordance.SERVICE, 2)));
+        assertEquals(null, JobBoard.affordance("not-a-group"));
+        assertEquals(null, JobBoard.affordance(null));
+    }
 }

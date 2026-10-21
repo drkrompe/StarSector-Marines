@@ -38,6 +38,16 @@ class CampaignSquadIndexTest {
     }
 
     @Test
+    void everyLandingOfASquadCarriesItsFrozenHullWelfare() {
+        CampaignSquadIndex index = new CampaignSquadIndex(squads::get);
+        HullWelfare welfare = new HullWelfare(1.15f, 1.03f, 1.04f, 1f);
+        CampaignSquadTag tag = new CampaignSquadTag("cs-1", "Squad 01", true, 12, 0, null, welfare);
+        assertEquals(welfare, squads.get(resolve(index, tag, 0)).hullWelfare);
+        assertEquals(welfare, squads.get(resolve(index, tag, 1)).hullWelfare);
+        assertEquals(1.15f, squads.get(resolve(index, tag, 1)).moraleRecoveryMultiplier);
+    }
+
+    @Test
     void actingNcoLateArrivalsRemainIndependentFromOtherSquads() {
         CampaignSquadIndex index = new CampaignSquadIndex(squads::get);
         CampaignSquadTag tag = new CampaignSquadTag("cs-1", "Squad 01", true, 12);

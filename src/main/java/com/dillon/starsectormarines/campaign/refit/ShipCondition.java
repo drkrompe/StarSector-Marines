@@ -1,8 +1,13 @@
 package com.dillon.starsectormarines.campaign.refit;
 
+import com.dillon.starsectormarines.battle.mech.MechRefit;
+import com.dillon.starsectormarines.battle.squad.HullWelfare;
+import com.dillon.starsectormarines.battle.world.gen.ship.FacilityDressing;
 import com.dillon.starsectormarines.battle.world.gen.ship.ReservedFacility;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
+import com.dillon.starsectormarines.marine.MechFieldRepair;
+import com.dillon.starsectormarines.marine.RecruitIntake;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -63,6 +68,16 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
         return open;
     }
 
+    /**
+     * The tiers bought of each facility fitted into an existing room, as the
+     * deck dresses them. A hull this record does not apply to shows none.
+     */
+    public FacilityDressing facilityDressing() {
+        if (!applies) return FacilityDressing.NONE;
+        return new FacilityDressing(band(RefitTrack.HYDROPONICS).ordinal(), band(RefitTrack.WARDROOM).ordinal(),
+                band(RefitTrack.BRIEFING).ordinal(), band(RefitTrack.HOLDS).ordinal());
+    }
+
     /** The order that would advance {@code track}, or null when it is at its ceiling. */
     public RefitOrder next(RefitTrack track) { return RefitOrder.after(track, band(track)); }
 
@@ -87,6 +102,83 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
     /** Days added to a wound's recovery while the scrubbers are degraded. */
     public float woundRecoveryExtraDays() { return band(RefitTrack.LIFE_SUPPORT) == RefitBand.DEFICIT ? 1f : 0f; }
 
+    // --- The reserved facilities. A sealed compartment is neutral, so opening one is
+    // already a gain, and every other hull reads as sealed rather than as opened. ---
+
+    /** Infantry primary accuracy: the range's target machinery, then its simulator lanes. */
+    public float infantryAccuracy() { return facility(RefitTrack.RANGE, 1f, 1f, 1.03f, 1.06f); }
+
+    /** Infantry move speed: the gym open, its conditioning programme, the track loop. */
+    public float infantryMoveSpeed() { return facility(RefitTrack.GYM, 1f, 1.02f, 1.04f, 1.06f); }
+
+    /** Morale a hit or near miss drains from a fire team: the track loop's squads take it steadier. */
+    public float infantryMoraleDrain() { return facility(RefitTrack.GYM, 1f, 1f, 1f, 0.90f); }
+
+    /** Everything above that reaches a battle, frozen onto each squad at launch. */
+    public HullWelfare hullWelfare() {
+        return new HullWelfare(moraleRecovery(), infantryAccuracy(), infantryMoveSpeed(), infantryMoraleDrain());
+    }
+
+    /**
+     * The share of marines a battle counted as killed whom the sick bay brings back
+     * wounded instead. Read when the battle is settled; it moves no one already
+     * wounded or missing, and stacks with a squad medic's work in the field.
+     */
+    public float casualtiesSaved() { return facility(RefitTrack.SICK_BAY, 0f, 0.10f, 0.25f, 0.40f); }
+
+    /** Where a cargo replacement's aptitude lands: the lounge keeps marginal hands, then draws better ones. */
+    public RecruitIntake recruitIntake() {
+        return switch (facilityBand(RefitTrack.REC_LOUNGE)) {
+            case DEFICIT -> RecruitIntake.NEUTRAL;
+            case RESTORED -> new RecruitIntake(5, 25, 100);
+            case IMPROVED_I -> new RecruitIntake(5, 35, 100);
+            case IMPROVED_II -> new RecruitIntake(10, 45, 100);
+        };
+    }
+
+    private RefitBand facilityBand(RefitTrack track) { return applies ? band(track) : RefitBand.DEFICIT; }
+
+    private float facility(RefitTrack track, float sealed, float open, float first, float second) {
+        return switch (facilityBand(track)) {
+            case DEFICIT -> sealed;
+            case RESTORED -> open;
+            case IMPROVED_I -> first;
+            case IMPROVED_II -> second;
+        };
+    }
+
+    // --- Mech Lab: frozen into each company mech's deployment at launch, or read at a quote ---
+
+    /**
+     * What the Mech Lab's refits are worth to a deployed company mech: calibration's aim (and
+     * the tactical core link's torso traverse), the coolant plant's dissipation, the armor shop's
+     * plate. Neutral until a track is improved; nothing in the Mech Lab starts at a deficit.
+     */
+    public MechRefit mechRefit() {
+        RefitBand calibration = band(RefitTrack.MECH_CALIBRATION);
+        return new MechRefit(
+                facility(RefitTrack.MECH_CALIBRATION, 1.03f, 1.06f),
+                facility(RefitTrack.MECH_COOLANT, 1.10f, 1.20f),
+                facility(RefitTrack.MECH_ARMOR, 1.05f, 1.10f),
+                calibration == RefitBand.IMPROVED_II ? 1.25f : 1f);
+    }
+
+    /** Field repair: a quarter off every repair clock, and with the spares rack a quarter off a weapon assembly. */
+    public MechFieldRepair mechFieldRepair() {
+        RefitBand repair = band(RefitTrack.MECH_REPAIR);
+        return new MechFieldRepair(repair.atLeast(RefitBand.IMPROVED_I) ? 0.75f : 1f,
+                repair == RefitBand.IMPROVED_II ? 0.75f : 1f);
+    }
+
+    /** A facility's figure: neutral until improved. */
+    private float facility(RefitTrack track, float first, float second) {
+        return switch (band(track)) {
+            case IMPROVED_I -> first;
+            case IMPROVED_II -> second;
+            default -> 1f;
+        };
+    }
+
     /** Officer XP from a mission, read at resolution: the wardroom, then the staff college. */
     public float officerXpMult() {
         return switch (band(RefitTrack.WARDROOM)) {
@@ -95,6 +187,9 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
             default -> 1f;
         };
     }
+
+    /** The holo-tank shows the briefing the garrison the operation faces; read when the briefing is drawn. */
+    public boolean garrisonIntel() { return applies && band(RefitTrack.BRIEFING).atLeast(RefitBand.IMPROVED_II); }
 
     // --- Hull figures, applied by the conversion hull mod ---
 

@@ -74,8 +74,12 @@ public final class ShipViewCanvas implements CanvasProducer {
     private Compartment focusedRoom, selectedRoom;
     public void focus(Compartment room) { focusedRoom = room; selectedRoom = room; flying = false; }
 
+    /** Where the camera stands: zoom and the cell at the centre of the view. */
+    public record View(float zoom, float x, float y) {}
+
     private boolean flying, flightStarted, flightWhole;
     private Compartment flightRoom;
+    private View flightView;
     private float flightTime, flightSeconds, fromZoom, fromX, fromY;
 
     /**
@@ -86,12 +90,26 @@ public final class ShipViewCanvas implements CanvasProducer {
      */
     public void flyTo(Compartment room, float seconds) {
         flightRoom = room;
+        flightView = null;
         flightWhole = room == null;
         flightSeconds = Math.max(0.01f, seconds);
         flightTime = 0f;
         flightStarted = false;
         flying = true;
         selectedRoom = room;
+    }
+
+    /** Flies back to a view taken earlier with {@link #view()}. */
+    public void flyTo(View view, float seconds) {
+        flyTo((Compartment) null, seconds);
+        flightView = view;
+        flightWhole = false;
+        selectedRoom = null;
+    }
+
+    /** The camera's current view, or null before the first frame has sized it. */
+    public View view() {
+        return camera == null ? null : new View(camera.zoom(), camera.panCellX(), camera.panCellY());
     }
 
     /** Advances a flight in progress; the screen calls it once per frame. */
@@ -245,7 +263,9 @@ public final class ShipViewCanvas implements CanvasProducer {
             flightStarted = true;
         }
         float toZoom = BattleCamera.MIN_ZOOM, toX = cellsAcross * 0.5f, toY = cellsDown * 0.5f;
-        if (!flightWhole) {
+        if (flightView != null) {
+            toZoom = flightView.zoom(); toX = flightView.x(); toY = flightView.y();
+        } else if (!flightWhole) {
             float cell = Math.min(rect.width() / (flightRoom.width() + 8f), rect.height() / (flightRoom.depth() + 8f));
             toZoom = Math.max(BattleCamera.MIN_ZOOM, Math.min(BattleCamera.MAX_ZOOM, cell / baseCell));
             toX = flightRoom.originX() + flightRoom.width() / 2f;

@@ -1601,6 +1601,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             directControlSimulation.directControl().observeSprintRelease();
         }
         if (!controlledAtInputStart && !directControlInput.active()) handleDebugDamageInput(events);
+        if (!controlledAtInputStart && !directControlInput.active()) handleSallyDoorOrder(events);
         handleCameraInput(events);
         // Apply the current lead at the new zoom before aim is projected.
         followControlledUnit(0f);
@@ -1925,6 +1926,29 @@ public class BattleScreen implements Screen, BattleUiContext {
                 && retainedOrderOverlay.blocksWorldPointer(screenX, screenY)
                 || retainedRetreatOverlay != null
                 && retainedRetreatOverlay.blocksWorldPointer(screenX, screenY);
+    }
+
+    /**
+     * B over a sally door of a place the player's side holds whole bars it (shut now, or as soon as nobody stands in it,
+     * and kept shut) or unbars it (opened now and left open): the player's order on a door ({@code garrisonables.md},
+     * sally doors). A door of a place the side does not hold, or one breached for good, ignores the key.
+     */
+    private void handleSallyDoorOrder(List<InputEventAPI> events) {
+        if (events == null || layout == null || camera == null || ctx == null) return;
+        BattleSimulation sim = ctx.getBattleSimulation();
+        if (sim == null) return;
+        for (InputEventAPI e : events) {
+            if (e.isConsumed() || !e.isKeyDownEvent() || e.isRepeat() || e.getEventValue() != Keyboard.KEY_B) continue;
+            if (e.isCtrlDown() || e.isAltDown() || e.isShiftDown()) continue;
+            float px = e.getX();
+            float py = e.getY();
+            if (!camera.containsScreen(px, py)) continue;
+            int door = sim.sallyDoors().doorAt(sim, (int) Math.floor(camera.screenToCellX(px)),
+                    (int) Math.floor(camera.screenToCellY(py)));
+            if (door < 0) continue;
+            sim.sallyDoors().requestOrder(door, Faction.MARINE);
+            e.consume();
+        }
     }
 
     /** Debug-only: Z toggles {@link #debugZonesVisible}. Used to eyeball-verify the zone graph after wall breaches. */

@@ -343,7 +343,7 @@ public final class Fort {
 
     private boolean[] sallyPortsOpen = new boolean[0];
 
-    /** Whether sally port {@code index} of the fort's plan has been unbarred. A port, once open, stays open. */
+    /** Whether sally port {@code index} of the fort's plan stands unbarred now; a barred port draws as its wall. */
     public boolean sallyPortOpen(int index) {
         return index >= 0 && index < sallyPortsOpen.length && sallyPortsOpen[index];
     }
@@ -352,6 +352,11 @@ public final class Fort {
     public void markSallyPortOpen(int index) {
         if (index >= sallyPortsOpen.length) sallyPortsOpen = Arrays.copyOf(sallyPortsOpen, index + 1);
         sallyPortsOpen[index] = true;
+    }
+
+    /** Records that sally port {@code index} has been barred again (by {@code SallyDoors}). */
+    public void markSallyPortClosed(int index) {
+        if (index >= 0 && index < sallyPortsOpen.length) sallyPortsOpen[index] = false;
     }
 
     // -------------------------------------------------------------------------------------------- shield fort

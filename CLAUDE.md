@@ -290,7 +290,9 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   need that mission's details.
   Use
   `-PmaxTicks=9000` or
-  `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. Add
+  `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. `-PevidenceDir=<path>` writes the report
+  somewhere other than `build/reports/commander/<mission>/`, so a run and its
+  control run do not overwrite each other. Add
   `-PsnapshotEveryTicks=300` to render neutral-observer PNG frames from the
   first replay and assemble `visuals/<fixture>/review.gif`; the frames add
   cyan marine, red defender, and yellow civilian markers for whole-map review.
@@ -899,6 +901,13 @@ whole-system question and is in the wrong place. Measure it (the JUnit XML
 under `build/test-results/test/` records each test's time) before
 committing, and do not raise the bar for a test that misses it — move the
 question down to its unit, or move the test out of `test`.
+
+**Test less, and only meaningful core behaviour** (owner, 2026-10-21). The project
+wants fewer tests, not more: test the rules the code owns, not the content it ships.
+A test that asserts what an image, a data file or a tuned number currently contains
+(a pixel window, a sprite's size, a curve's constants) fails whenever the content is
+reworked while nothing is broken; do not write one, and delete one you find failing
+for that reason rather than updating it to the new content.
 
 **Things that are not tests do not go in `test`:**
 

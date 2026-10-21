@@ -108,16 +108,17 @@ class AssaultCommandEvidenceTest {
              CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(
                      visualRoot, runId, sim)) {
             sim.setCommandTraceEnabled(true, fixture.kind());
-            ReactiveDefenceEvidence.Mix mix = new ReactiveDefenceEvidence.Mix();
+            PlaceFightProbe places = new PlaceFightProbe();
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 int before = sim.getSimTickIndex();
                 sim.advance(BattleSimulation.TICK_DT);
                 capture.afterAdvance();
-                mix.sample(sim);
+                places.sample(sim);
                 assertEquals(before + 1, sim.getSimTickIndex());
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
-            System.out.println(ReactiveDefenceEvidence.line(runId, sim, sim.getCommandTraceJsonLines(), mix));
+            System.out.println(ReactiveDefenceEvidence.line(runId, sim, sim.getCommandTraceJsonLines()));
+            System.out.println(places.line(runId, sim, sim.getCommandTraceJsonLines()));
             return new RunResult(sim.getCommandTraceJsonLines(),
                     sim.getSimTickIndex(), sim.isComplete(),
                     sim.getWinner() != null ? sim.getWinner().name() : null);

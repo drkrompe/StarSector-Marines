@@ -48,7 +48,19 @@ import java.util.Map;
  *       its new holder, and the chassis goes out through it and arrives within twice its straight-line march.</li>
  *   <li>{@code contested-yard}: marines are ordered out north while defenders are in the yard with them. Nobody holds a
  *       contested place, so no door opens.</li>
+ *   <li>{@code shut-behind}: the sortie, then the door: once the squad is out and nobody of the holder's is near it, the
+ *       north door shuts behind it, the sortie passed.</li>
+ *   <li>{@code enemy-approaches}: the defenders hold a post just outside the open north door, and raiders march on the
+ *       yard from the north. The door shuts in their face before any reaches it, nobody ever stands in it after, and no
+ *       raider's route still runs through it once it has shut.</li>
+ *   <li>{@code barred-on-a-body}: marines hold the yard and sortie north; one of them stands in the open door when the
+ *       player bars it. It stays open while he stands there, shuts within two pulses of his leaving, stays shut while
+ *       barred, and opens at once when the player unbars it.</li>
+ *   <li>{@code round-trip}: the defenders sortie, the door shuts behind them, and their commander calls them home: the door
+ *       opens again for the return, they come in through it, and it shuts behind them.</li>
  * </ul>
+ *
+ * <p>Every loop also asks that no door ever shuts on a body.
  *
  * <p>Bodies are placed rather than walked to their start and the raiders are tough, so every verdict is a mechanic of the
  * doors; who wins is not asked.
@@ -73,6 +85,15 @@ public final class SallyDoorScene implements BehaviorScene {
     private static final int[] SQUAD_GOAL = {62, 18};
     private static final int[] MECH_AT = {52, 40};
     private static final int[] MECH_GOAL = {52, 18};
+    /** The post just outside the north door that {@code enemy-approaches} holds: within linger reach, so it stays open. */
+    private static final int[] POST = {61, 26};
+    private static final int APPROACH_TICK = 300;
+    private static final int DOORMAN_TICK = 60;
+    private static final int BAR_TICK = 200;
+    private static final int LEAVE_TICK = 500;
+    private static final int UNBAR_TICK = 800;
+    private static final int RECALL_TICK = 900;
+    private static final int[] HOME = {62, 45};
 
     @Override public String id() { return "sally-door"; }
 
@@ -85,7 +106,7 @@ public final class SallyDoorScene implements BehaviorScene {
     public List<SceneReport> play(FrameSink frames) throws Exception {
         List<SceneReport> reports = new ArrayList<>();
         for (String loop : List.of("sortie", "sortie-closed", "enemy-at-the-door", "attack-at-the-door", "taken-yard",
-                "contested-yard")) {
+                "contested-yard", "shut-behind", "enemy-approaches", "barred-on-a-body", "round-trip")) {
             boolean was = SallyDoors.enabled();
             SallyDoors.setEnabledForEvidence(!loop.equals("sortie-closed") && was);
             try {
@@ -133,14 +154,16 @@ public final class SallyDoorScene implements BehaviorScene {
         builder.unit("far-marine", Faction.MARINE, UnitType.MARINE, 3, HEIGHT - 3, spec -> spec.moveSpeed(0f).health(TOUGH));
         builder.unit("far-defender", Faction.DEFENDER, UnitType.MARINE, WIDTH - 3, HEIGHT - 3,
                 spec -> spec.moveSpeed(0f).health(TOUGH));
-        Faction holder = loop.equals("taken-yard") || loop.equals("contested-yard") ? Faction.MARINE : Faction.DEFENDER;
+        Faction holder = loop.equals("taken-yard") || loop.equals("contested-yard") || loop.equals("barred-on-a-body")
+                ? Faction.MARINE : Faction.DEFENDER;
+        int[] goal = loop.equals("enemy-approaches") ? POST : SQUAD_GOAL;
         if (!loop.equals("attack-at-the-door")) {
             var squad = builder.squad("holders").faction(holder)
                     .type(holder == Faction.MARINE ? UnitType.MARINE : UnitType.MILITIA)
                     .size(SQUAD).at(SQUAD_AT[0], SQUAD_AT[1]).primary("weapon.smg").health(TOUGH);
             // The player's ground click is the marines' order; the defenders' is their commander's, from the first tick.
             if (holder == Faction.DEFENDER) {
-                squad.assigned(id -> ObjectiveAssignment.attackMove(id, SQUAD_GOAL[0], SQUAD_GOAL[1]));
+                squad.assigned(id -> ObjectiveAssignment.attackMove(id, goal[0], goal[1]));
             }
             squad.done();
         }
@@ -158,6 +181,14 @@ public final class SallyDoorScene implements BehaviorScene {
                     .primary("weapon.smg").health(TOUGH).stationary().done();
             builder.squad("attack").faction(Faction.MARINE).size(SQUAD).at(SQUAD_GOAL[0], SQUAD_GOAL[1])
                     .primary("weapon.smg").health(TOUGH).done();
+        }
+        if (loop.equals("enemy-approaches")) {
+            builder.squad("raiders").faction(Faction.MARINE).size(SQUAD).at(61, 2).primary("weapon.smg").health(TOUGH)
+                    .done();
+        }
+        if (loop.equals("barred-on-a-body")) {
+            builder.squad("doorman").faction(Faction.MARINE).size(1).at(62, 40).primary("weapon.smg").health(TOUGH)
+                    .stationary().done();
         }
         if (loop.equals("contested-yard")) {
             builder.squad("intruders").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(SQUAD).at(60, 70)
@@ -177,6 +208,23 @@ public final class SallyDoorScene implements BehaviorScene {
             }
         }
         if (lance) player.moveMech(ORDER_TICK, "lance", 0, MECH_GOAL[0], MECH_GOAL[1]);
+        if (loop.equals("enemy-approaches")) player.moveSquad(APPROACH_TICK, "raiders", 60, 45);
+        if (loop.equals("barred-on-a-body")) {
+            long doorman = world.members("doorman")[0];
+            player.at(DOORMAN_TICK, s -> {
+                SallyDoor north = northDoor(s);
+                if (north != null) s.world().setCellPos(doorman, north.cells()[0][0], north.cells()[0][1]);
+            });
+            player.at(BAR_TICK, s -> s.sallyDoors().order(s, northIndex(s), Faction.MARINE));
+            player.at(LEAVE_TICK, s -> s.world().setCellPos(doorman, 60, 60));
+            player.at(UNBAR_TICK, s -> s.sallyDoors().order(s, northIndex(s), Faction.MARINE));
+        }
+        if (loop.equals("round-trip")) {
+            player.at(RECALL_TICK, s -> {
+                Squad squad = world.squad("holders");
+                squad.assignedObjective = ObjectiveAssignment.attackMove(squad.id, HOME[0], HOME[1]);
+            });
+        }
         if (loop.equals("enemy-at-the-door")) {
             long[] raiders = world.members("raiders");
             player.at(CLEAR_TICK, s -> {
@@ -184,8 +232,15 @@ public final class SallyDoorScene implements BehaviorScene {
             });
         }
         int orderTick = holder == Faction.DEFENDER && !loop.equals("attack-at-the-door") ? 0 : ORDER_TICK;
-        Trace trace = new Trace(world, holder, lance, orderTick, loop.equals("attack-at-the-door") ? world.members("attack") : new long[0]);
-        int ticks = loop.equals("attack-at-the-door") ? 1500 : 1800;
+        long[] hostiles = loop.equals("attack-at-the-door") ? world.members("attack")
+                : loop.equals("enemy-approaches") ? world.members("raiders") : new long[0];
+        Trace trace = new Trace(world, holder, lance, orderTick, hostiles, !loop.equals("attack-at-the-door"));
+        int ticks = switch (loop) {
+            case "attack-at-the-door", "enemy-approaches" -> 1500;
+            case "shut-behind", "barred-on-a-body" -> 1200;
+            case "round-trip" -> 2100;
+            default -> 1800;
+        };
         try {
             SceneRun.of(world).player(player).observe(trace)
                     .frames(frames, loop, 60, tick -> String.format(Locale.ROOT, "%s / tick %d / %s", loop, tick, trace.state))
@@ -196,10 +251,24 @@ public final class SallyDoorScene implements BehaviorScene {
         return report(loop, ticks, trace);
     }
 
+    /** The north door of the yard, or null. */
+    private static SallyDoor northDoor(BattleSimulation sim) {
+        int index = northIndex(sim);
+        return index < 0 ? null : sim.sallyDoors().doors(sim).get(index);
+    }
+
+    private static int northIndex(BattleSimulation sim) {
+        List<SallyDoor> all = sim.sallyDoors().doors(sim);
+        for (int i = 0; i < all.size(); i++) if (all.get(i).outY() < 0) return i;
+        return -1;
+    }
+
     private SceneReport report(String loop, int ticks, Trace t) {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("the-yard-has-a-door-on-each-gateless-face", t.doorsFound == 3 && t.north >= 0,
                 t.doorsFound + " doors found; north door " + (t.north >= 0 ? "found" : "missing")));
+        verdicts.add(Verdict.of("never-shuts-on-a-body", t.shutOnBody < 0,
+                "a door shut with a body in it at tick " + t.shutOnBody));
         switch (loop) {
             case "sortie" -> {
                 verdicts.add(Verdict.of("north-door-opens-for-the-sortie", t.northOpen >= t.orderTick
@@ -243,8 +312,56 @@ public final class SallyDoorScene implements BehaviorScene {
                         "arrived " + (t.mechArrived < 0 ? "never" : (t.mechArrived - ORDER_TICK) + " ticks")
                                 + " after its order; bound " + t.mechBound));
             }
-            default -> verdicts.add(Verdict.of("no-door-while-contested", t.northOpen < 0 && t.otherOpen < 0,
+            case "contested-yard" -> verdicts.add(Verdict.of("no-door-while-contested", t.northOpen < 0 && t.otherOpen < 0,
                     "doors opened at ticks " + t.northOpen + ", " + t.otherOpen));
+            case "shut-behind" -> {
+                verdicts.add(Verdict.of("north-door-opens-for-the-sortie", t.northOpen >= 0, "opened at tick " + t.northOpen));
+                verdicts.add(Verdict.of("squad-goes-out-through-the-door", t.squadThrough >= 0,
+                        "a member stood in the door at tick " + t.squadThrough));
+                verdicts.add(Verdict.of("shuts-behind-the-sortie", t.firstShut > t.squadThrough && t.squadThrough >= 0
+                                && "SORTIE_PASSED".equals(t.firstShutWhy),
+                        "first shut at tick " + t.firstShut + " (" + t.firstShutWhy + "); last in the door at tick "
+                                + t.squadThrough));
+                verdicts.add(Verdict.of("stays-shut-with-nobody-wanting-it", t.reopened < 0,
+                        "opened again at tick " + t.reopened));
+            }
+            case "enemy-approaches" -> {
+                verdicts.add(Verdict.of("north-door-opens-for-the-sortie", t.northOpen >= 0 && t.northOpen < APPROACH_TICK,
+                        "opened at tick " + t.northOpen));
+                verdicts.add(Verdict.of("open-while-the-post-holds-it", t.firstShut < 0 || t.firstShut >= APPROACH_TICK,
+                        "first shut at tick " + t.firstShut + ", before the raiders marched at " + APPROACH_TICK));
+                verdicts.add(Verdict.of("shuts-in-the-enemys-face", t.firstShut >= APPROACH_TICK
+                                && "ENEMY".equals(t.firstShutWhy) && t.hostileAtShut <= SallyDoors.SAFE_CELLS + 1f,
+                        "first shut at tick " + t.firstShut + " (" + t.firstShutWhy + "), nearest raider "
+                                + String.format(Locale.ROOT, "%.1f", t.hostileAtShut) + " cells from the mouth"));
+                verdicts.add(Verdict.of("no-raider-in-a-door", t.attackerInDoor < 0,
+                        "a raider stood in a door at tick " + t.attackerInDoor));
+                verdicts.add(Verdict.of("no-route-through-the-shut-door", t.routeThroughShut < 0,
+                        "a raider's route ran through the shut door at tick " + t.routeThroughShut));
+            }
+            case "barred-on-a-body" -> {
+                verdicts.add(Verdict.of("north-door-opens-for-the-sortie", t.northOpen >= 0 && t.northOpen < BAR_TICK,
+                        "opened at tick " + t.northOpen));
+                verdicts.add(Verdict.of("open-while-the-doorman-stands-in-it", t.firstShut < 0 || t.firstShut >= LEAVE_TICK,
+                        "first shut at tick " + t.firstShut + "; the doorman left at " + LEAVE_TICK));
+                verdicts.add(Verdict.of("bar-shuts-once-the-door-is-clear", t.firstShut >= LEAVE_TICK
+                                && t.firstShut - LEAVE_TICK <= OPEN_BOUND_TICKS && "BARRED".equals(t.firstShutWhy),
+                        "first shut at tick " + t.firstShut + " (" + t.firstShutWhy + ")"));
+                verdicts.add(Verdict.of("unbar-opens-at-once", t.reopened >= UNBAR_TICK && t.reopened - UNBAR_TICK <= 1,
+                        "opened again at tick " + t.reopened + " for an unbar at " + UNBAR_TICK));
+            }
+            case "round-trip" -> {
+                verdicts.add(Verdict.of("shuts-behind-the-sortie", t.firstShut >= 0 && t.firstShut < RECALL_TICK,
+                        "first shut at tick " + t.firstShut + " (" + t.firstShutWhy + ")"));
+                verdicts.add(Verdict.of("opens-for-the-way-home", t.reopened >= RECALL_TICK
+                                && t.reopened - RECALL_TICK <= OPEN_BOUND_TICKS,
+                        "opened again at tick " + t.reopened + " for a recall at " + RECALL_TICK));
+                verdicts.add(Verdict.of("comes-home-through-the-door", t.homeThrough >= RECALL_TICK,
+                        "a member stood in the door at tick " + t.homeThrough + " after the recall"));
+                verdicts.add(Verdict.of("shuts-behind-the-return", t.secondShut > t.homeThrough && t.homeThrough >= 0,
+                        "shut again at tick " + t.secondShut));
+            }
+            default -> throw new IllegalArgumentException(loop);
         }
         Map<String, Number> metrics = new LinkedHashMap<>();
         metrics.put("doorsFound", t.doorsFound);
@@ -256,6 +373,10 @@ public final class SallyDoorScene implements BehaviorScene {
         metrics.put("mechThroughTick", t.mechThrough);
         metrics.put("mechMarchTicks", t.mechArrived >= 0 ? t.mechArrived - ORDER_TICK : -1);
         metrics.put("mechBoundTicks", t.mechBound);
+        metrics.put("firstShutTick", t.firstShut);
+        metrics.put("reopenedTick", t.reopened);
+        metrics.put("secondShutTick", t.secondShut);
+        metrics.put("homeThroughTick", t.homeThrough);
         return new SceneReport(id(), loop, ticks, verdicts, metrics);
     }
 
@@ -276,11 +397,17 @@ public final class SallyDoorScene implements BehaviorScene {
         int doorsFound = -1, north = -1;
         int northOpen = -1, otherOpen = -1, squadThrough = -1, squadArrived = -1, mechThrough = -1, mechArrived = -1;
         int attackerInDoor = -1;
+        int firstShut = -1, reopened = -1, secondShut = -1, homeThrough = -1, shutOnBody = -1, routeThroughShut = -1;
+        String firstShutWhy = "";
+        float hostileAtShut = Float.POSITIVE_INFINITY;
+        private boolean northWasOpen;
+        final boolean holders;
         final int squadBound, mechBound;
         String state = "";
 
-        Trace(SceneWorld world, Faction holder, boolean lance, int orderTick, long[] attackers) {
+        Trace(SceneWorld world, Faction holder, boolean lance, int orderTick, long[] attackers, boolean holders) {
             this.world = world;
+            this.holders = holders;
             this.orderTick = orderTick;
             this.holder = holder;
             this.lance = lance;
@@ -301,11 +428,38 @@ public final class SallyDoorScene implements BehaviorScene {
                 if (i == north && northOpen < 0) northOpen = tick;
                 if (i != north && otherOpen < 0) otherOpen = tick;
             }
-            Squad squad = attackers.length == 0 ? world.squad("holders") : null;
+            boolean northOpenNow = north >= 0 && doors.isOpen(north);
+            if (northWasOpen && !northOpenNow) {
+                if (SallyDoors.bodyInDoor(sim, all.get(north)) && shutOnBody < 0) shutOnBody = tick;
+                if (firstShut < 0) {
+                    firstShut = tick;
+                    List<int[]> closings = doors.closings();
+                    firstShutWhy = SallyDoors.Shut.values()[closings.get(closings.size() - 1)[3]].name();
+                    SallyDoor door = all.get(north);
+                    for (long hostile : attackers) {
+                        if (!sim.world().isAlive(hostile)) continue;
+                        hostileAtShut = Math.min(hostileAtShut, (float) Math.hypot(sim.world().x(hostile)
+                                - (door.mouthX() + 0.5f), sim.world().y(hostile) - (door.mouthY() + 0.5f)));
+                    }
+                } else if (reopened >= 0 && secondShut < 0) {
+                    secondShut = tick;
+                }
+            }
+            if (!northWasOpen && northOpenNow && firstShut >= 0 && reopened < 0) reopened = tick;
+            northWasOpen = northOpenNow;
+            if (firstShut >= 0 && !northOpenNow && routeThroughShut < 0) {
+                float[] box = SallyDoors.box(all.get(north));
+                for (long hostile : attackers) {
+                    if (sim.world().isAlive(hostile) && SallyDoors.routeCrosses(sim, hostile, box, 0f)) routeThroughShut = tick;
+                }
+            }
+            Squad squad = holders ? world.squad("holders") : null;
             if (squad != null) {
                 for (long member : world.members("holders")) {
                     if (!sim.world().isAlive(member)) continue;
-                    if (squadThrough < 0 && inDoor(all, north, sim.world().cellX(member), sim.world().cellY(member))) squadThrough = tick;
+                    boolean in = inDoor(all, north, sim.world().cellX(member), sim.world().cellY(member));
+                    if (in && (firstShut < 0 || reopened < 0)) squadThrough = tick;
+                    if (in && reopened >= 0 && tick >= RECALL_TICK) homeThrough = tick;
                 }
                 if (squadArrived < 0 && tick > orderTick && Math.abs(squad.centroidX - SQUAD_GOAL[0]) <= 4
                         && Math.abs(squad.centroidY - SQUAD_GOAL[1]) <= 4) squadArrived = tick;

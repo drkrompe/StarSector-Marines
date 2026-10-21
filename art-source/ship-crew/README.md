@@ -28,7 +28,9 @@ python art-source/ship-crew/ship_crew.py export
 Export cuts each guide frame from the raw (scaled to the raw's actual size),
 downsamples with nearest-neighbour sampling to the marine layer's own size
 (body 150x120, head 72x88, foot 38x52), and keeps the generated alpha only inside
-the marine silhouette. No colour keying, no hand repair. Only the twelve exported
+the marine silhouette. The body is then squashed vertically by `BODY_Y_SCALE`
+(0.85) about the neck socket's centre row, so crew and colonists carry a shorter
+torso than the marines while the head still seats in the socket. No colour keying, no hand repair. Only the twelve exported
 PNGs under `mod/graphics/battle/ship-crew-modular-topdown/` ship.
 
 `createSnapshots -Psnapshot=ship-duty` renders the crew on a generated ship deck.

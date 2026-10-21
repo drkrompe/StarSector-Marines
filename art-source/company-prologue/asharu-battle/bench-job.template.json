@@ -1,6 +1,6 @@
 {
  "id": "asharu-fx-w0-two-lashers-2026-10-21",
- "machine": "windows",
+ "machine": "any",
  "lane": "light",
  "priority": 0,
  "after": [],

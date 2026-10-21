@@ -32,6 +32,10 @@ public final class LayeredUnitAssets {
             gradeWeapons = new EnumMap<>(LayeredWeaponFamily.class);
     private final Map<String, LayeredSpriteCache> specialEquipment = new LinkedHashMap<>();
     private final Map<String, LayeredSpriteCache> integralSystems = new LinkedHashMap<>();
+    /** Lying-body poses in pose order; empty for a family that falls through its legacy sheet. */
+    private final List<LayeredSpriteCache> downed = new ArrayList<>();
+    /** Forearms and hands out in front, drawn while at a console; null for a family without them. */
+    private LayeredSpriteCache stationArmLeft, stationArmRight;
 
     public LayeredUnitAssets(LayeredSpriteCache body, LayeredSpriteCache head,
                              LayeredSpriteCache foot, LayeredSpriteCache foreClaw,
@@ -129,6 +133,37 @@ public final class LayeredUnitAssets {
         return integralSystems.get(systemId);
     }
 
+    /** Lying-body pose count a family with downed art ships ({@code downed-0..3.png}). */
+    public static final int DOWNED_POSES = 4;
+
+    /** Appends the next lying-body pose; poses are registered in pose order. */
+    public void registerDowned(LayeredSpriteCache pose) {
+        if (pose != null) downed.add(pose);
+    }
+
+    /**
+     * The lying body for a corpse's death-pose roll, wrapped onto the poses this family has,
+     * or null when it has none and the corpse keeps its unit type's legacy sheet.
+     */
+    public void registerStationArms(LayeredSpriteCache left, LayeredSpriteCache right) {
+        if (left == null || right == null) return;
+        stationArmLeft = left;
+        stationArmRight = right;
+    }
+
+    /**
+     * The forearm-and-hand layer for one side, drawn while the actor works a
+     * fixture with its hands, or null when this family has none. It shares the
+     * body layer's grid, extended forward: the body canvas is its lower half.
+     */
+    public LayeredSpriteCache stationArm(boolean left) {
+        return left ? stationArmLeft : stationArmRight;
+    }
+
+    public LayeredSpriteCache downed(int poseIndex) {
+        return downed.isEmpty() ? null : downed.get(Math.floorMod(poseIndex, downed.size()));
+    }
+
     /**
      * Every image this family can draw, for a consumer that has to see all of
      * them rather than pick one — the {@link UnitAtlas}'s layout, which needs
@@ -143,6 +178,8 @@ public final class LayeredUnitAssets {
         }
         all.addAll(specialEquipment.values());
         all.addAll(integralSystems.values());
+        all.addAll(downed);
+        if (stationArmLeft != null) Collections.addAll(all, stationArmLeft, stationArmRight);
         return all;
     }
 

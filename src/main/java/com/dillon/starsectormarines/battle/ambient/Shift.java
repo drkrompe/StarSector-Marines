@@ -149,8 +149,9 @@ public final class Shift {
     /** One authored job as a stop on somebody's route. */
     private static AmbientTaskRoute.Stop stopAt(Placed placed, Affordance job) {
         FixtureTask task = placed.task();
+        float[] stand = JobBoard.stand(task);
         return new AmbientTaskRoute.Stop(
-                task.cellX() + 0.5f, task.cellY() + 0.5f,
+                stand[0], stand[1],
                 CrewRole.dwellFor(job), CrewRole.activityFor(job),
                 task.fixtureX() + 0.5f, task.fixtureY() + 0.5f,
                 JobBoard.group(placed.site().id(), job, task.berth()));

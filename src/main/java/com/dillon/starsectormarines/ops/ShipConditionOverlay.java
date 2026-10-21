@@ -29,7 +29,8 @@ public final class ShipConditionOverlay {
     private final UiElement curtain, frame, caption, captionTitle, captionEffect, captionHint;
     private RefitReveal reveal;
     private ShipViewCanvas revealCanvas;
-    private boolean flown;
+    private boolean flown, returning;
+    private ShipViewCanvas.View returnView;
     private final Map<UiElement, String> styles = new IdentityHashMap<>();
     private final Map<UiElement, Integer> markers = new IdentityHashMap<>();
     private final Map<Integer, Rect> anchors = new HashMap<>();
@@ -63,6 +64,8 @@ public final class ShipConditionOverlay {
             reveal = new RefitReveal(order, commit);
             revealCanvas = null;
             flown = false;
+            returning = false;
+            returnView = null;
         });
         card.onPointerDown(event -> {
             if (event.button() == PointerButton.PRIMARY) pinned = true;
@@ -228,7 +231,7 @@ public final class ShipConditionOverlay {
         style(systems, HIDDEN);
         style(card, HIDDEN);
         deck.advance(dt);
-        reveal.advance(dt, ship.ready());
+        reveal.advance(dt, reveal.wave ? !ship.dressingWave() : ship.ready());
         RefitReveal.Phase phase = reveal.phase();
         if (phase == RefitReveal.Phase.DONE) {
             reveal = null;
@@ -236,10 +239,16 @@ public final class ShipConditionOverlay {
             return false;
         }
         Compartment room = RefitReveal.room(reveal.order.track, ship.rooms());
-        if (!flown) { deck.flyTo(room, RefitReveal.FLY); flown = true; }
-        // The deck may have been laid out again under the curtain, so frame the room on the one drawn now.
-        if (phase.ordinal() >= RefitReveal.Phase.OPEN.ordinal() && revealCanvas != deck) {
-            if (room != null) deck.focus(room); else deck.flyTo(null, 0.01f);
+        if (!flown) { returnView = deck.view(); deck.flyTo(room, RefitReveal.FLY); flown = true; }
+        if (phase == RefitReveal.Phase.RETURN && !returning) {
+            if (returnView != null) deck.flyTo(returnView, RefitReveal.RETURN);
+            returning = true;
+        }
+        // The deck may have been laid out again under the curtain, so frame the room on the one drawn now;
+        // a wave keeps the deck but the screen may hand over a fresh canvas once the order is paid.
+        boolean settled = reveal.wave ? reveal.paid() && ship.ready() : phase.ordinal() >= RefitReveal.Phase.OPEN.ordinal();
+        if (settled && phase != RefitReveal.Phase.RETURN && revealCanvas != deck) {
+            if (room != null) deck.focus(room); else deck.flyTo((Compartment) null, 0.01f);
             revealCanvas = deck;
         }
         style(curtain, position(0f, 0f) + String.format(Locale.ROOT,
@@ -262,11 +271,13 @@ public final class ShipConditionOverlay {
                 captionWidth - 44f, shown));
         Rect box = room == null ? Rect.EMPTY : deck.roomBounds(room, metrics);
         boolean framed = room != null && box.width() > 0f && reveal.refusal() == null
-                && (phase == RefitReveal.Phase.OPEN || phase == RefitReveal.Phase.SHOW);
+                && (phase == RefitReveal.Phase.OPEN || phase == RefitReveal.Phase.SHOW
+                    || reveal.wave && phase == RefitReveal.Phase.WORK);
+        if (phase == RefitReveal.Phase.RETURN) framed = false;
         float pulse = 0.6f + 0.4f * (float) Math.sin(reveal.time() * 5f);
         style(frame, framed ? position(box.x() - bounds.x() - 4f, box.y() - bounds.y() - 4f)
                 + String.format(Locale.ROOT, "width: %.1fpx; height: %.1fpx; opacity: %.3f; pointer-events: none; transition: none;",
-                box.width() + 2f, box.height() + 2f, reveal.caption() * pulse) : HIDDEN);
+                box.width() + 2f, box.height() + 2f, (phase == RefitReveal.Phase.WORK ? shown : reveal.caption()) * pulse) : HIDDEN);
         document.advance(0f);
         return true;
     }

@@ -43,6 +43,9 @@ public final class CampaignSquadTag {
     /** Launch-frozen company welfare benefit; ordinary and fixture seats default to one. */
     public final float moraleRecoveryMultiplier;
 
+    /** The company home's whole launch-frozen benefit, of which the mess's figure above is one part. */
+    public final HullWelfare welfare;
+
     public CampaignSquadTag(String squadId, String label, boolean leader, int strength) {
         this(squadId, label, leader, strength, Squad.NO_FIRE_TEAM);
     }
@@ -60,9 +63,13 @@ public final class CampaignSquadTag {
 
     public CampaignSquadTag(String squadId, String label, boolean leader, int strength,
                             int fireTeamIndex, CommandGroupIdentity commandGroupIdentity, float moraleRecoveryMultiplier) {
-        if (!Float.isFinite(moraleRecoveryMultiplier) || moraleRecoveryMultiplier <= 0f)
-            throw new IllegalArgumentException("Morale recovery multiplier must be finite and positive");
-        this.moraleRecoveryMultiplier = moraleRecoveryMultiplier;
+        this(squadId, label, leader, strength, fireTeamIndex, commandGroupIdentity, HullWelfare.mess(moraleRecoveryMultiplier));
+    }
+
+    public CampaignSquadTag(String squadId, String label, boolean leader, int strength,
+                            int fireTeamIndex, CommandGroupIdentity commandGroupIdentity, HullWelfare welfare) {
+        this.welfare = welfare != null ? welfare : HullWelfare.NEUTRAL;
+        this.moraleRecoveryMultiplier = this.welfare.moraleRecovery();
         this.commandGroupIdentity = commandGroupIdentity;
         this.squadId = squadId;
         this.label = label;

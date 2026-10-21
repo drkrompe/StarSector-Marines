@@ -20,10 +20,11 @@ import com.dillon.starsectormarines.battle.world.model.PropDamage;
  * hub flipped to walkable rubble.
  *
  * <p>Almost all of it is destruction, which is the easy direction: the grid
- * only ever becomes more permissive, so nothing derived from it can be
- * invalidated by the change. The single construction op,
- * {@link #placeDeployedBarrier}, carries the rule that makes construction
- * safe — see its contract.
+ * only becomes more permissive, so a route that was legal stays legal. The
+ * construction op, {@link #placeDeployedBarrier}, carries the rule that makes
+ * construction safe — see its contract — and the one op that closes ground,
+ * {@link #closePassage} (a sally door shut again), carries the terms on which
+ * it is admitted.
  *
  * <p>Each op is inherently cross-domain — it touches navigation walkability,
  * {@link CellTopology} state, and (for roof cave-ins) a decal FX sink — so
@@ -374,10 +375,76 @@ public final class MapEditor {
     }
 
     /**
+     * What a wall cell was before {@link #openPassage} made it a passage, so {@link #closePassage} can put it back:
+     * its navigation flags, own edges and wall hit points, its topology (wall, window, fixture, ground and surface),
+     * and the cover it gave and had, per facing, on itself ({@code own*}) and on each cardinal neighbour's facing
+     * towards it ({@code toward*}, indexed N, E, S, W by the neighbour's side).
+     */
+    public record PassageRecord(int x, int y, long flags, byte edges, int wallHp, boolean wall, boolean window,
+                                boolean fixture, CellTopology.GroundKind groundKind, int surface,
+                                byte[] ownCover, float[] ownCatch, byte[] towardCover, float[] towardCatch) { }
+
+    /** Neighbour offsets N, E, S, W and the neighbour's facing that looks back at the cell. */
+    private static final int[][] NEIGHBOURS = {
+            {0, -1, NavigationGrid.FACING_S}, {1, 0, NavigationGrid.FACING_W},
+            {0, 1, NavigationGrid.FACING_N}, {-1, 0, NavigationGrid.FACING_E}};
+
+    /** The cell as it stands, for a later {@link #closePassage}; null off the map. */
+    public PassageRecord recordPassage(int x, int y) {
+        if (!grid.inBounds(x, y)) return null;
+        byte[] ownCover = new byte[NavigationGrid.FACING_COUNT];
+        float[] ownCatch = new float[NavigationGrid.FACING_COUNT];
+        for (int f = 0; f < NavigationGrid.FACING_COUNT; f++) {
+            ownCover[f] = (byte) grid.getCellCoverAtFacing(x, y, f);
+            ownCatch[f] = grid.getCellCoverCatchHalfHeightAtFacing(x, y, f);
+        }
+        byte[] towardCover = new byte[NEIGHBOURS.length];
+        float[] towardCatch = new float[NEIGHBOURS.length];
+        for (int n = 0; n < NEIGHBOURS.length; n++) {
+            int nx = x + NEIGHBOURS[n][0], ny = y + NEIGHBOURS[n][1];
+            towardCover[n] = (byte) grid.getCellCoverAtFacing(nx, ny, NEIGHBOURS[n][2]);
+            towardCatch[n] = grid.getCellCoverCatchHalfHeightAtFacing(nx, ny, NEIGHBOURS[n][2]);
+        }
+        return new PassageRecord(x, y, grid.cellFlags(x, y), grid.getEdgePassabilityArray()[grid.index(x, y)],
+                grid.getWallHp(x, y), topology.isWall(x, y), topology.isWindow(x, y), topology.isFixture(x, y),
+                topology.getGroundKind(x, y), topology.getSurface(x, y), ownCover, ownCatch, towardCover, towardCatch);
+    }
+
+    /**
+     * Shuts a passage {@link #openPassage} made, putting the cell back exactly as {@code record} found it: wall again,
+     * with the hit points it had, the ground and surface it had, and the cover it gave its neighbours. This is the one
+     * runtime change that makes the grid <b>less</b> permissive, so it is admitted on the terms construction was refused
+     * on (see {@link #placeDeployedBarrier}), and they are the caller's to keep: nobody stands in the cell (a sally door
+     * never shuts on a body), and the routes that cross it are dropped. The navigation layers are marked for a full
+     * rebuild at the tick's flush, because the zone graph's incremental update can only merge. Returns {@code false}
+     * when the cell is not open floor (already shut, or never opened).
+     */
+    public boolean closePassage(PassageRecord record) {
+        int x = record.x(), y = record.y();
+        if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) return false;
+        grid.restoreCell(x, y, record.flags(), record.edges(), record.wallHp());
+        topology.setWall(x, y, record.wall());
+        topology.setWindow(x, y, record.window());
+        topology.setFixture(x, y, record.fixture());
+        topology.setGroundKind(x, y, record.groundKind());
+        topology.setSurface(x, y, record.surface());
+        for (int f = 0; f < NavigationGrid.FACING_COUNT; f++) {
+            grid.setCoverAtFacing(x, y, f, record.ownCover()[f], record.ownCatch()[f]);
+        }
+        for (int n = 0; n < NEIGHBOURS.length; n++) {
+            int nx = x + NEIGHBOURS[n][0], ny = y + NEIGHBOURS[n][1];
+            if (!grid.inBounds(nx, ny) || !grid.isWalkable(nx, ny)) continue;
+            grid.setCoverAtFacing(nx, ny, NEIGHBOURS[n][2], record.towardCover()[n], record.towardCatch()[n]);
+        }
+        navigation.markCellClosed(x, y);
+        return true;
+    }
+
+    /**
      * Opens a standing wall cell as a built passage rather than a breach: walkable, no wall, on the same ground as the
      * floor cell ({@code likeX}, {@code likeY}) beside it, with no rubble and no roof peeled, since nothing broke. A
-     * fort's sally port is unbarred through this. Like every runtime change to the map it only ever makes the grid more
-     * permissive. Returns {@code false} for a cell that is already open.
+     * fort's sally port is unbarred through this. Take a {@link #recordPassage} first to be able to shut it again.
+     * Returns {@code false} for a cell that is already open.
      */
     public boolean openPassage(int x, int y, int likeX, int likeY) {
         if (!grid.inBounds(x, y) || grid.isWalkable(x, y)) return false;

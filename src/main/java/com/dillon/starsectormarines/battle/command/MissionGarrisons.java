@@ -498,7 +498,7 @@ final class MissionGarrisons {
         for (int squadId : guardsToStandDown) effects.standDownGuard(squadId);
         for (MachineGuardDirector.Attach attach : guardsToOrder) {
             if (effects.guardPlace(side, attach.squadId(), attach.cellX(), attach.cellY()) == 0) {
-                guards.forget(attach.squadId());
+                guards.refused(attach.squadId(), attach.garrisonable());
             }
         }
         guardsToOrder = List.of();

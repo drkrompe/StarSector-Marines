@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — a lost place judged outmatched is stood down from, its squads and ground back to the ordinary defence, and observed again later (place counter-attack); a holder sorties from a walled place it holds through a sally door in its own wall instead of walking round (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
+Updated: 2026-10-21 — a holder shuts its sally door again behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body (`garrisonables.md`, sally doors); a machine guard is barred only by an enemy seen in its place, and a refused guard passes its place over for the next; a holder sorties through a sally door in its own wall (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2241,10 +2241,12 @@ within the machine guard's bounds (scene `mission-defence`).
 
 **A holder goes out by its own sally door, not round its own walls.** A walled place a side holds (a fort's works, a
 walled compound or yard, a building with few exits) has a closed **sally door** in each face its walls would otherwise
-send the holder round: wall until the holder orders people inside the place to ground beyond that face, then opened as
-built passage when no hostile stands at it, and open for everybody after (`garrisonables.md`, sally doors). It is the
-holder's way to the ground it owns, never an attacker's way in: a closed door is wall and is breached as wall. Scenes
-`sally-door` (a walled yard, infantry and a mech) and `sally-port` (a fort).
+send the holder round: wall until the holder orders people through it (out to ground beyond that face, or home), then
+opened as built passage when no hostile stands at it, and shut again by the same side behind the sortie or in the face
+of an approaching enemy, or on the player's bar, never on a body (`garrisonables.md`, sally doors). It is the holder's
+way to the ground it owns, open only while it is used, never an attacker's way in: a shut door is wall and is breached
+as wall, and a door left open when its holder loses the place is the attack's. Scenes `sally-door` (a walled yard,
+infantry and a mech) and `sally-port` (a fort).
 
 **What it pays is composure and reach, never protection.** Cover already
 reduces damage and stops rounds, and the cells of a position already carry it;
@@ -2366,7 +2368,12 @@ commander's order to man it, which names the building by its footprint, since a
 commander's facts may carry a copy of the node) — and does not believe
 enemy-held is a **guard**,
 and the cursor says GUARD, heavy support, in the friendly colour; an unarmed
-hull only moves, and a place believed to hold an enemy is still an assault. A
+hull only moves, and a place believed to hold an enemy is still an assault. For
+the guard, enemy-held means a hostile *seen* in the place: a report localised
+only by sound is scattered round the shooter by design, so an attack firing from
+beside a belt lands its reports on the belt, and those barred a commander's guard
+for the garrison there for as long as the attack fired. A click is asked whether
+it is an assault first, on every belief, so the cursor is unchanged. A
 guard's place is a run, a held place, or — when the click finds neither — the
 building whose envelope the cell lies in (`garrisonables.md`, building
 envelopes), so a compound's command post, barracks or armory its side mans is
@@ -2412,7 +2419,11 @@ arrival bound. A lance already fighting is offered only for a place within 48
 cells of it, where its fight is plausibly the garrison's. A guard stands down when
 its place is no longer manned, has stayed below the start level for the manning
 dwell, its lance falls below useful strength, or the lance is taken up by other
-work. The defender offers lances its pool left without a track response or a
+work. A guard order the machine tier refuses (the place seen enemy-held, or not
+manned on the ground yet) passes that place over for the manning dwell, so the
+lance is offered to the next place the side mans; retried at once, the most
+pressed place took the lance every pulse and no other place was ever guarded.
+The defender offers lances its pool left without a track response or a
 structure task; the attacker holding taken ground offers lances the muster, the
 capture pass and the holders left, keeps a guarding lance in the pool so a
 company that recruits it or a capture that commits it takes it, and stands every

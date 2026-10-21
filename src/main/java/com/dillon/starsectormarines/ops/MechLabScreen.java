@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.CampaignClock;
+import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -111,7 +113,8 @@ public final class MechLabScreen implements Screen {
             deck = liveDeck;
             selectedBayIndex.set(0);
             viewModel = new MechLabViewModel(reactor, roster.mechBay(),
-                    new CampaignFabricationResources(true), this::syncGantryScene);
+                    new CampaignFabricationResources(true), this::syncGantryScene,
+                    CampaignClock::dayFloat, ShipRefits::aboard);
             viewModel.physicalGantries(berths().size());
             syncGantryScene();
             resetCamera(false);
