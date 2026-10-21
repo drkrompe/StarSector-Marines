@@ -755,8 +755,8 @@ and lives, and dies. Its feet follow the ground it covers: a Runner's gallop and
 chitin clatter, a Brute's hooves at every half cell, so a walking Brute plods
 and a charging one thunders. Each phase of the Brute's charge has its own sound
 (the tell, the run, the hit on infantry, a vehicle or a wall, the stun after a
-heavy wall or a tank), as do a Runner's impale and the drag of a seized body;
-the stories that add those acts post them as cues. Each strain's sound is
+heavy wall or a tank), keyed to the charge's own events, as do a Runner's impale
+and the drag of a seized body, which their stories post as cues when they land. Each strain's sound is
 admitted under its own gap and footfalls come from the few bodies nearest the
 listener, so a pack reads as a pack, and the swarm is heard only on ground the
 player has seen. The Spitter has no voice; the Matriarch's sounds wait for its
