@@ -1,4 +1,9 @@
-"""Builds the shipped creep material from an accepted ImageGen master.
+"""SUPERSEDED: the creep no longer ships a painted material. Its surface is
+generated in code (CreepSurface) and shaded by CreepShading/CreepShader; this
+script and its master are kept as the round-1 study only, and the file it
+writes is not read by the mod.
+
+Builds the creep material from an accepted ImageGen master.
 
 The master is a neutral value study (see creep-material-v1.prompt.txt) painted
 over creep_material_guide.py's guide. Colour is not in the art: the shader maps

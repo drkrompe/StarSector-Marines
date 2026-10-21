@@ -5,81 +5,233 @@ package com.dillon.starsectormarines.ops.battleview;
  * fragment program, line for line, so a review frame drawn through Java2D shows
  * the creep the game draws.
  *
- * <p>Inputs are the field at that point, sampled bilinearly between cell
- * centres (coverage, vitality, pulse distance in cells, climbed wall), the map
- * position in cells, the presentation clock and the painted material's
- * luminance there ({@link CreepMaterial}). The material carries the surface:
- * its dark values are veins, its mid values the film, its bright values the
- * nodules, and the palette colours each. Its relief and a coarse cloud from
- * {@link CreepNoise} break the coverage edge into a lumpy lip. A pulse runs
- * along the veins toward the source. A wall carries only a patchy climb,
- * swollen into a dark ridge, so the building still reads under it; thin film
- * lets the ground show through, so a town under creep is still a town; dead
- * growth loses its colour and its pulse.
+ * <p>Creep is a raised surface with a hard organic edge, not a film. Its
+ * outline is the field's coverage crossing one half, broken into lobes by
+ * noise, and it is opaque inside a one-pixel antialiased edge. Distance in
+ * from that edge (coverage over its own gradient, in cells) shapes a beaded
+ * lip that stands up off the ground, and past the lip the body is covered in
+ * {@link CreepSurface}'s chitin plates, with veins in it carrying the pulse.
+ * The creep shades its own relief against the sun, because the ground
+ * composite casts shadows from its height field but does not light a
+ * surface's slope, and casts its own short shadow, because the composite's
+ * height channel is too coarse for a lip a fifth of a metre tall.
+ *
+ * <p>Beside a wall the creep tucks into a dark crease. On a wall the field's
+ * coverage is how long creep has held it: first veins reach across the wall
+ * top, then a crust with the same beaded edge grows over it from the side the
+ * creep came from.
  */
 final class CreepShading {
 
-    /** How far the coarse cloud and the material relief move the coverage edge. */
-    static final float EDGE_NOISE = 0.45f, EDGE_RELIEF = 0.35f;
-    static final float EDGE_LO = 0.30f, EDGE_HI = 0.50f;
+    /** Height of the flat body, and of the lip's crest above it, in metres. */
+    static final float PLATEAU = 0.09f;
+    static final float LIP_LOW = 0.07f, LIP_BLISTER = 0.22f;
+    /** Where the lip crests and how wide it is, in cells in from the edge. */
+    static final float LIP_AT = 0.24f, LIP_WIDTH = 0.20f;
+    /** Plate relief, in metres. */
+    static final float PLATE_RELIEF = 0.022f;
+    /** Coverage-unit amplitude of the coarse and fine lobes in the edge. */
+    static final float EDGE_NOISE = 0.30f, EDGE_FINE = 0.12f;
+    /** Half-spacing of the coverage taps the gradient and softening use, in cells. */
+    static final float TAP = 0.5f;
+    /** Floor on the coverage gradient, so the distance estimate stays finite in the flat interior. */
+    static final float GRADIENT_FLOOR = 0.35f;
     /** Pulse phase per cell of path distance and per second; positive both, so a crest walks toward the source. */
     static final float PULSE_PER_CELL = 0.9f, PULSE_PER_SECOND = 2.6f;
-    /** Material luminance below which a point is vein, and above which it is nodule. */
-    static final float VEIN_LO = 0.20f, VEIN_HI = 0.38f, NODULE_LO = 0.55f, NODULE_HI = 0.80f;
     /** How hard the pulse lights the veins. */
-    static final float GLOW = 0.35f;
-    /** Opacity of thin film between nodules and veins: the town still shows through it. */
-    static final float FILM_ALPHA = 0.78f;
-    /** Offset, in cells, of the four extra coverage taps that soften the edge off the cell grid. */
-    static final float TAP = 0.9f;
+    static final float GLOW = 0.30f;
+    /** Steps (in cells) of the creep's own shadow march, and the shadow's opacity at full sun strength. */
+    static final float[] SHADOW_STEPS = {0.1f, 0.2f, 0.3f};
+    static final float SHADOW_ALPHA = 0.45f;
+    /** Colour the creep's shadow darkens the ground toward. */
+    static final float[] SHADOW_TINT = {0.07f, 0.07f, 0.10f};
+    /** Wall coverage over which veins reach across the wall top, and over which the crust takes it. */
+    static final float VEIN_AGE = 0.5f, CRUST_AGE_LO = 0.35f, CRUST_REACH = 0.6f;
+    /** Larger plates: their sampling scale, and the cloud band over which they take over. */
+    static final float BIG_SCALE = 0.6f, BIG_LO = 0.45f, BIG_HI = 0.6f;
+    /** Scale of the turned cloud sampling the membrane patches mix in. */
+    static final float PATCH_TURN_SCALE = 1.7f;
+    /** Fine-noise band over which plates give way to bare membrane. */
+    static final float PATCH_LO = 0.30f, PATCH_HI = 0.50f;
+    /** Scale of the second, quarter-turned vein sampling on the ground, against the first. */
+    static final float VEIN_SECOND_SCALE = 0.77f;
+    /** Scale of the finer vein lattice drawn over walls, against the ground's. */
+    static final float WALL_VEIN_SCALE = 2.2f;
 
     private CreepShading() { }
+
+    /** The field and noise lookups one point needs, from the layer's mirror on the CPU. */
+    interface Field {
+        /** Bilinear field at a point: coverage, vitality in 0..1, pulse in cells, wall flag in 0..1. */
+        void sample(float cellX, float cellY, float[] out);
+
+        /** Bilinear coverage alone. */
+        float coverage(float cellX, float cellY);
+    }
+
+    /** The scene's sun, as the creep reads it: toward the sun on the map, rise per cell, shadow strength. */
+    record Sun(float dirX, float dirY, float rise, float strength) { }
 
     /**
      * Shades one point into straight (not premultiplied) RGBA in {@code out}.
      *
-     * @param cov      coverage softened over neighbouring cells ({@link #softCoverage})
-     * @param material the surface luminance here ({@link CreepMaterial#surface})
-     * @param noise    scratch of at least four floats
+     * @param cellPx screen pixels per cell, for the antialiased edge and the surface's mip level
+     * @param tmp    scratch, one per thread
      */
-    static void shade(float cov, float vit, float pulseCells, float wall, float cellX, float cellY,
-                      float time, float material, CreepPalette pal, float[] noise, float[] out) {
-        CreepNoise.sample(cellX, cellY, noise);
-        float nr = noise[0];
-        float l = material;
-        float m = smoothstep(EDGE_LO, EDGE_HI, cov + (nr - 0.5f) * EDGE_NOISE + (l - 0.5f) * EDGE_RELIEF);
-        float climb = smoothstep(0.35f, 0.60f, l * 0.8f + nr * 0.4f);
-        m *= 1f + (climb - 1f) * wall;
-        if (m <= 0.002f) {
+    static void shade(Field f, float x, float y, float cellPx, float time, CreepPalette pal, Sun sun,
+                      Scratch tmp, float[] out) {
+        float[] own = tmp.own, here = tmp.here, noise = tmp.noise, fine = tmp.fine, surf = tmp.surf, col = tmp.col, turned = tmp.turned;
+        f.sample((float) Math.floor(x) + 0.5f, (float) Math.floor(y) + 0.5f, own);
+        f.sample(x, y, here);
+        float e = f.coverage(x + TAP, y), w = f.coverage(x - TAP, y);
+        float n = f.coverage(x, y + TAP), s = f.coverage(x, y - TAP);
+        float soft = 0.4f * here[0] + 0.15f * (e + w + n + s);
+        float gx = (e - w) / (2f * TAP), gy = (n - s) / (2f * TAP);
+        float g = (float) Math.sqrt(gx * gx + gy * gy);
+        float gl = Math.max(g, GRADIENT_FLOOR);
+        float ux = g > 1e-5f ? gx / g : 0f, uy = g > 1e-5f ? gy / g : 0f;
+        CreepNoise.sample(x, y, noise);
+        CreepNoise.sample(x * 2.5f + 3.1f, y * 2.5f + 1.7f, fine);
+        float lobes = (noise[0] - 0.5f) * EDGE_NOISE + (fine[0] - 0.5f) * EDGE_FINE;
+        // Bare-membrane patches: the fine cloud mixed with a turned, rescaled sampling of the same cloud, so the
+        // patches never line up into the four-cell repeat either sampling has alone.
+        CreepNoise.sample((0.8f * x + 0.6f * y) * PATCH_TURN_SCALE + 5.3f,
+                (-0.6f * x + 0.8f * y) * PATCH_TURN_SCALE + 2.9f, turned);
+        float patch = 0.5f * fine[0] + 0.5f * turned[0];
+        float tpp = CreepSurface.SIZE / CreepSurface.CELLS / Math.max(0.01f, cellPx);
+        boolean onWall = own[3] > 0.5f;
+
+        if (!onWall) {
+            float d = (soft - 0.5f + lobes) / gl;
+            float a = clamp01(d * cellPx + 0.5f);
+            float shadow = 0f;
+            if (a < 1f && sun.strength() > 0f) {
+                for (float t : SHADOW_STEPS) {
+                    float ds = (f.coverage(x + sun.dirX() * t, y + sun.dirY() * t) - 0.5f + lobes) / gl;
+                    if (ds <= 0f) continue;
+                    float lip = PLATEAU + bump(Math.min(ds, 2f), LIP_AT, LIP_WIDTH) * (LIP_LOW + 0.5f * LIP_BLISTER);
+                    shadow = Math.max(shadow, clamp01((lip - t * sun.rise()) / 0.04f));
+                }
+            }
+            float sa = SHADOW_ALPHA * shadow * sun.strength();
+            if (a <= 0f && sa <= 0.002f) {
+                out[0] = out[1] = out[2] = out[3] = 0f;
+                return;
+            }
+            if (a > 0f) {
+                body(clamp(d, 0f, 2f), x, y, ux, uy, here[1], here[2], noise[0], patch, tpp, time, pal, sun, surf, col);
+                float crease = smoothstep(0.2f, 0.5f, here[3]);
+                for (int c = 0; c < 3; c++) col[c] *= 1f - 0.55f * crease;
+            }
+            float alpha = a + sa * (1f - a);
+            for (int c = 0; c < 3; c++) out[c] = clamp01((col[c] * a + SHADOW_TINT[c] * sa * (1f - a)) / Math.max(alpha, 1e-4f));
+            out[3] = alpha;
+            return;
+        }
+
+        // A wall: its own coverage is how long creep has held it.
+        float age = own[0];
+        if (age <= 0f) {
             out[0] = out[1] = out[2] = out[3] = 0f;
             return;
         }
-        float rim = smoothstep(0f, 0.35f, m) * (1f - smoothstep(0.35f, 1f, m));
-        float vein = 1f - smoothstep(VEIN_LO, VEIN_HI, l);
-        float fleshy = smoothstep(NODULE_LO, NODULE_HI, l);
-        float thick = smoothstep(0.3f, 0.7f, nr);
-        float value = (0.62f + 0.8f * (l - 0.46f)) * (0.85f + 0.3f * thick);
-        float wave = 0.5f + 0.5f * (float) Math.sin(pulseCells * PULSE_PER_CELL + time * PULSE_PER_SECOND);
-        float glow = vein * (0.25f + 0.75f * wave * wave) * vit * GLOW;
-        float speck = smoothstep(0.92f, 0.99f, l) * vit;
-        float mottle = 0.7f + 0.5f * nr;
-        for (int c = 0; c < 3; c++) {
-            float body = mix(pal.base()[c], pal.flesh()[c], fleshy) * value;
-            float col = mix(body, pal.vein()[c], vein * 0.8f) + pal.glow()[c] * glow;
-            col = mix(col, pal.rim()[c], rim * 0.35f) + pal.glow()[c] * speck * 0.6f;
-            float ridge = pal.vein()[c] * 1.3f + pal.flesh()[c] * 0.4f + pal.glow()[c] * glow;
-            col = mix(col, ridge, wall * 0.7f);
-            col = mix(pal.dead()[c] * mottle * value, col, vit);
-            out[c] = clamp01(col);
+        float crustT = 1f - CRUST_REACH * smoothstep(CRUST_AGE_LO, 1f, age);
+        float dc = (soft - crustT + lobes * 0.6f) / gl;
+        float ac = crustT < 1f ? clamp01(dc * cellPx + 0.5f) : 0f;
+        float veinT = 1f - 0.95f * smoothstep(0f, VEIN_AGE, age);
+        float reach = smoothstep(0f, 0.08f, soft - veinT);
+        CreepSurface.sample(x * WALL_VEIN_SCALE, y * WALL_VEIN_SCALE, tpp * WALL_VEIN_SCALE, surf);
+        float vein = clamp01(surf[2] * 1.6f) * reach;
+        if (ac <= 0f && vein <= 0.002f) {
+            out[0] = out[1] = out[2] = out[3] = 0f;
+            return;
         }
-        float film = mix(FILM_ALPHA * mix(0.8f, 1.15f, thick), 1f, Math.max(fleshy, vein));
-        float a = m * film * mix(0.75f, 1f, vit);
-        out[3] = clamp01(mix(a, m * 0.95f, wall));
+        for (int c = 0; c < 3; c++) {
+            float raised = mix(pal.flesh()[c], pal.rim()[c], 0.35f);
+            out[c] = raised;
+        }
+        float va = 0.9f * vein;
+        if (ac > 0f) {
+            body(clamp(dc, 0f, 2f), x, y, ux, uy, here[1], here[2], noise[0], patch, tpp, time, pal, sun, surf, col);
+        }
+        float alpha = ac + va * (1f - ac);
+        for (int c = 0; c < 3; c++) out[c] = clamp01((col[c] * ac + out[c] * va * (1f - ac)) / Math.max(alpha, 1e-4f));
+        out[3] = alpha;
     }
 
-    /** Coverage at a point and four taps {@link #TAP} cells away, so the edge is a ramp a few cells wide. */
-    static float softCoverage(float centre, float east, float west, float north, float south) {
-        return 0.4f * centre + 0.15f * (east + west + north + south);
+    /** Per-thread working arrays for {@link #shade}. */
+    static final class Scratch {
+        final float[] own = new float[4], here = new float[4], noise = new float[4], fine = new float[4],
+                surf = new float[4], col = new float[4], tap = new float[4], turned = new float[4];
+    }
+
+    /**
+     * The creep's body at {@code dd} cells in from its edge: lip profile, plates, veins and pulse, lit by the sun
+     * from its own slope. RGB into {@code col}.
+     */
+    private static void body(float dd, float x, float y, float ux, float uy, float vit, float pulseCells,
+                             float cloud, float patch, float tpp, float time, CreepPalette pal, Sun sun,
+                             float[] surf, float[] col) {
+        // Plates come in two sizes, the larger where the cloud is high, and only in patches: between them is bare
+        // membrane studded with nodules, so the cover reads as grown rather than paved.
+        float big = smoothstep(BIG_LO, BIG_HI, cloud);
+        CreepSurface.sample(x * BIG_SCALE + 1.3f, y * BIG_SCALE + 0.7f, tpp * BIG_SCALE, surf);
+        float bigPlate = surf[0], bigTone = surf[1];
+        CreepSurface.sample(x, y, tpp, surf);
+        float plate = mix(surf[0], bigPlate, big), tone = mix(surf[1], bigTone, big);
+        float veinMask = surf[2], blister = surf[3];
+        float step = 1f / 64f;
+        float px = plateAt(x + step, y, big, tpp, col), py = plateAt(x, y + step, big, tpp, col);
+        float lip = bump(dd, LIP_AT, LIP_WIDTH);
+        float lipAmp = LIP_LOW + LIP_BLISTER * blister;
+        float hLip = PLATEAU + lip * lipAmp;
+        float dLip = lipAmp * lip * (-2f * (dd - LIP_AT) / (LIP_WIDTH * LIP_WIDTH));
+        float plated = smoothstep(0.35f, 0.7f, dd) * smoothstep(PATCH_LO, PATCH_HI, patch);
+        float sx = dLip * ux + PLATE_RELIEF * plated * (px - plate) / step;
+        float sy = dLip * uy + PLATE_RELIEF * plated * (py - plate) / step;
+        float nl = (float) Math.sqrt(sx * sx + sy * sy + 1f);
+        float nx = -sx / nl, ny = -sy / nl, nz = 1f / nl;
+        float cosE = 1f / (float) Math.sqrt(1f + sun.rise() * sun.rise());
+        float lx = sun.dirX() * cosE, ly = sun.dirY() * cosE, lz = sun.rise() * cosE;
+        float ndl = Math.max(0f, nx * lx + ny * ly + nz * lz);
+        float diffuse = 0.45f + 0.55f * ndl / Math.max(lz, 0.05f);
+        float hx = lx, hy = ly, hz = lz + 1f;
+        float hn = (float) Math.sqrt(hx * hx + hy * hy + hz * hz);
+        float ndh = Math.max(0f, (nx * hx + ny * hy + nz * hz) / hn);
+        float spec = (0.05f + 0.15f * plated) * (float) Math.pow(ndh, 24.0) * vit;
+        float seam = smoothstep(0.14f, 0f, plate) * plated;
+        float crest = clamp01((hLip - PLATEAU) / 0.15f);
+        // Two samplings of the vein lattice, the second turned and rescaled, chosen between by the cloud,
+        // so the network does not repeat with the surface's tile.
+        CreepSurface.sample(y * VEIN_SECOND_SCALE + 2.3f, x * VEIN_SECOND_SCALE + 4.1f, tpp * VEIN_SECOND_SCALE, surf);
+        float veinPick = smoothstep(0.38f, 0.62f, cloud);
+        float vein = mix(veinMask, surf[2], veinPick) * smoothstep(0.25f, 0.8f, dd);
+        float outline = smoothstep(0.06f, 0f, dd);
+        float wave = 0.5f + 0.5f * (float) Math.sin(pulseCells * PULSE_PER_CELL + time * PULSE_PER_SECOND);
+        float glow = vein * (0.25f + 0.75f * wave * wave) * vit * GLOW;
+        for (int c = 0; c < 3; c++) {
+            float membrane = pal.base()[c] * (0.8f + 0.25f * cloud) * (0.88f + 0.3f * blister);
+            float plateCol = pal.flesh()[c] * (0.82f + 0.36f * tone);
+            float alb = mix(membrane, plateCol, plated * (1f - seam));
+            alb = mix(alb, pal.base()[c] * 0.6f, seam * 0.5f);
+            alb = mix(alb, pal.rim()[c], 0.5f * crest);
+            alb = mix(alb, pal.vein()[c], 0.7f * vein);
+            alb = mix(pal.dead()[c] * (0.8f + 0.3f * cloud), alb, vit);
+            col[c] = (alb * diffuse + spec + pal.glow()[c] * glow) * (1f - 0.35f * outline);
+        }
+    }
+
+    /** Plate height alone, both sizes mixed as {@link #body} mixes them, sampled through {@code into}. */
+    private static float plateAt(float x, float y, float big, float tpp, float[] into) {
+        CreepSurface.sample(x * BIG_SCALE + 1.3f, y * BIG_SCALE + 0.7f, tpp * BIG_SCALE, into);
+        float b = into[0];
+        CreepSurface.sample(x, y, tpp, into);
+        return mix(into[0], b, big);
+    }
+
+    static float bump(float d, float centre, float width) {
+        float t = (d - centre) / width;
+        return (float) Math.exp(-t * t);
     }
 
     static float smoothstep(float e0, float e1, float x) {
@@ -88,6 +240,8 @@ final class CreepShading {
     }
 
     static float mix(float a, float b, float t) { return a + (b - a) * t; }
+
+    static float clamp(float v, float lo, float hi) { return v < lo ? lo : (v > hi ? hi : v); }
 
     static float clamp01(float v) { return v < 0f ? 0f : (v > 1f ? 1f : v); }
 }

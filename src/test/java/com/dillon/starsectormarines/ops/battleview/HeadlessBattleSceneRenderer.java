@@ -558,44 +558,38 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
     }
 
     /**
-     * Creep through {@link CreepShading}, the CPU model of its shader, over the layer's mirror of the field. One
-     * sample per pixel where a cell is small (the whole-map framing, where the edge is the picture) and per two-pixel
-     * block closer in; equal neighbours in a row share one fill.
+     * Creep through {@link CreepShading}, the CPU model of its shader, over the layer's mirror of the field: one
+     * sample per pixel, because the edge is hard and a coarser block would step it. Equal neighbours in a row share
+     * one fill.
      */
     private static void drawCreep(CanvasContext context, CanvasHostViewport viewport, CreepPass pass, int top, int bottom) {
         float surfaceHeight = viewport.height();
-        int block = pass.cellPx < 8f ? 1 : 2;
         float sx0 = pass.cellToScreenX(pass.minX), sx1 = pass.cellToScreenX(pass.maxX + 1);
         float gy0 = pass.cellToScreenY(pass.minY), gy1 = pass.cellToScreenY(pass.maxY + 1);
         int px0 = Math.max(0, (int) Math.floor(Math.min(sx0, sx1)));
         int px1 = Math.min((int) Math.ceil(viewport.width()), (int) Math.ceil(Math.max(sx0, sx1)));
         int row0 = Math.max(Math.max(0, top), (int) Math.floor(surfaceHeight - Math.max(gy0, gy1)));
         int row1 = Math.min(Math.min((int) Math.ceil(surfaceHeight), bottom), (int) Math.ceil(surfaceHeight - Math.min(gy0, gy1)));
-        row0 -= Math.floorMod(row0, block);
         CreepLayer layer = pass.layer();
-        float[] field = new float[4], noise = new float[4], rgba = new float[4];
-        float texelsPerPixel = CreepMaterial.size() / CreepMaterial.CELLS / pass.cellPx * block;
-        for (int y = row0; y < row1; y += block) {
-            float cellY = pass.screenToCellY(surfaceHeight - (y + block * 0.5f));
+        CreepShading.Scratch scratch = new CreepShading.Scratch();
+        float[] rgba = new float[4];
+        for (int y = row0; y < row1; y++) {
+            float cellY = pass.screenToCellY(surfaceHeight - (y + 0.5f));
             int runStart = px0, runColor = 0;
-            for (int x = px0; x < px1; x += block) {
-                float cellX = pass.screenToCellX(x + block * 0.5f);
-                layer.sampleField(cellX, cellY, field);
+            for (int x = px0; x < px1; x++) {
+                float cellX = pass.screenToCellX(x + 0.5f);
                 int color = 0;
-                if (field[0] > 0f || layer.coverageNear(cellX, cellY)) {
-                    float soft = CreepShading.softCoverage(field[0],
-                            layer.coverageAt(cellX + CreepShading.TAP, cellY), layer.coverageAt(cellX - CreepShading.TAP, cellY),
-                            layer.coverageAt(cellX, cellY + CreepShading.TAP), layer.coverageAt(cellX, cellY - CreepShading.TAP));
-                    CreepShading.shade(soft, field[1], field[2], field[3], cellX, cellY, pass.timeSeconds,
-                            CreepMaterial.surface(cellX, cellY, texelsPerPixel), pass.palette, noise, rgba);
+                if (layer.coverageNear(cellX, cellY)) {
+                    CreepShading.shade(layer, cellX, cellY, pass.cellPx, pass.timeSeconds, pass.palette, pass.sun,
+                            scratch, rgba);
                     color = argb(rgba, pass.alpha);
                 }
                 if (color == runColor) continue;
-                if ((runColor >>> 24) != 0) context.fillRect(runStart, y, x - runStart, block, new Color(runColor, true));
+                if ((runColor >>> 24) != 0) context.fillRect(runStart, y, x - runStart, 1, new Color(runColor, true));
                 runStart = x;
                 runColor = color;
             }
-            if ((runColor >>> 24) != 0) context.fillRect(runStart, y, px1 - runStart, block, new Color(runColor, true));
+            if ((runColor >>> 24) != 0) context.fillRect(runStart, y, px1 - runStart, 1, new Color(runColor, true));
         }
     }
 

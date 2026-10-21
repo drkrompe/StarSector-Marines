@@ -20,15 +20,16 @@ package com.dillon.starsectormarines.ops.battleview;
 public enum RenderLayer {
     /** Tiled floor/wall terrain (+ the zone debug overlay on top of it). */
     GROUND,
+    /** Hive creep: growth over the ground and the walls it climbs. Straight after the ground,
+     *  because it drains inside the ground's relief target (the composite displaces and shadows
+     *  it with the terrain under it); decals, props and everything standing on it draw over it. */
+    CREEP,
     /** Bullet holes / craters. Above ground, below vehicles + units so they draw on top. */
     DECALS,
     /** Parked map vehicles. */
     VEHICLES,
     /** Props / overlays (rocks, plants, road markings). */
     DOODADS,
-    /** Hive creep: growth over the ground, the props and parked wrecks it overgrows, and the
-     *  walls it climbs. Below highlights and units, which stand on it. */
-    CREEP,
     /** Debug cell highlights (plan-step cells, selected squad, captain). Above
      *  ground/doodads, below units so unit sprites stay legible over the tint. */
     HIGHLIGHTS,

@@ -2105,7 +2105,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Limb wounds carried this battle ({@code body-part-cover.md}, Part consequences). */
     public WoundService wounds() { return rosterService.wounds(); }
 
-    /** Who can't act this tick ({@code brute-charge.md}). */
+    /** Who can't act this tick ({@code colony-breach-nouns.md}, Brute). */
     public StaggerService stagger() { return rosterService.stagger(); }
     /**
      * Returns the entity id {@code u} is currently targeting, or {@code 0L} when
@@ -3880,7 +3880,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** What swarm bodies ask the presentation to sound this advance; presentation-only. */
     public SwarmCues swarmCues() { return swarmCues; }
 
-    /** Brute charges in progress and their record ({@code brute-charge.md}). */
+    /** Brute charges in progress and their record ({@code colony-breach-nouns.md}, Brute). */
     public BruteChargeSystem bruteCharges() { return bruteCharges; }
 
     @Override
