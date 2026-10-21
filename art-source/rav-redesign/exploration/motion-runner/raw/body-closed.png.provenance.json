@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fca-9068-72c1-ba4b-8933560ef34b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fca-9068-72c1-ba4b-8933560ef34b\\exec-ca741e6d-45b5-45c3-aca6-7e379d17ab1a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\body-closed.png",
+    "sha256": "af6bd9512777475653366f1e70ef2f75a564f3dd13aeeb98241783cd47ea4456",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\motion-runner\\prompts\\body-closed.prompt.txt",
+  "promptSha256": "3e450d69081e4af8ba8102b536f0713bd36cb1458a75bfd8b9cfa9927bb446f0",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity, geometry and layout authority\n\nLayer for a 2D rig. Reproduce reference 1 exactly (same creature, same pose, same position, same scale, same lighting and finish) with ONE change: remove both arm blades completely, leaving only a smooth armoured shoulder socket where each arm blade attaches. The head's jaws are CLOSED: fangs interlocked, mouth shut. Keep the four walking legs, body, tail and head exactly as they are. Strict overhead orthographic view, same framing, scale and position as reference 1 so the layers register over it. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\hero.png",
+      "sha256": "1fd084bdf713b942ea09dca5767d4ee1ac913bf17c5bcea8ae0d6ac62bcb41e8",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity, geometry and layout authority"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image with both arm blades removed, smooth armored shoulder sockets, and the jaws closed, preserving the reference’s alignment and finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 40576,
+    "cached_input_tokens": 32256,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 403,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 43.5
+}

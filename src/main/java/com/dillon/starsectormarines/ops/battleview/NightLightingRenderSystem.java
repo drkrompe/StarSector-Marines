@@ -82,34 +82,43 @@ final class NightLightingRenderSystem implements RenderSystem {
         float b=(.037f*weight+warm*sample(blues,px,py)/divisor)/alpha;
         mesh.appendQuad(x0,y0,x1,y0,x1,y1,x0,y1,r,g,b,alpha*alphaMult);
     }
-    /** Ground contact, splayed feet and an elevated head remain visible during the outage. */
+    /**
+     * A floodlight seen from straight above, as everything on the map is: a
+     * square footplate on the ground, the lamp housing across it, the lens on
+     * the face it points along, and a short throw of light on the ground ahead
+     * when it is powered. Nothing is drawn as if raised toward the viewer, so a
+     * lamp sits on its own cell whichever way the camera frames it. The plate
+     * and housing stay visible during an outage.
+     */
     private void floodlight(DrawList out, NightLighting.Lamp lamp, float x, float y,
                             float px, boolean powered, float alpha) {
-        out.addLine(layer(),x-px*.48f,y+px*.12f,x+px*.48f,y+px*.12f,px*.42f,0,0,0,.4f*alpha);
-        for (int leg=0;leg<3;leg++) {
-            double angle=Math.toRadians(30+leg*120);
-            float footX=x+(float)Math.cos(angle)*px*.48f;
-            float footY=y+(float)Math.sin(angle)*px*.34f;
-            out.addLine(layer(),x,y-px*.12f,footX,footY,Math.max(2,px*.12f),.09f,.1f,.11f,alpha);
-            out.addLine(layer(),x,y-px*.12f,footX,footY,Math.max(1,px*.05f),.46f,.43f,.34f,alpha);
-        }
-        float headX=x+px*.16f, headY=y-px*.82f;
-        out.addLine(layer(),x,y,headX,headY,Math.max(2,px*.15f),.09f,.1f,.12f,alpha);
-        out.addLine(layer(),x-px*.025f,y,headX-px*.025f,headY,Math.max(1,px*.055f),.58f,.54f,.39f,alpha);
         double bearing=Math.toRadians(lamp.bearingDegrees());
         float forwardX=(float)Math.cos(bearing),forwardY=-(float)Math.sin(bearing);
         float crossX=-forwardY,crossY=forwardX;
-        float faceX=headX+forwardX*px*.18f,faceY=headY+forwardY*px*.18f;
-        out.addLine(layer(),headX-crossX*px*.38f,headY-crossY*px*.38f,
-                headX+crossX*px*.38f,headY+crossY*px*.38f,px*.36f,.08f,.09f,.11f,alpha);
-        out.addLine(layer(),headX-crossX*px*.31f,headY-crossY*px*.31f,
-                headX+crossX*px*.31f,headY+crossY*px*.31f,px*.22f,.4f,.42f,.43f,alpha);
-        if (powered) for (int halo=3;halo>=1;halo--)
-            out.addLine(layer(),faceX-crossX*px*.28f,faceY-crossY*px*.28f,
-                    faceX+crossX*px*.28f,faceY+crossY*px*.28f,px*(.12f+halo*.1f),
-                    lamp.red(),lamp.green(),lamp.blue(),.07f*alpha);
-        out.addLine(layer(),faceX-crossX*px*.28f,faceY-crossY*px*.28f,
-                faceX+crossX*px*.28f,faceY+crossY*px*.28f,Math.max(1,px*.08f),
+        if (powered) {
+            // The beam's throw on the ground: a narrow fan ahead of the lens, brightest at the lamp.
+            for (int ray=-2;ray<=2;ray++) {
+                double spread=bearing+Math.toRadians(ray*9);
+                float rayX=(float)Math.cos(spread),rayY=-(float)Math.sin(spread);
+                float startX=x+forwardX*px*.3f,startY=y+forwardY*px*.3f;
+                out.addLine(layer(),startX,startY,startX+rayX*px*1.9f,startY+rayY*px*1.9f,px*.34f,
+                        lamp.red(),lamp.green(),lamp.blue(),.06f*alpha);
+            }
+        }
+        // Footplate: a dark square with a lighter rim, flat on the ground.
+        float half=px*.3f;
+        out.addSolidRect(layer(),x-half,y-half,x+half,y+half,.31f,.31f,.29f,alpha);
+        out.addSolidRect(layer(),x-half*.8f,y-half*.8f,x+half*.8f,y+half*.8f,.1f,.11f,.12f,alpha);
+        // Housing across the bearing, set back from the lens.
+        float bodyX=x-forwardX*px*.04f,bodyY=y-forwardY*px*.04f;
+        out.addLine(layer(),bodyX-crossX*px*.3f,bodyY-crossY*px*.3f,
+                bodyX+crossX*px*.3f,bodyY+crossY*px*.3f,px*.26f,.08f,.09f,.11f,alpha);
+        out.addLine(layer(),bodyX-crossX*px*.24f,bodyY-crossY*px*.24f,
+                bodyX+crossX*px*.24f,bodyY+crossY*px*.24f,px*.14f,.38f,.4f,.41f,alpha);
+        // Lens on the leading face.
+        float faceX=x+forwardX*px*.12f,faceY=y+forwardY*px*.12f;
+        out.addLine(layer(),faceX-crossX*px*.24f,faceY-crossY*px*.24f,
+                faceX+crossX*px*.24f,faceY+crossY*px*.24f,Math.max(1,px*.07f),
                 powered ? 1f : .2f,powered ? .94f : .24f,powered ? .75f : .26f,alpha);
     }
 
