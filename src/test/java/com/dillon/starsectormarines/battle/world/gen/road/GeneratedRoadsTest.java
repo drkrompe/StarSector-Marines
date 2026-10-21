@@ -89,14 +89,33 @@ class GeneratedRoadsTest {
         fill(road, 2, 10, 45, 12);   // a street three wide ...
         fill(road, 20, 13, 27, 14);  // ... widening to five where a frontage steps back
         fill(road, 10, 20, 13, 29);  // a short gap between buildings, touching nothing
-        var streets = GeneratedRoads.streets(road, road, 3, 9);
+        var streets = GeneratedRoads.streets(road, road, null, 3, 9, GeneratedRoads.StreetStyle.ROUND_BARE);
         var straight = streets.stream().filter(r -> r.points().size() == 2).toList();
         assertEquals(1, straight.size(), "only the street itself: " + streets);
         assertEquals(3, straight.get(0).width());
         assertTrue(GeneratedRoads.routes(road, 3).stream().anyMatch(r -> r.width() == 5),
                 "the plain sweep takes the bulge; streets do not");
         assertTrue(GeneratedRoads.routes(road, 3).stream().anyMatch(r -> r.width() == 4), "and the pill");
-        assertEquals(GeneratedRoads.routes(road, 3), GeneratedRoads.streets(road, new boolean[48][32], 3, 9),
+        assertEquals(GeneratedRoads.routes(road, 3), GeneratedRoads.streets(road, new boolean[48][32], null, 3, 9,
+                        new GeneratedRoads.StreetStyle(true, true)),
                 "roads holding no city street are swept as roads");
+    }
+
+    @Test void streetsEndSquareAndMakeRoomForASidewalk() {
+        boolean[][] road = new boolean[40][24];
+        fill(road, 4, 8, 35, 12);    // a street five wide, open ground either side
+        var style = new GeneratedRoads.StreetStyle(true, true);
+        var routes = GeneratedRoads.streets(road, road, new boolean[40][24], 3, 9, style);
+        assertEquals(1, routes.size(), "one asphalt sweep and nothing painted over it: " + routes);
+        var asphalt = routes.get(0);
+        assertEquals(Material.ASPHALT, asphalt.material());
+        assertEquals(RoadPlan.EndCap.BUTT, asphalt.endCap(), "square, not a brush end");
+        assertEquals(3, asphalt.width(), "with no footway beside it, the sidewalk comes out of the street");
+        assertEquals(3.5, asphalt.points().get(0).x(), 1e-9, "flush with the band's first cell");
+
+        boolean[][] kerbs = new boolean[40][24];
+        fill(kerbs, 4, 7, 35, 13);   // a kerb row on both sides
+        var footed = GeneratedRoads.streets(road, road, kerbs, 3, 9, style);
+        assertEquals(5, footed.get(0).width(), "a footway beside the street keeps its asphalt whole");
     }
 }

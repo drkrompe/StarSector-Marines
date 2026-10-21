@@ -9,7 +9,16 @@ import com.dillon.starsectormarines.battle.world.gen.CellContour;
 /** Immutable subcell pavement boundary. Navigation continues to use the center-sampled raster. */
 public final class RoadSurface {
     /** Borrowed vertex arrays are read-only; collecting a frame allocates no geometry. */
-    public record Patch(int pavement,float[] first,float[] second) {}
+    public record Patch(int pavement,float[] first,float[] second) {
+        /** The share of the cell this patch covers; an edge on a cell boundary leaves a patch of none. */
+        public double area() { return area(first)+area(second); }
+        private static double area(float[] p) {
+            if(p==null)return 0;
+            double sum=0;
+            for(int i=0;i<p.length/2;i++) { int j=(i+1)%(p.length/2); sum+=p[i*2]*p[j*2+1]-p[j*2]*p[i*2+1]; }
+            return Math.abs(sum)/2;
+        }
+    }
     public record Underlay(GroundKind ground,int surface,boolean shoulder,boolean hard) {}
     public static final int MATERIALS=RoadPlan.Material.values().length;
     private final int width;
@@ -20,6 +29,17 @@ public final class RoadSurface {
     }
     public Patch patch(int x,int y,int material) { return patches[material][y*width+x]; }
     public Underlay underlay(int x,int y) { return underlays[y*width+x]; }
+
+    /**
+     * The same pavement over different ground: each non-null {@code ground} cell
+     * shows that underlay, whether or not any pavement covers it.
+     */
+    public RoadSurface withUnderlays(Underlay[][] ground) {
+        Underlay[] next=underlays.clone();
+        for(int x=0;x<ground.length;x++)for(int y=0;y<ground[0].length;y++)
+            if(ground[x][y]!=null)next[y*width+x]=ground[x][y];
+        return new RoadSurface(width,patches,next);
+    }
 
     /** Sample signed distances at cell corners, preserving first-authored-road precedence. */
     public static RoadSurface build(RoadPlan plan,RoadRasterizer.Raster raster,CellTopology topology) {
