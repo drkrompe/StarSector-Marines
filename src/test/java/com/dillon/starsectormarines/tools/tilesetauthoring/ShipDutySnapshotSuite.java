@@ -223,7 +223,14 @@ public final class ShipDutySnapshotSuite implements SnapshotSuite {
                 for (var entry : actors.entrySet()) {
                     List<BufferedImage[]> clip = clips.computeIfAbsent(entry.getKey(), key -> new ArrayList<>());
                     if (clip.size() >= BOARD_FRAMES) continue;
-                    float x = sim.world().x(entry.getValue()), y = sim.world().y(entry.getValue());
+                    // Framed on the body as drawn: a gym user is drawn up the machine from the cell they stand on.
+                    long actor = entry.getValue();
+                    var components = sim.getBattleComponents();
+                    float mount = entry.getKey().mountCells();
+                    double facing = Math.toRadians(sim.getEntityWorld().getFloat(actor, components.LAYERED_ANIMATION,
+                            BattleComponents.LAYERED_FACING_DEGREES));
+                    float x = sim.world().x(actor) - (float) Math.sin(facing) * mount;
+                    float y = sim.world().y(actor) + (float) Math.cos(facing) * mount;
                     clip.add(new BufferedImage[]{
                             drain.renderHostPass(scene.pass(new ShipDeckBattleScene.DeckView(x, y, CLOSE_PX),
                                     BOARD_LAYERS), CLOSE_TILE, CLOSE_TILE),

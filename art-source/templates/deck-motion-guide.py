@@ -16,6 +16,8 @@ gutter, so the exporter cuts each frame mechanically and every part keeps its re
 
 Belt tiles carry plain rubber at the two edges the period wraps across, so tiles laid end to end join without a seam.
 The rower base is the shipped rower (ship-gym.png) with the seat cleared and the rail continued under it.
+Superseded: the real-size gym sheet carries its own seatless rower and seat, so the rower-base and rower-seat
+slots are excluded from export, and this crop no longer reads a rower out of today's ship-gym.png.
 """
 from pathlib import Path
 import math

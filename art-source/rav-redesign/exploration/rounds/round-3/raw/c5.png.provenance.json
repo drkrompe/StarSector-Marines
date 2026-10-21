@@ -1,0 +1,34 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15fbf-9757-7f80-a60e-79c3e43ee390",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15fbf-9757-7f80-a60e-79c3e43ee390\\exec-14bb424d-e034-47b8-b1ae-d58e8e977fe4.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\round-3\\raw\\c5.png",
+    "sha256": "b15e9485925b8ff1074d762d617455a7ab6fa8c76723cf8dbfcea4ca45579f14",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\round-3\\prompts\\c5.prompt.txt",
+  "promptSha256": "ccd9724aa1c29b65b103fd75ea91b94b0880158559218309164484c32614112f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nTop-down concept for a tactical game (Starsector mod: Marines against an engineered biological weapon). ONE creature, the Runner: the swarm's fast hunter, original design. A lean, vicious four-legged predator with a dog or big-cat frame: thick muscular neck and shoulders, deep chest, NO thin waist, strong haunches, muscled legs ending in hooked claws, held out in a wide mid-stride lope. Armoured carapace plates laid over a body of exposed wet sinew and flesh: a shoulder shield, a line of spine plates, a short armoured tail, with ridged flesh showing in every gap and joint. A monster's head: a wide fanged maw, small glowing eyes, no antennae. On its back, jointed striking spikes or blades that arch forward over the head, cocked to stab down past it. Palette: purples. Glossy carapace in deep violet and plum, fleshy gaps in a darker wet magenta-crimson, spike tips and claw tips in ivory bone, eyes a small hot amber glow; organic, alien, menacing, classic RTS alien-swarm finish. Strict overhead orthographic view, camera looking straight down at its back, facing UP (head toward the top), centred, filling about two thirds of the frame, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n\nThis concept: High contrast: near-black blue-violet carapace with bright magenta flesh glowing between the plates and bright ivory blades; twin sickles.\n",
+  "adopted": false,
+  "references": [],
+  "agentMessages": [
+    "I’ll generate one image with the strict overhead view and high-contrast twin-sickle design."
+  ],
+  "usage": {
+    "input_tokens": 37101,
+    "cached_input_tokens": 30464,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 441,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 47.3
+}

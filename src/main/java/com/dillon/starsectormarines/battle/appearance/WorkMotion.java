@@ -55,13 +55,21 @@ public enum WorkMotion {
 
     /**
      * How far, in cells, the body is drawn ahead of where it stands, onto the
-     * machine it is using. A gym's exercise point is the free cell beside a
-     * treadmill or a rower, because nobody can path into a cell the machine
-     * blocks, but nobody runs beside a treadmill: the runner is drawn on its belt.
+     * machine it is using. A gym's exercise point is the free cell at the foot
+     * of a treadmill, rower or bench press, because nobody can path into a cell
+     * the machine blocks, but nobody runs beside a treadmill: the user is drawn
+     * on it. The machines are real-size and worked up their length from the
+     * foot, so each reach lands the body where the machine holds it: the rear
+     * of the belt, the middle of the seat's travel, the bench under the bar.
      * Presentation only; the actor's position and claim stay on the standing cell.
      */
     public float mountCells() {
-        return this == RUN || this == ROW ? 0.8f : 0f;
+        return switch (this) {
+            case RUN -> 1.6f;
+            case ROW -> 1.5f;
+            case PRESS -> 1.4f;
+            default -> 0f;
+        };
     }
 
     /** Whether the family's station arms are drawn out on the work for this motion. */

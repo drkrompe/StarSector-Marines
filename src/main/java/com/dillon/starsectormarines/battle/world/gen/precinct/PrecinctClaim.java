@@ -110,6 +110,26 @@ public interface PrecinctClaim {
             PatchField[] shape = shapeFields(precincts.size());
 
             PriorityQueue<long[]> pooling = frontier();
+            // A field of fire is taken whole before anything pools. Pooling is
+            // noisy on purpose, so a claim of the disc's area would bulge past
+            // it on one side and fall short on another, and the short side is
+            // where a neighbour's first house would stand inside the radius.
+            for (int i = 0; i < precincts.size(); i++) {
+                Precinct precinct = precincts.get(i);
+                if (!precinct.isLanding() || !precinct.landing().hasFieldOfFire()) continue;
+                FieldOfFire field = new FieldOfFire(precinct.seedX(), precinct.seedY(),
+                        precinct.landing().fieldOfFire());
+                for (int x = Math.max(0, field.centerX() - field.radius());
+                     x <= Math.min(width - 1, field.centerX() + field.radius()); x++) {
+                    for (int y = Math.max(0, field.centerY() - field.radius());
+                         y <= Math.min(height - 1, field.centerY() + field.radius()); y++) {
+                        if (!field.contains(x, y) || claim[x][y] != GrownTrunkPlan.UNOWNED) continue;
+                        claim[x][y] = i;
+                        taken[i]++;
+                        pooling.add(new long[]{0L, x, y});
+                    }
+                }
+            }
             for (int i = 0; i < precincts.size(); i++) {
                 if (!precincts.get(i).isProgrammed()) continue;
                 Precinct precinct = precincts.get(i);

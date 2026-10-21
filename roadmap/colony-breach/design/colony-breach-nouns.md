@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — bores, tiers, surges, spore colonies and the bore-sourced director as built.
+Updated: 2026-10-21 — bores, tiers, surges, spore colonies and the bore-sourced director as built; the company lands in open fields outside the colony.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -19,8 +19,8 @@ inherits `rescue-pressure-acceptance.md`.
 
 ## The fantasy
 
-A colony is being eaten from underneath. The company lands at its edge, fights
-to the shelter where the survivors are sealed in, and has to hold a lift zone
+A colony is being eaten from underneath. The company lands in the fields at its
+edge, fights to the shelter where the survivors are sealed in, and has to hold a lift zone
 open long enough for shuttles to take them off. The swarm does not walk in from
 the horizon: it erupts out of bores inside the colony, and every bore left open
 gets worse. The player can spend force to collapse bores and buy quiet, or
@@ -86,10 +86,28 @@ other, the side seeded — because the colony is the same kind of place whatever
 world the event names, and a rescue fixture has no market to derive from. Its
 map is mission-owned (`MapScale.COLONY`, 400x240) and must contain a
 residential shelter, a clear lift footprint, enough buildings for the
-eruption sites and enough held buildings with room indoors to be holdouts; a
-map that lacks any re-rolls the seed. Lower risks and the
+eruption sites, enough held buildings with room indoors to be holdouts and a
+clear landing field; a map that lacks any re-rolls the seed. Lower risks and the
 debug stress path keep their tier map and run the same breach on it, seating
 whatever eruption sites that smaller map has room for.
+
+**Landing field.** Where the company comes down: open fields outside the
+colony's edge, never its streets. Shuttles cannot land amid an infested town:
+bores open underfoot, spore colonies cover the sky over them, and every building
+is cover for the swarm right up to the hull. So the company lands where it can
+see them coming and fights its way in, and that is why it does not land next to
+the colonists it came for. The field is a landing place of the
+`OPEN_FIELD` kind (`precincts.md`): farmland laid out with the colony, north
+or south of the town (the seed's choice; the town, the installation and the
+suburb run across the map's long axis, so that is the colony's far side from
+every place a bore comes up beside), against the map edge the shuttles arrive
+across. Nothing is built, walled or tall within forty cells of its centre, and
+the berths stand within sixteen, so every berth has at least twenty-four cells
+of open ground on every side, a rifle's reach. The walk into the town starts
+across that open ground. The colony map must have it, clear, with every
+arrival area on it, or the seed re-rolls; `-Dbattle.colonyBreach.fieldLanding=false`
+is the control, which lands wherever open ground is first found, as Civilian
+Rescue did.
 
 **Colony militia.** Allied, non-player defenders who survived the first night.
 They hold a few buildings through ordinary garrison manning, crew whatever
@@ -504,7 +522,8 @@ sends against a bore. Stable membership, traced like any other command role.
 
 ## Flow
 
-1. **Landfall.** The company lands at the colony edge. A thin perimeter seepage
+1. **Landfall.** The company lands in the fields outside the colony's edge
+   (*Landing field*) and walks in across open ground. A thin perimeter seepage
    of runners is the only pressure. Militia hold their buildings.
 2. **Shelter.** A Marine reaches the shelter; the main cohort releases. This is
    the breach sequence's first trigger: **tremor**, then the first bores erupt
