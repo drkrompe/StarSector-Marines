@@ -1,0 +1,22 @@
+{
+  "id": "borer-look-dd2a09d99-2026-10-21",
+  "machine": "any",
+  "lane": "light",
+  "priority": 0,
+  "after": [],
+  "requires": ["gpu"],
+  "cwd": "{checkout}/art-source/company-prologue/borer-cinematic",
+  "command": ["{blender}", "--background", "--factory-startup", "--python-exit-code", "1", "--python", "review_look.py", "--",
+              "--borer", "{checkout}/build/ships/borer", "--shepherd", "{checkout}/build/ships/shepherd",
+              "--out", "{work}/panels", "--samples", "16"],
+  "env": {},
+  "inputs": [
+    {"kind": "git", "commit": "<filled in by --commit>"},
+    {"kind": "drive", "from": "{drive}/builds/borer/dd2a09d99", "to": "{checkout}/build/ships/borer",
+     "manifest": "{checkout}/art-source/company-prologue/borer-cinematic/manifest.json"},
+    {"kind": "drive", "from": "{drive}/builds/shepherd/c85fb19b6", "to": "{checkout}/build/ships/shepherd",
+     "sha256": {"shepherd.blend": "6420d0abedd24c70a80d7a6c1df4e980fb33d6eb6155b7248c78cd1959c7578f", "manifest.json": "d5951805aef72345d74f352c17864f599d51dbd53ad1e03e836f4a433a9429c2"}}
+  ],
+  "frames": {"dir": "{work}/panels", "glob": "*.png", "count": 4},
+  "outputs": [{"from": "{work}/panels", "glob": "*.png", "to": "{queue}/out/borer-look-dd2a09d99-2026-10-21"}]
+}
