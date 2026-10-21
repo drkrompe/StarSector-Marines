@@ -47,8 +47,9 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
-import com.dillon.starsectormarines.battle.evacuation.RescueShelterGarrison;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
+import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
+import com.dillon.starsectormarines.battle.evacuation.ColonyPopulation;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
@@ -2537,6 +2538,11 @@ public final class BattleSetup {
                     buildMap(map, vehiclePlacements,
                             Collections.emptyList(), parkedAircraft, battleSeed).sim();
             sim.setSurface(surfaceOf(profile));
+            // Heavy assets are what the player brought: the company's mechs and
+            // vehicles arrive through its own Mech Support power, which every
+            // battle honours. A lance allowance is only what the mission itself
+            // declared; deriving one from the same mechs would field them twice.
+            if (profile != null) sim.setMechDrops(new MechDropService(profile.declaredMechDrops()));
 
             CivilianEvacuationPayload payload =
                     CivilianEvacuationPayload.install(sim, map, battleSeed);
@@ -2576,8 +2582,10 @@ public final class BattleSetup {
 
             spawnAmbientCivilians(sim, map, rng);
             spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
-            if (RescueShelterGarrison.install(sim, map,
-                    payload.placement, risk, battleSeed) == null) {
+            // The colony's militia: the shelter guard always, and on the colony
+            // map a few held buildings, their emplacements and technicals.
+            if (ColonyMilitia.install(sim, map, payload.placement, lzCells,
+                    risk, battleSeed, colony) == null) {
                 continue;
             }
             installRescuePickup(sim, payload.placement, payload.size(), battleSeed,
@@ -2593,6 +2601,10 @@ public final class BattleSetup {
                 throw new IllegalStateException(
                         "civilian rescue swarm reinforcement configuration failed");
             }
+            // A DEBUG-stated call lands claimed by the corridor commander, on the marines' own pads.
+            sim.mechDrops().installScriptedCaller(Faction.MARINE,
+                    SquadCommandClaim.mission("rescue-corridor", "commander-called mech lance"),
+                    () -> MechDropService.centroidOf(sim.getMarineLandingPads()));
             if (!stressTest) {
                 // The breach: where the colony breaks open and when. The colony
                 // path owes a full plan and re-rolls without one; a smaller
@@ -2601,7 +2613,12 @@ public final class BattleSetup {
                         sim.getGrid(), sim.getTopology(), map.pointsOfInterest,
                         payload.placement, lzCells, battleSeed ^ ERUPTION_SEED_SALT);
                 if (colony && !eruption.isComplete()) continue;
-                sim.installColonyBreach(eruption);
+                // The colony's people outside the shelter: what the swarm feeds on.
+                List<Long> colonists = colony
+                        ? ColonyPopulation.install(sim, map.pointsOfInterest, payload.placement,
+                                battleSeed ^ ERUPTION_SEED_SALT)
+                        : List.of();
+                sim.installColonyBreach(eruption, colonists);
             }
             return sim;
         }

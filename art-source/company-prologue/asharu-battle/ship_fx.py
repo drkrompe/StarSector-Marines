@@ -19,9 +19,16 @@ kit's own helpers accept (`swfx_thrusters.ignition(ctx, ...)`, `swfx_guns.fire(c
 bound to this ship's copy. `audit()` proves the copies are independent: no driver, parent or
 pointer of one ship's copy reaches another ship's copy or the library original.
 
+Every copy is also put to metre scale. The kit tunes a build in its own hull-unit file and a
+scene places it at Scale(metres_per_unit): distances grow by mpu, but Cycles leaves a light's
+power and a volume's per-length density as they were. `metre_scale` gives each light exposure
+2*log2(mpu) and divides each volume's density and emission by mpu, so the copy lights and
+fogs the metre scene as it did its own file.
+
 Runs inside Blender only. Used by `battle_blockout.py` (the scene) and `effects_bench.py`.
 """
 import contextlib
+import math
 import hashlib
 import importlib
 import os
@@ -154,14 +161,16 @@ class ShipFx:
 
     hull_coll / fx_coll: the build's appended (excluded) library collections.
     hull_ctl: the build's hull-side control object (manifest 'control.object'), or None.
-    manifest: the build's manifest.json (effects anchors, metres per unit, kit profile)."""
+    manifest: the build's manifest.json (effects anchors, metres per unit, kit profile).
+    own_hull: copy the hull's objects (meshes shared) even without a hull control, so this
+    ship's turrets train on their own (swfx_guns.aim)."""
 
-    def __init__(self, key, hull_coll, fx_coll, manifest, hull_ctl=None, clock=True):
+    def __init__(self, key, hull_coll, fx_coll, manifest, hull_ctl=None, clock=True, own_hull=False):
         self.key = key
         self.manifest = manifest
         self.mpu = float(manifest['metres_per_unit'])
         self.M = {}
-        own_hull = hull_ctl is not None
+        own_hull = hull_ctl is not None or own_hull
         if own_hull:
             # Hull parts are copied (their meshes shared) so this ship's gear moves on its own.
             self.hull = self._copy_tree(hull_coll, copy_data=lambda o: _has_drivers(o.data))
@@ -182,6 +191,15 @@ class ShipFx:
         self.hull_rest = {k: v for k, v in (self.hull_ctl.items() if self.hull_ctl is not None else ())
                           if isinstance(v, (int, float)) and k != 'ship_fx_hull_control'}
         self.groups = {base_name(c.name): c for c in ([self.fx, *self.fx.children_recursive] if self.fx else ())}
+        self.metre_scale()
+
+    # ----------------------------------------------------------------------- metre scale
+    def metre_scale(self):
+        """This copy's lights and volumes, from hull units to the metre scene (idempotent)."""
+        r = metre_scale(self.ids, self.mpu)
+        if r['unhandled']:
+            print(f'SHIP_FX {self.key}: volume inputs not metre-scaled:', sorted(set(r['unhandled'])), flush=True)
+        return r
 
     # ----------------------------------------------------------------------- copying
     def _copy_tree(self, root, copy_data):
@@ -359,6 +377,13 @@ class ShipFx:
         the helpers create is this ship's and is renamed out of the way on exit."""
         scene = scene or bpy.context.scene
         env_old = os.environ.get('SWFX_HULL')
+        variant_old = os.environ.get('WOLF_VARIANT')
+        # A profile that dresses more than one build reads which one from the environment
+        # (wolf-cinematic: WOLF_VARIANT=merchant), as export_effects.py set it.
+        if self.manifest.get('variant') == 'merchant':
+            os.environ['WOLF_VARIANT'] = 'merchant'
+        else:
+            os.environ.pop('WOLF_VARIANT', None)
         prof = self.profile()
         if prof:
             os.environ['SWFX_HULL'] = str(prof)
@@ -395,10 +420,15 @@ class ShipFx:
                 for idb in set(getattr(bpy.data, s)) - before[s]:
                     self.ids.add(idb)
                     idb.name = f'{base_name(idb.name)} @{self.key}'
+            self.metre_scale()      # whatever the helpers made is at hull scale too
             if env_old is None:
                 os.environ.pop('SWFX_HULL', None)
             else:
                 os.environ['SWFX_HULL'] = env_old
+            if variant_old is None:
+                os.environ.pop('WOLF_VARIANT', None)
+            else:
+                os.environ['WOLF_VARIANT'] = variant_old
 
     def _claim_names(self):
         """Give this ship's IDs their kit names for the duration of kit(); returns the undo list."""
@@ -449,6 +479,99 @@ class _Kit:
 _TYPES = {'objects': bpy.types.Object, 'meshes': bpy.types.Mesh, 'lights': bpy.types.Light,
           'materials': bpy.types.Material, 'node_groups': bpy.types.NodeTree, 'curves': bpy.types.Curve,
           'actions': bpy.types.Action}
+
+
+SCALED = 'ship_fx_metre_scale'    # on a light or material: the mpu it was put to metre scale for
+# volume shader -> its inputs that add up along a ray (per unit length)
+VOLUME_INPUTS = {'PRINCIPLED_VOLUME': ('Density', 'Emission Strength', 'Blackbody Intensity'),
+                 'VOLUME_SCATTER': ('Density',), 'VOLUME_ABSORPTION': ('Density',),
+                 'VOLUME_COEFFICIENTS': ('Absorption Coefficients', 'Scatter Coefficients', 'Emission'),
+                 'EMISSION': ('Strength',)}
+
+
+def metre_scale(ids, mpu):
+    """Lights and volume materials among ids, tuned in a hull-unit file, put right for a scene
+    that places them at Scale(mpu). A light's power is not scaled by its object, so it takes
+    exposure 2*log2(mpu) (energy drivers and keys untouched). A volume's density and emission add
+    up per world unit, and a ray through the scaled copy is mpu times as long, so each is divided
+    by mpu. Idempotent: a datablock already done for this mpu is left alone. Returns counts."""
+    out = dict(lights=0, volumes=0, unhandled=[])
+    ev = 2 * math.log2(mpu)
+    for idb in ids:
+        if isinstance(idb, bpy.types.Light):
+            idb.exposure = ev
+            out['lights'] += 1
+        elif isinstance(idb, bpy.types.Material) and idb.node_tree is not None:
+            if idb.get(SCALED) == mpu:
+                continue
+            leaves, other = _volume_leaves(idb.node_tree)
+            if not leaves and not other:
+                continue
+            for n in leaves:
+                for name in VOLUME_INPUTS[n.type]:
+                    _times(idb.node_tree, n.inputs.get(name), 1.0 / mpu)
+            out['unhandled'] += [f'{idb.name}: {n.type}' for n in other]
+            idb[SCALED] = mpu
+            out['volumes'] += 1
+    return out
+
+
+def _volume_leaves(tree):
+    """The shader nodes that feed the active output's Volume, through mix and add shaders:
+    (known volume shaders, anything else)."""
+    outs = [n for n in tree.nodes if n.type == 'OUTPUT_MATERIAL']
+    out = next((n for n in outs if n.is_active_output), outs[0] if outs else None)
+    if out is None or not out.inputs['Volume'].is_linked:
+        return [], []
+    leaves, other, todo, seen = [], [], [out.inputs['Volume'].links[0].from_node], set()
+    while todo:
+        n = todo.pop()
+        if n in seen:
+            continue
+        seen.add(n)
+        if n.type in ('MIX_SHADER', 'ADD_SHADER'):
+            todo += [l.from_node for i in n.inputs if i.type == 'SHADER' for l in i.links]
+        elif n.type == 'REROUTE':
+            todo += [l.from_node for l in n.inputs[0].links]
+        elif n.type in VOLUME_INPUTS:
+            leaves.append(n)
+        else:
+            other.append(n)
+    return leaves, other
+
+
+def _times(tree, sock, k):
+    """Scale one float or vector input by k: its value, or whatever is linked into it."""
+    if sock is None:
+        return
+    if sock.is_linked:
+        link = sock.links[0]
+        vec = sock.type == 'VECTOR' or link.from_socket.type in ('VECTOR', 'RGBA')
+        m = tree.nodes.new('ShaderNodeVectorMath' if vec else 'ShaderNodeMath')
+        m.operation = 'SCALE' if vec else 'MULTIPLY'
+        m.label = 'metre scale'
+        m.location = sock.node.location.x - 160, sock.node.location.y - 40
+        tree.links.new(link.from_socket, m.inputs[0])
+        if vec:
+            m.inputs['Scale'].default_value = k
+        else:
+            m.inputs[1].default_value = k
+        tree.links.new(m.outputs[0], sock)
+    elif hasattr(sock, 'default_value'):
+        path = f'nodes["{sock.node.name}"].inputs[{list(sock.node.inputs).index(sock)}].default_value'
+        ad = tree.animation_data
+        drivers = [fc for fc in (ad.drivers if ad else ()) if fc.data_path == path]
+        if drivers:         # a driven input: the driver would overwrite a scaled value, so scale it
+            for fc in drivers:
+                fc.driver.expression = f'({fc.driver.expression})*{k!r}'
+            return
+        if ad and ad.action and any(fc.data_path == path for fc in getattr(ad.action, 'fcurves', ())):
+            raise ValueError(f'{tree.name}: keyed volume input {path} (metre scale wants a driver or a value)')
+        v = sock.default_value
+        if isinstance(v, float):
+            sock.default_value = v * k
+        else:
+            sock.default_value = [c * k for c in v]
 
 
 def _has_drivers(data):

@@ -119,7 +119,9 @@ cohort projection, route topology, own force, and local influence. One stable
 mobile squad escorts the cohort while the remaining mobile squads retain stable
 lead, left, right, and rear screen roles. Before release, separate shelter-
 approach cells organize relief; after release, route-relative guide and screen
-cells form the corridor to the lift. Repeated role echelons receive stable
+cells form the corridor to the lift. The guide is routed from the cohort's
+cell, or from the nearest open cell when the cohort's centroid falls on a
+wall between its members, so it never collapses onto the cohort itself. Repeated role echelons receive stable
 offsets instead of forming one brick. A local actionable contact may hold only
 the affected squad's current target for a bounded interval; it does not freeze
 the whole formation.

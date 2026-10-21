@@ -58,13 +58,14 @@ GROUP = 'Impacts'
 PREFIX = 'SWFX impact'
 FPS = swfx_core.FPS
 LEAK_FLUX = .75
-# kind -> look. Sizes in metres, times in seconds.
+# kind -> look. Sizes in metres, times in seconds. Light power is real watts for a hull-unit
+# file (swfx_lighting.watts); ShipFx.metre_scale corrects it once a copy is instanced in metres.
 KINDS = {
     'kinetic': dict(sparks=50, spark_speed=(12.0, 55.0), spark_life=(.08, .3), spark_width=22.0, spark_gain=26.0,
-                    spall=0, flash_m=.5, flash_s=.08, flash_W=2.0e4, fireball_m=0.0,
+                    spall=0, flash_m=.5, flash_s=.08, flash_W=2.5e5, fireball_m=0.0,
                     pock_m=.6, pock_gain=16.0),
     'he': dict(sparks=30, spark_speed=(20.0, 80.0), spark_life=(.08, .25), spark_width=22.0, spark_gain=22.0,
-               spall=40, flash_m=1.4, flash_s=.14, flash_W=1.5e5, fireball_m=2.6,
+               spall=40, flash_m=1.4, flash_s=.14, flash_W=1.6e6, fireball_m=2.6,
                pock_m=1.4, pock_gain=12.0),
 }
 
@@ -218,7 +219,7 @@ def _fireball(ctx, e, seed, radius_m):
     fade = g.m('EXPONENT', g.m('MULTIPLY', t, -1.3))
     dens = g.m('MULTIPLY', g.m('MULTIPLY', g.m('MULTIPLY', shell, on), fade), 1.6 / units(1.0))
     temp = g.m('MULTIPLY_ADD', g.m('MULTIPLY', heat, g.mr(n, .2, .8, .75, 1.0)), 4200.0, 1100.0)
-    em = g.m('MULTIPLY', g.m('MULTIPLY', g.m('MULTIPLY', shell, on), g.m('POWER', heat, 2.5)), 40.0 / units(1.0))
+    em = g.m('MULTIPLY', g.m('MULTIPLY', g.m('MULTIPLY', shell, on), g.m('POWER', heat, 2.5)), 22.0 / units(1.0))
     vol = volume_output(g, dens, (0.05, 0.045, 0.04, 1), (0.16, 0.16, 0.17, 1), .2, emission=em)
     bb = g.node('ShaderNodeBlackbody')
     g._in(bb.inputs['Temperature'], temp)

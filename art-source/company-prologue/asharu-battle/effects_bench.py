@@ -181,14 +181,15 @@ class Bench:
         self.scene.collection.children.link(coll)
         self.bpy.context.view_layer.layer_collection.children[coll.name].exclude = True
 
-    def ship(self, key, build, at=(0, 0, 0), heading=0.0, pitch=0.0, roll=0.0, throttle=None):
+    def ship(self, key, build, at=(0, 0, 0), heading=0.0, pitch=0.0, roll=0.0, throttle=None, own_hull=False):
         """Place one ship of `build` (a roster.FINISHED key) with its own effects copy. Heading,
-        pitch and roll in degrees, the scene's order (+X forward). Returns its ShipFx."""
+        pitch and roll in degrees, the scene's order (+X forward). own_hull: its own copy of the
+        hull's objects too, so its turrets train alone (swfx_guns.aim). Returns its ShipFx."""
         import ship_fx
         from mathutils import Matrix, Quaternion, Vector
         bpy = self.bpy
         lib = self.library(build)
-        s = ship_fx.ShipFx(key, lib['hull'], lib['fx'], lib['manifest'], hull_ctl=lib['hull_ctl'])
+        s = ship_fx.ShipFx(key, lib['hull'], lib['fx'], lib['manifest'], hull_ctl=lib['hull_ctl'], own_hull=own_hull)
         for c in (s.hull if s.hull is not lib['hull'] else None, s.fx):
             if c is not None:
                 self._exclude(c)

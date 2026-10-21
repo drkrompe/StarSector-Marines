@@ -74,6 +74,7 @@ Other hulls' mounts (swfx_hull MOUNTS, swfx_anchors.GunAnchor):
 """
 import math
 import random
+import re
 
 import bpy
 from mathutils import Matrix, Vector
@@ -817,6 +818,20 @@ def _lin(rgb):
     return tuple((c / 255.0) ** 2.2 for c in rgb[:3])
 
 
+# The weapon layer is tuned in metres (watts at metre distances, glow emission per metre), but
+# like the rest of the kit it is authored into a hull-unit file, which a scene places at
+# Scale(mpu) and ship_fx.metre_scale then corrects (light exposure 2*log2(mpu), volume
+# emission / mpu). These two put a metre-tuned number into hull units so the round trip lands
+# it where it was tuned.
+def _hull_watts(w):
+    return w / swfx_core.METRES_PER_UNIT ** 2
+
+
+def _hull_glow(k):
+    """A glow's emission per metre (object colour B) as per hull unit."""
+    return k * swfx_core.METRES_PER_UNIT
+
+
 def _mg(**kw):
     w = dict(energy=False, burst=5, burst_delay=.1, cooldown=.4, barrels='alternating', spread=.0035,
              flash=(1.0, .5, .2), flash_tint=None, flash_size=(1.0, 1.0, 1.0), flash_light=(255, 240, 165),
@@ -833,8 +848,8 @@ def _ac(**kw):
              flash=(1.0, .55, .25, .1), flash_tint=(165, 225, 185), flash_size=(1.25, 1.35, 1.35),
              flash_light=(165, 225, 185),
              cloud=dict(rgb=(165, 225, 185), r=(.8, 2.6), frames=5, peak=4.0),
-             round=dict(speed=360, range=600, length=2.6, core=.14, corona=.6, fringe=(235, 255, 215),
-                        hot=(225, 255, 200), core_gain=16, corona_gain=2.2),
+             round=dict(speed=360, range=600, length=2.6, core=.14, corona=.9, fringe=(235, 255, 215),
+                        hot=(225, 255, 200), glow=(120, 235, 150), core_gain=14, corona_gain=3.5),
              puff=True, brass=True)
     w.update(kw)
     return w
@@ -847,7 +862,7 @@ WEAPONS = {
     'lightdualmg': _mg(name='Light Dual Machine Gun', cooldown=.2, barrels='alternating_burst'),
     # Vulcan: twin barrels alternating at 20 rounds/s, pale gold; the two streams cross
     # (braid, metres to the crossing) so the stream zig-zags.
-    'vulcan': _mg(name='Vulcan Cannon', burst=1, burst_delay=0, cooldown=.05, braid=110.0, flash=(1.0, .4),
+    'vulcan': _mg(name='Vulcan Cannon', burst=1, burst_delay=0, cooldown=.05, braid=60.0, flash=(1.0, .4), puff=False,
                   cloud=dict(rgb=(255, 240, 165), r=(.3, .9), frames=3, peak=3.5),
                   round=dict(speed=480, range=300, length=7.0, core=.08, corona=.28, fringe=(240, 220, 180),
                              hot=(245, 245, 225), core_gain=22, corona_gain=1.6)),
@@ -855,13 +870,13 @@ WEAPONS = {
     'lightac': _ac(name='Light Autocannon'),
     'heavyac': _ac(name='Heavy Autocannon', burst=3, burst_delay=.2, cooldown=1.0, flash_size=(1.5, 1.6, 1.6),
                    cloud=dict(rgb=(165, 225, 185), r=(1.2, 3.6), frames=4, peak=4.0),
-                   round=dict(speed=380, range=800, length=3.6, core=.2, corona=.85, fringe=(235, 255, 215),
-                              hot=(225, 255, 205), core_gain=16, corona_gain=2.2)),
+                   round=dict(speed=380, range=800, length=3.6, core=.2, corona=1.2, fringe=(235, 255, 215),
+                              hot=(225, 255, 205), glow=(120, 235, 150), core_gain=14, corona_gain=3.5)),
     # Mark IX: the four-round slam every 2 s.
     'mark9': _ac(name='Mark IX Autocannon', burst=4, burst_delay=.1, cooldown=2.0, flash=(1.0, .55, .22, .08),
                  flash_size=(1.4, 1.5, 1.5), cloud=dict(rgb=(165, 225, 185), r=(1.4, 4.2), frames=4, peak=4.0),
-                 round=dict(speed=400, range=800, length=3.8, core=.22, corona=.9, fringe=(235, 255, 215),
-                            hot=(225, 255, 205), core_gain=16, corona_gain=2.2)),
+                 round=dict(speed=400, range=800, length=3.8, core=.22, corona=1.3, fringe=(235, 255, 215),
+                            hot=(225, 255, 205), glow=(120, 235, 150), core_gain=14, corona_gain=3.5)),
     # Hellbore: one heavy HE slug every 3 s, slow, orange-white in a 60-unit glow; the game's
     # biggest flash (50 particles, 0.75 s, 255,120,50), lingering.
     'hellbore': dict(name='Hellbore Cannon', energy=False, burst=1, burst_delay=0, cooldown=3.0,
@@ -895,7 +910,7 @@ WEAPONS = {
                       barrels='alternating', spread=.002, flash=(1.0, .4, .12), flash_tint=(100, 200, 255),
                       flash_size=(1.0, 1.0, 1.0), flash_light=(100, 200, 255),
                       cloud=dict(rgb=(100, 200, 255), r=(.5, 1.6), frames=3, peak=4.0),
-                      charge=dict(rgb=(100, 200, 255), r=(.25, 1.2), peak=6.0, light=2500),
+                      charge=dict(rgb=(100, 200, 255), r=(.4, 2.0), peak=6.0, light=6000),
                       round=dict(speed=700, range=500, length=30.0, core=.22, corona=1.3, fringe=(25, 100, 155),
                                  hot=(225, 225, 255), core_gain=20, corona_gain=2.5, jag=True, light=8000,
                                  light_rgb=(100, 200, 255)),
@@ -983,12 +998,13 @@ def cadence(weapon, seconds, feeder=False):
     return out
 
 
-def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, tag=None):
+def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, tag=None, train=True):
     """Fire an armed mount for `seconds` from `start_frame` at the game's cadence (cadence()):
     barrels alternate per round ('alternating'), per burst ('alternating_burst') or fire together
     ('linked'). target: a point in the ship's own (copy) space the rounds fly to and stop at, as
-    on a hit; None flies them down the bore to their range. Returns one record per round, with
-    'hit_frame' when a target was given."""
+    on a hit; None flies them down the bore to their range. With a target and `train`, the
+    turret is trained onto it (aim()) before each round, so the flash points along the rounds.
+    Returns one record per round, with 'hit_frame' when a target was given."""
     guns = [g for g in ctx.anchors.guns if g.turret == turret and getattr(g, 'kind', 'gun') != 'launcher'
             and (tag is None or g.tag == tag)]
     if not guns or not ctx.spec.get('guns', True):
@@ -1005,6 +1021,8 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
         f = int(round(exact))
         mode = w['barrels']
         pick = guns if mode == 'linked' else [guns[(k if mode == 'alternating_burst' else n) % len(guns)]]
+        if target is not None and train:
+            aim(ctx, turret, target, f, tag=tag)
         for g in pick:
             if w.get('charge') and w.get('chargeup'):
                 _charge(ctx, g, f, int(round(w['chargeup'] * fps)), w)
@@ -1074,7 +1092,9 @@ def _glow_material(ctx, rgb):
     dens = g.mul(g.mul(shell, lumps), fade)
     mix = nodes.new('ShaderNodeMix')
     mix.data_type = 'RGBA'
-    links.new(g.clamp01(g.mul(g.sub(dens, .45), 1.1)), mix.inputs['Factor'])
+    # Only the densest heart goes toward white, and only part way: AgX already washes strong
+    # emitters, and a glow that whitened everywhere above .45 read as a white ball (pass 1).
+    links.new(g.mul(g.clamp01(g.mul(g.sub(dens, 1.15), 1.5)), .45), mix.inputs['Factor'])
     mix.inputs['A'].default_value = (*rgb, 1)
     mix.inputs['B'].default_value = (1, 1, 1, 1)
     em = nodes.new('ShaderNodeEmission')
@@ -1109,7 +1129,7 @@ def _cloud(ctx, coll, a, label, frame, spec):
         sc.append(swfx_core.units(r))
         lx.append(swfx_core.units(r * .55 + .3 * r1 * e))
         fade.append((1 - t) ** 1.6)
-        kk.append(spec['peak'] / (2 * r) / 20.0)
+        kk.append(_hull_glow(spec['peak'] / (2 * r)) / 20.0)
     for i in range(3):
         _bake(ob, 'scale', i, fr, sc)
     _bake(ob, 'location', 0, fr, lx)
@@ -1139,7 +1159,7 @@ def _charge(ctx, a, frame, frames, w):
         fr.append(f0 + j)
         sc.append(swfx_core.units(r))
         fade.append((.25 + .75 * t * t) * rnd.uniform(.8, 1.0))
-        kk.append(spec['peak'] / (2 * r) / 20.0)
+        kk.append(_hull_glow(spec['peak'] / (2 * r)) / 20.0)
     for i in range(3):
         _bake(ob, 'scale', i, fr, sc)
     _bake(ob, 'color', 0, fr, fade)
@@ -1149,7 +1169,7 @@ def _charge(ctx, a, frame, frames, w):
     light = swfx_core.point_light(f'{PREFIX} charge light {label} f{frame:04d}', coll, rgb, 0.0,
                                   radius=swfx_core.units(r1 * .5))
     swfx_core.attach(light, a.empty, local=(swfx_core.units(.2), 0, 0))
-    _bake(light.data, 'energy', -1, [f0 - 1] + fr + [frame], [0.0] + [spec['light'] * v for v in fade] + [0.0])
+    _bake(light.data, 'energy', -1, [f0 - 1] + fr + [frame], [0.0] + [_hull_watts(spec['light']) * v for v in fade] + [0.0])
     return ob.name
 
 
@@ -1191,7 +1211,7 @@ def _round_material(ctx, weapon, part):
         facing = g.pow(g.clamp01(g.sub(1.0, lw.outputs['Facing'])), 1.4)
         ends = g.mul(g.smooth(0.0, .35, gx), g.sub(1.0, g.smooth(.8, 1.0, gx)))
         strength = g.mul(g.mul(g.mul(facing, ends), burn), g.mul(gain, float(r['corona_gain'])))
-        em.inputs['Color'].default_value = (*fringe, 1)
+        em.inputs['Color'].default_value = (*_lin(r.get('glow', r['fringe'])), 1)
     links.new(strength, em.inputs['Strength'])
     tr = nodes.new('ShaderNodeBsdfTransparent')
     add = nodes.new('ShaderNodeAddShader')
@@ -1263,6 +1283,88 @@ def anchor_matrix(ob):
     return m
 
 
+def _kit_name(name):
+    """'Turret 1 pivot.001 @lasher-a' -> 'Turret 1 pivot' (a per-ship copy's own name)."""
+    name = re.sub(r' ~?@[^@]*$', '', name)
+    return re.sub(r'\.\d{3}$', '', name)
+
+
+def trainers(empty):
+    """(pivot, elevation) objects a gun anchor rides, found up its parent chain by name
+    ('<mount> pivot', '<mount> elevation', as the turret kit names them). (None, None) for a
+    fixed hardpoint; elevation None for a mount that only traverses."""
+    piv = elev = None
+    o = empty.parent
+    while o is not None and piv is None:
+        n = _kit_name(o.name)
+        if elev is None and n.endswith(' elevation'):
+            elev = o
+        elif n.endswith(' pivot'):
+            piv = o
+        o = o.parent
+    return piv, elev
+
+
+def _signed_angle(a, b, axis):
+    a = (a - axis * a.dot(axis))
+    b = (b - axis * b.dot(axis))
+    if a.length < 1e-9 or b.length < 1e-9:
+        return 0.0
+    return math.atan2(axis.dot(a.cross(b)), a.dot(b))
+
+
+def _key_constant(ob, path, index, frame):
+    ob.keyframe_insert(path, index=index, frame=frame)
+    fc = swfx_core.find_fcurve(ob, path, index)
+    for kp in fc.keyframe_points if fc else ():
+        if abs(kp.co.x - frame) < 1e-4:
+            kp.interpolation = 'CONSTANT'
+
+
+def aim(ctx, turret, target, frame, tag=None, slew_frames=0, iterations=4):
+    """Train a turret onto `target` (a point in the ship's own copy space, units) at `frame`:
+    its pivot traverses about its own Z and its elevation lifts about its own Y until the
+    muzzle's line of fire passes through the target, keyed CONSTANT there, so the flash, which
+    rides the muzzle, points where the rounds go. slew_frames > 0 keys the previous pose that many
+    frames earlier, so the turret swings over rather than snapping. Elevation is not clamped.
+
+    The pivot is a hull object. A ship placed without its own hull copy (ship_fx.ShipFx
+    own_hull) shares its turrets with every other copy of that build, and training one trains
+    them all. Returns (traverse, elevation) in degrees, or None for a mount with no pivot."""
+    guns = sorted((g for g in ctx.anchors.guns if g.turret == turret and (tag is None or g.tag == tag)),
+                  key=gun_index)
+    if not guns:
+        return None
+    a = guns[0]
+    piv, elev = trainers(a.empty)
+    if piv is None:
+        return None
+    T = Vector(target)
+    if slew_frames > 0:
+        _key_constant(piv, 'rotation_euler', 2, frame - slew_frames)
+        if elev is not None:
+            _key_constant(elev, 'rotation_euler', 1, frame - slew_frames)
+        for ob, i in ((piv, 2), (elev, 1)):
+            fc = swfx_core.find_fcurve(ob, 'rotation_euler', i) if ob is not None else None
+            for kp in fc.keyframe_points if fc else ():
+                if abs(kp.co.x - (frame - slew_frames)) < 1e-4:
+                    kp.interpolation = 'BEZIER'
+    X, Y, Z = Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1))
+    for _ in range(iterations):
+        m = anchor_matrix(a.empty)
+        piv.rotation_euler.z += _signed_angle(m.to_3x3() @ X, T - m.translation,
+                                              (anchor_matrix(piv).to_3x3() @ Z).normalized())
+        if elev is not None:
+            m = anchor_matrix(a.empty)
+            elev.rotation_euler.y += _signed_angle(m.to_3x3() @ X, T - m.translation,
+                                                   (anchor_matrix(elev).to_3x3() @ Y).normalized())
+    _key_constant(piv, 'rotation_euler', 2, frame)
+    if elev is not None:
+        _key_constant(elev, 'rotation_euler', 1, frame)
+    return (round(math.degrees(piv.rotation_euler.z), 2),
+            round(math.degrees(elev.rotation_euler.y), 2) if elev is not None else None)
+
+
 def _braid_dir(a, converge_m):
     """Bore direction (anchor space) that crosses the mount's other barrels' streams converge_m
     downrange: alternate rounds zig-zag across one braid."""
@@ -1291,7 +1393,10 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
         d = _braid_dir(a, w['braid'])
     yaw, pitch = rnd.gauss(0, w['spread']), rnd.gauss(0, w['spread'])
     d = (Matrix.Rotation(yaw, 3, 'Z') @ Matrix.Rotation(-pitch, 3, 'Y') @ d).normalized()
-    rot = d.to_track_quat('X', 'Z').to_euler()
+    # Rounds live in the ship's own space, not on the anchor: once fired they no longer
+    # follow the turret, so a turret that trains on (aim()) never swings them.
+    M = anchor_matrix(a.empty)
+    rot = (M.to_3x3().normalized() @ d.to_track_quat('X', 'Z').to_matrix()).to_euler()
     L = swfx_core.units(r['length'])
     heads = []
     j = 0
@@ -1310,10 +1415,10 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
 
     def mover(ob):
         coll.objects.link(ob)
-        swfx_core.attach(ob, a.empty, rotation=rot)
+        ob.rotation_euler = rot
         ob.visible_shadow = False
         for i in range(3):
-            _bake(ob, 'location', i, frames, [(d * hh)[i] for hh in heads])
+            _bake(ob, 'location', i, frames, [(M @ (d * hh))[i] for hh in heads])
         _bake(ob, 'scale', 0, frames, [max(.05, min(1.0, hh / L)) for hh in heads])
         _bake(ob, 'color', 0, frames, burn)
         ob.color = (1, 0, 0, 1)
@@ -1333,7 +1438,7 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
                                       _jag_mesh(f'{PREFIX} bolt mesh {label} f{frame:04d} {j}', lines,
                                                 swfx_core.units(r['core']), 5, mat))
             coll.objects.link(ob)
-            swfx_core.attach(ob, a.empty, local=d * heads[j], rotation=rot)
+            ob.location, ob.rotation_euler = M @ (d * heads[j]), rot
             ob.scale.x = max(.05, min(1.0, heads[j] / L))
             ob.visible_shadow = False
             ob.color = (burn[j], 0, 0, 1)
@@ -1345,23 +1450,21 @@ def _round(ctx, coll, a, label, frame, rnd, weapon, lead, target):
     if r.get('halo'):
         h = r['halo']
         ob = _glow_object(ctx, coll, f'{PREFIX} round halo {label} f{frame:04d}', _lin(r['fringe']))
-        swfx_core.attach(ob, a.empty)
         for i in range(3):
-            _bake(ob, 'location', i, frames, [(d * (hh - L * .35))[i] for hh in heads])
+            _bake(ob, 'location', i, frames, [(M @ (d * (hh - L * .35)))[i] for hh in heads])
         ob.scale = (swfx_core.units(h['r']),) * 3
         _bake(ob, 'color', 0, frames, burn)
         _bake(ob, 'color', 1, [frame], [rnd.random()], 'CONSTANT')
-        _bake(ob, 'color', 2, [frame], [h['peak'] / (2 * h['r']) / 20.0], 'CONSTANT')
+        _bake(ob, 'color', 2, [frame], [_hull_glow(h['peak'] / (2 * h['r'])) / 20.0], 'CONSTANT')
         _visible_between(ob, frame, frame + life)
     if r.get('light'):
         light = swfx_core.point_light(f'{PREFIX} round light {label} f{frame:04d}', coll,
                                       _lin(r.get('light_rgb', r['fringe'])), 0.0,
                                       radius=swfx_core.units(r['corona']))
-        swfx_core.attach(light, a.empty)
         for i in range(3):
-            _bake(light, 'location', i, frames, [(d * (hh - L * .3))[i] for hh in heads])
+            _bake(light, 'location', i, frames, [(M @ (d * (hh - L * .3)))[i] for hh in heads])
         _bake(light.data, 'energy', -1, [frame - 1] + frames + [frame + life + 1],
-              [0.0] + [r['light'] * b for b in burn] + [0.0])
+              [0.0] + [_hull_watts(r['light']) * b for b in burn] + [0.0])
     return rec
 
 
@@ -1386,65 +1489,43 @@ def crawl_path(cast, p, n, rnd, steps=7, step_m=3.0, lift_m=.25):
     return pts
 
 
-def _arc_material(ctx, rgb):
-    name = f'{PREFIX} arc ' + '-'.join(f'{c:.3f}' for c in rgb)
-    m = bpy.data.materials.get(name)
-    if m:
-        return m
-    m, nodes, links = swfx_core.node_material(name)
-    g = _G(nodes, links)
-    out = nodes.new('ShaderNodeOutputMaterial')
-    lw = nodes.new('ShaderNodeLayerWeight')
-    lw.inputs['Blend'].default_value = .5
-    facing = g.clamp01(g.sub(1.0, lw.outputs['Facing']))
-    mix = nodes.new('ShaderNodeMix')
-    mix.data_type = 'RGBA'
-    links.new(g.pow(facing, 2.0), mix.inputs['Factor'])
-    mix.inputs['A'].default_value = (*rgb, 1)
-    mix.inputs['B'].default_value = (1, 1, 1, 1)
-    em = nodes.new('ShaderNodeEmission')
-    links.new(mix.outputs['Result'], em.inputs['Color'])
-    links.new(g.add(3.0, g.mul(facing, 14.0)), em.inputs['Strength'])
-    tr = nodes.new('ShaderNodeBsdfTransparent')
-    add = nodes.new('ShaderNodeAddShader')
-    links.new(tr.outputs[0], add.inputs[0])
-    links.new(em.outputs[0], add.inputs[1])
-    links.new(add.outputs[0], out.inputs['Surface'])
-    return m
-
-
 def emp_arcs(ctx, frame, paths, frames=8, rgb=(140, 200, 255), seed=0, light=3000.0):
-    """The ion cannon's EMP on a hit: lightning crawling out along each path (points in the
-    ship's own copy space, units; crawl_path() makes them) for `frames`, re-struck every frame
-    and flickering, with a flickering light at the strike. Returns the object names."""
+    """The ion cannon's EMP on a hit: lightning crawling over the hull along each path (points
+    in the ship's own copy space, units; crawl_path() makes them) for `frames`, flickering, with
+    a flickering light at the strike. The arcs are W1's (swfx_shield.arc_material / arc_curve /
+    jag, shared with the shield overload) on the knob gun_emp, keyed per strike; two jags per
+    path alternate frame by frame so the bolt re-strikes. Returns the object names."""
+    import swfx_shield
     coll = ctx.collection(GROUP)
     rnd = random.Random(f'swfx-emp|{frame}|{seed}')
     lin = _lin(rgb)
-    mat = _arc_material(ctx, lin)
+    ctx.prop('gun_emp', 0.0, 0.0, 1.0, 'ion cannon EMP arcs envelope (keyed by emp_arcs())')
+    _key_zero(ctx, 'gun_emp', frame - 1)
+    for j in range(frames):
+        _key_env(ctx, 'gun_emp', frame + j, 1.0 - .6 * j / max(1, frames))
+    _key_zero(ctx, 'gun_emp', frame + frames)
+    mat = bpy.data.materials.get(f'{PREFIX} emp arc') or swfx_shield.arc_material(
+        ctx, f'{PREFIX} emp arc', lin, 'gun_emp', ('gun_emp',))
     names = []
     for k, path in enumerate(paths):
-        path = [Vector(p) for p in path]
+        path = [tuple(p) for p in path]
         if len(path) < 2:
             continue
-        for j in range(frames):
-            if j and rnd.random() > .75:
-                continue
-            reach = min(len(path), 2 + j)
-            lines = []
-            for a0, a1 in zip(path[:reach - 1], path[1:reach]):
-                lines += _jagged(rnd, a0, a1, 4, (a1 - a0).length * .18, forks=1 if rnd.random() < .3 else 0)
-            ob = bpy.data.objects.new(f'{PREFIX} emp arc f{frame:04d} {k} {j}',
-                                      _jag_mesh(f'{PREFIX} emp arc mesh f{frame:04d} {k} {j}', lines,
-                                                swfx_core.units(.07), 4, mat))
-            coll.objects.link(ob)
-            ob.visible_shadow = False
-            _visible_between(ob, frame + j, frame + j)
-            names.append(ob.name)
+        for alt in (0, 1):
+            ob = swfx_shield.arc_curve(f'{PREFIX} emp arc f{frame:04d} {k} {alt}', coll,
+                                       swfx_shield.jag(path, rnd, amount=.22, cuts=4),
+                                       swfx_core.units(.07), mat)
+            shown = set(range(frame + alt, frame + frames, 2))
+            if shown:
+                _rebuild_visibility(ob, shown)
+                names.append(ob.name)
+            else:
+                ob.hide_render = True
     if paths:
         lt = swfx_core.point_light(f'{PREFIX} emp light f{frame:04d}', coll, lin, 0.0, radius=swfx_core.units(.5))
         lt.location = Vector(paths[0][0])
         _bake(lt.data, 'energy', -1, [frame - 1] + [frame + j for j in range(frames)] + [frame + frames],
-              [0.0] + [light * rnd.uniform(.3, 1.0) for _ in range(frames)] + [0.0])
+              [0.0] + [_hull_watts(light) * rnd.uniform(.3, 1.0) for _ in range(frames)] + [0.0])
         names.append(lt.name)
     return names
 
@@ -1466,7 +1547,7 @@ def _feeder_material(ctx, knob):
     ends = g.mul(g.smooth(0.0, .2, gx), g.sub(1.0, g.smooth(.85, 1.0, gx)))
     em = nodes.new('ShaderNodeEmission')
     em.inputs['Color'].default_value = (*_lin(FEEDER_RGB), 1)
-    links.new(g.mul(g.mul(g.mul(facing, ends), on), 4.0), em.inputs['Strength'])
+    links.new(g.mul(g.mul(g.mul(facing, ends), on), 14.0), em.inputs['Strength'])
     tr = nodes.new('ShaderNodeBsdfTransparent')
     add = nodes.new('ShaderNodeAddShader')
     links.new(tr.outputs[0], add.inputs[0])
@@ -1475,7 +1556,7 @@ def _feeder_material(ctx, knob):
     return m
 
 
-def feeder(ctx, turret, start_frame, end_frame, ramp_frames=6, light=600.0):
+def feeder(ctx, turret, start_frame, end_frame, ramp_frames=6, light=2500.0):
     """The Accelerated Ammo Feeder on one turret: its barrels glow amber (255,200,0) from
     start_frame to end_frame on the knob gun_feeder_t<turret>. Fire it with
     fire_weapon(..., feeder=True) over the same frames for the doubled rate."""
@@ -1492,7 +1573,7 @@ def feeder(ctx, turret, start_frame, end_frame, ramp_frames=6, light=600.0):
             continue
         s = a.scale
         ob = bpy.data.objects.new(f'{PREFIX} feeder {gun_label(a)}',
-                                  _cylinder_mesh(f'{PREFIX} feeder mesh t{turret}', .5, -6.0, -.2, 12, mat))
+                                  _cylinder_mesh(f'{PREFIX} feeder mesh t{turret}', .75, -6.0, -.2, 12, mat))
         coll.objects.link(ob)
         swfx_core.attach(ob, a.empty)
         ob.scale = (s, s, s)
@@ -1500,7 +1581,7 @@ def feeder(ctx, turret, start_frame, end_frame, ramp_frames=6, light=600.0):
         lt = swfx_core.point_light(f'{PREFIX} feeder light {gun_label(a)}', coll, _lin(FEEDER_RGB), 0.0,
                                    radius=.6 * s)
         swfx_core.attach(lt, a.empty, local=(-3.0 * s, 0, .8 * s))
-        ctx.drive(lt.data, 'energy', f'{knob}*{light:g}', (knob,))
+        ctx.drive(lt.data, 'energy', f'{knob}*{_hull_watts(light):g}', (knob,))
         names += [ob.name, lt.name]
     return names
 

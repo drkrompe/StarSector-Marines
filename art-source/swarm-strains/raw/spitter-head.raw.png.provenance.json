@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f39-513e-7400-b6a7-d762eaaf3f84",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f39-513e-7400-b6a7-d762eaaf3f84\\exec-60939329-24fd-4141-aee5-de071950826e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\swarm-strains\\raw\\spitter-head.raw.png",
+    "sha256": "3c5946c921d49fd02429453d089c164d76174574d8ccab04e1c17ab905e4c98a",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\swarm-strains\\prompts\\spitter-head.prompt.txt",
+  "promptSha256": "8b5542d965e5b9ad4b6e92a01f04ddb605432181d9baf842308d8584713a942d",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry guide and edit target: exact silhouette, placement and scale authority; reskin it, never move or reshape it\nImage 2: Material and style reference only (the existing swarm runner's matching part); match its chitin, colours and rendering, never its shape\n\nUse case: sketch-to-render. Asset: the head layer of the swarm SPITTER, a ranged acid-lobbing alien strain, for a top-down tactical game. Image 1 is the authoritative geometry guide and edit target. Reskin this exact shape into a finished painted sprite, preserving its outline and placement exactly. Seen from above: a narrow ridged chitin skull at the back and, pointing forward (up), a long segmented throat tube ending in a flared bone-grey spitting orifice, its dark mouth showing a faint sickly yellow-green acid glow deep inside; two small swept-back chitin barbs at the rear corners. One head only; no shoulders, torso, arms, legs, tail, no spray or liquid outside the mouth. Straight overhead orthographic zenith camera looking down on the top of the part, forward (the creature's front) is up, no perspective, no cast shadow, no ground, no floor, no border, no text, no labels, no watermark. Genuine transparent background outside the silhouette, including any negative space. Crisp hand-painted 2D strategy-game sprite matching the existing swarm creature in the material reference: dark charcoal-purple segmented chitin, organic gunmetal-green ridges and under-plates, restrained bone-grey claw and plate edges, tiny warm amber sensory nodes. It will be shown only about 40 to 90 pixels wide in play, so keep bold readable plate shapes, clear dark separations and strong value contrast rather than fine noise. Change only material, detail and subtle ambient shading; never the silhouette, placement, scale or the transparent space. The pale yellow dots in the guide mark where small glowing nodes go; they are not shapes to copy literally.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\swarm-spitter-head-guide.png",
+      "sha256": "5ffa9ac4215377c571dbb13e89cb65a036d475cdfc1535e33cabf7d3a49dafaf",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry guide and edit target: exact silhouette, placement and scale authority; reskin it, never move or reshape it"
+    },
+    {
+      "path": "art-source\\alien-modular-topdown\\sources\\alien-head-source.png",
+      "sha256": "6962d56930ef2c9ecb93a3888a4e057ce04fd020068ba79d264e2508048aa437",
+      "dimensions": [
+        1312,
+        1199
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only (the existing swarm runner's matching part); match its chitin, colours and rendering, never its shape"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the geometry guide as the exact shape and placement reference, and the second image for materials and rendering only.\n"
+  ],
+  "usage": {
+    "input_tokens": 43023,
+    "cached_input_tokens": 28416,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 572,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 61.9
+}
