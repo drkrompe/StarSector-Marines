@@ -117,7 +117,7 @@ public final class ShipConditionModel {
             String condition = sealed ? "sealed" : graph.damaged(room.id()) ? "repair" : graph.emergencyLighting(room.id()) ? "power" : "";
             String classes = condition.isEmpty() ? "survey-room healthy" : "survey-room";
             rooms.add(Map.of("roomId", room.id(), "icon", condition.isEmpty() ? "" : "graphics/ui/company/condition-" + condition + ".svg",
-                    "nameId", "survey-name-" + room.id(), "id", "survey-room-" + room.id(), "label", name(room) + " / " + (room.id() + 1),
+                    "nameId", "survey-name-" + room.id(), "id", "survey-room-" + room.id(), "label", Strings.format("openingShipConditionRoomNumbered", name(room), room.id() + 1),
                     "status", status, "classes", classes + (room.id() == selected ? " selected" : ""),
                     "select", selection(room.id())));
         }
@@ -212,7 +212,7 @@ public final class ShipConditionModel {
             RefitBand band = refitState.band(shown);
             RefitOrder next = refitState.next(shown);
             m.put("status", Strings.format("openingRefitRowState", RefitText.band(band), RefitText.tier(shown, band)));
-            if (selectedRoom == null) m.put("title", RefitText.track(shown).toUpperCase(Locale.ROOT));
+            if (selectedRoom == null) m.put("title", Strings.upper(RefitText.track(shown)));
             m.put("trackIcon", ShipSystemsTree.icon(shown));
             m.put("trackIconClasses", "survey-track-icon");
             benefit = Strings.format("openingRefitNow", RefitText.effect(shown, band));

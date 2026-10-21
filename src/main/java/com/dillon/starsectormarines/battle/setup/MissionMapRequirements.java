@@ -50,7 +50,33 @@ public final class MissionMapRequirements {
                 MapFeature.WALKABLE_COMPOUNDS));
     }
 
+    /**
+     * What a Colony Breach colony must contain: a house to seal the cohort in,
+     * open ground at the edge for the lift, and enough buildings for the swarm
+     * to come up beside. Keyed on its own rather than on the mission type,
+     * because the rescue shares {@code EXTRACTION} with the generic recovery
+     * battle, which promises none of this.
+     */
+    private static final EnumSet<MapFeature> COLONY_BREACH = EnumSet.of(
+            MapFeature.RESIDENTIAL_SHELTER,
+            MapFeature.CLEAR_LIFT_SITE,
+            MapFeature.BORE_PLACES);
+
     private MissionMapRequirements() { }
+
+    /** What a Colony Breach colony needs a map to contain. */
+    public static EnumSet<MapFeature> colonyBreach() {
+        return EnumSet.copyOf(COLONY_BREACH);
+    }
+
+    /** Which of the Colony Breach requirements this map fails to meet. */
+    public static EnumSet<MapFeature> missingFromColony(MapResult map) {
+        EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);
+        for (MapFeature feature : COLONY_BREACH) {
+            if (!feature.presentIn(map)) missing.add(feature);
+        }
+        return missing;
+    }
 
     /** What {@code type} needs a map to contain. Empty when it makes no demands. */
     public static EnumSet<MapFeature> requiredFor(MissionType type) {

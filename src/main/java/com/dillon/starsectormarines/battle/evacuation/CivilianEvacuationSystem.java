@@ -412,7 +412,8 @@ public final class CivilianEvacuationSystem {
                 && pickup.evacueesAboard < pickup.evacueeCapacity;
     }
 
-    private ShuttleMission pickupMission(BattleSimulation sim) {
+    /** The attached pickup craft's mission, or {@code null} when none is attached or live. */
+    public ShuttleMission pickupMission(BattleSimulation sim) {
         return pickupShuttleId == 0L
                 ? null : sim.world().mission(pickupShuttleId);
     }

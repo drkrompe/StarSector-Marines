@@ -584,7 +584,7 @@ public final class BoatDeckViewModel {
         if (bill == null) return "";
         for (FabricationCost.Line line : bill.lines()) {
             if (resources.available(line.commodityId()) < line.quantity()) {
-                return resources.commodityName(line.commodityId()).toUpperCase(Locale.ROOT);
+                return Strings.upper(resources.commodityName(line.commodityId()));
             }
         }
         return "";

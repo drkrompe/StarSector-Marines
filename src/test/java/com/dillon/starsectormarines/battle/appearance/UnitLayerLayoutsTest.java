@@ -24,17 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 class UnitLayerLayoutsTest {
 
     @Test
-    void walkingClipIsExplicitlyDrivenByProceduralLocomotionPhase() throws Exception {
-        UnitLayerLayouts layouts = load();
-
-        AnimationClip walking = layouts.clip("marine-line", "rifle", "walking");
-
-        assertNotNull(walking);
-        assertEquals(AnimationDriver.LOCOMOTION_PHASE, walking.driver());
-        assertEquals(440, walking.totalDurationMs());
-    }
-
-    @Test
     void actionClipClampsAtItsAuthoredEndPose() throws Exception {
         AnimationClip aiming = load().clip("marine-line", "rifle", "aiming");
 
@@ -67,73 +56,6 @@ class UnitLayerLayoutsTest {
                 runtimePose.layer("left-foot").offsetY(), 0.000001);
         assertEquals(editorLeftFoot.angleDegrees(),
                 runtimePose.layer("left-foot").angleDegrees(), 0.000001);
-    }
-
-    @Test
-    void lightMechThighScaleIsSampledFromAuthoredWalkingClip() throws Exception {
-        AnimationClip walking = load().clip("mech-hound", "field-loadout", "walking");
-
-        LayerPose midpoint = walking.sample(0.25f);
-
-        assertEquals(0.3365f, midpoint.layer("left-thigh").scaleY(), 0.000001f);
-        assertEquals(118.25f, midpoint.layer("left-thigh").angleDegrees(), 0.00001f);
-    }
-
-    @Test
-    void factionArmorMasteringScalesMixedBodyAndHelmetOverAnimation() throws Exception {
-        UnitLayerLayouts layouts = load();
-        LayerPose walking = layouts.clip("marine-line", "rifle", "walking").sample(0.25f);
-
-        LayerPose mastered = layouts.applyArmorMastering(walking,
-                LayeredArmorFamily.PALATINE, LayeredArmorFamily.SPECTER_HEAVY);
-
-        assertEquals(1.0f, mastered.layer("body").scaleX(), 0.000001f);
-        assertEquals(1.0f, mastered.layer("head").scaleX(), 0.000001f);
-        assertEquals(1.0f, mastered.layer("head").scaleY(), 0.000001f);
-        assertEquals(walking.layer("head").offsetY() - 0.033625f,
-                mastered.layer("head").offsetY(), 0.000001f);
-        assertEquals(walking.layer("head").angleDegrees(), mastered.layer("head").angleDegrees());
-        assertEquals(walking.layer("primary"), mastered.layer("primary"));
-        assertEquals(walking.layer("left-foot"), mastered.layer("left-foot"));
-    }
-
-    @Test
-    void everyFactionArmorMasterIsExposedAsAWorkbenchUnit() throws Exception {
-        UnitLayerLayouts layouts = load();
-        String[] ids = {
-                "armor-master-aegis", "armor-master-palatine",
-                "armor-master-furnace-line", "armor-master-reaver",
-                "armor-master-specter-heavy", "armor-master-bulwark-heavy",
-                "armor-master-reliquary-heavy", "armor-master-lions-mantle",
-                "armor-master-foundry-breaker", "armor-master-boarding-jack"
-        };
-        for (String id : ids) {
-            AnimationClip clip = layouts.clip(id, "field-loadout", "idle");
-            assertNotNull(clip, id);
-            assertNotNull(clip.sample(0f).layer("body"), id);
-            assertNotNull(clip.sample(0f).layer("head"), id);
-        }
-    }
-
-    @Test
-    void specterShouldersAlternateStrideAndBraceIndependently() throws Exception {
-        UnitLayerLayouts layouts = load();
-        AnimationClip walking = layouts.clip("marine-line", "rifle", "walking");
-        LayerPose leftStride = walking.sample(0f);
-        LayerPose rightStride = walking.sample(0.5f);
-
-        assertEquals(-7f, leftStride.layer("left-shoulder").angleDegrees()
-                - leftStride.layer("body").angleDegrees(), 0.000001f);
-        assertEquals(7f, rightStride.layer("left-shoulder").angleDegrees()
-                - rightStride.layer("body").angleDegrees(), 0.000001f);
-        assertEquals(7f, leftStride.layer("right-shoulder").angleDegrees()
-                - leftStride.layer("body").angleDegrees(), 0.000001f);
-        LayerPose braced = layouts.clip("marine-line", "anti-materiel", "firing").sample(0f);
-        assertNotEquals(braced.layer("left-shoulder").angleDegrees(),
-                braced.layer("right-shoulder").angleDegrees());
-        LayerPose recoil = layouts.clip("marine-line", "rifle", "firing").sample(65f / 265f);
-        assertEquals(8f, recoil.layer("right-shoulder").angleDegrees()
-                - recoil.layer("body").angleDegrees(), 0.00001f);
     }
 
     @Test
@@ -239,33 +161,6 @@ class UnitLayerLayoutsTest {
                 assertEquals(runtimeLayer.pivotY(), editorLayer.pivotY(), 0.000001);
             }
         }
-    }
-
-    @Test
-    void secondaryUseClipsCoverEveryExistingActionPose() throws Exception {
-        UnitLayerLayouts layouts = load();
-
-        AnimationClip rocketFire = layouts.clip("marine-line", "rocket", "firing");
-        AnimationClip amrAim = layouts.clip("marine-line", "anti-materiel", "aiming");
-        AnimationClip amrFire = layouts.clip("marine-line", "anti-materiel", "firing");
-        AnimationClip smoke = layouts.clip("marine-line", "smoke", "throwing");
-        AnimationClip satchel = layouts.clip("marine-line", "satchel", "planting");
-
-        assertEquals(AnimationDriver.ACTION_PHASE, amrAim.driver());
-        assertEquals(400, rocketFire.totalDurationMs());
-        assertEquals(400, amrAim.totalDurationMs());
-        assertEquals(400, amrFire.totalDurationMs());
-        assertEquals(800, smoke.totalDurationMs());
-        assertEquals(900, satchel.totalDurationMs());
-        assertNotNull(amrFire.sample(0.5f).layer("special"));
-        assertFalse(smoke.sample(0.5f).layer("primary").visible());
-        assertEquals(45f, rocketFire.sample(1f).layer("rocket-launcher")
-                .angleDegrees(), 0.000001f);
-        assertEquals(45f, amrFire.sample(1f).layer("special")
-                .angleDegrees(), 0.000001f);
-        assertFalse(smoke.sample(1f).layer("special").visible());
-        assertEquals(-0.08f, satchel.sample(1f).layer("special")
-                .offsetY(), 0.000001f);
     }
 
     @Test

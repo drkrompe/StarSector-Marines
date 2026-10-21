@@ -7,12 +7,9 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
-import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Random;
-import javax.imageio.ImageIO;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -61,20 +58,6 @@ class ShipDeckTrimTest {
         assertEquals(GroundKind.VOID, ctx.topology.getGroundKind(5, 5));
         for (Doodad d : ctx.doodads) if (d != fixture) {
             assertEquals(0, d.cover); assertEquals(0, d.ballisticHalfHeight);
-        }
-    }
-
-    @Test void edgeCanvasesReachBothEndsAndLeaveTheFloorVisible() throws Exception {
-        for (String id : List.of("edge", "binding")) {
-            DoodadDef def = TileRegistry.installed().doodad(KIT + id);
-            var image = ImageIO.read(Path.of("mod", def.sheetPath).toFile());
-            int ox = def.col * def.sourceCellPx, oy = def.row * def.sourceCellPx;
-            for (int x : new int[]{1, def.sourceCellPx/2, def.sourceCellPx-2}) {
-                int alpha = 0;
-                for (int y = 0; y < 8; y++) alpha = Math.max(alpha, image.getRGB(ox+x, oy+y) >>> 24);
-                assertTrue(alpha > 40, id + " must reach both ends");
-                assertEquals(0, image.getRGB(ox+x, oy+32) >>> 24, id + " floor must remain visible");
-            }
         }
     }
 

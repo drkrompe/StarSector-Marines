@@ -516,6 +516,30 @@ shields (180, 180, 150 degrees, efficiency 1.0); their own exports do not ask
 for the group, so a shot adds `'shield'` to its groups. OMNI (the default)
 stays the Paragon's 3D unfold, unchanged.
 
+**The film** (`build(ctx, film=True)`, opt-in; the owner's model of
+2026-10-20 in `asharu-effects.md`): the shield as a film of plasma that what
+it absorbs consumes. Without `film` nothing below is built and the bubble is
+the look above, unchanged. With it the bubble's shader reads only its own
+coordinates and knobs (the hits by azimuth and elevation, the facing as a
+rotation), so a ship placed through a collection instance at any transform
+shades in its own frame. Hits lift the whole film and throw ripple rings
+(`shield_ring_<k>`, keyed by `hit()`); `shield_flux` opens moving thin
+patches, spreads the rings wider and longer, bands the thinnest film in
+soap-bubble colours and dims hits that land on a thin patch;
+`shield_overload` tears the film from `shield_tear_az` / `_el` across the
+arc behind a hot edge, breaks it into shards that flare, scatter and fade,
+crawls arcs over the hull and flashes a light at the tear; `shield_vent`
+lights the hull parts named in `SHIELD['vents']` with heat and sheds vapour
+jets from them. Helpers: `flux()`, `overload()` (also stutters
+`lit_ship_master`), `recover()`, `vent()`. `arc_material()` / `arc_curve()` /
+`jag()` are the arc pieces, for EMP arcs too. `hull_collection=` makes the
+build find the anchor, nodes, vents and hull inside one ship's collection
+(`ship_fx.ShipFx.hull`) instead of by name, and world matrices are composed
+from the parent chain, because a build appended into an excluded collection
+is never evaluated and its stored `matrix_world` can be stale. The Asharu
+bench (`../asharu-battle/bench_shields.py`) and `review_shields.py --set film`
+run the same drill.
+
 **Colour schemes follow the shield's technology** (the hull style), not
 the faction. `swfx_shield.SCHEMES` holds the vanilla hull-style shield colours
 (`hull_styles.json`: LOW_TECH inner 255,125,125, MIDLINE and HIGH_TECH

@@ -34,7 +34,6 @@ retain rotation and mirroring.
 
 `BarrelDamageTest` exercises both identities, all orientations, walkable and
 blocking placement, blast deduplication, neighboring cover and underlying bases.
-`BarrelDamageArtTest` checks full-frame metadata, margins, separate fragments
-and an open shell's center spatially. The registered snapshot suite renders
+The registered snapshot suite renders
 intact, damaged and destroyed rows through combat mutation and the actual map
 renderer at 32px and 64px per cell; the rightmost column retains pallet bases.

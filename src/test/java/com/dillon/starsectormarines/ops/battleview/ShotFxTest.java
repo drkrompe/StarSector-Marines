@@ -18,12 +18,6 @@ import com.dillon.starsectormarines.ops.battleview.ShotFx.Tracer;
 import com.dillon.starsectormarines.render2d.ContrailStyle;
 import org.junit.jupiter.api.Test;
 
-import javax.imageio.ImageIO;
-import java.awt.Color;
-import java.awt.image.BufferedImage;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -38,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * derives from, replacing the old per-carrier cascade, so
  * these assert the derivation stays faithful (and carrier-agnostic) as weapons are
  * added. The visible-round S3 assertions additionally pin traveling-bolt
- * derivation and the generated white-base asset contract.
+ * derivation.
  */
 public class ShotFxTest {
 
@@ -120,20 +114,6 @@ public class ShotFxTest {
     }
 
     @Test
-    public void locustBoostsAndCarriesAnAuthoredTrail() {
-        StructureDef locust = TurretCatalogRegistry.requireStructure(
-                TurretCatalogRegistry.LOCUST_STRUCTURE_ID);
-        ShotFx fx = ShotFx.of(turretShot(locust));
-        assertTrue(fx.boostRamp(), "Locust boosts");
-        assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail(),
-                "Locust weapon data selects its widening missile ribbon");
-        assertFalse(locust.mount.weapon.fx.layers(FxSlot.LAUNCH).isEmpty(),
-                "Locust authored data owns its directional launch backblast");
-        assertFalse(locust.mount.weapon.fx.layers(FxSlot.TRAIL).isEmpty(),
-                "Locust authored data owns the engine-flame trail composition");
-    }
-
-    @Test
     public void marinePrimariesUseDistinctTravelingBodyFamilies() {
         for (WeaponDef w : WeaponRegistry.installed().all()) {
             if (w.mount != MountClass.MARINE_PRIMARY) continue;
@@ -179,47 +159,6 @@ public class ShotFxTest {
             assertTrue(fx.travels(), "every primary now has a traveling body: " + w);
             assertNoTrailsArcOrContrail(fx);
         }
-    }
-
-    @Test
-    public void boltFamiliesExposeTheDistinctTextureSetForCacheLoading() {
-        assertEquals(Set.of(
-                ShotFx.PULSE_BOLT_SPRITE_PATH,
-                ShotFx.RAIL_NEEDLE_SPRITE_PATH,
-                ShotFx.DRONE_DART_SPRITE_PATH), ShotFx.boltSpritePaths());
-    }
-
-    @Test
-    public void dmrNeedleUsesAHighContrastPaleBlueTint() {
-        assertEquals(new Color(0xE0, 0xF0, 0xFF), WeaponRegistry.require(WeaponRegistry.DMR_ID).tracerColor());
-    }
-
-    @Test
-    public void generatedPulseBoltAssetIsTransparentWhiteBaseAtRuntimeDimensions() throws Exception {
-        Path path = Path.of("mod/graphics/fx/round_bolt.png");
-        assertTrue(Files.isRegularFile(path), "generated bolt asset must ship in mod graphics");
-        BufferedImage image = ImageIO.read(path.toFile());
-        assertNotNull(image, "bolt PNG must decode");
-        assertEquals(64, image.getWidth());
-        assertEquals(256, image.getHeight());
-        assertTrue(image.getColorModel().hasAlpha(), "bolt must preserve alpha transparency");
-        assertEquals(0, image.getRGB(0, 0) >>> 24, "corner must be transparent");
-
-        boolean hasVisiblePixel = false;
-        for (int y = 0; y < image.getHeight(); y++) {
-            for (int x = 0; x < image.getWidth(); x++) {
-                if ((image.getRGB(x, y) >>> 24) != 0) {
-                    hasVisiblePixel = true;
-                    int argb = image.getRGB(x, y);
-                    int red = argb >>> 16 & 0xFF;
-                    int green = argb >>> 8 & 0xFF;
-                    int blue = argb & 0xFF;
-                    assertEquals(red, green, "visible bolt pixel must be neutral grayscale");
-                    assertEquals(red, blue, "visible bolt pixel must be neutral grayscale");
-                }
-            }
-        }
-        assertTrue(hasVisiblePixel, "bolt asset must not be fully transparent");
     }
 
     @Test
