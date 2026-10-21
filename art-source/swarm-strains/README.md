@@ -12,6 +12,13 @@ Colony Breach strains, in the Runner's chitin (`art-source/alien-modular-topdown
 | Reskin corpses | `tools/codex_imagegen.py` with `prompts/<strain>-corpse.prompt.txt`, the corpse guide as geometry and `mod/graphics/battle/alien-dead.png` as material reference | `raw/<strain>-corpse.raw.png` |
 | Export corpse sheets | `python art-source/swarm-strains/export_corpses.py` | `mod/graphics/battle/swarm-{brute,spitter}-dead.png` |
 
+Art direction: the swarm is one engineered organism with designed stages
+(`colony-breach-nouns.md`, Origin), so a strain is the Runner's body plan grown
+for one job, never a different animal: the same chitin, under-plates, bone
+edges and amber nodes, with the change concentrated in what the stage is for
+(the Brute's plate, crest and club, the Spitter's sac and spout). The briefs
+say so; a regeneration keeps it.
+
 Layers keep the infantry compositor's registration: bodies are cut from a fixed
 window at the 150 px shoulder width (the Spitter's window is square so its acid
 sac sits behind shoulders that stay at the pivot), heads at the Runner's 72 px.
