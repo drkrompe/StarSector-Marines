@@ -1,0 +1,12 @@
+Repaint reference 1, a sheet of four top-down game sprites (long bunk base, bedding with pillow at top, bedding with pillow at bottom, open bunk frame), as the WORN version of the same furniture on a run-down ship whose crew are camping in it.
+
+Reference 1 is the exact GEOMETRY AND IDENTITY authority: same four components, same positions on the canvas, same outlines, sizes and proportions, same top-down orthographic view and lighting direction, same canvas size. Every component must register over its original pixel for pixel at its edges; change surface condition only, never shape, position or size. Each piece stays a long slim upright strip.
+Reference 2 is MATERIAL AND CONDITION ONLY: the worn versions of an older, shorter set of the same furniture. Match its wear, grime and fabric, but ignore its sizes and layout.
+
+Worn condition:
+- Bunk base: paint chipped through to dull steel on edges and corners, grime in the recesses, scuffed and stained deck panels, one bent cross member.
+- Both beddings: bare, stained, sagging mattress; a rumpled, tangled olive-drab blanket half off; the pillow flattened and greyed. Keep the pillow at the same end as in reference 1.
+- Open frame: chipped, one corner plate missing a bolt, a little grime. The long centre stays fully transparent.
+Keep the palette: graphite steel and grey-green olive, with only small spots of dull rust at chips. Not orange.
+
+True transparent background, including inside the open frame; no ground, no shadow slab, no border, no text, no labels, no people.

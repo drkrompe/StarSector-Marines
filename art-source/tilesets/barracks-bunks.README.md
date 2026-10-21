@@ -1,34 +1,47 @@
 # Ship barracks bunks and personal lockers
 
 Generated barracks and crew quarters use the same quiet graphite and grey-green
-kit: two facing bunk ranks, pillows toward the outer bulkheads, personal locker
-banks at the near ends and amid the far rank. The two-cell central aisle and
+kit: two facing ranks of real-length bunks, pillows toward the outer bulkheads,
+personal locker banks at the near ends and amid the far rank. The two-cell central aisle and
 whole hatch approaches remain open. Locker banks replace loose kit and pipe
 props without changing the fitting's rest capacity. Authored room layouts stay
 authoritative; ground-side berthing keeps its existing art.
 
 ## Geometry and layers
 
-`BarracksBunkTemplate` produces a 1024x1024 RGBA guide containing six 1x2-cell
-components. Full guide canvases are 160x320px at x=72/392/712 and y=48/560.
-Reading across then down: bunk base, bedding with pillow at image top, bedding
-with pillow at image bottom, open retaining frame, closed three-compartment
-locker bank, and matching bank with one open compartment of folded clothing.
+A cell is about 0.75 m (a crewman's shoulders are 0.6 cells). The bunk is one
+cell by three: a 0.70 x 2.20 m base round a 0.59 x 2.0 m mattress. It was one by
+two, 1.5 m long, and a 1.8 m crewman did not fit. The locker banks (1x2, three
+compartments) were already true and keep their original generation.
 
-Built-in ImageGen textured that guide using `armory-workshop.raw.png` as the
-material reference. The exact request is `barracks-bunks.prompt.txt`; its unchanged
-1254x1254 RGBA result is `barracks-bunks.raw.png`. Measured full component canvases
-are retained in the authoring JSON. The bedding cuts include transparent padding
-so the mattress fits inside the frame. The ordinary exporter crops and downsamples
-to 64px per world cell, preserving alpha. No painting, keying, post-export patches,
-height maps or normal maps were used.
+`barracks-bunks.raw.png` is two generations side by side, joined untouched by
+`templates/real-scale-montage.py`. The left 1254 px are the original built-in
+ImageGen sheet (`barracks-bunks.prompt.txt`, six 1x2 components from the old
+guide); only its two locker banks are cut now. The right half is the real-length
+refit: `BarracksBunkTemplate` draws the bunk base, bedding with the pillow at the
+image top, bedding with the pillow at the image bottom and the open retaining
+frame at 320 px per cell, one 1x3 frame per column on a 1920x1280 guide.
+ImageGen reskinned it with the old raw as material reference only
+(`barracks-bunks-refit.prompt.txt`; provenance `barracks-bunks.raw.png.provenance.json`).
+It returned every piece about 10% large and centred, so each cut is the guide's
+full 1x3 frame mapped through the piece's measured box onto the guide's box; the
+four layers register with one another. The exporter downsamples to 64 px per cell.
+No painting, keying, post-export patches, height maps or normal maps were used.
 
-Bunks draw base, bedding, then rails. Image top corresponds to high world Y;
-low-facing bunks therefore use `bedding-low`. The complete assembly rotates and
-mirrors with the room. Only the base owns cover and physical blocking, which is
-applied after circulation acceptance. REST and STOW points stand in the aisle
-and target the adjacent fixture. A blocked footprint omits all layers together.
-Folded clothing is decorative scenery, not tracked personal inventory.
+The base is the same at both ends; the bedding chooses the head. A sprite's top
+edge lies at its footprint's highest row, so `bedding-high` heads a bunk at its
+high row and `bedding-low` at its low row. Bunks draw base, bedding, then rails.
+The complete assembly rotates and mirrors with the room. Only the base owns
+cover and physical blocking, which is applied after circulation acceptance.
+
+Berthing is 8x8: two facing ranks of racks, heads to the hull, and a two-cell
+passage between them. REST stands on the passage cell at a bunk's foot and
+targets the foot cell; the resting hand is drawn lying along the bunk, head on
+the pillow (`WorkMotion.SLEEP`). A locker bank is a cell shorter than a bunk, so
+it stands against the hull and STOW is worked from the alcove left between its
+neighbours. A blocked footprint omits all layers together. Folded clothing is
+decorative scenery, not tracked personal inventory. The brig's cells take the
+same bunk, three cells deep against the bars.
 
 ## Reproduce and inspect
 
@@ -41,7 +54,8 @@ Set JAVA_HOME as documented in CLAUDE.md, then:
 ```
 
 The suite renders the actual generated Valkyrie barracks at 24 and 64px per cell,
-plus all four quarter turns of a small fitting. It uses production collectors
+plus all four quarter turns of an 8x8 fitting. The `ship-duty` motion board
+follows one sleeper (`SLEEP`). It uses production collectors
 and the headless Java2D renderer, not a live-game OpenGL capture. Direct fitting
 tests cover all eight rotations/mirrors, preserved berth capacity, clear rear
 hatches, reachable rest/stowage and the frame's transparent opening.
@@ -51,11 +65,14 @@ walls can retain VOID ground, but still need the ship's structural wall material
 
 ## Worn condition
 
-`barracks-bunks-worn.raw.png` repaints this sheet as the same six components
-worn: chipped paint, a bare stained mattress under a tangled blanket, dented and
-ajar locker doors, unfolded clothing. ImageGen was given `barracks-bunks.raw.png`
-as geometry and identity authority and the cargo-billets still as material
-reference (`barracks-bunks-worn.prompt.txt`). Each component's alpha mask
-registers with the original at IoU 0.86 (the thin open frame) to 0.98, so
-`barracks-bunks-worn.tileset-authoring.json` reuses these cuts with `-worn` ids.
-The deck draws a worn twin over the fitting while Life support is at Deficit.
+`barracks-bunks-worn.raw.png` is the worn twin, laid out the same way. Its left
+half repaints the original sheet (`barracks-bunks-worn.prompt.txt`, provenance
+`barracks-bunks-worn.raw.png.provenance.json`): chipped paint, a bare stained
+mattress under a tangled blanket, dented and ajar locker doors, unfolded
+clothing. Its right half repaints the real-length refit with the refit
+generation as geometry authority and the old worn sheet as material reference
+(`barracks-bunks-worn-refit.prompt.txt`, provenance
+`barracks-bunks-worn-refit.provenance.json`). Each piece's alpha mask registers
+with the clean one at IoU 0.95 (the thin open frame) to 0.99, so
+`barracks-bunks-worn.tileset-authoring.json` reuses the clean cuts with `-worn`
+ids. The deck draws a worn twin over the fitting while Life support is at Deficit.
