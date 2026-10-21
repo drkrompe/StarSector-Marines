@@ -1816,9 +1816,12 @@ def build():
     port_fleet.after_markers(sys.modules[__name__])     # the departing Colossus's burn, off its markers
     hang_drive_plumes()
     scene.render.engine = 'BLENDER_EEVEE'
-    scene.eevee.taa_render_samples = 6     # layout pass: speed over smoothness
+    # Layout pass by default: speed over smoothness. CINE_FINAL=1 is the final render's quality
+    # (more anti-aliasing samples, full-resolution shadows); the look is otherwise the same.
+    final = os.environ.get('CINE_FINAL', '0') == '1'
+    scene.eevee.taa_render_samples = 64 if final else 6
     scene.render.use_persistent_data = True   # keep the synced scene and shaders between frames
-    scene.eevee.shadow_resolution_scale = 0.5
+    scene.eevee.shadow_resolution_scale = 1.0 if final else 0.5
     scene.render.image_settings.file_format = 'PNG'
     scene.render.image_settings.color_mode = 'RGB'
     scene.view_settings.view_transform = 'AgX'
