@@ -449,7 +449,7 @@ The bay is opened before windows and furniture, so neither can close its throat.
 
 A clinic's equipment follows care: reception has charting and waiting seats;
 triage pairs readouts with assessment; treatment owns examination couches,
-monitors, trolleys and washing; the ward has aligned monitored beds with side
+monitors, trolleys and washing; the ward has aligned monitored real-length (three-cell) beds with side
 access and a two-cell stretcher approach; pharmacy has cabinet banks and a
 dispensing station. Bed and examination capacity grows with usable room space.
 Small wards may retain one bed when a complete larger bay cannot fit. The
