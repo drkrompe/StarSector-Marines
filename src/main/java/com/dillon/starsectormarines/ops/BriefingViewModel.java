@@ -286,7 +286,7 @@ final class BriefingViewModel {
             return;
         }
         props.put("rewardHeader", mission.source.isDebug() ? "SIMULATION CONTRACT" : "CONTRACT AUTHORIZATION");
-        props.put("rewardValue", payment > 0 ? String.format(Locale.ROOT, "%,d credits", payment) : "No credit payment");
+        props.put("rewardValue", payment > 0 ? String.format(Strings.locale(), "%,d credits", payment) : "No credit payment");
         int salvage = mission.contractSalvageNegotiated & 0xff;
         props.put("rewardTerms", (mission.contractSalvageBaseline & 0xff) > 0
                 ? salvage + "% salvage rights / negotiated terms"
@@ -314,8 +314,8 @@ final class BriefingViewModel {
         props.put("operationRisk", risk.name() + " RISK");
         props.put("scaleIndicators", indicators("scale", tier.ordinal() + 1, 5, "chevron"));
         props.put("riskIndicators", indicators("risk", risk.ordinal() + 1, 3, "skull"));
-        props.put("forceSelected", String.format(Locale.ROOT, "%,d", selected));
-        props.put("forceRecommended", String.format(Locale.ROOT, "%,d recommended", recommended));
+        props.put("forceSelected", String.format(Strings.locale(), "%,d", selected));
+        props.put("forceRecommended", String.format(Strings.locale(), "%,d recommended", recommended));
         int filled = recommended > 0 ? (int) Math.min(10, (long) selected * 10 / recommended) : 0;
         props.put("forceSegments", indicators("force", filled, 10, ""));
         props.put("forceAssessment", selected >= recommended ? "Recommendation met" : "Below recommended strength");
@@ -327,7 +327,7 @@ final class BriefingViewModel {
                 "A recommendation is not a launch requirement or a prediction of victory.")));
         props.put("missionThreatHint", new SpecSheet("Operation profile", tier.displayName, null,
                 "command", List.of(), List.of("Chevrons show operation scale: " + tier.displayName + ".",
-                "Skulls show risk within that scale: " + risk.name().toLowerCase(Locale.ROOT) + ".",
+                "Skulls show risk within that scale: " + risk.name().toLowerCase(Strings.locale()) + ".",
                 "Risk describes uncertainty and defender quality; it does not replace operation scale.")));
     }
 

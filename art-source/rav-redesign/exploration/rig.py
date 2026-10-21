@@ -148,6 +148,8 @@ class Part:
     alpha: int = 255
     shadow: bool = True
     hi: float = 1.0  # highlight strength
+    edge: tuple = None  # outline colour override (light chitin sutures and rims)
+    sheen: float = 0.0  # 0..1 lacquer streak along the light side
 
 
 def seg_parts(pts, radii, color, z, **kw):
@@ -229,7 +231,8 @@ def render(parts, ppc, size_cells=(4, 4), center=(0.5, 0.5), ss=4, yaw=0.0, offs
         if len(pts) < 3:
             continue
         if p.outline > 0:
-            d.line(pts + [pts[0]], fill=_darken(col, 0.3) + (p.alpha,), width=max(1, int(p.outline * S)), joint="curve")
+            oc = tuple(p.edge[:3]) if p.edge else _darken(col, 0.3)
+            d.line(pts + [pts[0]], fill=oc + (p.alpha,), width=max(1, int(p.outline * S)), joint="curve")
         d.polygon(pts, fill=col)
         if p.shade:
             xs = [q[0] for q in pts]
@@ -239,6 +242,9 @@ def render(parts, ppc, size_cells=(4, 4), center=(0.5, 0.5), ss=4, yaw=0.0, offs
             d.polygon(mid, fill=_lighten(col, 0.16 * p.hi) + (p.alpha,))
             hi = poly_xform(pts, 0.42, (lx * ext * 0.16, ly * ext * 0.16))
             d.polygon(hi, fill=_lighten(col, 0.36 * p.hi) + (p.alpha,))
+        if p.sheen and p.shade:
+            sh = poly_xform(pts, 0.22, (lx * ext * 0.24, ly * ext * 0.24))
+            d.polygon(sh, fill=_lighten(col, 0.55 + 0.35 * p.sheen) + (p.alpha,))
         if p.glow:
             gd.polygon(pts, fill=col[:3] + (int(255 * p.glow),))
 

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolView;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
@@ -159,7 +160,7 @@ final class BattleAirOverlayModel {
     /** "0:24" / "1:05"; whole seconds rounded up so the clock never reads 0:00 before the airframe arrives. */
     static String clock(float seconds) {
         int whole = (int) Math.ceil(Math.max(0f, seconds));
-        return (whole / 60) + ":" + String.format(Locale.ROOT, "%02d", whole % 60);
+        return (whole / 60) + ":" + String.format(Strings.locale(), "%02d", whole % 60);
     }
 
     private static String percentStyle(int part, int whole) {

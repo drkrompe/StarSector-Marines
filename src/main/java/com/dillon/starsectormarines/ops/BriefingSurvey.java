@@ -86,7 +86,7 @@ record BriefingSurvey(int width, int height, List<Terrain> terrain, List<Area> a
             int i = 0;
             for (var compound : sim.getCompoundService().getRecords()) {
                 var node = compound.node;
-                markers.add(new Marker(ThunderRunCompound.SITE_NAMES.get(i++).toUpperCase(Locale.ROOT), node.anchorX, node.anchorY, false));
+                markers.add(new Marker(ThunderRunCompound.SITE_NAMES.get(i++).toUpperCase(Strings.locale()), node.anchorX, node.anchorY, false));
                 areas.add(new Area(node.left, node.top, node.right - node.left + 1, node.bottom - node.top + 1, false));
             }
             markers.add(new Marker("FREIGHT EXIT", ThunderRunCompound.WIDTH - 8, 75, false));

@@ -207,8 +207,8 @@ def A_matriarch(S):
 # =====================================================================
 # B  TIDE
 # =====================================================================
-def B_runner(S):
-    P = PAL["B"]
+def B_runner(S, P=None):
+    P = P or PAL["B"]
     w, mv, s, tau = S["w"], S["move"], S["s"], S["tau"]
     e = strike_e(s)
     lunge = 0.15 * clamp(e) - 0.07 * clamp(-e)
@@ -239,7 +239,8 @@ def B_runner(S):
                           w * mv, tau, amp=10 + 14 * mv, phase=k * 0.8)
     # bead chain body
     for i in range(len(beads) - 1, -1, -1):
-        parts.append(Part(ellipse(beads[i], radii[i], radii[i] * 0.92), P["flesh"], 5 + (len(beads) - i) * 0.01,
+        col = P.get("head", P["flesh"]) if i == 0 else P["flesh"]
+        parts.append(Part(ellipse(beads[i], radii[i], radii[i] * 0.92), col, 5 + (len(beads) - i) * 0.01,
                           outline=0.02))
         parts.append(Part(ellipse(beads[i], radii[i] * 0.45, radii[i] * 0.4), P["core"], 5.05 + (len(beads) - i) * 0.01,
                           outline=0, shade=False, shadow=False))
@@ -269,13 +270,13 @@ def B_runner(S):
                 dots.append((lerp(pts[j][0], pts[j + 1][0], u), lerp(pts[j][1], pts[j + 1][1], u)))
         parts.append(Part(dots, P["sting"], 6.6, kind="dots", width=0.008, shadow=False))
         # barbed hook tip
-        hp, _ = chain(pts[-1], angs[-1], [side * 50], [0.05])
-        parts.append(Part(hp, P["sting"], 6.7, kind="line", width=0.012, outline=0.005))
+        hp, _ = chain(pts[-1], angs[-1], [side * 50], [0.05 * P.get("barb", 1.0)])
+        parts.append(Part(hp, P["sting"], 6.7, kind="line", width=0.012 * P.get("barb", 1.0), outline=0.005))
     return parts
 
 
-def B_brute(S):
-    P = PAL["B"]
+def B_brute(S, P=None):
+    P = P or PAL["B"]
     s, tau, w, mv = S["s"], S["tau"], S["w"], S["move"]
     e = strike_e(s)
     parts = []
@@ -310,8 +311,8 @@ def B_brute(S):
     return parts
 
 
-def B_spitter(S):
-    P = PAL["B"]
+def B_spitter(S, P=None):
+    P = P or PAL["B"]
     s, tau, w, mv = S["s"], S["tau"], S["w"], S["move"]
     e = strike_e(s)
     parts = []
@@ -328,8 +329,16 @@ def B_spitter(S):
     # float: big, glowing, inflates in anticipation and empties on the spit
     fl = 1 + 0.06 * math.sin(TAU * tau * 1.1) + 0.2 * clamp(-e) - 0.24 * clamp(e)
     fc = (0, 0.07 + recoil)
-    parts.append(Part(ellipse(fc, 0.24 * fl, 0.28 * fl, wob=[(0.03, 3, 0.5)]), P["float"], 5, outline=0.02, glow=0.75,
+    parts.append(Part(ellipse(fc, 0.24 * fl, 0.28 * fl, wob=[(0.03, 3, 0.5)]), P.get("sac", P["float"]), 5, outline=0.02,
+                      glow=P.get("sac_glow", 0.75),
                       alpha=235))
+    if P.get("sutures"):
+        # chitin sac: meridian sutures, so the ball reads as plated, not as a bladder
+        for k in (-0.6, 0.6):
+            arc = [(k * 0.24 * fl * math.sin(math.pi * i / 10), fc[1] - 0.28 * fl * math.cos(math.pi * i / 10))
+                   for i in range(11)]
+            parts.append(Part(arc, P["sutures"], 5.2, kind="line", width=P.get("suture_w", 0.02), outline=0,
+                              shadow=False))
     crest = [(0.0, fc[1] - 0.24 * fl), (0.03 * math.sin(TAU * tau), fc[1]), (0.0, fc[1] + 0.25 * fl)]
     parts.append(Part(crest, P["sting"], 5.3, kind="line", width=0.03, outline=0.008, shadow=False))
     if s is not None and 0.38 < s < 0.6:
@@ -338,8 +347,8 @@ def B_spitter(S):
     return parts
 
 
-def B_matriarch(S):
-    P = PAL["B"]
+def B_matriarch(S, P=None):
+    P = P or PAL["B"]
     tau, w = S["tau"], S["w"]
     parts = []
     for k in range(16):
@@ -359,8 +368,8 @@ def B_matriarch(S):
 # =====================================================================
 # C  SEEDCASE
 # =====================================================================
-def C_runner(S):
-    P = PAL["C"]
+def C_runner(S, P=None):
+    P = P or PAL["C"]
     w, mv, s, tau = S["w"], S["move"], S["s"], S["tau"]
     e = strike_e(s)
     lunge = 0.1 * clamp(e) - 0.05 * clamp(-e)
@@ -406,8 +415,8 @@ def C_runner(S):
     return parts
 
 
-def C_brute(S):
-    P = PAL["C"]
+def C_brute(S, P=None):
+    P = P or PAL["C"]
     s, tau, w, mv = S["s"], S["tau"], S["w"], S["move"]
     e = strike_e(s)
     parts = []
@@ -440,8 +449,8 @@ def C_brute(S):
     return parts
 
 
-def C_spitter(S):
-    P = PAL["C"]
+def C_spitter(S, P=None):
+    P = P or PAL["C"]
     s, tau, w, mv = S["s"], S["tau"], S["w"], S["move"]
     e = strike_e(s)
     parts = []
@@ -465,8 +474,8 @@ def C_spitter(S):
     return parts
 
 
-def C_matriarch(S):
-    P = PAL["C"]
+def C_matriarch(S, P=None):
+    P = P or PAL["C"]
     parts = []
     for i in range(6):
         a = i * 60 + 30
