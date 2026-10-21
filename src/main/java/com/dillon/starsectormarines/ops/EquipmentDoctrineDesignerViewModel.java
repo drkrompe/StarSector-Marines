@@ -423,8 +423,7 @@ public final class EquipmentDoctrineDesignerViewModel {
     }
 
     private static String title(String value) {
-        String lower = value.toLowerCase().replace('_', ' ');
-        return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
+        return Strings.named("billetRole", value);
     }
 
     private List<EquipmentTemplateCard> ownedCards(EquipmentTemplateCard.Kind wanted) {

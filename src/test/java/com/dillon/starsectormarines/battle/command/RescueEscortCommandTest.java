@@ -63,6 +63,40 @@ class RescueEscortCommandTest {
     }
 
     @Test
+    void closeEscortLeadsTheCohortInsteadOfTrailingIt() {
+        BattleSimulation sim = simulation();
+        CivilianEvacuationPayload payload = install(sim);
+        Squad escort = addMarineSquad(sim, 2, 2);
+        RescueEscortCommand command = new RescueEscortCommand(payload.placement);
+        command.tick(sim);
+        sim.world().setCellPos(sim.resolveUnit(escort.leaderId),
+                payload.placement.shelterApproachX,
+                payload.placement.shelterApproachY);
+        sim.advance(BattleSimulation.TICK_DT);
+        for (int i = 0; i < payload.size(); i++) {
+            sim.world().setCellPos(payload.entityId(i), 15, 8);
+        }
+        // The escort trails the cohort, away from the lift: the geometry that
+        // held a civilian more than two cells ahead of its nearest marine.
+        int liftX = payload.placement.liftX;
+        int liftY = payload.placement.liftY;
+        sim.world().setCellPos(sim.resolveUnit(escort.leaderId),
+                15 - 3 * Integer.signum(liftX - 15),
+                8 - 3 * Integer.signum(liftY - 8));
+        payload.objective.tick(sim);
+
+        command.tick(sim);
+
+        ObjectiveAssignment target = escort.assignedObjective;
+        assertNotNull(target);
+        assertEquals("IN_TRANSIT", command.rescueSnapshot().phase());
+        assertTrue(liftDistanceSquared(target.targetCellX(), target.targetCellY(), payload)
+                        < liftDistanceSquared(15, 8, payload),
+                "the close escort rallies ahead of the cohort toward the lift, "
+                        + "so its pocket never leaves a trailing member as the cohort's leash");
+    }
+
+    @Test
     void mobileSquadsReceiveStableSeparatedScreenRoles() {
         BattleSimulation sim = simulation();
         CivilianEvacuationPayload payload = install(sim);
@@ -175,6 +209,13 @@ class RescueEscortCommandTest {
                 sim, List.of(residential()), 41L);
         assertNotNull(payload);
         return payload;
+    }
+
+    private static int liftDistanceSquared(int x, int y,
+                                           CivilianEvacuationPayload payload) {
+        int dx = x - payload.placement.liftX;
+        int dy = y - payload.placement.liftY;
+        return dx * dx + dy * dy;
     }
 
     private static void assertEscortTarget(Squad squad, int x, int y) {

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f82-131e-7c92-9f7e-b0c6dc319c0c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f82-131e-7c92-9f7e-b0c6dc319c0c\\exec-d226b4e6-a724-4724-9af2-d1f8aae4c304.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\raw\\orderly-v2.raw.png",
+    "sha256": "6d8535ec17ebde2a364e40d90dcd7dacfff83ef4a0a5e727283912d775d5d577",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\prompts\\orderly.prompt.txt",
+  "promptSha256": "00461cb9918ecf459be46f8be102bd10d982e9796e6fda59f6bf288c59115b2c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Base design authority: the finished armory image of the suit this pattern varies; design, palette, composition and finish\nImage 2: Identity: the same suit seen from directly overhead in battle; palette and silhouette character\n\nUse case: style-matched variant of an existing product render. Asset: the armory catalogue image of one marine armour suit, for a gritty military dark-science-fiction tactical game in the Starsector setting.\n\nImage 1 is the finished armory image of the base suit this pattern belongs to: it is the authority for the design, palette, plate shapes, markings, composition, camera, lighting and realistic hand-painted finish. Produce a variant of this same suit that a player recognises at once as a sibling of Image 1, changing only what is described below and keeping everything else as Image 1 has it.\n\nImage 2 shows how this suit is drawn in battle, from directly overhead (left: the torso and shoulder plates; right: the helmet top). The variant must still match it in palette and silhouette character. Never show the overhead view itself.\n\nOrderly aid harness: a Luddic Church parish infirmary kit for the section's stretcher bearer. Keep the grey-green carrier and steel shoulder plates, but replace the weapon pouches with medical stowage: rolled dressings, two plasma pouches with clear bags and tubing, a folded canvas stretcher strapped diagonally behind the carrier (two long pale aluminium poles with worn wooden hand grips at the ends and off-white canvas rolled tight between them, unmistakably a stretcher, never a bundle of tubes or barrels), and an off-white aid armband and helmet patch bearing a small ochre sunburst (no red cross, no text). Practical and humble, a little cleaner than the security kit.\n\nSquare 1:1 canvas with every piece fully inside the frame and a clear margin. True transparent background, including the gaps between pieces; no ground, no cast-shadow slab, no border, no text, letters, numbers, logos or watermark, no person or face inside the suit, no weapon held or worn except an item named above.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\mod\\graphics\\ui\\armory\\armor-militia.png",
+      "sha256": "f3f61ad0a2f4899a97809ea93e75958c38ef6ee1ded91e8076b63261d5bf80dd",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Base design authority: the finished armory image of the suit this pattern varies; design, palette, composition and finish"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\refs\\militia-identity.png",
+      "sha256": "8923f2228e87a8687b4d8a34601ac55f7c10174484047dd27e28892eb7ee71e2",
+      "dimensions": [
+        1191,
+        680
+      ],
+      "mode": "RGB",
+      "role": "Identity: the same suit seen from directly overhead in battle; palette and silhouette character"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one variant using the base suit’s design and finish, with the infirmary harness and transparent background."
+  ],
+  "usage": {
+    "input_tokens": 40373,
+    "cached_input_tokens": 34688,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 519,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 68.0
+}

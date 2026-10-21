@@ -278,6 +278,18 @@ public final class BattleProbe {
                 .put("alert", String.valueOf(squad.alertLevel));
         long leader = squad.leaderId;
         put(row, "leader", () -> leader == 0 ? JSONObject.NULL : brief(leader));
+        row.put("goal", squad.currentGoal == null ? JSONObject.NULL : squad.currentGoal.name())
+                .put("post", squad.assignedNode != null);
+        int members = sim.squadMemberCount(squad.id);
+        if (members > 0) {
+            float x = 0f;
+            float y = 0f;
+            for (int i = 0; i < members; i++) {
+                x += sim.world().x(sim.squadMemberAt(squad.id, i));
+                y += sim.world().y(sim.squadMemberAt(squad.id, i));
+            }
+            row.put("centroid", new JSONArray(List.of(round(x / members), round(y / members))));
+        }
         return row;
     }
 

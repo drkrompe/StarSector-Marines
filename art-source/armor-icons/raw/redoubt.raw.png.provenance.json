@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f80-727b-7f82-b9bf-b333193f76c9",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f80-727b-7f82-b9bf-b333193f76c9\\exec-47eb4daa-10e4-47b6-9d40-c57994c5c88e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\raw\\redoubt.raw.png",
+    "sha256": "50a425ff3bffd270b48ce87fc52af91aa9722caaba1a8d70a29bd7796e044ccd",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\prompts\\redoubt.prompt.txt",
+  "promptSha256": "b094c8c096ecb7667030b996d24ea143629adde3c977c4035ed6096c883acfd4",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Base design authority: the finished armory image of the suit this pattern varies; design, palette, composition and finish\nImage 2: Identity: the same suit seen from directly overhead in battle; palette and silhouette character\n\nUse case: style-matched variant of an existing product render. Asset: the armory catalogue image of one marine armour suit, for a gritty military dark-science-fiction tactical game in the Starsector setting.\n\nImage 1 is the finished armory image of the base suit this pattern belongs to: it is the authority for the design, palette, plate shapes, markings, composition, camera, lighting and realistic hand-painted finish. Produce a variant of this same suit that a player recognises at once as a sibling of Image 1, changing only what is described below and keeping everything else as Image 1 has it.\n\nImage 2 shows how this suit is drawn in battle, from directly overhead (left: the torso and shoulder plates; right: the helmet top). The variant must still match it in palette and silhouette character. Never show the overhead view itself.\n\nRedoubt siege plate: Legionary-pattern plate with every weight limit taken off, for a marine who is not expected to go anywhere. Keep the charcoal and grey-green palette, teal lamps and orange marks, but double the plate: thick stacked slabs over the chest and belly, a high armoured gorget, huge layered pauldrons and heavy forearm slabs, a helmet with a thick armoured brow and a narrow visor. Show it as a massive cuirass with its helmet set down in front and its heavy gauntlets laid beside it. Static, miserable to walk in, built to hold a breach.\n\nSquare 1:1 canvas with every piece fully inside the frame and a clear margin. True transparent background, including the gaps between pieces; no ground, no cast-shadow slab, no border, no text, letters, numbers, logos or watermark, no person or face inside the suit, no weapon held or worn except an item named above.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\mod\\graphics\\ui\\armory\\armor-charcoal.png",
+      "sha256": "5a4794cae527362644f0f35685e4d88f9b8801ccebbf2c25dac232dc420df24b",
+      "dimensions": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "role": "Base design authority: the finished armory image of the suit this pattern varies; design, palette, composition and finish"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\IdeaProjects\\starsectormarines\\.claude\\worktrees\\armor-variants\\art-source\\armor-icons\\refs\\charcoal-identity.png",
+      "sha256": "f0a1609e90f520a4c7d981994f1bf22f49632329534d873b8864b18c486dd2fc",
+      "dimensions": [
+        1280,
+        680
+      ],
+      "mode": "RGB",
+      "role": "Identity: the same suit seen from directly overhead in battle; palette and silhouette character"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one Redoubt variant using the references to preserve the suit’s palette and finish."
+  ],
+  "usage": {
+    "input_tokens": 40427,
+    "cached_input_tokens": 34816,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 507,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 64.7
+}

@@ -15,7 +15,7 @@ public final class OrbitalBarrage extends CommandPower {
     public static final int SUPPLY_COST = 5;
 
     public OrbitalBarrage() {
-        super(ID, "Orbital Barrage", 4f, 0f, 1, SUPPLY_COST, 3);
+        super(ID, "@battlePowerOrbitalBarrage", 4f, 0f, 1, SUPPLY_COST, 3);
     }
 
     @Override

@@ -61,7 +61,7 @@ edited:
 
 1. **Mission to catalog.** `WaylineNarration.storyMissionId` must return
    `"story_colony_breach"` for the Colony Breach mission and its debug scenario
-   (`breach-mission-spine.md`). Until then no line plays.
+   (`colony-breach-nouns.md`). Until then no line plays.
 2. **Beats.** The breach sequence must emit the `colony_breach.*` ids from the nouns
    table as PLAYER beats with exactly those ids; lines exist for `landfall`,
    `militia_contact`, `shelter_reached`, `tremor`, `bore_erupted|grew_N_bore|grew_N_maw|collapsed_N`
@@ -78,3 +78,5 @@ edited:
 6. **Matriarch** (`matriarch.md`): `matriarch_roar` at emergence; spitter splash on acid impact.
 
 7. **Harvest and surge** (`swarm-harvest.md`, `bore-spawners.md`): `body_drag` while a body is carried to a bore; `bore_surge` at each `surge_N` pulse. `first_harvest` has a militia line; `bore_fed_N` and `surge_N` are OBSERVER_ONLY and stay silent as beats.
+
+Name-bearing alternates ("ravs", "a bloom") sit in the narration catalog's `variants` array beside the generic lines; the queue never looks them up. Adopt one by moving it into `lines`.

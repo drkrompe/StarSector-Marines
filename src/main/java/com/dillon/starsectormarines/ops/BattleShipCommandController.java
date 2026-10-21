@@ -189,7 +189,7 @@ final class BattleShipCommandController {
         if (ship.supportSource() != null) return ship.supportSource().shipName();
         if (tender != null && (tender.grounded() && sim.getColdStart() != null || tender.lowHover())) return "Morrow";
         return ship.hullId.isEmpty() ? text("Heading")
-                : Character.toUpperCase(ship.hullId.charAt(0)) + ship.hullId.substring(1).replace('_', ' ');
+                : Strings.named("shipHull", ship.hullId);
     }
     private static String buildLabel(BuildOption option) {
         return Strings.get("battleShipBuildLabel" + option.id());

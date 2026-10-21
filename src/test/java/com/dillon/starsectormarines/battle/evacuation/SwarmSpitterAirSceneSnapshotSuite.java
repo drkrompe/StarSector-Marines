@@ -1,0 +1,11 @@
+package com.dillon.starsectormarines.battle.evacuation;
+
+import com.dillon.starsectormarines.battle.scene.BehaviorSceneSnapshotSuite;
+
+/** The SwarmSpitterAir loops, from the same run that produced their verdicts. */
+public final class SwarmSpitterAirSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
+
+    public SwarmSpitterAirSceneSnapshotSuite() {
+        super(new SwarmSpitterAirScene(), 1920, 1080);
+    }
+}

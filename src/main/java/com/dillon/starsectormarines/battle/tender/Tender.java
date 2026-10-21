@@ -95,19 +95,6 @@ public final class Tender implements DroneAnchor {
 
     public boolean grounded() { return grounded; }
 
-    /**
-     * A flown tender sets down: from here it is a grounded host, its drones leaving the bay on the ground and
-     * its builders reaching only sites in front of the bay's mouth. The hull stays where the caller berthed it.
-     */
-    public void touchDown(float bayX, float bayY, float mouthDegrees, GroundDisplay display) {
-        if (grounded || lowHover) throw new IllegalStateException("Only a flying tender can set down");
-        grounded = true;
-        groundBayX = bayX;
-        groundBayY = bayY;
-        groundMouthDegrees = mouthDegrees;
-        groundDisplay = display;
-    }
-
     /** Live recovering hull: ordinary tender durability and drones, with a full low-hover footprint. */
     public static Tender lowHover(Faction faction, float x, float y, float width, float height) throws Exception {
         Tender tender = fit(faction, x, y, -90f);

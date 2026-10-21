@@ -201,7 +201,14 @@ def hound_vulcan(bench):
     with h.kit() as (ctx, k):
         k.guns.arm(ctx, 2, 'vulcan')
         k.guns.fire_weapon(ctx, 2, 1, 1.0)
-    bench.camera((-50, 30, 130), (-59, 42, 8), 35)     # from above: the barrels sit side by side
+        tags = [a.tag for a in ctx.anchors.guns if a.turret == 2]
+    from mathutils import Vector
+    ps = [muzzle(h, 2, t) for t in tags]
+    p = sum((q for q, _ in ps), Vector()) / len(ps)
+    d = ps[0][1]
+    look = p + d * 30
+    # Straight down onto the twin barrels, 30 m of stream in frame: the two streams side by side.
+    bench.camera(tuple(look + Vector((0, 0, 45))), tuple(look), 35)
 
 
 def train(bench):

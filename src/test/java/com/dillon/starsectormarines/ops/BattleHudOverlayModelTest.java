@@ -184,7 +184,7 @@ class BattleHudOverlayModelTest {
             assertEquals("Captain Reed", instance.requireElement("battle-conquest-group-1-name").text());
             assertEquals("3 ACTING NCO GROUPS", instance.requireElement("battle-conquest-group-summary-name").text());
             assertEquals("3 SQ", instance.requireElement("battle-conquest-group-summary-force").text());
-            assertEquals("1 HOLD · 2 ASSAULT", instance.requireElement("battle-conquest-group-summary-intent").text());
+            assertEquals("1 HOLD  ·  2 ASSAULT", instance.requireElement("battle-conquest-group-summary-intent").text());
             assertEquals("1 RALLYING", instance.requireElement("battle-conquest-group-summary-target").text());
             UiElement last = instance.requireElement("battle-conquest-group-summary");
             assertTrue(last.box().borderBox().bottom()

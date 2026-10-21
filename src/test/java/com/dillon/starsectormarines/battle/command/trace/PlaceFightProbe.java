@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,6 +72,7 @@ public final class PlaceFightProbe {
     private final List<JSONObject> turns = new ArrayList<>();
     private boolean fortWasHeld;
     private int holderSamples;
+    private final Map<String, Integer> holderKinds = new TreeMap<>();
     private int holderSamplesPressedByCounterattack;
     private int holderSamplesDugIn;
 
@@ -80,6 +83,7 @@ public final class PlaceFightProbe {
         final Set<Integer> squads = new HashSet<>();
         final Map<Integer, Integer> aliveAtJoin = new HashMap<>();
         boolean metHold;
+        final Set<String> holdKinds = new TreeSet<>();
         boolean metDugInHold;
         boolean metPost;
         boolean met;
@@ -244,6 +248,7 @@ public final class PlaceFightProbe {
         for (Body holder : bodies) {
             if (!holding(holder.reason())) continue;
             holderSamples++;
+            holderKinds.merge(holdKind(holder.reason()), 1, Integer::sum);
             if (holder.dugIn()) holderSamplesDugIn++;
             for (Body other : bodies) {
                 if (other.reason().contains("COUNTERATTACK_") && holder.faction().hostileTo(other.faction())
@@ -279,6 +284,7 @@ public final class PlaceFightProbe {
                     if (other.posted()) episode.metPost = true;
                     if (holding(other.reason())) {
                         episode.metHold = true;
+                        episode.holdKinds.add(holdKind(other.reason()));
                         if (other.dugIn()) episode.metDugInHold = true;
                         holdersNear.add(other.squadId());
                     }
@@ -304,8 +310,19 @@ public final class PlaceFightProbe {
      * a story mission's militia holding a gain ({@code ..._HOLD_GAIN}) or a dispatch window.
      */
     static boolean holding(String reason) {
-        return reason.startsWith("HOLD_GROUND_") || reason.endsWith("_HOLD_GAIN")
-                || reason.endsWith("_DEFEND_DISPATCH_WINDOW");
+        return holdKind(reason) != null;
+    }
+
+    /**
+     * Which kind of hold a reason is: {@code ground} (the attacker's hold of taken ground), {@code garrison} (the squad a
+     * captured compound is sent to hold it), {@code gain} (a story mission's militia on a gain or a dispatch window), or
+     * {@code null} for none.
+     */
+    static String holdKind(String reason) {
+        if (reason.startsWith("HOLD_GROUND_")) return "ground";
+        if (reason.equals("GARRISON_HOLD")) return "garrison";
+        if (reason.endsWith("_HOLD_GAIN") || reason.endsWith("_DEFEND_DISPATCH_WINDOW")) return "gain";
+        return null;
     }
 
     private static boolean launched(String reason) {
@@ -363,6 +380,7 @@ public final class PlaceFightProbe {
             list.put(new JSONObject().put("side", episode.side.name()).put("start", episode.start)
                     .put("end", episode.end).put("squads", episode.squads.size()).put("lost", episode.lost)
                     .put("met", episode.met).put("metPost", episode.metPost).put("metHold", episode.metHold).put("metDugInHold", episode.metDugInHold)
+                    .put("holdKinds", new JSONArray(episode.holdKinds))
                     .put("holdersMet", episode.holdersMet).put("retook", won));
         }
         JSONObject losses = new JSONObject();
@@ -385,7 +403,7 @@ public final class PlaceFightProbe {
                         .put("metPost", metPost).put("metHold", metHold).put("metDugInHold", metDugInHold).put("retook", retook)
                         .put("retookMetHold", retookMetHold).put("retookOther", retookOther).put("lost", lost)
                         .put("retakeNotes", retakes.size() - compoundRetakes.size()).put("compoundRetakes", compoundRetakes.size()).put("episodes", list))
-                .put("hold", new JSONObject().put("holderSamples", holderSamples)
+                .put("hold", new JSONObject().put("holderSamples", holderSamples).put("kinds", new JSONObject(holderKinds))
                         .put("dugInSamples", holderSamplesDugIn)
                         .put("pressedByCounterattack", holderSamplesPressedByCounterattack));
     }
