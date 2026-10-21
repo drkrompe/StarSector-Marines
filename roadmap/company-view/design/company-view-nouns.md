@@ -1530,7 +1530,11 @@ holds from Structure, and the wardroom and briefing room from Compute: facilitie
 fitted into rooms she already has (the provisions store, the mess, the holds), so
 buying one opens no compartment. Hydroponics and the holds act through the hull
 mod (her supplies per month, her cargo); the wardroom scales officers' mission XP
-when a mission resolves and is named on the briefing once it pays. Each track is a column of tier nodes,
+when a mission resolves and is named on the briefing once it pays. The briefing
+room's holo-tank shows the briefing the garrison the operation faces. It reads the
+same target profile launch builds the battle from, so its headcount is the battle's;
+its mechs are given as *up to*, because the landing caps them. The plot table below it is the tank's mount and has
+no battle passive yet. Each track is a column of tier nodes,
 owned, available (nothing but the price in the way) or locked. Most tiers need
 two or three cores, so beside each unbought node sit small icons of the cores it
 waits on, gold once met and red until then; requirements are marked this way
