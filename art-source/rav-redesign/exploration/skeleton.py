@@ -105,6 +105,19 @@ def gait_foot(name, phi, gait):
     return -half + 2 * half * smooth(k), LIFT[gait] * math.sin(math.pi * k)
 
 
+def roll_about(a, b, p, deg):
+    """Rotate point p about the axis a->b by deg (Rodrigues)."""
+    k = [bb - aa for aa, bb in zip(a, b)]
+    n = math.sqrt(sum(c * c for c in k)) or 1.0
+    k = [c / n for c in k]
+    v = [pp - aa for aa, pp in zip(a, p)]
+    th = math.radians(deg)
+    kv = sum(x * y for x, y in zip(k, v))
+    kxv = (k[1] * v[2] - k[2] * v[1], k[2] * v[0] - k[0] * v[2], k[0] * v[1] - k[1] * v[0])
+    return tuple(aa + vv * math.cos(th) + cc * math.sin(th) + kk * kv * (1 - math.cos(th))
+                 for aa, vv, cc, kk in zip(a, v, kxv, k))
+
+
 class Skeleton:
     def __init__(self):
         self.phi = 0.0
@@ -188,6 +201,11 @@ class Skeleton:
         arms, tips = self.arms(t, sh)
         neck = (0.0, sh[0] + 0.12, sh[1] + 0.03)
         head = (0.0, sh[0] + 0.25 + 0.03 * math.sin(2 * math.pi * self.phi) * run, sh[1] - 0.01)
+        if t > T_REEL:  # jaws latch on beside the spike
+            k = smooth(min(1, (t - T_REEL - 0.15) / 0.25)) if t > T_REEL + 0.15 else 0.0
+            tip = tips[0]
+            head = (head[0] + (tip[0] * 0.6 - head[0]) * k, head[1] + (tip[1] - 0.02 - head[1]) * k,
+                    head[2] + (0.16 - head[2]) * k)
         tail = [(0.0, hp[0] - 0.08 * i, hp[1] + 0.02 - 0.03 * i) for i in range(5)]
         sway = 0.04 * run * math.sin(2 * math.pi * self.phi)
         tail = [(sway * i * i / 16, p[1], p[2]) for i, p in enumerate(tail)]
@@ -202,20 +220,23 @@ class Skeleton:
         def lerp(p, q, k):
             return tuple(a + (b - a) * k for a, b in zip(p, q))
 
-        # left: (yaw deg, reach, height)
-        r0 = (0.0, *rest)
+        # left: (yaw deg, reach, height, roll deg): the roll bows the elbow out sideways, away from the body
+        r0 = (0.0, *rest, 0.0)
+        cocked = (0.0, *coil, 80.0)
+        thrust = (0.0, *ext, 25.0)
+        carry = (0.0, 0.22, -0.06, 35.0)   # the spike stays in; the jaws latch on beside it
         if t < T_WIND:
             left = r0
         elif t < T_THRUST:
-            left = lerp(r0, (0.0, *coil), smooth((t - T_WIND) / (T_THRUST - T_WIND)))
+            left = lerp(r0, cocked, smooth((t - T_WIND) / (T_THRUST - T_WIND)))
         elif t < T_HOLD:
-            left = lerp((0.0, *coil), (0.0, *ext), ease_out((t - T_THRUST) / (T_HOLD - T_THRUST)))
+            left = lerp(cocked, thrust, ease_out((t - T_THRUST) / (T_HOLD - T_THRUST)))
         elif t < T_REEL:
-            left = (0.0, *ext)
+            left = thrust
         else:
-            left = lerp((0.0, *ext), r0, smooth(min(1, (t - T_REEL) / 0.4)))
+            left = lerp(thrust, carry, smooth(min(1, (t - T_REEL) / 0.35)))
         # right: the swipe
-        out, cut = (80.0, 0.22, 0.07), (-30.0, 0.30, -0.02)
+        out, cut = (80.0, 0.22, 0.07, 0.0), (-30.0, 0.30, -0.02, 0.0)
         u = t - T_SWIPE
         if u < 0:
             right = r0
@@ -226,19 +247,24 @@ class Skeleton:
         else:
             right = lerp(cut, r0, smooth(min(1, (u - SWIPE_WIND - SWIPE_CUT) / SWIPE_BACK)))
         arms, tips = [], []
-        for side, (yaw, r, h) in ((-1, left), (1, right)):
+        for side, (yaw, r, h, roll) in ((-1, left), (1, right)):
             base = (side * ARMS["x"], sh[0] - 0.02, sh[1] + ARMS["up"])
             (er, eh), (wr, wh) = ik2((0.0, 0.0), (r, h), ARMS["a"], ARMS["b"], -1)
-            ang = math.atan2(wh - eh, wr - er)
-            tr, th = wr + ARMS["spike"] * math.cos(ang), wh + ARMS["spike"] * math.sin(ang)
             sy, cy = math.sin(math.radians(yaw)), math.cos(math.radians(yaw))
 
             def at(rr, hh):
                 return (base[0] + side * rr * sy, base[1] + rr * cy, base[2] + hh)
 
-            pts = [base, at(er, eh), at(wr, wh), at(tr, th)]
+            elbow, wrist = at(er, eh), at(wr, wh)
+            if abs(roll) > 0.01:  # turn the elbow about the shoulder-wrist line, outward
+                elbow = max((roll_about(base, wrist, elbow, sgn * roll) for sgn in (1, -1)),
+                            key=lambda e: side * e[0])
+            d = [w - e for w, e in zip(wrist, elbow)]
+            n = math.sqrt(sum(c * c for c in d)) or 1.0
+            tip = tuple(w + ARMS["spike"] * c / n for w, c in zip(wrist, d))
+            pts = [base, elbow, wrist, tip]
             arms.append(pts)
-            tips.append(pts[-1])
+            tips.append(tip)
         return arms, tips
 
     @staticmethod
@@ -256,7 +282,7 @@ class Skeleton:
         if t < T_REEL:
             return "impale"
         if t < T_DRAG:
-            return "reel in"
+            return "latch"
         return "drag off"
 
 
@@ -340,15 +366,15 @@ def draw_frame(sk, t, victim):
         d.ellipse([vx - r, vy - r, vx + r, vy + r], fill=VICTIM)
     img = img.resize((1920, 1080), Image.LANCZOS)
     d = ImageDraw.Draw(img)
-    d.text((24, 12), "RAV BLOOM RUNNER  /  SKELETON TEST 2  /  one arm per strike: side swipe, then straight stab",
+    d.text((24, 12), "RAV BLOOM RUNNER  /  SKELETON TEST 3  /  bowed stab, spike stays in, jaws latch on",
            font=font(24, True), fill=INK)
     d.text((24, 44), "Side view (left) and top view (right) of one 3D skeleton. Camera follows the body; a planted "
                      "foot holds still against the ground ticks. Far-side limbs darker. Real time.",
            font=font(14), fill=DIM)
     d.text((24, 1000), "Legs: front elbow back; hind stifle forward, hock back. Gallop: rotary, spine gathers and stretches. "
-                       "One arm per strike: the right swipes across from out wide, the left stabs straight and "
-                       "impales. Drag: backward trot.", font=font(14), fill=DIM)
-    for i, ph in enumerate(["gallop", "brake", "side swipe", "stab wind-up", "stab", "impale", "reel in", "drag off"]):
+                       "One arm per strike, either arm (mirrored): swipe across from out wide; stab with the elbow bowed out, "
+                       "point driven forward. The spike stays in and the jaws latch on for the drag.", font=font(14), fill=DIM)
+    for i, ph in enumerate(["gallop", "brake", "side swipe", "stab wind-up", "stab", "impale", "latch", "drag off"]):
         x = 24 + i * 118
         on = ph == sk["phase"]
         d.rectangle([x, 940, x + 114, 972], fill=ACC if on else (34, 38, 46))
