@@ -72,10 +72,18 @@ class DownedArtTest {
                 Path file = Path.of(root, "downed-" + pose + ".png");
                 assertTrue(Files.exists(file), file.toString());
                 BufferedImage image = ImageIO.read(file.toFile());
-                assertEquals(300, image.getWidth(), file.toString());
-                assertEquals(460, image.getHeight(), file.toString());
+                assertEquals(360, image.getWidth(), file.toString());
+                assertEquals(520, image.getHeight(), file.toString());
                 assertEquals(0, image.getRGB(0, 0) >>> 24, file + " corner must be transparent");
-                assertTrue((image.getRGB(150, 230) >>> 24) > 200, file + " body centre must be solid");
+                assertTrue((image.getRGB(180, 260) >>> 24) > 200, file + " body centre must be solid");
+                for (int x = 0; x < image.getWidth(); x++) {
+                    assertEquals(0, image.getRGB(x, 0) >>> 24, file + " clipped at the top edge");
+                    assertEquals(0, image.getRGB(x, image.getHeight() - 1) >>> 24, file + " clipped at the bottom edge");
+                }
+                for (int y = 0; y < image.getHeight(); y++) {
+                    assertEquals(0, image.getRGB(0, y) >>> 24, file + " clipped at the left edge");
+                    assertEquals(0, image.getRGB(image.getWidth() - 1, y) >>> 24, file + " clipped at the right edge");
+                }
             }
         }
     }

@@ -8,7 +8,7 @@ alien keeps its unit type's sheet.
 
 `downed.py guide` builds the pose guide (`../templates/downed-poses.png`) from
 anatomy in shoulder widths, so every outfit shares the same four bodies at the live
-compositor's scale (150 source px per shoulder width; frames 300x460, head toward the
+compositor's scale (150 source px per shoulder width; frames 360x520: the 300x460 guide figure plus a 30 px margin so drift is not clipped, head toward the
 top). `downed.py export [outfit ...]` cuts each raw back into
 `downed-<pose>.png` beside the outfit's body and head with nearest sampling, keeping
 the generated alpha near the guide figure. The reskin may move a limb a little;
