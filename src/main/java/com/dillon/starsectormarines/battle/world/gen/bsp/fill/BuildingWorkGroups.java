@@ -57,8 +57,9 @@ final class BuildingWorkGroups {
         }
     }
 
+    /** A monitor at the head, a real-length (three-cell) bed, and two clear rows at its foot. */
     static Group bedBay() {
-        return new Group(3, 5, List.of(new Part("sickbay-clinic.monitor", 0, 0, true),
+        return new Group(3, 6, List.of(new Part("sickbay-clinic.monitor", 0, 0, true),
                 new Part("sickbay-clinic.bed", 0, 1, true),
                 new Part("sickbay-clinic.linen-low", 0, 1, false)));
     }

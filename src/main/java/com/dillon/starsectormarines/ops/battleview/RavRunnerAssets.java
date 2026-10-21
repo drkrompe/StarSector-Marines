@@ -20,6 +20,9 @@ public final class RavRunnerAssets {
     final LayeredSpriteCache[][] front = new LayeredSpriteCache[2][2];
     final LayeredSpriteCache[][] hind = new LayeredSpriteCache[3][2];
     final LayeredSpriteCache[][] arm = new LayeredSpriteCache[3][2];
+    /** Ichor a burst Runner leaves, by {@code art-source/rav-redesign/export_ichor.py}. */
+    final LayeredSpriteCache[] splat = new LayeredSpriteCache[4];
+    LayeredSpriteCache drop;
 
     private RavRunnerAssets(LayeredSpriteCache trunkFront, LayeredSpriteCache trunkRear,
                             LayeredSpriteCache fore) {
@@ -35,6 +38,12 @@ public final class RavRunnerAssets {
         if (assets.trunkFront == null || assets.trunkRear == null || assets.fore == null) return null;
         if (!fill(assets.front, "front", loader) || !fill(assets.hind, "hind", loader)
                 || !fill(assets.arm, "arm", loader)) return null;
+        for (int i = 0; i < assets.splat.length; i++) {
+            assets.splat[i] = loader.apply(ROOT + "ichor-splat-" + i + ".png");
+            if (assets.splat[i] == null) return null;
+        }
+        assets.drop = loader.apply(ROOT + "ichor-drop.png");
+        if (assets.drop == null) return null;
         return assets;
     }
 
@@ -50,6 +59,8 @@ public final class RavRunnerAssets {
                 all.add(pair[1]);
             }
         }
+        all.addAll(List.of(splat));
+        all.add(drop);
         return all;
     }
 

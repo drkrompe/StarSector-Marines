@@ -25,6 +25,14 @@ condition state's scar anchors):
 Every effect is a child of its anchor, so it rides with the wreck section
 the anchor hangs from.
 
+Explosion style: 'fireball' (the default, the accepted Phaeton cook-off of
+2026-10-19) or 'jagged': swfx_burst's irregular burst instead of the round
+volume fireball and shock ring (owner, 2026-10-21: no orb explosions), with
+the same flash light and embers. Opt in per anchor (a string prop 'style')
+or for a whole build (build(..., blast_style='jagged')). A jagged blast is
+keyed at build time from fir_exp_frame + delay_s, fir_exp_scale and fir_exp,
+so re-run the build after changing those knobs.
+
 Knobs (all on 'SWFX controls'):
   fir_fire        fire amount on every fire anchor (0 out, 1 burning, 2 raging)
   fir_vent        venting amount on every vent anchor
@@ -53,6 +61,7 @@ from swfx_smoke import (G, _ballistic, _no_shadow_catch, _rnd, _sock, _spark_gro
 
 GROUP = 'Fire'
 PREFIX = 'SWFX fire'
+STYLE = 'fireball'        # explosion style when neither the anchor nor the build names one
 FPS = swfx_core.FPS
 FIRE = re.compile(r'fire anchor', re.I)
 VENT = re.compile(r'vent anchor', re.I)
@@ -267,17 +276,39 @@ def _ember_tree(ctx, name, seed, delay, count=120):
     return tree
 
 
-def build_explosion(ctx, coll, anchor):
+def _jagged_blast(ctx, coll, anchor, seed, delay, flash_gain):
+    """An explosion anchor as swfx_burst's jagged burst: lobed flash, cooling shrapnel and
+    torn smoke that thins over about two seconds, sized by size_m and fir_exp_scale."""
+    import random
+    import swfx_burst
+    ctl = ctx.controls
+    if float(ctl.get('fir_exp', 1.0)) <= 0:
+        return []
+    S = float(anchor.get('size_m', BLAST_M)) * float(ctl.get('fir_exp_scale', 1.0))
+    f = int(round(float(ctl.get('fir_exp_frame', 1.0)) + delay * FPS))
+    import swfx_missile_paths as mp
+    return swfx_burst.burst(ctx, coll, f'blast {anchor.name}', mp.anchor_matrix(anchor).translation, f,
+                            swfx_core.METRES_PER_UNIT, random.Random(f'swfx-fire-blast|{anchor.name}|{seed}'),
+                            (1.0, .62, .3), size_m=(S * .5, S * .75), shrapnel=(8, 14), smoke=.6,
+                            smoke_life=(36, 56), flash_frames=5, parent=anchor, prefix=PREFIX)
+
+
+def build_explosion(ctx, coll, anchor, style=None):
     from swfx_lighting import watts
     seed = _seed(anchor)
+    style = style or anchor.get('style') or STYLE
     delay = float(anchor.get('delay_s', 0.0))
     R = units(float(anchor.get('size_m', BLAST_M)))
     ring_gain = float(anchor.get('ring', 1.0))
     flash_gain = float(anchor.get('flash', 1.0))
     ember_count = int(anchor.get('embers', 120))
-    ball = _container(f'{PREFIX} fireball | {anchor.name}', coll, anchor, R*1.6,
-                      _fireball_material(ctx, f'{PREFIX} fireball {seed}', seed, R, delay))
-    objects = [ball.name]
+    if style == 'jagged':
+        objects = [o.name for o in _jagged_blast(ctx, coll, anchor, seed, delay, flash_gain)]
+        ring_gain = 0.0
+    else:
+        ball = _container(f'{PREFIX} fireball | {anchor.name}', coll, anchor, R*1.6,
+                          _fireball_material(ctx, f'{PREFIX} fireball {seed}', seed, R, delay))
+        objects = [ball.name]
     # Shock ring: a flat annulus in the anchor's YZ plane, racing out and fading.
     if ring_gain > 0:
         objects.append(_shock_ring(ctx, coll, anchor, seed, R, delay, ring_gain))
@@ -297,7 +328,8 @@ def build_explosion(ctx, coll, anchor):
         mod.node_group = _ember_tree(ctx, f'{PREFIX} embers {seed}', seed, delay, ember_count)
         swfx_core.attach(embers, anchor)
         objects.append(embers.name)
-    return {'anchor': anchor.name, 'delay_s': delay, 'fireball_radius_units': round(R, 2), 'objects': objects}
+    return {'anchor': anchor.name, 'delay_s': delay, 'style': style, 'fireball_radius_units': round(R, 2),
+            'objects': objects}
 
 
 def _shock_ring(ctx, coll, anchor, seed, R, delay, gain):
@@ -329,7 +361,7 @@ def build(ctx, fires=True, vents=True, explosions=True, **options):
         elif vents and VENT.search(anchor.name):
             rec['vents'].append(build_vent(ctx, coll, anchor))
         elif explosions and BLAST.search(anchor.name):
-            rec['explosions'].append(build_explosion(ctx, coll, anchor))
+            rec['explosions'].append(build_explosion(ctx, coll, anchor, options.get('blast_style')))
     ctx.controls.update_tag()
     bpy.context.view_layer.update()
     return rec

@@ -1092,7 +1092,7 @@ GLOW_NODE = 'swfx glow'
 GLOW_PATH = f'nodes["{GLOW_NODE}"].outputs[0].default_value'
 
 
-def _glow_material(ctx, rgb, name):
+def _glow_material(ctx, rgb, name, jag=False):
     """Soft emissive gas: the weapon's colour, whiter where densest. One per glow object: its
     own RGB node GLOW_NODE (keyed through GLOW_PATH, _glow_keys) holds R the fade, G a seed, B a
     twentieth of the emission per metre (peak radiance / diameter in metres), so a glow reads
@@ -1101,23 +1101,47 @@ def _glow_material(ctx, rgb, name):
     Not the object's colour: an object drawn through a collection instance (every per-ship
     copy is) never hands its keyed colour to Cycles, Object Info or Object attribute alike, and
     every glow rendered at full strength as a white disc (passes 1-5; the diagnostic run showed
-    the discs were these glows)."""
+    the discs were these glows).
+
+    jag: torn rather than round (owner, 2026-10-21: no orb explosions). The coordinates are
+    pushed about by a seeded noise field before the falloff, so the gas breaks into lobes and
+    tongues with ragged gaps, and the densest heart is less a ball."""
     m, nodes, links = swfx_core.node_material(name)
     g = _G(nodes, links)
     out = nodes.new('ShaderNodeOutputMaterial')
     tc = nodes.new('ShaderNodeTexCoord')
     p = tc.outputs['Object']
-    x, y, z = g.xyz(p)
-    r2 = g.add(g.add(g.sq(x), g.sq(y)), g.sq(z))
-    shell = g.pow(g.mx(g.sub(1.0, r2), 0.0), 2.0)
     ctl = nodes.new('ShaderNodeRGB')
     ctl.name = ctl.label = GLOW_NODE
     ctl.outputs[0].default_value = (0, 0, 0, 1)
     sep = nodes.new('ShaderNodeSeparateColor')
     links.new(ctl.outputs[0], sep.inputs[0])
     fade, seed, k = sep.outputs[0], sep.outputs[1], sep.outputs[2]
+    if jag:
+        tn = nodes.new('ShaderNodeTexNoise')
+        tn.noise_dimensions = '4D'
+        tn.inputs['Scale'].default_value = 1.1
+        tn.inputs['Detail'].default_value = 2.0
+        tn.inputs['Roughness'].default_value = .55
+        links.new(p, tn.inputs['Vector'])
+        links.new(g.mul(seed, 53.0), tn.inputs['W'])
+        off = nodes.new('ShaderNodeVectorMath')
+        off.operation = 'MULTIPLY_ADD'
+        links.new(tn.outputs['Color'], off.inputs[0])
+        off.inputs[1].default_value = (1.3, 1.3, 1.3)
+        off.inputs[2].default_value = (-.65, -.65, -.65)
+        moved = nodes.new('ShaderNodeVectorMath')
+        moved.operation = 'ADD'
+        links.new(p, moved.inputs[0])
+        links.new(off.outputs[0], moved.inputs[1])
+        p = moved.outputs[0]
+    x, y, z = g.xyz(p)
+    r2 = g.add(g.add(g.sq(x), g.sq(y)), g.sq(z))
+    shell = g.pow(g.mx(g.sub(1.0, r2), 0.0), 2.0)
     n1 = g.noise(p, g.mul(seed, 37.0), 1.8, 3.0, .6)
     lumps = g.add(.55, g.mul(g.clamp01(g.mul(g.sub(n1, .3), 2.0)), .9))
+    if jag:
+        lumps = g.mul(g.clamp01(g.mul(g.sub(n1, .38), 3.5)), 1.5)        # ragged gaps, not a soft ball
     dens = g.mul(g.mul(shell, lumps), fade)
     mix = nodes.new('ShaderNodeMix')
     mix.data_type = 'RGBA'
@@ -1133,8 +1157,8 @@ def _glow_material(ctx, rgb, name):
     return m
 
 
-def _glow_object(ctx, coll, name, rgb):
-    ob = bpy.data.objects.new(name, _unit_box_mesh(f'{name} mesh', _glow_material(ctx, rgb, f'{name} gas')))
+def _glow_object(ctx, coll, name, rgb, jag=False):
+    ob = bpy.data.objects.new(name, _unit_box_mesh(f'{name} mesh', _glow_material(ctx, rgb, f'{name} gas', jag)))
     coll.objects.link(ob)
     ob.visible_shadow = False
     return ob
@@ -1147,9 +1171,13 @@ def _glow_keys(ob):
 
 def _cloud(ctx, coll, a, label, frame, spec):
     """The flash's glowing gas, lingering a little for spectacle (owner, 2026-10-20) and thinning
-    out: it grows from r[0] to r[1] metres over `frames` and fades."""
+    out: it grows from r[0] to r[1] metres over `frames` and fades. Torn and thrown down the
+    bore, not a ball (owner, 2026-10-21): stretched along +X, turned a seeded amount about it."""
     rgb = _lin(spec['rgb'])
-    ob = _glow_object(ctx, coll, f'{PREFIX} cloud {label} f{frame:04d}', rgb)
+    ob = _glow_object(ctx, coll, f'{PREFIX} cloud {label} f{frame:04d}', rgb, jag=True)
+    jr = random.Random(f'cloud-shape|{label}|{frame}')
+    ob.rotation_euler = (jr.uniform(0, 2 * math.pi), 0, 0)
+    stretch = (1.45, jr.uniform(.7, .9), jr.uniform(.6, .8))
     swfx_core.attach(ob, a.empty)
     r0, r1 = spec['r']
     life = max(1, int(spec['frames']))
@@ -1164,8 +1192,8 @@ def _cloud(ctx, coll, a, label, frame, spec):
         fade.append((1 - t) ** 1.6)
         kk.append(_hull_glow(spec['peak'] / (2 * r)) / 20.0)
     for i in range(3):
-        _bake(ob, 'scale', i, fr, sc)
-    _bake(ob, 'location', 0, fr, lx)
+        _bake(ob, 'scale', i, fr, [v * stretch[i] for v in sc])
+    _bake(ob, 'location', 0, fr, [v * 1.3 for v in lx])
     t = _glow_keys(ob)
     _bake(t, GLOW_PATH, 0, fr, fade)
     _bake(t, GLOW_PATH, 1, [frame], [random.Random(f'cloud|{label}|{frame}').random()], 'CONSTANT')
