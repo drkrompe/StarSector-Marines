@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.campaign.refit;
 
 import com.dillon.starsectormarines.battle.mech.MechRefit;
 import com.dillon.starsectormarines.battle.squad.HullWelfare;
+import com.dillon.starsectormarines.battle.world.gen.ship.FacilityDressing;
 import com.dillon.starsectormarines.battle.world.gen.ship.ReservedFacility;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
@@ -65,6 +66,16 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
         for (RefitTrack track : RefitTrack.values())
             if (track.reserve != null && band(track).atLeast(RefitBand.RESTORED)) open.add(track.reserve);
         return open;
+    }
+
+    /**
+     * The tiers bought of each facility fitted into an existing room, as the
+     * deck dresses them. A hull this record does not apply to shows none.
+     */
+    public FacilityDressing facilityDressing() {
+        if (!applies) return FacilityDressing.NONE;
+        return new FacilityDressing(band(RefitTrack.HYDROPONICS).ordinal(), band(RefitTrack.WARDROOM).ordinal(),
+                band(RefitTrack.BRIEFING).ordinal(), band(RefitTrack.HOLDS).ordinal());
     }
 
     /** The order that would advance {@code track}, or null when it is at its ceiling. */

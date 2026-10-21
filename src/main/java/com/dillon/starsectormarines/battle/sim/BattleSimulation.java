@@ -1231,7 +1231,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // of the corpse transmute, so the identity it reads is still the
         // combatant that died rather than whatever the body becomes.
         deathDispatcher.subscribe(commanderInfluence.casualties()::onDeath);
-        this.deadBodySystem = new DeadBodySystem(entityWorld, battleComponents);
+        this.deadBodySystem = new DeadBodySystem(entityWorld, battleComponents, this::getSimTickIndex);
         deathDispatcher.subscribe(deadBodySystem::onDeath);
         deathDispatcher.subscribe(event -> taskPoints.release(event.unitId()));
         // Registered rescue civilians report loss through the same once-only
