@@ -181,7 +181,9 @@ living bores. It publishes an immutable pressure snapshot for evidence and
 diagnostics. It never reads hidden Marine state the swarm could not sense.
 
 **Swarm strain.** A kind of swarm body with its own stats, appearance family and
-behaviour:
+behaviour. A strain is a designed stage of the one organism (see *Origin*), not
+another animal: every strain is the Runner's body plan and chitin specialised
+for one job in the cycle, and reads that way on screen.
 
 - **Runner** — the shipped 20 HP melee body. Volume.
 - **Brute** — slow, plated, heavy melee; the strain that makes a garrisoned
@@ -217,6 +219,12 @@ them at once). What differs is what a body does once it has a target. Every
 strain body enters the battle through `SwarmStrains`, which issues the
 strain's kit (the Brute's plate), so a director, a scene and a debug mission
 spawn the same Brute.
+
+A body is carried as itself. A corpse is an entity with its own position and
+facing that the renderer reads every frame, and a layered swarm body is drawn
+as parts, so a carrier (`swarm-harvest.md`) moves the colonist's corpse with
+it and draws it as one more attached sprite; neither the strains nor their
+corpse sheets assume a body stays where it fell.
 
 **Swarm goal.** A place the swarm is drawn toward: the shelter, the lift, the
 nearest Marine body. Swarm movement toward a goal is a shared **flow field** per
