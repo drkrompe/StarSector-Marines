@@ -1,17 +1,13 @@
 # Modular colonist actors
 
-True-overhead civilian, engineer, and scientist layers authored for the shoulder-width
-runtime compositor. Each body is normalized to a 150 px shoulder canvas and
-each independently rotating head to a 72 px canvas. The shared marine foot is
-used beneath the body during locomotion; noncombatants never emit weapon or
-muzzle-flash layers.
+True-overhead civilian, engineer, and scientist layers on the marines' own
+silhouettes: body 150x120, independently rotating head 72x88 and foot 38x52, the
+same canvases as the marine fatigues, so they register in the compositor exactly
+as a marine does. Each profession has its own boot. Noncombatants never emit
+weapon or muzzle-flash layers.
 
-Runtime files:
+Runtime files: `<role>/body.png`, `<role>/head.png` and `<role>/foot.png` for
+`civilian`, `engineer` and `scientist`.
 
-- `civilian/body.png` and `civilian/head.png`
-- `engineer/body.png` and `engineer/head.png`
-- `scientist/body.png` and `scientist/head.png`
-
-The approved ImageGen chroma boards are retained in `sources/` so later clothing,
-helmet, and profession variants can be derived from the same visual language.
-Processed alpha intermediates are disposable and are not packaged with the mod.
+The generation prompts, raw masters and export script live under
+`art-source/colonist-modular-topdown/`.

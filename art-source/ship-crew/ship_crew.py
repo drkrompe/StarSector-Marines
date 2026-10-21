@@ -56,10 +56,15 @@ def guide() -> None:
 
 
 def export() -> None:
-    for role in ROLES:
-        raw = Image.open(SOURCE / "raw" / f"{role}.png").convert("RGBA")
+    export_roles(ROLES, SOURCE, TARGET)
+
+
+def export_roles(roles, source: Path, target_root: Path) -> None:
+    """Cut each role's raw (source/raw/<role>.png) into target_root/<role>/{body,head,foot}.png."""
+    for role in roles:
+        raw = Image.open(source / "raw" / f"{role}.png").convert("RGBA")
         sx, sy = raw.width / CANVAS[0], raw.height / CANVAS[1]
-        target = TARGET / role
+        target = target_root / role
         target.mkdir(parents=True, exist_ok=True)
         for part in SILHOUETTES:
             x0, y0, x1, y1 = frame(part)
