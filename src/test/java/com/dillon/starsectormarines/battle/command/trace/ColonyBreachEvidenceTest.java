@@ -3,11 +3,17 @@ package com.dillon.starsectormarines.battle.command.trace;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
+import com.dillon.starsectormarines.battle.evacuation.BoreTier;
 import com.dillon.starsectormarines.battle.evacuation.ColonyPopulation;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
+import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Tag;
@@ -33,8 +39,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * <p>Asserts mechanics, not outcomes: the plan is complete and the same on a
  * second construction, no site stands in a protected zone or on a landing,
- * and the beats that fire come in the order the noun doc's flow gives them.
- * Whether the cohort gets out is a reading in the summary.
+ * the beats that fire come in the order the noun doc's flow gives them, and
+ * spawning has a source: after the tremor no swarm body appears anywhere but
+ * at the mouth of a living bore, and none at all once every bore is collapsed.
+ * Whether the cohort gets out, and how the bores grew, are readings in the
+ * summary.
  */
 @Tag("colony-breach-command-evidence")
 class ColonyBreachEvidenceTest {
@@ -83,15 +92,22 @@ class ColonyBreachEvidenceTest {
                 }
 
                 sim.setCommandTraceEnabled(true, fixture.kind());
+                SpawnAudit audit = new SpawnAudit(sim);
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                     sim.advance(BattleSimulation.TICK_DT);
                     capture.afterAdvance();
+                    audit.afterAdvance(sim, breach);
                 }
+                assertEquals(0, audit.sourceless, "swarm bodies spawned away from a living bore after the tremor: "
+                        + audit.firstSourceless);
+                assertEquals(0, audit.afterLastCollapse,
+                        "swarm bodies spawned after every bore had collapsed");
                 if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
                 String trace = sim.getCommandTraceJsonLines();
                 if (firstTrace == null) {
                     firstTrace = trace;
                     summary = summarize(sim, breach, fixture, maxTicks);
+                    summary.put("boreSpawns", audit.boreSpawns);
                 } else {
                     assertEquals(firstTrace, trace, "Colony Breach must replay byte-identically");
                 }
@@ -125,6 +141,50 @@ class ColonyBreachEvidenceTest {
         System.out.println("[colony-breach-evidence] report " + output.resolve("summary.json"));
     }
 
+    /** Every swarm body new on a tick, checked against the living bores' mouths once the tremor has come. */
+    private static final class SpawnAudit {
+        private final LongOpenHashSet seen = new LongOpenHashSet();
+        int sourceless;
+        int afterLastCollapse;
+        int boreSpawns;
+        String firstSourceless = "";
+
+        SpawnAudit(BattleSimulation sim) {
+            for (int i = 0, n = sim.liveUnitCount(); i < n; i++) seen.add(sim.liveUnitAt(i));
+        }
+
+        void afterAdvance(BattleSimulation sim, ColonyBreachSequence breach) {
+            int tick = sim.getSimTickIndex();
+            boolean breached = breach.tremorTick() >= 0 && tick > breach.tremorTick();
+            List<SwarmBore> bores = sim.swarmBores().bores();
+            boolean allCollapsed = bores.size() == breach.plan().sites().size()
+                    && !sim.swarmBores().hasPending() && sim.swarmBores().livingCount() == 0;
+            for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+                long unit = sim.liveUnitAt(i);
+                if (!seen.add(unit)) continue;
+                if (!breached || sim.identity().faction(unit) != Faction.DEFENDER
+                        || !sim.identity().type(unit).isSwarm()) continue;
+                int x = sim.world().cellX(unit);
+                int y = sim.world().cellY(unit);
+                boolean atMouth = false;
+                for (SwarmBore bore : bores) {
+                    if (bore.collapsed() && bore.collapsedTick() < tick) continue;
+                    if (Math.max(Math.abs(bore.x() - x), Math.abs(bore.y() - y)) <= SwarmBores.MOUTH_RADIUS) {
+                        atMouth = true;
+                        break;
+                    }
+                }
+                if (atMouth) {
+                    boreSpawns++;
+                } else {
+                    if (sourceless == 0) firstSourceless = unit + " at " + x + "/" + y + " on tick " + tick;
+                    sourceless++;
+                }
+                if (allCollapsed) afterLastCollapse++;
+            }
+        }
+    }
+
     private static JSONObject summarize(BattleSimulation sim, ColonyBreachSequence breach,
                                         BattleFixture fixture, int maxTicks) throws Exception {
         ColonyBreachSequence.Snapshot snapshot = breach.snapshot(sim);
@@ -144,6 +204,27 @@ class ColonyBreachEvidenceTest {
         for (StoryBeatLog.Event event : sim.getStoryBeats()) {
             beats.put(new JSONObject().put("tick", event.tick()).put("id", event.id())
                     .put("audience", event.audience().name()));
+        }
+        JSONArray bores = new JSONArray();
+        SwarmPressureSnapshot director = sim.getSwarmPressureSnapshot();
+        List<SwarmPressureSnapshot.BoreState> boreStates = director == null ? List.of() : director.bores();
+        for (SwarmPressureSnapshot.BoreState bore : boreStates) {
+            SwarmBore state = sim.swarmBores().byEntity(bore.entityId());
+            bores.put(new JSONObject()
+                    .put("bore", bore.key())
+                    .put("x", bore.x()).put("y", bore.y())
+                    .put("tier", bore.tier().name())
+                    .put("alive", bore.alive())
+                    .put("integrity", Math.round(bore.integrity() * 1000f) / 1000.0)
+                    .put("growth", Math.round(bore.growth() * 10f) / 10.0)
+                    .put("biomassFed", bore.biomassFed())
+                    .put("surges", bore.surges())
+                    .put("bodiesSpawned", bore.bodiesSpawned())
+                    .put("sporeColonies", bore.sporeColonies() + "/" + state.colonies().size())
+                    .put("eruptedTick", bore.eruptedTick())
+                    .put("boreTierTick", state.tierTick(BoreTier.BORE))
+                    .put("mawTierTick", state.tierTick(BoreTier.MAW))
+                    .put("collapsedTick", bore.collapsedTick()));
         }
         var tracker = sim.getCivilianEvacuationTracker();
         return new JSONObject()
@@ -166,6 +247,10 @@ class ColonyBreachEvidenceTest {
                 .put("evacuated", tracker.evacuatedCount())
                 .put("registered", tracker.registeredCount())
                 .put("sites", sites)
+                .put("bores", bores)
+                .put("directorReason", director == null ? JSONObject.NULL : director.pressureReason())
+                .put("directorTarget", director == null ? 0 : director.targetPopulation())
+                .put("liveSwarm", director == null ? 0 : director.liveRunners())
                 .put("beats", beats);
     }
 
@@ -187,6 +272,24 @@ class ColonyBreachEvidenceTest {
                     .append(" | ").append(site.get("place"))
                     .append(" | ").append(site.getInt("eruptionTick"))
                     .append(" | ").append(site.getBoolean("erupted")).append(" |\n");
+        }
+        out.append("\n## Bores\n\n").append(s.getInt("boreSpawns"))
+                .append(" bodies came out of bore mouths after the tremor; director ")
+                .append(s.get("directorReason")).append(", target ").append(s.getInt("directorTarget"))
+                .append(", ").append(s.getInt("liveSwarm")).append(" swarm on the field at the end.\n\n")
+                .append("| bore | cell | tier | alive | integrity | growth | biomass | surges | bodies | spore colonies | erupted | bore tier | maw | collapsed |\n")
+                .append("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n");
+        JSONArray bores = s.getJSONArray("bores");
+        for (int i = 0; i < bores.length(); i++) {
+            JSONObject b = bores.getJSONObject(i);
+            out.append("| ").append(b.getString("bore")).append(" | ").append(b.getInt("x")).append(',')
+                    .append(b.getInt("y")).append(" | ").append(b.getString("tier")).append(" | ")
+                    .append(b.getBoolean("alive")).append(" | ").append(b.get("integrity")).append(" | ")
+                    .append(b.get("growth")).append(" | ").append(b.get("biomassFed")).append(" | ")
+                    .append(b.getInt("surges")).append(" | ").append(b.getInt("bodiesSpawned")).append(" | ")
+                    .append(b.getString("sporeColonies")).append(" | ")
+                    .append(b.getInt("eruptedTick")).append(" | ").append(b.getInt("boreTierTick")).append(" | ")
+                    .append(b.getInt("mawTierTick")).append(" | ").append(b.getInt("collapsedTick")).append(" |\n");
         }
         out.append("\n## Beats\n\n| tick | beat |\n|---|---|\n");
         JSONArray beats = s.getJSONArray("beats");

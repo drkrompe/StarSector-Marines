@@ -130,10 +130,23 @@ public final class PropMotion {
     public final float spinUpSeconds;
     private final List<Part> parts;
 
+    /**
+     * The share of full speed the prop keeps once damaged, drawn over its {@code -damaged} variant; zero (the default)
+     * means a damaged prop shows no moving parts at all, its damaged art standing for the machine. A destroyed prop
+     * never runs.
+     */
+    public final float damagedRate;
+
     public PropMotion(String baseId, Runs runs, float deficitRate, float spinUpSeconds, List<Part> parts) {
+        this(baseId, runs, deficitRate, 0f, spinUpSeconds, parts);
+    }
+
+    public PropMotion(String baseId, Runs runs, float deficitRate, float damagedRate, float spinUpSeconds,
+                      List<Part> parts) {
         this.baseId = baseId;
         this.runs = runs;
         this.deficitRate = deficitRate;
+        this.damagedRate = damagedRate;
         this.spinUpSeconds = spinUpSeconds;
         this.parts = List.copyOf(parts);
     }
@@ -151,10 +164,16 @@ public final class PropMotion {
      * {@code powerDeficit} (0 with the ship's power up, 1 with it at a deficit) when the prop runs on power.
      */
     public float targetRate(boolean inUse, float powerDeficit) {
+        return targetRate(inUse, powerDeficit, false);
+    }
+
+    /** As {@link #targetRate(boolean, float)}, for a prop standing damaged: scaled again by {@link #damagedRate}. */
+    public float targetRate(boolean inUse, float powerDeficit, boolean damaged) {
         if (runs.needsUse() && !inUse) return 0f;
-        if (!runs.needsPower()) return 1f;
+        float rate = damaged ? damagedRate : 1f;
+        if (!runs.needsPower()) return rate;
         float deficit = Math.max(0f, Math.min(1f, powerDeficit));
-        return 1f + (deficitRate - 1f) * deficit;
+        return rate * (1f + (deficitRate - 1f) * deficit);
     }
 
     /** One entry of a catalog's {@code motions} array. */
@@ -167,14 +186,15 @@ public final class PropMotion {
             throw new JSONException("motion for '" + base + "': " + e.getMessage());
         }
         float deficitRate = finite(base, "deficitRate", (float) json.optDouble("deficitRate", 0.0));
+        float damagedRate = finite(base, "damagedRate", (float) json.optDouble("damagedRate", 0.0));
         float spinUp = finite(base, "spinUpSeconds", (float) json.optDouble("spinUpSeconds", 0.0));
-        if (deficitRate < 0f || deficitRate > 1f || spinUp < 0f)
-            throw new JSONException("motion for '" + base + "' has deficitRate outside [0,1] or a negative spinUpSeconds");
+        if (deficitRate < 0f || deficitRate > 1f || damagedRate < 0f || damagedRate > 1f || spinUp < 0f)
+            throw new JSONException("motion for '" + base + "' has a rate outside [0,1] or a negative spinUpSeconds");
         JSONArray array = json.getJSONArray("parts");
         List<Part> parts = new ArrayList<>();
         for (int i = 0; i < array.length(); i++) parts.add(parsePart(base, array.getJSONObject(i)));
         if (parts.isEmpty()) throw new JSONException("motion for '" + base + "' has no parts");
-        return new PropMotion(base, runs, deficitRate, spinUp, parts);
+        return new PropMotion(base, runs, deficitRate, damagedRate, spinUp, parts);
     }
 
     private static Part parsePart(String base, JSONObject p) throws JSONException {

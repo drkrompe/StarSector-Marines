@@ -1,6 +1,6 @@
 # Matriarch
 
-Status: QUEUED on `bore-spawners.md` (the Brute and Spitter strains have shipped)
+Status: READY — bores and the tier strain table are on main; the table's named `MATRIARCH` slot (`BoreStrainTable`) is the one to fill
 
 Written: 2026-10-21
 

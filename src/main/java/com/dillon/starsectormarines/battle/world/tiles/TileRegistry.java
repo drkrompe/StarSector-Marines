@@ -185,6 +185,19 @@ public final class TileRegistry {
     /** The moving parts authored for a prop, or null for a prop that stands still. */
     public PropMotion motion(String doodadId)   { return doodadId == null ? null : motionsByDoodad.get(doodadId); }
 
+    /**
+     * The motion a damaged prop keeps: its intact base's, for a {@code <id>-damaged} doodad whose base still runs at a
+     * nonzero {@link PropMotion#damagedRate}; null otherwise, and always for a destroyed one.
+     */
+    public PropMotion damagedMotion(String doodadId) {
+        if (doodadId == null || !doodadId.endsWith(DAMAGED_SUFFIX)) return null;
+        PropMotion intact = motionsByDoodad.get(doodadId.substring(0, doodadId.length() - DAMAGED_SUFFIX.length()));
+        return intact != null && intact.damagedRate > 0f ? intact : null;
+    }
+
+    /** The suffix a prop's damaged variant is named by ({@code PropDamage}). */
+    private static final String DAMAGED_SUFFIX = "-damaged";
+
     /** Exact provider and catalog resource that declared {@code id}, or null when unknown. */
     public CatalogSource sourceOf(String id) { return sourceById.get(id); }
 

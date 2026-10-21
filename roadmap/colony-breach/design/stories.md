@@ -9,13 +9,12 @@ these stories.
 
 | Story | State and dependency |
 | --- | --- |
-| `bore-spawners.md` | **READY.** Destroyable bores, director spawning from living bores, biomass-driven tiers (fills the Brute and Spitter strain slots), spawning surges, spore vents. Plugs into the eruption handler on the breach sequence. |
-| `hive-creep.md` | **IN PROGRESS.** Creep field spreads from eruption sites (interim, until bores declare it); look and art next; bore hookup, creep effects and ground colonies wait on bores. |
-| `swarm-harvest.md` | **QUEUED on bores.** Runners seize colonists and drag them to bores as biomass; interceptable carriers. |
+| `hive-creep.md` | **IN PROGRESS.** Creep field spreads from eruption sites (interim); look and art next; the bore hookup, creep effects and ground colonies are unblocked now that bores and `BoreGrowthSites` are on main. |
+| `swarm-harvest.md` | **READY.** Runners seize colonists and drag them to bores as biomass through `SwarmBores.feed`; interceptable carriers. |
 | `sector-outbreaks.md` | **QUEUED on the spine.** Lore in `swarm-lore-guide.md`. Outbreaks as a recurring campaign phenomenon. |
 | `breach-audio.md` | **READY.** ElevenLabs strain voices, bore SFX, militia and administrator radio lines keyed to the beat table. |
-| `hive-posture-command.md` | **QUEUED on bores.** Hive posture in the briefing and command envelope; readiness gate; strike detachments. |
-| `matriarch.md` | **QUEUED on bores.** The mother bore's heavy strain. |
+| `hive-posture-command.md` | **READY.** Hive posture in the briefing and command envelope; readiness gate; strike detachments. |
+| `matriarch.md` | **READY.** The mother bore's heavy strain; fills the strain table's matriarch slot. |
 
 Live pressure and balance acceptance continues in `rescue-pressure-acceptance.md`
 once the spine, bores and strains have landed.
