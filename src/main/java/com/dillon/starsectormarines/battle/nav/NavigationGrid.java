@@ -992,10 +992,11 @@ public class NavigationGrid {
      * opening its edges, and re-baking cover for the cell and its 4 cardinal
      * neighbors. Idempotent on already-walkable cells (returns false).
      *
-     * <p>The grid only ever becomes <em>more</em> permissive — rubble stays
-     * walkable forever. That sidesteps the "wall lands on a unit mid-path"
-     * invalidation problem: existing paths only ever gain shortcuts, never
-     * lose cells, so units pick up new routes on their next normal re-path.
+     * <p>Rubble stays walkable forever: a breach only ever makes the grid more
+     * permissive, so existing paths only gain shortcuts and units pick up new
+     * routes on their next normal re-path. The one runtime write in the other
+     * direction is a shut sally door ({@link #restoreCell}), whose owner drops
+     * the routes it cuts.
      */
     public boolean damageCell(int x, int y, int amount) {
         if (!inBounds(x, y) || amount <= 0 || hasTag(x,y,CellTag.NATURAL_SOLID)) return false;
@@ -1024,6 +1025,29 @@ public class NavigationGrid {
         recomputeCoverAt(x, y + 1);
         recomputeCoverAt(x, y - 1);
         return true;
+    }
+
+    /** The cell's navigation flags, as {@link #restoreCell} takes them back. */
+    public long cellFlags(int x, int y) {
+        return inBounds(x, y) ? cellFlags[index(x, y)] : 0L;
+    }
+
+    /**
+     * Puts a cell back exactly as it was recorded: its flags, its own edges and its wall hit points. The one runtime
+     * write that may make the grid <em>less</em> permissive (a sally door shut again), so it goes through the same
+     * bookkeeping as every other write: the change is logged and the revision moves, and a change in what blocks sight
+     * sweeps this grid's line-of-sight caches. Cover is the caller's, since it depends on the neighbours.
+     */
+    public void restoreCell(int x, int y, long flags, byte edges, int hp) {
+        if (!inBounds(x, y)) return;
+        int idx = index(x, y);
+        boolean changed = cellFlags[idx] != flags || edgePassability[idx] != edges;
+        boolean wasOpaque = blocksStructuralLineOfSightAt(idx);
+        cellFlags[idx] = flags;
+        edgePassability[idx] = edges;
+        wallHp[idx] = Math.max(0, hp);
+        recordStructuralOpacityChange(idx, wasOpaque);
+        if (changed) markTopologyChanged(idx);
     }
 
     // ----- Raw arrays (for the pathfinder's hot path) -----
