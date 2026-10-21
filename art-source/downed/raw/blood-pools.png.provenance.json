@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f09-39d0-74a0-99ab-afb6ffa987ce",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f09-39d0-74a0-99ab-afb6ffa987ce\\exec-afa2df8d-d7a8-45ff-928c-442a84a91a17.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\downed\\raw\\blood-pools.png",
+    "sha256": "6ec67ccbe87a5d383000f300eb8f9498b9264c9111dfa0e3c797b0373477d060",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\downed\\prompts\\blood-pools.txt",
+  "promptSha256": "aee6435d14830879a1a93c1b5e01fc10beffccc4ff2fde03e96b019f3f4ed7e2",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the four pool shapes and drops to reskin, exact outlines, positions and scale\nImage 2: Style only: the pixel-art rendering, outline weight and palette restraint of the bodies these pools lie under; not layout or content\n\nUse case: sketch-to-render. Production ground decals for a top-down tactical game: pools of blood that spread under fallen soldiers.\n\nReference 1 is the authoritative SHAPE GUIDE and edit target, 1536x1024. Reskin only its four flat gray shapes, keeping each one's outline, position and scale, including the small separate drops. Everything outside the shapes must be genuinely transparent: no ground, floor, background, border, labels or grid.\n\nCamera: TRUE STRAIGHT-DOWN overhead view of liquid lying flat on the ground. Each shape is one pool of blood: deep dark crimson, almost black-red in the thick centre, slightly lighter and thinner toward the edges, with a few small glossy highlight pixels from light at the upper left, and a darker one-step outline at the rim. Smooth liquid edges, gently rounded lobes; the small round drops are separate spatters.\n\nStyle: match the sprite reference exactly — chunky crisp pixel art, limited muted palette, restrained detail that still reads at 240 pixels per pool. Muted and grim, not bright red, not cartoon, not splattered gore. No bodies, footprints, text or anything else.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\blood-pools.png",
+      "sha256": "545444c57ce46b1968fd640c2ba8434cb96db70470ff8ab207652e2d68bd9d08",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the four pool shapes and drops to reskin, exact outlines, positions and scale"
+    },
+    {
+      "path": "art-source\\downed\\raw\\charcoal.png",
+      "sha256": "87a1f07b753fd4ce4391d9405ef5dca4ec71ade85de10aedac100f02934a55b6",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Style only: the pixel-art rendering, outline weight and palette restraint of the bodies these pools lie under; not layout or content"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first reference’s shapes and layout, with the second reference guiding the pixel-art style.\n"
+  ],
+  "usage": {
+    "input_tokens": 44728,
+    "cached_input_tokens": 36992,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 508,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 74.5
+}

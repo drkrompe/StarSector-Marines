@@ -2357,6 +2357,9 @@ public final class CommandTraceAnalyzer {
                 trace.winner = nullableString(row, "winner");
                 trace.endTick = tick;
             }
+            case "sally-door-opened" -> {
+                // A referee record of a holder opening its own wall; no metric reads it.
+            }
             case "timeout" -> {
                 ensureNoTermination(trace);
                 trace.termination = Termination.TIMEOUT;

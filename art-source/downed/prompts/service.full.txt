@@ -1,0 +1,13 @@
+Use case: sketch-to-render. Production sprites of fallen infantry for a top-down tactical game, to lie on the ground beside the existing live overhead sprites.
+
+Reference 1 is the authoritative POSE GUIDE and edit target, 1536x1024. Reskin only its four flat gray figures; keep every figure's exact outline, limb positions, position on the canvas and scale. Everything outside the figures must be genuinely transparent: no background, ground, floor, shadow, blood pool, border, labels or grid.
+
+Camera: TRUE STRAIGHT-DOWN 90-degree overhead view of four people lying flat on the ground, heads toward the TOP of the image. No perspective, no isometric or three-quarter view.
+- Figure 1: lying face down, arms along the sides; we see the back of the head, back, backs of the legs and the soles/heels of the boots.
+- Figure 2: lying on the back, arms flung out, one knee fallen outward; we see the face from directly above (eyes closed, simple features), chest, fronts of the legs and the toes of the boots.
+- Figure 3: lying curled on one side, knees drawn up, arms forward.
+- Figure 4: sprawled face down, one arm thrown overhead, legs apart.
+Each figure is the same person in the same outfit, limp and still: incapacitated or dead, not posing.
+
+Style: match the live-sprite references exactly — chunky crisp pixel art with a clean one-step dark outline around every figure, a limited muted palette, broad readable planes, light from the upper left, restrained detail that still reads at 300x460 pixels per figure. Not painterly, not smooth airbrushed, not photographic. No weapons, dropped gear, gore, wounds, blood or text.
+This outfit: ship's SERVICES / logistics crew. Muted stone-khaki working shirt with darker khaki shoulder yokes and a buttoned placket, matching trousers; short gray hair (figure 2 shows a plain face, eyes closed). Brown-gray boots. Copy the uniform and head from the service crew reference.

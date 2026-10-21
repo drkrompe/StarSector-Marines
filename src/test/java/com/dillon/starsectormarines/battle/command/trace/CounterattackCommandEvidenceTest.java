@@ -190,7 +190,7 @@ class CounterattackCommandEvidenceTest {
             int gateTick = -1, yardTick = -1, depotTick = -1;
             BattleReviewFrameRenderer renderer = capture ? new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080) : null;
             sim.setCommandTraceEnabled(true, "COUNTERATTACK");
-            ContactMixEvidence mix = new ContactMixEvidence();
+            PlaceFightProbe placeFight = new PlaceFightProbe();
             try (CommanderEvidenceCapture visuals = CommanderEvidenceCapture.open(capture ? output : null, "counterattack", sim,
                     (battle, caption, marks) -> {
                         ReviewAnnotations.Builder extra = ReviewAnnotations.builder();
@@ -208,7 +208,7 @@ class CounterattackCommandEvidenceTest {
                     })) {
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                     sim.advance(BattleSimulation.TICK_DT);
-                    mix.sample(sim);
+                    placeFight.sample(sim);
                     int tick = sim.getSimTickIndex();
                     if (firstLanding < 0 && count(sim, Faction.MARINE) > 0) firstLanding = tick;
                     for (var shot : sim.getShotsThisFrame()) {
@@ -249,7 +249,7 @@ class CounterattackCommandEvidenceTest {
                     .put("profile", surface.name() + " / controlled factory loadouts")
                     .put("playerBoatId", boat.boatId()).put("playerType", boat.pattern().name())
                     .put("playerPlating", boat.plating().id()).put("playerDrive", boat.drive().id())
-                    .put("storyBeats", StoryBeatEvidence.snapshot(sim)).put("contactMix", mix.json()).put("reactiveDefence", ReactiveDefenceEvidence.figures(sim))
+                    .put("storyBeats", StoryBeatEvidence.snapshot(sim)).put("placeFight", placeFight.json(sim, sim.getCommandTraceJsonLines())).put("reactiveDefence", ReactiveDefenceEvidence.figures(sim))
                     .put("termination", sim.isComplete() ? "COMPLETE" : "TIMEOUT")
                     .put("winner", sim.getWinner() == null ? JSONObject.NULL : sim.getWinner().name())
                     .put("ticks", sim.getSimTickIndex()).put("firstPlayerLandingTick", firstLanding)

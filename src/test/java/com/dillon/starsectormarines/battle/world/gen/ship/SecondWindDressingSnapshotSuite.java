@@ -84,11 +84,50 @@ public final class SecondWindDressingSnapshotSuite implements SnapshotSuite {
                 if (previous == null) System.clearProperty("battle.render.deadAirHaze");
                 else System.setProperty("battle.render.deadAirHaze", previous);
             }
+            // Each core restored as a wave over the running deck, at half size.
+            frames.add(wave(renderer, dark, ShipCore.POWER, null, "08-wave-power.gif"));
+            frames.add(wave(renderer, dark, ShipCore.COMPUTE, RoomPurpose.BRIDGE, "09-wave-compute.gif"));
+            frames.add(wave(renderer, dark, ShipCore.LIFE_SUPPORT, RoomPurpose.BARRACKS, "10-wave-life-support.gif"));
+            frames.add(wave(renderer, dark, ShipCore.STRUCTURE, RoomPurpose.BARRACKS, "11-wave-structure.gif"));
         } finally {
             dark.dismiss();
             lit.dismiss();
         }
         return frames;
+    }
+
+    private static final float WAVE_SECONDS = 4f, WAVE_STEP = .1f;
+
+    /**
+     * One core restored alone as a wave, from the battered start: a frame every
+     * tenth of a second of the deck's own clock, half size, held at both ends.
+     */
+    private static SnapshotArtifact wave(HeadlessUiRenderer renderer, CompanyDeck deck, ShipCore core,
+                                         RoomPurpose framing, String path) {
+        ShipDeckBattleScene scene = deck.scene();
+        scene.dress(CoreDressing.DEFICIT);
+        int width = scene.simulation().getGrid().getWidth(), height = scene.simulation().getGrid().getHeight();
+        var room = framing == null ? null : deck.rooms().largest(framing);
+        var view = room == null
+                ? new ShipDeckBattleScene.DeckView(width / 2f, height / 2f, Math.min(1920f / width, 1080f / height) * .97f)
+                : ShipDeckBattleScene.DeckView.over(room, 6, 40);
+        String caption = core.name().replace('_', ' ') + " restored as a wave, " + (int) WAVE_SECONDS + " s";
+        List<BufferedImage> out = new ArrayList<>();
+        float start = scene.simulatedSeconds();
+        scene.dress(CoreDressing.DEFICIT.with(core, true), WAVE_SECONDS);
+        for (float t = -.5f; t <= WAVE_SECONDS + .6f; t += WAVE_STEP) {
+            scene.advanceTo(start + Math.max(0f, t));
+            BufferedImage full = frame(renderer, scene, view, path, caption).frames().get(0);
+            BufferedImage half = new BufferedImage(960, 540, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g = half.createGraphics();
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g.drawImage(full, 0, 0, 960, 540, null);
+            g.dispose();
+            out.add(half);
+        }
+        if (scene.dressing() || !scene.coreDressing().equals(CoreDressing.DEFICIT.with(core, true)))
+            throw new AssertionError("the wave did not finish on its target");
+        return SnapshotArtifact.colorAnimation(path, out, 100);
     }
 
     private static CompanyDeck deck(CompanyShip hull, boolean power) {

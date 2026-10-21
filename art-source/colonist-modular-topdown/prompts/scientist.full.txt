@@ -1,0 +1,13 @@
+Use case: sketch-to-render. Production overhead sprite layers for one frontier colonist in a tactical game, to stand beside the existing marine infantry and starship crew.
+
+Reference 1 is the authoritative SILHOUETTE GUIDE and edit target, 1536x1024. Reskin only its three flat gray shapes; keep every shape's exact outline, position, scale and the empty neck opening. Everything outside the shapes, and the neck opening, must be genuinely transparent: no background, ground, glow, shadow, border, labels or grid.
+
+Camera: TRUE STRAIGHT-DOWN 90-degree overhead view, every part facing UP the image. These are three SEPARATE LAYERS, not a full figure:
+- Left shape = shoulders, upper arms and upper torso seen from directly above, with an EMPTY round neck opening where an independent head layer sits. A collar rings the opening. No head, hands, backpack, armor plates or weapons.
+- Upper right shape = the top/back of the head seen from directly above, forehead toward the TOP, filling the shape. No face, no neck.
+- Lower right shape = one boot seen from directly above, toe at the TOP.
+
+Style: match the crew and marine reference sprites exactly — chunky crisp pixel art with a clean one-step dark outline around every shape, a limited muted palette, broad readable fabric planes with soft cloth folds, light from the upper left, restrained detail that still reads at 150 pixels wide. Not painterly, not smooth airbrushed, not photographic. These are civilian working clothes on a frontier colony: worn, patched and a little grimy, plainer than the marines' fatigues. Work straps may sit on the cloth, but nothing stands proud of the silhouette.
+
+Avoid: neon, text, insignia lettering, noise, scratches, carried tools, rifles, cast shadows outside the shapes.
+This colonist: COLONY SCIENTIST. Off-white lab coat, slightly stained and creased, with a dark charcoal high collar ringing the neck opening, a closed front seam, and slim muted teal straps down each side of the chest. Head: short medium-brown hair, with a COMPACT HEADSET: a slim dark band curving around the back of the head between two small teal ear pods at the left and right edges. Boot: plain gray-brown soft-soled work boot.

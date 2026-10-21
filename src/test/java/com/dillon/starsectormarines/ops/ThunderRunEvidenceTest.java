@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.command.trace.ContactMixEvidence;
+import com.dillon.starsectormarines.battle.command.trace.PlaceFightProbe;
 import com.dillon.starsectormarines.battle.command.trace.ReactiveDefenceEvidence;
 import com.dillon.starsectormarines.testsupport.InstalledWeaponSlots;
 import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
@@ -82,7 +82,6 @@ class ThunderRunEvidenceTest {
             Mission mission = staged.mission();
             int companySize = staged.companySize();
             var manifest = staged.manifest();
-            ContactMixEvidence mix = new ContactMixEvidence();
             try (var sim = staged.sim()) {
                 // Measure the intact map, before any destruction changes its routes.
                 var grid = sim.getGrid();
@@ -187,6 +186,9 @@ class ThunderRunEvidenceTest {
                             "png",dir.resolve("checkpoint-before.png").toFile());
                 }
                 var close = new BattleReviewFrameRenderer(Path.of("mod"),1920,1080,282,75,80);
+                PlaceFightProbe places = new PlaceFightProbe();
+                // The command trace is the place-fight line's source of retakes and losses.
+                sim.setCommandTraceEnabled(true, "THUNDER_RUN");
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                     for (long gun : column.supportGuns()) if (!measuredGuns.contains(gun)) {
                         measuredGuns.add(gun);
@@ -217,7 +219,7 @@ class ThunderRunEvidenceTest {
                     }
                     sim.advance(BattleSimulation.TICK_DT);
                     impacts.feed(sim);
-                    mix.sample(sim);
+                    places.sample(sim);
                     if (column.phase() == 1 || column.phase() == 2) {
                         for (int i = 0; i < sim.liveUnitCount(); i++) {
                             long unit = sim.liveUnitAt(i);
@@ -412,6 +414,7 @@ class ThunderRunEvidenceTest {
                     if(fixture.optBoolean("absent") && tick>=9000) break;
                 }
                 if (reviewGif != null) { reviewGif.close(); convoyGif.close(); crossroadsGif.close(); }
+                System.out.println(places.line(name, sim, sim.getCommandTraceJsonLines()));
                 if(fixture.optBoolean("absent")) { assertEquals(0,column.phase()); assertEquals(0,column.deliveredCount()); }
                 if(fixture.optBoolean("destroyCargo")) { assertTrue(sim.isComplete()); assertNotEquals(Faction.MARINE,sim.getWinner()); assertEquals(column.cargo().size(),column.lostCount()); }
                 if (!fixture.optBoolean("absent") && !fixture.optBoolean("unarmedFinal") && !fixture.optBoolean("silentTankFinal") && maxTicks >= 18000) {
@@ -441,7 +444,7 @@ class ThunderRunEvidenceTest {
                         .put("alive",sim.world().isAlive(gun)));
                 JSONArray beats=new JSONArray();
                 for(var e:sim.getStoryBeats()) beats.put(new JSONObject().put("tick",e.tick()).put("id",e.id()));
-                var report=new JSONObject().put("fixture",name).put("contactMix",mix.json()).put("reactiveDefence",ReactiveDefenceEvidence.figures(sim)).put("ticks",sim.getSimTickIndex()).put("landedTick",landedTick)
+                var report=new JSONObject().put("fixture",name).put("placeFight",places.json(sim, sim.getCommandTraceJsonLines())).put("reactiveDefence",ReactiveDefenceEvidence.figures(sim)).put("ticks",sim.getSimTickIndex()).put("landedTick",landedTick)
                         .put("result",sim.isComplete()?String.valueOf(sim.getWinner()):"UNRESOLVED").put("phase",column.phase())
                         .put("delivered",column.deliveredCount()).put("lost",column.lostCount()).put("namedSeats",seats)
                         .put("rearContactTicks",new JSONArray(List.of(rearContactTicks[0],rearContactTicks[1])))
