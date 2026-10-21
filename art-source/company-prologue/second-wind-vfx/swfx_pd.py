@@ -26,7 +26,9 @@ The look, from the game (`asharu-effects.md`, Guns and Missiles):
 - **Canister flak** (vanilla particle 255,225,125, cloud 155,125,75): canisters thrown out
   from the hull burst in a loose ring a couple of hundred metres off. A burst is not an orb
   (owner, 2026-10-21): a sharp three-frame flash on a jagged, lobed mesh, a handful of
-  shrapnel streaks flung outward, and an uneven puff of smoke broken up by noise. Each
+  shrapnel flung outward that leaves white-hot and cools to dark fragments within a third of
+  its flight, and an uneven puff of smoke broken up by noise (`jagged_burst`, which a
+  missile killed short uses too). Each
   burst's lobes, spikes, size and turn are seeded, so no two match. A missile crossing the
   ring dies in one. `key_flak(..., style='orb')` keeps the old soft balls as the control.
 - **Flares** (vanilla 255,125,75 with a white core): white-orange decoys flung off the flare
@@ -584,21 +586,61 @@ def flak_smoke_material(ctx):
     return m
 
 
-def _flak_burst(ctx, coll, k, b, here, mpu, rnd, tmat, light=False):
-    """One irregular flak burst at `here` (collection space): a jagged lobed flash for three
-    frames, shrapnel streaks flung outward for four to six, and a noisy smoke puff for about
-    half a second. Size, lobes, spikes, turn and streak pattern are seeded per burst."""
+def shrapnel_material(ctx):
+    """A fragment that cools in flight. Object colour R is its heat (keyed, 1 to 0): white-hot,
+    then orange, dull red and dark, the glow falling off with the heat. Under the glow the
+    fragment is a dark solid, so it flies on unlit once the glow has gone."""
     bpy = _bpy()
     import swfx_core
     import swfx_guns
-    f = b.frame
-    size = rnd.uniform(5.0, 9.5) / mpu
+    name = f'{PREFIX} shrapnel'
+    m = bpy.data.materials.get(name)
+    if m:
+        return m
+    m, nodes, links = swfx_core.node_material(name)
+    g = swfx_guns._G(nodes, links)
+    out = nodes.new('ShaderNodeOutputMaterial')
+    info = nodes.new('ShaderNodeObjectInfo')
+    sep = nodes.new('ShaderNodeSeparateColor')
+    links.new(info.outputs['Color'], sep.inputs[0])
+    heat = g.clamp01(sep.outputs[0])
+    ramp = nodes.new('ShaderNodeValToRGB')
+    els = ramp.color_ramp.elements
+    els[0].position, els[0].color = 0.0, (0, 0, 0, 1)
+    els[1].position, els[1].color = 1.0, (1.0, .95, .85, 1)
+    for pos, rgb in ((.22, (90, 18, 8)), (.45, (200, 60, 15)), (.72, (255, 160, 60))):
+        e = els.new(pos)
+        e.color = (*mp.srgb(rgb), 1)
+    links.new(heat, ramp.inputs['Fac'])
+    em = nodes.new('ShaderNodeEmission')
+    links.new(ramp.outputs['Color'], em.inputs['Color'])
+    links.new(g.mul(g.pow(heat, 1.5), 40.0), em.inputs['Strength'])
+    body = nodes.new('ShaderNodeBsdfDiffuse')
+    body.inputs['Color'].default_value = (.05, .045, .04, 1)
+    add = nodes.new('ShaderNodeAddShader')
+    links.new(body.outputs[0], add.inputs[0])
+    links.new(em.outputs[0], add.inputs[1])
+    links.new(add.outputs[0], out.inputs['Surface'])
+    return m
+
+
+def jagged_burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), light_w=0.0, smoke=.55,
+                 prefix=PREFIX):
+    """An irregular burst at `here` (collection space, frame f): a jagged lobed flash for three
+    frames, shrapnel that leaves white-hot and cools through orange and dull red to dark within
+    about a third of its flight, then flies on as dark fragments, and a noisy smoke puff for
+    about half a second. Size, lobes, spikes, turn and fragment pattern are seeded (rnd).
+    Canister flak and a missile killed short both burst this way."""
+    bpy = _bpy()
+    import swfx_core
+    import swfx_guns
+    size = rnd.uniform(*size_m) / mpu
     rot = (rnd.uniform(0, 2 * math.pi), rnd.uniform(0, 2 * math.pi), rnd.uniform(0, 2 * math.pi))
     stretch = (1.0, rnd.uniform(.55, .9), rnd.uniform(.45, .8))
-    # The flash: hot white-yellow, gone in three frames.
-    glow = mp.glow_material(ctx, f'{PREFIX} flak flash', FLAK['flash'], strength=34.0, core=.9)
-    me, dirs = _lobed_mesh(f'{PREFIX} flak flash mesh {k} f{f:04d}', glow, rnd)
-    fl = bpy.data.objects.new(f'{PREFIX} flak {k} f{f:04d}', me)
+    glow = mp.glow_material(ctx, f'{prefix} burst flash ' + '-'.join(f'{c:.3f}' for c in flash_rgb), flash_rgb,
+                            strength=34.0, core=.9)
+    me, dirs = _lobed_mesh(f'{prefix} {tag} flash mesh', glow, rnd)
+    fl = bpy.data.objects.new(f'{prefix} {tag}', me)
     coll.objects.link(fl)
     fl.location = here
     fl.rotation_euler = rot
@@ -611,58 +653,67 @@ def _flak_burst(ctx, coll, k, b, here, mpu, rnd, tmat, light=False):
     swfx_guns._bake(fl, 'color', 1, fr, [1.0, .6, .2, 0.0])
     swfx_guns._visible_between(fl, f, f + 2)
     out = [fl]
-    # Shrapnel: streaks along the spikes and a few loose ones, flying out and burning off.
+    # Shrapnel along the spikes and a few loose: short and white-hot at the core, cooling to
+    # dark within about a third of its flight, then dark fragments flying on.
     turn = fl.rotation_euler.to_matrix()
     spikes = [turn @ Vector((d.x * stretch[0], d.y * stretch[1], d.z * stretch[2])) for d, a, p in dirs if p > 15]
     loose = [Vector((rnd.gauss(0, 1), rnd.gauss(0, 1), rnd.gauss(0, 1))) for _ in range(rnd.randint(2, 4))]
-    rod = _rod_mesh(f'{PREFIX} rod mesh', tmat)
+    rod = _rod_mesh(f'{prefix} shrapnel mesh', shrapnel_material(ctx))
     for j, d in enumerate(spikes + loose):
         d = d.normalized()
         speed = rnd.uniform(9.0, 18.0) / mpu          # outward, per frame
-        L = rnd.uniform(5.0, 12.0) / mpu
-        n = rnd.randint(4, 6)
-        st = bpy.data.objects.new(f'{PREFIX} flak shrapnel {k}.{j} f{f:04d}', rod)
+        hot_len = rnd.uniform(2.0, 4.0) / mpu
+        frag = rnd.uniform(.5, 1.2) / mpu
+        n = rnd.randint(9, 12)                          # frames of flight
+        cool = n / 3.0 * rnd.uniform(.8, 1.1)           # frames to dark
+        heat = [max(0.0, 1 - i / cool) ** 1.6 for i in range(n + 1)]
+        st = bpy.data.objects.new(f'{prefix} {tag} shrapnel {j}', rod)
         coll.objects.link(st)
         st.visible_shadow = False
         st.rotation_mode = 'QUATERNION'
         st.rotation_quaternion = d.to_track_quat('X', 'Z')
         frames = list(range(f, f + n + 1))
-        tips = [here + d * (size * .6 + speed * i) for i in range(n + 1)]
+        tips = [here + d * (size * .5 + speed * i) for i in range(n + 1)]
         for i in range(3):
             swfx_guns._bake(st, 'location', i, frames, [p[i] for p in tips])
-        swfx_guns._bake(st, 'scale', 0, frames, [min(L, size * .4 + speed * i) for i in range(n + 1)])
-        swfx_guns._bake(st, 'scale', 1, frames, [.22 / mpu] * len(frames))
-        swfx_guns._bake(st, 'scale', 2, frames, [.22 / mpu] * len(frames))
-        swfx_guns._bake(st, 'color', 0, frames, [(1 - i / n) ** 1.3 for i in range(n + 1)])
+        swfx_guns._bake(st, 'scale', 0, frames,
+                        [min(size * .3 + speed * i, frag + (hot_len - frag) * h) for i, h in enumerate(heat)])
+        swfx_guns._bake(st, 'scale', 1, frames, [.2 / mpu] * len(frames))
+        swfx_guns._bake(st, 'scale', 2, frames, [.2 / mpu] * len(frames))
+        swfx_guns._bake(st, 'color', 0, frames, heat)
         st.color = (1, 0, 0, 1)
-        swfx_guns._visible_between(st, f, f + n - 1)
+        swfx_guns._visible_between(st, f, f + n)
         out.append(st)
-    # Smoke: a lumpier, softer shape of its own, broken up by noise, growing a little and gone.
-    sm_me, _ = _lobed_mesh(f'{PREFIX} flak smoke mesh {k} f{f:04d}', flak_smoke_material(ctx), rnd,
-                           lobes=(5, 8), spikes=(0, 1))
-    sm = bpy.data.objects.new(f'{PREFIX} flak cloud {k} f{f:04d}', sm_me)
-    coll.objects.link(sm)
-    sm.location = here
-    sm.rotation_euler = (rot[0] + rnd.uniform(-.6, .6), rot[1], rot[2] + rnd.uniform(-.6, .6))
-    sm.visible_shadow = False
-    life = rnd.randint(10, 14)
-    fr = [f + 1 + i for i in range(life + 1)]
-    grow = [size * 1.15 * (.6 + .5 * (1 - math.exp(-3.0 * i / life))) for i in range(life + 1)]
-    for i in range(3):
-        swfx_guns._bake(sm, 'scale', i, fr, [v * (.8 + .2 * stretch[i]) for v in grow])
-    swfx_guns._bake(sm, 'color', 0, fr, [.55 * (1 - i / life) ** 1.5 for i in range(life + 1)])
-    swfx_guns._bake(sm, 'color', 2, [f + 1], [rnd.random()], 'CONSTANT')
-    swfx_guns._visible_between(sm, f + 1, f + life)
-    out.append(sm)
-    if light:
-        lt = swfx_core.point_light(f'{PREFIX} flak light {k} f{f:04d}', coll, FLAK['flash'], 0.0, radius=size * .3)
+    if smoke:
+        sm_me, _ = _lobed_mesh(f'{prefix} {tag} smoke mesh', flak_smoke_material(ctx), rnd, lobes=(5, 8), spikes=(0, 1))
+        sm = bpy.data.objects.new(f'{prefix} {tag} smoke', sm_me)
+        coll.objects.link(sm)
+        sm.location = here
+        sm.rotation_euler = (rot[0] + rnd.uniform(-.6, .6), rot[1], rot[2] + rnd.uniform(-.6, .6))
+        sm.visible_shadow = False
+        life = rnd.randint(10, 14)
+        fr = [f + 1 + i for i in range(life + 1)]
+        grow = [size * 1.15 * (.6 + .5 * (1 - math.exp(-3.0 * i / life))) for i in range(life + 1)]
+        for i in range(3):
+            swfx_guns._bake(sm, 'scale', i, fr, [v * (.8 + .2 * stretch[i]) for v in grow])
+        swfx_guns._bake(sm, 'color', 0, fr, [smoke * (1 - i / life) ** 1.5 for i in range(life + 1)])
+        swfx_guns._bake(sm, 'color', 2, [f + 1], [rnd.random()], 'CONSTANT')
+        swfx_guns._visible_between(sm, f + 1, f + life)
+        out.append(sm)
+    if light_w:
+        lt = swfx_core.point_light(f'{prefix} {tag} light', coll, flash_rgb, 0.0, radius=size * .3)
         lt.location = here
-        for fi, e in ((f - 1, 0.0), (f, 1.5e4), (f + 1, 7.0e3), (f + 2, 1.5e3), (f + 3, 0.0)):
+        for fi, e in ((f - 1, 0.0), (f, light_w), (f + 1, light_w * .45), (f + 2, light_w * .1), (f + 3, 0.0)):
             lt.data.energy = e
             lt.data.keyframe_insert('energy', frame=fi)
         out.append(lt)
     return out
 
+
+def _flak_burst(ctx, coll, k, b, here, mpu, rnd, light=False):
+    """One canister's burst (jagged_burst in the flak colours)."""
+    return jagged_burst(ctx, coll, f'flak {k} f{b.frame:04d}', here, b.frame, mpu, rnd, FLAK['flash'],
+                        light_w=1.5e4 if light else 0.0)
 
 def key_flak(ctx, bursts, space, launch_from, launch_s=.45, mpu=None, fps=24, style='burst'):
     """Key canister flak on the firing ship (inside its ship.kit()): a dim canister streak from
@@ -695,7 +746,7 @@ def key_flak(ctx, bursts, space, launch_from, launch_s=.45, mpu=None, fps=24, st
         c.color = (.35, 0, 0, 1)
         swfx_guns._visible_between(c, f0, b.frame - 1)
         if style == 'burst':
-            _flak_burst(ctx, coll, k, b, here, mpu, rnd, tmat, light=k % 3 == 0)
+            _flak_burst(ctx, coll, k, b, here, mpu, rnd, light=k % 3 == 0)
             continue
         mp._flash(ctx, coll, f'{PREFIX} flak {k} f{b.frame:04d}', here, b.frame, FLAK['flash'],
                   rnd.uniform(6, 10) / mpu, frames=5, peak=1.3, heat=.9, light_w=1.5e4 if k % 3 == 0 else 0.0,
