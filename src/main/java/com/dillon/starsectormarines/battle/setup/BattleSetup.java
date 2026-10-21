@@ -47,6 +47,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
+import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
 import com.dillon.starsectormarines.battle.evacuation.ColonyPopulation;
@@ -177,6 +178,9 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBrief;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctCharacter;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
+import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -2520,8 +2524,9 @@ public final class BattleSetup {
         for (int attempt = 0; attempt < 8; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
             MapScale scale = colony ? MapScale.COLONY : MapScale.forRisk(risk);
+            PrecinctPlan colonyPlan = colony ? colonyPlanFor(scale, battleSeed) : null;
             MapResult map = MAP_GEN.generate(scale.width, scale.height, battleSeed, null,
-                    profile, colony ? colonyPlanFor(scale, battleSeed) : null);
+                    profile, colonyPlan);
             if (colony) {
                 missing = MissionMapRequirements.missingFromColony(map);
                 if (!missing.isEmpty()) continue;
@@ -2545,8 +2550,11 @@ public final class BattleSetup {
             // declared; deriving one from the same mechs would field them twice.
             if (profile != null) sim.setMechDrops(new MechDropService(profile.declaredMechDrops()));
 
+            // On the colony the shelter is the civil-defence compound's hall.
+            List<PointOfInterest> shelters = CivilDefenceCompound.shelters(map.pointsOfInterest, colonyPlan);
+            if (shelters == null) continue;
             CivilianEvacuationPayload payload =
-                    CivilianEvacuationPayload.install(sim, map, battleSeed);
+                    CivilianEvacuationPayload.install(sim, shelters, battleSeed);
             if (payload == null) continue;
             // The payload installs the marine evacuation objective. Defenders
             // win by eliminating the responding marine force.
@@ -2675,18 +2683,38 @@ public final class BattleSetup {
         MapPlacement fields = !colonyLandsInFields() ? null
                 : new SplittableRandom(seed ^ FIELD_SIDE_SALT).nextBoolean()
                         ? MapPlacement.NORTH : MapPlacement.SOUTH;
-        return PrecinctPlan.laidOut(List.of(
-                        PrecinctBrief.settlement("colony", MapPlacement.CENTRE,
-                                GrownTrunkPlan.Profile.town(), PrecinctCharacter.TOWN),
-                        PrecinctBrief.settlement("installation",
-                                installationEast ? MapPlacement.EAST : MapPlacement.WEST,
-                                GrownTrunkPlan.Profile.hamlet(), PrecinctCharacter.DEPOT),
-                        PrecinctBrief.settlement("suburb",
-                                installationEast ? MapPlacement.WEST : MapPlacement.EAST,
-                                GrownTrunkPlan.Profile.hamlet(), PrecinctCharacter.SUBURB)),
+        List<PrecinctBrief> places = new ArrayList<>(List.of(
+                PrecinctBrief.settlement("colony", MapPlacement.CENTRE,
+                        GrownTrunkPlan.Profile.town(), PrecinctCharacter.TOWN),
+                PrecinctBrief.settlement("installation",
+                        installationEast ? MapPlacement.EAST : MapPlacement.WEST,
+                        GrownTrunkPlan.Profile.hamlet(), PrecinctCharacter.DEPOT),
+                PrecinctBrief.settlement("suburb",
+                        installationEast ? MapPlacement.WEST : MapPlacement.EAST,
+                        GrownTrunkPlan.Profile.hamlet(), PrecinctCharacter.SUBURB)));
+        // The civil-defence compound, on the town's far side from the fields:
+        // listed last, so the other places are seeded where they always were.
+        if (CivilDefenceCompound.enabled()) {
+            places.add(PrecinctBrief.garrison(CivilDefenceCompound.PLACE,
+                    fields == MapPlacement.SOUTH ? MapPlacement.NORTH : MapPlacement.SOUTH,
+                    CIVIL_DEFENCE_GROWTH, FortressProgram.civilDefence(),
+                    new Fortification(CivilDefenceCompound.GATES, CivilDefenceCompound.WALL_HP)
+                            .laidSquare()));
+        }
+        return PrecinctPlan.laidOut(places,
                 fields, fields == null ? null : LandingKind.OPEN_FIELD,
                 scale.width, scale.height, rng);
     }
+
+    /**
+     * The compound's own roads: one junction and short arms, enough to cross
+     * its wall into the town's streets and no more. A garrison's hamlet arms
+     * run a third of the map, and a programmed place is allowed the road it
+     * grows on top of its program, so on those arms the compound claimed a
+     * quarter of the town.
+     */
+    private static final GrownTrunkPlan.Profile CIVIL_DEFENCE_GROWTH =
+            new GrownTrunkPlan.Profile(0, 0f, 0.04f, 0.06f, 0f, 4, SettlementLink.NONE);
 
     /** Whether the colony is laid out with fields to land in; false is the control. */
     static boolean colonyLandsInFields() {

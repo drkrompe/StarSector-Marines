@@ -229,6 +229,8 @@ public final class PrecinctWardStage implements GenStage {
                 case ARMORY, VEHICLE_BAY, STOCKROOM, PARTS_CAGE -> PointOfInterest.Kind.DEPOT;
                 case KEEP_THRONE, CIVIC_OFFICE -> PointOfInterest.Kind.ADMINISTRATIVE;
                 case CONTROL_ROOM -> PointOfInterest.Kind.COMMS;
+                // A civil-defence compound's shelter hall: where a colony is sheltered.
+                case RESIDENTIAL_HALL -> PointOfInterest.Kind.RESIDENTIAL;
                 default -> null;
             };
             if (kind == null) continue;

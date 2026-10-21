@@ -610,6 +610,14 @@ final class GarrisonDirector {
                 || Math.max(Math.abs(squad.cellX() - x), Math.abs(squad.cellY() - y)) <= BREACH_RANGE_CELLS;
     }
 
+    /**
+     * Believed pressure on a place as this pulse prices it, for an {@link Eligibility} test during {@link #assign}; zero
+     * outside a pulse.
+     */
+    float pressureOn(int g) {
+        return pulseRegistry == null ? 0f : pressure(g);
+    }
+
     private boolean wantsSecond(int g) {
         return pressure(g) >= SECOND_SQUAD_PRESSURE && pulseRegistry.size(g) >= SECOND_SQUAD_MIN_CELLS;
     }

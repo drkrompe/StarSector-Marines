@@ -260,6 +260,13 @@ rather than per-cell random for the same reason it is there: per-cell noise
 gives a fringe on a diamond, where a coherent field bends the outline into lobes
 and bays. Each precinct gets its own field so two places do not bulge alike.
 
+The exception is a place somebody surveyed and pegged out before building: a
+frontier colony's civil-defence compound is square because it was laid out
+square, and a lobed outline would say it grew. A `Fortification` can ask for
+that (`laidSquare`): the claim then takes a square of its allowance round the
+seed whole, before anything pools, and its wall is straight runs. Its
+neighbours' streets meet it and become its gates the ordinary way.
+
 ## Connectedness is solved for, not hoped for
 
 Growth joins two places only by accident: an arm stops when it runs into an

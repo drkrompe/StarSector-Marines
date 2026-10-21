@@ -91,7 +91,7 @@ public final class RescueShelterGarrison {
         return entityIds[index];
     }
 
-    private static PointOfInterest selectedShelter(
+    static PointOfInterest selectedShelter(
             List<PointOfInterest> points,
             CivilianEvacuationPlacement placement) {
         for (PointOfInterest point : points) {
