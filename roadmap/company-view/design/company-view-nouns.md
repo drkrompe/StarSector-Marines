@@ -1556,6 +1556,18 @@ drive, transplutonics for flux and sensors), shown as icon rows with Short by.
 The strongest tiers take AI cores: a gamma core for the processing cluster, a
 beta core for the tactical core, and an alpha core for the military flux grid. Other hulls are neutral on every track.
 
+Five reserved compartments (range, gym, sick bay, lounge, brig) open by their
+facility track's Restored order. A sealed one is neutral, so opening one is
+already a gain, and other hulls read as sealed. The range opens trials aboard
+and then sharpens company infantry's primary fire; the gym makes them faster
+and, at its top tier, steadier under fire. With the mess's morale recovery these
+freeze onto every squad at launch as one hull-welfare record and reach the fight
+as one named unit modifier. The sick bay brings a share of the would-be dead home
+wounded when a battle is settled. The lounge raises the aptitude cargo
+replacements arrive with. The brig opens its cells; interrogation waits on a
+contract-intel system. The briefing's Ship row names each room that changes the
+operation.
+
 The **Mech Lab tracks** reach the company's own mechs. Nothing there starts
 at a deficit: an absent bench and a Restored one are both neutral, and the
 Improved tiers add fire-control calibration (mech weapon accuracy, then with
