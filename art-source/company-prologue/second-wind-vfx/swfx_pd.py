@@ -26,7 +26,9 @@ The look, from the game (`asharu-effects.md`, Guns and Missiles):
 - **Canister flak** (vanilla particle 255,225,125, cloud 155,125,75): canisters thrown out
   from the hull burst in a loose ring a couple of hundred metres off. A burst is not an orb
   (owner, 2026-10-21): a sharp three-frame flash on a jagged, lobed mesh, a handful of
-  shrapnel streaks flung outward, and an uneven puff of smoke broken up by noise. Each
+  shrapnel flung outward that leaves white-hot and cools to dark fragments within a third of
+  its flight, and an uneven puff of smoke broken up by noise (`jagged_burst`, which a
+  missile killed short uses too). Each
   burst's lobes, spikes, size and turn are seeded, so no two match. A missile crossing the
   ring dies in one. `key_flak(..., style='orb')` keeps the old soft balls as the control.
 - **Flares** (vanilla 255,125,75 with a white core): white-orange decoys flung off the flare
@@ -503,166 +505,19 @@ def _key_beam(ctx, coll, e, inv, muzzle, mpu, rnd, width_m=.9):
                 K=e.get('K'), beam_frames=len(frames))
 
 
-def _lobed_mesh(name, mat, rnd, lobes=(4, 7), spikes=(2, 5), segs=20, rings=10):
-    """An irregular burst shape: a sphere pushed out into a few broad lobes and a few sharp
-    spikes in seeded directions, so the silhouette is jagged and angled rather than round.
-    Returns (mesh, [(direction, amount, sharpness)]); a spike has sharpness above 15."""
-    bpy = _bpy()
-    dirs = []
-    for _ in range(rnd.randint(*lobes)):
-        dirs.append((Vector((rnd.gauss(0, 1), rnd.gauss(0, 1), rnd.gauss(0, 1))).normalized(),
-                     rnd.uniform(.35, .8), rnd.uniform(3.0, 6.0)))
-    for _ in range(rnd.randint(*spikes)):
-        dirs.append((Vector((rnd.gauss(0, 1), rnd.gauss(0, 1), rnd.gauss(0, 1))).normalized(),
-                     rnd.uniform(.8, 1.5), rnd.uniform(18.0, 40.0)))
-
-    def radius(v):
-        r = .55 + sum(a * max(0.0, v.dot(d)) ** p for d, a, p in dirs)
-        return r * (1 + .12 * math.sin(7.3 * v.x + 3.1 * v.y) * math.cos(5.7 * v.z + 1.3 * v.x))
-
-    verts = []
-    for r in range(rings + 1):
-        th = math.pi * r / rings
-        for k in range(segs if 0 < r < rings else 1):
-            ph = 2 * math.pi * k / segs
-            v = Vector((math.sin(th) * math.cos(ph), math.sin(th) * math.sin(ph), math.cos(th)))
-            verts.append(v * radius(v))
-    faces = [(0, 1 + (k + 1) % segs, 1 + k) for k in range(segs)]
-    for r in range(rings - 2):
-        a0, b0 = 1 + r * segs, 1 + (r + 1) * segs
-        for k in range(segs):
-            k1 = (k + 1) % segs
-            faces.append((a0 + k, a0 + k1, b0 + k1, b0 + k))
-    last = len(verts) - 1
-    base = 1 + (rings - 2) * segs
-    faces += [(base + k, base + (k + 1) % segs, last) for k in range(segs)]
-    me = bpy.data.meshes.new(name)
-    me.from_pydata([tuple(v) for v in verts], [], faces)
-    for poly in me.polygons:
-        poly.use_smooth = True
-    me.update()
-    me.materials.append(mat)
-    return me, dirs
+def jagged_burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), light_w=0.0, smoke=.55,
+                 prefix=PREFIX, **kw):
+    """An irregular burst (swfx_burst.burst, the kit's one explosion language), named under
+    `prefix`. Kept here for callers that reached it through swfx_pd."""
+    import swfx_burst
+    return swfx_burst.burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=size_m, light_w=light_w,
+                            smoke=smoke, prefix=prefix, **kw)
 
 
-def flak_smoke_material(ctx):
-    """The burst's smoke: dull cloud colour, its density broken up by noise so the puff is
-    patchy and uneven rather than a ball. Object colour R is the opacity (keyed), B a seed
-    that moves the noise, so each burst's breakup differs."""
-    bpy = _bpy()
-    import swfx_core
-    import swfx_guns
-    name = f'{PREFIX} flak smoke'
-    m = bpy.data.materials.get(name)
-    if m:
-        return m
-    m, nodes, links = swfx_core.node_material(name)
-    g = swfx_guns._G(nodes, links)
-    out = nodes.new('ShaderNodeOutputMaterial')
-    tc = nodes.new('ShaderNodeTexCoord')
-    info = nodes.new('ShaderNodeObjectInfo')
-    sep = nodes.new('ShaderNodeSeparateColor')
-    links.new(info.outputs['Color'], sep.inputs[0])
-    lw = nodes.new('ShaderNodeLayerWeight')
-    lw.inputs['Blend'].default_value = .5
-    c = g.clamp01(g.sub(1.0, lw.outputs['Facing']))
-    n = g.noise(tc.outputs['Object'], g.mul(sep.outputs[2], 17.0), 2.2, 6.0, .7)
-    holes = g.clamp01(g.mul(g.sub(n, .42), 3.2))
-    dens = g.clamp01(g.mul(g.mul(g.pow(c, 1.4), holes), sep.outputs[0]))
-    smoke = nodes.new('ShaderNodeBsdfDiffuse')
-    smoke.inputs['Color'].default_value = (*FLAK['cloud'], 1)
-    tr = nodes.new('ShaderNodeBsdfTransparent')
-    mix = nodes.new('ShaderNodeMixShader')
-    links.new(dens, mix.inputs['Fac'])
-    links.new(tr.outputs[0], mix.inputs[1])
-    links.new(smoke.outputs[0], mix.inputs[2])
-    links.new(mix.outputs[0], out.inputs['Surface'])
-    try:
-        m.surface_render_method = 'BLENDED'
-    except Exception:
-        pass
-    return m
-
-
-def _flak_burst(ctx, coll, k, b, here, mpu, rnd, tmat, light=False):
-    """One irregular flak burst at `here` (collection space): a jagged lobed flash for three
-    frames, shrapnel streaks flung outward for four to six, and a noisy smoke puff for about
-    half a second. Size, lobes, spikes, turn and streak pattern are seeded per burst."""
-    bpy = _bpy()
-    import swfx_core
-    import swfx_guns
-    f = b.frame
-    size = rnd.uniform(5.0, 9.5) / mpu
-    rot = (rnd.uniform(0, 2 * math.pi), rnd.uniform(0, 2 * math.pi), rnd.uniform(0, 2 * math.pi))
-    stretch = (1.0, rnd.uniform(.55, .9), rnd.uniform(.45, .8))
-    # The flash: hot white-yellow, gone in three frames.
-    glow = mp.glow_material(ctx, f'{PREFIX} flak flash', FLAK['flash'], strength=34.0, core=.9)
-    me, dirs = _lobed_mesh(f'{PREFIX} flak flash mesh {k} f{f:04d}', glow, rnd)
-    fl = bpy.data.objects.new(f'{PREFIX} flak {k} f{f:04d}', me)
-    coll.objects.link(fl)
-    fl.location = here
-    fl.rotation_euler = rot
-    fl.visible_shadow = False
-    fr = [f, f + 1, f + 2, f + 3]
-    sc = [size * v for v in (.55, 1.0, 1.15, 1.2)]
-    for i in range(3):
-        swfx_guns._bake(fl, 'scale', i, fr, [v * stretch[i] for v in sc])
-    swfx_guns._bake(fl, 'color', 0, fr, [1.7, 1.0, .35, 0.0])
-    swfx_guns._bake(fl, 'color', 1, fr, [1.0, .6, .2, 0.0])
-    swfx_guns._visible_between(fl, f, f + 2)
-    out = [fl]
-    # Shrapnel: streaks along the spikes and a few loose ones, flying out and burning off.
-    turn = fl.rotation_euler.to_matrix()
-    spikes = [turn @ Vector((d.x * stretch[0], d.y * stretch[1], d.z * stretch[2])) for d, a, p in dirs if p > 15]
-    loose = [Vector((rnd.gauss(0, 1), rnd.gauss(0, 1), rnd.gauss(0, 1))) for _ in range(rnd.randint(2, 4))]
-    rod = _rod_mesh(f'{PREFIX} rod mesh', tmat)
-    for j, d in enumerate(spikes + loose):
-        d = d.normalized()
-        speed = rnd.uniform(9.0, 18.0) / mpu          # outward, per frame
-        L = rnd.uniform(5.0, 12.0) / mpu
-        n = rnd.randint(4, 6)
-        st = bpy.data.objects.new(f'{PREFIX} flak shrapnel {k}.{j} f{f:04d}', rod)
-        coll.objects.link(st)
-        st.visible_shadow = False
-        st.rotation_mode = 'QUATERNION'
-        st.rotation_quaternion = d.to_track_quat('X', 'Z')
-        frames = list(range(f, f + n + 1))
-        tips = [here + d * (size * .6 + speed * i) for i in range(n + 1)]
-        for i in range(3):
-            swfx_guns._bake(st, 'location', i, frames, [p[i] for p in tips])
-        swfx_guns._bake(st, 'scale', 0, frames, [min(L, size * .4 + speed * i) for i in range(n + 1)])
-        swfx_guns._bake(st, 'scale', 1, frames, [.22 / mpu] * len(frames))
-        swfx_guns._bake(st, 'scale', 2, frames, [.22 / mpu] * len(frames))
-        swfx_guns._bake(st, 'color', 0, frames, [(1 - i / n) ** 1.3 for i in range(n + 1)])
-        st.color = (1, 0, 0, 1)
-        swfx_guns._visible_between(st, f, f + n - 1)
-        out.append(st)
-    # Smoke: a lumpier, softer shape of its own, broken up by noise, growing a little and gone.
-    sm_me, _ = _lobed_mesh(f'{PREFIX} flak smoke mesh {k} f{f:04d}', flak_smoke_material(ctx), rnd,
-                           lobes=(5, 8), spikes=(0, 1))
-    sm = bpy.data.objects.new(f'{PREFIX} flak cloud {k} f{f:04d}', sm_me)
-    coll.objects.link(sm)
-    sm.location = here
-    sm.rotation_euler = (rot[0] + rnd.uniform(-.6, .6), rot[1], rot[2] + rnd.uniform(-.6, .6))
-    sm.visible_shadow = False
-    life = rnd.randint(10, 14)
-    fr = [f + 1 + i for i in range(life + 1)]
-    grow = [size * 1.15 * (.6 + .5 * (1 - math.exp(-3.0 * i / life))) for i in range(life + 1)]
-    for i in range(3):
-        swfx_guns._bake(sm, 'scale', i, fr, [v * (.8 + .2 * stretch[i]) for v in grow])
-    swfx_guns._bake(sm, 'color', 0, fr, [.55 * (1 - i / life) ** 1.5 for i in range(life + 1)])
-    swfx_guns._bake(sm, 'color', 2, [f + 1], [rnd.random()], 'CONSTANT')
-    swfx_guns._visible_between(sm, f + 1, f + life)
-    out.append(sm)
-    if light:
-        lt = swfx_core.point_light(f'{PREFIX} flak light {k} f{f:04d}', coll, FLAK['flash'], 0.0, radius=size * .3)
-        lt.location = here
-        for fi, e in ((f - 1, 0.0), (f, 1.5e4), (f + 1, 7.0e3), (f + 2, 1.5e3), (f + 3, 0.0)):
-            lt.data.energy = e
-            lt.data.keyframe_insert('energy', frame=fi)
-        out.append(lt)
-    return out
-
+def _flak_burst(ctx, coll, k, b, here, mpu, rnd, light=False):
+    """One canister's burst (jagged_burst in the flak colours)."""
+    return jagged_burst(ctx, coll, f'flak {k} f{b.frame:04d}', here, b.frame, mpu, rnd, FLAK['flash'],
+                        light_w=1.5e4 if light else 0.0)
 
 def key_flak(ctx, bursts, space, launch_from, launch_s=.45, mpu=None, fps=24, style='burst'):
     """Key canister flak on the firing ship (inside its ship.kit()): a dim canister streak from
@@ -695,7 +550,7 @@ def key_flak(ctx, bursts, space, launch_from, launch_s=.45, mpu=None, fps=24, st
         c.color = (.35, 0, 0, 1)
         swfx_guns._visible_between(c, f0, b.frame - 1)
         if style == 'burst':
-            _flak_burst(ctx, coll, k, b, here, mpu, rnd, tmat, light=k % 3 == 0)
+            _flak_burst(ctx, coll, k, b, here, mpu, rnd, light=k % 3 == 0)
             continue
         mp._flash(ctx, coll, f'{PREFIX} flak {k} f{b.frame:04d}', here, b.frame, FLAK['flash'],
                   rnd.uniform(6, 10) / mpu, frames=5, peak=1.3, heat=.9, light_w=1.5e4 if k % 3 == 0 else 0.0,

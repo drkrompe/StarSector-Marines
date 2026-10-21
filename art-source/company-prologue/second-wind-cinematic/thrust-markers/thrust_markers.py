@@ -454,48 +454,116 @@ def path(obj, frames):
 
 VECTOR_FULL = 6.0   # m/s of way on at which a vectored drive has swung fully back to aft
 
+# ---------------------------------------------------------------- throttle from motion
+#
+# One model says how hard a craft's drives work from how it moves (owner, 2026-10-21: "plumes
+# should match forward momentum or implied acceleration", and after C4's first repair drew a
+# steadily cruising Shepherd with full-length mains: "make it a more reasonable thrust over a
+# settled area"). `auto` keys traffic from it and `throttle_faults` holds every shot to it.
+#
+# - Mains: a craft holding a steady course needs only a trim burn (CRUISE_TRIM); its mains rise
+#   with the acceleration it actually shows, braking as much as speeding up, to full at
+#   ACCEL_FULL. A steady cruise never reads above CRUISE_CEILING.
+# - Lift (in air only): a craft low and slow, climbing, sinking or hovering carries its weight on
+#   its lift jets (or its mains turned down), at LIFT_HOLD for a steady 1 g plus what its vertical
+#   acceleration asks. Over VECTOR_FULL of forward way the weight is the hull's own business.
+# - In space there is no weight to carry: only acceleration costs thrust.
+G = 9.81
+CRUISE_TRIM = 0.2          # mains holding a steady cruise
+CRUISE_CEILING = 0.3       # the most a main may burn while the craft is not accelerating
+ACCEL_MEANINGFUL = 0.8     # m/s^2: below this a craft is cruising, not accelerating or braking
+ACCEL_CLEAR = 2.0          # m/s^2: above this a craft is plainly accelerating or braking
+ACCEL_FULL = 8.0           # m/s^2 that takes the mains to full
+LIFT_HOLD = 0.5            # lift throttle carrying the hull's weight in slow flight
+LIFT_FLOOR = 0.1           # less than this is not carrying anything
+WINDOW = 0.5               # s either side for velocity, and again for acceleration
+MOTION_EXEMPT = 'thrust_motion_exempt'   # on a craft whose keyed throttle departs from its motion: why
+
 
 def _smooth(lo, hi, x):
     t = min(1.0, max(0.0, (x - lo) / (hi - lo)))
     return t * t * (3.0 - 2.0 * t)
 
 
+def world_path(obj, frames):
+    """obj's keyed location at these frames plus the keyed locations of its parents (their
+    translation only), from fcurves: no scene evaluation, so it is cheap over a whole shot."""
+    out = path(obj, frames)
+    p = obj.parent
+    while p is not None:
+        if any(fc.data_path == 'location' for fc in fcurves(p)):
+            out = [a + b for a, b in zip(out, path(p, frames))]
+        p = p.parent
+    return out
+
+
+def motion(craft_obj, fps, frames, step=6, air=False):
+    """[(frame, position, velocity, acceleration, airborne)] sampled every `step` frames over
+    frames (first, last). Velocity and acceleration are central differences over WINDOW seconds
+    each side, so a keyed path's corners read as a short push rather than a spike. airborne (in
+    air only): more than a metre above the lowest point the craft reaches in the shot."""
+    f0, f1 = frames
+    fr = list(range(f0, f1 + 1, step))
+    if fr[-1] != f1:
+        fr.append(f1)
+    w = max(1, round(WINDOW * fps))
+    pos = {}
+    need = sorted({min(f1, max(f0, f + d)) for f in fr for d in (-2 * w, -w, 0, w, 2 * w)})
+    for f, q in zip(need, world_path(craft_obj, need)):
+        pos[f] = q
+
+    def vel(f):
+        a, b = max(f0, f - w), min(f1, f + w)
+        return (pos[b] - pos[a]) / (max(1, b - a) / fps)
+
+    floor = min(q.z for q in pos.values()) + 1.0 if air else float('inf')
+    out = []
+    for f in fr:
+        a, b = max(f0, f - w), min(f1, f + w)
+        v = vel(f)
+        acc = (vel(b) - vel(a)) / (max(1, b - a) / fps)
+        out.append((f, pos[f], v, acc, pos[f].z > floor))
+    return out
+
+
+def drive_demand(v, acc, airborne, air, still=0.3):
+    """(main, lift, vector blend) the model asks for at one sample: main and lift are the
+    throttles of separate main and lift nozzles; vector blend (0 hull-down .. 1 aft) is how far a
+    vectored drive has swung back, with VECTOR_FULL of forward way."""
+    vh, vz = v.xy.length, abs(v.z)
+    moving = vh > still or vz > still
+    if not moving and not airborne:
+        return 0.0, 0.0, 0.0
+    a_drive = acc.length
+    main = CRUISE_TRIM + (1.0 - CRUISE_TRIM) * min(1.0, a_drive / ACCEL_FULL) if vh > still or not air else 0.0
+    if not air and not moving and acc.length < ACCEL_MEANINGFUL:
+        main = 0.0
+    s = _smooth(still, VECTOR_FULL, vh)
+    lift = 0.0
+    if air and (airborne or vz > still):
+        lift = min(1.0, max(0.25, LIFT_HOLD * (1.0 + acc.z / G))) * (1.0 - s)
+    return round(main, 3), round(lift, 3), round(s, 3)
+
+
 def auto(craft_obj, marks, fps, frames, step=6, still=0.3, hover=False):
-    """Throttle from the craft's own keyed motion, for traffic a shot moves without saying why:
-    parked (no motion) is off; climbing, sinking or (with hover, for a shot in air) hovering
-    still more than a metre above its lowest point is lift at full and mains off;
-    travelling is mains at cruise (0.6) with lift off.
+    """Throttle from the craft's own keyed motion, by the one model (`drive_demand`): parked is
+    off; a steady course is a trim burn on the mains (CRUISE_TRIM) rising with the acceleration
+    the motion shows; in air (`hover=True`) a craft low and slow, climbing, sinking or hovering
+    carries its weight on its lift jets.
 
     A hull whose lift markers are its mains turned down (`lift_from_mains`, `thrust_vectored`)
-    instead swings them: while it has no way on they point hull-down and carry the thrust; as
-    horizontal speed rises to VECTOR_FULL they turn back toward the main's own aft axis (keyed
-    rotation) and hand their throttle over to the main marker at the same mouth, so the two
-    always add up to the drive's one throttle (1.0 hovering, 0.6 cruising). Returns the activity."""
-    fr = list(range(frames[0], frames[1] + 1, step))
-    if fr[-1] != frames[1]:
-        fr.append(frames[1])
-    p = path(craft_obj, fr)
-    # In air (`hover=True`), standing still above its lowest point is a hover, not parked.
-    floor = min(q.z for q in p) + 1.0 if hover else float('inf')
+    swings them instead: hull-down while it has no way on, back toward the main's own aft axis
+    (keyed rotation) as horizontal speed rises to VECTOR_FULL, handing its throttle over to the
+    main marker at the same mouth; the two never add up to more than the drive's one throttle.
+    Returns the activity."""
+    samples = motion(craft_obj, fps, frames, step, air=hover)
     vectored = [e for e in marks if e['thrust_kind'] == 'lift' and e.get('thrust_vectored')]
     keys_main, keys_lift, blend, moved = [], [], [], False
-    for i, f in enumerate(fr):
-        a, b = p[max(0, i - 1)], p[min(len(p) - 1, i + 1)]
-        dt = max(1, fr[min(len(p) - 1, i + 1)] - fr[max(0, i - 1)]) / fps
-        v = (b - a) / dt
-        vz, vh = abs(v.z), v.xy.length
+    for f, _, v, acc, airborne in samples:
+        lm, ll, s = drive_demand(v, acc, airborne, hover, still)
         if vectored:
-            s = round(_smooth(still, VECTOR_FULL, vh), 3)
-            hover = p[i].z > floor
-            thr = 0.0 if vz <= still and vh <= still and not hover else round(1.0 - 0.4 * s, 3)
-            lm, ll = round(thr * s, 3), round(thr * (1.0 - s), 3)
+            lm = round(lm * s, 3)          # the same drive: main and lift shares add up to at most one
             blend.append((f, s))
-        elif (vz > still and vz >= 0.5 * vh) or (vh <= still and p[i].z > floor):
-            lm, ll = 0.0, 1.0
-        elif vh > still:
-            lm, ll = 0.6, 0.0
-        else:
-            lm, ll = 0.0, 0.0
         moved |= lm > 0 or ll > 0
         keys_main.append((f / fps, lm))
         keys_lift.append((f / fps, ll))
@@ -509,6 +577,79 @@ def auto(craft_obj, marks, fps, frames, step=6, still=0.3, hover=False):
     if vectored:
         return 'vectored lift/travel'
     return 'lifting/landing' if any(v for _, v in keys_lift) else 'travelling'
+
+
+def throttle_faults(fps, frames, air, step=6):
+    """[(craft name, [complaint, ...])] for every marked craft whose keyed throttle departs from
+    its motion (`drive_demand`), checked every `step` frames:
+
+    (a) a main burning above CRUISE_CEILING while the craft shows no meaningful acceleration;
+    (b) a craft plainly accelerating or braking (ACCEL_CLEAR) with its drives at or near zero;
+    (c) in air, a craft the model has riding on its lift (airborne at low speed, or climbing or
+        sinking slowly) with no lift carrying it.
+
+    A craft declared `thrust_motion_exempt` (with its reason) or `thrust_plume_exempt` (its
+    drives never in frame) is skipped; exemptions are returned as (name, reason) in a second list."""
+    by_craft = {}
+    for m in markers():
+        if m.parent is not None and m.get('thrust_working', True):
+            by_craft.setdefault(m.parent.name, (m.parent, []))[1].append(m)
+    faults, exempt = [], []
+    for name in sorted(by_craft):
+        craft_obj, ms = by_craft[name]
+        why = craft_obj.get(MOTION_EXEMPT) or craft_obj.get(PLUME_EXEMPT)
+        if why:
+            exempt.append((name, why))
+            continue
+        mains = [m for m in ms if m['thrust_kind'] == 'main']
+        lifts = [m for m in ms if m['thrust_kind'] == 'lift']
+        bad = {'a': [], 'b': [], 'c': []}
+        for f, _, v, acc, airborne in motion(craft_obj, fps, frames, step, air=air):
+            tm_ = max((throttle_at(m, f) for m in mains), default=0.0)
+            tl = max((throttle_at(m, f) for m in lifts), default=0.0)
+            a_drive = acc.length
+            vh, vz = v.xy.length, abs(v.z)
+            if tm_ > CRUISE_CEILING + 1e-3 and a_drive < ACCEL_MEANINGFUL:
+                bad['a'].append((f, 'main %.2f at %.1f m/s, %.2f m/s^2' % (tm_, v.length, a_drive)))
+            if a_drive > ACCEL_CLEAR and max(tm_, tl) < LIFT_FLOOR and (vh > 0.3 or vz > 0.3):
+                bad['b'].append((f, '%.1f m/s^2 with drives at %.2f' % (a_drive, max(tm_, tl))))
+            if air and drive_demand(v, acc, airborne, air)[1] >= 2 * LIFT_FLOOR and tl < LIFT_FLOOR:
+                bad['c'].append((f, 'airborne at %.1f m/s (vz %.1f) with lift %.2f' % (vh, v.z, tl)))
+        lines = []
+        for k, label in (('a', 'main above cruise with no acceleration'), ('b', 'accelerating with drives off'),
+                         ('c', 'slow in air with no lift')):
+            if bad[k]:
+                spans = ranges_s([f for f, _ in bad[k]], step, fps)
+                lines.append('%s, %s (e.g. %s)' % (label, spans, bad[k][0][1]))
+        if lines:
+            faults.append((name, lines))
+    return faults, exempt
+
+
+def ranges_s(frames_, step, fps):
+    """'1.0-4.5 s, 9.0 s' for sampled frames, joining neighbours `step` apart."""
+    out = []
+    for f in frames_:
+        if out and f - out[-1][1] <= step:
+            out[-1][1] = f
+        else:
+            out.append([f, f])
+    return ', '.join(('%.1f-%.1f s' % (a / fps, b / fps)) if b > a else ('%.1f s' % (a / fps)) for a, b in out)
+
+
+def motion_report(craft_obj, fps, frames, air, every=1.0):
+    """Lines of time, speed, acceleration and the keyed main and lift throttle, once per `every`
+    seconds, for checking a craft's drives against its motion by eye."""
+    ms = [m for m in markers(craft_obj) if m.get('thrust_working', True)]
+    mains = [m for m in ms if m['thrust_kind'] == 'main']
+    lifts = [m for m in ms if m['thrust_kind'] == 'lift']
+    out = []
+    for f, _, v, acc, airborne in motion(craft_obj, fps, frames, max(1, round(every * fps)), air=air):
+        out.append('%6.1f s  speed %6.1f m/s (vz %+5.1f)  accel %5.2f m/s^2  main %.2f  lift %.2f%s' % (
+            f / fps, v.length, v.z, acc.length,
+            max((throttle_at(m, f) for m in mains), default=0.0),
+            max((throttle_at(m, f) for m in lifts), default=0.0), '  aloft' if airborne else ''))
+    return out
 
 
 def swing(vectored, blend):

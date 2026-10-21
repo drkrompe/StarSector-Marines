@@ -72,7 +72,8 @@ public final class BruteChargeSystem {
         }
     }
 
-    private record Trample(long brute, long target) {}
+    /** A blow posted by the behaviour: a trample on infantry, or the push behind a blow on anything else. */
+    private record Trample(long brute, long target, boolean trample) {}
 
     private static final class Charge {
         Phase phase = Phase.IDLE;
@@ -128,7 +129,15 @@ public final class BruteChargeSystem {
      * infantry. Lands next serial pass.
      */
     public void trample(long brute, long target) {
-        tramples.add(new Trample(brute, target));
+        tramples.add(new Trample(brute, target, true));
+    }
+
+    /**
+     * Thread-safe; posted by the Brute's behaviour after an ordinary blow, whose damage it has already dealt.
+     * Lands next serial pass: the Brute's weight behind the blow pushes a hull or a mech.
+     */
+    public void blow(long brute, long target) {
+        tramples.add(new Trample(brute, target, false));
     }
 
     /** Whether trampling is on ({@code -Dbattle.brute.trample}); the behaviour asks before it posts one. */
@@ -283,6 +292,11 @@ public final class BruteChargeSystem {
             float tx = sim.world().x(tr.target()), ty = sim.world().y(tr.target());
             float d = (float) Math.hypot(tx - bx, ty - by);
             float hx = d > 1e-4f ? (tx - bx) / d : 1f, hy = d > 1e-4f ? (ty - by) / d : 0f;
+            if (!tr.trample()) {
+                log(sim, now, brute, "blow", tr.target(), -1, -1);
+                push(brute, tr.target(), BruteChargeRules.BLOW_SPEED, false, sim, now, hx, hy);
+                continue;
+            }
             float damage = sim.combat().attackDamage(brute);
             UnitType type = sim.identity().type(brute);
             log(sim, now, brute, "trample", tr.target(), -1, -1);
@@ -423,7 +437,7 @@ public final class BruteChargeSystem {
         sim.combat().setCooldownTimer(brute, sim.combat().attackCooldown(brute));
         boolean alive = roster.isAliveById(target);
         if (alive && outcome.throwCells() > 0f) throwBody(target, brute, outcome.throwCells(), sim, hx, hy);
-        if (sim.convoy().isVehicle(target)) collide(brute, target, c, sim, now, hx, hy);
+        push(brute, target, BruteChargeRules.CHARGE_SPEED * c.pace, true, sim, now, hx, hy);
         if (alive && outcome.holdSeconds() > 0f) {
             sim.stagger().stagger(target, BruteChargeRules.ticks(outcome.holdSeconds()),
                     BruteChargeRules.holdCause(kind));
@@ -458,15 +472,36 @@ public final class BruteChargeSystem {
     private static final float RECOIL_PENETRATION = 30f;
 
     /**
+     * The Brute's weight, closing at {@code speed} along {@code (hx, hy)}, lands on {@code target}: a hull through
+     * the contact ({@link #collide}), a mech as one body against another, pushed off its feet a little way.
+     * Infantry and emplacements take nothing here (infantry is thrown or trampled; an emplacement is fixed).
+     */
+    private void push(long brute, long target, float speed, boolean charge, BattleSimulation sim, int now,
+                      float hx, float hy) {
+        if (!sim.getRoster().isAliveById(target)) return;
+        if (sim.convoy().isVehicle(target)) {
+            collide(brute, target, speed, charge, sim, now, hx, hy);
+            return;
+        }
+        if (!sim.identity().type(target).isMech()) return;
+        var loadout = sim.world().mechLoadout(target);
+        float mass = BruteChargeRules.MECH_TONNES * (loadout == null ? 1f : loadout.variant.relativeMass);
+        float dv = BruteChargeRules.pointPush(speed, mass);
+        float cells = dv * dv / (2f * BruteChargeRules.MECH_SLIDE);
+        if (cells > 1e-3f) launch(target, hx, hy, cells, BruteChargeRules.MECH_SLIDE, sim);
+    }
+
+    /**
      * The Brute and a hull exchange momentum where they meet ({@link HullImpact}): the hull slides and turns
      * on its tires or tracks and rocks on its suspension ({@link HullSlide}), and the Brute rebounds with what
-     * the hull did not take, hurt by whatever impulse its plate could not shed.
+     * the hull did not take. A charge also hurts the Brute by whatever impulse its plate could not shed; a
+     * blow it chose to throw does not.
      */
-    private void collide(long brute, long hull, Charge c, BattleSimulation sim, int now, float hx, float hy) {
+    private void collide(long brute, long hull, float speed, boolean charge, BattleSimulation sim, int now,
+                         float hx, float hy) {
         GroundBody body = sim.convoy().body(hull);
         if (body == null) return;
         VehicleType type = sim.convoy().vehicleType(hull);
-        float speed = BruteChargeRules.CHARGE_SPEED * c.pace;
         double rad = Math.toRadians(body.facingDegrees);
         float hvx = (float) -Math.sin(rad) * body.speed + body.knockVx;
         float hvy = (float) Math.cos(rad) * body.speed + body.knockVy;
@@ -479,7 +514,7 @@ public final class BruteChargeSystem {
         impulses.put(hull, Float.valueOf(hit.impulse()));
         float rvx = hx * speed + hit.strikerVx(), rvy = hy * speed + hit.strikerVy();
         if (Math.hypot(rvx, rvy) > 1e-3f) slides.put(brute, new Slide(rvx, rvy, BruteChargeRules.BRUTE_SLIDE));
-        float recoil = BruteChargeRules.recoilDamage(hit.impulse());
+        float recoil = charge ? BruteChargeRules.recoilDamage(hit.impulse()) : 0f;
         if (recoil > 0f) {
             sim.applyDamage(brute, hull, recoil, RECOIL_PENETRATION, 0f);
             log(sim, now, brute, "recoil", hull, -1, -1);

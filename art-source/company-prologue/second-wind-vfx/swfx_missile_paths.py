@@ -40,9 +40,12 @@ a third of the way down the lane).
   others. The Harpoon's trail is denser than the game's alpha 75 (.45 against .29) and glows a
   little, so it still reads as a line at 3 km: the curving contrails are the S5 shot.
 - **The end of a flight** is one of:
-  - `hit`: a blast at the target point, `on='armour'` or `on='shield'` (the caller supplies the
+  - `hit`: a jagged burst (`swfx_burst`, never an orb: owner, 2026-10-21) thrown back out of
+    the target point, `on='armour'` or `on='shield'` (the caller supplies the
     point: the hull's surface, or the shield's);
-  - `kill`: killed short (by `swfx_pd`): a pop, the motor dies, the body tumbles on, dark;
+  - `kill`: killed short (by `swfx_pd`): a jagged pop with cooling fragments
+    (`swfx_burst.burst`; profile `blasts='orb'` for the old balls), the motor dies, the body
+    tumbles on, dark;
   - `decoy`: diverted onto a flare (`Flight.divert`) and detonated on it;
   - `burnout`: an unguided round that reached its range without a target.
   `arrivals(flights)` lists every end as a cue (frame, world point, kind, target, by), for the
@@ -639,6 +642,32 @@ def _flash(ctx, coll, name, at_local, frame, colour, radius_u, frames=8, peak=1.
     return out
 
 
+def burst(ctx, coll, prof, what, tag, here, f, mpu, axis=None, rnd=None):
+    """A missile's burst (swfx_burst, never an orb): what is 'ignition' (the motor lighting,
+    flaring back along `axis`), 'hit' or 'shield' (the warhead, thrown back out along `axis`),
+    'pop' (killed short, fragments carried on along `axis`) or 'decoy' (detonated on a flare).
+    here: collection space; returns the objects."""
+    import swfx_burst
+    rnd = rnd or random.Random(f'swfx-missile-{what}|{tag}')
+    B = prof['blast_m']
+    kw = dict(prefix=PREFIX, axis=axis)
+    if what == 'ignition':
+        kw.update(flash=prof['engine'], size_m=(prof['glare_m'] * .9, prof['glare_m'] * 1.3), lean=1.4,
+                  shrapnel=None, smoke=0, light_w=8000.0)
+    elif what in ('hit', 'shield'):
+        k = .8 if what == 'shield' else 1.0
+        kw.update(flash=prof['blast'], size_m=(B * .45 * k, B * .65 * k), lean=1.0, shrapnel=(4, 7), smoke=.6,
+                  smoke_life=(16, 24), light_w=1.2e5 if what == 'shield' else 2.5e5, flash_frames=4)
+    elif what == 'pop':
+        kw.update(flash=srgb((255, 190, 120)), size_m=(B * .35, B * .5), lean=.6, smoke=.45, light_w=4.0e4)
+    elif what == 'decoy':
+        kw.update(flash=prof['blast'], size_m=(B * .4, B * .55), smoke=.5, light_w=6.0e4, axis=None)
+    else:
+        raise ValueError(what)
+    flash = kw.pop('flash')
+    return swfx_burst.burst(ctx, coll, f'{what} {tag}', here, f, mpu, rnd, flash, **kw)
+
+
 def key(ctx, coll, fl, a, motor_mat, body_mat, cylinder_mesh, mpu):
     """Key one planned flight into a ship's effects collection: body, motor rod, motor glare
     and light, contrail, the ignition flash, and the end (blast, pop, or decoy burst). Called
@@ -718,25 +747,48 @@ def key(ctx, coll, fl, a, motor_mat, body_mat, cylinder_mesh, mpu):
         lt.data.energy = e
         lt.data.keyframe_insert('energy', frame=f)
     trail = _contrail(ctx, coll, fl, inv, mpu)
-    # Ignition: the cold-ejected missile lights clear of the tube.
-    ign = _flash(ctx, coll, f'{PREFIX} ignition {fl.label} f{fl.frame:04d}', inv @ fl.at(fi), fi, prof['engine'],
-                 prof['glare_m'] * 1.6 / mpu, frames=4, peak=1.2, heat=1.0, light_w=8000.0)
+    # Bursts, not orbs (owner, 2026-10-21): every flash here is swfx_burst's jagged one unless the
+    # profile says blasts='orb' (the old soft balls, kept as the control).
+    jag = prof.get('blasts', prof.get('pop', 'jagged')) == 'jagged'
+    rot = inv.to_3x3()
+
+    def rnd_for(what):
+        return random.Random(f'swfx-missile-{what}|{fl.label}|{fl.frame}')
+
+    # Ignition: the cold-ejected missile lights clear of the tube, flaring back along its axis.
+    tag = f'{fl.label} f{fl.frame:04d}'
+    if jag:
+        burst(ctx, coll, prof, 'ignition', tag, inv @ fl.at(fi), fi, mpu, rot @ -fl.heading(fi + 1), rnd_for('ignition'))
+    else:
+        _flash(ctx, coll, f'{PREFIX} ignition {fl.label} f{fl.frame:04d}', inv @ fl.at(fi), fi, prof['engine'],
+               prof['glare_m'] * 1.6 / mpu, frames=4, peak=1.2, heat=1.0, light_w=8000.0)
     rec = {'flight': fl.kind, 'launch': fl.frame, 'ignite': fi, 'end': dict(end, point=[round(v, 1) for v in end['point']]),
            'missile': body.name, 'contrail': trail.name if trail else None, 'flight_frames': f_last - fl.frame}
     here = inv @ end['point']
+    back = rot @ -fl.heading(end['frame'])         # a warhead throws back out of what it hit
+    B = prof['blast_m']
     if end['kind'] == 'hit':
         shield = end.get('on') == 'shield'
-        _flash(ctx, coll, f'{PREFIX} blast {fl.label} f{fl.frame:04d}', here, end['frame'], prof['blast'],
-               prof['blast_m'] / mpu * (.8 if shield else 1.0), frames=12, peak=1.6, heat=1.0,
-               light_w=(1.2e5 if shield else 2.5e5), grow=1.4)
+        if jag:
+            burst(ctx, coll, prof, 'shield' if shield else 'hit', tag, here, end['frame'], mpu, back, rnd_for('blast'))
+        else:
+            _flash(ctx, coll, f'{PREFIX} blast {fl.label} f{fl.frame:04d}', here, end['frame'], prof['blast'],
+                   B / mpu * (.8 if shield else 1.0), frames=12, peak=1.6, heat=1.0,
+                   light_w=(1.2e5 if shield else 2.5e5), grow=1.4)
         rec['blast'] = end['frame']
     elif end['kind'] == 'kill':
         # A missile killed short: a small hot pop, orange whatever its motor colour (the warhead
-        # and fuel going), and the motor out.
-        _flash(ctx, coll, f'{PREFIX} pop {fl.label} f{fl.frame:04d}', here, end['frame'], srgb((255, 190, 120)),
-               prof['blast_m'] * .45 / mpu, frames=7, peak=1.4, heat=1.0, light_w=4.0e4, grow=2.0)
+        # and fuel going), fragments carried on along its flight, and the motor out.
+        if jag:
+            burst(ctx, coll, prof, 'pop', tag, here, end['frame'], mpu, rot @ fl.heading(end['frame']), rnd_for('pop'))
+        else:
+            _flash(ctx, coll, f'{PREFIX} pop {fl.label} f{fl.frame:04d}', here, end['frame'], srgb((255, 190, 120)),
+                   B * .45 / mpu, frames=7, peak=1.4, heat=1.0, light_w=4.0e4, grow=2.0)
         rec['pop'] = end['frame']
     elif end['kind'] == 'decoy':
-        _flash(ctx, coll, f'{PREFIX} decoyed {fl.label} f{fl.frame:04d}', here, end['frame'], prof['blast'],
-               prof['blast_m'] * .6 / mpu, frames=9, peak=1.4, heat=1.0, light_w=6.0e4, grow=1.6)
+        if jag:
+            burst(ctx, coll, prof, 'decoy', tag, here, end['frame'], mpu, None, rnd_for('decoy'))
+        else:
+            _flash(ctx, coll, f'{PREFIX} decoyed {fl.label} f{fl.frame:04d}', here, end['frame'], prof['blast'],
+                   B * .6 / mpu, frames=9, peak=1.4, heat=1.0, light_w=6.0e4, grow=1.6)
     return rec

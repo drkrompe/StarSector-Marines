@@ -2,15 +2,17 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.combat.StaggerService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.render2d.PolyTess;
 
 /**
  * The daze mark ({@code colony-breach-nouns.md}, Brute): a quiet amber arc on the ground under anything that
- * {@linkplain StaggerService can't act} (a thrown Marine, a stalled hull, a staggered mech), emptying as
+ * {@linkplain StaggerService can't act} (a thrown Marine, a stalled hull), emptying as
  * the hold runs out, so the player reads how long it lasts as well as that it is there. A Brute shows its
- * own stun in its body ({@code RavBruteRig}) and gets no mark. A body knocked down also kicks up a ring of
+ * own stun in its body ({@code RavBruteRig}) and a staggered mech only holds its
+ * hips still; neither gets a mark. A body knocked down also kicks up a ring of
  * dust where it lands.
  *
  * <p>Drawn in {@link RenderLayer#UNITS} after the bodies, as the health bars are. A function of the
@@ -52,7 +54,8 @@ public final class DazeMarkRenderSystem implements RenderSystem {
                 PolyTess.appendAnnulus(marks, sx, sy, r * 0.82f, r, 24, 0.66f, 0.58f, 0.46f,
                         alpha * 0.55f * (1f - k));
             }
-            if (sim.identity().type(unit).isSwarm()) continue;
+            UnitType type = sim.identity().type(unit);
+            if (type.isSwarm() || type.isMech()) continue;
 
             int left = stagger.ticksLeft(unit);
             float progress = left / (float) Math.max(1, left + since);
