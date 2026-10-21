@@ -31,6 +31,7 @@ python art-source/colonist-modular-topdown/colonists.py export
 Export is the crew's own (`ship_crew.export_roles`): each guide frame is cut from
 the raw, downsampled with nearest-neighbour sampling to the marine layer's size
 (body 150x120, head 72x88, foot 38x52), and its alpha is kept only inside the
-marine silhouette. Only the nine PNGs under
+marine silhouette, and the body is squashed vertically by the crew's
+`BODY_Y_SCALE` about the neck socket, the same shorter torso the crew carry. Only the nine PNGs under
 `mod/graphics/battle/colonist-modular-topdown/` ship; each profession loads its own
 `foot.png` rather than the marine boot.
