@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160d0-4c77-76f2-9584-cdb4da883dd8",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160d0-4c77-76f2-9584-cdb4da883dd8\\exec-c4366678-ebc7-40ac-95f3-a0ec114408a4.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\motion-matriarch\\raw\\head-straight.png",
+    "sha256": "aba771d2dac84982a52301b838808f05d7f20f8ed9f80af9f3405177790f7b66",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\motion-matriarch\\prompts\\head-straight.prompt.txt",
+  "promptSha256": "ee7a57fe787889b4ac7202ffeb76718f44d249f60f6adce773769d0c1d72fe08",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Identity, palette and scale authority: the chosen Matriarch; its head is cocked left, this layer straightens it\n\nReference image 1 is the chosen Matriarch design from the Rav Bloom swarm (a huge, old, heavily plated quadruped: matte charcoal-black plates with dried-blood red on worn edges, deep wine-red sinew in every gap, a vast fan-shaped crown of yellowed ivory bone spikes over the head, small amber eyes), seen strictly from above, facing up. This is a rig layer for animating it. In reference image 1 the head is turned and cocked toward the creature's left, so the crown is lopsided. Draw the SAME head and crown, same palette, finish, scale and lighting (from the upper left), but looking STRAIGHT AHEAD: the face, jaws and crown symmetric about a vertical centre line at the exact horizontal centre of the image, the crown's fan spreading equally to left and right, as wide in total as reference image 1's crown. Keep the neck where reference image 1 has it (the back of the head at about 30 percent of the image height from the top) and the crown's front tips at the same height as in reference image 1. Draw the CROWN AND HEAD ONLY, ending at the back in a short plated neck stub: no body, no scythes, no legs. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n\nThis layer: the jaws CLOSED, as in reference image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-matriarch\\raw\\hero.png",
+      "sha256": "9f2820dbf0752bc5172bbd209d0de312eee14488150839bcd23c368429ea33b6",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity, palette and scale authority: the chosen Matriarch; its head is cocked left, this layer straightens it"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one head-and-crown layer, centered and facing straight ahead with closed jaws, matching the reference’s palette and lighting."
+  ],
+  "usage": {
+    "input_tokens": 39222,
+    "cached_input_tokens": 33920,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 499,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 42.4
+}
