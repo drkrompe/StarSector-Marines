@@ -4,21 +4,20 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * The creep's colours. The lore leaves colour to art and the owner has not yet
- * picked a creature direction, so the palette is data: one is chosen per run by
+ * The creep's colours. The palette is data: one is chosen per run by
  * {@code -Dbattle.render.creepPalette=<id>} and every look (shader, CPU model,
  * fallback) reads the same six colours.
  *
- * @param base  thin film, the bulk of the cover
- * @param flesh raised mounds
+ * @param base  the membrane between and around the plates
+ * @param flesh the chitin plates
  * @param vein  the vein network
  * @param glow  the pulse running along the veins
- * @param rim   the wet lip of the spreading edge
+ * @param rim   the crest of the beaded lip, and the raised veins on a wall
  * @param dead  withered growth
  */
 public record CreepPalette(String id, float[] base, float[] flesh, float[] vein, float[] glow, float[] rim, float[] dead) {
 
-    /** Control-run switch naming the palette; unknown ids fall back to {@link #CHITIN}. */
+    /** Control-run switch naming the palette; unknown ids fall back to {@link #HIVE}. */
     public static final String PROPERTY = "battle.render.creepPalette";
 
     /** The superseded red-tide direction, kept for comparison: oxblood film over bruised flesh. */
@@ -34,13 +33,22 @@ public record CreepPalette(String id, float[] base, float[] flesh, float[] vein,
     public static final CreepPalette CHITIN = new CreepPalette("chitin",
             rgb(0x4c443c), rgb(0x6a5d4e), rgb(0x2e2822), rgb(0x96682c), rgb(0x5a5046), rgb(0x3a332c));
 
-    static final List<CreepPalette> ALL = List.of(CHITIN, BLOOM);
+    /**
+     * The hive palette, set beside the settled creatures (`rav-design-language.md`): their carapace is pale lilac
+     * over deep magenta-crimson sinew, so the creep is the same family pushed dull and dark, a low-chroma
+     * violet-grey (L about 45 to 70) the bodies cut out of. Plates a step lighter than the membrane, crests
+     * toward a greyed lilac, veins and the pulse in a muted version of the sinew.
+     */
+    public static final CreepPalette HIVE = new CreepPalette("hive",
+            rgb(0x5a5560), rgb(0x736c78), rgb(0x46293a), rgb(0x84486a), rgb(0x9b949c), rgb(0x5e5c5a));
+
+    static final List<CreepPalette> ALL = List.of(HIVE, CHITIN, BLOOM);
 
     /** The palette this process draws with. */
     public static CreepPalette active() {
-        String id = System.getProperty(PROPERTY, CHITIN.id());
+        String id = System.getProperty(PROPERTY, HIVE.id());
         for (CreepPalette p : ALL) if (p.id().equalsIgnoreCase(id)) return p;
-        return CHITIN;
+        return HIVE;
     }
 
     static float[] rgb(int hex) {

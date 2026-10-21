@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.GlStateBracket;
 import com.dillon.starsectormarines.render2d.ShaderProgram;
@@ -17,8 +18,6 @@ import static org.lwjgl.opengl.GL11.GL_CURRENT_BIT;
 import static org.lwjgl.opengl.GL11.GL_ENABLE_BIT;
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
 import static org.lwjgl.opengl.GL11.GL_LINEAR_MIPMAP_LINEAR;
-import static org.lwjgl.opengl.GL11.GL_LUMINANCE;
-import static org.lwjgl.opengl.GL11.GL_LUMINANCE8;
 import static org.lwjgl.opengl.GL11.GL_QUADS;
 import static org.lwjgl.opengl.GL11.GL_REPEAT;
 import static org.lwjgl.opengl.GL11.GL_RGBA;
@@ -59,13 +58,19 @@ import static org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP;
  * Hive creep, resident on the GPU (`hive-creep.md`).
  *
  * <p>The simulation's {@link CreepField} is three bytes per cell; this layer
- * keeps a CPU mirror of them, plus a climbed-wall flag, as one RGBA texel per
- * cell, and patches the mirror and the texture only in the {@link
- * CreepField#TILE}-cell tiles whose revision moved. Collection is the catch-up
+ * keeps a CPU mirror of them, plus whether the cell is a wall, as one RGBA
+ * texel per cell, and patches the mirror and the texture only in the {@link
+ * CreepField#TILE}-cell tiles whose revision moved, or whose topology did (a
+ * wall knocked down stops carrying crust). Collection is the catch-up
  * (GL-free) and one custom command; the drain uploads the changed tiles and
  * draws one quad over the creep's extent through {@link CreepShader}. A frame
  * with no change is one draw and no upload, however much of the map is
  * infested.
+ *
+ * <p>The layer drains inside the ground's colour target, straight after the
+ * ground itself, so the relief composite displaces it with the ground under it
+ * and a crust on a wall top moves with the wall, and the walls' shadows fall
+ * across it.
  *
  * <p>Off GL (a review frame) the same command carries the same numbers and the
  * offline drain shades the mirror through {@link CreepShading}. If the shader
@@ -73,7 +78,7 @@ import static org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP;
  * colour. Turn the layer off for a control run with
  * {@code -Dbattle.render.creep=false}.
  */
-final class CreepLayer implements RenderSystem {
+final class CreepLayer implements RenderSystem, CreepShading.Field {
 
     /** Control-run switch; on by default. */
     static final String PROPERTY = "battle.render.creep";
@@ -94,12 +99,17 @@ final class CreepLayer implements RenderSystem {
     private int gridW, gridH, tilesX, tilesY;
     private byte[] mirror;
     private long[] seen;
+    /** Tiles whose walls changed since they were last copied. */
+    private boolean[] forced;
     private boolean[] dirtyTile;
     private int dirtyCount;
     private boolean wholeDirty;
     private int extentMinX = Integer.MAX_VALUE, extentMinY = Integer.MAX_VALUE, extentMaxX = -1, extentMaxY = -1;
 
-    private int fieldTexture, noiseTexture, materialTexture;
+    private int fieldTexture, noiseTexture, surfaceTexture;
+    private CellTopology topology;
+    private long topologySeen;
+    private SunLight sun = new SunLight();
     private boolean broken;
     private float clockSeconds;
     private ByteBuffer scratch;
@@ -107,12 +117,17 @@ final class CreepLayer implements RenderSystem {
     @Override
     public RenderLayer layer() { return RenderLayer.CREEP; }
 
+    /** The scene's sun, which the creep shades its relief and casts its own shadow from. */
+    void useSun(SunLight sun) {
+        if (sun != null) this.sun = sun;
+    }
+
     @Override
     public void collect(RenderContext ctx, DrawList out) {
         if (!ENABLED) return;
         CreepField field = ctx.sim.creepFieldIfPresent();
         if (field == null) return;
-        catchUp(field, ctx.sim.getGrid());
+        catchUp(field, ctx.sim.getGrid(), ctx.sim.getTopology());
         if (extentMaxX < extentMinX) return;
         BattleCamera camera = ctx.camera;
         VisibleCellRect view = camera.visibleCells(1, gridW, gridH);
@@ -137,6 +152,7 @@ final class CreepLayer implements RenderSystem {
         pass.timeSeconds = clockSeconds;
         pass.alpha = ctx.alphaMult;
         pass.palette = palette;
+        pass.sun = new CreepShading.Sun(sun.dirX(), sun.dirY(), sun.risePerCell(), sun.casts() ? sun.shadowStrength() : 0f);
         out.addCustom(RenderLayer.CREEP, pass);
     }
 
@@ -144,13 +160,35 @@ final class CreepLayer implements RenderSystem {
 
     /** Brings the mirror up to the field; GL-free. */
     void catchUp(CreepField field, NavigationGrid grid) {
-        if (field != bound) bind(field);
+        catchUp(field, grid, null);
+    }
+
+    /** As {@link #catchUp(CreepField, NavigationGrid)}, also re-reading any tile whose walls changed. */
+    void catchUp(CreepField field, NavigationGrid grid, CellTopology topology) {
+        if (field != bound || topology != this.topology) {
+            bind(field);
+            this.topology = topology;
+            topologySeen = topology == null ? 0L : topology.changeCount();
+        }
         long revision = field.revision();
+        if (topology != null && topology.changeCount() != topologySeen) {
+            long count = topology.changeCount();
+            boolean lost = count - topologySeen > topology.changeLogCapacity();
+            for (long seq = lost ? count : topologySeen; seq < count; seq++) {
+                int idx = topology.changedCellAt(seq);
+                int t = ((idx / gridW) / CreepField.TILE) * tilesX + (idx % gridW) / CreepField.TILE;
+                if (t >= 0 && t < forced.length) forced[t] = true;
+            }
+            if (lost) Arrays.fill(forced, true);
+            topologySeen = count;
+        }
         for (int ty = 0; ty < tilesY; ty++) {
             for (int tx = 0; tx < tilesX; tx++) {
                 int t = ty * tilesX + tx;
                 long changed = field.tileRevision(tx, ty);
-                if (changed <= seen[t]) continue;
+                if (changed <= seen[t] && !forced[t]) continue;
+                forced[t] = false;
+                if (changed == 0L) continue;   // never held creep: nothing of it to draw
                 copyTile(field, grid, tx, ty);
                 // A tile written mid-tick reads one ahead; holding it at the published
                 // revision makes the next frame look again once the tick has finished.
@@ -175,6 +213,7 @@ final class CreepLayer implements RenderSystem {
         tilesY = field.tilesY();
         mirror = new byte[gridW * gridH * 4];
         seen = new long[tilesX * tilesY];
+        forced = new boolean[tilesX * tilesY];
         dirtyTile = new boolean[tilesX * tilesY];
         dirtyCount = 0;
         wholeDirty = true;
@@ -191,10 +230,20 @@ final class CreepLayer implements RenderSystem {
                 mirror[at] = (byte) cov;
                 mirror[at + 1] = (byte) field.vitalityAt(idx);
                 mirror[at + 2] = (byte) field.pulseAt(idx);
-                mirror[at + 3] = (byte) (cov > 0 && !grid.isWalkableAt(idx) ? 255 : 0);
+                mirror[at + 3] = (byte) (isWall(grid, x, y, idx) ? 255 : 0);
             }
         }
     }
+
+    private boolean isWall(NavigationGrid grid, int x, int y, int idx) {
+        return topology != null ? topology.isWall(x, y) : !grid.isWalkableAt(idx);
+    }
+
+    @Override
+    public void sample(float cellX, float cellY, float[] out) { sampleField(cellX, cellY, out); }
+
+    @Override
+    public float coverage(float cellX, float cellY) { return coverageAt(cellX, cellY); }
 
     int gridWidth() { return gridW; }
     int gridHeight() { return gridH; }
@@ -272,10 +321,10 @@ final class CreepLayer implements RenderSystem {
             glBindTexture(GL_TEXTURE_2D, noiseTexture);
             glActiveTexture(GL_TEXTURE2);
             glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, materialTexture);
+            glBindTexture(GL_TEXTURE_2D, surfaceTexture);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, fieldTexture);
-            if (!shader.begin(p.palette, p.timeSeconds, p.alpha, gridW, gridH)) return;
+            if (!shader.begin(p, gridW, gridH)) return;
             float cx0 = p.minX, cy0 = p.minY, cx1 = p.maxX + 1, cy1 = p.maxY + 1;
             float sx0 = p.cellToScreenX(cx0), sy0 = p.cellToScreenY(cy0);
             float sx1 = p.cellToScreenX(cx1), sy1 = p.cellToScreenY(cy1);
@@ -302,8 +351,8 @@ final class CreepLayer implements RenderSystem {
         if (noiseTexture == 0) {
             noiseTexture = glGenTextures();
             glBindTexture(GL_TEXTURE_2D, noiseTexture);
-            glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            // Unmipmapped, as CreepNoise.sample reads it: the noise only moves the edge, and is coarse at any framing.
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -311,24 +360,17 @@ final class CreepLayer implements RenderSystem {
             noise.put(CreepNoise.rgba()).flip();
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, CreepNoise.SIZE, CreepNoise.SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, noise);
         }
-        if (materialTexture == 0) {
-            materialTexture = glGenTextures();
-            glBindTexture(GL_TEXTURE_2D, materialTexture);
+        if (surfaceTexture == 0) {
+            surfaceTexture = glGenTextures();
+            glBindTexture(GL_TEXTURE_2D, surfaceTexture);
             glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            int side = CreepMaterial.size();
-            ByteBuffer lum = BufferUtils.createByteBuffer(side * side);
-            lum.put(CreepMaterial.luminance()).flip();
-            glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
-            try {
-                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE8, side, side, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, lum);
-            } finally {
-                glPopClientAttrib();
-            }
+            ByteBuffer surface = BufferUtils.createByteBuffer(CreepSurface.SIZE * CreepSurface.SIZE * 4);
+            surface.put(CreepSurface.rgba()).flip();
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, CreepSurface.SIZE, CreepSurface.SIZE, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface);
         }
         if (fieldTexture == 0) {
             fieldTexture = glGenTextures();
@@ -375,8 +417,8 @@ final class CreepLayer implements RenderSystem {
     void dispose() {
         if (fieldTexture != 0) glDeleteTextures(fieldTexture);
         if (noiseTexture != 0) glDeleteTextures(noiseTexture);
-        if (materialTexture != 0) glDeleteTextures(materialTexture);
-        fieldTexture = noiseTexture = materialTexture = 0;
+        if (surfaceTexture != 0) glDeleteTextures(surfaceTexture);
+        fieldTexture = noiseTexture = surfaceTexture = 0;
         shader.dispose();
         bound = null;
     }

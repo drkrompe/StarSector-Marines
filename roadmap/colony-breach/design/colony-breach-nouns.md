@@ -611,21 +611,29 @@ In `hive-creep.md`.
   per second, the reach it stops at; bore tiers have presets) and may be fed,
   which speeds it for a while. It claims what lies within its reach by path
   cost along walkable ground, weighted by seeded noise so the front runs out in
-  fingers, dearer on pavement; walls beside claimed ground are climbed, never
-  crossed. Until bores stand up on eruption sites, each opened site is itself a
+  fingers, dearer on pavement. Until bores stand up on eruption sites, each opened site is itself a
   source that never dies.
 - **Removing a source withers what it alone held**, from the outer edge back to
   the hole over a visible interval: the growth dies first, then clears. Ground a
   living source also reaches stays, and a living source reaching dying ground
   revives it.
-- **The look is the field drawn, never a second model.** One ground-level
-  layer, under the bodies and over the props it overgrows, shades the field
-  from a painted greyscale material whose values the palette colours: dark
-  veins, thin film the town still shows through, nodules, a lumpy edge, a
-  pulse running toward the source, climbed walls as dark ridges, and dead
-  growth as a grey husk. Colour is data: the swarm owns no red (the owner's
-  chitin direction), so the default creep is grey-umber, duller than the
-  paving and lighter than the near-black bodies, with sparse dim amber.
+- **Walls are held slowly.** A wall beside claimed ground is climbed, never
+  crossed, and filled over about a minute and a half rather than at once: its
+  coverage is its age, so a newly reached wall carries only veins and an old
+  one is crusted over. It reads as a matter of time.
+- **The look is the field drawn, never a second model.** The creep is a hard
+  organic edge, not a spill: an opaque surface of grown chitin plates over a
+  membrane, rolled up into a raised, beaded lip where it stops, veined, with a
+  pulse running toward the source and a short shadow of its own. It is drawn
+  inside the ground's relief composite, so it moves with the ground's parallax
+  and lies under the walls' shadows. Walls go through four stages with age:
+  veins, then crust from the foot, with a dark crease where creep meets the
+  wall. Dead growth is a grey husk. One shading model serves the game (a shader)
+  and review frames (its CPU mirror), from one surface texture generated in
+  code. Colour is data: the swarm owns no red, and the default creep is a dull,
+  dark, desaturated violet-grey that sits under the lilac creatures without
+  competing with them; a bore's heaved earth takes the same colours, so the
+  bore reads as where the creep comes from.
 
 **Swarm goal.** A place the swarm is drawn toward: the shelter, the lift, the
 nearest Marine body. Swarm movement toward a goal is a shared **flow field** per

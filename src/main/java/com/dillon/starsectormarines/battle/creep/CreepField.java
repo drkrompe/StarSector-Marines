@@ -19,8 +19,10 @@ import java.util.List;
  * grain plus a coarse lattice), so the front runs out in fingers rather than as
  * a circle, and pavement costs more than open ground. A claimed walkable cell
  * also claims the walls beside it: creep climbs a building's edge but does not
- * spread from the wall on. Nothing blocks creep except the walls the ground
- * itself respects.
+ * spread from the wall on, and a wall fills slowly ({@link #WALL_FILL_TICKS}),
+ * so its coverage is how long the creep has held it: a renderer shows veins on
+ * a young wall and a crust on an old one. Nothing blocks creep except the walls
+ * the ground itself respects.
  *
  * <p>Each cell carries three bytes: <em>coverage</em> (how much growth stands
  * there), <em>vitality</em> (living 255 down to dead 0) and <em>pulse</em> (its
@@ -50,6 +52,8 @@ public final class CreepField {
     static final float FEED_MULTIPLIER = 3f;
     /** Coverage a growing cell gains per tick (about three seconds to fill). */
     static final int FILL_PER_TICK = 3;
+    /** Ticks per point of coverage on a climbed (unwalkable) cell: about a hundred seconds from first veins to full crust. */
+    static final int WALL_FILL_TICKS = 12;
     /** Vitality a reviving cell regains per tick. */
     static final int REVIVE_PER_TICK = 8;
     /** Vitality a withering cell loses per tick (about three seconds to die). */
@@ -236,7 +240,8 @@ public final class CreepField {
             int idx = active[i];
             int cov = coverage[idx] & 0xFF, vit = vitality[idx] & 0xFF;
             if (state[idx] == GROWING) {
-                cov = Math.min(FULL, cov + FILL_PER_TICK);
+                if (grid.isWalkableAt(idx)) cov = Math.min(FULL, cov + FILL_PER_TICK);
+                else if (Math.floorMod(now + idx, WALL_FILL_TICKS) == 0) cov = Math.min(FULL, cov + 1);
                 vit = Math.min(FULL, vit + REVIVE_PER_TICK);
                 coverage[idx] = (byte) cov;
                 vitality[idx] = (byte) vit;
