@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ffb-48cf-7d22-9327-4b39b72981ba",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ffb-48cf-7d22-9327-4b39b72981ba\\exec-333d8321-4750-40e0-aa2a-3c8813358039.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-3\\raw\\c5.png",
+    "sha256": "11c2be130f79a5d238359d41f8b595279d707a79a409fe78b837a0a5fca4e4e1",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\spitter-3\\prompts\\c5.prompt.txt",
+  "promptSha256": "b6cb13667d5bde8521fb14e4f745d687964458c4de17a0f958b749ad6756544e",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The Runner: what the Spitter must NOT look like. Tissue structure only (plates over muscle, sinew in gaps); do not use its colours or body plan\n\nTop-down concept for a tactical game. ONE creature, the SPITTER: the Rav Bloom swarm's fragile ranged strain (Starsector mod: Marines against an engineered biological weapon). It hangs back behind the melee Runners and lobs arcing globs of acid that splash infantry and can hit low drones. Original design, not StarCraft. It must look clearly DIFFERENT from the Runner (reference image 1, a pale lilac blade-armed hound): a different colour scheme and a different, heavier, rounder body mass, so a player tells them apart at a glance from far above. It is still the same engineered organism, so keep only the tissue STRUCTURE of reference 1 (armour plates over muscled flesh, sinew in the gaps, bone claws), NOT its colours. Beast first, never insect-dominant; no wings, no antennae, no forward arm blades. It stands on TWO or THREE legs and is bilaterally SYMMETRIC. Its acid is a DEEP, DARK VENOM GREEN that glows from inside a translucent acid organ.\n\nCOLOURS: dark plum plates, but the flesh between them is olive and dark green rather than magenta, so the whole beast reads green-veined; the dark green dome glows brightest. Ivory claws.\n\nBODY AND FIRING: Stands on two hind legs and plants its thick muscular tail as a third leg (tripod brace). A large round domed acid bladder rises on its back like a hump, with a vent at the top. Braced on the tripod, it fires the glob straight up from the hump vent.\n\nStrict overhead orthographic view, camera looking straight down at its back, standing at rest, facing UP (head toward the top), centred, filling about two thirds of the frame, light from the upper left. Plain flat light grey background (#b4b4b4), no shadow, no ground, no projectile, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\hero.png",
+      "sha256": "1fd084bdf713b942ea09dca5767d4ee1ac913bf17c5bcea8ae0d6ac62bcb41e8",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "The Runner: what the Spitter must NOT look like. Tissue structure only (plates over muscle, sinew in gaps); do not use its colours or body plan"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one Spitter concept using the reference’s tissue structure, with a round tripod body and a dark green acid dome."
+  ],
+  "usage": {
+    "input_tokens": 39531,
+    "cached_input_tokens": 28928,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 583,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 47.6
+}
