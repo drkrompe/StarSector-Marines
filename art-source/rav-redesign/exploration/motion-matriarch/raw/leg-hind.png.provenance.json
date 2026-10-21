@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160b1-4274-7132-8c50-37d3f8d533e6",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160b1-4274-7132-8c50-37d3f8d533e6\\exec-936df075-db0f-4a33-987f-6f55a1d97431.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\motion-matriarch\\raw\\leg-hind.png",
+    "sha256": "4dcddc8e16c8fa1aff12a7bb3b425c5519876357e26de6e0c8d8146ec13e026e",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\motion-matriarch\\prompts\\leg-hind.prompt.txt",
+  "promptSha256": "f42764c8bf5b927b0a3f65316693f7f6ad11c1f8952a32d6cbd80fcae848635f",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and identity authority: the chosen Matriarch (round 3 #5); register every kept part to it\n\nReference image 1 is the chosen Matriarch design from the Rav Bloom swarm (a huge, old, heavily plated quadruped: matte charcoal-black plates with dried-blood red on worn edges, deep wine-red sinew in every gap, a vast fan-shaped crown of yellowed ivory bone spikes over the head, two curved ivory scythes coming out from under the crown's rim, clawed feet under the body), seen strictly from above, facing up. This is a rig layer for animating it: keep its palette, finish, scale and lighting (from the upper left) exactly, and keep every part you draw in EXACTLY the same position and size as in reference image 1 so the layer registers over it pixel for pixel, unless this layer says otherwise. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n\nThis layer: ONE HIND LEG ONLY, not in its place on the body: a hind leg of this creature as it would look with the body removed, seen from directly above, drawn alone, straight and vertical, centred: the hip end at the TOP, a thick muscled plated thigh, the hock about two thirds down, and the broad clawed foot at the BOTTOM with its ivory claws; massive like an elephant's or a rhino's. Nothing else.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-matriarch\\raw\\hero.png",
+      "sha256": "9f2820dbf0752bc5172bbd209d0de312eee14488150839bcd23c368429ea33b6",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry and identity authority: the chosen Matriarch (round 3 #5); register every kept part to it"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one isolated hind leg using the reference’s materials, palette, and overhead lighting."
+  ],
+  "usage": {
+    "input_tokens": 40889,
+    "cached_input_tokens": 32384,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 394,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 39.7
+}
