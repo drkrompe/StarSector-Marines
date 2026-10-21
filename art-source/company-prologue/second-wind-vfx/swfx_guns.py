@@ -1473,60 +1473,38 @@ def crawl_path(cast, p, n, rnd, steps=7, step_m=3.0, lift_m=.25):
     return pts
 
 
-def _arc_material(ctx, rgb):
-    name = f'{PREFIX} arc ' + '-'.join(f'{c:.3f}' for c in rgb)
-    m = bpy.data.materials.get(name)
-    if m:
-        return m
-    m, nodes, links = swfx_core.node_material(name)
-    g = _G(nodes, links)
-    out = nodes.new('ShaderNodeOutputMaterial')
-    lw = nodes.new('ShaderNodeLayerWeight')
-    lw.inputs['Blend'].default_value = .5
-    facing = g.clamp01(g.sub(1.0, lw.outputs['Facing']))
-    mix = nodes.new('ShaderNodeMix')
-    mix.data_type = 'RGBA'
-    links.new(g.pow(facing, 2.0), mix.inputs['Factor'])
-    mix.inputs['A'].default_value = (*rgb, 1)
-    mix.inputs['B'].default_value = (1, 1, 1, 1)
-    em = nodes.new('ShaderNodeEmission')
-    links.new(mix.outputs['Result'], em.inputs['Color'])
-    links.new(g.add(3.0, g.mul(facing, 14.0)), em.inputs['Strength'])
-    tr = nodes.new('ShaderNodeBsdfTransparent')
-    add = nodes.new('ShaderNodeAddShader')
-    links.new(tr.outputs[0], add.inputs[0])
-    links.new(em.outputs[0], add.inputs[1])
-    links.new(add.outputs[0], out.inputs['Surface'])
-    return m
-
-
 def emp_arcs(ctx, frame, paths, frames=8, rgb=(140, 200, 255), seed=0, light=3000.0):
-    """The ion cannon's EMP on a hit: lightning crawling out along each path (points in the
-    ship's own copy space, units; crawl_path() makes them) for `frames`, re-struck every frame
-    and flickering, with a flickering light at the strike. Returns the object names."""
+    """The ion cannon's EMP on a hit: lightning crawling over the hull along each path (points
+    in the ship's own copy space, units; crawl_path() makes them) for `frames`, flickering, with
+    a flickering light at the strike. The arcs are W1's (swfx_shield.arc_material / arc_curve /
+    jag, shared with the shield overload) on the knob gun_emp, keyed per strike; two jags per
+    path alternate frame by frame so the bolt re-strikes. Returns the object names."""
+    import swfx_shield
     coll = ctx.collection(GROUP)
     rnd = random.Random(f'swfx-emp|{frame}|{seed}')
     lin = _lin(rgb)
-    mat = _arc_material(ctx, lin)
+    ctx.prop('gun_emp', 0.0, 0.0, 1.0, 'ion cannon EMP arcs envelope (keyed by emp_arcs())')
+    _key_zero(ctx, 'gun_emp', frame - 1)
+    for j in range(frames):
+        _key_env(ctx, 'gun_emp', frame + j, 1.0 - .6 * j / max(1, frames))
+    _key_zero(ctx, 'gun_emp', frame + frames)
+    mat = bpy.data.materials.get(f'{PREFIX} emp arc') or swfx_shield.arc_material(
+        ctx, f'{PREFIX} emp arc', lin, 'gun_emp', ('gun_emp',))
     names = []
     for k, path in enumerate(paths):
-        path = [Vector(p) for p in path]
+        path = [tuple(p) for p in path]
         if len(path) < 2:
             continue
-        for j in range(frames):
-            if j and rnd.random() > .75:
-                continue
-            reach = min(len(path), 2 + j)
-            lines = []
-            for a0, a1 in zip(path[:reach - 1], path[1:reach]):
-                lines += _jagged(rnd, a0, a1, 4, (a1 - a0).length * .18, forks=1 if rnd.random() < .3 else 0)
-            ob = bpy.data.objects.new(f'{PREFIX} emp arc f{frame:04d} {k} {j}',
-                                      _jag_mesh(f'{PREFIX} emp arc mesh f{frame:04d} {k} {j}', lines,
-                                                swfx_core.units(.07), 4, mat))
-            coll.objects.link(ob)
-            ob.visible_shadow = False
-            _visible_between(ob, frame + j, frame + j)
-            names.append(ob.name)
+        for alt in (0, 1):
+            ob = swfx_shield.arc_curve(f'{PREFIX} emp arc f{frame:04d} {k} {alt}', coll,
+                                       swfx_shield.jag(path, rnd, amount=.22, cuts=4),
+                                       swfx_core.units(.07), mat)
+            shown = set(range(frame + alt, frame + frames, 2))
+            if shown:
+                _rebuild_visibility(ob, shown)
+                names.append(ob.name)
+            else:
+                ob.hide_render = True
     if paths:
         lt = swfx_core.point_light(f'{PREFIX} emp light f{frame:04d}', coll, lin, 0.0, radius=swfx_core.units(.5))
         lt.location = Vector(paths[0][0])
