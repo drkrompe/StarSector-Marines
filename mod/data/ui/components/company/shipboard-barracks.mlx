@@ -2,14 +2,14 @@
   <div id="barracks-surface" class="barracks-surface">
   <div id="barracks-root" class="barracks-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
-    <company-resource-stock stockId="barracks-issue-stock" rows="{command.issueCargoStock}" />
-
     <div id="barracks-room-bar" class="panel barracks-room-bar console-header">
       <img id="shipboard-barracks-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
       <div id="barracks-room-title" class="label heading tone-edge">{i18n.openingUiShipboardBarracksBarracksPersonnelCommand}</div>
       <div id="barracks-room-copy" class="label tone-muted">{command.summary}</div>
       <div id="barracks-heal-timer" class="label heading tone-accent">{command.healTimer}</div>
-
+      <div id="barracks-stock-slot" class="header-stock-slot">
+        <company-resource-stock stockId="barracks-issue-stock" rows="{command.issueCargoStock}" />
+      </div>
     </div>
 
     <div id="barracks-flow-actions" class="board-tools">
@@ -277,12 +277,13 @@
 </template>
 
 <style>
+  .header-stock-slot { flex-direction: column; width: 640px; height: 46px; }
   .company-recruit-bill { height: 36px; }
   .barracks-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
   .section-heading { height: 19px; }
-  .barracks-room-bar { flex-direction: row; height: 54px; padding: 8px 10px; gap: 12px; align-items: center; border-width: 2px; }
+  .barracks-room-bar { flex-direction: row; height: 54px; padding: 4px 10px; gap: 12px; align-items: center; border-width: 2px; }
   .issue-stock-strip { flex-direction: row; align-items: center; height: 30px; padding: 3px 7px; gap: 8px; border-width: 1px; }
   #barracks-issue-stock-title { width: 92px; height: 18px; }
   .issue-stock-rows { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; gap: 8px; }

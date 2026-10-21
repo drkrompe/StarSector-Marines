@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.i18n.Strings;
 
 /**
  * Doctrine slot for a mech chassis. Roles remain independent of the physical
@@ -24,25 +25,25 @@ public enum MechRole {
      * LRMs farther out, and withholds SRMs. Another Sirocco does not count as
      * the friendly screen.
      */
-    LR_SUPPORT("Long Range Support"),
+    LR_SUPPORT("@mechRoleLongRangeSupport"),
     /**
      * Frontline support. Paces eligible infantry or non-cyclic mech allies,
      * takes the threat-facing side of their formation, and fires every
      * installed in-band weapon. Without a legal anchor it holds and defends.
      */
-    ARMORED_SUPPORT("Tank"),
+    ARMORED_SUPPORT("@mechRoleTank"),
     /**
      * Point doctrine. Advances into an assigned objective zone or closes on
      * a live contact while firing on the move. Used by either faction; the
      * squad's faction determines friend and foe at runtime.
      */
-    ASSAULT("Brawler"),
+    ASSAULT("@mechRoleBrawler"),
     /**
      * Mission-first direct-fire generalist. Fights at medium range when it
      * has room, but stands and answers a close threat rather than requiring
      * special ally geometry.
      */
-    BALANCED("Balanced");
+    BALANCED("@mechRoleBalanced");
 
     private final String displayName;
 
@@ -52,6 +53,6 @@ public enum MechRole {
 
     /** Player-facing doctrine label; enum names remain stable save/fixture ids. */
     public String displayName() {
-        return displayName;
+        return Strings.resolve(displayName);
     }
 }
