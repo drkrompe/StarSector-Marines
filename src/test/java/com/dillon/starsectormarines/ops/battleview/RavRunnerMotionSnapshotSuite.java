@@ -11,6 +11,7 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
+import java.awt.image.RescaleOp;
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -28,6 +29,8 @@ import java.util.Map;
  *   <li><b>Turning:</b> galloping round a tight circle, the spine bowed into the turn.</li>
  *   <li><b>Hauling:</b> backing off with a body on its spike, jaws latched on.</li>
  * </ul>
+ * A second recording kills four Runners mid-action (galloping, striking, turning, standing) and
+ * lets them fall, dulled as the battle draws its dead.
  * 1920x1080 at 100% scale, one frame per simulation tick.
  */
 public final class RavRunnerMotionSnapshotSuite implements SnapshotSuite {
@@ -84,6 +87,9 @@ public final class RavRunnerMotionSnapshotSuite implements SnapshotSuite {
         artifacts.add(new SnapshotArtifact("rav-runner-motion-frame-40.png", frames.get(40)));
         artifacts.add(new SnapshotArtifact("rav-runner-strike-phases.png", strikePhases(frames)));
         artifacts.add(SnapshotArtifact.colorAnimation("rav-runner-motion.gif", frames, 33));
+        List<BufferedImage> deaths = deaths(art);
+        artifacts.add(new SnapshotArtifact("rav-runner-death.png", deathSheet(deaths)));
+        artifacts.add(SnapshotArtifact.colorAnimation("rav-runner-death.gif", deaths, 33));
         return artifacts;
     }
 
@@ -148,17 +154,107 @@ public final class RavRunnerMotionSnapshotSuite implements SnapshotSuite {
         return output;
     }
 
+    private static final int DEATH_TICK = 30;
+    private static final int DEATH_TICKS = 80;
+    private static final String[] DEATH_NAMES = {"galloping", "striking", "turning", "standing"};
+
+    /** Four Runners, each shot mid-action at {@link #DEATH_TICK}, then lying where they fell. */
+    private List<BufferedImage> deaths(RavRunnerAssets art) {
+        RavRunnerRig[] rigs = {new RavRunnerRig(11L), new RavRunnerRig(12L), new RavRunnerRig(13L), new RavRunnerRig(14L)};
+        float[][] at = new float[4][2];
+        float cooldown = 0.45f, turnAngle = 0f;
+        List<BufferedImage> frames = new ArrayList<>();
+        for (int tick = 0; tick < DEATH_TICKS; tick++) {
+            boolean dead = tick >= DEATH_TICK;
+            if (!dead) {
+                rigs[0].advance(0f, tick * 3.2f * DT, 0f, 1f, false, DT);
+                at[0][1] = tick * 3.2f * DT;
+                if (cooldown <= 0f) cooldown = 0.7f;
+                rigs[1].advance(0f, 0f, 0f, cooldown, true, DT);
+                cooldown = Math.max(0f, cooldown - DT);
+                turnAngle += 3f / 1.4f * DT;
+                at[2][0] = 1.4f * (float) Math.cos(turnAngle);
+                at[2][1] = 1.4f * (float) Math.sin(turnAngle);
+                rigs[2].advance(at[2][0], at[2][1], (float) Math.toDegrees(turnAngle), 1f, false, DT);
+                rigs[3].advance(0f, 0f, 0f, 1f, false, DT);
+            } else {
+                for (int i = 0; i < 4; i++) rigs[i].advanceDead(at[i][0], at[i][1], DT);
+            }
+            BufferedImage output = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = output.createGraphics();
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g.setColor(new Color(0x111920));
+            g.fillRect(0, 0, 1920, 1080);
+            text(g, "RAV BLOOM RUNNER / DEATH ON ITS SKELETON", 40, 52, 28);
+            text(g, ("Four Runners killed mid-action at tick %d, then lying as corpses, dulled as the battle draws its"
+                    + " dead · %.0f px per cell · tick %d%s").formatted(DEATH_TICK, PPC, tick, dead ? " · DEAD" : ""), 40, 86, 17);
+            for (int i = 0; i < 4; i++) {
+                int px = 40 + i * 465;
+                g.setColor(new Color(0x3E4A36));
+                g.fillRect(px, 120, 445, 900);
+                text(g, "killed while " + DEATH_NAMES[i], px + 10, 1050, 16);
+                draw(g, art, rigs[i], px + 222, 570);
+            }
+            g.dispose();
+            frames.add(output);
+        }
+        return frames;
+    }
+
+    /** Top: the galloping Runner as it falls. Bottom: all four corpses where they came to rest. */
+    private static BufferedImage deathSheet(List<BufferedImage> frames) {
+        BufferedImage output = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = output.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g.setColor(new Color(0x111920));
+        g.fillRect(0, 0, 1920, 1080);
+        text(g, "RAV BLOOM RUNNER / CORPSES", 40, 46, 26);
+        text(g, "Top: a galloping Runner killed and falling onto its flank. Bottom: four corpses at rest, each"
+                + " lying in the pose it died in. 280 px per cell.", 40, 76, 16);
+        int[] fall = {DEATH_TICK - 1, DEATH_TICK + 4, DEATH_TICK + 8, DEATH_TICK + 14};
+        String[] fallNames = {"alive, galloping", "hit: rolling over", "falling", "down, legs slack"};
+        for (int i = 0; i < 4; i++) {
+            int x = i * 480, y = 100;
+            g.drawImage(frames.get(fall[i]), x, y, x + 480, y + 460, 142, 455, 382, 685, null);
+            text(g, fallNames[i], x + 16, y + 482, 16);
+        }
+        BufferedImage last = frames.get(frames.size() - 1);
+        for (int i = 0; i < 4; i++) {
+            int x = i * 480, y = 590;
+            int sx = 40 + i * 465 + 222;
+            g.drawImage(last, x, y, x + 480, y + 460, sx - 120, 455, sx + 120, 685, null);
+            text(g, "corpse: killed while " + DEATH_NAMES[i], x + 16, y + 482, 16);
+        }
+        g.dispose();
+        return output;
+    }
+
     /** One Runner centred on (x, y) of the sheet, y down. */
     private void draw(Graphics2D g, RavRunnerAssets art, RavRunnerRig rig, float x, float y) {
         RavRunnerComposer.emit((sprite, cx, cy, width, height, angle, red, green, blue, alpha) -> {
-            BufferedImage source = images.get(sprite.sourcePath);
+            BufferedImage source = shaded(sprite.sourcePath, red);
             AffineTransform transform = new AffineTransform();
             transform.translate(cx, 1080f - cy);
             transform.rotate(-Math.toRadians(angle));
             transform.scale(width / source.getWidth(), height / source.getHeight());
             transform.translate(-source.getWidth() / 2.0, -source.getHeight() / 2.0);
             g.drawImage(source, transform, null);
-        }, art, rig, x, 1080f - y, PPC, 1f, 1f);
+        }, art, rig, x, 1080f - y, PPC, rig.dead() ? RavRunnerComposer.DEAD_SHADE : 1f, 1f);
+    }
+
+    /** The sprite multiplied by a grey tint, as the game's vertex colour does. */
+    private BufferedImage shaded(String path, float shade) {
+        BufferedImage source = images.get(path);
+        if (shade >= 0.999f) return source;
+        String key = path + "@" + shade;
+        BufferedImage result = images.get(key);
+        if (result == null) {
+            result = new RescaleOp(new float[]{shade, shade, shade, 1f}, new float[4], null).filter(source, null);
+            images.put(key, result);
+        }
+        return result;
     }
 
     private BufferedImage image(String path) throws Exception {
