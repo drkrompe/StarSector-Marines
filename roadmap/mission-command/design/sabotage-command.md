@@ -56,7 +56,9 @@ before doubling and retain a held reserve when force size permits. Alarm or
 believed pressure consumes only available reserve, gives threatened sites one
 responder before a second, and never strips routine guard elsewhere.
 `DEFEND_SITE` uses distinct reachable perimeter rallies so responders do not
-collapse into the plant cell.
+collapse into the plant cell. Under believed pressure the reserve, and site
+posts for a building beside their site, man the map's garrisonables
+(`garrisonables.md`, mission defenders).
 
 ## Picture and evidence
 

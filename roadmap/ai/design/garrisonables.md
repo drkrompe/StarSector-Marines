@@ -1,10 +1,10 @@
 # Garrisonables
 
-Status: ACTIVE — reactive manning is shipped for fighting-position runs, a stretch at a time, and for building envelopes, on both Conquest sides (the defender's own belts, compound aprons and compound buildings, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans (player and both Conquest commanders); the compound perimeter and emplacements remain direction.
+Status: ACTIVE — reactive manning is shipped for fighting-position runs, a stretch at a time, and for building envelopes, on both Conquest sides (the defender's own belts, compound aprons and compound buildings, the attacker's taken ones) and for a player's squads that opt into it, the player's machine assault on a believed-held garrisonable is built, and machines guard the places their side mans, runs and buildings alike (player on any map, both Conquest commanders on any ground they man), and the Raid, Assault, Sabotage and Extraction defenders man their maps' places reactively too, their lances guarding what they man; the compound perimeter and emplacements remain direction.
 
 Written: 2026-10-13
 
-Updated: 2026-10-20 — building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
+Updated: 2026-10-20 — the procedural missions' defender commanders man garrisonables reactively (mission defenders); machines guard manned buildings as they guard manned runs (the player's click on any map, the commanders' attachment to a manned envelope or a building its own garrison holds); building envelopes are garrisonables (apron, envelope, rooms as layers; a building's own garrison counts as manning it); runs are garrisoned a stretch at a time; the defender counter-attacks any lost place (a compound, a fort as one case) in proportion to what a probe observed holds it, and its reserve lends to its own place (`conquest-command.md`); places, not forts, is a law; compounds offer prepared ground, on the campaign's Conquest of places too; machines screen the places their side mans.
 
 ## Why this exists
 
@@ -341,10 +341,77 @@ order. On any map that publishes held places, a click on a building holds it
 at its windows (`ai-nouns.md`, occupy). The second is the GARRISON stance, which
 mans those buildings under pressure by that same order on every such map
 (scene `mission-envelopes`: Raid, Assault, Sabotage, Extraction, civilian
-rescue and a story map). Reactive manning by the AI commanders is Conquest's
-alone so far: the other missions' defenders keep their authored posts and
-alarm responses, and offering envelopes there leaves their battles byte for
-byte as they were.
+rescue and a story map). The third is the mission defenders' own commanders
+(below).
+
+## Mission defenders
+
+The Raid, Assault, Sabotage and Extraction defender commanders man the
+garrisonables of their maps reactively, through the same side-neutral tier and
+laws as Conquest's defender (`MissionGarrisons`, one per commander). The answer
+to the old open question is yes: a defender who meets a raid in the street when
+the building beside it has windows is a defender left standing about, and the
+fun of these missions is the target network holding out from its buildings.
+
+- **The mission decides first.** Each commander plans its duties exactly as its
+  own command doc says (`raid-command.md`, `assault-command.md`,
+  `sabotage-command.md`, `extraction-command.md`) and then offers squads. Its
+  held reserve is offered **roving**, and the reserve floor applies to it. A
+  squad on a stationary mission post — the Raid target's guard and responders,
+  an Assault routine post or responder, a Sabotage site post, the Extraction
+  source guard and perimeter responders — is offered on **duty**: it may man only
+  a place within a dozen cells of its post, so the post is held from a window
+  rather than given up, and it is not the reserve the floor protects. A squad
+  the mission stops offering — its alarm took it, its duty moved, its area
+  changed — is forgotten that pulse: the mission outranks the place.
+- **Never offered:** authored garrisons and declared holds (born manned, and a
+  building whose born garrison stands in it counts as manned), external owners,
+  Assault's contact response when it is not on a post, Extraction's
+  interdiction, crews, demolition squads, machines (which guard instead).
+- **A squad in a fight takes the cover beside it.** A squad in local contact
+  may be sent only to a place within a few cells of it, and is not held to the
+  reserve floor: taking the building is how it fights the fight it is in. A
+  march across the map to a pressed building is never sent; the missions have
+  no flow tier, so the arrival bound is what keeps manning local.
+- **Layers:** off an apron into the envelope of the building it fronts, out of
+  an envelope into its rooms until the building has been quiet for a while,
+  then back to the mission.
+- **Machines.** A free lance the mission holds in reserve, or one fighting near
+  the place, is attached to a manned, pressed place by the machine guard's
+  director and bounds, and stands down with the garrison; while it guards it
+  carries no mission order.
+- A mission's published picture keeps each squad's mission role and names the
+  manning in its reason, so the mission's own memory of routine and response is
+  read as before. `-Dbattle.mission.reactiveDefence=false` is the control and
+  plays the battle as it was.
+
+The Veteran's Job and Cold Account run these commanders and inherit it. The
+bespoke story commanders give every defender squad an authored duty and are
+left as they are (an open question below).
+
+The scene `mission-defence` plays it on the Raid's and the Assault's production
+maps with the mission's own commander: a building pressed by a party is manned
+from the pool by the commander's envelope order, a holder stands to at its
+windows, and the building is given back within the dwell once belief of the
+party cools; in `raid-lances` a reserve lance guards the manned building from
+outside it, within the bound, and stands down with the garrison.
+
+Measured on six seeds per mission (the canonical fixture and five offsets)
+against the same-build control, with `commanderEvidence`:
+
+| mission | manning orders | releases | fall backs (rooms) | marine losses on / off | defender losses on / off | outcomes on / off |
+|---|---:|---:|---:|---:|---:|---|
+| Raid | 18 | 4 | 3 (3) | 123 / 106 | 125 / 115 | defender 4, marines 1, timeout 1 / 3, 2, 1 |
+| Assault | 23 | 3 | 9 (9) | 351 / 370 | 242 / 237 | timeout 5, defender 1 / the same |
+| Sabotage | 19 | 4 | 4 (4) | 78 / 68 | 92 / 106 | defender 4, marines 2 / 3, 3 |
+| Extraction (alarm fixture) | 28 | 5 | 5 (5) | 141 / 133 | 196 / 188 | marines 6 / 6 |
+
+One to five squads held at once; no reserve lance existed on these fixtures, so
+no guard was attached outside the scene. Outcomes moved by a seed or two
+either way, inside the noise of six seeds: the defence reads as buildings held
+and given back rather than as a different balance. Sabotage's battles ran
+shorter (18,086 ticks against 21,226 over the six) and Extraction's last seed
+ran longer (4,549 against 2,585).
 
 ## Decided direction
 
@@ -383,7 +450,12 @@ Owner, 2026-10-20: where a choice is open, prefer the one that adds fun.
   `machine-guard`): the fun is a tank and a rifle squad reading as one position,
   and a defending lance walking up beside the trench the attack leans on. A
   guard screens the stretch of a run under the click, not the whole belt, which
-  is the same finer place the open question below asks for.
+  is the same finer place the open question below asks for. A manned building
+  draws a guard as a manned run does: the player's click on a held place or a
+  compound building its side mans, on any map, and a commander's attachment to
+  a building envelope it mans or a building its own garrison stands in, under
+  the same bounds (scene `machine-guard`, loops `mission-building` and
+  `mission-building-commander` on the Raid's map).
 
 ## Stretches on the trial ground
 
@@ -439,11 +511,14 @@ the battle and never mans the new ground.
   apron, against seven in ten on a stock map: the places' circulation roads run
   close to their doors. Whether to let an apron stand on a circulation road the
   attack does not use is open.
-- **Mission defenders.** Whether the Raid, Assault, Sabotage and Extraction
-  defenders should man held buildings reactively, as Conquest's does, or keep
-  their authored posts.
-- **Machines and envelopes.** Machines guard the runs their side mans, not the
-  buildings; whether a manned building should draw a machine guard is open.
+- **Story commanders.** The bespoke story commanders (Junction, Relay Nine,
+  Black Sluice and the rest) give every defender squad an authored duty and
+  claim nothing else; a story map's unowned patrols could man its buildings
+  under the same law, but a story commander reads its own issuer to know which
+  squads are its own, so the claim needs a seam that does not enrol them.
+- **Mission flow.** The procedural missions man only what a squad can reach
+  while the pressure lasts, and have no staging tier to move the reserve toward
+  pressure; whether they should is open.
 
 ## Stories
 

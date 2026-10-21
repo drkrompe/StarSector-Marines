@@ -148,6 +148,20 @@ class MachineGuardOrderTest {
     }
 
     @Test
+    void aCommandersOrderToManTheBuildingByACopyOfItsNodeMansIt() {
+        AssaultTarget place = AssaultTarget.place(PLACE);
+        garrisonAt(10, 10);
+        Squad squad = sim.getSquad(infantryId);
+        squad.aliveMembers = 1;
+        TacticalNode copy = new TacticalNode(PLACE.kind, PLACE.anchorX, PLACE.anchorY, PLACE.left, PLACE.top,
+                PLACE.right, PLACE.bottom, Faction.ALLY, HeldPlaces.PRIORITY, 0);
+        squad.assignedObjective = ObjectiveAssignment.holdEnvelope(infantryId, copy, 45, 41, 6);
+        assertTrue(MachineGuards.sentTo(sim, Faction.MARINE, place),
+                "a commander's facts carry a copy of the node; the same footprint is the same building");
+        assertEquals(TacticalOrderIntent.GUARD, TacticalOrderIntent.resolve(sim, mechSelected(), 45, 45));
+    }
+
+    @Test
     void anArmedVehicleGuardsAndAnUnarmedOneOnlyMoves() {
         garrisonAt(45, 45);
         long tank = sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, Faction.MARINE, VehicleMission.deployed(20.5f, 20.5f));

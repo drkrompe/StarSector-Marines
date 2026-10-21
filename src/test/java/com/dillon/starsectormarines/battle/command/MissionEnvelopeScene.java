@@ -184,7 +184,7 @@ public final class MissionEnvelopeScene implements BehaviorScene {
      * Open ground reached on foot from {@code (fromX, fromY)} whose gap to the building's box is within
      * {@code [minGap, maxGap]}, with room for a squad's cluster (four by two), and in sight of {@code sees} if given.
      */
-    private static int[] ground(NavigationGrid grid, TacticalNode building, int fromX, int fromY, int minGap, int maxGap,
+    static int[] ground(NavigationGrid grid, TacticalNode building, int fromX, int fromY, int minGap, int maxGap,
                                 int[] sees) {
         int w = grid.getWidth();
         int h = grid.getHeight();
@@ -221,7 +221,7 @@ public final class MissionEnvelopeScene implements BehaviorScene {
     }
 
     /** A walkable cell far from {@code (x, y)}: a corner of the map's open ground, out of the scene's way. */
-    private static int[] far(NavigationGrid grid, int x, int y) {
+    static int[] far(NavigationGrid grid, int x, int y) {
         int[] best = null;
         long bestDistance = -1;
         for (int cy = 0; cy < grid.getHeight(); cy += 4) {

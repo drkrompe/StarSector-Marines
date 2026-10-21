@@ -524,7 +524,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         // Manning a pressed place outranks staging: it takes the free or waiting squads that can arrive in time, and
         // flow then posts what is left (counting the squads just sent as manned) behind whatever is still unanswered.
         if (reactive) manGarrisonables(places, frame.topology(), candidates, staged, allSquads, selected, justReleased, directives);
-        planMachineGuards(reactive ? places : null, candidates, contactMachines, selected, guarding, allSquads, directives);
+        planMachineGuards(reactive ? places : null, ownGarrisoned, candidates, contactMachines, selected, guarding,
+                allSquads, directives);
         if (flowOn) {
             flowToPressure(influence, reactive ? places : null, frame.topology(), frame.perspective(), held,
                     candidates, staged, allSquads, selected, justReleased, directives);
@@ -560,12 +561,13 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
      * is in the pool and this pulse gave it nothing (no track response, no structure task); a lance in local contact is
      * offered too, for a place near its fight. The orders are given in {@link #afterCommit}.
      */
-    private void planMachineGuards(GarrisonableRegistry places, List<PlanningSquad> candidates,
+    private void planMachineGuards(GarrisonableRegistry places, Set<Integer> ownGarrisoned,
+                                   List<PlanningSquad> candidates,
                                    List<PlanningSquad> contactMachines, Set<Integer> selected,
                                    Map<Integer, PlanningSquad> guarding, Map<Integer, PlanningSquad> allSquads,
                                    Map<Integer, SquadDirective> directives) {
         List<MachineGuardDirector.Place> manned = places == null ? List.of()
-                : mannedPlaces(places, allSquads, directives, garrisons.hotPlaces());
+                : mannedPlaces(places, allSquads, directives, ownGarrisoned, garrisons.hotPlaces());
         IntBinaryOperator placeAt = places == null ? (x, y) -> -1 : places::idAt;
         Map<Integer, MachineGuardDirector.Machine> lances = new TreeMap<>();
         for (PlanningSquad squad : guarding.values()) lances.put(squad.id, machineOf(squad));
@@ -603,19 +605,23 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     }
 
     /**
-     * The places this side mans after this pulse's manning: every run a squad is ordered to man and is not falling
-     * back from, the pressed ones first in the director's own order (most pressed first), then the rest by id.
+     * The places this side mans after this pulse's manning: every stretch or building envelope a squad is ordered to
+     * man and is not falling back from, and every building its own garrison still stands in, the pressed ones first in
+     * the director's own order (most pressed first), then the rest by id.
      */
     static List<MachineGuardDirector.Place> mannedPlaces(GarrisonableRegistry places, Map<Integer, PlanningSquad> squads,
-                                                         Map<Integer, SquadDirective> directives, int[] hotPlaces) {
-        Set<Integer> mannedIds = new TreeSet<>();
+                                                         Map<Integer, SquadDirective> directives,
+                                                         Set<Integer> ownGarrisoned, int[] hotPlaces) {
+        Set<Integer> mannedIds = new TreeSet<>(ownGarrisoned);
         for (PlanningSquad squad : squads.values()) {
-            if (squad.aliveMembers <= 0 || squad.machine || squad.assignedObjective == null
-                    || !squad.assignedObjective.isGarrison()) continue;
+            if (squad.aliveMembers <= 0 || squad.machine) continue;
+            int place = MachineGuardDirector.placeManned(squad.assignedObjective, places);
+            if (place < 0) continue;
+            // A squad driven off a stretch is leaving it; one driven off an apron into its building mans the building.
             SquadDirective directive = directives.get(squad.id);
-            if (directive != null && directive.reason() == AssignmentReason.DEFENDER_GARRISONABLE_FALL_BACK) continue;
-            int place = places.idAt(squad.assignedObjective.targetCellX(), squad.assignedObjective.targetCellY());
-            if (place >= 0) mannedIds.add(place);
+            if (directive != null && directive.reason() == AssignmentReason.DEFENDER_GARRISONABLE_FALL_BACK
+                    && !places.isEnvelope(place)) continue;
+            mannedIds.add(place);
         }
         return MachineGuardDirector.manned(mannedIds, hotPlaces, places);
     }

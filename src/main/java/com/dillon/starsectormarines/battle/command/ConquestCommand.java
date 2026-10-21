@@ -1187,16 +1187,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
             ConquestCommandFacts.Compound compound = CompoundGround.frontedBy(places, place, compounds);
             return compound != null && compound.state() == CompoundService.CompoundState.MARINE_HELD;
         };
-        // A taken building its own garrison holds (the squad a captured compound is sent) is manned already.
-        Set<Integer> ownGarrisoned = new TreeSet<>();
-        for (PlanningSquad squad : allSquads.values()) {
-            ObjectiveAssignment order = squad.assignedObjective;
-            if (squad.aliveMembers <= 0 || squad.machine || order == null || order.kind() != AssignmentKind.HOLD_NODE
-                    || order.isEnvelope()) continue;
-            int envelope = places.envelopeOf(order.targetNode());
-            if (envelope >= 0) ownGarrisoned.add(envelope);
-        }
-        heldGround.heldByOwnGarrison(ownGarrisoned);
+        heldGround.heldByOwnGarrison(ownGarrisons(places, allSquads));
         for (HeldGround.Sent man : heldGround.man(places, free, hold.cap - hold.holders, taken, takenCompound,
                 (sx, sy, x, y) -> frame.topology().inBounds(sx, sy) && frame.topology().isWalkable(sx, sy)
                         && (sx == x && sy == y || frame.topology().reachable(sx, sy, x, y)))) {
@@ -1210,10 +1201,23 @@ public final class ConquestCommand implements ConquestFrontCommand,
         }
     }
 
+    /** Taken buildings their own garrison holds (the squad a captured compound is sent): manned already. */
+    private static Set<Integer> ownGarrisons(GarrisonableRegistry places, Map<Integer, PlanningSquad> allSquads) {
+        Set<Integer> ownGarrisoned = new TreeSet<>();
+        for (PlanningSquad squad : allSquads.values()) {
+            ObjectiveAssignment order = squad.assignedObjective;
+            if (squad.aliveMembers <= 0 || squad.machine || order == null || order.kind() != AssignmentKind.HOLD_NODE
+                    || order.isEnvelope()) continue;
+            int envelope = places.envelopeOf(order.targetNode());
+            if (envelope >= 0) ownGarrisoned.add(envelope);
+        }
+        return ownGarrisoned;
+    }
+
     /**
      * The machine guard on taken ground (`garrisonables.md`, machine guard): a lance the muster, the capture pass and
-     * the holders left free stands guard by a taken run this side mans while a counter-attack is believed pressing it,
-     * by {@link MachineGuardDirector}'s laws. Momentum first, as for the holders: a guarding lance stays in the pool,
+     * the holders left free stands guard by a taken run or building this side mans while a counter-attack is believed
+     * pressing it, by {@link MachineGuardDirector}'s laws. Momentum first, as for the holders: a guarding lance stays in the pool,
      * so a company that recruits it or a capture that commits it takes it, and its guard stands down; in the
      * convergence phases every guard stands down. A standing guard leaves the lane passes for this pulse.
      */
@@ -1231,15 +1235,16 @@ public final class ConquestCommand implements ConquestFrontCommand,
         }
         List<MachineGuardDirector.Place> manned = List.of();
         if (places != null) {
-            Set<Integer> mannedIds = new TreeSet<>();
+            // Taken stretches and buildings this pulse's holders man, and taken buildings their own garrison holds.
+            Set<Integer> mannedIds = ownGarrisons(places, allSquads);
             for (PlanningSquad squad : allSquads.values()) {
-                if (squad.aliveMembers <= 0 || squad.machine || squad.assignedObjective == null
-                        || !squad.assignedObjective.isGarrison()) continue;
+                if (squad.aliveMembers <= 0 || squad.machine) continue;
+                int place = MachineGuardDirector.placeManned(squad.assignedObjective, places);
+                if (place < 0) continue;
                 SquadDirective directive = directives.get(squad.id);
                 if (directive == null || directive.reason() != AssignmentReason.HOLD_GROUND_MAN
                         && directive.reason() != AssignmentReason.HOLD_GROUND_STAND) continue;
-                int place = places.idAt(squad.assignedObjective.targetCellX(), squad.assignedObjective.targetCellY());
-                if (place >= 0) mannedIds.add(place);
+                mannedIds.add(place);
             }
             manned = MachineGuardDirector.manned(mannedIds, heldGround.pressedPlaces(), places);
         }

@@ -285,7 +285,6 @@ public final class MechMoveOrderSystem {
         if (moveToward(mech, order, sim) == PathRequestStatus.FAILED) {
             sim.clearPath(mech);
             // The cell is set aside and the serial pass chooses another; after a few the guard gives up.
-            System.out.println("DBGGUARD fail " + mech + " at " + sim.world().cellX(mech) + "," + sim.world().cellY(mech) + " to " + order.destinationX() + "," + order.destinationY() + " tick " + sim.getSimTickIndex());
             if (guard.noteRouteFailure() >= GUARD_ROUTE_FAILURES) service.release(mech, order);
         }
         return true;

@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — the counter-attack is for places, not forts: a lost place (a compound, a fort as one case) is observed by a probe and retaken in proportion to its observed holders or not at all (`PlaceCounterattack`, scenes `place-counterattack`, `fort-counterattack`), and a turned place's ground is the counter-attack's alone; a machine sent to a garrisonable its own side mans stands guard beside it as heavy support, by the player's click or a commander's bounded attachment (see machine guard under "Fighting positions"). Earlier: a machine clicked onto a garrisonable its side believes is enemy-held assaults it by fire from a stand-off and never enters.
+Updated: 2026-10-20 — a manned building draws a machine guard as a manned run does: the player's GUARD click names a compound building as well as a held place, on any map, and a commander attaches a lance to a building envelope it mans or a building its own garrison holds (see machine guard under "Fighting positions"). Earlier: the counter-attack is for places, not forts: a lost place (a compound, a fort as one case) is observed by a probe and retaken in proportion to its observed holders or not at all (`PlaceCounterattack`, scenes `place-counterattack`, `fort-counterattack`), and a turned place's ground is the counter-attack's alone; a machine sent to a garrisonable its own side mans stands guard beside it as heavy support, by the player's click or a commander's bounded attachment (see machine guard under "Fighting positions"). Earlier: a machine clicked onto a garrisonable its side believes is enemy-held assaults it by fire from a stand-off and never enters.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -2227,6 +2227,17 @@ pool at once, and never in the convergence phases. Only a believed mover, not a
 nest left standing, presses taken ground (`garrisonables.md`, holding taken
 ground; scene `attacker-holds-ground`).
 
+The Raid, Assault, Sabotage and Extraction defenders man their maps' places by
+the same assignment (`MissionGarrisons`; `garrisonables.md`, mission
+defenders). The mission commander decides its own duties first and then
+offers squads: its held reserve as roving, a squad on a stationary mission
+post only for a place beside that post, so the post is held from a window
+rather than given up. A squad in a fight is offered only the cover beside it,
+and a squad the mission takes back is forgotten at once: the mission outranks
+the place. Authored garrisons, chasers and the alarm's own mobilization are
+never touched, and a free lance of the reserve guards what the defender mans
+within the machine guard's bounds (scene `mission-defence`).
+
 **What it pays is composure and reach, never protection.** Cover already
 reduces damage and stops rounds, and the cells of a position already carry it;
 a dug-in damage bonus would count the same ground twice. (A trench covers the
@@ -2343,9 +2354,16 @@ direct fire alone. The scene `machine-assault` is the acceptance
 **Machines guard the places their side mans.** The same click on a run or held
 place the machine's own **side mans** — somebody of the side standing in it, or
 an infantry squad of the side ordered to it (an occupy or hold order, or a
-commander's order to man it) — and does not believe enemy-held is a **guard**,
+commander's order to man it, which names the building by its footprint, since a
+commander's facts may carry a copy of the node) — and does not believe
+enemy-held is a **guard**,
 and the cursor says GUARD, heavy support, in the friendly colour; an unarmed
 hull only moves, and a place believed to hold an enemy is still an assault. A
+guard's place is a run, a held place, or — when the click finds neither — the
+building whose envelope the cell lies in (`garrisonables.md`, building
+envelopes), so a compound's command post, barracks or armory its side mans is
+guarded as a held place is, on any map that offers it; no infantry click names
+those buildings, and an assault still does not. A
 run is guarded by the **stretch** under the click, the run's cells within twelve
 of it, so a lance sent to the garrison at a fort's gate stands at the gate rather
 than at the far corner of the belt. A guard stands on a **guard cell**: connected
@@ -2373,8 +2391,11 @@ the acceptance (`MachineGuards`).
 
 A commander gives the same guard to a lance of its own side
 (`MachineGuardDirector`, `CommandEffects.guardPlace`), and a player's order on a
-chassis outranks it. The director knows nothing of which side it serves: given
-the places the side mans this pulse, which of them are pressed to the manning
+chassis outranks it. The director knows nothing of which side it serves, nor
+which kind of place it guards: given the places the side mans this pulse — every
+stretch or building envelope a squad is ordered to man
+(`MachineGuardDirector.placeManned`), and every building its own garrison holds,
+which the manning already counts as manned — which of them are pressed to the manning
 start level, and the side's free lances, it attaches at most one lance a pulse to
 a manned, pressed place nobody guards, one lance a place, never more at once than
 half the side's lances rounded up and never more than two, and only a useful
@@ -2387,8 +2408,13 @@ work. The defender offers lances its pool left without a track response or a
 structure task; the attacker holding taken ground offers lances the muster, the
 capture pass and the holders left, keeps a guarding lance in the pool so a
 company that recruits it or a capture that commits it takes it, and stands every
-guard down in the convergence phases. No side fields armed vehicles under a
-commander, so the commanders' guards are lances.
+guard down in the convergence phases. A squad driven off a stretch is leaving
+it and mans nothing for the guard; one driven off a compound's apron into its
+building mans the building. No side fields armed vehicles under a commander, so
+the commanders' guards are lances. The director is the commanders' whole half of
+the guard, so a commander that comes to man places of its own — on any map —
+attaches its lances by handing it what it mans; the mission defenders do not man
+yet, and so guard nothing.
 
 **A player's squad may opt into reactive manning: the GARRISON stance.** It is a
 per-squad switch on the order bar (`[G] GARRISON`, and the `G` key), never a
