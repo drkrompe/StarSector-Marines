@@ -2,65 +2,85 @@ package com.dillon.starsectormarines.tools.tilesetauthoring;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.BasicStroke;
+import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import javax.imageio.ImageIO;
 
-/** Six isolated slots; equipment uses 48 guide pixels per gameplay cell. */
+/**
+ * The loading-bay pieces re-drawn at real size, where a cell is about 0.75 m (a crewman's shoulders are 0.6 cells):
+ * the manifest desk, two cells by one, and the pallet tug, one cell by three. The rest of the kit (conveyor, tote,
+ * cartons, staging deck) was already true and keeps its original generation.
+ *
+ * <p>Drawn large, 320 px per cell: at 128 px per cell ImageGen draws boxy pieces far too deep. The worked face of
+ * every piece is its bottom edge: a sprite's top edge lies at its footprint's highest row, and each piece is worked
+ * from the row below it. The desk's operator side is its near (bottom) fascia; the tug's tiller is at the bottom
+ * and its forks point up, away from the operator.
+ *
+ * <pre>
+ *   slot           frame (x,y,w,h px)    real size
+ *   manifest-desk  160, 80,640,320       1.45 x 0.66 m desk, screen at the back, operator fascia at the bottom
+ *   pallet-tug     880, 80,320,960       0.68 x 1.9 m electric pallet jack, forks up, tiller at the bottom
+ * </pre>
+ */
 public final class LoadingBayTemplate {
     private LoadingBayTemplate() {}
+
+    /** Pixels per cell on the canvas; shapes below are drawn in 64ths of a cell. */
+    static final int C = 320;
+
     public static BufferedImage render() {
-        BufferedImage image = new BufferedImage(1024, 768, BufferedImage.TYPE_INT_ARGB);
-        for (int slot=0;slot<6;slot++) {
-            Graphics2D g=image.createGraphics();
-            g.translate(24+slot%3*336,48+slot/3*352);
-            switch(slot) {
-                case 0 -> { // 4x2 receiving desk, broad uncluttered worktop.
-                    box(g,4,4,184,88,0x40483E); box(g,11,10,170,75,0x9B9F90);
-                    box(g,18,17,50,35,0x465649); box(g,23,21,40,26,0x748879);
-                    box(g,20,62,47,12,0x616D5E);box(g,103,21,58,49,0xB7B7A7);
-                    box(g,114,29,35,5,0x93998B);
-                }
-                case 1 -> { // 2x3 electric pallet tug, open paired forks at bottom.
-                    box(g,5,12,86,62,0x374437); box(g,13,16,70,50,0x7D8974);
-                    box(g,19,3,13,16,0x29372C);box(g,65,3,13,16,0x29372C);
-                    box(g,17,68,18,72,0x8C9782);box(g,62,68,18,72,0x8C9782);
-                    box(g,37,33,23,20,0x465640);
-                    g.setColor(new Color(0xADB09E));g.setStroke(new BasicStroke(6));
-                    g.drawLine(48,38,48,12);g.drawLine(34,10,62,10);
-                }
-                case 2 -> { // 6x2 short broad-roller transfer conveyor, continuous frame.
-                    box(g,4,10,280,76,0x46513F);
-                    for(int x=14;x<278;x+=24) box(g,x,18,17,60,0xA1A795);
-                    box(g,4,6,280,8,0x66735E);box(g,4,82,280,8,0x66735E);
-                    box(g,15,0,23,6,0x343F32);box(g,249,0,23,6,0x343F32);
-                    box(g,15,90,23,6,0x343F32);box(g,249,90,23,6,0x343F32);
-                }
-                case 3 -> { // 2x2 shelf overlay: sealed insulated provisions tote.
-                    box(g,14,16,68,64,0x68715F);box(g,20,21,56,54,0xA4AA96);
-                    box(g,27,27,42,37,0x929C87);box(g,11,39,7,16,0x404F3E);
-                    box(g,78,39,7,16,0x404F3E);box(g,39,69,18,6,0xCAD0B9);
-                }
-                case 4 -> { // 2x2 shelf overlay: orderly strapped cartons, no pallet baked in.
-                    box(g,14,16,36,63,0xA3A08A);box(g,53,16,29,63,0x96977F);
-                    box(g,23,16,6,63,0x6D7660);box(g,66,16,6,63,0x6D7660);
-                    box(g,14,44,68,6,0x69725D);
-                }
-                case 5 -> { // 1x1 enlarged seamless rubberized staging-deck sample.
-                    box(g,0,0,192,192,0x81877A);
-                }
-            }
-            g.dispose();
-        }
+        BufferedImage image = new BufferedImage(4 * C, 4 * C, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = image.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Manifest desk 2x1: worktop with a recessed screen at the back, a clipboard, a keypad strip, and the
+        // operator's fascia with two drawer pulls along the near (bottom) edge.
+        at(g, C / 2, C / 4);
+        rect(g, 2, 4, 124, 56, 0x40483E);
+        rect(g, 4, 6, 120, 44, 0x9B9F90);
+        rect(g, 12, 9, 36, 22, 0x465649);
+        rect(g, 15, 11, 30, 17, 0x748879);
+        rect(g, 80, 11, 30, 28, 0xB7B7A7);
+        rect(g, 88, 13, 14, 3, 0x93998B);
+        rect(g, 14, 38, 40, 8, 0x616D5E);
+        rect(g, 2, 50, 124, 10, 0x353D35);
+        rect(g, 20, 54, 22, 3, 0x92988B);
+        rect(g, 86, 54, 22, 3, 0x92988B);
+
+        // Pallet tug 1x3: two forks pointing up, a load backrest, the motor body and the tiller handle at the
+        // bottom, where the operator walks it.
+        at(g, 11 * C / 4, C / 4);
+        rect(g, 8, 22, 14, 98, 0x8C9782);
+        rect(g, 42, 22, 14, 98, 0x8C9782);
+        rect(g, 11, 26, 8, 10, 0x29372C);
+        rect(g, 45, 26, 8, 10, 0x29372C);
+        rect(g, 5, 114, 54, 7, 0x5D6656);
+        rect(g, 3, 120, 58, 36, 0x374437);
+        rect(g, 7, 124, 50, 28, 0x7D8974);
+        rect(g, 24, 130, 16, 14, 0x465640);
+        rect(g, 29, 156, 6, 24, 0xADB09E);
+        rect(g, 18, 178, 28, 8, 0xADB09E);
+
+        g.dispose();
         return image;
     }
-    private static void box(Graphics2D g,int x,int y,int w,int h,int rgb) {
-        g.setColor(new Color(rgb));g.fillRect(x,y,w,h);
+
+    /** Places a frame's top-left corner at canvas pixel ({@code x}, {@code y}), scaled to 64ths of a cell. */
+    private static void at(Graphics2D g, int x, int y) {
+        g.setTransform(new AffineTransform());
+        g.translate(x, y);
+        g.scale(C / 64.0, C / 64.0);
     }
+
+    private static void rect(Graphics2D g, int x, int y, int w, int h, int rgb) {
+        g.setColor(new Color(rgb)); g.fillRect(x, y, w, h);
+    }
+
     public static void main(String[] args) throws Exception {
-        Path path=Path.of(args[0]);Files.createDirectories(path.getParent());
-        ImageIO.write(render(),"png",path.toFile());
+        Path path = Path.of(args[0]); Files.createDirectories(path.getParent());
+        ImageIO.write(render(), "png", path.toFile());
     }
 }

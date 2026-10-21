@@ -17,8 +17,13 @@ package com.dillon.starsectormarines.battle.appearance;
  * <p>What the camera overhead cannot see, the legs swinging under the barrel, is implied by what it can:
  * each hoof carries a load that eases in after it lands; the shoulders and the hips shift toward whichever
  * side of their pair carries more weight and away from a hind hoof driving off; the hips surge forward on
- * the push-off. The head drops for the charge (from the tell to the pull-up) and rears and slams with
- * each blow.
+ * the push-off. The head drops for the charge (from the tell to the pull-up).
+ *
+ * <p>A blow is the whole body's. In the wind-up the weight goes back onto the hind legs, the shoulders rise
+ * and the front hooves leave the ground; then it drives forward through the shoulders, the front hooves stamp
+ * down ahead of where they stood and the head drives with them, and it settles back, the front hooves
+ * stepping in under it. Stunned, it stands splay-footed with its head hung low, shaking it slowly from side to
+ * side, and its shoulders wander.
  *
  * <p>Ported from the approved motion study, {@code art-source/rav-redesign/exploration/brute_skeleton.py}.
  */
@@ -73,6 +78,13 @@ public final class RavBruteRig {
     private static final float CHARGE_DY = -45f, CHARGE_K = 0.93f, CHARGE_EASE = 0.35f;
     /** A blow: rear back over WIND, slam over SLAM, hold, then recover over BACK. */
     static final float WIND = 0.32f, SLAM = 0.07f, HOLD = 0.25f, BACK = 0.35f;
+    /**
+     * The body in a blow, cells: how far it rocks back in the wind-up and drives forward in the slam, how
+     * high the shoulders rise, and how high the front hooves lift.
+     */
+    static final float LUNGE_BACK = 0.07f, LUNGE = 0.15f, REAR = 0.09f, FRONT_LIFT = 0.08f;
+    /** Stunned: the head's slow shake (degrees, cycles a second) and the shoulders' wander (cells, cycles). */
+    static final float DAZE_YAW = 14f, DAZE_HZ = 1.1f, DAZE_SWAY = 0.03f, DAZE_SWAY_HZ = 0.6f;
 
     // ------------------------------------------------------------------ pose layout
     /** First point of each leg; front legs have three points (root, elbow, hoof), hind legs four. */
@@ -102,6 +114,9 @@ public final class RavBruteRig {
     private float lastCooldown;
     private float sinceBlow = Float.MAX_VALUE;
     private float headDy, headK = 1f, crouch;
+    private float lunge, rear, frontLift;
+    private boolean frontsLifted;
+    private float stunTime = -1f, headYaw, daze;
 
     public RavBruteRig() {
     }
@@ -142,6 +157,7 @@ public final class RavBruteRig {
         float speed = moved / dt;
 
         advanceHead(cooldown, chargePhase, dt);
+        advanceDaze(stunned, dt);
         boolean bracing = sinceBlow < SLAM + HOLD || rearing(cooldown);
 
         Mode next;
@@ -178,13 +194,14 @@ public final class RavBruteRig {
         }
         float run = next.run;
         float pushL = push(HL), pushR = push(HR);
-        float swayF = 0.035f * (load[FR] - load[FL]) * run;
+        float swayF = 0.035f * (load[FR] - load[FL]) * run
+                + daze * DAZE_SWAY * (float) Math.sin(2 * Math.PI * DAZE_SWAY_HZ * Math.max(0f, stunTime));
         float swayH = 0.045f * (load[HR] - load[HL]) * run + 0.02f * run * (pushL - pushR);
         float surge = 0.03f * run * (pushL + pushR) - 0.012f * run * (load[FL] + load[FR] - 1f);
         float riseF = 0.012f * run * (1f - 0.5f * (load[FL] + load[FR]));
         float riseH = 0.012f * run * (1f - 0.5f * (load[HL] + load[HR]));
-        set(SHOULDER, swayF, SHOULDER_Y + surge * 0.4f, SHOULDER_Z - crouch + riseF);
-        set(HIP, swayH, HIP_Y + surge, HIP_Z - crouch * 1.6f + riseH);
+        set(SHOULDER, swayF, SHOULDER_Y + surge * 0.4f + lunge, SHOULDER_Z - crouch + riseF + rear);
+        set(HIP, swayH, HIP_Y + surge + lunge * 0.6f, HIP_Z - crouch * 1.6f + riseH - rear * 0.3f);
         solveLegs();
     }
 
@@ -204,29 +221,60 @@ public final class RavBruteRig {
         boolean headDown = chargePhase == TELL || chargePhase == RUN;
         charge += ((headDown ? 1f : 0f) - charge) * Math.min(1f, dt / (CHARGE_EASE / 3f));
         float dy = CHARGE_DY * charge, k = 1f + (CHARGE_K - 1f) * charge, c = 0f;
-        if (sinceBlow < SLAM) {                                    // the slam: from reared to driven down
+        float l = 0f, r = 0f, f = 0f;
+        frontsLifted = false;
+        if (sinceBlow < SLAM) {                                    // the drive: from reared to stamped down
             float s = RavRunnerRig.easeOut(sinceBlow / SLAM);
             dy = 40f - 110f * s;
             k = 1.08f - 0.13f * s;
             c = 0.03f - 0.05f * s;
+            l = -LUNGE_BACK + (LUNGE + LUNGE_BACK) * s;
+            r = REAR - (REAR + 0.03f) * s;
+            f = FRONT_LIFT * (1f - s);
+            frontsLifted = true;
         } else if (sinceBlow < SLAM + HOLD) {
             dy = -70f;
             k = 0.95f;
             c = -0.02f;
+            l = LUNGE;
+            r = -0.03f;
         } else if (sinceBlow < SLAM + HOLD + BACK) {
             float s = RavRunnerRig.smooth((sinceBlow - SLAM - HOLD) / BACK);
             dy = dy + (-70f - dy) * (1f - s);
             k = k + (0.95f - k) * (1f - s);
             c = -0.02f * (1f - s);
-        } else if (rearing(cooldown)) {                            // the wind-up before the blow lands
+            l = LUNGE * (1f - s);
+            r = -0.03f * (1f - s);
+        } else if (rearing(cooldown)) {                            // the wind-up: weight back, forequarters up
             float s = RavRunnerRig.smooth(1f - cooldown / WIND);
             dy = 40f * s;
             k = 1f + 0.08f * s;
             c = 0.03f * s;
+            l = -LUNGE_BACK * s;
+            r = REAR * s;
+            f = FRONT_LIFT * s;
+            frontsLifted = true;
         }
         headDy = dy;
         headK = k;
         crouch = c;
+        lunge = l;
+        rear = r;
+        frontLift = f;
+    }
+
+    /** Stunned: the head hangs and shakes slowly, the shoulders wander; it eases in and out. */
+    private void advanceDaze(boolean stunned, float dt) {
+        if (stunned) stunTime = stunTime < 0f ? 0f : stunTime + dt;
+        else if (daze <= 0f) stunTime = -1f;
+        else stunTime += dt;
+        daze += ((stunned ? 1f : 0f) - daze) * Math.min(1f, dt / 0.15f);
+        if (daze < 1e-3f && !stunned) daze = 0f;
+        float t = Math.max(0f, stunTime);
+        headYaw = daze * DAZE_YAW * (float) Math.sin(2 * Math.PI * DAZE_HZ * t);
+        headDy += daze * (-30f - headDy);
+        headK += daze * (0.95f - headK);
+        crouch += daze * 0.025f;
     }
 
     private void solveFeet(Mode m, float dt, float fwdX, float fwdY) {
@@ -234,7 +282,14 @@ public final class RavBruteRig {
             boolean front = i < 2;
             float rootX = (i % 2 == 0 ? -1f : 1f) * (front ? FRONT_X : HIND_X);
             float neutral = front ? SHOULDER_Y : HIP_Y;
-            if (m == Mode.PLANT) {
+            if (m == Mode.PLANT && front && frontsLifted) {
+                // In a blow the forefeet are the body's: lifted with the shoulders, stamped down ahead.
+                stance[i] = -1f;
+                pinned[i] = false;
+                feet[i * 3] = rootX;
+                feet[i * 3 + 1] = neutral + lunge + 0.03f;
+                feet[i * 3 + 2] = frontLift;
+            } else if (m == Mode.PLANT) {
                 stance[i] = 0.5f;
                 if (!pinned[i]) {
                     float sx, sy, sz;
@@ -345,6 +400,10 @@ public final class RavBruteRig {
     public float headDy() { return headDy; }
     /** The head's scale about the neck: above one reared toward the camera, below it driven down. */
     public float headK() { return headK; }
+    /** How far the forequarters are reared up, cells; negative when driven down. */
+    public float rear() { return rear; }
+    /** The head turned about the neck, degrees, counter-clockwise: a stunned Brute shaking it. */
+    public float headYaw() { return headYaw; }
     /** Whether the hooves are planted this tick. */
     public boolean planted() { return mode == Mode.PLANT; }
 }
