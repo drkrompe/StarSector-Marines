@@ -490,6 +490,13 @@ public final class UnitRenderService implements RenderSystem {
             angle %= 360f;
             layerAngles.put(key, angle);
             float size = layer.cells() * cellPx;
+            if (layer.fireFlash() > 0f) {
+                // The structure's own fire: snap to full brightness and swell, settling as the recoil clock runs.
+                float since = ctx.sim.turretState().recoilTimer(id);
+                float flash = layer.fireFlash() * Math.max(0f, 1f - since / StructureArt.FIRE_FLASH_SECONDS);
+                bright = bright + (1f - bright) * Math.min(1f, flash * 2f);
+                size *= 1f + StructureArt.FIRE_FLASH_SWELL * flash;
+            }
             out.addSprite(RenderLayer.UNITS, sprite.sprite, cx, cy, size * sprite.aspect, size, angle,
                     r * bright, g * bright, b * bright, alphaMult);
         }

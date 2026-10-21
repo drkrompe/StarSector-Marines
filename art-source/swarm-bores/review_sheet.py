@@ -94,7 +94,7 @@ def compare_sheet(parts, ppc: float, title: str) -> Image.Image:
                 place(sheet, at(pass1(part, glow=True), PASS1_CELLS[part], ppc), cx, cy)
                 text = f"{LABELS[part]}: pass 1"
             else:
-                place(sheet, at(current(part, k), make_guide.CANVAS_CELLS[part], ppc), cx, cy)
+                place(sheet, at(current(part, k), make_guide.display_cells(part), ppc), cx, cy)
                 text = f"pass 2, variant {k}"
             label(draw, cx, y0 + band_h - 38, text)
         if row == 0:
@@ -139,7 +139,7 @@ def field_sheet(ppc: float) -> Image.Image:
                 else:
                     variant_count[part] = variant_count.get(part, 0) + 1
                     v = 1 + (i + row) % make_guide.VARIANTS[part]
-                    place(tile, at(current(part, v), make_guide.CANVAS_CELLS[part], ppc), cx, cy)
+                    place(tile, at(current(part, v), make_guide.display_cells(part), ppc), cx, cy)
             sheet.alpha_composite(tile, (round(x0), round(y0)))
             draw.text((x0 + 10, y0 + 6), f"{'pass 1' if side == 0 else 'pass 2'} on {gname}", fill=TEXT, font=font(18))
     return sheet
@@ -169,7 +169,7 @@ def palette_sheet(ppc: float, colony_ppc: float) -> Image.Image:
                 place(sheet, at(pass1(part, glow=True), PASS1_CELLS[part], scale), cx, cy)
             else:
                 folder = purple_dir if which == "purple" else None
-                place(sheet, at(current(part, 1, folder), make_guide.CANVAS_CELLS[part], scale), cx, cy)
+                place(sheet, at(current(part, 1, folder), make_guide.display_cells(part), scale), cx, cy)
             if row == 0:
                 label(draw, cx, y0 + band_h - 36, LABELS[part], 18)
         draw.text((32, y0 + band_h / 2 - 12), name, fill=TEXT, font=font(20))

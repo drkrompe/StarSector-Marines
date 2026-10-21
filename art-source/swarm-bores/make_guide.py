@@ -68,6 +68,24 @@ CANVAS_CELLS = {
     "spore-colony-bore": 2.0,
     "spore-colony-maw": 2.4,
 }
+# How much larger than the modelled body a part is drawn: its layer's `cells` is CANVAS_CELLS times this. The
+# heightfield is modelled at the body's physical size (one cell, one metre) so the sun's shadow length is right
+# for it; the drawn size is raised on top so the structures read as structures on a mass of creep and bodies.
+# Presentation only: the structure's hit radius and footprint do not change with it.
+DISPLAY_SCALE = {
+    "bore": 1.3,
+    "mother-bore": 1.25,
+    "spore-colony-fissure": 1.4,
+    "spore-colony-bore": 1.4,
+    "spore-colony-maw": 1.4,
+}
+
+
+def display_cells(part: str) -> float:
+    """The layer's edge on the map, in cells."""
+    return round(CANVAS_CELLS[part] * DISPLAY_SCALE[part], 2)
+
+
 VARIANTS = {
     "bore": 3,
     "mother-bore": 2,

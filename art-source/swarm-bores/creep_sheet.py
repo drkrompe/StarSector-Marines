@@ -82,7 +82,7 @@ def panel(ground, ppc, centre_px, radius_cells, bodies, palette):
     for part, variant, (dx, dy) in bodies:
         px = centre_px[0] - ox + dx * ppc
         py = centre_px[1] - oy + dy * ppc
-        place(img, sprite(part, variant, palette), make_guide.CANVAS_CELLS[part], ppc, px, py)
+        place(img, sprite(part, variant, palette), make_guide.display_cells(part), ppc, px, py)
     return img
 
 
@@ -104,7 +104,7 @@ def ingame_sheet(frame, bodies):
     for i, (palette, name) in enumerate((("runner", "shipped (runner palette)"), ("purple", "round-3 purples"))):
         crop = frame.crop((W // 2 - 476, 40, W // 2 + 476, H)).copy()
         for part, variant, (dx, dy) in bodies:
-            place(crop, sprite(part, variant, palette), make_guide.CANVAS_CELLS[part], ppc, 476 + dx * ppc,
+            place(crop, sprite(part, variant, palette), make_guide.display_cells(part), ppc, 476 + dx * ppc,
                   H // 2 - 40 + dy * ppc)
         out.alpha_composite(crop, (8 + i * 960, 34))
         label(out, (20 + i * 960, 44), name, 16)
