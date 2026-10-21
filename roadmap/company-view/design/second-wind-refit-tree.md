@@ -2,7 +2,7 @@
 
 Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Mech Lab tracks and their mech passives, the Ship Systems tree and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review. Each reserve is furnished and opened by its facility track; the range, gym, sick bay and lounge carry passives through both Improved tiers. Hydroponics, the wardroom, the briefing room and the holds are tracks fitted into existing rooms, with their supplies, officer-XP, cargo and garrison-intel passives. The brig's improvements, the plot table's own battle passive, Improved-tier dressing (the Mech Lab's included) and the vehicle bay's passives are not built.
 Written: 2026-10-20
-Updated: 2026-10-21 — the reserved facilities' passives and Improved tiers; the briefing room's holo-tank shows the garrison; the brig waits on contract intel.
+Updated: 2026-10-21 — the brig's interrogation waits on a capture mechanic, not on contract intel, which the holo-tank now provides.
 
 The Engineering tab today sells a short list of one-off yard orders: the
 workshop chain (750 / 3,000 / 4,500), the second bay (8,000), three Mech Lab
@@ -213,7 +213,7 @@ repair (integrity between battles).
 | **Sick bay / rehab pool** | heal time: not offered | — | — |
 | **Rec center / lounge** (reserve) | open: no cargo replacement arrives Limited | rec centre: and 30% arrive Gifted (20% neutral) | shore-leave deck: and 10% Exceptional, 35% Gifted |
 | **Wardroom / staff college** | — | officer XP +15% | +30% |
-| **Brig / interrogation** (reserve) | open: the cells and a guard post | not offered: prisoners yield intel on the next contract in that system | — |
+| **Brig / interrogation** (reserve) | open: the cells and a guard post | not offered: waits on a battle that takes prisoners; then a prisoner yields intel on the next contract in that system | — |
 | **Hydroponics** (Life support) | — | supplies upkeep −5% | −10% |
 | **Boat bay services** | — | grounded-boat recovery one day faster | deck crane: boat and Hermes material bills −15% |
 | **Mech Lab field repair** (Fabrication) | neutral | repair clock −25% | spares rack: repair clock −25%, and a weapon assembly fabricates at −25% on every line, which is what refitting a lost mount costs |
@@ -235,8 +235,22 @@ than faked. A wound heals in one day, and Recovery Planning is already floored
 at a day, so a sick bay heal-time tier would change nothing; it waits on
 longer wounds, and the bay's tiers act on fate instead. Replacements cost cargo
 marines, not a fee, so the lounge's top tier raises the intake again rather
-than discounting a price. The brig's interrogation needs contract intel that a
-prisoner could feed; until then the brig opens its cells and stops there.
+than discounting a price. The brig's interrogation waits on prisoners, not on
+intel. The contract half exists: the holo-tank's garrison read (`GarrisonIntel`)
+is the operation's own roster and could be shown, or added to, for a contract a
+prisoner knows about. The other half does not exist. No battle takes anyone
+alive: a defender is fought until killed, or is still on the field when an
+objective ends the battle, and nothing yields, is secured or is carried to a
+boat. `MissionOutcome` records nothing about the defenders at all, so the
+company never holds a prisoner for the brig to question. Counting the defenders
+left standing at a win as captives would be the faked tier the owner ruled out.
+Interrogation is offered once the battle has a capture mechanic: a defender who
+gives up (broken, wounded, cut off), is secured by a marine and brought out on a
+boat, recorded on the outcome by faction and system, and held aboard until
+questioned. Even then it has to show what the holo-tank does not, since
+Briefing II already shows every operation's garrison: where the command post
+stands, or what reinforcement the defenders can call. Until then the brig opens
+its cells and stops there.
 
 ### Combat refit: the hull as a fighting ship
 
@@ -448,7 +462,7 @@ not a checklist. That measurement comes first in the balance story.
 4. **Deficit dressing.** Battered corridor and wall art per core, cleared by
    each core's Restored order.
 5. **Reserved facilities.** Done for the range, gym, sick bay and lounge
-   (passives through both Improved tiers); the brig waits on contract intel,
+   (passives through both Improved tiers); the brig waits on prisoners taken in battle,
    and Improved-tier dressing is not built.
 6. **Mech Lab passives.** Done: calibration, coolant plant, armor shop and
    field repair, on the mech sheet and the briefing line.

@@ -55,8 +55,8 @@ public enum RefitOrder {
             RefitTrack.STRUCTURE, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.RESTORED),
     // The reserved facilities' improvements. Each names cores the room's opening did
     // not: the workshop that cuts its fittings, the overhauled plant that runs its
-    // machinery, the cluster that drives its screens. The brig has none yet: nothing
-    // turns a prisoner into a lead on the next contract.
+    // machinery, the cluster that drives its screens. The brig has none yet: no
+    // battle takes a prisoner for it to question.
     /** Pop-up targets and traps cut in the workshop, run off the overhauled plant. */
     RANGE_MACHINERY(RefitTrack.RANGE, RefitBand.IMPROVED_I, 14_000,
             RefitTrack.FABRICATION, RefitBand.RESTORED, RefitTrack.POWER, RefitBand.IMPROVED_I),
