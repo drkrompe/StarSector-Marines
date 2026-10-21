@@ -546,6 +546,15 @@ for one job in the cycle, and reads that way on screen.
   amber daze mark over anything that can't act, whatever made it so; and the
   squad card's status word naming the cause (knocked down, stalled,
   staggered, stunned) ahead of engaged or wounded.
+
+  Like the Runner it is drawn on its own skeleton (`RavBruteRig`): a plum,
+  plated rhino-ram with a mace head on four boar's legs, the hooves under the
+  body and the shanks over them. It walks, trots and gallops with the hips
+  and shoulders swaying against each other; it plants its feet to stand, to
+  brace for the tell and while it can't act, gallops through a charge with
+  its head down, and rears and drives the head down for each blow, timed off
+  the attack cooldown as the Runner's arms are. Its corpse is still the old
+  single sprite.
 - **Spitter** — fragile, keeps its distance, lobs acid. It backs away from any
   ground enemy that closes inside its charge radius and does not lob while it
   runs. Otherwise a low hostile craft in reach whose skin its acid can bite
