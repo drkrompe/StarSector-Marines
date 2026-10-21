@@ -19,6 +19,11 @@ import java.util.List;
  *
  * <p>{@code groundPad: false} drops the flat footprint pad under a structure that has no base: a body that is grown
  * rather than built (a swarm bore, a spore colony) stands on the ground itself, not on a square of hardstanding.
+ *
+ * <p>{@code variants: N} gives a grown body several paintings so a map of them does not look stamped. A layer path
+ * containing {@value #VARIANT_TOKEN} is resolved per structure to one of {@code 1..N}, the same number for every layer
+ * of that structure (a body and its glow stay a pair), chosen from the structure's entity id. The lighting is baked
+ * into each painting, so a variant is never rotated or mirrored to make another.
  */
 public final class StructureArt {
 
@@ -30,18 +35,42 @@ public final class StructureArt {
      * while the dome is down, and flares when the dome takes a round.
      */
     public record Layer(String spritePath, float cells, float spinDegPerSec,
-                        float pulseHz, float pulseDepth, boolean tintByHolder, boolean dome) {}
+                        float pulseHz, float pulseDepth, boolean tintByHolder, boolean dome) {
+
+        /** This layer's sprite for one painting, {@code variant} counted from 1. */
+        public String spritePath(int variant) {
+            return spritePath.replace(VARIANT_TOKEN, Integer.toString(variant));
+        }
+    }
+
+    /** Placeholder in a layer path that a variant number replaces. */
+    public static final String VARIANT_TOKEN = "{variant}";
+    /** The most paintings one structure may carry. */
+    static final int MAX_VARIANTS = 9;
 
     /** Static base sprite path, or null to keep the flat footprint pad. */
     public final String basePath;
     /** Whether a structure without a base still stands on the flat footprint pad. */
     public final boolean groundPad;
+    /** How many paintings the layers carry; 1 for an ordinary structure. */
+    public final int variants;
     private final List<Layer> layers;
 
-    private StructureArt(String basePath, boolean groundPad, List<Layer> layers) {
+    private StructureArt(String basePath, boolean groundPad, int variants, List<Layer> layers) {
         this.basePath = basePath;
         this.groundPad = groundPad;
+        this.variants = variants;
         this.layers = Collections.unmodifiableList(layers);
+    }
+
+    /** The painting, from 1 to {@link #variants}, that the structure with this entity id wears. */
+    public int variantFor(long entityId) {
+        if (variants <= 1) return 1;
+        long z = entityId + 0x9E3779B97F4A7C15L;
+        z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
+        z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
+        z ^= z >>> 31;
+        return 1 + (int) Math.floorMod(z, (long) variants);
     }
 
     public List<Layer> layers() {
@@ -68,10 +97,15 @@ public final class StructureArt {
             layers.add(new Layer(sprite, cells, spin, pulseHz, pulseDepth,
                     l.optBoolean("tintByHolder", false), l.optBoolean("dome", false)));
         }
+        int variants = json.optInt("variants", 1);
+        if (variants < 1 || variants > MAX_VARIANTS) {
+            throw new JSONException("Structure '" + structureId + "' art declares " + variants
+                    + " variants; 1 to " + MAX_VARIANTS + " are allowed");
+        }
         if (base == null && layers.isEmpty()) {
             throw new JSONException("Structure '" + structureId + "' declares an art block with no base and no layers");
         }
-        return new StructureArt(base, json.optBoolean("groundPad", true), layers);
+        return new StructureArt(base, json.optBoolean("groundPad", true), variants, layers);
     }
 
     private static String text(JSONObject json, String key) {

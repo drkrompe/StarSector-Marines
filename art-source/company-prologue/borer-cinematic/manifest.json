@@ -299,9 +299,9 @@
  ],
  "effects": {
   "collection": "SWFX",
-  "kit": "second-wind-vfx (swfx.apply, hull profile borer-cinematic/vfx_hull.py, state clean, groups thrusters, smoke, beams, lighting; no rig preset)",
+  "kit": "second-wind-vfx (swfx.apply, hull profile borer-cinematic/vfx_hull.py, state clean, groups thrusters, beams, lighting; no smoke group; no rig preset)",
   "beam": "ws001 (mininglaser): dark until beam_t_ws001 is raised; beam_len_ws001 is the distance to the work",
-  "objects": 41,
+  "objects": 37,
   "anchors": {
    "engines": [
     {
@@ -417,14 +417,6 @@
     "note": "RCS quad positions are art placement, not canon.",
     "invalid_drivers": 0
    },
-   "smoke": {
-    "state": "clean",
-    "haze": 3,
-    "dust": 4,
-    "seal_wisps": 0,
-    "welds": 0,
-    "sparks": 0
-   },
    "beams": {
     "beams": 1,
     "missing": 0
@@ -446,5 +438,5 @@
   "scale": "Beside the Shepherd (0.78 m/u) scale the root by 0.25 / 0.78 = 0.3205; in a metre scene by 0.25.",
   "metric": "Hull units; multiply by metres_per_unit for metres. Nothing in the asset is in metres."
  },
- "asset_sha256": "d430155fadcd9978f438d62c483363e968c4281143d8ede1c1dee6a8626ce401"
+ "asset_sha256": "3400d7ad3a238ce1772bb57c3e33e9b72cc2e0402187fc934adfee573da821eb"
 }
