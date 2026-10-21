@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — the shelter stands in a civil-defence compound, a square walled place in the colony plan dressed with towers, gate guns, slits and floodlights; a holdout claims a block behind works (barricade, firing step, gate, gun) with a line team that falls back into the building; the company lands in open fields outside the colony and the lift comes down on them; bores, tiers, surges, spore colonies and the bore-sourced director as built.
+Updated: 2026-10-21 — hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -214,7 +214,8 @@ a shelter hall of bunks, a sick bay, a canteen and a store round a muster
 yard, each furnished as what it is. Because it is planned
 with the colony, the town's streets run up to it, its gates are where they
 cross its wall, and its neighbours are built against it: it fits the layout by
-construction. The colony re-rolls a map that did not build it. The shelter is
+construction, with a strip of cleared earth between its wall and the houses
+round it. The colony re-rolls a map that did not build it. The shelter is
 always its hall.
 
 It is a proper work, but a civil one, partway between a house with sandbags and
@@ -251,8 +252,8 @@ are prey like any of the swarm's, and once the shelter has opened its people
 are too. A holdout **falls** when its garrison is dead and a swarm body is at
 its works (or its walls, without works), or when nobody behind its door is
 still alive. Its survivors leave
-the cohort — overrun, they are the swarm's (harvest's biomass, once harvest
-exists) — and the holdout is no longer anyone's to relieve. The shelter is
+the cohort — overrun, they are the swarm's, harvested like any colonist once
+no escort is near them — and the holdout is no longer anyone's to relieve. The shelter is
 sealed and does not fall. That asymmetry is the triage: the main cohort is
 safe while it waits, the holdouts are not, and which door the company reaches
 first decides who is left to bring out. With one redoubt the rescue plays
@@ -260,12 +261,10 @@ exactly as a single-shelter rescue. `-Dbattle.colonyBreach.redoubts=false` is
 the control: the posts hold militia only and the whole cohort is in the
 shelter.
 
-Where redoubts meet the stories still open: a fallen holdout's people are the
-harvest's easiest biomass, and what a runner does with them is harvest's to
-decide; whether creep under a redoubt weakens its aprons or its garrison is
-creep's to say; and a hive posture that sends strike detachments competes with
-relief for the same squads, so its readiness gate should count pending holdouts
-as unmet need.
+Where redoubts meet the stories still open: whether creep under a redoubt
+weakens its aprons or its garrison is creep's to say. A strike detachment
+competes with relief for the same squads, so the readiness gate counts every
+redoubt still waiting as unmet need (see *Readiness gate*).
 
 **Breach.** The mission-level event of the swarm coming up through the colony.
 The breach has a shape over time (see *Flow*) driven by the **breach sequence**,
@@ -344,31 +343,96 @@ bore to deliver to is found with `nearestLiving`. A feed buys growth at once
 to the bore's fresh biomass, and brings its next surge forward. A feed into a
 collapsed bore is refused and changes nothing: the delivery is lost.
 
-**Harvest.** The swarm's economy. Colonists are food. A runner that brings down
-a colonist (ambient colony civilians, militia, and in the end Marines) does not
-just kill it: it seizes the body and drags it back toward the nearest living
-bore, slowed, as a visible carrier. A carried body delivered into a bore is
-**biomass**: it advances that bore's growth and buys the director a burst of
-spawn capacity there. A carrier killed on the way drops the body, and the
-delivery is lost. Laws:
+**Harvest.** The swarm's economy. Colonists are food. While a bore lives, a
+Runner hunts the colonists it can sense as well as the company and its
+militia, and a body a Runner brings down (a colonist, a militia fighter or a
+Marine on foot) is not left where it fell: the Runner seizes it and becomes a
+**carrier**, dragging the body home down the bore field to the nearest living
+bore at four tenths of its own pace, slower than a walking Marine. The body
+trails a little behind it, lying along the drag. A carrier does not strike. At
+the bore's mouth the body goes into the hole: it is **biomass**, one
+colonist's worth through the feed seam, so the bore grows and its next surge
+comes forward and swells. A carrier killed on the way drops the body where it
+fell; the body lies **loose**, and the next Runner to come within reach takes
+it up again. A carrier whose last bore collapses drops its load the same way.
+Laws:
 
 - Biomass is the only fast path to growth. A starved bore stays a fissure for
   a long time; a fed one reaches maw quickly.
 - Every colonist the company gets out, or keeps alive, is biomass the hive
   never gets. Rescue and hive pressure are the same fight seen from two sides.
 - Carriers are readable and interceptable: a stream of bodies being dragged to
-  a bore is the player's signal that a bore is about to grow.
-- Evacuees in the cohort are never harvested while their escort lives. A lost
-  evacuee may be.
+  a bore is the player's signal that a bore is about to grow, and a carrier is
+  an ordinary Runner to shoot.
+- Only a Runner carries, and only what it killed itself or finds loose. A
+  Brute's or a Spitter's kill, or a body shot down by the company, stays where
+  it fell. No body is seized while no bore lives, because there is nowhere to
+  take it.
+- Never a power suit, a machine or a structure: harvest takes bodies on foot.
+- Evacuees in the cohort are never harvested while their escort lives: one
+  who falls with a Marine or militia fighter within eight cells stays where it
+  fell. A lost evacuee, with nobody near, may be taken.
 - Harvest is deterministic and traced: deliveries per bore appear in the
-  director snapshot.
-- **A dragged body is safe from its own side's direct fire** (owner,
-  2026-10-21). Fire at a carrier, a miss that strays into its load and a round
-  that would go through the carrier never hurt the body being dragged, Marine,
-  militia or colonist; the ray passes it. Area weapons still reach it, behind a
-  switch while the owner decides. It matters once the load can be alive: a
-  Runner can impale a living body and drag it off, and killing the carrier
-  frees it (`runner-impale-drag.md`).
+  director snapshot, and the breach snapshot counts bodies seized, delivered,
+  dropped and still being dragged.
+- `-Dbattle.colonyBreach.harvest=false` is the control: Runners leave the dead
+  where they fall and do not hunt colonists.
+
+**Impale.** Harvest's living version, which makes it a fight instead of a
+funeral. Any blow a Runner lands has a one-in-twenty chance to go in and hold
+instead of wounding: the Runner becomes a carrier and its load is a living
+body, **held** on its blades. Chance is the only thing about the fight that
+decides it, so a fresh Marine in the middle of the line can be taken; the draw
+is keyed by the strike itself (tick, Runner, target) rather than taken from the
+battle's shared stream, so turning impales off changes no other roll. Only a
+body harvest may take is impaled (a Marine on foot, a militia fighter, a
+colonist; never a power suit, never an escorted evacuee), only by a Runner
+that is not already carrying, and only while a bore lives. There is no new
+kind of casualty and no downed state: a held body is a living body that is
+being held. Laws:
+
+- **The impaling blow does no damage**, and a held body takes no harm from the
+  swarm: it is nobody's prey but its carrier's. It does nothing while held (it
+  does not move, fire or take orders) and moves with the carrier, drawn at the
+  carrier's trail point; the drag pose is the Runner art's to draw.
+- **Direct fire never touches a held body** (owner, 2026-10-21). Fire at a
+  carrier, a miss that strays into its load and a round that would go through
+  the carrier never hurt the body on the blades, Marine, militia or colonist:
+  the ray passes it, though the body stays in the battle for everything else.
+  A blast's direct payload is direct fire and never lands on it either.
+- **Area weapons still reach it** (grenades, mortars, rocket blasts, ordnance
+  from the air): calling a blast down on a carrier costs the victim too, and a
+  blast aimed at the held body itself still splashes it.
+  `-Dbattle.colonyBreach.impale.areaHitsHeld=false` is the other answer to
+  the owner's open question, ready to flip. A body killed on the blades is
+  dragged on as an ordinary harvest corpse.
+- **Kill the carrier and the body is freed**: alive where the carrier fell,
+  with a wound in each leg where the blades went through, and back to what it
+  was doing after three seconds. A freed Marine goes back under orders and a
+  medic treats them as any wounded squadmate; a militia fighter goes back to
+  its post; a colonist flees again.
+- **A carrier holding one of a squad's own Marines is that squad's priority
+  target** while it is in sight: a bump to the target choice and nothing more.
+  No squad chases a carrier on its own; going after one is the player's call,
+  and medics never approach a held Marine.
+- **At the bore the body is taken**: killed there and fed in as one body of
+  biomass. A body still held when the battle ends counts as taken.
+- **Morale**: impaling a Marine costs their fire team what a death would, at
+  the moment of the impale and once. Being freed gives nothing back, and being
+  taken costs nothing more.
+- **Casualties**: a freed body is alive like anyone else. One killed while held
+  falls and is rolled as usual. A taken Marine is fallen with a fixed killed in
+  action, no roll and nothing for a sick bay to save: the mission outcome
+  carries the taken beside the fallen. Taken militia and colonists are simply
+  dead, and the breach snapshot counts impales, frees and takings of every
+  kind.
+- A carrier cannot strike and carries one body at most, at Harvest's carrier
+  pace.
+- `-Dbattle.colonyBreach.impale=false` is the control: every blow lands as an
+  ordinary blow.
+
+A Brute that carries a power suit off would be a rule of its own; suits are
+beyond a Runner.
 
 **Spawning surge.** How the swarm moves out of a bore. Bodies do not trickle
 out one at a time: a bore **spawns**, pushing a dense pulse of bodies out of
@@ -498,8 +562,8 @@ for one job in the cycle, and reads that way on screen.
   drives straight forward) or a side swipe. The wind-up runs off the attack
   cooldown, so the blow arrives on the tick its damage is dealt. The rig is
   presentation only: nothing in the simulation reads it, and the strike rule
-  itself stays the ordinary melee hit. The impale and drag pose belongs to
-  `runner-impale-drag.md`.
+  itself stays the ordinary melee hit. The impale and the drag pose are the
+  art's to draw over the same strike (*Impale*).
 - **Brute** — slow, plated, heavy melee; the strain that makes a garrisoned
   building stop being a safe room. Its plate (20 points at rating 10) is what
   small arms struggle with: a DMR or rocket goes through it, an SMG barely
@@ -529,8 +593,19 @@ for one job in the cycle, and reads that way on screen.
   heavy, staggered. Knocked down, stalled, staggered and stunned are one short
   **can't act** state (`StaggerService`): no move, no fire, for a fixed time,
   never a casualty state. The swarm's own bodies are never struck. Squad mates
-  of a thrown body take a near-miss morale drain. The numbers are
-  `-Dbattle.brute.*` switches, still to be felt out.
+  of a thrown body take a near-miss morale drain. The numbers (charge speed,
+  band, cooldown, tell, every hold time) are starting values the owner chose
+  to feel out in play rather than settle on paper, so each is a
+  `-Dbattle.brute.*` switch and `-Dbattle.brute.charge=false` is the control.
+
+  A second of not being able to act confuses unless the player sees why, so
+  the charge is shown four ways, all presentation over the rule: a faint amber
+  wedge along the line during the tell, with the other threat warnings; a
+  knocked-down body's picture lying as a fallen one does for that second,
+  with a ring of dust where it lands, while the sim keeps it upright; one
+  amber daze mark over anything that can't act, whatever made it so; and the
+  squad card's status word naming the cause (knocked down, stalled,
+  staggered, stunned) ahead of engaged or wounded.
 - **Spitter** — fragile, keeps its distance, lobs acid. It backs away from any
   ground enemy that closes inside its charge radius and does not lob while it
   runs. Otherwise a low hostile craft in reach whose skin its acid can bite
@@ -576,8 +651,8 @@ spawn the same Brute.
 
 A body is carried as itself. A corpse is an entity with its own position and
 facing that the renderer reads every frame, and a layered swarm body is drawn
-as parts, so a carrier (`swarm-harvest.md`) moves the colonist's corpse with
-it and draws it as one more attached sprite; neither the strains nor their
+as parts, so a carrier (*Harvest*) moves the colonist's corpse by moving its
+position, and the body draws where it is; neither the strains nor their
 corpse sheets assume a body stays where it fell.
 
 **Creep.** The biological growth living bores spread across the colony:
@@ -596,21 +671,29 @@ In `hive-creep.md`.
   per second, the reach it stops at; bore tiers have presets) and may be fed,
   which speeds it for a while. It claims what lies within its reach by path
   cost along walkable ground, weighted by seeded noise so the front runs out in
-  fingers, dearer on pavement; walls beside claimed ground are climbed, never
-  crossed. Until bores stand up on eruption sites, each opened site is itself a
+  fingers, dearer on pavement. Until bores stand up on eruption sites, each opened site is itself a
   source that never dies.
 - **Removing a source withers what it alone held**, from the outer edge back to
   the hole over a visible interval: the growth dies first, then clears. Ground a
   living source also reaches stays, and a living source reaching dying ground
   revives it.
-- **The look is the field drawn, never a second model.** One ground-level
-  layer, under the bodies and over the props it overgrows, shades the field
-  from a painted greyscale material whose values the palette colours: dark
-  veins, thin film the town still shows through, nodules, a lumpy edge, a
-  pulse running toward the source, climbed walls as dark ridges, and dead
-  growth as a grey husk. Colour is data: the swarm owns no red (the owner's
-  chitin direction), so the default creep is grey-umber, duller than the
-  paving and lighter than the near-black bodies, with sparse dim amber.
+- **Walls are held slowly.** A wall beside claimed ground is climbed, never
+  crossed, and filled over about a minute and a half rather than at once: its
+  coverage is its age, so a newly reached wall carries only veins and an old
+  one is crusted over. It reads as a matter of time.
+- **The look is the field drawn, never a second model.** The creep is a hard
+  organic edge, not a spill: an opaque surface of grown chitin plates over a
+  membrane, rolled up into a raised, beaded lip where it stops, veined, with a
+  pulse running toward the source and a short shadow of its own. It is drawn
+  inside the ground's relief composite, so it moves with the ground's parallax
+  and lies under the walls' shadows. Walls go through four stages with age:
+  veins, then crust from the foot, with a dark crease where creep meets the
+  wall. Dead growth is a grey husk. One shading model serves the game (a shader)
+  and review frames (its CPU mirror), from one surface texture generated in
+  code. Colour is data: the swarm owns no red, and the default creep is a dull,
+  dark, desaturated violet-grey that sits under the lilac creatures without
+  competing with them; a bore's heaved earth takes the same colours, so the
+  bore reads as where the creep comes from.
 
 **Swarm goal.** A place the swarm is drawn toward: the shelter, the lift, the
 nearest Marine body. Swarm movement toward a goal is a shared **flow field** per
@@ -621,7 +704,8 @@ large map.
   combatant the swarm is hostile to, less the shelter guard while the shelter is
   sealed. It is gathered from the battle each refresh, so "nearest" means
   nearest by the way the ground runs, not as the crow flies. Civilians are never
-  prey sources; a body that has found one chases it directly.
+  prey sources; a body that has found one chases it directly, and a Runner finds
+  colonists while harvest is open.
 - **Shelter** and **lift** are disclosed, so the mission declares their cells;
   the swarm knows where they are without sensing them, as the noun's law allows.
 - **Bore** is the goal of a body carrying biomass home: the nearest living
@@ -660,26 +744,82 @@ build) for its bounded visit. Not every mission brings every tool. A landed,
 grounded tender is campaign-mission and set-dressing machinery, not part of
 Colony Breach.
 
-**Hive posture.** The player's pre-launch answer to the optional hive objective,
-frozen into the Marine command envelope at launch:
+**Hive posture.** The player's pre-launch answer to the optional hive objective.
+It is chosen in the mission briefing, where a Colony Breach rescue offers the
+three postures in place of contract terms, carried on the mission, and frozen
+into the Marine rescue commander when the battle is built; nothing changes it
+afterwards. A mission that never chose one plays **Evacuate**, because the win
+is the evacuation and the bore is a bonus.
 
 - **Evacuate** — bores are obstacles; the commander engages one only when it
-  sits on the route.
+  sits on the walk out: within a few cells of the route from a walking group,
+  or from a door still to be relieved, to the lift. It comes back once the
+  bore is no longer on that walk. Evacuate never sends anyone off the route.
 - **Opportunistic** — the commander may send a strike detachment at a bore when
-  the readiness gate is open.
-- **Purge** — the mother bore is a real objective; the readiness gate is
-  relaxed.
+  the readiness gate is open: the living bore nearest the lift, since that is
+  the one pressing on the walk out.
+- **Purge** — the mother bore is a real objective. Before she opens, Purge
+  plays as Opportunistic against the first wave; once she is known, every
+  strike goes at her, a detachment already on another bore is turned onto her,
+  and against her the readiness gate is relaxed.
+
+A bore is known to the commander from the moment it opens: an eruption tears a
+hole in the colony and is announced, so no sighting is needed, and a collapse
+is known the same way.
 
 **Readiness gate.** The commander's rule for opting in to a bore strike, read
-from what it can see: (a) the lift zone is hardened (built defences, no losses
-on the lift line for a sustained window), (b) the strength left behind meets
-the escort's need, (c) a detachment with demolition or heavy weapons exists.
-Purge relaxes (a) and (b). When the gate closes the detachment is recalled. The
-player can always order any squad onto a bore; posture governs only what the
-AI does unprompted.
+from what it can see at every command pulse:
+
+- (a) **the lift is hardened**: the company's own built defences stand on the
+  lift line, and nobody has been lost on that line since they stood there, for
+  a sustained window (twenty seconds);
+- (b) **the strength left behind meets the escort's need**: after the
+  detachment leaves, the mobile force still has a squad for every group walking
+  out and one screening their walk, a squad for every redoubt still waiting to
+  be relieved (a pending holdout is unmet need, not spare strength), and one
+  more at the lift; and the escort is holding, with no evacuee lost for the
+  same window. A cohort that bleeds closes the gate and brings the detachment
+  home;
+- (c) **a detachment exists**: a squad free of escort duty that can hurt a bore,
+  one carrying satchels, firing on structures, or a machine.
+
+`-Dbattle.colonyBreach.strikes=false` is the control: the gate is read and
+published, and nobody is ever sent.
+
+Purge relaxes (a) and (b) against the mother bore and nowhere else; (c) is never
+relaxed. Evacuate never asks about the lift, because the only bore it engages is
+one already on the way, but it keeps the escort's strength. When the gate
+closes the detachment is recalled, and the gate may not send anyone again for a
+short cooldown, so a gate that flickers does not march a squad back and forth.
+The player can always order any squad onto a bore; posture governs only what the
+AI does unprompted. Built defences at the lift come from a tender called down in
+play (*Hardpoint*); evidence may stand them up at setup instead, as a fixture
+statement, to show the gate opening.
 
 **Strike detachment.** The squads (and lance, if one is deployed) the commander
-sends against a bore. Stable membership, traced like any other command role.
+sends against a bore: one squad at an ordinary bore, two when Purge goes for the
+mother, chosen from the capable squads free of escort duty, machines first, then
+satchel carriers, then the nearest. Membership is stable: the same squads stay
+on the strike until their bore collapses, the detachment is lost, or the gate
+closes and they are recalled, and a squad on strike is never drawn as an
+escort. A detachment squad is ordered at the bore exactly as the player would
+order it (an attack move naming the bore's cell as the thing to open, see
+*Bore*), so its sappers set charges and the rest fight the body through the
+ordinary passes. The decision is decided before new escorts are drawn, so
+escorts still come before relief and relief before strikes: people in the open
+are exposed, and a bore is optional.
+
+Every commit, recall, retarget and ending is a decision kept with the gate it
+was read under (each condition met or not, and its inputs). The command trace
+carries the posture, the gate, the detachment and the decisions of each pulse;
+a commit is the `strike_committed_N` beat and a recall `strike_recalled_N`, where
+`N` is the bore's number or `mother`. A collapse ends the strike under its own
+`bore_collapsed` beat and a lost detachment under none.
+
+**Hive bonus.** Collapsing the mother bore is recorded on the mission outcome
+whatever the posture, through the ordinary outcome path: the battle reports
+whether the mother collapsed beside the evacuation report. What the bonus pays
+in the campaign is the owner's call and not yet settled.
 
 ## Flow
 
@@ -699,15 +839,15 @@ sends against a bore. Stable membership, traced like any other command role.
    lift, already at bore tier, with its spore colonies already sprouted.
 5. **Lift.** Shuttles land; the cohort boards. The battle can end on the lift
    (the rescue win) with or without the mother bore collapsed. Collapsing it is
-   the hive bonus, settled through ordinary mission outcome.
+   the hive bonus, recorded on the ordinary mission outcome (*Hive bonus*).
 
 The breach sequence owns the clock and the triggers; beats are what it
 publishes. Beats are presentation and evidence, never inputs to the simulation.
 
 **Lift timing.** The lift has no countdown: the pickup craft comes down at the
 start of the battle and waits, so `lift_inbound` and `lift_down` normally fire
-before the shelter is reached. Harvest is not built yet, so nothing feeds a
-bore in a live battle and bores grow on their base clock alone.
+before the shelter is reached. Bores grow on their base clock and on what the
+Runners drag into them (*Harvest*).
 
 ## Beats
 
@@ -732,12 +872,15 @@ the evidence; change them here first.
 | `mother_bore_collapsed` | PLAYER | Mother bore destroyed |
 | `matriarch_emerged` | PLAYER | A matriarch spawns |
 | `first_harvest` | PLAYER | First body seized and dragged toward a bore |
-| `bore_fed_N` | OBSERVER_ONLY | Biomass delivered into bore N |
+| `bore_fed_N` / `bore_fed_mother` | OBSERVER_ONLY | A body delivered into bore N (or the mother); published at every delivery |
+| `marine_impaled` | PLAYER | A Runner impales a Marine; at every impale (militia and colonist impales publish none) |
+| `marine_freed` | PLAYER | A held Marine's carrier dies |
+| `marine_taken` | PLAYER | A carrier delivers a living Marine into a bore |
 | `surge_N` / `surge_mother` | OBSERVER_ONLY | Bore N (or the mother) starts a surge; published at every surge, not once |
 | `tender_down` | PLAYER | A called-down tender is on station (no producer yet) |
 | `hardpoint_established` | PLAYER | First tender-built defence completes at the lift |
-| `strike_committed_N` | OBSERVER_ONLY | Commander sends a detachment at bore N |
-| `strike_recalled_N` | OBSERVER_ONLY | Readiness gate closed, detachment recalled |
+| `strike_committed_N` | OBSERVER_ONLY | Commander sends a detachment at bore N (`mother` for the mother); at every commit |
+| `strike_recalled_N` | OBSERVER_ONLY | Readiness gate closed (or, for Evacuate, the bore left the route), detachment recalled |
 | `lift_inbound` | PLAYER | First shuttle committed |
 | `lift_down` | PLAYER | First shuttle landed |
 | `cohort_boarded` | PLAYER | Last surviving evacuee aboard |
@@ -759,12 +902,19 @@ Bores and bodies sound through presentation cues the simulation writes and
 never reads (`BoreCues`, `SwarmCues`), so a headless run is silent and nothing
 heard reaches the battle. A bore is heard erupting, growing to each tier,
 surging and collapsing, and breathes a tier ambience while it lives. A swarm
-body cries when it takes new quarry, and is heard striking, ramming a wall,
-breaking it and dying; a Brute's charge, a Runner's impale and a seized body
-being dragged have their own sounds, posted as cues by the stories that add
-those acts. Each strain's sound is admitted under its own gap so a pack reads as
-a pack, and the swarm is heard only on ground the player has seen. The Spitter
-has no voice.
+body is heard for what it does, not for the beat table: it cries when it takes
+new quarry, strikes, rams a wall and breaks it, yelps or grunts when it is hurt
+and lives, and dies, and a Runner is heard taking up a body to drag it. Its feet
+follow the ground it covers: a Runner's gallop and chitin clatter, a Brute's
+hooves at every half cell, so a walking Brute plods and a charging one thunders.
+Each phase of the Brute's charge has its own sound (the tell, the run, the hit
+on infantry, a vehicle or a wall, the stun after a heavy wall or a tank), keyed
+to the charge's own events; a Runner's impale has its own sound, posted as a cue
+by the story that adds it. Each strain's sound is admitted under its own gap and
+footfalls come from the few bodies nearest the listener, so a pack reads as a
+pack, and the swarm is heard only on ground the player has seen. The Spitter has
+no voice; the Matriarch's sounds wait for its design and join as a strain of
+their own.
 
 ## Laws
 

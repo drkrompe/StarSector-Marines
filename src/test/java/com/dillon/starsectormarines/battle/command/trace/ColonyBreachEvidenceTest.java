@@ -1,5 +1,10 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
+import java.util.concurrent.Callable;
+import com.dillon.starsectormarines.battle.fixture.CivilianRescueBattleFixture;
+import com.dillon.starsectormarines.battle.command.StrikeDetachment;
+import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
+import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
@@ -54,7 +59,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @Tag("colony-breach-command-evidence")
 class ColonyBreachEvidenceTest {
-    private static final String DEFAULT_FIXTURE = "/battle-fixtures/colony-breach-v1.json";
+    /**
+     * The matrix: one fixture per hive posture, and Opportunistic twice — with
+     * Vulcans standing at the lift from the start, so the readiness gate can
+     * open, and without, so it is seen to hold. Evacuate is the canonical
+     * colony (no posture key) and stays the control for every other reading.
+     */
+    private static final List<String> MATRIX = List.of(
+            "/battle-fixtures/colony-breach-v1.json",
+            "/battle-fixtures/colony-breach-opportunistic-hardpoints-v1.json",
+            "/battle-fixtures/colony-breach-opportunistic-v1.json",
+            "/battle-fixtures/colony-breach-purge-v1.json");
     private static final int DEFAULT_MAX_TICKS = 24_000;
     private static final String PREFIX = "colony.breach.command.evidence.";
 
@@ -68,9 +83,41 @@ class ColonyBreachEvidenceTest {
     void writesTheBreachScheduleBeatsAndRescueTraces() throws Exception {
         assertEquals(Integer.MAX_VALUE, UnitUpdateSystem.configuredMinimumParallelUnits());
         int maxTicks = configuredMaxTicks();
-        BattleFixture fixture = loadFixture();
         Path output = Path.of(System.getProperty(PREFIX + "outputDir",
                 "build/reports/commander/colony-breach")).toAbsolutePath().normalize();
+        Files.createDirectories(output);
+        List<String> fixtures = selectedFixtures();
+        List<Callable<JSONObject>> jobs = new ArrayList<>();
+        for (String selected : fixtures) jobs.add(() -> runFixture(selected, output, maxTicks));
+        List<JSONObject> summaries = EvidenceFanOut.run(jobs);
+
+        JSONArray matrix = new JSONArray();
+        StringBuilder md = new StringBuilder("# Colony Breach evidence\n\n")
+                .append("One fixture per hive posture, each ").append(EvidenceFanOut.replayWording(
+                        EvidenceFanOut.repeat())).append(". Each fixture's report is in its own folder.\n\n")
+                .append("| fixture | posture | hardpoints | end | evacuated | commits | recalls | mother collapsed |\n")
+                .append("|---|---|---|---|---|---|---|---|\n");
+        for (JSONObject summary : summaries) {
+            matrix.put(summary);
+            JSONObject hive = summary.getJSONObject("hive");
+            md.append("| `").append(summary.getString("fixtureId")).append("` | ")
+                    .append(hive.getString("posture")).append(" | ").append(summary.getInt("liftHardpoints"))
+                    .append(" | ").append(summary.getString("termination")).append(" @").append(summary.getInt("ticks"))
+                    .append(" | ").append(summary.getInt("evacuated")).append('/').append(summary.getInt("registered"))
+                    .append(" | ").append(hive.getInt("commits")).append(" | ").append(hive.getInt("recalls"))
+                    .append(" | ").append(hive.getBoolean("motherCollapsed")).append(" |\n");
+        }
+        Files.writeString(output.resolve("summary.json"), new JSONObject().put("schemaVersion", 2)
+                .put("fixtures", matrix).toString(2) + '\n', StandardCharsets.UTF_8);
+        Files.writeString(output.resolve("summary.md"), md.toString(), StandardCharsets.UTF_8);
+        System.out.println("[colony-breach-evidence] report " + output.resolve("summary.md"));
+    }
+
+    /** Plays one fixture to its end and writes its report under {@code output/<fixture id>/}. */
+    private static JSONObject runFixture(String selected, Path root, int maxTicks) throws Exception {
+        BattleFixture fixture = loadFixture(selected);
+        String fixtureId = fixtureId(selected);
+        Path output = root.resolve(fixtureId);
         Files.createDirectories(output);
 
         List<ColonyEruptionPlan.Site> replayedSites;
@@ -81,15 +128,15 @@ class ColonyBreachEvidenceTest {
             replayedRedoubts = again.getCivilianRedoubts();
         }
 
-        int repeat = Integer.getInteger("commander.evidence.repeat", 1);
+        int repeat = EvidenceFanOut.repeat();
         String firstTrace = null;
         JSONObject summary = null;
         JSONArray shuttleTouchdowns = null;
         JSONObject marineContact = null;
-        for (int run = 0; run < Math.max(1, repeat); run++) {
+        for (int run = 0; run < repeat; run++) {
             try (BattleSimulation sim = fixture.build();
                  CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(
-                         run == 0 ? output : null, "colony-breach", sim)) {
+                         run == 0 ? root : null, fixtureId, sim)) {
                 ColonyBreachSequence breach = sim.getColonyBreach();
                 ColonyEruptionPlan plan = breach.plan();
                 assertTrue(plan.isComplete(), "the colony path owes a full eruption plan");
@@ -119,6 +166,9 @@ class ColonyBreachEvidenceTest {
                             "site " + site + " stands in the shelter or lift zone");
                     assertTrue(sim.getGrid().isWalkable(site.x(), site.y()), "site " + site + " is not open ground");
                 }
+                RescueEscortCommand command = (RescueEscortCommand) sim.getCommander(Faction.MARINE);
+                CivilianRescueBattleFixture rescue = (CivilianRescueBattleFixture) fixture;
+                assertEquals(rescue.hivePosture(), command.posture(), "the posture is frozen into the commander");
 
                 sim.setCommandTraceEnabled(true, fixture.kind());
                 // Each company shuttle's touchdowns on its pad: the gap between
@@ -157,7 +207,11 @@ class ColonyBreachEvidenceTest {
                 if (firstTrace == null) {
                     firstTrace = trace;
                     summary = summarize(sim, breach, fixture, maxTicks, trace);
+                    summary.put("fixtureId", fixtureId);
+                    summary.put("fixture", selected);
+                    summary.put("liftHardpoints", rescue.liftHardpoints());
                     summary.put("boreSpawns", audit.boreSpawns);
+                    summary.put("hive", hive(sim, command, rescue));
                 } else {
                     assertEquals(firstTrace, trace, "Colony Breach must replay byte-identically");
                 }
@@ -186,11 +240,81 @@ class ColonyBreachEvidenceTest {
                             < summary.getInt("shelterReachedTick") + 4 * 30,
                     "the cohort released and the colony never trembled: " + fired);
         }
+        assertHiveLaws(summary.getJSONObject("hive"), fired);
 
         Files.writeString(output.resolve("colony-breach.jsonl"), firstTrace, StandardCharsets.UTF_8);
         Files.writeString(output.resolve("summary.json"), summary.toString(2) + '\n', StandardCharsets.UTF_8);
         Files.writeString(output.resolve("summary.md"), markdown(summary), StandardCharsets.UTF_8);
-        System.out.println("[colony-breach-evidence] report " + output.resolve("summary.json"));
+        return summary;
+    }
+
+    /** The posture's strike decisions, as the summary reports them. */
+    private static JSONObject hive(BattleSimulation sim, RescueEscortCommand command,
+                                   CivilianRescueBattleFixture rescue) throws Exception {
+        JSONArray decisions = new JSONArray();
+        int commits = 0, recalls = 0;
+        List<StrikeDetachment.Decision> made = command.rescueSnapshot() == null ? List.of()
+                : command.rescueSnapshot().hive().decisions();
+        for (StrikeDetachment.Decision decision : made) {
+            if (decision.kind() == StrikeDetachment.Kind.COMMITTED) commits++;
+            if (decision.kind() == StrikeDetachment.Kind.RECALLED) recalls++;
+            decisions.put(new JSONObject().put("tick", decision.tick()).put("kind", decision.kind().name())
+                    .put("bore", decision.boreKey()).put("squads", new JSONArray(decision.squads()))
+                    .put("gate", decision.gate()));
+        }
+        int motherErupted = -1;
+        boolean motherCollapsed = false;
+        for (SwarmBore bore : sim.swarmBores().bores()) {
+            if (!bore.mother()) continue;
+            motherErupted = bore.eruptedTick();
+            motherCollapsed = bore.collapsed();
+        }
+        return new JSONObject().put("posture", rescue.hivePosture().name())
+                .put("commits", commits).put("recalls", recalls)
+                .put("motherEruptedTick", motherErupted).put("motherCollapsed", motherCollapsed)
+                .put("decisions", decisions);
+    }
+
+    /**
+     * What each posture may do, asserted as mechanics. Every commit was made
+     * with the gate open; every recall with it closed (or, for Evacuate, its
+     * bore off the walk out); Opportunistic never commits without its lift
+     * hardened, so a run with no defences at the lift never commits; Purge,
+     * once the mother is open, commits only against the mother; and every
+     * decision the commander made is a beat.
+     */
+    private static void assertHiveLaws(JSONObject hive, List<String> fired) throws Exception {
+        HivePosture posture = HivePosture.valueOf(hive.getString("posture"));
+        JSONArray decisions = hive.getJSONArray("decisions");
+        int motherOpen = hive.getInt("motherEruptedTick");
+        int committedBeats = 0, recalledBeats = 0;
+        for (String beat : fired) {
+            if (beat.startsWith("strike_committed_")) committedBeats++;
+            if (beat.startsWith("strike_recalled_")) recalledBeats++;
+        }
+        int commits = 0, recalls = 0;
+        for (int i = 0; i < decisions.length(); i++) {
+            JSONObject decision = decisions.getJSONObject(i);
+            String kind = decision.getString("kind");
+            String gate = decision.getString("gate");
+            if ("COMMITTED".equals(kind)) {
+                commits++;
+                assertTrue(gate.contains(" open"), "committed with the gate closed: " + decision);
+                if (posture == HivePosture.OPPORTUNISTIC) {
+                    assertTrue(gate.startsWith("HSD"), "Opportunistic committed without its full gate: " + decision);
+                }
+                if (posture == HivePosture.PURGE && motherOpen >= 0 && decision.getInt("tick") > motherOpen) {
+                    assertEquals("mother", decision.getString("bore"),
+                            "Purge committed elsewhere with the mother open: " + decision);
+                }
+            } else if ("RECALLED".equals(kind)) {
+                recalls++;
+                assertTrue(gate.contains(" closed") || posture == HivePosture.EVACUATE,
+                        "recalled with the gate open: " + decision);
+            }
+        }
+        assertEquals(commits, committedBeats, "every commit is a strike_committed beat");
+        assertEquals(recalls, recalledBeats, "every recall is a strike_recalled beat");
     }
 
     /** Every swarm body new on a tick, checked against the living bores' mouths once the tremor has come. */
@@ -287,6 +411,7 @@ class ColonyBreachEvidenceTest {
                     .put("integrity", Math.round(bore.integrity() * 1000f) / 1000.0)
                     .put("growth", Math.round(bore.growth() * 10f) / 10.0)
                     .put("biomassFed", bore.biomassFed())
+                    .put("feeds", bore.feeds())
                     .put("surges", bore.surges())
                     .put("bodiesSpawned", bore.bodiesSpawned())
                     .put("sporeColonies", bore.sporeColonies() + "/" + state.colonies().size())
@@ -300,7 +425,6 @@ class ColonyBreachEvidenceTest {
         return new JSONObject()
                 .put("schemaVersion", 1)
                 .put("schedulerMode", "SERIAL_DETERMINISTIC")
-                .put("fixture", selectedFixture())
                 .put("fixtureKind", fixture.kind())
                 .put("mapWidth", sim.getGrid().getWidth())
                 .put("mapHeight", sim.getGrid().getHeight())
@@ -317,6 +441,15 @@ class ColonyBreachEvidenceTest {
                 .put("marinePads", pads)
                 .put("colonists", snapshot.colonists())
                 .put("colonistsAlive", snapshot.colonistsAlive())
+                .put("harvest", new JSONObject()
+                        .put("firstTick", snapshot.harvest().firstTick())
+                        .put("seized", snapshot.harvest().seized())
+                        .put("delivered", snapshot.harvest().delivered())
+                        .put("dropped", snapshot.harvest().dropped())
+                        .put("carrying", snapshot.harvest().carrying())
+                        .put("impaled", snapshot.harvest().impaled())
+                        .put("freed", snapshot.harvest().freed())
+                        .put("taken", snapshot.harvest().taken()))
                 .put("evacuated", tracker.evacuatedCount())
                 .put("registered", tracker.registeredCount())
                 .put("sites", sites)
@@ -374,6 +507,14 @@ class ColonyBreachEvidenceTest {
                 .append(", ").append(s.getInt("evacuated")).append('/').append(s.getInt("registered"))
                 .append(" evacuated; ").append(s.getInt("colonistsAlive")).append('/')
                 .append(s.getInt("colonists")).append(" colonists alive outside the shelter.\n\n")
+                .append("Harvest: ").append(s.getJSONObject("harvest").getInt("seized"))
+                .append(" seized (first at tick ").append(s.getJSONObject("harvest").getInt("firstTick")).append("), ")
+                .append(s.getJSONObject("harvest").getInt("delivered")).append(" delivered into bores, ")
+                .append(s.getJSONObject("harvest").getInt("dropped")).append(" dropped by a dead carrier, ")
+                .append(s.getJSONObject("harvest").getInt("carrying")).append(" still being dragged; ")
+                .append(s.getJSONObject("harvest").getInt("impaled")).append(" impaled alive, ")
+                .append(s.getJSONObject("harvest").getInt("freed")).append(" freed, ")
+                .append(s.getJSONObject("harvest").getInt("taken")).append(" taken.\n\n")
                 .append("Landfall at tick ").append(s.getInt("landfallTick"))
                 .append(", the company's first contact at ").append(s.get("marineContact"))
                 .append(", first casualty of any side at ").append(s.getInt("firstContactTick"))
@@ -421,6 +562,18 @@ class ColonyBreachEvidenceTest {
                     .append(b.getInt("eruptedTick")).append(" | ").append(b.getInt("boreTierTick")).append(" | ")
                     .append(b.getInt("mawTierTick")).append(" | ").append(b.getInt("collapsedTick")).append(" |\n");
         }
+        JSONObject hive = s.getJSONObject("hive");
+        out.append("\n## Hive posture: ").append(hive.getString("posture")).append("\n\n")
+                .append(s.getInt("liftHardpoints")).append(" Vulcans at the lift from the start; mother bore opened at ")
+                .append(hive.getInt("motherEruptedTick")).append(", collapsed: ").append(hive.getBoolean("motherCollapsed"))
+                .append(".\n\n| tick | decision | bore | squads | gate |\n|---|---|---|---|---|\n");
+        JSONArray decisions = hive.getJSONArray("decisions");
+        for (int i = 0; i < decisions.length(); i++) {
+            JSONObject d = decisions.getJSONObject(i);
+            out.append("| ").append(d.getInt("tick")).append(" | ").append(d.getString("kind"))
+                    .append(" | ").append(d.getString("bore")).append(" | ").append(d.getJSONArray("squads"))
+                    .append(" | `").append(d.getString("gate")).append("` |\n");
+        }
         out.append("\n## Beats\n\n| tick | beat |\n|---|---|\n");
         JSONArray beats = s.getJSONArray("beats");
         for (int i = 0; i < beats.length(); i++) {
@@ -437,8 +590,7 @@ class ColonyBreachEvidenceTest {
         return n;
     }
 
-    private static BattleFixture loadFixture() throws Exception {
-        String selected = selectedFixture();
+    private static BattleFixture loadFixture(String selected) throws Exception {
         String json;
         if (selected.startsWith("/")) {
             try (InputStream stream = ColonyBreachEvidenceTest.class.getResourceAsStream(selected)) {
@@ -451,9 +603,16 @@ class ColonyBreachEvidenceTest {
         return BattleFixtureJson.fromJson(new JSONObject(json));
     }
 
-    private static String selectedFixture() {
+    /** {@code -Pfixture} plays that one fixture; otherwise the matrix. */
+    private static List<String> selectedFixtures() {
         String selected = System.getProperty(PREFIX + "fixture.path", "").trim();
-        return selected.isBlank() ? DEFAULT_FIXTURE : selected;
+        return selected.isBlank() ? MATRIX : List.of(selected);
+    }
+
+    /** The fixture's file name without its extension: its report folder and capture id. */
+    private static String fixtureId(String selected) {
+        String name = Path.of(selected.startsWith("/") ? selected.substring(1) : selected).getFileName().toString();
+        return name.endsWith(".json") ? name.substring(0, name.length() - 5) : name;
     }
 
     private static int configuredMaxTicks() {

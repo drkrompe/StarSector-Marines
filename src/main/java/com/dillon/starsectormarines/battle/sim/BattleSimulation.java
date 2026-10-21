@@ -254,8 +254,10 @@ import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
 import com.dillon.starsectormarines.battle.creep.BoreCreep;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
+import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
@@ -734,6 +736,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final CreepOutposts creepOutposts;
     /** The battle's swarm bores: empty until something opens one. */
     public SwarmBores swarmBores() { return swarmBores; }
+    @Override public List<SwarmBore> getSwarmBores() { return swarmBores.bores(); }
+    private final SwarmHarvest swarmHarvest = new SwarmHarvest(SwarmHarvest.enabledByDefault());
+    /** Runners dragging the dead to the bores (`colony-breach-nouns.md`, Harvest). */
+    public SwarmHarvest swarmHarvest() { return swarmHarvest; }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
     /** The Colony Breach story, or {@code null} on every other battle. */
@@ -1304,6 +1310,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         deathDispatcher.subscribe(commanderInfluence.casualties()::onDeath);
         this.deadBodySystem = new DeadBodySystem(entityWorld, battleComponents, this::getSimTickIndex);
         deathDispatcher.subscribe(deadBodySystem::onDeath);
+        // After the corpse transmute: harvest takes up the body the transmute just made.
+        deathDispatcher.subscribe(swarmHarvest::onDeath);
+        rosterService.modifiers().register(swarmHarvest.carrierModifier());
         deathDispatcher.subscribe(event -> taskPoints.release(event.unitId()));
         // Registered rescue civilians report loss through the same once-only
         // death mailbox as every other post-death reaction. Non-cohort deaths
@@ -1336,6 +1345,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.attackerIndex = new com.dillon.starsectormarines.battle.decision.AttackerIndexService(rosterService);
         this.tacticalScoring = new com.dillon.starsectormarines.battle.decision.TacticalScoring(
                 navigation, rosterService, attackerIndex, shots, doodadService);
+        tacticalScoring.carriedBy(swarmHarvest::loadOf);
         this.squadContactOnset = new SquadContactOnsetSystem(
                 rosterService, tacticalScoring);
         this.unitUpdate = new com.dillon.starsectormarines.battle.decision.UnitUpdateSystem(
@@ -1366,6 +1376,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.airframeCookOff = new AirframeCookOffSystem(effects, detonations, rosterService);
         deathDispatcher.subscribe(airframeCookOff::onDeath);
         this.ballisticResolver = new BallisticResolver(grid, doodadService, unitIndex, rosterService);
+        // A body on a carrier's blades: direct fire never touches it, a blast does behind a switch.
+        ballisticResolver.spareHeld(swarmHarvest::isCarried);
+        detonations.spareHeld(swarmHarvest::isCarried, swarmHarvest.areaHitsHeld());
         // Constructed here (rather than alongside the other early per-unit
         // systems above) because a missile-pod salvo needs the same
         // resolver/shots pipeline InfantryWeapons uses, and both exist only
@@ -2096,7 +2109,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Limb wounds carried this battle ({@code body-part-cover.md}, Part consequences). */
     public WoundService wounds() { return rosterService.wounds(); }
 
-    /** Who can't act this tick ({@code brute-charge.md}). */
+    /** Who can't act this tick ({@code colony-breach-nouns.md}, Brute). */
     public StaggerService stagger() { return rosterService.stagger(); }
     /**
      * Returns the entity id {@code u} is currently targeting, or {@code 0L} when
@@ -3497,6 +3510,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // that starts bore sourcing spawns only from bores.
         swarmBores.tick(this);
         if (colonyBreach != null) colonyBreach.tick(this);
+        // After the bores and the eruptions, so a body is delivered only into a
+        // bore that still lives and harvest opens on the tick a bore does.
+        swarmHarvest.tick(this);
         swarmReinforcements.tick(TICK_DT, this);
         boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);
@@ -3871,7 +3887,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** What swarm bodies ask the presentation to sound this advance; presentation-only. */
     public SwarmCues swarmCues() { return swarmCues; }
 
-    /** Brute charges in progress and their record ({@code brute-charge.md}). */
+    /** Brute charges in progress and their record ({@code colony-breach-nouns.md}, Brute). */
     public BruteChargeSystem bruteCharges() { return bruteCharges; }
 
     @Override

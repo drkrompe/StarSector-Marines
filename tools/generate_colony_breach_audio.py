@@ -128,7 +128,7 @@ def register(speech, sfx):
         end = text.rindex("]")
         text = text[:end].rstrip() + ",\n    // Colony Breach (tools/generate_colony_breach_audio.py)\n    " \
             + ",\n    ".join(c[1] for c in fresh) + "\n  " + text[end:]
-        manifest.write_text(text, encoding="utf-8")
+        manifest.write_text(text, encoding="utf-8", newline="\n")
     print("audio.json: added %d of %d clips." % (len(fresh), len(clips)))
     sounds = SOUNDS.read_text(encoding="utf-8")
     entries = []
@@ -146,7 +146,7 @@ def register(speech, sfx):
         end = sounds.rindex("}")
         sounds = sounds[:end].rstrip() + "\n\t# ----- Colony Breach (tools/generate_colony_breach_audio.py) -----\n\t" \
             + "\n\t".join(e[1] for e in fresh) + "\n" + sounds[end:]
-        SOUNDS.write_text(sounds, encoding="utf-8")
+        SOUNDS.write_text(sounds, encoding="utf-8", newline="\n")
     print("sounds.json: added %d of %d ids." % (len(fresh), len(entries)))
 
 

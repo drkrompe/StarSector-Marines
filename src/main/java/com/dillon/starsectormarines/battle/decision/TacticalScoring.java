@@ -44,6 +44,7 @@ import com.dillon.starsectormarines.battle.sim.VisionService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.LongUnaryOperator;
 
 /**
  * Battle-owned scoring helpers used by behaviors to pick targets and positions.
@@ -389,14 +390,27 @@ public final class TacticalScoring {
     /**
      * Largest amount a target's score can sit below its distance. Crowding,
      * threat density, zone mismatch and the no-LoS cost only add; weapon
-     * affinity is the one term that can subtract, bottoming out at
-     * {@code WEAPON_AFFINITY_WEIGHT * (1 - MAX_WEAPON_AFFINITY_RELATIVE)}.
+     * affinity subtracts, bottoming out at
+     * {@code WEAPON_AFFINITY_WEIGHT * (1 - MAX_WEAPON_AFFINITY_RELATIVE)}, and
+     * only on a hardened target. The carrier priority subtracts
+     * {@link #CARRIER_PRIORITY_BONUS}, smaller than that, and only on a target
+     * that is not hardened, so the two never stack.
      * So {@code distance - MAX_TARGET_SCORE_BONUS} is an exact lower bound on
      * any candidate's score, which lets the picker stop raycasting once the
      * remaining candidates are too far to beat the incumbent.
      */
     private static final float MAX_TARGET_SCORE_BONUS =
             WEAPON_AFFINITY_WEIGHT * (MAX_WEAPON_AFFINITY_RELATIVE - 1f);
+
+    /**
+     * Cells of distance a swarm carrier is preferred by, while it holds one of
+     * the scoring squad's own Marines (`colony-breach-nouns.md`, Impale). A
+     * priority bump and nothing more: no squad chases a carrier on its own.
+     */
+    public static final float CARRIER_PRIORITY_BONUS = 12f;
+
+    /** The body a swarm carrier holds, or 0; see {@link #carriedBy}. */
+    private LongUnaryOperator carriedLoad = id -> 0L;
 
     /**
      * Cells of slack the nearest-first target scan allows between the spatial
@@ -712,7 +726,21 @@ public final class TacticalScoring {
                         selfFaction)
                 + scoreWeaponAffinity(excludeFromCrowding, candidate)
                 + scoreZoneMismatch(selfCellX, selfCellY, candidateCellX, candidateCellY);
+        score -= scoreCarrierPriority(candidate, selfSquadId);
         return visible ? score : score + TARGET_NO_LOS_COST;
+    }
+
+    /** Names what a swarm carrier is holding, so a squad prefers the carrier holding one of its own. */
+    public void carriedBy(LongUnaryOperator loadOfCarrier) {
+        this.carriedLoad = loadOfCarrier == null ? id -> 0L : loadOfCarrier;
+    }
+
+    private float scoreCarrierPriority(long candidate, int selfSquadId) {
+        if (selfSquadId < 0) return 0f;
+        long load = carriedLoad.applyAsLong(candidate);
+        if (load == 0L || !roster.world().isAlive(load) || !roster.squad().hasSquad(load)) return 0f;
+        if (roster.squad().squadId(load) != selfSquadId || isHardenedTarget(candidate)) return 0f;
+        return CARRIER_PRIORITY_BONUS;
     }
 
     /**

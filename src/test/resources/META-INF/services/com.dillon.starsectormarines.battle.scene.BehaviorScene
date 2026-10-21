@@ -121,6 +121,8 @@ com.dillon.starsectormarines.battle.evacuation.SwarmStrainSkirmishScene
 com.dillon.starsectormarines.battle.evacuation.SwarmChokepointScene
 com.dillon.starsectormarines.battle.command.MissionCounterattackScene
 com.dillon.starsectormarines.battle.evacuation.SwarmBoreCollapseScene
+com.dillon.starsectormarines.battle.evacuation.SwarmHarvestScene
+com.dillon.starsectormarines.battle.evacuation.SwarmImpaleScene
 com.dillon.starsectormarines.battle.evacuation.SwarmSporeColonyScene
 com.dillon.starsectormarines.battle.evacuation.SporeColonyFireScene
 com.dillon.starsectormarines.battle.evacuation.BruteChargeScene

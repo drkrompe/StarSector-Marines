@@ -532,6 +532,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mission-briefing-acting-nco-wide.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 surveyProps(BriefingViewModel.actingNcoPreviewProps(), sabotageSurvey), 1f, false)),
+                new SnapshotArtifact("mission-briefing-colony-breach-posture-wide.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                surveyProps(BriefingViewModel.colonyBreachPreviewProps(), colonySurvey(context)),
+                                1f, false)),
                 new SnapshotArtifact("mission-briefing-campaign-understrength-wide.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 surveyProps(understrengthBriefingProps(), understrengthSurvey), 1f, false)),
@@ -775,7 +779,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         index % 3 == 0 ? "Gifted" : "Steady",
                         UnitRole.COMBATANT, leader ? ArmorClass.POWER_SUIT : ArmorClass.STANDARD,
                         30 + index * 4, 12 + index * 2, index == 5 ? 3 : index % 4 == 0 ? 1 : 0,
-                        40f + index * 11f, index % 2 == 0));
+                        40f + index * 11f, index % 2 == 0, null));
             }
         }
         return members;
@@ -1309,6 +1313,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 throw new IllegalStateException("Briefing survey lost production landing zones");
             }
             return survey;
+        }
+    }
+
+    /** The canonical Colony Breach colony's survey, built from its fixture as it is. */
+    private static BriefingSurvey colonySurvey(SnapshotContext context) throws Exception {
+        Path path = context.modRoot().getParent().resolve("src/test/resources/battle-fixtures/colony-breach-v1.json");
+        BattleFixture fixture = BattleFixtureJson.fromJson(new JSONObject(Files.readString(path)));
+        try (BattleSimulation sim = fixture.build()) {
+            return BriefingSurvey.capture(sim);
         }
     }
 

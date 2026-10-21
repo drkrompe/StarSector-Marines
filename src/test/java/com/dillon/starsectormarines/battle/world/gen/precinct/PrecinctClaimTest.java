@@ -198,6 +198,7 @@ class PrecinctClaimTest {
                 FortressProgram.civilDefence(), new Fortification(2, 110).laidSquare());
         List<Precinct> precincts = List.of(town(), compound);
         int[][] claim = PrecinctClaim.byKind(precincts).assign(owner, W, H, new int[]{TOWN_BUDGET, 144});
+        int side = 12 + 2 * Fortification.GLACIS;
         int x0 = W, y0 = H, x1 = -1, y1 = -1, cells = 0;
         for (int x = 0; x < W; x++) {
             for (int y = 0; y < H; y++) {
@@ -206,7 +207,7 @@ class PrecinctClaimTest {
                 x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
             }
         }
-        assertTrue(cells == 144 && x1 - x0 == 11 && y1 - y0 == 11,
-                "a 12x12 square, got " + cells + " cells over " + (x1 - x0 + 1) + "x" + (y1 - y0 + 1));
+        assertTrue(cells == side * side && x1 - x0 == side - 1 && y1 - y0 == side - 1,
+                "a " + side + "-cell square, got " + cells + " cells over " + (x1 - x0 + 1) + "x" + (y1 - y0 + 1));
     }
 }

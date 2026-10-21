@@ -28,9 +28,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A Brute's charge ({@code brute-charge.md}) against one kind of target per loop. The Brute has a deep
+ * A Brute's charge ({@code colony-breach-nouns.md}, Brute) against one kind of target per loop. The Brute has a deep
  * health pool and the marines are squadless and hold their fire: the scene is about what the charge
- * does, not who wins. Verdicts assert the mechanics of rule 4's table; counts are metrics.
+ * does, not who wins. Verdicts assert what the charge does to each kind of target; counts are metrics.
  * <ul>
  *   <li>{@code infantry-line}: three marines along the line, the first in the charge band. The Brute
  *       decides to charge on its own; the first two are thrown and held and the charge goes on, the
@@ -95,6 +95,11 @@ public final class BruteChargeScene implements BehaviorScene {
                     .stationary().health(DEEP).done();
             default -> { }
         }
+        if (!building && !loop.equals("infantry-line") && !loop.equals("far-target")) {
+            // A marine well outside the charge band, so the player's side sees the Brute: without
+            // one nothing of ours has eyes on it and the frames draw it hidden by the fog.
+            builder.unit("observer", Faction.MARINE, UnitType.MARINE, 24, lane - 5, spec -> spec.health(DEEP));
+        }
         SceneWorld world = builder.build();
         try (BattleSimulation sim = world.sim()) {
             long target = switch (loop) {
@@ -126,7 +131,7 @@ public final class BruteChargeScene implements BehaviorScene {
                     ground, sim);
             trace.remember(sim);
             SceneRun.of(world).observe(trace)
-                    .frames(frames, loop, 6, tick -> loop + " / brute charge / tick " + tick)
+                    .frames(frames, loop, 3, tick -> loop + " / brute charge / tick " + tick)
                     .run(TICKS);
             return report(loop, trace, sim);
         }

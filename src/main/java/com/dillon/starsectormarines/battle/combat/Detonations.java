@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.LongPredicate;
 
 /**
  * The physics-based AoE pipeline: rockets and missiles register a
@@ -77,6 +78,20 @@ public class Detonations {
     public interface Screen {
         /** True when the detonation was absorbed and must not land. */
         boolean absorbs(PendingDetonation det);
+    }
+
+    /** Bodies held on a swarm carrier's blades; see {@link #spareHeld}. */
+    private LongPredicate held = id -> false;
+    private boolean areaHitsHeld = true;
+
+    /**
+     * Names the bodies held on a swarm carrier (`colony-breach-nouns.md`,
+     * Impale). A direct payload never lands on one, because that is direct
+     * fire; the splash reaches one only while {@code areaHitsHeld}.
+     */
+    public void spareHeld(LongPredicate held, boolean areaHitsHeld) {
+        this.held = held == null ? id -> false : held;
+        this.areaHitsHeld = areaHitsHeld;
     }
 
     /** Sets what may absorb a detonation before it lands. */
@@ -187,6 +202,7 @@ public class Detonations {
         boolean hasDirectPayload = det.directTargetId != 0L && det.directDamage > 0f;
         if (hasDirectPayload
                 && roster.isAliveById(det.directTargetId)
+                && !held.test(det.directTargetId)
                 && (!det.friendlyFireImmune
                     || !det.shooterFaction.friendlyTo(
                             roster.identity().faction(det.directTargetId)))) {
@@ -211,7 +227,9 @@ public class Detonations {
             for (int i = 0, n = roster.liveCount(); i < n; i++) {
                 long u = dense[i];
                 if (crashStruck != null && crashStruck.contains(u)) continue;
-                if (det.excludesAreaTarget(u)) continue;
+                // A held contact target took no direct payload, so the splash is all that reaches it.
+                if (det.excludesAreaTarget(u) && !held.test(u)) continue;
+                if (!areaHitsHeld && held.test(u)) continue;
                 if (det.friendlyFireImmune && det.shooterFaction.friendlyTo(
                         roster.identity().faction(u))) continue;
                 // TRUE position, not cell center — a unit's physical footprint

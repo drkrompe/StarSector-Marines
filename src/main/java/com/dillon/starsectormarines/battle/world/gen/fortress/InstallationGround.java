@@ -65,6 +65,26 @@ public final class InstallationGround {
         }
     }
 
+    /**
+     * Bare ground on a walled place's glacis: the strip outside its wall kept
+     * clear of building, laid as the planet's own earth so it reads as cleared
+     * ground rather than as the town's pavement. Road across it stays road.
+     */
+    public static void glacis(GenContext ctx, boolean[][] strip, boolean[][] road) {
+        TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
+        SurfacePalette planet = profile == null ? SurfacePalette.ROCK : profile.surface();
+        GroundKind ground = planet.inlandGround();
+        GenMappingRegistry mapping = GenMappingRegistry.installed();
+        int surface = mapping == null ? 0 : ctx.topology.surfaceIndex(mapping.groundBlockId(ground));
+        for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++) {
+            if (!strip[x][y] || road[x][y] || ctx.topology.isWall(x, y) || ctx.topology.isFixture(x, y)
+                    || !ctx.grid.isWalkable(x, y)) continue;
+            ctx.topology.setGroundKind(x, y, ground);
+            ctx.topology.setSurface(x, y, surface);
+            ctx.topology.setNatureOverlayIndex(x, y, -1);
+        }
+    }
+
     private static int[] surfaces(GenContext ctx, Material material) {
         int[] out = new int[3];
         for (int age = 0; age < out.length; age++) out[age] = ctx.topology.surfaceIndex(material.block(age));

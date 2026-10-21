@@ -54,7 +54,7 @@ public final class VehicleControlSystem {
     private final int recoveryExpansionsPerTick;
     /** The dozer blade, or {@code null} where no map editor is wired (bare control tests). */
     private DozerBlade blade;
-    /** Hulls that can't act this tick: a Brute's charge stalls them ({@code brute-charge.md}). */
+    /** Hulls that can't act this tick: a Brute's charge stalls them ({@code colony-breach-nouns.md}, Brute). */
     private LongPredicate stalled = id -> false;
     private HoverSkirt skirt;
 

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.combat.StaggerService;
 import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.SystemFxService;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
@@ -1233,6 +1234,18 @@ public final class UnitRenderService implements RenderSystem {
                     }
                     float shoulderPx = layeredInfantryShoulderWidth(
                             cam.cellPxSize(), type.renderScale);
+                    // Knocked down by a charge: the picture lies as a fallen body does for that
+                    // second, though the sim keeps the body upright (colony-breach-nouns.md, Brute).
+                    LayeredSpriteCache lying = ctx.sim.stagger().isStaggered(entityId)
+                            && ctx.sim.stagger().cause(entityId) == StaggerService.Cause.KNOCKED_DOWN
+                            ? layeredAssets.downed((int) (entityId & 0x7fffffff)) : null;
+                    if (lying != null) {
+                        float scale = shoulderPx * DOWNED_BODY_SCALE / LayeredUnitComposer.SOURCE_SHOULDER_PX;
+                        out.addSprite(RenderLayer.UNITS, lying.sprite, cx, cy,
+                                lying.pxWidth * scale, lying.pxHeight * scale, layeredFacing[r],
+                                1f, 1f, 1f, unitAlpha);
+                        continue;
+                    }
                     // Lifted out of the column arrays so the halo's replay of
                     // this same composition can close over them.
                     LayerPose pose = authoredPose;

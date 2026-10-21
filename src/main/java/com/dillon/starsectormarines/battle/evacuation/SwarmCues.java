@@ -10,9 +10,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * What swarm bodies ask the presentation to sound: a cry when a body takes a
  * new quarry, a strike, a blow on a wall and a wall giving way, and the acts
- * that belong to stories still landing (a Brute's charge, a Runner's impale, a
- * body seized and dragged). Deaths are not cues: the presentation reads them
- * off the battle's deaths this frame.
+ * that belong to stories still landing: each phase of a Brute's charge (the
+ * tell, the run, what the run hits, the Brute stunned by a heavy wall or a
+ * tank) and a Runner's impale and drag. Deaths, pain and footfalls are not
+ * cues: the presentation reads them off the battle's deaths this frame, each
+ * body's health and its gait phase.
  *
  * <p>Strain behaviours run in the parallel unit update, so posting is
  * thread-safe. The simulation only records here and never reads back, so the
@@ -23,7 +25,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public final class SwarmCues {
 
     /** What happened. */
-    public enum Kind { ALERT, STRIKE, WALL_BLOW, WALL_BREAK, CHARGE, IMPALE, DRAG }
+    public enum Kind {
+        ALERT, STRIKE, WALL_BLOW, WALL_BREAK,
+        CHARGE_TELL, CHARGE_RUN, CHARGE_HIT_BODY, CHARGE_HIT_VEHICLE, CHARGE_HIT_WALL, STUNNED,
+        IMPALE, DRAG
+    }
 
     /** One act by a body of {@code strain} at a world position. */
     public record Cue(Kind kind, UnitType strain, float x, float y) { }
