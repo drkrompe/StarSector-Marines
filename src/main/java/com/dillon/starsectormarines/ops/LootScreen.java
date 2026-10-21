@@ -46,7 +46,7 @@ public final class LootScreen extends MissionFlowMlxScreen {
         MissionOutcome outcome = context != null ? context.getLastOutcome() : null;
         Map<String, Object> props = baseProps();
         props.put("missionName", outcome != null && outcome.missionName != null
-                ? outcome.missionName : "Resolved operation");
+                ? outcome.missionName : Strings.get("lootScreenResolvedOperation"));
         props.put("budgetLabel", MessageFormat.format(Strings.get("lootBudgetFmt"),
                 number(selection != null ? selection.selectedValue() : 0),
                 number(manifest.selectionBudget)));
@@ -55,15 +55,15 @@ public final class LootScreen extends MissionFlowMlxScreen {
                 ? "tone-accent" : "tone-good"));
         props.put("poolLabel", MessageFormat.format(Strings.get("lootPoolFmt"),
                 manifest.stacks.size(), number(manifest.totalValue)));
-        props.put("instructions", Strings.get("lootInstructions")
-                + (manifest.stacks.stream().anyMatch(s -> s.fieldRecovered)
-                ? " Field finds are preselected and do not spend your contract claim budget." : ""));
+        props.put("instructions", Strings.get(manifest.stacks.stream().anyMatch(s -> s.fieldRecovered)
+                ? "lootScreenInstructionsFieldFinds" : "lootInstructions"));
         props.put("lootRows", lootRows(selection, this::toggle, Strings::get));
         putSettlement(props, preview);
         props.put("backAction", (Runnable) () -> context.goTo(ScreenId.RESULTS));
         props.put("confirmDisabled", preview == null);
         props.put("confirmAction", (Runnable) this::confirm);
-        props.put("confirmLabel", context.preparingAfterSettlement() ? "CONFIRM / PREPARE COMPANY" : "CONFIRM SALVAGE");
+        props.put("confirmLabel", Strings.get(context.preparingAfterSettlement()
+                ? "lootScreenConfirmPrepare" : "lootScreenConfirm"));
         return props;
     }
 
@@ -98,7 +98,7 @@ public final class LootScreen extends MissionFlowMlxScreen {
     private static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("title", Strings.get("lootHeader"));
-        props.put("confirmLabel", "CONFIRM SALVAGE");
+        props.put("confirmLabel", Strings.get("lootScreenConfirm"));
         return props;
     }
 
@@ -113,11 +113,13 @@ public final class LootScreen extends MissionFlowMlxScreen {
             rows.add(new LootRow("loot-stack-" + i,
                     "loot-card console-toggle" + (selected ? " selected" : !canSelect ? " blocked" : ""),
                     stack.iconPath, stack.displayName,
-                    MessageFormat.format(copy.apply("lootQuantityFmt"), stack.quantity)
-                            + (stack.fieldRecovered ? " · FIELD FIND" : ""),
+                    MessageFormat.format(copy.apply(stack.fieldRecovered
+                            ? "lootScreenQuantityFieldFindFmt" : "lootQuantityFmt"), stack.quantity),
                     MessageFormat.format(copy.apply("lootValueFmt"), number(stack.totalValue())),
-                    selected ? (stack.fieldRecovered ? "Secured / selected" : copy.apply("lootSelected"))
-                            : !canSelect ? copy.apply("lootOverBudget") : "Available",
+                    selected ? (stack.fieldRecovered ? copy.apply("lootScreenSecured")
+                            : copy.apply("lootSelected"))
+                            : !canSelect ? copy.apply("lootOverBudget")
+                            : copy.apply("lootScreenAvailable"),
                     "label heading "
                             + (selected ? "tone-good" : !canSelect ? "tone-danger" : "tone-edge"),
                     !canSelect, () -> toggle.accept(index)));
@@ -138,23 +140,23 @@ public final class LootScreen extends MissionFlowMlxScreen {
 
     private void putSettlement(Map<String, Object> props, LootSettlementPlan preview) {
         if (preview == null) {
-            props.put("carryLabel", "Unavailable");
-            props.put("fenceLabel", "Unavailable");
+            props.put("carryLabel", Strings.get("lootScreenUnavailable"));
+            props.put("fenceLabel", Strings.get("lootScreenUnavailable"));
             props.put("noticeClasses", "label tone-danger");
             props.put("notice", Strings.get("lootCargoUnavailable"));
             return;
         }
-        props.put("carryLabel", preview.keptUnits + " units · Cr. "
-                + number(preview.keptValue) + " value");
-        props.put("fenceLabel", preview.fencedUnits + " units · Cr. "
-                + number(preview.fencedCredits) + " paid");
+        props.put("carryLabel", Strings.format("lootScreenCarryValue",
+                preview.keptUnits, number(preview.keptValue)));
+        props.put("fenceLabel", Strings.format("lootScreenFencePaid",
+                preview.fencedUnits, number(preview.fencedCredits)));
         if (preview.isEmpty()) {
             props.put("noticeClasses", "label tone-accent");
             props.put("notice", Strings.get("lootNothingSelected"));
         } else {
             props.put("noticeClasses", "label tone-muted");
-            props.put("notice", number(selection.remainingBudget())
-                    + " credits of claim budget remain.");
+            props.put("notice", Strings.format("lootScreenBudgetRemains",
+                    number(selection.remainingBudget())));
         }
     }
 
