@@ -333,7 +333,7 @@ public final class MissionLaunch {
             CivilianRescueBattleFixture rescueFixture =
                     CivilianRescueBattleFixture.fromFactoryInputs(seed,
                             constructionDetachment.shuttleManifest, enemyHasHeavyArmor, m.risk,
-                            swarmCount, profile, stressTest);
+                            swarmCount, profile, stressTest, m.hivePosture);
             // Production launch and headless replay intentionally meet here:
             // the fixture carries inputs, while BattleSetup remains the only
             // implementation of map/scenario/unit construction.

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "kind": "CIVILIAN_RESCUE",
+  "seed": 7117,
+  "enemyHasHeavyArmor": false,
+  "risk": "HIGH",
+  "swarmCount": 64,
+  "stressTest": false,
+  "shuttles": [
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    },
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    },
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    },
+    {
+      "type": "AEROSHUTTLE",
+      "cycles": 1,
+      "seatsPerSortie": 6
+    }
+  ],
+  "targetProfile": {
+    "marketSize": 0,
+    "stability": 0,
+    "defenseLevel": 0,
+    "spaceportTier": 0,
+    "factionId": "",
+    "functions": []
+  },
+  "hivePosture": "OPPORTUNISTIC",
+  "liftHardpoints": 2
+}

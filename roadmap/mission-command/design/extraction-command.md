@@ -6,7 +6,7 @@ Colony has stable Marine expedition branches; live acceptance remains open.
 
 Written: 2026-08-27
 
-Updated: 2026-10-21 — Rescue close escort leads the cohort by a route cell, and a dispersed rear civilian anchors every rescue, closing the forward-lead deadlock.
+Updated: 2026-10-21 — Colony Breach hive posture: the rescue commander sends and recalls a strike detachment under a readiness gate.
 
 Read `mission-command-nouns.md` for the shared architecture and
 `campaign-event-nouns.md` for the authored event stakes.
@@ -153,6 +153,17 @@ with nobody walking, it holds at the lift. The visit order is therefore the
 commander's choice from what it can see, nearest door first, and the triage
 (which holdout is left to fall) follows from it. A frame with one redoubt runs
 the single-cohort plan above unchanged.
+
+**Hive posture.** On Colony Breach the commander carries the hive posture frozen
+into it at launch, and its frame carries the bores that have opened and the
+company's own emplacements (`colony-breach-nouns.md`, Hive posture, Readiness
+gate, Strike detachment). Each pulse it reads the readiness gate before new
+escorts are drawn and may take a strike detachment from the squads not already
+escorting; the detachment is out of the escort draw and the relief force until
+it ends. Escorts still come first: the gate counts every walking group and every
+pending redoubt as need, so a strike happens only with strength to spare, or
+under Purge against the mother. The published picture and the trace carry the
+posture, the gate and its inputs, the detachment and every decision.
 
 Authored shelter and pickup guards remain outside the command pool under their
 existing garrison or payload authority. The commander does not invent a missing

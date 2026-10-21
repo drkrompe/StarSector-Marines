@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LanePath;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -170,6 +171,13 @@ public final class Mission {
     public final LandingKind landing;
 
     /**
+     * The hive posture chosen at the briefing for a Colony Breach rescue
+     * ({@code colony-breach-nouns.md}, Hive posture), frozen into the
+     * corridor commander at launch. Never null; every other mission ignores it.
+     */
+    public final HivePosture hivePosture;
+
+    /**
      * The ground defences this mission explicitly declares, or null to leave it to
      * the mission type's policy ({@link MissionDefencePolicy}). A DEBUG statement
      * today; the policy is the production path.
@@ -298,6 +306,7 @@ public final class Mission {
         this.sprawl           = b.sprawl;
         this.standoff         = b.standoff;
         this.landing          = b.landing;
+        this.hivePosture      = HivePosture.orDefault(b.hivePosture);
         this.defences         = b.defences;
         this.mechDrop         = b.mechDrop;
         this.airPool          = b.airPool;
@@ -368,6 +377,7 @@ public final class Mission {
         private Standoff standoff;
         private Integer lanes;
         private LandingKind landing;
+        private HivePosture hivePosture;
         private DebugDefences defences;
         private DebugMechDrop mechDrop;
         private DebugAirPool airPool;
@@ -420,6 +430,7 @@ public final class Mission {
             this.standoff = m.standoff;
             this.lanes = m.lanes;
             this.landing = m.landing;
+            this.hivePosture = m.hivePosture;
             this.defences = m.defences;
             this.mechDrop = m.mechDrop;
             this.airPool = m.airPool;
@@ -610,6 +621,12 @@ public final class Mission {
         /** @param lanes how many lanes of resistance the map lays; null takes one per command track. */
         public Builder lanes(Integer lanes) {
             this.lanes = lanes;
+            return this;
+        }
+
+        /** @param posture the Colony Breach hive posture; null is {@link HivePosture#DEFAULT}. */
+        public Builder hivePosture(HivePosture posture) {
+            this.hivePosture = posture;
             return this;
         }
 

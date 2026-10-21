@@ -102,7 +102,7 @@ class ExtractionCommanderOverlayPublisherTest {
                 List.of(new RescueCommandSnapshot.SquadIntent(7,
                         RescueCommandSnapshot.Role.COHORT_ESCORT,
                         "COHORT_ESCORT", AssignmentKind.ESCORT,
-                        18, 14, false, false)));
+                        18, 14, false, false)), null);
         CommanderSnapshot<RescueCommandSnapshot> commander =
                 new CommanderSnapshot<>(Faction.MARINE,
                         "rescue-corridor", "IN_TRANSIT", 100, 90,
