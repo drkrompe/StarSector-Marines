@@ -1110,6 +1110,10 @@ def blender_main(cfg):
                          if top else '')
                       + f' volumes {len(mats)} unscaled {len(unscaled)}' + (f' {off[:3]} {unscaled[:3]}' if off or unscaled else ''),
                       flush=True)
+                # Per-object colour (ship_fx.own_colours): nothing may still read the drawing object's
+                # colour, and every routed node must carry the object's own colour curve.
+                c = ship_fx.colour_audit(pl['fx'])
+                print(f'ASHARU colour {kf} {k:12} {json.dumps(c)}', flush=True)
                 # Stale transforms: the copy is only ever instanced, never evaluated, so a stored
                 # matrix_world can disagree with its parent chain; anything reading it is off by this.
                 worst, name = 0.0, ''

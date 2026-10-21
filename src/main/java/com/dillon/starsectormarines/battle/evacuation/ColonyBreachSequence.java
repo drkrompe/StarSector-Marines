@@ -160,6 +160,7 @@ public final class ColonyBreachSequence {
         if (redoubts.size() > 1) {
             for (CivilianRedoubt redoubt : redoubts) {
                 if (redoubt.released()) emit(tick, "redoubt_reached_" + redoubt.number());
+                if (redoubt.lineBroke()) emit(tick, "redoubt_line_broke_" + redoubt.number());
                 if (redoubt.fallen()) emit(tick, "redoubt_fell_" + redoubt.number());
             }
         }
