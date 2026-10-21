@@ -384,6 +384,35 @@ class ConquestDefenderCommandTest {
     }
 
     @Test
+    void handedPatrolStaysInThePoolAfterItsTrackResponseIsReleased() {
+        BattleSimulation sim = openSim();
+        addDefender(sim, "reporter", 5, 10, UnitRole.PATROL);
+        ConquestDefenderCommand command = command(sim);
+        Squad handed = addDefender(sim, "handed", 5, 48, UnitRole.PATROL);
+        CommanderService service = new CommanderService();
+        service.assignments().claimExternal(handed, CommandAuthority.MISSION_COMMAND, command.strategyId(),
+                "handed to the defence", 0);
+        service.setAutonomousCommander(Faction.DEFENDER, command, ConquestCommandDisclosure.INSTANCE);
+        sim.spawn(new EntitySpec("distant-contact", Faction.MARINE, UnitType.MARINE, 5, 14)
+                .moveSpeed(0f).health(10_000f));
+        sim.advance(BattleSimulation.TICK_DT);
+        service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+        assertEquals(AssignmentKind.DEFEND_TRACK, handed.assignedObjective.kind());
+
+        // Contact at its own position ends the march: the commander releases the order, and with it the directive.
+        sim.spawn(new EntitySpec("local-contact", Faction.MARINE, UnitType.MARINE, 5, 47)
+                .moveSpeed(0f).health(10_000f));
+        sim.advance(BattleSimulation.TICK_DT);
+        service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+        assertEquals(CommandDirective.Status.RELEASED, service.snapshot(Faction.DEFENDER).directiveFor(handed.id).status());
+
+        service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+        assertEquals(ConquestFrontSnapshot.AssignmentReason.DEFENDER_LOCAL_CONTACT,
+                command.frontSnapshot().directiveFor(handed.id).reason(),
+                "a squad handed to the commander is still its own once its order is released");
+    }
+
+    @Test
     void unchangedTrackResponseKeepsItsIssuedTickAcrossCommandPulses() {
         BattleSimulation sim = openSim();
         addDefender(sim, "reporter", 5, 10, UnitRole.PATROL);

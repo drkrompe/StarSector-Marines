@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.DigInSystem;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -71,12 +72,30 @@ public final class MachineGuards {
         AssaultTarget target = AssaultTarget.underClick(sim.fightingPositions(), DigInSystem.isEnabled(),
                 sim.getTacticalMap(), cellX, cellY);
         if (target == null) target = envelopeUnderClick(sim.garrisonables(), cellX, cellY);
-        if (target == null || MachineAssaults.believedHeld(sim, side, target)) return null;
+        if (target == null || seenHeld(sim, side, target)) return null;
         // A run is guarded by the stretch under the click: the garrison there, not the whole belt.
         if (target.kind() == AssaultTarget.Kind.FIGHTING_POSITION) {
             target = AssaultTarget.stretch(sim.fightingPositions(), target.runId(), cellX, cellY, STRETCH_REACH_CELLS);
         }
         return manned(sim, side, target) ? target : null;
+    }
+
+    /**
+     * Whether some squad of {@code side} has seen a hostile in {@code target}, the enemy holding a place its own side
+     * mans. A report localised only by sound does not count: its cell is scattered round the shooter by design, so the
+     * shots of an attack standing off a belt land reports on the belt, and a commander's guard for the garrison there
+     * was refused every pulse for as long as the attack kept firing. A player's click on such a place is still an
+     * assault, which is asked first ({@link MachineAssaults#targetUnderClick}).
+     */
+    static boolean seenHeld(BattleView sim, Faction side, AssaultTarget target) {
+        for (Squad squad : sim.getSquads()) {
+            if (squad.faction != side) continue;
+            for (BelievedContact contact : squad.believedContacts()) {
+                if (contact.source() == BeliefSource.DIRECT
+                        && target.contains(contact.lastSeenCellX(), contact.lastSeenCellY())) return true;
+            }
+        }
+        return false;
     }
 
     /**

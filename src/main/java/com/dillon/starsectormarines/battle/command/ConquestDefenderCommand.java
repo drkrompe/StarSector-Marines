@@ -123,6 +123,13 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
 
     private final ConquestTrackLayout trackLayout;
     private final Set<Integer> initialMobileSquads = new TreeSet<>();
+    /**
+     * Squads handed to this commander after setup (a claim or a delivery in its name) and seen carrying its directive.
+     * They stay in the pool once it releases their order, as the starting force does: a release removes the directive,
+     * and a pool known only by its directive lost every such squad, lance or patrol, the first time its track response
+     * ended, for the rest of the battle.
+     */
+    private final Set<Integer> handedSquads = new TreeSet<>();
     private final Map<Integer, Integer> homeTracks = new HashMap<>();
     /** Per track, the tick of its last believed contact and the depth and front it reached then; for threat memory. */
     private int[] threatSeenTick = new int[0];
@@ -646,7 +653,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         for (int squadId : guardsToStandDown) effects.standDownGuard(squadId);
         for (MachineGuardDirector.Attach attach : guardsToOrder) {
             if (effects.guardPlace(faction(), attach.squadId(), attach.cellX(), attach.cellY()) == 0) {
-                machineGuards.forget(attach.squadId());
+                machineGuards.refused(attach.squadId(), attach.garrisonable());
             }
         }
         guardsToOrder = List.of();
@@ -1046,9 +1053,11 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
 
     private boolean isCommandPoolSquad(PlanningSquad squad) {
         if (initialMobileSquads.contains(squad.id)) return true;
-        return squad.originalDirective != null
-                && squad.originalDirective.authority() == CommandAuthority.MISSION_COMMAND
+        if (squad.originalDirective == null) return handedSquads.contains(squad.id);
+        boolean ours = squad.originalDirective.authority() == CommandAuthority.MISSION_COMMAND
                 && strategyId().equals(squad.originalDirective.issuer());
+        if (ours) handedSquads.add(squad.id);
+        return ours;
     }
 
     private boolean ownsReliefObjective(PlanningSquad squad) {
