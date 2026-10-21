@@ -214,7 +214,13 @@ Proof (no render):
   6 frames each.
 - **Done when:** each reads as its game weapon without a caption.
 
-### W5 Impacts
+### W5 Impacts: bench pass 2 posted 2026-10-21, awaiting the owner
+
+`swfx_impacts` (opt-in, never in `swfx.GROUPS`) places kinetic and HE hits, breaches and debris
+at runtime on one ship's copy (`ship.kit()`), each timed by its own empty. `strike` routes a round
+through W1's shield knobs only. `bench_impacts.armour-breach` plays the two beats on a Hound (P):
+`review/asharu-fx-impacts/2026-10-21_w5-impacts-pass2b_mac/`.
+
 
 - **Reuse:** shield hit flashes (W1) and the fire group's small explosion, fire and vent at
   `size_m`.
@@ -225,11 +231,16 @@ Proof (no render):
      builds' scar anchors (the clean builds have none).
   3. **Debris:** tumbling plate fragments and sparks, to replace the blockout's debris placeholder.
 - **Files:** `swfx_impacts.py` (new), `bench_impacts.py`.
-- **Proof (light):** a Buffalo Mk.II stand-in taking a light MG stream (sparks), then light assault
+- **Proof (light):** a Hound (P) taking a light MG stream (sparks), then light assault
   gun HE (flashes), then a breach that starts burning. 8 frames.
 - **Done when:** S6b's "armour soaks it, then she breaks up" reads in two beats.
 
-### W6 The S6 cook-off tie-in
+### W6 The S6 cook-off tie-in: cause authored 2026-10-21, cue hand-over to session 1
+
+`bench_impacts.COOKOFF` is the cause as cue data: two MG bursts and three Harpoon warheads, the
+third on the wreck's strike point at `break_frame`. `k3_cue` gives the k3 entries for
+`swfx_impacts.apply_cue`. Bench test `impacts.cookoff-caused`, same review run as W5.
+
 
 - **Reuse:** the accepted Phaeton wreck and its `break_frame` cook-off, unchanged.
 - **New:** the strike that causes it. The Harpoons from W3 arrive at `break_frame` and the lead
@@ -248,7 +259,7 @@ Proof (no render):
 | 2 | S6 (the cook-off) | Harpoon salvo arriving, Phaeton cook-off, Lasher hit and burning, MG fire |
 | 3 | S5 (85 mm, the opener) | Manticore main gun and Harpoon salvo over 3-4 km, the Lashers' PD screen killing some short |
 | 4 | S6c | Displacer blink, Wolf (P) front shields up under the Mule's fire then down, ion cannon and mining blaster on the Tarsus's drives |
-| 5 | S6b | Ammo Feeder burst, armour soaking hits on the Buffalo Mk.II, breach, break-up |
+| 5 | S6b | Ammo Feeder burst, armour soaking hits on a Hound (P), breach, break-up |
 | 6 | S6d | chaingun, flares, no shields, drives hit |
 | 7 | S9 | Colossus flares and turrets, a Kite's omni shield driven off |
 | 8 | S7, S8 | boarding cover fire; the Colossus's tug pod shot out, debris |

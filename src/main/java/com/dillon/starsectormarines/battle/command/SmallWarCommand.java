@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.story.SmallWarProgress;
 import com.dillon.starsectormarines.battle.story.SmallWarProgress.Phase;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.BlackSluice;
+import com.dillon.starsectormarines.battle.world.model.GarrisonableRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,9 +17,11 @@ import java.util.Set;
  * Black Sluice duties. The company works the disclosed stages and flanks the causeway through the
  * galleries; holders occupy only sites the company has actually taken; the custody party moves
  * only under company cover; Greyhook's groups hold their posts, commit reserves on their declared
- * triggers and, after Voss's order, either walk out along the service road or hold dispatch.
+ * triggers and, after Voss's order, either walk out along the service road or hold dispatch. A group holding a post well
+ * clear of the stages (the service-road picket, the pier crew) mans the places near it, within the story share
+ * ({@link StoryGarrisons}); a group guarding a stage, a committed reserve or a group walking out goes as authored.
  */
-public final class SmallWarCommand implements AutonomousMissionCommand<SmallWarCommand.Frame, String> {
+public final class SmallWarCommand implements AutonomousMissionCommand<SmallWarCommand.Frame, String>, ReactiveDefenceSource {
     public static final class Frame extends CommandFrame {
         final Phase phase;
         final int custody;
@@ -27,11 +30,19 @@ public final class SmallWarCommand implements AutonomousMissionCommand<SmallWarC
         final boolean companyCover, split, formingUp;
         final Map<Integer, Group> groups;
         final Set<Integer> withdrawing;
+        /** The map's garrisonables, for Greyhook's reactive manning; {@code null} for the other sides or with it switched off. */
+        final GarrisonableRegistry garrisonables;
         public Frame(CommandFrame base, Phase phase, int custody, List<Integer> holders, boolean[] visited, boolean companyCover,
                      boolean split, boolean formingUp, Map<Integer, Group> groups, Set<Integer> withdrawing) {
+            this(base, phase, custody, holders, visited, companyCover, split, formingUp, groups, withdrawing, null);
+        }
+        public Frame(CommandFrame base, Phase phase, int custody, List<Integer> holders, boolean[] visited, boolean companyCover,
+                     boolean split, boolean formingUp, Map<Integer, Group> groups, Set<Integer> withdrawing,
+                     GarrisonableRegistry garrisonables) {
             super(base.tick(), base.perspective(), base.squads(), base.influence(), base.topology(), base.assignments());
             this.phase = phase; this.custody = custody; this.holders = List.copyOf(holders); this.visited = visited.clone();
             this.companyCover = companyCover; this.split = split; this.formingUp = formingUp; this.groups = Map.copyOf(groups); this.withdrawing = Set.copyOf(withdrawing);
+            this.garrisonables = garrisonables;
         }
     }
 
@@ -53,16 +64,20 @@ public final class SmallWarCommand implements AutonomousMissionCommand<SmallWarC
             // Defenders know their own outfits and Voss's order; other perspectives get neither.
             boolean own = faction == Faction.DEFENDER;
             return new Frame(base, p.phase(), sequence.custodySquadId(), sequence.holderSquadIds(), visited, covered,
-                    own && p.split(), faction == Faction.MARINE && sequence.formingUp(), own ? sequence.squadGroups() : Map.of(), own ? sequence.withdrawingSquads() : Set.of());
+                    own && p.split(), faction == Faction.MARINE && sequence.formingUp(), own ? sequence.squadGroups() : Map.of(), own ? sequence.withdrawingSquads() : Set.of(),
+                    own && StoryGarrisons.enabled() ? view.garrisonables() : null);
         };
     }
 
     private final Faction faction;
+    private final StoryGarrisons garrisons = new StoryGarrisons();
     public SmallWarCommand(Faction faction) { this.faction = faction; }
     public static String issuer(Faction faction) { return "small-war:" + faction; }
     public Faction faction() { return faction; }
     public String strategyId() { return issuer(faction); }
     public void publish(CommanderSnapshot<String> snapshot) { }
+    @Override public void afterCommit(CommandEffects effects) { if (faction == Faction.DEFENDER) garrisons.afterCommit(effects, faction); }
+    @Override public Map<String, Integer> reactiveDefenceFigures() { return garrisons.figures(); }
 
     public CommandPlan<String> plan(Frame frame) {
         var proposals = new ArrayList<CommandProposal>(); int count = 0;
@@ -97,13 +112,19 @@ public final class SmallWarCommand implements AutonomousMissionCommand<SmallWarC
                 }
             } else {
                 Group group = frame.groups.get(squad.squadId());
+                garrisons.own(squad);
                 if (group == null) { x = cx; y = cy; }
                 else if (frame.withdrawing.contains(squad.squadId())) { x = BlackSluice.EXIT_X - 1; y = BlackSluice.EXIT_Y; withdraw = true; }
                 else if (group.reserve()) { var site = BlackSluice.SITES.get(group.targetSite()); x = site.x(); y = site.y(); advance = true; }
                 else if (frame.split && group.split() == SplitSide.HOLDS) {
                     // Berth Four refuses the order and holds dispatch out of grudge.
                     var site = BlackSluice.SITES.get(SmallWarProgress.DISPATCH); x = site.x(); y = site.y(); radius = 6;
-                } else { x = group.x(); y = group.y(); radius = 5; }
+                } else {
+                    x = group.x(); y = group.y(); radius = 5;
+                    // A group on a post clear of the stages holds the windows near it; a committed reserve, a group walking
+                    // out, and a group guarding a stage itself do not.
+                    if (!squad.crew() && clearOfStages(x, y)) garrisons.offerDuty(squad, x, y);
+                }
             }
             int best = Integer.MAX_VALUE, bx = cx, by = cy;
             for (int sy = y - 5; sy <= y + 5; sy++) for (int sx = x - 5; sx <= x + 5; sx++) {
@@ -121,8 +142,23 @@ public final class SmallWarCommand implements AutonomousMissionCommand<SmallWarC
             proposals.add(CommandProposal.assign(next, CommandAuthority.MISSION_COMMAND, "SMALL_WAR_" + frame.phase,
                     next == old.assignment() ? CommandStabilityBreak.NONE : CommandStabilityBreak.CONTEXT_INVALIDATED)); count++;
         }
+        if (faction == Faction.DEFENDER) proposals = new ArrayList<>(garrisons.apply(frame, frame.garrisonables, proposals, strategyId()));
         return new CommandPlan<>(faction, strategyId(), "SMALL_WAR_" + frame.phase, frame.tick(),
                 frame.influence() == null ? -1 : frame.influence().updatedTick(), count, 0, List.of(frame.phase.name()), proposals, frame.phase.name());
+    }
+
+    /**
+     * Whether a post stands more than twice the duty radius from every stage's ground, so no place its group could man
+     * reaches a stage. A group holed up in a stage's rooms re-contests a stage the company has already taken and walks
+     * the story back (`garrisonables.md`, story commanders), so the groups guarding customs, fuel control and dispatch,
+     * and Berth Four holding dispatch, keep their authored posts.
+     */
+    static boolean clearOfStages(int x, int y) {
+        for (var site : BlackSluice.SITES) {
+            int gap = Math.max(0, Math.max(Math.max(site.left() - x, x - site.right()), Math.max(site.bottom() - y, y - site.top())));
+            if (gap <= 2 * MissionGarrisons.DUTY_RADIUS_CELLS) return false;
+        }
+        return true;
     }
 
     /**

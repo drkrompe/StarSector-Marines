@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-20
 
-Updated: 2026-10-21 — every battle harness about places prints a `[place-fight]` line: the fight mix (contacts on posts against the open) and whether a counter-attack met a hold; conquest-trial plays its fixtures side by side. Story summaries carry it and the story commanders' manning.
+Updated: 2026-10-21 — the nine story missions without a planner of their own have harnesses (story missions without a planner); every battle harness about places prints a `[place-fight]` line, and story summaries carry it and the story commanders' manning.
 
 Per-mission matrices, fixture fields and report contents for `gradlew.bat commanderEvidence -Pmission=<mission>`. How to run the task, the mission list, replay count, parallelism and snapshot flags stay in `CLAUDE.md` (Build & deploy); read this when you need one mission's details. Text is moved verbatim from `CLAUDE.md`; "Fixture fields match Relief" and similar refer to the sections below.
 
@@ -227,10 +227,54 @@ control is `-Pfixture=src/test/resources/battle-fixtures/conquest-forts-reinforc
 The fort report carries a
 `pressure flow:` line and a fighting-position use block per faction. Use
 
+## Story missions without a planner
+
+`yard-owners`, `water-under-seal`, `limited-warrant`, `district-escort`,
+`terms-of-protection`, `small-war` (A Small War at Black Sluice),
+`salvage-rights`, `cold-start` and `working-passage` share one harness
+(`StoryCommandEvidenceTest`, one tag per mission). Each fixture stands up the
+mission's production factory with its own story commanders on every side, puts
+the company the mission's snapshot suite issues into two six-seat Aeroshuttles
+(the Agreus company from the debug catalog's expected roster, the A Working
+Ship company from its starter roster; ashore where the mission starts it on the
+ground) and plays it with no input until it ends or its tick budget runs out.
+The exception is a mission that waits on the player's ship bar: Water Under
+Seal and Terms of Protection call Ship on Station once the plot is seen and
+order the road gun, Cold Start requests yard construction, Working Passage
+orders a gun at each stop, when the snapshot suite does, and a gun order is
+given again every 150 ticks until the ship command service reports it laid.
+Every such request is listed in `playerInputs`.
+
+Default matrices are four fixtures (six for A Small War): three seeds at the
+suite's company size and one at the other size (24 or 36), with Limited
+Warrant's records-retained variant and the custody / compact agreement where
+the mission has one. `-Pfixture` takes a JSON array of `{id, seed, personnel,
+variant}`; `variant` is `custody`, `compact` or `records`. Each fixture's
+`summary.json` has the termination, winner, ticks, final phase and the phase
+walk, the receipt (`report(sim)` as text), remaining and lost combatants by
+side, `playerInputs`, `storyBeats` with audience, `placeFight` and
+`reactiveDefence`; the mission's `summary.md` is one row a fixture. A matrix
+plays in under a minute and a half.
+
+Baselines (2026-10-21, before any of the nine was wired):
+
+| mission | fixtures | outcomes | brawls | defender shooting from a post |
+|---|---:|---|---:|---:|
+| The Yard's Owners | 4 | marines 4 | 0% | 93% |
+| Water Under Seal | 4 | marines 3; 15301 times out at construction with the gun laid | 45% | 40% |
+| Limited Warrant | 4 | marines 4 | 3% | 96% |
+| District Escort | 4 | marines 4 | 59% | 37% |
+| Terms of Protection | 4 | marines 4 | 89% | 5% |
+| A Small War | 6 | marines 5, Greyhook 1 (16205 at 24 seats) | 39% | 51% |
+| Salvage Rights | 4 | marines 2, Greyhook 2 | 57% | 22% |
+| Cold Start | 4 | marines 1, Greyhook 2, one timeout at power (36 seats) | 85% | 8% |
+| Working Passage | 4 | Greyhook 4 (the starter company) | 90% | 3% |
+
 ## Story manning
 
 Every story fixture's `summary.json` (Junction, Relay Nine, Relief,
-Counterattack, Last Lift per attempt, Thunder Run per fixture) carries
+Counterattack, Last Lift per attempt, Thunder Run per fixture, and the nine
+story missions without a planner above) carries
 `placeFight`, the `PlaceFightProbe` reading above, and `reactiveDefence`, the
 defender commander's manning figures with, for a story commander, the
 squad-pulses it offered and the pulses its holder share was closed

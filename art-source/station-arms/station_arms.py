@@ -4,9 +4,9 @@
     python art-source/station-arms/station_arms.py export
 
 A body layer's arms hang at its sides. Somebody working a console has theirs out
-in front of them, so two extra layers (left and right) are drawn between the body
-and the head while an actor stands at hands-on work. Each arm layer shares the body
-layer's grid: a 150x240 canvas whose lower 150x120 is the body canvas itself, so it
+in front of them, so two extra layers (left and right) are drawn under the body
+while an actor stands at hands-on work. Each arm layer shares the body
+layer's grid: a canvas 120 rows taller than the body whose bottom rows are the body canvas, so it
 is placed exactly as the body is and only extends forward of it (up the image).
 The forearm leaves the sleeve at the body's side and the hand rests just ahead of
 the head.
@@ -23,7 +23,7 @@ import sys
 
 from PIL import Image, ImageDraw
 
-CANVAS = (150, 240)        # arm layer size; rows 120..239 coincide with the body canvas
+CANVAS = (150, 240)        # arm layer size for a 120-row body; its bottom rows are the body canvas
 BODY_ROW = 120             # body canvas row 0 within the arm canvas
 GUIDE_SCALE = 5
 SHEET = (1536, 1024)
@@ -39,10 +39,15 @@ HAND = (23, 27)            # width across, length along the forearm
 ROLES = {
     "ship-crew": ("command", "engineering", "medical", "service"),
     "colonist": ("civilian", "engineer", "scientist"),
+    "marine": ("armorless", "army-green", "charcoal", "blue-scout", "militia", "outlaw", "red-heavy"),
 }
 SOURCE = Path("art-source/station-arms")
 TARGETS = {"ship-crew": Path("mod/graphics/battle/ship-crew-modular-topdown"),
-           "colonist": Path("mod/graphics/battle/colonist-modular-topdown")}
+           "colonist": Path("mod/graphics/battle/colonist-modular-topdown"),
+           "marine": Path("mod/graphics/battle/marine-modular-topdown/variants/armor")}
+# Marine families have no single raw sheet, so their style reference is a render of
+# the family's own shipped body and head (`refs`), written under build/.
+REFS = Path("build/station-arms-refs")
 
 
 def _arm(draw: ImageDraw.ImageDraw, side: str, s: float, ox: float, oy: float, fill) -> None:
@@ -92,6 +97,23 @@ def guide() -> None:
     print(out)
 
 
+def refs() -> None:
+    """The shipped body and head of each marine family, x6 on the guide's sheet size."""
+    REFS.mkdir(parents=True, exist_ok=True)
+    for role in ROLES["marine"]:
+        root = TARGETS["marine"] / role
+        body = Image.open(root / "body.png").convert("RGBA")
+        head = Image.open(root / "head.png").convert("RGBA")
+        unit = Image.new("RGBA", (150, 120 + body.height), (0, 0, 0, 0))
+        unit.alpha_composite(body, (0, 120))
+        unit.alpha_composite(head, (75 - head.width // 2, 150 - head.height // 2))
+        unit = unit.resize((unit.width * 4, unit.height * 4), Image.Resampling.NEAREST)
+        sheet = Image.new("RGBA", SHEET, (0, 0, 0, 0))
+        sheet.alpha_composite(unit, ((SHEET[0] - unit.width) // 2, SHEET[1] - unit.height))
+        sheet.save(REFS / f"{role}.png")
+        print(REFS / f"{role}.png")
+
+
 def export() -> None:
     for family, roles in ROLES.items():
         for role in roles:
@@ -106,7 +128,9 @@ def export() -> None:
                 bound = mask(side, 1).crop((x0, y0, x1, y1))
                 r, g, b, a = part.split()
                 a = Image.composite(a, Image.new("L", (w, h), 0), bound.point(lambda v: 255 if v >= 128 else 0))
-                layer = Image.new("RGBA", CANVAS, (0, 0, 0, 0))
+                # The body canvas is the bottom of the arm canvas whatever the body's height.
+                body_rows = Image.open(TARGETS[family] / role / "body.png").height
+                layer = Image.new("RGBA", (CANVAS[0], BODY_ROW + body_rows), (0, 0, 0, 0))
                 layer.paste(Image.merge("RGBA", (r, g, b, a)), (x0, y0))
                 out = TARGETS[family] / role / f"station-arm-{side}.png"
                 layer.save(out, optimize=True)
@@ -114,4 +138,4 @@ def export() -> None:
 
 
 if __name__ == "__main__":
-    {"guide": guide, "export": export}[sys.argv[1] if len(sys.argv) > 1 else "guide"]()
+    {"guide": guide, "refs": refs, "export": export}[sys.argv[1] if len(sys.argv) > 1 else "guide"]()

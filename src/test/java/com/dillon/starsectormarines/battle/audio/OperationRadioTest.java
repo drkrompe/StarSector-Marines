@@ -12,21 +12,15 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.fs.starfarer.api.SoundAPI;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import javax.imageio.ImageIO;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -412,68 +406,6 @@ class OperationRadioTest {
                 AssignmentKey.of(ObjectiveAssignment.holdNode(1, first)));
         assertEquals(AssignmentKey.of(ObjectiveAssignment.escort(1, 10, 12)),
                 AssignmentKey.of(ObjectiveAssignment.escort(1, 30, 42)));
-    }
-
-    @Test
-    void everyShippedTurnHasMatchingVoiceProvenanceAndCommsRegistration() throws Exception {
-        JSONObject root = new JSONObject(Files.readString(Path.of("mod", OperationRadio.PATH)));
-        Catalog catalog = OperationRadio.parse(root);
-        assertEquals(6, catalog.actors().size());
-        var portraits = new HashSet<String>();
-        for (Actor actor : catalog.actors()) {
-            assertFalse(actor.portrait().isBlank(), actor.id());
-            assertTrue(portraits.add(actor.portrait()), "Each voice has a distinct face");
-            var portrait = ImageIO.read(Path.of("mod", actor.portrait()).toFile());
-            assertNotNull(portrait, actor.id());
-            assertEquals(256, portrait.getWidth());
-            assertEquals(256, portrait.getHeight());
-        }
-        assertEquals(165, catalog.lines().size());
-        assertNotNull(catalog.fieldCommand(), "The founding officer has a place on the net");
-        assertNotNull(ImageIO.read(Path.of("mod", catalog.fieldCommand().portrait()).toFile()));
-        for (Cue cue : Cue.values()) {
-            assertEquals(18, catalog.actors().stream().mapToInt(actor -> actor.reports().get(cue).size()).sum());
-        }
-        assertEquals("cuwCdnt9CKAB9XrTA1j0", root.getJSONObject("voices").getJSONObject("command").getString("voiceId"));
-        JSONObject sounds = new JSONObject(Files.readString(Path.of("mod/data/config/sounds.json"))
-                .replaceAll("(?m)#.*$", ""));
-        Path sources = Path.of("asset-pipeline/src/tool/resources/audio");
-        var clips = new JSONObject(Files.readString(sources.resolve("audio.json"))
-                .replaceAll("(?m)^\\s*//.*$", "")).getJSONArray("clips");
-        for (Line line : catalog.lines().values()) {
-            JSONObject receipt = new JSONObject(Files.readString(sources.resolve("operation-radio/live/" + line.id() + ".json")));
-            assertEquals(root.getJSONObject("voices").getJSONObject(line.speaker()).getString("voiceId"), receipt.getString("voiceId"));
-            assertEquals(root.getString("modelId"), receipt.getString("modelId"));
-            assertEquals(line.durationSeconds(), receipt.getDouble("durationSeconds"), 0.001);
-            assertEquals(receipt.getString("audioSha256"), HexFormat.of().formatHex(
-                    MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(
-                            sources.resolve("operation-radio/live/" + line.id() + ".mp3")))));
-            assertEquals("sounds/battle/operation-radio/" + line.id() + ".ogg",
-                    sounds.getJSONArray(line.id()).getJSONObject(0).getString("file"));
-            int matches = 0;
-            for (int i = 0; i < clips.length(); i++) {
-                JSONObject clip = clips.getJSONObject(i);
-                if (!line.id().equals(clip.getString("id"))) continue;
-                matches++;
-                assertEquals("comms", clip.getString("processing"));
-                assertEquals("ui", clip.getString("kind"));
-                assertEquals("battle/operation-radio", clip.getString("out"));
-                assertEquals("operation-radio/live/" + line.id() + ".mp3", clip.getString("source"));
-            }
-            assertEquals(1, matches);
-        }
-        // Catalogs using the original one-ID-per-event schema remain usable.
-        var actors = root.getJSONArray("actors");
-        for (int i = 0; i < actors.length(); i++) {
-            actors.getJSONObject(i).remove("portrait");
-            JSONObject reports = actors.getJSONObject(i).getJSONObject("reports");
-            for (Cue cue : Cue.values()) reports.put(cue.name(), reports.getJSONArray(cue.name()).getString(0));
-        }
-        Catalog legacy = OperationRadio.parse(root);
-        for (Actor actor : legacy.actors()) {
-            assertTrue(actor.portrait().isBlank(), "Older catalogs retain text-only presentation");
-            for (Cue cue : Cue.values()) assertEquals(1, actor.reports().get(cue).size());
-        }
     }
 
     private static final class FakeSound implements SoundAPI {

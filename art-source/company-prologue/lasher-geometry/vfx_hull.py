@@ -55,3 +55,17 @@ LAMPS = [
     ('Light centre stern 1', 'masthead', WHITE),
     ('Light centre prow 1', 'beacon', WHITE),
 ]
+
+
+# Shield (../second-wind-vfx/swfx_shield.py): vanilla FRONT, arc 210, radius 64,
+# shieldCenter (11, 0) (lasher.ship, ship_data.csv), efficiency 1.0. Colour by
+# technology, not faction: the LOW_TECH hull style, so the 'low-tech' scheme.
+# Not in this export's groups: a shot builds it per ship with the film
+# (swfx_shield.build(ctx, film=True, hull_collection=...), asharu-effects-plan.md W1).
+# Fitted ~8 m clear of the hull (8 units at 0.95 m/u). vents: the hull parts
+# that glow and shed vapour when she vents (shield_vent).
+SHIELD = dict(
+    type='FRONT', anchor='LASHER (independent) | root', center=(11, 0), radius=64.0, arc=210.0, nodes=[],
+    scheme='low-tech', efficiency=1.0, fit=dict(margin=8.0), raise_s=1.0, lower_s=1.0,
+    vents=['Hull spine port heat vent well', 'Hull spine starboard heat vent well'],
+)

@@ -89,6 +89,8 @@ public enum LayeredArmorFamily {
      */
     public boolean hasStationArms() {
         switch (this) {
+            case ARMORLESS: case ARMY_GREEN: case CHARCOAL: case BLUE_SCOUT: case MILITIA:
+            case OUTLAW: case RED_ELITE:
             case CIVILIAN_COLONIST: case ENGINEER: case SCIENTIST:
             case SHIP_COMMAND: case SHIP_ENGINEERING: case SHIP_MEDICAL: case SHIP_SERVICE:
                 return true;

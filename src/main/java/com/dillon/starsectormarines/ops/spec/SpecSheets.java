@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.MarineInsertion;
 import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.power.ShipOnStation;
+import com.dillon.starsectormarines.battle.power.TenderCallDown;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.ArmorTradition;
@@ -106,6 +107,7 @@ public final class SpecSheets {
             case VehicleSupport.ID -> Strings.get("gearPowerEffectVehicleSupport");
             case CloseAirSupport.ID -> Strings.get("gearPowerEffectCloseAirSupport");
             case ShipOnStation.ID -> Strings.get("gearPowerEffectShipOnStation");
+            case TenderCallDown.ID -> Strings.get("gearPowerEffectTenderCallDown");
             default -> Strings.get("gearPowerEffectDefault");
         };
         return new SpecSheet(power.displayName, Strings.get("gearCommandPower"), commandPowerIcon(power), "command",

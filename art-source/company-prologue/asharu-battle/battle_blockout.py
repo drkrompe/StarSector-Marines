@@ -10,7 +10,9 @@
     python battle_blockout.py --rerender      # render every frame even if a finished one is on disk
     python battle_blockout.py --root DIR      # put run folders under DIR (a render-queue job's {work})
     python battle_blockout.py --date D        # the review folder's date, when the run starts (default today)
+    python battle_blockout.py --half          # render at half size (a light check; labels drawn at full size)
     python battle_blockout.py --stage-only    # build and pose the scene in Blender, render nothing (a pre-flight)
+    python battle_blockout.py --stage-only --los   # ... and ray-cast every shot: does the round meet its target?
 
 A frame already finished in the run folder (its PNG, its labels, and the same samples and source)
 is not rendered again, so a job stopped part-way resumes where it stopped. Pass --run with a fixed
@@ -48,7 +50,8 @@ REPO = ART.parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(PROLOGUE))
 sys.path.insert(0, str(ART))
-import roster  # noqa: E402
+import roster
+from motion import fleet_at   # ships move about their stations: seeded weave, bank and breathing spacing  # noqa: E402
 
 # One folder per finished build (roster.FINISHED's dir), copied whole from Drive.
 BUILDS = Path(os.environ.get('ASHARU_BUILDS') or REPO / 'build' / 'asharu-battle' / 'builds')
@@ -100,7 +103,7 @@ PIRATES_RISING = {   # coming up out of the platform, behind and below the convo
     'manticore-p': (-6900, -650, -3300, 2, 13, 4, 1),
     'colossus3': (-8200, 100, -3700, 3, 10, 2, .8),
     'buffalo2-a': (-7700, -1300, -3500, 0, 12, 5, 1),
-    'buffalo2-b': (-8600, 1500, -3900, 8, 11, -4, 1),
+    'hound-p-c': (-8600, 1500, -3900, 8, 11, -4, 1),
     'wolf-p-a': (-5200, -300, -2400, -2, 17, 8, 1),
     'wolf-p-b': (-5500, 700, -2600, 5, 16, -9, 1),
     'hound-p-a': (-5800, -1000, -2700, -4, 15, 6, 1),
@@ -123,7 +126,7 @@ PIRATES_MOORED = {   # running dark among the platform's stripped hulks; the Fal
     'manticore-p': moored((80, 110, -20)),
     'colossus3': moored((120, -110, 0)),
     'buffalo2-a': moored((230, 100, 10)),
-    'buffalo2-b': moored((-300, -105, 0)),
+    'hound-p-c': moored((-300, -105, 0)),
     'wolf-p-a': moored((-60, -120, 35)),
     'wolf-p-b': moored((60, 135, 35)),
     'hound-p-a': moored((-200, -130, -30)),
@@ -151,16 +154,25 @@ def aboard(parent, offset, thr=0):
     return (x + ox, y + oy, z + oz, hd, pt, rl, thr)
 
 
+STAR_GAIN = 1.0      # starfield brightness on the key frames (0 hides it)
+
 C3_PRIZE = (-150, 330, 60, 30, -4, -6, .3)
 
 KEYFRAMES = {
+    'k0': dict(
+        shot='S1a', title='The view the player knows',
+        caption='Straight down on the convoy, prograde up the frame: the ships as the player has always seen them, '
+                'small against the desert far below. From here the camera tips down into the 3D fight.',
+        camera=dict(loc=(80, 120, 11000), lens=100, look=(0.01, 0.0, -1.0)),
+        ships=fleet_at(CONVOY, 10),
+        labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'lasher-a']),
     'k1': dict(
         shot='S1', title='Low orbit over Asharu',
         caption='A working convoy in loose column over the day side, slowing for its descent window: the Colossus '
                 'with Morrow alongside, a Tarsus, a Mule, a Phaeton tanker, Buffalos and a Dram, escorted by '
                 'three Lashers, a Wolf and a Hound.',
         camera=dict(loc=(-1900, 2700, 1500), target=(300, -80, -150), lens=35),
-        ships=CONVOY,
+        ships=fleet_at(CONVOY, 16),
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'buffalo-b', 'dram',
                 'lasher-lead', 'lasher-a', 'lasher-b', 'wolf-m', 'hound-m']),
     'k1b': dict(
@@ -177,7 +189,7 @@ KEYFRAMES = {
         caption='Behind and below: drives light up in the derelict Asharu platform the convoy has just passed. '
                 'Twelve pirate hulls climb out of it toward the column.',
         camera=dict(loc=(-4800, -2600, -1700), target=(-6500, 200, -3100), lens=35),
-        ships={**{k: CONVOY[k] for k in ('hound-m', 'tarsus')}, **PIRATES_RISING},
+        ships=fleet_at({**{k: CONVOY[k] for k in ('hound-m', 'tarsus')}, **PIRATES_RISING}, 40),
         platform=PLATFORM,
         labels=['falcon-p', 'colossus3', 'manticore-p', 'wolf-p-a', 'kite-p-a', 'hound-p-b', 'platform']),
     'k3': dict(
@@ -188,7 +200,8 @@ KEYFRAMES = {
         camera=dict(loc=(860, 640, 200), target=(-1300, -420, -280), lens=35),
         states={'phaeton': 'phaeton-wreck'},
         knobs={'phaeton': {'break_frame': {'ago_s': 2.0}}},     # 2 s into the cook-off: tank 1 has just gone
-        ships={**{k: v for k, v in CONVOY.items() if k not in ('lasher-lead', 'lasher-a', 'phaeton', 'wolf-m')},
+        ships={**fleet_at({k: v for k, v in CONVOY.items() if k not in ('lasher-lead', 'lasher-a', 'phaeton', 'wolf-m')}, 56,
+                           keep=('lasher-b',)),   # steadied on her gun run at the Wolf (P)
                'lasher-lead': (330, 430, 70, 165, 4, -15, 1), 'lasher-a': (-150, 560, 160, 10, 6, 40, .2),
                'phaeton': (-350, 300, 20, 8, -4, 30, 0),
                'falcon-p': (-3100, -700, -650, 6, 4, -3, 1), 'manticore-p': (-2500, -1000, -480, 8, 3, 4, 1),
@@ -205,27 +218,27 @@ KEYFRAMES = {
     'k3c': dict(
         shot='S6b', title='The escorts answer',
         caption='Lasher B and the merchant Wolf turn back and roll over onto the climbing raiders, firing down. '
-                'A Buffalo Mk.II takes the full Ammo Feeder burst and breaks up: the convoy draws blood.',
+                'A Hound (P) takes the full Ammo Feeder burst on her bare armour and breaks up: the convoy draws blood.',
         camera=dict(loc=(-900, 700, 150), target=(-1600, 300, -350), lens=50),
         ships={'lasher-b': (-1300, 450, -150, 185, -15, 150, 1), 'wolf-m': (-1420, 560, -120, 175, -18, -140, 1),
-               'buffalo2-b': (-1800, 300, -500, 5, 12, -4, .4), 'buffalo2-a': (-2600, -150, -800, 3, 10, 3, 1),
+               'hound-p-c': (-1800, 300, -500, 5, 12, -4, .4), 'buffalo2-a': (-4200, -1200, -1500, 3, 10, 3, 1),
                'manticore-p': (-3000, -800, -900, 8, 6, 4, 1)},
-        fx=[('tracer', 'lasher-b', 'buffalo2-b'), ('tracer', 'wolf-m', 'buffalo2-b'),
+        fx=[('tracer', 'lasher-b', 'hound-p-c'), ('tracer', 'wolf-m', 'hound-p-c'),
             ('tracer', 'buffalo2-a', 'lasher-b'),
-            ('blast_on', 'buffalo2-b', 22, (0, 0, 0)), ('debris', 'buffalo2-b', 60, (0, 0, 0))],
-        labels=['lasher-b', 'wolf-m', 'buffalo2-b', 'buffalo2-a']),
+            ('blast_on', 'hound-p-c', 18, (0, 0, 0)), ('debris', 'hound-p-c', 50, (0, 0, 0))],
+        labels=['lasher-b', 'wolf-m', 'hound-p-c', 'buffalo2-a']),
     'k3d': dict(
         shot='S6c', title='The column is cut',
         caption='Alongside the column at 300 m. The two Wolves (P) blink through the gap between the freighters, '
                 'raking the Tarsus\'s drives as they pass. The Mule\'s guns and the merchant Wolf chase them; '
                 'shields flare on both sides.',
         camera=dict(loc=(-250, -760, 90), target=(-200, 20, -10), lens=28),
-        ships={**{k: CONVOY[k] for k in ('colossus', 'morrow', 'tarsus', 'buffalo-b', 'mule')},
+        ships={**fleet_at({k: CONVOY[k] for k in ('colossus', 'morrow', 'tarsus', 'buffalo-b', 'mule')}, 72),
                'wolf-p-a': (-380, -60, -30, 75, 6, -60, 1), 'wolf-p-b': (-180, 80, 10, 95, 4, -70, 1),
                'wolf-m': (-560, -300, -60, 70, 4, -20, 1)},
         fx=[('tracer', 'wolf-p-a', 'tarsus'), ('tracer', 'wolf-p-b', 'tarsus'),
             ('tracer', 'wolf-m', 'wolf-p-a'), ('tracer', 'mule', 'wolf-p-b'),
-            ('fire_on', 'tarsus', (-40, 0, 6))],
+            ('fire_on', 'tarsus', (-40, 0, 6), (-.2, .5, 1))],
         labels=['wolf-p-a', 'wolf-p-b', 'tarsus', 'wolf-m', 'colossus']),
     'k3e': dict(
         shot='S6d', title='The rear guard',
@@ -248,10 +261,10 @@ KEYFRAMES = {
         ships={'tarsus': (-650, 90, 30, 6, -2, 9, 0),
                'kite-p-a': (-620, 160, 40, 6, -1, 9, .2), 'kite-p-b': (-700, 25, 0, 4, 2, 6, .2),
                'wolf-p-b': (-420, 330, 120, -20, -32, 110, 1),
-               'colossus': (1200, -80, 40, 0, 0, 2, .9), 'morrow': (1150, -250, 0, 0, 1, -3, .9),
-               'mule': (1900, 260, 20, 0, 0, -2, .9), 'buffalo-a': (1600, -350, 80, 0, 1, 4, .9)},
-        fx=[('tracer', 'wolf-p-b', 'tarsus', (30, 0, 10)), ('fire_on', 'tarsus', (-40, 0, 6)),
-            ('smoke', 'tarsus', (-40, 0, 6))],
+               **fleet_at({'colossus': (1200, -80, 40, 0, 0, 2, .9), 'morrow': (1150, -250, 0, 0, 1, -3, .9),
+                           'mule': (1900, 260, 20, 0, 0, -2, .9), 'buffalo-a': (1600, -350, 80, 0, 1, 4, .9)}, 86)},
+        fx=[('tracer', 'wolf-p-b', 'tarsus', (30, 0, 10)), ('fire_on', 'tarsus', (-38, 6, 8), (-.2, .5, 1)),
+            ('smoke', 'tarsus', (-38, 6, 8), (-.3, .4, 1))],
         labels=['tarsus', 'kite-p-a', 'kite-p-b', 'wolf-p-b', 'colossus', 'mule']),
     'k4': dict(
         shot='S8-S9', title='She will not be taken',
@@ -262,13 +275,13 @@ KEYFRAMES = {
         knobs={'colossus3': {'grapples': 0.5}},
         ships={'colossus': (0, 0, 0, 0, -3, 6, .2), 'morrow': (-10, 35, -78, 0, 8, 4, 1),
                'colossus3': (-60, 70, 175, -4, -8, 64, .6),
-               'kite-p-a': (110, 210, 40, -60, 6, 32, 1),
+               'kite-p-b': (110, 210, 40, -60, 6, 32, 1),
                'wolf-p-a': (260, 160, 110, -150, 2, -40, 1)},
         fx=[('blast_on', 'colossus', 12, (-62, 30, 0)), ('fire_on', 'colossus', (-55, 36, 4)),
             ('tracer', 'colossus3', 'colossus', (-60, 30, 6)), ('tracer', 'colossus', 'wolf-p-a'),
-            ('tracer', 'colossus', 'kite-p-a'), ('tracer', 'colossus', 'colossus3'),
+            ('tracer', 'colossus', 'kite-p-b'), ('tracer', 'colossus', 'colossus3'),
             ('flares', 'colossus'), ('debris', 'colossus', 45, (-60, 34, 0))],
-        labels=['colossus', 'morrow', 'colossus3', 'kite-p-a', 'wolf-p-a']),
+        labels=['colossus', 'morrow', 'colossus3', 'kite-p-b', 'wolf-p-a']),
     'k4b': dict(
         shot='S9b', title='The lead\'s last run',
         caption='Smoking from S6, the lead Lasher makes one more run over the Falcon (P), rolled onto her back. '
@@ -293,7 +306,8 @@ KEYFRAMES = {
                'kite-p-a': aboard(C3_PRIZE, (10, 66, -40)),
                'colossus': (480, -30, -780, 5, -26, 14, .15), 'morrow': (500, -175, -830, 0, -22, 8, 1)},
         fx=[('fire_on', 'colossus', (-55, 36, 4)), ('smoke', 'colossus', (-60, 34, 0)),
-            ('debris', 'colossus', 70, (-30, 0, 10))],
+            ('debris', 'colossus', 70, (-30, 0, 10)),
+            ('fire_on', 'falcon-p', (-20, -14, 4), (-.3, -.6, .7)), ('smoke', 'falcon-p', (-20, -14, 4), (-.6, -.4, .6))],
         labels=['colossus', 'morrow', 'falcon-p', 'colossus3', 'tarsus']),
     'k6': dict(
         shot='S12', title='Two trails toward the northern canyons',
@@ -325,7 +339,7 @@ def blender_main(cfg):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene
     scene.render.resolution_x, scene.render.resolution_y = W, H
-    scene.render.resolution_percentage = 100
+    scene.render.resolution_percentage = 50 if cfg.get('half') else 100     # --half: a light check
     scene.render.engine = 'CYCLES'
     scene.cycles.samples = cfg['samples']
     scene.cycles.use_denoising = True
@@ -403,6 +417,42 @@ def blender_main(cfg):
     scene.world = world
     world.use_nodes = True
     world.node_tree.nodes['Background'].inputs['Color'].default_value = (.0008, .0009, .0014, 1)
+    # A starfield (owner, 2026-10-21): a camera exposed for sunlit hulls would lose the stars, but space reads
+    # wrong without them. Seen by the camera only (Light Path: Is Camera Ray), so they light nothing. Sharp
+    # Voronoi points on the view direction, a few bright ones and many faint, with a faint warm/cool tint.
+    wn, wl = world.node_tree.nodes, world.node_tree.links
+    bg_out = wn['World Output']
+    tc = wn.new('ShaderNodeTexCoord')
+    vor = wn.new('ShaderNodeTexVoronoi')
+    vor.voronoi_dimensions = '3D'
+    vor.inputs['Scale'].default_value = 420.0
+    wl.new(tc.outputs['Generated'], vor.inputs['Vector'])
+    pts = wn.new('ShaderNodeMapRange')               # distance to the cell's point -> a tight dot
+    pts.inputs['From Min'].default_value, pts.inputs['From Max'].default_value = 0.0, 0.06
+    pts.inputs['To Min'].default_value, pts.inputs['To Max'].default_value = 1.0, 0.0
+    wl.new(vor.outputs['Distance'], pts.inputs['Value'])
+    mag = wn.new('ShaderNodeMath'); mag.operation = 'POWER'      # each cell's random colour as its magnitude
+    sep = wn.new('ShaderNodeSeparateColor')
+    wl.new(vor.outputs['Color'], sep.inputs['Color'])
+    wl.new(sep.outputs['Red'], mag.inputs[0]); mag.inputs[1].default_value = 9.0
+    lum = wn.new('ShaderNodeMath'); lum.operation = 'MULTIPLY'
+    wl.new(pts.outputs['Result'], lum.inputs[0]); wl.new(mag.outputs['Value'], lum.inputs[1])
+    tint = wn.new('ShaderNodeMix'); tint.data_type = 'RGBA'
+    tint.inputs['A'].default_value, tint.inputs['B'].default_value = (1.0, .86, .72, 1), (.75, .85, 1.0, 1)
+    wl.new(sep.outputs['Green'], tint.inputs['Factor'])
+    star = wn.new('ShaderNodeBackground'); star.name = 'Stars'
+    wl.new(tint.outputs['Result'], star.inputs['Color'])
+    gain = wn.new('ShaderNodeMath'); gain.operation = 'MULTIPLY'; gain.name = 'Star gain'
+    gain.inputs[1].default_value = 1.0
+    wl.new(lum.outputs['Value'], gain.inputs[0]); wl.new(gain.outputs['Value'], star.inputs['Strength'])
+    lp = wn.new('ShaderNodeLightPath')
+    only_cam = wn.new('ShaderNodeMixShader')
+    wl.new(lp.outputs['Is Camera Ray'], only_cam.inputs['Fac'])
+    wl.new(wn['Background'].outputs['Background'], only_cam.inputs[1])
+    add = wn.new('ShaderNodeAddShader')
+    wl.new(wn['Background'].outputs['Background'], add.inputs[0]); wl.new(star.outputs['Background'], add.inputs[1])
+    wl.new(add.outputs['Shader'], only_cam.inputs[2])
+    wl.new(only_cam.outputs['Shader'], bg_out.inputs['Surface'])
     sun_dir = Vector((math.cos(math.radians(SUN_EL)) * math.cos(math.radians(SUN_AZ)),
                       math.cos(math.radians(SUN_EL)) * math.sin(math.radians(SUN_AZ)),
                       math.sin(math.radians(SUN_EL))))
@@ -876,6 +926,53 @@ def blender_main(cfg):
             return at(key, w.translation * lib['mpu'])
         return at(key, muzzle[1])
 
+    def line_of_sight(kf, spec, muzzles, report):
+        """--los: cast from each shot's muzzle to its aim point through the posed hulls (before any effect is
+        made) and say what the round meets first: its target, the shooter's own hull, or another ship. A
+        stand-in fires from inside its slab, so its own-hull hits are not meaningful."""
+        bpy.context.view_layer.update()
+        dg = bpy.context.evaluated_depsgraph_get()
+        centres = {k: (at(k), placed[k]['length'] * .6) for k in placed if k in spec['ships']}
+        for fx in spec.get('fx', ()):
+            if fx[0] not in ('tracer', 'missiles') or fx[1] not in centres or fx[2] not in centres:
+                continue
+            a, b = fx[1], fx[2]
+            p1 = at(b, fx[3] if fx[0] == 'tracer' and len(fx) > 3 else (0, 0, 0))
+
+            def cast(muzzle):
+                p0 = muzzle_world(a, muzzle)
+                d = (p1 - p0)
+                dist = d.length
+                d.normalize()
+                o = p0 + d * 2.0
+                while True:
+                    hit, loc, _, _, ob, _ = scene.ray_cast(dg, o, d, distance=max(0.0, dist - (o - p0).length))
+                    if not hit:
+                        return True, 'nothing (open space to the aim point)'
+                    near = min(centres, key=lambda k: (loc - centres[k][0]).length)
+                    if (loc - centres[near][0]).length > centres[near][1]:
+                        o = loc + d * .5       # not a ship (sky, planet shell, platform): look past it
+                        continue
+                    what = ('its target' if near == b else 'ITS OWN HULL' if near == a else 'ANOTHER SHIP: ' + near) +                         f' at {(loc - p0).length:.0f} m of {dist:.0f} m' + ('' if near == b else f' ({ob.name})')
+                    return near == b, what
+
+            first = muzzles.get(fx[:3])
+            clear, what = cast(first)
+            tried = 1
+            if not clear and members[a].get('finished'):
+                for cand in BEARING_CANDIDATES.get((kf,) + tuple(fx[:3]), []):
+                    if cand[5] == first:
+                        continue
+                    tried += 1
+                    ok2, what2 = cast(cand[5])
+                    if ok2:
+                        muzzles[fx[:3]] = cand[5]
+                        clear, what = True, what2 + f' (switched to another gun, {cand[2]}, after {tried - 1} blocked)'
+                        break
+            if report:
+                standin = '' if members[a].get('finished') else '  (stand-in: fires from inside its slab)'
+                print(f'ASHARU LOS {kf} {fx[0]:8} {a:12} -> {b:12} {what}{standin}', flush=True)
+
     def tracer(a, b, local=None, n=6, muzzle=None):
         p0 = muzzle_world(a, muzzle)
         p1 = at(b, local or (0, 0, 0)) + Vector(rng.normal(0, 12, 3))
@@ -1097,6 +1194,7 @@ def blender_main(cfg):
             v['at'] = project(p + off)
         lab['_metres_per_px'] = ortho / W
         world.node_tree.nodes['Background'].inputs['Color'].default_value = (.035, .037, .042, 1)
+        world.node_tree.nodes['Star gain'].inputs[1].default_value = 0.0      # a roster sheet is a studio
         return lab
 
     labels = {}
@@ -1107,6 +1205,7 @@ def blender_main(cfg):
         sun.data.energy = 4.6
         sun.rotation_euler = sun_dir.to_track_quat('Z', 'Y').to_euler()
         world.node_tree.nodes['Background'].inputs['Color'].default_value = (.0008, .0009, .0014, 1)
+        world.node_tree.nodes['Star gain'].inputs[1].default_value = STAR_GAIN
         if kf in KEYFRAMES:
             spec = KEYFRAMES[kf]
             for key, sp in spec['ships'].items():
@@ -1140,6 +1239,7 @@ def blender_main(cfg):
                 platform(spec['platform'])
                 extra3d['platform'] = Vector(spec['platform']) + Vector((0, 0, -140))
             muzzles = {(k, a, b): (best[5] if best else None) for k, a, b, best, _ in bearing(kf)}
+            line_of_sight(kf, spec, muzzles, cfg.get('los'))     # picks, per shot, a bearing gun with a clear line
             for fx in spec.get('fx', ()):
                 kind = fx[0]
                 if kind == 'tracer':
@@ -1150,10 +1250,12 @@ def blender_main(cfg):
                     blast(at(fx[1]), fx[2])
                 elif kind == 'blast_on':
                     blast(at(fx[1], fx[3]), fx[2])
-                elif kind == 'fire_on':
-                    fire(at(fx[1], fx[2]), (placed[fx[1]]['matrix'].to_3x3() @ Vector((-1, .4, .3))).normalized())
+                elif kind == 'fire_on':     # optional 4th: the flame's direction in the hull frame (default aft and up)
+                    d = fx[3] if len(fx) > 3 else (-1, .4, .3)
+                    fire(at(fx[1], fx[2]), (placed[fx[1]]['matrix'].to_3x3() @ Vector(d)).normalized())
                 elif kind == 'smoke':
-                    smoke(at(fx[1], fx[2]), (placed[fx[1]]['matrix'].to_3x3() @ Vector((-1, .2, .5))).normalized())
+                    d = fx[3] if len(fx) > 3 else (-1, .2, .5)
+                    smoke(at(fx[1], fx[2]), (placed[fx[1]]['matrix'].to_3x3() @ Vector(d)).normalized())
                 elif kind == 'debris':
                     debris(at(fx[1], fx[3]) if len(fx) > 3 else at(fx[1]), fx[2])
                 elif kind == 'flares':
@@ -1182,7 +1284,7 @@ def blender_main(cfg):
         store = raw / 'labels.json'   # saved per frame: a stopped job keeps every finished frame's labels
         old = json.loads(store.read_text()) if store.exists() else {}
         store.write_text(json.dumps({**old, kf: labels[kf]}, indent=1))
-        (raw / f'{kf}.meta.json').write_text(json.dumps(frame_meta(cfg['samples'])))
+        (raw / f'{kf}.meta.json').write_text(json.dumps(frame_meta(cfg['samples'], cfg.get('half', False))))
         print('ASHARU rendered', kf, flush=True)
     if cfg.get('fx_check'):
         fx_verdict(list(ships_fx.values()), [lib.get('fx') for lib in library.values()], out)
@@ -1232,20 +1334,20 @@ def fx_verdict(ships, library_fx, out):
 
 # ======================================================================================= driver
 
-def frame_meta(samples):
+def frame_meta(samples, half=False):
     """What a finished frame was rendered with: its samples and the staging source it came from."""
     import hashlib
     h = hashlib.sha256()
     for f in (HERE / 'battle_blockout.py', HERE / 'roster.py'):
         h.update(f.read_bytes())
-    return {'samples': samples, 'source_sha256': h.hexdigest()}
+    return {'samples': samples, 'half': half, 'source_sha256': h.hexdigest()}
 
 
-def finished(raw, kf, samples):
+def finished(raw, kf, samples, half=False):
     """Whether raw/<kf>.png is a finished frame of this staging at these samples."""
     png, meta, store = raw / f'{kf}.png', raw / f'{kf}.meta.json', raw / 'labels.json'
     try:
-        if json.loads(meta.read_text()) != frame_meta(samples) or kf not in json.loads(store.read_text()):
+        if json.loads(meta.read_text()) != frame_meta(samples, half) or kf not in json.loads(store.read_text()):
             return False
         with open(png, 'rb') as fh:
             fh.seek(-12, 2)
@@ -1273,7 +1375,8 @@ def label_frames(run):
     outputs = []
     for i, kf in enumerate([k for k in order if (run / 'raw' / f'{k}.png').exists()]):
         im = Image.open(run / 'raw' / f'{kf}.png').convert('RGB')
-        assert im.size == (W, H), im.size
+        if im.size != (W, H):       # a --half light check: labels are placed for the full frame
+            im = im.resize((W, H), Image.LANCZOS)
         dr = ImageDraw.Draw(im, 'RGBA')
         lab = labels.get(kf, {})
         if kf in KEYFRAMES:
@@ -1557,7 +1660,8 @@ def muzzle_of(t, mpu, mount_m):
     locs = t.get('muzzle_locations')
     if isinstance(locs, list) and locs and isinstance(locs[0], list):
         return 'm', [v * mpu for v in locs[0]]
-    for m in (t.get('muzzles') if isinstance(t.get('muzzles'), list) else []) + [t.get('muzzle')]:
+    named = [t.get(k) for k in ('muzzles', 'muzzle_anchors') if isinstance(t.get(k), list)]
+    for m in sum(named, []) + [t.get('muzzle')]:
         if isinstance(m, dict) and isinstance(m.get('at'), list):
             return 'm', [v * mpu for v in m['at']]
         if isinstance(m, dict) and m.get('anchor'):
@@ -1619,7 +1723,7 @@ def bearing(kf):
         R = _rot(*sa[3:6])
         d = [sb[i] - sa[i] for i in range(3)]
         loc = [sum(R[j][i] * d[j] for j in range(3)) for i in range(3)]     # world -> shooter frame
-        best = None
+        best, every = None, []
         for pos, rest, arc, kind, muzzle, launcher in mounts(a, states.get(a)):
             fits = launcher == (fx[0] == 'missiles')      # missiles from a launcher, tracers from a gun, when one bears
             v = [loc[i] - pos[i] for i in range(3)]
@@ -1635,11 +1739,16 @@ def bearing(kf):
                 in_az = abs(off) <= arc / 2 or el >= 75
                 ok = in_az and GUN_ELEVATION[0] <= el <= GUN_ELEVATION[1]
                 miss = max(0.0, GUN_ELEVATION[0] - el, abs(off) - arc / 2 if el < 75 else 0)
+            every.append((ok, miss, kind, el, off, muzzle, fits))
             if best is None or (ok, fits, -miss) > (best[0], best[6], -best[1]):
                 best = (ok, miss, kind, el, off, muzzle, fits)
         tgt_el = math.degrees(math.atan2(loc[2], math.hypot(loc[0], loc[1])))
         rows.append((fx[0], a, b, best, tgt_el))
+        BEARING_CANDIDATES[(kf,) + tuple(fx[:3])] = sorted([e for e in every if e[0]], key=lambda e: (not e[6], e[1]))
     return rows
+
+
+BEARING_CANDIDATES = {}     # (kf, kind, shooter, target) -> every mount that bears, launcher-fit first then closest
 
 
 def main():
@@ -1666,18 +1775,20 @@ def main():
     if '--stage-only' in argv:      # the whole Blender scene build for these frames, CPU only, nothing written
         from blender_path import BLENDER
         env = dict(os.environ, ASHARU_CFG=json.dumps(dict(out=str(run), frames=frames, samples=1, stage_only=True,
-                                                          swfx='--swfx' in argv, fx_check='--fx-check' in argv)))
+                                                          los='--los' in argv, swfx='--swfx' in argv,
+                                                          fx_check='--fx-check' in argv)))
         subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python-exit-code', '1',
                                '--python', __file__], env=env)
         return
     if '--skip-render' not in argv:
-        todo = [kf for kf in frames if '--rerender' in argv or not finished(run / 'raw', kf, samples)]
+        half = '--half' in argv
+        todo = [kf for kf in frames if '--rerender' in argv or not finished(run / 'raw', kf, samples, half)]
         done = [kf for kf in frames if kf not in todo]
         if done:
             print('ASHARU already finished, not rendered again:', ','.join(done), flush=True)
         if todo:
             from blender_path import BLENDER
-            cfg = dict(out=str(run), frames=todo, samples=samples, swfx='--swfx' in argv)
+            cfg = dict(out=str(run), frames=todo, samples=samples, half=half, swfx='--swfx' in argv)
             env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
             subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
     outputs = [orbit_diagram(run)] + label_frames(run)

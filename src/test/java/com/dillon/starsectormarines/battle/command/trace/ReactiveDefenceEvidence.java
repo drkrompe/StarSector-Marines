@@ -52,6 +52,7 @@ public final class ReactiveDefenceEvidence {
             if ("MARINE".equals(event.optString("faction"))) marines++;
             else if ("DEFENDER".equals(event.optString("faction"))) defenders++;
         }
+        out.append(" flow=").append(!"false".equalsIgnoreCase(System.getProperty("battle.mission.flow", "true")));
         out.append(" marineLosses=").append(marines)
                 .append(" defenderLosses=").append(defenders)
                 .append(" termination=").append(sim.isComplete() ? "TERMINAL" : "TIMEOUT")

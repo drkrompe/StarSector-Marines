@@ -149,6 +149,10 @@ Every two seconds, with nothing on its line, the director looks at the battle an
 
 No tender weapon exists, so there is no friendly fire to design. A friendly turret it builds is an ordinary friendly turret. A hostile tender's sites and drones are drawn only where the player has seen, as a hostile emplacement is. A player cannot lay a site on ground it has not revealed.
 
+## Called down
+
+A committed tender can also be landed mid-battle (`TenderCallDown`, offered per fleet tender beside Ship on Station). The player picks a clear footprint; the hull flies in through the Ship on Station call-in, `TenderLanding` berths it at landed scale, `Tender.touchDown` turns it into a grounded host and the same `YardConstruction` is registered. Drones and building start only once it is down. A landed hull is not engaged by anything (a berthed hull is not a target), and it builds ahead of its bay, as every grounded tender does.
+
 ## Failure cases
 
 - **A metered stock cannot pay, ground is shut, site crowded:** the order is refused and nothing is spent.

@@ -53,7 +53,7 @@ public final class SabotageDefenderCommand implements AutonomousMissionCommand<
     @Override public Faction faction() { return Faction.DEFENDER; }
     @Override public String strategyId() { return "sabotage-defender"; }
     @Override public void afterCommit(CommandEffects effects) { garrisons.afterCommit(effects, faction()); }
-    @Override public Map<String, Integer> reactiveDefenceFigures() { return ReactiveDefenceSource.figures(garrisons.stats()); }
+    @Override public Map<String, Integer> reactiveDefenceFigures() { return ReactiveDefenceSource.figures(garrisons); }
 
     @Override
     public CommandPlan<SabotageDefenseSnapshot> plan(

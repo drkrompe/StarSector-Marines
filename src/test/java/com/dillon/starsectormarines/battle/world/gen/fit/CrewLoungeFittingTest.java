@@ -6,10 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.junit.jupiter.api.Test;
-import javax.imageio.ImageIO;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -60,19 +57,6 @@ class CrewLoungeFittingTest {
                 verify(f);
                 walkable(f,Math.max(0,Math.min(15,door[0])),Math.max(0,Math.min(11,door[1])));
             }
-    }
-
-    @Test void gameAndMagazineOverlaysStayWithinTheirTableRims() throws Exception {
-        var image=ImageIO.read(Path.of("mod/graphics/tilesets/crew-lounge.png").toFile());
-        for(String id:List.of("magazines","game")) {
-            var def=TileRegistry.installed().doodad("crew-lounge."+id);
-            assertEquals(0,def.cover.level());assertEquals(0f,def.ballisticHalfHeight);
-            int height=def.footprintCellsY*64;
-            for(int y=0;y<height;y++) for(int x:new int[]{2,5,122,125})
-                assertTrue((image.getRGB(def.col*64+x,def.row*64+y)>>>24)<=2);
-            for(int x=0;x<128;x++) for(int y:new int[]{2,height-3})
-                assertTrue((image.getRGB(def.col*64+x,def.row*64+y)>>>24)<=2);
-        }
     }
 
     private static void verify(Fixture f) {

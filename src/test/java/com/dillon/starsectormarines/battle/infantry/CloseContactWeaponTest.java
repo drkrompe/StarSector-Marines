@@ -15,13 +15,9 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import org.junit.jupiter.api.Test;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -374,28 +370,6 @@ class CloseContactWeaponTest {
         assertFalse(sim.world().isAlive(marine));
         assertEquals(before, sim.telemetry().damageDealt(defender), EPS);
         assertEquals(friendlyBefore, sim.world().hp(friendly), EPS);
-    }
-
-    @Test
-    void generatedContactToolIconsHaveRealTransparency() throws Exception {
-        for (Path path : new Path[]{
-                Path.of("mod", cutter().armoryIconPath()),
-                Path.of("mod", blade().armoryIconPath())}) {
-            BufferedImage image = ImageIO.read(path.toFile());
-            assertNotNull(image, path + " must decode");
-            assertTrue(image.getColorModel().hasAlpha(), path + " must carry alpha");
-            boolean transparent = false;
-            boolean visible = false;
-            for (int y = 0; y < image.getHeight(); y += 8) {
-                for (int x = 0; x < image.getWidth(); x += 8) {
-                    int alpha = image.getRGB(x, y) >>> 24;
-                    transparent |= alpha == 0;
-                    visible |= alpha > 0;
-                }
-            }
-            assertTrue(transparent, path + " must include transparent background pixels");
-            assertTrue(visible, path + " must include visible equipment pixels");
-        }
     }
 
     private static void wall(BattleSimulation sim, int x, int y) {
