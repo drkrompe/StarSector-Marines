@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.campaign.refit;
 
+import com.fs.starfarer.api.campaign.SpecialItemData;
+import com.fs.starfarer.api.campaign.CargoAPI.CargoItemType;
+import com.fs.starfarer.api.campaign.CargoAPI;
 import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
 import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
 import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration;
@@ -90,8 +93,8 @@ public final class ShipRefits {
         var fleet = Global.getSector() == null ? null : Global.getSector().getPlayerFleet();
         int credits = fleet == null ? 0 : (int) fleet.getCargo().getCredits().get();
         var cargo = new LinkedHashMap<String, Integer>();
-        for (String commodity : order.materials().keySet())
-            cargo.put(commodity, fleet == null ? 0 : (int) fleet.getCargo().getCommodityQuantity(commodity));
+        for (String material : order.materials().keySet())
+            cargo.put(material, fleet == null ? 0 : (int) held(fleet.getCargo(), material));
         boolean home = fleet != null && ship != null && roster != null && ship.getId().equals(roster.companyShipId())
                 && fleet.getFleetData().getMembersListCopy().contains(ship);
         return new Offer(condition, credits, Map.copyOf(cargo), refusal(order, condition, home,
@@ -100,13 +103,23 @@ public final class ShipRefits {
                 CompanyYard.dockedMarket() != null, credits, cargo, CampaignCommodityPresentation.INSTANCE::commodityName));
     }
 
+    private static float held(CargoAPI cargo, String material) {
+        return RefitOrder.specialItem(material)
+                ? cargo.getQuantity(CargoItemType.SPECIAL, new SpecialItemData(material, null))
+                : cargo.getCommodityQuantity(material);
+    }
+
     /** Rechecks everything at payment; the hull's stats refresh so a combat tier shows at once. */
     public static String purchase(FleetMemberAPI ship, MarineRoster roster, RefitOrder order) {
         var offer = offer(ship, roster, order);
         if (offer.refusal() != null) return offer.refusal();
         var fleetCargo = Global.getSector().getPlayerFleet().getCargo();
         fleetCargo.getCredits().subtract(order.price);
-        for (var need : order.materials().entrySet()) fleetCargo.removeCommodity(need.getKey(), need.getValue());
+        for (var need : order.materials().entrySet()) {
+            if (RefitOrder.specialItem(need.getKey()))
+                fleetCargo.removeItems(CargoItemType.SPECIAL, new SpecialItemData(need.getKey(), null), need.getValue());
+            else fleetCargo.removeCommodity(need.getKey(), need.getValue());
+        }
         Global.getSector().getPersistentData().put(KEY + ship.getId() + order.receipt, true);
         ship.updateStats();
         return null;
