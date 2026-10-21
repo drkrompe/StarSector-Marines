@@ -1,8 +1,8 @@
 # Second Wind refit tree
 
-Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Ship Systems tree and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review, and each reserve is furnished and can be opened on the deck. Hydroponics, the wardroom, the briefing room and the holds are tracks fitted into existing rooms, with their supplies, officer-XP and cargo passives; the briefing room's plot table and holo-tank, the reserves' own passives, Improved-tier dressing and mech passives are not built.
+Status: ACTIVE — direction. The band model, the cores, the mess track, the combat refit tracks, the Mech Lab tracks and their mech passives, the Ship Systems tree and the deck's sealed reserves are implemented, with a first pass of the Deficit dressing for art review, and each reserve is furnished and can be opened on the deck. Hydroponics, the wardroom, the briefing room and the holds are tracks fitted into existing rooms, with their supplies, officer-XP, cargo and garrison-intel passives; the plot table's own battle passive, the reserves' own passives, Improved-tier dressing (the Mech Lab's included) and the vehicle bay's passives are not built.
 Written: 2026-10-20
-Updated: 2026-10-21 — the facilities that take no new compartment are tracks; boat bay services is left out for want of a hook.
+Updated: 2026-10-21 — the briefing room's holo-tank shows the garrison and the plot table is sold as its mount; the Mech Lab's systems are tracks.
 
 The Engineering tab today sells a short list of one-off yard orders: the
 workshop chain (750 / 3,000 / 4,500), the second bay (8,000), three Mech Lab
@@ -93,9 +93,13 @@ cluster, the workshop to cut plate):
 | Flux R / I / II | Power I + Structure R / Power II + Compute I / Power II + Compute II, alpha core |
 | Sensors R / I / II | Compute R + Structure R (mast mount) / Compute I + Power I / Compute II + Power II |
 | Drive R / I / II | Power R + Structure R / Power I + Compute R (governor) / Power II + Structure R + Fabrication I |
+| Mech calibration R / I / II | Compute R + Power R (bench) / Compute I + Fabrication R / Compute II + Power I + Fabrication I |
+| Mech coolant R / I / II | Power R + Life support R (scrubber loop) / Power I + Structure R (chiller mount) / Power II + Life support R + Compute I |
+| Mech armor shop R / I / II | Fabrication R + Structure R / Fabrication I + Power R (plate press) / Fabrication I + Structure R + Power I |
+| Mech field repair R / I / II | Fabrication R + Power R / Fabrication I + Compute R (diagnostics) / Fabrication I + Structure R + Compute I |
 | Hydroponics R / I / II | Life support R + Power R (water feed, grow lights) / Power I + Life support R / Life support R + Power I + Compute I (climate control) |
 | Wardroom R / I / II | Life support R + Structure R / Compute R (war-game console) + Life support R / Compute I + Power I + Life support R |
-| Briefing room R | Compute R + Power R (the screen) |
+| Briefing room R / I / II | Compute R + Power R (the screen) / Compute R + Structure R (the table's frame) / Compute I + Power I + Life support R (the tank, run off the processing cluster) |
 | Holds R / I / II | Structure R + Power R / Structure R + Fabrication R (racking) / Structure R + Fabrication I + Power I (bonded stores' climate) |
 
 Power restored, Structure restored and the mess's opening order need nothing:
@@ -103,6 +107,17 @@ they are where a battered start begins. The table is `RefitOrder`; this is
 its intent, to be tuned in play. Each system's
 card opens with Castle explaining how it works aboard her. That is the point of
 the view: learning the ship as well as buying from her.
+
+The tree is a modal over the live ship, not a page in place of it, and a
+purchase is watched (owner, 2026-10-21: "I want the player to see the upgrade
+occur, to see the room change"). The camera flies to the room, the yard works
+behind a curtain, and the room is revealed changed (`RefitReveal`). The cut is
+deliberate: opening a compartment lays the deck out again, and a curtain
+reads as the yard's days of work where an animated swap would show a blank
+deck and a re-mustered crew. Changes that are only dressing (a core's
+Deficit look clearing) could instead play as a wave across the deck, lights
+coming on room by room from the engine room; that wants a progressive
+version of the deck's dressing and is the next step if the cut feels abrupt.
 
 A facility tier names the core tiers it needs. Engineering shows a locked tier
 with its reason in Castle's voice ("the range has no power", "the frames won't
@@ -158,19 +173,29 @@ for a balance pass, not tuned values.
 ### Battle layer: mechs and vehicles
 
 Mechs are already company assets with visible fittings in the Mech Lab, so a
-ship passive shows on the mech's sheet there as well as on the briefing.
+ship passive shows on the mech's sheet there as well as on the briefing. The
+Mech Lab has no deficit: an absent shop is neutral, like an absent range.
 
 | Facility | Restored | Improved I | Improved II |
 |---|---|---|---|
-| **Mech Lab calibration** (Compute) | neutral | fire-control calibration: mech weapon accuracy +3% | tactical core link: +6%, and faster target reacquisition |
+| **Mech Lab calibration** (Compute) | bench: neutral | fire-control calibration: mech weapon accuracy +3% | tactical core link: +6%, and torso traverse +25% (onto a new target faster) |
 | **Mech Lab coolant plant** (Power) | neutral | flux dissipation +10% | +20% |
-| **Mech Lab armor shop** (Fabrication, Structure) | neutral | section armor +5% at deployment | +10% |
-| **Vehicle bay** | neutral | — | — |
+| **Mech Lab armor shop** (Fabrication, Structure) | neutral | armor capacity +5% at deployment | +10% |
+| **Vehicle bay** | — | — | — |
+
+The battle passives are one frozen value per deployed mech (`MechRefit`), set
+over each owned mech's deployment when the launch takes the active lance
+(`DetachmentResolver`). The deployment keeps its fit's own frame beside it, so
+the refit is never folded in twice: armor and dissipation scale the frame the
+mech lands on, the accuracy factor multiplies every mount's hit roll with the
+head-loss penalty, and the traverse factor scales the torso's turn rate. A mech
+the company does not own is neutral, and so is every mech off the founding
+hull. A recorded fixture carries the refit with the frame.
 
 Player-side vehicles are not deployable yet (`c12-the-debug-company.md` waits on
-them). The vehicle bay keeps its track so the passives exist when they are:
-engine tuning (speed), turret calibration (accuracy), field repair (integrity
-between battles).
+them). The vehicle bay is a track with no orders, so its passives have a home
+when they are: engine tuning (speed), turret calibration (accuracy), field
+repair (integrity between battles).
 
 ### Campaign layer (outside battle)
 
@@ -182,7 +207,7 @@ between battles).
 | **Brig / interrogation** | — | prisoners from a battle yield intel on the next contract in that system | — |
 | **Hydroponics** (Life support) | — | supplies upkeep −5% | −10% |
 | **Boat bay services** | — | grounded-boat recovery one day faster | deck crane: boat and Hermes material bills −15% |
-| **Mech Lab field repair** | — | damaged mechs repair between missions faster | spares rack: lost mounts refit cheaper |
+| **Mech Lab field repair** (Fabrication) | neutral | repair clock −25% | spares rack: repair clock −25%, and a weapon assembly fabricates at −25% on every line, which is what refitting a lost mount costs |
 | **Holds / bonded stores** | — | racked holds: cargo +20 via the conversion hull mod | bonded stores: cargo +40 |
 
 ### Combat refit: the hull as a fighting ship
@@ -293,10 +318,22 @@ changes no compartment's state. Their passives:
   the way the scrubbers' wound day is. The briefing names it once it pays.
 - **Holds** wins back cargo the conversion took (+20, +40), also through the
   hull mod.
-- **Briefing room** sells only its Restored tier. The holo-tank's intel would
-  be the defender headcount, which is decided at launch from the mission's
-  own target profile and nowhere earlier, and the plot table is a battle
-  passive no seat carries; both stay *not yet offered* until those exist.
+- **Briefing room**: the **holo-tank** (Improved II) shows the briefing the
+  garrison the operation will face: every defender on the ground, the regulars
+  and militia among them, and the most mechs it can field. The headcount is the
+  battle's own. Launch and the briefing resolve the mission's target profile
+  through one function (`MissionLaunch.targetProfile`), and the estimate is
+  `DefenderRoster.forMission` over that profile with nothing held back. The
+  total depends only on type, tier, risk and the market's garrison. Mechs are
+  priced against the committed landing, so the briefing says *up to*; a mech
+  the landing does not draw is fielded as infantry, which makes the regulars
+  and militia shown the least of each. It is read when the briefing is drawn,
+  like the scrubbers' wound day, and only where the defenders are derived from
+  the mission. Debug missions and scripted battles that bring their own force
+  (the opening operations, the story arcs, the supply route, the silent colony
+  and the civilian rescue) show nothing. The **plot table** (Improved I) is sold
+  as the tank's mount and changes nothing in battle yet: its passive, a faster
+  first action against a new threat, needs a reaction axis no seat carries.
 - **Boat bay services** is not a track yet: a boat grounded in battle has no
   timed recovery to shorten, and the deck crane's discount needs the boat
   bill to read the condition record.
@@ -383,7 +420,8 @@ not a checklist. That measurement comes first in the balance story.
    each core's Restored order.
 5. **Firing range**, the first new facility: compartment, range trials aboard,
    accuracy tiers.
-6. **Mech Lab passives**, the first of them through the mech sheet.
+6. **Mech Lab passives.** Done: calibration, coolant plant, armor shop and
+   field repair, on the mech sheet and the briefing line.
 7. **Hull-mod fleet stats** (supplies, CR) for the campaign-layer deficit and
    its recovery.
 8. Remaining facilities, one story each.

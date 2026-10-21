@@ -45,8 +45,10 @@ class ShipConditionTest {
             assertFalse(order.requires.containsKey(order.track), order.name());
             assertSame(order, RefitOrder.after(order.track, RefitBand.values()[order.band.ordinal() - 1]));
         }
+        // Fabrication is the workshop chain's; the vehicle bay waits on deployable vehicles.
         for (RefitTrack track : RefitTrack.values())
-            if (track != RefitTrack.FABRICATION) assertNotNull(RefitOrder.after(track, track.start()), track.name());
+            if (track != RefitTrack.FABRICATION && track != RefitTrack.VEHICLE_BAY)
+                assertNotNull(RefitOrder.after(track, track.start()), track.name());
         assertNull(RefitOrder.after(RefitTrack.FABRICATION, RefitBand.DEFICIT));
     }
 
@@ -89,7 +91,10 @@ class ShipConditionTest {
         assertEquals(0.90f, start.with(RefitTrack.HYDROPONICS, RefitBand.IMPROVED_II).suppliesPerMonthMult());
         assertEquals(20, start.with(RefitTrack.HOLDS, RefitBand.IMPROVED_I).cargoBonus());
         assertEquals(40, start.with(RefitTrack.HOLDS, RefitBand.IMPROVED_II).cargoBonus());
-        assertEquals(RefitBand.RESTORED, RefitOrder.ceiling(RefitTrack.BRIEFING), "plot table and holo-tank wait on a hook");
+        assertEquals(RefitBand.IMPROVED_II, RefitOrder.ceiling(RefitTrack.BRIEFING));
+        assertFalse(ShipCondition.NONE.garrisonIntel(), "another hull has no holo-tank");
+        assertFalse(start.with(RefitTrack.BRIEFING, RefitBand.IMPROVED_I).garrisonIntel(), "the plot table shows no garrison");
+        assertTrue(start.with(RefitTrack.BRIEFING, RefitBand.IMPROVED_II).garrisonIntel());
     }
 
     @Test void roomlessFacilitiesNeedTwoCoresAndTheirTopTierThree() {

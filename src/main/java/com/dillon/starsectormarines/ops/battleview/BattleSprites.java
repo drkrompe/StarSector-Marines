@@ -807,14 +807,14 @@ public class BattleSprites {
         loadLayeredFamily(LayeredArmorFamily.LIONS_MANTLE, "lions-mantle", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamily(LayeredArmorFamily.FOUNDRY_BREAKER, "foundry-breaker", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamilyAt(LayeredArmorFamily.CIVILIAN_COLONIST,
-                "graphics/battle/colonist-modular-topdown/civilian/",
-                foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+                "graphics/battle/colonist-modular-topdown/civilian/", loadLayeredSprite("graphics/battle/colonist-modular-topdown/civilian/foot.png"),
+                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamilyAt(LayeredArmorFamily.ENGINEER,
-                "graphics/battle/colonist-modular-topdown/engineer/",
-                foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+                "graphics/battle/colonist-modular-topdown/engineer/", loadLayeredSprite("graphics/battle/colonist-modular-topdown/engineer/foot.png"),
+                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamilyAt(LayeredArmorFamily.SCIENTIST,
-                "graphics/battle/colonist-modular-topdown/scientist/",
-                foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+                "graphics/battle/colonist-modular-topdown/scientist/", loadLayeredSprite("graphics/battle/colonist-modular-topdown/scientist/foot.png"),
+                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamilyAt(LayeredArmorFamily.SHIP_COMMAND,
                 "graphics/battle/ship-crew-modular-topdown/command/", loadLayeredSprite("graphics/battle/ship-crew-modular-topdown/command/foot.png"),
                 rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);

@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.fixture.ExtractionBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.SabotageBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.RaidBattleFixture;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -253,29 +254,8 @@ public final class MissionLaunch {
             if (!AgreusArcCampaign.atSite(ctx.planet))
                 throw new IllegalStateException("Travel to Agreus in Arcadia before deploying.");
         }
-        boolean detachedDebugWorld = m.source.isDebug() && (ctx == null || ctx.planet == null);
-        boolean enemyHasHeavyArmor = !detachedDebugWorld && !CorvusWaylineCampaign.isBattle(m)
-                && DetachmentResolver.planetHasHeavyArmaments(m.targetPlanetName);
-
-        // Campaign → battle bridge: the target world's planetary defenses /
-        // market read, distilled once at the boundary so generation can reflect
-        // which world the battle is over. NEUTRAL for story ops with no market.
-        // A mission may name a different defender than the market's own owner
-        // (the debug board's faction-comparison group). This is the one place
-        // that override is applied: it rewrites the profile's faction id and
-        // nothing else, so only roster selection sees it and generation cannot.
-        TargetProfile marketProfile = MissionDefencePolicy.garrisonFaced(m, (detachedDebugWorld ? TargetProfile.NEUTRAL : AgreusArcCampaign.isBattle(m) ? AgreusArcCampaign.profile(m) : DistrictEscortCampaign.isBattle(m) ? DistrictEscortCampaign.profile(m) : ShepherdRecoveryCampaign.isBattle(m) ? ShepherdRecoveryCampaign.profile(m) : CorvusWaylineCampaign.isBattle(m) ? CorvusWaylineCampaign.profile(m)
-                : SupplyRouteCampaign.isBattle(m)
-                ? TargetProfileResolver.fromMarket(SupplyRouteCampaign.destination().planet().getMarket())
-                : TargetProfileResolver.resolve(m.targetPlanetName))
-                .withFactionId(m.defenderFactionOverride));
-        // The mission, not the market and not the map, decides which ground defences
-        // the battle carries; the market's signals stay on the profile as inputs.
-        final TargetProfile profile = marketProfile.withDeclaredDefences(
-                MissionDefencePolicy.declare(m, marketProfile))
-                .withDeclaredMechDrops(MissionDefencePolicy.declareMechDrops(m))
-                .withDeclaredAirPool(MissionDefencePolicy.declareAirPool(m))
-                .withDeclaredSupportKit(MissionDefencePolicy.declareSupportKit(m));
+        boolean enemyHasHeavyArmor = enemyHasHeavyArmor(ctx, m);
+        final TargetProfile profile = targetProfile(ctx, m);
 
         // How settled the map is: the mission's own statement where it made one,
         // and the market's size where it did not. Resolved once here rather than
@@ -420,6 +400,75 @@ public final class MissionLaunch {
                 || isCivilianRescueBattle(m) ? "" : profile.factionId();
         return new ScenarioPlan(key, det, firstPlayerShuttle, fixture, builder, defenderFactionId,
                 hostileShipFor(m, profile, defenderFactionId, null));
+    }
+
+    /** Whether the target world fields heavy armour: the defenders' mechs need it (see {@link BattleSetup}). */
+    static boolean enemyHasHeavyArmor(MarineOpsContext ctx, Mission m) {
+        return !detachedDebugWorld(ctx, m) && !CorvusWaylineCampaign.isBattle(m)
+                && DetachmentResolver.planetHasHeavyArmaments(m.targetPlanetName);
+    }
+
+    private static boolean detachedDebugWorld(MarineOpsContext ctx, Mission m) {
+        return m.source.isDebug() && (ctx == null || ctx.planet == null);
+    }
+
+    /**
+     * The world the battle is fought over, as this mission faces it. The one place it is resolved: launch builds the
+     * battle from it and the briefing's holo-tank reads the garrison off it, so the two cannot disagree.
+     *
+     * <p>Campaign → battle bridge: the target world's planetary defenses / market read, distilled once at the
+     * boundary so generation can reflect which world the battle is over. NEUTRAL for story ops with no market.
+     */
+    static TargetProfile targetProfile(MarineOpsContext ctx, Mission m) {
+        TargetProfile market = detachedDebugWorld(ctx, m) ? TargetProfile.NEUTRAL
+                : AgreusArcCampaign.isBattle(m) ? AgreusArcCampaign.profile(m)
+                : DistrictEscortCampaign.isBattle(m) ? DistrictEscortCampaign.profile(m)
+                : ShepherdRecoveryCampaign.isBattle(m) ? ShepherdRecoveryCampaign.profile(m)
+                : CorvusWaylineCampaign.isBattle(m) ? CorvusWaylineCampaign.profile(m)
+                : SupplyRouteCampaign.isBattle(m)
+                ? TargetProfileResolver.fromMarket(SupplyRouteCampaign.destination().planet().getMarket())
+                : TargetProfileResolver.resolve(m.targetPlanetName);
+        return facedProfile(m, market);
+    }
+
+    /**
+     * The mission's own statements over the market's read. A mission may name a different defender than the
+     * market's own owner (the debug board's faction-comparison group): this is the one place that override is
+     * applied, and it rewrites the profile's faction id and nothing else, so only roster selection sees it and
+     * generation cannot. The mission, not the market and not the map, then decides which ground defences the
+     * battle carries; the market's signals stay on the profile as inputs.
+     */
+    static TargetProfile facedProfile(Mission m, TargetProfile market) {
+        TargetProfile marketProfile = MissionDefencePolicy.garrisonFaced(m, market.withFactionId(m.defenderFactionOverride));
+        return marketProfile.withDeclaredDefences(MissionDefencePolicy.declare(m, marketProfile))
+                .withDeclaredMechDrops(MissionDefencePolicy.declareMechDrops(m))
+                .withDeclaredAirPool(MissionDefencePolicy.declareAirPool(m))
+                .withDeclaredSupportKit(MissionDefencePolicy.declareSupportKit(m));
+    }
+
+    /**
+     * The garrison the briefing's holo-tank shows, from the same profile and heavy-armour read launch uses, or null
+     * where the defenders are not derived from the mission's tier and risk: a debug mission, or a scripted battle
+     * that brings its own force.
+     */
+    static GarrisonIntel garrisonIntel(MarineOpsContext ctx, Mission m) {
+        if (!derivesDefenders(m)) return null;
+        TargetProfile profile = targetProfile(ctx, m);
+        return GarrisonIntel.estimate(m, profile, enemyHasHeavyArmor(ctx, m),
+                GroundRosterRegistry.resolve(profile.factionId()));
+    }
+
+    /**
+     * Whether {@link #captureScenario} builds this mission's defenders from its type, tier and risk through
+     * {@code DefenderRoster.forMission}: the mission-type branch at its end, which every scripted battle ahead of it
+     * in that chain skips. Keep the two in step.
+     */
+    static boolean derivesDefenders(Mission m) {
+        return !m.source.isDebug()
+                && !AgreusArcCampaign.isBattle(m) && !DistrictEscortCampaign.isBattle(m)
+                && !ShepherdRecoveryCampaign.isBattle(m) && !CorvusWaylineCampaign.isBattle(m)
+                && !SupplyRouteCampaign.isBattle(m) && OpeningOperationKind.fromMission(m) == null
+                && !isSilentColonyBattle(m) && !isCivilianRescueBattle(m);
     }
 
     /**

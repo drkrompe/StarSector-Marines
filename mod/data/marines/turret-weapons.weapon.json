@@ -661,7 +661,7 @@
       "catalog": { "displayName": "@gearCatalogWeaponTurretHeavyMgDisplayName", "modelName": "@gearCatalogWeaponTurretHeavyMgModelName", "designation": "HMG", "designationTiered": false },
       "sim": {
         "range": 24.0, "damage": 22.5, "accuracy": 0.5, "cooldown": 2.2, "penetration": 4.0,
-        "burstCount": 10, "burstSpacing": 0.07, "hitSpread": 2.0,
+        "burstCount": 5, "burstSpacing": 0.07, "hitSpread": 2.0,
         "minRange": 3.0, "aoeRadius": 0.8, "wallDamage": 5, "flightSec": 0.18
       },
       "render": {

@@ -1519,15 +1519,22 @@ and every fight she is in uses them. They start below a stock Cerberus and stay 
 liability until the cores behind them are paid for; flux waits on the reactor
 overhaul. The deck carries one icon chip per core in its top-left corner, ringed
 in the colour of that core's band; a chip opens the **systems tree** over the
-deck. The tree flows downward from the hull: the five cores hang from her, and
-every other track hangs from the core it leans on most (drive and flux from
-Power; mess, gym, sick bay and lounge from Life support; hull, brig and range
-from Structure; sensors from Compute). Hydroponics hangs from Life support, the
+deck. The tree opens as a modal over the live ship, which stays visible
+around and faintly behind it. The tree flows downward from the hull: the five cores hang from her, and
+every other track hangs from the core it leans on most (drive, flux and the
+Mech Lab's coolant plant from Power; mess, gym, sick bay and lounge from Life
+support; hull, brig and range from Structure; sensors and mech calibration from
+Compute; the mech armor shop, mech field repair and the vehicle bay from
+Fabrication). Hydroponics hangs from Life support, the
 holds from Structure, and the wardroom and briefing room from Compute: facilities
 fitted into rooms she already has (the provisions store, the mess, the holds), so
 buying one opens no compartment. Hydroponics and the holds act through the hull
 mod (her supplies per month, her cargo); the wardroom scales officers' mission XP
-when a mission resolves and is named on the briefing once it pays. Each track is a column of tier nodes,
+when a mission resolves and is named on the briefing once it pays. The briefing
+room's holo-tank shows the briefing the garrison the operation faces. It reads the
+same target profile launch builds the battle from, so its headcount is the battle's;
+its mechs are given as *up to*, because the landing caps them. The plot table below it is the tank's mount and has
+no battle passive yet. Each track is a column of tier nodes,
 owned, available (nothing but the price in the way) or locked. Most tiers need
 two or three cores, so beside each unbought node sit small icons of the cores it
 waits on, gold once met and red until then; requirements are marked this way
@@ -1535,13 +1542,34 @@ rather than drawn as lines across branches, so the tree stays a tree. The card d
 Castle's account of how the system works aboard her, the current and next tier,
 what the next tier needs, its bill, its lock reason and the reviewed order. The
 workshop's stages appear under Fabrication but are still ordered from the
-workshop card. Each tier is its
+workshop card. Authorizing a tier plays it out on the deck rather than
+in the card: the tree steps aside, the camera flies to the room the work is in
+(the whole ship for the combat tracks), a curtain falls while the yard works,
+and it lifts on the changed room with the tier's name and effect before the
+tree returns. The order is paid under the curtain, not at the click, so a
+deck that is laid out again for a newly opened compartment is never seen
+blank, and a refusal at that moment lifts on the unchanged room. Each tier is its
 own reviewed yard order under the same home, dock, Relief and funds rechecks, and
 the receipts stay with the hull. Beyond credits, most tiers take materials out of
 fleet cargo (metals for structure and plating, heavy machinery for plant and
 drive, transplutonics for flux and sensors), shown as icon rows with Short by.
 The strongest tiers take AI cores: a gamma core for the processing cluster, a
 beta core for the tactical core, and an alpha core for the military flux grid. Other hulls are neutral on every track.
+
+The **Mech Lab tracks** reach the company's own mechs. Nothing there starts
+at a deficit: an absent bench and a Restored one are both neutral, and the
+Improved tiers add fire-control calibration (mech weapon accuracy, then with
+the tactical core link a faster torso traverse onto a new target), the coolant
+plant (flux dissipation) and the armor shop (armor capacity, which every
+section's plate is a share of). These are frozen into each owned mech's
+deployment at launch, beside its fit's own frame values, so a battle never
+reads the ship; a mech the company does not own deploys neutral. Field repair
+stays in the campaign: a repair's clock is shorter, and with the spares rack a
+replacement weapon assembly (what refitting a mount lost in battle comes to)
+costs less to fabricate, both read whenever the Mech Lab quotes an order. The
+selected mech's sheet in the Mech Lab shows the deployed figures and names the
+refits in its header, and the briefing line carries the same text. The vehicle
+bay is a track with no orders until company vehicles can deploy.
 
 Interior restoration is saved by the original hull's identity, independently of
 company designation and vanilla hull damage. Moving company, reopening screens and

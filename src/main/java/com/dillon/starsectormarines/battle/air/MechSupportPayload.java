@@ -65,7 +65,7 @@ public enum MechSupportPayload implements AirDeliveryPayload {
         MechLoadoutComponent loadout = new MechLoadoutComponent(variant,
                 deployment.arms(), deployment.leftShoulder(),
                 deployment.rightShoulder(), deployment.role());
-        loadout.applyFrame(deployment.frame());
+        deployment.applyTo(loadout);
         loadout.installMissileReplenisher(deployment.missileReplenisher());
         context.attachMechLoadout(mech, loadout);
         context.tagCompanyMech(deployment.campaignId(), loadout);

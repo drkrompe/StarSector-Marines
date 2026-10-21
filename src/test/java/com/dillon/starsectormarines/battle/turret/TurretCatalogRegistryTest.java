@@ -78,7 +78,7 @@ class TurretCatalogRegistryTest {
                 "graphics/missiles/missile_locust.png", "swarmer_fire");
         assertKind(structure(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID), "Heavy MG", 24f, 22.5f, 4f, .5f, 2.2f,
                 70f, 110f, 10f, 110f, 1.6f, .22f, 200,
-                10, .07f, .8f, 5, 0f, 0f, .18f, 2f, 3f,
+                5, .07f, .8f, 5, 0f, 0f, .18f, 2f, 3f,
                 false, false, 1f, 0f, 0f, 0f, false, false, ImpactKind.KINETIC,
                 "graphics/weapons/vulcan_cannon_turret_base.png",
                 "graphics/weapons/vulcan_cannon_turret_recoil.png",
