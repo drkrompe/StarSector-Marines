@@ -163,7 +163,11 @@ final class LayeredUnitComposer {
                 && (specialUsing || specialLayer.visibleWhileCarried());
         boolean replacePrimary = drawSpecialLayer && specialUsing
                 && specialLayer.replacePrimaryWhileUsing();
-        boolean drawPrimaryLayers = drawWeaponLayers && !replacePrimary;
+        // Hands on a console are not holding a rifle; the family's station arms
+        // replace it for as long as the actor stands at the work.
+        boolean atStation = (flags & LayeredAppearance.FLAG_AT_STATION) != 0
+                && assets.stationArm(true) != null;
+        boolean drawPrimaryLayers = drawWeaponLayers && !replacePrimary && !atStation;
 
         LayeredWeaponFamily weaponFamily = drawPrimaryLayers
                 ? LayeredWeaponFamily.fromPrimary(primary) : null;
@@ -307,6 +311,18 @@ final class LayeredUnitComposer {
             emitEquipmentLayer(out, integralSprite, integralPlacement, alpha);
         }
 
+        if (atStation) {
+            LayerTransform base = bodyTransform != null ? bodyTransform : DEFAULT_BODY;
+            float reach = (float) Math.sin(weaponPhase * STATION_HAND_CYCLES * 2.0 * Math.PI)
+                    * STATION_HAND_REACH_SW;
+            emitAuthored(out, assets.stationArm(true),
+                    stationArmTransform(base, assets.body, assets.stationArm(true), reach),
+                    actorX, actorY, pxPerSw, facingDeg, 0f, alpha);
+            emitAuthored(out, assets.stationArm(false),
+                    stationArmTransform(base, assets.body, assets.stationArm(false), -reach),
+                    actorX, actorY, pxPerSw, facingDeg, 0f, alpha);
+        }
+
         if (assets.foreClaw != null && swipe > 0f) {
             emitClaw(out, assets.foreClaw, leftStrikes ? leftClaw : rightClaw,
                     pxPerSw, alpha);
@@ -373,6 +389,28 @@ final class LayeredUnitComposer {
             float[] center = worldPoint(actorX, actorY, 0f, -0.12f, swPx, facingDeg);
             emitSprite(out, sprite, center[0], center[1], swPx, facingDeg, alpha);
         }
+    }
+
+    /** The body's placement when no clip authors one: centred 0.12 shoulder widths behind the actor. */
+    private static final LayerTransform DEFAULT_BODY =
+            new LayerTransform("body", null, 0f, -0.12f, 1f, 1f, 0f, 0.5f, 0.5f, 0, true);
+    /** Hand movements over one job at a console; the job's progress is the clock. */
+    private static final float STATION_HAND_CYCLES = 16f;
+    /** How far a hand moves forward and back while working, in shoulder widths. */
+    private static final float STATION_HAND_REACH_SW = 0.02f;
+
+    /**
+     * A station arm placed exactly as the body is. The arm layer is the body
+     * canvas extended forward, so the body canvas is its bottom rows: the body's
+     * pivot keeps its x and moves to the same pixel in those rows. {@code reach}
+     * slides the arm along the facing.
+     */
+    private static LayerTransform stationArmTransform(LayerTransform body, LayeredSpriteCache bodySprite,
+                                                      LayeredSpriteCache arm, float reach) {
+        float bodyRows = bodySprite.pxHeight, armRows = arm.pxHeight;
+        float pivotY = (armRows - bodyRows + body.pivotY() * bodyRows) / armRows;
+        return new LayerTransform(body.id(), body.spritePath(), body.offsetX(), body.offsetY() + reach,
+                body.scaleX(), body.scaleY(), body.angleDegrees(), body.pivotX(), pivotY, body.z(), true);
     }
 
     private static LayerTransform layer(LayerPose pose, String id) {

@@ -36,7 +36,8 @@ import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
  * only ever becomes more permissive by destruction — a breached wall stays
  * walkable, a dead mount becomes rubble — and runtime construction may not
  * close a navigation transition at all, so a route proved once stays provable.
- * The one live write that closes ground is an <em>aircraft</em> coming down:
+ * Two live writes close ground. A sally door shut again behind a sortie puts
+ * its wall cells back ({@code MapEditor.closePassage}). And an <em>aircraft</em> coming down:
  * a settled airframe wreck seals the cells its hull covers, and a mask retained
  * across that would keep offering a drive through a burnt-out fuselage. A
  * <em>vehicle</em> wreck writes nothing to the navigation grid and needs no

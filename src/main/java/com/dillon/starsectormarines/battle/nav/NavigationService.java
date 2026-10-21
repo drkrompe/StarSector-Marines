@@ -113,7 +113,8 @@ public final class NavigationService implements AutoCloseable {
      * collapse into one update. AI queries that run mid-tick see the previous
      * tick's graph and mesh snapshot — fine in practice, since rubble stays walkable forever
      * (paths only ever gain shortcuts) and the new portal becomes visible
-     * within 1/30s.
+     * within 1/30s; the one closing write ({@link #markCellClosed}) is held by
+     * movement's own per-step walkability check until the drain.
      *
      * <p>The opened cells are recorded ({@link #openedCells}) so the drain can take the
      * <b>incremental</b> {@link ZoneGraph#applyCellsOpened} path (zones only ever merge — see that
@@ -218,6 +219,17 @@ public final class NavigationService implements AutoCloseable {
         navigationTopologyDirty = true;
         if (openedCount == openedCells.length) openedCells = Arrays.copyOf(openedCells, openedCount * 2);
         openedCells[openedCount++] = grid.index(x, y);
+    }
+
+    /**
+     * Records a cell that has just become unwalkable again (a sally door shut, {@code MapEditor.closePassage}). The
+     * zone graph's incremental update only merges zones, so a closing forces the full rebuild at the drain, and the
+     * derived layer is rebuilt with it. The grid's own revision has already moved, which retires every derivation keyed
+     * on it (path components, clearance searches and jobs, defend-track routes, route proofs, commander topology); the
+     * routes units already hold are their owner's to drop.
+     */
+    public void markCellClosed(int x, int y) {
+        markNavigationTopologyDirty();
     }
 
     /** Marks every derived navigation layer dirty without a specific cell — forces a full rebuild on the next drain.

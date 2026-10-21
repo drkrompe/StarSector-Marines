@@ -68,7 +68,16 @@ import java.util.Random;
  *       unbarred for it and no marine ever stands in it: the attack goes round by a gate or not at all.</li>
  *   <li>{@code taken-fort}: the fort is handed to the marines, and a marine squad in the works is ordered to the belt
  *       beyond a port. The port serves its new holder: it is unbarred and the squad goes out through it.</li>
+ *   <li>{@code shut-behind}: a defender squad in the works is ordered to the stretch beyond the port. The port is unbarred,
+ *       the squad goes out, and once nobody of the defender's is near it the port is barred again behind it: its cells
+ *       are wall again and the leaves are folded away.</li>
+ *   <li>{@code enemy-approaches}: a defender squad holds a post just outside the unbarred port, and raiders out on the
+ *       glacis come up to the port (placed inside its safe distance, since the belt's ditch holds a squad on foot
+ *       further out) and are ordered through it. The port is barred before any raider reaches it, no raider ever stands in
+ *       it, and no raider's route runs through it once it is barred.</li>
  * </ul>
+ *
+ * <p>Every loop also asks that the port is never barred on a body standing in it.
  *
  * <p>Squads are placed rather than walked to their start, and the raiders are tough, so every verdict is a mechanic of the
  * port or the commander; who wins is not asked.
@@ -94,6 +103,8 @@ public final class SallyPortScene implements BehaviorScene {
     private static final float ARRIVAL_BOUND = 2.0f;
     /** How far outside the belt the raiders stand. */
     private static final int STANDOFF_CELLS = 6;
+    /** When the raiders march on the yard ({@code enemy-approaches}). */
+    private static final int APPROACH_TICK = 400;
 
     @Override public String id() { return "sally-port"; }
 
@@ -105,7 +116,8 @@ public final class SallyPortScene implements BehaviorScene {
     @Override
     public List<SceneReport> play(FrameSink frames) throws Exception {
         List<SceneReport> reports = new ArrayList<>();
-        for (String loop : List.of("sortie", "sortie-barred", "enemy-at-the-door", "attack-at-the-port", "taken-fort")) {
+        for (String loop : List.of("sortie", "sortie-barred", "enemy-at-the-door", "attack-at-the-port", "taken-fort",
+                "shut-behind", "enemy-approaches")) {
             boolean was = SallyDoors.enabled();
             SallyDoors.setEnabledForEvidence(!loop.equals("sortie-barred") && was);
             try {
@@ -159,7 +171,8 @@ public final class SallyPortScene implements BehaviorScene {
      * raiders press that stretch from, the yard cell behind the port, a glacis cell outside it, and the pool's cells.
      */
     private record Layout(int port, int other, int stretch, int[] stretchCell, int[] halt, int[] door, int[] yard,
-                          int[] glacis, int[][] pool, int[] lanceCell, int[] field, int[] lookout) {}
+                          int[] glacis, int[][] pool, int[] lanceCell, int[] field, int[] lookout, int[] post,
+                          int[] approach, int[] near) {}
 
     private static Layout layout(BattleSimulation sim, int[] centre) {
         Fort fort = sim.forts().forts().get(0);
@@ -187,13 +200,17 @@ public final class SallyPortScene implements BehaviorScene {
         int[] door = walkable(sim, mouth[0] + 2 * outX, mouth[1] + 2 * outY);
         int[] yard = walkable(sim, cells[0][0] - 3 * outX, cells[0][1] - 3 * outY);
         int[] glacis = walkable(sim, mouth[0] + 5 * outX, mouth[1] + 5 * outY);
+        int[] post = walkable(sim, mouth[0] + 3 * outX, mouth[1] + 3 * outY);
+        int[] approach = walkable(sim, mouth[0] + 22 * outX, mouth[1] + 22 * outY);
+        int[] near = walkable(sim, mouth[0] + 9 * outX, mouth[1] + 9 * outY);
         int[][] pool = new int[PATROLS][];
         for (int i = 0; i < PATROLS; i++) pool[i] = walkable(sim, centre[0] - 6 + 3 * i, centre[1]);
         int[] lanceCell = mechStand(sim, centre[0], centre[1] + 4);
         int[] field = walkable(sim, 6, 6);
         // Off the stretch toward the works, where it sees the raiders across the trench.
         int[] lookout = walkable(sim, (2 * stretchCell[0] + mouth[0]) / 3, (2 * stretchCell[1] + mouth[1]) / 3);
-        return new Layout(port, other, stretch, stretchCell, halt, door, yard, glacis, pool, lanceCell, field, lookout);
+        return new Layout(port, other, stretch, stretchCell, halt, door, yard, glacis, pool, lanceCell, field, lookout,
+                post, approach, near);
     }
 
     private static int[] outside(BattleSimulation sim, int cx, int cy, float fx, float fy) {
@@ -296,6 +313,17 @@ public final class SallyPortScene implements BehaviorScene {
                         .primary("weapon.smg").health(TOUGH)
                         .assigned(id -> ObjectiveAssignment.attackMove(id, yard[0], yard[1])).done();
             }
+            case "shut-behind" -> builder.squad("sortie").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(PATROL_SIZE)
+                    .at(layout.pool()[0][0], layout.pool()[0][1]).primary("weapon.smg").health(TOUGH)
+                    .assigned(id -> ObjectiveAssignment.attackMove(id, stretch[0], stretch[1])).done();
+            case "enemy-approaches" -> {
+                int[] post = layout.post();
+                builder.squad("sortie").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(PATROL_SIZE)
+                        .at(layout.pool()[0][0], layout.pool()[0][1]).primary("weapon.smg").health(TOUGH)
+                        .assigned(id -> ObjectiveAssignment.attackMove(id, post[0], post[1])).done();
+                builder.squad("raiders").faction(Faction.MARINE).size(RAIDERS).at(layout.approach()[0], layout.approach()[1])
+                        .primary("weapon.smg").health(TOUGH).done();
+            }
             default -> builder.squad("holders").faction(Faction.MARINE).size(RAIDERS)
                     .at(layout.pool()[0][0], layout.pool()[0][1]).primary("weapon.smg").health(TOUGH)
                     .assigned(id -> ObjectiveAssignment.attackMove(id, stretch[0], stretch[1])).done();
@@ -316,13 +344,14 @@ public final class SallyPortScene implements BehaviorScene {
             lance = world.squadId("lance");
             sim.claimSquadCommand(lance, CommandAuthority.MISSION_COMMAND, defenders.strategyId(), "scene lance pool");
             sim.setAutonomousCommander(Faction.DEFENDER, defenders, ConquestCommandDisclosure.INSTANCE);
-        } else if (loop.equals("enemy-at-the-door")) {
+        } else if (loop.equals("enemy-at-the-door") || loop.equals("shut-behind") || loop.equals("enemy-approaches")) {
             outgoing.add(world.squadId("sortie"));
         } else if (loop.equals("taken-fort")) {
             outgoing.add(world.squadId("holders"));
         }
         Trace trace = new Trace(loop, layout, outgoing, lance,
-                loop.equals("attack-at-the-port") ? world.members("attack") : new long[0]);
+                loop.equals("attack-at-the-port") ? world.members("attack")
+                        : loop.equals("enemy-approaches") ? world.members("raiders") : new long[0]);
         ScriptedPlayer player = ScriptedPlayer.on(world);
         switch (loop) {
             case "sortie", "sortie-barred" -> {
@@ -335,6 +364,12 @@ public final class SallyPortScene implements BehaviorScene {
             }
             case "taken-fort" -> {
                 player.at(1, SallyPortScene::takeFort);
+            }
+            case "enemy-approaches" -> {
+                // Placed, not walked: the belt's ditch holds a squad on foot further out than the port's safe distance.
+                long[] raiders = world.members("raiders");
+                player.at(APPROACH_TICK, s -> place(s, raiders, layout.near()));
+                player.moveSquad(APPROACH_TICK + 1, "raiders", layout.door()[0], layout.door()[1]);
             }
             default -> { }
         }
@@ -375,6 +410,8 @@ public final class SallyPortScene implements BehaviorScene {
 
     private SceneReport report(String loop, int ticks, Trace t) {
         List<Verdict> verdicts = new ArrayList<>();
+        verdicts.add(Verdict.of("never-barred-on-a-body", t.shutOnBody < 0,
+                "the port was barred with a body in it at tick " + t.shutOnBody));
         switch (loop) {
             case "sortie" -> {
                 verdicts.add(Verdict.of("stretch-beyond-the-port-manned", t.orderTick >= 0,
@@ -421,6 +458,32 @@ public final class SallyPortScene implements BehaviorScene {
                 verdicts.add(Verdict.of("no-attacker-in-the-port", t.attackerInPortTick < 0,
                         "an attacker stood in a port at tick " + t.attackerInPortTick));
             }
+            case "shut-behind" -> {
+                verdicts.add(Verdict.of("port-unbarred-for-the-sortie", t.unbarTick >= 0, "unbarred at tick " + t.unbarTick));
+                verdicts.add(Verdict.of("garrison-goes-out-through-the-port", t.throughPortTick >= 0,
+                        "a member of the squad stood in the port at tick " + t.throughPortTick));
+                verdicts.add(Verdict.of("barred-behind-the-sortie", t.firstShut > t.lastInPort && t.lastInPort >= 0
+                                && "SORTIE_PASSED".equals(t.firstShutWhy),
+                        "barred again at tick " + t.firstShut + " (" + t.firstShutWhy + "); last in the port at tick "
+                                + t.lastInPort));
+                verdicts.add(Verdict.of("barred-port-is-wall-again", t.firstShut < 0 || t.wallAgain,
+                        "after the bar the port's cells are " + (t.wallAgain ? "wall" : "still walkable")
+                                + " and its leaves " + (t.leavesAfterShut ? "still drawn" : "folded away")));
+            }
+            case "enemy-approaches" -> {
+                verdicts.add(Verdict.of("port-unbarred-for-the-post", t.unbarTick >= 0 && t.unbarTick < APPROACH_TICK,
+                        "unbarred at tick " + t.unbarTick));
+                verdicts.add(Verdict.of("open-while-the-post-holds-it", t.firstShut < 0 || t.firstShut >= APPROACH_TICK,
+                        "first barred at tick " + t.firstShut + ", before the raiders marched at " + APPROACH_TICK));
+                verdicts.add(Verdict.of("barred-in-the-enemys-face", t.firstShut >= APPROACH_TICK
+                                && "ENEMY".equals(t.firstShutWhy) && t.hostileAtShut <= SallyDoors.SAFE_CELLS + 1f,
+                        String.format(Locale.ROOT, "first barred at tick %d (%s), nearest raider %.1f cells from the mouth",
+                                t.firstShut, t.firstShutWhy, t.hostileAtShut)));
+                verdicts.add(Verdict.of("no-attacker-in-the-port", t.attackerInPortTick < 0,
+                        "an attacker stood in a port at tick " + t.attackerInPortTick));
+                verdicts.add(Verdict.of("no-route-through-the-barred-port", t.routeThroughShut < 0,
+                        "a raider's route ran through the barred port at tick " + t.routeThroughShut));
+            }
             default -> {
                 verdicts.add(Verdict.of("port-serves-the-taker", t.unbarTick >= 1 && t.unbarTick <= 1 + UNBAR_BOUND_TICKS,
                         "port unbarred at tick " + t.unbarTick + "; the fort was handed to the marines, whose squad in "
@@ -444,6 +507,7 @@ public final class SallyPortScene implements BehaviorScene {
         metrics.put("hostileAtUnbar", Math.round(t.hostileAtUnbar * 10f) / 10f);
         metrics.put("attackerInsideWorksTick", t.attackerInsideTick);
         metrics.put("guardLeftWorksTick", t.guardLeftWorksTick);
+        metrics.put("firstBarTick", t.firstShut);
         metrics.put("guardNearestToItsCell", t.guardNearest == Float.MAX_VALUE ? -1f : Math.round(t.guardNearest * 10f) / 10f);
         return new SceneReport(id(), loop, ticks, verdicts, metrics);
     }
@@ -462,6 +526,11 @@ public final class SallyPortScene implements BehaviorScene {
         int attackerInPortTick = -1, attackerInsideTick = -1;
         int guardLeftWorksTick = -1;
         float guardNearest = Float.MAX_VALUE;
+        int firstShut = -1, lastInPort = -1, shutOnBody = -1, routeThroughShut = -1;
+        String firstShutWhy = "";
+        float hostileAtShut = Float.MAX_VALUE;
+        boolean wallAgain, leavesAfterShut;
+        private boolean wasOpen;
         private String state = "";
 
         Trace(String loop, Layout layout, List<Integer> outgoing, int lance, long[] attackers) {
@@ -483,6 +552,28 @@ public final class SallyPortScene implements BehaviorScene {
                 hostileAtUnbar = nearestHostile(sim, mouth);
             }
             if (otherUnbarTick < 0 && fort.sallyPortOpen(layout.other())) otherUnbarTick = tick;
+            int index = sim.sallyDoors().fortDoor(sim, fort, layout.port());
+            SallyDoor door = sim.sallyDoors().doors(sim).get(index);
+            boolean openNow = sim.sallyDoors().isOpen(index);
+            if (wasOpen && !openNow) {
+                if (SallyDoors.bodyInDoor(sim, door) && shutOnBody < 0) shutOnBody = tick;
+                if (firstShut < 0) {
+                    firstShut = tick;
+                    List<int[]> closings = sim.sallyDoors().closings();
+                    firstShutWhy = SallyDoors.Shut.values()[closings.get(closings.size() - 1)[3]].name();
+                    hostileAtShut = nearestHostile(sim, mouth);
+                    wallAgain = true;
+                    for (int[] c : door.cells()) if (sim.getGrid().isWalkable(c[0], c[1])) wallAgain = false;
+                    leavesAfterShut = fort.sallyPortOpen(layout.port());
+                }
+            }
+            wasOpen = openNow;
+            if (firstShut >= 0 && !openNow && routeThroughShut < 0) {
+                float[] box = SallyDoors.box(door);
+                for (long attacker : attackers) {
+                    if (sim.world().isAlive(attacker) && SallyDoors.routeCrosses(sim, attacker, box, 0f)) routeThroughShut = tick;
+                }
+            }
             for (int id : outgoing) {
                 Squad squad = sim.getSquad(id);
                 if (squad == null || squad.aliveMembers <= 0) continue;
@@ -494,10 +585,11 @@ public final class SallyPortScene implements BehaviorScene {
                     arrivalBound = Math.round(ARRIVAL_BOUND * GarrisonDirector.etaTicks(from[0], from[1], goal[0], goal[1]));
                 }
                 if (id != orderSquad) continue;
-                for (int i = 0, n = sim.squadMemberCount(id); i < n && throughPortTick < 0; i++) {
+                for (int i = 0, n = sim.squadMemberCount(id); i < n; i++) {
                     long member = sim.squadMemberAt(id, i);
                     if (sim.world().isAlive(member) && inPort(port, sim.world().cellX(member), sim.world().cellY(member))) {
-                        throughPortTick = tick;
+                        if (throughPortTick < 0) throughPortTick = tick;
+                        if (firstShut < 0) lastInPort = tick;
                     }
                 }
                 if (arrivedTick < 0 && goal != null) {

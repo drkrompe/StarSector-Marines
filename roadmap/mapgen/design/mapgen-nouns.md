@@ -89,6 +89,10 @@ Runtime mutation is admitted in both directions, under different obligations.
 **Destruction is free**, because it only ever makes the world more permissive: a
 path that was valid stays valid, a zone that was connected stays connected, and
 a unit standing somewhere legal is still standing somewhere legal.
+The one runtime write that closes ground again is a sally door shut behind a
+sortie (`garrisonables.md`, sally doors): it puts back exactly the wall that
+was opened, never on a body, drops every route that crosses it, and forces the
+full zone rebuild, since the zone graph's incremental update only merges.
 **Construction must not create an island.** That is the harm the model exists to
 prevent — a unit cut off from its objective, or sealed inside a region with no
 way out — and it is what a runtime placement has to answer for, since a new
