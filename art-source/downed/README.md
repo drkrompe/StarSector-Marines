@@ -29,5 +29,11 @@ Blood pools: `downed.py pool-guide` draws four seeded pool shapes
 `mod/graphics/battle/downed/blood-pool-<n>.png` at 240x240. Pools are shared by every
 outfit.
 
+Armored outfits get a battle-wear pass: the accepted clean sheet is the edit
+target for `prompts/_wear.txt` (scorch, chipped paint, pocks, cracked plates, mud), and
+the worn result replaces the raw; the clean sheet stays in Git history. Cloth outfits
+(armorless, ship crew, colonists) stay as generated. An edit that redraws its figures
+larger or bleaches the suit is regenerated, like any raw that drifts from the guide.
+
 Adding an outfit: write `prompts/<outfit>.txt`, generate, add it to `OUTFITS` in
-`downed.py`, export, then add the family to `LayeredArmorFamily.hasDownedArt`.
+`downed.py`, give it the wear pass if it is armored, export, then add the family to `LayeredArmorFamily.hasDownedArt`.
