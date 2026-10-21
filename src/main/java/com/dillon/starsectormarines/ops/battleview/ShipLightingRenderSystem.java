@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 
@@ -8,6 +9,7 @@ final class ShipLightingRenderSystem implements RenderSystem {
     private final PolyMesh shade = new PolyMesh(4096);
     private float[] gains = new float[0];
     private final float[] rgb = new float[3];
+    private float[] colours = new float[0];
     @Override public RenderLayer layer() { return RenderLayer.DECK_LIGHTING; }
 
     @Override public void collect(RenderContext ctx, DrawList out) {
@@ -17,7 +19,26 @@ final class ShipLightingRenderSystem implements RenderSystem {
         var visible = camera.visibleCells(1, lights.width, lights.height);
         float time = Float.isFinite(ctx.animationTimeSeconds) ? ctx.animationTimeSeconds : 0f;
         if (gains.length < lights.lamps.size()) gains = new float[lights.lamps.size()];
-        for (int i = 0; i < lights.lamps.size(); i++) gains[i] = lights.gain(i, time);
+        // Mid-wave, each lamp moves from the old condition's light to the new as the wave reaches it.
+        DressingWave wave = ctx.dressingWave;
+        ShipDeckLighting before = wave == null ? null : wave.fromLighting;
+        boolean blend = before != null && before != lights && before.lamps.size() == lights.lamps.size()
+                && before.cells.length == lights.cells.length;
+        if (blend && colours.length < lights.lamps.size() * 3) colours = new float[lights.lamps.size() * 3];
+        for (int i = 0; i < lights.lamps.size(); i++) {
+            gains[i] = lights.gain(i, time);
+            if (!blend) continue;
+            var lamp = lights.lamps.get(i);
+            var was = before.lamps.get(i);
+            ShipCore core = lamp.style() == ShipDeckLighting.Style.STRUNG ? ShipCore.POWER
+                    : lamp.style() == ShipDeckLighting.Style.SCREEN ? ShipCore.COMPUTE : null;
+            float w = core == null || !wave.moves(core) ? 1f : wave.flicker(core, lamp.x(), lamp.y(), time, i);
+            gains[i] = before.gain(i, time) + (gains[i] - before.gain(i, time)) * w;
+            colours[i * 3] = was.r() + (lamp.r() - was.r()) * w;
+            colours[i * 3 + 1] = was.g() + (lamp.g() - was.g()) * w;
+            colours[i * 3 + 2] = was.b() + (lamp.b() - was.b()) * w;
+        }
+        boolean powerMoves = blend && wave.moves(ShipCore.POWER);
         shade.reset();
         int steps = camera.cellPxSize() >= 32f ? ShipDeckLighting.SAMPLES : camera.cellPxSize() >= 16f ? 4 : 2;
         float step = 1f / steps;
@@ -32,10 +53,18 @@ final class ShipLightingRenderSystem implements RenderSystem {
                 // A freshly demolished wall was absent from the floor bake. Its rubble
                 // still receives ambient darkness rather than glowing through a missing mask.
                 int sample = sampleY * ShipDeckLighting.SAMPLES + sampleX;
-                float strength = cell == null ? 0f : lights.colour(cell, sample, gains, rgb);
+                float strength = cell == null ? 0f : blend ? ShipDeckLighting.colour(cell, sample, gains, colours, rgb)
+                        : lights.colour(cell, sample, gains, rgb);
                 float shadow = cell == null ? 1f : cell.shadow()[sample];
                 float lit = Math.min(1f, strength);
                 float base = cell == null ? ShipDeckLighting.shade(emergency, 0f) : ShipDeckLighting.shade(cell, lit);
+                if (powerMoves && cell != null) {
+                    var wasCell = before.cells[y * lights.width + x];
+                    if (wasCell != null) {
+                        float w = wave.weight(ShipCore.POWER, x + .5f, y + .5f, time);
+                        base = ShipDeckLighting.shade(wasCell, lit) + (base - ShipDeckLighting.shade(wasCell, lit)) * w;
+                    }
+                }
                 float darkness = 1f - (1f - Math.max(0f, base)) * shadow;
                 // The light's own colour shows as a spill over the dark mask.
                 float tint = cell == null ? 0f : cell.tint();
