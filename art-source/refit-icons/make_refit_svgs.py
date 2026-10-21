@@ -90,10 +90,4 @@ for tier in (1, 2, 3):
     svg(f"node-{tier}-locked",
         f'<path d="{hexagon(25)}" fill="#141b18" stroke="{MUTED}" stroke-width="2" stroke-dasharray="4 3"/>' + pips(tier, MUTED))
 
-# Root: the hull herself.
-svg("root-second-wind",
-    f'<path d="{hexagon(30)}" fill="{DARK}" stroke="{GOLD}" stroke-width="2.5"/>'
-    f'<path d="{hexagon(22)}" fill="none" stroke="{MUTED}" stroke-width="1.5"/>'
-    + line("M32 12L40 24V44L36 52H28L24 44V24Z", GOLD, 2.5) + line("M24 30L16 36V42L24 40M40 30L48 36V42L40 40", GOLD, 2.5))
-
 print(len(list(out.iterdir())), "svgs")

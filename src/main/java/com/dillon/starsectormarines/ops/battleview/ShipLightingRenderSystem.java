@@ -30,9 +30,9 @@ final class ShipLightingRenderSystem implements RenderSystem {
             if (!blend) continue;
             var lamp = lights.lamps.get(i);
             var was = before.lamps.get(i);
-            ShipCore core = lamp.style() == ShipDeckLighting.Style.STRUNG ? ShipCore.POWER
-                    : lamp.style() == ShipDeckLighting.Style.SCREEN ? ShipCore.COMPUTE : null;
-            float w = core == null || !wave.moves(core) ? 1f : wave.flicker(core, lamp.x(), lamp.y(), time, i);
+            // Room strips and strung lamps are both on the Power core's distribution.
+            ShipCore core = lamp.style() == ShipDeckLighting.Style.SCREEN ? ShipCore.COMPUTE : ShipCore.POWER;
+            float w = !wave.moves(core) ? 1f : wave.flicker(core, lamp.x(), lamp.y(), time, i);
             gains[i] = before.gain(i, time) + (gains[i] - before.gain(i, time)) * w;
             colours[i * 3] = was.r() + (lamp.r() - was.r()) * w;
             colours[i * 3 + 1] = was.g() + (lamp.g() - was.g()) * w;
