@@ -148,15 +148,19 @@ public final class SwarmBruteBreachScene implements BehaviorScene {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("fence-is-a-barricade", fence > 0,
                 fence + " fence pieces laid (none without the tile registry)"));
-        verdicts.add(Verdict.of("strikes-the-fence", fence == 0 || strikes.blowsLanded() > 0,
-                strikes.blowsLanded() + " blows landed"));
-        verdicts.add(Verdict.of("breaks-through", fence == 0 || strikes.blowsLanded() == 0 || opened > 0,
+        // A charge bowls a fence piece over outright (brute-charge.md); a walking Brute strikes it down.
+        long bowled = sim.bruteCharges().events().stream().filter(e -> e.what().equals("prop")).count();
+        int struck = strikes.blowsLanded() + (int) bowled;
+        verdicts.add(Verdict.of("strikes-the-fence", fence == 0 || struck > 0,
+                strikes.blowsLanded() + " blows landed, " + bowled + " pieces bowled over by a charge"));
+        verdicts.add(Verdict.of("breaks-through", fence == 0 || struck == 0 || opened > 0,
                 opened + " fence cells opened"));
         verdicts.add(Verdict.of("spares-the-building", trace.ringHpUnchanged(),
                 "building ring hp unchanged " + trace.ringHpUnchanged()));
         Map<String, Number> metrics = new LinkedHashMap<>();
         metrics.put("fencePieces", fence);
         metrics.put("blows", strikes.blowsLanded());
+        metrics.put("bowled", bowled);
         metrics.put("fenceCellsOpened", opened);
         metrics.put("marineDamage", trace.marineDamage());
         return new SceneReport(id(), "fenced-yard", TICKS, verdicts, metrics);

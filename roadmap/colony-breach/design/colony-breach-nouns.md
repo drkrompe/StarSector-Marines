@@ -477,6 +477,25 @@ for one job in the cycle, and reads that way on screen.
   wall left); fortified and fort walls are out of its reach until something
   else has worn them down. Its blow carries penetration, so it hurts plated
   bodies and emplacements where a Runner's slash only scratches.
+
+  It has two speeds: it **walks** at its sim speed and **charges** at a much
+  higher one. A **charge** is a committed straight run at one target, or at the
+  light wall it means to break, taken only when the target is in a band of
+  middle distance, the line to it is open ground (a light prop or a body in the
+  way is allowed: it is what gets bowled), and the last charge's cooldown has
+  run. It begins with a **tell** (it stands head-down, the player's warning),
+  runs on a line it can turn only slowly, and ends on a hit that stops it, on a
+  wall, or when it runs out. The hit is its blow, heavier, and what follows
+  depends on what it hits: infantry is thrown aside and knocked down and the
+  charge goes on through up to two bodies; a light prop is bowled over; a light
+  wall takes one double-weight ram; a heavy wall or a tank's bulk stuns the
+  Brute; a vehicle is shoved and stalled by its **weight class** (light /
+  medium / heavy on `VehicleType`); a mech is struck in the legs and, unless
+  heavy, staggered. Knocked down, stalled, staggered and stunned are one short
+  **can't act** state (`StaggerService`): no move, no fire, for a fixed time,
+  never a casualty state. The swarm's own bodies are never struck. Squad mates
+  of a thrown body take a near-miss morale drain. The numbers are
+  `-Dbattle.brute.*` switches, still to be felt out.
 - **Spitter** — fragile, keeps its distance, lobs acid. It backs away from any
   ground enemy that closes inside its charge radius and does not lob while it
   runs. Otherwise a low hostile craft in reach whose skin its acid can bite
