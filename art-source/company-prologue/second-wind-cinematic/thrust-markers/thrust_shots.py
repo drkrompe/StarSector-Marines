@@ -111,7 +111,10 @@ NEW_PLUME = 'thrust_plume_added'        # on each plume `hang_plumes` adds: the 
 # Traffic's plumes (`far_plume`): at the trim burn of a steady cruise (thrust_markers.CRUISE_TRIM)
 # a main is about a quarter of its full length and keeps most of its width, so it reads as a short
 # light burn rather than a long thread; it grows to full length with acceleration.
-TRAFFIC_LENGTH_FLOOR, TRAFFIC_WIDTH_FLOOR = 0.1, 0.6
+TRAFFIC_LENGTH_FLOOR, TRAFFIC_WIDTH_FLOOR = 0.05, 0.6
+# A big-belled hull's full plume (40 bell radii) would outrun the hull many times over: at full it
+# is held to this many hull lengths, so the trim burn stays near a third of the hull.
+TRAFFIC_MAX_HULLS = 1.5
 
 
 def hang_plumes(craft_obj, marks, plume, frames):
@@ -145,7 +148,9 @@ def far_plume():
     import port_fleet
 
     def plume(marker, kind, r):
-        return port_fleet.far_plume(marker, kind, r, TRAFFIC_LENGTH_FLOOR, TRAFFIC_WIDTH_FLOOR)
+        hull = hull_length(marker.parent) if marker.parent is not None else 0.0
+        return port_fleet.far_plume(marker, kind, r, TRAFFIC_LENGTH_FLOOR, TRAFFIC_WIDTH_FLOOR,
+                                    max_length=TRAFFIC_MAX_HULLS * hull if hull else None)
     return plume
 
 
@@ -175,8 +180,10 @@ def report_motion(hung, fps, frames, air, shot):
     for name in sorted(hung):
         ob = bpy.data.objects[name]
         r = max((m['radius_m'] for m in tm.markers(ob) if m['thrust_kind'] == 'main'), default=0.0)
+        hull = hull_length(ob)
+        full = min(main_len * r, TRAFFIC_MAX_HULLS * hull) if hull else main_len * r
         print('THRUST_MOTION %s %s: hull %.0f m long; main plume %.0f m at the trim burn, %.0f m at full' % (
-            shot, name, hull_length(ob), main_len * r * trim, main_len * r), flush=True)
+            shot, name, hull, full * trim, full), flush=True)
         for line in tm.motion_report(ob, fps, frames, air):
             print('THRUST_MOTION   ' + line, flush=True)
 
@@ -299,6 +306,8 @@ def mark_c1(c1):
             tm.key(m, [(0, 0.0)], fps, kinds=('maneuver', 'lift'))
         elif name.startswith('HOUND'):
             m = mark_any(ob, 'Customs Hound', activity='crossing at full throttle')
+            ob[tm.MOTION_EXEMPT] = ('the approved C1 final: crosses at a steady 63 m/s on the kit's own '
+                                    'thrusters at full; key it to its motion before any re-render')
             tm.key(m, [(0, 1.0)], fps, kinds=('main',))
             tm.key(m, [(0, 0.0)], fps, kinds=('maneuver', 'lift'))
         else:
@@ -350,6 +359,8 @@ def mark_c2(scene, p):
             tm.key(m, [(0, 0.0)], fps, kinds=('maneuver', 'lift'))
         elif name.startswith('C2B | Broadsword'):
             m = mark_any(ob, name.split(' | ')[1], activity='full throttle')
+            ob[tm.MOTION_EXEMPT] = ('the approved C2 final: a steady 160 m/s with the flames at full; key '
+                                    'them to the motion before any re-render')
             tm.key(m, [(0, 1.0)], fps)
             # The flames ride the exhaust anchors today; hang them off the markers instead.
             for fl in [o for o in ob.children_recursive if o.type == 'MESH' and o.parent
@@ -390,6 +401,8 @@ def mark_c4(c4):
     if ob is not None:
         m = mark_any(ob, 'Second Wind', working=sw_working(),
                      activity='braking in, hover over Kilo Nine, touchdown, parked')
+        ob[tm.MOTION_EXEMPT] = ("the approved landing (C4/C5 finals): mains held at full from the braking "
+                                "approach through the hover to touchdown, where the braking eases briefly")
         down = c4.T_DOWN
         tm.key(m, [(0, 1.0), (down, 1.0), (down + 1.5, 0.0)], fps, kinds=('main',))
         tm.key(m, [(0, 0.0), (c4.ARRIVE - 2.0, 0.0), (c4.ARRIVE, 1.0), (down, 1.0), (down + 1.0, 0.0)],

@@ -585,7 +585,8 @@ def throttle_faults(fps, frames, air, step=6):
 
     (a) a main burning above CRUISE_CEILING while the craft shows no meaningful acceleration;
     (b) a craft plainly accelerating or braking (ACCEL_CLEAR) with its drives at or near zero;
-    (c) in air, a craft airborne at low speed, or climbing or sinking, with no lift carrying it.
+    (c) in air, a craft the model has riding on its lift (airborne at low speed, or climbing or
+        sinking slowly) with no lift carrying it.
 
     A craft declared `thrust_motion_exempt` (with its reason) or `thrust_plume_exempt` (its
     drives never in frame) is skipped; exemptions are returned as (name, reason) in a second list."""
@@ -612,7 +613,7 @@ def throttle_faults(fps, frames, air, step=6):
                 bad['a'].append((f, 'main %.2f at %.1f m/s, %.2f m/s^2' % (tm_, v.length, a_drive)))
             if a_drive > ACCEL_CLEAR and max(tm_, tl) < LIFT_FLOOR and (vh > 0.3 or vz > 0.3):
                 bad['b'].append((f, '%.1f m/s^2 with drives at %.2f' % (a_drive, max(tm_, tl))))
-            if air and vh < VECTOR_FULL and (airborne or vz > 0.3) and tl < LIFT_FLOOR:
+            if air and drive_demand(v, acc, airborne, air)[1] >= 2 * LIFT_FLOOR and tl < LIFT_FLOOR:
                 bad['c'].append((f, 'airborne at %.1f m/s (vz %.1f) with lift %.2f' % (vh, v.z, tl)))
         lines = []
         for k, label in (('a', 'main above cruise with no acceleration'), ('b', 'accelerating with drives off'),
