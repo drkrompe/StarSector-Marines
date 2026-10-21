@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-20
 
-Updated: 2026-10-21 — Conquest traces name the garrisons a counter-attack takes to sortie; the nine story missions without a planner of their own have harnesses (story missions without a planner); every battle harness about places prints a `[place-fight]` line, and story summaries carry it and the story commanders' manning.
+Updated: 2026-10-21 — story summaries carry the allied party's manning and locks (story manning); Conquest traces name the garrisons a counter-attack takes to sortie; the nine story missions without a planner of their own have harnesses (story missions without a planner); every battle harness about places prints a `[place-fight]` line, and story summaries carry it and the story commanders' manning.
 
 Per-mission matrices, fixture fields and report contents for `gradlew.bat commanderEvidence -Pmission=<mission>`. How to run the task, the mission list, replay count, parallelism and snapshot flags stay in `CLAUDE.md` (Build & deploy); read this when you need one mission's details. Text is moved verbatim from `CLAUDE.md`; "Fixture fields match Relief" and similar refer to the sections below.
 
@@ -284,3 +284,13 @@ defender commander's manning figures with, for a story commander, the
 squad-pulses it offered and the pulses its holder share was closed
 (`garrisonables.md`, story commanders). Read both against
 `-Dbattle.story.reactiveDefence=false` on the same build.
+
+Where the allied party's commander has places of its own (`garrisonables.md`,
+parties: Thunder Run, The Yard's Owners, Limited Warrant), `reactiveDefence`
+also carries `ally`: the same manning figures for the allied party, plus its
+`directiveActivations`, `directiveReleases` and `lockedSquadPulses` (squad-pulses
+spent on a locked position). The story table adds the allied shooters' share
+from a post and the allied manning orders and locked pulses. Read them against
+`-Dbattle.party.places=false` on the same build, which removes the allied
+picture, the allied manning and the hold directives and keeps the locks that
+re-express an authored duty (Thunder Run's militia).

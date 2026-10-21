@@ -27,7 +27,8 @@ import java.util.TreeSet;
  * never offered: nothing reactive gives a lock back. The story share bounds what the party mans on its own initiative,
  * and each active hold adds its allowance. Belief is the party's own picture (the frame's influence). {@link #PROPERTY}
  * off is the control: nothing is offered and no hold directive opens anything; locks still stand, since they are the
- * mission's orders, not a feature on top of them.
+ * mission's orders, not a feature on top of them. A detachment worn to half its strength or less is let go of a lock
+ * that does not hold {@link PlaceDirective#toTheLast to the last}, and goes back to the commander's own duties.
  */
 final class PartyPlaces {
 
@@ -52,6 +53,13 @@ final class PartyPlaces {
     private int offeredSquadPulses;
     private int shareClosedPulses;
     private int lockedSquadPulses;
+    private int wornSquadPulses;
+
+    /** A detachment at half its strength or less: a lock is held, not died in, unless it says so. */
+    static boolean worn(CommandSquadState squad) {
+        int established = Math.max(squad.originalMembers(), squad.aliveMembers());
+        return squad.aliveMembers() * 2 <= established;
+    }
 
     PartyPlaces(Faction party, PlaceDirectives directives) {
         this.party = party;
@@ -85,6 +93,10 @@ final class PartyPlaces {
         PlaceDirectives.Lock lock = directives.lockFor(detachment);
         if (lock == null) return null;
         PlaceDirective directive = lock.directive();
+        if (!directive.toTheLast() && worn(squad)) {
+            wornSquadPulses++;
+            return null;
+        }
         int id = squad.squadId();
         ObjectiveAssignment order;
         if (lock.post() != null) {
@@ -163,6 +175,7 @@ final class PartyPlaces {
         out.put("directiveActivations", directives.activations());
         out.put("directiveReleases", directives.releases());
         out.put("lockedSquadPulses", lockedSquadPulses);
+        out.put("wornSquadPulses", wornSquadPulses);
         return out;
     }
 }

@@ -40,8 +40,13 @@ class PartyPlacesTest {
     }
 
     private static CommandSquadState squad(int id, float x, float y) {
-        return new CommandSquadState(id, Faction.ALLY, 6, x, y, (int) x, (int) y, 0, UnitRole.PATROL, false, null,
-                null, null, 0, new int[0]);
+        return squad(id, x, y, 6);
+    }
+
+    private static CommandSquadState squad(int id, float x, float y, int alive) {
+        return new CommandSquadState(id, Faction.ALLY, alive, x, y, (int) x, (int) y, 0, UnitRole.PATROL, false, false,
+                false, null, null, null, null, null, 0, 0, 0, 0, 0, null, null, null, 0, new int[0], new int[0], new int[0],
+                null, false, false, false, null, 6);
     }
 
     private static PartyPlaces party(PlaceDirective... directives) {
@@ -100,6 +105,22 @@ class PartyPlacesTest {
         party.offerFree(squad(1, 20, 20));
         assertNull(party.offer(1), "nothing reactive is offered a locked squad");
         assertEquals(2, party.figures().get("lockedSquadPulses"));
+    }
+
+    @Test
+    void aWornDetachmentIsLetGoUnlessTheLockHoldsToTheLast() {
+        PlaceDirective held = PlaceDirective.lock("held", Faction.ALLY, PlaceTarget.region(70, 10, 4)).post(70, 10).build();
+        PartyPlaces party = party(held);
+        party.begin(PlaceSignals.at(0));
+        assertNotNull(party.lock(squad(1, 20, 20, 4), 0, places), "four of six still hold");
+        party.begin(PlaceSignals.at(75));
+        assertNull(party.lock(squad(1, 20, 20, 3), 0, places), "half is let go");
+        party.offerDuty(squad(1, 20, 20, 3), 20, 20);
+        assertNotNull(party.offer(1), "a let-go squad is back on its duty");
+        PartyPlaces last = party(PlaceDirective.lock("last", Faction.ALLY, PlaceTarget.region(70, 10, 4))
+                .post(70, 10).toTheLast().build());
+        last.begin(PlaceSignals.at(0));
+        assertNotNull(last.lock(squad(1, 20, 20, 1), 0, places), "an authored hold to the end keeps even one");
     }
 
     @Test

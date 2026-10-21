@@ -55,7 +55,7 @@ public final class ThunderRunCommand implements AutonomousMissionCommand<Thunder
                             PlaceTarget.region(posts.get(0).x(), posts.get(0).y(), 6))
                     .key(site).radius(5).reason(site == 0 ? "FREIGHT_COVER_LANDING" : "FREIGHT_HOLD_GAIN")
                     .when(site == 0 ? PlaceTrigger.always() : PlaceTrigger.flag(gained(site)))
-                    .until(site == 0 ? anyGain : PlaceTrigger.never());
+                    .until(site == 0 ? anyGain : PlaceTrigger.never()).toTheLast();
             for (var post : posts) lock.post(post.x(), post.y());
             out.add(lock.build());
         }
