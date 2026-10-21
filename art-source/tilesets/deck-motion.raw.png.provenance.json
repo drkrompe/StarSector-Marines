@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f71-4d78-7f03-802b-ca0e7164387c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f71-4d78-7f03-802b-ca0e7164387c\\exec-25a56ae9-e3bc-4fa4-aab5-c908452c9c71.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\deck-motion\\deck-motion.raw.png",
+    "sha256": "e4225d092e6ed7958067bdf9a0aeeeca668608025a63e61e6a8f3019634e3f70",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\deck-motion\\deck-motion.prompt.txt",
+  "promptSha256": "3a27c353812887432cf379694a35b2cebdb894bea589d799cda0e3b11133aa23",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: edit target; keep every piece's position, size, outline and the transparent background exactly\nImage 2: Material/style only; not layout\nImage 3: Material/style only; not layout\n\nReskin the attached geometry guide into finished top-down game art for a spaceship interior prop sheet. Strict overhead orthographic view, soft light from the upper left, the same muted worn-steel ship-equipment look as the material reference sheets: gunmetal and grey-green enamel, brushed steel, dark rubber, small bolts and panel seams, faded safety-yellow on stops and end trucks only.\n\nThe guide is the geometry and layout authority. Keep every piece exactly where it is, at exactly its size, outline and orientation; do not move, rescale, rotate, merge or add pieces. Keep all empty canvas fully transparent: true transparent background, including the gaps between parts and inside the crane runway frame; no floor, no ground, no shadow slab, no border, no labels or text.\n\nPieces, left to right and top to bottom:\n1. Two long overhead crane runway girders (vertical, top left): riveted steel I-beams with end stops. Nothing between them.\n2. One thin vertical guide rail with yellow buffers at both ends.\n3. A rowing machine seen from above: flywheel housing with a mesh fan cover at the top, handle bar, two foot plates, a long bare steel slide rail and a rear foot crossbar. There is NO seat on the rail: the rail runs bare and continuous where a seat would sit.\n4. A round axial fan rotor: dark recessed well, five swept steel blades and a central hub, inside a thin bright bezel ring.\n5. A small padded rowing-machine seat on a little roller carriage.\n6. A narrow lift carriage platform with two short steel forks pointing right.\n7. A square tile of black ribbed treadmill belt rubber; ribs run horizontally; the tile must tile seamlessly top to bottom.\n8. A square tile of dark conveyor belt with two raised vertical cleats and dark side edges; it must tile seamlessly left to right.\n9. A long horizontal overhead crane bridge: box girder with diagonal stiffeners, yellow end trucks at both ends, and a central hoist trolley with a round hook block.\n\nThe two belt tiles stay completely filled edge to edge. Everything else keeps the guide's transparent surroundings.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\deck-motion-guide.png",
+      "sha256": "4d090bc0dc83bf189861f58fe19ef64d64b7f75f975b5c0987acaac4492a5b2d",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: edit target; keep every piece's position, size, outline and the transparent background exactly"
+    },
+    {
+      "path": "mod\\graphics\\tilesets\\ship-gym.png",
+      "sha256": "68ff2fdc148ad1cda5990d6fd8619bdce331e9ea69cc0a7af18871e89882c3d2",
+      "dimensions": [
+        832,
+        192
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    },
+    {
+      "path": "mod\\graphics\\tilesets\\ship-engineering.png",
+      "sha256": "cdc014a79ac41e39e743ec6fd3ca721a929840edca5cffe683d41a9b05eab733",
+      "dimensions": [
+        1152,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to apply the worn-steel finish while preserving the guide’s layout and transparency."
+  ],
+  "usage": {
+    "input_tokens": 108011,
+    "cached_input_tokens": 74496,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 818,
+    "reasoning_output_tokens": 29
+  },
+  "elapsedSeconds": 70.0
+}

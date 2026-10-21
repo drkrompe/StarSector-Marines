@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.task;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -108,6 +110,9 @@ public final class TaskPointService {
     }
 
     public int registeredCount() { return points.size(); }
+
+    /** Every published point, in registration order; read-only. */
+    public Collection<TaskPoint> points() { return Collections.unmodifiableCollection(points.values()); }
 
     public int claimCount() { return pointByActor.size(); }
 

@@ -107,10 +107,11 @@ byte for byte. With it:
     ripples spread wider and ring longer, thin-film banding colours the
     thinnest film (a soap bubble about to burst), and a hit on a thin patch
     flashes dimmer (it leaks through).
-  - shield_overload (0..1, a timeline): the film tears open from the last hit
-    (shield_tear_az / _el) and the tear runs across the arc, led by a hot
-    edge; behind it the film breaks into ragged curved shards whose torn rims
-    glow and which burn away from within as they drift off;
+  - shield_overload (0..1, a timeline): a forced dissolve. Holes burn open
+    at the last hit (shield_tear_az / _el) and at the thinnest patches at once
+    and spread until they meet, each edged with a bright band like the raise's
+    unfolding edge. shield_shards (off by default) also breaks the film into
+    ragged burning pieces that drift off;
     arcs crawl over the hull back toward the emitter; a light at the tear lights
     the hull. At 1 the shield is gone. overload() keys it, stutters the ship's
     lamps (lit_ship_master, where the build has it) and drops the shield.
@@ -180,23 +181,30 @@ FILM_KNOBS = [
     ('shield_tear_az', 0.0, -180.0, 180.0, 'where the overload tear starts: azimuth, degrees (the last hit)'),
     ('shield_tear_el', 0.0, -90.0, 90.0, 'where the overload tear starts: elevation, degrees'),
     ('shield_vent', 0.0, 0.0, 1.0, 'venting: radiators and vents glow and shed vapour jets'),
+    ('shield_shards', 0.0, 0.0, 2.0, 'overload: also break the film into burning pieces (0 the dissolve alone)'),
     ('shield_ripple', 1.0, 0.0, 4.0, 'ripple ring brightness'),
     ('shield_band', 1.0, 0.0, 4.0, 'thin-film banding brightness'),
     ('shield_arcs', 1.0, 0.0, 4.0, 'overload arc brightness'),
 ]
-HIT_LIFT = .9           # whole-film brightening per unit of live hit flash (opacity tied to hits)
+HIT_LIFT = .25          # whole-film brightening per unit of live hit flash (opacity tied to hits)
+FILM_FACE, FILM_RIM = .45, .8      # the film at rest: fainter than the bubble's face and rim (owner, 2026-10-21)
+FILM_HIT_PEAK = 2.0     # a hit's flash on the film: local and dimmer than the bubble's HIT_PEAK
 RING_PEAK = 1.6         # ripple ring brightness at impact
 RING_REACH = (.35, .8)  # how far a ring runs, in mean radii: at flux 0, and the extra at flux 1
-RING_WIDTH = (.45, .6)  # ring half-width as a share of the hit spread: flux 0, extra at flux 1
-FILM_HIT_SIZE = .18     # the film's hit spread (shield_hit_size): bigger than the bubble's, to read at range
+RING_WIDTH = (.7, .8)  # ring half-width as a share of the hit spread: flux 0, extra at flux 1
+FILM_HIT_SIZE = .09     # the film's hit spread (shield_hit_size): a tight local flash; the ring carries it outward
 RING_S = .7             # seconds a ring takes to run out at flux 0 (x (1 + 1.5 flux))
 FLUX_SCALE, FLUX_RATE = 2.6, .45   # thin patches: noise scale over R, drift (per second of clock)
 THIN_FACE, THIN_RIM = .85, .5      # how much a fully thin patch dims the face and the rim
 LEAK = .65              # how much a hit on a fully thin patch dims (it leaks through)
-BANDS, BAND_PEAK = 2.2, .55        # thin-film interference bands across the thinness, and their brightness
-TEAR_SPAN = .35         # share of the overload timeline the tear takes to run the whole shell
-TEAR_SOFT, TEAR_EDGE, TEAR_PEAK = .05, .09, 6.0   # torn-edge softness and glow half-width (radians), glow
-TEAR_W = 20000.0        # the tear light at its flash (W)
+BANDS, BAND_PEAK = 2.2, .4        # thin-film interference bands across the thinness, and their brightness
+TEAR_SPAN = .45         # share of the overload timeline the dissolve takes to eat the whole film
+# The dissolve: the order the film goes in (0 first, 1 last) mixes where it is thinnest
+# (DISSOLVE_THIN), how far from the last hit (DISSOLVE_HIT) and a fine ragged grain.
+DISSOLVE_THIN, DISSOLVE_HIT, DISSOLVE_GRAIN, DISSOLVE_GRAIN_SCALE = .6, .4, .12, 16.0
+DISSOLVE_SOFT, DISSOLVE_EDGE, DISSOLVE_PEAK = .008, .012, 2.4   # hole softness, edge half-width, edge glow
+TEAR_PEAK = 6.0         # the dissolve edge's glow is scaled against this
+TEAR_W = 6000.0         # the tear light at its flash (W): a flicker on the hull, not a white-out
 SHARD_PEAK, SHARD_DECAY, SHARD_LIFT = 2.5, 1.6, .16   # shard glow, burn rate, scatter (mean radii)
 SHARD_SUBDIV, SHARD_PIECES = 5, 150  # the shard mesh: a fine icosphere grown into this many ragged pieces
 SHARD_GAP, SHARD_SHRINK = .93, .45   # pieces pulled in from each other; shrunk to this as they burn
@@ -604,7 +612,34 @@ def _arc_cover(ctx, g, nodes, links, pos, s, t):
 
 
 def _tear_front():
-    return f'{math.pi * 1.05:.5f} * min(1.0, shield_overload / {TEAR_SPAN})'
+    """The dissolve level: how far down the dissolve order the film has gone (0 .. past 1)."""
+    return f'{1.0 + DISSOLVE_GRAIN:.3f} * min(1.0, shield_overload / {TEAR_SPAN})'
+
+
+def _thin_noise(g, nodes, links, pos, R, fin, clock):
+    """The film's moving thin-patch field (the flux patches and the dissolve share it)."""
+    pn = nodes.new('ShaderNodeTexNoise')
+    pn.noise_dimensions = '4D'
+    pn.inputs['Scale'].default_value = FLUX_SCALE * math.sqrt(fin['grain']) / R
+    pn.inputs['Detail'].default_value = 2.5
+    links.new(pos, pn.inputs['Vector'])
+    links.new(g.mul(clock, FLUX_RATE), pn.inputs['W'])
+    return pn.outputs['Fac']
+
+
+def _dissolve_order(ctx, g, nodes, links, pos, thin_fac, R):
+    """Where a point of film falls in the overload's dissolve (0 goes first, 1 last): the
+    thinnest patches and the last hit first, so holes open at several spots at once and
+    spread until they meet, with ragged edges."""
+    th = _angle(g, _unit(g, nodes, links, pos), _direction(ctx, nodes, 'shield_tear_az', 'shield_tear_el'))
+    fine = nodes.new('ShaderNodeTexNoise')
+    fine.noise_dimensions = '3D'
+    fine.inputs['Scale'].default_value = DISSOLVE_GRAIN_SCALE / R
+    fine.inputs['Detail'].default_value = 3.0
+    links.new(pos, fine.inputs['Vector'])
+    order = g.add(g.mul(g.clamp01(g.mul(g.sub(.72, thin_fac), 2.2)), DISSOLVE_THIN),
+                  g.mul(th, DISSOLVE_HIT / math.pi))
+    return g.add(order, g.mul(g.sub(fine.outputs['Fac'], .5), 2 * DISSOLVE_GRAIN))
 
 
 def _film_material(ctx, s, R, Rm):
@@ -648,8 +683,8 @@ def _film_material(ctx, s, R, Rm):
     rimk = v('rim', 'shield_rim', ('shield_rim',))
     inner_a = g.add(s['inner_alpha'], g.mul(fort, s['fortress_alpha'] - s['inner_alpha']))
     grad = g.add(.35, g.mul(g.pow(g.clamp01(lw.outputs['Facing']), 1.5), .65))
-    face_s = g.mul(g.mul(g.mul(inner_a, FACE_PEAK / .3 * fin['face']), ripple), grad)
-    rim_s = g.mul(g.mul(rim, rimk), RIM_PEAK * fin['rim'])
+    face_s = g.mul(g.mul(g.mul(inner_a, FACE_PEAK / .3 * fin['face'] * FILM_FACE), ripple), grad)
+    rim_s = g.mul(g.mul(rim, rimk), RIM_PEAK * fin['rim'] * FILM_RIM)
     sig = v('strength', 'shield_strength', ('shield_strength',))
     weak = g.op('MAXIMUM', g.sub(1.0, sig), 0.0)
     dense = g.op('MAXIMUM', g.sub(sig, 1.0), 0.0)
@@ -674,13 +709,8 @@ def _film_material(ctx, s, R, Rm):
     ring_c = g.mix_rgb(fort, s['ring'], s['fortress_ring'])
     # Flux: moving thin patches that open wider as it climbs.
     flux = v('flux', 'shield_flux', ('shield_flux',))
-    pn = nodes.new('ShaderNodeTexNoise')
-    pn.noise_dimensions = '4D'
-    pn.inputs['Scale'].default_value = FLUX_SCALE * math.sqrt(fin['grain']) / R
-    pn.inputs['Detail'].default_value = 2.5
-    links.new(pos, pn.inputs['Vector'])
-    links.new(g.mul(clock, FLUX_RATE), pn.inputs['W'])
-    thin = g.clamp01(g.sub(g.mul(flux, 1.4), g.clamp01(g.mul(g.sub(.6, pn.outputs['Fac']), 5.0))))
+    thin_fac = _thin_noise(g, nodes, links, pos, R, fin, clock)
+    thin = g.clamp01(g.sub(g.mul(flux, 1.4), g.clamp01(g.mul(g.sub(.6, thin_fac), 5.0))))
     face_s = g.mul(face_s, g.sub(1.0, g.mul(thin, THIN_FACE)))
     rim_s = g.mul(rim_s, g.sub(1.0, g.mul(thin, THIN_RIM)))
     # Hits, found by angle over the surface from their own azimuth and elevation.
@@ -709,23 +739,25 @@ def _film_material(ctx, s, R, Rm):
     leak = g.sub(1.0, g.mul(thin, LEAK))
     hit_s = g.mul(hit_s, leak)
     ring_w = g.mul(g.mul(ring_s, v('ripple', 'shield_ripple', ('shield_ripple',))), RING_PEAK)
-    # Overload: the tear runs from shield_tear_az/el across the shell, a hot edge leading it.
-    th = _angle(g, n, _direction(ctx, nodes, 'shield_tear_az', 'shield_tear_el'))
+    # Overload: a forced dissolve. Holes burn open at the last hit and at the thinnest
+    # patches together and spread until they meet, each edged with a bright band, the way
+    # the raise's unfolding edge runs, only torn open.
+    order = _dissolve_order(ctx, g, nodes, links, pos, thin_fac, R)
     tear_at = v('tear front', _tear_front(), ('shield_overload',))
     on_o = v('overloading', '(shield_overload > 0.0001) * 1.0', ('shield_overload',))
-    torn = g.mul(g.clamp01(g.mul(g.sub(tear_at, th), 1.0 / TEAR_SOFT)), on_o)
+    torn = g.mul(g.clamp01(g.mul(g.sub(tear_at, order), 1.0 / DISSOLVE_SOFT)), on_o)
     film = g.sub(1.0, torn)
-    te = g.mul(g.sub(th, tear_at), 1.0 / TEAR_EDGE)
-    tear_env = v('tear env', f'min(1.0, shield_overload / 0.02) * max(0.0, 1.0 - shield_overload / {TEAR_SPAN * 1.2})',
+    te = g.mul(g.sub(order, tear_at), 1.0 / DISSOLVE_EDGE)
+    tear_env = v('tear env', f'min(1.0, shield_overload / 0.02) * max(0.0, 1.0 - shield_overload / {TEAR_SPAN * 1.1})',
                  ('shield_overload',))
-    tear = g.mul(g.op('EXPONENT', g.mul(g.mul(te, te), -1.0)), tear_env)
+    tear = g.mul(g.mul(g.op('EXPONENT', g.mul(g.mul(te, te), -1.0)), tear_env), DISSOLVE_PEAK / TEAR_PEAK)
     # Colour: inner across the face; ring at the rim, the edges, the hits and the rings.
     rim_s = g.mul(rim_s, rim_f)
-    hit_w = g.mul(g.mul(hit_s, HIT_PEAK), g.sub(1.0, g.mul(fort, .75)))
-    ring_mix = g.clamp01(g.mul(g.add(g.add(g.add(rim_s, edge), g.add(hit_w, ring_w)), g.mul(tear, 3.0)), .5))
+    hit_w = g.mul(g.mul(hit_s, FILM_HIT_PEAK), g.sub(1.0, g.mul(fort, .75)))
+    ring_mix = g.clamp01(g.mul(g.add(g.add(rim_s, edge), g.add(hit_w, ring_w)), .5))
     colour = g.mix_rgb(ring_mix, inner_c, ring_c)
     body = g.add(g.mul(g.mul(face_s, face_k), lift), rim_s)
-    lit = g.add(g.mul(g.add(body, edge), solid), g.mul(g.add(g.mul(hit_s, HIT_PEAK), ring_w), waver))
+    lit = g.add(g.mul(g.add(body, edge), solid), g.mul(g.add(g.mul(hit_s, FILM_HIT_PEAK), ring_w), waver))
     strength = g.mul(g.mul(g.add(g.mul(lit, film), g.mul(tear, TEAR_PEAK)), cover), env)
     # Thin-film banding where the film is thin but not gone (black at the very thinnest).
     h = g.sub(1.0, thin)
@@ -844,7 +876,8 @@ def _shards(ctx, coll, centre, bubble, s, Rm, seed):
     sk.data.foreach_set('co', [x for p in moved for x in p])
     ctx.drive(sk, 'value', 'sqrt(min(1.0, shield_overload * 1.3))', ('shield_overload',))
     for ax in range(3):
-        ctx.drive(ob, 'scale', '(shield_overload > 0.0001) * 1.0', ('shield_overload',), index=ax)
+        ctx.drive(ob, 'scale', '(shield_overload > 0.0001) * (shield_shards > 0.001) * 1.0',
+                  ('shield_overload', 'shield_shards'), index=ax)
     me.materials.append(_shard_material(ctx, s, Rm))
     return ob
 
@@ -864,17 +897,19 @@ def _shard_material(ctx, s, Rm):
     rimv.attribute_name = 'rim'
     t = v('raise', 'shield_t', ('shield_t',))
     cover = _arc_cover(ctx, g, nodes, links, rest.outputs['Vector'], s, g.op('MAXIMUM', t, 1.0))[0]
-    th = _angle(g, _unit(g, nodes, links, rest.outputs['Vector']),
-                _direction(ctx, nodes, 'shield_tear_az', 'shield_tear_el'))
+    clock = v('shield time', 'frame / 30.0', ())
+    order = _dissolve_order(ctx, g, nodes, links, rest.outputs['Vector'],
+                            _thin_noise(g, nodes, links, rest.outputs['Vector'], Rm, s['finish'], clock), Rm)
     tear_at = v('tear front', _tear_front(), ('shield_overload',))
-    age = g.mul(g.sub(tear_at, th), 1.0 / math.pi)
+    age = g.sub(tear_at, order)
     appear = g.clamp01(g.mul(age, 1.0 / .015))
     late = v('shard age', f'max(0.0, shield_overload - {TEAR_SPAN}) * 1.5', ('shield_overload',))
     # How far the piece has burnt: 0 just torn, 1 gone (sooner for some pieces than others).
     burnt = g.clamp01(g.sub(1.0, g.op('EXPONENT', g.mul(g.mul(g.add(g.op('MAXIMUM', age, 0.0), late), -SHARD_DECAY),
                                                           g.add(.5, rnd.outputs['Fac'])))))
-    env = v('shard env', '(shield_overload > 0.0001) * shield_gain * max(0.0, 1.0 - max(0.0, shield_overload - 0.6) / 0.35)',
-            ('shield_overload', 'shield_gain'))
+    env = v('shard env', '(shield_overload > 0.0001) * shield_shards * shield_gain'
+                         ' * max(0.0, 1.0 - max(0.0, shield_overload - 0.6) / 0.35)',
+            ('shield_overload', 'shield_shards', 'shield_gain'))
     # Burning away: noise over where the film sat; a point survives while its noise beats the burn.
     bn = nodes.new('ShaderNodeTexNoise')
     bn.noise_dimensions = '4D'

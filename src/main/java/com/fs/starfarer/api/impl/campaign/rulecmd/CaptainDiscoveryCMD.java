@@ -68,14 +68,10 @@ public class CaptainDiscoveryCMD extends BaseCommandPlugin {
     private static void showCandidate(
             InteractionDialogAPI dialog, MarineRoster roster, CaptainCandidate candidate) {
         TextPanelAPI text = dialog.getTextPanel();
-        text.addParagraph("Behind an armored inspection hatch, the salvage crews recover "
-                + "a sealed cryo-pod with one living occupant.");
+        text.addParagraph(Strings.get("captainDiscoveryPod"));
         text.addImage(candidate.portraitSprite());
-        text.addParagraph(candidate.name() + " is identified as a "
-                + candidate.startingRank().displayName() + ". "
-                + traitSummary(candidate));
-        text.addParagraph("The pod is aboard and stable. You may offer a commission now "
-                + "or leave the survivor in stasis for review under Marine Operations.");
+        text.addParagraph(Strings.format("captainDiscoveryIdentified", candidate.name(), candidate.startingRank().displayName(), traitSummary(candidate)));
+        text.addParagraph(Strings.get("captainDiscoveryOffer"));
         addCandidateOptions(dialog, roster, candidate);
     }
 
@@ -83,13 +79,11 @@ public class CaptainDiscoveryCMD extends BaseCommandPlugin {
             InteractionDialogAPI dialog, MarineRoster roster, CaptainCandidate candidate) {
         MarineCaptain captain = roster.acceptCaptainCandidate(candidate.sourceKey());
         if (captain == null) {
-            dialog.getTextPanel().addParagraph("Every captain berth is occupied. The pod "
-                    + "remains safely in stasis and the offer is unchanged.");
+            dialog.getTextPanel().addParagraph(Strings.get("captainDiscoveryBerthsFull"));
             addCandidateOptions(dialog, roster, candidate);
             return;
         }
-        dialog.getTextPanel().addParagraph(captain.name()
-                + " accepts the commission and joins the active captain roster.");
+        dialog.getTextPanel().addParagraph(Strings.format("captainDiscoveryAccepted", captain.name()));
         addDoneOption(dialog);
     }
 
@@ -99,8 +93,7 @@ public class CaptainDiscoveryCMD extends BaseCommandPlugin {
             addDoneOption(dialog);
             return;
         }
-        dialog.getTextPanel().addParagraph("You transfer " + candidate.name()
-                + " to an independent rescue service without offering a commission.");
+        dialog.getTextPanel().addParagraph(Strings.format("captainDiscoveryTransferred", candidate.name()));
         addDoneOption(dialog);
     }
 
@@ -108,22 +101,22 @@ public class CaptainDiscoveryCMD extends BaseCommandPlugin {
             InteractionDialogAPI dialog, MarineRoster roster, CaptainCandidate candidate) {
         OptionPanelAPI options = dialog.getOptionPanel();
         options.clearOptions();
-        options.addOption("Offer " + candidate.name() + " a commission", OPTION_ACCEPT);
+        options.addOption(Strings.format("captainDiscoveryOptionOffer", candidate.name()), OPTION_ACCEPT);
         if (!roster.hasRoom()) {
             options.setEnabled(OPTION_ACCEPT, false);
             options.setTooltip(OPTION_ACCEPT,
-                    "The captain roster is full. Review the survivor later in Personnel.");
+                    Strings.get("captainDiscoveryRosterFull"));
         }
-        options.addOption("Transfer the survivor to rescue services", OPTION_DECLINE);
-        options.addOption("Keep the pod in stasis and decide later", OPTION_LATER);
-        dialog.setOptionOnEscape("Keep the pod in stasis and decide later", OPTION_LATER);
+        options.addOption(Strings.get("captainDiscoveryOptionTransfer"), OPTION_DECLINE);
+        options.addOption(Strings.get("captainDiscoveryOptionLater"), OPTION_LATER);
+        dialog.setOptionOnEscape(Strings.get("captainDiscoveryOptionLater"), OPTION_LATER);
     }
 
     private static void addDoneOption(InteractionDialogAPI dialog) {
         OptionPanelAPI options = dialog.getOptionPanel();
         options.clearOptions();
-        options.addOption("Continue", OPTION_DONE);
-        dialog.setOptionOnEscape("Continue", OPTION_DONE);
+        options.addOption(Strings.get("captainDiscoveryContinue"), OPTION_DONE);
+        dialog.setOptionOnEscape(Strings.get("captainDiscoveryContinue"), OPTION_DONE);
     }
 
     private static CaptainCandidate pendingCandidate(MarineRoster roster, MemoryAPI memory) {

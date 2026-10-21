@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
 import com.dillon.starsectormarines.battle.salvage.SalvagePlacement;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
+import com.dillon.starsectormarines.battle.world.model.PropPower;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.PropDamage;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
@@ -246,7 +247,9 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
+import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
@@ -675,6 +678,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     private ThunderRunSequence thunderRun;
     private final GroundAntiAirSystem groundAntiAir = new GroundAntiAirSystem();
+    /** Aimed flak and guided missiles from ground anti-air mounts, including a swarm bore's spore colonies. */
+    public GroundAntiAirSystem groundAntiAir() { return groundAntiAir; }
     private final SwarmStrikeSystem swarmStrikes = new SwarmStrikeSystem();
     private final AirToAirFire airToAir = new AirToAirFire();
     private WaylineGunship waylineGunship;
@@ -701,7 +706,25 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         relayNineSequence = new RelayNineSequence(reserve);
         relayNineStory = new RelayNineStoryObserver(storyBeats);
     }
+    private CreepField creep;
+    /**
+     * The battle's hive creep, created on first use by whatever declares a
+     * source (a bore, a scene); call only from the simulation thread.
+     */
+    public CreepField creepField() {
+        if (creep == null) creep = new CreepField(grid, topology, generationSeed);
+        return creep;
+    }
+    /** The creep field if anything has created one, else {@code null}; safe for renderers. */
+    public CreepField creepFieldIfPresent() { return creep; }
     private ColonyBreachSequence colonyBreach;
+    /** Salt for the bores' own draws, so they are not the battle stream read again. */
+    private static final long BORE_SEED_SALT = 0x53574152_4D424F52L;
+    private final SwarmBores swarmBores;
+    /** The battle's swarm bores: empty until something opens one. */
+    public SwarmBores swarmBores() { return swarmBores; }
+    /** From the tremor on, the swarm director spawns only from living bores. */
+    public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
     /** The Colony Breach story, or {@code null} on every other battle. */
     public ColonyBreachSequence getColonyBreach() { return colonyBreach; }
     /**
@@ -716,6 +739,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (!swarmReinforcements.isConfigured())
             throw new IllegalStateException("Colony Breach needs a configured swarm director");
         colonyBreach = new ColonyBreachSequence(plan, colonists, storyBeats);
+        colonyBreach.setEruptionHandler((sim, site, tick) ->
+                sim.swarmBores().open(sim, site.number(), site.mother(), site.x(), site.y()));
         swarmReinforcements.beginSeepage();
     }
     /** Ends the swarm director's opening seepage; the breach has begun. Idempotent. */
@@ -1100,6 +1125,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final AmbientTaskService ambientTasks;
     /** Exclusive interaction-site claims shared by ambient work and ordinary battle tasks. */
     private final TaskPointService taskPoints;
+    private volatile PropPower propPower = PropPower.FULL;
     /** Post-movement ground-unit separation and terrain-aware squad-formation relaxation. See {@link SeparationSystem} class doc; ticked right after the occupancy-delta drain, before the spawn flush. */
     private final SeparationSystem separation;
     /** Moving and parked ground hulls push infantry out of their footprint and bow wave. See {@link VehicleRepulsionSystem}. */
@@ -1152,6 +1178,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     public BattleSimulation(NavigationGrid grid, CellTopology topology, long seed) {
         this.generationSeed = seed;
+        this.swarmBores = new SwarmBores(seed ^ BORE_SEED_SALT);
         this.rng = new Random(seed);
         this.noiseEvents = new NoiseEventBus(() -> simTickIndex);
         this.shots = new ShotService(noiseEvents);
@@ -1537,6 +1564,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Interruptible authored world-work assignments for civilians, workers, guards, and embedded scenes. */
     public AmbientTaskService ambientTasks() {
         return ambientTasks;
+    }
+
+    /** How well this map's machinery is powered; see {@link PropPower}. Fully powered unless a host says otherwise. */
+    public PropPower propPower() {
+        return propPower;
+    }
+
+    /** Install this map's power answer, or null for fully powered. Read by presentation on the render thread. */
+    public void setPropPower(PropPower power) {
+        this.propPower = power == null ? PropPower.FULL : power;
     }
 
     /** Exclusive task-point registry for generated fixtures and mission-owned interaction sites. */
@@ -3418,8 +3455,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         resupplySystem.tick(TICK_DT);
         civilianEvacuationSystem.tick(this);
         rescuePickupSupport.tick(TICK_DT, this);
-        swarmReinforcements.tick(TICK_DT, this);
+        // Bores first (growth, collapses), then the breach clock (the tremor
+        // closes the perimeter, a site erupts), then the director, so a tick
+        // that starts bore sourcing spawns only from bores.
+        swarmBores.tick(this);
         if (colonyBreach != null) colonyBreach.tick(this);
+        swarmReinforcements.tick(TICK_DT, this);
+        if (creep != null) creep.tick(simTickIndex);
         if (reliefAssault != null) reliefAssault.tick(this);
         if (lastLiftSequence != null) lastLiftSequence.tick(this);
         if (relayNineSequence != null) relayNineSequence.tick(this);

@@ -1,12 +1,10 @@
 package com.dillon.starsectormarines.campaign.refit;
 
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
-import com.fs.starfarer.api.impl.campaign.ids.Items;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Every purchasable tier of the refit tree: the band it brings its track to,
@@ -185,7 +183,7 @@ public enum RefitOrder {
     private static final Map<RefitOrder, Map<String, Integer>> MATERIALS = new EnumMap<>(RefitOrder.class);
     static {
         bill(POWER_OVERHAUL, Commodities.HEAVY_MACHINERY, 10, Commodities.METALS, 20);
-        bill(POWER_AUXILIARY, Items.SHROUDED_THUNDERHEAD, 1, Commodities.HEAVY_MACHINERY, 20, Commodities.RARE_METALS, 10);
+        bill(POWER_AUXILIARY, Commodities.HEAVY_MACHINERY, 20, Commodities.RARE_METALS, 10);
         bill(LIFE_SUPPORT_RESTORED, Commodities.HEAVY_MACHINERY, 4);
         bill(STRUCTURE_RESTORED, Commodities.METALS, 40);
         bill(COMPUTE_CLUSTER, Commodities.GAMMA_CORE, 1);
@@ -216,7 +214,7 @@ public enum RefitOrder {
         bill(MECH_ARMOR_II, Commodities.METALS, 60, Commodities.RARE_METALS, 10);
         bill(MECH_REPAIR_RESTORED, Commodities.METALS, 10);
         bill(MECH_REPAIR_I, Commodities.HEAVY_MACHINERY, 4);
-        bill(MECH_REPAIR_II, Items.FRAGMENT_FABRICATOR, 1, Commodities.METALS, 30, Commodities.HEAVY_MACHINERY, 6);
+        bill(MECH_REPAIR_II, Commodities.METALS, 30, Commodities.HEAVY_MACHINERY, 6);
         bill(HYDROPONICS_RESTORED, Commodities.METALS, 10, Commodities.ORGANICS, 10);
         bill(HYDROPONICS_I, Commodities.HEAVY_MACHINERY, 4, Commodities.ORGANICS, 20);
         bill(HYDROPONICS_II, Commodities.HEAVY_MACHINERY, 8, Commodities.ORGANICS, 40);
@@ -237,10 +235,10 @@ public enum RefitOrder {
         bill(FLUX_II, Commodities.ALPHA_CORE, 1, Commodities.RARE_METALS, 30);
         bill(SENSORS_RESTORED, Commodities.RARE_METALS, 5);
         bill(SENSORS_I, Commodities.RARE_METALS, 10);
-        bill(SENSORS_II, Items.THREAT_PROCESSING_UNIT, 1, Commodities.RARE_METALS, 20);
+        bill(SENSORS_II, Commodities.RARE_METALS, 20);
         bill(DRIVE_RESTORED, Commodities.HEAVY_MACHINERY, 10);
         bill(DRIVE_I, Commodities.HEAVY_MACHINERY, 15);
-        bill(DRIVE_II, Items.SHROUDED_MANTLE, 1, Commodities.HEAVY_MACHINERY, 20, Commodities.RARE_METALS, 15);
+        bill(DRIVE_II, Commodities.HEAVY_MACHINERY, 20, Commodities.RARE_METALS, 15);
     }
 
     private static void bill(RefitOrder order, Object... pairs) {
@@ -249,21 +247,7 @@ public enum RefitOrder {
         MATERIALS.put(order, Collections.unmodifiableMap(materials));
     }
 
-    /**
-     * The exotic parts a bill may name that are special items rather than commodities: finds from
-     * the sector's outskirts, the Threat's and the abyss's. Colony items never go into the ship
-     * (owner, 2026-10-21); AI cores are commodities, so they are not listed here.
-     */
-    public static final Set<String> SPECIAL_ITEMS = Set.of(Items.THREAT_PROCESSING_UNIT, Items.FRAGMENT_FABRICATOR,
-            Items.SHROUDED_THUNDERHEAD, Items.SHROUDED_MANTLE);
-
-    /** Whether a bill line is a special item, held and taken as one rather than as a commodity. */
-    public static boolean specialItem(String id) { return SPECIAL_ITEMS.contains(id); }
-
-    /**
-     * Materials taken from fleet cargo besides the credits, in bill order (an exotic part first);
-     * empty for a credits-only tier. Commodity ids, or {@link #SPECIAL_ITEMS} ids.
-     */
+    /** Commodities taken from fleet cargo besides the credits, in bill order; empty for a credits-only tier. */
     public Map<String, Integer> materials() { return MATERIALS.getOrDefault(this, Map.of()); }
 
     /** The order that brings {@code track} from {@code band} to the next tier, or null. */

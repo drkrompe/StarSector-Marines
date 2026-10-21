@@ -1,0 +1,144 @@
+package com.dillon.starsectormarines.battle.creep;
+
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class CreepFieldTest {
+
+    private static final int W = 48, H = 24;
+    private static final CreepGrowth FAST = new CreepGrowth(6f, 12f);
+
+    @Test
+    void spreadsAlongGroundAtItsRateAndStopsAtItsReach() {
+        NavigationGrid grid = openGrid(W, H);
+        CreepField field = new CreepField(grid, new CellTopology(W, H), 7L);
+        field.putSource(1L, 10, 12, FAST);
+        run(field, 0, 60);
+        int early = covered(field);
+        run(field, 60, 240);
+        int late = covered(field);
+        assertTrue(early > 0 && late > early, "creep grows outward over time: " + early + " -> " + late);
+        assertTrue(field.isCreeped(10, 12), "the source cell is creeped");
+        assertFalse(field.isCreeped(40, 12), "nothing past its reach");
+        run(field, 240, 300);
+        assertEquals(late, covered(field), "reach is capped, so a grown field stands still");
+    }
+
+    @Test
+    void sameSeedSameField() {
+        CreepField a = new CreepField(openGrid(W, H), new CellTopology(W, H), 99L);
+        CreepField b = new CreepField(openGrid(W, H), new CellTopology(W, H), 99L);
+        for (CreepField f : new CreepField[]{a, b}) {
+            f.putSource(1L, 8, 8, FAST);
+            f.putSource(2L, 36, 16, FAST);
+        }
+        run(a, 0, 60);
+        run(b, 0, 60);
+        for (int i = 0; i < W * H; i++) {
+            assertEquals(a.coverageAt(i), b.coverageAt(i));
+            assertEquals(a.pulseAt(i), b.pulseAt(i));
+        }
+    }
+
+    @Test
+    void climbsTheWallItMeetsButDoesNotPassIt() {
+        NavigationGrid grid = openGrid(W, H);
+        CellTopology topology = new CellTopology(W, H);
+        for (int y = 0; y < H; y++) {
+            grid.setWalkable(20, y, false);
+            topology.setWall(20, y, true);
+        }
+        CreepField field = new CreepField(grid, topology, 3L);
+        field.putSource(1L, 16, 12, FAST);
+        run(field, 0, 240);
+        assertTrue(field.isCreeped(20, 12), "the wall beside the creep is climbed");
+        assertFalse(field.isCreeped(21, 12), "the far side of an unbroken wall is never reached");
+    }
+
+    @Test
+    void aFedSourceSpreadsFaster() {
+        CreepField fed = new CreepField(openGrid(W, H), new CellTopology(W, H), 5L);
+        CreepField starved = new CreepField(openGrid(W, H), new CellTopology(W, H), 5L);
+        CreepGrowth slow = new CreepGrowth(1f, 40f);
+        fed.putSource(1L, 24, 12, slow);
+        starved.putSource(1L, 24, 12, slow);
+        fed.feed(1L, 3f);
+        run(fed, 0, 90);
+        run(starved, 0, 90);
+        float fedReach = fed.snapshot().sources().get(0).reachCells();
+        float starvedReach = starved.snapshot().sources().get(0).reachCells();
+        assertTrue(fedReach > starvedReach * 2f, fedReach + " vs " + starvedReach);
+    }
+
+    @Test
+    void aRemovedSourceWithersFromTheEdgeBackToTheHole() {
+        CreepField field = new CreepField(openGrid(W, H), new CellTopology(W, H), 11L);
+        field.putSource(1L, 24, 12, FAST);
+        run(field, 0, 200);
+        int hole = 12 * W + 24;
+        int edge = farthestCovered(field, 24, 12);
+        field.removeSource(1L);
+        int tick = 200;
+        boolean edgeDiedFirst = false;
+        while (tick < 2000 && field.coverageAt(hole) > 0) {
+            field.tick(tick++);
+            if (field.vitalityAt(edge) == 0 && field.vitalityAt(hole) == CreepField.FULL) edgeDiedFirst = true;
+        }
+        assertTrue(edgeDiedFirst, "the edge dies while the hole still lives");
+        assertTrue(tick - 200 > 60, "dying back takes a visible interval, not one tick");
+        run(field, tick, tick + 400);
+        assertEquals(0, covered(field) + field.snapshot().dyingCells(), "everything it alone held is gone");
+    }
+
+    @Test
+    void aLivingNeighbourKeepsSharedGroundAlive() {
+        CreepField field = new CreepField(openGrid(W, H), new CellTopology(W, H), 13L);
+        field.putSource(1L, 20, 12, FAST);
+        field.putSource(2L, 24, 12, FAST);
+        run(field, 0, 200);
+        field.removeSource(1L);
+        run(field, 200, 1200);
+        assertTrue(field.isCreeped(22, 12), "ground the living source also reached stays creeped");
+        assertTrue(field.isCreeped(20, 12), "including the dead hole, which the living one reaches");
+    }
+
+    @Test
+    void changedTilesMoveTheirRevision() {
+        CreepField field = new CreepField(openGrid(W, H), new CellTopology(W, H), 1L);
+        assertEquals(0, field.revision());
+        field.putSource(1L, 4, 4, FAST);
+        field.tick(0);
+        assertTrue(field.revision() > 0);
+        assertTrue(field.tileRevision(0, 0) > 0, "the source's tile changed");
+        assertEquals(0, field.tileRevision(1, 0), "a tile creep never reached did not");
+    }
+
+    private static void run(CreepField field, int from, int to) {
+        for (int t = from; t < to; t++) field.tick(t);
+    }
+
+    private static int covered(CreepField field) { return field.snapshot().coveredCells(); }
+
+    private static int farthestCovered(CreepField field, int sx, int sy) {
+        int best = -1, bestD = -1;
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
+                if (!field.isCreeped(x, y)) continue;
+                int d = Math.abs(x - sx) + Math.abs(y - sy);
+                if (d > bestD) { bestD = d; best = y * W + x; }
+            }
+        }
+        return best;
+    }
+
+    private static NavigationGrid openGrid(int w, int h) {
+        NavigationGrid grid = new NavigationGrid(w, h);
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) grid.setWalkableFloor(x, y);
+        return grid;
+    }
+}

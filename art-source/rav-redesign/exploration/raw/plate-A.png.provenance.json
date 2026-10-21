@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15f8d-1deb-7852-9aa2-743f14f89d17",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15f8d-1deb-7852-9aa2-743f14f89d17\\exec-72d95dac-de3d-4e20-a56e-4da06ace20c7.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "raw\\plate-A.png",
+    "sha256": "fb1b927ee0c2f8e4b7966365660f616904e168d62ebca2a0226675c781f4f034",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "prompts\\plate-A.prompt.txt",
+  "promptSha256": "dc29233aeea8386ed7033d5341a93fd7e542e05f37d17959ae83e9398d317dfe",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: exact silhouettes, positions, sizes, poses and palette intent; render material onto it, never move or redesign\n\nConcept plate for a top-down tactical game (Starsector mod, Marines fighting a biological weapon in a frontier colony). Strict overhead orthographic view, camera looking straight down, light from the upper left, soft contact shadows only. Painterly-realistic game concept art, crisp readable silhouettes, wet organic detail. Keep every creature exactly where it is in the guide, at the same size, outline, facing (all face up) and pose; you are rendering surface material and form onto the guide, not redesigning it. From left: a Runner at rest, the same Runner mid-strike with its limbs fully extended, a Brute, a Spitter, and a large Matriarch thumbnail lower right. Plain flat neutral grey background, no ground, no scenery, no text, no labels, no border, no humans.\n\nDirection: FRUITING. The Rav Bloom is an engineered fungal weapon; each body is a fruiting growth that walks. Bruised umber and violet caps with growth rings and fine radial gills, a wet crimson gill lip along each front edge, pale fibrous hyphal limbs (stilt-like root legs, whip-like hyphae ending in frayed crimson filament tips), trailing rhizome threads. Runner: an elongated cap on four root stilts with two hyphal whips. Brute: a heavy bracket-fungus shelf, concentric rings, a thick crimson pore-lip on its flat front edge and two trunk-like arms ending in crimson knots. Spitter: a bruised puffball sporangium on three stilts with a glowing crimson ostiole at the front. Matriarch: a ring of fruiting caps around a dark centre with a pale spore core. Damp, fleshy, slightly translucent at the edges, not plant-like and not insect-like.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "guides\\guide-A.png",
+      "sha256": "f0336a558c9150eec73122bb513c61cee9c445ecbe61340eb1361c63ce8e7d7a",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: exact silhouettes, positions, sizes, poses and palette intent; render material onto it, never move or redesign"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image, preserving the guide’s layout and silhouettes while adding the fungal surfaces and detail.\n"
+  ],
+  "usage": {
+    "input_tokens": 41469,
+    "cached_input_tokens": 35328,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 593,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 43.2
+}
