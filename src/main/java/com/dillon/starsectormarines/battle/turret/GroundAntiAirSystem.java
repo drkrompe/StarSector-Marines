@@ -142,16 +142,18 @@ public final class GroundAntiAirSystem {
             return;
         }
         boolean hit = sim.random().nextFloat() < weapon.accuracy;
+        // A weapon may set its own flight time: a lobbed spore clump hangs in the air, a flak shell does not.
+        float flight = weapon.flightSec > 0f ? weapon.flightSec : FLIGHT_SECONDS;
         float x = sim.world().x(target), y = sim.world().y(target);
         if (!hit) { x += 2f; y += 1f; }
         sim.telemetry().recordRoundFired(id);
         if (hit) {
             rounds.add(new Round(id, target, weapon.damage, weapon.penetration,
-                    sim.getSimTickIndex() + Math.round(FLIGHT_SECONDS / dt)));
+                    sim.getSimTickIndex() + Math.round(flight / dt)));
         }
         sim.postShot(new ShotEvent(muzzle.x(), muzzle.y(), 0f, x, y,
                 AirAppearance.visualAltitudeOffsetCells(sim.world().altitudeT(target)), hit,
-                sim.identity().faction(id), FLIGHT_SECONDS, structure, null, null, null,
+                sim.identity().faction(id), flight, structure, null, null, null,
                 0f, hit, null, id));
     }
 

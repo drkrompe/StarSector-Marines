@@ -258,7 +258,8 @@ manifest's exhaust_direction follows them).
   feet), and a centre docking keel carries clamp lugs and the charging socket.
 - Scale 0.25 m/unit, from the Shepherd's servicing cradle (shepherd-geometry sh_dronebay.py):
   3.6 x 4.0 x 2.3 m. The drone against the Shepherd (67.1 m) reads three ways, recorded in
-  geometry.json (scale.size_readings_m) for the owner to decide, nothing resized: 11.7 m by the
+  geometry.json (scale.size_readings_m); the owner decided 2026-10-21 that it is sized to fit in
+  the ship, so 3.6 m stands: 11.7 m by the
   fleet-combat sprites (16 px against 92), 1.9 m in the 2D ground battle (TenderDroneArt.cells
   omits WarshipScale.HULL_PRESENCE, which the Shepherd is drawn with), 3.6 m as built.
 - Silhouette 0.894 (top_silhouette.py, below; round 1 0.909): the misses are single pixel-stair

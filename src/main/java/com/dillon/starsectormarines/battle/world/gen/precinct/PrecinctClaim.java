@@ -129,6 +129,18 @@ public interface PrecinctClaim {
                         pooling.add(new long[]{0L, x, y});
                     }
                 }
+                // And the open country it lies in: the band along its edge out
+                // past the disc, so the town is on one side of the fields and
+                // not round them. Not pooled from; the band is already more
+                // than any allowance a landing is given.
+                for (int x = 0; x < width; x++) {
+                    for (int y = 0; y < height; y++) {
+                        if (claim[x][y] != GrownTrunkPlan.UNOWNED
+                                || !field.inCountry(x, y, width, height)) continue;
+                        claim[x][y] = i;
+                        taken[i]++;
+                    }
+                }
             }
             // A place laid out square takes its square whole, for the same
             // reason, and is not pooled: noise would bulge it off the square.

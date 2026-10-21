@@ -448,12 +448,16 @@ public final class Shift {
     public AmbientTaskRoute member(int index) {
         if (order.isEmpty()) return null;
         int start = Math.floorMod(index, order.size());
-        List<AmbientTaskRoute.Stop> machines = new ArrayList<>();
-        List<AmbientTaskRoute.Stop> rest = new ArrayList<>(order.size());
+        // Each entry is one turn's worth of a job: a single stop, or a whole lap.
+        // Kept as units so that dealing the machines in cannot split a lap.
+        List<List<AmbientTaskRoute.Stop>> machines = new ArrayList<>();
+        List<List<AmbientTaskRoute.Stop>> rest = new ArrayList<>(order.size());
         for (int step = 0; step < order.size(); step++) {
             Affordance job = order.get((start + step) % order.size());
             List<Placed> places = byJob.get(job);
-            if (CrewRole.isCircuit(job) || onMachines(places)) {
+            if (CrewRole.isLap(job)) {
+                for (List<Placed> track : bySite(places)) rest.add(lap(track, job, index));
+            } else if (CrewRole.isCircuit(job) || onMachines(places)) {
                 // Every place it reaches, in one turn of the rotation, offset
                 // per member so two walkers on the same round are not in step.
                 //
@@ -470,18 +474,58 @@ public final class Shift {
                 List<Placed> legs = circuit
                         ? oneLegPerSite(places, index)
                         : oneLegPerBerth(places, index);
-                List<AmbientTaskRoute.Stop> into = circuit ? rest : machines;
+                List<List<AmbientTaskRoute.Stop>> into = circuit ? rest : machines;
                 for (int leg = 0; leg < legs.size(); leg++) {
-                    into.add(stopAt(legs.get(Math.floorMod(index + leg, legs.size())), job));
+                    into.add(List.of(stopAt(legs.get(Math.floorMod(index + leg, legs.size())), job)));
                 }
             } else {
-                rest.add(stopAt(places.get(Math.floorMod(index, places.size())), job));
+                rest.add(List.of(stopAt(places.get(Math.floorMod(index, places.size())), job)));
             }
         }
-        List<AmbientTaskRoute.Stop> stops = dealt(machines, rest, index);
+        List<AmbientTaskRoute.Stop> stops = new ArrayList<>();
+        for (List<AmbientTaskRoute.Stop> unit : dealt(machines, rest, index)) stops.addAll(unit);
         String id = role.name().toLowerCase(Locale.ROOT) + "-" + base.id() + "-" + index;
         return new AmbientTaskRoute(id, index * PHASE_STEP, WALK_SPEED,
                 THREAT_RADIUS, threatPolicy, stops);
+    }
+
+    /** A job's places split by the site they are in, each site's in published order. */
+    private static List<List<Placed>> bySite(List<Placed> places) {
+        Map<Integer, List<Placed>> bySite = new LinkedHashMap<>();
+        for (Placed placed : places) {
+            bySite.computeIfAbsent(placed.site().id(), key -> new ArrayList<>()).add(placed);
+        }
+        return new ArrayList<>(bySite.values());
+    }
+
+    /**
+     * Once round one track: every marker in the order the track publishes them,
+     * starting at this member's own and ending back on it.
+     *
+     * <p>Each marker is a {@linkplain AmbientTaskRoute.Stop#specificPoint
+     * specific} stop. The markers are one claim group, so an ordinary stop
+     * would be answered with the marker already held — the shape
+     * {@link #oneLegPerSite} exists to avoid — and the runner would arrive at
+     * once and stand on the start line for the whole lap.
+     *
+     * <p>Back to the start rather than one short of it, so the lap is a lap: the
+     * last leg is the one that closes the ring, and stopping a marker early
+     * leaves a stretch of track nobody ever runs.
+     */
+    private static List<AmbientTaskRoute.Stop> lap(List<Placed> track, Affordance job, int index) {
+        int markers = track.size();
+        int first = Math.floorMod(index, markers);
+        List<AmbientTaskRoute.Stop> lap = new ArrayList<>(markers + 1);
+        for (int step = 0; step <= markers; step++) {
+            if (step == markers && markers < 2) break;
+            lap.add(specific(stopAt(track.get((first + step) % markers), job)));
+        }
+        return List.copyOf(lap);
+    }
+
+    private static AmbientTaskRoute.Stop specific(AmbientTaskRoute.Stop stop) {
+        return new AmbientTaskRoute.Stop(stop.worldX(), stop.worldY(), stop.dwellSeconds(),
+                stop.activity(), stop.focusX(), stop.focusY(), stop.pointGroup(), true);
     }
 
     /**
@@ -513,14 +557,16 @@ public final class Shift {
      * and each other job still appears exactly once per loop. The result is
      * turned by member so a watch coming on starts spread across the loop
      * rather than all on the first machine.
+     *
+     * <p>Dealt by turn of a job rather than by stop, so a lap is one thing to
+     * deal: a boat between two markers would send the runner off the track
+     * mid-lap and back onto it at the next marker.
      */
-    private static List<AmbientTaskRoute.Stop> dealt(List<AmbientTaskRoute.Stop> machines,
-                                                     List<AmbientTaskRoute.Stop> rest,
-                                                     int index) {
+    private static <T> List<T> dealt(List<T> machines, List<T> rest, int index) {
         if (machines.isEmpty()) return rest;
-        List<AmbientTaskRoute.Stop> major = machines.size() >= rest.size() ? machines : rest;
-        List<AmbientTaskRoute.Stop> minor = major == machines ? rest : machines;
-        List<AmbientTaskRoute.Stop> loop = new ArrayList<>(major.size() + minor.size());
+        List<T> major = machines.size() >= rest.size() ? machines : rest;
+        List<T> minor = major == machines ? rest : machines;
+        List<T> loop = new ArrayList<>(major.size() + minor.size());
         int dealtOut = 0;
         for (int slot = 0; slot < major.size(); slot++) {
             loop.add(major.get(slot));
@@ -533,7 +579,7 @@ public final class Shift {
             }
         }
         int turn = Math.floorMod(index, loop.size());
-        List<AmbientTaskRoute.Stop> turned = new ArrayList<>(loop.size());
+        List<T> turned = new ArrayList<>(loop.size());
         for (int step = 0; step < loop.size(); step++) {
             turned.add(loop.get((turn + step) % loop.size()));
         }

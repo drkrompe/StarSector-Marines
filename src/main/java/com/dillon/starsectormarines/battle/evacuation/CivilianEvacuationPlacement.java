@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.evacuation;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 
@@ -27,6 +29,12 @@ public final class CivilianEvacuationPlacement {
     public static final int PICKUP_EDGE_INSET = 15;
     private static final int PICKUP_BAND_WIDTH = 2;
     private static final int FORMATION_SEARCH_RADIUS = 3;
+    /**
+     * How far from a landing field's centre its lift stands: past the reach of
+     * the company's berths by the lift's own footprint and a few cells, so the
+     * evacuation shuttle and a re-arming one do not come down on each other.
+     */
+    public static final int FIELD_LIFT_CLEARANCE = LandingKind.BERTH_REACH + LIFT_ZONE_RADIUS + 4;
 
     public final int shelterX;
     public final int shelterY;
@@ -73,6 +81,27 @@ public final class CivilianEvacuationPlacement {
             NavigationGrid grid, CellTopology topology,
             List<PointOfInterest> pointsOfInterest, long seed,
             int representativeCount) {
+        return find(grid, topology, pointsOfInterest, seed, representativeCount, null);
+    }
+
+    /**
+     * As {@link #find(NavigationGrid, CellTopology, List, long, int)}, with
+     * the lift on the company's landing field when the map has one.
+     *
+     * <p>The reason the company lands in the fields is the reason the
+     * survivors leave from them: a shuttle comes down where the ground round it
+     * is open and the force holding it can see what is coming. So on a field
+     * map the lift is the clear pickup site on the field nearest the shelter,
+     * rather than the site furthest from it, and the mission's shape is land in
+     * the fields, fight in to the people, and bring them back out. A map whose
+     * field has no such site keeps the ordinary lift.
+     *
+     * @param field the landing field to put the lift on, or {@code null}
+     */
+    public static CivilianEvacuationPlacement find(
+            NavigationGrid grid, CellTopology topology,
+            List<PointOfInterest> pointsOfInterest, long seed,
+            int representativeCount, FieldOfFire field) {
         if (representativeCount <= 0) return null;
         if (grid == null || topology == null
                 || pointsOfInterest == null) return null;
@@ -97,7 +126,7 @@ public final class CivilianEvacuationPlacement {
                     (start + offset) % shelters.size());
             CivilianEvacuationPlacement placement =
                     forShelter(grid, topology, shelter,
-                            representativeCount);
+                            representativeCount, field);
             if (placement != null) return placement;
         }
         return null;
@@ -156,10 +185,11 @@ public final class CivilianEvacuationPlacement {
     private static CivilianEvacuationPlacement forShelter(
             NavigationGrid grid, CellTopology topology,
             PointOfInterest shelter,
-            int representativeCount) {
+            int representativeCount, FieldOfFire field) {
         int sx = shelter.interiorAnchorX;
         int sy = shelter.interiorAnchorY;
-        LiftSite lift = farthestReachableLift(grid, topology, sx, sy);
+        LiftSite lift = field == null ? null : nearestFieldLift(grid, topology, field, sx, sy);
+        if (lift == null) lift = farthestReachableLift(grid, topology, sx, sy);
         if (lift == null) return null;
         int[] spawns = reachableSpawnCells(
                 grid, shelter, sx, sy, lift.x, lift.y,
@@ -184,6 +214,59 @@ public final class CivilianEvacuationPlacement {
             }
         }
         return false;
+    }
+
+    /**
+     * Whether the landing field has a clear pickup site of its own: in the
+     * pickup band, on the field, and clear of the berths. A map question; no
+     * path is walked.
+     */
+    public static boolean hasClearFieldLiftSite(NavigationGrid grid, CellTopology topology,
+                                                FieldOfFire field) {
+        int formationRadius = formationRadius(grid);
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                if (onFieldLiftSite(grid, topology, field, x, y, formationRadius)) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The field's pickup site nearest the shelter that the shelter can walk to
+     * and that seats a formation, or {@code null}. Nearest by straight-line
+     * steps, tried in that order, ties broken toward the low corner.
+     */
+    private static LiftSite nearestFieldLift(NavigationGrid grid, CellTopology topology,
+                                             FieldOfFire field, int sx, int sy) {
+        int formationRadius = formationRadius(grid);
+        List<int[]> sites = new ArrayList<>();
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                if (onFieldLiftSite(grid, topology, field, x, y, formationRadius)) {
+                    sites.add(new int[]{x, y, Math.abs(x - sx) + Math.abs(y - sy)});
+                }
+            }
+        }
+        sites.sort(Comparator.<int[]>comparingInt(site -> site[2])
+                .thenComparingInt(site -> site[1])
+                .thenComparingInt(site -> site[0]));
+        for (int[] site : sites) {
+            if (Paths.isEmpty(GridPathfinder.findPath(grid, sx, sy, site[0], site[1]))) continue;
+            int[] formation = formationCells(grid, site[0], site[1], formationRadius);
+            if (formation == null) continue;
+            return new LiftSite(site[0], site[1], formationRadius, formation);
+        }
+        return null;
+    }
+
+    private static boolean onFieldLiftSite(NavigationGrid grid, CellTopology topology,
+                                           FieldOfFire field, int x, int y, int formationRadius) {
+        if (!field.contains(x, y)) return false;
+        long dx = x - field.centerX();
+        long dy = y - field.centerY();
+        if (dx * dx + dy * dy < (long) FIELD_LIFT_CLEARANCE * FIELD_LIFT_CLEARANCE) return false;
+        return inPickupBand(grid, x, y, formationRadius) && clearLiftFootprint(grid, topology, x, y);
     }
 
     private static LiftSite farthestReachableLift(NavigationGrid grid,

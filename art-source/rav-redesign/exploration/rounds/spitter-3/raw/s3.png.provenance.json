@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a15ffb-e2c7-73b0-80f5-a72733f5a6e9",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a15ffb-e2c7-73b0-80f5-a72733f5a6e9\\exec-11c6a13e-5dd6-4796-bd7c-81dcad29c901.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-3\\raw\\s3.png",
+    "sha256": "b4b524b4589d95c5d06e7f462fca4b3e758981c040b1c8ed417e3b7387d1dbaa",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\spitter-3\\prompts\\s3.prompt.txt",
+  "promptSha256": "24b00888c9bcc8f6f40f53823d3bcac0ee7d3c5ea8cb5eebae4bc9986bbc2897",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: The Runner: tissue structure only; not its colours or body plan\nImage 2: Identity: this exact creature design and colours, seen from above; draw it from the side\n\nConcept art for a tactical game. ONE creature, the SPITTER: the Rav Bloom swarm's fragile ranged strain (Starsector mod: Marines against an engineered biological weapon). It hangs back behind the melee Runners and lobs arcing globs of acid that splash infantry and can hit low drones. Original design, not StarCraft. It must look clearly DIFFERENT from the Runner (reference image 1, a pale lilac blade-armed hound): a different colour scheme and a different, heavier, rounder body mass, so a player tells them apart at a glance from far above. It is still the same engineered organism, so keep only the tissue STRUCTURE of reference 1 (armour plates over muscled flesh, sinew in the gaps, bone claws), NOT its colours. Beast first, never insect-dominant; no wings, no antennae, no forward arm blades. It stands on TWO or THREE legs and is bilaterally SYMMETRIC. Its acid is a DEEP, DARK VENOM GREEN that glows from inside a translucent acid organ.\n\nCOLOURS: MOSTLY UNARMOURED: pale, translucent mauve-grey skin stretched over swollen organs, the dark green acid glands visible glowing through the skin of the whole torso, only a few small dark plum plates on the head and limbs.\n\nBODY AND FIRING: A bloated, round sac-bodied beast on three thick legs (two at the front, one at the back), its whole torso a swollen acid bag; a short heavy neck and a wide mouth. It contracts its body and heaves the glob from its mouth.\n\nSIDE VIEW concept of the same creature in reference image 2 (keep its design and colours exactly), seen in profile facing RIGHT, caught at the instant it FIRES: braced, the acid organ visibly squeezing, a single glob of dark glowing green acid just leaving the firing opening on a high upward arc toward the upper right. The firing mechanism must be clear. Full body visible, centred, wide landscape canvas. Plain flat light grey background (#b4b4b4), no ground line, no shadow, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-runner\\raw\\hero.png",
+      "sha256": "1fd084bdf713b942ea09dca5767d4ee1ac913bf17c5bcea8ae0d6ac62bcb41e8",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "The Runner: tissue structure only; not its colours or body plan"
+    },
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\spitter-3\\raw\\c3.png",
+      "sha256": "1f4a12aaabce34d0368e85a86edb5a8f81ffd887a7e571be44e03429202d70dc",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Identity: this exact creature design and colours, seen from above; draw it from the side"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one side-view image, preserving the Spitter’s design and colours and showing the acid sac contracting as it fires.\n"
+  ],
+  "usage": {
+    "input_tokens": 45406,
+    "cached_input_tokens": 37120,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 729,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 49.8
+}
