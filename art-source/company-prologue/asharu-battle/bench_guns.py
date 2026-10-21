@@ -154,6 +154,13 @@ def wolf_ion(bench):
     bench.camera((95, -150, 45), (95, 0, 8), 32)
 
 
+def wolf_ion_charge(bench):
+    """The ion cannon's 0.5 s charge-up close: a blue glow gathering at the muzzle, then the
+    shot (frame 13)."""
+    _wolf_ion(bench)
+    bench.camera((30, -25, 16), (17, 0, 10), 40)
+
+
 def wolf_ion_arcs(bench):
     """The ion strike close up: EMP arcs crawling over the Lasher's hull, flickering."""
     q = _wolf_ion(bench)
@@ -184,7 +191,7 @@ def colossus_ac(bench):
         k.guns.arm(ctx, 1, 'lightmg')
         k.guns.fire_weapon(ctx, 8, 1, 2.0)
         k.guns.fire_weapon(ctx, 1, 1, 2.0)
-    bench.camera((181, 0, 90), (75, 75, 10), 30)       # side-on to the autocannon's stream
+    bench.camera((119, 18, 48), (55, 52, 12), 35)      # side-on to the autocannon's first 100 m
 
 
 def hound_vulcan(bench):
@@ -194,7 +201,7 @@ def hound_vulcan(bench):
     with h.kit() as (ctx, k):
         k.guns.arm(ctx, 2, 'vulcan')
         k.guns.fire_weapon(ctx, 2, 1, 1.0)
-    bench.camera((4, 132, 68), (-59, 42, 8), 32)
+    bench.camera((-50, 30, 130), (-59, 42, 8), 35)     # from above: the barrels sit side by side
 
 
 def train(bench):
@@ -238,6 +245,8 @@ TESTS = {
                          note='Lasher B bow gun close, Ammo Feeder on: amber barrel glow, small warm flash, streaks.'),
     'wolf-ion': dict(builds=['wolf-p', 'lasher'], frames=[7, 13, 15, 18], setup=wolf_ion,
                      note='Wolf (P) ion cannon on a Lasher: charge glow (7), fire (13), jagged bolt, strike.'),
+    'wolf-ion-charge': dict(builds=['wolf-p', 'lasher'], frames=[5, 9, 12, 13], setup=wolf_ion_charge,
+                            note='Ion cannon charge-up close: the blue glow gathering at the muzzle, then the shot.'),
     'wolf-ion-arcs': dict(builds=['wolf-p', 'lasher'], frames=[18, 20, 23], setup=wolf_ion_arcs,
                           note='Ion strike close: EMP arcs crawling over the Lasher hull, flickering.'),
     'wolf-blasters': dict(builds=['wolf-p', 'wolf'], frames=[3, 6, 9, 12], setup=wolf_blasters,
