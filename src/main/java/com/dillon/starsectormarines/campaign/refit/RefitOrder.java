@@ -219,7 +219,7 @@ public enum RefitOrder {
         bill(WARDROOM_I, Commodities.HEAVY_MACHINERY, 2, Commodities.RARE_METALS, 2);
         bill(WARDROOM_II, Commodities.HEAVY_MACHINERY, 4, Commodities.RARE_METALS, 6);
         bill(BRIEFING_RESTORED, Commodities.METALS, 5);
-        bill(BRIEFING_I, Commodities.METALS, 10, Commodities.HEAVY_MACHINERY, 2);
+        bill(BRIEFING_I, Commodities.METALS, 15);
         bill(BRIEFING_II, Commodities.HEAVY_MACHINERY, 2, Commodities.RARE_METALS, 6);
         bill(HOLDS_RESTORED, Commodities.METALS, 20);
         bill(HOLDS_I, Commodities.METALS, 40);
