@@ -7,7 +7,7 @@
   "idPrefix": "crew-lounge",
   "alphaMin": 40,
   "outputSheet": "graphics/tilesets/crew-lounge.png",
-  "note": "Muted crew recreation kit. Opposing sofas have backrests at image bottom/top. Magazines and game are padded decorative table overlays. Round stool stays walkable at its exclusive UNWIND point. Unchanged ImageGen source; no keying or post-export patch.",
+  "note": "Muted crew recreation kit on a 2508x1254 raw: the left half is the original built-in generation (sofas with backrests at image bottom/top, coffee table, magazines, pool table, media console, refreshments, planter); the right half is the real-size refit (CrewLoungeTemplate, 320 px per cell) of the card table, its game overlay, the bookshelf and the round stool, cut as full placement frames. Overlays are padded table canvases. Round stool stays walkable at its exclusive UNWIND point. No keying or post-export patch. See crew-lounge.README.md.",
   "entries": [
     {
       "id": "crew-lounge.sofa-low",
@@ -76,10 +76,10 @@
     {
       "id": "crew-lounge.card-table",
       "rect": [
-        521,
-        296,
-        212,
-        213
+        1317,
+        63,
+        502,
+        502
       ],
       "footprintCells": [
         2,
@@ -92,10 +92,10 @@
     {
       "id": "crew-lounge.game",
       "rect": [
-        944,
-        318,
-        192,
-        192
+        1317,
+        690,
+        502,
+        502
       ],
       "footprintCells": [
         2,
@@ -124,10 +124,10 @@
     {
       "id": "crew-lounge.stool",
       "rect": [
-        578,
-        630,
-        100,
-        100
+        2069,
+        940,
+        251,
+        251
       ],
       "footprintCells": [
         1,
@@ -172,10 +172,10 @@
     {
       "id": "crew-lounge.books",
       "rect": [
-        579,
-        870,
-        96,
-        302
+        2069,
+        63,
+        251,
+        752
       ],
       "footprintCells": [
         1,
