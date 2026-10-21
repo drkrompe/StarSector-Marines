@@ -58,3 +58,17 @@ LAMPS = [
     ('Drone bay service block floodlight 1', 'work', WHITE),
     ('Drone bay service block floodlight 2', 'work', WHITE),
 ]
+
+
+# Shield (../second-wind-vfx/swfx_shield.py): vanilla OMNI, arc 90, radius 70,
+# shieldCenter (1, 0) (shepherd.ship, ship_data.csv), efficiency 1.2. Colour by
+# technology, not faction: the LOW_TECH hull style, so the 'low-tech' scheme.
+# Not in this export's groups: a shot builds it per ship with the film
+# (swfx_shield.build(ctx, film=True, hull_collection=...), asharu-effects-plan.md W1).
+# Fitted ~7 m clear of the hull (9 units at 0.78 m/u). vents: the hull parts
+# that glow and shed vapour when she vents (shield_vent).
+SHIELD = dict(
+    type='OMNI', anchor='SHEPHERD | root', center=(1, 0), radius=70.0, arc=90.0, nodes=[],
+    scheme='low-tech', efficiency=1.2, fit=dict(margin=9.0), raise_s=1.0, lower_s=1.0,
+    vents=['Engine 1 radiator well floor', 'Engine 2 radiator well floor'],
+)

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.command.ReactiveDefenceSource;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Map;
@@ -15,9 +16,20 @@ import java.util.Map;
  * Printed by the mission evidence harnesses so a run and its control run ({@code -Dbattle.mission.reactiveDefence=false})
  * can be read side by side.
  */
-final class ReactiveDefenceEvidence {
+public final class ReactiveDefenceEvidence {
 
     private ReactiveDefenceEvidence() {}
+
+    /** The defender commander's manning figures, or an empty object when it mans nothing reactively. */
+    public static JSONObject figures(BattleSimulation sim) throws JSONException {
+        JSONObject out = new JSONObject();
+        if (sim.getCommander(Faction.DEFENDER) instanceof ReactiveDefenceSource source) {
+            for (Map.Entry<String, Integer> entry : source.reactiveDefenceFigures().entrySet()) {
+                out.put(entry.getKey(), entry.getValue().intValue());
+            }
+        }
+        return out;
+    }
 
     static String line(String runId, BattleSimulation sim, String trace) throws Exception {
         StringBuilder out = new StringBuilder("[reactive-defence] ").append(runId)
@@ -40,6 +52,7 @@ final class ReactiveDefenceEvidence {
             if ("MARINE".equals(event.optString("faction"))) marines++;
             else if ("DEFENDER".equals(event.optString("faction"))) defenders++;
         }
+        out.append(" flow=").append(!"false".equalsIgnoreCase(System.getProperty("battle.mission.flow", "true")));
         out.append(" marineLosses=").append(marines)
                 .append(" defenderLosses=").append(defenders)
                 .append(" termination=").append(sim.isComplete() ? "TERMINAL" : "TIMEOUT")

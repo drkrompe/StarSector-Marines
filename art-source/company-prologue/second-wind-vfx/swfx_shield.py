@@ -88,6 +88,43 @@ raise_shield(), fortress() and hit() key them with the vanilla timings
 may key them by hand instead. In the game a Fortress Shield ship cannot fire
 while the system is on (noFiring): a shot that shows it should keep the beams
 dark.
+
+The film (opt-in, `build(ctx, film=True)`; asharu-effects.md, the owner's
+answers of 2026-10-20). The shield is a film of suspended plasma held by the
+emitters: what it absorbs consumes it, flux is how thin it has worn. Without
+`film` nothing below is built and the bubble is the accepted look above,
+byte for byte. With it:
+
+  - Instance-safe: the bubble's shader reads only its own object coordinates
+    and knob values (no texture coordinates of other objects), so a ship
+    placed through a collection instance at any transform (the Asharu scene,
+    the effects bench) shades in its own frame. The hits are found from their
+    azimuth and elevation directly, by angle over the shell's surface.
+  - Hits brighten the whole film (opacity tied to hits) and each throws a
+    ripple ring outward along the surface (shield_ring_<k>, its phase: 0 at
+    impact, 1 spent), fading as it spreads; several overlap.
+  - shield_flux (0..1): the film wears thin. Moving thin patches open up,
+    ripples spread wider and ring longer, thin-film banding colours the
+    thinnest film (a soap bubble about to burst), and a hit on a thin patch
+    flashes dimmer (it leaks through).
+  - shield_overload (0..1, a timeline): the film tears open from the last hit
+    (shield_tear_az / _el) and the tear runs across the arc, led by a hot
+    edge; behind it the film breaks into shards that flare, scatter and fade;
+    arcs crawl over the hull back toward the emitter; a light at the tear lights
+    the hull. At 1 the shield is gone. overload() keys it, stutters the ship's
+    lamps (lit_ship_master, where the build has it) and drops the shield.
+  - shield_vent (0..1): the vents and radiators named in SHIELD['vents'] glow
+    and shed shimmering vapour jets; vent() keys it and drops the shield and
+    the flux. A running ship's vent is heat and vapour, never fire.
+
+Recovery is raise_shield() again: the emitters repaint the film from the
+facing outward. arc_material() and arc_curve() are the crawling-arc pieces,
+public for the ion cannon's EMP arcs (W4).
+
+`hull_collection` (a collection holding the ship's hull) makes build() find
+the anchor, nodes, vents and hull points inside that collection rather than
+by name in bpy.data: a scene with several ships of one build passes each
+ship's own (ship_fx.ShipFx.hull).
 """
 import math
 
@@ -132,6 +169,42 @@ STRENGTH_MAX = 1.5
 WAVER, DROPOUT, DROP_SCALE, FLICKER_RATE, DENSE_SHADE = 1.4, 1.8, 2.2, 7.0, .45
 BEST_EFFICIENCY = .6    # the best vanilla shield efficiency (Paragon, Medusa): strength 1
 STRENGTH_PER_EFFICIENCY = .5   # strength lost per unit of efficiency above that: 1.0 reads 0.8
+
+# --- the film (build(film=True)) -----------------------------------------
+FILM_KNOBS = [
+    ('shield_flux', 0.0, 0.0, 1.0, 'hard flux: the film worn thin (thin patches, wider and longer ripples, '
+                                   'banding, leaking hits)'),
+    ('shield_overload', 0.0, 0.0, 1.0, 'overload timeline: 0 none; the tear runs, the film shatters, arcs '
+                                       'crawl; 1 the shield is gone'),
+    ('shield_tear_az', 0.0, -180.0, 180.0, 'where the overload tear starts: azimuth, degrees (the last hit)'),
+    ('shield_tear_el', 0.0, -90.0, 90.0, 'where the overload tear starts: elevation, degrees'),
+    ('shield_vent', 0.0, 0.0, 1.0, 'venting: radiators and vents glow and shed vapour jets'),
+    ('shield_ripple', 1.0, 0.0, 4.0, 'ripple ring brightness'),
+    ('shield_band', 1.0, 0.0, 4.0, 'thin-film banding brightness'),
+    ('shield_arcs', 1.0, 0.0, 4.0, 'overload arc brightness'),
+]
+HIT_LIFT = .9           # whole-film brightening per unit of live hit flash (opacity tied to hits)
+RING_PEAK = 1.6         # ripple ring brightness at impact
+RING_REACH = (.35, .8)  # how far a ring runs, in mean radii: at flux 0, and the extra at flux 1
+RING_WIDTH = (.45, .6)  # ring half-width as a share of the hit spread: flux 0, extra at flux 1
+FILM_HIT_SIZE = .18     # the film's hit spread (shield_hit_size): bigger than the bubble's, to read at range
+RING_S = .7             # seconds a ring takes to run out at flux 0 (x (1 + 1.5 flux))
+FLUX_SCALE, FLUX_RATE = 2.6, .45   # thin patches: noise scale over R, drift (per second of clock)
+THIN_FACE, THIN_RIM = .85, .5      # how much a fully thin patch dims the face and the rim
+LEAK = .65              # how much a hit on a fully thin patch dims (it leaks through)
+BANDS, BAND_PEAK = 2.2, .55        # thin-film interference bands across the thinness, and their brightness
+TEAR_SPAN = .35         # share of the overload timeline the tear takes to run the whole shell
+TEAR_SOFT, TEAR_EDGE, TEAR_PEAK = .05, .09, 6.0   # torn-edge softness and glow half-width (radians), glow
+TEAR_W = 20000.0        # the tear light at its flash (W)
+SHARD_PEAK, SHARD_DECAY, SHARD_LIFT = 5.0, 9.0, .22   # shard flare, fade rate, scatter (mean radii)
+SHARD_U, SHARD_V = 28, 14          # the shard mesh: a coarse sphere projected onto the shell
+ARCS, ARC_PEAK = 8, 9.0
+VENT_PEAK, JET_PEAK, VENT_W = 2.5, 1.4, 1800.0
+JET_LEN = .32           # vapour jet length in mean radii
+HEAT = (1.0, .32, .08)  # radiator glow (a dull orange-red heat, not flame)
+VAPOUR = (.85, .82, .78)
+# Overload: the ship's lamps stutter (frame offset, share of their level), then come back.
+LAMP_STUTTER = [(0, 1.0), (2, .12), (4, .9), (5, .05), (8, .7), (10, .0), (13, .5), (15, .0), (24, .35), (34, 1.0)]
 
 
 def _rgb(*c):
@@ -457,6 +530,557 @@ def _node_material(ctx, s):
 _NODE_ENV = 'min(1.0, shield_t * 3.0) * (1.0 + 0.8 * shield_fortress)'
 
 
+# --- the film ----------------------------------------------------------------
+
+def _additive_multi(nodes, links, parts, transmit=None):
+    """Transparent plus one emission per (colour, strength) part."""
+    out = nodes.new('ShaderNodeOutputMaterial')
+    tr = nodes.new('ShaderNodeBsdfTransparent')
+    if transmit is not None:
+        links.new(transmit, tr.inputs['Color'])
+    shader = tr.outputs[0]
+    for colour, strength in parts:
+        em = nodes.new('ShaderNodeEmission')
+        if hasattr(colour, 'node'):
+            links.new(colour, em.inputs['Color'])
+        else:
+            em.inputs['Color'].default_value = (*colour, 1)
+        links.new(strength, em.inputs['Strength'])
+        add = nodes.new('ShaderNodeAddShader')
+        links.new(shader, add.inputs[0])
+        links.new(em.outputs[0], add.inputs[1])
+        shader = add.outputs[0]
+    links.new(shader, out.inputs['Surface'])
+
+
+def _unit(g, nodes, links, pos):
+    """(x, y, z) sockets of a position socket normalised."""
+    nrm = nodes.new('ShaderNodeVectorMath')
+    nrm.operation = 'NORMALIZE'
+    links.new(pos, nrm.inputs[0])
+    sep = nodes.new('ShaderNodeSeparateXYZ')
+    links.new(nrm.outputs[0], sep.inputs[0])
+    return sep.outputs['X'], sep.outputs['Y'], sep.outputs['Z']
+
+
+def _direction(ctx, nodes, az, el):
+    """(x, y, z) of the unit direction at knobs az / el (degrees, hull frame), as driven values."""
+    p = (az, el)
+    return (swfx_core.value_node(ctx, nodes, f'{az} x', f'cos(radians({az})) * cos(radians({el}))', p),
+            swfx_core.value_node(ctx, nodes, f'{az} y', f'sin(radians({az})) * cos(radians({el}))', p),
+            swfx_core.value_node(ctx, nodes, f'{az} z', f'sin(radians({el}))', p))
+
+
+def _angle(g, n, d):
+    """Angle (radians) between unit sockets n and d."""
+    dot = g.add(g.add(g.mul(n[0], d[0]), g.mul(n[1], d[1])), g.mul(n[2], d[2]))
+    return g.op('ARCCOSINE', g.op('MINIMUM', g.op('MAXIMUM', dot, -1.0), 1.0))
+
+
+def _arc_cover(ctx, g, nodes, links, pos, s, t):
+    """What of the arc a position (centre frame) lies within at raise t: (cover, frac, reach).
+    The facing is a rotation of the position by -shield_facing, so nothing reads another
+    object's frame (instance-safe)."""
+    rot = nodes.new('ShaderNodeVectorRotate')
+    rot.rotation_type = 'Z_AXIS'
+    links.new(pos, rot.inputs['Vector'])
+    links.new(swfx_core.value_node(ctx, nodes, 'unfacing', '-radians(shield_facing)', ('shield_facing',)),
+              rot.inputs['Angle'])
+    half_arc = math.radians(float(s.get('arc', 360))) / 2
+    front = s.get('type', 'OMNI') == 'FRONT'
+    if front:
+        sep = nodes.new('ShaderNodeSeparateXYZ')
+        links.new(rot.outputs[0], sep.inputs[0])
+        frac = g.mul(g.op('ABSOLUTE', g.op('ARCTAN2', sep.outputs['Y'], sep.outputs['X'])), 1.0 / half_arc)
+    else:
+        x = _unit(g, nodes, links, rot.outputs[0])[0]
+        frac = g.mul(g.op('ARCCOSINE', g.op('MINIMUM', g.op('MAXIMUM', x, -1.0), 1.0)), 1.0 / half_arc)
+    reach = g.mul(t, 1.0 + (1 if front else 2) * EDGE_W)
+    cover = g.clamp01(g.mul(g.sub(reach, frac), 1.0 / EDGE_W))
+    return cover, frac, reach
+
+
+def _tear_front():
+    return f'{math.pi * 1.05:.5f} * min(1.0, shield_overload / {TEAR_SPAN})'
+
+
+def _film_material(ctx, s, R, Rm):
+    """The film: the accepted bubble (same face, rim, ripple, unfold, strength and fortress
+    terms) in the bubble's own coordinates, plus hits that lift the film and throw ripple
+    rings, flux thinning with banding and leaks, and the overload tear."""
+    m, nodes, links = swfx_core.node_material(f'{PREFIX} film')
+    g = _G(nodes, links)
+    v = lambda name, expr, props: swfx_core.value_node(ctx, nodes, name, expr, props)  # noqa: E731
+    fort = v('fortress', 'shield_fortress', ('shield_fortress',))
+    lw = nodes.new('ShaderNodeLayerWeight')
+    lw.inputs['Blend'].default_value = .5
+    rim = g.pow(g.clamp01(lw.outputs['Facing']), 4.0)
+    tc = nodes.new('ShaderNodeTexCoord')
+    pos = tc.outputs['Object']
+    fin = s['finish']
+    noise = nodes.new('ShaderNodeTexNoise')
+    noise.noise_dimensions = '4D'
+    noise.inputs['Scale'].default_value = 3.0 * fin['grain'] / R
+    noise.inputs['Detail'].default_value = 2.0
+    links.new(pos, noise.inputs['Vector'])
+    clock = v('shield time', 'frame / 30.0', ())
+    links.new(clock, noise.inputs['W'])
+    ripple = g.add(1.0, g.mul(g.sub(noise.outputs['Fac'], .5), g.mul(g.sub(1.0, fort), 1.2 * fin['ripple'])))
+    t = v('raise', 'shield_t', ('shield_t',))
+    cover, frac, reach = _arc_cover(ctx, g, nodes, links, pos, s, t)
+    front = s.get('type', 'OMNI') == 'FRONT'
+    d = g.mul(g.sub(frac, g.sub(reach, EDGE_W)), 1.0 / EDGE_W)
+    band = g.op('EXPONENT', g.mul(g.mul(d, d), -1.0))
+    opening = g.clamp01(g.mul(g.sub(1.0, t), 20.0))
+    if front:
+        opening = g.add(opening, g.mul(g.sub(1.0, opening), END_GLOW))
+        nsep = nodes.new('ShaderNodeSeparateXYZ')
+        links.new(tc.outputs['Normal'], nsep.inputs[0])
+        nz = g.op('ABSOLUTE', nsep.outputs['Z'])
+        opening = g.mul(opening, g.sub(1.0, g.mul(g.mul(nz, nz), 1.0 - FLAT_EDGE)))
+    edge = g.mul(g.mul(band, opening), EDGE_PEAK)
+    env = v('shield env', 'shield_gain * (shield_t > 0.001)', ('shield_gain', 'shield_t'))
+    face_k = g.add(1.0, g.mul(fort, FACE_FORTRESS - 1.0))
+    rim_f = g.add(1.0, g.mul(fort, RIM_FORTRESS - 1.0))
+    rimk = v('rim', 'shield_rim', ('shield_rim',))
+    inner_a = g.add(s['inner_alpha'], g.mul(fort, s['fortress_alpha'] - s['inner_alpha']))
+    grad = g.add(.35, g.mul(g.pow(g.clamp01(lw.outputs['Facing']), 1.5), .65))
+    face_s = g.mul(g.mul(g.mul(inner_a, FACE_PEAK / .3 * fin['face']), ripple), grad)
+    rim_s = g.mul(g.mul(rim, rimk), RIM_PEAK * fin['rim'])
+    sig = v('strength', 'shield_strength', ('shield_strength',))
+    weak = g.op('MAXIMUM', g.sub(1.0, sig), 0.0)
+    dense = g.op('MAXIMUM', g.sub(sig, 1.0), 0.0)
+    face_s = g.mul(face_s, sig)
+    rim_s = g.mul(rim_s, g.sub(1.0, g.mul(g.sub(1.0, sig), .6)))
+    fast = g.mul(clock, FLICKER_RATE)
+    wn = nodes.new('ShaderNodeTexNoise')
+    wn.noise_dimensions = '1D'
+    wn.inputs['Scale'].default_value = 1.0
+    links.new(fast, wn.inputs['W'])
+    waver = g.op('MAXIMUM', g.add(1.0, g.mul(g.mul(weak, WAVER), g.sub(wn.outputs['Fac'], .5))), 0.0)
+    dn = nodes.new('ShaderNodeTexNoise')
+    dn.noise_dimensions = '4D'
+    dn.inputs['Scale'].default_value = DROP_SCALE / R
+    dn.inputs['Detail'].default_value = 3.0
+    links.new(pos, dn.inputs['Vector'])
+    links.new(g.mul(fast, .5), dn.inputs['W'])
+    hole = g.clamp01(g.mul(g.sub(.55, dn.outputs['Fac']), 4.0))
+    drop = g.clamp01(g.sub(1.0, g.mul(g.mul(weak, DROPOUT), hole)))
+    solid = g.mul(waver, drop)
+    inner_c = g.mix_rgb(fort, s['inner'], s['fortress_inner'])
+    ring_c = g.mix_rgb(fort, s['ring'], s['fortress_ring'])
+    # Flux: moving thin patches that open wider as it climbs.
+    flux = v('flux', 'shield_flux', ('shield_flux',))
+    pn = nodes.new('ShaderNodeTexNoise')
+    pn.noise_dimensions = '4D'
+    pn.inputs['Scale'].default_value = FLUX_SCALE * math.sqrt(fin['grain']) / R
+    pn.inputs['Detail'].default_value = 2.5
+    links.new(pos, pn.inputs['Vector'])
+    links.new(g.mul(clock, FLUX_RATE), pn.inputs['W'])
+    thin = g.clamp01(g.sub(g.mul(flux, 1.4), g.clamp01(g.mul(g.sub(.6, pn.outputs['Fac']), 5.0))))
+    face_s = g.mul(face_s, g.sub(1.0, g.mul(thin, THIN_FACE)))
+    rim_s = g.mul(rim_s, g.sub(1.0, g.mul(thin, THIN_RIM)))
+    # Hits, found by angle over the surface from their own azimuth and elevation.
+    n = _unit(g, nodes, links, pos)
+    ln = nodes.new('ShaderNodeVectorMath')
+    ln.operation = 'LENGTH'
+    links.new(pos, ln.inputs[0])
+    radius = ln.outputs['Value']
+    size = v('hit size', f'shield_hit_size * {Rm} * (1.0 + {HIT_SPREAD} * shield_fortress)',
+             ('shield_hit_size', 'shield_fortress'))
+    width = g.mul(size, g.add(RING_WIDTH[0], g.mul(flux, RING_WIDTH[1])))
+    run = g.mul(g.add(RING_REACH[0], g.mul(flux, RING_REACH[1])), Rm)
+    hit_s = ring_s = None
+    for k in range(1, HITS + 1):
+        dist = g.mul(_angle(g, n, _direction(ctx, nodes, f'shield_hit_az_{k}', f'shield_hit_el_{k}')), radius)
+        q = g.op('DIVIDE', dist, size)
+        amt = v(f'hit {k}', f'shield_hit_{k}', (f'shield_hit_{k}',))
+        one = g.mul(g.op('EXPONENT', g.mul(g.mul(q, q), -1.0)), amt)
+        phase = v(f'ring {k}', f'shield_ring_{k}', (f'shield_ring_{k}',))
+        rq = g.op('DIVIDE', g.sub(dist, g.mul(phase, run)), width)
+        ring = g.mul(g.op('EXPONENT', g.mul(g.mul(rq, rq), -1.0)), g.pow(g.clamp01(g.sub(1.0, phase)), 1.5))
+        hit_s = one if hit_s is None else g.add(hit_s, one)
+        ring_s = ring if ring_s is None else g.add(ring_s, ring)
+    lift = v('hit lift', f'1.0 + {HIT_LIFT} * min(2.0, ' + ' + '.join(f'shield_hit_{k}' for k in range(1, HITS + 1)) + ')',
+             tuple(f'shield_hit_{k}' for k in range(1, HITS + 1)))
+    leak = g.sub(1.0, g.mul(thin, LEAK))
+    hit_s = g.mul(hit_s, leak)
+    ring_w = g.mul(g.mul(ring_s, v('ripple', 'shield_ripple', ('shield_ripple',))), RING_PEAK)
+    # Overload: the tear runs from shield_tear_az/el across the shell, a hot edge leading it.
+    th = _angle(g, n, _direction(ctx, nodes, 'shield_tear_az', 'shield_tear_el'))
+    tear_at = v('tear front', _tear_front(), ('shield_overload',))
+    on_o = v('overloading', '(shield_overload > 0.0001) * 1.0', ('shield_overload',))
+    torn = g.mul(g.clamp01(g.mul(g.sub(tear_at, th), 1.0 / TEAR_SOFT)), on_o)
+    film = g.sub(1.0, torn)
+    te = g.mul(g.sub(th, tear_at), 1.0 / TEAR_EDGE)
+    tear_env = v('tear env', f'min(1.0, shield_overload / 0.02) * max(0.0, 1.0 - shield_overload / {TEAR_SPAN * 1.2})',
+                 ('shield_overload',))
+    tear = g.mul(g.op('EXPONENT', g.mul(g.mul(te, te), -1.0)), tear_env)
+    # Colour: inner across the face; ring at the rim, the edges, the hits and the rings.
+    rim_s = g.mul(rim_s, rim_f)
+    hit_w = g.mul(g.mul(hit_s, HIT_PEAK), g.sub(1.0, g.mul(fort, .75)))
+    ring_mix = g.clamp01(g.mul(g.add(g.add(g.add(rim_s, edge), g.add(hit_w, ring_w)), g.mul(tear, 3.0)), .5))
+    colour = g.mix_rgb(ring_mix, inner_c, ring_c)
+    body = g.add(g.mul(g.mul(face_s, face_k), lift), rim_s)
+    lit = g.add(g.mul(g.add(body, edge), solid), g.mul(g.add(g.mul(hit_s, HIT_PEAK), ring_w), waver))
+    strength = g.mul(g.mul(g.add(g.mul(lit, film), g.mul(tear, TEAR_PEAK)), cover), env)
+    # Thin-film banding where the film is thin but not gone (black at the very thinnest).
+    h = g.sub(1.0, thin)
+    bands = nodes.new('ShaderNodeCombineXYZ')
+    for i, off in enumerate((0.0, .33, .67)):
+        c = g.add(.5, g.mul(g.op('COSINE', g.mul(g.add(g.mul(h, BANDS), off), 2 * math.pi)), .5))
+        links.new(c, bands.inputs[i])
+    band_w = g.mul(g.mul(g.mul(thin, h), 4.0 * BAND_PEAK), g.mul(flux, v('band', 'shield_band', ('shield_band',))))
+    band_s = g.mul(g.mul(g.mul(g.mul(band_w, solid), film), cover), env)
+    on = v('shield on', '(shield_t > 0.001) * 1.0', ('shield_t',))
+    shade = g.mul(g.mul(g.clamp01(g.mul(g.mul(hit_s, cover), film)), on),
+                  g.add(HIT_SHADE, g.mul(fort, HIT_SHADE_FORTRESS - HIT_SHADE)))
+    tint = g.mix_rgb(shade, (1.0, 1.0, 1.0), tuple(.35 * c for c in s['inner']))
+    tint_f = g.mix_rgb(shade, (1.0, 1.0, 1.0), tuple(.35 * c for c in s['fortress_inner']))
+    transmit = g.mix_rgb(fort, tint, tint_f)
+    thick = g.mul(g.mul(g.mul(g.mul(dense, DENSE_SHADE), cover), on), film)
+    transmit = g.mix_rgb(thick, transmit, tuple(.5 * c for c in s['inner']))
+    _additive_multi(nodes, links, [(colour, strength), (bands.outputs[0], band_s)], transmit)
+    return _blended(m)
+
+
+def _shards(ctx, coll, centre, bubble, s, Rm, seed):
+    """The overload's shards: a coarse sphere projected onto the shell, every face its own
+    piece shrunk from its neighbours, with a 'scatter' shape key (out, aside and tumbling)
+    driven by shield_overload. Each piece remembers where it sat ('rest') and its own
+    random ('shard_rand'); the shader lights it when the tear front passes it."""
+    import random
+    from mathutils import Matrix, Vector
+    from mathutils.bvhtree import BVHTree
+    rng = random.Random(seed)
+    me_b = bubble.data
+    tree = BVHTree.FromPolygons([v.co.copy() for v in me_b.vertices], [tuple(p.vertices) for p in me_b.polygons])
+    bm = bmesh.new()
+    bmesh.ops.create_uvsphere(bm, u_segments=SHARD_U, v_segments=SHARD_V, radius=1.0)
+    verts, faces, rest, rand, moved = [], [], [], [], []
+    for f in bm.faces:
+        pts = []
+        for vt in f.verts:
+            dvec = vt.co.normalized()
+            hit = tree.ray_cast(Vector((0, 0, 0)), dvec)
+            pts.append(dvec * (hit[3] if hit[0] is not None else Rm))
+        c = sum(pts, Vector()) / len(pts)
+        pts = [c + (p - c) * .86 for p in pts]
+        r = rng.random()
+        axis = Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-1, 1))).normalized()
+        spin = Matrix.Rotation(math.radians(rng.uniform(25, 110)), 3, axis)
+        side = Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-1, 1))) * .35
+        shift = (c.normalized() + side) * (SHARD_LIFT * Rm * (.4 + r))
+        base = len(verts)
+        for p in pts:
+            verts.append(tuple(p))
+            rest.append(tuple(p))
+            moved.append(tuple(c + shift + spin @ (p - c)))
+        faces.append(tuple(range(base, base + len(pts))))
+        rand.append(r)
+    bm.free()
+    me = bpy.data.meshes.new(f'{PREFIX} shards')
+    me.from_pydata(verts, [], faces)
+    me.update()
+    a = me.attributes.new('rest', 'FLOAT_VECTOR', 'POINT')
+    a.data.foreach_set('vector', [x for p in rest for x in p])
+    a = me.attributes.new('shard_rand', 'FLOAT', 'FACE')
+    a.data.foreach_set('value', rand)
+    ob = bpy.data.objects.new(f'{PREFIX} shards', me)
+    coll.objects.link(ob)
+    swfx_core.attach(ob, centre)
+    ob.visible_shadow = ob.visible_diffuse = ob.visible_glossy = False
+    ob.shape_key_add(name='Basis')
+    sk = ob.shape_key_add(name='scatter')
+    sk.data.foreach_set('co', [x for p in moved for x in p])
+    ctx.drive(sk, 'value', 'sqrt(min(1.0, shield_overload * 1.3))', ('shield_overload',))
+    for ax in range(3):
+        ctx.drive(ob, 'scale', '(shield_overload > 0.0001) * 1.0', ('shield_overload',), index=ax)
+    me.materials.append(_shard_material(ctx, s))
+    return ob
+
+
+def _shard_material(ctx, s):
+    m, nodes, links = swfx_core.node_material(f'{PREFIX} shard')
+    g = _G(nodes, links)
+    v = lambda name, expr, props: swfx_core.value_node(ctx, nodes, name, expr, props)  # noqa: E731
+    rest = nodes.new('ShaderNodeAttribute')
+    rest.attribute_name = 'rest'
+    rnd = nodes.new('ShaderNodeAttribute')
+    rnd.attribute_name = 'shard_rand'
+    t = v('raise', 'shield_t', ('shield_t',))
+    cover = _arc_cover(ctx, g, nodes, links, rest.outputs['Vector'], s, g.op('MAXIMUM', t, 1.0))[0]
+    th = _angle(g, _unit(g, nodes, links, rest.outputs['Vector']),
+                _direction(ctx, nodes, 'shield_tear_az', 'shield_tear_el'))
+    tear_at = v('tear front', _tear_front(), ('shield_overload',))
+    age = g.mul(g.sub(tear_at, th), 1.0 / math.pi)
+    appear = g.clamp01(g.mul(age, 1.0 / .015))
+    late = v('shard age', f'max(0.0, shield_overload - {TEAR_SPAN}) * 1.5', ('shield_overload',))
+    fade = g.op('EXPONENT', g.mul(g.mul(g.add(g.op('MAXIMUM', age, 0.0), late), -SHARD_DECAY),
+                                  g.add(.5, rnd.outputs['Fac'])))
+    env = v('shard env', '(shield_overload > 0.0001) * shield_gain * max(0.0, 1.0 - max(0.0, shield_overload - 0.55) / 0.4)',
+            ('shield_overload', 'shield_gain'))
+    lw = nodes.new('ShaderNodeLayerWeight')
+    lw.inputs['Blend'].default_value = .4
+    glint = g.add(.6, g.mul(g.clamp01(lw.outputs['Facing']), .8))
+    strength = g.mul(g.mul(g.mul(g.mul(appear, fade), g.mul(cover, env)), glint), SHARD_PEAK)
+    colour = tuple(a + (b - a) * .55 for a, b in zip(s['inner'], s['ring']))
+    _additive_multi(nodes, links, [(colour, strength)])
+    return _blended(m)
+
+
+def arc_material(ctx, name, colour, env_expr, props, peak=ARC_PEAK):
+    """A crawling electric arc (the beam core's construction: a hot white core in a coloured
+    fringe, noise sliding along it): strength peak x env_expr (an expression of control
+    props), flickering on and off per object. Shared with the ion cannon's EMP arcs."""
+    m, nodes, links = swfx_core.node_material(name)
+    g = _G(nodes, links)
+    lw = nodes.new('ShaderNodeLayerWeight')
+    lw.inputs['Blend'].default_value = .5
+    core = g.pow(g.clamp01(g.sub(1.0, lw.outputs['Facing'])), 2.0)
+    tc = nodes.new('ShaderNodeTexCoord')
+    noise = nodes.new('ShaderNodeTexNoise')
+    noise.noise_dimensions = '4D'
+    noise.inputs['Scale'].default_value = .6
+    noise.inputs['Detail'].default_value = 3.0
+    links.new(tc.outputs['Object'], noise.inputs['Vector'])
+    clock = swfx_core.value_node(ctx, nodes, 'arc time', 'frame / 3.0')
+    links.new(clock, noise.inputs['W'])
+    crawl = g.clamp01(g.mul(g.sub(noise.outputs['Fac'], .38), 3.5))
+    info = nodes.new('ShaderNodeObjectInfo')
+    fl = nodes.new('ShaderNodeTexNoise')
+    fl.noise_dimensions = '1D'
+    fl.inputs['Scale'].default_value = 1.0
+    links.new(g.add(g.mul(clock, 1.3), g.mul(info.outputs['Random'], 97.0)), fl.inputs['W'])
+    flick = g.clamp01(g.mul(g.sub(fl.outputs['Fac'], .42), 12.0))
+    env = swfx_core.value_node(ctx, nodes, 'arc env', env_expr, props)
+    white = tuple(.8 + .2 * c for c in colour)
+    col = g.mix_rgb(core, colour, white)
+    strength = g.mul(g.mul(g.mul(g.add(.25, g.mul(core, .75)), g.add(.3, crawl)), g.mul(flick, env)), peak)
+    _additive_multi(nodes, links, [(col, strength)])
+    return _blended(m)
+
+
+def arc_curve(name, coll, points, radius, material):
+    """A jagged poly curve through points (local coordinates), a tube of radius."""
+    cu = bpy.data.curves.new(name, 'CURVE')
+    cu.dimensions = '3D'
+    cu.bevel_depth = radius
+    cu.bevel_resolution = 1
+    sp = cu.splines.new('POLY')
+    sp.points.add(len(points) - 1)
+    for p, q in zip(sp.points, points):
+        p.co = (*q, 1.0)
+    cu.materials.append(material)
+    ob = bpy.data.objects.new(name, cu)
+    coll.objects.link(ob)
+    ob.visible_shadow = ob.visible_diffuse = ob.visible_glossy = False
+    return ob
+
+
+def jag(points, rng, amount=.18, cuts=5):
+    """points with every segment cut into `cuts` pieces kicked sideways by amount x its length."""
+    from mathutils import Vector
+    out = [Vector(points[0])]
+    for a, b in zip(points, points[1:]):
+        a, b = Vector(a), Vector(b)
+        seg = b - a
+        for i in range(1, cuts + 1):
+            p = a + seg * (i / cuts)
+            if i < cuts:
+                p += Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-1, 1))) * amount * seg.length
+            out.append(p)
+    return [tuple(p) for p in out]
+
+
+def _arcs(ctx, coll, centre, bubble, s, Rm, hull_local, node_local, seed):
+    """Overload arcs: from points on the open arc of the film down to the hull, crawling
+    over it (or, where the profile declares emitter nodes, snapping back to the nearest)."""
+    import random
+    from mathutils import Vector
+    from mathutils.bvhtree import BVHTree
+    from mathutils.kdtree import KDTree
+    rng = random.Random(seed)
+    me_b = bubble.data
+    tree = BVHTree.FromPolygons([v.co.copy() for v in me_b.vertices], [tuple(p.vertices) for p in me_b.polygons])
+    sample = hull_local if len(hull_local) <= 6000 else [hull_local[i] for i in
+                                                         sorted(rng.sample(range(len(hull_local)), 6000))]
+    kd = KDTree(len(sample))
+    for i, p in enumerate(sample):
+        kd.insert(p, i)
+    kd.balance()
+    half = min(float(s.get('arc', 360)), 300.0) / 2 * .9
+    colour = tuple(min(1.0, .45 + .55 * c) for c in s['inner'])
+    env = ('shield_arcs * shield_gain * min(1.0, max(0.0, (shield_overload - 0.04) / 0.08))'
+           ' * min(1.0, max(0.0, (0.8 - shield_overload) / 0.3))')
+    mat = arc_material(ctx, f'{PREFIX} arc', colour, env, ('shield_arcs', 'shield_gain', 'shield_overload'))
+    out = []
+    for k in range(ARCS):
+        az, el = math.radians(rng.uniform(-half, half)), math.radians(rng.uniform(-35, 35))
+        dvec = Vector((math.cos(az) * math.cos(el), math.sin(az) * math.cos(el), math.sin(el)))
+        hit = tree.ray_cast(Vector((0, 0, 0)), dvec)
+        start = dvec * (hit[3] if hit[0] is not None else Rm)
+        path = [start]
+        if node_local:
+            path.append(min(node_local, key=lambda p: (Vector(p) - start).length))
+        else:
+            cur = Vector(kd.find(start)[0])
+            path.append(cur)
+            for _ in range(3):
+                near = [Vector(co) for co, i, dd in kd.find_range(cur, .16 * Rm) if dd > .05 * Rm]
+                if not near:
+                    break
+                cur = near[rng.randrange(len(near))]
+                path.append(cur)
+        ob = arc_curve(f'{PREFIX} arc {k + 1}', coll, jag(path, rng), .006 * Rm, mat)
+        swfx_core.attach(ob, centre)
+        out.append(ob)
+    return out
+
+
+def _tear_light(ctx, coll, centre, bubble, s, Rm):
+    """A light where the tear opens: on the film (projected onto the shell the way the hit
+    empties are), just inside it, so it lights the hull beneath."""
+    pivot = swfx_core.empty(f'{PREFIX} tear pivot', coll, Rm * .05, 'PLAIN_AXES')
+    swfx_core.attach(pivot, centre)
+    ctx.drive(pivot, 'rotation_euler', 'radians(shield_tear_az)', ('shield_tear_az',), index=2)
+    ctx.drive(pivot, 'rotation_euler', '-radians(shield_tear_el)', ('shield_tear_el',), index=1)
+    at = swfx_core.empty(f'{PREFIX} tear', coll, Rm * .05, 'SPHERE')
+    swfx_core.attach(at, pivot, local=(3 * Rm * 4, 0, 0))
+    sw = at.constraints.new('SHRINKWRAP')
+    sw.target = bubble
+    sw.shrinkwrap_type = 'PROJECT'
+    sw.project_axis = 'NEG_X'
+    sw.project_axis_space = 'LOCAL'
+    sw.project_limit = 0.0
+    lt = swfx_core.point_light(f'{PREFIX} tear light', coll, tuple(.5 + .5 * c for c in s['inner']), 0.0,
+                               radius=.04 * Rm)
+    lt.visible_camera = False
+    swfx_core.attach(lt, at, local=(-.08 * Rm, 0, 0))
+    ctx.drive(lt.data, 'energy', f'{TEAR_W:.0f} * shield_gain * shield_light * (shield_overload > 0.0001)'
+                                 f' * max(0.0, 1.0 - shield_overload / 0.45)',
+              ('shield_gain', 'shield_light', 'shield_overload'))
+    return lt
+
+
+def _heat_material(ctx):
+    m, nodes, links = swfx_core.node_material(f'{PREFIX} vent heat')
+    g = _G(nodes, links)
+    tc = nodes.new('ShaderNodeTexCoord')
+    noise = nodes.new('ShaderNodeTexNoise')
+    noise.noise_dimensions = '4D'
+    noise.inputs['Scale'].default_value = .4
+    links.new(tc.outputs['Object'], noise.inputs['Vector'])
+    links.new(swfx_core.value_node(ctx, nodes, 'heat time', 'frame / 20.0'), noise.inputs['W'])
+    env = swfx_core.value_node(ctx, nodes, 'vent env', 'shield_vent * shield_gain', ('shield_vent', 'shield_gain'))
+    strength = g.mul(g.mul(env, g.add(.6, g.mul(noise.outputs['Fac'], .8))), VENT_PEAK)
+    _additive_multi(nodes, links, [(HEAT, strength)])
+    return _blended(m)
+
+
+def _jet_material(ctx, length, radius):
+    """Vapour shed off a hot vent: brightest at the vent, fading along the jet (+X), soft at
+    its sides, streaked by noise that runs outward."""
+    m, nodes, links = swfx_core.node_material(f'{PREFIX} vent jet')
+    g = _G(nodes, links)
+    tc = nodes.new('ShaderNodeTexCoord')
+    sep = nodes.new('ShaderNodeSeparateXYZ')
+    links.new(tc.outputs['Object'], sep.inputs[0])
+    along = g.clamp01(g.mul(sep.outputs['X'], 1.0 / length))
+    fade = g.mul(g.pow(g.sub(1.0, along), 1.6), g.clamp01(g.mul(along, 12.0)))
+    lw = nodes.new('ShaderNodeLayerWeight')
+    lw.inputs['Blend'].default_value = .5
+    soft = g.pow(g.clamp01(g.sub(1.0, lw.outputs['Facing'])), 2.0)
+    mp = nodes.new('ShaderNodeMapping')
+    mp.inputs['Scale'].default_value = (.35 / radius, 1.0 / radius, 1.0 / radius)
+    links.new(tc.outputs['Object'], mp.inputs['Vector'])
+    noise = nodes.new('ShaderNodeTexNoise')
+    noise.noise_dimensions = '4D'
+    noise.inputs['Scale'].default_value = 1.0
+    noise.inputs['Detail'].default_value = 3.0
+    links.new(mp.outputs[0], noise.inputs['Vector'])
+    links.new(swfx_core.value_node(ctx, nodes, 'jet time', 'frame / 8.0'), noise.inputs['W'])
+    streak = g.add(.25, g.mul(g.clamp01(g.mul(g.sub(noise.outputs['Fac'], .35), 2.5)), 1.4))
+    env = swfx_core.value_node(ctx, nodes, 'vent env', 'shield_vent * shield_gain', ('shield_vent', 'shield_gain'))
+    strength = g.mul(g.mul(g.mul(g.mul(fade, soft), streak), env), JET_PEAK)
+    colour = g.mix_rgb(g.pow(along, .5), HEAT, VAPOUR)
+    _additive_multi(nodes, links, [(colour, strength)])
+    return _blended(m)
+
+
+def _cone(name, coll, length, r0, r1, material, sides=16, rings=8):
+    me = bpy.data.meshes.new(name)
+    verts, faces = [], []
+    for j in range(rings + 1):
+        f = j / rings
+        r = r0 + (r1 - r0) * f
+        for i in range(sides):
+            a = 2 * math.pi * i / sides
+            verts.append((length * f, r * math.cos(a), r * math.sin(a)))
+    for j in range(rings):
+        for i in range(sides):
+            a, b = j * sides + i, j * sides + (i + 1) % sides
+            faces.append((a, b, b + sides, a + sides))
+    me.from_pydata(verts, [], faces)
+    for p in me.polygons:
+        p.use_smooth = True
+    me.materials.append(material)
+    ob = bpy.data.objects.new(name, me)
+    coll.objects.link(ob)
+    ob.visible_shadow = ob.visible_diffuse = ob.visible_glossy = False
+    return ob
+
+
+def _vents(ctx, coll, rig, find, s, Rm, hull_mid, record):
+    """Each vent in SHIELD['vents'] (a hull part's name): its own surfaces glow with heat
+    (a copy of the part, sharing its mesh, lifted a hair off it), a vapour jet off its open
+    face (its thinnest axis, signed away from the hull's middle) and a warm light."""
+    from mathutils import Vector
+    heat = None
+    for name in s.get('vents', ()):
+        part = find(name)
+        if part is None or part.type != 'MESH':
+            record['missing'].append(name)
+            continue
+        heat = heat or _heat_material(ctx)
+        glow = bpy.data.objects.new(f'{PREFIX} vent glow {name}', part.data)
+        coll.objects.link(glow)
+        glow.parent = part.parent
+        glow.matrix_parent_inverse = part.matrix_parent_inverse.copy()
+        glow.matrix_basis = part.matrix_basis.copy()
+        for slot in glow.material_slots:
+            slot.link = 'OBJECT'
+            slot.material = heat
+        lift = glow.modifiers.new('lift', 'DISPLACE')
+        lift.mid_level, lift.strength = 0.0, .03
+        glow.visible_shadow = glow.visible_diffuse = glow.visible_glossy = False
+        mw = _mw(part)
+        corners = [mw @ Vector(c) for c in part.bound_box]
+        mid = sum(corners, Vector()) / 8
+        axes = [mw.to_3x3().col[i] for i in range(3)]
+        ext = [(max(c.dot(a.normalized()) for c in corners) - min(c.dot(a.normalized()) for c in corners))
+               for a in axes]
+        i_thin = min(range(3), key=lambda i: ext[i])
+        out = axes[i_thin].normalized()
+        if out.dot(mid - hull_mid) < 0:
+            out = -out
+        wide = sorted(ext)[1:]
+        r0 = max(.02 * Rm, min(.1 * Rm, .4 * sum(wide) / 2))
+        length = JET_LEN * Rm
+        jet = _cone(f'{PREFIX} vent jet {name}', coll, length, r0, 2.4 * r0, _jet_material(ctx, length, r0))
+        inv = _mw(rig).inverted()
+        swfx_core.attach(jet, rig, local=tuple(inv @ (mid + out * .02 * Rm)),
+                         rotation=tuple((inv.to_3x3() @ out).to_track_quat('X', 'Z').to_euler()))
+        for ax in range(3):
+            ctx.drive(jet, 'scale', '(shield_vent > 0.001) * 1.0', ('shield_vent',), index=ax)
+        lt = swfx_core.point_light(f'{PREFIX} vent light {name}', coll, HEAT, 0.0, radius=r0)
+        lt.visible_camera = False
+        swfx_core.attach(lt, rig, local=tuple(inv @ (mid + out * .06 * Rm)))
+        ctx.drive(lt.data, 'energy', f'{VENT_W:.0f} * shield_vent * shield_gain * shield_light',
+                  ('shield_vent', 'shield_gain', 'shield_light'))
+        record['vents'].append(name)
+
+
 def _sphere(name, coll, radius, mat, u=24, v=12):
     me = bpy.data.meshes.new(name)
     bm = bmesh.new()
@@ -473,14 +1097,48 @@ def _sphere(name, coll, radius, mat, u=24, v=12):
     return ob
 
 
-def _hull_points(anchor):
-    """World positions of every mesh vertex of the ship the anchor belongs to."""
+def _mw(ob):
+    """An object's world matrix composed from its parent chain. A scene that places a build
+    through collection instances keeps the build's own collection excluded, and Blender does
+    not evaluate an excluded object, so its stored matrix_world can be stale. Composing it
+    reads only the authored transforms (no constraints, which the hull parts a fit reads
+    do not carry)."""
+    m = ob.matrix_basis.copy()
+    while ob.parent is not None:
+        m = ob.parent.matrix_basis @ ob.matrix_parent_inverse @ m
+        ob = ob.parent
+    return m
+
+
+def _base_name(name):
+    """A copied or re-appended object's own name: 'Hull fin.002 @lasher-a' -> 'Hull fin'."""
+    import re
+    strip = lambda n: re.sub(r'\.\d{3}$', '', n)  # noqa: E731
+    return strip(re.sub(r' ~?@[^@]*$', '', strip(name)))
+
+
+def _finder(hull_collection):
+    """name -> object: in the ship's own hull collection when one is given (a scene with
+    several ships of one build), else by name in bpy.data (one hull per file)."""
+    if hull_collection is None:
+        return bpy.data.objects.get
+    objs = list(hull_collection.all_objects)
+
+    def find(name):
+        return next((o for o in objs if o.name == name), None) or next(
+            (o for o in objs if _base_name(o.name) == name), None)
+    return find
+
+
+def _hull_points(anchor, objects=None):
+    """World positions of every mesh vertex of the ship the anchor belongs to (among
+    `objects` when given, else every object in the file)."""
     import numpy as np
     root = anchor
     while root.parent:
         root = root.parent
     pts = []
-    for o in bpy.data.objects:
+    for o in (objects if objects is not None else bpy.data.objects):
         if o.type != 'MESH' or o.name.startswith('SWFX'):
             continue
         top = o
@@ -491,7 +1149,7 @@ def _hull_points(anchor):
         n = len(o.data.vertices)
         a = np.empty(n * 3)
         o.data.vertices.foreach_get('co', a)
-        M = np.array(o.matrix_world)
+        M = np.array(_mw(o))
         pts.append(a.reshape(-1, 3) @ M[:3, :3].T + M[:3, 3])
     return np.concatenate(pts)
 
@@ -504,7 +1162,7 @@ def _shell(name, coll, centre, pts, margin, u=128, v=64, smooth=40):
     import numpy as np
     from mathutils import Vector
     from mathutils.bvhtree import BVHTree
-    inv = np.array(centre.matrix_world.inverted())
+    inv = np.array(_mw(centre).inverted())
     local = pts @ inv[:3, :3].T + inv[:3, 3]
     hb = bmesh.new()
     for p in local:
@@ -561,13 +1219,19 @@ def _shell(name, coll, centre, pts, margin, u=128, v=64, smooth=40):
     return ob, float(rad.mean())
 
 
-def build(ctx, shield_scheme=None, shield_arc=None, shield_type=None, **options):
+def build(ctx, shield_scheme=None, shield_arc=None, shield_type=None, film=False, hull_collection=None,
+          **options):
     coll = ctx.collection(GROUP)
     record = {'bubble': None, 'hits': [], 'nodes': [], 'lights': [], 'missing': []}
     if SHIELD is None or not ctx.spec.get('powered', True):
         return record
     s = resolve(SHIELD, shield_scheme, shield_arc, shield_type)
-    anchor = bpy.data.objects.get(s['anchor'])
+    find = _finder(hull_collection)
+    anchor = find(s['anchor'])
+    if anchor is None and hull_collection is not None and s['anchor'].endswith('| root'):
+        # A profile shared by two builds (the Wolfs) names one build's root: the ship's own root.
+        anchor = next((o for o in hull_collection.all_objects
+                       if o.parent is None and _base_name(o.name).endswith('| root')), None)
     if anchor is None:
         record['missing'].append(s['anchor'])
         return record
@@ -588,7 +1252,7 @@ def build(ctx, shield_scheme=None, shield_arc=None, shield_type=None, **options)
     rig = swfx_core.empty(f'{PREFIX} rig', coll, R * .1, 'SPHERE')
     swfx_core.attach(rig, anchor)
     # Radius and offsets are hull units: cancel any scale the anchor carries.
-    sc = anchor.matrix_world.to_scale()
+    sc = _mw(anchor).to_scale()
     rig.scale = (1 / sc.x, 1 / sc.y, 1 / sc.z)
     # The bubble's centre: the anchor, or with a fit, the anchor in plan at the
     # hull's mid-height.
@@ -596,10 +1260,12 @@ def build(ctx, shield_scheme=None, shield_arc=None, shield_type=None, **options)
     centre = swfx_core.empty(f'{PREFIX} centre', coll, R * .1, 'PLAIN_AXES')
     swfx_core.attach(centre, rig)
     pts = None
+    hull_objects = list(hull_collection.all_objects) if hull_collection is not None else None
+    if fit or film:
+        pts = _hull_points(anchor, hull_objects)
     if fit:
-        pts = _hull_points(anchor)
         zmid = .5 * (pts[:, 2].min() + pts[:, 2].max())
-        centre.location = (0, 0, zmid - anchor.matrix_world.translation.z)
+        centre.location = (0, 0, zmid - _mw(anchor).translation.z)
     if s.get('center'):
         cx, cy = s['center'][:2]
         centre.location = (cx, cy, centre.location.z)
@@ -632,7 +1298,15 @@ def build(ctx, shield_scheme=None, shield_arc=None, shield_type=None, **options)
         sw.project_limit = 0.0
         hits.append(h)
         record['hits'].append(h.name)
-    bubble.data.materials.append(_bubble_material(ctx, s, hits, R, facing))
+    if film:
+        for name, default, lo, hi, desc in FILM_KNOBS:
+            ctx.prop(name, default, lo, hi, desc)
+        for k in range(1, HITS + 1):
+            ctx.prop(f'shield_ring_{k}', 1.0, 0, 1, f'hit {k}: ripple ring phase (0 at impact, 1 spent)')
+        ctx.set('shield_hit_size', FILM_HIT_SIZE)
+        bubble.data.materials.append(_film_material(ctx, s, R, R))
+    else:
+        bubble.data.materials.append(_bubble_material(ctx, s, hits, R, facing))
     # The bubble lights nothing by itself (the node lights do): keeps it clean
     # of sampling noise on the hull.
     bubble.visible_diffuse = bubble.visible_glossy = False
@@ -641,12 +1315,13 @@ def build(ctx, shield_scheme=None, shield_arc=None, shield_type=None, **options)
     record['bubble'] = bubble.name
     glow = _node_material(ctx, s)
     props = ('shield_t', 'shield_fortress', 'shield_gain', 'shield_light')
+    node_objects = []
     for name in s.get('nodes', ()):
-        n = bpy.data.objects.get(name)
+        n = find(name)
         if n is None:
             record['missing'].append(name)
             continue
-        ns = n.matrix_world.to_scale()
+        ns = _mw(n).to_scale()
         g = _sphere(f'{PREFIX} {name}', coll, 2.4, glow)
         swfx_core.attach(g, n)
         for ax in range(3):
@@ -661,6 +1336,9 @@ def build(ctx, shield_scheme=None, shield_arc=None, shield_type=None, **options)
             ctx.drive(lt.data, 'color', f'{a:.4f} + ({b - a:.4f}) * shield_fortress', ('shield_fortress',), index=i)
         record['nodes'].append(g.name)
         record['lights'].append(lt.name)
+        node_objects.append(n)
+    if film:
+        _build_film(ctx, coll, rig, centre, bubble, s, R, pts, node_objects, find, record)
     record['radius'] = float(s['radius'])
     record['type'] = s['type']
     record['arc'] = float(s.get('arc', 360))
@@ -673,6 +1351,31 @@ def build(ctx, shield_scheme=None, shield_arc=None, shield_type=None, **options)
     record['centre'] = centre.name
     record['anchor'] = anchor.name
     return record
+
+
+def _build_film(ctx, coll, rig, centre, bubble, s, Rm, pts, node_objects, find, record):
+    """The film's pieces beyond the bubble: shards, overload arcs, the tear light, vents."""
+    import zlib
+    import numpy as np
+    from mathutils import Vector
+    seed = zlib.crc32(s['anchor'].encode())
+    inv = np.array(_mw(centre).inverted())
+    hull_local = [tuple(p) for p in (pts @ inv[:3, :3].T + inv[:3, 3])]
+    cinv = _mw(centre).inverted()
+    node_local = [tuple(cinv @ _mw(n).translation) for n in node_objects]
+    record['film'] = True
+    record['vents'] = []
+    record['shards'] = _shards(ctx, coll, centre, bubble, s, Rm, seed).name
+    record['arcs'] = [o.name for o in _arcs(ctx, coll, centre, bubble, s, Rm, hull_local, node_local, seed + 1)]
+    record['lights'].append(_tear_light(ctx, coll, centre, bubble, s, Rm).name)
+    lo, hi = pts.min(axis=0), pts.max(axis=0)
+    _vents(ctx, coll, rig, find, s, Rm, Vector(tuple((lo + hi) / 2)), record)
+
+
+def _knob_at(ctx, name, frame):
+    """A knob's keyed value at frame (its current value where it has no keys)."""
+    fc = swfx_core.find_fcurve(ctx.controls, f'["{name}"]')
+    return float(fc.evaluate(frame)) if fc else float(ctx.controls.get(name, 0.0))
 
 
 def raise_shield(ctx, start_frame, hold_s=None, fps=swfx_core.FPS):
@@ -717,7 +1420,72 @@ def hit(ctx, k, frame, azimuth, elevation=0.0, strength=1.0, decay_s=.4, fps=swf
     ctx.key(f'shield_hit_el_{k}', frame, elevation, 'CONSTANT')
     for f, v in ((frame - 1, 0.0), (frame, strength), (gone, 0.0)):
         ctx.key(f'shield_hit_{k}', f, v, 'LINEAR')
+    if f'shield_ring_{k}' in ctx.controls.keys():
+        # A film shield: ripple ring k runs out over RING_S, longer as the flux climbs. A new
+        # hit on k restarts its ring: the old ring's later keys go.
+        flux = _knob_at(ctx, 'shield_flux', frame)
+        fc = swfx_core.find_fcurve(ctx.controls, f'["shield_ring_{k}"]')
+        if fc is not None:
+            for kp in reversed([kp for kp in fc.keyframe_points if kp.co.x >= frame - 1]):
+                fc.keyframe_points.remove(kp)
+        spent = frame + max(2, round(RING_S * (1 + 1.5 * flux) * fps))
+        ctx.key(f'shield_ring_{k}', frame - 1, 1.0, 'CONSTANT')
+        ctx.key(f'shield_ring_{k}', frame, 0.0, 'LINEAR')
+        ctx.key(f'shield_ring_{k}', spent, 1.0, 'CONSTANT')
+        gone = max(gone, spent)
     return gone
+
+
+def flux(ctx, frame, value, interpolation='LINEAR'):
+    """Key the film's wear: shield_flux at frame (keys between are interpolated)."""
+    ctx.key('shield_flux', frame, value, interpolation)
+
+
+def overload(ctx, frame, azimuth, elevation=0.0, duration_s=1.5, fps=swfx_core.FPS):
+    """The film collapses: the tear opens at (azimuth, elevation), the last hit, and runs
+    the arc; the film shatters and arcs crawl over the hull, over duration_s. The ship's
+    lamps stutter (lit_ship_master, where the build has it). The shield is down at the
+    end; recover() brings it back. Returns the frame the shield is gone."""
+    end = frame + max(2, round(duration_s * fps))
+    ctx.key('shield_tear_az', frame, azimuth, 'CONSTANT')
+    ctx.key('shield_tear_el', frame, elevation, 'CONSTANT')
+    ctx.key('shield_overload', frame - 1, 0.0, 'LINEAR')
+    ctx.key('shield_overload', frame, 0.0, 'LINEAR')
+    ctx.key('shield_overload', end, 1.0, 'CONSTANT')
+    t = _knob_at(ctx, 'shield_t', frame)
+    ctx.key('shield_t', end - 1, t, 'CONSTANT')
+    ctx.key('shield_t', end, 0.0, 'CONSTANT')
+    if 'lit_ship_master' in ctx.controls.keys():
+        base = _knob_at(ctx, 'lit_ship_master', frame)
+        ctx.key('lit_ship_master', frame - 1, base, 'CONSTANT')
+        for df, share in LAMP_STUTTER:
+            ctx.key('lit_ship_master', frame + df, base * share, 'CONSTANT')
+    return end
+
+
+def recover(ctx, frame, fps=swfx_core.FPS):
+    """After an overload: the emitters repaint the film from the facing outward (the
+    raise). Returns the frame it is fully up."""
+    ctx.key('shield_overload', frame - 1, 1.0, 'CONSTANT')
+    ctx.key('shield_overload', frame, 0.0, 'CONSTANT')
+    return raise_shield(ctx, frame, fps=fps)
+
+
+def vent(ctx, frame, duration_s=3.0, fps=swfx_core.FPS):
+    """Active vent: the film drops at once, the vents glow and shed vapour, and the flux
+    bleeds to nothing over duration_s. Returns the frame the vent is over."""
+    end = frame + max(4, round(duration_s * fps))
+    t = _knob_at(ctx, 'shield_t', frame)
+    if t > 0:
+        ctx.key('shield_t', frame - 1, t, 'LINEAR')
+        ctx.key('shield_t', frame + max(1, round(.25 * fps)), 0.0, 'LINEAR')
+    ctx.key('shield_vent', frame - 1, 0.0, 'LINEAR')
+    ctx.key('shield_vent', frame + max(1, round(.3 * fps)), 1.0, 'LINEAR')
+    ctx.key('shield_vent', end - max(1, round(1.0 * fps)), 1.0, 'LINEAR')
+    ctx.key('shield_vent', end, 0.0, 'LINEAR')
+    ctx.key('shield_flux', frame, _knob_at(ctx, 'shield_flux', frame), 'LINEAR')
+    ctx.key('shield_flux', end, 0.0, 'LINEAR')
+    return end
 
 
 def direction(azimuth, elevation=0.0):

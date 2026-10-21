@@ -29,10 +29,6 @@ the offset coordinate, then N·L against each light.
   Lambert `N·L`. Lighting is additive over the accepted S2 image.
 - No live lights is pixel-identical to S2. A `Bump lighting` DEBUG dial exposes
   `0–2` strength, default `1`.
-- `GroundBumpLightingPixelComparisonTest` mirrors the shader against real
-  albedo/normal assets and writes `build/surface-relief/bump-lighting-comparison.png`.
-  Current metrics: 66.27% changed, 6.596 mean RGB delta, and 39.87% of pixels
-  materially differ from a flat-normal render.
 
 ## Acceptance remaining
 

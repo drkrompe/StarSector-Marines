@@ -40,9 +40,8 @@ import java.util.List;
 
 /**
  * Bridge between {@link BspMapPreviewSnapshotSuite} (real BSP generator, flat-color
- * per-{@link GroundKind} render) and {@link
- * com.dillon.starsectormarines.battle.world.tiles.StreetZonePreviewTest} (hand-
- * built topology, production sprite-picker render). Runs the real
+ * per-{@link GroundKind} render) and a hand-built topology through the
+ * production sprite picker. Runs the real
  * {@link BspCityGenerator} end-to-end and renders the {@link MapResult}
  * through the ordinary headless battle scene. The generated map enters battle
  * setup and the production ground and doodad render systems collect it; only

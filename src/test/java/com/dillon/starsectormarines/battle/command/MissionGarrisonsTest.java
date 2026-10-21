@@ -122,6 +122,33 @@ class MissionGarrisonsTest {
     }
 
     @Test
+    void aHolderCapBoundsNewSendsButTurnsNobodyOut() {
+        // Both buildings pressed, a duty squad beside each: uncapped both go, capped at one only the first does.
+        GarrisonDirector.Pressure everywhere = (bx, by) -> 5f;
+        int[] contacts = {48, 38, 102, 54};
+        Map<Integer, MissionGarrisons.Offer> duty = new TreeMap<>();
+        duty.put(1, MissionGarrisons.Offer.duty(47, 34));
+        duty.put(2, MissionGarrisons.Offer.duty(102, 54));
+        List<CommandSquadState> squads = List.of(patrol(1, 47, 34), patrol(2, 102, 54));
+        assertEquals(2, new MissionGarrisons().plan(squads, places, everywhere, contacts, 2,
+                (sx, sy, x, y) -> true, duty, ISSUER).size(), "uncapped, every pressed place gets a picket");
+
+        Map<Integer, MissionGarrisons.Manning> capped = garrisons.plan(squads, places, everywhere, contacts, 2,
+                (sx, sy, x, y) -> true, duty, ISSUER, 1);
+        assertEquals(1, capped.size(), "capped at one holder, one squad is sent");
+        int sent = capped.keySet().iterator().next();
+        ObjectiveAssignment order = capped.get(sent).order();
+        int other = sent == 1 ? 2 : 1;
+        CommandSquadState holder = squad(sent, places.centreX(capped.get(sent).place()),
+                places.centreY(capped.get(sent).place()), UnitRole.PATROL, false, order);
+        CommandSquadState free = sent == 1 ? patrol(2, 102, 54) : patrol(1, 47, 34);
+        Map<Integer, MissionGarrisons.Manning> next = garrisons.plan(List.of(holder, free), places, everywhere,
+                contacts, 2, (sx, sy, x, y) -> true, duty, ISSUER, 1);
+        assertEquals(MissionGarrisons.Kind.STAND, next.get(sent).kind(), "the holder keeps its place");
+        assertFalse(next.containsKey(other), "and the cap keeps the other on its post in the open");
+    }
+
+    @Test
     void aHolderStandsWhilePressedAndIsGivenBackAfterTheDwell() {
         Picture pressed = new Picture(48, 38, 5f);
         ObjectiveAssignment order = pulse(pressed, List.of(patrol(1, 20, 25), patrol(2, 80, 50)), reserve(1, 2))
@@ -225,5 +252,39 @@ class MissionGarrisonsTest {
         assertEquals(order, out.get(0).assignment());
         assertEquals("GARRISONABLE_MAN", out.get(0).reason());
         assertSame(proposals.get(1), out.get(1));
+    }
+
+    @Test
+    void aWarmAreaStagesAReserveWhichIsThenTheOneSentToMan() {
+        List<CommandSquadState> pool = List.of(patrol(1, 100, 10), patrol(2, 110, 55), patrol(3, 115, 55));
+        Map<Integer, MissionGarrisons.Manning> warm = pulse(new Picture(48, 38, 2.5f), pool, reserve(1, 2, 3));
+        assertEquals(1, warm.size(), "warm, not hot: one squad staged, nobody manning");
+        MissionGarrisons.Manning staged = warm.values().iterator().next();
+        assertEquals(MissionGarrisons.Kind.STAGE, staged.kind());
+        assertEquals(-1, staged.place(), "staged for an area, not holding a place");
+        assertEquals(AssignmentKind.DEFEND_AREA, staged.order().kind());
+        int id = staged.squadId();
+
+        // It walks up to its staging cell and the pressure rises: it, not the nearer reserve, is the one sent.
+        List<CommandSquadState> arrived = new ArrayList<>();
+        for (CommandSquadState squad : pool) {
+            arrived.add(squad.squadId() == id
+                    ? squad(id, staged.cellX(), staged.cellY(), UnitRole.PATROL, false, staged.order()) : squad);
+        }
+        Map<Integer, MissionGarrisons.Manning> hot = pulse(new Picture(48, 38, 5f), arrived, reserve(1, 2, 3));
+        assertEquals(MissionGarrisons.Kind.MAN, hot.get(id).kind(), "the staged squad mans its area's place");
+        assertEquals(barracks, hot.get(id).place());
+        assertEquals(1, garrisons.stats().manFromStage);
+    }
+
+    @Test
+    void aStagedSquadTheMissionTakesBackIsForgotten() {
+        List<CommandSquadState> pool = List.of(patrol(1, 100, 10), patrol(2, 110, 55), patrol(3, 115, 55));
+        Map<Integer, MissionGarrisons.Manning> warm = pulse(new Picture(48, 38, 2.5f), pool, reserve(1, 2, 3));
+        int id = warm.keySet().iterator().next();
+        Map<Integer, MissionGarrisons.Offer> without = reserve(1, 2, 3);
+        without.remove(id);
+        assertFalse(pulse(new Picture(48, 38, 2.5f), pool, without).containsKey(id), "the mission outranks the flow");
+        assertTrue(garrisons.flow().posts().isEmpty() || !garrisons.flow().posts().containsKey(id));
     }
 }

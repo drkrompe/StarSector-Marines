@@ -28,7 +28,6 @@ import com.fs.starfarer.api.ui.PositionAPI;
 
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -378,8 +377,7 @@ public final class BoatDeckScreen implements Screen {
         }
         int index = Math.max(0, Math.min(bays.size() - 1, selectedBayIndex.get()));
         selectedBayIndex.set(index);
-        activeBayLabel.set(String.format(Locale.ROOT,
-                "%02d/%02d%s", index + 1, bays.size(),
+        activeBayLabel.set(Strings.format("openingBoatDeckBayPosition", index + 1, bays.size(),
                 deck.rooms().damaged(bays.get(index).id()) ? Strings.get("openingBoatDeckSealed") : ""));
         bayNavigatorClasses.set(bays.size() > 1 ? "bay-navigator" : "bay-navigator hidden");
         bayContextLabel.set(ShipBreadcrumb.of(deck.ship(), bays.get(index)));

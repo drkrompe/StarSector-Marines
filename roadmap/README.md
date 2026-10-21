@@ -136,7 +136,10 @@ Marine corridor and bounded conventional defender interdiction commanders now
 run as a paired production duel. Civilian Rescue now supplies the first
 asymmetric Extraction adapter: Marines coordinate the shelter, cohort, screens,
 and lift while a separately disclosed swarm director owns pressure waves and
-perimeter approaches. Silent Colony now divides its Marine expedition into
+perimeter approaches. Colony Breach is refreshing Rescue in place: a precinct
+colony, destroyable bores the swarm erupts from, new strains, a callable tender
+and a hive posture for the Marine commander; start with `colony-breach-nouns.md`
+and its `stories.md`. Silent Colony now divides its Marine expedition into
 stable archive and survivor branches through the same frozen command envelope.
 Live acceptance for Generic Extraction, Rescue, and Silent Colony remains.
 Each mission keeps its own strategy geometry. See `conquest-command.md`,

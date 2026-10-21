@@ -161,7 +161,7 @@ test {
                 'squad-firing-evidence',
                 'commander-balance', 'conquest-trial-evidence',
                 'sabotage-command-evidence', 'assault-command-evidence', 'relief-command-evidence', 'counterattack-command-evidence', 'junction-command-evidence', 'relay-nine-command-evidence', 'thunder-run-command-evidence', 'last-lift-command-evidence', 'supply-route-campaign-evidence',
-                'raid-command-evidence', 'extraction-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
+                'raid-command-evidence', 'extraction-command-evidence', 'colony-breach-command-evidence', 'corvus-command-evidence', 'power-suit-campaign-evidence',
                 'crew-liveliness', 'shader-evidence', 'render-evidence', 'garrison-evidence',
                 'generated-space-evidence',
                 'loadout-card-sheet', 'loadout-matchup', 'armor-matchup', 'armor-economy-evidence'
@@ -171,9 +171,8 @@ test {
         // gradle console so devs don't have to dig through the XML report.
         showStandardStreams = true
     }
-    // EngineSlotPreviewTest loads vanilla .ship files + sprites from the
-    // game install; forward the project-level `starsectorDir` gradle property
-    // so the test can find them. Same source of truth the build.gradle root
+    // Tests that read vanilla files or sprites from the game install find it
+    // through the project-level `starsectorDir` gradle property. Same source of truth the build.gradle root
     // uses for compileOnly + deployMod (resolved at line 13).
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     // ProjectTilesetSeedsTest reads the checked-in tileset seeds at runtime, so
@@ -243,6 +242,7 @@ def commanderEvidenceTags = [
         corvus: 'corvus-command-evidence',
         raid: 'raid-command-evidence',
         extraction: 'extraction-command-evidence',
+        'colony-breach': 'colony-breach-command-evidence',
 ]
 
 // Crewing two whole hulls and running each for four minutes of ship's time is
@@ -533,6 +533,7 @@ tasks.register('commanderEvidence', Test) {
                 corvus: 'corvus.command.evidence',
                 raid: 'raid.command.evidence',
                 extraction: 'extraction.command.evidence',
+                'colony-breach': 'colony.breach.command.evidence',
         ][commanderEvidenceMission]
         // -PevidenceDir=<path> writes this run's report elsewhere, so a run and its control run can sit side by side.
         def evidenceDir = providers.gradleProperty('evidenceDir').getOrElse('').trim()
@@ -583,7 +584,7 @@ tasks.register('commanderEvidence', Test) {
     doFirst {
         if (!commanderEvidenceTags.containsKey(commanderEvidenceMission)) {
             throw new GradleException(
-                    'commanderEvidence requires -Pmission=conquest, conquest-trial, sabotage, assault, relief, counterattack, junction, relay-nine, thunder-run, last-lift, supply-route, power-suit-campaign, corvus, raid, or extraction')
+                    'commanderEvidence requires -Pmission=conquest, conquest-trial, sabotage, assault, relief, counterattack, junction, relay-nine, thunder-run, last-lift, supply-route, power-suit-campaign, corvus, raid, extraction, or colony-breach')
         }
     }
     testLogging {

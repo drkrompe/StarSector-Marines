@@ -41,6 +41,7 @@ com.dillon.starsectormarines.battle.warship.FrigateVisitScene
 com.dillon.starsectormarines.battle.warship.FrigateLedgerScene
 com.dillon.starsectormarines.battle.warship.WarshipPilotScene
 com.dillon.starsectormarines.battle.tender.TenderBuildScene
+com.dillon.starsectormarines.battle.tender.TenderCallDownScene
 com.dillon.starsectormarines.battle.tender.TenderStanceScene
 com.dillon.starsectormarines.battle.tender.TenderSortieScene
 com.dillon.starsectormarines.battle.tender.TenderPilotScene
@@ -108,6 +109,8 @@ com.dillon.starsectormarines.battle.command.CompoundApronScene
 com.dillon.starsectormarines.battle.command.TakenCompoundScene
 com.dillon.starsectormarines.battle.command.MissionEnvelopeScene
 com.dillon.starsectormarines.battle.command.MissionDefenceScene
+com.dillon.starsectormarines.battle.command.MissionFlowScene
+com.dillon.starsectormarines.battle.command.StoryDefenceScene
 com.dillon.starsectormarines.battle.command.MachineGuardScene
 com.dillon.starsectormarines.battle.command.SallyPortScene
 com.dillon.starsectormarines.battle.sally.SallyDoorScene

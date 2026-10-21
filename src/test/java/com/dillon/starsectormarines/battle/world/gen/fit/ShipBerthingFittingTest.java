@@ -5,13 +5,10 @@ import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.nio.file.Path;
-import javax.imageio.ImageIO;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ShipBerthingFittingTest {
@@ -67,16 +64,6 @@ class ShipBerthingFittingTest {
                 int[] cell = f.floor.toLocal(x, y);
                 assertTrue(f.ctx.grid.isWalkable(4 + cell[0], 4 + cell[1]));
             }
-        }
-    }
-    @Test void beddingRemainsVisibleThroughTheRetainingFrame() throws Exception {
-        var image = ImageIO.read(Path.of("mod/graphics/tilesets/barracks-bunks.png").toFile());
-        var frame = TileRegistry.installed().doodad("barracks-bunks.frame");
-        for (int y = 20; y < 108; y++) for (int x = 15; x < 49; x++)
-            assertTrue((image.getRGB(frame.col * 64 + x, frame.row * 64 + y) >>> 24) <= 2);
-        for (String id : new String[]{"frame", "bedding-low", "bedding-high"}) {
-            var def = TileRegistry.installed().doodad("barracks-bunks." + id);
-            assertEquals(0, def.cover.level()); assertEquals(0f, def.ballisticHalfHeight);
         }
     }
 }

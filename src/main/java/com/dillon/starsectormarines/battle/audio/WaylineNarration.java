@@ -27,6 +27,8 @@ import java.util.regex.Pattern;
 /** Packaged dialogue, independent of its authoring provider and campaign state. */
 public final class WaylineNarration {
     public static final String PATH = "data/marines/wayline_narration.json";
+    /** Per-feature catalogs of the same shape, merged into the built-ins; a missing one costs only its own lines. */
+    public static final List<String> FEATURE_PATHS = List.of("data/marines/colony_breach_narration.json");
     private static final Pattern SUPPLY_STORY_ID = Pattern.compile(
             Pattern.quote(BrokenSupplyRouteProgress.PREFIX) + "([14])_0_[1-9][0-9]*");
     private static final Map<Integer, String> SUPPLY_CHAPTERS = Map.of(
@@ -85,11 +87,26 @@ public final class WaylineNarration {
 
     public static void loadBuiltins() {
         try {
-            builtins = parse(Global.getSettings().loadJSON(PATH));
+            WaylineNarration merged = parse(Global.getSettings().loadJSON(PATH));
+            for (String path : FEATURE_PATHS) {
+                try {
+                    merged = merged.with(parse(Global.getSettings().loadJSON(path)));
+                } catch (Exception failure) {
+                    Global.getLogger(WaylineNarration.class).warn("Narration catalog unavailable: " + path, failure);
+                }
+            }
+            builtins = merged;
         } catch (Exception failure) {
             builtins = new WaylineNarration(List.of());
             Global.getLogger(WaylineNarration.class).warn("Wayline narration unavailable; text remains enabled", failure);
         }
+    }
+
+    /** This catalog's lines followed by another's; a duplicate mission event is rejected as in the constructor. */
+    public WaylineNarration with(WaylineNarration other) {
+        List<Line> all = new ArrayList<>(lines.values());
+        all.addAll(other.lines.values());
+        return new WaylineNarration(all);
     }
 
     public static WaylineNarration parse(JSONObject root) throws JSONException {

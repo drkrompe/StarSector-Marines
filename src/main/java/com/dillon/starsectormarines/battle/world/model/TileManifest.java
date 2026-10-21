@@ -73,10 +73,10 @@ public final class TileManifest {
      */
     public static final String PARKED_VEHICLE_SHEET = "graphics/tilesets/parked-vehicles.png";
 
-    /** Open-road surface color, sampled at the center pixel of the road autotile center cell (13, 1). Verified by {@code TileManifestFillColorTest}. */
+    /** Open-road surface color, sampled at the center pixel of the road autotile center cell (13, 1). */
     public static final int ROAD_FILL_RGB = 0x2F3D4A; // 47, 61, 74
 
-    /** Open-courtyard surface color, sampled inside the open-area quadrant of the courtyard NW edge tile. Verified by {@code TileManifestFillColorTest}. */
+    /** Open-courtyard surface color, sampled inside the open-area quadrant of the courtyard NW edge tile. */
     public static final int COURTYARD_FILL_RGB = 0x3B4753; // 59, 71, 83
 
     /**

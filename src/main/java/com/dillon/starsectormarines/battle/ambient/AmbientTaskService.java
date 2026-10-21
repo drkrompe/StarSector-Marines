@@ -683,7 +683,9 @@ public final class AmbientTaskService {
             }
         } else if (!pose.moving() && handsOnFixture(actorId)) {
             flags |= LayeredAppearance.FLAG_AT_STATION;
-            weaponPhase = pose.actionPhase();
+            AmbientTaskRoute route = assignments.get(actorId);
+            float offset = route != null ? route.phaseOffsetSeconds() : 0f;
+            weaponPhase = positiveModulo((elapsedSeconds + offset) / STATION_HAND_PERIOD_SECONDS, 1f);
         } else if (pose.activity() == AmbientActivity.FIRING_PRIMARY || practiceEquipment) {
             float cycle = primaryCycle(carriedSpecial != null, pose);
             if (cycle >= FIRE_BEGIN && cycle < FIRE_END) {
@@ -708,6 +710,14 @@ public final class AmbientTaskService {
         entities.setInt(actorId, components.LAYERED_ANIMATION,
                 BattleComponents.LAYERED_FLAGS, flags);
     }
+
+    /**
+     * One sweep of the hands across a console, in seconds. A clock of its own
+     * rather than the job's progress, which would run the same motion ten times
+     * faster on a short job than on a long one; each route's phase offset keeps
+     * a room of operators from moving in step.
+     */
+    private static final float STATION_HAND_PERIOD_SECONDS = 1.7f;
 
     /** Whether the job this actor is at puts its hands on the fixture. */
     private boolean handsOnFixture(long actorId) {

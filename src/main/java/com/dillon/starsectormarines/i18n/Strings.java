@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.i18n;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import java.text.MessageFormat;
+import java.util.Locale;
 
 /**
  * Central lookup for Starsector Marines display strings. All user-facing
@@ -34,6 +35,42 @@ public final class Strings {
     /** Catalog display fields may reference {@code @key}; addon-authored literal text stays valid. */
     public static String resolve(String text) {
         return text != null && text.startsWith("@") ? get(text.substring(1)) : text;
+    }
+
+    /**
+     * The translation's own language, which the copy names under {@code locale}. Case changes
+     * follow it, because uppercasing is language-dependent (Turkish dotted i is the classic case).
+     */
+    public static Locale locale() {
+        Locale cached = locale;
+        if (cached == null) {
+            String tag = get("locale");
+            cached = tag.equals("locale") || tag.isBlank() ? Locale.ROOT : Locale.forLanguageTag(tag);
+            locale = cached;
+        }
+        return cached;
+    }
+
+    private static volatile Locale locale;
+
+    /** Translated text set in capitals, by the rules of the translation's language. */
+    public static String upper(String text) {
+        return text == null ? "" : text.toUpperCase(locale());
+    }
+
+    /**
+     * Parts joined by the separator the copy names under {@code separatorKey}, so a translation
+     * chooses its own punctuation. Null and blank parts are left out.
+     */
+    public static String join(String separatorKey, String... parts) {
+        String separator = get(separatorKey);
+        StringBuilder out = new StringBuilder();
+        for (String part : parts) {
+            if (part == null || part.isBlank()) continue;
+            if (out.length() > 0) out.append(separator);
+            out.append(part);
+        }
+        return out.toString();
     }
 
     public static String get(String key) {

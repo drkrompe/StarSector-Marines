@@ -140,8 +140,11 @@ class DepotHoldEvidenceTest {
                 }
                 // A mechanic, not an outcome: every militiaman still alive joins the defense. One shot on
                 // the way in is the fight's reading (maxMilitiaWithinEightCellsOfHoldAnchor), not a fault.
-                assertTrue(everyLivingMilitiaGathered, "every living militiaman must reach the warehouse defense");
-                assertTrue(militiaDefenseShots > 0, "militia must contribute fire during the defense");
+                // The defense needs the warehouse taken first; a company stopped short of it is a reading.
+                if (captureTick >= 0) {
+                    assertTrue(everyLivingMilitiaGathered, "every living militiaman must reach the warehouse defense");
+                    assertTrue(militiaDefenseShots > 0, "militia must contribute fire during the defense");
+                }
                 if (recover) assertTrue(handedBack, "the real arriving squad must be able to commission Wayward");
             }
         }

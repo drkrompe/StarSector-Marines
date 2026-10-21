@@ -13,9 +13,10 @@ import com.dillon.starsectormarines.ops.RiskLevel;
  * <p>Cell counts grow roughly 1x / 1.6x / 2.5x across the tier band to keep the
  * perf budget on a known curve.
  *
- * <p><b>{@link #CONQUEST} is not on that band.</b> It is a mission's own size
- * rather than a tier's, and {@link #forTier} never returns it; see its own
- * documentation for why Conquest states its map instead of scaling it.
+ * <p><b>{@link #CONQUEST} and {@link #COLONY} are not on that band.</b> Each is
+ * a mission's own size rather than a tier's, and {@link #forTier} never returns
+ * either; see their own documentation for why those missions state their map
+ * instead of scaling it.
  */
 public enum MapScale {
 
@@ -52,7 +53,20 @@ public enum MapScale {
      * length scales. Several places on a bigger map is the answer, and this is
      * the map that was measured with them on it.
      */
-    CONQUEST(560, 336);
+    CONQUEST(560, 336),
+
+    /**
+     * The Colony Breach colony on its campaign (high-risk) path.
+     *
+     * <p>Mission-owned like {@link #CONQUEST}, and for a like reason: the
+     * colony is a town and an outlying installation whose places are where
+     * the swarm comes up, so the map has to seat a shelter, a lift, a spread of
+     * eruption sites between and around them and a mother bore far from the
+     * lift. {@code colony-breach-nouns.md} asks for "slightly larger than
+     * today"; this is that, at the 5:3 the rest of the band keeps. Lower risks
+     * and the debug stress path keep their tier scale.
+     */
+    COLONY(400, 240);
 
     public final int width;
     public final int height;
