@@ -1,6 +1,6 @@
 # Breach audio
 
-Status: READY
+Status: IN PROGRESS (clips, catalog and registration landed; system hooks pending)
 
 Written: 2026-10-21
 
@@ -36,3 +36,43 @@ Model: `colony-breach-nouns.md` (Beats). Radio law: `battle-radio-nouns.md`.
 - Owner can audition every clip; a short review sheet lists them.
 - Beats that exist on `main` play their lines in a live-shaped battle.
 - No secrets committed; generation is reproducible from tracked scripts.
+
+## Landed
+
+- `tools/generate_colony_breach_audio.py` (dry-run default; `--generate`, `--replace`,
+  `--id`, `--register`). Speech catalog `mod/data/marines/colony_breach_narration.json`
+  (mission id `story_colony_breach`, event = the full beat id); SFX spec and sources
+  under `asset-pipeline/src/tool/resources/audio/colony-breach/`. Receipts sit beside
+  each take.
+- `WaylineNarration.FEATURE_PATHS` merges the catalog into the built-ins, so beats
+  published to `StoryBeatLog` play through `StoryNarrationQueue` unchanged.
+- SFX ids are one `sounds.json` entry per sound with its variants (the engine picks one):
+  `marines_breach_` + `runner_chitter`, `runner_attack`, `runner_death`, `brute_bellow`,
+  `brute_impact`, `brute_wall_break`, `brute_death`, `spitter_lob`, `spitter_splash`,
+  `spitter_death`, `bore_eruption`, `bore_ambience_fissure|bore|maw` (loops),
+  `bore_collapse`, `spore_vent_burst`, `matriarch_roar`.
+- Voices are provisional library picks (militia: Sadie; administrator: David; Marine
+  company lines: Castle). Swap `voiceId` and regenerate with `--replace`.
+
+## Hook points still pending
+
+The owning systems have not landed (or have no sound cue feed), so no hook files were
+edited:
+
+1. **Mission to catalog.** `WaylineNarration.storyMissionId` must return
+   `"story_colony_breach"` for the Colony Breach mission and its debug scenario
+   (`breach-mission-spine.md`). Until then no line plays.
+2. **Beats.** The breach sequence must emit the `colony_breach.*` ids from the nouns
+   table as PLAYER beats with exactly those ids; lines exist for `landfall`,
+   `militia_contact`, `shelter_reached`, `tremor`, `bore_erupted|grew_N_bore|grew_N_maw|collapsed_N`
+   for N=1..4, `mother_bore_erupted|collapsed`, `matriarch_emerged`, `tender_down`,
+   `hardpoint_established`, `lift_inbound`, `lift_down`, `cohort_boarded`, `colony_lost`.
+   A beat with no line is silent, so numbers above 4 need lines added to the catalog.
+3. **Swarm bodies** (`swarm-strains.md`): a presentation cue feed, as `TenderCues` does, for
+   body attack, death and per-strain bellow/lob; a `TenderAudio`-style player admits them
+   under a per-kind gap and plays them positionally with pitch jitter.
+4. **Bores** (`bore-spawners.md`): cues for eruption (`bore_eruption`), tier growth (loop
+   swap to `bore_ambience_bore|maw`), collapse (`bore_collapse`), and a positional ambience
+   loop per living bore.
+5. **Spore vents** (`bore-spawners.md`): `spore_vent_burst` per burst.
+6. **Matriarch** (`matriarch.md`): `matriarch_roar` at emergence; spitter splash on acid impact.
