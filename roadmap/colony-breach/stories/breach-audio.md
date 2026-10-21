@@ -61,7 +61,7 @@ edited:
 
 1. **Mission to catalog.** `WaylineNarration.storyMissionId` must return
    `"story_colony_breach"` for the Colony Breach mission and its debug scenario
-   (`breach-mission-spine.md`). Until then no line plays.
+   (`colony-breach-nouns.md`). Until then no line plays.
 2. **Beats.** The breach sequence must emit the `colony_breach.*` ids from the nouns
    table as PLAYER beats with exactly those ids; lines exist for `landfall`,
    `militia_contact`, `shelter_reached`, `tremor`, `bore_erupted|grew_N_bore|grew_N_maw|collapsed_N`

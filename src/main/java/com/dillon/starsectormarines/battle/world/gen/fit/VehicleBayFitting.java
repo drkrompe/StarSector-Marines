@@ -161,6 +161,9 @@ public final class VehicleBayFitting implements RoomFitting {
             "doodad.industrial-fence-corner-nw", "doodad.industrial-fence-corner-sw",
             "doodad.industrial-fence-corner-ne", "doodad.industrial-fence-corner-se" };
 
+    /** The overhead travelling crane over a full-depth bay: runway girders, with its bridge as a moving part. */
+    private static final String CRANE = "deck-motion.crane-runway";
+
     /** The station at the head of a bay, where the work on that machine is run from. */
     private static final String[] BAY_STATION = {
             "doodad.industrial-machine-tool",
@@ -457,6 +460,8 @@ public final class VehicleBayFitting implements RoomFitting {
 
         layFrame(floor, origin, band, depth, head, mouth, waist, true);
         layFrame(floor, origin + BAY_WIDTH - 1, band, depth, head, mouth, waist, false);
+        // An overhead crane runs the full depth of a ship's bay on girders over both frame columns.
+        if (shipboard && depth == BAY_DEPTH) floor.overlay(origin, band, CRANE);
         layService(floor, origin, mouth, head, waist, berth,
                 !installation && bay % DEFECT_STRIDE == DEFECT_PHASE);
     }

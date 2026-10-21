@@ -845,7 +845,7 @@ def _mg(**kw):
 
 def _ac(**kw):
     w = dict(energy=False, burst=1, burst_delay=0, cooldown=.5, barrels='alternating', spread=.003,
-             flash=(1.0, .55, .25, .1), flash_tint=(165, 225, 185), flash_size=(1.25, 1.35, 1.35), flash_gain=.35,
+             flash=(1.0, .55, .25, .1), flash_tint=(165, 225, 185), flash_size=(1.25, 1.35, 1.35),
              flash_light=(165, 225, 185),
              cloud=dict(rgb=(165, 225, 185), r=(.8, 2.6), frames=5, peak=2),
              round=dict(speed=360, range=600, length=2.6, core=.14, corona=.9, fringe=(235, 255, 215),
@@ -882,11 +882,11 @@ WEAPONS = {
     'hellbore': dict(name='Hellbore Cannon', energy=False, burst=1, burst_delay=0, cooldown=3.0,
                      barrels='alternating', spread=.001,
                      flash=(1.0, .85, .65, .48, .34, .24, .16, .1, .06), flash_tint=(255, 120, 50),
-                     flash_size=(1.5, 1.6, 1.6), flash_gain=.25, flash_light=(255, 120, 50), flash_light_gain=4.0,
-                     cloud=dict(rgb=(255, 120, 50), r=(2.0, 9.0), frames=18, peak=1.4),
+                     flash_size=(1.5, 1.6, 1.6), flash_light=(255, 120, 50), flash_light_gain=4.0,
+                     cloud=dict(rgb=(255, 120, 50), r=(2.0, 9.0), frames=18, peak=3.0),
                      round=dict(speed=170, range=900, length=5.5, core=.6, corona=1.9, fringe=(255, 165, 30),
-                                hot=(255, 200, 110), core_gain=3, corona_gain=.9, light=40000,
-                                halo=dict(r=5.0, peak=.7)),
+                                hot=(255, 230, 170), core_gain=10, corona_gain=1.8, light=40000,
+                                halo=dict(r=5.0, peak=1.5)),
                      puff=True, brass=False),
     # High explosive: orange shells.
     'lightag': _ac(name='Light Assault Gun', cooldown=.25, flash=(1.0, .6, .35, .18, .08), flash_tint=(255, 155, 105),
@@ -933,6 +933,14 @@ WEAPONS = {
                                     light_rgb=(100, 100, 255)),
                          puff=False, brass=False),
 }
+# The game's turn rates (weapon_data.csv "turn rate", degrees per second): how fast aim()
+# swings each turret onto its target. A Hellbore takes six seconds over thirty degrees.
+TURN_RATES = {'lightmg': 50, 'lightdualmg': 50, 'vulcan': 75, 'lightac': 20, 'heavyac': 7, 'mark9': 10,
+              'hellbore': 5, 'lightag': 40, 'chaingun': 30, 'lightneedler': 20, 'ioncannon': 40,
+              'miningblaster': 7, 'heavyblaster': 15}
+for _k, _v in TURN_RATES.items():
+    WEAPONS[_k].setdefault('turn', _v)
+
 FEEDER_RGB = (255, 200, 0)          # Accelerated Ammo Feeder weapon glow
 
 
@@ -961,8 +969,7 @@ def arm(ctx, turret, weapon, tag=None):
         rig['weapon'] = weapon
         box = rig.get('flash') or bpy.data.objects.get(f'{PREFIX} flash {label}')
         if box is not None:
-            # A big mount's flash box is a long path through the gas, so a heavy gun's flash is
-            # turned down (flash_gain) or it bleaches to a white ball under AgX (pass 3).
+            # flash_gain (default 1) scales a weapon's flash gas, for a flash that wants it.
             mat = _flash_material(ctx, label, _lin(w['flash_tint']) if w.get('flash_tint') else None,
                                   w.get('flash_gain', 1.0))
             box.data.materials[0] = mat
@@ -1025,7 +1032,7 @@ def fire_weapon(ctx, turret, start_frame, seconds, feeder=False, target=None, ta
         mode = w['barrels']
         pick = guns if mode == 'linked' else [guns[(k if mode == 'alternating_burst' else n) % len(guns)]]
         if target is not None and train:
-            aim(ctx, turret, target, f, tag=tag)
+            aim(ctx, turret, target, f, tag=tag, turn_rate=w.get('turn'))
         for g in pick:
             if w.get('charge') and w.get('chargeup'):
                 _charge(ctx, g, f, int(round(w['chargeup'] * fps)), w)
@@ -1070,6 +1077,17 @@ def _weapon_shot(ctx, a, frame, lead=0.0, target=None):
     return rec
 
 
+def _object_colour(nodes):
+    """The object's own colour, keyed per object. Object Info's Color is the instancer's for an
+    object drawn through a collection instance (every per-ship copy is), which read (1, 1, 1) and
+    drove every glow at full strength into a white disc (passes 1-4); an Object attribute looks
+    on the object itself first. Its output is named Color as Object Info's is."""
+    at = nodes.new('ShaderNodeAttribute')
+    at.attribute_type = 'OBJECT'
+    at.attribute_name = 'color'
+    return at
+
+
 def _glow_material(ctx, rgb):
     """Soft emissive gas: the weapon's colour, whiter where densest. Object colour R is the fade,
     G a seed, B a twentieth of the emission per metre (peak radiance / diameter in metres), so a
@@ -1086,7 +1104,7 @@ def _glow_material(ctx, rgb):
     x, y, z = g.xyz(p)
     r2 = g.add(g.add(g.sq(x), g.sq(y)), g.sq(z))
     shell = g.pow(g.mx(g.sub(1.0, r2), 0.0), 2.0)
-    info = nodes.new('ShaderNodeObjectInfo')
+    info = _object_colour(nodes)
     sep = nodes.new('ShaderNodeSeparateColor')
     links.new(info.outputs['Color'], sep.inputs[0])
     fade, seed, k = sep.outputs[0], sep.outputs[1], sep.outputs[2]
@@ -1191,7 +1209,7 @@ def _round_material(ctx, weapon, part):
     out = nodes.new('ShaderNodeOutputMaterial')
     tc = nodes.new('ShaderNodeTexCoord')
     gx, _, _ = g.xyz(tc.outputs['Generated'])
-    info = nodes.new('ShaderNodeObjectInfo')
+    info = _object_colour(nodes)
     sep = nodes.new('ShaderNodeSeparateColor')
     links.new(info.outputs['Color'], sep.inputs[0])
     burn = sep.outputs[0]
@@ -1325,12 +1343,45 @@ def _key_constant(ob, path, index, frame):
             kp.interpolation = 'CONSTANT'
 
 
-def aim(ctx, turret, target, frame, tag=None, slew_frames=0, iterations=4):
-    """Train a turret onto `target` (a point in the ship's own copy space, units) at `frame`:
+def _pose_at(ob, index, frame):
+    """A rotation channel's value at `frame` (its keys, else its current value), and the last
+    key before `frame` (None if it has none)."""
+    fc = swfx_core.find_fcurve(ob, 'rotation_euler', index)
+    if fc is None or not len(fc.keyframe_points):
+        return ob.rotation_euler[index], None
+    before = [kp.co.x for kp in fc.keyframe_points if kp.co.x < frame - 1e-4]
+    return fc.evaluate(frame), (max(before) if before else None)
+
+
+def _key_slew(ob, index, f0, v0, f1, v1):
+    """Hold v0 to f0, swing eased to v1 at f1, hold there (CONSTANT) until the next key."""
+    ob.rotation_euler[index] = v0
+    ob.keyframe_insert('rotation_euler', index=index, frame=f0)
+    ob.rotation_euler[index] = v1
+    ob.keyframe_insert('rotation_euler', index=index, frame=f1)
+    fc = swfx_core.find_fcurve(ob, 'rotation_euler', index)
+    for kp in fc.keyframe_points:
+        if abs(kp.co.x - f0) < 1e-4:
+            kp.interpolation = 'BEZIER'
+            kp.easing = 'AUTO'
+            kp.handle_left_type = kp.handle_right_type = 'AUTO_CLAMPED'
+        elif abs(kp.co.x - f1) < 1e-4:
+            kp.interpolation = 'CONSTANT'
+            kp.handle_left_type = kp.handle_right_type = 'AUTO_CLAMPED'
+    fc.update()
+
+
+def aim(ctx, turret, target, frame, tag=None, slew_frames=None, turn_rate=None, iterations=4):
+    """Train a turret onto `target` (a point in the ship's own copy space, units) by `frame`:
     its pivot traverses about its own Z and its elevation lifts about its own Y until the
-    muzzle's line of fire passes through the target, keyed CONSTANT there, so the flash, which
-    rides the muzzle, points where the rounds go. slew_frames > 0 keys the previous pose that many
-    frames earlier, so the turret swings over rather than snapping. Elevation is not clamped.
+    muzzle's line of fire passes through the target, so the flash, which rides the muzzle,
+    points where the rounds go.
+
+    The turret swings there from the pose it has at that frame (its earlier keys), eased, over
+    `slew_frames`, or over the time `turn_rate` (degrees per second; the game's "turn rate":
+    a Hellbore 5, a light MG 50) takes for the larger of the two angles. The swing starts no
+    earlier than the turret's previous key, so a turret given too little time turns faster
+    than its rate rather than late. Neither: it snaps, keyed CONSTANT. Elevation is not clamped.
 
     The pivot is a hull object. A ship placed without its own hull copy (ship_fx.ShipFx
     own_hull) shares its turrets with every other copy of that build, and training one trains
@@ -1344,15 +1395,14 @@ def aim(ctx, turret, target, frame, tag=None, slew_frames=0, iterations=4):
     if piv is None:
         return None
     T = Vector(target)
-    if slew_frames > 0:
-        _key_constant(piv, 'rotation_euler', 2, frame - slew_frames)
-        if elev is not None:
-            _key_constant(elev, 'rotation_euler', 1, frame - slew_frames)
-        for ob, i in ((piv, 2), (elev, 1)):
-            fc = swfx_core.find_fcurve(ob, 'rotation_euler', i) if ob is not None else None
-            for kp in fc.keyframe_points if fc else ():
-                if abs(kp.co.x - (frame - slew_frames)) < 1e-4:
-                    kp.interpolation = 'BEZIER'
+    chans = [(piv, 2)] + ([(elev, 1)] if elev is not None else [])
+    start, prev = {}, []
+    for ob, i in chans:
+        v, k = _pose_at(ob, i, frame)
+        ob.rotation_euler[i] = v
+        start[ob.name] = v
+        if k is not None:
+            prev.append(k)
     X, Y, Z = Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1))
     for _ in range(iterations):
         m = anchor_matrix(a.empty)
@@ -1362,9 +1412,21 @@ def aim(ctx, turret, target, frame, tag=None, slew_frames=0, iterations=4):
             m = anchor_matrix(a.empty)
             elev.rotation_euler.y += _signed_angle(m.to_3x3() @ X, T - m.translation,
                                                    (anchor_matrix(elev).to_3x3() @ Y).normalized())
-    _key_constant(piv, 'rotation_euler', 2, frame)
-    if elev is not None:
-        _key_constant(elev, 'rotation_euler', 1, frame)
+    swing = max(abs(math.degrees(ob.rotation_euler[i] - start[ob.name])) for ob, i in chans)
+    dur = 0.0
+    if slew_frames:
+        dur = float(slew_frames)
+    elif turn_rate:
+        dur = swing / turn_rate * (ctx.scene.render.fps or swfx_core.FPS)
+    f0 = frame - dur
+    if prev:
+        f0 = max(f0, max(prev))
+    if dur > 0 and swing > .05 and f0 < frame - .5:
+        for ob, i in chans:
+            _key_slew(ob, i, round(f0), start[ob.name], frame, ob.rotation_euler[i])
+    else:
+        for ob, i in chans:
+            _key_constant(ob, 'rotation_euler', i, frame)
     return (round(math.degrees(piv.rotation_euler.z), 2),
             round(math.degrees(elev.rotation_euler.y), 2) if elev is not None else None)
 

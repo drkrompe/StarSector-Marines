@@ -90,7 +90,7 @@ public final class MechSupport extends AirDeliveryPower {
     private MechSupport(List<MechDeploymentSpec> deployments,
                         List<VehicleDeploymentSpec> vehicles,
                         FittedBoat companyCarrier, boolean syntheticLift) {
-        super(ID, "Mech Support", 4f, CALL_COOLDOWN_SECONDS, 0, 0, 3,
+        super(ID, "@battlePowerMechSupport", 4f, CALL_COOLDOWN_SECONDS, 0, 0, 3,
                 ShuttleType.VALKYRIE, ArmorDropPayload.INSTANCE, 5,
                 companyCarrier, syntheticLift);
         List<VehicleDeploymentSpec> validVehicles = new ArrayList<>();

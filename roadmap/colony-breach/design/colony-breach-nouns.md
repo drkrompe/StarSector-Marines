@@ -396,13 +396,11 @@ sends against a bore. Stable membership, traced like any other command role.
 The breach sequence owns the clock and the triggers; beats are what it
 publishes. Beats are presentation and evidence, never inputs to the simulation.
 
-**Built so far.** Landfall, seepage, the release, the tremor and the eruption
-schedule run, and every beat through `mother_bore_erupted` and the lift beats
-fires. Until bores exist an eruption stands nothing up and the director keeps
-spawning at the perimeter after the tremor, so the "spawning has a source" law
-is not yet in force. The lift has no countdown yet: the pickup craft comes down
-at the start of the battle and waits, so `lift_inbound` and `lift_down`
-normally fire before the shelter is reached.
+**Lift timing.** The lift has no countdown: the pickup craft comes down at the
+start of the battle and waits, so `lift_inbound` and `lift_down` normally fire
+before the shelter is reached. Until bores stand up on eruption sites
+(`bore-spawners.md`), an eruption opens a site and nothing more, and the
+director keeps spawning at the perimeter after the tremor.
 
 ## Beats
 
