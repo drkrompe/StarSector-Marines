@@ -191,10 +191,10 @@ public final class ColonyRedoubts {
         int run = sim.fightingPositions().runIdAt(first.x(), first.y());
         int centreX = (left + right) / 2, centreY = (top + bottom) / 2;
         int radius = Math.max(right - left, bottom - top) / 2 + 2;
-        if (run >= 0) {
-            sim.assignSquadCommand(ObjectiveAssignment.defendRun(squadId, centreX, centreY, radius, run),
-                    CommandAuthority.GARRISON, ColonyMilitia.ISSUER, reason);
-        }
+        // A wall's posts are no run: the team holds the ground and fights from the slits.
+        sim.assignSquadCommand(run >= 0 ? ObjectiveAssignment.defendRun(squadId, centreX, centreY, radius, run)
+                        : ObjectiveAssignment.defendArea(squadId, centreX, centreY, radius),
+                CommandAuthority.GARRISON, ColonyMilitia.ISSUER, reason);
         return squadId;
     }
 

@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a16015-01b5-75a3-a34a-2272de63935b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a16015-01b5-75a3-a34a-2272de63935b\\exec-fc0c33fe-6bcf-4cc9-a0d5-93319203dda8.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\rounds\\round-5\\layers\\front.png",
+    "sha256": "2fcb094a00c0d1313b2bc727b13f077ea83f30eafb049b74af1d3c7fcc438c93",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\rounds\\round-5\\prompts\\l-front.prompt.txt",
+  "promptSha256": "776dbd9723eb897f621e3c604078eaf5433d5662342ea4f875072f168d303cf5",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and identity authority: top-down view\nImage 2: Anatomy reference: side view of the same creature\n\nLayer for a 2D rig: ONE isolated front leg of the hound-bodied creature in references 1 and 2 (same finish: pale lilac armour plates over deep purple-magenta sinew, ivory claws), seen from DIRECTLY ABOVE as if the leg were laid out flat and straight, pointing DOWN: shoulder joint at the top centre, upper leg, elbow halfway, forearm, clawed paw at the bottom. Thick, muscular, hound proportions. Spanning about three quarters of the frame height. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\round-5\\raw\\c3.png",
+      "sha256": "d6501c1b95a2ba0435c735443ec4115f4496a6ebae30c7f2e3473ddbaf37ea17",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry and identity authority: top-down view"
+    },
+    {
+      "path": "art-source\\rav-redesign\\exploration\\rounds\\round-5\\raw\\c1.png",
+      "sha256": "0870ed6af353f1fc101a876d033a9b74e49111dcc917bcf717d5fe1e2ad382cb",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "role": "Anatomy reference: side view of the same creature"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one isolated front leg in a direct top-down view, matching the reference creature’s proportions and finish."
+  ],
+  "usage": {
+    "input_tokens": 44390,
+    "cached_input_tokens": 36864,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 354,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 41.7
+}

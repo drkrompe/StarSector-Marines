@@ -39,9 +39,9 @@ VICTIM = (120, 128, 136)
 # ----------------------------------------------------------------------------- anatomy (cells)
 SPINE = 0.50                    # shoulder to hip
 SHOULDER_Z, HIP_Z = 0.40, 0.38
-FRONT = dict(x=0.085, a=0.22, b=0.22)            # upper arm, forearm (elbow points back)
-HIND = dict(x=0.08, a=0.19, b=0.20, c=0.12)      # thigh, shin, metatarsus (stifle forward, hock back)
-ARMS = dict(x=0.07, up=0.07, a=0.17, b=0.17, spike=0.11)
+FRONT = dict(x=0.17, a=0.22, b=0.22)            # upper arm, forearm (elbow points back)
+HIND = dict(x=0.17, a=0.19, b=0.20, c=0.12)      # thigh, shin, metatarsus (stifle forward, hock back)
+ARMS = dict(x=0.12, up=0.07, a=0.30, b=0.30, spike=0.18)
 GAITS = {  # duty factor, stride (cells), phase offsets
     "gallop": (0.30, 1.05, {"HL": 0.0, "HR": 0.1, "FR": 0.48, "FL": 0.58}),
     "trot": (0.55, 0.36, {"FL": 0.0, "HR": 0.0, "FR": 0.5, "HL": 0.5}),
@@ -204,8 +204,9 @@ class Skeleton:
         if t > T_REEL:  # jaws latch on beside the spike
             k = smooth(min(1, (t - T_REEL - 0.15) / 0.25)) if t > T_REEL + 0.15 else 0.0
             tip = tips[0]
-            head = (head[0] + (tip[0] * 0.6 - head[0]) * k, head[1] + (tip[1] - 0.02 - head[1]) * k,
-                    head[2] + (0.16 - head[2]) * k)
+            reach = min(1.0, 0.1 / max(1e-6, math.dist(head, tip)))  # the neck stretches 0.1 cell at most
+            head = (head[0] + (tip[0] * 0.6 - head[0]) * k * reach, head[1] + (tip[1] - head[1]) * k * reach,
+                    head[2] + (0.2 - head[2]) * k)
         tail = [(0.0, hp[0] - 0.08 * i, hp[1] + 0.02 - 0.03 * i) for i in range(5)]
         sway = 0.04 * run * math.sin(2 * math.pi * self.phi)
         tail = [(sway * i * i / 16, p[1], p[2]) for i, p in enumerate(tail)]
@@ -215,7 +216,8 @@ class Skeleton:
     def arms(self, t, sh):
         """One arm per strike. Each wrist is (turn at the shoulder, reach, height) from its base: the left arm
         stabs straight along a line; the right arm swipes, turning from out wide across the front."""
-        rest, coil, ext = (0.15, 0.10), (0.05, 0.14), (0.31, -0.08)
+        g = ARMS["a"] / 0.17  # the poses were set for 0.17-cell arm bones
+        rest, coil, ext = (0.15 * g, 0.10 * g), (0.05 * g, 0.14 * g), (0.31 * g, -0.08 * g)
 
         def lerp(p, q, k):
             return tuple(a + (b - a) * k for a, b in zip(p, q))
@@ -224,7 +226,7 @@ class Skeleton:
         r0 = (0.0, *rest, 0.0)
         cocked = (0.0, *coil, 80.0)
         thrust = (0.0, *ext, 25.0)
-        carry = (0.0, 0.22, -0.06, 35.0)   # the spike stays in; the jaws latch on beside it
+        carry = (0.0, 0.17 * g, -0.08 * g, 35.0)   # the spike stays in; the jaws latch on beside it
         if t < T_WIND:
             left = r0
         elif t < T_THRUST:
@@ -236,7 +238,7 @@ class Skeleton:
         else:
             left = lerp(thrust, carry, smooth(min(1, (t - T_REEL) / 0.35)))
         # right: the swipe
-        out, cut = (80.0, 0.22, 0.07, 0.0), (-30.0, 0.30, -0.02, 0.0)
+        out, cut = (80.0, 0.22 * g, 0.07 * g, 0.0), (-30.0, 0.30 * g, -0.02 * g, 0.0)
         u = t - T_SWIPE
         if u < 0:
             right = r0
