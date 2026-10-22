@@ -1,7 +1,9 @@
 <template props="chip">
   <!-- An issued card at a glance, as every armoury screen names it (CardChips): seal,
        face, kind, name and rating, in the licence card's navy with its kind's edge.
-       card-chip-compact drops the kind line for a squad card on the Barracks board.
+       A full chip spells its rating out on the line above the name ("Protection Rating: 21%");
+       card-chip-compact drops that line for a bare percentage on the right, for a squad
+       card on the Barracks board.
        288px wide unless the host narrows it. -->
   <div id="{chip.id}" class="{chip.classes}">
     <div id="{chip.slotId}" class="card-chip-slot">
@@ -26,8 +28,10 @@
   .card-chip-icon { width: 44px; height: 44px; pointer-events: none; }
   .card-chip-text { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; overflow: hidden; }
   .card-chip-kind { height: 14px; color: #8b9aaf; }
+  .card-chip-weapon .card-chip-kind { color: #53c6e8; }
+  .card-chip-armor .card-chip-kind { color: #dfb84d; }
   .card-chip-name { height: 18px; color: #eaf3ff; overflow: hidden; }
-  .card-chip-rating { width: 72px; text-align: right; }
+  .card-chip-rating { width: 0px; text-align: right; }
   .card-chip-weapon .card-chip-rating { color: #53c6e8; }
   .card-chip-armor .card-chip-rating { color: #dfb84d; }
   .card-chip-compact { height: 34px; gap: 4px; padding: 0px 6px 0px 0px; }
