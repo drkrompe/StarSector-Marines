@@ -90,7 +90,7 @@ public final class ArmoryLoadoutPreviewComposer {
         sink.fillRect(0f, 0f, width, height, BACKGROUND);
         sink.line(12f, height - 14f, width - 12f, height - 14f, ACCENT, 2f);
         drawSoldier(sink, assets, billet, width * 0.5f, height * 0.48f,
-                Math.min(height * 0.50f, width * 0.44f), height, idleSeconds);
+                Math.min(height * 0.85f, width * 0.44f), height, idleSeconds);
     }
 
     /** Compact at-a-glance composition of all four template billets. */

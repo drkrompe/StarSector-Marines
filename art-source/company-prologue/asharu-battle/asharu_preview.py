@@ -469,15 +469,15 @@ def shot(L, kf):
             return M(tgt, t) @ Vector((half * (1 - 2 * u), side * half * .15, 0))
         nose = point(drone, (2.0, 0, 0))
         mp.line('%s rake %d' % (kf, i), lambda t, c=cut, n=nose: None if c(t) is None else (n(t), c(t)),
-                'beam', width_px=2.0)
+                'beam', width_px=4.0)
 
         def sparks(t, c=cut, i=i):
             e = c(t)
             if e is None:
                 return None
             r = __import__('random').Random(int(t * 24) * 31 + i)
-            return [e + Vector((r.gauss(0, 1), r.gauss(0, 1), r.gauss(0, 1))) * r.uniform(1, 6) for _ in range(6)]
-        mp.dots('%s rake %d sparks' % (kf, i), sparks, 'debris', n=6, size_px=3)
+            return [e + Vector((r.gauss(0, 1), r.gauss(0, 1), r.gauss(0, 1))) * r.uniform(2, 14) for _ in range(10)]
+        mp.dots('%s rake %d sparks' % (kf, i), sparks, 'flare', n=10, size_px=5)
     for key, sh in spec.get('shields', {}).items():
         tw = sh.get('toward')
         mp.shield('%s shield %s' % (kf, key), point(key), placed[key]['length'] * .6,

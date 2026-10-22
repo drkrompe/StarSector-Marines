@@ -301,7 +301,7 @@ class FleetArmoryViewModelTest {
             UiElement list = instance.requireElement("weapon-doctrine-list");
             UiElement first = list.childAt(0);
             UiElement billet = instance.requireElement("loadout-billet:0");
-            UiElement comparison = instance.requireElement("loadout-item:0");
+            UiElement comparison = instance.requireElement(LoadoutInspection.partId(0, LoadoutInspection.WEAPON));
             var alternative = model.weaponDoctrineTiles().get().get(1);
             alternative.select().run();
             instance.flush();
@@ -316,7 +316,7 @@ class FleetArmoryViewModelTest {
             instance.flush();
             assertNotEquals(title, model.inspection().get().get("title"));
             assertSame(billet, instance.requireElement("loadout-billet:0"));
-            assertSame(comparison, instance.requireElement("loadout-item:0"));
+            assertSame(comparison, instance.requireElement(LoadoutInspection.partId(0, LoadoutInspection.WEAPON)));
             assertEquals(weapon, model.selectedWeaponDoctrineId());
             assertTrue(next.hasClass("selected"));
             var chosen = model.weaponDoctrineTiles().get().stream()
@@ -348,12 +348,10 @@ class FleetArmoryViewModelTest {
             SpecSheetBinder binder = new SpecSheetBinder(document, layer);
             ArmorySpecSheets.bindInspection(binder, instance, model.inspection());
             document.layout(1920, 1080);
-            assertEquals(6, binder.size());
-            for (int item = 0; item < 3; item++) for (String side : List.of("current", "proposed"))
-                assertTrue(binder.isBound(instance.requireElement("loadout-item:" + item + ":" + side)));
-            UiElement stats = instance.requireElement("loadout-item:0:stat:DMG");
+            assertEquals(MarineSquad.CAPACITY * LoadoutInspection.PARTS, binder.size());
+            UiElement stats = instance.requireElement("loadout-billet:0:stat:DPS");
             var box = stats.box().borderBox();
-            UiElement target = instance.requireElement("loadout-item:1:current");
+            UiElement target = instance.requireElement(LoadoutInspection.partId(0, LoadoutInspection.ARMOR));
             document.pointerMoved(centerX(target), centerY(target));
             binder.update(); document.advance(0f);
             assertTrue(layer.visible());

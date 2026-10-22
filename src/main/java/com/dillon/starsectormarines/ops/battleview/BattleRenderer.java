@@ -507,6 +507,7 @@ public class BattleRenderer {
     private void registerSmokeFieldBatch() {
         registerSheetBatch(sprites.smokeFieldSheet());
         registerSheetBatch(sprites.fireSheet());
+        registerSheetBatch(sprites.flameSheet());
     }
 
     private void registerSheetBatch(SpriteAPI sheet) {

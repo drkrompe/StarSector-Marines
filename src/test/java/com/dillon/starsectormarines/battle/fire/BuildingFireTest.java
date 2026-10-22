@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.fire;
 
+import com.dillon.starsectormarines.battle.creep.CreepField;
+import com.dillon.starsectormarines.battle.creep.CreepGrowth;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -64,6 +66,25 @@ class BuildingFireTest {
         BattleFire fire = twoHouses(100, GroundKind.STRIPED);
         assertEquals(0, fire.fuelMask(idx(7, 2)));
         assertEquals(0, fire.fuelMask(idx(6, 2)));
+    }
+
+    @Test
+    void creepBurnsOverGrassButIsAFilmOverClearedGround() {
+        // A row of grass, a dirt ride and a road, all overgrown by one source.
+        NavigationGrid grid = new NavigationGrid(W, 1);
+        CellTopology topo = new CellTopology(W, 1);
+        for (int x = 0; x < W; x++) {
+            grid.setWalkableFloor(x, 0);
+            topo.setGroundKind(x, 0, x < 4 ? GroundKind.GRASS : x < 8 ? GroundKind.DIRT : GroundKind.STREET);
+        }
+        CreepField creep = new CreepField(grid, topo, 1L);
+        creep.putSource(1L, 6, 0, new CreepGrowth(6f, 12f));
+        creep.mature();
+        BattleFire fire = new BattleFire(grid, topo, null, null, () -> creep, 1L);
+        assertTrue(creep.coverageAt(2) >= CreepField.CREEPED && creep.coverageAt(10) >= CreepField.CREEPED, "the creep covers the row");
+        assertEquals(FireFuel.GRASS.bit | FireFuel.CREEP.bit, fire.fuelMask(2), "creep over grass is fuel");
+        assertEquals(0, fire.fuelMask(5), "creep over a bare ride does not burn");
+        assertEquals(0, fire.fuelMask(10), "nor over a road");
     }
 
     @Test

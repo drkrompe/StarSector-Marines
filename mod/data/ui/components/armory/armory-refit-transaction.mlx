@@ -1,41 +1,11 @@
 <template props="inspection,feedbackText,feedbackClasses,testLoadout,rangeDisabled,rangeHint">
+  <!-- The squad, whole: the cards it is issued now, then its three fire teams of two
+       by two, each marine with a portrait of the kit they would wear, what they carry
+       now beside what the selected card would change, and the numbers that move. -->
   <div id="refit-transaction" class="loadout-workspace">
     <div id="loadout-summary" class="panel loadout-summary">{inspection.summary}</div>
-    <div id="loadout-workspace-body" class="loadout-workspace-body">
-      <div id="loadout-inspection" class="loadout-inspection">
-        <div id="loadout-range-row" class="loadout-range-row">
-          <div class="loadout-heading heading" id="loadout-selected-name">{inspection.title}</div>
-          <button id="armory-test-loadout" class="loadout-range-action" disabled="{rangeDisabled}" onclick="{testLoadout}">{i18n.armoryRangeTestLoadout}</button>
-        </div>
-        <div id="armory-range-hint" class="loadout-range-hint tone-muted">{rangeHint}</div>
-        <div class="loadout-column-headings" id="loadout-column-headings"><div class="tone-edge" id="loadout-current-heading">{i18n.openingUiLoadoutCurrentIssue}</div><div class="tone-accent" id="loadout-proposed-heading">{i18n.openingUiLoadoutProposedIssue}</div></div>
-        <div id="loadout-item-list" class="loadout-item-list">
-          <div each="item in inspection.items" key="{item.id}" id="{item.id}" class="{item.classes}" style="{item.style}">
-            <div class="loadout-item-heading" id="{item.headingRowId}"><div class="heading" id="{item.kindId}">{item.kind}</div><div class="tone-accent" id="{item.changeId}">{item.change}</div></div>
-            <div class="loadout-pair" id="{item.pairId}">
-              <div id="{item.current.id}" class="loadout-subject">
-                <div class="loadout-subject-top" id="{item.current.topId}"><img class="loadout-item-art" src="{item.current.icon}" id="{item.current.iconId}" /><div class="loadout-subject-text" id="{item.current.textId}"><div class="loadout-title tone-edge" id="{item.current.titleId}">{item.current.title}</div><div class="loadout-subtitle tone-muted" id="{item.current.subtitleId}">{item.current.subtitle}</div></div></div>
-                <div class="{item.current.systemClasses}" id="{item.current.systemId}">{item.current.system}</div>
-              </div>
-              <div id="{item.proposed.id}" class="loadout-subject proposed">
-                <div class="loadout-subject-top" id="{item.proposed.topId}"><img class="loadout-item-art" src="{item.proposed.icon}" id="{item.proposed.iconId}" /><div class="loadout-subject-text" id="{item.proposed.textId}"><div class="loadout-title tone-accent" id="{item.proposed.titleId}">{item.proposed.title}</div><div class="loadout-subtitle tone-muted" id="{item.proposed.subtitleId}">{item.proposed.subtitle}</div></div></div>
-                <div class="{item.proposed.systemClasses}" id="{item.proposed.systemId}">{item.proposed.system}</div>
-              </div>
-            </div>
-            <div class="loadout-stats" id="{item.statsId}" style="{item.statsStyle}">
-              <div each="stat in item.stats" key="{stat.id}" id="{stat.id}" class="loadout-stat">
-                <img class="loadout-stat-icon" src="{stat.icon}" id="{stat.iconId}" /><div class="loadout-stat-label tone-muted" id="{stat.labelId}">{stat.label}</div>
-                <div class="loadout-stat-track" id="{stat.oldTrackId}"><div class="loadout-stat-fill current-fill" style="{stat.oldStyle}" id="{stat.oldFillId}" /></div><div class="loadout-stat-value tone-edge" id="{stat.oldValueId}">{stat.before}</div>
-                <div class="loadout-stat-arrow tone-muted" id="{stat.arrowId}">{stat.change}</div>
-                <div class="loadout-stat-track" id="{stat.newTrackId}"><div class="loadout-stat-fill proposed-fill" style="{stat.newStyle}" id="{stat.newFillId}" /></div><div class="loadout-stat-value tone-accent" id="{stat.newValueId}">{stat.after}</div>
-              </div>
-            </div>
-            <div class="loadout-note tone-muted" id="{item.noteId}">{item.notes}</div>
-          </div>
-        </div>
-      </div>
-      <div id="loadout-roll" class="panel loadout-roll">
-        <div class="heading loadout-heading" id="loadout-roll-heading">{i18n.openingUiLoadoutSquadCurrentEquipment}</div>
+    <div id="loadout-workspace-body" class="panel loadout-workspace-body">
+      <div id="loadout-squad-head" class="loadout-squad-head">
         <div id="loadout-squad-cards" class="loadout-squad-cards">
           <div each="card in inspection.cards" key="{card.id}" id="{card.id}" class="loadout-squad-card">
             <div id="{card.slotId}" class="loadout-squad-card-slot">
@@ -49,17 +19,39 @@
             <div id="{card.ratingId}" class="loadout-squad-card-rating label tone-accent">{card.rating}</div>
           </div>
         </div>
-        <div class="loadout-hint tone-muted" id="loadout-roll-hint">{inspection.scope}</div>
-        <div id="loadout-billets" class="loadout-billets">
-          <div each="team in inspection.teams" key="{team.id}" id="{team.id}" class="loadout-team">
-            <div class="heading loadout-team-heading" id="{team.headingId}">{team.label}</div>
-            <div class="loadout-team-billets" id="{team.membersId}">
-            <button each="billet in team.billets" key="{billet.id}" id="{billet.id}" class="{billet.classes}" onclick="{billet.select}">
-              <div class="loadout-name" id="{billet.nameId}">{billet.name}</div>
-              <div class="loadout-billet-art" id="{billet.artId}"><img class="loadout-billet-icon" src="{billet.armor}" id="{billet.armorIconId}" /><img class="loadout-billet-icon" src="{billet.weapon}" id="{billet.weaponIconId}" /></div>
-              <div class="loadout-state tone-edge" id="{billet.statusId}">{billet.status}</div>
-              <div class="loadout-state tone-muted" id="{billet.changeId}">{billet.change}</div>
-            </button>
+        <div id="loadout-inspection" class="loadout-inspection">
+          <div class="loadout-heading heading" id="loadout-selected-name">{inspection.title}</div>
+          <div id="armory-range-hint" class="loadout-range-hint tone-muted">{rangeHint}</div>
+        </div>
+        <button id="armory-test-loadout" class="loadout-range-action" disabled="{rangeDisabled}" onclick="{testLoadout}">{i18n.armoryRangeTestLoadout}</button>
+      </div>
+      <div class="loadout-hint tone-muted" id="loadout-roll-hint">{inspection.scope}</div>
+      <div id="loadout-billets" class="loadout-billets">
+        <div each="team in inspection.teams" key="{team.id}" id="{team.id}" class="loadout-team">
+          <div class="heading loadout-team-heading" id="{team.headingId}">{team.label}</div>
+          <div class="loadout-team-rows" id="{team.rowsId}">
+            <div each="row in team.rows" key="{row.id}" id="{row.id}" class="loadout-team-row">
+              <button each="billet in row.billets" key="{billet.id}" id="{billet.id}" class="{billet.classes}" onclick="{billet.select}">
+                <div class="loadout-member-name label tone-edge" id="{billet.nameId}">{billet.name}</div>
+                <div class="{billet.stateClasses}" id="{billet.stateId}">{billet.state}</div>
+                <canvas id="{billet.portraitId}" class="loadout-member-portrait" width="196" height="110" />
+                <div class="loadout-member-parts" id="{billet.partsId}">
+                  <div each="part in billet.parts" key="{part.id}" id="{part.id}" class="loadout-part">
+                    <img id="{part.iconId}" class="{part.iconClasses}" src="{part.icon}" />
+                    <div id="{part.textId}" class="loadout-part-text">
+                      <div id="{part.nowId}" class="{part.nowClasses}">{part.now}</div>
+                      <div id="{part.nextId}" class="{part.nextClasses}">{part.next}</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="loadout-member-stats" id="{billet.statsId}">
+                  <div each="stat in billet.stats" key="{stat.id}" id="{stat.id}" class="loadout-member-stat">
+                    <div id="{stat.labelId}" class="loadout-stat-label label tone-muted">{stat.label}</div>
+                    <div id="{stat.beforeId}" class="loadout-stat-before label tone-edge">{stat.before}</div>
+                    <div id="{stat.afterId}" class="loadout-stat-after label tone-accent">{stat.after}</div>
+                  </div>
+                </div>
+              </button>
             </div>
           </div>
         </div>
@@ -71,61 +63,45 @@
 <style>
   .loadout-workspace { flex-direction: column; width: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
   .loadout-summary { height: 26px; padding: 5px 8px; }
-  .loadout-workspace-body { flex-direction: row; height: 0px; flex-grow: 1; gap: 10px; }
-  .loadout-roll { flex-direction: column; width: 344px; padding: 8px; gap: 7px; overflow: hidden; }
-  .loadout-squad-cards { flex-direction: column; height: 112px; gap: 4px; }
-  .loadout-squad-card { flex-direction: row; align-items: center; height: 52px; gap: 6px; padding: 0px 8px 0px 0px; border-width: 1px; border-color: #46554b; background-color: #151b17; }
+  .loadout-workspace-body { flex-direction: column; height: 0px; flex-grow: 1; padding: 8px; gap: 6px; overflow: hidden; }
+  .loadout-squad-head { flex-direction: row; height: 56px; gap: 18px; align-items: center; }
+  .loadout-squad-cards { flex-direction: row; width: 584px; height: 54px; gap: 8px; }
+  .loadout-squad-card { flex-direction: row; align-items: center; width: 288px; height: 52px; gap: 6px; padding: 0px 8px 0px 0px; border-width: 1px; border-color: #2a4258; background-color: #09131d; }
   .loadout-squad-card-slot { flex-direction: column; width: 24px; height: 50px; padding: 3px 0px 0px 3px; }
   .loadout-squad-card-seal { width: 18px; height: 18px; }
   .loadout-squad-card-seal.loadout-squad-card-seal-absent { width: 0px; height: 0px; }
   .loadout-squad-card-icon { width: 44px; height: 44px; }
-  .loadout-squad-card-text { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; }
+  .loadout-squad-card-text { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; overflow: hidden; }
   .loadout-squad-card-kind { height: 14px; }
   .loadout-squad-card-name { height: 18px; }
-  .loadout-squad-card-rating { width: 80px; text-align: right; }
+  .loadout-squad-card-rating { width: 72px; text-align: right; }
+  .loadout-inspection { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; overflow: hidden; }
   .loadout-heading { height: 22px; padding: 3px 0px; }
-  .loadout-hint { height: 34px; white-space: normal; }
-  .loadout-billets { flex-direction: row; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
-  .loadout-team { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
-  .loadout-team-billets { flex-direction: column; gap: 6px; }
-  .loadout-team-heading { height: 22px; text-align: center; }
-  .loadout-billet { flex-direction: column; height: 140px; padding: 5px; gap: 5px; border-width: 1px; text-align: left; background-color: #171d1e; }
-  .loadout-billet.selected { border-color: #e0b957; background-color: #34362c; }
-  .loadout-name { height: 31px; white-space: normal; }
-  .loadout-billet-art { flex-direction: row; height: 44px; gap: 3px; }
-  .loadout-billet-icon { width: 0px; flex-grow: 1; height: 44px; pointer-events: none; }
-  .loadout-state { height: 24px; white-space: normal; }
-  .loadout-inspection { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; overflow: hidden; }
-  .loadout-range-row { flex-direction: row; height: 28px; gap: 8px; }
-  .loadout-range-row .loadout-heading { width: 0px; flex-grow: 1; }
+  .loadout-range-hint { height: 30px; white-space: normal; }
   .loadout-range-action { width: 124px; height: 28px; }
-  .loadout-range-hint { height: 32px; white-space: normal; }
-  .loadout-column-headings { flex-direction: row; height: 20px; gap: 8px; }
-  .loadout-column-headings div { width: 0px; flex-grow: 1; padding: 2px 8px; }
-  .loadout-item-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
-  .loadout-item { flex-direction: column; padding: 8px; gap: 6px; border-width: 1px; background-color: #171d1e; }
-  .loadout-armor .loadout-pair { height: 140px; }
-  .loadout-item-heading { flex-direction: row; height: 20px; gap: 8px; }
-  .loadout-item-heading .heading { width: 0px; flex-grow: 1; }
-  .loadout-pair { height: 94px; flex-direction: row; gap: 8px; }
-  .loadout-subject { flex-direction: column; width: 0px; flex-grow: 1; gap: 4px; padding: 5px; background-color: #101617; }
-  .loadout-subject-top { flex-direction: row; height: 80px; gap: 7px; }
-  .loadout-item-art { width: 76px; height: 76px; }
-  .loadout-subject-text { flex-direction: column; width: 0px; flex-grow: 1; gap: 4px; }
-  .loadout-title { height: 34px; white-space: normal; }
-  .loadout-subtitle { height: 42px; white-space: normal; }
-  .loadout-system { height: 46px; white-space: normal; color: #a5c6bc; }
-  .loadout-stats { flex-direction: column; gap: 3px; }
-  .loadout-stat { flex-direction: row; height: 21px; align-items: center; gap: 5px; }
-  .loadout-stat-icon { width: 17px; height: 17px; }
-  .loadout-stat-label { width: 91px; }
-  .loadout-stat-track { flex-direction: row; overflow: hidden; width: 0px; flex-grow: 1; height: 7px; background-color: #0c1213; border-width: 1px; border-color: #424c48; }
-  .loadout-stat-fill { height: 100%; }
-  .current-fill { background-color: #a5c6bc; }
-  .proposed-fill { background-color: #dfb84d; }
-  .loadout-stat-value { width: 42px; text-align: right; }
-  .loadout-stat-arrow { width: 13px; text-align: center; }
-  .loadout-note { height: 30px; white-space: normal; }
+  .loadout-hint { height: 18px; }
+  .loadout-billets { flex-direction: row; height: 0px; flex-grow: 1; gap: 10px; }
+  .loadout-team { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; }
+  .loadout-team-heading { height: 20px; text-align: center; }
+  .loadout-team-rows { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; }
+  .loadout-team-row { flex-direction: row; height: 0px; flex-grow: 1; gap: 6px; }
+  .loadout-billet { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 4px; border-width: 1px; text-align: left; background-color: #171d1e; overflow: hidden; }
+  .loadout-billet.selected { border-color: #e0b957; background-color: #34362c; }
+  .loadout-member-name { height: 16px; overflow: hidden; }
+  .loadout-member-state { height: 14px; overflow: hidden; }
+  .loadout-member-portrait { width: 100%; height: 0px; flex-grow: 1; pointer-events: none; background-color: #0c1213; }
+  .loadout-member-parts { flex-direction: column; height: 126px; gap: 2px; }
+  .loadout-part { flex-direction: row; align-items: center; height: 30px; gap: 4px; padding: 0px 2px; background-color: #101617; }
+  .loadout-part-icon { width: 28px; height: 28px; pointer-events: none; }
+  .loadout-part-icon.loadout-part-icon-absent { width: 28px; height: 0px; }
+  .loadout-part-text { flex-direction: column; width: 0px; flex-grow: 1; overflow: hidden; }
+  .loadout-part-now { height: 14px; overflow: hidden; }
+  .loadout-part-next { height: 14px; overflow: hidden; }
+  .loadout-member-stats { flex-direction: column; height: 75px; }
+  .loadout-member-stat { flex-direction: row; height: 15px; gap: 4px; }
+  .loadout-stat-label { width: 46px; }
+  .loadout-stat-before { width: 0px; flex-grow: 1; text-align: right; }
+  .loadout-stat-after { width: 0px; flex-grow: 1; text-align: right; }
   .loadout-feedback { height: 20px; overflow: hidden; }
   .loadout-hidden { width: 0px; height: 0px; opacity: 0; overflow: hidden; }
 </style>
