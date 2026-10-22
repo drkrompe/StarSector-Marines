@@ -621,6 +621,15 @@ puffs (flak) or a fast white-amber streak (lance). It bursts in the air at the
 craft's drawn height, hit or miss, in an amber flash, and leaves spore haze
 drifting there; it never marks the ground beneath.
 
+A spore colony **looks armed with nothing overhead**, since a breach rarely has
+aircraft and a gun that never fires otherwise reads as scenery: spores breathe
+off its sacs all the time, amber motes lifting and drifting up off the body
+(more of them the higher its grade) in a lilac haze it exhales on a slow breath.
+Its **reach** is not drawn in ordinary play, which would cover the creep in
+rings; while a hostile aircraft is airborne, each colony's reach is a faint
+dashed ring on the ground, brighter while it is engaging, so a player flying a
+sortie sees the umbrella it is flying into (`ColonyThreatFx`).
+
 Bores and colonies are grown, not built, and look it: they wear the same
 Rav Bloom palette as the creatures (lilac and dusky-violet carapace over
 crimson sinew, ivory bone, amber nodes breathing), standing on the ground with
@@ -1020,7 +1029,18 @@ against its own control in `renderEvidence`.
   swarm's side: spines driven up from below on whatever stands in its short
   reach, indirect, with a small blast that also breaks walls beside the target,
   so a gun behind a wall is not safe from it. It dies with its bore, and as soon
-  as the creep under it is no longer living. `ground-colony` (`sceneEvidence`)
+  as the creep under it is no longer living. **Its strike reads from end to
+  end** though it travels underground: in the half second before its spines
+  are ready, while it has a target, the body clenches and quivers and its eye
+  comes up to full, and on the shot it lashes out; the run is a ripple heaving
+  through the creep from the colony to the strike, opening a jagged crack lit
+  by an amber seam behind it; at the strike the ground heaves and splits and a
+  crown of bone spines, crimson at the root, bursts up, holds a moment and
+  sinks back, and the crack and the heave fade over a second or so after. So
+  the player sees which colony struck and where from, as well as where it
+  landed. Its dust is the creep's violet, not concrete grey (`ColonyThreatFx`;
+  `-Dbattle.render.colonyThreat=false` is the control for both colonies'
+  looks, costed against it in `renderEvidence`). `ground-colony` (`sceneEvidence`)
   holds the mechanics; `-Dbattle.swarm.groundColonies=false` is the control.
 - **The creep digests the swarm's dead** (`CreepDigestion`). A strain body
   lying on living creep sinks into it over about twenty-five seconds, drawn
@@ -1298,8 +1318,8 @@ Each phase of the Brute's charge has its own sound (the tell, the run, the hit
 on infantry, a vehicle or a wall, the stun after a heavy wall or a tank), keyed
 to the charge's own events; a Runner's impale has its own sound, posted as a cue
 by the story that adds it. A ground colony makes no sound as it fires: its
-spines travel unseen under the ground and are heard where they break out, as
-the weapon's impact. The creep itself is heard as a wet, slow spread bed, one
+spines travel under the ground, seen only as the ripple in the creep, and are
+heard where they break out, as the weapon's impact. The creep itself is heard as a wet, slow spread bed, one
 loop placed on the seen living creep nearest the camera and as loud as the
 share of the ground round the camera the creep has taken (`CreepAudio`), so a
 sliver at the edge of the view murmurs and a street drowned in it is a full

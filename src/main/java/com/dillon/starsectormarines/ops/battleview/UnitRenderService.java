@@ -512,12 +512,36 @@ public final class UnitRenderService implements RenderSystem {
                 bright = bright + (1f - bright) * Math.min(1f, flash * 2f);
                 size *= 1f + StructureArt.FIRE_FLASH_SWELL * flash;
             }
+            if (layer.windUp() > 0f && ColonyThreatFx.ENABLED) {
+                float ramp = windUp(ctx.sim, id);
+                if (ramp > 0f) {
+                    // Drawing in before the next shot: clench, quiver, and the eye comes up to full.
+                    float quiver = (float) Math.sin(2.0 * Math.PI * WIND_UP_QUIVER_HZ * ColonyThreatFx.simSeconds(ctx.sim));
+                    float k = layer.windUp() * ramp;
+                    size *= 1f - StructureArt.WIND_UP_CLENCH * k * (0.85f + 0.15f * quiver);
+                    bright = bright + (1f - bright) * k;
+                }
+            }
             out.addSprite(RenderLayer.UNITS, sprite.sprite, cx, cy, size * sprite.aspect, size, angle,
                     r * bright, g * bright, b * bright, alphaMult);
         }
         if (wounded && structure.art.bleed != null) {
             emitBleed(out, structure.art, id, variant, durability, cx, cy, cellPx, alphaMult, clock);
         }
+    }
+
+    /** How fast a winding-up body quivers. */
+    private static final float WIND_UP_QUIVER_HZ = 9f;
+
+    /**
+     * How far through its wind-up a structure stands, 0 to 1: rising over the last {@link StructureArt#WIND_UP_SECONDS}
+     * of its weapon's cooldown while it holds a target, 0 when it has none.
+     */
+    static float windUp(BattleSimulation sim, long id) {
+        if (sim.world().targetId(id) == 0L) return 0f;
+        float cooldown = sim.world().cooldownTimer(id);
+        if (cooldown >= StructureArt.WIND_UP_SECONDS) return 0f;
+        return 1f - Math.max(0f, cooldown) / StructureArt.WIND_UP_SECONDS;
     }
 
     /**
