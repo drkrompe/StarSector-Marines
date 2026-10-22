@@ -24,8 +24,8 @@ public interface BloomWorld {
     /** Bores opened: the market takes the bloom condition. */
     void erupted(RavBloom bloom);
 
-    /** The colony went quiet. */
-    void wentDark(RavBloom bloom);
+    /** Nobody lifted them out; at a harsher tier the colony's workings shut as well. */
+    void wentDark(RavBloom bloom, boolean disruptWorkings);
 
     /** Lifted out enough that the bloom is starving. */
     void starved(RavBloom bloom);
@@ -36,8 +36,8 @@ public interface BloomWorld {
     /** The colony does not survive (deadly severity only). */
     void decivilize(String marketId);
 
-    /** The outbreak is over; lift the condition and leave unrest behind. */
-    void ended(RavBloom bloom);
+    /** The outbreak is over; lift the condition and leave this much recent unrest behind. */
+    void ended(RavBloom bloom, int unrest);
 
     /** A faction's view of the player moved because of how this bloom went. */
     void reputation(String factionId, int delta, RavBloom bloom);

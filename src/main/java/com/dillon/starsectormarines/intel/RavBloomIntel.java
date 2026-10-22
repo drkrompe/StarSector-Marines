@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.intel;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.bloom.BloomEnd;
 import com.dillon.starsectormarines.campaign.bloom.BloomStage;
+import com.dillon.starsectormarines.campaign.bloom.BloomTuning;
 import com.dillon.starsectormarines.campaign.bloom.RavBloom;
 import com.dillon.starsectormarines.campaign.bloom.RavBloomLedger;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -135,10 +136,10 @@ public final class RavBloomIntel extends BaseIntelPlugin {
                     Color.LIGHT_GRAY, 4f);
         }
         if (bloom.stage() == BloomStage.DARK) {
-            ui.addPara(Strings.format("ravBloomDark", world), 6f);
+            ui.addPara(darkLine(world), 6f);
             ui.addPara(Strings.get("ravBloomChurch"), Color.LIGHT_GRAY, 4f);
             ui.addPara(Strings.get("ravBloomPath"), Color.LIGHT_GRAY, 4f);
-            ui.addPara(Strings.format("ravBloomPirates", world), Color.LIGHT_GRAY, 4f);
+            if (eatsColonies()) ui.addPara(Strings.format("ravBloomPirates", world), Color.LIGHT_GRAY, 4f);
         } else if (bloom.stage() == BloomStage.STARVED) {
             ui.addPara(Strings.format("ravBloomStarved", world), 6f);
         }
@@ -166,12 +167,21 @@ public final class RavBloomIntel extends BaseIntelPlugin {
         String world = name(bloom.marketId);
         switch (notice) {
             case ERUPTED: return Strings.format("ravBloomErupted", world);
-            case DARK: return Strings.format("ravBloomDark", world);
+            case DARK: return darkLine(world);
             case STARVED: return Strings.format("ravBloomStarved", world);
             default:
-                return bloom.end() == BloomEnd.NONE ? Strings.format("ravBloomDark", world)
+                return bloom.end() == BloomEnd.NONE ? darkLine(world)
                         : Strings.format("ravBloomEnd" + bloom.end().name(), world);
         }
+    }
+
+    /** At the first stage the garrison fights an unanswered bloom; at a harsher tier the colony goes quiet. */
+    private static String darkLine(String world) {
+        return eatsColonies() ? Strings.format("ravBloomDark", world) : Strings.format("ravBloomCordoned", world);
+    }
+
+    private static boolean eatsColonies() {
+        return BloomTuning.live().severity.costsSize();
     }
 
     private static RavBloomLedger ledger() {

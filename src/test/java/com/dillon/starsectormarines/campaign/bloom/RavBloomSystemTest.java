@@ -17,6 +17,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RavBloomSystemTest {
 
     private static final BloomTuning TUNING = BloomTuning.DEFAULT;
+    private static final BloomTuning HARSH = new BloomTuning(BloomTuning.Severity.DARK_AND_SPREAD,
+            BloomTuning.Frequency.SEASONAL, BloomTuning.PlayerColonies.EXPOSED);
 
     @Test
     void eruptionRaisesTheDistressCallThroughTheSharedGate() {
@@ -50,8 +52,26 @@ class RavBloomSystemTest {
     }
 
     @Test
-    void aRefusedCallGoesDarkEatsTheColonyDownAndBurnsOut() {
+    void atTheBenignStageTheMilitaryPutsAnUnansweredBloomDownAndOnlyTheConditionCost() {
         Fixture f = new Fixture().colony("asharu", "corvus", 5, 0f);
+        RavBloom bloom = f.system.wakeAt(f.state, "asharu", 100);
+        f.runTo(100 + bloom.stirDays);
+        CivilianRescueEvent.refuse(f.state, bloom.rescueEventId(), bloom.eruptDay());
+
+        f.runTo(bloom.eruptDay() + 1);
+        assertEquals(BloomStage.DARK, bloom.stage());
+        f.runTo(bloom.darkDay() + BloomTuning.Severity.BENIGN.burnoutDays);
+
+        assertEquals(BloomEnd.PUT_DOWN, bloom.end());
+        assertEquals(5, f.world.get("asharu").size);
+        assertEquals(0, bloom.seeded());
+        assertTrue(f.world.log.contains("dark asharu"));
+        assertTrue(f.world.log.contains("ended asharu PUT_DOWN unrest 0"));
+    }
+
+    @Test
+    void atAHarsherTierARefusedCallEatsTheColonyDownAndBurnsOut() {
+        Fixture f = new Fixture(HARSH).colony("asharu", "corvus", 5, 0f);
         RavBloom bloom = f.system.wakeAt(f.state, "asharu", 100);
         f.runTo(100 + bloom.stirDays);
         assertEquals(CivilianRescueEvent.Result.REFUSED,
@@ -62,8 +82,9 @@ class RavBloomSystemTest {
         assertTrue(bloom.refused());
         assertEquals(-2, (int) f.world.reputation.get("independent"));
 
-        f.runTo(bloom.darkDay() + TUNING.severity.burnoutDays);
+        f.runTo(bloom.darkDay() + HARSH.severity.burnoutDays);
         assertEquals(BloomEnd.BURNED_OUT, bloom.end());
+        assertTrue(f.world.log.contains("dark asharu disrupted"));
         assertEquals(RavBloomRules.MIN_SIZE, f.world.get("asharu").size);
         assertEquals(2, bloom.sizeLost());
         assertTrue(f.state.ravBlooms().resting("asharu", bloom.endDay() + 364));
@@ -73,7 +94,7 @@ class RavBloomSystemTest {
     @Test
     void collapsingTheMotherBoreEndsTheOutbreakAndRestsTheReservoir() {
         Fixture f = new Fixture().add(new BloomMarket("jangala", "Jangala", "jangala", "hegemony", 6,
-                3650, false, false, false, true, true, true, 0f, 0f, 2f));
+                3650, false, false, false, true, true, true, 0f, 0f, 2f, 1.5f, 0f));
         RavBloom bloom = f.system.wakeAt(f.state, "jangala", 100);
         f.runTo(100 + bloom.stirDays);
         assertTrue(bloom.quarantined());
@@ -116,7 +137,7 @@ class RavBloomSystemTest {
 
         f.runTo(bloom.eruptDay() + RavBloomRules.DARK_AFTER_DAYS + TUNING.severity.burnoutDays);
 
-        assertEquals(BloomEnd.BURNED_OUT, bloom.end());
+        assertEquals(TUNING.severity.unansweredEnd, bloom.end());
         assertEquals(CampaignEventState.EXPIRED, CampaignEventState.fromByte(f.state.eventState[row]));
     }
 
@@ -142,7 +163,7 @@ class RavBloomSystemTest {
     @Test
     void playerColoniesFollowTheOwnersPick() {
         BloomMarket mine = new BloomMarket("mine", "Mine", "home", "player", 4, 3650, false, true,
-                false, false, true, false, 0f, 0f, 30f);
+                false, false, true, false, 0f, 0f, 30f, 0.5f, 1f);
         Fixture never = new Fixture(new BloomTuning(TUNING.severity, TUNING.frequency,
                 BloomTuning.PlayerColonies.NEVER)).colony("source", "home", 5, 0f).add(mine);
         RavBloom from = never.system.wakeAt(never.state, "source", 100);
@@ -158,6 +179,18 @@ class RavBloomSystemTest {
         afterFirst.runTo(afterFirst.day + 1);
         assertNotNull(afterFirst.system.spreadTarget(afterFirst.state.ravBlooms(), first,
                 afterFirst.world.markets(), afterFirst.day));
+    }
+
+    @Test
+    void trafficAndInflowDrawTheSpores() {
+        BloomMarket quiet = new BloomMarket("q", "q", "s", "independent", 5, 3650, false, false,
+                false, false, false, false, 0f, 0f, 10f, 0f, 0f);
+        BloomMarket busy = new BloomMarket("q", "q", "s", "independent", 5, 3650, false, false,
+                false, false, false, false, 0f, 0f, 10f, 1.5f, 1f);
+        assertTrue(RavBloomRules.wakeWeight(busy, 1L) > RavBloomRules.wakeWeight(quiet, 1L));
+        BloomMarket young = new BloomMarket("q", "q", "s", "independent", 5, 30, false, false,
+                false, false, false, false, 0f, 0f, 10f, 1.5f, 1f);
+        assertEquals(0.0, RavBloomRules.wakeWeight(young, 1L));
     }
 
     @Test

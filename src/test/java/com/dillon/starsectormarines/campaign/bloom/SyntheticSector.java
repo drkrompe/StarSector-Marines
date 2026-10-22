@@ -9,7 +9,8 @@ import java.util.SplittableRandom;
  * evidence seed plays over the same map; the save seed, which decides reservoirs and draws, is the
  * evidence seed. Forty core markets with vanilla's spread of sizes, factions and industries within
  * twelve light-years of the centre, twelve outposts beyond, and three player colonies founded in
- * cycles one, two and four that grow a size every eighteen months to six.
+ * cycles one, two and four that grow a size every eighteen months to six. Core worlds carry the
+ * trade; the player's young colonies carry the inflow.
  */
 final class SyntheticSector extends TestBloomWorld {
 
@@ -66,7 +67,8 @@ final class SyntheticSector extends TestBloomWorld {
                 double angle = 0.7 + i * 2.1;
                 add(new BloomMarket("player_" + i, "Player colony " + (i + 1), "player_sys_" + i, "player", 3, 0,
                         false, true, i == 1, i != 0, true, false,
-                        (float) (Math.cos(angle) * 30.0), (float) (Math.sin(angle) * 30.0), 30f));
+                        (float) (Math.cos(angle) * 30.0), (float) (Math.sin(angle) * 30.0), 30f,
+                        0.6f, 0.8f));
                 fullSize.put("player_" + i, 6);
                 lastChange.put("player_" + i, day);
             }
@@ -92,8 +94,8 @@ final class SyntheticSector extends TestBloomWorld {
     }
 
     @Override
-    public void ended(RavBloom bloom) {
-        super.ended(bloom);
+    public void ended(RavBloom bloom, int unrest) {
+        super.ended(bloom, unrest);
         if (lastChange.containsKey(bloom.marketId)) lastChange.put(bloom.marketId, bloom.endDay());
     }
 
@@ -108,7 +110,10 @@ final class SyntheticSector extends TestBloomWorld {
         boolean ruins = shape.nextDouble() < 0.15;
         float x = (float) (Math.cos(angle) * radius);
         float y = (float) (Math.sin(angle) * radius);
+        // Traffic follows size and the core's trade lanes; inflow is modest in settled worlds.
+        float traffic = (core ? 0.6f : 0.3f) + size * 0.12f + (float) shape.nextDouble() * 0.3f;
+        float inflow = (float) shape.nextDouble() * (core ? 0.4f : 0.3f);
         return new BloomMarket(id, id, systemId, faction, size, age, false, false, ruins, habitable, workings,
-                core, x, y, (float) radius);
+                core, x, y, (float) radius, traffic, inflow);
     }
 }

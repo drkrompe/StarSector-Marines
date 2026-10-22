@@ -15,15 +15,16 @@ Layers, back to front, all scene-linear Rec.709 with premultiplied alpha:
 The result goes through the scene's own view (AgX, 'AgX - Base Contrast'), the transform a classic
 render writes its PNG with, so a layered still and a combined one are the same picture.
 
-Plates (agreed with the planet session, 2026-10-22): plates/<kf>/plate.png beside this script, the
-ImageGen painting committed with its prompt, 1920x1080 on exactly the key frame's camera. It is
-display-referred (painted over a guide graded like the stills), and AgX does not invert cleanly, so
+Plates (agreed with the planet session, 2026-10-22) are painted on exactly the key frame's camera at
+1920x1080 (sources and prompts in plates/; the finished plates on Drive builds/asharu-plates/<commit>/,
+roster.PLATES, copied to build/asharu-battle/plates/). A display-referred <plates>/<kf>/plate.png is (painted over a guide graded like the stills), and AgX does not invert cleanly, so
 it is swapped in after the view transform: out = full + (1 - a) * (plate - backdrop), with full the
 still as rendered, backdrop the rendered backdrop through the same view and a the coverage of the
 ships and effects over it. Where nothing covers the plate the still is the plate; under a hull it is
 the hull; a drive's glow keeps its own tone over the painting. A scene-linear plate
-(<plates>/<kf>.backdrop.exr) replaces the backdrop before the view instead. The backdrop is still
-rendered (or read from the camera's cache) for a PNG plate: the swap needs it, at 16 samples.
+(<plates>/<kf>.backdrop.exr, delivered on Drive builds/asharu-plates/<commit>/) replaces the backdrop
+before the view instead; where it carries a premultiplied matte, the rendered backdrop (the stars)
+shows through. The backdrop is rendered (16 samples, once per camera) whatever the plate.
 --diff compares the still with a reference PNG (a combined render of the same frame) and writes a
 heat map of the difference.
 
@@ -39,16 +40,16 @@ LAYERS = ('backdrop', 'ships', 'effects')     # back to front; the EXR's view la
 BACKDROP_SAMPLES = 16                         # the planet and the stars: smooth, cheap, rendered once per camera
 
 
-PLATES = Path(__file__).resolve().parent / 'plates'
+PLATES = Path(__file__).resolve().parents[3] / 'build' / 'asharu-battle' / 'plates'   # roster.PLATES, copied from Drive
 
 
 def plate_for(plates, kf):
-    """The painted backdrop for this key frame, or None: <plates>/<kf>/plate.png, else a scene-linear
-    <plates>/<kf>.backdrop.exr. plates=None looks beside this script; '' means no plates at all."""
+    """The painted backdrop for this key frame, or None: a scene-linear <plates>/<kf>.backdrop.exr, else a
+    display-referred <plates>/<kf>/plate.png. plates=None reads PLATES; '' means no plates at all."""
     root = PLATES if plates is None else (Path(plates) if plates else None)
     if root is None:
         return None
-    for p in (root / kf / 'plate.png', root / f'{kf}.backdrop.exr'):
+    for p in (root / f'{kf}.backdrop.exr', root / kf / 'plate.png'):
         if p.exists():
             return p
     return None
@@ -144,13 +145,21 @@ def compose(layers, plate=None, backdrop=None):
     the camera's cached one; then the ships over it and the effects over them.
     Returns (rgba, backdrop, foreground coverage, which backdrop was used)."""
     h, w = layers['ships']['Combined'].shape[:2]
-    if is_linear(plate):
-        bg, used = read_rgba(plate, (w, h)), f'plate {Path(plate).name}'
-    elif 'backdrop' in layers:
+    if 'backdrop' in layers:
         bg, used = backdrop_of(layers), 'rendered'
     elif backdrop is not None and Path(backdrop).exists():
         bg, used = read_rgba(backdrop, (w, h)), f'cached {Path(backdrop).name}'
     else:
+        bg, used = None, None
+    if is_linear(plate):
+        p = read_rgba(plate, (w, h))
+        if (p[..., 3] < 1.0).any():      # a matted plate (premultiplied): the rendered stars show through its sky
+            if bg is None:
+                raise SystemExit(f'{plate} has a matte, and there is no rendered or cached backdrop under it')
+            bg, used = over(p, bg), f'plate {Path(plate).name} over {used}'
+        else:
+            bg, used = p, f'plate {Path(plate).name}'
+    if bg is None:
         raise SystemExit('no backdrop: the EXR has no backdrop layer, and there is no plate or cached backdrop')
     fg = over(layers['effects']['Combined'], layers['ships']['Combined'])
     return over(fg, bg), bg, np.clip(fg[..., 3:4], 0.0, 1.0), used
@@ -203,9 +212,9 @@ def compose_frame(exr, png, scene, plate=None, backdrop=None, log=print):
     if missing:
         raise SystemExit(f'{exr}: no {", ".join(missing)} layer (has {", ".join(layers)})')
     rgba, bg, cover, used = compose(layers, plate, backdrop)
-    if used == 'rendered' and backdrop is not None:
+    if 'backdrop' in layers and backdrop is not None:
         Path(backdrop).parent.mkdir(parents=True, exist_ok=True)
-        write_rgba(backdrop, bg)
+        write_rgba(backdrop, backdrop_of(layers))
     if plate is not None and not is_linear(plate):
         swap_plate(rgba, bg, cover, plate, png, scene)
         used += f', plate {Path(plate).parent.name}/{Path(plate).name} swapped in after the view'

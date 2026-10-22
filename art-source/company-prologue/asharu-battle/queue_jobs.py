@@ -47,6 +47,14 @@ def inputs():
     return out
 
 
+def plate_input():
+    """roster.PLATES as a drive input, every plate in its manifest pinned by its sha256."""
+    src = DRIVE / roster.PLATES
+    names = ['manifest.json'] + [p['file'] for p in json.loads((src / 'manifest.json').read_text())['plates']]
+    return {'kind': 'drive', 'from': '{drive}/' + roster.PLATES, 'to': '{checkout}/build/asharu-battle/plates',
+            'sha256': {n: sha256(src / n) for n in names}}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--run', required=True)
@@ -57,14 +65,15 @@ def main():
     ap.add_argument('--light', action='store_true', help='light lane: half size (use --samples 16 or fewer)')
     ap.add_argument('--swfx', action='store_true', help='draw the key frames with the effects kit (scene_fx)')
     ap.add_argument('--layers', action='store_true',
-                    help='render the key frames as layers and compose them (composite_layers.py); the EXRs go to '
-                         'Drive builds/asharu-layers/<run>_<machine>/ for recomposing without a render')
+                    help='render the key frames as layers and compose them (composite_layers.py) over the painted '
+                         'plates (roster.PLATES); the EXRs go to Drive builds/asharu-layers/<run>_<machine>/ '
+                         'for recomposing without a render')
     ap.add_argument('--date', required=True, help='the job id date, YYYY-MM-DD')
     ap.add_argument('sets', nargs='+')
     a = ap.parse_args()
     if a.light and a.samples > 16:
         raise SystemExit('a light job renders at 16 samples or fewer')
-    ins = inputs()
+    ins = inputs() + ([plate_input()] if a.layers else [])
     for frames in a.sets:
         names = frames.split(',')
         job = {

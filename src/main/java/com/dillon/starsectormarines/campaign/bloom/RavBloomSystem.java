@@ -100,9 +100,8 @@ public final class RavBloomSystem implements CampaignSystem {
         double[] weights = new double[markets.size()];
         for (int i = 0; i < markets.size(); i++) {
             BloomMarket market = markets.get(i);
-            if (!eligible(ledger, market, day)
-                    || !RavBloomRules.hasReservoir(world.seed(), market)) continue;
-            weights[i] = RavBloomRules.wakeWeight(market);
+            if (!eligible(ledger, market, day)) continue;
+            weights[i] = RavBloomRules.wakeWeight(market, world.seed());
             total += weights[i];
         }
         if (total <= 0.0) return;
@@ -195,7 +194,7 @@ public final class RavBloomSystem implements CampaignSystem {
                 if (bloom.stage != BloomStage.DARK) return;
                 eatDown(state, ledger, bloom, day);
                 if (bloom.active() && day >= bloom.darkDay + tuning.severity.burnoutDays) {
-                    end(state, ledger, bloom, BloomEnd.BURNED_OUT, day);
+                    end(state, ledger, bloom, tuning.severity.unansweredEnd, day);
                 }
                 break;
             case STARVED:
@@ -247,12 +246,12 @@ public final class RavBloomSystem implements CampaignSystem {
         bloom.stage = BloomStage.DARK;
         bloom.darkDay = day;
         bloom.lastSizeLossDay = day;
-        world.wentDark(bloom);
+        world.wentDark(bloom, tuning.severity.disruptsWorkings);
     }
 
     private void eatDown(CampaignState state, RavBloomLedger ledger, RavBloom bloom, int day) {
         BloomTuning.Severity severity = tuning.severity;
-        if (day < bloom.lastSizeLossDay + severity.sizeLossDays
+        if (!severity.costsSize() || day < bloom.lastSizeLossDay + severity.sizeLossDays
                 || bloom.sizeLost >= severity.maxSizeLoss) {
             return;
         }
@@ -320,7 +319,7 @@ public final class RavBloomSystem implements CampaignSystem {
                 state.eventState[row] = CampaignEventState.EXPIRED.toByte();
             }
         }
-        world.ended(bloom);
+        world.ended(bloom, tuning.severity.unrestOnEnd);
     }
 
     private static CampaignEventState rescueState(CampaignState state, RavBloom bloom) {

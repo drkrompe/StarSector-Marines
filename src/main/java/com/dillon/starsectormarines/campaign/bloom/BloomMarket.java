@@ -27,11 +27,15 @@ public final class BloomMarket {
     public final float y;
     /** Light-years from the core's centre. */
     public final float lyFromCore;
+    /** Trade traffic through the port, 0 (none) to about 2 (a busy megaport). */
+    public final float traffic;
+    /** Population inflow, 0 (none or shrinking) to 1 (growing fast). */
+    public final float inflow;
 
     public BloomMarket(String id, String name, String systemId, String factionId, int size,
                        int daysInExistence, boolean hidden, boolean playerOwned, boolean ruins,
                        boolean habitable, boolean workings, boolean core,
-                       float x, float y, float lyFromCore) {
+                       float x, float y, float lyFromCore, float traffic, float inflow) {
         this.id = id;
         this.name = name;
         this.systemId = systemId;
@@ -47,6 +51,8 @@ public final class BloomMarket {
         this.x = x;
         this.y = y;
         this.lyFromCore = lyFromCore;
+        this.traffic = traffic;
+        this.inflow = inflow;
     }
 
     public float distanceLy(BloomMarket other) {

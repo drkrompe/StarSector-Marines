@@ -6,7 +6,7 @@ speak about it.
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — owner settled the name (the Rav Bloom); added the
+Updated: 2026-10-22 — spores travel on cargo (owner); 2026-10-21 owner settled the name (the Rav Bloom); added the
 whispered-reputation, sporeship-rumour and red-tide direction.
 
 Read `faction-lore-nouns.md` for evidence rules and shared setting laws, and
@@ -145,8 +145,10 @@ explains the mechanic; it never adds behaviour the mechanic does not have.
 
 - **It was seeded widely.** Whoever deployed it seeded many worlds and many sites
   per world; the records of where are lost. Outbreaks therefore surface across
-  the Persean Sector, at no predictable world, whenever a colony grows over a
-  reservoir. Where and how often belongs to `colony-breach-nouns.md` (Campaign: blooms); the lore only
+  the Persean Sector, at no predictable world. Dormant material also travels:
+  it rides on cargo and arrives with people who do not know they carry it, and
+  wakes wherever it lands in a colony busy and dense enough to feed it (owner,
+  2026-10-22). Where and how often belongs to `colony-breach-nouns.md` (Campaign: blooms); the lore only
   requires that it can happen anywhere a colony has grown, and that nobody holds
   the map.
 - **Collapsing the mother bore ends an outbreak, not the weapon.** The surface
@@ -158,7 +160,7 @@ explains the mechanic; it never adds behaviour the mechanic does not have.
   is a bonus and a mercy for whoever comes next, not victory over the thing.
 - Rumoured vectors between worlds (dormant material in ore, salvage or ballast;
   a reservoir cut open by a new mine) are allowed as **in-world speculation** for
-  radio and bar talk. Cargo is the one that is a mechanic: a dark bloom can seed a neighbour (`colony-breach-nouns.md`, Campaign: blooms); the rest stay talk until something makes
+  radio and bar talk. Cargo is the one that is a mechanic: it is how blooms reach the colonies they wake in (`colony-breach-nouns.md`, Campaign: blooms); the rest stay talk until something makes
   it one.
 
 ### Names: what people call it
