@@ -2860,7 +2860,6 @@
     "openingUiMechLabSpecifications": "SPECIFICATIONS",
     "openingUiMechLabFittingLocations": "FITTING LOCATIONS",
     "openingUiMechLabSelectASocketToFilterHardware": "Select a socket to filter hardware.",
-    "openingUiMechLabStrip": "STRIP",
 
     "openingBoatCount": "{0,choice,0#0 boats aboard|1#1 boat aboard|1<{0,number,integer} boats aboard}",
     "openingBoatCarrier": "carried by {0}",
