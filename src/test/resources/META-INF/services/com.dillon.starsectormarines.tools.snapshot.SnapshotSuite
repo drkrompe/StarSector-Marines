@@ -265,3 +265,4 @@ com.dillon.starsectormarines.battle.cordon.CordonMapgenSnapshotSuite
 com.dillon.starsectormarines.battle.unit.BodyPileSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.ElevationSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.ElevationOptionsSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.elevation.HighGroundSceneSnapshotSuite
