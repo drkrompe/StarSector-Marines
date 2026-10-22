@@ -451,6 +451,57 @@ public final class FleetArmoryViewModel {
                 joinSpans(issue), issue, "", List.of(), select);
     }
 
+    /** How a loadout card reads where it is named outside the Armory: its name, an icon, and its hover sheet. */
+    record CardFace(String name, String icon, SpecSheet sheet) { }
+
+    /** A weapon card's face, iconed by the weapon most of its seats carry. */
+    static CardFace weaponCardFace(SquadWeaponDoctrine doctrine) {
+        SquadLoadoutPresentationDef presentation = loadoutPresentation(doctrine.id(),
+                SquadLoadoutPresentationDef.Kind.WEAPON, maximumWeaponTier(doctrine), doctrine.description());
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        for (SquadWeaponIssue issue : doctrine.issues()) counts.merge(issue.primaryId(), 1, Integer::sum);
+        String common = counts.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(null);
+        String icon = null;
+        if (common != null) {
+            for (SquadWeaponIssue issue : doctrine.issues()) {
+                if (!issue.primaryId().equals(common)) continue;
+                icon = EquipmentIcons.primary(WeaponRegistry.require(common), issue.grade());
+                break;
+            }
+        }
+        int rating = LoadoutEffectiveness.weaponRating(doctrine);
+        return new CardFace(doctrine.displayName(), icon, cardSheet(doctrine.displayName(), presentation,
+                doctrineMetadata(presentation), "weapon", "openingBarracksCardFire", rating,
+                List.of(weaponComposition(doctrine), joinSpans(weaponDistributionSpans("card-face", doctrine)))));
+    }
+
+    /** A tactic sheet's face, iconed by the suit most of its seats wear. */
+    static CardFace armorCardFace(SquadArmorPlan plan, SquadArmorDoctrine issued) {
+        SquadLoadoutPresentationDef presentation = loadoutPresentation(plan.id(),
+                SquadLoadoutPresentationDef.Kind.ARMOR, maximumArmorTier(issued), plan.description());
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        for (String armorId : issued.issueIds()) counts.merge(armorId, 1, Integer::sum);
+        String common = counts.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(null);
+        String icon = common == null ? null : MarineArmorCatalogRegistry.require(common).iconPath();
+        String metadata = Strings.format("openingFleetArmoryFieldsTier", plan.armorClassDisplayName(),
+                plan.tradition().displayName(), tierMark(maximumArmorTier(issued)));
+        int rating = LoadoutEffectiveness.armorRating(issued);
+        return new CardFace(plan.displayName(), icon, cardSheet(plan.displayName(), presentation, metadata,
+                "armor", "openingBarracksCardGuard", rating,
+                List.of(joinSpans(armorDistributionSpans("card-face", issued)),
+                        armorCapabilities(armorCapabilitySpans("card-face", issued)))));
+    }
+
+    private static SpecSheet cardSheet(String name, SquadLoadoutPresentationDef presentation, String metadata,
+                                       String accent, String ratingLabel, int rating, List<String> lines) {
+        List<String> notes = new ArrayList<>();
+        for (String line : lines) if (line != null && !line.isBlank()) notes.add(line);
+        if (presentation.lore() != null && !presentation.lore().isBlank()) notes.add(presentation.lore());
+        return new SpecSheet(name, presentation.rarity().displayName() + Strings.get("separatorDot") + metadata,
+                presentation.factionLogo(), accent,
+                List.of(new SpecSheet.Stat("rating", Strings.get(ratingLabel), rating + "%", rating / 100f)), notes);
+    }
+
     static String weaponComposition(SquadWeaponDoctrine doctrine) {
         Map<String, Integer> counts = new LinkedHashMap<>();
         for (SquadWeaponIssue issue : doctrine.issues()) {

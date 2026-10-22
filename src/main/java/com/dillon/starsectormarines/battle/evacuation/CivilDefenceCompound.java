@@ -337,7 +337,7 @@ public final class CivilDefenceCompound {
         }
     }
 
-    private static NightLighting.Lamp floodlight(int x, int y, int outX, int outY) {
+    static NightLighting.Lamp floodlight(int x, int y, int outX, int outY) {
         float bearing = (float) Math.toDegrees(Math.atan2(outY, outX));
         return new NightLighting.Lamp(x + 0.5f, y + 0.5f, 9f, 1f, 0.93f, 0.78f, LIGHT_CIRCUIT,
                 NightLighting.Fixture.TRIPOD_FLOODLIGHT, bearing);
@@ -390,9 +390,15 @@ public final class CivilDefenceCompound {
                 }
             }
         }
+        addLamps(sim, plan.lamps());
+    }
+
+    /** Adds floodlights to the map's night lighting, on the civil-defence circuit, which is powered. */
+    static void addLamps(BattleSimulation sim, List<NightLighting.Lamp> added) {
+        CellTopology topology = sim.getTopology();
         NightLighting night = topology.nightLighting();
         List<NightLighting.Lamp> lamps = new ArrayList<>(night == null ? List.of() : night.lamps());
-        lamps.addAll(plan.lamps());
+        lamps.addAll(added);
         Set<String> powered = new HashSet<>(night == null ? Set.of() : night.poweredCircuits());
         powered.add(LIGHT_CIRCUIT);
         topology.setNightLighting(new NightLighting(night == null ? 0f : night.darkness(), lamps, powered));

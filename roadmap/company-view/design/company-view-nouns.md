@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-22 — a squad's kit is its two cards: seats are dressed from them on every change, and saved squad profiles and the Barracks issue order are gone.
+Updated: 2026-10-22 — a squad's kit is its two cards; Barracks cards lead with them, and filling vacancies is a wrench on the card or beside the select toggle.
 
 ## Purpose
 
@@ -724,9 +724,12 @@ use the same cost vocabulary and point to the stock display in the relevant room
 
 ## Shipboard Barracks
 
-Barracks's order panel fills vacancies: an explicit order, not a button that
-silently spends all available resources. There is no equipment order, because
-replacements take their seat's kit as they join. Current billet counts state ready, wounded and vacant
+Barracks has no order panel. Filling vacancies is the **wrench**: on a squad card
+it fills that squad, and beside the select-all toggle it fills the selection. Each
+is an explicit order whose hover states the draw (named reserves first, then cargo
+Marines) and what stays unfilled, never a button that silently spends all available
+resources. A card shows its wrench only while it has true vacancies. There is no
+equipment order, because replacements take their seat's kit as they join. Current billet counts state ready, wounded and vacant
 separately. A squad card's **Loadout** opens that squad's exact Armory equipment
 workspace; returning retains the Barracks selection. **Raise Squad** is a tile at the end of
 the formation board, not a separate page: it pays the full founding bill and raises only into a free command slot: the open officer's, or
@@ -843,18 +846,20 @@ Barracks opens on company formations grouped by their home officer, with an
 independent acting-NCO group for squads without an officer. Commander portraits,
 readiness and occupied command slots make the organization visible. Search,
 profile and attention filters bound the roster; pagination limits rendered squads.
-Select-all includes every matching available squad across pages and shows the
-selected total. Changing a filter clears selection; inspecting a squad and returning
+One toggle selects every matching available squad across pages, or deselects them
+once all are selected, and the board shows the selected total. Changing a filter clears selection; inspecting a squad and returning
 preserves it. Stationed formations can be inspected but cannot receive bulk orders.
 
-Formations are compact selectable cards. Each carries the squad name, intended
-profile, ready count and twelve current billets grouped into three fire teams.
+Formations are compact selectable cards. Each leads with the squad name and ready
+count, then its two cards (weapon card and tactic sheet, each with its own hover
+sheet: rarity, tier, rating, composition and lore), then its personnel state and
+twelve current billets grouped into three fire teams.
 Filled silhouettes, medical marks and hollow silhouettes distinguish ready,
 wounded and vacant places without relying on color. Selection has its own frame
-and checkbox; inspection is a separate action. The armor image represents the
-most common current issue, never an invented squad class. The card names the
-squad's weapon card and tactic sheet. Short personnel states stay visible, while
-hover and keyboard-focus details explain recovery, command and cards.
+and checkbox; inspection is a separate action. Each card face is iconed by what
+most of its seats carry. Short personnel states stay visible, while hover and
+keyboard-focus details explain recovery, command and cards. The card does not
+repeat its commander: the officer rail already says whose squads are in view.
 
 There are no saved squad profiles: the player picks each squad's two cards
 individually through its Loadout. A save written while profiles existed gives each
@@ -863,10 +868,8 @@ squad the cards of the profile it was assigned, then drops the profiles.
 Select squad cards, then use **Assign Selected** on the desired commander card.
 The button shows the selected count and a live capacity preview; unavailable or
 full officers cannot receive an invalid selection. The Independent card clears
-home command through the same transaction. Commander portraits and names on
-squad cards identify their saved home command. Viewing an officer dossier is a
-separate action from assignment. Personnel and equipment preparation remain in
-the right panel; commander assignment has no separate selector there.
+home command through the same transaction. Viewing an officer dossier is a
+separate action from assignment.
 
 Home-command assignment applies the roster's atomic capacity checks to the whole selection.
 Personnel replacement uses ready reserves first, then the existing one-Marine-per-

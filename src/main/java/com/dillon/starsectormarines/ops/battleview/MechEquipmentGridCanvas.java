@@ -31,6 +31,7 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
         this.replenisher = replenisher;
         this.occupied = occupied;
         this.assets = assets;
+        HardwareArt.preload();
     }
 
     public static MechEquipmentGridCanvas catalog(MechWeaponComponent weapon,
@@ -92,6 +93,10 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
                                MissileReplenisherComponent subsystem, HardpointBricks.Layout layout) {
         float areaWidth = layout.width();
         float areaHeight = layout.height();
+        if (component != null && HardwareArt.draw(context, component, layout.left(), layout.top(),
+                areaWidth, areaHeight, 255)) {
+            return;
+        }
         if (component != null && assets.get() != null) {
             LayeredSpriteCache sprite = spriteFor(assets.get(), component);
             if (sprite != null) {

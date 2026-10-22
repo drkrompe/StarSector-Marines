@@ -62,7 +62,7 @@ final class RedoubtWorks {
     private static final int CRATE_EVERY = 5;
     /** Every this many barricade cells, a scrap pile. */
     private static final int SCRAP_EVERY = 11;
-    private static final String[] TRUCKS = {
+    static final String[] TRUCKS = {
             "doodad.parked-utility-truck", "doodad.parked-flatbed-truck",
             "doodad.parked-cargo-truck", "doodad.parked-box-van"};
 
@@ -444,7 +444,7 @@ final class RedoubtWorks {
     }
 
     /** The street asphalt the road finish laid, or none on a map without one. */
-    private static Roadway roadway(BattleSimulation sim) {
+    static Roadway roadway(BattleSimulation sim) {
         RoadSurface surface = sim.getTopology().roadSurface();
         if (surface == null) return (x, y) -> false;
         int asphalt = Material.ASPHALT.ordinal();
