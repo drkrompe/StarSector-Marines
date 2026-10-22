@@ -1,0 +1,21 @@
+A finished matte painting for a film: a photoreal orbital photograph looking straight down from
+261 km at a desert world, the frame 94 km across, flat even morning light. Wide 16:9 landscape
+canvas.
+
+Image 1 is the exact layout authority, a rough projection of this very ground through the
+shot's camera. Keep everything exactly where it is, at the same size and in the same colours:
+every wadi, ridge and dark rock band, and the three settlements and the roads joining them.
+Do not move, add, remove, rotate or rescale anything, and keep the framing pixel for pixel.
+
+Repaint it at full photographic detail, as a real high-resolution satellite image:
+- Ground: crisp dune ripples and wind grain in the sand, sharp branching wadis with pale sand
+  floors, dark eroded rock ridges with talus and fine gullies, desert varnish, gravel plains.
+- The octagon at upper right: a walled frontier town, a pale perimeter wall, a dense block of
+  flat dusty roofs and narrow lanes, a few warehouse roofs, sand drifted against the wall.
+- The concentric ovals at centre right: a terraced open-pit mine, stepped benches spiralling
+  down into a shadowed pit, haul ramps, a dark tailings heap beside it.
+- The rectangle of round pads at lower left: a worn landing grid, pale concrete pads scorched
+  by drives, hangars and fuel tanks along one side.
+- The thin lines: unpaved haul roads following the ground.
+Low population, independent and worn; dusty, sun-bleached materials. No ships, vehicles,
+clouds, haze, lights, text, labels, grid, border or vignette.

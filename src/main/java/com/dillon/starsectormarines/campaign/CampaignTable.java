@@ -25,5 +25,6 @@ public enum CampaignTable {
     /** Equipment templates the company has released to its own polity, and the doctrine they are shaped by. */
     RELEASED_KIT,
     /** Military warrants: which Restricted equipment the company may acquire, and on whose authority. */
-    MILITARY_WARRANTS
+    MILITARY_WARRANTS,
+    RAV_BLOOMS
 }

@@ -38,6 +38,7 @@ import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
 import com.dillon.starsectormarines.intel.BridgeIntel;
 import com.dillon.starsectormarines.intel.CampaignDebugIntel;
 import com.dillon.starsectormarines.intel.CivilianRescueIntel;
+import com.dillon.starsectormarines.intel.RavBloomIntel;
 import com.dillon.starsectormarines.intel.DefectorAsylumIntel;
 import com.dillon.starsectormarines.intel.DeadLetterIntel;
 import com.dillon.starsectormarines.intel.LastTestamentIntel;
@@ -175,6 +176,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         ArrivalCinematicPresenter.install();
         ensureCompanyViewAbility();
         ensureCivilianRescueIntel();
+        ensureRavBloomIntel();
         ensureDefectorAsylumIntel();
         ensureDeadLetterIntel();
         ensureLastTestamentIntel();
@@ -401,6 +403,13 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         if (mgr.getFirstIntel(CivilianRescueIntel.class) != null) return;
         mgr.addIntel(new CivilianRescueIntel(), true);
         LOG.info("Starsector Marines: Distress Net intel registered");
+    }
+
+    private static void ensureRavBloomIntel() {
+        IntelManagerAPI mgr = Global.getSector().getIntelManager();
+        if (mgr.getFirstIntel(RavBloomIntel.class) != null) return;
+        mgr.addIntel(new RavBloomIntel(), true);
+        LOG.info("Starsector Marines: Rav Bloom intel registered");
     }
 
     private static void ensureDefectorAsylumIntel() {

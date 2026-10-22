@@ -33,7 +33,11 @@ public final class SwarmCues {
         /** A pack leader died and its pack broke: one scatter shriek for the pack, posted by the leader. */
         PACK_BROKEN,
         /** The Matriarch stepped up a growth stage: her plates split and darken, and she roars. */
-        MOULT
+        MOULT,
+        /** The Matriarch out of the mother bore: her first roar. */
+        ROAR,
+        /** A Matriarch's scythe begins its sweep; the whoosh leads the cut. */
+        REAP
     }
 
     /** One act by a body of {@code strain} at {@code stage} at a world position; the stage pitches its voice. */

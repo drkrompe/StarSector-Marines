@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign;
 
+import com.dillon.starsectormarines.campaign.bloom.RavBloomSystem;
 import com.dillon.starsectormarines.campaign.systems.AutonomousPromotionSystem;
 import com.dillon.starsectormarines.campaign.systems.AutonomousChainCreationSystem;
 import com.dillon.starsectormarines.campaign.systems.ChainAdvancementSystem;
@@ -9,7 +10,6 @@ import com.dillon.starsectormarines.campaign.systems.CaptainTraitDriftSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarParticipationSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarParticipationOfferSystem;
 import com.dillon.starsectormarines.campaign.systems.CivilWarPlayerConsequenceSystem;
-import com.dillon.starsectormarines.campaign.systems.CivilianRescueSpawnSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractGenerator;
 import com.dillon.starsectormarines.campaign.systems.ContractLifecycleSystem;
 import com.dillon.starsectormarines.campaign.systems.ContractRetainerSystem;
@@ -115,7 +115,8 @@ public class CampaignStateScript implements EveryFrameScript {
                 new PatronEquipmentRewardSystem(),
                 new CivilWarParticipationSystem(),
                 new CivilWarPlayerConsequenceSystem(),
-                new CivilianRescueSpawnSystem(),
+                // The Rav Bloom's clock; its distress calls are the only source of civilian rescues.
+                new RavBloomSystem(),
                 new MoralCompassSystem(),
                 new KingmakerTestamentSystem(),
                 new CaptainTraitDriftSystem(),

@@ -25,7 +25,8 @@ PASS1_COMMIT = "dd37175fe"
 PASS1_CELLS = {"bore": 3.0, "mother-bore": 3.8, "spore-colony-fissure": 1.0, "spore-colony-bore": 1.35,
                "spore-colony-maw": 1.7}
 LABELS = {"bore": "Bore", "mother-bore": "Mother bore", "spore-colony-fissure": "Colony, fissure grade",
-          "spore-colony-bore": "Colony, bore grade", "spore-colony-maw": "Colony, maw grade"}
+          "spore-colony-bore": "Colony, bore grade", "spore-colony-maw": "Colony, maw grade",
+          "ground-colony": "Ground colony"}
 W, H = 1920, 1080
 BACKDROP = (40, 40, 42)
 GROUNDS = {"paving": (150, 124, 98), "grass": (96, 104, 72), "creep": (0x4c, 0x44, 0x3c)}
@@ -156,7 +157,7 @@ def palette_sheet(ppc: float, colony_ppc: float) -> Image.Image:
     heading(draw, f"Palette: pass 1 | pass 2, generations' own colours | pass 2, settled Rav Bloom palette (shipped). "
                   f"Bores {ppc:.0f}, colonies {colony_ppc:.0f} px/cell")
     rows = [("pass 1 palette", None), ("pass 2, raw colours", "raw"), ("pass 2, Rav Bloom", "bloom")]
-    parts = make_guide.PARTS
+    parts = tuple(PASS1_CELLS)  # the bodies pass 1 drew
     band_h = (H - 100) / len(rows)
     slot_w = (W - 260) / len(parts)
     for row, (name, which) in enumerate(rows):

@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CivilianRescueMissionResolutionTest {
 
@@ -90,6 +91,18 @@ class CivilianRescueMissionResolutionTest {
         assertEquals(CampaignEventState.PENDING_CHOICE, fixture.eventState());
     }
 
+    @Test
+    void motherBoreReportIsLeftOnTheLedgerForTheBloom() {
+        Fixture fixture = new Fixture();
+        MissionOutcome withMother = fixture.outcomeBuilder(60).motherBoreCollapsed(true).build();
+
+        assertEquals(CivilianRescueMissionResolution.Result.RESOLVED,
+                CivilianRescueMissionResolution.apply(fixture.state, withMother, 22));
+        assertTrue(fixture.state.ravBlooms().motherCollapsedFor(fixture.eventId));
+        assertEquals(CivilianRescueMissionResolution.Result.ALREADY_TERMINAL,
+                CivilianRescueMissionResolution.apply(fixture.state, withMother, 23));
+    }
+
     private static void assertResolved(int rescued) {
         Fixture fixture = new Fixture();
 
@@ -126,9 +139,20 @@ class CivilianRescueMissionResolutionTest {
                     120, rescued);
         }
 
+        MissionOutcome.Builder outcomeBuilder(int rescued) {
+            return builder(CivilianRescueMissionKey.encode(eventId),
+                    MissionSource.CAMPAIGN_EVENT, eventId, market, 120, rescued);
+        }
+
         MissionOutcome outcome(String missionId, MissionSource source,
                                long outcomeEventId, int outcomeMarket,
                                int atRisk, int rescued) {
+            return builder(missionId, source, outcomeEventId, outcomeMarket, atRisk, rescued).build();
+        }
+
+        MissionOutcome.Builder builder(String missionId, MissionSource source,
+                                       long outcomeEventId, int outcomeMarket,
+                                       int atRisk, int rescued) {
             return MissionOutcome.builder()
                     .missionId(missionId)
                     .missionName("Civilian Evacuation")
@@ -142,8 +166,7 @@ class CivilianRescueMissionResolutionTest {
                     .campaignEventId(outcomeEventId)
                     .campaignEventMarketId(outcomeMarket)
                     .civiliansAtRisk(atRisk)
-                    .civiliansRescued(rescued)
-                    .build();
+                    .civiliansRescued(rescued);
         }
     }
 }

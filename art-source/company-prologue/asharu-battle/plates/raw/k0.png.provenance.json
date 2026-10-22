@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a163be-d7a3-76b2-a838-417e5b214dc1",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a163be-d7a3-76b2-a838-417e5b214dc1\\exec-56be0e91-d6a6-4baa-8385-72cd9cb4e990.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\asharu-battle\\plates\\raw\\k0.png",
+    "sha256": "4770077827492f4d398d267c8f51247dc9e1ef3ba9b176baf7d9ba35ae0fd2ac",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\asharu-battle\\plates\\prompts\\k0.txt",
+  "promptSha256": "ffba5e482b7bb2d13afadd7536ff3eeea3c9de786f59dfda331b5d2756c3b97d",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Exact layout authority: a rough projection of this ground through the shot camera. Keep everything where it is.\n\nA finished matte painting for a film: a photoreal orbital photograph looking straight down from\n261 km at a desert world, the frame 94 km across, flat even morning light. Wide 16:9 landscape\ncanvas.\n\nImage 1 is the exact layout authority, a rough projection of this very ground through the\nshot's camera. Keep everything exactly where it is, at the same size and in the same colours:\nevery wadi, ridge and dark rock band, and the three settlements and the roads joining them.\nDo not move, add, remove, rotate or rescale anything, and keep the framing pixel for pixel.\n\nRepaint it at full photographic detail, as a real high-resolution satellite image:\n- Ground: crisp dune ripples and wind grain in the sand, sharp branching wadis with pale sand\n  floors, dark eroded rock ridges with talus and fine gullies, desert varnish, gravel plains.\n- The octagon at upper right: a walled frontier town, a pale perimeter wall, a dense block of\n  flat dusty roofs and narrow lanes, a few warehouse roofs, sand drifted against the wall.\n- The concentric ovals at centre right: a terraced open-pit mine, stepped benches spiralling\n  down into a shadowed pit, haul ramps, a dark tailings heap beside it.\n- The rectangle of round pads at lower left: a worn landing grid, pale concrete pads scorched\n  by drives, hangars and fuel tanks along one side.\n- The thin lines: unpaved haul roads following the ground.\nLow population, independent and worn; dusty, sun-bleached materials. No ships, vehicles,\nclouds, haze, lights, text, labels, grid, border or vignette.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "build\\asharu-plates\\guides\\k0.png",
+      "sha256": "e9e596ff32fcb67d7b0eff59123bcfef2357424ebdb8676c3224b9881f1891ef",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Exact layout authority: a rough projection of this ground through the shot camera. Keep everything where it is."
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to create one detailed repaint, preserving the reference layout and framing.\n"
+  ],
+  "usage": {
+    "input_tokens": 42413,
+    "cached_input_tokens": 33152,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 494,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 65.5
+}
