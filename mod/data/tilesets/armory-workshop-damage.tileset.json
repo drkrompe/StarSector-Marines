@@ -243,7 +243,7 @@
       "cover": "heavy",
       "footprintCells": [
         2,
-        2
+        1
       ],
       "id": "armory-workshop.ammo-damaged",
       "row": 2
@@ -254,7 +254,7 @@
       "cover": "none",
       "footprintCells": [
         2,
-        2
+        1
       ],
       "id": "armory-workshop.ammo-destroyed",
       "row": 2
