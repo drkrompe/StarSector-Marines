@@ -4,8 +4,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 /**
- * What a controlled Marine's magazine looks like, round by round: the strip under the weapon row and
- * the ring of pips beside the cursor both draw this, so the two can never disagree.
+ * What a controlled Marine's magazine looks like, round by round, for the strip under the weapon row.
  *
  * <p>Rounds are counted from the first to leave the gun. A belt is drawn in blocks of one trigger pull's
  * burst, which is what turns fifty rounds back into something read at a glance: six blocks and a bit.
@@ -21,11 +20,6 @@ public record MagazineGauge(Kind kind, int capacity, int loaded, int group, floa
     public enum Kind { RIFLE, SHELL, LINK }
 
     public enum Round { LIVE, SPENT, LOADING }
-
-    /** The ring's span either side of the cursor's right-hand side, in degrees. */
-    public static final float RING_HALF_SPAN_DEGREES = 100f;
-    /** The gap between belt blocks on the ring, in degrees. */
-    public static final float RING_GROUP_GAP_DEGREES = 5f;
 
     public MagazineGauge {
         capacity = Math.max(0, capacity);
@@ -68,18 +62,5 @@ public record MagazineGauge(Kind kind, int capacity, int loaded, int group, floa
     /** A quarter of the load or less, and at least the last round: time to think about reloading. */
     public boolean low() {
         return !reloading() && loaded <= Math.max(1, capacity / 4);
-    }
-
-    /** Degrees each pip takes on the ring, gaps between blocks left out. */
-    public float pipStepDegrees() {
-        int gaps = group > 1 ? (capacity - 1) / group : 0;
-        return capacity == 0 ? 0f
-                : (2f * RING_HALF_SPAN_DEGREES - gaps * RING_GROUP_GAP_DEGREES) / capacity;
-    }
-
-    /** Where a pip starts on the ring, measured from the top of its span. */
-    public float pipStartDegrees(int index) {
-        int gapsBefore = group > 1 ? index / group : 0;
-        return -RING_HALF_SPAN_DEGREES + index * pipStepDegrees() + gapsBefore * RING_GROUP_GAP_DEGREES;
     }
 }

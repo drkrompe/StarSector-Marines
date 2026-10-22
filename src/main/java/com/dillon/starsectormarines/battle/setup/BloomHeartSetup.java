@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
@@ -114,11 +115,14 @@ public final class BloomHeartSetup {
             sim.addObjective(new BatteryObjective(guns));
         }
         HeartLanes lanes = form == Form.BROAD_FRONT ? alliedLanes(form, built.battleSeed()) : null;
+        boolean front = barrage != null && burnFront();
+        if (front) lanes = burnFront(sim, form, burnScreen(form, barrage.plan()), built.battleSeed());
         sim.installHeart(form, barrage, lanes);
         Precinct landing = built.plan().landingPlace();
         int laneAcross = form.advancesAlongY() ? landing.seedX() : landing.seedY();
         int laneHalfWidth = form == Form.BROAD_FRONT
                 ? Math.round(BROAD_FRONT_LANE_HALF_WIDTH * form.scale.width)
+                : front ? Math.round(COMPANY_SECTOR_HALF_WIDTH * acrossExtent(form))
                 : Math.max(form.scale.width, form.scale.height);
         // -Dbattle.heart.followBarrage=false is the control: the company goes straight for its bore.
         BarrageScreen screen = barrage == null || !Boolean.parseBoolean(System.getProperty("battle.heart.followBarrage", "true"))
@@ -146,6 +150,70 @@ public final class BloomHeartSetup {
             entries.add(foot);
         }
         return new HeartLanes(grounds, entries, RiskLevel.MEDIUM, seed ^ LANES_SALT);
+    }
+
+    /** {@code -Dbattle.heart.burnFront=true}: The Burn as an allied front (`heart-burn-front.md`). */
+    static boolean burnFront() {
+        return Boolean.getBoolean("battle.heart.burnFront");
+    }
+
+    /** The company's sector on The Burn's front: this share of the front's width either side of its landing. */
+    static final float COMPANY_SECTOR_HALF_WIDTH =
+            Float.parseFloat(System.getProperty("battle.heart.companySector", "0.08"));
+    /**
+     * Every battlegroup gets a tank and a Hound pair as well (the measured better mix, pending the owner's pick);
+     * {@code -Dbattle.heart.burnFrontArmour=standard} keeps tanks beside the company and Hounds on the flanks only.
+     */
+    static final boolean HEAVY_ARMOUR = !"standard".equals(System.getProperty("battle.heart.burnFrontArmour", "heavy"));
+    /** A battlegroup's sector: this share of the front's width either side of its lane. */
+    static final float BATTLEGROUP_HALF_WIDTH = 0.09f;
+    /** Where a battlegroup's armour is set down: at the farmland's open front, short of where the front forms up. */
+    static final float ARMOUR_DEPTH = 0.12f;
+
+    static int acrossExtent(Form form) {
+        return form.advancesAlongY() ? form.scale.width : form.scale.height;
+    }
+
+    /**
+     * The Burn's allied front: a battlegroup on each lane across the approach, militia columns with their
+     * armour (an escort APC, a technical, a breakthrough tank and a Hound pair in each; the standard mix keeps
+     * the tanks beside the company and the Hounds on the outer flanks), all following the barrage on {@code screen}.
+     */
+    static HeartLanes burnFront(BattleSimulation sim, Form form, BarrageScreen screen, long seed) {
+        List<HeartLane> grounds = new ArrayList<>();
+        List<int[]> entries = new ArrayList<>();
+        int halfWidth = Math.round(BATTLEGROUP_HALF_WIDTH * acrossExtent(form));
+        float[] across = HeartCountry.laneAcross();
+        for (float a : across) {
+            int[] foot = form.cellAt(LANE_FOOT_DEPTH, a);
+            grounds.add(new HeartLane(form.advancesAlongY(), form.advancesAlongY() ? foot[0] : foot[1], halfWidth));
+            entries.add(foot);
+        }
+        HeartLanes lanes = new HeartLanes(grounds, entries, RiskLevel.MEDIUM, seed ^ LANES_SALT).following(screen);
+        int axis = form.advancesAlongY() ? 1 : 0;
+        float facing = form.advancesAlongY() ? (screen.sign() > 0 ? 90f : -90f) : (screen.sign() > 0 ? 0f : 180f);
+        for (int i = 0; i < across.length; i++) {
+            List<VehicleType> hulls = new ArrayList<>(List.of(VehicleType.ESCORT_APC, VehicleType.MILITIA_TECHNICAL));
+            boolean inner = i == 1 || i == across.length - 2;
+            if (inner || HEAVY_ARMOUR) hulls.add(VehicleType.BREAKTHROUGH_TANK);
+            int[] base = form.cellAt(ARMOUR_DEPTH, across[i]);
+            int slot = 0;
+            for (VehicleType type : hulls) {
+                int[] at = offset(base, axis, slot++);
+                lanes.addArmour(sim, i, type, at[0], at[1], facing);
+            }
+            for (int h = 0; (!inner || HEAVY_ARMOUR) && h < 2; h++) {
+                int[] at = offset(base, axis, slot++);
+                lanes.addArmour(sim, i, null, at[0], at[1], facing);
+            }
+        }
+        return lanes;
+    }
+
+    /** {@code base} moved {@code slot} places across the advance, five cells apart, alternating sides. */
+    private static int[] offset(int[] base, int axis, int slot) {
+        int shift = (slot % 2 == 0 ? 1 : -1) * ((slot + 1) / 2) * 5;
+        return axis == 0 ? new int[]{base[0], base[1] + shift} : new int[]{base[0] + shift, base[1]};
     }
 
     private static final long LANES_SALT = 0x4C41_4E45_5348_5254L;

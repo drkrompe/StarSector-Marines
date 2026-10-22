@@ -979,7 +979,7 @@ KEYFRAMES = {
         ships={},
         fx=[('entry_trails',)],
         labels=['trail-colossus', 'trail-morrow'],
-        clean=True),      # the review copy carries no labels or caption over the trails, only its shot id
+        clean=True),      # the review copy carries nothing over the trails: no labels, caption or shot id
 }
 
 
@@ -1069,22 +1069,24 @@ K6_LOOK = tuple(c / math.sqrt(.9 ** 2 + .02 ** 2 + .42 ** 2) for c in (.9, .02, 
 K6_RANGE = 1800.0       # metres from the camera to the Colossus at the key time
 
 
-def falling(key, start, t0, accel, drift=(0.0, 0.0, 0.0), yaw=0.0, pitch=0.0, roll_rate=0.0):
+def falling(key, start, t0, accel, drift=(0.0, 0.0, 0.0), aoa=20.0, yaw=0.0, roll=0.0, wobble=3.0,
+            phase=0.0, yaw_rate=0.0):
     """A hull falling into the air from its pose at t0 (a flight's at(t0)): her velocity there, from
-    the flight, plus a steady acceleration along accel (m/s^2, the dive) and a drift (m/s). She falls
-    belly first, crippled: her heading is her velocity's turned by yaw, her pitch is pitch, and her
-    roll turns slowly, so the camera behind her sees her broadside against the shock ahead of her.
-    Drives dark: thr 0."""
+    the flight, plus a steady acceleration along accel (m/s^2, the dive) and a drift (m/s). Her nose
+    points into the airflow over her (K6_WIND reversed), turned by yaw and pitched up by aoa: she
+    falls belly first, tilted back as if still trying to climb (owner, 2026-10-22), with a slow roll
+    and pitch wobble; yaw_rate lets her heading drift. Drives dark: thr 0."""
     p0, p1 = start.at(t0 - .5), start.at(t0)
     v0 = [2 * (p1[i] - p0[i]) + drift[i] for i in range(3)]
+    into = [-c for c in K6_WIND]
+    hd0 = math.degrees(math.atan2(into[1], into[0]))
+    pt0 = math.degrees(math.asin(max(-1.0, min(1.0, into[2]))))
 
     def at(t):
         dt = t - t0
         pos = [p1[i] + v0[i] * dt + .5 * accel[i] * dt * dt for i in range(3)]
-        v = [v0[i] + accel[i] * dt for i in range(3)]
-        n = math.sqrt(sum(c * c for c in v)) or 1.0
-        hd = math.degrees(math.atan2(v[1], v[0])) + yaw
-        return (*pos, hd, pitch, p1[5] + roll_rate * dt, 0.0)
+        return (*pos, hd0 + yaw + yaw_rate * dt, pt0 + aoa + .6 * wobble * math.sin(.7 * dt + phase),
+                roll + wobble * math.sin(1.1 * dt + 1.3 * phase), 0.0)
     return Pose(at(K6_T), K6_T, at)
 
 
@@ -1096,9 +1098,10 @@ K6_DIVE = tuple(40.0 * c for c in K6_LOOK)
 K6_WIND = tuple(c / math.sqrt(sum(((.3 * K6_LOOK[i] + (0, .7, .6)[i]) ** 2 for i in range(3))))
                 for c in (.3 * K6_LOOK[i] + (0, .7, .6)[i] for i in range(3)))
 K6_SHIPS = {'colossus': falling('colossus', M11_COLOSSUS, 126.0, K6_DIVE, drift=(0.0, 40.0, 0.0),
-                                 yaw=72.0, pitch=-14.0, roll_rate=1.5),
+                                 aoa=22.0, yaw=4.0, roll=5.0, wobble=3.0, phase=.4),
             'morrow': falling('morrow', M11_MORROW, 126.0, tuple(34.0 * c for c in K6_LOOK),
-                              drift=(0.0, 40.0, 0.0), yaw=-58.0, pitch=-8.0, roll_rate=-2.5)}
+                              drift=(0.0, 28.0, 0.0), aoa=17.0, yaw=-8.0, roll=-7.0, wobble=4.5,
+                              phase=2.1, yaw_rate=2.0)}
 _k6c = K6_SHIPS['colossus'].at(K6_T)
 K6_CAM = tuple(_k6c[i] - K6_RANGE * K6_LOOK[i] for i in range(3))
 
@@ -1145,6 +1148,9 @@ def _wreckfall(seed=12, small=10):
         size = rnd.uniform(14, 40) if kind == 'chunk' else rnd.uniform(1.5, 8)
         out.append(dict(name='%s %s %d' % (of, kind, n), of=of, kind=kind, size=size,
                         t_in=126.0 + rnd.uniform(-2.0, 5.5), at=pos, vel=vel, seed=n))
+    # two chunks, from different hulls, break up during the shot (coordinator, 2026-10-22)
+    chunks = [p for p in out if p['kind'] == 'chunk']
+    chunks[0]['split'], chunks[-1]['split'] = 129.6, 130.4
     return out
 
 
@@ -1172,6 +1178,11 @@ def add_span(arg):
     return ids
 
 
+def _k6c_cam(t):
+    c = K6_SHIPS['colossus'].at(t)
+    return tuple(c[i] - 560.0 * K6_LOOK[i] for i in range(3))
+
+
 KEYFRAMES['k6'].update(
     title='The wreckfall',
     caption="From the pirates' orbit, a long lens"
@@ -1186,6 +1197,14 @@ KEYFRAMES['k6'].update(
     ships=K6_SHIPS,
     fx=[('entry_sheath', 'colossus'), ('entry_sheath', 'morrow'), ('wreckfall',)],
     labels=['colossus', 'morrow'])
+# Coordinator, 2026-10-22: "one lit still of the Colossus alone, close enough to judge the plasma
+# conforming to the hull" before another span. The k6 camera's direction, 560 m off, at 50 mm.
+KEYFRAMES['k6c'] = dict(KEYFRAMES['k6'], title='The Colossus burning, close',
+                        camera=camera('k6c', [dict(t=129, loc=_k6c_cam, target=lambda t: K6_SHIPS['colossus'].at(t)[:3],
+                                                   lens=50), dict(t=131, loc=_k6c_cam,
+                                                   target=lambda t: K6_SHIPS['colossus'].at(t)[:3], lens=50)], K6_T),
+                        ships={'colossus': K6_SHIPS['colossus']}, fx=[('entry_sheath', 'colossus')],
+                        labels=['colossus'])
 
 # Shots with no key frame, blocked for the motion preview so no shot plays as a slate: the camera's
 # move and every ship's flight, the same spec as a key frame's. They are never lit: the lit run's
@@ -2159,18 +2178,21 @@ def blender_main(cfg):
         return swfx_entry
 
     def entry_sheath(pose, key, t):
-        """S12: a falling hull inside her plasma sheath (swfx_entry): the bow shock ahead of her fall,
-        the white-hot core, sparks shed off her, and the trail grown behind her since 126 s."""
-        length = SHIP_LENGTH[key]
-        head = Vector(pose.at(t)[:3])
-        wake = length * min(4.0, 1.0 + (t - 126.0) * .8)      # grows as she goes deeper into the air
-        pts = [head + Vector(K6_WIND) * wake * (1 - i / 40) for i in range(41)]
-        entry_kit().trail('Entry ' + key, pts, stage_fx, width_m=length * .45, glow=1.0, sparks=12,
-                          seed=len(key), shock=(length * 1.1, length * .5), spark_len=length * .6)
+        """S12: a falling hull inside her plasma, shaped by her own hull (swfx_entry.sheath): the sheath
+        white on the faces she meets the air with, the shock layer standing off them, flames peeling
+        off her silhouette into one wake that grows as she goes deeper since 126 s."""
+        kit = entry_kit()
+        e = bpy.data.objects.get('Ship | ' + key)
+        if e is None:
+            return
+        verts, faces = kit.hull_soup(e)
+        kit.sheath('Entry ' + key, verts, faces, stage_fx, K6_WIND, SHIP_LENGTH[key], glow=1.0,
+                   streamers=90 if key == 'colossus' else 70, seed=len(key), grow=min(1.0, (t - 126.0) / 4.5))
 
     def wreckfall(t):
         """S12: the ships the battle lost coming down in pieces (WRECKFALL): each piece a short entry
-        trail of its own, a chunk splitting in two or three as it breaks up; no ionisation trail."""
+        charred rock burning on its windward face (the heroes' sheath, smaller), flickering; two
+        chunks split during the shot."""
         import random
         kit = entry_kit()
         for pc in WRECKFALL:
@@ -2179,20 +2201,24 @@ def blender_main(cfg):
             rnd = random.Random(pc['seed'])
             age = min(t - pc['t_in'], 1.5 if pc['kind'] == 'chunk' else .8)
 
-            def at(tt, dv=(0.0, 0.0, 0.0), pc=pc):
-                return Vector([pc['at'][i] + (pc['vel'][i] + dv[i]) * (tt - K6_T) for i in range(3)])
+            def at(tt, pc=pc):
+                return Vector([pc['at'][i] + pc['vel'][i] * (tt - K6_T) for i in range(3)])
             parts = [(0.0, 0.0, 0.0)]
-            if pc['kind'] == 'chunk':          # breaking up: splinters peeling off on headings of their own
-                parts += [tuple(rnd.gauss(0, 18) for _ in range(3)) for _ in range(rnd.randint(1, 2))]
+            split = pc.get('split')
+            if split is not None and t > split:     # breaking up in the shot: splinters peel off
+                parts += [tuple(rnd.gauss(0, 140) for _ in range(3)) for _ in range(2)]
+            # a tumbling fragment's head flickers: its brightness per frame, from the frame's own time
+            flick = random.Random(pc['seed'] * 1000 + int(round(t * 24))).uniform(.6, 1.35)
             for k, dv in enumerate(parts):
-                head = at(t, dv)
-                ln = pc['size'] * (12.0 if pc['kind'] == 'chunk' else 25.0) * min(1.0, .3 + age)
-                pts = [head + Vector(K6_WIND) * ln * (1 - i / 12) for i in range(13)]
-                kit.trail('Wreckfall %s %d' % (pc['name'], k), pts, stage_fx,
-                          width_m=pc['size'] * (1.5 if pc['kind'] == 'chunk' else 2.0) * (1 if k == 0 else .6),
-                          glow=.35 if pc['kind'] == 'chunk' else .15, sparks=6 if pc['kind'] == 'chunk' and k == 0 else 0,
-                          seed=pc['seed'] * 7 + k, ion=False, shock=(pc['size'] * 1.4, pc['size'] * .7),
-                          spark_len=pc['size'])
+                head = at(t) + Vector(dv) * (t - split if k else 0.0)
+                grown = age if k == 0 else t - split
+                size = pc['size'] * (1 if k == 0 else rnd.uniform(.4, .65))
+                rv, rf = kit.rock('Wreckfall %s %d rock' % (pc['name'], k), head, size, pc['seed'] * 7 + k,
+                                  stage_fx, turn=(t - K6_T) * rnd.uniform(.4, 1.2))
+                kit.sheath('Wreckfall %s %d' % (pc['name'], k), rv, rf, stage_fx, K6_WIND, size,
+                           glow=(.5 if pc['kind'] == 'chunk' else .3) * flick * (1 if k == 0 else .8),
+                           streamers=10 if pc['kind'] == 'chunk' else 4, seed=pc['seed'] * 7 + k,
+                           grow=min(1.0, .3 + grown), voxel=size / 9.0, sparks=4 if pc['kind'] == 'chunk' else 0)
 
     def field_matrix(piece, box, t, local=None):
         """A debris box's world matrix at time t: the wreck turning about its own axis (debris_field).
@@ -2966,9 +2992,7 @@ def label_frames(run):
             bar = 100 / mpp
             dr.rectangle((60, H - 150, 60 + bar, H - 142), fill=(230, 230, 230, 255))
             dr.text((60, H - 138), '100 m', font=f_lab, fill=(230, 230, 230, 255))
-        if clean:       # a shot that sells on its effects: only its id, small, in the corner
-            dr.text((22, H - 40), spec['shot'], font=f_lab, fill=(230, 230, 230, 150))
-        else:
+        if not clean:   # a shot that sells on its effects carries nothing over them (no id burn-in either)
             dr.rectangle((0, 0, W, 58), fill=(0, 0, 0, 170))
             dr.text((22, 12), title, font=f_title, fill=(255, 255, 255, 255))
             dr.rectangle((0, H - 92, W, H), fill=(0, 0, 0, 170))

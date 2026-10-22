@@ -4,7 +4,7 @@ Status: ACTIVE — shared observation composes current player visibility across 
 
 Written: 2026-08-23
 
-Updated: 2026-10-13 — ground a few cells in from an observed large prop face is shown; the rest of its footprint stays fogged.
+Updated: 2026-10-22 — a hostile is seen when any ground its body covers is revealed, not only its centre cell (owner pick).
 
 Read `stories.md` for open work.
 
@@ -42,7 +42,14 @@ position, and shots remain visible through fog.
   as a set, and both feed the one footprint rebuild.
 - A **unit visibility state** is the renderer's HIDDEN, VISIBLE, or FADING
   presentation of a live non-contributor. It is distinct from a unit's own
-  tactical line-of-sight and from whether a cell has ever been explored.
+  tactical line-of-sight and from whether a cell has ever been explored. A
+  hostile is VISIBLE while **any ground its body covers** is revealed: its own
+  cell, or any cell within its sim footprint radius. A body that fits in one
+  cell reads as before; a Matriarch whose body edge rounds a corner is seen even
+  while its centre is behind it (owner, 2026-10-22). Drawn reach past the
+  footprint, a head or a swung scythe, does not reveal.
+  `-Dbattle.fog.bodyReveal=centre` restores the centre-cell rule as a control;
+  `length` (half the drawn length) is the rejected alternative.
 - A **roof reveal** is a building presentation state derived from its interior
   cells in the reveal bitmap. It is neither a separate line-of-sight algorithm
   nor a building gameplay state.

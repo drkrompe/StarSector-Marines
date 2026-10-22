@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-22 — Pack press and sub-packs (strike slots, holders wheel and waiters circle, surplus peeled onto other prey, re-merge on quarry death); Creep on green worlds as built (grown over trees, which die to bare bone-pale skeletons that no longer hide or shelter anyone, the owner's choice; grass and crops wilt ahead of its edge); campaign: blooms as built, frequent, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
+Updated: 2026-10-22 — Living field (homesteads, militia knots, refugee families walking out toward the company, stragglers; prey by the existing rules, read not scored); pack press and sub-packs (strike slots, holders wheel and waiters circle, surplus peeled onto other prey, re-merge on quarry death); Creep on green worlds as built (grown over trees, which die to bare bone-pale skeletons that no longer hide or shelter anyone, the owner's choice; grass and crops wilt ahead of its edge); campaign: blooms as built, frequent, at the benign first severity tier with spores carried on traffic, and the owner's arc as direction; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -277,6 +277,56 @@ there are bodies at stake wherever a bore comes up. The count is drawn from the
 seed between 48 and 64, and the breach snapshot records how many were placed
 and how many are still alive. Lower risks keep the stock handful of ambient
 civilians.
+
+**Living field** (owner, 2026-10-22: "a more dynamic field… more scattered
+allied colonist forces and civilians. A lot of these will be feed for the
+packs"). The colony is not an empty board between the company and its
+redoubts: people are scattered across it, fighting and dying away from the
+company, so what the player sees is a colony being overrun. None of them is
+the company's to save or the cohort's to count: they are the colony's own
+**allies** (`ALLY`, under garrison authority, never in the player's command
+pool, never ending the battle or touching the roster) and its **civilians**,
+and every one of them is prey and harvest by the rules that already hold
+(*Harvest*: a Runner hunts the colonists it senses while a bore lives; packs
+descend the prey field to the nearest allied or Marine body; a Brute goes for
+armed colonists and breaks into the house they hold). Laid out after the
+militia and the sheltering colonists, so it stands on nobody's ground, kept
+off the shelter's clearance, the protected zones, the pads, every redoubt and
+sixteen cells of the map's edge, where the opening seepage comes in:
+
+- **Homesteads**: houses on the colony's spread held by a few armed colonists
+  with their family indoors behind them, held as any building is held (a
+  hold-the-place order on the house). How they are armed is a choice: *militia*
+  (four guns at the colony militia's grade, the default) hold through the
+  opening seepage and fall during the breach, where their bodies feed the
+  bores; *farm* (three guns at the lowest grade) are mostly gone to the seepage
+  before any bore opens.
+- **Militia knots**: teams of four standing in the open where the first night
+  left them, each defending its patch of ground. They are prey the packs come
+  for on their own, so fights break out across the town that the company only
+  hears.
+- **Refugee families**: groups of three to five who leave their houses and walk
+  out **toward the company**, across the landing field to the map edge beyond
+  it, at a family's pace (a little over half their running speed). Two set out
+  in the opening minute as the company lands; any other the moment a bore
+  opens within forty cells of its house; one no bore has sent running a minute
+  after the tremor, the rest half a minute apart. A walking refugee is afraid
+  of the swarm only: it walks on past the company and the militia, runs from a
+  rav it senses (fourteen cells, as a civilian hears gunfire) at full speed,
+  and walks on to its exit once nothing is near. One who reaches the edge is
+  off the field and **got away**. Because their way out is the company's way
+  in, the packs heading for the company cross them.
+- **Stragglers**: lone colonists out in the open, wandering as an ambient
+  civilian does.
+
+How much of it the colony carries is a **density** (sparse, standard, dense:
+homesteads, knots, families and stragglers). Nothing here is scored: the win is
+still the cohort, and what the field records (placed, alive, refugees set out,
+got away) is a reading the breach evidence reports beside the harvest. It is
+deterministic in the seed: places are drawn at setup, and the families'
+departures and walks are decided in the serial tick. Lower risks and smaller
+maps carry none of it. `-Dbattle.colonyBreach.livingField=false` is the control;
+`.livingField.density` and `.livingField.arms` select a density and an arming.
 
 **Heavy assets are what the fleet brought.** The company's mechs and vehicles
 reach the battle through its own Mech Support power, which every battle

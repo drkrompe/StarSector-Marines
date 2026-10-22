@@ -54,6 +54,8 @@ public final class BodyPileCap {
     /** Bodies fading out, by id, in the order they were retired. */
     private final Map<Long, Float> fading = new LinkedHashMap<>();
     private int retired;
+    private int lying;
+    private int peakLying;
 
     private long[] ids = new long[256];
     private int[] ages = new int[256];
@@ -86,6 +88,11 @@ public final class BodyPileCap {
 
     /** Bodies the cap has taken off the field so far. */
     public int retired() { return retired; }
+
+    /** Bodies lying whole at the last count, and the most any count found: readings for evidence. */
+    public int lying() { return lying; }
+
+    public int peakLying() { return peakLying; }
 
     /** Bodies fading out now. */
     public int fadingCount() { return fading.size(); }
@@ -147,6 +154,8 @@ public final class BodyPileCap {
                 n++;
             }
         }
+        lying = n;
+        peakLying = Math.max(peakLying, n);
         retireOldest(n);
     }
 

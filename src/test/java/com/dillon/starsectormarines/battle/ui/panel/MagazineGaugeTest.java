@@ -39,14 +39,4 @@ class MagazineGaugeTest {
         assertTrue(MagazineGauge.of(1, 8, 48, 12, 0f, 4f).low());
         assertFalse(MagazineGauge.of(1, 1, 4, 0, 1f, 3f).low());
     }
-
-    @Test
-    void ringPipsFillTheSpanWithAGapBetweenBlocks() {
-        MagazineGauge belt = MagazineGauge.of(1, 8, 48, 48, 0f, 4f);
-        float end = belt.pipStartDegrees(47) + belt.pipStepDegrees();
-        assertEquals(MagazineGauge.RING_HALF_SPAN_DEGREES, end, 1e-3f);
-        assertEquals(belt.pipStepDegrees() + MagazineGauge.RING_GROUP_GAP_DEGREES,
-                belt.pipStartDegrees(8) - belt.pipStartDegrees(7), 1e-3f);
-        assertEquals(-MagazineGauge.RING_HALF_SPAN_DEGREES, MagazineGauge.of(1, 1, 4, 4, 0f, 3f).pipStartDegrees(0), 1e-6f);
-    }
 }
