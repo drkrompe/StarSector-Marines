@@ -1,6 +1,6 @@
 # C3 FIRST OPEN SKY: miners see sky
 
-Shot C3 of `storyboard-v3.md`: 12 seconds at 1920x1080 / 24 fps, no dialogue. Miners who
+Shot C3 of `storyboard-v3.md`: 16 seconds at 1920x1080 / 24 fps, no dialogue. Miners who
 grew up inside an asteroid see open sky for the first time, through the cabin window,
 as Second Wind descends over Jangala's forest. `c3-layout.md` is the shared camera,
 sun, scale and layer sheet, with what was built and the remaining open questions.
@@ -39,6 +39,10 @@ python compose_c3.py --movie    # plus every frame, the review mp4 and timeline.
 Output: `build/cinematic/c3-first-open-sky/frames/%05d.png`, `c3-first-open-sky.mp4`
 (with the audio cues mixed for review) and `timeline.json`, under the repository root.
 Run `:asset-pipeline:processAudio` to encode the two cue sounds into the mod.
+
+The two Blender sources the guides open (`forest-reveal-realism/forest-reveal-realism.blend`,
+`parallax-window/jangala-parallax-atlas-lift.blend`) are not in git; queued builds copy them,
+sha-checked, from Drive `builds/c3-inputs/2026-10-22/`.
 
 ## Review stills
 
