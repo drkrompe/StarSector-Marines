@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160ec-2e77-75a1-aad1-8bb39b266c39",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160ec-2e77-75a1-aad1-8bb39b266c39\\exec-e24ef735-01c8-4320-9c3c-6c9a0edbca0e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\561be886-e0cc-4b42-8e2f-ae131b00542f\\scratchpad\\ammo-gen.png",
+    "sha256": "1670e5856afbd7a05fb869b765d8834ff47fb803f6225503144b4eb4710d1f2d",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\tilesets\\armory-workshop-ammo.prompt.txt",
+  "promptSha256": "2dd200bb5fc15e87c4a3ec33c7640497289ed5ed393cb1302a856710f02342b6",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry, scale and layout authority: reskin this exactly, same size and position\nImage 2: Material and style reference only; its pieces are the wrong size and layout, ignore their proportions\n\nReskin the attached geometry guide into finished top-down game art for one spaceship armory prop: a sealed ammunition cabinet seen from directly above. Strict overhead orthographic view, soft light from the upper left, the same look as the material reference sheet: restrained worn graphite steel, muted sage/olive enamel, quiet silver edges, small bolts and panel seams, modest edge wear, realistic painted game-asset finish. No saturated colour, no glow, no hazard stripes.\n\nThe guide is the geometry, scale and layout authority, and the result will be cut mechanically from the guide's exact pixel rectangle. The cabinet is a SMALL rectangle in the middle of a mostly empty canvas, its length 1.7 times its depth, and must overlay its grey guide shape almost exactly: on the 1536x1024 canvas it spans only x 553 to 983 and y 372 to 632, about 430 by 260 pixels, the same left and right ends, the same top and bottom edges. Most of the canvas stays empty and transparent around it. Do not make it deeper, longer or larger than its grey shape; do not move, rescale or rotate it, and add nothing else. Keep all empty canvas fully transparent: true transparent background; no floor, no ground, no shadow slab, no border, no people, no labels or text.\n\nThe piece: the armoured lid of a heavy steel ammunition cabinet, with a raised rim, a reinforcing cross seam and a few bolts. Along its bottom (near) edge, the thin top edges of its two doors, each with a small silver pull beside the centre seam. It is seen from above, not from the front: no drawer faces, no front elevation.\n\nBroad readable forms, soft restrained highlights, sparse wear, low surface noise.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\armory-workshop-ammo.png",
+      "sha256": "7dd8ce0f00f13c7011ce4adbe2f0d5fc92fa76bd8410c0ee915f9300c90c3bdd",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry, scale and layout authority: reskin this exactly, same size and position"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\561be886-e0cc-4b42-8e2f-ae131b00542f\\scratchpad\\armory-old.raw.png",
+      "sha256": "c902202e7a7501eb41f1fd0ed273adcbefb6e48e04cc459a8e8160148a9dc18d",
+      "dimensions": [
+        2508,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only; its pieces are the wrong size and layout, ignore their proportions"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the guide’s exact placement and dimensions, with a transparent background and the reference’s restrained metal finish."
+  ],
+  "usage": {
+    "input_tokens": 46295,
+    "cached_input_tokens": 35072,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 540,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 46.9
+}

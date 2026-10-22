@@ -224,7 +224,7 @@ public final class RavBruteRig {
         float riseF = 0.012f * run * (1f - 0.5f * (load[FL] + load[FR]));
         float riseH = 0.012f * run * (1f - 0.5f * (load[HL] + load[HR]));
         set(SHOULDER, swayF, SHOULDER_Y + surge * 0.4f + lunge, SHOULDER_Z - crouch + riseF + rear);
-        set(HIP, swayH, HIP_Y + surge + lunge * 0.6f, HIP_Z - crouch * 1.6f + riseH - rear * 0.3f);
+        set(HIP, swayH, HIP_Y + surge + lunge, HIP_Z - crouch * 1.6f + riseH - rear * 0.3f);
         set(MID, (x(SHOULDER) + x(HIP)) / 2, (y(SHOULDER) + y(HIP)) / 2, (z(SHOULDER) + z(HIP)) / 2);
         set(HEAD, x(SHOULDER), y(SHOULDER) + (SHOULDER_ROW - HEAD_ROW) / U_LAYER, z(SHOULDER));
         solveLegs();

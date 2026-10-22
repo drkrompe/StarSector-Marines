@@ -289,13 +289,18 @@ class RenderBudgetEvidence {
          * the outbreak, so the battle itself is the ordinary playout.
          */
         static BattleSimulation colony() throws Exception {
+            return colony(COLONY_OUTBREAK_SECONDS);
+        }
+
+        /** The canonical colony with every site opened and only the creep advanced, for {@code seconds}. */
+        static BattleSimulation colony(int seconds) throws Exception {
             BattleFixture parsed = BattleFixtureJson.fromJson(new JSONObject(resource(CANONICAL_COLONY)));
             BattleSimulation sim = (parsed instanceof BattleLaunchFixture launch ? launch.construction() : parsed).build();
             ColonyBreachSequence breach = sim.getColonyBreach();
             if (breach == null) throw new IllegalStateException("The colony fixture installs no breach");
             for (ColonyEruptionPlan.Site site : breach.plan().sites()) ColonyCreep.siteErupted(sim, site, 0);
             CreepField creep = sim.creepField();
-            int ticks = Math.round(COLONY_OUTBREAK_SECONDS / BattleSimulation.TICK_DT);
+            int ticks = Math.round(seconds / BattleSimulation.TICK_DT);
             for (int t = 0; t < ticks; t++) creep.tick(t);
             return sim;
         }

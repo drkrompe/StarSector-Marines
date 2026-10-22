@@ -380,58 +380,66 @@
     "residential-bed-h.png": {
       "id": "doodad.residential-bed-h",
       "name": "Residential bed head west",
-      "description": "Low civilian bed with its head against the west wall.",
+      "description": "Low civilian single bed, 0.72 x 2.1 m, with its head against the west wall.",
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
-        2,
+        3,
         1
       ],
       "preferredWallSide": "W",
-      "scale": 0.96,
-      "order": 70
+      "scale": 1,
+      "order": 70,
+      "preserveCanvas": true,
+      "padding": 0
     },
     "residential-bed-head-e.png": {
       "id": "doodad.residential-bed-head-e",
       "name": "Residential bed head east",
-      "description": "Low civilian bed with its head against the east wall.",
+      "description": "Low civilian single bed, 0.72 x 2.1 m, with its head against the east wall.",
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
-        2,
+        3,
         1
       ],
       "preferredWallSide": "E",
-      "scale": 0.96,
-      "order": 71
+      "scale": 1,
+      "order": 71,
+      "preserveCanvas": true,
+      "padding": 0
     },
     "residential-bed-v.png": {
       "id": "doodad.residential-bed-v",
       "name": "Residential bed head south",
-      "description": "Low civilian bed with its head against the south wall.",
+      "description": "Low civilian single bed, 0.72 x 2.1 m, with its head against the south wall.",
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
         1,
-        2
+        3
       ],
       "preferredWallSide": "S",
-      "scale": 0.96,
-      "order": 72
+      "scale": 1,
+      "order": 72,
+      "preserveCanvas": true,
+      "padding": 0
     },
     "residential-bed-head-n.png": {
       "id": "doodad.residential-bed-head-n",
       "name": "Residential bed head north",
-      "description": "Low civilian bed with its head against the north wall.",
+      "description": "Low civilian single bed, 0.72 x 2.1 m, with its head against the north wall.",
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
         1,
-        2
+        3
       ],
       "preferredWallSide": "N",
-      "scale": 0.96,
-      "order": 73
+      "scale": 1,
+      "order": 73,
+      "preserveCanvas": true,
+      "padding": 0
     },
     "residential-sofa-h.png": {
       "id": "doodad.residential-sofa-h",

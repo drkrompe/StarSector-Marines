@@ -87,15 +87,19 @@ final class FortRooms {
                 List.of(new int[]{0, 1}, new int[]{2, 1}), null, CONTROL_HALL_ART);
     }
 
-    /** The eight-by-six magazine: a loaded rack, secured ammunition and staged cases around the protected core. */
+    /**
+     * The eight-by-six magazine: a loaded rack, secured ammunition and staged cases around the protected core. The
+     * ammunition cabinet is worked on its bottom edge, so it stands against the door wall and opens onto the aisle
+     * below it.
+     */
     static FortRoom store(int x, int y, List<Doorway> doors) {
         List<LayoutOp> storage = List.of(
                 new LayoutOp.Lane(2, 0, 1, 6),
                 new LayoutOp.Lane(2, 3, 4, 3),
-                new LayoutOp.Lane(6, 2, 2, 2),
+                new LayoutOp.Lane(6, 2, 2, 3),
                 LogisticsKit.rack(Stock.CASES).at(0, 0),
-                LogisticsKit.ammunition().at(6, 0),
-                LogisticsKit.pallet(Stock.CASES).at(6, 4));
+                LogisticsKit.ammunition().at(6, 5),
+                LogisticsKit.pallet(Stock.CASES).at(6, 0));
         return new FortRoom(FortAspect.MAGAZINE, true, RoomPurpose.ARMORY, x, y, 8, 6, doors, storage,
                 List.of(), new int[]{4, 1}, null);
     }
