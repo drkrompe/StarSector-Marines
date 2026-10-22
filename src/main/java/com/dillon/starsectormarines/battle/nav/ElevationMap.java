@@ -59,17 +59,20 @@ public final class ElevationMap {
     private final byte[] kind;
     private final byte[] upperTier;
     private final boolean[] rim;
+    /** How far up its ramp a ramp cell stands, 0 (foot) to 255 (head); for the look only. */
+    private final byte[] rampRise;
     private final int highestTier;
     private final SightRule rule;
 
     private ElevationMap(int width, int height, byte[] sightHeight, byte[] kind,
-                         byte[] upperTier, boolean[] rim, int highestTier, SightRule rule) {
+                         byte[] upperTier, boolean[] rim, byte[] rampRise, int highestTier, SightRule rule) {
         this.width = width;
         this.height = height;
         this.sightHeight = sightHeight;
         this.kind = kind;
         this.upperTier = upperTier;
         this.rim = rim;
+        this.rampRise = rampRise;
         this.highestTier = highestTier;
         this.rule = rule;
     }
@@ -80,6 +83,16 @@ public final class ElevationMap {
      * for a ramp.
      */
     public static ElevationMap of(int width, int height, byte[] tier, byte[] kind, SightRule rule) {
+        return of(width, height, tier, kind, null, rule);
+    }
+
+    /**
+     * As {@link #of(int, int, byte[], byte[], SightRule)}, with how far up its
+     * ramp each ramp cell stands (0 at the foot, 1 at the head), so the ground
+     * draws a ramp as a slope. Null stands every ramp cell halfway up.
+     */
+    public static ElevationMap of(int width, int height, byte[] tier, byte[] kind, double[] rampRise,
+                                  SightRule rule) {
         int cells = width * height;
         if (tier.length != cells || kind.length != cells) {
             throw new IllegalArgumentException("Elevation arrays do not match the map");
@@ -113,7 +126,12 @@ public final class ElevationMap {
                 }
             }
         }
-        return new ElevationMap(width, height, heights, kinds, upper, rim, highest, rule);
+        byte[] rise = new byte[cells];
+        for (int i = 0; i < cells; i++) {
+            double r = rampRise == null || kinds[i] != RAMP || Double.isNaN(rampRise[i]) ? .5 : rampRise[i];
+            rise[i] = (byte) Math.round(Math.max(0, Math.min(1, r)) * 255);
+        }
+        return new ElevationMap(width, height, heights, kinds, upper, rim, rise, highest, rule);
     }
 
     public int width() { return width; }
@@ -138,6 +156,8 @@ public final class ElevationMap {
     public byte kindAt(int idx) { return kind[idx]; }
     public boolean isFaceAt(int idx) { return kind[idx] == FACE; }
     public boolean isRampAt(int idx) { return kind[idx] == RAMP; }
+    /** How far up its ramp a ramp cell stands, 0 at the foot to 1 at the head. */
+    public float rampRiseAt(int idx) { return (rampRise[idx] & 0xff) / 255f; }
     /** A plateau-top cell beside a face or lower ground: the lip seen from below. */
     public boolean isRimAt(int idx) { return rim[idx]; }
 

@@ -175,17 +175,26 @@ public final class ElevationBrush {
     }
 
     /** Frozen ground gets ice, living ground grass-topped rock, anything else bare rock. */
+    /**
+     * The tops' finish from the ground they stand on: ice where most of it is
+     * snow, grass-topped where a quarter of it is grass (a dirt patch on a
+     * meadow does not turn a plateau to bare rock), rock otherwise.
+     */
     private static TerrainPlan.Finish finishFor(ElevationLayout layout, CellTopology topology) {
+        int tops = 0, grass = 0, snow = 0;
         for (int y = 0; y < layout.height(); y++) {
             for (int x = 0; x < layout.width(); x++) {
                 if (layout.tier(x, y) == 0 || layout.isFace(x, y)) continue;
-                return switch (topology.getGroundKind(x, y)) {
-                    case SNOW -> TerrainPlan.Finish.ICE;
-                    case GRASS -> TerrainPlan.Finish.GRASS_TOP;
-                    default -> TerrainPlan.Finish.ROCK;
-                };
+                tops++;
+                switch (topology.getGroundKind(x, y)) {
+                    case SNOW -> snow++;
+                    case GRASS -> grass++;
+                    default -> { }
+                }
             }
         }
-        return TerrainPlan.Finish.GRASS_TOP;
+        if (tops == 0) return TerrainPlan.Finish.GRASS_TOP;
+        if (snow * 2 > tops) return TerrainPlan.Finish.ICE;
+        return grass * 4 >= tops ? TerrainPlan.Finish.GRASS_TOP : TerrainPlan.Finish.ROCK;
     }
 }
