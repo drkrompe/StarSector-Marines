@@ -18,7 +18,7 @@ final class CompanyNotices {
         WORKING_PASSAGE("shepherd-working-passage", MarineOpsPageNav.Page.HQ, ScreenId.COMPANY_HQ, "openingCompanyNoticesWorkingPassage"),
         COLD_START("shepherd-cold-start", MarineOpsPageNav.Page.HQ, ScreenId.COMPANY_HQ, "openingCompanyNoticesColdStart"),
         SECONDHAND_WINGS("secondhand-wings", MarineOpsPageNav.Page.BOAT_DECK, ScreenId.BOAT_DECK, "openingCompanyNoticesSecondhandWings"),
-        SECOND_BAY("second-bay", MarineOpsPageNav.Page.BOAT_DECK, ScreenId.BOAT_DECK, "openingCompanyNoticesSecondBayRestoration"),
+        SECOND_BAY("second-bay", MarineOpsPageNav.Page.SHIP_VIEW, ScreenId.SHIP_VIEW, "openingCompanyNoticesSecondBayRestoration"),
         FIRST_REFIT("first-refit", MarineOpsPageNav.Page.BARRACKS, ScreenId.BARRACKS, "openingCompanyNoticesCastleSFirstRefit"),
         HOUND_INDUCTION("hound-induction", MarineOpsPageNav.Page.MECH_LAB, ScreenId.MECH_LAB, "openingCompanyNoticesWaywardGantryInduction");
 
@@ -68,7 +68,8 @@ final class CompanyNotices {
         if (notices.isEmpty()) return "";
         Notice first = notices.get(0);
         String room = first.page == MarineOpsPageNav.Page.HQ ? Strings.get("openingCompanyNoticesHq") : first.page == MarineOpsPageNav.Page.BOAT_DECK ? Strings.get("openingCompanyNoticesBoats")
-                : first.page == MarineOpsPageNav.Page.MECH_LAB ? Strings.get("openingCompanyNoticesMechLab") : Strings.get("openingCompanyNoticesBarracks");
+                : first.page == MarineOpsPageNav.Page.MECH_LAB ? Strings.get("openingCompanyNoticesMechLab")
+                : first.page == MarineOpsPageNav.Page.SHIP_VIEW ? Strings.get("openingCompanyNoticesEngineering") : Strings.get("openingCompanyNoticesBarracks");
         return Strings.format("openingCompanyNoticesNew", room, first.label(), (notices.size() > 1 ? "  (+" + (notices.size() - 1) + ")" : ""));
     }
 }

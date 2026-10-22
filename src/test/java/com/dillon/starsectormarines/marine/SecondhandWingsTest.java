@@ -87,9 +87,10 @@ class SecondhandWingsTest {
         assertEquals(ShuttleType.AEROSHUTTLE, deck.pattern());
         assertFalse(deck.wreckInBerth(0));
     }
-    @Test void restorationAndStoryRemainSeparatePrerequisites() {
+    @Test void aSealedBayIsPricedIntoTheOrderInsteadOfRefusingIt() {
         var deck = wrecks();
-        assertTrue(SecondhandWings.refusal(deck, true, true, false, true, true, 9000).contains("Restore"));
+        assertNotNull(SecondhandWings.refusal(deck, true, true, false, true, true, 12_999));
+        assertNull(SecondhandWings.refusal(deck, true, true, false, true, true, 13_000));
         deck.reconcile("second-wind", ShuttleType.HERMES, 2);
         assertTrue(SecondhandWings.refusal(deck, false, true, true, true, true, 9000).contains("Counterattack"));
         assertNotNull(SecondhandWings.refusal(deck, true, false, true, true, true, 9000));
@@ -97,6 +98,21 @@ class SecondhandWingsTest {
         assertNotNull(SecondhandWings.refusal(deck, true, true, true, true, false, 9000));
         assertNotNull(SecondhandWings.refusal(deck, true, true, true, true, true, 4999));
         assertNull(SecondhandWings.refusal(deck, true, true, true, true, true, 5000));
+    }
+    @Test void bundledOrderPaysOnceThenOpensTheBayBeforeDelivery() {
+        var deck = wrecks();
+        AtomicInteger paid = new AtomicInteger();
+        AtomicInteger opened = new AtomicInteger();
+        assertNull(SecondhandWings.purchase(deck, SecondhandWings.review(deck), null,
+                n -> { paid.addAndGet(n); return true; },
+                () -> { assertEquals(13_000, paid.get(), "The bay opens only once the order is paid");
+                        opened.incrementAndGet(); deck.reconcile("second-wind", ShuttleType.HERMES, 2); }));
+        assertEquals(1, opened.get());
+        assertEquals(2, deck.airworthy().size());
+        assertEquals(ShuttleType.AEROSHUTTLE, deck.pattern());
+        var unpaid = wrecks();
+        assertNotNull(SecondhandWings.purchase(unpaid, SecondhandWings.review(unpaid), null, n -> false,
+                () -> fail("An unpaid order must not open the bay")));
     }
     @Test void conversionBelongsToOneHullAndEveryHullProjectionRetainsIt() {
         var hull = new CompanyShip(HullClass.FRIGATE, HullRole.FREIGHTER, 20, 68, 75, .5f)

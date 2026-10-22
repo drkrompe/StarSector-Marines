@@ -218,7 +218,9 @@ nothing is drawn for a battle that never lit anything.
   its groves: there its two layers cost about 0.3 ms of collection and drain
   at a lane framing and about 0.65 ms at the whole map, with nothing else
   moving. The look choices (`-Dbattle.render.fireFlames=bold|restrained`,
-  `-Dbattle.render.fireScorch=char|ash|ember`) are the owner's.
+  `-Dbattle.render.fireScorch=char|ash|ember|soot`) are the owner's, judged
+  on real ground in the `fire-colony` snapshot suite (the canonical colony on a
+  verdant world, burnt from its west edge).
 
 ## Evidence
 

@@ -3,13 +3,14 @@ package com.dillon.starsectormarines.campaign.start;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.SecondhandWings;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 
 /** Saved interior condition belongs to the original hull, independent of vanilla hull repairs. */
 public final class CompanyBayRestoration {
-    public static final int CREDIT_COST = 8_000;
+    public static final int CREDIT_COST = SecondhandWings.BAY_COST;
     private static final String KEY_PREFIX = "sm_restored_boat_bay_";
     private CompanyBayRestoration() { }
 
@@ -52,7 +53,12 @@ public final class CompanyBayRestoration {
         String refused = offer(ship, roster).refusal();
         if (refused != null) return refused;
         Global.getSector().getPlayerFleet().getCargo().getCredits().subtract(CREDIT_COST);
-        Global.getSector().getPersistentData().put(KEY_PREFIX + ship.getId(), true);
+        markRestored(ship);
         return null;
+    }
+
+    /** Records the bay as open; payment and prerequisites are the caller's, as Secondhand Wings bundles them. */
+    public static void markRestored(FleetMemberAPI ship) {
+        Global.getSector().getPersistentData().put(KEY_PREFIX + ship.getId(), true);
     }
 }

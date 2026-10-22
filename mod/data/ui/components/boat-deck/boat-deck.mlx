@@ -1,4 +1,4 @@
-<template props="recovery,wings,fabricationActionLabel,restoration,contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,deckSummary,materialStock,boatRows,selectedBoatName,selectedBoatIdentity,performanceMeters,slotRows,selectedSlotTitle,selectedSlotCopy,catalogRows,overviewClasses,fittingClasses,fabricationClasses,fabricationBerthLabel,fabricationPatternName,fabricationCopy,fabricationMaterials,fabricationActionClasses,fabricationBlocked,fabricationReason,fabricate,backToDeck,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
+<template props="recovery,wings,fabricationActionLabel,bayNoteClasses,contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,deckSummary,materialStock,boatRows,selectedBoatName,selectedBoatIdentity,performanceMeters,slotRows,selectedSlotTitle,selectedSlotCopy,catalogRows,overviewClasses,fittingClasses,fabricationClasses,fabricationBerthLabel,fabricationPatternName,fabricationCopy,fabricationMaterials,fabricationActionClasses,fabricationBlocked,fabricationReason,fabricate,backToDeck,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
   <div id="boat-deck-root" class="boat-deck-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
     <div id="boat-deck-room-bar" class="panel room-bar">
@@ -37,21 +37,7 @@
             <div id="{boat.driveId}" class="label boat-card-line">{boat.drive}</div>
           </button>
         </div>
-        <div id="bay-restoration" class="{restoration.classes}">
-          <div id="bay-restoration-officer" class="restoration-officer">
-            <img id="bay-restoration-portrait" class="restoration-portrait" src="{restoration.portrait}" />
-            <div id="bay-restoration-heading" class="restoration-heading">
-              <div id="bay-restoration-speaker" class="restoration-title label heading tone-accent">{i18n.openingUiBoatDeckCastleCompanyOfficer}</div>
-              <div id="bay-restoration-title" class="restoration-title label heading tone-edge">{i18n.openingUiBoatDeckSecondBaySealed}</div>
-            </div>
-          </div>
-          <div id="bay-restoration-copy" class="restoration-copy label">{restoration.copy}</div>
-          <div id="bay-restoration-bill" class="company-credit-bill"><company-resource-cost each="row in restoration.billRows" key="{row.id}" row="{row}" /></div>
-          <div id="bay-restoration-reason" class="restoration-copy label tone-muted">{restoration.reason}</div>
-          <div id="bay-restoration-actions" class="boat-fabrication-actions">
-          <button id="bay-restoration-action" class="restoration-action console-action" disabled="{restoration.disabled}" onclick="{restoration.action}">{restoration.actionLabel}</button>
-          </div>
-        </div>
+        <div id="bay-sealed-note" class="{bayNoteClasses}">{i18n.openingUiBoatDeckSecondBaySealedNote}</div>
       </div>
 
       <div id="boat-fabrication" class="{fabricationClasses}">
@@ -234,14 +220,7 @@
   .stage-status { width: 0px; flex-grow: 1; text-align: right; }
   .bay-canvas { width: 100%; height: 0px; flex-grow: 1; }
 
-  .bay-restoration { flex-direction: column; width: 100%; height: 320px; padding: 8px; gap: 7px; border-width: 1px; border-color: #b99f65; background-color: #202c28; }
-  .restoration-officer { flex-direction: row; height: 64px; gap: 8px; }
-  .restoration-portrait { width: 54px; height: 64px; }
-  .restoration-heading { flex-direction: column; width: 0px; flex-grow: 1; height: 64px; gap: 5px; }
-  .restoration-title { height: 28px; white-space: normal; }
-  .restoration-copy { width: 100%; height: 60px; white-space: normal; }
-  .restoration-bill { width: 100%; height: 40px; white-space: normal; }
-  .restoration-action { width: 190px; height: 30px; }
+  .bay-sealed-note { width: 100%; height: 64px; padding: 8px; border-width: 1px; border-color: #b99f65; background-color: #202c28; white-space: normal; }
   .boat-overview { flex-direction: column; width: 380px; padding: 9px; gap: 7px; border-width: 1px; overflow: hidden; }
   .boat-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
   .boat-card { flex-direction: column; width: 100%; height: 112px; padding: 9px; gap: 2px; border-width: 1px; text-align: left; }

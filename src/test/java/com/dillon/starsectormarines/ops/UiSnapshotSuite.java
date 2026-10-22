@@ -3302,9 +3302,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
+    /** The boat deck over its second bay; a sealed bay only says where it is restored. */
     public static BufferedImage renderBayRestoration(SnapshotContext context, CompanyDeck ship,
-                                                      boolean restored, int credits, boolean unlocked,
-                                                      float scale) throws Exception {
+                                                      boolean restored, float scale) throws Exception {
         Reactor reactor = new Reactor();
         BoatDeck boats = new BoatDeck();
         boats.reconcile("starter", ShuttleType.HERMES, 1);
@@ -3314,8 +3314,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         var bay = ship.rooms(RoomPurpose.HANGAR).get(1);
         var properties = props(model, ship, bay, 2);
         properties.put("activeBayLabel", restored ? "02/02" : "02/02 SEALED");
-        properties.put("restoration", new BoatBayRestorationModel.Row(!restored, true, credits,
-                unlocked ? null : "Complete Hold Until Relieved to unlock this repair.", () -> { }));
+        properties.put("bayNoteClasses", restored ? "hidden" : "bay-sealed-note label tone-muted");
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BOAT_DECK_COMPONENTS);
         loader.reload();
         try (MarkupInstance instance = loader.build(reactor, "boat-deck", properties)) {
@@ -3362,7 +3361,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("fabricationBlocked", viewModel.fabricationBlocked());
         props.put("fabricationReason", viewModel.fabricationReason());
         props.put("fabricationActionLabel", viewModel.fabricationActionLabel());
-        props.put("restoration", BoatBayRestorationModel.Row.hidden());
+        props.put("bayNoteClasses", "hidden");
         props.put("wings", SecondhandWingsModel.Row.hidden());
         props.put("fabricate", viewModel.fabricateAction());
         props.put("backToDeck", viewModel.backToDeckAction());

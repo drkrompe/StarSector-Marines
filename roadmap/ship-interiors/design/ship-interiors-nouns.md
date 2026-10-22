@@ -1803,8 +1803,8 @@ This saved interior condition is independent of vanilla D-mods. Company yard own
 its paid repair after the opening Relief story; `company-view-nouns.md` owns that
 campaign gate, review and original-wreck repair flow.
 
-Secondhand Wings can refit the original hull's bays for Aeroshuttles after the
-second bay is restored separately. This saved hull-specific compatibility replaces
+Secondhand Wings can refit the original hull's bays for Aeroshuttles, opening the
+sealed second bay in the same order when it has not been restored already. This saved hull-specific compatibility replaces
 the role's default Hermes pattern without changing berth counts, room shapes,
 apertures or circulation. The deck plan, campaign lift, transfer comparison and
 both deck caches include it. Original Hermes wrecks appear as dismantled, inactive
