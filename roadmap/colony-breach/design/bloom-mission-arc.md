@@ -4,7 +4,7 @@ Status: DRAFT
 
 Written: 2026-10-22
 
-Updated: 2026-10-22 — owner's picks folded in: mission 2 is the Cordon with the Line and the Road as variants (the Sortie rejected); mission 3 recommends Broad Front advancing as a burn line behind a walking barrage, with fire, firebreak, incendiary and barrage stories; the arc trigger is still open.
+Updated: 2026-10-22 — the arc trigger picked: three beats per infected world (Colony Breach, the Cordon, the heart), each opted into, the player free to stop; how beats feed each other, what stopping leaves, the clock and gate hooks, and the sector threat as an optional authored instance.
 
 Direction for the second and third movements of the Rav Bloom arc that
 `colony-breach-nouns.md` (Campaign: blooms, Direction) names: **organising the
@@ -12,8 +12,9 @@ defence** and **the heart of the infection**. Colony Breach is the first
 movement and is built. This doc proposes the missions, what each one reuses,
 what is new, and how the campaign raises them. Nothing here is work yet: each
 candidate story becomes a `stories/` doc only when it is picked up. The owner
-has picked the concepts for both missions; how mission 3's two picks combine and
-how the campaign raises the arc are still open.
+has picked the concepts for both missions and how the campaign raises the arc
+(three beats per infected world); how mission 3's two picks combine is still
+open.
 
 Read `colony-breach-nouns.md` first. Its laws hold for every mission in the arc
 unless this doc names an exception, and its vocabulary (bore, tier, surge,
@@ -113,16 +114,14 @@ strike detachment made into a mission.
 
 ### Who chooses the variant
 
-**The campaign picks, and says so in the offer.** The variant is part of the
-contract's frozen terms, as a posture or a payment is, and follows the bloom's
-state: a world with a settlement cut off beyond the cordon raises the Road,
-one whose cordon is intact and evacuating raises the Line. Where both are
-true, the offer carries both as two contracts on one call and the player
-takes one; the other is fought by the world's own military off screen and
-settles at a partial result. The player chooses whether to take a contract,
-not how a fixed situation is fought, which keeps the briefing honest about
-what is on the ground. In the scripted sector threat the act may simply
-author both in order: the Road while the town still stands, then the Line.
+**The campaign, from how Colony Breach went** (*Tie to the campaign*). The
+variant is part of the offer's frozen terms, as a posture or a payment is,
+and follows the world's state: people left behind in the colony (fewer than
+half lifted, or the call never taken) raise **the Road**, to the colony's
+cut-off people; a colony got out raises **the Line**, holding while the
+region's refugees walk. The player chooses whether to take the beat, not how
+a fixed situation is fought, which keeps the briefing honest about what is on
+the ground.
 
 ### Candidate stories
 
@@ -195,16 +194,16 @@ heart, with what the burns collapsed carried into the last battle).
 
 ### The heart
 
-The **heart** is spacer talk for the place a bloom's spread chain began: the
-old reservoir where the first bloom of the chain erupted, now months grown.
-In the model it is not a new kind of thing but a lot of known things at once:
+The **heart** is spacer talk for a bloom's root on its world: the reservoir
+under the mother bore that Colony Breach did not collapse, weeks or months
+grown, out in the country round the colony. In the model it is not a new kind of thing but a lot of known things at once:
 two or three **mother bores** standing on one reservoir, each with her
 Matriarch at a high stage, satellite bores round them at maw, and creep over
 everything within reach, including the forest. It is the only place a
 battle starts with more than one mother bore.
 
-The lore holds: collapsing the heart **ends this bloom and the chain it
-seeded, not the weapon**. Text says the heart is down and the country can be
+The lore holds: collapsing the heart **ends this bloom (and, at a harsher
+tier, starves what it seeded), not the weapon**. Text says the heart is down and the country can be
 taken back; it never says the Bloom is destroyed or the world is clean, and the
 reservoir rests rather than dies. This is the one mission where the hive is
 the objective rather than a bonus, and the briefing says why in work terms:
@@ -313,54 +312,120 @@ burning opens the forest as it goes, which the proof must not rely on.
 
 ## Tie to the campaign
 
-### How the movements connect
+### The pick: three beats per infected world
 
-The three movements are one bloom's story if the campaign lets them be:
+The arc is **per planet** (owner, 2026-10-22: "I like the idea of infected
+planets having the 3 mission beat with our variants in there. The player can
+choose whether they follow through with all of them."). Every bloom on every
+world can run the three beats in turn: **Colony Breach**, then **the Cordon**
+(the Line or the Road), then **the heart**. Each beat is offered on its own,
+the player opts into it, and the player can stop after any of them. This
+replaces the earlier choice between organic offers on a spread chain (which
+needed a harsher severity) and a scripted sector threat as the trigger: the
+arc appears at the shipped benign tier, on any world that blooms.
 
-- A Colony Breach that ends with the bloom **dark** (the call refused, expired
-  or failed) is what raises the **defence**. Failing the first movement feeds
-  the second instead of ending the story.
-- The defence's outcome sets the **heart**: redoubts that held are allied
-  columns in the heart's lanes, and bores collapsed in front of the line are
-  satellite bores the heart does not have. A line that fell means a heart with
-  fewer allies and more growth.
-- Collapsing the heart **contains** the chain: the bloom at its root ends as a
-  contained one does (`colony-breach-nouns.md`, Ending one), and the blooms it
-  seeded starve faster. The world's owner and the Hegemony regard it; what it
-  pays beyond that is the owner's call.
+### How a world moves through the beats
 
-### Organic or scripted (owner's pick)
+| After | The world | Next offer |
+| --- | --- | --- |
+| Colony Breach, mother bore collapsed | **Contained**: the bloom ends at once (as today). | None: the arc is won early. |
+| Colony Breach, half or more lifted | **Starved**: the bloom lingers, its people out. | The Cordon, **the Line** (the colony is out; the region's refugees are walking). |
+| Colony Breach, fewer than half lifted, or the call refused or expired | Erupted, then **dark** (cordoned, the garrison fighting the bores). | The Cordon, **the Road** (the colony's people are still in there, cut off). |
+| The Cordon, won or lost | As before; the bloom is still running. | The heart, with what the Cordon left (below). |
+| The heart, every mother bore collapsed | **Contained**: ends at once, the reservoir rests. | None: the arc is complete. |
+| The heart, lost | As before. | None. |
 
-Option cards on the pick page (`bloom-arc-trigger`).
+So the variant of the Cordon is not a separate pick: it follows from how
+Colony Breach went. The Road exists because people were left behind; the Line
+because they got out. A call the player could not take (refused, expired, or
+held at the gate by another event) does not close the arc: the Cordon can still
+be offered to the dark world, so missing the first beat is a worse start, not
+the end of the story. The heart is offered only after a committed Cordon.
 
-- **Organic.** The arc grows out of the ordinary system: a dark bloom whose
-  spread chain reaches generation one or two offers the defence, and a chain
-  three deep offers the heart at its root. It needs a severity tier harsher
-  than benign, since benign blooms never spread; at the shipped tier the arc
-  never appears.
-- **Sector threat.** A scripted threat: a chosen world is woken with
-  `RavBloomSystem.wakeAt` (after the player has answered a first bloom, say),
-  and runs the three movements as acts on its own clock and its own strength,
-  whatever the severity preset. One bespoke event to author and tune; works
-  today.
-- **Both, scripted first (recommended).** Ship the sector threat first, since
-  it works at benign and gives the arc a designed shape; when the harsher
-  tiers ship, the organic offer reuses the same missions and factories, with
-  the threat's acts as its template.
+### What the player leaves behind by stopping
 
-Either way the missions need new campaign plumbing: an event type (or a
-mission source) for each of the defence and the heart, a factory each, and a
-resolver that writes the outcome back to the bloom's ledger exactly once.
-`PolityDefenceMissionFactory` is the nearest model for the defence. The
-sector threat's state is one more nullable entry on the bloom ledger, created
-on first read, so older saves start with none.
+Declining a beat, letting its offer expire, or losing it ends the arc on that
+world, and the bloom runs on the ordinary clock from where it stands. At the
+benign tier that is what happens today: a dark bloom is **put down** by the
+world's own military sixty days after going dark, a starved one burns out, and
+the market keeps the condition until then. The player has lost nothing they
+had; they have given up the regard, pay and containment the later beats could
+have earned. At a harsher tier the same stop leaves a bloom that eats size and
+may spread, which is where following through will start to matter.
+
+### How one beat feeds the next
+
+Outcomes are measured facts on the bloom's ledger, written by each beat's
+report and read by the next beat's setup:
+
+- **Colony Breach → the Cordon.** The evacuation picks the variant (above).
+  Bores collapsed stay collapsed: the Cordon's front starts with that many
+  fewer bores. Biomass the bores were fed (people not lifted) shows as an older
+  age mix and higher tiers in front of the line, so a bad rescue makes a harder
+  defence.
+- **The Cordon → the heart.** Redoubts that held are the allied columns in the
+  heart's lanes; a line that fell means fewer allies. Bores collapsed in front
+  of the line are satellite bores the heart does not have. People brought out
+  (refugees or townspeople) are regard, not strength.
+- **Across the arc.** The mother bore that Colony Breach did not collapse is
+  the heart's root: the heart's mother bores are hers and what grew from her
+  reservoir in the weeks since, and their Matriarchs' stages follow how long
+  the bloom has fed.
+
+### Time, and the one-open-event rule
+
+A bloom's own clock leaves room for three beats, with two hooks:
+
+- **The clocks.** The call window is fourteen days; an erupted bloom goes dark
+  forty-five days after eruption with nobody lifted; at benign a dark bloom is
+  put down sixty days later, and a starved one lingers ninety. A Colony Breach
+  fought around day twenty leaves a dark bloom about eighty days and a starved
+  one ninety: enough for two more fourteen-day windows and the travel between,
+  but not with slack.
+- **Hook: a committed beat holds the clock.** A bloom does not end by its own
+  clock while one of its beats is committed and unreported, and after a beat
+  settles the bloom lives at least long enough for the next beat's window and
+  the flight there. The world's military waits for the company it hired.
+  Today a call still open when its bloom ends is closed as expired; under this
+  hook a committed beat is never cut off that way.
+- **Hook: the next offer opens as the last one settles.** The shared gate lets
+  only one campaign event be open at a time. Each beat's report settles its
+  event and opens the next beat's offer in the same step, so no other source
+  takes the gate between them and the arc does not lose its turn.
+- **The cost.** While a world's arc runs, other sources wait at the gate as
+  they wait for any open event: at the seasonal rate a three-beat arc over two
+  to three months will hold about one other bloom's call, which then goes dark
+  and is put down. That is the trade the one-open rule already makes; whether
+  a held bloom call should wait rather than lapse is the lifecycle owner's
+  question, not this doc's.
+
+### Campaign plumbing
+
+Each beat is the bloom's next call, never an event without a bloom behind it,
+as the rescue is today. Whether the Cordon and the heart are new event families
+under `campaign-event-nouns.md`'s extension laws or beats of one bloom-call
+family is for the lifecycle owner to decide; either way each needs frozen terms
+(the variant, the posture, the inherited bores and allies), a factory, and a
+resolver that writes its report back to the bloom exactly once.
+`PolityDefenceMissionFactory` is the nearest model for the Cordon. The arc's
+state (which beat, what each reported) lives on the bloom's own ledger entry,
+so an older save starts with none. These hooks are proposals for the session
+that owns the bloom lifecycle (`RavBloomSystem`, *Campaign: blooms*) and are
+agreed there before any story builds on them.
+
+### The sector threat
+
+No longer the trigger. It stays as an optional, later **authored instance** of
+the same three beats: a named world, woken with `RavBloomSystem.wakeAt`, whose
+arc runs with fixed, harsher terms (a stronger heart, a set cordon, story
+briefings) whatever the severity preset. It costs one authored setup over
+machinery the ordinary arc already needs, and nothing in the ordinary arc
+waits on it.
 
 ## Open questions for the owner
 
 - How mission 3's picks combine (`bloom-m3-shape`; combined is recommended).
-- How the campaign raises the arc (`bloom-arc-trigger`).
 - What collapsing the heart pays beyond regard, and whether a contained heart
   rests its world longer than an ordinary containment.
-- Whether the defence can be fought on the player's own colony when an
-  exposed player colony blooms (the nearest thing to a home defence the arc
-  could offer).
+- Whether the arc runs on the player's own colony when an exposed player
+  colony blooms (the nearest thing to a home defence the arc could offer).

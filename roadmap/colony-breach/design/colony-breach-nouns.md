@@ -192,14 +192,17 @@ campaign arc, in three movements:
 3. **The heart of the infection.** A climax assault on the bloom's centre on
    the surface, in overgrown country.
 
-Alongside it, a scripted **sector threat**: a set mission or planet with its own
-strength, once spread is modelled properly. The hooks are the severity tier, a
-bloom's generation and parent (its spread chain), and `RavBloomSystem.wakeAt`,
-which wakes a bloom at a chosen market outside the weekly draw.
+The arc runs **per infected world** (owner, 2026-10-22): any bloom can carry
+the three beats in turn, Colony Breach, then the defence, then the heart, each
+offered on its own and opted into, and the player may stop after any of them;
+a world whose arc stops runs on the ordinary bloom clock. A scripted **sector
+threat** remains a possible authored instance of the same beats on a named
+world (`RavBloomSystem.wakeAt`), not the trigger.
 `bloom-mission-arc.md` is the direction for movements 2 and 3 and the sector
 threat: the Cordon (the Line and the Road as variants), the heart (a broad
 front behind a walking barrage and a burn line), what each reuses, candidate
-stories, and how the campaign raises them.
+stories, how one beat feeds the next, and the clock and gate hooks the beats
+need from this lifecycle.
 
 ## Vocabulary
 
