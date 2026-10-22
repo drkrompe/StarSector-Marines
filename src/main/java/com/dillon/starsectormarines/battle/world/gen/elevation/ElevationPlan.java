@@ -15,9 +15,20 @@ import java.util.List;
  * stroke, whose cells stand on {@code tier}. A ramp climbs exactly one tier
  * along the segment from its foot (on the lower tier) to its head (on the upper
  * one), {@code width} cells wide.
+ *
+ * <p>{@code southFace} widens the faces that look down the screen by up to that
+ * many cells: the camera looks at a south face and over a north one, so a
+ * south face drawn taller reads as height. The extra width is face in the
+ * battle too, so what is drawn and what can be stood on agree.
  */
-public record ElevationPlan(int width, int height, int faceWidth, double ruggedness, long seed,
+public record ElevationPlan(int width, int height, int faceWidth, int southFace, double ruggedness, long seed,
                             List<Plateau> plateaus, List<Ramp> ramps) {
+
+    /** A plan whose faces are the same width all round. */
+    public ElevationPlan(int width, int height, int faceWidth, double ruggedness, long seed,
+                         List<Plateau> plateaus, List<Ramp> ramps) {
+        this(width, height, faceWidth, 0, ruggedness, seed, plateaus, ramps);
+    }
 
     public record Point(double x, double y) {
         public Point {
@@ -50,9 +61,10 @@ public record ElevationPlan(int width, int height, int faceWidth, double ruggedn
         plateaus = List.copyOf(plateaus);
         ramps = List.copyOf(ramps);
         if (width < 8 || height < 8 || width > 1024 || height > 1024 || faceWidth < 1 || faceWidth > 2
+                || southFace < 0 || southFace > 3
                 || !Double.isFinite(ruggedness) || ruggedness < 0 || ruggedness > 1
                 || plateaus.size() > 256 || ramps.size() > 256) {
-            throw new IllegalArgumentException("Map 8-1024; face width 1-2; ruggedness 0-1; at most 256 plateaus and ramps");
+            throw new IllegalArgumentException("Map 8-1024; face width 1-2; south face 0-3; ruggedness 0-1; at most 256 plateaus and ramps");
         }
         for (Plateau plateau : plateaus) for (Point p : plateau.points()) requireInside(p, width, height);
         for (Ramp ramp : ramps) {
@@ -82,7 +94,7 @@ public record ElevationPlan(int width, int height, int faceWidth, double ruggedn
             ramps.add(new Ramp(point(r.getJSONArray("foot")), point(r.getJSONArray("head")), r.getDouble("width")));
         }
         return new ElevationPlan(doc.getInt("width"), doc.getInt("height"), doc.getInt("faceWidth"),
-                doc.getDouble("ruggedness"), doc.getLong("seed"), plateaus, ramps);
+                doc.optInt("southFace", 0), doc.getDouble("ruggedness"), doc.getLong("seed"), plateaus, ramps);
     }
 
     public JSONObject json() throws JSONException {
@@ -97,7 +109,7 @@ public record ElevationPlan(int width, int height, int faceWidth, double ruggedn
             rs.put(new JSONObject().put("foot", json(r.foot())).put("head", json(r.head())).put("width", r.width()));
         }
         return new JSONObject().put("version", 1).put("width", width).put("height", height)
-                .put("faceWidth", faceWidth).put("ruggedness", ruggedness).put("seed", seed)
+                .put("faceWidth", faceWidth).put("southFace", southFace).put("ruggedness", ruggedness).put("seed", seed)
                 .put("plateaus", all).put("ramps", rs);
     }
 

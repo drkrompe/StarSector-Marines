@@ -2498,7 +2498,7 @@ public class AirSystem {
                 load.aoeRadiusCells, load.damage, load.penetration,
                 load.wallDamage, world.airFaction(id), /*aerialDelivery*/ true,
                 /*wallDamageRadius*/ load.aoeRadiusCells, /*spawnDustOnWallBreak*/ true,
-                /*friendlyFireImmune*/ false);
+                /*friendlyFireImmune*/ false).incendiary(load.incendiaryHeat);
         if (arrival.flightTimeSec() < BattleSimulation.TICK_DT) {
             // A shell is already there. Queuing it would postpone the impact by
             // a whole tick for a flight that lasts a fortieth of one.

@@ -287,7 +287,7 @@ public final class MechLabViewModel {
         workspaceClasses = reactor.computed(() -> assetPickerOpen.get()
                 ? "fitting-workspace hidden" : "fitting-workspace");
         fittingHeaderClasses = reactor.computed(() -> fittingFocused.get()
-                ? "asset-strip edge-surface" : "asset-strip edge-surface hidden");
+                ? "garage-back console-action" : "hidden");
         performanceClasses = reactor.computed(() -> fittingFocused.get()
                 && (selectedMech() != null || selectedVehicle() != null)
                 ? "performance-grid" : "performance-grid hidden");
@@ -544,19 +544,64 @@ public final class MechLabViewModel {
         if (id != null) selectSlot(id);
     }
 
-    /** Compatibility and availability used by the drag hover preview. */
+    /**
+     * Compatibility and availability used by the drag hover preview. Only a spare in stores
+     * can be dragged: fabrication is its own step, from the row's FAB button.
+     */
     public boolean canDropCatalogWeapon(MechWeaponComponent component, SocketId target) {
         CampaignMech mech = selectedMech();
         MechMountSlot mount = mountFor(target);
         if (mech == null || component == null || mount == null
+                || bay.availableWeapon(component.id) <= 0
+                || mech.weaponAt(mount) == component
                 || !bay.canInstallWeapon(mech.id(), mount, component.id)) return false;
-        if (mech.weaponAt(mount) != component
-                && !bay.withinBudget(mech.id(), mech.fit().withWeapon(mount, component))) return false;
-        if (mech.weaponAt(mount) == component || bay.availableWeapon(component.id) > 0) {
-            return true;
-        }
-        FabricationCost bill = workshop.weaponQuote(component);
-        return bay.canFabricate(component) && bill != null && resources.canAfford(bill);
+        return bay.withinBudget(mech.id(), mech.fit().withWeapon(mount, component));
+    }
+
+    /** True when the bay holds a spare of this part, so its row can be picked up. */
+    public boolean inStores(MechWeaponComponent component) {
+        return component != null && bay.availableWeapon(component.id) > 0;
+    }
+
+    public boolean inStores(MechInternal internal) {
+        return internal != null && bay.availableInternal(internal.id) > 0;
+    }
+
+    public boolean inStores(MissileReplenisherComponent loader) {
+        return loader != null && bay.availableReplenisher(loader.id()) > 0;
+    }
+
+    /** An internal drops only on its own role's mount, from a spare, within the engine budget. */
+    public boolean canDropCatalogInternal(MechInternal internal, SocketId target) {
+        CampaignMech mech = selectedMech();
+        if (mech == null || internal == null || target == null || internal.role.socket() != target
+                || mech.internal(internal.role) == internal || !inStores(internal)
+                || !bay.canInstallInternal(mech.id(), internal)) return false;
+        return bay.withinBudget(mech.id(), mech.fit().withInternal(internal.role, internal));
+    }
+
+    public boolean dropCatalogInternal(MechInternal internal, SocketId target) {
+        if (!canDropCatalogInternal(internal, target)) return false;
+        selectedSlot.set(target);
+        platingSelected.set(false);
+        return fitInternal(internal);
+    }
+
+    /** A loader drops only on the mini-fab, from a spare, and not over a fitted vent array. */
+    public boolean canDropCatalogLoader(MissileReplenisherComponent loader, SocketId target) {
+        CampaignMech mech = selectedMech();
+        if (mech == null || loader == null || target != SocketId.MINI_FAB || !inStores(loader)
+                || loader.id().equals(mech.missileReplenisherId())) return false;
+        return mech.internal(MechInternal.Role.VENT_ARRAY) == null
+                || MissileReplenisherComponent.STANDARD.id().equals(loader.id());
+    }
+
+    public boolean dropCatalogLoader(MissileReplenisherComponent loader, SocketId target) {
+        if (!canDropCatalogLoader(loader, target)) return false;
+        selectedSlot.set(target);
+        platingSelected.set(false);
+        install(loader.id());
+        return true;
     }
 
     /** Installed assemblies can move only to vacant, compatible hardpoints. */
@@ -574,7 +619,8 @@ public final class MechLabViewModel {
     public boolean dropCatalogWeapon(MechWeaponComponent component, SocketId target) {
         CampaignMech mech = selectedMech();
         MechMountSlot mount = mountFor(target);
-        if (mech == null || component == null || mount == null) return false;
+        if (mech == null || component == null || mount == null
+                || bay.availableWeapon(component.id) <= 0) return false;
         selectedSlot.set(target);
         platingSelected.set(false);
         MechFrameBudget.Fit proposed = mech.fit().withWeapon(mount, component);
@@ -976,7 +1022,9 @@ public final class MechLabViewModel {
 
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.weapons()) {
             MechWeaponComponent component = recipe.component();
-            if (!bay.canFabricate(component) && bay.ownedWeapon(component.id) == 0) continue;
+            // Stores, not the mech: a fitted assembly is on the doll, and a row with no spare
+            // appears only while its pattern can build one.
+            if (!bay.canFabricate(component) && bay.availableWeapon(component.id) == 0) continue;
             SocketDef socket = selectedSocketDefinition();
             if (socket == null || !component.accepts(mount)
                     || socket.type() != MechFittingLayout.SocketType.OMNI
@@ -992,20 +1040,12 @@ public final class MechLabViewModel {
             if (filter == CategoryFilter.ENERGY && component.hardpointType != MechWeaponComponent.HardpointType.ENERGY) continue;
             if (filter == CategoryFilter.IN_STOCK && free <= 0) continue;
 
-            boolean fits = socket.accommodates(
-                    component.footprintColumns, component.footprintRows);
-            boolean installed = mech.weaponAt(mount) == component;
             boolean inCargo = free > 0;
-            boolean fabricate = !inCargo;
             FabricationCost bill = workshop.weaponQuote(component);
-            boolean affordable = resources.canAfford(bill);
+            boolean affordable = bill != null && resources.canAfford(bill);
             boolean locked = !bay.canFabricate(component);
-            MechFrameBudget.Fit proposed = mech.fit().withWeapon(mount, component);
-            boolean withinBudget = installed || bay.withinBudget(mech.id(), proposed);
-            boolean disabled = installed || !fits || !withinBudget || fabricate && (locked || !affordable);
-
-            String badge = installed ? Strings.get("openingMechLabFitted") : inCargo ? Strings.get("openingMechLabInCargo") : Strings.get("openingMechLabFabrication");
-            String badgeClasses = installed || inCargo ? "catalog-badge in-cargo" : "catalog-badge fabrication";
+            String badge = stockBadge(free);
+            String badgeClasses = inCargo ? "catalog-badge in-cargo" : "catalog-badge fabrication";
 
             // Telemetry
             WeaponDef def = component.weaponDef();
@@ -1033,12 +1073,10 @@ public final class MechLabViewModel {
                 }
             }
 
-            String actionLabel = installed ? Strings.get("openingMechLabInstalled") : !fits ? Strings.get("openingMechLabTooLarge")
-                    : !withinBudget ? Strings.get("openingMechLabOverBudget")
-                    : inCargo ? Strings.get("openingMechLabInstallSpare") : locked ? Strings.get("openingMechLabPatternLocked") : !affordable ? Strings.get("openingMechLabMaterialsShort") : Strings.get("openingMechLabFabricateInstall");
-
             String base = "mech-catalog:" + component.id;
-            boolean showMaterials = !inCargo && !installed && fits && !locked;
+            // Building is offered only when there is no spare to drag: a stocked row is a part,
+            // not an order, and stripping one back to stores takes the offer away again.
+            boolean showMaterials = !locked && !inCargo;
             List<Row> materials = showMaterials ? materialRows(base, bill) : List.of();
             String materialsClasses = showMaterials ? "material-costs" : "material-costs hidden";
 
@@ -1047,22 +1085,16 @@ public final class MechLabViewModel {
                     base + ":detail", base + ":action", base + ":materials", base + ":body",
                     base + ":preview",
                     "catalog-preview", null, component, null, null,
-                    installed ? "catalog-row selected" : !showMaterials ? "catalog-row"
-                            : "catalog-row requires-fabrication", component.displayName(),
+                    showMaterials ? "catalog-row requires-fabrication" : "catalog-row", component.displayName(),
                     badge, badgeClasses,
                     Strings.format("openingMechLabOwnFree", recipe.provenance(), owned, free),
                     telemetry, deltaText, deltaClasses,
                     Strings.format("openingMechLabGrid", component.hardpointType, component.footprintColumns, component.footprintRows),
-                    actionLabel,
-                    installed ? Strings.get("openingMechLabAlreadyInstalledInThisMount")
-                            : !fits ? Strings.get("openingMechLabThisAssemblyExceedsTheSelectedFittingGrid")
-                            : !withinBudget ? overBudgetHint(proposed)
-                            : !inCargo && locked ? Strings.get("openingMechLabOwnedHardwareCanBeRefittedItsFabrication")
-                            : !inCargo && !affordable ? Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor")
-                            : inCargo ? Strings.get("openingMechLabInstallASpareReturnTheCurrentAssembly")
-                            : Strings.get("openingMechLabBuildAndInstallThisAssemblyUsingThe"),
-                    disabled, materials, materialsClasses,
-                    () -> fitWeapon(mount, component)));
+                    showMaterials ? Strings.get("openingMechLabFab") : "",
+                    affordable ? Strings.get("openingMechLabFabHint")
+                            : Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor"),
+                    !showMaterials || !affordable, materials, materialsClasses,
+                    () -> fabricateWeapon(component)));
         }
         return List.copyOf(rows);
     }
@@ -1132,6 +1164,8 @@ public final class MechLabViewModel {
             int owned = bay.ownedReplenisher(component.id());
             int fielded = bay.installedReplenisher(component.id());
             int free = bay.availableReplenisher(component.id());
+            // Loaders cannot be fabricated, so a row is a spare in stores or nothing.
+            if (free <= 0) continue;
             // A faster loader takes the utility socket, so a fitted vent array bars it.
             boolean socketTaken = mech != null && !installed
                     && mech.internal(MechInternal.Role.VENT_ARRAY) != null
@@ -1144,15 +1178,13 @@ public final class MechLabViewModel {
                     base + ":detail", base + ":action", base + ":materials", base + ":body",
                     base + ":preview",
                     "catalog-preview", null, null, component, null,
-                    installed ? "catalog-row selected" : "catalog-row", component.displayName(),
-                    installed ? Strings.get("openingMechLabFitted") : inCargo ? Strings.get("openingMechLabInCargo") : Strings.get("openingMechLabNoSpare"),
-                    installed || inCargo ? "catalog-badge in-cargo" : "catalog-badge unavailable",
+                    "catalog-row", component.displayName(),
+                    stockBadge(free), inCargo ? "catalog-badge in-cargo" : "catalog-badge unavailable",
                     Strings.format("openingMechLabOwnFieldFree", owned, fielded, free),
                     Strings.format("openingMechLabSrmSLrmS", number(component.srmReplenishmentSeconds()), number(component.lrmReplenishmentSeconds())),
                     "", "catalog-delta hidden",
                     Strings.get("openingMechLabRestoresOneMissileTriggerPack"),
-                    installed ? Strings.get("openingMechLabInstalled") : socketTaken ? Strings.get("openingMechLabSocketInUse")
-                            : inCargo ? Strings.get("openingMechLabInstallSpare") : Strings.get("openingMechLabNoSpareInStores"),
+                    "",
                     installed ? Strings.get("openingMechLabAlreadyInstalledInThisMech")
                             : mech == null ? Strings.get("openingMechLabSelectAMechBeforeFittingAReplenisher")
                             : socketTaken ? Strings.get("openingMechLabUtilityCopy")
@@ -1175,7 +1207,7 @@ public final class MechLabViewModel {
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.internals()) {
             MechInternal internal = recipe.internal();
             if (internal.role != role) continue;
-            if (!bay.canFabricate(internal) && bay.ownedInternal(internal.id) == 0) continue;
+            if (!bay.canFabricate(internal) && bay.availableInternal(internal.id) == 0) continue;
 
             int owned = bay.ownedInternal(internal.id);
             int free = bay.availableInternal(internal.id);
@@ -1190,9 +1222,9 @@ public final class MechLabViewModel {
             boolean affordable = resources.canAfford(resources.quote(recipe.cost()));
             boolean disabled = installed || !fits || !withinBudget || !inCargo && (locked || !affordable);
 
-            String badge = installed ? Strings.get("openingMechLabFitted") : inCargo
-                    ? Strings.get("openingMechLabInCargo") : Strings.get("openingMechLabFabrication");
-            String badgeClasses = installed || inCargo ? "catalog-badge in-cargo" : "catalog-badge fabrication";
+            boolean plating = role == MechInternal.Role.PLATING;
+            String badge = stockBadge(free);
+            String badgeClasses = inCargo ? "catalog-badge in-cargo" : "catalog-badge fabrication";
 
             float mass = MechFrameBudget.mass(internal, mech.variant());
             String detail = role.socket() == null
@@ -1208,25 +1240,20 @@ public final class MechLabViewModel {
                 deltaClasses = delta.classes();
             }
 
-            String actionLabel = installed ? Strings.get("openingMechLabInstalled")
-                    : loaderConflict ? Strings.get("openingMechLabSocketInUse")
-                    : !fits ? Strings.get("openingMechLabTooLarge")
-                    : !withinBudget ? Strings.get("openingMechLabOverBudget")
-                    : inCargo ? Strings.get("openingMechLabInstallSpare")
-                    : locked ? Strings.get("openingMechLabPatternLocked")
-                    : !affordable ? Strings.get("openingMechLabMaterialsShort")
-                    : Strings.get("openingMechLabFabricateInstall");
-            String actionHint = installed ? Strings.get("openingMechLabAlreadyInstalledInThisMech")
-                    : loaderConflict ? Strings.get("openingMechLabVentArrayLoaderHint")
-                    : !fits ? Strings.get("openingMechLabInternalTooLargeHint")
-                    : !withinBudget ? overBudgetHint(proposed)
-                    : inCargo ? Strings.get("openingMechLabInternalSpareHint")
-                    : locked ? Strings.get("openingMechLabInternalLockedHint")
-                    : !affordable ? Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor")
-                    : Strings.get("openingMechLabInternalFabricateHint");
+            // Plating covers the whole frame and has no mount to drop on, so a spare is fitted
+            // from its row; every other part is dragged onto its mount.
+            boolean fitFromRow = plating && inCargo;
+            boolean offerFab = !locked && !inCargo;
+            String actionLabel = fitFromRow ? Strings.get("openingMechLabFit")
+                    : offerFab ? Strings.get("openingMechLabFab") : "";
+            String actionHint = fitFromRow ? !withinBudget ? overBudgetHint(proposed)
+                    : Strings.get("openingMechLabInternalSpareHint")
+                    : affordable ? Strings.get("openingMechLabFabHint")
+                    : Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor");
+            disabled = fitFromRow ? !withinBudget : !offerFab || !affordable;
 
             String base = "mech-catalog:" + internal.id;
-            boolean showMaterials = !inCargo && !installed && fits && withinBudget && !locked;
+            boolean showMaterials = offerFab;
             List<Row> materials = showMaterials ? materialRows(base, resources.quote(recipe.cost())) : List.of();
             rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
                     base + ":stock", base + ":telemetry", base + ":delta",
@@ -1234,16 +1261,38 @@ public final class MechLabViewModel {
                     base + ":preview",
                     internal.role == MechInternal.Role.PLATING ? "catalog-preview hidden" : "catalog-preview",
                     null, null, null, internal,
-                    installed ? "catalog-row selected" : !showMaterials ? "catalog-row"
-                            : "catalog-row requires-fabrication", internal.displayName(),
+                    showMaterials ? "catalog-row requires-fabrication" : "catalog-row", internal.displayName(),
                     badge, badgeClasses,
                     Strings.format("openingMechLabOwnFree", recipe.provenance(), owned, free),
                     internalTelemetry(proposed, internal), deltaText, deltaClasses,
                     detail, actionLabel, actionHint,
                     disabled, materials, showMaterials ? "material-costs" : "material-costs hidden",
-                    () -> fitInternal(internal)));
+                    fitFromRow ? () -> fitInternal(internal) : () -> fabricateInternal(internal)));
         }
         return List.copyOf(rows);
+    }
+
+    /** Spares in stores, or that the row is a known pattern with none built. */
+    private static String stockBadge(int free) {
+        return free > 0 ? Strings.format("openingMechLabStockCount", free) : Strings.get("openingMechLabPattern");
+    }
+
+    private void fabricateWeapon(MechWeaponComponent component) {
+        applyFabricated(workshop.fabricateWeapon(component), component.displayName());
+    }
+
+    private void fabricateInternal(MechInternal internal) {
+        applyFabricated(workshop.fabricateInternal(internal), internal.displayName());
+    }
+
+    private void applyFabricated(MechWorkshop.Result result, String name) {
+        feedbackText.set(switch (result.status()) {
+            case FABRICATED -> Strings.format("openingMechLabFabricatedIntoStores", name);
+            case PATTERN_LOCKED -> Strings.get("openingMechLabThisFabricationPatternHasNotBeenAcquired");
+            case INSUFFICIENT_MATERIALS -> Strings.get("openingMechLabFabricationBlockedRequiredFleetMaterialsAreShort");
+            default -> Strings.get("openingMechLabRefitBlockedCampaignHardwareWasNotChanged");
+        });
+        finishWeaponCommand(result);
     }
 
     private record Delta(String text, String classes) { }
@@ -2166,6 +2215,9 @@ public final class MechLabViewModel {
                              String materialsClasses,
                              Runnable action)
             implements MarkupPropertySource {
+        /** The row's button builds a spare (drawn as the fabricator icon) rather than fitting one. */
+        private boolean fabricates() { return Strings.get("openingMechLabFab").equals(actionLabel); }
+
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "copyId" -> copyId; case "headerId" -> headerId; case "nameId" -> nameId;
             case "badgeId" -> badgeId;
@@ -2181,7 +2233,13 @@ public final class MechLabViewModel {
             case "detail" -> detail; case "actionLabel" -> actionLabel;
             case "actionDisabled" -> actionDisabled; case "materials" -> materials;
             case "materialsStyle" -> CompanyResources.billHeight(materials);
-            case "cardStyle" -> "height: " + (140 + materials.size() * 36) + "px;";
+            case "cardStyle" -> materials.isEmpty() ? "height: 102px;" : "height: 132px;";
+            case "actionClasses" -> actionLabel == null || actionLabel.isEmpty() ? "hidden"
+                    : actionDisabled ? "catalog-fab console-action short" : "catalog-fab console-action";
+            case "actionIconId" -> actionId + ":icon";
+            case "actionTextId" -> actionId + ":text";
+            case "actionIconClasses" -> fabricates() ? "catalog-fab-icon" : "hidden";
+            case "actionText" -> fabricates() ? "" : actionLabel;
             case "materialsClasses" -> materialsClasses;
             case "action" -> action;
             default -> throw unknown("mech-catalog", p); }; }

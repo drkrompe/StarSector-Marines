@@ -401,6 +401,18 @@ increasing an encounter's total armored threat.
   compatibility therefore uses a colour outside that palette. The doll is the
   location picker: clicking a socket selects it, the right column describes only
   that socket, and a fitted weapon is stripped from the X on its doll card.
+- **Stores and fabrication are separate gestures.** The left column lists the
+  selected mount's stores: spares the bay holds, and patterns the company can
+  build. A fitted part is on the mech, not in that list. Fitting is a drag from a
+  spare onto a mount, and taking a part off is a drag back to stores (or the X);
+  there is no install button. A known pattern with no spare in stores carries a
+  BUY button (a cog icon) and its material cost on the right of its piece;
+  it builds one into stores and fits nothing, and is dimmed while the materials are
+  short. A row with a spare offers no build at all: the spare is what to drag, and
+  stripping a part back to stores takes the offer away again. Plating is the one exception: it covers the whole frame and
+  has no mount to drop on, so a spare plate is fitted from its row. The fitting
+  view has no call-sign or status bars: a BACK button returns to the lance
+  overview, as the Mech Lab tab itself does.
 - A **fitting doll** is the asset-authored maintenance presentation of one mech
   or vehicle class. It references the same ordered appearance and physical scale
   used in battle, while owning the maintenance facing and every socket's physical

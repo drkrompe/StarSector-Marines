@@ -40,10 +40,10 @@ class ElevationBrushTest {
         ElevationMap map = ElevationBrush.stamp(hill(3), grid, topology);
 
         assertEquals(1, map.tier(24, 15));
-        assertTrue(map.isRamp(16, 15));
-        assertEquals(0, map.tier(16, 15), "a ramp sees from its lower tier");
+        assertTrue(map.isRamp(18, 15));
+        assertEquals(0, map.tier(18, 15), "a ramp sees from its lower tier");
         // The plateau's east edge is a face nobody stands on.
-        assertTrue(map.isFace(31, 15) || map.isFace(32, 15));
+        assertTrue(map.isFace(31, 15));
         int faceX = map.isFace(32, 15) ? 32 : 31;
         assertFalse(grid.isWalkable(faceX, 15));
         assertTrue(grid.hasTag(faceX, 15, NavigationGrid.CellTag.NATURAL_SOLID));
@@ -77,9 +77,9 @@ class ElevationBrushTest {
         ElevationMap map = ElevationBrush.stamp(hill(2), grid, topology);
         VehicleClearance wide = VehicleClearance.erode(grid, 2);
         // Clearance radius 2 needs a 5-cell corridor; the 2-cell ramp passes none.
-        for (int x = 14; x <= 18; x++) assertFalse(wide.isPassable(x, 15));
+        for (int x = 17; x <= 19; x++) assertFalse(wide.isPassable(x, 15));
         assertNotNull(GridPathfinder.findPath(grid, 2, 15, 24, 15), "infantry still climb it");
-        assertTrue(map.isRamp(16, 15));
+        assertTrue(map.isRamp(18, 15));
     }
 
     @Test void aPlateauWithoutARampIsRefusedAndTheMapLeftUntouched() {

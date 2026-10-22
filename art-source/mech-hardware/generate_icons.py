@@ -498,6 +498,22 @@ def internals(f):
         return s
     f['loader-standard'] = banded(150, 100, loader(False), 'LDR')
     f['loader-accelerated'] = banded(150, 100, loader(True), 'LDR')
+    f['fab'] = fabricator_icon()
+
+
+def fabricator_icon():
+    """The stores row's build button: an amber cog with a plus struck through its hub."""
+    amber, dark = '#dfc588', '#1a1608'
+    pts = []
+    teeth = 8
+    for i in range(teeth * 4):
+        a = (i / (teeth * 4)) * 2 * math.pi - math.pi / 2
+        r = 30 if (i % 4) in (1, 2) else 23
+        pts.append((32 + r * math.cos(a), 32 + r * math.sin(a)))
+    s = poly(pts, f'fill="{amber}"')
+    s += ell(32, 32, 15, 15, f'fill="{dark}"')
+    s += rect(29, 22, 6, 20, f'fill="{amber}"') + rect(22, 29, 20, 6, f'fill="{amber}"')
+    return svg(64, 64, s)
 
 
 if __name__ == '__main__':

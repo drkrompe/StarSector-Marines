@@ -87,6 +87,14 @@ public final class MechLabDollCanvas implements CanvasProducer {
         dragPreview = component != null ? new DragPreview(component, source, target, valid) : null;
     }
 
+    /**
+     * An internal or loader carried over the doll: only the target socket answers, lit as a
+     * fit or a refusal. The piece itself rides on the drag ghost.
+     */
+    public void previewPartDrag(SocketId target, boolean valid) {
+        dragPreview = new DragPreview(null, null, target, valid);
+    }
+
     public void clearWeaponDragPreview() { dragPreview = null; }
 
     /**
