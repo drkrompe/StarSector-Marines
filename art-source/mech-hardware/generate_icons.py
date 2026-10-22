@@ -16,6 +16,7 @@ OUT = os.path.join("mod", "graphics", "ui", "mech-hardware")
 D = 'fill="#000000" fill-opacity="0.58"'
 L = 'fill="#ffffff" fill-opacity="0.5"'
 LS = 'fill="#ffffff" fill-opacity="0.3"'
+MID = 'fill="#000000" fill-opacity="0.34"'
 
 
 def svg(w, h, body):
@@ -46,6 +47,12 @@ def stroke(d, col, op, w, extra=''):
 
 def poly(pts, attr):
     return '  <polygon points="' + ' '.join(f'{n(x)},{n(y)}' for x, y in pts) + f'" {attr}/>\n'
+
+
+def block(x0, y0, x1, y1, cut, attr=D):
+    """A machined block: a rectangle with all four corners cut at 45 degrees."""
+    return poly([(x0 + cut, y0), (x1 - cut, y0), (x1, y0 + cut), (x1, y1 - cut),
+                 (x1 - cut, y1), (x0 + cut, y1), (x0, y1 - cut), (x0, y0 + cut)], attr)
 
 
 def hbar(x0, x1, y, t, attr=D, rx=2):
@@ -102,22 +109,81 @@ def missile_rack(w, h, rows, kind, margin_x=18):
 
 # --- guns -----------------------------------------------------------------------------------
 
-def gatling(y, x0, x1, s):
-    """A rotary gun: motor housing, rear clamp, three barrels, mid and muzzle clamps."""
-    g = rect(x0, y - s * .95, 48, s * 1.9, D, rx=8)
-    g += rect(x0 + 6, y - s * .8, 36, s * .22, L, rx=3)
-    g += rect(x0 + 52, y - s * 1.05, 12, s * 2.1, D, rx=2)
-    bx0, bx1 = x0 + 68, x1 - 14
-    mid = (bx0 + bx1) / 2
-    for k in (-1, 0, 1):
-        by = y + k * s * .58
-        g += hbar(bx0, mid - 7, by, s * .34)
-        g += hbar(mid + 7, bx1 - 4, by, s * .34)
-        g += hbar(bx0 + 2, bx1 - 6, by - s * .08, s * .07, LS, rx=0)
-    g += rect(mid - 5, y - s * 1.0, 10, s * 2.0, D, rx=2)
-    g += rect(bx1, y - s * 1.0, 14, s * 2.0, D, rx=2)
-    for k in (-1, 0, 1):
-        g += ell(x1 - 7, y + k * s * .58, s * .12, s * .12, L)
+def gatling(y, x0, x1, s, barrels=4):
+    """A rotary cannon, side-on: a compact receiver with its drive motor along the top, a long
+    bundle of barrels held by a rear clamp, a mid clamp and a muzzle shroud, and the ammo
+    chute under the receiver. Barrels alternate shade so the bundle reads as a turning
+    cylinder. The receiver is under a third of the length; the barrels are the weapon."""
+    length = x1 - x0
+    h = s * 1.15
+    rx1 = x0 + length * .3
+    g = block(x0, y - h / 2, rx1, y + h / 2, s * .16)
+    g += rect(x0 + s * .18, y - h / 2 - s * .16, (rx1 - x0) * .55, s * .14, MID)
+    g += rect(x0 + s * .14, y - h / 2 + s * .1, rx1 - x0 - s * .3, max(1.5, s * .05), L)
+    g += rect(x0 + s * .14, y + s * .12, rx1 - x0 - s * .28, h / 2 - s * .26, MID)
+    g += poly([(x0 + (rx1 - x0) * .3, y + h / 2 + 2), (x0 + (rx1 - x0) * .7, y + h / 2 + 2),
+               (x0 + (rx1 - x0) * .62, y + h / 2 + s * .32), (x0 + (rx1 - x0) * .22, y + h / 2 + s * .32)], MID)
+    c0 = rx1 + 2
+    bundle = s * .86
+    g += block(c0, y - bundle / 2 - s * .08, c0 + s * .2, y + bundle / 2 + s * .08, s * .05)
+    bx0, bx1 = c0 + s * .2 + 1, x1 - s * .3
+    pitch = bundle / barrels
+    t = pitch * .8
+    for k in range(barrels):
+        by = y - bundle / 2 + pitch * (k + .5)
+        g += hbar(bx0, bx1, by, t, D if k % 2 == 0 else MID, rx=0)
+    g += rect(bx0, y - bundle / 2 + pitch * .5 - t / 2, bx1 - bx0, max(1, t * .28), LS)
+    mid = bx0 + (bx1 - bx0) * .5
+    g += block(mid - s * .06, y - bundle / 2 - s * .06, mid + s * .06, y + bundle / 2 + s * .06, s * .03)
+    g += block(bx1, y - bundle / 2 - s * .07, x1, y + bundle / 2 + s * .07, s * .08)
+    g += rect(bx1 + s * .08, y - bundle / 2, max(1.5, s * .04), bundle, LS)
+    return g
+
+
+def laser_cannon(y, x0, x1, s, rings=3):
+    """A laser cannon, side-on: a finned power housing, a focusing tube with collars, and an
+    emitter head whose lens is a thin lit slit rather than a bulb."""
+    h = s * 1.2
+    hx1 = x0 + (x1 - x0) * .38
+    g = block(x0, y - h / 2, hx1, y + h / 2, s * .2)
+    fins = int((hx1 - x0 - s * .4) / (s * .2))
+    for k in range(fins):
+        fx = x0 + s * .2 + k * s * .2
+        g += rect(fx, y - h / 2 - s * .32, s * .09, s * .3, D)
+        g += rect(fx, y + h / 2 + s * .02, s * .09, s * .3, D)
+    g += rect(x0 + s * .2, y - h / 2 + s * .14, hx1 - x0 - s * .4, max(1.5, s * .06), L)
+    g += rect(x0 + s * .2, y + s * .12, hx1 - x0 - s * .4, h / 2 - s * .32, MID)
+    g += hbar(x0 + s * .3, hx1 - s * .3, y - s * .06, max(1.5, s * .06), LS, rx=0)
+    tx0, tx1 = hx1 + 3, x1 - s * .5
+    g += hbar(tx0, tx1, y, s * .62, D, rx=0)
+    g += hbar(tx0, tx1, y + s * .16, s * .2, MID, rx=0)
+    g += hbar(tx0, tx1, y - s * .22, max(1.5, s * .05), LS, rx=0)
+    for k in range(rings):
+        cx = tx0 + (tx1 - tx0) * (k + 1) / (rings + 1)
+        g += block(cx - s * .06, y - s * .46, cx + s * .06, y + s * .46, s * .04)
+    g += block(tx1 + 2, y - s * .52, x1, y + s * .52, s * .12)
+    g += rect(x1 - s * .15, y - s * .32, max(1.5, s * .05), s * .64, L)
+    return g
+
+
+def pulse_laser(y, x0, x1, s):
+    """A pulse laser, side-on: a short finned capacitor housing and a long cooling jacket of
+    close-set rings, ending in a narrow emitter."""
+    h = s * 1.1
+    hx1 = x0 + (x1 - x0) * .3
+    g = block(x0, y - h / 2, hx1, y + h / 2, s * .18)
+    for k in range(int((hx1 - x0 - s * .3) / (s * .2))):
+        g += rect(x0 + s * .18 + k * s * .2, y - h / 2 - s * .26, s * .09, s * .24, D)
+    g += rect(x0 + s * .18, y - h / 2 + s * .12, hx1 - x0 - s * .36, max(1.5, s * .06), L)
+    g += rect(x0 + s * .18, y + s * .08, hx1 - x0 - s * .36, h / 2 - s * .26, MID)
+    jx0, jx1 = hx1 + 3, x1 - s * .42
+    g += hbar(jx0, jx1, y, s * .4, MID, rx=0)
+    step = s * .24
+    for k in range(int((jx1 - jx0) / step)):
+        g += rect(jx0 + k * step, y - s * .32, step * .5, s * .64, D)
+    g += hbar(jx0, jx1, y - s * .14, max(1.5, s * .04), LS, rx=0)
+    g += block(jx1 + 2, y - s * .3, x1, y + s * .3, s * .08)
+    g += rect(x1 - s * .14, y - s * .18, max(1.5, s * .05), s * .36, L)
     return g
 
 
@@ -180,25 +246,8 @@ def build():
                          + poly(inner, 'fill="#ffffff" fill-opacity="0.75"'))
 
     # Energy.
-    b = rect(12, 64, 104, 72, D, rx=8)
-    for k in range(7):
-        b += rect(20 + k * 13, 42, 8, 18, D, rx=1) + rect(20 + k * 13, 140, 8, 18, D, rx=1)
-    b += rect(20, 74, 88, 8, L, rx=3)
-    for k, x in enumerate((122, 150, 176)):
-        b += rect(x, 72 - k * 3, 22, 56 + k * 6, D, rx=3)
-        b += rect(x + 3, 76 - k * 3, 16, 5, LS)
-    b += ell(204, 100, 9, 26, D) + ell(206, 100, 5, 18, L)
-    f['shoulder-laser'] = svg(225, 200, b)
-
-    b = ''
-    for y in (58, 142):
-        b += rect(12, y - 26, 70, 52, D, rx=7) + rect(18, y - 20, 58, 7, L, rx=3)
-        for k in range(3):
-            b += rect(88 + k * 22, y - 20 + k * 2, 16, 40 - k * 4, D, rx=3)
-        b += ell(162, y, 7, 15, L)
-        for k in range(3):
-            b += rect(176 + k * 14, y - 4, 9, 8, L, rx=3)
-    f['pulse-laser-dual'] = svg(225, 200, b)
+    f['shoulder-laser'] = svg(225, 200, laser_cannon(100, 10, 214, 54, rings=4))
+    f['pulse-laser-dual'] = svg(225, 200, pulse_laser(56, 10, 214, 46) + pulse_laser(144, 10, 214, 46))
 
     # Thermal lance, a 2x1 piece: fuel tank, feed pipe, nozzle, and the flame it throws.
     b = rect(8, 26, 38, 48, D, rx=12) + rect(14, 32, 26, 8, L, rx=3)
@@ -209,9 +258,8 @@ def build():
     f['thermal-lance'] = svg(150, 100, b)
 
     # Ballistic.
-    f['chaingun-dual'] = svg(225, 200, gatling(54, 10, 214, 30) + gatling(146, 10, 214, 30))
-    f['chaingun-nose'] = svg(150, 200, gatling(100, 6, 144, 36)
-                             + stroke('M 30 136 C 30 160 50 172 80 176', '#000000', .58, 12))
+    f['chaingun-dual'] = svg(225, 200, gatling(52, 10, 214, 52) + gatling(144, 10, 214, 52))
+    f['chaingun-nose'] = svg(150, 200, gatling(100, 6, 144, 62, barrels=5))
     f['linear-cannon-dual'] = svg(225, 200, gauss(52, 10, 214, 32) + gauss(148, 10, 214, 32))
 
     b = rect(10, 58, 58, 84, D, rx=6) + rect(16, 64, 46, 9, L, rx=3)
