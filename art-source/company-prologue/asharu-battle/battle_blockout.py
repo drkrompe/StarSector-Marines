@@ -1113,10 +1113,13 @@ def _k6_aim(t, toward_morrow):
 # large chunks per hull, and many small streaks. Each falls on a heading near the Colossus's, at its
 # own depth, breaking up as it enters. (name, of, size m, start at t, position at K6_T, velocity).
 # Nothing here is from the Colossus: she comes down whole.
-WRECKFALL_LOST = {'phaeton': 4, 'lasher-lead': 3, 'hound-p-c': 2, 'hound-p-a': 2}
+# Owner, 2026-10-22, on the paintovers: "A bit too much meteor shower comes across like doom". So a
+# thin fall, behind and beside the two and dimmer than them: four burning chunks and ten faint streaks,
+# low in the frame, nothing crossing the upper sky. Two ships going down with their battle's debris.
+WRECKFALL_LOST = {'phaeton': 2, 'lasher-lead': 1, 'hound-p-c': 1}
 
 
-def _wreckfall(seed=12, small=60):
+def _wreckfall(seed=12, small=10):
     import random
     rnd = random.Random(seed)
     vc = [(K6_SHIPS['colossus'].at(K6_T + .5)[i] - _k6c[i]) * 2 for i in range(3)]
@@ -1124,8 +1127,8 @@ def _wreckfall(seed=12, small=60):
     pieces = [(k, 'chunk') for k, n in WRECKFALL_LOST.items() for _ in range(n)]
     pieces += [(rnd.choice(list(WRECKFALL_LOST)), 'streak') for _ in range(small)]
     for n, (of, kind) in enumerate(pieces):
-        d = rnd.uniform(2500, 30000) if kind == 'streak' else rnd.uniform(2200, 14000)
-        ax, ay = rnd.uniform(-.38, .38), rnd.uniform(-.22, .2)       # spread over the frame and past it
+        d = rnd.uniform(4000, 20000) if kind == 'streak' else rnd.uniform(2600, 9000)    # behind the two (1800 m)
+        ax, ay = rnd.uniform(-.3, .3), rnd.uniform(-.2, .03)        # beside and below them, never high
         dirn = [K6_LOOK[0] - ay * .4, K6_LOOK[1] + ax, K6_LOOK[2] + ay]
         nn = math.sqrt(sum(c * c for c in dirn))
         pos = tuple(K6_CAM[i] + dirn[i] / nn * d for i in range(3))
@@ -2177,7 +2180,7 @@ def blender_main(cfg):
                 pts = [at(t - age * (1 - i / 12), dv) for i in range(13)]
                 kit.trail('Wreckfall %s %d' % (pc['name'], k), pts, stage_fx,
                           width_m=pc['size'] * (4.0 if pc['kind'] == 'chunk' else 6.0) * (1 if k == 0 else .6),
-                          glow=.6 if pc['kind'] == 'chunk' else .35, sparks=6 if pc['kind'] == 'chunk' and k == 0 else 0,
+                          glow=.35 if pc['kind'] == 'chunk' else .15, sparks=6 if pc['kind'] == 'chunk' and k == 0 else 0,
                           seed=pc['seed'] * 7 + k, ion=False)
 
     def field_matrix(piece, box, t, local=None):

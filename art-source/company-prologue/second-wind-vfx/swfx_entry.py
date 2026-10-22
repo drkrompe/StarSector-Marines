@@ -138,6 +138,7 @@ def _material(name, colours, strength, opacity, edge=1.6, streaks=0.0):
     [(u, rgb)] / [(u, value)]; strength scales the emission. The edges of the tube fall away
     softly (edge: the power on how squarely the surface faces the camera), so it reads as glowing
     gas, not a pipe; streaks breaks the opacity up along the track."""
+    name = '%s %.2f' % (name, strength)          # one per strength: a dimmer trail is not the first one's
     mat = bpy.data.materials.get(name)
     if mat:
         return mat
