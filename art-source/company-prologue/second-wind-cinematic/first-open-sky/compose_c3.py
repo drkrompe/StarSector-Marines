@@ -176,6 +176,102 @@ def relay_mast(strobe):
     return img(a)
 
 
+# The riverside stretch of the freight road as Codex painted it (centreline measured on the plate, plate
+# px), from the weigh station upstream to where the road passes under the canopy.
+ROAD = [(2690, 860.0), (2740, 838.5), (2800, 821.5), (2860, 812.5), (2945, 798.0)]
+PLATE_M = 1.16                       # plate px per metre at ~2 km (c3_settlement.PX_PER_M)
+TRUCK_M = (16.0, 2.6, 3.8)           # length, width, height: a box trailer and its cab
+# One outbound, leaving the weigh station upstream; one inbound, out from under the trees. They pass
+# each other under Castle's line (~11 s). Speeds in m/s; `lane` is plate px off the centreline.
+TRUCKS = [
+    {"name": "out", "start": 2700.0, "t0": 2.0, "speed": 13.5, "lane": -1.2, "box": (176, 72, 50)},
+    {"name": "in", "start": 2938.0, "t0": 5.0, "speed": -12.0, "lane": 1.2, "box": (70, 104, 146)},
+]
+
+
+def road_at(x):
+    """(y, heading in degrees on screen) of the road's centreline at plate x."""
+    xs = [p[0] for p in ROAD]
+    ys = [p[1] for p in ROAD]
+    y = float(np.interp(x, xs, ys))
+    dy = float(np.interp(x + 4, xs, ys) - np.interp(x - 4, xs, ys)) / 8
+    return y, math.degrees(math.atan(dy))
+
+
+def truck_x(t, spec):
+    """Plate x of the truck's centre at C3 time t (the road is near enough parallel to the frame
+    that its speed along x is its speed)."""
+    return spec["start"] + spec["speed"] * PLATE_M * (t - spec["t0"])
+
+
+def truck_alpha(t, spec):
+    """In view only on the open stretch: it fades in as it comes out from under the trees (or
+    pulls away from the station) and out where the road goes under the canopy."""
+    x = truck_x(t, spec)
+    lo, hi = ROAD[0][0], ROAD[-1][0] - 6
+    return float(np.clip((x - lo) / 12, 0, 1) * np.clip((hi - x) / 12, 0, 1)) if t >= spec["t0"] else 0.0
+
+
+def truck_pos(t, spec, dist):
+    x = truck_x(t, spec)
+    y, _ = road_at(x)
+    k = PLATE_SCALE / 2.0
+    im = truck_image(t, spec)
+    return (PLATE_X0 - truck_at(t, dist) + x * k - im.width / 2,
+            PLATE_Y0 - rise_at(t, dist) + (y + spec["lane"]) * k - im.height / 2)
+
+
+_TRUCK_CACHE = {}
+
+
+def truck_image(t, spec):
+    """The truck seen from 2 km, 15 degrees down: box trailer and white cab in profile, its roof
+    catching the sun, a shadow to the right, a thin plume of red dust behind it on the laterite.
+    Drawn at 8x along the road's heading, reduced, given 2 km of haze, scaled a touch with distance
+    (farther up the stretch is farther away)."""
+    x = truck_x(t, spec)
+    y, heading = road_at(x)
+    a = truck_alpha(t, spec)
+    scale = 1.0 - 0.0006 * (ROAD[0][1] - y)                 # ~4% smaller at the far end
+    key = (spec["name"], round(heading), round(scale, 2), round(a, 1))
+    if key in _TRUCK_CACHE:
+        return _TRUCK_CACHE[key]
+    k = 8
+    px = PLATE_SCALE / 2.0 * PLATE_M * scale * k            # canvas px per metre
+    length, width, height = TRUCK_M
+    S = int(length * px * 3)
+    im = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    c = S / 2
+    fwd = 1 if spec["speed"] > 0 else -1
+    L, Hh, Dp = length * px, height * px, width * px * math.sin(math.radians(15))
+    x0, x1 = c - L / 2, c + L / 2
+    base = c + Hh / 2
+    # dust behind, then shadow, body, roof
+    tail = x0 if fwd > 0 else x1
+    for i in range(5):
+        r = (0.25 + 0.2 * i) * Hh
+        cx = tail - fwd * (0.4 + 0.5 * i) * L * 0.5
+        d.ellipse([cx - r * 1.6, base - r, cx + r * 1.6, base + r * 0.3], fill=(168, 110, 78, int(70 - 12 * i)))
+    d.polygon([(x0 + 0.3 * Hh, base), (x1 + 0.3 * Hh, base), (x1 + 0.6 * Hh, base + 0.25 * Hh), (x0 + 0.6 * Hh, base + 0.25 * Hh)],
+              fill=(20, 26, 18, 150))
+    cab = 0.2 * L
+    box = (x0, x1 - cab) if fwd > 0 else (x0 + cab, x1)
+    cabx = (x1 - cab, x1) if fwd > 0 else (x0, x0 + cab)
+    d.rectangle([box[0], base - Hh, box[1], base], fill=spec["box"] + (255,))
+    d.rectangle([box[0], base - Hh - Dp, box[1], base - Hh], fill=tuple(min(255, int(v * 1.25)) for v in spec["box"]) + (255,))
+    d.rectangle([cabx[0], base - 0.75 * Hh, cabx[1], base], fill=(214, 212, 204, 255))
+    d.rectangle([cabx[0], base - 0.75 * Hh - Dp, cabx[1], base - 0.75 * Hh], fill=(236, 236, 230, 255))
+    im = im.rotate(-heading, resample=Image.BICUBIC, center=(c, c))
+    im = im.resize((S // k, S // k), Image.LANCZOS)
+    arr_ = np.asarray(im, np.float32) / 255
+    arr_[..., :3] = grade_land(arr_[..., :3], MAST_DISTANCE_M)
+    arr_[..., 3] *= a
+    out = img(arr_)
+    _TRUCK_CACHE[key] = out
+    return out
+
+
 def build():
     meta = json.loads((LAYER_DIR / "layers.json").read_text(encoding="utf-8"))
     D = {n: d for n, d, _ in LAYERS}
@@ -216,6 +312,10 @@ def build():
         return x, PLATE_Y0 - rise_at(t, D["mid"]) + mfy * k - mast_off.height + 1
     L.append(Layer("mast", None, mast_pos,
                    path=(lambda t: mast_on if (t + 0.4) % MAST_STROBE_S < 0.09 else mast_off, lambda t: 0.0)))
+    # Freight trucks on the riverside road, riding the mid layer under the near bank's crowns.
+    for spec in TRUCKS:
+        L.append(Layer("truck-" + spec["name"], None, lambda t, sp=spec: truck_pos(t, sp, D["mid"]),
+                       path=(lambda t, sp=spec: truck_image(t, sp), lambda t: 0.0)))
     plate("mist-low", 1700.0, breeze_dist=1700.0)
     plate("near", D["near"], opaque=True)
     # Flock: eleven 3 m fliers ~700 m out at about our altitude, against the bright low
