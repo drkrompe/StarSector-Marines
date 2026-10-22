@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /** Destructible cover props. Blockers use grid wall HP; walkable props own a removable physical profile. */
@@ -25,6 +26,13 @@ public final class CoverPropDamage {
     private static final Set<String> EMPLACEMENT_SHAPES = Set.of("n", "e", "s", "w",
             "inner-nw", "inner-ne", "inner-sw", "inner-se");
     public static final Set<String> CRATES = Set.of("doodad.box", "doodad.box-dam", "doodad.crate", "doodad.industrial-crate-stack");
+    /**
+     * Props whose damage pair is borrowed rather than drawn: {@code {damaged, destroyed}}. A militia
+     * hedgehog has no damage art of its own yet, so a damaged one stands as it is and a destroyed one lies
+     * as wrecked fence.
+     */
+    private static final Map<String, String[]> BORROWED_PAIRS = Map.of(
+            "doodad.fort-hedgehog", new String[]{"doodad.fort-hedgehog", "doodad.industrial-fence-destroyed-straight-h"});
     private static final class Entry {
         final int index;
         final Doodad original;
@@ -54,11 +62,14 @@ public final class CoverPropDamage {
         String id = prop.definitionId();
         String prefix = familyPrefix(id);
         boolean crate = id != null && CRATES.contains(id);
-        if ((!crate && prefix == null) || !grid.inBounds(prop.cellX, prop.cellY)) return false;
+        String[] borrowed = id == null ? null : BORROWED_PAIRS.get(id);
+        if ((!crate && prefix == null && borrowed == null) || !grid.inBounds(prop.cellX, prop.cellY)) return false;
         boolean physical = grid.isWalkable(prop.cellX, prop.cellY);
-        String shape = crate ? "" : id.substring(prefix.length());
-        DoodadDef damaged = registry == null ? null : registry.doodad(crate ? id + "-damaged" : prefix + "damaged-" + shape);
-        DoodadDef destroyed = registry == null ? null : registry.doodad(crate ? id + "-destroyed" : prefix + "destroyed-" + shape);
+        String shape = crate || borrowed != null ? "" : id.substring(prefix.length());
+        String damagedId = borrowed != null ? borrowed[0] : crate ? id + "-damaged" : prefix + "damaged-" + shape;
+        String destroyedId = borrowed != null ? borrowed[1] : crate ? id + "-destroyed" : prefix + "destroyed-" + shape;
+        DoodadDef damaged = registry == null ? null : registry.doodad(damagedId);
+        DoodadDef destroyed = registry == null ? null : registry.doodad(destroyedId);
         if (damaged == null || destroyed == null)
             throw new IllegalStateException("Missing cover damage pair for " + id);
         int key = grid.index(prop.cellX, prop.cellY);

@@ -34,6 +34,9 @@ import java.util.Set;
  * another building or a wall already stands on the ring it closes that side
  * itself, the way a desperate fort uses its neighbours.
  *
+ * <p>A piece that can be broken is laid as a {@link NavigationGrid.CellTag#BARRICADE}: the swarm
+ * comes on at it and tears it down where the way round is long, rather than treating it as a wall.
+ *
  * <p>Planning is read-only and refuses rather than half-builds: a plan whose
  * gate cannot be cut, or whose building door no longer reaches the open ground
  * outside, is no plan, and the holdout keeps its plain door aprons.
@@ -423,6 +426,10 @@ final class RedoubtWorks {
                 }
             }
             sim.addDoodad(new Doodad(p.x(), p.y(), def, p.quarterTurns()));
+            // A piece that can be broken is a barricade the swarm assaults rather than walks round.
+            for (int y = p.y(); y < p.y() + p.height(); y++)
+                for (int x = p.x(); x < p.x() + p.width(); x++)
+                    if (grid.getWallHp(x, y) > 0) grid.setTag(x, y, NavigationGrid.CellTag.BARRICADE, true);
             for (int y = p.y() - 1; y <= p.y() + p.height(); y++)
                 for (int x = p.x() - 1; x <= p.x() + p.width(); x++)
                     if (grid.inBounds(x, y)) grid.recomputeCoverAt(x, y);

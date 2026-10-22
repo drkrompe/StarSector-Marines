@@ -348,6 +348,21 @@ made once, in place of the commander-tier fall back through layers that
 light barricade breaks the nearest piece between them rather than walking
 round to the gate the Runners crowd into.
 
+**A militia barricade is something the swarm tears down, not a wall.** Every
+breakable piece of the militia's works (a redoubt's fence and crates, a
+roadblock's hedgehogs and crates) is a **barricade** to the swarm: the swarm's
+flow field crosses it at the cost of about a dozen cells of walking, so where
+the way round is short the swarm goes round and where it is long the swarm comes
+on at the line. A body whose way on runs through a barricade stops at the piece
+and claws at it on its strike cooldown (a Runner's blow is light, a Brute's
+heavy), and the gap a broken piece leaves is where the pack pours through. A
+prepared position is therefore assaulted head on rather than flanked, which is
+what makes it read as one. Ordinary yard fences elsewhere in the town stay walls.
+A hedgehog has no damage art of its own yet: damaged it stands as it is, and
+destroyed it lies as wrecked fence. Trucks do not break.
+`-Dbattle.swarm.barricadeAssault=false` is the control: barricades are walls,
+and the swarm goes round.
+
 A holdout's ground is its works' rectangle. A Marine at its **gate** relieves
 it, and the people walk out through the gate.
 `-Dbattle.colonyBreach.redoubtWorks=false` is the control: every holdout is the
@@ -356,7 +371,8 @@ bare building with aprons.
 **Roadblock.** A line the militia throw **across a street**, not round a
 building: works on an approach to the main redoubt, with nobody behind them to
 relieve. A redoubt claims a block; a roadblock closes a street, and the swarm
-either breaks it or is funnelled the long way round. The colony has one to
+tears its way through it unless the way round is short (see the barricade law
+above). The colony has one to
 three (seeded), each on its own approach:
 
 - **where**: a straight run of a street that leads toward the compound
@@ -369,8 +385,8 @@ three (seeded), each on its own approach:
   on either side, nothing closing it within thirteen cells, takes no
   roadblock: a line there closes nothing;
 - **the obstacle row**, on the threat side: hedgehogs broken by crate stacks,
-  and on some a truck dragged across one lane, closed to movement and open to
-  sight;
+  and on some a truck dragged across one lane, closed to walking and open to
+  sight, and torn down by a swarm that comes on at it;
 - **the course** a row in: one course of sandbag facing the threat, a
   fighting-position run its **team** mans under the same order a holdout's
   line has;
@@ -1189,6 +1205,12 @@ large map.
   colonists while harvest is open.
 - **Shelter** and **lift** are disclosed, so the mission declares their cells;
   the swarm knows where they are without sensing them, as the noun's law allows.
+- **A barricade costs, it does not block.** A militia barricade piece is
+  crossed by the field at the cost of about a dozen cells, cardinally only, and
+  a descent stops in front of it; a body there strikes it. Close in, a body the
+  field leads through a barricade follows the field rather than its own path,
+  because its own path would take it round and the two would turn it back and
+  forth.
 - **Bore** is the goal of a body carrying biomass home: the nearest living
   bore. The swarm's own holes, so their cells are declared and redeclared as a
   bore opens or collapses.

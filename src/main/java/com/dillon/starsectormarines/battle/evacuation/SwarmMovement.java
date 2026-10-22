@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.nav.SwarmFlowFields;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import java.util.Arrays;
 
@@ -23,6 +24,12 @@ import java.util.Arrays;
  * the pack runs its anchor's descent as a fan rather than every body
  * descending into one file.
  *
+ * <p>A militia barricade is not a wall to the swarm: the field crosses it at
+ * a cost, so where the way round is long the swarm comes on at it, and a body
+ * whose way on runs through one tears at it until it breaks
+ * ({@code colony-breach-nouns.md}, Roadblock). Close in, a body the field
+ * leads through a barricade follows the field too.
+ *
  * <p>{@code -Dbattle.swarm.flowField=false} (or
  * {@link BattleSimulation#setSwarmFlowFieldEnabled}) is the control: every
  * move paths body by body, as the swarm did before fields.
@@ -35,6 +42,12 @@ public final class SwarmMovement {
     static final int SEGMENT_CELLS = 10;
     /** Re-descend early when this few cells of the current segment remain. */
     private static final int SEGMENT_REFILL = 3;
+    /** Wall damage one Runner's blow does to a barricade piece; a piece has 100. */
+    static final int RUNNER_BLOW = 8;
+    /** How far from a barricade cell's centre a body can strike it. */
+    private static final float BARRICADE_REACH = 1.6f;
+    /** Cells down the field a body close to its target looks for a barricade it should tear through. */
+    private static final int BARRICADE_LOOKAHEAD = (int) LOCAL_PURSUIT_RANGE + 2;
 
     private SwarmMovement() {}
 
@@ -50,12 +63,11 @@ public final class SwarmMovement {
     public static void pursue(long body, long target, boolean retargeted,
                               BattleSimulation sim) {
         if (SwarmPackMovement.steer(body, target, sim)) return;
-        if (sim.isSwarmFlowFieldEnabled()
-                && !isLocal(body, target, sim)
-                && Faction.DEFENDER.hostileTo(sim.identity().faction(target))
-                && moveToward(body, SwarmGoal.PREY, sim)) {
-            return;
-        }
+        boolean field = sim.isSwarmFlowFieldEnabled()
+                && Faction.DEFENDER.hostileTo(sim.identity().faction(target));
+        boolean onField = field && (!isLocal(body, target, sim) || behindBarricade(body, sim));
+        if (onField && assaultBarricade(body, sim)) return;
+        if (onField && moveToward(body, SwarmGoal.PREY, sim)) return;
         pathDirect(body, sim.world().cellX(target), sim.world().cellY(target),
                 retargeted, sim);
     }
@@ -134,6 +146,44 @@ public final class SwarmMovement {
             cells[count++] = sim.getGrid().index(x, y);
         }
         return Arrays.copyOf(cells, count);
+    }
+
+    /**
+     * Strikes the barricade the prey field leads this body through, when it
+     * stands at it: the blow lands on the serial strike drain, on the body's
+     * own strike cooldown. True when the body is at a barricade, struck or
+     * waiting to; it holds there rather than going round.
+     */
+    static boolean assaultBarricade(long body, BattleSimulation sim) {
+        if (!SwarmFlowFields.barricadeAssaultEnabled()) return false;
+        SwarmFlowFields.Field field = sim.getGrid().swarmFlowFields().field(SwarmGoal.PREY.ordinal());
+        if (field == null) return false;
+        int ahead = field.barricadeAhead(sim.getGrid(), sim.world().cellX(body), sim.world().cellY(body));
+        if (ahead < 0) return false;
+        int width = sim.getGrid().getWidth();
+        int bx = ahead % width, by = ahead / width;
+        float dx = bx + 0.5f - sim.world().x(body), dy = by + 0.5f - sim.world().y(body);
+        if (dx * dx + dy * dy > BARRICADE_REACH * BARRICADE_REACH) return false;
+        sim.clearPath(body);
+        if (sim.combat().cooldownTimer(body) <= 0f) {
+            int blow = sim.identity().type(body) == UnitType.SWARM_BRUTE ? SwarmBruteBehavior.WALL_BLOW : RUNNER_BLOW;
+            sim.swarmStrikes().postBlow(body, bx, by, null, blow);
+            sim.combat().setCooldownTimer(body, SwarmPressureBehavior.strikeCooldown(body, sim));
+        }
+        return true;
+    }
+
+    /**
+     * Whether the prey field leads this body through a barricade close by: a
+     * target behind a militia line, where going round is the longer way. The
+     * field decides, not the body's own path, so a body does not turn back and
+     * forth between the two.
+     */
+    private static boolean behindBarricade(long body, BattleSimulation sim) {
+        if (!SwarmFlowFields.barricadeAssaultEnabled()) return false;
+        SwarmFlowFields.Field field = sim.getGrid().swarmFlowFields().field(SwarmGoal.PREY.ordinal());
+        return field != null && field.leadsThroughBarricade(sim.getGrid(),
+                sim.world().cellX(body), sim.world().cellY(body), BARRICADE_LOOKAHEAD);
     }
 
     private static boolean isLocal(long body, long target, BattleSimulation sim) {

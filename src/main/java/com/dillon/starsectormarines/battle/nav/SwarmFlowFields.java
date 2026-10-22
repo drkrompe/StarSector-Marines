@@ -38,11 +38,11 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
  * again on the next cadence.
  *
  * <h2>Step cost</h2>
- * A step costs its length times the multiplier of the cell it enters, from
- * the field {@link #setStepCost} hands over (the fire's, `fire-nouns.md`,
- * Pathing), so a body walks round a fire where there is a way round and
- * through it where the goal lies beyond. Multipliers are clamped to
- * {@link #MAX_STEP_MULTIPLIER}; without a field every multiplier is one.
+ * Under a costing a step costs its length times the multiplier of the cell it
+ * enters, from the field {@link #setStepCost} hands over (the fire's,
+ * `fire-nouns.md`, Pathing), so a body walks round a fire where there is a way
+ * round and through it where the goal lies beyond. Multipliers are clamped to
+ * {@link #MAX_STEP_MULTIPLIER}; without a costing every multiplier is one.
  */
 public final class SwarmFlowFields {
 
@@ -64,10 +64,26 @@ public final class SwarmFlowFields {
     public static final int UNREACHABLE = Integer.MAX_VALUE;
     static final int CARDINAL_COST = 10;
     static final int DIAGONAL_COST = 14;
-    /** The dearest a cell may make a step into it. */
+    /**
+     * What crossing a militia barricade cell costs over an ordinary step: a
+     * detour up to about this many cells is walked round, a longer one is torn
+     * through ({@link NavigationGrid.CellTag#BARRICADE}).
+     */
+    static final int BARRICADE_COST = 12 * CARDINAL_COST;
+    /** The dearest a cell may make a step into it under a costing. */
     public static final float MAX_STEP_MULTIPLIER = 10f;
-    /** A ring wider than the dearest step, as Dial's algorithm needs. */
+    /**
+     * Dial's ring must be wider than the dearest single step: a cardinal step
+     * into a barricade at the full multiplier, 100 + 120.
+     */
     private static final int BUCKETS = 256;
+    /** {@code -Dbattle.swarm.barricadeAssault=false} is the control: a barricade is a wall to the swarm. */
+    public static final String BARRICADE_ASSAULT_PROPERTY = "battle.swarm.barricadeAssault";
+    private static final long BARRICADE = NavigationGrid.CellTag.BARRICADE.mask();
+
+    public static boolean barricadeAssaultEnabled() {
+        return Boolean.parseBoolean(System.getProperty(BARRICADE_ASSAULT_PROPERTY, "true"));
+    }
 
     public static boolean defaultEnabled() {
         return Boolean.parseBoolean(System.getProperty(ENABLED_PROPERTY, "true"));
@@ -212,9 +228,9 @@ public final class SwarmFlowFields {
     }
 
     /**
-     * An immutable integration: step distance (cardinal 10, diagonal 14, each
-     * times the entered cell's multiplier) from each cell to the nearest
-     * source under the same step rule as A*.
+     * An immutable integration: step distance (cardinal 10, diagonal 14, times
+     * the entered cell's multiplier under a costing) from
+     * each cell to the nearest source under the same step rule as A*.
      */
     public static final class Field {
         private final int width;
@@ -247,10 +263,9 @@ public final class SwarmFlowFields {
         /**
          * Up to {@code maxSteps} cells downhill from {@code (x, y)}, as a path
          * in {@link Paths} layout starting at the start cell. Each step goes to
-         * the nearest neighbour the grid lets this cell step into (under a step
-         * costing, the one whose distance plus the step into it is least), ties
-         * to the lower direction index, and only ever strictly nearer, so the
-         * walk cannot loop. Empty when the start is unreachable or already a source.
+         * the nearest neighbour the grid lets this cell step into, ties to the
+         * lower direction index, and only ever strictly nearer, so the walk
+         * cannot loop. Empty when the start is unreachable or already a source.
          *
          * <p>There is deliberately no crowd term. The occupancy map marks where
          * paths end, not where bodies stand, and every weight given it in the
@@ -263,8 +278,6 @@ public final class SwarmFlowFields {
                 return GridPathfinder.EMPTY_PATH;
             }
             long[] cellFlags = grid.getCellFlagsArray();
-            byte[] edges = grid.getEdgePassabilityArray();
-            int directions = GridPathfinder.directionCount(GridPathfinder.USE_CARDINAL_NAVIGATION);
             int[] steps = new int[(maxSteps + 1) * 2];
             steps[0] = x;
             steps[1] = y;
@@ -272,29 +285,9 @@ public final class SwarmFlowFields {
             int cx = x;
             int cy = y;
             while (count <= maxSteps) {
-                int here = cy * width + cx;
-                int hereDistance = distance[here];
-                if (hereDistance == 0) break;
-                int bestIdx = -1;
-                long bestTotal = Long.MAX_VALUE;
-                for (int d = 0; d < directions; d++) {
-                    int nx = cx + GridPathfinder.directionX(d);
-                    int ny = cy + GridPathfinder.directionY(d);
-                    if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
-                    int next = ny * width + nx;
-                    int nextDistance = distance[next];
-                    if (nextDistance >= hereDistance) continue;
-                    // Unweighted, the nearest neighbour; weighted, the step into it counts too.
-                    long total = cost == null ? nextDistance
-                            : (long) nextDistance + stepCost(d < GridPathfinder.FIRST_DIAGONAL_DIRECTION
-                            ? CARDINAL_COST : DIAGONAL_COST, multiplier(cost, next, nx, ny));
-                    if (total >= bestTotal) continue;
-                    if (!GridPathfinder.canStep(here, cx, cy, next, d, width, height,
-                            cellFlags, edges, null)) continue;
-                    bestTotal = total;
-                    bestIdx = next;
-                }
-                if (bestIdx < 0) break;
+                int bestIdx = downhill(grid, cx, cy);
+                // A barricade is not walked into: the body stops in front of it, and tears it down.
+                if (bestIdx < 0 || (cellFlags[bestIdx] & BARRICADE) != 0L) break;
                 cx = bestIdx % width;
                 cy = bestIdx / width;
                 steps[count * 2] = cx;
@@ -304,11 +297,90 @@ public final class SwarmFlowFields {
             if (count == 1) return GridPathfinder.EMPTY_PATH;
             return count * 2 == steps.length ? steps : Arrays.copyOf(steps, count * 2);
         }
+
+        /**
+         * The barricade cell the field's next step from {@code (x, y)} goes
+         * through, as a grid index, or -1 when the way on is open ground: where
+         * a body standing here has to tear its way on.
+         */
+        public int barricadeAhead(NavigationGrid grid, int x, int y) {
+            if (distanceAt(x, y) == UNREACHABLE || distanceAt(x, y) == 0) return -1;
+            int next = downhill(grid, x, y);
+            return next >= 0 && (grid.getCellFlagsArray()[next] & BARRICADE) != 0L ? next : -1;
+        }
+
+        /**
+         * Whether the field's way down from {@code (x, y)} runs through a
+         * barricade within {@code steps} cells: the field has already weighed
+         * going round against tearing through, and tearing through won.
+         */
+        public boolean leadsThroughBarricade(NavigationGrid grid, int x, int y, int steps) {
+            if (distanceAt(x, y) == UNREACHABLE || distanceAt(x, y) == 0) return false;
+            long[] cellFlags = grid.getCellFlagsArray();
+            int cx = x, cy = y;
+            for (int i = 0; i < steps; i++) {
+                int next = downhill(grid, cx, cy);
+                if (next < 0 || distance[next] == 0) return false;
+                if ((cellFlags[next] & BARRICADE) != 0L) return true;
+                cx = next % width;
+                cy = next / width;
+            }
+            return false;
+        }
+
+        /**
+         * The nearest neighbour a body here can step toward (under a step
+         * costing, the one whose distance plus the step into it is least),
+         * ties to the lower direction index, only ever strictly nearer; -1 at
+         * a minimum.
+         */
+        private int downhill(NavigationGrid grid, int cx, int cy) {
+            long[] cellFlags = grid.getCellFlagsArray();
+            byte[] edges = grid.getEdgePassabilityArray();
+            int directions = GridPathfinder.directionCount(GridPathfinder.USE_CARDINAL_NAVIGATION);
+            int here = cy * width + cx;
+            int bestIdx = -1;
+            int hereDistance = distance[here];
+            long bestTotal = Long.MAX_VALUE;
+            for (int d = 0; d < directions; d++) {
+                int nx = cx + GridPathfinder.directionX(d);
+                int ny = cy + GridPathfinder.directionY(d);
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+                int next = ny * width + nx;
+                int nextDistance = distance[next];
+                if (nextDistance >= hereDistance) continue;
+                long total = cost == null ? nextDistance
+                        : (long) nextDistance + stepCost(d < GridPathfinder.FIRST_DIAGONAL_DIRECTION
+                        ? CARDINAL_COST : DIAGONAL_COST, multiplier(cost, next, nx, ny))
+                        + ((cellFlags[next] & BARRICADE) != 0L ? BARRICADE_COST : 0);
+                if (total >= bestTotal) continue;
+                if (!step(here, cx, cy, next, d, width, height, cellFlags, edges)) continue;
+                bestTotal = total;
+                bestIdx = next;
+            }
+            return bestIdx;
+        }
+    }
+
+    /**
+     * Whether a body may step from {@code from} into {@code to} on a field: the
+     * pathfinder's own step, or a cardinal step into or out of a barricade
+     * cell from walkable ground or another barricade cell.
+     */
+    static boolean step(int from, int fromX, int fromY, int to, int direction, int width, int height,
+                        long[] cellFlags, byte[] edges) {
+        boolean barricade = ((cellFlags[from] | cellFlags[to]) & BARRICADE) != 0L;
+        if (!barricade) {
+            return GridPathfinder.canStep(from, fromX, fromY, to, direction, width, height, cellFlags, edges, null);
+        }
+        if (direction >= GridPathfinder.FIRST_DIAGONAL_DIRECTION) return false;
+        long walkable = NavigationGrid.CellTag.WALKABLE.mask();
+        return (cellFlags[from] & (walkable | BARRICADE)) != 0L && (cellFlags[to] & (walkable | BARRICADE)) != 0L;
     }
 
     /**
      * One resumable integration by Dial's algorithm: integer step costs
-     * bounded by {@link #DIAGONAL_COST} times {@link #MAX_STEP_MULTIPLIER} let a ring of buckets replace the
+     * bounded by {@link #DIAGONAL_COST} let a ring of buckets replace the
      * heap, so a build is linear in the cells it reaches and can stop after
      * any expansion and carry on next tick. The bucket scratch is reused; the
      * distance array is fresh per build, because the published field is read
@@ -323,6 +395,7 @@ public final class SwarmFlowFields {
         private long topologyRevision;
         private RouteCostField cost;
         private int startedTick;
+        private boolean crossBarricades;
         private boolean finished = true;
 
         Integration(int cells) {
@@ -342,6 +415,7 @@ public final class SwarmFlowFields {
             topologyRevision = grid.topologyRevision();
             this.cost = cost;
             startedTick = tick;
+            crossBarricades = barricadeAssaultEnabled();
             finished = false;
             for (int i = 0; i < sourceCount; i++) {
                 int source = sources[i];
@@ -379,9 +453,12 @@ public final class SwarmFlowFields {
                         if (px < 0 || py < 0 || px >= width || py >= height) continue;
                         int predecessor = py * width + px;
                         int candidate = current + stepCost(d < GridPathfinder.FIRST_DIAGONAL_DIRECTION
-                                ? CARDINAL_COST : DIAGONAL_COST, multiplier);
+                                ? CARDINAL_COST : DIAGONAL_COST, multiplier)
+                                + ((cellFlags[cell] & BARRICADE) != 0L ? BARRICADE_COST : 0);
                         if (candidate >= distance[predecessor]) continue;
-                        if (!GridPathfinder.canStep(predecessor, px, py, cell, d, width, height,
+                        if (crossBarricades) {
+                            if (!step(predecessor, px, py, cell, d, width, height, cellFlags, edges)) continue;
+                        } else if (!GridPathfinder.canStep(predecessor, px, py, cell, d, width, height,
                                 cellFlags, edges, null)) continue;
                         distance[predecessor] = candidate;
                         push(candidate & (BUCKETS - 1), predecessor);
@@ -400,7 +477,6 @@ public final class SwarmFlowFields {
             cost = null;
             return field;
         }
-
 
         private void push(int slot, int cell) {
             if (sizes[slot] == buckets[slot].length) {

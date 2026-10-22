@@ -66,7 +66,41 @@ class SwarmFlowFieldsTest {
         assertEquals(1, Paths.destY(path));
     }
 
-    /** 20x9 open floor whose column x=10 costs ten times to enter, except where {@code openFrom} and below are free. */
+    /** 20 wide, {@code height} tall: a wall down x=10 with a gap at the bottom row and a barricade piece at y=1. */
+    private static NavigationGrid barricadedGrid(int height) {
+        NavigationGrid grid = new NavigationGrid(20, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < 20; x++) grid.setWalkableFloor(x, y);
+        }
+        for (int y = 0; y < height - 1; y++) grid.setWalkable(10, y, false);
+        grid.setTag(10, 1, NavigationGrid.CellTag.BARRICADE, true);
+        return grid;
+    }
+
+    @Test
+    void aLongWayRoundIsTornThroughAndTheDescentStopsAtThePiece() {
+        NavigationGrid grid = barricadedGrid(30);
+        SwarmFlowFields.Field field = build(grid, 0, grid.index(18, 1));
+
+        int[] path = field.descend(grid, 2, 1, 64);
+        assertEquals(9, Paths.destX(path), "stops in front of the barricade");
+        assertEquals(1, Paths.destY(path));
+        assertEquals(grid.index(10, 1), field.barricadeAhead(grid, 9, 1));
+        assertTrue(field.leadsThroughBarricade(grid, 2, 1, 14));
+        assertEquals(-1, field.barricadeAhead(grid, 8, 1), "not yet at it");
+    }
+
+    @Test
+    void aShortWayRoundIsWalked() {
+        NavigationGrid grid = barricadedGrid(4);
+        SwarmFlowFields.Field field = build(grid, 0, grid.index(18, 1));
+
+        int[] path = field.descend(grid, 2, 1, 64);
+        assertEquals(18, Paths.destX(path), "walks round through the gap");
+        assertFalse(field.leadsThroughBarricade(grid, 2, 1, 14));
+    }
+
+    /** 20x9 costing whose column x=10 costs ten times to enter, except at {@code openFrom} and below. */
     private static RouteCostField costlyColumn(int openFrom) {
         float[] cost = new float[20 * 9];
         Arrays.fill(cost, 1f);
