@@ -18,11 +18,13 @@ public final class MatriarchSceneSnapshotSuite extends BehaviorSceneSnapshotSuit
 
     @Override
     protected float[] closeView(String loopId) {
+        if (loopId.equals("corpses")) return new float[]{17f, 12f, 30f};
         return new float[]{12f, 12f, CLOSE_CELLS};
     }
 
     @Override
     protected float[] closeView(String loopId, BattleSimulation sim) {
+        if (loopId.equals("corpses")) return closeView(loopId);
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
             if (sim.identity().type(unit) == UnitType.SWARM_MATRIARCH) {

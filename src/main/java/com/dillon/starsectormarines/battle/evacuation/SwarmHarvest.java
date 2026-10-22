@@ -457,6 +457,23 @@ public final class SwarmHarvest {
         events.add(new Event(tick, EventKind.TAKEN, body, faction));
     }
 
+    /**
+     * Serial: {@code carrier} lets go of its load where it stands, as a whelp
+     * does when it bolts. A living load is freed; a dead one lies loose for
+     * another carrier.
+     */
+    public void drop(BattleSimulation sim, long carrier) {
+        Long body = loads.get(carrier);
+        if (body == null) return;
+        release(carrier, body);
+        if (sim.resolveUnit(body) != 0L && sim.world().isAlive(body)) {
+            free(sim, body, sim.getSimTickIndex());
+        } else {
+            loose.add(body);
+            dropped++;
+        }
+    }
+
     private void release(long carrier, long body) {
         loads.remove(carrier);
         carrierPace.remove(carrier);
