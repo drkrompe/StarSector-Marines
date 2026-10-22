@@ -1,26 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 225 200">
-  <rect x="12" y="64" width="104" height="72" rx="8" fill="#000000" fill-opacity="0.58"/>
-  <rect x="20" y="42" width="8" height="18" rx="1" fill="#000000" fill-opacity="0.58"/>
-  <rect x="20" y="140" width="8" height="18" rx="1" fill="#000000" fill-opacity="0.58"/>
-  <rect x="33" y="42" width="8" height="18" rx="1" fill="#000000" fill-opacity="0.58"/>
-  <rect x="33" y="140" width="8" height="18" rx="1" fill="#000000" fill-opacity="0.58"/>
-  <rect x="46" y="42" width="8" height="18" rx="1" fill="#000000" fill-opacity="0.58"/>
-  <rect x="46" y="140" width="8" height="18" rx="1" fill="#000000" fill-opacity="0.58"/>
-  <rect x="59" y="42" width="8" height="18" rx="1" fill="#000000" fill-opacity="0.58"/>
-  <rect x="59" y="140" width="8" height="18" rx="1" fill="#000000" fill-opacity="0.58"/>
-  <rect x="72" y="42" width="8" height="18" rx="1" fill="#000000" fill-opacity="0.58"/>
-  <rect x="72" y="140" width="8" height="18" rx="1" fill="#000000" fill-opacity="0.58"/>
-  <rect x="85" y="42" width="8" height="18" rx="1" fill="#000000" fill-opacity="0.58"/>
-  <rect x="85" y="140" width="8" height="18" rx="1" fill="#000000" fill-opacity="0.58"/>
-  <rect x="98" y="42" width="8" height="18" rx="1" fill="#000000" fill-opacity="0.58"/>
-  <rect x="98" y="140" width="8" height="18" rx="1" fill="#000000" fill-opacity="0.58"/>
-  <rect x="20" y="74" width="88" height="8" rx="3" fill="#ffffff" fill-opacity="0.5"/>
-  <rect x="122" y="72" width="22" height="56" rx="3" fill="#000000" fill-opacity="0.58"/>
-  <rect x="125" y="76" width="16" height="5" fill="#ffffff" fill-opacity="0.3"/>
-  <rect x="150" y="69" width="22" height="62" rx="3" fill="#000000" fill-opacity="0.58"/>
-  <rect x="153" y="73" width="16" height="5" fill="#ffffff" fill-opacity="0.3"/>
-  <rect x="176" y="66" width="22" height="68" rx="3" fill="#000000" fill-opacity="0.58"/>
-  <rect x="179" y="70" width="16" height="5" fill="#ffffff" fill-opacity="0.3"/>
-  <ellipse cx="204" cy="100" rx="9" ry="26" fill="#000000" fill-opacity="0.58"/>
-  <ellipse cx="206" cy="100" rx="5" ry="18" fill="#ffffff" fill-opacity="0.5"/>
+  <polygon points="20.8,67.6 76.7,67.6 87.5,78.4 87.5,121.6 76.7,132.4 20.8,132.4 10,121.6 10,78.4" fill="#000000" fill-opacity="0.58"/>
+  <rect x="20.8" y="50.3" width="4.9" height="16.2" fill="#000000" fill-opacity="0.58"/>
+  <rect x="20.8" y="133.5" width="4.9" height="16.2" fill="#000000" fill-opacity="0.58"/>
+  <rect x="31.6" y="50.3" width="4.9" height="16.2" fill="#000000" fill-opacity="0.58"/>
+  <rect x="31.6" y="133.5" width="4.9" height="16.2" fill="#000000" fill-opacity="0.58"/>
+  <rect x="42.4" y="50.3" width="4.9" height="16.2" fill="#000000" fill-opacity="0.58"/>
+  <rect x="42.4" y="133.5" width="4.9" height="16.2" fill="#000000" fill-opacity="0.58"/>
+  <rect x="53.2" y="50.3" width="4.9" height="16.2" fill="#000000" fill-opacity="0.58"/>
+  <rect x="53.2" y="133.5" width="4.9" height="16.2" fill="#000000" fill-opacity="0.58"/>
+  <rect x="64" y="50.3" width="4.9" height="16.2" fill="#000000" fill-opacity="0.58"/>
+  <rect x="64" y="133.5" width="4.9" height="16.2" fill="#000000" fill-opacity="0.58"/>
+  <rect x="20.8" y="75.2" width="55.9" height="3.2" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="20.8" y="106.5" width="55.9" height="15.1" fill="#000000" fill-opacity="0.34"/>
+  <rect x="26.2" y="95.1" width="45.1" height="3.2" fill="#ffffff" fill-opacity="0.3"/>
+  <rect x="90.5" y="83.3" width="96.5" height="33.5" fill="#000000" fill-opacity="0.58"/>
+  <rect x="90.5" y="103.2" width="96.5" height="10.8" fill="#000000" fill-opacity="0.34"/>
+  <rect x="90.5" y="86.8" width="96.5" height="2.7" fill="#ffffff" fill-opacity="0.3"/>
+  <polygon points="108.7,75.2 110.9,75.2 113.1,77.3 113.1,122.7 110.9,124.8 108.7,124.8 106.6,122.7 106.6,77.3" fill="#000000" fill-opacity="0.58"/>
+  <polygon points="128,75.2 130.2,75.2 132.4,77.3 132.4,122.7 130.2,124.8 128,124.8 125.9,122.7 125.9,77.3" fill="#000000" fill-opacity="0.58"/>
+  <polygon points="147.3,75.2 149.5,75.2 151.6,77.3 151.6,122.7 149.5,124.8 147.3,124.8 145.2,122.7 145.2,77.3" fill="#000000" fill-opacity="0.58"/>
+  <polygon points="166.6,75.2 168.8,75.2 170.9,77.3 170.9,122.7 168.8,124.8 166.6,124.8 164.5,122.7 164.5,77.3" fill="#000000" fill-opacity="0.58"/>
+  <polygon points="195.5,71.9 207.5,71.9 214,78.4 214,121.6 207.5,128.1 195.5,128.1 189,121.6 189,78.4" fill="#000000" fill-opacity="0.58"/>
+  <rect x="205.9" y="82.7" width="2.7" height="34.6" fill="#ffffff" fill-opacity="0.5"/>
 </svg>
