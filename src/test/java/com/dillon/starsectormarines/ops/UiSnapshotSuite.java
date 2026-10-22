@@ -1783,6 +1783,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 editorMarkup.styles().forEach(editorDocument::addStyleSheet);
                 // Installed with the document, as the screen does: the cards wear its classes.
                 var sheets = new SpecSheetBinder(editorDocument, SpecSheetLayer.install(editorDocument));
+                LoadoutInspection.bindPortraits(editorDocument, editorMarkup, editor.inspection(),
+                        new HeadlessArmoryPreviewRenderer(context.modRoot()).assets());
                 MarineOpsPageNav.refresh(editorMarkup, MarineOpsPageNav.Page.ARMORY, MarineOpsPageNav.ANY_SHIP,
                         List.of(CompanyNotices.Notice.FIRST_REFIT));
                 frames.add(new SnapshotArtifact("03-existing-equipment-editor.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
@@ -1824,7 +1826,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 if (editor.applyDisabled().get()) throw new AssertionError("Wounds or vacancies blocked fitting");
                 clickBarracksFlow(editorDocument, editorMarkup, "loadout-billet:0");
                 ArmorySpecSheets.bindInspection(sheets, editorMarkup, editor.inspection());
-                var target = editorMarkup.requireElement("loadout-item:1:proposed");
+                var target = editorMarkup.requireElement(LoadoutInspection.partId(0, LoadoutInspection.ARMOR));
                 var targetBox = target.box().borderBox();
                 editorDocument.pointerMoved(targetBox.x() + targetBox.width()/2, targetBox.y() + targetBox.height()/2);
                 sheets.update(); editorDocument.advance(0.3f);
@@ -2432,13 +2434,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
+            // As the screen does: the cards wear the spec sheet's classes, and each marine has a portrait.
+            SpecSheetLayer.install(document);
+            if (fireteam) LoadoutInspection.bindPortraits(document, instance, viewModel.inspection(), armoryPreview.assets());
             if (equipmentTooltip) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
                 ArmorySpecSheets.bindInspection(binder, instance, viewModel.inspection());
                 openSpecSheet(document, binder, width, height,
-                        instance.requireElement(
-                                "loadout-item:1:current"));
+                        instance.requireElement(LoadoutInspection.partId(0, LoadoutInspection.ARMOR)));
             }
             if (loadoutSpecSheet) {
                 SpecSheetBinder binder = new SpecSheetBinder(
