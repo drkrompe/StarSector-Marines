@@ -278,6 +278,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
+import com.dillon.starsectormarines.battle.evacuation.ColonyLivingField;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
 import com.dillon.starsectormarines.battle.evacuation.GroundColonies;
@@ -895,6 +896,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         colonyBreach.setEruptionHandler((sim, site, tick) ->
                 sim.swarmBores().open(sim, site.number(), site.mother(), site.x(), site.y()));
         swarmReinforcements.beginSeepage();
+    }
+    private ColonyLivingField colonyLivingField;
+    /** The colony's scattered allies and civilians, or {@code null} off the colony map or with the control. */
+    public ColonyLivingField colonyLivingField() { return colonyLivingField; }
+    /** Installs the colony's living field once at setup ({@code colony-breach-nouns.md}, Living field). */
+    public void installColonyLivingField(ColonyLivingField field) {
+        if (simTickIndex != 0 || colonyLivingField != null)
+            throw new IllegalStateException("Install the living field once at setup");
+        colonyLivingField = field;
     }
     private HeartSequence heart;
     /** The heart's battle, or {@code null} when this is not the heart. */
@@ -3714,6 +3724,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // that starts bore sourcing spawns only from bores.
         swarmBores.tick(this);
         if (colonyBreach != null) colonyBreach.tick(this);
+        // After the breach clock, so a family leaves on the tick the ground opens.
+        if (colonyLivingField != null) colonyLivingField.tick(this);
         if (heart != null) heart.tick(this);
         // After the bores and the eruptions, so a body is delivered only into a
         // bore that still lives and harvest opens on the tick a bore does.

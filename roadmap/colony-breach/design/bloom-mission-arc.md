@@ -4,7 +4,7 @@ Status: DRAFT
 
 Written: 2026-10-22
 
-Updated: 2026-10-22 — the owner's confirmed shape: three missions per outbreak (Colony Breach; the Line or the Road; Broad Front or The Burn), each a single battle, the campaign picking each variant; lifecycle hooks agreed with the bloom lifecycle owner.
+Updated: 2026-10-22 — a living field as a standing law for every mission in the arc; the owner's confirmed shape: three missions per outbreak (Colony Breach; the Line or the Road; Broad Front or The Burn), each a single battle, the campaign picking each variant; lifecycle hooks agreed with the bloom lifecycle owner.
 
 Direction for the second and third movements of the Rav Bloom arc that
 `colony-breach-nouns.md` (Campaign: blooms, Direction) names: **organising the
@@ -32,6 +32,35 @@ is the end of it: months on, the country round the old reservoir is grown over
 and the cordon has held long enough to gather a force, and the company leads
 the push into the overgrowth to collapse the mother bores at the bloom's root.
 Each movement is larger, more allied and less about the company alone.
+
+## Law: a living field
+
+Every mission in the arc is fought on a **living field** (owner, 2026-10-22: "a
+lot of these missions should feel like a more dynamic field"). The company is
+never the only thing on the map that fights: people of the world, allied and
+civilian, are scattered across it on their own business, the swarm finds and
+hunts them by the rules it already has, and fights and losses go on away from
+the company, which sees a world being overrun rather than a board laid out for
+it. The laws that keep this honest:
+
+- **Scattered, not escorted.** What is scattered is the world's, never the
+  company's: allies under their own authority (`ai-nouns.md`, Sides), civilians
+  as ambient people. Nothing scattered ends the battle, touches the roster or is
+  the mission's score; it is read on the outcome where it matters, not won.
+- **Prey by the existing rules.** The swarm treats them as it treats anyone:
+  allies are prey sources, civilians are found by sensing, and what it kills
+  feeds a bore through harvest. No rule is added so the swarm can find them.
+- **Their losses are the swarm's gain.** A field that feeds the swarm makes the
+  swarm bigger and older, so the living field is part of the mission's pressure,
+  and evidence reads it against its control.
+- **Those who run, run toward the soldiers.** People fleeing leave by way of
+  where the company is (its way in is their way out), so the company's ground
+  and theirs cross, and the packs that come for the company cross them too.
+
+Colony Breach's form is the *Living field* in `colony-breach-nouns.md`
+(homesteads, militia knots, refugee families, stragglers). The Cordon's
+refugees and redoubts and the heart's allied columns are its forms there and
+should be built to the same laws.
 
 ## What the engine already offers
 

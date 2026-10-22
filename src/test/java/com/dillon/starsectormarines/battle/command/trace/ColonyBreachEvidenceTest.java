@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.evacuation.CivilianRedoubt;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
+import com.dillon.starsectormarines.battle.evacuation.ColonyLivingField;
 import com.dillon.starsectormarines.battle.evacuation.BoreTier;
 import com.dillon.starsectormarines.battle.evacuation.ColonyPopulation;
 import com.dillon.starsectormarines.battle.evacuation.ColonyRedoubts;
@@ -453,6 +454,9 @@ class ColonyBreachEvidenceTest {
                         .put("taken", snapshot.harvest().taken()))
                 .put("evacuated", tracker.evacuatedCount())
                 .put("registered", tracker.registeredCount())
+                .put("livingField", livingField(sim))
+                .put("bodies", new JSONObject().put("lying", sim.bodyPileCap().lying())
+                        .put("peakLying", sim.bodyPileCap().peakLying()).put("capRetired", sim.bodyPileCap().retired()))
                 .put("sites", sites)
                 .put("redoubts", redoubts(snapshot))
                 .put("bores", bores)
@@ -499,6 +503,32 @@ class ColonyBreachEvidenceTest {
         return out;
     }
 
+    /** The colony's living field at the end, or null with the control. */
+    private static Object livingField(BattleSimulation sim) throws Exception {
+        ColonyLivingField field = sim.colonyLivingField();
+        if (field == null) return JSONObject.NULL;
+        ColonyLivingField.Snapshot f = field.snapshot(sim);
+        return new JSONObject()
+                .put("density", ColonyLivingField.density().name())
+                .put("homesteaders", f.homesteaders()).put("homesteadersAlive", f.homesteadersAlive())
+                .put("homesteadFamily", f.homesteadFamily()).put("homesteadFamilyAlive", f.homesteadFamilyAlive())
+                .put("knotMembers", f.knotMembers()).put("knotMembersAlive", f.knotMembersAlive())
+                .put("refugees", f.refugees()).put("refugeesDeparted", f.refugeesDeparted())
+                .put("refugeesAlive", f.refugeesAlive()).put("refugeesEscaped", f.refugeesEscaped())
+                .put("stragglers", f.stragglers()).put("stragglersAlive", f.stragglersAlive());
+    }
+
+    private static String livingFieldLine(Object living) throws Exception {
+        if (!(living instanceof JSONObject f)) return "Living field: off (control).\n\n";
+        return "Living field (" + f.getString("density") + "): homesteaders " + f.getInt("homesteadersAlive") + "/"
+                + f.getInt("homesteaders") + " alive, their families " + f.getInt("homesteadFamilyAlive") + "/"
+                + f.getInt("homesteadFamily") + "; militia knots " + f.getInt("knotMembersAlive") + "/"
+                + f.getInt("knotMembers") + "; refugees " + f.getInt("refugees") + " (" + f.getInt("refugeesDeparted")
+                + " set out, " + f.getInt("refugeesEscaped") + " got away, " + f.getInt("refugeesAlive")
+                + " still on the field); stragglers " + f.getInt("stragglersAlive") + "/" + f.getInt("stragglers")
+                + " alive.\n\n";
+    }
+
     private static String markdown(JSONObject s) throws Exception {
         StringBuilder out = new StringBuilder("# Colony Breach evidence\n\n");
         out.append("Fixture `").append(s.getString("fixture")).append("` on a ")
@@ -517,6 +547,10 @@ class ColonyBreachEvidenceTest {
                 .append(s.getJSONObject("harvest").getInt("freed")).append(" freed, ")
                 .append(s.getJSONObject("harvest").getInt("taken")).append(" taken; ")
                 .append(s.getJSONObject("harvest").optInt("recycled")).append(" of the swarm's own dead recycled.\n\n")
+                .append(livingFieldLine(s.opt("livingField")))
+                .append("Bodies lying: ").append(s.getJSONObject("bodies").getInt("lying")).append(" at the end, ")
+                .append(s.getJSONObject("bodies").getInt("peakLying")).append(" at most; ")
+                .append(s.getJSONObject("bodies").getInt("capRetired")).append(" retired by the body pile cap.\n\n")
                 .append("Landfall at tick ").append(s.getInt("landfallTick"))
                 .append(", the company's first contact at ").append(s.get("marineContact"))
                 .append(", first casualty of any side at ").append(s.getInt("firstContactTick"))
