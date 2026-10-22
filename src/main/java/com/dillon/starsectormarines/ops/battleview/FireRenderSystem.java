@@ -8,60 +8,21 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
-import java.util.Locale;
-
 /**
- * The fire field drawn (`fire-nouns.md`, Look): scorch on the ground under
- * everything that stands on it, and over the bodies a warm glow, flames from
- * the smoke-and-fire sheet sized and paced by intensity, and a few embers over
- * the hottest cells. Visits only the change-tracking tiles the fire has
- * touched that lie in view, so a battle that never burns collects nothing and
- * a burning one collects what is on screen.
- *
- * <p>Two passes because a system emits into one layer: {@link #scorch()} on
- * {@link RenderLayer#DECALS}, {@link #flames()} on {@link RenderLayer#HAZARDS}.
- * {@code -Dbattle.render.fire=false} is the control; {@code
- * -Dbattle.render.fireScorch=char|ash|ember|soot} and {@code
- * -Dbattle.render.fireFlames=bold|restrained} choose the look.
+ * The fire field drawn over the bodies (`fire-nouns.md`, Look): a warm glow,
+ * restrained flames from the smoke-and-fire sheet sized and paced by intensity,
+ * a few embers over the hottest cells, and smoke off brush and crown fires.
+ * Burnt ground under everything is {@link ScorchLayer}'s. Visits only the cells
+ * burning in view, so a battle that never burns collects nothing.
+ * {@code -Dbattle.render.fire=false} is the control for fire's whole look.
  */
 public final class FireRenderSystem {
 
     public static final String PROPERTY = "battle.render.fire";
-    public static final String SCORCH_PROPERTY = "battle.render.fireScorch";
-    public static final String FLAMES_PROPERTY = "battle.render.fireFlames";
     private static final boolean ENABLED = Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
 
-    /** How burnt ground reads. */
-    /**
-     * How burnt ground reads. CHAR, ASH, EMBER and SOOT are flat fills per cell; MOTTLE, SINGE and WEATHER are
-     * shaded per pixel over the ground by {@link ScorchLayer} (see {@link ScorchShading.Style}).
-     */
-    public enum Scorch {
-        CHAR, ASH, EMBER, SOOT, MOTTLE, SINGE, WEATHER;
-
-        /** Whether this style is drawn by the per-pixel scorch layer rather than as flat fills. */
-        public boolean layered() { return this == MOTTLE || this == SINGE || this == WEATHER; }
-
-        ScorchShading.Style shading() {
-            return switch (this) {
-                case SINGE -> ScorchShading.Style.SINGE;
-                case WEATHER -> ScorchShading.Style.WEATHER;
-                default -> ScorchShading.Style.MOTTLE;
-            };
-        }
-    }
-
-    /** How big the flames stand. */
-    public enum Flames {
-        /** Full-size tongues: a crown fire hides its tree. */
-        BOLD(1f, 1f),
-        /** Smaller, fainter tongues over a stronger glow: the tree and the ground read through the fire. */
-        RESTRAINED(0.62f, 0.75f);
-
-        final float size, alpha;
-
-        Flames(float size, float alpha) { this.size = size; this.alpha = alpha; }
-    }
+    /** Flame tongues' size and opacity against a full sheet frame, and the glow under them. */
+    private static final float FLAME_SIZE = 0.62f, FLAME_ALPHA = 0.75f, GLOW_ALPHA = 0.34f;
 
     /** Sheet columns and rows; the smoke frames are the upper two rows, the fire frames the lower two. */
     private static final int SHEET_COLS = 4, SHEET_ROWS = 4, FIRE_FIRST_ROW = 2, FIRE_FRAMES = 8, SMOKE_FRAMES = 8;
@@ -72,10 +33,6 @@ public final class FireRenderSystem {
     private static final float DETAIL_CELL_PX = 10f;
 
     private final BattleSprites sprites;
-    private static final Scorch SCORCH_STYLE = parse(Scorch.class, SCORCH_PROPERTY, Scorch.CHAR);
-    private final Scorch scorchStyle = SCORCH_STYLE;
-    private final Flames flameStyle = parse(Flames.class, FLAMES_PROPERTY, Flames.RESTRAINED);
-    private final RenderSystem scorch = RenderSystem.of(RenderLayer.DECALS, this::collectScorch);
     private final RenderSystem flames = RenderSystem.of(RenderLayer.HAZARDS, this::collectFlames);
     private float clock;
 
@@ -85,89 +42,7 @@ public final class FireRenderSystem {
 
     public static boolean enabled() { return ENABLED; }
 
-    /** The scorch style this run draws. */
-    public static Scorch scorchStyle() { return SCORCH_STYLE; }
-
-    public RenderSystem scorch() { return scorch; }
-
     public RenderSystem flames() { return flames; }
-
-    // ---- Scorch -----------------------------------------------------------
-
-    private void collectScorch(RenderContext ctx, DrawList out) {
-        FireField field = ENABLED ? ctx.sim.fireFieldIfPresent() : null;
-        if (field == null || field.revision() == 0 || scorchStyle.layered()) return;
-        BattleCamera camera = ctx.camera;
-        float cellPx = camera.cellPxSize();
-        VisibleCellRect view = camera.visibleCells(1, field.width(), field.height());
-        int w = field.width();
-        for (int ty = view.minY() / FireField.TILE; ty <= view.maxY() / FireField.TILE; ty++) {
-            for (int tx = view.minX() / FireField.TILE; tx <= view.maxX() / FireField.TILE; tx++) {
-                if (field.tileRevision(tx, ty) == 0) continue;
-                int y0 = Math.max(view.minY(), ty * FireField.TILE), y1 = Math.min(view.maxY(), ty * FireField.TILE + FireField.TILE - 1);
-                int x0 = Math.max(view.minX(), tx * FireField.TILE), x1 = Math.min(view.maxX(), tx * FireField.TILE + FireField.TILE - 1);
-                for (int y = y0; y <= y1; y++) {
-                    // Runs of one shade along a row are one rectangle.
-                    int runStart = -1, runShade = -1;
-                    for (int x = x0; x <= x1 + 1; x++) {
-                        int shade = x <= x1 ? shade(field, y * w + x) : -1;
-                        if (shade == runShade) continue;
-                        if (runShade > 0) emitScorch(out, camera, cellPx, runStart, x, y, runShade, ctx.alphaMult);
-                        runStart = x;
-                        runShade = shade;
-                    }
-                }
-            }
-        }
-        if (scorchStyle == Scorch.EMBER && cellPx >= DETAIL_CELL_PX) collectEmberSpeckle(ctx, out, field, view);
-    }
-
-    /** 0 for unscorched; 1..4 darkening as a cell burns and once it is burnt, varied by a seeded hash. */
-    private static int shade(FireField field, int idx) {
-        byte s = field.stateAt(idx);
-        if (s == FireField.UNBURNT) return 0;
-        if (s == FireField.BURNING) return 1 + Math.min(2, (255 - field.intensityAt(idx)) / 90);
-        return 4;
-    }
-
-    private void emitScorch(DrawList out, BattleCamera camera, float cellPx, int x0, int x1, int y, int shade, float alpha) {
-        float a;
-        float r, g, b;
-        switch (scorchStyle) {
-            case ASH -> { r = 0.30f; g = 0.29f; b = 0.27f; a = 0.18f + 0.13f * shade; }
-            case SOOT -> { r = 0.06f; g = 0.05f; b = 0.04f; a = 0.12f + 0.10f * shade; }
-            default -> { r = 0.07f; g = 0.06f; b = 0.05f; a = 0.16f + 0.15f * shade; }
-        }
-        float sx0 = camera.cellToScreenX(x0), sx1 = camera.cellToScreenX(x1);
-        float sy0 = camera.cellToScreenY(y), sy1 = camera.cellToScreenY(y + 1);
-        out.addSolidRect(RenderLayer.DECALS, sx0, sy0, sx1, sy1, r, g, b, a * alpha);
-    }
-
-    /** Young burnt ground still glows: a speckle of dull embers for the first half-minute. */
-    private void collectEmberSpeckle(RenderContext ctx, DrawList out, FireField field, VisibleCellRect view) {
-        BattleCamera camera = ctx.camera;
-        float cellPx = camera.cellPxSize();
-        int w = field.width();
-        for (int ty = view.minY() / FireField.TILE; ty <= view.maxY() / FireField.TILE; ty++) {
-            for (int tx = view.minX() / FireField.TILE; tx <= view.maxX() / FireField.TILE; tx++) {
-                if (field.tileRevision(tx, ty) == 0) continue;
-                for (int y = Math.max(view.minY(), ty * FireField.TILE); y <= Math.min(view.maxY(), ty * FireField.TILE + FireField.TILE - 1); y++) {
-                    for (int x = Math.max(view.minX(), tx * FireField.TILE); x <= Math.min(view.maxX(), tx * FireField.TILE + FireField.TILE - 1); x++) {
-                        int idx = y * w + x;
-                        int age = field.burntAge(idx);
-                        if (age < 0 || age > 900) continue;
-                        float life = 1f - age / 900f;
-                        int h = hash(idx, 0xE3B);
-                        float px = x + 0.2f + 0.6f * ((h & 0xFF) / 255f), py = y + 0.2f + 0.6f * (((h >>> 8) & 0xFF) / 255f);
-                        float s = cellPx * 0.14f;
-                        float cx = camera.cellToScreenX(px), cy = camera.cellToScreenY(py);
-                        out.addSolidRect(RenderLayer.DECALS, cx - s, cy - s, cx + s, cy + s,
-                                0.85f, 0.30f, 0.08f, 0.55f * life * ctx.alphaMult);
-                    }
-                }
-            }
-        }
-    }
 
     // ---- Flames -----------------------------------------------------------
 
@@ -194,7 +69,7 @@ public final class FireRenderSystem {
             float heat = field.intensityAt(idx) / 255f;
             out.addSolidRect(RenderLayer.HAZARDS, camera.cellToScreenX(x), camera.cellToScreenY(y),
                     camera.cellToScreenX(x + 1f), camera.cellToScreenY(y + 1f),
-                    1f, 0.42f, 0.10f, (flameStyle == Flames.BOLD ? 0.22f : 0.34f) * heat * ctx.alphaMult);
+                    1f, 0.42f, 0.10f, GLOW_ALPHA * heat * ctx.alphaMult);
         }
         if (sheet == null || framePxW <= 0) return;
         for (int i = 0, n = field.burningCount(); i < n; i++) {
@@ -212,12 +87,12 @@ public final class FireRenderSystem {
                 float rate = FLAME_FPS * (0.8f + 0.4f * (((h >>> 16) & 0xFF) / 255f));
                 int frame = (int) (clock * rate + (h >>> 24)) % FIRE_FRAMES;
                 // Flame frames run big to small: start each tongue's loop at its fullest and let heat pick the size.
-                float size = cellPx * (crown ? 1.6f : 1.05f) * (0.55f + 0.6f * heat) * flameStyle.size;
+                float size = cellPx * (crown ? 1.6f : 1.05f) * (0.55f + 0.6f * heat) * FLAME_SIZE;
                 float cx = camera.cellToScreenX(x + 0.5f + jx), cy = camera.cellToScreenY(y + 0.5f + jy) + size * 0.18f;
                 out.addSheetQuad(RenderLayer.HAZARDS, sheet,
                         (frame % SHEET_COLS) * framePxW, (FIRE_FIRST_ROW + frame / SHEET_COLS) * framePxH,
                         framePxW, framePxH, cx, cy, size, size,
-                        1f, 0.85f + 0.15f * heat, 0.75f + 0.25f * heat, (0.55f + 0.45f * heat) * flameStyle.alpha * ctx.alphaMult);
+                        1f, 0.85f + 0.15f * heat, 0.75f + 0.25f * heat, (0.55f + 0.45f * heat) * FLAME_ALPHA * ctx.alphaMult);
             }
             if (detail && intensity > 200) {
                 int h = hash(idx, 0xE1B);
@@ -288,15 +163,5 @@ public final class FireRenderSystem {
         h ^= h >>> 12;
         h *= 0x297A2D39;
         return h ^ (h >>> 15);
-    }
-
-    private static <E extends Enum<E>> E parse(Class<E> type, String property, E fallback) {
-        String v = System.getProperty(property);
-        if (v == null) return fallback;
-        try {
-            return Enum.valueOf(type, v.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException e) {
-            return fallback;
-        }
     }
 }

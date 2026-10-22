@@ -195,19 +195,22 @@ does not set Conquest alight.
 The fire field drawn (`FireRenderSystem`), from what the field already holds;
 nothing is drawn for a battle that never lit anything.
 
-- **Scorch** lies on the ground under everything that stands on it. Burnt
-  ground is not a fill: it darkens and browns the ground's own albedo, so the
-  texture always reads, and lays what lies on top of it over that: charcoal,
-  straw-brown singe, grey-white ash, a creep's charred crust, dying embers. It
-  varies at three scales of noise and with the fuel that burnt (grass a light
-  singe and sprinkled ash, hedges and the ground under trees darker with ash
-  piles, creep its own crust, pavement only soot smudges), and its outline
-  wanders through cells with a singed band just past it (`ScorchShading`, drawn
-  by `ScorchLayer` inside the ground's colour target). Three looks are before
-  the owner: mottled char, singe and ash, and fresh char that weathers to grey;
-  until one is picked the game draws the older flat per-cell fill.
+- **Scorch** lies on the ground under everything that stands on it, and
+  reads as a field burnt days ago: singed straw-brown, black only where heavy
+  fuel stood, pale ash drifting over it. It is not a fill: it darkens and
+  browns the ground's own albedo, so the texture always reads, and lays straw,
+  charcoal, ash or a creep's cracked crust over that. It varies at three
+  scales of noise and with the fuel that burnt (grass a light singe, sprinkled
+  ash and a few surviving tufts; hedges and the ground under trees darker,
+  with ash piles; creep its own crust; pavement only soot smudges), and its
+  outline wanders through cells with a singed band just past it. One shader
+  draws it (`ScorchShader`, a multiply then an overlay, inside the ground's
+  colour target with the creep) and its CPU model (`ScorchShading`) draws
+  review frames; `shaderEvidence` holds the two to the same pixels.
 - **Glow** is a warm wash over each burning cell, under its flames.
-- **Flames** are tongues from the existing smoke-and-fire sheet, two to a
+- **Flames** are restrained tongues from the existing smoke-and-fire sheet,
+  smaller than a sheet frame and a little transparent so the ground and the
+  tree read through the fire, two to a
   burning cell and three to a crown, each on its own seeded phase and rate,
   sized by intensity, so a front reads as a line of fire at play zoom and a
   crown fire stands taller than a grass fire. Zoomed far out a cell keeps one
@@ -225,10 +228,9 @@ nothing is drawn for a battle that never lit anything.
   (`-Dbattle.render.fire=false`), on the green colony with a front burnt into
   its groves: there its two layers cost about 0.3 ms of collection and drain
   at a lane framing and about 0.65 ms at the whole map, with nothing else
-  moving. The look choices (`-Dbattle.render.fireFlames=bold|restrained`,
-  `-Dbattle.render.fireScorch=char|ash|ember|soot`) are the owner's, judged
-  on real ground in the `fire-colony` snapshot suite (the canonical colony on a
-  verdant world, burnt from its west edge).
+  moving; the scorch layer adds about 0.05 ms of drain at the whole map. The
+  `fire-colony` snapshot suite shows the look on real ground: the canonical
+  colony on a verdant world, burnt from its west edge.
 
 ## Evidence
 
