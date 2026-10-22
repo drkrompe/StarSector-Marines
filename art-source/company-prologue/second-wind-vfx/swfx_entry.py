@@ -335,3 +335,278 @@ def trail(name, pts, coll, width_m=1500.0, glow=1.0, sparks=0, seed=0, ion=True,
             p1 = p0 - t * ln
             _tube(f'{name} spark {k}', [p1, p0], [ln * .008, ln * .015], [1.0, .2], coll, wake, segments=6)
     return head
+
+
+# --- plasma shaped by the hull -------------------------------------------------------------------
+# Owner on S12 lit span 3 (2026-10-22): "Reads like hard shapes / arrowhead. The burn up doesn't take
+# into account the shape of the ship." So the entry is built from the hull's own mesh: an envelope (a
+# voxel-remeshed skin over the hull, as KSP2 gives every part), a sheath on it lit by how squarely each
+# point meets the airflow, a shock layer standing off the windward side, and flames peeling off the
+# hull's silhouette as the air sees it (Lindner's edge extrusion) into one wake. See asharu-effects.md,
+# "Atmospheric entry".
+
+def hull_soup(instancer, skip=('SWFX',)):
+    """The world-space polygons of everything a collection-instance empty draws: (verts, faces).
+    Hidden objects and kit objects are left out."""
+    for vl in bpy.context.scene.view_layers:
+        vl.update()
+        verts, faces = _soup(vl.depsgraph, instancer, skip)
+        if verts:
+            return verts, faces
+    return [], []
+
+
+def _soup(dg, instancer, skip):
+    verts, faces = [], []
+    for inst in dg.object_instances:
+        if not inst.is_instance or inst.parent is None or inst.parent.original != instancer:
+            continue
+        ob = inst.object
+        if ob.type != 'MESH' or ob.original.hide_render or any(ob.name.startswith(s) for s in skip):
+            continue
+        me = ob.to_mesh()
+        mw, o = inst.matrix_world.copy(), len(verts)
+        verts += [mw @ v.co for v in me.vertices]
+        faces += [tuple(o + i for i in p.vertices) for p in me.polygons]
+        ob.to_mesh_clear()
+    return verts, faces
+
+
+def _skin(name, verts, faces, voxel_m):
+    """The envelope: verts/faces joined and voxel-remeshed into one clean skin (greebles and
+    concavities filled), keeping the outer shells: a small piece wholly inside the largest one's
+    bounds is an inner wall the remesher left, and is dropped. Returns a bmesh with normals."""
+    src = bpy.data.meshes.new(name + ' src')
+    src.from_pydata([tuple(v) for v in verts], [], faces)
+    tmp = bpy.data.objects.new(name + ' src', src)
+    bpy.context.scene.collection.objects.link(tmp)
+    mod = tmp.modifiers.new('remesh', 'REMESH')
+    mod.mode, mod.voxel_size, mod.adaptivity = 'VOXEL', voxel_m, 0.0
+    dg = bpy.context.evaluated_depsgraph_get()
+    ev = tmp.evaluated_get(dg)
+    bm = bmesh.new()
+    bm.from_mesh(ev.to_mesh())
+    ev.to_mesh_clear()
+    bpy.data.objects.remove(tmp)
+    bpy.data.meshes.remove(src)
+    seen, pieces = set(), []
+    for v in bm.verts:
+        if v in seen:
+            continue
+        stack, piece = [v], []
+        seen.add(v)
+        while stack:
+            a = stack.pop()
+            piece.append(a)
+            for e in a.link_edges:
+                b = e.other_vert(a)
+                if b not in seen:
+                    seen.add(b)
+                    stack.append(b)
+        pieces.append(piece)
+    if len(pieces) > 1:
+        def box(p):
+            xs, ys, zs = [v.co.x for v in p], [v.co.y for v in p], [v.co.z for v in p]
+            return (min(xs), min(ys), min(zs)), (max(xs), max(ys), max(zs))
+        big = max(pieces, key=len)
+        lo, hi = box(big)
+        drop = []
+        for p in pieces:
+            if p is big:
+                continue
+            a, b = box(p)
+            if all(lo[i] <= a[i] and b[i] <= hi[i] for i in range(3)) and len(p) < len(big) * .2:
+                drop += p
+        if drop:
+            bmesh.ops.delete(bm, geom=drop, context='VERTS')
+    bm.normal_update()
+    return bm
+
+
+def _shell(name, skin, wind, length, coll, mat, base, windward, power, rough, seed):
+    """A shell offset from the skin along its normals: base everywhere, plus windward times the point's
+    windward share (to that power), roughened by noise; all in fractions of the hull's length. Carries
+    entry_wind (that share, 0 to 1) for its material."""
+    from mathutils import noise
+    bm = skin.copy()
+    into = -Vector(wind)
+    wl = bm.verts.layers.float.new('entry_wind')
+    off = Vector((seed * 13.1, seed * 7.7, seed * 3.3))
+    moves = []
+    for v in bm.verts:
+        n = v.normal
+        f = max(0.0, n.dot(into))
+        v[wl] = f
+        nz = noise.noise(v.co / (length * .09) + off)
+        moves.append((v, n * length * (base + windward * f ** power) * (1 + rough * nz)))
+    for v, d in moves:
+        v.co += d
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    for p in me.polygons:
+        p.use_smooth = True
+    me.materials.append(mat)
+    o = bpy.data.objects.new(name, me)
+    coll.objects.link(o)
+    o.visible_shadow = False
+    return o
+
+
+def _sheath_material(name, strength, cell_m):
+    """The sheath on the hull: colour and glow from entry_wind (dull red at the flanks through orange
+    to white on the faces square to the airflow), transparent on the lee, mottled by noise."""
+    name = '%s %.2f %.1f' % (name, strength, cell_m)
+    mat = bpy.data.materials.get(name)
+    if mat:
+        return mat
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    nt.nodes.remove(nt.nodes['Principled BSDF'])
+    at = nt.nodes.new('ShaderNodeAttribute')
+    at.attribute_name = 'entry_wind'
+    w = at.outputs['Fac']
+    col = _ramp(nt, [(0, (.55, .1, .04)), (.25, PLASMA), (.55, (1.0, .78, .42)), (.8, (1.0, .94, .84)),
+                     (1, (1, 1, 1))], w)
+    tc = nt.nodes.new('ShaderNodeTexCoord')
+    sc = nt.nodes.new('ShaderNodeVectorMath')
+    sc.operation = 'SCALE'
+    sc.inputs['Scale'].default_value = 1.0 / cell_m
+    nt.links.new(tc.outputs['Object'], sc.inputs[0])
+    nz = nt.nodes.new('ShaderNodeTexNoise')
+    nz.inputs['Detail'].default_value = 5.0
+    nt.links.new(sc.outputs['Vector'], nz.inputs['Vector'])
+    mottle = _math(nt, 'ADD', .45, _math(nt, 'MULTIPLY', nz.outputs['Fac'], 1.1))
+    op = _ramp(nt, [(0, (0, 0, 0)), (.06, (.25, .25, .25)), (.3, (.85, .85, .85)), (1, (1, 1, 1))], w)
+    fac = _math(nt, 'MINIMUM', _math(nt, 'MULTIPLY', op.outputs['Color'], mottle), 1.0)
+    em = nt.nodes.new('ShaderNodeEmission')
+    nt.links.new(col.outputs['Color'], em.inputs['Color'])
+    nt.links.new(_math(nt, 'MULTIPLY', _math(nt, 'MULTIPLY', _math(nt, 'POWER', w, 1.4), mottle), strength),
+                 em.inputs['Strength'])
+    clear = nt.nodes.new('ShaderNodeBsdfTransparent')
+    mix = nt.nodes.new('ShaderNodeMixShader')
+    nt.links.new(fac, mix.inputs['Fac'])
+    nt.links.new(clear.outputs[0], mix.inputs[1])
+    nt.links.new(em.outputs[0], mix.inputs[2])
+    nt.links.new(mix.outputs[0], nt.nodes['Material Output'].inputs['Surface'])
+    return mat
+
+
+def _shock_material(name, strength):
+    """The shock layer standing off the windward side: faint where it faces the camera, brightest at
+    its rim, warm at its heart and faintly magenta at its edge; nothing on the lee."""
+    name = '%s %.2f' % (name, strength)
+    mat = bpy.data.materials.get(name)
+    if mat:
+        return mat
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    nt.nodes.remove(nt.nodes['Principled BSDF'])
+    at = nt.nodes.new('ShaderNodeAttribute')
+    at.attribute_name = 'entry_wind'
+    w = at.outputs['Fac']
+    lw = nt.nodes.new('ShaderNodeLayerWeight')
+    lw.inputs['Blend'].default_value = .5
+    rim = _math(nt, 'SUBTRACT', 1.0, lw.outputs['Facing'])
+    col = _ramp(nt, [(0, (1.0, .86, .62)), (.55, (1.0, .6, .3)), (.85, (.95, .45, .7)), (1, (.8, .4, .85))], rim)
+    wf = _math(nt, 'POWER', w, 1.6)
+    em = nt.nodes.new('ShaderNodeEmission')
+    nt.links.new(col.outputs['Color'], em.inputs['Color'])
+    glow = _math(nt, 'MULTIPLY', wf, _math(nt, 'ADD', .25, _math(nt, 'POWER', rim, 2.0)))
+    nt.links.new(_math(nt, 'MULTIPLY', glow, strength), em.inputs['Strength'])
+    fac = _math(nt, 'MINIMUM', _math(nt, 'MULTIPLY', wf, _math(nt, 'ADD', .12, _math(nt, 'POWER', rim, 1.5))), 1.0)
+    clear = nt.nodes.new('ShaderNodeBsdfTransparent')
+    mix = nt.nodes.new('ShaderNodeMixShader')
+    nt.links.new(fac, mix.inputs['Fac'])
+    nt.links.new(clear.outputs[0], mix.inputs[1])
+    nt.links.new(em.outputs[0], mix.inputs[2])
+    nt.links.new(mix.outputs[0], nt.nodes['Material Output'].inputs['Surface'])
+    return mat
+
+
+def sheath(name, verts, faces, coll, wind, length, glow=1.0, streamers=90, seed=0, grow=1.0, voxel=None,
+           sparks=10, wake=True):
+    """A hull burning into the air, its plasma shaped by the hull (verts/faces: its world-space mesh,
+    hull_soup). wind: the direction the plasma streams off it (the airflow over it); length: its length
+    in metres; grow: 0 to 1, how far its flames have grown (they lengthen as it goes deeper). Builds the
+    envelope, the windward sheath, the shock layer, streamers peeling off its silhouette as the air
+    sees it and converging into one wake behind it, and a few sparks. Returns the hull's centre."""
+    import random
+    from mathutils import noise
+    rnd = random.Random(seed)
+    W = Vector(wind).normalized()
+    skin = _skin(name + ' skin', verts, faces, voxel or length / 70.0)
+    if not skin.verts:
+        skin.free()
+        return None
+    c = sum((v.co for v in skin.verts), Vector()) / len(skin.verts)
+    _shell(name + ' sheath', skin, W, length, coll,
+           _sheath_material(f'{PREFIX} sheath', 18.0 * glow, length * .035), .006, .035, 1.2, .6, seed)
+    _shell(name + ' shock', skin, W, length, coll, _shock_material(f'{PREFIX} shock layer', 6.0 * glow),
+           .016, .13, 1.6, .35, seed + 1)
+    into = -W
+    rim = [v for v in skin.verts if abs(v.normal.dot(into)) < .22]          # the silhouette, as the air sees it
+    rim = rim or list(skin.verts)
+    wake_mat = _wake_material(f'{PREFIX} wake', 9.0 * glow, max(length * .045, .5))
+    for k in range(min(streamers, len(rim))):
+        v = rnd.choice(rim)
+        p0 = v.co + v.normal * length * .012
+        ln = length * rnd.uniform(.45, 2.2) * (.25 + .75 * grow)
+        rel = p0 - c
+        perp = rel - W * rel.dot(W)
+        r0 = length * rnd.uniform(.004, .012)
+        pts, us, radii = [], [], []
+        for j in range(16):
+            s = 1 - j / 15                                   # tail first: s 1 at the tail, 0 at the edge
+            wob = noise.noise_vector(p0 / (length * .25) + Vector((s * 2.2, k * .37, 0))) * length * .07 * s
+            pts.append(p0 + W * ln * s - perp * .55 * (1 - math.exp(-3 * s)) + wob)
+            us.append(s)
+            radii.append(r0 * (1 + 4.5 * s))
+        _ragged_tube(f'{name} flame {k}', pts, radii, us, coll, wake_mat, rnd, segments=8)
+    if wake:            # the merged wake behind it, from its lee
+        ext = max((v.co - c).dot(W) for v in skin.verts)
+        span = length * (.6 + 2.6 * grow)
+        pts = [c + W * (ext + span * (1 - i / 47)) for i in range(48)]
+        us = [1 - i / 47 for i in range(48)]
+        _ragged_tube(f'{name} wake', pts, [length * (.12 + .5 * u ** .7) for u in us], us, coll,
+                     _wake_material(f'{PREFIX} wake', 5.0 * glow, max(length * .12, .5)), rnd)
+    for k in range(sparks):
+        v = rnd.choice(rim)
+        p0 = v.co + v.normal * length * rnd.uniform(.02, .12)
+        ln = length * rnd.uniform(.05, .25)
+        _tube(f'{name} spark {k}', [p0 + W * ln, p0], [ln * .01, ln * .02], [1.0, .2], coll, wake_mat, segments=6)
+    skin.free()
+    return c
+
+
+def rock(name, centre, size, seed, coll, turn=0.0):
+    """A charred fragment for the wreckfall: a lumpy, flattened rock of about size metres, dark. Returns
+    its (verts, faces) in world space, for its sheath."""
+    import random
+    from mathutils import Euler, noise
+    rnd = random.Random(seed)
+    bm = bmesh.new()
+    bmesh.ops.create_icosphere(bm, subdivisions=2, radius=size * .5)
+    sq = Vector((rnd.uniform(.6, 1.0), rnd.uniform(.35, .8), rnd.uniform(.25, .6)))
+    rot = Vector((rnd.uniform(0, 6.3), rnd.uniform(0, 6.3), rnd.uniform(0, 6.3)))
+    R = Euler(rot + Vector((turn, turn * .6, 0))).to_matrix()
+    for v in bm.verts:
+        d = v.co.normalized()
+        v.co = R @ Vector((v.co.x * sq.x, v.co.y * sq.y, v.co.z * sq.z)) * (1 + .45 * noise.noise(d * 1.7 + rot)) \
+            + Vector(centre)
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    mat = bpy.data.materials.get(f'{PREFIX} char')
+    if mat is None:
+        mat = bpy.data.materials.new(f'{PREFIX} char')
+        mat.use_nodes = True
+        b = mat.node_tree.nodes['Principled BSDF']
+        b.inputs['Base Color'].default_value = (.03, .025, .022, 1)
+        b.inputs['Roughness'].default_value = .9
+    me.materials.append(mat)
+    o = bpy.data.objects.new(name, me)
+    coll.objects.link(o)
+    return [v.co.copy() for v in me.vertices], [tuple(p.vertices) for p in me.polygons]

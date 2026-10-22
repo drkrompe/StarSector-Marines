@@ -185,6 +185,78 @@ their place. The opening flash is hot yellow-white running to the blast's colour
 the edge, for one to three frames. The old looks stay behind a switch as controls
 (`blasts='orb'`, `STYLE='orb'`, `style='orb'`).
 
+## Atmospheric entry: plasma shaped by the hull
+
+S12 brings the Colossus and Morrow down into Asharu's air, with the battle's lost ships falling
+around them in pieces. Owner on lit span 3 (2026-10-22): "still pretty far off. Reads like hard
+shapes / arrowhead. The burn up doesn't take into account the shape of the ship." A cone or tube
+behind a hull reads as engine exhaust, or as an arrowhead. Entry plasma is the hull's own
+silhouette lit on its windward side.
+
+**What sells it.**
+- **Shape.** The hottest, whitest light sits on the faces turned into the airflow and in the shock
+  layer just ahead of them. The hull reads dark against it. The wake is a consequence of that
+  glow, not a cone fixed to the tail.
+- **Wake.** It peels off the silhouette edges: corners, modules, pods, fins. Each edge sheds its own
+  thin streamer, and the streamers merge downstream into one wake.
+- **Colour.** White, then yellow, orange and deep red, ending in dull embers and grey ablation smoke,
+  with a faint magenta at the shock's edge. Temperature follows distance from the windward face
+  and from the hull, never a flat tint.
+- **Turbulence.** Streamers leave the edge thin and laminar and tear up with distance; they never
+  have constant width.
+- **Breakup.** A bright main body sheds chunks, each with its own short tail. Small pieces burn
+  briefly; older ones fall behind and redden.
+
+**Sources.**
+- Leah Lindner, *Atmospheric Entry*, a real-time re-entry shader:
+  <https://leah-lindner.com/blog/atmospheric-entry/>. It extrudes the mesh's edges by their angle to
+  the velocity, so flames peel off the silhouette, and projects the front faces forward as the air
+  cushion. KSP's Firefly mod is built on it: <https://spacedock.info/mod/3813/Firefly>.
+- KSP2 modding wiki, *Configuring the reentry effects*:
+  <https://modding.kerbal.wiki/Configuring_the_reentry_effects>. Each part carries an envelope, a
+  voxel-remeshed and smoothed copy slightly larger than the part, and the flame shader runs on it.
+- Blender Artists, *Spacecraft re-entry effects*:
+  <https://blenderartists.org/t/spacecraft-re-entry-effects/623771>. Streaked halo particles from an
+  emitter shaped like the craft.
+- Mantaflow fire on a moving meteor, KHAOS:
+  <https://www.blendernation.com/2023/10/14/meteor-in-blender-3d-pro-blender-tutorial-ft-khaos-add-on/>.
+  This is the volume-sim route.
+- Reference photos (NASA, public domain):
+  - STS-135 Atlantis re-entry seen from the ISS:
+    <https://commons.wikimedia.org/wiki/File:STS-135_Space_Shuttle_Atlantis_reentry_seen_from_the_ISS.jpg>;
+  - Progress M-10M plasma trail from the ISS:
+    <https://commons.wikimedia.org/wiki/File:Progress_M-10M_reentry_plasma_trail.jpg>;
+  - the plasma from the Shuttle's flight deck (STS-42):
+    <https://commons.wikimedia.org/wiki/File:Space_Shuttle_reentry_aboard_flight_deck.jpg>.
+- ESA, ATV-1 *Jules Verne* breakup, filmed from aircraft:
+  <https://www.esa.int/ESA_Multimedia/Videos/2015/02/ATV-1_reentry>. The breakup reference for the
+  wreckfall.
+
+No published breakdown of a film's re-entry (*Gravity*, *Interstellar*) gave its method.
+
+**The technique: an envelope plus edge streamers, built from the hull's own mesh**
+(`swfx_entry.sheath`). It is the KSP2 envelope and Lindner's edge extrusion, done offline:
+
+1. **Envelope.** The hull's world-space meshes are voxel-remeshed into one clean skin, which fills
+   the greebles and concavities.
+2. **Sheath.** A shell offset a little from the skin, and further on the windward side. Its emission
+   and opacity follow each point's windward share, max(0, n · −airflow), so it is white on the
+   belly and leading edges, orange at the flanks, and nothing on the lee side.
+3. **Shock layer.** A fainter outer shell that stands off only the windward side, brightest at its
+   rim, with a magenta edge.
+4. **Edge streamers.** Seeded on the envelope where the surface turns edge-on to the airflow (the
+   hull's silhouette as the air sees it). Each sweeps downstream, wanders, tears up with noise and
+   converges toward the hull's lee into one wake. They cool to smoke on the wake ramp.
+5. **Debris.** Each piece is a rough charred rock carrying the same windward sheath and a few
+   streamers. Two chunks break up in the shot.
+
+**Why this technique.** It is shaped by the hull, so the Colossus's modules and Morrow's outline
+read in the glow. It is deterministic geometry built per frame, so a span renders frame by frame
+in the effects layer like the rest of the kit. It costs surface shading, not a fluid sim, which
+keeps it inside the light lane (half size, 16 samples). A Mantaflow volume would need a baked sim
+per hull, per attitude, cached across the span, and would be noisy at 16 samples. It stays the
+fallback for the far wake if the surfaces read thin.
+
 ## Scale
 
 The game's ranges (Vulcan 250, light MG 300, Mark IX 900, Harpoon 2500, Pilum 4000) are in
