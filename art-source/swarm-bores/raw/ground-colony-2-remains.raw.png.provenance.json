@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a163d9-464f-74f1-b3d9-4b4578621fdf",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a163d9-464f-74f1-b3d9-4b4578621fdf\\exec-bac5f526-9da6-4d09-bda0-27ac0d6b92ba.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\swarm-bores\\raw\\ground-colony-2-remains.raw.png",
+    "sha256": "69e60eaf2b4ddfbfcc41bc81d3350d5bd5eec46a28c3721c7b3ce95236a480f3",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "build\\swarm-bores\\prompts\\ground-colony-remains.prompt.txt",
+  "promptSha256": "f3585813d3c68f816e82afde1d3cde470c9c6b6966bb713120be09401dc16f89",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and lighting guide and edit target for this damage state: exact silhouette, placement, scale and light-and-shadow authority, including every torn socket, gash, burst sac and snapped spine it shows; reskin it, never move, reshape, re-light or symmetrise it\nImage 2: Identity reference: the same structure undamaged, as already painted; keep its painting, colours and rendering, never its undamaged shape where the guide shows damage\nImage 3: Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape\n\nUse case: sketch-to-render. Asset: a GROUND COLONY of the alien swarm for a top-down tactical game: a static growth that roots on the swarm's creep and drives bone spines up out of the ground beneath whatever stands near it, to kill infantry and break the guns behind walls. It is LOW and ground-hugging, pressed flat into the creep, never tall: no domes, no sacs, no bladders, no vent or pore aimed at the sky (that is a different growth, the spore colony). It reads as armoured, spined and patient, like something half-buried waiting to strike. Its body is a knotted, plated low core with five or six thick muscular sinew arms sprawled out flat across the ground like a starfish, each arm studded along its length with a row of short bone spines raked back towards the core; a single amber eye glows in the plated core and faint amber at the arm tips. Image 1 is the authoritative geometry AND lighting guide and the edit target: a code-built relief, lit by the game's sun from the upper left. Reskin it into a finished painted sprite, preserving its outline, placement, scale, transparent space and its light and shadow exactly: faces turned up and left are lit, faces turned down and right are in shade, and every shadow one part casts on another stays where the guide puts it. Do not re-light it, do not even it out, do not make it symmetrical. Read the guide's flat colours as materials: grey-violet = the swarm's chitin plates: smooth, curved, overlapping carapace like a beetle's wing-case or a crab's shell, glossy and organic with soft rounded edges and fine growth lines, never faceted, never stone, never masonry blocks; pale ivory = bone (tusks, spines); dark grey-green tubes = sinew roots; brown = churned, thrown-up soil; pale grey-tan blocks = broken slabs of human colony paving, real concrete pavers with chipped edges; dusky mauve = wet dark flesh; orange-amber spots = glowing amber nodes, painted as light coming from inside, not as flat dots. Straight overhead orthographic zenith camera looking straight down, no perspective. Genuine transparent background outside the silhouette, including the gaps between roots, slabs and plates; no ground plane, no cast shadow on the ground (that is drawn separately), no border, no text, no labels, no watermark. Crisp hand-painted 2D strategy-game sprite matching the existing swarm creature in the material reference: dark charcoal-purple segmented chitin with worn bone-grey edges, organic gunmetal-green sinew and under-plates, small warm amber glowing nodes. It is one designed bio-weapon organism (the same chitin as the swarm runner, grown for another job), never a plant, never a machine, never a different animal. It will be shown only about 60 to 160 pixels wide in play, so keep bold readable shapes, clear dark separations and strong value contrast rather than fine noise. Add material, surface detail, scratches, plate seams and wet highlights; never change the silhouette, the placement, the lighting direction or the transparent space.\n\nDAMAGE STATE: REMAINS. This is what is left on the ground after the structure in the identity reference has been destroyed: the same structure, dead. Keep its layout and identity (the same places for its plates, tusks, sacs, slabs and roots, the same sun from the upper left), but it is a corpse now: the carapace has gone dull, dry and ashen, greyer and paler than the living painting, with the gloss gone; plates have slumped flat and some are torn away, leaving dried sinew sockets; tusks and spines are snapped to stumps; roots are withered and shrivelled. For a bore: the shaft has caved in, its throat fallen in on itself and choked with churned soil and rubble where the guide shows brown mounds, so it reads as a collapsed, filled-in hole, not an open pit. For a spore colony: every sac has burst and deflated into a wrinkled, torn, empty skin around a dried crater. For a ground colony: its sinew arms have shrivelled flat and dry against the ground, their spines snapped to stumps, its core plates slumped and split, the amber eye gone dark. No amber glow anywhere, no wet highlights: everything is drained, dry and dead, like a husk. It must read at a glance as the dead remains of that structure.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\swarm-ground-colony-2-remains-guide.png",
+      "sha256": "ed0ab1cd585eb4bd6874f8c22044b785446fab097a3b6e25490cb0df2bcd79e9",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry and lighting guide and edit target for this damage state: exact silhouette, placement, scale and light-and-shadow authority, including every torn socket, gash, burst sac and snapped spine it shows; reskin it, never move, reshape, re-light or symmetrise it"
+    },
+    {
+      "path": "art-source\\swarm-bores\\raw\\ground-colony-2.raw.png",
+      "sha256": "c628c4509d14436022aa9ceb56fb20e856875fe6069e98daf8f77ee11f7cb132",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Identity reference: the same structure undamaged, as already painted; keep its painting, colours and rendering, never its undamaged shape where the guide shows damage"
+    },
+    {
+      "path": "art-source\\alien-modular-topdown\\sources\\alien-body-source.png",
+      "sha256": "6c1cd9a54e6b39cb668a5eb8ece0147af382571ad7fe3db1e0e6af4e45755c5c",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only (the existing swarm runner's body); match its chitin, colours and rendering, never its shape"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render one dry, dead husk, preserving the guide’s geometry and lighting.\n"
+  ],
+  "usage": {
+    "input_tokens": 91283,
+    "cached_input_tokens": 59008,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 985,
+    "reasoning_output_tokens": 28
+  },
+  "elapsedSeconds": 102.4
+}

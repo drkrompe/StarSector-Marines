@@ -101,6 +101,25 @@ class GeneratedRoadsTest {
                 "roads holding no city street are swept as roads");
     }
 
+    @Test void aShortStreetMetAtOneEndIsADeadEndTurnedOnlyOverPavedGround() {
+        boolean[][] road = new boolean[48][32];
+        fill(road, 2, 10, 45, 12);   // a street
+        fill(road, 20, 13, 23, 20);  // a short spur off it into a yard
+        fill(road, 34, 24, 37, 29);  // a short gap between buildings, touching nothing
+        var style = new GeneratedRoads.StreetStyle(true, false, false);
+        var yard = GeneratedRoads.streets(road, road, new boolean[48][32], 3, 9, style).routes();
+        var straight = yard.stream().filter(r -> r.points().size() == 2).toList();
+        assertEquals(2, straight.size(), "the street and its spur, not the gap: " + yard);
+        assertTrue(straight.stream().anyMatch(r -> r.points().get(0).x() == 21.5 && r.points().get(1).y() == 20.5),
+                "the spur runs to where its street ends: " + straight);
+        assertEquals(0, yard.size() - straight.size(), "a yard beside the spur's mouth takes no kerb radius");
+        boolean[][] kerbs = new boolean[48][32];
+        fill(kerbs, 0, 0, 47, 31);
+        var paved = GeneratedRoads.streets(road, road, kerbs, 3, 9, style).routes();
+        assertEquals(2, paved.stream().filter(r -> r.points().size() == 5).count(),
+                "footway beside the mouth turns both corners: " + paved);
+    }
+
     @Test void streetsEndSquareAndMakeRoomForASidewalk() {
         boolean[][] road = new boolean[40][24];
         fill(road, 4, 8, 35, 12);    // a street five wide, open ground either side
@@ -134,5 +153,62 @@ class GeneratedRoadsTest {
             assertTrue(hi <= crossLo - 1 || lo >= crossHi + 1, "no paint in the junction: " + m);
             assertEquals(along ? 20 : 30, along ? m.a().y() : m.a().x(), 1e-9, "on the centre line");
         }
+    }
+
+    @Test void aStreetEndingAtATeeStopsAtTheCrossStreetsCentreNotItsFarKerb() {
+        var style = new GeneratedRoads.StreetStyle(true, true, false);
+        for (int overrun : new int[]{0, 2}) {
+            boolean[][] road = new boolean[48][40];
+            fill(road, 2, 10, 45, 14);              // a through street five wide
+            fill(road, 20, 10 - overrun, 22, 30);   // a side street arriving from the north, its cells running across
+            var routes = GeneratedRoads.streets(road, road, new boolean[48][40], 3, 9, style).routes();
+            var side = routes.stream().filter(r -> r.points().size() == 2 && r.points().get(0).x() == r.points().get(1).x())
+                    .findFirst().orElseThrow();
+            double south = Math.min(side.points().get(0).y(), side.points().get(1).y());
+            assertEquals(11.5, south, 1e-9, "overrun " + overrun + ": flush with the through street's centre cell");
+            for (var r : routes) for (var p : r.points()) assertTrue(p.y() >= 10, "no turn into a southern arm: " + r);
+        }
+        boolean[][] cross = new boolean[48][40];
+        fill(cross, 2, 10, 45, 14);
+        fill(cross, 20, 2, 22, 30);                 // the same street running on through is a crossing
+        var routes = GeneratedRoads.streets(cross, cross, new boolean[48][40], 3, 9, style).routes();
+        assertTrue(routes.stream().anyMatch(r -> r.points().size() == 2
+                && Math.min(r.points().get(0).y(), r.points().get(1).y()) == 1.5), "a crossing keeps its length");
+    }
+
+    @Test void aStreetTrimmedAtATeeStillTurnsIntoTheThroughStreetOnBothCorners() {
+        boolean[][] road = new boolean[48][40];
+        fill(road, 2, 10, 45, 15);    // a through street six wide, its centre between cells
+        fill(road, 20, 10, 22, 30);   // a side street arriving from the north
+        var routes = GeneratedRoads.streets(road, road, new boolean[48][40], 3, 9,
+                new GeneratedRoads.StreetStyle(true, true, false)).routes();
+        var turns = routes.stream().filter(r -> r.points().size() > 2).toList();
+        assertEquals(2, turns.size(), "a rounded kerb on each side of the side street: " + routes);
+        for (var t : turns) for (var p : t.points()) assertTrue(p.y() >= 12, "none on the far side: " + t);
+    }
+
+    @Test void aCornerIsPavedSquareToTheOuterEdgeOfEachStreetsAsphalt() {
+        boolean[][] road = new boolean[48][40];
+        fill(road, 20, 10, 45, 14);   // east from the corner, five wide with sidewalk room
+        fill(road, 20, 10, 22, 30);   // north from the corner, three wide
+        var style = new GeneratedRoads.StreetStyle(true, true, false);
+        var routes = GeneratedRoads.streets(road, road, new boolean[48][40], 3, 9, style).routes();
+        var raster = RoadRasterizer.rasterize(new RoadPlan(48, 40, routes));
+        for (int x = 20; x <= 22; x++) for (int y = 11; y <= 13; y++)
+            assertTrue(raster.road(x, y), "the corner is paved at " + x + "," + y);
+        for (int x = 20; x <= 22; x++) assertFalse(raster.road(x, 10), "nothing runs on into the outer kerb at " + x);
+    }
+
+    @Test void aStreetThatWidensBesideAnotherTapersIntoItInsteadOfStepping() {
+        boolean[][] road = new boolean[48][40];
+        fill(road, 2, 10, 40, 12);    // a street three wide ...
+        fill(road, 20, 13, 45, 15);   // ... and a second one beside it from x 20, running on past it
+        var style = new GeneratedRoads.StreetStyle(true, false, false);
+        var routes = GeneratedRoads.streets(road, road, null, 3, 9, style).routes();
+        var taper = routes.stream().filter(r -> r.points().size() == 2
+                && r.points().get(0).y() != r.points().get(1).y()).toList();
+        assertEquals(1, taper.size(), "one diagonal merge: " + routes);
+        double x0 = Math.min(taper.get(0).points().get(0).x(), taper.get(0).points().get(1).x());
+        assertEquals(20 - GeneratedRoads.TAPER, x0, 1e-9, "running back along the through street");
     }
 }

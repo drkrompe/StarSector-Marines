@@ -74,18 +74,18 @@ mutates battle state, and its timing and clip selection use presentation-owned
 randomness rather than the simulation's seeded stream. Consequently, radio
 may vary between presentations without changing a replay or outcome.
 
-The two hosts consume the same combat cue policy, events, speaker eligibility,
-and voice budget. The hybrid host positions stock calls at the speaker centroid;
-Marine Operations presents generated voices over the shipboard radio net and
-adds sampled assignment exchanges under that same budget.
+Marine Operations presents the cue policy's reports in generated voices over
+the shipboard radio net and adds sampled assignment exchanges under the same
+voice budget. The hybrid host has no squad radio.
 
 ## Content and extension law
 
-Each cue maps to audio produced by the pipeline and registered for the mod
-runtime. Marine Operations uses the generated ensemble; the hybrid host and
-unavailable-catalog fallback retain the standard-pilot positional library. That
-library is proprietary placeholder content and must not be treated as cleared
-release audio.
+Each cue maps to recorded lines of the generated ensemble, produced by the
+pipeline and registered for the mod runtime. There is no second bank: when the
+ensemble's catalog cannot load, reports go unspoken. The proprietary
+standard-pilot library that once served as a fallback was dropped before the
+first public release (`v0.1-public-build.md`), and no proprietary radio audio
+may return.
 
 Audio builds cache each encode by source bytes, effective encoding settings,
 and ffmpeg version/build. Adding or editing a manifest entry only encodes new

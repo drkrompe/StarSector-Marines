@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — Ordinary residential lots are always homes; the apartment plan belongs only to gated housing compounds.
+Updated: 2026-10-22 — An open-field landing's country is surveyed rather than grown: graded rural roads and plots (Rural country).
 
 Earlier 2026-10-13 — reversible authored damage layers give Relief a worn checkpoint without changing its landing contract; Relief rear working courts preserve the expanded landing and assembly apron.
 
@@ -609,9 +609,16 @@ where carriageway lies on both sides of it, so side streets reach the road
 they join and its junction turns give the corner a kerb radius. Because the
 carriageway is the street less its kerbs, it widens wherever a frontage gives
 way to a yard; the sweep refuses a *bulge* (a band broader than one running
-the same way along its whole length) and a *pill* (a short band whose ends
-are not both met by a crossing street), which would otherwise swell the road
-into the yard or float asphalt in a gap between buildings. Pedestrian frames,
+the same way along its whole length), which would swell the road into the
+yard, and a *pill* (a short band, under four breadths long, met by no
+crossing street at either end), which would float asphalt in a gap between
+buildings. A short band met at one end only, by a street that stands on its
+own, is a *spur*: a dead end off that street into a yard or a lot. It is
+swept as a street to where its cells end, because left paved it reads as a
+stub of street with no road on it. Its mouth takes a kerb radius only where
+the turn would lie wholly on street or footway; where the spur opens
+straight onto its yard the corner stays square rather than being cut off at
+the yard's edge. Pedestrian frames,
 the rest of the flank, plazas broader than a street (nine cells) and lanes too
 narrow for a sweep (under three) keep their paving, which also shows in the
 corners a junction turn leaves uncovered.
@@ -637,6 +644,22 @@ untouched. `-Dbattle.mapgen.cityRoads=false` is the control; it leaves the city
 paved and sweeps only precinct roads. Junctions, T-junctions, turns and dead
 ends are all composed from the sweep rather than from tiles, so no piece is
 missing from the set.
+
+**A street ends where it meets another, not where its band does.** A band is
+a maximal run of street cells, so a side street's band reaches across the
+street it joins to the far kerb row, and often a cell or two into a yard
+mouth beyond; swept to its band, every T put a *nub* of asphalt across the
+through road's far sidewalk. So at a *T* (the street it meets runs on past it
+both ways) a street stops at that street's centre line and the through
+asphalt covers the rest; at a *corner* (both end at each other) each runs to
+the outer edge of the other's asphalt, so the corner is paved square and
+nothing runs on into the kerb. A street that runs on through is a crossing
+and keeps its length. The kerb radius is still decided by whether both arms
+exist, so a T keeps its two near-side turns and gains none on the far side.
+Where two streets grown side by side make the road widen, the one that ends
+beside the other, meeting no crossing street, *tapers* into it over six cells
+with a diagonal stroke instead of stepping square across the carriageway.
+The `city-junctions` snapshot suite frames the junctions as generated.
 
 **Road paint** is a *marking*: a straight, flush-ended stroke along a grid
 axis, drawn as its own layer over the asphalt. It is laid only on cells the
@@ -1597,6 +1620,57 @@ Where the settlement stands and how far it reaches is the precinct model's
 business — see `precincts.md`, which also owns the **lane**: the path a
 Conquest's ladder of places stands on, and the walkable route between them that
 the map records for the command layer to read.
+
+## Rural country
+
+The **country** is the band of open land an open-field landing claims along
+its map edge (`precincts.md`, `OPEN_FIELD`): the farmland the company lands in
+and walks out of into the town. It is **surveyed, not grown**
+(`RuralLayout`). Growth lays town streets wherever its arms reach, and on the
+first colony maps that put boulevards, back streets and dead-end stubs of every
+width across the fields, ending where an arm's budget did. So the skeleton
+stage replaces whatever grew inside the band with the country's own roads, by
+role:
+
+| grade | width | surface | where |
+|---|---|---|---|
+| country road | 5, a cross-street's | paved asphalt, no sidewalk, no lines | the town's widest street that arrives at the fields, carried straight on to the map edge |
+| farm road | 3 | gravel | the length of the town's edge, so every street that reaches the fields meets a road |
+| field track | 2 | dirt | between plots, out from the country road both ways and once across the band's depth |
+
+**One road, one width, one line.** Every rural road is a straight route of its
+grade's width from end to end, flush at both ends; there is no per-band brush
+fitting out here, which is what made the grown roads swell and pinch. A
+higher grade owns the junction. A street "arrives" only if it runs into the
+town behind the first town row, so a street along the town's edge is not
+mistaken for the main road.
+
+**Only roads that carry traffic are road.** The country and farm roads are
+circulation and road cells (the road graph routes on them, and a convoy can
+enter off the map edge along the country road); a field track is ground with a
+dirt surface on it. The farm road joins every street that reached the band, so
+a town that was one network through its country stays one; the weld is asked
+again only to make sure.
+
+**Plots are what the roads leave.** Each rectangle between tracks and roads is
+one field with one use: row crop (crop rows and furrows a cell apart), grain
+(standing gold with a tramline every few rows), pasture (grass) or fallow
+(turned earth). Rows run the plot's long way, a headland of grass rings each
+plot, and the cultivated-ground law keeps all of it green and brown on every
+world. It is appearance only: every cell stays exactly as walkable and as
+see-through as the open ground it was, and the landing's field of fire is
+checked on the finished map as before.
+
+**Hedges and farms.** A hedge is a line of shrubs on the headland of a plot
+where a road or track runs past, with a gateway left in the middle of each
+side: every pasture has one and about half the crop fields. The plants are
+passable and give no cover, so a hedge is a boundary to the eye only. Up to two
+**farmsteads** stand in the country, each a farmhouse and a barn (ordinary
+stamped buildings, `BuildingStamp.FARMHOUSE` and `BARN`, which the city's lots
+never draw) in a trodden-dirt yard cut from the corner of the plot farthest
+from the landing that fits it, set back from the road it opens onto with their
+doors facing it, and well past the field of fire. They are the one structural
+thing out here, and so ordinary buildings to everything that reads one.
 
 ## Defense-post layouts
 

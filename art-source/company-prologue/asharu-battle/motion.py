@@ -96,3 +96,43 @@ def drift(key, station, t, scale=1.0):
 def fleet_at(ships, t, scale=1.0, keep=()):
     """Every ship of a dict at time t, except those named in keep (authored poses left as posed)."""
     return {k: (v if k in keep else drift(k, v, t, scale)) for k, v in ships.items()}
+
+
+def _bez(p, s):
+    """A cubic Bezier through four points at s, and its derivative."""
+    a, b = 1 - s, s
+    pos = [a ** 3 * p[0][i] + 3 * a * a * b * p[1][i] + 3 * a * b * b * p[2][i] + b ** 3 * p[3][i] for i in range(3)]
+    der = [3 * a * a * (p[1][i] - p[0][i]) + 6 * a * b * (p[2][i] - p[1][i]) + 3 * b * b * (p[3][i] - p[2][i])
+           for i in range(3)]
+    return pos, der
+
+
+def boarding_run(launch, leave, seat, arrive, seated, t0, t1, t):
+    """A boarding boat t seconds in, on its run from its mother craft to the prize (owner, 2026-10-22).
+
+    launch: the point it leaves from, out of the camera's sight (under or behind its mother craft);
+    leave: the unit direction it drops away along; seat: the point it sets down on, and arrive: the
+    unit direction it comes in along (astern of the seat, along the prize's deck); seated: the
+    station once down. The path is a cubic curve from launch to seat, flown between t0 and t1 on a
+    burn, coast and brake: it burns out along the curve for the first 30%, coasts, yaws end for end
+    (from 58% to 70%) and burns against its motion for the last 30%, so it arrives tail first, nose to
+    the way it came, which is the way it sits down (seated's heading). Before t0 it is at the launch
+    point, at rest; from t1 it is seated."""
+    u = max(0.0, min(1.0, (t - t0) / (t1 - t0)))
+    if u >= 1.0:
+        return seated
+    reach = math.dist(launch, seat)
+    pts = (launch, [launch[i] + leave[i] * reach * .35 for i in range(3)],
+           [seat[i] - arrive[i] * reach * .45 for i in range(3)], seat)
+    s = u * u * (3 - 2 * u)                       # speeding up, then slowing down: the burns
+    pos, der = _bez(pts, s)
+    v = [d * 6 * u * (1 - u) for d in der] if 0 < u < 1 else der
+    if math.hypot(*v) < 1e-6:
+        v = der
+    hd = math.degrees(math.atan2(v[1], v[0]))
+    pt = math.degrees(math.atan2(v[2], math.hypot(v[0], v[1])))
+    f = max(0.0, min(1.0, (u - .58) / .12))       # the flip, yawed end for end over 12% of the run
+    f = f * f * (3 - 2 * f)
+    hd, pt = hd + 180.0 * f, pt * (1 - 2 * f)
+    thr = 1.0 if u < .3 or u > .7 else .15        # burn out, coast with the drives idling, brake
+    return (pos[0], pos[1], pos[2], hd, pt, 0.0, thr)
