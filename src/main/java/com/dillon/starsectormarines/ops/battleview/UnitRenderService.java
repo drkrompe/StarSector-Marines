@@ -41,6 +41,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
@@ -301,13 +302,15 @@ public final class UnitRenderService implements RenderSystem {
     /**
      * Whether every cell under a turret's body carries an authored ground surface (the concrete a prepared position is
      * paved with). The flat road-coloured pad exists to seat a structure on bare ground; over a drawn surface it would
-     * paint a blue-grey square across the concrete instead.
+     * paint a blue-grey square across the concrete instead. A road's finish (asphalt and its sidewalk) is such a
+     * surface too, so a gun set down on a street stands on the street.
      */
     private static boolean standsOnSurface(CellTopology topology, int minX, int minY, int spanX, int spanY) {
         if (topology == null) return false;
+        RoadSurface road = topology.roadSurface();
         for (int x = minX; x < minX + spanX; x++) {
             for (int y = minY; y < minY + spanY; y++) {
-                if (topology.getSurfaceId(x, y) == null) return false;
+                if (topology.getSurfaceId(x, y) == null && (road == null || road.underlay(x, y) == null)) return false;
             }
         }
         return true;
