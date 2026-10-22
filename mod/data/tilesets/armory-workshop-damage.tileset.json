@@ -59,27 +59,27 @@
     {
       "col": 0,
       "name": "armory-workshop.bench-tools-destroyed",
-      "row": 3
+      "row": 2
     },
     {
       "col": 3,
       "name": "armory-workshop.ready-locker-damaged",
-      "row": 3
+      "row": 2
     },
     {
       "col": 6,
       "name": "armory-workshop.ready-locker-destroyed",
-      "row": 3
+      "row": 2
     },
     {
       "col": 9,
       "name": "armory-workshop.ammo-damaged",
-      "row": 3
+      "row": 2
     },
     {
       "col": 11,
       "name": "armory-workshop.ammo-destroyed",
-      "row": 3
+      "row": 2
     }
   ],
   "doodads": [
@@ -177,7 +177,7 @@
       "cover": "med",
       "footprintCells": [
         3,
-        2
+        1
       ],
       "id": "armory-workshop.bench-damaged",
       "row": 1
@@ -188,7 +188,7 @@
       "cover": "none",
       "footprintCells": [
         3,
-        2
+        1
       ],
       "id": "armory-workshop.bench-destroyed",
       "row": 1
@@ -199,7 +199,7 @@
       "cover": "none",
       "footprintCells": [
         3,
-        2
+        1
       ],
       "id": "armory-workshop.bench-tools-damaged",
       "row": 1
@@ -210,10 +210,10 @@
       "cover": "none",
       "footprintCells": [
         3,
-        2
+        1
       ],
       "id": "armory-workshop.bench-tools-destroyed",
-      "row": 3
+      "row": 2
     },
     {
       "ballisticHalfHeight": 1.1,
@@ -221,10 +221,10 @@
       "cover": "heavy",
       "footprintCells": [
         3,
-        2
+        1
       ],
       "id": "armory-workshop.ready-locker-damaged",
-      "row": 3
+      "row": 2
     },
     {
       "ballisticHalfHeight": 0,
@@ -232,10 +232,10 @@
       "cover": "none",
       "footprintCells": [
         3,
-        2
+        1
       ],
       "id": "armory-workshop.ready-locker-destroyed",
-      "row": 3
+      "row": 2
     },
     {
       "ballisticHalfHeight": 1.1,
@@ -243,10 +243,10 @@
       "cover": "heavy",
       "footprintCells": [
         2,
-        2
+        1
       ],
       "id": "armory-workshop.ammo-damaged",
-      "row": 3
+      "row": 2
     },
     {
       "ballisticHalfHeight": 0,
@@ -254,10 +254,10 @@
       "cover": "none",
       "footprintCells": [
         2,
-        2
+        1
       ],
       "id": "armory-workshop.ammo-destroyed",
-      "row": 3
+      "row": 2
     }
   ],
   "sheet": "graphics/tilesets/armory-workshop-damage.png"

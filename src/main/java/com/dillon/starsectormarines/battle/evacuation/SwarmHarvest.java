@@ -1,9 +1,13 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.combat.BodyPart;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.modifier.UnitModifier;
 import com.dillon.starsectormarines.battle.modifier.UnitStat;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.FireTeamMorale;
+import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
@@ -14,47 +18,65 @@ import com.dillon.starsectormarines.marine.ArmorClass;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The swarm's harvest (`colony-breach-nouns.md`, Harvest): a Runner that brings
  * down a colonist seizes the body and drags it to the nearest living bore,
- * where it is fed in through {@link SwarmBores#feed}.
+ * where it is fed in through {@link SwarmBores#feed}; and now and then a
+ * Runner's blow impales a living body instead and drags it off alive
+ * (`colony-breach-nouns.md`, Impale).
  *
  * <p><b>A carrier is a Runner with a load.</b> It moves at
  * {@link #CARRIER_SPEED} of its own pace down the {@link SwarmGoal#BORE} field
  * and does not strike ({@link SwarmPressureBehavior}). Its load is the body as
  * itself: a corpse is an entity with its own position, so dragging it is
  * writing that position each tick a little behind the carrier, and the body
- * draws where it is like any other.
+ * draws where it is like any other. A living load is dragged the same way.
  *
- * <p><b>Killing the carrier drops the body</b> where it fell. A dropped body is
- * loose, and the next Runner to come within {@link #SEIZE_RADIUS} of it takes
- * it up again. A delivered body is consumed: it stops being drawn and counts
- * as one colonist's biomass in the bore it went into.
+ * <p><b>Killing the carrier drops the body</b> where it fell. A dropped corpse
+ * is loose, and the next Runner to come within {@link #SEIZE_RADIUS} of it
+ * takes it up again. A dropped living body is <b>freed</b>: alive, a wound in
+ * each leg, back to what it was doing after {@link #RECOVERY_SECONDS}. A body
+ * that reaches the bore is consumed: a living one is <b>taken</b> (killed
+ * there), and either way it stops being drawn and counts as one colonist's
+ * biomass in the bore it went into.
  *
- * <p><b>What can be harvested</b> is a body the swarm hunts that a Runner
- * brought down: a colonist, a militia fighter or a Marine on foot. Never a
- * power suit, a machine or a structure, and never one of the cohort while a
- * Marine or a militia fighter is near enough to be its escort.
+ * <p><b>What can be harvested</b> is a body the swarm hunts: a colonist, a
+ * militia fighter or a Marine on foot. Never a power suit, a machine or a
+ * structure, and never one of the cohort while a Marine or a militia fighter
+ * is near enough to be its escort.
+ *
+ * <p><b>A held body</b> ({@link #isCarried} and alive) does nothing and is
+ * nobody's prey: the unit update skips it, the swarm ignores it, direct fire
+ * passes it ({@code BallisticResolver}) and a blast reaches it only while
+ * {@link #areaHitsHeld()}.
  *
  * <p><b>Threading.</b> Runners strike on the parallel unit update, so
- * {@link #struck} is the one call made there, and it keeps the lowest Runner id
- * per target so the result does not depend on which worker ran first. Every
- * other change is made serially: deaths arrive through the death drain and
- * {@link #tick} runs after it. The parallel update only reads
- * {@link #isOpen} and {@link #isCarrier}, which nothing writes while it runs.
+ * {@link #struck} and {@link #impale} are the calls made there, and each keeps
+ * the lowest Runner id per target so the result does not depend on which
+ * worker ran first. Every other change is made serially: deaths arrive through
+ * the death drain and {@link #tick} runs after it. The parallel update only
+ * reads, and nothing writes while it runs.
  *
  * <p>{@code -Dbattle.colonyBreach.harvest=false} is the control: Runners leave
  * the dead where they fall, as they did before harvest.
+ * {@code -Dbattle.colonyBreach.impale=false} keeps harvest and turns impales
+ * off: every strike resolves as an ordinary blow.
  */
 public final class SwarmHarvest {
 
-    /** A carrier's pace as a share of its own. Slower than a walking Marine, so a squad sent after one catches it. */
+    /**
+     * An adult carrier's pace as a share of its own. Slower than a walking Marine, so a squad sent after one
+     * catches it. A whelp drags slower and an elder faster ({@link SwarmStageStats#dragPace}).
+     */
     public static final float CARRIER_SPEED = 0.4f;
     /** How far behind its carrier a dragged body trails, in cells. */
     public static final float TRAIL_CELLS = 0.55f;
@@ -64,34 +86,82 @@ public final class SwarmHarvest {
     public static final float SEIZE_RADIUS = 1.25f;
     /** A cohort evacuee with a Marine or militia fighter this close is under escort and not harvested. */
     public static final float ESCORT_RADIUS = 8f;
+    /** The chance an adult Runner's landed blow impales its target instead of wounding it; by stage, {@link SwarmStageStats#impaleChance}. */
+    public static final float IMPALE_CHANCE = 0.05f;
+    /** How long a freed body lies recovering before it acts again. */
+    public static final float RECOVERY_SECONDS = 3f;
+    /** Damage that takes a held body at the bore's mouth. */
+    private static final float TAKING_DAMAGE = 1_000_000f;
 
     /** Whether harvest runs. {@code -Dbattle.colonyBreach.harvest=false} is the control. */
     public static boolean enabledByDefault() {
         return Boolean.parseBoolean(System.getProperty("battle.colonyBreach.harvest", "true"));
     }
 
+    /** Whether Runners impale. {@code -Dbattle.colonyBreach.impale=false} is the control. */
+    public static boolean impaleByDefault() {
+        return Boolean.parseBoolean(System.getProperty("battle.colonyBreach.impale", "true"));
+    }
+
+    /** Whether a blast reaches a held body. {@code -Dbattle.colonyBreach.impale.areaHitsHeld=false} spares it. */
+    public static boolean areaHitsHeldByDefault() {
+        return Boolean.parseBoolean(System.getProperty("battle.colonyBreach.impale.areaHitsHeld", "true"));
+    }
+
+    /** How a held body's hold ended, or began. */
+    public enum EventKind { IMPALED, FREED, TAKEN }
+
+    /** One fact about a living body a Runner took, for the beats and the snapshot. */
+    public record Event(int tick, EventKind kind, long body, Faction faction) { }
+
     private final boolean enabled;
+    private final boolean impaleOn;
+    private final boolean areaHitsHeld;
     /** Target to striking Runner, for this tick's strikes; lowest Runner id wins. */
     private final ConcurrentHashMap<Long, Long> strikes = new ConcurrentHashMap<>();
+    /** Target to impaling Runner, for this tick's impales; lowest Runner id wins. */
+    private final ConcurrentHashMap<Long, Long> impales = new ConcurrentHashMap<>();
     /** Bodies a Runner struck that died this tick, in death order. */
     private final List<Long> fallen = new ArrayList<>();
     /** Carrier to load, in the order they were seized. */
     private final LinkedHashMap<Long, Long> loads = new LinkedHashMap<>();
+    /** Carrier to the share of its own pace it drags at, by its stage. */
+    private final Map<Long, Float> carrierPace = new HashMap<>();
     /** Load to carrier. */
     private final Map<Long, Long> carriers = new HashMap<>();
     /** Bodies dropped by a dead carrier, waiting for another, in the order they fell. */
     private final List<Long> loose = new ArrayList<>();
+    /** Freed bodies to the tick they act again. */
+    private final Map<Long, Integer> recovering = new HashMap<>();
+    /** Bodies delivered alive whose death has not been drained yet; hidden when it is. */
+    private final Set<Long> consumed = new HashSet<>();
+    /** Marines delivered alive into a bore, in the order they were taken. */
+    private final Set<Long> takenMarines = new LinkedHashSet<>();
+    private final List<Event> events = new ArrayList<>();
+    private final List<Event> eventView = Collections.unmodifiableList(events);
     private boolean open;
     private int seized;
     private int delivered;
     private int dropped;
+    private int impaled;
+    private int freed;
+    private int taken;
     private int firstHarvestTick = -1;
 
     public SwarmHarvest(boolean enabled) {
+        this(enabled, impaleByDefault(), areaHitsHeldByDefault());
+    }
+
+    public SwarmHarvest(boolean enabled, boolean impales, boolean areaHitsHeld) {
         this.enabled = enabled;
+        this.impaleOn = enabled && impales;
+        this.areaHitsHeld = areaHitsHeld;
     }
 
     public boolean enabled() { return enabled; }
+
+    /** Whether a blast reaches a held body. Direct fire never does. */
+    public boolean areaHitsHeld() { return areaHitsHeld; }
 
     /** Whether a Runner may harvest now: harvest is on and a bore lives to take the body to. */
     public boolean isOpen() { return open; }
@@ -99,8 +169,19 @@ public final class SwarmHarvest {
     /** Whether {@code runner} is dragging a body. */
     public boolean isCarrier(long runner) { return loads.containsKey(runner); }
 
-    /** Whether {@code body} is being dragged. */
+    /** Whether {@code body} is being dragged, alive or dead. */
     public boolean isCarried(long body) { return carriers.containsKey(body); }
+
+    /** Whether {@code body} neither moves nor acts: held by a carrier, or still recovering from being freed. */
+    public boolean holdsStill(long body) {
+        return carriers.containsKey(body) || recovering.containsKey(body);
+    }
+
+    /** The Runner dragging {@code body}, or {@code 0}. */
+    public long carrierOf(long body) {
+        Long carrier = carriers.get(body);
+        return carrier == null ? 0L : carrier;
+    }
 
     /** The body {@code carrier} drags, or {@code 0}. */
     public long loadOf(long carrier) {
@@ -114,14 +195,35 @@ public final class SwarmHarvest {
     /** Whether {@code body} was dropped and is waiting for another Runner. */
     public boolean isLoose(long body) { return loose.contains(body); }
 
-    /** Bodies seized over the battle, re-seizures of a dropped body included. */
+    /** Living bodies impaled, freed and taken, in the order it happened; readers keep their own cursor. */
+    public List<Event> events() { return eventView; }
+
+    /** Marines taken into a bore alive, or still held when the battle ends: lost without a roll. */
+    public Set<Long> takenMarines(BattleSimulation sim) {
+        Set<Long> out = new LinkedHashSet<>(takenMarines);
+        for (long body : loads.values()) {
+            if (sim.world().isAlive(body) && sim.identity().faction(body) == Faction.MARINE) out.add(body);
+        }
+        return out;
+    }
+
+    /** Bodies seized over the battle, re-seizures of a dropped body and impales included. */
     public int seized() { return seized; }
 
-    /** Bodies delivered into a bore. */
+    /** Bodies delivered into a bore, alive or dead. */
     public int delivered() { return delivered; }
 
-    /** Bodies dropped because their carrier died or had nowhere left to go. */
+    /** Corpses dropped because their carrier died or had nowhere left to go. */
     public int dropped() { return dropped; }
+
+    /** Living bodies impaled. */
+    public int impaled() { return impaled; }
+
+    /** Living bodies freed when their carrier died. */
+    public int freed() { return freed; }
+
+    /** Living bodies taken into a bore. */
+    public int taken() { return taken; }
 
     /** The tick the first body was seized, or {@code -1}. */
     public int firstHarvestTick() { return firstHarvestTick; }
@@ -138,32 +240,68 @@ public final class SwarmHarvest {
         strikes.merge(target, runner, Math::min);
     }
 
+    /**
+     * Whether {@code runner}'s landed blow on {@code target} impales it instead
+     * of wounding it: the target is a living body harvest may take, the Runner
+     * is free, a bore is open, and the strike's own draw comes up. Read-only,
+     * for the parallel update.
+     */
+    public boolean impales(long runner, long target, BattleSimulation sim) {
+        if (!impaleOn || !open || loads.containsKey(runner) || carriers.containsKey(target)) return false;
+        if (sim.identity().type(runner) != UnitType.SWARM_RUNNER) return false;
+        if (sim.resolveUnit(target) == 0L || !sim.world().isAlive(target)) return false;
+        if (!harvestable(sim, target)) return false;
+        return impaleDraw(sim.getSimTickIndex(), runner, target)
+                < SwarmStageStats.impaleChance(sim.identity().swarmStage(runner));
+    }
+
+    /** {@code runner} impaled {@code target} this tick. Called from the parallel update; {@link #tick} takes it up. */
+    public void impale(long target, long runner) {
+        impales.merge(target, runner, Math::min);
+    }
+
+    /**
+     * The strike's own draw in {@code [0, 1)}: keyed by tick, Runner and
+     * target, never the battle's shared stream, so impales change no other
+     * roll and switching them off changes nothing else.
+     */
+    static float impaleDraw(int tick, long runner, long target) {
+        long h = SwarmBores.mix(tick * 0x9E3779B97F4A7C15L ^ SwarmBores.mix(runner * 0xBF58476D1CE4E5B9L ^ target));
+        return SwarmBores.unit(h);
+    }
+
     /** Death drain subscriber: a body a Runner struck this tick has died. */
     public void onDeath(DeathEvent event) {
-        if (strikes.containsKey(event.unitId())) fallen.add(event.unitId());
+        long id = event.unitId();
+        if (strikes.containsKey(id)) fallen.add(id);
     }
 
     /**
      * Once per tick, serially, after the death drain and the bores: seize the
-     * bodies Runners brought down, drag every load, deliver what reached a
-     * bore, and drop what a dead carrier was holding.
+     * bodies Runners brought down or impaled, drag every load, deliver what
+     * reached a bore, and drop or free what a dead carrier was holding.
      */
     public void tick(BattleSimulation sim) {
         SwarmBores bores = sim.swarmBores();
         boolean boreLives = bores.livingCount() > 0;
+        int tick = sim.getSimTickIndex();
+        hideConsumed(sim);
+        recovering.values().removeIf(until -> tick >= until);
         if (enabled) {
-            carry(sim, bores, boreLives);
+            carry(sim, bores, boreLives, tick);
             if (boreLives) {
                 for (long body : fallen) {
                     Long runner = strikes.get(body);
                     if (runner != null && mayCarry(sim, runner) && harvestable(sim, body)) seize(sim, runner, body);
                 }
+                takeImpaled(sim, tick);
                 takeUpLoose(sim);
             } else {
                 loose.removeIf(body -> !sim.world().hasPosition(body));
             }
         }
         strikes.clear();
+        impales.clear();
         fallen.clear();
         open = enabled && boreLives;
     }
@@ -174,11 +312,13 @@ public final class SwarmHarvest {
             @Override public String name(long unit) { return "Dragging a body"; }
             @Override public Set<UnitStat> stats() { return Set.of(UnitStat.MOVE_SPEED); }
             @Override public boolean appliesTo(long unit) { return loads.containsKey(unit); }
-            @Override public float multiplier(long unit, UnitStat stat) { return CARRIER_SPEED; }
+            @Override public float multiplier(long unit, UnitStat stat) {
+                return carrierPace.getOrDefault(unit, CARRIER_SPEED);
+            }
         };
     }
 
-    /** Whether {@code body}, dead at a Runner's hands, is one the swarm takes. */
+    /** Whether {@code body} is one the swarm takes, dead at a Runner's hands or alive on its blades. */
     static boolean harvestable(BattleSimulation sim, long body) {
         if (!sim.world().hasPosition(body)) return false;
         UnitType type = sim.identity().type(body);
@@ -222,6 +362,7 @@ public final class SwarmHarvest {
 
     private void seize(BattleSimulation sim, long runner, long body) {
         loads.put(runner, body);
+        carrierPace.put(runner, SwarmStageStats.dragPace(sim.identity().swarmStage(runner)));
         carriers.put(body, runner);
         loose.remove(body);
         sim.clearPath(runner);
@@ -232,8 +373,39 @@ public final class SwarmHarvest {
         if (firstHarvestTick < 0) firstHarvestTick = sim.getSimTickIndex();
     }
 
-    /** Drags every load, delivers what reached a bore, drops what lost its carrier. */
-    private void carry(BattleSimulation sim, SwarmBores bores, boolean boreLives) {
+    /** This tick's impales, in target order: each living body goes onto its Runner's blades. */
+    private void takeImpaled(BattleSimulation sim, int tick) {
+        if (impales.isEmpty()) return;
+        for (Map.Entry<Long, Long> entry : new TreeMap<>(impales).entrySet()) {
+            long body = entry.getKey(), runner = entry.getValue();
+            if (sim.resolveUnit(body) == 0L || !sim.world().isAlive(body) || carriers.containsKey(body)) continue;
+            if (!mayCarry(sim, runner)) continue;
+            recovering.remove(body);
+            if (sim.movement().has(body)) sim.clearPath(body);
+            if (sim.combat().has(body)) {
+                sim.combat().setTargetId(body, 0L);
+                sim.combat().setBurstRemaining(body, 0);
+            }
+            seize(sim, runner, body);
+            sim.swarmCues().post(SwarmCues.Kind.IMPALE, runner, sim);
+            impaled++;
+            Faction faction = sim.identity().faction(body);
+            events.add(new Event(tick, EventKind.IMPALED, body, faction));
+            if (faction == Faction.MARINE) shake(sim, body);
+        }
+    }
+
+    /** Impaling a Marine costs their fire team what a death would, once. */
+    private static void shake(BattleSimulation sim, long body) {
+        Squad squad = sim.squadOf(body);
+        if (squad == null) return;
+        FireTeamMorale team = squad.fireTeamMorale(sim.squad().fireTeamIndex(body));
+        team.morale = Math.max(0f, team.morale - SquadMoraleSystem.MORALE_DROP_ON_DEATH);
+        team.timeSinceUnderFire = 0f;
+    }
+
+    /** Drags every load, delivers what reached a bore, drops or frees what lost its carrier. */
+    private void carry(BattleSimulation sim, SwarmBores bores, boolean boreLives, int tick) {
         if (loads.isEmpty()) return;
         for (Map.Entry<Long, Long> entry : new ArrayList<>(loads.entrySet())) {
             long carrier = entry.getKey(), body = entry.getValue();
@@ -241,11 +413,16 @@ public final class SwarmHarvest {
                 release(carrier, body);
                 continue;
             }
+            boolean alive = sim.resolveUnit(body) != 0L && sim.world().isAlive(body);
             boolean carrierLives = sim.resolveUnit(carrier) != 0L && sim.world().isAlive(carrier);
             if (!carrierLives || !boreLives) {
                 release(carrier, body);
-                loose.add(body);
-                dropped++;
+                if (alive) {
+                    free(sim, body, tick);
+                } else {
+                    loose.add(body);
+                    dropped++;
+                }
                 continue;
             }
             float cx = sim.world().x(carrier), cy = sim.world().y(carrier);
@@ -253,15 +430,36 @@ public final class SwarmHarvest {
             SwarmBore bore = bores.nearestLiving(cx, cy);
             float dx = bore.x() + 0.5f - cx, dy = bore.y() + 0.5f - cy;
             if (dx * dx + dy * dy <= DELIVER_RADIUS * DELIVER_RADIUS && bores.feed(sim, bore, 1f)) {
-                consume(sim, body, bore);
                 release(carrier, body);
+                if (alive) take(sim, carrier, body, tick);
+                consume(sim, body, bore);
                 delivered++;
             }
         }
     }
 
+    /** A living body whose carrier died: alive where it fell, both legs run through, acting again after a moment. */
+    private void free(BattleSimulation sim, long body, int tick) {
+        sim.wounds().wound(body, BodyPart.LEGS);
+        sim.wounds().wound(body, BodyPart.LEGS);
+        recovering.put(body, tick + Math.round(RECOVERY_SECONDS / BattleSimulation.TICK_DT));
+        freed++;
+        events.add(new Event(tick, EventKind.FREED, body, sim.identity().faction(body)));
+    }
+
+    /** A living body at the bore's mouth is taken: killed there, with no morale cost beyond the impale's. */
+    private void take(BattleSimulation sim, long carrier, long body, int tick) {
+        Faction faction = sim.identity().faction(body);
+        sim.applyDamage(body, carrier, TAKING_DAMAGE, TAKING_DAMAGE, 0f);
+        consumed.add(body);
+        if (faction == Faction.MARINE) takenMarines.add(body);
+        taken++;
+        events.add(new Event(tick, EventKind.TAKEN, body, faction));
+    }
+
     private void release(long carrier, long body) {
         loads.remove(carrier);
+        carrierPace.remove(carrier);
         carriers.remove(body);
     }
 
@@ -313,6 +511,21 @@ public final class SwarmHarvest {
     /** A delivered body goes into the hole: moved onto it and no longer drawn. */
     private static void consume(BattleSimulation sim, long body, SwarmBore bore) {
         sim.world().setPos(body, bore.x() + 0.5f, bore.y() + 0.5f);
+        hide(sim, body);
+    }
+
+    /** A body taken alive becomes a corpse only once its death is drained; hide that corpse too. */
+    private void hideConsumed(BattleSimulation sim) {
+        if (consumed.isEmpty()) return;
+        BattleComponents c = sim.getBattleComponents();
+        consumed.removeIf(body -> {
+            if (!sim.getEntityWorld().has(body, c.CORPSE)) return false;
+            hide(sim, body);
+            return true;
+        });
+    }
+
+    private static void hide(BattleSimulation sim, long body) {
         BattleComponents c = sim.getBattleComponents();
         EntityWorld world = sim.getEntityWorld();
         if (world.has(body, c.SPRITE)) world.setInt(body, c.SPRITE, BattleComponents.SPRITE_INDEX, -1);

@@ -7,7 +7,7 @@
   "idPrefix": "installation-utility",
   "alphaMin": 40,
   "outputSheet": "graphics/tilesets/installation-utility-damage.png",
-  "note": "Built-in ImageGen edit of retained geometry guide, with intact material reference. Full-footprint registration only; native alpha, no repainting or keying. See art-source/console-bank/damage.",
+  "note": "Built-in ImageGen edits of retained geometry guides, with intact material references, on a 2423x1774 raw: the left half is the original generation (generator, control, and the old 3x2 switchgear, no longer cut); the right half, from x=1536, is the real-size switchgear refit (installation-utility-refit guide, 3x1). Full-footprint registration only; native alpha, no repainting or keying. See art-source/console-bank/damage.",
   "entries": [
     {
       "rect": [
@@ -75,33 +75,33 @@
     },
     {
       "rect": [
-        1066,
-        117,
-        428,
-        284
+        1609,
+        322,
+        738,
+        242
       ],
       "id": "ship-engineering.switchgear-damaged",
       "cover": "med",
       "ballisticHalfHeight": 0.9,
       "footprintCells": [
         3,
-        2
+        1
       ],
       "included": true
     },
     {
       "rect": [
-        1062,
-        625,
-        432,
-        286
+        1609,
+        1207,
+        741,
+        247
       ],
       "id": "ship-engineering.switchgear-destroyed",
       "cover": "none",
       "ballisticHalfHeight": 0.0,
       "footprintCells": [
         3,
-        2
+        1
       ],
       "included": true
     }

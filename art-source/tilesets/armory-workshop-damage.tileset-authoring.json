@@ -7,7 +7,7 @@
   "idPrefix": "armory-workshop",
   "alphaMin": 40,
   "outputSheet": "graphics/tilesets/armory-workshop-damage.png",
-  "note": "Built-in ImageGen edit of retained geometry guide, with intact material reference. Full-footprint registration only; native alpha, no repainting or keying. See art-source/console-bank/damage.",
+  "note": "Built-in ImageGen edit of retained geometry guide, with intact material reference. Full-footprint registration only; native alpha, no repainting or keying. See art-source/console-bank/damage. The bench, bench tools and ready-locker pairs were redone at real size (3x1): their generation is the right half of a 2790x1254 montage, from x=1254, registered by ComposableDamageRegistration against armory-workshop-refit.tsv before the join. The ammunition cabinet pair was redone the same way at 2x1: from x=2790, a 1254x1254 generation registered against armory-workshop-ammo.tsv (two columns, the right one empty).",
   "entries": [
     {
       "rect": [
@@ -139,129 +139,129 @@
     },
     {
       "rect": [
-        25,
-        696,
-        267,
-        177
+        1294,
+        185,
+        441,
+        148
       ],
       "id": "armory-workshop.bench-damaged",
       "cover": "med",
       "ballisticHalfHeight": 0.65,
       "footprintCells": [
         3,
-        2
+        1
       ],
       "included": true
     },
     {
       "rect": [
-        26,
-        1010,
-        262,
-        175
+        1296,
+        696,
+        428,
+        164
       ],
       "id": "armory-workshop.bench-destroyed",
       "cover": "none",
       "ballisticHalfHeight": 0.0,
       "footprintCells": [
         3,
-        2
+        1
       ],
       "included": true
     },
     {
       "rect": [
-        333,
-        696,
-        271,
-        180
+        1801,
+        187,
+        426,
+        147
       ],
       "id": "armory-workshop.bench-tools-damaged",
       "cover": "none",
       "ballisticHalfHeight": 0.0,
       "footprintCells": [
         3,
-        2
+        1
       ],
       "included": true
     },
     {
       "rect": [
-        340,
-        1010,
-        262,
-        175
+        1808,
+        696,
+        428,
+        157
       ],
       "id": "armory-workshop.bench-tools-destroyed",
       "cover": "none",
       "ballisticHalfHeight": 0.0,
       "footprintCells": [
         3,
-        2
+        1
       ],
       "included": true
     },
     {
       "rect": [
-        652,
-        696,
-        265,
-        176
+        2305,
+        182,
+        440,
+        151
       ],
       "id": "armory-workshop.ready-locker-damaged",
       "cover": "heavy",
       "ballisticHalfHeight": 1.1,
       "footprintCells": [
         3,
-        2
+        1
       ],
       "included": true
     },
     {
       "rect": [
-        653,
-        1010,
-        262,
-        175
+        2320,
+        696,
+        428,
+        163
       ],
       "id": "armory-workshop.ready-locker-destroyed",
       "cover": "none",
       "ballisticHalfHeight": 0.0,
       "footprintCells": [
         3,
-        2
+        1
       ],
       "included": true
     },
     {
       "rect": [
-        964,
-        650,
-        268,
-        267
+        2839,
+        179,
+        529,
+        269
       ],
       "id": "armory-workshop.ammo-damaged",
       "cover": "heavy",
       "ballisticHalfHeight": 1.1,
       "footprintCells": [
         2,
-        2
+        1
       ],
       "included": true
     },
     {
       "rect": [
-        967,
-        967,
-        262,
-        262
+        2842,
+        809,
+        523,
+        263
       ],
       "id": "armory-workshop.ammo-destroyed",
       "cover": "none",
       "ballisticHalfHeight": 0.0,
       "footprintCells": [
         2,
-        2
+        1
       ],
       "included": true
     }

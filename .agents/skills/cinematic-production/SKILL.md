@@ -80,6 +80,16 @@ composite pass.
   never see (a ship filmed from its own bridge), set `thrust_plume_exempt` on the
   craft with the reason. `CINE_PLUMES=0` is a plumes-off control for review
   builds only; a final (`CINE_FINAL=1`) is refused all the same.
+- Plume size follows implied acceleration, and the same guard enforces it
+  (`thrust_markers.throttle_faults`, model in `thrust_markers.drive_demand`).
+  A steady cruise is a short trim burn (mains at 0.2, never above 0.3 while
+  not accelerating). Acceleration and braking raise it. In air, a craft that
+  is low and slow, climbing, sinking or hovering rides on its lift jets at a
+  moderate throttle. Nothing burns at full over a settled area unless it
+  really is accelerating hard. Key traffic with `thrust_markers.auto`, which
+  uses this model. A craft keyed off the model on purpose carries
+  `thrust_motion_exempt` with the reason. C4's first repair drew a Shepherd
+  cruising at a steady 64 m/s with full-length mains, and it had to be redone.
 - Review the first seconds of a shot for traffic as well as for the hero: a
   craft at the edge of frame is still in the film.
 

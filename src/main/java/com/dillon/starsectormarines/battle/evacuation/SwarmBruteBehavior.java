@@ -4,6 +4,9 @@ import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.HullImpact;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -51,6 +54,14 @@ final class SwarmBruteBehavior {
     /** Reach of a blow on a structure, from the Brute's centre to the struck cell or edge. */
     static final float STRUCTURE_REACH = 1.6f;
 
+    /**
+     * What a strain can break and from where: walls with at most {@code wallHp} left, struck from within
+     * {@code reach} of its centre, unless an opening lies within {@code openingRadius} of its feet.
+     */
+    record Breaker(int wallHp, float reach, float openingRadius) {}
+
+    static final Breaker BRUTE = new Breaker(LIGHT_WALL_HP, STRUCTURE_REACH, OPENING_RADIUS);
+
     private static final ThreadLocal<LongBucket> CANDIDATES =
             ThreadLocal.withInitial(LongBucket::new);
 
@@ -76,12 +87,18 @@ final class SwarmBruteBehavior {
         float dx = sim.world().x(target) - sim.world().x(brute);
         float dy = sim.world().y(target) - sim.world().y(brute);
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
-        float reach = sim.combat().attackRange(brute) + sim.getRoster().radius(target);
-        if (distance <= reach) {
+        if (gap(brute, target, sim) <= BruteChargeRules.BLOW_REACH) {
             sim.clearPath(brute);
             if (sim.combat().cooldownTimer(brute) <= 0f) {
-                sim.applyDamage(target, brute, sim.combat().attackDamage(brute), MELEE_PENETRATION,
-                        sim.identity().type(brute).moraleImpact);
+                if (BruteChargeSystem.kind(target, sim) == BruteChargeRules.Kind.INFANTRY) {
+                    // On infantry the blow is a trample: rear, and come down on them with the whole body.
+                    sim.bruteCharges().trample(brute, target);
+                } else {
+                    sim.applyDamage(target, brute, sim.combat().attackDamage(brute), MELEE_PENETRATION,
+                            sim.identity().type(brute).moraleImpact);
+                    // The weight behind it lands too: a hull or a mech is pushed by it.
+                    sim.bruteCharges().blow(brute, target);
+                }
                 sim.swarmCues().post(SwarmCues.Kind.STRIKE, brute, sim);
                 sim.combat().setCooldownTimer(brute, sim.combat().attackCooldown(brute));
             }
@@ -132,7 +149,7 @@ final class SwarmBruteBehavior {
                                      BattleSimulation sim) {
         BruteChargeSystem charges = sim.bruteCharges();
         int now = sim.getSimTickIndex();
-        if (!BruteChargeRules.ENABLED || !charges.ready(brute, now)) return false;
+        if (!charges.ready(brute, now)) return false;
         boolean open = lineOpen(sim, sim.world().cellX(brute), sim.world().cellY(brute),
                 (int) Math.floor(aimX), (int) Math.floor(aimY));
         if (!BruteChargeRules.shouldCharge(distance, open, now, 0)) return false;
@@ -169,14 +186,37 @@ final class SwarmBruteBehavior {
         return true;
     }
 
+    /**
+     * How far the Brute's centre stands from {@code target}'s surface: a hull's footprint, or the circle of
+     * any other body. Its blow lands within {@link BruteChargeRules#BLOW_REACH} of it.
+     */
+    static float gap(long brute, long target, BattleSimulation sim) {
+        float bx = sim.world().x(brute), by = sim.world().y(brute);
+        if (sim.convoy().isVehicle(target)) {
+            GroundBody hull = sim.convoy().body(target);
+            VehicleType type = sim.convoy().vehicleType(target);
+            if (hull != null && type != null) {
+                return HullImpact.surfaceDistance(hull.x, hull.y, hull.facingDegrees,
+                        type.visualLengthCells / 2f, type.visualWidthCells / 2f, bx, by);
+            }
+        }
+        float d = (float) Math.hypot(sim.world().x(target) - bx, sim.world().y(target) - by);
+        return Math.max(0f, d - sim.getRoster().radius(target));
+    }
+
     /** The walkable cell nearest the Brute from which it can reach {@code target}, or null. */
     static int[] standBeside(long brute, long target, BattleSimulation sim) {
+        return standBeside(brute, target, BruteChargeRules.BLOW_REACH, sim);
+    }
+
+    /** {@link #standBeside(long, long, BattleSimulation)} for a blow that lands within {@code blowReach}. */
+    static int[] standBeside(long brute, long target, float blowReach, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
         float tx = sim.world().x(target);
         float ty = sim.world().y(target);
         float px = sim.world().x(brute);
         float py = sim.world().y(brute);
-        float reach = sim.combat().attackRange(brute) + sim.getRoster().radius(target);
+        float reach = blowReach + sim.getRoster().radius(target);
         int span = (int) Math.ceil(reach);
         int[] best = null;
         float bestDistance = Float.MAX_VALUE;
@@ -251,6 +291,10 @@ final class SwarmBruteBehavior {
      * radius, or an opening into it is near enough to use.
      */
     static BreachPoint breachPointToward(long brute, long target, BattleSimulation sim) {
+        return breachPointToward(brute, target, BRUTE, sim);
+    }
+
+    static BreachPoint breachPointToward(long brute, long target, Breaker breaker, BattleSimulation sim) {
         CellTopology topology = sim.getTopology();
         NavigationGrid grid = sim.getGrid();
         int building = topology.getBuildingId(sim.world().cellX(target), sim.world().cellY(target));
@@ -263,7 +307,8 @@ final class SwarmBruteBehavior {
 
         BreachPoint best = null;
         float bestScore = Float.MAX_VALUE;
-        float openingLimit = OPENING_RADIUS * OPENING_RADIUS;
+        float openingLimit = breaker.openingRadius() * breaker.openingRadius();
+        float reach = breaker.reach() * breaker.reach();
         for (int y = bruteY - BREACH_SEARCH_RADIUS; y <= bruteY + BREACH_SEARCH_RADIUS; y++) {
             for (int x = bruteX - BREACH_SEARCH_RADIUS; x <= bruteX + BREACH_SEARCH_RADIUS; x++) {
                 if (!grid.inBounds(x, y)) continue;
@@ -288,13 +333,11 @@ final class SwarmBruteBehavior {
                             && barrier.kind() == SharedEdgeBarrier.Kind.WINDOW) {
                         float mx = x + 0.5f + d.dx * 0.5f - px;
                         float my = y + 0.5f + d.dy * 0.5f - py;
-                        candidate = new BreachPoint(x, y, d, x, y,
-                                mx * mx + my * my <= STRUCTURE_REACH * STRUCTURE_REACH);
-                    } else if (breakableWall(nx, ny, building, grid, topology)) {
+                        candidate = new BreachPoint(x, y, d, x, y, mx * mx + my * my <= reach);
+                    } else if (breakableWall(nx, ny, building, breaker.wallHp(), grid, topology)) {
                         float mx = nx + 0.5f - px;
                         float my = ny + 0.5f - py;
-                        candidate = new BreachPoint(nx, ny, null, x, y,
-                                mx * mx + my * my <= STRUCTURE_REACH * STRUCTURE_REACH);
+                        candidate = new BreachPoint(nx, ny, null, x, y, mx * mx + my * my <= reach);
                     }
                     if (candidate != null && approach < bestScore) {
                         best = candidate;
@@ -314,6 +357,10 @@ final class SwarmBruteBehavior {
      * side and its far side is open ground nearer the prey than the Brute is.
      */
     static BreachPoint barricadeToward(long brute, long target, BattleSimulation sim) {
+        return barricadeToward(brute, target, BRUTE, sim);
+    }
+
+    static BreachPoint barricadeToward(long brute, long target, Breaker breaker, BattleSimulation sim) {
         NavigationGrid grid = sim.getGrid();
         CellTopology topology = sim.getTopology();
         int bruteX = sim.world().cellX(brute), bruteY = sim.world().cellY(brute);
@@ -328,7 +375,7 @@ final class SwarmBruteBehavior {
             for (int x = bruteX - BREACH_SEARCH_RADIUS; x <= bruteX + BREACH_SEARCH_RADIUS; x++) {
                 if (!grid.inBounds(x, y) || grid.isWalkable(x, y)) continue;
                 int hp = grid.getWallHp(x, y);
-                if (hp <= 0 || hp > LIGHT_WALL_HP) continue;
+                if (hp <= 0 || hp > breaker.wallHp()) continue;
                 // A barricade prop, or a free-standing wall such as a compound's curtain: no building's own wall.
                 boolean freeWall = (topology.isWall(x, y) || topology.isWindow(x, y)) && freeStanding(x, y, grid, topology);
                 if (!freeWall && !sim.isBarricadeAt(x, y)) continue;
@@ -342,7 +389,7 @@ final class SwarmBruteBehavior {
                     if (score >= bestScore) continue;
                     float mx = x + 0.5f - px, my = y + 0.5f - py;
                     best = new BreachPoint(x, y, null, nearX, nearY,
-                            mx * mx + my * my <= STRUCTURE_REACH * STRUCTURE_REACH);
+                            mx * mx + my * my <= breaker.reach() * breaker.reach());
                     bestScore = score;
                 }
             }
@@ -390,10 +437,16 @@ final class SwarmBruteBehavior {
      */
     static boolean breakableWall(int x, int y, int building, NavigationGrid grid,
                                  CellTopology topology) {
+        return breakableWall(x, y, building, LIGHT_WALL_HP, grid, topology);
+    }
+
+    /** {@link #breakableWall(int, int, int, NavigationGrid, CellTopology)} up to {@code wallHp} left. */
+    static boolean breakableWall(int x, int y, int building, int wallHp, NavigationGrid grid,
+                                 CellTopology topology) {
         if (grid.isWalkable(x, y)) return false;
         if (!topology.isWall(x, y) && !topology.isWindow(x, y)) return false;
         int hp = grid.getWallHp(x, y);
-        if (hp <= 0 || hp > LIGHT_WALL_HP) return false;
+        if (hp <= 0 || hp > wallHp) return false;
         if (topology.getBuildingId(x, y) == building) return true;
         for (Direction d : Direction.CARDINALS) {
             int nx = x + d.dx;

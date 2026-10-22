@@ -32,8 +32,13 @@ import java.util.List;
  */
 public final class BerthingFitting implements RoomFitting {
 
-    /** Cells one rack takes, head to foot. A bunk is two metres of somebody. */
-    private static final int RACK_DEPTH = 2;
+    /**
+     * Cells one rack takes, head to foot, aboard or on the ground. A cell is
+     * about 0.75 m, so a bunk is 2.25 m of frame round a two-metre mattress, and
+     * the ground's residential single bed is 2.1 m: what a crewman of 1.8 m
+     * actually lies in. Two cells was a metre and a half and nobody fitted.
+     */
+    private static final int RACK_DEPTH = 3;
     /** Clear deck between the ranks. Two abreast, as everywhere else. */
     private static final int AISLE = 2;
 
@@ -48,7 +53,11 @@ public final class BerthingFitting implements RoomFitting {
     /** Kit that has not been stowed yet, behind the locker it belongs in. */
     private static final String KIT = "doodad.box";
 
-    /** Racks by which way the head points, on the deck rather than in the frame. */
+    /**
+     * Racks by which way the head points, on the deck rather than in the frame.
+     * North is the high row: a sprite's top edge lies at its footprint's highest
+     * row, and the head-north bed has its pillow at the image top.
+     */
     private static final String RACK_HEAD_NORTH = "doodad.residential-bed-head-n";
     private static final String RACK_HEAD_SOUTH = "doodad.residential-bed-v";
     private static final String RACK_HEAD_WEST = "doodad.residential-bed-h";
@@ -131,11 +140,12 @@ public final class BerthingFitting implements RoomFitting {
     public void fit(RoomFloor floor) {
         int along = floor.canonicalWidth();
         int across = floor.canonicalHeight();
-        if (along < 1 || across < RACK_DEPTH + AISLE) return;
+        int depth = RACK_DEPTH;
+        if (along < 1 || across < depth + AISLE) return;
 
-        boolean facingRanks = across >= 2 * RACK_DEPTH + AISLE;
-        int aisleFrom = RACK_DEPTH;
-        int aisleSpan = across - (facingRanks ? 2 * RACK_DEPTH : RACK_DEPTH);
+        boolean facingRanks = across >= 2 * depth + AISLE;
+        int aisleFrom = depth;
+        int aisleSpan = across - (facingRanks ? 2 * depth : depth);
 
         // The passage is reserved before a single rack goes down, so what the
         // ranks get is what is left over rather than the other way round.
@@ -147,7 +157,7 @@ public final class BerthingFitting implements RoomFitting {
 
         layRank(floor, along, 0, true, nearTaken, true);
         if (facingRanks) {
-            layRank(floor, along, across - RACK_DEPTH, false, farTaken, false);
+            layRank(floor, along, across - depth, false, farTaken, false);
         }
     }
 
@@ -190,8 +200,9 @@ public final class BerthingFitting implements RoomFitting {
      */
     private void layRank(RoomFloor floor, int along, int band,
                          boolean headOutboard, boolean[] taken, boolean doorSide) {
-        int outboard = headOutboard ? band : band + RACK_DEPTH - 1;
-        int inboard = headOutboard ? band + RACK_DEPTH - 1 : band;
+        int depth = RACK_DEPTH;
+        int outboard = headOutboard ? band : band + depth - 1;
+        int inboard = headOutboard ? band + depth - 1 : band;
         // The head points at the bulkhead the rank backs onto. Chosen on the
         // deck, not in the frame: a compass-named sprite cannot be turned with
         // the room, so a rank that is athwartships once the berth is quarter
@@ -203,15 +214,21 @@ public final class BerthingFitting implements RoomFitting {
         for (int slot = 0; slot < along; slot++) {
             if (taken[slot]) continue;
             if (shipboard) {
+                // A bunk is worked from the passage at its foot. A locker bank is
+                // a cell shorter than a bunk, so it stands against the hull and is
+                // opened from the alcove that leaves between the bunks either side.
                 boolean storage = doorSide ? slot == 0 || slot == along - 1 : slot == divider;
-                int standingRow = headOutboard ? band + RACK_DEPTH : band - 1;
+                int standingRow = storage ? (headOutboard ? band + depth - 1 : band)
+                        : headOutboard ? band + depth : band - 1;
+                int fixtureRow = storage ? (headOutboard ? band + depth - 2 : band + 1) : inboard;
+                int baseRow = storage && !headOutboard ? band + 1 : band;
                 String id = storage ? (doorSide ? "locker" : "locker-open") : "bed";
                 List<LayoutOp.Layer> layers = storage ? List.of() : List.of(
                         new LayoutOp.Layer(0, 0, SHIP_KIT + (headOutboard ? "bedding-low" : "bedding-high")),
                         new LayoutOp.Layer(0, 0, SHIP_KIT + "frame"));
-                if (floor.placeAssembly(slot, band, SHIP_KIT + id, layers)) {
+                if (floor.placeAssembly(slot, baseRow, SHIP_KIT + id, layers)) {
                     int[] stand = floor.toLocal(slot, standingRow);
-                    int[] fixture = floor.toLocal(slot, inboard);
+                    int[] fixture = floor.toLocal(slot, fixtureRow);
                     floor.fixtureTask(stand[0], stand[1], storage ? Affordance.STOW : Affordance.REST,
                             fixture[0], fixture[1]);
                 }
@@ -220,47 +237,47 @@ public final class BerthingFitting implements RoomFitting {
             if (doorSide && (slot == 0 || slot == along - 1)) {
                 // Stowage at the ends of the rank the hatches are in, which is
                 // where somebody coming off watch actually drops their kit. The
-                // locker is the cell against the passage so it can be opened
-                // from it; the bag behind it is scenery.
+                // locker stands a cell short of the passage, opened from the
+                // alcove that leaves between the racks either side; the bag
+                // behind it is scenery.
                 place(floor, slot, outboard, KIT);
-                place(floor, slot, inboard, locker, Affordance.STOW);
+                int[] at = floor.toLocal(slot, band + 1);
+                if (floor.place(locker, at[0], at[1])) {
+                    int[] stand = floor.toLocal(slot, inboard);
+                    floor.fixtureTask(stand[0], stand[1], Affordance.STOW, at[0], at[1]);
+                }
             } else if (!doorSide && slot == divider) {
-                place(floor, slot, outboard, STANCHION);
-                place(floor, slot, inboard, STANCHION);
+                for (int row = band; row < band + depth; row++) place(floor, slot, row, STANCHION);
             } else {
-                layRack(floor, slot, band, rack);
+                layRack(floor, slot, band, headOutboard, rack);
             }
         }
     }
 
     /**
-     * One rack, and the fact that somebody sleeps in it.
-     *
-     * <p>The standing cell falls in the passage of its own accord, because that
-     * is the only side of a rack that is not another rack or the hull.
+     * One rack, and the fact that somebody sleeps in it: worked from the
+     * passage cell at its foot, which is where a sleeper lies down from
+     * ({@code WorkMotion.SLEEP} draws the body up the bed from there).
      */
-    private void layRack(RoomFloor floor, int slot, int band, String rack) {
+    private void layRack(RoomFloor floor, int slot, int band, boolean headOutboard, String rack) {
         int[] rect = floor.toLocalRect(slot, band, 1, RACK_DEPTH);
-        floor.place(rack, rect[0], rect[1], Affordance.REST);
+        if (!floor.place(rack, rect[0], rect[1])) return;
+        int[] stand = floor.toLocal(slot, headOutboard ? band + RACK_DEPTH : band - 1);
+        int[] foot = floor.toLocal(slot, headOutboard ? band + RACK_DEPTH - 1 : band);
+        floor.fixtureTask(stand[0], stand[1], Affordance.REST, foot[0], foot[1]);
     }
 
     /** The rack sprite whose head lies the way this rank's heads point. */
     private static String rackFacing(int[] head) {
         if (head[0] < 0) return RACK_HEAD_WEST;
         if (head[0] > 0) return RACK_HEAD_EAST;
-        if (head[1] < 0) return RACK_HEAD_NORTH;
-        return RACK_HEAD_SOUTH;
+        if (head[1] < 0) return RACK_HEAD_SOUTH;
+        return RACK_HEAD_NORTH;
     }
 
     private void place(RoomFloor floor, int along, int across, String id) {
         int[] cell = floor.toLocal(along, across);
         floor.place(id, cell[0], cell[1]);
-    }
-
-    private void place(RoomFloor floor, int along, int across,
-                       String id, Affordance affordance) {
-        int[] cell = floor.toLocal(along, across);
-        floor.place(id, cell[0], cell[1], affordance);
     }
 
     private void reserve(RoomFloor floor,

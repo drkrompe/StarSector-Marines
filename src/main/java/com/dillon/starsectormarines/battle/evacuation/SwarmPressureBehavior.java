@@ -55,6 +55,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         switch (sim.identity().type(runner)) {
             case SWARM_BRUTE: SwarmBruteBehavior.update(runner, sim); return;
             case SWARM_SPITTER: SwarmSpitterBehavior.update(runner, sim); return;
+            case SWARM_MATRIARCH: SwarmMatriarchBehavior.update(runner, sim); return;
             default: break;
         }
         tickCooldown(runner, sim);
@@ -77,10 +78,16 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         if (distance <= sim.combat().attackRange(runner)) {
             sim.clearPath(runner);
             if (sim.combat().cooldownTimer(runner) <= 0f) {
-                sim.applyDamage(target, runner,
-                        sim.combat().attackDamage(runner), 0f,
-                        sim.identity().type(runner).moraleImpact);
-                sim.swarmHarvest().struck(target, runner);
+                SwarmHarvest harvest = sim.swarmHarvest();
+                if (harvest.impales(runner, target, sim)) {
+                    // The blow goes in and holds rather than wounding: the impaling blow does no damage of its own.
+                    harvest.impale(target, runner);
+                } else {
+                    sim.applyDamage(target, runner,
+                            sim.combat().attackDamage(runner), 0f,
+                            sim.identity().type(runner).moraleImpact);
+                    harvest.struck(target, runner);
+                }
                 sim.swarmCues().post(SwarmCues.Kind.STRIKE, runner, sim);
                 sim.combat().setCooldownTimer(runner,
                         sim.combat().attackCooldown(runner));
@@ -310,12 +317,9 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         long fallback = 0L;
         float fallbackDistance = Float.MAX_VALUE;
         for (Faction prey : PREY) {
-            long candidate = shelterProtected
-                    ? sim.getUnitIndex().nearestFaction(
-                            runnerPosX, runnerPosY, prey,
-                            id -> eligiblePreyKnownFaction(id, true, sim))
-                    : sim.getUnitIndex().nearestFaction(
-                            runnerPosX, runnerPosY, prey);
+            long candidate = sim.getUnitIndex().nearestFaction(
+                    runnerPosX, runnerPosY, prey,
+                    id -> eligiblePreyKnownFaction(id, shelterProtected, sim));
             if (candidate == 0L) continue;
             float distance = distanceSquared(runnerPosX, runnerPosY,
                     sim.world().x(candidate), sim.world().y(candidate));
@@ -345,12 +349,15 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                                          BattleSimulation sim) {
         return sim.resolveUnit(candidate) != 0L
                 && sim.identity().faction(candidate) == Faction.CIVILIAN
-                && tracker.state(candidate) == null;
+                && tracker.state(candidate) == null
+                && !sim.swarmHarvest().isCarried(candidate);
     }
 
     /** Caller has already established that the candidate is a prey faction. */
     static boolean eligiblePreyKnownFaction(
             long candidate, boolean shelterProtected, BattleSimulation sim) {
+        // A body on a carrier's blades already belongs to the swarm.
+        if (sim.swarmHarvest().isCarried(candidate)) return false;
         if (!shelterProtected) return true;
         Squad squad = sim.squadOf(candidate);
         return squad == null || !sim.isShelterGuard(squad.id);

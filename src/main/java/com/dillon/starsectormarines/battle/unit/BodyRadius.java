@@ -45,15 +45,17 @@ public final class BodyRadius {
      * {@code IDENTITY} columns: a turret answers from its structure, an
      * aircraft from its airframe, a mech from its variant, and only a type
      * whose whole archetype is one size falls through to
-     * {@link UnitType#radius}.
+     * {@link UnitType#radius}, scaled by a swarm body's growth stage
+     * ({@link SwarmStage#simRadius}; null and an adult are the type's own).
      */
     public static float resolve(StructureDef turretStructure,
                                 Airframe airframe,
                                 MechVariant variant,
-                                UnitType type) {
+                                UnitType type,
+                                SwarmStage stage) {
         if (turretStructure != null) return turretStructure.radius;
         if (airframe != null) return airframe.targetRadiusCells();
         if (variant != null) return variant.radius;
-        return type.radius;
+        return stage != null ? stage.simRadius(type) : type.radius;
     }
 }

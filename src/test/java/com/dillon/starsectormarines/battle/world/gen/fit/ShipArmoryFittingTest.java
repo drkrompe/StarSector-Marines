@@ -46,7 +46,7 @@ class ShipArmoryFittingTest {
             for (int y = 0; y < 8; y++) for (int x = 0; x < 12; x++) {
                 int[] cell = f.floor.toLocal(x, y);
                 boolean fixture = y == 2 && (x < 8 || x >= 10)
-                        || (y == 4 || y == 5) && (x < 3 || x >= 4 && x < 7 || x >= 10)
+                        || y == 4 && (x < 3 || x >= 4 && x < 7 || x >= 10)
                         || y == 7;
                 assertEquals(!fixture, f.ctx.grid.isWalkable(4 + cell[0], 4 + cell[1]),
                         "occupied silhouette at " + x + "," + y + " " + pose);

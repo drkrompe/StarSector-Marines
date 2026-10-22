@@ -291,12 +291,12 @@
     },
     {
       "id": "doodad.residential-bed-h",
-      "col": 6,
-      "row": 5,
+      "col": 3,
+      "row": 6,
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
-        2,
+        3,
         1
       ],
       "preferredWallSide": "W"
@@ -304,43 +304,43 @@
     {
       "id": "doodad.residential-bed-head-e",
       "col": 3,
-      "row": 6,
+      "row": 7,
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
-        2,
+        3,
         1
       ],
       "preferredWallSide": "E"
     },
     {
       "id": "doodad.residential-bed-v",
-      "col": 5,
-      "row": 6,
+      "col": 6,
+      "row": 5,
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
         1,
-        2
+        3
       ],
       "preferredWallSide": "S"
     },
     {
       "id": "doodad.residential-bed-head-n",
-      "col": 6,
-      "row": 6,
+      "col": 7,
+      "row": 5,
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
         1,
-        2
+        3
       ],
       "preferredWallSide": "N"
     },
     {
       "id": "doodad.residential-sofa-h",
-      "col": 3,
-      "row": 7,
+      "col": 0,
+      "row": 8,
       "cover": "med",
       "ballisticHalfHeight": 0.42,
       "footprintCells": [
@@ -351,7 +351,7 @@
     },
     {
       "id": "doodad.residential-sofa-back-s",
-      "col": 0,
+      "col": 2,
       "row": 8,
       "cover": "med",
       "ballisticHalfHeight": 0.42,
@@ -363,8 +363,8 @@
     },
     {
       "id": "doodad.residential-sofa-v",
-      "col": 7,
-      "row": 6,
+      "col": 4,
+      "row": 8,
       "cover": "med",
       "ballisticHalfHeight": 0.42,
       "footprintCells": [
@@ -375,7 +375,7 @@
     },
     {
       "id": "doodad.residential-sofa-back-e",
-      "col": 2,
+      "col": 5,
       "row": 8,
       "cover": "med",
       "ballisticHalfHeight": 0.42,
@@ -387,22 +387,22 @@
     },
     {
       "id": "doodad.residential-planter-h",
-      "col": 3,
+      "col": 6,
       "row": 8,
       "cover": "med",
       "ballisticHalfHeight": 0.55
     },
     {
       "id": "doodad.residential-planter-v",
-      "col": 4,
+      "col": 7,
       "row": 8,
       "cover": "med",
       "ballisticHalfHeight": 0.55
     },
     {
       "id": "doodad.industrial-reactor-housing",
-      "col": 5,
-      "row": 8,
+      "col": 0,
+      "row": 9,
       "cover": "heavy",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -412,7 +412,7 @@
     },
     {
       "id": "doodad.industrial-turbine-set",
-      "col": 0,
+      "col": 2,
       "row": 10,
       "cover": "heavy",
       "ballisticHalfHeight": 0.45,
@@ -423,8 +423,8 @@
     },
     {
       "id": "doodad.industrial-switchboard",
-      "col": 5,
-      "row": 10,
+      "col": 0,
+      "row": 12,
       "cover": "heavy",
       "ballisticHalfHeight": 0.4,
       "footprintCells": [
@@ -435,7 +435,7 @@
     },
     {
       "id": "doodad.industrial-pump-set",
-      "col": 0,
+      "col": 2,
       "row": 9,
       "cover": "med",
       "ballisticHalfHeight": 0.35,
@@ -446,8 +446,8 @@
     },
     {
       "id": "doodad.industrial-engine-control-board",
-      "col": 5,
-      "row": 11,
+      "col": 3,
+      "row": 12,
       "cover": "med",
       "ballisticHalfHeight": 0.35,
       "footprintCells": [
@@ -459,7 +459,7 @@
     {
       "id": "doodad.military-nav-plot",
       "col": 0,
-      "row": 12,
+      "row": 13,
       "cover": "med",
       "ballisticHalfHeight": 0.42,
       "footprintCells": [
@@ -469,7 +469,7 @@
     },
     {
       "id": "doodad.gym-weight-rack",
-      "col": 3,
+      "col": 6,
       "row": 9,
       "cover": "med",
       "ballisticHalfHeight": 0.4,
@@ -481,7 +481,7 @@
     {
       "id": "doodad.gym-bench-press",
       "col": 7,
-      "row": 8,
+      "row": 10,
       "cover": "med",
       "ballisticHalfHeight": 0.35,
       "footprintCells": [
@@ -491,7 +491,7 @@
     },
     {
       "id": "doodad.gym-ergometer",
-      "col": 3,
+      "col": 6,
       "row": 12,
       "cover": "light",
       "ballisticHalfHeight": 0.3,
@@ -502,7 +502,7 @@
     },
     {
       "id": "doodad.gym-treadmill",
-      "col": 4,
+      "col": 7,
       "row": 12,
       "cover": "med",
       "ballisticHalfHeight": 0.4,
@@ -513,15 +513,15 @@
     },
     {
       "id": "doodad.gym-kit-locker",
-      "col": 5,
-      "row": 12,
+      "col": 0,
+      "row": 11,
       "cover": "med",
       "ballisticHalfHeight": 0.35
     },
     {
       "id": "doodad.gym-mat",
-      "col": 6,
-      "row": 12,
+      "col": 3,
+      "row": 13,
       "cover": "none",
       "footprintCells": [
         2,
@@ -530,7 +530,7 @@
     },
     {
       "id": "doodad.ship-washbasin-run",
-      "col": 3,
+      "col": 5,
       "row": 14,
       "cover": "light",
       "ballisticHalfHeight": 0.3,
@@ -541,7 +541,7 @@
     },
     {
       "id": "doodad.ship-head-stall-bank",
-      "col": 0,
+      "col": 3,
       "row": 15,
       "cover": "med",
       "ballisticHalfHeight": 0.5,
@@ -553,7 +553,7 @@
     {
       "id": "doodad.galley-range",
       "col": 6,
-      "row": 14,
+      "row": 15,
       "cover": "med",
       "ballisticHalfHeight": 0.4,
       "footprintCells": [
@@ -564,7 +564,7 @@
     {
       "id": "doodad.galley-prep-bench",
       "col": 7,
-      "row": 14,
+      "row": 15,
       "cover": "med",
       "ballisticHalfHeight": 0.4,
       "footprintCells": [
@@ -574,15 +574,15 @@
     },
     {
       "id": "doodad.galley-servery-counter",
-      "col": 5,
-      "row": 13,
+      "col": 1,
+      "row": 11,
       "cover": "med",
       "ballisticHalfHeight": 0.45
     },
     {
       "id": "doodad.galley-scullery-sink",
-      "col": 3,
-      "row": 15,
+      "col": 0,
+      "row": 16,
       "cover": "med",
       "ballisticHalfHeight": 0.4,
       "footprintCells": [
@@ -592,8 +592,8 @@
     },
     {
       "id": "doodad.galley-cold-store",
-      "col": 4,
-      "row": 15,
+      "col": 1,
+      "row": 16,
       "cover": "heavy",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -603,7 +603,7 @@
     },
     {
       "id": "doodad.mess-table-long",
-      "col": 0,
+      "col": 2,
       "row": 17,
       "cover": "light",
       "ballisticHalfHeight": 0.3,
@@ -615,7 +615,7 @@
     {
       "id": "doodad.medical-ward-bed-head-n",
       "col": 5,
-      "row": 15,
+      "row": 17,
       "cover": "light",
       "ballisticHalfHeight": 0.3,
       "footprintCells": [
@@ -627,7 +627,7 @@
     {
       "id": "doodad.medical-ward-bed-head-s",
       "col": 6,
-      "row": 16,
+      "row": 17,
       "cover": "light",
       "ballisticHalfHeight": 0.3,
       "footprintCells": [
@@ -638,8 +638,8 @@
     },
     {
       "id": "doodad.medical-ward-bed-head-e",
-      "col": 3,
-      "row": 17,
+      "col": 0,
+      "row": 18,
       "cover": "light",
       "ballisticHalfHeight": 0.3,
       "footprintCells": [
@@ -650,8 +650,8 @@
     },
     {
       "id": "doodad.medical-ward-bed-head-w",
-      "col": 3,
-      "row": 18,
+      "col": 0,
+      "row": 19,
       "cover": "light",
       "ballisticHalfHeight": 0.3,
       "footprintCells": [
@@ -663,14 +663,14 @@
     {
       "id": "doodad.medical-monitor-stack",
       "col": 5,
-      "row": 17,
+      "row": 13,
       "cover": "light",
       "ballisticHalfHeight": 0.3
     },
     {
       "id": "doodad.medical-treatment-table",
-      "col": 5,
-      "row": 18,
+      "col": 2,
+      "row": 19,
       "cover": "med",
       "ballisticHalfHeight": 0.35,
       "footprintCells": [
@@ -680,14 +680,14 @@
     },
     {
       "id": "doodad.medical-supply-trolley",
-      "col": 7,
-      "row": 17,
+      "col": 2,
+      "row": 16,
       "cover": "light",
       "ballisticHalfHeight": 0.3
     },
     {
       "id": "doodad.medical-drug-locker",
-      "col": 0,
+      "col": 4,
       "row": 19,
       "cover": "heavy",
       "ballisticHalfHeight": 0.5,
@@ -705,15 +705,15 @@
     },
     {
       "id": "doodad.medical-privacy-screen",
-      "col": 3,
+      "col": 7,
       "row": 19,
       "cover": "light",
       "ballisticHalfHeight": 0.3
     },
     {
       "id": "doodad.stores-rack-run",
-      "col": 4,
-      "row": 19,
+      "col": 0,
+      "row": 20,
       "cover": "heavy",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -723,7 +723,7 @@
     },
     {
       "id": "doodad.stores-roller-conveyor",
-      "col": 0,
+      "col": 3,
       "row": 20,
       "cover": "light",
       "ballisticHalfHeight": 0.3,
@@ -734,7 +734,7 @@
     },
     {
       "id": "doodad.stores-cargo-loader",
-      "col": 3,
+      "col": 6,
       "row": 20,
       "cover": "med",
       "ballisticHalfHeight": 0.4,
@@ -745,8 +745,8 @@
     },
     {
       "id": "doodad.stores-cage-front",
-      "col": 7,
-      "row": 19,
+      "col": 0,
+      "row": 21,
       "cover": "heavy",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -756,8 +756,8 @@
     },
     {
       "id": "doodad.stores-bin-rack",
-      "col": 5,
-      "row": 20,
+      "col": 1,
+      "row": 21,
       "cover": "med",
       "ballisticHalfHeight": 0.4,
       "footprintCells": [
@@ -767,7 +767,7 @@
     },
     {
       "id": "doodad.armoury-issue-counter",
-      "col": 0,
+      "col": 3,
       "row": 21,
       "cover": "med",
       "ballisticHalfHeight": 0.45,
@@ -778,7 +778,7 @@
     },
     {
       "id": "doodad.armoury-rifle-rack",
-      "col": 2,
+      "col": 5,
       "row": 21,
       "cover": "light",
       "ballisticHalfHeight": 0.35,
@@ -790,7 +790,7 @@
     },
     {
       "id": "doodad.armoury-ready-locker",
-      "col": 0,
+      "col": 1,
       "row": 22,
       "cover": "med",
       "ballisticHalfHeight": 0.45,
@@ -802,8 +802,8 @@
     },
     {
       "id": "doodad.armoury-ammo-locker",
-      "col": 5,
-      "row": 21,
+      "col": 4,
+      "row": 22,
       "cover": "heavy",
       "ballisticHalfHeight": 0.5,
       "footprintCells": [
@@ -814,8 +814,8 @@
     },
     {
       "id": "doodad.armoury-cleaning-bench",
-      "col": 3,
-      "row": 23,
+      "col": 0,
+      "row": 24,
       "cover": "light",
       "ballisticHalfHeight": 0.35,
       "footprintCells": [
@@ -1040,229 +1040,229 @@
       "description": "Wall-side archive cabinets with a compact communications terminal."
     },
     {
-      "col": 6,
-      "row": 5,
-      "name": "Residential bed head west",
-      "description": "Low civilian bed with its head against the west wall."
-    },
-    {
       "col": 3,
       "row": 6,
-      "name": "Residential bed head east",
-      "description": "Low civilian bed with its head against the east wall."
-    },
-    {
-      "col": 5,
-      "row": 6,
-      "name": "Residential bed head south",
-      "description": "Low civilian bed with its head against the south wall."
-    },
-    {
-      "col": 6,
-      "row": 6,
-      "name": "Residential bed head north",
-      "description": "Low civilian bed with its head against the north wall."
+      "name": "Residential bed head west",
+      "description": "Low civilian single bed, 0.72 x 2.1 m, with its head against the west wall."
     },
     {
       "col": 3,
       "row": 7,
+      "name": "Residential bed head east",
+      "description": "Low civilian single bed, 0.72 x 2.1 m, with its head against the east wall."
+    },
+    {
+      "col": 6,
+      "row": 5,
+      "name": "Residential bed head south",
+      "description": "Low civilian single bed, 0.72 x 2.1 m, with its head against the south wall."
+    },
+    {
+      "col": 7,
+      "row": 5,
+      "name": "Residential bed head north",
+      "description": "Low civilian single bed, 0.72 x 2.1 m, with its head against the north wall."
+    },
+    {
+      "col": 0,
+      "row": 8,
       "name": "Residential sofa back north",
       "description": "Low two-seat civilian sofa facing south into the room."
     },
     {
-      "col": 0,
+      "col": 2,
       "row": 8,
       "name": "Residential sofa back south",
       "description": "Low two-seat civilian sofa facing north into the room."
     },
     {
-      "col": 7,
-      "row": 6,
+      "col": 4,
+      "row": 8,
       "name": "Residential sofa back west",
       "description": "Low two-seat civilian sofa facing east into the room."
     },
     {
-      "col": 2,
+      "col": 5,
       "row": 8,
       "name": "Residential sofa back east",
       "description": "Low two-seat civilian sofa facing west into the room."
     },
     {
-      "col": 3,
+      "col": 6,
       "row": 8,
       "name": "Courtyard planter horizontal",
       "description": "Raised concrete shrub planter aligned east-west."
     },
     {
-      "col": 4,
+      "col": 7,
       "row": 8,
       "name": "Courtyard planter vertical",
       "description": "Raised concrete shrub planter aligned north-south."
     },
     {
-      "col": 5,
-      "row": 8,
+      "col": 0,
+      "row": 9,
       "name": "Reactor housing",
       "description": "Shielded reactor can, two cells square."
     },
     {
-      "col": 0,
+      "col": 2,
       "row": 10,
       "name": "Turbine set",
       "description": "Main turbine and its casing, five cells along the shaft."
     },
     {
-      "col": 5,
-      "row": 10,
+      "col": 0,
+      "row": 12,
       "name": "Switchboard",
       "description": "Wall-mounted power distribution board."
     },
     {
-      "col": 0,
+      "col": 2,
       "row": 9,
       "name": "Pump set",
       "description": "Paired pumps on a common bedplate."
     },
     {
-      "col": 5,
-      "row": 11,
+      "col": 3,
+      "row": 12,
       "name": "Engine control board",
       "description": "Manned board for the drive and its auxiliaries."
     },
     {
       "col": 0,
-      "row": 12,
+      "row": 13,
       "name": "Navigation plot",
       "description": "Hexagonal holographic command plot, three cells across."
     },
     {
-      "col": 3,
+      "col": 6,
       "row": 9,
       "name": "Weight rack",
       "description": "Two-tier dumbbell and plate rack."
     },
     {
       "col": 7,
-      "row": 8,
+      "row": 10,
       "name": "Weight bench",
       "description": "Flat bench with loaded barbell uprights."
     },
     {
-      "col": 3,
+      "col": 6,
       "row": 12,
       "name": "Rowing ergometer",
       "description": "Sliding-seat rowing machine."
     },
     {
-      "col": 4,
+      "col": 7,
       "row": 12,
       "name": "Treadmill",
       "description": "Shipboard running belt with console."
     },
     {
-      "col": 5,
-      "row": 12,
+      "col": 0,
+      "row": 11,
       "name": "Kit locker",
       "description": "Open locker of towels, rope and wraps."
     },
     {
-      "col": 6,
-      "row": 12,
+      "col": 3,
+      "row": 13,
       "name": "Training mat",
       "description": "Quartered rubber deck mat."
     },
     {
-      "col": 3,
+      "col": 5,
       "row": 14,
       "name": "Washbasin run",
       "description": "Three basins in a row, mounted flush to the bulkhead."
     },
     {
-      "col": 0,
+      "col": 3,
       "row": 15,
       "name": "Head stall bank",
       "description": "Three enclosed stalls in a row, doors facing the walk-through."
     },
     {
       "col": 6,
-      "row": 14,
+      "row": 15,
       "name": "Galley range",
       "description": "Four-hob cooking block with a splash rail on three sides."
     },
     {
       "col": 7,
-      "row": 14,
+      "row": 15,
       "name": "Preparation bench",
       "description": "Steel worktop with a rinsing basin, knife rail and pots."
     },
     {
-      "col": 5,
-      "row": 13,
+      "col": 1,
+      "row": 11,
       "name": "Servery counter",
       "description": "One hot-well section of a serving counter, with its tray rail."
     },
     {
-      "col": 3,
-      "row": 15,
+      "col": 0,
+      "row": 16,
       "name": "Scullery sink",
       "description": "Double sink and draining board at the end of a galley line."
     },
     {
-      "col": 4,
-      "row": 15,
+      "col": 1,
+      "row": 16,
       "name": "Cold store",
       "description": "Latched refrigerated provisions chest."
     },
     {
-      "col": 0,
+      "col": 2,
       "row": 17,
       "name": "Mess table",
       "description": "Long dining table with a fixed bench down each side."
     },
     {
       "col": 5,
-      "row": 15,
+      "row": 17,
       "name": "Ward bed, head north",
       "description": "Sick-bay bed with rails and a chart clip, head to the north."
     },
     {
       "col": 6,
-      "row": 16,
+      "row": 17,
       "name": "Ward bed, head south",
       "description": "Sick-bay bed with rails and a chart clip, head to the south."
     },
     {
-      "col": 3,
-      "row": 17,
+      "col": 0,
+      "row": 18,
       "name": "Ward bed, head east",
       "description": "Sick-bay bed with rails and a chart clip, head to the east."
     },
     {
-      "col": 3,
-      "row": 18,
+      "col": 0,
+      "row": 19,
       "name": "Ward bed, head west",
       "description": "Sick-bay bed with rails and a chart clip, head to the west."
     },
     {
       "col": 5,
-      "row": 17,
+      "row": 13,
       "name": "Patient monitor",
       "description": "Vitals monitor on its stand at the head of a bed."
     },
     {
-      "col": 5,
-      "row": 18,
+      "col": 2,
+      "row": 19,
       "name": "Treatment table",
       "description": "Narrow procedure table with a hinged head and an instrument tray."
     },
     {
-      "col": 7,
-      "row": 17,
+      "col": 2,
+      "row": 16,
       "name": "Supply trolley",
       "description": "Wheeled cart of dressings, dishes and vials."
     },
     {
-      "col": 0,
+      "col": 4,
       "row": 19,
       "name": "Drug locker bank",
       "description": "Secured dispensary lockers against the bulkhead."
@@ -1274,68 +1274,68 @@
       "description": "Deep clinical sink with an elbow tap."
     },
     {
-      "col": 3,
+      "col": 7,
       "row": 19,
       "name": "Privacy screen",
       "description": "Folding screen drawn round a bed or a table."
     },
     {
-      "col": 4,
-      "row": 19,
+      "col": 0,
+      "row": 20,
       "name": "Stores rack run",
       "description": "Three-bay shelving run, boxed stock on both tiers."
     },
     {
-      "col": 0,
+      "col": 3,
       "row": 20,
       "name": "Roller conveyor",
       "description": "Straight powered roller section with hazard-striped rails."
     },
     {
-      "col": 3,
+      "col": 6,
       "row": 20,
       "name": "Cargo loader",
       "description": "Compact powered pallet loader, forks extended."
     },
     {
-      "col": 7,
-      "row": 19,
+      "col": 0,
+      "row": 21,
       "name": "Cage front",
       "description": "Wire-mesh security front with an issue service window."
     },
     {
-      "col": 5,
-      "row": 20,
+      "col": 1,
+      "row": 21,
       "name": "Small-bin rack",
       "description": "Dense small-parts bin rack against a bulkhead."
     },
     {
-      "col": 0,
+      "col": 3,
       "row": 21,
       "name": "Issue counter",
       "description": "Secure weapons-issue desk with a pass-through slot."
     },
     {
-      "col": 2,
+      "col": 5,
       "row": 21,
       "name": "Rifle rack",
       "description": "Long arms racked side by side against a backing panel."
     },
     {
-      "col": 0,
+      "col": 1,
       "row": 22,
       "name": "Ready-use lockers",
       "description": "A bank of three secured ready-use weapon lockers."
     },
     {
-      "col": 5,
-      "row": 21,
+      "col": 4,
+      "row": 22,
       "name": "Ammunition cage",
       "description": "Mesh-fronted cage of stacked ammunition crates."
     },
     {
-      "col": 3,
-      "row": 23,
+      "col": 0,
+      "row": 24,
       "name": "Cleaning bench",
       "description": "Bench with a weapon in its cradle, parts tray and rod."
     }

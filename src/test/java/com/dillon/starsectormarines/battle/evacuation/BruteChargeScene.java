@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.HullImpact;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
@@ -95,6 +96,11 @@ public final class BruteChargeScene implements BehaviorScene {
                     .stationary().health(DEEP).done();
             default -> { }
         }
+        if (!building && !loop.equals("infantry-line") && !loop.equals("far-target")) {
+            // A marine well outside the charge band, so the player's side sees the Brute: without
+            // one nothing of ours has eyes on it and the frames draw it hidden by the fog.
+            builder.unit("observer", Faction.MARINE, UnitType.MARINE, 24, lane - 5, spec -> spec.health(DEEP));
+        }
         SceneWorld world = builder.build();
         try (BattleSimulation sim = world.sim()) {
             long target = switch (loop) {
@@ -125,8 +131,10 @@ public final class BruteChargeScene implements BehaviorScene {
             Trace trace = new Trace(loop, brute, target, bodies.stream().mapToLong(Long::longValue).toArray(),
                     ground, sim);
             trace.remember(sim);
+            // The hulls' charges go in before the Brute's own hunting can post one at the hull's centre.
+            if (sim.convoy().isVehicle(target)) trace.script(sim);
             SceneRun.of(world).observe(trace)
-                    .frames(frames, loop, 6, tick -> loop + " / brute charge / tick " + tick)
+                    .frames(frames, loop, 3, tick -> loop + " / brute charge / tick " + tick)
                     .run(TICKS);
             return report(loop, trace, sim);
         }
@@ -144,12 +152,26 @@ public final class BruteChargeScene implements BehaviorScene {
                         || trace.shortestGap >= BruteChargeRules.ticks(BruteChargeRules.COOLDOWN),
                 trace.shortestGap < 0 ? "one charge" : "shortest gap between tells " + trace.shortestGap + " ticks"));
         verdicts.add(Verdict.of("spares-its-own-side", !trace.hitOwnSide, "own side struck " + trace.hitOwnSide));
+        // Whatever it hits is carried there over ticks, not set down there: nothing struck jumps.
+        // A blow lands on what is under the Brute's head, not at a circle about the target's centre.
+        // The trace samples the hull a tick after the behaviour judged the reach, so it allows one tick of slide.
+        verdicts.add(Verdict.of("blows-land-in-reach", trace.blowGap <= BruteChargeRules.BLOW_REACH + MAX_STEP * .6f,
+                trace.targetBlows == 0 ? "no blow on the target" : trace.targetBlows
+                        + " blows on the target, struck from at most " + trace.blowGap + " cells off its surface"));
+        verdicts.add(Verdict.of("slides-not-jumps", trace.maxStep <= MAX_STEP,
+                "largest move of a struck body in one tick " + trace.maxStep + " cells"));
         switch (loop) {
             case "infantry-line" -> {
                 verdicts.add(Verdict.of("charges", trace.tells > 0, trace.tells + " tells"));
+                int thrown = trace.thrown();
                 verdicts.add(Verdict.of("thrown-and-knocked-down", trace.infantryHits > 0
-                                && trace.infantryHeld == trace.infantryHits && trace.infantryThrown == trace.infantryHits,
-                        trace.infantryHits + " hits, " + trace.infantryThrown + " thrown, " + trace.infantryHeld + " held"));
+                                && trace.infantryHeld == trace.infantryHits && thrown == trace.thrownBodies.size(),
+                        trace.infantryHits + " hits, " + thrown + " of " + trace.thrownBodies.size()
+                                + " bodies thrown, " + trace.infantryHeld + " held"));
+                // A trample is conditional on the Brute reaching a body on foot; when it does, the body goes down.
+                verdicts.add(Verdict.of("trample-knocks-down", trace.trampleHeld == trace.tramples,
+                        trace.tramples == 0 ? "no trample (no body reached on foot)"
+                                : trace.trampleHeld + " of " + trace.tramples + " trampled bodies down"));
                 verdicts.add(Verdict.of("goes-through-two", trace.infantryHits > 1 && trace.chargesStoppedEarly == 0,
                         trace.infantryHits + " bodies hit; " + trace.chargesStoppedEarly + " charges ended on a body before the limit of "
                                 + BruteChargeRules.MAX_BODIES));
@@ -164,14 +186,22 @@ public final class BruteChargeScene implements BehaviorScene {
                 verdicts.add(Verdict.of("stunned-by-the-wall", trace.bruteStunned, "stunned " + trace.bruteStunned));
                 verdicts.add(Verdict.of("wall-untouched", trace.ringUnchanged(), "ring hp unchanged " + trace.ringUnchanged()));
             }
-            case "technical" -> verdicts.add(Verdict.of("shoved-and-stalled", trace.targetHits > 0
-                            && trace.targetHeld && trace.shove >= BruteChargeRules.SHOVE * .5f,
-                    trace.targetHits + " hits, shoved " + trace.shove + ", stalled " + trace.targetHeld));
-            case "apc" -> verdicts.add(Verdict.of("stalled-not-shoved", trace.targetHits > 0
-                            && trace.targetHeld && trace.shove < .05f,
-                    trace.targetHits + " hits, shoved " + trace.shove + ", stalled " + trace.targetHeld));
-            case "tank" -> verdicts.add(Verdict.of("stuns-the-brute", trace.targetHits > 0 && trace.bruteStunned,
-                    trace.targetHits + " hits, stunned " + trace.bruteStunned));
+            // A hull's movement is the momentum the two exchange: a light hull is pushed well over, a heavy
+            // one only nudged, and the Brute takes the rest back.
+            case "technical" -> verdicts.add(Verdict.of("pushed-and-stalled", trace.targetHits > 0
+                            && trace.targetHeld && trace.shove >= .15f && impulse(sim, trace) > 0f,
+                    trace.targetHits + " hits, pushed " + trace.shove + " cells, stalled " + trace.targetHeld));
+            case "apc" -> verdicts.add(Verdict.of("stalled-and-nudged", trace.targetHits > 0
+                            && trace.targetHeld && impulse(sim, trace) > 0f && trace.shove < .3f,
+                    trace.targetHits + " hits, pushed " + trace.shove + " cells, stalled " + trace.targetHeld));
+            case "tank" -> {
+                verdicts.add(Verdict.of("stuns-the-brute", trace.targetHits > 0 && trace.bruteStunned,
+                        trace.targetHits + " hits, stunned " + trace.bruteStunned));
+                verdicts.add(Verdict.of("nudged-and-hurts-the-brute", impulse(sim, trace) > 0f && trace.shove > 0f
+                                && trace.shove < .15f && trace.recoiled,
+                        "impulse " + impulse(sim, trace) + ", nudged " + trace.shove + " cells, recoil "
+                                + trace.recoiled));
+            }
             case "hound" -> verdicts.add(Verdict.of("legs-hit-and-staggered", trace.targetHits > 0
                             && trace.legsHit && trace.targetHeld,
                     trace.targetHits + " hits, legs " + trace.legsHit + ", staggered " + trace.targetHeld));
@@ -189,9 +219,26 @@ public final class BruteChargeScene implements BehaviorScene {
         metrics.put("targetHits", trace.targetHits);
         metrics.put("rams", trace.rams);
         metrics.put("shove", trace.shove);
+        metrics.put("impulse", impulse(sim, trace));
+        metrics.put("hullTurnDegrees", trace.turn);
+        metrics.put("tramples", trace.tramples);
+        metrics.put("maxStep", trace.maxStep);
+        metrics.put("blows", trace.blows);
+        metrics.put("blowGap", trace.blowGap);
+        metrics.put("pushedOverTheFight", trace.blowShove);
         metrics.put("firstTellDistance", Float.isNaN(trace.firstTellDistance) ? -1f : trace.firstTellDistance);
         metrics.put("bruteDamageDealt", trace.damageDealt(sim));
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
+    }
+
+    /** How far ahead of a hull's centre (along its facing) the scripted charge aims, cells. */
+    private static final float OFF_CENTRE = .6f;
+
+    /** A struck body's largest move in one tick; a charging Brute covers about 0.13. */
+    private static final float MAX_STEP = .25f;
+
+    private static float impulse(BattleSimulation sim, Trace trace) {
+        return trace.target == 0L ? 0f : sim.bruteCharges().lastImpulse(trace.target);
     }
 
     /** Watches the charge record tick by tick; scripts the charge where the loop needs one. */
@@ -209,7 +256,17 @@ public final class BruteChargeScene implements BehaviorScene {
         private float lastHeading = Float.NaN;
         private float maxTurnPerTick;
         private boolean hitOwnSide;
-        private int infantryHits, infantryThrown, infantryHeld;
+        private int infantryHits, infantryHeld, tramples, trampleHeld;
+        private boolean recoiled;
+        private float maxStep;
+        private int blows, targetBlows;
+        private float blowShove;
+        private float blowGap;
+        private float hitFacing = Float.NaN, turn;
+        /** Where each struck body stood the tick before it was hit, and the furthest it has gone since. */
+        private final Map<Long, float[]> hitFrom = new LinkedHashMap<>();
+        private final Map<Long, Float> carried = new LinkedHashMap<>();
+        private final List<Long> thrownBodies = new ArrayList<>();
         private int bodiesThisCharge, chargesStoppedEarly;
         private int targetHits, rams, ramsDouble;
         private boolean targetHeld, bruteStunned, legsHit, plateTurnedIt;
@@ -286,6 +343,21 @@ public final class BruteChargeScene implements BehaviorScene {
                         pendingTell = false;
                     }
                     case "stunned" -> bruteStunned = true;
+                    case "recoil" -> recoiled = true;
+                    case "blow" -> {
+                        blows++;
+                        if (e.target() == target) {
+                            targetBlows++;
+                            // Measured where the blow was struck from: the tick before, as the push lands this one.
+                            float[] at = lastPos.get(brute);
+                            if (at != null) blowGap = Math.max(blowGap, gapFrom(sim, at[0], at[1]));
+                        }
+                    }
+                    case "trample" -> {
+                        tramples++;
+                        if (sim.stagger().isStaggered(e.target()) || !sim.world().isAlive(e.target())) trampleHeld++;
+                        struck(e.target());
+                    }
                     case "ram" -> {
                         rams++;
                         int w = ground.grid.getWidth();
@@ -303,11 +375,8 @@ public final class BruteChargeScene implements BehaviorScene {
                         if (e.what().equals("infantry")) {
                             infantryHits++;
                             if (held) infantryHeld++;
-                            float[] was = lastPos.get(e.target());
-                            if (was != null && Math.hypot(sim.world().x(e.target()) - was[0],
-                                    sim.world().y(e.target()) - was[1]) >= .5f) {
-                                infantryThrown++;
-                            }
+                            if (!thrownBodies.contains(e.target())) thrownBodies.add(e.target());
+                            struck(e.target());
                             bodiesThisCharge++;
                             if (bodiesThisCharge <= BruteChargeRules.MAX_BODIES
                                     && charges.phase(brute) != Phase.RUN) {
@@ -317,11 +386,7 @@ public final class BruteChargeScene implements BehaviorScene {
                         if (e.target() == target) {
                             targetHits++;
                             if (held) targetHeld = true;
-                            float[] was = lastPos.get(target);
-                            if (was != null && sim.convoy().isVehicle(target)) {
-                                shove = Math.max(shove, (float) Math.hypot(sim.world().x(target) - was[0],
-                                        sim.world().y(target) - was[1]));
-                            }
+                            struck(target);
                             if (sim.identity().type(target).isMech()) {
                                 MechSections sections = sim.world().mechLoadout(target).sections();
                                 // A hit the plate turns whole leaves armour and structure where they were.
@@ -345,20 +410,73 @@ public final class BruteChargeScene implements BehaviorScene {
             } else {
                 lastHeading = Float.NaN;
             }
+            follow(sim);
             remember(sim);
+        }
+
+        /** How far a point stands from the target's surface, as the Brute's reach measures it. */
+        private float gapFrom(BattleSimulation sim, float x, float y) {
+            if (sim.convoy().isVehicle(target)) {
+                var hull = sim.convoy().body(target);
+                var type = sim.convoy().vehicleType(target);
+                return HullImpact.surfaceDistance(hull.x, hull.y, hull.facingDegrees,
+                        type.visualLengthCells / 2f, type.visualWidthCells / 2f, x, y);
+            }
+            return Math.max(0f, (float) Math.hypot(sim.world().x(target) - x, sim.world().y(target) - y)
+                    - sim.getRoster().radius(target));
+        }
+
+        /** Thrown bodies: how many went at least half a cell. */
+        int thrown() {
+            int n = 0;
+            for (long id : thrownBodies) if (carried.getOrDefault(id, 0f) >= .5f) n++;
+            return n;
+        }
+
+        private void struck(long id) {
+            float[] was = lastPos.get(id);
+            if (was != null && !hitFrom.containsKey(id)) hitFrom.put(id, was);
+        }
+
+        /** How far every struck body has been carried, and the largest single-tick move among them. */
+        private void follow(BattleSimulation sim) {
+            for (Map.Entry<Long, float[]> e : hitFrom.entrySet()) {
+                long id = e.getKey();
+                if (!sim.getRoster().isAliveById(id)) continue;
+                float x = sim.world().x(id), y = sim.world().y(id);
+                float d = (float) Math.hypot(x - e.getValue()[0], y - e.getValue()[1]);
+                carried.merge(id, d, Math::max);
+                if (id == target && (sim.convoy().isVehicle(id) || sim.identity().type(id).isMech())) {
+                    // The charge's push, until the first blow; the blows' pushes after it.
+                    if (targetBlows == 0) shove = Math.max(shove, d);
+                    else blowShove = Math.max(blowShove, d);
+                    if (sim.convoy().isVehicle(id) && targetBlows == 0) {
+                        float facing = sim.convoy().body(id).facingDegrees;
+                        if (Float.isNaN(hitFacing)) hitFacing = facing;
+                        turn = Math.max(turn, Math.abs(((facing - hitFacing) % 360f + 540f) % 360f - 180f));
+                    }
+                }
+                float[] last = lastPos.get(id);
+                if (last != null) maxStep = Math.max(maxStep, (float) Math.hypot(x - last[0], y - last[1]));
+            }
         }
 
         /** Scripted charge for loops whose target the Brute's own hunting may not choose. */
         private void script(BattleSimulation sim) {
             switch (loop) {
                 case "heavy-wall" -> sim.bruteCharges().request(brute, 0L, ground.minX - .5f, sim.world().y(brute));
-                case "technical", "apc", "tank", "hound", "bulwark" ->
+                // At a point ahead of the hull's centre rather than at the hull, which a charge homes on: struck
+                // off its centre of gravity, a hull turns as well as moves.
+                case "technical", "apc", "tank" -> sim.bruteCharges().request(brute, 0L, sim.world().x(target),
+                        sim.world().y(target) + OFF_CENTRE);
+                case "hound", "bulwark" ->
                         sim.bruteCharges().request(brute, target, sim.world().x(target), sim.world().y(target));
                 default -> { }
             }
         }
 
         private void remember(BattleSimulation sim) {
+            if (sim.getRoster().isAliveById(brute)) lastPos.put(brute, new float[]{sim.world().x(brute), sim.world().y(brute)});
             for (long id : watched) {
                 if (sim.getRoster().isAliveById(id)) lastPos.put(id, new float[]{sim.world().x(id), sim.world().y(id)});
             }

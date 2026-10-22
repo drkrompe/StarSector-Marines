@@ -187,6 +187,20 @@ def creep_ramp(palette: dict) -> list:
     ]
 
 
+HUSK_DRAIN = 0.6
+HUSK_DIM = 0.9
+
+
+def husk(body: Image.Image, materials: np.ndarray) -> Image.Image:
+    """A dead body's creature materials drained towards grey and dimmed: dry, dull, no longer the living palette."""
+    arr = np.asarray(body).astype(np.float32)
+    lum = (0.299 * arr[..., 0] + 0.587 * arr[..., 1] + 0.114 * arr[..., 2])[..., None]
+    creature = soft_mask(materials, make_guide.CREATURE)
+    drained = (arr[..., :3] * (1 - HUSK_DRAIN) + lum * HUSK_DRAIN) * HUSK_DIM
+    rgb = arr[..., :3] * (1 - creature) + drained * creature
+    return Image.fromarray(np.dstack([np.clip(rgb, 0, 255), arr[..., 3]]).astype(np.uint8), "RGBA")
+
+
 def overgrow(body: Image.Image, materials: np.ndarray, ramp: list) -> Image.Image:
     """The thrown earth of a bore's berm turned to creep by luminance gradient map; paving slabs stay paving."""
     arr = np.asarray(body).astype(np.float32)
@@ -293,6 +307,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--palette", choices=("raw", *PALETTES), default=SHIPPED)
     parser.add_argument("--part", action="append", help="limit to these parts")
+    parser.add_argument("--state", action="append", choices=make_guide.STATES, help="limit to these damage states")
     args = parser.parse_args()
     here = Path(__file__).resolve().parent
     repository = here.parent.parent
@@ -302,39 +317,50 @@ def main() -> None:
     else:
         out_dir = repository / "build" / "swarm-bores" / args.palette
         out_dir.mkdir(parents=True, exist_ok=True)
-    berm = creep_ramp(creep_palette(repository))
+    creep = creep_palette(repository)
+    berm = creep_ramp(creep)
+    withered = creep_ramp({**creep, "base": creep["dead"], "flesh": tuple(min(255, round(c * 1.25)) for c in creep["dead"]),
+                           "vein": tuple(round(c * 0.6) for c in creep["dead"])})
+    states = args.state or list(make_guide.STATES)
     for part in make_guide.PARTS:
         if args.part and part not in args.part:
             continue
         edge = edge_px(part)
         for v in range(1, make_guide.VARIANTS[part] + 1):
-            raw_path = here / "raw" / f"{part}-{v}.raw.png"
-            if not raw_path.exists():
-                print(f"{part}-{v}: no raw yet, skipped")
-                continue
-            raw = Image.open(raw_path).convert("RGBA").resize((CANVAS, CANVAS), Image.Resampling.LANCZOS)
-            guide = Image.open(make_guide.guide_path(templates, part, v)).convert("RGBA")
-            small = (256, 256)
-            before = iou(mask(raw.resize(small)), mask(guide.resize(small)))
-            raw = fitted(raw, guide)
-            score = iou(mask(raw.resize(small)), mask(guide.resize(small)))
-            raw.putalpha(raw.getchannel("A").point(lambda value: 0 if value < ALPHA_FLOOR else value))
-            field = make_guide.build(part, v)
-            if args.palette != "raw":
-                raw = recolour(raw, field.m, args.palette)
-                raw = overgrow(raw, field.m, berm)
-            lit = glow(raw).resize((edge, edge), Image.Resampling.LANCZOS)
-            sprite = make_guide.ground_layer(field)
-            sprite.alpha_composite(raw)
-            sprite = sprite.resize((edge, edge), Image.Resampling.LANCZOS)
-            name = f"{NAMES[part]}-{v}"
-            body = out_dir / f"{name}.png"
-            sprite.save(body, optimize=True)
-            lit.save(out_dir / f"{name}-glow.png", optimize=True)
-            coverage = (np.asarray(lit.getchannel("A")) >= 128).sum() / max(1, (np.asarray(sprite.getchannel("A")) >= 128).sum())
-            print(f"{part}-{v}: IoU {before:.3f} raw, {score:.3f} fitted -> {body.relative_to(repository)} "
-                  f"{sprite.size}, glow {coverage:.1%} of body", flush=True)
-
+            for state in states:
+                suffix = "" if state == "intact" else f"-{state}"
+                raw_path = here / "raw" / f"{part}-{v}{suffix}.raw.png"
+                if not raw_path.exists():
+                    print(f"{part}-{v}{suffix}: no raw yet, skipped")
+                    continue
+                raw = Image.open(raw_path).convert("RGBA").resize((CANVAS, CANVAS), Image.Resampling.LANCZOS)
+                guide = Image.open(make_guide.guide_path(templates, part, v, state)).convert("RGBA")
+                small = (256, 256)
+                before = iou(mask(raw.resize(small)), mask(guide.resize(small)))
+                raw = fitted(raw, guide)
+                score = iou(mask(raw.resize(small)), mask(guide.resize(small)))
+                raw.putalpha(raw.getchannel("A").point(lambda value: 0 if value < ALPHA_FLOOR else value))
+                field = make_guide.build(part, v, state)
+                if args.palette != "raw":
+                    raw = recolour(raw, field.m, args.palette)
+                    if state == "remains":
+                        raw = husk(raw, field.m)
+                    raw = overgrow(raw, field.m, withered if state == "remains" else berm)
+                sprite = make_guide.ground_layer(field)
+                sprite.alpha_composite(raw)
+                sprite = sprite.resize((edge, edge), Image.Resampling.LANCZOS)
+                name = f"{NAMES[part]}-{v}{suffix}"
+                body = out_dir / f"{name}.png"
+                sprite.save(body, optimize=True)
+                note = ""
+                if state != "remains":
+                    # The dead have no glow; the living (hurt or not) breathe.
+                    lit = glow(raw).resize((edge, edge), Image.Resampling.LANCZOS)
+                    lit.save(out_dir / f"{name}-glow.png", optimize=True)
+                    coverage = (np.asarray(lit.getchannel("A")) >= 128).sum() / max(1, (np.asarray(sprite.getchannel("A")) >= 128).sum())
+                    note = f", glow {coverage:.1%} of body"
+                print(f"{part}-{v}{suffix}: IoU {before:.3f} raw, {score:.3f} fitted -> {body.relative_to(repository)} "
+                      f"{sprite.size}{note}", flush=True)
 
 if __name__ == "__main__":
     main()

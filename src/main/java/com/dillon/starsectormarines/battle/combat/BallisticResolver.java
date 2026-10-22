@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.function.LongPredicate;
 
 /**
  * Resolves one round's full flight in a single space-time raycast at fire
@@ -235,6 +236,8 @@ public final class BallisticResolver {
     private final UnitSpatialIndex unitIndex;
     private final UnitRosterService roster;
     private final BodyService bodies;
+    /** Bodies held on a swarm carrier's blades: direct fire never touches them (`colony-breach-nouns.md`, Harvest). */
+    private LongPredicate held = id -> false;
 
     public BallisticResolver(NavigationGrid grid, DoodadService doodads,
                               UnitSpatialIndex unitIndex, UnitRosterService roster) {
@@ -243,6 +246,16 @@ public final class BallisticResolver {
         this.unitIndex = unitIndex;
         this.roster = roster;
         this.bodies = roster.bodies();
+    }
+
+    /**
+     * Names the bodies no round may touch: a body held on a carrier is passed
+     * by the ray, whether it was the round's target, a stray's bystander or the
+     * body behind a penetration. It stays in the index and the roster, because
+     * everything else still has to see it.
+     */
+    public void spareHeld(LongPredicate held) {
+        this.held = held == null ? id -> false : held;
     }
 
     /** {@code target}'s ground velocity in cells/sec, as this resolver's own lead reads it. */
@@ -617,6 +630,7 @@ public final class BallisticResolver {
         for (int i = 0; i < candidates.size; i++) {
             long candidateId = candidates.ids[i];
             if (candidateId == source.entityId()) continue;
+            if (held.test(candidateId)) continue;
             // One question, one answer, whatever is carrying the body. The
             // branch this replaces asked it twice and had to be widened for
             // every carrier added.

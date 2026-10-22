@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160ea-8f58-78b1-824c-8b05fd32b785",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160ea-8f58-78b1-824c-8b05fd32b785\\exec-ab153059-f491-4baf-bd74-510959afdb09.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\561be886-e0cc-4b42-8e2f-ae131b00542f\\scratchpad\\bed-gen.png",
+    "sha256": "b417b4ff41707c96aa1ac9c0e8dab41e4ae9c133f218f993619d0c7e98bd029e",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\doodads\\residential-bed.prompt.txt",
+  "promptSha256": "7a45b345c0a538c7baf31dbaf4bc268b09ba2173c5d0a30c3631fbbe7c614a5e",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry, scale and layout authority: reskin this exactly, same size and position\nImage 2: Material and style reference only; it is the wrong size and proportions, ignore its proportions\n\nReskin the attached geometry guide into finished top-down game art for one civilian prop: a modest single bed in a futuristic apartment, seen from directly above. Strict overhead orthographic view, soft light from the upper left, the same look as the material reference: simple painted warm-grey metal frame, off-white pillow, muted teal blanket, worn fabric, small rust accents, realistic painted game-asset finish. No saturated colour, no glow.\n\nThe guide is the geometry, scale and layout authority, and the result will be cut mechanically from the guide's exact pixel rectangle. The bed is a long narrow strip, its length three times its width, and must overlay its grey guide shape almost exactly: the same left and right ends, the same top and bottom edges. Do not make it wider, longer or larger than its grey shape; do not move, rescale or rotate it, and add nothing else. Keep all empty canvas fully transparent: true transparent background; no floor, no rug, no shadow slab, no border, no people, no labels or text.\n\nThe piece: a narrow metal bed frame with a low headboard at the left end, the pillow at the left on the mattress, the blanket turned down at its left edge and covering the rest of the mattress to the foot at the right. Nothing on the floor around it.\n\nBroad readable forms, soft restrained highlights, sparse wear, low surface noise.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\residential-bed.png",
+      "sha256": "a54a5966029ff8c17cdf6c1da9b7f674ada8f257f6574107700e089bf9a925c5",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry, scale and layout authority: reskin this exactly, same size and position"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\561be886-e0cc-4b42-8e2f-ae131b00542f\\scratchpad\\bed-old.png",
+      "sha256": "8e16fea84a4436b413ddc06850846993c9aedb85a5e91e637c5011ace9a672b4",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only; it is the wrong size and proportions, ignore its proportions"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to generate one transparent bed image, matching the geometry guide’s exact footprint and placement."
+  ],
+  "usage": {
+    "input_tokens": 123029,
+    "cached_input_tokens": 98816,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 664,
+    "reasoning_output_tokens": 35
+  },
+  "elapsedSeconds": 64.4
+}

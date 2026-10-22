@@ -87,6 +87,97 @@ class RavRunnerRigTest {
     }
 
     @Test
+    void aCarrierFacesItsLoadAndLatchesOn() {
+        RavRunnerRig rig = new RavRunnerRig(5L);
+        float x = 10f, y = 10f;
+        // the carrier walks east toward the bore; the body trails half a cell behind it, to the west
+        for (int tick = 0; tick < 60; tick++) {
+            rig.advance(x, y, -90f, 1f, false, tick > 5, x - 0.55f, y, DT);
+            x += 1.28f * DT;
+        }
+        double rad = Math.toRadians(rig.facingDegrees());
+        assertTrue(-Math.sin(rad) < -0.95, "the carrier faces the body it drags");
+        float[] head = world(rig, RavRunnerRig.HEAD);
+        assertTrue(head[0] < rig.bodyX() - 0.2f, "the jaws are on the load side");
+    }
+
+    @Test
+    void aDeadRunnerBurstsAndItsPiecesComeToRestOnTheGround() {
+        RavRunnerRig rig = new RavRunnerRig(9L);
+        for (int tick = 0; tick < 10; tick++) rig.advance(3f, 3f, 0f, 0f, false, DT);
+        float[] p = new float[3];
+        rig.advanceDead(3f, 3f, DT);
+        rig.deadPoint(RavRunnerRig.PIECE_HEAD, RavRunnerRig.HEAD, 0f, 0f, p);
+        float headX = p[0], headY = p[1], headZ = p[2];
+        boolean airborne = false;
+        for (int tick = 0; tick < 4; tick++) {
+            rig.advanceDead(3f, 3f, DT);
+            rig.deadPoint(RavRunnerRig.PIECE_HEAD, RavRunnerRig.HEAD, 0f, 0f, p);
+            airborne |= p[2] > headZ + 0.01f;
+        }
+        assertTrue(airborne, "the burst throws the head up");
+        for (int tick = 0; tick < 120; tick++) rig.advanceDead(3f, 3f, DT);
+        assertTrue(rig.dead());
+        rig.deadPoint(RavRunnerRig.PIECE_HEAD, RavRunnerRig.HEAD, 0f, 0f, p);
+        assertTrue(Math.hypot(p[0] - headX, p[1] - headY) > 0.2f, "the head came away");
+        float[] still = new float[3];
+        for (int piece = 0; piece < RavRunnerRig.PIECES; piece++) {
+            for (int point = 0; point < RavRunnerRig.POINTS; point++) {
+                rig.deadPoint(piece, point, 0f, 0f, p);
+                assertTrue(p[2] < 1e-3f, "piece " + piece + " point " + point + " still off the ground at " + p[2]);
+                rig.advanceDead(3f, 3f, DT);
+                rig.deadPoint(piece, point, 0f, 0f, still);
+                assertEquals(p[0], still[0], 0f, "piece " + piece + " still moving");
+            }
+        }
+        for (int i = 0; i < rig.dropCount(); i++) assertTrue(rig.dropLanded(i), "droplet " + i + " landed");
+    }
+
+    @Test
+    void aTurningBodyBowsIntoTheTurn() {
+        RavRunnerRig rig = new RavRunnerRig(4L);
+        float x = 0f, y = 0f, facing = 0f;
+        for (int tick = 0; tick < 20; tick++) {
+            // running and turning left at 180 degrees a second
+            rig.advance(x, y, facing, 1f, false, DT);
+            double rad = Math.toRadians(facing);
+            x += (float) -Math.sin(rad) * 3f * DT;
+            y += (float) Math.cos(rad) * 3f * DT;
+            facing += 180f * DT;
+        }
+        assertTrue(rig.bendDegrees() > 10f, "the spine bends with the turn: " + rig.bendDegrees());
+        float mid = rig.x(RavRunnerRig.MID);
+        assertTrue(rig.x(RavRunnerRig.SHOULDER) < mid && rig.x(RavRunnerRig.HIP) < mid,
+                "shoulders and hips both bow toward the inside of a left turn");
+    }
+
+    @Test
+    void theBodyWindsBackAndDrivesThroughEachBlow() {
+        RavRunnerRig rig = new RavRunnerRig(3L);
+        float cooldown = 0.7f;
+        float wound = 0f;
+        int blows = 0;
+        for (int tick = 0; tick < 120; tick++) {
+            boolean lands = cooldown <= 0f;
+            if (lands) cooldown = 0.7f;
+            rig.advance(5f, 5f, 0f, cooldown, true, DT);
+            cooldown = Math.max(0f, cooldown - DT);
+            // positive: the striking arm's shoulder is turned back
+            float side = rig.strikeArm() == 0 ? 1f : -1f;
+            float back = rig.twistDegrees() * side;
+            if (lands) {
+                assertTrue(wound > 5f, "blow " + blows + " wound the shoulder back first: " + wound);
+                assertTrue(back < 0f, "blow " + blows + " drives the shoulder through as it lands: " + back);
+                blows++;
+                wound = 0f;
+            } else if (cooldown < 0.25f) {
+                wound = Math.max(wound, back);
+            }
+        }
+        assertTrue(blows >= 3);
+    }
+
+    @Test
     void ikKeepsBoneLengths() {
         float[] j = new float[4];
         RavRunnerRig.ik2(0f, 0.4f, 0.1f, 0f, 0.22f, 0.22f, -1f, j);

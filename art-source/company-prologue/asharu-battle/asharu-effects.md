@@ -163,6 +163,28 @@ thin the film has been worn. The tech finishes already in the kit fit this:
 | Flare launcher | Hound, Colossus, Mk.III, others | Decoy flares that attract missiles. | White-orange flares arcing off the hull, with missiles visibly peeling away to chase them. Placeholders exist (`flares`). |
 | Burn drive | Tarsus | A straight-line burst of speed. | The drives flare long and hot: a bid to run. |
 
+## Explosions: bursts, never orbs
+
+Owner (2026-10-21): "In general I don't like orb explosions — they don't make sense." Nothing
+in vacuum billows into a round fireball, so every detonation is an irregular, directional,
+short-lived burst in one language (`swfx_burst`):
+
+- a **jagged, lobed flash**, white-hot for a frame and gone in about three, leaning along the
+  direction the blast throws (out of a hit face, back along a warhead's flight);
+- **shrapnel** that leaves white-hot and cools through orange and dull red to dark within about
+  a third of its flight, then flies on as dark fragments;
+- **smoke** broken up by noise into a torn, patchy puff that thins and disperses, no billow.
+
+Size, lobes, spikes, turn and fragments are seeded per burst, so no two match. This covers
+flak, missile hits, kill pops, decoys and ignitions, torpedoes, HE shells and breaches, and the
+muzzle gas of armed weapons. The fire group's explosion anchors take it with style `jagged`,
+and the Phaeton wreck's baked cook-off is switched on its scene copy
+(`swfx_fire.jagged_cookoff`, after its break_frame is set; coordinator call 2026-10-21 under
+the owner's rule): its volume fireballs and shock rings are hidden and jagged blasts keyed in
+their place. The opening flash is hot yellow-white running to the blast's colour, feathered at
+the edge, for one to three frames. The old looks stay behind a switch as controls
+(`blasts='orb'`, `STYLE='orb'`, `style='orb'`).
+
 ## Scale
 
 The game's ranges (Vulcan 250, light MG 300, Mark IX 900, Harpoon 2500, Pilum 4000) are in

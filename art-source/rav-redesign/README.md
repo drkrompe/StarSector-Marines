@@ -49,3 +49,24 @@ What the owner settled before parking:
 
 Round 3's strongest reads were #4 indigo, #6 inside-out magenta and #2 bone-white. The owner had not picked one.
 To resume, start from round 3, put the legs under the body, and widen the stance only for the brace when it fires.
+
+## Matriarch (design settled 2026-10-21)
+
+The mother-bore heavy strain. The owner's brief was "an Ultralisk-like creature": a boss-scale plated
+quadruped with scything blades, which wades through fortifications. Sources are under
+`exploration/matriarch/round-1..3/`; `exploration/matriarch_sheet.py` builds the play-zoom sheets.
+
+The owner's calls, in order:
+- **Round 1, body plan: #4 Siege Crown.** The Brute's mace head grown into a vast fan-shaped crown of
+  bone spikes, wider than the shoulders. Two curved scythes come out from under the crown's rim, beside
+  the jaws. The legs stand under the body. Rejected in that round: Scythe Mother, Four Blades, Brood-Back,
+  Tusk-Reaper, One-Armed Ancient, Shellback and Spine-Queen.
+- **Palette:** "a slightly different color palette" from the Runner's lilac and the Brute's plum.
+  - Round 2 picked #3, black with crimson sinew.
+  - **Round 3 settled #5, Charcoal and Dried Blood:** matte charcoal-black plates, dried-blood red on
+    worn edges, deep wine-red sinew, a yellowed ivory crown and scythes, small amber eyes.
+- **Size proposal:** 3.9x the Runner's length, about 4.5 cells nose to tail and 2.5 cells across.
+  The owner has not confirmed it.
+
+**Motion:** `exploration/motion_matriarch.py` runs over `matriarch_skeleton.py`. The layers are in
+`exploration/motion-matriarch/`, with `hero.png` = round 3 #5.

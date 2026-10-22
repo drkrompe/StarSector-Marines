@@ -148,8 +148,10 @@ import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.combat.fx.RollingBlast;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.vehicle.DozerBlade;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
 import com.dillon.starsectormarines.battle.vehicle.HullPivot;
+import com.dillon.starsectormarines.battle.vehicle.HullSlide;
 import com.dillon.starsectormarines.battle.vehicle.ScoutSight;
 import com.dillon.starsectormarines.battle.vehicle.SideObservers;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDustEmitter;
@@ -170,6 +172,7 @@ import com.dillon.starsectormarines.battle.setup.ThunderRunSequence;
 import com.dillon.starsectormarines.battle.setup.WaylineGunship;
 import com.dillon.starsectormarines.battle.turret.GroundAntiAirSystem;
 import com.dillon.starsectormarines.battle.evacuation.BruteChargeSystem;
+import com.dillon.starsectormarines.battle.evacuation.MatriarchActions;
 import com.dillon.starsectormarines.battle.evacuation.SwarmStrikeSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
 import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
@@ -254,6 +257,7 @@ import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
 import com.dillon.starsectormarines.battle.creep.BoreCreep;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
+import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
@@ -690,6 +694,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public GroundAntiAirSystem groundAntiAir() { return groundAntiAir; }
     private final SwarmStrikeSystem swarmStrikes = new SwarmStrikeSystem();
     private final BruteChargeSystem bruteCharges = new BruteChargeSystem();
+    private final MatriarchActions matriarchActions = new MatriarchActions();
     private final SwarmCues swarmCues = new SwarmCues();
     private final AirToAirFire airToAir = new AirToAirFire();
     private WaylineGunship waylineGunship;
@@ -735,6 +740,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final CreepOutposts creepOutposts;
     /** The battle's swarm bores: empty until something opens one. */
     public SwarmBores swarmBores() { return swarmBores; }
+    @Override public List<SwarmBore> getSwarmBores() { return swarmBores.bores(); }
     private final SwarmHarvest swarmHarvest = new SwarmHarvest(SwarmHarvest.enabledByDefault());
     /** Runners dragging the dead to the bores (`colony-breach-nouns.md`, Harvest). */
     public SwarmHarvest swarmHarvest() { return swarmHarvest; }
@@ -1325,6 +1331,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 entityWorld, battleComponents, rosterService, mechMoveOrders);
         this.mechGaitSystem = new MechGaitSystem(entityWorld, battleComponents);
         this.ravRunnerRigSystem = new RavRunnerRigSystem(entityWorld, battleComponents);
+        this.ravRunnerRigSystem.bruteState(id -> bruteCharges.phase(id).ordinal(),
+                id -> rosterService.stagger().isStaggered(id));
+        ravRunnerRigSystem.setLoads(swarmHarvest::loadOf);
+        ravRunnerRigSystem.matriarchState(id -> matriarchActions.kind(id, simTickIndex).ordinal(),
+                id -> matriarchActions.ageSeconds(id, simTickIndex));
         this.mechTurretSystem = new MechTurretSystem(
                 entityWorld, battleComponents, rosterService);
         this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects, rosterService);
@@ -1343,6 +1354,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.attackerIndex = new com.dillon.starsectormarines.battle.decision.AttackerIndexService(rosterService);
         this.tacticalScoring = new com.dillon.starsectormarines.battle.decision.TacticalScoring(
                 navigation, rosterService, attackerIndex, shots, doodadService);
+        tacticalScoring.carriedBy(swarmHarvest::loadOf);
         this.squadContactOnset = new SquadContactOnsetSystem(
                 rosterService, tacticalScoring);
         this.unitUpdate = new com.dillon.starsectormarines.battle.decision.UnitUpdateSystem(
@@ -1355,6 +1367,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.swarmAvoidance = new SwarmAvoidanceSystem(
                 rosterService, unitIndex, grid);
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
+        separation.spareHeld(swarmHarvest::isCarried);
         this.vehicleRepulsion = new VehicleRepulsionSystem(rosterService, unitIndex, grid);
         this.squadTraffic = Boolean.getBoolean(SquadTrafficSystem.PROPERTY)
                 ? new SquadTrafficSystem(grid, rosterService) : null;
@@ -1373,6 +1386,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.airframeCookOff = new AirframeCookOffSystem(effects, detonations, rosterService);
         deathDispatcher.subscribe(airframeCookOff::onDeath);
         this.ballisticResolver = new BallisticResolver(grid, doodadService, unitIndex, rosterService);
+        // A body on a carrier's blades: direct fire never touches it, a blast does behind a switch.
+        ballisticResolver.spareHeld(swarmHarvest::isCarried);
+        detonations.spareHeld(swarmHarvest::isCarried, swarmHarvest.areaHitsHeld());
         // Constructed here (rather than alongside the other early per-unit
         // systems above) because a missile-pod salvo needs the same
         // resolver/shots pipeline InfantryWeapons uses, and both exist only
@@ -2227,6 +2243,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         sealMultiCellStructure(id, spec);
         registerShieldDome(id, spec);
         registerFortressBattery(id, spec);
+        if (spec.turretStructureId != null) {
+            turretDemolition.registerRemains(id, TurretCatalogRegistry.requireStructure(spec.turretStructureId));
+        }
         if (fogOfWar.getVisionState().isContributor(rosterService.identity().faction(id))) {
             fogOfWar.addContributor(id, rosterService);
         }
@@ -3476,6 +3495,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         MachineAssaults.tickVehicles(this);
         MachineGuards.tickVehicles(this);
         groundSystem.tick(TICK_DT, directControl.controlledVehicleId(), directControl.intent());
+        // A hull a Brute ran into slides and rocks on top of its own drive (HullSlide).
+        for (long hull : convoy().entityIds()) {
+            GroundBody body = convoy().body(hull);
+            if (body != null && HullSlide.moving(body)) {
+                HullSlide.tick(body, convoy().vehicleType(hull), grid, rosterService.radius(hull), TICK_DT);
+            }
+        }
         tickProfile.lap(TickProfile.Phase.GROUND_SYSTEM);
         // Ballistic-round impact clock — a resolved round's damage/hit-response
         // applies here, on its flight-time delay, rather than inline at fire
@@ -3880,6 +3906,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Brute charges in progress and their record ({@code colony-breach-nouns.md}, Brute). */
     public BruteChargeSystem bruteCharges() { return bruteCharges; }
+    /** What each Matriarch is doing with its scythes and crown; its behaviour writes it, its rig reads it. */
+    public MatriarchActions matriarchActions() { return matriarchActions; }
 
     @Override
     public boolean applyContactStrike(long carrier, long target) {

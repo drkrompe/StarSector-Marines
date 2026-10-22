@@ -1,7 +1,7 @@
-"""C4/C5 plume repair pass: the drive plumes the finals were rendered without, alone, for compositing.
+"""C1, C4 and C5 plume repair pass: the drive plumes the finals were rendered without, alone, for compositing.
 
-    blender -b --factory-startup --python-exit-code 1 --python plume_pass.py -- --shot c4|c5 --plan OUT.json
-    blender -b --factory-startup --python-exit-code 1 --python plume_pass.py -- --shot c4|c5 \
+    blender -b --factory-startup --python-exit-code 1 --python plume_pass.py -- --shot c1|c4|c5 --plan OUT.json
+    blender -b --factory-startup --python-exit-code 1 --python plume_pass.py -- --shot c1|c4|c5 \
         --chunk 120-239 --out DIR [--only 24,30]
 
 The C4/C5 finals of 2026-10-21 (content f2323ac8f) were queued before every craft the port flies
@@ -24,7 +24,9 @@ is on screen, with each craft's frame ranges. --chunk plans that chunk the same 
 frames, each named by its index in the final's chunk folder (00000 is the chunk's first frame), and
 writes the chunk's plan beside them as plan.json; a frame already written is skipped, so a queued
 job can be swapped out and resumed. --only renders those chunk indices instead (the evidence
-frames). Both need CINE_FINAL=1, as the finals had.
+frames). C4/C5 need CINE_FINAL=1, as their finals had; C1 builds as its finals did (Cycles,
+--profile cheap, motion blur), and its one frames folder makes --chunk 0-904 name each frame by
+its scene frame.
 """
 import json
 import os
@@ -54,13 +56,17 @@ def args():
 
 def build(shot):
     """(scene, first scene frame of the shot, frame count), built as the shot's final builds it."""
+    if shot == 'c1':
+        sys.path.insert(0, str(BASE.parent / 'corvus-approach'))
+        import c1v2_scene as c1                 # the C1 finals: --final --profile cheap (Cycles, 64 spp)
+        return c1.build(True, 64, 'cheap'), 0, c1.FRAMES
     if shot == 'c4':
         import c4x_scene as c4
         return c4.build(), 0, c4.FRAMES
     if shot == 'c5':
         import c5_scene as c5
         return c5.setup('3d'), c5.C4_END, c5.FRAMES
-    raise SystemExit('PLUME_PASS unknown --shot %r (c4 or c5)' % shot)
+    raise SystemExit('PLUME_PASS unknown --shot %r (c1, c4 or c5)' % shot)
 
 
 def added_plumes():
@@ -175,7 +181,7 @@ def isolate(scene, plumes):
 def main():
     o = args()
     t0 = time.time()
-    if os.environ.get('CINE_FINAL', '0') != '1':
+    if o['shot'] in ('c4', 'c5') and os.environ.get('CINE_FINAL', '0') != '1':
         raise SystemExit('PLUME_PASS: run with CINE_FINAL=1, the settings the finals rendered with')
     scene, first, count = build(o['shot'])
     plumes = added_plumes()

@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a160b1-2996-78e1-b245-5ccca08a0604",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a160b1-2996-78e1-b245-5ccca08a0604\\exec-978acb5e-f9b3-4b1a-bb1e-c9d99d03a7bb.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\rav-redesign\\exploration\\motion-matriarch\\raw\\scythe.png",
+    "sha256": "927549042bd5f86e3425fba9fd88f0301ea508351ee7932572b9548b5d95b9f7",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\rav-redesign\\exploration\\motion-matriarch\\prompts\\scythe.prompt.txt",
+  "promptSha256": "be952442aaeabc0d34eea3c7e1d8e587af09e8a26de50eb6f209def22240284d",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry and identity authority: the chosen Matriarch (round 3 #5); register every kept part to it\n\nReference image 1 is the chosen Matriarch design from the Rav Bloom swarm (a huge, old, heavily plated quadruped: matte charcoal-black plates with dried-blood red on worn edges, deep wine-red sinew in every gap, a vast fan-shaped crown of yellowed ivory bone spikes over the head, two curved ivory scythes coming out from under the crown's rim, clawed feet under the body), seen strictly from above, facing up. This is a rig layer for animating it: keep its palette, finish, scale and lighting (from the upper left) exactly, and keep every part you draw in EXACTLY the same position and size as in reference image 1 so the layer registers over it pixel for pixel, unless this layer says otherwise. Plain flat light grey background (#b4b4b4), no shadow, no ground, no text, no border.\n\nThis layer: ONE SCYTHE ARM ONLY, not in its place on the body: the right-hand scythe of reference image 1 (the long, curved, hooked ivory blade) on its short, thick, plated and sinewed arm, drawn alone and centred, the arm's root at the BOTTOM of the frame and the blade rising upward and curving over to the right at the top, its full length visible, at the same scale as reference image 1. Nothing else.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\rav-redesign\\exploration\\motion-matriarch\\raw\\hero.png",
+      "sha256": "9f2820dbf0752bc5172bbd209d0de312eee14488150839bcd23c368429ea33b6",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Geometry and identity authority: the chosen Matriarch (round 3 #5); register every kept part to it"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate the isolated right scythe arm using the reference’s materials, scale, and lighting."
+  ],
+  "usage": {
+    "input_tokens": 39104,
+    "cached_input_tokens": 31488,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 418,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 45.0
+}

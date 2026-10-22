@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — the shelter stands in a civil-defence compound, a square walled place in the colony plan dressed with towers, gate guns, slits and floodlights; a holdout claims a block behind works (barricade, firing step, gate, gun) with a line team that falls back into the building; the company lands in open fields outside the colony and the lift comes down on them; bores, tiers, surges, spore colonies, the bore-sourced director and harvest as built.
+Updated: 2026-10-21 — growth stages (whelp, adult, elder), age mix, pack leader as planned vocabulary; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -214,7 +214,8 @@ a shelter hall of bunks, a sick bay, a canteen and a store round a muster
 yard, each furnished as what it is. Because it is planned
 with the colony, the town's streets run up to it, its gates are where they
 cross its wall, and its neighbours are built against it: it fits the layout by
-construction. The colony re-rolls a map that did not build it. The shelter is
+construction, with a strip of cleared earth between its wall and the houses
+round it. The colony re-rolls a map that did not build it. The shelter is
 always its hall.
 
 It is a proper work, but a civil one, partway between a house with sandbags and
@@ -260,10 +261,10 @@ exactly as a single-shelter rescue. `-Dbattle.colonyBreach.redoubts=false` is
 the control: the posts hold militia only and the whole cohort is in the
 shelter.
 
-Where redoubts meet the stories still open: whether creep under a redoubt weakens its aprons or its garrison is
-creep's to say; and a hive posture that sends strike detachments competes with
-relief for the same squads, so its readiness gate should count pending holdouts
-as unmet need.
+Where redoubts meet the stories still open: whether creep under a redoubt
+weakens its aprons or its garrison is creep's to say. A strike detachment
+competes with relief for the same squads, so the readiness gate counts every
+redoubt still waiting as unmet need (see *Readiness gate*).
 
 **Breach.** The mission-level event of the swarm coming up through the colony.
 The breach has a shape over time (see *Flow*) driven by the **breach sequence**,
@@ -376,13 +377,62 @@ Laws:
   dropped and still being dragged.
 - `-Dbattle.colonyBreach.harvest=false` is the control: Runners leave the dead
   where they fall and do not hunt colonists.
-- **A dragged body is safe from its own side's direct fire** (owner,
-  2026-10-21). Fire at a carrier, a miss that strays into its load and a round
-  that would go through the carrier never hurt the body being dragged, Marine,
-  militia or colonist; the ray passes it. Area weapons still reach it, behind a
-  switch while the owner decides. It matters once the load can be alive: a
-  Runner can impale a living body and drag it off, and killing the carrier
-  frees it (`runner-impale-drag.md`).
+
+**Impale.** Harvest's living version, which makes it a fight instead of a
+funeral. Any blow a Runner lands has a one-in-twenty chance to go in and hold
+instead of wounding: the Runner becomes a carrier and its load is a living
+body, **held** on its blades. Chance is the only thing about the fight that
+decides it, so a fresh Marine in the middle of the line can be taken; the draw
+is keyed by the strike itself (tick, Runner, target) rather than taken from the
+battle's shared stream, so turning impales off changes no other roll. Only a
+body harvest may take is impaled (a Marine on foot, a militia fighter, a
+colonist; never a power suit, never an escorted evacuee), only by a Runner
+that is not already carrying, and only while a bore lives. There is no new
+kind of casualty and no downed state: a held body is a living body that is
+being held. Laws:
+
+- **The impaling blow does no damage**, and a held body takes no harm from the
+  swarm: it is nobody's prey but its carrier's. It does nothing while held (it
+  does not move, fire or take orders) and moves with the carrier, drawn at the
+  carrier's trail point; the drag pose is the Runner art's to draw.
+- **Direct fire never touches a held body** (owner, 2026-10-21). Fire at a
+  carrier, a miss that strays into its load and a round that would go through
+  the carrier never hurt the body on the blades, Marine, militia or colonist:
+  the ray passes it, though the body stays in the battle for everything else.
+  A blast's direct payload is direct fire and never lands on it either.
+- **Area weapons still reach it** (grenades, mortars, rocket blasts, ordnance
+  from the air): calling a blast down on a carrier costs the victim too, and a
+  blast aimed at the held body itself still splashes it.
+  `-Dbattle.colonyBreach.impale.areaHitsHeld=false` is the other answer to
+  the owner's open question, ready to flip. A body killed on the blades is
+  dragged on as an ordinary harvest corpse.
+- **Kill the carrier and the body is freed**: alive where the carrier fell,
+  with a wound in each leg where the blades went through, and back to what it
+  was doing after three seconds. A freed Marine goes back under orders and a
+  medic treats them as any wounded squadmate; a militia fighter goes back to
+  its post; a colonist flees again.
+- **A carrier holding one of a squad's own Marines is that squad's priority
+  target** while it is in sight: a bump to the target choice and nothing more.
+  No squad chases a carrier on its own; going after one is the player's call,
+  and medics never approach a held Marine.
+- **At the bore the body is taken**: killed there and fed in as one body of
+  biomass. A body still held when the battle ends counts as taken.
+- **Morale**: impaling a Marine costs their fire team what a death would, at
+  the moment of the impale and once. Being freed gives nothing back, and being
+  taken costs nothing more.
+- **Casualties**: a freed body is alive like anyone else. One killed while held
+  falls and is rolled as usual. A taken Marine is fallen with a fixed killed in
+  action, no roll and nothing for a sick bay to save: the mission outcome
+  carries the taken beside the fallen. Taken militia and colonists are simply
+  dead, and the breach snapshot counts impales, frees and takings of every
+  kind.
+- A carrier cannot strike and carries one body at most, at Harvest's carrier
+  pace.
+- `-Dbattle.colonyBreach.impale=false` is the control: every blow lands as an
+  ordinary blow.
+
+A Brute that carries a power suit off would be a rule of its own; suits are
+beyond a Runner.
 
 **Spawning surge.** How the swarm moves out of a bore. Bodies do not trickle
 out one at a time: a bore **spawns**, pushing a dense pulse of bodies out of
@@ -440,6 +490,28 @@ the ground) is lit by the battle's own default sun, so the paintings are
 never rotated or mirrored. They are drawn somewhat larger than their bodies
 (hit radius and footprint) so that they read as structures among a mass of
 creep and bodies.
+
+They show their **damage**. Below half its durability a bore or colony is
+drawn **wounded**: plates torn out of their sockets over raw sinew, gashes
+through the carapace, a sac burst, a spine snapped, its amber dimmed; the same
+painting, hurt. A wounded body **bleeds**, as the Zerg's buildings did: a
+wound is a puncture in a living membrane, and it pulses to a heartbeat: on
+each beat the torn slit dilates, its flaps lift and a gout of ichor is pushed
+out over the lip to run downhill as a glossy film, which drains and thins
+before the next. A long wound (a gash, a torn plate's socket) is a **fissure**
+instead and sprays on the same beat: its lips part and throw a fan of droplets
+downhill, arcing with their shadows under them, landing as splats that soak
+away before the next beat. The loops are pinned to the wounds its own
+painting shows and running downhill off its body (into the pit from a bore's
+lip). The first wound bleeds as the body turns wounded, and more open the
+further it is hurt, every one by under a third of that; each wound bleeds at
+its own phase so a row of bodies does not pulse in step. The dead do not bleed.
+When it dies it leaves its **remains** on the ground for the
+rest of the battle, under the living: a bore's shaft caved in and choked with
+rubble, its plates slumped and drained to a dry husk; a colony's sacs burst
+and deflated. The remains are of the painting the structure wore, so a
+battlefield's dead bores are as varied as its living ones, and a dead bore's
+berm takes the colour of withered creep.
 
 A colony keeps the **grade** of the tier that grew it: a fissure-grade colony
 threatens light craft at short reach, a bore-grade one reaches further and
@@ -499,11 +571,30 @@ for one job in the cycle, and reads that way on screen.
   spine flexing and the shoulders and hips swaying against each other, with two
   jointed spike arms on its shoulders. Each blow is one arm, alternating, and
   is either a stab (the elbow bows out away from the body, then the point
-  drives straight forward) or a side swipe. The wind-up runs off the attack
+  drives straight forward) or a side swipe. The body is in every blow: a stab
+  draws the trunk back on its planted feet, then lunges it forward onto the
+  point, and a swipe winds the striking shoulder back and twists the trunk
+  through the cut, the hips countering. The wind-up runs off the attack
   cooldown, so the blow arrives on the tick its damage is dealt. The rig is
   presentation only: nothing in the simulation reads it, and the strike rule
-  itself stays the ordinary melee hit. The impale and drag pose belongs to
-  `runner-impale-drag.md`.
+  itself stays the ordinary melee hit. A carrier (*Harvest*, *Impale*) is
+  drawn hauling: it turns to face the body it drags, so it backs toward the
+  bore at a trot with its shoulders heaving, the spike that struck stays in
+  and the jaws latch on beside it. The body it hauls, alive or dead, is drawn
+  lying (its outfit's fallen pose), head toward the jaws, jolting with each
+  heave. Through a turn the spine bows into a C toward the inside, the
+  shoulders and the hips swinging the same way while the planted feet hold.
+  A dead Runner bursts: the trunk splits at mid-spine and the halves slump
+  apart, and the head and one or two limbs come away (the rest stay on their
+  half), thrown a short way (mostly behind it), spinning, bouncing once and
+  lying flat where they land, while its blood (red, as the Marines' and
+  the Matriarch's) sprays into splats
+  around a pool spreading under where it died. Seeded per Runner, so a replay
+  bursts the same way; presentation only, like the rest of the rig. In a crowd it
+  is shoved as the shape it is drawn as, a capsule along its facing (the
+  separation shape in `continuous-positions-nouns.md`), so a pack queues nose to
+  tail and packs flank to flank rather than stacking into one another; its
+  0.3-cell footprint radius stays its size to everything else.
 - **Brute** — slow, plated, heavy melee; the strain that makes a garrisoned
   building stop being a safe room. Its plate (20 points at rating 10) is what
   small arms struggle with: a DMR or rocket goes through it, an SMG barely
@@ -515,7 +606,15 @@ for one job in the cycle, and reads that way on screen.
   than breaking the wall beside it. "Light" means a colony wall (at most 120 of
   wall left); fortified and fort walls are out of its reach until something
   else has worn them down. Its blow carries penetration, so it hurts plated
-  bodies and emplacements where a Runner's slash only scratches.
+  bodies and emplacements where a Runner's slash only scratches. It strikes
+  what is under its head, about a cell from its centre to the target's surface
+  (a hull's footprint, not a circle round its middle), and its weight lands
+  with the blow: a hull or a mech it strikes takes the same contact a charge
+  gives, at a slower closing speed, so a pickup or a light mech is shoved about
+  as the fight goes on while a tank only rocks. On infantry
+  the blow is a **trample**: the body under it is knocked down for a moment and
+  bowled a little way, and anyone on foot right beside it takes half the blow
+  and goes down too.
 
   It has two speeds: it **walks** at its sim speed and **charges** at a much
   higher one. A **charge** is a committed straight run at one target, or at the
@@ -528,24 +627,58 @@ for one job in the cycle, and reads that way on screen.
   depends on what it hits: infantry is thrown aside and knocked down and the
   charge goes on through up to two bodies; a light prop is bowled over; a light
   wall takes one double-weight ram; a heavy wall or a tank's bulk stuns the
-  Brute; a vehicle is shoved and stalled by its **weight class** (light /
-  medium / heavy on `VehicleType`); a mech is struck in the legs and, unless
-  heavy, staggered. Knocked down, stalled, staggered and stunned are one short
-  **can't act** state (`StaggerService`): no move, no fire, for a fixed time,
-  never a casualty state. The swarm's own bodies are never struck. Squad mates
-  of a thrown body take a near-miss morale drain. The numbers (charge speed,
-  band, cooldown, tell, every hold time) are starting values the owner chose
-  to feel out in play rather than settle on paper, so each is a
-  `-Dbattle.brute.*` switch and `-Dbattle.brute.charge=false` is the control.
+  Brute; a vehicle is stalled by its **weight class** (light / medium / heavy
+  on `VehicleType`); a mech is struck in the legs and, unless heavy,
+  staggered.
+
+  Running into a hull is a **contact**, not a rule of thumb (`HullImpact`):
+  the Brute is a point mass at charge speed, the hull a rectangle about its
+  centre of gravity with its own mass, and the two exchange one impulse where
+  the Brute meets the footprint, momentum conserved. So the hull moves by how
+  heavy it is against the Brute and turns by how far from its centre it was
+  struck, and the Brute rebounds with what the hull did not take and is hurt,
+  through its plate, by whatever impulse its bulk could not shed. A pickup is
+  pushed half a cell and swung round; an APC moves a little; a tank only rocks
+  on its suspension, and the Brute comes off worse. The hull then **slides**
+  (`HullSlide`): its tires or tracks scrub the velocity away as a fixed
+  deceleration in the hull's own frame, so a wheeled hull struck end-on rolls
+  on while one struck in the side stops short, tracks hold harder than wheels
+  along the hull, and the spin is scrubbed by the same sideways grip. Nothing a
+  charge strikes is moved in one step: a thrown or trampled body and a
+  rebounding Brute also slide to rest over the next ticks.
+
+  Knocked down, stalled, staggered and stunned are one short **can't act**
+  state (`StaggerService`): no move, no fire, for a fixed time, never a
+  casualty state. The swarm's own bodies are never struck. Squad mates of a
+  thrown body take a near-miss morale drain. The numbers (charge speed, band,
+  cooldown, tell, masses, every hold time) are starting values in
+  `BruteChargeRules`, to be felt out in play rather than settled on paper.
 
   A second of not being able to act confuses unless the player sees why, so
   the charge is shown four ways, all presentation over the rule: a faint amber
   wedge along the line during the tell, with the other threat warnings; a
   knocked-down body's picture lying as a fallen one does for that second,
-  with a ring of dust where it lands, while the sim keeps it upright; one
-  amber daze mark over anything that can't act, whatever made it so; and the
-  squad card's status word naming the cause (knocked down, stalled,
+  with a ring of dust where it lands, while the sim keeps it upright; a quiet
+  amber arc on the ground under a Marine or hull that can't act, whatever made
+  it so, emptying as the hold runs out (a staggered mech shows only in its
+  stilled hips); and the squad card's status word naming the cause (knocked down, stalled,
   staggered, stunned) ahead of engaged or wounded.
+
+  Like the Runner it is drawn on its own skeleton (`RavBruteRig`): a plum,
+  plated rhino-ram with a mace head on four boar's legs, the hooves under the
+  body and the shanks over them. It walks, trots and gallops with the hips
+  and shoulders swaying against each other; it plants its feet to stand, to
+  brace for the tell and while it can't act, and gallops through a charge with
+  its head down. A blow is the whole body's, timed off the attack cooldown as
+  the Runner's arms are: the weight goes back onto the hind legs and the
+  forequarters rise, then it drives forward through the shoulders, the front
+  hooves stamping down ahead and the head driving with them; a charge's hit
+  plays the same drive. Stunned, it shows it in its body rather than with a
+  mark: the head hangs and shakes slowly side to side and the shoulders
+  wander. Dead, it bursts as a Runner does, through the same
+  `RavBurst`: the body splits between the shoulders and the hips and the halves
+  slump apart, the head and one or two legs come away, over the Runner's red
+  ichor, at full colour.
 - **Spitter** — fragile, keeps its distance, lobs acid. It backs away from any
   ground enemy that closes inside its charge radius and does not lob while it
   runs. Otherwise a low hostile craft in reach whose skin its acid can bite
@@ -559,6 +692,66 @@ for one job in the cycle, and reads that way on screen.
   damage model has none for ground bodies.
 - **Matriarch** — one per mother bore at maw tier: large, slow, very durable,
   wrecks emplacements. Answered by mechs, heavy weapons or a lot of satchels.
+  The mother owes it the first time it releases at maw tier, and that body is
+  the Matriarch whatever the strain roll; it is never drawn otherwise, and its
+  emergence is the `matriarch_emerged` beat. About four and a half cells nose
+  to tail, plated a mech's weight: rifle fire skips off. It comes out roaring,
+  then hunts as a Brute does (an emplacement first), and every blow is an
+  action that holds the body and lands part-way through, so it is seen coming.
+  Infantry is reaped: one scythe sweeps across its front, right then left on
+  the next, cutting a handful in the arc. An emplacement, a hull or a mech
+  takes the crown. It breaks walls a Brute cannot (a fort's buildings, not its
+  curtain until something has worn that down), from further off, and never
+  walks round to a door. It is not staggered and does not charge. Until it has
+  sounds of its own it borrows the Brute's.
+
+**Growth stage.** How old a rav is: **whelp**, **adult** or **elder**. Every
+strain has the same three stages, so a stage is a property of one body, never
+a strain of its own: a whelp Runner is a Runner, with the Runner's `UnitType`,
+behaviour and rig, and no stage adds a `UnitType` or an appearance family. The
+stages are about a fifth apart in size (0.80, 1.00 and 1.22 of the adult), so
+they read at play zoom. Health, armour, damage and reach rise with stage and
+speed falls; a Brute's mass rises with its volume, so its charge physics scales
+without a rule of its own: the momentum it brings sets how far it throws and how
+long it floors infantry, how hard it rams a light wall and how many bodies it
+runs through (a whelp's charge stops on the first, an elder's goes through
+three), and the weight class it meets shifts with its size (a whelp meets an
+APC as an adult meets a tank and is stunned, an elder staggers a heavy mech).
+A Runner's stage sets its harvest: a whelp never impales and drags slowest, an
+elder impales most often and drags fastest. They are also marked beyond size: a whelp is pale
+with nub spikes, an elder dark and scarred with long ones and a pale spine
+ridge. A stage is issued at
+spawn through `SwarmStrains`, like the Brute's plate, and fixed for the body's
+life; the Matriarch is the one exception. Stage scales presentation only
+through things the body already has: its rig's scale and stage-recoloured
+sprites, and its voice pitched by its size. Stats, the stage table and the
+reasons for each choice are in `rav-growth-stages.md` (stage, stats and size
+built; the age mix, packs and presentation planned).
+
+- **Age mix.** A surge's stages come from its bore, never from the director:
+  each body draws a stage from a table keyed by the bore's tier (a fissure
+  throws whelps, a maw throws adults and elders), shifted older by the biomass
+  the bore has eaten in its life. So *Harvest* shows on the field: a bore that
+  has been fed sends bigger, darker ravs, and fewer of them, because the
+  director counts a body's stage weight against its target. The draw is keyed by the bore, the
+  pulse and the body, so stages change no other roll.
+- **Pack, pack leader.** A pack is the bodies of one pulse. Its first elder is
+  its **pack leader** and is released at the head of the stream; a pulse with
+  no elder has no leader, and its bodies hunt alone as every body did before
+  stages. While the leader lives, members on its leash share its quarry and
+  what it senses (still sensing, passed body to body) and strike faster. When
+  it dies the pack **breaks** for good: the bonuses go, members scatter to
+  their own quarry, and its whelps bolt back toward the bore for a moment. A
+  pack never elects a new leader.
+- **The Matriarch's stage** is set by how long the mother bore has been
+  feeding (its lifetime biomass when she emerges), within a narrower range of
+  size than the small strains'. Because she is fed from her mother, she steps
+  up a stage in the field when the mother is fed past the next threshold.
+  She leads every pack within her leash.
+- **Clearance.** Every stage of the small strains keeps a sim radius under half
+  a cell, so the shared flow fields serve every body; an elder Brute is drawn
+  and shoved larger than it navigates, and squeezes through a door it fills. The crowding capsule scales with stage.
+  The Matriarch paths for herself at her stage's clearance.
 
 **Air threat ladder.** What the swarm can do to what flies, rung by rung:
 
@@ -684,26 +877,82 @@ build) for its bounded visit. Not every mission brings every tool. A landed,
 grounded tender is campaign-mission and set-dressing machinery, not part of
 Colony Breach.
 
-**Hive posture.** The player's pre-launch answer to the optional hive objective,
-frozen into the Marine command envelope at launch:
+**Hive posture.** The player's pre-launch answer to the optional hive objective.
+It is chosen in the mission briefing, where a Colony Breach rescue offers the
+three postures in place of contract terms, carried on the mission, and frozen
+into the Marine rescue commander when the battle is built; nothing changes it
+afterwards. A mission that never chose one plays **Evacuate**, because the win
+is the evacuation and the bore is a bonus.
 
 - **Evacuate** — bores are obstacles; the commander engages one only when it
-  sits on the route.
+  sits on the walk out: within a few cells of the route from a walking group,
+  or from a door still to be relieved, to the lift. It comes back once the
+  bore is no longer on that walk. Evacuate never sends anyone off the route.
 - **Opportunistic** — the commander may send a strike detachment at a bore when
-  the readiness gate is open.
-- **Purge** — the mother bore is a real objective; the readiness gate is
-  relaxed.
+  the readiness gate is open: the living bore nearest the lift, since that is
+  the one pressing on the walk out.
+- **Purge** — the mother bore is a real objective. Before she opens, Purge
+  plays as Opportunistic against the first wave; once she is known, every
+  strike goes at her, a detachment already on another bore is turned onto her,
+  and against her the readiness gate is relaxed.
+
+A bore is known to the commander from the moment it opens: an eruption tears a
+hole in the colony and is announced, so no sighting is needed, and a collapse
+is known the same way.
 
 **Readiness gate.** The commander's rule for opting in to a bore strike, read
-from what it can see: (a) the lift zone is hardened (built defences, no losses
-on the lift line for a sustained window), (b) the strength left behind meets
-the escort's need, (c) a detachment with demolition or heavy weapons exists.
-Purge relaxes (a) and (b). When the gate closes the detachment is recalled. The
-player can always order any squad onto a bore; posture governs only what the
-AI does unprompted.
+from what it can see at every command pulse:
+
+- (a) **the lift is hardened**: the company's own built defences stand on the
+  lift line, and nobody has been lost on that line since they stood there, for
+  a sustained window (twenty seconds);
+- (b) **the strength left behind meets the escort's need**: after the
+  detachment leaves, the mobile force still has a squad for every group walking
+  out and one screening their walk, a squad for every redoubt still waiting to
+  be relieved (a pending holdout is unmet need, not spare strength), and one
+  more at the lift; and the escort is holding, with no evacuee lost for the
+  same window. A cohort that bleeds closes the gate and brings the detachment
+  home;
+- (c) **a detachment exists**: a squad free of escort duty that can hurt a bore,
+  one carrying satchels, firing on structures, or a machine.
+
+`-Dbattle.colonyBreach.strikes=false` is the control: the gate is read and
+published, and nobody is ever sent.
+
+Purge relaxes (a) and (b) against the mother bore and nowhere else; (c) is never
+relaxed. Evacuate never asks about the lift, because the only bore it engages is
+one already on the way, but it keeps the escort's strength. When the gate
+closes the detachment is recalled, and the gate may not send anyone again for a
+short cooldown, so a gate that flickers does not march a squad back and forth.
+The player can always order any squad onto a bore; posture governs only what the
+AI does unprompted. Built defences at the lift come from a tender called down in
+play (*Hardpoint*); evidence may stand them up at setup instead, as a fixture
+statement, to show the gate opening.
 
 **Strike detachment.** The squads (and lance, if one is deployed) the commander
-sends against a bore. Stable membership, traced like any other command role.
+sends against a bore: one squad at an ordinary bore, two when Purge goes for the
+mother, chosen from the capable squads free of escort duty, machines first, then
+satchel carriers, then the nearest. Membership is stable: the same squads stay
+on the strike until their bore collapses, the detachment is lost, or the gate
+closes and they are recalled, and a squad on strike is never drawn as an
+escort. A detachment squad is ordered at the bore exactly as the player would
+order it (an attack move naming the bore's cell as the thing to open, see
+*Bore*), so its sappers set charges and the rest fight the body through the
+ordinary passes. The decision is decided before new escorts are drawn, so
+escorts still come before relief and relief before strikes: people in the open
+are exposed, and a bore is optional.
+
+Every commit, recall, retarget and ending is a decision kept with the gate it
+was read under (each condition met or not, and its inputs). The command trace
+carries the posture, the gate, the detachment and the decisions of each pulse;
+a commit is the `strike_committed_N` beat and a recall `strike_recalled_N`, where
+`N` is the bore's number or `mother`. A collapse ends the strike under its own
+`bore_collapsed` beat and a lost detachment under none.
+
+**Hive bonus.** Collapsing the mother bore is recorded on the mission outcome
+whatever the posture, through the ordinary outcome path: the battle reports
+whether the mother collapsed beside the evacuation report. What the bonus pays
+in the campaign is the owner's call and not yet settled.
 
 ## Flow
 
@@ -723,7 +972,7 @@ sends against a bore. Stable membership, traced like any other command role.
    lift, already at bore tier, with its spore colonies already sprouted.
 5. **Lift.** Shuttles land; the cohort boards. The battle can end on the lift
    (the rescue win) with or without the mother bore collapsed. Collapsing it is
-   the hive bonus, settled through ordinary mission outcome.
+   the hive bonus, recorded on the ordinary mission outcome (*Hive bonus*).
 
 The breach sequence owns the clock and the triggers; beats are what it
 publishes. Beats are presentation and evidence, never inputs to the simulation.
@@ -757,11 +1006,14 @@ the evidence; change them here first.
 | `matriarch_emerged` | PLAYER | A matriarch spawns |
 | `first_harvest` | PLAYER | First body seized and dragged toward a bore |
 | `bore_fed_N` / `bore_fed_mother` | OBSERVER_ONLY | A body delivered into bore N (or the mother); published at every delivery |
+| `marine_impaled` | PLAYER | A Runner impales a Marine; at every impale (militia and colonist impales publish none) |
+| `marine_freed` | PLAYER | A held Marine's carrier dies |
+| `marine_taken` | PLAYER | A carrier delivers a living Marine into a bore |
 | `surge_N` / `surge_mother` | OBSERVER_ONLY | Bore N (or the mother) starts a surge; published at every surge, not once |
 | `tender_down` | PLAYER | A called-down tender is on station (no producer yet) |
 | `hardpoint_established` | PLAYER | First tender-built defence completes at the lift |
-| `strike_committed_N` | OBSERVER_ONLY | Commander sends a detachment at bore N |
-| `strike_recalled_N` | OBSERVER_ONLY | Readiness gate closed, detachment recalled |
+| `strike_committed_N` | OBSERVER_ONLY | Commander sends a detachment at bore N (`mother` for the mother); at every commit |
+| `strike_recalled_N` | OBSERVER_ONLY | Readiness gate closed (or, for Evacuate, the bore left the route), detachment recalled |
 | `lift_inbound` | PLAYER | First shuttle committed |
 | `lift_down` | PLAYER | First shuttle landed |
 | `cohort_boarded` | PLAYER | Last surviving evacuee aboard |
@@ -785,8 +1037,9 @@ heard reaches the battle. A bore is heard erupting, growing to each tier,
 surging and collapsing, and breathes a tier ambience while it lives. A swarm
 body is heard for what it does, not for the beat table: it cries when it takes
 new quarry, strikes, rams a wall and breaks it, yelps or grunts when it is hurt
-and lives, and dies, and a Runner is heard taking up a body to drag it. Its feet
-follow the ground it covers: a Runner's gallop and chitin clatter, a Brute's
+and lives, and dies. A Runner taking up a body is heard latching onto it, and
+hauling it is heard as the load scraping over the ground in place of its gallop.
+Its feet follow the ground it covers: a Runner's gallop and chitin clatter, a Brute's
 hooves at every half cell, so a walking Brute plods and a charging one thunders.
 Each phase of the Brute's charge has its own sound (the tell, the run, the hit
 on infantry, a vehicle or a wall, the stun after a heavy wall or a tank), keyed
@@ -795,7 +1048,8 @@ by the story that adds it. Each strain's sound is admitted under its own gap and
 footfalls come from the few bodies nearest the listener, so a pack reads as a
 pack, and the swarm is heard only on ground the player has seen. The Spitter has
 no voice; the Matriarch's sounds wait for its design and join as a strain of
-their own.
+their own (its catalogued roar was rejected and is redone once the design
+settles).
 
 ## Laws
 

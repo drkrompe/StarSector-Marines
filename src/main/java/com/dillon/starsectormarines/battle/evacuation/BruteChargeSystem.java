@@ -16,8 +16,12 @@ import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.HullImpact;
+import com.dillon.starsectormarines.battle.vehicle.HullSlide;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
@@ -40,6 +44,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * <p>While a charge lasts (tell, run, pull-up) the Brute's behaviour only holds still; this system is
  * what moves it.
+ *
+ * <p>It also owns what follows a hit through. A body thrown or bowled, and a Brute rebounding off a hull,
+ * <em>slide</em>: they leave at the speed that carries them their distance and are slowed to a stop over the
+ * next ticks, so nothing jumps. A Brute's ordinary blow on infantry is a <em>trample</em>, posted by its
+ * behaviour and landed here: the body under it is knocked down and bowled, and the bodies beside it take part
+ * of the blow and go down too.
  */
 public final class BruteChargeSystem {
 
@@ -50,6 +60,21 @@ public final class BruteChargeSystem {
     public record Event(int tick, long brute, String what, long target, int cellX, int cellY) {}
 
     private record Request(long brute, long target, float aimX, float aimY) {}
+
+    /** A body sliding to rest: its velocity, cells a second, and the deceleration that stops it. */
+    private static final class Slide {
+        float vx, vy;
+        final float decel;
+
+        Slide(float vx, float vy, float decel) {
+            this.vx = vx;
+            this.vy = vy;
+            this.decel = decel;
+        }
+    }
+
+    /** A blow posted by the behaviour: a trample on infantry, or the push behind a blow on anything else. */
+    private record Trample(long brute, long target, boolean trample) {}
 
     private static final class Charge {
         Phase phase = Phase.IDLE;
@@ -69,12 +94,17 @@ public final class BruteChargeSystem {
     private static final int EVENT_CAP = 4096;
 
     private final ConcurrentLinkedQueue<Request> requests = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Trample> tramples = new ConcurrentLinkedQueue<>();
+    private final List<Trample> trampleDrain = new ArrayList<>();
+    private final Long2ObjectOpenHashMap<Slide> slides = new Long2ObjectOpenHashMap<>();
+    private final LongArrayList slideOrder = new LongArrayList();
     private final Long2ObjectOpenHashMap<Charge> charges = new Long2ObjectOpenHashMap<>();
     private final List<Request> drain = new ArrayList<>();
     private final LongArrayList order = new LongArrayList();
     private final LongBucket nearby = new LongBucket();
     private final LongBucket fear = new LongBucket();
     private final List<Event> events = new ArrayList<>();
+    private final Long2ObjectOpenHashMap<Float> impulses = new Long2ObjectOpenHashMap<>();
 
     // ---- read by the parallel update; written only in tick ----
 
@@ -93,6 +123,22 @@ public final class BruteChargeSystem {
     /** Thread-safe; posted by the Brute's behaviour. Lands next serial pass, if still legal then. */
     public void request(long brute, long target, float aimX, float aimY) {
         requests.add(new Request(brute, target, aimX, aimY));
+    }
+
+    /**
+     * Thread-safe; posted by the Brute's behaviour in place of an ordinary blow when the body it strikes is
+     * infantry. Lands next serial pass.
+     */
+    public void trample(long brute, long target) {
+        tramples.add(new Trample(brute, target, true));
+    }
+
+    /**
+     * Thread-safe; posted by the Brute's behaviour after an ordinary blow, whose damage it has already dealt.
+     * Lands next serial pass: the Brute's weight behind the blow pushes a hull or a mech.
+     */
+    public void blow(long brute, long target) {
+        tramples.add(new Trample(brute, target, false));
     }
 
     // ---- presentation and evidence ----
@@ -129,6 +175,12 @@ public final class BruteChargeSystem {
         return ids;
     }
 
+    /** The impulse (tonne-cells a second) of the last charge that struck {@code hull}, or 0: evidence. */
+    public float lastImpulse(long hull) {
+        Float impulse = impulses.get(hull);
+        return impulse == null ? 0f : impulse;
+    }
+
     /** What charges have done this battle, oldest first (capped). */
     public List<Event> events() { return events; }
 
@@ -138,6 +190,7 @@ public final class BruteChargeSystem {
     public void tick(BattleSimulation sim) {
         int now = sim.getSimTickIndex();
         StaggerService stagger = sim.stagger();
+        landTramples(sim, now);
 
         drain.clear();
         for (Request r; (r = requests.poll()) != null; ) drain.add(r);
@@ -179,6 +232,97 @@ public final class BruteChargeSystem {
                 case IDLE -> { }
             }
         }
+        slide(sim);
+    }
+
+    /** Moves every sliding body one tick, in id order, and drops the ones at rest. */
+    private void slide(BattleSimulation sim) {
+        if (slides.isEmpty()) return;
+        slideOrder.clear();
+        for (long id : slides.keySet()) slideOrder.add(id);
+        slideOrder.sort(null);
+        float dt = BattleSimulation.TICK_DT;
+        for (int i = 0; i < slideOrder.size(); i++) {
+            long id = slideOrder.getLong(i);
+            Slide s = slides.get(id);
+            if (!sim.getRoster().isAliveById(id)) {
+                slides.remove(id);
+                continue;
+            }
+            float x = sim.world().x(id), y = sim.world().y(id);
+            float sx = s.vx * dt, sy = s.vy * dt;
+            ManualTerrainMotion.Result moved = ManualTerrainMotion.move(sim.getGrid(), x, y, sx, sy,
+                    sim.getRoster().radius(id));
+            sim.world().setPos(id, moved.x(), moved.y());
+            float speed = (float) Math.hypot(s.vx, s.vy);
+            float left = Math.max(0f, speed - s.decel * dt);
+            boolean stopped = Math.hypot(moved.dx(), moved.dy()) < Math.hypot(sx, sy) * .3f;
+            if (left <= 0f || stopped) {
+                slides.remove(id);
+            } else {
+                s.vx *= left / speed;
+                s.vy *= left / speed;
+            }
+        }
+    }
+
+    /** Starts {@code body} sliding {@code cells} along the unit direction {@code (dx, dy)}. */
+    private void launch(long body, float dx, float dy, float cells, float decel, BattleSimulation sim) {
+        float v = BruteChargeRules.launchSpeed(cells, decel);
+        slides.put(body, new Slide(dx * v, dy * v, decel));
+        sim.clearPath(body);
+    }
+
+    /** Whether {@code body} is still sliding from a hit. */
+    public boolean sliding(long body) { return slides.containsKey(body); }
+
+    /** Lands the posted tramples, in Brute id order. */
+    private void landTramples(BattleSimulation sim, int now) {
+        trampleDrain.clear();
+        for (Trample tr; (tr = tramples.poll()) != null; ) trampleDrain.add(tr);
+        if (trampleDrain.isEmpty()) return;
+        trampleDrain.sort(Comparator.comparingLong(Trample::brute));
+        UnitRosterService roster = sim.getRoster();
+        for (Trample tr : trampleDrain) {
+            long brute = tr.brute();
+            if (!roster.isAliveById(brute) || !roster.isAliveById(tr.target())) continue;
+            float bx = sim.world().x(brute), by = sim.world().y(brute);
+            float tx = sim.world().x(tr.target()), ty = sim.world().y(tr.target());
+            float d = (float) Math.hypot(tx - bx, ty - by);
+            float hx = d > 1e-4f ? (tx - bx) / d : 1f, hy = d > 1e-4f ? (ty - by) / d : 0f;
+            if (!tr.trample()) {
+                log(sim, now, brute, "blow", tr.target(), -1, -1);
+                push(brute, tr.target(), BruteChargeRules.BLOW_SPEED, false, sim, now, hx, hy);
+                continue;
+            }
+            float damage = sim.combat().attackDamage(brute);
+            UnitType type = sim.identity().type(brute);
+            log(sim, now, brute, "trample", tr.target(), -1, -1);
+            // The hooves come down on the ground the body stood on: whoever else is under them goes down too.
+            Faction side = sim.identity().faction(brute);
+            nearby.clear();
+            sim.getUnitIndex().gather(tx, ty, BruteChargeRules.TRAMPLE_RADIUS, nearby);
+            long[] under = Arrays.copyOf(nearby.ids, nearby.size);
+            Arrays.sort(under);
+            trampleOne(brute, tr.target(), damage, type, hx, hy, sim);
+            for (long id : under) {
+                if (id == brute || id == tr.target() || !roster.isAliveById(id)) continue;
+                Faction other = sim.identity().faction(id);
+                if (other == side || other.friendlyTo(side) || kind(id, sim) != Kind.INFANTRY) continue;
+                float rx = sim.world().x(id) - bx, ry = sim.world().y(id) - by;
+                float rl = (float) Math.hypot(rx, ry);
+                trampleOne(brute, id, damage * BruteChargeRules.TRAMPLE_SPLASH, type,
+                        rl > 1e-4f ? rx / rl : hx, rl > 1e-4f ? ry / rl : hy, sim);
+            }
+        }
+    }
+
+    private void trampleOne(long brute, long body, float damage, UnitType type, float dx, float dy,
+                            BattleSimulation sim) {
+        sim.applyDamage(body, brute, damage, SwarmBruteBehavior.MELEE_PENETRATION, type.moraleImpact);
+        if (!sim.getRoster().isAliveById(body)) return;
+        sim.stagger().stagger(body, BruteChargeRules.ticks(BruteChargeRules.TRAMPLE_HOLD), Cause.KNOCKED_DOWN);
+        launch(body, dx, dy, BruteChargeRules.TRAMPLE_BOWL, BruteChargeRules.BODY_SLIDE, sim);
     }
 
     private void begin(Request r, BattleSimulation sim, int now) {
@@ -215,8 +359,9 @@ public final class BruteChargeSystem {
         float hx = (float) Math.cos(Math.toRadians(c.heading));
         float hy = (float) Math.sin(Math.toRadians(c.heading));
         float radius = roster.radius(brute);
-        float walk = sim.identity().type(brute).moveSpeed;
-        float scale = BruteChargeRules.CHARGE_SPEED * c.pace / walk;
+        SwarmStage stage = sim.identity().swarmStage(brute);
+        float walk = SwarmStageStats.of(UnitType.SWARM_BRUTE, stage).speed();
+        float scale = SwarmStageStats.bruteChargeSpeed(stage) * c.pace / walk;
         float intended = Math.max(0f, roster.movement().moveSpeed(brute)) * dt * scale;
         ManualTerrainMotion.Result moved = roster.movement().moveDirectScaled(brute, grid, hx, hy, radius, dt, scale);
         float applied = (float) Math.hypot(moved.dx(), moved.dy());
@@ -276,7 +421,8 @@ public final class BruteChargeSystem {
     private boolean strike(long brute, long target, Charge c, BattleSimulation sim, int now, float hx, float hy) {
         UnitRosterService roster = sim.getRoster();
         Kind kind = kind(target, sim);
-        Outcome outcome = BruteChargeRules.outcome(kind);
+        SwarmStage stage = sim.identity().swarmStage(brute);
+        Outcome outcome = BruteChargeRules.outcome(kind, stage);
         c.struck.add(target);
         UnitType type = sim.identity().type(brute);
         float damage = sim.combat().attackDamage(brute) * BruteChargeRules.DAMAGE_SCALE;
@@ -287,9 +433,11 @@ public final class BruteChargeSystem {
             sim.applyDamage(target, brute, damage, SwarmBruteBehavior.MELEE_PENETRATION, type.moraleImpact);
         }
         log(sim, now, brute, kind.name().toLowerCase(), target, -1, -1);
+        // Head and hooves into it: the rig plays the blow off the cooldown, and the next one waits on it.
+        sim.combat().setCooldownTimer(brute, sim.combat().attackCooldown(brute));
         boolean alive = roster.isAliveById(target);
         if (alive && outcome.throwCells() > 0f) throwBody(target, brute, outcome.throwCells(), sim, hx, hy);
-        if (alive && outcome.shoveCells() > 0f) shove(target, outcome.shoveCells(), sim, hx, hy);
+        push(brute, target, SwarmStageStats.bruteChargeSpeed(stage) * c.pace, true, sim, now, hx, hy);
         if (alive && outcome.holdSeconds() > 0f) {
             sim.stagger().stagger(target, BruteChargeRules.ticks(outcome.holdSeconds()),
                     BruteChargeRules.holdCause(kind));
@@ -298,7 +446,7 @@ public final class BruteChargeSystem {
             sim.stagger().stagger(brute, BruteChargeRules.ticks(outcome.bruteStunSeconds()), Cause.STUNNED);
             log(sim, now, brute, "stunned", target, -1, -1);
         }
-        if (outcome.goesOn() && ++c.bodies <= BruteChargeRules.MAX_BODIES) {
+        if (outcome.goesOn() && ++c.bodies <= BruteChargeRules.maxBodies(stage)) {
             c.pace *= BruteChargeRules.BODY_SLOW;
             // Through it and on along the line: nothing left to steer at.
             if (target == c.target) {
@@ -316,19 +464,62 @@ public final class BruteChargeSystem {
         float bx = sim.world().x(body), by = sim.world().y(body);
         float[] dir = BruteChargeRules.throwDirection(hx, hy,
                 bx - sim.world().x(brute), by - sim.world().y(brute));
-        ManualTerrainMotion.Result landed = ManualTerrainMotion.move(sim.getGrid(), bx, by,
-                dir[0] * distance, dir[1] * distance, sim.getRoster().radius(body));
-        sim.world().setPos(body, landed.x(), landed.y());
-        sim.clearPath(body);
-        frighten(body, landed.x(), landed.y(), brute, sim);
+        launch(body, dir[0], dir[1], distance, BruteChargeRules.BODY_SLIDE, sim);
+        frighten(body, bx, by, brute, sim);
     }
 
-    private void shove(long hull, float distance, BattleSimulation sim, float hx, float hy) {
+    /** A hull's bulk is not a blade: what the Brute takes from one goes through its plate. */
+    private static final float RECOIL_PENETRATION = 30f;
+
+    /**
+     * The Brute's weight, closing at {@code speed} along {@code (hx, hy)}, lands on {@code target}: a hull through
+     * the contact ({@link #collide}), a mech as one body against another, pushed off its feet a little way.
+     * Infantry and emplacements take nothing here (infantry is thrown or trampled; an emplacement is fixed).
+     */
+    private void push(long brute, long target, float speed, boolean charge, BattleSimulation sim, int now,
+                      float hx, float hy) {
+        if (!sim.getRoster().isAliveById(target)) return;
+        if (sim.convoy().isVehicle(target)) {
+            collide(brute, target, speed, charge, sim, now, hx, hy);
+            return;
+        }
+        if (!sim.identity().type(target).isMech()) return;
+        var loadout = sim.world().mechLoadout(target);
+        float mass = BruteChargeRules.MECH_TONNES * (loadout == null ? 1f : loadout.variant.relativeMass);
+        float dv = BruteChargeRules.pointPush(speed,
+                SwarmStageStats.bruteMass(sim.identity().swarmStage(brute)), mass);
+        float cells = dv * dv / (2f * BruteChargeRules.MECH_SLIDE);
+        if (cells > 1e-3f) launch(target, hx, hy, cells, BruteChargeRules.MECH_SLIDE, sim);
+    }
+
+    /**
+     * The Brute and a hull exchange momentum where they meet ({@link HullImpact}): the hull slides and turns
+     * on its tires or tracks and rocks on its suspension ({@link HullSlide}), and the Brute rebounds with what
+     * the hull did not take. A charge also hurts the Brute by whatever impulse its plate could not shed; a
+     * blow it chose to throw does not.
+     */
+    private void collide(long brute, long hull, float speed, boolean charge, BattleSimulation sim, int now,
+                         float hx, float hy) {
         GroundBody body = sim.convoy().body(hull);
         if (body == null) return;
-        ManualTerrainMotion.Result moved = ManualTerrainMotion.move(sim.getGrid(), body.x, body.y,
-                hx * distance, hy * distance, sim.getRoster().radius(hull));
-        body.teleport(moved.x(), moved.y(), body.facingDegrees);
+        VehicleType type = sim.convoy().vehicleType(hull);
+        double rad = Math.toRadians(body.facingDegrees);
+        float hvx = (float) -Math.sin(rad) * body.speed + body.knockVx;
+        float hvy = (float) Math.cos(rad) * body.speed + body.knockVy;
+        HullImpact.Result hit = HullImpact.strike(body.x, body.y, body.facingDegrees,
+                type.visualLengthCells / 2f, type.visualWidthCells / 2f, type.massTonnes(),
+                hvx, hvy, body.knockOmega, sim.world().x(brute), sim.world().y(brute), hx * speed, hy * speed,
+                SwarmStageStats.bruteMass(sim.identity().swarmStage(brute)), BruteChargeRules.RESTITUTION);
+        if (hit.impulse() <= 0f) return;
+        HullSlide.apply(body, hit);
+        impulses.put(hull, Float.valueOf(hit.impulse()));
+        float rvx = hx * speed + hit.strikerVx(), rvy = hy * speed + hit.strikerVy();
+        if (Math.hypot(rvx, rvy) > 1e-3f) slides.put(brute, new Slide(rvx, rvy, BruteChargeRules.BRUTE_SLIDE));
+        float recoil = charge ? BruteChargeRules.recoilDamage(hit.impulse()) : 0f;
+        if (recoil > 0f) {
+            sim.applyDamage(brute, hull, recoil, RECOIL_PENETRATION, 0f);
+            log(sim, now, brute, "recoil", hull, -1, -1);
+        }
     }
 
     /** Every squad mate within reach of a thrown body takes a near-miss drain. */
@@ -370,7 +561,7 @@ public final class BruteChargeSystem {
                 return false;
             }
             if (light && (topology.isWall(cx, cy) || topology.isWindow(cx, cy))) {
-                sim.mapEditor().damageWall(cx, cy, BruteChargeRules.WALL_BLOW);
+                sim.mapEditor().damageWall(cx, cy, BruteChargeRules.wallBlow(sim.identity().swarmStage(brute)));
                 log(sim, now, brute, "ram", 0L, cx, cy);
             } else if (hp > 0 || topology.isWall(cx, cy) || topology.isWindow(cx, cy)) {
                 sim.stagger().stagger(brute, BruteChargeRules.ticks(BruteChargeRules.STUN), Cause.STUNNED);
@@ -386,7 +577,8 @@ public final class BruteChargeSystem {
             SharedEdgeBarrier barrier = grid.getEdgeBarrier(ox, oy, step);
             if (barrier != null && barrier.kind().blocksMovement()) {
                 if (barrier.kind() == SharedEdgeBarrier.Kind.WINDOW) {
-                    sim.mapEditor().damageEdgeBarrier(ox, oy, step, BruteChargeRules.WALL_BLOW);
+                    sim.mapEditor().damageEdgeBarrier(ox, oy, step,
+                            BruteChargeRules.wallBlow(sim.identity().swarmStage(brute)));
                     log(sim, now, brute, "ram", 0L, ox, oy);
                 } else {
                     sim.stagger().stagger(brute, BruteChargeRules.ticks(BruteChargeRules.STUN), Cause.STUNNED);

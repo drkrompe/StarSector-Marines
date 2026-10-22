@@ -104,7 +104,7 @@
       "cover": "med",
       "footprintCells": [
         4,
-        2
+        1
       ],
       "id": "ship-engineering.bench",
       "row": 10
@@ -115,7 +115,7 @@
       "cover": "med",
       "footprintCells": [
         3,
-        2
+        1
       ],
       "id": "ship-engineering.switchgear",
       "row": 10
@@ -126,7 +126,7 @@
       "cover": "med",
       "footprintCells": [
         3,
-        2
+        1
       ],
       "id": "ship-engineering.spares",
       "row": 14

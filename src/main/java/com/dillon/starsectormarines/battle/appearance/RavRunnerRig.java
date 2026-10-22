@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.appearance;
 
+
 /**
  * The Rav Bloom Runner's skeleton, advanced once per simulation tick: a hunched four-legged hound
  * whose feet stay planted on the ground, with two jointed spike arms mounted on its shoulders.
@@ -27,8 +28,9 @@ public final class RavRunnerRig {
     public static final float SPINE = 0.50f;
     static final float SHOULDER_Z = 0.40f;
     static final float HIP_Z = 0.38f;
-    static final float FRONT_X = 0.17f, FRONT_A = 0.22f, FRONT_B = 0.22f;
-    static final float HIND_X = 0.17f, HIND_A = 0.19f, HIND_B = 0.20f, HIND_C = 0.12f;
+    // the stance is a little wider than the study's 0.17, so the paws show past the slim flanks
+    static final float FRONT_X = 0.20f, FRONT_A = 0.22f, FRONT_B = 0.22f;
+    static final float HIND_X = 0.20f, HIND_A = 0.19f, HIND_B = 0.20f, HIND_C = 0.12f;
     static final float ARM_X = 0.12f, ARM_UP = 0.07f, ARM_A = 0.30f, ARM_B = 0.30f, ARM_SPIKE = 0.18f;
 
     /** Leg order: front left, front right, hind left, hind right. */
@@ -55,7 +57,16 @@ public final class RavRunnerRig {
     static final float SWIPE_WIND = 0.15f, SWIPE_CUT = 0.10f, SWIPE_BACK = 0.30f;
     /** The swipe connects a little past the middle of its cut. */
     static final float SWIPE_HIT = 0.55f * SWIPE_CUT;
-    private static final float LUNGE = 0.14f;
+    private static final float LUNGE = 0.18f;
+    /** A stab gathers the body back this far, cells, while the elbow bows out. */
+    private static final float PULL_BACK = 0.08f;
+    /**
+     * How far the shoulders turn with a blow, degrees: a stab rolls the striking shoulder back
+     * and then drives it through; a swipe winds the shoulders away and twists hard across.
+     */
+    private static final float STAB_TWIST = 12f, SWIPE_WIND_TWIST = 15f, SWIPE_CUT_TWIST = 25f;
+    /** The hips turn against the shoulders by this share of the twist. */
+    private static final float HIP_COUNTER = 0.35f;
     private static final float RELAX_SECONDS = 0.15f;
 
     // arm poses: yaw (deg, + turns outward), reach, height, roll (deg, bows the elbow out)
@@ -65,15 +76,71 @@ public final class RavRunnerRig {
     private static final float[] THRUST = {0f, 0.31f * G, -0.08f * G, 25f};
     private static final float[] SWIPE_OUT = {80f, 0.22f * G, 0.07f * G, 0f};
     private static final float[] SWIPE_CUT_POSE = {-30f, 0.30f * G, -0.02f * G, 0f};
+    /** Hauling a load: the spike stays in, the elbow still bowed a little out. */
+    private static final float[] CARRY = {0f, 0.17f * G, -0.08f * G, 35f};
+    /** How fast a carrier turns to keep its load in front of its jaws, degrees a second. */
+    private static final float CARRY_TURN = 360f;
+    /** A carrier is drawn this far behind its sim position, so its load shows ahead of its jaws. */
+    private static final float CARRY_BACK = 0.25f;
+    /** The jaws reach this far toward the load, at most; the neck does not stretch further. */
+    private static final float LATCH_REACH = 0.10f;
+    /** Seconds until the pieces lie flat, the pool has spread, and everything is still. */
+    private static final float POOL_CELLS = 1.05f;
 
     // ------------------------------------------------------------------ pose layout
     /** First point of each leg; front legs have three points, hind legs four. */
-    public static final int[] LEG_START = {0, 3, 6, 10};
+    private static final int[] LEG_START_INIT = {0, 3, 6, 10};
+    public static final int[] LEG_START = LEG_START_INIT.clone();
     public static final int[] LEG_POINTS = {3, 3, 4, 4};
     /** First point of each arm (left, right): base, elbow, wrist, spike tip. */
     public static final int[] ARM_START = {14, 18};
-    public static final int SHOULDER = 22, HIP = 23, NECK = 24, HEAD = 25;
-    static final int POINTS = 26;
+    public static final int SHOULDER = 22, HIP = 23, NECK = 24, HEAD = 25, MID = 26;
+    public static final int POINTS = 27;
+    /**
+     * How far each point turns with its half of the bending spine (front positive, rear negative,
+     * as a share of half the bend): the feet hold their ground and the joints between share it.
+     */
+    private static final float[] BEND_SHARE = new float[POINTS];
+    static {
+        float[] front = {1f, 0.5f, 0f};
+        float[] hind = {1f, 0.67f, 0.3f, 0f};
+        for (int leg = 0; leg < 4; leg++) {
+            float[] share = leg < 2 ? front : hind;
+            for (int j = 0; j < share.length; j++) {
+                BEND_SHARE[LEG_START_INIT[leg] + j] = leg < 2 ? share[j] : -share[j];
+            }
+        }
+        for (int p = 14; p < 22; p++) BEND_SHARE[p] = 1f;
+        BEND_SHARE[22] = 1f;     // shoulder
+        BEND_SHARE[23] = -1f;    // hip
+        BEND_SHARE[24] = 1.2f;   // neck, and the head looks further into the turn
+        BEND_SHARE[25] = 1.4f;
+    }
+
+    /**
+     * What a Runner bursts into: the trunk's two halves, the head, each leg and each spike arm,
+     * as the points that move with each piece.
+     */
+    public static final int PIECE_REAR = 0, PIECE_FRONT = 1, PIECE_HEAD = 2, PIECE_LEG = 3, PIECE_ARM = 7;
+    public static final int PIECES = 9;
+    private static final int[][] PIECE_POINTS = new int[PIECES][];
+    static {
+        PIECE_POINTS[PIECE_REAR] = new int[]{MID, HIP};
+        PIECE_POINTS[PIECE_FRONT] = new int[]{MID, SHOULDER};
+        PIECE_POINTS[PIECE_HEAD] = new int[]{NECK, HEAD};
+        for (int leg = 0; leg < 4; leg++) {
+            PIECE_POINTS[PIECE_LEG + leg] = new int[LEG_POINTS[leg]];
+            for (int i = 0; i < LEG_POINTS[leg]; i++) PIECE_POINTS[PIECE_LEG + leg][i] = LEG_START[leg] + i;
+        }
+        for (int a = 0; a < 2; a++) {
+            PIECE_POINTS[PIECE_ARM + a] = new int[]{ARM_START[a], ARM_START[a] + 1, ARM_START[a] + 2, ARM_START[a] + 3};
+        }
+    }
+    /** The trunk halves stay where they are; a leg rides on its half and an arm on the front, unless it comes away. */
+    private static final int[] PIECE_PARENT = {-1, -1, -1, PIECE_FRONT, PIECE_FRONT, PIECE_REAR, PIECE_REAR,
+            PIECE_FRONT, PIECE_FRONT};
+    /** The limbs, of which one or two come away. */
+    private static final int[] LOOSE_CANDIDATES = {3, 4, 5, 6, 7, 8};
 
     private enum Mode { GALLOP, TROT, PLANT }
 
@@ -83,6 +150,12 @@ public final class RavRunnerRig {
     private float phi;
     private Mode mode = Mode.PLANT;
     private float swayAmp, shx, hpx, run;
+    /** Spine bend through a turn, degrees: positive bows the body into a left turn. */
+    private float bend;
+    /** The shoulders' turn into the current blow, degrees, positive counter-clockwise. */
+    private float twist;
+    /** Degrees of bend per degree a second of turning, and the most the spine bends. */
+    private static final float BEND_PER_YAW_RATE = 0.12f, MAX_BEND = 40f;
     private final float[] feet = new float[12];          // rig frame
     private final float[] pinnedWorld = new float[8];     // world x,y of each pinned foot
     private final float[] pinStart = new float[12];       // rig frame when the pin began
@@ -103,6 +176,12 @@ public final class RavRunnerRig {
     private float lastCooldown;
     private final float[][] arm = {REST.clone(), REST.clone()};
 
+    // carrying and dying
+    private boolean carrying;
+    private float latch;            // 0..1, how far the jaws have closed on the load
+    private boolean dead;
+    private final RavBurst burst = new RavBurst(PIECE_POINTS, 2, PIECE_PARENT, LOOSE_CANDIDATES, POOL_CELLS);
+
     public RavRunnerRig(long seed) {
         this.seed = seed;
     }
@@ -118,6 +197,31 @@ public final class RavRunnerRig {
      * @param dt         tick length, seconds
      */
     public void advance(float posX, float posY, float facing, float cooldown, boolean engaged, float dt) {
+        advance(posX, posY, facing, cooldown, engaged, false, 0f, 0f, dt);
+    }
+
+    /**
+     * Advances the rig one tick, hauling a load when {@code carrying}: the Runner turns to face
+     * the body it drags, so it backs toward the bore at a trot, the impaling spike stays in and
+     * the jaws latch on beside it.
+     *
+     * @param loadX world position of the dragged body; read only while carrying
+     * @param loadY world position of the dragged body
+     */
+    public void advance(float posX, float posY, float facing, float cooldown, boolean engaged,
+                        boolean carrying, float loadX, float loadY, float dt) {
+        if (dead) return;
+        if (carrying && started) {
+            float want = (float) Math.toDegrees(Math.atan2(-(loadX - posX), loadY - posY));
+            float turn = ((want - facingDeg) % 360f + 540f) % 360f - 180f;
+            float step = CARRY_TURN * dt;
+            facing = facingDeg + Math.max(-step, Math.min(step, turn));
+        } else if (this.carrying && !carrying && started) {
+            // the load is gone: hand the heading back to the sim gently next tick
+            facing = facingDeg + Math.max(-CARRY_TURN * dt, Math.min(CARRY_TURN * dt,
+                    ((facing - facingDeg) % 360f + 540f) % 360f - 180f));
+        }
+        this.carrying = carrying;
         if (!started) {
             bodyX = posX;
             bodyY = posY;
@@ -134,13 +238,26 @@ public final class RavRunnerRig {
         }
         bodyX = posX;
         bodyY = posY;
+        float yawRate = (((facing - facingDeg) % 360f + 540f) % 360f - 180f) / dt;
+        float bendTarget = Math.max(-MAX_BEND, Math.min(MAX_BEND, yawRate * BEND_PER_YAW_RATE));
+        bend += (bendTarget - bend) * Math.min(1f, dt / 0.12f);
         facingDeg = facing;
         double rad = Math.toRadians(facing);
         float fwdX = (float) -Math.sin(rad), fwdY = (float) Math.cos(rad);
         float along = dx * fwdX + dy * fwdY;
         float speed = moved / dt;
 
-        advanceStrike(cooldown, engaged, dt);
+        if (carrying) {
+            winding = false;
+            sinceHit = Float.MAX_VALUE;
+            cooldown = Math.max(cooldown, 1f);
+        }
+        advanceStrike(cooldown, engaged && !carrying, dt);
+        latch += ((carrying ? 1f : 0f) - latch) * Math.min(1f, dt / 0.25f);
+        if (carrying) {
+            float k = Math.min(1f, dt / 0.35f);
+            for (int q = 0; q < 4; q++) arm[strikeArm][q] += (CARRY[q] - arm[strikeArm][q]) * k;
+        }
         boolean striking = winding || sinceHit < strikeLength();
 
         Mode next;
@@ -156,6 +273,7 @@ public final class RavRunnerRig {
         float flex = 0.10f * run * (float) Math.sin(2 * Math.PI * (phi + 0.25f));
         float crouch = crouch(cooldown);
         float lunge = lunge(cooldown);
+        twist = twist(cooldown);
 
         float swayTarget = next == Mode.GALLOP ? 0.025f : next == Mode.TROT ? (along < 0f ? 0.045f : 0.035f) : 0f;
         swayAmp += (swayTarget - swayAmp) * Math.min(1f, dt / 0.15f);
@@ -193,6 +311,9 @@ public final class RavRunnerRig {
         solveArms(shY, shZ);
         set(NECK, shx * 1.2f, shY + 0.12f, shZ + 0.03f);
         set(HEAD, shx * 1.4f, shY + 0.25f + 0.03f * s * run, shZ - 0.01f);
+        set(MID, (shx + hpx) / 2, (shY + hpY) / 2, (shZ + hpZ) / 2);
+        bendSpine();
+        if (latch > 0.001f && carrying) latchOn(loadX, loadY, fwdX, fwdY);
     }
 
     private void solveFeet(Mode m, float dt, float fwdX, float fwdY) {
@@ -383,9 +504,34 @@ public final class RavRunnerRig {
     private float lunge(float cooldown) {
         if (!strikeIsStab || (!winding && sinceHit >= strikeLength())) return 0f;
         float t = strikeClock(cooldown);
-        if (t < -STAB_DRIVE) return 0f;
-        if (t < STAB_HOLD) return LUNGE * easeOut((t + STAB_DRIVE) / (STAB_DRIVE + STAB_HOLD));
+        if (t < -STAB_DRIVE) return -PULL_BACK * smooth((t + STAB_WIND + STAB_DRIVE) / STAB_WIND);
+        if (t < STAB_HOLD) {
+            return -PULL_BACK + (LUNGE + PULL_BACK) * easeOut((t + STAB_DRIVE) / (STAB_DRIVE + STAB_HOLD));
+        }
         return LUNGE * (1f - smooth((t - STAB_HOLD) / STAB_RECOVER));
+    }
+
+    /**
+     * The shoulders' turn into the blow. Positive turns counter-clockwise, which takes the left
+     * shoulder back: a left-arm blow winds positive and drives negative, a right-arm one the reverse.
+     */
+    private float twist(float cooldown) {
+        if (!winding && sinceHit >= strikeLength()) return 0f;
+        float t = strikeClock(cooldown);
+        float side = strikeArm == 0 ? 1f : -1f;
+        if (strikeIsStab) {
+            if (t < -STAB_DRIVE) return STAB_TWIST * side * smooth((t + STAB_WIND + STAB_DRIVE) / STAB_WIND);
+            if (t < 0f) return STAB_TWIST * side * (1f - 2f * easeOut((t + STAB_DRIVE) / STAB_DRIVE));
+            if (t < STAB_HOLD) return -STAB_TWIST * side;
+            return -STAB_TWIST * side * (1f - smooth((t - STAB_HOLD) / STAB_RECOVER));
+        }
+        if (t < -SWIPE_HIT) return SWIPE_WIND_TWIST * side * smooth((t + SWIPE_WIND + SWIPE_HIT) / SWIPE_WIND);
+        float u = t + SWIPE_HIT;
+        if (u < SWIPE_CUT) {
+            float k = easeOut(u / SWIPE_CUT);
+            return side * (SWIPE_WIND_TWIST + (-SWIPE_CUT_TWIST - SWIPE_WIND_TWIST) * k);
+        }
+        return -SWIPE_CUT_TWIST * side * (1f - smooth((u - SWIPE_CUT) / SWIPE_BACK));
     }
 
     private void solveArms(float shY, float shZ) {
@@ -419,6 +565,115 @@ public final class RavRunnerRig {
             set(p + 3, w[0] + ARM_SPIKE * dx / n, w[1] + ARM_SPIKE * dy / n, w[2] + ARM_SPIKE * dz / n);
         }
     }
+
+    /**
+     * Bows the spine into the turn about mid-spine: the shoulders and everything mounted on them
+     * swing one way, the hips and the tail the other, so the body draws a C toward the inside of
+     * the turn while the planted feet stay put and the legs lean.
+     */
+    private void bendSpine() {
+        if (Math.abs(bend) < 0.05f && Math.abs(twist) < 0.05f) return;
+        float mx = x(MID), my = y(MID);
+        for (int p = 0; p < POINTS; p++) {
+            float share = BEND_SHARE[p];
+            if (share == 0f) continue;
+            // the front half turns with the blow; the rear half turns a little against it
+            double a = Math.toRadians(bend / 2 * share
+                    + (share > 0f ? twist * share : -HIP_COUNTER * twist * -share));
+            float c = (float) Math.cos(a), sn = (float) Math.sin(a);
+            float dx = x(p) - mx, dy = y(p) - my;
+            pose[p * 3] = mx + dx * c - dy * sn;
+            pose[p * 3 + 1] = my + dx * sn + dy * c;
+        }
+    }
+
+    /** The shoulders' turn into the current blow, degrees, positive counter-clockwise. */
+    public float twistDegrees() { return twist; }
+
+    /** Spine bend this tick, degrees; positive bows the body into a left turn. */
+    public float bendDegrees() { return bend; }
+
+    /** The jaws close on the load beside the spike, the neck reaching no further than it can. */
+    private void latchOn(float loadX, float loadY, float fwdX, float fwdY) {
+        float dx = loadX - bodyX, dy = loadY - bodyY;
+        // the body is drawn CARRY_BACK behind the sim position, so the load sits that much further ahead
+        float lx = dx * fwdY - dy * fwdX, ly = dx * fwdX + dy * fwdY + CARRY_BACK * latch, lz = 0.18f;
+        float hx = x(HEAD), hy = y(HEAD), hz = z(HEAD);
+        float d = (float) Math.sqrt((lx - hx) * (lx - hx) + (ly - hy) * (ly - hy) + (lz - hz) * (lz - hz));
+        float k = latch * Math.min(1f, LATCH_REACH / Math.max(1e-6f, d));
+        set(HEAD, hx + (lx - hx) * k, hy + (ly - hy) * k, hz + (lz - hz) * k);
+    }
+
+    // ------------------------------------------------------------------ death
+
+    /**
+     * Advances a dead Runner: on its first dead tick it bursts ({@link RavBurst}). The trunk splits at
+     * mid-spine and the two halves slump apart; the head and one or two limbs come away, the other limbs
+     * staying on their half. Seeded by the rig, so every replay bursts the same way. A body dragged off by
+     * another Runner moves with its position.
+     */
+    public void advanceDead(float posX, float posY, float dt) {
+        if (!started) {
+            bodyX = posX;
+            bodyY = posY;
+            started = true;
+            solveLegs(SPINE / 2, SHOULDER_Z, -SPINE / 2, HIP_Z);
+            solveArms(SPINE / 2, SHOULDER_Z);
+        }
+        bodyX = posX;
+        bodyY = posY;
+        if (!dead) {
+            dead = true;
+            burst.start(pose, pose[MID * 3], pose[MID * 3 + 1], seed);
+        }
+        burst.advance(dt);
+    }
+
+    /**
+     * Where point lies now in the rig frame (x right, y forward, z up) as part of the given piece,
+     * offset by (addX, addY) in the pose it died in; out gets x, y, z. Only meaningful once dead.
+     */
+    public void deadPoint(int pieceIndex, int point, float addX, float addY, float[] out) {
+        burst.deadPoint(pieceIndex, point, addX, addY, out);
+    }
+
+    /** The burst this Runner died in, for the ichor drawing; meaningful once dead. */
+    public RavBurst burst() { return burst; }
+
+    /** 0 at the burst, 1 once the pieces have gone limp and lie flat on the ground. */
+    public float flat() { return burst.flat(); }
+
+    /** Seconds since the Runner burst. */
+    public float sinceDeath() { return burst.sinceDeath(); }
+
+    /** Where piece i lies in the rig frame, and whether it has come to rest (and left a smear). */
+    public float pieceX(int i) { return burst.pieceX(i); }
+    public float pieceY(int i) { return burst.pieceY(i); }
+    public boolean pieceResting(int i) { return burst.pieceResting(i); }
+
+    public int dropCount() { return burst.dropCount(); }
+
+    /** Droplet i in the rig frame, whether it has landed, and the size in cells of its splat. */
+    public float dropX(int i) { return burst.dropX(i); }
+    public float dropY(int i) { return burst.dropY(i); }
+    public float dropZ(int i) { return burst.dropZ(i); }
+    public boolean dropLanded(int i) { return burst.dropLanded(i); }
+    public float dropSize(int i) { return burst.dropSize(i); }
+    public float dropAngle(int i) { return burst.dropAngle(i); }
+    public int dropVariant(int i) { return burst.dropVariant(i); }
+
+    /** The pool spreading under the middle: its diameter in cells, its turn and which splat it is. */
+    public float poolCells() { return burst.poolCells(); }
+    public float poolX() { return burst.poolX(); }
+    public float poolY() { return burst.poolY(); }
+    public float poolAngle() { return burst.poolAngle(); }
+    public int poolVariant() { return burst.poolVariant(); }
+
+    /** How far forward of the sim position the drawn body sits, cells; negative while hauling. */
+    public float drawOffset() { return dead ? 0f : -CARRY_BACK * latch; }
+
+    /** Whether the Runner is dead and lying (or falling). */
+    public boolean dead() { return dead; }
 
     // ------------------------------------------------------------------ solvers
 

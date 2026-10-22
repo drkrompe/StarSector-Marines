@@ -13,31 +13,45 @@ public final class RavRunnerAssets {
 
     public static final String ROOT = "graphics/battle/rav-runner/";
 
-    final LayeredSpriteCache trunk;
+    /** The trunk in two halves that meet at mid-spine, so it bends through a turn. */
+    final LayeredSpriteCache trunkFront;
+    final LayeredSpriteCache trunkRear;
     final LayeredSpriteCache fore;
     final LayeredSpriteCache[][] front = new LayeredSpriteCache[2][2];
     final LayeredSpriteCache[][] hind = new LayeredSpriteCache[3][2];
     final LayeredSpriteCache[][] arm = new LayeredSpriteCache[3][2];
+    /** Ichor a burst Runner leaves, by {@code art-source/rav-redesign/export_ichor.py}. */
+    final LayeredSpriteCache[] splat = new LayeredSpriteCache[4];
+    LayeredSpriteCache drop;
 
-    private RavRunnerAssets(LayeredSpriteCache trunk, LayeredSpriteCache fore) {
-        this.trunk = trunk;
+    private RavRunnerAssets(LayeredSpriteCache trunkFront, LayeredSpriteCache trunkRear,
+                            LayeredSpriteCache fore) {
+        this.trunkFront = trunkFront;
+        this.trunkRear = trunkRear;
         this.fore = fore;
     }
 
     /** Every sprite through loader, or null when any is missing, so the Runner keeps its old art. */
     public static RavRunnerAssets load(Function<String, LayeredSpriteCache> loader) {
-        RavRunnerAssets assets = new RavRunnerAssets(loader.apply(ROOT + "trunk.png"),
-                loader.apply(ROOT + "fore.png"));
-        if (assets.trunk == null || assets.fore == null) return null;
+        RavRunnerAssets assets = new RavRunnerAssets(loader.apply(ROOT + "trunk-front.png"),
+                loader.apply(ROOT + "trunk-rear.png"), loader.apply(ROOT + "fore.png"));
+        if (assets.trunkFront == null || assets.trunkRear == null || assets.fore == null) return null;
         if (!fill(assets.front, "front", loader) || !fill(assets.hind, "hind", loader)
                 || !fill(assets.arm, "arm", loader)) return null;
+        for (int i = 0; i < assets.splat.length; i++) {
+            assets.splat[i] = loader.apply(ROOT + "ichor-splat-" + i + ".png");
+            if (assets.splat[i] == null) return null;
+        }
+        assets.drop = loader.apply(ROOT + "ichor-drop.png");
+        if (assets.drop == null) return null;
         return assets;
     }
 
     /** Every bone image, for the unit atlas. */
     public List<LayeredSpriteCache> layers() {
         List<LayeredSpriteCache> all = new ArrayList<>();
-        all.add(trunk);
+        all.add(trunkFront);
+        all.add(trunkRear);
         all.add(fore);
         for (LayeredSpriteCache[][] bones : new LayeredSpriteCache[][][]{front, hind, arm}) {
             for (LayeredSpriteCache[] pair : bones) {
@@ -45,6 +59,8 @@ public final class RavRunnerAssets {
                 all.add(pair[1]);
             }
         }
+        all.addAll(List.of(splat));
+        all.add(drop);
         return all;
     }
 

@@ -10,9 +10,9 @@ import java.util.Map;
  * (`colony-breach-nouns.md`, Strains by tier).
  *
  * <p>Runners at fissure; brutes and spitters join at bore tier; maw weights
- * toward the heavier strains. The {@link Slot#MATRIARCH} slot is named here and
- * left empty: {@code matriarch.md} gives it a body and the mother-only rule, and
- * until then it never wins a draw. Every body the table picks is spawned
+ * toward the heavier strains. The {@link Slot#MATRIARCH} never wins a draw: a
+ * mother bore owes one the first time it releases at maw tier, and that body is
+ * the Matriarch whatever the roll ({@link #pick(BoreTier, long, boolean)}). Every body the table picks is spawned
  * through {@link SwarmStrains}, so it is issued its strain's kit.
  */
 public final class BoreStrainTable {
@@ -22,8 +22,8 @@ public final class BoreStrainTable {
         RUNNER(UnitType.SWARM_RUNNER),
         BRUTE(UnitType.SWARM_BRUTE),
         SPITTER(UnitType.SWARM_SPITTER),
-        /** The mother bore's heavy strain; filled by {@code matriarch.md}. */
-        MATRIARCH(null);
+        /** The mother bore's heavy strain: one per mother, owed at maw tier, never drawn. */
+        MATRIARCH(UnitType.SWARM_MATRIARCH);
 
         /** The body this slot spawns, or {@code null} for a slot not yet filled. */
         public final UnitType unitType;
@@ -45,6 +45,19 @@ public final class BoreStrainTable {
     /** The slot's weight at a tier; zero for a slot that never spawns there. */
     public static int weight(BoreTier tier, Slot slot) {
         return slot.unitType == null ? 0 : WEIGHTS.get(tier)[slot.ordinal()];
+    }
+
+    /**
+     * Whether a bore releasing at {@code tier} owes its Matriarch: a mother at maw tier that has not
+     * released one yet.
+     */
+    public static boolean owesMatriarch(boolean mother, BoreTier tier, boolean matriarchReleased) {
+        return mother && tier == BoreTier.MAW && !matriarchReleased;
+    }
+
+    /** {@link #pick(BoreTier, long)}, unless the bore owes its Matriarch, which then comes first. */
+    public static Slot pick(BoreTier tier, long roll, boolean owesMatriarch) {
+        return owesMatriarch ? Slot.MATRIARCH : pick(tier, roll);
     }
 
     /**

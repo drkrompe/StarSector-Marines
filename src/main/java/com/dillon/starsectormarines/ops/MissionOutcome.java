@@ -119,6 +119,12 @@ public final class MissionOutcome {
     public final int     representativesEvacuated;
     /** Explicit Silent Colony archive report; {@code NONE} means no valid report. */
     public final AbandonedColonyArchiveOutcome colonyArchiveOutcome;
+    /**
+     * Colony Breach's hive bonus: the mother bore was collapsed in the battle
+     * ({@code colony-breach-nouns.md}, Mother bore). False on every other
+     * mission and on a breach where it stood.
+     */
+    public final boolean motherBoreCollapsed;
     /** Salvage percentage consumed by the loot roll (0..255). 0 = no salvage. */
     public final int     salvageEntitlement;
     /** Frozen captain + fleet recovery-pool bonus, in percentage points. */
@@ -155,6 +161,13 @@ public final class MissionOutcome {
     public final List<CompanyMechLedger.Damage> mechDamage;
     public final Set<String> survivingSoldierIds;
     public final Set<String> fallenSoldierIds;
+    /**
+     * Of the fallen, those a swarm carrier took into a bore alive, or was still
+     * holding when the battle ended (`colony-breach-nouns.md`, Harvest): killed
+     * in action without a roll and past any sick bay's saving. Null on an
+     * outcome saved before it existed.
+     */
+    public final Set<String> takenSoldierIds;
     /** Mission-time persistent squad selection, in briefing order. */
     public final Set<String> deployedFireteamIds;
     /**
@@ -235,6 +248,7 @@ public final class MissionOutcome {
                 ? b.representativesEvacuated : -1;
         this.colonyArchiveOutcome = b.colonyArchiveOutcome != null
                 ? b.colonyArchiveOutcome : AbandonedColonyArchiveOutcome.NONE;
+        this.motherBoreCollapsed = this.missionSource.isCivilianRescue() && b.motherBoreCollapsed;
         this.salvageEntitlement = b.salvageEntitlement;
         this.salvageRecoveryBonusPct = Math.max(0, b.salvageRecoveryBonusPct);
         this.salvageHighValueChancePct = Math.max(0, Math.min(100, b.salvageHighValueChancePct));
@@ -247,6 +261,7 @@ public final class MissionOutcome {
         this.mechDamage = b.mechDamage == null ? Collections.emptyList() : List.copyOf(b.mechDamage);
         this.survivingSoldierIds = immutableIds(b.survivingSoldierIds);
         this.fallenSoldierIds = immutableIds(b.fallenSoldierIds);
+        this.takenSoldierIds = immutableIds(b.takenSoldierIds);
         this.deployedFireteamIds = immutableOrderedIds(b.deployedFireteamIds);
         this.soldierTelemetry = immutableTelemetry(b.soldierTelemetry);
     }
@@ -324,6 +339,7 @@ public final class MissionOutcome {
         private long campaignEventThreatSeed = -1L;
         private int civiliansAtRisk;
         private int civiliansRescued = -1;
+        private boolean motherBoreCollapsed;
         private int evacuationRepresentatives = -1;
         private int representativesEvacuated = -1;
         private AbandonedColonyArchiveOutcome colonyArchiveOutcome =
@@ -348,6 +364,7 @@ public final class MissionOutcome {
         private List<CompanyMechLedger.Damage> mechDamage = Collections.emptyList();
         private Set<String> survivingSoldierIds = Collections.emptySet();
         private Set<String> fallenSoldierIds = Collections.emptySet();
+        private Set<String> takenSoldierIds = Collections.emptySet();
         private Set<String> deployedFireteamIds = Collections.emptySet();
         private Map<String, CombatTelemetryRow> soldierTelemetry = Collections.emptyMap();
 
@@ -532,6 +549,12 @@ public final class MissionOutcome {
             return this;
         }
 
+        /** @param collapsed whether the Colony Breach mother bore was collapsed: the hive bonus */
+        public Builder motherBoreCollapsed(boolean collapsed) {
+            this.motherBoreCollapsed = collapsed;
+            return this;
+        }
+
         /**
          * The sealed representative cohort and how much of it got out. Set as a
          * pair: the outcome discards both unless they describe a coherent
@@ -595,6 +618,11 @@ public final class MissionOutcome {
 
         public Builder fallenSoldierIds(Set<String> fallenSoldierIds) {
             this.fallenSoldierIds = fallenSoldierIds;
+            return this;
+        }
+
+        public Builder takenSoldierIds(Set<String> takenSoldierIds) {
+            this.takenSoldierIds = takenSoldierIds;
             return this;
         }
 

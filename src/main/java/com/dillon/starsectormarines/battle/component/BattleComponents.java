@@ -83,6 +83,15 @@ public final class BattleComponents {
      */
     public static final int IDENTITY_AIRFRAME = 6;
     public static final int IDENTITY_ARMOR_CLASS = 7;
+    /**
+     * {@link #IDENTITY} field 8: a swarm body's
+     * {@link com.dillon.starsectormarines.battle.unit.SwarmStage} (OBJECT);
+     * null for everything else, which reads as an adult. Here, beside the
+     * airframe, because it decides the body's size to the shared radius
+     * accessor, and because IDENTITY rides the death transmute: a dead whelp
+     * stays a small corpse.
+     */
+    public static final int IDENTITY_SWARM_STAGE = 8;
 
     /** {@link #POSITION} field 0: continuous position x (FLOAT) — cell (cx,cy) spans [cx,cx+1), center at cx+0.5; floor for the grid cell. */
     public static final int POSITION_X = 0;
@@ -1190,7 +1199,7 @@ public final class BattleComponents {
     public BattleComponents(EntityWorld world) {
         IDENTITY        = world.register(0, "Identity", FieldKind.OBJECT, FieldKind.OBJECT,
                 FieldKind.OBJECT, FieldKind.OBJECT, FieldKind.OBJECT, FieldKind.OBJECT,
-                FieldKind.OBJECT, FieldKind.OBJECT);
+                FieldKind.OBJECT, FieldKind.OBJECT, FieldKind.OBJECT);
         POSITION        = world.register(1, "Position", FieldKind.FLOAT, FieldKind.FLOAT);
         SPRITE          = world.register(3, "Sprite", FieldKind.INT, FieldKind.INT, FieldKind.INT);
         CORPSE          = world.register(4, "Corpse", FieldKind.FLOAT, FieldKind.INT, FieldKind.INT);

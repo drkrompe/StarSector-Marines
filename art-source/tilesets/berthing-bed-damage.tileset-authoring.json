@@ -6,7 +6,7 @@
   "gridRows": 2,
   "idPrefix": "doodad",
   "alphaMin": 40,
-  "note": "Built-in ImageGen reskin of retained geometry. Full two-cell placement frames, no silhouette trim; W/E/S/N columns, damaged/destroyed rows. Transparent low fragments release cover.",
+  "note": "Built-in ImageGen reskin of ComposableDamageTemplate's guide over the real-length (3x1 / 1x3) intact beds, registered by ComposableDamageRegistration against art-source/console-bank/damage/berthing-bed.tsv. Full placement frames, no silhouette trim; W/E/S/N columns, damaged/destroyed rows. Transparent low fragments release cover.",
   "entries": [
     {
       "id": "doodad.residential-bed-h-damaged",
@@ -14,14 +14,14 @@
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
-        2,
+        3,
         1
       ],
       "rect": [
-        9,
-        111,
-        444,
-        222
+        38,
+        156,
+        369,
+        131
       ]
     },
     {
@@ -30,14 +30,14 @@
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
-        2,
+        3,
         1
       ],
       "rect": [
-        452,
-        111,
-        444,
-        222
+        481,
+        157,
+        369,
+        132
       ]
     },
     {
@@ -47,13 +47,13 @@
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
         1,
-        2
+        3
       ],
       "rect": [
-        1032,
-        0,
-        222,
-        444
+        1046,
+        37,
+        126,
+        369
       ]
     },
     {
@@ -63,13 +63,13 @@
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
         1,
-        2
+        3
       ],
       "rect": [
-        1472,
-        0,
-        222,
-        444
+        1489,
+        37,
+        124,
+        369
       ]
     },
     {
@@ -78,14 +78,14 @@
       "cover": "none",
       "ballisticHalfHeight": 0,
       "footprintCells": [
-        2,
+        3,
         1
       ],
       "rect": [
-        9,
-        555,
-        444,
-        221
+        36,
+        600,
+        371,
+        128
       ]
     },
     {
@@ -94,14 +94,14 @@
       "cover": "none",
       "ballisticHalfHeight": 0,
       "footprintCells": [
-        2,
+        3,
         1
       ],
       "rect": [
-        452,
-        555,
-        444,
-        221
+        480,
+        601,
+        371,
+        127
       ]
     },
     {
@@ -111,13 +111,13 @@
       "ballisticHalfHeight": 0,
       "footprintCells": [
         1,
-        2
+        3
       ],
       "rect": [
-        1032,
-        444,
-        222,
-        443
+        1047,
+        480,
+        124,
+        371
       ]
     },
     {
@@ -127,13 +127,13 @@
       "ballisticHalfHeight": 0,
       "footprintCells": [
         1,
-        2
+        3
       ],
       "rect": [
-        1472,
-        444,
-        222,
-        443
+        1491,
+        480,
+        124,
+        371
       ]
     }
   ]

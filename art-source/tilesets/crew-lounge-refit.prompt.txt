@@ -1,0 +1,11 @@
+Reskin the attached geometry guide into finished top-down game art for four spaceship crew-lounge props. Strict overhead orthographic view, soft light from the upper left, the same look as the material reference sheet: restrained graphite frames, muted grey-green enamel and sage fabric, dull steel edges, quiet wear, realistic painted game-asset finish. No saturated colour, no glow, no hazard stripes.
+
+The guide is the geometry, scale and layout authority, and the result will be cut mechanically from the guide's exact pixel rectangles. Every piece must overlay its grey guide shape almost exactly: the same left and right ends, the same top and bottom edges. Do not make any piece wider, deeper or larger than its grey shape; do not move, rescale, rotate, merge or add pieces. Keep all empty canvas fully transparent: true transparent background, including gaps between parts; no floor, no ground, no shadow slab, no border, no people, no labels or text.
+
+Pieces:
+1. Top left: a square card table, exactly as long as it is wide: a dull steel rim around a muted sage felt playing surface. Nothing on it.
+2. Bottom left: a transparent overlay for that table, the same canvas: ONLY a small checkered board game in the middle, two pale playing cards and two dark chips exactly where the guide puts them, with transparent space between them. No table, no felt, no floor.
+3. Top right: a long narrow bookshelf seen from directly above, six times as long as it is deep: a slim graphite case whose closed back is its right edge and whose open front is its left edge, three thin shelf dividers across it, and in each of the four bays a few muted book tops standing side by side, their spines along the open left side. Keep it as slim as its grey shape.
+4. Bottom right: one small round padded stool, a dark steel ring around a grey-green cushion, exactly as large as its grey circle.
+
+Broad readable forms, soft restrained highlights, sparse wear, low surface noise.

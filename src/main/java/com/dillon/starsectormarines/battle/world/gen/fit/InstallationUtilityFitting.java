@@ -19,8 +19,10 @@ public final class InstallationUtilityFitting implements RoomFitting {
         InstallationArmoryFitting.doors(floor, w, h, aisle, aisle + 1);
         InstallationWorkshopFitting.station(floor, (w - 6) / 2, aisle - 4, "ship-engineering.generator",
                 w / 2, aisle, w / 2, aisle - 1, Affordance.TEND);
-        InstallationWorkshopFitting.station(floor, 0, h - 2, "ship-engineering.switchgear",
-                1, h - 3, 1, h - 2, Affordance.TEND);
+        // The switchgear bank is one cell deep and worked on its bottom edge, so it stands against the back wall
+        // in line with the control board and is worked from the row below.
+        InstallationWorkshopFitting.station(floor, 0, h - 1, "ship-engineering.switchgear",
+                1, h - 2, 1, h - 1, Affordance.TEND);
         InstallationWorkshopFitting.station(floor, w - 3, h - 1, "ship-engineering.control",
                 w - 2, h - 2, w - 2, h - 1, Affordance.READOUT);
         InstallationWorkshopFitting.station(floor, w - 1, h - 2, "colony-furnishings.locker",

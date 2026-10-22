@@ -1,0 +1,11 @@
+Reskin the attached geometry guide into finished top-down game art for four spaceship bunk props that overlay one another in the game. Strict overhead orthographic view, soft light from the upper left, the same look as the material reference sheet: restrained worn graphite steel, muted grey-sage enamel, quiet silver edges, soft grey-green bedding and off-white pillows, realistic painted game-asset finish. No saturated colour, no glow, no hazard stripes.
+
+The guide is the geometry, scale and layout authority, and the result will be cut mechanically from the guide's exact pixel rectangles. Every piece is a long slim upright strip, a little more than three times as long as it is wide, and must overlay its grey guide shape almost exactly: the same left and right sides, the same top and bottom ends. Do not make any piece wider, shorter, longer or larger than its grey shape; do not move, rescale, rotate, merge or add pieces. Keep all empty canvas fully transparent: true transparent background, including inside the open frame; no floor, no ground, no shadow slab, no border, no people, no labels or text.
+
+Pieces, left to right:
+1. EMPTY ship bunk base: a long narrow graphite steel pan with bevelled edges and a recessed spring deck divided by three faint cross members. No mattress, no bedding, no drawer. The same at both ends.
+2. ONLY a long single mattress with a flat off-white pillow at the TOP end and a neatly tucked muted grey-green blanket covering the lower two thirds, its turned-down band just below the pillow. No bed frame, no floor outside the mattress.
+3. The same bedding facing the OPPOSITE way: pillow at the BOTTOM end, blanket over the upper two thirds with its turned-down band just above the pillow. Same size.
+4. ONLY the open retaining rails of the bunk: two thin side rails, thin end bars and four small square corner posts on exactly the base's outline. The whole long centre must be transparent so the bedding below shows through. No mattress, no platform.
+
+Broad readable forms, restrained weave and a few broad fabric folds, soft restrained highlights, sparse wear, low surface noise.

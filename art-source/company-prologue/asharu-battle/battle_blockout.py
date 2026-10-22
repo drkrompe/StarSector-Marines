@@ -1315,6 +1315,14 @@ def blender_main(cfg):
             if ships_fx or any(lib.get('ctl') is not None for lib in library.values()):
                 ship_fx.refresh(scene)     # drivers read the knobs
                 bpy.context.view_layer.update()
+            if cfg.get('swfx'):            # no orb explosions: a built cook-off becomes bursts at its break_frame
+                for key, pl in placed.items():
+                    if pl['fx'] is not None and pl['fx'].groups.get('SWFX | Fire') is not None:
+                        import swfx_fire
+                        with pl['fx'].kit() as (ctx, _kit):
+                            print(f'ASHARU cook-off bursts {key}', swfx_fire.jagged_cookoff(ctx), flush=True)
+                ship_fx.refresh(scene)
+                bpy.context.view_layer.update()
             if cfg.get('fx_check'):
                 fx_report(kf)
             extra3d = {}

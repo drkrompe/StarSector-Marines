@@ -24,16 +24,23 @@ The look, from the game (`asharu-effects.md`, Guns and Missiles):
 - **PD laser** (vanilla fringe 155,0,0, core white, glow 255,100,100): a thin flickering beam
   that snaps onto the missile, holds it, heats it toward white (the glare), and pops it.
 - **Canister flak** (vanilla particle 255,225,125, cloud 155,125,75): canisters thrown out
-  from the hull burst in a loose ring a couple of hundred metres off, in small flashes that
-  leave a brief dim cloud. A missile crossing the ring dies in one.
+  from the hull burst in a loose ring a couple of hundred metres off. A burst is not an orb
+  (owner, 2026-10-21): a sharp three-frame flash on a jagged, lobed mesh, a handful of
+  shrapnel flung outward that leaves white-hot and cools to dark fragments within a third of
+  its flight, and an uneven puff of smoke broken up by noise (`jagged_burst`, which a
+  missile killed short uses too). Each
+  burst's lobes, spikes, size and turn are seeded, so no two match. A missile crossing the
+  ring dies in one. `key_flak(..., style='orb')` keeps the old soft balls as the control.
 - **Flares** (vanilla 255,125,75 with a white core): white-orange decoys flung off the flare
   anchors, slowing as they go, flickering, trailing a short bright smoke. A seeker diverted
   onto one turns away and detonates on it.
 
-What it does not do: it does not train the turrets. A hull without its own control object
-keeps its build's pose (asharu-effects-plan.md, W0 limits), so a mount's flash points along
-its rest bearing while its tracers fly at the missile. At bench and scene distances the
-tracer line is what reads.
+Turrets train (`key_screen(..., train=True)`, the default): before each round, and every few
+frames of a beam, the mount is swung onto where that round or beam is going through W4's
+`swfx_guns.aim`, at the game's turn rate (`TURN`), so its flash lines up with its tracers.
+A hull without its own copy (ship_fx.ShipFx own_hull) shares its turrets with every other copy
+of that build, so training one trains them all; a mount with no pivot stays at its rest pose.
+Tracers still leave from the rest-pose muzzle, a metre or two off at most.
 """
 import math
 import random
@@ -49,6 +56,8 @@ CADENCE = {'mg': (5, .1, .4), 'vulcan': (20, .05, .0)}
 PD_LASER = dict(core=(1.0, 1.0, 1.0), fringe=mp.srgb((155, 0, 0)), glow=mp.srgb((255, 100, 100)))
 FLAK = dict(flash=mp.srgb((255, 225, 125)), cloud=mp.srgb((155, 125, 75)))
 FLARE = mp.srgb((255, 125, 75))
+# Turn rates (degrees per second, weapon_data.csv) a PD mount trains at.
+TURN = {'mg': 50.0, 'vulcan': 75.0, 'laser': 50.0}
 
 
 def gun(ship, ctx, turret, tag, kind='mg', range_m=800.0):
@@ -328,9 +337,18 @@ def _flash_gun(ctx, label, frame, rnd):
         swfx_guns._rebuild_visibility(box, lit)
 
 
-def key_screen(ctx, engagements, space, tracer_m=(14.0, .35), mpu=None):
+def _train(ctx, g, target_local, frame, trained):
+    """Swing a PD mount onto a point in its ship's copy space by `frame`; remembers the result."""
+    import swfx_guns
+    r = swfx_guns.aim(ctx, g['turret'], target_local, frame, tag=g['tag'], turn_rate=TURN.get(g['kind']))
+    trained.setdefault(g['label'], []).append(r)
+    return r
+
+
+def key_screen(ctx, engagements, space, tracer_m=(14.0, .35), mpu=None, train=True):
     """Key one defending ship's PD fire (inside its ship.kit()): flashes and tracers, or beams.
-    space: that ship's mp.space_of(ship)."""
+    space: that ship's mp.space_of(ship). train: swing each mount onto its rounds and beam
+    (swfx_guns.aim) so its flash points where they go."""
     bpy = _bpy()
     import swfx_core
     import swfx_guns
@@ -339,15 +357,23 @@ def key_screen(ctx, engagements, space, tracer_m=(14.0, .35), mpu=None):
     mpu = mpu or swfx_core.METRES_PER_UNIT
     tmat = swfx_guns._tracer_material(ctx)
     rec = []
-    for e in engagements:
+    trained = {}
+    for e in sorted(engagements, key=lambda e: e['open']):     # a mount's swings in time order
         g = e['gun']
         rnd = random.Random(f"swfx-pd-key|{g['label']}|{e['open']}")
         muzzle = inv @ g['at']
         if e['kind'] == 'laser':
+            if train:
+                beam = e['beam']
+                for f, aim in beam[::3] + ([beam[-1]] if (len(beam) - 1) % 3 else []):
+                    _train(ctx, g, inv @ aim, f, trained)
             rec.append(_key_beam(ctx, coll, e, inv, muzzle, mpu, rnd))
+            rec[-1]['trained'] = trained.get(g['label'], [None])[-1]
             continue
         L, R = tracer_m[0] / mpu, tracer_m[1] / mpu
         for j, (f, arrive, aim) in enumerate(e['rounds']):
+            if train:
+                _train(ctx, g, inv @ aim, f, trained)
             _flash_gun(ctx, g['label'], f, rnd)
             tgt = inv @ aim
             d = (tgt - muzzle)
@@ -372,7 +398,8 @@ def key_screen(ctx, engagements, space, tracer_m=(14.0, .35), mpu=None):
             tr.color = (1, 0, 0, 1)
             swfx_guns._visible_between(tr, f, arrive + over)
         rec.append(dict(gun=g['label'], target=e['flight'].label, open=e['open'], close=e['close'],
-                        kill=e['kill'], K=e.get('K'), rounds=len(e['rounds'])))
+                        kill=e['kill'], K=e.get('K'), rounds=len(e['rounds']),
+                        trained=trained.get(g['label'], [None])[-1]))
     return rec
 
 
@@ -478,10 +505,25 @@ def _key_beam(ctx, coll, e, inv, muzzle, mpu, rnd, width_m=.9):
                 K=e.get('K'), beam_frames=len(frames))
 
 
-def key_flak(ctx, bursts, space, launch_from, launch_s=.45, mpu=None, fps=24):
+def jagged_burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), light_w=0.0, smoke=.55,
+                 prefix=PREFIX, **kw):
+    """An irregular burst (swfx_burst.burst, the kit's one explosion language), named under
+    `prefix`. Kept here for callers that reached it through swfx_pd."""
+    import swfx_burst
+    return swfx_burst.burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=size_m, light_w=light_w,
+                            smoke=smoke, prefix=prefix, **kw)
+
+
+def _flak_burst(ctx, coll, k, b, here, mpu, rnd, light=False):
+    """One canister's burst (jagged_burst in the flak colours)."""
+    return jagged_burst(ctx, coll, f'flak {k} f{b.frame:04d}', here, b.frame, mpu, rnd, FLAK['flash'],
+                        light_w=1.5e4 if light else 0.0)
+
+def key_flak(ctx, bursts, space, launch_from, launch_s=.45, mpu=None, fps=24, style='burst'):
     """Key canister flak on the firing ship (inside its ship.kit()): a dim canister streak from
-    the hull to each burst, then the burst's flash and its brief cloud. launch_from: the world
-    point on the hull the canisters leave from."""
+    the hull to each burst, then the burst (style 'burst': jagged flash, shrapnel, noisy smoke;
+    'orb': the old soft flash and cloud). launch_from: the world point on the hull the
+    canisters leave from."""
     bpy = _bpy()
     import swfx_core
     import swfx_guns
@@ -507,6 +549,9 @@ def key_flak(ctx, bursts, space, launch_from, launch_s=.45, mpu=None, fps=24):
         swfx_guns._bake(c, 'color', 0, [f0, b.frame], [.35, .35])
         c.color = (.35, 0, 0, 1)
         swfx_guns._visible_between(c, f0, b.frame - 1)
+        if style == 'burst':
+            _flak_burst(ctx, coll, k, b, here, mpu, rnd, light=k % 3 == 0)
+            continue
         mp._flash(ctx, coll, f'{PREFIX} flak {k} f{b.frame:04d}', here, b.frame, FLAK['flash'],
                   rnd.uniform(6, 10) / mpu, frames=5, peak=1.3, heat=.9, light_w=1.5e4 if k % 3 == 0 else 0.0,
                   grow=2.0)

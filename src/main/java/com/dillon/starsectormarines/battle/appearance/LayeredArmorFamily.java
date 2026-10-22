@@ -117,7 +117,9 @@ public enum LayeredArmorFamily {
             case SCIENTIST: return SCIENTIST;
             case ALIEN:
             case SWARM_RUNNER: return XENO;
-            case SWARM_BRUTE: return XENO_BRUTE;
+            case SWARM_BRUTE:
+            // The Matriarch is drawn on its own skeleton; the Brute's family stands in for its facing.
+            case SWARM_MATRIARCH: return XENO_BRUTE;
             case SWARM_SPITTER: return XENO_SPITTER;
             case MARINE:
             default: return CHARCOAL;

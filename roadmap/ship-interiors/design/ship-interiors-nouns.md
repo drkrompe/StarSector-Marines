@@ -200,16 +200,23 @@ authored content.
   amenities.
 - A **rack** is one bunk, and a **rank** is a row of them laid athwart the
   compartment's passage, head to the hull and feet to the deck people walk on.
-  Laid the other way — along the bulkhead — a rack takes two cells of hull to
-  berth one hand instead of one, and the compartment holds half as many people
-  in the same floor. That is why real berthing looks like this, and it is the
+  A rack is three cells head to foot (a 2.25 m frame round a two-metre
+  mattress, at about 0.75 m a cell), so a berth is eight cells deep: two ranks
+  and the two-abreast passage between them.
+  Laid the other way — along the bulkhead — a rack takes three cells of hull to
+  berth one hand instead of one, and the compartment holds a third as many
+  people in the same floor. That is why real berthing looks like this, and it is the
   only arrangement in which the recipe's few square metres a hand is reachable
   at all. Shipboard bunks combine a physical base, bedding and retaining rails;
   each complete assembly follows the room's orientation, with pillows outboard.
   Personal locker banks occupy the ends of the near rank and divide the far
-  rank. They replace loose kit without consuming another berth. The central
-  aisle and whole hatch approaches stay clear, and rest and stowage happen
-  from reachable standing cells beside the fixtures.
+  rank; a bank is a cell shorter than a rack, so it stands against the hull
+  and is opened from the alcove that leaves between its neighbours. They
+  replace loose kit without consuming another berth. The central aisle and
+  whole hatch approaches stay clear, and rest and stowage happen from
+  reachable standing cells beside the fixtures. A hand resting in a bunk is
+  drawn lying in it, head on the pillow; the rest point and the claim stay on
+  the passage cell at its foot.
   Work done with hands on a fixture (consoles, benches, counters, plant,
   bunks, tables, the galley) is drawn up against it: the stand stays inside
   its exclusive standing cell but leans toward the fixture, so an operator
@@ -733,9 +740,12 @@ place at table. Whole furniture assemblies turn with the room and yield to
 hatch approaches. Sparse meal settings are visual layers, not food inventory.
 Small secondary messes remain dining rooms without additional cooking postings.
 
-The sickbay keeps its ward around a broad stretcher aisle, with reserved bedside
-access between the beds. Each bay contains a medical bed, separate linen and a
-head monitor; a hatch removes the complete bay. A clinic end holds an examination
+The sickbay keeps its ward around a stretcher aisle, with reserved bedside
+access between the beds. Each bay contains a real-length medical bed (three
+cells, a 2.2 m frame), separate linen with the pillow beside a head monitor;
+a hatch removes the complete bay. Two such bands and a two-cell spine fill the
+ten-row ward, and a medic treats from the bedside gap level with the middle of
+the bed. A clinic end holds an examination
 couch, supply trolley and privacy screen opposite a nurse station, secured
 medical cabinets and scrub sink. The staffed bank changes sides when a hatch
 would take its desk, and the examination couch uses the remaining clear position.

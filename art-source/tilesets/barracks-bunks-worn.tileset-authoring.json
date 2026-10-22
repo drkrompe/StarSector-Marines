@@ -7,19 +7,19 @@
   "idPrefix": "barracks-bunks",
   "alphaMin": 40,
   "outputSheet": "graphics/tilesets/barracks-bunks-worn.png",
-  "note": "Worn condition of barracks-bunks: ImageGen repaint of barracks-bunks.raw.png (geometry and identity authority) with the cargo-billets still as material reference. Component masks register at IoU 0.86-0.98, so the cuts are barracks-bunks' own. See barracks-bunks.README.md.",
+  "note": "Worn condition of barracks-bunks on a 2790x1254 raw: the left half repaints the original sheet (locker banks used from it), the right half repaints the real-length bunk refit with the old worn sheet as material reference. Masks register with the clean pieces at IoU 0.95-0.99, so the cuts are barracks-bunks' own. See barracks-bunks.README.md.",
   "entries": [
     {
       "id": "barracks-bunks.bed-worn",
       "rect": [
-        100,
-        64,
-        236,
-        468
+        1336,
+        83,
+        282,
+        853
       ],
       "footprintCells": [
         1,
-        2
+        3
       ],
       "cover": "med",
       "ballisticHalfHeight": 0.38,
@@ -28,14 +28,14 @@
     {
       "id": "barracks-bunks.bedding-high-worn",
       "rect": [
-        488,
-        34,
-        280,
-        550
+        1719,
+        90,
+        278,
+        852
       ],
       "footprintCells": [
         1,
-        2
+        3
       ],
       "cover": "none",
       "ballisticHalfHeight": 0,
@@ -44,14 +44,14 @@
     {
       "id": "barracks-bunks.bedding-low-worn",
       "rect": [
-        880,
-        34,
-        280,
-        550
+        2064,
+        90,
+        292,
+        852
       ],
       "footprintCells": [
         1,
-        2
+        3
       ],
       "cover": "none",
       "ballisticHalfHeight": 0,
@@ -60,14 +60,14 @@
     {
       "id": "barracks-bunks.frame-worn",
       "rect": [
-        100,
-        688,
-        236,
-        460
+        2426,
+        84,
+        282,
+        852
       ],
       "footprintCells": [
         1,
-        2
+        3
       ],
       "cover": "none",
       "ballisticHalfHeight": 0,
