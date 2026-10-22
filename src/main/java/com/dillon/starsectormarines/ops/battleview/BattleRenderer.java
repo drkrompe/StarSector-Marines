@@ -238,6 +238,8 @@ public class BattleRenderer {
      */
     private final FogField fogField = new FogField();
     private final CreepLayer creep = new CreepLayer();
+    /** Grass-topped raised ground, baked once per battle and drawn over the ground tiles. */
+    private final CliffArtLayer cliffArt = new CliffArtLayer();
     private final ScorchLayer scorch = new ScorchLayer();
     private final FireRenderSystem fire;
 
@@ -271,6 +273,7 @@ public class BattleRenderer {
         this.ordnanceTraceFx = new OrdnanceTraceFxService(sprites);
         this.groundParallax = new GroundParallaxPipeline(sprites, groundLights, sun);
         creep.useSun(sun);
+        cliffArt.useSun(sun);
         // The full world-render pass list, in paint order — every pass now lives
         // here (collect-all → drain-all; see renderWorld). Order is verbatim today's
         // pass sequence; RenderLayer ordinal mirrors it. Within a shared layer
@@ -286,6 +289,8 @@ public class BattleRenderer {
         ColonyThreatFx colonyThreat = new ColonyThreatFx(sprites);
         this.worldSystems = List.of(
                 new GroundRenderSystem(sprites, groundMesh, groundAtlas),
+                // Raised ground's cliffs and ramp steps over the tiles, inside the ground's colour target.
+                cliffArt,
                 // Zone debug overlay paints on top of ground tiles, under decals.
                 RenderSystem.of(RenderLayer.GROUND, (ctx, out) -> {
                     if (ctx.debugZonesVisible)
@@ -571,6 +576,7 @@ public class BattleRenderer {
     /** Releases night lighting targets, the aircraft's reflected-light shader and the creep's textures. */
     public void disposeLighting() {
         creep.dispose();
+        cliffArt.dispose();
         scorch.dispose();
         nightLighting.dispose();
         aircraft.disposeLighting();

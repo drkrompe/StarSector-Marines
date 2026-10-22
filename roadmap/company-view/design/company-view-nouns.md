@@ -334,9 +334,12 @@ so a player reads the same thing the same way wherever it appears:
   picture). It is the card in the Loadout stores and First Refit's choices (both a
   left-hand column beside the squad view), and the sheet a card opens on hover
   anywhere;
-- the **issued-card chip**: a card at a glance (face, kind, name, FIRE or GUARD
-  rating, the Restricted seal). Barracks stacks two compact chips on each squad
+- the **issued-card chip**: a card at a glance (face, name, Firepower or Protection
+  Rating, the Restricted seal). Barracks stacks two compact chips on each squad
   card, and the Loadout squad view opens on the same two at full size;
+- the **ratings**: a weapon card's Firepower Rating and an armour card's Protection
+  Rating, each a percentage of the strongest twelve billets the catalogue could
+  field, so 100% is the best kit that exists rather than the best the company owns;
 - the **squad view**: the twelve marines as three fire teams of two by two, each
   with a portrait
   of the kit they would wear, four kit lines (primary weapon, armour, special

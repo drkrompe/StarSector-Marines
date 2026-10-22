@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.model;
 
+import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationLayout;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 
@@ -50,6 +51,13 @@ public class CellTopology {
     public void setTerrainSurface(TerrainSurface value) {
         terrainSurface=value;for(int i=0;i<width*height;i++)markChanged(i);
     }
+    /**
+     * The raised ground the renderer draws as baked cliffs rather than as
+     * cliff tiles, or null: presentation only, written once at generation.
+     */
+    private ElevationLayout cliffArt;
+    public ElevationLayout cliffArt() { return cliffArt; }
+    public void setCliffArt(ElevationLayout value) { cliffArt = value; }
     private RoadSurface roadSurface;
     public RoadSurface roadSurface() { return roadSurface; }
     public void setRoadSurface(RoadSurface value) {

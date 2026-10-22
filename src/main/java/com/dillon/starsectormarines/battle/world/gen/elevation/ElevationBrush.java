@@ -23,6 +23,15 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
  */
 public final class ElevationBrush {
 
+    /**
+     * Control-run switch for the baked cliff look ({@code CliffArtLayer}); off,
+     * grass-topped cliffs draw with the cliff tiles as they did before it.
+     */
+    public static final String BAKED_CLIFFS_PROPERTY = "battle.render.cliffLook";
+
+    private static final boolean BAKED_CLIFFS =
+            Boolean.parseBoolean(System.getProperty(BAKED_CLIFFS_PROPERTY, "true"));
+
     private ElevationBrush() {}
 
     public static ElevationMap stamp(ElevationPlan plan, NavigationGrid grid, CellTopology topology) {
@@ -125,6 +134,12 @@ public final class ElevationBrush {
             for (int x = 0; x < w; x++) {
                 if (layout.isFace(x, y) || layout.isRamp(x, y)) topology.setNatureOverlayIndex(x, y, -1);
             }
+        }
+        if (finish == TerrainPlan.Finish.GRASS_TOP && BAKED_CLIFFS) {
+            // Grass-topped cliffs are baked by the renderer from the layout itself:
+            // rock strata, a broken turf lip, a talus apron and cut steps up each ramp.
+            topology.setCliffArt(layout);
+            return;
         }
         TerrainSurface surface = tier(layout, 1, finish, topology);
         if (layout.highestTier() >= 2) surface = TerrainSurface.stacked(surface, tier(layout, 2, finish, topology));

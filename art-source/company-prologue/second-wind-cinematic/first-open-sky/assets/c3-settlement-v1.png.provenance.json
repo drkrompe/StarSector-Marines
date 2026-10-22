@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a163a6-934d-73d2-83c9-6172dfb9cc09",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a163a6-934d-73d2-83c9-6172dfb9cc09\\exec-3756883a-ba87-4f41-b338-d944f8ccbfcd.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\second-wind-cinematic\\first-open-sky\\assets\\c3-settlement-v1.png",
+    "sha256": "6f7aeaedd2e785eb7c56272e51dec605ab886bc65e6c5b08941cb48c7eb67b2a",
+    "dimensions": [
+      2048,
+      768
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\second-wind-cinematic\\first-open-sky\\prompts\\c3-settlement-v1.txt",
+  "promptSha256": "a441ece7ae4198eceb9e08078e7b45ba8778139706e0815e1586f631e4e1f7c7",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Exact edit target and geometry/layout authority: keep every pixel outside the drawn shapes; render the drawn shapes in place\nImage 2: Colour, texture and light reference only; not layout\n\nUse case: local edit of one crop of an approved photographic landscape plate, for a grounded science-fiction cinematic. Output the same wide landscape canvas as image 1 (2048x768 or the nearest wide size), same framing, no crop, no border.\n\nImage 1 is the EXACT EDIT TARGET and layout authority: an aerial view, from an aircraft about 400 m up and 2 km away, of tropical rainforest on the far bank of a wide river on the planet Jangala, mid-morning. Flat, crudely drawn shapes have been painted into it: they are a geometry guide for a small working frontier settlement and must become real, photographic things at this distance, exactly where they are drawn and at the size they are drawn:\n\n- the brown clearing along the far bank is a packed red-laterite earth yard and town site, with tyre-worn dirt, puddles and a few scrubby grass patches;\n- the reddish-brown ribbons are an unpaved red-laterite freight road, about 8 m wide, with a narrow strip of cut-back scrub on either side. It runs along the back of the town, upstream along the bank to the right, and out of the town's left end, winding up the forested hillside to the upper left. Where tall crowns overhang the road on the hillside it may disappear under them for short stretches, the way a real jungle road does from the air;\n- the grey, rust-red, white and green parallelograms are low buildings seen from above at a shallow angle: two long corrugated-metal warehouses and a few smaller sheds, a small white checkpoint office, and small houses with corrugated roofs, weathered and rust-streaked, each with its shadow falling to the right;\n- the white canopy over the road at the right end of the town is a weigh station / checkpoint: a flat white shelter roof over the road, a small booth beside it and a red-and-white barrier arm;\n- the coloured blocks in the yard are a few stacked freight containers; the three white circles are squat white fuel tanks;\n- the dark long shape on the water with coloured blocks on it is a flat freight barge carrying a few containers, moored along the bank, with a short plank jetty to the shore;\n- the tiny white-and-red rectangles on the road are freight trucks;\n- the small brown patch with a white box on the hillside above the town is a cleared pad with an equipment hut (a radio mast is added separately; do not draw a mast).\n\nEverything is small and distant: 2 km of humid air, soft, slightly hazy, nothing crisp or toy-like, no tilt-shift. Match the painting's light: sun out of frame to the upper left, roofs and earth lit from the upper left, shadows falling to the right. Match its colours, grain and level of detail so the settlement looks as though it was always in the photograph.\n\nEvery pixel outside the drawn shapes stays exactly as in image 1: the same forest crowns, river, banks, reflections and light, to the pixel. Do not move, add or delete any hill, tree, river bank or reflection outside the drawn shapes. Do not add any other buildings, roads, bridges, boats, vehicles, people, aircraft, smoke, text, signs, logos, watermark or border.\n\nImage 2 is the same crop before the shapes were drawn: reference for the painting's colours, texture and light only.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\first-open-sky\\guides\\c3-settlement-target.png",
+      "sha256": "4793f3b53586d9b607e9e163b2f2dda9673ebc1762b30a4362a376e05d32645d",
+      "dimensions": [
+        2048,
+        768
+      ],
+      "mode": "RGB",
+      "role": "Exact edit target and geometry/layout authority: keep every pixel outside the drawn shapes; render the drawn shapes in place"
+    },
+    {
+      "path": "art-source\\company-prologue\\second-wind-cinematic\\first-open-sky\\guides\\c3-settlement-before.png",
+      "sha256": "ca5735502637d91fce8262d335ebdb4b160e920a4b95c6d038e6b321bd05a14a",
+      "dimensions": [
+        2048,
+        768
+      ],
+      "mode": "RGB",
+      "role": "Colour, texture and light reference only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the imagegen skill to render the drawn shapes in place, with Image 1 controlling the layout and Image 2 guiding colour, texture and light."
+  ],
+  "usage": {
+    "input_tokens": 82802,
+    "cached_input_tokens": 63232,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 873,
+    "reasoning_output_tokens": 21
+  },
+  "elapsedSeconds": 77.3
+}

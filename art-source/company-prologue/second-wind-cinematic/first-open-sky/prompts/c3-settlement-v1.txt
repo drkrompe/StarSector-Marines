@@ -1,0 +1,18 @@
+Use case: local edit of one crop of an approved photographic landscape plate, for a grounded science-fiction cinematic. Output the same wide landscape canvas as image 1 (2048x768 or the nearest wide size), same framing, no crop, no border.
+
+Image 1 is the EXACT EDIT TARGET and layout authority: an aerial view, from an aircraft about 400 m up and 2 km away, of tropical rainforest on the far bank of a wide river on the planet Jangala, mid-morning. Flat, crudely drawn shapes have been painted into it: they are a geometry guide for a small working frontier settlement and must become real, photographic things at this distance, exactly where they are drawn and at the size they are drawn:
+
+- the brown clearing along the far bank is a packed red-laterite earth yard and town site, with tyre-worn dirt, puddles and a few scrubby grass patches;
+- the reddish-brown ribbons are an unpaved red-laterite freight road, about 8 m wide, with a narrow strip of cut-back scrub on either side. It runs along the back of the town, upstream along the bank to the right, and out of the town's left end, winding up the forested hillside to the upper left. Where tall crowns overhang the road on the hillside it may disappear under them for short stretches, the way a real jungle road does from the air;
+- the grey, rust-red, white and green parallelograms are low buildings seen from above at a shallow angle: two long corrugated-metal warehouses and a few smaller sheds, a small white checkpoint office, and small houses with corrugated roofs, weathered and rust-streaked, each with its shadow falling to the right;
+- the white canopy over the road at the right end of the town is a weigh station / checkpoint: a flat white shelter roof over the road, a small booth beside it and a red-and-white barrier arm;
+- the coloured blocks in the yard are a few stacked freight containers; the three white circles are squat white fuel tanks;
+- the dark long shape on the water with coloured blocks on it is a flat freight barge carrying a few containers, moored along the bank, with a short plank jetty to the shore;
+- the tiny white-and-red rectangles on the road are freight trucks;
+- the small brown patch with a white box on the hillside above the town is a cleared pad with an equipment hut (a radio mast is added separately; do not draw a mast).
+
+Everything is small and distant: 2 km of humid air, soft, slightly hazy, nothing crisp or toy-like, no tilt-shift. Match the painting's light: sun out of frame to the upper left, roofs and earth lit from the upper left, shadows falling to the right. Match its colours, grain and level of detail so the settlement looks as though it was always in the photograph.
+
+Every pixel outside the drawn shapes stays exactly as in image 1: the same forest crowns, river, banks, reflections and light, to the pixel. Do not move, add or delete any hill, tree, river bank or reflection outside the drawn shapes. Do not add any other buildings, roads, bridges, boats, vehicles, people, aircraft, smoke, text, signs, logos, watermark or border.
+
+Image 2 is the same crop before the shapes were drawn: reference for the painting's colours, texture and light only.

@@ -1623,9 +1623,19 @@ public final class FleetArmoryViewModel {
             if (compact) return height;
             height += 24 + 24                              // section and issued lines
                     + (carriesShown() ? 24 : 0)
-                    + 70                                           // field note
+                    + loreHeight() + 6                             // field note
                     + (issue != null && !issueReason.isEmpty() ? 26 : 0);
             return height;
+        }
+
+        /**
+         * The field note's height, from its length: a 15px line holds about 66 characters
+         * of the body face across the card, allowing for words that wrap early. A fixed box
+         * clipped the longer notes (Reliquary's runs to four lines).
+         */
+        private int loreHeight() {
+            int length = description == null ? 0 : description.length();
+            return Math.max(1, (length + 65) / 66) * 15 + 4;
         }
 
         private List<Map<String, Object>> seatTeams() {
@@ -1649,7 +1659,7 @@ public final class FleetArmoryViewModel {
                         cell.put("badgeId", seatId + ":badge");
                         cell.put("badge", seat.badge() == null ? "" : seat.badge());
                         cell.put("badgeClasses", seat.badge() == null
-                                ? "doctrine-seat-badge doctrine-seat-badge-absent" : "doctrine-seat-badge");
+                                ? "spec-sheet-seat-badge spec-sheet-seat-badge-absent" : "spec-sheet-seat-badge");
                         cells.add(cell);
                     }
                     rows.add(Map.of("id", rowId, "seats", cells));
@@ -1763,6 +1773,7 @@ public final class FleetArmoryViewModel {
                 case "factionLogo" -> factionLogo;
                 case "metadata" -> metadata;
                 case "description" -> description;
+                case "descriptionStyle" -> "height: " + loreHeight() + "px;";
                 case "composition" -> composition;
                 case "compositionLine" -> Strings.format("squadDoctrineSectionLine", composition);
                 case "distributionLine" -> Strings.format("squadDoctrineIssuedLine", distribution);

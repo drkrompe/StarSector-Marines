@@ -27,6 +27,7 @@ from PIL import Image
 
 HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE / "exploration"))
+from cut_clean import clip_to, save  # noqa: E402
 from motion_brute import key, largest_blob, scale_about, soft_mask, with_alpha  # noqa: E402
 from motion_matriarch import (BLADE_SCALE, FEET, HEAD_POLY, NECK, PIVOT, RAW, SCYTHE_POLY, SHANK_W, STRAIGHT,  # noqa: E402
                               STRAIGHT_GAPE, poly_mask, trim)
@@ -68,16 +69,19 @@ def main():
         feet[n] = (m, (cx, cy), (rx, ry))
 
     body = Image.new("RGBA", size, (0, 0, 0, 0))
-    body.alpha_composite(largest_blob(key(RAW / "body-under.png")))
-    body.alpha_composite(with_alpha(hero, ha * keep))
-    scaled(body).save(OUT / "body.png")
+    under = largest_blob(key(RAW / "body-under.png"))
+    body.alpha_composite(under)
+    # the hero only where the underlay is: the foot and scythe cuts leave claw tips and blade stubs outside
+    # the trunk, which would hang off the body as islands and juts once the parts move away
+    body.alpha_composite(clip_to(with_alpha(hero, ha * keep), under))
+    save(scaled(body), OUT / "body.png")
 
     for name, spec, out in (("head-straight.png", STRAIGHT, "head.png"),
                             ("head-straight-gape.png", STRAIGHT_GAPE, "gape.png")):
         lay = placed(name, spec, size)
         bottom = lay.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox()[3]
         assert bottom <= HEAD_ROWS, (out, bottom)
-        scaled(lay.crop((0, 0, size[0], HEAD_ROWS))).save(OUT / out)
+        save(scaled(lay.crop((0, 0, size[0], HEAD_ROWS))), OUT / out)
 
     # the right scythe, cut from the hero; the left is it mirrored about the centre line (see PIVOT)
     px, py = PIVOT["R"]
@@ -88,13 +92,13 @@ def main():
     cut = pad.crop((px, py, px + 2 * hx, py + 2 * hy))       # centred on the pivot
     bbox = cut.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox()
     assert bbox[0] > 0 and bbox[1] > 0 and bbox[2] < 2 * hx and bbox[3] < 2 * hy, bbox
-    scaled(cut).save(OUT / "scythe-r.png")
-    scaled(cut.transpose(Image.FLIP_LEFT_RIGHT)).save(OUT / "scythe-l.png")
+    save(scaled(cut), OUT / "scythe-r.png")
+    save(scaled(cut.transpose(Image.FLIP_LEFT_RIGHT)), OUT / "scythe-l.png")
 
     for n, (m, (cx, cy), (rx, ry)) in feet.items():
         r = int(max(rx, ry) + 16)   # past the soft edge; square and centred on the foot
         cut = trim(with_alpha(hero, ha * m)).crop((int(cx - r), int(cy - r), int(cx + r), int(cy + r)))
-        scaled(cut).save(OUT / f"foot-{n.lower()}.png")
+        save(scaled(cut), OUT / f"foot-{n.lower()}.png")
 
     for part, path in (("f", "leg-front.png"), ("h", "leg-hind.png")):
         leg = trim(largest_blob(key(RAW / path)))
@@ -102,8 +106,8 @@ def main():
         leg = leg.crop((0, 0, leg.width, int(leg.height * 0.80)))     # hip at the top, without the foot
         w = SHANK_W[part.upper()]
         leg = leg.resize((w, int(leg.height * w / leg.width)), Image.LANCZOS)
-        scaled(leg).save(OUT / f"shank-{part}-l.png")
-        scaled(leg.transpose(Image.FLIP_LEFT_RIGHT)).save(OUT / f"shank-{part}-r.png")
+        save(scaled(leg), OUT / f"shank-{part}-l.png")
+        save(scaled(leg.transpose(Image.FLIP_LEFT_RIGHT)), OUT / f"shank-{part}-r.png")
 
     for p in sorted(OUT.glob("*.png")):
         print(p.name, Image.open(p).size)

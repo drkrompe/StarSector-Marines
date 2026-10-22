@@ -116,7 +116,11 @@ for elevation's sake.
   who step up to the rim to fire are seen, and can be fired on. A holder back
   from the rim that fires down is revealed to the low ground for about three
   seconds after the shot, so the low ground can answer it (owner, 2026-10-22:
-  skyline sight, firing down reveals).
+  skyline sight, firing down reveals). While exposed, sight and direct fire
+  from lower ground to its cell are judged from its own height, as if looking
+  down the line it fired along: whoever it could see down to sees it back and
+  can shoot it. The exposure follows it if it moves; a new shot down restarts
+  it (`FiringExposure`, `-Dbattle.elevation.firingReveal=false` is the control).
 - Ramp cells count as their lower tier for the observer on them, so a unit
   climbing a ramp sees up only when it reaches the head. A ramp is seen from
   both tiers.
@@ -233,7 +237,19 @@ Elevation is drawn by the ground, never by a UI mark: nothing is painted on the
 ground to say "this is high". It reads from three things the ground already
 draws.
 
-- **Cliff faces** are the natural terrain's face bands (`mapgen-nouns.md`,
+- **Baked cliffs.** Grass-topped raised ground is not drawn with tiles. The
+  generator hands the layout to the renderer (`CellTopology.cliffArt`), and the
+  renderer bakes the owner's look from the layout's own fields once per battle
+  (`CliffArtLayer`, `CliffShading`): a layered escarpment and cut stone steps,
+  described below. It bakes only the ground within reach of a face or a ramp,
+  in chunks of one texture. Each texel is a premultiplied colour laid over
+  whatever ground the tiles drew, inside the ground's colour target, so the
+  composite shadows and lights it like the rest of the ground. Faces and ramps
+  are therefore drawn from the same fields that decide which cells are face.
+  `-Dbattle.render.cliffLook=false` is the control: the generator hands
+  nothing over, and grass-topped cliffs draw with the cliff tiles as below. Ice
+  and rock tops always draw with the tiles.
+- **Cliff faces** (the tile look) are the natural terrain's face bands (`mapgen-nouns.md`,
   Authored natural terrain) clipped from the same signed field that decides
   which cells are face, so the face drawn and the cells nobody can stand on
   agree. A talus apron lies at the foot; the face's shade follows its bearing
@@ -251,7 +267,7 @@ draws.
   the low ground on its far side and a higher tier's across a lower one, with
   no shader change. The relief field is per cell, so the shadow's edge steps
   with the grid on a diagonal cliff.
-- **Ramps** are a floor of the talus material laid over the ramp's corridor,
+- **Ramps** (the tile look) are a floor of the talus material laid over the ramp's corridor,
   clipped to its sides, in the cap layers so it covers the cliff bands its cut
   would otherwise show.
 - **South faces** (`ElevationPlan.southFace`) may be drawn taller: a face whose
@@ -259,7 +275,7 @@ draws.
   camera looks at a south face and over a north one. The extra width is face
   in the battle too. The owner chose one-cell faces with tall south faces,
   drawn with the cliff tiles (2026-10-22). Ramps get art of their own that
-  reads as a slope: a floor that climbs and walls that taper up the cut
+  reads as a slope: a floor that climbs and walls that taper up the cut.
   The owner chose cut stone steps, darkened to sit with the cliff's
   grey-browns and rough-hewn rather than ruled (2026-10-22). The cliff's edges
   are a layered escarpment (owner, 2026-10-22): strata ledges along the face,

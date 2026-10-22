@@ -11,7 +11,7 @@ the elevation plan and brush) and sight and fire (one skyline rule for the fog, 
 
 | Story | State and dependency |
 | --- | --- |
-| elevation-look | **IN PROGRESS.** Faces, stacked second tier, ramp floors and tier heights in the relief field have landed (the `elevation` snapshot suite). The owner kept the cliff tiles with tall south faces. Left: carrying the layered-escarpment edges and the cut stone ramp steps (walls tapering up the cut) from the study into the live ground render, the tiles' stepped south faces (a fault in `ElevationLayout.tilted`), ramp floor art that reads as a slope rather than a pad (the relief already slopes it), ground cover left standing on faces, and a `renderEvidence` measurement against its control. |
+| elevation-look | **IN PROGRESS.** Grass-topped cliffs draw in the live renderer as the owner's layered escarpment with cut stone ramp steps, baked once per battle (`CliffArtLayer`; `renderEvidence -PrenderMaps=overlook` against `-Dbattle.render.cliffLook=false`). A shot down from higher ground exposes the shooter for three seconds (`FiringExposure`, the `firing-down` scene). Left: the stepped south faces (a fault in `ElevationLayout.tilted`), and why the cliffs cast no sun shadow in the evidence frames. |
 
 Owner decisions (2026-10-22): skyline sight, no uphill penalty, no climbing
 swarm, one-cell cliff tiles with tall south faces, cut stone ramp steps, and a
