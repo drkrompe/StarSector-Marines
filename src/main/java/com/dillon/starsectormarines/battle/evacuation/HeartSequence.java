@@ -53,12 +53,21 @@ public final class HeartSequence {
     private int barrageCursor;
     private boolean lineLit;
 
-    /** @param barrage the guns' timetable (The Burn), or {@code null} */
-    public HeartSequence(Form form, StoryBeatLog log, WalkingBarrage barrage) {
+    private final HeartLanes lanes;
+
+    /**
+     * @param barrage the guns' timetable (The Burn), or {@code null}
+     * @param lanes   the allied lanes (Broad Front), or {@code null}
+     */
+    public HeartSequence(Form form, StoryBeatLog log, WalkingBarrage barrage, HeartLanes lanes) {
         this.form = form;
         this.log = log;
         this.barrage = barrage;
+        this.lanes = lanes;
     }
+
+    /** The allied lanes, or {@code null} when the heart has none. */
+    public HeartLanes lanes() { return lanes; }
 
     /** The walking barrage, or {@code null} when the heart has none. */
     public WalkingBarrage barrage() { return barrage; }
@@ -90,6 +99,7 @@ public final class HeartSequence {
         }
         if (form == Form.THE_BURN) hurtSurges(sim, bores, tick);
         if (barrage != null) barrage.tick(sim);
+        if (lanes != null) lanes.tick(sim, pending);
     }
 
     /** Every living mother wakes and surges now. */

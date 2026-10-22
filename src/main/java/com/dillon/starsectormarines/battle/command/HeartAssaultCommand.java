@@ -15,10 +15,9 @@ import java.util.Objects;
  * first the satellites standing in its own lane, then the nearest living mother,
  * until none is left.
  *
- * <p>A lane is ground, not a corridor: it is the band of the map within
- * {@code laneHalfWidth} cells of the line the company advances along from its
- * landing. Satellites outside it are other lanes' work (Broad Front's allied
- * columns); on The Burn the lane is the whole approach.
+ * <p>Its lane ({@link HeartLane}) is the band along the line it advances on
+ * from its landing. Satellites outside it are other lanes' work (Broad Front's
+ * allied columns); on The Burn the lane is the whole approach.
  */
 public final class HeartAssaultCommand implements AutonomousMissionCommand<HeartAssaultCommand.Frame, String> {
 
@@ -43,19 +42,11 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
         return new Frame(CommandFrame.freeze(view, faction, topology, assignments), bores);
     };
 
-    private final boolean advancesAlongY;
-    private final int laneAcross;
-    private final int laneHalfWidth;
+    private final HeartLane lane;
 
-    /**
-     * @param advancesAlongY whether the attack runs along the map's y axis (start south or north)
-     * @param laneAcross     the company's lane, as the cell coordinate across the advance
-     * @param laneHalfWidth  cells either side of the lane a satellite may stand and still be the company's
-     */
-    public HeartAssaultCommand(boolean advancesAlongY, int laneAcross, int laneHalfWidth) {
-        this.advancesAlongY = advancesAlongY;
-        this.laneAcross = laneAcross;
-        this.laneHalfWidth = laneHalfWidth;
+    /** @param lane the company's own lane */
+    public HeartAssaultCommand(HeartLane lane) {
+        this.lane = lane;
     }
 
     @Override public Faction faction() { return Faction.MARINE; }
@@ -94,25 +85,9 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
                 List.of(phase), proposals, phase);
     }
 
-    /**
-     * The bore the company goes for from {@code (x, y)}: the nearest living
-     * satellite in its lane, else the nearest living mother, else none.
-     */
+    /** The bore the company goes for from {@code (x, y)}: its lane's next, or none. */
     KnownBore target(List<KnownBore> bores, float x, float y) {
-        KnownBore best = nearest(bores, x, y, false);
-        return best != null ? best : nearest(bores, x, y, true);
-    }
-
-    private KnownBore nearest(List<KnownBore> bores, float x, float y, boolean mothers) {
-        KnownBore best = null;
-        float bestDistance = Float.MAX_VALUE;
-        for (KnownBore bore : bores) {
-            if (!bore.living() || bore.mother() != mothers) continue;
-            if (!mothers && Math.abs((advancesAlongY ? bore.x() : bore.y()) - laneAcross) > laneHalfWidth) continue;
-            float dx = bore.x() - x, dy = bore.y() - y, distance = dx * dx + dy * dy;
-            if (distance < bestDistance) { bestDistance = distance; best = bore; }
-        }
-        return best;
+        return lane.target(bores, x, y);
     }
 
     /** Squads this command landed, or whose player lease has run out. */
