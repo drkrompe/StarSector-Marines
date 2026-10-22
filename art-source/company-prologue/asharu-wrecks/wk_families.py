@@ -19,8 +19,8 @@ and a livery, and returns a Mesh with its long axis on X, middle on Y, short on 
 import math
 import random
 
-from wk_geom import (BARE, INTERIOR, PLATING, STRUCTURE, Mesh, Noise, add, centroid, cross, dot, length, lerp,
-                     mul, norm, rotate, shrink, sub, torn_quad)
+from wk_geom import (BARE, INTERIOR, PLATING, STRUCTURE, Mesh, Noise, add, bilinear, centroid, cross, dot,
+                     field_plate, length, lerp, mul, norm, rotate, shrink, sub, torn_quad)
 
 # Old liveries, as painted (the materials bleach them): (main, accent)
 LIVERIES = {
@@ -68,15 +68,21 @@ class Body:
 
     rings[i][j] is the outer skin point at station i, ring point j; cells (i, j) span stations i..i+1
     and ring points j..j+1."""
-    def __init__(self, m, rnd, L, w, h, *, livery, taper=None, chamfer=.35, dent=.05):
+    def __init__(self, m, rnd, L, w, h, *, livery, taper=None, chamfer=.35, dent=.05, round_section=False, n_min=12):
         self.m, self.rnd, self.L = m, rnd, L
         self.noise = Noise(rnd.randrange(1 << 30))
         self.main, self.accent = livery
         self.plate_len = max(4.5, min(9.0, L / 12))
         self.nst = max(4, round(L / self.plate_len))
-        outline, perim = _resample(_chamfered(w, h, chamfer), 8)
-        self.n = max(12, min(44, 2 * round(perim / 6.0 / 2)))
-        base, _ = _resample(_chamfered(w, h, chamfer), self.n)
+        if round_section:          # a drum: a true circle, enough plates round it that no facet shows
+            perim = 2 * math.pi * (w + h) / 2
+            self.n = max(n_min, 32, 2 * round(perim / 3.0 / 2))
+            base = [(w * math.cos(2 * math.pi * k / self.n - math.pi / 2), h * math.sin(2 * math.pi * k / self.n - math.pi / 2))
+                    for k in range(self.n)]
+        else:
+            outline, perim = _resample(_chamfered(w, h, chamfer), 8)
+            self.n = max(n_min, min(44, 2 * round(perim / 6.0 / 2)))
+            base, _ = _resample(_chamfered(w, h, chamfer), self.n)
         self.xs = [-L / 2 + L * i / self.nst for i in range(self.nst + 1)]
         self.rings = []
         amp = dent * min(w, h)
@@ -88,8 +94,10 @@ class Body:
                 d = amp * max(0.0, self.noise(x / 18.0, y / 18.0, z / 18.0) * 1.6)
                 ring.append((x, y * s - out[1] * d, z * s - out[2] * d))
             self.rings.append(ring)
-        self.cells = {(i, j): 'plate' for i in range(self.nst) for j in range(self.n)}
-        self.edge_tear = {}     # (i, j) -> edge index torn (0 aft x-, 1 ring j+1 side, 2 fore, 3 ring j side)
+        self.seg = perim / self.n                      # nominal arc between ring points, m
+        self.perim = perim
+        self.fronts = []        # (end sign, x of the station end, depth m, noise): tears
+        self.holes = []         # (x, s, rx, rs, noise): holes torn in the skin
         self.ends = {}          # station end index -> 'torn'
 
     def corner(self, i, j):
@@ -108,117 +116,127 @@ class Body:
         return nrm
 
     # ------------------------------------------------------------------------------- damage
+    # Damage is a field over the skin, f(x, s) in metres (s the arc round the ring): the skin stands
+    # where f >= 0. Plates are cut along its contour (wk_geom.field_plate), never along the plate
+    # grid, so a tear is jagged and uneven and a hole is ragged, whatever the plating's layout.
 
     def tear_end(self, end, depth=2):
-        """Tears the hull off at station end 0 (aft) or nst (fore): each ring column loses up to depth
-        cells from that end; the last cell standing is torn ragged, or peeled outward."""
+        """Tears the hull off at station end 0 (aft) or nst (fore), up to depth plate lengths in."""
         self.ends[end] = 'torn'
-        depth = max(1, min(depth, self.nst // 4))
-        for j in range(self.n):
-            k = self.rnd.choice([0] * 2 + [1] * 3 + list(range(2, depth + 1)) * 2)
-            for d in range(k):
-                i = d if end == 0 else self.nst - 1 - d
-                self.cells[i, j] = None
-            i = k if end == 0 else self.nst - 1 - k
-            if 0 <= i < self.nst and self.cells.get((i, j)):
-                r = self.rnd.random()
-                if r < .1:
-                    self.cells[i, j] = 'peel%d' % (0 if end == 0 else 2)
-                elif r < .85:
-                    self.edge_tear[i, j] = 0 if end == 0 else 2
+        d = max(1.0, min(depth, self.nst / 3.5)) * self.plate_len
+        x_end = self.xs[0] if end == 0 else self.xs[-1]
+        self.fronts.append((1 if end == 0 else -1, x_end, d, Noise(self.rnd.randrange(1 << 30))))
 
     def gash(self, i0, j0, di, dj):
-        """A hole torn in the side: cells missing, the cells round it torn on the hole's side."""
-        hole = set()
-        for i in range(i0, i0 + di):
-            for j in range(j0, j0 + dj):
-                if self.rnd.random() < .85 or (i, j) == (i0, j0):
-                    hole.add((i, j % self.n))
-        for c in hole:
-            if c in self.cells:
-                self.cells[c] = None
-        for (i, j) in hole:
-            for (ni, nj, e) in ((i - 1, j, 2), (i + 1, j, 0), (i, j - 1, 1), (i, j + 1, 3)):
-                c = (ni, nj % self.n)
-                if self.cells.get(c) == 'plate' and c not in hole:
-                    if self.rnd.random() < .25:
-                        self.cells[c] = 'peel%d' % e
-                    else:
-                        self.edge_tear[c] = e
+        """A hole torn in the side, about di plates long and dj plates round, ragged."""
+        x = self.xs[min(self.nst, i0)] + di * self.plate_len / 2
+        s = (j0 + dj / 2) * self.seg
+        self.holes.append((x, s, di * self.plate_len * .55, dj * self.seg * .55, Noise(self.rnd.randrange(1 << 30))))
 
     def scatter(self, p):
-        for c in self.cells:
-            if self.cells[c] == 'plate' and self.rnd.random() < p:
-                self.cells[c] = None
+        """Small ragged punctures, about p of the plates' worth of them."""
+        for _ in range(int(p * self.nst * self.n / 4) + 1):
+            x = self.rnd.uniform(self.xs[0], self.xs[-1])
+            s = self.rnd.uniform(0, self.perim)
+            r = self.rnd.uniform(.4, .9) * self.plate_len
+            self.holes.append((x, s, r, r * self.rnd.uniform(.6, 1.2), Noise(self.rnd.randrange(1 << 30))))
+
+    def front_f(self, x, s):
+        """Distance in metres inside the tears (negative past a torn end)."""
+        out = 1e9
+        for sign, x_end, d, nz in self.fronts:
+            a = s / self.perim * 2 * math.pi
+            cx, cy = math.cos(a) * 3, math.sin(a) * 3        # round the ring without a seam
+            reach = (d * (.55 + .45 * nz(cx, cy)) + .22 * d * nz(cx * 4.1, cy * 4.1, 3.3)
+                     + .1 * d * nz(cx * 11, cy * 11, 7.7))
+            out = min(out, (x - x_end) * sign - reach)
+        return out
+
+    def hole_f(self, x, s):
+        out = 1e9
+        for hx, hs, rx, rs, nz in self.holes:
+            ds = (s - hs + self.perim / 2) % self.perim - self.perim / 2
+            dx = x - hx
+            ang = math.atan2(ds / rs, dx / rx)
+            r = (1 + .3 * nz(math.cos(ang) * 1.5, math.sin(ang) * 1.5) + .2 * nz(math.cos(ang) * 5, math.sin(ang) * 5, 2)
+                 + .12 * nz(math.cos(ang) * 13, math.sin(ang) * 13, 6))
+            out = min(out, (math.hypot(dx / rx, ds / rs) - r) * min(rx, rs))
+        return out
+
+    def field(self, x, s):
+        return min(self.front_f(x, s), self.hole_f(x, s))
 
     # ------------------------------------------------------------------------------- build
 
     def plates(self, band=None):
-        """Every standing skin plate. band(j) -> True paints the column in the accent colour."""
-        for (i, j), state in self.cells.items():
-            if not state:
-                continue
-            q = self.quad(i, j)
-            inn = self.inward(q)
-            q = shrink(q, GAP)
-            if (i, j) in self.edge_tear:
-                q = torn_quad(q, self.edge_tear[i, j], self.plate_len * .3, self.rnd, n=4)
-            if state.startswith('peel'):
-                e = int(state[4:])
-                q4 = self.quad(i, j)
-                hinge_a, hinge_b = q4[(e + 2) % 4], q4[(e + 3) % 4]     # the edge opposite the free one
-                ax = norm(sub(hinge_b, hinge_a))
-                ang = self.rnd.uniform(20, 55)
-                q = torn_quad(q, e, self.plate_len * .3, self.rnd)
-                # turn outward: the sign that moves the plate's centre away from the axis
-                c0 = centroid(q)
-                test = rotate(c0, hinge_a, ax, ang)
-                if dot(sub(test, c0), inn) > 0:
-                    ang = -ang
-                q = [rotate(p, hinge_a, ax, ang) for p in q]
-                inn = norm(sub(rotate(add(c0, inn), hinge_a, ax, ang), rotate(c0, hinge_a, ax, ang)))
-            col = self.accent if band and band(j) else self.main
-            if self.rnd.random() < .07:
-                col = tuple(min(1, c * self.rnd.uniform(.75, 1.25)) for c in col)      # a replacement plate
-            self.m.prism(q, mul(inn, PLATE_T), tone=self.rnd.gauss(0, .5), base=col)
+        """Every standing skin plate, cut along the damage field; the torn lips curl outward."""
+        band_m = self.plate_len * .7
+
+        def lift(fv):
+            return 0.0 if fv >= band_m else self.plate_len * .32 * (1 - fv / band_m) ** 2.2
+        for i in range(self.nst):
+            for j in range(self.n):
+                x0, x1 = self.xs[i], self.xs[i + 1]
+                s0, s1 = j * self.seg, (j + 1) * self.seg
+                samples = [self.field(x0 + (x1 - x0) * u, s0 + (s1 - s0) * v) for u in (0, .5, 1) for v in (0, .5, 1)]
+                if max(samples) < -self.plate_len:
+                    continue
+                q = self.quad(i, j)
+                inn = self.inward(q)
+                qs = shrink(q, GAP)
+                col = self.accent if band and band(j) else self.main
+                if self.rnd.random() < .07:
+                    col = tuple(min(1, c * self.rnd.uniform(.75, 1.25)) for c in col)      # a replacement plate
+                tone = self.rnd.gauss(0, .5)
+                if min(samples) > band_m:
+                    self.m.prism(qs, mul(inn, PLATE_T), tone=tone, base=col)
+                    continue
+                f = self._cell_field(x0, x1, s0, s1)
+                field_plate(self.m, bilinear(qs), f, inn, PLATE_T, nsub=7, lift=lift, tone=tone, base=col)
+
+    def _cell_field(self, x0, x1, s0, s1):
+        return lambda u, v: self.field(x0 + (x1 - x0) * u, s0 + (s1 - s0) * v)
 
     def frames(self, every=1, depth=1.1, flange=.45):
-        """Ring frames inside the skin at every `every`-th station, and stringers between them. Where
-        the hull is torn, a frame loses the segments with no plating near them and bends; stringers
-        run on past the last plate and end bent."""
+        """Ring frames inside the skin at every `every`-th station, and stringers between them. Holes
+        keep their frames, so the structure shows through them; past a tear, frames stand on for a
+        random way beyond the skin, and stringers run on past it and end bent."""
         inset = PLATE_T + depth / 2 + .05
         nst = self.nst
         for i in range(0, nst + 1, every):
-            torn_here = any(self.ends.get(e) and abs(i - e) <= 1 for e in (0, nst))
             pts = []
             for j in range(self.n + 1):
                 p = self.corner(i, j)
                 out = norm((0, p[1], p[2]))
                 pts.append(sub(p, mul(out, inset)))
             for j in range(self.n):
-                near = [self.cells.get((ii, j)) for ii in (i - 1, i) if 0 <= ii < nst]
-                if not any(near) and self.rnd.random() < .75:
+                beyond = -self.front_f(self.xs[i], (j + .5) * self.seg)
+                if beyond > self.rnd.uniform(0, 1.4) * self.plate_len:
                     continue
                 a, b = pts[j], pts[j + 1]
-                if torn_here and self.rnd.random() < .3:
-                    continue
+                if beyond > 0:                              # standing free past the skin: bent
+                    a = add(a, mul(norm((0, a[1], a[2])), self.rnd.uniform(0, .25) * beyond))
+                    b = add(b, mul(norm((0, b[1], b[2])), self.rnd.uniform(0, .25) * beyond))
                 radial = norm((0, -(a[1] + b[1]) / 2, -(a[2] + b[2]) / 2))
                 self.m.member(a, b, radial, flange, depth, 'I')
-        # stringers
         step = max(2, self.n // 10)
         for j in range(0, self.n, step):
-            for i in range(nst):
-                if not (self.cells.get((i, j)) or self.cells.get((i, (j - 1) % self.n))):
-                    edge = any(self.ends.get(e) and abs(i - (e if e == 0 else e - 1)) <= 2 for e in (0, nst))
-                    if not edge or self.rnd.random() < .5:
-                        continue
-                a, b = self.corner(i, j), self.corner(i + 1, j)
-                out = norm((0, a[1], a[2]))
-                a, b = sub(a, mul(out, PLATE_T + .4)), sub(b, mul(out, PLATE_T + .4))
-                if self.ends.get(nst) and i == nst - 1 and self.rnd.random() < .3:
-                    b = add(b, (self.rnd.uniform(.5, 1.5), self.rnd.uniform(-.6, .6), self.rnd.uniform(-.6, .6)))
-                if self.ends.get(0) and i == 0 and self.rnd.random() < .3:
-                    a = add(a, (-self.rnd.uniform(.5, 1.5), self.rnd.uniform(-.6, .6), self.rnd.uniform(-.6, .6)))
+            s = j * self.seg
+            extra = self.rnd.uniform(.3, 1.7) * self.plate_len
+            pts = []
+            for i in range(nst + 1):
+                p = self.corner(i, j)
+                out = norm((0, p[1], p[2]))
+                pts.append((sub(p, mul(out, PLATE_T + .4)), -self.front_f(self.xs[i], s), out))
+            for (a, ba, out), (b, bb, _) in zip(pts, pts[1:]):
+                if ba > extra and bb > extra:
+                    continue
+                if bb > extra or ba > extra:                 # the last length, bent off line
+                    bend = (0, self.rnd.uniform(-.25, .25) * self.plate_len, self.rnd.uniform(-.25, .25) * self.plate_len)
+                    if bb > extra:
+                        b = add(lerp(a, b, .7), bend)
+                    else:
+                        a = add(lerp(b, a, .7), bend)
                 self.m.member(a, b, mul(out, -1), .35, .7, 'L')
 
     def half_width_at(self, i, z):
@@ -242,13 +260,21 @@ class Body:
             near_end = min([abs(i - e) if e == 0 else abs(i - (e - 1)) for e in self.ends] or [99])
             x0, x1 = self.xs[i], self.xs[i + 1]
             for k in range(nc):
-                if self.rnd.random() < miss or (near_end < torn_reach and self.rnd.random() < .55):
+                if self.rnd.random() < miss:
                     continue
                 y0, y1 = -hw + 2 * hw * k / nc, -hw + 2 * hw * (k + 1) / nc
                 q = shrink([(x0, y0, z), (x1, y0, z), (x1, y1, z), (x0, y1, z)], GAP)
-                self.m.prism(q, (0, 0, -.3), top=INTERIOR, bottom=INTERIOR, tone=self.rnd.gauss(0, .4), base=STEEL)
+                field_plate(self.m, bilinear(q), self._deck_field(x0, x1, y0, y1, hw), (0, 0, -1), .3, nsub=5,
+                            top=INTERIOR, bottom=INTERIOR, tone=self.rnd.gauss(0, .4), base=STEEL)
             if near_end >= 1 or self.rnd.random() < .5:
                 self.m.member((x0, -hw, z - .65), (x0, hw, z - .65), (0, 0, 1), .35, .7, 'I')
+
+    def _deck_field(self, x0, x1, y0, y1, hw):
+        """A deck tears with the hull, a little inboard of the skin's tear."""
+        def f(u, v):
+            y = y0 + (y1 - y0) * v
+            return self.front_f(x0 + (x1 - x0) * u, y / max(hw, 1) * self.perim / 4 + self.perim / 4) - self.plate_len * .4
+        return f
 
     def bulkhead(self, i):
         """A transverse bulkhead at station i: plates fanned in two rings, a third of them gone."""
@@ -373,7 +399,7 @@ def section(size, seed, livery):
     return m
 
 
-def spar(size, seed, livery):
+def spar(size, seed, livery, torn=True, kink=True):
     """A truss girder (long, slender) or a box girder (stubby), kinked, torn off at +X."""
     rnd = random.Random(seed)
     L, W, H = size
@@ -389,14 +415,14 @@ def spar(size, seed, livery):
     kink_at = rnd.uniform(.25, .7) * L - L / 2
     kink_ax = norm((0, rnd.uniform(-1, 1), rnd.uniform(-1, 1)))
     # the field gives a kinked arm its own box, so a spar's own kink stays inside its width
-    kink_deg = math.degrees(math.atan(min(W, H) * rnd.uniform(.2, .45) / max(L / 2 - kink_at, 1.0))) * rnd.choice((-1, 1))
+    kink_deg = 0.0 if not kink else math.degrees(math.atan(min(W, H) * rnd.uniform(.2, .45) / max(L / 2 - kink_at, 1.0))) * rnd.choice((-1, 1))
 
     def P(x, c):
         p = (x, c[0], c[1])
         if x > kink_at:
             p = rotate(p, (kink_at, 0, 0), kink_ax, kink_deg)
         return p
-    torn = [nb - rnd.choice((0, 0, 1, 1, 2)) for _ in corners]
+    torn = [nb - (rnd.choice((0, 0, 1, 1, 2)) if torn else 0) for _ in corners]
     for k, c in enumerate(corners):
         for b in range(torn[k]):
             a, e = P(xs[b], c), P(xs[b + 1], c)
@@ -471,52 +497,60 @@ def _box_girder(size, rnd, livery):
     return m
 
 
-def plate(size, seed, livery):
-    """A slab of armour torn off a hull: tiles on a ribbed backing, bent, ragged, a corner peeled."""
+def plate(size, seed, livery, erode=1.0, holes_n=None, bend=True):
+    """A slab of armour torn off a hull: tiles on a ribbed backing, bent. Its outline and its holes
+    are a damage field cut along its contour (wk_geom.field_plate), not along the tiles, and the
+    torn lips curl up off the slab."""
     rnd = random.Random(seed)
     L, W, H = size
     m = Mesh(livery[0])
-    noise = Noise(rnd.randrange(1 << 30))
+    nz = Noise(rnd.randrange(1 << 30))
     tile = max(3.0, min(8.0, L / 9))
     nx, ny = max(3, round(L / tile)), max(2, round(W / tile))
     t_arm = min(.6, max(.25, H * .12))
     rib = min(1.6, max(.5, H * .35))
-    cells = {}
-    for i in range(nx):
-        for j in range(ny):
-            u, v = (i + .5) / nx * 2 - 1, (j + .5) / ny * 2 - 1
-            r = max(abs(u), abs(v)) + .35 * noise(i * .7, j * .7)
-            cells[i, j] = r < .95 and rnd.random() > .07
-    peel = rnd.choice([c for c, ok in cells.items() if ok])
+    edge = min(L, W) * .16 * erode
+    holes = []
+    for _ in range(rnd.randint(1, 4) if holes_n is None else holes_n):
+        r = rnd.uniform(.05, .13) * min(L, W)
+        holes.append((rnd.uniform(-.35, .35) * L, rnd.uniform(-.3, .3) * W, r, Noise(rnd.randrange(1 << 30))))
+
+    def field(x, y):
+        inside = min(L / 2 - abs(x), W / 2 - abs(y))
+        f = inside - edge * (.55 + .45 * nz(x / (L * .18), y / (W * .18))) - edge * .3 * nz(x / 2.2, y / 2.2, 4.4)
+        for hx, hy, r, hn in holes:
+            ang = math.atan2(y - hy, x - hx)
+            rr = r * (1 + .32 * hn(math.cos(ang) * 1.6, math.sin(ang) * 1.6) + .24 * hn(math.cos(ang) * 6, math.sin(ang) * 6, 2)
+                      + .14 * hn(math.cos(ang) * 14, math.sin(ang) * 14, 5))
+            f = min(f, math.hypot(x - hx, y - hy) - rr)
+        return f
+    band = tile * .6
+    top_lift = max(.0, H - t_arm - rib) * .9
+
+    def lift(fv):
+        return 0.0 if fv >= band else top_lift * (1 - fv / band) ** 2      # curled up off the slab
     x0s = [-L / 2 + L * i / nx for i in range(nx + 1)]
     y0s = [-W / 2 + W * j / ny for j in range(ny + 1)]
-    for (i, j), ok in cells.items():
-        if not ok:
-            continue
-        q = [(x0s[i], y0s[j], 0), (x0s[i + 1], y0s[j], 0), (x0s[i + 1], y0s[j + 1], 0), (x0s[i], y0s[j + 1], 0)]
-        q = shrink(q, GAP)
-        for e, (ni, nj) in enumerate(((i, j - 1), (i + 1, j), (i, j + 1), (i - 1, j))):
-            if not cells.get((ni, nj)) and rnd.random() < .7:      # an outer tile: its open side torn
-                q = torn_quad(q, e, tile * .35, rnd, n=4)
-                break
-        if (i, j) == peel:
-            ax = (0, 1, 0)
-            lift = math.degrees(math.asin(min(.8, H * .6 / tile)))     # peeled no further than the slab is thick
-            q = [rotate(p, (x0s[i], 0, 0), ax, -lift) for p in q]
-        m.prism(q, (0, 0, -t_arm), tone=rnd.gauss(0, .5), base=livery[1] if j == ny // 2 and rnd.random() < .5 else livery[0])
-        # ribs under the tile: one along x at its middle, one across at its start
-        if rnd.random() < .85:
-            ym = (y0s[j] + y0s[j + 1]) / 2
-            m.member((x0s[i], ym, -t_arm - rib / 2), (x0s[i + 1], ym, -t_arm - rib / 2), (0, 0, 1), .35, rib, 'I')
-        if rnd.random() < .7:
-            m.member((x0s[i], y0s[j], -t_arm - rib / 2), (x0s[i], y0s[j + 1], -t_arm - rib / 2), (0, 0, 1), .3, rib * .8, 'I')
+    for i in range(nx):
+        for j in range(ny):
+            xa, xb, ya, yb = x0s[i], x0s[i + 1], y0s[j], y0s[j + 1]
+            q = shrink([(xa, ya, 0), (xb, ya, 0), (xb, yb, 0), (xa, yb, 0)], GAP)
+            f = (lambda xa, xb, ya, yb: lambda u, v: field(xa + (xb - xa) * u, ya + (yb - ya) * v))(xa, xb, ya, yb)
+            col = livery[1] if j == ny // 2 and rnd.random() < .5 else livery[0]
+            if not field_plate(m, bilinear(q), f, (0, 0, -1), t_arm, nsub=6, lift=lift, tone=rnd.gauss(0, .5), base=col):
+                continue
+            ym, xm = (ya + yb) / 2, (xa + xb) / 2
+            if field(xm, ym) > tile * .3 and rnd.random() < .9:      # ribs under the tile, where it stands
+                m.member((xa, ym, -t_arm - rib / 2), (xb, ym, -t_arm - rib / 2), (0, 0, 1), .35, rib, 'I')
+            if field(xa, ym) > tile * .3 and rnd.random() < .75:
+                m.member((xa, ya, -t_arm - rib / 2), (xa, yb, -t_arm - rib / 2), (0, 0, 1), .3, rib * .8, 'I')
     # bend across a line between tile columns: everything past it turns about it
-    bi = rnd.randint(1, nx - 2)
+    bi = rnd.randint(1, nx - 2) if nx > 2 else 1
     xb = x0s[bi]
-    target = max(0.0, H - (t_arm + rib) - .2)
+    target = max(0.0, H - (t_arm + rib) - top_lift - .2)
     run = L / 2 - xb
     ang = math.degrees(math.asin(min(.9, target / max(run, 1)))) * rnd.choice((1, -1)) if target > .2 else 0
-    if ang:
+    if ang and bend:
         m.transform(lambda p: rotate(p, (xb, 0, 0), (0, 1, 0), ang) if p[0] > xb else p)
     return m
 

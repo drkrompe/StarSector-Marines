@@ -19,6 +19,15 @@ from plates, frames and members, bleached and pitted, nothing lit.
 | `spar` | 14 | Angle-iron trusses 22 to 250 m, kinked, torn and bent at one end; stubby box girders with lightening holes. |
 | `plate` | 10 | Armour slabs 22 to 85 m: tiles on a ribbed backing, bent, torn outline, tiles gone, a corner peeled. |
 | `chunk` | 3 | Cargo or machinery modules torn out of a hull: heavily chamfered, bulkheads, one end half torn away, a shoulder crushed, drums inside. Never a cube. |
+| `station` | 1 | The derelict platform itself, built part for part from `battle_blockout.platform_parts()` at each part's exact size: whole trusses for the spine, ties and mast (the mast torn off), plated bulk-carrier segments closed by gappy bulkheads, emptied fuel drums (true circles of plates, some holed through), plated hangar floors and walls. |
+
+**Damage follows a field, not the plating** (coordinator, look 1: the torn edges read as missing
+square tiles). Every tear and hole is a noise field over the skin in metres; each plate is cut
+along its contour (`wk_geom.field_plate`), so tears are jagged and uneven, the lip curls back
+off the hull, frames stand on past the skin by random lengths and stringers run out bent. The
+plate grid stays as surface detail only. On the hulks the tear is cut on a fine grid and its
+edge then snapped onto the tear surface, and each hole's rim onto its ragged radius, so no
+stair-step survives.
 
 `wk_catalogue.py` lists every variant; `catalogue.json` (written by the build, committed) is
 their measured half extents, which is what the contract reads.
@@ -59,12 +68,24 @@ sheet for checking shapes (never an owner review image).
 
 `wk_mat.py`: four materials (plating, structure, interior, bare metal) on one group. It bleaches
 each face's painted colour toward a dusty grey-tan, varies it plate to plate and over tens of
-metres, and lays two ImageGen detail tiles over it at metre scale (`textures/generated/`, with
+metres, varies the bleach and overall value per wreck, keeps patches of old paint and scorches
+others dark (so the field has value contrast against the desert), and lays two ImageGen detail
+tiles over it at metre scale (`textures/generated/`, with
 their prompts in `textures/prompts/`): sun-bleached pitted plating flaking to primer, and dry
 oxidised structural steel. Faces seen from behind are dark. No emission anywhere.
 
+## The station
+
+`wreck_kit.station()` names the station object and its source (`parts_sha`, part counts). It is
+in the platform's own metres, so the builder places it with the platform frame alone
+(`T(PLATFORM) @ Rz(PLATFORM_HD)`), where the blockout drew `platform_parts()` as boxes and drums.
+`wreck_kit.station_current(platform_parts())` is false once the footprint has changed since the
+kit was built: rebuild and republish the kit then.
+
 ## Look still
 
-`look_wrecks.py` draws the real field at S4's time with the kit swapped into every box, from
-S4's camera position under the battle's sun (no pirates, no platform blockout): `wide` (28 mm)
-and `close` (110 mm onto the Falcon (P)'s cover). Light-lane job: `look-job.template.json`.
+`look_wrecks.py` draws the real field at S4's time with the kit swapped into every box and the
+station in place, from S4's camera position under the battle's sun (no pirates): `wide` (28 mm),
+`close` (110 mm onto the Falcon (P)'s cover) and `proposal` (as wide, with the hulk-sized boxes
+proposed to the Asharu builder applied in that view only). Light-lane job:
+`look-job.template.json`.

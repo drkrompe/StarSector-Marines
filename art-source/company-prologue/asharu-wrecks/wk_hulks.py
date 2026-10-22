@@ -204,10 +204,11 @@ def _bisect_zone(bm, faces, planes):
     return zone
 
 
-def _tear(bm, x_cut, keep_sign, amp, noise, step=2.0):
-    """Tears the hull at x_cut: grids the faces within amp of it, then deletes every face whose
-    centre lies past the ragged surface x_cut + noise on the side away from keep_sign."""
-    lo, hi = x_cut - amp * 1.2, x_cut + amp * 1.2
+def _tear(bm, x_cut, keep_sign, amp, noise, step=1.5):
+    """Tears the hull at x_cut: grids the faces within amp of it, deletes every face whose centre
+    lies past a ragged noise surface on the side away from keep_sign, then snaps the torn edge onto
+    that surface (`_ragged_lip`), so the tear follows the surface's contour and not the grid."""
+    lo, hi = x_cut - amp * 1.4, x_cut + amp * 1.4
     zone = [f for f in bm.faces if any(lo <= v.co.x <= hi for v in f.verts)]
     ys = [v.co.y for f in zone for v in f.verts] or [0]
     zs = [v.co.z for f in zone for v in f.verts] or [0]
@@ -217,31 +218,35 @@ def _tear(bm, x_cut, keep_sign, amp, noise, step=2.0):
     _bisect_zone(bm, zone, planes)
 
     def surface(y, z):
-        return x_cut + amp * (.75 * noise(y / 14.0, z / 14.0) + .25 * noise(y / 4.0, z / 4.0, 7.0))
-    dead = [f for f in bm.faces if (f.calc_center_median().x - surface(f.calc_center_median().y,
-                                                                          f.calc_center_median().z)) * keep_sign < 0]
+        return x_cut + amp * (.7 * noise(y / 16.0, z / 16.0) + .22 * noise(y / 5.0, z / 5.0, 7.0)
+                              + .08 * noise(y / 1.6, z / 1.6, 13.0))
+    dead = []
+    for f in bm.faces:
+        c = f.calc_center_median()
+        if lo - amp <= c.x <= hi + amp or (c.x - x_cut) * keep_sign < 0:
+            if (c.x - surface(c.y, c.z)) * keep_sign < 0:
+                dead.append(f)
     bmesh.ops.delete(bm, geom=dead, context='FACES')
     loose = [v for v in bm.verts if not v.link_faces]
     bmesh.ops.delete(bm, geom=loose, context='VERTS')
-    _ragged_lip(bm, lo, hi, keep_sign, step)
+    _ragged_lip(bm, lo, hi, keep_sign, step, surface, noise)
 
 
-def _ragged_lip(bm, lo, hi, keep_sign, step):
-    """Breaks the grid's stair-steps along a tear: every vertex on the torn edge is pushed a
-    random way along the tear and bent outward a little, so the edge reads as torn plate."""
-    rnd = random.Random(len(bm.verts))
+def _ragged_lip(bm, lo, hi, keep_sign, step, surface, noise):
+    """Snaps every vertex on the torn edge onto the tear surface, so the grid's stair-steps become
+    the surface's jagged contour, then curls the lip outward where the noise says it peeled."""
     bm.verts.index_update()
     edge = sorted({v for e in bm.edges if e.is_boundary for v in e.verts if lo <= v.co.x <= hi}, key=lambda v: v.index)
     ys = [v.co.y for v in bm.verts]
     zs = [v.co.z for v in bm.verts]
     axis = Vector((0, (min(ys) + max(ys)) / 2, (min(zs) + max(zs)) / 2))
     for v in edge:
+        v.co.x = surface(v.co.y, v.co.z)
         out = Vector((0, v.co.y - axis.y, v.co.z - axis.z))
         out = out.normalized() if out.length > 1e-6 else Vector((0, 0, 1))
-        v.co.x -= keep_sign * rnd.uniform(0, step * .9)
-        v.co += out * rnd.uniform(0, step * .6)
-        v.co.y += rnd.uniform(-.35, .35) * step
-        v.co.z += rnd.uniform(-.35, .35) * step
+        curl = max(0.0, noise(v.co.y / 7.0, v.co.z / 7.0, 21.0))
+        v.co += out * curl * step * 2.2
+        v.co.x -= keep_sign * curl * step * .8
 
 
 def frange(a, b, s):
@@ -324,6 +329,20 @@ def _holes(bm, bvh, rnd, count, x_lo, x_hi, mpu_len, m):
             continue
         bmesh.ops.delete(bm, geom=dead, context='FACES')
         made += 1
+        # snap the hole's rim onto its ragged radius; the petals bent in, the way the hit went
+        for v in {v for e in bm.edges if e.is_boundary for v in e.verts}:
+            d = v.co - c
+            if d.length > r * 1.9 or abs(d.dot(n)) > 8:
+                continue
+            u, w = d.dot(tl), d.dot(tr)
+            if math.hypot(u, w) < 1e-6:
+                continue
+            ang = math.atan2(w, u)
+            rr = r * (1 + .3 * noise(math.cos(ang) * 2, math.sin(ang) * 2, h) + .15 * noise(math.cos(ang) * 7, math.sin(ang) * 7, h))
+            k = rr / max(math.hypot(u * .8, w), 1e-6)
+            if not .5 < k < 1.6:
+                continue
+            v.co = c + tl * (u * k) + tr * (w * k) + n * (d.dot(n) - max(0.0, noise(u, w, h + 5)) * r * .25)
         # frames behind the hole: ribs round the hull at a few stations, a stringer along it
         for s in frange(-r * .8, r * .8, max(3.0, r * .45)):
             pts = []

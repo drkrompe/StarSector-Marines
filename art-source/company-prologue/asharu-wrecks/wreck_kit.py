@@ -93,6 +93,21 @@ def pick(half, seed):
                 tuple(round(f, 3) for f in fill))
 
 
+def station():
+    """(object, source) of the derelict platform piece. It is built in the platform's own metres
+    from battle_blockout.platform_parts(), so it is placed with the platform's frame alone (no box,
+    no stretch); source['parts_sha'] says which parts list it was built from."""
+    v = next(v for v in catalogue() if v['family'] == 'station')
+    return v['object'], v['source']
+
+
+def station_current(parts):
+    """Whether the kit's station was built from this platform_parts() list."""
+    import hashlib
+    sha = hashlib.sha256(json.dumps(parts, sort_keys=True).encode()).hexdigest()[:16]
+    return sha == station()[1]['parts_sha']
+
+
 def hulks():
     """{name: full (L, W, H) m} of the hulks derived from accepted hulls. A box sized to one of these
     (within HULK_FIT, in any axis order) gets that hulk: the way to put a recognisable class in the

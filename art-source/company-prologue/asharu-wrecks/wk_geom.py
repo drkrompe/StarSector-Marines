@@ -233,3 +233,82 @@ def torn_quad(quad, edge, depth, rnd, n=5):
         else:
             pts.append(q[k])
     return pts
+
+
+def field_plate(m, P, f, inward, t, nsub=6, lift=None, top=PLATING, bottom=INTERIOR, side=BARE, tone=0.0,
+                base=None):
+    """One plate cut along a contour of a damage field, as a single closed slab.
+
+    P(u, v) -> the plate's outer surface point for u, v in [0, 1]; f(u, v) -> the keep field, in metres
+    (the plate stands where f >= 0). The plate is sampled on an nsub x nsub grid and every sub-square
+    is clipped to f >= 0 with the crossing found by linear interpolation along its edges, so the cut
+    follows the field's contour, never the grid. Clip points on a shared edge are shared, so the kept
+    region is one surface: the top, its copy moved by inward * t, and walls only along its boundary.
+    lift(fv) -> metres to raise a point off the plate (outward, against inward) for its field value:
+    the torn lip curling back."""
+    F = [[f(i / nsub, j / nsub) for j in range(nsub + 1)] for i in range(nsub + 1)]
+    if min(min(r) for r in F) >= 0 and lift is None:
+        pass
+    polys = []
+    for i in range(nsub):
+        for j in range(nsub):
+            c = [(i, j), (i + 1, j), (i + 1, j + 1), (i, j + 1)]
+            if all(F[a][b] < 0 for a, b in c):
+                continue
+            poly = []
+            for k in range(4):
+                a, b = c[k], c[(k + 1) % 4]
+                fa, fb = F[a[0]][a[1]], F[b[0]][b[1]]
+                if fa >= 0:
+                    poly.append(('n', a))
+                if (fa >= 0) != (fb >= 0):
+                    poly.append(('e',) + tuple(sorted((a, b))))
+            if len(poly) >= 3:
+                polys.append(poly)
+    if not polys:
+        return 0
+    index, uvf = {}, []
+    for poly in polys:
+        for key in poly:
+            if key in index:
+                continue
+            if key[0] == 'n':
+                (i, j), fv = key[1], F[key[1][0]][key[1][1]]
+                u, v = i / nsub, j / nsub
+            else:
+                a, b = key[1], key[2]
+                fa, fb = F[a[0]][a[1]], F[b[0]][b[1]]
+                s = fa / (fa - fb)
+                u = (a[0] + (b[0] - a[0]) * s) / nsub
+                v = (a[1] + (b[1] - a[1]) * s) / nsub
+                fv = 0.0
+            index[key] = len(uvf)
+            uvf.append((u, v, fv))
+    o = len(m.verts)
+    n = len(uvf)
+    for u, v, fv in uvf:
+        p = P(u, v)
+        if lift is not None:
+            p = sub(p, mul(inward, lift(fv)))
+        m.verts.append(p)
+    m.verts.extend(add(m.verts[o + k], mul(inward, t)) for k in range(n))
+    edges = {}
+    for poly in polys:
+        ids = [o + index[k] for k in poly]
+        m.face(ids, top, tone, base)
+        m.face([i + n for i in reversed(ids)], bottom, tone, base)
+        for a, b in zip(ids, ids[1:] + ids[:1]):
+            key = (min(a, b), max(a, b))
+            edges[key] = None if key in edges else (a, b)
+    for e in edges.values():
+        if e is not None:
+            a, b = e
+            m.face((b, a, a + n, b + n), side, tone, base)
+    return len(polys)
+
+
+def bilinear(q):
+    """P(u, v) over a quad's corners q[0..3] (u along q0->q1, v along q0->q3)."""
+    def P(u, v):
+        return lerp(lerp(q[0], q[1], u), lerp(q[3], q[2], u), v)
+    return P

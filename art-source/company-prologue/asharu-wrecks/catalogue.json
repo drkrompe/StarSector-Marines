@@ -9,9 +9,9 @@
    "object": "Wreck hullfrag-a",
    "family": "hullfrag",
    "half": [
-    11.663,
-    7.288,
-    6.702
+    11.276,
+    7.777,
+    5.882
    ],
    "source": null
   },
@@ -20,9 +20,9 @@
    "object": "Wreck hullfrag-b",
    "family": "hullfrag",
    "half": [
-    18.723,
-    14.108,
-    9.755
+    18.507,
+    12.912,
+    10.634
    ],
    "source": null
   },
@@ -31,9 +31,9 @@
    "object": "Wreck hullfrag-c",
    "family": "hullfrag",
    "half": [
-    28.744,
-    19.619,
-    16.213
+    28.422,
+    19.19,
+    15.833
    ],
    "source": null
   },
@@ -42,9 +42,9 @@
    "object": "Wreck hullfrag-d",
    "family": "hullfrag",
    "half": [
-    40.65,
-    27.335,
-    19.986
+    40.239,
+    26.039,
+    21.022
    ],
    "source": null
   },
@@ -53,9 +53,9 @@
    "object": "Wreck hullfrag-e",
    "family": "hullfrag",
    "half": [
-    57.417,
-    40.684,
-    32.597
+    56.771,
+    38.879,
+    31.871
    ],
    "source": null
   },
@@ -64,9 +64,9 @@
    "object": "Wreck section-a",
    "family": "section",
    "half": [
-    25.18,
-    21.192,
-    17.55
+    24.163,
+    21.425,
+    16.439
    ],
    "source": null
   },
@@ -75,9 +75,9 @@
    "object": "Wreck section-b",
    "family": "section",
    "half": [
-    31.661,
-    24.015,
-    21.787
+    31.2,
+    23.153,
+    20.153
    ],
    "source": null
   },
@@ -86,9 +86,9 @@
    "object": "Wreck section-c",
    "family": "section",
    "half": [
-    41.285,
-    31.984,
-    24.375
+    40.225,
+    30.133,
+    22.133
    ],
    "source": null
   },
@@ -97,9 +97,9 @@
    "object": "Wreck section-d",
    "family": "section",
    "half": [
-    48.814,
-    42.551,
-    28.565
+    47.725,
+    42.533,
+    25.533
    ],
    "source": null
   },
@@ -108,9 +108,9 @@
    "object": "Wreck section-e",
    "family": "section",
    "half": [
-    58.678,
-    43.724,
-    39.48
+    57.525,
+    42.88,
+    37.879
    ],
    "source": null
   },
@@ -119,9 +119,9 @@
    "object": "Wreck section-f",
    "family": "section",
    "half": [
-    68.777,
-    55.754,
-    36.944
+    67.725,
+    52.88,
+    33.88
    ],
    "source": null
   },
@@ -130,9 +130,9 @@
    "object": "Wreck section-g",
    "family": "section",
    "half": [
-    115.962,
-    85.455,
-    55.722
+    115.225,
+    85.379,
+    53.88
    ],
    "source": null
   },
@@ -295,9 +295,9 @@
    "object": "Wreck plate-a",
    "family": "plate",
    "half": [
-    11.015,
+    10.546,
     7.0,
-    0.875
+    0.76
    ],
    "source": null
   },
@@ -306,9 +306,9 @@
    "object": "Wreck plate-b",
    "family": "plate",
    "half": [
-    15.029,
-    12.0,
-    1.459
+    13.521,
+    11.472,
+    0.947
    ],
    "source": null
   },
@@ -317,9 +317,9 @@
    "object": "Wreck plate-c",
    "family": "plate",
    "half": [
-    25.054,
-    15.0,
-    1.319
+    24.337,
+    13.497,
+    0.854
    ],
    "source": null
   },
@@ -328,9 +328,9 @@
    "object": "Wreck plate-d",
    "family": "plate",
    "half": [
-    27.58,
-    24.0,
-    1.394
+    26.313,
+    21.693,
+    1.041
    ],
    "source": null
   },
@@ -339,9 +339,9 @@
    "object": "Wreck plate-e",
    "family": "plate",
    "half": [
-    40.081,
-    26.0,
-    1.267
+    39.459,
+    23.021,
+    1.136
    ],
    "source": null
   },
@@ -350,9 +350,9 @@
    "object": "Wreck plate-f",
    "family": "plate",
    "half": [
-    41.091,
-    39.0,
-    1.498
+    38.426,
+    36.407,
+    1.326
    ],
    "source": null
   },
@@ -361,9 +361,9 @@
    "object": "Wreck plate-g",
    "family": "plate",
    "half": [
-    42.465,
-    26.0,
-    3.458
+    40.852,
+    24.799,
+    2.584
    ],
    "source": null
   },
@@ -372,9 +372,9 @@
    "object": "Wreck plate-h",
    "family": "plate",
    "half": [
-    39.074,
-    30.0,
-    0.818
+    37.437,
+    28.343,
+    0.577
    ],
    "source": null
   },
@@ -383,9 +383,9 @@
    "object": "Wreck plate-i",
    "family": "plate",
    "half": [
-    22.297,
-    13.5,
-    0.664
+    24.27,
+    12.054,
+    0.487
    ],
    "source": null
   },
@@ -394,9 +394,9 @@
    "object": "Wreck plate-j",
    "family": "plate",
    "half": [
-    30.041,
+    28.983,
     18.0,
-    2.747
+    1.704
    ],
    "source": null
   },
@@ -406,8 +406,8 @@
    "family": "chunk",
    "half": [
     22.725,
-    21.176,
-    16.864
+    20.913,
+    17.792
    ],
    "source": null
   },
@@ -416,9 +416,9 @@
    "object": "Wreck chunk-b",
    "family": "chunk",
    "half": [
-    36.833,
-    34.363,
-    26.986
+    36.243,
+    34.434,
+    28.896
    ],
    "source": null
   },
@@ -427,11 +427,42 @@
    "object": "Wreck chunk-c",
    "family": "chunk",
    "half": [
-    52.757,
-    47.5,
-    42.872
+    52.24,
+    50.262,
+    41.773
    ],
    "source": null
+  },
+  {
+   "name": "station",
+   "object": "Wreck station",
+   "family": "station",
+   "half": null,
+   "source": {
+    "frame": "platform",
+    "parts": 52,
+    "parts_sha": "2449b95a93079fac",
+    "counts": {
+     "girder": 4,
+     "tie": 12,
+     "bulk segment": 5,
+     "tank": 21,
+     "hangar": 8,
+     "mast": 2
+    },
+    "bounds": [
+     [
+      -420.0,
+      -66.0,
+      -68.0
+     ],
+     [
+      419.9,
+      106.0,
+      127.0
+     ]
+    ]
+   }
   },
   {
    "name": "hulk-onslaught-fore",
@@ -439,7 +470,7 @@
    "family": "hulk",
    "half": [
     115.015,
-    100.746,
+    99.609,
     56.108
    ],
    "source": {
@@ -456,7 +487,7 @@
     ],
     "parts_kept": 429,
     "parts_stripped": 117,
-    "holes": 3,
+    "holes": 5,
     "measured_length_m": 299.9
    }
   },
@@ -467,7 +498,7 @@
    "half": [
     146.382,
     114.754,
-    56.108
+    56.75
    ],
    "source": {
     "build": "builds/onslaught/0cb9d83",
@@ -492,9 +523,9 @@
    "object": "Wreck hulk-legion-fore",
    "family": "hulk",
    "half": [
-    138.854,
-    87.887,
-    41.105
+    137.729,
+    87.279,
+    40.746
    ],
    "source": {
     "build": "builds/legion/0cb9d83",
@@ -521,7 +552,7 @@
    "half": [
     145.434,
     88.077,
-    43.333
+    42.928
    ],
    "source": {
     "build": "builds/legion/0cb9d83",
@@ -564,7 +595,7 @@
     ],
     "parts_kept": 625,
     "parts_stripped": 96,
-    "holes": 3,
+    "holes": 1,
     "measured_length_m": 108.5
    }
   },
@@ -574,8 +605,8 @@
    "family": "hulk",
    "half": [
     51.425,
-    45.002,
-    22.382
+    45.69,
+    21.869
    ],
    "source": {
     "build": "builds/colossus/139e8b8b6",
@@ -592,7 +623,7 @@
     ],
     "parts_kept": 658,
     "parts_stripped": 63,
-    "holes": 3,
+    "holes": 2,
     "measured_length_m": 108.5
    }
   }

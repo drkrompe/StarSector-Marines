@@ -146,6 +146,27 @@ def main():
                          source=None, verts=len(ob.data.vertices), faces=len(ob.data.polygons)))
         print('WRECK %-22s %-9s half %-24s verts %7d  %.1fs' % (name, fam, half, rows[-1]['verts'], time.time() - t),
               flush=True)
+    if not only or 'station' in only:
+        import wk_station
+        sys.path.insert(0, str(HERE.parent / 'asharu-battle'))
+        _argv, sys.argv = sys.argv, ['build_wrecks']
+        import battle_blockout
+        sys.argv = _argv
+        t = time.time()
+        parts = battle_blockout.platform_parts()
+        m, counts = wk_station.build(parts)
+        ob = to_object('Wreck station', m, mats)
+        me = ob.data
+        co = [0.0] * (3 * len(me.vertices))
+        me.vertices.foreach_get('co', co)
+        lo = [min(co[k::3]) for k in range(3)]
+        hi = [max(co[k::3]) for k in range(3)]
+        rows.append(dict(name='station', object=ob.name, family='station', half=None, seed=7, livery=None,
+                         source=dict(frame='platform', parts=len(parts), parts_sha=wk_station.parts_sha(parts),
+                                     counts=counts, bounds=[[round(x, 1) for x in lo], [round(x, 1) for x in hi]]),
+                         verts=len(me.vertices), faces=len(me.polygons)))
+        print('WRECK %-22s %-9s parts %d %s verts %7d  %.1fs' % ('station', 'station', len(parts), counts,
+                                                                rows[-1]['verts'], time.time() - t), flush=True)
     if not a.no_hulks:
         import wk_hulks
         for name, key, span, torn, seed in C.HULKS:
@@ -165,10 +186,13 @@ def main():
             c.objects.unlink(ob)
         coll.objects.link(ob)
         ob['wk_family'], ob['wk_name'] = r['family'], r['name']
-        ob['wk_half'] = list(r['half'])
+        if r['half'] is not None:
+            ob['wk_half'] = list(r['half'])
     # lay the kit out on a line for anyone opening the file; the matrix is never part of the contract
     x = 0.0
     for r in rows:
+        if r['half'] is None:
+            continue                      # the station stays in the platform's own frame
         ob = bpy.data.objects[r['object']]
         x += r['half'][0] + 20
         ob.location = (x, 0, 0)
@@ -209,13 +233,15 @@ def validate(rows):
             fails.append('%s: missing wk_base/wk_tone' % r['name'])
         if len(me.materials) != 4:
             fails.append('%s: %d material slots' % (r['name'], len(me.materials)))
+        if r['half'] is None:
+            continue
         co = [0.0] * (3 * len(me.vertices))
         me.vertices.foreach_get('co', co)
         for k in range(3):
             lo, hi = min(co[k::3]), max(co[k::3])
             if abs(lo + hi) > .01 or abs((hi - lo) / 2 - r['half'][k]) > .01:
                 fails.append('%s: not centred on axis %d' % (r['name'], k))
-        if not (r['half'][0] >= r['half'][1] >= r['half'][2]):
+        if r['half'] is not None and not (r['half'][0] >= r['half'][1] >= r['half'][2]):
             fails.append('%s: axes not sorted %s' % (r['name'], r['half']))
     for m in bpy.data.materials:
         if m.use_nodes:
