@@ -226,9 +226,18 @@ does not set Conquest alight.
   (`PendingDetonation.incendiary`). Two specials carry it, issued by mission kit
   until the economy decides their price: the **incendiary grenade** (a thrown
   thermite charge with little blast) and the **pack flamer** (a short, flat,
-  seven-cell lob of burning gel that the squad AI spends on clustered infantry
-  as it does a grenade). An incendiary round for the field mortar and an
+  seven-cell lob of burning gel). An incendiary round for the field mortar and an
   incendiary air strike are the same field on their weapons, not yet authored.
+- **Throwing fire.** A squad spends an incendiary as it does a frag, on soft
+  infantry it has seen, with two differences, both because the fire does the
+  rest of the work. One man standing in fuel is worth a throw, where a frag
+  wants two in its blast. And a carrier does not throw where the fire could
+  come to its own side (`FireReach`): the fuel round the point it would light,
+  followed outward through any gap of three cells or less, which heat crosses,
+  out to ten cells; a friend on that ground or beside it vetoes the throw. So
+  a squad standing in the meadow its enemy stands in holds its fire, and one on
+  a road, a firebreak or burnt ground uses it. `-Dbattle.fire.throwSafety=false`
+  is the control.
 - **Shells.** In dry country a heavy ordinary blast (radius 2.5 cells and up:
   shells, not grenades) puts enough heat into the ground it covers to catch
   grass and dying creep, never a living crown. A walking barrage of ordinary
@@ -325,9 +334,11 @@ none, when it was written).
 `fire-ignition` (`sceneEvidence`) holds the starting rules: an incendiary blast
 on grass lights it, an ordinary shell lights nothing in country that is not
 dry and catches grass once it is, and an ordinary shell alone never lights a
-living crown. Its second loop issues the incendiary grenade and the flamer to
-squads facing a cluster in a meadow; whether they throw is their AI's call,
-so the cells their fires took are readings.
+living crown. Its `kit` loop holds the carrier's rules: grenadiers on a
+firebreak throw at a cluster in grass, flamers on a firebreak burn a lone man
+in grass, and flamers standing in the meadow their targets stand in hold their
+fire; with `throwSafety=false` that squad lights its own meadow and the lone
+man is left alone, which is the control.
 
 `fire-scale` (`sceneEvidence`) burns a whole 560x336 country of grass and
 groves with creep over its middle in a fresh wind, up to a four-cell road. The
