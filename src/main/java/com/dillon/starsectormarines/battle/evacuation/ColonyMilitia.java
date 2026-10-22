@@ -119,6 +119,9 @@ public final class ColonyMilitia {
                 && !insideWorks(claimed, x, y, 3);
         for (int i = 0; i < posts.size(); i++) {
             Post post = posts.get(i);
+            // A holdout's people knock loopholes through every wall before its garrison takes its cells.
+            if (redoubts && HoldoutLoopholes.enabled() && HoldoutLoopholes.cut(sim, post.place) > 0)
+                post = new Post(post.place, post.node, interiorCells(sim, post.place), post.room);
             int squadId = seatPost(sim, post, i, risk, rng);
             squads.add(squadId);
             if (!redoubts) continue;
@@ -338,9 +341,10 @@ public final class ColonyMilitia {
         NavigationGrid grid = sim.getGrid();
         int building = sim.getTopology().getBuildingId(place.interiorAnchorX, place.interiorAnchorY);
         List<int[]> cells = new ArrayList<>();
-        for (int y = place.top + 1; y < place.bottom; y++) {
-            for (int x = place.left + 1; x < place.right; x++) {
-                if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) continue;
+        // The wall line too: a window or loophole cell is floor a defender stands in to shoot out.
+        for (int y = place.top; y <= place.bottom; y++) {
+            for (int x = place.left; x <= place.right; x++) {
+                if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || grid.isDoorway(x, y)) continue;
                 if (building > 0 && sim.getTopology().getBuildingId(x, y) != building) continue;
                 int cover = grid.getCoverAt(x, y) + sim.getDoodadCoverAt(x, y);
                 int distance = Math.abs(x - place.interiorAnchorX) + Math.abs(y - place.interiorAnchorY);
