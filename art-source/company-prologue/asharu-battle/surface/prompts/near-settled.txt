@@ -1,0 +1,18 @@
+Image 1 is a straight-down orbital photograph of desert canyon country, 160 km across (about
+150 m per pixel), north up, with a few plans sketched on it in flat grey and rust. Return the
+same photograph with each sketch rendered as real built ground seen from orbit, and everything
+else left exactly as it is: same terrain, colours, canyons, framing and scale, pixel for pixel.
+
+The sketches, keep each at its exact position, outline and size:
+- the octagon with a wall line and a block grid: a walled frontier town where two dry wadis
+  meet. A pale perimeter wall, a dense grid of flat dusty roofs and narrow lanes, a few larger
+  warehouse roofs, sand drifted against the wall on the windward side;
+- the grey rectangle of round pads: a landing grid, a pale concrete apron with rows of circular
+  landing pads stained by drive scorch, a row of hangar and tank roofs along one side;
+- the concentric rust and tan ovals: a terraced open-pit mine cut into the dark rock ridge,
+  stepped benches spiralling down, a dark tailings heap and haul tracks beside it;
+- the thin pale lines: unpaved haul roads, faint, following the ground.
+
+Low population, independent and worn: dusty, sun-bleached, sand-coloured materials, nothing
+shiny, no green fields, no lights, no vehicles, no text, labels or border. Flat even lighting
+as in the original photograph.
