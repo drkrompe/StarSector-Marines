@@ -471,10 +471,14 @@ KEYFRAMES = {
         # a long-range optic straight down, prograde up, as the player knows the battle: it never turns.
         # ZOOM OUT to the convoy small on the desert, then ZOOM IN on it, the focus hunting as the lens
         # racks in and snapping sharp; then the cut to S1's action camera
-        camera=camera('k0', [dict(t=t, loc=(80, 120, 11000), target=(190, 120, 0), lens=lens, focus=focus, fstop=1.0)
-                             for t, lens, focus in ((10, 100, 11000), (11.6, 35, 11000), (12.4, 60, 2500),
-                                                    (14.0, 380, 1400), (14.8, 420, 3000), (15.3, 400, 11000),
-                                                    (16, 400, 11000))], 10),
+        # (sliding sideways onto the convoy's core as it racks in: the same look, so still no turn)
+        camera=camera('k0', [dict(t=t, loc=(80 + dx, 120 + dy, 11000), target=(190 + dx, 120 + dy, 0), lens=lens,
+                                  focus=focus, fstop=1.0)
+                             for t, lens, focus, dx, dy in ((10, 100, 11000, 0, 0), (11.6, 35, 11000, 0, 0),
+                                                            (12.4, 60, 11000, -60, -60), (13.4, 200, 600, -150, -150),
+                                                            (14.2, 330, 220, -170, -180), (14.8, 310, 500, -170, -180),
+                                                            (15.3, 300, 11000, -170, -180), (16, 300, 11000, -170, -180))],
+                      10),
         ships=convoy_at(10),
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'lasher-a']),
     'k1': dict(
