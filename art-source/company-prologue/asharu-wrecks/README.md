@@ -86,6 +86,5 @@ kit was built: rebuild and republish the kit then.
 
 `look_wrecks.py` draws the real field at S4's time with the kit swapped into every box and the
 station in place, from S4's camera position under the battle's sun (no pirates): `wide` (28 mm),
-`close` (110 mm onto the Falcon (P)'s cover) and `proposal` (as wide, with the hulk-sized boxes
-proposed to the Asharu builder applied in that view only). Light-lane job:
+`close` (110 mm onto the Falcon (P)'s cover). Light-lane job:
 `look-job.template.json`.

@@ -11,8 +11,6 @@ review without a GPU). --workbench renders the views in Workbench, a framing che
 session, never an owner review image. Views:
   wide   S4's opening: 28 mm from K2_CAM onto K2_AIM, the whole field with the desert below
   close     110 mm from the same place onto the Falcon (P)'s cover and the wrecks round it
-  proposal  as wide, with the hulk-sized boxes proposed to the Asharu builder (PROPOSAL) applied
-            in this view only: what those resizes would put in the field
 The derelict platform is the kit's station piece (wreck_kit.station), placed in the platform's frame."""
 import argparse
 import math
@@ -48,12 +46,7 @@ T = B.K2_T
 VIEWS = {
     'wide': dict(cam=B.K2_CAM, aim=B.K2_AIM, lens=28.0),
     'close': dict(cam=B.K2_CAM, aim=None, lens=110.0),
-    'proposal': dict(cam=B.K2_CAM, aim=B.K2_AIM, lens=28.0, proposal=True),
 }
-# The hulk-sized boxes proposed to the Asharu builder (2026-10-22): (piece, box) -> hulk. Drawn only
-# in the 'proposal' view, which is marked as such; the field itself is the Asharu session's.
-PROPOSAL = {('cover falcon-p', 0): 'hulk-onslaught-fore', ('cover wolf-p-b', 0): 'hulk-colossus-hold',
-            ('debris section 10', 0): 'hulk-colossus'}
 
 
 def platform_matrix(c, r):
@@ -68,40 +61,25 @@ def main():
     for o in kit.values():
         for c in list(o.users_collection):
             c.objects.unlink(o)
-    hulk_half = {v['name']: v['half'] for v in wreck_kit.catalogue() if v['family'] == 'hulk'}
     st_name, st_src = wreck_kit.station()
     print('STATION', st_name, 'current' if wreck_kit.station_current(B.platform_parts()) else 'STALE', st_src['counts'])
     station = bpy.data.objects.new('Platform station', kit[st_name].data)
     station.matrix_world = (Matrix.Translation(Vector(B.PLATFORM))
                             @ Matrix.Rotation(math.radians(B.PLATFORM_HD), 4, 'Z'))
     sc.collection.objects.link(station)
-    fields = {}
-
-    def make_field(proposal):
-        coll = bpy.data.collections.new('Field proposal' if proposal else 'Field')
-        sc.collection.children.link(coll)
-        aim = None
-        for i, piece in enumerate(B.FIELD):
-            for j, (c, half, r) in enumerate(piece.boxes_at(T)):
-                if proposal and (piece.name, j) in PROPOSAL:
-                    hh = sorted(hulk_half[PROPOSAL[piece.name, j]], reverse=True)
-                    order = sorted(range(3), key=lambda k: -half[k])
-                    new = [0.0, 0.0, 0.0]
-                    for k in range(3):
-                        new[order[k]] = hh[k]
-                    half = tuple(new)
-                p = wreck_kit.pick(half, i * 31 + j)
-                ob = bpy.data.objects.new('Field %d.%d %s' % (i, j, p.name), kit[p.object].data)
-                ob.matrix_world = platform_matrix(c, r) @ Matrix(p.local).to_4x4()
-                coll.objects.link(ob)
-                print('SWAP%s %-20s %d -> %-22s fill %s' % (' (proposal)' if proposal else '', piece.name, j, p.name, p.fill))
-                if piece.name == 'cover falcon-p' and j == 0:
-                    aim = B.on_platform(c)
-        return coll, aim
-    fields[False], close_aim = make_field(False)
+    field = bpy.data.collections.new('Field')
+    sc.collection.children.link(field)
+    close_aim = None
+    for i, piece in enumerate(B.FIELD):
+        for j, (c, half, r) in enumerate(piece.boxes_at(T)):
+            p = wreck_kit.pick(half, i * 31 + j)
+            ob = bpy.data.objects.new('Field %d.%d %s' % (i, j, p.name), kit[p.object].data)
+            ob.matrix_world = platform_matrix(c, r) @ Matrix(p.local).to_4x4()
+            field.objects.link(ob)
+            print('SWAP %-20s %d -> %-22s fill %s' % (piece.name, j, p.name, p.fill))
+            if piece.name == 'cover falcon-p' and j == 0:
+                close_aim = B.on_platform(c)
     VIEWS['close']['aim'] = close_aim or B.K2_AIM
-    if 'proposal' in a.views:
-        fields[True], _ = make_field(True)
     # light: the battle's sun, and the desert's bounce from below
     el, az = math.radians(B.SUN_EL), math.radians(B.SUN_AZ)
     sun_dir = Vector((math.cos(el) * math.cos(az), math.cos(el) * math.sin(az), math.sin(el)))
@@ -186,8 +164,6 @@ def main():
         cam.data.lens = v['lens']
         print('VIEW', view, 'cam', tuple(round(x) for x in v['cam']), 'aim', tuple(round(x) for x in v['aim']),
               'lens', v['lens'], 'range %.0f m' % (Vector(v['aim']) - cam.location).length)
-        for prop, coll in fields.items():
-            coll.hide_render = prop != bool(v.get('proposal'))
         if a.layout:
             continue
         sc.render.filepath = str(outdir / ('%02d-%s.png' % (n, view)))
