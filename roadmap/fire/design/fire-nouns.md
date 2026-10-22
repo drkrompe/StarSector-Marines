@@ -1,0 +1,213 @@
+# Fire — Nouns
+
+Status: ACTIVE
+Written: 2026-10-22
+
+How fire works in a battle: what burns, how it catches, spreads and burns
+out, what it does to whatever stands in it, how it is started, and how it is
+drawn. Fire is battle state any mission may have; The Burn
+(`bloom-mission-arc.md`) is the mission that leans on it hardest, and the
+creep (`colony-breach-nouns.md`, Creep) is the fuel it was first asked to
+burn. Open work is on `stories.md`.
+
+## The fantasy
+
+A line of flame walking into a forest the swarm has overgrown, the creep
+crisping and shrinking back in front of it, smoke rolling off the crowns,
+and behind it black ground the creep cannot take back for a while. Fire is a
+weapon nobody fully controls: it goes where the fuel goes, it stops where
+the fuel stops, and a road is the difference between a burn line and a
+burnt company.
+
+## Vocabulary
+
+**Fire field.** Burning as simulation state the battle owns, beside the creep
+field (`FireField`, `sim.fireField()`; created on first ignition, so a battle
+that never burns pays nothing). Per cell it holds the cell's **fuel** (what
+is left to burn), the **heat** it has soaked up, and its **state**:
+*unburnt*, *burning* (with an intensity), or *burnt* (with how long ago).
+It belongs to one simulation, steps on the simulation thread, and is
+deterministic in the seed: every random choice in it is a hash of the seed,
+the cell and the step, never a draw from a shared generator, so the same
+battle burns the same way however it is scheduled.
+
+**Fuel.** What a cell has to burn, read from the map when the field is made
+and kept up to date as the battle changes it (creep spreads, a body falls, a
+wreck stops). Each fuel kind has a **load** (how much heat it gives, which is
+how hot and how long it burns) and an **ignition** (how much heat it must
+soak up before it catches). A cell's fuel is the sum of what stands on it:
+grass under a hedge under creep is three loads.
+
+| Fuel | Where it comes from | Load | Burns for | Catches | Notes |
+| --- | --- | --- | --- | --- | --- |
+| Grass | `GRASS` ground, a grass overlay tuft | 30 | 6 s | easily | The fast carrier; a meadow runs. |
+| Brush | a shrub or tuft on the nature overlay (a hedge) | 60 | 12 s | easily | Gone from the overlay once burnt. |
+| Crown | a standing tree's crown cells | 200 | 40 s | hard | Slow to catch from a grass fire, long and hot once it does, and throws heat a ring further (a crown fire). Each crown cell that burns out spends part of its tree's structure through `MapEditor.damageWall`, so a tree falls once three have, leaving its ordinary destroyed art and passable ground. |
+| Living creep | `CreepField` coverage, alive | 75 | 15 s | moderately | Creep over a crown makes it catch as creep does: an overgrown tree goes up readily. |
+| Dead creep | creep dying back | 40 | 8 s | easily | Dry; the edge a source has abandoned goes up fast. |
+| Debris | timber and furniture rubble | 50 | 10 s | moderately | Defined, not yet read off the map. |
+
+Fuels stack: grass under a hedge under creep burns for all three loads,
+at the hottest one's intensity, and catches as easily as the easiest.
+Bodies and wrecks are not fuel: a burning cell consumes the bodies lying in
+it, and a wreck is an igniter (Starting fires).
+
+**Does not burn:** bare paving (`STREET`, `SIDEWALK`, `COURTYARD`, `BRICK`,
+`STONE`, `TILE`, `STRIPED`), bare `DIRT`, `SAND`, `SNOW`, `WATER`, masonry
+rubble, walls and rock, and ground that has already burnt. A building's walls
+are masonry and do not carry fire; what is inside them may.
+
+**Creep over a road is fuel.** Paving stops a fire only while it is bare. In
+country the creep has overgrown, no road is a firebreak; the only break is
+one somebody clears or burns, which is what makes the burn line the way in
+(the `fire-line` scene's first draft lost its road to exactly this).
+
+**Ignition.** A cell catches when its soaked-up heat passes its fuel's
+ignition. Heat comes from burning neighbours and from an **igniter**: an
+incendiary blast, a flamer's stream, a burning wreck, an ordinary shell's
+blast on dry fuel. An igniter is not a new delivery system; it is a property
+of the weapon or effect that already lands there (Starting fires).
+
+**Burning.** A burning cell has an **intensity** that rises as it catches,
+peaks, and falls as its fuel runs out; it spends its fuel at a fixed rate, so
+its load is its burn time. Each fire step it gives heat to the cells round
+it by ring: a quarter of its intensity to the cells touching it, about a
+tenth to the ring beyond, and, for a crown fire only, a sixteenth to the ring
+past that, each weighted by wind and by a seeded jitter so the front runs
+ragged rather than as a diamond. One burning cell cannot light grass two
+rings away, but a front of them can, which is why a single furrow does not
+stop a field fire and two bare cells do. A cell that has spent its fuel is
+**burnt**.
+
+**Burnt ground.** Scorched, fuel-less, walkable where it was walkable, and a
+firebreak by definition. It stays scorched for the battle (it does not
+regrow); what it refuses, it refuses for a while (Firebreak).
+
+**Fire step.** The field steps five times a second (every 6 ticks), not every tick: fire is slow next to bullets, and the field's cost scales
+with the cells burning, never with the map.
+
+**Wind.** A battle may have a wind: a direction and a strength, fixed for the
+battle by its mission (calm unless the mission says otherwise). Wind tilts
+how heat is shared (more downwind, less upwind) and so stretches the reach of
+a fire downwind; a strong wind lets a crown fire throw heat over a gap a calm
+one could not. Smoke drifts with it.
+
+**Firebreak.** Any band of ground with nothing to burn, wide enough that no
+burning cell's reach crosses it: two cells stop a ground fire in calm air,
+three a crown fire, more downwind. Roads, cleared ground, water, and above
+all ground that has already burnt. A **burn line** is a firebreak moving: the
+burnt ground behind a front someone lit on purpose.
+
+- **Burnt ground refuses creep, for a while.** For about three minutes after
+  it burns out a cell cannot be claimed by creep (the creep field asks the
+  fire field); after that the sources that reach it fill it again. A
+  source keeps its claim on the ground it held, so the creep comes back over
+  a burn from the edges it still holds once the refusal ends. A living source
+  behind the line cannot re-take what the line has passed until then, and
+  ground a source still reaches beside the break is still the creep's.
+- **Burning creep recedes.** A burning cell of creep is lost to the creep as
+  it burns: its coverage goes to nothing and it does not regrow while it is
+  refused: the creep under a fire crisps and is gone in about three seconds
+  (`CreepField.scorch`, the refusal hook). Growths standing on it die as they
+  do when their creep dies.
+- **Burning never collapses a bore.** A bore is fought through its durability;
+  fire takes the creep and the growths on it, and scorches the bore's heaved
+  earth, but does no harm to the bore itself.
+
+**Smoke.** A burning cell above a threshold intensity makes smoke. Smoke from
+a fire is gathered into clouds over the burning area (not one per cell) and
+those clouds are the same partition a smoke pot's screen is: sight does not
+pass through them. A burning forest hides the fight beyond it.
+
+## Damage
+
+**Fire hurts what stands in it, and a little what stands beside it.** A unit
+in a burning cell takes fire damage every fire step, scaled by the cell's
+intensity; a unit touching one takes a tenth of that. Fire damage is its own
+kind: armour that stops bullets does little against it, a sealed suit or a
+vehicle's hull a great deal. A mech or vehicle can drive through a grass fire;
+a marine should not stand in a crown fire.
+
+**Structures.** Trees burn (their crowns are fuel and fall when spent).
+Bores take nothing. Growths (ground colonies, spore colonies) standing on
+burning creep die when it does. Walls and buildings take nothing from fire;
+what furnishes them may burn.
+
+**Bodies** lying in a burning cell are consumed; a body being dragged is
+lying nowhere and does not burn.
+
+**Pathing.** A burning cell is costed as very dear for everyone and a cell
+beside one as dear, so routes go round a fire where there is a way round and
+through it fast where there is not; nobody chooses to stop in fire. A unit
+that finds itself standing in it steps out to the nearest cell that is not
+burning. The swarm fears fire as an animal does: a burning cell is a wall to
+a rav unless its goal is beyond it and there is no other way.
+
+**Morale.** Standing in or next to fire suppresses, as being shot at does,
+and a marine set alight panics. Fire behind a line of marines is not a threat
+to them; fire on them is.
+
+## Starting fires
+
+- **Incendiary weapons.** A weapon or special whose data marks it incendiary
+  sets heat on the cells its blast covers: a flamer special for infantry
+  (short reach, a stream that lights what it touches), an incendiary round for
+  the field mortar's fire mission, perhaps an incendiary air strike. Each sets
+  cells burning through its existing delivery; none is new delivery.
+- **Shells.** An ordinary high-explosive blast puts a little heat into the
+  cells it covers, enough to catch dry fuel (grass, dead creep) but not a
+  living crown. A walking barrage of ordinary shells therefore starts grass
+  fires; one of incendiaries lights the forest. The barrage itself is the
+  artillery work's (`bloom-mission-arc.md`, Walking barrage).
+- **Wrecks.** A destroyed vehicle or mech burns in its cell for about a
+  minute as an igniter, so a burning wreck in a field lights the field.
+
+## Look
+
+- **Flames** are drawn per burning cell from the existing smoke-and-fire
+  sheet, sized and paced by intensity, so a front reads as a line of fire at
+  play zoom and a crown fire stands taller than a grass fire.
+- **Embers** are a few sparks over the hottest cells, cheap and sparse.
+- **Scorch** is burnt ground drawn darker and greyer under everything, so
+  where the fire has been reads at a glance and the burn line is visible as an
+  edge.
+- **Fire light** goes through `GroundLightService`, a soft warm pool over the
+  burning area, so a night burn lights the ground.
+- The look is costed against its own control in `renderEvidence`
+  (`-Dbattle.render.fire=false`).
+
+## Evidence
+
+`fire-line` (`sceneEvidence`) lights a line along a road and lets it burn east
+through a hedged meadow into a creep-grown forest and up to a bare four-cell
+road with grass, trees and a second creep patch beyond it, once calm and once
+in a strong tailwind. Its verdicts are the mechanics: nothing past the road
+catches, burning creep is gone within three seconds, burnt ground holds no
+living creep while it refuses it, and a tree with three burnt-out crown cells
+has fallen. How fast the front ran and how much creep it took are metrics.
+`-Dbattle.fire=false` is the control: nothing catches.
+
+## Laws
+
+- **Fire goes where the fuel goes.** Nothing scripts a burn; a fire's shape is
+  the fuel's shape and the wind's.
+- **A break wide enough always holds.** Spread has a hard reach, so a firebreak
+  is a rule a player can plan with, not a chance.
+- **Deterministic in the seed.** Hashes, never shared random draws; the field
+  steps on the simulation thread at a fixed rate.
+- **Pays for what burns.** A battle with no fire pays nothing; a burning one
+  pays per burning cell, never per map cell.
+- **Fire is ordinary.** Its damage, its smoke and its effect on creep go
+  through the systems that already own those (damage, smoke partitions, the
+  creep field), never through a second model of them.
+
+## Boundaries
+
+- **Creep** (`colony-breach-nouns.md`) owns creep; fire tells it a cell has
+  burnt and answers whether a cell is refused.
+- **Creep on vegetation** (the creep-vegetation work) owns how creep climbs
+  and kills trees; fire burns trees whether creep has killed them or not.
+- **The walking barrage** and the advance behind it belong to the artillery
+  work; fire only asks that a shell's blast can carry heat.
+- **Smoke as a partition** (`ai-nouns.md`) owns how smoke cuts sight; fire
+  only makes clouds.

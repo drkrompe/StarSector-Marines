@@ -1043,6 +1043,10 @@ against its own control in `renderEvidence`.
   a roof that fell stays fallen. The battle keeps its own clock per cell, so the
   creep field knows nothing of roofs. An infested building is no shelter twice
   over: no colonist stops in it, and given time it has no roof.
+- **Fire burns creep and holds it back** (`fire-nouns.md`, Firebreak). Creep
+  is fuel, living or dying; creep under a fire crisps away in seconds, and
+  burnt ground refuses the creep for about three minutes before the sources
+  that still claim it fill it again. Creep over a road makes the road burn.
 - **The look is the field drawn, never a second model.** The creep is a hard
   organic edge, not a spill: an opaque surface of grown chitin plates over a
   membrane, rolled up into a raised, beaded lip where it stops, veined, with a

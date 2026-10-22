@@ -259,6 +259,8 @@ import com.dillon.starsectormarines.battle.creep.CreepDigestion;
 import com.dillon.starsectormarines.battle.creep.CreepEffects;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.creep.CreepRoofCollapse;
+import com.dillon.starsectormarines.battle.fire.BattleFire;
+import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
@@ -744,6 +746,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     /** The creep field if anything has created one, else {@code null}; safe for renderers. */
     public CreepField creepFieldIfPresent() { return creep; }
+    private BattleFire fire;
+    private static final long FIRE_SEED_SALT = 0x46495245_4649454CL;
+    /**
+     * The battle's fire (`fire-nouns.md`), created on first use by whatever
+     * lights something, so a battle that never burns pays nothing. Sim thread only.
+     */
+    public FireField fireField() {
+        if (fire == null) fire = new BattleFire(grid, topology, doodadService, mapEditor,
+                this::creepFieldIfPresent, generationSeed ^ FIRE_SEED_SALT);
+        return fire.field();
+    }
+    /** The fire field if anything has lit one, else {@code null}; safe for renderers. */
+    public FireField fireFieldIfPresent() { return fire == null ? null : fire.field(); }
     private ColonyBreachSequence colonyBreach;
     /** Salt for the bores' own draws, so they are not the battle stream read again. */
     private static final long BORE_SEED_SALT = 0x53574152_4D424F52L;
@@ -3579,6 +3594,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             if (creepRoofs == null) creepRoofs = new CreepRoofCollapse(generationSeed ^ BORE_SEED_SALT);
             creepRoofs.tick(this);
         }
+        // After the creep, so a cell catching this tick burns the creep as it now stands;
+        // before the topology flush, so a crown burnt through falls with this tick's breaches.
+        if (fire != null) fire.tick(simTickIndex);
         if (reliefAssault != null) reliefAssault.tick(this);
         if (lastLiftSequence != null) lastLiftSequence.tick(this);
         if (relayNineSequence != null) relayNineSequence.tick(this);
