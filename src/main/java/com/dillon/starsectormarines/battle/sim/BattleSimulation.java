@@ -817,6 +817,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * The battle's fire (`fire-nouns.md`), created on first use by whatever
      * lights something, so a battle that never burns pays nothing. Sim thread only.
      */
+    @Override
     public FireField fireField() {
         if (fire == null) fire = new BattleFire(grid, topology, doodadService, mapEditor,
                 this::creepFieldIfPresent, generationSeed ^ FIRE_SEED_SALT);

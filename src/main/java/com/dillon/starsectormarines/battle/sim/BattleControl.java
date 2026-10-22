@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.airsupport.AirPoolKind;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
+import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -43,6 +44,9 @@ import java.util.List;
  * {@code BattleControl}. See {@code ecs-nouns.md}.
  */
 public interface BattleControl extends BattleView, SquadDirectiveControl {
+
+    /** The battle's fire field, made on first use: what a carrier asks before it lights anything. */
+    FireField fireField();
 
     /**
      * Calls one of {@code side}'s declared mech lances down at the drop zone near the hint, claimed by {@code claim}

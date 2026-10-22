@@ -776,8 +776,9 @@ summit nor the rock or ice summit is standable, and face depth is a presentation
 width rather than a ballistic height or a high-ground bonus. Authored fixed AA
 may be anchored on a complete summit footprint without granting ground access.
 Its launch clears only its own supporting mass under the Air contract; destroying
-the mount leaves the mass intact. Mobile hilltop occupation still requires an
-explicit ramp and traversal/elevation contract.
+the mount leaves the mass intact. Standable high ground is a separate model,
+`elevation-nouns.md`: plateaus on whole tiers, cliff faces between them and
+ramps as the only way up.
 
 A continuous signed field owns both representations. Its center samples decide
 blocked navigation cells; its clipped contours shape the talus, cliff face and
