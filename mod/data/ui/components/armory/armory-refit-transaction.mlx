@@ -1,107 +1,33 @@
 <template props="inspection,feedbackText,feedbackClasses,testLoadout,rangeDisabled,rangeHint">
-  <!-- The squad, whole: the cards it is issued now, then its three fire teams of two
-       by two, each marine with a portrait of the kit they would wear, what they carry
-       now beside what the selected card would change, and the numbers that move. -->
+  <!-- The squad, whole: the cards it is issued now, then the shared squad view
+       (armory-squad-view), the same one First Refit shows. -->
   <div id="refit-transaction" class="loadout-workspace">
-    <div id="loadout-summary" class="panel loadout-summary">{inspection.summary}</div>
     <div id="loadout-workspace-body" class="panel loadout-workspace-body">
       <div id="loadout-squad-head" class="loadout-squad-head">
         <div id="loadout-squad-cards" class="loadout-squad-cards">
-          <div each="card in inspection.cards" key="{card.id}" id="{card.id}" class="loadout-squad-card">
-            <div id="{card.slotId}" class="loadout-squad-card-slot">
-              <img id="{card.sealId}" class="{card.sealClasses}" src="graphics/ui/company/restricted-seal.svg" />
-            </div>
-            <img id="{card.iconId}" class="loadout-squad-card-icon" src="{card.icon}" />
-            <div id="{card.textId}" class="loadout-squad-card-text">
-              <div id="{card.kindId}" class="loadout-squad-card-kind label tone-muted">{card.kind}</div>
-              <div id="{card.nameId}" class="loadout-squad-card-name label tone-edge">{card.name}</div>
-            </div>
-            <div id="{card.ratingId}" class="loadout-squad-card-rating label tone-accent">{card.rating}</div>
-          </div>
+          <armory-card-chip each="card in inspection.cards" key="{card.id}" chip="{card}" />
         </div>
         <div id="loadout-inspection" class="loadout-inspection">
           <div class="loadout-heading heading" id="loadout-selected-name">{inspection.title}</div>
           <div id="armory-range-hint" class="loadout-range-hint tone-muted">{rangeHint}</div>
         </div>
-        <button id="armory-test-loadout" class="loadout-range-action" disabled="{rangeDisabled}" onclick="{testLoadout}">{i18n.armoryRangeTestLoadout}</button>
+        <button id="armory-test-loadout" class="loadout-range-action spec-action" disabled="{rangeDisabled}" onclick="{testLoadout}">{i18n.armoryRangeTestLoadout}</button>
       </div>
       <div class="loadout-hint tone-muted" id="loadout-roll-hint">{inspection.scope}</div>
-      <div id="loadout-billets" class="loadout-billets">
-        <div each="team in inspection.teams" key="{team.id}" id="{team.id}" class="loadout-team">
-          <div class="heading loadout-team-heading" id="{team.headingId}">{team.label}</div>
-          <div class="loadout-team-rows" id="{team.rowsId}">
-            <div each="row in team.rows" key="{row.id}" id="{row.id}" class="loadout-team-row">
-              <button each="billet in row.billets" key="{billet.id}" id="{billet.id}" class="{billet.classes}" onclick="{billet.select}">
-                <div class="loadout-member-name label tone-edge" id="{billet.nameId}">{billet.name}</div>
-                <div class="{billet.stateClasses}" id="{billet.stateId}">{billet.state}</div>
-                <canvas id="{billet.portraitId}" class="loadout-member-portrait" width="196" height="110" />
-                <div class="loadout-member-parts" id="{billet.partsId}">
-                  <div each="part in billet.parts" key="{part.id}" id="{part.id}" class="loadout-part">
-                    <img id="{part.iconId}" class="{part.iconClasses}" src="{part.icon}" />
-                    <div id="{part.textId}" class="loadout-part-text">
-                      <div id="{part.nowId}" class="{part.nowClasses}">{part.now}</div>
-                      <div id="{part.nextId}" class="{part.nextClasses}">{part.next}</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="loadout-member-stats" id="{billet.statsId}">
-                  <div each="stat in billet.stats" key="{stat.id}" id="{stat.id}" class="loadout-member-stat">
-                    <div id="{stat.labelId}" class="loadout-stat-label label tone-muted">{stat.label}</div>
-                    <div id="{stat.beforeId}" class="loadout-stat-before label tone-edge">{stat.before}</div>
-                    <div id="{stat.afterId}" class="loadout-stat-after label tone-accent">{stat.after}</div>
-                  </div>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <armory-squad-view inspection="{inspection}" layout="loadout-billets" />
     </div>
     <div id="transaction-feedback" class="loadout-feedback tone-muted">{feedbackText}</div>
   </div>
 </template>
 <style>
   .loadout-workspace { flex-direction: column; width: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
-  .loadout-summary { height: 26px; padding: 5px 8px; }
   .loadout-workspace-body { flex-direction: column; height: 0px; flex-grow: 1; padding: 8px; gap: 6px; overflow: hidden; }
   .loadout-squad-head { flex-direction: row; height: 56px; gap: 18px; align-items: center; }
   .loadout-squad-cards { flex-direction: row; width: 584px; height: 54px; gap: 8px; }
-  .loadout-squad-card { flex-direction: row; align-items: center; width: 288px; height: 52px; gap: 6px; padding: 0px 8px 0px 0px; border-width: 1px; border-color: #2a4258; background-color: #09131d; }
-  .loadout-squad-card-slot { flex-direction: column; width: 24px; height: 50px; padding: 3px 0px 0px 3px; }
-  .loadout-squad-card-seal { width: 18px; height: 18px; }
-  .loadout-squad-card-seal.loadout-squad-card-seal-absent { width: 0px; height: 0px; }
-  .loadout-squad-card-icon { width: 44px; height: 44px; }
-  .loadout-squad-card-text { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; overflow: hidden; }
-  .loadout-squad-card-kind { height: 14px; }
-  .loadout-squad-card-name { height: 18px; }
-  .loadout-squad-card-rating { width: 72px; text-align: right; }
   .loadout-inspection { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; overflow: hidden; }
   .loadout-heading { height: 22px; padding: 3px 0px; }
   .loadout-range-hint { height: 30px; white-space: normal; }
-  .loadout-range-action { width: 124px; height: 28px; }
+  .loadout-range-action { width: 132px; height: 30px; padding: 7px 8px; }
   .loadout-hint { height: 18px; }
-  .loadout-billets { flex-direction: row; height: 0px; flex-grow: 1; gap: 10px; }
-  .loadout-team { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; }
-  .loadout-team-heading { height: 20px; text-align: center; }
-  .loadout-team-rows { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; }
-  .loadout-team-row { flex-direction: row; height: 0px; flex-grow: 1; gap: 6px; }
-  .loadout-billet { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 4px; border-width: 1px; text-align: left; background-color: #171d1e; overflow: hidden; }
-  .loadout-billet.selected { border-color: #e0b957; background-color: #34362c; }
-  .loadout-member-name { height: 16px; overflow: hidden; }
-  .loadout-member-state { height: 14px; overflow: hidden; }
-  .loadout-member-portrait { width: 100%; height: 0px; flex-grow: 1; pointer-events: none; background-color: #0c1213; }
-  .loadout-member-parts { flex-direction: column; height: 126px; gap: 2px; }
-  .loadout-part { flex-direction: row; align-items: center; height: 30px; gap: 4px; padding: 0px 2px; background-color: #101617; }
-  .loadout-part-icon { width: 28px; height: 28px; pointer-events: none; }
-  .loadout-part-icon.loadout-part-icon-absent { width: 28px; height: 0px; }
-  .loadout-part-text { flex-direction: column; width: 0px; flex-grow: 1; overflow: hidden; }
-  .loadout-part-now { height: 14px; overflow: hidden; }
-  .loadout-part-next { height: 14px; overflow: hidden; }
-  .loadout-member-stats { flex-direction: column; height: 75px; }
-  .loadout-member-stat { flex-direction: row; height: 15px; gap: 4px; }
-  .loadout-stat-label { width: 46px; }
-  .loadout-stat-before { width: 0px; flex-grow: 1; text-align: right; }
-  .loadout-stat-after { width: 0px; flex-grow: 1; text-align: right; }
   .loadout-feedback { height: 20px; overflow: hidden; }
-  .loadout-hidden { width: 0px; height: 0px; opacity: 0; overflow: hidden; }
 </style>

@@ -25,6 +25,17 @@ every new or re-timed shot is reviewed on.
 - A shot with no blockout yet is a slate card for its length, so a sequence preview runs at the
   sequence's real timing.
 
+**A sequence is not ready for the owner's motion review while any shot is still a slate**
+(owner, 2026-10-22). A slate is a working state for your own previews, never something put in
+front of the owner. Block every shot before the owner sees the sequence, not only the key-frame
+shots:
+- **A camera shot** gets its move and every ship's flight, the same spec as a key frame's. In
+  Asharu that is `BLOCKED` in `battle_blockout.py`: never lit, but played by the preview.
+- **A shot that is a screen rather than a camera** (a playback screen, a title) is a timed 2D
+  layout synced to its audio: a timeline entry's `screen(f)` in `motion_preview.finish`.
+- **An effect the kit does not have yet** is blocked as a proxy and flagged as new effects work,
+  not left out.
+
 ## What it cannot judge
 
 Lighting, shadows and exposure; materials and textures beyond a base colour; volume and plume

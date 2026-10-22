@@ -197,6 +197,13 @@ def upright(art, transform=''):
     return f'<g transform="translate(0 300) rotate(-90)">\n{inner}</g>\n'
 
 
+def upright2(art, transform=''):
+    """The 2x2 form of ``upright``: side-on art on a 200x150 canvas, muzzle right, turned a
+    quarter left into the 150x200 piece."""
+    inner = f'<g transform="{transform}">\n{art}</g>\n' if transform else art
+    return f'<g transform="translate(0 200) rotate(-90)">\n{inner}</g>\n'
+
+
 # --- guns -----------------------------------------------------------------------------------
 
 def gatling(y, x0, x1, s, barrels=4):
@@ -385,6 +392,25 @@ def build():
     f['muster-autogun-dual'] = banded(150, 300, upright(autogun(26, 10, 290, 22) + autogun(92, 10, 290, 22)), 'AG')
     f['muster-autogun-nose'] = banded(150, 200, autogun(84, 8, 144, 34), 'AG')
 
+    # Single arm guns: one barrel of each dual, standing upright in its own arm mount, muzzle
+    # forward. A linear cannon keeps its length and so its 2x3 piece; the rest are 2x2.
+    f['chaingun-single'] = banded(150, 200, upright2(gatling(75, 10, 190, 84, barrels=5)), 'CG')
+    f['pulse-laser-single'] = banded(150, 200, upright2(pulse_laser(75, 10, 190, 80)), 'PLS')
+    f['linear-cannon-single'] = banded(150, 300, upright(gauss(75, 10, 290, 46)), 'LC')
+    f['muster-autogun-single'] = banded(150, 200, upright2(autogun(56, 10, 190, 40)), 'AG')
+    # Bastion: one autocannon on its receiver, the ammunition can beneath.
+    b = block(8, 40, 70, 110, 10)
+    b += rect(16, 48, 46, 3, L) + rect(16, 84, 46, 20, MID)
+    b += block(72, 62, 112, 88, 3)
+    b += hbar(114, 166, 75, 14, D, rx=0)
+    b += block(168, 60, 192, 90, 3) + rect(174, 66, 3, 18, L) + rect(182, 66, 3, 18, L)
+    b += hbar(74, 164, 68, 2.5, LS, rx=0)
+    b += rect(40, 112, 18, 7, MID)
+    b += block(12, 120, 70, 146, 5, D)
+    for k in range(2):
+        b += rect(20, 126 + k * 10, 42, 3, LS)
+    f['bastion-autocannon-single'] = banded(150, 200, upright2(b), 'AC')
+
     # Demolition cannon: a short, very wide siege barrel. Breech block, recoil buffers, a
     # tapering barrel bound by heavy bands, and a flared muzzle collar.
     b = block(6, 60, 50, 140, 8)
@@ -470,10 +496,12 @@ def internals(f):
     f['capacitor-factory'] = banded(150, 100, hbar(10, 140, 12, 4, MID, rx=0) + cells(14, 136, 20, 64, 3), 'CAP')
     b = hbar(10, 140, 12, 4, MID, rx=0) + cells(12, 70, 20, 64, 3, gap=3) + cells(80, 138, 20, 64, 3, gap=3)
     f['capacitor-double'] = banded(150, 100, b, 'CAP')
-    b = hbar(10, 215, 12, 4, MID, rx=0) + cells(12, 160, 20, 64, 6, gap=4)
-    for y in range(18, 68, 8):
-        b += hbar(168, 214, y, 4, D, rx=0)
-    f['capacitor-military'] = banded(225, 100, b, 'CAP')
+    # Military bank, 2x2: two tiers of cells on their bus bars and a cooling grille between them.
+    b = hbar(10, 140, 12, 4, MID, rx=0) + cells(12, 138, 20, 76, 4, gap=4)
+    for y in range(90, 110, 6):
+        b += hbar(14, 136, y, 3, D, rx=0)
+    b += hbar(10, 140, 116, 4, MID, rx=0) + cells(12, 138, 124, 180, 4, gap=4)
+    f['capacitor-military'] = banded(150, 200, b, 'CAP')
 
     # Auxiliary vent array, 2x1: a framed bank of slanted louvres and an exhaust fan.
     b = block(8, 12, 96, 68, 6, MID)

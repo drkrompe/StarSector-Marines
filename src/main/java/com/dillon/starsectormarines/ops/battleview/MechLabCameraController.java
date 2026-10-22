@@ -28,6 +28,11 @@ public final class MechLabCameraController {
     static final float WIDE_ZOOM_NOTCHES = 0f;
     static final float FITTING_ZOOM_NOTCHES = 6.5f;
     static final float TRANSITION_SECONDS = 0.72f;
+    /**
+     * How far right of centre the fitting shot stands its machine, as a share of the view's width:
+     * the schematic takes the left of the panel, and the machine is shown in the middle of the rest.
+     */
+    static final float FITTING_SIDE_SHIFT = (1f + MechLabDollCanvas.SCHEMATIC_SHARE) * 0.5f - 0.5f;
 
     private final Anchors anchors;
     private CameraPose current;
@@ -85,7 +90,7 @@ public final class MechLabCameraController {
             @Override
             public CameraPose wide() {
                 return new CameraPose(room.centerCellX(), room.centerCellY(),
-                        WIDE_ZOOM_NOTCHES);
+                        WIDE_ZOOM_NOTCHES, 0f);
             }
 
             @Override
@@ -94,7 +99,7 @@ public final class MechLabCameraController {
                 Gantry berth = standing.get(
                         Math.max(0, Math.min(standing.size() - 1, index)));
                 return new CameraPose(berth.centerX + 0.5f, berth.centerY + 0.5f,
-                        FITTING_ZOOM_NOTCHES);
+                        FITTING_ZOOM_NOTCHES, FITTING_SIDE_SHIFT);
             }
         };
     }
@@ -103,18 +108,24 @@ public final class MechLabCameraController {
         return new CameraPose(
                 lerp(from.worldX(), to.worldX(), amount),
                 lerp(from.worldY(), to.worldY(), amount),
-                lerp(from.zoomNotches(), to.zoomNotches(), amount));
+                lerp(from.zoomNotches(), to.zoomNotches(), amount),
+                lerp(from.sideShift(), to.sideShift(), amount));
     }
 
     private static boolean same(CameraPose left, CameraPose right) {
         return Float.compare(left.worldX(), right.worldX()) == 0
                 && Float.compare(left.worldY(), right.worldY()) == 0
-                && Float.compare(left.zoomNotches(), right.zoomNotches()) == 0;
+                && Float.compare(left.zoomNotches(), right.zoomNotches()) == 0
+                && Float.compare(left.sideShift(), right.sideShift()) == 0;
     }
 
     private static float lerp(float from, float to, float amount) {
         return from + (to - from) * amount;
     }
 
-    public record CameraPose(float worldX, float worldY, float zoomNotches) { }
+    /**
+     * @param sideShift how far right of the view's centre the subject stands, as a share of the view's
+     *                  width; the camera itself knows no pixels, so the canvas turns it into cells
+     */
+    public record CameraPose(float worldX, float worldY, float zoomNotches, float sideShift) { }
 }
