@@ -32,7 +32,6 @@ final class CreepTreeTwins implements DoodadRenderSystem.Twins {
     private final CreepField field;
     private final CreepVegetation vegetation;
     private final TileRegistry tiles;
-    private final String style;
     private final int tick;
     private final int width, height;
     /** Each placement's crown cells and stage doodads, made once. */
@@ -47,9 +46,9 @@ final class CreepTreeTwins implements DoodadRenderSystem.Twins {
         this.vegetation = vegetation;
         this.tiles = tiles;
         this.entries = entries;
-        this.style = (vegetation != null ? vegetation.style() : CreepVegetation.Style.active())
-                == CreepVegetation.Style.SHROUDED ? "-shroud-" : "-blight-";
-        this.tick = sim.getSimTickIndex();
+        // The field's own clock, which a tree's death tick was read against: a review advancing the creep alone
+        // leaves the battle's clock standing.
+        this.tick = field.now();
         this.width = sim.getGrid().getWidth();
         this.height = sim.getGrid().getHeight();
     }
@@ -149,8 +148,7 @@ final class CreepTreeTwins implements DoodadRenderSystem.Twins {
         if (entry == null) {
             entry = new Entry(CreepVegetation.crownCells(placed, canopy, width, height));
             for (int k = 1; k <= 4; k++) {
-                String suffix = k >= 3 ? style + k : "-blight-" + k;
-                DoodadDef def = tiles.doodad(placed.definitionId() + suffix);
+                DoodadDef def = tiles.doodad(placed.definitionId() + "-blight-" + k);
                 if (def != null) {
                     entry.stages[k] = new Doodad(placed.cellX, placed.cellY, def, placed.quarterTurns, placed.mirrored);
                 }

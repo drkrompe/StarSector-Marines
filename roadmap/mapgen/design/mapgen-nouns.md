@@ -615,7 +615,10 @@ crossing street at either end), which would float asphalt in a gap between
 buildings. A short band met at one end only, by a street that stands on its
 own, is a *spur*: a dead end off that street into a yard or a lot. It is
 swept as a street to where its cells end, because left paved it reads as a
-stub of street with no road on it. Its mouth takes a kerb radius only where
+stub of street with no road on it. It must run on at least two of its
+breadths past the street it leaves; a shorter one is a yard's mouth opening
+off the street and keeps its paving, since swept it is a blob of asphalt
+stepping out of the kerb line. Its mouth takes a kerb radius only where
 the turn would lie wholly on street or footway; where the spur opens
 straight onto its yard the corner stays square rather than being cut off at
 the yard's edge. Pedestrian frames,
@@ -674,6 +677,13 @@ finish it changes nothing the simulation reads.
 
 Intersecting carriageways form one paved footprint. The first declared road
 owns material where carriageways overlap, and a shoulder never erases a road.
+Where two materials' edges meet exactly at a cell corner (asphalt crossing the
+gravel farm road, a street's flush end on the farm road's edge) the corner
+values cannot say whose a half cell is; it goes to the first material that
+does not already cover it, so neither a triangle of the later material over
+the earlier nor a hole is left there. A junction turn's quarter arc is sampled
+finely, because the sweep's spline through a coarse arc overshoots it beside
+each tail and kinks the kerb line where the turn rejoins the street.
 Widths and map edges still obey grid quantization. A smooth centerline does not
 claim a smooth mesh edge or prove a chassis can negotiate a tight turn; mission
 acceptance continues to use the actual vehicle clearance and motion systems.
@@ -1643,7 +1653,12 @@ grade's width from end to end, flush at both ends; there is no per-band brush
 fitting out here, which is what made the grown roads swell and pinch. A
 higher grade owns the junction. A street "arrives" only if it runs into the
 town behind the first town row, so a street along the town's edge is not
-mistaken for the main road.
+mistaken for the main road. The one exception to one width is where the
+country road meets the street it carries on: when that street's asphalt
+starts at the town edge on the road's line and is narrower, the road narrows
+to it over four cells short of the farm road and crosses the farm road at the
+street's width, so the two meet flush rather than in a square step. The
+cells the taper leaves keep the road band's bare ground, a verge.
 
 **Only roads that carry traffic are road.** The country and farm roads are
 circulation and road cells (the road graph routes on them, and a convoy can

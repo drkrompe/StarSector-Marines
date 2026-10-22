@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.creep.ColonyCreep;
 import com.dillon.starsectormarines.battle.creep.CreepVegetationSnapshotSuite;
 import com.dillon.starsectormarines.battle.creep.CreepField;
+import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
@@ -274,7 +275,11 @@ class RenderBudgetEvidence {
                 new MapSpec("280x168 control", MapSpec::control),
                 new MapSpec("560x336 conquest", MapSpec::conquest),
                 new MapSpec("400x240 colony", MapSpec::colony),
-                new MapSpec("400x240 green colony", MapSpec::greenColony));
+                new MapSpec("400x240 green colony", MapSpec::greenColony),
+                new MapSpec("400x240 green colony burning", MapSpec::burningColony));
+
+        /** Seconds the green colony burns for before it is drawn: the front well into its groves. */
+        static final int BURN_SECONDS = 45;
 
         BattleSimulation build() throws Exception {
             return builder.build();
@@ -312,6 +317,22 @@ class RenderBudgetEvidence {
             BattleSimulation sim = CreepVegetationSnapshotSuite.verdantColony();
             CreepVegetationSnapshotSuite.Outbreak outbreak = new CreepVegetationSnapshotSuite.Outbreak(sim);
             outbreak.runTo(Math.round(COLONY_OUTBREAK_SECONDS / BattleSimulation.TICK_DT));
+            return sim;
+        }
+
+        /**
+         * The green colony with a fire line lit down its west edge in a fresh wind and burnt for
+         * {@link #BURN_SECONDS}: flames, glow, embers, scorch and charred trees all on screen at once, the fire
+         * layers measured against {@code -Dbattle.render.fire=false}. Only the fire field is advanced.
+         */
+        static BattleSimulation burningColony() throws Exception {
+            BattleSimulation sim = greenColony();
+            FireField fire = sim.fireField();
+            fire.setWind(1f, 0.15f, 0.6f);
+            int h = sim.getGrid().getHeight();
+            for (int y = 0; y < h; y++) fire.addHeat(2, y, 3000);
+            int ticks = Math.round(BURN_SECONDS / BattleSimulation.TICK_DT);
+            for (int t = 0; t < ticks; t++) fire.tick(t);
             return sim;
         }
 
@@ -721,6 +742,8 @@ class RenderBudgetEvidence {
                 .append(RoofMesh.enabled() ? "on" : "off")
                 .append("**, creep **")
                 .append(CreepLayer.enabled() ? "on" : "off")
+                .append("**, fire **")
+                .append(FireRenderSystem.enabled() ? "on" : "off")
                 .append("**, collect culling **")
                 .append(ViewCull.enabled() ? "on" : "off").append("**.\n\n");
 
@@ -809,6 +832,7 @@ class RenderBudgetEvidence {
         root.put("unitAtlas", UnitAtlas.enabled());
         root.put("residentRoofs", RoofMesh.enabled());
         root.put("creep", CreepLayer.enabled());
+        root.put("fire", FireRenderSystem.enabled());
         root.put("collectCulling", ViewCull.enabled());
         List<JSONObject> costs = new ArrayList<>();
         for (FrameCost cost : frameCosts) {

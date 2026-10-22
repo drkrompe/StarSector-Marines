@@ -129,8 +129,13 @@ com.dillon.starsectormarines.battle.evacuation.SporeColonyFireScene
 com.dillon.starsectormarines.battle.evacuation.BruteChargeScene
 com.dillon.starsectormarines.battle.evacuation.CreepOutpostScene
 com.dillon.starsectormarines.battle.evacuation.GroundColonyScene
+com.dillon.starsectormarines.battle.evacuation.ColonyThreatScene
 com.dillon.starsectormarines.battle.evacuation.SwarmDamageStateScene
 com.dillon.starsectormarines.battle.evacuation.MatriarchScene
 com.dillon.starsectormarines.battle.evacuation.PackLeaderScene
 com.dillon.starsectormarines.battle.creep.CreepRoofCollapseScene
+com.dillon.starsectormarines.battle.fire.FireLineScene
+com.dillon.starsectormarines.battle.fire.FireHarmScene
 com.dillon.starsectormarines.battle.creep.CreepVegetationScene
+com.dillon.starsectormarines.battle.fire.FireScaleScene
+com.dillon.starsectormarines.battle.fire.FireIgnitionScene

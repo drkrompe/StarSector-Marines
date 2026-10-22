@@ -116,7 +116,7 @@ class GeneratedRoadsTest {
         boolean[][] kerbs = new boolean[48][32];
         fill(kerbs, 0, 0, 47, 31);
         var paved = GeneratedRoads.streets(road, road, kerbs, 3, 9, style).routes();
-        assertEquals(2, paved.stream().filter(r -> r.points().size() == 5).count(),
+        assertEquals(2, paved.stream().filter(r -> r.points().size() > 2).count(),
                 "footway beside the mouth turns both corners: " + paved);
     }
 

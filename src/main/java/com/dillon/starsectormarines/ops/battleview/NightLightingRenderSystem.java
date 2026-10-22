@@ -63,10 +63,9 @@ final class NightLightingRenderSystem implements RenderSystem {
                 continue;
             }
             if (!night.powered(lamp)) continue;
-            out.addLine(layer(),x-px*.3f,y,x+px*.3f,y,Math.max(2,px*.24f),.08f,.08f,.07f,ctx.alphaMult);
             for (int halo=3;halo>=1;halo--)
                 out.addLine(layer(),x-px*.22f,y,x+px*.22f,y,px*(.14f+halo*.13f),lamp.red(),lamp.green(),lamp.blue(),.08f*ctx.alphaMult);
-            out.addLine(layer(),x-px*.22f,y,x+px*.22f,y,Math.max(1,px*.07f),1,.94f,.75f,ctx.alphaMult);
+            StripFixtureArt.draw(out,layer(),x,y,px,false,lamp.red(),lamp.green(),lamp.blue(),1f,ctx.alphaMult);
         }
     }
 

@@ -95,6 +95,16 @@
   "nonPlayerEquipment": [
     {
       "kind": "special",
+      "equipmentId": "special.incendiary-grenade",
+      "reason": "Issued by mission kit declarations for a burn (fire-nouns.md) while its economy is undecided; no company acquisition is offered."
+    },
+    {
+      "kind": "special",
+      "equipmentId": "special.flamer",
+      "reason": "Issued by mission kit declarations for a burn (fire-nouns.md) while its economy is undecided; no company acquisition is offered."
+    },
+    {
+      "kind": "special",
       "equipmentId": "special.scrap-rocket",
       "reason": "Workshop ammunition issued only to authored raider forces; no company acquisition is offered."
     },

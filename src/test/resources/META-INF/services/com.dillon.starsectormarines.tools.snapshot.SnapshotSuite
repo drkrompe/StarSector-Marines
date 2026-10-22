@@ -241,6 +241,7 @@ com.dillon.starsectormarines.battle.evacuation.SporeColonyFireSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.CreepOutpostSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmDamageStateSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.GroundColonySceneSnapshotSuite
+com.dillon.starsectormarines.battle.evacuation.ColonyThreatSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmSpitterSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmSpitterAirSceneSnapshotSuite
 com.dillon.starsectormarines.battle.creep.HiveCreepSnapshotSuite
@@ -253,3 +254,4 @@ com.dillon.starsectormarines.battle.creep.CreepRoofCollapseSceneSnapshotSuite
 com.dillon.starsectormarines.battle.creep.CreepVegetationSceneSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.RuralMapgenSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.CityJunctionSnapshotSuite
+com.dillon.starsectormarines.battle.fire.FireLineSceneSnapshotSuite
