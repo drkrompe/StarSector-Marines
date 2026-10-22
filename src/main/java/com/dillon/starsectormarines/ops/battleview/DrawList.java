@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.render2d.ContrailTrail;
 import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.dillon.starsectormarines.render2d.PolyMesh;
+import com.dillon.starsectormarines.render2d.QuadMesh;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.util.Arrays;
@@ -32,6 +33,11 @@ public final class DrawList {
 
     /** Where a whole-image draw is re-addressed, or null for the sprite path. */
     private SpriteAtlas spriteAtlas;
+    /** {@link #spriteAtlas}'s rectangles, as a mesh resolves them once. */
+    private final QuadMesh.AtlasAddress atlasAddress = image -> {
+        SpriteAtlas.Placement at = spriteAtlas.placement(image);
+        return at == null ? null : new int[]{at.x(), at.y(), at.width(), at.height()};
+    };
 
     public DrawList() {
         for (int i = 0; i < byLayer.length; i++) {
@@ -121,6 +127,22 @@ public final class DrawList {
             }
         }
         slot(layer).setSprite(sprite, cx, cy, w, h, angleDeg, r, g, b, a);
+    }
+
+    /**
+     * A recorded {@link QuadMesh} drawn with its origin at {@code (x, y)}, its local units {@code scale} px long,
+     * every quad's alpha multiplied by {@code alphaMult}: one command where the quads it holds were one each.
+     *
+     * <p>The atlas rule is {@link #addSprite}'s, applied to the mesh as a whole: addressed into the atlas when
+     * every image in it is held there, so it joins the sheet batch its neighbours are in; drawn through its
+     * images otherwise.
+     */
+    public void addMesh(RenderLayer layer, QuadMesh mesh, float x, float y, float scale, float alphaMult) {
+        SpriteAPI sheet = null;
+        if (spriteAtlas != null && spriteAtlas.isServing()) {
+            if (mesh.addressAtlas(spriteAtlas, spriteAtlas.sheet(), atlasAddress)) sheet = spriteAtlas.sheet();
+        }
+        slot(layer).setMesh(mesh, sheet, x, y, scale, alphaMult);
     }
 
     /**

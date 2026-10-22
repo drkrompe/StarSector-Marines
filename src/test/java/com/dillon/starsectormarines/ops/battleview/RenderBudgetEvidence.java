@@ -33,6 +33,8 @@ import org.lwjgl.BufferUtils;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.lang.reflect.Proxy;
@@ -48,6 +50,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.IdentityHashMap;
 import java.util.Random;
+
+import javax.imageio.ImageIO;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -221,6 +225,7 @@ class RenderBudgetEvidence {
                         for (EqualityCheck check : checks) {
                             assertCulledFrameIsIdentical(renderer, check.context(),
                                     check.map(), check.framing());
+                            writeFrame(output.resolve("frames"), check.map(), check.framing());
                         }
                         assertStraddlingBodiesSurvive(sim, renderer,
                                 new BattleLayout(position(), sim.getGrid().getWidth(),
@@ -730,6 +735,26 @@ class RenderBudgetEvidence {
             BufferUtils.createByteBuffer(SURFACE_W * SURFACE_H * 4);
     private static final byte[] CULLED = new byte[SURFACE_W * SURFACE_H * 4];
     private static final byte[] WHOLE = new byte[SURFACE_W * SURFACE_H * 4];
+
+    /**
+     * The frame just read back, as a PNG under {@code frames/}: a lever's run and its control's are then the same
+     * picture or they are not, which {@code RawFrameDump} can say pixel by pixel. The GL frame, not a review
+     * frame, because a lever that only the GL drain sees is invisible to every Java2D picture.
+     */
+    private static void writeFrame(Path dir, String mapId, String framing) throws IOException {
+        Files.createDirectories(dir);
+        BufferedImage image = new BufferedImage(SURFACE_W, SURFACE_H, BufferedImage.TYPE_INT_RGB);
+        for (int y = 0; y < SURFACE_H; y++) {
+            int row = (SURFACE_H - 1 - y) * SURFACE_W * 4;   // GL rows run bottom up
+            for (int x = 0; x < SURFACE_W; x++) {
+                int i = row + x * 4;
+                image.setRGB(x, y, (WHOLE[i] & 0xFF) << 16 | (WHOLE[i + 1] & 0xFF) << 8 | (WHOLE[i + 2] & 0xFF));
+            }
+        }
+        String name = (mapId + "-" + framing.substring(0, Math.max(0, framing.indexOf(" ("))))
+                .replaceAll("[^A-Za-z0-9]+", "-") + ".png";
+        ImageIO.write(image, "png", dir.resolve(name).toFile());
+    }
 
     private static void readBack(BattleRenderer renderer, RenderContext rc,
                                  FrameCensus census, byte[] into) {
