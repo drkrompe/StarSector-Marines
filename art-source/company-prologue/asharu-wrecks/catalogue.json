@@ -1,0 +1,600 @@
+{
+ "written_by": "build_wrecks.py",
+ "units": "metres",
+ "axes": "long X, middle Y, short Z; centred on bounds",
+ "collection": "ASHARU WRECKS",
+ "variants": [
+  {
+   "name": "hullfrag-a",
+   "object": "Wreck hullfrag-a",
+   "family": "hullfrag",
+   "half": [
+    11.663,
+    7.288,
+    6.702
+   ],
+   "source": null
+  },
+  {
+   "name": "hullfrag-b",
+   "object": "Wreck hullfrag-b",
+   "family": "hullfrag",
+   "half": [
+    18.723,
+    14.108,
+    9.755
+   ],
+   "source": null
+  },
+  {
+   "name": "hullfrag-c",
+   "object": "Wreck hullfrag-c",
+   "family": "hullfrag",
+   "half": [
+    28.744,
+    19.619,
+    16.213
+   ],
+   "source": null
+  },
+  {
+   "name": "hullfrag-d",
+   "object": "Wreck hullfrag-d",
+   "family": "hullfrag",
+   "half": [
+    40.65,
+    27.335,
+    19.986
+   ],
+   "source": null
+  },
+  {
+   "name": "hullfrag-e",
+   "object": "Wreck hullfrag-e",
+   "family": "hullfrag",
+   "half": [
+    57.417,
+    40.684,
+    32.597
+   ],
+   "source": null
+  },
+  {
+   "name": "section-a",
+   "object": "Wreck section-a",
+   "family": "section",
+   "half": [
+    25.18,
+    21.192,
+    17.55
+   ],
+   "source": null
+  },
+  {
+   "name": "section-b",
+   "object": "Wreck section-b",
+   "family": "section",
+   "half": [
+    31.661,
+    24.015,
+    21.787
+   ],
+   "source": null
+  },
+  {
+   "name": "section-c",
+   "object": "Wreck section-c",
+   "family": "section",
+   "half": [
+    41.285,
+    31.984,
+    24.375
+   ],
+   "source": null
+  },
+  {
+   "name": "section-d",
+   "object": "Wreck section-d",
+   "family": "section",
+   "half": [
+    48.814,
+    42.551,
+    28.565
+   ],
+   "source": null
+  },
+  {
+   "name": "section-e",
+   "object": "Wreck section-e",
+   "family": "section",
+   "half": [
+    58.678,
+    43.724,
+    39.48
+   ],
+   "source": null
+  },
+  {
+   "name": "section-f",
+   "object": "Wreck section-f",
+   "family": "section",
+   "half": [
+    68.777,
+    55.754,
+    36.944
+   ],
+   "source": null
+  },
+  {
+   "name": "section-g",
+   "object": "Wreck section-g",
+   "family": "section",
+   "half": [
+    115.962,
+    85.455,
+    55.722
+   ],
+   "source": null
+  },
+  {
+   "name": "spar-a",
+   "object": "Wreck spar-a",
+   "family": "spar",
+   "half": [
+    30.533,
+    2.591,
+    2.248
+   ],
+   "source": null
+  },
+  {
+   "name": "spar-b",
+   "object": "Wreck spar-b",
+   "family": "spar",
+   "half": [
+    60.545,
+    3.297,
+    3.028
+   ],
+   "source": null
+  },
+  {
+   "name": "spar-c",
+   "object": "Wreck spar-c",
+   "family": "spar",
+   "half": [
+    95.359,
+    3.903,
+    3.528
+   ],
+   "source": null
+  },
+  {
+   "name": "spar-d",
+   "object": "Wreck spar-d",
+   "family": "spar",
+   "half": [
+    125.305,
+    4.772,
+    4.411
+   ],
+   "source": null
+  },
+  {
+   "name": "spar-e",
+   "object": "Wreck spar-e",
+   "family": "spar",
+   "half": [
+    125.854,
+    8.914,
+    8.679
+   ],
+   "source": null
+  },
+  {
+   "name": "spar-f",
+   "object": "Wreck spar-f",
+   "family": "spar",
+   "half": [
+    37.61,
+    7.254,
+    5.627
+   ],
+   "source": null
+  },
+  {
+   "name": "spar-g",
+   "object": "Wreck spar-g",
+   "family": "spar",
+   "half": [
+    15.274,
+    2.639,
+    2.577
+   ],
+   "source": null
+  },
+  {
+   "name": "spar-h",
+   "object": "Wreck spar-h",
+   "family": "spar",
+   "half": [
+    16.384,
+    4.568,
+    4.568
+   ],
+   "source": null
+  },
+  {
+   "name": "spar-i",
+   "object": "Wreck spar-i",
+   "family": "spar",
+   "half": [
+    30.709,
+    9.487,
+    8.821
+   ],
+   "source": null
+  },
+  {
+   "name": "spar-j",
+   "object": "Wreck spar-j",
+   "family": "spar",
+   "half": [
+    11.112,
+    5.068,
+    5.068
+   ],
+   "source": null
+  },
+  {
+   "name": "spar-k",
+   "object": "Wreck spar-k",
+   "family": "spar",
+   "half": [
+    82.754,
+    6.905,
+    6.18
+   ],
+   "source": null
+  },
+  {
+   "name": "spar-l",
+   "object": "Wreck spar-l",
+   "family": "spar",
+   "half": [
+    37.983,
+    5.101,
+    4.609
+   ],
+   "source": null
+  },
+  {
+   "name": "spar-m",
+   "object": "Wreck spar-m",
+   "family": "spar",
+   "half": [
+    24.663,
+    3.889,
+    2.608
+   ],
+   "source": null
+  },
+  {
+   "name": "spar-n",
+   "object": "Wreck spar-n",
+   "family": "spar",
+   "half": [
+    100.407,
+    2.252,
+    2.143
+   ],
+   "source": null
+  },
+  {
+   "name": "plate-a",
+   "object": "Wreck plate-a",
+   "family": "plate",
+   "half": [
+    11.015,
+    7.0,
+    0.875
+   ],
+   "source": null
+  },
+  {
+   "name": "plate-b",
+   "object": "Wreck plate-b",
+   "family": "plate",
+   "half": [
+    15.029,
+    12.0,
+    1.459
+   ],
+   "source": null
+  },
+  {
+   "name": "plate-c",
+   "object": "Wreck plate-c",
+   "family": "plate",
+   "half": [
+    25.054,
+    15.0,
+    1.319
+   ],
+   "source": null
+  },
+  {
+   "name": "plate-d",
+   "object": "Wreck plate-d",
+   "family": "plate",
+   "half": [
+    27.58,
+    24.0,
+    1.394
+   ],
+   "source": null
+  },
+  {
+   "name": "plate-e",
+   "object": "Wreck plate-e",
+   "family": "plate",
+   "half": [
+    40.081,
+    26.0,
+    1.267
+   ],
+   "source": null
+  },
+  {
+   "name": "plate-f",
+   "object": "Wreck plate-f",
+   "family": "plate",
+   "half": [
+    41.091,
+    39.0,
+    1.498
+   ],
+   "source": null
+  },
+  {
+   "name": "plate-g",
+   "object": "Wreck plate-g",
+   "family": "plate",
+   "half": [
+    42.465,
+    26.0,
+    3.458
+   ],
+   "source": null
+  },
+  {
+   "name": "plate-h",
+   "object": "Wreck plate-h",
+   "family": "plate",
+   "half": [
+    39.074,
+    30.0,
+    0.818
+   ],
+   "source": null
+  },
+  {
+   "name": "plate-i",
+   "object": "Wreck plate-i",
+   "family": "plate",
+   "half": [
+    22.297,
+    13.5,
+    0.664
+   ],
+   "source": null
+  },
+  {
+   "name": "plate-j",
+   "object": "Wreck plate-j",
+   "family": "plate",
+   "half": [
+    30.041,
+    18.0,
+    2.747
+   ],
+   "source": null
+  },
+  {
+   "name": "chunk-a",
+   "object": "Wreck chunk-a",
+   "family": "chunk",
+   "half": [
+    22.725,
+    21.176,
+    16.864
+   ],
+   "source": null
+  },
+  {
+   "name": "chunk-b",
+   "object": "Wreck chunk-b",
+   "family": "chunk",
+   "half": [
+    36.833,
+    34.363,
+    26.986
+   ],
+   "source": null
+  },
+  {
+   "name": "chunk-c",
+   "object": "Wreck chunk-c",
+   "family": "chunk",
+   "half": [
+    52.757,
+    47.5,
+    42.872
+   ],
+   "source": null
+  },
+  {
+   "name": "hulk-onslaught-fore",
+   "object": "Wreck hulk-onslaught-fore",
+   "family": "hulk",
+   "half": [
+    115.015,
+    100.746,
+    56.108
+   ],
+   "source": {
+    "build": "builds/onslaught/0cb9d83",
+    "file": "onslaught.blend",
+    "class_length_m": 301.0,
+    "metres_per_unit": 0.86,
+    "span": [
+     0.38,
+     1.0
+    ],
+    "torn": [
+     "aft"
+    ],
+    "parts_kept": 429,
+    "parts_stripped": 117,
+    "holes": 3,
+    "measured_length_m": 299.9
+   }
+  },
+  {
+   "name": "hulk-onslaught-whole",
+   "object": "Wreck hulk-onslaught-whole",
+   "family": "hulk",
+   "half": [
+    146.382,
+    114.754,
+    56.108
+   ],
+   "source": {
+    "build": "builds/onslaught/0cb9d83",
+    "file": "onslaught.blend",
+    "class_length_m": 301.0,
+    "metres_per_unit": 0.86,
+    "span": [
+     0.07,
+     1.0
+    ],
+    "torn": [
+     "aft"
+    ],
+    "parts_kept": 417,
+    "parts_stripped": 129,
+    "holes": 6,
+    "measured_length_m": 299.9
+   }
+  },
+  {
+   "name": "hulk-legion-fore",
+   "object": "Wreck hulk-legion-fore",
+   "family": "hulk",
+   "half": [
+    138.854,
+    87.887,
+    41.105
+   ],
+   "source": {
+    "build": "builds/legion/0cb9d83",
+    "file": "legion.blend",
+    "class_length_m": 292.0,
+    "metres_per_unit": 0.99,
+    "span": [
+     0.45,
+     1.0
+    ],
+    "torn": [
+     "aft"
+    ],
+    "parts_kept": 343,
+    "parts_stripped": 31,
+    "holes": 3,
+    "measured_length_m": 292.0
+   }
+  },
+  {
+   "name": "hulk-legion-aft",
+   "object": "Wreck hulk-legion-aft",
+   "family": "hulk",
+   "half": [
+    145.434,
+    88.077,
+    43.333
+   ],
+   "source": {
+    "build": "builds/legion/0cb9d83",
+    "file": "legion.blend",
+    "class_length_m": 292.0,
+    "metres_per_unit": 0.99,
+    "span": [
+     0.0,
+     0.52
+    ],
+    "torn": [
+     "fore"
+    ],
+    "parts_kept": 342,
+    "parts_stripped": 32,
+    "holes": 4,
+    "measured_length_m": 292.0
+   }
+  },
+  {
+   "name": "hulk-colossus",
+   "object": "Wreck hulk-colossus",
+   "family": "hulk",
+   "half": [
+    55.856,
+    44.425,
+    21.6
+   ],
+   "source": {
+    "build": "builds/colossus/139e8b8b6",
+    "file": "colossus.blend",
+    "class_length_m": 108.5,
+    "metres_per_unit": 0.5,
+    "span": [
+     0.1,
+     1.0
+    ],
+    "torn": [
+     "aft"
+    ],
+    "parts_kept": 625,
+    "parts_stripped": 96,
+    "holes": 3,
+    "measured_length_m": 108.5
+   }
+  },
+  {
+   "name": "hulk-colossus-hold",
+   "object": "Wreck hulk-colossus-hold",
+   "family": "hulk",
+   "half": [
+    51.425,
+    45.002,
+    22.382
+   ],
+   "source": {
+    "build": "builds/colossus/139e8b8b6",
+    "file": "colossus.blend",
+    "class_length_m": 108.5,
+    "metres_per_unit": 0.5,
+    "span": [
+     0.25,
+     0.8
+    ],
+    "torn": [
+     "aft",
+     "fore"
+    ],
+    "parts_kept": 658,
+    "parts_stripped": 63,
+    "holes": 3,
+    "measured_length_m": 108.5
+   }
+  }
+ ]
+}

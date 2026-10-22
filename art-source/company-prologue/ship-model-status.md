@@ -57,6 +57,12 @@ scope unless the owner asks for it.
 |---|---|---|---|
 | Fleet scale lineup | `fleet-scale/` | review: `fleet_lineup.py` renders every hull at its published option C scale, with real-world references (container, 747, ISS, Eiffel Tower, Nimitz, football pitch): broadside, top-down, the Hound at and in a Legion hangar lane, walkway eye level, fighters in the lane, Legion, Onslaught and Paragon side by side, plus a sizes table | Owner judges the final C sizes; rerun after any rescale or new hull |
 
+## Scene kits
+
+| Asset | Package | State | Next |
+|---|---|---|---|
+| Asharu wreck kit (the debris field's graveyard, S3-S4) | `asharu-wrecks/` | review: 39 procedural wrecks (bow fragments, open hull sections, trusses and box girders, armour slabs, torn modules) built from plates, frames and members at real size, and 6 hulks derived from the accepted Onslaught, Legion and Colossus builds (stripped, torn at a ragged station with frames and bent stringers showing, plating holed); bleached, pitted ImageGen detail tiles, nothing lit; `wreck_kit.pick` maps each `debris_field` box to a wreck that fills it, hulks only within 0.86-1.16 of their class size | Owner judges one look still; the Asharu builder swaps `wreck_meshes` for `wreck_kit.pick` |
+
 ## Shared effects
 
 | Asset | Package | State | Next |

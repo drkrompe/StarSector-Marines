@@ -1,0 +1,9 @@
+Use case: texture map generation for a 3D model. One square, seamless, tileable albedo (diffuse) texture of the bare structural steel inside a spaceship wreck that has been open to vacuum and hard sunlight for a century: frames, girders and torn plate edges.
+
+Material: unpainted structural steel, dull and dark grey-brown, with a thin dry oxide film in patches, fine even pitting, faint grinding and tool marks, small spatters of old weld, faint long streaks of fine dust, and a few small scraped spots that show brighter metal. Very old and dry: no wet rust, no flaking rust scale.
+
+Rules:
+- Seen square-on, filling the whole square edge to edge; it will be tiled many times, so the detail is small and evenly spread, with no single large feature, nothing centred, and nothing running along an edge.
+- Albedo only: flat, even, shadowless lighting. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no gradient, no border.
+- No bolts heads in rows, no plates, no markings, no letters, no soot, no scorch, no glow.
+Output: one square 1:1 image.

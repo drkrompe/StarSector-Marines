@@ -1,0 +1,9 @@
+Use case: texture map generation for a 3D model. One square, seamless, tileable albedo (diffuse) texture of old spaceship hull plating that has drifted dead in hard vacuum sunlight for a century.
+
+Material: thick painted steel armour plate. The paint is sun-bleached and chalky, faded to a pale, dusty, nearly colourless grey-tan, flaking in small irregular patches to a darker primer and, in a few places, to dull bare metal. The whole surface is covered evenly in fine pitting and tiny micrometeoroid craters (a few millimetres to a few centimetres), faint radial scratch fans, faint streaks of fine grit, and a few thin hairline cracks in the paint. A couple of thin, faint plate seams with small flush fasteners may cross the square, but nothing dominates.
+
+Rules:
+- Seen square-on, filling the whole square edge to edge; it will be tiled many times, so the detail is small and evenly spread, with no single large feature, nothing centred, and no seam, stain or crack running along an edge.
+- Albedo only: flat, even, shadowless lighting. No cast shadows, no ambient-occlusion darkening, no specular highlights, no reflections, no vignette, no gradient across the square, no border.
+- Mostly neutral in colour: grey-tan paint, near-black primer flecks, dull steel. No rust-orange areas, no soot, no scorch, no burns, no glow, no markings, letters, numbers or stripes.
+Output: one square 1:1 image.

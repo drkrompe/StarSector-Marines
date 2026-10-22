@@ -1,0 +1,20 @@
+{
+ "id": "asharu-wrecks-look-<round>-<date>",
+ "machine": "any",
+ "lane": "light",
+ "priority": 0,
+ "after": [],
+ "requires": ["gpu"],
+ "cwd": "{checkout}/art-source/company-prologue/asharu-wrecks",
+ "command": ["{blender}", "-b", "--factory-startup", "--python-exit-code", "1", "--python", "look_wrecks.py", "--",
+             "--kit", "{checkout}/build/asharu-wrecks/kit/asharu-wrecks.blend", "--out", "{work}/frames",
+             "--views", "wide,close", "--samples", "16", "--half"],
+ "env": {},
+ "inputs": [
+  {"kind": "git", "commit": "<filled in by --commit>"},
+  {"kind": "drive", "from": "{drive}/builds/asharu-wrecks/<kit commit>", "to": "{checkout}/build/asharu-wrecks/kit",
+   "sha256": {"asharu-wrecks.blend": "<asset_sha256 from the published manifest.json>"}}
+ ],
+ "frames": {"dir": "{work}/frames", "glob": "*.png", "count": 2},
+ "outputs": [{"from": "{work}/frames", "glob": "*.png", "to": "{drive}/review/asharu-wrecks/<date>_<what>_{machine}"}]
+}
