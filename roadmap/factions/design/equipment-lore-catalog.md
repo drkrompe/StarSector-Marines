@@ -4,7 +4,7 @@ Status: ACTIVE — canonical provenance and faction-fit reference for shipped Ma
 
 Written: 2026-08-26
 
-Updated: 2026-10-14 — added the Tallyman forward-observer set (player-acquirable comms radio).
+Updated: 2026-10-22 — added the naming guide (faction schemes and grade marks) and moved Luddic, Lion's Guard and pirate kit onto it.
 cannon, and Pioneer utility rocket cradle as lower-performance mech components
 whose circulation does not make them faction defaults.
 
@@ -26,6 +26,44 @@ and provenance does not allegiance-lock player equipment. Do not add a faction-c
 clone when an existing family and grade already express the same battlefield choice.
 A separate model earns a stable id only when it introduces a distinct tactical role,
 delivery behavior, protection tradeoff, or special activation.
+
+## Naming guide
+
+Equipment reads as **faction industrial output**: a product line from a named
+maker or procurement office, graded from standard issue to special service. It
+never reads as relics, blessings or spectacle. A pattern name is a plain noun a
+quartermaster would write on a crate (Rook, Legionary, Bastion, Holdfast); the
+faction voice lives in the card noun, the grade mark and the issuer line, not in
+adjectives. Before naming something new, place it in this table.
+
+| Tradition | Maker / issuer voice | Card noun | Grade marks, standard → special |
+| --- | --- | --- | --- |
+| Hegemony | Ordnance Board patterns built in the Chicomoztoc works; Domain-spec drawings | **Schedule** (tables of equipment) | Auxiliary → Line → Shock → **XIV** (Battlegroup restricted schedule) |
+| Tri-Tachyon | Asset Protection products with corporate model names | **Package** | Contract → Response → Blacksite |
+| Persean League | Joint Procurement standards on Kazeron drawings, built by member worlds | **Standard** | Member → Coalition → Breach |
+| Sindrian Diktat | Office of Supply state issue; Askonia fuel industry | **Issue** | Security → Regular → Lion's Guard |
+| Lion's Guard | Its own procurement office, answering to the Executor | **Issue**, by allotment | Prestige only: politics and procurement, never theatre |
+| Luddic Church | Wardens' Commissary; Gilead workshops rebuilding inherited shells by hand | **Kit** | Parish → Guard (commissary-inspected rebuilds) |
+| Knights of Ludd | The Knights' armoury on Hesperus; suits signed out to one wearer | **Armoury issue** | Heavy issue after handling and maintenance trials |
+| Luddic Path | No factory: cell workshops and caches of captured kit | **Cache** | None: what the cell has |
+| Pirates | Blackforge shops and black-market quartermasters | **Lot**, **rig** | Patchwork → Mk2 → Breaker |
+| Independents | Free Port outfitters, contractors, cooperatives | **Kit**, **Issue** | Watch → Militia → Contract |
+
+Laws:
+
+- **Luddic kit is conservative, not holy.** It is low-tech, maintained by hand,
+  governed rather than automated, and logged by an inspector. No "consecrated",
+  "reliquary", "sanctified" or "blessed" in a name or a description; faith may
+  appear as the reason a rule exists, never as a property of the equipment.
+- **Prestige is procurement.** The Lion's Guard is written as allotment, budget
+  and political favour. Its kit can be conspicuous because the regime wants it
+  seen, not because the suit is a performance.
+- **Recovered and rebuilt are grades too.** A recovered pattern keeps its
+  maker's name and says "Recovered" in front; a pirate second life takes a Mk
+  number rather than a new heroic name.
+- **Titles fit the card.** Card titles stay within about 30 characters and lead
+  with the tradition; pattern names stay short enough that the noun survives a
+  chip truncation.
 
 ## Primary weapons
 
@@ -73,7 +111,7 @@ maintain one; an authored doctrine must choose that weaker fit explicitly.
 
 ## Armor patterns
 
-The XIV, Specter, coalition Bulwark, Reliquary, Lion's Mantle, Foundry-breaker,
+The XIV, Specter, coalition Bulwark, Holdfast, Lion's Mantle, Foundry-breaker,
 and Arbalest are explicitly POWER_SUIT infantry equipment. This is mod direction
 about wearable mechanized shells, not a vanilla-canon claim or a faction-wide
 bonus. The named wearer remains an infantry marine. Advanced Redoubt, Outrider,
@@ -94,14 +132,14 @@ license, fabrication, upkeep, or repair authority.
 | `armor.combat` | **Bastion line armor** — a Kazeron-led interchangeable coalition pattern. | League forces and exported, licensed, or captured Hegemony, Independent, and Diktat stocks. | Shared line role does not make it the Hegemony's preferred institutional suit. |
 | `armor.line` | **Legionary line suit** — standardized, pressure-sealed Hegemony armor designed for campaign repair. | Hegemony regulars, licensed Diktat formations, Church and Knight custodians, and battlefield recovery. | Tri-Tachyon internal forces prefer integrated composite systems; pirates and Pathers do not maintain clean Legionary issue at scale. |
 | `armor.aegis-composite` | **Aegis composite line suit** — a Tri-Tachyon response pattern with predictive threat displays and powered balance correction, which the suit spends as a **predictive volley**: a shoulder-launched brace of Halcyon micro-missiles at a self-picked target, the second authored integral system. | Corporate response teams and expensive licensed or recovered Independent examples. | Its speed and reduced incoming hit profile are bought with less capacity and rating than low-tech line armor; no neural-interface faction bonus exists outside the suit, and the rack is small, finite, and does not refill in the field. |
-| `armor.palatine` | **Palatine legacy line suit** — a Church pattern rebuilt from inherited shells and artisan-fitted resistant plate. | Church sanctioned guards, Knight custodians, and rare licensed or recovered examples. | High armor rating comes with low capacity and a real mobility cost; consecration grants no hidden immunity. |
+| `armor.palatine` | **Gilead rebuilt line suit** — a Church workshop pattern rebuilt by hand from inherited Domain shells and fitted resistant plate. | Church guard sections, Knight garrisons, and rare licensed or recovered examples. | High armor rating comes with low capacity and a real mobility cost; careful upkeep grants no hidden immunity. |
 | `armor.furnace-line` | **Furnace state line suit** — thick petrochemical laminate over a conventional Sindrian pressure frame. | Diktat regulars, Lion's Guard formations, and exported or recovered Independent stocks. | Its deep capacity is paired with ordinary resistance, weight, and a conspicuous target profile. |
-| `armor.reaver` | **Reaver reinforced rig** — a veteran Blackforge frame with powered bracing and additional ship plate. | Pirate warbands, Pather cells, and battlefield recovery. | Raw capacity and useful speed do not erase its poor armor rating or irregular maintenance. |
+| `armor.reaver` | **Blackforge Mk2 reinforced rig** — a veteran patchwork frame with powered bracing and additional ship plate. | Pirate warbands, Pather cells, and battlefield recovery. | Raw capacity and useful speed do not erase its poor armor rating or irregular maintenance. |
 | `armor.heavy` | **XIV heavy battlesuit** — a Hegemony Domain-spec breach and shock pattern with powered bracing, which it spends as **assault bracing**: the most reliably available breach in the catalog. | Hegemony shock units, Knight custodians, Lion's Guard prestige formations, wealthy League forces, and rare recovered examples. | Heavy is a role, not universal top-tier faction armor. Tri-Tachyon heavy systems may become a separate item only if their mechanics justify it. |
 | `armor.specter-heavy` | **Specter composite battlesuit** — a high-output Tri-Tachyon breach shell whose continuous threat prediction is spent as a **predictive breach**: the briefest and most frequent window in the family. | Corporate blacksite security and exceptionally rare patron or recovered Independent issue. | It is the fastest and hardest-to-hit heavy pattern, with materially less capacity/rating than XIV armor and no free drone or neural mechanic. |
 | `armor.bulwark-heavy` | **Bulwark coalition battlesuit** — modular League heavy armor built around replaceable actuators and shared control standards, expressed as an **interlock advance** covering a wider front than one wearer needs. | League breach formations, wealthy member worlds, and mercenary patron or recovery channels. | Balance and repairability are its identity; it does not match each specialist heavy pattern at that pattern's strongest axis. |
-| `armor.reliquary-heavy` | **Reliquary consecrated battlesuit** — an artisan-restored legacy shell entrusted through Knightly trials, whose **consecrated advance** buys almost no speed and the best screen anyone has. | Knights of Ludd and scarce Church or Independent patron/recovery channels. | Exceptional rating is paid for with lower capacity and the heaviest deliberate movement; spiritual sanction is provenance, not damage reduction. |
-| `armor.lions-mantle` | **Lion's Mantle guard battlesuit** — prestige Sindrian armor whose oversized cooling funds one long, bright **blazon advance** per engagement and then needs a very long time to recover. | Lion's Guard patron issue and rare captured or diverted examples. | The largest formal-faction armor reserve is slow and easy to hit; spectacle is a liability as well as flavor. |
+| `armor.reliquary-heavy` | **Holdfast rebuilt battlesuit** — a legacy Domain heavy shell rebuilt by hand in the Knights' armoury on Hesperus and signed out to one Knight after handling trials, whose **governed advance** buys almost no speed and the best screen anyone has. | Knights of Ludd and scarce Church or Independent patron/recovery channels. | Exceptional rating is paid for with lower capacity and the heaviest deliberate movement; the armoury's custody is provenance, not damage reduction. |
+| `armor.lions-mantle` | **Lion's Mantle guard battlesuit** — prestige Sindrian armor whose oversized cooling funds one long **loop-dump advance** per engagement and then needs a very long time to recover. | Lion's Guard issue by political allotment and rare captured or diverted examples. | The largest formal-faction armor reserve is slow and easy to hit; visibility is a liability as well as flavor. |
 | `armor.foundry-breaker` | **Foundry-breaker industrial rig** — a cargo exoskeleton buried under illicit servos and welded ship plate. Its shoulder bracing and a salvaged riot screen are wired to one trigger as the **breaching assist**, the first authored integral system. | Pirate and Pather foundry cells; Independent access is recovery-only. | Enormous crude capacity cannot substitute for rating, mobility, or target denial, and the rig remains infantry rather than a mech. |
 
 ## Built-in loadout provenance
@@ -111,14 +149,14 @@ player how an institution composes shared equipment:
 
 - **Frontier Security Equipment / Frontier Patchwork Protection** concentrates a few
   traded Lancers and locally assembled Ward kits above ubiquitous Rooks and fatigues.
-- **Luddic Path Assault Equipment** is intentionally asymmetric: Rooks, blackforge
+- **Path Cell Assault Cache** is intentionally asymmetric: Rooks, blackforge
   Rattlers, industrial Breachhands, smoke, and a scarce captured heavy arm. It does
   not issue clean Lancers merely to mirror a state assault table.
-- **League Coalition Line Equipment** mixes Rooks, Lancers, Stalwarts, Longbows, and
+- **League Line Fire-Team Standard** mixes Rooks, Lancers, Stalwarts, Longbows, and
   Wayfarer smoke because interoperability, not one national forge, is its identity.
-- **Corporate Blacksite Breach** pairs supported Lancers with serial-free
+- **Blacksite Breach Package** pairs supported Lancers with serial-free
   Rattlers and one diverted Shattercap for a short blacksite action.
-- **Hegemony Auxiliary Fire Support** centers serviceable Rooks, Stalwarts, and
+- **Hegemony Fire Support Schedule** centers serviceable Rooks, Stalwarts, and
   Longbows around tightly controlled Annihilator and Breachlight issue.
 - Armor establishments form a visible power matrix: the mixed **Frontier
   Patchwork** baseline, where each team stretches one sound Ward kit across Cordon,

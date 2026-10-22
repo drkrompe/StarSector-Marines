@@ -95,7 +95,7 @@ public final class DroneRenderSystem implements RenderSystem {
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             long u = ctx.sim.liveUnitAt(i);
             if (!ctx.sim.identity().type(u).isDrone()) continue;
-            byte uv = vis.getUnitVisibility(i);
+            byte uv = ctx.hostProfile.fogHidesUnits() ? vis.getUnitVisibility(i) : FogOfWarService.VIS_VISIBLE;
             if (uv == FogOfWarService.VIS_HIDDEN) continue;
 
             // The drone's body is a world KINEMATICS component now (read by id).
