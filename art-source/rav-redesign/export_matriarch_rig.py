@@ -11,7 +11,7 @@ Writes mod/graphics/battle/rav-matriarch/*.png, every sprite head-up (forward is
                        and columns are the sprite's, times SCALE
   head.png, gape.png   the straight-ahead head and its roar, rows 0..HEAD_ROWS of the canvas, full width;
                        both pivot at the neck
-  scythe-l/r.png       each scythe cut from the hero and lengthened BLADE_SCALE about its PIVOT, on a canvas
+  scythe-l/r.png       the right scythe cut from the hero (the left is it mirrored) and lengthened BLADE_SCALE about its PIVOT, on a canvas
                        centred on the pivot (SCYTHE_HALF each way), so the sprite turns about its own centre
   foot-fl/fr/hl/hr.png each foot cut from the hero, centred on the foot
   shank-f/h-l/r.png    the leg layers, the hip end at the top, SHANK_W layer px wide
@@ -79,16 +79,17 @@ def main():
         assert bottom <= HEAD_ROWS, (out, bottom)
         scaled(lay.crop((0, 0, size[0], HEAD_ROWS))).save(OUT / out)
 
-    for side, m in blade_m.items():
-        px, py = PIVOT[side]
-        hx, hy = SCYTHE_HALF
-        pad = Image.new("RGBA", (size[0] + 2 * hx, size[1] + 2 * hy), (0, 0, 0, 0))
-        pad.alpha_composite(with_alpha(hero, ha * m), (hx, hy))
-        pad = scale_about(pad, BLADE_SCALE, (px + hx, py + hy))
-        cut = pad.crop((px, py, px + 2 * hx, py + 2 * hy))       # centred on the pivot
-        bbox = cut.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox()
-        assert bbox[0] > 0 and bbox[1] > 0 and bbox[2] < 2 * hx and bbox[3] < 2 * hy, (side, bbox)
-        scaled(cut).save(OUT / f"scythe-{side.lower()}.png")
+    # the right scythe, cut from the hero; the left is it mirrored about the centre line (see PIVOT)
+    px, py = PIVOT["R"]
+    hx, hy = SCYTHE_HALF
+    pad = Image.new("RGBA", (size[0] + 2 * hx, size[1] + 2 * hy), (0, 0, 0, 0))
+    pad.alpha_composite(with_alpha(hero, ha * blade_m["R"]), (hx, hy))
+    pad = scale_about(pad, BLADE_SCALE, (px + hx, py + hy))
+    cut = pad.crop((px, py, px + 2 * hx, py + 2 * hy))       # centred on the pivot
+    bbox = cut.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox()
+    assert bbox[0] > 0 and bbox[1] > 0 and bbox[2] < 2 * hx and bbox[3] < 2 * hy, bbox
+    scaled(cut).save(OUT / "scythe-r.png")
+    scaled(cut.transpose(Image.FLIP_LEFT_RIGHT)).save(OUT / "scythe-l.png")
 
     for n, (m, (cx, cy), (rx, ry)) in feet.items():
         r = int(max(rx, ry) + 16)   # past the soft edge; square and centred on the foot

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-16
 
-Updated: 2026-10-20 — damage dolls for every machine (`damage-doll`)
+Updated: 2026-10-21 — ground ward and berth boards (`ground-quarters`)
 
 A guide to the notable `createSnapshots` suites: what each one shows and where it writes.
 How to run them, and the rules every preview obeys, are in `CLAUDE.md` (Visual snapshot
@@ -44,6 +44,7 @@ by name.
 | `boarding-jack-layers` | The Boarding Jack's exported parts, the rig beside the Specter it shares a registration with, the boarding shield's sweep from idle to fire, articulated poses, all five paints including Greyhook's pirate paint, and Greyhook's raiders in their paint at world scale; 1920x1080, 100% scale | `build/snapshots/boarding-jack-layers/` |
 | `layers` | One combined composition sheet per authored unit | `build/snapshots/layers/` |
 | `ship-decks` | Generated ship-deck plan views, tinted by longitudinal zone | `build/snapshots/ship-decks/` |
+| `ground-quarters` | The ground sick-bay ward and barracks berth, fitted by their ground fittings in all four turns, one 1920x1080 board each: real-length beds, heads against their own bulkheads | `build/snapshots/ground-quarters/` |
 | `second-wind-lance` | Second Wind's original envelope at 1920x1080/100%: the Mech Lab at each of its five berth states over five seeds (Engineering list and bay detail), and her five refit reserves all sealed against all opened on three seeds (Engineering list both ways, and each reserve close up with every core Restored), asserting that no room, door or berth moves | `build/snapshots/second-wind-lance/` |
 | `second-wind-dressing` | The founding hull's per-core Deficit dressing at 1920x1080/100%: all cores at Deficit, each core restored alone, all Restored (the clean look), and the dead-air haze control, each whole-ship and at bridge, barracks, engine-room and armory framings; then each core restored alone as a dressing wave, a half-size GIF at ten frames a second (`08`-`11`); one hull, seed and deck clock, so only the dressing changes | `build/snapshots/second-wind-dressing/` |
 | `second-wind-facilities` | The Second Wind's roomless facilities at 1920x1080/100%: the provisions store, the mess and the hold with no tier bought, then hydroponics, the wardroom and the holds at Restored, Improved I and Improved II (briefing room Restored), plus the whole ship at both ends; every core restored, one hull, seed and deck clock, so only the facility dressing changes | `build/snapshots/second-wind-facilities/` |
@@ -71,7 +72,7 @@ by name.
 | `rav-brute-motion` | The Rav Brute's skeleton (`RavBruteRig`) stepped every tick and drawn through the production `RavBruteComposer` at 140 px per cell: walking into a trot, whole-body blows, and a charge (tell, gallop, stunned); then four Brutes killed mid-action and bursting (`RavBurst`) over the Runner's ichor; 1920x1080, 100% scale, a corpse sheet and GIFs | `build/snapshots/rav-brute-motion/` |
 | `swarm-strains-skirmish` | Runners, Brutes and Spitters against a held squad on a map one screen wide, so the whole-map recording is battle zoom at 1920x1080 (plus a 2x close recording and stills): the strain bodies' art review, walking, striking, lobbing, dying and lying as corpses | `build/snapshots/swarm-strains-skirmish/` |
 | `swarm-brute-breach` | A Brute against a held colony building: breaking in where no door is near, using a near door, sparing fortified walls, going for an emplacement first | `build/snapshots/swarm-brute-breach/` |
-| `brute-charge` | A Brute charging one kind of target per loop: the ground tell, infantry thrown and knocked down, a light wall rammed, a heavy wall and a tank stunning it, hulls shoved or stalled, mechs struck in the legs, the daze mark | `build/snapshots/brute-charge/` |
+| `brute-charge` | A Brute charging one kind of target per loop: the ground tell, infantry thrown and knocked down, a light wall rammed, a heavy wall and a tank stunning it, hulls shoved or stalled, mechs struck in the legs | `build/snapshots/brute-charge/` |
 | `matriarch` | The Matriarch per loop: reaping a knot of marines, the crown against a Bulwark lance, breaking into a fort building; each loop also as `<loop>-close`, a 1920x1080 view following it | `build/snapshots/matriarch/` |
 | `pack-leader` | An elder Runner leading three whelps and three adults at two Marines, a bore behind; the leader is shot and the pack breaks, the whelps bolting for the bore; and a whelp Matriarch an elder's pack defers to, maturing when her mother is fed | `build/snapshots/pack-leader/` |
 | `swarm-bore-collapse` | A satchel squad ordered onto a swarm bore: it closes through the bore's spore colony, sets charges on the body and collapses it; the rifles-only control only shoots. 1920x1080, verdicts are `sceneEvidence`'s | `build/snapshots/swarm-bore-collapse/` |
