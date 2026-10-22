@@ -64,14 +64,15 @@ final class SecondhandWingsModel {
                 boat.name() + " / " + BoatFitting.findById(boat.plating()).displayName()
                         + " / " + BoatFitting.findById(boat.drive()).displayName()).collect(Collectors.joining("\n"));
         if (trade.isEmpty()) trade = Strings.get("openingSecondhandWingsNoAirworthyHermesAboardAnyUnrepairedOriginal");
-        return new Row(live.visible(), visible, page, live.credits(), live.refusal() != null,
+        return new Row(live.visible(), visible, page, live.credits(), live.price(), live.refusal() != null,
                 feedback != null ? feedback : live.refusal(), trade, this::open, this::act, this::dismiss);
     }
 
-    record Row(boolean available, boolean visible, int page, int credits, boolean blocked, String refusal,
+    record Row(boolean available, boolean visible, int page, int credits, int price, boolean blocked, String refusal,
                String trade, Runnable open, Runnable action, Runnable dismiss) implements MarkupPropertySource {
-        private long shortfall() { return Math.max(0, SecondhandWings.CREDIT_COST - credits); }
-        static Row hidden() { return new Row(false, false, 0, 0, false, null, "", () -> { }, () -> { }, () -> { }); }
+        private long shortfall() { return Math.max(0, price - credits); }
+        private boolean bundlesBay() { return price > SecondhandWings.CREDIT_COST; }
+        static Row hidden() { return new Row(false, false, 0, 0, SecondhandWings.CREDIT_COST, false, null, "", () -> { }, () -> { }, () -> { }); }
         @Override public Object markupProperty(String key) {
             return switch (key) {
                 case "resumeClasses" -> available ? "wings-resume console-action" : "hidden";
@@ -80,12 +81,13 @@ final class SecondhandWingsModel {
                 case "title" -> page == 1 ? Strings.get("openingSecondhandWingsMaraVennSecondhandWings") : Strings.get("openingSecondhandWingsCastleSecondhandWings");
                 case "copy" -> switch (page) {
                     case 0 -> Strings.get("openingSecondhandWingsThoseHermesWrecksGotUsStartedWe");
-                    case 1 -> Strings.get("openingSecondhandWingsYouGaveOurCooperativeAPlaceTo");
+                    case 1 -> Strings.get(bundlesBay() ? "openingSecondhandWingsYouGaveOurCooperativeBayIncluded"
+                            : "openingSecondhandWingsYouGaveOurCooperativeAPlaceTo");
                     default -> Strings.get("openingSecondhandWingsThoseAreOursCaptainProperLandingCraft");
                 };
                 case "priceClasses" -> page == 2 ? "hidden" : shortfall() > 0 ? "wings-price short" : "wings-price";
-                case "priceLabel" -> Strings.get("openingSecondhandWingsPriceLabel");
-                case "price" -> CompanyResources.number(SecondhandWings.CREDIT_COST);
+                case "priceLabel" -> Strings.get(bundlesBay() ? "openingSecondhandWingsPriceLabelWithBay" : "openingSecondhandWingsPriceLabel");
+                case "price" -> CompanyResources.number(price);
                 case "stock" -> shortfall() > 0 ? Strings.format("companyResourceShortBy", CompanyResources.number(shortfall()))
                         : Strings.get("companyResourceAvailable") + "  " + CompanyResources.number(credits);
                 case "stockClasses" -> shortfall() > 0 ? "label wings-price-stock short" : "label wings-price-stock tone-muted";
@@ -96,8 +98,10 @@ final class SecondhandWingsModel {
                 case "arrow" -> ">";
                 case "trade" -> page == 1 ? Strings.format("openingSecondhandWingsExchangeIncludes", trade) : Strings.get("openingSecondhandWingsTwoRepairedLandersReplace");
                 case "reason" -> page == 2 ? Strings.get("openingSecondhandWingsDeliveredAtStandardFitPlatingAndDrive")
-                        : page == 1 && refusal != null ? refusal : Strings.get("openingSecondhandWingsNoAdditionalMaterialBillBayRestorationIs");
-                case "actionLabel" -> page == 0 ? Strings.get("openingSecondhandWingsReviewOffer") : page == 1 ? Strings.get("openingSecondhandWingsBuyPair") : Strings.get("openingSecondhandWingsInspectFittings");
+                        : page == 1 && refusal != null ? refusal : Strings.get(bundlesBay()
+                        ? "openingSecondhandWingsBayRestorationIncluded" : "openingSecondhandWingsNoAdditionalMaterialBill");
+                case "actionLabel" -> page == 0 ? Strings.get("openingSecondhandWingsReviewOffer") : page == 1
+                        ? Strings.format("openingSecondhandWingsBuyPair", CompanyResources.number(price)) : Strings.get("openingSecondhandWingsInspectFittings");
                 case "disabled" -> page == 1 && blocked;
                 case "oldArt" -> ShuttleType.HERMES.spritePath;
                 case "newArt" -> ShuttleType.AEROSHUTTLE.spritePath;

@@ -1368,17 +1368,21 @@ bill; the ordinary confirmed workshop order remains the only consumer.
 Second Wind's original starting hull reserves a second shuttle bay from the start.
 It is sealed and damaged, supplies no usable berth, and stays visibly distinct
 from an empty working berth. Completing **Hold Until Relieved** unlocks an optional
-8,000-credit restoration at an accessible planetary spaceport. Boat Deck presents
-Castle with her portrait, the repair's Cost / Available / Short by, and an inspection
-followed by explicit payment. The yard price includes labor and structural materials.
+8,000-credit restoration at an accessible planetary spaceport. The order lives in
+Engineering, on the sealed hangar, with the repair's Cost / Available / Short by and a
+review followed by explicit payment; its company notice opens Engineering on that
+room. Boat Deck only says the bay is sealed and where it is restored. The yard price includes labor and structural materials.
 Repair exposes the second Hermes wreck; making it airworthy still requires the ordinary
 Hermes material bill. This spending is optional and does not gate subsequent missions.
 
 **Secondhand Wings** is an optional post-Counterattack purchase for the original
 Second Wind hull. HQ points to Castle's portrait conversation on the Boat Deck;
 Mara offers two surplus Aeroshuttles for 5,000 credits (3,000 for the airframes,
-2,000 for refurbishment, standard fittings and bay adapters). The existing 8,000-credit
-second-bay restoration must be completed separately first. Delivery requires the
+2,000 for refurbishment, standard fittings and bay adapters). While the second bay is
+still sealed the offer carries its 8,000-credit restoration in the same order, 13,000
+in all, so the player is never sent to find a prerequisite job first; the bay opens
+only after payment, before delivery. A bay already restored from Engineering leaves
+the price at 5,000. Delivery requires the
 active, converted original hull to be the owned company home at an accessible
 planetary spaceport. Repairing the second Hermes is optional before replacement.
 
