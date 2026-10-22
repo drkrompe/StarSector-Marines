@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.fire.FireFuel;
+import com.dillon.starsectormarines.battle.fire.FireSmoke;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
@@ -20,7 +21,7 @@ import java.util.Locale;
  * <p>Two passes because a system emits into one layer: {@link #scorch()} on
  * {@link RenderLayer#DECALS}, {@link #flames()} on {@link RenderLayer#HAZARDS}.
  * {@code -Dbattle.render.fire=false} is the control; {@code
- * -Dbattle.render.fireScorch=char|ash|ember} and {@code
+ * -Dbattle.render.fireScorch=char|ash|ember|soot} and {@code
  * -Dbattle.render.fireFlames=bold|restrained} choose the look.
  */
 public final class FireRenderSystem {
@@ -31,7 +32,8 @@ public final class FireRenderSystem {
     private static final boolean ENABLED = Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
 
     /** How burnt ground reads. */
-    public enum Scorch { CHAR, ASH, EMBER }
+    /** How burnt ground reads: CHAR near-black, ASH grey, EMBER char with a glow, SOOT char thin enough for the ground to show through. */
+    public enum Scorch { CHAR, ASH, EMBER, SOOT }
 
     /** How big the flames stand. */
     public enum Flames {
@@ -45,15 +47,17 @@ public final class FireRenderSystem {
         Flames(float size, float alpha) { this.size = size; this.alpha = alpha; }
     }
 
-    /** Sheet columns and rows; the fire frames are the lower two rows. */
-    private static final int SHEET_COLS = 4, SHEET_ROWS = 4, FIRE_FIRST_ROW = 2, FIRE_FRAMES = 8;
+    /** Sheet columns and rows; the smoke frames are the upper two rows, the fire frames the lower two. */
+    private static final int SHEET_COLS = 4, SHEET_ROWS = 4, FIRE_FIRST_ROW = 2, FIRE_FRAMES = 8, SMOKE_FRAMES = 8;
+    /** Seconds a smoke puff takes to rise and fade. */
+    private static final float SMOKE_LIFE = 2.4f;
     private static final float FLAME_FPS = 10f;
     /** Cell size in pixels below which a fire is drawn as glow and one tongue, no embers. */
     private static final float DETAIL_CELL_PX = 10f;
 
     private final BattleSprites sprites;
     private final Scorch scorchStyle = parse(Scorch.class, SCORCH_PROPERTY, Scorch.CHAR);
-    private final Flames flameStyle = parse(Flames.class, FLAMES_PROPERTY, Flames.BOLD);
+    private final Flames flameStyle = parse(Flames.class, FLAMES_PROPERTY, Flames.RESTRAINED);
     private final RenderSystem scorch = RenderSystem.of(RenderLayer.DECALS, this::collectScorch);
     private final RenderSystem flames = RenderSystem.of(RenderLayer.HAZARDS, this::collectFlames);
     private float clock;
@@ -111,6 +115,7 @@ public final class FireRenderSystem {
         float r, g, b;
         switch (scorchStyle) {
             case ASH -> { r = 0.30f; g = 0.29f; b = 0.27f; a = 0.18f + 0.13f * shade; }
+            case SOOT -> { r = 0.06f; g = 0.05f; b = 0.04f; a = 0.12f + 0.10f * shade; }
             default -> { r = 0.07f; g = 0.06f; b = 0.05f; a = 0.16f + 0.15f * shade; }
         }
         float sx0 = camera.cellToScreenX(x0), sx1 = camera.cellToScreenX(x1);
@@ -205,6 +210,35 @@ public final class FireRenderSystem {
                         1f, 0.75f, 0.30f, (1f - life) * ctx.alphaMult);
             }
         }
+        if (!detail) return;
+        // Smoke last, over every flame, so a burning crown's screen reads as one.
+        for (int i = 0, n = field.burningCount(); i < n; i++) {
+            int idx = field.burningCell(i);
+            int x = idx % w, y = idx / w;
+            if (x < view.minX() || x > view.maxX() || y < view.minY() || y > view.maxY()) continue;
+            if (FireSmoke.smokes(field.burnedMaskAt(idx))) emitSmoke(out, camera, sheet, framePxW, framePxH, field, idx, x, y, cellPx, ctx.alphaMult);
+        }
+    }
+
+    /**
+     * A puff of dark smoke rising off a brush or crown fire and leaning
+     * downwind: the picture of the screen {@link FireSmoke} holds there.
+     */
+    private void emitSmoke(DrawList out, BattleCamera camera, SpriteAPI sheet, int framePxW, int framePxH,
+                           FireField field, int idx, int x, int y, float cellPx, float alphaMult) {
+        int h = hash(idx, 0x5A0C);
+        float life = (clock / SMOKE_LIFE + (h & 0xFF) / 255f) % 1f;
+        int frame = (h >>> 8) % SMOKE_FRAMES;
+        float drift = life * 1.2f;
+        float px = x + 0.5f + field.windX() * field.windStrength() * drift;
+        float py = y + 0.5f + field.windY() * field.windStrength() * drift;
+        float size = cellPx * (1.1f + 1.3f * life);
+        float cx = camera.cellToScreenX(px), cy = camera.cellToScreenY(py) + life * cellPx * 1.4f;
+        float a = 0.6f * (1f - life) * Math.min(1f, life * 5f);
+        out.addSheetQuad(RenderLayer.HAZARDS, sheet,
+                (frame % SHEET_COLS) * framePxW, (frame / SHEET_COLS) * framePxH,
+                framePxW, framePxH, cx, cy, size, size,
+                0.46f, 0.44f, 0.42f, a * alphaMult);
     }
 
     /**

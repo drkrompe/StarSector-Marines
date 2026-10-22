@@ -141,10 +141,7 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                                             (bay.width() + 4) * 64, (bay.depth() + 4) * 64)));
                             for (float scale : new float[]{1f, 1.5f}) {
                                 frames.add(new SnapshotArtifact("bay-" + state.name().toLowerCase() + "-" + scale + ".png",
-                                        UiSnapshotSuite.renderBayRestoration(context, deck, state == BoatBayState.RESTORED, 12000, true, scale)));
-                                if (state == BoatBayState.DAMAGED)
-                                    frames.add(new SnapshotArtifact("bay-locked-" + scale + ".png",
-                                            UiSnapshotSuite.renderBayRestoration(context, deck, false, 4000, false, scale)));
+                                        UiSnapshotSuite.renderBayRestoration(context, deck, state == BoatBayState.RESTORED, scale)));
                             }
                         } finally { deck.dismiss(); }
                     }

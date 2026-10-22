@@ -494,6 +494,14 @@ def blender_main(cfg):
     scene.cycles.transparent_max_bounces = 16
     scene.view_settings.view_transform = 'AgX'
     scene.view_settings.look = 'AgX - Base Contrast'
+    import time
+    said = [0.0]
+
+    def progress(stats):     # Cycles prints nothing while a frame renders: say where it is, every 30 s at most
+        if time.time() - said[0] >= 30.0:
+            said[0] = time.time()
+            print('ASHARU progress', time.strftime('%H:%M:%S'), stats, flush=True)
+    bpy.app.handlers.render_stats.append(progress)
     try:
         prefs = bpy.context.preferences.addons['cycles'].preferences
         for kind in ('OPTIX', 'CUDA', 'METAL'):
@@ -1772,15 +1780,18 @@ def blender_main(cfg):
         scene.render.use_file_extension = False
         st = scene.render.image_settings
         if layers:
-            st.file_format, st.color_depth, st.exr_codec = 'OPEN_EXR_MULTILAYER', '16', 'ZIP'
+            st.media_type = 'MULTI_LAYER_IMAGE'      # Blender 5: multilayer EXR is a media type
+            st.color_depth, st.exr_codec = '16', 'ZIP'
             exr_partial = raw / f'{kf}.layers.partial'
             scene.render.filepath = str(exr_partial)
             bpy.ops.render.render(write_still=True)
             os.replace(exr_partial, raw / f'{kf}.layers.exr')
+            st.media_type = 'IMAGE'
             st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'
             composite_layers.compose_frame(raw / f'{kf}.layers.exr', partial, scene, plate=plate, backdrop=cached,
                                            log=lambda m: print(m, flush=True))
         else:
+            st.media_type = 'IMAGE'
             st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'
             scene.render.filepath = str(partial)
             bpy.ops.render.render(write_still=True)

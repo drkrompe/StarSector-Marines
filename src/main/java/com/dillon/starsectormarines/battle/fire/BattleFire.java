@@ -17,7 +17,8 @@ import java.util.function.Supplier;
  * the nature overlay is gone once it has burnt.
  *
  * <p>Holds no state of its own beyond the field; the map, the creep field and
- * the doodads remain the owners of what they hold.
+ * the doodads remain the owners of what they hold. A brush or crown fire
+ * smokes ({@link FireSmoke}).
  */
 public final class BattleFire implements FireTerrain, FireField.Listener {
 
@@ -32,6 +33,7 @@ public final class BattleFire implements FireTerrain, FireField.Listener {
     private final MapEditor mapEditor;
     private final Supplier<CreepField> creep;
     private final FireField field;
+    private final FireSmoke smoke;
     /** Per registry index: the fuel a nature overlay tile is, 0 for none. */
     private final int[] overlayFuel;
     private final int width;
@@ -46,10 +48,13 @@ public final class BattleFire implements FireTerrain, FireField.Listener {
         this.width = grid.getWidth();
         this.overlayFuel = overlayFuel(TileRegistry.installed());
         this.field = new FireField(grid.getWidth(), grid.getHeight(), seed, this);
+        this.smoke = new FireSmoke(grid);
         field.setListener(this);
     }
 
     public FireField field() { return field; }
+
+    public FireSmoke smoke() { return smoke; }
 
     /** Steps the field, after the creep has spread, so a cell that catches this tick reads the creep as it now is. */
     public void tick(int simTick) {
@@ -92,10 +97,12 @@ public final class BattleFire implements FireTerrain, FireField.Listener {
     public void ignited(int idx, int fuelMask) {
         CreepField c = creep.get();
         if (c != null && (FireFuel.CREEP.in(fuelMask) || FireFuel.DEAD_CREEP.in(fuelMask))) c.scorch(idx);
+        smoke.ignited(idx, fuelMask, field.windX(), field.windY(), field.windStrength());
     }
 
     @Override
     public void burntOut(int idx, int fuelMask) {
+        smoke.burntOut(idx);
         int x = idx % width, y = idx / width;
         if (FireFuel.BRUSH.in(fuelMask) || overlayIsFuel(x, y)) topology.setNatureOverlayIndex(x, y, -1);
         if (FireFuel.CROWN.in(fuelMask) && mapEditor != null && !grid.isWalkableAt(idx)) {
