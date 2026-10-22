@@ -173,7 +173,7 @@ class MechLabViewModelTest {
 
         viewModel.overviewAction().run();
         assertFalse(viewModel.fittingFocused());
-        assertTrue(viewModel.feedbackText().get().contains("overview restored"));
+        assertTrue(viewModel.feedbackText().get().contains("Lance overview"));
     }
 
     @Test
@@ -234,7 +234,7 @@ class MechLabViewModelTest {
         assertEquals(1, viewModel.selectedGantryIndex());
         assertEquals(MechVariant.HOUND, viewModel.selectedVariant());
         assertTrue(viewModel.fittingFocused());
-        assertTrue(viewModel.activeGantryLabel().get().contains("GANTRY 02 / 04"));
+        assertTrue(viewModel.activeGantryLabel().get().contains("PAD B"));
         assertEquals("Hound 02", viewModel.selectedMechName().get());
 
         viewModel.nextGantryAction().run();
@@ -284,7 +284,7 @@ class MechLabViewModelTest {
                 bay.mechById(MechBay.STARTER_MECH_ID).leftArm());
 
         viewModel.nextGantryAction().run();
-        assertTrue(viewModel.selectedMechName().get().contains("VACANT GANTRY"));
+        assertTrue(viewModel.selectedMechName().get().contains("VACANT PAD"));
         MechLabViewModel.CatalogRow hound = viewModel.catalogRows().get().stream()
                 .filter(row -> row.name().equals("Hound chassis"))
                 .findFirst().orElseThrow();
@@ -1034,6 +1034,12 @@ class MechLabViewModelTest {
         props.put("mechRows", viewModel.mechRows());
         props.put("gantryRows", viewModel.gantryRows());
         props.put("garageTitle", viewModel.garageTitle());
+        props.put("garageStatus", viewModel.garageStatus());
+        props.put("dragNoteTitle", viewModel.dragNoteTitle());
+        props.put("dragNoteCopy", viewModel.dragNoteCopy());
+        props.put("scrapLabel", viewModel.scrapLabel());
+        props.put("scrapClasses", viewModel.scrapClasses());
+        props.put("scrapAction", viewModel.scrapAction());
         props.put("performanceMeters", viewModel.performanceMeters());
         viewModel.putInternalProps(props);
         viewModel.putRepairProps(props);

@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
@@ -184,6 +186,54 @@ public final class MechWorkshop {
         return new Result(Status.VEHICLE_FABRICATED, null, vehicle);
     }
 
+    /** Half of a pattern's base bill, rounded down: what breaking up one machine puts back in the hold. */
+    public static FabricationCost salvage(FabricationCost bill) {
+        if (bill == null) return null;
+        List<FabricationCost.Line> lines = new ArrayList<>();
+        for (FabricationCost.Line line : bill.lines()) {
+            int back = line.quantity() / 2;
+            if (back > 0) lines.add(new FabricationCost.Line(line.commodityId(), back));
+        }
+        return lines.isEmpty() ? null : new FabricationCost(lines);
+    }
+
+    /** What scrapping {@code mechId} would return, or null when it returns no materials. */
+    public FabricationCost mechSalvage(String mechId) {
+        CampaignMech mech = bay.mechById(mechId);
+        MechFabricationCatalog.Recipe recipe = mech == null ? null : MechFabricationCatalog.chassis(mech.variant());
+        return recipe == null ? null : salvage(recipe.cost());
+    }
+
+    /** What scrapping {@code vehicleId} would return, or null when it returns no materials. */
+    public FabricationCost vehicleSalvage(String vehicleId) {
+        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
+        MechFabricationCatalog.Recipe recipe = vehicle == null ? null : MechFabricationCatalog.vehicle(vehicle.type());
+        return recipe == null ? null : salvage(recipe.cost());
+    }
+
+    /**
+     * Scraps a chassis to free its gantry: fitted parts go back to stores and half the
+     * chassis bill back to the hold.
+     */
+    public Result scrapMech(String mechId) {
+        CampaignMech mech = bay.mechById(mechId);
+        if (mech == null) return Result.of(Status.INVALID);
+        FabricationCost salvage = mechSalvage(mechId);
+        if (!bay.scrapMech(mechId)) return Result.of(Status.INVALID);
+        if (salvage != null) resources.credit(salvage);
+        return new Result(Status.SCRAPPED, mech);
+    }
+
+    /** Scraps a vehicle to free its gantry, half its bill back to the hold. */
+    public Result scrapVehicle(String vehicleId) {
+        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
+        if (vehicle == null) return Result.of(Status.INVALID);
+        FabricationCost salvage = vehicleSalvage(vehicleId);
+        if (!bay.scrapVehicle(vehicleId)) return Result.of(Status.INVALID);
+        if (salvage != null) resources.credit(salvage);
+        return new Result(Status.SCRAPPED, null, vehicle);
+    }
+
     /** The quoted bill and clock for repairing {@code mechId}'s battle damage, or null if whole. */
     public RepairQuote repairQuote(String mechId) {
         CampaignMech mech = bay.mechById(mechId);
@@ -224,6 +274,8 @@ public final class MechWorkshop {
         ALREADY_STRIPPED,
         CHASSIS_FABRICATED,
         VEHICLE_FABRICATED,
+        /** A machine was broken up; its gantry is vacant and its salvage is in stores. */
+        SCRAPPED,
         /** A repair order was paid; the mech is in its gantry until the clock runs out. */
         REPAIR_STARTED,
         /** There is no battle damage to repair. */
@@ -250,6 +302,7 @@ public final class MechWorkshop {
                     || status == Status.ALREADY_STRIPPED
                     || status == Status.CHASSIS_FABRICATED
                     || status == Status.VEHICLE_FABRICATED
+                    || status == Status.SCRAPPED
                     || status == Status.REPAIR_STARTED;
         }
     }
