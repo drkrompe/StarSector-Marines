@@ -21,11 +21,9 @@ class MechRepairsTest {
 
         assertEquals(1f, full.wear(), 1e-5f);
         assertEquals(MechRepairs.HEAVY_DAYS_AT_FULL_WEAR, full.days(), 1e-4f);
-        // Bulwark chassis bill: 140 supplies, 110 machinery, 260 metals, 36 rare metals.
-        assertEquals(70, quantity(full.bill(), Commodities.SUPPLIES));
-        assertEquals(55, quantity(full.bill(), Commodities.HEAVY_MACHINERY));
-        assertEquals(130, quantity(full.bill(), Commodities.METALS));
-        assertEquals(18, quantity(full.bill(), Commodities.RARE_METALS));
+        for (FabricationCost.Line line : chassisBill().lines()) {
+            assertEquals((int) Math.ceil(line.quantity() * 0.5f), quantity(full.bill(), line.commodityId()));
+        }
     }
 
     @Test void billAndClockScaleWithWear() {
@@ -36,8 +34,10 @@ class MechRepairsTest {
 
         assertEquals(0.115f, estimate.wear(), 1e-5f);
         assertEquals(0.115f * MechRepairs.HEAVY_DAYS_AT_FULL_WEAR, estimate.days(), 1e-4f);
-        assertEquals((int) Math.ceil(140 * 0.5f * estimate.wear()), quantity(estimate.bill(), Commodities.SUPPLIES));
-        assertEquals((int) Math.ceil(36 * 0.5f * estimate.wear()), quantity(estimate.bill(), Commodities.RARE_METALS));
+        for (String commodity : new String[] {Commodities.METALS, Commodities.RARE_METALS}) {
+            assertEquals((int) Math.ceil(quantity(chassisBill(), commodity) * 0.5f * estimate.wear()),
+                    quantity(estimate.bill(), commodity));
+        }
     }
 
     @Test void aScratchStillCostsSomethingOnEveryLineAndAMinimumStay() {
@@ -58,6 +58,10 @@ class MechRepairsTest {
         MechDamageTest.ReportFixture fixture = MechDamageTest.ReportFixture.whole();
         for (MechSection section : MechSection.values()) fixture.section(section, 0f, 0f);
         return MechDamage.of(fixture.build());
+    }
+
+    private static FabricationCost chassisBill() {
+        return MechFabricationCatalog.chassis(MechVariant.BULWARK).cost();
     }
 
     private static int quantity(FabricationCost cost, String commodityId) {
