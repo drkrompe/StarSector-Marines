@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
+import com.dillon.starsectormarines.battle.fire.FireField;
+import com.dillon.starsectormarines.battle.fire.FireReach;
 import com.dillon.starsectormarines.battle.grenade.FragGrenadeService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -21,7 +23,14 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 import static com.dillon.starsectormarines.battle.sim.BattleSimulation.TICK_DT;
 
-/** Honest-contact cluster scoring, reservations, safety, and observed-hazard response. */
+/**
+ * Honest-contact cluster scoring, reservations, safety, and observed-hazard response.
+ *
+ * <p>An incendiary is judged by the fire it starts as well as its blast
+ * (`fire-nouns.md`, Starting fires): one soft target standing in fuel is worth
+ * it, since the fire does the spreading, and it is not thrown where the fire
+ * could come to the thrower's own side ({@link FireReach}).
+ */
 public final class FragGrenadeTactics {
 
     private static final int MAX_DIRECT_CONTACT_AGE_TICKS = 60;
@@ -39,6 +48,7 @@ public final class FragGrenadeTactics {
         Squad squad = sim.squadOf(carrier);
         if (squad == null || blockedByHigherPriorityWork(carrier, squad)) return false;
         cleanupReservations(sim);
+        FireField fire = grenade.weaponDef().incendiaryHeat() > 0 && FireReach.enabled() ? sim.fireField() : null;
 
         Candidate best = null;
         for (BelievedContact anchor : squad.believedContacts()) {
@@ -55,8 +65,10 @@ public final class FragGrenadeTactics {
 
             int softTargets = countSoftContacts(squad, targetX, targetY,
                     grenade.aoeRadius(), sim);
-            if (softTargets < MIN_SOFT_TARGETS) continue;
+            boolean inFuel = fire != null && fire.canBurn(anchor.lastSeenCellX(), anchor.lastSeenCellY());
+            if (softTargets < (inFuel ? 1 : MIN_SOFT_TARGETS)) continue;
             if (!friendlyFootprintClear(carrier, targetX, targetY, grenade, sim)) continue;
+            if (fire != null && fireReachesFriendly(carrier, anchor.lastSeenCellX(), anchor.lastSeenCellY(), fire, sim)) continue;
             if (overlapsCommittedGrenade(targetX, targetY, grenade.aoeRadius(),
                     grenade.weaponId(),
                     sim.identity().faction(carrier), sim)) continue;
@@ -261,6 +273,18 @@ public final class FragGrenadeTactics {
             }
         }
         return true;
+    }
+
+    /** Whether a fire lit at the cell could come to anyone on the carrier's side. */
+    private static boolean fireReachesFriendly(long carrier, int x, int y, FireField fire, BattleView sim) {
+        FireReach reach = FireReach.of(fire, x, y);
+        Faction faction = sim.identity().faction(carrier);
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long friendly = sim.liveUnitAt(i);
+            if (!faction.friendlyTo(sim.identity().faction(friendly))) continue;
+            if (reach.threatens(sim.world().cellX(friendly), sim.world().cellY(friendly))) return true;
+        }
+        return false;
     }
 
     private static boolean overlapsCommittedGrenade(float targetX, float targetY,
