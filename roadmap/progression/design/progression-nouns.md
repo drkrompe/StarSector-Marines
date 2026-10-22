@@ -642,7 +642,7 @@ unwarranted route and fails the audit just as a stranded card does.
 
 **Restricted equipment is approved military issue.** The six approved tier-4 power
 suits are Restricted: the Hegemony XIV battlesuit and military Arbalest, and the
-Tri-Tachyon Specter, League Bulwark, Knights Reliquary and Lion's Guard Mantle. A
+Tri-Tachyon Specter, League Bulwark, Knights' Holdfast and Lion's Guard Mantle. A
 template is Restricted because it is a tradition's current military issue, not
 because it is powerful. The pirate Foundry-Breaker stays Prestige and recoverable,
 as the crude road to powered armour that nobody warrants. The tier-3 recovered
