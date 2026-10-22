@@ -3072,6 +3072,8 @@
     "openingMechLabVehicleFabricationBlockedLanceFull": "Vehicle fabrication blocked: this lance has no vacant pad.",
     "openingMechLabVehicleFabricationBlocked": "Vehicle fabrication blocked: campaign assets were not changed.",
     "openingMechLabVehicleIdentity": "{0}  ·  {1} VEHICLE",
+    "openingMechLabWeightVehicle": "{0} VEHICLE",
+    "openingMechLabVehicleStats": "STRUCTURE {0} · ARMOR {1} · SPEED {2} · SEATS {3}",
     "openingMechLabWeightClassLIGHT": "LIGHT",
     "openingMechLabWeightClassMEDIUM": "MEDIUM",
     "openingMechLabWeightClassHEAVY": "HEAVY",

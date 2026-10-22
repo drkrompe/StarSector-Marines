@@ -1136,8 +1136,9 @@ support sortie, subject only to practical runtime resources.
   chassis-scoped controls. Selecting a vacant gantry instead opens the chassis- and
   vehicle-pattern catalog. **Choosing is not buying:** clicking a pattern selects it,
   stands it on the pad as a translucent preview at the scene's own scale (a mech in its
-  standard fit, a vehicle nose-up) and fills the build panel with its lore, kind and
-  bill; only the panel's BUILD spends anything. With nothing chosen the first pattern
+  standard fit, a vehicle nose-up) on the right of the view, and fills a build card floating over the
+  left of the scene with its name, kind, figures, lore and
+  bill; only the card's BUILD spends anything. With nothing chosen the first pattern
   the filter shows is previewed. A successful cargo-backed BUILD puts one persistent
   standard-fit chassis, or one vehicle, onto that exact pad and immediately makes
   it part of the active lance. A gantry holding a vehicle is selectable and shows its
