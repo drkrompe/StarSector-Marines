@@ -24,6 +24,8 @@ shot with a larger production.
   or motion troubleshooting.
 - Read [dynamic objects](references/dynamic-objects.md) for ships, shuttles,
   cranes, landing mechanisms, and any object whose details must survive movement.
+- Read [render layers](references/render-layers.md) when staging a shot that will
+  go through review rounds or carries effects or a large backdrop.
 
 The references distinguish demonstrated techniques from work still to be proved.
 Do not describe a concept sheet as a registered texture or the approved still
@@ -55,6 +57,17 @@ look as an already completed animation.
    the shot. Check both the visible result and the geometry/registration facts
    affected by the change. Continue an already authorized stage without adding
    approval gates; pause at review when the user explicitly requested it.
+
+## Plan render layers before the first final
+
+Decide a shot's layers when it is blocked, not after a final comes back wrong.
+Read [render layers](references/render-layers.md) before staging any shot that
+will take more than one review round or carries effects. Separate layers by how
+often they will change and how much they cost, keep every light source in the
+layer whose surfaces it lights, and composite deterministically (owner,
+2026-10-22: "it might be good for us to start doing that more"). Both C4's
+missing-plume repair and Asharu's backdrop work were composite jobs; planned
+layers make that a recomposite in seconds instead of a two-hour frame.
 
 ## Every moving craft shows its drive
 

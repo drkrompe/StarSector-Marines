@@ -496,13 +496,20 @@ muzzle moves the shot with it.
   multilayer EXR, `raw/<kf>.layers.exr`. `composite_layers.py` composes it into the still in
   seconds, so a new backdrop or a reworked effect never re-renders a hull:
   - `backdrop`: the planet and the starfield, at 16 samples. A locked camera's backdrop is
-    rendered once and cached by camera. A painted plate (`--plates DIR`, `<kf>.backdrop.exr`,
-    scene-linear, from the planet session) replaces it, and the layer is not rendered.
+    rendered once and cached by camera.
+  - **Painted plates** come from the planet session: `plates/<kf>/plate.png` beside the script,
+    an ImageGen painting on exactly the key frame's camera, committed with its prompt.
+    - The painting is display-referred, and AgX does not invert, so it is swapped in after the
+      view: `out = full + (1 - coverage) * (plate - backdrop)`.
+    - So the still shows the plate where nothing covers it and the hull where one does. A
+      drive's glow keeps its own tone over the painting.
+    - A scene-linear `<kf>.backdrop.exr` replaces the backdrop before the view instead.
+    - `--plates DIR` points elsewhere, and `--no-plates` is the control.
   - `ships`: the hulls at full samples. Effects and planet are indirect-only, so drives, muzzle
     flashes, burst lights, the sun and the planet's bounce light still light them.
   - `effects`: volumes, shields, rounds and bursts, with ships and planet as holdouts. Holdouts
     still cast shadows and bounce light.
-  - Every layer writes Cryptomatte (object, asset) and depth.
+  - Every layer writes Cryptomatte (object, material, asset) and depth.
   - The composite is the backdrop, with the ships over it and the effects over those
     (premultiplied). It then goes through the same AgX view the classic PNG uses.
   - `--diff REF.png` measures a composite against a combined render of the same frame.

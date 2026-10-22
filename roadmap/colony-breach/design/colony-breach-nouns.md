@@ -730,8 +730,7 @@ not read in a soft shadow at play zoom.
   down and across the sweep. An emplacement, a hull or a mech
   takes the crown. It breaks walls a Brute cannot (a fort's buildings, not its
   curtain until something has worn that down), from further off, and never
-  walks round to a door. It is not staggered and does not charge. Until it has
-  sounds of its own it borrows the Brute's.
+  walks round to a door. It is not staggered and does not charge.
 
   Its weight is set against a lance: three Bulwarks and one Matriarch at full
   health come out near even (the `matriarch` scene's `mech-lance` loop reads
@@ -1163,9 +1162,19 @@ stage pitches everything it makes by the inverse of its size and sets its
 loudness (a whelp about four semitones up and quieter, an elder deeper and
 louder): one take heard three ways stays the same creature. A pack's break is
 one scatter shriek, the leader's own cry at the leader's stage. The Spitter has
-no voice. The Matriarch's design has settled but its sounds are still open:
-it borrows the Brute's until its own join as a strain of their own (its
-catalogued roar was rejected and is to be redone).
+no voice. The Matriarch is the biggest of the Runner's and Brute's family and
+sounds it: only her roar (out of the bore and at each moult) and the whoosh
+and cut of a reap are her own takes; her bellow on new quarry, hoof, crown,
+wall breaking, pain and death are the Brute's, played deeper, slower and
+further apart.
+
+**Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
+and its sound is kept small: a strain's sound is an accepted take of a sibling
+strain played at another pitch and speed before it is a new file, and a new
+take is made only where nothing reusable fits. The shift is the sound player's
+own pitch argument at play time (which moves pitch and speed together), never
+a baked copy, so a variant costs no file. Growth stage rides the same
+argument.
 
 ## Laws
 
