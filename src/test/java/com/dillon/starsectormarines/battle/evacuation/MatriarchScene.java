@@ -164,6 +164,9 @@ public final class MatriarchScene implements BehaviorScene {
                         trace.multiArcReaps == 0 ? "no reap found two in its arc"
                                 : trace.multiCutReaps + " of " + trace.multiArcReaps
                                 + " reaps with two or more in the arc cut two or more"));
+                // Whoever lives through a cut is thrown: the knot stands still otherwise.
+                verdicts.add(Verdict.of("throws-the-reaped", trace.bodiesCut == 0 || trace.furthestThrown >= 1f,
+                        "furthest a reaped body was carried " + trace.furthestThrown + " cells"));
                 verdicts.add(Verdict.of("cuts-at-most-a-handful", trace.mostCut <= SwarmMatriarchBehavior.REAP_MAX_BODIES,
                         "most cut by one reap " + trace.mostCut));
             }
@@ -188,6 +191,7 @@ public final class MatriarchScene implements BehaviorScene {
         metrics.put("reaps", trace.reaps);
         metrics.put("crowns", trace.crowns);
         metrics.put("bodiesCut", trace.bodiesCut);
+        metrics.put("furthestThrown", trace.furthestThrown);
         metrics.put("mostCutByOneReap", trace.mostCut);
         metrics.put("matriarchHpLeft", pool0(trace.matriarch, sim));
         metrics.put("matriarchDiedTick", trace.diedTick);
@@ -208,6 +212,8 @@ public final class MatriarchScene implements BehaviorScene {
         private final SwarmStrainGround ground;
         private final long[] watched;
         private final float[] pool;
+        private final float[][] start;
+        private float furthestThrown;
         private final int[] ringHp;
         private final List<Kind> kinds = new ArrayList<>();
         private final List<String> reapOrder = new ArrayList<>();
@@ -225,7 +231,11 @@ public final class MatriarchScene implements BehaviorScene {
             this.watched = watched;
             this.ground = ground;
             pool = new float[watched.length];
-            for (int i = 0; i < watched.length; i++) pool[i] = pool(watched[i], sim);
+            start = new float[watched.length][];
+            for (int i = 0; i < watched.length; i++) {
+                pool[i] = pool(watched[i], sim);
+                start[i] = new float[]{sim.world().x(watched[i]), sim.world().y(watched[i])};
+            }
             if (ground != null) {
                 int w = ground.grid.getWidth();
                 ringHp = new int[w * ground.grid.getHeight()];
@@ -271,6 +281,11 @@ public final class MatriarchScene implements BehaviorScene {
                 } else if (action.kind == Kind.CROWN) {
                     crowns++;
                 }
+            }
+            for (int i = 0; i < watched.length; i++) {
+                if (!sim.getRoster().isAliveById(watched[i])) continue;
+                furthestThrown = Math.max(furthestThrown, (float) Math.hypot(
+                        sim.world().x(watched[i]) - start[i][0], sim.world().y(watched[i]) - start[i][1]));
             }
             int cut = 0;
             float[] now0 = new float[watched.length];
