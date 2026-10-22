@@ -259,5 +259,6 @@ com.dillon.starsectormarines.battle.fire.FireLineSceneSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.ColonyRoadblockSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.RoadblockSceneSnapshotSuite
 com.dillon.starsectormarines.battle.fire.FireColonySnapshotSuite
+com.dillon.starsectormarines.battle.evacuation.SwarmPackCrowdSceneSnapshotSuite
 com.dillon.starsectormarines.battle.cordon.CordonMapgenSnapshotSuite
 com.dillon.starsectormarines.battle.unit.BodyPileSnapshotSuite
