@@ -24,7 +24,9 @@ Remaining:
   bore; the satellites at maw stream surges at it all the way in and it never
   reaches the first one. The barrage (`heart-nouns.md`, Barrage plan) and the allied lanes
   (`heart-allied-lanes.md`) are the variants' answers; read again once they land
-  before touching numbers.
+  before touching numbers. With the barrage (same seed) The Burn's company
+  lasts to the time limit with 2 of 24 left; the shells wear a satellite they
+  cross (one to 95%, which broke out) but the company still collapses none.
 - Narration for the heart's beats, reusing Colony Breach's speech with pitch changes.
 
 ## Acceptance
