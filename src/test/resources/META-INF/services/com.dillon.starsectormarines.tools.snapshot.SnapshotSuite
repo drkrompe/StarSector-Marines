@@ -227,6 +227,7 @@ com.dillon.starsectormarines.battle.evacuation.SwarmStrainSkirmishSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmBruteBreachSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.SwarmStrainLayerSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.RavRunnerMotionSnapshotSuite
+com.dillon.starsectormarines.battle.evacuation.RavShadowSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.RavBruteMotionSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.DeckPropMotionSnapshotSuite
 com.dillon.starsectormarines.battle.evacuation.SwarmChokepointSceneSnapshotSuite
