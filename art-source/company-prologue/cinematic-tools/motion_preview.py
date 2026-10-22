@@ -82,6 +82,24 @@ def words(name):
 
 # =============================================================================== Blender side
 
+def off(ob):
+    """Stop an object drawing in the render. An instancer also stops instancing: Workbench still
+    draws a collection instance whose empty is only disabled in renders, so a hull would render
+    under its flat copy and its effect volumes would show through as grey solids."""
+    ob.hide_render = True
+    if ob.instance_type == 'COLLECTION':
+        ob.instance_type = 'NONE'
+
+
+def _alive(idb):
+    """False once Blender has deleted the datablock behind a cached reference."""
+    try:
+        idb.name
+        return True
+    except ReferenceError:
+        return False
+
+
 class Preview:
     """One preview run in one Blender session: any number of shots, each rendered as its own
     Workbench animation into `out/frames/f#####.png` (global frame numbers at `fps`).
@@ -174,6 +192,9 @@ class Preview:
     def flat(self, rgb):
         """A flat material of this colour (Workbench reads the viewport display colour)."""
         key = tuple(round(c, 3) for c in rgb)
+        if key in self._mats and not _alive(self._mats[key]):
+            print('PREVIEW material %s was deleted by the scene; made again' % (key,), flush=True)
+            del self._mats[key]
         if key not in self._mats:
             m = self.bpy.data.materials.new('Preview %.2f %.2f %.2f' % key)
             m.diffuse_color = (*key, 1.0)
@@ -217,7 +238,7 @@ class Preview:
             if (self.is_effect(ob) or any(a in ob.name for a in also)
                     or any(sl.material is not None and sl.material.name in materials
                            for sl in getattr(ob, 'material_slots', ()))):
-                ob.hide_render = True
+                off(ob)
                 n += 1
             for mod in getattr(ob, 'modifiers', ()):
                 if mod.type in ('PARTICLE_SYSTEM', 'FLUID'):
@@ -229,7 +250,7 @@ class Preview:
     def _bake(self, coll):
         """One mesh of everything a collection instance draws (hull parts, turrets, fittings; not
         its effects), in the collection's own space. Shared by every craft of that collection."""
-        if coll.name in self._baked:
+        if coll.name in self._baked and _alive(self._baked[coll.name]):
             return self._baked[coll.name]
         import time
         import numpy as np
@@ -331,7 +352,7 @@ class Preview:
             body = self.bpy.data.objects.new('Preview | ' + name, self._bake(obj.instance_collection))
             self.coll.objects.link(body)
             body.matrix_world = obj.matrix_world.copy()
-            obj.hide_render = True
+            off(obj)
             if pose is None:              # follow the instancer's own animation
                 body.parent = obj
                 body.matrix_parent_inverse.identity()
@@ -347,7 +368,7 @@ class Preview:
                     self.coll.objects.link(sub)
                     sub.parent = o
                     sub.matrix_parent_inverse.identity()
-                    o.hide_render = True
+                    off(o)
                     self._paint(sub, mat)
                     self._shot['objects'].append(sub)
                 elif o.type in ('MESH', 'CURVE', 'SURFACE', 'META', 'FONT'):
@@ -358,6 +379,11 @@ class Preview:
 
     # ------------------------------------------------------------------ proxies
     def _proxy(self, name, me, kind, rgb=None):
+        if not all(_alive(m) for m in (self.cone_me, self.rod_me, self.ball_me, self.shell_me, self.cap_me)):
+            print('PREVIEW unit meshes were deleted by the scene; made again', flush=True)
+            self._units()
+            me = {'Preview cone': self.cone_me, 'Preview rod': self.rod_me, 'Preview ball': self.ball_me,
+                  'Preview shell': self.shell_me, 'Preview half shell': self.cap_me}.get(getattr(me, 'name', ''), self.ball_me)
         o = self.bpy.data.objects.new('Preview fx | ' + name, me)
         self.coll.objects.link(o)
         self._paint(o, self.flat(rgb or FX_RGB[kind]))
