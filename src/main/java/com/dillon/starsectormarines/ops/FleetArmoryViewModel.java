@@ -214,10 +214,10 @@ public final class FleetArmoryViewModel {
         armorDoctrineSummary = reactor.computed(this::buildArmorDoctrineSummary);
         weaponPickerTabClasses = reactor.computed(() -> equipmentPickerKind.get()
                 == EquipmentPickerKind.WEAPON
-                ? "equipment-picker-tab selected" : "equipment-picker-tab");
+                ? "equipment-picker-tab spec-tab selected" : "equipment-picker-tab spec-tab");
         armorPickerTabClasses = reactor.computed(() -> equipmentPickerKind.get()
                 == EquipmentPickerKind.ARMOR
-                ? "equipment-picker-tab selected" : "equipment-picker-tab");
+                ? "equipment-picker-tab spec-tab selected" : "equipment-picker-tab spec-tab");
         weaponPickerPanelClasses = reactor.computed(() -> equipmentPickerKind.get()
                 == EquipmentPickerKind.WEAPON
                 ? "doctrine-slot" : "doctrine-slot picker-hidden");
@@ -698,7 +698,7 @@ public final class FleetArmoryViewModel {
         for (LoadoutFilter filter : LoadoutFilter.values()) {
             String id = "loadout-filter:" + filter.name().toLowerCase(Locale.ROOT);
             filters.add(new LoadoutFilterOption(id, filter.label(),
-                    filter == selected ? "loadout-filter selected" : "loadout-filter",
+                    filter == selected ? "loadout-filter spec-tab selected" : "loadout-filter spec-tab",
                     showLoadoutFilterAction(filter)));
         }
         return List.copyOf(filters);
@@ -965,42 +965,16 @@ public final class FleetArmoryViewModel {
         return candidate.canApply() ? "" : squadEquipmentMessage(candidate);
     }
 
-    /**
-     * The selected squad's two cards as the right column's summary reads them: the card's
-     * face, its kind, its rating, and the Restricted seal when it bears one. The Mech Lab's
-     * specifications panel is the model: what the thing being fitted is, at a glance.
-     */
+    /** The selected squad's two issued cards, as the squad view opens on them ({@link CardChips}). */
     private List<Map<String, Object>> squadCards() {
         MarineSquad squad = roster.squadById(selectedSquadId.get());
         List<Map<String, Object>> cards = new ArrayList<>();
         if (squad == null) return cards;
         SquadWeaponDoctrine weapons = roster.armory().weaponDoctrineById(squad.weaponDoctrineId());
-        if (weapons != null) {
-            cards.add(squadCard("loadout-squad-card:weapons", weaponCardFace(weapons), "loadoutSquadCardWeapon",
-                    Strings.format("openingLoadoutFireRating", LoadoutEffectiveness.weaponRating(weapons))));
-        }
+        if (weapons != null) cards.add(CardChips.weapons("loadout-squad-card:weapons", weapons, false));
         SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlanById(squad.armorDoctrineId());
-        if (plan != null) {
-            SquadArmorDoctrine issued = roster.armory().issue(plan);
-            cards.add(squadCard("loadout-squad-card:armor", armorCardFace(plan, issued), "loadoutSquadCardSheet",
-                    Strings.format("openingLoadoutGuardRating", LoadoutEffectiveness.armorRating(issued))));
-        }
+        if (plan != null) cards.add(CardChips.sheet("loadout-squad-card:armor", plan, roster.armory().issue(plan), false));
         return cards;
-    }
-
-    private static Map<String, Object> squadCard(String id, CardFace face, String kindKey, String rating) {
-        Map<String, Object> card = new LinkedHashMap<>();
-        card.put("id", id);
-        for (String child : List.of("slot", "seal", "icon", "text", "kind", "name", "rating")) {
-            card.put(child + "Id", id + ":" + child);
-        }
-        card.put("sealClasses", face.restricted() ? "loadout-squad-card-seal"
-                : "loadout-squad-card-seal loadout-squad-card-seal-absent");
-        card.put("icon", face.icon() == null ? "" : face.icon());
-        card.put("kind", Strings.get(kindKey));
-        card.put("name", face.name());
-        card.put("rating", rating);
-        return card;
     }
 
     private String currentSquadWeaponDoctrine() {
@@ -1718,8 +1692,8 @@ public final class FleetArmoryViewModel {
                 case "issueDisabled" -> issueDisabled || issued;
                 case "issueLabel" -> Strings.get(issued ? "loadoutIssuedState" : "loadoutIssueAction");
                 case "issueButtonClasses" -> issue == null ? "doctrine-issue-button-hidden"
-                        : issued ? "doctrine-issue-button issued console-action"
-                        : "doctrine-issue-button console-action";
+                        : issued ? "doctrine-issue-button spec-action issued"
+                        : "doctrine-issue-button spec-action";
                 case "issueReason" -> issueReason;
                 case "issueReasonClasses" -> issueReason.isEmpty() || issue == null
                         ? "doctrine-issue-reason-empty"

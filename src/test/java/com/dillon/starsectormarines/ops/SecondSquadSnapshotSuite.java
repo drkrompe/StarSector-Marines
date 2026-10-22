@@ -103,7 +103,7 @@ public final class SecondSquadSnapshotSuite implements SnapshotSuite {
         Runnable noop = () -> {};
         MarineOpsPageNav.put(properties, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP, noop, noop, noop, noop, noop, noop);
         loader = loader(context, "data/ui/components/company/company-resource-stock.mlx",
-            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/company/shipboard-barracks.mlx");
+            "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/armory/armory-card-chip.mlx", "data/ui/components/company/shipboard-barracks.mlx");
         try (var markup = loader.reloadAndBuild(reactor, "shipboard-barracks", properties)) {
             var doc = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
             markup.styles().forEach(doc::addStyleSheet);

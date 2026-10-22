@@ -173,7 +173,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static final List<String> BARRACKS_COMPONENTS = List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
-            "data/ui/components/company/shipboard-barracks.mlx");
+            "data/ui/components/armory/armory-card-chip.mlx", "data/ui/components/company/shipboard-barracks.mlx");
     /**
      * The fleet the transfer evidence is drawn from: a plausible mid-campaign
      * mix, best home first, with hulls that would cost the company something
@@ -219,7 +219,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
-            "data/ui/components/armory/armory-loadout-card.mlx", "data/ui/components/armory/armory-squad-doctrine.mlx",
+            "data/ui/components/armory/armory-loadout-card.mlx", "data/ui/components/armory/armory-squad-view.mlx", "data/ui/components/armory/armory-card-chip.mlx", "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx",
             "data/ui/components/armory/armory-armor-comparison.mlx");
     private static final List<String> MECH_LAB_COMPONENTS = List.of(
@@ -1784,7 +1784,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 editorMarkup.styles().forEach(editorDocument::addStyleSheet);
                 // Installed with the document, as the screen does: the cards wear its classes.
                 var sheets = new SpecSheetBinder(editorDocument, SpecSheetLayer.install(editorDocument));
-                LoadoutInspection.bindPortraits(editorDocument, editorMarkup, editor.inspection(),
+                LoadoutInspection.bindPortraits(editorDocument, editorMarkup, editor.inspection()::get,
                         new HeadlessArmoryPreviewRenderer(context.modRoot()).assets());
                 MarineOpsPageNav.refresh(editorMarkup, MarineOpsPageNav.Page.ARMORY, MarineOpsPageNav.ANY_SHIP,
                         List.of(CompanyNotices.Notice.FIRST_REFIT));
@@ -1826,7 +1826,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 frames.add(new SnapshotArtifact("03e-vacant-billet-plan.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 if (editor.applyDisabled().get()) throw new AssertionError("Wounds or vacancies blocked fitting");
                 clickBarracksFlow(editorDocument, editorMarkup, "loadout-billet:0");
-                ArmorySpecSheets.bindInspection(sheets, editorMarkup, editor.inspection());
+                ArmorySpecSheets.bindInspection(sheets, editorMarkup, editor.inspection()::get);
                 var target = editorMarkup.requireElement(LoadoutInspection.partId(0, LoadoutInspection.ARMOR));
                 var targetBox = target.box().borderBox();
                 editorDocument.pointerMoved(targetBox.x() + targetBox.width()/2, targetBox.y() + targetBox.height()/2);
@@ -2437,11 +2437,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             // As the screen does: the cards wear the spec sheet's classes, and each marine has a portrait.
             SpecSheetLayer.install(document);
-            if (fireteam) LoadoutInspection.bindPortraits(document, instance, viewModel.inspection(), armoryPreview.assets());
+            if (fireteam) LoadoutInspection.bindPortraits(document, instance, viewModel.inspection()::get, armoryPreview.assets());
             if (equipmentTooltip) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
-                ArmorySpecSheets.bindInspection(binder, instance, viewModel.inspection());
+                ArmorySpecSheets.bindInspection(binder, instance, viewModel.inspection()::get);
                 openSpecSheet(document, binder, width, height,
                         instance.requireElement(LoadoutInspection.partId(0, LoadoutInspection.ARMOR)));
             }

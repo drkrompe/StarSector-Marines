@@ -35,7 +35,7 @@ public final class BarracksScreen implements Screen {
     private static final List<String> COMPONENT_PATHS = List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
-            "data/ui/components/company/shipboard-barracks.mlx");
+            "data/ui/components/armory/armory-card-chip.mlx", "data/ui/components/company/shipboard-barracks.mlx");
 
     private final Reactor reactor = new Reactor();
     private final MarkupLoader markup = new MarkupLoader(
