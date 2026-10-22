@@ -1092,9 +1092,22 @@ rectangle across the landscape.
 
 **No wall or lot draws the first urban sheet's blue steel.** A wall no stage
 gave a material takes the installation's light concrete when the map is
-finalized (a ship deck dresses its own bulkheads instead), and rubble ground,
-a rubble lot or a wall knocked down, draws as cracked gravel with scrap. The
-blue riveted wall and the blue chevron rubble of that sheet are retired.
+finalized (a ship deck dresses its own bulkheads instead), and rubble ground
+draws as cracked gravel. The blue riveted wall and the blue chevron rubble of
+that sheet are retired.
+
+**A lot with no building is land in use or a ruin, never a scatter of junk.**
+In a farming settlement, a town with farmland round it as the Colony Breach
+colony has, nothing was knocked down: an empty lot is bare earth grown over at
+its edges, a fenced dirt yard with stores stacked inside, or a fenced kitchen
+plot in crop rows. Elsewhere it is the footprint of a burned-out building:
+short runs of its wall still stand as real walls, the rest of its outline is
+rubble stubs in the same material, a collapsed corner lies heaped inside, and
+the wrecked furniture lies where the rooms were. A standing run is at most
+three cells and never meets another, and every fence is gated on all four
+sides, so neither ever closes a way through the block.
+`-Dbattle.mapgen.settlementLots=false` is the control: the settlement's lots
+are ruins too.
 
 A programmed precinct owns its working ground even where that ground was
 already walkable before its buildings were packed. Its kept circulation takes
