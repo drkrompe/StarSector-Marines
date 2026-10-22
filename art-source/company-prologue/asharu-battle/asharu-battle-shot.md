@@ -115,8 +115,9 @@ Assumptions the story does not give (owner to confirm or change):
 
 The convoy is in low orbit over the day side. It has slowed to set up its
 descent window, which is why it cannot simply outrun anyone. It has just passed
-above the derelict platform, which sits about 4 km lower and 10 km astern. A
-lower orbit is a faster one, so a raider that lights its drives there catches up
+above the derelict platform, which sits about 4.5 km off: 1.8 km lower and 4 km
+astern (coordinator, 2026-10-22, brought in from 10 km so the pirates can reach the
+column in the time the cuts give them). A lower orbit is a faster one, so a raider that lights its drives there catches up
 from behind and below without having to chase.
 
 Every fleet shot happens inside a box a few kilometres across. Ranges between
@@ -706,8 +707,9 @@ One line each, with its owner. Keep this list current, and remove an item when i
 
 - **Owner's verdict on motion preview 13**, including the radio's density and the S13 bookend.
   Owner. Nothing is lit-rendered until the motion is accepted.
-- **S4 to S5 continuity:** the pirates jump about 7 km at the cut to reach their S6 positions.
-  Blockout session.
+- **Owner to confirm the derelict at 4.5 km** (closed the 7 km S4 to S5 jump; the coordinator's
+  call). Each pirate's launch now eases onto her next shot's flight (`REJOIN`; S5's two ships share
+  it with S5), so no cut jumps her; `--check`'s rejoin report flags it when a flight moves. Owner.
 - **The final comms script.** Fable writer session, once the timings and callsigns settle. It
   replaces `radio_log.TRAFFIC`, including its placeholder lines (see "Radio traffic (draft)").
 - **The wreck kit is swapped in** for lit renders (`roster.WRECKS`, `builds/asharu-wrecks/33513e7f8`,

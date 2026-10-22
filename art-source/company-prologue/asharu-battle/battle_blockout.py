@@ -128,7 +128,13 @@ PIRATES_RISING = {   # coming up out of the platform, behind and below the convo
     'kite-p-b': (-6700, 450, -3150, 3, 14, 2, 1),
 }
 
-PLATFORM = (-9500, 1200, -4300)   # the derelict Asharu platform: about 4 km lower and 10 km astern
+# The derelict Asharu platform: about 4.5 km from the convoy, astern and below. It sat 10.5 km out at
+# (-9500, 1200, -4300) until 2026-10-22, when the pirates had to cover 7 km in the six seconds of the
+# S4 to S5 cut to reach their S6 positions. It was brought in along its own line of sight to the
+# convoy, so the convoy sees the field from the same direction (TOWARD_CONVOY) and the debris field,
+# its covers and its keep-outs, which the wreck kit is fitted to, are the same box for box.
+PLATFORM_FAR = (-9500, 1200, -4300)
+PLATFORM = tuple(c * .43 for c in PLATFORM_FAR)
 
 
 PLATFORM_HD = -70.0     # the platform's long axis, turned so the convoy sees it broadside from its north side
@@ -369,7 +375,7 @@ K3B_SEATS = {'hermes-p-a': (2.0, -4.0, 6.43), 'hermes-p-b': (-22.0, 3.0, 8.0), '
 K1B_T = 34
 K2_T = 40
 LAUNCH = {'falcon-p': 33.8, 'manticore-p': 35.0, 'colossus3': 35.6, 'kite-p-a': 36.0, 'wolf-p-a': 36.3,
-          'hound-p-a': 36.6, 'wolf-p-b': 36.9, 'kite-p-b': 37.2, 'hound-p-b': 37.5, 'buffalo2-a': 37.8,
+          'hound-p-a': 36.6, 'wolf-p-b': 35.4, 'kite-p-b': 37.2, 'hound-p-b': 37.5, 'buffalo2-a': 37.8,
           'hound-p-c': 38.2}
 CLIMB_SPEED = {'frigate': 300.0, 'destroyer': 240.0, 'cruiser': 190.0, 'freighter': 150.0}
 
@@ -399,10 +405,54 @@ def launch(key, hide, t_light, climb):
 
 
 PIRATE_LAUNCH = {k: launch(k, PIRATES_MOORED[k], LAUNCH[k], PIRATES_RISING[k]) for k in PIRATES_MOORED}
-K1B_SHIPS = PIRATE_LAUNCH
+
+# Each pirate rejoins the flight her next shot gives her (S5 and S6 for most): (that shot's start, the
+# offset from her launch to it there). The launch is eased onto it, so a cut never jumps her. Those
+# rejoining at S5 or S6 ease over from 4.6 s after their drives light, once clear of their wrecks;
+# the rest, next seen from S6b on, only once S4 has cut away (44 s). The two S5 ships share theirs
+# with S5 (S5_SHARE). Measured by rejoin_offsets(); --check says when they are stale.
+REJOIN = {
+    'manticore-p': (44.0, (-29.3, -565.0, 622.2)),
+    'colossus3': (88.0, (-6730.2, -5615.4, -3326.8)),
+    'falcon-p': (50.0, (-452.3, -1837.3, 930.3)),
+    'buffalo2-a': (50.0, (-1075.1, -147.2, 1026.1)),
+    'hound-p-c': (58.0, (-2472.7, 524.4, 100.3)),
+    'wolf-p-a': (50.0, (413.2, -2007.3, 1033.5)),
+    'wolf-p-b': (44.0, (-53.4, -360.9, 674.1)),
+    'hound-p-a': (74.0, (-11236.5, -3039.9, -4141.1)),
+    'hound-p-b': (74.0, (-10062.0, -3951.7, -3462.5)),
+    'kite-p-a': (80.0, (-11775.0, -6673.0, -5968.8)),
+    'kite-p-b': (80.0, (-11131.8, -5111.7, -5894.5)),
+}
+
+
+def rejoin_start(t_light, t_next):
+    """When a pirate starts easing onto her next shot's flight."""
+    return t_light + 4.6 if t_next <= 50.0 else max(t_light + 4.6, 44.0)
+
+
+def rejoined(key, f, t_light):
+    """A launch flight eased onto its REJOIN offset: positions only, her attitude is the launch's."""
+    if key not in REJOIN:
+        return f
+    t_next, d = REJOIN[key]
+    ta = rejoin_start(t_light, t_next)
+
+    def at(t):
+        p = f.at(t)
+        u = min(1.0, max(0.0, (t - ta) / (t_next - ta)))
+        w = u * u * (3 - 2 * u)
+        return (p[0] + w * d[0], p[1] + w * d[1], p[2] + w * d[2], *p[3:])
+    return Pose(at(f.t), f.t, at)
+
+
+# What the shots fly. The debris field was laid out against PIRATE_LAUNCH (its keep-outs), and stays
+# so; hide_lines checks the clearance of these.
+PIRATE_FLIGHT = {k: rejoined(k, f, LAUNCH[k]) for k, f in PIRATE_LAUNCH.items()}
+K1B_SHIPS = PIRATE_FLIGHT
 K2_CAM = (PLATFORM[0] + 600, PLATFORM[1] - 1500, PLATFORM[2] + 350)     # off the south flank, a little above
 K2_AIM = (PLATFORM[0] + 100, PLATFORM[1] - 60, PLATFORM[2] + 40)
-K2_PIRATES = {k: Pose(f.at(K2_T), K2_T, f.at) for k, f in PIRATE_LAUNCH.items()}
+K2_PIRATES = {k: Pose(f.at(K2_T), K2_T, f.at) for k, f in PIRATE_FLIGHT.items()}
 
 
 def _field():
@@ -746,14 +796,15 @@ KEYFRAMES = {
         caption='Long lens from the convoy\'s tail, back down at the derelict platform it has just passed: dark, '
                 'stripped, hulks in its bays. Then one of the hulks shows a light: the Falcon (P)\'s drives coming '
                 'up. Eleven more lie cold beside her.',
-        # ZOOM, then CRASH ZOOM: a long lens finding the platform, holding until it reads as junk, then
-        # snapping in on the Falcon (P) as her drives light; handheld at the long end
-        camera=camera('k1b', [dict(t=30, loc=(-1560, -150, 85), target=PLATFORM, lens=90),
-                              dict(t=34, loc=(-1600, -120, 90), target=PLATFORM, lens=135),
+        # ZOOM, then CRASH ZOOM: finding the platform, holding until it reads as junk, then snapping in
+        # on the Falcon (P) as her drives light; handheld at the long end. The lenses were refitted when
+        # the platform came in to 4.5 km (90, 135, 165, 300 mm at 10 km): the same framings, closer.
+        camera=camera('k1b', [dict(t=30, loc=(-1560, -150, 85), target=PLATFORM, lens=32),
+                              dict(t=34, loc=(-1600, -120, 90), target=PLATFORM, lens=48),
                               dict(t=36.4, loc=(-1610, -110, 92), target=track(K1B_SHIPS['falcon-p'], PIRATES_MOORED['falcon-p'][:3]),
-                                   lens=165),
+                                   lens=68),
                               dict(t=38, loc=(-1630, -95, 96), target=track(K1B_SHIPS['falcon-p'], PIRATES_MOORED['falcon-p'][:3]),
-                                   lens=300)], K1B_T, shake=.05),
+                                   lens=122)], K1B_T, shake=.05),
         ships=K1B_SHIPS,
         platform=PLATFORM, platform_t=K1B_T,
         labels=['platform', 'falcon-p', 'colossus3', 'manticore-p']),
@@ -962,11 +1013,31 @@ def at_time(pose, t):
     return Pose(pose.at(t), t, pose.at)
 
 
-M5_MANTICORE = at_time(K3_SHIPS['manticore-p'], 47.0)
+# The two pirates S5 shows rejoin their S6 flights across both S4 and S5 rather than in S4's last
+# seconds alone: S4 eases them S5_SHARE of the way (REJOIN), S5 the rest, by 50 s, where S6 picks up.
+S5_SHARE = {'manticore-p': .5, 'wolf-p-b': .4}
+
+
+def s5_eased(key, t_still):
+    """Her S6 flight, still short of it at S5's start by the part of the rejoin S4 left (1 -
+    S5_SHARE), eased onto it by 50 s."""
+    f, raw = K3_SHIPS[key], PIRATE_LAUNCH[key]
+    s6, here = f.at(44.0), raw.at(44.0)
+    e = [(1 - S5_SHARE[key]) * (s6[i] - here[i]) for i in range(3)]
+
+    def at(t):
+        p = f.at(t)
+        u = min(1.0, max(0.0, (t - 44.0) / 6.0))
+        w = 1 - u * u * (3 - 2 * u)
+        return (p[0] - w * e[0], p[1] - w * e[1], p[2] - w * e[2], *p[3:])
+    return Pose(at(t_still), t_still, at)
+
+
+M5_MANTICORE = s5_eased('manticore-p', 47.0)
 _m5 = M5_MANTICORE.at(M5_T)
 _m5_aim = convoy_at(M5_T)['phaeton']
 M5_SHIPS = {**{k: v for k, v in convoy_at(M5_T).items() if k in ('phaeton', 'tarsus', 'hound-m', 'buffalo-b', 'dram')},
-            **{k: at_time(K3_SHIPS[k], M5_T) for k in ('manticore-p', 'wolf-p-b')}}
+            **{k: s5_eased(k, M5_T) for k in ('manticore-p', 'wolf-p-b')}}
 _m5_dir = [b - a for a, b in zip(_m5[:3], _m5_aim[:3])]
 _m5_len = math.sqrt(sum(x * x for x in _m5_dir))
 _m5_dir = [x / _m5_len for x in _m5_dir]
@@ -2892,6 +2963,37 @@ def station_boxes():
     return out
 
 
+def rejoin_offsets():
+    """{pirate: (t, offset)}: where each pirate is first seen after S4 (the start of the first shot
+    from 44 s on that has her), and her launch's offset from that shot's flight there: REJOIN's values."""
+    starts = sorted((spec['camera']['at'].keys[0]['t'], k) for k, spec in SHOTS.items()
+                    if 'at' in spec['camera'] and spec.get('ships'))
+    out = {}
+    for p, f in PIRATE_LAUNCH.items():
+        nxt = [(t, k) for t, k in starts if t >= 44.0 - 1e-6 and p in SHOTS[k]['ships']]
+        if nxt:
+            t, k = nxt[0]
+            tgt, here = SHOTS[k]['ships'][p], f.at(t)
+            tgt = tgt.at(t) if hasattr(tgt, 'at') else tgt
+            out[p] = (t, tuple(round(tgt[i] - here[i], 1) for i in range(3)))
+    return out
+
+
+def rejoin_lines():
+    """--check's cut report: each pirate's jump into her next shot, and how much faster than her
+    launch the rejoin flies her (REJOIN STALE when a flight moved and REJOIN wants re-measuring)."""
+    out = ['rejoin (each pirate onto her next shot after S4)']
+    fresh = rejoin_offsets()
+    for p, (t, d) in fresh.items():
+        stale = math.dist(d, REJOIN.get(p, (0, (0, 0, 0)))[1]) > 25.0
+        ta = rejoin_start(LAUNCH[p], t)
+        extra = math.dist(REJOIN[p][1], (0, 0, 0)) / (t - ta) if p in REJOIN else 0.0
+        jump = math.dist(d, REJOIN[p][1]) if p in REJOIN else math.dist(d, (0, 0, 0))
+        out.append('   %-12s at %5.1f s  jump %5.0f m  rejoin %5.0f m over %4.1f s (+%3.0f m/s)%s' % (
+            p, t, jump, math.dist(d, (0, 0, 0)), t - ta, extra, '  REJOIN STALE: %s' % (d,) if stale else ''))
+    return out
+
+
 def kit_lines():
     """--check's wreck-kit report: whether the kit's station still matches platform_parts(), which
     hulks the field's boxes draw, the worst stretch of a kit wreck into its box, and whether the
@@ -2939,7 +3041,7 @@ def hide_lines():
         if cover is not None and cv < vol:
             flags.append('SMALL')
         hits = set()
-        f = PIRATE_LAUNCH[k]
+        f = PIRATE_FLIGHT[k]
         for i in range(0, 49):
             t = LAUNCH[k] + i * .25
             q = f.at(t)
@@ -3206,6 +3308,8 @@ def main():
         for line in hide_lines():
             print(line)
         for line in kit_lines():
+            print(line)
+        for line in rejoin_lines():
             print(line)
         return
 
