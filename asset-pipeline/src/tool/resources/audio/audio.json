@@ -406,7 +406,6 @@
     { "id": "marines_smallarms_rifle_01",  "source": "small-arms/Futuristic Assault Rifle Single Shot 01.wav", "kind": "positional", "out": "battle/small-arms" },
     { "id": "marines_smallarms_rifle_02",  "source": "small-arms/Futuristic Assault Rifle Single Shot 02.wav", "kind": "positional", "out": "battle/small-arms" },
     { "id": "marines_rook_rifle_fire",    "source": "small-arms/WEAPMisc-Assault_rifle_m16_sh-Elevenlabs.wav", "kind": "positional", "out": "battle/small-arms" },
-    { "id": "marines_smallarms_reload",    "source": "small-arms/reload-small-arm.wav",                        "kind": "positional", "out": "battle/small-arms" },
 
 
     // Additional generic combat reports
@@ -534,7 +533,6 @@
     // ----- misc -----
     // Vehicle engine loops are NOT encoded here — they reference the base game's sounds/sfx_engines/
     // clips directly (see the VEHICLE ENGINE LOOPS block in mod/data/config/sounds.json).
-    { "id": "marines_ticking_clock",  "source": "ticking-clock.wav",                "kind": "ui", "out": "battle" },
     {"id": "wayline_thunder_run_gunship_inbound", "source": "wayline/wayline_thunder_run_gunship_inbound.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
     {"id": "wayline_thunder_run_gunship_pass_committed", "source": "wayline/wayline_thunder_run_gunship_pass_committed.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},
     {"id": "wayline_thunder_run_gunship_missile_warning", "source": "wayline/wayline_thunder_run_gunship_missile_warning.mp3", "kind": "ui", "out": "story/wayline", "processing": "air_comms"},

@@ -160,7 +160,6 @@ public class BattleScreen implements Screen, BattleUiContext {
             "marines_battle_music_09",
             "marines_battle_music_10",
     };
-    private static final String LOOP_TICKING  = "marines_ticking_clock";
     private static final String SFX_VOICE_DEAD = "marines_voice_dead";
     /** A suit's integral system raising a screen. Mono, so it plays positionally. */
     private static final String SFX_SYSTEM_SCREEN_UP = "marines_system_screen_up";
@@ -303,7 +302,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** The one faction-local Conquest command picture currently projected into the world. */
     private Faction debugConquestPerspective;
     /**
-     * True while this screen owns the audio side effects (custom music + ticking-clock loop
+     * True while this screen owns the audio side effects (custom music + ambient loops
      * + suspended default playback). Guarded so attach() re-runs from dialog resizes don't
      * restart the music mid-battle, and detach() doesn't double-stop on already-cleaned exits.
      */
@@ -423,9 +422,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     /**
      * Suspend the campaign music player and crossfade into our shuffled battle playlist.
      * Guarded so re-entry from a dialog resize (attach() is documented as idempotent)
-     * doesn't restart the music mid-battle. The ticking-clock loop itself is started
-     * lazily on the first {@link #advance(float)} — {@code playUILoop} must be called
-     * every frame anyway, so there's no benefit to kicking it off here.
+     * doesn't restart the music mid-battle. Ambient loops are driven from
+     * {@link #advance(float)}, since {@code playUILoop} must be called every frame.
      */
     private void startBattleAudio() {
         if (audioActive) return;
@@ -550,7 +548,6 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (nextTrack != null) {
                 Global.getSoundPlayer().playCustomMusic(0, 0, nextTrack, false);
             }
-            Global.getSoundPlayer().playUILoop(LOOP_TICKING, 1f, 1f);
             driveAmbientBackground(dt);
         }
         BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
@@ -1462,7 +1459,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (emission != null) {
             OperationRadio.Transmission report = operationRadio.report(emission.cue());
             // Without the cast's catalog a report goes unspoken: there is no other radio bank.
-            if (report != null) radioChatter.reserveVoice(report.line().durationSeconds());
+            if (report != null) {
+                radioChatter.reserveVoice(report.line().durationSeconds());
+                // Company command answers once the report clears the channel.
+                companyOfficer.heard(emission.cue());
+            }
         } else if (running && !channelBusy && !companyOfficer.busy() && radioChatter.voiceAvailable()) {
             OperationRadio.Transmission opening = operationRadio.beginExchange();
             if (opening != null) radioChatter.reserveVoice(opening.line().durationSeconds());
