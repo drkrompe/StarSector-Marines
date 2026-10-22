@@ -75,7 +75,10 @@
                       <div id="{item.deltaId}" class="{item.deltaClasses}">{item.delta}</div>
                       <div id="{item.detailId}" class="label tone-muted catalog-detail">{item.detail}</div>
                     </div>
-                    <button id="{item.actionId}" class="{item.actionClasses}" disabled="{item.actionDisabled}" onclick="{item.action}">{item.actionLabel}</button>
+                    <button id="{item.actionId}" class="{item.actionClasses}" disabled="{item.actionDisabled}" onclick="{item.action}">
+                      <img id="{item.actionIconId}" class="{item.actionIconClasses}" src="graphics/ui/mech-hardware/fab.svg" />
+                      <div id="{item.actionTextId}" class="label heading catalog-fab-text">{item.actionText}</div>
+                    </button>
                   </div>
                   <div id="{item.materialsId}" class="{item.materialsClasses}">
                     <div each="material in item.materials" key="{material.id}" id="{material.id}" class="{material.chipClasses}">
@@ -275,7 +278,10 @@
   .material-cost.short { border-color: #8f3f44; background-color: #251419; }
   .material-icon { width: 18px; height: 18px; }
   .material-label { width: 0px; height: 14px; flex-grow: 1; }
-  .catalog-fab { width: 52px; height: 52px; padding: 0px; border-width: 2px; text-align: center; font-family: heading; }
+  .catalog-fab { flex-direction: column; align-items: center; width: 44px; height: 44px; padding: 5px; border-width: 1px; text-align: center; font-family: heading; }
+  .catalog-fab.short { opacity: 0.45; }
+  .catalog-fab-icon { width: 32px; height: 32px; pointer-events: none; }
+  .catalog-fab-text { width: 100%; height: 16px; text-align: center; pointer-events: none; }
   .drag-drop-note { flex-direction: column; height: 42px; padding: 4px; gap: 1px; }
   .drag-drop-note.drop-active { background-color: #203a29; border-color: #78d494; border-width: 2px; }
   #mech-drag-drop-title, #mech-drag-drop-types { height: 16px; }

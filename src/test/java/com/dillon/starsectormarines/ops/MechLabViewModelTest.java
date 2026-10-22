@@ -614,6 +614,8 @@ class MechLabViewModelTest {
             assertEquals(1, bay.availableWeapon(MechWeaponComponent.DUAL_PULSE_LASERS.id));
             assertNotEquals(MechWeaponComponent.DUAL_PULSE_LASERS, viewModel.installedWeapon(SocketId.ARMS),
                     "fabrication must not fit the part");
+            assertTrue(instance.requireElement("mech-catalog:" + MechWeaponComponent.DUAL_PULSE_LASERS.id + ":action")
+                    .hasClass("hidden"), "a spare in stores takes the build offer away");
         }
     }
 

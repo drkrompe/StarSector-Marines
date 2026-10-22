@@ -1074,7 +1074,9 @@ public final class MechLabViewModel {
             }
 
             String base = "mech-catalog:" + component.id;
-            boolean showMaterials = !locked;
+            // Building is offered only when there is no spare to drag: a stocked row is a part,
+            // not an order, and stripping one back to stores takes the offer away again.
+            boolean showMaterials = !locked && !inCargo;
             List<Row> materials = showMaterials ? materialRows(base, bill) : List.of();
             String materialsClasses = showMaterials ? "material-costs" : "material-costs hidden";
 
@@ -1088,10 +1090,10 @@ public final class MechLabViewModel {
                     Strings.format("openingMechLabOwnFree", recipe.provenance(), owned, free),
                     telemetry, deltaText, deltaClasses,
                     Strings.format("openingMechLabGrid", component.hardpointType, component.footprintColumns, component.footprintRows),
-                    locked ? "" : Strings.get("openingMechLabFab"),
+                    showMaterials ? Strings.get("openingMechLabFab") : "",
                     affordable ? Strings.get("openingMechLabFabHint")
                             : Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor"),
-                    locked || !affordable, materials, materialsClasses,
+                    !showMaterials || !affordable, materials, materialsClasses,
                     () -> fabricateWeapon(component)));
         }
         return List.copyOf(rows);
@@ -1241,16 +1243,17 @@ public final class MechLabViewModel {
             // Plating covers the whole frame and has no mount to drop on, so a spare is fitted
             // from its row; every other part is dragged onto its mount.
             boolean fitFromRow = plating && inCargo;
+            boolean offerFab = !locked && !inCargo;
             String actionLabel = fitFromRow ? Strings.get("openingMechLabFit")
-                    : locked ? "" : Strings.get("openingMechLabFab");
+                    : offerFab ? Strings.get("openingMechLabFab") : "";
             String actionHint = fitFromRow ? !withinBudget ? overBudgetHint(proposed)
                     : Strings.get("openingMechLabInternalSpareHint")
                     : affordable ? Strings.get("openingMechLabFabHint")
                     : Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor");
-            disabled = fitFromRow ? !withinBudget : locked || !affordable;
+            disabled = fitFromRow ? !withinBudget : !offerFab || !affordable;
 
             String base = "mech-catalog:" + internal.id;
-            boolean showMaterials = !locked && !fitFromRow;
+            boolean showMaterials = offerFab;
             List<Row> materials = showMaterials ? materialRows(base, resources.quote(recipe.cost())) : List.of();
             rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
                     base + ":stock", base + ":telemetry", base + ":delta",
@@ -2212,6 +2215,9 @@ public final class MechLabViewModel {
                              String materialsClasses,
                              Runnable action)
             implements MarkupPropertySource {
+        /** The row's button builds a spare (drawn as the fabricator icon) rather than fitting one. */
+        private boolean fabricates() { return Strings.get("openingMechLabFab").equals(actionLabel); }
+
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "copyId" -> copyId; case "headerId" -> headerId; case "nameId" -> nameId;
             case "badgeId" -> badgeId;
@@ -2228,8 +2234,12 @@ public final class MechLabViewModel {
             case "actionDisabled" -> actionDisabled; case "materials" -> materials;
             case "materialsStyle" -> CompanyResources.billHeight(materials);
             case "cardStyle" -> materials.isEmpty() ? "height: 102px;" : "height: 132px;";
-            case "actionClasses" -> actionLabel == null || actionLabel.isEmpty()
-                    ? "hidden" : "catalog-fab console-action";
+            case "actionClasses" -> actionLabel == null || actionLabel.isEmpty() ? "hidden"
+                    : actionDisabled ? "catalog-fab console-action short" : "catalog-fab console-action";
+            case "actionIconId" -> actionId + ":icon";
+            case "actionTextId" -> actionId + ":text";
+            case "actionIconClasses" -> fabricates() ? "catalog-fab-icon" : "hidden";
+            case "actionText" -> fabricates() ? "" : actionLabel;
             case "materialsClasses" -> materialsClasses;
             case "action" -> action;
             default -> throw unknown("mech-catalog", p); }; }
