@@ -1214,6 +1214,10 @@ large map.
 - **Bore** is the goal of a body carrying biomass home: the nearest living
   bore. The swarm's own holes, so their cells are declared and redeclared as a
   bore opens or collapses.
+- **A field charges for fire.** A step into a burning cell, or one beside it,
+  costs the fire's route multiplier, so the swarm streams round a burning
+  stand where it can and through it only where its goal lies beyond
+  (`fire-nouns.md`, Pathing).
 - **A field makes a stream.** The descent is the same from every cell and has
   no crowd term, so bodies descending it each for themselves fall into one lane
   and run it single file. That is the river a surge makes leaving its mouth,
