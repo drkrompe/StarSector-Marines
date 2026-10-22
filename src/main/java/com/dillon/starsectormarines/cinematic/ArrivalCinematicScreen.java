@@ -206,7 +206,7 @@ public final class ArrivalCinematicScreen implements Screen {
         }
         loops.removeIf(c -> clock >= c.until());
         // playUILoop must be called every frame or the loop fades out; that is also how it ramps.
-        for (Scheduled c : loops) Global.getSoundPlayer().playUILoop(c.cue().sound(), 1f, c.loopVolume(clock));
+        for (Scheduled c : loops) Global.getSoundPlayer().playUILoop(c.cue().sound(), 1f, sequence.volumeAt(c, clock));
     }
 
     private void play(String sound, float volume) {

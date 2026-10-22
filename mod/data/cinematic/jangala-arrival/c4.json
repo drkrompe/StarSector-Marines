@@ -19,7 +19,7 @@
   {
    "t": 0.0,
    "sound": "jangala_arrival_cabin_bed",
-   "volume": 0.3,
+   "volume": 0.2985,
    "until": 1.0,
    "fade_in": 0.0,
    "fade_out": 0.9
@@ -27,25 +27,25 @@
   {
    "t": 0.0,
    "sound": "jangala_arrival_wind",
-   "volume": 0.55
-  },
-  {
-   "t": 10.5,
-   "sound": "jangala_arrival_wind",
-   "volume": 0.35
-  },
-  {
-   "t": 17.4,
-   "sound": "c5_yard_jungle_bed",
-   "volume": 0.4,
-   "until": 21.4,
-   "fade_in": 2.0,
-   "fade_out": 0.0
+   "volume": 0.5495
   },
   {
    "t": 1.0,
    "sound": "jangala_arrival_castle_yard",
    "volume": 1.0
+  },
+  {
+   "t": 10.5,
+   "sound": "jangala_arrival_wind",
+   "volume": 0.3508
+  },
+  {
+   "t": 17.4,
+   "sound": "c5_yard_jungle_bed",
+   "volume": 0.3981,
+   "until": 21.4,
+   "fade_in": 2.0,
+   "fade_out": 0.0
   }
  ],
  "speakers": {
