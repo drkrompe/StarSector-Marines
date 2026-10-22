@@ -12,3 +12,4 @@ Written: 2026-10-22
 | fire-ignition | 2026-10-22 | the commit adding `FireIgnition` | `fire-nouns.md` (Starting fires) |
 | fire-smoke | 2026-10-22 | the commit adding `FireSmoke` | `fire-nouns.md` (Smoke, Look, Evidence) |
 | fire-performance | 2026-10-22 | the commit adding `FireScaleScene` | `fire-nouns.md` (Evidence) |
+| fire-look-pick | 2026-10-22 | the commit adding `ScorchShader` | `fire-nouns.md` (Look) |
