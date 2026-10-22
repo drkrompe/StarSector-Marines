@@ -132,7 +132,7 @@ class AuthoringDocumentTest {
                 > 10_000L);
         assertTrue(Files.size(layers.resolve("mech-bulwark-sheet.png")) > 10_000L);
         assertTrue(Files.size(layers.resolve("mech-hound-sheet.png")) > 10_000L);
-        assertTrue(Files.size(layers.resolve("mech-sirocco-sheet.png")) > 10_000L);
+        assertTrue(Files.size(layers.resolve("mech-warden-sheet.png")) > 10_000L);
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.MarineSprint;
 import com.dillon.starsectormarines.battle.mech.MechFlux;
+import com.dillon.starsectormarines.battle.ui.panel.MagazineGauge;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.BattleDirectControlStatus.Carrier;
 import com.dillon.starsectormarines.ops.BattleDirectControlStatus.Tone;
@@ -255,11 +256,47 @@ final class BattleDirectControlHudModel {
                 + (!enabled ? " weapon-unsupported" : "");
         String key = mech ? String.valueOf(weapon.number() + 1) : "";
         String name = weapon.name() + (tag.isEmpty() ? "" : " · " + tag);
-        return new WeaponRow("direct-hud-weapon-" + weapon.slotKey(), classes,
-                rowStyle(highlighted, enabled ? 1f : .6f), !enabled || !mech, key,
+        String id = "direct-hud-weapon-" + weapon.slotKey();
+        MagazineGauge gauge = gauge(weapon);
+        return new WeaponRow(id, classes + (gauge != null ? " weapon-magazine" : ""),
+                rowStyle(highlighted, enabled ? 1f : .6f) + (gauge != null ? " height: 74px;" : ""),
+                !enabled || !mech, key,
                 key.isEmpty() ? "key key-none" : "key", name, behavior(weapon.behavior()),
-                ammo(weapon.ammo()), state, stateClasses, width(weapon.cycleFraction()),
-                () -> select.accept(weapon.number()));
+                gauge != null ? "" : ammo(weapon.ammo()), state, stateClasses, width(weapon.cycleFraction()),
+                () -> select.accept(weapon.number()), roundBlocks(id, gauge),
+                gauge != null ? "weapon-rounds" : "weapon-rounds weapon-rounds-none");
+    }
+
+    /** A magazine-fed primary's rounds, or null for a weapon that counts nothing or counts packs. */
+    private static MagazineGauge gauge(WeaponStatus weapon) {
+        if (weapon.behavior().trigger() == null
+                || weapon.ammo().unit() != BattleDirectControlStatus.AmmoUnit.ROUNDS) return null;
+        return MagazineGauge.of(weapon.behavior().projectilesPerShot(), weapon.behavior().projectilesPerTrigger(),
+                weapon.ammo().capacity(), weapon.ammo().remaining(),
+                weapon.reloading() ? weapon.cooldownSeconds() : 0f, weapon.cycleDurationSeconds());
+    }
+
+    /** The strip under the bar: one block per burst for a belt, otherwise one block of every round. */
+    private static List<RoundBlock> roundBlocks(String rowId, MagazineGauge gauge) {
+        if (gauge == null) return List.of();
+        String kind = gauge.kind().name().toLowerCase(Locale.ROOT);
+        List<RoundBlock> blocks = new ArrayList<>();
+        List<RoundIcon> current = new ArrayList<>();
+        for (int i = 0; i < gauge.capacity(); i++) {
+            String state = gauge.round(i).name().toLowerCase(Locale.ROOT);
+            current.add(new RoundIcon(rowId + "-round-" + i, "round round-" + kind,
+                    "graphics/ui/direct-control/round-" + kind + "-" + state + ".svg"));
+            if (gauge.groupEnd(i) || i == gauge.capacity() - 1) {
+                // This layout sizes a row to its own width rather than its children's, so a block is told it.
+                int roundWidth = switch (gauge.kind()) { case RIFLE -> 10; case SHELL -> 11; case LINK -> 3; };
+                int gap = gauge.kind() == MagazineGauge.Kind.LINK ? 1 : 4;
+                int width = current.size() * roundWidth + (current.size() - 1) * gap;
+                blocks.add(new RoundBlock(rowId + "-block-" + blocks.size(), "round-block round-block-" + kind,
+                        "width: " + width + "px;", current));
+                current = new ArrayList<>();
+            }
+        }
+        return blocks;
     }
 
     private WeaponRow abilityRow(BattleDirectControlStatus.AbilityStatus ability) {
@@ -346,6 +383,11 @@ final class BattleDirectControlHudModel {
         if (behavior.kind() == BattleDirectControlStatus.FireKind.BURST && behavior.projectilesPerShot() > 1) {
             value += " · " + label("PACKET") + " ×" + behavior.projectilesPerShot();
         }
+        // A magazine names its trigger first; a semi-automatic single round needs no other word.
+        if (behavior.trigger() != null) {
+            String trigger = label("Trigger" + behavior.trigger().name());
+            value = behavior.kind() == BattleDirectControlStatus.FireKind.SINGLE ? trigger : trigger + " · " + value;
+        }
         return value;
     }
 
@@ -400,7 +442,20 @@ final class BattleDirectControlHudModel {
 
     record WeaponRow(String id, String classes, String style, boolean disabled, String key, String keyClasses,
                      String name, String behavior, String ammo, String state, String stateClasses,
-                     String cycleStyle, Runnable action) implements MarkupPropertySource {
+                     String cycleStyle, Runnable action, List<RoundBlock> roundBlocks, String roundsClasses)
+            implements MarkupPropertySource {
+        WeaponRow {
+            roundBlocks = List.copyOf(roundBlocks);
+        }
+
+        /** A row with no magazine strip. */
+        WeaponRow(String id, String classes, String style, boolean disabled, String key, String keyClasses,
+                  String name, String behavior, String ammo, String state, String stateClasses,
+                  String cycleStyle, Runnable action) {
+            this(id, classes, style, disabled, key, keyClasses, name, behavior, ammo, state, stateClasses,
+                    cycleStyle, action, List.of(), "weapon-rounds weapon-rounds-none");
+        }
+
         @Override public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id;
@@ -416,6 +471,9 @@ final class BattleDirectControlHudModel {
                 case "stateClasses" -> stateClasses;
                 case "cycleStyle" -> cycleStyle;
                 case "action" -> action;
+                case "roundBlocks" -> roundBlocks;
+                case "roundsClasses" -> roundsClasses;
+                case "roundsId" -> id + "-rounds";
                 case "topId" -> id + "-top";
                 case "keyId" -> id + "-key";
                 case "dataId" -> id + "-data";
@@ -426,6 +484,33 @@ final class BattleDirectControlHudModel {
                 case "cycleId" -> id + "-cycle";
                 case "fillId" -> id + "-fill";
                 default -> throw new IllegalArgumentException("Unknown weapon row property: " + property);
+            };
+        }
+    }
+    /** One block of the strip: a burst's worth of belt, or the whole of a short magazine. */
+    record RoundBlock(String id, String classes, String style, List<RoundIcon> rounds) implements MarkupPropertySource {
+        RoundBlock {
+            rounds = List.copyOf(rounds);
+        }
+
+        @Override public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id;
+                case "classes" -> classes;
+                case "style" -> style;
+                case "rounds" -> rounds;
+                default -> throw new IllegalArgumentException("Unknown round block property: " + property);
+            };
+        }
+    }
+
+    record RoundIcon(String id, String classes, String src) implements MarkupPropertySource {
+        @Override public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id;
+                case "classes" -> classes;
+                case "src" -> src;
+                default -> throw new IllegalArgumentException("Unknown round property: " + property);
             };
         }
     }

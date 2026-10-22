@@ -98,17 +98,17 @@ public class LayeredAppearanceTest {
         assertEquals(0.17f, LayeredMechAppearance.footLateralOffset(
                 LayeredMechAppearance.CHASSIS_CLEAN), 0.001f);
         assertEquals(0.22f, LayeredMechAppearance.footLateralOffset(
-                LayeredMechAppearance.CHASSIS_SIROCCO), 0.001f);
+                LayeredMechAppearance.CHASSIS_WARDEN), 0.001f);
         assertEquals(-0.05f, LayeredMechAppearance.footRearOffset(
                 LayeredMechAppearance.CHASSIS_HOUND), 0.001f);
         assertEquals(-0.05f, LayeredMechAppearance.footRearOffset(
-                LayeredMechAppearance.CHASSIS_SIROCCO), 0.001f);
+                LayeredMechAppearance.CHASSIS_WARDEN), 0.001f);
         assertEquals(-0.28f, LayeredMechAppearance.footRearOffset(
                 LayeredMechAppearance.CHASSIS_CLEAN), 0.001f);
         assertEquals(0.16f, LayeredMechAppearance.footStepReach(
                 LayeredMechAppearance.CHASSIS_HOUND), 0.001f);
         assertEquals(0.16f, LayeredMechAppearance.footStepReach(
-                LayeredMechAppearance.CHASSIS_SIROCCO), 0.001f);
+                LayeredMechAppearance.CHASSIS_WARDEN), 0.001f);
         assertEquals(0.055f, LayeredMechAppearance.footStepReach(
                 LayeredMechAppearance.CHASSIS_CLEAN), 0.001f);
     }

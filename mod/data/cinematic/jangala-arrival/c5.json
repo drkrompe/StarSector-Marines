@@ -4,8 +4,8 @@
  "fps": 24,
  "width": 1920,
  "height": 1080,
- "frames": 192,
- "duration": 8.0,
+ "frames": 960,
+ "duration": 40.0,
  "captions": [
   {
    "t_in": 5.0,
@@ -24,67 +24,78 @@
  "cues": [
   {
    "t": 0.0,
-   "sound": "jangala_arrival_cabin_bed",
-   "volume": 0.3,
-   "until": 1.0,
+   "sound": "c5_yard_jungle_bed",
+   "volume": 0.3981,
+   "until": 39.5,
    "fade_in": 0.0,
-   "fade_out": 0.9
+   "fade_out": 1.5
   },
   {
    "t": 0.0,
    "sound": "c5_yard_spool_down",
-   "volume": 0.55
+   "volume": 0.5495
   },
   {
    "t": 0.0,
-   "sound": "c5_yard_jungle_bed",
-   "volume": 0.4,
-   "until": 8.0,
-   "fade_in": 0.6,
-   "fade_out": 0.0
-  },
-  {
-   "t": 0.0,
-   "sound": "c5_yard_steam_vent",
-   "volume": 0.45,
-   "until": 8.0,
-   "fade_in": 0.4,
-   "fade_out": 0.0
-  },
-  {
-   "t": 1.0,
-   "sound": "c5_yard_winch",
-   "volume": 0.22
+   "sound": "jangala_arrival_ending_a",
+   "volume": 0.4955,
+   "until": 40.0,
+   "fade_in": 0.75,
+   "fade_out": 0.5,
+   "duck": 0.3981
   },
   {
    "t": 0.4,
    "sound": "c5_yard_hull_ticks",
-   "volume": 0.5
+   "volume": 0.5012
+  },
+  {
+   "t": 1.0,
+   "sound": "c5_yard_winch",
+   "volume": 0.2188
   },
   {
    "t": 1.7,
    "sound": "c5_yard_radio_chatter",
-   "volume": 0.2
+   "volume": 0.1995
   },
   {
    "t": 3.2,
    "sound": "c5_yard_crane_horn",
-   "volume": 0.22
+   "volume": 0.2188
   },
   {
-   "t": 3.6,
-   "sound": "c5_yard_boots",
-   "volume": 0.3
+   "t": 4.0,
+   "sound": "c5_yard_steam_vent",
+   "volume": 0.4519,
+   "until": 22.0,
+   "fade_in": 0.4,
+   "fade_out": 6.0
   },
   {
    "t": 5.0,
    "sound": "c5_yard_winch",
-   "volume": 0.22
+   "volume": 0.2188
   },
   {
    "t": 5.0,
    "sound": "jangala_arrival_castle_all_hands",
    "volume": 1.0
+  },
+  {
+   "t": 10.0,
+   "sound": "c5_yard_hull_ticks",
+   "volume": 0.3508
+  },
+  {
+   "t": 13.0,
+   "sound": "c5_yard_winch",
+   "volume": 0.1799
+  },
+  {
+   "t": 14.5,
+   "sound": "c5_yard_radio_chatter",
+   "volume": 0.1603
   },
   {
    "t": 19.6,

@@ -32,7 +32,7 @@ public record MechPattern(Kind kind, String definitionId) {
 
     static {
         CHASSIS_TIERS.put(MechVariant.HOUND, EquipmentAccessTier.COMMON);
-        CHASSIS_TIERS.put(MechVariant.SIROCCO, EquipmentAccessTier.ADVANCED);
+        CHASSIS_TIERS.put(MechVariant.WARDEN, EquipmentAccessTier.ADVANCED);
         CHASSIS_TIERS.put(MechVariant.BULWARK, EquipmentAccessTier.PRESTIGE);
 
         WEAPON_TIERS.put(MechWeaponComponent.NOSE_CHAINGUN, EquipmentAccessTier.COMMON);
@@ -150,7 +150,7 @@ public record MechPattern(Kind kind, String definitionId) {
         if (kind != Kind.CHASSIS) return null;
         switch (variant()) {
             case HOUND: return WeightClass.LIGHT;
-            case SIROCCO: return WeightClass.MEDIUM;
+            case WARDEN: return WeightClass.MEDIUM;
             default: return WeightClass.HEAVY;
         }
     }

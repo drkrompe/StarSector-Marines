@@ -28,7 +28,7 @@ import java.util.List;
  *
  * <p>Risk authors candidate composition: LOW has no mechs, MEDIUM introduces
  * one Bulwark when heavy armor is available, and HIGH replaces the old flat
- * mech count with complementary Bulwark/Hound/Sirocco groups. The candidate
+ * mech count with complementary Bulwark/Hound/Warden groups. The candidate
  * mechs ordinarily fit beneath the combined attacker's
  * {@link BattleForceScore}; enemy fighter wings and static turret candidates
  * spend the score left after that roster is resolved. Conquest is the authored
@@ -249,7 +249,7 @@ public final class DefenderRoster {
      * <ul>
      *   <li>{@code !hasHeavyArmor} or {@code LOW} risk: 0.</li>
      *   <li>{@code MEDIUM}: one Bulwark.</li>
-     *   <li>{@code HIGH}: a complementary Bulwark/Hound/Sirocco group.
+     *   <li>{@code HIGH}: a complementary Bulwark/Hound/Warden group.
      *       CONQUEST gets two groups; SABOTAGE stays at one Hound for covert
      *       flavor.</li>
      * </ul>
@@ -272,16 +272,16 @@ public final class DefenderRoster {
         if (risk == RiskLevel.MEDIUM) return List.of(MechVariant.BULWARK);
         if (type == MissionType.SABOTAGE) return List.of(MechVariant.HOUND);
         if (type == MissionType.CONQUEST) {
-            return List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO,
-                    MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO);
+            return List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.WARDEN,
+                    MechVariant.BULWARK, MechVariant.HOUND, MechVariant.WARDEN);
         }
-        return List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO);
+        return List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.WARDEN);
     }
 
     /**
      * Keeps the stable candidate prefix and removes the least essential rear
      * profiles until the whole defender roster fits the attacker-derived cap.
-     * A HIGH mixed group therefore loses Sirocco, then Hound, then its anchor;
+     * A HIGH mixed group therefore loses Warden, then Hound, then its anchor;
      * it never degenerates into a random lone specialist.
      */
     private static List<MechVariant> affordableMechVariants(

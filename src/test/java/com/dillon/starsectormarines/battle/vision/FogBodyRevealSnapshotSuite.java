@@ -28,7 +28,8 @@ import java.util.Locale;
  * Matriarchs stand past the end of a wall with their centres just out of the marines' sight, the
  * near one a cell behind the sight line and the far one two, and the same moment is drawn under each
  * rule. A Matriarch the rule hides is outlined and labelled, so the frame says what the player is
- * not being shown. One frame per rule, 1920x1080, for the owner's pick.
+ * not being shown. One frame per rule, 1920x1080. The owner picked {@code footprint}, which is the
+ * default; the other two frames are its controls.
  */
 public final class FogBodyRevealSnapshotSuite implements SnapshotSuite {
 

@@ -156,7 +156,7 @@ public final class MechLoadoutComponent {
     public int overwatchAxisX = -1;
     /** Active threat cell Y at the moment the overwatch cell was picked. */
     public int overwatchAxisY = -1;
-    /** Same-faction non-Sirocco combatant screening this overwatch lane. 0 = the cached lane is unscreened. */
+    /** Same-faction non-Warden combatant screening this overwatch lane. 0 = the cached lane is unscreened. */
     public long overwatchScreenId;
     /**
      * True when the cached overwatch cell was picked for live LRM pressure;

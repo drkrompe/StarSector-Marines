@@ -24,7 +24,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
  * squad's active threat axis. Candidate cells categorically prefer a
  * same-faction combatant forming a broad front between the mech and the
  * threat, while keeping every friendly clear of a rear-oblique direct-fire
- * lane; another Sirocco never counts as the screen. The picked cell is cached on
+ * lane; another Warden never counts as the screen. The picked cell is cached on
  * {@link MechLoadoutComponent#overwatchCellX}; it refreshes when the threat or
  * screen changes and periodically while unscreened.
  *
@@ -33,7 +33,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
  * {@link EngageAtCurrentBand} as a defensive compatibility guard.
  *
  * <p>The "withhold SRM" piece is doctrine-as-positioning: the mech holds
- * in the medium/long band. A Sirocco can take a heavy-cannon opportunity near
+ * in the medium/long band. A Warden can take a heavy-cannon opportunity near
  * the inner edge and uses LRMs outside the cannon band. SRM is never called
  * from this action regardless. Once every LRM rack is empty, the cached long
  * perch is invalidated and the mech closes into the outer edge of its installed
@@ -57,7 +57,7 @@ public final class OverwatchKillZone implements Action {
 
     public static final OverwatchKillZone INSTANCE = new OverwatchKillZone();
 
-    /** Inner brawling edge. It overlaps the Sirocco's 26-cell heavy cannon. */
+    /** Inner brawling edge. It overlaps the Warden's 26-cell heavy cannon. */
     static final float OVERWATCH_MIN_DIST = 24f;
     /** Outer edge. It stays comfortably inside the 40-cell LRM envelope. */
     static final float OVERWATCH_MAX_DIST = 36f;
@@ -563,7 +563,7 @@ public final class OverwatchKillZone implements Action {
             MechVariant variant = sim.identity().mechVariant(ally);
             radii[write] = sim.physicalRadius(ally);
             screenEligible[write] = sim.identity().type(ally).combatant
-                    && variant != MechVariant.SIROCCO;
+                    && variant != MechVariant.WARDEN;
             write++;
         }
         for (long ally : vehicles) {
@@ -622,7 +622,7 @@ public final class OverwatchKillZone implements Action {
         return sim.resolveUnit(ally) != 0L
                 && squad.faction.friendlyTo(sim.identity().faction(ally))
                 && sim.identity().type(ally).combatant
-                && sim.identity().mechVariant(ally) != MechVariant.SIROCCO
+                && sim.identity().mechVariant(ally) != MechVariant.WARDEN
                 && screenLateralDistanceSq(sim.world().x(ally), sim.world().y(ally),
                 candidateX, candidateY, threatX, threatY) >= 0f;
     }

@@ -16,7 +16,7 @@ making those platforms share progression, chassis, or loadout authority.
 The model separates **how much punishment an actor can survive** from **which
 weapon is efficient against its protection**. That distinction is the main
 balance seam: a Bulwark may carry both more armor and harder armor than a
-Sirocco, while an anti-materiel rifle may defeat that armor efficiently without
+Warden, while an anti-materiel rifle may defeat that armor efficiently without
 needing an arbitrary bonus against every unit classified as hardened.
 
 ## Vocabulary
@@ -307,7 +307,7 @@ and incoming-accuracy tradeoffs. `power-suit-infantry.md` owns the category dire
 
 Mech variants own distinct durability profiles. The Bulwark is the high-capacity,
 high-rating anchor; the Hound gives up armor endurance for mobility; the
-Sirocco has the least armor and structure and depends on range and screening.
+Warden has the least armor and structure and depends on range and screening.
 These relationships are laws, while exact values remain balance output. The
 mech readings (`mech-time-to-kill`, six seeds, stock frames, one team at 20
 cells) keep that order in every row and put each d4 answer to mech armor on a
@@ -318,7 +318,7 @@ magazine stripping a fifth of a Hound), so it now strikes for 70 (was 42) and
 carries five rounds. Two AMRs take 24 and 38 s, and one magazine takes 44% of a
 Hound. Penetration was left alone: at 18 it already defeats every mech rating
 (10-18), so raising it would move only APCs and tanks. The mech heavy cannon
-(the Sirocco's arms gun) took 83 and 136 s, as slow under the whole-body
+(the Warden's arms gun) took 83 and 136 s, as slow under the whole-body
 control. It now lands a contact hit of 100 on the body it strikes, over its
 unchanged 45 splash, as the Hephaestus turret cannon does, and takes 37 and
 51 s. That contact hit is fixed: the cannon is equipment any 3x2 arms socket

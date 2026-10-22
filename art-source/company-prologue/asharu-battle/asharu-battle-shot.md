@@ -328,8 +328,18 @@ once time and place are established.
 - **What it may and may not reveal**, against the arc's reveal order (`shepherd-recovery-dialogue.md`):
   - it shows the wreckfall, the Colossus and her escorts coming down, which the briefing reveals
     next anyway;
-  - it never touches the hold, its contents, the buyer, or Basin, which are withheld in the arc,
-    some of them permanently;
+  - it never shows or names the hold, its contents, the owner, the buyer, or Basin, which are
+    withheld in the arc, some of them permanently;
+  - **the convoy side may allude to something special in the Colossus** (owner, 2026-10-22:
+    "This is scavenger lore for the 'other' parties. The Colossus has something 'special' in it.
+    We might want to allude to that in the cinematic for our writer pass"). The escort lead told to
+    hold her at any cost, a master unwilling to abandon ship, a guarded line on the convoy channel.
+    The allusion is the writer's, in the comms; the picture shows nothing of the hold;
+  - **the pirates know nothing of it** (owner, 2026-10-22: "I don't think the pirates should be
+    aware"). To them she is an ordinary prize, and they take the Tarsus as planned;
+  - **the wreckfall is scavenger lore about the other wrecks.** The break-up across the surface
+    (S12) is where the field's other salvage comes from; the Colossus is the one wreck that matters,
+    and she comes down mostly whole, her hold sealed, for Basin to find;
   - it names Morrow on the radio as she goes down with the Colossus. That is deliberate: the
     player later reads her name plate in Basin's yard, and recognises her.
 
@@ -495,6 +505,13 @@ not dialogue to keep. The writer needs three things, all here:
 - **the rules** below, and the window each line must fit (the t column). The writer's lines replace
   `radio_log.TRAFFIC`, which the preview and the playback screens read.
 
+**The writer's task, besides the traffic itself: the Colossus allusion.** Write the convoy side's
+allusion to something special aboard the Colossus (see "What it may and may not reveal"): the escorts
+told to hold her at any cost, her master unwilling to abandon ship, a guarded line on the convoy
+channel. Keep it within the arc's reveal order (`shepherd-recovery-dialogue.md`): it never names the
+contents, the owner or the buyer. Only the convoy alludes to it; the pirates never do, and treat
+her as an ordinary prize.
+
 Rules:
 - **Callsigns, never hull classes** (owner, 2026-10-22: "Ford Focus I need you to be on my flank
   Chrysler Challenger out"). The convoy flies under one callsign, CARAVEL: the Colossus, its master's
@@ -514,8 +531,10 @@ Rules:
 - **Flux is spoken.** Shield and flux calls are the kind of thing a player recognises from the
   game ("shields at ninety", "she's venting, now", "overload"). They also carry the
   back-and-forth.
-- **Nobody names the cargo**, the owner or the buyer, and nobody gives a reason the convoy
-  matters. The pirates want what is in the holds and never say what it is.
+- **Nobody names the cargo**, the owner or the buyer. The convoy side may allude to something
+  special in the Colossus, guardedly (owner, 2026-10-22; see "What it may and may not reveal"). The
+  pirates know nothing of it: they want what is in the holds, never say what it is, and take the
+  Tarsus as planned.
 - **Working voices.** Short, procedural, a little tired, and frightened only once it goes bad.
   This is ordinary traffic and an ordinary raid.
 - **Silence is a beat.** S3 has no convoy traffic, only the pirate flag's "Hold", and S11-S12

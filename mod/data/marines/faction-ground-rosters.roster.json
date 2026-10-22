@@ -4,7 +4,7 @@
     {
       "id": "roster.independent",
       "factionIds": ["independent"],
-      "heavySupport": ["bulwark", "hound", "sirocco"],
+      "heavySupport": ["bulwark", "hound", "warden"],
       "bulk": {
         "unitType": "MILITIA",
         "primaries": [
@@ -58,7 +58,7 @@
     {
       "id": "roster.hegemony",
       "factionIds": ["hegemony"],
-      "heavySupport": ["bulwark", "hound", "sirocco"],
+      "heavySupport": ["bulwark", "hound", "warden"],
       "bulk": {
         "unitType": "MILITIA",
         "primaries": [{"id": "weapon.field-rifle", "weight": 45}, {"id": "weapon.pulse-rifle", "weight": 15}, {"id": "weapon.dmr", "weight": 15}, {"id": "weapon.smg", "weight": 5}, {"id": "weapon.squad-automatic", "weight": 20}],
@@ -101,7 +101,7 @@
     {
       "id": "roster.tritachyon",
       "factionIds": ["tritachyon"],
-      "heavySupport": ["sirocco", "hound", "bulwark"],
+      "heavySupport": ["warden", "hound", "bulwark"],
       "bulk": {
         "unitType": "MILITIA",
         "primaries": [{"id": "weapon.pulse-rifle", "weight": 50}, {"id": "weapon.dmr", "weight": 25}, {"id": "weapon.smg", "weight": 20}, {"id": "weapon.field-rifle", "weight": 5}],
@@ -144,7 +144,7 @@
     {
       "id": "roster.persean-league",
       "factionIds": ["persean"],
-      "heavySupport": ["hound", "bulwark", "sirocco"],
+      "heavySupport": ["hound", "bulwark", "warden"],
       "bulk": {
         "unitType": "MILITIA",
         "primaries": [{"id": "weapon.field-rifle", "weight": 30}, {"id": "weapon.pulse-rifle", "weight": 30}, {"id": "weapon.smg", "weight": 10}, {"id": "weapon.dmr", "weight": 15}, {"id": "weapon.squad-automatic", "weight": 15}],
@@ -273,7 +273,7 @@
     {
       "id": "roster.sindrian-diktat",
       "factionIds": ["sindrian_diktat", "lions_guard"],
-      "heavySupport": ["bulwark", "sirocco", "hound"],
+      "heavySupport": ["bulwark", "warden", "hound"],
       "bulk": {
         "unitType": "MILITIA",
         "primaries": [{"id": "weapon.field-rifle", "weight": 35}, {"id": "weapon.pulse-rifle", "weight": 25}, {"id": "weapon.dmr", "weight": 15}, {"id": "weapon.smg", "weight": 10}, {"id": "weapon.squad-automatic", "weight": 15}],
@@ -316,7 +316,7 @@
     {
       "id": "roster.pirates",
       "factionIds": ["pirates"],
-      "heavySupport": ["hound", "sirocco"],
+      "heavySupport": ["hound", "warden"],
       "bulk": {
         "unitType": "MILITIA",
         "primaries": [{"id": "weapon.smg", "weight": 40}, {"id": "weapon.field-rifle", "weight": 35}, {"id": "weapon.pulse-rifle", "weight": 15}, {"id": "weapon.dmr", "weight": 10}],

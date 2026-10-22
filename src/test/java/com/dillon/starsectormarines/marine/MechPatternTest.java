@@ -41,10 +41,10 @@ class MechPatternTest {
     @Test
     void chassisTiersFollowWeightClass() {
         assertEquals(MechPattern.WeightClass.LIGHT, parse("mech-pattern:chassis:hound").weightClass());
-        assertEquals(MechPattern.WeightClass.MEDIUM, parse("mech-pattern:chassis:sirocco").weightClass());
+        assertEquals(MechPattern.WeightClass.MEDIUM, parse("mech-pattern:chassis:warden").weightClass());
         assertEquals(MechPattern.WeightClass.HEAVY, parse("mech-pattern:chassis:bulwark").weightClass());
         assertEquals(EquipmentAccessTier.COMMON, parse("mech-pattern:chassis:hound").accessTier());
-        assertEquals(EquipmentAccessTier.ADVANCED, parse("mech-pattern:chassis:sirocco").accessTier());
+        assertEquals(EquipmentAccessTier.ADVANCED, parse("mech-pattern:chassis:warden").accessTier());
         assertEquals(EquipmentAccessTier.PRESTIGE, parse("mech-pattern:chassis:bulwark").accessTier());
     }
 

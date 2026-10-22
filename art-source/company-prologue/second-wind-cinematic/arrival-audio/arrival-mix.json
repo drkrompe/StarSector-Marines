@@ -1,0 +1,165 @@
+{
+ "reference": {
+  "dialogue_lufs": -19.0,
+  "score_level_db": -4.0,
+  "_note": "Music level_db is on the Arrival Score Desk's scale (arrival-audio/score-desk.html, sfx_mix.player_kit): 0 dB is the take loudness-matched to dialogue_lufs + score_level_db."
+ },
+ "music": [
+  {
+   "shot": "c1",
+   "sound": "jangala_arrival_score_strings",
+   "t": 0.0,
+   "until_end_of": "c4",
+   "level_db": 6.0,
+   "source_lufs": -12.0,
+   "fade_in": 0.75,
+   "fade_out": 0.75,
+   "duck_db": -8.0
+  },
+  {
+   "shot": "c5",
+   "sound": "jangala_arrival_ending_a",
+   "t": 0.0,
+   "until_end_of": "c5",
+   "level_db": 4.0,
+   "source_lufs": -12.9,
+   "fade_in": 0.75,
+   "fade_out": 0.5,
+   "duck_db": -8.0
+  }
+ ],
+ "shots": {
+  "c1": {
+   "jangala_cabin_bed": {
+    "gain_db": 0.0,
+    "fade_in": 1.0,
+    "fade_out": 1.5
+   },
+   "jangala_squelch_open": {
+    "gain_db": 0.0
+   },
+   "jangala_arrival_hail_01": {
+    "gain_db": 0.0
+   },
+   "jangala_squelch_close": {
+    "gain_db": 0.0
+   },
+   "jangala_arrival_hail_02": {
+    "gain_db": 0.0
+   },
+   "jangala_squelch_open#2": {
+    "gain_db": 0.0
+   },
+   "jangala_arrival_hail_03": {
+    "gain_db": 0.0
+   },
+   "jangala_squelch_close#2": {
+    "gain_db": 0.0
+   },
+   "jangala_arrival_hail_04": {
+    "gain_db": 0.0
+   }
+  },
+  "c2": {
+   "jangala_squelch_open": {
+    "gain_db": 0.0
+   },
+   "jangala_arrival_hail_07": {
+    "gain_db": 0.0
+   },
+   "jangala_squelch_close": {
+    "gain_db": 0.0
+   },
+   "jangala_arrival_hail_08": {
+    "gain_db": 0.0
+   }
+  },
+  "entry": {
+   "jangala_arrival_castle_planetside": {
+    "gain_db": 0.0
+   },
+   "jangala_arrival_wind": {
+    "gain_db": -6.9
+   }
+  },
+  "c3": {
+   "jangala_arrival_cabin_bed": {
+    "gain_db": -5.2,
+    "fade_in": 0.0,
+    "fade_out": 0.0
+   },
+   "jangala_arrival_wind": {
+    "gain_db": -1.9
+   },
+   "jangala_arrival_castle_reels": {
+    "gain_db": 0.0
+   }
+  },
+  "c4": {
+   "jangala_arrival_cabin_bed": {
+    "gain_db": -10.5,
+    "fade_in": 0.0,
+    "fade_out": 0.9
+   },
+   "jangala_arrival_wind": {
+    "gain_db": -5.2
+   },
+   "jangala_arrival_castle_yard": {
+    "gain_db": 0.0
+   },
+   "jangala_arrival_wind#2": {
+    "gain_db": -9.1
+   },
+   "c5_yard_jungle_bed": {
+    "gain_db": -8.0,
+    "fade_in": 2.0,
+    "fade_out": 0.0
+   }
+  },
+  "c5": {
+   "c5_yard_jungle_bed": {
+    "gain_db": -8.0,
+    "fade_in": 0.0,
+    "fade_out": 1.5
+   },
+   "c5_yard_spool_down": {
+    "gain_db": -5.2
+   },
+   "c5_yard_hull_ticks": {
+    "gain_db": -6.0
+   },
+   "c5_yard_winch": {
+    "gain_db": -13.2
+   },
+   "c5_yard_radio_chatter": {
+    "gain_db": -14.0
+   },
+   "c5_yard_crane_horn": {
+    "gain_db": -13.2
+   },
+   "c5_yard_steam_vent": {
+    "gain_db": -6.9,
+    "fade_in": 0.4,
+    "fade_out": 6.0
+   },
+   "c5_yard_winch#2": {
+    "gain_db": -13.2
+   },
+   "jangala_arrival_castle_all_hands": {
+    "gain_db": 0.0
+   },
+   "c5_yard_hull_ticks#2": {
+    "gain_db": -9.1
+   },
+   "c5_yard_winch#3": {
+    "gain_db": -14.9
+   },
+   "c5_yard_radio_chatter#2": {
+    "gain_db": -15.9
+   },
+   "jangala_arrival_castle_own_way": {
+    "gain_db": 0.0
+   }
+  }
+ }
+}

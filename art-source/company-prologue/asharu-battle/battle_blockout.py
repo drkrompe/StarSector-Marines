@@ -978,7 +978,8 @@ KEYFRAMES = {
                              dict(t=134, loc=(0, 0, 0), target=_far((0.86, 0.05, -0.5)), lens=70)], 130),
         ships={},
         fx=[('entry_trails',)],
-        labels=['trail-colossus', 'trail-morrow']),
+        labels=['trail-colossus', 'trail-morrow'],
+        clean=True),      # the review copy carries nothing over the trails: no labels, caption or shot id
 }
 
 
@@ -1057,6 +1058,138 @@ M11_MORROW = fly('morrow', K5_SHIPS['morrow'].at(M11_T), M11_T, [
     dict(t=118, hd=1, pt=-23, rl=10), dict(t=126, hd=-9, pt=-27, rl=-4, v=36)], v=44, wobble=1.0, thrust=None)
 _m11 = M11_COLOSSUS.at(M11_T)
 
+# S12, the wreckfall (owner, 2026-10-22: "There's no motion or a burning ship to see", and "we could
+# have a meteor shower with the other ships that were lost as well in chunks"). From the pirates'
+# orbit, a long lens tracks the Colossus and Morrow down: two burning hulls inside their plasma
+# sheaths, mostly whole (Basin finds them later, the hold sealed), falling away toward the canyons,
+# while the ships the battle lost come down around them in pieces. At the key time the camera looks
+# exactly along the planet plate's own direction at 50 mm, so the painted plate sits behind it.
+K6_T = 130.0
+K6_LOOK = tuple(c / math.sqrt(.9 ** 2 + .02 ** 2 + .42 ** 2) for c in (.9, .02, -.42))
+K6_RANGE = 1800.0       # metres from the camera to the Colossus at the key time
+
+
+def falling(key, start, t0, accel, drift=(0.0, 0.0, 0.0), yaw=0.0, pitch=0.0, roll_rate=0.0):
+    """A hull falling into the air from its pose at t0 (a flight's at(t0)): her velocity there, from
+    the flight, plus a steady acceleration along accel (m/s^2, the dive) and a drift (m/s). She falls
+    belly first, crippled: her heading is her velocity's turned by yaw, her pitch is pitch, and her
+    roll turns slowly, so the camera behind her sees her broadside against the shock ahead of her.
+    Drives dark: thr 0."""
+    p0, p1 = start.at(t0 - .5), start.at(t0)
+    v0 = [2 * (p1[i] - p0[i]) + drift[i] for i in range(3)]
+
+    def at(t):
+        dt = t - t0
+        pos = [p1[i] + v0[i] * dt + .5 * accel[i] * dt * dt for i in range(3)]
+        v = [v0[i] + accel[i] * dt for i in range(3)]
+        n = math.sqrt(sum(c * c for c in v)) or 1.0
+        hd = math.degrees(math.atan2(v[1], v[0])) + yaw
+        return (*pos, hd, pitch, p1[5] + roll_rate * dt, 0.0)
+    return Pose(at(K6_T), K6_T, at)
+
+
+K6_DIVE = tuple(40.0 * c for c in K6_LOOK)
+# The airflow over them: the way the plasma streams off each hull. Physically it runs back up the orbit,
+# almost straight at a camera that rides behind them, which drew every bow shock as an orb and every
+# wake as a dot (S12 lit span, 2026-10-22). The shot authors it across the frame instead, up and to the
+# left on screen, so the wakes stream long behind the two as in the chosen paintover (option a).
+K6_WIND = tuple(c / math.sqrt(sum(((.3 * K6_LOOK[i] + (0, .7, .6)[i]) ** 2 for i in range(3))))
+                for c in (.3 * K6_LOOK[i] + (0, .7, .6)[i] for i in range(3)))
+K6_SHIPS = {'colossus': falling('colossus', M11_COLOSSUS, 126.0, K6_DIVE, drift=(0.0, 40.0, 0.0),
+                                 yaw=72.0, pitch=-14.0, roll_rate=1.5),
+            'morrow': falling('morrow', M11_MORROW, 126.0, tuple(34.0 * c for c in K6_LOOK),
+                              drift=(0.0, 40.0, 0.0), yaw=-58.0, pitch=-8.0, roll_rate=-2.5)}
+_k6c = K6_SHIPS['colossus'].at(K6_T)
+K6_CAM = tuple(_k6c[i] - K6_RANGE * K6_LOOK[i] for i in range(3))
+
+
+def _k6_cam(t):
+    """The camera rides along with a little over half of the Colossus's fall and dollies in."""
+    c = K6_SHIPS['colossus'].at(t)
+    return tuple(K6_CAM[i] + .55 * (c[i] - _k6c[i]) + 60.0 * (t - K6_T) * K6_LOOK[i] for i in range(3))
+
+
+def _k6_aim(t, toward_morrow):
+    c, m = K6_SHIPS['colossus'].at(t), K6_SHIPS['morrow'].at(t)
+    return tuple(c[i] + toward_morrow * (m[i] - c[i]) for i in range(3))
+
+
+# The wreckfall: the ships the battle loses (the shot doc's casualty table: the Phaeton and the two
+# Hounds (P) destroyed, the lead Lasher lost in S9b), coming down in pieces around the two: a few
+# large chunks per hull, and many small streaks. Each falls on a heading near the Colossus's, at its
+# own depth, breaking up as it enters. (name, of, size m, start at t, position at K6_T, velocity).
+# Nothing here is from the Colossus: she comes down whole.
+# Owner, 2026-10-22, on the paintovers: "A bit too much meteor shower comes across like doom". So a
+# thin fall, behind and beside the two and dimmer than them: four burning chunks and ten faint streaks,
+# low in the frame, nothing crossing the upper sky. Two ships going down with their battle's debris.
+WRECKFALL_LOST = {'phaeton': 2, 'lasher-lead': 1, 'hound-p-c': 1}
+
+
+def _wreckfall(seed=12, small=10):
+    import random
+    rnd = random.Random(seed)
+    vc = [(K6_SHIPS['colossus'].at(K6_T + .5)[i] - _k6c[i]) * 2 for i in range(3)]
+    out = []
+    pieces = [(k, 'chunk') for k, n in WRECKFALL_LOST.items() for _ in range(n)]
+    pieces += [(rnd.choice(list(WRECKFALL_LOST)), 'streak') for _ in range(small)]
+    for n, (of, kind) in enumerate(pieces):
+        d = rnd.uniform(4000, 20000) if kind == 'streak' else rnd.uniform(2600, 9000)    # behind the two (1800 m)
+        ax, ay = rnd.uniform(-.3, .3), rnd.uniform(-.2, .03)        # beside and below them, never high
+        dirn = [K6_LOOK[0] - ay * .4, K6_LOOK[1] + ax, K6_LOOK[2] + ay]
+        nn = math.sqrt(sum(c * c for c in dirn))
+        pos = tuple(K6_CAM[i] + dirn[i] / nn * d for i in range(3))
+        turn = math.radians(rnd.uniform(-9, 9))
+        spd = rnd.uniform(.8, 1.4)
+        vel = (spd * (vc[0] * math.cos(turn) - vc[1] * math.sin(turn)),
+               spd * (vc[0] * math.sin(turn) + vc[1] * math.cos(turn)), spd * vc[2] * rnd.uniform(.9, 1.3))
+        size = rnd.uniform(14, 40) if kind == 'chunk' else rnd.uniform(1.5, 8)
+        out.append(dict(name='%s %s %d' % (of, kind, n), of=of, kind=kind, size=size,
+                        t_in=126.0 + rnd.uniform(-2.0, 5.5), at=pos, vel=vel, seed=n))
+    # two chunks, from different hulls, break up during the shot (coordinator, 2026-10-22)
+    chunks = [p for p in out if p['kind'] == 'chunk']
+    chunks[0]['split'], chunks[-1]['split'] = 129.6, 130.4
+    return out
+
+
+WRECKFALL = _wreckfall()
+
+
+def add_span(arg):
+    """--span kf:t0:t1:fps (owner, 2026-10-22: the plasma judged moving, not as a still): a lit
+    motion span as one generated key frame per step, '<kf>s00', '<kf>s01', ..., each with the ships,
+    the camera and the effects at its own time. Returns their ids. The env var carries it into Blender."""
+    kf, t0, t1, fps = arg.split(':')
+    t0, t1, fps = float(t0), float(t1), float(fps)
+    base = KEYFRAMES[kf]
+    path = base['camera']['at']
+    ids = []
+    for n in range(int(round((t1 - t0) * fps)) + 1):
+        t = t0 + n / fps
+        cam = dict(path(t))
+        cam['at'] = path
+        spec = dict(base, camera=cam, t=t, title='%s at %.2f s' % (base['title'], t),
+                    ships={k: at_time(p, t) for k, p in base['ships'].items()})
+        key = '%ss%02d' % (kf, n)
+        KEYFRAMES[key] = SHOTS[key] = spec
+        ids.append(key)
+    return ids
+
+
+KEYFRAMES['k6'].update(
+    title='The wreckfall',
+    caption="From the pirates' orbit, a long lens"
+            ' follows the Colossus and Morrow down: two burning hulls '
+            'inside their plasma sheaths, falling toward the canyons, while the ships lost in the fight come '
+            'down around them in pieces.',
+    # TRACKING PUSH-IN: rides down with a little over half of the Colossus's fall, dollying in, from 40
+    # mm to the plate's 50 mm at the key, then on to 85 mm, ending tight on the two burning hulls
+    camera=camera('k6', [dict(t=126, loc=_k6_cam, target=lambda t: _k6_aim(t, .35), lens=40),
+                         dict(t=130, loc=_k6_cam, target=lambda t: _k6_aim(t, 0.0), lens=50),
+                         dict(t=134, loc=_k6_cam, target=lambda t: _k6_aim(t, .5), lens=85)], K6_T),
+    ships=K6_SHIPS,
+    fx=[('entry_sheath', 'colossus'), ('entry_sheath', 'morrow'), ('wreckfall',)],
+    labels=['colossus', 'morrow'])
+
 # Shots with no key frame, blocked for the motion preview so no shot plays as a slate: the camera's
 # move and every ship's flight, the same spec as a key frame's. They are never lit: the lit run's
 # frames are KEYFRAMES only, and SHOTS is what the preview and --check read.
@@ -1105,6 +1238,7 @@ BLOCKED = {
         labels=['colossus', 'morrow']),
 }
 SHOTS = {**KEYFRAMES, **BLOCKED}
+SPAN = add_span(os.environ['ASHARU_SPAN']) if os.environ.get('ASHARU_SPAN') else []
 
 ROSTER_SHEETS = ('r1', 'r2')   # top-down and broadside fleet sheets
 
@@ -1465,18 +1599,34 @@ def blender_main(cfg):
     am.use_nodes = True
     nt2 = am.node_tree
     nt2.nodes.remove(nt2.nodes['Principled BSDF'])
+    # A thin, soft blue haze over the limb (coordinator, 2026-10-22: the old shell, brightest at its
+    # own outer edge, drew "a hard, flat grey band"). u is how far in from the shell's edge a ray
+    # passes, 1 where it grazes the ground: the haze climbs to full there and dies away over the disc.
     lw = nt2.nodes.new('ShaderNodeLayerWeight')
     lw.inputs['Blend'].default_value = .5
-    p3 = nt2.nodes.new('ShaderNodeMath')
-    p3.operation = 'POWER'
-    p3.inputs[1].default_value = 9.0
-    nt2.links.new(lw.outputs['Facing'], p3.inputs[0])
+
+    def m2(op, a, b):
+        m = nt2.nodes.new('ShaderNodeMath')
+        m.operation = op
+        for k, v in enumerate((a, b)):
+            if v is None:
+                continue
+            if isinstance(v, (int, float)):
+                m.inputs[k].default_value = v
+            else:
+                nt2.links.new(v, m.inputs[k])
+        return m.outputs[0]
+    grazing = math.sqrt(2 * 14e3 / R)                  # 1 - facing where a ray just grazes the ground
+    u = m2('DIVIDE', m2('SUBTRACT', 1.0, lw.outputs['Facing']), grazing)
+    haze = m2('MINIMUM', m2('POWER', m2('MINIMUM', u, 1.0), 4.0),
+              m2('EXPONENT', m2('MULTIPLY', m2('SUBTRACT', u, 1.0), -2.5), None))
+    haze = m2('MULTIPLY', haze, .6)        # look1 (2026-10-22): at .85 and 1.1 it was a thick flat band
     em = nt2.nodes.new('ShaderNodeEmission')
-    em.inputs['Color'].default_value = (.78, .74, .68, 1)
-    em.inputs['Strength'].default_value = 1.4
+    em.inputs['Color'].default_value = (.32, .52, 1.0, 1)
+    em.inputs['Strength'].default_value = .45
     clear = nt2.nodes.new('ShaderNodeBsdfTransparent')
     mix = nt2.nodes.new('ShaderNodeMixShader')
-    nt2.links.new(p3.outputs[0], mix.inputs['Fac'])
+    nt2.links.new(haze, mix.inputs['Fac'])
     nt2.links.new(clear.outputs[0], mix.inputs[1])
     nt2.links.new(em.outputs[0], mix.inputs[2])
     nt2.links.new(mix.outputs[0], nt2.nodes['Material Output'].inputs['Surface'])
@@ -1988,25 +2138,69 @@ def blender_main(cfg):
             obj('Flare', bead_me, flare_mat, Matrix.Translation(p) @ Matrix.Scale(1.6, 4))
 
     def entry_trails(labels3d):
-        """Two plasma trails 100-180 km up, 150-350 km downrange and heading north, from orbit."""
-        head_mat = emission_mat('Plasma head', (1, .85, .6), 60.0)
+        """Two entry trails 150-45 km up, 150-800 km downrange and heading north, from orbit: each
+        hull's bow shock and core at the far, low end, its wake cooling and widening back up the
+        track toward the camera, and a faint ionisation trail beyond (swfx_entry, W7)."""
+        if str(PROLOGUE / 'second-wind-vfx') not in sys.path:
+            sys.path.insert(0, str(PROLOGUE / 'second-wind-vfx'))
+        import swfx_entry
         for name, side, scale in (('trail-colossus', 0.0, 1.0), ('trail-morrow', -.0045, .7)):
             pts = []
-            for i in range(31):
-                f = i / 30
+            for i in range(61):
+                f = i / 60
                 th = (150e3 + 650e3 * f) / R              # downrange arc, prograde (north-east)
                 alt = 150e3 - 105e3 * f ** .8
                 sd = side + .0035 * f                      # a slight drift off the track
                 dirn = Vector((math.sin(th), sd, math.cos(th))).normalized()
                 pts.append(centre + dirn * (R + alt))
-            # Faint where the heating starts, brightest and widest at the ships at the far end.
-            for i in range(len(pts) - 1):
-                f = i / (len(pts) - 1)
-                rad = (250 + 1600 * f ** 1.5) * scale
-                segment(pts[i + 1], pts[i], rad, plasma_mat, 'Plasma ' + name)
-            head = pts[-1]
-            obj('Plasma head', bead_me, head_mat, Matrix.Translation(head) @ Matrix.Scale(2200 * scale, 4))
-            labels3d[name] = head
+            labels3d[name] = swfx_entry.trail('Entry ' + name, pts, stage_fx, width_m=1600 * scale, glow=scale)
+
+    def entry_kit():
+        if str(PROLOGUE / 'second-wind-vfx') not in sys.path:
+            sys.path.insert(0, str(PROLOGUE / 'second-wind-vfx'))
+        import swfx_entry
+        return swfx_entry
+
+    def entry_sheath(pose, key, t):
+        """S12: a falling hull inside her plasma sheath (swfx_entry): the bow shock ahead of her fall,
+        the white-hot core, sparks shed off her, and the trail grown behind her since 126 s."""
+        length = SHIP_LENGTH[key]
+        head = Vector(pose.at(t)[:3])
+        wake = length * min(3.5, 1.0 + (t - 126.0) * .7)      # grows as she goes deeper into the air
+        pts = [head + Vector(K6_WIND) * wake * (1 - i / 40) for i in range(41)]
+        entry_kit().trail('Entry ' + key, pts, stage_fx, width_m=length * .55, glow=1.0, sparks=12,
+                          seed=len(key), shock=(length * 1.3, length * .6), spark_len=length * .6, ion=False)
+
+    def wreckfall(t):
+        """S12: the ships the battle lost coming down in pieces (WRECKFALL): each piece a short entry
+        trail of its own with a ragged, flickering head; two chunks split during the shot."""
+        import random
+        kit = entry_kit()
+        for pc in WRECKFALL:
+            if t < pc['t_in']:
+                continue
+            rnd = random.Random(pc['seed'])
+            age = min(t - pc['t_in'], 1.5 if pc['kind'] == 'chunk' else .8)
+
+            def at(tt, pc=pc):
+                return Vector([pc['at'][i] + pc['vel'][i] * (tt - K6_T) for i in range(3)])
+            parts = [(0.0, 0.0, 0.0)]
+            split = pc.get('split')
+            if split is not None and t > split:     # breaking up in the shot: splinters peel off
+                parts += [tuple(rnd.gauss(0, 140) for _ in range(3)) for _ in range(2)]
+            # a tumbling fragment's head flickers: its brightness per frame, from the frame's own time
+            flick = random.Random(pc['seed'] * 1000 + int(round(t * 24))).uniform(.6, 1.35)
+            for k, dv in enumerate(parts):
+                head = at(t) + Vector(dv) * (t - split if k else 0.0)
+                grown = age if k == 0 else t - split
+                ln = pc['size'] * (12.0 if pc['kind'] == 'chunk' else 25.0) * min(1.0, .3 + grown)
+                pts = [head + Vector(K6_WIND) * ln * (1 - i / 12) for i in range(13)]
+                kit.trail('Wreckfall %s %d' % (pc['name'], k), pts, stage_fx,
+                          width_m=pc['size'] * (1.5 if pc['kind'] == 'chunk' else 2.0) * (1 if k == 0 else .6),
+                          glow=(.35 if pc['kind'] == 'chunk' else .15) * flick * (1 if k == 0 else .75),
+                          sparks=6 if pc['kind'] == 'chunk' and k == 0 else 0,
+                          seed=pc['seed'] * 7 + k, ion=False, shock=(pc['size'] * 1.4, pc['size'] * .7),
+                          spark_len=pc['size'], ragged=3 if pc['kind'] == 'chunk' else 2)
 
     def field_matrix(piece, box, t, local=None):
         """A debris box's world matrix at time t: the wreck turning about its own axis (debris_field).
@@ -2523,6 +2717,10 @@ def blender_main(cfg):
                     flares(fx[1])
                 elif kind == 'entry_trails':
                     entry_trails(extra3d)
+                elif kind == 'entry_sheath' and not cfg.get('motion_preview'):     # the preview has proxies
+                    entry_sheath(spec['ships'][fx[1]], fx[1], spec.get('t', K6_T))
+                elif kind == 'wreckfall' and not cfg.get('motion_preview'):
+                    wreckfall(spec.get('t', K6_T))
             c = spec['camera']
             aim(c['loc'], c.get('target'), c['lens'], c.get('look'), c.get('roll', 0.0))
             if cfg.get('volume_audit'):       # in vacuum (as rendered), then as the kit's atmosphere default
@@ -2741,13 +2939,14 @@ def label_frames(run):
             im = im.resize((W, H), Image.LANCZOS)
         dr = ImageDraw.Draw(im, 'RGBA')
         lab = labels.get(kf, {})
+        clean = kf in KEYFRAMES and KEYFRAMES[kf].get('clean')
         if kf in KEYFRAMES:
             spec = KEYFRAMES[kf]
             title = f"{spec['shot']}  {spec['title']}"
             cap = spec['caption']
             boxes = []
             for key, p in sorted(lab.items(), key=lambda kv: (kv[1] or [0, 0])[1]):
-                if not p:
+                if not p or clean:
                     continue
                 col = (255, 140, 110, 255) if key in pirates else (150, 210, 255, 255)
                 txt = names.get(key, key)
@@ -2775,13 +2974,14 @@ def label_frames(run):
             bar = 100 / mpp
             dr.rectangle((60, H - 150, 60 + bar, H - 142), fill=(230, 230, 230, 255))
             dr.text((60, H - 138), '100 m', font=f_lab, fill=(230, 230, 230, 255))
-        dr.rectangle((0, 0, W, 58), fill=(0, 0, 0, 170))
-        dr.text((22, 12), title, font=f_title, fill=(255, 255, 255, 255))
-        dr.rectangle((0, H - 92, W, H), fill=(0, 0, 0, 170))
-        y = H - 82
-        for line in wrap(dr, cap, f_cap, W - 44):
-            dr.text((22, y), line, font=f_cap, fill=(230, 230, 230, 255))
-            y += 27
+        if not clean:   # a shot that sells on its effects carries nothing over them (no id burn-in either)
+            dr.rectangle((0, 0, W, 58), fill=(0, 0, 0, 170))
+            dr.text((22, 12), title, font=f_title, fill=(255, 255, 255, 255))
+            dr.rectangle((0, H - 92, W, H), fill=(0, 0, 0, 170))
+            y = H - 82
+            for line in wrap(dr, cap, f_cap, W - 44):
+                dr.text((22, y), line, font=f_cap, fill=(230, 230, 230, 255))
+                y += 27
         name = f"{order.index(kf) + 2:02d}-{kf}-{slug(title)}.png"   # by shot order: two jobs' halves interleave
         im.save(run / name)
         outputs.append(name)
@@ -3316,6 +3516,9 @@ def main():
     def opt(flag, default=None):
         return argv[argv.index(flag) + 1] if flag in argv else default
 
+    if opt('--span'):            # a lit motion span (add_span): its steps are the frames
+        os.environ['ASHARU_SPAN'] = opt('--span')
+        argv += ['--frames', ','.join(add_span(opt('--span')))]
     frames = opt('--frames', ','.join(list(KEYFRAMES) + list(ROSTER_SHEETS))).split(',')
     run = Path(opt('--root', REPO / 'build' / 'asharu-battle')) / opt('--run', date.today().isoformat())
     run.mkdir(parents=True, exist_ok=True)

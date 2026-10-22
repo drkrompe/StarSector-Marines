@@ -463,6 +463,36 @@ def shot(L, kf):
                 return (mw @ Vector((ln_ * .55, 0, 0)), mw.to_3x3() @ Vector((-1, 0, 0)),
                         ln_ * (.08 + .17 * u), ln_ * (.25 + .9 * u))
             mp.cone(name, sheath, 'fire')
+        elif kind == 'entry_sheath':
+            # S12: a falling hull's bow shock (a cone narrowing ahead of her along her fall) and the
+            # trail growing behind her since the shot began; proxies for swfx_entry
+            key = fx[1]
+            ln_ = placed[key]['length']
+
+            def pos(t, key=key):
+                return M(key, t).to_translation()
+
+            import __main__ as bb          # battle_blockout: the shot's authored airflow, K6_WIND
+            wind = Vector(bb.K6_WIND)
+
+            def shock(t, key=key, ln_=ln_):        # hugging her, into the airflow
+                return pos(t) - wind * ln_ * .5, -wind, ln_ * .5, ln_ * 1.1
+            mp.cone(name, shock, 'fire')
+            mp.line(name + ' trail', lambda t, ts=ts, ln_=ln_: (
+                pos(t), pos(t) + wind * ln_ * min(4.0, 1.0 + (t - 126.0) * .8)), 'fire', width_px=6.0)
+        elif kind == 'wreckfall':
+            # S12: the ships the battle lost, coming down in pieces (battle_blockout.WRECKFALL)
+            import __main__ as bb          # battle_blockout, running as Blender's script
+            for pc in bb.WRECKFALL:
+                def ends(t, pc=pc):
+                    if t < pc['t_in']:
+                        return None
+                    age = min(t - pc['t_in'], 1.5 if pc['kind'] == 'chunk' else .8)
+                    head = Vector([pc['at'][i] + pc['vel'][i] * (t - bb.K6_T) for i in range(3)])
+                    ln = pc['size'] * (12.0 if pc['kind'] == 'chunk' else 25.0) * min(1.0, .3 + age)
+                    return head, head + Vector(bb.K6_WIND) * ln
+                mp.line('%s %s' % (name, pc['name']), ends, 'fire' if pc['kind'] == 'chunk' else 'flare',
+                        width_px=3.0 if pc['kind'] == 'chunk' else 1.2)
         elif kind == 'flares':
             key = fx[1]
             offs = [Vector((rnd.uniform(-60, 40), rnd.choice((-1, 1)) * rnd.uniform(50, 120), rnd.uniform(-10, 40)))

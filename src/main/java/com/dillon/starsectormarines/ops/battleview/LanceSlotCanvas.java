@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
-import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
@@ -11,7 +11,7 @@ import java.awt.Color;
 import java.util.function.Supplier;
 
 /**
- * One pad of a lance as a small picture: the chassis or vehicle standing on it, or an empty
+ * One pad of a lance as a small picture: the mech (with its fitted guns) or vehicle on it, or an empty
  * pad, with the pad's letter in the corner. The lance picker shows four of these per lance so
  * what a lance holds, and what it lacks, reads before any text.
  */
@@ -26,11 +26,11 @@ public final class LanceSlotCanvas implements CanvasProducer {
     private final String letter;
     private final CanvasProducer machine;
 
-    public LanceSlotCanvas(String letter, MechVariant variant, VehicleType vehicle,
+    public LanceSlotCanvas(String letter, CampaignMech mech, VehicleType vehicle,
                            Supplier<LayeredMechAssets> assets) {
         if (letter == null) throw new IllegalArgumentException("pad letter required");
         this.letter = letter;
-        this.machine = variant != null ? new MechChassisPreviewCanvas(variant, assets)
+        this.machine = mech != null ? new MechChassisPreviewCanvas(mech, assets)
                 : vehicle != null ? new VehiclePreviewCanvas(vehicle) : null;
     }
 
