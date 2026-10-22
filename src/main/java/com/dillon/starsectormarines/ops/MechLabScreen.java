@@ -14,6 +14,8 @@ import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
 import com.dillon.starsectormarines.ops.battleview.MechChassisPreviewCanvas;
+import com.dillon.starsectormarines.ops.battleview.LanceSlotCanvas;
+import com.dillon.starsectormarines.ops.battleview.VehiclePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechEquipmentGridCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
@@ -252,9 +254,30 @@ public final class MechLabScreen implements Screen {
      * when the player moves from a fitted gantry to a vacant one. Wire every
      * newly attached chassis, equipment, and socket-grid canvas after reconciliation.
      */
+    /** The picker's pad tiles and asset-card thumbnails; keyed by occupant, so a changed pad is a new canvas. */
+    private void wireLancePictures(MarkupInstance instance, UiDocument target) {
+        for (MechLabViewModel.SquadRow squad : viewModel.squadRows().get()) {
+            for (MechLabViewModel.LanceSlot slot : squad.slots()) {
+                UiElement canvas = instance.requireElement(slot.id());
+                if (target.canvases().producerOf(canvas) == null) {
+                    target.canvases().set(canvas, new LanceSlotCanvas(slot.letter(), slot.variant(), slot.vehicle(),
+                            () -> previewSprites().layeredMechSprites()));
+                }
+            }
+        }
+        for (MechLabViewModel.MechRow row : viewModel.mechRows().get()) {
+            UiElement canvas = instance.requireElement(row.previewId());
+            if (target.canvases().producerOf(canvas) == null) {
+                target.canvases().set(canvas, new LanceSlotCanvas(row.letter(),
+                        row.variant(), row.vehicle(), () -> previewSprites().layeredMechSprites()));
+            }
+        }
+    }
+
     private void wireEquipmentPreviews(MarkupInstance instance, UiDocument target,
                                        SpecSheetBinder sheets) {
         MechLabSpecSheets.bindCatalogRows(sheets, instance, viewModel.catalogRows().get(), viewModel);
+        wireLancePictures(instance, target);
         MechLabSpecSheets.bindMaterials(sheets, instance, viewModel);
         MechLabSpecSheets.bindActions(sheets, instance, viewModel);
         for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
@@ -263,6 +286,8 @@ public final class MechLabScreen implements Screen {
                 if (row.chassisPreview() != null) {
                     target.canvases().set(canvas, new MechChassisPreviewCanvas(
                             row.chassisPreview(), () -> previewSprites().layeredMechSprites()));
+                } else if (row.vehiclePreview() != null) {
+                    target.canvases().set(canvas, new VehiclePreviewCanvas(row.vehiclePreview()));
                 } else if (row.weaponPreview() != null || row.replenisherPreview() != null
                         || row.internalPreview() != null) {
                     target.canvases().set(canvas, MechEquipmentGridCanvas.catalog(
