@@ -124,7 +124,9 @@ burnt ground behind a front someone lit on purpose.
   earth, but does no harm to the bore itself.
 
 **Smoke.** A brush or crown fire smokes; a grass or creep fire burns too low
-and fast to screen. A smoking cell holds smoke over itself and, in a wind of
+and fast to screen and gives off only a thin haze, which is drawn and hides
+nothing (`-Dbattle.fire.lowSmoke=none|haze|screen`: none draws nothing over a
+low fire, screen makes it smoke as brush does). A smoking cell holds smoke over itself and, in a wind of
 any strength, over the cell downwind of it, for exactly as long as it burns
 (`FireSmoke`). The smoke is the grid's transient opacity, the same a smoke
 grenade's cloud holds, so sight, the fog and every observer read it with no
@@ -307,7 +309,11 @@ nothing is drawn for a battle that never lit anything.
   drawn as char once its ground is burnt, whether it still stands or has
   fallen to its destroyed art.
 - **Smoke** is a dark puff rising off each smoking cell and leaning
-  downwind, at play zoom only: the picture of the screen it holds.
+  downwind, at play zoom only: the picture of the screen it holds. It is
+  drawn thick and dark enough to read over flame and over grey creep
+  (`-Dbattle.render.smokeDensity`, 3; at 1, the first faint grey, smoke that
+  blocked sight could barely be seen). A low fire's haze is a paler, thinner
+  puff over every other burning cell.
 - **Fire light.** A burn lights what is round it, as a few pooled lights
   rather than one per cell (`FireLight`): burning cells are gathered into
   six-cell squares, and each square with fire in it is one light at its
@@ -329,6 +335,15 @@ nothing is drawn for a battle that never lit anything.
   moving; the scorch layer adds about 0.05 ms of drain at the whole map. The
   `fire-colony` snapshot suite shows the look on real ground: the canonical
   colony on a verdant world, burnt from its west edge.
+- On The Burn at its peak (`renderEvidence` maps `the burn` and `the burn at
+  night`, about 6,000 cells alight, framed on the densest fire) the fire's
+  flames, glow and smoke cost about 4 ms of CPU at a lane framing, almost all
+  of it drain, and little at the whole map, where flames are one bed a cell
+  and smoke is not drawn. At night the fire light's pools add a few ms at a
+  lane and more at the whole map, but the night shade itself costs more than
+  the fire there, with or without one. The simulation's fire costs about
+  0.2 ms a tick on average and 2 ms at p99 (`burn-sim.md` beside the render
+  report). `fire-burn` shows The Burn at its peak.
 
 ## Evidence
 

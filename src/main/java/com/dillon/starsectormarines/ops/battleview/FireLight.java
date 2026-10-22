@@ -113,8 +113,13 @@ final class FireLight {
 
     /** A light's pool at a point: the lamps' own falloff, squared toward the edge. */
     float pool(int i, float px, float py, float timeSeconds) {
+        return pool(i, px, py, timeSeconds, strength(i, timeSeconds));
+    }
+
+    /** {@link #pool} with the light's flickered strength already read, for a reader filling many points of one light. */
+    float pool(int i, float px, float py, float timeSeconds, float strengthNow) {
         float dx = px - x[i], dy = py - y[i], r = radius[i];
         float falloff = Math.max(0f, 1f - (dx * dx + dy * dy) / (r * r));
-        return falloff * falloff * strength(i, timeSeconds);
+        return falloff * falloff * strengthNow;
     }
 }

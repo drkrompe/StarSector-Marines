@@ -506,6 +506,9 @@ tasks.register('renderEvidence', Test) {
     if (project.hasProperty('renderMaps')) {
         systemProperty 'render.evidence.maps', project.property('renderMaps')
     }
+    if (project.hasProperty('renderBurnSeconds')) {
+        systemProperty 'render.evidence.burnSeconds', project.property('renderBurnSeconds')
+    }
     if (project.hasProperty('renderPileBodies')) {
         systemProperty 'render.evidence.pileBodies', project.property('renderPileBodies')
     }
