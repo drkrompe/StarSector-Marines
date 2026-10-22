@@ -500,6 +500,12 @@ tasks.register('renderEvidence', Test) {
     if (project.hasProperty('renderDir')) {
         systemProperty 'render.evidence.outputDir', project.property('renderDir')
     }
+    if (project.hasProperty('renderMaps')) {
+        systemProperty 'render.evidence.maps', project.property('renderMaps')
+    }
+    if (project.hasProperty('renderPileBodies')) {
+        systemProperty 'render.evidence.pileBodies', project.property('renderPileBodies')
+    }
     testLogging {
         showStandardStreams = true
     }

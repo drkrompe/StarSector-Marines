@@ -12,12 +12,15 @@ The sequence is the shot list in asharu-battle-shot.md, in order and at its leng
 key frame is built by battle_blockout.py's own scene build for that key frame (same hulls, places,
 camera and planet) and then played over the shot's whole length:
 
-- a ship the key frame places with motion.fleet_at moves the way motion.drift says, and a boat
-  on a motion.boarding_run flies its run, on the cinematic's own clock (the key frame is one
-  instant of that motion, marked KEY FRAME);
-- a ship with an authored pose (an attack run, a ship aboard another) has no path yet and holds
-  that pose: the legend says "(held)". --weave-all weaves it about its pose instead;
-- the camera holds the key frame's framing;
+- every ship flies the motion its key frame gives it, on the cinematic's own clock: a weave about
+  her station (motion.fleet_at), a flown run through attitude keys with hits, recoil and blinks
+  (motion.keyed), a boat's run, or riding another ship (motion.carried, motion.riding). The key
+  frame is one instant of that motion, marked KEY FRAME;
+- a ship given only a plain pose holds it: the legend says "(held)". --weave-all weaves it about
+  its pose instead;
+- the camera flies the key frame's move (motion.camera: a push, a track, a chase, handheld
+  drift), passing through the key frame's framing at the key time; a camera with no move holds;
+- the planet turns beneath at orbital speed, registered to the still at the key time;
 - effects are proxies on placeholder timing (no shot has authored effect timing yet): gunfire
   as dashed lines from the chosen muzzle, missiles as streaks, blasts as wire shells at the key
   moment, fires and smoke as cones, flares and debris as dots, shields as wire shells.
@@ -225,7 +228,7 @@ def shot(L, kf):
 
     poses, t_key, held = {}, None, []
     for key, sp in spec['ships'].items():
-        if isinstance(sp, Drift):
+        if isinstance(sp, Drift) or hasattr(sp, 'at'):      # motion's own poses (flight, keyed, riding) carry at()
             poses[key] = sp.at
             t_key = sp.t
         elif weave_all:
@@ -244,7 +247,9 @@ def shot(L, kf):
     notes = []
     if held:
         notes.append('%d of %d ships hold their key-frame pose (no path authored)' % (len(held), len(poses)))
-    notes.append('camera held at the key frame\'s framing')
+    cam_at = spec['camera'].get('at')
+    if cam_at is None:
+        notes.append('camera held at the key frame\'s framing')
     if spec.get('fx') or spec.get('shields'):
         notes.append('effects: proxies on placeholder timing')
     if t_key is None and poses and not held:
@@ -346,7 +351,26 @@ def shot(L, kf):
         mp.shield('%s shield %s' % (kf, key), point(key), placed[key]['length'] * .6,
                   toward=point(tw) if tw in placed else None)
 
-    mp.render_shot()
+    cam, ground = L['scene'].camera, L['ground']
+    t_still = spec['camera'].get('t', t_key if t_key is not None else ts)
+
+    def per_frame(f, t):
+        """The camera's move (motion.camera) and the planet turning under the co-moving frame."""
+        if cam_at is not None:
+            c = cam_at(t)
+            L['aim'](c['loc'], c['target'], c['lens'], None, c.get('roll', 0.0))
+            for path in ('location', 'rotation_quaternion'):
+                cam.keyframe_insert(path, frame=f)
+            cam.data.keyframe_insert('lens', frame=f)
+        ground.rotation_mode = 'XYZ'
+        ground.rotation_euler = (0.0, math.radians(motion.planet_turn_deg(t, t_still, bb.R)), 0.0)
+        ground.keyframe_insert('rotation_euler', frame=f)
+    mp.render_shot(before=per_frame)
+    if cam_at is not None:          # the next shot keys its own camera from scratch
+        cam.animation_data_clear()
+        cam.data.animation_data_clear()
+    ground.animation_data_clear()
+    ground.rotation_euler = (0.0, 0.0, 0.0)
     mp.end_shot()
 
 

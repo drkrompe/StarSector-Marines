@@ -19,8 +19,9 @@ import java.util.List;
  * @param stats    stat rows in display order; may be empty
  * @param notes    field-note paragraphs in display order; may be empty
  * @param seats    one picture per seat for a sheet that describes a whole
- *                 squad's issue, painted as fire teams of {@link #TEAM_SIZE};
- *                 empty for a single item
+ *                 squad's issue, painted as fire teams of {@link #TEAM_SIZE},
+ *                 each team a two-by-two block; empty for a single item
+ * @param teams    a heading per fire team, in seat order; may be empty
  */
 public record SpecSheet(String title,
                         String subtitle,
@@ -28,14 +29,15 @@ public record SpecSheet(String title,
                         String accent,
                         List<Stat> stats,
                         List<String> notes,
-                        List<Seat> seats) {
+                        List<Seat> seats,
+                        List<String> teams) {
 
-    /** Seats per painted row: a fire team. */
+    /** Seats per painted block: a fire team. */
     public static final int TEAM_SIZE = 4;
 
     public SpecSheet(String title, String subtitle, String crestPath, String accent,
                      List<Stat> stats, List<String> notes) {
-        this(title, subtitle, crestPath, accent, stats, notes, List.of());
+        this(title, subtitle, crestPath, accent, stats, notes, List.of(), List.of());
     }
 
     public SpecSheet {
@@ -45,11 +47,12 @@ public record SpecSheet(String title,
         stats = stats == null ? List.of() : List.copyOf(stats);
         notes = notes == null ? List.of() : List.copyOf(notes);
         seats = seats == null ? List.of() : List.copyOf(seats);
+        teams = teams == null ? List.of() : List.copyOf(teams);
     }
 
-    /** This sheet with one picture per seat. */
-    public SpecSheet withSeats(List<Seat> seats) {
-        return new SpecSheet(title, subtitle, crestPath, accent, stats, notes, seats);
+    /** This sheet with one picture per seat, under a heading per fire team. */
+    public SpecSheet withSeats(List<Seat> seats, List<String> teams) {
+        return new SpecSheet(title, subtitle, crestPath, accent, stats, notes, seats, teams);
     }
 
     /**
