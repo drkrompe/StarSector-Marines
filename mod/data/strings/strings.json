@@ -5205,6 +5205,8 @@
 		"loadoutCardIssuerCodeLIONS_GUARD": "LG",
 		"loadoutCardIssuerPIRATES": "Black-Market Quartermasters",
 		"loadoutCardIssuerCodePIRATES": "BM",
+		"loadoutSquadCardWeapon": "WEAPON LOADOUT",
+		"loadoutSquadCardSheet": "TACTIC SHEET",
 		"loadoutCardIssuedFmt": "Issued by {0}  ·  No. {1}-{2}",
 		"loadoutCardRestrictedFmt": "RESTRICTED  ·  {0} warrant",
 		"loadoutCardRestricted": "RESTRICTED  ·  military warrant",
