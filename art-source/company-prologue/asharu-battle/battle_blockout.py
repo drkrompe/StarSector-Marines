@@ -207,11 +207,11 @@ TOWARD_CONVOY = debris_field.unit(to_platform((0.0, 0.0, 0.0)))
 HIDES = {
     'manticore-p': dict(at=(110, -52, -40), hd=-90, pt=0, rl=4),            # the station's south hangar
     'colossus3': dict(at=(-70, -45, -72), hd=180, pt=-6, rl=175),            # under its big hull, inverted
-    'falcon-p': dict(at=(-950, -420, -180), hd=-30, pt=-4, rl=12, cover='hulk'),
+    'falcon-p': dict(at=(-950, -420, -180), hd=-30, pt=-4, rl=12, cover='hulk', cover_size=(230, 201, 112)),
     'buffalo2-a': dict(at=(480, -520, -260), hd=150, pt=6, rl=-8, cover='block'),
     'hound-p-c': dict(at=(1080, -160, 90), hd=-20, pt=8, rl=35, cover='hulk', peek=.75),
     'wolf-p-a': dict(at=(-1180, 140, 130), hd=160, pt=-5, rl=-20, cover='slab'),
-    'wolf-p-b': dict(at=(-380, 420, -330), hd=-35, pt=4, rl=80, cover='hulk', peek=.75),
+    'wolf-p-b': dict(at=(-380, 420, -330), hd=-35, pt=4, rl=80, cover='hulk', peek=.75, cover_size=(103, 90, 45)),
     'hound-p-a': dict(at=(230, 450, 190), hd=140, pt=-6, rl=180, cover='block', peek=-.55),
     'hound-p-b': dict(at=(880, 320, -210), hd=-25, pt=10, rl=-15, cover='hulk'),
     'kite-p-a': dict(at=(-980, -640, -320), hd=155, pt=12, rl=40, cover='slab'),
@@ -411,7 +411,7 @@ def _field():
         if h.get('cover'):
             cover.append(debris_field.cover_piece('cover %s' % k, (*h['at'], h['hd'], h['pt'], h['rl']),
                                                   SHIP_LENGTH[k], TOWARD_CONVOY, h['cover'], h.get('peek', 0.0),
-                                                  seed=n, t0=K1B_T))
+                                                  seed=n, t0=K1B_T, size=h.get('cover_size')))
             cover[-1].cover_for = k
     keep = [(to_platform(K2_CAM), 450.0)]
     keep += [((x, 0.0, 0.0), 160.0) for x in range(-450, 451, 150)]
@@ -420,7 +420,23 @@ def _field():
             t = LAUNCH[k] + i * .5
             keep.append((to_platform(f.at(t)[:3]), SHIP_LENGTH[k] * .6 + 45.0))
     keep += [(c.centre, c.radius() + 20.0) for c in cover]
-    return cover, debris_field.field_pieces(11, 70, (1650.0, 1050.0, 560.0), keep, t0=K1B_T)
+    wrecks = debris_field.field_pieces(11, 70, (1650.0, 1050.0, 560.0), keep, t0=K1B_T)
+    # Sized to the wreck kit's hull-derived sections (wreck_kit.hulks), so a real hulk drops in. The
+    # ids stay put: a resize keeps its piece, and the big hulks are appended after the seeded field.
+    for w in wrecks:
+        if w.name == 'debris section 10':                 # a stripped Colossus
+            w.boxes[0] = ((0, 0, 0), (56.0, 44.5, 21.5), w.boxes[0][2])
+    for name, size, seed in (('debris hulk onslaught-stern', (293, 230, 112), 1),):
+        big = debris_field.free_hulk(name, size, BIG_HULK_SITES, keep, cover + wrecks, seed=seed, t0=K1B_T)
+        if big:
+            wrecks.append(big)
+    return cover, wrecks
+
+
+# where a free-standing big hulk may lie, in platform metres, tried in order: the field's far
+# corners, off the launch corridors and S4's camera
+BIG_HULK_SITES = [(-1350, 650, -300), (1350, -700, -280), (-1300, -750, 250), (1300, 750, -320),
+                  (-1450, 100, -380), (1450, 100, 330), (0, -950, -420), (-700, 950, 350)]
 
 
 FIELD_COVER, FIELD_WRECKS = _field()
