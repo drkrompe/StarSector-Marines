@@ -256,9 +256,9 @@ public final class MechLabViewModel {
                 : platingSelected.get() ? "plating-select console-action selected"
                 : "plating-select console-action");
         leftSlotRows = reactor.computed(() -> buildSlots(List.of(
-                SocketId.CORE, SocketId.ARMS, SocketId.LEFT_SHOULDER)));
+                SocketId.CORE, SocketId.ARMS, SocketId.LEFT_ARM, SocketId.LEFT_SHOULDER)));
         rightSlotRows = reactor.computed(() -> buildSlots(List.of(
-                SocketId.RIGHT_SHOULDER, SocketId.CAPACITORS, SocketId.MINI_FAB)));
+                SocketId.RIGHT_ARM, SocketId.RIGHT_SHOULDER, SocketId.CAPACITORS, SocketId.MINI_FAB)));
         slotRows = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
             if (mech == null) return List.of();
@@ -835,8 +835,7 @@ public final class MechLabViewModel {
         // The stock frame: the chassis's roll-out weapons on its stock internals. A bar shows that
         // much in its part's shade and what the fit adds past it (or falls short of it) beyond.
         MechVariant variant = mech.variant();
-        MechFrameBudget.Fit stock = new MechFrameBudget.Fit(variant, variant.arms, variant.leftShoulder,
-                variant.rightShoulder, null, null, null, null);
+        MechFrameBudget.Fit stock = MechFrameBudget.Fit.stock(variant);
 
         return List.of(
                 meter("armor", Strings.get("openingMechLabArmor"), Strings.format("openingMechLabPlate", Math.round(armor)),
@@ -965,7 +964,7 @@ public final class MechLabViewModel {
             case MINI_FAB -> Strings.get("openingMechLabUtilityCopy");
             case CORE -> Strings.get("openingMechLabEngineCopy");
             case CAPACITORS -> Strings.get("openingMechLabCapacitorBankCopy");
-            case ARMS, LEFT_SHOULDER, RIGHT_SHOULDER ->
+            case ARMS, LEFT_ARM, RIGHT_ARM, LEFT_SHOULDER, RIGHT_SHOULDER ->
                     slotComponent(mech, selectedSlot.get()).equals(Strings.get("openingMechLabEmptyHardpoint"))
                             ? Strings.get("openingMechLabEmptyMountFitCompatibleMissileHardwareHere")
                             : Strings.get("openingMechLabInstalledWeaponAssemblySocketTypeAndCapacity");
@@ -1748,7 +1747,7 @@ public final class MechLabViewModel {
             selectedVehicleId.set(null);
             callSignDraft.set(fabricated.displayName());
             selectedGantry.set(Math.max(0, squad.mechs().size() - 1));
-            selectedSlot.set(SocketId.ARMS);
+            selectedSlot.set(fabricated.variant().twoArmed() ? SocketId.LEFT_ARM : SocketId.ARMS);
             platingSelected.set(false);
             fittingFocused.set(true);
         }
@@ -1946,6 +1945,8 @@ public final class MechLabViewModel {
         return switch (slot) {
             case CORE -> mech.internal(MechInternal.Role.ENGINE).displayName();
             case ARMS -> componentName(mech.arms());
+            case LEFT_ARM -> componentName(mech.leftArm());
+            case RIGHT_ARM -> componentName(mech.rightArm());
             case LEFT_SHOULDER -> componentName(mech.leftShoulder());
             case RIGHT_SHOULDER -> componentName(mech.rightShoulder());
             case CAPACITORS -> mech.internal(MechInternal.Role.CAPACITOR_BANK).displayName();
@@ -2020,6 +2021,8 @@ public final class MechLabViewModel {
     private static MechMountSlot mountFor(SocketId slot) {
         return switch (slot) {
             case ARMS -> MechMountSlot.ARMS;
+            case LEFT_ARM -> MechMountSlot.LEFT_ARM;
+            case RIGHT_ARM -> MechMountSlot.RIGHT_ARM;
             case LEFT_SHOULDER -> MechMountSlot.LEFT_SHOULDER;
             case RIGHT_SHOULDER -> MechMountSlot.RIGHT_SHOULDER;
             default -> null;

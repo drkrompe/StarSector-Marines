@@ -123,7 +123,7 @@ public final class DirectControlSession {
     public BuildOption selectedBuildOption() { return tender == null ? null : TenderPilot.option(selectedWeapon); }
     public boolean isControlling(long id) { return id != 0L && id == unitId; }
     public ManualIntent intent() { return intent; }
-    /** 0 is all direct weapons; 1..3 name ARMS, LEFT_SHOULDER, and RIGHT_SHOULDER. */
+    /** 0 is all direct weapons; 1..5 name the hardpoints in {@link MechMountSlot} order. */
     public int selectedWeapon() { return selectedWeapon; }
 
     /** Read-only status for the exact controlled Marine; other carriers have no stamina gauge. */

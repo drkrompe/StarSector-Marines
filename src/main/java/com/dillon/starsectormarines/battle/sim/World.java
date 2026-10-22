@@ -390,6 +390,12 @@ public final class World {
                     BattleComponents.MECH_LAYERED_ARMS,
                     loadout.appearanceSelector(MechMountSlot.ARMS));
             entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
+                    BattleComponents.MECH_LAYERED_LEFT_ARM,
+                    loadout.appearanceSelector(MechMountSlot.LEFT_ARM));
+            entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
+                    BattleComponents.MECH_LAYERED_RIGHT_ARM,
+                    loadout.appearanceSelector(MechMountSlot.RIGHT_ARM));
+            entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
                     BattleComponents.MECH_LAYERED_LEFT_SHOULDER,
                     loadout.appearanceSelector(MechMountSlot.LEFT_SHOULDER));
             entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,

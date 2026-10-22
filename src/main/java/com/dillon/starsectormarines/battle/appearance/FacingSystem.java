@@ -371,7 +371,7 @@ public final class FacingSystem {
                 ? LayeredMechAppearance.turnStepPhase(steeringFacing[row])
                 : LayeredAppearance.locomotionPhase(moving ? gaitPhase[row] : 0f);
 
-        MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
+        MechWeaponMount arms = activeArm(loadout);
         MechWeaponMount srm = representativeMount(loadout, WeaponRegistry.MECH_SRM_POD_ID);
         if (srm == null) {
             srm = representativeMount(loadout, WeaponRegistry.MECH_PIONEER_ROCKET_ID);
@@ -390,7 +390,7 @@ public final class FacingSystem {
         if (chaingunActive) authoredFlags |= LayeredMechAppearance.FLAG_CHAINGUN_ACTIVE;
         if (srmActive) authoredFlags |= LayeredMechAppearance.FLAG_SRM_ACTIVE;
         if (lrmActive) authoredFlags |= LayeredMechAppearance.FLAG_LRM_ACTIVE;
-        if (trackFlash(arms)) authoredFlags |= LayeredMechAppearance.FLAG_CHAINGUN_FLASH;
+        if (anyArmFlash(loadout)) authoredFlags |= LayeredMechAppearance.FLAG_CHAINGUN_FLASH;
         if (anyTrackFlash(loadout, WeaponRegistry.MECH_SRM_POD_ID)
                 || anyTrackFlash(loadout, WeaponRegistry.MECH_PIONEER_ROCKET_ID)) {
             authoredFlags |= LayeredMechAppearance.FLAG_SRM_FLASH;
@@ -445,6 +445,22 @@ public final class FacingSystem {
         return mount != null && LayeredMechAppearance.trackFlash(
                 mount.cycleRemaining, mount.component.cycleSeconds(), mount.burstRemaining,
                 mount.burstTimer, mount.weaponDef().burstSpacing);
+    }
+
+    /** The arm gun mid-burst, else the first fitted one: the track the arm recoil follows. */
+    private static MechWeaponMount activeArm(MechLoadoutComponent loadout) {
+        for (MechMountSlot slot : MechLoadoutComponent.ARM_SLOTS) {
+            MechWeaponMount mount = loadout.mount(slot);
+            if (mount != null && mount.burstRemaining > 0) return mount;
+        }
+        return loadout.primaryArm();
+    }
+
+    private static boolean anyArmFlash(MechLoadoutComponent loadout) {
+        for (MechMountSlot slot : MechLoadoutComponent.ARM_SLOTS) {
+            if (trackFlash(loadout.mount(slot))) return true;
+        }
+        return false;
     }
 
     private static boolean anyTrackFlash(MechLoadoutComponent loadout, String weaponId) {

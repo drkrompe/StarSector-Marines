@@ -12,11 +12,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class DirectControlScatterTest {
     @Test
     void gunsHaveNoRingAndRocketsGrowOneThatTurnsPastRange() {
-        var guns = new MechLoadoutComponent(MechVariant.BULWARK, MechWeaponComponent.DUAL_CHAINGUNS,
+        var guns = new MechLoadoutComponent(MechVariant.BULWARK, MechWeaponComponent.CHAINGUN,
                 null, null, MechRole.ARMORED_SUPPORT);
         assertNull(DirectControlScatter.mech(guns, 0, 15f));
 
-        var rockets = new MechLoadoutComponent(MechVariant.BULWARK, MechWeaponComponent.DUAL_CHAINGUNS,
+        var rockets = new MechLoadoutComponent(MechVariant.BULWARK, MechWeaponComponent.CHAINGUN,
                 MechWeaponComponent.SRM_5, null, MechRole.ARMORED_SUPPORT);
         float range = rockets.mount(MechMountSlot.LEFT_SHOULDER).weaponDef().range;
         var near = DirectControlScatter.mech(rockets, 0, range * 0.5f);

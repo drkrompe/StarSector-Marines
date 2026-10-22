@@ -2750,8 +2750,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 bay.addInternal(internal.id, 1);
                 bay.installInternal(mechId, internal);
             }
-            bay.addWeapon(MechWeaponComponent.DUAL_MUSTER_AUTOGUNS.id, 1);
-            bay.installWeapon(mechId, MechMountSlot.ARMS, MechWeaponComponent.DUAL_MUSTER_AUTOGUNS.id);
+            CampaignMech refitted = bay.mechById(mechId);
+            for (MechMountSlot arm : refitted.variant().armMounts()) {
+                bay.addWeapon(MechWeaponComponent.MUSTER_AUTOGUN.id, 1);
+                bay.installWeapon(mechId, arm, MechWeaponComponent.MUSTER_AUTOGUN.id);
+            }
             viewModel.gantryRows().get().get(0).select().run();
             viewModel.selectSlot(SocketId.CORE);
         }

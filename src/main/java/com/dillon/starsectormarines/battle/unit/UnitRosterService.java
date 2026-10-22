@@ -14,6 +14,8 @@ import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.mech.MechLocomotion;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.appearance.SystemFxService;
@@ -758,7 +760,11 @@ public final class UnitRosterService {
             entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
                     BattleComponents.MECH_LAYERED_CHASSIS, variant.chassisAppearance);
             entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
-                    BattleComponents.MECH_LAYERED_ARMS, variant.arms.appearanceSelector);
+                    BattleComponents.MECH_LAYERED_ARMS, armsSelector(variant.arms));
+            entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
+                    BattleComponents.MECH_LAYERED_LEFT_ARM, armsSelector(variant.leftArm));
+            entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
+                    BattleComponents.MECH_LAYERED_RIGHT_ARM, armsSelector(variant.rightArm));
             entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
                     BattleComponents.MECH_LAYERED_LEFT_SHOULDER,
                     variant.leftShoulder != null ? variant.leftShoulder.appearanceSelector : 0);
@@ -1440,5 +1446,9 @@ public final class UnitRosterService {
     /** Bumps the deboarded-marine counter and returns the next id in {@code "m<n>"} format. */
     public String nextMarineId() {
         return "m" + deboardedMarineCount++;
+    }
+
+    private static int armsSelector(MechWeaponComponent component) {
+        return component != null ? component.appearanceSelector : LayeredMechAppearance.ARMS_NONE;
     }
 }

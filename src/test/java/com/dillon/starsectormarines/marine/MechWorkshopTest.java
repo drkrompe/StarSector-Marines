@@ -45,16 +45,16 @@ class MechWorkshopTest {
         MechWorkshop workshop = new MechWorkshop(bay, resources);
 
         MechWorkshop.Result result = workshop.fitWeapon(MechBay.STARTER_MECH_ID,
-                MechMountSlot.ARMS, MechWeaponComponent.DUAL_PULSE_LASERS);
+                MechMountSlot.LEFT_ARM, MechWeaponComponent.PULSE_LASER);
 
         assertEquals(MechWorkshop.Status.FABRICATED_AND_INSTALLED, result.status());
-        assertEquals(MechWeaponComponent.DUAL_PULSE_LASERS,
-                bay.mechById(MechBay.STARTER_MECH_ID).arms());
-        for (FabricationCost.Line line : MechFabricationCatalog.weapon(MechWeaponComponent.DUAL_PULSE_LASERS).cost().lines()) {
+        assertEquals(MechWeaponComponent.PULSE_LASER,
+                bay.mechById(MechBay.STARTER_MECH_ID).leftArm());
+        for (FabricationCost.Line line : MechFabricationCatalog.weapon(MechWeaponComponent.PULSE_LASER).cost().lines()) {
             assertEquals(100 - line.quantity(), resources.available(line.commodityId()));
         }
         assertEquals(100, resources.available(Commodities.SUPPLIES), "the lab spends no supplies");
-        assertEquals(1, bay.availableWeapon(MechWeaponComponent.DUAL_CHAINGUNS.id));
+        assertEquals(1, bay.availableWeapon(MechWeaponComponent.CHAINGUN.id));
     }
 
     @Test
@@ -64,13 +64,13 @@ class MechWorkshopTest {
         MechWorkshop workshop = new MechWorkshop(bay, resources);
 
         MechWorkshop.Result result = workshop.fitWeapon(MechBay.STARTER_MECH_ID,
-                MechMountSlot.ARMS, MechWeaponComponent.DUAL_PULSE_LASERS);
+                MechMountSlot.LEFT_ARM, MechWeaponComponent.PULSE_LASER);
 
         assertEquals(MechWorkshop.Status.INSUFFICIENT_MATERIALS, result.status());
-        assertEquals(MechWeaponComponent.DUAL_CHAINGUNS,
-                bay.mechById(MechBay.STARTER_MECH_ID).arms());
+        assertEquals(MechWeaponComponent.CHAINGUN,
+                bay.mechById(MechBay.STARTER_MECH_ID).leftArm());
         assertEquals(5, resources.available(Commodities.SUPPLIES));
-        assertEquals(0, bay.ownedWeapon(MechWeaponComponent.DUAL_PULSE_LASERS.id));
+        assertEquals(0, bay.ownedWeapon(MechWeaponComponent.PULSE_LASER.id));
     }
 
     @Test
@@ -79,12 +79,12 @@ class MechWorkshopTest {
         MechWorkshop workshop = new MechWorkshop(bay, TestResources.stocked(0));
 
         MechWorkshop.Result result = workshop.stripWeapon(MechBay.STARTER_MECH_ID,
-                MechMountSlot.ARMS);
+                MechMountSlot.LEFT_ARM);
 
         assertEquals(MechWorkshop.Status.STRIPPED, result.status());
-        assertEquals(1, bay.availableWeapon(MechWeaponComponent.DUAL_CHAINGUNS.id));
-        assertNull(bay.mechById(MechBay.STARTER_MECH_ID).arms());
-        assertNull(bay.activeDeployment().get(0).arms());
+        assertEquals(1, bay.availableWeapon(MechWeaponComponent.CHAINGUN.id));
+        assertNull(bay.mechById(MechBay.STARTER_MECH_ID).leftArm());
+        assertNull(bay.activeDeployment().get(0).leftArm());
     }
 
     @Test
@@ -103,9 +103,9 @@ class MechWorkshopTest {
         assertEquals(MechWeaponComponent.SRM_15, mech.rightShoulder());
 
         MechWorkshop.Result occupied = workshop.moveWeapon(MechBay.STARTER_MECH_ID,
-                MechMountSlot.ARMS, MechMountSlot.RIGHT_SHOULDER);
+                MechMountSlot.LEFT_ARM, MechMountSlot.RIGHT_SHOULDER);
         assertEquals(MechWorkshop.Status.TARGET_OCCUPIED, occupied.status());
-        assertEquals(MechWeaponComponent.DUAL_CHAINGUNS, mech.arms());
+        assertEquals(MechWeaponComponent.CHAINGUN, mech.leftArm());
         assertEquals(MechWeaponComponent.SRM_15, mech.rightShoulder());
     }
 

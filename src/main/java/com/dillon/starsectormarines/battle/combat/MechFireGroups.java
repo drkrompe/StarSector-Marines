@@ -15,7 +15,7 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
  * a single group has always done.
  *
  * <p>Groups are bit masks over the hardpoint ordinals ({@code 1 << slot.ordinal()}). Number
- * key 1 means the default groups; keys 2-4 re-point the <em>left</em> button at one hardpoint
+ * key 1 means the default groups; keys 2-6 re-point the <em>left</em> button at one hardpoint
  * and leave the right button on the secondary group.
  */
 public final class MechFireGroups {

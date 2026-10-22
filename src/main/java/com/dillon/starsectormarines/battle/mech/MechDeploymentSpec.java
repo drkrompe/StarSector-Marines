@@ -20,6 +20,8 @@ public record MechDeploymentSpec(
         MechRole role,
         MissileReplenisherComponent missileReplenisher,
         MechWeaponComponent arms,
+        MechWeaponComponent leftArm,
+        MechWeaponComponent rightArm,
         MechWeaponComponent leftShoulder,
         MechWeaponComponent rightShoulder,
         String displayName,
@@ -45,25 +47,31 @@ public record MechDeploymentSpec(
     public MechDeploymentSpec(MechVariant variant, MechRole role,
                               MissileReplenisherComponent missileReplenisher,
                               MechWeaponComponent arms,
+                              MechWeaponComponent leftArm,
+                              MechWeaponComponent rightArm,
                               MechWeaponComponent leftShoulder,
                               MechWeaponComponent rightShoulder,
                               String displayName,
                               MechFrame frame,
                               String campaignId) {
-        this(variant, role, missileReplenisher, arms, leftShoulder, rightShoulder,
+        this(variant, role, missileReplenisher, arms, leftArm, rightArm, leftShoulder, rightShoulder,
                 displayName, frame, campaignId, MechRefit.NEUTRAL);
     }
 
-    /** An unowned mech: nothing it suffers writes back. */
+    /**
+     * An unowned mech with {@code armWeapon} on every arm mount the chassis has (its centreline
+     * mount, or both arms of a two-armed chassis): nothing it suffers writes back.
+     */
     public MechDeploymentSpec(MechVariant variant, MechRole role,
                               MissileReplenisherComponent missileReplenisher,
-                              MechWeaponComponent arms,
+                              MechWeaponComponent armWeapon,
                               MechWeaponComponent leftShoulder,
                               MechWeaponComponent rightShoulder,
                               String displayName,
                               MechFrame frame) {
-        this(variant, role, missileReplenisher, arms, leftShoulder, rightShoulder,
-                displayName, frame, null, MechRefit.NEUTRAL);
+        this(variant, role, missileReplenisher,
+                centreline(variant, armWeapon), side(variant, armWeapon), side(variant, armWeapon),
+                leftShoulder, rightShoulder, displayName, frame, null, MechRefit.NEUTRAL);
     }
 
     public MechDeploymentSpec(MechVariant variant, MechRole role,
@@ -89,14 +97,41 @@ public record MechDeploymentSpec(
                               MissileReplenisherComponent missileReplenisher) {
         this(variant, role, missileReplenisher,
                 variant != null ? variant.arms : null,
+                variant != null ? variant.leftArm : null,
+                variant != null ? variant.rightArm : null,
                 variant != null ? variant.leftShoulder : null,
-                variant != null ? variant.rightShoulder : null, null, null);
+                variant != null ? variant.rightShoulder : null, null, null, null, MechRefit.NEUTRAL);
+    }
+
+    private static MechWeaponComponent centreline(MechVariant variant, MechWeaponComponent armWeapon) {
+        return variant != null && !variant.twoArmed() ? armWeapon : null;
+    }
+
+    private static MechWeaponComponent side(MechVariant variant, MechWeaponComponent armWeapon) {
+        return variant != null && variant.twoArmed() ? armWeapon : null;
+    }
+
+    /** The weapon fitted on {@code slot}, or null when it is empty. */
+    public MechWeaponComponent weaponAt(MechMountSlot slot) {
+        return switch (slot) {
+            case ARMS -> arms;
+            case LEFT_ARM -> leftArm;
+            case RIGHT_ARM -> rightArm;
+            case LEFT_SHOULDER -> leftShoulder;
+            case RIGHT_SHOULDER -> rightShoulder;
+        };
     }
 
     /** This deployment with the ship's refit frozen over it. */
     public MechDeploymentSpec withRefit(MechRefit refit) {
-        return new MechDeploymentSpec(variant, role, missileReplenisher, arms, leftShoulder,
-                rightShoulder, displayName, frame, campaignId, refit);
+        return new MechDeploymentSpec(variant, role, missileReplenisher, arms, leftArm, rightArm,
+                leftShoulder, rightShoulder, displayName, frame, campaignId, refit);
+    }
+
+    /** A live loadout carrying exactly this fit, deliberately empty mounts included. */
+    public MechLoadoutComponent createLoadout(MechRole loadoutRole) {
+        return new MechLoadoutComponent(variant, arms, leftArm, rightArm, leftShoulder,
+                rightShoulder, loadoutRole != null ? loadoutRole : role);
     }
 
     /** The frame the mech fights on: the fit's values with the refit's plate and coolant over them. */
@@ -126,7 +161,6 @@ public record MechDeploymentSpec(
 
     public static MechDeploymentSpec standard(MechVariant variant) {
         return new MechDeploymentSpec(variant, variant.defaultRole,
-                MissileReplenisherComponent.STANDARD,
-                variant.arms, variant.leftShoulder, variant.rightShoulder, null, null);
+                MissileReplenisherComponent.STANDARD);
     }
 }

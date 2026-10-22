@@ -101,7 +101,7 @@ class MechDirectControlSessionTest {
     void inputSuspensionAndHandbackCancelRoundsButPreserveMountResources() {
         long mech = spawn();
         var loadout = roster.world().mechLoadout(mech);
-        var mount = loadout.mounts()[0];
+        var mount = loadout.mount(MechMountSlot.LEFT_ARM);
         assertTrue(session.enter(mech));
         mount.cycleRemaining = 3f;
         loadout.flux.commit(80f);
@@ -173,13 +173,13 @@ class MechDirectControlSessionTest {
     @Test
     void selectorValidatesDirectEquipmentAndCancelsBurstsWithoutChangingResourcesOrMovement() {
         long mech = spawn();
-        var loadout = new MechLoadoutComponent(MechVariant.BULWARK, MechWeaponComponent.DUAL_CHAINGUNS,
+        var loadout = new MechLoadoutComponent(MechVariant.BULWARK, MechWeaponComponent.CHAINGUN,
                 MechWeaponComponent.SRM_5, MechWeaponComponent.LRM_5, MechRole.BALANCED);
         roster.world().attachMechLoadout(mech, loadout);
-        assertFalse(session.selectWeapon(1), "inactive session cannot retain a choice");
+        assertFalse(session.selectWeapon(key(MechMountSlot.LEFT_ARM)), "inactive session cannot retain a choice");
         assertTrue(session.enter(mech));
         assertEquals(0, session.selectedWeapon());
-        var arms = loadout.mount(MechMountSlot.ARMS);
+        var arms = loadout.mount(MechMountSlot.LEFT_ARM);
         var srm = loadout.mount(MechMountSlot.LEFT_SHOULDER);
         arms.burstRemaining = 3;
         arms.burstPointAim = new PointFireAim(20, 5);
@@ -189,9 +189,10 @@ class MechDirectControlSessionTest {
         srm.burstRemaining = 1;
         srm.burstPointAim = new PointFireAim(20, 5);
         session.submit(new ManualIntent(1, -1, 20, 5, true));
-        assertTrue(session.canSelectWeapon(2), "an empty rack remains selectable");
-        assertTrue(session.selectWeapon(2));
-        assertEquals(2, session.selectedWeapon());
+        int rack = key(MechMountSlot.LEFT_SHOULDER);
+        assertTrue(session.canSelectWeapon(rack), "an empty rack remains selectable");
+        assertTrue(session.selectWeapon(rack));
+        assertEquals(rack, session.selectedWeapon());
         assertEquals(0, arms.burstRemaining);
         assertEquals(0, srm.burstRemaining);
         assertEquals(3f, srm.cycleRemaining);
@@ -201,11 +202,14 @@ class MechDirectControlSessionTest {
         assertEquals(-1f, session.intent().moveY());
         assertEquals(20f, session.intent().aimX());
         assertFalse(session.intent().firing());
-        assertTrue(session.canSelectWeapon(3), "an arcing rack is aimed at the cursor point too");
-        for (int invalid : new int[]{-1, 4}) assertFalse(session.selectWeapon(invalid));
-        assertEquals(2, session.selectedWeapon(), "invalid choices cannot change selection");
+        assertTrue(session.canSelectWeapon(key(MechMountSlot.RIGHT_SHOULDER)),
+                "an arcing rack is aimed at the cursor point too");
+        for (int invalid : new int[]{-1, MechMountSlot.values().length + 1}) {
+            assertFalse(session.selectWeapon(invalid));
+        }
+        assertEquals(rack, session.selectedWeapon(), "invalid choices cannot change selection");
         session.suspendInput();
-        assertEquals(2, session.selectedWeapon(), "pause and chrome suspension retain equipment choice");
+        assertEquals(rack, session.selectedWeapon(), "pause and chrome suspension retain equipment choice");
         session.exit();
         assertEquals(0, session.selectedWeapon());
         assertTrue(session.enter(mech));
@@ -216,7 +220,7 @@ class MechDirectControlSessionTest {
     void lostSelectedHardpointReturnsToAllAndReleasesFireAtValidationBoundary() {
         long mech = spawn();
         assertTrue(session.enter(mech));
-        assertTrue(session.selectWeapon(1));
+        assertTrue(session.selectWeapon(key(MechMountSlot.LEFT_ARM)));
         var replacement = new MechLoadoutComponent(MechVariant.BULWARK, null,
                 MechWeaponComponent.SRM_5, null, MechRole.BALANCED);
         roster.world().attachMechLoadout(mech, replacement);
@@ -227,9 +231,9 @@ class MechDirectControlSessionTest {
         assertEquals(0, session.selectedWeapon());
         assertFalse(session.intent().firing());
         assertEquals(0, replacement.mount(MechMountSlot.LEFT_SHOULDER).burstRemaining);
-        assertFalse(session.canSelectWeapon(1));
-        assertTrue(session.canSelectWeapon(2));
-        assertFalse(session.canSelectWeapon(3));
+        assertFalse(session.canSelectWeapon(key(MechMountSlot.LEFT_ARM)));
+        assertTrue(session.canSelectWeapon(key(MechMountSlot.LEFT_SHOULDER)));
+        assertFalse(session.canSelectWeapon(key(MechMountSlot.RIGHT_SHOULDER)));
     }
 
     @Test
@@ -278,6 +282,11 @@ class MechDirectControlSessionTest {
         assertTrue(roster.world().x(mech) < 12.4f);
         assertEquals(-90f, roster.world().mechHipFacingDegrees(mech), .01f);
         assertEquals(8.5f, roster.world().y(mech), .001f);
+    }
+
+    /** The number-key selection for one hardpoint: one past its slot ordinal. */
+    private static int key(MechMountSlot slot) {
+        return slot.ordinal() + 1;
     }
 
     private long spawn() {

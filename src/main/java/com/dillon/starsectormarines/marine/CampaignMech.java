@@ -21,6 +21,8 @@ public final class CampaignMech implements Serializable {
     private MechRole role;
     private String missileReplenisherId;
     private String armsComponentId;
+    private String leftArmComponentId;
+    private String rightArmComponentId;
     private String leftShoulderComponentId;
     private String rightShoulderComponentId;
     // Absent in saves from before internals: null resolves to the stock part, so an existing
@@ -50,6 +52,8 @@ public final class CampaignMech implements Serializable {
         this.missileReplenisherId = MissileReplenisherComponent.resolve(
                 missileReplenisherId).id();
         armsComponentId = idOf(variant.arms);
+        leftArmComponentId = idOf(variant.leftArm);
+        rightArmComponentId = idOf(variant.rightArm);
         leftShoulderComponentId = idOf(variant.leftShoulder);
         rightShoulderComponentId = idOf(variant.rightShoulder);
     }
@@ -60,9 +64,9 @@ public final class CampaignMech implements Serializable {
     public static CampaignMech fromDeployment(String id, MechDeploymentSpec fit) {
         CampaignMech mech = new CampaignMech(id, fit.displayName(), fit.variant(),
                 fit.role(), fit.missileReplenisher().id());
-        mech.installWeapon(MechMountSlot.ARMS, fit.arms());
-        mech.installWeapon(MechMountSlot.LEFT_SHOULDER, fit.leftShoulder());
-        mech.installWeapon(MechMountSlot.RIGHT_SHOULDER, fit.rightShoulder());
+        for (MechMountSlot slot : MechMountSlot.values()) {
+            if (fit.variant().hasMount(slot)) mech.installWeapon(slot, fit.weaponAt(slot));
+        }
         return mech;
     }
     public String displayName() { return displayName; }
@@ -114,6 +118,16 @@ public final class CampaignMech implements Serializable {
         return MechWeaponComponent.resolve(armsComponentId, variant.arms);
     }
 
+    public MechWeaponComponent leftArm() {
+        if (EMPTY_COMPONENT_ID.equals(leftArmComponentId)) return null;
+        return MechWeaponComponent.resolve(leftArmComponentId, variant.leftArm);
+    }
+
+    public MechWeaponComponent rightArm() {
+        if (EMPTY_COMPONENT_ID.equals(rightArmComponentId)) return null;
+        return MechWeaponComponent.resolve(rightArmComponentId, variant.rightArm);
+    }
+
     public MechWeaponComponent leftShoulder() {
         if (EMPTY_COMPONENT_ID.equals(leftShoulderComponentId)) return null;
         return MechWeaponComponent.resolve(leftShoulderComponentId, variant.leftShoulder);
@@ -127,6 +141,8 @@ public final class CampaignMech implements Serializable {
     public MechWeaponComponent weaponAt(MechMountSlot slot) {
         return switch (slot) {
             case ARMS -> arms();
+            case LEFT_ARM -> leftArm();
+            case RIGHT_ARM -> rightArm();
             case LEFT_SHOULDER -> leftShoulder();
             case RIGHT_SHOULDER -> rightShoulder();
         };
@@ -151,7 +167,8 @@ public final class CampaignMech implements Serializable {
 
     public MechDeploymentSpec freezeForDeployment() {
         return new MechDeploymentSpec(variant, role(), missileReplenisher(),
-                arms(), leftShoulder(), rightShoulder(), displayName, fit().frame(), id);
+                arms(), leftArm(), rightArm(), leftShoulder(), rightShoulder(),
+                displayName, fit().frame(), id);
     }
 
     /** Battle damage awaiting a repair order, or null. */
@@ -216,6 +233,8 @@ public final class CampaignMech implements Serializable {
         String componentId = component != null ? component.id : EMPTY_COMPONENT_ID;
         switch (slot) {
             case ARMS -> armsComponentId = componentId;
+            case LEFT_ARM -> leftArmComponentId = componentId;
+            case RIGHT_ARM -> rightArmComponentId = componentId;
             case LEFT_SHOULDER -> leftShoulderComponentId = componentId;
             case RIGHT_SHOULDER -> rightShoulderComponentId = componentId;
         }

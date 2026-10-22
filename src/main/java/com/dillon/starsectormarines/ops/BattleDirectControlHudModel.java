@@ -163,7 +163,7 @@ final class BattleDirectControlHudModel {
 
     /**
      * A mech's mounts under the button that fires them: the left button's group (or the one mount
-     * keys 2-4 pointed it at), the right button's racks, and whatever no button fires. A mount fired
+     * keys 2-6 pointed it at), the right button's racks, and whatever no button fires. A mount fired
      * by both buttons is listed once, under the left.
      */
     private List<WeaponGroup> mechGroups(BattleDirectControlStatus.Snapshot snapshot, int selected) {

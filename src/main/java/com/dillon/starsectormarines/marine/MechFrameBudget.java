@@ -25,7 +25,8 @@ public final class MechFrameBudget {
             case HOUND -> 20f;
             // Rated for its factory heavy cannon, so the build mass costs the Sirocco nothing.
             case SIROCCO -> 36f + HEAVY_CANNON_BUILD_MASS;
-            case BULWARK -> 46f;
+            // Two single arm guns weigh what the old twin mount did plus one footprint row (4).
+            case BULWARK -> 50f;
         };
     }
 
@@ -71,7 +72,7 @@ public final class MechFrameBudget {
     private static float buildMass(MechWeaponComponent component) {
         float authored = switch (component) {
             case SINGLE_HEAVY_CANNON -> HEAVY_CANNON_BUILD_MASS;
-            case DUAL_BASTION_AUTOCANNONS -> 3f;
+            case BASTION_AUTOCANNON -> 1.5f;
             default -> 0f;
         };
         return component.tuned("buildMass", authored);
@@ -98,7 +99,9 @@ public final class MechFrameBudget {
 
     /** One fit's budget and frame, computed from what is installed; nothing is stored. */
     public record Fit(MechVariant variant,
-                      MechWeaponComponent arms, MechWeaponComponent leftShoulder,
+                      MechWeaponComponent arms,
+                      MechWeaponComponent leftArm, MechWeaponComponent rightArm,
+                      MechWeaponComponent leftShoulder,
                       MechWeaponComponent rightShoulder,
                       MechInternal engine, MechInternal plating,
                       MechInternal capacitorBank, MechInternal ventArray) {
@@ -110,8 +113,48 @@ public final class MechFrameBudget {
             if (capacitorBank == null) capacitorBank = MechInternal.FACTORY_CAPACITOR_BANK;
         }
 
+        /**
+         * A fit with {@code armWeapon} on every arm mount the chassis has: its centreline mount, or
+         * one on each arm of a two-armed chassis.
+         */
+        public Fit(MechVariant variant, MechWeaponComponent armWeapon,
+                   MechWeaponComponent leftShoulder, MechWeaponComponent rightShoulder,
+                   MechInternal engine, MechInternal plating,
+                   MechInternal capacitorBank, MechInternal ventArray) {
+            this(variant,
+                    variant != null && !variant.twoArmed() ? armWeapon : null,
+                    variant != null && variant.twoArmed() ? armWeapon : null,
+                    variant != null && variant.twoArmed() ? armWeapon : null,
+                    leftShoulder, rightShoulder, engine, plating, capacitorBank, ventArray);
+        }
+
+        /** The arm gun this fit carries: the centreline gun, or the left arm's on a two-armed chassis. */
+        public MechWeaponComponent armWeapon() {
+            return variant.twoArmed() ? leftArm : arms;
+        }
+
+        /** This fit with {@code component} on every arm mount the chassis has. */
+        public Fit withArmWeapon(MechWeaponComponent component) {
+            Fit fit = this;
+            for (MechMountSlot slot : variant.armMounts()) fit = fit.withWeapon(slot, component);
+            return fit;
+        }
+
+        /** This fit's internals around {@code weapons}' guns. */
+        public Fit withWeaponsOf(Fit weapons) {
+            return new Fit(variant, weapons.arms, weapons.leftArm, weapons.rightArm,
+                    weapons.leftShoulder, weapons.rightShoulder, engine, plating, capacitorBank, ventArray);
+        }
+
+        /** The chassis's factory fit on industrial parts. */
+        public static Fit stock(MechVariant variant) {
+            return new Fit(variant, variant.arms, variant.leftArm, variant.rightArm,
+                    variant.leftShoulder, variant.rightShoulder, null, null, null, null);
+        }
+
         public static Fit of(CampaignMech mech) {
-            return new Fit(mech.variant(), mech.arms(), mech.leftShoulder(), mech.rightShoulder(),
+            return new Fit(mech.variant(), mech.arms(), mech.leftArm(), mech.rightArm(),
+                    mech.leftShoulder(), mech.rightShoulder(),
                     mech.internal(MechInternal.Role.ENGINE), mech.internal(MechInternal.Role.PLATING),
                     mech.internal(MechInternal.Role.CAPACITOR_BANK), mech.internal(MechInternal.Role.VENT_ARRAY));
         }
@@ -119,6 +162,8 @@ public final class MechFrameBudget {
         public MechWeaponComponent weaponAt(MechMountSlot slot) {
             return switch (slot) {
                 case ARMS -> arms;
+                case LEFT_ARM -> leftArm;
+                case RIGHT_ARM -> rightArm;
                 case LEFT_SHOULDER -> leftShoulder;
                 case RIGHT_SHOULDER -> rightShoulder;
             };
@@ -127,6 +172,8 @@ public final class MechFrameBudget {
         public Fit withWeapon(MechMountSlot slot, MechWeaponComponent component) {
             return new Fit(variant,
                     slot == MechMountSlot.ARMS ? component : arms,
+                    slot == MechMountSlot.LEFT_ARM ? component : leftArm,
+                    slot == MechMountSlot.RIGHT_ARM ? component : rightArm,
                     slot == MechMountSlot.LEFT_SHOULDER ? component : leftShoulder,
                     slot == MechMountSlot.RIGHT_SHOULDER ? component : rightShoulder,
                     engine, plating, capacitorBank, ventArray);
@@ -143,7 +190,7 @@ public final class MechFrameBudget {
 
         /** Replaces the part in {@code role}; a null vent array empties the utility socket. */
         public Fit withInternal(MechInternal.Role role, MechInternal internal) {
-            return new Fit(variant, arms, leftShoulder, rightShoulder,
+            return new Fit(variant, arms, leftArm, rightArm, leftShoulder, rightShoulder,
                     role == MechInternal.Role.ENGINE ? internal : engine,
                     role == MechInternal.Role.PLATING ? internal : plating,
                     role == MechInternal.Role.CAPACITOR_BANK ? internal : capacitorBank,
@@ -155,8 +202,10 @@ public final class MechFrameBudget {
         }
 
         public float fittedMass() {
-            float mass = MechFrameBudget.mass(arms) + MechFrameBudget.mass(leftShoulder)
-                    + MechFrameBudget.mass(rightShoulder);
+            float mass = 0f;
+            for (MechMountSlot slot : MechMountSlot.values()) {
+                mass += MechFrameBudget.mass(weaponAt(slot));
+            }
             for (MechInternal.Role role : MechInternal.Role.values()) {
                 mass += MechFrameBudget.mass(internal(role), variant);
             }

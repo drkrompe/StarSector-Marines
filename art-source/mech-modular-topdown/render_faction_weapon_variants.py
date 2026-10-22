@@ -59,14 +59,14 @@ def main() -> None:
                     arms="pulse-laser-arm.png",
                     left_pod="srm-pod.png",
                     right_pod="shoulder-laser-cannon.png",
-                    loadout="DUAL PULSE LASERS  /  SRM-15  /  SHOULDER LASER",
+                    loadout="2x PULSE LASER  /  SRM-15  /  SHOULDER LASER",
                 )
             elif folder == "hegemony" and variant.name == "BULWARK":
                 variant = replace(
                     variant,
                     arms="hegemony-bastion-autocannon.png",
                     arm_layout="dual-narrow",
-                    loadout="DUAL BASTION AUTOCANNONS  /  SRM-15  /  SRM-15",
+                    loadout="2x BASTION AUTOCANNON  /  SRM-15  /  SRM-15",
                 )
             elif folder == "luddic-path" and variant.name == "HOUND":
                 variant = replace(

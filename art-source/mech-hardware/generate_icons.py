@@ -189,12 +189,13 @@ def banded(w, h, art, text):
     return svg(w, h, inset + label_plate(text, w - CELL_W / 2, h - 4.7 * cell - 8, cell, pad=cell * 1.2))
 
 
-def upright(art, transform=''):
-    """Long guns stand up in their 2x3 pieces, muzzle forward (up), the way the mech carries
-    them. The art is authored side-on on a 300x150 canvas, muzzle to the right, and turned a
-    quarter left into the 150x300 piece; ``transform`` fits hand-drawn art to that canvas."""
+def upright(art, transform='', length=300):
+    """Long guns stand up in their pieces, muzzle forward (up), the way the mech carries them.
+    The art is authored side-on on a ``length`` x 150 canvas (300 for a 2x3 piece, 200 for a
+    2x2 arm gun), muzzle to the right, and turned a quarter left into the piece; ``transform``
+    fits hand-drawn art to that canvas."""
     inner = f'<g transform="{transform}">\n{art}</g>\n' if transform else art
-    return f'<g transform="translate(0 300) rotate(-90)">\n{inner}</g>\n'
+    return f'<g transform="translate(0 {length}) rotate(-90)">\n{inner}</g>\n'
 
 
 # --- guns -----------------------------------------------------------------------------------
@@ -337,7 +338,8 @@ def build():
 
     # Energy.
     f['shoulder-laser'] = banded(150, 300, upright(laser_cannon(75, 10, 290, 54, rings=5)), 'LAS')
-    f['pulse-laser-dual'] = banded(150, 300, upright(pulse_laser(42, 10, 290, 40) + pulse_laser(110, 10, 290, 40)), 'PLS')
+    # Arm guns are one barrel each in a 2x2 piece; a two-armed chassis carries one per arm.
+    f['pulse-laser'] = banded(150, 200, upright(pulse_laser(75, 10, 190, 52), length=200), 'PLS')
 
     # Thermal lance, a 2x1 piece: fuel tank, feed pipe, nozzle, and the flame it throws.
     b = rect(8, 26, 38, 48, D, rx=12) + rect(14, 32, 26, 8, L, rx=3)
@@ -348,9 +350,9 @@ def build():
     f['thermal-lance'] = banded(150, 100, b, 'TL')
 
     # Ballistic.
-    f['chaingun-dual'] = banded(150, 300, upright(gatling(38, 10, 290, 40) + gatling(108, 10, 290, 40)), 'CG')
+    f['chaingun'] = banded(150, 200, upright(gatling(75, 10, 190, 54), length=200), 'CG')
     f['chaingun-nose'] = banded(150, 200, gatling(100, 6, 144, 62, barrels=5), 'CG')
-    f['linear-cannon-dual'] = banded(150, 300, upright(gauss(42, 10, 290, 26) + gauss(108, 10, 290, 26)), 'LC')
+    f['linear-cannon'] = banded(150, 200, upright(gauss(75, 10, 190, 34), length=200), 'LC')
 
     # Heavy cannon: a tank gun. Breech block, recoil cylinders, a sleeved barrel, the tapered
     # fume extractor partway along, and a baffled muzzle brake.
@@ -367,22 +369,22 @@ def build():
     b += hbar(78, 190, 87, 3, LS, rx=0)
     f['heavy-cannon'] = banded(150, 300, upright(b, 'scale(1.35 1) translate(0 -25)'), 'HC')
 
-    # Bastion: twin autocannons on one receiver, belt-fed from an ammunition can beneath.
-    b = block(8, 30, 86, 130, 12)
-    b += rect(17, 39, 60, 3, L) + rect(17, 96, 60, 26, MID)
-    for y in (58, 104):
-        b += block(88, y - 13, 136, y + 13, 3)
-        b += hbar(138, 190, y, 14, D, rx=0)
-        b += block(192, y - 15, 216, y + 15, 3) + rect(198, y - 9, 3, 18, L) + rect(206, y - 9, 3, 18, L)
-        b += hbar(90, 188, y - 7, 2.5, LS, rx=0)
+    # Bastion: a heavy autocannon on a deep receiver, belt-fed from an ammunition can beneath.
+    b = block(8, 30, 70, 98, 10)
+    b += rect(16, 38, 46, 3, L) + rect(16, 74, 46, 18, MID)
+    y = 60
+    b += block(72, y - 15, 112, y + 15, 3)
+    b += hbar(114, 166, y, 16, D, rx=0)
+    b += block(168, y - 17, 192, y + 17, 3) + rect(174, y - 10, 3, 20, L) + rect(182, y - 10, 3, 20, L)
+    b += hbar(74, 164, y - 8, 2.5, LS, rx=0)
     # The ammunition can hangs under the receiver on a short feed neck.
-    b += rect(56, 132, 22, 8, MID)
-    b += block(14, 142, 86, 188, 6, D)
-    for k in range(3):
-        b += rect(22, 152 + k * 11, 56, 3, LS)
-    f['bastion-autocannon-dual'] = banded(150, 300, upright(b, 'translate(0 -22) scale(1.35 .9)'), 'AC')
+    b += rect(30, 100, 18, 8, MID)
+    b += block(10, 110, 68, 144, 5, D)
+    for k in range(2):
+        b += rect(18, 120 + k * 11, 42, 3, LS)
+    f['bastion-autocannon'] = banded(150, 200, upright(b, length=200), 'AC')
 
-    f['muster-autogun-dual'] = banded(150, 300, upright(autogun(26, 10, 290, 22) + autogun(92, 10, 290, 22)), 'AG')
+    f['muster-autogun'] = banded(150, 200, upright(autogun(64, 10, 190, 34), length=200), 'AG')
     f['muster-autogun-nose'] = banded(150, 200, autogun(84, 8, 144, 34), 'AG')
 
     # Demolition cannon: a short, very wide siege barrel. Breech block, recoil buffers, a

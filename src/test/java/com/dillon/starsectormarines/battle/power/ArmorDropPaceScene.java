@@ -75,7 +75,7 @@ public final class ArmorDropPaceScene implements BehaviorScene {
 
     private static MechDeploymentSpec named(MechVariant variant, String callsign) {
         return new MechDeploymentSpec(variant, variant.defaultRole, MissileReplenisherComponent.STANDARD,
-                variant.arms, variant.leftShoulder, variant.rightShoulder, callsign);
+                variant.stockArmWeapon(), variant.leftShoulder, variant.rightShoulder, callsign);
     }
 
     private static FittedBoat boat(BoatFitting lift) {

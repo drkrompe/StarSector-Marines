@@ -22,7 +22,7 @@ final class BattleDirectControlInput {
     private float pointerX, pointerY;
     private float previousSpeed;
     private boolean toggleHeld;
-    private final boolean[] weaponKeyHeld = new boolean[5];
+    private final boolean[] weaponKeyHeld = new boolean[6];
     private final boolean[] abilityKeyHeld = new boolean[4];
     private int selectedWeapon;
 
@@ -256,6 +256,7 @@ final class BattleDirectControlInput {
         if (key == Keyboard.KEY_3) return 2;
         if (key == Keyboard.KEY_4) return 3;
         if (key == Keyboard.KEY_5) return 4;
+        if (key == Keyboard.KEY_6) return 5;
         return -1;
     }
 

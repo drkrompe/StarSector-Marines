@@ -19,14 +19,14 @@ class MechFireOrderTest {
 
     @Test
     void anythingButArmorKeepsTheSlotOrder() {
-        MechWeaponMount[] bulwark = mounts(MechWeaponComponent.DUAL_CHAINGUNS,
+        MechWeaponMount[] bulwark = mounts(MechWeaponComponent.CHAINGUN,
                 MechWeaponComponent.SRM_15, MechWeaponComponent.SRM_15);
         assertArrayEquals(new int[]{0, 1, 2}, MechFireOrder.order(bulwark, 0f));
     }
 
     @Test
     void againstArmorTheLaunchersGoBeforeTheChaingun() {
-        MechWeaponMount[] bulwark = mounts(MechWeaponComponent.DUAL_CHAINGUNS,
+        MechWeaponMount[] bulwark = mounts(MechWeaponComponent.CHAINGUN,
                 MechWeaponComponent.SRM_15, MechWeaponComponent.SRM_15);
         assertArrayEquals(new int[]{1, 2, 0}, MechFireOrder.order(bulwark, BULWARK));
     }
@@ -40,7 +40,7 @@ class MechFireOrderTest {
 
     @Test
     void anAntiArmorWarheadOutranksTheBastionAndAFragmentationRackGoesLast() {
-        MechWeaponMount[] bastion = mounts(MechWeaponComponent.DUAL_BASTION_AUTOCANNONS,
+        MechWeaponMount[] bastion = mounts(MechWeaponComponent.BASTION_AUTOCANNON,
                 MechWeaponComponent.SRM_15, MechWeaponComponent.SRM_15_FRAG);
         assertArrayEquals(new int[]{1, 0, 2}, MechFireOrder.order(bastion, BULWARK));
     }
@@ -52,7 +52,7 @@ class MechFireOrderTest {
                 MechWeaponComponent.SRM_15, MechWeaponComponent.SRM_15);
         assertArrayEquals(new int[]{0, 1, 2}, MechFireOrder.order(cannon, BULWARK));
         // Against thin armor every round defeats it, so the order is the slot order again.
-        MechWeaponMount[] chaingun = mounts(MechWeaponComponent.DUAL_CHAINGUNS,
+        MechWeaponMount[] chaingun = mounts(MechWeaponComponent.CHAINGUN,
                 MechWeaponComponent.SRM_15, MechWeaponComponent.SRM_15);
         assertArrayEquals(new int[]{0, 1, 2}, MechFireOrder.order(chaingun, 4f));
     }

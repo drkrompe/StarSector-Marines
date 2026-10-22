@@ -24,9 +24,9 @@
 
   "components": [
     {
-      "component": "component.mech-dual-chainguns",
-      "designation": "MCG-D",
-      "description": "@gearCatalogComponentMechDualChaingunsDescription"
+      "component": "component.mech-chaingun",
+      "designation": "MCG",
+      "description": "@gearCatalogComponentMechChaingunDescription"
     },
     {
       "component": "component.mech-nose-chaingun",
@@ -34,9 +34,9 @@
       "description": "@gearCatalogComponentMechNoseChaingunDescription"
     },
     {
-      "component": "component.mech-dual-linear-cannons",
-      "designation": "MLC-D",
-      "description": "@gearCatalogComponentMechDualLinearCannonsDescription"
+      "component": "component.mech-linear-cannon",
+      "designation": "MLC",
+      "description": "@gearCatalogComponentMechLinearCannonDescription"
     },
     {
       "component": "component.mech-heavy-cannon",
@@ -44,14 +44,14 @@
       "description": "@gearCatalogComponentMechHeavyCannonDescription"
     },
     {
-      "component": "component.mech-dual-pulse-lasers",
-      "designation": "MPL-D",
-      "description": "@gearCatalogComponentMechDualPulseLasersDescription"
+      "component": "component.mech-pulse-laser",
+      "designation": "MPL",
+      "description": "@gearCatalogComponentMechPulseLaserDescription"
     },
     {
-      "component": "component.mech-bastion-autocannons",
-      "designation": "BAC-D",
-      "description": "@gearCatalogComponentMechBastionAutocannonsDescription"
+      "component": "component.mech-bastion-autocannon",
+      "designation": "BAC",
+      "description": "@gearCatalogComponentMechBastionAutocannonDescription"
     },
     {
       "component": "component.mech-demolition-cannon",
@@ -59,9 +59,9 @@
       "description": "@gearCatalogComponentMechDemolitionCannonDescription"
     },
     {
-      "component": "component.mech-dual-muster-autoguns",
-      "designation": "CAG-6D",
-      "description": "@gearCatalogComponentMechDualMusterAutogunsDescription"
+      "component": "component.mech-muster-autogun",
+      "designation": "CAG-6",
+      "description": "@gearCatalogComponentMechMusterAutogunDescription"
     },
     {
       "component": "component.mech-nose-muster-autogun",

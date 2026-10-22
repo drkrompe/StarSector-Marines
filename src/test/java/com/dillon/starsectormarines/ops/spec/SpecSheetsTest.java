@@ -188,7 +188,7 @@ class SpecSheetsTest {
     void aMechSheetNamesTheHardwareItIsCarryingOnce() {
         SpecSheet bulwark = SpecSheets.mech(MechVariant.BULWARK);
         long armLines = bulwark.notes().stream()
-                .filter(note -> note.startsWith(MechVariant.BULWARK.arms.displayName())).count();
+                .filter(note -> note.startsWith(MechVariant.BULWARK.stockArmWeapon().displayName())).count();
         long podLines = bulwark.notes().stream()
                 .filter(note -> note.startsWith(
                         MechVariant.BULWARK.leftShoulder.displayName())).count();

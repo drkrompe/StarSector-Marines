@@ -494,8 +494,8 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   `-Pgifs`/`-PgifSeeds`, `-Dbattle.*` forwarded, the control replayed twice side by side for the determinism
   header). Writes `armor-matchups.md`, `armor-matchups.csv` and `runs.csv` under `build/reports/armor-matchups/`.
   A side is `unit(+unit)*`; a unit is `[Nx]` then a mech (`hound`, `bulwark:refit`,
-  `bulwark:arms=dual-linear-cannons,rs=shoulder-laser,engine=uprated,vents=auxiliary,role=assault`: pattern ids with
-  or without their `component.mech-`/`internal.` prefix, `none` empties a mount, `refit` fills the best buildable
+  `bulwark:arms=linear-cannon,rs=shoulder-laser,engine=uprated,vents=auxiliary,role=assault`: pattern ids with
+  or without their `component.mech-`/`internal.` prefix, `arms` fits every arm mount and `la`/`ra` one Bulwark arm, `none` empties a mount, `refit` fills the best buildable
   internals around the fitted weapons, an over-budget fit runs and is labelled so) or a `VehicleType` in kebab case
   (`breakthrough-tank`; `technical`, `scout`, `dozer`). Scenarios: `open-ground`; `hull-down` (berms hide the
   defenders' legs and hulls, ruins in the middle ground); `street` (between solid blocks, defenders behind the last

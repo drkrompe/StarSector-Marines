@@ -172,12 +172,14 @@ public final class MechFittingDollCatalog {
                         0.0f, -0.36f, 1.34f, 0.68f, 0.80f, 0.44f, false, "MINI-FAB")
         )));
 
-        // Bulwark (6 sockets)
+        // Bulwark (7 sockets: a gun on each arm)
         dolls.put(MechVariant.BULWARK, new DollDef(180f, List.of(
                 new SocketDef(SocketId.CORE, SocketType.ENGINE, 2, 2,
                         0.0f, 0.03f, 0.0f, -1.50f, 1.70f, 0.68f, false, "ENGINE CORE"),
-                new SocketDef(SocketId.ARMS, SocketType.OMNI, 2, 3,
-                        0.0f, 0.22f, 0.0f, 1.50f, 1.70f, 0.68f, false, "ARM ASSEMBLY"),
+                new SocketDef(SocketId.LEFT_ARM, SocketType.OMNI, 2, 2,
+                        -0.30f, 0.22f, -0.75f, 1.50f, 0.85f, 0.68f, false, "L. ARM"),
+                new SocketDef(SocketId.RIGHT_ARM, SocketType.OMNI, 2, 2,
+                        0.30f, 0.22f, 0.75f, 1.50f, 0.85f, 0.68f, false, "R. ARM"),
                 new SocketDef(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2, 3,
                         -0.36f, -0.12f, -1.38f, -0.48f, 1.40f, 0.68f, false, "L. SHOULDER"),
                 new SocketDef(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,
