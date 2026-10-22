@@ -4,7 +4,7 @@ Status: DRAFT
 
 Written: 2026-10-22
 
-Updated: 2026-10-22 — the heart is two variants, Broad Front and The Burn, each its own battle, the campaign picking from the Cordon (Combined and the multi-battle operation rejected by the owner); three beats per infected world with the lifecycle hooks agreed with its owner.
+Updated: 2026-10-22 — the owner's confirmed shape: three missions per outbreak (Colony Breach; the Line or the Road; Broad Front or The Burn), each a single battle, the campaign picking each variant; lifecycle hooks agreed with the bloom lifecycle owner.
 
 Direction for the second and third movements of the Rav Bloom arc that
 `colony-breach-nouns.md` (Campaign: blooms, Direction) names: **organising the
@@ -335,6 +335,17 @@ the player opts into it, and the player can stop after any of them. This
 replaces the earlier choice between organic offers on a spread chain (which
 needed a harsher severity) and a scripted sector threat as the trigger: the
 arc appears at the shipped benign tier, on any world that blooms.
+
+**Three missions per outbreak, each a single battle** (owner, 2026-10-22: "I
+want 3 missions per outbreak. Mission 2/3 have 2 variants that I decided
+earlier."):
+
+1. **Colony Breach.**
+2. **The Line** or **the Road** (the Cordon).
+3. **Broad Front** or **The Burn** (the heart).
+
+No beat is a multi-battle operation and no two beats merge into one battle;
+a variant is one battle, picked by the campaign, never a second mission.
 
 ### How a world moves through the beats
 

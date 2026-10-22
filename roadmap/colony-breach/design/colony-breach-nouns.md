@@ -193,8 +193,9 @@ campaign arc, in three movements:
    the surface, in overgrown country.
 
 The arc runs **per infected world** (owner, 2026-10-22): any bloom can carry
-the three beats in turn, Colony Breach, then the defence, then the heart, each
-offered on its own and opted into, and the player may stop after any of them;
+three missions in turn, each a single battle: Colony Breach, then the
+defence (the Line or the Road), then the heart (Broad Front or The Burn), the
+campaign picking each variant, each mission offered on its own and opted into, and the player may stop after any of them;
 a world whose arc stops runs on the ordinary bloom clock. A scripted **sector
 threat** remains a possible authored instance of the same beats on a named
 world (`RavBloomSystem.wakeAt`), not the trigger.
