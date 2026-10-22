@@ -16,8 +16,8 @@ public final class SwarmFootprint {
      * the body's mass as drawn at play zoom, legs, spines and crown left out.
      */
     private static final float RUNNER_AHEAD = 0.85f, RUNNER_BEHIND = 0.65f, RUNNER_ACROSS = 0.46f;
-    private static final float BRUTE_AHEAD = 0.95f, BRUTE_BEHIND = 0.80f, BRUTE_ACROSS = 0.90f;
-    private static final float MATRIARCH_AHEAD = 2.10f, MATRIARCH_BEHIND = 1.90f, MATRIARCH_ACROSS = 2.30f;
+    private static final float BRUTE_AHEAD = 0.94f, BRUTE_BEHIND = 0.57f, BRUTE_ACROSS = 0.92f;
+    private static final float MATRIARCH_AHEAD = 2.60f, MATRIARCH_BEHIND = 1.80f, MATRIARCH_ACROSS = 1.90f;
 
     private SwarmFootprint() {
     }
