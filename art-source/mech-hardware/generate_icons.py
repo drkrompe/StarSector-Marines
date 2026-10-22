@@ -177,7 +177,13 @@ def banded(w, h, art, text):
     sits over its corner like an applied tag."""
     # Letters as large as the brick allows: (6n - 1) cells of text plus the plate's padding.
     cell = min(4.4, (CELL_W - 12) / (len(text) * 6 - 1 + 2.4))
-    return svg(w, h, art + label_plate(text, w - CELL_W / 2, h - 4.7 * cell - 6, cell, pad=cell * 1.2))
+    # Centred across the last brick; sat low in it, clear of the brick's bottom edge.
+    # The art keeps clear of the piece's rim: scaled to 88% about the centre. The tag is not
+    # scaled, so it stays aligned to the brick it is authored in.
+    k = .88
+    inset = (f'  <g transform="translate({n(w * (1 - k) / 2)} {n(h * (1 - k) / 2)}) scale({k})">'
+             + '\n' + art + '  </g>\n')
+    return svg(w, h, inset + label_plate(text, w - CELL_W / 2, h - 4.7 * cell - 8, cell, pad=cell * 1.2))
 
 
 # --- guns -----------------------------------------------------------------------------------
