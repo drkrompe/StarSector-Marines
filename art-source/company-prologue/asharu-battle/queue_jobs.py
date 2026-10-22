@@ -55,6 +55,7 @@ def main():
     ap.add_argument('--samples', type=int, default=48)
     ap.add_argument('--machine', default='any', choices=('any', 'windows', 'mac'))
     ap.add_argument('--light', action='store_true', help='light lane: half size (use --samples 16 or fewer)')
+    ap.add_argument('--swfx', action='store_true', help='draw the key frames with the effects kit (scene_fx)')
     ap.add_argument('--date', required=True, help='the job id date, YYYY-MM-DD')
     ap.add_argument('sets', nargs='+')
     a = ap.parse_args()
@@ -72,7 +73,7 @@ def main():
             'requires': ['gpu'],
             'cwd': '{checkout}/art-source/company-prologue/asharu-battle',
             'command': ['{python}', 'battle_blockout.py', '--frames', frames, '--samples', str(a.samples),
-                        '--root', '{work}', '--run', a.run, '--date', a.date, '--post', '{machine}', '--what', a.what] + (['--half'] if a.light else []),
+                        '--root', '{work}', '--run', a.run, '--date', a.date, '--post', '{machine}', '--what', a.what] + (['--half'] if a.light else []) + (['--swfx'] if a.swfx else []),
             'env': {},
             'inputs': ins,
             'frames': {'dir': '{work}/' + a.run + '/raw',

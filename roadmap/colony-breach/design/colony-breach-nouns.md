@@ -543,8 +543,9 @@ be able to collapse a bore that still has its colonies without taking losses;
 air is for after the ground push, or for after the colonies.
 
 Colonies stand on the bore's **growth sites**, a seeded ring of open cells
-round the mouth (`BoreGrowthSites`). Today only spore colonies use it; a
-later ground colony roots on the same sites (`hive-creep.md`).
+round the mouth (`BoreGrowthSites`). Only spore colonies use them; a ground
+colony roots out on the creep instead, against the gun it answers (Creep:
+Ground colony).
 
 **Creep carries the umbrella outward** (`CreepOutposts`). A living bore also
 seeds spore colonies of its current grade on its creep, away from the mouth:
@@ -833,7 +834,8 @@ unmistakably wrong, and it is the only ground the hive's static growths stand on
 away from a bore's mouth. A ground colony (anti-infantry, anti-emplacement)
 roots only on creep. Creep recedes when its bore collapses. Mobile strains never
 gain ranged attacks to answer fortifications: static growth on creep does that.
-In `hive-creep.md`.
+Its look is the owner's pick (build 1 of the hard-edge studies) and is costed
+against its own control in `renderEvidence`.
 
 - **Creep is a field the battle owns** (`CreepField`): per cell, how much
   growth stands there, whether it is alive, and how far it is from the source
@@ -852,7 +854,19 @@ In `hive-creep.md`.
 - **Walls are held slowly.** A wall beside claimed ground is climbed, never
   crossed, and filled over about a minute and a half rather than at once: its
   coverage is its age, so a newly reached wall carries only veins and an old
-  one is crusted over. It reads as a matter of time.
+  one is crusted over. It reads as a matter of time. An overgrown wall still
+  reads as a barrier: its crust is lighter than the floor's, lit and shaded on
+  its edges as a raised block is, and outlined dark where it meets the floor.
+- **A ground colony answers a gun the swarm cannot rush** (`GroundColonies`).
+  A living bore grows one on its creep within reach of a hostile emplacement
+  the creep has come up against: on living creep with creep round it, inside
+  the bore's own creep reach, spaced from every bore and colony, once the cell
+  has stood good a while, and up to a cap by tier (1, 2, 3). It is a gun of the
+  swarm's side: spines driven up from below on whatever stands in its short
+  reach, indirect, with a small blast that also breaks walls beside the target,
+  so a gun behind a wall is not safe from it. It dies with its bore, and as soon
+  as the creep under it is no longer living. `ground-colony` (`sceneEvidence`)
+  holds the mechanics; `-Dbattle.swarm.groundColonies=false` is the control.
 - **The creep digests the swarm's dead** (`CreepDigestion`). A strain body
   lying on living creep sinks into it over about twenty-five seconds, drawn
   smaller and fainter after its first third, and is gone; a body off the creep

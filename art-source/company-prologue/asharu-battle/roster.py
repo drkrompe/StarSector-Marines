@@ -39,7 +39,7 @@ FINISHED = {
     'hound-p': dict(dir='hound-p', drive='builds/hound-p/5cb098e10', file='hound-p-pirate.blend', length_m=60.8),
     'kite-p': dict(dir='kite-p', drive='builds/kite-p/0cb9d83', file='kite-p.blend', length_m=52.2),
     'falcon-p': dict(dir='falcon-p', drive='builds/falcon-p/06784b46f', file='falcon-p.blend', length_m=174.4),
-    'manticore-p': dict(dir='manticore-p', drive='builds/manticore-p/056e05c26', file='manticore-p.blend', length_m=91.3),
+    'manticore-p': dict(dir='manticore-p', drive='builds/manticore-p/c7ef78cab', file='manticore-p.blend', length_m=91.3),
     'wolf-p': dict(dir='wolf-p', drive='builds/wolf-p/968fc1a01', file='wolf-p.blend', length_m=70.0),
     'wolf': dict(dir='wolf', drive='builds/wolf/968fc1a01', file='wolf.blend', manifest='manifest-merchant.json',
                  length_m=70.0),

@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Creep spreads from living bores (`hive-creep.md`): each open bore is a creep
+ * Creep spreads from living bores (`colony-breach-nouns.md`, Creep): each open bore is a creep
  * source at its mouth, with the growth of its tier, sped while biomass is
  * delivered into it, and removed when it collapses so its creep withers back.
  *

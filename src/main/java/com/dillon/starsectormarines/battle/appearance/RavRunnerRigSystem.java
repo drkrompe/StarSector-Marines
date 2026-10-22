@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.appearance;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -18,7 +19,9 @@ import java.util.function.LongUnaryOperator;
  * this tick's heading. A Runner hauling a body ({@link #setLoads}) is posed facing it, and a dead
  * Runner keeps its rig and bursts into pieces and ichor around its corpse. A Brute's rig also
  * reads its charge phase and whether it is stunned, through providers the simulation sets, so this
- * package does not reach into the charge's.
+ * package does not reach into the charge's. Each rig is told its body's growth-stage scale every
+ * tick ({@link SwarmStage}), so it walks a whelp's shorter body at its own stride and a Matriarch
+ * that matures in the field grows on screen.
  */
 public final class RavRunnerRigSystem {
 
@@ -72,17 +75,20 @@ public final class RavRunnerRigSystem {
                 Object state = rigs[row];
                 if (state instanceof RavBruteRig brute) {
                     long id = table.entityAt(row);
+                    brute.setStage(stage(id));
                     brute.advance(posX[row], posY[row], facing[row], cooldown[row],
                             chargePhase.applyAsInt(id), stunned.test(id), dt);
                     continue;
                 }
                 if (state instanceof RavMatriarchRig matriarch) {
                     long id = table.entityAt(row);
+                    matriarch.setStage(stage(id));
                     matriarch.advance(posX[row], posY[row], facing[row], matriarchAction.applyAsInt(id),
                             (float) matriarchAge.applyAsDouble(id), dt);
                     continue;
                 }
                 if (!(state instanceof RavRunnerRig rig)) continue;
+                rig.setStage(stage(table.entityAt(row)));
                 long load = loadOf.applyAsLong(table.entityAt(row));
                 boolean carrying = load != 0L && world.has(load, components.POSITION);
                 float loadX = carrying ? world.getFloat(load, components.POSITION, BattleComponents.POSITION_X) : 0f;
@@ -100,5 +106,11 @@ public final class RavRunnerRigSystem {
                 else if (rigs[row] instanceof RavBruteRig brute) brute.advanceDead(posX[row], posY[row], dt);
             }
         }
+    }
+
+    private SwarmStage stage(long id) {
+        if (!world.has(id, components.IDENTITY)) return SwarmStage.ADULT;
+        return SwarmStage.of((SwarmStage) world.getObject(id, components.IDENTITY,
+                BattleComponents.IDENTITY_SWARM_STAGE));
     }
 }

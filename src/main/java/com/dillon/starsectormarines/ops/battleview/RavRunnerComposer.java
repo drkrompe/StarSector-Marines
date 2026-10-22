@@ -1,13 +1,15 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.RavRunnerRig;
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 
 /**
  * Draws a Rav Bloom Runner from its skeleton, seen from above: every bone sprite is turned toward
  * the bone as projected onto the ground and shortened to its projected length, so a leg swinging
  * under the body foreshortens instead of sliding. Legs go under the body and the spike arms over
  * it. Ported from {@code art-source/rav-redesign/exploration/render_runner.py}. A dead Runner is
- * drawn burst: its pieces where the rig flung them, over the ichor it sprayed.
+ * drawn burst: its pieces where the rig flung them, over the ichor it sprayed. A whelp's spikes
+ * are nubs and an elder's longer than its size alone makes them ({@link #spikeScale}).
  */
 final class RavRunnerComposer {
 
@@ -25,6 +27,8 @@ final class RavRunnerComposer {
     private static final float LEG_WIDTH = 1.25f, ARM_WIDTH = 1.1f;
     /** Hind legs under the front ones. */
     private static final int[] LEG_ORDER = {2, 3, 0, 1};
+    /** The spike's length against the body's, by growth stage: whelp nubs, an elder's grown out. */
+    private static final float WHELP_SPIKE = 0.55f, ELDER_SPIKE = 1.30f;
 
     private RavRunnerComposer() {
     }
@@ -97,13 +101,22 @@ final class RavRunnerComposer {
             for (int i = 0; i < 3; i++) {
                 f.screen(start + i, p0);
                 f.screen(start + i + 1, p1);
+                float grow = i == 2 ? spikeScale(rig.stage()) : 1f;
+                p1[0] = p0[0] + (p1[0] - p0[0]) * grow;
+                p1[1] = p0[1] + (p1[1] - p0[1]) * grow;
                 bone(out, art.arm[i][a], ARM_PX[i], p0, p1,
-                        dist3(rig, start + i, start + i + 1) * ppc, ARM_WIDTH, 1f, f.facing, shade, alpha, minAlong);
+                        dist3(rig, start + i, start + i + 1) * ppc * grow, ARM_WIDTH, 1f, f.facing, shade, alpha,
+                        minAlong);
             }
         }
         if (rig.dead()) {
             ichorInFlight(out, art, f, shade, alpha);
         }
+    }
+
+    /** The spike bone's length against the adult's at the same body size. */
+    static float spikeScale(SwarmStage stage) {
+        return stage == SwarmStage.WHELP ? WHELP_SPIKE : stage == SwarmStage.ELDER ? ELDER_SPIKE : 1f;
     }
 
     private static void ichorOnGround(LayeredUnitComposer.SpriteEmitter out, RavRunnerAssets art, Frame f,
