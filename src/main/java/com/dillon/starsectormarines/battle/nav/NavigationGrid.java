@@ -91,7 +91,13 @@ public class NavigationGrid {
         /** Natural obstruction: ordinary cell wall damage cannot clear it; tree ownership may release a whole crown. */
         NATURAL_SOLID,
         /** Low aircraft fragments: passability stays with the underlying terrain. */
-        CRASH_DEBRIS;
+        CRASH_DEBRIS,
+        /**
+         * A militia barricade piece: closed to walking, but something the swarm
+         * assaults rather than walks round. The swarm's flow field may cross it
+         * at a cost ({@link SwarmFlowFields}); a breach clears it.
+         */
+        BARRICADE;
 
         public long mask() { return 1L << ordinal(); }
     }
@@ -1027,6 +1033,7 @@ public class NavigationGrid {
         // visible from this class.
         boolean wasOpaque = blocksStructuralLineOfSightAt(idx);
         cellFlags[idx] |= CellTag.WALKABLE.mask() | CellTag.DOORWAY.mask();
+        cellFlags[idx] &= ~CellTag.BARRICADE.mask();
         recordStructuralOpacityChange(idx, wasOpaque);
         edgePassability[idx] = (byte) 0xFF;
         markTopologyChanged(idx);

@@ -33,9 +33,12 @@ import java.util.Set;
  * <p>Verdicts assert mechanics: nobody walks through a piece that stands, the
  * line is on its bags when the swarm arrives, the line engages, and while the
  * swarm is in front of it nothing the line or its gun fires lands on its own side.
- * Who wins, and what a scrum behind the bags does, are readings. In {@code closed}
- * the swarm goes round by an alley through the north block and comes at the line
- * from behind, which is what closing a street does in a town.
+ * In {@code closed} the only other way on is a long alley through the north
+ * block, so a Runner that reaches the line strikes its pieces rather than going
+ * round: the pieces are barricades the swarm tears down, not walls.
+ * Who wins, which way the swarm came and what a scrum behind the bags does are
+ * readings. {@code -Dbattle.swarm.barricadeAssault=false} is the control, in
+ * which the swarm goes round by the alley.
  */
 public final class RoadblockScene implements BehaviorScene {
 
@@ -47,10 +50,12 @@ public final class RoadblockScene implements BehaviorScene {
     /** The alley through the north block: rows 3..4, entered at x 18..19 and left at x 70..71. */
     private static final int ALLEY_TOP = 3, ALLEY_BOTTOM = 4, ALLEY_WEST = 18, ALLEY_EAST = 70;
     private static final int LANE_Y = 15;
-    private static final int RUNNERS = 36;
+    private static final int RUNNERS = 60;
     private static final int TICKS = 1800;
     /** A Runner this near a living rifleman of the line is in contact with it. */
     private static final int CONTACT_RANGE = 8;
+    /** Ticks after a Runner reaches the obstacle row by which a piece has taken a blow. */
+    private static final int STRIKE_WITHIN = 90;
     /** Ticks after contact by which a manned line has fired. */
     private static final int ENGAGE_WITHIN = 150;
 
@@ -119,7 +124,7 @@ public final class RoadblockScene implements BehaviorScene {
             long[] runners = new long[RUNNERS];
             for (int i = 0; i < RUNNERS; i++) {
                 runners[i] = sim.spawn(new EntitySpec("Runner " + i, Faction.DEFENDER,
-                        UnitType.SWARM_RUNNER, 2 + (i % 6), STREET_TOP + 1 + (i / 6) * 2)
+                        UnitType.SWARM_RUNNER, 2 + (i % 12), STREET_TOP + 1 + (i / 12) * 2)
                         .role(UnitRole.SWARM_PRESSURE));
             }
 
@@ -127,7 +132,10 @@ public final class RoadblockScene implements BehaviorScene {
             String throughWhere = "";
             int contact = -1, manned = -1, onBags = 0, crossings = 0;
             Set<Long> crossed = new HashSet<>();
-            int firedBy = -1, behindTick = -1;
+            int firedBy = -1, behindTick = -1, atLineTick = -1, struckTick = -1, firstBreakTick = -1;
+            Set<Long> viaAlley = new HashSet<>();
+            int deepest = 0;
+            int hpLaid = piecesHp(sim, pieceCells);
             float friendlyInFront = 0f;
             for (int tick = 0; tick < TICKS; tick++) {
                 sim.advance(BattleSimulation.TICK_DT);
@@ -142,8 +150,12 @@ public final class RoadblockScene implements BehaviorScene {
                     }
                     boolean behind = cx > LINE_X + 1 && cy >= STREET_TOP && cy <= STREET_BOTTOM;
                     if (behind && crossed.add(r)) crossings++;
-                    if (behind && behindTick < 0) behindTick = tick;
+                    // At the line (in its lane) is no longer in front of it.
+                    if (cx >= LINE_X && cy >= STREET_TOP && cy <= STREET_BOTTOM && behindTick < 0) behindTick = tick;
+                    if (cy >= STREET_TOP && cy <= STREET_BOTTOM) deepest = Math.max(deepest, cx);
                     if (contact < 0 && nearLine(sim, line, cx, cy)) contact = tick;
+                    if (cy >= ALLEY_TOP && cy <= ALLEY_BOTTOM) viaAlley.add(r);
+                    if (atLineTick < 0 && cx == LINE_X - 1 && cy >= STREET_TOP && cy <= STREET_BOTTOM) atLineTick = tick;
                 }
                 if (contact == tick) {
                     manned = 0;
@@ -155,6 +167,9 @@ public final class RoadblockScene implements BehaviorScene {
                     }
                 }
                 if (contact >= 0 && firedBy < 0 && rounds(sim.telemetry(), line, gun) > 0) firedBy = tick;
+                int hp = piecesHp(sim, pieceCells);
+                if (struckTick < 0 && hp < hpLaid) struckTick = tick;
+                if (firstBreakTick < 0 && standingPieces(sim, pieceCells) < pieceCells.size()) firstBreakTick = tick;
                 if (tick % 15 == 0) frames.frame(loop, sim, tick, loop + " / " + tick);
             }
 
@@ -163,14 +178,19 @@ public final class RoadblockScene implements BehaviorScene {
             for (long r : runners) if (sim.resolveUnit(r) != 0L) runnersLeft++;
             int lineLeft = 0;
             for (long m : line) if (sim.resolveUnit(m) != 0L) lineLeft++;
-            int standing = 0;
-            for (long cell : pieceCells) if (!sim.getGrid().isWalkable((int) (cell >> 32), (int) cell)) standing++;
+            int standing = standingPieces(sim, pieceCells);
 
             List<Verdict> verdicts = new ArrayList<>();
             verdicts.add(Verdict.of("team-seated", teams.size() == 1 && line.size() == ColonyMilitia.POST_SIZE && gun != 0L,
                     teams.size() + " team(s), " + line.size() + " on the line, gun " + (gun != 0L ? "seated" : "missing")));
             verdicts.add(Verdict.of("pieces-close-the-street", !throughPiece,
                     "no Runner stood on a hedgehog, crate or truck while it stood" + throughWhere));
+            if (!gap) {
+                verdicts.add(Verdict.of("tears-at-the-line", atLineTick < 0 || struckTick >= 0 && struckTick - atLineTick <= STRIKE_WITHIN,
+                        atLineTick < 0 ? "no Runner reached the obstacle row"
+                                : "a Runner reached the obstacle row on tick " + atLineTick + "; first blow on a piece "
+                                + (struckTick < 0 ? "never" : (struckTick - atLineTick) + " ticks later")));
+            }
             verdicts.add(Verdict.of("lane-left-open", gap == (plan.gap() > 0),
                     plan.gap() + " line cells left open for the cohort's lane"));
             verdicts.add(Verdict.of("manned-at-contact", contact < 0 || manned == 0 || onBags == manned,
@@ -182,7 +202,7 @@ public final class RoadblockScene implements BehaviorScene {
             // reading. What the layout owns is that nothing fires over or through its own riflemen at the front.
             verdicts.add(Verdict.of("no-fire-through-own-line", friendlyInFront == 0f,
                     friendlyInFront + " damage landed on the line's own side while the swarm was in front of it"
-                            + (behindTick < 0 ? "" : " (first Runner past the bags on tick " + behindTick + ")")));
+                            + (behindTick < 0 ? "" : " (first Runner at the line on tick " + behindTick + ")")));
 
             Map<String, Number> metrics = new LinkedHashMap<>();
             metrics.put("contactTick", contact);
@@ -195,11 +215,28 @@ public final class RoadblockScene implements BehaviorScene {
             float lineFriendly = 0f;
             for (long m : line) lineFriendly += telemetry.friendlyFireDamage(m);
             metrics.put("lineFriendlyDamage", lineFriendly);
-            metrics.put("firstBehindTick", behindTick);
+            metrics.put("firstAtLineTick", behindTick);
+            metrics.put("deepestStreetX", deepest);
+            metrics.put("atLineTick", atLineTick);
+            metrics.put("firstBlowTick", struckTick);
+            metrics.put("firstBreakTick", firstBreakTick);
+            metrics.put("runnersViaAlley", viaAlley.size());
             metrics.put("gunFriendlyDamage", gun == 0L ? 0f : telemetry.friendlyFireDamage(gun));
             metrics.put("gunRounds", gun == 0L ? 0 : telemetry.roundsFired(gun));
             return new SceneReport(id(), loop, TICKS, verdicts, metrics);
         }
+    }
+
+    private static int standingPieces(BattleSimulation sim, Set<Long> cells) {
+        int standing = 0;
+        for (long cell : cells) if (!sim.getGrid().isWalkable((int) (cell >> 32), (int) cell)) standing++;
+        return standing;
+    }
+
+    private static int piecesHp(BattleSimulation sim, Set<Long> cells) {
+        int hp = 0;
+        for (long cell : cells) hp += sim.getGrid().getWallHp((int) (cell >> 32), (int) cell);
+        return hp;
     }
 
     private static float friendly(CombatTelemetryService telemetry, Set<Long> line, long gun) {
