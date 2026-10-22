@@ -406,7 +406,7 @@ increasing an encounter's total armored threat.
   build. A fitted part is on the mech, not in that list. Fitting is a drag from a
   spare onto a mount, and taking a part off is a drag back to stores (or the X);
   there is no install button. A known pattern with no spare in stores carries a
-  fabricator button (a cog icon) and its material cost on the right of its piece;
+  BUY button (a cog icon) and its material cost on the right of its piece;
   it builds one into stores and fits nothing, and is dimmed while the materials are
   short. A row with a spare offers no build at all: the spare is what to drag, and
   stripping a part back to stores takes the offer away again. Plating is the one exception: it covers the whole frame and

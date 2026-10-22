@@ -606,7 +606,7 @@ class MechLabViewModelTest {
             binder.update();
             document.advance(0f);
             assertTrue(layer.visible(), "The fabricate button explains itself on hover");
-            assertEquals("FAB", instance.requireElement(SpecSheetLayer.ELEMENT_ID + "-subtitle").text());
+            assertEquals("BUY", instance.requireElement(SpecSheetLayer.ELEMENT_ID + "-subtitle").text());
             document.pointerDown(centerX(fab), centerY(fab));
             document.pointerUp(centerX(fab), centerY(fab));
             instance.flush();
