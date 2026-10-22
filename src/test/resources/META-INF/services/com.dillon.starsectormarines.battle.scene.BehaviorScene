@@ -140,3 +140,4 @@ com.dillon.starsectormarines.battle.creep.CreepVegetationScene
 com.dillon.starsectormarines.battle.fire.FireScaleScene
 com.dillon.starsectormarines.battle.fire.FireSmokeScene
 com.dillon.starsectormarines.battle.fire.FireIgnitionScene
+com.dillon.starsectormarines.battle.evacuation.RoadblockScene

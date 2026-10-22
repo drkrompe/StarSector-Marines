@@ -27,8 +27,9 @@ import java.util.Set;
  * pavements open. From the threat side in: an <b>obstacle row</b> of hedgehogs
  * and crate stacks (sometimes a truck across one lane), closed to movement and
  * open to sight; a <b>sandbag course</b> behind it facing out, the
- * fighting-position run its team mans; and the post's heavy gun at one end,
- * behind the bags, with a floodlight beside it. Where the cohort's walk to the
+ * fighting-position run its team mans, with the post's heavy gun on the
+ * course's line at one end, so it fires out past the riflemen rather than over
+ * them, and a floodlight behind the gun. Where the cohort's walk to the
  * lift crosses the line, its lane is left open. The pieces are the redoubt
  * works' own, laid by {@link RedoubtWorks#lay}.
  *
@@ -165,7 +166,7 @@ final class ColonyRoadblocks {
     /**
      * Lays a line out across the street at {@code (x, y)}, inward along
      * {@code (ax, ay)}: the obstacle row across the span, the course of bags one
-     * row in, the gun and its light one row further in at an end. Returns null
+     * row in with the gun at one end of it, the light a row behind the gun. Returns null
      * when the line would leave a hole (open ground nothing could be set on that
      * is not the cohort's lane), when no gun fits, or when the course could not
      * seat a team.
@@ -206,26 +207,16 @@ final class ColonyRoadblocks {
         }
         if (obstacles.isEmpty()) return null;
 
-        // The course one row in, every bag facing the threat.
-        String bag = "doodad.fort-sandbag-" + letter(-ax, -ay);
-        List<RedoubtWorks.Bag> bags = new ArrayList<>();
-        int bx = x + ax, by = y + ay;
-        for (int s = span[0]; s <= span[1]; s++) {
-            int cx = bx + px * s, cy = by + py * s;
+        // The gun stands on the course's line at an end, on the pavement, so it fires out past its own
+        // riflemen rather than over them; its floodlight stands a row behind it.
+        int bx = x + ax, by = y + ay, gunX = -1, gunY = -1, lightX = -1, lightY = -1;
+        for (int end : new int[]{span[1], span[0]}) {
+            int cx = bx + px * end, cy = by + py * end;
             if (taken.contains(key(cx, cy)) || !ground.open(cx, cy) || !keep.clear(cx, cy)) continue;
-            bags.add(new RedoubtWorks.Bag(cx, cy, bag));
-            taken.add(key(cx, cy));
-        }
-        if (bags.size() < seats) return null;
-
-        // The gun behind the bags at an end, on the pavement, its floodlight a cell in from it.
-        int gx = bx + ax, gy = by + ay, gunX = -1, gunY = -1, lightX = -1, lightY = -1;
-        for (int[] end : new int[][]{{span[1], -1}, {span[0], 1}}) {
-            int cx = gx + px * end[0], cy = gy + py * end[0];
-            if (!ground.open(cx, cy) || !keep.clear(cx, cy)) continue;
             gunX = cx;
             gunY = cy;
-            int lx = cx + px * end[1], ly = cy + py * end[1];
+            taken.add(key(cx, cy));
+            int lx = cx + ax, ly = cy + ay;
             if (ground.open(lx, ly) && keep.clear(lx, ly)) {
                 lightX = lx;
                 lightY = ly;
@@ -234,7 +225,19 @@ final class ColonyRoadblocks {
         }
         if (gunX < 0) return null;
 
-        int l = gunX, t = gunY, r = gunX, b = gunY;
+        // The course one row in, every bag facing the threat.
+        String bag = "doodad.fort-sandbag-" + letter(-ax, -ay);
+        List<RedoubtWorks.Bag> bags = new ArrayList<>();
+        for (int s = span[0]; s <= span[1]; s++) {
+            int cx = bx + px * s, cy = by + py * s;
+            if (taken.contains(key(cx, cy)) || !ground.open(cx, cy) || !keep.clear(cx, cy)) continue;
+            bags.add(new RedoubtWorks.Bag(cx, cy, bag));
+            taken.add(key(cx, cy));
+        }
+        if (bags.size() < seats) return null;
+
+        int l = Math.min(gunX, lightX < 0 ? gunX : lightX), t = Math.min(gunY, lightY < 0 ? gunY : lightY);
+        int r = Math.max(gunX, lightX), b = Math.max(gunY, lightY);
         for (RedoubtWorks.Piece p : obstacles) {
             l = Math.min(l, p.x());
             t = Math.min(t, p.y());
