@@ -37,7 +37,7 @@ public final class ObjectiveFactionPresence {
         return anyInPlay(sim, factions, unit -> true);
     }
 
-    private static boolean anyInPlay(BattleView sim, Set<Faction> factions, LongPredicate groundEligible) {
+    static boolean anyInPlay(BattleView sim, Set<Faction> factions, LongPredicate groundEligible) {
         if (factions == null || factions.isEmpty()) return false;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);

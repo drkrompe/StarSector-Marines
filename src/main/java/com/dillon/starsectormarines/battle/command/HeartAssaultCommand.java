@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -18,6 +19,13 @@ import java.util.Objects;
  * <p>Its lane ({@link HeartLane}) is the band along the line it advances on
  * from its landing. Satellites outside it are other lanes' work (Broad Front's
  * allied columns); on The Burn the lane is the whole approach.
+ *
+ * <p>The squads go in on a <b>frontage</b>, each to its own cell spread across
+ * the advance, never all to one: a bunched company is what a lobbed round
+ * finds. Under a walking barrage ({@link BarrageScreen}) the company follows
+ * the guns: while its bore lies past the line that is firing it forms on that
+ * frontage a safe distance short of the line and comes up as each line lifts,
+ * and goes for the bore only once the barrage has passed it.
  */
 public final class HeartAssaultCommand implements AutonomousMissionCommand<HeartAssaultCommand.Frame, String> {
 
@@ -42,11 +50,30 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
         return new Frame(CommandFrame.freeze(view, faction, topology, assignments), bores);
     };
 
+    /** Cells between neighbouring squads on the frontage. */
+    static final int FRONTAGE_SPACING = 9;
+    /** {@code -Dbattle.heart.frontage=false} is the control: every squad to the one cell. */
+    private static final boolean FRONTAGE = Boolean.parseBoolean(System.getProperty("battle.heart.frontage", "true"));
+    /** How far from its frontage cell a squad's cell may be moved to find open ground. */
+    static final int SLOT_SEARCH = 6;
+    /** How far short of its bore, along the advance, a squad's own cell lies when it goes in. */
+    static final int ASSAULT_STANDOFF = 5;
+
     private final HeartLane lane;
+    private final BarrageScreen screen;
 
     /** @param lane the company's own lane */
     public HeartAssaultCommand(HeartLane lane) {
+        this(lane, null);
+    }
+
+    /**
+     * @param lane   the company's own lane
+     * @param screen the barrage it follows, or {@code null} when it fights with none
+     */
+    public HeartAssaultCommand(HeartLane lane, BarrageScreen screen) {
         this.lane = lane;
+        this.screen = screen;
     }
 
     @Override public Faction faction() { return Faction.MARINE; }
@@ -70,11 +97,27 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
         for (CommandSquadState squad : company) { cx += squad.centroidX(); cy += squad.centroidY(); }
         if (!company.isEmpty()) { cx /= company.size(); cy /= company.size(); }
         KnownBore target = target(frame.bores, cx, cy);
-        String phase = target == null ? "HEART_DOWN" : (target.mother() ? "MOTHER_" : "SATELLITE_") + target.key();
-        for (CommandSquadState squad : company) {
-            ObjectiveAssignment next = target == null
-                    ? ObjectiveAssignment.defendArea(squad.squadId(), Math.round(squad.centroidX()), Math.round(squad.centroidY()))
-                    : ObjectiveAssignment.attackMove(squad.squadId(), target.x(), target.y()).withBreach(target.x(), target.y());
+        int tick = frame.tick();
+        boolean held = target != null && screen != null && screen.beyond(screen.along(target.x(), target.y()), tick);
+        String phase = target == null ? "HEART_DOWN"
+                : (held ? "FOLLOW_" : "") + (target.mother() ? "MOTHER_" : "SATELLITE_") + target.key();
+        company.sort(Comparator.comparingInt(CommandSquadState::squadId));
+        int sign = target == null ? 0 : screen != null ? screen.sign()
+                : Integer.signum(along(target) - Math.round(lane.advancesAlongY() ? cy : cx));
+        for (int i = 0; i < company.size(); i++) {
+            CommandSquadState squad = company.get(i);
+            ObjectiveAssignment next;
+            if (target == null) {
+                next = ObjectiveAssignment.defendArea(squad.squadId(), Math.round(squad.centroidX()), Math.round(squad.centroidY()));
+            } else {
+                int offset = FRONTAGE ? Math.round((i - (company.size() - 1) / 2f) * FRONTAGE_SPACING) : 0;
+                int along = held ? screen.holdAlong(tick) : along(target) - sign * ASSAULT_STANDOFF;
+                int[] cell = FRONTAGE || held ? slot(frame.topology(), along, target, offset) : null;
+                if (cell == null) cell = new int[]{target.x(), target.y()};
+                next = ObjectiveAssignment.attackMove(squad.squadId(), cell[0], cell[1]);
+                // Held short of the guns, a squad forms on its cell; going in, it breaches the bore from it.
+                if (!held) next = next.withBreach(target.x(), target.y());
+            }
             CommandDirective incumbent = squad.directive();
             boolean same = incumbent != null && Objects.equals(incumbent.assignment(), next);
             proposals.add(CommandProposal.assign(same ? incumbent.assignment() : next, CommandAuthority.MISSION_COMMAND,
@@ -83,6 +126,35 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
         return new CommandPlan<>(Faction.MARINE, ISSUER, phase, frame.tick(),
                 frame.influence() == null ? -1 : frame.influence().updatedTick(), company.size(), 0,
                 List.of(phase), proposals, phase);
+    }
+
+    /**
+     * A squad's cell on the frontage: {@code along} on the advance, {@code offset}
+     * across it from the bore's line, moved to the nearest open ground; {@code null}
+     * when none is near.
+     */
+    static int[] slot(CommandTopology topology, int along, KnownBore bore, int offset, boolean advancesAlongY) {
+        int across = (advancesAlongY ? bore.x() : bore.y()) + offset;
+        int x = advancesAlongY ? across : along, y = advancesAlongY ? along : across;
+        int[] best = null;
+        int bestDistance = Integer.MAX_VALUE;
+        for (int dy = -SLOT_SEARCH; dy <= SLOT_SEARCH; dy++) {
+            for (int dx = -SLOT_SEARCH; dx <= SLOT_SEARCH; dx++) {
+                int cx = x + dx, cy = y + dy, distance = dx * dx + dy * dy;
+                if (distance >= bestDistance || !topology.inBounds(cx, cy) || !topology.isWalkable(cx, cy)) continue;
+                bestDistance = distance;
+                best = new int[]{cx, cy};
+            }
+        }
+        return best;
+    }
+
+    private int[] slot(CommandTopology topology, int along, KnownBore bore, int offset) {
+        return slot(topology, along, bore, offset, lane.advancesAlongY());
+    }
+
+    private int along(KnownBore bore) {
+        return lane.advancesAlongY() ? bore.y() : bore.x();
     }
 
     /** The bore the company goes for from {@code (x, y)}: its lane's next, or none. */

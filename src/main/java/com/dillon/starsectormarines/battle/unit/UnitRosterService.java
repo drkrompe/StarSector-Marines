@@ -1113,8 +1113,26 @@ public final class UnitRosterService {
      * survives the corpse transmute), and hp / combat / movement / ai-state / secondary
      * stay under the entity's id until the death drain transmutes it to the corpse
      * archetype. So the swap only moves the dense {@code long[]} slot + fixes the
-     * tail's id↔slot mapping.
+     * tail's id↔slot mapping, and tells the {@link #onSlotMoved} listener, whose
+     * fog visibility is the one thing keyed by slot.
      */
+    /** Told when a release moves the tail unit into the freed slot; see {@link #onSlotMoved}. */
+    public interface SlotMoveListener {
+        void slotMoved(int from, int to);
+    }
+
+    private SlotMoveListener slotMoveListener;
+
+    /**
+     * Registers the one holder of state that is keyed by dense slot rather
+     * than by id: the fog's per-unit visibility, which the renderer reads by
+     * slot. Without it, the unit moved into a dead one's slot reads the dead
+     * unit's visibility until the next sweep.
+     */
+    public void onSlotMoved(SlotMoveListener listener) {
+        this.slotMoveListener = listener;
+    }
+
     public void release(long id) {
         if (id == 0L) return;
         int idx = indexById.get(id);
@@ -1133,6 +1151,7 @@ public final class UnitRosterService {
             long tail = dense[last];
             dense[idx] = tail;
             indexById.put(tail, idx);
+            if (slotMoveListener != null) slotMoveListener.slotMoved(last, idx);
         }
         dense[last] = 0L;
         liveCount--;

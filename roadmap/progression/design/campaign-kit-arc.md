@@ -24,10 +24,10 @@ read the same way, in four registers:
 
 | Register | What the company fields | Where it comes from | Example |
 | --- | --- | --- | --- |
-| **Scrounged** | Mongrel kit: surplus rifles, security shells, whatever the last fight left behind | Starter issue, open markets, recovery | Watchman's Kit, Outlaw Raider Protection |
+| **Scrounged** | Mongrel kit: surplus rifles, security shells, whatever the last fight left behind | Starter issue, open markets, recovery | Watchman's Kit, Blackforge Raider Lot |
 | **Issued** | Coherent local kit a patron hands out for the job | Story rewards, Common and Advanced licences | A Proper Issue, Trench-Clearing Issue |
 | **Recovered** | Worn military patterns, real but lesser, rebuilt from wrecks | Introduced by the Agreus story; afterwards ordinary Advanced cards | Recovered Specter, Recovered Arbalest |
-| **Approved** | Proper military issue: whole powered sections, current doctrine | Only by a military warrant from the tradition that builds it | XIV Shock, Bulwark, Reliquary, Lion's Mantle |
+| **Approved** | Proper military issue: whole powered sections, current doctrine | Only by a military warrant from the tradition that builds it | XIV Shock, Bulwark, Holdfast, Lion's Mantle |
 
 Where it suits a mission, the player meets a register **across the line** before
 holding it: Agreus puts Greyhook's crude powered rigs in the field before the
@@ -42,7 +42,7 @@ Measured from the catalog (`loadoutCardSheet`), not from intent:
 
 - **Approved kit is not reserved.** Every full powered sheet is Prestige, and every
   one of them sits in the Independent `recovery` pool, so fifteen high-risk victories
-  can hand a mercenary a Lion's Guard Mantle or a Knights Reliquary section from a
+  can hand a mercenary a Lion's Guard Mantle or a Knights' Holdfast section from a
   random wreck. That is the "military patterns first" gap `campaign-learning-curve.md`
   and `a-small-war.md` already record. (The Hegemony Arbalest Section is built on the
   *recovered* Arbalest, a tier-3 Advanced pattern, and is not part of this problem.)
@@ -67,7 +67,7 @@ Rusk's *civil-security procurement warrant* on Agreus, which is a contract term 
 grants no military status.
 
 - The six approved tier-4 power suits become Restricted. Five are shock suits: the
-  Hegemony XIV `armor.heavy`, Tri-Tachyon Specter, League Bulwark, Knights Reliquary
+  Hegemony XIV `armor.heavy`, Tri-Tachyon Specter, League Bulwark, Knights' Holdfast
   and Lion's Guard Mantle. The sixth is the Hegemony military `armor.arbalest`
   support suit. The tier-3 recovered Specter and Arbalest stay Advanced.
 - **Outlaw Foundry-Breaker stays Prestige and recoverable.** Pirates and the Path
@@ -75,7 +75,7 @@ grants no military status.
   earlier, and it is cruder, louder and breaks first. Choosing it over waiting for an
   approved section is a real decision about what kind of company this is.
 - **Some kit is nearly never the player's.** Martyr rigs already carry a non-player
-  reason. The Lion's Guard Mantle and Knights Reliquary need that faction's own
+  reason. The Lion's Guard Mantle and Knights' Holdfast need that faction's own
   standing warrant, so most companies only ever see them across the line. A warrant
   rule is the acquisition owner the stranded-asset audit needs.
 

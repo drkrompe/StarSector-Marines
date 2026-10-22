@@ -616,7 +616,7 @@ answer is a `db` document `picks/<question id>` holding `{choice, note, at}`.
   `-Dbattle.render.groundAtlas=false`,
   `-Dbattle.render.residentDecoration=false`, `-Dbattle.render.unitAtlas=false`,
   `-Dbattle.render.residentRoofs=false`, `-Dbattle.render.creep=false`,
-  `-Dbattle.render.cliffLook=false` (with `-PrenderMaps=raised`),
+  `-Dbattle.render.cliffLook=false` (with `-PrenderMaps=overlook`),
   `-Dbattle.render.settledBodyMesh=false`,
   `-Dbattle.render.collectCulling=false`), never against a number in a
   document — and never against a delta smaller than that spread.
@@ -914,7 +914,7 @@ and drains the same simulation lists `BattleScreen.advance` does.
 | Night lighting pools | Drawn. Muzzle, impact and fire lights (`GroundLightService`) are not fed, so a night battle's shots do not light the ground |
 | Capture-point rings and ticks, objective annuli | Drawn |
 | Objective, compound and fort **text** labels (GL bitmap font runnables) | Not drawn; reviews name places with `ReviewAnnotations`. Mission-marker and salvage cards are drawn as labels but the mission layer is left out on purpose |
-| Fog of war | Not drawn: a review is a neutral observer |
+| Fog of war | Not drawn, and hides no body: a review is a neutral observer (`BattleRenderHostProfile.OBSERVER_SCENE`), so an enemy nobody on the field can see is still drawn |
 | Highlights, selection rings, order lines, zone and convoy debug overlays | Not drawn: UI and debug |
 | Ship-deck lighting (`DECK_LIGHTING`) and deck scenes | Not drawn here; the ship-deck suites have their own renderer |
 

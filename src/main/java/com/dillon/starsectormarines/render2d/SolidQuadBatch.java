@@ -93,6 +93,19 @@ public final class SolidQuadBatch {
         quadCount++;
     }
 
+    /**
+     * Replaces the red channel of the quad appended last, one value per
+     * vertex in vertex order, so a field signal can vary across the quad
+     * rather than standing flat over it.
+     */
+    public void setLastQuadRed(float r0, float r1, float r2, float r3) {
+        int c = (quadCount - 1) * COL_FLOATS_PER_QUAD;
+        colData[c] = r0;
+        colData[c + 4] = r1;
+        colData[c + 8] = r2;
+        colData[c + 12] = r3;
+    }
+
     /** Writes {@code (r,g,b,a)} to all four verts of the quad at {@link #quadCount}. */
     private void writeQuadColor(float r, float g, float b, float a) {
         int c = quadCount * COL_FLOATS_PER_QUAD;

@@ -36,6 +36,7 @@ import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem;
 import com.dillon.starsectormarines.battle.turret.StructureFootprint;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
@@ -149,6 +150,42 @@ public final class UnitRenderService implements RenderSystem {
      * cells of slack per side is a few per cent of the area.
      */
     private static final float BODY_SILHOUETTE_CELLS = 4f;
+
+    /**
+     * Each type's drawn extent in cells, for {@link ViewCull}: {@link #BODY_SILHOUETTE_CELLS}
+     * for every ordinary body, more for a creature that is bigger than one.
+     *
+     * <p>Read from {@link UnitType#renderScale}, a body's drawn length in cells, at its largest
+     * growth stage, and never from a rig's own art: a body's anchor lies somewhere inside its
+     * own length and what it swings stays within that length of it, so a span of twice the
+     * length about the anchor covers every pose. A Matriarch is four and a half cells long,
+     * anchored behind its middle, and its swung scythes reach over four cells from the
+     * anchor, so the shared four-cell slack drew it only once its anchor was two cells inside
+     * the view. Its blood pool is sized from the same length and is covered too.
+     */
+    private static final float[] BODY_EXTENT_CELLS = new float[UnitType.values().length];
+
+    static {
+        for (UnitType type : UnitType.values()) {
+            float stage = 1f;
+            if (type.isSwarm()) {
+                for (SwarmStage s : SwarmStage.values()) stage = Math.max(stage, s.scale(type));
+            }
+            float length = type.renderScale * stage;
+            BODY_EXTENT_CELLS[type.ordinal()] = Math.max(BODY_SILHOUETTE_CELLS,
+                    Math.max(2f * length, BLOOD_POOL_CELLS * length));
+        }
+    }
+
+    /**
+     * Whether a body of {@code type} at {@code (x, y)}, already outside the hoisted
+     * {@link #BODY_SILHOUETTE_CELLS} bounds, still reaches the view: only a creature
+     * bigger than an ordinary body can, so the common rejection costs one array read.
+     */
+    private static boolean largeBodyReaches(ViewCull view, UnitType type, float x, float y) {
+        float extent = BODY_EXTENT_CELLS[type.ordinal()];
+        return extent > BODY_SILHOUETTE_CELLS && view.visible(x, y, extent);
+    }
 
     /**
      * Slack on a structure or hull whose extent is authored, for
@@ -1045,8 +1082,8 @@ public final class UnitRenderService implements RenderSystem {
                 int[] deathTick = t.ints(c.CORPSE, BattleComponents.CORPSE_DEATH_TICK).array();
                 for (int r = 0, n = t.rowCount(); r < n; r++) {
                     if (poseIdx[r] < 0 || !bleeds(family[r], poseIdx[r])) continue;
-                    if (rx[r] < cullMinX || rx[r] > cullMaxX
-                            || ry[r] < cullMinY || ry[r] > cullMaxY) continue;
+                    if ((rx[r] < cullMinX || rx[r] > cullMaxX || ry[r] < cullMinY || ry[r] > cullMaxY)
+                            && !largeBodyReaches(view, (UnitType) types[r], rx[r], ry[r])) continue;
                     LayeredSpriteCache pool = pools.get(Math.floorMod(poseIdx[r], pools.size()));
                     float poolAlpha = alphaMult * pileFadeAlpha(ctx.sim.bodyPileCap().faded(t.entityAt(r)));
                     float size = cam.cellPxSize() * BLOOD_POOL_CELLS * ((UnitType) types[r]).renderScale
@@ -1072,8 +1109,8 @@ public final class UnitRenderService implements RenderSystem {
                     ? t.objects(c.RAV_RIG, BattleComponents.RAV_RIG_STATE).array() : null;
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 if (poseIdx[r] < 0) continue;
-                if (rx[r] < cullMinX || rx[r] > cullMaxX
-                        || ry[r] < cullMinY || ry[r] > cullMaxY) continue;
+                if ((rx[r] < cullMinX || rx[r] > cullMaxX || ry[r] < cullMinY || ry[r] > cullMaxY)
+                        && !largeBodyReaches(view, (UnitType) types[r], rx[r], ry[r])) continue;
                 UnitType type = (UnitType) types[r];
                 // A strain body on the creep melts into it: drawn smaller and fainter until it is gone.
                 float digested = type.isSwarm() ? ctx.sim.creepDigestion().digested(t.entityAt(r)) : 0f;
@@ -1242,6 +1279,7 @@ public final class UnitRenderService implements RenderSystem {
         UnitRosterService roster = ctx.sim.getRoster();
         SystemFxService systemFx = roster.systemFx();
         FogOfWarService vis = ctx.sim.getFogOfWar();
+        boolean fogHides = ctx.hostProfile.fogHidesUnits();
         float unitSize = cam.cellPxSize() * BattleRenderer.UNIT_FRAC;
         float half = unitSize / 2f;
         float alphaMult = ctx.alphaMult;
@@ -1327,13 +1365,14 @@ public final class UnitRenderService implements RenderSystem {
                 // ahead of the roster lookup the visibility gate needs and of
                 // the six or seven authored images a layered body composes
                 // from. This is where most of the layer's collection cost was
-                // going at a close framing.
-                if (rx[r] < cullMinX || rx[r] > cullMaxX
-                        || ry[r] < cullMinY || ry[r] > cullMaxY) continue;
+                // going at a close framing. A creature bigger than an ordinary
+                // body asks for its own extent, and only in the band past these.
+                if ((rx[r] < cullMinX || rx[r] > cullMaxX || ry[r] < cullMinY || ry[r] > cullMaxY)
+                        && !largeBodyReaches(view, (UnitType) types[r], rx[r], ry[r])) continue;
 
                 // Gate 2: visibility, keyed by this row's dense roster slot.
                 int denseIdx = roster.indexOf(entityId);
-                byte uv = vis.getUnitVisibility(denseIdx);
+                byte uv = fogHides ? vis.getUnitVisibility(denseIdx) : FogOfWarService.VIS_VISIBLE;
                 if (uv == FogOfWarService.VIS_HIDDEN) continue;
                 float unitAlpha = alphaMult;
                 if (uv == FogOfWarService.VIS_FADING) unitAlpha *= vis.getFadeAlpha(denseIdx);
@@ -1371,6 +1410,12 @@ public final class UnitRenderService implements RenderSystem {
                     continue;
                 }
                 Object rig = ravRigs != null ? ravRigs[r] : null;
+                if (RavRigStandIn.needed(rig)) {
+                    // Spawned since the last tick: drawn standing, never as the old alien sheet.
+                    rig = RavRigStandIn.of(rig, entityId, rx[r], ry[r],
+                            layeredFacing != null ? layeredFacing[r] : 0f,
+                            ctx.sim.identity().swarmStage(entityId));
+                }
                 if (bruteArt != null && rig instanceof RavBruteRig bruteRig && bruteRig.posed()) {
                     // The Brute too; its rig is sized in cells, so only its growth stage scales it.
                     RavBruteComposer.emit(out, bruteArt.forStage(bruteRig.stage()), bruteRig,
@@ -1699,6 +1744,7 @@ public final class UnitRenderService implements RenderSystem {
         float unitSize = cellPx * BattleRenderer.UNIT_FRAC;
         float alphaMult = ctx.alphaMult;
         FogOfWarService vis = ctx.sim.getFogOfWar();
+        boolean fogHides = ctx.hostProfile.fogHidesUnits();
 
         CombatTelemetryService telemetry = ctx.sim.telemetry();
         for (int i = 0, n = bars.size(); i < n; i++) {
@@ -1707,7 +1753,7 @@ public final class UnitRenderService implements RenderSystem {
             UnitType type = bars.type(i);
             RenderAppearance appearance = RenderAppearance.of(type);
             if (appearance.barsOnlyWhenUnderFire && !hasTakenFire(telemetry, u)) continue;
-            byte uv = vis.getUnitVisibility(slot);
+            byte uv = fogHides ? vis.getUnitVisibility(slot) : FogOfWarService.VIS_VISIBLE;
             if (uv == FogOfWarService.VIS_HIDDEN) continue;
             // After the gates rather than before them, and on positions this
             // loop was going to read anyway. Ahead of it, the cull was two
@@ -1773,7 +1819,7 @@ public final class UnitRenderService implements RenderSystem {
             AirfieldService.Berth berth = ctx.sim.getAirfieldService().berthOf(u);
             return berth != null ? hullExtentCells(berth.airframe) : BODY_SILHOUETTE_CELLS;
         }
-        return BODY_SILHOUETTE_CELLS;
+        return BODY_EXTENT_CELLS[type.ordinal()];
     }
 
     /**

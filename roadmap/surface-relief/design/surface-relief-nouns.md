@@ -55,7 +55,10 @@ physical model of the map.
 - The **shadow margin** is the band of off-view cells the macro-relief target
   carries beyond the viewport. An occluder has to be in that target to cast
   out of it, so the margin is what stops a wall just past the sun-ward edge
-  from having no shadow until the camera reaches it.
+  from having no shadow until the camera reaches it. Fully zoomed in on a
+  small map the margin alone can outgrow a texture; it is trimmed to what
+  fits rather than costing the composite, which an oversized target once
+  switched off for the rest of the battle.
 - **Micro relief** is the derived, per-texel texture variation from a source
   albedo. The build-time derivation pipeline owns the height and normal assets;
   it is deterministic source processing, not runtime inference.
@@ -137,7 +140,8 @@ alter map data or simulation.
   wall's shadow is neither hidden nor harder to hit.
 - The sun's reach is bounded and its cost is fixed. The march takes the same
   number of samples at every angle, its distance is read from the tallest
-  height the installed mapping can place rather than from a constant, and the
+  height the installed mapping can place, standing on the map's highest raised
+  ground (`elevation-nouns.md`), rather than from a constant, and the
   elevation dial is floored well above the horizon because the reach is a
   tangent. A shadow longer than the march is truncated rather than sampled
   coarsely: one reads as a shadow, the other as dashes.

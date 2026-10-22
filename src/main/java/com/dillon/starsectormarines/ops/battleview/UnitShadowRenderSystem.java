@@ -302,6 +302,7 @@ public final class UnitShadowRenderSystem implements RenderSystem {
         ViewCull view = ViewCull.of(cam);
         UnitRosterService roster = ctx.sim.getRoster();
         FogOfWarService vis = ctx.sim.getFogOfWar();
+        boolean fogHides = ctx.hostProfile.fogHidesUnits();
         float cellPx = cam.cellPxSize();
 
         for (ArchetypeTable t : ctx.sim.getEntityWorld().matched(c.liveSprites)) {
@@ -317,7 +318,7 @@ public final class UnitShadowRenderSystem implements RenderSystem {
 
                 long entityId = t.entityAt(r);
                 int denseIdx = roster.indexOf(entityId);
-                byte uv = vis.getUnitVisibility(denseIdx);
+                byte uv = fogHides ? vis.getUnitVisibility(denseIdx) : FogOfWarService.VIS_VISIBLE;
                 if (uv == FogOfWarService.VIS_HIDDEN) continue;
                 float alpha = ctx.alphaMult;
                 if (uv == FogOfWarService.VIS_FADING) alpha *= vis.getFadeAlpha(denseIdx);

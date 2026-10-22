@@ -165,6 +165,7 @@ public final class HeartSequence {
         if (!ended && sim.isComplete()) {
             ended = true;
             if (sim.getWinner() == Faction.MARINE) emit(tick, "heart_down");
+            else if (barrage != null && barrage.overrun(sim)) emit(tick, "battery_overrun");
             else emit(tick, "company_broken");
         }
     }

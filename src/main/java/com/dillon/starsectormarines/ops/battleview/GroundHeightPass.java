@@ -151,10 +151,18 @@ final class GroundHeightPass {
                 AtlasBatch atlas = sample == null ? null : atlas(sample.heightSheetPath);
                 if (atlas == null || !atlas.ensureLoaded()) {
                     appendMetadata(cx, cy, cellPx, macro, water, shore);
+                    if (relief.hasRaisedGround()) {
+                        solidBatch.setLastQuadRed(cornerMacro(relief, x, y, 0), cornerMacro(relief, x, y, 1),
+                                cornerMacro(relief, x, y, 2), cornerMacro(relief, x, y, 3));
+                    }
                     continue;
                 }
                 atlas.batch.append(sample.srcX, sample.srcY, sample.srcW, sample.srcH,
                         cx, cy, cellPx, cellPx, macro, water, shore, 1f);
+                if (relief.hasRaisedGround()) {
+                    atlas.batch.setLastQuadRed(cornerMacro(relief, x, y, 0), cornerMacro(relief, x, y, 1),
+                            cornerMacro(relief, x, y, 2), cornerMacro(relief, x, y, 3));
+                }
             }
         }
 
@@ -256,6 +264,10 @@ final class GroundHeightPass {
             GroundMicroHeightSampler.Sample sample =
                     textured ? resolver.resolve(grid, topology, gridX, gridY) : null;
             AtlasBatch atlas = sample == null ? null : atlas(sample.heightSheetPath);
+            if (relief.hasRaisedGround()) {
+                sink.cornerRed(cornerMacro(relief, gridX, gridY, 0), cornerMacro(relief, gridX, gridY, 1),
+                        cornerMacro(relief, gridX, gridY, 2), cornerMacro(relief, gridX, gridY, 3));
+            }
             if (atlas == null || !atlas.ensureLoaded()) {
                 sink.solid(macro, 0.5f, water, shoreFactor);
                 return;
@@ -264,6 +276,17 @@ final class GroundHeightPass {
                     sample.srcX, sample.srcY, sample.srcW, sample.srcH,
                     macro, water, shoreFactor, 1f);
         }
+    }
+
+    /**
+     * A cell's encoded macro height at one of its corners, in vertex order
+     * ({@code (x, y)}, {@code (x+1, y)}, {@code (x+1, y+1)}, {@code (x, y+1)}):
+     * raised ground smooth across the cell, what stands on it flat.
+     */
+    static float cornerMacro(MacroReliefField relief, int x, int y, int vertex) {
+        int cx = x + (vertex == 1 || vertex == 2 ? 1 : 0);
+        int cy = y + (vertex >= 2 ? 1 : 0);
+        return encodeMacroMeters(relief.groundCornerMeters(cx, cy) + relief.standingMetersAt(x, y));
     }
 
     static float microRelief(float micro) {

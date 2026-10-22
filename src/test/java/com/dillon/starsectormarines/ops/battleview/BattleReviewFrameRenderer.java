@@ -331,7 +331,7 @@ public final class BattleReviewFrameRenderer {
                 RenderContext context = new RenderContext(simulation, camera,
                         null, alphaMult, 0f, false,
                         new HighlightOverlay(), new Selection(),
-                        BattleRenderHostProfile.EMBEDDED_SCENE, clockSeconds);
+                        BattleRenderHostProfile.OBSERVER_SCENE, clockSeconds);
                 EnumSet<RenderLayer> layers = EnumSet.copyOf(REVIEW_LAYERS);
                 if (impactEffects || Float.isFinite(focusX)) { layers.add(RenderLayer.SHOTS); layers.add(RenderLayer.IMPACT_FX); }
                 if (unitShadows) layers.add(RenderLayer.UNIT_SHADOWS);

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.GlErrors;
@@ -338,6 +339,8 @@ public final class GroundParallaxPipeline {
     /** Height target size, which is the viewport plus {@link #heightPadCells} of shadow margin on every side. */
     private int heightPxW, heightPxH;
     private int heightPadCells;
+    /** How high the current map's highest tier stands; part of how far a shadow reaches. */
+    private float raisedMeters;
     /** {@link #heightPadCells} in the UI-space units the FBO ortho and the ground passes are drawn in. */
     private float heightPadUi;
 
@@ -412,14 +415,15 @@ public final class GroundParallaxPipeline {
 
     /**
      * How far the sun's march has to reach, in cells, for the tallest surface
-     * the installed mapping can place. Also the size of the height target's
-     * margin, since an occluder has to be in the texture to cast out of it.
+     * the installed mapping can place, standing on the map's highest raised
+     * ground. Also the size of the height target's margin, since an occluder
+     * has to be in the texture to cast out of it.
      */
     float shadowRangeCells() {
         if (!sun.casts()) return 0f;
         GenMappingRegistry mapping = GenMappingRegistry.installed();
-        float tallest = mapping != null ? mapping.tallestMacroHeightMeters()
-                : GenMappingRegistry.DEFAULT_WALL_MACRO_HEIGHT_METERS;
+        float tallest = (mapping != null ? mapping.tallestMacroHeightMeters()
+                : GenMappingRegistry.DEFAULT_WALL_MACRO_HEIGHT_METERS) + raisedMeters;
         if (tallest <= 0f) return 0f;
         return clamp(sun.reachCells(tallest), 0f, MAX_SHADOW_RANGE_CELLS);
     }
@@ -456,6 +460,8 @@ public final class GroundParallaxPipeline {
         vpW = rc.camera.vpW();
         vpH = rc.camera.vpH();
         cellPxUi = Math.max(0.0001f, rc.camera.cellPxSize());
+        ElevationMap elevation = rc.sim.getGrid().elevation();
+        raisedMeters = elevation == null ? 0f : elevation.highestTier() * MacroReliefField.TIER_RISE_METERS;
         if (vpW <= 0f || vpH <= 0f) {
             drainColor.run();
             return;
@@ -721,6 +727,13 @@ public final class GroundParallaxPipeline {
         // them. The shader addresses height by world position instead.
         int padCells = rc.hostProfile == BattleRenderHostProfile.DECK_SCENE
                 ? VisibleCellRect.GEOMETRY_MARGIN_CELLS : heightPadCells();
+        // Fully zoomed in on a small map, the margin alone can outgrow a
+        // texture. Trim it to what fits: a shadow cast from beyond the trimmed
+        // margin is lost at the edge of a view a few cells across, which is
+        // far better than giving up the composite for the rest of the battle.
+        int roomCells = (int) Math.floor((MAX_FBO_DIM - Math.max(wantW, wantH))
+                / (2f * cellPxUi * Math.max(sx, sy)));
+        padCells = Math.max(0, Math.min(padCells, roomCells));
         float padUi = padCells * cellPxUi;
         int wantHeightW = Math.max(1, wantW + 2 * Math.round(padUi * sx));
         int wantHeightH = Math.max(1, wantH + 2 * Math.round(padUi * sy));
