@@ -249,7 +249,8 @@ They hold a few buildings through ordinary garrison manning, crew whatever
 colony turret emplacements still work, and may run a technical or two. They
 are a resource the player inherits, not a force the player commands. The
 shelter guard is one militia post among several; on the colony map a wall team
-mans the civil-defence compound round the shelter (see *Redoubt*).
+mans the civil-defence compound round the shelter (see *Redoubt*), and a
+team mans each *Roadblock*.
 
 On the colony map the other militia posts are the **holdouts** (see
 *Redoubt*): buildings spread across the colony, each chosen as far as it can be
@@ -345,6 +346,44 @@ A holdout's ground is its works' rectangle. A Marine at its **gate** relieves
 it, and the people walk out through the gate.
 `-Dbattle.colonyBreach.redoubtWorks=false` is the control: every holdout is the
 bare building with aprons.
+
+**Roadblock.** A line the militia throw **across a street**, not round a
+building: works on an approach to the main redoubt, with nobody behind them to
+relieve. A redoubt claims a block; a roadblock closes a street, and the swarm
+either breaks it or is funnelled the long way round. The colony has one to
+three (seeded), each on its own approach:
+
+- **where**: a straight run of a street that leads toward the compound
+  (walking along it toward the shelter shortens the walk there; the far end is
+  the threat side), its asphalt unchanged for four cells beyond the works
+  either way so it never stands in a junction, between ten cells and a third of
+  the map's short side out from the compound;
+- **across**: from frontage to frontage, sidewalks included, because a line
+  kerb to kerb leaves both pavements open round it. A street with an open yard
+  on either side, nothing closing it within thirteen cells, takes no
+  roadblock: a line there closes nothing;
+- **the obstacle row**, on the threat side: hedgehogs broken by crate stacks,
+  and on some a truck dragged across one lane, closed to movement and open to
+  sight;
+- **the course** a row in: one course of sandbag facing the threat, a
+  fighting-position run its **team** mans under the same order a holdout's
+  line has;
+- **the gun** on the course's line at one end, on the pavement, so it fires
+  out past its riflemen rather than over them, with a tripod floodlight behind it.
+
+Where the cohort's walk to the lift crosses the line its lane is left open
+straight through both rows; every other street is closed. The pieces are the
+works' own pieces under the works' own rules and the same keep (the walk, the
+pads, the protected zones, ground already claimed), and they stand on the
+street's paving as anything set down on a road does. A site is refused rather
+than half built: a hole in the line that is not the cohort's lane, a course
+too short to seat the team, no end for the gun, or a line that would cut the
+street's far end off from the shelter's side. There is no building to fall back
+into, so the team holds where it stands. Roadblocks are raised after the
+holdouts' works and before the loose guns and technicals, which step round
+them. `-Dbattle.colonyBreach.roadblocks=false` is the control;
+`-Dbattle.colonyBreach.roadblockSpan=kerb` throws each line across the asphalt
+only.
 
 The **civil-defence compound** is the main redoubt's, and it is a different
 kind of thing from a holdout's works. A frontier colony that always knew
