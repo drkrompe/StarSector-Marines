@@ -50,10 +50,10 @@ class MechWorkshopTest {
         assertEquals(MechWorkshop.Status.FABRICATED_AND_INSTALLED, result.status());
         assertEquals(MechWeaponComponent.DUAL_PULSE_LASERS,
                 bay.mechById(MechBay.STARTER_MECH_ID).arms());
-        assertEquals(70, resources.available(Commodities.SUPPLIES));
-        assertEquals(82, resources.available(Commodities.HEAVY_MACHINERY));
-        assertEquals(74, resources.available(Commodities.METALS));
-        assertEquals(88, resources.available(Commodities.RARE_METALS));
+        for (FabricationCost.Line line : MechFabricationCatalog.weapon(MechWeaponComponent.DUAL_PULSE_LASERS).cost().lines()) {
+            assertEquals(100 - line.quantity(), resources.available(line.commodityId()));
+        }
+        assertEquals(100, resources.available(Commodities.SUPPLIES), "the lab spends no supplies");
         assertEquals(1, bay.availableWeapon(MechWeaponComponent.DUAL_CHAINGUNS.id));
     }
 

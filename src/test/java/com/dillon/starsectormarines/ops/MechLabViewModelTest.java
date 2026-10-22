@@ -266,16 +266,17 @@ class MechLabViewModelTest {
                 .filter(row -> row.name().equals("Dual pulse lasers"))
                 .findFirst().orElseThrow();
         assertFalse(pulse.actionDisabled());
-        assertEquals(4, pulse.materials().size());
+        assertEquals(3, pulse.materials().size());
         assertTrue(pulse.materials().stream().allMatch(row -> row.icon().startsWith(
                 "graphics/icons/cargo/")));
-        assertEquals("30", pulse.materials().get(0).label());
-        assertEquals(2000, pulse.materials().get(0).available());
-        assertEquals(30, pulse.materials().get(0).required());
-        assertEquals("MANUFACTURING COST", MechLabSpecSheets.materialSheet(pulse.materials().get(0)).subtitle());
-        assertEquals("2,000", viewModel.materialStock().get().get(0).label());
+        CompanyResources.Row cost = pulse.materials().get(0);
+        String commodity = cost.id().substring(cost.id().lastIndexOf(':') + 1);
+        assertEquals(String.valueOf(cost.required()), cost.label());
+        assertEquals(2000, cost.available());
+        assertEquals("MANUFACTURING COST", MechLabSpecSheets.materialSheet(cost).subtitle());
+        assertEquals("2,000", stockLabel(viewModel, commodity));
         pulse.action().run();
-        assertEquals("1,970", viewModel.materialStock().get().get(0).label());
+        assertEquals(String.format("%,d", 2000 - cost.required()), stockLabel(viewModel, commodity));
         // Fabrication fills stores; fitting is the drag.
         assertEquals(1, bay.availableWeapon(MechWeaponComponent.DUAL_PULSE_LASERS.id));
         assertTrue(viewModel.dropCatalogWeapon(MechWeaponComponent.DUAL_PULSE_LASERS, SocketId.ARMS));
@@ -413,7 +414,7 @@ class MechLabViewModelTest {
                 .findFirst().orElseThrow();
         assertEquals("VEHICLE", apc.badge());
         assertFalse(apc.actionDisabled());
-        assertEquals(4, apc.materials().size());
+        assertEquals(3, apc.materials().size());
         apc.action().run();
 
         assertEquals(1, bay.activeSquad().vehicles().size());
@@ -558,7 +559,7 @@ class MechLabViewModelTest {
                         row.nameId() + " is bound the wrong way round");
             }
             assertTrue(subjects > 0, "the catalog offered nothing to describe");
-            assertEquals(subjects + 4 + rows.stream().mapToInt(row -> row.materials().size()).sum(), binder.size());
+            assertEquals(subjects + viewModel.materialStock().get().size() + rows.stream().mapToInt(row -> row.materials().size()).sum(), binder.size());
             for (CompanyResources.Row material : viewModel.materialStock().get()) {
                 assertTrue(binder.isBound(instance.requireElement(material.id())));
             }
@@ -617,6 +618,11 @@ class MechLabViewModelTest {
             assertTrue(instance.requireElement("mech-catalog:" + MechWeaponComponent.DUAL_PULSE_LASERS.id + ":action")
                     .hasClass("hidden"), "a spare in stores takes the build offer away");
         }
+    }
+
+    private static String stockLabel(MechLabViewModel viewModel, String commodity) {
+        return viewModel.materialStock().get().stream().filter(row -> row.id().endsWith(":" + commodity))
+                .findFirst().orElseThrow().label();
     }
 
     private static float centerX(UiElement element) {
