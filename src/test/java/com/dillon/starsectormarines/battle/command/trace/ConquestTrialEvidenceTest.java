@@ -211,7 +211,7 @@ class ConquestTrialEvidenceTest {
         int lances = f.optInt("mechDrops", 0);
         if (lances > 0) {
             profile = profile.withDeclaredMechDrops(MechDropDeclaration.NONE.with(Faction.MARINE, new MechDropAllowance(lances,
-                    List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.HOUND, MechVariant.SIROCCO))));
+                    List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.HOUND, MechVariant.WARDEN))));
         }
         JSONObject pool = f.optJSONObject("airPool");
         if (pool != null) {

@@ -1135,7 +1135,7 @@ findings, not balance acceptance.
 
 The scenes are `sally-door` (a walled yard that is not a fort: a sortie by
 infantry, the walk round with doors closed, the enemy at the door, an attack on
-the door, a taken yard where the player sends a squad and a Sirocco out, a
+the door, a taken yard where the player sends a squad and a Warden out, a
 contested yard, the door shut behind a sortie, shut in the face of raiders
 marching on it with no route left through it, barred by the player over a body
 standing in it, and a round trip out and home) and `sally-port` (the fort, with

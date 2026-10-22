@@ -65,7 +65,7 @@ public final class DurabilityBarSnapshotSuite implements SnapshotSuite {
             new Profile("Marine + Foundry Breaker", 25f, 27f, 34f),
             new Profile("Vulcan emplacement", 60f, 80f, 68f),
             EMPLACEMENT,
-            new Profile("Sirocco mech", 250f, 400f, 54f),
+            new Profile("Warden mech", 250f, 400f, 54f),
             new Profile("Bulwark mech", 550f, 950f, 54f));
 
     private static final List<Drain> DRAINS = List.of(

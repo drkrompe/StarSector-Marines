@@ -94,7 +94,7 @@ class PowerCatalogTest {
         List<MechDeploymentSpec> configured = List.of(
                 MechDeploymentSpec.standard(MechVariant.BULWARK),
                 MechDeploymentSpec.standard(MechVariant.HOUND),
-                MechDeploymentSpec.standard(MechVariant.SIROCCO),
+                MechDeploymentSpec.standard(MechVariant.WARDEN),
                 MechDeploymentSpec.standard(MechVariant.HOUND),
                 MechDeploymentSpec.standard(MechVariant.BULWARK));
 

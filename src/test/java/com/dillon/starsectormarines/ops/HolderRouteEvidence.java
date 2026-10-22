@@ -49,7 +49,7 @@ class HolderRouteEvidence {
     private static final float WALK_LIMIT = 700f;
     private static final int MECH_BUDGET = 200_000;
     private static final float MECH_TOLERANCE = 0.75f;
-    private static final MechVariant[] MECHS = {MechVariant.SIROCCO, MechVariant.BULWARK};
+    private static final MechVariant[] MECHS = {MechVariant.WARDEN, MechVariant.BULWARK};
 
     private record Case(String name, Supplier<BattleSimulation> build) {}
 
@@ -93,8 +93,8 @@ class HolderRouteEvidence {
                 .append("chassis could stand at both ends of (it starts from the nearest cell inside the place it can stand on). 'doors' = with every sally door ")
                 .append("the map offers opened.\n\n");
         StringBuilder table = new StringBuilder("| mission | nodes | legs | detours stretch / face | worst excess | mean excess | ")
-                .append("Sirocco routes | Bulwark routes | doors | detours, doors | worst, doors | mean, doors | ")
-                .append("Sirocco, doors | Bulwark, doors |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n");
+                .append("Warden routes | Bulwark routes | doors | detours, doors | worst, doors | mean, doors | ")
+                .append("Warden, doors | Bulwark, doors |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n");
         for (Case c : cases) {
             out.append("## ").append(c.name).append("\n\n");
             try (BattleSimulation sim = c.build.get()) {
@@ -117,7 +117,7 @@ class HolderRouteEvidence {
         System.out.println(table);
     }
 
-    /** "legs | detours | worst | mean | sirocco | bulwark" over every node's legs. */
+    /** "legs | detours | worst | mean | warden | bulwark" over every node's legs. */
     private static String summary(List<List<Leg>> nodes) {
         int legs = 0, stretchDetours = 0, faceDetours = 0;
         float worst = 0, sum = 0;

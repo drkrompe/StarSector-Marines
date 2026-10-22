@@ -471,9 +471,9 @@ public class SeparationSystemTest {
                 MechRole.ARMORED_SUPPORT, Faction.MARINE, squadId, 18, 20);
         long lowBulwark = spawnMech(sim, MechVariant.BULWARK,
                 MechRole.ARMORED_SUPPORT, Faction.MARINE, squadId, 18, 16);
-        long sirocco = spawnMech(sim, MechVariant.SIROCCO, MechRole.LR_SUPPORT,
+        long warden = spawnMech(sim, MechVariant.WARDEN, MechRole.LR_SUPPORT,
                 Faction.MARINE, squadId, 16, 18);
-        long[] mechs = {hound, highBulwark, lowBulwark, sirocco};
+        long[] mechs = {hound, highBulwark, lowBulwark, warden};
         for (long mech : mechs) {
             sim.setPath(mech, new int[]{sim.world().cellX(mech),
                     sim.world().cellY(mech), 38, 18});
@@ -498,13 +498,13 @@ public class SeparationSystemTest {
 
         assertTrue(sim.world().x(hound) > sim.world().x(highBulwark));
         assertTrue(sim.world().x(hound) > sim.world().x(lowBulwark));
-        assertTrue(sim.world().x(sirocco) < sim.world().x(highBulwark));
-        assertTrue(sim.world().x(sirocco) < sim.world().x(lowBulwark));
+        assertTrue(sim.world().x(warden) < sim.world().x(highBulwark));
+        assertTrue(sim.world().x(warden) < sim.world().x(lowBulwark));
         assertTrue(sim.world().y(highBulwark) > sim.world().y(lowBulwark));
         assertTrue(distance(sim, hound, highBulwark) >= 5.75f);
         assertTrue(distance(sim, hound, lowBulwark) >= 5.75f);
-        assertTrue(distance(sim, sirocco, highBulwark) >= 5.75f);
-        assertTrue(distance(sim, sirocco, lowBulwark) >= 5.75f);
+        assertTrue(distance(sim, warden, highBulwark) >= 5.75f);
+        assertTrue(distance(sim, warden, lowBulwark) >= 5.75f);
     }
 
     @Test
@@ -514,7 +514,7 @@ public class SeparationSystemTest {
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
         long brawler = spawnMech(sim, MechVariant.HOUND, MechRole.ASSAULT,
                 Faction.MARINE, squadId, 14, 10);
-        long support = spawnMech(sim, MechVariant.SIROCCO, MechRole.LR_SUPPORT,
+        long support = spawnMech(sim, MechVariant.WARDEN, MechRole.LR_SUPPORT,
                 Faction.MARINE, squadId, 18, 10);
         Squad squad = sim.getSquad(squadId);
         squad.applyLanceOrder(MechLanceOrder.FREE_REIGN);
@@ -647,7 +647,7 @@ public class SeparationSystemTest {
                 Faction.MARINE, UnitType.HEAVY_MECH);
         long first = spawnMech(sim, MechVariant.HOUND, MechRole.ASSAULT,
                 Faction.MARINE, firstSquad, 10, 10);
-        long second = spawnMech(sim, MechVariant.SIROCCO, MechRole.LR_SUPPORT,
+        long second = spawnMech(sim, MechVariant.WARDEN, MechRole.LR_SUPPORT,
                 Faction.MARINE, secondSquad, 12, 10);
         sim.setPath(first, new int[]{10, 10, 25, 10});
         sim.setPath(second, new int[]{12, 10, 25, 10});
@@ -671,7 +671,7 @@ public class SeparationSystemTest {
         SeparationSystem separation = separationFor(sim);
         long idleAllyA = spawnMech(sim, MechVariant.HOUND, Faction.MARINE, 5, 5);
         long idleAllyB = spawnMech(sim, MechVariant.BULWARK, Faction.MARINE, 7, 5);
-        long movingMarine = spawnMech(sim, MechVariant.SIROCCO, Faction.MARINE, 12, 12);
+        long movingMarine = spawnMech(sim, MechVariant.WARDEN, Faction.MARINE, 12, 12);
         long nearbyEnemy = spawnMech(sim, MechVariant.HOUND, Faction.DEFENDER, 14, 12);
         sim.setPath(movingMarine, GridPathfinder.findPath(
                 sim.getGrid(), 12, 12, 20, 12));

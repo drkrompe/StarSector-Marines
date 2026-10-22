@@ -39,7 +39,7 @@ public final class LayeredMechAppearance {
     public static final int CHASSIS_CLEAN = 0;
     public static final int CHASSIS_SOCKETED = 1;
     public static final int CHASSIS_HOUND = 2;
-    public static final int CHASSIS_SIROCCO = 3;
+    public static final int CHASSIS_WARDEN = 3;
     public static final int POD_NONE = 0;
     public static final int POD_SMALL_SRM = 1;
     public static final int POD_SMALL_LRM = 2;
@@ -135,7 +135,7 @@ public final class LayeredMechAppearance {
     }
 
     private static boolean isLightChassis(int chassis) {
-        return chassis == CHASSIS_HOUND || chassis == CHASSIS_SIROCCO;
+        return chassis == CHASSIS_HOUND || chassis == CHASSIS_WARDEN;
     }
 
     private static float clamp01(float value) {

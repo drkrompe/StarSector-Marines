@@ -48,7 +48,7 @@ import java.util.concurrent.Future;
  * and two six-man squads as soft controls (line armor, and heavy power suits). Teams: two
  * anti-materiel rifles and two rocket tubes carried as the real specials over sub-machine guns that cannot
  * reach twenty cells (ammunition unlimited, so the reading is a rate; rounds says what a magazine buys), six
- * DMRs, and one hostile Sirocco with its racks removed so only its heavy cannon speaks. Shooters are
+ * DMRs, and one hostile Warden with its racks removed so only its heavy cannon speaks. Shooters are
  * immortal and planted; the targets' own guns are live. Times from the team's first round: armor break
  * (first structure lost on any body), and the kill (every body dead or wrecked).
  *
@@ -216,7 +216,7 @@ public final class HardTargetTimeToKillScene implements BehaviorScene {
         Team team = cell.team;
         if (team.heavyCannon) {
             builder.squad(TEAM).faction(Faction.DEFENDER).size(1).at(TEAM_X + 2, TARGET_Y)
-                    .mech(MechVariant.SIROCCO, MechRole.ASSAULT)
+                    .mech(MechVariant.WARDEN, MechRole.ASSAULT)
                     .stationary()
                     .health(IMMORTAL)
                     .assigned(id -> ObjectiveAssignment.defendArea(id, TEAM_X, TARGET_Y))

@@ -445,7 +445,7 @@ class MechPointFireTest {
     private static final int LEFT_SHOULDER_KEY = MechMountSlot.LEFT_SHOULDER.ordinal() + 1;
 
     /**
-     * A bare chassis carrying {@code arms} on its centreline mount (a Sirocco frame), or, from
+     * A bare chassis carrying {@code arms} on its centreline mount (a Warden frame), or, from
      * {@link #bulwark}, one gun on each arm.
      */
     private static final class Fixture {
@@ -459,7 +459,7 @@ class MechPointFireTest {
         final long shooter;
 
         Fixture(MechWeaponComponent arms, MechWeaponComponent left, MechWeaponComponent right) {
-            this(MechVariant.SIROCCO, arms, left, right);
+            this(MechVariant.WARDEN, arms, left, right);
         }
 
         static Fixture bulwark(MechWeaponComponent armGun, MechWeaponComponent left, MechWeaponComponent right) {

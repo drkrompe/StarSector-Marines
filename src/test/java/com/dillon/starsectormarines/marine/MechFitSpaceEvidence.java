@@ -55,7 +55,7 @@ class MechFitSpaceEvidence {
         for (MechInternal i : MechInternal.values()) {
             md.append(String.format(Locale.ROOT, "| %s | %s | %dx%d | %s/%s/%s | %.2f | %.2f | %.2f | %.0f | %+.1f |\n",
                     i.name(), i.tier, i.footprintColumns, i.footprintRows,
-                    f(MechFrameBudget.mass(i, MechVariant.HOUND)), f(MechFrameBudget.mass(i, MechVariant.SIROCCO)),
+                    f(MechFrameBudget.mass(i, MechVariant.HOUND)), f(MechFrameBudget.mass(i, MechVariant.WARDEN)),
                     f(MechFrameBudget.mass(i, MechVariant.BULWARK)), i.outputFactor, i.speedFraction,
                     i.armorFraction, i.fluxCapacity, i.dissipation));
         }
@@ -203,7 +203,7 @@ class MechFitSpaceEvidence {
                 fluxRow(md, "HOUND", set, frame[0], frame[1]);
             }
         }
-        for (MechVariant v : new MechVariant[]{MechVariant.SIROCCO, MechVariant.BULWARK}) {
+        for (MechVariant v : new MechVariant[]{MechVariant.WARDEN, MechVariant.BULWARK}) {
             MechWeaponComponent[] set = v.rightShoulder != null
                     ? new MechWeaponComponent[]{v.arms, v.leftShoulder, v.rightShoulder}
                     : new MechWeaponComponent[]{v.arms, v.leftShoulder};

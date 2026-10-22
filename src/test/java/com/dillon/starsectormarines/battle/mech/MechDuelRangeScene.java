@@ -33,12 +33,12 @@ import java.util.Map;
  * <p>Two pairings, each played with the rule on and again with it off
  * ({@code -Dbattle.mech.duelRange=false}, set per loop here):
  * <ul>
- *   <li><b>LRM Sirocco against a chaingun Hound.</b> The Sirocco (Long-Range Support) carries an
+ *   <li><b>LRM Warden against a chaingun Hound.</b> The Warden (Long-Range Support) carries an
  *       attack-move at the Hound's ground; the Hound (Brawler) holds an area defence of its own. The
- *       Sirocco out-reaches the Hound by ten cells, so the rule holds it outside the chaingun; the
+ *       Warden out-reaches the Hound by ten cells, so the rule holds it outside the chaingun; the
  *       Hound's short band trades better than its long one, so the rule closes it as far as its order
  *       lets it.</li>
- *   <li><b>The same pair the other way round</b>: the Hound attack-moves at a Sirocco holding its
+ *   <li><b>The same pair the other way round</b>: the Hound attack-moves at a Warden holding its
  *       ground, and should close to its SRM band. Readings, mostly: the attack-move walks it in anyway.</li>
  *   <li><b>Two stock Bulwarks</b> under Brawler doctrine, one attack-moving at the other: the doctrine
  *       that seeks contact, so the control shows what the rule takes away. (Frontline Support with nobody
@@ -60,10 +60,10 @@ import java.util.Map;
  */
 public final class MechDuelRangeScene implements BehaviorScene {
 
-    static final String SIROCCO_HOUND = "sirocco-hound";
-    static final String SIROCCO_HOUND_CONTROL = "sirocco-hound-control";
-    static final String HOUND_SIROCCO = "hound-sirocco";
-    static final String HOUND_SIROCCO_CONTROL = "hound-sirocco-control";
+    static final String WARDEN_HOUND = "warden-hound";
+    static final String WARDEN_HOUND_CONTROL = "warden-hound-control";
+    static final String HOUND_WARDEN = "hound-warden";
+    static final String HOUND_WARDEN_CONTROL = "hound-warden-control";
     static final String HOUND_TANK = "hound-tank";
     static final String HOUND_TANK_CONTROL = "hound-tank-control";
     static final String TANK_HOUND = "tank-hound";
@@ -83,7 +83,7 @@ public final class MechDuelRangeScene implements BehaviorScene {
     private static final int WINDOW_TICKS = 2400;
     private static final long SEED = 1L;
 
-    /** A Hound's chaingun reach: the Sirocco outside it is out of the Hound's fight. */
+    /** A Hound's chaingun reach: the Warden outside it is out of the Hound's fight. */
     static final float HOUND_REACH = 30f;
     /** A Hound's SRM reach: where its close band begins to pay. */
     static final float SRM_REACH = 18f;
@@ -92,12 +92,12 @@ public final class MechDuelRangeScene implements BehaviorScene {
     /** Cells of ground, straight away from the Hound, that count as having given it. */
     static final float GIVE_GROUND_CELLS = 3f;
     /**
-     * The tank's bar, lower than the walking Sirocco's: a tank backs up at 0.3 of its top speed (0.93 cells/s), and
+     * The tank's bar, lower than the walking Warden's: a tank backs up at 0.3 of its top speed (0.93 cells/s), and
      * it stands off only until its fire takes out the Hound's chaingun, when the Hound's reach falls to its SRM's
      * and the stand-off band closes in to 19.5. That window is about two seconds, so it gives under two cells.
      */
     static final float TANK_GIVE_GROUND_CELLS = 1f;
-    /** Cells the Hound must close on the Sirocco once it is being shelled. */
+    /** Cells the Hound must close on the Warden once it is being shelled. */
     static final float HOUND_CLOSES_CELLS = 4f;
     /** Bulwarks in a duel band: the fight's median distance at least this, and contact rare. */
     static final float DUEL_MEDIAN_MIN = 18f;
@@ -115,7 +115,7 @@ public final class MechDuelRangeScene implements BehaviorScene {
 
     @Override
     public String label() {
-        return "Mech duel range: an LRM Sirocco stands off a chaingun Hound, the Hound closes,"
+        return "Mech duel range: an LRM Warden stands off a chaingun Hound, the Hound closes,"
                 + " equal Bulwarks duel short of contact; each with the rule off as control";
     }
 
@@ -126,14 +126,14 @@ public final class MechDuelRangeScene implements BehaviorScene {
         boolean before = MechDuelRange.isEnabled();
         boolean vehicleBefore = VehicleEngagement.isEnabled();
         try {
-            Trace sh = playOnce(frames, SIROCCO_HOUND, MechVariant.SIROCCO, MechRole.LR_SUPPORT,
+            Trace sh = playOnce(frames, WARDEN_HOUND, MechVariant.WARDEN, MechRole.LR_SUPPORT,
                     MechVariant.HOUND, MechRole.ASSAULT, true);
-            Trace shc = playOnce(frames, SIROCCO_HOUND_CONTROL, MechVariant.SIROCCO, MechRole.LR_SUPPORT,
+            Trace shc = playOnce(frames, WARDEN_HOUND_CONTROL, MechVariant.WARDEN, MechRole.LR_SUPPORT,
                     MechVariant.HOUND, MechRole.ASSAULT, false);
-            Trace hs = playOnce(frames, HOUND_SIROCCO, MechVariant.HOUND, MechRole.ASSAULT,
-                    MechVariant.SIROCCO, MechRole.LR_SUPPORT, true);
-            Trace hsc = playOnce(frames, HOUND_SIROCCO_CONTROL, MechVariant.HOUND, MechRole.ASSAULT,
-                    MechVariant.SIROCCO, MechRole.LR_SUPPORT, false);
+            Trace hs = playOnce(frames, HOUND_WARDEN, MechVariant.HOUND, MechRole.ASSAULT,
+                    MechVariant.WARDEN, MechRole.LR_SUPPORT, true);
+            Trace hsc = playOnce(frames, HOUND_WARDEN_CONTROL, MechVariant.HOUND, MechRole.ASSAULT,
+                    MechVariant.WARDEN, MechRole.LR_SUPPORT, false);
             Trace bb = playOnce(frames, BULWARKS, MechVariant.BULWARK, MechRole.ASSAULT,
                     MechVariant.BULWARK, MechRole.ASSAULT, true);
             Trace bbc = playOnce(frames, BULWARKS_CONTROL, MechVariant.BULWARK, MechRole.ASSAULT,
@@ -143,10 +143,10 @@ public final class MechDuelRangeScene implements BehaviorScene {
             Trace th = playVehicle(frames, TANK_HOUND, VehicleCase.TANK_UNORDERED, true, true);
             Trace thc = playVehicle(frames, TANK_HOUND_CONTROL, VehicleCase.TANK_UNORDERED, true, false);
             Trace to = playVehicle(frames, TANK_ORDERED, VehicleCase.TANK_ORDERED, true, true);
-            return List.of(reportSiroccoHound(sh, SIROCCO_HOUND, true),
-                    reportSiroccoHound(shc, SIROCCO_HOUND_CONTROL, false),
-                    reportHoundSirocco(hs, HOUND_SIROCCO, true),
-                    reportHoundSirocco(hsc, HOUND_SIROCCO_CONTROL, false),
+            return List.of(reportWardenHound(sh, WARDEN_HOUND, true),
+                    reportWardenHound(shc, WARDEN_HOUND_CONTROL, false),
+                    reportHoundWarden(hs, HOUND_WARDEN, true),
+                    reportHoundWarden(hsc, HOUND_WARDEN_CONTROL, false),
                     reportBulwarks(bb, BULWARKS, true),
                     reportBulwarks(bbc, BULWARKS_CONTROL, false),
                     reportHoundTank(ht, HOUND_TANK, true),
@@ -456,28 +456,28 @@ public final class MechDuelRangeScene implements BehaviorScene {
 
     // ---- verdicts ----
 
-    private SceneReport reportSiroccoHound(Trace t, String loopId, boolean subject) {
+    private SceneReport reportWardenHound(Trace t, String loopId, boolean subject) {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("fight-happened", t.firstShotTick >= 0,
                 "first round at tick " + t.firstShotTick));
         if (subject) {
             // The Hound sorties off its post at an out-reaching shooter, so how much of the fight stays beyond
-            // its reach is a reading of the chase; that the Sirocco opens distance when it comes on is the mechanic.
-            verdicts.add(t.givesGround("sirocco-gives-ground", "Sirocco"));
-            verdicts.add(Verdict.of("sirocco-fires", t.attackerShots > 0, t.attackerShots + " rounds"));
+            // its reach is a reading of the chase; that the Warden opens distance when it comes on is the mechanic.
+            verdicts.add(t.givesGround("warden-gives-ground", "Warden"));
+            verdicts.add(Verdict.of("warden-fires", t.attackerShots > 0, t.attackerShots + " rounds"));
             verdicts.add(Verdict.of("hound-closes", t.defenderClosed() >= HOUND_CLOSES_CELLS,
-                    String.format(Locale.ROOT, "the Hound came %.1f cells toward the Sirocco after the first"
+                    String.format(Locale.ROOT, "the Hound came %.1f cells toward the Warden after the first"
                             + " round (wanted %.0f)", t.defenderClosed(), HOUND_CLOSES_CELLS)));
         }
         return new SceneReport(id(), loopId, t.ticks, verdicts, t.metrics());
     }
 
-    private SceneReport reportHoundSirocco(Trace t, String loopId, boolean subject) {
+    private SceneReport reportHoundWarden(Trace t, String loopId, boolean subject) {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("fight-happened", t.firstShotTick >= 0,
                 "first round at tick " + t.firstShotTick));
         if (subject) {
-            // The Sirocco gives ground inside its order's leash, so how deep the Hound gets is a reading;
+            // The Warden gives ground inside its order's leash, so how deep the Hound gets is a reading;
             // that it comes inside its own reach and fights is the mechanic.
             verdicts.add(Verdict.of("hound-closes-and-fires",
                     t.min() >= 0f && t.min() < HOUND_REACH && t.attackerShots > 0,

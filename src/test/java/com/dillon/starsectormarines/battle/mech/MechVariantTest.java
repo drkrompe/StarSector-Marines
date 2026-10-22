@@ -41,10 +41,10 @@ class MechVariantTest {
                 MechVariant.BULWARK.chassisAppearance);
         assertEquals(LayeredMechAppearance.CHASSIS_HOUND,
                 MechVariant.HOUND.chassisAppearance);
-        assertEquals(LayeredMechAppearance.CHASSIS_SIROCCO,
-                MechVariant.SIROCCO.chassisAppearance);
+        assertEquals(LayeredMechAppearance.CHASSIS_WARDEN,
+                MechVariant.WARDEN.chassisAppearance);
         assertNotEquals(MechVariant.HOUND.chassisAppearance,
-                MechVariant.SIROCCO.chassisAppearance);
+                MechVariant.WARDEN.chassisAppearance);
 
         MechLoadoutComponent bulwark = MechVariant.BULWARK.createLoadout(null);
         assertSame(MechWeaponComponent.CHAINGUN,
@@ -73,14 +73,14 @@ class MechVariantTest {
         assertNull(hound.mount(MechMountSlot.RIGHT_SHOULDER));
         assertEquals(6, hound.mount(MechMountSlot.ARMS).component.projectilesPerTrigger);
 
-        MechLoadoutComponent sirocco = MechVariant.SIROCCO.createLoadout(null);
-        assertFalse(sirocco.hasWeapon(WeaponRegistry.MECH_SRM_POD_ID));
+        MechLoadoutComponent warden = MechVariant.WARDEN.createLoadout(null);
+        assertFalse(warden.hasWeapon(WeaponRegistry.MECH_SRM_POD_ID));
         assertSame(MechWeaponComponent.SINGLE_HEAVY_CANNON,
-                sirocco.mount(MechMountSlot.ARMS).component);
+                warden.mount(MechMountSlot.ARMS).component);
         assertSame(MechWeaponComponent.LRM_5_FRAG,
-                sirocco.mount(MechMountSlot.LEFT_SHOULDER).component);
+                warden.mount(MechMountSlot.LEFT_SHOULDER).component);
         assertSame(MechWeaponComponent.LRM_5_FRAG,
-                sirocco.mount(MechMountSlot.RIGHT_SHOULDER).component);
+                warden.mount(MechMountSlot.RIGHT_SHOULDER).component);
         var heavyCannon = WeaponRegistry.require(WeaponRegistry.MECH_HEAVY_CANNON_ID);
         assertEquals(45f, heavyCannon.damage, 0.001f);
         assertEquals(18f, heavyCannon.penetration, 0.001f);
@@ -157,7 +157,7 @@ class MechVariantTest {
         assertTrue(path.hasWeapon(WeaponRegistry.MECH_DEMOLITION_CANNON_ID));
 
         MechLoadoutComponent guard = FactionMechLoadouts.create(
-                MechVariant.SIROCCO, null, " lions_guard ");
+                MechVariant.WARDEN, null, " lions_guard ");
         assertSame(MechWeaponComponent.SINGLE_HEAVY_CANNON,
                 guard.mount(MechMountSlot.ARMS).component);
         assertSame(MechWeaponComponent.LRM_5_FRAG,
@@ -219,18 +219,18 @@ class MechVariantTest {
         assertNull(hound.mount(MechMountSlot.RIGHT_SHOULDER));
         assertFalse(hound.hasWeapon(WeaponRegistry.MECH_LRM_ARTILLERY_ID));
 
-        MechLoadoutComponent sirocco = MechVariant.SIROCCO.createLoadout(null);
-        long siroccoId = sim.spawn(new EntitySpec("sirocco", Faction.DEFENDER,
-                UnitType.HEAVY_MECH, 5, 20).mechVariant(MechVariant.SIROCCO));
-        sim.world().attachMechLoadout(siroccoId, sirocco);
-        sirocco.torsoAimTargetId = target;
-        sirocco.torsoOnTarget = true;
-        MechCombatantBehavior.tryFireMechWeapons(siroccoId, sirocco, target, 35f, sim, false);
+        MechLoadoutComponent warden = MechVariant.WARDEN.createLoadout(null);
+        long wardenId = sim.spawn(new EntitySpec("warden", Faction.DEFENDER,
+                UnitType.HEAVY_MECH, 5, 20).mechVariant(MechVariant.WARDEN));
+        sim.world().attachMechLoadout(wardenId, warden);
+        warden.torsoAimTargetId = target;
+        warden.torsoOnTarget = true;
+        MechCombatantBehavior.tryFireMechWeapons(wardenId, warden, target, 35f, sim, false);
 
-        assertEquals(0f, sirocco.mount(MechMountSlot.ARMS).cycleRemaining, 0.001f);
-        assertTrue(sirocco.mount(MechMountSlot.LEFT_SHOULDER).cycleRemaining > 0f);
-        assertTrue(sirocco.mount(MechMountSlot.RIGHT_SHOULDER).cycleRemaining > 0f);
-        assertFalse(sirocco.hasWeapon(WeaponRegistry.MECH_SRM_POD_ID));
+        assertEquals(0f, warden.mount(MechMountSlot.ARMS).cycleRemaining, 0.001f);
+        assertTrue(warden.mount(MechMountSlot.LEFT_SHOULDER).cycleRemaining > 0f);
+        assertTrue(warden.mount(MechMountSlot.RIGHT_SHOULDER).cycleRemaining > 0f);
+        assertFalse(warden.hasWeapon(WeaponRegistry.MECH_SRM_POD_ID));
     }
 
     @Test
@@ -241,9 +241,9 @@ class MechVariantTest {
         assertEquals(3, ids.length);
         assertSame(MechVariant.BULWARK, sim.identity().mechVariant(ids[0]));
         assertSame(MechVariant.HOUND, sim.identity().mechVariant(ids[1]));
-        assertSame(MechVariant.SIROCCO, sim.identity().mechVariant(ids[2]));
+        assertSame(MechVariant.WARDEN, sim.identity().mechVariant(ids[2]));
         assertSame(MechVariant.HOUND, sim.world().mechLoadout(ids[1]).variant);
-        assertSame(MechVariant.SIROCCO, sim.world().mechLoadout(ids[2]).variant);
+        assertSame(MechVariant.WARDEN, sim.world().mechLoadout(ids[2]).variant);
         assertNotEquals(sim.world().cellY(ids[0]), sim.world().cellY(ids[1]));
         assertEquals(sim.squad().squadId(ids[0]), sim.squad().squadId(ids[1]));
         assertEquals(sim.squad().squadId(ids[1]), sim.squad().squadId(ids[2]));

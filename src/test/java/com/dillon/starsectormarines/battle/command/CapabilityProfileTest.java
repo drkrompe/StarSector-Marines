@@ -81,9 +81,9 @@ class CapabilityProfileTest {
 
     @Test
     void catalogCannonMountOnTheSupportMechRatesAsADistanceBreacher() {
-        MechLoadoutComponent sirocco = MechVariant.SIROCCO.createLoadout(null);
+        MechLoadoutComponent warden = MechVariant.WARDEN.createLoadout(null);
         List<Armament> arms = new ArrayList<>();
-        arms.add(Armament.ofMount(sirocco.mount(MechMountSlot.ARMS)));
+        arms.add(Armament.ofMount(warden.mount(MechMountSlot.ARMS)));
         CapabilityProfile profile = CapabilityProfile.of(arms, 0, 1);
         assertTrue(profile.has(AssaultCapability.DISTANCE_BREACH), profile.describe());
         assertTrue(profile.distanceBreachRange() >= CapabilityProfile.DISTANCE_BREACH_MIN_RANGE);

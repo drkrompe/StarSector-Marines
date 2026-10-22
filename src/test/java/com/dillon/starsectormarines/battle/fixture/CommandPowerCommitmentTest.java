@@ -59,7 +59,7 @@ class CommandPowerCommitmentTest {
     @Test
     void configuredMechSupportRoundTripsOrderedDeploymentValues() {
         List<MechDeploymentSpec> deployments = List.of(
-                new MechDeploymentSpec(MechVariant.SIROCCO, MechRole.LR_SUPPORT,
+                new MechDeploymentSpec(MechVariant.WARDEN, MechRole.LR_SUPPORT,
                         MissileReplenisherComponent.ACCELERATED_FEED),
                 new MechDeploymentSpec(MechVariant.HOUND, MechRole.ASSAULT,
                         MissileReplenisherComponent.STANDARD));

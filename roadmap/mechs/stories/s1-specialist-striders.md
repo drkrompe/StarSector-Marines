@@ -10,7 +10,7 @@ Read `mechs-nouns.md` before completing this story.
 
 ## Goal
 
-Accept the Bulwark, Hound, and Sirocco as distinct, readable battlefield
+Accept the Bulwark, Hound, and Warden as distinct, readable battlefield
 choices. Tune only from representative play: the durable family boundaries,
 hardware/doctrine split, absent weapon bands, and encounter budget are already
 part of the noun model.
@@ -23,7 +23,7 @@ part of the noun model.
   Bulwark, but cannot answer disciplined standoff fire and dies meaningfully
   sooner. Under Brawler doctrine it may keep a legal attack moving after losing
   nearby support, but it must remain inside its assignment leash.
-- Confirm the Sirocco under Long-Range Support seeks a non-Sirocco friendly
+- Confirm the Warden under Long-Range Support seeks a non-Warden friendly
   screen, uses long-range missiles as its primary pressure, and keeps its heavy
   cannon readable as a ballistic anti-armor fallback rather than a second
   close-range primary.
@@ -43,7 +43,7 @@ part of the noun model.
 
 - Preserve Bulwark as the durable all-band control case and the ordinary
   production Mech Support payload.
-- Preserve Hound's missing long-range band and Sirocco's missing close-missile
+- Preserve Hound's missing long-range band and Warden's missing close-missile
   band. Do not tune either into a cheaper generalist.
 - Keep visible scale, selection, collision, separation, ballistic contact,
   blast contact, and morale footprint consistent for every chassis.

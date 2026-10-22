@@ -23,8 +23,8 @@ public final class MechFrameBudget {
     public static float ratedOutput(MechVariant variant) {
         return switch (variant) {
             case HOUND -> 20f;
-            // Rated for its factory heavy cannon, so the build mass costs the Sirocco nothing.
-            case SIROCCO -> 36f + HEAVY_CANNON_BUILD_MASS;
+            // Rated for its factory heavy cannon, so the build mass costs the Warden nothing.
+            case WARDEN -> 36f + HEAVY_CANNON_BUILD_MASS;
             // Two single arm guns weigh what the old twin mount did plus one footprint row (4).
             case BULWARK -> 50f;
         };
@@ -34,7 +34,7 @@ public final class MechFrameBudget {
     public static float platingUnit(MechVariant variant) {
         return switch (variant) {
             case HOUND -> 3f;
-            case SIROCCO -> 4f;
+            case WARDEN -> 4f;
             case BULWARK -> 6f;
         };
     }
@@ -43,7 +43,7 @@ public final class MechFrameBudget {
     public static float refitArmorCapacity(MechVariant variant) {
         return switch (variant) {
             case HOUND -> 500f;
-            case SIROCCO -> 400f;
+            case WARDEN -> 400f;
             case BULWARK -> 950f;
         };
     }
@@ -52,7 +52,7 @@ public final class MechFrameBudget {
     public static float refitMoveSpeed(MechVariant variant) {
         return switch (variant) {
             case HOUND -> 1.70f;
-            case SIROCCO -> 1.45f;
+            case WARDEN -> 1.45f;
             case BULWARK -> 1.15f;
         };
     }

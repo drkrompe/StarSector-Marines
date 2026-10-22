@@ -39,12 +39,12 @@ increasing an encounter's total armored threat.
 - **Relative handling mass** is the chassis's authored inertia for manual
   acceleration and braking. It is a dimensionless response parameter, not a
   tonnage estimate or remaining durability. The Bulwark has the heaviest
-  response, the Hound the lightest, and the Sirocco an intermediate response.
+  response, the Hound the lightest, and the Warden an intermediate response.
 - A **mount** is physical hardware at an arm or shoulder position. An absent
   mount is genuinely absent, never a dummy weapon or a hidden firing band.
   The arm positions come in two shapes, and a chassis has one or the other:
   a **centreline arm mount** (`ARMS`, the gun under the Hound's nose or the
-  Sirocco's chin) or a **left and a right arm mount** (`LEFT_ARM`,
+  Warden's chin) or a **left and a right arm mount** (`LEFT_ARM`,
   `RIGHT_ARM`, the Bulwark's two arms, each with its own gun). Every arm gun is
   one gun: there is no paired or "dual" component, because a pair is two arm
   mounts, each fitted, damaged, lost and fired on its own. A gun whose art only
@@ -111,7 +111,7 @@ increasing an encounter's total armored threat.
   nose chaingun, SRM-5 and the three stock internals; a pre-pattern save that had
   an unrestricted workshop knows every chassis and weapon pattern but only the
   stock internals, which did not exist when it was written. Weight class is the
-  access ladder: Hound (light) Common, Sirocco (medium) Advanced, Bulwark (heavy)
+  access ladder: Hound (light) Common, Warden (medium) Advanced, Bulwark (heavy)
   Prestige; weapons and internals carry their own authored tier. Vehicle patterns carry an authored tier too —
   heavy APC Common, escort APC and militia technical Advanced, breakthrough tank
   Prestige — and no vehicle is a starter: a company earns its first hull. A vehicle
@@ -302,10 +302,10 @@ increasing an encounter's total armored threat.
   often still standing when the torso dies. Raising the torso share costs mount
   life almost one for one, and a Bulwark at 0.95 would lose its main gun at 0.61
   of its life instead of 0.77. So the head is kept small (0.06 on Bulwark and
-  Sirocco, its hit rate rather than its silhouette) and the rest stays as the
+  Warden, its hit rate rather than its silhouette) and the rest stays as the
   capability a mech gives up before it dies: the first mount goes at 0.14-0.70
   of the time to kill, the main gun at 0.63-0.97, and a two-mount Hound is
-  disarmed only in the last 15-20% of its life. A Sirocco under rockets in the
+  disarmed only in the last 15-20% of its life. A Warden under rockets in the
   open dies at 0.70 of the control because a 0.48 torso is two rockets, not
   because damage spills: spill meets the torso's armor before its structure, so
   heavy, slow rounds spread about 1.5-2 times the control's spread rather than
@@ -501,7 +501,7 @@ arm: slower six-round service bursts trade saturation for range and
 armor penetration. Luddic Path Hounds replace the nose gun with a five-shell
 Foundry Breaker, an inaccurate demolition cannon whose contact payload, broad
 blast, and structural damage make every shot consequential. Lion's Guard
-Siroccos replace the right LRM rack with a short-ranged thermal lance whose
+Wardens replace the right LRM rack with a short-ranged thermal lance whose
 directional contact burn and one-cell impact bloom reward aggressive support.
 These signature fits belong to the exact campaign faction ids `hegemony`,
 `luddic_path`, and `lions_guard`; the Diktat does not inherit Guard prototypes.
@@ -516,7 +516,7 @@ catalog and livery family without becoming faction defaults. The Mech Lab expose
 them as common-market fabrication patterns whose lower material bills preserve
 that commercial floor. No faction doctrine receives one implicitly.
 
-The Sirocco's heavy cannon also carries real structural damage (140 per shell over
+The Warden's heavy cannon also carries real structural damage (140 per shell over
 a wide blast, untuned), so it opens a wall section from range over a number of
 shells: an assault plan treats it as a reliable distance breacher beside its
 anti-structure fire, and a squad ordered at a wall turns the torso onto the cell
@@ -524,7 +524,7 @@ and fires at it (`phased-assault.md`, "Capabilities and roles"). Breaching is a
 use of the same weapon, not a separate mode.
 
 The Hound is a quick close-assault strider that lacks long-range pressure. The
-Sirocco is a fragile long-range specialist whose cannon is an anti-hardened
+Warden is a fragile long-range specialist whose cannon is an anti-hardened
 fallback rather than a replacement close-range saturation weapon. Those are
 hardware identities; any deployed chassis may receive any of these doctrines:
 
@@ -551,7 +551,7 @@ hardware identities; any deployed chassis may receive any of these doctrines:
   farther from the threat but within the band and keeping it in arc, and a
   rushed escape tries both obliques before going straight back. Otherwise the
   torso's 145° twist loses the target while the hips follow the route, and a
-  mech that cannot reach its perch never fires at all: a planted Sirocco under
+  mech that cannot reach its perch never fires at all: a planted Warden under
   rifle fire fired 2.4 rounds before it died. Keeping the arc, it fires 10.6,
   deals twice the damage and lasts 29 s instead of 18
   (`-Dbattle.mech.overwatchKeepsArc=false` is the control). A screened perch,
@@ -628,7 +628,7 @@ needs something legal to support, and a free-reign Long-Range Support mech
 still values a credible screen.
 
 Long-range doctrine still evaluates whether a prospective screen is physically
-credible. A fragile Sirocco is not made into armor merely because it receives
+credible. A fragile Warden is not made into armor merely because it receives
 another doctrine. A `CLEAR_ZONE` or `SECURE_COMPOUND` contact inside the named
 zone lets Long-Range Support use a bounded perimeter around that zone for its
 firing posture; losing that in-zone contact removes the perimeter, and exact
@@ -727,7 +727,7 @@ LRM-15 are the anti-armor racks.
   both SRM-5s, and Castle's recovered spare for Wayward is the Frag one, since
   the first operations are fought against men.
 - **Factory fits.** The Bulwark keeps twin AT SRM-15s behind its chainguns. The
-  Hound keeps an AT SRM-5. The Sirocco ships Frag LRM-5s: its heavy cannon is
+  Hound keeps an AT SRM-5. The Warden ships Frag LRM-5s: its heavy cannon is
   its answer to armor, and its racks are artillery against men.
 
 `-Dbattle.mech.missileVariants=false` is the control: the AT ids fire the
@@ -1041,7 +1041,7 @@ support sortie, subject only to practical runtime resources.
   lighter chassis cannot be a discounted all-range Bulwark.
 - Chassis structure, armor capacity, and armor rating are separate values. Bulwark
   remains the high-capacity, high-rating anchor; Hound trades armor endurance for
-  mobility; Sirocco has the least protection and depends on range and a screen.
+  mobility; Warden has the least protection and depends on range and a screen.
 - Mount absence is a tactical weakness. Firing, continuation, AI utility,
   resupply, and rendering must operate only on installed components. A mount
   destroyed in battle is an absent mount, not a disabled one.

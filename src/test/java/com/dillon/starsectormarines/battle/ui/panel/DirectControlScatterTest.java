@@ -34,12 +34,12 @@ class DirectControlScatterTest {
 
     @Test
     void anArcingRackRingsItsCursorToo() {
-        var sirocco = new MechLoadoutComponent(MechVariant.SIROCCO, null);
-        var ring = DirectControlScatter.mech(sirocco, 0, 20f);
+        var warden = new MechLoadoutComponent(MechVariant.WARDEN, null);
+        var ring = DirectControlScatter.mech(warden, 0, 20f);
         assertNotNull(ring);
         assertTrue(ring.radiusCells() > 0f);
         assertFalse(ring.tooClose());
-        assertTrue(DirectControlScatter.mech(sirocco, 0, 3f).tooClose());
-        assertTrue(DirectControlScatter.mech(sirocco, 0, 3f).warning());
+        assertTrue(DirectControlScatter.mech(warden, 0, 3f).tooClose());
+        assertTrue(DirectControlScatter.mech(warden, 0, 3f).warning());
     }
 }

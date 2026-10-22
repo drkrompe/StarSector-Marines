@@ -102,7 +102,7 @@ public final class ArmorDropPaceScene implements BehaviorScene {
                             new VehicleDeploymentSpec("v2", "Hauler", VehicleType.HEAVY_APC)),
                     boat(BoatFitting.LIFT_CRADLE), false);
             case MID_HEAVY_CRADLE -> power = MechSupport.configured(
-                    List.of(named(MechVariant.SIROCCO, "Ridge"), named(MechVariant.HOUND, "Pike")),
+                    List.of(named(MechVariant.WARDEN, "Ridge"), named(MechVariant.HOUND, "Pike")),
                     List.of(new VehicleDeploymentSpec("v1", "Warden", VehicleType.ESCORT_APC),
                             new VehicleDeploymentSpec("v2", "Plate", VehicleType.UP_ARMORED_APC)),
                     boat(BoatFitting.HEAVY_CRADLE), false);

@@ -41,7 +41,7 @@ public final class FactionMechLoadouts {
                     MechWeaponComponent.DEMOLITION_CANNON,
                     variant.leftShoulder, variant.rightShoulder, deployedRole);
         }
-        if (variant == MechVariant.SIROCCO && isFaction(factionId, LIONS_GUARD_ID)) {
+        if (variant == MechVariant.WARDEN && isFaction(factionId, LIONS_GUARD_ID)) {
             return new MechLoadoutComponent(variant,
                     variant.arms, variant.leftShoulder,
                     MechWeaponComponent.THERMAL_LANCE, deployedRole);

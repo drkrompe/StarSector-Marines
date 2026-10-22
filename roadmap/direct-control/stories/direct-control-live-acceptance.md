@@ -43,7 +43,7 @@ including its transition back to autonomous play.
   changing zoom; the guide must hide and reproject without stale aim.
 - Drive each Mech chassis, release WASD, and change direction through a right
   angle and a full reversal. Braking and turns must remain smooth without a
-  hard stop while the hips align. Compare the agile Hound, intermediate Sirocco,
+  hard stop while the hips align. Compare the agile Hound, intermediate Warden,
   and heavy Bulwark; top speed must retain each chassis's ordinary limit.
   Coast into walls, slide along them, and open a previously blocked edge: no
   retained wall pressure may launch the body. Pause or cross UI chrome while
