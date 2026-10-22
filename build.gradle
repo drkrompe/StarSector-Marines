@@ -165,7 +165,8 @@ test {
                 'story-command-evidence',
                 'crew-liveliness', 'shader-evidence', 'render-evidence', 'garrison-evidence',
                 'generated-space-evidence',
-                'loadout-card-sheet', 'loadout-matchup', 'armor-matchup', 'armor-economy-evidence'
+                'loadout-card-sheet', 'loadout-matchup', 'armor-matchup', 'armor-economy-evidence',
+                'bloom-evidence'
     }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
@@ -270,6 +271,27 @@ tasks.register('crewEvidence', Test) {
     maxParallelForks = 1
     outputs.upToDateWhen { false }
     systemProperty 'starsectorDir', starsectorDir.absolutePath
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
+// The Rav Bloom on the campaign layer over N cycles of a synthetic vanilla-shaped sector, for
+// every severity and frequency preset under three player policies: blooms a year, outcomes,
+// spread chains and size lost (colony-breach-nouns.md, Campaign: blooms). Campaign evidence, not a test.
+tasks.register('bloomEvidence', Test) {
+    group = 'verification'
+    description = 'Simulate years of Rav Bloom outbreaks and report counts, outcomes and spread; opt-in.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'bloom-evidence'
+    }
+    outputs.upToDateWhen { false }
+    systemProperty 'bloom.evidence.years', providers.gradleProperty('years').getOrElse('20')
+    systemProperty 'bloom.evidence.seeds', providers.gradleProperty('seeds').getOrElse('8')
+    systemProperty 'bloom.evidence.outputDir',
+            providers.gradleProperty('evidenceDir').getOrElse(layout.buildDirectory.dir('reports/blooms').get().asFile.absolutePath)
     testLogging {
         showStandardStreams = true
     }
