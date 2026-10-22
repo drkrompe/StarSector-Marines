@@ -8,8 +8,8 @@ import java.util.Arrays;
  * Burning ground as a few pooled lights (`fire-nouns.md`, Look), not one per
  * cell: burning cells are gathered into {@link #BIN}-cell squares, each square
  * with fire in it is one light at its intensity-weighted centre, sized by how
- * much of it burns and as bright as it burns hot, and only the
- * {@link #MAX_LIGHTS} brightest are kept. The squares are regathered when the
+ * much of it burns and as bright as it burns hot. Every such square is kept:
+ * which of them to draw is the reader's choice, by what is in view. The squares are regathered when the
  * fire changes; each light flickers on the animation clock, at its own phase,
  * so a still frame is a pure function of the fire and the clock.
  *
@@ -21,13 +21,12 @@ final class FireLight {
 
     /** Side of a gathering square, in cells. */
     static final int BIN = 6;
-    static final int MAX_LIGHTS = 48;
     /** Fire's colour: a deep orange, warmer than a lamp. */
     static final float RED = 1f, GREEN = 0.5f, BLUE = 0.2f;
 
-    private final float[] x = new float[MAX_LIGHTS], y = new float[MAX_LIGHTS];
-    private final float[] radius = new float[MAX_LIGHTS], strength = new float[MAX_LIGHTS];
-    private final float[] phase = new float[MAX_LIGHTS];
+    private float[] x = new float[64], y = new float[64];
+    private float[] radius = new float[64], strength = new float[64];
+    private float[] phase = new float[64];
     private int count;
     private FireField builtFrom;
     private long builtRevision = -1;
@@ -72,20 +71,23 @@ final class FireLight {
         for (int b = 0; b < binSum.length; b++) {
             if (binCells[b] == 0) continue;
             float s = Math.min(1f, binSum[b] / (BIN * BIN * 0.3f));
-            int slot;
-            if (count < MAX_LIGHTS) {
-                slot = count++;
-            } else {
-                slot = 0;
-                for (int k = 1; k < MAX_LIGHTS; k++) if (strength[k] < strength[slot]) slot = k;
-                if (strength[slot] >= s) continue;
-            }
+            if (count == x.length) grow();
+            int slot = count++;
             x[slot] = binX[b] / binSum[b];
             y[slot] = binY[b] / binSum[b];
             radius[slot] = 3f + 1.4f * (float) Math.sqrt(binCells[b]);
             strength[slot] = 0.35f + 0.65f * s;
             phase[slot] = (b * 0.6180339f) % 1f * 6.2831855f;
         }
+    }
+
+    private void grow() {
+        int n = x.length * 2;
+        x = Arrays.copyOf(x, n);
+        y = Arrays.copyOf(y, n);
+        radius = Arrays.copyOf(radius, n);
+        strength = Arrays.copyOf(strength, n);
+        phase = Arrays.copyOf(phase, n);
     }
 
     /** A host's own clock when it keeps one (a review pins it), else the wall clock, as the markers' pulse does. */
@@ -98,6 +100,8 @@ final class FireLight {
     float x(int i) { return x[i]; }
     float y(int i) { return y[i]; }
     float radius(int i) { return radius[i]; }
+    /** The gathered strength, before flicker: what a reader ranks lights by. */
+    float baseStrength(int i) { return strength[i]; }
 
     /** The light's strength at an animation time, flickering about its gathered value. */
     float strength(int i, float timeSeconds) {

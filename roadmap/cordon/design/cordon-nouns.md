@@ -91,7 +91,7 @@ the call is answered, and it calls again only when a swarm body is inside its
 wall once more. A relieved redoubt whose garrison is gone is held by the
 company while Marines stand in it. It has **fallen** when its garrison is dead
 and a swarm body is inside the wall. A
-fallen redoubt is not re-raised in the battle (see *Open choices*). The line
+fallen redoubt is not re-raised in the battle (see *Settled choices*). The line
 **breaks** when more redoubts have fallen than the briefing allows.
 
 **Tide.** The crisis the battle is timed round: every living bore's next
@@ -101,11 +101,19 @@ strength for the tide's length. Between tides the swarm presses at the
 bores' capacities, so the line is worn rather than overrun, and the tide is
 what breaks redoubts. A tide is heard, not seen coming.
 
+**Eruption.** The bloom breaking out anew in front of the line: a new bore
+opens in the near band in front of a redoubt (each eruption before a different
+redoubt, in a seeded order) through the ordinary bore seam, at the smallest
+tier, and grows, surges and spreads creep as any bore does, so the director's
+target rises with it. Tides make the crises; eruptions make the front worse
+between them, so a battle that holds early is not over.
+
 **Timetable.** What the briefing holds the battle to: when the tides come and
-how long each runs, the ordinary and tide pressures, the window, and how many
-redoubts may fall. The standard timetable is three one-minute tides at minutes
-four, eight and twelve of a fifteen-minute window, the swarm at a third of its
-strength between tides and two thirds in one, one redoubt allowed to fall.
+how long each runs, the ordinary and tide pressures, when bores erupt, the
+window, and how many redoubts may fall. The standard timetable is three
+one-minute tides at minutes four, eight and twelve of a fifteen-minute window,
+the swarm at a third of its strength between tides and two thirds in one, an
+eruption at minutes six and ten, one redoubt allowed to fall.
 
 **Allied column.** Allied troops that arrive during the battle along a rear
 road, on a timetable set at the briefing: a few trucks of riflemen. A column
@@ -301,6 +309,7 @@ with the same keys.
 | `landfall` | both | PLAYER | First Marine on the ground |
 | `line_contact` | both | PLAYER | First swarm body inside any redoubt's reach |
 | `tide_N` | both | PLAYER | The Nth tide: every living bore surges at once |
+| `eruption_N` | both | PLAYER | The Nth eruption: a new bore opens in front of the line |
 | `redoubt_calling_N` | both | PLAYER | Redoubt N calls for relief |
 | `redoubt_relieved_N` | both | PLAYER | A Marine reaches redoubt N's gate while it calls |
 | `redoubt_fell_N` | both | PLAYER | Redoubt N falls |
@@ -342,19 +351,18 @@ with the same keys.
 - **Deterministic.** Same seed, same cordon, same timetable, same tides.
 - **One story.** The cordon sequence is the battle's one story sequence.
 
-## Open choices
+## Settled choices
 
-Design choices sent to the owner as options cards; the doc records the
-recommended answer until one is picked.
+The owner's answers to the flow cards (2026-10-22):
 
-- **Where the Line's refugees walk** (recommended: out of the rear villages
-  to the rear edge along the country road, behind the line).
-- **Whether a fallen redoubt can be retaken** (recommended: no; a fallen
-  redoubt is a hole the next column cannot fill).
-- **How the swarm escalates** (recommended, and built: tides on a timetable
-  over the bores' own surges; new eruptions in front as the alternative).
-- **How the Road's convoys run** (recommended: three convoys on a timetable,
-  each one out and back).
+- **Where the Line's refugees walk:** out of the rear villages to the rear
+  edge along the country road, behind the line.
+- **Whether a fallen redoubt can be retaken:** no; a fallen redoubt is a hole
+  the next column cannot fill.
+- **How the swarm escalates:** both tides on the timetable over the bores'
+  own surges and new bores erupting in front of the line (*Eruption*).
+- **How the Road's convoys run:** three convoys on a timetable, each one out
+  and back.
 
 ## Boundaries
 

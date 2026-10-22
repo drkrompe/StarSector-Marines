@@ -23,6 +23,10 @@ import roster
 
 V_REF = 90.0        # m/s: the formation's relative cruising speed, which turns a weave into a heading
 G_BANK = 12.0       # m/s^2 of sideways acceleration that reads as a 45 degree bank
+# m/s^2 of acceleration that takes a class's drives to full burn (the thrust model: a ship coasting
+# in orbit has its drives at idle, one gaining speed or hauling round a turn burns in proportion)
+A_FULL = {'frigate': 25.0, 'destroyer': 15.0, 'cruiser': 10.0, 'freighter': 5.0}
+IDLE = .08
 
 # per class: across, over and fore-aft weave amplitude (m), base period (s), bank limit (deg),
 # throttle surge (fraction)
@@ -326,8 +330,9 @@ class Keyed(Flight):
     otherwise in full: 185 after 0 turns 185 to port); she flies where her nose points at v, so the
     path follows the manoeuvre. Throttle eases between the keys' and follows the thrust model on
     top (a burn while she gains speed, idling while she sheds it). Hits, jumps and wobble as Flight."""
-    def __init__(self, key, anchor, t_key, keys, hits=(), jumps=(), wobble=2.0, v=None):
+    def __init__(self, key, anchor, t_key, keys, hits=(), jumps=(), wobble=2.0, v=None, thrust=None):
         super().__init__(key, anchor, t_key, [dict(t=-1e9, v=0.0)], hits, jumps, wobble)
+        self.thrust = thrust       # m/s^2 at full burn: the throttle is the motion's acceleration
         x, y, z, hd, pt, rl, thr = anchor
         ks = sorted([dict(k) for k in keys] + [dict(t=t_key, hd=hd, pt=pt, rl=rl, thr=thr,
                                                      **({} if v is None else {'v': v}))], key=lambda k: k['t'])
@@ -380,7 +385,9 @@ class Keyed(Flight):
     def __call__(self, t):
         p, _ = self._state(round((t - self.t_key) / self.DT))
         hd, pt, rl, v, thr = self.attitude(t)
-        if thr > 0:      # the thrust model: the drives burn to gain speed and ease off to lose it
+        if self.thrust:      # the drives burn with the acceleration: speeding up, and hauling round a turn
+            thr = max(IDLE, min(1.0, IDLE + (abs(self._accel(t)) + .5 * abs(v) * self._turn(t)) / self.thrust))
+        elif thr > 0:        # the drives burn to gain speed and ease off to lose it
             thr = max(.05, min(1.0, thr + (self._accel(t) - self._accel(self.t_key)) / 40.0))
         p, m = _apply(p, _rot(hd, pt, rl), self.hits, self.jumps, t, self.t_key)
         w = [0.0, 0.0, 0.0]
@@ -396,6 +403,12 @@ class Keyed(Flight):
 
     def _accel(self, t):
         return (self.attitude(t + .25)[3] - self.attitude(t - .25)[3]) / .5
+
+    def _turn(self, t):
+        """How fast her nose is swinging, rad/s."""
+        a, b = _rot(*self.attitude(t - .1)[:3]), _rot(*self.attitude(t + .1)[:3])
+        c = sum(a[k][0] * b[k][0] for k in range(3))
+        return math.acos(max(-1.0, min(1.0, c))) / .2
 
 
 def keyed(key, anchor, t_key, keys, **kw):
@@ -493,9 +506,23 @@ class CameraPath:
     """A camera move through timed keys: dict(t=, loc=(x, y, z) or f(t), target=(x, y, z) or f(t),
     lens=mm, roll=deg). Positions run on a Catmull-Rom curve with each span eased; lens and roll ease
     between keys. shake: handheld drift, degrees of seeded wander in the aim and the roll (an
-    operator aboard a ship that is being shot at)."""
-    def __init__(self, name, keys, shake=0.0, t_key=None):
+    operator aboard a ship that is being shot at). kicks: [(t, degrees)], a jolt to the aim on a
+    hit that peaks a fifth of a second later and settles (zero at the key time, like the shake)."""
+    def __init__(self, name, keys, shake=0.0, t_key=None, kicks=()):
         self.name, self.keys, self.shake, self.t_key = name, sorted(keys, key=lambda k: k['t']), shake, t_key
+        self.kicks = list(kicks)
+
+    def _kick(self, t):
+        out = [0.0, 0.0, 0.0, 0.0]
+        for n, (tk, deg) in enumerate(self.kicks):
+            x = t - tk
+            if x <= 0:
+                continue
+            env = (x / .2) * math.exp(1 - x / .2) * math.cos(x * 14.0)    # a jolt that rings down
+            h = zlib.crc32(f'{self.name}|kick{n}'.encode())
+            for i in range(4):
+                out[i] += deg * env * ((((h >> (6 * i)) & 0x3F) / 63.0) * 2 - 1)
+        return out
 
     @staticmethod
     def _v(k, field, t):
@@ -526,13 +553,19 @@ class CameraPath:
                 target[n] += math.radians(_eval(wv, t, self.shake)[0] - _eval(wv, t0, self.shake)[0]) * d
             wr = _waves(self.name, 'sr', 4.1)
             roll += _eval(wr, t, self.shake * .6)[0] - _eval(wr, t0, self.shake * .6)[0]
+        if self.kicks:
+            d = math.dist(loc, target)
+            k, k0 = self._kick(t), self._kick(t if self.t_key is None else self.t_key)
+            for n in range(3):
+                target[n] += math.radians(k[n] - k0[n]) * d
+            roll += 2 * (k[3] - k0[3])
         return dict(loc=tuple(loc), target=tuple(target), lens=lens, roll=roll)
 
 
-def camera(name, keys, t_key, shake=0.0):
+def camera(name, keys, t_key, shake=0.0, kicks=()):
     """A key frame's camera: its pose at t_key (loc, target, lens, roll: what aim() takes) plus 'at',
     the whole move, which the preview plays."""
-    c = CameraPath(name, keys, shake, t_key)
+    c = CameraPath(name, keys, shake, t_key, kicks)
     d = c(t_key)
     d['at'], d['t'] = c, t_key
     return d

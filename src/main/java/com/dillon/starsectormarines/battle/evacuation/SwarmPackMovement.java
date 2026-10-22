@@ -176,7 +176,8 @@ final class SwarmPackMovement {
             sim.clearPath(body);
             return true;
         }
-        SwarmMovement.ensurePath(body, gx, gy, false, sim);
+        // A place the bounded search cannot reach is left to the caller's own pursuit, down the field.
+        if (!SwarmMovement.ensurePath(body, gx, gy, false, false, sim)) return false;
         sim.movement().advanceAlongPath(sim.world(), body, BattleSimulation.TICK_DT, 0f, 0f, pace);
         return true;
     }
