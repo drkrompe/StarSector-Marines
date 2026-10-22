@@ -103,6 +103,32 @@ public final class CreepRoofCollapse {
     }
 
     /**
+     * Brings down at once every roof standing over living creep, for creep that
+     * has been matured at setup ({@link BattleSimulation#matureCreep}): weeks
+     * of creep is far past any cell's hold, so a settlement the bloom has held
+     * stands open to the sky when the battle starts rather than caving in during
+     * its first minute. Returns the roof cells brought down. The battle's own
+     * rule then counts them as fallen on its first look, as it does a roof a
+     * shell took.
+     */
+    public static int matureOn(BattleSimulation sim) {
+        if ("false".equalsIgnoreCase(System.getProperty(PROPERTY))) return 0;
+        CreepField field = sim.creepFieldIfPresent();
+        if (field == null || field.isEmpty()) return 0;
+        CellTopology topology = sim.getTopology();
+        MapEditor editor = sim.mapEditor();
+        int width = topology.getWidth(), height = topology.getHeight(), fell = 0;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (topology.getBuildingId(x, y) == 0 || topology.isRoofDestroyed(x, y) || !field.isCreeped(x, y)) continue;
+                editor.destroyRoof(x, y);
+                fell++;
+            }
+        }
+        return fell;
+    }
+
+    /**
      * One look at the battle's creep at {@code tick}, whatever the battle's own
      * clock: for a review that advances the creep field alone. No-op while there
      * is no creep.

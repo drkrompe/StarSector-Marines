@@ -1099,7 +1099,10 @@ against its own control in `renderEvidence`.
 - **Creep can be matured.** A battle set weeks into a bloom (the Cordon,
   `cordon-nouns.md`) grows every source to its full reach at once at setup and
   fills it, walls crusted, as the clock would have (`CreepField.mature`); the
-  trees under it die at once. Nothing else about the field changes.
+  trees under it die at once and the roofs it stands under cave in
+  (`CreepRoofCollapse.matureOn`), as weeks under it would have brought them
+  down. Nothing else about the field changes. The heart's country is grown this
+  way too (`heart-nouns.md`).
 - **Removing a source withers what it alone held**, from the outer edge back to
   the hole over a visible interval: the growth dies first, then clears. Ground a
   living source also reaches stays, and a living source reaching dying ground

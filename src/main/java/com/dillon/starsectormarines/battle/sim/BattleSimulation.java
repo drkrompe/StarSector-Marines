@@ -816,7 +816,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public SwarmPackPlans swarmPackPlans() { return swarmPackPlans; }
     /**
      * Declares the open bores' creep and grows it to full at once, as creep
-     * that has stood for weeks; the trees it holds die. Setup only
+     * that has stood for weeks; the trees it holds die and the roofs it stands
+     * under have caved in. Setup only
      * ({@code cordon-nouns.md}, The map).
      */
     public void matureCreep() {
@@ -825,6 +826,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (creep == null) return;
         creep.mature();
         creepVegetation().look(this, 0);
+        // Weeks under the creep is far past any roof's hold: what it stands on has caved in.
+        CreepRoofCollapse.matureOn(this);
     }
     /** From the tremor on, the swarm director spawns only from living bores. */
     public void beginSwarmBoreSourcing() { swarmReinforcements.beginBoreSourcing(swarmBores); }
