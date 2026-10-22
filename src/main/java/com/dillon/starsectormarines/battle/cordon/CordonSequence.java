@@ -81,6 +81,7 @@ public final class CordonSequence implements Objective {
     private int eruptions;
     private CordonRefugees refugees;
     private AlliedColumns columns;
+    private CordonArmour armour;
     /** The tick the running tide ebbs on, or -1 between tides. */
     private int ebb = -1;
     private boolean landed, contact;
@@ -109,6 +110,14 @@ public final class CordonSequence implements Objective {
     public AlliedColumns columns() { return columns; }
 
     /** Gives the Line its people on the move and its columns; at setup, before the first tick. */
+    /** The allies' light armour behind the line, or {@code null}. */
+    public CordonArmour armour() { return armour; }
+
+    /** Gives the line its allied armour; at setup, before the first tick. */
+    public void attachArmour(CordonArmour armour) {
+        this.armour = armour;
+    }
+
     public void attach(CordonRefugees refugees, AlliedColumns columns) {
         this.refugees = refugees;
         this.columns = columns;
@@ -175,6 +184,7 @@ public final class CordonSequence implements Objective {
             }
         }
         if (refugees != null) refugees.advance(sim, tick, beat -> emit(tick, beat));
+        if (armour != null) armour.advance(sim, redoubts);
         if (columns != null) columns.advance(sim, tick, new ColumnOrders(), (beat, observer) ->
                 log.emitOnce(tick, "cordon." + beat, observer ? StoryBeatLog.Audience.OBSERVER_ONLY
                         : StoryBeatLog.Audience.PLAYER));

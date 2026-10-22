@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacemen
 import com.dillon.starsectormarines.battle.evacuation.CivilianRedoubt;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
+import com.dillon.starsectormarines.battle.evacuation.ColonyLivingField;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
@@ -83,6 +84,7 @@ public final class BattleReviewAnnotations {
             marks.box(site.x() - BORE_HALF, site.y() - BORE_HALF, site.x() + BORE_HALF, site.y() + BORE_HALF,
                     open ? name : name + " · pending", open ? ReviewStyle.KEEP : ReviewStyle.NOTE);
         }
+        addLivingField(marks, simulation);
         if (cohort == null) return marks.build();
         int sx = cohort.sourceCellX(), sy = cohort.sourceCellY();
         int lx = cohort.egressCellX(), ly = cohort.egressCellY();
@@ -111,6 +113,38 @@ public final class BattleReviewAnnotations {
         marks.arrow(sx + 0.5f, sy + 0.5f, lx + 0.5f, ly + 0.5f, "to the lift", ReviewStyle.ROUTE);
         return marks.build();
     }
+
+    /**
+     * The colony's living field: each homestead boxed with whether its guns
+     * still hold, each militia knot on its ground with how many are standing,
+     * and each family walking out boxed round where its people are now.
+     */
+    private static void addLivingField(ReviewAnnotations.Builder marks, BattleSimulation simulation) {
+        ColonyLivingField field = simulation.colonyLivingField();
+        if (field == null) return;
+        for (ColonyLivingField.Homestead home : field.homesteads()) {
+            int guns = ColonyLivingField.aliveCount(simulation, home.guns());
+            marks.box(home.left(), home.top(), home.right(), home.bottom(),
+                    guns > 0 ? "HOMESTEAD · " + guns + " guns" : "HOMESTEAD · OVERRUN",
+                    guns > 0 ? ReviewStyle.POSITION : ReviewStyle.KEEP);
+        }
+        for (ColonyLivingField.Knot knot : field.knots()) {
+            int standing = ColonyLivingField.aliveCount(simulation, knot.members());
+            marks.box(knot.x() - KNOT_HALF, knot.y() - KNOT_HALF, knot.x() + KNOT_HALF, knot.y() + KNOT_HALF,
+                    standing > 0 ? "MILITIA · " + standing : "MILITIA · DOWN",
+                    standing > 0 ? ReviewStyle.POSITION : ReviewStyle.KEEP);
+        }
+        for (ColonyLivingField.WalkingGroup group : field.walkingGroups(simulation)) {
+            marks.box((int) Math.floor(group.minX()) - FAMILY_MARGIN, (int) Math.floor(group.minY()) - FAMILY_MARGIN,
+                    (int) Math.ceil(group.maxX()) + FAMILY_MARGIN, (int) Math.ceil(group.maxY()) + FAMILY_MARGIN,
+                    "FAMILY · " + group.walkers(), ReviewStyle.NOTE);
+        }
+    }
+
+    /** Half-width of a militia knot's box: the ground it stands on. */
+    private static final int KNOT_HALF = 3;
+    /** Cells a walking family's box keeps round its members. */
+    private static final int FAMILY_MARGIN = 1;
 
     /** Half-width of the box an eruption site is drawn in. */
     private static final int BORE_HALF = 3;

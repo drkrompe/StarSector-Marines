@@ -26,7 +26,7 @@ import java.util.Locale;
  * supported and unsupported response without changing battles.
  *
  * <p>The two additional Brawler loops replace the infantry screen with a
- * zero-locomotion Sirocco leader in the selected Bulwark's own two-mech squad.
+ * zero-locomotion Warden leader in the selected Bulwark's own two-mech squad.
  * Both loops hold both chassis/loadouts, contact, attack-move command,
  * geometry, and seed fixed. Their only varied request is Form-on-Lead versus
  * Free-Reign. The contact standoff lies on the attack-move progress leash, so
@@ -36,7 +36,7 @@ import java.util.Locale;
  * <p>Captions carry the two readings that make the motion reviewable:
  * distance to the fixed hostile and signed position on the anchor-to-threat
  * axis. The four doctrine loops label their infantry anchor as support; the
- * paired loops label the same projection lead-relative to the Sirocco. A
+ * paired loops label the same projection lead-relative to the Warden. A
  * positive value means the Bulwark is ahead of that live anchor toward the
  * threat. The same ranges are printed after each artifact so a headless run
  * reports its own result without requiring frame-by-frame GIF inspection.
@@ -161,7 +161,7 @@ public final class MechDoctrineSnapshotSuite implements SnapshotSuite {
         System.out.printf(Locale.ROOT,
                 "    [mech-lance-order] %-12s follower=%s(%d,%d) deployed=%s "
                         + "effective=%s seed=%d assignment=ATTACK_MOVE(%d,%d) "
-                        + "contact=(%d,%d) leader=Sirocco(%d,%d) "
+                        + "contact=(%d,%d) leader=Warden(%d,%d) "
                         + "lanceSize=2 frames=%d goal=%s%n",
                 orderLabel(order), variantName,
                 MechDoctrineScene.LANCE_MECH_X, MechDoctrineScene.LANE_Y,

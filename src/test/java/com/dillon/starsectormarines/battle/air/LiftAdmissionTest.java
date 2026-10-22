@@ -35,7 +35,7 @@ class LiftAdmissionTest {
     @Test
     void weightClassesFollowTheDirectionDocTable() {
         assertEquals(LiftClass.LIGHT, MechVariant.HOUND.liftClass());
-        assertEquals(LiftClass.MEDIUM, MechVariant.SIROCCO.liftClass());
+        assertEquals(LiftClass.MEDIUM, MechVariant.WARDEN.liftClass());
         assertEquals(LiftClass.HEAVY, MechVariant.BULWARK.liftClass());
         assertEquals(LiftClass.LIGHT, VehicleType.HEAVY_APC.liftClass());
         assertEquals(LiftClass.MEDIUM, VehicleType.ESCORT_APC.liftClass());

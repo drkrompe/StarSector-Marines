@@ -323,13 +323,13 @@ public final class MechGaitState {
 
     private float stepDurationSeconds() {
         if (chassis == LayeredMechAppearance.CHASSIS_HOUND) return 0.24f;
-        if (chassis == LayeredMechAppearance.CHASSIS_SIROCCO) return 0.28f;
+        if (chassis == LayeredMechAppearance.CHASSIS_WARDEN) return 0.28f;
         return 0.34f;
     }
 
     private boolean isLightChassis() {
         return chassis == LayeredMechAppearance.CHASSIS_HOUND
-                || chassis == LayeredMechAppearance.CHASSIS_SIROCCO;
+                || chassis == LayeredMechAppearance.CHASSIS_WARDEN;
     }
 
     public float leftFootX() { return leftFootX; }

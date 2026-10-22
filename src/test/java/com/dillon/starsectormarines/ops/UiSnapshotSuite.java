@@ -414,14 +414,19 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, false, false, false,
                                 null, "chassis-Bulwark")),
-                new SnapshotArtifact("mech-lab-sirocco-wide.png",
+                new SnapshotArtifact("mech-lab-warden-wide.png",
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, false, false, false,
-                                null, "chassis-Sirocco")),
+                                null, "chassis-Warden")),
                 new SnapshotArtifact("mech-lab-chassis-fabrication-wide.png",
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
                                 false, false, true)),
+                // A vehicle selected on the vacant pad: previewed nose-up, its lore and bill in the build panel.
+                new SnapshotArtifact("mech-lab-vehicle-preview-wide.png",
+                        renderMechLab(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, false, true, false,
+                                null, "preview-recipe.vehicle.breakthrough_tank")),
                 // With a shoulder mount chosen, because the catalog lists what
                 // could go in the chosen socket and an unselected lab lists
                 // nothing to describe.
@@ -821,7 +826,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 reactor, () -> { }, (mechId, role) -> { },
                 (mechId, order) -> { });
         model.updateProjected(new BattleMechOverlayModel.MechState(
-                3, 303L, "Sirocco Three", MechVariant.SIROCCO.displayName(),
+                3, 303L, "Warden Three", MechVariant.WARDEN.displayName(),
                 MechRole.LR_SUPPORT, MechRole.BALANCED,
                 MechLanceOrder.FREE_REIGN,
                 BattleMechOverlayModel.selectableRoles()));
@@ -2678,7 +2683,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 "support_mech_02", "Hound 02", MechVariant.HOUND,
                 MechRole.ASSAULT, MissileReplenisherComponent.STANDARD.id()));
         bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
-                "support_mech_03", "Sirocco 03", MechVariant.SIROCCO,
+                "support_mech_03", "Warden 03", MechVariant.WARDEN,
                 MechRole.LR_SUPPORT, MissileReplenisherComponent.ACCELERATED_FEED.id()));
         bay.addReplenisher(MissileReplenisherComponent.ACCELERATED_FEED.id(), 1);
         if ("long-name".equals(materialHint)) {
@@ -2765,6 +2770,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             viewModel.selectSlot(SocketId.CAPACITORS);
         }
         if (selectVacant) viewModel.previousGantryAction().run();
+        if (materialHint != null && materialHint.startsWith("preview-")) {
+            viewModel.previewPattern(materialHint.substring("preview-".length()));
+        }
         if (pickerOpen) viewModel.openAssetPickerAction().run();
         // The lab is photographed aboard the same ship it is in game. There is
         // no substitute garage to photograph instead, and a snapshot of one
@@ -2801,18 +2809,19 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             () -> ship.scene().berthsIn(vehicleBay), vehicleBay::id,
                             () -> seconds[0],
                             viewModel::hoveredWeapon)
-                    .withSideShift(() -> camera.pose().sideShift());
+                    .withSideShift(() -> camera.pose().sideShift())
+                    .withPadPreview(viewModel::padPreview);
             fittingCanvas.installedInternals(viewModel::installedInternal);
             document.canvases().set(instance.requireElement("mech-doll-canvas"), fittingCanvas);
             for (MechLabViewModel.SquadRow squad : viewModel.squadRows().get()) {
                 for (MechLabViewModel.LanceSlot slot : squad.slots()) {
                     document.canvases().set(instance.requireElement(slot.id()), new LanceSlotCanvas(
-                            slot.letter(), slot.variant(), slot.vehicle(), MechLabDollCanvas::headlessAssets));
+                            slot.letter(), slot.mech(), slot.vehicle(), MechLabDollCanvas::headlessAssets));
                 }
             }
             for (MechLabViewModel.MechRow row : viewModel.mechRows().get()) {
                 document.canvases().set(instance.requireElement(row.previewId()), new LanceSlotCanvas(
-                        row.letter(), row.variant(), row.vehicle(),
+                        row.letter(), row.mech(), row.vehicle(),
                         MechLabDollCanvas::headlessAssets));
             }
             for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
@@ -2850,7 +2859,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             if (specSheet || materialHint != null && !"long-name".equals(materialHint)
                     && !materialHint.startsWith("lesson-") && !materialHint.startsWith("resource-")
                     && !materialHint.startsWith("internal-") && !materialHint.startsWith("chassis-")
-                    && !materialHint.startsWith("refit-")) {
+                    && !materialHint.startsWith("refit-") && !materialHint.startsWith("preview-")) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
                 List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();
@@ -3429,6 +3438,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("scrapLabel", viewModel.scrapLabel());
         props.put("scrapClasses", viewModel.scrapClasses());
         props.put("scrapAction", viewModel.scrapAction());
+        viewModel.putBuildPanelProps(props);
         props.put("performanceMeters", viewModel.performanceMeters());
         viewModel.putInternalProps(props);
         viewModel.putRepairProps(props);

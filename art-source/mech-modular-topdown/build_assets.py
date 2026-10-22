@@ -121,10 +121,10 @@ def main() -> None:
     normalize("hull-clean-v2.png", "chassis.png", (208, 208))
     normalize("hull.png", "chassis-socketed-variant.png", (208, 208))
     # The generated narrow hull reads as Hound once its pointed end faces
-    # forward; the broader wedge carries Sirocco's heavier support loadout.
-    normalize("sirocco-hull.png", "chassis-hound.png", (208, 208),
+    # forward; the broader wedge carries Warden's heavier support loadout.
+    normalize("warden-hull.png", "chassis-hound.png", (208, 208),
               flip_top_bottom=True)
-    normalize("hound-hull.png", "chassis-sirocco.png", (208, 208),
+    normalize("hound-hull.png", "chassis-warden.png", (208, 208),
               flip_top_bottom=True)
     for faction in FACTION_SKINS:
         source_root = f"faction-chassis/{faction}"
@@ -134,9 +134,9 @@ def main() -> None:
         normalize(f"{source_root}/hound.png", f"{output_root}/chassis-hound.png",
                   (208, 208), flip_top_bottom=True,
                   alpha_from="chassis-hound.png")
-        normalize(f"{source_root}/sirocco.png", f"{output_root}/chassis-sirocco.png",
+        normalize(f"{source_root}/warden.png", f"{output_root}/chassis-warden.png",
                   (208, 208), flip_top_bottom=True,
-                  alpha_from="chassis-sirocco.png")
+                  alpha_from="chassis-warden.png")
     derive_foot_from_hull((44, 38))
     # Heavy hardpoints are sized deliberately against the 208px chassis width:
     # arms ~= 27%, SRM ~= 30%, LRM ~= 36%. Rear pivots remain buried.

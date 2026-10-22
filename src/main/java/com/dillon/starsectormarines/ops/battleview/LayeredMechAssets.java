@@ -8,7 +8,7 @@ public final class LayeredMechAssets {
     public final LayeredSpriteCache chassis;
     public final LayeredSpriteCache socketedChassis;
     public final LayeredSpriteCache houndChassis;
-    public final LayeredSpriteCache siroccoChassis;
+    public final LayeredSpriteCache wardenChassis;
     public final LayeredSpriteCache foot;
     public final LayeredSpriteCache thighBone;
     public final LayeredSpriteCache chaingunArm;
@@ -28,7 +28,7 @@ public final class LayeredMechAssets {
 
     public LayeredMechAssets(LayeredSpriteCache chassis, LayeredSpriteCache socketedChassis,
                              LayeredSpriteCache houndChassis,
-                             LayeredSpriteCache siroccoChassis,
+                             LayeredSpriteCache wardenChassis,
                              LayeredSpriteCache foot, LayeredSpriteCache thighBone,
                              LayeredSpriteCache chaingunArm,
                              LayeredSpriteCache linearCannon, LayeredSpriteCache heavyCannon,
@@ -46,7 +46,7 @@ public final class LayeredMechAssets {
         this.chassis = chassis;
         this.socketedChassis = socketedChassis;
         this.houndChassis = houndChassis;
-        this.siroccoChassis = siroccoChassis;
+        this.wardenChassis = wardenChassis;
         this.foot = foot;
         this.thighBone = thighBone;
         this.chaingunArm = chaingunArm;
@@ -71,7 +71,7 @@ public final class LayeredMechAssets {
      * whole set before any of it is drawn.
      */
     public List<LayeredSpriteCache> layers() {
-        return Arrays.asList(chassis, socketedChassis, houndChassis, siroccoChassis,
+        return Arrays.asList(chassis, socketedChassis, houndChassis, wardenChassis,
                 foot, thighBone, chaingunArm, linearCannon, heavyCannon, srmPod, lrmPod,
                 shoulderLaser, pulseLaserArm, bastionAutocannon, demolitionCannon,
                 thermalLance, musterAutogun, quarryBreakerCannon, pioneerRocketCradle,

@@ -69,7 +69,7 @@ WEAPONS = (
            "pioneer-rocket-cradle.png", (76, 112)),
 )
 
-CHASSIS = ("chassis.png", "chassis-hound.png", "chassis-sirocco.png")
+CHASSIS = ("chassis.png", "chassis-hound.png", "chassis-warden.png")
 
 
 def clamp01(value: float) -> float:

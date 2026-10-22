@@ -25,7 +25,7 @@ class MechFittingDollCatalogTest {
                 Files.readString(Path.of("mod", MechFittingDollCatalog.CONTENT_PATH))));
         assertNotNull(catalog);
         assertTrue(catalog.hasDoll(MechVariant.HOUND));
-        assertTrue(catalog.hasDoll(MechVariant.SIROCCO));
+        assertTrue(catalog.hasDoll(MechVariant.WARDEN));
         assertTrue(catalog.hasDoll(MechVariant.BULWARK));
 
         // Hound: light mech with 1 Nose (2x2) and 1 Shoulder (2x2)
@@ -43,9 +43,9 @@ class MechFittingDollCatalogTest {
         assertEquals(2, houndShoulder.gridRows());
         assertEquals(SocketType.MISSILE, houndShoulder.type());
 
-        DollDef sirocco = catalog.doll(MechVariant.SIROCCO);
-        assertEquals(6, sirocco.sockets().size());
-        assertEquals("NOSE CANNON", socket(sirocco, SocketId.ARMS).label());
+        DollDef warden = catalog.doll(MechVariant.WARDEN);
+        assertEquals(6, warden.sockets().size());
+        assertEquals("NOSE CANNON", socket(warden, SocketId.ARMS).label());
 
         DollDef bulwark = catalog.doll(MechVariant.BULWARK);
         assertEquals(7, bulwark.sockets().size(), "a socket for each arm in place of one arm assembly");
@@ -111,7 +111,7 @@ class MechFittingDollCatalogTest {
         MechFittingDollCatalog parsed = MechFittingDollCatalog.parse(new JSONObject(raw));
         assertNotNull(parsed);
         assertTrue(parsed.hasDoll(MechVariant.HOUND));
-        assertTrue(parsed.hasDoll(MechVariant.SIROCCO));
+        assertTrue(parsed.hasDoll(MechVariant.WARDEN));
         assertTrue(parsed.hasDoll(MechVariant.BULWARK));
     }
 

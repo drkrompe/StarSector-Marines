@@ -75,7 +75,7 @@ def main() -> None:
                     arm_layout="nose-heavy",
                     loadout="FOUNDRY BREAKER  /  SRM-5",
                 )
-            elif folder == "lions-guard" and variant.name == "SIROCCO":
+            elif folder == "lions-guard" and variant.name == "WARDEN":
                 variant = replace(
                     variant,
                     right_pod="lions-guard-thermal-lance.png",

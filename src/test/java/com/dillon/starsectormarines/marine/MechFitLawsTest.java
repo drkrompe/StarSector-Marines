@@ -36,11 +36,11 @@ class MechFitLawsTest {
     @Test
     void aRefitStaysInsideItsWeightClass() {
         MechFrame refitHound = MechFitSpace.bestRefitAroundStockWeapons(MechVariant.HOUND).frame();
-        MechFrame refitSirocco = MechFitSpace.bestRefitAroundStockWeapons(MechVariant.SIROCCO).frame();
+        MechFrame refitWarden = MechFitSpace.bestRefitAroundStockWeapons(MechVariant.WARDEN).frame();
         MechFrame stockBulwark = MechFrame.stock(MechVariant.BULWARK);
         assertTrue(refitHound.armorCapacity() < stockBulwark.armorCapacity());
-        assertTrue(refitSirocco.armorCapacity() < refitHound.armorCapacity(),
-                "a refit Sirocco must not out-plate a refit Hound");
+        assertTrue(refitWarden.armorCapacity() < refitHound.armorCapacity(),
+                "a refit Warden must not out-plate a refit Hound");
         for (MechVariant variant : MechVariant.values()) {
             MechFrame refit = MechFitSpace.bestRefitAroundStockWeapons(variant).frame();
             MechFrame preCut = MechFitSpace.preCut(variant);

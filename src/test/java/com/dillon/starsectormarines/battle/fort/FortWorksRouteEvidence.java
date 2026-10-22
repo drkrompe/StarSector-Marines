@@ -128,7 +128,7 @@ class FortWorksRouteEvidence {
             out.append(String.format(Locale.ROOT, "Fort %d, staging at %s core, start (%d,%d)%n%n", fort.id(),
                     staging, start[0], start[1]));
             out.append("| stretch | where | centre | cells | straight | walk | ratio |");
-            MechVariant[] mechs = {MechVariant.SIROCCO, MechVariant.BULWARK};
+            MechVariant[] mechs = {MechVariant.WARDEN, MechVariant.BULWARK};
             for (MechVariant m : mechs) out.append(' ').append(m.id).append(" |");
             out.append('\n').append("|---|---|---|---|---|---|");
             for (int i = 0; i < mechs.length; i++) out.append("---|");

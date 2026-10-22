@@ -136,7 +136,7 @@ public final class MechFitSpace {
         return switch (variant) {
             case BULWARK -> new MechFrame(950f, 1.15f, 100f, 8f);
             case HOUND -> new MechFrame(500f, 1.70f, 100f, 8f);
-            case SIROCCO -> new MechFrame(400f, 1.45f, 100f, 8f);
+            case WARDEN -> new MechFrame(400f, 1.45f, 100f, 8f);
         };
     }
 

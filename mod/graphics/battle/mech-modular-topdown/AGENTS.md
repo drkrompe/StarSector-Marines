@@ -7,7 +7,7 @@ rules apply to runtime modular mech textures in this directory.
   edit retained sources, masks, prompts, or builders under
   `art-source/mech-modular-topdown/`, then run the deterministic asset build.
 - One faction livery is an all-or-nothing presentation family: all three
-  chassis (`chassis.png`, `chassis-hound.png`, `chassis-sirocco.png`) and all
+  chassis (`chassis.png`, `chassis-hound.png`, `chassis-warden.png`) and all
   thirteen painted weapon modules must exist together. Runtime must fall back to
   the complete base family, never mix a faction chassis with base or another
   faction's weapon casing because one file is missing.

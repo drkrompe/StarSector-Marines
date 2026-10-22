@@ -3,7 +3,10 @@ package com.dillon.starsectormarines.battle.setup;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
+import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
 import com.dillon.starsectormarines.battle.cordon.AlliedColumns;
+import com.dillon.starsectormarines.battle.cordon.CordonArmour;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.cordon.CordonCommand;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
@@ -126,6 +129,9 @@ public final class CordonSetup {
     static final RiskLevel GARRISON_RISK = RiskLevel.HIGH;
     /** The rear hamlets' names in the plan begin so. */
     private static final String REAR_PLACE = "rear-";
+    /** The allies' light armour behind the line, west to east ({@code cordon-nouns.md}, Allied armour). */
+    static final List<VehicleType> ARMOUR = List.of(VehicleType.MILITIA_TECHNICAL, VehicleType.SCOUT_CAR,
+            VehicleType.SCOUT_CAR, VehicleType.MILITIA_TECHNICAL);
     /** Teams in each allied column. */
     static final int COLUMN_TEAMS = 2;
     /** How far along the rear edge a refugee or column looks for the road before taking open ground. */
@@ -177,6 +183,12 @@ public final class CordonSetup {
         }
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         int reserveY = Math.round(CordonFront.lineY(cordon.plan()) - CordonFront.frontward(cordon.plan()) * RESERVE_DEPTH);
+        CordonArmour armour = new CordonArmour(new AlliedCommand(CordonGarrisons.ISSUER),
+                CordonFront.frontward(cordon.plan()));
+        for (int i = 0; i < ARMOUR.size(); i++) {
+            armour.deploy(sim, ARMOUR.get(i), WIDTH * (i + 1) / (ARMOUR.size() + 1), reserveY);
+        }
+        sequence.attachArmour(armour);
         sim.setAutonomousCommander(Faction.MARINE, new CordonCommand(WIDTH / 2, reserveY),
                 CordonCommand.disclosure(sequence));
         return sim;

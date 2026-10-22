@@ -445,7 +445,7 @@ class BattleFixtureJsonTest {
                 List.of(
                         new CommandPowerCommitment(ReconPing.ID, List.of()),
                         new CommandPowerCommitment(MechSupport.ID, List.of(
-                                new MechDeploymentSpec(MechVariant.SIROCCO,
+                                new MechDeploymentSpec(MechVariant.WARDEN,
                                         MechRole.LR_SUPPORT,
                                         MissileReplenisherComponent.ACCELERATED_FEED,
                                         null,
@@ -470,7 +470,7 @@ class BattleFixtureJsonTest {
     @Test
     void mechFrameRoundTripsAndAbsentFrameIsStock() throws Exception {
         MechFrame frame = new MechFrame(321.5f, 2.25f, 140f, 8f);
-        MechDeploymentSpec framed = new MechDeploymentSpec(MechVariant.SIROCCO,
+        MechDeploymentSpec framed = new MechDeploymentSpec(MechVariant.WARDEN,
                 MechRole.LR_SUPPORT, MissileReplenisherComponent.STANDARD,
                 null, MechWeaponComponent.LRM_5, null, null, frame);
         BattleLaunchFixture fixture = new BattleLaunchFixture(
@@ -486,7 +486,7 @@ class BattleFixtureJsonTest {
         encoded.getJSONObject("launch").getJSONArray("commandPowers").getJSONObject(0)
                 .getJSONArray("mechDeployments").getJSONObject(0).remove("frame");
         BattleLaunchFixture legacy = (BattleLaunchFixture) BattleFixtureJson.fromJson(encoded);
-        assertEquals(MechFrame.stock(MechVariant.SIROCCO),
+        assertEquals(MechFrame.stock(MechVariant.WARDEN),
                 legacy.launch().commandPowers().get(0).mechDeployments().get(0).frame());
     }
 
@@ -893,7 +893,7 @@ class BattleFixtureJsonTest {
     void roundTripsDeclaredMechDrops() throws Exception {
         TargetProfile dropping = TargetProfile.NEUTRAL.withDeclaredMechDrops(MechDropDeclaration.NONE
                 .with(Faction.MARINE, new MechDropAllowance(2,
-                        List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO)).calledAtTick(300))
+                        List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.WARDEN)).calledAtTick(300))
                 .with(Faction.DEFENDER, new MechDropAllowance(1, List.of(MechVariant.HOUND))));
         CivilianRescueBattleFixture fixture = new CivilianRescueBattleFixture(
                 9_125L, List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 1)),

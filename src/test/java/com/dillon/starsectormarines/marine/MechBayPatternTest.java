@@ -8,23 +8,23 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MechBayPatternTest {
 
-    private static final String SIROCCO = "mech-pattern:chassis:sirocco";
+    private static final String WARDEN = "mech-pattern:chassis:warden";
 
     @Test
     void newBayKnowsOnlyStarterPatterns() {
         MechBay bay = new MechBay();
         assertEquals(MechPattern.STARTER.size(), bay.knownPatternIds().size());
         for (MechPattern starter : MechPattern.STARTER) assertTrue(bay.knowsPattern(starter.id()));
-        assertFalse(bay.knowsPattern(SIROCCO));
+        assertFalse(bay.knowsPattern(WARDEN));
         assertFalse(bay.knowsPattern(null));
     }
 
     @Test
     void learningAddsAndIsIdempotent() {
         MechBay bay = new MechBay();
-        assertTrue(bay.learnPattern(SIROCCO));
-        assertTrue(bay.knowsPattern(SIROCCO));
-        assertFalse(bay.learnPattern(SIROCCO));
+        assertTrue(bay.learnPattern(WARDEN));
+        assertTrue(bay.knowsPattern(WARDEN));
+        assertFalse(bay.learnPattern(WARDEN));
         assertFalse(bay.learnPattern("garbage"));
         assertEquals(MechPattern.STARTER.size() + 1, bay.knownPatternIds().size());
     }
@@ -33,12 +33,12 @@ class MechBayPatternTest {
     void canFabricateFollowsLearning() {
         MechBay bay = new MechBay();
         assertTrue(bay.canFabricate(MechVariant.HOUND));
-        assertFalse(bay.canFabricate(MechVariant.SIROCCO));
+        assertFalse(bay.canFabricate(MechVariant.WARDEN));
         assertFalse(bay.canFabricate(MechWeaponComponent.LRM_15));
         assertFalse(bay.canFabricate((MechVariant) null));
-        bay.learnPattern(SIROCCO);
+        bay.learnPattern(WARDEN);
         bay.learnPattern(MechPattern.of(MechWeaponComponent.LRM_15).id());
-        assertTrue(bay.canFabricate(MechVariant.SIROCCO));
+        assertTrue(bay.canFabricate(MechVariant.WARDEN));
         assertTrue(bay.canFabricate(MechWeaponComponent.LRM_15));
     }
 
@@ -56,13 +56,13 @@ class MechBayPatternTest {
     void learningResults() {
         MechBay bay = new MechBay();
         assertEquals(MechPatternLearning.Result.BAY_UNAVAILABLE,
-                MechPatternLearning.learn(null, SIROCCO));
+                MechPatternLearning.learn(null, WARDEN));
         assertEquals(MechPatternLearning.Result.UNKNOWN_PATTERN,
                 MechPatternLearning.learn(bay, "garbage"));
-        assertEquals(MechPatternLearning.Result.LEARNED, MechPatternLearning.status(bay, SIROCCO));
-        assertFalse(bay.knowsPattern(SIROCCO), "status must not learn");
-        assertEquals(MechPatternLearning.Result.LEARNED, MechPatternLearning.learn(bay, SIROCCO));
-        assertEquals(MechPatternLearning.Result.ALREADY_KNOWN, MechPatternLearning.learn(bay, SIROCCO));
+        assertEquals(MechPatternLearning.Result.LEARNED, MechPatternLearning.status(bay, WARDEN));
+        assertFalse(bay.knowsPattern(WARDEN), "status must not learn");
+        assertEquals(MechPatternLearning.Result.LEARNED, MechPatternLearning.learn(bay, WARDEN));
+        assertEquals(MechPatternLearning.Result.ALREADY_KNOWN, MechPatternLearning.learn(bay, WARDEN));
         assertEquals(MechPatternLearning.Result.ALREADY_KNOWN,
                 MechPatternLearning.learn(bay, MechPattern.STARTER.get(0).id()));
     }
