@@ -177,10 +177,13 @@ short-lived burst in one language (`swfx_burst`):
 
 Size, lobes, spikes, turn and fragments are seeded per burst, so no two match. This covers
 flak, missile hits, kill pops, decoys and ignitions, torpedoes, HE shells and breaches, and the
-muzzle gas of armed weapons. The fire group's explosion anchors take it with style `jagged`;
-the Phaeton wreck's accepted cook-off (2026-10-19) keeps its volume fireballs until the owner
-says otherwise. The old looks stay behind a switch as controls (`blasts='orb'`, `STYLE='orb'`,
-`style='orb'`).
+muzzle gas of armed weapons. The fire group's explosion anchors take it with style `jagged`,
+and the Phaeton wreck's baked cook-off is switched on its scene copy
+(`swfx_fire.jagged_cookoff`, after its break_frame is set; coordinator call 2026-10-21 under
+the owner's rule): its volume fireballs and shock rings are hidden and jagged blasts keyed in
+their place. The opening flash is hot yellow-white running to the blast's colour, feathered at
+the edge, for one to three frames. The old looks stay behind a switch as controls
+(`blasts='orb'`, `STYLE='orb'`, `style='orb'`).
 
 ## Scale
 

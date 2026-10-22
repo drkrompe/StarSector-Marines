@@ -36,7 +36,7 @@ public class SpaceportFillerTest {
     }
 
     @Test
-    void publishesClearFiveByFiveBerthWithMarkedCenter() {
+    void publishesClearFiveByFiveBerth() {
         BlockLeaf leaf = new BlockLeaf(2, 2, 15, 13, false);
         GenContext ctx = fill(leaf, 20, 18, 42L);
 
@@ -45,8 +45,6 @@ public class SpaceportFillerTest {
         assertEquals(2, pad.halfWidth);
         assertEquals(2, pad.halfHeight);
         assertTrue(pad.isClear(ctx.grid, ctx.topology));
-        assertEquals(CellTopology.GroundKind.LZ_MARKER,
-                ctx.topology.getGroundKind(pad.centerX, pad.centerY));
 
         for (Doodad doodad : ctx.doodads) {
             assertFalse(pad.contains(doodad.cellX, doodad.cellY),

@@ -380,58 +380,66 @@
     "residential-bed-h.png": {
       "id": "doodad.residential-bed-h",
       "name": "Residential bed head west",
-      "description": "Low civilian bed with its head against the west wall.",
+      "description": "Low civilian single bed, 0.72 x 2.1 m, with its head against the west wall.",
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
-        2,
+        3,
         1
       ],
       "preferredWallSide": "W",
-      "scale": 0.96,
-      "order": 70
+      "scale": 1,
+      "order": 70,
+      "preserveCanvas": true,
+      "padding": 0
     },
     "residential-bed-head-e.png": {
       "id": "doodad.residential-bed-head-e",
       "name": "Residential bed head east",
-      "description": "Low civilian bed with its head against the east wall.",
+      "description": "Low civilian single bed, 0.72 x 2.1 m, with its head against the east wall.",
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
-        2,
+        3,
         1
       ],
       "preferredWallSide": "E",
-      "scale": 0.96,
-      "order": 71
+      "scale": 1,
+      "order": 71,
+      "preserveCanvas": true,
+      "padding": 0
     },
     "residential-bed-v.png": {
       "id": "doodad.residential-bed-v",
       "name": "Residential bed head south",
-      "description": "Low civilian bed with its head against the south wall.",
+      "description": "Low civilian single bed, 0.72 x 2.1 m, with its head against the south wall.",
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
         1,
-        2
+        3
       ],
       "preferredWallSide": "S",
-      "scale": 0.96,
-      "order": 72
+      "scale": 1,
+      "order": 72,
+      "preserveCanvas": true,
+      "padding": 0
     },
     "residential-bed-head-n.png": {
       "id": "doodad.residential-bed-head-n",
       "name": "Residential bed head north",
-      "description": "Low civilian bed with its head against the north wall.",
+      "description": "Low civilian single bed, 0.72 x 2.1 m, with its head against the north wall.",
       "cover": "light",
       "ballisticHalfHeight": 0.28,
       "footprintCells": [
         1,
-        2
+        3
       ],
       "preferredWallSide": "N",
-      "scale": 0.96,
-      "order": 73
+      "scale": 1,
+      "order": 73,
+      "preserveCanvas": true,
+      "padding": 0
     },
     "residential-sofa-h.png": {
       "id": "doodad.residential-sofa-h",
@@ -884,54 +892,66 @@
     "medical-ward-bed-head-n.png": {
       "id": "doodad.medical-ward-bed-head-n",
       "name": "Ward bed, head north",
-      "description": "Sick-bay bed with rails and a chart clip, head to the north.",
+      "description": "Sick-bay hospital bed, 0.76 x 2.15 m, with rails, head to the north.",
       "cover": "light",
       "ballisticHalfHeight": 0.3,
       "footprintCells": [
         1,
-        2
+        3
       ],
       "preferredWallSide": "N",
-      "order": 120
+      "order": 120,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
     },
     "medical-ward-bed-head-s.png": {
       "id": "doodad.medical-ward-bed-head-s",
       "name": "Ward bed, head south",
-      "description": "Sick-bay bed with rails and a chart clip, head to the south.",
+      "description": "Sick-bay hospital bed, 0.76 x 2.15 m, with rails, head to the south.",
       "cover": "light",
       "ballisticHalfHeight": 0.3,
       "footprintCells": [
         1,
-        2
+        3
       ],
       "preferredWallSide": "S",
-      "order": 121
+      "order": 121,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
     },
     "medical-ward-bed-head-e.png": {
       "id": "doodad.medical-ward-bed-head-e",
       "name": "Ward bed, head east",
-      "description": "Sick-bay bed with rails and a chart clip, head to the east.",
+      "description": "Sick-bay hospital bed, 0.76 x 2.15 m, with rails, head to the east.",
       "cover": "light",
       "ballisticHalfHeight": 0.3,
       "footprintCells": [
-        2,
+        3,
         1
       ],
       "preferredWallSide": "E",
-      "order": 122
+      "order": 122,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
     },
     "medical-ward-bed-head-w.png": {
       "id": "doodad.medical-ward-bed-head-w",
       "name": "Ward bed, head west",
-      "description": "Sick-bay bed with rails and a chart clip, head to the west.",
+      "description": "Sick-bay hospital bed, 0.76 x 2.15 m, with rails, head to the west.",
       "cover": "light",
       "ballisticHalfHeight": 0.3,
       "footprintCells": [
-        2,
+        3,
         1
       ],
       "preferredWallSide": "W",
-      "order": 123
+      "order": 123,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
     },
     "medical-monitor-stack.png": {
       "id": "doodad.medical-monitor-stack",

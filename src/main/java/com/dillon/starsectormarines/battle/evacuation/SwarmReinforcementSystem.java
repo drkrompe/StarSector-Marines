@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
@@ -52,22 +53,45 @@ public final class SwarmReinforcementSystem {
     /** Ticks a held surge waits before it asks again. */
     private static final int SURGE_RECHECK_TICKS = 30;
 
-    /** One surge on its way out of a bore's mouth. */
+    /** One body of a planned surge: its strain, its stage, and whether it is the bore's Matriarch. */
+    record Planned(BoreStrainTable.Slot slot, SwarmStage stage, boolean matriarch) {
+        float weight() { return stage.populationWeight; }
+    }
+
+    /**
+     * One surge on its way out of a bore's mouth, planned body by body when it
+     * starts so its pack leader can go first and its weight is known.
+     */
     private static final class Release {
         final SwarmBore bore;
         final BoreTier tier;
         final int surgeIndex;
+        final List<Planned> bodies;
         final int size;
         int released;
         int nextTick;
+        /** The pack this surge's bodies are joining now; 0 while packs are off. */
+        int pack;
 
-        Release(SwarmBore bore, int surgeIndex, int size, int tick) {
+        Release(SwarmBore bore, int surgeIndex, List<Planned> bodies, int tick) {
             this.bore = bore;
             this.tier = bore.tier();
             this.surgeIndex = surgeIndex;
-            this.size = size;
+            this.bodies = bodies;
+            this.size = bodies.size();
             this.nextTick = tick;
         }
+
+        float weightLeft() {
+            float w = 0f;
+            for (int i = released; i < size; i++) w += bodies.get(i).weight();
+            return w;
+        }
+    }
+
+    /** Whether bodies are born at a growth stage. {@code -Dbattle.swarm.growthStages=false} is the control: all adults. */
+    public static boolean growthStagesByDefault() {
+        return Boolean.parseBoolean(System.getProperty("battle.swarm.growthStages", "true"));
     }
 
     private final CivilianEvacuationTracker tracker;
@@ -91,10 +115,12 @@ public final class SwarmReinforcementSystem {
     private int boreTarget;
     private final List<Release> releases = new ArrayList<>();
     private List<SwarmPressureSnapshot.WaveIntent> surgeWave = new ArrayList<>();
+    private final boolean growthStages;
 
     public SwarmReinforcementSystem(CivilianEvacuationTracker tracker) {
         if (tracker == null) throw new IllegalArgumentException("tracker is required");
         this.tracker = tracker;
+        this.growthStages = growthStagesByDefault();
     }
 
     /** Configures one rescue battle; later calls fail closed. */
@@ -228,21 +254,23 @@ public final class SwarmReinforcementSystem {
             if (release.released >= release.size) releases.remove(i);
             else i++;
         }
-        int live = liveRunnerCount(sim);
-        int inFlight = 0;
-        for (Release release : releases) inFlight += release.size - release.released;
+        float live = liveWeight(sim);
+        float inFlight = 0f;
+        for (Release release : releases) inFlight += release.weightLeft();
         boolean surged = false;
         for (SwarmBore bore : all) {
             if (!bore.surgeDue(tick) || releasing(bore)) continue;
-            int headroom = boreTarget - live - inFlight;
+            float headroom = boreTarget - live - inFlight;
             int size = bore.surgeSize();
             if (headroom < Math.max(1, (int) Math.ceil(size * SURGE_MIN_FIT))) {
                 bore.deferSurge(tick + SURGE_RECHECK_TICKS);
                 continue;
             }
-            int bodies = Math.min(size, headroom);
+            List<Planned> planned = plan(bore, bore.surges(), Math.min(size, headroom));
+            float bodies = 0f;
+            for (Planned body : planned) bodies += body.weight();
             if (!surged) surgeWave = new ArrayList<>();
-            releases.add(new Release(bore, bore.surges(), bodies, tick));
+            releases.add(new Release(bore, bore.surges(), planned, tick));
             float jitter = 2f * SwarmBores.unit(SwarmBores.mix(
                     seed ^ (bore.number() * 0x9E3779B97F4A7C15L) ^ (bore.surges() * 0xC2B2AE3D27D4EB4FL))) - 1f;
             bore.surged(tick, jitter);
@@ -257,6 +285,43 @@ public final class SwarmReinforcementSystem {
         if (bores.livingCount() == 0) return "NO_LIVING_BORE";
         if (live >= boreTarget) return "PRESSURE_POPULATION_MET";
         return releases.isEmpty() ? "BORES_QUIET" : "BORE_SURGE";
+    }
+
+    /**
+     * The bodies of one surge: drawn body by body, strain and stage each keyed
+     * by the bore, the pulse and the body's index, until the surge's weight
+     * reaches {@code budget} (`colony-breach-nouns.md`, Age mix: the director
+     * counts weight, so a fed bore sends fewer, older bodies). A bore that owes
+     * its Matriarch sends her first; otherwise the pulse's first elder, its pack
+     * leader, is moved to the head of the stream.
+     */
+    List<Planned> plan(SwarmBore bore, int surgeIndex, float budget) {
+        BoreTier tier = bore.tier();
+        boolean owed = BoreStrainTable.owesMatriarch(bore.mother(), tier, bore.matriarchReleased());
+        int[] mix = SwarmAgeMix.weights(tier, bore.biomassFed());
+        List<Planned> bodies = new ArrayList<>();
+        float weight = 0f;
+        for (int i = 0; weight < budget; i++) {
+            long roll = SwarmBores.mix(seed ^ (bore.number() * 0x9E3779B97F4A7C15L)
+                    ^ ((long) surgeIndex << 20) ^ i);
+            boolean matriarch = owed && i == 0;
+            BoreStrainTable.Slot slot = BoreStrainTable.pick(tier, roll, matriarch);
+            SwarmStage stage = !growthStages ? SwarmStage.ADULT
+                    : matriarch ? SwarmStageStats.matriarchStage((int) bore.biomassFed())
+                    : SwarmAgeMix.pick(mix, SwarmAgeMix.roll(seed, bore.number(), surgeIndex, i));
+            Planned body = new Planned(slot, stage, matriarch);
+            bodies.add(body);
+            weight += body.weight();
+        }
+        if (!owed) {
+            for (int i = 1; i < bodies.size(); i++) {
+                if (bodies.get(i).stage() == SwarmStage.ELDER) {
+                    bodies.add(0, bodies.remove(i));
+                    break;
+                }
+            }
+        }
+        return bodies;
     }
 
     private boolean releasing(SwarmBore bore) {
@@ -279,18 +344,23 @@ public final class SwarmReinforcementSystem {
             }
         }
         if (cell == null) return false;
-        long roll = SwarmBores.mix(seed ^ (release.bore.number() * 0x9E3779B97F4A7C15L)
-                ^ ((long) release.surgeIndex << 20) ^ release.released);
         SwarmBore bore = release.bore;
-        boolean owed = BoreStrainTable.owesMatriarch(bore.mother(), release.tier, bore.matriarchReleased());
-        BoreStrainTable.Slot slot = BoreStrainTable.pick(release.tier, roll, owed);
+        Planned planned = release.bodies.get(release.released);
+        BoreStrainTable.Slot slot = planned.slot();
         String strain = slot.name().charAt(0) + slot.name().substring(1).toLowerCase();
         long body = SwarmStrains.spawn(sim, "Bore " + release.bore.beatKey() + " " + strain + " "
-                + (release.bore.bodiesSpawned() + 1), slot.unitType, cell[0], cell[1]);
-        sim.swarmPacks().joinPulse(release, release.size, release.released, body, sim);
+                + (release.bore.bodiesSpawned() + 1), slot.unitType, cell[0], cell[1], planned.stage());
+        // The pulse is one pack, or several of at most eight: each opens on its first body, which
+        // leads it if it is an elder or the Matriarch (the pulse's first elder was moved to its head).
+        if (SwarmPacks.startsPack(release.released, release.size)) {
+            release.pack = planned.matriarch() || planned.stage() == SwarmStage.ELDER
+                    ? sim.swarmPacks().open(body) : sim.swarmPacks().openLeaderless(body);
+        } else {
+            sim.swarmPacks().join(release.pack, body);
+        }
         release.released++;
-        release.bore.released();
-        if (owed) bores.matriarchEmerged(bore, tick);
+        release.bore.released(planned.stage());
+        if (planned.matriarch()) bores.matriarchEmerged(bore, tick, body);
         SwarmPressureSnapshot.Approach approach = approach(cell[0], cell[1], grid.getWidth(), grid.getHeight());
         approachByRunner.put(body, approach);
         surgeWave.add(new SwarmPressureSnapshot.WaveIntent(body, approach, cell[0], cell[1],
@@ -433,12 +503,14 @@ public final class SwarmReinforcementSystem {
         Map<SwarmPressureSnapshot.TargetContext, Integer> targets =
                 new EnumMap<>(SwarmPressureSnapshot.TargetContext.class);
         int live = 0;
+        int[] byStage = new int[SwarmStage.values().length];
         int width = sim.getGrid().getWidth();
         int height = sim.getGrid().getHeight();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long runner = sim.liveUnitAt(i);
             if (!isOwnedRunner(runner, sim)) continue;
             live++;
+            byStage[sim.identity().swarmStage(runner).ordinal()]++;
             SwarmPressureSnapshot.Approach assigned =
                     approachByRunner.computeIfAbsent(runner,
                             ignored -> approach(sim.world().cellX(runner),
@@ -474,7 +546,8 @@ public final class SwarmReinforcementSystem {
                     .append(bore.feeds()).append(':').append((int) (bore.integrity() * 10f)).append(':')
                     .append(bore.sporeColonies()).append(';');
         }
-        String signature = phase + "|" + reason + "|" + live + "|"
+        SwarmPressureSnapshot.StageCounts living = SwarmPressureSnapshot.StageCounts.of(byStage);
+        String signature = phase + "|" + reason + "|" + live + "|" + living + "|"
                 + waveIndex + "|" + approachStates + "|" + targetStates
                 + "|" + ownedWave + "|" + boreSignature;
         if (!signature.equals(snapshotSignature)) {
@@ -485,7 +558,7 @@ public final class SwarmReinforcementSystem {
                 sim.getSimTickIndex(), phase, reason,
                 boreSourcing ? boreTarget : targetPopulation,
                 populationFloor, live, waveIndex, approachStates,
-                targetStates, ownedWave, boreSourcing, boreStates);
+                targetStates, ownedWave, boreSourcing, boreStates, living);
     }
 
     private List<SwarmPressureSnapshot.BoreState> boreStates(BattleSimulation sim) {
@@ -503,7 +576,11 @@ public final class SwarmReinforcementSystem {
             states.add(new SwarmPressureSnapshot.BoreState(bore.beatKey(), bore.mother(), id,
                     bore.x(), bore.y(), bore.tier(), alive, integrity, bore.growth(),
                     bore.biomassFed(), bore.feeds(), bore.surges(), bore.bodiesSpawned(),
-                    SwarmBores.livingColonies(sim, bore), bore.nextSurgeTick(), bore.eruptedTick(), bore.collapsedTick()));
+                    SwarmBores.livingColonies(sim, bore), bore.nextSurgeTick(), bore.eruptedTick(), bore.collapsedTick(),
+                    SwarmPressureSnapshot.StageCounts.of(growthStages
+                            ? SwarmAgeMix.weights(bore.tier(), bore.biomassFed()) : new int[]{0, 100, 0}),
+                    new SwarmPressureSnapshot.StageCounts(bore.releasedAt(SwarmStage.WHELP),
+                            bore.releasedAt(SwarmStage.ADULT), bore.releasedAt(SwarmStage.ELDER))));
         }
         return states;
     }
@@ -554,6 +631,23 @@ public final class SwarmReinforcementSystem {
             if (distanceSquared(x, y, unit, sim) < marineDistanceSquared) return true;
         }
         return false;
+    }
+
+    /**
+     * The living swarm's weight against the population target: each body
+     * counts its stage's weight, so an elder fills more of the target than a
+     * whelp. With every body an adult it is the head count.
+     */
+    private static float liveWeight(BattleSimulation sim) {
+        float weight = 0f;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) == Faction.DEFENDER
+                    && sim.identity().type(unit).isSwarm()) {
+                weight += sim.identity().swarmStage(unit).populationWeight;
+            }
+        }
+        return weight;
     }
 
     private static int liveRunnerCount(BattleSimulation sim) {

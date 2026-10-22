@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
  * from its anchor, and every member runs that lane at its own place in a fan
  * (sideways by rank, swept back by rank) instead of descending from its own
  * cell into the same file as everyone else. Near its quarry the pack stalks,
- * feints and rushes on the plan {@link SwarmPacks#prepare} made.
+ * feints and rushes on the plan {@link SwarmPackPlans#prepare} made.
  *
  * <p>Reads only the plan and the member's own state, so it is safe in the
  * parallel unit update.
@@ -39,16 +39,17 @@ final class SwarmPackMovement {
      */
     static boolean steer(long body, long target, BattleSimulation sim) {
         if (!sim.isSwarmPackEnabled() || !sim.isSwarmFlowFieldEnabled()) return false;
-        if (!SwarmPacks.runsWithPack(sim.identity().type(body))) return false;
-        SwarmPacks.Pack pack = sim.swarmPacks().packOf(body);
-        if (pack == null || !pack.active()) return false;
+        int packId = sim.swarmPacks().packIdOf(body);
+        if (packId == 0) return false;
+        SwarmPackPlans.Plan pack = sim.swarmPackPlans().planFor(packId);
+        if (pack == null || pack.anchor == 0L) return false;
         int i = pack.indexOf(body);
         if (i < 0) return false;
         float x = sim.world().x(body);
         float y = sim.world().y(body);
         float ax = x - pack.anchorX;
         float ay = y - pack.anchorY;
-        if (body != pack.anchor && ax * ax + ay * ay > SwarmPacks.LEASH * SwarmPacks.LEASH) return false;
+        if (body != pack.anchor && ax * ax + ay * ay > SwarmPackPlans.LEASH * SwarmPackPlans.LEASH) return false;
         if (target != 0L) {
             float tx = sim.world().x(target) - x;
             float ty = sim.world().y(target) - y;
@@ -63,7 +64,7 @@ final class SwarmPackMovement {
                 return toGoal(body, pack, i, pace, sim);
             }
             case FEINT: {
-                boolean in = (tick - pack.phaseTick) % SwarmPacks.FEINT_TICKS < SwarmPacks.FEINT_IN_TICKS;
+                boolean in = (tick - pack.phaseTick) % SwarmPackPlans.FEINT_TICKS < SwarmPackPlans.FEINT_IN_TICKS;
                 float pace = pack.flanker[i] ? 0.5f : in ? 1f : 0.8f;
                 return toGoal(body, pack, i, pace, sim);
             }
@@ -75,7 +76,7 @@ final class SwarmPackMovement {
         }
     }
 
-    private static boolean runLane(long body, SwarmPacks.Pack pack, int i, float ax, float ay,
+    private static boolean runLane(long body, SwarmPackPlans.Plan pack, int i, float ax, float ay,
                                    int tick, BattleSimulation sim) {
         int[] lane = pack.lane;
         if (Paths.cellCount(lane) < 2) return false;
@@ -92,7 +93,7 @@ final class SwarmPackMovement {
             pace = ANCHOR_PACE;
         } else {
             float along = ax * pack.headingX + ay * pack.headingY;
-            float place = -(SwarmPacks.DEPTH_PER_RANK * Math.abs(rank) + 0.6f) * pack.depthShare[i] * 1.5f;
+            float place = -(SwarmPackPlans.DEPTH_PER_RANK * Math.abs(rank) + 0.6f) * pack.depthShare[i] * 1.5f;
             float ahead = along - place;
             pace = ahead > 0f ? Math.max(MIN_PACE, 1f - PACE_PER_CELL * ahead) : 1f;
         }
@@ -102,12 +103,12 @@ final class SwarmPackMovement {
     }
 
     /** The member's own stride rhythm: a slow seeded swing in pace, so no two lope in step. */
-    static float gait(SwarmPacks.Pack pack, int i, int tick) {
+    static float gait(SwarmPackPlans.Plan pack, int i, int tick) {
         double t = tick * BattleSimulation.TICK_DT / pack.gaitPeriod[i] + pack.gaitOffset[i];
         return 1f - GAIT_SWING * 0.5f * (1f + (float) Math.sin(2 * Math.PI * t));
     }
 
-    private static boolean toGoal(long body, SwarmPacks.Pack pack, int i, float pace, BattleSimulation sim) {
+    private static boolean toGoal(long body, SwarmPackPlans.Plan pack, int i, float pace, BattleSimulation sim) {
         int gx = pack.goalX[i];
         int gy = pack.goalY[i];
         float dx = gx + 0.5f - sim.world().x(body);

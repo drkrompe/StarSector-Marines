@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
@@ -69,7 +70,7 @@ public final class SwarmBores {
     public static final float RATE_SPREAD = 0.15f;
 
     /** What happened to a bore, for the beats. */
-    public enum EventKind { GREW, COLLAPSED, SURGE, FED, MATRIARCH }
+    public enum EventKind { GREW, COLLAPSED, SURGE, FED, MATRIARCH, MATRIARCH_MATURED }
 
     /** One fact about a bore on a tick. {@code tier} is the tier reached, or the bore's tier at the time. */
     public record Event(int tick, EventKind kind, SwarmBore bore, BoreTier tier) { }
@@ -155,6 +156,38 @@ public final class SwarmBores {
         BoreTier reached = bore.feed(amount, tick);
         events.add(new Event(tick, EventKind.FED, bore, bore.tier()));
         if (reached != null) grew(sim, bore, from, reached, tick);
+        if (mature(sim, bore)) events.add(new Event(tick, EventKind.MATRIARCH_MATURED, bore, bore.tier()));
+        return true;
+    }
+
+    /**
+     * The Matriarch matures in the field (`colony-breach-nouns.md`, The
+     * Matriarch's stage): fed from her mother, she steps up a stage when the
+     * mother's lifetime biomass crosses the next threshold while she lives.
+     * Her health and plate keep their fractions; her size, plate, blow, pace
+     * and voice step with her, and she moults with a roar. True when she did.
+     */
+    static boolean mature(BattleSimulation sim, SwarmBore bore) {
+        long body = bore.matriarch();
+        if (body == 0L || !SwarmReinforcementSystem.growthStagesByDefault()
+                || sim.resolveUnit(body) == 0L || !sim.world().isAlive(body)) return false;
+        SwarmStage now = sim.identity().swarmStage(body);
+        SwarmStage fed = SwarmStageStats.matriarchStage((int) bore.biomassFed());
+        if (fed.ordinal() <= now.ordinal()) return false;
+        SwarmStage next = now.older();
+        SwarmStageStats.Stats kit = SwarmStageStats.of(UnitType.SWARM_MATRIARCH, next);
+        float health = sim.world().hp(body) / Math.max(1e-3f, sim.world().maxHp(body));
+        sim.world().setMaxHp(body, kit.hp());
+        sim.world().setHp(body, health * kit.hp());
+        if (sim.world().hasArmor(body)) {
+            float plate = sim.world().armor(body) / Math.max(1e-3f, sim.world().maxArmor(body));
+            sim.world().setMaxArmor(body, kit.armor());
+            sim.world().setArmor(body, plate * kit.armor());
+        }
+        sim.world().setAttackDamage(body, kit.damage());
+        sim.movement().setBaseMoveSpeed(body, kit.speed());
+        sim.identity().setSwarmStage(body, next);
+        sim.swarmCues().post(SwarmCues.Kind.MOULT, body, sim);
         return true;
     }
 
@@ -194,8 +227,8 @@ public final class SwarmBores {
     }
 
     /** Records that {@code bore}, a mother, put its Matriarch out. */
-    void matriarchEmerged(SwarmBore bore, int tick) {
-        bore.releasedMatriarch();
+    void matriarchEmerged(SwarmBore bore, int tick, long body) {
+        bore.releasedMatriarch(body);
         events.add(new Event(tick, EventKind.MATRIARCH, bore, bore.tier()));
     }
 

@@ -31,7 +31,9 @@ volume fireball and shock ring (owner, 2026-10-21: no orb explosions), with
 the same flash light and embers. Opt in per anchor (a string prop 'style')
 or for a whole build (build(..., blast_style='jagged')). A jagged blast is
 keyed at build time from fir_exp_frame + delay_s, fir_exp_scale and fir_exp,
-so re-run the build after changing those knobs.
+so re-run the build after changing those knobs. A build that already
+carries volume fireballs (the Phaeton wreck's baked cook-off) is switched on
+its scene copy by jagged_cookoff(ctx), after its break_frame is set.
 
 Knobs (all on 'SWFX controls'):
   fir_fire        fire amount on every fire anchor (0 out, 1 burning, 2 raging)
@@ -276,21 +278,85 @@ def _ember_tree(ctx, name, seed, delay, count=120):
     return tree
 
 
-def _jagged_blast(ctx, coll, anchor, seed, delay, flash_gain):
-    """An explosion anchor as swfx_burst's jagged burst: lobed flash, cooling shrapnel and
-    torn smoke that thins over about two seconds, sized by size_m and fir_exp_scale."""
+def _jagged_blast(ctx, coll, anchor, seed, delay, flash_gain, light=False):
+    """An explosion anchor as a cook-off cluster, in swfx_burst's language: the main burst thrown
+    outward from the wreck's centre (its lobes and shrapnel leave the hull, they do not ring
+    it), heavier shrapnel and a long torn smoke for a big blast, and two to four smaller
+    satellite bursts popping round it over the next few frames, so a tank going reads as a
+    chain of tearing blasts and not one shape. A lesser blast of the chain ('flash' below 1,
+    or a small size_m) gets fewer satellites. Sized by size_m and fir_exp_scale; keyed from
+    fir_exp_frame + delay_s; every piece carries 'swfx_burst_base' for jagged_cookoff's retime."""
     import random
     import swfx_burst
+    import swfx_missile_paths as mp
+    from mathutils import Vector
     ctl = ctx.controls
     if float(ctl.get('fir_exp', 1.0)) <= 0:
         return []
     S = float(anchor.get('size_m', BLAST_M)) * float(ctl.get('fir_exp_scale', 1.0))
     f = int(round(float(ctl.get('fir_exp_frame', 1.0)) + delay * FPS))
-    import swfx_missile_paths as mp
-    return swfx_burst.burst(ctx, coll, f'blast {anchor.name}', mp.anchor_matrix(anchor).translation, f,
-                            swfx_core.METRES_PER_UNIT, random.Random(f'swfx-fire-blast|{anchor.name}|{seed}'),
-                            (1.0, .62, .3), size_m=(S * .5, S * .75), shrapnel=(8, 14), smoke=.6,
-                            smoke_life=(36, 56), flash_frames=5, parent=anchor, prefix=PREFIX)
+    mpu = swfx_core.METRES_PER_UNIT
+    rnd = random.Random(f'swfx-fire-blast|{anchor.name}|{seed}')
+    at = mp.anchor_matrix(anchor).translation
+    out_dir = at.normalized() if at.length > 1e-6 else Vector((0, 0, 1))       # away from the wreck's centre
+    big = S >= 18.0 and flash_gain >= .8
+    made = swfx_burst.burst(ctx, coll, f'blast {anchor.name}', at, f, mpu, rnd, (1.0, .55, .22),
+                            size_m=(S * .5, S * .72), axis=out_dir, lean=.8,
+                            shrapnel=(12, 18) if big else (6, 10), smoke=.6 if big else .5,
+                            smoke_life=(48, 72) if big else (28, 44), flash_frames=3 if big else 2,
+                            parent=anchor, prefix=PREFIX)
+    n = rnd.randint(3, 4) if big else rnd.randint(1, 2)
+    for k in range(n):
+        off = Vector((rnd.gauss(0, 1), rnd.gauss(0, 1), rnd.gauss(0, 1))).normalized() * S * rnd.uniform(.25, .5)
+        here = at + off / mpu
+        made += swfx_burst.burst(ctx, coll, f'blast {anchor.name} sat {k}', here, f + rnd.randint(1, 5), mpu, rnd,
+                                 (1.0, .6, .25), size_m=(S * .14, S * .24),
+                                 axis=(out_dir + off.normalized() * .6).normalized(), lean=.9, shrapnel=(2, 4),
+                                 smoke=.4, smoke_life=(16, 28), flash_frames=2, parent=anchor, prefix=PREFIX)
+    for ob in made:
+        ob['swfx_burst_base'] = f
+    return made
+
+
+JAGGED_TAG = 'swfx_jagged_cookoff'
+
+
+def jagged_cookoff(ctx):
+    """Switch a ship's built explosions to bursts (owner rule, 2026-10-21: no orbs) on its own
+    copy, inside its ship.kit(): each explosion anchor's volume fireball and shock ring are
+    hidden and a jagged blast is keyed in their place at the copy's current fir_exp_frame
+    (+ delay_s). Called again after break_frame moves, it re-times the blasts it made rather
+    than making more. The flash light and the embers stay. Returns
+    {'made': n, 'retimed': n, 'hidden': n, 'frame': fir_exp_frame}."""
+    import swfx_burst
+    bpy.context.view_layer.update()                     # fir_exp_frame may be driven (break_frame)
+    ctl = ctx.controls
+    T = float(ctl.get('fir_exp_frame', 1.0))
+    coll = ctx.collection(GROUP)
+    mine = lambda o: '@' not in o.name                  # inside kit(): this ship's copies carry the kit names
+    out = dict(made=0, retimed=0, hidden=0, frame=T)
+    have = {}
+    for o in bpy.data.objects:
+        if mine(o) and o.get(JAGGED_TAG):
+            have.setdefault(o[JAGGED_TAG], []).append(o)
+    for anchor in sorted((o for o in bpy.data.objects if o.type == 'EMPTY' and mine(o) and BLAST.search(o.name)
+                          and not o.name.startswith('SWFX')), key=lambda o: o.name):
+        delay = float(anchor.get('delay_s', 0.0))
+        for what in ('fireball', 'shock ring'):
+            ob = bpy.data.objects.get(f'{PREFIX} {what} | {anchor.name}')
+            if ob is not None and not ob.hide_render:
+                ob.hide_render = ob.hide_viewport = True
+                out['hidden'] += 1
+        f = int(round(T + delay * FPS))
+        if anchor.name in have:
+            if swfx_burst.retime(have[anchor.name], f):
+                out['retimed'] += 1
+            continue
+        for ob in _jagged_blast(ctx, coll, anchor, _seed(anchor), delay, float(anchor.get('flash', 1.0)),
+                                light=False):
+            ob[JAGGED_TAG] = anchor.name
+        out['made'] += 1
+    return out
 
 
 def build_explosion(ctx, coll, anchor, style=None):

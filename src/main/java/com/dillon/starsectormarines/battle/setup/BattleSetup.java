@@ -65,7 +65,6 @@ import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.gen.UrbanMapGenerator;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
@@ -561,7 +560,7 @@ public final class BattleSetup {
         // through assignments + cycles so per-cycle planter targeting hits a
         // different charge site each time (cycle 0 of shuttle 0 → site 0,
         // cycle 1 of shuttle 0 → site 1, etc.).
-        stampLzPads(sim, lzCells);
+        recordLzPads(sim, lzCells);
         int globalDropIdx = 0;
         for (int i = 0; i < lzCells.size(); i++) {
             ShuttleAssignment a = assignments.get(i % assignments.size());
@@ -620,21 +619,13 @@ public final class BattleSetup {
     }
 
     /**
-     * Drops a yellow-striped landing-pad doodad under each LZ cell so the
-     * touchdown reads as a deliberate landing on a marked pad. Lives on the
-     * road sheet, drawn between floor and units.
-     *
-     * <p>Also tells the simulation which berths these were. The doodad is a
-     * single cell of scenery and says nothing about the footprint or the
-     * arrival order, and every other trace of the map's geometry is dropped
-     * once setup finishes, so an offline review would otherwise have to
-     * re-derive the landing ground from the generator.
+     * Tells the simulation which berths the marines land on. Every other trace
+     * of the map's geometry is dropped once setup finishes, so an offline
+     * review would otherwise have to re-derive the landing ground from the
+     * generator. The landing zone marks nothing on the ground: the shuttles
+     * set down on whatever the map has there.
      */
-    private static void stampLzPads(BattleSimulation sim, List<LandingPad> lzCells) {
-        for (LandingPad lz : lzCells) {
-            if(lz.purpose==LandingPad.Purpose.FREIGHT_APRON)continue;
-            sim.addDoodad(new Doodad(lz.centerX, lz.centerY, TileManifest.lzPad(), true, Doodad.COVER_NONE));
-        }
+    private static void recordLzPads(BattleSimulation sim, List<LandingPad> lzCells) {
         sim.setMarineLandingPads(lzCells);
     }
 
@@ -1177,7 +1168,7 @@ public final class BattleSetup {
         // Marines: one Shuttle per assignment, each flying assignment.cycles sorties.
         // ASSAULT has no per-cycle role distinction (everyone is a combatant), so no
         // cycleLoadouts setup is needed — Shuttle.totalCycles drives repeat behavior.
-        stampLzPads(sim, lzCells);
+        recordLzPads(sim, lzCells);
         for (int i = 0; i < lzCells.size(); i++) {
             ShuttleAssignment a = assignments.get(i % assignments.size());
             LandingPad lz = lzCells.get(i);
@@ -1383,7 +1374,7 @@ public final class BattleSetup {
         sim.addObjective(new EliminateFactionObjective(
                 Faction.DEFENDER, Faction.MARINE));
 
-        stampLzPads(sim, lzCells);
+        recordLzPads(sim, lzCells);
         int localTransports = Math.max(0, Math.min(employerShips,
                 assignments.size()));
         if (groundStart) {
@@ -1524,7 +1515,7 @@ public final class BattleSetup {
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER,Faction.MARINE));
         Random rng=new Random(seed);
         var pads=LandingPadSelector.select(map,manifest.size(),LZ_MIN_SEPARATION);
-        stampLzPads(sim,pads);
+        recordLzPads(sim,pads);
         for(int i=0;i<manifest.size();i++){
             var assignment=manifest.get(i);var pad=pads.get(i);
             float x=pad.centerX+.5f,y=pad.centerY+.5f;
@@ -1580,7 +1571,7 @@ public final class BattleSetup {
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         Random rng = new Random(seed);
         var pads = LandingPadSelector.select(map, manifest.size(), LZ_MIN_SEPARATION);
-        stampLzPads(sim, pads);
+        recordLzPads(sim, pads);
         for (int i = 0; i < manifest.size(); i++) {
             var assignment = manifest.get(i); var pad = pads.get(i);
             float x = pad.centerX + .5f, y = pad.centerY + .5f;
@@ -1638,7 +1629,7 @@ public final class BattleSetup {
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         Random rng = new Random(seed);
         var pads = LandingPadSelector.select(map, manifest.size(), LZ_MIN_SEPARATION);
-        stampLzPads(sim, pads);
+        recordLzPads(sim, pads);
         for (int i = 0; i < manifest.size(); i++) {
             var assignment = manifest.get(i); var pad = pads.get(i);
             float x = pad.centerX + .5f, y = pad.centerY + .5f;
@@ -1701,7 +1692,7 @@ public final class BattleSetup {
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         Random rng = new Random(seed);
         var pads = LandingPadSelector.select(map, manifest.size(), LZ_MIN_SEPARATION);
-        stampLzPads(sim, pads);
+        recordLzPads(sim, pads);
         for (int i = 0; i < manifest.size(); i++) {
             var assignment = manifest.get(i); var pad = pads.get(i);
             float x = pad.centerX + .5f, y = pad.centerY + .5f;
@@ -1759,7 +1750,7 @@ public final class BattleSetup {
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         Random rng = new Random(seed);
         var pads = LandingPadSelector.select(map, manifest.size(), LZ_MIN_SEPARATION);
-        stampLzPads(sim, pads);
+        recordLzPads(sim, pads);
         for (int i = 0; i < manifest.size(); i++) {
             var assignment = manifest.get(i); var pad = pads.get(i);
             float x = pad.centerX + .5f, y = pad.centerY + .5f;
@@ -1825,7 +1816,7 @@ public final class BattleSetup {
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         Random rng = new Random(seed);
         var pads = LandingPadSelector.select(map, manifest.size(), LZ_MIN_SEPARATION);
-        stampLzPads(sim, pads);
+        recordLzPads(sim, pads);
         String claim = TermsOfProtectionCommand.issuer(Faction.MARINE);
         for (int i = 0; i < manifest.size(); i++) {
             var assignment = manifest.get(i); var pad = pads.get(i);
@@ -1925,7 +1916,7 @@ public final class BattleSetup {
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         Random rng = new Random(seed);
         var pads = LandingPadSelector.select(map, manifest.size(), LZ_MIN_SEPARATION);
-        stampLzPads(sim, pads);
+        recordLzPads(sim, pads);
         for (int i = 0; i < manifest.size(); i++) {
             var assignment = manifest.get(i); var pad = pads.get(i);
             float x = pad.centerX + .5f, y = pad.centerY + .5f;
@@ -2011,7 +2002,7 @@ public final class BattleSetup {
                 SquadCommandClaim.mission(ColdStartCommand.issuer(Faction.MARINE), "Company holds the secured receiving apron")));
         Random rng=new Random(seed);
         var pads=LandingPadSelector.select(map,manifest.size(),LZ_MIN_SEPARATION);
-        stampLzPads(sim,pads);
+        recordLzPads(sim,pads);
         for(int i=0;i<manifest.size();i++){
             var assignment=manifest.get(i);var pad=pads.get(i);
             float x=pad.centerX+.5f,y=pad.centerY+.5f;
@@ -2086,7 +2077,7 @@ public final class BattleSetup {
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER,Faction.MARINE));
         Random rng=new Random(seed);
         var pads=LandingPadSelector.select(map,manifest.size(),LZ_MIN_SEPARATION);
-        stampLzPads(sim,pads);
+        recordLzPads(sim,pads);
         for(int i=0;i<manifest.size();i++){
             var assignment=manifest.get(i);var pad=pads.get(i);
             float x=pad.centerX+.5f,y=pad.centerY+.5f;
@@ -2151,7 +2142,7 @@ public final class BattleSetup {
         assignments.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 6));
         assignments.addAll(playerManifest);
         List<LandingPad> pads = LandingPadSelector.select(map, assignments.size(), LZ_MIN_SEPARATION);
-        stampLzPads(sim, pads);
+        recordLzPads(sim, pads);
         for (int i = 0; i < assignments.size(); i++) {
             var assignment = assignments.get(i);
             var pad = pads.get(i);
@@ -2245,7 +2236,7 @@ public final class BattleSetup {
         assignments.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 4));
         assignments.addAll(playerManifest);
         List<LandingPad> pads = LandingPadSelector.select(map, assignments.size(), LZ_MIN_SEPARATION);
-        stampLzPads(sim, pads);
+        recordLzPads(sim, pads);
         for (int i = 0; i < assignments.size(); i++) {
             var assignment = assignments.get(i);
             var pad = pads.get(i);
@@ -2299,7 +2290,7 @@ public final class BattleSetup {
         assignments.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 4));
         assignments.addAll(playerManifest);
         List<LandingPad> pads = LandingPadSelector.select(map, assignments.size(), LZ_MIN_SEPARATION);
-        stampLzPads(sim, pads);
+        recordLzPads(sim, pads);
         for (int i = 0; i < assignments.size(); i++) {
             var assignment = assignments.get(i);
             var pad = pads.get(i);
@@ -2384,7 +2375,7 @@ public final class BattleSetup {
                 layout.placement().shelterApproachY, "Southern apron pickup");
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         Random rng = new Random(seed);
-        stampLzPads(sim, map.landingPads);
+        recordLzPads(sim, map.landingPads);
         for (int i = 0; i < manifest.size(); i++) {
             var assignment = manifest.get(i);
             var pad = map.landingPads.get(i);
@@ -2583,7 +2574,7 @@ public final class BattleSetup {
             sim.addObjective(new EliminateFactionObjective(
                     Faction.DEFENDER, Faction.MARINE));
 
-            stampLzPads(sim, lzCells);
+            recordLzPads(sim, lzCells);
             for (int i = 0; i < lzCells.size(); i++) {
                 ShuttleAssignment assignment =
                         assignments.get(i % assignments.size());
@@ -2821,7 +2812,7 @@ public final class BattleSetup {
 
             Random marineRng = new Random(
                     battleSeed ^ 0x455850454449544EL);
-            stampLzPads(sim, lzCells);
+            recordLzPads(sim, lzCells);
             for (int i = 0; i < lzCells.size(); i++) {
                 ShuttleAssignment assignment =
                         assignments.get(i % assignments.size());
@@ -3173,7 +3164,7 @@ public final class BattleSetup {
 
         List<ConquestArrivalSlot> arrivalSlots = conquestArrivalSlots(
                 map, assignments, axis, rng, resolvedArrivalPlan);
-        stampLzPads(sim, arrivalSlots.stream()
+        recordLzPads(sim, arrivalSlots.stream()
                 .map(ConquestArrivalSlot::pad)
                 .toList());
         SquadSupportKit supportKit = profile != null

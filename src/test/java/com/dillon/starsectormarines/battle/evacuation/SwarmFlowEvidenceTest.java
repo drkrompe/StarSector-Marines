@@ -209,7 +209,10 @@ class SwarmFlowEvidenceTest {
                 long[] runners = spawnRunners(sim, map, routes, count);
                 // Packs are stamped on every lever, as a bore stamps them; only "pack" moves them as packs.
                 for (int i = 0; i < runners.length; i += PACK_SIZE) {
-                    sim.swarmPacks().form(Arrays.copyOfRange(runners, i, Math.min(runners.length, i + PACK_SIZE)), sim);
+                    int pack = sim.swarmPacks().openLeaderless(runners[i]);
+                    for (int j = i + 1; j < Math.min(runners.length, i + PACK_SIZE); j++) {
+                        sim.swarmPacks().join(pack, runners[j]);
+                    }
                 }
                 result.spawned = runners.length;
                 float[][] history = new float[STUCK_WINDOW + 1][];

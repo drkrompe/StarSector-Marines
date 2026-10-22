@@ -97,7 +97,19 @@ public final class RavBruteRig {
     public static final int SHOULDER = 14, HIP = 15;
     /** The head's centre (where it pivots when it comes away) and the middle of the back (where it splits). */
     public static final int HEAD = 16, MID = 17;
-    static final int POINTS = 18;
+    /**
+     * Where the spine meets itself in the middle of the back, as the front half and as the rear half carry it:
+     * the same point while the back is straight, apart across the outside of a bend.
+     */
+    public static final int SEAM_FRONT = 18, SEAM_REAR = 19;
+    static final int POINTS = 20;
+    /**
+     * The spine's give through a turn: degrees of bend per degree a second of turning, the most it bends,
+     * and how quickly it takes the bend up. Stiffer and slower than a Runner's: a heavier back.
+     */
+    static final float BEND_PER_YAW_RATE = 0.1f, MAX_BEND = 18f, BEND_SECONDS = 0.2f;
+    /** The back bends about a hinge this far out from the spine, cells: the outer edge of the body at the seam. */
+    static final float HINGE_CELLS = 0.38f;
     /** Layer row of the head sprite's centre, ahead of the shoulders. */
     static final float HEAD_ROW = 224f;
 
@@ -135,6 +147,8 @@ public final class RavBruteRig {
     private float lunge, rear, frontLift;
     private boolean frontsLifted;
     private float stunTime = -1f, headYaw, daze;
+    /** Spine bend, degrees; positive bows the body into a left turn. */
+    private float bend;
 
     private final long seed;
     private boolean dead;
@@ -173,6 +187,9 @@ public final class RavBruteRig {
         }
         bodyX = posX;
         bodyY = posY;
+        float yawRate = (((facing - facingDeg) % 360f + 540f) % 360f - 180f) / dt;
+        float bendTarget = Math.max(-MAX_BEND, Math.min(MAX_BEND, yawRate * BEND_PER_YAW_RATE));
+        bend += (bendTarget - bend) * Math.min(1f, dt / BEND_SECONDS);
         facingDeg = facing;
         double rad = Math.toRadians(facing);
         float fwdX = (float) -Math.sin(rad), fwdY = (float) Math.cos(rad);
@@ -224,10 +241,43 @@ public final class RavBruteRig {
         float riseF = 0.012f * run * (1f - 0.5f * (load[FL] + load[FR]));
         float riseH = 0.012f * run * (1f - 0.5f * (load[HL] + load[HR]));
         set(SHOULDER, swayF, SHOULDER_Y + surge * 0.4f + lunge, SHOULDER_Z - crouch + riseF + rear);
-        set(HIP, swayH, HIP_Y + surge + lunge * 0.6f, HIP_Z - crouch * 1.6f + riseH - rear * 0.3f);
+        set(HIP, swayH, HIP_Y + surge + lunge, HIP_Z - crouch * 1.6f + riseH - rear * 0.3f);
         set(MID, (x(SHOULDER) + x(HIP)) / 2, (y(SHOULDER) + y(HIP)) / 2, (z(SHOULDER) + z(HIP)) / 2);
         set(HEAD, x(SHOULDER), y(SHOULDER) + (SHOULDER_ROW - HEAD_ROW) / U_LAYER, z(SHOULDER));
+        bendSpine();
         solveLegs();
+    }
+
+    /**
+     * Bows the back into the turn: the forequarters and the head swing one way about the middle of the back
+     * and the hindquarters the other, so the body draws a shallow C toward the inside of the turn while the
+     * planted hooves stay put and the legs lean. The halves hinge at the outer edge of the body, where they
+     * stay joined; on the inside they press into each other.
+     */
+    private void bendSpine() {
+        float mx = x(MID), my = y(MID);
+        set(SEAM_FRONT, mx, my, z(MID));
+        set(SEAM_REAR, mx, my, z(MID));
+        if (Math.abs(bend) < 0.05f) return;
+        float ax = x(SHOULDER) - x(HIP), ay = y(SHOULDER) - y(HIP);
+        float an = Math.max(1e-4f, (float) Math.hypot(ax, ay));
+        float out = Math.signum(bend) * HINGE_CELLS;    // the outside of the turn: right, bending left
+        float hx = mx + ay / an * out, hy = my - ax / an * out;
+        turn(SHOULDER, hx, hy, bend / 2);
+        turn(HEAD, hx, hy, bend / 2);
+        turn(SEAM_FRONT, hx, hy, bend / 2);
+        turn(HIP, hx, hy, -bend / 2);
+        turn(SEAM_REAR, hx, hy, -bend / 2);
+        set(MID, (x(SEAM_FRONT) + x(SEAM_REAR)) / 2, (y(SEAM_FRONT) + y(SEAM_REAR)) / 2, z(MID));
+    }
+
+    /** Turns point p about (hx, hy) by degrees counter-clockwise. */
+    private void turn(int p, float hx, float hy, float degrees) {
+        double a = Math.toRadians(degrees);
+        float c = (float) Math.cos(a), s = (float) Math.sin(a);
+        float dx = x(p) - hx, dy = y(p) - hy;
+        pose[p * 3] = hx + dx * c - dy * s;
+        pose[p * 3 + 1] = hy + dx * s + dy * c;
     }
 
     private float push(int leg) {
@@ -450,6 +500,9 @@ public final class RavBruteRig {
     public float headK() { return headK; }
     /** How far the forequarters are reared up, cells; negative when driven down. */
     public float rear() { return rear; }
+
+    /** Spine bend this tick, degrees; positive bows the body into a left turn. */
+    public float bendDegrees() { return bend; }
     /** The head turned about the neck, degrees, counter-clockwise: a stunned Brute shaking it. */
     public float headYaw() { return headYaw; }
     /** Whether the hooves are planted this tick. */

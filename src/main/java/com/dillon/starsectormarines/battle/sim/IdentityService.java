@@ -111,6 +111,11 @@ public final class IdentityService {
                 BattleComponents.IDENTITY_SWARM_STAGE));
     }
 
+    /** Steps a body to {@code stage}: only the Matriarch, who matures in the field, ever changes hers. */
+    public void setSwarmStage(long id, SwarmStage stage) {
+        entityWorld.setObject(id, components.IDENTITY, BattleComponents.IDENTITY_SWARM_STAGE, stage);
+    }
+
     /**
      * The entity's immutable {@link Faction}. The by-id replacement for the
      * {@code Entity.faction} field read as the handle collapses to a bare {@code long}

@@ -102,7 +102,7 @@ public final class FortStage implements GenStage {
     private static final int MAX_LINK_CELLS = 140;
     private static final EnumSet<DepthBand> ALLOWED_BANDS = EnumSet.of(DepthBand.MID, DepthBand.DEEP, DepthBand.UNSET);
     private static final EnumSet<GroundKind> REFUSED_GROUND = EnumSet.of(GroundKind.INDOOR, GroundKind.WATER,
-            GroundKind.TILE, GroundKind.STREET, GroundKind.LZ_MARKER, GroundKind.VOID, GroundKind.SIDEWALK,
+            GroundKind.TILE, GroundKind.STREET, GroundKind.VOID, GroundKind.SIDEWALK,
             GroundKind.STRIPED);
     /** UNTUNED: how much a shield fort values covering the keep against a supply compound. */
     private static final int KEEP_WEIGHT = 6;

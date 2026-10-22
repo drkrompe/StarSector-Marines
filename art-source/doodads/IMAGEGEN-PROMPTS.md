@@ -233,10 +233,12 @@ perspective camera; no clipped edges
 
 Per-master primary requests and material details:
 
-- `residential-bed.png`: a compact civilian single bed for a modest futuristic
-  apartment; narrow overhead bed, simple metal frame, muted teal blanket,
-  off-white pillow, tiny folded personal item at the foot; painted metal, worn
-  fabric, warm-gray and small rust accents.
+- `residential-bed.png`: superseded. The bed is now real length (a 0.72 x 2.1 m
+  single in a 3x1 frame): a geometry-first reskin of `ResidentialBedTemplate`'s
+  guide at 320 px per cell, with the old master as material reference. The brief
+  is `residential-bed.prompt.txt`, the untouched output
+  `imagegen-raw/residential-bed.png` with its provenance, and the master is the
+  generation's frame mapped box to box onto the guide's.
 - `residential-sofa.png`: a compact two-seat civilian sofa for a modest
   futuristic apartment; low overhead sofa, worn olive upholstery, squared
   arms, subtle seam divisions, charcoal/warm-gray compact metal frame.
@@ -284,3 +286,17 @@ Per-asset primary requests:
   side; gunmetal/steel and dull olive-gray palette; long axis horizontal,
   proportioned roughly 3 wide by 2 deep — a squarer, deeper fixture than the
   basin run, authored `footprintCells: [3, 2]`.
+
+## Ground sick-bay ward bed at real length
+
+The four `medical-ward-bed-head-*` sources were a 2:1 bed fitted into a 2x1
+frame, 1.5 m long. They are now one real-length hospital bed, 0.76 x 2.15 m in
+a 3x1 frame: a geometry-first reskin of `WardBedTemplate`'s guide at 320 px per
+cell with the old head-west source as material reference. The brief is
+`medical-ward-bed.prompt.txt` and the untouched output is
+`imagegen-raw/medical-ward-bed.png` with its provenance. The first try came back
+1.43x too large with a drip stand and chart clip outside the frame; the second,
+told to leave wide empty margins and nothing past the frame, came back 1.15x
+and centred, so the master maps its box onto the guide's.
+`derive_medical_frames.py` turns it into the four facings without trimming, and
+the atlas packs them with `preserveCanvas`.

@@ -114,9 +114,9 @@ public final class SwarmPackScene implements BehaviorScene {
             long[] squad = new long[SQUAD.length];
             for (int i = 0; i < SQUAD.length; i++) squad[i] = scene.unit("marine" + i);
             long[] runners = new long[RUNNERS];
-            Object pulse = new Object();
-            SwarmPacks.Pack pack = null;
+            int packId = 0;
             long leader = 0L;
+            SwarmPackPlans.Phase phase = SwarmPackPlans.Phase.TRAVEL;
             boolean onFloor = true;
             List<Float> spreads = new ArrayList<>();
             int longestFile = 0;
@@ -125,7 +125,7 @@ public final class SwarmPackScene implements BehaviorScene {
             Arrays.fill(approach, Float.NaN);
             int[] contact = new int[RUNNERS];
             Arrays.fill(contact, -1);
-            List<SwarmPacks.Phase> phases = new ArrayList<>();
+            List<SwarmPackPlans.Phase> phases = new ArrayList<>();
             int leaderKilledTick = -1;
             int brokenSeenTick = -1;
             int laneFollowersAfterBreak = 0;
@@ -148,10 +148,12 @@ public final class SwarmPackScene implements BehaviorScene {
                             .swarmStage(i == 0 ? SwarmStage.ELDER : SwarmStage.ADULT);
                     if (!loop.equals("leader-down") || i != 0) spec.health(100_000f);
                     runners[i] = sim.spawn(spec);
-                    sim.swarmPacks().joinPulse(pulse, RUNNERS, i, runners[i], sim);
-                    if (pack == null) {
-                        pack = sim.swarmPacks().packOf(runners[0]);
-                        leader = pack.leader();
+                    // As a surge stamps it: the elder at the head opens the pack, the rest join.
+                    if (i == 0) {
+                        packId = sim.swarmPacks().open(runners[0]);
+                        leader = sim.swarmPacks().leaderOfPack(packId);
+                    } else {
+                        sim.swarmPacks().join(packId, runners[i]);
                     }
                 }
                 if (loop.equals("leader-down") && leaderKilledTick < 0 && sim.resolveUnit(leader) != 0L
@@ -160,15 +162,16 @@ public final class SwarmPackScene implements BehaviorScene {
                     leaderKilledTick = tick;
                 }
                 sim.advance(BattleSimulation.TICK_DT);
-                if (pack == null) continue;
-                if (pack.phase() != (phases.isEmpty() ? null : phases.get(phases.size() - 1))) {
-                    phases.add(pack.phase());
+                SwarmPackPlans.Plan plan = sim.swarmPackPlans().planFor(packId);
+                if (plan != null) phase = plan.phase();
+                if (phases.isEmpty() || phases.get(phases.size() - 1) != phase) phases.add(phase);
+                if (leaderKilledTick >= 0 && brokenSeenTick < 0 && !sim.swarmPacks().isStanding(packId)) {
+                    brokenSeenTick = tick;
                 }
-                if (leaderKilledTick >= 0 && brokenSeenTick < 0 && pack.isBroken()) brokenSeenTick = tick;
                 if (brokenSeenTick >= 0 && tick == brokenSeenTick + 1) {
                     for (long runner : runners) {
                         if (sim.resolveUnit(runner) == 0L) continue;
-                        if (sim.swarmPacks().packOf(runner) == pack || pack.active()) laneFollowersAfterBreak++;
+                        if (sim.swarmPackPlans().planFor(packId) != null) laneFollowersAfterBreak++;
                     }
                 }
 
@@ -232,7 +235,7 @@ public final class SwarmPackScene implements BehaviorScene {
                     }
                 }
                 if (tick % FRAME_EVERY == 0) {
-                    frames.frame(loop, sim, tick, loop + " / " + tick + " / " + pack.phase().name().toLowerCase());
+                    frames.frame(loop, sim, tick, loop + " / " + tick + " / " + phase.name().toLowerCase());
                 }
             }
 
@@ -260,9 +263,9 @@ public final class SwarmPackScene implements BehaviorScene {
                         "longest single file on open ground " + longestFile + " bodies"
                                 + (longestFileTick >= 0 ? " (tick " + longestFileTick + ")" : "")
                                 + " (at most " + MAX_FILE + ")"));
-                boolean ordered = phases.indexOf(SwarmPacks.Phase.STALK) >= 0
-                        && phases.indexOf(SwarmPacks.Phase.FEINT) > phases.indexOf(SwarmPacks.Phase.STALK)
-                        && phases.indexOf(SwarmPacks.Phase.RUSH) > phases.indexOf(SwarmPacks.Phase.FEINT);
+                boolean ordered = phases.indexOf(SwarmPackPlans.Phase.STALK) >= 0
+                        && phases.indexOf(SwarmPackPlans.Phase.FEINT) > phases.indexOf(SwarmPackPlans.Phase.STALK)
+                        && phases.indexOf(SwarmPackPlans.Phase.RUSH) > phases.indexOf(SwarmPackPlans.Phase.FEINT);
                 verdicts.add(Verdict.of("stalk-feint-rush", ordered, "pack phases in order: " + phases));
                 verdicts.add(Verdict.of("several-approaches", approached >= 2
                                 && approachSpread >= MIN_APPROACH_SPREAD,

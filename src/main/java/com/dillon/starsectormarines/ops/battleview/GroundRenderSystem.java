@@ -669,7 +669,7 @@ public final class GroundRenderSystem implements RenderSystem {
                 case VOID:
                     break; // outside the hull: there is no deck here to paint
                 default:
-                    // INDOOR/RUBBLE/COURTYARD/TILE/STRIPED/LZ_MARKER/STONE/SAND/SNOW/WATER/BRICK:
+                    // INDOOR/RUBBLE/COURTYARD/TILE/STRIPED/STONE/SAND/SNOW/WATER/BRICK:
                     // generic resolve+draw from the kind's mapped block.
                     groundBlock(kindBlock[ord], kindSheet[ord], kindFill[ord],
                             nWall, sWall, eWall, wWall, x, y, sink);

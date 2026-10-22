@@ -132,6 +132,81 @@ def smoke_material(ctx, rgb=SMOKE_RGB):
     return m
 
 
+def flash_material(ctx, rgb):
+    """The burst's opening flash (owner, 2026-10-21): a near-white core grading out through hot
+    yellow to orange, the outer band leaning half toward the blast's own colour (a Harpoon's
+    blue, a torpedo's red), feathered to nothing at the silhouette with no rim. The jagged lobes
+    give the shape; the emission stays modest, so the extra brightness is left to the camera's
+    glare and bloom rather than to a large bright solid. Object colour R is the intensity
+    (keyed), G pushes the grade toward the core while the flash is young."""
+    bpy = _bpy()
+    import swfx_core
+    import swfx_guns
+    name = f'{PREFIX} flash ' + '-'.join(f'{c:.3f}' for c in rgb)
+    m = bpy.data.materials.get(name)
+    if m:
+        return m
+    m, nodes, links = swfx_core.node_material(name)
+    g = swfx_guns._G(nodes, links)
+    out = nodes.new('ShaderNodeOutputMaterial')
+    info = nodes.new('ShaderNodeObjectInfo')
+    sep = nodes.new('ShaderNodeSeparateColor')
+    links.new(info.outputs['Color'], sep.inputs[0])
+    lw = nodes.new('ShaderNodeLayerWeight')
+    lw.inputs['Blend'].default_value = .35
+    c = g.clamp01(g.sub(1.0, lw.outputs['Facing']))          # 1 facing the camera, 0 at the silhouette
+    feather = g.pow(c, 2.4)                                  # soft to the edge, no rim
+    grade = g.clamp01(g.add(g.pow(c, 1.6), g.mul(sep.outputs[1], .35)))
+    ramp = nodes.new('ShaderNodeValToRGB')
+    els = ramp.color_ramp.elements
+    rim = tuple(.5 * a + .5 * b for a, b in zip((1.0, .30, .05), rgb))   # orange leaning to the blast colour
+    els[0].position, els[0].color = 0.0, (*rim, 1)
+    els[1].position, els[1].color = 1.0, (1.0, .97, .9, 1)            # near-white core
+    for pos, col in ((.35, (1.0, .42, .08)), (.68, (1.0, .74, .28))):  # orange, hot yellow
+        e = els.new(pos)
+        e.color = (*col, 1)
+    links.new(grade, ramp.inputs['Fac'])
+    em = nodes.new('ShaderNodeEmission')
+    links.new(ramp.outputs['Color'], em.inputs['Color'])
+    links.new(g.mul(g.mul(feather, sep.outputs[0]), 4.0), em.inputs['Strength'])
+    tr = nodes.new('ShaderNodeBsdfTransparent')
+    add = nodes.new('ShaderNodeAddShader')
+    links.new(tr.outputs[0], add.inputs[0])
+    links.new(em.outputs[0], add.inputs[1])
+    links.new(add.outputs[0], out.inputs['Surface'])
+    try:
+        m.surface_render_method = 'BLENDED'
+    except Exception:
+        pass
+    return m
+
+
+def retime(objects, frame):
+    """Move bursts keyed for one frame onto another: every key of each object (and of a light's
+    data) shifts by the difference from its 'swfx_burst_t0', which then reads `frame`. For a
+    burst whose frame is a knob the scene sets later (a wreck's break_frame). Returns the shift."""
+    import swfx_guns
+    shift = 0
+    for ob in objects:
+        t0 = ob.get('swfx_burst_t0')
+        if t0 is None:
+            continue
+        base = ob.get('swfx_burst_base', t0)          # a cluster's own frame, its pieces keyed after it
+        shift = int(frame) - int(base)
+        ob['swfx_burst_base'] = int(frame)
+        frame_now = int(t0) + shift
+        if shift:
+            for idb in (ob, getattr(ob, 'data', None)):
+                for fc in swfx_guns._fcurves(idb) if idb is not None else ():
+                    for kp in fc.keyframe_points:
+                        kp.co.x += shift
+                        kp.handle_left.x += shift
+                        kp.handle_right.x += shift
+                    fc.update()
+        ob['swfx_burst_t0'] = frame_now
+    return shift
+
+
 def shrapnel_material(ctx):
     """A fragment that cools in flight. Object colour R is its heat (keyed, 1 to 0): white-hot,
     then orange, dull red and dark, the glow falling off with the heat. Under the glow the
@@ -196,10 +271,9 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
         lean_now = 0.0
     out = []
     # The flash: hot, jagged, gone in flash_frames.
-    # Not saturated: at 34 the lobed flash rendered as flat white polygons (first sweep render).
-    # Lower, the colour holds at the lobes and the white stays in the heart, edges falling soft.
-    glow = mp.glow_material(ctx, f'{prefix} flash ' + '-'.join(f'{c:.3f}' for c in flash_rgb), flash_rgb,
-                            strength=9.0, core=.55)
+    # Its own material: hot yellow-white heart, the blast's colour out to a feathered edge (the
+    # kit's glow ball rendered the lobed mesh as flat white cut-outs, first sweep render).
+    glow = flash_material(ctx, flash_rgb)
     me, dirs = lobed_mesh(f'{prefix} {tag} flash mesh', glow, rnd, lean=lean_now)
     fl = bpy.data.objects.new(f'{prefix} {tag}', me)
     coll.objects.link(fl)
@@ -212,7 +286,7 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
     for i in range(3):
         swfx_guns._bake(fl, 'scale', i, fr, [size * v * stretch[i] for v in grow])
     swfx_guns._bake(fl, 'color', 0, fr, [1.7 * (1 - j / n_fl) ** 1.3 for j in range(n_fl + 1)])
-    swfx_guns._bake(fl, 'color', 1, fr, [1.0 * (1 - j / n_fl) for j in range(n_fl + 1)])
+    swfx_guns._bake(fl, 'color', 1, fr, [.35 * (1 - j / n_fl) for j in range(n_fl + 1)])
     swfx_guns._visible_between(fl, f, f + n_fl - 1)
     out.append(fl)
     # Shrapnel along the spikes and a few loose: short and white-hot at the core, dark within
@@ -274,6 +348,8 @@ def burst(ctx, coll, tag, here, f, mpu, rnd, flash_rgb, size_m=(5.0, 9.5), axis=
             lt.data.energy = e
             lt.data.keyframe_insert('energy', frame=fi)
         out.append(lt)
+    for ob in out:
+        ob['swfx_burst_t0'] = int(f)
     if parent is not None:
         inv = mp.anchor_matrix(parent).inverted()      # its parent chain: excluded libraries never evaluate
         for ob in out:

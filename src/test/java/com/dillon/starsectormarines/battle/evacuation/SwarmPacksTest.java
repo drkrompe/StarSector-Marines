@@ -8,6 +8,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class SwarmPacksTest {
 
     @Test
+    void aPackStartsAtEachSplitOfAPulse() {
+        boolean[] starts = new boolean[16];
+        for (int i = 0; i < starts.length; i++) starts[i] = SwarmPacks.startsPack(i, 16);
+        for (int i = 0; i < starts.length; i++) assertEquals(i == 0 || i == 8, starts[i], "body " + i);
+    }
+
+    @Test
     void aPulseSplitsIntoAsFewEvenPacksAsFit() {
         assertArrayEquals(new int[] {6}, SwarmPacks.packSizes(6));
         assertArrayEquals(new int[] {8}, SwarmPacks.packSizes(8));
@@ -20,15 +27,15 @@ class SwarmPacksTest {
     @Test
     void ranksFillTheFanOutwardOnAlternateSides() {
         int[] ranks = new int[7];
-        for (int k = 0; k < ranks.length; k++) ranks[k] = SwarmPacks.rank(k);
+        for (int k = 0; k < ranks.length; k++) ranks[k] = SwarmPackPlans.rank(k);
         assertArrayEquals(new int[] {1, -1, 2, -2, 3, -3, 4}, ranks);
     }
 
     @Test
     void theGaitSwingOnlyEverSlowsAMember() {
-        SwarmPacks.Pack pack = new SwarmPacks.Pack(1, 0, 7L);
-        pack.gaitPeriod[0] = 1.5f;
-        pack.gaitOffset[0] = 0.3f;
+        SwarmPackPlans.Plan pack = new SwarmPackPlans.Plan(1, 7L);
+        pack.gaitPeriod = new float[] {1.5f};
+        pack.gaitOffset = new float[] {0.3f};
         float low = 1f;
         float high = 0f;
         for (int tick = 0; tick < 90; tick++) {

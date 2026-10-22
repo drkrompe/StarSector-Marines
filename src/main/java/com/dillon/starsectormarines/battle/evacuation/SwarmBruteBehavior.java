@@ -82,7 +82,9 @@ final class SwarmBruteBehavior {
             SwarmPressureBehavior.updateRoaming(brute, previousTarget, sim);
             return;
         }
-        if (target != previousTarget) sim.swarmCues().post(SwarmCues.Kind.ALERT, brute, sim);
+        if (target != previousTarget && !sim.swarmPacks().followsLeader(brute, target, sim)) {
+            sim.swarmCues().post(SwarmCues.Kind.ALERT, brute, sim);
+        }
 
         float dx = sim.world().x(target) - sim.world().x(brute);
         float dy = sim.world().y(target) - sim.world().y(brute);
@@ -100,7 +102,7 @@ final class SwarmBruteBehavior {
                     sim.bruteCharges().blow(brute, target);
                 }
                 sim.swarmCues().post(SwarmCues.Kind.STRIKE, brute, sim);
-                sim.combat().setCooldownTimer(brute, sim.combat().attackCooldown(brute));
+                sim.combat().setCooldownTimer(brute, SwarmPressureBehavior.strikeCooldown(brute, sim));
             }
             return;
         }
@@ -120,7 +122,7 @@ final class SwarmBruteBehavior {
                 if (sim.combat().cooldownTimer(brute) <= 0f) {
                     sim.swarmStrikes().postBlow(brute, breach.cellX, breach.cellY,
                             breach.edge, WALL_BLOW);
-                    sim.combat().setCooldownTimer(brute, sim.combat().attackCooldown(brute));
+                    sim.combat().setCooldownTimer(brute, SwarmPressureBehavior.strikeCooldown(brute, sim));
                 }
                 return;
             }
