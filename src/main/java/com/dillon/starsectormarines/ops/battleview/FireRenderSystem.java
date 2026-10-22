@@ -21,7 +21,7 @@ import java.util.Locale;
  * <p>Two passes because a system emits into one layer: {@link #scorch()} on
  * {@link RenderLayer#DECALS}, {@link #flames()} on {@link RenderLayer#HAZARDS}.
  * {@code -Dbattle.render.fire=false} is the control; {@code
- * -Dbattle.render.fireScorch=char|ash|ember} and {@code
+ * -Dbattle.render.fireScorch=char|ash|ember|soot} and {@code
  * -Dbattle.render.fireFlames=bold|restrained} choose the look.
  */
 public final class FireRenderSystem {
@@ -32,7 +32,8 @@ public final class FireRenderSystem {
     private static final boolean ENABLED = Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
 
     /** How burnt ground reads. */
-    public enum Scorch { CHAR, ASH, EMBER }
+    /** How burnt ground reads: CHAR near-black, ASH grey, EMBER char with a glow, SOOT char thin enough for the ground to show through. */
+    public enum Scorch { CHAR, ASH, EMBER, SOOT }
 
     /** How big the flames stand. */
     public enum Flames {
@@ -56,7 +57,7 @@ public final class FireRenderSystem {
 
     private final BattleSprites sprites;
     private final Scorch scorchStyle = parse(Scorch.class, SCORCH_PROPERTY, Scorch.CHAR);
-    private final Flames flameStyle = parse(Flames.class, FLAMES_PROPERTY, Flames.BOLD);
+    private final Flames flameStyle = parse(Flames.class, FLAMES_PROPERTY, Flames.RESTRAINED);
     private final RenderSystem scorch = RenderSystem.of(RenderLayer.DECALS, this::collectScorch);
     private final RenderSystem flames = RenderSystem.of(RenderLayer.HAZARDS, this::collectFlames);
     private float clock;
@@ -114,6 +115,7 @@ public final class FireRenderSystem {
         float r, g, b;
         switch (scorchStyle) {
             case ASH -> { r = 0.30f; g = 0.29f; b = 0.27f; a = 0.18f + 0.13f * shade; }
+            case SOOT -> { r = 0.06f; g = 0.05f; b = 0.04f; a = 0.12f + 0.10f * shade; }
             default -> { r = 0.07f; g = 0.06f; b = 0.05f; a = 0.16f + 0.15f * shade; }
         }
         float sx0 = camera.cellToScreenX(x0), sx1 = camera.cellToScreenX(x1);
