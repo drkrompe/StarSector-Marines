@@ -17,3 +17,4 @@ Written: 2026-10-22
 | fire-light | 2026-10-22 | the commit adding `FireLight` | `fire-nouns.md` (Look) |
 | fire-buildings | 2026-10-22 | the commit adding `FireBuildingsScene` | `fire-nouns.md` (Fuel, Buildings, Evidence) |
 | fire-kit-use | 2026-10-22 | the commit adding `FireReach` | `fire-nouns.md` (Starting fires, Evidence) |
+| fire-incendiary-rounds | 2026-10-22 | the commit adding `FireRoundsScene` | `fire-nouns.md` (Starting fires, Evidence); the flamer stream and who orders fire split to `fire-flamer-stream`, `fire-incendiary-orders` |

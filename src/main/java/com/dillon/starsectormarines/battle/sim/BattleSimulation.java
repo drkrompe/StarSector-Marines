@@ -806,7 +806,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     /** The creep field if anything has created one, else {@code null}; safe for renderers. */
     public CreepField creepFieldIfPresent() { return creep; }
-    private BattleFire fire;
+    /** Volatile and made under a lock: units deciding whether to throw fire ask for it from the parallel unit update. */
+    private volatile BattleFire fire;
     private final FireHarm fireHarm = new FireHarm();
     private final FireRouteCost fireRouteCost = new FireRouteCost();
     private final FireCost fireCost = new FireCost();
@@ -819,13 +820,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     @Override
     public FireField fireField() {
-        if (fire == null) fire = new BattleFire(grid, topology, doodadService, mapEditor,
-                this::creepFieldIfPresent, generationSeed ^ FIRE_SEED_SALT);
-        return fire.field();
+        BattleFire made = fire;
+        if (made == null) {
+            synchronized (this) {
+                made = fire;
+                if (made == null) fire = made = new BattleFire(grid, topology, doodadService, mapEditor,
+                        this::creepFieldIfPresent, generationSeed ^ FIRE_SEED_SALT);
+            }
+        }
+        return made.field();
     }
     /** The fire field if anything has lit one, else {@code null}; safe for renderers. */
     @Override
-    public FireField fireFieldIfPresent() { return fire == null ? null : fire.field(); }
+    public FireField fireFieldIfPresent() { BattleFire made = fire; return made == null ? null : made.field(); }
 
     /** The fire alone as route multipliers, {@code null} while nothing burns; see {@link FireRouteCost#hazard}. */
     public RouteCostField fireHazard() { return fireRouteCost.hazard(); }
@@ -1574,6 +1581,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rosterService.convoy().setDestructionSink(groundSystem::destroyVehicle);
         // A gun on a turning hull shakes the way a moving shooter's does.
         turretFire.setShooterAccuracy(new HullPivot(rosterService.convoy()));
+        // A tube loaded for an incendiary fire mission puts that heat into its round (`fire-nouns.md`, Starting fires).
+        turretFire.setRoundHeat(id -> {
+            FieldMortarService.Tube tube = fieldMortars().tubeOfEntity(id);
+            return tube == null ? 0 : tube.loadedHeat();
+        });
         // A map emplacement's or a vehicle's crew holds a round that would hit their own side; aircraft guns do not
         // yet. -Dbattle.turret.crewFriendlyHold=false is the control.
         if (Boolean.parseBoolean(System.getProperty("battle.turret.crewFriendlyHold", "true"))) {

@@ -109,6 +109,7 @@ public final class TurretBehavior implements UnitBehavior {
                     // A round is spotted when a squadmate has the target in sight; otherwise
                     // it goes out on remembered ground at the weapon's blind-fire penalty.
                     s.lastFireHadLos = sim.fieldMortars().spotted(tube, s.target, sim);
+                    tube.loadRound(sim.fieldMortars().roundHeat(tube, s.target, sim));
                     tube.spendRound();
                     if (s.target == tube.missionTarget()) tube.noteMissionRound();
                 }
