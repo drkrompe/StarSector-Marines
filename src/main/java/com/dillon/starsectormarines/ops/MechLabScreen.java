@@ -267,9 +267,10 @@ public final class MechLabScreen implements Screen {
                 if (row.chassisPreview() != null) {
                     target.canvases().set(canvas, new MechChassisPreviewCanvas(
                             row.chassisPreview(), () -> previewSprites().layeredMechSprites()));
-                } else if (row.weaponPreview() != null || row.replenisherPreview() != null) {
+                } else if (row.weaponPreview() != null || row.replenisherPreview() != null
+                        || row.internalPreview() != null) {
                     target.canvases().set(canvas, MechEquipmentGridCanvas.catalog(
-                            row.weaponPreview(), row.replenisherPreview(),
+                            row.weaponPreview(), row.replenisherPreview(), row.internalPreview(),
                             () -> previewSprites().layeredMechSprites()));
                 }
                 if (row.weaponPreview() != null) {
@@ -295,6 +296,7 @@ public final class MechLabScreen implements Screen {
                         () -> viewModel.socketDefinition(row.socketId()),
                         () -> viewModel.installedWeapon(row.socketId()),
                         () -> viewModel.installedReplenisher(row.socketId()),
+                        () -> viewModel.installedInternal(row.socketId()),
                         () -> viewModel.socketOccupied(row.socketId()),
                         () -> previewSprites().layeredMechSprites()));
             }
