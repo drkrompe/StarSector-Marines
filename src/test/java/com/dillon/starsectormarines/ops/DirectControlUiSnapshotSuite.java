@@ -182,6 +182,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             new MagazineFrame("rook-cycling", "weapon.field-rifle", EquipmentGrade.SERVICE, 1, .2f, 0f),
             new MagazineFrame("rook-reloading", "weapon.field-rifle", EquipmentGrade.SERVICE, 0, 0f, 1.8f),
             new MagazineFrame("stalwart-belt", "weapon.squad-automatic", EquipmentGrade.MILSPEC, 27, 0f, 0f),
+            new MagazineFrame("carbine-shells", "weapon.smg", EquipmentGrade.SERVICE, 3, 0f, 0f),
             new MagazineFrame("longbow-masterwork", "weapon.dmr", EquipmentGrade.MASTERWORK, 10, 0f, 0f));
 
     /** The hover-only help tab: collapsed ({@code carrier == null}) or opened for a carrier. */

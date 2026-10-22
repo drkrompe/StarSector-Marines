@@ -42,9 +42,9 @@ import java.util.Map;
  * empty, since a machine that sees a man at a window believes in him itself. The machine starts fifty cells
  * west and is given the player's click on the building's interior at tick 30.
  *
- * <p>Loops: {@code mech} (a Sirocco, whose cannon brings walls down), {@code tank} (a breakthrough tank), {@code
- * control} (the same Sirocco and click with nobody reported inside: the click is an ordinary move), and {@code
- * with-infantry} (the Sirocco and a rifle squad given the same click: the squad clears and holds, the machine
+ * <p>Loops: {@code mech} (a Warden, whose cannon brings walls down), {@code tank} (a breakthrough tank), {@code
+ * control} (the same Warden and click with nobody reported inside: the click is an ordinary move), and {@code
+ * with-infantry} (the Warden and a rifle squad given the same click: the squad clears and holds, the machine
  * assaults).
  *
  * <p>Verdicts assert mechanics, never who won: the cursor said what the click did, the click became an assault, the
@@ -119,7 +119,7 @@ public final class MachineAssaultScene implements BehaviorScene {
         }
         if (!tankLoop) {
             builder.squad("lance").faction(Faction.MARINE).size(1).at(MACHINE_X + 2, MACHINE_Y)
-                    .mech(MechVariant.SIROCCO, MechRole.BALANCED)
+                    .mech(MechVariant.WARDEN, MechRole.BALANCED)
                     .assigned(id -> ObjectiveAssignment.defendArea(id, MACHINE_X, MACHINE_Y))
                     .done();
         }

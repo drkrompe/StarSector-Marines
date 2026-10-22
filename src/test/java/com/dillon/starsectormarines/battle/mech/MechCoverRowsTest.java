@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Cover by section: what each level of cover hides of a mech, read from its plan's rows. */
 class MechCoverRowsTest {
 
-    private static final MechBodyPlan[] CHASSIS = {MechBodyPlan.HOUND, MechBodyPlan.BULWARK, MechBodyPlan.SIROCCO};
+    private static final MechBodyPlan[] CHASSIS = {MechBodyPlan.HOUND, MechBodyPlan.BULWARK, MechBodyPlan.WARDEN};
 
     @Test
     void everyMechBandCarriesCoverRows() {

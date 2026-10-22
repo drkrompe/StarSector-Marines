@@ -9,7 +9,7 @@ Read `mechs-nouns.md` before changing this story.
 ## Problem
 
 The Mech Lab now treats each asset's fitting doll as one coherent definition,
-but Bulwark, Hound, and Sirocco definitions are still constructed in Java. New
+but Bulwark, Hound, and Warden definitions are still constructed in Java. New
 mechs and future tanks therefore require a code edit to author maintenance
 facing, physical leader anchors, surrounding equipment docks, footprints,
 socket types, and capacities. That makes visual fitting data harder to iterate
@@ -34,7 +34,7 @@ permit the UI to bypass those commands.
 - Load and validate the catalog at application startup, with actionable errors
   for missing asset references, duplicate socket ids, non-finite coordinates,
   invalid capacities or footprints, and unsupported compatibility values.
-- Migrate Bulwark, Hound, and Sirocco without changing their current rendered
+- Migrate Bulwark, Hound, and Warden without changing their current rendered
   appearance, relative battle scale, socket selection, or fitting geometry.
 - Make the Mech Lab resolve dolls through the catalog so a later heavy vehicle
   can use the same renderer without a chassis-name branch.
@@ -42,7 +42,7 @@ permit the UI to bypass those commands.
 
 ## Acceptance
 
-- Bulwark, Hound, and Sirocco load exclusively from external doll definitions;
+- Bulwark, Hound, and Warden load exclusively from external doll definitions;
   removing or corrupting a required definition fails clearly during catalog
   preparation rather than silently substituting a generic doll.
 - Every migrated socket preserves its current leader endpoint, equipment-dock

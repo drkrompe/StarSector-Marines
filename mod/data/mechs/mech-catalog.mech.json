@@ -15,10 +15,10 @@
       "description": "@gearCatalogHoundDescription"
     },
     {
-      "variant": "sirocco",
+      "variant": "warden",
       "designation": "SRC-5",
-      "role": "@gearCatalogSiroccoRole",
-      "description": "@gearCatalogSiroccoDescription"
+      "role": "@gearCatalogWardenRole",
+      "description": "@gearCatalogWardenDescription"
     }
   ],
 

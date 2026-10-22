@@ -40,7 +40,7 @@ public final class MechFabricationCatalog {
 
     private static final List<Recipe> CHASSIS = List.of(
             chassis(MechVariant.HOUND, "@gearFabricationLightChassisStandardFit", 247, 78, 12),
-            chassis(MechVariant.SIROCCO, "@gearFabricationSupportChassisStandardFit", 333, 107, 20),
+            chassis(MechVariant.WARDEN, "@gearFabricationSupportChassisStandardFit", 333, 107, 20),
             chassis(MechVariant.BULWARK, "@gearFabricationHeavyChassisStandardFit", 493, 157, 36));
 
     /** Stock parts are built too: a replacement plate or engine is still an assembly. Bills are derived. */
@@ -60,7 +60,7 @@ public final class MechFabricationCatalog {
      * Bills sit beside the chassis of the same weight class: a hull is cheaper than a walker, and at base commodity
      * prices brings at least as much structure plus armor per credit as the class's mech (see
      * {@code armorEconomyEvidence}). The fire-support APC is the one deliberate exception per lift: it carries a
-     * mortar instead of plate, so its armor per Medium lift is below the Sirocco's.
+     * mortar instead of plate, so its armor per Medium lift is below the Warden's.
      */
     private static final List<Recipe> VEHICLES = List.of(
             vehicle(VehicleType.HEAVY_APC, "@gearFabricationLightVehicleStandardFit", 149, 41, 3),

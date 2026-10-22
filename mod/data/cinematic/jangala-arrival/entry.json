@@ -4,8 +4,8 @@
  "fps": 24,
  "width": 1920,
  "height": 1080,
- "frames": 72,
- "duration": 3.0,
+ "frames": 168,
+ "duration": 7.0,
  "captions": [
   {
    "t_in": 0.16,
@@ -24,7 +24,7 @@
   {
    "t": 0.35,
    "sound": "jangala_arrival_wind",
-   "volume": 0.45
+   "volume": 0.4519
   }
  ],
  "speakers": {

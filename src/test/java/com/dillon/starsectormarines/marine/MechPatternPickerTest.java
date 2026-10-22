@@ -83,7 +83,7 @@ class MechPatternPickerTest {
     void kindFilterRestrictsToChassis() {
         List<String> chassis = MechPatternPicker.pick("hegemony", FactionEquipmentSource.PATRON,
                 100, 3L, Set.of(), VETERAN, EnumSet.of(MechPattern.Kind.CHASSIS));
-        assertEquals(Set.of(MechPattern.of(MechVariant.SIROCCO).id(),
+        assertEquals(Set.of(MechPattern.of(MechVariant.WARDEN).id(),
                 MechPattern.of(MechVariant.BULWARK).id()), Set.copyOf(chassis));
     }
 

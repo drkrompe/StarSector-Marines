@@ -62,9 +62,9 @@ VARIANTS = (
         "NOSE CHAINGUN  /  SRM-5",
     ),
     Variant(
-        "SIROCCO",
+        "WARDEN",
         "MOBILE LONG-RANGE SUPPORT",
-        "chassis-sirocco.png",
+        "chassis-warden.png",
         "heavy-cannon.png",
         "nose-heavy",
         "srm-pod.png",
@@ -140,7 +140,7 @@ def render_mech(variant: Variant, hull_width: int, canvas_size: tuple[int, int],
     right_pod = scaled_sprite(variant.right_pod, hull_width) if variant.right_pod else None
 
     # Runtime draw order and zero-motion anchors from LayeredMechComposer.
-    light_chassis = variant.name in ("HOUND", "SIROCCO")
+    light_chassis = variant.name in ("HOUND", "WARDEN")
     foot_x = 0.22 if light_chassis else 0.17
     foot_y = -0.05 if light_chassis else -0.28
     step_reach = 0.16 if light_chassis else 0.055

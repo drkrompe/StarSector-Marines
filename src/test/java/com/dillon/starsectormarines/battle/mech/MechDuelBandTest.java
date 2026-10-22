@@ -24,7 +24,7 @@ class MechDuelBandTest {
     private static final Weapon HEAVY_CANNON = new Weapon(0f, 26f, 45f / 2.5f, 0.76f, 0f);
 
     private static final List<Weapon> HOUND = List.of(CHAINGUN, SRM);
-    private static final List<Weapon> SIROCCO = List.of(HEAVY_CANNON, LRM, LRM);
+    private static final List<Weapon> WARDEN = List.of(HEAVY_CANNON, LRM, LRM);
     private static final List<Weapon> BULWARK = List.of(CHAINGUN, SRM, SRM);
 
     /** Anti-armor racks: the contact payload against a Bulwark's plate, at full efficiency. */
@@ -34,8 +34,8 @@ class MechDuelBandTest {
     private static final List<Weapon> AT_HOUND = List.of(CHAINGUN, AT_SRM);
 
     @Test
-    void outReachingSiroccoStandsOffBeyondTheHoundsReach() {
-        Band band = MechDuelBand.choose(SIROCCO, HOUND, MechRole.LR_SUPPORT);
+    void outReachingWardenStandsOffBeyondTheHoundsReach() {
+        Band band = MechDuelBand.choose(WARDEN, HOUND, MechRole.LR_SUPPORT);
         assertEquals(Stance.STANDOFF, band.stance());
         assertTrue(band.min() > 30f, "outside the chaingun: " + band);
         assertTrue(band.max() < 40f, "inside its own LRM reach: " + band);
@@ -44,13 +44,13 @@ class MechDuelBandTest {
     @Test
     void outReachingHoldsWhateverTheRole() {
         for (MechRole role : MechRole.values()) {
-            assertEquals(Stance.STANDOFF, MechDuelBand.choose(SIROCCO, HOUND, role).stance(), role.name());
+            assertEquals(Stance.STANDOFF, MechDuelBand.choose(WARDEN, HOUND, role).stance(), role.name());
         }
     }
 
     @Test
-    void brawlerHoundClosesOnTheLongRangeSirocco() {
-        Band band = MechDuelBand.choose(HOUND, SIROCCO, MechRole.ASSAULT);
+    void brawlerHoundClosesOnTheLongRangeWarden() {
+        Band band = MechDuelBand.choose(HOUND, WARDEN, MechRole.ASSAULT);
         assertEquals(Stance.CLOSE, band.stance());
         assertTrue(band.max() <= 18f, "inside its SRM band: " + band);
     }

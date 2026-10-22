@@ -414,10 +414,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, false, false, false,
                                 null, "chassis-Bulwark")),
-                new SnapshotArtifact("mech-lab-sirocco-wide.png",
+                new SnapshotArtifact("mech-lab-warden-wide.png",
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, false, false, false,
-                                null, "chassis-Sirocco")),
+                                null, "chassis-Warden")),
                 new SnapshotArtifact("mech-lab-chassis-fabrication-wide.png",
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
@@ -826,7 +826,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 reactor, () -> { }, (mechId, role) -> { },
                 (mechId, order) -> { });
         model.updateProjected(new BattleMechOverlayModel.MechState(
-                3, 303L, "Sirocco Three", MechVariant.SIROCCO.displayName(),
+                3, 303L, "Warden Three", MechVariant.WARDEN.displayName(),
                 MechRole.LR_SUPPORT, MechRole.BALANCED,
                 MechLanceOrder.FREE_REIGN,
                 BattleMechOverlayModel.selectableRoles()));
@@ -2683,7 +2683,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 "support_mech_02", "Hound 02", MechVariant.HOUND,
                 MechRole.ASSAULT, MissileReplenisherComponent.STANDARD.id()));
         bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
-                "support_mech_03", "Sirocco 03", MechVariant.SIROCCO,
+                "support_mech_03", "Warden 03", MechVariant.WARDEN,
                 MechRole.LR_SUPPORT, MissileReplenisherComponent.ACCELERATED_FEED.id()));
         bay.addReplenisher(MissileReplenisherComponent.ACCELERATED_FEED.id(), 1);
         if ("long-name".equals(materialHint)) {

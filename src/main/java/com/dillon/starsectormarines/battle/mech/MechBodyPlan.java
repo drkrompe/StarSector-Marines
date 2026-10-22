@@ -57,7 +57,7 @@ public final class MechBodyPlan {
             new float[] {0.22f, 0.46f, 0f, 0.06f, 0.06f, 0.07f, 0.07f, 0.06f}, false);
 
     /** Long-range support: one heavy cannon, an LRM rack on each shoulder. */
-    public static final MechBodyPlan SIROCCO = new MechBodyPlan("sirocco",
+    public static final MechBodyPlan WARDEN = new MechBodyPlan("warden",
             0.33f, 0.40f, 0.20f, 0.07f, 0.25f,
             new float[] {0.20f, 0.48f, 0.10f, 0f, 0f, 0.08f, 0.08f, 0.06f}, false);
 

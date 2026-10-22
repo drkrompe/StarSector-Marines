@@ -44,7 +44,7 @@ import java.util.Map;
  *       while they are there and opens within two pulses of their going.</li>
  *   <li>{@code attack-at-the-door}: defenders hold the yard and a marine squad outside the north wall is ordered into it.
  *       No door opens for it and no marine ever stands in a door's cells.</li>
- *   <li>{@code taken-yard}: marines hold the yard, and the player orders a squad and a Sirocco out north. The door serves
+ *   <li>{@code taken-yard}: marines hold the yard, and the player orders a squad and a Warden out north. The door serves
  *       its new holder, and the chassis goes out through it and arrives within twice its straight-line march.</li>
  *   <li>{@code contested-yard}: marines are ordered out north while defenders are in the yard with them. Nobody holds a
  *       contested place, so no door opens.</li>
@@ -170,7 +170,7 @@ public final class SallyDoorScene implements BehaviorScene {
         boolean lance = loop.equals("taken-yard");
         if (lance) {
             builder.squad("lance").faction(Faction.MARINE).size(1).at(MECH_AT[0], MECH_AT[1])
-                    .mech(MechVariant.SIROCCO, MechRole.BALANCED).done();
+                    .mech(MechVariant.WARDEN, MechRole.BALANCED).done();
         }
         if (loop.equals("enemy-at-the-door")) {
             builder.squad("raiders").faction(Faction.MARINE).size(SQUAD).at(61, T - 6).primary("weapon.smg").health(TOUGH)
@@ -306,7 +306,7 @@ public final class SallyDoorScene implements BehaviorScene {
                 verdicts.add(Verdict.of("holder-goes-out-through-the-door", t.squadThrough >= 0,
                         "a member stood in the door at tick " + t.squadThrough));
                 verdicts.add(Verdict.of("mech-goes-out-through-the-door", t.mechThrough >= 0,
-                        "the Sirocco stood in the door at tick " + t.mechThrough));
+                        "the Warden stood in the door at tick " + t.mechThrough));
                 verdicts.add(Verdict.of("mech-arrives-within-the-bound", t.mechArrived >= 0
                                 && t.mechArrived - ORDER_TICK <= t.mechBound,
                         "arrived " + (t.mechArrived < 0 ? "never" : (t.mechArrived - ORDER_TICK) + " ticks")
@@ -413,7 +413,7 @@ public final class SallyDoorScene implements BehaviorScene {
             this.lance = lance;
             this.attackers = attackers;
             squadBound = bound(SQUAD_AT, SQUAD_GOAL, (holder == Faction.MARINE ? UnitType.MARINE : UnitType.MILITIA).moveSpeed);
-            mechBound = bound(MECH_AT, MECH_GOAL, MechVariant.SIROCCO.moveSpeed);
+            mechBound = bound(MECH_AT, MECH_GOAL, MechVariant.WARDEN.moveSpeed);
         }
 
         @Override public void observe(BattleSimulation sim, int tick) {

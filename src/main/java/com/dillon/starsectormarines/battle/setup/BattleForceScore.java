@@ -75,7 +75,7 @@ public final class BattleForceScore {
         if (variant == null) return 0f;
         return switch (variant) {
             case BULWARK -> 24f;
-            case HOUND, SIROCCO -> 18f;
+            case HOUND, WARDEN -> 18f;
         };
     }
 

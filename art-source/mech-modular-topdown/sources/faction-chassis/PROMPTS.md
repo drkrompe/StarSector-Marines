@@ -1,7 +1,7 @@
 # Faction chassis ImageGen source prompts
 
 Generated with the built-in ImageGen tool on 2026-08-31. Each of the ten
-human visual families has a Bulwark, Hound, and Sirocco master. Remnants are
+human visual families has a Bulwark, Hound, and Warden master. Remnants are
 deliberately absent: `remnants-lore-guide.md` calls for purpose-built machine
 ecologies, not human chassis painted cyan.
 
@@ -12,10 +12,10 @@ Image 1 was always the sole edit target:
 | Chassis | Image 1 source | Retained filename | Runtime filename |
 | --- | --- | --- | --- |
 | Bulwark | `../hull-clean-v2.png` | `bulwark.png` | `chassis.png` |
-| Hound | `../sirocco-hull.png` | `hound.png` | `chassis-hound.png` |
-| Sirocco | `../hound-hull.png` | `sirocco.png` | `chassis-sirocco.png` |
+| Hound | `../warden-hull.png` | `hound.png` | `chassis-hound.png` |
+| Warden | `../hound-hull.png` | `warden.png` | `chassis-warden.png` |
 
-The Hound and Sirocco source-name reversal is intentional and matches
+The Hound and Warden source-name reversal is intentional and matches
 `build_assets.py`: those accepted generated silhouettes acquired their gameplay
 names after being flipped north/up.
 

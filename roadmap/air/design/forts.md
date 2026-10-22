@@ -450,7 +450,7 @@ unbarred it is built passage, and the same side bars it again behind the sortie,
 or on the player's bar, never on a body standing in it; a port left unbarred when the fort is lost stays so for whoever
 holds the works next; barred, it is breached as any wall is. An unbarred port carries the gate's leaves folded back over
 its passage, and a barred one is drawn as its wall again (`FortBuildingRenderSystem`). With every port unbarred the battery
-fort's worst stretch falls to 3.0 times the straight line (74 cells) and the shield fort's to 2.7 (72); a Sirocco
+fort's worst stretch falls to 3.0 times the straight line (74 cells) and the shield fort's to 2.7 (72); a Warden
 reaches every stretch either way, and the Bulwark reaches none from the staging cell, which stands in a room.
 
 ## Slices

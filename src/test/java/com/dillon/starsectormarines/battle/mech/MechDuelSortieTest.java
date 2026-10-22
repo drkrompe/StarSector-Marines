@@ -10,7 +10,7 @@ class MechDuelSortieTest {
 
     @Test
     void aPostedMechSortiesOnlyAgainstAnOutReachingShooterItCannotAnswerFromWhereItStands() {
-        // A 30-cell Hound on its post, a 38-cell Sirocco 35 cells off: it shells the leash and nothing answers.
+        // A 30-cell Hound on its post, a 38-cell Warden 35 cells off: it shells the leash and nothing answers.
         assertEquals(LEASH + 38f, MechDuelRange.sortieRadius(POST, 65.5f, 20.5f, true, 35f, 30f, 38f), 0.0001f);
         // Inside the leash and inside its own reach: it fights from the post.
         assertEquals(0f, MechDuelRange.sortieRadius(POST, 75.5f, 20.5f, true, 25f, 30f, 38f), 0.0001f);

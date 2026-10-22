@@ -105,8 +105,8 @@ public class MechSupportTest {
     @Test
     public void theDefaultCallBringsUpToALanceAndLeavesTheRestAboard() {
         MechSupport power = new MechSupport(List.of(
-                MechVariant.HOUND, MechVariant.SIROCCO, MechVariant.BULWARK,
-                MechVariant.HOUND, MechVariant.SIROCCO));
+                MechVariant.HOUND, MechVariant.WARDEN, MechVariant.BULWARK,
+                MechVariant.HOUND, MechVariant.WARDEN));
 
         assertEquals(0, power.maxCharges, "a cooldown paces the calls, not charges");
         assertEquals(MechSupport.CALL_COOLDOWN_SECONDS, power.cooldownSeconds, 0f);
@@ -120,7 +120,7 @@ public class MechSupportTest {
         sim.spawn(new EntitySpec("defender", Faction.DEFENDER, UnitType.MILITIA, 25, 25)
                 .health(100_000f).attackDamage(0f));
         MechSupport power = new MechSupport(List.of(
-                MechVariant.HOUND, MechVariant.SIROCCO,
+                MechVariant.HOUND, MechVariant.WARDEN,
                 MechVariant.BULWARK, MechVariant.HOUND));
         sim.setCommandPowers(List.of(power));
         sim.getCommandPowerService().requestActivation(power.id, 15, 15);
@@ -129,7 +129,7 @@ public class MechSupportTest {
         assertEquals(1, sim.getAirEntityIds().length);
         ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
         assertEquals(4, mission.marinesRemaining);
-        assertEquals(List.of(MechVariant.HOUND, MechVariant.SIROCCO,
+        assertEquals(List.of(MechVariant.HOUND, MechVariant.WARDEN,
                         MechVariant.BULWARK, MechVariant.HOUND),
                 List.of(mission.mechVariants));
 
@@ -155,7 +155,7 @@ public class MechSupportTest {
         assertEquals(4, squad.originalSize);
 
         int hounds = 0;
-        int siroccos = 0;
+        int wardens = 0;
         int bulwarks = 0;
         for (int u = 0; u < sim.liveUnitCount(); u++) {
             long candidate = sim.liveUnitAt(u);
@@ -163,11 +163,11 @@ public class MechSupportTest {
                     || sim.identity().type(candidate) != UnitType.HEAVY_MECH) continue;
             MechVariant variant = sim.identity().mechVariant(candidate);
             if (variant == MechVariant.HOUND) hounds++;
-            else if (variant == MechVariant.SIROCCO) siroccos++;
+            else if (variant == MechVariant.WARDEN) wardens++;
             else if (variant == MechVariant.BULWARK) bulwarks++;
         }
         assertEquals(2, hounds);
-        assertEquals(1, siroccos);
+        assertEquals(1, wardens);
         assertEquals(1, bulwarks);
     }
 

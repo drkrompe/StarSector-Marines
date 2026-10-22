@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-19 — one front for the worst known threat and a gun that shakes while its hull turns: two fire-support APCs from opposite sides take 0.50 of their fights against a tank against 0.17-0.33 from one approach, and the lone flanker stays modest (readings below); a stalled hold in band moves to a clear lane (street undecided fights 227 to 141 of 828, facing gains untouched); keeping the front: a flanked tank turns onto its target (backing out to 120° off the nose, a forward turn beyond, rehearsed first and never off a berm), which takes the escort APC's side-on and rear-on wins against a tank from 0.42-0.46 to 0.12 and 0.08; a gunless tank backing out of reach nose on was measured and rejected (readings below); balance is not parity (a law: read rows against bill and tier), and the dozer's and SRM technical's facing rows retuned to it; facing: a hull's plate, and a mech torso's, depend on the arc they are hit on (readings below; the matchup harness now sets hulls down facing the enemy, which re-baselines the street rows); earlier: the AT LRM against a tank: the screened tank, a tank-line rung with top-attack active protection (fit 0.78 to 0.66), rack levers measured and rejected; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and flux 28, pulse laser flux 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, flux 34, Sirocco rated 39); earlier: engines carry mass, military capacitors 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
+Updated: 2026-10-19 — one front for the worst known threat and a gun that shakes while its hull turns: two fire-support APCs from opposite sides take 0.50 of their fights against a tank against 0.17-0.33 from one approach, and the lone flanker stays modest (readings below); a stalled hold in band moves to a clear lane (street undecided fights 227 to 141 of 828, facing gains untouched); keeping the front: a flanked tank turns onto its target (backing out to 120° off the nose, a forward turn beyond, rehearsed first and never off a berm), which takes the escort APC's side-on and rear-on wins against a tank from 0.42-0.46 to 0.12 and 0.08; a gunless tank backing out of reach nose on was measured and rejected (readings below); balance is not parity (a law: read rows against bill and tier), and the dozer's and SRM technical's facing rows retuned to it; facing: a hull's plate, and a mech torso's, depend on the arc they are hit on (readings below; the matchup harness now sets hulls down facing the enemy, which re-baselines the street rows); earlier: the AT LRM against a tank: the screened tank, a tank-line rung with top-attack active protection (fit 0.78 to 0.66), rack levers measured and rejected; a tank that loses its gun withdraws (readings below); earlier: missile carriers: the LRM carrier (APC line) and the SRM technical (field rig), bills hull plus racks; a tank's gun can be shot away (readings below); anti-armor racks close on a tie in mech duels; tanks retuned against the Bulwark (rating 18/20, pool 1300, contact hit halved, reverse 0.3); missile racks split into anti-armor and fragmentation warheads (readings below); against a machine, autonomous fire offers the reservoir to the anti-armor mounts first; the Bulwark's other arms are balanced as equipment (bastion build mass 3 and flux 28, pulse laser flux 26; the chaingun is the anti-infantry arm and stays at 30); the heavy cannon before them (build mass 3, flux 34, Warden rated 39); earlier: engines carry mass, military capacitors 120, call cooldown 30 s, heavy cradle three lifts, APC bills cut.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -30,7 +30,7 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, flux), `convoy-nouns.md`
 3. **A fit must fit.** The player chooses what goes on each individual machine,
    bounded by socket footprint and by the frame's engine budget. Better equipment
    is larger or heavier, so the best of everything never fits on one frame.
-4. **Weight class is the ladder.** Hound is the light mech, Sirocco the medium,
+4. **Weight class is the ladder.** Hound is the light mech, Warden the medium,
    Bulwark the heavy (MechWarrior's classes). A company starts with the light
    chassis and its two starter weapons only, and earns medium and heavy patterns
    through Advanced and Prestige access. Vehicles follow the same classes.
@@ -119,10 +119,10 @@ included, on the three axes later internals will buy back:
 | --- | --- | --- | --- |
 | Bulwark | 950 → 710 | 1.15 → 1.05 | 8 → 6 /s |
 | Hound | 500 → 375 | 1.70 → 1.55 | 8 → 6 /s |
-| Sirocco | 400 → 300 | 1.45 → 1.32 | 8 → 6 /s |
+| Warden | 400 → 300 | 1.45 → 1.32 | 8 → 6 /s |
 
 Structure, armor rating, flux capacity and every weapon are unchanged, so
-durability order (Bulwark, Hound, Sirocco) and each chassis's weapon bands hold.
+durability order (Bulwark, Hound, Warden) and each chassis's weapon bands hold.
 
 ## Internals (shipped)
 
@@ -137,10 +137,10 @@ budget). The ladder, tuned on headless readings (below):
 | Capacitor bank (CAPACITORS) | Factory: 100 flux, 6/s, 1x1 | Double: 120, 7.5/s, 2x1, mass 3 | Military: 120, 8/s, 3x1, mass 5 |
 | Vent array (MINI_FAB) | none | Auxiliary: +1/s, mass 2 | — |
 
-Rated output is Hound 20, Sirocco 39, Bulwark 50 (stock weapons weigh 16, 39 and
+Rated output is Hound 20, Warden 39, Bulwark 50 (stock weapons weigh 16, 39 and
 44; the Bulwark rose from 46 when its twin arm gun became a single gun on
 each arm, two 2x2 guns weighing 4 more than the 2x3 twin); a plating unit is 3, 4 and 6. A full refit reaches the pre-cut armor and speed
-and roughly the old dissipation: Bulwark 950 / 1.15 / 120 flux at 8.5/s, Sirocco 400 /
+and roughly the old dissipation: Bulwark 950 / 1.15 / 120 flux at 8.5/s, Warden 400 /
 1.45 at 8/s, Hound 500 / 1.70 at 7/s. The trade is room: the Hound's two-cell
 reserve cannot take the military capacitor bank and it has no utility socket, a faster loader
 displaces the vent array, and a full plate and engine leave little output for the top
@@ -151,7 +151,7 @@ engine's footprint never costs room; mass is the only price an engine can pay.
 With both upgraded engines massless, the military engine cost nothing over the
 uprated one and the best of everything fitted on the Hound (28.5 of 30) and the
 Bulwark (68 of 69), breaking *tier costs room*. At mass 1 and 3 it fits on no
-chassis (Hound 31.5 / 30, Sirocco 62 / 54, Bulwark 71 / 69), while a full
+chassis (Hound 31.5 / 30, Warden 62 / 54, Bulwark 71 / 69), while a full
 internal refit around the factory weapons still fits all three (29.5 / 30,
 48 / 54, 65 / 69). Heavy plate plus the military engine leave 19.5, 41 and 51
 for weapons and the rest. `MechFitLawsTest` pins these laws; the whole fit space
@@ -167,19 +167,19 @@ whole-body control. Mean seconds survived, rifles / Bulwark:
 | --- | --- | --- | --- |
 | Bulwark | 91 / 115 | 122 / 149 | 125 / 146 |
 | Hound | 44 / 55 | 51 / 71 | 59 / 74 |
-| Sirocco | 18 / 25 | 21 / 37 | 21 / 37 |
+| Warden | 18 / 25 | 21 / 37 | 21 / 37 |
 
-The Sirocco rows were read while a planted long-range support mech still
+The Warden rows were read while a planted long-range support mech still
 turned its back on a close threat (`mechs-nouns.md`, Long-Range Support). Now
 that it keeps the threat in its arc, it lasts 29 s stock and 43 s refit against
 rifles. The refit now sits just under a stock Hound's 44 s, so take more seeds
 before making a frame call there.
 
-Bulwark > Hound > Sirocco holds at every equal tier, under both fires and both
+Bulwark > Hound > Warden holds at every equal tier, under both fires and both
 damage models, and a refit Hound stays far below a stock Bulwark. A stock Hound
 keeps about three quarters of its pre-cut endurance and 72-82% of its damage
 output, so the starter fit still earns its gantry. A full refit restores the
-Bulwark and Sirocco to pre-cut endurance and the Hound to 0.85-0.97 of it, inside
+Bulwark and Warden to pre-cut endurance and the Hound to 0.85-0.97 of it, inside
 a seed spread of ±10-20 s — use eight seeds for any call near 10%.
 
 **The Hound's dissipation ceiling stays below the old 8/s.** Its weapons draw about
@@ -209,31 +209,31 @@ against 100. It still beats the double-bank refit by about 9%. Cutting its
 dissipation to 7.5 would make it buy nothing, and a harsher military-engine penalty
 would also hit the Hound.
 
-**The Sirocco is rated 39.** The LRM-15 is long-range support's Advanced rack,
+**The Warden is rated 39.** The LRM-15 is long-range support's Advanced rack,
 as the SRM-15 is the Bulwark's. At 34 the most fragile chassis had to give up its
 double capacitor bank or its heavy plate to carry one. At 36 the factory heavy cannon,
 LRM-5 and LRM-15 fit a full frame (400 armor, 8/s) with no headroom, so the tier
 still costs room. The heavy cannon then gained 3 of build mass (below), and the
-rating rose by exactly that, so the Sirocco's own fit is where it was: the stock
+rating rose by exactly that, so the Warden's own fit is where it was: the stock
 fit fills the industrial engine, and the full frame fits the military one with
 1.5 to spare, short of the vent array's 2. The best of everything still does not fit,
-and a refit Sirocco still out-plates no Hound.
+and a refit Warden still out-plates no Hound.
 
-## The heavy cannon is equipment, not the Sirocco's gun
+## The heavy cannon is equipment, not the Warden's gun
 
-The heavy cannon is the Sirocco's factory arm, but its 3x2 ballistic footprint
+The heavy cannon is the Warden's factory arm, but its 3x2 ballistic footprint
 fits any arms socket that takes 3x2, so it is balanced by what carrying it
 costs, never by the fragility of the chassis that ships with it. Today that is
-the Sirocco alone. The Hound's 2x2 nose cannot take it at any quarter-turn, and
+the Warden alone. The Hound's 2x2 nose cannot take it at any quarter-turn, and
 since the Bulwark's one arm socket became a 2x2 socket on each arm (each arm
 carries one single gun, not a twin), neither can the Bulwark; it is also a
 centreline gun, which a side arm never takes. The arm-mount readings below
 predate that split. Its contact hit (100 on the body struck, over a 45
 splash) was tuned against mech armor and is not a lever here.
 
-**A Sirocco dying in about 11 s to one heavy cannon in the open is accepted**
-(owner, 2026-10-18). The Sirocco is long-range support, not a front-liner: it is
-meant to be fragile under direct fire, and a Sirocco mirror fight is short
+**A Warden dying in about 11 s to one heavy cannon in the open is accepted**
+(owner, 2026-10-18). The Warden is long-range support, not a front-liner: it is
+meant to be fragile under direct fire, and a Warden mirror fight is short
 (12-13 s in `armorMatchup`, both before and after the changes below).
 
 **The cannon cost its carrier nothing.** It weighed 14, two more than the
@@ -248,20 +248,20 @@ refit.
 **What it costs now:**
 
 - **Build mass 3** (`MechFrameBudget`; mass 17). A full refit Bulwark with the
-  cannon and two SRM-15s gives up its vent array. The Sirocco's rating took the same
-  3, so the Sirocco pays nothing for its own gun. Mass alone did not move a fight:
+  cannon and two SRM-15s gives up its vent array. The Warden's rating took the same
+  3, so the Warden pays nothing for its own gun. Mass alone did not move a fight:
   at +3 and at +6 (vent array and capacitor-bank tier given up) the refit cannon Bulwark still
   beat a refit chaingun Bulwark 83-88%. Every authored doll's internals are cheap
   next to the reservoir the cannon left free, which is why flux was needed too.
-  +6 was also rejected because the Sirocco's rating would have to rise by 6, and
+  +6 was also rejected because the Warden's rating would have to rise by 6, and
   the military engine would then hand it a free vent array.
 - **Flux 34 per round** (was 26; 13.6 flux/s at its cycle). The cannon now
   competes with the SRM-15s for the reservoir. On a stock frame (100 flux, 6/s)
   that is the cost that bites; on a 120 reservoir at 7.5/s less so. At 42 the
   stock-frame cannon Bulwark lost to everything but a stock chaingun, a weapon
   not worth carrying; 34 is where it trades even with the chaingun refit's
-  frame. A short Sirocco fight lives off its reservoir, so flux barely touches
-  the Sirocco (mirror 13 s either way).
+  frame. A short Warden fight lives off its reservoir, so flux barely touches
+  the Warden (mirror 13 s either way).
 - **Range stays 26**, already the shortest mech arm (chaingun 30, pulse laser 32,
   bastion 34). Cycle time is unchanged.
 
@@ -278,17 +278,17 @@ are `-Dbattle.mech.heavyCannonBuildMass=0 -Dbattle.mech.heavyCannonFlux=26`.
 | Refit cannon vs refit pulse-laser Bulwark | 0.73 | 0.73 |
 | Refit cannon vs stock chaingun Bulwark | 1.00, 44 s | 1.00, 59 s |
 | Refit cannon Bulwark vs breakthrough / heavy-gun tank | 0.00 / 0.00 | 0.00 / 0.01 |
-| Stock / refit Sirocco vs refit cannon Bulwark | 0.06 / 0.04 | 0.06 / 0.06 |
-| Sirocco mirror, stock and refit | 13 s / 13 s | 13 s / 13 s |
+| Stock / refit Warden vs refit cannon Bulwark | 0.06 / 0.04 | 0.06 / 0.06 |
+| Warden mirror, stock and refit | 13 s / 13 s | 13 s / 13 s |
 | Overall across the eleven fits: refit cannon / refit bastion Bulwark | 0.67 / 0.65 | 0.65 / 0.69 |
 | Overall: stock-frame cannon Bulwark / refit chaingun Bulwark | 0.44 / 0.39 | 0.35 / 0.47 |
 
 The cannon is still a good Bulwark arm: refit around it, it beats the factory
 chaingun refit and the Prestige pulse laser. It is no longer the best one, it
 costs a vent array and a fuller reservoir to carry, and on a stock frame it no longer
-outweighs a refit. The heavy-cannon Sirocco is not a counter to anything heavy:
+outweighs a refit. The heavy-cannon Warden is not a counter to anything heavy:
 it loses to every refit Bulwark and to both tanks, and beats only a stock
-chaingun Bulwark (stock Sirocco 0.39, refit 0.77; was 0.59 and 0.88).
+chaingun Bulwark (stock Warden 0.39, refit 0.77; was 0.59 and 0.88).
 
 Still open from these readings:
 
@@ -297,7 +297,7 @@ Still open from these readings:
 - **The chaingun Bulwark is the anti-infantry Bulwark** (owner, 2026-10-18).
   Its armor-duel share is low by design, so it is judged against infantry,
   never by how it fares against machines. Its anti-armor answer is its SRM
-  shoulders, as LRMs are the Sirocco's. What these readings did expose is that
+  shoulders, as LRMs are the Warden's. What these readings did expose is that
   the chaingun's flux starved those shoulders. That is now fixed by the firing
   order, not by flux (next section).
 
@@ -318,7 +318,7 @@ others' authored values before they were combined.
   refit Bulwark carrying it gives up its vent array. Alone it barely moves a fight
   (refit bastion against refit cannon 0.58 to 0.46; stock frame against refit
   chaingun unchanged at 0.56, because a stock frame has the room anyway).
-  The Sirocco's rating does not absorb it: the bastion is not its gun.
+  The Warden's rating does not absorb it: the bastion is not its gun.
 - **Bastion: flux 28** (was 24; 10.8 flux/s). This is the lever that bites on a
   stock frame. Alone it takes the stock-frame bastion against a refit chaingun
   from 0.56 to 0.29. At 32 the refit bastion fell behind the refit cannon and the
@@ -412,7 +412,7 @@ Still open:
 
 - **The linear cannon is the weakest Advanced arm** (refit 0.34 overall before
   this change, 0.32 after; it beats only the stock chaingun frame and the
-  Siroccos clearly). Its trouble is not carriage. Its penetration of 8 against the
+  Wardens clearly). Its trouble is not carriage. Its penetration of 8 against the
   Bulwark's 18 halves every round. And the duel band its SRM-15s pull it into
   keeps it at 17 cells, where those launchers latch the reservoir about 60 s of
   a 75 s fight. Read with the chaingun at 24, flux 14 moved it to 0.36. Flux 16 with the cycle halved to 1.4 s
@@ -514,7 +514,7 @@ refit chaingun; refit heavy cannon, bastion and pulse arms.
 | Refit heavy cannon / bastion / pulse | 0.01 / 0.02 / 0.01 | 0.57 / 0.79 / 0.70 |
 | Refit Bulwark with two AT LRM-15 / bastion and two AT LRM-15 | 0.12 / 0.15 | 0.89 / 0.91 |
 | Hound, stock and refit | 0.00 | 0.00 / 0.01 |
-| Sirocco (Frag LRM-5s), stock and refit | 0.00 | 0.00 |
+| Warden (Frag LRM-5s), stock and refit | 0.00 | 0.00 |
 | Tank against tank, seconds from first hit | 45-47 | 52-55 |
 | Tank against a Bulwark, seconds from first hit | 32-39 | 52-62 |
 
@@ -659,7 +659,7 @@ being a tank-only gap.
   | Bastion arms, two AT LRM-15s | 0.89 | 0.98 | 0.82 |
   | Stock Bulwark | 0.21 | 0.25 | 0.21 (street 0.50) |
   | Refit chaingun Bulwark | 0.50 | 0.52 | 0.48 |
-  | Hound / Sirocco, stock and refit | 0.00-0.04 | 0.00-0.02 | 0.00 |
+  | Hound / Warden, stock and refit | 0.00-0.04 | 0.00-0.02 | 0.00 |
 
   It stops about 10 rounds a fight against the LRM fit. The stock Bulwark's
   street rows do not move, because its SRMs fly flat. The bastion fit stays high
@@ -796,7 +796,7 @@ without its front bonus. `-Dbattle.vehicle.armorArcs=false` is the control.
   militia technical (a 1,930-tick stalemate becomes a win at 1,854). Ladder,
   4 seeds, rule off / on: 586 of 621 pairings identical, and every one on open
   ground but one. 12 pairings move by 0.25 or more, all on the street but one
-  hull-down row (Sirocco against the militia technical, one fight in four).
+  hull-down row (Warden against the militia technical, one fight in four).
   Street fights left undecided (stalemate or timeout) go 227 to 141 of 828.
   Most of them are fights that never began: the escort APC against a Hound, a
   breakthrough tank or a screened tank timed out with no damage on either side,
@@ -900,8 +900,8 @@ without its front bonus. `-Dbattle.vehicle.armorArcs=false` is the control.
   0.75 / 0.6, with `-Dbattle.mech.armorArcs=false` the control. Over the mech and
   mixed ladders (8 seeds, both roles), 202 of 291 rows are identical to the
   control and no pairing moves past noise. Two-on-one mech fights (`2x` Hound,
-  Sirocco and Bulwark, Hound+Sirocco, two breakthrough tanks against a Bulwark,
-  a refit Bulwark and a Sirocco) win exactly as often, and only a few kill a
+  Warden and Bulwark, Hound+Warden, two breakthrough tanks against a Bulwark,
+  a refit Bulwark and a Warden) win exactly as often, and only a few kill a
   second or two sooner. A mech's torso follows the machine it is shooting, and
   two attackers on one approach both stay inside its ninety-degree front.
   Flanking changes a mech-versus-mech outcome only when the player puts a
@@ -938,14 +938,14 @@ whole section:
 | --- | --- | --- |
 | Chaingun Bulwark, twin SRM-15 Frag, 12 men at 15 cells | 35.3 s | — |
 | Chaingun Bulwark, twin SRM-15 AT, same | 40.8 s (racks hold) | 37.4 s |
-| Sirocco, twin LRM-5 Frag, 12 men at 30 cells | 13.6 s | — |
-| Sirocco, twin LRM-5 AT, same | never (racks hold, cannon out of reach) | 13.6 s |
+| Warden, twin LRM-5 Frag, 12 men at 30 cells | 13.6 s | — |
+| Warden, twin LRM-5 AT, same | never (racks hold, cannon out of reach) | 13.6 s |
 
 The Frag rack kills men at least as fast as the old rack did, and an AT rack holds
 fire at them every time (no salvo begun at a soft target in any loop). On a stock
 chaingun Bulwark the rack barely matters against men either way: it starts about
 one salvo per fight, because the chaingun's flux starves it (below). On the
-Sirocco the rack is the whole answer to men, which is why the Sirocco ships Frag
+Warden the rack is the whole answer to men, which is why the Warden ships Frag
 LRMs.
 
 **The mixed fight.** An AT Bulwark faces six men at 13 cells with a breakthrough
@@ -967,12 +967,12 @@ nearest-target choice):
 | Refit Bulwark, Frag | 0.51 | 0.55 |
 | Hound (AT SRM-5) | 0.15 | 0.13 |
 | Hound, Frag SRM-5 | 0.09 | 0.09 |
-| Sirocco, AT LRM-5s | 0.43 | 0.40 |
-| Sirocco, Frag LRM-5s (the factory fit) | 0.21 | 0.19 |
+| Warden, AT LRM-5s | 0.43 | 0.40 |
+| Warden, Frag LRM-5s (the factory fit) | 0.21 | 0.19 |
 
 A Frag row's control fires the same Frag rack; its difference is its opponents'
 racks and the target choice. AT racks hold or improve every mech's armor results,
-most for the stock Bulwark, and the Frag Sirocco is half the anti-armor machine
+most for the stock Bulwark, and the Frag Warden is half the anti-armor machine
 the AT one is. Where SRMs reach a tank (the street, at 17 cells) the AT warhead
 takes clearly more off it than the old rack did: a refit Bulwark leaves a
 breakthrough tank 0.74 of its integrity against 0.88 and a heavy-gun tank 0.70
@@ -1033,7 +1033,7 @@ Still open from these readings:
 | Class | Payloads | Carriers |
 | --- | --- | --- |
 | Light | Hound, heavy APC | Bus-class boats (Buffalo, Tarsus, Mule, Nebula) with a lift cradle |
-| Medium | Sirocco, escort APC, militia technical | Bus-class boats with a heavy cradle; Valkyrie |
+| Medium | Warden, escort APC, militia technical | Bus-class boats with a heavy cradle; Valkyrie |
 | Heavy | Bulwark, breakthrough tank | Valkyrie; a committed ship with Ground Support |
 
 A lift fitting is a third boat fitting slot beside plating and drive. It trades
@@ -1047,7 +1047,7 @@ late step.
 two machine lifts a mission, a heavy-cradled one three, and the synthetic heavy
 carrier lifts the whole bay. The heavy cradle used to fly two as well, which made
 it a worse buy than the light one: it costs about 2.3 times the bill, and a
-Sirocco brings less armor (550 structure plus capacity) than a Hound (725), so
+Warden brings less armor (550 structure plus capacity) than a Hound (725), so
 the better cradle put less on the ground. Best bay per tier, structure plus
 armor capacity:
 
@@ -1100,14 +1100,14 @@ one. Lines and their first variants:
 commodity prices (`gradlew.bat armorEconomyEvidence`), structure plus armor
 capacity per thousand credits against the class mech: heavy APC 1.00x the Hound;
 technical 2.56x, escort 2.38x, up-armored 1.99x and fire-support 1.23x the
-Sirocco; breakthrough 1.20x, heavy-gun 1.09x and dozer 2.04x the Bulwark (the
+Warden; breakthrough 1.20x, heavy-gun 1.09x and dozer 2.04x the Bulwark (the
 tanks were 1.80x and 1.63x before their plate was retuned against the Bulwark). The
 heavy APC was 0.73x, a worse buy than the mech it shares a lift class with, and
 was cut to 38/28/88/3 (supplies, machinery, metals, rare metals). Its variants
 followed: up-armored 52/40/140/8 (1.51x the base bill for 1.63x the armor) and
 fire-support 52/40/115/11 (the base hull plus a mortar-class weapon's price).
 Per lift, every vehicle ties or beats its class mech except the heavy APC (380
-against the Hound's 725) and the fire-support APC (380 against the Sirocco's
+against the Hound's 725) and the fire-support APC (380 against the Warden's
 550). Those two pay in plate for their seats and their mortar. A role hull
 bought for its job rather than its plate (the fire-support APC's mortar, the
 spotter pickup's sight, the supply pickup's stock, a missile carrier's racks) is held
@@ -1123,7 +1123,7 @@ Bulwark's would break this rule, so it stays as it is.
 seeds, three grounds, both roles; no spotter, so the LRM carrier fires only on its
 own sight). Wins out of 24 and the opponent's integrity left:
 
-| Carrier against | Breakthrough | Heavy-gun | Hound | Sirocco | Bulwark | Bulwark refit |
+| Carrier against | Breakthrough | Heavy-gun | Hound | Warden | Bulwark | Bulwark refit |
 | --- | --- | --- | --- | --- | --- | --- |
 | LRM carrier | 0 (0.53-0.87) | 0 (0.27-0.84) | 20 | 16 | 17 | 10 |
 | SRM technical | 0 (0.77-1.00) | 0 (0.75-1.00) | 1 | 1 | 0 (1.00) | 0 (1.00) |

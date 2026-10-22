@@ -51,7 +51,7 @@ public final class MechPatternPicker {
                     MechPattern.of(MechWeaponComponent.DEMOLITION_CANNON),
                     MechPattern.of(VehicleType.DOZER_BREACHER)),
             FactionMechLoadouts.LIONS_GUARD_ID, Set.of(
-                    MechPattern.of(MechVariant.SIROCCO),
+                    MechPattern.of(MechVariant.WARDEN),
                     MechPattern.of(MechWeaponComponent.THERMAL_LANCE),
                     MechPattern.of(VehicleType.FIRE_SUPPORT_APC)));
 

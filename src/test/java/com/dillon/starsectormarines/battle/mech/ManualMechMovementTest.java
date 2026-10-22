@@ -82,7 +82,7 @@ class ManualMechMovementTest {
     @Test
     void diagonalRespectsLiveSpeedAndZeroTimePreservesAllMotionState() {
         Fixture f = new Fixture();
-        long mech = f.mech(MechVariant.SIROCCO, 5f, 5f);
+        long mech = f.mech(MechVariant.WARDEN, 5f, 5f);
         f.roster.entityWorld().setFloat(mech, f.roster.components().MOVEMENT,
                 BattleComponents.MOVEMENT_MOVE_SPEED, 3f);
         f.drive(mech, 1f, 1f, .25f);

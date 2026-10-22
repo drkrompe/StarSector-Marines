@@ -22,7 +22,7 @@ public enum MechRole {
     /**
      * Medium/long-range overwatch. Prefers a screened firing lane 24–36 cells
      * from the threat, uses its installed arms weapon at the inner edge and
-     * LRMs farther out, and withholds SRMs. Another Sirocco does not count as
+     * LRMs farther out, and withholds SRMs. Another Warden does not count as
      * the friendly screen.
      */
     LR_SUPPORT("@mechRoleLongRangeSupport"),

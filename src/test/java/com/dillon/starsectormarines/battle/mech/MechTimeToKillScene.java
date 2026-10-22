@@ -43,7 +43,7 @@ import java.util.concurrent.Future;
  * ground). Teams: six field rifles, six pulse rifles, six DMRs; two anti-materiel rifles and two rocket
  * tubes carried as the real specials (ammunition unlimited, so the reading is a rate; rounds-to-kill
  * says what a magazine would buy) over sub-machine guns that cannot reach twenty cells; and one
- * hostile Sirocco (under the assault role, which engages a planted target where long-range support
+ * hostile Warden (under the assault role, which engages a planted target where long-range support
  * perches and never fires) with its shoulder racks removed, so only its heavy cannon speaks.
  * Shooters are immortal and planted: the question is how the mech comes apart, not who wins.
  *
@@ -200,7 +200,7 @@ public final class MechTimeToKillScene implements BehaviorScene {
         Team team = cell.team;
         if (team.heavyCannon) {
             builder.squad(TEAM).faction(Faction.DEFENDER).size(1).at(TEAM_X + 2, MECH_Y)
-                    .mech(MechVariant.SIROCCO, MechRole.ASSAULT)
+                    .mech(MechVariant.WARDEN, MechRole.ASSAULT)
                     .stationary()
                     .health(IMMORTAL)
                     .assigned(id -> ObjectiveAssignment.defendArea(id, TEAM_X, MECH_Y))

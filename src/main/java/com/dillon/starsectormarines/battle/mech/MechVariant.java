@@ -26,11 +26,11 @@ public enum MechVariant {
             null,
             MechRole.ASSAULT),
 
-    SIROCCO("sirocco", "@gearMechVariantSIROCCO", 250f, 300f, 10f, 1.32f, 0.45f, 55f,
+    WARDEN("warden", "@gearMechVariantWARDEN", 250f, 300f, 10f, 1.32f, 0.45f, 55f,
             1.35f, 1.20f, 0.48f, 0.65f, 1.2f,
-            LayeredMechAppearance.CHASSIS_SIROCCO,
+            LayeredMechAppearance.CHASSIS_WARDEN,
             MechWeaponComponent.SINGLE_HEAVY_CANNON, null, null,
-            // Artillery against men; the heavy cannon is the Sirocco's answer to armor.
+            // Artillery against men; the heavy cannon is the Warden's answer to armor.
             MechWeaponComponent.LRM_5_FRAG,
             MechWeaponComponent.LRM_5_FRAG,
             MechRole.LR_SUPPORT);
@@ -164,7 +164,7 @@ public enum MechVariant {
         return switch (this) {
             case HOUND -> MechBodyPlan.HOUND;
             case BULWARK -> MechBodyPlan.BULWARK;
-            case SIROCCO -> MechBodyPlan.SIROCCO;
+            case WARDEN -> MechBodyPlan.WARDEN;
         };
     }
 
@@ -175,7 +175,7 @@ public enum MechVariant {
     public LiftClass liftClass() {
         return switch (this) {
             case HOUND -> LiftClass.LIGHT;
-            case SIROCCO -> LiftClass.MEDIUM;
+            case WARDEN -> LiftClass.MEDIUM;
             case BULWARK -> LiftClass.HEAVY;
         };
     }
