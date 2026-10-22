@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * The look of hive creep on the canonical colony (`hive-creep.md`).
+ * The look of hive creep on the canonical colony (`colony-breach-nouns.md`, Creep).
  *
  * <p>The colony fixture is stood up and every eruption site opens on the breach
  * schedule as a creep source; only the creep field is advanced, so the town,

@@ -255,12 +255,14 @@ import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
 import com.dillon.starsectormarines.battle.creep.BoreCreep;
+import com.dillon.starsectormarines.battle.creep.CreepDigestion;
 import com.dillon.starsectormarines.battle.creep.CreepEffects;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.creep.CreepRoofCollapse;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
+import com.dillon.starsectormarines.battle.evacuation.GroundColonies;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBores;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPacks;
@@ -726,6 +728,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     private CreepField creep;
     private final BoreCreep boreCreep = new BoreCreep();
+    private final CreepDigestion creepDigestion = new CreepDigestion();
+    /** The creep digesting the swarm's dead (`colony-breach-nouns.md`, Creep). */
+    public CreepDigestion creepDigestion() { return creepDigestion; }
     /** Roofs the creep has stood on long enough cave in under it. */
     private CreepRoofCollapse creepRoofs;
     /**
@@ -743,6 +748,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private static final long BORE_SEED_SALT = 0x53574152_4D424F52L;
     private final SwarmBores swarmBores;
     private final CreepOutposts creepOutposts;
+    private final GroundColonies groundColonies = new GroundColonies();
+    /** The ground colonies the creep has grown against hostile emplacements. */
+    public GroundColonies groundColonies() { return groundColonies; }
     /** The battle's swarm bores: empty until something opens one. */
     public SwarmBores swarmBores() { return swarmBores; }
     @Override public List<SwarmBore> getSwarmBores() { return swarmBores.bores(); }
@@ -3547,8 +3555,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmPacks.tick(this);
         boreCreep.sync(this);
         if (creep != null) creep.tick(simTickIndex);
+        creepDigestion.tick(this);
         // Outposts after the creep has spread: they root on ground it has held a while.
         creepOutposts.tick(this);
+        groundColonies.tick(this);
         if (creep != null) {
             if (creepRoofs == null) creepRoofs = new CreepRoofCollapse(generationSeed ^ BORE_SEED_SALT);
             creepRoofs.tick(this);

@@ -94,4 +94,19 @@ class TranslationSmokeTest {
         }
         assertTrue(missing.isEmpty(), "keys with no catalog entry: " + missing);
     }
+
+    @Test
+    void everyKeyTheMarkupNamesIsInTheCatalog() throws Exception {
+        JSONObject catalog = catalog();
+        Pattern reference = Pattern.compile("\\{i18n\\.([A-Za-z][A-Za-z0-9_]*)}");
+        List<String> missing = new ArrayList<>();
+        try (Stream<Path> files = Files.walk(MOD.resolve("data/ui"))) {
+            for (Path file : files.filter(f -> f.toString().endsWith(".mlx")).toList()) {
+                for (var m = reference.matcher(Files.readString(file)); m.find();) {
+                    if (!catalog.has(m.group(1))) missing.add(file.getFileName() + " " + m.group(1));
+                }
+            }
+        }
+        assertTrue(missing.isEmpty(), "markup keys with no catalog entry: " + missing);
+    }
 }

@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import java.util.Arrays;
 
 /**
- * Creep brings roofs down under its weight (`hive-creep.md`, creep effects):
+ * Creep brings roofs down under its weight (`colony-breach-nouns.md`, Creep):
  * a building the growth has stood in for a while sags open, cell by cell.
  *
  * <ul>

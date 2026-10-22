@@ -68,9 +68,17 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             return;
         }
         long previousTarget = sim.combat().targetId(runner);
+        if (scavenge(runner, previousTarget, sim)) return;
         long target = selectTarget(runner, sim);
         sim.combat().setTargetId(runner, target);
         if (target == 0L) {
+            // nothing to fight: fetch the nearest of the swarm's dead home, if one lies near
+            long dead = sim.swarmHarvest().nearestRecyclable(sim, sim.world().x(runner), sim.world().y(runner),
+                    SwarmHarvest.SCAVENGE_RADIUS);
+            if (dead != 0L) {
+                SwarmMovement.pathDirect(runner, sim.world().cellX(dead), sim.world().cellY(dead), false, sim);
+                return;
+            }
             updateRoaming(runner, previousTarget, sim);
             return;
         }
@@ -102,6 +110,27 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         }
 
         pressToward(runner, target, target != previousTarget, sim);
+    }
+
+    /**
+     * A Runner of a scavenger pack fetches the nearest of the swarm's dead anywhere on the field,
+     * unless what it was fighting is already within its reach. Returns whether it went scavenging;
+     * with nothing left to fetch it fights like any Runner.
+     */
+    private static boolean scavenge(long runner, long previousTarget, BattleSimulation sim) {
+        SwarmHarvest harvest = sim.swarmHarvest();
+        if (!harvest.isScavenger(runner)) return false;
+        if (previousTarget != 0L && sim.resolveUnit(previousTarget) != 0L && sim.world().isAlive(previousTarget)) {
+            float dx = sim.world().x(previousTarget) - sim.world().x(runner);
+            float dy = sim.world().y(previousTarget) - sim.world().y(runner);
+            float reach = sim.combat().attackRange(runner);
+            if (dx * dx + dy * dy <= reach * reach) return false;
+        }
+        long dead = harvest.nearestRecyclable(sim, sim.world().x(runner), sim.world().y(runner), Float.MAX_VALUE);
+        if (dead == 0L) return false;
+        sim.combat().setTargetId(runner, 0L);
+        SwarmMovement.pathDirect(runner, sim.world().cellX(dead), sim.world().cellY(dead), false, sim);
+        return true;
     }
 
     /**
