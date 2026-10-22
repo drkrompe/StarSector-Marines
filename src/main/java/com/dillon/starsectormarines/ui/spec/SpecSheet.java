@@ -18,13 +18,27 @@ import java.util.List;
  *                 keys a border colour on
  * @param stats    stat rows in display order; may be empty
  * @param notes    field-note paragraphs in display order; may be empty
+ * @param seats    one picture per seat for a sheet that describes a whole
+ *                 squad's issue, painted as fire teams of {@link #TEAM_SIZE},
+ *                 each team a two-by-two block; empty for a single item
+ * @param teams    a heading per fire team, in seat order; may be empty
  */
 public record SpecSheet(String title,
                         String subtitle,
                         String crestPath,
                         String accent,
                         List<Stat> stats,
-                        List<String> notes) {
+                        List<String> notes,
+                        List<Seat> seats,
+                        List<String> teams) {
+
+    /** Seats per painted block: a fire team. */
+    public static final int TEAM_SIZE = 4;
+
+    public SpecSheet(String title, String subtitle, String crestPath, String accent,
+                     List<Stat> stats, List<String> notes) {
+        this(title, subtitle, crestPath, accent, stats, notes, List.of(), List.of());
+    }
 
     public SpecSheet {
         if (title == null || title.isBlank()) throw new IllegalArgumentException("A spec sheet needs a title");
@@ -32,7 +46,22 @@ public record SpecSheet(String title,
         accent = accent == null || accent.isBlank() ? "item" : accent;
         stats = stats == null ? List.of() : List.copyOf(stats);
         notes = notes == null ? List.of() : List.copyOf(notes);
+        seats = seats == null ? List.of() : List.copyOf(seats);
+        teams = teams == null ? List.of() : List.copyOf(teams);
     }
+
+    /** This sheet with one picture per seat, under a heading per fire team. */
+    public SpecSheet withSeats(List<Seat> seats, List<String> teams) {
+        return new SpecSheet(title, subtitle, crestPath, accent, stats, notes, seats, teams);
+    }
+
+    /**
+     * What one seat carries, as pictures.
+     *
+     * @param image the seat's main item: its weapon, or its suit
+     * @param badge a second, smaller item drawn on its corner, or null
+     */
+    public record Seat(String image, String badge) { }
 
     /**
      * One stat row.

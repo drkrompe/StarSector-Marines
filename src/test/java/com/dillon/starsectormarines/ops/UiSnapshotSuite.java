@@ -50,7 +50,10 @@ import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.LoadoutCard;
+import com.dillon.starsectormarines.marine.LoadoutCardLearning;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
+import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 import com.dillon.starsectormarines.marine.SquadFoundingCost;
 import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.marine.SquadFoundingWorkshop;
@@ -1891,6 +1894,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 ((Runnable) viewModel.command().props().get("closeDossier")).run();
             }
             if (state.equals("command")) {
+                // Squad 01 carries mixed cards, so its hovers show specials and integral systems.
+                LoadoutCardLearning.learn(roster.armory(), new LoadoutCard(LoadoutCard.Kind.WEAPON,
+                        SquadEquipmentDoctrines.FIRE_SUPPORT_WEAPONS).id());
+                LoadoutCardLearning.learn(roster.armory(), new LoadoutCard(LoadoutCard.Kind.SHEET,
+                        SquadEquipmentDoctrines.LEAGUE_LINE_ARMOR).id());
+                if (roster.applySquadEquipment(squads.get(0).id(), SquadEquipmentDoctrines.FIRE_SUPPORT_WEAPONS,
+                        SquadEquipmentDoctrines.LEAGUE_LINE_ARMOR) != SquadEquipmentResult.APPLIED) {
+                    throw new IllegalStateException("Squad 01's showcase cards did not apply");
+                }
                 viewModel.command().selectCommand(captain.id());
                 ((Runnable) viewModel.command().props().get("closeDossier")).run();
                 viewModel.command().toggle(squads.get(0).id());

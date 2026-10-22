@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.DefenceStructureFact;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.nav.RouteCostField;
+import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneOccupancy;
@@ -106,6 +107,9 @@ public interface BattleView {
     default boolean isCapturedStructure(long id) { return false; }
 
     NavigationGrid getGrid();
+
+    /** The battle's fire field, or {@code null} when this battle has none. */
+    FireField fireFieldIfPresent();
 
     /**
      * Why Orbital Barrage cannot be committed right now, or {@code null} when it can: a hostile fortress battery

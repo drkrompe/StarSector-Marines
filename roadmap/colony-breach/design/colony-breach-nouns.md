@@ -336,6 +336,15 @@ compound prepared-ground courses a held base gets), when no gate can be cut or
 the building's door would be shut in. Nothing is invented for them. Nothing
 stands on a roof, because the battle has no roof posts.
 
+The building's own people have also **knocked loopholes** through its walls. A
+colony building picked for its room may be a blank block, with nothing to
+shoot from except its door. Every straight run of wall with the building's floor
+behind it and open ground in front gets an opening every few cells, centred on
+the run. An opening is an ordinary window, not a new kind of thing: a defender
+stands in it and shoots through, and nobody walks through it. Existing windows
+and doors are kept, and a short stub of wall between a door and a corner stays
+solid. `-Dbattle.colonyBreach.loopholes=false` is the control.
+
 A holdout with works has two militia teams. The **house** team holds the
 building's held place and mans its windows and doors. The **line** team mans
 the firing step, an area defence whose claims are kept to the step's run, the
@@ -348,6 +357,21 @@ made once, in place of the commander-tier fall back through layers that
 light barricade breaks the nearest piece between them rather than walking
 round to the gate the Runners crowd into.
 
+**A militia barricade is something the swarm tears down, not a wall.** Every
+breakable piece of the militia's works (a redoubt's fence and crates, a
+roadblock's hedgehogs and crates) is a **barricade** to the swarm: the swarm's
+flow field crosses it at the cost of about a dozen cells of walking, so where
+the way round is short the swarm goes round and where it is long the swarm comes
+on at the line. A body whose way on runs through a barricade stops at the piece
+and claws at it on its strike cooldown (a Runner's blow is light, a Brute's
+heavy), and the gap a broken piece leaves is where the pack pours through. A
+prepared position is therefore assaulted head on rather than flanked, which is
+what makes it read as one. Ordinary yard fences elsewhere in the town stay walls.
+A damaged hedgehog stands bent with a girder knocked loose; a destroyed one lies
+toppled flat and gives no cover. Trucks do not break.
+`-Dbattle.swarm.barricadeAssault=false` is the control: barricades are walls,
+and the swarm goes round.
+
 A holdout's ground is its works' rectangle. A Marine at its **gate** relieves
 it, and the people walk out through the gate.
 `-Dbattle.colonyBreach.redoubtWorks=false` is the control: every holdout is the
@@ -356,7 +380,8 @@ bare building with aprons.
 **Roadblock.** A line the militia throw **across a street**, not round a
 building: works on an approach to the main redoubt, with nobody behind them to
 relieve. A redoubt claims a block; a roadblock closes a street, and the swarm
-either breaks it or is funnelled the long way round. The colony has one to
+tears its way through it unless the way round is short (see the barricade law
+above). The colony has one to
 three (seeded), each on its own approach:
 
 - **where**: a straight run of a street that leads toward the compound
@@ -369,8 +394,8 @@ three (seeded), each on its own approach:
   on either side, nothing closing it within thirteen cells, takes no
   roadblock: a line there closes nothing;
 - **the obstacle row**, on the threat side: hedgehogs broken by crate stacks,
-  and on some a truck dragged across one lane, closed to movement and open to
-  sight;
+  and on some a truck dragged across one lane, closed to walking and open to
+  sight, and torn down by a swarm that comes on at it;
 - **the course** a row in: one course of sandbag facing the threat, a
   fighting-position run its **team** mans under the same order a holdout's
   line has;
@@ -1071,6 +1096,10 @@ against its own control in `renderEvidence`.
   declares its trees' crowns to the field when the field is made; rock
   formations and hills are climbed as walls are. A crown fills at a wall's rate,
   so its coverage is how long the creep has held the tree.
+- **Creep can be matured.** A battle set weeks into a bloom (the Cordon,
+  `cordon-nouns.md`) grows every source to its full reach at once at setup and
+  fills it, walls crusted, as the clock would have (`CreepField.mature`); the
+  trees under it die at once. Nothing else about the field changes.
 - **Removing a source withers what it alone held**, from the outer edge back to
   the hole over a visible interval: the growth dies first, then clears. Ground a
   living source also reaches stays, and a living source reaching dying ground
@@ -1128,6 +1157,22 @@ against its own control in `renderEvidence`.
   being dragged is lying nowhere. Only the swarm's own: Marines, militia and
   colonists are the harvest's. It is what keeps a long battle on the creep from
   piling up corpses, and it gives nothing back to the field.
+- **Body pile cap: a safety net where nothing clears the dead** (`BodyPileCap`).
+  Off the creep and out of a bore's reach — waves thrown at a defended redoubt —
+  nothing takes the swarm's dead away, and every body lying is drawn every
+  frame: a dead Runner is some thirty quads of burst pieces, so a pile of 1,200
+  cost about seven milliseconds of frame (`renderEvidence`, `body pile`). The
+  battle counts the bodies still lying by 8x8-cell area once a second; past 64
+  in one area (about one a cell, a carpet) the oldest there settle and fade out
+  over four seconds and are gone, and past 1,000 on the whole field the oldest
+  anywhere go the same way. Every side's dead count, the oldest first by death
+  tick and then id, so it is deterministic. A body on a carrier — dragged,
+  impaled, being harvested — is never counted or taken, and one taken up
+  mid-fade lies whole again; a retired Runner leaves the swarm's recycling with
+  it, and the corpse itself stays for the battle's reckoning of the dead. The
+  limits are generous on purpose: it is not a mechanic, and a battle the creep
+  or the bores keep clean never reaches them. `-Dbattle.bodyPileCap=false` is
+  the control; `body-pile` (`createSnapshots`) shows a pile capped against it.
 - **Creep favours the swarm and shelters no one** (`CreepEffects`). A swarm
   body runs a quarter faster on living creep; Marines and colonists are never
   slowed, so creep reads as the swarm's ground rather than mud. A fleeing or
@@ -1189,9 +1234,19 @@ large map.
   colonists while harvest is open.
 - **Shelter** and **lift** are disclosed, so the mission declares their cells;
   the swarm knows where they are without sensing them, as the noun's law allows.
+- **A barricade costs, it does not block.** A militia barricade piece is
+  crossed by the field at the cost of about a dozen cells, cardinally only, and
+  a descent stops in front of it; a body there strikes it. Close in, a body the
+  field leads through a barricade follows the field rather than its own path,
+  because its own path would take it round and the two would turn it back and
+  forth.
 - **Bore** is the goal of a body carrying biomass home: the nearest living
   bore. The swarm's own holes, so their cells are declared and redeclared as a
   bore opens or collapses.
+- **A field charges for fire.** A step into a burning cell, or one beside it,
+  costs the fire's route multiplier, so the swarm streams round a burning
+  stand where it can and through it only where its goal lies beyond
+  (`fire-nouns.md`, Pathing).
 - **A field makes a stream.** The descent is the same from every cell and has
   no crowd term, so bodies descending it each for themselves fall into one lane
   and run it single file. That is the river a surge makes leaving its mouth,

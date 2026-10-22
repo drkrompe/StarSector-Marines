@@ -30,6 +30,19 @@ class CreepFieldTest {
     }
 
     @Test
+    void maturingGrowsTheWholeReachAtOnceAsTheClockWouldHave() {
+        CreepField grown = new CreepField(openGrid(W, H), new CellTopology(W, H), 7L);
+        grown.putSource(1L, 10, 12, FAST);
+        run(grown, 0, 600);
+        CreepField matured = new CreepField(openGrid(W, H), new CellTopology(W, H), 7L);
+        matured.putSource(1L, 10, 12, FAST);
+        matured.mature();
+        assertEquals(covered(grown), covered(matured), "the same ground as a field left to grow out");
+        assertEquals(CreepField.FULL, matured.coverageAt(14, 12), "and all of it full at once");
+        assertFalse(matured.isCreeped(40, 12), "nothing past its reach");
+    }
+
+    @Test
     void creepSpeedsOnlyTheSwarmAndIsNoRefuge() {
         CreepField field = new CreepField(openGrid(W, H), new CellTopology(W, H), 7L);
         field.putSource(1L, 10, 12, FAST);

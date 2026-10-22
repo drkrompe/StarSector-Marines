@@ -1,11 +1,18 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.fire.FireField;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 
+import java.util.Arrays;
 
-/** Outdoor night treatment shared by battle and map-review hosts. Lamps never reveal fog. */
+
+/**
+ * Outdoor night treatment shared by battle and map-review hosts. Lamps never reveal fog.
+ * A burn lights the night as a lamp does, in fire's colour and flickering
+ * ({@link FireLight}); its pools are refilled each frame, only where its lights reach.
+ */
 final class NightLightingRenderSystem implements RenderSystem {
     private final PolyMesh shade = new PolyMesh(4096);
     private final NightLightingPass pass = new NightLightingPass();
@@ -17,6 +24,11 @@ final class NightLightingRenderSystem implements RenderSystem {
     private NightLighting lighting;
     private float[] pools, reds, greens, blues;
     private int width;
+    private final FireLight fire = new FireLight();
+    /** Fire's pool at half-cell resolution, like {@link #pools}; zero outside the boxes last filled. */
+    private float[] firePools;
+    private int[] filled = new int[FireLight.MAX_LIGHTS * 4];
+    private int filledCount;
 
     public RenderLayer layer() { return RenderLayer.NIGHT_LIGHTING; }
 
@@ -25,6 +37,8 @@ final class NightLightingRenderSystem implements RenderSystem {
         var night = ground.nightLighting();
         if (night == null) return;
         if (ground != topology || night != lighting) bake(ground, night);
+        boolean burning = fillFire(ground, FireRenderSystem.enabled() ? ctx.sim.fireFieldIfPresent() : null,
+                FireLight.clock(ctx.animationTimeSeconds));
         var camera = ctx.camera;
         var visible = camera.visibleCells(1, ground.getWidth(), ground.getHeight());
         var fog=ctx.sim.getFogOfWar();
@@ -39,15 +53,17 @@ final class NightLightingRenderSystem implements RenderSystem {
             for (int sy=0; sy<steps; sy++) for (int sx=0; sx<steps; sx++) {
                 float px=x+(sx+.5f)/steps, py=y+(sy+.5f)/steps;
                 int cellIndex = y * ground.getWidth() + x;
-                float pool=useFog && !fog.cellShownArray()[cellIndex]
-                        ? 0f : sample(pools,px,py);
+                boolean hidden=useFog && !fog.cellShownArray()[cellIndex];
+                float pool=hidden ? 0f : sample(pools,px,py);
+                float firePool=hidden || !burning ? 0f : sample(firePools,px,py);
                 float x0=Math.round(camera.cellToScreenX(x+(float)sx/steps));
                 float x1=Math.round(camera.cellToScreenX(x+(sx+1f)/steps));
                 float y0=Math.round(camera.cellToScreenY(y+(float)sy/steps));
                 float y1=Math.round(camera.cellToScreenY(y+(sy+1f)/steps));
-                appendShade(masked ? pass.fogShade() : shade, night, pool, px, py,
+                appendShade(masked ? pass.fogShade() : shade, night, pool, firePool, px, py,
                         x0, y0, x1, y1, ctx.alphaMult);
-                if (masked) appendShade(pass.litShade(), night, sample(pools,px,py), px, py,
+                if (masked) appendShade(pass.litShade(), night, sample(pools,px,py),
+                        burning ? sample(firePools,px,py) : 0f, px, py,
                         x0, y0, x1, y1, ctx.alphaMult);
             }
         }
@@ -69,16 +85,18 @@ final class NightLightingRenderSystem implements RenderSystem {
         }
     }
 
-    private void appendShade(PolyMesh mesh, NightLighting night, float pool, float px, float py,
+    private void appendShade(PolyMesh mesh, NightLighting night, float pool, float firePool, float px, float py,
                              float x0, float y0, float x1, float y1, float alphaMult) {
-        float dark=night.darkness()*(1-.92f*Math.min(1,pool));
-        float warm=.11f*Math.min(1,pool);
+        float lit=pool+firePool;
+        float dark=night.darkness()*(1-.92f*Math.min(1,lit));
+        // Fire tints what it lights harder than a lamp does: it is the only light there.
+        float warm=Math.min(1,.11f*Math.min(1,pool)+.2f*Math.min(1,firePool));
         float alpha=dark+warm*(1-dark), weight=dark*(1-warm);
         if (alpha<=0f) return;
-        float divisor=Math.max(.001f,pool);
-        float r=(.012f*weight+warm*sample(reds,px,py)/divisor)/alpha;
-        float g=(.019f*weight+warm*sample(greens,px,py)/divisor)/alpha;
-        float b=(.037f*weight+warm*sample(blues,px,py)/divisor)/alpha;
+        float divisor=Math.max(.001f,lit);
+        float r=(.012f*weight+warm*(sample(reds,px,py)+firePool*FireLight.RED)/divisor)/alpha;
+        float g=(.019f*weight+warm*(sample(greens,px,py)+firePool*FireLight.GREEN)/divisor)/alpha;
+        float b=(.037f*weight+warm*(sample(blues,px,py)+firePool*FireLight.BLUE)/divisor)/alpha;
         mesh.appendQuad(x0,y0,x1,y0,x1,y1,x0,y1,r,g,b,alpha*alphaMult);
     }
     /**
@@ -119,6 +137,41 @@ final class NightLightingRenderSystem implements RenderSystem {
         out.addLine(layer(),faceX-crossX*px*.24f,faceY-crossY*px*.24f,
                 faceX+crossX*px*.24f,faceY+crossY*px*.24f,Math.max(1,px*.07f),
                 powered ? 1f : .2f,powered ? .94f : .24f,powered ? .75f : .26f,alpha);
+    }
+
+    /**
+     * Refills fire's pools for this frame; false, having cleared them, when
+     * nothing burns. A fire lights only its own side of a roof, as a lamp does.
+     */
+    private boolean fillFire(CellTopology ground, FireField field, float timeSeconds) {
+        fire.update(field);
+        if (firePools == null || firePools.length != pools.length) {
+            firePools = new float[pools.length];
+            filledCount = 0;
+        }
+        for (int i = 0; i < filledCount; i += 4)
+            for (int y = filled[i + 1]; y <= filled[i + 3]; y++)
+                Arrays.fill(firePools, y * width + filled[i], y * width + filled[i + 2] + 1, 0f);
+        filledCount = 0;
+        if (fire.count() == 0) return false;
+        int height = pools.length / width;
+        for (int l = 0; l < fire.count(); l++) {
+            float r = fire.radius(l);
+            int gx0 = Math.max(0, (int) ((fire.x(l) - r) * 2)), gx1 = Math.min(width - 1, (int) ((fire.x(l) + r) * 2) + 1);
+            int gy0 = Math.max(0, (int) ((fire.y(l) - r) * 2)), gy1 = Math.min(height - 1, (int) ((fire.y(l) + r) * 2) + 1);
+            int owner = ground.getBuildingId(Math.min(ground.getWidth() - 1, (int) fire.x(l)),
+                    Math.min(ground.getHeight() - 1, (int) fire.y(l)));
+            for (int y = gy0; y <= gy1; y++)
+                for (int x = gx0; x <= gx1; x++) {
+                    if (ground.getBuildingId(Math.min(ground.getWidth() - 1, x / 2), Math.min(ground.getHeight() - 1, y / 2)) != owner) continue;
+                    firePools[y * width + x] += fire.pool(l, x * .5f, y * .5f, timeSeconds);
+                }
+            filled[filledCount++] = gx0;
+            filled[filledCount++] = gy0;
+            filled[filledCount++] = gx1;
+            filled[filledCount++] = gy1;
+        }
+        return true;
     }
 
     private void bake(CellTopology ground, NightLighting night) {

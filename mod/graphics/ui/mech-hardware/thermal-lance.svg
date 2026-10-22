@@ -1,8 +1,54 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100">
+  <g transform="translate(9 6) scale(0.88)">
   <rect x="8" y="26" width="38" height="48" rx="12" fill="#000000" fill-opacity="0.58"/>
   <rect x="14" y="32" width="26" height="8" rx="3" fill="#ffffff" fill-opacity="0.5"/>
   <rect x="50" y="43" width="32" height="14" rx="2" fill="#000000" fill-opacity="0.58"/>
   <polygon points="84,38 102,44 102,56 84,62" fill="#000000" fill-opacity="0.58"/>
   <path d="M 104 44 C 118 36 128 42 146 50 C 128 58 118 64 104 56 Z" fill="#000000" fill-opacity="0.58"/>
   <path d="M 106 47 C 116 43 124 46 134 50 C 124 54 116 57 106 53 Z" fill="#ffffff" fill-opacity="0.5"/>
+  </g>
+  <polygon points="87.9,50.6 137.1,50.6 142,55.5 142,87.2 137.1,92 87.9,92 83,87.2 83,55.5" fill="#000000" fill-opacity="0.58"/>
+  <rect x="87.4" y="88.9" width="50.2" height="2" fill="#ffffff" fill-opacity="0.3"/>
+  <rect x="86.6" y="53.8" width="25.3" height="7.7" fill="#0d100e"/>
+  <rect x="95.4" y="58.2" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="95.4" y="62.6" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="95.4" y="67" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="95.4" y="71.4" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="95.4" y="75.8" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="95.4" y="80.2" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="113" y="53.8" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="113" y="58.2" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="113" y="62.6" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="113" y="67" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="113" y="71.4" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="113" y="75.8" width="7.7" height="7.7" fill="#0d100e"/>
+  <rect x="113" y="80.2" width="25.3" height="7.7" fill="#0d100e"/>
+  <rect x="88.3" y="55.2" width="22" height="4.9" fill="#d9dcd2"/>
+  <rect x="97.1" y="59.6" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="97.1" y="64" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="97.1" y="68.4" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="97.1" y="72.8" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="97.1" y="77.2" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="97.1" y="81.6" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="114.7" y="55.2" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="114.7" y="59.6" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="114.7" y="64" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="114.7" y="68.4" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="114.7" y="72.8" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="114.7" y="77.2" width="4.4" height="4.9" fill="#d9dcd2"/>
+  <rect x="114.7" y="81.6" width="22" height="4.9" fill="#d9dcd2"/>
+  <rect x="88.3" y="58.4" width="22" height="1.8" fill="#9ea397"/>
+  <rect x="97.1" y="62.8" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="97.1" y="67.2" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="97.1" y="71.6" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="97.1" y="76" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="97.1" y="80.4" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="97.1" y="84.8" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="114.7" y="58.4" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="114.7" y="62.8" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="114.7" y="67.2" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="114.7" y="71.6" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="114.7" y="76" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="114.7" y="80.4" width="4.4" height="1.8" fill="#9ea397"/>
+  <rect x="114.7" y="84.8" width="22" height="1.8" fill="#9ea397"/>
 </svg>
