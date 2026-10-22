@@ -226,10 +226,11 @@ class FleetArmoryViewModelTest {
         // company holds; missing roles may fall back within that class.
         assertEquals(roster.armory().armorDoctrines().stream().map(SquadArmorDoctrine::issueIds).distinct().count(),
                 viewModel.armorDoctrineTiles().get().size());
-        viewModel.showLoadoutFilterAction(FleetArmoryViewModel.LoadoutFilter.RARE).run();
-        assertEquals(FleetArmoryViewModel.LoadoutFilter.RARE, viewModel.loadoutFilter());
+        viewModel.showLoadoutFilterAction(FleetArmoryViewModel.LoadoutFilter.TIER_1).run();
+        assertEquals(FleetArmoryViewModel.LoadoutFilter.TIER_1, viewModel.loadoutFilter());
+        assertFalse(viewModel.weaponDoctrineTiles().get().isEmpty());
         assertTrue(viewModel.weaponDoctrineTiles().get().stream()
-                .allMatch(loadout -> "Rare".equals(loadout.rarity())));
+                .allMatch(loadout -> loadout.metadata().contains("TIER I ")));
         assertTrue(viewModel.loadoutBrowserSummary().get().contains(" of "));
 
         assertEquals(SquadEquipmentResult.APPLIED,

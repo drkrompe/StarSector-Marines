@@ -79,21 +79,24 @@ public final class FleetArmoryViewModel {
         ARMOR
     }
 
+    /** The browser's filter: by the tier a card shows, which is how cards are compared. */
     public enum LoadoutFilter {
-        ALL("openingLoadoutFilterAll"),
-        COMMON("openingLoadoutFilterCommon"),
-        UNCOMMON("openingLoadoutFilterUncommon"),
-        RARE("openingLoadoutFilterRare"),
-        EXOTIC("openingLoadoutFilterExotic");
+        ALL("openingLoadoutFilterAll", 0),
+        TIER_1("openingLoadoutFilterTier1", 1),
+        TIER_2("openingLoadoutFilterTier2", 2),
+        TIER_3("openingLoadoutFilterTier3", 3),
+        TIER_4("openingLoadoutFilterTier4", 4);
 
         private final String labelKey;
+        private final int tier;
 
-        LoadoutFilter(String label) {
+        LoadoutFilter(String label, int tier) {
             this.labelKey = label;
+            this.tier = tier;
         }
 
-        private boolean accepts(SquadLoadoutRarity rarity) {
-            return this == ALL || name().equals(rarity.name());
+        private boolean accepts(int shownTier) {
+            return this == ALL || tier == shownTier;
         }
         String label() { return Strings.get(labelKey); }
     }
@@ -434,7 +437,7 @@ public final class FleetArmoryViewModel {
             SquadLoadoutPresentationDef presentation = loadoutPresentation(
                     doctrine.id(), SquadLoadoutPresentationDef.Kind.WEAPON,
                     maximumWeaponTier(doctrine), doctrine.description());
-            if (!loadoutFilter.get().accepts(presentation.rarity())) continue;
+            if (!loadoutFilter.get().accepts(presentation.tier())) continue;
             String id = "weapon-doctrine:" + doctrine.id();
             SquadEquipmentPreview candidate = roster.previewSquadEquipment(
                     selectedSquadId.get(), doctrine.id(), selectedArmorDoctrineId.get(),
@@ -608,7 +611,7 @@ public final class FleetArmoryViewModel {
             SquadLoadoutPresentationDef presentation = loadoutPresentation(
                     plan.id(), SquadLoadoutPresentationDef.Kind.ARMOR,
                     maximumArmorTier(issued), plan.description());
-            if (!loadoutFilter.get().accepts(presentation.rarity())) continue;
+            if (!loadoutFilter.get().accepts(maximumArmorTier(issued))) continue;
             String id = "armor-doctrine:" + plan.id();
             SquadEquipmentPreview candidate = roster.previewSquadEquipment(
                     selectedSquadId.get(), selectedWeaponDoctrineId.get(), plan.id(),
