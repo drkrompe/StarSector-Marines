@@ -317,14 +317,14 @@ public class BriefingScreen implements Screen {
         MarineRosterScript personnel = MarineRosterScript.getInstance();
         if (personnel != null && (ctx.getSelectedMission() == null || !ctx.getSelectedMission().source.isDebug())) personnel.ensureStartingCompany();
 
-        // Default to the first ACTIVE captain if nothing's selected yet — saves
-        // a click for the common case. User's pick survives across re-attaches.
-        if (!ctx.isCaptainSelectionInitialized()) {
-            MarineRosterScript script = MarineRosterScript.getInstance();
-            if (script != null) {
-                List<MarineCaptain> active = script.roster().active();
-                if (!active.isEmpty()) ctx.setSelectedCaptainId(active.get(0).id());
-            }
+        // An operation always has a commander: when nothing active is selected,
+        // take the first ACTIVE captain. User's pick survives across re-attaches.
+        if (personnel != null) {
+            List<MarineCaptain> active = personnel.roster().active();
+            String selectedId = ctx.getSelectedCaptainId();
+            boolean selectedActive = selectedId != null
+                    && active.stream().anyMatch(c -> c.id().equals(selectedId));
+            if (!selectedActive && !active.isEmpty()) ctx.setSelectedCaptainId(active.get(0).id());
         }
 
         Mission m = ctx.getSelectedMission();
@@ -634,12 +634,6 @@ public class BriefingScreen implements Screen {
             captains = script != null ? script.roster().active() : List.of();
         }
         List<BriefingViewModel.ChoiceRow> rows = new ArrayList<>();
-        if (mission.source != MissionSource.STATIONING) {
-            rows.add(new BriefingViewModel.ChoiceRow("captain-acting-nco",
-                    "choice-row" + (ctx.getSelectedCaptainId() == null ? " selected" : ""),
-                    Strings.get("briefingUiNoCommander"), Strings.get("briefingUiNoCommanderDetail"),
-                    false, () -> { ctx.setSelectedCaptainId(null); rebuild(); }, null));
-        }
         for (int i = 0; i < captains.size(); i++) {
             MarineCaptain captain = captains.get(i);
             boolean selected = captain.id().equals(ctx.getSelectedCaptainId());

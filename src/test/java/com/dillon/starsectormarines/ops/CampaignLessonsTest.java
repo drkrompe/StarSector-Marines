@@ -112,7 +112,7 @@ class CampaignLessonsTest {
 
             var lesson = CampaignLessons.formations(roster, new MarineOpsContext(null));
             assertEquals(LessonCopy.text("lessonFormationWounded"), lesson.copy());
-            assertFalse(lesson.targets().contains("barracks-reinforce"), "Fill Vacancies is disabled with no vacancy");
+            assertFalse(lesson.targets().contains("barracks-fill-selected"), "Fill Vacancies is disabled with no vacancy");
         }
     }
 
@@ -125,7 +125,7 @@ class CampaignLessonsTest {
 
             var lesson = CampaignLessons.formations(roster, new MarineOpsContext(null));
             assertEquals(LessonCopy.text("lessonFormationRecover"), lesson.copy());
-            assertTrue(lesson.targets().contains("barracks-reinforce"));
+            assertTrue(lesson.targets().contains("barracks-fill-selected"));
         }
     }
 

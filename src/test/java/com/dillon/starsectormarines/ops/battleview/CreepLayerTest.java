@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CreepLayerTest {
 
@@ -34,6 +35,48 @@ class CreepLayerTest {
         }
         layer.catchUp(field, grid);
         assertMirrors(field, layer);
+    }
+
+    /** Blight reaches a few cells past the edge over grass, fading out, and never onto pavement. */
+    @Test
+    void blightSpreadsAheadOfTheEdgeOverGrassOnly() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        CellTopology topology = new CellTopology(W, H);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
+                grid.setWalkableFloor(x, y);
+                topology.setGroundKind(x, y, y < H / 2 ? CellTopology.GroundKind.GRASS : CellTopology.GroundKind.STREET);
+            }
+        }
+        CreepField field = new CreepField(grid, topology, 21L);
+        CreepLayer layer = new CreepLayer();
+        field.putSource(1L, 30, 20, new CreepGrowth(5f, 10f));
+        for (int tick = 0; tick < 600; tick++) field.tick(tick);
+        layer.catchUp(field, grid, topology);
+        int grassAhead = 0, streetAhead = 0, farGrass = 0;
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
+                if (field.coverageAt(x, y) > 0) continue;
+                int blight = layer.groundAt(x, y, 0);
+                if (blight == 0) continue;
+                if (y < H / 2) grassAhead++;
+                else streetAhead++;
+                if (nearestCovered(field, x, y) > CreepLayer.BLIGHT_CELLS) farGrass++;
+            }
+        }
+        assertTrue(grassAhead > 0, "grass ahead of the edge is blighted");
+        assertEquals(0, streetAhead, "pavement keeps a clean edge");
+        assertEquals(0, farGrass, "blight stops " + CreepLayer.BLIGHT_CELLS + " cells out");
+    }
+
+    private static int nearestCovered(CreepField field, int x, int y) {
+        int best = Integer.MAX_VALUE;
+        for (int cy = 0; cy < H; cy++) {
+            for (int cx = 0; cx < W; cx++) {
+                if (field.coverageAt(cx, cy) > 0) best = Math.min(best, Math.max(Math.abs(cx - x), Math.abs(cy - y)));
+            }
+        }
+        return best;
     }
 
     private static void assertMirrors(CreepField field, CreepLayer layer) {

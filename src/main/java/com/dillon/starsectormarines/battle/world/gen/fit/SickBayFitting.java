@@ -55,18 +55,10 @@ public final class SickBayFitting implements RoomFitting {
 
     /** Columns at the near end given over to the clinic rather than the ward. */
     private static final int CLINICAL_DEPTH = 4;
-    /**
-     * Rows either bulkhead band is deep: the monitor and a real-length bed, three
-     * cells (a 2.2 m frame at about 0.75 m a cell), so a patient fits in it. Two
-     * cells was a metre and a half. Aboard and on the ground alike.
-     */
-    private static final int BAND = 4;
-    /**
-     * Rows of the central spine: two cells, 1.5 m, which still passes a stretcher
-     * and a walker abreast, and is what keeps two real-length bed ranks in a
-     * ten-row compartment.
-     */
-    private static final int AISLE_WIDTH = 2;
+    /** Rows either bulkhead band is deep. Bed plus its monitor, or the clinic's working row. */
+    private static final int BAND = 3;
+    /** Rows of the central spine — wide enough that a stretcher and a walker pass each other. */
+    private static final int AISLE_WIDTH = 4;
 
     @Override
     public RoomPurpose purpose() {
@@ -105,23 +97,20 @@ public final class SickBayFitting implements RoomFitting {
      * from a row abreast of the spine.
      */
     private void layClinic(RoomFloor floor, Art art, int across) {
-        // The working rows sit one in from each bulkhead, and the approaches run
-        // from them to the spine: two rows, in the band real-length beds need.
-        int northApproach = 2;
-        int southApproach = across - 3;
-        int southFar = across - 2;
-        int lane = BAND - 2;
+        int northApproach = BAND - 1;
+        int southApproach = across - BAND;
+        int southFar = across - BAND + 1;
 
         // The lanes that join the clinic to the spine, reserved before either
-        // flank is furnished — and on both sides they are the rows that *touch*
+        // flank is furnished — and on both sides they are the row that *touches*
         // the spine, with the working row outboard of them. Put the approach
         // beyond its own furniture instead and it is a lane enclosed on all four
         // sides: the working row inboard of it, the bulkhead bank outboard, and
         // the ward's first bed closing the end. The room still furnishes and
         // still publishes, and then fails its own connectivity check and ships
         // as bare deck.
-        reserve(floor, 0, northApproach, CLINICAL_DEPTH, lane);
-        reserve(floor, 0, across - BAND, CLINICAL_DEPTH, lane);
+        reserve(floor, 0, northApproach, CLINICAL_DEPTH, 1);
+        reserve(floor, 0, southApproach, CLINICAL_DEPTH, 1);
 
         if (shipboard) {
             // Put the staffed bank on the flank whose desk footprint survives the hatches.
@@ -208,9 +197,9 @@ public final class SickBayFitting implements RoomFitting {
 
         for (int column = CLINICAL_DEPTH; column < along; column += pitch) {
             place(floor, art.monitor(), column, 0, 1, 1, null);
-            place(floor, bedNorth, column, 1, 1, BAND - 1, Affordance.TREAT);
+            place(floor, bedNorth, column, 1, 1, 2, Affordance.TREAT);
             place(floor, art.monitor(), column, across - 1, 1, 1, null);
-            place(floor, bedSouth, column, southBedRow, 1, BAND - 1, Affordance.TREAT);
+            place(floor, bedSouth, column, southBedRow, 1, 2, Affordance.TREAT);
         }
     }
 
@@ -219,18 +208,13 @@ public final class SickBayFitting implements RoomFitting {
         int[] bay = floor.toLocalRect(column, band, 1, BAND);
         if (!floor.isFree(bay[0], bay[1], bay[2], bay[3])) return;
         int bedRow = low ? 1 : band;
-        int length = BAND - 1;
         if (!floor.placeAssembly(column, bedRow, SHIP_KIT + "bed", List.of(
                 new LayoutOp.Layer(0, 0, SHIP_KIT + (low ? "linen-low" : "linen-high"))))) return;
         floor.placeAssembly(column, low ? 0 : across - 1, SHIP_KIT + "monitor", List.of());
-        // At the bedside, level with the middle of the bed, where the patient's
-        // chest is; at the foot, from the spine, for a last column with no side gap.
-        int middle = bedRow + length / 2;
-        int foot = low ? bedRow + length - 1 : bedRow;
-        boolean bedside = column + 1 < along;
-        int standX = bedside ? column + 1 : column;
-        int standY = bedside ? middle : low ? BAND : band - 1;
-        task(floor, standX, standY, Affordance.TREAT, column, bedside ? middle : foot);
+        int standX = column + 1 < along ? column + 1 : column;
+        int standY = column + 1 < along ? bedRow : low ? BAND : band - 1;
+        int targetRow = standX != column ? bedRow : low ? bedRow + 1 : bedRow;
+        task(floor, standX, standY, Affordance.TREAT, column, targetRow);
     }
 
     private boolean clinicPiece(RoomFloor floor, String piece, int x, int y,

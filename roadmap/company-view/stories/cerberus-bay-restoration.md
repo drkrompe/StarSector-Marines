@@ -17,8 +17,10 @@ money sink, separate from required founding preparation and boat commissioning.
   the second is sealed, visibly damaged and supplies no fabrication or lift.
 - Completing Hold Until Relieved unlocks an 8,000-credit repair at an accessible
   planetary spaceport. The price includes labor and structural materials.
-- Boat Deck shows Castle's portrait, explanation, Cost / Available / Short by,
-  prerequisites and an explicit reviewed repair action. No tutorial lockout.
+- Engineering's sealed hangar shows the explanation, Cost / Available / Short by,
+  prerequisites and an explicit reviewed repair action; the company notice opens
+  it there. Boat Deck only points to it. Secondhand Wings may bundle the same
+  restoration into its order. No tutorial lockout.
 - Repair changes only the damaged facility. Dimensions, compartment positions,
   workshop, Mech Lab and first boat identity/fittings remain unchanged.
 - The new berth starts empty. The ordinary Hermes fabrication bill is separate.
@@ -33,7 +35,7 @@ money sink, separate from required founding preparation and boat commissioning.
 
 In Starsector, load both a fresh founding start and an older custom-start save.
 Confirm the sealed bay before the first mission, complete Hold Until Relieved,
-then inspect and repair it at a planetary spaceport. Confirm immediate empty
+then inspect and repair it from Engineering at a planetary spaceport. Confirm immediate empty
 berth presentation, commission the second Hermes, save/reload, and move the
 company away and back without losing the paid restoration or boat fittings.
 No live game was launched or modified for automated verification.

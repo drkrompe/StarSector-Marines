@@ -2,7 +2,10 @@ package com.dillon.starsectormarines.marine;
 
 import java.io.Serializable;
 
-/** Saved, immutable pairing of a weapon loadout and an armour tactic sheet. */
+/**
+ * A saved pairing of a weapon card and a tactic sheet, from before squads held their cards
+ * directly. Kept only so old saves deserialize; {@code MarineRoster} migrates and drops them.
+ */
 public final class SquadProfile implements Serializable {
     private final String id;
     private final String name;

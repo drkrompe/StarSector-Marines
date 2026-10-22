@@ -68,6 +68,8 @@ public final class CompanyResources {
                 case "cost" -> Strings.format("companyResourceCost", number(required));
                 case "stock" -> number(available);
                 case "shortage" -> shortfall() > 0 ? Strings.format("companyResourceShortBy", number(shortfall())) : "";
+                case "required" -> number(required);
+                case "chipClasses" -> shortfall() > 0 ? "material-chip short" : "material-chip";
                 case "classes" -> shortfall() > 0 ? "company-resource-cost short" : "company-resource-cost";
                 default -> throw new IllegalArgumentException("Unknown resource row property: " + key);
             };

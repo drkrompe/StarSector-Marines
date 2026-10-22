@@ -364,6 +364,8 @@ increasing an encounter's total armored threat.
   two rows; SRM-15 and LRM-15 occupy two columns by three rows. Large shoulder
   sockets present that same upright grid. Range and delivery distinguish SRM
   direct fire from LRM artillery, rather than different footprints within a size class.
+  Nothing is smaller than one row by two columns: every weapon, internal and
+  socket is at least 2x1, so the smallest piece still reads as a piece.
   Each asset-class layout owns the socket's physical mount anchor,
   its equipment-dock center around the doll, and its doll-relative interaction
   footprint as well as compatibility and capacity. A leader preserves the
@@ -375,6 +377,19 @@ increasing an encounter's total armored threat.
   footprint means an authored socket is unoccupied; an omitted socket is still
   genuinely absent. The drag gesture is presentation; the validated resulting
   placement is domain intent.
+- **Hardpoint language** (after MechWarrior 4's lab). Colour names the
+  compatibility type everywhere hardware or a socket is drawn: energy red-orange,
+  missile green, ballistic yellow, omni grey; frame internals a cool steel. Size
+  reads from shape, not text: every grid cell is a chamfered brick narrower than
+  it is tall, and a footprint is its bricks stacked, so a 2x3 rack is visibly a
+  taller stack than a 2x2. An empty doll socket wears its type's colour on its rim
+  over dim bricks; fitted hardware fills its bricks in its own colour and fuses
+  them into one solid piece, notched only along its outside edge. The piece's
+  face is a painted icon (`HardwareArt`): a flat pictogram in a dark shade and a
+  light highlight over that colour, never the battle sprite. Drag
+  compatibility therefore uses a colour outside that palette. The doll is the
+  location picker: clicking a socket selects it, the right column describes only
+  that socket, and a fitted weapon is stripped from the X on its doll card.
 - A **fitting doll** is the asset-authored maintenance presentation of one mech
   or vehicle class. It references the same ordered appearance and physical scale
   used in battle, while owning the maintenance facing and every socket's physical

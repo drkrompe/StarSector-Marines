@@ -458,7 +458,7 @@ company lift. No line names the fee; the amount lives in the offer's terms.
 **Secondhand Wings** bridges Counterattack and the later supply-route work without
 adding another mandatory chapter. Castle explains why Second Wind's repaired Hermes
 couriers are limiting the company; Mara locates a pair of surplus Aeroshuttles. The
-optional 5,000-credit purchase follows separate restoration of the second bay and
+optional 5,000-credit purchase (13,000 when it also opens the still-sealed second bay)
 exchanges the old complement for two refurbished 6-seat boats. HQ retains a Boat Deck
 pointer until purchase. Story completion, not repeatable Depot Clearance, unlocks it.
 Boat ownership, payment, review, loss and the hull-specific adapters are defined in

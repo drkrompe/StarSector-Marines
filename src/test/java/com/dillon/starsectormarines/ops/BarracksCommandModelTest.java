@@ -6,9 +6,6 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.OfficerSpecialty;
-import com.dillon.starsectormarines.marine.MarineArmory;
-import com.dillon.starsectormarines.marine.SquadProfile;
-import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadFoundingCost;
 import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
@@ -31,34 +28,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class BarracksCommandModelTest {
-    @Test void savedUnavailablePowerSuitProfileKeepsItsIntentReadable() throws Exception {
-        var roster = new MarineRoster();
-        roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
-        var squad = roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow();
-        var profile = new SquadProfile("legacy-heavy", "Old breach section",
-                SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
-                SquadEquipmentDoctrines.CORPORATE_HEAVY_ARMOR);
-        // Reproduce saved intent authored before carrier-class ownership gated issue.
-        var profiles = MarineArmory.class.getDeclaredField("squadProfiles");
-        profiles.setAccessible(true);
-        profiles.set(roster.armory(), new ArrayList<>(List.of(profile)));
-        assertTrue(roster.assignSquadProfile(Set.of(squad.id()), profile.id()));
-        String currentArmor = roster.soldierById(squad.memberIds().get(0)).armorId();
-        assertNull(roster.armory().armorDoctrineById(profile.armorDoctrineId()));
-
-        var model = new BarracksViewModel(new Reactor(), roster, () -> 1d).command();
-        assertTrue(value(model, "profiles").toString().contains("Tri-Tachyon Specter Protection"));
-        assertTrue(value(model, "profiles").toString().contains("Power suit unavailable"));
-        assertTrue(model.squadSheet(squad.id()).notes().stream()
-                .anyMatch(note -> note.contains("Tri-Tachyon Specter Protection (Power suit unavailable)")));
-        assertEquals(currentArmor, roster.soldierById(squad.memberIds().get(0)).armorId());
-    }
-
     @Test void raisingASquadFillsOnlyFreeCommandSlots() {
         var roster = new MarineRoster();
         var lieutenant = new MarineCaptain("Hale", null, Rank.LIEUTENANT, 0f);
@@ -88,6 +61,26 @@ class BarracksCommandModelTest {
         model.raiseSquad();
         assertEquals(captain.id(), roster.squads().get(roster.squads().size() - 1).homeCaptainId(),
                 "All formations raises into the first officer with a free slot");
+    }
+
+    @Test void aCardsWrenchFillsOnlyThatSquad() {
+        var roster = new MarineRoster();
+        roster.bootstrapInitialComplement(2 * MarineSquad.CAPACITY);
+        var squads = roster.squads().stream().filter(s -> !s.reserve()).toList();
+        for (var squad : squads) {
+            roster.applySoldierOutcome(Map.of(roster.manningMemberIds(squad).get(0), MarineSoldierStatus.KIA), 0f, 0f);
+        }
+        roster.recruitToSquad(roster.reserveSquad().id(), 2);
+        var model = new BarracksViewModel(new Reactor(), roster, () -> 1d, EquipmentIssueResources.UNLIMITED,
+                new SquadFoundingResources() {
+                    @Override public int available(String commodityId) { return 0; }
+                    @Override public boolean spend(SquadFoundingCost cost) { return false; }
+                    @Override public String commodityName(String commodityId) { return commodityId; }
+                    @Override public String commodityIcon(String commodityId) { return ""; }
+                }, () -> 0, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0)).command();
+        model.fill(Set.of(squads.get(1).id()));
+        assertEquals(1, roster.vacancies(squads.get(0)));
+        assertEquals(0, roster.vacancies(squads.get(1)));
     }
 
     @Test void raiseTileIsTheLastTileAndUnaffordableStoresDisableIt() {
@@ -120,7 +113,7 @@ class BarracksCommandModelTest {
         assertTrue(model.selected().isEmpty());
     }
 
-    @Test void realPointerFlowSavesAndAssignsProfileThenInspectsAndReturns() throws Exception {
+    @Test void realPointerFlowFillsVacanciesThenInspectsAndReturns() throws Exception {
         CompanyManagementGuide.install(new JSONObject(Files.readString(Path.of("mod", CompanyManagementGuide.PATH))));
         var reactor = new Reactor();
         var roster = new MarineRoster();
@@ -153,28 +146,29 @@ class BarracksCommandModelTest {
                 assertEquals(1, model.selected().size(), "Squad selection works while Castle is speaking");
                 assertTrue(model.guideVisible());
                 guide.update();
-                assertEquals("barracks-reinforce", model.guideTargetId());
+                assertEquals("barracks-fill-selected", model.guideTargetId());
                 var target = instance.requireElement(model.guideTargetId()).box().borderBox();
                 var panel = instance.requireElement("barracks-guide").box().borderBox();
                 assertEquals(0, panel.intersect(target).width() * panel.intersect(target).height());
-                document.requestFocus(instance.requireElement("barracks-reinforce"), true);
-                assertEquals("barracks-reinforce", document.focusedElement().id(), "Keyboard focus can reach a highlighted region");
+                document.requestFocus(instance.requireElement("barracks-fill-selected"), true);
+                assertEquals("barracks-fill-selected", document.focusedElement().id(), "Keyboard focus can reach a highlighted region");
                 assertThrows(IllegalArgumentException.class,
-                        () -> document.requestFocus(instance.requireElement("barracks-organization"), true));
-                click(document, instance, "barracks-organization");
-                assertEquals("barracks-reinforce", model.guideTargetId(), "Darkened organization controls do not activate");
+                        () -> document.requestFocus(instance.requireElement("barracks-equipment"), true));
+                click(document, instance, "barracks-equipment");
+                assertEquals("barracks-fill-selected", model.guideTargetId(), "Darkened controls do not activate");
                 document.keyPressed(UiKey.ESCAPE, Set.of(), false);
                 instance.flush(); document.advance(0f); guide.update();
                 assertFalse(model.guideVisible());
                 click(document, instance, "barracks-guide-help");
                 guide.update();
                 assertTrue(model.guideVisible());
-                assertEquals("barracks-reinforce", model.guideTargetId(), "Reopening resumes the lesson");
+                assertEquals("barracks-fill-selected", model.guideTargetId(), "Reopening resumes the lesson");
                 action(model, "guideNext");
                 action(model, "guideNext");
                 instance.flush(); document.advance(0f); guide.update();
                 click(document, instance, "guide-dismiss");
-                click(document, instance, "barracks-clear");
+                click(document, instance, "barracks-select-all");
+                assertTrue(model.selected().isEmpty(), "With every squad in view selected, the toggle deselects");
 
                 var hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
                 var bindings = new BarracksCardBindings();
@@ -187,12 +181,6 @@ class BarracksCommandModelTest {
                 bindings.update(document, instance, model, hints);
                 assertEquals(canvasRevision, document.canvases().revision(), "Unchanged cards should reuse the cached muster");
                 assertEquals(1, model.selected().size());
-                click(document, instance, "barracks-organization");
-                click(document, instance, "barracks-new-profile");
-                click(document, instance, "barracks-save-profile");
-                assertEquals(1, roster.armory().squadProfiles().size());
-                click(document, instance, "barracks-assign-profile");
-                assertEquals(roster.armory().squadProfiles().get(0).id(), squad.squadProfileId());
                 assertTrue(((List<?>) value(model, "commands")).stream()
                         .noneMatch(row -> "command:independent".equals(((Map<?, ?>) row).get("id"))),
                         "The rail offers officers only; there is no acting-NCO command card");

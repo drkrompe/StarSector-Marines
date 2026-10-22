@@ -351,8 +351,8 @@ class GatedHousingFillerTest {
             if (!doodad.definitionId().startsWith("doodad.residential-bed-")
                     && !doodad.definitionId().startsWith("doodad.residential-sofa-")) continue;
             furniture++;
-            assertEquals(doodad.definitionId().startsWith("doodad.residential-bed-") ? 3 : 2,
-                    doodad.footprintCellsX * doodad.footprintCellsY, "beds occupy three cells, sofas two");
+            assertEquals(2, doodad.footprintCellsX * doodad.footprintCellsY,
+                    "beds and sofas occupy two cells");
             assertNotNull(doodad.preferredWallSide,
                     "apartment furniture declares its natural wall edge");
             assertFurnitureBackedByWallAndFacingRoom(fixture, doodad, purpose);

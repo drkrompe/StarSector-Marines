@@ -32,21 +32,13 @@ def derive_axis_pair(master_name: str, output_stem: str) -> None:
     save(horizontal.transpose(Image.Transpose.ROTATE_90), f"{output_stem}-v.png")
 
 
-def save_frame(image: Image.Image, name: str) -> None:
-    destination = SOURCES / name
-    image.save(destination, optimize=True)
-    print(destination)
-
-
 def derive_bed() -> None:
-    # The master is the bed's whole 3x1 placement frame at 320 px per cell, cut from the generation against
-    # ResidentialBedTemplate's guide, so the bed keeps its true 0.72 x 2.1 m inside the frame: no trim.
-    horizontal = Image.open(MASTERS / "residential-bed.png").convert("RGBA")
+    horizontal = content(Image.open(MASTERS / "residential-bed.png").convert("RGBA"))
     vertical = horizontal.transpose(Image.Transpose.ROTATE_90)
-    save_frame(horizontal, "residential-bed-h.png")  # head at west edge
-    save_frame(vertical, "residential-bed-v.png")  # head at south edge
-    save_frame(horizontal.transpose(Image.Transpose.ROTATE_180), "residential-bed-head-e.png")
-    save_frame(vertical.transpose(Image.Transpose.ROTATE_180), "residential-bed-head-n.png")
+    save(horizontal, "residential-bed-h.png")  # head at west edge
+    save(vertical, "residential-bed-v.png")  # head at south edge
+    save(horizontal.transpose(Image.Transpose.ROTATE_180), "residential-bed-head-e.png")
+    save(vertical.transpose(Image.Transpose.ROTATE_180), "residential-bed-head-n.png")
 
 
 def derive_sofa() -> None:

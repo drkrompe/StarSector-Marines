@@ -200,18 +200,19 @@ authored content.
   amenities.
 - A **rack** is one bunk, and a **rank** is a row of them laid athwart the
   compartment's passage, head to the hull and feet to the deck people walk on.
-  A rack is three cells head to foot (a 2.25 m frame round a two-metre
-  mattress, at about 0.75 m a cell), so a berth is eight cells deep: two ranks
-  and the two-abreast passage between them.
-  Laid the other way — along the bulkhead — a rack takes three cells of hull to
+  A rack is two cells head to foot, so a berth is six cells deep: two ranks
+  and the two-abreast passage between them. The figure is drawn at head-and-
+  shoulders scale, a cell a crewman's shoulders and a bit, so a three-cell
+  bunk read as a bed for a giant and the sleeper in it as one; the sleeper
+  is drawn at the fallen-body scale, within the rack.
+  Laid the other way — along the bulkhead — a rack takes two cells of hull to
   berth one hand instead of one, and the compartment holds a third as many
   people in the same floor. That is why real berthing looks like this, and it is the
   only arrangement in which the recipe's few square metres a hand is reachable
   at all. Shipboard bunks combine a physical base, bedding and retaining rails;
   each complete assembly follows the room's orientation, with pillows outboard.
   Personal locker banks occupy the ends of the near rank and divide the far
-  rank; a bank is a cell shorter than a rack, so it stands against the hull
-  and is opened from the alcove that leaves between its neighbours. They
+  rank; a bank is as long as a rack and is opened from the passage. They
   replace loose kit without consuming another berth. The central aisle and
   whole hatch approaches stay clear, and rest and stowage happen from
   reachable standing cells beside the fixtures. A hand resting in a bunk is
@@ -339,6 +340,12 @@ authored content.
   or passage. The cell just inboard remains deck. The room camera includes the
   exit and the space beyond it so departing boats remain visible across the
   threshold. The pressure screen is presentation; decompression is not simulated.
+- **The bay door answers the boats.** Two leaves close the aperture and withdraw
+  into the jambs while a boat is leaving or coming home through it (`BayDoor`):
+  called as a boat starts its departure and held until it is clear outside, called
+  on a return's approach and released once the boat is back inboard. The leaves
+  are presentation too: the opening is void to the simulation open or shut, and
+  no transit waits on them.
 - **The door wall is a door, and nothing stands against it.** Three of a bay's
   bulkheads are worked and the fourth is bare deck end to end; what used to line
   it goes to the inboard corners, where it was always going to end up. A hangar
@@ -740,13 +747,11 @@ place at table. Whole furniture assemblies turn with the room and yield to
 hatch approaches. Sparse meal settings are visual layers, not food inventory.
 Small secondary messes remain dining rooms without additional cooking postings.
 
-The sickbay keeps its ward around a stretcher aisle, with reserved bedside
-access between the beds. Each bay contains a real-length medical bed (three
-cells, a 2.2 m frame), separate linen with the pillow beside a head monitor;
-a hatch removes the complete bay. Two such bands and a two-cell spine fill the
-ten-row ward, and a medic treats from the bedside gap level with the middle of
-the bed. A clinic end holds an examination
-couch, supply trolley and privacy screen opposite a nurse station, secured
+The sickbay keeps its ward around a broad stretcher aisle, with reserved bedside
+access between the beds. Each bay contains a two-cell medical bed (the figure is
+drawn at head-and-shoulders scale, so a longer bed read as one for a giant),
+separate linen and a head monitor; a hatch removes the complete bay. A clinic end
+holds an examination couch, supply trolley and privacy screen opposite a nurse station, secured
 medical cabinets and scrub sink. The staffed bank changes sides when a hatch
 would take its desk, and the examination couch uses the remaining clear position.
 Optional screens and stock yield to access. Treatment, stowage and washing take
@@ -1802,8 +1807,8 @@ This saved interior condition is independent of vanilla D-mods. Company yard own
 its paid repair after the opening Relief story; `company-view-nouns.md` owns that
 campaign gate, review and original-wreck repair flow.
 
-Secondhand Wings can refit the original hull's bays for Aeroshuttles after the
-second bay is restored separately. This saved hull-specific compatibility replaces
+Secondhand Wings can refit the original hull's bays for Aeroshuttles, opening the
+sealed second bay in the same order when it has not been restored already. This saved hull-specific compatibility replaces
 the role's default Hermes pattern without changing berth counts, room shapes,
 apertures or circulation. The deck plan, campaign lift, transfer comparison and
 both deck caches include it. Original Hermes wrecks appear as dismantled, inactive

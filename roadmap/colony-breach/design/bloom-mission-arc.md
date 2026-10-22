@@ -4,7 +4,7 @@ Status: DRAFT
 
 Written: 2026-10-22
 
-Updated: 2026-10-22 — owner's picks folded in: mission 2 is the Cordon with the Line and the Road as variants (the Sortie rejected); mission 3 recommends Broad Front advancing as a burn line behind a walking barrage, with fire, firebreak, incendiary and barrage stories; the arc trigger is still open.
+Updated: 2026-10-22 — the owner's confirmed shape: three missions per outbreak (Colony Breach; the Line or the Road; Broad Front or The Burn), each a single battle, the campaign picking each variant; lifecycle hooks agreed with the bloom lifecycle owner.
 
 Direction for the second and third movements of the Rav Bloom arc that
 `colony-breach-nouns.md` (Campaign: blooms, Direction) names: **organising the
@@ -12,8 +12,8 @@ defence** and **the heart of the infection**. Colony Breach is the first
 movement and is built. This doc proposes the missions, what each one reuses,
 what is new, and how the campaign raises them. Nothing here is work yet: each
 candidate story becomes a `stories/` doc only when it is picked up. The owner
-has picked the concepts for both missions; how mission 3's two picks combine and
-how the campaign raises the arc are still open.
+has picked the concepts for both missions (each a mission with two variants)
+and how the campaign raises the arc (three beats per infected world).
 
 Read `colony-breach-nouns.md` first. Its laws hold for every mission in the arc
 unless this doc names an exception, and its vocabulary (bore, tier, surge,
@@ -113,16 +113,14 @@ strike detachment made into a mission.
 
 ### Who chooses the variant
 
-**The campaign picks, and says so in the offer.** The variant is part of the
-contract's frozen terms, as a posture or a payment is, and follows the bloom's
-state: a world with a settlement cut off beyond the cordon raises the Road,
-one whose cordon is intact and evacuating raises the Line. Where both are
-true, the offer carries both as two contracts on one call and the player
-takes one; the other is fought by the world's own military off screen and
-settles at a partial result. The player chooses whether to take a contract,
-not how a fixed situation is fought, which keeps the briefing honest about
-what is on the ground. In the scripted sector threat the act may simply
-author both in order: the Road while the town still stands, then the Line.
+**The campaign, from how Colony Breach went** (*Tie to the campaign*). The
+variant is part of the offer's frozen terms, as a posture or a payment is,
+and follows the world's state: people left behind in the colony (fewer than
+half lifted, or the call never taken) raise **the Road**, to the colony's
+cut-off people; a colony got out raises **the Line**, holding while the
+region's refugees walk. The player chooses whether to take the beat, not how
+a fixed situation is fought, which keeps the briefing honest about what is on
+the ground.
 
 ### Candidate stories
 
@@ -156,79 +154,79 @@ author both in order: the Road while the town still stands, then the Line.
 
 ### The owner's pick
 
-Broad Front and The Burn (owner, 2026-10-22): Broad Front "gives us the
-ability to show off large scale combat"; The Burn "gives interesting 'fire' /
-'burning' mechanics which might be fun to develop and play with. Also could
-play around with long range artillery there for a WW1 style walking barrage."
-**The Spear** (air-landing beside the heart) is not taken forward.
+Two variants of one mission, as the Cordon has the Line and the Road: **Broad
+Front** and **The Burn**, each a whole battle in its own right (owner,
+2026-10-22). Broad Front "gives us the ability to show off large scale
+combat"; The Burn "gives interesting 'fire' / 'burning' mechanics which might
+be fun to develop and play with. Also could play around with long range
+artillery there for a WW1 style walking barrage."
 
-### Recommendation: combine them
+Rejected:
 
-**One battle: a broad front whose advance is a burn line behind a walking
-barrage.** Allied columns and the company advance on the heart in parallel
-lanes across the largest map, as in Broad Front. Ahead of them a walking
-barrage lifts forward on a timetable; behind the barrage the infantry burn
-the overgrowth as they go, so the front is a **burn line**: a firebreak the
-creep cannot cross back over, moving toward the heart. The Burn's mechanics
-become the way Broad Front moves rather than a separate mission.
+- **Combined** (a broad front advancing as a burn line behind the barrage, in
+  one battle): the owner does not want combined missions ("I don't want
+  combined missions"). Each variant keeps its own character.
+- **The multi-battle operation** (The Burn as linked battles carrying state
+  between them, or two burns ending in the front): rejected for the same
+  reason. The Burn is one battle.
+- **The Spear** (air-landing beside the heart): not taken forward.
 
-Why combined rather than two variants:
+### What the variants share
 
-- **Each needs the other.** A broad front with nothing to set its pace is
-  columns walking into a forest; the barrage gives it a rhythm and the burn
-  line gives it a visible front. A burn with no broad front is three small
-  battles that do not show large-scale combat, which is the owner's first
-  reason.
-- **The new machinery is built once.** Fire, firebreaks and the barrage are
-  the expensive stories; as variants, one variant would carry them and the
-  other would not use them.
-- **The multi-battle operation is the costly part of The Burn, and the least
-  of what the owner liked.** Carrying state between battles is campaign
-  plumbing nobody has yet. It can come later as an operation whose last
-  battle is this one (the alternative below), without changing the battle.
-
-Alternatives, for the owner's pick (`bloom-m3-shape`): **variants** (Broad
-Front as one battle, The Burn as its own multi-battle operation, sharing the
-heart and the map kit), or **an operation ending in the front** (two burn
-battles push firebreaks into the forest, then the broad front against the
-heart, with what the burns collapsed carried into the last battle).
+- **The heart** (below): the same objective and the same win, every mother
+  bore of the heart collapsed. The company plays it as Purge from the start;
+  strike detachments, satchel carriers and machines are the tools in both, and
+  the tender and air support can work satellite bores once their spore
+  colonies are down.
+- **The country.** The same overgrown map kit on the VERDANT palette: forest
+  over most of the map, the farms and ruined installation of a settlement that
+  went dark weeks ago, the reservoir's old workings at the heart on the far
+  side. It depends on **creep over trees and vegetation** (without it the
+  heart's creep stops at every forest edge and the country does not read as
+  overgrown) and on **rural roads and farm plots**, both in their own
+  sessions. Forest canopies block movement, so each plan needs its own
+  reachability proof from the start line to every mother bore, one that never
+  counts on fire to open the way.
+- **The campaign plumbing.** One event family (`BLOOM_HEART`), one factory and
+  one resolver, with the variant among the frozen terms, as the Cordon carries
+  its own.
+- **The score.** Satellite bores collapsed and losses, carried back to the
+  bloom's ledger; a heart down contains the bloom.
 
 ### The heart
 
-The **heart** is spacer talk for the place a bloom's spread chain began: the
-old reservoir where the first bloom of the chain erupted, now months grown.
-In the model it is not a new kind of thing but a lot of known things at once:
-two or three **mother bores** standing on one reservoir, each with her
-Matriarch at a high stage, satellite bores round them at maw, and creep over
-everything within reach, including the forest. It is the only place a
-battle starts with more than one mother bore.
+The **heart** is spacer talk for a bloom's root on its world: the reservoir
+under the mother bore that Colony Breach did not collapse, weeks or months
+grown, out in the country round the colony. In the model it is not a new kind
+of thing but a lot of known things at once: two or three **mother bores**
+standing on one reservoir, each with her Matriarch at a high stage, satellite
+bores round them at maw, and creep over everything within reach, including the
+forest. It is the only place a battle starts with more than one mother bore.
 
-The lore holds: collapsing the heart **ends this bloom and the chain it
-seeded, not the weapon**. Text says the heart is down and the country can be
-taken back; it never says the Bloom is destroyed or the world is clean, and the
-reservoir rests rather than dies. This is the one mission where the hive is
-the objective rather than a bonus, and the briefing says why in work terms:
-every season it stands, it seeds the traffic again.
+The lore holds: collapsing the heart **ends this bloom (and, at a harsher
+tier, starves what it seeded), not the weapon**. Text says the heart is down
+and the country can be taken back; it never says the Bloom is destroyed or the
+world is clean, and the reservoir rests rather than dies. This is the one
+mission where the hive is the objective rather than a bonus, and the briefing
+says why in work terms: every season it stands, it seeds the traffic again.
 
-### The player's role and win conditions
+### What differs
 
-- **Player:** the spearhead. Allied columns advance on their own lanes under
-  their own commander, behind the same barrage, and hold what they take; the
-  company has the lane that reaches the heart and the posture that matters
-  (Purge, in effect, from the start). Strike detachments, satchel carriers,
-  incendiaries and machines are the tools; the tender and air support can work
-  the satellite bores once their spore colonies are down.
-- **Win:** every mother bore of the heart collapsed.
-- **Loss:** the company is broken or withdraws; the allied lanes falling is a
-  cost on the outcome, not a loss on its own.
-- **Score:** allied losses and the satellite bores collapsed, carried back to
-  the campaign.
+| | **Broad Front** | **The Burn** |
+| --- | --- | --- |
+| What it shows | Large-scale combat: many forces converging on the heart at once. | Fire and artillery: the company burns its way in behind a walking barrage. |
+| The company's role | The spearhead lane among allied columns advancing on their own lanes under their own commander and holding what they take. | Alone on the ground: the world's military lends its guns, not its men. The company follows a walking barrage into the forest and burns the overgrowth as it goes, so its front is a **burn line** the creep cannot cross back over. |
+| Win | Every mother bore of the heart collapsed. | The same. |
+| Loss | The company is broken or withdraws; allied lanes falling is a cost on the outcome, not a loss. | The company is broken or withdraws; the barrage runs out on its timetable whatever the company does. |
+| Score | Allied losses, satellite bores collapsed. | Satellite bores collapsed, how much of the creep the burn took, the company's losses. |
+| Map | The largest the arc uses: 560x336 at least, mission-owned, with the allied start line along the near side and roads for the lanes. | Deep rather than wide: one approach through the thickest forest to the heart, sized for one company and its barrage (400x240 is the first guess). |
+| New machinery | Allied lane command. | Fire, firebreaks, incendiaries, the walking barrage, advancing behind it. |
 
-### The barrage and the burn line, as laws
+### The Burn: the barrage and the burn line, as laws
 
 - **The guns cannot take the heart.** The barrage is bounded: it lifts on its
   timetable to a last line short of the heart (the batteries' reach, or the
-  ammunition the briefing names), and the last stretch is infantry's. It is
+  ammunition the briefing names), and the last stretch is the company's. It is
   the artillery form of *air cannot clear the map*: fire support shapes the
   approach, people finish it.
 - **Barrage damage is ordinary damage.** A shell landing on a bore hurts it
@@ -246,20 +244,23 @@ every season it stands, it seeds the traffic again.
   break is still creep's. Burning never collapses a bore: it takes the creep
   and the growths that stand on it.
 
-### Map
+### Who chooses the variant
 
-The largest the arc uses: 560x336 at least, mission-owned, VERDANT palette.
-Overgrown country: forest over most of the map, the farms and ruined
-installation of a settlement that went dark months ago, the reservoir's old
-workings at the heart on the far side, and the allied start line on the near
-side with the roads the lanes follow. It depends on two pieces in their own
-sessions: **creep over trees and vegetation** (without it the heart's creep
-stops at every forest edge and the country does not read as overgrown) and
-**rural roads and farm plots**. Forest canopies block movement, so the plan
-needs its own reachability proof from the start line to every mother bore;
-burning opens the forest as it goes, which the proof must not rely on.
+**The campaign, from how the Cordon went**, as the Cordon's own variant
+follows from Colony Breach (*Tie to the campaign*). The variant is among the
+heart's frozen terms and follows what the world's military has left to give:
 
-### What exists for fire and artillery
+- enough redoubts held that it has columns to spare: **Broad Front**, its
+  columns in the lanes beside the company;
+- too many redoubts lost, in either Cordon variant: **The Burn**,
+  because it has guns behind the cordon but no men to send, so the company
+  goes in alone behind its barrage.
+
+The player chooses whether to take the beat, not which battle it is, which
+keeps the briefing honest about what the world has left. The threshold (how
+many redoubts held is enough) is tuning, set when the Cordon's evidence exists.
+
+### What exists for fire and artillery (for The Burn)
 
 | Need | What exists | Gap |
 | --- | --- | --- |
@@ -270,97 +271,207 @@ burning opens the forest as it goes, which the proof must not rely on.
 
 ### Candidate stories
 
-1. **Heart mission.** The mission, briefing, factory, outcome and evidence
-   harness, with the allied lanes, the company's lane, the barrage plan and
-   the last line.
+Shared by both variants:
+
+1. **Heart mission.** The mission with both variants: briefing (the variant
+   among its frozen terms), factory, outcome, and a `commanderEvidence`
+   harness with a fixture per variant.
 2. **Overgrown country plan.** A precinct plan: REMOTE sprawl, forest strokes,
-   a dark settlement's ruins, the heart's site and lanes, with a reachability
+   a dark settlement's ruins and the heart's site, wide with lanes for Broad
+   Front and deep with one approach for The Burn, each with a reachability
    proof that does not count on fire.
 3. **Heart setup.** Several mother bores on one reservoir at battle start, each
    with her Matriarch's stage set by the heart's age, and satellite bores at
    maw: a setup of existing pieces, plus whatever the two-mother case breaks
    (one Matriarch's leash over the other's packs, the director's budget).
-4. **Allied lane command.** An `ALLY` commander advancing columns along lanes
-   behind the barrage and holding taken ground; Conquest's lanes are the
-   model, rewritten for an allied side against a swarm.
-5. **Fire field.** Burning as simulation state the battle owns, beside the
+4. **Creep on vegetation** (dependency, in its own session).
+
+Broad Front:
+
+5. **Allied lane command.** An `ALLY` commander advancing columns along lanes
+   and holding taken ground; Conquest's lanes are the model, rewritten for an
+   allied side against a swarm.
+
+The Burn:
+
+Fire itself (stories 6 to 8 below) is its own feature now, modelled in
+`fire-nouns.md` with its board in `roadmap/fire/`; the fire field and the
+firebreak have landed there.
+
+6. **Fire field.** Burning as simulation state the battle owns, beside the
    creep field: per cell, fuel, burning and burnt. Fire spreads by fuel
    (crops, brush, canopies, dead and living creep), burns out, hurts whatever
    stands in it, and makes smoke that is a partition like a smoke pot's.
    Deterministic in the seed; drawn through the existing fire and smoke fx and
    a scorch on the ground. Canopies burn and fall to passable burnt ground.
-6. **Firebreak.** Burnt ground refuses creep until it recovers (the creep
+7. **Firebreak.** Burnt ground refuses creep until it recovers (the creep
    field asks the fire field); living creep burns and withers; growths on
    burnt creep die as they do when their creep dies. The burn line is this
    rule moving.
-7. **Incendiaries.** Something to light it with, through the existing weapon
+8. **Incendiaries.** Something to light it with, through the existing weapon
    data and orders: an infantry flamer special, an incendiary round for the
    field mortar's fire mission, perhaps an incendiary air strike. Each sets
    cells burning; none is a new delivery system.
-8. **Walking barrage.** A barrage plan of lines that lift forward by a set
+9. **Walking barrage.** A barrage plan of lines that lift forward by a set
    distance on a timetable, fired by off-map batteries as a stream of placed
    blasts (the Orbital Barrage's pending detonation, many times, on a
-   schedule), with a warning at each line and a last line it stops at. Usable
-   by the `ALLY` side and, as a command power, by the player.
-9. **Advance behind the barrage.** An assignment that keeps a squad or column
-   a set distance behind the current line and steps it forward when the line
-   lifts, with the danger-close veto as its near limit. Lane commands and the
-   company commander issue it.
-10. **Evidence scenes.** `sceneEvidence` scenes for fire spread over a forest
+   schedule), with a warning at each line and a last line it stops at. Fired
+   for the company by the world's batteries here; usable later by the `ALLY`
+   side and, as a command power, by the player.
+10. **Advance behind the barrage.** An assignment that keeps a squad a set
+    distance behind the current line and steps it forward when the line
+    lifts, with the danger-close veto as its near limit. The company
+    commander issues it.
+11. **Evidence scenes.** `sceneEvidence` scenes for fire spread over a forest
     edge and creep, a firebreak holding against a living source, and a squad
     following a barrage; mechanics asserted, outcomes read.
-11. **Creep on vegetation** (dependency, in its own session).
 
 ## Tie to the campaign
 
-### How the movements connect
+### The pick: three beats per infected world
 
-The three movements are one bloom's story if the campaign lets them be:
+The arc is **per planet** (owner, 2026-10-22: "I like the idea of infected
+planets having the 3 mission beat with our variants in there. The player can
+choose whether they follow through with all of them."). Every bloom on every
+world can run the three beats in turn: **Colony Breach**, then **the Cordon**
+(the Line or the Road), then **the heart**. Each beat is offered on its own,
+the player opts into it, and the player can stop after any of them. This
+replaces the earlier choice between organic offers on a spread chain (which
+needed a harsher severity) and a scripted sector threat as the trigger: the
+arc appears at the shipped benign tier, on any world that blooms.
 
-- A Colony Breach that ends with the bloom **dark** (the call refused, expired
-  or failed) is what raises the **defence**. Failing the first movement feeds
-  the second instead of ending the story.
-- The defence's outcome sets the **heart**: redoubts that held are allied
-  columns in the heart's lanes, and bores collapsed in front of the line are
-  satellite bores the heart does not have. A line that fell means a heart with
-  fewer allies and more growth.
-- Collapsing the heart **contains** the chain: the bloom at its root ends as a
-  contained one does (`colony-breach-nouns.md`, Ending one), and the blooms it
-  seeded starve faster. The world's owner and the Hegemony regard it; what it
-  pays beyond that is the owner's call.
+**Three missions per outbreak, each a single battle** (owner, 2026-10-22: "I
+want 3 missions per outbreak. Mission 2/3 have 2 variants that I decided
+earlier."):
 
-### Organic or scripted (owner's pick)
+1. **Colony Breach.**
+2. **The Line** or **the Road** (the Cordon).
+3. **Broad Front** or **The Burn** (the heart).
 
-Option cards on the pick page (`bloom-arc-trigger`).
+No beat is a multi-battle operation and no two beats merge into one battle;
+a variant is one battle, picked by the campaign, never a second mission.
 
-- **Organic.** The arc grows out of the ordinary system: a dark bloom whose
-  spread chain reaches generation one or two offers the defence, and a chain
-  three deep offers the heart at its root. It needs a severity tier harsher
-  than benign, since benign blooms never spread; at the shipped tier the arc
-  never appears.
-- **Sector threat.** A scripted threat: a chosen world is woken with
-  `RavBloomSystem.wakeAt` (after the player has answered a first bloom, say),
-  and runs the three movements as acts on its own clock and its own strength,
-  whatever the severity preset. One bespoke event to author and tune; works
-  today.
-- **Both, scripted first (recommended).** Ship the sector threat first, since
-  it works at benign and gives the arc a designed shape; when the harsher
-  tiers ship, the organic offer reuses the same missions and factories, with
-  the threat's acts as its template.
+### How a world moves through the beats
 
-Either way the missions need new campaign plumbing: an event type (or a
-mission source) for each of the defence and the heart, a factory each, and a
-resolver that writes the outcome back to the bloom's ledger exactly once.
-`PolityDefenceMissionFactory` is the nearest model for the defence. The
-sector threat's state is one more nullable entry on the bloom ledger, created
-on first read, so older saves start with none.
+| After | The world | Next offer |
+| --- | --- | --- |
+| Colony Breach, mother bore collapsed | **Contained**: the bloom ends at once (as today). | None: the arc is won early. |
+| Colony Breach, half or more lifted | **Starved**: the bloom lingers, its people out. | The Cordon, **the Line** (the colony is out; the region's refugees are walking). |
+| Colony Breach, fewer than half lifted, or the call refused or expired | Stays **erupted** (the report changes no stage) until it goes **dark**: forty-five days after eruption, or at once on a refusal or expiry. | The Cordon, **the Road** (the colony's people are still in there, cut off), offered when the bloom goes dark, not when the report lands. |
+| The Cordon, won or lost | As before; the bloom is still running. | The heart: **Broad Front** if enough redoubts held, else **The Burn**, with what the Cordon left (below). |
+| The heart, every mother bore collapsed | **Contained**: ends at once, the reservoir rests. | None: the arc is complete. |
+| The heart, lost | As before. | None. |
+
+So the variant of the Cordon is not a separate pick: it follows from how
+Colony Breach went. The Road exists because people were left behind; the Line
+because they got out. A call the player could not take (refused, expired, or
+held at the gate by another event) does not close the arc: the Cordon can still
+be offered to the dark world, so missing the first beat is a worse start, not
+the end of the story. The heart is offered only after a committed Cordon.
+At the benign tier a dark bloom is put down sixty days after going dark, so
+the Road's fourteen-day window has to open inside those sixty days; the
+clock hold below protects it only once the Cordon is committed.
+
+### What the player leaves behind by stopping
+
+Declining a beat, letting its offer expire, or losing it ends the arc on that
+world, and the bloom runs on the ordinary clock from where it stands. At the
+benign tier that is what happens today: a dark bloom is **put down** by the
+world's own military sixty days after going dark, a starved one burns out, and
+the market keeps the condition until then. The player has lost nothing they
+had; they have given up the regard, pay and containment the later beats could
+have earned. At a harsher tier the same stop leaves a bloom that eats size and
+may spread, which is where following through will start to matter.
+
+### How one beat feeds the next
+
+Outcomes are measured facts on the bloom's ledger, written by each beat's
+report and read by the next beat's setup:
+
+- **Colony Breach → the Cordon.** The evacuation picks the variant (above).
+  Bores collapsed stay collapsed: the Cordon's front starts with that many
+  fewer bores. Biomass the bores were fed (people not lifted) shows as an older
+  age mix and higher tiers in front of the line, so a bad rescue makes a harder
+  defence.
+- **The Cordon → the heart.** Redoubts that held pick the variant: enough of
+  them and the heart is Broad Front, with those garrisons as the allied
+  columns in its lanes; a line that fell makes it The Burn, the company alone
+  behind the world's guns. Bores collapsed in front
+  of the line are satellite bores the heart does not have. People brought out
+  (refugees or townspeople) are regard, not strength.
+- **Across the arc.** The mother bore that Colony Breach did not collapse is
+  the heart's root: the heart's mother bores are hers and what grew from her
+  reservoir in the weeks since, and their Matriarchs' stages follow how long
+  the bloom has fed.
+
+### Time, and the one-open-event rule
+
+A bloom's own clock leaves room for three beats, with two hooks agreed with the
+session that owns the bloom lifecycle (`RavBloomSystem`, *Campaign: blooms*):
+
+- **The clocks.** The call window is fourteen days; an erupted bloom goes dark
+  forty-five days after eruption with nobody lifted; at benign a dark bloom is
+  put down sixty days later, and a starved one lingers ninety. A Colony Breach
+  fought around day twenty leaves a dark bloom about eighty days and a starved
+  one ninety: enough for two more fourteen-day windows and the travel between,
+  but not with slack.
+- **Hook: a committed beat holds the clock.** While one of a bloom's beats is
+  committed and unreported, its end-by-clock checks (put down or burned out,
+  starved out) are skipped. When a beat settles, the bloom's stage deadline
+  becomes the later of its own clock and the settle day plus the next window
+  (fourteen days) and a travel allowance (thirty). The world's military waits
+  for the company it hired. Today a call still open when its bloom ends is
+  closed as expired; under this hook a committed beat is never cut off that
+  way. The cost: an arc's bloom holds one of the two running places longer, so
+  fewer new blooms wake while an arc runs.
+- **Hook: the next offer opens as the last one settles.** The shared gate lets
+  only one campaign event be open at a time. The handoff happens in the
+  bloom's daily tick that reads the beat's report (where it already reads the
+  rescue's terminal state), not inside the mission's resolution. The bloom
+  system ticks after the event lifecycle and before every other event source,
+  so the next offer is raised before any other source ticks that day, and a
+  report arriving between ticks cannot be pre-empted, since nothing raises
+  events outside the tick. The system order test pins it.
+- **The cost to other blooms.** A committed beat is an open event, so an arc
+  holds the gate for its whole length, and other blooms' calls lapse as they do
+  behind any open event. At the default *frequent* rate (about four and a half
+  blooms a year) an arc of about 120 days sees about 1.4 other calls arrive,
+  most of which lapse. A lapsed call sends its bloom dark, and a dark bloom can
+  still offer the Cordon (the Road) once the gate frees inside its sixty days,
+  so a lapsed call delays the content rather than losing it. `bloomEvidence`
+  measures held calls once the arc exists.
+
+### Campaign plumbing
+
+Each beat is the bloom's next call, never an event without a bloom behind it,
+as the rescue is today.
+
+- **Families.** Each beat is its own event family under
+  `campaign-event-nouns.md`'s extension laws: `BLOOM_CORDON` and `BLOOM_HEART`
+  are appended to `CampaignEventType` rather than overloading the rescue, each
+  with its own frozen commitment (the variant, the posture, the inherited
+  bores and allies) and its own terminal report. The bloom is their only
+  source, so there is still no parallel scheduler.
+- **Ledger.** A nullable arc record on the bloom holds the current beat, each
+  beat's event id and its report (share lifted, bores collapsed, redoubts
+  held). Colony Breach keeps the bloom's existing rescue event id; the Cordon's
+  and the heart's live on the arc record. Older saves read it as none.
+- **Missions.** A factory and a resolver per beat, the resolver writing its
+  report back to the bloom exactly once. `PolityDefenceMissionFactory` is the
+  nearest model for the Cordon.
+
+### The sector threat
+
+No longer the trigger. It stays as an optional, later **authored instance** of
+the same three beats: a named world, woken with `RavBloomSystem.wakeAt`, whose
+arc runs with fixed, harsher terms (a stronger heart, a set cordon, story
+briefings) whatever the severity preset. It costs one authored setup over
+machinery the ordinary arc already needs, and nothing in the ordinary arc
+waits on it.
 
 ## Open questions for the owner
 
-- How mission 3's picks combine (`bloom-m3-shape`; combined is recommended).
-- How the campaign raises the arc (`bloom-arc-trigger`).
 - What collapsing the heart pays beyond regard, and whether a contained heart
   rests its world longer than an ordinary containment.
-- Whether the defence can be fought on the player's own colony when an
-  exposed player colony blooms (the nearest thing to a home defence the arc
-  could offer).
+- Whether the arc runs on the player's own colony when an exposed player
+  colony blooms (the nearest thing to a home defence the arc could offer).

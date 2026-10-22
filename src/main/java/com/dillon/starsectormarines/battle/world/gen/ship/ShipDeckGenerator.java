@@ -72,7 +72,7 @@ public final class ShipDeckGenerator {
                 new ReservedFacilityStage(restoration.openReserves()), // seal unopened reserves, after the wreck's own condition
                 new DeckEndSpawnStage(),                 // bow / stern anchors
                 new TacticalLinkStage(),                 // (no nodes yet -> empty map)
-                new FinalizeStage(),                    // wall HP / cover / wall tags / buildings
+                new FinalizeStage(false),               // wall HP / cover / wall tags / buildings; bulkheads below
                 new BayApertureStage(),                  // sight-clear vacuum beyond pressure openings
                 new ShipMaterialStage(),                // ship material defaults over the finalized shell
                 new ShipWearStage(boatBay),              // cosmetic history survives room repairs

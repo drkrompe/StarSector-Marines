@@ -1,7 +1,7 @@
 # Ship barracks bunks and personal lockers
 
 Generated barracks and crew quarters use the same quiet graphite and grey-green
-kit: two facing ranks of real-length bunks, pillows toward the outer bulkheads,
+kit: two facing ranks of two-cell bunks, pillows toward the outer bulkheads,
 personal locker banks at the near ends and amid the far rank. The two-cell central aisle and
 whole hatch approaches remain open. Locker banks replace loose kit and pipe
 props without changing the fitting's rest capacity. Authored room layouts stay
@@ -9,10 +9,12 @@ authoritative; ground-side berthing keeps its existing art.
 
 ## Geometry and layers
 
-A cell is about 0.75 m (a crewman's shoulders are 0.6 cells). The bunk is one
-cell by three: a 0.70 x 2.20 m base round a 0.59 x 2.0 m mattress. It was one by
-two, 1.5 m long, and a 1.8 m crewman did not fit. The locker banks (1x2, three
-compartments) were already true and keep their original generation.
+The bunk is one cell by two, level with the locker banks. The figure is drawn at
+head-and-shoulders scale (shoulders 0.6 cells), so a three-cell, real-length bunk
+(tried 2026-10-21) read as a bed for a giant, and so did the sleeper in it. The
+shipped sheet is the original 1x2 generation again, exported from the left half
+of the raw; the right half of the raw, the 1x3 refit, is kept as source and not
+exported (`BarracksBunkTemplate` still draws its guide).
 
 `barracks-bunks.raw.png` is two generations side by side, joined untouched by
 `templates/real-scale-montage.py`. The left 1254 px are the original built-in
@@ -34,12 +36,11 @@ high row and `bedding-low` at its low row. Bunks draw base, bedding, then rails.
 The complete assembly rotates and mirrors with the room. Only the base owns
 cover and physical blocking, which is applied after circulation acceptance.
 
-Berthing is 8x8: two facing ranks of racks, heads to the hull, and a two-cell
+Berthing is 8x6: two facing ranks of racks, heads to the hull, and a two-cell
 passage between them. REST stands on the passage cell at a bunk's foot and
 targets the foot cell; the resting hand is drawn lying along the bunk, head on
-the pillow (`WorkMotion.SLEEP`). A locker bank is a cell shorter than a bunk, so
-it stands against the hull and STOW is worked from the alcove left between its
-neighbours. A blocked footprint omits all layers together. Folded clothing is
+the pillow (`WorkMotion.SLEEP_BUNK`, at the fallen-body scale). A locker bank is
+as long as a bunk and STOW is worked from the passage. A blocked footprint omits all layers together. Folded clothing is
 decorative scenery, not tracked personal inventory. The brig's cells take the
 same bunk, three cells deep against the bars.
 
@@ -54,8 +55,8 @@ Set JAVA_HOME as documented in CLAUDE.md, then:
 ```
 
 The suite renders the actual generated Valkyrie barracks at 24 and 64px per cell,
-plus all four quarter turns of an 8x8 fitting. The `ship-duty` motion board
-follows one sleeper (`SLEEP`). It uses production collectors
+plus all four quarter turns of an 8x6 fitting. The `ship-duty` motion board
+follows one sleeper (`SLEEP_BUNK`). It uses production collectors
 and the headless Java2D renderer, not a live-game OpenGL capture. Direct fitting
 tests cover all eight rotations/mirrors, preserved berth capacity, clear rear
 hatches, reachable rest/stowage and the frame's transparent opening.

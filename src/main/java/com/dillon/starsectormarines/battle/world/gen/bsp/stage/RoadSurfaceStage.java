@@ -105,7 +105,7 @@ public final class RoadSurfaceStage implements GenStage {
                 ? GeneratedRoads.streets(swept, street, footway, ctx.seed, CITY_MAX_BREADTH, style)
                 : new GeneratedRoads.Network(GeneratedRoads.routes(swept, ctx.seed), List.of());
         List<RoadPlan.Route> routes = new ArrayList<>(network.routes());
-        if (rural != null) routes.addAll(RuralGround.routes(rural, ctx.seed));
+        if (rural != null) routes.addAll(RuralGround.routes(rural, network.routes(), ctx.seed));
         if (routes.isEmpty()) return;
         TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
         var margin = (profile == null ? SurfacePalette.ROCK : profile.surface()).inlandGround();

@@ -111,12 +111,11 @@ final class ShipLightingRenderSystem implements RenderSystem {
             }
             float dx = lamp.vertical() ? 0f : px * .34f;
             float dy = lamp.vertical() ? px * .34f : 0f;
-            out.addLine(layer(), cx - dx, cy - dy, cx + dx, cy + dy, px * .18f, .09f, .11f, .11f, ctx.alphaMult);
             for (int halo = 3; halo >= 1; halo--)
                 out.addLine(layer(), cx - dx, cy - dy, cx + dx, cy + dy, px * (.12f + halo * .08f),
                         lamp.r(), lamp.g(), lamp.b(), .045f * gains[i] * ctx.alphaMult);
-            out.addLine(layer(), cx - dx, cy - dy, cx + dx, cy + dy, Math.max(1f, px * .065f),
-                    lamp.r(), lamp.g(), lamp.b(), (.15f + .85f * gains[i]) * ctx.alphaMult);
+            StripFixtureArt.draw(out, layer(), cx, cy, px, lamp.vertical(),
+                    lamp.r(), lamp.g(), lamp.b(), gains[i], ctx.alphaMult);
         }
     }
 }

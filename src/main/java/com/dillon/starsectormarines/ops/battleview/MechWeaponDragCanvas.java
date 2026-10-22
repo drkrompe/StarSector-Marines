@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 
-import java.awt.Color;
 import java.util.function.Supplier;
 
 /** Pointer-transparent carried hardware, above the whole fitting document. */
@@ -14,7 +13,10 @@ public final class MechWeaponDragCanvas implements CanvasProducer {
     private float documentX;
     private float documentY;
 
-    public MechWeaponDragCanvas(Supplier<LayeredMechAssets> assets) { this.assets = assets; }
+    public MechWeaponDragCanvas(Supplier<LayeredMechAssets> assets) {
+        this.assets = assets;
+        HardwareArt.preload();
+    }
 
     public void show(MechWeaponComponent component, float documentX, float documentY) {
         this.component = component;
@@ -25,16 +27,14 @@ public final class MechWeaponDragCanvas implements CanvasProducer {
     public void clear() { component = null; }
 
     @Override public void draw(CanvasContext c) {
-        if (component == null || assets.get() == null) return;
-        LayeredSpriteCache sprite = MechEquipmentGridCanvas.spriteFor(assets.get(), component);
-        if (sprite == null) return;
+        if (component == null) return;
         float x = c.metrics().toCanvasX(documentX) + 18;
         float y = c.metrics().toCanvasY(documentY) + 18;
-        float scale = Math.min(64f / sprite.pxWidth, 82f / sprite.pxHeight);
-        c.fillRect(x - 4, y - 4, 72, 90, new Color(7, 12, 9, 205));
-        MechLabDollCanvas.drawCornerBrackets(c, x - 4, y - 4, 72, 90,
-                new Color(0xedc273), 1.5f, 11, 4);
-        c.sprite(sprite.sourcePath, sprite.sprite, x + 32, y + 41,
-                sprite.pxWidth * scale, sprite.pxHeight * scale, 0, Color.WHITE);
+        // The ghost is the piece itself: its coloured bricks and its painted icon.
+        HardpointBricks.Layout bricks = HardpointBricks.fit(x, y, 72, 90,
+                component.footprintColumns, component.footprintRows, 2f);
+        HardpointBricks.drawFilled(c, bricks, 0, 0, bricks.columns(), bricks.rows(),
+                HardpointBricks.tone(component.hardpointType));
+        HardwareArt.draw(c, component, bricks.left(), bricks.top(), bricks.width(), bricks.height(), 255);
     }
 }

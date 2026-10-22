@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 200">
+  <path d="M 18 10.6 L 29.2 10.6 L 42.8 17.2 L 117.2 17.2 C 130.8 17.2 142 22.3 142 26.4 C 142 30.5 130.8 35.6 117.2 35.6 L 42.8 35.6 L 29.2 42.2 L 18 42.2 Z" fill="#000000" fill-opacity="0.58"/>
+  <rect x="9.7" y="20.9" width="6.4" height="11" rx="1" fill="#000000" fill-opacity="0.58"/>
+  <rect x="42.8" y="19.8" width="72.4" height="2.9" rx="1" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="111.7" y="19.2" width="2.6" height="14.4" fill="#ffffff" fill-opacity="0.3"/>
+  <path d="M 18 47.4 L 29.2 47.4 L 42.8 54 L 117.2 54 C 130.8 54 142 59.1 142 63.2 C 142 67.3 130.8 72.4 117.2 72.4 L 42.8 72.4 L 29.2 79 L 18 79 Z" fill="#000000" fill-opacity="0.58"/>
+  <rect x="9.7" y="57.7" width="6.4" height="11" rx="1" fill="#000000" fill-opacity="0.58"/>
+  <rect x="42.8" y="56.6" width="72.4" height="2.9" rx="1" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="111.7" y="56" width="2.6" height="14.4" fill="#ffffff" fill-opacity="0.3"/>
+  <path d="M 18 84.2 L 29.2 84.2 L 42.8 90.8 L 117.2 90.8 C 130.8 90.8 142 95.9 142 100 C 142 104.1 130.8 109.2 117.2 109.2 L 42.8 109.2 L 29.2 115.8 L 18 115.8 Z" fill="#000000" fill-opacity="0.58"/>
+  <rect x="9.7" y="94.5" width="6.4" height="11" rx="1" fill="#000000" fill-opacity="0.58"/>
+  <rect x="42.8" y="93.4" width="72.4" height="2.9" rx="1" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="111.7" y="92.8" width="2.6" height="14.4" fill="#ffffff" fill-opacity="0.3"/>
+  <path d="M 18 121 L 29.2 121 L 42.8 127.6 L 117.2 127.6 C 130.8 127.6 142 132.7 142 136.8 C 142 140.9 130.8 146 117.2 146 L 42.8 146 L 29.2 152.6 L 18 152.6 Z" fill="#000000" fill-opacity="0.58"/>
+  <rect x="9.7" y="131.3" width="6.4" height="11" rx="1" fill="#000000" fill-opacity="0.58"/>
+  <rect x="42.8" y="130.2" width="72.4" height="2.9" rx="1" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="111.7" y="129.6" width="2.6" height="14.4" fill="#ffffff" fill-opacity="0.3"/>
+  <path d="M 18 157.8 L 29.2 157.8 L 42.8 164.4 L 117.2 164.4 C 130.8 164.4 142 169.5 142 173.6 C 142 177.7 130.8 182.8 117.2 182.8 L 42.8 182.8 L 29.2 189.4 L 18 189.4 Z" fill="#000000" fill-opacity="0.58"/>
+  <rect x="9.7" y="168.1" width="6.4" height="11" rx="1" fill="#000000" fill-opacity="0.58"/>
+  <rect x="42.8" y="167" width="72.4" height="2.9" rx="1" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="111.7" y="166.4" width="2.6" height="14.4" fill="#ffffff" fill-opacity="0.3"/>
+</svg>

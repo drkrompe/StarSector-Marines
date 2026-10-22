@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BuildingFloodFill;
+import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
@@ -43,6 +44,26 @@ public final class FinalizeStage implements GenStage {
      */
     private static final int MIN_DRIVABLE_LINES = 2;
 
+    /** The retired blue riveted steel wall of the first urban sheet: no generated wall draws it. */
+    static final String RETIRED_WALL = "urban.wall";
+
+    private final boolean dressUnstyledWalls;
+
+    /** Finalize a map whose unstyled walls take the installation concrete. */
+    public FinalizeStage() {
+        this(true);
+    }
+
+    /**
+     * @param dressUnstyledWalls whether walls no stage gave a material take
+     *                           {@link InstallationWalls#BUILDING}; false for a
+     *                           recipe that dresses its own after finalize, as a
+     *                           ship deck does with its bulkheads
+     */
+    public FinalizeStage(boolean dressUnstyledWalls) {
+        this.dressUnstyledWalls = dressUnstyledWalls;
+    }
+
     @Override
     public void run(GenContext ctx) {
         NavigationGrid grid = ctx.grid;
@@ -51,6 +72,7 @@ public final class FinalizeStage implements GenStage {
         seedWallHp(grid, topology);
         bakeCoverFromWalls(grid);
         topology.tagDefaultWalls(grid);
+        if (dressUnstyledWalls) dressUnstyledWalls(topology);
         // A wall nobody stamped draws the block's transparent centre, which is
         // to say nothing at all. Buildings stamp their own; ship decks never
         // did, so every bulkhead on every deck was invisible.
@@ -61,6 +83,26 @@ public final class FinalizeStage implements GenStage {
 
         verifyRoadGraphWalkable(grid, ctx.get(BspKeys.ROAD_GRAPH));
         verifyVehicleCorridorDrivable(grid, ctx.get(BspKeys.VEHICLE_CORRIDOR));
+    }
+
+    /**
+     * Gives every wall no stage dressed the installation's light concrete. A
+     * wall nobody styled used to fall through to the first urban sheet's blue
+     * riveted steel, which the game no longer uses; fortified posts, military
+     * sub-buildings, spaceport towers and stations all showed it.
+     */
+    static void dressUnstyledWalls(CellTopology topology) {
+        int concrete = topology.surfaceIndex(InstallationWalls.BUILDING);
+        for (int y = 0; y < topology.getHeight(); y++) {
+            for (int x = 0; x < topology.getWidth(); x++) {
+                if (!topology.isWall(x, y)) continue;
+                String existing = topology.getSurfaceId(x, y);
+                if (existing != null && !existing.equals(RETIRED_WALL)) continue;
+                topology.setSurface(x, y, concrete);
+                if (topology.getWallGroundSurfaceId(x, y) == null)
+                    topology.setWallGroundSurface(x, y, "installation.concrete-floor");
+            }
+        }
     }
 
     /** Fill missing structural HP while preserving authored strength; water and fixtures are not walls. */

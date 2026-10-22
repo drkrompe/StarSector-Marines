@@ -449,7 +449,7 @@ The bay is opened before windows and furniture, so neither can close its throat.
 
 A clinic's equipment follows care: reception has charting and waiting seats;
 triage pairs readouts with assessment; treatment owns examination couches,
-monitors, trolleys and washing; the ward has aligned monitored real-length (three-cell) beds with side
+monitors, trolleys and washing; the ward has aligned monitored beds with side
 access and a two-cell stretcher approach; pharmacy has cabinet banks and a
 dispensing station. Bed and examination capacity grows with usable room space.
 Small wards may retain one bed when a complete larger bay cannot fit. The
@@ -609,9 +609,19 @@ where carriageway lies on both sides of it, so side streets reach the road
 they join and its junction turns give the corner a kerb radius. Because the
 carriageway is the street less its kerbs, it widens wherever a frontage gives
 way to a yard; the sweep refuses a *bulge* (a band broader than one running
-the same way along its whole length) and a *pill* (a short band whose ends
-are not both met by a crossing street), which would otherwise swell the road
-into the yard or float asphalt in a gap between buildings. Pedestrian frames,
+the same way along its whole length), which would swell the road into the
+yard, and a *pill* (a short band, under four breadths long, met by no
+crossing street at either end), which would float asphalt in a gap between
+buildings. A short band met at one end only, by a street that stands on its
+own, is a *spur*: a dead end off that street into a yard or a lot. It is
+swept as a street to where its cells end, because left paved it reads as a
+stub of street with no road on it. It must run on at least two of its
+breadths past the street it leaves; a shorter one is a yard's mouth opening
+off the street and keeps its paving, since swept it is a blob of asphalt
+stepping out of the kerb line. Its mouth takes a kerb radius only where
+the turn would lie wholly on street or footway; where the spur opens
+straight onto its yard the corner stays square rather than being cut off at
+the yard's edge. Pedestrian frames,
 the rest of the flank, plazas broader than a street (nine cells) and lanes too
 narrow for a sweep (under three) keep their paving, which also shows in the
 corners a junction turn leaves uncovered.
@@ -629,6 +639,10 @@ partly covers shows concrete beside the curve, and the concrete meets the
 untouched paving on whole cell edges. A sidewalk swept as a second subcell
 layer over the old kerb and paver tiles left half-cell triangles of the tile
 showing wherever either sweep only partly covered a cell.
+Anything set down on a finished road after generation (a roadblock's bags, a
+holdout's truck, a gun) stands on the road's paving: the paving under it is
+drawn, and a gun's flat ground pad is not, because the road finish is a drawn
+surface. Only a wall replaces the ground.
 `-Dbattle.mapgen.cityRoadEnds=round` and `-Dbattle.mapgen.citySidewalks=false`
 are the controls; precinct roads keep round ends and no sidewalk. The paving is the underlay rather than being replaced: no
 ground kind, surface, walkability, road graph, width or random draw changes,
@@ -637,6 +651,22 @@ untouched. `-Dbattle.mapgen.cityRoads=false` is the control; it leaves the city
 paved and sweeps only precinct roads. Junctions, T-junctions, turns and dead
 ends are all composed from the sweep rather than from tiles, so no piece is
 missing from the set.
+
+**A street ends where it meets another, not where its band does.** A band is
+a maximal run of street cells, so a side street's band reaches across the
+street it joins to the far kerb row, and often a cell or two into a yard
+mouth beyond; swept to its band, every T put a *nub* of asphalt across the
+through road's far sidewalk. So at a *T* (the street it meets runs on past it
+both ways) a street stops at that street's centre line and the through
+asphalt covers the rest; at a *corner* (both end at each other) each runs to
+the outer edge of the other's asphalt, so the corner is paved square and
+nothing runs on into the kerb. A street that runs on through is a crossing
+and keeps its length. The kerb radius is still decided by whether both arms
+exist, so a T keeps its two near-side turns and gains none on the far side.
+Where two streets grown side by side make the road widen, the one that ends
+beside the other, meeting no crossing street, *tapers* into it over six cells
+with a diagonal stroke instead of stepping square across the carriageway.
+The `city-junctions` snapshot suite frames the junctions as generated.
 
 **Road paint** is a *marking*: a straight, flush-ended stroke along a grid
 axis, drawn as its own layer over the asphalt. It is laid only on cells the
@@ -651,6 +681,13 @@ finish it changes nothing the simulation reads.
 
 Intersecting carriageways form one paved footprint. The first declared road
 owns material where carriageways overlap, and a shoulder never erases a road.
+Where two materials' edges meet exactly at a cell corner (asphalt crossing the
+gravel farm road, a street's flush end on the farm road's edge) the corner
+values cannot say whose a half cell is; it goes to the first material that
+does not already cover it, so neither a triangle of the later material over
+the earlier nor a hole is left there. A junction turn's quarter arc is sampled
+finely, because the sweep's spline through a coarse arc overshoots it beside
+each tail and kinks the kerb line where the turn rejoins the street.
 Widths and map edges still obey grid quantization. A smooth centerline does not
 claim a smooth mesh edge or prove a chassis can negotiate a tight turn; mission
 acceptance continues to use the actual vehicle clearance and motion systems.
@@ -1052,6 +1089,12 @@ Full berth approaches exclude tall or blocking scenery; fine passable scatter
 and native ground variation continue beneath that airspace. Only engineered
 working ground is kept bare, so an approach reservation cannot draw a cleared
 rectangle across the landscape.
+
+**No wall or lot draws the first urban sheet's blue steel.** A wall no stage
+gave a material takes the installation's light concrete when the map is
+finalized (a ship deck dresses its own bulkheads instead), and rubble ground,
+a rubble lot or a wall knocked down, draws as cracked gravel with scrap. The
+blue riveted wall and the blue chevron rubble of that sheet are retired.
 
 A programmed precinct owns its working ground even where that ground was
 already walkable before its buildings were packed. Its kept circulation takes
@@ -1467,11 +1510,10 @@ lets one feature describe itself identically to movement, sight, fire and cover.
 Ground installations share the modern bunk, mess and clinical furniture kits
 with ships, but keep their own room programs and do not inherit ship layout
 overrides. Furniture is drawn at real size against a crewman whose shoulders are
-0.6 cells (a cell is about 0.75 m): a residential bed, like a ship's bunk, is
-three cells head to foot, and a resting hand lies down in it from the cell at its
-foot. The ground sick bay's ward beds are the same three cells, a monitor at
-the head against the bulkhead and the two-cell stretcher spine at the foot, as
-aboard. A fixture worked on one face (a bench, a locker bank, the ammunition
+0.6 cells (a cell is about 0.75 m), drawn at head-and-shoulders scale: a
+residential bed, like a ship's bunk or a ward bed, is two cells head to foot
+(three cells read as a bed for a giant), and a resting hand lies down in it from
+the cell at its foot. A fixture worked on one face (a bench, a locker bank, the ammunition
 cabinet) shows that face on its bottom edge, so every fitting stands it to be
 worked from the row below. Dispatch offices group seated desks, meeting space and records
 storage around clear circulation. Occupied support rooms can carry adjacent
@@ -1620,7 +1662,12 @@ grade's width from end to end, flush at both ends; there is no per-band brush
 fitting out here, which is what made the grown roads swell and pinch. A
 higher grade owns the junction. A street "arrives" only if it runs into the
 town behind the first town row, so a street along the town's edge is not
-mistaken for the main road.
+mistaken for the main road. The one exception to one width is where the
+country road meets the street it carries on: when that street's asphalt
+starts at the town edge on the road's line and is narrower, the road narrows
+to it over four cells short of the farm road and crosses the farm road at the
+street's width, so the two meet flush rather than in a square step. The
+cells the taper leaves keep the road band's bare ground, a verge.
 
 **Only roads that carry traffic are road.** The country and farm roads are
 circulation and road cells (the road graph routes on them, and a convoy can

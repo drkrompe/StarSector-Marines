@@ -14,8 +14,9 @@
     python battle_blockout.py --surface base  # the game's desert01 alone, without the detail tiles (the control)
     python battle_blockout.py --stage-only    # build and pose the scene in Blender, render nothing (a pre-flight)
     python battle_blockout.py --stage-only --los   # ... and ray-cast every shot: does the round meet its target?
-    python battle_blockout.py --layers        # key frames as backdrop / ships / effects layers in one EXR
-                                              # (raw/<kf>.layers.exr), composed into the still (composite_layers.py)
+    python battle_blockout.py --combined      # one pass per key frame; the default (from r10) renders them as
+                                              # backdrop / ships / effects layers in one EXR (raw/<kf>.layers.exr),
+                                              # composed into the still (composite_layers.py)
     python battle_blockout.py --plates DIR    # ... with the planet session's painted backdrops (<kf>.backdrop.exr)
     python battle_blockout.py --motion-preview   # the whole sequence in Workbench, an MP4 to judge motion (asharu_preview.py)
 
@@ -487,13 +488,27 @@ def blender_main(cfg):
     scene = bpy.context.scene
     scene.render.resolution_x, scene.render.resolution_y = W, H
     scene.render.resolution_percentage = 50 if cfg.get('half') else 100     # --half: a light check
+    if cfg.get('percent'):              # --percent P: a timing check at any size (never a review frame)
+        scene.render.resolution_percentage = int(cfg['percent'])
     scene.render.engine = 'CYCLES'
     scene.cycles.samples = cfg['samples']
     scene.cycles.use_denoising = True
     scene.cycles.max_bounces = 4
     scene.cycles.transparent_max_bounces = 16
+    if cfg.get('volume_step_rate'):     # --volume-step-rate: coarser ray marching through the kit's volumes
+        scene.cycles.volume_step_rate = float(cfg['volume_step_rate'])
+    if cfg.get('volume_max_steps'):     # --volume-max-steps: the cap on steps per volume a ray takes
+        scene.cycles.volume_max_steps = int(cfg['volume_max_steps'])
     scene.view_settings.view_transform = 'AgX'
     scene.view_settings.look = 'AgX - Base Contrast'
+    import time
+    said = [0.0]
+
+    def progress(stats):     # Cycles prints nothing while a frame renders: say where it is, every 30 s at most
+        if time.time() - said[0] >= 30.0:
+            said[0] = time.time()
+            print('ASHARU progress', time.strftime('%H:%M:%S'), stats, flush=True)
+    bpy.app.handlers.render_stats.append(progress)
     try:
         prefs = bpy.context.preferences.addons['cycles'].preferences
         for kind in ('OPTIX', 'CUDA', 'METAL'):
@@ -1768,23 +1783,41 @@ def blender_main(cfg):
         if cfg.get('stage_only'):                 # --stage-only: build and pose every hull, render nothing
             print('ASHARU staged', kf, flush=True)
             continue
+        if cfg.get('hide_volumes'):      # --hide-volumes a,b | all: a timing control, the kit's volumes left out
+            prefixes = cfg['hide_volumes'].split(',')
+            gone = 0
+            for s_ in ships_fx.values():
+                for o_ in s_.ids:
+                    if not isinstance(o_, bpy.types.Object) or o_.hide_render:
+                        continue
+                    vol = [sl.material for sl in o_.material_slots if sl.material and sl.material.use_nodes and any(
+                        n.type == 'OUTPUT_MATERIAL' and n.inputs['Volume'].is_linked for n in sl.material.node_tree.nodes)]
+                    if vol and ('all' in prefixes or any(ship_fx.base_name(o_.name).startswith(p) for p in prefixes)):
+                        o_.hide_render = True
+                        gone += 1
+            print(f'ASHARU hid {gone} volume objects ({cfg["hide_volumes"]})', flush=True)
         partial = raw / f'{kf}.partial'           # not *.png, so a queue's frame count never counts it
+        t_render = time.time()
         scene.render.use_file_extension = False
         st = scene.render.image_settings
         if layers:
-            st.file_format, st.color_depth, st.exr_codec = 'OPEN_EXR_MULTILAYER', '16', 'ZIP'
+            st.media_type = 'MULTI_LAYER_IMAGE'      # Blender 5: multilayer EXR is a media type
+            st.color_depth, st.exr_codec = '16', 'ZIP'
             exr_partial = raw / f'{kf}.layers.partial'
             scene.render.filepath = str(exr_partial)
             bpy.ops.render.render(write_still=True)
             os.replace(exr_partial, raw / f'{kf}.layers.exr')
+            st.media_type = 'IMAGE'
             st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'
             composite_layers.compose_frame(raw / f'{kf}.layers.exr', partial, scene, plate=plate, backdrop=cached,
                                            log=lambda m: print(m, flush=True))
         else:
+            st.media_type = 'IMAGE'
             st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'
             scene.render.filepath = str(partial)
             bpy.ops.render.render(write_still=True)
         os.replace(partial, raw / f'{kf}.png')      # a PNG under its own name is always a finished one
+        print(f'ASHARU render time {kf} {time.time() - t_render:.1f} s', flush=True)
         store = raw / 'labels.json'   # saved per frame: a stopped job keeps every finished frame's labels
         old = json.loads(store.read_text()) if store.exists() else {}
         store.write_text(json.dumps({**old, kf: labels[kf]}, indent=1))
@@ -2154,7 +2187,11 @@ def surface_lines(loc, f, r, u, fpx):
         return [o[i] + t * d[i] for i in range(3)], t
 
     out = []
-    for label, py in (('centre', H / 2), ('lower edge', H - 1)):
+    rows = [('centre', H / 2), ('lower edge', H - 1)]
+    top = next((py for py in range(0, H, 10) if hit(W / 2, py)), None)
+    if top is not None and top > 0:
+        rows.insert(0, ('below the horizon', min(H - 1, top + 30)))
+    for label, py in rows:
         h = hit(W / 2, py)
         if h is None:
             out.append(f'surface {label}: sky')
@@ -2365,7 +2402,7 @@ def main():
         started.write_text(opt('--date', date.today().isoformat()))   # a queue round pins one date
     run_date = started.read_text().strip()
     samples = int(opt('--samples', 48))
-    layers = '--layers' in argv     # three view layers and a composite (composite_layers.py)
+    layers = '--combined' not in argv   # three view layers and a composite (composite_layers.py), the default from r10
     plates = '' if '--no-plates' in argv else opt('--plates')     # None: build/asharu-battle/plates (roster.PLATES)
     if '--motion-preview' in argv:  # the sequence as a cheap motion preview (asharu_preview.py)
         import asharu_preview
@@ -2396,7 +2433,9 @@ def main():
         if todo:
             from blender_path import BLENDER
             cfg = dict(out=str(run), frames=todo, samples=samples, half=half, swfx='--swfx' in argv, surface=surface,
-                       layers=layers, plates=plates)
+                       layers=layers, plates=plates, volume_step_rate=opt('--volume-step-rate'),
+                       volume_max_steps=opt('--volume-max-steps'), percent=opt('--percent'),
+                       hide_volumes=opt('--hide-volumes'))
             env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
             subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
     outputs = [orbit_diagram(run)] + label_frames(run)

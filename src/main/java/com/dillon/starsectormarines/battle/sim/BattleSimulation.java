@@ -108,6 +108,7 @@ import com.dillon.starsectormarines.battle.unit.BodyCarrier;
 import com.dillon.starsectormarines.battle.unit.BodyService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
+import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
@@ -259,6 +260,13 @@ import com.dillon.starsectormarines.battle.creep.CreepDigestion;
 import com.dillon.starsectormarines.battle.creep.CreepEffects;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.creep.CreepRoofCollapse;
+import com.dillon.starsectormarines.battle.fire.BattleFire;
+import com.dillon.starsectormarines.battle.fire.FireCost;
+import com.dillon.starsectormarines.battle.fire.FireField;
+import com.dillon.starsectormarines.battle.fire.FireHarm;
+import com.dillon.starsectormarines.battle.fire.FireIgnition;
+import com.dillon.starsectormarines.battle.fire.FireRouteCost;
+import com.dillon.starsectormarines.battle.creep.CreepVegetation;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
@@ -734,16 +742,47 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public CreepDigestion creepDigestion() { return creepDigestion; }
     /** Roofs the creep has stood on long enough cave in under it. */
     private CreepRoofCollapse creepRoofs;
+    /** Trees the creep has climbed die under it. */
+    private CreepVegetation creepVegetation;
+    /** The creep's hold on the battle's trees, or {@code null} before the creep has spread; safe for renderers. */
+    public CreepVegetation creepVegetationIfPresent() { return creepVegetation; }
+    /** The creep's hold on the battle's trees, created on first use; for reviews that advance the creep alone. */
+    public CreepVegetation creepVegetation() {
+        if (creepVegetation == null) creepVegetation = new CreepVegetation(generationSeed ^ BORE_SEED_SALT);
+        return creepVegetation;
+    }
     /**
      * The battle's hive creep, created on first use by whatever declares a
      * source (a bore, a scene); call only from the simulation thread.
      */
     public CreepField creepField() {
-        if (creep == null) creep = new CreepField(grid, topology, generationSeed);
+        if (creep == null) {
+            creep = new CreepField(grid, topology, generationSeed);
+            // The creep grows over the battle's trees rather than only climbing their edge.
+            for (int cell : CreepVegetation.treeCells(getDoodads(), grid)) creep.growOver(cell);
+        }
         return creep;
     }
     /** The creep field if anything has created one, else {@code null}; safe for renderers. */
     public CreepField creepFieldIfPresent() { return creep; }
+    private BattleFire fire;
+    private final FireHarm fireHarm = new FireHarm();
+    private final FireRouteCost fireRouteCost = new FireRouteCost();
+    private final FireCost fireCost = new FireCost();
+    /** What fire has cost this battle's simulation thread so far (`fire-nouns.md`, Evidence). */
+    public FireCost fireCostProfile() { return fireCost; }
+    private static final long FIRE_SEED_SALT = 0x46495245_4649454CL;
+    /**
+     * The battle's fire (`fire-nouns.md`), created on first use by whatever
+     * lights something, so a battle that never burns pays nothing. Sim thread only.
+     */
+    public FireField fireField() {
+        if (fire == null) fire = new BattleFire(grid, topology, doodadService, mapEditor,
+                this::creepFieldIfPresent, generationSeed ^ FIRE_SEED_SALT);
+        return fire.field();
+    }
+    /** The fire field if anything has lit one, else {@code null}; safe for renderers. */
+    public FireField fireFieldIfPresent() { return fire == null ? null : fire.field(); }
     private ColonyBreachSequence colonyBreach;
     /** Salt for the bores' own draws, so they are not the battle stream read again. */
     private static final long BORE_SEED_SALT = 0x53574152_4D424F52L;
@@ -1097,6 +1136,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final ShotService shots;
     /** Turret-kind fire procedure — modeled ground rounds plus legacy aerial/indirect fire, payload queuing, and shot-event posting. Extracted from the sim's former {@code fireShotFrom} methods. */
     private final TurretFireSystem turretFire;
+    /** Per-thread gather buffer for {@link #friendsInBlast}: turrets fire from the parallel unit update. */
+    private final ThreadLocal<LongBucket> blastScratch = ThreadLocal.withInitial(LongBucket::new);
     /** Per-hit response logic — fallback rolls + target-reprioritization rolls. Extracted from the sim's former {@code rollFallbackOnHit}/{@code rollReprioritizeOnHit}. */
     private final HitResponseSystem hitResponse;
     /** Ids of units that transitioned from alive to dead during the last {@link #advance(float)} call. Same lifecycle as {@link #getShotsThisFrame()}. */
@@ -1406,7 +1447,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 () -> simTickIndex, rng);
         this.detonations = new Detonations(rosterService, grid, topology, damageService,
                 mapEditor, effects, noiseEvents, this::applyPendingImpact);
-        detonations.observe(det -> warships.onDetonation(det, this));
+        detonations.observe(det -> {
+            warships.onDetonation(det, this);
+            FireIgnition.blast(this, det);
+        });
+        effects.setWreckSink((x, y, radius) -> FireIgnition.wreck(this, x, y, radius));
         detonations.screen(shieldDomes::absorbs);
         // Subscribed here rather than with the other demolition handlers above
         // because a burning airframe needs the detonation pipeline, and that
@@ -1452,6 +1497,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rosterService.convoy().setDestructionSink(groundSystem::destroyVehicle);
         // A gun on a turning hull shakes the way a moving shooter's does.
         turretFire.setShooterAccuracy(new HullPivot(rosterService.convoy()));
+        // A map emplacement's crew holds a round that would hit their own side; vehicle and aircraft guns do not yet.
+        // -Dbattle.turret.crewFriendlyHold=false is the control.
+        if (Boolean.parseBoolean(System.getProperty("battle.turret.crewFriendlyHold", "true"))) {
+            turretFire.setFriendlyFireHold(id -> rosterService.turretState().isTurret(id)
+                    ? TurretFireSystem.CREW_FRIENDLY_HOLD_CHANCE : 0f, this::friendsInBlast);
+        }
         groundSystem.setBlade(new DozerBlade(navigation, mapEditor, doodadService));
         groundSystem.setStall(id -> rosterService.stagger().isStaggered(id));
         groundSystem.setAssaultPlanner((vehicle, cellX, cellY) -> MachineAssaults.planVehicle(this, vehicle, cellX, cellY));
@@ -3578,6 +3629,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (creep != null) {
             if (creepRoofs == null) creepRoofs = new CreepRoofCollapse(generationSeed ^ BORE_SEED_SALT);
             creepRoofs.tick(this);
+            creepVegetation().tick(this);
+        }
+        // After the creep, so a cell catching this tick burns the creep as it now stands;
+        // before the topology flush, so a crown burnt through falls with this tick's breaches.
+        if (fire != null && (fire.field().isActive() || fire.field().burningCount() > 0)) {
+            long fireStart = System.nanoTime();
+            fire.tick(simTickIndex);
+            fireHarm.tick(this, fire.field());
+            fireRouteCost.tick(simTickIndex, fire.field(), commanderInfluence.casualties()::routeCost);
+            fireCost.record(System.nanoTime() - fireStart, Math.floorMod(simTickIndex, FireField.STEP_TICKS) == 0);
+        } else if (fire != null) {
+            fire.tick(simTickIndex);
+            fireRouteCost.tick(simTickIndex, fire.field(), commanderInfluence.casualties()::routeCost);
         }
         if (reliefAssault != null) reliefAssault.tick(this);
         if (lastLiftSequence != null) lastLiftSequence.tick(this);
@@ -3743,7 +3807,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     @Override
     public RouteCostField getRouteCostField(Faction faction) {
-        return commanderInfluence.casualties().routeCost(faction);
+        return fireRouteCost.forSide(faction, commanderInfluence.casualties().routeCost(faction));
     }
 
     @Override
@@ -4006,12 +4070,28 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 structure, target, aerialShooter, hasLos);
     }
 
-    /** Ground-entity turret overload with the posed barrel and burst release. */
-    public void fireShotFrom(long shooterId, float fromX, float fromY,
-                             Faction shooterFaction, StructureDef structure, long target,
-                             boolean aerialShooter, boolean hasLos,
-                             float mountFacingDegrees, int releaseIndex) {
-        turretFire.fire(shooterId, fromX, fromY, shooterFaction,
+    /** Whether a burst of {@code radius} at a point would catch a living body on {@code side}'s own side. */
+    private boolean friendsInBlast(long shooterId, Faction side, float x, float y, float radius) {
+        LongBucket bucket = blastScratch.get();
+        unitIndex.gather(x, y, radius, bucket);
+        float radiusSq = radius * radius;
+        for (int i = 0, n = bucket.size; i < n; i++) {
+            long id = bucket.ids[i];
+            if (id == shooterId || !world.isAlive(id)) continue;
+            if (!side.friendlyTo(rosterService.identity().faction(id))) continue;
+            float dx = world.x(id) - x;
+            float dy = world.y(id) - y;
+            if (dx * dx + dy * dy <= radiusSq) return true;
+        }
+        return false;
+    }
+
+    /** Ground-entity turret overload with the posed barrel and burst release; false when the crew held the round. */
+    public boolean fireShotFrom(long shooterId, float fromX, float fromY,
+                                Faction shooterFaction, StructureDef structure, long target,
+                                boolean aerialShooter, boolean hasLos,
+                                float mountFacingDegrees, int releaseIndex) {
+        return turretFire.fire(shooterId, fromX, fromY, shooterFaction,
                 structure, target, aerialShooter, hasLos,
                 mountFacingDegrees, releaseIndex);
     }

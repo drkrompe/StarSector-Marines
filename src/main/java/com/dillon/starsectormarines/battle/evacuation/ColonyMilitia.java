@@ -106,6 +106,7 @@ public final class ColonyMilitia {
         // Ground the colony's works stand on (left, top, right, bottom): nothing else is set down there.
         List<int[]> claimed = new ArrayList<>();
         raiseCompound(sim, map, placement, pads, risk, rng, emplacements, squads, claimed);
+        int[] compound = claimed.isEmpty() ? null : claimed.get(0).clone();
         boolean redoubts = ColonyRedoubts.enabled();
         int wanted = redoubts ? ColonyRedoubts.holdoutsFor(seed) : OUTLYING_POSTS;
         int seats = POST_SIZE + (redoubts ? ColonyRedoubts.MAX_COHORT : 0);
@@ -131,6 +132,13 @@ public final class ColonyMilitia {
                 RedoubtWorks.Plan w = holdout.works();
                 claimed.add(new int[]{w.left(), w.top(), w.right(), w.bottom()});
             }
+        }
+        // Across the streets into the defended area, lines thrown up after the holdouts' works and before
+        // the loose hardware, which steps round them.
+        if (ColonyRoadblocks.enabled()) {
+            List<ColonyRoadblocks.Plan> blocks = ColonyRoadblocks.plan(sim, placement, compound, keep, POST_SIZE, seed);
+            squads.addAll(ColonyRoadblocks.raise(sim, blocks, emplacements, risk, rng));
+            for (ColonyRoadblocks.Plan b : blocks) claimed.add(new int[]{b.left(), b.top(), b.right(), b.bottom()});
         }
         List<int[]> taken = new ArrayList<>();
         boolean[] route = routeMask(sim.getGrid(), placement, ROUTE_CLEARANCE);
@@ -176,7 +184,7 @@ public final class ColonyMilitia {
         return Boolean.parseBoolean(System.getProperty("battle.colonyBreach.militia", "true"));
     }
 
-    private record Post(PointOfInterest place, TacticalNode node, List<int[]> cells) { }
+    private record Post(PointOfInterest place, TacticalNode node, List<int[]> cells, float room) { }
 
     /**
      * Held buildings spread across the colony: each pick is the candidate
@@ -184,7 +192,10 @@ public final class ColonyMilitia {
      * a third of the map's short side (past that every candidate is as good
      * and the seed decides), and never closer than the eruption-site spacing.
      * A candidate must seat {@code seats} people indoors and have a walk to
-     * the lift, so a holdout's people can leave.
+     * the lift, so a holdout's people can leave. Where holdouts raise works,
+     * the picks are made first among buildings with room for them
+     * ({@link RedoubtWorks#room} at least {@link RedoubtWorks#MIN_ROOM}), and
+     * only a colony short of those falls back to the cramped ones.
      */
     private static List<Post> choosePosts(BattleSimulation sim, MapResult map,
                                           CivilianEvacuationPlacement placement,
@@ -193,6 +204,8 @@ public final class ColonyMilitia {
         NavigationGrid grid = sim.getGrid();
         int spacing = ColonyEruptionPlan.siteSpacing(grid.getWidth(), grid.getHeight());
         int clearance = ColonyEruptionPlan.shelterClearance(grid.getWidth(), grid.getHeight());
+        boolean works = ColonyRedoubts.enabled() && ColonyRedoubts.worksEnabled();
+        RedoubtWorks.Ground ground = works ? RedoubtWorks.ground(sim) : null;
         List<Post> candidates = new ArrayList<>();
         for (PointOfInterest place : map.pointsOfInterest) {
             if (place == null || place.kind == PointOfInterest.Kind.LANDING_SITE) continue;
@@ -206,7 +219,9 @@ public final class ColonyMilitia {
             if (node == null) continue;
             List<int[]> cells = interiorCells(sim, place);
             if (cells.size() < seats) continue;
-            candidates.add(new Post(place, node, cells));
+            float room = works ? RedoubtWorks.room(ground, place.left, place.top, place.right, place.bottom,
+                    RedoubtWorks.HOLDOUT_MARGIN) : 1f;
+            candidates.add(new Post(place, node, cells, room));
         }
         candidates.sort(Comparator
                 .comparingLong((Post p) -> priority(seed, grid.index(p.place.interiorAnchorX, p.place.interiorAnchorY)))
@@ -216,11 +231,19 @@ public final class ColonyMilitia {
         fixed.add(new int[]{placement.shelterX, placement.shelterY});
         fixed.add(new int[]{placement.liftX, placement.liftY});
         List<Post> chosen = new ArrayList<>();
+        pick(grid, placement, candidates, fixed, chosen, wanted, spacing, reach, RedoubtWorks.MIN_ROOM);
+        pick(grid, placement, candidates, fixed, chosen, wanted, spacing, reach, 0f);
+        return chosen;
+    }
+
+    /** Adds picks to {@code chosen} from the candidates with at least {@code floor} room, up to {@code wanted}. */
+    private static void pick(NavigationGrid grid, CivilianEvacuationPlacement placement, List<Post> candidates,
+                             List<int[]> fixed, List<Post> chosen, int wanted, int spacing, int reach, float floor) {
         while (chosen.size() < wanted) {
             Post best = null;
             int bestScore = -1;
             for (Post post : candidates) {
-                if (chosen.contains(post)) continue;
+                if (chosen.contains(post) || post.room < floor) continue;
                 int nearest = Integer.MAX_VALUE;
                 for (int[] other : fixed) nearest = Math.min(nearest, distance(post.place, other[0], other[1]));
                 for (Post other : chosen) {
@@ -242,7 +265,6 @@ public final class ColonyMilitia {
             }
             chosen.add(best);
         }
-        return chosen;
     }
 
     private static int distance(PointOfInterest place, int x, int y) {

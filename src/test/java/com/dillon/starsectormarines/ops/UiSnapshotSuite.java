@@ -10,7 +10,6 @@ import com.dillon.starsectormarines.marine.OfficerSpecialty;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 
 import com.dillon.starsectormarines.marine.BarracksFlowCompany;
-import com.dillon.starsectormarines.marine.BarracksEquipmentIssue;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
 
 import org.json.JSONObject;
@@ -100,6 +99,7 @@ import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer
 import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
 import com.dillon.starsectormarines.ops.battleview.MechChassisPreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechEquipmentGridCanvas;
+import com.dillon.starsectormarines.ops.battleview.MechHardwareSheetCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechWeaponDragCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
@@ -397,6 +397,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("fleet-armory-armor-comparison-battlesuits-wide.png",
                         renderArmorComparison(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
+                new SnapshotArtifact("mech-lab-hardware-sheet-wide.png",
+                        renderer.renderCanvas(new MechHardwareSheetCanvas(),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("mech-lab-wide.png",
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f)),
@@ -405,7 +408,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, true)),
                 new SnapshotArtifact("mech-lab-hound-empty-socket-wide.png",
                         renderMechLab(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, true)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, true, false, false,
+                                null, "empty-socket")),
                 new SnapshotArtifact("mech-lab-chassis-fabrication-wide.png",
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
@@ -420,9 +424,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("boat-deck-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false)),
+                new SnapshotArtifact("boat-deck-door-opening-wide.png",
+                        renderBoatDeck(context, boatRenderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false, DOOR_OPENING)),
                 new SnapshotArtifact("boat-deck-departure-wide.png",
                         renderBoatDeck(context, boatRenderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false, true)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false, AT_OPENING)),
                 new SnapshotArtifact("boat-deck-fitting-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
@@ -1833,9 +1840,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     }
 
     static List<SnapshotArtifact> renderBarracksCommand(SnapshotContext context) throws Exception {
-        return renderBarracksCommand(context, List.of("dossier", "dossier-trained", "command", "profiles",
-                "empty", "large", "guide", "guide-replenish",
-                "guide-equipment"), true, true);
+        return renderBarracksCommand(context, List.of("dossier", "dossier-trained", "command",
+                "empty", "large", "guide", "guide-replenish"), true, true);
     }
 
     /**
@@ -1866,12 +1872,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             MarineCaptain second = new MarineCaptain("Rafael Kade", "graphics/portraits/portrait_mercenary04.png", Rank.CAPTAIN, 0f);
             roster.add(second);
             var squads = roster.squads().stream().filter(q -> !q.reserve()).toList();
-            var profile = roster.armory().saveSquadProfile("Line infantry", SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
-                    roster.armory().armorDoctrines().get(0).id());
             for (int i = 0; i < squads.size(); i++) {
                 if (i < 8) roster.assignCaptainToSquad(captain.id(), squads.get(i).id());
                 else if (i < 12) roster.assignCaptainToSquad(second.id(), squads.get(i).id());
-                roster.assignSquadProfile(Set.of(squads.get(i).id()), profile.id());
             }
             if (!squads.isEmpty()) {
                 roster.applySoldierOutcome(Map.of(squads.get(1).memberIds().get(0), MarineSoldierStatus.WIA,
@@ -1887,13 +1890,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 viewModel.command().selectCommand(captain.id());
                 ((Runnable) viewModel.command().props().get("closeDossier")).run();
             }
-            if (state.equals("command") || state.equals("profiles")) {
+            if (state.equals("command")) {
                 viewModel.command().selectCommand(captain.id());
                 ((Runnable) viewModel.command().props().get("closeDossier")).run();
                 viewModel.command().toggle(squads.get(0).id());
                 viewModel.command().toggle(squads.get(1).id());
                 viewModel.command().toggle(squads.get(2).id());
-                viewModel.command().selectProfile(profile.id());
             }
             if (state.startsWith("dossier")) {
                 if (state.equals("dossier-trained")) {
@@ -1907,11 +1909,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             }
             if (!state.startsWith("guide") && !state.equals("empty")) ((Runnable) viewModel.command().props().get("guideDismiss")).run();
             if (state.startsWith("guide-")) {
-                // Selecting a squad opens the replenish lesson; equipment is the next one.
+                // Selecting a squad opens the replenish lesson.
                 viewModel.command().toggle(squads.get(2).id());
-                if (state.equals("guide-equipment")) ((Runnable) viewModel.command().props().get("guideNext")).run();
             }
-            if (state.equals("profiles")) ((Runnable) viewModel.command().props().get("newProfile")).run();
             Map<String, Object> properties = new LinkedHashMap<>();
             properties.put("command", viewModel.command().props());
             properties.put("contextLabel", "FLAGSHIP / PERSONNEL COMMAND");
@@ -1945,6 +1945,19 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     document.advance(0f);
                     images.add(new SnapshotArtifact("barracks-dossier-record-150pct.png",
                             renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1.5f)));
+                }
+                if (state.equals("command")) {
+                    // Each card face and a short squad's wrench describe themselves on hover.
+                    Map<String, String> hovers = new LinkedHashMap<>();
+                    hovers.put("barracks-weapon-card-hint-1920x1080.png", "formation:" + squads.get(0).id() + ":weapon-card");
+                    hovers.put("barracks-armor-card-hint-1920x1080.png", "formation:" + squads.get(0).id() + ":armor-card");
+                    hovers.put("barracks-fill-hint-1920x1080.png", "formation:" + squads.get(2).id() + ":fill");
+                    for (var hover : hovers.entrySet()) {
+                        openSpecSheet(document, hints, 1920, 1080, instance.requireElement(hover.getValue()));
+                        images.add(new SnapshotArtifact(hover.getKey(), renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
+                        document.deactivateInput();
+                        hints.update();
+                    }
                 }
                 if (state.equals("large")) {
                     clickBarracksFlow(document, instance, "barracks-select-all");
@@ -2145,9 +2158,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 clickBarracksFlow(document, instance, id);
                 cardBindings.update(document, instance, model, hints);
             };
-            for (String id : List.of("barracks-recruit-stock", "barracks-recruit-draw", "barracks-reinforce")) {
-                hints.bindLive(instance.requireElement(id), model.command()::recruitSheet);
-            }
+            hints.bindLive(instance.requireElement("barracks-recruit-stock"), model.command()::recruitSheet);
+            hints.bindLive(instance.requireElement("barracks-fill-selected"), model.command()::fillSelectedSheet);
             renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f);
             click.accept("guide-dismiss");
             click.accept("command:" + company.captain.id());
@@ -2167,44 +2179,18 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             frames.add(new SnapshotArtifact("flow-02-recruit-hint.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             document.deactivateInput();
             hints.update();
-            click.accept("barracks-organization");
-            click.accept("barracks-new-profile");
-            frames.add(new SnapshotArtifact("flow-03-profile-draft.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
-            click.accept("barracks-save-profile");
             var originalCargo = company.available();
-            click.accept("barracks-assign-profile");
-            String profileId = company.roster.armory().squadProfiles().get(0).id();
-            if (company.recruits() != 20 || !company.available().equals(originalCargo)
-                    || company.squads.subList(0, 2).stream().anyMatch(s -> !profileId.equals(s.squadProfileId()))) {
-                throw new IllegalStateException("Profile assignment failed or spent recruits");
-            }
-            frames.add(new SnapshotArtifact("flow-04-profile-assigned.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
-            click.accept("barracks-preparation");
-            click.accept("barracks-reinforce");
+            click.accept("barracks-fill-selected");
             if (company.recruits() != 17 || company.roster.readyReserveCount() != 0
                     || company.squads.subList(0, 2).stream().anyMatch(s -> company.roster.readyCount(s) != 12)
                     || company.roster.readyCount(company.squads.get(2)) != 11) {
                 throw new IllegalStateException("Replenishment did not transfer one reserve then enlist three recruits");
             }
-            frames.add(new SnapshotArtifact("flow-05-replenished.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
-            var equipment = new BarracksEquipmentIssue(company.roster, company);
-            var before = equipment.preview(model.command().selected());
-            click.accept("barracks-issue");
-            // Learned equipment is free to fit (see `progression-nouns.md`): the issue is judged by what the
-            // squads now carry and by the company's cargo and recruits being untouched, not by a bill.
-            boolean carried = company.squads.stream()
-                    .filter(squad -> before.entries().stream()
-                            .anyMatch(e -> e.eligible() && e.squadId().equals(squad.id())
-                                    && e.weapons().equals(squad.weaponDoctrineId())
-                                    && e.armor().equals(squad.armorDoctrineId())))
-                    .count() == before.eligible();
-            if (before.eligible() == 0 || !before.cost().isZero() || !carried
-                    || !company.available().equals(originalCargo) || company.recruits() != 17) {
-                throw new IllegalStateException("Equipment issue did not fit the selected squads for free: eligible "
-                        + before.eligible() + ", cost " + before.cost() + ", carried " + carried
-                        + ", available " + company.available() + ", recruits " + company.recruits());
+            frames.add(new SnapshotArtifact("flow-03-replenished.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
+            // Replacements wear what their seats' cards issue, with no separate order and nothing spent.
+            if (!company.available().equals(originalCargo) || company.recruits() != 17) {
+                throw new IllegalStateException("Filling vacancies spent stores beyond the recruits it enlisted");
             }
-            frames.add(new SnapshotArtifact("flow-06-equipped.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             hints.clear();
         }
         return frames;
@@ -2741,6 +2727,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .filter(row -> row.name().contains("SHOULDER"))
                     .findFirst().orElseThrow().select().run();
         }
+        // The shoulder stripped, so the doll shows an empty socket wearing its hardpoint colour.
+        if ("empty-socket".equals(materialHint)) viewModel.stripWeapon(viewModel.selectedSocket());
         if (motionFrames != null) {
             if (!selectHound) viewModel.gantryRows().get().get(0).select().run();
             else viewModel.stripWeapon(viewModel.selectedSocket());
@@ -2820,7 +2808,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                     MechLabDollCanvas::headlessAssets));
                 }
             }
-            for (MechLabViewModel.SlotRow row : viewModel.slotRows().get()) {
+            for (MechLabViewModel.SlotRow row : viewModel.selectedSlotRows().get()) {
                 document.canvases().set(instance.requireElement(row.gridId()),
                         new MechEquipmentGridCanvas(
                                 () -> viewModel.socketDefinition(row.socketId()),
@@ -2926,12 +2914,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, boolean openBoat, boolean strikeABoat)
             throws Exception {
-        return renderBoatDeck(context, renderer, width, height, openBoat, strikeABoat, false);
+        return renderBoatDeck(context, renderer, width, height, openBoat, strikeABoat, NO_DEPARTURE);
     }
 
     private static BufferedImage renderBoatDeck(
             SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height, boolean openBoat, boolean strikeABoat, boolean departing)
+            int width, int height, boolean openBoat, boolean strikeABoat, int departure)
             throws Exception {
         Reactor reactor = new Reactor();
         BoatDeck[] campaign = new BoatDeck[1];
@@ -2972,7 +2960,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         if (openBoat) viewModel.selectBoatAction(0).run();
         if (struck[0] >= 0) viewModel.selectBoatAction(struck[0]).run();
         DeckGraph.Compartment bay = hangars.isEmpty() ? null : hangars.get(0);
-        if (departing) seekHangarDeparture(ship, bay);
+        if (departure == DOOR_OPENING) seekDoorOpening(ship, bay);
+        if (departure == AT_OPENING) seekHangarDeparture(ship, bay);
 
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), BOAT_DECK_COMPONENTS);
@@ -2989,6 +2978,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                     || deck.boats().get(berth) != null));
             return renderRelative(renderer, document, width, height, 1f);
         }
+    }
+
+    /** No boat leaving; a boat whose door is part open; a boat crossing the opening. */
+    private static final int NO_DEPARTURE = 0, DOOR_OPENING = 1, AT_OPENING = 2;
+
+    /** Catch the bay door half open for a real departure, before the boat reaches it. */
+    private static void seekDoorOpening(CompanyDeck ship, DeckGraph.Compartment bay) {
+        var leaves = ship.scene().bayDoorLeaves(bay);
+        if (leaves == null) throw new IllegalStateException("Snapshot hangar has no opening to space");
+        for (int step = 0; step < 3600 && leaves.openness() > 0f; step++) ship.advance(0.05f);
+        for (int step = 0; step < 36000; step++) {
+            ship.advance(0.05f);
+            if (leaves.openness() >= 0.5f) return;
+        }
+        throw new IllegalStateException("The bay door never opened during the evidence window");
     }
 
     /** Photograph the actual managed departure at the opening, never a posed sprite. */
@@ -3333,9 +3337,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
+    /** The boat deck over its second bay; a sealed bay only says where it is restored. */
     public static BufferedImage renderBayRestoration(SnapshotContext context, CompanyDeck ship,
-                                                      boolean restored, int credits, boolean unlocked,
-                                                      float scale) throws Exception {
+                                                      boolean restored, float scale) throws Exception {
         Reactor reactor = new Reactor();
         BoatDeck boats = new BoatDeck();
         boats.reconcile("starter", ShuttleType.HERMES, 1);
@@ -3345,8 +3349,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         var bay = ship.rooms(RoomPurpose.HANGAR).get(1);
         var properties = props(model, ship, bay, 2);
         properties.put("activeBayLabel", restored ? "02/02" : "02/02 SEALED");
-        properties.put("restoration", new BoatBayRestorationModel.Row(!restored, true, credits,
-                unlocked ? null : "Complete Hold Until Relieved to unlock this repair.", () -> { }));
+        properties.put("bayNoteClasses", restored ? "hidden" : "bay-sealed-note label tone-muted");
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BOAT_DECK_COMPONENTS);
         loader.reload();
         try (MarkupInstance instance = loader.build(reactor, "boat-deck", properties)) {
@@ -3393,7 +3396,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("fabricationBlocked", viewModel.fabricationBlocked());
         props.put("fabricationReason", viewModel.fabricationReason());
         props.put("fabricationActionLabel", viewModel.fabricationActionLabel());
-        props.put("restoration", BoatBayRestorationModel.Row.hidden());
+        props.put("bayNoteClasses", "hidden");
         props.put("wings", SecondhandWingsModel.Row.hidden());
         props.put("fabricate", viewModel.fabricateAction());
         props.put("backToDeck", viewModel.backToDeckAction());
@@ -3435,7 +3438,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         viewModel.putRepairProps(props);
         props.put("leftSlotRows", viewModel.leftSlotRows());
         props.put("rightSlotRows", viewModel.rightSlotRows());
-        props.put("slotRows", viewModel.slotRows());
+        props.put("slotRows", viewModel.selectedSlotRows());
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("selectedSlotRule", viewModel.selectedSlotRule());

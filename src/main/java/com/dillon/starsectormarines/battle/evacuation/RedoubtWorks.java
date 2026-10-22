@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
@@ -40,13 +42,27 @@ final class RedoubtWorks {
 
     /** Cells between the building and its barricade on a holdout: two yard rows, the firing step, the barricade. */
     static final int HOLDOUT_MARGIN = 4;
+    /** The nearest a side may be drawn in toward the building: the firing step and the barricade. */
+    static final int MIN_MARGIN = 2;
+    /**
+     * The least {@link #room} a holdout's block is chosen with while the colony
+     * has enough such blocks: below it a side or two of the works are pulled in
+     * to the kerb and the yard is gone.
+     */
+    static final float MIN_ROOM = 0.75f;
+    /**
+     * Carriageway cells in one unbroken run along a side's line that mean the
+     * side lies along the street rather than crossing it. A crossing is as long
+     * as the street is wide; a side lying along a street runs on past that.
+     */
+    static final int ALONG_RUN = 6;
     /** Cells the gate is wide: a marine's lane, and the cohort's. */
     static final int GATE_WIDTH = 2;
     /** Every this many barricade cells, a crate stack stands in the fence instead. */
     private static final int CRATE_EVERY = 5;
     /** Every this many barricade cells, a scrap pile. */
     private static final int SCRAP_EVERY = 11;
-    private static final String[] TRUCKS = {
+    static final String[] TRUCKS = {
             "doodad.parked-utility-truck", "doodad.parked-flatbed-truck",
             "doodad.parked-cargo-truck", "doodad.parked-box-van"};
 
@@ -85,6 +101,100 @@ final class RedoubtWorks {
         boolean clear(int x, int y);
     }
 
+    /** Whether a cell is a street's carriageway: its asphalt. */
+    interface Roadway {
+        boolean at(int x, int y);
+    }
+
+    /** Whether a piece of the works could stand on a cell: open ground, off a street's asphalt. */
+    interface Ground {
+        boolean open(int x, int y);
+    }
+
+    /**
+     * The share of a building's barricade line ({@code margin} cells out) and
+     * firing-step line (one cell in from it) that is open ground off the
+     * streets: what room the block has for its works to stand where they are
+     * meant to. A building fronting a street has its sides drawn in to the kerb
+     * and scores low; one in a yard scores near one.
+     */
+    static float room(Ground ground, int left, int top, int right, int bottom, int margin) {
+        int open = 0, total = 0;
+        for (int m = margin; m >= margin - 1 && m >= 1; m--) {
+            int l = left - m, t = top - m, r = right + m, b = bottom + m;
+            for (int y = t; y <= b; y++) {
+                for (int x = l; x <= r; x++) {
+                    if (x != l && x != r && y != t && y != b) continue;
+                    total++;
+                    if (ground.open(x, y)) open++;
+                }
+            }
+        }
+        return total == 0 ? 0f : open / (float) total;
+    }
+
+    /** Ground the works could stand on in this battle: {@link #open} with no keep, and off the asphalt. */
+    static Ground ground(BattleSimulation sim) {
+        Roadway road = roadway(sim);
+        return (x, y) -> open(sim, Set.of(), (kx, ky) -> true, x, y) && !road.at(x, y);
+    }
+
+    /**
+     * How far out each side of the works stands from the building, as
+     * {@code {west, north, east, south}} (decreasing x, decreasing y, increasing
+     * x, increasing y): {@code margin}, drawn in a cell at a time to
+     * {@link #MIN_MARGIN} while the side's barricade or step would lie along a
+     * street. The works close a street they cross with a truck; laid along one
+     * they ate its lanes and left a sliver of road beside the fence.
+     */
+    static int[] margins(Roadway road, int left, int top, int right, int bottom, int margin) {
+        int[] out = new int[4];
+        for (int side = 0; side < 4; side++) {
+            int m = margin;
+            while (m > MIN_MARGIN && (alongRoad(road, left, top, right, bottom, side, m)
+                    || alongRoad(road, left, top, right, bottom, side, m - 1))) m--;
+            // A road up to the step's line: the barricade stands at the kerb and the
+            // side goes without a step, closed rather than left open along the road.
+            if (m == MIN_MARGIN && alongRoad(road, left, top, right, bottom, side, m)
+                    && !alongRoad(road, left, top, right, bottom, side, m - 1)) m = 1;
+            out[side] = m;
+        }
+        return out;
+    }
+
+    /** Whether the line {@code m} cells out on one side, beside the building, holds a run along a street. */
+    private static boolean alongRoad(Roadway road, int left, int top, int right, int bottom, int side, int m) {
+        boolean vertical = side == 0 || side == 2;
+        int fixed = switch (side) { case 0 -> left - m; case 1 -> top - m; case 2 -> right + m; default -> bottom + m; };
+        int from = vertical ? top : left, to = vertical ? bottom : right, run = 0;
+        for (int along = from; along <= to; along++) {
+            run = road.at(vertical ? fixed : along, vertical ? along : fixed) ? run + 1 : 0;
+            if (run > ALONG_RUN) return true;
+        }
+        return false;
+    }
+
+    /** Cells of the ring and step lines that lie in a run along a street: left open so the street keeps its lanes. */
+    private static Set<Long> alongCells(Roadway road, int l, int t, int r, int b) {
+        Set<Long> out = new HashSet<>();
+        for (int inset = 0; inset <= 1; inset++) {
+            int x0 = l + inset, y0 = t + inset, x1 = r - inset, y1 = b - inset;
+            int[][] lines = {{x0, y0, 1, 0, x1 - x0 + 1}, {x0, y1, 1, 0, x1 - x0 + 1},
+                    {x0, y0, 0, 1, y1 - y0 + 1}, {x1, y0, 0, 1, y1 - y0 + 1}};
+            for (int[] line : lines) {
+                int start = 0;
+                for (int i = 0; i <= line[4]; i++) {
+                    boolean on = i < line[4] && road.at(line[0] + line[2] * i, line[1] + line[3] * i);
+                    if (on) continue;
+                    if (i - start > ALONG_RUN)
+                        for (int k = start; k < i; k++) out.add(key(line[0] + line[2] * k, line[1] + line[3] * k));
+                    start = i + 1;
+                }
+            }
+        }
+        return out;
+    }
+
     /**
      * Plans the works round one building, gate toward {@code (towardX, towardY)}.
      *
@@ -97,9 +207,13 @@ final class RedoubtWorks {
         if (registry == null || registry.doodad("doodad.industrial-fence-straight-h") == null
                 || registry.doodad("doodad.fort-sandbag-n") == null) return null;
         NavigationGrid grid = sim.getGrid();
-        int l = place.left - margin, t = place.top - margin, r = place.right + margin, b = place.bottom + margin;
+        Roadway road = roadway(sim);
+        int[] m = margins(road, place.left, place.top, place.right, place.bottom, margin);
+        int l = place.left - m[0], t = place.top - m[1], r = place.right + m[2], b = place.bottom + m[3];
         if (l < 1 || t < 1 || r >= grid.getWidth() - 1 || b >= grid.getHeight() - 1) return null;
         Set<Long> dressed = dressedCells(sim, l - 2, t - 2, r + 2, b + 2);
+        // What still lies along a street at the nearest the side can stand is left open.
+        dressed.addAll(alongCells(road, l, t, r, b));
 
         int dx = towardX - (place.left + place.right) / 2, dy = towardY - (place.top + place.bottom) / 2;
         int[] toward = Math.abs(dx) >= Math.abs(dy) ? new int[]{Integer.signum(dx), 0} : new int[]{0, Integer.signum(dy)};
@@ -108,7 +222,7 @@ final class RedoubtWorks {
         for (int[] side : sides) {
             int[] gate = cutGate(sim, dressed, keep, l, t, r, b, side, doorX, doorY);
             if (gate == null) continue;
-            Plan plan = build(sim, registry, dressed, keep, l, t, r, b, side, gate, seed);
+            Plan plan = build(sim, registry, dressed, keep, road, l, t, r, b, side, gate, seed);
             if (plan != null && reaches(grid, plan, doorX, doorY)) return plan;
         }
         return null;
@@ -143,7 +257,7 @@ final class RedoubtWorks {
         return null;
     }
 
-    private static Plan build(BattleSimulation sim, TileRegistry registry, Set<Long> dressed, Keep keep,
+    private static Plan build(BattleSimulation sim, TileRegistry registry, Set<Long> dressed, Keep keep, Roadway road,
                               int l, int t, int r, int b, int[] side, int[] gate, long seed) {
         boolean vertical = side[0] != 0;
         Set<Long> gateLane = new HashSet<>();
@@ -158,7 +272,7 @@ final class RedoubtWorks {
 
         // A truck dragged across each street the barricade crosses, one a side.
         for (int[] edge : new int[][]{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}) {
-            Piece truck = truckAcross(sim, registry, taken, keep, gateLane, l, t, r, b, edge, seed);
+            Piece truck = truckAcross(sim, registry, taken, keep, road, gateLane, l, t, r, b, edge, seed);
             if (truck == null) continue;
             barricade.add(truck);
             for (int y = truck.y(); y < truck.y() + truck.height(); y++)
@@ -223,11 +337,13 @@ final class RedoubtWorks {
 
     /**
      * A truck across the barricade where it crosses a street on one edge:
-     * three ring cells of street, and the row outside them, all open. The
+     * three ring cells of the street's carriageway (paved plaza is not a street
+     * to close, and a truck on it stood out into the road beyond), and the row
+     * outside them, all open. The
      * truck stands half out from the ring, nose to the street.
      */
     private static Piece truckAcross(BattleSimulation sim, TileRegistry registry, Set<Long> taken, Keep keep,
-                                     Set<Long> gateLane, int l, int t, int r, int b, int[] edge, long seed) {
+                                     Roadway road, Set<Long> gateLane, int l, int t, int r, int b, int[] edge, long seed) {
         String id = TRUCKS[(int) Math.floorMod(seed + edge[0] * 3L + edge[1], TRUCKS.length)];
         DoodadDef def = registry.doodad(id);
         if (def == null) return null;
@@ -245,7 +361,7 @@ final class RedoubtWorks {
             boolean ok = true;
             for (int i = 0; i < length && ok; i++) {
                 int x = horizontal ? along + i : ring, y = horizontal ? ring : along + i;
-                if (topology.isStreet(x, y)) streets++;
+                if (topology.roadSurface() == null ? topology.isStreet(x, y) : road.at(x, y)) streets++;
                 for (int d = 0; d < depth && ok; d++) {
                     // The footprint runs outward from the ring, so the truck stands outside the step.
                     int fx = x + (horizontal ? 0 : edge[0] * d), fy = y + (horizontal ? edge[1] * d : 0);
@@ -325,6 +441,18 @@ final class RedoubtWorks {
         return grid.inBounds(x, y) && grid.isWalkable(x, y) && !grid.isDoorway(x, y)
                 && topology.getBuildingId(x, y) == 0 && !topology.isFixture(x, y) && !topology.isWall(x, y)
                 && !dressed.contains(key(x, y)) && keep.clear(x, y);
+    }
+
+    /** The street asphalt the road finish laid, or none on a map without one. */
+    static Roadway roadway(BattleSimulation sim) {
+        RoadSurface surface = sim.getTopology().roadSurface();
+        if (surface == null) return (x, y) -> false;
+        int asphalt = Material.ASPHALT.ordinal();
+        return (x, y) -> {
+            if (!sim.getGrid().inBounds(x, y)) return false;
+            RoadSurface.Patch patch = surface.patch(x, y, asphalt);
+            return patch != null && patch.area() > .5;
+        };
     }
 
     private static Set<Long> dressedCells(BattleSimulation sim, int l, int t, int r, int b) {
