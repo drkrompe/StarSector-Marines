@@ -1089,6 +1089,12 @@ def falling(key, start, t0, accel, drift=(0.0, 0.0, 0.0), yaw=0.0, pitch=0.0, ro
 
 
 K6_DIVE = tuple(40.0 * c for c in K6_LOOK)
+# The airflow over them: the way the plasma streams off each hull. Physically it runs back up the orbit,
+# almost straight at a camera that rides behind them, which drew every bow shock as an orb and every
+# wake as a dot (S12 lit span, 2026-10-22). The shot authors it across the frame instead, up and to the
+# left on screen, so the wakes stream long behind the two as in the chosen paintover (option a).
+K6_WIND = tuple(c / math.sqrt(sum(((.3 * K6_LOOK[i] + (0, .7, .6)[i]) ** 2 for i in range(3))))
+                for c in (.3 * K6_LOOK[i] + (0, .7, .6)[i] for i in range(3)))
 K6_SHIPS = {'colossus': falling('colossus', M11_COLOSSUS, 126.0, K6_DIVE, drift=(0.0, 40.0, 0.0),
                                  yaw=72.0, pitch=-14.0, roll_rate=1.5),
             'morrow': falling('morrow', M11_MORROW, 126.0, tuple(34.0 * c for c in K6_LOOK),
@@ -2156,9 +2162,11 @@ def blender_main(cfg):
         """S12: a falling hull inside her plasma sheath (swfx_entry): the bow shock ahead of her fall,
         the white-hot core, sparks shed off her, and the trail grown behind her since 126 s."""
         length = SHIP_LENGTH[key]
-        pts = [Vector(pose.at(126.0 + (t - 126.0) * i / 40)[:3]) for i in range(41)]
-        entry_kit().trail('Entry ' + key, pts, stage_fx, width_m=length * 1.25, glow=1.0, sparks=40,
-                          seed=len(key))
+        head = Vector(pose.at(t)[:3])
+        wake = length * min(4.0, 1.0 + (t - 126.0) * .8)      # grows as she goes deeper into the air
+        pts = [head + Vector(K6_WIND) * wake * (1 - i / 40) for i in range(41)]
+        entry_kit().trail('Entry ' + key, pts, stage_fx, width_m=length * .45, glow=1.0, sparks=12,
+                          seed=len(key), shock=(length * 1.1, length * .5), spark_len=length * .6)
 
     def wreckfall(t):
         """S12: the ships the battle lost coming down in pieces (WRECKFALL): each piece a short entry
@@ -2177,11 +2185,14 @@ def blender_main(cfg):
             if pc['kind'] == 'chunk':          # breaking up: splinters peeling off on headings of their own
                 parts += [tuple(rnd.gauss(0, 18) for _ in range(3)) for _ in range(rnd.randint(1, 2))]
             for k, dv in enumerate(parts):
-                pts = [at(t - age * (1 - i / 12), dv) for i in range(13)]
+                head = at(t, dv)
+                ln = pc['size'] * (12.0 if pc['kind'] == 'chunk' else 25.0) * min(1.0, .3 + age)
+                pts = [head + Vector(K6_WIND) * ln * (1 - i / 12) for i in range(13)]
                 kit.trail('Wreckfall %s %d' % (pc['name'], k), pts, stage_fx,
-                          width_m=pc['size'] * (4.0 if pc['kind'] == 'chunk' else 6.0) * (1 if k == 0 else .6),
+                          width_m=pc['size'] * (1.5 if pc['kind'] == 'chunk' else 2.0) * (1 if k == 0 else .6),
                           glow=.35 if pc['kind'] == 'chunk' else .15, sparks=6 if pc['kind'] == 'chunk' and k == 0 else 0,
-                          seed=pc['seed'] * 7 + k, ion=False)
+                          seed=pc['seed'] * 7 + k, ion=False, shock=(pc['size'] * 1.4, pc['size'] * .7),
+                          spark_len=pc['size'])
 
     def field_matrix(piece, box, t, local=None):
         """A debris box's world matrix at time t: the wreck turning about its own axis (debris_field).

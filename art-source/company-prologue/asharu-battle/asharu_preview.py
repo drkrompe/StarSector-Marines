@@ -472,11 +472,14 @@ def shot(L, kf):
             def pos(t, key=key):
                 return M(key, t).to_translation()
 
-            def shock(t, key=key, ln_=ln_):        # ahead of her fall, small enough that she reads against it
-                v = (pos(t + .1) - pos(t)).normalized()
-                return pos(t) + v * ln_ * .35, v, ln_ * .32, ln_ * .7
+            import __main__ as bb          # battle_blockout: the shot's authored airflow, K6_WIND
+            wind = Vector(bb.K6_WIND)
+
+            def shock(t, key=key, ln_=ln_):        # hugging her, into the airflow
+                return pos(t) - wind * ln_ * .5, -wind, ln_ * .5, ln_ * 1.1
             mp.cone(name, shock, 'fire')
-            mp.line(name + ' trail', lambda t, ts=ts: (pos(t), pos(max(ts, t - 4.0))), 'fire', width_px=6.0)
+            mp.line(name + ' trail', lambda t, ts=ts, ln_=ln_: (
+                pos(t), pos(t) + wind * ln_ * min(4.0, 1.0 + (t - 126.0) * .8)), 'fire', width_px=6.0)
         elif kind == 'wreckfall':
             # S12: the ships the battle lost, coming down in pieces (battle_blockout.WRECKFALL)
             import __main__ as bb          # battle_blockout, running as Blender's script
@@ -484,9 +487,10 @@ def shot(L, kf):
                 def ends(t, pc=pc):
                     if t < pc['t_in']:
                         return None
-                    age = min(t - pc['t_in'], 1.2 if pc['kind'] == 'chunk' else .7)
-                    at = lambda tt: Vector([pc['at'][i] + pc['vel'][i] * (tt - bb.K6_T) for i in range(3)])
-                    return at(t), at(t - age)
+                    age = min(t - pc['t_in'], 1.5 if pc['kind'] == 'chunk' else .8)
+                    head = Vector([pc['at'][i] + pc['vel'][i] * (t - bb.K6_T) for i in range(3)])
+                    ln = pc['size'] * (12.0 if pc['kind'] == 'chunk' else 25.0) * min(1.0, .3 + age)
+                    return head, head + Vector(bb.K6_WIND) * ln
                 mp.line('%s %s' % (name, pc['name']), ends, 'fire' if pc['kind'] == 'chunk' else 'flare',
                         width_px=3.0 if pc['kind'] == 'chunk' else 1.2)
         elif kind == 'flares':
