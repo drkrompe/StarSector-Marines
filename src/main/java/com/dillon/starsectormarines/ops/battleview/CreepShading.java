@@ -63,6 +63,13 @@ final class CreepShading {
      * floor's own contact crease is the outline's other half).
      */
     static final float WALL_LIFT = 0.22f, WALL_BEVEL = 0.30f, WALL_OUTLINE = 0.5f;
+    /**
+     * Grass and crops ahead of the edge: the blight (the creep's coverage spread {@link CreepLayer#BLIGHT_CELLS}
+     * cells out over vegetated ground) over which the ground turns the palette's wilt colour, how opaque the wilt
+     * gets, how much its edge is broken up, and the blight over which veins reach out into it.
+     */
+    static final float WILT_LO = 0.05f, WILT_HI = 0.6f, WILT_ALPHA = 0.6f, WILT_BREAK = 0.3f;
+    static final float BAND_VEIN_LO = 0.32f, BAND_VEIN_HI = 0.7f, BAND_VEIN_BREAK = 0.35f;
 
     private CreepShading() { }
 
@@ -73,6 +80,9 @@ final class CreepShading {
 
         /** Bilinear coverage alone. */
         float coverage(float cellX, float cellY);
+
+        /** Bilinear ground under the creep: blight and vegetated in 0..1 into {@code out[0..1]}. */
+        void ground(float cellX, float cellY, float[] out);
     }
 
     /** The scene's sun, as the creep reads it: toward the sun on the map, rise per cell, shadow strength. */
@@ -108,6 +118,18 @@ final class CreepShading {
         boolean onWall = own[3] > 0.5f;
 
         if (!onWall) {
+            // Vegetation ahead of the edge: the grass wilts, then veins reach out into it.
+            float[] gnd = tmp.gnd;
+            f.ground(x, y, gnd);
+            float wa = 0f, wv = 0f;
+            if (gnd[1] > 0f && gnd[0] > 0f) {
+                wa = gnd[1] * smoothstep(WILT_LO, WILT_HI, gnd[0] + (fine[0] - 0.5f) * WILT_BREAK) * WILT_ALPHA;
+                float reachV = smoothstep(BAND_VEIN_LO, BAND_VEIN_HI, gnd[0] + (noise[0] - 0.5f) * BAND_VEIN_BREAK);
+                if (reachV > 0f) {
+                    CreepSurface.sample(x * WALL_VEIN_SCALE, y * WALL_VEIN_SCALE, tpp * WALL_VEIN_SCALE, surf);
+                    wv = 0.85f * clamp01(surf[2] * 1.6f) * reachV * gnd[1];
+                }
+            }
             float d = (soft - 0.5f + lobes) / gl;
             float a = clamp01(d * cellPx + 0.5f);
             float shadow = 0f;
@@ -120,7 +142,7 @@ final class CreepShading {
                 }
             }
             float sa = SHADOW_ALPHA * shadow * sun.strength();
-            if (a <= 0f && sa <= 0.002f) {
+            if (a <= 0f && sa <= 0.002f && wa <= 0.002f && wv <= 0.002f) {
                 out[0] = out[1] = out[2] = out[3] = 0f;
                 return;
             }
@@ -129,8 +151,14 @@ final class CreepShading {
                 float crease = smoothstep(0.2f, 0.5f, here[3]);
                 for (int c = 0; c < 3; c++) col[c] *= 1f - 0.55f * crease;
             }
-            float alpha = a + sa * (1f - a);
-            for (int c = 0; c < 3; c++) out[c] = clamp01((col[c] * a + SHADOW_TINT[c] * sa * (1f - a)) / Math.max(alpha, 1e-4f));
+            // Layered over the ground in order: wilt, veins, the creep's shadow, the creep. Premultiplied.
+            float alpha = 0f;
+            for (int c = 0; c < 3; c++) out[c] = 0f;
+            alpha = over(out, alpha, pal.wilt(), 1f, wa);
+            alpha = over(out, alpha, pal.flesh(), pal.rim(), wv);
+            alpha = over(out, alpha, SHADOW_TINT, 1f, sa);
+            alpha = over(out, alpha, col, 1f, a);
+            for (int c = 0; c < 3; c++) out[c] = clamp01(out[c] / Math.max(alpha, 1e-4f));
             out[3] = alpha;
             return;
         }
@@ -183,7 +211,21 @@ final class CreepShading {
     /** Per-thread working arrays for {@link #shade}. */
     static final class Scratch {
         final float[] own = new float[4], here = new float[4], noise = new float[4], fine = new float[4],
-                surf = new float[4], col = new float[4], tap = new float[4], turned = new float[4];
+                surf = new float[4], col = new float[4], tap = new float[4], turned = new float[4], gnd = new float[2];
+    }
+
+    /** Lays {@code rgb * scale} over the premultiplied {@code acc} at {@code a}; the accumulated alpha. */
+    private static float over(float[] acc, float accAlpha, float[] rgb, float scale, float a) {
+        if (a <= 0f) return accAlpha;
+        for (int c = 0; c < 3; c++) acc[c] = rgb[c] * scale * a + acc[c] * (1f - a);
+        return a + accAlpha * (1f - a);
+    }
+
+    /** As {@link #over}, in the raised colour a wall's veins take: the plates' colour a third of the way to the rim. */
+    private static float over(float[] acc, float accAlpha, float[] flesh, float[] rim, float a) {
+        if (a <= 0f) return accAlpha;
+        for (int c = 0; c < 3; c++) acc[c] = mix(flesh[c], rim[c], 0.35f) * a + acc[c] * (1f - a);
+        return a + accAlpha * (1f - a);
     }
 
     /**

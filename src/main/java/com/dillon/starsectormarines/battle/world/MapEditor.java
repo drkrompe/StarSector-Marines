@@ -186,6 +186,20 @@ public final class MapEditor {
         openFixtureCell(x, y);
     }
 
+    /**
+     * A tree crown cell the creep has killed (`CreepVegetation`): the leaves are
+     * gone, so sight passes it and it gives no edge cover, while its crusted
+     * limbs still stop a body. Felling it later opens it as any crown cell.
+     */
+    public void witherCrownCell(int x, int y) {
+        if (!grid.inBounds(x, y) || grid.isWalkable(x, y)
+                || !grid.hasTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID)) return;
+        grid.setSeeThrough(x, y, true);
+        grid.setEdgeCoverSuppressed(x, y, true);
+        grid.recomputeCoverAt(x - 1, y); grid.recomputeCoverAt(x + 1, y);
+        grid.recomputeCoverAt(x, y - 1); grid.recomputeCoverAt(x, y + 1);
+    }
+
     private void openFixtureCell(int x, int y) {
         grid.setWalkable(x, y, true);
         grid.setSeeThrough(x, y, false);

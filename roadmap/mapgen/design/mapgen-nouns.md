@@ -609,9 +609,16 @@ where carriageway lies on both sides of it, so side streets reach the road
 they join and its junction turns give the corner a kerb radius. Because the
 carriageway is the street less its kerbs, it widens wherever a frontage gives
 way to a yard; the sweep refuses a *bulge* (a band broader than one running
-the same way along its whole length) and a *pill* (a short band whose ends
-are not both met by a crossing street), which would otherwise swell the road
-into the yard or float asphalt in a gap between buildings. Pedestrian frames,
+the same way along its whole length), which would swell the road into the
+yard, and a *pill* (a short band, under four breadths long, met by no
+crossing street at either end), which would float asphalt in a gap between
+buildings. A short band met at one end only, by a street that stands on its
+own, is a *spur*: a dead end off that street into a yard or a lot. It is
+swept as a street to where its cells end, because left paved it reads as a
+stub of street with no road on it. Its mouth takes a kerb radius only where
+the turn would lie wholly on street or footway; where the spur opens
+straight onto its yard the corner stays square rather than being cut off at
+the yard's edge. Pedestrian frames,
 the rest of the flank, plazas broader than a street (nine cells) and lanes too
 narrow for a sweep (under three) keep their paving, which also shows in the
 corners a junction turn leaves uncovered.

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.creep.ColonyCreep;
+import com.dillon.starsectormarines.battle.creep.CreepVegetationSnapshotSuite;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
@@ -272,7 +273,8 @@ class RenderBudgetEvidence {
         static final List<MapSpec> MATRIX = List.of(
                 new MapSpec("280x168 control", MapSpec::control),
                 new MapSpec("560x336 conquest", MapSpec::conquest),
-                new MapSpec("400x240 colony", MapSpec::colony));
+                new MapSpec("400x240 colony", MapSpec::colony),
+                new MapSpec("400x240 green colony", MapSpec::greenColony));
 
         BattleSimulation build() throws Exception {
             return builder.build();
@@ -297,6 +299,19 @@ class RenderBudgetEvidence {
             CreepField creep = sim.creepField();
             int ticks = Math.round(COLONY_OUTBREAK_SECONDS / BattleSimulation.TICK_DT);
             for (int t = 0; t < ticks; t++) creep.tick(t);
+            return sim;
+        }
+
+        /**
+         * The canonical colony on a verdant world, grown for {@link #COLONY_OUTBREAK_SECONDS} with the town's sites
+         * open and a bore under every fourth tree ({@link CreepVegetationSnapshotSuite.Outbreak}), so its groves are
+         * overgrown, some of their trees dead, and its grass and fields blighted: the creep's vegetation measured on
+         * the map that carries it.
+         */
+        static BattleSimulation greenColony() throws Exception {
+            BattleSimulation sim = CreepVegetationSnapshotSuite.verdantColony();
+            CreepVegetationSnapshotSuite.Outbreak outbreak = new CreepVegetationSnapshotSuite.Outbreak(sim);
+            outbreak.runTo(Math.round(COLONY_OUTBREAK_SECONDS / BattleSimulation.TICK_DT));
             return sim;
         }
 

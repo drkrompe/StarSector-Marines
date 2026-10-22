@@ -509,6 +509,17 @@ tasks.register('renderEvidence', Test) {
 // matters, switch on the hit log there, and ask who is shooting whom, without a replay per question.
 // -Pbattle=thunder-run[:seed=N,companySize=N] or fixture:<path>; -Pscript=<file> (stdin without one); -Pout=<file>.
 // Serial, as commanderEvidence plays, so the battle probed is the battle the evidence reported.
+tasks.register('bakeCreepBlight', JavaExec) {
+    group = 'build'
+    description = 'Bakes the forest-blight sheet: trees hive creep overgrows, from the canopy sheets and the creep surface.'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.ops.battleview.CreepBlightBaker'
+    workingDir projectDir
+    args 'mod'
+    outputs.upToDateWhen { false }
+}
+
 tasks.register('battleProbe', JavaExec) {
     group = 'verification'
     description = 'Step one battle and query entities, hits and squads between steps.'
