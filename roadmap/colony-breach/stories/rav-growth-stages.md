@@ -1,8 +1,10 @@
 # Rav growth stages
 
-Status: DESIGN — waiting on the owner's look check (`review/rav-growth/2026-10-21_stages-round1_windows`); no mechanics built
+Status: DESIGN — owner answered the round-1 questions (below); no mechanics built
 
 Written: 2026-10-21
+
+Updated: 2026-10-21 — owner decisions: weighted population, pale spine ridge on elders, elder Brute squeezes, whelps bolt.
 
 Model: `colony-breach-nouns.md` (Swarm strain: Growth stage, Pack leader; Bore tier; Spawning surge; Harvest).
 
@@ -140,7 +142,7 @@ Rules:
   whelp as 0.6, an adult as 1 and an elder as 1.8 against its target. A fed bore
   then sends fewer, older bodies rather than the same number stronger, so
   feeding raises danger without a runaway in body count. This is the main
-  balance lever and an open question for the owner (below).
+  balance lever; the owner chose it over the same count of stronger bodies.
 - The director's snapshot carries each bore's stage mix and the stage counts it
   has released. The breach snapshot carries the living count per stage.
 
@@ -234,11 +236,9 @@ There are three different questions here. Each keeps its own answer.
    0.55). It is capped at 0.49 for navigation, the spatial index, ballistics
    and blast catch, and it is drawn and shoved at full size. The alternative,
    a second field family at two-cell clearance, would double the field cost
-   for one body type; it is rejected unless review shows elder Brutes ghosting
-   through doors they visibly fill. If that happens, the cheaper answer is
-   behavioural: an elder Brute at a one-cell opening in a light wall breaks
-   the cell beside it (its existing wall-blow path) before going through. That
-   is an owner call.
+   for one body type, and is rejected. An elder Brute squeezes through a
+   doorway it visibly fills (owner, 2026-10-21); it does not widen the
+   opening.
 2. **Separation: how bodies crowd.** The capsule (`BodyCapsule`) is the
    crowding shape. Its half-length, radius and forward offset scale linearly
    with stage. The Runner's capsule, 0.52 / 0.23 / 0.10 today, becomes 0.42 /
@@ -268,8 +268,9 @@ body, wherever the radius is read for that body.
   thicker.
 - **Adult:** the shipped art.
 - **Elder:** dark. Plates go toward the Brute's old plum (the Brute's approved
-  palette already darkens with age, so the family agrees). Healed scars run as
-  pale raised seams across the carapace. Spike arms are 1.30x long, and the
+  palette already darkens with age, so the family agrees), but the **spine
+  ridge stays pale** (owner, 2026-10-21) so an elder stands off the creep.
+  Healed scars run as pale raised seams across the carapace. Spike arms are 1.30x long, and the
   bone is slightly yellowed.
 - For the Brute, the same three moves apply on its own palette: a whelp is a
   paler, lilac-plum calf with a stub ram-cap, an elder is near-black plum with
@@ -287,8 +288,9 @@ What the look check measured (sheet 01, 32 px per cell):
 - Spike length does **not** read at play zoom while the arms are folded. It
   shows only in a strike. The stage's identity has to rest on size and value.
 - The elder (L 84) sits close in value to the creep (L 94). It separates by its
-  magenta sinew, its shadow and its size. If the owner finds it sinks, the
-  smallest fix is to keep the pale spine ridge light on elders.
+  magenta sinew, its shadow and its size. The owner chose to keep its spine
+  ridge pale as well; with the ridge (round 2) the elder measures L 105,
+  above the creep.
 - On paving (L 123), every stage reads.
 
 ### Sound
@@ -324,14 +326,10 @@ and waits for her design.
 8. Balance reading: `commanderEvidence -Pmission=colony-breach` against the
    `growthStages=false` and `packLeaders=false` controls, in the same run.
 
-## Open questions for the owner
+## Owner decisions (2026-10-21)
 
-- **Count weight or bodies?** Should a fed bore send fewer, older ravs
-  (weighted population, proposed) or the same number of older ones (harder
-  every feed)?
-- **Elder on creep:** dark plum as shown, or keep a pale spine ridge so it
-  stands off the creep?
-- **Elder Brute at doors:** allow it to squeeze through doors it visibly fills,
-  or have it widen the opening by breaking the wall beside it?
-- **Whelps bolting:** is a four-second rout the right feel, or should broken
-  whelps keep fighting with only the bonuses gone?
+- **Weighted population.** A fed bore sends fewer, older ravs: the director
+  counts stage weight, not bodies.
+- **Elder on creep.** Dark plum with a pale spine ridge.
+- **Elder Brute at doors.** It squeezes through; no wall breaking for it.
+- **Whelps bolt** for four seconds when their leader dies.

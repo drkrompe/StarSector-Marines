@@ -697,7 +697,8 @@ stages are about a fifth apart in size (0.80, 1.00 and 1.22 of the adult), so
 they read at play zoom. Health, armour, damage and reach rise with stage and
 speed falls; a Brute's mass rises with its volume, so its charge physics scales
 without a rule of its own. They are also marked beyond size: a whelp is pale
-with nub spikes, an elder dark and scarred with long ones. A stage is issued at
+with nub spikes, an elder dark and scarred with long ones and a pale spine
+ridge. A stage is issued at
 spawn through `SwarmStrains`, like the Brute's plate, and fixed for the body's
 life; the Matriarch is the one exception. Stage scales presentation only
 through things the body already has: its rig's scale and stage-recoloured
@@ -708,7 +709,8 @@ reasons for each choice are in `rav-growth-stages.md` (planned, not built).
   each body draws a stage from a table keyed by the bore's tier (a fissure
   throws whelps, a maw throws adults and elders), shifted older by the biomass
   the bore has eaten in its life. So *Harvest* shows on the field: a bore that
-  has been fed sends bigger, darker ravs. The draw is keyed by the bore, the
+  has been fed sends bigger, darker ravs, and fewer of them, because the
+  director counts a body's stage weight against its target. The draw is keyed by the bore, the
   pulse and the body, so stages change no other roll.
 - **Pack, pack leader.** A pack is the bodies of one pulse. Its first elder is
   its **pack leader** and is released at the head of the stream; a pulse with
@@ -725,7 +727,7 @@ reasons for each choice are in `rav-growth-stages.md` (planned, not built).
   She leads every pack within her leash.
 - **Clearance.** Every stage of the small strains keeps a sim radius under half
   a cell, so the shared flow fields serve every body; an elder Brute is drawn
-  and shoved larger than it navigates. The crowding capsule scales with stage.
+  and shoved larger than it navigates, and squeezes through a door it fills. The crowding capsule scales with stage.
   The Matriarch paths for herself at her stage's clearance.
 
 **Air threat ladder.** What the swarm can do to what flies, rung by rung:

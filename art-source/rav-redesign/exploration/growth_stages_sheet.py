@@ -8,7 +8,7 @@ game ships, `export_runner_rig.py`) scaled and recoloured:
 
   whelp  0.80x linear, plates lifted toward a pale lilac and a little desaturated, spike arms cut to nubs (0.55x);
   adult  1.00x, the shipped Runner as it is;
-  elder  1.22x, plates darkened toward the Brute's old plum, healed scars across the carapace, arms 1.30x.
+  elder  1.22x, plates darkened toward the Brute's old plum with the spine ridge kept pale, healed scars across the carapace, arms 1.30x.
 
 Each body is drawn at four times play zoom, recoloured, then resampled once to its size at 32 px per cell, with the
 live unit shadow (`round2.shadow_blob`) scaled by the stage's body radius.
@@ -79,9 +79,10 @@ def scaled_arms(s, k):
     return out
 
 
-def recolour(img, stage, part):
+def recolour(img, stage, part, ridge=None):
     a = np.asarray(img).astype(float)
     rgb, al = a[..., :3], a[..., 3:]
+    orig = rgb.copy()
     if stage == "whelp":
         rgb = rgb + (255 - rgb) * (0.34 if part == "body" else 0.22)
         grey = rgb.mean(2, keepdims=True)
@@ -89,6 +90,9 @@ def recolour(img, stage, part):
     elif stage == "elder":
         if part == "body":
             rgb = rgb * np.array([0.50, 0.40, 0.54])
+            if ridge is not None:  # the spine ridge keeps its pale plates so an elder stands off the creep
+                bright = (orig.mean(2) > 150)[..., None]
+                rgb = np.where(ridge[..., None] & bright, orig * 0.92, rgb)
         else:  # old bone: a touch yellowed, not darkened
             rgb = rgb * np.array([1.0, 0.96, 0.84])
     return Image.fromarray(np.dstack([np.clip(rgb, 0, 255), al]).astype(np.uint8), "RGBA")
@@ -137,7 +141,11 @@ def body_sprite(art, s, stage, ppc, seed=0):
             p0, p1 = to_screen(pts[j]), to_screen(pts[j + 1])
             wk = math.dist(pts[j], pts[j + 1]) * hi / piece[2]
             put_bone(arms, piece, p0, p1, wk * 1.1 * (1.15 if stage == "whelp" else 1.0), piece[2] * wk, i == 1)
-    body = recolour(body, stage, "body")
+    ridge = None
+    if stage == "elder":
+        rows = np.abs(np.arange(H) - H / 2)[:, None] < 0.07 * hi
+        ridge = np.broadcast_to(rows, (H, W))
+    body = recolour(body, stage, "body", ridge)
     if stage == "elder":
         body = scars(body, seed)
     body.alpha_composite(recolour(arms, stage, "arm"))
@@ -229,7 +237,7 @@ def build(root, out_dir):
         img.paste(tile.convert("RGB"), (x0, y0))
         label(d, (x0, y0 - 22), f"CLOSE-UP 3x  -  {gname.lower()}  (markings only: not a play zoom)", 14, ACC)
         for name, x in (("Marine", 90), ("whelp: pale, nub spikes", 250), ("adult", 480),
-                        ("elder: dark plum, scars, long spikes", 740)):
+                        ("elder: dark plum, pale ridge, scars", 740)):
             label(d, (x0 + x - 60, y0 + H - 26), name, 13, INK)
 
     img.save(out_dir / "01-stages.png")
