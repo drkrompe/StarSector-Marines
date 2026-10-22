@@ -1134,8 +1134,12 @@ support sortie, subject only to practical runtime resources.
   an occupied gantry establishes the fitting asset and eases
   the same battle camera into it; only then does the fitting workspace reveal those
   chassis-scoped controls. Selecting a vacant gantry instead opens the chassis- and
-  vehicle-pattern catalog: a successful cargo-backed commit builds one persistent
-  standard-fit chassis, or one vehicle, into that exact station and immediately makes
+  vehicle-pattern catalog. **Choosing is not buying:** clicking a pattern selects it,
+  stands it on the pad as a translucent preview at the scene's own scale (a mech in its
+  standard fit, a vehicle nose-up) and fills the build panel with its lore, kind and
+  bill; only the panel's BUILD spends anything. With nothing chosen the first pattern
+  the filter shows is previewed. A successful cargo-backed BUILD puts one persistent
+  standard-fit chassis, or one vehicle, onto that exact pad and immediately makes
   it part of the active lance. A gantry holding a vehicle is selectable and shows its
   callsign, hull, weight class and read-only hull stats (structure, armour, mobility,
   passengers, turret); it exposes no sockets, catalog or doll, and its pad is never
@@ -1156,7 +1160,7 @@ support sortie, subject only to practical runtime resources.
   at a vacant pad clears the chassis selection and exposes fabrication patterns rather
   than rendering chassis controls against nothing. Lance browsing remains a
   separate direct-jump surface, and it is pictures first: each lance shows one
-  lettered tile per pad (the chassis or vehicle standing there, or an empty pad), and
+  lettered tile per pad (the machine standing there with its fitted guns, or an empty pad), and
   the selected lance lists every pad as a card with its thumbnail, vacant pads included
   as BUILD cards, so what a lance lacks reads as plainly as what it holds.
 - Fabrication spends three ordinary player-fleet materials: metals, heavy machinery

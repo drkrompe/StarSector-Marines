@@ -77,6 +77,8 @@ public final class MechLabViewModel {
     private final MutableSignal<MechPattern.WeightClass> weightFilter;
     /** The machine a first press of SCRAP armed; any other selection disarms it. */
     private final MutableSignal<String> scrapArmedId;
+    /** The pattern selected on a vacant pad: previewed on the pad, built only by BUILD. */
+    private final MutableSignal<String> previewRecipeId;
     private final MutableSignal<MechWeaponComponent> hoveredWeapon;
     /** A catalog internal under the pointer, previewed on the meters and the budget. */
     private final MutableSignal<MechInternal> hoveredInternal;
@@ -190,6 +192,7 @@ public final class MechLabViewModel {
         catalogFilter = reactor.signal(CategoryFilter.ALL);
         weightFilter = reactor.signal(null);
         scrapArmedId = reactor.signal(null);
+        previewRecipeId = reactor.signal(null);
         hoveredWeapon = reactor.signal(null);
         hoveredInternal = reactor.signal(null);
         platingSelected = reactor.signal(false);
@@ -449,6 +452,115 @@ public final class MechLabViewModel {
     public Signal<String> scrapClasses() { return scrapClasses; }
     public Runnable scrapAction() { return this::scrapSelected; }
     public Signal<MechPattern.WeightClass> weightFilter() { return weightFilter; }
+
+    /*
+     * A vacant pad works in two steps: selecting a pattern previews it standing on the pad with
+     * its lore and bill in the build panel, and only BUILD spends materials.
+     */
+
+    /** The previewed pattern, or the first one the filter shows when nothing is selected yet. */
+    private MechFabricationCatalog.Recipe previewRecipe() {
+        revision.get();
+        if (!fabricatingChassis()) return null;
+        List<MechFabricationCatalog.Recipe> shown = shownPatterns();
+        if (shown.isEmpty()) return null;
+        String id = previewRecipeId.get();
+        for (MechFabricationCatalog.Recipe recipe : shown) {
+            if (recipe.id().equals(id)) return recipe;
+        }
+        return shown.get(0);
+    }
+
+    private List<MechFabricationCatalog.Recipe> shownPatterns() {
+        MechPattern.WeightClass weight = weightFilter.get();
+        List<MechFabricationCatalog.Recipe> shown = new ArrayList<>();
+        for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.chassis()) {
+            if (bay.canFabricate(recipe.variant())
+                    && (weight == null || MechPattern.of(recipe.variant()).weightClass() == weight)) shown.add(recipe);
+        }
+        for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.vehicles()) {
+            if (bay.canFabricate(recipe.vehicle())
+                    && (weight == null || MechPattern.weightClass(recipe.vehicle()) == weight)) shown.add(recipe);
+        }
+        return shown;
+    }
+
+    private String patternClasses(MechFabricationCatalog.Recipe recipe) {
+        MechFabricationCatalog.Recipe previewed = previewRecipe();
+        return previewed != null && previewed.id().equals(recipe.id())
+                ? "catalog-row chassis-pattern selected" : "catalog-row chassis-pattern";
+    }
+
+    /** What stands on the vacant pad as a preview: a {@link MechVariant}, a {@link VehicleType}, or null. */
+    public Object padPreview() {
+        MechFabricationCatalog.Recipe recipe = previewRecipe();
+        if (recipe == null) return null;
+        return recipe.variant() != null ? recipe.variant() : recipe.vehicle();
+    }
+
+    public void previewPattern(String recipeId) { previewRecipeId.set(recipeId); }
+
+    private boolean padHasSpace() {
+        CampaignMechSquad squad = selectedSquad();
+        return squad != null && squad.occupied() < physicalGantries && bay.canAddMech(squad.id());
+    }
+
+    /** The build panel's props, read by the screen and both test prop builders. */
+    public void putBuildPanelProps(Map<String, Object> props) {
+        props.put("buildPanelClasses", reactor.computed(() -> fabricatingChassis() ? "surface-dark build-panel" : "hidden"));
+        props.put("dragNoteWrapClasses", reactor.computed(() -> fabricatingChassis() ? "hidden" : "drag-note-wrap"));
+        props.put("buildName", reactor.computed(() -> {
+            MechFabricationCatalog.Recipe recipe = previewRecipe();
+            return recipe != null ? recipe.displayName() : Strings.get("openingMechLabSelectAPattern");
+        }));
+        props.put("buildKind", reactor.computed(() -> {
+            MechFabricationCatalog.Recipe recipe = previewRecipe();
+            if (recipe == null) return "";
+            return recipe.variant() != null
+                    ? Strings.join("separatorDot", recipe.provenance(), roleLabel(recipe.variant().defaultRole))
+                    : vehicleIdentity(recipe.vehicle());
+        }));
+        props.put("buildLore", reactor.computed(() -> lore(previewRecipe())));
+        props.put("buildMaterials", reactor.computed(() -> {
+            MechFabricationCatalog.Recipe recipe = previewRecipe();
+            return recipe != null ? materialRows("mech-build", resources.quote(recipe.cost())) : List.<Row>of();
+        }));
+        props.put("buildLabel", reactor.computed(() -> {
+            MechFabricationCatalog.Recipe recipe = previewRecipe();
+            if (recipe == null) return Strings.get("openingMechLabBuildAction");
+            if (!padHasSpace()) return Strings.get("openingMechLabLanceFull");
+            return resources.canAfford(resources.quote(recipe.cost()))
+                    ? Strings.format("openingMechLabBuildOnPad", padLetter(selectedGantryIndex()))
+                    : Strings.get("openingMechLabMaterialsShort");
+        }));
+        props.put("buildDisabled", reactor.computed(() -> {
+            MechFabricationCatalog.Recipe recipe = previewRecipe();
+            return recipe == null || !padHasSpace() || !resources.canAfford(resources.quote(recipe.cost()));
+        }));
+        props.put("buildAction", buildAction());
+    }
+
+    public Runnable buildAction() { return this::buildPreviewed; }
+
+    private void buildPreviewed() {
+        MechFabricationCatalog.Recipe recipe = previewRecipe();
+        if (recipe == null) return;
+        previewRecipeId.set(null);
+        if (recipe.variant() != null) fabricateChassis(recipe.variant());
+        else fabricateVehicle(recipe.vehicle());
+    }
+
+    /** Chassis lore is the gear catalogue's; vehicle lore is the lab's own. */
+    private static String lore(MechFabricationCatalog.Recipe recipe) {
+        if (recipe == null) return Strings.get("openingMechLabSelectAPatternCopy");
+        if (recipe.vehicle() != null) return Strings.get("vehicleLore" + recipe.vehicle().name());
+        return switch (recipe.variant()) {
+            case HOUND -> Strings.get("gearCatalogHoundDescription");
+            case SIROCCO -> Strings.get("gearCatalogSiroccoDescription");
+            case BULWARK -> Strings.get("gearCatalogBulwarkDescription");
+            default -> "";
+        };
+    }
     public void setWeightFilter(MechPattern.WeightClass weight) { weightFilter.set(weight); }
     public Runnable openAssetPickerAction() { return this::openAssetPicker; }
     public Runnable closeAssetPickerAction() { return this::closeAssetPicker; }
@@ -800,7 +912,7 @@ public final class MechLabViewModel {
                 CampaignVehicle vehicle = mech == null ? vehicleAt(squad, index) : null;
                 String occupant = mech != null ? mech.id() : vehicle != null ? vehicle.id() : "vacant";
                 slots.add(new LanceSlot(base + ":pad:" + index + ":" + occupant, padLetter(index),
-                        mech != null ? mech.variant() : null, vehicle != null ? vehicle.type() : null));
+                        mech, vehicle != null ? vehicle.type() : null));
             }
             rows.add(new SquadRow(base, base + ":name", base + ":status", base + ":strength", base + ":slots",
                     squad.id().equals(selected) ? "mech-squad-row selected" : "mech-squad-row",
@@ -821,7 +933,7 @@ public final class MechLabViewModel {
         for (CampaignMech mech : squad.mechs()) {
             String base = "mech:" + mech.id();
             rows.add(new MechRow(base, base + ":name", base + ":chassis", base + ":subsystem",
-                    base + ":action", base + ":preview", base + ":pad", padLabel(pad), padLetter(pad++), mech.variant(), null,
+                    base + ":action", base + ":preview", base + ":pad", padLabel(pad), padLetter(pad++), mech, null,
                     mech.id().equals(selected) ? "mech-row selected" : "mech-row",
                     mech.displayName(), Strings.join("separatorDot", mech.variant().displayName(), roleLabel(mech.role())),
                     mech.missileReplenisher().displayName(), readinessText(mech),
@@ -1178,63 +1290,53 @@ public final class MechLabViewModel {
     }
 
     private List<CatalogRow> chassisCatalog() {
-        CampaignMechSquad squad = selectedSquad();
-        boolean hasSpace = squad != null && squad.occupied() < physicalGantries && bay.canAddMech(squad.id());
         List<CatalogRow> rows = new ArrayList<>();
         MechPattern.WeightClass weight = weightFilter.get();
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.chassis()) {
             if (!bay.canFabricate(recipe.variant())) continue;
             if (weight != null && MechPattern.of(recipe.variant()).weightClass() != weight) continue;
-            boolean affordable = resources.canAfford(resources.quote(recipe.cost()));
             MechVariant variant = recipe.variant();
             String base = "mech-catalog:" + recipe.id();
             rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
                     base + ":stock", base + ":telemetry", base + ":delta",
                     base + ":detail", base + ":action", base + ":materials", base + ":body",
                     base + ":preview",
-                    "catalog-preview", variant, null, null, null, null, "catalog-row chassis-pattern",
+                    "catalog-preview", variant, null, null, null, null, patternClasses(recipe),
                     recipe.displayName(), Strings.get("openingMechLabChassis"), "catalog-badge chassis",
                     recipe.provenance(),
                     Strings.format("openingMechLabSpeedArmor", number(variant.moveSpeed), Math.round(variant.armorCapacity)),
                     "", "catalog-delta hidden",
                     roleLabel(variant.defaultRole),
-                    !hasSpace ? Strings.get("openingMechLabLanceFull") : !affordable ? Strings.get("openingMechLabMaterialsShort") : Strings.get("openingMechLabFab"),
-                    !hasSpace ? Strings.get("openingMechLabThisWorkshopHasNoVacantGantry")
-                            : !affordable ? Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor")
-                            : Strings.get("openingMechLabBuildThisChassisIntoTheVacantGantry"),
-                    !hasSpace || !affordable, materialRows(base, resources.quote(recipe.cost())), "material-costs",
-                    () -> fabricateChassis(variant)));
+                    "", Strings.get("openingMechLabSelectToPreview"),
+                    false, materialRows(base, resources.quote(recipe.cost())), "material-costs",
+                    () -> previewRecipeId.set(recipe.id())));
         }
-        rows.addAll(vehicleCatalog(hasSpace));
+        rows.addAll(vehicleCatalog());
         return List.copyOf(rows);
     }
 
     /** Vehicle patterns share the vacant gantry with chassis, gated by pattern the same way. */
-    private List<CatalogRow> vehicleCatalog(boolean hasSpace) {
+    private List<CatalogRow> vehicleCatalog() {
         List<CatalogRow> rows = new ArrayList<>();
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.vehicles()) {
             VehicleType type = recipe.vehicle();
             if (!bay.canFabricate(type)) continue;
             MechPattern.WeightClass weight = weightFilter.get();
             if (weight != null && MechPattern.weightClass(type) != weight) continue;
-            boolean affordable = resources.canAfford(resources.quote(recipe.cost()));
             String base = "mech-catalog:" + recipe.id();
             rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
                     base + ":stock", base + ":telemetry", base + ":delta",
                     base + ":detail", base + ":action", base + ":materials", base + ":body",
                     base + ":preview",
-                    "catalog-preview", null, null, null, null, type, "catalog-row chassis-pattern",
+                    "catalog-preview", null, null, null, null, type, patternClasses(recipe),
                     recipe.displayName(), Strings.get("openingMechLabVehicle"), "catalog-badge chassis",
                     recipe.provenance(),
                     Strings.format("openingMechLabSpeedArmor", number(type.maxSpeed), Math.round(type.maxArmor)),
                     "", "catalog-delta hidden",
                     vehicleIdentity(type),
-                    !hasSpace ? Strings.get("openingMechLabLanceFull") : !affordable ? Strings.get("openingMechLabMaterialsShort") : Strings.get("openingMechLabFab"),
-                    !hasSpace ? Strings.get("openingMechLabThisWorkshopHasNoVacantGantry")
-                            : !affordable ? Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor")
-                            : Strings.get("openingMechLabBuildThisVehicleIntoTheVacantGantry"),
-                    !hasSpace || !affordable, materialRows(base, resources.quote(recipe.cost())), "material-costs",
-                    () -> fabricateVehicle(type)));
+                    "", Strings.get("openingMechLabSelectToPreview"),
+                    false, materialRows(base, resources.quote(recipe.cost())), "material-costs",
+                    () -> previewRecipeId.set(recipe.id())));
         }
         return rows;
     }
@@ -2328,7 +2430,7 @@ public final class MechLabViewModel {
     }
 
     /** One pad of a lance in the picker: the machine on it, or neither for a vacant pad. */
-    public record LanceSlot(String id, String letter, MechVariant variant, VehicleType vehicle)
+    public record LanceSlot(String id, String letter, CampaignMech mech, VehicleType vehicle)
             implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; default -> throw unknown("mech-lance-slot", p); }; }
@@ -2336,7 +2438,7 @@ public final class MechLabViewModel {
 
     public record MechRow(String id, String nameId, String chassisId, String subsystemId,
                           String actionId, String previewId, String padId, String pad, String letter,
-                          MechVariant variant, VehicleType vehicle,
+                          CampaignMech mech, VehicleType vehicle,
                           String classes, String name, String chassis, String subsystem,
                           String status, String statusClasses,
                           Runnable select) implements MarkupPropertySource {
@@ -2456,6 +2558,9 @@ public final class MechLabViewModel {
             implements MarkupPropertySource {
         /** The row's button builds a spare (drawn as the fabricator icon) rather than fitting one. */
         private boolean fabricates() { return Strings.get("openingMechLabFab").equals(actionLabel); }
+
+        /** A chassis or vehicle pattern has no button: clicking the card selects it for preview. */
+        public boolean selectsOnClick() { return chassisPreview != null || vehiclePreview != null; }
 
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "copyId" -> copyId; case "headerId" -> headerId; case "nameId" -> nameId;
