@@ -472,9 +472,9 @@ def shot(L, kf):
             def pos(t, key=key):
                 return M(key, t).to_translation()
 
-            def shock(t, key=key, ln_=ln_):
+            def shock(t, key=key, ln_=ln_):        # ahead of her fall, small enough that she reads against it
                 v = (pos(t + .1) - pos(t)).normalized()
-                return pos(t) - v * ln_ * .6, v, ln_ * .7, ln_ * 1.4
+                return pos(t) + v * ln_ * .35, v, ln_ * .32, ln_ * .7
             mp.cone(name, shock, 'fire')
             mp.line(name + ' trail', lambda t, ts=ts: (pos(t), pos(max(ts, t - 4.0))), 'fire', width_px=6.0)
         elif kind == 'wreckfall':

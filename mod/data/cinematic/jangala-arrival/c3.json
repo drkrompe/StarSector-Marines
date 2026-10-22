@@ -4,8 +4,8 @@
  "fps": 24,
  "width": 1920,
  "height": 1080,
- "frames": 288,
- "duration": 12.0,
+ "frames": 384,
+ "duration": 16.0,
  "captions": [
   {
    "t_in": 7.0,
@@ -20,7 +20,7 @@
    "t": 0.0,
    "sound": "jangala_arrival_cabin_bed",
    "volume": 0.55,
-   "until": 12.0
+   "until": 16.0
   },
   {
    "t": 0.0,

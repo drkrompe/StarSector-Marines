@@ -4,8 +4,8 @@
  "fps": 24,
  "width": 1920,
  "height": 1080,
- "frames": 441,
- "duration": 18.375,
+ "frames": 514,
+ "duration": 21.4167,
  "captions": [
   {
    "t_in": 1.0,
@@ -19,8 +19,28 @@
   {
    "t": 0.0,
    "sound": "jangala_arrival_cabin_bed",
-   "volume": 0.25,
-   "until": 18.375
+   "volume": 0.3,
+   "until": 1.0,
+   "fade_in": 0.0,
+   "fade_out": 0.9
+  },
+  {
+   "t": 0.0,
+   "sound": "jangala_arrival_wind",
+   "volume": 0.55
+  },
+  {
+   "t": 10.5,
+   "sound": "jangala_arrival_wind",
+   "volume": 0.35
+  },
+  {
+   "t": 17.4,
+   "sound": "c5_yard_jungle_bed",
+   "volume": 0.4,
+   "until": 21.4,
+   "fade_in": 2.0,
+   "fade_out": 0.0
   },
   {
    "t": 1.0,

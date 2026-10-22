@@ -1092,7 +1092,7 @@ K6_DIVE = tuple(40.0 * c for c in K6_LOOK)
 K6_SHIPS = {'colossus': falling('colossus', M11_COLOSSUS, 126.0, K6_DIVE, drift=(0.0, 40.0, 0.0),
                                  yaw=72.0, pitch=-14.0, roll_rate=1.5),
             'morrow': falling('morrow', M11_MORROW, 126.0, tuple(34.0 * c for c in K6_LOOK),
-                              drift=(0.0, 10.0, 0.0), yaw=-58.0, pitch=-8.0, roll_rate=-2.5)}
+                              drift=(0.0, 40.0, 0.0), yaw=-58.0, pitch=-8.0, roll_rate=-2.5)}
 _k6c = K6_SHIPS['colossus'].at(K6_T)
 K6_CAM = tuple(_k6c[i] - K6_RANGE * K6_LOOK[i] for i in range(3))
 
@@ -1113,10 +1113,13 @@ def _k6_aim(t, toward_morrow):
 # large chunks per hull, and many small streaks. Each falls on a heading near the Colossus's, at its
 # own depth, breaking up as it enters. (name, of, size m, start at t, position at K6_T, velocity).
 # Nothing here is from the Colossus: she comes down whole.
-WRECKFALL_LOST = {'phaeton': 4, 'lasher-lead': 3, 'hound-p-c': 2, 'hound-p-a': 2}
+# Owner, 2026-10-22, on the paintovers: "A bit too much meteor shower comes across like doom". So a
+# thin fall, behind and beside the two and dimmer than them: four burning chunks and ten faint streaks,
+# low in the frame, nothing crossing the upper sky. Two ships going down with their battle's debris.
+WRECKFALL_LOST = {'phaeton': 2, 'lasher-lead': 1, 'hound-p-c': 1}
 
 
-def _wreckfall(seed=12, small=60):
+def _wreckfall(seed=12, small=10):
     import random
     rnd = random.Random(seed)
     vc = [(K6_SHIPS['colossus'].at(K6_T + .5)[i] - _k6c[i]) * 2 for i in range(3)]
@@ -1124,8 +1127,8 @@ def _wreckfall(seed=12, small=60):
     pieces = [(k, 'chunk') for k, n in WRECKFALL_LOST.items() for _ in range(n)]
     pieces += [(rnd.choice(list(WRECKFALL_LOST)), 'streak') for _ in range(small)]
     for n, (of, kind) in enumerate(pieces):
-        d = rnd.uniform(2500, 30000) if kind == 'streak' else rnd.uniform(2200, 14000)
-        ax, ay = rnd.uniform(-.38, .38), rnd.uniform(-.22, .2)       # spread over the frame and past it
+        d = rnd.uniform(4000, 20000) if kind == 'streak' else rnd.uniform(2600, 9000)    # behind the two (1800 m)
+        ax, ay = rnd.uniform(-.3, .3), rnd.uniform(-.2, .03)        # beside and below them, never high
         dirn = [K6_LOOK[0] - ay * .4, K6_LOOK[1] + ax, K6_LOOK[2] + ay]
         nn = math.sqrt(sum(c * c for c in dirn))
         pos = tuple(K6_CAM[i] + dirn[i] / nn * d for i in range(3))
@@ -1141,6 +1144,28 @@ def _wreckfall(seed=12, small=60):
 
 WRECKFALL = _wreckfall()
 
+
+def add_span(arg):
+    """--span kf:t0:t1:fps (owner, 2026-10-22: the plasma judged moving, not as a still): a lit
+    motion span as one generated key frame per step, '<kf>s00', '<kf>s01', ..., each with the ships,
+    the camera and the effects at its own time. Returns their ids. The env var carries it into Blender."""
+    kf, t0, t1, fps = arg.split(':')
+    t0, t1, fps = float(t0), float(t1), float(fps)
+    base = KEYFRAMES[kf]
+    path = base['camera']['at']
+    ids = []
+    for n in range(int(round((t1 - t0) * fps)) + 1):
+        t = t0 + n / fps
+        cam = dict(path(t))
+        cam['at'] = path
+        spec = dict(base, camera=cam, t=t, title='%s at %.2f s' % (base['title'], t),
+                    ships={k: at_time(p, t) for k, p in base['ships'].items()})
+        key = '%ss%02d' % (kf, n)
+        KEYFRAMES[key] = SHOTS[key] = spec
+        ids.append(key)
+    return ids
+
+
 KEYFRAMES['k6'].update(
     title='The wreckfall',
     caption="From the pirates' orbit, a long lens"
@@ -1151,7 +1176,7 @@ KEYFRAMES['k6'].update(
     # mm to the plate's 50 mm at the key, then on to 85 mm, ending tight on the two burning hulls
     camera=camera('k6', [dict(t=126, loc=_k6_cam, target=lambda t: _k6_aim(t, .35), lens=40),
                          dict(t=130, loc=_k6_cam, target=lambda t: _k6_aim(t, 0.0), lens=50),
-                         dict(t=134, loc=_k6_cam, target=lambda t: _k6_aim(t, .3), lens=85)], K6_T),
+                         dict(t=134, loc=_k6_cam, target=lambda t: _k6_aim(t, .5), lens=85)], K6_T),
     ships=K6_SHIPS,
     fx=[('entry_sheath', 'colossus'), ('entry_sheath', 'morrow'), ('wreckfall',)],
     labels=['colossus', 'morrow'])
@@ -1204,6 +1229,7 @@ BLOCKED = {
         labels=['colossus', 'morrow']),
 }
 SHOTS = {**KEYFRAMES, **BLOCKED}
+SPAN = add_span(os.environ['ASHARU_SPAN']) if os.environ.get('ASHARU_SPAN') else []
 
 ROSTER_SHEETS = ('r1', 'r2')   # top-down and broadside fleet sheets
 
@@ -1583,12 +1609,12 @@ def blender_main(cfg):
         return m.outputs[0]
     grazing = math.sqrt(2 * 14e3 / R)                  # 1 - facing where a ray just grazes the ground
     u = m2('DIVIDE', m2('SUBTRACT', 1.0, lw.outputs['Facing']), grazing)
-    haze = m2('MINIMUM', m2('POWER', m2('MINIMUM', u, 1.0), 2.0),
+    haze = m2('MINIMUM', m2('POWER', m2('MINIMUM', u, 1.0), 4.0),
               m2('EXPONENT', m2('MULTIPLY', m2('SUBTRACT', u, 1.0), -2.5), None))
-    haze = m2('MULTIPLY', haze, .85)
+    haze = m2('MULTIPLY', haze, .6)        # look1 (2026-10-22): at .85 and 1.1 it was a thick flat band
     em = nt2.nodes.new('ShaderNodeEmission')
     em.inputs['Color'].default_value = (.32, .52, 1.0, 1)
-    em.inputs['Strength'].default_value = 1.1
+    em.inputs['Strength'].default_value = .45
     clear = nt2.nodes.new('ShaderNodeBsdfTransparent')
     mix = nt2.nodes.new('ShaderNodeMixShader')
     nt2.links.new(haze, mix.inputs['Fac'])
@@ -2154,7 +2180,7 @@ def blender_main(cfg):
                 pts = [at(t - age * (1 - i / 12), dv) for i in range(13)]
                 kit.trail('Wreckfall %s %d' % (pc['name'], k), pts, stage_fx,
                           width_m=pc['size'] * (4.0 if pc['kind'] == 'chunk' else 6.0) * (1 if k == 0 else .6),
-                          glow=.6 if pc['kind'] == 'chunk' else .35, sparks=6 if pc['kind'] == 'chunk' and k == 0 else 0,
+                          glow=.35 if pc['kind'] == 'chunk' else .15, sparks=6 if pc['kind'] == 'chunk' and k == 0 else 0,
                           seed=pc['seed'] * 7 + k, ion=False)
 
     def field_matrix(piece, box, t, local=None):
@@ -2673,9 +2699,9 @@ def blender_main(cfg):
                 elif kind == 'entry_trails':
                     entry_trails(extra3d)
                 elif kind == 'entry_sheath' and not cfg.get('motion_preview'):     # the preview has proxies
-                    entry_sheath(spec['ships'][fx[1]], fx[1], K6_T)
+                    entry_sheath(spec['ships'][fx[1]], fx[1], spec.get('t', K6_T))
                 elif kind == 'wreckfall' and not cfg.get('motion_preview'):
-                    wreckfall(K6_T)
+                    wreckfall(spec.get('t', K6_T))
             c = spec['camera']
             aim(c['loc'], c.get('target'), c['lens'], c.get('look'), c.get('roll', 0.0))
             if cfg.get('volume_audit'):       # in vacuum (as rendered), then as the kit's atmosphere default
@@ -3473,6 +3499,9 @@ def main():
     def opt(flag, default=None):
         return argv[argv.index(flag) + 1] if flag in argv else default
 
+    if opt('--span'):            # a lit motion span (add_span): its steps are the frames
+        os.environ['ASHARU_SPAN'] = opt('--span')
+        argv += ['--frames', ','.join(add_span(opt('--span')))]
     frames = opt('--frames', ','.join(list(KEYFRAMES) + list(ROSTER_SHEETS))).split(',')
     run = Path(opt('--root', REPO / 'build' / 'asharu-battle')) / opt('--run', date.today().isoformat())
     run.mkdir(parents=True, exist_ok=True)
