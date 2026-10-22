@@ -30,7 +30,7 @@ public class TestBloomWorld implements BloomWorld {
     /** A plain frontier colony: old, workings, not core, at (x, 0) in its own system. */
     public TestBloomWorld colony(String id, String systemId, int size, float x) {
         return add(new BloomMarket(id, id, systemId, "independent", size, 3650, false, false,
-                false, false, true, false, x, 0f, 20f));
+                false, false, true, false, x, 0f, 20f, 1f, 0f));
     }
 
     public BloomMarket get(String id) {
@@ -47,7 +47,10 @@ public class TestBloomWorld implements BloomWorld {
 
     @Override public void erupted(RavBloom bloom) { log.add("erupted " + bloom.marketId); }
 
-    @Override public void wentDark(RavBloom bloom) { log.add("dark " + bloom.marketId); }
+    @Override
+    public void wentDark(RavBloom bloom, boolean disrupt) {
+        log.add("dark " + bloom.marketId + (disrupt ? " disrupted" : ""));
+    }
 
     @Override public void starved(RavBloom bloom) { log.add("starved " + bloom.marketId); }
 
@@ -66,7 +69,10 @@ public class TestBloomWorld implements BloomWorld {
         markets.remove(marketId);
     }
 
-    @Override public void ended(RavBloom bloom) { log.add("ended " + bloom.marketId + " " + bloom.end()); }
+    @Override
+    public void ended(RavBloom bloom, int unrest) {
+        log.add("ended " + bloom.marketId + " " + bloom.end() + " unrest " + unrest);
+    }
 
     @Override
     public void reputation(String factionId, int delta, RavBloom bloom) {
@@ -83,13 +89,13 @@ public class TestBloomWorld implements BloomWorld {
             BloomMarket m = e.getValue();
             e.setValue(new BloomMarket(m.id, m.name, m.systemId, m.factionId, m.size,
                     m.daysInExistence + days, m.hidden, m.playerOwned, m.ruins, m.habitable,
-                    m.workings, m.core, m.x, m.y, m.lyFromCore));
+                    m.workings, m.core, m.x, m.y, m.lyFromCore, m.traffic, m.inflow));
         }
     }
 
     static BloomMarket withSize(BloomMarket m, int size) {
         return new BloomMarket(m.id, m.name, m.systemId, m.factionId, size, m.daysInExistence,
                 m.hidden, m.playerOwned, m.ruins, m.habitable, m.workings, m.core, m.x, m.y,
-                m.lyFromCore);
+                m.lyFromCore, m.traffic, m.inflow);
     }
 }
