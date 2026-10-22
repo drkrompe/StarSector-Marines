@@ -62,7 +62,6 @@ final class MapPreviewRenderer {
         GROUND_COLORS.put(GroundKind.BRICK,     new Color(200, 180, 155));  // brick paving — plazas, future roofs (was SIDEWALK's color/role)
         GROUND_COLORS.put(GroundKind.SIDEWALK,  new Color(170, 160, 150));  // curb-side sidewalk strip (urban-tileset-3)
         GROUND_COLORS.put(GroundKind.STRIPED,   new Color(200, 190, 100));
-        GROUND_COLORS.put(GroundKind.LZ_MARKER, new Color(255, 220,  50));
         GROUND_COLORS.put(GroundKind.RUBBLE,    new Color(120,  90,  80));
     }
 

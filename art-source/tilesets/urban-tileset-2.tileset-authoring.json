@@ -26,11 +26,6 @@
       "layout": "single"
     },
     {
-      "damageBlock": "terrain.blast-metal",
-      "id": "road.lz-marker",
-      "layout": "single"
-    },
-    {
       "id": "road.embankment",
       "layout": "wall-3x3"
     },
@@ -915,24 +910,6 @@
         32,
         32
       ]
-    },
-    {
-      "block": "road.lz-marker",
-      "cover": "none",
-      "footprintCells": [
-        1,
-        1
-      ],
-      "id": "doodad.road.c16r2",
-      "included": true,
-      "note": "grate-2",
-      "rect": [
-        508,
-        65,
-        34,
-        29
-      ],
-      "slot": "only"
     },
     {
       "block": "road.revetment",

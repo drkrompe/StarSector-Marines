@@ -10,8 +10,8 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
  * park is GRASS); this enum just names it as a first-class structural fact the
  * generator publishes.
  *
- * <p>Deliberately coarse: {@code BRICK}, {@code STONE}, {@code STRIPED}, and
- * {@code LZ_MARKER} all read as "open paved ground" tactically, so they collapse
+ * <p>Deliberately coarse: {@code BRICK}, {@code STONE} and {@code STRIPED}
+ * all read as "open paved ground" tactically, so they collapse
  * to {@link #PLAZA}; the texture differences that matter (cover, exposure,
  * enclosure) are captured as <em>attributes</em> on the region, not as separate
  * kinds. Width-based reads like "alley vs. street" are likewise attributes
@@ -47,7 +47,6 @@ public enum RegionKind {
             case BRICK:
             case STONE:
             case STRIPED:
-            case LZ_MARKER:
                 return PLAZA;
             case COURTYARD:
                 return COURTYARD;

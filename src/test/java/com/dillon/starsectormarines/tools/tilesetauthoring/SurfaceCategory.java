@@ -103,7 +103,6 @@ public final class SurfaceCategory {
         filed.put("SAND", new Section(Setting.OUTDOORS, Kind.FLOOR));
         filed.put("SNOW", new Section(Setting.OUTDOORS, Kind.FLOOR));
         // Neither a wall nor something to stand on.
-        filed.put("LZ_MARKER", new Section(Setting.OUTDOORS, Kind.OTHER));
         filed.put("WATER", new Section(Setting.OUTDOORS, Kind.OTHER));
         return Map.copyOf(filed);
     }

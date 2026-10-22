@@ -97,7 +97,6 @@ public final class TerrainCostField {
         switch (kind) {
             case STREET:
             case SIDEWALK:
-            case LZ_MARKER:
             case STRIPED:
                 return COST_ROAD;
             case COURTYARD:
