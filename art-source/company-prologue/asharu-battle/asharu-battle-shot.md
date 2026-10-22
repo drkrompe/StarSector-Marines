@@ -132,9 +132,42 @@ each turn and its throttle surges as it closes up. Frigates jink hard (about 25 
 heading and 30 of bank); destroyers swing wider and slower; freighters and the Colossus barely
 wander. Civilian hulls move a class heavier. The motion is seeded by the ship's key, so it is
 deterministic, ships of one build never move alike, and each key frame stills the shot's moment
-in it (S1a at 10 s, S1 16 s, S4 40 s, S6 56 s, S6c 72 s, S7 86 s). Formation ships move;
-authored combat poses, a ship on her gun run, and the powered-down pirates at the platform are
-left as posed. Curved attack runs and breakaways for the pirates belong to the animated pass.
+in it.
+
+### The battle flies (owner, 2026-10-22)
+
+Every ship in every key-frame shot flies, and every shot but S12 has a camera move. A key frame's
+pose is where that motion passes at its key time, so a lit still is a sample of the motion the
+preview plays, and the stills did not move when the motion went in (`--check` is unchanged).
+- **Key times:** S1a 10 s, S1 16, S3 34, S4 40, S6 56, S6b 62, S6c 72, S6d 77, S7 86, S8-S9 95,
+  S9b 105, S10 114, S12 130.
+- **Speeds are relative to the convoy**, whose co-moving frame the battle is staged in: a ship
+  on station is at rest in it, a raider closing from astern flies forward through it at her
+  class's speed (frigates about 210 m/s, destroyers 170, cruisers 130), a ship falling out drifts
+  aft. The planet turns beneath at orbital speed, about 60 km of desert in an 8 s shot.
+- **A flown ship (`motion.keyed`, `fly()`)** passes through timed attitude keys and flies where
+  her nose points, so the path follows the manoeuvre:
+  - the roll-overs the plan calls for: Lasher B's 150 to starboard and the merchant Wolf's to
+    port in S6b, the Hound's 110 in S6d, the lead Lasher's dive on her back in S9b;
+  - attack runs, breakaways, and the raiders jinking as hard as their class throws itself about
+    (`jinking()`);
+  - hits that shove and tumble a ship and leave her throttle (drives shot out), recoil that kicks
+    a firing ship's nose (`motion.recoil`), and the Wolves' (P) Displacer blinks in S6c;
+  - throttle eases between keys and burns on top while she gains speed.
+- **Riding:** the seated boat rides the Tarsus's slow roll in S7, Morrow and the Borers ride the
+  wallowing Colossus in S8-S9, and the prize and the docked Kite ride the Mk.III in S10
+  (`motion.carried`, `motion.riding`).
+- **Cameras (`motion.camera`)** run through timed keys, and a key's position or aim can follow a
+  ship (`track()`). Handheld drift is zero at the key time, so it never moves a still.
+  - S1a tips down from the player's view into S1's framing, which S1 then travels on with.
+  - S3 creeps in on the platform, then onto the Falcon (P) as her drives light.
+  - S4 pans with the climbing pack.
+  - S6 pushes in, handheld. S6b chases Lasher B over her roll. S6c tracks aft along the column.
+  - S6d is handheld, close behind the Hound. S7 eases in behind the Tarsus.
+  - S8-S9 pulls back from the shot-out pod to the wide. S9b travels with the Lasher's run.
+  - S10 cranes down after the falling Colossus. S12 holds.
+- **The motion is accepted on previews** (`--motion-preview`, light lane), and only then
+  sampled for lit renders.
 
 ### Morrow's drones
 
@@ -161,7 +194,8 @@ Kites (P).
   - a yaw end for end, then a braking burn against its motion;
   - so it comes in tail first over the prize's stern and sets down facing aft.
   - `boat()` composes it from the mother's and the prize's stations, so it follows either if
-    re-posed, and an animation plays the same run.
+    re-posed, and an animation plays the same run. Given the prize's flight (`carrier`), the
+    run follows the prize as she moves.
 - **Each boat is its own ShipFx copy** (own hull and kit), so drives, gear and doors key
   per boat. Drives burn on the run, gear comes down on the brake, doors open once down.
 - **Livery:** the Hermes is the company's own boat. The pirates' copies are greyed and
@@ -572,6 +606,12 @@ To check a scene without rendering, run `python battle_blockout.py --check`; `py
   Shots now leave from the bearing mount's muzzle, and missiles from a launcher when one bears. `--check` is clean: all 22 tracers and missiles bear. Queued as five
   single-frame review jobs (k3, k3b, k4, r1, r2) with `--run r8b`, frame resume and
   drive inputs pinned by sha256. Either machine may take a frame; both have the Starsector install.
+- **Volumes are the cost of k3 and k3b** (timed 2026-10-22, k3b at 12% size and 1 sample,
+  `volume_timing.py`): as rendered 20 s, every kit volume hidden 6 s, a coarser step rate alone
+  31 s (Blender 5's unbiased volumes ignore it), biased volumes 12 s, and biased at step rate 4
+  6 s, the same as no volumes at all. The r9b k3/k3b review stills ran over 4 h without
+  finishing a frame. Their next lit render goes with `--volume-biased --volume-step-rate 4`,
+  once the motion is accepted.
 - **Render cost** of `--frames k3,k3b,k4,r1,r2 --samples 48`, extrapolated from quarter-size and
   half-size samples on the RTX 3080 (k3b was not sampled):
   - k3 (S6) is nearly all of it. The cook-off's volumes scale linearly with pixels times samples:

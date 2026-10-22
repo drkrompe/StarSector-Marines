@@ -367,8 +367,8 @@ and claws at it on its strike cooldown (a Runner's blow is light, a Brute's
 heavy), and the gap a broken piece leaves is where the pack pours through. A
 prepared position is therefore assaulted head on rather than flanked, which is
 what makes it read as one. Ordinary yard fences elsewhere in the town stay walls.
-A hedgehog has no damage art of its own yet: damaged it stands as it is, and
-destroyed it lies as wrecked fence. Trucks do not break.
+A damaged hedgehog stands bent with a girder knocked loose; a destroyed one lies
+toppled flat and gives no cover. Trucks do not break.
 `-Dbattle.swarm.barricadeAssault=false` is the control: barricades are walls,
 and the swarm goes round.
 
@@ -1096,6 +1096,10 @@ against its own control in `renderEvidence`.
   declares its trees' crowns to the field when the field is made; rock
   formations and hills are climbed as walls are. A crown fills at a wall's rate,
   so its coverage is how long the creep has held the tree.
+- **Creep can be matured.** A battle set weeks into a bloom (the Cordon,
+  `cordon-nouns.md`) grows every source to its full reach at once at setup and
+  fills it, walls crusted, as the clock would have (`CreepField.mature`); the
+  trees under it die at once. Nothing else about the field changes.
 - **Removing a source withers what it alone held**, from the outer edge back to
   the hole over a visible interval: the growth dies first, then clears. Ground a
   living source also reaches stays, and a living source reaching dying ground
@@ -1153,6 +1157,22 @@ against its own control in `renderEvidence`.
   being dragged is lying nowhere. Only the swarm's own: Marines, militia and
   colonists are the harvest's. It is what keeps a long battle on the creep from
   piling up corpses, and it gives nothing back to the field.
+- **Body pile cap: a safety net where nothing clears the dead** (`BodyPileCap`).
+  Off the creep and out of a bore's reach — waves thrown at a defended redoubt —
+  nothing takes the swarm's dead away, and every body lying is drawn every
+  frame: a dead Runner is some thirty quads of burst pieces, so a pile of 1,200
+  cost about seven milliseconds of frame (`renderEvidence`, `body pile`). The
+  battle counts the bodies still lying by 8x8-cell area once a second; past 64
+  in one area (about one a cell, a carpet) the oldest there settle and fade out
+  over four seconds and are gone, and past 1,000 on the whole field the oldest
+  anywhere go the same way. Every side's dead count, the oldest first by death
+  tick and then id, so it is deterministic. A body on a carrier — dragged,
+  impaled, being harvested — is never counted or taken, and one taken up
+  mid-fade lies whole again; a retired Runner leaves the swarm's recycling with
+  it, and the corpse itself stays for the battle's reckoning of the dead. The
+  limits are generous on purpose: it is not a mechanic, and a battle the creep
+  or the bores keep clean never reaches them. `-Dbattle.bodyPileCap=false` is
+  the control; `body-pile` (`createSnapshots`) shows a pile capped against it.
 - **Creep favours the swarm and shelters no one** (`CreepEffects`). A swarm
   body runs a quarter faster on living creep; Marines and colonists are never
   slowed, so creep reads as the swarm's ground rather than mud. A fleeing or

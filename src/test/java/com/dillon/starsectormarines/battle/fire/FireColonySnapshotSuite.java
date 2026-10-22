@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.fire;
 import com.dillon.starsectormarines.battle.creep.CreepVegetationSnapshotSuite;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.NightLighting;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
@@ -13,6 +14,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.Locale;
 
 /**
@@ -23,7 +25,8 @@ import java.util.Locale;
  * ground, unburnt grass, road and pavement all meet, chosen from a first burn,
  * and the second burn is drawn there as the front crosses it and once it has
  * passed; the densest grove as its crowns catch; and the whole map mid-burn and
- * after.
+ * after. The front, the grove and the whole map mid-burn are drawn again at night,
+ * with no lamps, so what is lit there is lit by the fire.
  */
 public final class FireColonySnapshotSuite implements SnapshotSuite {
 
@@ -81,12 +84,16 @@ public final class FireColonySnapshotSuite implements SnapshotSuite {
                     grove[0] + 0.5f, grove[1] + 0.5f, CLOSE_CELLS);
             shots.add(new Shot(endTick + 30, "07-grove-close.png", groveClose, "close: burnt ground under the grove"));
         }
+        shots.add(new Shot(frontTick + 60, "08-night-front.png", play, "night: the front crossing grass, road and pavement", true));
+        shots.add(new Shot(endTick / 2, "09-night-whole-mid.png", whole, "night: whole map, mid-burn", true));
+        if (groveView != null && groveTick >= 0) shots.add(new Shot(groveTick + 90, "10-night-grove.png", groveView, "night: the grove as its crowns catch", true));
         shots.sort((a, b) -> Integer.compare(a.tick, b.tick));
         try (BattleSimulation sim = CreepVegetationSnapshotSuite.verdantColony()) {
             FireField fire = light(sim);
             int tick = 0;
             for (Shot shot : shots) {
                 for (; tick < shot.tick; tick++) fire.tick(tick);
+                sim.getTopology().setNightLighting(shot.night ? NIGHT : null);
                 out.add(new SnapshotArtifact(shot.file, shot.renderer.render(sim, caption(shot.view, tick))));
             }
         }
@@ -94,7 +101,14 @@ public final class FireColonySnapshotSuite implements SnapshotSuite {
         return out;
     }
 
-    private record Shot(int tick, String file, BattleReviewFrameRenderer renderer, String view) { }
+    private record Shot(int tick, String file, BattleReviewFrameRenderer renderer, String view, boolean night) {
+        Shot(int tick, String file, BattleReviewFrameRenderer renderer, String view) {
+            this(tick, file, renderer, view, false);
+        }
+    }
+
+    /** A dark night with no lamps: whatever is lit is lit by the fire. */
+    private static final NightLighting NIGHT = new NightLighting(0.78f, List.of(), Set.of());
 
     private static FireField light(BattleSimulation sim) {
         FireField fire = sim.fireField();

@@ -118,8 +118,9 @@ them.
   labels; translation cannot merge two stats or change a meter or icon. Headings,
   subtitles and stat rows accommodate wrapped copy using the resolved font.
   A sheet for a whole squad's card (a weapon card or a tactic sheet) also
-  carries one picture per seat, painted as three fire teams of four, so the hover
-  shows what each of the twelve actually carries; a single item's sheet has none.
+  carries one picture per seat, painted as three labelled fire teams of two by
+  two (the grouping the squad card's muster uses), with what the seat carries
+  beside its main item badged on the corner; a single item's sheet has none.
 - A **subject** is any catalog item a spec sheet can be written for. A marine,
   a squad, or a doctrine template is a dossier rather than a subject: it is
   described by its own screen, and only the catalog items it names carry

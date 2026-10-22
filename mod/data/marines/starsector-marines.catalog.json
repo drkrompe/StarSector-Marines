@@ -21,6 +21,7 @@
     "data/tilesets/fort-emplacement-destroyed.tileset.json",
     "data/tilesets/fort-fittings.tileset.json",
     "data/tilesets/fort-sandbag-damage.tileset.json",
+    "data/tilesets/fort-hedgehog-damage.tileset.json",
     "data/tilesets/pavement.tileset.json",
     "data/tilesets/natural-terrain.tileset.json",
     "data/tilesets/ice-terrain.tileset.json",

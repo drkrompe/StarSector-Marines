@@ -361,6 +361,29 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields, i
                 0, MUSTER_YARD);
     }
 
+    /**
+     * One strongpoint of a cordon thrown across open country
+     * ({@code cordon-nouns.md}, Field redoubt): a bunk dugout, an aid post and
+     * a store round a small yard, walled and gated by the brief's
+     * fortification. Like the civil-defence compound it owes nothing that
+     * publishes a defender's node: the garrison is an ally and the defender is
+     * the swarm. Its guns and wall posts are the garrison's, set up with the
+     * battle.
+     */
+    public static FortressProgram fieldRedoubt() {
+        return new FortressProgram(List.of(
+                new FortressBuilding(RoomPurpose.RESIDENTIAL_HALL, BUNK_DUGOUT, Ward.REAR, 1),
+                new FortressBuilding(RoomPurpose.PATIENT_WARD, AID_POST, Ward.YARD, 1),
+                new FortressBuilding(RoomPurpose.STOCKROOM, FIELD_STORE, Ward.YARD, 1)),
+                0, REDOUBT_YARD);
+    }
+
+    private static final RoomShape BUNK_DUGOUT = RoomShape.rectangle(11, 7);
+    private static final RoomShape AID_POST = RoomShape.rectangle(8, 6);
+    private static final RoomShape FIELD_STORE = RoomShape.rectangle(7, 5);
+    /** Open ground inside a field redoubt's wall for its garrison to fight across. */
+    private static final int REDOUBT_YARD = 240;
+
     private static final RoomShape SHELTER_HALL = RoomShape.rectangle(14, 9);
     private static final RoomShape CLINIC = RoomShape.rectangle(13, 12);
     /** Open ground inside the wall for the colony to muster on and the militia to fight across. */

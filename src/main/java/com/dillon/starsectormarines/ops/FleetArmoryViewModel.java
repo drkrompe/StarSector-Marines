@@ -473,7 +473,7 @@ public final class FleetArmoryViewModel {
         return new CardFace(doctrine.displayName(), icon, cardSheet(doctrine.displayName(), presentation,
                 doctrineMetadata(presentation), "weapon", "openingBarracksCardFire", rating,
                 List.of(weaponComposition(doctrine), joinSpans(weaponDistributionSpans("card-face", doctrine))))
-                .withSeats(weaponSeats(doctrine)));
+                .withSeats(weaponSeats(doctrine), fireTeams()));
     }
 
     /** Each seat's weapon, with the special it also carries on the corner. */
@@ -487,11 +487,17 @@ public final class FleetArmoryViewModel {
         return seats;
     }
 
-    /** Each seat's suit. */
+    private static List<String> fireTeams() {
+        return List.of(Strings.get("openingLoadoutAlpha"), Strings.get("openingLoadoutBravo"),
+                Strings.get("openingLoadoutCharlie"));
+    }
+
+    /** Each seat's suit, with the integral system it carries on the corner. */
     private static List<SpecSheet.Seat> armorSeats(SquadArmorDoctrine issued) {
         List<SpecSheet.Seat> seats = new ArrayList<>();
         for (String armorId : issued.issueIds()) {
-            seats.add(new SpecSheet.Seat(MarineArmorCatalogRegistry.require(armorId).iconPath(), null));
+            MarineArmorCatalogDef suit = MarineArmorCatalogRegistry.require(armorId);
+            seats.add(new SpecSheet.Seat(suit.iconPath(), IntegralSystemCopy.iconPath(suit)));
         }
         return seats;
     }
@@ -511,7 +517,7 @@ public final class FleetArmoryViewModel {
                 "armor", "openingBarracksCardGuard", rating,
                 List.of(joinSpans(armorDistributionSpans("card-face", issued)),
                         armorCapabilities(armorCapabilitySpans("card-face", issued))))
-                .withSeats(armorSeats(issued)));
+                .withSeats(armorSeats(issued), fireTeams()));
     }
 
     private static SpecSheet cardSheet(String name, SquadLoadoutPresentationDef presentation, String metadata,

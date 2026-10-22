@@ -241,8 +241,19 @@ nothing is drawn for a battle that never lit anything.
   fallen to its destroyed art.
 - **Smoke** is a dark puff rising off each smoking cell and leaning
   downwind, at play zoom only: the picture of the screen it holds.
-- Not yet: fire light through `GroundLightService` (its pools are the
-  screen's, not the draw list's; `stories.md`).
+- **Fire light.** A burn lights what is round it, as a few pooled lights
+  rather than one per cell (`FireLight`): burning cells are gathered into
+  six-cell squares, and each square with fire in it is one light at its
+  hottest middle, reaching about as far as its fire is wide and as bright as
+  it burns, flickering at its own phase; only the brightest few dozen are
+  kept. At night they carve warm orange pools out of the dark as a yard lamp
+  does, and, like a lamp, do not light through a roof, so a night burn reads
+  from across the map and lights the men beside it. In game the same lights
+  are the ground relief's event lights (`GroundLightService`), competing with
+  muzzle and impact flashes for its nearest eight. The night pools are drawn
+  in review frames (`fire-colony` draws the front, a grove and the whole map at
+  night with no lamps); `renderEvidence`'s fire fixture is by day, so their
+  cost is not yet measured there.
 - The look is costed against its own control in `renderEvidence`
   (`-Dbattle.render.fire=false`), on the green colony with a front burnt into
   its groves: there its two layers cost about 0.3 ms of collection and drain
