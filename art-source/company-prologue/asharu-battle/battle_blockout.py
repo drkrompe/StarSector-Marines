@@ -1780,15 +1780,18 @@ def blender_main(cfg):
         scene.render.use_file_extension = False
         st = scene.render.image_settings
         if layers:
-            st.file_format, st.color_depth, st.exr_codec = 'OPEN_EXR_MULTILAYER', '16', 'ZIP'
+            st.media_type = 'MULTI_LAYER_IMAGE'      # Blender 5: multilayer EXR is a media type
+            st.color_depth, st.exr_codec = '16', 'ZIP'
             exr_partial = raw / f'{kf}.layers.partial'
             scene.render.filepath = str(exr_partial)
             bpy.ops.render.render(write_still=True)
             os.replace(exr_partial, raw / f'{kf}.layers.exr')
+            st.media_type = 'IMAGE'
             st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'
             composite_layers.compose_frame(raw / f'{kf}.layers.exr', partial, scene, plate=plate, backdrop=cached,
                                            log=lambda m: print(m, flush=True))
         else:
+            st.media_type = 'IMAGE'
             st.file_format, st.color_mode, st.color_depth = 'PNG', 'RGBA', '8'
             scene.render.filepath = str(partial)
             bpy.ops.render.render(write_still=True)

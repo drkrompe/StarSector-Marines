@@ -28,8 +28,10 @@ over it unchanged. The moving shots keep the rendered planet with the surface de
    without rendering) so the plate grades back to the painting; writes the EXR, a display PNG
    and the manifest under `build/asharu-plates/out/`. `--post <commit>` copies them to Drive.
 
-The painting is first tone-matched to the graded r9b S1a still (`tone_match.json`, a per-channel
-curve fitted once by quantile matching): the guide lit the ground as if the sun were overhead,
-the scene sun is 16 degrees up, and the composite must not put sunlit-looking ships over a
-plate twice their brightness. After that the colours are inside what AgX can produce and
-round-trip exactly.
+The painting is tone-matched to the graded render of its own key frame with the surface detail
+tiles (`tone/<kf>.png`, a 192x108 ground-colour field from the A/B light job's `<kf>-detail.png`,
+ships, trails and sky left out): each channel is scaled by the ratio of the render's coarse
+colour to the painting's, so the painted detail stays and the exposure, palette and distance
+haze are the render's. The guide lit the ground as if the sun were overhead; the scene sun is
+16 degrees up. `finish_plates.py --tone k0=<png> k6=<png>` refits it from new renders. After the
+match the colours are inside what AgX can produce and round-trip exactly.
