@@ -176,16 +176,20 @@ def relay_mast(strobe):
     return img(a)
 
 
-# The riverside stretch of the freight road as Codex painted it (centreline measured on the plate, plate
-# px), from the weigh station upstream to where the road passes under the canopy.
-ROAD = [(2690, 860.0), (2740, 838.5), (2800, 821.5), (2860, 812.5), (2945, 798.0)]
+# The riverside freight road as Codex painted it (centreline measured on the plate, plate px): along
+# the town's waterfront in front of the warehouses, past the weigh station, and upstream to where it
+# passes under the canopy.
+ROAD = [(2270, 1005.0), (2350, 977.0), (2450, 943.0), (2550, 908.0), (2600, 886.0), (2690, 860.0),
+        (2740, 838.5), (2800, 821.5), (2860, 812.5), (2945, 798.0)]
 PLATE_M = 1.16                       # plate px per metre at ~2 km (c3_settlement.PX_PER_M)
-TRUCK_M = (16.0, 2.6, 3.8)           # length, width, height: a box trailer and its cab
-# One outbound, leaving the weigh station upstream; one inbound, out from under the trees. They pass
-# each other under Castle's line (~11 s). Speeds in m/s; `lane` is plate px off the centreline.
+TRUCK_M = (24.0, 2.6, 3.8)           # length, width, height: a road train, cab and two box trailers
+# Both drive the town's waterfront, past the buildings, for the whole shot (owner, 2026-10-22: in clear
+# view, not off at the far end): the red one upstream toward the weigh station, the blue one in from
+# the station toward the hill road. They pass each other mid-town under Castle's line (~10.8 s).
+# Speeds in m/s (47 and 40 km/h: town speeds); `lane` is plate px off the centreline.
 TRUCKS = [
-    {"name": "out", "start": 2700.0, "t0": 2.0, "speed": 13.5, "lane": -1.2, "box": (176, 72, 50)},
-    {"name": "in", "start": 2938.0, "t0": 5.0, "speed": -12.0, "lane": 1.2, "box": (70, 104, 146)},
+    {"name": "out", "start": 2300.0, "t0": 0.0, "speed": 13.0, "lane": -1.2, "cab": (190, 60, 40)},
+    {"name": "in", "start": 2600.0, "t0": 0.0, "speed": -11.0, "lane": 1.2, "cab": (52, 96, 160)},
 ]
 
 
@@ -225,14 +229,14 @@ _TRUCK_CACHE = {}
 
 
 def truck_image(t, spec):
-    """The truck seen from 2 km, 15 degrees down: box trailer and white cab in profile, its roof
-    catching the sun, a shadow to the right, a thin plume of red dust behind it on the laterite.
+    """The road train seen from 2 km, 15 degrees down: a coloured cab and two pale box trailers in
+    profile, their roofs catching the sun, a shadow to the right, red dust kicked up behind it.
     Drawn at 8x along the road's heading, reduced, given 2 km of haze, scaled a touch with distance
     (farther up the stretch is farther away)."""
     x = truck_x(t, spec)
     y, heading = road_at(x)
     a = truck_alpha(t, spec)
-    scale = 1.0 - 0.0006 * (ROAD[0][1] - y)                 # ~4% smaller at the far end
+    scale = 1.0 - 0.0006 * (ROAD[0][1] - y)                 # smaller up the stretch, farther away
     key = (spec["name"], round(heading), round(scale, 2), round(a, 1))
     if key in _TRUCK_CACHE:
         return _TRUCK_CACHE[key]
@@ -247,21 +251,27 @@ def truck_image(t, spec):
     L, Hh, Dp = length * px, height * px, width * px * math.sin(math.radians(15))
     x0, x1 = c - L / 2, c + L / 2
     base = c + Hh / 2
-    # dust behind, then shadow, body, roof
+    # dust behind, then shadow, trailers, cab: pale aluminium trailers against the red road, the cab
+    # in colour, so it reads as a vehicle and not as one more container in the yard
     tail = x0 if fwd > 0 else x1
-    for i in range(5):
-        r = (0.25 + 0.2 * i) * Hh
-        cx = tail - fwd * (0.4 + 0.5 * i) * L * 0.5
-        d.ellipse([cx - r * 1.6, base - r, cx + r * 1.6, base + r * 0.3], fill=(168, 110, 78, int(70 - 12 * i)))
+    for i in range(7):
+        r = (0.35 + 0.22 * i) * Hh
+        cx = tail - fwd * (0.25 + 0.42 * i) * L * 0.5
+        d.ellipse([cx - r * 1.8, base - r * 1.1, cx + r * 1.8, base + r * 0.3], fill=(196, 150, 116, int(120 - 15 * i)))
     d.polygon([(x0 + 0.3 * Hh, base), (x1 + 0.3 * Hh, base), (x1 + 0.6 * Hh, base + 0.25 * Hh), (x0 + 0.6 * Hh, base + 0.25 * Hh)],
               fill=(20, 26, 18, 150))
-    cab = 0.2 * L
-    box = (x0, x1 - cab) if fwd > 0 else (x0 + cab, x1)
-    cabx = (x1 - cab, x1) if fwd > 0 else (x0, x0 + cab)
-    d.rectangle([box[0], base - Hh, box[1], base], fill=spec["box"] + (255,))
-    d.rectangle([box[0], base - Hh - Dp, box[1], base - Hh], fill=tuple(min(255, int(v * 1.25)) for v in spec["box"]) + (255,))
-    d.rectangle([cabx[0], base - 0.75 * Hh, cabx[1], base], fill=(214, 212, 204, 255))
-    d.rectangle([cabx[0], base - 0.75 * Hh - Dp, cabx[1], base - 0.75 * Hh], fill=(236, 236, 230, 255))
+    cab = 0.14 * L
+    gap = 0.03 * L
+    if fwd > 0:
+        cabx, body = (x1 - cab, x1), (x0, x1 - cab - gap)
+    else:
+        cabx, body = (x0, x0 + cab), (x0 + cab + gap, x1)
+    half = (body[1] - body[0] - gap) / 2
+    for b0 in (body[0], body[0] + half + gap):
+        d.rectangle([b0, base - Hh, b0 + half, base], fill=(196, 198, 194, 255))
+        d.rectangle([b0, base - Hh - Dp, b0 + half, base - Hh], fill=(232, 234, 230, 255))
+    d.rectangle([cabx[0], base - 0.8 * Hh, cabx[1], base], fill=spec["cab"] + (255,))
+    d.rectangle([cabx[0], base - 0.8 * Hh - Dp, cabx[1], base - 0.8 * Hh], fill=tuple(min(255, int(v * 1.3)) for v in spec["cab"]) + (255,))
     im = im.rotate(-heading, resample=Image.BICUBIC, center=(c, c))
     im = im.resize((S // k, S // k), Image.LANCZOS)
     arr_ = np.asarray(im, np.float32) / 255
