@@ -2210,7 +2210,11 @@ public final class MechLabViewModel {
                 current == null ? "catalog-filter-pill selected" : "catalog-filter-pill", () -> setWeightFilter(null)));
         for (MechPattern.WeightClass weight : MechPattern.WeightClass.values()) {
             pills.add(new FilterPill("mech-weight:" + weight.name().toLowerCase(Locale.ROOT),
-                    Strings.get("openingMechLabWeightClass" + weight.name()),
+                    switch (weight) {
+                        case LIGHT -> Strings.get("openingMechLabWeightClassLIGHT");
+                        case MEDIUM -> Strings.get("openingMechLabWeightClassMEDIUM");
+                        case HEAVY -> Strings.get("openingMechLabWeightClassHEAVY");
+                    },
                     weight == current ? "catalog-filter-pill selected" : "catalog-filter-pill",
                     () -> setWeightFilter(weight)));
         }

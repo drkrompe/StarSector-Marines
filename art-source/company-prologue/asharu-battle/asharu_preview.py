@@ -610,6 +610,32 @@ def recording_screen(t, mode):
     return im
 
 
+def radio_caption(im, f, shot):
+    """Burn the radio line on the channel at frame f in as a caption, with its callsign, on every shot
+    but the two playback screens (S0, S13), which show it themselves: the owner judges the traffic's
+    density and whether the edit follows the radio. A placeholder line is marked as one."""
+    import radio_log
+    from PIL import ImageDraw
+    if shot['id'].split()[0] in ('S0', 'S13'):
+        return im
+    lines = radio_log.speaking(f / FPS)
+    if not lines:
+        return im
+    _, who, _, _, line, ph = lines[0]
+    W, H = motion_preview.W, motion_preview.H
+    f_who, f_line, f_ph = motion_preview._font(24, True), motion_preview._font(30), motion_preview._font(20)
+    dr = ImageDraw.Draw(im, 'RGBA')
+    tag = 'TIMING PLACEHOLDER, NOT DIALOGUE' if ph else ''
+    width = max(dr.textlength(line, font=f_line), dr.textlength(who + '   ' + tag, font=f_who)) + 60
+    x0, y0 = (W - width) / 2, H - 196
+    dr.rectangle((x0, y0, x0 + width, y0 + 92), fill=(0, 0, 0, 170))
+    dr.text((x0 + 30, y0 + 10), who, font=f_who, fill=(255, 186, 90, 255))
+    if ph:
+        dr.text((x0 + 30 + dr.textlength(who + '   ', font=f_who), y0 + 13), tag, font=f_ph, fill=(150, 156, 164, 255))
+    dr.text((x0 + 30, y0 + 44), line, font=f_line, fill=(150, 156, 164, 255) if ph else (240, 242, 245, 255))
+    return im
+
+
 # ------------------------------------------------------------------------------- driver
 
 def main(argv, run, run_date):
@@ -640,7 +666,8 @@ def main(argv, run, run_date):
         elif first == 'S13':       # back on the log: the closing traffic, END OF RECORDING
             row['screen'] = lambda f: recording_screen(f / FPS, 'close')
     summary = motion_preview.finish(out, ffmpeg=opt('--ffmpeg', 'ffmpeg'), name=NAME,
-                                    trails=float(opt('--trails', 2.0)), timeline=timeline, sequence='Asharu')
+                                    trails=float(opt('--trails', 2.0)), timeline=timeline, sequence='Asharu',
+                                    post=radio_caption)
     notes(out, summary, step, scale, argv)
     post = opt('--post')
     if post:
