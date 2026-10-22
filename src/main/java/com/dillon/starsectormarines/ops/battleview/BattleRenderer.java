@@ -238,6 +238,7 @@ public class BattleRenderer {
      */
     private final FogField fogField = new FogField();
     private final CreepLayer creep = new CreepLayer();
+    private final FireRenderSystem fire;
 
     /** S3 render-side event lights consumed by the surface-relief composite. */
     private final GroundLightService groundLights = new GroundLightService();
@@ -265,6 +266,7 @@ public class BattleRenderer {
 
     public BattleRenderer(BattleSprites sprites) {
         this.sprites = sprites;
+        this.fire = new FireRenderSystem(sprites);
         this.ordnanceTraceFx = new OrdnanceTraceFxService(sprites);
         this.groundParallax = new GroundParallaxPipeline(sprites, groundLights, sun);
         creep.useSun(sun);
@@ -332,6 +334,8 @@ public class BattleRenderer {
                 // With the frag rings: where a Brute is about to charge.
                 new ChargeTellRenderSystem(),
                 new SmokeRenderSystem(sprites),
+                fire.scorch(),
+                fire.flames(),
                 RenderSystem.of(RenderLayer.ROOFS, (ctx, out) ->
                         collectRoofs(ctx.sim, out, ctx.alphaMult)),
                 new FortBuildingRenderSystem(sprites),
@@ -492,7 +496,11 @@ public class BattleRenderer {
     }
 
     private void registerSmokeFieldBatch() {
-        SpriteAPI sheet = sprites.smokeFieldSheet();
+        registerSheetBatch(sprites.smokeFieldSheet());
+        registerSheetBatch(sprites.fireSheet());
+    }
+
+    private void registerSheetBatch(SpriteAPI sheet) {
         if (sheet == null || batchBySheet.containsKey(sheet)) return;
         int width = Math.max(1, Math.round(sheet.getWidth()));
         int height = Math.max(1, Math.round(sheet.getHeight()));

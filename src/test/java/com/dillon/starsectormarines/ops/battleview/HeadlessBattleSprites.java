@@ -358,6 +358,17 @@ final class HeadlessBattleSprites extends BattleSprites {
 
     @Override public void ensureSmokeSprites() { }
 
+    private SpriteAPI fireSheet;
+    private boolean fireLoaded;
+
+    @Override public synchronized SpriteAPI fireSheet() {
+        if (!fireLoaded) {
+            fireLoaded = true;
+            fireSheet = spriteOrNull(FIRE_SHEET_PATH);
+        }
+        return fireSheet;
+    }
+
     @Override public SpriteAPI engineFlameSprite() { return engineFlame; }
     @Override public SpriteAPI engineGlowSprite() { return engineGlow; }
     @Override public SpriteAPI shadowBlobSprite() { return shadowBlob; }

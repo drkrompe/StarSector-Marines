@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
+import com.dillon.starsectormarines.battle.fire.FireField;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import java.util.Map;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
@@ -45,7 +46,9 @@ public final class DoodadRenderSystem implements RenderSystem {
                 ctx.sim.getGrid().getWidth(), ctx.sim.getGrid().getHeight());
         Twins twins = wornTwins(ctx);
         if (twins == null) twins = CreepTreeTwins.of(ctx.sim, creepTreeStages);
+        fire = FireRenderSystem.enabled() ? ctx.sim.fireFieldIfPresent() : null;
         collectPlacements(ctx.sim.getDoodads(), out, cam, view, ctx.alphaMult, twins);
+        fire = null;
         // Facility tiers fitted into existing rooms stand with the furniture, presentation only.
         if (!ctx.facilityPieces.isEmpty() && ctx.hostProfile == BattleRenderHostProfile.DECK_SCENE)
             collectPlacements(ctx.facilityPieces, out, cam, view, ctx.alphaMult);
@@ -169,8 +172,13 @@ public final class DoodadRenderSystem implements RenderSystem {
 
     private void emitOne(Doodad d, DrawList out, BattleCamera cam, float alpha) {
         SpriteAPI sheet = sheetFor(d);
-        if (sheet != null) emit(out, cam, sheet, d, cam.cellPxSize(), alpha);
+        if (sheet == null) return;
+        float shade = fire == null ? 1f : FireRenderSystem.treeShade(fire, d);
+        emit(out, cam, sheet, d, cam.cellPxSize(), alpha, RenderLayer.DOODADS, shade, shade, shade);
     }
+
+    /** The fire this frame's placements are charred by; set only while {@link #collect} runs. */
+    private FireField fire;
 
     /**
      * Draw placements again over themselves in one flat tint: how an unpowered

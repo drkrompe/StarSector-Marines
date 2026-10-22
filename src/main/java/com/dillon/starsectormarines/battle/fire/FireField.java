@@ -112,6 +112,16 @@ public final class FireField {
         setWind(0f, 0f, 0f);
     }
 
+    private boolean tinder;
+
+    /**
+     * Declares the battle's country dry: ordinary heavy blasts and burning
+     * wrecks light what they land on ({@link FireIgnition}). Off unless a mission says so.
+     */
+    public void setTinder(boolean tinder) { this.tinder = tinder; }
+
+    public boolean tinder() { return tinder; }
+
     public void setListener(Listener listener) { this.listener = listener == null ? new Listener() { } : listener; }
 
     /**

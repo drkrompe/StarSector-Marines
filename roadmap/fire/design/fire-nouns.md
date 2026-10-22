@@ -161,32 +161,57 @@ do not read the route costing, so a rav does not yet fear fire
 
 ## Starting fires
 
-- **Incendiary weapons.** A weapon or special whose data marks it incendiary
-  sets heat on the cells its blast covers: a flamer special for infantry
-  (short reach, a stream that lights what it touches), an incendiary round for
-  the field mortar's fire mission, perhaps an incendiary air strike. Each sets
-  cells burning through its existing delivery; none is new delivery.
-- **Shells.** An ordinary high-explosive blast puts a little heat into the
-  cells it covers, enough to catch dry fuel (grass, dead creep) but not a
-  living crown. A walking barrage of ordinary shells therefore starts grass
-  fires; one of incendiaries lights the forest. The barrage itself is the
-  artillery work's (`bloom-mission-arc.md`, Walking barrage).
-- **Wrecks.** A destroyed vehicle or mech burns in its cell for about a
-  minute as an igniter, so a burning wreck in a field lights the field.
+**Deliberate fire always lights; ordinary war lights only dry country**
+(`FireIgnition`). A battle starts with its country not dry: in it, only an
+incendiary starts a fire. A mission whose country is dry says so
+(`FireField.setTinder`), and there ordinary war starts fires too. The rule
+keeps every battle that never asked for fire as it was: a grenade in a park
+does not set Conquest alight.
+
+- **Incendiary weapons.** A weapon whose data carries `incendiaryHeat` puts
+  that heat into every cell its blast covers, through its ordinary delivery
+  (`PendingDetonation.incendiary`). Two specials carry it, issued by mission kit
+  until the economy decides their price: the **incendiary grenade** (a thrown
+  thermite charge with little blast) and the **pack flamer** (a short, flat,
+  seven-cell lob of burning gel that the squad AI spends on clustered infantry
+  as it does a grenade). An incendiary round for the field mortar and an
+  incendiary air strike are the same field on their weapons, not yet authored.
+- **Shells.** In dry country a heavy ordinary blast (radius 2.5 cells and up:
+  shells, not grenades) puts enough heat into the ground it covers to catch
+  grass and dying creep, never a living crown. A walking barrage of ordinary
+  shells over dry country therefore starts grass fires; one of incendiaries
+  lights the forest. The barrage itself is the artillery work's
+  (`bloom-mission-arc.md`, Walking barrage): it only has to fire its blasts as
+  detonations for this to hold.
+- **Wrecks.** In dry country a vehicle, mech or turret wreck burns as an
+  igniter for a minute, heating its cell and the ring round it, so a burning
+  wreck in a field lights the field.
 
 ## Look
 
-- **Flames** are drawn per burning cell from the existing smoke-and-fire
-  sheet, sized and paced by intensity, so a front reads as a line of fire at
-  play zoom and a crown fire stands taller than a grass fire.
-- **Embers** are a few sparks over the hottest cells, cheap and sparse.
-- **Scorch** is burnt ground drawn darker and greyer under everything, so
-  where the fire has been reads at a glance and the burn line is visible as an
-  edge.
-- **Fire light** goes through `GroundLightService`, a soft warm pool over the
-  burning area, so a night burn lights the ground.
+The fire field drawn (`FireRenderSystem`), from what the field already holds;
+nothing is drawn for a battle that never lit anything.
+
+- **Scorch** lies on the ground under everything that stands on it: a cell
+  darkens as it burns and is char once burnt, drawn as runs of one shade along
+  a row so a burnt field is a few rectangles, not thousands.
+- **Glow** is a warm wash over each burning cell, under its flames.
+- **Flames** are tongues from the existing smoke-and-fire sheet, two to a
+  burning cell and three to a crown, each on its own seeded phase and rate,
+  sized by intensity, so a front reads as a line of fire at play zoom and a
+  crown fire stands taller than a grass fire. Zoomed far out a cell keeps one
+  tongue and its glow.
+- **Embers** are a spark rising over each of the hottest cells, at play zoom
+  only.
+- **Charred trees.** A tree whose middle burns darkens as it burns and is
+  drawn as char once its ground is burnt, whether it still stands or has
+  fallen to its destroyed art.
+- Not yet: fire light through `GroundLightService` (its pools are the
+  screen's, not the draw list's), and smoke (`stories.md`).
 - The look is costed against its own control in `renderEvidence`
-  (`-Dbattle.render.fire=false`).
+  (`-Dbattle.render.fire=false`), on the green colony with a front burnt into
+  its groves. The look choices (`-Dbattle.render.fireFlames=bold|restrained`,
+  `-Dbattle.render.fireScorch=char|ash|ember`) are the owner's.
 
 ## Evidence
 
@@ -206,6 +231,20 @@ round its end. Verdicts: a body in a burning cell loses health every fire
 step, a swarm body lying in fire is consumed, and burning ground costs more
 than bare ground in the published route costing. Health lost, deaths and the
 crossing's time in fire are metrics.
+
+`fire-ignition` (`sceneEvidence`) holds the starting rules: an incendiary blast
+on grass lights it, an ordinary shell lights nothing in country that is not
+dry and catches grass once it is, and an ordinary shell alone never lights a
+living crown. Its second loop issues the incendiary grenade and the flamer to
+squads facing a cluster in a meadow; whether they throw is their AI's call,
+so the cells their fires took are readings.
+
+`fire-scale` (`sceneEvidence`) burns a whole 560x336 country of grass and
+groves with creep over its middle in a fresh wind, up to a four-cell road. The
+break holding at scale is its verdict; the fire's peak burning cells, the
+mean, p99 and worst simulation-thread cost of a tick with fire in it
+(`FireCost`: the field, its harm and its route costing together), and how
+long the country takes to burn are its metrics.
 
 ## Laws
 
