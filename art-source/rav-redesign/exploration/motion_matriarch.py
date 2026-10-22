@@ -62,6 +62,10 @@ STRAIGHT_GAPE = (0.715, (511.5, 11), (512, 20))
 HEAD_TURN = 0            # degrees the crown-and-head layer is turned; the owner tried 180 and rejected it
 HEAD_TURN_Y = 300        # hero row it turns about
 FOOT_SCALE = 1.1
+# Reap variants for the owner's pick (reap_options.py); the defaults are the approved study and the game.
+BLADE_SCALE = 1.0        # scythe length, scaled about its pivot
+BLADE_OUT = 0.0          # cells the scythes are mounted further out from the body
+BLADE_WITH_HEAD = False  # the scythes turn with the head about the neck
 
 
 def sway_warp(img, s, U, row0=0, scale=1.0):
@@ -142,6 +146,8 @@ class Rig:
             self.head = placed("head-straight.png", STRAIGHT)
             self.gape = placed("head-straight-gape.png", STRAIGHT_GAPE)
         self.blades = {s: on_canvas(with_alpha(hero, ha * m)) for s, m in blade_m.items()}
+        if BLADE_SCALE != 1.0:
+            self.blades = {s: scale_about(b, BLADE_SCALE, L(*PIVOT[s])) for s, b in self.blades.items()}
         self.feet = {}
         for n, m in foot_m.items():
             cut = trim(with_alpha(hero, ha * m))
@@ -198,10 +204,13 @@ class Rig:
             img = self.blades[side]
             if abs(ang) > 0.05:
                 img = img.rotate(ang if side == "R" else -ang, center=L(*PIVOT[side]), resample=Image.BICUBIC)
-            out = (1 if side == "R" else -1) * reach * U_LAYER * S
+            out = (1 if side == "R" else -1) * (reach + BLADE_OUT) * U_LAYER * S
             fwd = 2.2 * reach * U_LAYER * S       # the arm reaches forward as it swings, past the crown's front
             img = img.transform(img.size, Image.AFFINE, (1, 0, -(shift[0] + out), 0, 1, -(shift[1] - fwd)),
                                 resample=Image.BICUBIC)
+            yaw = sk["head"].get("yaw", 0.0)
+            if BLADE_WITH_HEAD and abs(yaw) > 0.05:
+                img = img.rotate(-yaw, center=L(*self.neck), resample=Image.BICUBIC)
             if ang > 70:     # swung forward past the crown's rim: the blade crosses over the head
                 over.append(img)
             else:

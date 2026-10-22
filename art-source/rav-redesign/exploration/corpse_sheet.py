@@ -3,6 +3,8 @@ Matriarch, on paving and on the in-game hive creep. A corpse is drawn at the liv
 plates share their canvas scale), not sized by area, which its ichor pool would shrink.
 
   python corpse_sheet.py <round dir> <render root> <out.png> "<title>" <names...>
+  python corpse_sheet.py --each <round dir> <render root> <out dir> <names...>
+      one image per corpse, lettered A, B, ..., for a pick-one page
 """
 import sys
 from pathlib import Path
@@ -57,5 +59,46 @@ def sheet(round_dir, root, out, title, names):
     img.save(out)
 
 
+def each(round_dir, root, out_dir, names):
+    """One option image per corpse: its letter and name, the plate, and the corpse beside the living
+    Matriarch at 32 px per cell on paving and on creep."""
+    raws = sorted((p for p in Path(round_dir, "raw").glob("c*.png") if p.stem[1:].isdigit()),
+                  key=lambda p: int(p.stem[1:]))
+    hero = facing_right(key_plate(HERO))
+    live = sized(hero, PPC32, LINEAR)
+    k = live.width / hero.width
+    pav = ground_tiles(root, (560, 190))[0][1]
+    creep = Image.open(Path(root) / "creep-play-zoom.png").convert("RGBA").crop((0, 0, 560, 190))
+    Path(out_dir).mkdir(parents=True, exist_ok=True)
+    files = []
+    for i, p in enumerate(raws):
+        letter = chr(ord("A") + i)
+        img = Image.new("RGB", (640, 500), (24, 28, 36))
+        d = ImageDraw.Draw(img)
+        d.text((10, 6), letter, font=font(30, True), fill=ACC)
+        d.text((48, 14), names[i] if i < len(names) else "", font=font(18, True), fill=INK)
+        cut = key_plate(p)
+        s = min(200 / cut.width, 440 / cut.height)
+        pl = cut.resize((int(cut.width * s), int(cut.height * s)), Image.LANCZOS)
+        pb = Image.new("RGBA", (210, 446), (180, 180, 180, 255))
+        pb.alpha_composite(pl, ((210 - pl.width) // 2, (446 - pl.height) // 2))
+        img.paste(pb.convert("RGB"), (8, 46))
+        dead = facing_right(cut)
+        dead = dead.resize((max(1, round(dead.width * k)), max(1, round(dead.height * k))), Image.LANCZOS)
+        for j, g in enumerate((pav, creep)):
+            t = g.copy()
+            place(t, live, 100, 95, PPC32, radius=1.0)
+            t.alpha_composite(dead, (int(300 - dead.width / 2), int(95 - dead.height / 2)))
+            img.paste(t.crop((0, 0, 400, 190)).convert("RGB"), (230, 46 + j * 206))
+        d.text((230, 458), "living | dead, 32 px per cell: paving, creep", font=font(13), fill=DIM)
+        name = f"corpse-{letter}.png"
+        img.save(Path(out_dir) / name)
+        files.append(name)
+    return files
+
+
 if __name__ == "__main__":
+    if sys.argv[1] == "--each":
+        print(each(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5:]))
+        sys.exit()
     sheet(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5:])

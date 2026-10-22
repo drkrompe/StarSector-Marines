@@ -505,7 +505,8 @@ public final class UnitRosterService {
         return BodyRadius.resolve(turretStructure,
                 identityService.airframe(id),
                 identityService.mechVariant(id),
-                identityService.type(id));
+                identityService.type(id),
+                identityService.swarmStage(id));
     }
 
     /**
@@ -777,6 +778,8 @@ public final class UnitRosterService {
                 BattleComponents.IDENTITY_MECH_VARIANT, spec.mechVariant);
         entityWorld.setObject(id, components.IDENTITY,
                 BattleComponents.IDENTITY_AIRFRAME, spec.airframe);
+        entityWorld.setObject(id, components.IDENTITY,
+                BattleComponents.IDENTITY_SWARM_STAGE, spec.swarmStage);
         entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_X, spec.spawnX);
         entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, spec.spawnY);
         if (mechLayerDrawn) {

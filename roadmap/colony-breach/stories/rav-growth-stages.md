@@ -1,10 +1,10 @@
 # Rav growth stages
 
-Status: DESIGN — owner answered the round-1 questions (below); no mechanics built
+Status: IN PROGRESS — plan step 1 (stage on the body, stats, size) built
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — owner decisions: weighted population, pale spine ridge on elders, elder Brute squeezes, whelps bolt.
+Updated: 2026-10-21 — step 1 built; per-stage numbers are plain constants in `SwarmStageStats`, as the Brute's are in `BruteChargeRules` (owner moved the Brute off switches), with the two controls kept as switches; owner picked elder treatment A (pale spine ridge, scars).
 
 Model: `colony-breach-nouns.md` (Swarm strain: Growth stage, Pack leader; Bore tier; Spawning surge; Harvest).
 
@@ -330,6 +330,10 @@ and waits for her design.
 
 - **Weighted population.** A fed bore sends fewer, older ravs: the director
   counts stage weight, not bodies.
-- **Elder on creep.** Dark plum with a pale spine ridge.
+- **Elder treatment: A, ridge** (picked from four on
+  `review/rav-growth/2026-10-21_elder-options_windows`). Dark plum with the
+  spine ridge kept pale, healed scars, spikes 1.30x; the build ships it.
+  Rejected: B (near-black, broader, spikes 1.55x), C (grey, worn, hunched)
+  and D (ivory bone crown). Their code stays in `elder_options_sheet.py`.
 - **Elder Brute at doors.** It squeezes through; no wall breaking for it.
 - **Whelps bolt** for four seconds when their leader dies.

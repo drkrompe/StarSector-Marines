@@ -712,14 +712,21 @@ behaviour and rig, and no stage adds a `UnitType` or an appearance family. The
 stages are about a fifth apart in size (0.80, 1.00 and 1.22 of the adult), so
 they read at play zoom. Health, armour, damage and reach rise with stage and
 speed falls; a Brute's mass rises with its volume, so its charge physics scales
-without a rule of its own. They are also marked beyond size: a whelp is pale
+without a rule of its own: the momentum it brings sets how far it throws and how
+long it floors infantry, how hard it rams a light wall and how many bodies it
+runs through (a whelp's charge stops on the first, an elder's goes through
+three), and the weight class it meets shifts with its size (a whelp meets an
+APC as an adult meets a tank and is stunned, an elder staggers a heavy mech).
+A Runner's stage sets its harvest: a whelp never impales and drags slowest, an
+elder impales most often and drags fastest. They are also marked beyond size: a whelp is pale
 with nub spikes, an elder dark and scarred with long ones and a pale spine
 ridge. A stage is issued at
 spawn through `SwarmStrains`, like the Brute's plate, and fixed for the body's
 life; the Matriarch is the one exception. Stage scales presentation only
 through things the body already has: its rig's scale and stage-recoloured
 sprites, and its voice pitched by its size. Stats, the stage table and the
-reasons for each choice are in `rav-growth-stages.md` (planned, not built).
+reasons for each choice are in `rav-growth-stages.md` (stage, stats and size
+built; the age mix, packs and presentation planned).
 
 - **Age mix.** A surge's stages come from its bore, never from the director:
   each body draws a stage from a table keyed by the bore's tier (a fissure
