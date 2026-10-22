@@ -340,6 +340,12 @@ authored content.
   or passage. The cell just inboard remains deck. The room camera includes the
   exit and the space beyond it so departing boats remain visible across the
   threshold. The pressure screen is presentation; decompression is not simulated.
+- **The bay door answers the boats.** Two leaves close the aperture and withdraw
+  into the jambs while a boat is leaving or coming home through it (`BayDoor`):
+  called as a boat starts its departure and held until it is clear outside, called
+  on a return's approach and released once the boat is back inboard. The leaves
+  are presentation too: the opening is void to the simulation open or shut, and
+  no transit waits on them.
 - **The door wall is a door, and nothing stands against it.** Three of a bay's
   bulkheads are worked and the fourth is bare deck end to end; what used to line
   it goes to the inboard corners, where it was always going to end up. A hangar

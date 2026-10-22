@@ -421,9 +421,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("boat-deck-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false)),
+                new SnapshotArtifact("boat-deck-door-opening-wide.png",
+                        renderBoatDeck(context, boatRenderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false, DOOR_OPENING)),
                 new SnapshotArtifact("boat-deck-departure-wide.png",
                         renderBoatDeck(context, boatRenderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false, true)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false, AT_OPENING)),
                 new SnapshotArtifact("boat-deck-fitting-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
@@ -2929,12 +2932,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, boolean openBoat, boolean strikeABoat)
             throws Exception {
-        return renderBoatDeck(context, renderer, width, height, openBoat, strikeABoat, false);
+        return renderBoatDeck(context, renderer, width, height, openBoat, strikeABoat, NO_DEPARTURE);
     }
 
     private static BufferedImage renderBoatDeck(
             SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height, boolean openBoat, boolean strikeABoat, boolean departing)
+            int width, int height, boolean openBoat, boolean strikeABoat, int departure)
             throws Exception {
         Reactor reactor = new Reactor();
         BoatDeck[] campaign = new BoatDeck[1];
@@ -2975,7 +2978,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         if (openBoat) viewModel.selectBoatAction(0).run();
         if (struck[0] >= 0) viewModel.selectBoatAction(struck[0]).run();
         DeckGraph.Compartment bay = hangars.isEmpty() ? null : hangars.get(0);
-        if (departing) seekHangarDeparture(ship, bay);
+        if (departure == DOOR_OPENING) seekDoorOpening(ship, bay);
+        if (departure == AT_OPENING) seekHangarDeparture(ship, bay);
 
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), BOAT_DECK_COMPONENTS);
@@ -2992,6 +2996,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                     || deck.boats().get(berth) != null));
             return renderRelative(renderer, document, width, height, 1f);
         }
+    }
+
+    /** No boat leaving; a boat whose door is part open; a boat crossing the opening. */
+    private static final int NO_DEPARTURE = 0, DOOR_OPENING = 1, AT_OPENING = 2;
+
+    /** Catch the bay door half open for a real departure, before the boat reaches it. */
+    private static void seekDoorOpening(CompanyDeck ship, DeckGraph.Compartment bay) {
+        var leaves = ship.scene().bayDoorLeaves(bay);
+        if (leaves == null) throw new IllegalStateException("Snapshot hangar has no opening to space");
+        for (int step = 0; step < 3600 && leaves.openness() > 0f; step++) ship.advance(0.05f);
+        for (int step = 0; step < 36000; step++) {
+            ship.advance(0.05f);
+            if (leaves.openness() >= 0.5f) return;
+        }
+        throw new IllegalStateException("The bay door never opened during the evidence window");
     }
 
     /** Photograph the actual managed departure at the opening, never a posed sprite. */
