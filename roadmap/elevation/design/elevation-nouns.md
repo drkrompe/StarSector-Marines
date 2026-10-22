@@ -261,9 +261,10 @@ draws.
   drawn with the cliff tiles (2026-10-22). Ramps get art of their own that
   reads as a slope: a floor that climbs and walls that taper up the cut
   The owner chose cut stone steps, darkened to sit with the cliff's
-  grey-browns (2026-10-22). The cliff's own edges are being reworked: a face
-  broken into rock, a ragged turf rim and a talus foot feathering into the
-  grass *(which treatment is pending)*.
+  grey-browns and rough-hewn rather than ruled (2026-10-22). The cliff's edges
+  are a layered escarpment (owner, 2026-10-22): strata ledges along the face,
+  a broken turf lip over exposed soil, and a gravel apron feathering into the
+  grass, every edge wandering below cell scale.
 
 Units on a plateau are drawn where they stand, with no displacement, scale or
 parallax: the map is top-down.
