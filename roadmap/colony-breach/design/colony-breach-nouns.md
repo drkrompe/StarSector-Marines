@@ -654,15 +654,14 @@ for one job in the cycle, and reads that way on screen.
   cooldown, tell, masses, every hold time) are starting values in
   `BruteChargeRules`, to be felt out in play rather than settled on paper.
 
-  A second of not being able to act confuses unless the player sees why, so
-  the charge is shown four ways, all presentation over the rule: a faint amber
-  wedge along the line during the tell, with the other threat warnings; a
-  knocked-down body's picture lying as a fallen one does for that second,
-  with a ring of dust where it lands, while the sim keeps it upright; a quiet
-  amber arc on the ground under a Marine or hull that can't act, whatever made
-  it so, emptying as the hold runs out (a staggered mech shows only in its
-  stilled hips); and the squad card's status word naming the cause (knocked down, stalled,
-  staggered, stunned) ahead of engaged or wounded.
+  The charge is shown three ways, all presentation over the rule: a faint
+  amber wedge along the line during the tell, with the other threat warnings;
+  a knocked-down body's picture lying as a fallen one does for that second
+  while the sim keeps it upright; and the squad card's status word naming the
+  cause (knocked down, stalled, staggered, stunned) ahead of engaged or
+  wounded. Nothing is drawn on the ground under a body that can't act, no ring
+  or arc on a Marine, a hull or a mech (owner, 2026-10-21): a body thrown and
+  getting back up says what happened.
 
   Like the Runner it is drawn on its own skeleton (`RavBruteRig`): a plum,
   plated rhino-ram with a mace head on four boar's legs, the hooves under the

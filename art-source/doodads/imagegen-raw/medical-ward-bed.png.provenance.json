@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a1610a-a639-7c50-9b55-79d8d9ee7462",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a1610a-a639-7c50-9b55-79d8d9ee7462\\exec-6b82b1cd-2d20-4ea1-97cb-3fe57565ef8e.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\561be886-e0cc-4b42-8e2f-ae131b00542f\\scratchpad\\ward-gen.png",
+    "sha256": "fded6b7c3bcc1e6eec7d321cf5d809154859c1ef13ec83a15cb0e54139947e46",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\doodads\\medical-ward-bed.prompt.txt",
+  "promptSha256": "d4d5d0c0541a632ad321d4153306b5a06f2f7922855ba0730acb3d01546c238a",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry, scale and layout authority: reskin this exactly, same size and position\nImage 2: Material and style reference only; it is the wrong size and proportions, ignore its proportions\n\nReskin the attached geometry guide into finished top-down game art for one sick-bay prop: a hospital ward bed seen from directly above. Strict overhead orthographic view, soft light from the upper left, the same look as the material reference: graphite tube frame, olive-green head and foot boards and rail grips, quiet silver side rails, a pale grey sheet with soft folds, an off-white pillow, a folded olive blanket at the foot, realistic painted game-asset finish. No saturated colour, no glow, no red crosses.\n\nThe guide is the geometry, scale and layout authority, and the result will be cut mechanically from the guide's exact pixel rectangle. The bed is a long narrow strip, its length three times its width, and must overlay its grey guide shape almost exactly: it occupies only the middle 60% of the canvas width and 30% of its height (on the 1536x1024 canvas, only x 308 to 1228 and y 357 to 667), leaving wide empty transparent margins on every side, the same left and right ends, the same top and bottom edges. Do not make it wider, longer or larger than its grey shape; nothing may stick out past it (no chart clip, no drip stand, no handles beyond the frame); do not move, rescale or rotate it, and add nothing else. Keep all empty canvas fully transparent, with no glow, halo or vignette around the bed: true transparent background; no floor, no shadow slab, no border, no people, no labels or text.\n\nThe piece: the head board at the LEFT end with the pillow just inside it, the sheet over the mattress, side rails along the middle of both long sides, the blanket folded at the foot, the foot board at the RIGHT end.\n\nBroad readable forms, soft restrained highlights, sparse wear, low surface noise.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\medical-ward-bed.png",
+      "sha256": "fc3b86343f11396dcd04f2e8843ea7efaf416bfb8361388adde18baeb550a462",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry, scale and layout authority: reskin this exactly, same size and position"
+    },
+    {
+      "path": "art-source\\doodads\\sources\\medical-ward-bed-head-w.png",
+      "sha256": "52f2b033a29f730d05eb773dfb307e4ad10431d9d69b89e77f8cf78f890f39dd",
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "role": "Material and style reference only; it is the wrong size and proportions, ignore its proportions"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent bed image, using Image 1 for the exact footprint and Image 2 for materials and finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 45050,
+    "cached_input_tokens": 37120,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 460,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 51.0
+}
