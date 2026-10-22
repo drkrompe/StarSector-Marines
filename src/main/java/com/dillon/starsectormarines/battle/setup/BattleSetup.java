@@ -53,6 +53,7 @@ import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
+import com.dillon.starsectormarines.battle.evacuation.ColonyLivingField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
 import com.dillon.starsectormarines.battle.evacuation.ColonyPopulation;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
@@ -2672,6 +2673,12 @@ public final class BattleSetup {
                                 battleSeed ^ ERUPTION_SEED_SALT)
                         : List.of();
                 sim.installColonyBreach(eruption, colonists);
+                // The colony as a living field: homesteads, militia knots in the
+                // open, families walking out and stragglers, all the swarm's to find.
+                if (colony && ColonyLivingField.enabled()) {
+                    sim.installColonyLivingField(ColonyLivingField.install(sim, map, payload.placement,
+                            lzCells, risk, battleSeed ^ ERUPTION_SEED_SALT));
+                }
             }
             return sim;
         }
