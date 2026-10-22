@@ -815,6 +815,10 @@ In `hive-creep.md`.
   crossed, and filled over about a minute and a half rather than at once: its
   coverage is its age, so a newly reached wall carries only veins and an old
   one is crusted over. It reads as a matter of time.
+- **Creep favours the swarm and shelters no one** (`CreepEffects`). A swarm
+  body runs a quarter faster on living creep; Marines and colonists are never
+  slowed, so creep reads as the swarm's ground rather than mud. A fleeing or
+  wandering colonist may cross creep but never stops on it: creep is no refuge.
 - **The look is the field drawn, never a second model.** The creep is a hard
   organic edge, not a spill: an opaque surface of grown chitin plates over a
   membrane, rolled up into a raised, beaded lip where it stops, veined, with a

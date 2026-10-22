@@ -255,6 +255,7 @@ import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
 import com.dillon.starsectormarines.battle.creep.BoreCreep;
+import com.dillon.starsectormarines.battle.creep.CreepEffects;
 import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
@@ -1292,6 +1293,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rosterService.setDamageService(damageService);
         rosterService.stagger().setClock(() -> simTickIndex);
         rosterService.setNavigationGrid(grid);
+        // The swarm runs faster on its own creep; read through the field as it stands, created or not.
+        rosterService.movement().setGroundSpeedField((id, x, y) ->
+                CreepEffects.onCreep(creep, x, y) && rosterService.identity().type(id).isSwarm()
+                        ? CreepEffects.SWARM_SPEED_ON_CREEP : 1f);
         // Entity-access facade — by-id accessors that read the archetype entity
         // world's component columns directly. Owned by the roster service (which
         // owns the world it reads); the sim aliases it for its world() getter.
