@@ -533,7 +533,9 @@ public final class GroundRenderSystem implements RenderSystem {
             return edgeBlocks[surface][mask]!=null ? mask : 0;
         }
         private RoadSurface.Underlay underlay(int x,int y) {
-            if(topology.roadSurface()==null || topology.isWall(x,y) || topology.isFixture(x,y))return null;
+            // A prop set down on the road (a roadblock's bags, a holdout's truck) stands on the road's
+            // ground; only a wall replaces it. Generated fixtures never had road under them.
+            if(topology.roadSurface()==null || topology.isWall(x,y))return null;
             RoadSurface.Underlay p=topology.roadSurface().underlay(x,y);
             if(p==null)return null;
             var kind=topology.getGroundKind(x,y);

@@ -99,6 +99,7 @@ import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer
 import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
 import com.dillon.starsectormarines.ops.battleview.MechChassisPreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechEquipmentGridCanvas;
+import com.dillon.starsectormarines.ops.battleview.MechHardwareSheetCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechWeaponDragCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
@@ -396,6 +397,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("fleet-armory-armor-comparison-battlesuits-wide.png",
                         renderArmorComparison(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
+                new SnapshotArtifact("mech-lab-hardware-sheet-wide.png",
+                        renderer.renderCanvas(new MechHardwareSheetCanvas(),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("mech-lab-wide.png",
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f)),

@@ -639,6 +639,10 @@ partly covers shows concrete beside the curve, and the concrete meets the
 untouched paving on whole cell edges. A sidewalk swept as a second subcell
 layer over the old kerb and paver tiles left half-cell triangles of the tile
 showing wherever either sweep only partly covered a cell.
+Anything set down on a finished road after generation (a roadblock's bags, a
+holdout's truck, a gun) stands on the road's paving: the paving under it is
+drawn, and a gun's flat ground pad is not, because the road finish is a drawn
+surface. Only a wall replaces the ground.
 `-Dbattle.mapgen.cityRoadEnds=round` and `-Dbattle.mapgen.citySidewalks=false`
 are the controls; precinct roads keep round ends and no sidewalk. The paving is the underlay rather than being replaced: no
 ground kind, surface, walkability, road graph, width or random draw changes,

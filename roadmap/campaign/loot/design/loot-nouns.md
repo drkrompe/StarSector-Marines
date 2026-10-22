@@ -110,8 +110,13 @@ A **settlement** is the explicit conversion of selected stacks into fleet
 cargo and fence credits. Before confirmation, a capacity preview classifies
 each selected stack against its proper cargo, fuel, or personnel bucket. A
 stack can split: the fitting quantity is carried and only the overflow is
-fenced at the standing discounted value. Selection remains voluntary: choosing
-nothing forfeits the unclaimed recovery.
+fenced at the standing discounted value. Selection is a keep list: the picker
+opens with every field find and every claim stack the budget covers already
+ticked, and the player unticks what to leave behind. Unticked stacks are left,
+not fenced; ticking nothing leaves the whole recovery behind. The preview also
+reads the fleet's hold, so the player sees cargo (and fuel or crew, when a kept
+stack lands there) before and after the claim as they tick. There is no
+separate forfeit action on Results: walking away is an empty keep list.
 
 Confirmation is an exactly-once boundary. The campaign adapter applies the
 plan to vanilla cargo and credits, records the receipt, and closes the recovery
@@ -125,7 +130,7 @@ preview/confirmation time; the loot system does not own the fleet's capacity.
 2. Recovery generation produces one manifest for the resolved operation.
 3. Results summarizes the right to claim; the picker owns only selection.
 4. Settlement previews capacity, then transfers/fences exactly once after
-   confirmation or closes on forfeit.
+   confirmation; an empty keep list transfers nothing.
 
 `loot-nouns.md` owns these laws. Contract terms belong to the contracts
 feature, vanilla cargo remains cargo authority, and presentation belongs to the

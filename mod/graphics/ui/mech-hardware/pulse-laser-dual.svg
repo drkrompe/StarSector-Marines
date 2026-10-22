@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 225 200">
+  <rect x="14" y="32.0" width="44" height="56" rx="6" fill="#000000" fill-opacity="0.55"/>
+  <rect x="21" y="39.0" width="9" height="42" rx="3" fill="#ffffff" fill-opacity="0.45"/>
+  <path d="M 62 60 Q 71.5 43 81.0 60 Q 90.5 77 100.0 60 Q 109.5 43 119.0 60 Q 128.5 77 138.0 60 Q 147.5 43 157.0 60 Q 166.5 77 176.0 60 Q 185.5 43 195.0 60 Q 202.5 77 210 60" fill="none" stroke="#000000" stroke-opacity="0.6" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="22 10"/>
+  <path d="M 62 60 Q 71.5 43 81.0 60 Q 90.5 77 100.0 60 Q 109.5 43 119.0 60 Q 128.5 77 138.0 60 Q 147.5 43 157.0 60 Q 166.5 77 176.0 60 Q 185.5 43 195.0 60 Q 202.5 77 210 60" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="22 10"/>
+  <rect x="14" y="112.0" width="44" height="56" rx="6" fill="#000000" fill-opacity="0.55"/>
+  <rect x="21" y="119.0" width="9" height="42" rx="3" fill="#ffffff" fill-opacity="0.45"/>
+  <path d="M 62 140 Q 71.5 123 81.0 140 Q 90.5 157 100.0 140 Q 109.5 123 119.0 140 Q 128.5 157 138.0 140 Q 147.5 123 157.0 140 Q 166.5 157 176.0 140 Q 185.5 123 195.0 140 Q 202.5 157 210 140" fill="none" stroke="#000000" stroke-opacity="0.6" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="22 10"/>
+  <path d="M 62 140 Q 71.5 123 81.0 140 Q 90.5 157 100.0 140 Q 109.5 123 119.0 140 Q 128.5 157 138.0 140 Q 147.5 123 157.0 140 Q 166.5 157 176.0 140 Q 185.5 123 195.0 140 Q 202.5 157 210 140" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="22 10"/>
+</svg>

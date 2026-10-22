@@ -106,6 +106,7 @@ public final class ColonyMilitia {
         // Ground the colony's works stand on (left, top, right, bottom): nothing else is set down there.
         List<int[]> claimed = new ArrayList<>();
         raiseCompound(sim, map, placement, pads, risk, rng, emplacements, squads, claimed);
+        int[] compound = claimed.isEmpty() ? null : claimed.get(0).clone();
         boolean redoubts = ColonyRedoubts.enabled();
         int wanted = redoubts ? ColonyRedoubts.holdoutsFor(seed) : OUTLYING_POSTS;
         int seats = POST_SIZE + (redoubts ? ColonyRedoubts.MAX_COHORT : 0);
@@ -131,6 +132,13 @@ public final class ColonyMilitia {
                 RedoubtWorks.Plan w = holdout.works();
                 claimed.add(new int[]{w.left(), w.top(), w.right(), w.bottom()});
             }
+        }
+        // Across the streets into the defended area, lines thrown up after the holdouts' works and before
+        // the loose hardware, which steps round them.
+        if (ColonyRoadblocks.enabled()) {
+            List<ColonyRoadblocks.Plan> blocks = ColonyRoadblocks.plan(sim, placement, compound, keep, POST_SIZE, seed);
+            squads.addAll(ColonyRoadblocks.raise(sim, blocks, emplacements, risk, rng));
+            for (ColonyRoadblocks.Plan b : blocks) claimed.add(new int[]{b.left(), b.top(), b.right(), b.bottom()});
         }
         List<int[]> taken = new ArrayList<>();
         boolean[] route = routeMask(sim.getGrid(), placement, ROUTE_CLEARANCE);

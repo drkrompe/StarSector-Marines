@@ -63,10 +63,12 @@ final class MechSocketConsole {
                     socket.gridColumns(), socket.gridRows(), 2f);
             HardpointBricks.drawEmpty(c, bricks, socketTone);
             MechWeaponComponent shown = preview != null ? preview : installed;
+            int[] shownBlock = null;
             if (shown != null) {
                 int[] footprint = oriented(socket, shown.footprintColumns, shown.footprintRows);
-                HardpointBricks.drawFilled(c, bricks, (bricks.columns() - footprint[0]) / 2,
-                        (bricks.rows() - footprint[1]) / 2, footprint[0], footprint[1],
+                shownBlock = new int[] { (bricks.columns() - footprint[0]) / 2,
+                        (bricks.rows() - footprint[1]) / 2, footprint[0], footprint[1] };
+                HardpointBricks.drawFilled(c, bricks, shownBlock[0], shownBlock[1], shownBlock[2], shownBlock[3],
                         HardpointBricks.tone(shown.hardpointType));
             } else if (internal != null) {
                 int[] footprint = oriented(socket, internal.footprintColumns, internal.footprintRows);
@@ -76,6 +78,11 @@ final class MechSocketConsole {
             }
             if (shown == null && internal != null) {
                 internalGlyph(c, internal.role, bricks.centerX(), bricks.centerY(), SILVER);
+            } else if (shown != null && HardwareArt.draw(c, shown,
+                    bricks.brickX(shownBlock[0]), bricks.brickY(shownBlock[1]),
+                    bricks.span(shownBlock[2], bricks.brickWidth()), bricks.span(shownBlock[3], bricks.brickHeight()),
+                    preview != null ? 195 : 255)) {
+                // Painted icon drawn.
             } else if (shown != null && assets != null) {
                 LayeredSpriteCache sprite = MechEquipmentGridCanvas.spriteFor(assets, shown);
                 if (sprite != null) {

@@ -8,7 +8,7 @@ import java.awt.Color;
 
 /**
  * The Mech Lab's hardware language: a footprint is a stack of chamfered bricks, one per grid
- * cell, each twice as wide as it is tall, so a piece's size reads from its outline. Colour
+ * cell, each narrower than it is tall, so a piece's size reads from its outline. Colour
  * names the hardpoint: energy red-orange, missile green, ballistic yellow, omni grey.
  */
 final class HardpointBricks {
@@ -18,8 +18,8 @@ final class HardpointBricks {
     static final Color OMNI = new Color(0xa4, 0xa8, 0xa0);
     static final Color INTERNAL = new Color(0x7e, 0x94, 0xa6);
 
-    /** Width over height of one brick. */
-    static final float BRICK_ASPECT = 2f;
+    /** Width over height of one brick: narrower than tall, so even a square footprint stands upright. */
+    static final float BRICK_ASPECT = 0.75f;
 
     private HardpointBricks() { }
 
@@ -66,6 +66,8 @@ final class HardpointBricks {
         float centerY() { return top + height() * .5f; }
         float brickX(int column) { return left + column * (brickWidth + gap); }
         float brickY(int row) { return top + row * (brickHeight + gap); }
+        /** Width of a run of {@code count} bricks, seams included. */
+        float span(int count, float brick) { return count * brick + Math.max(0, count - 1) * gap; }
     }
 
     /** Empty capacity: dark recessed bricks with a dim rim in the socket's colour. */
@@ -92,8 +94,8 @@ final class HardpointBricks {
         if (lastColumn < startColumn || lastRow < startRow) return;
         float w = layout.brickWidth(), h = layout.brickHeight(), gap = layout.gap();
         float ch = chamfer(w, h);
-        Color body = mix(tone, 0x101311, .84f);
-        Color lipColor = mix(tone, 0x101311, .62f);
+        Color body = mix(tone, 0x101311, .5f);
+        Color lipColor = mix(tone, 0x101311, .25f);
         float lip = Math.max(1f, h * .14f);
         // Fills first, each overlapping the next brick of the piece by a pixel, so the shared
         // edges are covered twice and no antialiased seam survives; outlines go on top after.
