@@ -1,4 +1,4 @@
-"""Derive the Runner's and the Brute's growth-stage sprite sets from their adult exports (`rav-growth-stages.md`).
+"""Derive the Runner's and the Brute's growth-stage sprite sets from their adult exports (`growth-stages.md`, `colony-breach-nouns.md` Growth stage).
 
   python stage_sprites.py              # both creatures
   python stage_sprites.py runner|brute

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — growth stages (whelp, adult, elder), age mix, pack leader as planned vocabulary; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
+Updated: 2026-10-21 — growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -733,6 +733,21 @@ not read in a soft shadow at play zoom.
   walks round to a door. It is not staggered and does not charge. Until it has
   sounds of its own it borrows the Brute's.
 
+  Its weight is set against a lance: three Bulwarks and one Matriarch at full
+  health come out near even (the `matriarch` scene's `mech-lance` loop reads
+  it: two Bulwarks lost, the Matriarch left on its last few points), so it is
+  a boss a mech lance with support answers and a rifle squad does not.
+
+  Drawn on its own skeleton (`RavMatriarchRig`): the charcoal Siege Crown,
+  matte charcoal plates edged in dried-blood red over wine-red sinew, a fan
+  of yellowed ivory crown over a straight-ahead head, the legs pillars under
+  the body on a slow four-beat walk. Walking, it looks slowly left and right;
+  a reap turns the head toward the blade and opens the jaws; the roar gapes
+  and shakes it. The two scythes hang from under the crown's rim, a mirrored
+  pair about the head, and are long enough that a reap reads past the crown
+  (owner's pick over mounting them further out or turning them with the head).
+  It dies with its back broken, in one of four poses of that death.
+
 **Growth stage.** How old a rav is: **whelp**, **adult** or **elder**. Every
 strain has the same three stages, so a stage is a property of one body, never
 a strain of its own: a whelp Runner is a Runner, with the Runner's `UnitType`,
@@ -752,9 +767,9 @@ ridge. A stage is issued at
 spawn through `SwarmStrains`, like the Brute's plate, and fixed for the body's
 life; the Matriarch is the one exception. Stage scales presentation only
 through things the body already has: its rig's scale and stage-recoloured
-sprites, and its voice pitched by its size. Stats, the stage table and the
-reasons for each choice are in `rav-growth-stages.md` (stage, stats, size, the
-age mix, packs and sound built; the per-stage art planned).
+sprites, and its voice pitched by its size. The numbers are in `SwarmStageStats`
+and the reasons for each choice, with the first balance reading, in
+`growth-stages.md`.
 `-Dbattle.swarm.growthStages=false` is the control: every body an adult.
 
 - **Age mix.** A surge's stages come from its bore, never from the director:
@@ -1148,9 +1163,9 @@ stage pitches everything it makes by the inverse of its size and sets its
 loudness (a whelp about four semitones up and quieter, an elder deeper and
 louder): one take heard three ways stays the same creature. A pack's break is
 one scatter shriek, the leader's own cry at the leader's stage. The Spitter has
-no voice; the Matriarch's sounds wait for its design and join as a strain of
-their own (its catalogued roar was rejected and is redone once the design
-settles).
+no voice. The Matriarch's design has settled but its sounds are still open:
+it borrows the Brute's until its own join as a strain of their own (its
+catalogued roar was rejected and is to be redone).
 
 ## Laws
 

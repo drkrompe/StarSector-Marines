@@ -1,5 +1,5 @@
 """Rav growth stages, look check: a whelp, an adult and an elder Runner at play zoom, on colony ground and on
-hive creep, beside Marines (`rav-growth-stages.md`).
+hive creep, beside Marines (`growth-stages.md`, `colony-breach-nouns.md` Growth stage).
 
   python growth_stages_sheet.py <render root> <out dir>
 
