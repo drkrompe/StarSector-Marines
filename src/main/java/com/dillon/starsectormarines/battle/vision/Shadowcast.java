@@ -126,9 +126,9 @@ public final class Shadowcast {
                 boolean surface;
                 if (elevation != null && elevation.above(idx, eye)) {
                     // Higher ground: a face is the skyline the eye looks past
-                    // (a wall under the strict rule), and the first top cell
-                    // past it is the rim, seen and seen no further.
-                    opaque = elevation.stopsSight(idx, eye, false);
+                    // (a wall under the strict rule); any top cell stops the
+                    // cast, and is itself seen only if it is the rim.
+                    opaque = !elevation.isFaceAt(idx) || elevation.stopsSight(idx, eye, false);
                     surface = elevation.visibleFrom(idx, eye);
                 } else {
                     opaque = isOpaque(grid, cx, cy, sx, sy, airR2,

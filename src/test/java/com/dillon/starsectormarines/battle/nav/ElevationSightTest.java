@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * One rule for sight, fire and the fog, on a round plateau whose row y=15 reads
- * west to east: ramp 13-19, rim 20, top 21-29, rim 30, face 31-32, low ground 33 on.
+ * west to east: ramp 17-19, top 20-30 with its rim at 30, face 31, low ground 32 on.
  */
 class ElevationSightTest {
 
@@ -45,12 +45,12 @@ class ElevationSightTest {
 
     @Test void theRowReadsAsTheFixtureSays() {
         ElevationMap map = hill(ElevationMap.SightRule.SKYLINE).elevation();
-        assertTrue(map.isRamp(16, 15));
+        assertTrue(map.isRamp(18, 15));
         assertTrue(map.isRim(30, 15));
         assertEquals(1, map.tier(25, 15));
         assertFalse(map.isRim(25, 15));
         assertTrue(map.isFace(31, 15));
-        assertEquals(0, map.tier(33, 15));
+        assertEquals(0, map.tier(32, 15));
     }
 
     @Test void highGroundSeesDownAndLowGroundSeesOnlyTheRim() {
@@ -78,6 +78,28 @@ class ElevationSightTest {
         assertTrue(casts(grid, 25, 15, grid.index(36, 15)));
     }
 
+    @Test void theFogNeverSeesPastTheRimFromAnywhereBelow() {
+        NavigationGrid grid = hill(ElevationMap.SightRule.SKYLINE);
+        ElevationMap map = grid.elevation();
+        int[] out = new int[Shadowcast.maxCells(40)];
+        for (int y = 0; y < 30; y += 3) {
+            for (int x = 0; x < 40; x += 3) {
+                if (!grid.isWalkable(x, y) || map.eyeTier(x, y) != 0) continue;
+                int n = Shadowcast.castFrom(grid, x, y, 40, 0f, out, 0);
+                for (int i = 0; i < n; i++) {
+                    int c = out[i];
+                    if (map.sightHeightAt(c) > 0 && !map.isFaceAt(c) && !map.isRampAt(c)) {
+                        assertTrue(map.isRimAt(c), "from " + x + "," + y + " the fog saw top cell "
+                                + (c % 40) + "," + (c / 40));
+                    }
+                    if (c == grid.index(2, 15)) {
+                        assertTrue(grid.hasLineOfSight(x, y, 2, 15), "the fog saw across the plateau from " + x + "," + y);
+                    }
+                }
+            }
+        }
+    }
+
     @Test void strictSeesNothingUpAndFlatSeesEverything() {
         NavigationGrid strict = hill(ElevationMap.SightRule.STRICT);
         assertFalse(strict.hasLineOfSight(36, 15, 30, 15));
@@ -91,8 +113,8 @@ class ElevationSightTest {
     @Test void theFaceCoversTheRimFromBelowAndNotTheFootFromAbove() {
         NavigationGrid grid = hill(ElevationMap.SightRule.SKYLINE);
         assertEquals(1, grid.getCoverAgainst(30, 15, 36, 15), "the lip covers a rim holder from below");
-        assertEquals(0, grid.getCoverAgainst(33, 15, 25, 15), "the face is under a shooter on top");
-        assertEquals(1, grid.getCoverAgainst(33, 15, 10, 2), "a low shooter beyond the hill still meets the face");
+        assertEquals(0, grid.getCoverAgainst(32, 15, 25, 15), "the face is under a shooter on top");
+        assertEquals(1, grid.getCoverAgainst(32, 15, 10, 2), "a low shooter beyond the hill still meets the face");
     }
 
     private static boolean casts(NavigationGrid grid, int sx, int sy, int target) {

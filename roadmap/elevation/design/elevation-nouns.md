@@ -218,19 +218,30 @@ Elevation is drawn by the ground, never by a UI mark: nothing is painted on the
 ground to say "this is high". It reads from three things the ground already
 draws.
 
-- **Cliff faces** are drawn in the face cells with the natural terrain's face
-  materials, lit by bearing (the face that looks toward the sun is bright,
-  the one that looks away dark) and with talus at the foot.
-- **Plateau tops** are the ordinary ground of the map, a step lighter than the
-  low ground, so the eye separates tiers even in shade.
-- **Shadow.** Each tier stands at its height in the macro-relief field
-  (`surface-relief-nouns.md`), so the battle's sun casts a plateau's shadow
-  across the low ground on the side away from it, and a higher tier's shadow
-  across a lower one. That shadow, at play zoom, is what makes a plateau look
-  raised.
-- **Ramps** are drawn as a graded strip of the ground's own material between
-  the foot and the head, its sides edged by the face material, shading from
-  low-ground colour to top colour along its axis.
+- **Cliff faces** are the natural terrain's face bands (`mapgen-nouns.md`,
+  Authored natural terrain) clipped from the same signed field that decides
+  which cells are face, so the face drawn and the cells nobody can stand on
+  agree. A talus apron lies at the foot; the face's shade follows its bearing
+  to the light. The first tier draws in the terrain surface's raised layers
+  and the second is stacked after them, so an upper tier's apron and face lie
+  over the lower tier's top; a third tier stands and fights but draws as the
+  second's top.
+- **Plateau tops** are the map's own ground (grass-topped on living ground,
+  rock on bare, ice on frozen).
+- **Shadow.** Each tier stands `TIER_RISE_METERS` (4 m, a storey) higher in the
+  macro-relief field (`surface-relief-nouns.md`), a face at the tier it holds
+  up and a ramp halfway, so the battle's sun casts a plateau's shadow across
+  the low ground on its far side and a higher tier's across a lower one, with
+  no shader change. The relief field is per cell, so the shadow's edge steps
+  with the grid on a diagonal cliff.
+- **Ramps** are a floor of the talus material laid over the ramp's corridor,
+  clipped to its sides, in the cap layers so it covers the cliff bands its cut
+  would otherwise show.
+- **South faces** (`ElevationPlan.southFace`) may be drawn taller: a face whose
+  outside looks down the screen is widened by up to three cells, because the
+  camera looks at a south face and over a north one. The extra width is face
+  in the battle too. *(Owner decision pending, with the face width and whether
+  higher ground is lit a step brighter.)*
 
 Units on a plateau are drawn where they stand, with no displacement, scale or
 parallax: the map is top-down.

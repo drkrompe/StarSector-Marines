@@ -10,7 +10,7 @@ the elevation plan and brush) and sight and fire (one skyline rule for the fog, 
 
 | Story | State and dependency |
 | --- | --- |
-| elevation-look | **PLANNED.** Faces drawn with the natural terrain's face materials in the face cells; tops a step lighter; tier heights in the macro-relief field so the sun casts plateau shadows; ramp art. Measured with `renderEvidence` against its control. |
+| elevation-look | **IN PROGRESS.** Faces, stacked second tier, ramp floors and tier heights in the relief field have landed (the `elevation` snapshot suite). Left: the owner's look pick (face width, tall south faces, lit tops), ramp art that reads as a slope rather than a pad, and a `renderEvidence` measurement against its control. |
 | elevation-generation | **PLANNED.** Countryside plateaus with ramps facing the roads in `OutdoorLandscapeStage`; an authored test map. |
 | elevation-scene | **PLANNED.** A behaviour scene: a squad takes a held plateau by its ramp; verdicts assert the route used the ramp and that sight followed the rule. Path cost measured against a flat control. |
 
