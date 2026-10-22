@@ -46,9 +46,10 @@ import java.util.concurrent.ThreadLocalRandom;
  * bodies nearest the listener: a pack reads as a pack, not as forty copies of
  * one clip. Presentation only; nothing here reaches the simulation.
  *
- * <p>The Spitter has no voice. The Matriarch's sounds wait for its design: it
- * joins {@link #sound}, {@link #death}, {@link #pain} and {@link #footfall}
- * as a strain of its own.
+ * <p>The Spitter has no voice. The Matriarch has her own roar (out of the bore
+ * and at each moult) and reap; her bellow, hoof, crown, wall-break, pain and
+ * death are the Brute's takes played deeper and slower through the pitch
+ * argument, not baked copies.
  */
 public final class SwarmAudio {
 
@@ -86,16 +87,34 @@ public final class SwarmAudio {
         BRUTE_CHARGE_HIT_WALL("brute_charge_hit_wall", 1f, 300),
         BRUTE_STUN("brute_stun", 0.9f, 800),
         BRUTE_PAIN("brute_pain", 0.8f, 300),
-        BRUTE_DEATH("brute_death", 1f, 150);
+        BRUTE_DEATH("brute_death", 1f, 150),
+        // The Matriarch: her own roar and reap; everything else is a Brute take played a size deeper at
+        // runtime, so a variant costs no file (colony-breach-nouns.md, Sound). Her death is the Brute's
+        // slowed and deepened by the same pitch argument.
+        MATRIARCH_ROAR("matriarch_roar", 1f, 4000),
+        MATRIARCH_REAP("matriarch_reap", 1f, 400),
+        MATRIARCH_DEATH("brute_death", 1f, 500, 0.62f),
+        MATRIARCH_BELLOW("brute_bellow", 1f, 3000, 0.72f),
+        MATRIARCH_FOOTFALL("brute_footfall", 1f, 250, 0.65f),
+        MATRIARCH_CROWN("brute_impact", 1f, 400, 0.75f),
+        MATRIARCH_WALL_BREAK("brute_wall_break", 1f, 600, 0.8f),
+        MATRIARCH_PAIN("brute_pain", 0.9f, 1200, 0.72f);
 
         final String id;
         final float volume;
         final long gapNanos;
+        /** A borrowed take played this much lower: a bigger body. */
+        final float pitch;
 
         Sound(String clip, float volume, long gapMillis) {
+            this(clip, volume, gapMillis, 1f);
+        }
+
+        Sound(String clip, float volume, long gapMillis, float pitch) {
             id = PREFIX + clip;
             this.volume = volume;
             gapNanos = gapMillis * 1_000_000L;
+            this.pitch = pitch;
         }
     }
 
@@ -220,6 +239,7 @@ public final class SwarmAudio {
     }
 
     static Sound footfall(UnitType strain, int stride, boolean carrying) {
+        if (strain == UnitType.SWARM_MATRIARCH) return Sound.MATRIARCH_FOOTFALL;
         if (heavy(strain)) return Sound.BRUTE_FOOTFALL;
         if (strain == UnitType.SWARM_RUNNER) {
             if (carrying) return Sound.BODY_DRAG;
@@ -236,6 +256,16 @@ public final class SwarmAudio {
                 case STRIKE -> Sound.RUNNER_STRIKE;
                 case IMPALE -> Sound.RUNNER_IMPALE;
                 case DRAG -> Sound.BODY_LATCH;
+                default -> null;
+            };
+        }
+        if (strain == UnitType.SWARM_MATRIARCH) {
+            return switch (kind) {
+                case ROAR, MOULT -> Sound.MATRIARCH_ROAR;
+                case ALERT -> Sound.MATRIARCH_BELLOW;
+                case REAP -> Sound.MATRIARCH_REAP;
+                case STRIKE, WALL_BLOW -> Sound.MATRIARCH_CROWN;
+                case WALL_BREAK -> Sound.MATRIARCH_WALL_BREAK;
                 default -> null;
             };
         }
@@ -257,19 +287,21 @@ public final class SwarmAudio {
         return null;
     }
 
-    /** The Brute, and until it has its own sounds the Matriarch, which borrows the Brute's. */
+    /** The Brute and the Matriarch: a hoof every half cell. */
     private static boolean heavy(UnitType strain) {
         return strain == UnitType.SWARM_BRUTE || strain == UnitType.SWARM_MATRIARCH;
     }
 
     static Sound pain(UnitType strain) {
         if (strain == UnitType.SWARM_RUNNER) return Sound.RUNNER_PAIN;
+        if (strain == UnitType.SWARM_MATRIARCH) return Sound.MATRIARCH_PAIN;
         if (heavy(strain)) return Sound.BRUTE_PAIN;
         return null;
     }
 
     static Sound death(UnitType strain) {
         if (strain == UnitType.SWARM_RUNNER) return Sound.RUNNER_DEATH;
+        if (strain == UnitType.SWARM_MATRIARCH) return Sound.MATRIARCH_DEATH;
         if (heavy(strain)) return Sound.BRUTE_DEATH;
         return null;
     }
@@ -292,7 +324,7 @@ public final class SwarmAudio {
                              UnitType strain, SwarmStage stage) {
         if (sound == null || !sim.getFogOfWar().isCellRevealed((int) Math.floor(x), (int) Math.floor(y))) return;
         if (!mix.admit(sound, now)) return;
-        float pitch = pitch(strain, stage) * (1f + ThreadLocalRandom.current().nextFloat(-PITCH_JITTER, PITCH_JITTER));
+        float pitch = sound.pitch * pitch(strain, stage) * (1f + ThreadLocalRandom.current().nextFloat(-PITCH_JITTER, PITCH_JITTER));
         Global.getSoundPlayer().playSound(sound.id, pitch, sound.volume * volume(stage),
                 new Vector2f(x * BattleShotAudio.WORLD_UNITS_PER_CELL, y * BattleShotAudio.WORLD_UNITS_PER_CELL),
                 new Vector2f(0f, 0f));
