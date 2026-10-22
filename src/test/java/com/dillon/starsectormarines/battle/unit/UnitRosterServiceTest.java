@@ -107,10 +107,15 @@ public class UnitRosterServiceTest {
         long c = r.spawn(unit("c"));
         long idA = a;
         long idC = c;
+        int[] moved = {-1, -1};
+        r.onSlotMoved((from, to) -> { moved[0] = from; moved[1] = to; });
 
         // Release the middle entity — slot 0 should become c (the tail),
         // not b (which is unrelated to the swap target).
         r.release(idA);
+        // Slot-keyed state (the fog's visibility) is told the tail moved 2 -> 0.
+        assertEquals(2, moved[0]);
+        assertEquals(0, moved[1]);
 
         assertEquals(2, r.liveCount());
         assertFalse(r.isLive(idA));

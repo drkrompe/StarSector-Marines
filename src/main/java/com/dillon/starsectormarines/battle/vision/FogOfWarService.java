@@ -308,6 +308,19 @@ public final class FogOfWarService {
     }
 
     /**
+     * Carries a unit's visibility and fade with it when the roster moves it
+     * from slot {@code from} to {@code to}, and clears the slot it left.
+     */
+    public void moveUnitSlot(int from, int to) {
+        if (!initialized || from < 0 || to < 0) return;
+        ensureUnitCapacity(Math.max(from, to) + 1);
+        unitVisibility[to] = unitVisibility[from];
+        fadeAlpha[to] = fadeAlpha[from];
+        unitVisibility[from] = VIS_HIDDEN;
+        fadeAlpha[from] = 0f;
+    }
+
+    /**
      * Grow backing arrays if the unit registry expanded beyond current capacity.
      * Called before the visibility sweep.
      */
