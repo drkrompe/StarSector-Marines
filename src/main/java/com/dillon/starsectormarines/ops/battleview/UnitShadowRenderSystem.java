@@ -9,7 +9,10 @@ import com.dillon.starsectormarines.battle.air.engine.HullPivotResolver;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.unit.SwarmFootprint;
+import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.LowPass;
@@ -305,6 +308,9 @@ public final class UnitShadowRenderSystem implements RenderSystem {
             float[] hp = t.floats(c.HEALTH, BattleComponents.HEALTH_HP).array();
             float[] rx = t.floats(c.POSITION, BattleComponents.POSITION_X).array();
             float[] ry = t.floats(c.POSITION, BattleComponents.POSITION_Y).array();
+            Object[] types = t.objects(c.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
+            float[] facings = t.has(c.LAYERED_ANIMATION)
+                    ? t.floats(c.LAYERED_ANIMATION, BattleComponents.LAYERED_FACING_DEGREES).array() : null;
 
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 if (hp[r] <= 0f) continue;
@@ -319,6 +325,13 @@ public final class UnitShadowRenderSystem implements RenderSystem {
                 float radiusCells = roster.radius(entityId);
                 float heightCells = 2f * roster.hitHalfHeight(entityId);
                 if (radiusCells <= 0f || heightCells <= 0f) continue;
+
+                UnitType type = (UnitType) types[r];
+                if (facings != null && SwarmFootprint.has(type)) {
+                    emitLongBody(ctx, out, blob, view, entityId, type, rx[r], ry[r], facings[r], heightCells,
+                            alpha * SHADOW_ALPHA * sun.shadowStrength());
+                    continue;
+                }
 
                 float widthCells = radiusCells * BLOB_WIDTH_PER_RADIUS;
                 float lengthCells = widthCells
@@ -344,6 +357,38 @@ public final class UnitShadowRenderSystem implements RenderSystem {
                         shadowAngleDegrees(), alpha * SHADOW_ALPHA * sun.shadowStrength());
             }
         }
+    }
+
+    /**
+     * A long-bodied Rav strain casts one ellipse laid along its body rather than the round blob:
+     * its drawn footprint ({@link SwarmFootprint}), stage-scaled, centred where the body's mass
+     * is, and pushed down-sun so it spills out from under the body away from the light. One sprite, as every body casts; two
+     * blobs at shoulders and hips would cost twice the commands and darken where they overlap,
+     * and a spine's bend is too small to read in a soft shadow at play zoom.
+     */
+    private void emitLongBody(RenderContext ctx, DrawList out, SpriteAPI blob, ViewCull view, long entityId,
+                              UnitType type, float x, float y, float facingDegrees, float heightCells,
+                              float alpha) {
+        SwarmStage stage = ctx.sim.getRoster().identity().swarmStage(entityId);
+        float lengthCells = SwarmFootprint.length(type, stage) * LONG_BODY_SPREAD;
+        float widthCells = SwarmFootprint.width(type, stage) * LONG_BODY_SPREAD;
+        float forward = SwarmFootprint.forwardOffset(type, stage);
+        double rad = Math.toRadians(facingDegrees);
+        float fx = (float) -Math.sin(rad), fy = (float) Math.cos(rad);
+        // The ellipse's near edge on the body's centre, as a round body's is (see the class doc),
+        // whichever way the body is turned: its own half-extent toward the sun, plus half the
+        // share of its height's reach that lengthens every body's shadow.
+        float along = fx * sun.dirX() + fy * sun.dirY();
+        float acrossSun = 1f - along * along;
+        float extent = 0.5f * (float) Math.sqrt(lengthCells * lengthCells * along * along
+                + widthCells * widthCells * acrossSun);
+        float push = extent + sun.reachCells(heightCells) * ELLIPSE_REACH_FRACTION * 0.5f;
+        float shadowX = x + fx * forward - sun.dirX() * push;
+        float shadowY = y + fy * forward - sun.dirY() * push;
+        if (!view.visible(shadowX, shadowY, lengthCells)) return;
+        float cellPx = ctx.camera.cellPxSize();
+        emit(out, blob, ctx.camera, shadowX, shadowY, lengthCells * cellPx, widthCells * cellPx,
+                facingDegrees + 90f, alpha);
     }
 
     /**
@@ -433,6 +478,9 @@ public final class UnitShadowRenderSystem implements RenderSystem {
      * it would not for something as tall as a building, which is exactly why
      * terrain is shaded by the height field instead of by this.
      */
+    /** The soft blob's opaque core is narrower than its sprite: this sizes the core to the body. */
+    private static final float LONG_BODY_SPREAD = 1.4f;
+
     private float shadowAngleDegrees() {
         return (float) Math.toDegrees(Math.atan2(-sun.dirY(), -sun.dirX()));
     }

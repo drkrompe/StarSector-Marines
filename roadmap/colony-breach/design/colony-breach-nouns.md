@@ -580,6 +580,15 @@ behaviour. A strain is a designed stage of the one organism (see *Origin*), not
 another animal: every strain is the Runner's body plan and chitin specialised
 for one job in the cycle, and reads that way on screen.
 
+A Runner, Brute or Matriarch casts one soft ellipse laid along its body rather
+than the round blob every other body casts: its drawn mass seen from above
+(`SwarmFootprint`, legs and spines left out), scaled by its growth stage, turned
+with its heading and set down-sun so its near edge sits on the body's centre,
+the same rule a round body's shadow keeps. One sprite a body, as every body
+casts, so a swarm's shadows cost what a squad's do; two blobs at shoulders and
+hips would double that and darken where they overlap, and a spine's bend does
+not read in a soft shadow at play zoom.
+
 - **Runner** — the shipped 20 HP melee body. Volume. It is drawn on its own
   skeleton (`RavRunnerRig`), not on the layered infantry composition: a hunched
   hound whose feet stay planted on the ground, galloping and trotting with the
