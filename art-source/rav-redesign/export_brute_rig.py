@@ -9,8 +9,9 @@ Writes mod/graphics/battle/rav-brute/*.png, every sprite head-up (forward is the
                   (body-nohead.png) that fills what a moved head or hoof uncovers; the whole 1024x1536
                   layer canvas, so the hero's rows and columns are the sprite's, times SCALE
   body-front.png, body-rear.png   the same body cut across between the shoulders and the hips, at
-                  SPLIT_ROW with a soft seam FEATHER rows either side, for the halves a dead Brute bursts
-                  into: rows 0..SPLIT_ROW+FEATHER and SPLIT_ROW-FEATHER..1536
+                  SPLIT_ROW, for the two halves the living body bends between and a dead Brute bursts
+                  into: rows 0..SPLIT_ROW+FEATHER, fading out over the seam, and SPLIT_ROW-FEATHER..1536,
+                  solid under it
   head.png        the head, rows 0..HEAD_ROWS of the layer canvas; it pivots at the neck (512, 384)
   hoof-fl/fr/hl/hr.png   each hoof cut from the hero, centred on the hoof
   shank-f/h-l/r.png      the shank above each hoof from the generated leg layers, the hip end at the top,
@@ -67,7 +68,9 @@ def main():
     front_k = np.clip((SPLIT_ROW + FEATHER - rows) / (2 * FEATHER), 0, 1)
     ba = np.asarray(body.getchannel("A")).astype(float)
     front = with_alpha(body, ba * front_k).crop((0, 0, size[0], SPLIT_ROW + FEATHER))
-    rear = with_alpha(body, ba * (1 - front_k)).crop((0, SPLIT_ROW - FEATHER, size[0], size[1]))
+    # the rear half is solid under the seam and the front fades over it, so the two drawn together make the
+    # whole body with no thin line where they meet, however the spine bends between them
+    rear = with_alpha(body, ba).crop((0, SPLIT_ROW - FEATHER, size[0], size[1]))
     scaled(front).save(OUT / "body-front.png")
     scaled(rear).save(OUT / "body-rear.png")
 
