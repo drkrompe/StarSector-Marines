@@ -53,16 +53,14 @@ class ArmorPlanKnowledgeTest {
         assertEquals(3, loaded.armory().ownedEquipmentTemplateIds().size());
     }
 
-    @Test void acquisitionIsOrderIndependentAndOnlyAWholeBundleTeachesItsSheet() {
-        List<String> bundle = List.of("armor.militia", "armor.orderly");
-        for (List<String> order : List.of(bundle, List.of(bundle.get(1), bundle.get(0)))) {
-            MarineArmory armory = new MarineArmory();
-            armory.unlockArmor(order.get(0));
-            assertFalse(armory.knowsArmorPlan(SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_ARMOR));
-            armory.unlockArmor(order.get(1));
-            assertEquals(Set.of(SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR,
-                    SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_ARMOR), Set.copyOf(knownSheets(armory)));
-        }
+    @Test void owningEverySuitOfASheetIsNotTheSheetOnlyItsCardIs() {
+        MarineArmory armory = new MarineArmory();
+        armory.unlockArmor("armor.militia");
+        armory.unlockArmor("armor.orderly");
+        assertFalse(armory.knowsArmorPlan(SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_ARMOR));
+        EquipmentTestFixtures.learnSheet(armory, SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_ARMOR);
+        assertEquals(Set.of(SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR,
+                SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_ARMOR), Set.copyOf(knownSheets(armory)));
         MarineArmory heavy = new MarineArmory();
         EquipmentTestFixtures.learnSheet(heavy, SquadEquipmentDoctrines.HEGEMONY_SHOCK_ARMOR);
         assertTrue(heavy.canIssue(SquadEquipmentDoctrines.armorPlanById(SquadEquipmentDoctrines.HEGEMONY_SHOCK_ARMOR)));
@@ -76,10 +74,28 @@ class ArmorPlanKnowledgeTest {
                 .filter(armory::knowsArmorPlan).toList();
     }
 
-    @Test void everyAuthoredSheetHasAnEquipmentAcquisitionRoute() {
+    @Test void everyAuthoredSheetIsACardThatCanBeLearned() {
         MarineArmory armory = new MarineArmory();
-        for (EquipmentTemplateCard card : EquipmentTemplateCatalog.all()) armory.acquireEquipmentTemplate(card.id());
-        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) assertTrue(armory.knowsArmorPlan(plan.id()), plan.id());
+        for (SquadArmorPlan plan : SquadEquipmentDoctrines.armorPlans()) {
+            EquipmentTestFixtures.learnSheet(armory, plan.id());
+            assertTrue(armory.knowsArmorPlan(plan.id()), plan.id());
+        }
+    }
+
+    @Test void aSaveFromBeforeTheCardLedgerKnowsExactlyWhatItCouldField() throws Exception {
+        MarineArmory armory = new MarineArmory();
+        LoadoutCard assault = new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.ASSAULT_WEAPONS);
+        for (String template : assault.templateIds()) armory.acquireEquipmentTemplate(template);
+        armory.unlockArmor("armor.militia");
+        armory.unlockArmor("armor.orderly");
+        var ledger = MarineArmory.class.getDeclaredField("knownLoadoutCardIds");
+        ledger.setAccessible(true);
+        ledger.set(armory, null);
+        MarineArmory loaded = roundTrip(armory);
+        assertTrue(loaded.knowsWeaponCard(SquadEquipmentDoctrines.ASSAULT_WEAPONS));
+        assertTrue(loaded.knowsArmorPlan(SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_ARMOR));
+        assertTrue(loaded.knowsWeaponCard(SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS));
+        assertFalse(loaded.knowsWeaponCard(SquadEquipmentDoctrines.FIRE_SUPPORT_WEAPONS));
     }
 
     @Test void alternateRefitSheetWaitsForItsTechnologyAndSurvivesSave() throws Exception {
@@ -108,6 +124,9 @@ class ArmorPlanKnowledgeTest {
         var field = MarineArmory.class.getDeclaredField("knownArmorPlanIds");
         field.setAccessible(true);
         field.set(roster.armory(), null);
+        var ledger = MarineArmory.class.getDeclaredField("knownLoadoutCardIds");
+        ledger.setAccessible(true);
+        ledger.set(roster.armory(), null);
         MarineRoster loaded = roundTrip(roster);
         assertTrue(loaded.armory().knowsArmorPlan(SquadEquipmentDoctrines.LEAGUE_MOBILE_ARMOR));
         assertTrue(loaded.armory().knowsArmorPlan(FirstRefit.Path.STEADY_LINE.armor));

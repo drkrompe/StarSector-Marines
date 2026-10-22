@@ -1,21 +1,32 @@
 # The heart's battle
 
-Status: PLANNED
+Status: ACTIVE
 
 Written: 2026-10-22
 
+Updated: 2026-10-22 — the battle plays: setup, sleeping mothers and wake rules, the company's commander, beats, `commanderEvidence -Pmission=heart`.
+
 ## Model
 
-`heart-nouns.md` (Flow, Beats, Laws).
+`heart-nouns.md` (Flow, Beats, Laws, The company's command).
 
 ## Scope
 
-- Mission build on `BloomHeartSetup.country`: company landing, the Purge posture from the start, the win on every mother collapsed.
-- The swarm director with several mothers (`mother-N` keys), each with her own elder Matriarch.
-- One story sequence per variant publishing the beat table; the open choices settled by the owner.
-- A battle fixture kind, fixtures for both forms, `HeartEvidenceTest`, `commanderEvidence -Pmission=heart-front` and `heart-burn`, the CLAUDE.md list and `commander-evidence-missions.md`.
-- Broad Front's minimal scripted lanes and The Burn's barrage arrive by their own stories; until then the variants differ in map only.
+Built: the mission on `BloomHeartSetup.mission` (company by shuttle, Purge
+commander, the win on every mother collapsed, the loss on the company broken),
+the bores-only director, sleeping mothers and both variants' wake rules, the
+beats, the `BLOOM_HEART` fixture kind, `heart-front-v1` / `heart-burn-v1` and
+`HeartEvidenceTest` under `commanderEvidence -Pmission=heart`.
+
+Remaining:
+- Tune the fight. First reading (seed 202): the company alone, four boats of
+  six with one sortie or three, is broken in both variants without hurting any
+  bore; the satellites at maw stream surges at it all the way in and it never
+  reaches the first one. The barrage (`walking-barrage.md`) and the allied lanes
+  (`heart-allied-lanes.md`) are the variants' answers; read again once they land
+  before touching numbers.
+- Narration for the heart's beats, reusing Colony Breach's speech with pitch changes.
 
 ## Acceptance
 
-- Both missions play to an outcome headlessly; verdicts assert mechanics (a mother's collapse counts, Matriarchs emerge elder), outcomes are readings.
+- Both missions play to an outcome headlessly; verdicts assert mechanics, outcomes are readings.

@@ -810,6 +810,12 @@ served fewest-surges first and a pulse is sized to the share, so the pressure
 lies across every bore rather than on whichever is listed first. A rescue's
 director is unchanged by either.
 
+The heart (`heart-nouns.md`) runs it bore-only too. A mission may hold a bore
+**asleep**: it grows and feeds but sends no surge until the mission wakes it
+with a surge due at once, and a sleeping bore adds nothing to the population
+target, so the bores awake never field bodies on its behalf. A woken surge
+still waits for room under the target, as any surge does.
+
 **Swarm strain.** A kind of swarm body with its own stats, appearance family and
 behaviour. A strain is a designed stage of the one organism (see *Origin*), not
 another animal: every strain is the Runner's body plan and chitin specialised

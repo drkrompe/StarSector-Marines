@@ -127,4 +127,17 @@ class SwarmBoreTest {
         assertTrue(BoreTier.MAW.sporeColonies > BoreTier.BORE.sporeColonies
                 && BoreTier.BORE.sporeColonies > BoreTier.FISSURE.sporeColonies, "a bore sprouts more colonies as it grows");
     }
+
+    @Test
+    void aHeldBoreSendsNoSurgeUntilWoken() {
+        SwarmBore bore = fissure();
+        int due = bore.nextSurgeTick();
+        bore.hold();
+        assertFalse(bore.surgeDue(due + 1000), "a sleeping bore never surges on its own clock");
+        bore.feed(10f, due + 1000);
+        assertFalse(bore.surgeDue(due + 1000), "feeding does not wake it");
+        bore.surgeAt(due + 1001);
+        assertTrue(bore.surgeDue(due + 1001), "woken, it surges at once");
+        assertFalse(bore.dormant());
+    }
 }
