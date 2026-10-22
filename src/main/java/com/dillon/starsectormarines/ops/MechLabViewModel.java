@@ -794,11 +794,19 @@ public final class MechLabViewModel {
         for (CampaignMechSquad squad : bay.squads()) {
             boolean activeSupport = active != null && squad.id().equals(active.id());
             String base = "mech-squad:" + squad.id();
-            rows.add(new SquadRow(base, base + ":name", base + ":status", base + ":strength",
+            List<LanceSlot> slots = new ArrayList<>();
+            for (int index = 0; index < physicalGantries; index++) {
+                CampaignMech mech = mechAt(squad, index);
+                CampaignVehicle vehicle = mech == null ? vehicleAt(squad, index) : null;
+                String occupant = mech != null ? mech.id() : vehicle != null ? vehicle.id() : "vacant";
+                slots.add(new LanceSlot(base + ":pad:" + index + ":" + occupant, padLetter(index),
+                        mech != null ? mech.variant() : null, vehicle != null ? vehicle.type() : null));
+            }
+            rows.add(new SquadRow(base, base + ":name", base + ":status", base + ":strength", base + ":slots",
                     squad.id().equals(selected) ? "mech-squad-row selected" : "mech-squad-row",
                     squad.displayName(), activeSupport ? Strings.get("openingMechLabActiveSupport") : Strings.get("openingMechLabAvailable"),
-                    Strings.format("openingMechLabAssets", squad.occupied(), CampaignMechSquad.CAPACITY),
-                    () -> selectSquad(squad.id())));
+                    Strings.format("openingMechLabAssets", squad.occupied(), physicalGantries),
+                    List.copyOf(slots), () -> selectSquad(squad.id())));
         }
         return List.copyOf(rows);
     }
@@ -809,10 +817,11 @@ public final class MechLabViewModel {
         CampaignMechSquad squad = selectedSquad();
         if (squad == null) return List.of();
         List<MechRow> rows = new ArrayList<>();
+        int pad = 0;
         for (CampaignMech mech : squad.mechs()) {
             String base = "mech:" + mech.id();
             rows.add(new MechRow(base, base + ":name", base + ":chassis", base + ":subsystem",
-                    base + ":action",
+                    base + ":action", base + ":preview", base + ":pad", padLabel(pad), padLetter(pad++), mech.variant(), null,
                     mech.id().equals(selected) ? "mech-row selected" : "mech-row",
                     mech.displayName(), Strings.join("separatorDot", mech.variant().displayName(), roleLabel(mech.role())),
                     mech.missileReplenisher().displayName(), readinessText(mech),
@@ -823,11 +832,21 @@ public final class MechLabViewModel {
         for (CampaignVehicle vehicle : squad.vehicles()) {
             String base = "vehicle:" + vehicle.id();
             rows.add(new MechRow(base, base + ":name", base + ":chassis", base + ":subsystem",
-                    base + ":action",
+                    base + ":action", base + ":preview", base + ":pad", padLabel(pad), padLetter(pad++), null, vehicle.type(),
                     vehicle.id().equals(selectedVehicle) ? "mech-row selected" : "mech-row",
                     vehicle.displayName(), vehicleIdentity(vehicle.type()),
                     vehicleArmament(vehicle.type()), Strings.get("openingUiMechLabOpenGantry"),
                     "label heading mech-card-action", () -> selectVehicle(vehicle.id())));
+        }
+        for (int index = pad; index < physicalGantries; index++) {
+            String base = "vacant-pad:" + squad.id() + ":" + index;
+            int gantry = index;
+            rows.add(new MechRow(base, base + ":name", base + ":chassis", base + ":subsystem",
+                    base + ":action", base + ":preview", base + ":pad", padLabel(index), padLetter(index), null, null,
+                    "mech-row vacant", Strings.get("openingMechLabVacant2"),
+                    Strings.get("openingMechLabPressOnPadToFabricate"), "",
+                    Strings.get("openingMechLabBuildAction"), "label heading mech-card-action tone-accent",
+                    () -> selectGantry(gantry)));
         }
         return List.copyOf(rows);
     }
@@ -1061,7 +1080,7 @@ public final class MechLabViewModel {
                 base + ":stock", base + ":telemetry", base + ":delta",
                 base + ":detail", base + ":action", base + ":materials", base + ":body",
                 base + ":preview",
-                "catalog-preview hidden", null, null, null, null, "catalog-row selected",
+                "catalog-preview hidden", null, null, null, null, null, "catalog-row selected",
                 slotComponent(mech, selectedSlot.get()),
                 occupied ? Strings.get("openingMechLabInstalled") : Strings.get("openingMechLabEmpty"),
                 occupied ? "catalog-badge in-cargo" : "catalog-badge fabrication",
@@ -1143,7 +1162,7 @@ public final class MechLabViewModel {
                     base + ":stock", base + ":telemetry", base + ":delta",
                     base + ":detail", base + ":action", base + ":materials", base + ":body",
                     base + ":preview",
-                    "catalog-preview", null, component, null, null,
+                    "catalog-preview", null, component, null, null, null,
                     showMaterials ? "catalog-row requires-fabrication" : "catalog-row", component.displayName(),
                     badge, badgeClasses,
                     Strings.format("openingMechLabOwnFree", recipe.provenance(), owned, free),
@@ -1173,7 +1192,7 @@ public final class MechLabViewModel {
                     base + ":stock", base + ":telemetry", base + ":delta",
                     base + ":detail", base + ":action", base + ":materials", base + ":body",
                     base + ":preview",
-                    "catalog-preview", variant, null, null, null, "catalog-row chassis-pattern",
+                    "catalog-preview", variant, null, null, null, null, "catalog-row chassis-pattern",
                     recipe.displayName(), Strings.get("openingMechLabChassis"), "catalog-badge chassis",
                     recipe.provenance(),
                     Strings.format("openingMechLabSpeedArmor", number(variant.moveSpeed), Math.round(variant.armorCapacity)),
@@ -1204,7 +1223,7 @@ public final class MechLabViewModel {
                     base + ":stock", base + ":telemetry", base + ":delta",
                     base + ":detail", base + ":action", base + ":materials", base + ":body",
                     base + ":preview",
-                    "catalog-preview hidden", null, null, null, null, "catalog-row chassis-pattern",
+                    "catalog-preview", null, null, null, null, type, "catalog-row chassis-pattern",
                     recipe.displayName(), Strings.get("openingMechLabVehicle"), "catalog-badge chassis",
                     recipe.provenance(),
                     Strings.format("openingMechLabSpeedArmor", number(type.maxSpeed), Math.round(type.maxArmor)),
@@ -1240,7 +1259,7 @@ public final class MechLabViewModel {
                     base + ":stock", base + ":telemetry", base + ":delta",
                     base + ":detail", base + ":action", base + ":materials", base + ":body",
                     base + ":preview",
-                    "catalog-preview", null, null, component, null,
+                    "catalog-preview", null, null, component, null, null,
                     "catalog-row", component.displayName(),
                     stockBadge(free), inCargo ? "catalog-badge in-cargo" : "catalog-badge unavailable",
                     Strings.format("openingMechLabOwnFieldFree", owned, fielded, free),
@@ -1323,7 +1342,7 @@ public final class MechLabViewModel {
                     base + ":detail", base + ":action", base + ":materials", base + ":body",
                     base + ":preview",
                     internal.role == MechInternal.Role.PLATING ? "catalog-preview hidden" : "catalog-preview",
-                    null, null, null, internal,
+                    null, null, null, internal, null,
                     showMaterials ? "catalog-row requires-fabrication" : "catalog-row", internal.displayName(),
                     badge, badgeClasses,
                     Strings.format("openingMechLabOwnFree", recipe.provenance(), owned, free),
@@ -1677,6 +1696,10 @@ public final class MechLabViewModel {
     /** Pads are lettered A to D, the stencil on each pad and the label on its card. */
     static String padLetter(int index) {
         return String.valueOf((char) ('A' + Math.max(0, index)));
+    }
+
+    private static String padLabel(int index) {
+        return String.format(Strings.locale(), Strings.get("openingMechLabGantryD"), padLetter(index));
     }
 
     private String selectedMachineId() {
@@ -2290,24 +2313,34 @@ public final class MechLabViewModel {
 
     private interface VehicleMetric { float value(VehicleType type); }
 
-    public record SquadRow(String id, String nameId, String statusId, String strengthId,
+    public record SquadRow(String id, String nameId, String statusId, String strengthId, String slotsId,
                            String classes, String name, String status, String strength,
-                           Runnable select) implements MarkupPropertySource {
+                           List<LanceSlot> slots, Runnable select) implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "nameId" -> nameId; case "statusId" -> statusId;
-            case "strengthId" -> strengthId; case "classes" -> classes; case "name" -> name;
-            case "status" -> status; case "strength" -> strength; case "select" -> select;
+            case "strengthId" -> strengthId; case "slotsId" -> slotsId; case "classes" -> classes; case "name" -> name;
+            case "status" -> status; case "strength" -> strength; case "slots" -> slots; case "select" -> select;
             default -> throw unknown("mech-squad", p); }; }
     }
 
+    /** One pad of a lance in the picker: the machine on it, or neither for a vacant pad. */
+    public record LanceSlot(String id, String letter, MechVariant variant, VehicleType vehicle)
+            implements MarkupPropertySource {
+        @Override public Object markupProperty(String p) { return switch (p) {
+            case "id" -> id; default -> throw unknown("mech-lance-slot", p); }; }
+    }
+
     public record MechRow(String id, String nameId, String chassisId, String subsystemId,
-                          String actionId,
+                          String actionId, String previewId, String padId, String pad, String letter,
+                          MechVariant variant, VehicleType vehicle,
                           String classes, String name, String chassis, String subsystem,
                           String status, String statusClasses,
                           Runnable select) implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "nameId" -> nameId; case "chassisId" -> chassisId;
             case "subsystemId" -> subsystemId; case "actionId" -> actionId;
+            case "previewId" -> previewId; case "padId" -> padId; case "pad" -> pad;
+            case "copyId" -> id + ":copy";
             case "classes" -> classes; case "name" -> name;
             case "chassis" -> chassis; case "subsystem" -> subsystem;
             case "status" -> status; case "statusClasses" -> statusClasses; case "select" -> select;
@@ -2409,6 +2442,7 @@ public final class MechLabViewModel {
                              MechWeaponComponent weaponPreview,
                              MissileReplenisherComponent replenisherPreview,
                              MechInternal internalPreview,
+                             VehicleType vehiclePreview,
                              String classes, String name, String badge, String badgeClasses,
                              String stock, String telemetry, String delta, String deltaClasses,
                              String detail, String actionLabel, String actionHint,
