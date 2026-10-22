@@ -158,7 +158,7 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
         EquipmentAcquisitionEligibility.Progress progress =
                 new EquipmentAcquisitionEligibility.Progress(
                         victories, state.playerMrbRep,
-                        MilitaryWarrants.warrantedTemplateIds(state));
+                        MilitaryWarrants.warrantedCardIds(state));
         if (unavailablePatterns != null && paysMechPattern(seed)) {
             List<String> pattern = MechPatternPicker.pick(factionId,
                     FactionEquipmentSource.PATRON, 1, seed, unavailablePatterns, progress,

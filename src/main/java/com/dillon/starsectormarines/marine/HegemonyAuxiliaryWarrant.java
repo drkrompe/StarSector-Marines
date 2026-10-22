@@ -13,22 +13,25 @@ import java.util.List;
  * <p>After *A Small War* settles, a Hegemony procurement office offers enrolment on the record
  * of the Garnir after-action report and the company's Agreus service. The standing rule's
  * higher bar does not apply; the authored route asks for a relationship at
- * {@link #RELATIONSHIP_FLOOR}, the licence threshold. Acceptance opens the approved Arbalest
- * (stage one). The XIV shock pattern (stage two) follows the first honoured obligation
- * period, reported by the warrant's obligations through {@link #honouredPeriod}.
+ * {@link #RELATIONSHIP_FLOOR}, the licence threshold. Acceptance opens the Auxiliary Section
+ * sheet, the section in approved Arbalests (stage one). The Hegemony Shock sheet, in XIV
+ * pattern (stage two), follows the first honoured obligation period, reported by the
+ * warrant's obligations through {@link #honouredPeriod}. Both stages name cards.
  *
  * <p>Every transition is once-only on {@link AuxiliaryWarrantProgress}, and the grants go
- * through {@link MilitaryWarrants#grant}, which is idempotent per template, so a reloaded
+ * through {@link MilitaryWarrants#grant}, which is idempotent per card, so a reloaded
  * answer or a repeated report grants nothing further.
  */
 public final class HegemonyAuxiliaryWarrant {
 
     /** The relationship the offer asks for; it also excludes any hostility. */
     public static final RepLevel RELATIONSHIP_FLOOR = RepLevel.FAVORABLE;
-    /** Stage one: the military support suit, the upgrade of a pattern the company already fields. */
-    public static final String STAGE_ONE = EquipmentTemplateCatalog.armorId("armor.arbalest");
-    /** Stage two: the XIV shock pattern, trusted only after the terms have been kept once. */
-    public static final String STAGE_TWO = EquipmentTemplateCatalog.armorId("armor.heavy");
+    /** Stage one: the section in approved suits, the upgrade of a sheet the company already fields. */
+    public static final String STAGE_ONE = new LoadoutCard(LoadoutCard.Kind.SHEET,
+            SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_SECTION_ARMOR).id();
+    /** Stage two: the XIV shock sheet, trusted only after the terms have been kept once. */
+    public static final String STAGE_TWO = new LoadoutCard(LoadoutCard.Kind.SHEET,
+            SquadEquipmentDoctrines.HEGEMONY_SHOCK_ARMOR).id();
 
     private HegemonyAuxiliaryWarrant() {}
 

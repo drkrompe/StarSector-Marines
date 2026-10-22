@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
 
@@ -9,7 +11,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 /**
- * The painted Mech Lab icon for each weapon: a flat pictogram in a dark shade and a light
+ * The painted Mech Lab icon for each weapon, internal and missile loader: a flat pictogram in a dark shade and a light
  * highlight, laid over the hardware's coloured bricks so the hardpoint colour is the icon's
  * own ground (after MechWarrior 4's lab). Each drawing's viewBox matches its footprint, so it
  * fills the piece it sits on. Fragmentation racks are their rack plus a burst mark.
@@ -17,6 +19,9 @@ import java.util.Map;
 final class HardwareArt {
     private static final String ROOT = "graphics/ui/mech-hardware/";
     private static final Map<MechWeaponComponent, SvgAsset> ART = new EnumMap<>(MechWeaponComponent.class);
+    private static final Map<MechInternal, SvgAsset> INTERNALS = new EnumMap<>(MechInternal.class);
+    private static SvgAsset standardLoader;
+    private static SvgAsset acceleratedLoader;
     private static SvgAsset fragMark;
     private static boolean loaded;
 
@@ -29,6 +34,13 @@ final class HardwareArt {
         for (MechWeaponComponent component : MechWeaponComponent.values()) {
             ART.put(component, SvgAsset.load(ROOT + stem(component) + ".svg"));
         }
+        for (MechInternal internal : MechInternal.values()) {
+            if (internal.role != MechInternal.Role.PLATING) {
+                INTERNALS.put(internal, SvgAsset.load(ROOT + stem(internal) + ".svg"));
+            }
+        }
+        standardLoader = SvgAsset.load(ROOT + "loader-standard.svg");
+        acceleratedLoader = SvgAsset.load(ROOT + "loader-accelerated.svg");
         fragMark = SvgAsset.load(ROOT + "frag-mark.svg");
         loaded = true;
     }
@@ -50,6 +62,40 @@ final class HardwareArt {
             fragMark.draw(c, x + width - mark - insetX * .5f, y + insetY * .5f, mark, mark, tint);
         }
         return true;
+    }
+
+    /** An internal's icon inside the box; false for plating, which has no piece. */
+    static boolean draw(CanvasContext c, MechInternal internal,
+                        float x, float y, float width, float height, int alpha) {
+        preload();
+        return draw(c, INTERNALS.get(internal), x, y, width, height, alpha);
+    }
+
+    static boolean draw(CanvasContext c, MissileReplenisherComponent loader,
+                        float x, float y, float width, float height, int alpha) {
+        preload();
+        return draw(c, MissileReplenisherComponent.ACCELERATED_FEED.equals(loader)
+                ? acceleratedLoader : standardLoader, x, y, width, height, alpha);
+    }
+
+    private static boolean draw(CanvasContext c, SvgAsset art,
+                                float x, float y, float width, float height, int alpha) {
+        if (art == null || width <= 0f || height <= 0f) return false;
+        art.draw(c, x, y, width, height, new Color(255, 255, 255, alpha));
+        return true;
+    }
+
+    private static String stem(MechInternal internal) {
+        return switch (internal) {
+            case INDUSTRIAL_ENGINE -> "engine-industrial";
+            case UPRATED_ENGINE -> "engine-uprated";
+            case MILITARY_ENGINE -> "engine-military";
+            case FACTORY_CAPACITOR_BANK -> "capacitor-factory";
+            case DOUBLE_CAPACITOR_BANK -> "capacitor-double";
+            case MILITARY_CAPACITOR_BANK -> "capacitor-military";
+            case AUXILIARY_VENT_ARRAY -> "vent-auxiliary";
+            case FACTORY_PLATING, COMPOSITE_PLATING, HEAVY_PLATING -> null;
+        };
     }
 
     private static boolean fragmentation(MechWeaponComponent component) {
