@@ -82,7 +82,8 @@ class BattleDirectControlStatusTest {
         var right = new MechWeaponMount(MechMountSlot.RIGHT_SHOULDER, MechWeaponComponent.LRM_15);
         left.ammo = 2;
         var weapons = BattleDirectControlStatus.mechWeapons(new MechWeaponMount[]{right, null, left});
-        assertEquals(List.of(2, 3), weapons.stream().map(BattleDirectControlStatus.WeaponStatus::number).toList());
+        assertEquals(List.of(MechMountSlot.LEFT_SHOULDER.ordinal() + 1, MechMountSlot.RIGHT_SHOULDER.ordinal() + 1),
+                weapons.stream().map(BattleDirectControlStatus.WeaponStatus::number).toList());
         assertEquals("LEFT_SHOULDER", weapons.get(0).slotKey());
         assertTrue(weapons.get(0).directEligible());
         assertEquals(2, weapons.get(0).ammo().remaining());
@@ -136,17 +137,19 @@ class BattleDirectControlStatusTest {
         var arms = new MechWeaponMount(MechMountSlot.ARMS, MechWeaponComponent.NOSE_CHAINGUN);
         var pod = new MechWeaponMount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.SRM_5);
         var lrm = new MechWeaponMount(MechMountSlot.RIGHT_SHOULDER, MechWeaponComponent.LRM_5);
-        var mounts = new MechWeaponMount[]{arms, pod, lrm};
+        var mounts = new MechWeaponMount[MechMountSlot.values().length];
+        for (MechWeaponMount mount : new MechWeaponMount[]{arms, pod, lrm}) mounts[mount.slot.ordinal()] = mount;
         var flux = new MechFlux();
         assertEquals(List.of("L", "R", "R"), BattleDirectControlStatus.mechWeapons(mounts, flux, 0)
                 .stream().map(BattleDirectControlStatus.WeaponStatus::trigger).toList());
-        assertEquals(List.of("", "LR", "R"), BattleDirectControlStatus.mechWeapons(mounts, flux, 2)
+        int podKey = MechMountSlot.LEFT_SHOULDER.ordinal() + 1;
+        assertEquals(List.of("", "LR", "R"), BattleDirectControlStatus.mechWeapons(mounts, flux, podKey)
                 .stream().map(BattleDirectControlStatus.WeaponStatus::trigger).toList());
     }
 
     @Test
     void unlimitedMechFeedAndFiniteApcRoundsRetainTheirDifferentResourceUnits() {
-        var arms = new MechWeaponMount(MechMountSlot.ARMS, MechWeaponComponent.DUAL_CHAINGUNS);
+        var arms = new MechWeaponMount(MechMountSlot.ARMS, MechWeaponComponent.CHAINGUN);
         var mech = BattleDirectControlStatus.mechWeapons(new MechWeaponMount[]{arms}).get(0);
         assertTrue(mech.ammo().unlimited());
         assertEquals(BattleDirectControlStatus.WeaponState.LOADED, mech.state());

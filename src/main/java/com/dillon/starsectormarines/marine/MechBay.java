@@ -707,6 +707,8 @@ public final class MechBay implements Serializable {
     private static MechFittingLayout.SocketId socketFor(MechMountSlot slot) {
         return switch (slot) {
             case ARMS -> MechFittingLayout.SocketId.ARMS;
+            case LEFT_ARM -> MechFittingLayout.SocketId.LEFT_ARM;
+            case RIGHT_ARM -> MechFittingLayout.SocketId.RIGHT_ARM;
             case LEFT_SHOULDER -> MechFittingLayout.SocketId.LEFT_SHOULDER;
             case RIGHT_SHOULDER -> MechFittingLayout.SocketId.RIGHT_SHOULDER;
         };

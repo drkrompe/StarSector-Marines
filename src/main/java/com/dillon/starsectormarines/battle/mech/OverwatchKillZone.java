@@ -494,9 +494,14 @@ public final class OverwatchKillZone implements Action {
         if (hasLrmPressure && !loadout.overwatchRearming) {
             return new OverwatchBand(OVERWATCH_MIN_DIST, OVERWATCH_MAX_DIST, true);
         }
-        MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
-        if (arms == null || (!arms.hasAmmo() && arms.burstRemaining <= 0)) return null;
-        float maxDistance = arms.weaponDef().range;
+        float maxDistance = 0f;
+        for (MechMountSlot slot : MechLoadoutComponent.ARM_SLOTS) {
+            MechWeaponMount arm = loadout.mount(slot);
+            if (arm != null && (arm.hasAmmo() || arm.burstRemaining > 0)) {
+                maxDistance = Math.max(maxDistance, arm.weaponDef().range);
+            }
+        }
+        if (maxDistance <= 0f) return null;
         float minDistance = Math.min(OVERWATCH_MIN_DIST,
                 Math.max(0f, maxDistance - DIRECT_FALLBACK_BAND_DEPTH));
         return new OverwatchBand(minDistance, maxDistance, false);

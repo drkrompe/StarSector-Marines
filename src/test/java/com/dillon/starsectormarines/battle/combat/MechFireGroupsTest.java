@@ -13,31 +13,43 @@ class MechFireGroupsTest {
     private static MechWeaponMount[] mounts(MechWeaponComponent arms, MechWeaponComponent left,
                                             MechWeaponComponent right) {
         MechWeaponMount[] out = new MechWeaponMount[MechMountSlot.values().length];
-        if (arms != null) out[0] = new MechWeaponMount(MechMountSlot.ARMS, arms);
-        if (left != null) out[1] = new MechWeaponMount(MechMountSlot.LEFT_SHOULDER, left);
-        if (right != null) out[2] = new MechWeaponMount(MechMountSlot.RIGHT_SHOULDER, right);
+        put(out, MechMountSlot.ARMS, arms);
+        put(out, MechMountSlot.LEFT_SHOULDER, left);
+        put(out, MechMountSlot.RIGHT_SHOULDER, right);
         return out;
     }
 
     private static MechWeaponMount[] of(MechVariant v) {
-        return mounts(v.arms, v.leftShoulder, v.rightShoulder);
+        MechWeaponMount[] out = new MechWeaponMount[MechMountSlot.values().length];
+        for (MechMountSlot slot : MechMountSlot.values()) put(out, slot, v.stockWeapon(slot));
+        return out;
     }
 
-    private static final int ARMS = 1, LEFT = 2, RIGHT = 4;
+    private static void put(MechWeaponMount[] out, MechMountSlot slot, MechWeaponComponent component) {
+        if (component != null) out[slot.ordinal()] = new MechWeaponMount(slot, component);
+    }
+
+    private static final int ARMS = bit(MechMountSlot.ARMS), LEFT_ARM = bit(MechMountSlot.LEFT_ARM),
+            RIGHT_ARM = bit(MechMountSlot.RIGHT_ARM), LEFT = bit(MechMountSlot.LEFT_SHOULDER),
+            RIGHT = bit(MechMountSlot.RIGHT_SHOULDER);
+
+    private static int bit(MechMountSlot slot) {
+        return 1 << slot.ordinal();
+    }
 
     @Test
     void houndSplitsItsMachinegunFromItsRocketPod() {
         MechWeaponMount[] hound = of(MechVariant.HOUND);
         assertEquals(ARMS, MechFireGroups.primaryMask(hound), "the nose chaingun is the left button");
         assertEquals(LEFT, MechFireGroups.secondaryMask(hound), "the SRM pod is the right button");
-        assertEquals("L", MechFireGroups.badge(hound, 0, hound[0]));
-        assertEquals("R", MechFireGroups.badge(hound, 0, hound[1]));
+        assertEquals("L", MechFireGroups.badge(hound, 0, hound[MechMountSlot.ARMS.ordinal()]));
+        assertEquals("R", MechFireGroups.badge(hound, 0, hound[MechMountSlot.LEFT_SHOULDER.ordinal()]));
     }
 
     @Test
-    void bulwarkPutsBothShoulderRacksOnTheRightButton() {
+    void bulwarkPutsBothArmGunsOnTheLeftButtonAndBothShoulderRacksOnTheRight() {
         MechWeaponMount[] bulwark = of(MechVariant.BULWARK);
-        assertEquals(ARMS, MechFireGroups.primaryMask(bulwark));
+        assertEquals(LEFT_ARM | RIGHT_ARM, MechFireGroups.primaryMask(bulwark));
         assertEquals(LEFT | RIGHT, MechFireGroups.secondaryMask(bulwark));
     }
 
@@ -46,7 +58,7 @@ class MechFireGroupsTest {
         MechWeaponMount[] sirocco = of(MechVariant.SIROCCO);
         assertEquals(ARMS, MechFireGroups.primaryMask(sirocco));
         assertEquals(LEFT | RIGHT, MechFireGroups.secondaryMask(sirocco), "LRMs drop on the cursor point");
-        assertEquals("R", MechFireGroups.badge(sirocco, 0, sirocco[1]));
+        assertEquals("R", MechFireGroups.badge(sirocco, 0, sirocco[MechMountSlot.LEFT_SHOULDER.ordinal()]));
     }
 
     @Test
@@ -59,12 +71,14 @@ class MechFireGroupsTest {
     @Test
     void numberKeyRepointsOnlyTheLeftButton() {
         MechWeaponMount[] hound = of(MechVariant.HOUND);
+        int leftShoulderKey = MechMountSlot.LEFT_SHOULDER.ordinal() + 1;
         assertEquals(ARMS, MechFireGroups.leftMask(hound, 0));
-        assertEquals(LEFT, MechFireGroups.leftMask(hound, 2));
-        assertEquals(LEFT, MechFireGroups.rightMask(hound, 2));
-        assertEquals("LR", MechFireGroups.badge(hound, 2, hound[1]));
-        assertEquals("", MechFireGroups.badge(hound, 2, hound[0]));
-        assertEquals(0, MechFireGroups.leftMask(hound, 3), "an empty hardpoint fires nothing");
+        assertEquals(LEFT, MechFireGroups.leftMask(hound, leftShoulderKey));
+        assertEquals(LEFT, MechFireGroups.rightMask(hound, leftShoulderKey));
+        assertEquals("LR", MechFireGroups.badge(hound, leftShoulderKey, hound[MechMountSlot.LEFT_SHOULDER.ordinal()]));
+        assertEquals("", MechFireGroups.badge(hound, leftShoulderKey, hound[MechMountSlot.ARMS.ordinal()]));
+        assertEquals(0, MechFireGroups.leftMask(hound, MechMountSlot.RIGHT_SHOULDER.ordinal() + 1),
+                "an empty hardpoint fires nothing");
         assertEquals(0, MechFireGroups.leftMask(hound, 9));
         assertEquals(0, MechFireGroups.leftMask(hound, -1));
     }

@@ -22,7 +22,7 @@ class LayeredMechComposerTest {
                         layers.add(fileName(sprite.sourcePath)),
                 assets, 400f, 300f, 208f,
                 0f, 0f, 0f, 0f, 0f, 0f, 0,
-                variant.chassisAppearance, LayeredMechAppearance.ARMS_NONE,
+                variant.chassisAppearance, LayeredMechAppearance.ARMS_NONE, LayeredMechAppearance.ARMS_NONE, LayeredMechAppearance.ARMS_NONE,
                 LayeredMechAppearance.POD_NONE, LayeredMechAppearance.POD_NONE, 1f);
 
         assertEquals(List.of("foot.png", "foot.png", "chassis.png"), layers);
@@ -38,7 +38,7 @@ class LayeredMechComposerTest {
                         layers.add(new Layer(sprite.sourcePath, x, y, width, height, angle)),
                 assets, 400f, 300f, 208f,
                 0f, 0f, 0f, 0f, 0f, 0f, 0,
-                variant.chassisAppearance, variant.arms.appearanceSelector,
+                variant.chassisAppearance, centre(variant), left(variant), right(variant),
                 variant.leftShoulder.appearanceSelector,
                 variant.rightShoulder.appearanceSelector, 1f);
 
@@ -61,7 +61,7 @@ class LayeredMechComposerTest {
                         layers.add(fileName(sprite.sourcePath)),
                 assets, 400f, 300f, 208f,
                 0f, 0f, 0f, 0f, 0f, 0f, 0,
-                variant.chassisAppearance, variant.arms.appearanceSelector,
+                variant.chassisAppearance, centre(variant), left(variant), right(variant),
                 variant.leftShoulder.appearanceSelector,
                 LayeredMechAppearance.POD_NONE, 1f);
 
@@ -82,7 +82,7 @@ class LayeredMechComposerTest {
                 assets, 400f, 300f, 208f,
                 0f, 0f, 0.40f, 0f, 0f, 0f,
                 LayeredMechAppearance.FLAG_MOVING,
-                variant.chassisAppearance, variant.arms.appearanceSelector,
+                variant.chassisAppearance, centre(variant), left(variant), right(variant),
                 variant.leftShoulder.appearanceSelector,
                 variant.rightShoulder.appearanceSelector, 1f);
 
@@ -107,7 +107,7 @@ class LayeredMechComposerTest {
                 assets, 400f, 300f, 208f,
                 0f, 0f, 0.4f, 0f, 0f, 0f,
                 LayeredMechAppearance.FLAG_MOVING,
-                variant.chassisAppearance, variant.arms.appearanceSelector,
+                variant.chassisAppearance, centre(variant), left(variant), right(variant),
                 variant.leftShoulder.appearanceSelector,
                 LayeredMechAppearance.POD_NONE, 1f, null, gait);
 
@@ -134,7 +134,7 @@ class LayeredMechComposerTest {
     }
 
     @Test
-    void dualChaingunFlashPreservesPairedLayerTreatment() {
+    void armChaingunsFlashAtTheirOwnArmMuzzles() {
         LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
         MechVariant variant = MechVariant.BULWARK;
         List<Layer> layers = emitFlashingMech(assets, variant,
@@ -150,7 +150,7 @@ class LayeredMechComposerTest {
     }
 
     @Test
-    void dualPulseLasersReuseThePairedArmMountsAndMuzzles() {
+    void pulseLaserOnEachArmDrawsOneBarrelAndMuzzlePerArm() {
         LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
         List<Layer> layers = new ArrayList<>();
         MechVariant variant = MechVariant.BULWARK;
@@ -160,7 +160,8 @@ class LayeredMechComposerTest {
                 assets, 400f, 300f, 208f,
                 0f, 0f, 0f, 0f, 0f, 0f,
                 LayeredMechAppearance.FLAG_CHAINGUN_FLASH,
-                variant.chassisAppearance, LayeredMechAppearance.ARMS_PULSE_LASER,
+                variant.chassisAppearance, LayeredMechAppearance.ARMS_NONE,
+                LayeredMechAppearance.ARMS_PULSE_LASER, LayeredMechAppearance.ARMS_PULSE_LASER,
                 variant.leftShoulder.appearanceSelector,
                 variant.rightShoulder.appearanceSelector, 1f);
 
@@ -217,8 +218,8 @@ class LayeredMechComposerTest {
                         bastion.add(new Layer(sprite.sourcePath, x, y, width, height, angle)),
                 assets, 400f, 300f, 208f, 0f, 0f, 0f, 0f, 0f, 0f,
                 LayeredMechAppearance.FLAG_CHAINGUN_FLASH,
-                MechVariant.BULWARK.chassisAppearance,
-                LayeredMechAppearance.ARMS_BASTION_AUTOCANNON,
+                MechVariant.BULWARK.chassisAppearance, LayeredMechAppearance.ARMS_NONE,
+                LayeredMechAppearance.ARMS_BASTION_AUTOCANNON, LayeredMechAppearance.ARMS_BASTION_AUTOCANNON,
                 LayeredMechAppearance.POD_LARGE_SRM,
                 LayeredMechAppearance.POD_LARGE_SRM, 1f);
         assertEquals(2, bastion.stream().filter(layer ->
@@ -231,7 +232,7 @@ class LayeredMechComposerTest {
                         demolition.add(new Layer(sprite.sourcePath, x, y, width, height, angle)),
                 assets, 400f, 300f, 208f, 0f, 0f, 0f, 0f, 0f, 0f, 0,
                 MechVariant.HOUND.chassisAppearance,
-                LayeredMechAppearance.ARMS_DEMOLITION_CANNON,
+                LayeredMechAppearance.ARMS_DEMOLITION_CANNON, LayeredMechAppearance.ARMS_NONE, LayeredMechAppearance.ARMS_NONE,
                 LayeredMechAppearance.POD_SMALL_SRM,
                 LayeredMechAppearance.POD_NONE, 1f);
         assertEquals(1, demolition.stream().filter(layer ->
@@ -247,15 +248,15 @@ class LayeredMechComposerTest {
     }
 
     @Test
-    void commercialWeaponsUsePairedNoseAndShoulderHardpoints() {
+    void commercialWeaponsUseArmNoseAndShoulderHardpoints() {
         LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
         List<Layer> muster = new ArrayList<>();
         LayeredMechComposer.emit((sprite, x, y, width, height, angle, alpha) ->
                         muster.add(new Layer(sprite.sourcePath, x, y, width, height, angle)),
                 assets, 400f, 300f, 208f, 0f, 0f, 0f, 0f, 0f, 0f,
                 LayeredMechAppearance.FLAG_CHAINGUN_FLASH,
-                MechVariant.BULWARK.chassisAppearance,
-                LayeredMechAppearance.ARMS_MUSTER_AUTOGUN,
+                MechVariant.BULWARK.chassisAppearance, LayeredMechAppearance.ARMS_NONE,
+                LayeredMechAppearance.ARMS_MUSTER_AUTOGUN, LayeredMechAppearance.ARMS_MUSTER_AUTOGUN,
                 LayeredMechAppearance.POD_NONE,
                 LayeredMechAppearance.POD_PIONEER_ROCKET, 1f);
         assertEquals(2, muster.stream().filter(layer ->
@@ -271,7 +272,7 @@ class LayeredMechComposerTest {
                 assets, 400f, 300f, 208f, 0f, 0f, 0f, 0f, 0f, 0f,
                 LayeredMechAppearance.FLAG_SRM_FLASH,
                 MechVariant.HOUND.chassisAppearance,
-                LayeredMechAppearance.ARMS_QUARRY_BREAKER,
+                LayeredMechAppearance.ARMS_QUARRY_BREAKER, LayeredMechAppearance.ARMS_NONE, LayeredMechAppearance.ARMS_NONE,
                 LayeredMechAppearance.POD_PIONEER_ROCKET,
                 LayeredMechAppearance.POD_NONE, 1f);
         assertEquals(1, quarry.stream().filter(layer ->
@@ -294,10 +295,22 @@ class LayeredMechComposerTest {
                         layers.add(new Layer(sprite.sourcePath, x, y, width, height, angle)),
                 assets, 400f, 300f, 208f,
                 0f, 0f, 0f, 0f, 0f, 0f, flags,
-                variant.chassisAppearance, variant.arms.appearanceSelector,
+                variant.chassisAppearance, centre(variant), left(variant), right(variant),
                 variant.leftShoulder.appearanceSelector,
                 rightShoulderAppearance, 1f);
         return layers;
+    }
+
+    private static int centre(MechVariant variant) {
+        return variant.arms != null ? variant.arms.appearanceSelector : LayeredMechAppearance.ARMS_NONE;
+    }
+
+    private static int left(MechVariant variant) {
+        return variant.leftArm != null ? variant.leftArm.appearanceSelector : LayeredMechAppearance.ARMS_NONE;
+    }
+
+    private static int right(MechVariant variant) {
+        return variant.rightArm != null ? variant.rightArm.appearanceSelector : LayeredMechAppearance.ARMS_NONE;
     }
 
     private static String fileName(String path) {

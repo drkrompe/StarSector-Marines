@@ -36,7 +36,7 @@ class MechPointFireTest {
 
     @Test
     void everyMountKeepsIndependentResourcesAndTheArcingRackDropsOnThePoint() {
-        Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS,
+        Fixture f = new Fixture(MechWeaponComponent.CHAINGUN,
                 MechWeaponComponent.SRM_5, MechWeaponComponent.LRM_5);
         MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
         MechWeaponMount srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
@@ -53,7 +53,7 @@ class MechPointFireTest {
         assertNotNull(salvo.onArrival, "an LRM round always lands");
         assertEquals(NORTH.x(), salvo.onArrival.endpointX, 0.001f);
         assertEquals(NORTH.y(), salvo.onArrival.endpointY, 0.001f);
-        assertEquals(11, arms.burstRemaining);
+        assertEquals(arms.component.projectilesPerTrigger - 1, arms.burstRemaining);
         assertEquals(1, srm.burstRemaining, "the installed small rack owns packet size");
         assertEquals(NORTH, arms.burstPointAim);
         assertEquals(0L, arms.burstTargetId);
@@ -61,14 +61,14 @@ class MechPointFireTest {
 
     @Test
     void selectedHardpointIsTheOnlyManualTriggerAndOtherMountClocksStillAdvanceOnce() {
-        Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS,
+        Fixture f = new Fixture(MechWeaponComponent.CHAINGUN,
                 MechWeaponComponent.SRM_5, MechWeaponComponent.LRM_5);
         var arms = f.loadout.mount(MechMountSlot.ARMS);
         var srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
         var lrm = f.loadout.mount(MechMountSlot.RIGHT_SHOULDER);
         arms.cycleRemaining = 1f;
         int ammo = srm.ammo;
-        f.weapons.tick(f.shooter, NORTH, true, 2);
+        f.weapons.tick(f.shooter, NORTH, true, LEFT_SHOULDER_KEY);
         assertEquals(1, f.shots.getActiveShots().size());
         assertEquals(0, arms.burstRemaining);
         assertEquals(1f - BattleSimulation.TICK_DT, arms.cycleRemaining, 0.00001f);
@@ -82,30 +82,34 @@ class MechPointFireTest {
         assertEquals(srm.component.projectilesPerTrigger, f.shots.getActiveShots().size());
         assertEquals(ammo - 1, srm.ammo, "selection does not split or reprice the authored trigger pack");
 
-        Fixture invalid = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS, null, null);
-        invalid.weapons.tick(invalid.shooter, NORTH, true, 4);
+        Fixture invalid = new Fixture(MechWeaponComponent.CHAINGUN, null, null);
+        invalid.weapons.tick(invalid.shooter, NORTH, true, 9);
         assertTrue(invalid.shots.getActiveShots().isEmpty());
     }
 
     @Test
-    void burstTracksLivePointAlternatesBarrelsAndDoesNotRestartWhileHeld() {
-        Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS, null, null);
-        MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
+    void eachArmGunTracksTheLivePointFromItsOwnArmAndDoesNotRestartWhileHeld() {
+        Fixture f = Fixture.bulwark(MechWeaponComponent.CHAINGUN, null, null);
+        MechWeaponMount left = f.loadout.mount(MechMountSlot.LEFT_ARM);
+        MechWeaponMount right = f.loadout.mount(MechMountSlot.RIGHT_ARM);
         f.fire(NORTH);
         f.loadout.torsoFacingDegrees = -90f;
         int ticks = 1;
-        while (arms.burstRemaining > 0 && ticks < 100) {
+        while ((left.burstRemaining > 0 || right.burstRemaining > 0) && ticks < 100) {
             f.weapons.tick(f.shooter, EAST, true);
             ticks++;
         }
-        assertEquals(12, f.shots.getActiveShots().size());
-        assertEquals(0, arms.burstRemaining);
-        assertNull(arms.burstPointAim);
-        assertTrue(f.shots.getActiveShots().get(0).toY > f.shots.getActiveShots().get(0).fromY);
-        assertTrue(f.shots.getActiveShots().subList(1, 12).stream().allMatch(s -> s.toX > s.fromX));
-        assertNotEquals(f.shots.getActiveShots().get(1).fromY, f.shots.getActiveShots().get(2).fromY,
-                "paired barrels still alternate after changing aim");
-        assertEquals(arms.component.cycleSeconds() - ticks * BattleSimulation.TICK_DT, arms.cycleRemaining, 0.00001f);
+        int rounds = left.component.projectilesPerTrigger + right.component.projectilesPerTrigger;
+        assertEquals(rounds, f.shots.getActiveShots().size());
+        assertEquals(0, left.burstRemaining);
+        assertEquals(0, right.burstRemaining);
+        assertNull(left.burstPointAim);
+        List<ShotEvent> shots = f.shots.getActiveShots();
+        assertTrue(shots.subList(0, 2).stream().allMatch(s -> s.toY > s.fromY), "both arms open on the north point");
+        assertTrue(shots.subList(2, rounds).stream().allMatch(s -> s.toX > s.fromX));
+        assertNotEquals(shots.get(2).fromY, shots.get(3).fromY,
+                "each arm keeps firing from its own muzzle after changing aim");
+        assertEquals(left.component.cycleSeconds() - ticks * BattleSimulation.TICK_DT, left.cycleRemaining, 0.00001f);
     }
 
     @Test
@@ -144,14 +148,18 @@ class MechPointFireTest {
         // A point just ahead of the centre, and one a few cells off to the side, used to fail the
         // per-muzzle alignment check on the laterally offset barrels and drop half of every burst.
         for (PointFireAim aim : List.of(new PointFireAim(20.5f, 20.6f), new PointFireAim(21.0f, 25.5f))) {
-            Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS, null, null);
-            MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
+            Fixture f = Fixture.bulwark(MechWeaponComponent.CHAINGUN, null, null);
+            MechWeaponMount left = f.loadout.mount(MechMountSlot.LEFT_ARM);
+            MechWeaponMount right = f.loadout.mount(MechMountSlot.RIGHT_ARM);
             f.loadout.torsoFacingDegrees = (float) Math.toDegrees(Math.atan2(aim.x() - 20.5f, aim.y() - 20.5f)) * -1f;
             f.roster.entityWorld().setFloat(f.shooter, f.roster.components().MECH_LOCOMOTION,
                     BattleComponents.MECH_LOCOMOTION_FACING_DEGREES, f.loadout.torsoFacingDegrees);
             f.fire(aim);
-            for (int i = 0; i < 100 && arms.burstRemaining > 0; i++) f.weapons.tick(f.shooter, aim, true);
-            assertEquals(12, f.shots.getActiveShots().size(), "every round of the burst leaves at " + aim);
+            for (int i = 0; i < 100 && (left.burstRemaining > 0 || right.burstRemaining > 0); i++) {
+                f.weapons.tick(f.shooter, aim, true);
+            }
+            assertEquals(left.component.projectilesPerTrigger + right.component.projectilesPerTrigger,
+                    f.shots.getActiveShots().size(), "every round of both arms' bursts leaves at " + aim);
             for (ShotEvent shot : f.shots.getActiveShots()) {
                 assertTrue(shot.toY > shot.fromY, "rounds fly forward, never back under the chassis");
             }
@@ -178,7 +186,7 @@ class MechPointFireTest {
 
     @Test
     void blockedManualBarrelExpiresItsPacketAndClearPreservesResources() {
-        Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS, null, null);
+        Fixture f = new Fixture(MechWeaponComponent.CHAINGUN, null, null);
         MechWeaponMount mount = f.loadout.mount(MechMountSlot.ARMS);
         f.fire(NORTH);
         f.roster.world().setPos(f.shooter, 20.5f, 20.35f);
@@ -201,7 +209,7 @@ class MechPointFireTest {
 
     @Test
     void torsoFollowsCursorDuringCommittedBurstAndNeverBorrowsTheAiTarget() {
-        Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS, null, null);
+        Fixture f = new Fixture(MechWeaponComponent.CHAINGUN, null, null);
         f.fire(NORTH);
         long enemy = f.roster.spawn(new EntitySpec("enemy", Faction.DEFENDER, UnitType.MARINE, 2, 20));
         f.roster.world().setTargetId(f.shooter, enemy);
@@ -217,7 +225,7 @@ class MechPointFireTest {
 
     @Test
     void wallBlastUsesPhysicalContactAndAiFlightStartsAtTheVisibleMuzzle() {
-        Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS, null, null);
+        Fixture f = new Fixture(MechWeaponComponent.CHAINGUN, null, null);
         for (int x = 0; x < 128; x++) f.grid.setWalkable(x, 40, false);
         f.fire(NORTH);
         ShotEvent shot = f.shots.getActiveShots().get(0);
@@ -375,7 +383,7 @@ class MechPointFireTest {
 
     @Test
     void leftButtonFiresThePrimaryGroupAndRightButtonTheSecondaryGroupIndependently() {
-        Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS,
+        Fixture f = new Fixture(MechWeaponComponent.CHAINGUN,
                 MechWeaponComponent.SRM_5, MechWeaponComponent.SRM_5);
         MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
         MechWeaponMount left = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
@@ -409,8 +417,8 @@ class MechPointFireTest {
         Fixture f = new Fixture(MechWeaponComponent.NOSE_CHAINGUN, MechWeaponComponent.SRM_5, null);
         MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
         MechWeaponMount srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
-        f.weapons.tick(f.shooter, NORTH, true, false, 2);
-        assertEquals(0f, arms.cycleRemaining, "key 3 moved the left button onto the left shoulder");
+        f.weapons.tick(f.shooter, NORTH, true, false, LEFT_SHOULDER_KEY);
+        assertEquals(0f, arms.cycleRemaining, "a number key moved the left button onto the left shoulder");
         assertEquals(srm.component.ammoCapacity - 1, srm.ammo);
     }
 
@@ -424,7 +432,7 @@ class MechPointFireTest {
 
     @Test
     void releasingAGroupButtonLetsItsQueuedBurstFinishButAnotherSelectionDropsIt() {
-        Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS, MechWeaponComponent.SRM_5, null);
+        Fixture f = new Fixture(MechWeaponComponent.CHAINGUN, MechWeaponComponent.SRM_5, null);
         MechWeaponMount srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
         f.weapons.tick(f.shooter, NORTH, false, true, 0);
         assertEquals(1, srm.burstRemaining);
@@ -433,6 +441,13 @@ class MechPointFireTest {
         assertEquals(srm.component.projectilesPerTrigger, f.shots.getActiveShots().size());
     }
 
+    /** The number-key selection that points the left button at the left shoulder. */
+    private static final int LEFT_SHOULDER_KEY = MechMountSlot.LEFT_SHOULDER.ordinal() + 1;
+
+    /**
+     * A bare chassis carrying {@code arms} on its centreline mount (a Sirocco frame), or, from
+     * {@link #bulwark}, one gun on each arm.
+     */
     private static final class Fixture {
         final NavigationGrid grid = new NavigationGrid(128, 128);
         final UnitSpatialIndex index = new UnitSpatialIndex(128, 128);
@@ -444,9 +459,18 @@ class MechPointFireTest {
         final long shooter;
 
         Fixture(MechWeaponComponent arms, MechWeaponComponent left, MechWeaponComponent right) {
+            this(MechVariant.SIROCCO, arms, left, right);
+        }
+
+        static Fixture bulwark(MechWeaponComponent armGun, MechWeaponComponent left, MechWeaponComponent right) {
+            return new Fixture(MechVariant.BULWARK, armGun, left, right);
+        }
+
+        private Fixture(MechVariant variant, MechWeaponComponent arms, MechWeaponComponent left,
+                        MechWeaponComponent right) {
             for (int y = 0; y < 128; y++) for (int x = 0; x < 128; x++) grid.setWalkableFloor(x, y);
             shooter = roster.spawn(new EntitySpec("manual mech", Faction.MARINE, UnitType.HEAVY_MECH, 20, 20));
-            loadout = new MechLoadoutComponent(MechVariant.BULWARK, arms, left, right, MechRole.ARMORED_SUPPORT);
+            loadout = new MechLoadoutComponent(variant, arms, left, right, MechRole.ARMORED_SUPPORT);
             loadout.torsoFacingDegrees = 0f;
             roster.world().attachMechLoadout(shooter, loadout);
             roster.entityWorld().setFloat(shooter, roster.components().MECH_LOCOMOTION,

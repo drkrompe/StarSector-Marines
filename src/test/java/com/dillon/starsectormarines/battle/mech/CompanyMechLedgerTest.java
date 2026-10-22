@@ -60,8 +60,7 @@ class CompanyMechLedgerTest {
 
     private static MechLoadoutComponent bulwark() {
         MechVariant variant = MechVariant.BULWARK;
-        return new MechLoadoutComponent(variant, variant.arms, variant.leftShoulder,
-                variant.rightShoulder, variant.defaultRole);
+        return new MechLoadoutComponent(variant, variant.defaultRole);
     }
 
     private static void hit(MechSections sections, MechSection section, float damage) {

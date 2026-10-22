@@ -544,7 +544,7 @@ final class ElevationGradientLook {
             double faceX = ramp.uy() * side, faceY = -ramp.ux() * side;   // from the wall into the floor
             float facing = (float) ((faceX * lx + faceY * ly) / Math.hypot(lx, ly));
             float n = noise(wx * 4.3f, wy * 4.3f) * .5f + noise(wx * 11f, wy * 11f) * .3f;
-            float[] mat = style == RampStyle.STAIRS ? new float[]{150 + 14 * n, 141 + 13 * n, 126 + 12 * n}
+            float[] mat = style == RampStyle.STAIRS ? new float[]{126 + 14 * n, 115 + 13 * n, 101 + 12 * n}
                     : new float[]{142 + 22 * n, 114 + 18 * n, 82 + 14 * n};
             float grade = lerp(.6f, 1.18f, smooth(entry[i] - 1.2, length, along));
             float fr = mat[0] * grade, fg = mat[1] * grade, fb = mat[2] * grade;
@@ -556,8 +556,19 @@ final class ElevationGradientLook {
                 float k = 1f - .32f * groove + .12f * lip;
                 fr *= k; fg *= k; fb *= k;
             } else if (style == RampStyle.STAIRS) {
-                double pitch = .5, phase = along / pitch - Math.floor(along / pitch);
-                float k = phase < .2 ? .6f : phase < .3 ? 1.2f : 1f;
+                // Rough-hewn, not ruled: each riser wanders along its length, the spacing
+                // drifts, every step is its own stone, and the nosings are worn and chipped.
+                double bent = along + noise((float) signed * 2.2f, (float) along * 1.9f + i * 5f) * .07
+                        + noise((float) signed * .8f + 4f, (float) along * 2.3f) * .05
+                        + noise((float) along * 1.1f + 11f, i * 3f) * .16 + noise(wx * 9f, wy * 9f) * .015;
+                double pitch = .5, steps = bent / pitch;
+                int id = (int) Math.floor(steps);
+                double phase = steps - id;
+                float worn = smooth(-.45, .05, noise((float) signed * 2.4f + id * 1.7f, id * 2.3f) + noise(wx * 7f, wy * 7f) * .25f);
+                float riser = smooth(.0, .05, phase) * smooth(.24, .14, phase);
+                float nosing = smooth(.22, .28, phase) * smooth(.4, .3, phase);
+                float k = 1f - .38f * riser * (.12f + .88f * worn) + .14f * nosing * worn;
+                k *= 1f + (unit(hash(id, 97 + i)) - .5f) * .14f + noise(wx * 6f, wy * 6f) * .04f;
                 k = lerp(1f, k, smooth(half + .02, half - .2, across) * inCut);
                 fr *= k; fg *= k; fb *= k;
             }

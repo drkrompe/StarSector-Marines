@@ -50,6 +50,8 @@ public final class MechChassisPreviewCanvas implements CanvasProducer {
                 0f, 0f, 0f, 0f, 0f, 0f, 0,
                 variant.chassisAppearance,
                 LayeredMechAppearance.ARMS_NONE,
+                LayeredMechAppearance.ARMS_NONE,
+                LayeredMechAppearance.ARMS_NONE,
                 LayeredMechAppearance.POD_NONE,
                 LayeredMechAppearance.POD_NONE,
                 1f);

@@ -21,18 +21,21 @@ public final class LayeredMechAppearance {
      */
     public static final float MAX_TORSO_TWIST_DEGREES = 145f;
 
-    /** Explicitly empty arm hardpoint for bare-chassis and fitting previews. */
-    public static final int ARMS_NONE = -1;
-    public static final int ARMS_CHAINGUN = 0;
-    public static final int ARMS_LINEAR_CANNON = 1;
-    public static final int ARMS_NOSE_CHAINGUN = 2;
-    public static final int ARMS_HEAVY_CANNON = 3;
-    public static final int ARMS_PULSE_LASER = 4;
-    public static final int ARMS_BASTION_AUTOCANNON = 5;
-    public static final int ARMS_DEMOLITION_CANNON = 6;
-    public static final int ARMS_MUSTER_AUTOGUN = 7;
-    public static final int ARMS_NOSE_MUSTER_AUTOGUN = 8;
-    public static final int ARMS_QUARRY_BREAKER = 9;
+    /**
+     * An empty arm hardpoint. Zero, so an arm column nobody wrote (a chassis without that mount)
+     * draws nothing. Every arm selector names one gun's art; the mount it sits on says where.
+     */
+    public static final int ARMS_NONE = 0;
+    public static final int ARMS_CHAINGUN = 1;
+    public static final int ARMS_LINEAR_CANNON = 2;
+    public static final int ARMS_NOSE_CHAINGUN = 3;
+    public static final int ARMS_HEAVY_CANNON = 4;
+    public static final int ARMS_PULSE_LASER = 5;
+    public static final int ARMS_BASTION_AUTOCANNON = 6;
+    public static final int ARMS_DEMOLITION_CANNON = 7;
+    public static final int ARMS_MUSTER_AUTOGUN = 8;
+    public static final int ARMS_NOSE_MUSTER_AUTOGUN = 9;
+    public static final int ARMS_QUARRY_BREAKER = 10;
     public static final int CHASSIS_CLEAN = 0;
     public static final int CHASSIS_SOCKETED = 1;
     public static final int CHASSIS_HOUND = 2;

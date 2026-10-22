@@ -47,7 +47,7 @@ VARIANTS = (
         "srm-pod.png",
         "top-pair",
         1.60,
-        "DUAL CHAINGUNS  /  SRM-15  /  SRM-15",
+        "2x CHAINGUN  /  SRM-15  /  SRM-15",
     ),
     Variant(
         "HOUND",

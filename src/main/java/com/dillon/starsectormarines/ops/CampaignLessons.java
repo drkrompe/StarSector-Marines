@@ -144,6 +144,14 @@ final class CampaignLessons {
                 action == null ? null : LessonCopy.text(action), run);
     }
 
+    /** The same lesson in a callout {@code height} tall, for a screen with little room to spare. */
+    static PreparationGuide.Lesson lesson(int step, String title, String copy, List<String> targets,
+                                           String action, Runnable run, int height) {
+        PreparationGuide.Lesson lesson = lesson(step, title, copy, targets, action, run);
+        return new PreparationGuide.Lesson(lesson.milestone(), lesson.title(), lesson.copy(), lesson.targets(),
+                lesson.actionLabel(), lesson.action(), height, lesson.later());
+    }
+
     private static PreparationGuide.Lesson lessonText(int step, String title, String copy, List<String> targets,
                                                        String action, Runnable run) {
         var interactive = new ArrayList<>(targets);

@@ -42,6 +42,17 @@ increasing an encounter's total armored threat.
   response, the Hound the lightest, and the Sirocco an intermediate response.
 - A **mount** is physical hardware at an arm or shoulder position. An absent
   mount is genuinely absent, never a dummy weapon or a hidden firing band.
+  The arm positions come in two shapes, and a chassis has one or the other:
+  a **centreline arm mount** (`ARMS`, the gun under the Hound's nose or the
+  Sirocco's chin) or a **left and a right arm mount** (`LEFT_ARM`,
+  `RIGHT_ARM`, the Bulwark's two arms, each with its own gun). Every arm gun is
+  one gun: there is no paired or "dual" component, because a pair is two arm
+  mounts, each fitted, damaged, lost and fired on its own. A gun whose art only
+  reads on the centreline (the nose chaingun and nose autogun, the heavy,
+  demolition and quarry-breaker cannons) fits only a centreline mount; the
+  other arm guns fit any arm mount. Direct-control number keys follow mount
+  order: 1 restores the default fire groups, then 2 centreline arm, 3 left arm,
+  4 right arm, 5 and 6 the shoulders.
 - A **missile replenisher** is an installed onboard subsystem. It owns how
   quickly finite SRM and LRM mounts regain trigger packs, independently of
   their mechanical trigger cycle and ready-ammunition capacity. Replenishment repeats
@@ -230,11 +241,13 @@ increasing an encounter's total armored threat.
   figures stay what the Mech Lab budget reads. Unowned mechs, and any mech off
   the founding hull, deploy neutral; battle never reads the ship.
 - A **section** is where on a mech a round lands (`MechSection`): legs, torso,
-  the arms mount, the left and right shoulder mounts, and the head. A chassis's
+  the centreline arm mount or the left and right arm mounts, the left and right
+  shoulder mounts, and the head. A chassis's
   **mech plan** (`MechBodyPlan`, authored per chassis) stacks four height bands
   from the feet up (legs, torso, shoulders, head) so the ballistic height picks
-  the band exactly as it picks a marine's part; the torso band gives the arms
-  mount a lateral share of its hits, and the shoulder band gives the hit to the
+  the band exactly as it picks a marine's part; the torso band gives the arm
+  mounts a lateral share of its hits (a centreline mount takes them all, a
+  two-armed chassis gives each to the arm on the side the round came from), and the shoulder band gives the hit to the
   shoulder on the side the round came from, read against the upper torso's
   facing. A lone pod a chassis draws on its centreline (the Hound's) takes the
   whole shoulder band. A payload with no ballistic height (a blast, a strafe) is
@@ -371,8 +384,9 @@ increasing an encounter's total armored threat.
   them, muzzle forward.
   Each asset-class layout owns the socket's compatibility and capacity. The lab
   draws the sockets as a **schematic**, not as docks around the machine: the
-  engine core in the middle of a drafting panel on the left, the arm assembly
-  ahead of it, a shoulder either side, the capacitors and mini-fab behind, each
+  engine core in the middle of a drafting panel on the left, the arm mount
+  ahead of it (on a two-armed chassis, an arm card ahead-left and one
+  ahead-right), a shoulder either side, the capacitors and mini-fab behind, each
   wired back to the core in its hardpoint colour. The fitting camera stands the
   machine itself in the right of the view, beside the schematic.
   Presentation may enforce a minimum pointer hit area for usability without
@@ -477,13 +491,13 @@ increasing an encounter's total armored threat.
 ## Family and doctrine
 
 The Bulwark is the durable all-band anchor and compatibility control case. Its
-neutral production fit carries paired chaingun arms and twin anti-armor
-SRM shoulders (Missile warheads). Tri-Tachyon issue replaces the arms with paired rapid pulse-laser
-arrays and the right omni shoulder with a long-cooldown direct laser cannon whose
+neutral production fit carries a chaingun on each arm and twin anti-armor
+SRM shoulders (Missile warheads). Tri-Tachyon issue replaces them with a rapid pulse laser on
+each arm and the right omni shoulder with a long-cooldown direct laser cannon whose
 lance can pass through one body. Those are explicit faction hardware swaps;
 livery changes only the accepted casing paint of whichever components are
-installed. Hegemony Bulwarks replace the arm battery with paired Bastion
-autocannons: slower six-round service bursts trade saturation for range and
+installed. Hegemony Bulwarks put a Bastion autocannon on each
+arm: slower six-round service bursts trade saturation for range and
 armor penetration. Luddic Path Hounds replace the nose gun with a five-shell
 Foundry Breaker, an inaccurate demolition cannon whose contact payload, broad
 blast, and structural damage make every shot consequential. Lion's Guard
@@ -1268,7 +1282,7 @@ first after a release takes the flux. Against a mech or a ground vehicle, mounts
 are tried in order of armor efficiency against that target's rating
 (`clamp(penetration / rating, 0, 1)`, the better of a weapon's payloads), with
 slot order kept on ties (`MechFireOrder`). Against anything else the slot order
-stands: arms, left shoulder, right shoulder. So a Bulwark's SRM shoulders, its
+stands: arm mounts, left shoulder, right shoulder. So a Bulwark's SRM shoulders, its
 anti-armor weapons, are no longer starved by the chaingun against a machine,
 while its fire at infantry is exactly what it was. An anti-armor rack (penetration 30) defeats any mech's plate outright, so a
 heavy cannon, which also does, keeps its slot ahead of it, a bastion yields to

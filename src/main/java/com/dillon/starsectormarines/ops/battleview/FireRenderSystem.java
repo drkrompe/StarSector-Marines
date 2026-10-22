@@ -41,6 +41,12 @@ public final class FireRenderSystem {
     static final String FLAME_SHEET_PATH = "legacy".equals(FIRE_LOOK) ? null : "graphics/fx/fire_topdown_" + FIRE_LOOK + ".png";
     /** The flame sheet's grid: cells 0-7 a bed's loop, 8-15 a grass tuft's. */
     private static final int FLAME_COLS = 4, FLAME_LOOP = 8, TUFT_FIRST = 8;
+    /** How thick fire smoke is drawn, 1 the original faint grey (3 the default): {@code -Dbattle.render.smokeDensity}. */
+    private static final float SMOKE_DENSITY = Float.parseFloat(System.getProperty("battle.render.smokeDensity", "3"));
+    /** Smoke's grey: 0.46 at the original density, darkening as it thickens so it stands off flame and creep. */
+    private static final float SMOKE_GREY = Math.max(0.22f, 0.46f - 0.08f * (SMOKE_DENSITY - 1f));
+    /** A low fire's haze against a brush fire's smoke. */
+    private static final float HAZE_ALPHA = 0.35f;
     private static final float TOP_FPS = 7f, TURN_DEG_PER_SEC = 6f, FLAME_ALPHA_TOP = 0.9f, INTERIOR_ALPHA = 0.55f;
 
     private final BattleSprites sprites;
@@ -95,7 +101,13 @@ public final class FireRenderSystem {
             int idx = field.burningCell(i);
             int x = idx % w, y = idx / w;
             if (x < view.minX() || x > view.maxX() || y < view.minY() || y > view.maxY()) continue;
-            if (FireSmoke.smokes(field.burnedMaskAt(idx))) emitSmoke(out, camera, sheet, framePxW, framePxH, field, idx, x, y, cellPx, ctx.alphaMult);
+            int mask = field.burnedMaskAt(idx);
+            if (FireSmoke.smokes(mask)) {
+                emitSmoke(out, camera, sheet, framePxW, framePxH, field, idx, x, y, cellPx, ctx.alphaMult, false);
+            } else if (FireSmoke.hazes(mask) && (hash(idx, 0x4A2E) & 1) == 0) {
+                // A low fire's haze: every other cell, thin and pale, so a burning field reads hazed, not screened.
+                emitSmoke(out, camera, sheet, framePxW, framePxH, field, idx, x, y, cellPx, ctx.alphaMult, true);
+            }
         }
     }
 
@@ -204,20 +216,21 @@ public final class FireRenderSystem {
      * downwind: the picture of the screen {@link FireSmoke} holds there.
      */
     private void emitSmoke(DrawList out, BattleCamera camera, SpriteAPI sheet, int framePxW, int framePxH,
-                           FireField field, int idx, int x, int y, float cellPx, float alphaMult) {
+                           FireField field, int idx, int x, int y, float cellPx, float alphaMult, boolean haze) {
         int h = hash(idx, 0x5A0C);
         float life = (clock / SMOKE_LIFE + (h & 0xFF) / 255f) % 1f;
         int frame = (h >>> 8) % SMOKE_FRAMES;
         float drift = life * 1.2f;
         float px = x + 0.5f + field.windX() * field.windStrength() * drift;
         float py = y + 0.5f + field.windY() * field.windStrength() * drift;
-        float size = cellPx * (1.1f + 1.3f * life);
+        float size = cellPx * (1.1f + 1.3f * life) * (1f + 0.25f * (SMOKE_DENSITY - 1f));
         float cx = camera.cellToScreenX(px), cy = camera.cellToScreenY(py) + life * cellPx * 1.4f;
-        float a = 0.6f * (1f - life) * Math.min(1f, life * 5f);
+        float a = Math.min(0.9f, 0.6f * SMOKE_DENSITY) * (1f - life) * Math.min(1f, life * 5f);
         out.addSheetQuad(RenderLayer.HAZARDS, sheet,
                 (frame % SHEET_COLS) * framePxW, (frame / SHEET_COLS) * framePxH,
                 framePxW, framePxH, cx, cy, size, size,
-                0.46f, 0.44f, 0.42f, a * alphaMult);
+                haze ? 0.62f : SMOKE_GREY, haze ? 0.60f : SMOKE_GREY - 0.02f, haze ? 0.57f : SMOKE_GREY - 0.04f,
+                a * alphaMult * (haze ? HAZE_ALPHA : 1f));
     }
 
     /**

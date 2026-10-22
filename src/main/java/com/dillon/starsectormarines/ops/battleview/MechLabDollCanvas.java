@@ -523,6 +523,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         String name = switch (id) {
             case CORE -> "CORE";
             case ARMS -> "ARMS";
+            case LEFT_ARM -> "L. ARM";
+            case RIGHT_ARM -> "R. ARM";
             case LEFT_SHOULDER -> "L. SHLDR";
             case RIGHT_SHOULDER -> "R. SHLDR";
             case CAPACITORS -> "CAPS";
@@ -534,6 +536,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     static MechMountSlot mountFor(SocketId slot) {
         return switch (slot) {
             case ARMS -> MechMountSlot.ARMS;
+            case LEFT_ARM -> MechMountSlot.LEFT_ARM;
+            case RIGHT_ARM -> MechMountSlot.RIGHT_ARM;
             case LEFT_SHOULDER -> MechMountSlot.LEFT_SHOULDER;
             case RIGHT_SHOULDER -> MechMountSlot.RIGHT_SHOULDER;
             default -> null;
@@ -541,22 +545,14 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     private static boolean occupied(MechDeploymentSpec deployment, SocketId socket) {
-        return switch (socket) {
-            case CORE, CAPACITORS, MINI_FAB -> true;
-            case ARMS -> deployment.arms() != null;
-            case LEFT_SHOULDER -> deployment.leftShoulder() != null;
-            case RIGHT_SHOULDER -> deployment.rightShoulder() != null;
-        };
+        if (socket == SocketId.CORE || socket == SocketId.CAPACITORS || socket == SocketId.MINI_FAB) return true;
+        return weaponAt(deployment, socket) != null;
     }
 
     private static MechWeaponComponent weaponAt(MechDeploymentSpec deployment,
                                                 SocketId socket) {
-        return switch (socket) {
-            case ARMS -> deployment.arms();
-            case LEFT_SHOULDER -> deployment.leftShoulder();
-            case RIGHT_SHOULDER -> deployment.rightShoulder();
-            default -> null;
-        };
+        MechMountSlot mount = mountFor(socket);
+        return mount != null ? deployment.weaponAt(mount) : null;
     }
 
     /** The share of the canvas the schematic panel takes; the fitting camera stands the machine in the rest. */
@@ -581,8 +577,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     /**
      * Lays the sockets out as the machine is built: the engine core in the middle of the panel,
-     * the arm assembly ahead of it, a shoulder either side, and the capacitors and mini-fab
-     * behind it. Every card keeps its fixed brick size; the rows are centred in the panel.
+     * the arm guns ahead of it (a centreline mount straight ahead, or one arm ahead-left and one
+     * ahead-right), a shoulder either side, and the capacitors and mini-fab behind it. Every card
+     * keeps its fixed brick size; the rows are centred in the panel.
      */
     static List<SocketDropTarget> schematicTargets(List<SocketDef> sockets, float panelWidth, float panelHeight) {
         EnumMap<SocketId, SocketDef> byId = new EnumMap<>(SocketId.class);
@@ -590,7 +587,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
         if (byId.isEmpty()) return List.of();
         float coreW = cardWidth(byId.get(SocketId.CORE));
         float coreH = cardHeight(byId.get(SocketId.CORE));
-        float armsH = cardHeight(byId.get(SocketId.ARMS));
+        SocketDef leftArm = byId.get(SocketId.LEFT_ARM);
+        SocketDef rightArm = byId.get(SocketId.RIGHT_ARM);
+        float armsH = Math.max(cardHeight(byId.get(SocketId.ARMS)),
+                Math.max(cardHeight(leftArm), cardHeight(rightArm)));
         float backH = Math.max(cardHeight(byId.get(SocketId.CAPACITORS)), cardHeight(byId.get(SocketId.MINI_FAB)));
         float total = armsH + (armsH > 0f ? SCHEMATIC_GAP_Y : 0f) + coreH + (backH > 0f ? SCHEMATIC_GAP_Y + backH : 0f);
         float top = Math.max(SCHEMATIC_MARGIN, (panelHeight - total) * 0.5f);
@@ -599,7 +599,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
         List<SocketDropTarget> targets = new ArrayList<>();
         place(targets, byId.get(SocketId.CORE), centerX, coreY);
-        place(targets, byId.get(SocketId.ARMS), centerX, top + armsH * 0.5f);
+        float armsY = top + armsH * 0.5f;
+        place(targets, byId.get(SocketId.ARMS), centerX, armsY);
+        place(targets, leftArm, centerX - SCHEMATIC_GAP_X * 0.5f - cardWidth(leftArm) * 0.5f, armsY);
+        place(targets, rightArm, centerX + SCHEMATIC_GAP_X * 0.5f + cardWidth(rightArm) * 0.5f, armsY);
         SocketDef left = byId.get(SocketId.LEFT_SHOULDER);
         SocketDef right = byId.get(SocketId.RIGHT_SHOULDER);
         place(targets, left, centerX - coreW * 0.5f - SCHEMATIC_GAP_X - cardWidth(left) * 0.5f, coreY);

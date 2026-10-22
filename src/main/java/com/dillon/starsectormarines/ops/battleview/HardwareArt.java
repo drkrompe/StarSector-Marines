@@ -107,14 +107,14 @@ final class HardwareArt {
 
     private static String stem(MechWeaponComponent component) {
         return switch (component) {
-            case DUAL_CHAINGUNS -> "chaingun-dual";
+            case CHAINGUN -> "chaingun";
             case NOSE_CHAINGUN -> "chaingun-nose";
-            case DUAL_LINEAR_CANNONS -> "linear-cannon-dual";
+            case LINEAR_CANNON -> "linear-cannon";
             case SINGLE_HEAVY_CANNON -> "heavy-cannon";
-            case DUAL_PULSE_LASERS -> "pulse-laser-dual";
-            case DUAL_BASTION_AUTOCANNONS -> "bastion-autocannon-dual";
+            case PULSE_LASER -> "pulse-laser";
+            case BASTION_AUTOCANNON -> "bastion-autocannon";
             case DEMOLITION_CANNON -> "demolition-cannon";
-            case DUAL_MUSTER_AUTOGUNS -> "muster-autogun-dual";
+            case MUSTER_AUTOGUN -> "muster-autogun";
             case NOSE_MUSTER_AUTOGUN -> "muster-autogun-nose";
             case QUARRY_BREAKER_CANNON -> "quarry-breaker";
             case SRM_5, SRM_5_FRAG -> "srm-5";
