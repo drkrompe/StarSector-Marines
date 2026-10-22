@@ -1469,7 +1469,9 @@ with ships, but keep their own room programs and do not inherit ship layout
 overrides. Furniture is drawn at real size against a crewman whose shoulders are
 0.6 cells (a cell is about 0.75 m): a residential bed, like a ship's bunk, is
 three cells head to foot, and a resting hand lies down in it from the cell at its
-foot. A fixture worked on one face (a bench, a locker bank, the ammunition
+foot. The ground sick bay's ward beds are the same three cells, a monitor at
+the head against the bulkhead and the two-cell stretcher spine at the foot, as
+aboard. A fixture worked on one face (a bench, a locker bank, the ammunition
 cabinet) shows that face on its bottom edge, so every fitting stands it to be
 worked from the row below. Dispatch offices group seated desks, meeting space and records
 storage around clear circulation. Occupied support rooms can carry adjacent
