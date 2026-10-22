@@ -695,6 +695,32 @@ muzzle moves the shot with it.
 
 To check a scene without rendering, run `python battle_blockout.py --check`; `python fight_layout.py` draws the same staging as diagrams. It prints where every ship lands in every key frame, and whether each shot can bear (see Gunnery). `--frames k3b,k5` renders only those frames; a frame already finished in the run folder is skipped, so a stopped job resumes (`--run <name>` fixes the folder across days, `--rerender` forces every frame); and `--skip-render --post <machine> --what <slug>` posts a run to `review/cinematic-asharu-battle/`.
 
+## Open items
+
+One line each, with its owner. Keep this list current, and remove an item when it closes.
+
+- **Owner's verdict on motion preview 13**, including the radio's density and the S13 bookend.
+  Owner. Nothing is lit-rendered until the motion is accepted.
+- **S4 to S5 continuity:** the pirates jump about 7 km at the cut to reach their S6 positions.
+  Blockout session.
+- **The final comms script.** Fable writer session, once the timings and callsigns settle. It
+  replaces `radio_log.TRAFFIC`, including its placeholder lines (see "Radio traffic (draft)").
+- **The wreck kit.** The wreck session builds real wrecks sized to the `debris_field` boxes and
+  publishes them to `builds/asharu-wrecks/<commit>/`. The blockout session swaps them in for
+  `wreck_meshes`. The box contract stays stable: piece and box ids, proportions, `--check`.
+- **S11 entry plasma:** new effects work (W7, `asharu-effects-plan.md`). The preview shows a proxy
+  only. Effects.
+- **The Hermes boarding craft's pirate livery,** if the owner wants it. Hermes build (pinned:
+  read it, never edit it).
+- **The r9b k3 and k3b review frames** are held in the queue, for the render coordinator to
+  release or cancel. Their next lit render uses `--volume-biased --volume-step-rate 4`.
+- **The layered r10 lit renders,** after the motion is accepted, on the plates `1d5ec7781`
+  (`roster.PLATES` = `builds/asharu-plates/1d5ec7781`, confirmed). Blockout session.
+- **The planet:** S12's far tile, and the plates over the rendered planet for S1a and S12. Plates
+  session.
+- **The Colossus's shield in S9:** the shielded build is needed if she raises it against the
+  Mk.III (see "What the brawl asks"). Owner.
+
 ## Where it stands, and the next step
 
 - **Posted:** round 6 (`review/cinematic-asharu-battle/2026-10-19_round6-colossus-mk3_windows`) is the latest run.

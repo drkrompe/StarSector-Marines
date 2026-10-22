@@ -39,6 +39,7 @@ HEAD_ROWS = 448      # the head sprite is the top of the canvas, down past the n
 SPLIT_ROW = 974      # halfway between the shoulder (790) and hip (1158) rows
 FEATHER = 16
 HOOF_REACH = 48     # layer px past a hoof's cut in which claw stubs are clipped off the body
+HOOF_FEATHER = 24   # rows below a hoof's centre over which that clip fades in
 
 
 def scaled(img):
@@ -62,11 +63,15 @@ def main():
         keep = keep * (1 - m)
         hooves[name] = (m, (cx, cy), (rx, ry))
 
+    # only below each hoof's centre row: above it the hero's hip and shoulder flesh is what the shank and hoof
+    # visibly hang from, and trimming it back to the narrower underlay leaves the hooves floating free
+    rows = np.arange(size[1], dtype=float)[:, None]
     near_hooves = np.zeros(size[::-1])
     for _, (cx, cy), (rx, ry) in hooves.values():
         g = HOOF_REACH
-        near_hooves = np.maximum(near_hooves, np.asarray(soft_mask(size, lambda d, cx=cx, cy=cy, rx=rx, ry=ry:
-                                 d.ellipse([cx - rx - g, cy - ry - g, cx + rx + g, cy + ry + g], fill=255), 8)) / 255)
+        ring = np.asarray(soft_mask(size, lambda d, cx=cx, cy=cy, rx=rx, ry=ry:
+                                    d.ellipse([cx - rx - g, cy - ry - g, cx + rx + g, cy + ry + g], fill=255), 8)) / 255
+        near_hooves = np.maximum(near_hooves, ring * np.clip((rows - cy) / HOOF_FEATHER, 0, 1))
 
     body = Image.new("RGBA", size, (0, 0, 0, 0))
     under = largest_blob(key(RAW / "body-nohead.png"))

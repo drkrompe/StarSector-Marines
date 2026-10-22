@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.power.WalkingBarrage;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -104,7 +105,8 @@ public final class BloomHeartSetup {
             // Dry country and a steady wind toward the heart: the burn runs before it.
             sim.fireField().setTinder(true);
             sim.fireField().setWind(1f, 0f, BURN_WIND);
-            barrage = new WalkingBarrage(burnBarrage(), form::cellAt, Faction.MARINE, built.battleSeed() ^ BARRAGE_SALT);
+            barrage = new WalkingBarrage(burnBarrage(), form::cellAt, Faction.MARINE, built.battleSeed() ^ BARRAGE_SALT)
+                    .battery(BURN_BATTERY_STRUCTURE, burnBattery(sim, form, pads));
         }
         HeartLanes lanes = form == Form.BROAD_FRONT ? alliedLanes(form, built.battleSeed()) : null;
         sim.installHeart(form, barrage, lanes);
@@ -140,6 +142,46 @@ public final class BloomHeartSetup {
     private static final long LANES_SALT = 0x4C41_4E45_5348_5254L;
 
     static final float BURN_WIND = 0.5f;
+    /** The Burn's guns: Locust rocket-artillery batteries dug in on the start line, firing a heavier round than a post's Locust. */
+    static final String BURN_BATTERY_STRUCTURE = "structure.battery-locust";
+    /** Where the guns stand: this far into the farmland, at these shares across it. */
+    static final float BURN_BATTERY_DEPTH = 0.02f;
+    static final float[] BURN_BATTERY_ACROSS = {0.12f, 0.36f, 0.64f, 0.88f};
+
+    /**
+     * Digs The Burn's battery in on the start line, one gun at each share
+     * across, each on the nearest open cell clear of the landing pads, and
+     * returns their ids. The guns are the company's: they fire the barrage and
+     * defend themselves, and the swarm can kill them.
+     */
+    static List<Long> burnBattery(BattleSimulation sim, Form form, List<LandingPad> pads) {
+        List<Long> guns = new ArrayList<>();
+        for (int i = 0; i < BURN_BATTERY_ACROSS.length; i++) {
+            int[] want = form.cellAt(BURN_BATTERY_DEPTH, BURN_BATTERY_ACROSS[i]);
+            int[] cell = openCellNear(sim, pads, want[0], want[1]);
+            if (cell == null) continue;
+            guns.add(sim.spawn(MapTurret.create("burn-battery-" + (i + 1), Faction.MARINE, BURN_BATTERY_STRUCTURE,
+                    cell[0], cell[1])));
+        }
+        return guns;
+    }
+
+    private static int[] openCellNear(BattleSimulation sim, List<LandingPad> pads, int x0, int y0) {
+        int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();
+        for (int r = 0; r < 12; r++) {
+            for (int dy = -r; dy <= r; dy++) for (int dx = -r; dx <= r; dx++) {
+                if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                int x = x0 + dx, y = y0 + dy;
+                if (x < 1 || y < 1 || x >= w - 1 || y >= h - 1 || !sim.getGrid().isWalkable(x, y)) continue;
+                boolean onPad = false;
+                for (LandingPad pad : pads) {
+                    if (x >= pad.left() - 2 && x <= pad.right() + 2 && y >= pad.bottom() - 2 && y <= pad.top() + 2) onPad = true;
+                }
+                if (!onPad) return new int[]{x, y};
+            }
+        }
+        return null;
+    }
     private static final long BARRAGE_SALT = 0x4255_524E_4241_5252L;
     /** The first line opens once the company is down and formed, just past the near ride. */
     static final float BURN_FIRST_OPEN_SECONDS = 40f;
