@@ -20,6 +20,11 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.evacuation.SwarmStrains;
+import com.dillon.starsectormarines.battle.nav.ElevationMap;
+import com.dillon.starsectormarines.battle.scene.SceneBuilder;
+import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationTestMaps;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.ops.BattleLayout;
 import com.dillon.starsectormarines.ops.MissionType;
@@ -293,6 +298,7 @@ class RenderBudgetEvidence {
                 new MapSpec("400x240 green colony", MapSpec::greenColony),
                 new MapSpec("400x240 green colony burning", MapSpec::burningColony),
                 new MapSpec("280x168 body pile", MapSpec::bodyPile),
+                new MapSpec("overlook raised ground", MapSpec::raisedGround),
                 new MapSpec("400x240 the burn", () -> theBurn(false)),
                 new MapSpec("400x240 the burn at night", () -> theBurn(true)));
 
@@ -356,6 +362,36 @@ class RenderBudgetEvidence {
                 sim.advance(BattleSimulation.TICK_DT);
             }
             PILE_FOCUS.put(sim, new float[]{centre[0] + 0.5f, centre[1] + 0.5f});
+            return sim;
+        }
+
+        /**
+         * The overlook meadow (a grass plateau with its ramps, in daylight), the close
+         * framing on the ramp nearest the centre: what raised ground costs to draw, and
+         * the GL picture of its cliffs. {@code -Dbattle.render.cliffLook=false} draws the
+         * cliffs with the cliff tiles instead, which is its control.
+         */
+        static BattleSimulation raisedGround() {
+            MapResult map = ElevationTestMaps.overlookMap(1, CellTopology.GroundKind.GRASS);
+            // A squad below the ramp and one on the top, as the high-ground scene stands them,
+            // so the ground in view is seen rather than under fog.
+            BattleSimulation sim = SceneBuilder.over(map.grid, map.topology).seed(20261022L)
+                    .squad("below").faction(Faction.MARINE).size(6).inFile(4, 16, 0, 1).done()
+                    .squad("above").faction(Faction.MARINE).size(6).inFile(32, 16, 0, 1).done()
+                    .build().sim();
+            ElevationMap elevation = map.grid.elevation();
+            int w = elevation.width(), h = elevation.height();
+            float[] focus = null;
+            double best = Double.MAX_VALUE;
+            for (int i = 0; i < w * h; i++) {
+                if (!elevation.isRampAt(i)) continue;
+                double d = Math.hypot(i % w - w / 2.0, i / w - h / 2.0);
+                if (d < best) {
+                    best = d;
+                    focus = new float[]{i % w + .5f, i / w + .5f};
+                }
+            }
+            if (focus != null) PILE_FOCUS.put(sim, focus);
             return sim;
         }
 
