@@ -23,6 +23,7 @@ sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import battle_blockout as bb  # noqa: E402
 import roster  # noqa: E402
+import radio_log  # noqa: E402
 from PIL import Image, ImageDraw  # noqa: E402
 from review_font import review_font  # noqa: E402
 
@@ -509,7 +510,7 @@ def overview():
 ORBITRON = HERE.parent / 'second-wind-cinematic' / 'corvus-approach' / 'ui_fonts' / 'Orbitron[wght].ttf'
 
 
-def ui_mock(kf='k1', speaker='COLOSSUS', rows=('Convoy, Colossus. Window opens in forty.', 'All ships ease to two-thirds.')):
+def ui_mock(kf='k1', speaker='CARAVEL', rows=('All Caravel ships, Caravel. Window opens in forty.', 'Ease to two-thirds.')):
     """The opening as the player would draw it: the place card and a caption over the S1 frame.
     Caption geometry is ArrivalCinematicScreen.drawCaptions' (speaker tag 168 px above the
     bottom, rows 44 px apart, a feathered band 1020 x 140 under them)."""
@@ -558,7 +559,7 @@ def ui_mock(kf='k1', speaker='COLOSSUS', rows=('Convoy, Colossus. Window opens i
     return out
 
 
-CHANNELS = ('COLOSSUS', 'ESCORT LEAD', 'MORROW', 'PHAETON', 'TARSUS', 'MULE', 'REAR ESCORT')
+CHANNELS = tuple(radio_log.SCREEN_CHANNELS[:7])     # by callsign, never hull class (radio_log)
 
 
 def recording_mock():
@@ -587,7 +588,7 @@ def recording_mock():
     # channels: one row per voice, the speaking one lit
     for j, ch in enumerate(CHANNELS):
         y = 430 + j * 38
-        live = ch == 'COLOSSUS'
+        live = ch == 'CARAVEL'
         dr.ellipse((x0, y + 5, x0 + 12, y + 17), fill=(120, 230, 150) if live else (40, 46, 56))
         dr.text((x0 + 28, y), ch, font=small, fill=text if live else dim)
     # the waveform of the speaking channel
@@ -606,9 +607,9 @@ def recording_mock():
         tag_f.set_variation_by_axes([700])
     except (OSError, ValueError):
         tag_f = F['head']
-    tw = dr.textlength('COLOSSUS', font=tag_f)
-    dr.text((W / 2 - tw / 2, 912 - 20), 'COLOSSUS', font=tag_f, fill=blue)
-    row = 'Convoy, Colossus. Window opens in forty.'
+    tw = dr.textlength('CARAVEL', font=tag_f)
+    dr.text((W / 2 - tw / 2, 912 - 20), 'CARAVEL', font=tag_f, fill=blue)
+    row = 'All Caravel ships, Caravel. Window opens in forty.'
     dr.text((W / 2 - dr.textlength(row, font=row_f) / 2, 942 - 26), row, font=row_f, fill=text)
     dr.text((24, 16), 'S0 mock: the recording the cinematic opens on (audio only, before any picture)',
             font=F['head'], fill=(170, 170, 180))
