@@ -1045,13 +1045,16 @@ public final class UnitRenderService implements RenderSystem {
                 if (rx[r] < cullMinX || rx[r] > cullMaxX
                         || ry[r] < cullMinY || ry[r] > cullMaxY) continue;
                 UnitType type = (UnitType) types[r];
+                // A strain body on the creep melts into it: drawn smaller and fainter until it is gone.
+                float digested = type.isSwarm() ? ctx.sim.creepDigestion().digested(t.entityAt(r)) : 0f;
+                float alpha = alphaMult * meltAlpha(digested);
                 if (deadBruteArt != null && ravRigs != null && ravRigs[r] instanceof RavBruteRig deadBrute
                         && deadBrute.dead()) {
                     // A dead Brute has burst as a Runner does, over the same ichor.
                     RavBruteComposer.emitDead(out, deadBruteArt, ravArt != null ? ravArt.splat : null,
                             ravArt != null ? ravArt.drop : null, deadBrute,
                             cam.cellToScreenX(deadBrute.bodyX()), cam.cellToScreenY(deadBrute.bodyY()),
-                            cam.cellPxSize(), alphaMult);
+                            cam.cellPxSize() * (1f - MELT_SHRINK * digested), alpha);
                     continue;
                 }
                 RavRunnerRig ravRig = ravArt != null && ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead
@@ -1060,7 +1063,7 @@ public final class UnitRenderService implements RenderSystem {
                     // A dead Runner has burst: its pieces where they were flung, over its ichor.
                     RavRunnerComposer.emit(out, ravArt, ravRig,
                             cam.cellToScreenX(ravRig.bodyX()), cam.cellToScreenY(ravRig.bodyY()),
-                            cam.cellPxSize() * type.renderScale, 1f, alphaMult);
+                            cam.cellPxSize() * type.renderScale * (1f - MELT_SHRINK * digested), 1f, alpha);
                     continue;
                 }
                 // A body that wore layered art lies as itself: its outfit's own pose,
@@ -1110,9 +1113,18 @@ public final class UnitRenderService implements RenderSystem {
                 out.addSheetQuad(RenderLayer.UNITS, cache.sheet,
                         f.x, f.y, f.w, f.h,
                         cx, cy, targetW, targetH,
-                        1f, 1f, 1f, alphaMult);
+                        1f, 1f, 1f, alpha);
             }
         }
+    }
+
+    /** How much a digesting body shrinks by the time the creep has it all. */
+    private static final float MELT_SHRINK = 0.2f;
+
+    /** A digesting body stays whole for its first third, then fades into the creep. */
+    static float meltAlpha(float digested) {
+        float t = Math.max(0f, Math.min(1f, (digested - 0.35f) / 0.65f));
+        return 1f - t * t * (3f - 2f * t);
     }
 
     /**
