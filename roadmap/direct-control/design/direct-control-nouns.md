@@ -97,8 +97,13 @@ resumes at the speed the battle had before the pause. Both panels size
 to their rows and hug the bottom edge, and like the game's own combat HUD they have no box: text and bars float over the battle, and only the selected weapon row carries a wash. Weapon rows distinguish the authored firing
 pattern, remaining resources, and burst or recovery clocks. Loaded describes
 resource and clock availability, not a guarantee that the barrel is aimed or
-clear. A magazine-fed infantry primary counts the rounds left in its load and
-shows its reload on the cycle bar; one without a magazine shows no counter. Finite Mech stores count
+clear. A magazine-fed infantry primary draws its load as rounds rather than a
+number: a strip under the weapon row (rifle cartridges, shotgun shells, or a
+belt in blocks of one burst, so a long belt still reads at a glance), spent
+rounds hollow and a reload pressing them back in, and the same rounds as a ring
+of pips beside the cursor, where the eye already is in a fight, the last quarter
+red. Both read one gauge, so they cannot disagree. A primary without a magazine
+shows no counter. Finite Mech stores count
 trigger packs, while the APC turret counts individual rounds. Indirect mounts
 remain visible as unavailable for manual fire.
 
