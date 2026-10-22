@@ -2479,7 +2479,7 @@
     "openingMechLabVehicleTurretGeneric": "Hull turret",
     "openingMechLabVehicleUnarmed": "UNARMED  ·  TRANSPORT HULL",
     "openingMechLabVehicleHull": "VEHICLE HULL",
-    "openingMechLabVehicleSummary": "Structure {0}, armor {1} at rating {2}, {3} cells/s, {4} passenger seats. A vehicle's hull and turret are its type's: nothing on it is refitted.",
+    "openingMechLabVehicleSummary": "Structure {0}, armor {1} at rating {2}, {3} cells/s, {4} passenger seats. A vehicle''s hull and turret are its type''s: nothing on it is refitted.",
     "openingMechLabVehicleNoFitting": "VEHICLE  ·  NO FITTING SOCKETS  ·  NO FLUX",
     "openingMechLabStructure": "STRUCTURE",
     "openingMechLabVehicleArmor": "{0} PLATE · RATING {1}",
