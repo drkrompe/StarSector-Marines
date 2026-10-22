@@ -17,6 +17,7 @@ import java.util.UUID;
 /** Persisted equipment-template ownership and reusable squad definitions. */
 public final class MarineArmory implements Serializable {
 
+    /** Saved squad profiles from before squads held their cards directly; emptied on load. */
     private List<SquadProfile> squadProfiles = new ArrayList<>();
 
     private int victories;
@@ -38,26 +39,17 @@ public final class MarineArmory implements Serializable {
         seedStarterCards();
     }
 
-    public List<SquadProfile> squadProfiles() {
-        if (squadProfiles == null) squadProfiles = new ArrayList<>();
-        return Collections.unmodifiableList(squadProfiles);
+    /** A profile from a save written before squads held their cards directly; load migration only. */
+    SquadProfile legacySquadProfile(String id) {
+        if (id == null || squadProfiles == null) return null;
+        for (SquadProfile profile : squadProfiles) {
+            if (profile != null && id.equals(profile.id())) return profile;
+        }
+        return null;
     }
 
-    public SquadProfile squadProfile(String id) {
-        return squadProfiles().stream().filter(p -> p.id().equals(id)).findFirst().orElse(null);
-    }
-
-    /** Saving intent is free; existing squads and issued kits are untouched. */
-    public SquadProfile saveSquadProfile(String name, String weapons, String armor) {
-        SquadWeaponDoctrine weapon = weaponDoctrineById(weapons);
-        if (name == null || name.isBlank() || name.trim().length() > 48
-                || weapon == null || !canAuthorWeaponDoctrine(weapon.issues())
-                || armorDoctrineById(armor) == null) return null;
-        SquadProfile profile = new SquadProfile("profile:" + UUID.randomUUID(),
-                name.trim(), weapons, armor);
-        squadProfiles();
-        squadProfiles.add(profile);
-        return profile;
+    void dropLegacySquadProfiles() {
+        if (squadProfiles != null) squadProfiles.clear();
     }
 
     public int victories() { return victories; }
@@ -238,7 +230,6 @@ public final class MarineArmory implements Serializable {
 
     boolean deleteWeaponDoctrine(String id) {
         if (FirstRefit.isWeaponPlan(id)) return false;
-        if (squadProfiles().stream().anyMatch(p -> p.weaponDoctrineId().equals(id))) return false;
         int index = customWeaponDoctrineIndex(id);
         if (index < 0) return false;
         customWeaponDoctrines.remove(index);

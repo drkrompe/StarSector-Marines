@@ -485,10 +485,10 @@ unit that can clear a map, and a later licence or warrant raises that ceiling on
 purpose. A story that awards an all-powered card is a deliberate rung, never an
 accident of what a suit can fill.
 
-Older companies retain formations already assigned to squads or saved in profiles,
-along with learned cards and materialized equipment. Other sheets are
-inferred only from their explicit acquisition requirements. Reloading never grants
-the whole sheet catalog or refits personnel automatically.
+Older companies retain the cards already assigned to their squads (a saved
+profile a squad was assigned becomes its cards), along with learned cards. Other
+sheets are inferred only from their explicit acquisition requirements. Reloading
+never grants the whole sheet catalog; it dresses every seat from its squad's cards.
 
 **Armour is never authored a billet at a time, and there is no way to.** The
 player could once build armour definitions by cycling twelve concrete patterns,

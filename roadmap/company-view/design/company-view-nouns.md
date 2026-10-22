@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — a lost Second Wind is bought back from the planet menu in place of Marine operations, and campaign missions need her with the company aboard; the prologue is seven pages, and Castle's saved credits pay for the yard.
+Updated: 2026-10-22 — a squad's kit is its two cards: seats are dressed from them on every change, and saved squad profiles and the Barracks issue order are gone.
 
 ## Purpose
 
@@ -13,8 +13,8 @@ decision depends on it: between contracts, while assembling a deployment, in
 battle, and after action. Most of the domain is a read model over the campaign
 roster and contract state, not a second company simulation and not a
 player-order layer. Barracks, Mech Lab and Boat Deck are deliberate authoring
-seams. Barracks organizes officer commands and saved squad profiles, and issues
-explicit replenishment orders and raises new formations. Its Equipment workspace
+seams. Barracks organizes officer commands, issues explicit replenishment
+orders and raises new formations. Its Equipment workspace
 retains Fleet Armory authoring. Mech Lab and Boat Deck refit their persistent machines.
 Each surface acts through the corresponding campaign authority.
 
@@ -52,14 +52,14 @@ shared mapping instead of assigning paths independently in each screen.
 - **Armor doctrine** — one reusable squad-wide definition of twelve ordered armor
   issues. It is independent of the weapon doctrine, so either half may change
   without redefining the other.
-- **Squad profile** — a named, reusable pairing of a known weapon loadout and an
-  armor tactic sheet. Assignment records desired equipment without issuing it.
-  A sheet issues exactly the patterns its card carries, regardless of what else
-  the company owns; the profile does not freeze twelve armor patterns or hold
-  equipment stock.
-- **Squad equipment issue** — the explicit atomic transaction that resolves one
-  weapon doctrine and one armor doctrine into the selected squad's exact twelve
-  materialized kits.
+- **Squad cards** — the weapon card and the tactic sheet a squad holds, chosen
+  for each squad on its own. Both describe all twelve seats, and a seat's weapon,
+  special, armor and equipment may differ from the next seat's. A sheet issues
+  exactly the patterns its card carries, regardless of what else the company owns.
+  Every line squad holds both cards from the moment it is raised.
+- **Card assignment** — the atomic transaction that changes a squad's cards. It
+  refuses while the squad is stationed or when the company may not issue a card,
+  and a refusal leaves both cards untouched.
 - **Squad founding** — the Barracks **Raise Squad** tile, trailing the formation
   board, that consumes twelve Marines, 36 supplies, and 24 food before creating a
   full named line formation under an officer with a free command slot. Its live
@@ -67,9 +67,9 @@ shared mapping instead of assigning paths independently in each screen.
   identity. Barracks is the only place a squad is founded.
 - **Billet** — one stable position in the squad's twelve-place equipment
   establishment. Alpha, Bravo, and Charlie inspect consecutive groups of four.
-- **Conformance** — whether a squad's current personnel and materialized issue
-  match its assigned doctrine pair. Wounds, vacancies, later individual mutations, and
-  future equipment loss can degrade conformance without erasing intent.
+- **Seat kit** — what one marine carries: exactly what the squad's cards issue
+  the seat that marine holds. It is derived, never authored per marine, so a squad
+  cannot drift from its cards.
 - **Marine** — the persistent individual. Their equipment and quality belong
   to the personnel and progression domains; company view presents them in
   formation context.
@@ -350,7 +350,7 @@ then be resolvable from owned patterns. Merely being able to substitute Cordon o
 Janus into its billets does not unlock another faction's sheet. Among learned
 sheets, plans that resolve to the same ordered twelve issued patterns appear as
 one choice; the assigned sheet remains the visible representative. Grouping is
-presentation only and never grants knowledge. Saved assignments, profiles,
+presentation only and never grants knowledge. Saved assignments,
 collected specifications, and issued equipment remain intact. Unknown equipment
 has no revealing placeholder.
 
@@ -387,14 +387,16 @@ fixed-scale capability meters beside exact values. Those scales use catalog ceil
 three visible billets, so cycling an item produces a meaningful at-a-glance change
 and team selection cannot rewrite the comparison baseline.
 
-Issue is explicit and atomic. The Machine Shop freely fits any learned equipment;
+Card assignment is atomic. The Machine Shop freely fits any learned equipment;
 it neither reads nor spends fleet cargo, and removing kit grants no cargo refund.
-Wounded personnel can receive kit without changing status or recovery time. Vacant
-slots retain the twelve-billet plan; even an empty line squad can save its plan.
-New recruits retain their actual kit until an explicit free refit. Stationing or
-missing technology leaves both doctrine ids and all current kit untouched. Success
-writes both ids together and materializes occupied billets on `MarineSoldier`, the
-battle-facing state consumed by deployment. Collection changes never silently
+Wounded personnel keep their seats and wear their seat's kit without changing
+status or recovery time. Vacant seats retain the twelve-billet plan; even an empty
+line squad holds its cards. Every occupied seat is dressed from the cards whenever
+the cards or the squad's members change: a replacement or transfer takes the kit
+of the seat it fills, and a casualty that moves everyone behind it up a seat moves
+the kit with the seat, not with the marine. There is no issue order to forget. A
+recruit in the reserve pool wears entry-level kit until a seat takes them. The seat
+kit is materialized on `MarineSoldier`, the battle-facing state deployment reads. Collection changes never silently
 optimize that result. Founding and personnel logistics retain their own costs.
 
 Built-in weapon definitions are authored deterministic distributions rather than
@@ -722,10 +724,9 @@ use the same cost vocabulary and point to the stock display in the relevant room
 
 ## Shipboard Barracks
 
-Barracks leads with **Preparation**: fill vacancies, then restore assigned
-equipment. **Profiles** holds saved loadout and tactic-sheet
-pairings. These are separate explicit orders, not a button that silently spends
-all available resources. Current billet counts state ready, wounded and vacant
+Barracks's order panel fills vacancies: an explicit order, not a button that
+silently spends all available resources. There is no equipment order, because
+replacements take their seat's kit as they join. Current billet counts state ready, wounded and vacant
 separately. A squad card's **Loadout** opens that squad's exact Armory equipment
 workspace; returning retains the Barracks selection. **Raise Squad** is a tile at the end of
 the formation board, not a separate page: it pays the full founding bill and raises only into a free command slot: the open officer's, or
@@ -851,16 +852,13 @@ profile, ready count and twelve current billets grouped into three fire teams.
 Filled silhouettes, medical marks and hollow silhouettes distinguish ready,
 wounded and vacant places without relying on color. Selection has its own frame
 and checkbox; inspection is a separate action. The armor image represents the
-most common current issue, never the profile's unissued intent or an invented
-squad class. Short personnel and equipment states stay visible, while hover and
-keyboard-focus details explain recovery, command, profile and refit requirements.
+most common current issue, never an invented squad class. The card names the
+squad's weapon card and tactic sheet. Short personnel states stay visible, while
+hover and keyboard-focus details explain recovery, command and cards.
 
-A saved **squad profile** pairs an existing weapon loadout with an armor tactic
-sheet. Saving and assigning it is free and can include understrength or recovering
-squads. It records intent separately from the last issued doctrine pair and each
-marine's real kit. A successful manual issue of a different pair clears the desired
-profile. Weapon definitions referenced by saved profiles cannot be deleted.
-Existing saves start without profiles and retain their exact personnel and equipment.
+There are no saved squad profiles: the player picks each squad's two cards
+individually through its Loadout. A save written while profiles existed gives each
+squad the cards of the profile it was assigned, then drops the profiles.
 
 Select squad cards, then use **Assign Selected** on the desired commander card.
 The button shows the selected count and a live capacity preview; unavailable or
