@@ -74,7 +74,7 @@ public final class OrderIntentCursorPanel implements HudPanel {
         int cellY = (int) Math.floor(camera.screenToCellY(mouseY));
         var marker = intent.assault()
                 ? BattlefieldMarkerPresentation.assault(intent.label(),
-                        intent == TacticalOrderIntent.CLEAR ? "ENEMY INSIDE" : "ASSAULT")
+                        Strings.get(intent == TacticalOrderIntent.CLEAR ? "battleOrderEnemyInside" : "battleOrderAssaultStatus"))
                 : intent.guard()
                 ? BattlefieldMarkerPresentation.guard(intent.label(), Strings.get("battleOrderGuardStatus"))
                 : BattlefieldMarkerPresentation.target(intent.label(), intent.actionable(), 0f);

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.CommandPowerService;
 import com.dillon.starsectormarines.battle.power.MechSupport;
@@ -212,7 +213,7 @@ public final class CommandPowerTargetingPanel implements HudPanel {
             }
             glEnd();
             glPopAttrib();
-            String label = "DOME  //  " + marker.status();
+            String label = Strings.format("battleMarkerDomeLabel", marker.status());
             FONT.drawString(label, cx - FONT.measureWidth(label) * 0.5f, cy - radius - 6f, LABEL_TEXT, alphaMult);
         }
     }

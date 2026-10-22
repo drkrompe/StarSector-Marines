@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.comms;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.power.HostileShipSupport;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
@@ -21,8 +22,8 @@ public final class HostileShipCommsPresenter {
 
     static BattleCommsFeed.Notice notice(String key) {
         if (HostileShipSupport.BEAT_INBOUND.equals(key)) {
-            return new BattleCommsFeed.Notice("HOSTILE CAPITAL INBOUND",
-                    "An enemy warship is dropping through the cloud deck over the marked ground. Get clear of it.",
+            return new BattleCommsFeed.Notice(Strings.get("battleHostileCapitalInbound"),
+                    Strings.get("battleCommsHostileShipBody"),
                     BattleCommsFeed.Tone.DANGER, HostileShipSupport.WARNING_SECONDS + 4f);
         }
         return null;

@@ -60,9 +60,9 @@ final class BattleSquadOverlayModel {
                             LongConsumer selectMemberAction) {
         this.selectMemberAction = selectMemberAction;
         this.backAction = backAction;
-        squadTitle = reactor.signal("SQUAD");
+        squadTitle = reactor.signal(Strings.get("battleSquadTitle"));
         squadStrength = reactor.signal("0/0");
-        moraleLabel = reactor.signal("MORALE --");
+        moraleLabel = reactor.signal(Strings.get("battleSquadMoraleNone"));
         moraleStyle = reactor.signal("width: 0%;");
         fireTeams = reactor.signal(emptyTeams());
         tooltipClasses = reactor.signal(TOOLTIP_HIDDEN);
@@ -123,7 +123,7 @@ final class BattleSquadOverlayModel {
         List<MemberState> members = new ArrayList<>(live.size());
         for (long unit : live) members.add(capture(sim, squad, unit));
         String label = squad.campaignLabel != null && !squad.campaignLabel.isBlank()
-                ? squad.campaignLabel : "SQUAD " + squad.id;
+                ? squad.campaignLabel : Strings.format("battleSquadNumbered", squad.id);
         return updateProjected(new SquadState(label, squad.aliveMembers,
                 Math.max(squad.aliveMembers, squad.originalSize), squad.morale, members),
                 selectedMemberId, memberSelectionEnabled);
@@ -144,7 +144,7 @@ final class BattleSquadOverlayModel {
         squadTitle.set(squad.label().toUpperCase(Strings.locale()));
         squadStrength.set(squad.alive() + "/" + Math.max(squad.alive(), squad.original()));
         float morale = clamp01(squad.morale());
-        moraleLabel.set("MORALE " + Math.round(morale * 100f) + "%");
+        moraleLabel.set(Strings.format("battleSquadMorale", Math.round(morale * 100f)));
         moraleStyle.set("width: " + Math.round(morale * 100f) + "%;");
 
         List<List<MemberState>> grouped = new ArrayList<>(FIRE_TEAM_COUNT);
@@ -171,7 +171,7 @@ final class BattleSquadOverlayModel {
             String teamId = "battle-squad-fireteam-" + team;
             teams.add(new FireTeamView(teamId, teamId + "-header",
                     teamId + "-label", teamId + "-strength", teamId + "-members",
-                    "FIRETEAM " + (char) ('A' + team), grouped.get(team).size() + "/4",
+                    fireteamLabel(team), grouped.get(team).size() + "/4",
                     List.copyOf(members)));
         }
         fireTeams.set(List.copyOf(teams));
@@ -226,10 +226,10 @@ final class BattleSquadOverlayModel {
     /** What this marine is doing right now, read from state the simulation already keeps. */
     static String status(MemberState member) {
         // Can't act outranks everything: it is why the marine is not doing what the rest are.
-        if (member.held() != null) return member.held().toUpperCase(Locale.ROOT);
-        if (member.engaged()) return "ENGAGED";
-        if (member.maxHp() > 0f && member.hp() < member.maxHp()) return "WOUNDED";
-        return "HOLDING";
+        if (member.held() != null) return Strings.upper(member.held());
+        if (member.engaged()) return Strings.get("battleSquadStatusEngaged");
+        if (member.maxHp() > 0f && member.hp() < member.maxHp()) return Strings.get("battleSquadStatusWounded");
+        return Strings.get("battleSquadStatusHolding");
     }
 
     void clearHover() {
@@ -262,7 +262,7 @@ final class BattleSquadOverlayModel {
                 hasArmor ? sim.world().armor(unit) : 0f,
                 hasArmor ? sim.world().maxArmor(unit) : 0f,
                 hasArmor ? sim.world().armorRating(unit) : 0f,
-                primary != null ? primary.catalogName(grade) : "Field rifle",
+                primary != null ? primary.catalogName(grade) : Strings.get("battleSquadFieldRifle"),
                 WeaponSymbols.primaryAbbrev(primary, grade), WeaponSymbols.primaryColor(primary),
                 special != null ? special.displayName() : null,
                 special != null ? WeaponSymbols.specialAbbrev(special) : null,
@@ -288,35 +288,36 @@ final class BattleSquadOverlayModel {
                 + (hpFraction < 0.34f ? " member-critical" : "")
                 + (member.entityId() == selectedMemberId ? " member-selected selected" : "")
                 + (member.entityId() == topContributor ? " member-top" : "");
-        String tag = member.leader() ? "LDR " + (slot + 1) : "M-" + (slot + 1);
+        String tag = member.leader() ? Strings.format("battleSquadLeaderTag", slot + 1)
+                : Strings.format("battleSquadMemberTag", slot + 1);
         String special = member.specialAbbrev() != null ? member.specialAbbrev()
                 : roleBadge(member.role());
         String fullName = member.name() == null || member.name().isBlank()
-                ? "Marine " + (slot + 1) : member.name();
-        String armor = member.maxArmor() > 0f
-                ? " · ARMOR " + number(member.armor()) + "/" + number(member.maxArmor())
-                + " R" + number(member.armorRating()) : "";
+                ? Strings.format("battleSquadMarineNumbered", slot + 1) : member.name();
+        String teamTip = member.maxArmor() > 0f
+                ? Strings.format("battleSquadTipTeamArmor", fireteamLetter(team), member.armorClass().displayName(),
+                        number(member.hp()), number(member.maxHp()), number(member.armor()),
+                        number(member.maxArmor()), number(member.armorRating()))
+                : Strings.format("battleSquadTipTeam", fireteamLetter(team), member.armorClass().displayName(),
+                        number(member.hp()), number(member.maxHp()));
         return new MemberTile(id, id + "-line", id + "-name", id + "-primary",
                 id + "-special", id + "-hp-track", id + "-hp", true, classes, tag,
                 member.primaryAbbrev(), special == null ? "" : special,
                 "width: " + Math.round(hpFraction * 100f) + "%; background-color: "
                         + color(hpColor) + ";",
-                fullName + (member.leader() ? " · SQUAD LEADER" : ""),
-                "FIRETEAM " + (char) ('A' + team) + " · "
-                        + member.armorClass().displayName() + "\n"
-                        + number(member.hp()) + "/" + number(member.maxHp()) + " HP" + armor,
-                "PRIMARY · " + member.primaryName(),
+                member.leader() ? Strings.format("battleSquadLeaderName", fullName) : fullName,
+                teamTip,
+                Strings.format("battleSquadTipPrimary", member.primaryName()),
                 member.specialName() != null
-                        ? "SPECIAL · " + member.specialName() + " · " + member.specialStatus()
-                        : "SPECIAL · NONE",
+                        ? Strings.format("battleSquadTipSpecial", member.specialName(), member.specialStatus())
+                        : Strings.get("battleSquadTipSpecialNone"),
                 member.systemName() != null
-                        ? "SUIT SYSTEM · " + member.systemName() + " · " + member.systemStatus()
-                        : "SUIT SYSTEM · NONE",
-                "PROFILE · " + member.experience() + " / " + member.aptitude()
-                        + " · " + roleName(member.role()),
-                "THIS MISSION · " + member.roundsHit() + "/" + member.roundsFired() + " landed · "
-                        + member.kills() + (member.kills() == 1 ? " kill" : " kills") + " · "
-                        + Math.round(member.damageDealt()) + " dmg · " + status(member),
+                        ? Strings.format("battleSquadTipSystem", member.systemName(), member.systemStatus())
+                        : Strings.get("battleSquadTipSystemNone"),
+                Strings.format("battleSquadTipProfile", member.experience(), member.aptitude(),
+                        roleName(member.role())),
+                Strings.format("battleSquadTipRecord", member.roundsHit(), member.roundsFired(),
+                        member.kills(), Math.round(member.damageDealt()), status(member)),
                 member.entityId(), !memberSelectionEnabled, () -> selectMember(id));
     }
 
@@ -345,7 +346,7 @@ final class BattleSquadOverlayModel {
             String teamId = "battle-squad-fireteam-" + team;
             teams.add(new FireTeamView(teamId, teamId + "-header",
                     teamId + "-label", teamId + "-strength", teamId + "-members",
-                    "FIRETEAM " + (char) ('A' + team), "0/4", List.copyOf(members)));
+                    fireteamLabel(team), "0/4", List.copyOf(members)));
         }
         return List.copyOf(teams);
     }
@@ -365,6 +366,14 @@ final class BattleSquadOverlayModel {
         if (system.usesAmmunition()) return Strings.format("battleSystemAmmo", systems.ammo(unit));
         float cooldown = systems.cooldownRemaining(unit);
         return cooldown > 0f ? Strings.format("battleSystemCooldown", (int) Math.ceil(cooldown)) : Strings.get("battleSystemReady");
+    }
+
+    private static String fireteamLetter(int team) {
+        return String.valueOf((char) ('A' + team));
+    }
+
+    private static String fireteamLabel(int team) {
+        return Strings.format("battleSquadFireteam", fireteamLetter(team));
     }
 
     private static String roleBadge(UnitRole role) {

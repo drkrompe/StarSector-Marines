@@ -56,6 +56,16 @@ class TranslationSmokeTest {
             }
         }
         assertTrue(broken.isEmpty(), "unparseable patterns " + broken);
+        // A lone apostrophe in a pattern with arguments quotes the text after it and vanishes.
+        List<String> loneApostrophes = new ArrayList<>();
+        for (var keys = catalog.keys(); keys.hasNext();) {
+            String key = (String) keys.next();
+            String text = catalog.optString(key, "");
+            if (!text.matches("(?s).*\\{[0-9].*")) continue;
+            String unescaped = text.replace("''", "");
+            if (unescaped.matches("(?s).*'[^{}].*") || unescaped.endsWith("'")) loneApostrophes.add(key);
+        }
+        assertTrue(loneApostrophes.isEmpty(), "patterns with an undoubled apostrophe " + loneApostrophes);
         try (var strings = new HeadlessStrings(MOD, text -> "«" + text + "»")) {
             String any = (String) catalog.keys().next();
             assertEquals("«" + catalog.getString(any) + "»", Strings.get(any));

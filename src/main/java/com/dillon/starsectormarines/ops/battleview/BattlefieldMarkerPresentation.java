@@ -53,12 +53,12 @@ public final class BattlefieldMarkerPresentation {
         float clampedProgress = clamp01(progress);
         return switch (state) {
             case DEFENDER_HELD -> new ObjectiveMarker(
-                    code, "HOSTILE", HOSTILE, 0.62f, 0f, false);
+                    code, Strings.get("battleMarkerHostile"), HOSTILE, 0.62f, 0f, false);
             case CONTESTED -> new ObjectiveMarker(
                     code, percent(clampedProgress), CONTESTED, 0.96f,
                     clampedProgress, true);
             case MARINE_HELD -> new ObjectiveMarker(
-                    code, "SECURED", SECURED, 0.52f, 0f, false);
+                    code, Strings.get("battleMarkerSecured"), SECURED, 0.52f, 0f, false);
         };
     }
 
@@ -66,14 +66,14 @@ public final class BattlefieldMarkerPresentation {
                                             boolean planting, float progress) {
         float clampedProgress = clamp01(progress);
         if (complete) {
-            return new ObjectiveMarker(siteCode(siteId), "ARMED", COMPLETE,
+            return new ObjectiveMarker(siteCode(siteId), Strings.get("battleMarkerArmed"), COMPLETE,
                     0.48f, 1f, false);
         }
         if (planting) {
             return new ObjectiveMarker(siteCode(siteId), percent(clampedProgress),
                     SABOTAGE, 0.98f, clampedProgress, true);
         }
-        return new ObjectiveMarker(siteCode(siteId), "SABOTAGE", SABOTAGE,
+        return new ObjectiveMarker(siteCode(siteId), Strings.get("battleMarkerSabotage"), SABOTAGE,
                 0.58f, 0f, false);
     }
 
@@ -87,10 +87,10 @@ public final class BattlefieldMarkerPresentation {
      */
     public static DomeMarker dome(ShieldDomeService.DomeView dome) {
         if (dome.overloaded()) {
-            return new DomeMarker("DOWN", VALID, dome.radius(), false);
+            return new DomeMarker(Strings.get("battleMarkerDomeDown"), VALID, dome.radius(), false);
         }
         int pool = Math.round(dome.level() * 100f);
-        return new DomeMarker("ABSORBS / POOL " + pool + "%", CONTESTED, dome.radius(), true);
+        return new DomeMarker(Strings.format("battleMarkerDomePool", pool), CONTESTED, dome.radius(), true);
     }
 
     /** As {@link #target(String, boolean, float)}, noting a dome over the aim point, which stays a legal target. */
@@ -99,7 +99,7 @@ public final class BattlefieldMarkerPresentation {
         TargetMarker base = target(displayName, valid, radiusCells);
         if (coveringDome == null || !valid) return base;
         DomeMarker dome = dome(coveringDome);
-        return new TargetMarker(base.label(), dome.up() ? "ABSORBED BY DOME" : "DOME DOWN",
+        return new TargetMarker(base.label(), Strings.get(dome.up() ? "battleMarkerAbsorbed" : "battleMarkerDomeDownTarget"),
                 dome.tone(), base.radiusCells(), true);
     }
 
@@ -116,8 +116,8 @@ public final class BattlefieldMarkerPresentation {
     public static TargetMarker target(String displayName, boolean valid,
                                       float radiusCells) {
         String label = displayName == null || displayName.isBlank()
-                ? "COMMAND POWER" : displayName.toUpperCase(Strings.locale());
-        return new TargetMarker(label, valid ? "VALID" : "BLOCKED",
+                ? Strings.get("battleMarkerCommandPower") : displayName.toUpperCase(Strings.locale());
+        return new TargetMarker(label, Strings.get(valid ? "battleMarkerValid" : "battleMarkerBlocked"),
                 valid ? VALID : INVALID, Math.max(0f, radiusCells), valid);
     }
 
@@ -126,12 +126,13 @@ public final class BattlefieldMarkerPresentation {
                                        float progress) {
         boolean secured = phase == RaidObjective.Phase.EGRESS || phase == RaidObjective.Phase.COMPLETE;
         if (extraction) {
-            return new ObjectiveMarker("2", phase == RaidObjective.Phase.COMPLETE ? "COMPLETE"
-                    : secured ? "RETURN HERE" : "AFTER SEIZURE",
+            return new ObjectiveMarker("2", Strings.get(phase == RaidObjective.Phase.COMPLETE ? "battleMarkerComplete"
+                    : secured ? "battleMarkerReturnHere" : "battleMarkerAfterSeizure"),
                     secured ? PROGRESS : SECURED, secured ? 1f : .65f, 0f, secured);
         }
-        return new ObjectiveMarker("1", secured ? "SECURED"
-                : phase == RaidObjective.Phase.SERVICE ? "SEIZING / " + percent(clamp01(progress)) : "SEIZE",
+        return new ObjectiveMarker("1", secured ? Strings.get("battleMarkerSecured")
+                : phase == RaidObjective.Phase.SERVICE ? Strings.format("battleMarkerSeizing", percent(clamp01(progress)))
+                : Strings.get("battleMarkerSeize"),
                 secured ? VALID : PROGRESS, secured ? .65f : 1f,
                 secured ? 1f : clamp01(progress), !secured);
     }
