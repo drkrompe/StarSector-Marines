@@ -1,21 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 200">
   <g transform="translate(9 12) scale(0.88)">
 <g transform="translate(0 200) rotate(-90)">
-  <rect x="10" y="41" width="46" height="68" rx="6" fill="#000000" fill-opacity="0.58"/>
-  <rect x="18" y="49.5" width="5" height="51" rx="1" fill="#ffffff" fill-opacity="0.5"/>
-  <rect x="29" y="49.5" width="5" height="51" rx="1" fill="#ffffff" fill-opacity="0.5"/>
-  <rect x="40" y="49.5" width="5" height="51" rx="1" fill="#ffffff" fill-opacity="0.5"/>
-  <rect x="60" y="51.5" width="130" height="9.5" rx="2" fill="#000000" fill-opacity="0.58"/>
-  <rect x="60" y="88.9" width="130" height="9.5" rx="2" fill="#000000" fill-opacity="0.58"/>
-  <rect x="72" y="42.7" width="9" height="64.6" rx="2" fill="#000000" fill-opacity="0.58"/>
-  <rect x="74" y="44.4" width="3" height="61.2" fill="#ffffff" fill-opacity="0.3"/>
-  <rect x="99.5" y="42.7" width="9" height="64.6" rx="2" fill="#000000" fill-opacity="0.58"/>
-  <rect x="101.5" y="44.4" width="3" height="61.2" fill="#ffffff" fill-opacity="0.3"/>
-  <rect x="127" y="42.7" width="9" height="64.6" rx="2" fill="#000000" fill-opacity="0.58"/>
-  <rect x="129" y="44.4" width="3" height="61.2" fill="#ffffff" fill-opacity="0.3"/>
-  <rect x="154.5" y="42.7" width="9" height="64.6" rx="2" fill="#000000" fill-opacity="0.58"/>
-  <rect x="156.5" y="44.4" width="3" height="61.2" fill="#ffffff" fill-opacity="0.3"/>
-  <ellipse cx="172" cy="75" rx="10.2" ry="6.8" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="10" y="29" width="46" height="92" rx="6" fill="#000000" fill-opacity="0.58"/>
+  <rect x="18" y="40.5" width="5" height="69" rx="1" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="29" y="40.5" width="5" height="69" rx="1" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="40" y="40.5" width="5" height="69" rx="1" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="60" y="43.3" width="130" height="12.9" rx="2" fill="#000000" fill-opacity="0.58"/>
+  <rect x="60" y="93.9" width="130" height="12.9" rx="2" fill="#000000" fill-opacity="0.58"/>
+  <rect x="72" y="31.3" width="9" height="87.4" rx="2" fill="#000000" fill-opacity="0.58"/>
+  <rect x="74" y="33.6" width="3" height="82.8" fill="#ffffff" fill-opacity="0.3"/>
+  <rect x="99.5" y="31.3" width="9" height="87.4" rx="2" fill="#000000" fill-opacity="0.58"/>
+  <rect x="101.5" y="33.6" width="3" height="82.8" fill="#ffffff" fill-opacity="0.3"/>
+  <rect x="127" y="31.3" width="9" height="87.4" rx="2" fill="#000000" fill-opacity="0.58"/>
+  <rect x="129" y="33.6" width="3" height="82.8" fill="#ffffff" fill-opacity="0.3"/>
+  <rect x="154.5" y="31.3" width="9" height="87.4" rx="2" fill="#000000" fill-opacity="0.58"/>
+  <rect x="156.5" y="33.6" width="3" height="82.8" fill="#ffffff" fill-opacity="0.3"/>
+  <ellipse cx="172" cy="75" rx="13.8" ry="9.2" fill="#ffffff" fill-opacity="0.5"/>
 </g>
   </g>
   <polygon points="87.9,150.6 137.1,150.6 142,155.5 142,187.2 137.1,192 87.9,192 83,187.2 83,155.5" fill="#000000" fill-opacity="0.58"/>
