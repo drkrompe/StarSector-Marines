@@ -710,9 +710,12 @@ One line each, with its owner. Keep this list current, and remove an item when i
   Blockout session.
 - **The final comms script.** Fable writer session, once the timings and callsigns settle. It
   replaces `radio_log.TRAFFIC`, including its placeholder lines (see "Radio traffic (draft)").
-- **The wreck kit.** The wreck session builds real wrecks sized to the `debris_field` boxes and
-  publishes them to `builds/asharu-wrecks/<commit>/`. The blockout session swaps them in for
-  `wreck_meshes`. The box contract stays stable: piece and box ids, proportions, `--check`.
+- **The wreck kit is swapped in** for lit renders (`roster.WRECKS`, `builds/asharu-wrecks/33513e7f8`,
+  pinned by sha256): the station as one modelled piece, and each box filled by `wreck_kit.pick`.
+  The motion preview, and `--blockout-wrecks`, keep the stand-ins. `--check` reports the kit:
+  whether the station still matches `platform_parts()` (if not, the wreck session rebuilds it),
+  and which hulks the boxes draw. The box contract stays stable. Wreck session and blockout
+  session.
 - **S11 entry plasma:** new effects work (W7, `asharu-effects-plan.md`). The preview shows a proxy
   only. Effects.
 - **The Hermes boarding craft's pirate livery,** if the owner wants it. Hermes build (pinned:
@@ -720,7 +723,9 @@ One line each, with its owner. Keep this list current, and remove an item when i
 - **The r9b k3 and k3b review frames** are held in the queue, for the render coordinator to
   release or cancel. Their next lit render uses `--volume-biased --volume-step-rate 4`.
 - **The layered r10 lit renders,** after the motion is accepted, on the plates `1d5ec7781`
-  (`roster.PLATES` = `builds/asharu-plates/1d5ec7781`, confirmed). Blockout session.
+  (`roster.PLATES` = `builds/asharu-plates/1d5ec7781`, confirmed). Their job needs two more
+  drive inputs than round 8's: the plates, to `build/asharu-battle/plates`, and the wreck kit,
+  to `build/asharu-battle/builds/asharu-wrecks`. Blockout session.
 - **The planet:** S12's far tile, and the plates over the rendered planet for S1a and S12. Plates
   session.
 - **The Colossus's shield in S9:** the shielded build is needed if she raises it against the

@@ -59,6 +59,8 @@ sys.path.insert(0, str(PROLOGUE))
 sys.path.insert(0, str(ART))
 import debris_field
 import wreck_meshes
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'asharu-wrecks'))
+import wreck_kit  # noqa: E402  the wreck kit's swap-in contract (plain Python): which kit wreck fills each box
 import roster
 from motion import boarding_run, fleet_at   # ships move about their stations: seeded weave, bank and breathing spacing  # noqa: E402
 from motion import (A_FULL, IDLE, Pose, camera, carried, drift, follow, held, keyed, mass_class, recoil, riding,  # noqa: E402
@@ -1935,16 +1937,66 @@ def blender_main(cfg):
             obj('Plasma head', bead_me, head_mat, Matrix.Translation(head) @ Matrix.Scale(2200 * scale, 4))
             labels3d[name] = head
 
-    def field_matrix(piece, box, t):
-        """A debris box's world matrix at time t: the wreck turning about its own axis (debris_field)."""
+    def field_matrix(piece, box, t, local=None):
+        """A debris box's world matrix at time t: the wreck turning about its own axis (debris_field).
+        local: the wreck kit's 3x3 for the box (wreck_kit.pick), in place of the unit box's stretch."""
         c, half, r = FIELD[piece].boxes_at(t)[box]
         rz = frame_of(Vector((0, 0, 0)), PLATFORM_HD, 0, 0).to_3x3()
-        return (Matrix.Translation(Vector(on_platform(c))) @ (rz @ Matrix(r)).to_4x4()
-                @ Matrix.Diagonal((*half, 1)))
+        fit = Matrix(local).to_4x4() if local is not None else Matrix.Diagonal((*half, 1))
+        return Matrix.Translation(Vector(on_platform(c))) @ (rz @ Matrix(r)).to_4x4() @ fit
+
+    kit_coll = []
+
+    def wreck_kit_collection():
+        """The wreck kit's ASHARU WRECKS collection, appended once and excluded (its objects are
+        instanced, never drawn in place). A lit render refuses to fall back to the stand-ins: a
+        missing or different build is an error, not a quieter picture."""
+        if not kit_coll:
+            f = roster.WRECKS
+            path = BUILDS / f['dir'] / f['file']
+            if not path.exists():
+                raise SystemExit(f'wreck kit missing: {path} (Drive {f["drive"]}); '
+                                 'or pass --blockout-wrecks for the stand-ins')
+            import hashlib
+            sha = hashlib.sha256(path.read_bytes()).hexdigest()
+            if sha != f['asset_sha256']:
+                raise SystemExit(f'wreck kit {path} is {sha[:12]}, roster.WRECKS wants {f["asset_sha256"][:12]}')
+            if not wreck_kit.station_current(platform_parts()):
+                raise SystemExit('the wreck kit station was built from another platform_parts(): rebuild the kit')
+            kit_coll.append(append(path, 'ASHARU WRECKS'))
+        return kit_coll[0]
+
+    def kit_instance(name, src, matrix):
+        """A kit object placed by matrix, keeping its own materials (they read its face attributes)."""
+        o = src.copy()
+        o.name = name
+        o.matrix_world = matrix
+        link(o, stage_ships)
+        o.visible_shadow = True
+        return o
 
     def platform(p, t=K1B_T):
         """The derelict Asharu platform (platform_parts) and its debris field (FIELD, posed at t), at p,
-        casting shadows its hidden ships lie in."""
+        casting shadows its hidden ships lie in. A lit render draws the wreck kit (roster.WRECKS): the
+        station as one modelled piece in the platform's frame, and each box filled by the kit wreck
+        wreck_kit.pick chooses for it. The motion preview, and --blockout-wrecks, draw the blockout:
+        the station's boxes and drums, and wreck_meshes' broken shapes."""
+        use_kit = not cfg.get('motion_preview') and not cfg.get('blockout_wrecks')
+        if use_kit:
+            kit = wreck_kit_collection().all_objects
+            station_obj, _ = wreck_kit.station()
+            kit_instance('Platform station', kit[station_obj],
+                         Matrix.Translation(Vector(PLATFORM)) @ Matrix.Rotation(math.radians(PLATFORM_HD), 4, 'Z'))
+            for i, piece in enumerate(FIELD):
+                for j, (_, half, _) in enumerate(piece.boxes):
+                    pk = wreck_kit.pick(half, i * 31 + j)
+                    o = kit_instance('Platform debris %d.%d' % (i, j), kit[pk.object],
+                                     field_matrix(i, j, t, pk.local))
+                    o.rotation_mode = 'QUATERNION'
+                    o['field_piece'], o['field_box'], o['kit_local'] = i, j, [v for row in pk.local for v in row]
+            print('ASHARU wreck kit: the station and %d wrecks placed (%s)' % (
+                sum(len(pc.boxes) for pc in FIELD), roster.WRECKS['drive']), flush=True)
+            return
         mat = principled('Platform', (.32, .3, .28), rough=.75, metal=.4)
         if 'Drum unit' not in bpy.data.meshes:
             me = bpy.data.meshes.new('Drum unit')
@@ -2840,6 +2892,26 @@ def station_boxes():
     return out
 
 
+def kit_lines():
+    """--check's wreck-kit report: whether the kit's station still matches platform_parts(), which
+    hulks the field's boxes draw, the worst stretch of a kit wreck into its box, and whether the
+    pinned build is here for a lit render."""
+    from collections import Counter
+    picks = [(pc.name, j, wreck_kit.pick(half, i * 31 + j)) for i, pc in enumerate(FIELD)
+             for j, (_, half, _) in enumerate(pc.boxes)]
+    fam = Counter(p.family for _, _, p in picks)
+    worst = max(picks, key=lambda x: max(abs(math.log(f)) for f in x[2].fill))
+    path = BUILDS / roster.WRECKS['dir'] / roster.WRECKS['file']
+    out = ['wreck kit (%s)' % roster.WRECKS['drive'],
+           '   station %s' % ('matches platform_parts()' if wreck_kit.station_current(platform_parts())
+                              else 'STALE: built from another platform_parts(), rebuild the kit'),
+           '   %d boxes: %s' % (len(picks), ', '.join('%s %d' % kv for kv in sorted(fam.items()))),
+           '   hulks: ' + ', '.join('%s %s' % (n, p.name) for n, _, p in picks if p.family == 'hulk'),
+           '   worst stretch %s box %d: %s (fill %s)' % (worst[0], worst[1], worst[2].name, worst[2].fill),
+           '   build %s' % ('here' if path.exists() else 'not here (a lit render needs it: %s)' % path)]
+    return out
+
+
 def hide_lines():
     """--check's hiding report (owner, 2026-10-22): per hidden pirate, what she hides behind and how
     big it is against her own bounding box, how much of her the convoy can see before the drives
@@ -3133,6 +3205,8 @@ def main():
         check(list(SHOTS))
         for line in hide_lines():
             print(line)
+        for line in kit_lines():
+            print(line)
         return
 
     def opt(flag, default=None):
@@ -3162,7 +3236,8 @@ def main():
                                                           los='--los' in argv, swfx='--swfx' in argv,
                                                           fx_check='--fx-check' in argv,
                                                           volume_audit='--volume-audit' in argv,
-                                                          layers=layers, plates=plates)))
+                                                          layers=layers, plates=plates,
+                                                          blockout_wrecks='--blockout-wrecks' in argv)))
         subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python-exit-code', '1',
                                '--python', __file__], env=env)
         return
@@ -3180,7 +3255,7 @@ def main():
                        layers=layers, plates=plates, volume_step_rate=opt('--volume-step-rate'),
                        volume_max_steps=opt('--volume-max-steps'), percent=opt('--percent'),
                        volume_biased='--volume-biased' in argv,
-                       hide_volumes=opt('--hide-volumes'))
+                       hide_volumes=opt('--hide-volumes'), blockout_wrecks='--blockout-wrecks' in argv)
             env = dict(os.environ, ASHARU_CFG=json.dumps(cfg))
             subprocess.check_call([str(BLENDER), '--background', '--factory-startup', '--python', __file__], env=env)
     outputs = [orbit_diagram(run)] + label_frames(run)

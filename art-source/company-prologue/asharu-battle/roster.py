@@ -27,6 +27,12 @@ from starsector_path import GAME_CORE  # noqa: E402
 # frame's camera, with manifest.json. A render-queue job copies them to build/asharu-battle/plates/.
 PLATES = 'builds/asharu-plates/1d5ec7781'
 
+# The debris field's wreck kit (asharu-wrecks; its README is the contract): the field's wrecks and the
+# derelict platform as modelled pieces. Lit renders draw it; the motion preview keeps wreck_meshes'
+# stand-ins. A render-queue job copies the folder to build/asharu-battle/builds/asharu-wrecks/.
+WRECKS = dict(dir='asharu-wrecks', drive='builds/asharu-wrecks/33513e7f8', file='asharu-wrecks.blend',
+              asset_sha256='844966ec784741151c0e6a88bd48dd5e32d63418fed0b48379229e49e981950e')
+
 # Finished cinematic builds this scene appends. Each build is one Drive folder, copied whole to
 # build/asharu-battle/builds/<dir>/ (ignored) by hand or as a render-queue drive input:
 #   dir: the local folder; drive: its source under Drive starsector/; file: the .blend in it (the
