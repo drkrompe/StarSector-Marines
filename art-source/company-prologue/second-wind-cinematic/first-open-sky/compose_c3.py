@@ -183,13 +183,14 @@ ROAD = [(2270, 1005.0), (2350, 977.0), (2450, 943.0), (2550, 908.0), (2600, 886.
         (2740, 838.5), (2800, 821.5), (2860, 812.5), (2945, 798.0)]
 PLATE_M = 1.16                       # plate px per metre at ~2 km (c3_settlement.PX_PER_M)
 TRUCK_M = (24.0, 2.6, 3.8)           # length, width, height: a road train, cab and two box trailers
-# Both drive the town's waterfront, past the buildings, for the whole shot (owner, 2026-10-22: in clear
-# view, not off at the far end): the red one upstream toward the weigh station, the blue one in from
-# the station toward the hill road. They pass each other mid-town under Castle's line (~10.8 s).
-# Speeds in m/s (47 and 40 km/h: town speeds); `lane` is plate px off the centreline.
+# Both drive the town's waterfront past the buildings for the whole shot, down-left along the road
+# (owner, 2026-10-22: in clear view, and against the scene's rightward drift, which already has the
+# Atlas, the flock's entry and the slide): a two-truck convoy out of the weigh station toward the
+# hill road, the red cab leading, the blue about 90 m behind. Speeds in m/s (43 and 40 km/h: town
+# speeds); `lane` is plate px off the centreline.
 TRUCKS = [
-    {"name": "out", "start": 2300.0, "t0": 0.0, "speed": 13.0, "lane": -1.2, "cab": (190, 60, 40)},
-    {"name": "in", "start": 2600.0, "t0": 0.0, "speed": -11.0, "lane": 1.2, "cab": (52, 96, 160)},
+    {"name": "lead", "start": 2620.0, "t0": 0.0, "speed": -12.0, "lane": 1.2, "cab": (190, 60, 40)},
+    {"name": "second", "start": 2720.0, "t0": 0.0, "speed": -11.0, "lane": 1.2, "cab": (52, 96, 160)},
 ]
 
 
