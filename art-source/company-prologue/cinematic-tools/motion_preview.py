@@ -703,13 +703,16 @@ def finish(out, ffmpeg='ffmpeg', name='motion-preview', trails=2.0, tags=True, t
            sequence='', stills_width=1600, web_width=1280):
     """Overlays, MP4 and stills for a rendered run. timeline: the full ordered list of shot ids
     (with their slates' text) when the sequence has shots the run did not render:
-    [dict(id, title, caption, start, end, rendered=False), ...]; default: the manifest's shots."""
+    [dict(id, title, caption, start, end, rendered=False), ...]; default: the manifest's shots.
+    An entry may carry screen(f) -> a 1920x1080 PIL image, or None for the rendered frame: a shot
+    that is a 2D screen rather than a camera (a playback screen), or one that breaks into one."""
     from PIL import Image, ImageDraw
     out = Path(out)
     man = json.loads((out / 'manifest.json').read_text())
     fps, step = man['fps'], man['step']
     shots = timeline or sorted(man['shots'].values(), key=lambda s: s['start'])
-    shots = [man['shots'].get(s['id'], s) if s.get('rendered', True) else s for s in shots]
+    shots = [dict(man['shots'].get(s['id'], s), **({'screen': s['screen']} if s.get('screen') else {}))
+             if s.get('rendered', True) else s for s in shots]
     crafts = man['crafts']
     f_big, f_mid, f_small, f_tag = _font(64, True), _font(26, True), _font(21), _font(16, True)
     jpg = out / 'jpg'
@@ -734,7 +737,10 @@ def finish(out, ffmpeg='ffmpeg', name='motion-preview', trails=2.0, tags=True, t
             key = frames[len(frames) // 2] if frames else None
         key_f = min(frames, key=lambda f: abs(f - key)) if frames else None
         for f in frames:
-            if s.get('rendered'):
+            im = s['screen'](f) if s.get('screen') else None
+            if im is not None:
+                im = im.convert('RGB')
+            elif s.get('rendered'):
                 png = out / 'frames' / ('f%05d.png' % f)
                 if png.exists():
                     im = Image.open(png).convert('RGB').resize((W, H), Image.BILINEAR)

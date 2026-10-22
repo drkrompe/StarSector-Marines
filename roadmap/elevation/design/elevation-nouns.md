@@ -93,8 +93,8 @@ Routes go round to a ramp because that is the only connected way.
   than none.
 - **The swarm** (Runners and every strain) **does not climb cliffs.** It reaches
   high ground by ramps, which is what makes a ramp a chokepoint worth defending
-  against it. *(Owner decision pending — see `stories.md`; a climbing strain is
-  a later, separate noun, never a property of the base swarm.)*
+  against it. (Owner, 2026-10-22. A climbing strain would be a later, separate
+  noun, never a property of the base swarm.)
 - **Aircraft** fly over elevation and never read it in flight. A landing,
   a drop or a hover over a plateau uses the plateau's walkable cells like any
   other ground; a face cell is never a landing or drop cell.
@@ -114,8 +114,8 @@ for elevation's sake.
   standing on the lip is outlined against the sky — and nothing further back.
   A plateau's holders who stand back from the rim are hidden from below; those
   who step up to the rim to fire are seen, and can be fired on. *(Owner decision
-  pending: strict StarCraft — no upward sight at all — and flat — elevation
-  does not affect sight — are the alternatives.)*
+  decision: skyline, 2026-10-22. Whether firing down reveals a holder back
+  from the rim is pending.)*
 - Ramp cells count as their lower tier for the observer on them, so a unit
   climbing a ramp sees up only when it reaches the head. A ramp is seen from
   both tiers.
@@ -157,9 +157,8 @@ stops a spread round at the first wall. Both err toward blocking.
   (The old raised-mass cover at a cliff foot remains for masses that have no
   top, where nobody stands above.)
 - **Firing up.** Beyond the skyline rule and rim cover there is no further
-  penalty for firing uphill and no bonus for firing down. *(Owner decision
-  pending: an uphill accuracy penalty, StarCraft I's miss chance, is the
-  alternative.)*
+  penalty for firing uphill and no bonus for firing down (owner, 2026-10-22;
+  an uphill accuracy penalty, StarCraft I's miss chance, was declined).
 - **Indirect fire** — mortars, artillery, bombs and grenades lobbed over —
   ignores tiers for its flight and lands where it is aimed. It still needs a
   spotter, and the spotter needs sight, so elevation reaches artillery through
@@ -257,8 +256,10 @@ draws.
 - **South faces** (`ElevationPlan.southFace`) may be drawn taller: a face whose
   outside looks down the screen is widened by up to three cells, because the
   camera looks at a south face and over a north one. The extra width is face
-  in the battle too. *(Owner decision pending, with the face width and whether
-  higher ground is lit a step brighter.)*
+  in the battle too. The owner chose one-cell faces with tall south faces,
+  drawn with the cliff tiles (2026-10-22). Ramps get art of their own that
+  reads as a slope: a floor that climbs and walls that taper up the cut
+  *(which floor is pending: graded earth, a worn track or cut steps)*.
 
 Units on a plateau are drawn where they stand, with no displacement, scale or
 parallax: the map is top-down.

@@ -66,7 +66,7 @@ class MechInternalsTest {
         learnAll(bay);
         String id = bay.activeSquad().mechs().get(0).id();
         assertFalse(bay.canInstallInternal(id, MechInternal.MILITARY_CAPACITOR_BANK),
-                "a three-cell capacitor bank does not fit the Hound's two-cell reserve");
+                "a 2x2 capacitor bank does not fit the Hound's 2x1 reserve");
         assertTrue(bay.canInstallInternal(id, MechInternal.DOUBLE_CAPACITOR_BANK));
         assertFalse(bay.canInstallInternal(id, MechInternal.AUXILIARY_VENT_ARRAY),
                 "the Hound has no utility socket");

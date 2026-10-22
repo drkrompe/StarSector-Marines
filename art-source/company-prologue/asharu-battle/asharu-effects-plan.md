@@ -293,6 +293,15 @@ third on the wreck's strike point at `break_frame`. `k3_cue` gives the k3 entrie
   `break_frame`.
 - **Done when:** the cook-off is caused on screen.
 
+### W7 Entry plasma: new, not started (flagged 2026-10-22)
+
+S11 needs atmospheric entry plasma round the Colossus and Morrow, and S12's two trails are the
+same effect seen from far off. Nothing in the kit makes it yet. The motion preview blocks it as a
+sheath cone from each bow, building from 118 s to 124 s (`asharu_preview`, fx kind `plasma`).
+- **New:** a bow shock glow hugging the leading hull, a sheath streaming aft and widening with
+  speed, sparks and ablated debris, and the trail it leaves; its intensity follows the descent.
+- **Done when:** S11's chase reads as two hulls entering the atmosphere, and S12's trails match it.
+
 ## Scene integration: done 2026-10-21
 
 With `--swfx`, `battle_blockout` draws each key frame's action with the finished kit

@@ -860,6 +860,112 @@ KEYFRAMES = {
         labels=['trail-colossus', 'trail-morrow']),
 }
 
+
+def _nose(pose):
+    """A pose's nose direction (unit vector) from its heading and pitch."""
+    h, p_ = math.radians(pose[3]), math.radians(pose[4])
+    return (math.cos(p_) * math.cos(h), math.cos(p_) * math.sin(h), math.sin(p_))
+
+
+def _along(pose, back, up=0.0, side=0.0):
+    """A point `back` metres behind a pose along her nose, raised `up` and moved `side` to her port."""
+    n = _nose(pose)
+    h = math.radians(pose[3])
+    return (pose[0] - n[0] * back - math.sin(h) * side, pose[1] - n[1] * back + math.cos(h) * side,
+            pose[2] - n[2] * back + up)
+
+
+# S2: alongside the Colossus, Morrow off her starboard quarter with her drones stowed (no Borer is
+# placed), Lasher A sliding through the foreground between the lens and the Colossus
+M2_T = 27.0
+M2_LASHER = fly('lasher-a', (-110, 185, 60, 3, 1, -28, .9), M2_T, [
+    dict(t=24, hd=-3, pt=0, rl=-12), dict(t=30, hd=8, pt=2, rl=-35)], v=110)
+M2_SHIPS = {**{k: v for k, v in convoy_at(M2_T).items() if k in ('colossus', 'morrow', 'buffalo-a')},
+            'lasher-a': M2_LASHER}
+
+# S5: the Manticore (P) opens at long range on the column's tail, Hellbore slugs and a Harpoon salvo
+# crossing 3-4 km; her flight is S6's, so the cut into S6 keeps her where she is
+M5_T = 47.0
+def at_time(pose, t):
+    """A flight keyed at another shot's key time, stilled at t instead: the same motion, so a camera
+    tracking it and the preview's key frame both register at t."""
+    return Pose(pose.at(t), t, pose.at)
+
+
+M5_MANTICORE = at_time(K3_SHIPS['manticore-p'], 47.0)
+_m5 = M5_MANTICORE.at(M5_T)
+_m5_aim = convoy_at(M5_T)['phaeton']
+M5_SHIPS = {**{k: v for k, v in convoy_at(M5_T).items() if k in ('phaeton', 'tarsus', 'hound-m', 'buffalo-b', 'dram')},
+            **{k: at_time(K3_SHIPS[k], M5_T) for k in ('manticore-p', 'wolf-p-b')}}
+_m5_dir = [b - a for a, b in zip(_m5[:3], _m5_aim[:3])]
+_m5_len = math.sqrt(sum(x * x for x in _m5_dir))
+_m5_dir = [x / _m5_len for x in _m5_dir]
+
+
+def _m5_point(d, up=0.0, side=0.0):
+    """A point d metres along the Manticore's line of fire from her, at the key time."""
+    return (_m5[0] + _m5_dir[0] * d - _m5_dir[1] * side, _m5[1] + _m5_dir[1] * d + _m5_dir[0] * side,
+            _m5[2] + _m5_dir[2] * d + up)
+
+
+# S11: entry, a chase from just behind the Colossus as plasma builds round both hulls and Morrow drifts
+# apart from her; the last of it breaks into the recording screen's static (asharu_preview)
+M11_T = 122.0
+M11_COLOSSUS = at_time(K5_SHIPS['colossus'], 122.0)
+M11_MORROW = fly('morrow', K5_SHIPS['morrow'].at(M11_T), M11_T, [
+    dict(t=118, hd=1, pt=-23, rl=10), dict(t=126, hd=-9, pt=-27, rl=-4, v=36)], v=44, wobble=1.0, thrust=None)
+_m11 = M11_COLOSSUS.at(M11_T)
+
+# Shots with no key frame, blocked for the motion preview so no shot plays as a slate: the camera's
+# move and every ship's flight, the same spec as a key frame's. They are never lit: the lit run's
+# frames are KEYFRAMES only, and SHOTS is what the preview and --check read.
+BLOCKED = {
+    'm2': dict(
+        shot='S2', title='Alongside the Colossus',
+        caption='Tracking alongside the Colossus at 300 m. Morrow rides off her starboard quarter, drones stowed; '
+                'Lasher A slides through the foreground.',
+        # TRACKING: alongside at 300 m off her port side, a little above, easing forward along her length
+        camera=camera('m2', [dict(t=24, loc=(-260, 300, 90), target=(-60, -60, -10), lens=28),
+                             dict(t=27, loc=(-170, 305, 85), target=(-20, -70, -12), lens=28),
+                             dict(t=30, loc=(-80, 300, 80), target=(20, -80, -14), lens=28)], M2_T, shake=.04),
+        ships=M2_SHIPS,
+        labels=['colossus', 'morrow', 'lasher-a']),
+    'm5': dict(
+        shot='S5', title='The opening',
+        caption='The Manticore (P) opens at long range: Hellbore slugs and a Harpoon salvo cross 3-4 km of space '
+                'toward the column\'s tail.',
+        # ALONG THE LINE OF FIRE, ZOOM OUT: long on the Manticore from behind as she fires (130 mm), widening
+        # down the line as the salvo crosses toward the column (85 to 50 mm)
+        camera=camera('m5', [dict(t=44, loc=track(M5_MANTICORE, _m5_point(-850, 110, 90)),
+                                  target=track(M5_MANTICORE, _m5_point(0)), lens=130),
+                             dict(t=45.6, loc=track(M5_MANTICORE, _m5_point(-880, 115, 95)),
+                                  target=track(M5_MANTICORE, _m5_point(120)), lens=110),
+                             dict(t=47, loc=track(M5_MANTICORE, _m5_point(-900, 120, 100)),
+                                  target=track(M5_MANTICORE, _m5_point(700), .5), lens=85),
+                             dict(t=50, loc=track(M5_MANTICORE, _m5_point(-940, 130, 110)),
+                                  target=_m5_point(_m5_len * .7), lens=50)], M5_T, shake=.08, kicks=[(44.6, .4)]),
+        ships=M5_SHIPS,
+        fx=[('tracer', 'manticore-p', 'phaeton'), ('missiles', 'manticore-p', 'phaeton')],
+        labels=['manticore-p', 'phaeton', 'tarsus', 'hound-m']),
+    'm11': dict(
+        shot='S11', title='Entry',
+        caption='From just behind, plasma builds round both hulls; Morrow drifts apart from her. The radio breaks '
+                'up, the picture breaks into the recording screen\'s static, and END OF RECORDING.',
+        # CHASE: just behind and above the Colossus, closing a little as the plasma builds, shaking more
+        camera=camera('m11', [dict(t=118, loc=track(M11_COLOSSUS, _along(_m11, 340, 80, 0), 1.0, .3),
+                                   target=track(M11_COLOSSUS, _along(_m11, 0, 0, -75)), lens=42),
+                              dict(t=122, loc=track(M11_COLOSSUS, _along(_m11, 300, 70, 0), 1.0, .3),
+                                   target=track(M11_COLOSSUS, _along(_m11, 0, 0, -75)), lens=42),
+                              dict(t=126, loc=track(M11_COLOSSUS, _along(_m11, 270, 65, 0), 1.0, .3),
+                                   target=track(M11_COLOSSUS, _along(_m11, -40, 0, -75)), lens=38)], M11_T, shake=.3),
+        ships={'colossus': M11_COLOSSUS, 'morrow': M11_MORROW},
+        # entry plasma is new effects work: a proxy here (asharu_preview 'plasma'), building from 118 s to 124 s
+        fx=[('plasma', 'colossus', 118.0, 124.0), ('plasma', 'morrow', 118.5, 124.5),
+            ('fire_on', 'colossus', (-55, 36, 4)), ('smoke', 'colossus', (-60, 34, 0))],
+        labels=['colossus', 'morrow']),
+}
+SHOTS = {**KEYFRAMES, **BLOCKED}
+
 ROSTER_SHEETS = ('r1', 'r2')   # top-down and broadside fleet sheets
 
 
@@ -2101,8 +2207,8 @@ def blender_main(cfg):
         sun.rotation_euler = sun_dir.to_track_quat('Z', 'Y').to_euler()
         world.node_tree.nodes['Background'].inputs['Color'].default_value = (.0008, .0009, .0014, 1)
         world.node_tree.nodes['Star gain'].inputs[1].default_value = STAR_GAIN
-        if kf in KEYFRAMES:
-            spec = KEYFRAMES[kf]
+        if kf in SHOTS:
+            spec = SHOTS[kf]
             for key, sp in spec['ships'].items():
                 place(key, sp, spec.get('states', {}).get(key))
             for lib in library.values():     # a build's control knobs: this frame's pose, else its saved pose
@@ -2591,9 +2697,9 @@ def check(frames):
     pixels, and whether it is in frame. The camera math is Blender's track ('-Z', 'Y')."""
     lengths = {m['key']: roster.size_row(m)['length_m'] for m in roster.MERCHANT + roster.PIRATE + roster.DRONES}
     for kf in frames:
-        if kf not in KEYFRAMES:
+        if kf not in SHOTS:
             continue
-        c = KEYFRAMES[kf]['camera']
+        c = SHOTS[kf]['camera']
         loc = c['loc']
         f = [b - a for a, b in zip(loc, c['target'])] if c.get('target') else list(c['look'])
         n = math.sqrt(sum(x * x for x in f))
@@ -2607,7 +2713,7 @@ def check(frames):
         dip = math.degrees(math.acos(R / (R + ALT + loc[2])))
         hy = H / 2 - fpx * math.tan(math.radians(-dip - pitch))
         print(f'{kf}: pitch {pitch:.1f}, horizon at y={hy:.0f}' + ('' if 0 <= hy <= H else ' (out of frame)'))
-        for key, sp in KEYFRAMES[kf]['ships'].items():
+        for key, sp in SHOTS[kf]['ships'].items():
             d = [b - a for a, b in zip(loc, sp[:3])]
             z = sum(a * b for a, b in zip(d, f))
             if z <= 0:
@@ -2643,11 +2749,11 @@ def turn_lines(kf):
     tumble or a boat setting down is expected there and is marked as such."""
     import asharu_preview
     import motion
-    seg = next((s for s in asharu_preview.segments(KEYFRAMES) if s['kf'] == kf), None)
+    seg = next((s for s in asharu_preview.segments(SHOTS) if s['kf'] == kf), None)
     if seg is None:
         return []
     out = []
-    for key, sp in KEYFRAMES[kf]['ships'].items():
+    for key, sp in SHOTS[kf]['ships'].items():
         if not hasattr(sp, 'at'):
             continue
         hits = [h['t'] for h in getattr(sp.at, 'hits', ()) if 'kick' not in h]
@@ -2714,7 +2820,7 @@ def surface_lines(loc, f, r, u, fpx):
 def cue_lines(kf):
     """--check's view of a frame's effects cues: what each ship's own SWFX copy is set to (under
     --swfx) beside the other ships of its build, and anything a cue names that is not there."""
-    spec = KEYFRAMES[kf]
+    spec = SHOTS[kf]
     cues = spec.get('cues', {})
     if not cues:
         return []
@@ -2837,7 +2943,7 @@ def mounts(key, state=None):
 
 def bearing(kf):
     """For every shot in a key frame, whether the shooter has a gun that can bear on its target."""
-    spec = KEYFRAMES[kf]
+    spec = SHOTS[kf]
     ships = spec['ships']
     states = spec.get('states', {})
     rows = []
@@ -2880,7 +2986,7 @@ BEARING_CANDIDATES = {}     # (kf, kind, shooter, target) -> every mount that be
 def main():
     argv = sys.argv[1:]
     if '--check' in argv:
-        check(list(KEYFRAMES))
+        check(list(SHOTS))
         return
 
     def opt(flag, default=None):

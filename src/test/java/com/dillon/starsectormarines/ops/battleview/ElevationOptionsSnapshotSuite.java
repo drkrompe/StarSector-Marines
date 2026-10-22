@@ -28,6 +28,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -169,6 +170,71 @@ public final class ElevationOptionsSnapshotSuite implements SnapshotSuite {
                     : "Orange: the pack's route to the top, round to the west ramp.");
             out.add(new SnapshotArtifact("swarm-climb/" + option[0] + ".png", image));
         }
+
+        // Firing down: whether a holder back from the rim is seen when it fires on the low ground.
+        Object[][] reveal = {
+                {"a-revealed-3s", new boolean[]{true, true, false},
+                        "A  Firing down reveals the shooter for about 3 seconds (recommended)",
+                        "The low ground can answer: a holder that fires stays seen for a few seconds, then fades back."},
+                {"b-while-firing", new boolean[]{true, false, false},
+                        "B  The shooter is seen only in the instant it fires",
+                        "A muzzle flash: shots can be aimed at it on the beat it fires, then it is hidden again."},
+                {"c-never", new boolean[]{false, false, false},
+                        "C  Never: holders back from the rim fire down unseen",
+                        "StarCraft's high ground: the low ground needs a spotter, air or a unit on top to answer."},
+        };
+        for (Object[] option : reveal) {
+            MapResult held = stamped(plan(1, 2), ElevationMap.SightRule.SKYLINE);
+            int[] shooter = backFromRim(held, BACK[1]);
+            AtomicReference<BattleSimulation> simRef = new AtomicReference<>();
+            // The ground pass keeps the real sides for the fog; the unit pass draws the shooter on
+            // the squad's side so the renderer does not hide it, the fog drawn over it after.
+            AtomicInteger pass = new AtomicInteger();
+            BufferedImage frame = sunlitWithUnits(renderer, held, sim -> {
+                boolean first = pass.getAndIncrement() == 0;
+                if (first) simRef.set(sim);
+                spawn(sim, Faction.MARINE, UnitType.MARINE_BLUE, LOW_SQUAD);
+                spawn(sim, first ? Faction.DEFENDER : Faction.MARINE, UnitType.MARINE_RED, new int[][]{shooter});
+            }, null, false, new int[0][]);
+            boolean[] seen = (boolean[]) option[1];
+            String[] moments = {"0 s: it fires", "1.5 s later", "4 s later"};
+            BufferedImage image = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g = image.createGraphics();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            int panel = 640, left = (int) ((shooter[0] + .5f) * CELL_PX) - panel / 2;
+            for (int p = 0; p < 3; p++) {
+                BufferedImage view = copy(frame);
+                fogWithReveal(view, simRef.get(), seen[p] ? shooter : null);
+                Graphics2D v = view.createGraphics();
+                v.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                int sx = (int) ((shooter[0] + .5f) * CELL_PX), sy = (int) ((ElevationTestMaps.HEIGHT - shooter[1] - .5f) * CELL_PX);
+                if (p == 0) {
+                    int[] target = LOW_SQUAD[1];
+                    v.setStroke(new BasicStroke(3f));
+                    v.setColor(new Color(255, 214, 90, 230));
+                    v.drawLine(sx, sy, (int) ((target[0] + .5f) * CELL_PX),
+                            (int) ((ElevationTestMaps.HEIGHT - target[1] - .5f) * CELL_PX));
+                }
+                v.setStroke(new BasicStroke(3f));
+                v.setColor(seen[p] ? new Color(255, 214, 90, 240) : new Color(255, 80, 70, 230));
+                v.drawOval(sx - 22, sy - 22, 44, 44);
+                v.dispose();
+                g.drawImage(view.getSubimage(left, 0, panel, view.getHeight()), p * panel, 0, null);
+                g.setColor(new Color(10, 14, 20, 210));
+                g.fillRect(p * panel, 74, panel, 40);
+                g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 22));
+                g.setColor(new Color(0xE8EEF6));
+                g.drawString(moments[p] + (seen[p] ? "  (seen from below)" : "  (hidden)"), p * panel + 16, 102);
+                if (p > 0) {
+                    g.setColor(new Color(10, 14, 20));
+                    g.fillRect(p * panel - 2, 74, 4, 1080 - 74);
+                }
+            }
+            g.dispose();
+            caption(image, (String) option[2], option[3] + "  Yellow ring: seen by the blue squad. Red ring: hidden.");
+            out.add(new SnapshotArtifact("firing-down/" + option[0] + ".png", image));
+        }
+
         return out;
     }
 
@@ -282,6 +348,51 @@ public final class ElevationOptionsSnapshotSuite implements SnapshotSuite {
                 ground.setRGB(px, py, (rgb & 0xFF000000) | (r << 16) | (gr << 8) | b);
             }
         }
+    }
+
+    /** The standable top cell, back from the rim, nearest a point. */
+    private static int[] backFromRim(MapResult map, int[] near) {
+        ElevationMap e = map.grid.elevation();
+        int w = e.width();
+        int best = -1;
+        double bestDistance = Double.MAX_VALUE;
+        for (int i = 0; i < w * e.height(); i++) {
+            if (e.kindAt(i) != ElevationMap.GROUND || e.sightHeightAt(i) != 1 || e.isRimAt(i)) continue;
+            if (!map.grid.isWalkable(i % w, i / w)) continue;
+            double d = Math.hypot(i % w - near[0], i / w - near[1]);
+            if (d < bestDistance) {
+                bestDistance = d;
+                best = i;
+            }
+        }
+        return new int[]{best % w, best / w};
+    }
+
+    private static BufferedImage copy(BufferedImage source) {
+        BufferedImage out = new BufferedImage(source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = out.createGraphics();
+        g.drawImage(source, 0, 0, null);
+        g.dispose();
+        return out;
+    }
+
+    /**
+     * The blue squad's fog over the frame, with the shooter's own cell and the
+     * ground around it lifted when the option says it is seen. The reveal is
+     * drawn, not simulated: no such mechanic exists yet.
+     */
+    private static void fogWithReveal(BufferedImage image, BattleSimulation sim, int[] revealed) {
+        boolean[] open = sim.getFogOfWar().cellRevealedArray();
+        int w = ElevationTestMaps.WIDTH, h = ElevationTestMaps.HEIGHT;
+        Graphics2D g = image.createGraphics();
+        g.setColor(new Color(0, 0, 0, 150));
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                boolean lifted = revealed != null && Math.hypot(x - revealed[0], y - revealed[1]) <= 1.5;
+                if (!open[y * w + x] && !lifted) g.fillRect(x * CELL_PX, (h - 1 - y) * CELL_PX, CELL_PX, CELL_PX);
+            }
+        }
+        g.dispose();
     }
 
     private static void spawn(BattleSimulation sim, Faction faction, UnitType type, int[][] cells) {
