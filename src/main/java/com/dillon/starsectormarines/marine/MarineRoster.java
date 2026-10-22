@@ -412,38 +412,6 @@ public class MarineRoster implements Serializable {
         return false;
     }
 
-    /** Whether a fielded team or saved squad arrangement still references this template. */
-    public boolean isFireTeamTemplateReferenced(String templateId) {
-        return isFireTeamTemplateAssigned(templateId)
-                || armory.isTemplateReferencedByArrangement(templateId);
-    }
-
-    /** Custom templates may be deleted only after every live reference is removed. */
-    public boolean deleteFireTeamTemplate(String cardId) {
-        return !isFireTeamTemplateReferenced(cardId) && armory.deleteTemplateCard(cardId);
-    }
-
-    public boolean isWeaponDoctrineAssigned(String doctrineId) {
-        if (doctrineId == null) return false;
-        for (MarineSquad squad : squads) {
-            if (doctrineId.equals(squad.weaponDoctrineId())) return true;
-        }
-        return false;
-    }
-
-    public boolean isArmorDoctrineAssigned(String doctrineId) {
-        if (doctrineId == null) return false;
-        for (MarineSquad squad : squads) {
-            if (doctrineId.equals(squad.armorDoctrineId())) return true;
-        }
-        return false;
-    }
-
-    public boolean deleteWeaponDoctrine(String doctrineId) {
-        return !isWeaponDoctrineAssigned(doctrineId)
-                && armory.deleteWeaponDoctrine(doctrineId);
-    }
-
     public List<MarineSoldier> soldiers() {
         return Collections.unmodifiableList(soldiers);
     }

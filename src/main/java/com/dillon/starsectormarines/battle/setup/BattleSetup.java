@@ -629,6 +629,35 @@ public final class BattleSetup {
         sim.setMarineLandingPads(lzCells);
     }
 
+    /**
+     * The company's boats, one per pad, each flying its manifest line's
+     * sorties onto its pad from the pad's clear side; the squads they land are
+     * claimed by {@code claim}. An empty manifest is the default lift.
+     */
+    static void landCompany(BattleSimulation sim, List<LandingPad> pads, List<ShuttleAssignment> manifest,
+                            Random rng, SquadCommandClaim claim) {
+        List<ShuttleAssignment> assignments = resolveManifest(manifest);
+        int width = sim.getGrid().getWidth(), height = sim.getGrid().getHeight();
+        for (int i = 0; i < pads.size(); i++) {
+            ShuttleAssignment assignment = assignments.get(i % assignments.size());
+            LandingPad pad = pads.get(i);
+            float x = pad.centerX + 0.5f, y = pad.centerY + 0.5f;
+            float[] entry = shuttleEntryFor(x, y, width, height, pad.approach);
+            long shuttle = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
+                    entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            ShuttleMission mission = sim.world().mission(shuttle);
+            mission.totalCycles = assignment.cycles;
+            mission.commandClaim = claim;
+            MarineLoadout[][] cycles = new MarineLoadout[assignment.cycles][];
+            for (int cycle = 0; cycle < assignment.cycles; cycle++) {
+                cycles[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
+            }
+            mission.cycleLoadouts = cycles;
+            mission.marineLoadout = cycles[0];
+            equipDefaultTurrets(sim, shuttle);
+        }
+    }
+
     /** Dedicated Raid factory; target seizure and egress replace elimination. */
     public static BattleSimulation createRaid(
             long seed, List<ShuttleAssignment> manifest,

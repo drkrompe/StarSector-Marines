@@ -66,25 +66,6 @@ final class ArmorySpecSheets {
     }
 
     /**
-     * The primary and specialty a billet is being authored with in the doctrine
-     * designer. Role and grade are not catalog items and carry no sheet; armour
-     * is not authored here at all — the squad's tactic sheet issues it.
-     */
-    static void bindBilletCards(
-            SpecSheetBinder binder, MarkupInstance markup,
-            Signal<List<EquipmentDoctrineDesignerViewModel.BilletCard>> cards) {
-        List<EquipmentDoctrineDesignerViewModel.BilletCard> projected = cards.get();
-        for (int index = 0; index < projected.size(); index++) {
-            EquipmentDoctrineDesignerViewModel.BilletCard card = projected.get(index);
-            int slot = index;
-            bind(binder, markup, card.primaryId(), () -> at(cards, slot,
-                    EquipmentDoctrineDesignerViewModel.BilletCard::primarySheet));
-            bind(binder, markup, card.specialId(), () -> at(cards, slot,
-                    EquipmentDoctrineDesignerViewModel.BilletCard::specialSheet));
-        }
-    }
-
-    /**
      * Every entry a loadout card's issue lines name: each weapon in a weapon
      * loadout's twelve-billet issue and its specialty count, and each armour
      * pattern and carried capability on a tactic sheet.

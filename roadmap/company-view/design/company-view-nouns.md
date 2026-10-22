@@ -375,17 +375,15 @@ Rarity is never a random-roll weight, and selection never rolls equipment from a
 Faction-authored entries pair that provenance with the owning faction's vanilla flag,
 using the same logo art Starsector assigns in its faction definition. Mixed outlaw
 traditions name one representative faction explicitly in authored presentation data;
-company-authored definitions carry no borrowed faction badge.
+company-registered definitions carry no borrowed faction badge.
 
-The separate equipment designer authors **weapons only**, and uses the same visual
-language before a definition is saved: each billet card keeps a compact live
-render in its upper-right corner, wearing whatever the squad's assigned tactic
-sheet issues that billet — read, never edited, because a marine still has to be
-drawn wearing something and the honest something is what they would deploy in.
-Each card also reserves a short line for role or equipment flavor, and shows
-fixed-scale capability meters beside exact values. Those scales use catalog ceilings rather than the other
-three visible billets, so cycling an item produces a meaningful at-a-glance change
-and team selection cannot rewrite the comparison baseline.
+**The player never authors a card.** There is no equipment designer: the player
+collects complete cards and picks one of each for a squad. A card is the unit of
+access, play and reward; the weapons, suits and specials it names are its contents,
+never something the player assembles. Cards outside the built-in catalog exist only
+as developer-authored registrations under fixed ids (a story path's, a debug
+operation's), plus any card a save from before the designer's removal already holds,
+which keeps issuing for the squads that carry it.
 
 Card assignment is atomic. The Machine Shop freely fits any learned equipment;
 it neither reads nor spends fleet cargo, and removing kit grants no cargo refund.
@@ -402,10 +400,8 @@ optimize that result. Founding and personnel logistics retain their own costs.
 Built-in weapon definitions are authored deterministic distributions rather than
 live best-fit allocators. This makes faction-flavored profiles such as **Luddic
 Path Assault Equipment** explainable in preview and stable after issue.
-Player-authored weapon definitions persist in `MarineArmory` beside that immutable
-built-in catalog. Authoring consumes nothing and may mix every billet, but every
-referenced primary-and-grade and special must have a collected equipment template
-card.
+Registered weapon cards persist in `MarineArmory` beside that immutable built-in
+catalog.
 
 Armour deliberately has no equivalent. A tactic sheet is a role mix plus a
 tradition, resolved against owned stock every time it is read
@@ -423,8 +419,6 @@ favor resistant legacy armor at a mobility cost, Sindrian patterns carry deep vi
 plate reserves, and outlaw rigs pair crude material volume with poor resistance.
 Those differences live on concrete armor-pattern stats and twelve-billet issue, never
 on a hidden faction modifier or set bonus.
-Edits remain a draft until **Save as New**, so a definition already assigned to a
-squad never silently refits its materialized equipment.
 Starting armories collect only surplus Rook, field fatigues, and Cordon security shell.
 Save repair retains previously learned specifications and assigned formations but
 does not seed specialist gear or the unlearned faction-sheet library. The Machine
@@ -432,8 +426,8 @@ Shop fits learned equipment freely.
 
 **Corporate Blacksite Breach** is the built-in player assault profile:
 its twelve exact billets contain one Shattercap frag carrier, so its authored
-distribution stays legible. Player-authored definitions must likewise resolve to
-twelve exact billets before the same issue transaction can commit.
+distribution stays legible. Every card resolves to twelve exact billets before the
+same issue transaction can commit.
 
 Legacy four-billet templates, three-template arrangements, and their persisted ids
 remain readable compatibility input for existing saves; they are no longer writable
@@ -1670,8 +1664,8 @@ production vehicle deployment seam exists.
   never reaches back into campaign state.
 - Fire-team membership is derived from billet order and never persisted twice.
 - Fire teams are equipment/AI/lift units, not player command targets.
-- Weapon and armor doctrines are reusable squad designs authored from collected
-  templates; learned equipment is freely fitted by the Machine Shop.
+- Weapon cards and tactic sheets are complete, developer-authored squad issues the
+  player collects; a learned card is freely fitted by the Machine Shop.
 - Mech weapon assemblies and subsystems are finite physical stock; installed copies
   remain counted, while their fabrication spends player cargo through one campaign
   authority. The Mech Lab cannot create a second inventory or commodity-art catalog.
