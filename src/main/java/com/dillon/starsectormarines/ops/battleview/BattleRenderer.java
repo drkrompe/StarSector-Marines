@@ -238,6 +238,7 @@ public class BattleRenderer {
      */
     private final FogField fogField = new FogField();
     private final CreepLayer creep = new CreepLayer();
+    private final ScorchLayer scorch = new ScorchLayer();
     private final FireRenderSystem fire;
 
     /** S3 render-side event lights consumed by the surface-relief composite. */
@@ -302,7 +303,7 @@ public class BattleRenderer {
                 doodads,
                 RenderSystem.of(RenderLayer.DOODADS, dressing::collectOver),
                 // Burnt ground under the creep, inside the ground's colour target.
-                new ScorchLayer(),
+                scorch,
                 creep,
                 // A spine strike's run through the creep lies on the ground.
                 colonyThreat.ground(),
@@ -341,7 +342,6 @@ public class BattleRenderer {
                 // With the other threat marks: spines breaking out, and the spores a colony lifts.
                 colonyThreat.over(),
                 new SmokeRenderSystem(sprites),
-                fire.scorch(),
                 fire.flames(),
                 RenderSystem.of(RenderLayer.ROOFS, (ctx, out) ->
                         collectRoofs(ctx.sim, out, ctx.alphaMult)),
@@ -568,6 +568,7 @@ public class BattleRenderer {
     /** Releases night lighting targets, the aircraft's reflected-light shader and the creep's textures. */
     public void disposeLighting() {
         creep.dispose();
+        scorch.dispose();
         nightLighting.dispose();
         aircraft.disposeLighting();
     }

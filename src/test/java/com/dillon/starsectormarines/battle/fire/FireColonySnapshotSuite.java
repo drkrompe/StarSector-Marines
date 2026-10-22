@@ -23,9 +23,7 @@ import java.util.Locale;
  * ground, unburnt grass, road and pavement all meet, chosen from a first burn,
  * and the second burn is drawn there as the front crosses it and once it has
  * passed; the densest grove as its crowns catch; and the whole map mid-burn and
- * after. Flame scale and scorch tone follow {@code battle.render.fireFlames} and
- * {@code battle.render.fireScorch}, so the look options are this suite rendered
- * once per choice.
+ * after.
  */
 public final class FireColonySnapshotSuite implements SnapshotSuite {
 
@@ -233,8 +231,6 @@ public final class FireColonySnapshotSuite implements SnapshotSuite {
     }
 
     private static String caption(String view, int tick) {
-        return String.format(Locale.ROOT, "fire, green colony | %s | %d:%02d | flames %s, scorch %s", view,
-                tick / 1800, (tick % 1800) / 30,
-                System.getProperty("battle.render.fireFlames", "restrained"), System.getProperty("battle.render.fireScorch", "char"));
+        return String.format(Locale.ROOT, "fire, green colony | %s | %d:%02d", view, tick / 1800, (tick % 1800) / 30);
     }
 }
