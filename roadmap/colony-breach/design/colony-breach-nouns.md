@@ -302,7 +302,13 @@ the cohort inside, deeper in than the fireteam's firing cells.
 
 A holdout **claims a block, not a building**. Its people have thrown up
 **works** round the building they hold, a few cells out, so a yard lies
-between:
+between. A holdout is therefore **chosen for its room**: the building is picked
+first among those whose barricade and step lines, at full margin, lie mostly
+on open ground (three quarters at least, measured by `RedoubtWorks.room`), and
+not on a street's asphalt, another building, a wall or a door. Only a colony
+without enough such blocks falls back to the cramped ones. Chosen without
+asking, holdouts landed on buildings fronting streets and their works were
+drawn in to the kerb with no yard at all. The works are:
 
 - the **barricade**, a ring of industrial fence broken by stacked crates and
   scrap, closed to movement and open to sight, with a parked truck dragged
