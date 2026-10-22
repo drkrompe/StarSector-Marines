@@ -814,6 +814,17 @@ In `hive-creep.md`.
   crossed, and filled over about a minute and a half rather than at once: its
   coverage is its age, so a newly reached wall carries only veins and an old
   one is crusted over. It reads as a matter of time.
+- **Creep brings roofs down under its weight** (`CreepRoofCollapse`). A
+  building's roof gives way where living creep has stood beneath it for a minute
+  to a minute and a half: first beside a wall the creep has crusted, then inward
+  a cell every few seconds from each roof already down (to creep or to a shell),
+  each cell on its own seeded timing so a building sags open rather than falling
+  in lockstep. A cave-in is the same one war damage makes: rubble on the floor,
+  and the roof, sight and cover follow it. Creep that withers stops the count;
+  a roof that fell stays fallen. The battle keeps its own clock per cell, so the
+  creep field knows nothing of roofs. An infested building is no shelter: given
+  time it has no roof to hide under (and colonists are meant not to hide in it
+  at all, `hive-creep.md`).
 - **The look is the field drawn, never a second model.** The creep is a hard
   organic edge, not a spill: an opaque surface of grown chitin plates over a
   membrane, rolled up into a raised, beaded lip where it stops, veined, with a
