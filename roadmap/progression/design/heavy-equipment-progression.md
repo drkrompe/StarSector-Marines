@@ -1091,7 +1091,7 @@ one. Lines and their first variants:
 | --- | --- |
 | Technical (field rig) | Militia technical — Advanced filler for a small lift budget; SRM technical — Common rocket rig, an ambusher of armor (Light lift) |
 | APC | Heavy APC (troop carrier) → up-armored APC (more armor, slower) → fire-support APC (a mortar instead of seats) or LRM carrier (two LRM-15 anti-armor racks instead of seats, spotted indirect fire) |
-| Tank | Breakthrough tank → heavy-gun tank, a screened tank (active protection against top-attack rounds), or a dozer-blade breaching sidegrade |
+| Tank | Breakthrough tank → heavy-gun tank, a screened tank (active protection against top-attack rounds), a laser tank (a ship's burst laser: infantry and drones, not plate), or a dozer-blade breaching sidegrade |
 | Supply (field rig) | Supply pickup — a carried resupply cache, served while halted (Light lift) |
 | Spotter (field rig) | Spotter pickup — a sight mast that reports to fog and commander (Light lift) |
 | Hover (Tri-Tachyon) | Hover scout (sight and a light emitter, Light lift) → drone skimmer (tethered drones, no gun, Medium lift) |
@@ -1138,6 +1138,28 @@ its 18 cells and it dies in 3-15 s, which is why it is an ambusher; its acceptan
 is the ambush, not the duel. On the street every short-reach attacking hull (the
 militia technical and heavy APC too) times out under the instrument's steering, so
 those rows read nothing. Not tuned: the duel numbers are readings.
+
+**The laser tank against men and machines.** A ship mounts a burst laser as point
+defence because it barely marks proper plate; at ground scale almost nothing is
+proper plate. The tank's identity is the split between the two, and it is held by
+cadence rather than by a damage type: a four-pulse burst at penetration 3 every
+0.55 s from a ten-charge capacitor bank refilling one charge every 2 s
+(`convoy-nouns.md`, The laser tank). A section dies inside the bank; a tank does not.
+Readings against the breakthrough tank's twin cannon (`tank-versus-infantry`, four
+seeds, one planted tank and a twelve-strong section eighteen cells off; `armorMatchup`,
+four seeds, three grounds):
+
+| | Twin cannon | Burst laser |
+| --- | --- | --- |
+| Line section (10/8 plate) broken | 19.8 s | 12.1 s |
+| Power-suit section (60/14) | 45 of 48 killed, 1 of 4 broken | 31 of 48 killed, none broken |
+| Attacking a breakthrough tank, wins of 4 (open, hull-down, street) | 2, 2, 2 | 0, 0, 1 |
+| Attacking a Hound / heavy APC, wins of 4 per ground | 4 / 4 | 4 / 4 |
+
+Without the bank, the same burst at penetration 3 took every street fight and every
+open-ground attack from the cannon tank: the armor pool is the only thing penetration
+discounts, and once it is stripped the structure under it takes every hit in full.
+Power suits are the laser's hard case on purpose. Not tuned beyond this: readings.
 
 Faction variants (a Hegemony APC, a Tri-Tachyon tank) arrive as Prestige or
 Restricted cards weighted by faction, as faction mech weapons are.

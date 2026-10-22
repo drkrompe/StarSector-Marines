@@ -28,6 +28,11 @@ public final class GroundTurret {
     public long targetId;
     /** Rounds remaining in the magazine. Seeded from the authored mount capacity. */
     public int ammo;
+    /**
+     * Charges in the mount's capacitor bank, fractional while one refills ({@code TurretMountDef#charges}); zero and
+     * unread for a mount without a bank.
+     */
+    public float charge;
     /** Rounds left in the current burst (excluding the trigger-pull round). */
     public int burstRemaining;
     /** Sim-seconds until the next burst round fires. */

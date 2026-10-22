@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
@@ -33,6 +34,30 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Bare vehicle and ballistic fixtures; no battle host or route planner is needed to ask about a gun. */
 class GroundVehicleTurretSystemTest {
     private static final float DT = BattleSimulation.TICK_DT;
+
+    @Test
+    void aCapacitorBankHoldsTheTriggerWhenEmptyAndRefillsAtItsRateWithoutTouchingTheMagazine() {
+        TurretMountDef bank = VehicleType.LASER_TANK.turretStructure().mount;
+        GroundTurret turret = new GroundTurret(bank.ammoCapacity);
+        turret.charge = bank.charges;
+        for (int i = 0; i < bank.charges; i++) {
+            assertTrue(GroundVehicleTurretSystem.charged(turret, bank));
+            GroundVehicleTurretSystem.spendCharge(turret, bank);
+        }
+        assertFalse(GroundVehicleTurretSystem.charged(turret, bank));
+        assertEquals(bank.chargeRechargeSeconds, GroundVehicleTurretSystem.chargeWait(turret, bank), 1e-5f);
+        assertEquals(bank.ammoCapacity, turret.ammo, "an empty bank leaves the hull armed");
+        GroundVehicleTurretSystem.recharge(turret, bank, bank.chargeRechargeSeconds);
+        assertTrue(GroundVehicleTurretSystem.charged(turret, bank));
+        GroundVehicleTurretSystem.recharge(turret, bank, bank.chargeRechargeSeconds * (bank.charges + 5));
+        assertEquals(bank.charges, turret.charge, 1e-5f, "a bank never fills past its charges");
+
+        TurretMountDef magazine = VehicleType.HEAVY_APC.turretStructure().mount;
+        GroundTurret gun = new GroundTurret(magazine.ammoCapacity);
+        GroundVehicleTurretSystem.spendCharge(gun, magazine);
+        assertTrue(GroundVehicleTurretSystem.charged(gun, magazine), "a mount without a bank is never held");
+        assertEquals(0f, GroundVehicleTurretSystem.chargeWait(gun, magazine));
+    }
 
     @Test
     void manualBurstFreezesAimAlternatesBarrelsAndOwnsOneClockAndMagazine() {
