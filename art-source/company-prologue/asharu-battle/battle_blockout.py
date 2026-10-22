@@ -978,7 +978,8 @@ KEYFRAMES = {
                              dict(t=134, loc=(0, 0, 0), target=_far((0.86, 0.05, -0.5)), lens=70)], 130),
         ships={},
         fx=[('entry_trails',)],
-        labels=['trail-colossus', 'trail-morrow']),
+        labels=['trail-colossus', 'trail-morrow'],
+        clean=True),      # the review copy carries no labels or caption over the trails, only its shot id
 }
 
 
@@ -1465,18 +1466,34 @@ def blender_main(cfg):
     am.use_nodes = True
     nt2 = am.node_tree
     nt2.nodes.remove(nt2.nodes['Principled BSDF'])
+    # A thin, soft blue haze over the limb (coordinator, 2026-10-22: the old shell, brightest at its
+    # own outer edge, drew "a hard, flat grey band"). u is how far in from the shell's edge a ray
+    # passes, 1 where it grazes the ground: the haze climbs to full there and dies away over the disc.
     lw = nt2.nodes.new('ShaderNodeLayerWeight')
     lw.inputs['Blend'].default_value = .5
-    p3 = nt2.nodes.new('ShaderNodeMath')
-    p3.operation = 'POWER'
-    p3.inputs[1].default_value = 9.0
-    nt2.links.new(lw.outputs['Facing'], p3.inputs[0])
+
+    def m2(op, a, b):
+        m = nt2.nodes.new('ShaderNodeMath')
+        m.operation = op
+        for k, v in enumerate((a, b)):
+            if v is None:
+                continue
+            if isinstance(v, (int, float)):
+                m.inputs[k].default_value = v
+            else:
+                nt2.links.new(v, m.inputs[k])
+        return m.outputs[0]
+    grazing = math.sqrt(2 * 14e3 / R)                  # 1 - facing where a ray just grazes the ground
+    u = m2('DIVIDE', m2('SUBTRACT', 1.0, lw.outputs['Facing']), grazing)
+    haze = m2('MINIMUM', m2('POWER', m2('MINIMUM', u, 1.0), 2.0),
+              m2('EXPONENT', m2('MULTIPLY', m2('SUBTRACT', u, 1.0), -2.5), None))
+    haze = m2('MULTIPLY', haze, .85)
     em = nt2.nodes.new('ShaderNodeEmission')
-    em.inputs['Color'].default_value = (.78, .74, .68, 1)
-    em.inputs['Strength'].default_value = 1.4
+    em.inputs['Color'].default_value = (.32, .52, 1.0, 1)
+    em.inputs['Strength'].default_value = 1.1
     clear = nt2.nodes.new('ShaderNodeBsdfTransparent')
     mix = nt2.nodes.new('ShaderNodeMixShader')
-    nt2.links.new(p3.outputs[0], mix.inputs['Fac'])
+    nt2.links.new(haze, mix.inputs['Fac'])
     nt2.links.new(clear.outputs[0], mix.inputs[1])
     nt2.links.new(em.outputs[0], mix.inputs[2])
     nt2.links.new(mix.outputs[0], nt2.nodes['Material Output'].inputs['Surface'])
@@ -1988,25 +2005,22 @@ def blender_main(cfg):
             obj('Flare', bead_me, flare_mat, Matrix.Translation(p) @ Matrix.Scale(1.6, 4))
 
     def entry_trails(labels3d):
-        """Two plasma trails 100-180 km up, 150-350 km downrange and heading north, from orbit."""
-        head_mat = emission_mat('Plasma head', (1, .85, .6), 60.0)
+        """Two entry trails 150-45 km up, 150-800 km downrange and heading north, from orbit: each
+        hull's bow shock and core at the far, low end, its wake cooling and widening back up the
+        track toward the camera, and a faint ionisation trail beyond (swfx_entry, W7)."""
+        if str(PROLOGUE / 'second-wind-vfx') not in sys.path:
+            sys.path.insert(0, str(PROLOGUE / 'second-wind-vfx'))
+        import swfx_entry
         for name, side, scale in (('trail-colossus', 0.0, 1.0), ('trail-morrow', -.0045, .7)):
             pts = []
-            for i in range(31):
-                f = i / 30
+            for i in range(61):
+                f = i / 60
                 th = (150e3 + 650e3 * f) / R              # downrange arc, prograde (north-east)
                 alt = 150e3 - 105e3 * f ** .8
                 sd = side + .0035 * f                      # a slight drift off the track
                 dirn = Vector((math.sin(th), sd, math.cos(th))).normalized()
                 pts.append(centre + dirn * (R + alt))
-            # Faint where the heating starts, brightest and widest at the ships at the far end.
-            for i in range(len(pts) - 1):
-                f = i / (len(pts) - 1)
-                rad = (250 + 1600 * f ** 1.5) * scale
-                segment(pts[i + 1], pts[i], rad, plasma_mat, 'Plasma ' + name)
-            head = pts[-1]
-            obj('Plasma head', bead_me, head_mat, Matrix.Translation(head) @ Matrix.Scale(2200 * scale, 4))
-            labels3d[name] = head
+            labels3d[name] = swfx_entry.trail('Entry ' + name, pts, stage_fx, width_m=1600 * scale, glow=scale)
 
     def field_matrix(piece, box, t, local=None):
         """A debris box's world matrix at time t: the wreck turning about its own axis (debris_field).
@@ -2741,13 +2755,14 @@ def label_frames(run):
             im = im.resize((W, H), Image.LANCZOS)
         dr = ImageDraw.Draw(im, 'RGBA')
         lab = labels.get(kf, {})
+        clean = kf in KEYFRAMES and KEYFRAMES[kf].get('clean')
         if kf in KEYFRAMES:
             spec = KEYFRAMES[kf]
             title = f"{spec['shot']}  {spec['title']}"
             cap = spec['caption']
             boxes = []
             for key, p in sorted(lab.items(), key=lambda kv: (kv[1] or [0, 0])[1]):
-                if not p:
+                if not p or clean:
                     continue
                 col = (255, 140, 110, 255) if key in pirates else (150, 210, 255, 255)
                 txt = names.get(key, key)
@@ -2775,13 +2790,16 @@ def label_frames(run):
             bar = 100 / mpp
             dr.rectangle((60, H - 150, 60 + bar, H - 142), fill=(230, 230, 230, 255))
             dr.text((60, H - 138), '100 m', font=f_lab, fill=(230, 230, 230, 255))
-        dr.rectangle((0, 0, W, 58), fill=(0, 0, 0, 170))
-        dr.text((22, 12), title, font=f_title, fill=(255, 255, 255, 255))
-        dr.rectangle((0, H - 92, W, H), fill=(0, 0, 0, 170))
-        y = H - 82
-        for line in wrap(dr, cap, f_cap, W - 44):
-            dr.text((22, y), line, font=f_cap, fill=(230, 230, 230, 255))
-            y += 27
+        if clean:       # a shot that sells on its effects: only its id, small, in the corner
+            dr.text((22, H - 40), spec['shot'], font=f_lab, fill=(230, 230, 230, 150))
+        else:
+            dr.rectangle((0, 0, W, 58), fill=(0, 0, 0, 170))
+            dr.text((22, 12), title, font=f_title, fill=(255, 255, 255, 255))
+            dr.rectangle((0, H - 92, W, H), fill=(0, 0, 0, 170))
+            y = H - 82
+            for line in wrap(dr, cap, f_cap, W - 44):
+                dr.text((22, y), line, font=f_cap, fill=(230, 230, 230, 255))
+                y += 27
         name = f"{order.index(kf) + 2:02d}-{kf}-{slug(title)}.png"   # by shot order: two jobs' halves interleave
         im.save(run / name)
         outputs.append(name)
