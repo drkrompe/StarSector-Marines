@@ -113,9 +113,10 @@ for elevation's sake.
   at higher ground, a unit sees the cliff face and the rim above it — a body
   standing on the lip is outlined against the sky — and nothing further back.
   A plateau's holders who stand back from the rim are hidden from below; those
-  who step up to the rim to fire are seen, and can be fired on. *(Owner decision
-  decision: skyline, 2026-10-22. Whether firing down reveals a holder back
-  from the rim is pending.)*
+  who step up to the rim to fire are seen, and can be fired on. A holder back
+  from the rim that fires down is revealed to the low ground for about three
+  seconds after the shot, so the low ground can answer it (owner, 2026-10-22:
+  skyline sight, firing down reveals).
 - Ramp cells count as their lower tier for the observer on them, so a unit
   climbing a ramp sees up only when it reaches the head. A ramp is seen from
   both tiers.
@@ -259,7 +260,10 @@ draws.
   in the battle too. The owner chose one-cell faces with tall south faces,
   drawn with the cliff tiles (2026-10-22). Ramps get art of their own that
   reads as a slope: a floor that climbs and walls that taper up the cut
-  *(which floor is pending: graded earth, a worn track or cut steps)*.
+  The owner chose cut stone steps, darkened to sit with the cliff's
+  grey-browns (2026-10-22). The cliff's own edges are being reworked: a face
+  broken into rock, a ragged turf rim and a talus foot feathering into the
+  grass *(which treatment is pending)*.
 
 Units on a plateau are drawn where they stand, with no displacement, scale or
 parallax: the map is top-down.
