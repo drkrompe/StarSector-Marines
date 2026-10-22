@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import org.json.JSONArray;
@@ -95,6 +96,7 @@ public final class BattleProbe {
                 .put("hold", String.valueOf(sim.getCivilianEscortHold()))
                 .put("progress", String.valueOf(sim.getCivilianEvacuationProgress())));
         commands.put("places", this::places);
+        commands.put("pads", this::pads);
     }
 
     public BattleSimulation sim() {
@@ -317,6 +319,16 @@ public final class BattleProbe {
                     .put("priority", r.node.priorityScore));
         }
         return new JSONObject().put("tick", sim.getSimTickIndex()).put("places", rows);
+    }
+
+    /** The marine landing berths setup recorded: where each shuttle touches down. */
+    private JSONObject pads(Args a) throws Exception {
+        JSONArray rows = new JSONArray();
+        for (LandingPad pad : sim.getMarineLandingPads()) {
+            rows.put(new JSONObject().put("x", pad.centerX).put("y", pad.centerY)
+                    .put("purpose", String.valueOf(pad.purpose)).put("approach", String.valueOf(pad.approach)));
+        }
+        return new JSONObject().put("tick", sim.getSimTickIndex()).put("pads", rows);
     }
 
     private JSONObject squads(Args a) throws Exception {

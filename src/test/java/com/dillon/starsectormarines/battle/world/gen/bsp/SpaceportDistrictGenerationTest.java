@@ -108,7 +108,6 @@ class SpaceportDistrictGenerationTest {
     private static boolean isApron(MapResult map, int x, int y) {
         CellTopology.GroundKind kind = map.topology.getGroundKind(x, y);
         return kind == CellTopology.GroundKind.STRIPED
-                || kind == CellTopology.GroundKind.LZ_MARKER
                 || kind == CellTopology.GroundKind.BRICK;
     }
 }
