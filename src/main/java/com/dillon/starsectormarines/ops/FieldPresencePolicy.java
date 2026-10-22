@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
+
 /** Mission-owned limit on persistent player squads concurrently in theatre. */
 public enum FieldPresencePolicy {
 
@@ -25,10 +27,8 @@ public enum FieldPresencePolicy {
     }
 
     public String briefingText() {
-        if (!limited()) return "Unrestricted field presence";
-        return activeSquadLimit + (activeSquadLimit == 1
-                ? " squad active · remaining commitment held in reserve"
-                : " squads active · remaining commitment held in reserve");
+        if (!limited()) return Strings.get("briefingFieldPresenceUnrestricted");
+        return Strings.format("briefingFieldPresenceLimited", activeSquadLimit);
     }
 
     /** Current production defaults; authored missions may override in their builder. */

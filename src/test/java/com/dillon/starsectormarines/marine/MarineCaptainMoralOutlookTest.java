@@ -22,7 +22,7 @@ class MarineCaptainMoralOutlookTest {
         assertTrue(captain.hasResolvedMoralOutlook());
         assertEquals(1, countTrait(captain, Trait.IDEALIST));
         assertEquals(1, captain.commendations().size());
-        assertTrue(captain.commendations().get(0).contains("idealistic"));
+        assertTrue(Commendations.display(captain.commendations().get(0)).contains("idealistic"));
 
         assertFalse(captain.resolveMoralOutlook(Trait.IDEALIST, 122));
         assertFalse(captain.resolveMoralOutlook(Trait.CYNICAL, 122));

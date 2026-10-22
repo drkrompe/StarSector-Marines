@@ -72,7 +72,7 @@
       </div>
     </div>
     <div id="polity-doctrine-actions" class="mission-flow-actions console-section">
-      <button id="polity-doctrine-back" onclick="{backAction}" class="console-action">BACK</button>
+      <button id="polity-doctrine-back" onclick="{backAction}" class="console-action">{i18n.polityDoctrineBack}</button>
       <div id="polity-doctrine-action-spacer" class="action-spacer"></div>
     </div>
   </div>

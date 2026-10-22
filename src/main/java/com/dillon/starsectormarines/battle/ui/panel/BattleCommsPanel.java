@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.command.reinforcement.CounterattackSystem;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
@@ -127,9 +128,10 @@ public final class BattleCommsPanel implements HudPanel {
         var recovery = sim == null ? null : sim.getWaylineHound();
         BattleCamera camera = ctx.getCamera();
         if (recovery == null || !recovery.objectiveVisible(sim) || camera == null) return;
-        renderObjective(camera, recovery.x(), recovery.y(), "WAYWARD / RECOVER HOUND",
-                recovery.startupFraction() > 0 ? "STARTUP " + (int) (recovery.startupFraction() * 100) + "%"
-                        : "INFANTRY NEAR BERTH / HOLD 5s", WARNING, alpha);
+        renderObjective(camera, recovery.x(), recovery.y(), Strings.get("battleCommsWaywardBerth"),
+                recovery.startupFraction() > 0
+                        ? Strings.format("battleCommsStartup", (int) (recovery.startupFraction() * 100))
+                        : Strings.get("battleCommsHoldBerth"), WARNING, alpha);
     }
 
     /** Persistent beacon, including an edge pointer when the objective is off camera. */
@@ -193,12 +195,12 @@ public final class BattleCommsPanel implements HudPanel {
     }
 
     private static String signpostLabel(CounterattackSystem counterattack) {
-        String district = counterattack.getBulgeBandName().toUpperCase();
+        String district = Strings.upper(counterattack.getBulgeBandName());
         if (counterattack.getPhase() == CounterattackSystem.Phase.TELEGRAPH) {
-            return "COUNTERATTACK // " + district + " // "
-                    + (int) Math.ceil(counterattack.getPhaseTimeRemaining()) + "s";
+            return Strings.format("battleCommsCounterattackSignTimed", district,
+                    (int) Math.ceil(counterattack.getPhaseTimeRemaining()));
         }
-        return "COUNTERATTACK // " + district;
+        return Strings.format("battleCommsCounterattackSign", district);
     }
 
     private CounterattackSystem counterattack() {

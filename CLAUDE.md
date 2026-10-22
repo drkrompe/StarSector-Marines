@@ -475,6 +475,13 @@ review/<asset>/<YYYY-MM-DD>_<what>_<machine>/
   left, hit rate, mounts lost, legs crippled, flux-limited seconds and damage by weapon (the side's dealt damage
   apportioned by hits x nominal damage); `runs.csv` adds each survivor's sections.
   One machine a side, no cost or lift parity: read rows against each other, not as balance acceptance.
+- `gradlew.bat bloomEvidence` → the Rav Bloom on the campaign layer: runs
+  `RavBloomSystem` with the real event lifecycle over `-Pyears=20` cycles of a
+  synthetic vanilla-shaped sector at `-Pseeds=8` save seeds, for every severity
+  and frequency preset under three player policies (ignores, answers half,
+  answers all), and writes blooms a year, outcomes, spread and size lost to
+  `build/reports/blooms/summary.md` / `summary.json` (`-PevidenceDir`). About
+  fifteen seconds. Readings, not acceptance; opt-in and excluded from `test`.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
   room programs, runs each for four minutes of ship's time, and reports what the
   complement actually spent it doing: the idle share, the activity histogram, the

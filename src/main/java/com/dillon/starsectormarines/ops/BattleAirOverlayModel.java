@@ -82,16 +82,16 @@ final class BattleAirOverlayModel {
         String state;
         String statusClass;
         if (flying > 0) {
-            state = flying + " IN FLIGHT";
+            state = Strings.format("battleAirInFlight", flying);
             statusClass = "air-status-flight";
         } else if (view.callsGoingOut() > 0) {
-            state = "CALLING";
+            state = Strings.get("battleAirCalling");
             statusClass = "air-status-flight";
         } else if (available == 0 && out == 0) {
-            state = "DEPLETED";
+            state = Strings.get("battleAirDepleted");
             statusClass = "air-status-depleted";
         } else {
-            state = "READY";
+            state = Strings.get("battleAirReady");
             statusClass = "air-status-ready";
         }
         List<LineCard> lines = new ArrayList<>();
@@ -113,9 +113,9 @@ final class BattleAirOverlayModel {
         if (!below) {
             regen = "";
         } else if (row.nextAirframeSeconds() >= 0f) {
-            regen = "+1 IN " + clock(row.nextAirframeSeconds());
+            regen = Strings.format("battleAirRegenIn", clock(row.nextAirframeSeconds()));
         } else {
-            regen = "NO RESUPPLY";
+            regen = Strings.get("battleAirNoResupply");
             regenClass += " air-kind-regen-none";
         }
         return new KindCard(id, kindName(row.kind()), percentStyle(ready, cap), percentStyle(flight, cap),
@@ -124,37 +124,35 @@ final class BattleAirOverlayModel {
 
     static String kindName(AirPoolKind kind) {
         return switch (kind) {
-            case BOMBER -> "BOMBERS";
-            case FIGHTER -> "FIGHTERS";
+            case BOMBER -> Strings.get("battleAirBombers");
+            case FIGHTER -> Strings.get("battleAirFighters");
         };
     }
 
     private static String kindSingular(AirPoolKind kind) {
-        return kind == AirPoolKind.BOMBER ? "BOMBER" : "FIGHTER";
+        return Strings.get(kind == AirPoolKind.BOMBER ? "battleAirKindBomber" : "battleAirKindFighter");
     }
 
     /** "STRIKE BOMBER, COVER FIGHTER x2": what is airborne, grouped by kind and errand; empty when nothing is. */
     static String sortieLine(AirPoolView view) {
         Map<String, Integer> counts = new LinkedHashMap<>();
         for (AirPoolView.SortieRow s : view.sorties()) {
-            counts.merge(s.mission().name() + " " + kindSingular(s.kind()), 1, Integer::sum);
+            counts.merge(Strings.format("battleAirSortie", Strings.named("battleAirMission", s.mission().name()),
+                    kindSingular(s.kind())), 1, Integer::sum);
         }
         if (counts.isEmpty()) return "";
-        StringBuilder out = new StringBuilder();
+        List<String> parts = new ArrayList<>();
         for (Map.Entry<String, Integer> e : counts.entrySet()) {
-            if (out.length() > 0) out.append(" / ");
-            out.append(e.getKey());
-            if (e.getValue() > 1) out.append(" x").append(e.getValue());
+            parts.add(e.getValue() > 1 ? Strings.format("battleAirSortieCount", e.getKey(), e.getValue()) : e.getKey());
         }
-        return out.toString();
+        return Strings.join("separatorPath", parts.toArray(new String[0]));
     }
 
     /** "LOST 3 / 1 IN LAST 60S"; empty when nothing has been lost. */
     static String lossLine(int lostTotal, int recent) {
         if (lostTotal <= 0) return "";
-        String line = "LOST " + lostTotal;
-        if (recent > 0) line += " / " + recent + " IN LAST " + Math.round(WINDOW_SECONDS) + "S";
-        return line;
+        if (recent <= 0) return Strings.format("battleAirLost", lostTotal);
+        return Strings.format("battleAirLostRecent", lostTotal, recent, Math.round(WINDOW_SECONDS));
     }
 
     /** "0:24" / "1:05"; whole seconds rounded up so the clock never reads 0:00 before the airframe arrives. */

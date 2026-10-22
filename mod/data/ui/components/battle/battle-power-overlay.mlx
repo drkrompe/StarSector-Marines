@@ -14,7 +14,7 @@
     </div>
     <div id="battle-power-deck" class="power-deck">
       <div id="battle-power-resources" class="power-resources">
-        <div id="battle-power-resource-title" class="label heading resource-title">COMMAND</div>
+        <div id="battle-power-resource-title" class="label heading resource-title">{i18n.battlePowerCommand}</div>
         <div id="battle-power-cp" class="label heading resource-cp">{commandPoints}</div>
         <div id="battle-power-cp-track" class="resource-track">
           <div id="battle-power-cp-fill" class="resource-fill" style="{commandPointFillStyle}" />

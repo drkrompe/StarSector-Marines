@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.campaign.systems;
 
-import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CivilWarOfferAcceptance;
 import com.dillon.starsectormarines.campaign.ContractState;
@@ -10,6 +9,7 @@ import com.dillon.starsectormarines.campaign.HouseRank;
 import com.dillon.starsectormarines.campaign.HouseStatus;
 import com.dillon.starsectormarines.campaign.StationingIncidentType;
 import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
+import com.dillon.starsectormarines.marine.Commendations;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.Status;
@@ -123,8 +123,8 @@ public final class StationingAssignmentService {
         state.contractSalvageNegotiated[row] = terms.salvageBaseline;
         state.contractCashMultiplier[row] = 100;
         captain.setStatus(Status.GARRISONED);
-        captain.commendations().add("Day " + day + ": Assigned to "
-                + type.name().toLowerCase(Strings.locale()) + " duty.");
+        Commendations.add(captain, day, "commendationAssignedTo",
+                Commendations.ref("commendationDuty" + type.name()));
         if (CivilWarOfferAcceptance.isParticipation(state, contractId)) {
             CivilWarOfferAcceptance.onStationingAccepted(state, contractId);
         }

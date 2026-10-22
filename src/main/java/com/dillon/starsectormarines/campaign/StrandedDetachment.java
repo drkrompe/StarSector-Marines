@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.campaign;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.Commendations;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
@@ -208,7 +209,7 @@ public final class StrandedDetachment {
         roster.releaseStationing(contractId);
         if (captain != null && captain.status() == Status.GARRISONED) {
             captain.setStatus(Status.ACTIVE);
-            captain.commendations().add("Day " + day + ": Recovered from " + where + ".");
+            Commendations.add(captain, day, "commendationRecoveredFrom", where);
         }
         settleBreach(state, row, day);
         clear(state, row);
@@ -239,8 +240,7 @@ public final class StrandedDetachment {
         if (captain != null && captain.status() == Status.GARRISONED) {
             captain.setStatus(Status.INJURED);
             captain.setInjuredUntilDay(day + LOST_CAPTAIN_INJURY_DAYS);
-            captain.commendations().add("Day " + day + ": Made it out of " + where
-                    + " alone after the stranded detachment could not be recovered.");
+            Commendations.add(captain, day, "commendationMadeItOutAlone", where);
         }
         settleBreach(state, row, day);
         clear(state, row);

@@ -34,6 +34,11 @@ public enum Rank {
         this.xpToNext = xpToNext;
     }
 
+    /** The catalog key of {@link #displayName()}, for text saved now and read in another language. */
+    public String displayKey() {
+        return displayName;
+    }
+
     public String displayName() {
         return Strings.get(displayName);
     }

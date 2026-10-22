@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign;
 
+import com.dillon.starsectormarines.marine.Commendations;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.Status;
@@ -23,8 +24,8 @@ public final class StationingLapseResolution {
         INCIDENT_LAPSED
     }
 
-    private static final String UNANSWERED_NOTE =
-            "Recalled after a stationing assignment went unanswered.";
+    /** Service-record pattern for a captain recalled from an unanswered assignment. */
+    private static final String UNANSWERED_NOTE = "commendationRecalledUnanswered";
 
     private StationingLapseResolution() {}
 
@@ -84,9 +85,9 @@ public final class StationingLapseResolution {
      * ({@link AbsentDefenceResolution} strands one whose garrison was overrun without
      * them).
      */
-    static void restoreStrandedCaptain(MarineCaptain captain, int day, String note) {
+    static void restoreStrandedCaptain(MarineCaptain captain, int day, String noteKey) {
         if (captain == null || captain.status() != Status.GARRISONED) return;
         captain.setStatus(Status.ACTIVE);
-        captain.commendations().add("Day " + day + ": " + note);
+        Commendations.add(captain, day, noteKey);
     }
 }

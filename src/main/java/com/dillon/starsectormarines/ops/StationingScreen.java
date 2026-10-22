@@ -26,7 +26,6 @@ import com.dillon.starsectormarines.ops.detachment.CaptainDeploymentPolicy;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.fs.starfarer.api.Global;
 
-import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -263,9 +262,8 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         if (incident != null) {
             props.put("noticeClasses", "stationing-notice danger");
             props.put("noticeTitle", Strings.get("stationingIncidentPending"));
-            props.put("noticeBody", incidentLabel(incident.type) + " · "
-                    + MessageFormat.format(Strings.get("stationingIncidentDetachment"),
-                    captainName, incident.committedMarines));
+            props.put("noticeBody", Strings.format("stationingScreenResponseNotice", incidentLabel(incident.type),
+                    Strings.format("stationingIncidentDetachment", captainName, incident.committedMarines)));
             props.put("secondaryDisabled", false);
             props.put("secondaryClasses", "warning-surface console-action");
             props.put("secondaryLabel", Strings.get("stationingIncidentRespond"));
@@ -274,9 +272,8 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         } else if (defense != null) {
             props.put("noticeClasses", "stationing-notice warning");
             props.put("noticeTitle", Strings.get("garrisonDefensePending"));
-            props.put("noticeBody", defenseLabel(defense.triggerType) + " · "
-                    + MessageFormat.format(Strings.get("stationingIncidentDetachment"),
-                    captainName, defense.committedMarines));
+            props.put("noticeBody", Strings.format("stationingScreenResponseNotice", defenseLabel(defense.triggerType),
+                    Strings.format("stationingIncidentDetachment", captainName, defense.committedMarines)));
             props.put("secondaryDisabled", false);
             props.put("secondaryClasses", "warning-surface console-action");
             props.put("secondaryLabel", Strings.get("stationingIncidentRespond"));

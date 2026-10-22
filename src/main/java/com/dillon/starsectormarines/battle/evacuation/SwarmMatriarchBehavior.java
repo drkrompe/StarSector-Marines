@@ -56,7 +56,7 @@ final class SwarmMatriarchBehavior {
         if (!action.roared) {
             action.roared = true;
             begin(action, Kind.ROAR, now, 0L, 0f, 0f);
-            sim.swarmCues().post(SwarmCues.Kind.ALERT, matriarch, sim);
+            sim.swarmCues().post(SwarmCues.Kind.ROAR, matriarch, sim);
         }
         if (action.kind != Kind.NONE) {
             float age = MatriarchActions.age(action, now);
@@ -94,6 +94,7 @@ final class SwarmMatriarchBehavior {
                 if (BruteChargeSystem.kind(target, sim) == BruteChargeRules.Kind.INFANTRY) {
                     kind = action.nextLeft ? Kind.REAP_LEFT : Kind.REAP_RIGHT;
                     action.nextLeft = !action.nextLeft;
+                    sim.swarmCues().post(SwarmCues.Kind.REAP, matriarch, sim);
                 }
                 begin(action, kind, now, target, d > 1e-4f ? dx / d : 0f, d > 1e-4f ? dy / d : 1f);
                 sim.combat().setCooldownTimer(matriarch, SwarmPressureBehavior.strikeCooldown(matriarch, sim));
@@ -142,7 +143,9 @@ final class SwarmMatriarchBehavior {
         if (action.kind == Kind.CROWN) {
             BreachPoint wall = action.breach;
             if (wall != null) {
+                // The wall's own blow or break is heard, as a Brute's is.
                 sim.swarmStrikes().postBlow(matriarch, wall.cellX, wall.cellY, wall.edge, WALL_BLOW);
+                return;
             } else {
                 long target = action.target;
                 // It may have moved off in the wind-up: the crown lands only on what is still in front of it.
@@ -165,7 +168,6 @@ final class SwarmMatriarchBehavior {
             sim.applyDamage(body, matriarch, damage, REAP_PENETRATION, morale);
             sim.bruteCharges().toss(matriarch, body, tx / tl, ty / tl);
         }
-        sim.swarmCues().post(SwarmCues.Kind.STRIKE, matriarch, sim);
     }
 
     /**

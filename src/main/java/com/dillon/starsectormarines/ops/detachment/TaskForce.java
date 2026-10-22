@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.detachment;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
 import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.Status;
@@ -191,27 +192,16 @@ public final class TaskForce {
 
     /** "3 officers · 32 squads · 384 marines", or the reason it will not deploy. */
     public String summary() {
-        if (squadCount == 0) return "no squads committed";
-        StringBuilder out = new StringBuilder();
-        out.append(officerCount()).append(officerCount() == 1 ? " officer · " : " officers · ")
-                .append(squadCount).append(squadCount == 1 ? " squad · " : " squads · ")
-                .append(marines).append(" marines");
+        if (squadCount == 0) return Strings.get("deployForceNoSquads");
+        String strength = Strings.format("deployForceStrength", officerCount(), squadCount, marines);
         int unled = unledSquads();
-        if (unled > 0) {
-            out.append(" · ").append(unled).append(" acting NCO");
-        } else {
-            for (Element element : elements) {
-                if (element.overCap()) {
-                    out.append(" · ").append(element.officer.rank().displayName())
-                            .append(' ').append(element.officer.name()).append(" over command");
-                    break;
-                }
-                if (!element.fit()) {
-                    out.append(" · ").append(element.officer.name()).append(" unfit");
-                    break;
-                }
-            }
+        if (unled > 0) return Strings.format("deployForceWithNote", strength, Strings.format("deployForceActingNco", unled));
+        for (Element element : elements) {
+            if (element.overCap()) return Strings.format("deployForceWithNote", strength,
+                    Strings.format("deployForceOverCommand", element.officer.rank().displayName(), element.officer.name()));
+            if (!element.fit()) return Strings.format("deployForceWithNote", strength,
+                    Strings.format("deployForceUnfit", element.officer.name()));
         }
-        return out.toString();
+        return strength;
     }
 }

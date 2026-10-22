@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.Global;
 
-import java.text.MessageFormat;
 
 /**
  * Sector-attached holder for the marine roster. Registering an instance with
@@ -48,9 +47,7 @@ public class MarineRosterScript implements EveryFrameScript {
             if (c.status() == Status.INJURED && day >= c.injuredUntilDay()) {
                 c.setStatus(Status.ACTIVE);
                 c.setInjuredUntilDay(0f);
-                c.commendations().add(MessageFormat.format(
-                        "Day {0}: Returned to active duty.",
-                        (int) day));
+                Commendations.add(c, (int) day, "commendationReturnedToDuty");
             }
         }
         roster.recoverWounded(day);

@@ -202,6 +202,22 @@ class ShipFx:
         self.own_colours()
         self.metre_scale()
 
+    def vacuum(self):
+        """This copy in orbit: the smoke group's vacuum setting (smk_atmosphere 0: exhaust haze short
+        and nearly gone) and no landing dust (no ground under her; its boxes hidden, since a box
+        of nothing still costs every ray through it). Returns the knobs set."""
+        done = []
+        for name in ('smk_atmosphere', 'smk_dust'):
+            try:
+                self.set(name, 0.0)
+                done.append(name)
+            except KeyError:
+                pass
+        for o in self.ids:
+            if isinstance(o, bpy.types.Object) and base_name(o.name).startswith('SWFX smoke landing dust'):
+                o.hide_render = True
+        return done
+
     def remove(self):
         """Delete this copy outright (its objects, data, materials, trees, actions, collections):
         a scene rebuilding a ship for the next key frame starts from the library again, so what

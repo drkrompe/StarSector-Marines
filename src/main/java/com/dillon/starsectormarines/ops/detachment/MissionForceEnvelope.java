@@ -17,8 +17,11 @@ import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
 import com.dillon.starsectormarines.ops.AgreusArcCampaign;
 import com.dillon.starsectormarines.ops.DistrictEscortCampaign;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
+import com.dillon.starsectormarines.i18n.Strings;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -120,12 +123,8 @@ public final class MissionForceEnvelope {
     }
 
     public static String oppositionExpectation(RiskLevel risk) {
-        if (risk == null) return "Unknown issue";
-        return switch (risk) {
-            case LOW -> "Green / Regular core";
-            case MEDIUM -> "Regular core · Veterans possible";
-            case HIGH -> "Regular / Veteran core · Elites possible";
-        };
+        if (risk == null) return Strings.get("briefingOppositionUnknown");
+        return Strings.get("briefingOpposition" + risk.name());
     }
 
     public record ExperienceMix(Map<ExperienceTier, Integer> counts) {
@@ -138,15 +137,15 @@ public final class MissionForceEnvelope {
         }
 
         public String display() {
-            if (counts.isEmpty()) return "No ready personnel selected";
-            StringBuilder out = new StringBuilder();
+            if (counts.isEmpty()) return Strings.get("briefingExperienceNone");
+            List<String> parts = new ArrayList<>();
             for (ExperienceTier tier : ExperienceTier.values()) {
                 int count = counts.getOrDefault(tier, 0);
                 if (count <= 0) continue;
-                if (out.length() > 0) out.append(" · ");
-                out.append(count).append(' ').append(tier.displayName);
+                parts.add(Strings.format("briefingExperienceCount", count,
+                        Strings.named("briefingExperienceTier", tier.name())));
             }
-            return out.toString();
+            return Strings.join("briefingExperienceSeparator", parts.toArray(new String[0]));
         }
     }
 }

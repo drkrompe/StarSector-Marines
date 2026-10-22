@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.BilletRoles;
 import com.dillon.starsectormarines.ops.CompanyResources.Row;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
@@ -53,7 +54,6 @@ import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.ArrayList;
-import java.util.stream.Collectors;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
@@ -457,8 +457,9 @@ public final class FleetArmoryViewModel {
             String role = WeaponRegistry.require(issue.primaryId()).catalogRole();
             counts.merge(role, 1, Integer::sum);
         }
-        return counts.entrySet().stream().map(entry -> entry.getValue() + " " + entry.getKey())
-                .collect(Collectors.joining("  ·  "));
+        return Strings.join("separatorDot", counts.entrySet().stream()
+                .map(entry -> Strings.format("squadDoctrineCount", entry.getValue(), entry.getKey()))
+                .toArray(String[]::new));
     }
 
     private List<DoctrineTile> buildArmorDoctrineTiles() {
@@ -479,7 +480,7 @@ public final class FleetArmoryViewModel {
             // this company would actually put in the field today. Showing both
             // is the point of the picker under role-and-access.md — a sheet does
             // not get better, the kit filling it does.
-            String metadata = Strings.format("openingFleetArmoryFieldsTier", plan.armorClassDisplayName(), titleCase(plan.tradition().key), tierMark(maximumArmorTier(issued)));
+            String metadata = Strings.format("openingFleetArmoryFieldsTier", plan.armorClassDisplayName(), plan.tradition().displayName(), tierMark(maximumArmorTier(issued)));
             List<DoctrineSpan> patterns = armorDistributionSpans(id, issued);
             List<DoctrineSpan> capabilities = armorCapabilitySpans(id, issued);
             tiles.add(doctrineTile(id, plan.id().equals(selected),
@@ -674,11 +675,6 @@ public final class FleetArmoryViewModel {
                 + (IntegralSystemCopy.carried(armor) ? "tone-accent" : "tone-muted");
     }
 
-    private static String titleCase(String value) {
-        if (value == null || value.isBlank()) return Strings.get("openingFleetArmoryUnclassified");
-        return Strings.named("armorTradition", value);
-    }
-
     private static SquadLoadoutPresentationDef loadoutPresentation(
             String id, SquadLoadoutPresentationDef.Kind kind, int tier, String fallbackLore) {
         SquadLoadoutPresentationDef authored = SquadLoadoutPresentationRegistry.get(id);
@@ -776,7 +772,7 @@ public final class FleetArmoryViewModel {
                     id + ":armor-column",
                     marineCardClasses(soldier, previewing),
                     "marine-status heading " + marineStatusTone(soldier),
-                    marineName(soldier), billet != null ? billet.name() : Strings.get("openingFleetArmoryUnfilledBillet"),
+                    marineName(soldier), billet != null ? BilletRoles.label(billet.name()) : Strings.get("openingFleetArmoryUnfilledBillet"),
                     marineStatus(soldier), serviceSummary(soldier),
                     personnelSummary(soldier),
                     armorCatalog != null ? armorCatalog.armorClass().displayName() : Strings.get("openingFleetArmoryVacant"),
@@ -959,7 +955,7 @@ public final class FleetArmoryViewModel {
             }
             if (count == 0) continue;
             spans.add(span(tileId, "distribution", spans.size(),
-                    count + " " + weapon.modelName(), weaponSheet(weapon, grades),
+                    Strings.format("squadDoctrineCount", count, weapon.modelName()), weaponSheet(weapon, grades),
                     EquipmentIcons.primary(weapon, quotedGrade(grades))));
         }
         int specials = 0;
@@ -1032,13 +1028,15 @@ public final class FleetArmoryViewModel {
             for (ArmorRole role : ArmorRole.values()) {
                 Integer count = counts.get(role);
                 if (count == null) continue;
-                String part = count + " " + role.displayName().toLowerCase(Strings.locale());
-                if (plan.isMixedClass()) part += " (" + armorClass.displayName() + ")";
-                if (!ownsAnyPatternFor(role, armorClass)) part += Strings.get("openingFleetArmoryNoKit");
+                String roleName = role.displayName().toLowerCase(Strings.locale());
+                String part = plan.isMixedClass()
+                        ? Strings.format("squadDoctrineRoleCountInClass", count, roleName, armorClass.displayName())
+                        : Strings.format("squadDoctrineCount", count, roleName);
+                if (!ownsAnyPatternFor(role, armorClass)) part = Strings.format("squadDoctrineRoleNoKit", part);
                 parts.add(part);
             }
         }
-        return String.join("  ·  ", parts);
+        return Strings.join("separatorDot", parts.toArray(String[]::new));
     }
 
     private boolean ownsAnyPatternFor(ArmorRole role, ArmorClass armorClass) {
@@ -1107,7 +1105,7 @@ public final class FleetArmoryViewModel {
             SpecSheet sheet = shared.containsKey(family)
                     ? null : SpecSheets.integralSystem(carriers.get(family));
             spans.add(span(tileId, "carries", spans.size(),
-                    entry.getValue() + " " + family, sheet));
+                    Strings.format("squadDoctrineCount", entry.getValue(), family), sheet));
         }
         return last(spans);
     }
@@ -1122,7 +1120,7 @@ public final class FleetArmoryViewModel {
             }
             if (count == 0) continue;
             spans.add(span(tileId, "distribution", spans.size(),
-                    count + " " + pattern.displayName(), SpecSheets.armor(pattern), pattern.iconPath()));
+                    Strings.format("squadDoctrineCount", count, pattern.displayName()), SpecSheets.armor(pattern), pattern.iconPath()));
         }
         return last(spans);
     }
@@ -1154,7 +1152,7 @@ public final class FleetArmoryViewModel {
     private static String joinSpans(List<DoctrineSpan> spans) {
         List<String> parts = new ArrayList<>();
         for (DoctrineSpan span : spans) parts.add(span.text());
-        return String.join("  ·  ", parts);
+        return Strings.join("separatorDot", parts.toArray(String[]::new));
     }
 
     private int readyTeamMembers(MarineSquad squad, int teamIndex) {
@@ -1503,6 +1501,9 @@ public final class FleetArmoryViewModel {
                 case "metadata" -> metadata;
                 case "description" -> description;
                 case "composition" -> composition;
+                case "compositionLine" -> Strings.format("squadDoctrineSectionLine", composition);
+                case "distributionLine" -> Strings.format("squadDoctrineIssuedLine", distribution);
+                case "carriesLine" -> Strings.format("squadDoctrineCarriesLine", carries);
                 case "distribution" -> distribution;
                 case "distributionSpans" -> distributionSpans;
                 // A line is drawn as spans or as the joined sentence, never as

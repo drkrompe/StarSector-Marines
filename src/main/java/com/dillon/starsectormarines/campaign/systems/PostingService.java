@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.campaign.GarrisonDefensePayload;
 import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
 import com.dillon.starsectormarines.campaign.Posting;
 import com.dillon.starsectormarines.campaign.StationingIncidentType;
+import com.dillon.starsectormarines.marine.Commendations;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.Status;
@@ -93,8 +94,9 @@ public final class PostingService {
         MarineCaptain captain = captainId != null ? roster.byId(captainId) : null;
         if (captain != null && captain.status() == Status.GARRISONED) {
             captain.setStatus(Status.ACTIVE);
-            captain.commendations().add("Day " + day + ": Released from the posting at "
-                    + marketName(state, row) + ".");
+            String market = state.marketRegistry.get(state.contractMarketId[row]);
+            Commendations.add(captain, day, "commendationReleasedFromPosting", market != null
+                    ? market : Commendations.ref("commendationUnnamedWorld"));
         }
         state.contractMarinesCommitted[row] = 0;
         state.contractCaptainId[row] = -1;
@@ -135,11 +137,6 @@ public final class PostingService {
         state.contractSalvageNegotiated[row] = 0;
         state.contractCashMultiplier[row] = (byte) 100;
         captain.setStatus(Status.GARRISONED);
-        captain.commendations().add("Day " + day + ": Posted to " + marketId + ".");
-    }
-
-    private static String marketName(CampaignState state, int row) {
-        String name = state.marketRegistry.get(state.contractMarketId[row]);
-        return name != null ? name : "an unnamed world";
+        Commendations.add(captain, day, "commendationPostedTo", marketId);
     }
 }

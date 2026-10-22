@@ -2,7 +2,7 @@
   <div id="battle-air-overlay" class="battle-air-overlay">
     <div id="battle-air-plate" class="{airClasses}">
       <div id="battle-air-header" class="air-header">
-        <div id="battle-air-title" class="label heading air-title">AIR SUPPORT</div>
+        <div id="battle-air-title" class="label heading air-title">{i18n.battleAirTitle}</div>
         <div id="battle-air-status" class="{airStatusClasses}">{airStatus}</div>
       </div>
       <div id="battle-air-kinds" class="air-kinds">

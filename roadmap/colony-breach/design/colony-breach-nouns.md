@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-21 — growth stages (whelp, adult, elder), age mix, pack leader as planned vocabulary; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
+Updated: 2026-10-22 — Campaign: blooms (the Rav Bloom as a sector phenomenon sourcing the rescue) as built; growth stages (whelp, adult, elder), age mix, packs and the Matriarch's maturing as built; hive posture, readiness gate and strike detachments as built (chosen at the briefing, frozen into the rescue commander, the gate read every pulse, detachments committed and recalled with beats, the mother-bore bonus on the mission outcome); bores, tiers, surges, spore colonies, the bore-sourced director, harvest and the impale as built.
 
 Colony Breach is the refresh of Civilian Rescue, the alien-swarm colony mission.
 It replaces Civilian Rescue in place: the same campaign event, mission factory,
@@ -60,9 +60,9 @@ Consequences that the design keeps:
   stages of a life cycle that someone designed.
 - **It eats to grow.** Biomass is its economy. Colonists are its food (see
   *Harvest*), which is why the colony is the target and why rescue starves it.
-- **It recurs.** Outbreaks are a sector phenomenon: they show up at colonies
-  across the campaign, are never "defeated" for good, and a collapsed mother
-  bore ends an outbreak, not the weapon.
+- **It recurs.** Outbreaks are a sector phenomenon (*Campaign: blooms*): they
+  show up at colonies across the campaign, are never "defeated" for good, and a
+  collapsed mother bore ends an outbreak, not the weapon.
 - **Who made it is a question, not an answer.** Briefings and radio may
   speculate (Domain denial programme, a Tri-Tachyon-era leak, a sporeship payload,
   something older);
@@ -70,6 +70,98 @@ Consequences that the design keeps:
 
 Names, the life cycle in in-world terms, each faction's view and the tone and
 vocabulary for briefings, radio and item text are in `swarm-lore-guide.md`.
+
+## Campaign: blooms
+
+On the campaign layer the Rav Bloom is a **sector phenomenon**, not a mission
+type and not a second event family. A **bloom** is one outbreak at one market,
+from its first seepage to the day it ends. It is the only thing that raises a
+Civilian Rescue: the rescue is the bloom's **distress call**, raised through
+the shared open-event gate and settled by the rescue's own exactly-once
+lifecycle (`campaign-event-nouns.md`). A rescue with no bloom behind it would
+be a Colony Breach with nothing coming out of the ground, so there is none.
+The live system is `RavBloomSystem`; everything it does to a market goes
+through a `BloomWorld`, so the rules run unchanged over a synthetic sector in
+evidence.
+
+**Reservoir.** Whether a market sits over the weapon. It is a hidden, fixed
+fact of the save, hashed from the sector seed and the market, likelier on
+worlds with ruins and on habitable or farmed worlds (the sporeship rumour), and
+never stored: nobody holds the map, and the player learns a world had one only
+when it blooms.
+
+**Waking.** Once a week the sector may wake one bloom over a reservoir, at a
+preset rate (*frequency*), with at most two blooms running. Where it wakes is
+weighted by the colony: dense colonies are worth eating, young colonies are
+still digging, mine workings, aquifers and farms reach the reservoir, and
+marginal worlds wake more readily than the policed core. A colony younger than
+ninety days or smaller than size 3 cannot wake one. The draw is seeded by the
+save and the week, so a reload replays the same week.
+
+**Stages.**
+
+| Stage | What is true | What the player hears |
+| --- | --- | --- |
+| Stirring | Seepage, a couple of weeks; no market effect | a deniable rumour in the Rav Bloom intel |
+| Erupted | Bores inside the colony; the *Rav Bloom* market condition (stability and accessibility) | the distress call on the Distress Net, two weeks to commit relief; the Hegemony's quarantine notice where it polices |
+| Dark | Nobody lifted enough out: the colony goes quiet, its workings are disrupted, it loses a size at intervals down to the floor, and it can spread | a colony gone dark, with the Church's, the Path's and the scavengers' readings |
+| Starved | Half or more of the cohort was lifted out: the bloom has too little to eat and burns out without spreading | the lifts got them out |
+| Ended | The outbreak is over; the condition lifts and unrest lingers | how it ended, said honestly |
+
+An erupted colony goes dark when its call is refused or expires, when the call
+never got through the gate within its window, or forty-five days after
+eruption with nobody lifted out. A dark bloom with nobody answering **burns
+out** on its own after a preset time.
+
+**Ending one.** The player's tools are the existing ones: commit relief, fly
+there, run the evacuation. The battle's report of evacuees and of the mother
+bore (*Hive bonus*) feeds the bloom on its next day. A collapsed mother bore
+**contains** the outbreak whatever the evacuation: it ends at once, the colony
+keeps its size, and the reservoir rests three cycles. Lifting half or more out
+**starves** it. Fewer than half changes nothing about the bloom, though the
+people lifted out are saved. A call still open when its bloom ends is closed as
+expired. The weapon is never ended: every end rests the reservoir (a cycle, or
+three after containment) and never removes it.
+
+**Spread.** A dark bloom may seed a new bloom on another colony, in its own
+system first, else the nearest within six light-years, reservoir or not: Bloom
+material carried out in ore, salvage or ballast, the lore guide's rumoured
+vector made a mechanic. A seeded bloom skips seepage, and three generations
+deep it seeds nothing further. How many neighbours one bloom may seed is the
+severity preset's.
+
+**Factions.** The Hegemony quarantines a bloom on its own worlds and, while it
+lives, anywhere in the core; the quarantine tightens the condition, and a
+quarantined bloom contained earns the Hegemony's regard. The world's owner
+regards evacuees (by the quarter of the cohort lifted) and resents a refused
+call. The Luddic Church regards any evacuation as mercy and calls the bloom a
+judgement on the Domain's pride; the Path calls it the Domain's sin come home;
+scavengers call a dark world dead ground. No line names a maker or says the
+weapon is gone.
+
+**What stands without our state.** A bloom pulls vanilla's levers (a size lost,
+industries disrupted, recent unrest), so what it did to a market survives if
+the ledger is lost; only the condition reads the ledger back, and a condition
+with no bloom under it applies nothing. The ledger is one nullable object on
+the campaign state, created on first read, so an older save starts with none.
+
+**Owner's presets** (`BloomTuning`). *Severity:* scar (one size at most, no
+spread, burns out quickly), dark and spread (to the floor, one seeded
+neighbour; default), deadly (faster, a colony at the floor decivilises, two
+seeded neighbours). *Frequency:* rare, seasonal (about three a year; default),
+frequent. *Player colonies:* exposed (default), exposed after the player has
+answered a bloom, never. `-Dmarines.bloom.severity`, `.frequency` and
+`.playerColonies` select one for a control run. `gradlew.bat bloomEvidence`
+plays every preset under three player policies over N cycles and reports
+blooms a year, outcomes, spread and size lost. Ignored blooms hold the
+two-running cap, so a sector nobody answers sees fewer new wakes and more
+spread; under *deadly*, an unanswered sector loses most of its small colonies
+within twenty cycles.
+
+**Not yet.** The colony's industry does not yet pick the outlying installation
+in the precinct plan (`bloom-installation-flavour.md`), and dead-ground
+scavenger fleets, Tri-Tachyon's interest in samples and what containment pays
+beyond regard are not built.
 
 ## Vocabulary
 
@@ -730,8 +822,22 @@ not read in a soft shadow at play zoom.
   down and across the sweep. An emplacement, a hull or a mech
   takes the crown. It breaks walls a Brute cannot (a fort's buildings, not its
   curtain until something has worn that down), from further off, and never
-  walks round to a door. It is not staggered and does not charge. Until it has
-  sounds of its own it borrows the Brute's.
+  walks round to a door. It is not staggered and does not charge.
+
+  Its weight is set against a lance: three Bulwarks and one Matriarch at full
+  health come out near even (the `matriarch` scene's `mech-lance` loop reads
+  it: two Bulwarks lost, the Matriarch left on its last few points), so it is
+  a boss a mech lance with support answers and a rifle squad does not.
+
+  Drawn on its own skeleton (`RavMatriarchRig`): the charcoal Siege Crown,
+  matte charcoal plates edged in dried-blood red over wine-red sinew, a fan
+  of yellowed ivory crown over a straight-ahead head, the legs pillars under
+  the body on a slow four-beat walk. Walking, it looks slowly left and right;
+  a reap turns the head toward the blade and opens the jaws; the roar gapes
+  and shakes it. The two scythes hang from under the crown's rim, a mirrored
+  pair about the head, and are long enough that a reap reads past the crown
+  (owner's pick over mounting them further out or turning them with the head).
+  It dies with its back broken, in one of four poses of that death.
 
 **Growth stage.** How old a rav is: **whelp**, **adult** or **elder**. Every
 strain has the same three stages, so a stage is a property of one body, never
@@ -752,9 +858,9 @@ ridge. A stage is issued at
 spawn through `SwarmStrains`, like the Brute's plate, and fixed for the body's
 life; the Matriarch is the one exception. Stage scales presentation only
 through things the body already has: its rig's scale and stage-recoloured
-sprites, and its voice pitched by its size. Stats, the stage table and the
-reasons for each choice are in `rav-growth-stages.md` (stage, stats, size, the
-age mix, packs and sound built; the per-stage art planned).
+sprites, and its voice pitched by its size. The numbers are in `SwarmStageStats`
+and the reasons for each choice, with the first balance reading, in
+`growth-stages.md`.
 `-Dbattle.swarm.growthStages=false` is the control: every body an adult.
 
 - **Age mix.** A surge's stages come from its bore, never from the director:
@@ -764,10 +870,12 @@ age mix, packs and sound built; the per-stage art planned).
   has been fed sends bigger, darker ravs, and fewer of them, because the
   director counts a body's stage weight against its target. The draw is keyed by the bore, the
   pulse and the body, so stages change no other roll.
-- **Pack, pack leader.** A pack is the bodies of one pulse. Its first elder is
-  its **pack leader** and is released at the head of the stream; a pulse with
-  no elder has no leader, and its bodies hunt alone as every body did before
-  stages. While the leader lives, members on its eight-cell leash share its
+- **Pack, pack leader.** A pack is the bodies of one pulse, at most eight: a
+  bigger pulse splits into as few even packs as fit. Its first elder is
+  its **pack leader** and is released at the head of the stream; a pack with
+  no elder has no leader and none of a leader's bonuses, though it still runs
+  together (*Pack movement*) round its first living body, its **anchor**, which
+  is a place to move round and nothing more. While the leader lives, members on its eight-cell leash share its
   quarry when they have none of their own close by (local pursuit; the flow
   field is untouched), pool what any of them senses (still sensing, passed body
   to body, a tick behind), and strike 15% faster. The leader's cry on new
@@ -776,8 +884,9 @@ age mix, packs and sound built; the per-stage art planned).
   leader's stage: the bonuses go at once, members drop their quarry and for two
   seconds hunt only what they sense themselves, and its whelps bolt back down
   the bore field for four, dropping what they carry. A pack never elects a new
-  leader; a body out of any led pack (a leaderless pulse, a broken pack) joins
-  a leader whose leash it comes within, which is how two surges merge.
+  leader; a body out of any led pack (a leaderless pack, a broken one) joins
+  a leader whose leash it comes within if that pack has room for it, which is
+  how two surges merge.
   `-Dbattle.swarm.packLeaders=false` is the control: no pack forms.
 - **The Matriarch's stage** is set by how long the mother bore has been
   feeding (its lifetime biomass when she emerges), within a narrower range of
@@ -851,7 +960,9 @@ against its own control in `renderEvidence`.
 - **Walls are held slowly.** A wall beside claimed ground is climbed, never
   crossed, and filled over about a minute and a half rather than at once: its
   coverage is its age, so a newly reached wall carries only veins and an old
-  one is crusted over. It reads as a matter of time.
+  one is crusted over. It reads as a matter of time. An overgrown wall still
+  reads as a barrier: its crust is lighter than the floor's, lit and shaded on
+  its edges as a raised block is, and outlined dark where it meets the floor.
 - **A ground colony answers a gun the swarm cannot rush** (`GroundColonies`).
   A living bore grows one on its creep within reach of a hostile emplacement
   the creep has come up against: on living creep with creep round it, inside
@@ -914,11 +1025,34 @@ large map.
   bore. The swarm's own holes, so their cells are declared and redeclared as a
   bore opens or collapses.
 - **A field makes a stream.** The descent is the same from every cell and has
-  no crowd term, so bodies released together follow one lane down it, which is
-  the river a spawning surge needs; they break apart where local pursuit takes
-  over. Nothing separates swarm bodies from each other today (Marines steer
-  away from them, not they from one another), so a later separation pass must
-  leave a surging body on its lane to keep the stream.
+  no crowd term, so bodies descending it each for themselves fall into one lane
+  and run it single file. That is the river a surge makes leaving its mouth,
+  and it is also why, without packs, Runners crossed the map as beads on a
+  string. Packs are what turn the stream into hunters once it is out.
+- **Pack movement.** The field stays the strategic layer; a pack is how its
+  bodies run it. The pack's **lane** is the prey field's descent from its
+  anchor, and every member runs that lane at its own place in a loose fan:
+  out to one side or the other by rank, swept back by rank, weaving about its
+  place, each at its own stride and pace, so no two lope in step. The fan
+  narrows to the room the lane has ahead of it, so a pack funnels to a file
+  through a street or a door and opens again beyond it. Near its quarry
+  (the anchor's target, once there is room to spread) the pack **hunts**:
+  it **stalks**, the centre slowing to a standoff while the outer ranks swing
+  wide to either side of the quarry; it **feints**, the centre darting in and
+  falling back once or twice; then it **rushes**, staggered, flankers first
+  from the outside in and the anchor last, each member from where it stands.
+  Losing two members while it stalks or feints provokes the rush at once, and a
+  member whose own victim is right in front of it goes for it. A member more
+  than the leash from its anchor runs alone until it is back on it; a broken
+  pack's members run alone until a leader takes them in. Pack movement is
+  Runners'; Brutes, Spitters and the Matriarch keep their own gaits, though an
+  elder of any strain can lead and anchor. `-Dbattle.swarm.pack=false` is the
+  control: packs still form, lead and break, but every body moves alone
+  (`-Dbattle.swarm.packLeaders=false` forms no packs at all, so nothing moves
+  as one). The `swarm-pack` scene asserts the
+  mechanic (spread across the pack's width, no long file on open ground,
+  stalk-feint-rush in order, approaches from more than one side, the break on
+  the leader's death); its cost is in `swarm-movement-cost.md`.
 - **Strategic movement and local pursuit.** A body whose target is more than a
   few cells away moves down its goal's field; within that range it runs its own
   short path to the one victim it has chosen. Every strain moves through the
@@ -1020,8 +1154,9 @@ a commit is the `strike_committed_N` beat and a recall `strike_recalled_N`, wher
 
 **Hive bonus.** Collapsing the mother bore is recorded on the mission outcome
 whatever the posture, through the ordinary outcome path: the battle reports
-whether the mother collapsed beside the evacuation report. What the bonus pays
-in the campaign is the owner's call and not yet settled.
+whether the mother collapsed beside the evacuation report. In the campaign it
+contains the bloom behind the call (*Campaign: blooms*); anything it pays beyond
+that and the Hegemony's regard is the owner's call and not yet settled.
 
 ## Flow
 
@@ -1120,9 +1255,19 @@ stage pitches everything it makes by the inverse of its size and sets its
 loudness (a whelp about four semitones up and quieter, an elder deeper and
 louder): one take heard three ways stays the same creature. A pack's break is
 one scatter shriek, the leader's own cry at the leader's stage. The Spitter has
-no voice; the Matriarch's sounds wait for its design and join as a strain of
-their own (its catalogued roar was rejected and is redone once the design
-settles).
+no voice. The Matriarch is the biggest of the Runner's and Brute's family and
+sounds it: only her roar (out of the bore and at each moult) and the whoosh
+and cut of a reap are her own takes; her bellow on new quarry, hoof, crown,
+wall breaking, pain and death are the Brute's, played deeper, slower and
+further apart.
+
+**Reuse before new takes** (owner, 2026-10-22). The swarm is a minor faction
+and its sound is kept small: a strain's sound is an accepted take of a sibling
+strain played at another pitch and speed before it is a new file, and a new
+take is made only where nothing reusable fits. The shift is the sound player's
+own pitch argument at play time (which moves pitch and speed together), never
+a baked copy, so a variant costs no file. Growth stage rides the same
+argument.
 
 ## Laws
 
@@ -1134,8 +1279,9 @@ settles).
   ordinary durability; nothing collapses a bore by fiat.
 - **Biomass drives growth.** A bore that is not fed grows slowly; a bore that
   is fed grows fast. Saving colonists starves the hive.
-- **Surges, not trickles.** Bores release bodies in timed pulses that move as
-  a stream; the quiet between pulses is real.
+- **Surges, not trickles.** Bores release bodies in timed pulses that leave
+  the mouth as a stream and cross the ground as packs; the quiet between pulses
+  is real.
 - **Strains by tier.** Which strains spawn is a function of the bore's tier and
   the director's budget, deterministic under the battle seed.
 - **Air cannot clear the map.** Every living bore has spore colonies round it
@@ -1163,6 +1309,5 @@ settles).
 - Structure durability: `combat-durability-nouns.md`.
 - Setting and canon tiers: `faction-lore-nouns.md`; the swarm's own lore
   guide is `swarm-lore-guide.md`.
-- Where and how often outbreaks appear in the campaign: the Civilian Rescue
-  campaign event (`CivilianRescueSpawnSystem`), extended by
-  `sector-outbreaks.md`.
+- The rescue's choice and exactly-once lifecycle: `campaign-event-nouns.md`;
+  where and how often blooms raise it is *Campaign: blooms* above.

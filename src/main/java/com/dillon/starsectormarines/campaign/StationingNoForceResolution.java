@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.campaign;
 
+import com.dillon.starsectormarines.marine.Commendations;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.Status;
@@ -66,7 +67,6 @@ public final class StationingNoForceResolution {
     private static void restoreUnengagedCaptain(MarineCaptain captain, int day) {
         if (captain == null || captain.status() != Status.GARRISONED) return;
         captain.setStatus(Status.ACTIVE);
-        captain.commendations().add("Day " + day
-                + ": Stationing assignment ended without a battle-ready detachment.");
+        Commendations.add(captain, day, "commendationNoForce");
     }
 }

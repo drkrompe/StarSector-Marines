@@ -31,10 +31,10 @@
       <img id="mission-briefing-vent" class="console-header-vent" src="graphics/ui/console/vent-plate.svg" />
     </div>
     <div id="mission-preparation" class="{preparationClasses}">
-      <div id="mission-preparation-label" class="label heading tone-accent">COMPANY PREPARATION</div>
-      <button id="mission-prepare-replay" onclick="{prepareReplay}">CASTLE'S REMINDER</button>
-      <button id="mission-prepare-armory" onclick="{prepareArmory}">RAISE SQUAD</button>
-      <button id="mission-prepare-barracks" onclick="{prepareBarracks}">COMMANDERS / BARRACKS</button>
+      <div id="mission-preparation-label" class="label heading tone-accent">{i18n.briefingPrepHeading}</div>
+      <button id="mission-prepare-replay" onclick="{prepareReplay}">{i18n.briefingPrepCastleReminder}</button>
+      <button id="mission-prepare-armory" onclick="{prepareArmory}">{i18n.briefingPrepRaiseSquad}</button>
+      <button id="mission-prepare-barracks" onclick="{prepareBarracks}">{i18n.briefingPrepBarracks}</button>
     </div>
     <div id="mission-briefing-body" class="mission-briefing-body">
       <div id="mission-overview" class="mission-overview">
@@ -54,14 +54,14 @@
             <div id="mission-employer-identity" class="faction-identity">
               <img id="mission-employer-crest" class="faction-crest" style="{employerFactionCrestStyle}" src="{employerFactionCrest}" />
               <div id="mission-employer-identity-copy" class="faction-identity-copy">
-                <div id="mission-employer-identity-label" class="label heading tone-muted">EMPLOYER</div>
+                <div id="mission-employer-identity-label" class="label heading tone-muted">{i18n.briefingEmployerLabel}</div>
                 <div id="mission-employer-faction-name" class="label faction-name">{employerFactionName}</div>
               </div>
             </div>
             <div id="mission-opposition-identity" class="faction-identity">
               <img id="mission-opposition-crest" class="faction-crest" style="{oppositionFactionCrestStyle}" src="{oppositionFactionCrest}" />
               <div id="mission-opposition-identity-copy" class="faction-identity-copy">
-                <div id="mission-opposition-identity-label" class="label heading tone-muted">OPPOSITION</div>
+                <div id="mission-opposition-identity-label" class="label heading tone-muted">{i18n.briefingOppositionLabel}</div>
                 <div id="mission-opposition-faction-name" class="label faction-name">{oppositionFactionName}</div>
               </div>
             </div>
@@ -118,7 +118,7 @@
               <div id="mission-force-numbers" class="force-numbers">
                 <div id="mission-force-counts" class="force-counts">
                   <div id="mission-force-selected" class="label title tone-edge">{forceSelected}</div>
-                  <div id="mission-force-unit" class="label tone-muted">ready marines</div>
+                  <div id="mission-force-unit" class="label tone-muted">{i18n.briefingForceUnit}</div>
                   <div id="mission-force-recommended" class="label tone-accent">{forceRecommended}</div>
                 </div>
                 <div id="mission-force-meter" class="force-meter">
@@ -221,15 +221,15 @@
 
         <div id="mission-survey-slot" class="mission-survey-slot">
           <div id="mission-survey" class="mission-survey console-well">
-            <div id="mission-survey-heading" class="label heading tone-accent">TACTICAL INTELLIGENCE / AREA SURVEY</div>
+            <div id="mission-survey-heading" class="label heading tone-accent">{i18n.briefingSurveyHeading}</div>
             <div id="mission-survey-status" class="label tone-edge">{surveyStatus}</div>
             <canvas id="mission-survey-canvas" width="560" height="410" />
-            <div id="mission-survey-legend" class="label tone-muted">CYAN / DROP ZONES     AMBER / OBJECTIVES &amp; LANES</div>
+            <div id="mission-survey-legend" class="label tone-muted">{i18n.briefingSurveyLegend}</div>
             <div id="mission-survey-details" class="label tone-muted">{surveyDetails}</div>
             <div id="mission-survey-objectives" class="survey-objectives">
               <div each="row in surveyObjectives" key="{row.id}" id="{row.id}" class="label survey-objective">{row.value}</div>
             </div>
-            <div id="mission-survey-footer" class="label tone-muted">Terrain survey only. Enemy positions unconfirmed.</div>
+            <div id="mission-survey-footer" class="label tone-muted">{i18n.briefingSurveyFooter}</div>
           </div>
         <div id="mission-debug-drawer" class="debug-drawer expanded">
           <div id="mission-debug-workspace" class="panel debug-workspace">
@@ -281,7 +281,7 @@
           <div id="mission-briefing-actions" class="mission-briefing-actions console-command-rail">
             <button id="mission-briefing-back" onclick="{backAction}">
               <div id="mission-briefing-back-signal" class="console-command-signal" />
-              <div id="mission-briefing-back-legend" class="console-key-legend">BACK</div>
+              <div id="mission-briefing-back-legend" class="console-key-legend">{i18n.briefingBack}</div>
               <img id="mission-briefing-back-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
             </button>
 

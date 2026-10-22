@@ -16,9 +16,9 @@ import java.util.UUID;
 public class MarineCaptain implements Serializable {
 
     private static final String IDEALIST_COMMENDATION =
-            "Became known for an idealistic belief in the company's purpose.";
+            Commendations.entry("commendationOutlookIdealist");
     private static final String CYNICAL_COMMENDATION =
-            "Became known for a cynical view of the company's work.";
+            Commendations.entry("commendationOutlookCynical");
 
     private final String id;
     private String name;

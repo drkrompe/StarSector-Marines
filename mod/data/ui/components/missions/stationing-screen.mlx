@@ -10,7 +10,7 @@
     </div>
     <div id="stationing-body" class="stationing-body">
       <div id="stationing-overview" class="console-section stationing-overview">
-        <div id="stationing-overview-heading" class="label heading tone-edge section-heading">ASSIGNMENT TERMS</div>
+        <div id="stationing-overview-heading" class="label heading tone-edge section-heading">{i18n.stationingScreenAssignmentTerms}</div>
         <div id="stationing-overview-rows" class="stationing-overview-rows console-readout">
           <div each="row in overviewRows" key="{row.id}" id="{row.id}" class="stationing-overview-row">
             <div id="{row.labelId}" class="label heading tone-muted">{row.label}</div>
@@ -38,7 +38,7 @@
         <div id="stationing-formation-heading" class="formation-heading surface-dark">
           <div id="stationing-formation-heading-copy" class="formation-heading-copy">
             <div id="stationing-captain-header" class="label heading tone-edge">{captainHeader}</div>
-            <div id="stationing-captain-subtitle" class="label tone-muted">One posting, one accountable commander.</div>
+            <div id="stationing-captain-subtitle" class="label tone-muted">{i18n.stationingScreenCaptainSubtitle}</div>
           </div>
           <div id="stationing-formation-summary" class="label heading tone-accent formation-summary">{formationSummary}</div>
         </div>
@@ -50,7 +50,7 @@
         </div>
         <div id="stationing-list-heading" class="formation-list-heading">
           <div id="stationing-list-title" class="label heading tone-edge">{formationHeader}</div>
-          <div id="stationing-list-subtitle" class="label tone-muted">Whole squads remain bound for the term.</div>
+          <div id="stationing-list-subtitle" class="label tone-muted">{i18n.stationingScreenListSubtitle}</div>
         </div>
         <div id="stationing-squads" class="stationing-squad-grid">
           <button each="squad in squadRows" key="{squad.id}" id="{squad.id}" class="{squad.classes}" disabled="{squad.disabled}" onclick="{squad.action}">
@@ -64,7 +64,7 @@
       </div>
     </div>
     <div id="stationing-actions" class="mission-flow-actions console-section">
-      <button id="stationing-back" onclick="{backAction}" class="console-action">BACK</button>
+      <button id="stationing-back" onclick="{backAction}" class="console-action">{i18n.stationingScreenBack}</button>
       <div id="stationing-action-spacer" class="action-spacer"></div>
       <button id="stationing-secondary" class="{secondaryClasses}" disabled="{secondaryDisabled}" onclick="{secondaryAction}">{secondaryLabel}</button>
       <button id="stationing-primary" class="{primaryClasses}" disabled="{primaryDisabled}" onclick="{primaryAction}">{primaryLabel}</button>

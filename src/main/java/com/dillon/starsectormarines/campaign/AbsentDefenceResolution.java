@@ -43,8 +43,8 @@ public final class AbsentDefenceResolution {
     private static final int OVERRUN_HOUSE_DELTA = -1;
 
     /** For an overrun that left nobody to strand: wiped out, or a count-only legacy row. */
-    private static final String OVERRUN_NOTE =
-            "Recalled after the stationed garrison was overrun in their absence.";
+    /** Service-record pattern for a captain recalled after the garrison fell without them. */
+    private static final String OVERRUN_NOTE = "commendationRecalledOverrun";
 
 
     /**
