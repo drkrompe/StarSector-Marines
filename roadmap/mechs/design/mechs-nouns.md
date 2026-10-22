@@ -1110,7 +1110,13 @@ support sortie, subject only to practical runtime resources.
   physical pads—including vacant ones—plus the adjacent service and circulation
   space. The camera does not crop to the number of assigned assets. This is a
   non-selected state: it gives the room its full width, labels all four gantries,
-  and exposes no equipment catalog, performance strip, or socket rack. Selecting
+  and exposes no equipment catalog, performance strip, or socket rack. **Pads are
+  lettered A to D** in gantry order: the letter is stencilled on an amber plate in each
+  pad's corner, and the cards, headings and messages name a pad by the same letter,
+  never by a number. A vacant pad is marked as a build site in the BUY amber (a faint
+  wash, corner brackets, the fabrication cog and BUILD), never a bare plus. The status
+  line on the right of the heading says what the current view asks for: select a pad,
+  choose a chassis or vehicle, or select a mount. Selecting
   an occupied gantry establishes the fitting asset and eases
   the same battle camera into it; only then does the fitting workspace reveal those
   chassis-scoped controls. Selecting a vacant gantry instead opens the chassis- and
@@ -1119,12 +1125,20 @@ support sortie, subject only to practical runtime resources.
   it part of the active lance. A gantry holding a vehicle is selectable and shows its
   callsign, hull, weight class and read-only hull stats (structure, armour, mobility,
   passengers, turret); it exposes no sockets, catalog or doll, and its pad is never
-  drawn as vacant. Gantries order mechs first, then vehicles. Returning
+  drawn as vacant. The build catalog filters by weight class (all, light, medium,
+  heavy) across chassis and vehicles alike, in the strip the weapon catalog uses for
+  hardpoint types. Gantries order mechs first, then vehicles.
+- **Scrapping frees a pad.** An occupied pad's heading carries SCRAP, which takes two
+  presses: the first arms it and says what comes back, the second breaks the machine
+  up. Nothing fitted is lost (weapons, internals and the replenisher stay owned and are
+  spares in stores again) and half the chassis or vehicle bill, rounded down, returns
+  to the ship's hold, never to a depot it may leave behind. This is the opposite of a
+  battle loss, which takes the fitted parts with the frame (`MechWorkshop.scrapMech`).
+  The lance returns to its overview with that pad vacant. Returning
   through the current Mech Lab room route clears
   that selection and restores the overview. No camera transition moves, respawns,
   pauses, or rebuilds garage contents to fake motion.
-- The fitting header exposes previous/next gantry controls and a numbered
-  `01 / 04` station position. Navigation wraps across the four physical pads; arriving
+- The fitting header names the pad by its letter. Navigation wraps across the four physical pads; arriving
   at a vacant pad clears the chassis selection and exposes fabrication patterns rather
   than rendering chassis controls against nothing. Lance browsing remains a
   separate direct-jump surface.

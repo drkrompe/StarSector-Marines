@@ -46,4 +46,12 @@ public final class CampaignFabricationResources implements FabricationResources 
             bill.merge(line.commodityId(), line.quantity(), Integer::sum);
         return WorkshopStores.current(purpose).spend(bill);
     }
+
+    @Override
+    public boolean credit(FabricationCost salvage) {
+        Map<String, Integer> lines = new LinkedHashMap<>();
+        for (FabricationCost.Line line : salvage.lines())
+            lines.merge(line.commodityId(), line.quantity(), Integer::sum);
+        return WorkshopStores.current(purpose).credit(lines);
+    }
 }

@@ -3404,6 +3404,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("mechRows", viewModel.mechRows());
         props.put("gantryRows", viewModel.gantryRows());
         props.put("garageTitle", viewModel.garageTitle());
+        props.put("garageStatus", viewModel.garageStatus());
+        props.put("dragNoteTitle", viewModel.dragNoteTitle());
+        props.put("dragNoteCopy", viewModel.dragNoteCopy());
+        props.put("scrapLabel", viewModel.scrapLabel());
+        props.put("scrapClasses", viewModel.scrapClasses());
+        props.put("scrapAction", viewModel.scrapAction());
         props.put("performanceMeters", viewModel.performanceMeters());
         viewModel.putInternalProps(props);
         viewModel.putRepairProps(props);

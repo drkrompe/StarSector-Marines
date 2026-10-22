@@ -39,6 +39,27 @@ class MechWorkshopTest {
     }
 
     @Test
+    void scrappingFreesThePadReturnsFittedPartsToStoresAndHalfTheBillToTheHold() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        TestResources resources = TestResources.stocked(100);
+        MechWorkshop workshop = new MechWorkshop(bay, resources);
+        CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
+        MechWeaponComponent arms = mech.arms();
+        int spareArms = bay.availableWeapon(arms.id);
+        int occupied = bay.activeSquad().occupied();
+
+        assertEquals(MechWorkshop.Status.SCRAPPED, workshop.scrapMech(mech.id()).status());
+
+        assertNull(bay.mechById(mech.id()));
+        assertEquals(occupied - 1, bay.activeSquad().occupied());
+        assertEquals(spareArms + 1, bay.availableWeapon(arms.id), "the fitted weapon is a spare again");
+        for (FabricationCost.Line line : MechFabricationCatalog.chassis(mech.variant()).cost().lines()) {
+            assertEquals(100 + line.quantity() / 2, resources.available(line.commodityId()));
+        }
+        assertEquals(MechWorkshop.Status.INVALID, workshop.scrapMech(mech.id()).status());
+    }
+
+    @Test
     void fabricatesAndInstallsAWeaponAsOneMaterialTransaction() {
         MechBay bay = MechBay.legacyStarterFixture();
         TestResources resources = TestResources.stocked(100);
@@ -165,6 +186,13 @@ class MechWorkshopTest {
             if (!canAfford(cost)) return false;
             for (FabricationCost.Line line : cost.lines()) {
                 stock.merge(line.commodityId(), -line.quantity(), Integer::sum);
+            }
+            return true;
+        }
+
+        @Override public boolean credit(FabricationCost salvage) {
+            for (FabricationCost.Line line : salvage.lines()) {
+                stock.merge(line.commodityId(), line.quantity(), Integer::sum);
             }
             return true;
         }
