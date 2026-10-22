@@ -161,7 +161,25 @@ public final class HeartCountry {
     /** How far the brook wanders either side of its line, in cells. */
     static final int BROOK_MEANDER = 14;
     /** The brook's water, its fords' spacing along it and a ford's width, in cells. */
-    static final int BROOK_WIDTH = 3, BROOK_FORD_EVERY = 46, BROOK_FORD_WIDTH = 5;
+    static final int BROOK_WIDTH = 5, BROOK_FORD_EVERY = 46, BROOK_FORD_WIDTH = 5;
+    /**
+     * Cells across a ride. Fire jumps up to three cells of ground with nothing
+     * to burn, so a firebreak is five wide (`heart-nouns.md`, Ride).
+     */
+    static final int RIDE_WIDTH = 5;
+
+    /**
+     * The far edge of each of The Burn's firebreaks, as a depth into its
+     * approach, near to far: each ride, then the brook at its farthest
+     * meander. The barrage relights the burn just past each one.
+     */
+    public static float[] burnFirebreaks() {
+        float w = Form.THE_BURN.scale.width - 1;
+        float[] out = new float[RIDE_DEPTH.length + 1];
+        for (int i = 0; i < RIDE_DEPTH.length; i++) out[i] = RIDE_DEPTH[i] + (RIDE_WIDTH / 2 + 1) / w;
+        out[RIDE_DEPTH.length] = BROOK_DEPTH + (BROOK_MEANDER + BROOK_WIDTH / 2 + 2) / w;
+        return out;
+    }
 
     /**
      * The country between the places. Broad Front's woods have a track cut
@@ -182,8 +200,8 @@ public final class HeartCountry {
             return new Landscape(BROAD_FRONT_WOODLAND, tracks, List.of());
         }
         for (float depth : RIDE_DEPTH) {
-            int x = Math.round(depth * (w - 1)) - TRACK_WIDTH / 2;
-            tracks.add(new Landscape.Track(x, 0, x + TRACK_WIDTH - 1, h - 1));
+            int x = Math.round(depth * (w - 1)) - RIDE_WIDTH / 2;
+            tracks.add(new Landscape.Track(x, 0, x + RIDE_WIDTH - 1, h - 1));
         }
         return new Landscape(THE_BURN_WOODLAND, tracks, List.of(brook(w, h, seed)));
     }

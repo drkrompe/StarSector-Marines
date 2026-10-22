@@ -46,7 +46,9 @@ public final class OutdoorLandscapeStage implements GenStage {
         List<int[]> brookCells = runBrooks(c, landscape);
         boolean[] reserved = reservations(c);
         reserveTracks(c, landscape, reserved);
-        for (int[] cell : brookCells) reserve(c, reserved, cell[0] - 2, cell[1] - 2, cell[0] + 2, cell[1] + 2);
+        // Keep crowns off the banks too: a brook is a firebreak only if nothing that burns overhangs it.
+        int bank = landscape.brooks().stream().mapToInt(Landscape.Brook::width).max().orElse(3) / 2 + 2;
+        for (int[] cell : brookCells) reserve(c, reserved, cell[0] - bank, cell[1] - bank, cell[0] + bank, cell[1] + bank);
         // Own substream: absent nature never moves facilities, force positions or later RNG draws.
         Random random = new Random(c.seed ^ 0x574f4f444c414e44L);
         if (c.topology.terrainSurface() == null) hills(c, surface, reserved, random);
