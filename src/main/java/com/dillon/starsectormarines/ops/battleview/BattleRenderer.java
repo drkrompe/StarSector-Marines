@@ -336,8 +336,6 @@ public class BattleRenderer {
                 new ShieldDomeRenderSystem(),
                 new TenderSiteRenderSystem(),
                 new FragGrenadeRenderSystem(),
-                // With the frag rings: where a Brute is about to charge.
-                new ChargeTellRenderSystem(),
                 // With the other threat marks: spines breaking out, and the spores a colony lifts.
                 colonyThreat.over(),
                 new SmokeRenderSystem(sprites),

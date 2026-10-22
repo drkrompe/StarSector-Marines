@@ -153,7 +153,7 @@ public final class BruteChargeSystem {
         return c == null ? Phase.IDLE : c.phase;
     }
 
-    /** The heading a charge runs on, in degrees, and how far it can go: the tell's ground wedge. */
+    /** The heading a charge runs on, in degrees, and how far it can go. */
     public float headingDegrees(long brute) {
         Charge c = charges.get(brute);
         return c == null ? 0f : c.heading;
@@ -163,9 +163,6 @@ public final class BruteChargeSystem {
         Charge c = charges.get(brute);
         return c == null ? 0f : c.reach;
     }
-
-    /** Ticks a tell lasts, for the presentation's fade. */
-    public int tellTicks() { return BruteChargeRules.ticks(BruteChargeRules.TELL); }
 
     /** Ticks left in the current phase. */
     public int phaseTicks(long brute) {
@@ -633,7 +630,7 @@ public final class BruteChargeSystem {
         c.phaseTicks = Math.max(1, BruteChargeRules.ticks(BruteChargeRules.PULL_UP));
     }
 
-    /** How far open ground runs along {@code heading} from a point, up to {@code max}: the tell's wedge. */
+    /** How far open ground runs along {@code heading} from a point, up to {@code max}: the charge's reach. */
     static float openReach(NavigationGrid grid, float x, float y, float heading, float max) {
         float hx = (float) Math.cos(Math.toRadians(heading)), hy = (float) Math.sin(Math.toRadians(heading));
         for (float d = .25f; d <= max; d += .25f) {
