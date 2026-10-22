@@ -1141,6 +1141,28 @@ def _wreckfall(seed=12, small=60):
 
 WRECKFALL = _wreckfall()
 
+
+def add_span(arg):
+    """--span kf:t0:t1:fps (owner, 2026-10-22: the plasma judged moving, not as a still): a lit
+    motion span as one generated key frame per step, '<kf>s00', '<kf>s01', ..., each with the ships,
+    the camera and the effects at its own time. Returns their ids. The env var carries it into Blender."""
+    kf, t0, t1, fps = arg.split(':')
+    t0, t1, fps = float(t0), float(t1), float(fps)
+    base = KEYFRAMES[kf]
+    path = base['camera']['at']
+    ids = []
+    for n in range(int(round((t1 - t0) * fps)) + 1):
+        t = t0 + n / fps
+        cam = dict(path(t))
+        cam['at'] = path
+        spec = dict(base, camera=cam, t=t, title='%s at %.2f s' % (base['title'], t),
+                    ships={k: at_time(p, t) for k, p in base['ships'].items()})
+        key = '%ss%02d' % (kf, n)
+        KEYFRAMES[key] = SHOTS[key] = spec
+        ids.append(key)
+    return ids
+
+
 KEYFRAMES['k6'].update(
     title='The wreckfall',
     caption="From the pirates' orbit, a long lens"
@@ -1204,6 +1226,7 @@ BLOCKED = {
         labels=['colossus', 'morrow']),
 }
 SHOTS = {**KEYFRAMES, **BLOCKED}
+SPAN = add_span(os.environ['ASHARU_SPAN']) if os.environ.get('ASHARU_SPAN') else []
 
 ROSTER_SHEETS = ('r1', 'r2')   # top-down and broadside fleet sheets
 
@@ -2673,9 +2696,9 @@ def blender_main(cfg):
                 elif kind == 'entry_trails':
                     entry_trails(extra3d)
                 elif kind == 'entry_sheath' and not cfg.get('motion_preview'):     # the preview has proxies
-                    entry_sheath(spec['ships'][fx[1]], fx[1], K6_T)
+                    entry_sheath(spec['ships'][fx[1]], fx[1], spec.get('t', K6_T))
                 elif kind == 'wreckfall' and not cfg.get('motion_preview'):
-                    wreckfall(K6_T)
+                    wreckfall(spec.get('t', K6_T))
             c = spec['camera']
             aim(c['loc'], c.get('target'), c['lens'], c.get('look'), c.get('roll', 0.0))
             if cfg.get('volume_audit'):       # in vacuum (as rendered), then as the kit's atmosphere default
@@ -3473,6 +3496,9 @@ def main():
     def opt(flag, default=None):
         return argv[argv.index(flag) + 1] if flag in argv else default
 
+    if opt('--span'):            # a lit motion span (add_span): its steps are the frames
+        os.environ['ASHARU_SPAN'] = opt('--span')
+        argv += ['--frames', ','.join(add_span(opt('--span')))]
     frames = opt('--frames', ','.join(list(KEYFRAMES) + list(ROSTER_SHEETS))).split(',')
     run = Path(opt('--root', REPO / 'build' / 'asharu-battle')) / opt('--run', date.today().isoformat())
     run.mkdir(parents=True, exist_ok=True)
