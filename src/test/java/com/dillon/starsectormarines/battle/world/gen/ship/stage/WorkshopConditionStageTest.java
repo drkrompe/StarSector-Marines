@@ -52,13 +52,8 @@ class WorkshopConditionStageTest {
                 assertTrue(room.contains(d.cellX + d.footprintCellsX - 1, d.cellY + d.footprintCellsY - 1));
             }
             boolean buried = state == WorkshopState.BURIED;
-            var seals = ctx.doodads.stream().filter(d -> SealedShipHatches.ART.equals(d.definitionId())).toList();
-            assertEquals(buried ? 1 : 0, seals.size());
+            assertEquals(buried, SealedShipHatches.sealed(ctx, door.x(), door.y()));
             if (buried) {
-                var seal = seals.get(0);
-                assertEquals(door.x(), seal.cellX);
-                assertEquals(door.y(), seal.cellY);
-                assertEquals(pose.quarterTurns() & 1, seal.quarterTurns);
                 assertFalse(grid.isSeeThrough(door.x(), door.y()));
                 assertFalse(topology.isWall(door.x(), door.y()), "No full-cell wall behind the hatch");
                 assertEquals("ship-floor-trim.passage", topology.getSurfaceId(door.x(), door.y()));

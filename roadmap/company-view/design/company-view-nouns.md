@@ -732,7 +732,7 @@ resources. A card shows its wrench only while it has true vacancies. There is no
 equipment order, because replacements take their seat's kit as they join. Current billet counts state ready, wounded and vacant
 separately. A squad card's **Loadout** opens that squad's exact Armory equipment
 workspace; returning retains the Barracks selection. **Raise Squad** is a tile at the end of
-the formation board, not a separate page: it pays the full founding bill and raises only into a free command slot: the open officer's, or
+the formation board, drawn as an open slot the size of a squad card, not a separate page: it pays the full founding bill and raises only into a free command slot: the open officer's, or
 with All formations open, the first officer on the roll with room. When no
 command has a slot the tile is disabled and says why, so the officers' combined
 command caps are the company's force limit for raising. Its bill reads as one line
@@ -851,13 +851,15 @@ once all are selected, and the board shows the selected total. Changing a filter
 preserves it. Stationed formations can be inspected but cannot receive bulk orders.
 
 Formations are compact selectable cards. Each leads with the squad name and ready
-count, then its two cards (weapon card and tactic sheet, each with its own hover
-sheet: rarity, tier, rating, composition and lore), then its personnel state and
+count, then its two cards as two icon slots side by side (weapon card, then tactic
+sheet). A slot carries no words: hovering it names and describes the card (rarity,
+tier, rating, composition and lore). Then come its personnel state and
 twelve current billets grouped into three fire teams.
 Filled silhouettes, medical marks and hollow silhouettes distinguish ready,
 wounded and vacant places without relying on color. Selection has its own frame
 and checkbox; inspection is a separate action. Each card face is iconed by what
-most of its seats carry. Short personnel states stay visible, while hover and
+most of its seats carry, and its hover lays out all twelve seats as fire teams:
+each seat's weapon with its special on the corner, or each seat's suit. Short personnel states stay visible, while hover and
 keyboard-focus details explain recovery, command and cards. The card does not
 repeat its commander: the officer rail already says whose squads are in view.
 

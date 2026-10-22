@@ -16,6 +16,9 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.evacuation.SwarmStrains;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.ops.BattleLayout;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.OperationTier;
@@ -43,6 +46,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.IdentityHashMap;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -203,7 +208,7 @@ class RenderBudgetEvidence {
                 renderer.onAttach();
                 renderer.buildTileBatches();
 
-                for (MapSpec spec : MapSpec.MATRIX) {
+                for (MapSpec spec : MapSpec.selected()) {
                     try (BattleSimulation sim = spec.build()) {
                         play(sim, ticks);
                         List<EqualityCheck> checks = new ArrayList<>();
@@ -224,7 +229,9 @@ class RenderBudgetEvidence {
                                 spec.id());
                     }
                 }
-                assertStandUpRepeats(renderer, rows, ticks);
+                if (MapSpec.selected().stream().anyMatch(spec -> spec.id().equals(MapSpec.CONQUEST_ID))) {
+                    assertStandUpRepeats(renderer, rows, ticks);
+                }
                 System.out.println("[render-evidence] textures uploaded: "
                         + tokens.uploadedTextures());
             }
@@ -276,7 +283,98 @@ class RenderBudgetEvidence {
                 new MapSpec("560x336 conquest", MapSpec::conquest),
                 new MapSpec("400x240 colony", MapSpec::colony),
                 new MapSpec("400x240 green colony", MapSpec::greenColony),
-                new MapSpec("400x240 green colony burning", MapSpec::burningColony));
+                new MapSpec("400x240 green colony burning", MapSpec::burningColony),
+                new MapSpec("280x168 body pile", MapSpec::bodyPile));
+
+        static final String CONQUEST_ID = "560x336 conquest";
+        static final String PILE_ID = "280x168 body pile";
+
+        /**
+         * The maps {@code -Drender.evidence.maps} names, by id substring, comma-separated; every map
+         * when it is unset. A lever measured on one map against its own control need not pay for six.
+         */
+        static List<MapSpec> selected() {
+            String wanted = System.getProperty("render.evidence.maps", "").trim();
+            if (wanted.isEmpty()) return MATRIX;
+            List<MapSpec> out = new ArrayList<>();
+            for (MapSpec spec : MATRIX) {
+                for (String part : wanted.split(",")) {
+                    if (!part.isBlank() && spec.id().contains(part.trim())) {
+                        out.add(spec);
+                        break;
+                    }
+                }
+            }
+            return out;
+        }
+
+        /** Bodies in the pile: a wave's worth of dead outside a defended line, many times over. */
+        static final int PILE_BODIES = Integer.getInteger("render.evidence.pileBodies", 1200);
+        /** Radius of the ground the pile lies on, cells: a killing ground in front of a wire. */
+        static final int PILE_RADIUS = 12;
+        /** Deaths per tick while the pile is laid down, so the bodies have distinct ages. */
+        static final int PILE_PER_TICK = 30;
+
+        /**
+         * The control map with {@link #PILE_BODIES} Runners killed onto the open ground nearest its
+         * centre, {@link #PILE_PER_TICK} a tick, at seeded places: the pile of dead a wave leaves
+         * outside a redoubt where nothing clears them. There is no creep and no bore, so only the
+         * body pile cap ({@code -Dbattle.bodyPileCap=false} is its control) takes any of them away.
+         * The close framing is centred on it ({@link #focusOf}).
+         */
+        static BattleSimulation bodyPile() throws Exception {
+            BattleSimulation sim = control();
+            NavigationGrid grid = sim.getGrid();
+            int[] centre = pileCentre(grid);
+            List<int[]> cells = new ArrayList<>();
+            for (int dy = -PILE_RADIUS; dy <= PILE_RADIUS; dy++) {
+                for (int dx = -PILE_RADIUS; dx <= PILE_RADIUS; dx++) {
+                    int x = centre[0] + dx, y = centre[1] + dy;
+                    if (dx * dx + dy * dy > PILE_RADIUS * PILE_RADIUS) continue;
+                    if (x < 0 || y < 0 || x >= grid.getWidth() || y >= grid.getHeight()) continue;
+                    if (grid.isWalkable(x, y)) cells.add(new int[]{x, y});
+                }
+            }
+            Random random = new Random(0xB0D1E5L);
+            sim.setMissionCompletionEnabled(false);
+            for (int laid = 0; laid < PILE_BODIES; ) {
+                for (int k = 0; k < PILE_PER_TICK && laid < PILE_BODIES; k++, laid++) {
+                    int[] cell = cells.get(random.nextInt(cells.size()));
+                    long runner = SwarmStrains.spawn(sim, "dead " + laid, UnitType.SWARM_RUNNER, cell[0], cell[1]);
+                    sim.applyDamage(runner, 1_000_000f, 1000f);
+                }
+                sim.advance(BattleSimulation.TICK_DT);
+            }
+            PILE_FOCUS.put(sim, new float[]{centre[0] + 0.5f, centre[1] + 0.5f});
+            return sim;
+        }
+
+        /** Where a map's close framing looks: the pile for the pile, the company for the rest. */
+        static final Map<BattleSimulation, float[]> PILE_FOCUS = new IdentityHashMap<>();
+
+        /** The cell nearest the map centre with the most open ground around it within the pile's radius. */
+        private static int[] pileCentre(NavigationGrid grid) {
+            int cx = grid.getWidth() / 2, cy = grid.getHeight() / 2;
+            int[] best = {cx, cy};
+            int bestOpen = -1;
+            for (int y = cy - 40; y <= cy + 40; y += 4) {
+                for (int x = cx - 60; x <= cx + 60; x += 4) {
+                    int open = 0;
+                    for (int dy = -PILE_RADIUS; dy <= PILE_RADIUS; dy += 2) {
+                        for (int dx = -PILE_RADIUS; dx <= PILE_RADIUS; dx += 2) {
+                            int px = x + dx, py = y + dy;
+                            if (px >= 0 && py >= 0 && px < grid.getWidth() && py < grid.getHeight()
+                                    && grid.isWalkable(px, py)) open++;
+                        }
+                    }
+                    if (open > bestOpen) {
+                        bestOpen = open;
+                        best = new int[]{x, y};
+                    }
+                }
+            }
+            return best;
+        }
 
         /** Seconds the green colony burns for before it is drawn: the front well into its groves. */
         static final int BURN_SECONDS = 45;
@@ -473,7 +571,8 @@ class RenderBudgetEvidence {
             camera.setViewport(layout.gridX, layout.gridY, layout.gridW, layout.gridH,
                     layout.cellSize);
             zoomTo(camera, framing.zoom());
-            float[] focus = marineCentroid(sim, gridW, gridH);
+            float[] pile = MapSpec.PILE_FOCUS.get(sim);
+            float[] focus = pile != null ? pile : marineCentroid(sim, gridW, gridH);
             camera.centerOn(focus[0], focus[1]);
 
             RenderContext rc = new RenderContext(sim, camera, layout, 1f, 0f, false,

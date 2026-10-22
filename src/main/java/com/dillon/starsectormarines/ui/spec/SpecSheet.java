@@ -18,13 +18,25 @@ import java.util.List;
  *                 keys a border colour on
  * @param stats    stat rows in display order; may be empty
  * @param notes    field-note paragraphs in display order; may be empty
+ * @param seats    one picture per seat for a sheet that describes a whole
+ *                 squad's issue, painted as fire teams of {@link #TEAM_SIZE};
+ *                 empty for a single item
  */
 public record SpecSheet(String title,
                         String subtitle,
                         String crestPath,
                         String accent,
                         List<Stat> stats,
-                        List<String> notes) {
+                        List<String> notes,
+                        List<Seat> seats) {
+
+    /** Seats per painted row: a fire team. */
+    public static final int TEAM_SIZE = 4;
+
+    public SpecSheet(String title, String subtitle, String crestPath, String accent,
+                     List<Stat> stats, List<String> notes) {
+        this(title, subtitle, crestPath, accent, stats, notes, List.of());
+    }
 
     public SpecSheet {
         if (title == null || title.isBlank()) throw new IllegalArgumentException("A spec sheet needs a title");
@@ -32,7 +44,21 @@ public record SpecSheet(String title,
         accent = accent == null || accent.isBlank() ? "item" : accent;
         stats = stats == null ? List.of() : List.copyOf(stats);
         notes = notes == null ? List.of() : List.copyOf(notes);
+        seats = seats == null ? List.of() : List.copyOf(seats);
     }
+
+    /** This sheet with one picture per seat. */
+    public SpecSheet withSeats(List<Seat> seats) {
+        return new SpecSheet(title, subtitle, crestPath, accent, stats, notes, seats);
+    }
+
+    /**
+     * What one seat carries, as pictures.
+     *
+     * @param image the seat's main item: its weapon, or its suit
+     * @param badge a second, smaller item drawn on its corner, or null
+     */
+    public record Seat(String image, String badge) { }
 
     /**
      * One stat row.

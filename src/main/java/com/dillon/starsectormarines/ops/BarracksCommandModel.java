@@ -469,12 +469,9 @@ public final class BarracksCommandModel {
                     "squadId", squad.id(), "musterId", id + ":muster",
                     "headerId", id + ":header", "checkId", id + ":check", "strengthId", id + ":strength",
                     "cardsId", id + ":cards", "weaponChipId", id + ":weapon-card", "weaponIconId", id + ":weapon-icon",
-                    "weaponNameId", id + ":weapon-name", "armorChipId", id + ":armor-card", "armorIconId", id + ":armor-icon",
-                    "armorNameId", id + ":armor-name",
+                    "armorChipId", id + ":armor-card", "armorIconId", id + ":armor-icon",
                     "weaponIcon", weapons == null || weapons.icon() == null ? "" : weapons.icon(),
-                    "weaponName", weapons == null ? Strings.get("armorPlanNone") : weapons.name(),
                     "armorIcon", armor == null || armor.icon() == null ? "" : armor.icon(),
-                    "armorName", ArmorPlanPresentation.label(roster.armory(), squad.armorDoctrineId()),
                     "footerId", id + ":footer", "footerSpacerId", id + ":footer-spacer",
                     "fillId", id + ":fill", "fillIconId", id + ":fill-icon", "fillCountId", id + ":fill-count",
                     "fillClasses", vacant > 0 && !squad.stationed() ? "fill-button console-action" : "fill-button hidden",
@@ -498,9 +495,8 @@ public final class BarracksCommandModel {
         Map<String, Object> tile = new LinkedHashMap<>(row("id", id + ":tile", "markId", id + ":select",
                 "squadId", "", "musterId", id + ":muster", "headerId", id + ":header", "checkId", id + ":check",
                 "strengthId", id + ":strength", "cardsId", id + ":cards", "weaponChipId", id + ":weapon-card",
-                "weaponIconId", id + ":weapon-icon", "weaponNameId", id + ":weapon-name", "armorChipId", id + ":armor-card",
-                "armorIconId", id + ":armor-icon", "armorNameId", id + ":armor-name",
-                "weaponIcon", "", "weaponName", "", "armorIcon", "", "armorName", "",
+                "weaponIconId", id + ":weapon-icon", "armorChipId", id + ":armor-card",
+                "armorIconId", id + ":armor-icon", "weaponIcon", "", "armorIcon", "",
                 "footerId", id + ":footer", "footerSpacerId", id + ":footer-spacer",
                 "fillId", id + ":fill", "fillIconId", id + ":fill-icon", "fillCountId", id + ":fill-count",
                 "fillClasses", "fill-button hidden", "fillDisabled", true, "fillCount", "", "fill", (Runnable) () -> { },
@@ -516,10 +512,10 @@ public final class BarracksCommandModel {
     private void founderFields(Map<String, Object> row, String prefix, boolean shown) {
         String id = shown ? prefix : prefix + ":raise";
         row.put("founderId", id);
-        for (String part : List.of("Plus", "Heading", "Title", "Destination", "Costs"))
+        for (String part : List.of("Heading", "Title", "TopSpacer", "Emblem", "EmblemIcon", "Destination", "BottomSpacer", "Costs"))
             row.put("founder" + part + "Id", id + ":" + part.toLowerCase(Locale.ROOT));
         boolean ready = shown && raiseCommander() != null && foundingResources.canAfford(SquadFoundingCost.STANDARD);
-        row.put("founderClasses", shown ? "raise-squad console-action" : "hidden");
+        row.put("founderClasses", shown ? "raise-squad" : "hidden");
         row.put("founderDisabled", !ready);
         row.put("raise", shown ? (Runnable) this::raiseSquad : (Runnable) () -> { });
         row.put("founderDestination", shown ? raiseDestination() : "");

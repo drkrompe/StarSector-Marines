@@ -6,9 +6,10 @@ import com.dillon.starsectormarines.battle.combat.PointFireAim;
 @FunctionalInterface
 public interface TurretFireSink {
 
-    void fire(long shooterId, float fromX, float fromY, Faction shooterFaction,
-              StructureDef structure, long target, boolean aerialShooter, boolean hasLos,
-              float mountFacingDegrees, int releaseIndex);
+    /** Fires one round, returning false when the gun's crew held it rather than hit a friend. */
+    boolean fire(long shooterId, float fromX, float fromY, Faction shooterFaction,
+                 StructureDef structure, long target, boolean aerialShooter, boolean hasLos,
+                 float mountFacingDegrees, int releaseIndex);
 
     /** Emits a modeled ground point round, returning whether a round was accepted. */
     default boolean firePoint(long shooterId, float fromX, float fromY, Faction shooterFaction,
