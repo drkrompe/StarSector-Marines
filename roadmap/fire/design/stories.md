@@ -13,7 +13,7 @@ landed (`shipped.md`).
 | Story | State and dependency |
 | --- | --- |
 | fire-swarm-fear | **PLANNED.** The swarm's flow fields treat burning cells as walls unless the goal lies beyond; a unit standing in fire steps out of it. |
-| fire-look-pick | **WAITING ON THE OWNER.** Restrained flames are picked and are the default. Scorch tone (char, ash, ember, soot) is re-shown on real ground from `fire-colony`; char stays the default until the owner confirms. |
+| fire-look-pick | **WAITING ON THE OWNER.** Restrained flames are picked and are the default. The flat scorch fills were rejected; three per-pixel looks (mottle, singe, weather) from `ScorchShading` are before the owner. On a pick: port the chosen style to GLSL line for line (the `CreepShader` pattern, multiply then overlay), make it the default, retire the flat fills. |
 | fire-light | **PLANNED.** Burning areas lit through `GroundLightService` (a few pooled lights over clusters, not one per cell), so a night burn lights the ground. |
 | fire-incendiary-rounds | **PLANNED.** `incendiaryHeat` on the field mortar's round (as an ammunition choice on the fire mission) and on an air strike; a stream presentation for the flamer instead of a lob. |
 | fire-kit-use | **PLANNED.** In `fire-ignition`'s kit loop neither the grenadiers nor the flamers threw at unarmed, stationary targets in a meadow; find which part of the special-weapon AI declines, and give a squad a reason to burn a hedge or a line (a target in brush, an order to burn). |

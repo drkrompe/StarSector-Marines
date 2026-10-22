@@ -376,6 +376,14 @@ public final class FireField {
     public int intensityAt(int x, int y) { return inBounds(x, y) ? intensity[y * width + x] & 0xFF : 0; }
     /** The fuel mask a burning or burnt cell caught with; 0 for an unburnt one. */
     public int burnedMaskAt(int idx) { return mask[idx] & 0xFF; }
+
+    /** How far a cell has burnt, 0..255: 0 unburnt, the share of its fuel spent while it burns, 255 once burnt out. */
+    public int burnProgress(int idx) {
+        byte st = state[idx];
+        if (st == BURNT) return 255;
+        if (st != BURNING || load[idx] <= 0) return 0;
+        return Math.max(1, 255 - 255 * fuel[idx] / load[idx]);
+    }
     /** Ticks since a burnt cell burnt out; -1 if it is not burnt. */
     public int burntAge(int idx) { return state[idx] == BURNT ? now - burntTick[idx] : -1; }
 
