@@ -79,7 +79,9 @@ final class SwarmMatriarchBehavior {
             SwarmPressureBehavior.updateRoaming(matriarch, previousTarget, sim);
             return;
         }
-        if (target != previousTarget) sim.swarmCues().post(SwarmCues.Kind.ALERT, matriarch, sim);
+        if (target != previousTarget && !sim.swarmPacks().followsLeader(matriarch, target, sim)) {
+            sim.swarmCues().post(SwarmCues.Kind.ALERT, matriarch, sim);
+        }
         boolean ready = sim.combat().cooldownTimer(matriarch) <= 0f;
 
         if (SwarmBruteBehavior.gap(matriarch, target, sim) <= REACH) {
@@ -94,7 +96,7 @@ final class SwarmMatriarchBehavior {
                     action.nextLeft = !action.nextLeft;
                 }
                 begin(action, kind, now, target, d > 1e-4f ? dx / d : 0f, d > 1e-4f ? dy / d : 1f);
-                sim.combat().setCooldownTimer(matriarch, sim.combat().attackCooldown(matriarch));
+                sim.combat().setCooldownTimer(matriarch, SwarmPressureBehavior.strikeCooldown(matriarch, sim));
             }
             return;
         }
@@ -107,7 +109,7 @@ final class SwarmMatriarchBehavior {
                 if (ready) {
                     begin(action, Kind.CROWN, now, 0L, 0f, 0f);
                     action.breach = breach;
-                    sim.combat().setCooldownTimer(matriarch, sim.combat().attackCooldown(matriarch));
+                    sim.combat().setCooldownTimer(matriarch, SwarmPressureBehavior.strikeCooldown(matriarch, sim));
                 }
                 return;
             }
