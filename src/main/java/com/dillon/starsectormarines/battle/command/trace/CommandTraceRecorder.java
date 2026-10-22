@@ -450,6 +450,7 @@ public final class CommandTraceRecorder {
         numberField(out, "targetPopulation", snapshot.targetPopulation());
         numberField(out, "populationFloor", snapshot.populationFloor());
         numberField(out, "liveRunners", snapshot.liveRunners());
+        stageField(out, "livingByStage", snapshot.livingByStage());
         numberField(out, "waveIndex", snapshot.waveIndex());
         out.append(",\"approaches\":[");
         for (int i = 0; i < snapshot.approaches().size(); i++) {
@@ -509,10 +510,19 @@ public final class CommandTraceRecorder {
             numberField(out, "nextSurgeTick", bore.nextSurgeTick());
             numberField(out, "eruptedTick", bore.eruptedTick());
             numberField(out, "collapsedTick", bore.collapsedTick());
+            stageField(out, "ageMix", bore.ageMix());
+            stageField(out, "releasedByStage", bore.released());
             out.append('}');
         }
         out.append("]}");
         appendLine(out.toString());
+    }
+
+    /** A growth-stage triple as {@code {"whelp":n,"adult":n,"elder":n}}. */
+    private static void stageField(StringBuilder out, String name, SwarmPressureSnapshot.StageCounts counts) {
+        out.append(",\"").append(name).append("\":{\"whelp\":").append(counts.whelps())
+                .append(",\"adult\":").append(counts.adults())
+                .append(",\"elder\":").append(counts.elders()).append('}');
     }
 
     private static void directive(StringBuilder out, CommandDirective directive) {

@@ -728,8 +728,9 @@ spawn through `SwarmStrains`, like the Brute's plate, and fixed for the body's
 life; the Matriarch is the one exception. Stage scales presentation only
 through things the body already has: its rig's scale and stage-recoloured
 sprites, and its voice pitched by its size. Stats, the stage table and the
-reasons for each choice are in `rav-growth-stages.md` (stage, stats and size
-built; the age mix, packs and presentation planned).
+reasons for each choice are in `rav-growth-stages.md` (stage, stats, size and
+the age mix built; packs and presentation planned).
+`-Dbattle.swarm.growthStages=false` is the control: every body an adult.
 
 - **Age mix.** A surge's stages come from its bore, never from the director:
   each body draws a stage from a table keyed by the bore's tier (a fissure
