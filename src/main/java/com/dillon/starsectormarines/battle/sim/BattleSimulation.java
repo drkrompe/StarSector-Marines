@@ -261,6 +261,8 @@ import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.creep.CreepRoofCollapse;
 import com.dillon.starsectormarines.battle.fire.BattleFire;
 import com.dillon.starsectormarines.battle.fire.FireField;
+import com.dillon.starsectormarines.battle.fire.FireHarm;
+import com.dillon.starsectormarines.battle.fire.FireRouteCost;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachSequence;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
 import com.dillon.starsectormarines.battle.evacuation.CreepOutposts;
@@ -747,6 +749,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** The creep field if anything has created one, else {@code null}; safe for renderers. */
     public CreepField creepFieldIfPresent() { return creep; }
     private BattleFire fire;
+    private final FireHarm fireHarm = new FireHarm();
+    private final FireRouteCost fireRouteCost = new FireRouteCost();
     private static final long FIRE_SEED_SALT = 0x46495245_4649454CL;
     /**
      * The battle's fire (`fire-nouns.md`), created on first use by whatever
@@ -3596,7 +3600,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         }
         // After the creep, so a cell catching this tick burns the creep as it now stands;
         // before the topology flush, so a crown burnt through falls with this tick's breaches.
-        if (fire != null) fire.tick(simTickIndex);
+        if (fire != null) {
+            fire.tick(simTickIndex);
+            fireHarm.tick(this, fire.field());
+            fireRouteCost.tick(simTickIndex, fire.field(), commanderInfluence.casualties()::routeCost);
+        }
         if (reliefAssault != null) reliefAssault.tick(this);
         if (lastLiftSequence != null) lastLiftSequence.tick(this);
         if (relayNineSequence != null) relayNineSequence.tick(this);
@@ -3761,7 +3769,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     @Override
     public RouteCostField getRouteCostField(Faction faction) {
-        return commanderInfluence.casualties().routeCost(faction);
+        return fireRouteCost.forSide(faction, commanderInfluence.casualties().routeCost(faction));
     }
 
     @Override

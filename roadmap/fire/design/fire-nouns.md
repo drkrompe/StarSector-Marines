@@ -121,31 +121,43 @@ pass through them. A burning forest hides the fight beyond it.
 
 ## Damage
 
-**Fire hurts what stands in it, and a little what stands beside it.** A unit
-in a burning cell takes fire damage every fire step, scaled by the cell's
-intensity; a unit touching one takes a tenth of that. Fire damage is its own
-kind: armour that stops bullets does little against it, a sealed suit or a
-vehicle's hull a great deal. A mech or vehicle can drive through a grass fire;
-a marine should not stand in a crown fire.
+**Fire hurts what stands in it, and a little what stands beside it**
+(`FireHarm`). Every fire step a unit in a burning cell takes damage scaled by
+the cell's intensity (8 hit points a second at full heat, so a marine dies in
+about three seconds in a crown fire and a few more in a grass fire); a unit
+beside a burning cell takes a tenth of its hottest neighbour's. Fire damage
+passes through armour that stops rifle rounds; a mech's or vehicle's hull
+takes a tenth of it, so armour can drive through a grass fire.
 
-**Structures.** Trees burn (their crowns are fuel and fall when spent).
-Bores take nothing. Growths (ground colonies, spore colonies) standing on
-burning creep die when it does. Walls and buildings take nothing from fire;
-what furnishes them may burn.
+**Morale.** Fire damage carries morale as being hit does, so a team standing
+in fire drains toward breaking as one under fire would; fire near a team that
+is not touching it costs nothing.
 
-**Bodies** lying in a burning cell are consumed; a body being dragged is
-lying nowhere and does not burn.
+**Static things take nothing.** Turrets, hubs, bores and the swarm's growths
+are fought through their durability, never burnt. Burning never collapses a
+bore; growths die with the creep a fire takes. Walls and buildings take
+nothing from fire.
 
-**Pathing.** A burning cell is costed as very dear for everyone and a cell
-beside one as dear, so routes go round a fire where there is a way round and
-through it fast where there is not; nobody chooses to stop in fire. A unit
-that finds itself standing in it steps out to the nearest cell that is not
-burning. The swarm fears fire as an animal does: a burning cell is a wall to
-a rav unless its goal is beyond it and there is no other way.
+**Trees** burn as fuel and fall when three crown cells have burnt out.
 
-**Morale.** Standing in or next to fire suppresses, as being shot at does,
-and a marine set alight panics. Fire behind a line of marines is not a threat
-to them; fire on them is.
+**Bodies.** A swarm body lying in a burning cell is consumed, as a digested
+one is. The dead of every other side are left to be recovered; a body being
+dragged is lying nowhere and does not burn.
+
+**Pathing.** Fire is folded into each side's route costing
+(`FireRouteCost`): a burning cell costs up to ten times its ground by
+intensity and a cell beside one three times, republished at most twice a
+second while anything burns and not at all once nothing does, so routes go
+round a fire where there is a way round and through it where there is not.
+A fleeing unit never picks a refuge in or beside fire (`FireEffects`).
+`-Dbattle.pathfinding.fireRouteCost=false` is the control; in `fire-harm`'s
+crossing it is the difference between a squad that goes round a burning band
+and one that walks into it and dies there.
+
+Not yet: nothing steps a unit out of a fire it is standing in except its own
+next route and its breaking morale, and the swarm moves on flow fields that
+do not read the route costing, so a rav does not yet fear fire
+(`stories.md`).
 
 ## Starting fires
 
@@ -186,6 +198,14 @@ catches, burning creep is gone within three seconds, burnt ground holds no
 living creep while it refuses it, and a tree with three burnt-out crown cells
 has fallen. How fast the front ran and how much creep it took are metrics.
 `-Dbattle.fire=false` is the control: nothing catches.
+
+`fire-harm` (`sceneEvidence`) holds the damage mechanics: a squad caught
+standing in a meadow as a grass fire runs into it, with a dead runner in the
+way, and a squad crossing a field with a burning band across it and a way
+round its end. Verdicts: a body in a burning cell loses health every fire
+step, a swarm body lying in fire is consumed, and burning ground costs more
+than bare ground in the published route costing. Health lost, deaths and the
+crossing's time in fire are metrics.
 
 ## Laws
 
