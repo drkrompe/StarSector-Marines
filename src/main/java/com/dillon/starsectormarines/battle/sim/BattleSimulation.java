@@ -751,6 +751,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (creepVegetation == null) creepVegetation = new CreepVegetation(generationSeed ^ BORE_SEED_SALT);
         return creepVegetation;
     }
+    /** The creep's weight on the battle's roofs, created on first use; the battle's own, so a bloom grown before it is remembered. */
+    public CreepRoofCollapse creepRoofs() {
+        if (creepRoofs == null) creepRoofs = new CreepRoofCollapse(generationSeed ^ BORE_SEED_SALT);
+        return creepRoofs;
+    }
+    /** Brings the creep field's sources in line with the bores now, as the tick does after the bores; for growing a bloom before the battle. */
+    public void syncBoreCreep() { boreCreep.sync(this); }
     /**
      * The battle's hive creep, created on first use by whatever declares a
      * source (a bore, a scene); call only from the simulation thread.
@@ -3627,8 +3634,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         creepOutposts.tick(this);
         groundColonies.tick(this);
         if (creep != null) {
-            if (creepRoofs == null) creepRoofs = new CreepRoofCollapse(generationSeed ^ BORE_SEED_SALT);
-            creepRoofs.tick(this);
+            creepRoofs().tick(this);
             creepVegetation().tick(this);
         }
         // After the creep, so a cell catching this tick burns the creep as it now stands;

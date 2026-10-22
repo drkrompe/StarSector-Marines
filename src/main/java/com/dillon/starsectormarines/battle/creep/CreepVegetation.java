@@ -44,6 +44,11 @@ public final class CreepVegetation {
     public static final int DEATH_LO = 215, DEATH_HI = 250;
     /** Cells of a crown within this distance of its centre are its trunk: they keep blocking once it is dead. */
     public static final float TRUNK_RADIUS = 0.75f;
+    /**
+     * {@link #diedAt} of a tree that lives. Not {@code -1}: a bloom grown before
+     * the battle ({@link BloomPregrowth}) kills trees on ticks before zero.
+     */
+    public static final int ALIVE = Integer.MIN_VALUE;
 
     private final long seed;
     private final boolean enabled = !"false".equalsIgnoreCase(System.getProperty(PROPERTY));
@@ -86,7 +91,7 @@ public final class CreepVegetation {
         Index idx = index;
         if (idx == null) index = idx = build(doodads, grid, seed);
         for (int t = 0; t < idx.trees.size(); t++) {
-            if (idx.diedAt[t] >= 0) continue;
+            if (idx.diedAt[t] != ALIVE) continue;
             Tree tree = idx.trees.get(t);
             if (!standing(tree, grid)) continue;
             if (livingCoverage(tree, field) < tree.threshold) continue;
@@ -100,19 +105,19 @@ public final class CreepVegetation {
     /** A crown cell opens once every tree whose crown holds it is dead and it is none of their trunks. */
     private static boolean opens(Index idx, int cell) {
         for (int owner : idx.owners.get(cell)) {
-            if (idx.diedAt[owner] < 0) return false;
+            if (idx.diedAt[owner] == ALIVE) return false;
             Tree tree = idx.trees.get(owner);
             for (int i = 0; i < tree.crown.length; i++) if (tree.crown[i] == cell && tree.trunk[i]) return false;
         }
         return true;
     }
 
-    /** The tick the tree placed at this origin died, or -1 if it lives or is no tree. Safe for renderers. */
+    /** The tick the tree placed at this origin died, or {@link #ALIVE} if it lives or is no tree. Safe for renderers. */
     public int diedAt(int originX, int originY) {
         Index idx = index;
-        if (idx == null) return -1;
+        if (idx == null) return ALIVE;
         Integer t = idx.byOrigin.get(key(originX, originY));
-        return t == null ? -1 : idx.diedAt[t];
+        return t == null ? ALIVE : idx.diedAt[t];
     }
 
     /** Trees found and trees dead, for evidence. */
@@ -120,7 +125,7 @@ public final class CreepVegetation {
         Index idx = index;
         if (idx == null) return "no trees looked at";
         int dead = 0;
-        for (int d : idx.diedAt) if (d >= 0) dead++;
+        for (int d : idx.diedAt) if (d != ALIVE) dead++;
         return String.format(Locale.ROOT, "%d of %d trees dead", dead, idx.trees.size());
     }
 
@@ -162,7 +167,7 @@ public final class CreepVegetation {
         Map<Integer, int[]> owners = new HashMap<>();
         holders.forEach((cell, list) -> owners.put(cell, list.stream().mapToInt(Integer::intValue).toArray()));
         int[] diedAt = new int[trees.size()];
-        Arrays.fill(diedAt, -1);
+        Arrays.fill(diedAt, ALIVE);
         return new Index(List.copyOf(trees), byOrigin, owners, diedAt);
     }
 

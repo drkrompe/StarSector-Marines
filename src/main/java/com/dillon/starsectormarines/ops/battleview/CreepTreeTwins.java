@@ -114,8 +114,8 @@ final class CreepTreeTwins implements DoodadRenderSystem.Twins {
         if (canopy == null || placed.definitionId().endsWith("-destroyed")) return 0f;
         float age = crownAge(field, entry(placed, canopy).crown);
         float s = stageForAge(age);
-        int died = vegetation == null ? -1 : vegetation.diedAt(placed.cellX, placed.cellY);
-        if (died >= 0) s = Math.max(s, 3f + Math.min(1f, Math.max(0f, (tick - died) / (float) DEATH_FADE_TICKS)));
+        int died = vegetation == null ? CreepVegetation.ALIVE : vegetation.diedAt(placed.cellX, placed.cellY);
+        if (died != CreepVegetation.ALIVE) s = Math.max(s, 3f + Math.min(1f, Math.max(0f, (tick - died) / (float) DEATH_FADE_TICKS)));
         else s = Math.min(s, 3f);
         if (at(placed, 1) == null) return 0f;
         return s;

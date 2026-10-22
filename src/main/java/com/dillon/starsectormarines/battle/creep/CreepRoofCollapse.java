@@ -51,6 +51,8 @@ public final class CreepRoofCollapse {
     public static final float SPREAD_JITTER_SECONDS = 4f;
 
     static final int TICKS_PER_SECOND = 30;
+    /** A cell's fall tick while it stands; not {@code -1}, because a bloom grown before the battle brings roofs down before tick zero. */
+    private static final int NEVER = Integer.MIN_VALUE;
 
     /** What the rule reads of the map and the creep. Coordinates are always in bounds. */
     public interface Cells {
@@ -143,7 +145,7 @@ public final class CreepRoofCollapse {
         if (candidates == null) index(cells, width, height);
         for (int i = 0; i < candidates.length; i++) {
             int idx = candidates[i];
-            if (fellAt[idx] >= 0) continue;
+            if (fellAt[idx] != NEVER) continue;
             int x = idx % width, y = idx / width;
             if (cells.roofGone(x, y)) {
                 // Fallen to something else (a shell, a breach): the creep spreads from it all the same.
@@ -183,7 +185,7 @@ public final class CreepRoofCollapse {
         candidates = Arrays.copyOf(found, count);
         held = new int[count];
         fellAt = new int[width * height];
-        Arrays.fill(fellAt, -1);
+        Arrays.fill(fellAt, NEVER);
     }
 
     private static boolean besideCrust(Cells cells, int x, int y, int width, int height) {
@@ -204,7 +206,7 @@ public final class CreepRoofCollapse {
     }
 
     private static int earliestOf(int earliest, int fell) {
-        return fell >= 0 ? Math.min(earliest, fell) : earliest;
+        return fell != NEVER ? Math.min(earliest, fell) : earliest;
     }
 
     /** A seeded share in [0, 1) for one cell and one use. */

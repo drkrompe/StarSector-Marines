@@ -24,11 +24,21 @@ class CreepVegetationTest {
         Grove g = new Grove();
         Set<Integer> opened = new HashSet<>();
         int died = g.grow(new CreepVegetation(5L), opened);
-        assertTrue(died > 0, "the tree died");
+        assertTrue(died > 0 && died != Integer.MAX_VALUE, "the tree died");
         boolean[] trunk = CreepVegetation.trunkOf(g.tree, g.crown, W);
         for (int i = 0; i < g.crown.length; i++) {
             assertEquals(!trunk[i], opened.contains(g.crown[i]), "crown cell " + i + (trunk[i] ? " is trunk" : " is crown"));
         }
+    }
+
+    /** A bloom grown before the battle kills on ticks before zero, and such a tree is dead, not living. */
+    @Test
+    void aTreeKilledBeforeTheBattleIsDead() {
+        Grove g = new Grove();
+        Set<Integer> opened = new HashSet<>();
+        int died = g.grow(new CreepVegetation(5L), opened, -6000);
+        assertTrue(died < 0, "the tree died before tick zero: " + died);
+        assertTrue(!opened.isEmpty(), "its withered crown opened");
     }
 
     /** One small oak on open ground, a source beside it. */
@@ -53,11 +63,16 @@ class CreepVegetationTest {
 
         /** Grows the creep until the tree dies; the tick it died, asserting the crown was held to its threshold. */
         int grow(CreepVegetation rule, Set<Integer> opened) {
-            for (int t = 0; t < 6000; t++) {
+            return grow(rule, opened, 0);
+        }
+
+        /** As {@link #grow(CreepVegetation, Set)}, from {@code from}; a negative start grows the creep before the battle. */
+        int grow(CreepVegetation rule, Set<Integer> opened, int from) {
+            for (int t = from; t < from + 6000; t++) {
                 field.tick(t);
-                if (t % CreepVegetation.CHECK_TICKS != 0) continue;
+                if (Math.floorMod(t, CreepVegetation.CHECK_TICKS) != 0) continue;
                 rule.look(t, field, grid, List.of(tree), (x, y) -> opened.add(y * W + x));
-                if (rule.diedAt(tree.cellX, tree.cellY) < 0) {
+                if (rule.diedAt(tree.cellX, tree.cellY) == CreepVegetation.ALIVE) {
                     assertTrue(opened.isEmpty(), "nothing opens while the tree lives");
                     continue;
                 }
@@ -65,7 +80,7 @@ class CreepVegetationTest {
                 assertTrue(held >= CreepVegetation.DEATH_LO, "died held at " + held);
                 return t;
             }
-            return -1;
+            return Integer.MAX_VALUE;
         }
     }
 }
