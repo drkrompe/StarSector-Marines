@@ -251,7 +251,8 @@ public final class VehicleMoveOrderSystem {
 
     private boolean commandable(long id) {
         if (!convoy.isVehicle(id)) return false;
-        if (convoy.faction(id) != Faction.MARINE) return false;
+        Faction faction = convoy.faction(id);
+        if (faction != Faction.MARINE && !(faction == Faction.ALLY && service.isEnlisted(id))) return false;
         VehicleMission mission = convoy.mission(id);
         return mission != null
                 && mission.state != VehicleState.WRECKED

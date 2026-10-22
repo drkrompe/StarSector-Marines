@@ -70,7 +70,8 @@ import java.util.Map;
  *
  * <p>What it does not touch: a player order (an active one owns the chassis and an arrived one hands back here, the
  * way a mech's doctrine resumes after a move), a hull under direct control, delivery legs, allied story columns
- * (their scripts own when they move), hulls built unarmed and empty magazines. Infantry is not a duel target:
+ * (their scripts own when they move; an allied hull a mission has enlisted under allied
+ * command is not one of those, and fights as the player's do), hulls built unarmed and empty magazines. Infantry is not a duel target:
  * against infantry a hull still holds where it stands and fires.
  *
  * <p>{@code -Dbattle.vehicle.duelRange=false} is the control: a deployed hull holds where it was set down.
@@ -181,6 +182,7 @@ public final class VehicleEngagement {
     private final VehicleControlSystem controlSystem;
     private final Map<Long, Plan> plans = new HashMap<>();
     private SideSpotting spotting = SideSpotting.NONE;
+    private VehicleMoveOrderService moveOrders;
 
     /** A stand-off hull that cannot out-reach its target holds no nearer than this share of its own reach. */
     static final float EDGE_BAND_SHARE = 0.85f;
@@ -226,6 +228,16 @@ public final class VehicleEngagement {
         this.roster = roster;
         this.navigation = navigation;
         this.controlSystem = controlSystem;
+    }
+
+    /** An allied hull its story script owns: one no allied command has enlisted. */
+    private boolean scripted(long id) {
+        return convoy.faction(id) == Faction.ALLY && (moveOrders == null || !moveOrders.isEnlisted(id));
+    }
+
+    /** Whose enlistment frees an allied hull to fight. */
+    void setMoveOrders(VehicleMoveOrderService moveOrders) {
+        this.moveOrders = moveOrders;
     }
 
     /** Who calls targets for an indirect-fire hull that cannot see them itself. */
@@ -473,7 +485,7 @@ public final class VehicleEngagement {
         if (!convoy.isVehicle(id) || !convoy.isTargetable(id) || convoy.structure(id) <= 0f) return false;
         VehicleMission mission = convoy.mission(id);
         if (mission == null || mission.state != VehicleState.DEPLOYED || mission.authoredRouteX != null) return false;
-        if (convoy.faction(id) == Faction.ALLY) return false;
+        if (scripted(id)) return false;
         VehicleType type = convoy.vehicleType(id);
         GroundTurret turret = convoy.turret(id);
         return type != null && convoy.isArmed(id) && turret != null && turret.ammo > 0;
@@ -484,7 +496,7 @@ public final class VehicleEngagement {
         if (!convoy.isVehicle(id) || !convoy.isTargetable(id) || convoy.structure(id) <= 0f) return false;
         VehicleMission mission = convoy.mission(id);
         if (mission == null || mission.state != VehicleState.DEPLOYED || mission.authoredRouteX != null) return false;
-        if (convoy.faction(id) == Faction.ALLY) return false;
+        if (scripted(id)) return false;
         VehicleType type = convoy.vehicleType(id);
         return type != null && type.hasTurretWeapon() && !convoy.isArmed(id);
     }
