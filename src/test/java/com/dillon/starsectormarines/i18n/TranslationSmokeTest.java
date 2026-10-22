@@ -123,4 +123,29 @@ class TranslationSmokeTest {
         }
         assertTrue(missing.isEmpty(), "markup keys with no catalog entry: " + missing);
     }
+
+    /** Developer-only markup, whose copy is not shipped to players. */
+    private static final Set<String> DEBUG_MARKUP = Set.of("ui-workbench.mlx", "debug-missions.mlx");
+    /** The briefing's debug drawer headings, shown only on debug-source missions. */
+    private static final Set<String> DEBUG_LITERALS = Set.of("/ SCALE &amp; FIXTURE", "AIR SUPPORT");
+
+    @Test
+    void playerFacingMarkupHasNoLiteralCopy() throws Exception {
+        Pattern style = Pattern.compile("(?s)<style>.*?</style>");
+        Pattern textNode = Pattern.compile(">([^<>]*)<");
+        Pattern word = Pattern.compile("\\p{L}{2,}");
+        List<String> literals = new ArrayList<>();
+        try (Stream<Path> files = Files.walk(MOD.resolve("data/ui"))) {
+            for (Path file : files.filter(f -> f.toString().endsWith(".mlx")).toList()) {
+                if (DEBUG_MARKUP.contains(file.getFileName().toString())) continue;
+                String markup = style.matcher(Files.readString(file)).replaceAll("");
+                for (var m = textNode.matcher(markup); m.find();) {
+                    String text = m.group(1).replaceAll("\\{[^}]*}", "").strip();
+                    if (word.matcher(text.replaceAll("&[a-z]+;", "")).find() && !DEBUG_LITERALS.contains(text))
+                        literals.add(file.getFileName() + " \"" + text + "\"");
+                }
+            }
+        }
+        assertTrue(literals.isEmpty(), "literal copy in player-facing markup; use {i18n.key}: " + literals);
+    }
 }

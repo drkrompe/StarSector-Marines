@@ -1,69 +1,77 @@
 # Alpha player-facing localization
 
-Status: IN PROGRESS — opening tutorials, company copy and shared equipment catalogs migrated
+Status: IMPLEMENTED — catalog sweep complete on the Alpha route; translation review and live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-13
+Updated: 2026-10-21 — squad definitions, mission flow and battle UI migrated; markup guards added
 
 Read `company-view-nouns.md`. `Strings` and the marineOps namespace in
 strings.json are the translation authority; translation mods override keys.
 
-- [ ] Inventory player-facing literals in campaign start, company rooms,
+- [x] Inventory player-facing literals in campaign start, company rooms,
   dossiers, tutorials, briefing, results, resource bills and battle guidance.
-- [ ] Move prose and labels out of Java and MLX into stable catalog keys;
+- [x] Move prose and labels out of Java and MLX into stable catalog keys;
   format whole translated sentences rather than concatenating English fragments.
 - [x] Keep internal IDs, save values and authored mechanical identifiers stable.
 - [x] Update headless fixtures to load the same catalog, with missing-key and
   placeholder checks and a translated/expanded-copy layout pass.
 - [x] Validate apostrophes, plural/quantity phrasing and variable names/costs.
-- [ ] No untranslated player-facing text in the selected Alpha campaign route.
+- [ ] No untranslated player-facing text in the selected Alpha campaign route
+  (needs the live pass below; the catalog side is done).
 
-New Castle campaign lessons must satisfy this now. Existing broader UI and
-story narration require the remaining sweep before Alpha; do not present the
-tutorial slice as full-project localization compliance.
+## Standing rules
 
-Opening slice implemented:
+- Java reads copy through `Strings.get/format/join/named/resolve`; MLX through
+  `{i18n.key}`; data files through `@key` display fields. Variable messages are
+  one MessageFormat pattern each, with `choice` for quantities and doubled
+  apostrophes in any pattern that takes arguments.
+- Built-in text that a save holds stays an English literal in the save and is
+  translated when shown, for as long as it still equals the built-in default
+  (default squad names, the reserve pool, first-refit plan names, built-in
+  billet roles). Player-typed names and copies a player owns are never
+  translated. Built-in doctrines, armor plans and fire-team templates are
+  reinstalled from code and name `@key` references.
+- Commendations are saved as a catalog reference with arguments and formatted
+  in the reader's language (`Commendations`); legacy free-text entries display
+  exactly as saved.
+- Guards (`TranslationSmokeTest`): every key named in Java or MLX exists, every
+  argument pattern parses, no argument pattern carries an undoubled apostrophe,
+  and player-facing MLX contains no literal copy. Developer markup
+  (`ui-workbench.mlx`, `debug-missions.mlx`) and the briefing's debug drawer
+  are exempt. Per-surface tests (`OpeningLocalizationTest`,
+  `EquipmentLocalizationTest`, `MissionSelectLocalizationTest`,
+  `SquadDefinitionLocalizationTest`, `MissionFlowLocalizationTest`,
+  `BattleUiLocalizationTest`) check quantity forms and that a translation
+  overlay reaches output while names and ids pass through.
+- Expanded-copy evidence: `opening-localization`, `equipment-localization` and
+  `mission-flow-localization` snapshot suites render English and +50% copy at
+  1920x1080 / 100%. They check layout, not a shipped translation.
 
-- Cerberus prologue, yard conversation and conversion feedback; company founding
-  intel; ship choice and preparation; Hermes commissioning; Sabine induction;
-  Barracks guidance, dossiers and company management controls; Armory, Boat Deck,
-  Mech Lab, Engineering and restoration feedback now use the catalog.
-- The management recording script keeps its stable line IDs and synthesis text;
-  on-screen titles and dialogue resolve titleKey/textKey at display time.
-- Whole variable messages, quantity forms and recovery clocks can be translated
-  and reordered. Built-in rank, specialty and boat fitting labels resolve lazily.
-  Player names, custom equipment names, saved roles and mechanical IDs are preserved.
-- MLX has a read-only i18n scope shared by nested components. Headless tests and
-  the snapshot CLI load the shipped catalog. `opening-localization` exercises
-  production opening controls in English and expanded copy at 1920x1080 / 100%.
+## Covered surfaces
 
-Shared catalog slice implemented:
+Opening tutorials and company rooms; shared equipment catalogs and spec sheets;
+contract board; squad definitions, billet roles and service records; mission
+briefing, pre-battle muster, stationing, results, debrief and salvage; mission
+objective names, steps, measures and blockers; battle HUD, order, mech, power,
+air and squad overlays, battlefield markers, order cursors and battle comms.
+Debug launchers, debug drawers and debug panels are deliberately English.
 
-- Weapon, armor, special-equipment, integral-system and mech catalog names and
-  prose use translation references; grade, role, tradition, fitting socket and
-  fabrication labels resolve at display time. Derived template/recipe names
-  follow their equipment without caching a language at startup.
-- Shared sheets translate stat labels, ability explanations, units and quantities.
-  Stable stat identities preserve comparisons and icons even when translated
-  labels coincide. Equipment ids, numerical behavior and literal addon copy remain intact.
-- `equipment-localization` exercises first-refit choices, all twelve billet
-  controls and shared weapon, suit-system, mech-component and chassis hover sheets
-  in English and expanded copy at 1920x1080 / 100%.
+## Remaining before the gate is green
 
-Contract-board slice implemented:
-
-- MissionSelectScreen owns catalog-backed empty states, broker roles and its own
-  story status copy, dossier labels, commitment/payment summaries, quantity forms,
-  tier/risk/presence labels and navigation markup. Names and saved identities stay
-  unchanged. Variable messages are formatted as complete translated patterns.
-- Domain-owned mission names, legacy story flavor, route status, broker introductions
-  and branch consequences still require the broader story sweep; extracting the
-  screen does not claim those domains are localized.
-
-Remaining Alpha gate: built-in/saved squad-definition names and role copy,
-historical saved commendation text,
-mission briefing/results and battle guidance, and the remaining story radio/UI.
-Expanded-copy layout still needs room for compact rarity/firepower badges,
-long claim buttons and Mech Lab header/socket labels. Shared hover sheets wrap;
-the surrounding compact controls need a separate layout pass.
-Translation review and live opening/re-entry acceptance remain required. The
-expanded-copy fixture checks layout and interaction, not a shipped translation.
+- Translation review and live opening/re-entry acceptance.
+- Expanded-copy layout for compact controls: rarity/firepower badges, long claim
+  buttons and Mech Lab header/socket labels. Shared hover sheets wrap.
+- Domain display names still read from English fields on some surfaces:
+  `CommandPower.displayName`, `OperationTier.displayName` outside the contract
+  board and briefing, `ExperienceTier`/`SoldierAptitude` display names outside
+  the muster, generated map site, sequence and compound names, and
+  `shipHull` names (`Strings.named` falls back to the id spelled out).
+- Generated mission data (`Mission.requirements`, `Mission.flavor`) and
+  `MissionOutcome.smallWarOverhead` are composed in English when generated and
+  saved; they need the commendation treatment (key plus arguments).
+- Objective phases other than the opening and raid phases have no catalog
+  entries yet and read as the id in words.
+- Cleanup: the never-called legacy widget builders in `BriefingScreen`
+  (`buildMissionColumn`, `buildDetachmentColumn`, `buildButtons`,
+  `buildLiftReadout`) and catalog keys left unused by the squad sweep
+  (`openingBilletRole*`, `openingFirstRefitSelected`,
+  `openingFleetArmoryNoKit`, `openingFleetArmoryUnclassified`).
