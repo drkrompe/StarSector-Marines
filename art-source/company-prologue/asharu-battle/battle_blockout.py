@@ -1606,12 +1606,12 @@ def blender_main(cfg):
         return m.outputs[0]
     grazing = math.sqrt(2 * 14e3 / R)                  # 1 - facing where a ray just grazes the ground
     u = m2('DIVIDE', m2('SUBTRACT', 1.0, lw.outputs['Facing']), grazing)
-    haze = m2('MINIMUM', m2('POWER', m2('MINIMUM', u, 1.0), 2.0),
+    haze = m2('MINIMUM', m2('POWER', m2('MINIMUM', u, 1.0), 4.0),
               m2('EXPONENT', m2('MULTIPLY', m2('SUBTRACT', u, 1.0), -2.5), None))
-    haze = m2('MULTIPLY', haze, .85)
+    haze = m2('MULTIPLY', haze, .6)        # look1 (2026-10-22): at .85 and 1.1 it was a thick flat band
     em = nt2.nodes.new('ShaderNodeEmission')
     em.inputs['Color'].default_value = (.32, .52, 1.0, 1)
-    em.inputs['Strength'].default_value = 1.1
+    em.inputs['Strength'].default_value = .45
     clear = nt2.nodes.new('ShaderNodeBsdfTransparent')
     mix = nt2.nodes.new('ShaderNodeMixShader')
     nt2.links.new(haze, mix.inputs['Fac'])
