@@ -41,10 +41,8 @@ import java.util.Random;
  * <p>POI: emits a {@link PointOfInterest.Kind#COMMS} POI to mark this as the
  * "turret nest" anchor for future heavy-turret placement (#3 work).
  *
- * <p>TODO (visual): swap the perimeter walls to the urban-2 {@code turret-wall-*}
- * 3x3 (cols 3..5 rows 0..2) once the wall-pass renderer learns about the
- * urban-2 turret-wall block. For now perimeter cells fall through to the
- * default urban-1 wall art via {@code CellTopology.tagDefaultWalls}.
+ * <p>The perimeter takes no material here; {@code FinalizeStage} gives it the
+ * installation's light concrete, as it does every wall no stage styled.
  */
 public final class FortifiedPostFiller implements BlockFiller {
 

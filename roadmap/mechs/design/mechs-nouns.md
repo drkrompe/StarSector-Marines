@@ -378,10 +378,13 @@ increasing an encounter's total armored threat.
 - **Hardpoint language** (after MechWarrior 4's lab). Colour names the
   compatibility type everywhere hardware or a socket is drawn: energy red-orange,
   missile green, ballistic yellow, omni grey; frame internals a cool steel. Size
-  reads from shape, not text: every grid cell is a chamfered brick twice as wide
-  as it is tall, and a footprint is its bricks stacked, so a 2x3 rack is visibly a
+  reads from shape, not text: every grid cell is a chamfered brick narrower than
+  it is tall, and a footprint is its bricks stacked, so a 2x3 rack is visibly a
   taller stack than a 2x2. An empty doll socket wears its type's colour on its rim
-  over dim bricks; fitted hardware fills its bricks in its own colour. Drag
+  over dim bricks; fitted hardware fills its bricks in its own colour and fuses
+  them into one solid piece, notched only along its outside edge. The piece's
+  face is a painted icon (`HardwareArt`): a flat pictogram in a dark shade and a
+  light highlight over that colour, never the battle sprite. Drag
   compatibility therefore uses a colour outside that palette. The doll is the
   location picker: clicking a socket selects it, the right column describes only
   that socket, and a fitted weapon is stripped from the X on its doll card.

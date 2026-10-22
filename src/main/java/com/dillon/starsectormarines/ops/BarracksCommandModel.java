@@ -15,6 +15,10 @@ import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDra
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.SquadArmorPlan;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
+import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
+import com.dillon.starsectormarines.ops.FleetArmoryViewModel.CardFace;
 import com.dillon.starsectormarines.marine.SquadFoundingCost;
 import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.marine.SquadFoundingWorkshop;
@@ -93,7 +97,6 @@ public final class BarracksCommandModel {
         bind(reactor, "missionClasses", () -> localMissions ? "tool-button console-action" : "hidden");
         bind(reactor, "commands", this::commands);
         bind(reactor, "formationClasses", () -> dossier || companyRoster ? "hidden" : "formation-board panel console-section");
-        bind(reactor, "ordersPanelClasses", () -> dossier || companyRoster ? "hidden" : "orders panel console-section");
         bind(reactor, "rosterClasses", () -> companyRoster && !dossier ? "company-roster panel console-section" : "hidden");
         props.put("openRoster", (Runnable) () -> { companyRoster = true; dossier = false; refresh(); });
         props.put("closeRoster", (Runnable) () -> { companyRoster = false; refresh(); });
@@ -155,10 +158,6 @@ public final class BarracksCommandModel {
         bind(reactor, "recruitIcon", () -> resources.commodityIcon(Commodities.MARINES));
         bind(reactor, "recruitStock", () -> Integer.toString(cargoMarines.getAsInt()));
         bind(reactor, "issueCargoStock", this::issueCargoStock);
-        bind(reactor, "recruitBill", () -> recruitsRequired() <= 0 ? List.of() : List.of(
-                CompanyResources.cost("barracks-enlist-cost", resources.commodityName(Commodities.MARINES),
-                        resources.commodityIcon(Commodities.MARINES), cargoMarines.getAsInt(), recruitsRequired())));
-        bind(reactor, "recruitDraw", () -> Integer.toString(recruitsRequired()));
         bind(reactor, "guideClasses", () -> guideVisible() ? "guide-callout console-readout" : "guide-callout hidden");
         bind(reactor, "guideTitle", () -> inductionRequired()
                 ? Strings.format("openingOfficerGuideHeading", CompanyManagementGuide.speaker(), guideLine().title())
@@ -200,11 +199,17 @@ public final class BarracksCommandModel {
         bind(reactor, "pageLabel", () -> Strings.format("openingBarracksCommandPage", (pageNumber() + 1), pages()));
         bind(reactor, "previousDisabled", () -> pageNumber() == 0);
         bind(reactor, "nextDisabled", () -> pageNumber() + 1 >= pages());
-        bind(reactor, "selection", () -> Strings.format("openingBarracksCommandSquadsSelected", selected.size()));
-        bind(reactor, "selectionDisabled", selected::isEmpty);
-        bind(reactor, "recruitment", this::recruitment);
-        bind(reactor, "reinforceDisabled", () -> Math.min(vacancies(), roster.readyReserveCount() + cargoMarines.getAsInt()) == 0);
+        bind(reactor, "selectionToggleLabel", () -> allInViewSelected()
+                ? Strings.get("openingBarracksCommandDeselectAll") : Strings.get("openingBarracksCommandSelectAll"));
+        bind(reactor, "fillSelectedCount", () -> Integer.toString(vacancies(selected)));
+        bind(reactor, "fillSelectedDisabled", () -> !canFill(selected));
         bind(reactor, "feedback", () -> feedback);
+        props.put("toggleSelection", (Runnable) () -> {
+            if (allInViewSelected()) { resetSelection(); return; }
+            filtered().stream().filter(s -> !s.stationed()).forEach(s -> selected.add(s.id()));
+            if (guideVisible() && guideStep <= 1 && !selected.isEmpty()) guideStep = 2;
+            refresh();
+        });
         props.put("selectAll", (Runnable) () -> {
             filtered().stream().filter(s -> !s.stationed()).forEach(s -> selected.add(s.id()));
             if (guideVisible() && guideStep <= 1 && !selected.isEmpty()) guideStep = 2;
@@ -455,30 +460,30 @@ public final class BarracksCommandModel {
                 Math.min(filtered.size(), (pageNumber() + 1) * PAGE_SIZE))) {
             int ready = roster.readyCount(squad);
             SquadMuster muster = muster(squad.id());
-            MarineArmorCatalogDef armor = representativeArmor(squad);
             String personnel = squad.stationed() ? Strings.get("openingBarracksCommandOnStation") : Strings.format("openingBarracksCommandReadyWiaVacant", ready, muster.woundedCount(), muster.vacantCount());
-            String kit = ArmorPlanPresentation.label(roster.armory(), squad.armorDoctrineId());
-            MarineCaptain home = roster.byId(squad.homeCaptainId());
-            rows.add(row("id", "formation:" + squad.id(), "markId", "formation:" + squad.id() + ":mark",
-                    "squadId", squad.id(), "musterId", "formation:" + squad.id() + ":muster",
-                    "headerId", "formation:" + squad.id() + ":header", "checkId", "formation:" + squad.id() + ":check",
-                    "strengthId", "formation:" + squad.id() + ":strength", "profileRowId", "formation:" + squad.id() + ":profile-row",
-                    "armorIconId", "formation:" + squad.id() + ":armor-icon", "footerId", "formation:" + squad.id() + ":footer",
-                    "kitId", "formation:" + squad.id() + ":kit", "armorIcon", armor == null ? "" : armor.iconPath(),
-                    "strength", ready + "/12", "personnel", personnel, "kit", selected.contains(squad.id()) ? Strings.get("openingBarracksCommandSelected") : kit,
+            String id = "formation:" + squad.id();
+            CardFace weapons = weaponFace(squad), armor = armorFace(squad);
+            Set<String> only = Set.of(squad.id());
+            int vacant = vacancies(only);
+            rows.add(row("id", id, "markId", id + ":mark",
+                    "squadId", squad.id(), "musterId", id + ":muster",
+                    "headerId", id + ":header", "checkId", id + ":check", "strengthId", id + ":strength",
+                    "cardsId", id + ":cards", "weaponChipId", id + ":weapon-card", "weaponIconId", id + ":weapon-icon",
+                    "weaponNameId", id + ":weapon-name", "armorChipId", id + ":armor-card", "armorIconId", id + ":armor-icon",
+                    "armorNameId", id + ":armor-name",
+                    "weaponIcon", weapons == null || weapons.icon() == null ? "" : weapons.icon(),
+                    "weaponName", weapons == null ? Strings.get("armorPlanNone") : weapons.name(),
+                    "armorIcon", armor == null || armor.icon() == null ? "" : armor.icon(),
+                    "armorName", ArmorPlanPresentation.label(roster.armory(), squad.armorDoctrineId()),
+                    "footerId", id + ":footer", "footerSpacerId", id + ":footer-spacer",
+                    "fillId", id + ":fill", "fillIconId", id + ":fill-icon", "fillCountId", id + ":fill-count",
+                    "fillClasses", vacant > 0 && !squad.stationed() ? "fill-button console-action" : "fill-button hidden",
+                    "fillDisabled", !canFill(only), "fillCount", Integer.toString(vacant),
+                    "fill", (Runnable) () -> fill(only),
+                    "strength", ready + "/12", "personnel", personnel,
                     "personnelClasses", "label card-personnel " + (squad.stationed() ? "muted" : ready == 12 ? "good" : "warm"),
-                    "kitClasses", "label card-kit muted",
-                    "formationidentityId", "formation:" + squad.id() + ":identity",
-                    "formationnameId", "formation:" + squad.id() + ":name",
-                    "formationstatusId", "formation:" + squad.id() + ":status",
-                    "formationprofileId", "formation:" + squad.id() + ":profile",
-                    "loadoutId", "formation:" + squad.id() + ":loadout", "name", squad.name(),
-                    "profile", profileName(squad),
-                    "commanderId", "formation:" + squad.id() + ":commander",
-                    "commanderImageId", "formation:" + squad.id() + ":commander-image",
-                    "commanderNameId", "formation:" + squad.id() + ":commander-name",
-                    "commanderName", home == null ? Strings.get("openingBarracksCommandIndependentActingNco") : captainName(home),
-                    "commanderImage", home == null || home.portraitSprite() == null ? "graphics/ui/console/service-plate.svg" : home.portraitSprite(),
+                    "formationnameId", id + ":name", "formationstatusId", id + ":status",
+                    "loadoutId", id + ":loadout", "name", squad.name(),
                     "classes", "formation" + (selected.contains(squad.id()) ? " selected" : "") + (squad.stationed() ? " stationed" : ""),
                     "mark", selected.contains(squad.id()) ? "+" : "", "disabled", squad.stationed(),
                     "toggle", (Runnable) () -> toggle(squad.id()), "loadout", (Runnable) () -> editEquipment.accept(squad.id()),
@@ -492,14 +497,16 @@ public final class BarracksCommandModel {
         String id = "barracks-raise-squad";
         Map<String, Object> tile = new LinkedHashMap<>(row("id", id + ":tile", "markId", id + ":select",
                 "squadId", "", "musterId", id + ":muster", "headerId", id + ":header", "checkId", id + ":check",
-                "strengthId", id + ":strength", "profileRowId", id + ":profile-row", "armorIconId", id + ":armor-icon",
-                "footerId", id + ":footer", "kitId", id + ":kit", "armorIcon", "", "strength", "", "personnel", "",
-                "kit", "", "personnelClasses", "hidden", "kitClasses", "hidden",
-                "formationidentityId", id + ":identity", "formationnameId", id + ":name",
-                "formationstatusId", id + ":status", "formationprofileId", id + ":profile",
-                "loadoutId", id + ":loadout", "name", "", "profile", "",
-                "commanderId", id + ":commander", "commanderImageId", id + ":commander-image",
-                "commanderNameId", id + ":commander-name", "commanderName", "", "commanderImage", "",
+                "strengthId", id + ":strength", "cardsId", id + ":cards", "weaponChipId", id + ":weapon-card",
+                "weaponIconId", id + ":weapon-icon", "weaponNameId", id + ":weapon-name", "armorChipId", id + ":armor-card",
+                "armorIconId", id + ":armor-icon", "armorNameId", id + ":armor-name",
+                "weaponIcon", "", "weaponName", "", "armorIcon", "", "armorName", "",
+                "footerId", id + ":footer", "footerSpacerId", id + ":footer-spacer",
+                "fillId", id + ":fill", "fillIconId", id + ":fill-icon", "fillCountId", id + ":fill-count",
+                "fillClasses", "fill-button hidden", "fillDisabled", true, "fillCount", "", "fill", (Runnable) () -> { },
+                "strength", "", "personnel", "", "personnelClasses", "hidden",
+                "formationnameId", id + ":name", "formationstatusId", id + ":status",
+                "loadoutId", id + ":loadout", "name", "",
                 "classes", "formation raise-tile", "mark", "", "disabled", true,
                 "toggle", (Runnable) () -> { }, "loadout", (Runnable) () -> { },
                 "selectClasses", "hidden", "footerClasses", "hidden"));
@@ -617,26 +624,69 @@ public final class BarracksCommandModel {
         int wounded = musters.stream().filter(Objects::nonNull).mapToInt(SquadMuster::woundedCount).sum();
         return Strings.format("openingBarracksCommandFullHealHours", hours, wounded);
     }
-    private int vacancies() {
-        return lineSquads().stream().filter(s -> selected.contains(s.id()) && !s.stationed()).mapToInt(roster::vacancies).sum();
+    private int vacancies(Set<String> squadIds) {
+        return lineSquads().stream().filter(s -> squadIds.contains(s.id()) && !s.stationed()).mapToInt(roster::vacancies).sum();
     }
-    private String recruitment() {
-        int vacancies = vacancies();
+    private boolean canFill(Set<String> squadIds) {
+        return Math.min(vacancies(squadIds), roster.readyReserveCount() + cargoMarines.getAsInt()) > 0;
+    }
+    private String recruitment(Set<String> squadIds) {
+        int vacancies = vacancies(squadIds);
         int reserves = Math.min(vacancies, roster.readyReserveCount());
-        int wounded = lineSquads().stream().filter(s -> selected.contains(s.id())).mapToInt(s -> muster(s.id()).woundedCount()).sum();
-        int shortfall = vacancies - reserves - recruitsRequired();
-        String summary = Strings.format("companyResourceRecruitment", vacancies, reserves, recruitsRequired(), wounded);
+        int wounded = lineSquads().stream().filter(s -> squadIds.contains(s.id())).mapToInt(s -> muster(s.id()).woundedCount()).sum();
+        int shortfall = vacancies - reserves - recruitsRequired(squadIds);
+        String summary = Strings.format("companyResourceRecruitment", vacancies, reserves, recruitsRequired(squadIds), wounded);
         return shortfall > 0 ? summary + " " + Strings.format("companyResourceRecruitmentShort", shortfall) : summary;
     }
-    private int recruitsRequired() {
-        return Math.min(Math.max(0, vacancies() - roster.readyReserveCount()), cargoMarines.getAsInt());
+    private int recruitsRequired(Set<String> squadIds) {
+        return Math.min(Math.max(0, vacancies(squadIds) - roster.readyReserveCount()), cargoMarines.getAsInt());
+    }
+    private boolean allInViewSelected() {
+        List<MarineSquad> selectable = filtered().stream().filter(s -> !s.stationed()).toList();
+        return !selectable.isEmpty() && selectable.stream().allMatch(s -> selected.contains(s.id()));
+    }
+    /** What filling these squads would draw, for the wrench on a card or on the board. */
+    public SpecSheet fillSheet(Set<String> squadIds) {
+        String subject = squadIds.size() == 1 && roster.squadById(squadIds.iterator().next()) != null
+                ? roster.squadById(squadIds.iterator().next()).name()
+                : Strings.format("openingBarracksCommandSquadsSelected", squadIds.size());
+        int vacancies = vacancies(squadIds);
+        int reserves = Math.min(vacancies, roster.readyReserveCount());
+        return new SpecSheet(Strings.get("openingBarracksCommandFillVacancies"), subject,
+                resources.commodityIcon(Commodities.MARINES), "item",
+                List.of(SpecSheet.Stat.of(Strings.get("openingBarracksCommandVacant"), Integer.toString(vacancies)),
+                        SpecSheet.Stat.of(Strings.get("openingBarracksCommandNamedReserves"), Integer.toString(reserves)),
+                        SpecSheet.Stat.of(Strings.get("openingBarracksCommandWillEnlist"), Integer.toString(recruitsRequired(squadIds)))),
+                List.of(recruitment(squadIds), Strings.get("openingBarracksCommandRecruitsWearTheirSeatsKit")));
+    }
+    public SpecSheet fillSelectedSheet() { return fillSheet(Set.copyOf(selected)); }
+    public SpecSheet weaponCardSheet(String squadId) {
+        CardFace face = weaponFace(roster.squadById(squadId));
+        return face == null ? null : face.sheet();
+    }
+    public SpecSheet armorCardSheet(String squadId) {
+        CardFace face = armorFace(roster.squadById(squadId));
+        return face == null ? null : face.sheet();
+    }
+    private CardFace weaponFace(MarineSquad squad) {
+        SquadWeaponDoctrine doctrine = squad == null ? null : roster.armory().weaponDoctrineById(squad.weaponDoctrineId());
+        return doctrine == null ? null : FleetArmoryViewModel.weaponCardFace(doctrine);
+    }
+    private CardFace armorFace(MarineSquad squad) {
+        SquadArmorPlan plan = squad == null ? null : SquadEquipmentDoctrines.armorPlanById(squad.armorDoctrineId());
+        if (plan == null) return null;
+        try {
+            return FleetArmoryViewModel.armorCardFace(plan, roster.armory().issue(plan));
+        } catch (IllegalStateException unresolvable) {
+            return null;
+        }
     }
     public SpecSheet recruitSheet() {
         return new SpecSheet(Strings.get("openingBarracksCommandMarinesAvailableRecruits"), Strings.get("openingBarracksCommandUnenlistedPersonnelInFleetCargo"),
                 resources.commodityIcon(Commodities.MARINES), "item",
                 List.of(SpecSheet.Stat.of(Strings.get("openingBarracksCommandInCargo"), Integer.toString(cargoMarines.getAsInt())),
                         SpecSheet.Stat.of(Strings.get("openingBarracksCommandNamedReserves"), Integer.toString(roster.readyReserveCount())),
-                        SpecSheet.Stat.of(Strings.get("openingBarracksCommandWillEnlist"), Integer.toString(recruitsRequired()))),
+                        SpecSheet.Stat.of(Strings.get("openingBarracksCommandWillEnlist"), Integer.toString(recruitsRequired(Set.copyOf(selected))))),
                 List.of(Strings.get("openingBarracksCommandTheMarinesCommodityRepresentsPersonnelOutsideYour"),
                         Strings.get("openingBarracksCommandFillVacanciesTransfersReadyCompanyReservesFirst"),
                         Strings.get("openingBarracksCommandRecruitsWearTheirSeatsKit")));
@@ -653,11 +703,13 @@ public final class BarracksCommandModel {
                 "icon", resources.commodityIcon(Commodities.MARINES), "stock", CompanyResources.number(roster.readyReserveCount())));
     }
 
-    public void reinforceSelected() {
+    public void reinforceSelected() { fill(Set.copyOf(selected)); }
+    /** Fills the given squads' true vacancies: ready reserves first, then cargo Marines. */
+    public void fill(Set<String> squadIds) {
         int reserves = 0;
         int cargo = 0;
         for (MarineSquad squad : lineSquads()) {
-            if (!selected.contains(squad.id()) || squad.stationed()) continue;
+            if (!squadIds.contains(squad.id()) || squad.stationed()) continue;
             PersonnelDrawResult result = reinforce.apply(squad.id());
             reserves += result.reservesAssigned(); cargo += result.cargoMarinesConsumed();
         }
@@ -752,7 +804,7 @@ public final class BarracksCommandModel {
         if (lineSquads().isEmpty()) return "barracks-raise-squad";
         if (guideStep == 3) return localMissions ? "barracks-missions" : "page-nav-return";
         if (guideStep <= 1 || selected.isEmpty()) return guideSquadTarget();
-        return "barracks-reinforce";
+        return "barracks-fill-selected";
     }
 
     /** Each group becomes one opening; its actual controls are the only input targets. */
@@ -766,7 +818,7 @@ public final class BarracksCommandModel {
                     "barracks-formation-list", "barracks-page-tools"));
         }
         if (guideStep == 2 && !selected.isEmpty()) {
-            regions.add(List.of("barracks-order-caption-82", "barracks-recruitment", "barracks-recruit-draw", "barracks-reinforce"));
+            regions.add(List.of("barracks-selection-tools", "barracks-formation-list", "barracks-page-tools"));
             regions.add(List.of("barracks-recruit-stock"));
         }
         return List.copyOf(regions);
@@ -783,7 +835,7 @@ public final class BarracksCommandModel {
         if (lineSquads().isEmpty()) return Strings.get("openingBarracksCommandStartWithRaiseSquadComeBackHere");
         if (guideStep == 3) return localMissions ? Strings.get("openingBarracksCommandUseMissionsWhenYouAreReadyFor") : Strings.get("openingBarracksCommandUseReturnWhenYouAreReadyTo");
         if (selected.isEmpty() || guideStep <= 1) return Strings.get("openingBarracksCommandSelectAReceivingSquadOnTheBoard");
-        return Strings.format("openingBarracksCommandFillVacanciesIfNeededOrNextTo", recruitment().replace("\n", Strings.get("separatorPath")));
+        return Strings.format("openingBarracksCommandFillVacanciesIfNeededOrNextTo", recruitment(Set.copyOf(selected)).replace("\n", Strings.get("separatorPath")));
     }
 
     private CompanyManagementGuide.Line guideLine() {

@@ -22,6 +22,15 @@ public final class LootSettlementService {
         return LootSettlementPlanner.plan(selection, capacityOf(cargo));
     }
 
+    /** The player fleet's hold as it stands now, or {@code null} when the campaign has none. */
+    public static LootFleetHold fleetHold() {
+        CargoAPI cargo = playerCargo();
+        if (cargo == null) return null;
+        return new LootFleetHold(cargo.getSpaceUsed(), cargo.getMaxCapacity(),
+                cargo.getFuel(), cargo.getMaxFuel(),
+                cargo.getTotalPersonnel(), cargo.getMaxPersonnel());
+    }
+
     /**
      * Applies one settlement. Returns the prior receipt on a duplicate call,
      * or {@code null} when campaign cargo is unavailable and nothing changed.

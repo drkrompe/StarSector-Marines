@@ -95,9 +95,9 @@ public final class ComposableDamageSnapshotSuite implements SnapshotSuite {
                 f.place("main-stores.packing",10,5,0,turn);
                 f.place("mess-galley.stool",11,3,0,turn);
             } else {
-                f.place("sickbay-clinic.bed",2,12,0,turn);f.place("sickbay-clinic.linen-high",2,12,0,turn);
+                f.place("sickbay-clinic.bed",2,13,0,turn);f.place("sickbay-clinic.linen-low",2,13,0,turn);
                 f.place("sickbay-clinic.monitor",2,15,0,turn);
-                f.place("sickbay-clinic.bed",2,4,0,turn);f.place("sickbay-clinic.linen-low",2,4,0,turn);
+                f.place("sickbay-clinic.bed",2,4,0,turn);f.place("sickbay-clinic.linen-high",2,4,0,turn);
                 f.place("sickbay-clinic.exam",7,14,0,turn);f.place("sickbay-clinic.monitor",9,14,0,turn);
                 f.place("sickbay-clinic.trolley",7,12,0,turn);f.place("sickbay-clinic.screen",12,12,0,turn);
                 f.place("sickbay-clinic.station",2,8,0,turn);f.place("sickbay-clinic.sink",12,8,0,turn);

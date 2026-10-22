@@ -20,7 +20,7 @@
     },
     {
       "id": "marines_management_replenish",
-      "synthesisText": "[encouraging, matter-of-fact voice] For the places still empty, use Fill Vacancies. I'll draw from our ready reserves first, then enlist Marines from fleet cargo. The panel tells you how many recruits we'll need and what will remain unfilled. New hands take the kit their squad's cards issue their seat. If we run short, we can prepare fewer squads or bring more Marines aboard.",
+      "synthesisText": "[encouraging, matter-of-fact voice] For the places still empty, use the wrench: on a squad's card it fills that squad, and beside Select All it fills every squad you've selected. I'll draw from our ready reserves first, then enlist Marines from fleet cargo. Hover a wrench to see how many recruits we'll need and what will remain unfilled. New hands take the kit their squad's cards issue their seat. If we run short, we can prepare fewer squads or bring more Marines aboard.",
       "titleKey": "marines_management_replenishTitle",
       "textKey": "marines_management_replenishText"
     },

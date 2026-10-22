@@ -313,8 +313,10 @@ class MissionMlxTest {
                      LootScreen.ROOT_COMPONENT,
                      LootScreen.previewProps())) {
             assertTrue(results.requireElement("mission-results-outcome").hasClass("victory"));
-            assertFalse(results.requireElement("mission-results-secondary").hasClass("hidden"));
+            assertTrue(results.requireElement("mission-results-secondary").hasClass("hidden"));
             assertTrue(loot.requireElement("loot-preview-0").hasClass("selected"));
+            assertTrue(loot.requireElement("loot-preview-0-check").hasClass("checked"));
+            assertFalse(loot.requireElement("loot-preview-3-check").hasClass("checked"));
             assertTrue(loot.requireElement("loot-preview-4").disabled());
         }
     }

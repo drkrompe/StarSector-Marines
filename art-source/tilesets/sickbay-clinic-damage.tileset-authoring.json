@@ -7,101 +7,101 @@
   "idPrefix": "sickbay-clinic",
   "alphaMin": 40,
   "outputSheet": "graphics/tilesets/sickbay-clinic-damage.png",
-  "note": "Built-in ImageGen reskin of retained full-footprint geometry. Damaged source padding registered against intact silhouettes; destroyed fragments retain local slot frames. Native alpha, no pixel edits or keying. See art-source/console-bank/damage. The ward bed and both linen pairs were redone at real length (1x3): their generation is the right half of a 3072x1024 montage, from x=1536, registered by ComposableDamageRegistration against sickbay-clinic-refit.tsv before the join.",
+  "note": "Built-in ImageGen reskin of retained full-footprint geometry. Damaged source padding registered against intact silhouettes; destroyed fragments retain local slot frames. Native alpha, no pixel edits or keying. See art-source/console-bank/damage.",
   "entries": [
     {
       "rect": [
-        1725,
-        40,
-        142,
-        430
+        74,
+        20,
+        108,
+        220
       ],
       "id": "sickbay-clinic.bed-damaged",
       "cover": "med",
       "ballisticHalfHeight": 0.38,
       "footprintCells": [
         1,
-        3
+        2
       ],
       "included": true
     },
     {
       "rect": [
-        1720,
-        554,
-        144,
-        428
+        73,
+        263,
+        109,
+        228
       ],
       "id": "sickbay-clinic.bed-destroyed",
       "cover": "none",
       "ballisticHalfHeight": 0.0,
       "footprintCells": [
         1,
-        3
+        2
       ],
       "included": true
     },
     {
       "rect": [
-        2235,
-        44,
-        156,
-        434
+        326,
+        21,
+        116,
+        218
       ],
       "id": "sickbay-clinic.linen-high-damaged",
       "cover": "none",
       "ballisticHalfHeight": 0.0,
       "footprintCells": [
         1,
-        3
+        2
       ],
       "included": true
     },
     {
       "rect": [
-        2232,
-        554,
-        144,
-        428
+        330,
+        277,
+        108,
+        214
       ],
       "id": "sickbay-clinic.linen-high-destroyed",
       "cover": "none",
       "ballisticHalfHeight": 0.0,
       "footprintCells": [
         1,
-        3
+        2
       ],
       "included": true
     },
     {
       "rect": [
-        2754,
-        42,
-        151,
-        444
+        582,
+        18,
+        116,
+        221
       ],
       "id": "sickbay-clinic.linen-low-damaged",
       "cover": "none",
       "ballisticHalfHeight": 0.0,
       "footprintCells": [
         1,
-        3
+        2
       ],
       "included": true
     },
     {
       "rect": [
-        2744,
-        554,
-        150,
-        428
+        586,
+        277,
+        108,
+        214
       ],
       "id": "sickbay-clinic.linen-low-destroyed",
       "cover": "none",
       "ballisticHalfHeight": 0.0,
       "footprintCells": [
         1,
-        3
+        2
       ],
       "included": true
     },

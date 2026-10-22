@@ -14,7 +14,17 @@ public final class LootSelection {
     public LootSelection(LootManifest manifest) {
         this.manifest = manifest != null ? manifest : LootManifest.EMPTY;
         this.selected = new boolean[this.manifest.stacks.size()];
-        for (int i = 0; i < selected.length; i++) selected[i] = this.manifest.stacks.get(i).fieldRecovered;
+        // Everything starts kept: field finds are free, then claim stacks in
+        // manifest order for as long as the claim budget covers them.
+        for (int i = 0; i < selected.length; i++) {
+            if (this.manifest.stacks.get(i).fieldRecovered) selected[i] = true;
+        }
+        for (int i = 0; i < selected.length; i++) {
+            if (!selected[i] && canSelect(i)) {
+                selected[i] = true;
+                selectedValue += this.manifest.stacks.get(i).claimCost();
+            }
+        }
     }
 
     public LootManifest manifest() {

@@ -63,6 +63,26 @@ class BarracksCommandModelTest {
                 "All formations raises into the first officer with a free slot");
     }
 
+    @Test void aCardsWrenchFillsOnlyThatSquad() {
+        var roster = new MarineRoster();
+        roster.bootstrapInitialComplement(2 * MarineSquad.CAPACITY);
+        var squads = roster.squads().stream().filter(s -> !s.reserve()).toList();
+        for (var squad : squads) {
+            roster.applySoldierOutcome(Map.of(roster.manningMemberIds(squad).get(0), MarineSoldierStatus.KIA), 0f, 0f);
+        }
+        roster.recruitToSquad(roster.reserveSquad().id(), 2);
+        var model = new BarracksViewModel(new Reactor(), roster, () -> 1d, EquipmentIssueResources.UNLIMITED,
+                new SquadFoundingResources() {
+                    @Override public int available(String commodityId) { return 0; }
+                    @Override public boolean spend(SquadFoundingCost cost) { return false; }
+                    @Override public String commodityName(String commodityId) { return commodityId; }
+                    @Override public String commodityIcon(String commodityId) { return ""; }
+                }, () -> 0, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0)).command();
+        model.fill(Set.of(squads.get(1).id()));
+        assertEquals(1, roster.vacancies(squads.get(0)));
+        assertEquals(0, roster.vacancies(squads.get(1)));
+    }
+
     @Test void raiseTileIsTheLastTileAndUnaffordableStoresDisableIt() {
         var roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
@@ -126,28 +146,29 @@ class BarracksCommandModelTest {
                 assertEquals(1, model.selected().size(), "Squad selection works while Castle is speaking");
                 assertTrue(model.guideVisible());
                 guide.update();
-                assertEquals("barracks-reinforce", model.guideTargetId());
+                assertEquals("barracks-fill-selected", model.guideTargetId());
                 var target = instance.requireElement(model.guideTargetId()).box().borderBox();
                 var panel = instance.requireElement("barracks-guide").box().borderBox();
                 assertEquals(0, panel.intersect(target).width() * panel.intersect(target).height());
-                document.requestFocus(instance.requireElement("barracks-reinforce"), true);
-                assertEquals("barracks-reinforce", document.focusedElement().id(), "Keyboard focus can reach a highlighted region");
+                document.requestFocus(instance.requireElement("barracks-fill-selected"), true);
+                assertEquals("barracks-fill-selected", document.focusedElement().id(), "Keyboard focus can reach a highlighted region");
                 assertThrows(IllegalArgumentException.class,
-                        () -> document.requestFocus(instance.requireElement("barracks-clear"), true));
-                click(document, instance, "barracks-clear");
-                assertEquals("barracks-reinforce", model.guideTargetId(), "Darkened selection controls do not activate");
+                        () -> document.requestFocus(instance.requireElement("barracks-equipment"), true));
+                click(document, instance, "barracks-equipment");
+                assertEquals("barracks-fill-selected", model.guideTargetId(), "Darkened controls do not activate");
                 document.keyPressed(UiKey.ESCAPE, Set.of(), false);
                 instance.flush(); document.advance(0f); guide.update();
                 assertFalse(model.guideVisible());
                 click(document, instance, "barracks-guide-help");
                 guide.update();
                 assertTrue(model.guideVisible());
-                assertEquals("barracks-reinforce", model.guideTargetId(), "Reopening resumes the lesson");
+                assertEquals("barracks-fill-selected", model.guideTargetId(), "Reopening resumes the lesson");
                 action(model, "guideNext");
                 action(model, "guideNext");
                 instance.flush(); document.advance(0f); guide.update();
                 click(document, instance, "guide-dismiss");
-                click(document, instance, "barracks-clear");
+                click(document, instance, "barracks-select-all");
+                assertTrue(model.selected().isEmpty(), "With every squad in view selected, the toggle deselects");
 
                 var hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
                 var bindings = new BarracksCardBindings();

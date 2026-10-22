@@ -49,12 +49,7 @@ public enum WorkMotion {
      * Asleep in a bunk: the body lies along it, head on the pillow, drawn in the
      * bunk rather than on the passage cell the rest point stands on.
      */
-    SLEEP(0f, false),
-    /**
-     * Asleep in a ship's two-cell bunk: {@link #SLEEP} drawn shorter up the rack, so the
-     * body lies within it rather than half off the end.
-     */
-    SLEEP_BUNK(0f, false);
+    SLEEP(0f, false);
 
     private final float periodSeconds;
     private final boolean handsOn;
@@ -85,17 +80,11 @@ public enum WorkMotion {
             case RUN -> 1.6f;
             case ROW -> 1.5f;
             case PRESS -> 1.4f;
-            // A real-length bunk is three cells from the passage at its foot to
-            // the pillow, and the sleeper's head is on the pillow.
-            case SLEEP -> 2.7f;
-            case SLEEP_BUNK -> 1.5f;
+            // A bed is two cells from the passage at its foot to the pillow, and
+            // the sleeper's head is on the pillow.
+            case SLEEP -> 1.5f;
             default -> 0f;
         };
-    }
-
-    /** Whether this is a sleeper lying in a bed, whichever the bed's length. */
-    public boolean asleep() {
-        return this == SLEEP || this == SLEEP_BUNK;
     }
 
     /** Whether the family's station arms are drawn out on the work for this motion. */
