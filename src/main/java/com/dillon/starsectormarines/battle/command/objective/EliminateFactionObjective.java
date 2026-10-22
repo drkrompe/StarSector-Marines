@@ -32,6 +32,7 @@ public final class EliminateFactionObjective implements Objective {
     private final Faction owner;
     private final Set<Faction> targets;
     private boolean complete = false;
+    private boolean personnelOnly;
 
     /** The common case: one counted side. */
     public EliminateFactionObjective(Faction owner, Faction target) {
@@ -47,6 +48,15 @@ public final class EliminateFactionObjective implements Objective {
         this.targets = EnumSet.copyOf(targets);
     }
 
+    /**
+     * Counts only the targets' people and machines, never their emplacements: a
+     * side whose last soldier is dead is beaten though its guns still stand.
+     */
+    public EliminateFactionObjective personnelOnly() {
+        this.personnelOnly = true;
+        return this;
+    }
+
     @Override
     public Faction owningFaction() { return owner; }
 
@@ -56,7 +66,9 @@ public final class EliminateFactionObjective implements Objective {
     @Override
     public void tick(BattleView sim) {
         if (complete) return;
-        if (ObjectiveFactionPresence.anyInPlay(sim, targets)) return;
+        if (personnelOnly ? ObjectiveFactionPresence.anyInPlay(sim, targets,
+                unit -> !sim.identity().type(unit).isTurret())
+                : ObjectiveFactionPresence.anyInPlay(sim, targets)) return;
         complete = true;
     }
 
