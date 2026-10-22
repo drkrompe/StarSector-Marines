@@ -3,7 +3,9 @@ package com.dillon.starsectormarines.battle.setup;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
+import com.dillon.starsectormarines.battle.cordon.AlliedColumns;
 import com.dillon.starsectormarines.battle.cordon.CordonCommand;
+import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonCorridor;
 import com.dillon.starsectormarines.battle.cordon.CordonGarrisons;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
@@ -122,6 +124,13 @@ public final class CordonSetup {
     static final int RESERVE_DEPTH = 24;
     /** The garrisons' kit: troops dug in on the line for weeks, the colony's best. */
     static final RiskLevel GARRISON_RISK = RiskLevel.HIGH;
+    /** The rear hamlets' names in the plan begin so. */
+    private static final String REAR_PLACE = "rear-";
+    /** Teams in each allied column. */
+    static final int COLUMN_TEAMS = 2;
+    /** How far along the rear edge a refugee or column looks for the road before taking open ground. */
+    private static final int EDGE_ROAD_REACH = 40;
+    private static final long COLUMN_SALT = 0x434F4C554D4E5321L;
     /** Salt for the garrisons' loadout rolls, their own stream so the map's draws are not read again. */
     private static final long GARRISON_SALT = 0x4741525249534F4EL;
 
@@ -159,11 +168,65 @@ public final class CordonSetup {
                 cordon.corridor(), timetable.eruptionSeconds().size(), cordon.battleSeed());
         CordonSequence sequence = sim.installCordon(variant, redoubts, gap(variant, redoubts, cordon), eruptions,
                 timetable);
+        if (variant == CordonVariant.LINE) {
+            int rearRow = CordonFront.rearRow(cordon.plan(), HEIGHT);
+            sequence.attach(new CordonRefugees(refugeeRoutes(sim, cordon.plan(), timetable, rearRow),
+                            timetable.refugeeSeconds(), rearRow),
+                    new AlliedColumns(columnEntries(sim, timetable, rearRow), COLUMN_TEAMS, CordonGarrisons.ISSUER,
+                            GARRISON_RISK, new Random(cordon.battleSeed() ^ COLUMN_SALT)));
+        }
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         int reserveY = Math.round(CordonFront.lineY(cordon.plan()) - CordonFront.frontward(cordon.plan()) * RESERVE_DEPTH);
         sim.setAutonomousCommander(Faction.MARINE, new CordonCommand(WIDTH / 2, reserveY),
                 CordonCommand.disclosure(sequence));
         return sim;
+    }
+
+    /**
+     * Each refugee group's way out, in departure order: from the rear hamlets
+     * in turn to the rear edge below them, the nearest open cell of it on a
+     * road where there is one ({@code cordon-nouns.md}, Refugees).
+     */
+    static List<CordonRefugees.Route> refugeeRoutes(BattleSimulation sim, PrecinctPlan plan,
+                                                    CordonSequence.Timetable timetable, int rearRow) {
+        List<Precinct> hamlets = new ArrayList<>();
+        for (Precinct p : plan.precincts()) if (p.name().startsWith(REAR_PLACE)) hamlets.add(p);
+        List<CordonRefugees.Route> routes = new ArrayList<>();
+        if (hamlets.isEmpty()) return routes;
+        for (int i = 0; i < timetable.refugeeSeconds().size(); i++) {
+            Precinct from = hamlets.get(i % hamlets.size());
+            int[] exit = edgeCell(sim, from.seedX(), rearRow);
+            if (exit != null) routes.add(new CordonRefugees.Route(from.seedX(), from.seedY(), exit[0], exit[1]));
+        }
+        return routes;
+    }
+
+    /** Where each allied column comes on: the rear edge behind the middle of the line, west and east in turn. */
+    static List<AlliedColumns.Departure> columnEntries(BattleSimulation sim, CordonSequence.Timetable timetable,
+                                                       int rearRow) {
+        List<AlliedColumns.Departure> out = new ArrayList<>();
+        for (int i = 0; i < timetable.columnSeconds().size(); i++) {
+            int x = i % 2 == 0 ? WIDTH * 2 / 5 : WIDTH * 3 / 5;
+            int[] entry = edgeCell(sim, x, rearRow);
+            if (entry != null) out.add(new AlliedColumns.Departure(timetable.columnSeconds().get(i), entry[0], entry[1]));
+        }
+        return out;
+    }
+
+    /** The open cell of the rear edge nearest {@code x}, a road cell if one lies within reach. */
+    private static int[] edgeCell(BattleSimulation sim, int x, int row) {
+        int[] open = null;
+        for (int d = 0; d < WIDTH; d++) {
+            for (int cx : new int[]{x - d, x + d}) {
+                if (!sim.getGrid().inBounds(cx, row) || !sim.getGrid().isWalkable(cx, row)) continue;
+                CellTopology.GroundKind kind = sim.getTopology().getGroundKind(cx, row);
+                if ((kind == CellTopology.GroundKind.STREET || kind == CellTopology.GroundKind.SIDEWALK)
+                        && d <= EDGE_ROAD_REACH) return new int[]{cx, row};
+                if (open == null) open = new int[]{cx, row};
+            }
+            if (open != null && d > EDGE_ROAD_REACH) return open;
+        }
+        return open;
     }
 
     /**

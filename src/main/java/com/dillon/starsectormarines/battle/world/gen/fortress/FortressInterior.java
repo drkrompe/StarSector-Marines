@@ -20,8 +20,10 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -91,12 +93,30 @@ public final class FortressInterior {
      * reason to open onto the yard, and a keep's inner chamber is the last
      * place a defender wants a hole in the wall. What is left is where people
      * are — and a window is what they fight from, so this decides how
-     * defensible each building is as much as how it looks.
+     * defensible each building is as much as how it looks. A residential hall
+     * is one: the civil-defence compound's shelter hall and a field redoubt's
+     * bunk dugout are each the last building their people hold, and a blank
+     * box is one they could fight from only through its door.
      */
     private static final Set<RoomPurpose> WINDOWED = EnumSet.of(
             RoomPurpose.BARRACKS, RoomPurpose.MESS_HALL, RoomPurpose.CONTROL_ROOM,
             RoomPurpose.KEEP_ENTRY, RoomPurpose.VEHICLE_BAY, RoomPurpose.CIVIC_OFFICE,
-            RoomPurpose.CONFERENCE_ROOM, RoomPurpose.PATIENT_WARD, RoomPurpose.CREW_QUARTERS);
+            RoomPurpose.CONFERENCE_ROOM, RoomPurpose.PATIENT_WARD, RoomPurpose.CREW_QUARTERS,
+            RoomPurpose.RESIDENTIAL_HALL);
+
+    /**
+     * Windowed rooms whose windows are laid out before they are furnished, so
+     * the fitting stands its fixtures round them rather than against the wall
+     * behind them. A hall's bunks otherwise line both long walls end to end,
+     * and a window is cut only where the cell inside it can be stood on: the
+     * civil-defence shelter came out with one window on a short wall and none
+     * on the long ones. Other rooms keep the windows their furnishing leaves
+     * room for.
+     */
+    private static final Set<RoomPurpose> WINDOWS_FIRST = EnumSet.of(RoomPurpose.RESIDENTIAL_HALL);
+
+    /** One window a room's facade will take: the wall cell and the way it faces. */
+    private record WindowCell(int x, int y, Direction outward) { }
 
     /**
      * Minimum pitch between windows or window bays along a facade.
@@ -173,9 +193,10 @@ public final class FortressInterior {
             }
         }
         stampWalls(ctx, rooms);
-        furnish(ctx, rooms.stream().filter(room -> !bare.contains(room)).toList(), true);
+        Map<RoomPacker.Placed, List<WindowCell>> planned = planWindowsFirst(ctx, rooms);
+        furnish(ctx, rooms.stream().filter(room -> !bare.contains(room)).toList(), true, planned);
         hostFill.run();
-        stampWindows(ctx, rooms);
+        stampWindows(ctx, rooms, planned);
         InstallationFloors.dress(ctx, rooms);
         InstallationWalls.dress(ctx, rooms);
         return new Result(rooms, List.of());
@@ -214,8 +235,9 @@ public final class FortressInterior {
         metalYard(ctx, ground, placed);
         openFurtherDoors(ctx, packer, placed, authored);
         stampWalls(ctx, placed);
-        furnish(ctx, placed);
-        stampWindows(ctx, placed);
+        Map<RoomPacker.Placed, List<WindowCell>> planned = planWindowsFirst(ctx, placed);
+        furnish(ctx, placed, false, planned);
+        stampWindows(ctx, placed, planned);
         InstallationFloors.dress(ctx, placed);
         InstallationWalls.dress(ctx, placed);
         // The airbase is not packed here. It is a lot reserved out of the ward
@@ -305,11 +327,8 @@ public final class FortressInterior {
      * rolled-back bay that kept its berths would offer to service machines on
      * empty floor and look entirely correct from outside.
      */
-    private static void furnish(GenContext ctx, List<RoomPacker.Placed> placed) {
-        furnish(ctx, placed, false);
-    }
-
-    private static void furnish(GenContext ctx, List<RoomPacker.Placed> placed, boolean authored) {
+    private static void furnish(GenContext ctx, List<RoomPacker.Placed> placed, boolean authored,
+                                Map<RoomPacker.Placed, List<WindowCell>> planned) {
         for (RoomPacker.Placed room : placed) {
             RoomFitting fitting = RoomFittings.forInstallation(room.purpose());
             if (fitting == null && authored) fitting = switch (room.purpose()) {
@@ -323,6 +342,11 @@ public final class FortressInterior {
             int berths = ctx.gantries.size();
             int work = ctx.fixtureTasks.size();
             RoomFloor floor = new RoomFloor(ctx, room, FIT);
+            // The cell inside each planned window stays floor, for whoever fights from it.
+            for (WindowCell window : planned.getOrDefault(room, List.of())) {
+                floor.reserveLane(window.x() - window.outward().dx - room.originX(),
+                        window.y() - window.outward().dy - room.originY(), 1, 1);
+            }
             fitting.fit(floor);
             if (floor.circulationSurvives()) {
                 floor.seal();
@@ -471,28 +495,63 @@ public final class FortressInterior {
      * nothing can reach or fire from; requiring the inward cell to still be
      * walkable when the aperture is cut is what keeps the two in step.
      */
-    private static void stampWindows(GenContext ctx, List<RoomPacker.Placed> placed) {
-        Set<Long> occupied = new HashSet<>();
-        for (RoomPacker.Placed room : placed) {
-            for (int[] cell : room.shape().filled()) {
-                occupied.add(cellKey(room.originX() + cell[0], room.originY() + cell[1]));
-            }
-        }
+    private static void stampWindows(GenContext ctx, List<RoomPacker.Placed> placed,
+                                     Map<RoomPacker.Placed, List<WindowCell>> planned) {
+        Set<Long> occupied = occupied(placed);
         for (RoomPacker.Placed room : placed) {
             if (!WINDOWED.contains(room.purpose())) continue;
-            Set<Long> floor = new HashSet<>();
-            for (int[] cell : room.shape().filled()) {
-                floor.add(cellKey(room.originX() + cell[0], room.originY() + cell[1]));
+            List<WindowCell> plan = planned.get(room);
+            if (plan != null) {
+                // Laid out before the furnishing, which stood its fixtures round them.
+                for (WindowCell window : plan) {
+                    if (ctx.grid.isWalkable(window.x() - window.outward().dx, window.y() - window.outward().dy)) {
+                        openWindow(ctx, window.x(), window.y(), window.outward());
+                    }
+                }
+                continue;
             }
-            for (Direction outward : new Direction[]{ Direction.N, Direction.S,
-                    Direction.E, Direction.W }) {
-                stampFacade(ctx, room, floor, occupied, outward);
+            Set<Long> floor = floorOf(room);
+            for (Direction outward : FACADES) {
+                for (WindowCell window : facadeWindows(ctx, room, floor, occupied, outward)) {
+                    openWindow(ctx, window.x(), window.y(), window.outward());
+                }
             }
         }
     }
 
+    private static final Direction[] FACADES = { Direction.N, Direction.S, Direction.E, Direction.W };
+
+    /** The windows of every {@link #WINDOWS_FIRST} room, laid out on its bare floor. */
+    private static Map<RoomPacker.Placed, List<WindowCell>> planWindowsFirst(GenContext ctx,
+                                                                             List<RoomPacker.Placed> placed) {
+        Map<RoomPacker.Placed, List<WindowCell>> out = new HashMap<>();
+        Set<Long> occupied = occupied(placed);
+        for (RoomPacker.Placed room : placed) {
+            if (!WINDOWS_FIRST.contains(room.purpose()) || !WINDOWED.contains(room.purpose())) continue;
+            Set<Long> floor = floorOf(room);
+            List<WindowCell> windows = new ArrayList<>();
+            for (Direction outward : FACADES) windows.addAll(facadeWindows(ctx, room, floor, occupied, outward));
+            out.put(room, windows);
+        }
+        return out;
+    }
+
+    private static Set<Long> occupied(List<RoomPacker.Placed> placed) {
+        Set<Long> occupied = new HashSet<>();
+        for (RoomPacker.Placed room : placed) occupied.addAll(floorOf(room));
+        return occupied;
+    }
+
+    private static Set<Long> floorOf(RoomPacker.Placed room) {
+        Set<Long> floor = new HashSet<>();
+        for (int[] cell : room.shape().filled()) {
+            floor.add(cellKey(room.originX() + cell[0], room.originY() + cell[1]));
+        }
+        return floor;
+    }
+
     /**
-     * Cut one facade's windows.
+     * Where one facade's windows go.
      *
      * <p>The facade is walked as runs of eligible wall rather than as the side
      * of a rectangle, because a packed room need not be one and a run may be
@@ -501,8 +560,9 @@ public final class FortressInterior {
      * the run so a wall's windows sit symmetrically on it instead of crowding
      * whichever end the walk happened to start from.
      */
-    private static void stampFacade(GenContext ctx, RoomPacker.Placed room, Set<Long> floor,
-                                    Set<Long> occupied, Direction outward) {
+    private static List<WindowCell> facadeWindows(GenContext ctx, RoomPacker.Placed room, Set<Long> floor,
+                                                  Set<Long> occupied, Direction outward) {
+        List<WindowCell> windows = new ArrayList<>();
         // Step along the facade, which runs at right angles to the way it faces.
         int stepX = outward.dy;
         int stepY = outward.dx;
@@ -536,9 +596,10 @@ public final class FortressInterior {
             int first = (facade.size() - panes - (count - 1) * pitch) / 2;
             for (int i = 0; i < count; i++) for (int pane = 0; pane < panes; pane++) {
                 int[] cell = facade.get(first + i * pitch + pane);
-                openWindow(ctx, cell[0], cell[1], outward);
+                windows.add(new WindowCell(cell[0], cell[1], outward));
             }
         }
+        return windows;
     }
 
     /** Whether this cell is wall this building could open onto ground beyond. */

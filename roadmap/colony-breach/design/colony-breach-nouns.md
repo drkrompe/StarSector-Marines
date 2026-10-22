@@ -427,7 +427,11 @@ with the colony, the town's streets run up to it, its gates are where they
 cross its wall, and its neighbours are built against it: it fits the layout by
 construction, with a strip of cleared earth between its wall and the houses
 round it. The colony re-rolls a map that did not build it. The shelter is
-always its hall.
+always its hall, and the hall has windows on every wall that faces open
+ground, the last building its people hold and fight from. Its windows are
+laid out before it is furnished, so the bunks stand round them instead of
+against the wall behind them; a field redoubt's bunk dugout is laid out the
+same way.
 
 It is a proper work, but a civil one, partway between a house with sandbags and
 a Conquest fort and copied from neither. Its program owes nothing military (no
