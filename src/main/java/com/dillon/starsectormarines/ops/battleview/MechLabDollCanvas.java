@@ -10,6 +10,9 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -45,6 +48,13 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private static final Color LETTER_RIM = new Color(0x14, 0x11, 0x0a, 200);
     private static final Color LETTER_INK = new Color(0x14, 0x11, 0x0a, 255);
     private final SvgAsset buildMark = SvgAsset.load("graphics/ui/mech-hardware/fab.svg");
+    /** A previewed machine is drawn a little translucent: it is not built yet. */
+    private static final float PREVIEW_ALPHA = 0.82f;
+    private Supplier<Object> padPreview;
+    private CampaignMech previewMech;
+    private MechChassisPreviewCanvas previewMechArt;
+    private VehicleType previewVehicleType;
+    private VehiclePreviewCanvas previewVehicleArt;
     private static final float VACANT_PAD_INSET_RATIO = 0.045f;
 
     private static final EnumSet<RenderLayer> BACKDROP_LAYERS = EnumSet.of(
@@ -302,7 +312,13 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     Math.max(1f, height - inset * 2f));
             if (index >= Math.max(0, occupied)) {
                 targets.add(target);
-                drawBuildMark(context, target, index == hoveredVacantGantry);
+                Object preview = index == selectedIndex(selectedGantry.getAsInt()) && padPreview != null
+                        ? padPreview.get() : null;
+                if (preview != null) {
+                    drawPadPreview(context, target, preview, camera.cellPxSize() / viewport.scaleX());
+                } else {
+                    drawBuildMark(context, target, index == hoveredVacantGantry);
+                }
             }
             if (letters) drawPadLetter(context, target, index);
         }
@@ -330,6 +346,46 @@ public final class MechLabDollCanvas implements CanvasProducer {
             context.text(Fonts.ORBITRON_12_BOLD, label,
                     centerX - Fonts.ORBITRON_12_BOLD.measureWidth(label) * 0.5f, top + cog + 6f, edge);
         }
+    }
+
+    /**
+     * The selected pattern standing on the vacant pad at the scene's own scale, inside the build
+     * brackets, so the player sees what BUILD will put there before anything is spent.
+     */
+    private void drawPadPreview(CanvasContext context, VacantGantryTarget target, Object preview, float cellPx) {
+        float shortSide = Math.min(target.width(), target.height());
+        context.fillRect(target.x(), target.y(), target.width(), target.height(), BUILD_WASH);
+        drawCornerBrackets(context, target.x(), target.y(), target.width(), target.height(), BUILD_EDGE,
+                2f, shortSide * 0.24f, Math.max(3f, shortSide * 0.06f));
+        float centerX = target.x() + target.width() * 0.5f;
+        float centerY = target.y() + target.height() * 0.5f;
+        if (preview instanceof MechVariant variant) {
+            if (previewMech == null || previewMech.variant() != variant) {
+                previewMech = new CampaignMech("pad-preview", variant.displayName(), variant,
+                        variant.defaultRole, MissileReplenisherComponent.STANDARD.id());
+                previewMechArt = new MechChassisPreviewCanvas(previewMech, assets);
+            }
+            previewMechArt.drawAt(context, centerX, centerY,
+                    UnitRenderService.layeredMechHullWidth(cellPx, variant.renderScale), PREVIEW_ALPHA);
+        } else if (preview instanceof VehicleType type) {
+            if (previewVehicleArt == null || previewVehicleType != type) {
+                previewVehicleType = type;
+                previewVehicleArt = new VehiclePreviewCanvas(type);
+            }
+            previewVehicleArt.drawAt(context, centerX, centerY, cellPx, true, PREVIEW_ALPHA);
+        }
+        String label = "PREVIEW";
+        if (shortSide >= 64f) {
+            context.text(Fonts.ORBITRON_12_BOLD, label,
+                    centerX - Fonts.ORBITRON_12_BOLD.measureWidth(label) * 0.5f,
+                    target.y() + target.height() - Fonts.ORBITRON_12_BOLD.getLineHeight() - 8f, BUILD_EDGE);
+        }
+    }
+
+    /** What the pad shows as a preview: a {@link MechVariant}, a {@link VehicleType}, or null. */
+    public MechLabDollCanvas withPadPreview(Supplier<Object> preview) {
+        this.padPreview = preview;
+        return this;
     }
 
     /** The pad's letter, stencilled on an amber plate in its corner; the cards and headings use the same letter. */

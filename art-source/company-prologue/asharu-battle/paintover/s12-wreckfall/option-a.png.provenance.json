@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a165ea-e97d-7961-8d15-805b29a2e8ae",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a165ea-e97d-7961-8d15-805b29a2e8ae\\exec-999419e6-1850-4cbf-8050-67da2fcf7b34.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\company-prologue\\asharu-battle\\paintover\\s12-wreckfall\\option-a.png",
+    "sha256": "42c264e738e1019c07ce91a738ca00bbed84439af68d9df78e0e79eb85e6bfb2",
+    "dimensions": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\company-prologue\\asharu-battle\\paintover\\s12-wreckfall\\brief-a.txt",
+  "promptSha256": "d2b431d4d2ac0e6115f60bd64054555a1deaed45672d6c021aa5057eca734769",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: planet, horizon, camera, and the two grey ship shapes' positions, sizes and headings; paint over it, never move or recrop\nImage 2: Identity and materials of the Colossus only; not its pose or layout\nImage 3: Identity and materials of Morrow (the drone tender) only; not its pose or layout\n\nA cinematic paintover for a space-battle cutscene: \"the wreckfall\". Paint over the guide image.\n\nThe guide (reference 1) is the exact geometry and layout: the planet below seen from low orbit (desert dunes on the left, dark rugged canyon country across the middle and right, a curved horizon with a thin atmosphere, black space above). Keep the planet, the horizon line and the camera exactly as the guide has them; do not move, zoom, recrop or repaint the terrain beyond what light and glow require. The two flat grey shapes are the two hero ships, at exactly these positions, sizes and headings: the large one left of centre is the Colossus (a big boxy industrial freighter, reference 2 is its identity and materials only, not its pose), the smaller one right of centre is Morrow (a drone tender, reference 3 is identity only). Turn each grey shape into that ship, at that pose, lying broadside and slightly from above, crippled and falling into the atmosphere, mostly whole.\n\nThe ships are entering the atmosphere: each hull sits inside its own plasma sheath. A bow shock glows on the side of the hull facing away from the camera and down (the direction it is falling), so the hull is silhouetted dark against its own glow, with the hottest light orange-white at the core of the shock, rim light on the hull's edges, and sparks and small burning debris shedding off it. Their trails stream back from the ships toward the camera and toward orbit (up and toward the viewer), never toward the horizon.\n\nAround them, the other ships lost in the battle come down as a meteor shower of burning fragments: broken hull chunks and many small streaks, all falling roughly the same way as the two hero ships (away from the camera, down toward the canyons), at slightly different headings and depths, some near, most far and small. Each fragment's head is an irregular, flaring, breaking-up plasma shape, never a round glowing ball or orb. Fragment trails are shorter and fainter than the two hero trails, so the eye still follows the Colossus and Morrow.\n\nAbove the horizon: a thin, soft blue haze over the curve, fading to black space with faint stars; no hard grey band. No text, labels, captions, borders or UI. Photographic, physically plausible, restrained colour; a single frame from a film. Do not show cargo, holds, interiors or anything inside the ships.\nTrail look for this option: bright plasma. Each hero ship's head is a big, bright plasma bloom, orange-white at the core, with a long glowing wake that streams back toward the camera, cooling from orange through red and widening as it goes, still glowing far behind the ship. Fragment shower: moderate, about ten large burning chunks and twenty-five small streaks across the frame.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\company-prologue\\asharu-battle\\paintover\\s12-wreckfall\\guide-k6-key.png",
+      "sha256": "80034abfd524bd316708fb72d1e3aa447182132caf237be9d6f9e841808d67f5",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Geometry/layout authority: planet, horizon, camera, and the two grey ship shapes' positions, sizes and headings; paint over it, never move or recrop"
+    },
+    {
+      "path": "art-source\\company-prologue\\asharu-battle\\paintover\\s12-wreckfall\\ref-colossus.png",
+      "sha256": "6b484b93034493e51f3312e98a900711ed76ac3c68f00d23ab02a15f11c13888",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Identity and materials of the Colossus only; not its pose or layout"
+    },
+    {
+      "path": "art-source\\company-prologue\\asharu-battle\\paintover\\s12-wreckfall\\ref-morrow.png",
+      "sha256": "081ea795532ef065117af0fca8388bc45a319674d4071396c3ed4f4c50583d03",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "mode": "RGB",
+      "role": "Identity and materials of Morrow (the drone tender) only; not its pose or layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one paintover, using the guide’s exact layout and the other references for ship identity and materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 53278,
+    "cached_input_tokens": 38400,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 740,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 71.7
+}

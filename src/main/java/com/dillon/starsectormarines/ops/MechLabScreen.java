@@ -166,7 +166,8 @@ public final class MechLabScreen implements Screen {
                             () -> previewSeconds,
                             viewModel::hoveredWeapon)
                     .withOccupiedGantries(viewModel::occupiedGantries)
-                    .withSideShift(() -> cameraController.pose().sideShift());
+                    .withSideShift(() -> cameraController.pose().sideShift())
+                    .withPadPreview(viewModel::padPreview);
             dollCanvas.installedInternals(viewModel::installedInternal);
             built.canvases().set(dollElement, dollCanvas);
             inventoryDropElement = candidate.requireElement("mech-component-catalog");
@@ -215,6 +216,7 @@ public final class MechLabScreen implements Screen {
         props.put("scrapLabel", viewModel.scrapLabel());
         props.put("scrapClasses", viewModel.scrapClasses());
         props.put("scrapAction", viewModel.scrapAction());
+        viewModel.putBuildPanelProps(props);
         props.put("performanceMeters", viewModel.performanceMeters());
         viewModel.putInternalProps(props);
         viewModel.putRepairProps(props);
@@ -260,7 +262,7 @@ public final class MechLabScreen implements Screen {
             for (MechLabViewModel.LanceSlot slot : squad.slots()) {
                 UiElement canvas = instance.requireElement(slot.id());
                 if (target.canvases().producerOf(canvas) == null) {
-                    target.canvases().set(canvas, new LanceSlotCanvas(slot.letter(), slot.variant(), slot.vehicle(),
+                    target.canvases().set(canvas, new LanceSlotCanvas(slot.letter(), slot.mech(), slot.vehicle(),
                             () -> previewSprites().layeredMechSprites()));
                 }
             }
@@ -269,7 +271,7 @@ public final class MechLabScreen implements Screen {
             UiElement canvas = instance.requireElement(row.previewId());
             if (target.canvases().producerOf(canvas) == null) {
                 target.canvases().set(canvas, new LanceSlotCanvas(row.letter(),
-                        row.variant(), row.vehicle(), () -> previewSprites().layeredMechSprites()));
+                        row.mech(), row.vehicle(), () -> previewSprites().layeredMechSprites()));
             }
         }
     }
@@ -303,6 +305,7 @@ public final class MechLabScreen implements Screen {
                 }
             }
             UiElement card = instance.requireElement(row.id());
+            if (row.selectsOnClick()) card.onPointerDown(event -> row.action().run());
             card.onPointerMove(event -> {
                 if (row.weaponPreview() != null) {
                     viewModel.hoverWeapon(row.weaponPreview());
