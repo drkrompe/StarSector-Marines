@@ -697,6 +697,10 @@ exposed pavement over the actual adjacent outdoor surface, rounding exposed
 corners. Hard aprons may opt out. The road footprint remains on the navigation
 lattice; blending never creates a passable gap, erases a wall, or paints across
 landing markings. Missing edge art retains the ordinary opaque pavement.
+Natural ground meets natural ground the same way: where grass, earth, sand,
+gravel or stone touch, the stronger bleeds a noise-edged way into the weaker
+(`battle-render-nouns.md`, ground feather). Generation still assigns each cell
+one ground; the feather is the renderer's, and nothing here reads it.
 
 **Wear is appearance, not terrain damage.** A fixed coordinate/seed field blends
 fresh, worn and cracked material pools in stable patches. Increasing wear only

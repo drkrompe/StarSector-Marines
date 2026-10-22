@@ -1491,3 +1491,14 @@ tasks.register('roadMaterials', JavaExec) {
     workingDir projectDir
     args projectDir.absolutePath
 }
+
+// Feathered ground boundaries (GroundFeather): each material's art through baked noise-edged masks.
+tasks.register('groundFeather', JavaExec) {
+    group = 'asset pipeline'
+    description = 'Bake the ground feather sheet and catalog from the feathering materials own art'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.tools.terrainauthoring.GroundFeatherBaker'
+    workingDir projectDir
+    args projectDir.absolutePath
+}
