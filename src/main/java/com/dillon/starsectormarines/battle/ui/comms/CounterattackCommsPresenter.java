@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.comms;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.command.reinforcement.CounterattackSystem;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
@@ -61,18 +62,16 @@ public final class CounterattackCommsPresenter {
 
     static BattleCommsFeed.Notice warning(String district) {
         return new BattleCommsFeed.Notice(
-                "COMMS OFFICER // COUNTERATTACK WARNING",
-                "Enemy command traffic just spiked around the " + district
-                        + ". They're massing a counterattack. Prepare to hold.",
+                Strings.get("battleCommsCounterWarningTitle"),
+                Strings.format("battleCommsCounterWarningBody", district),
                 BattleCommsFeed.Tone.WARNING,
                 WARNING_DURATION_SEC);
     }
 
     static BattleCommsFeed.Notice launch(String district) {
         return new BattleCommsFeed.Notice(
-                "COMMS OFFICER // COUNTERATTACK INBOUND",
-                "The enemy push is moving into the " + district
-                        + ". Hold what you can; don't let them split the line.",
+                Strings.get("battleCommsCounterLaunchTitle"),
+                Strings.format("battleCommsCounterLaunchBody", district),
                 BattleCommsFeed.Tone.DANGER,
                 LAUNCH_DURATION_SEC);
     }
@@ -80,21 +79,18 @@ public final class CounterattackCommsPresenter {
     static BattleCommsFeed.Notice outcome(String district, CounterattackSystem.Resolution resolution) {
         return switch (resolution) {
             case SUCCESS -> new BattleCommsFeed.Notice(
-                    "COMMS OFFICER // LINE BREACHED",
-                    "They've broken back into the " + district
-                            + ". The front has shifted. Prepare to retake it.",
+                    Strings.get("battleCommsCounterSuccessTitle"),
+                    Strings.format("battleCommsCounterSuccessBody", district),
                     BattleCommsFeed.Tone.DANGER,
                     OUTCOME_DURATION_SEC);
             case FAILURE -> new BattleCommsFeed.Notice(
-                    "COMMS OFFICER // LINE HOLDING",
-                    "The counterattack in the " + district
-                            + " has collapsed. Their reserve is spent; keep pushing.",
+                    Strings.get("battleCommsCounterFailureTitle"),
+                    Strings.format("battleCommsCounterFailureBody", district),
                     BattleCommsFeed.Tone.GOOD_NEWS,
                     OUTCOME_DURATION_SEC);
             case ABORTED -> new BattleCommsFeed.Notice(
-                    "COMMS OFFICER // BUILDUP DISPERSING",
-                    "Enemy traffic around the " + district
-                            + " is breaking up. Our line is holding.",
+                    Strings.get("battleCommsCounterAbortedTitle"),
+                    Strings.format("battleCommsCounterAbortedBody", district),
                     BattleCommsFeed.Tone.STATUS,
                     OUTCOME_DURATION_SEC);
             case NONE -> throw new IllegalArgumentException("NONE is not an outcome");

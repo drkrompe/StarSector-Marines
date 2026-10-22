@@ -263,8 +263,7 @@ final class BattleHudOverlayModel {
                         label, "objective-chip " + stateClass));
             }
             objectiveScore.set(secured + " / " + stable.size());
-            objectiveTally.set(secured + " SECURE  ·  " + contested
-                    + " CONTESTED  ·  " + hostile + " HOSTILE");
+            objectiveTally.set(Strings.format("battleHudObjectiveTally", secured, contested, hostile));
             objectiveChips.set(List.copyOf(chips));
             if (focus == null) {
                 objectiveFocusClasses.set(OBJECTIVE_FOCUS_HIDDEN);
@@ -297,8 +296,8 @@ final class BattleHudOverlayModel {
             if (i.focus() != null) locate.accept(i.focus());
         })).toList());
         missionSquads.set(snapshot.squads().stream().map(MissionSquad::new).toList());
-        missionSquadSummary.set(snapshot.squads().isEmpty() ? "Awaiting deployed squad assignments"
-                : snapshot.squads().size() + " squads / current assignments");
+        missionSquadSummary.set(snapshot.squads().isEmpty() ? Strings.get("battleHudSquadsAwaiting")
+                : Strings.format("battleHudSquadsSummary", snapshot.squads().size()));
         return new Presentation(true, true, count);
     }
 

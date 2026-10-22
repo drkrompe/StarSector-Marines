@@ -71,7 +71,7 @@ public final class FortMarkers {
             FortAspect aspect = place.aspect();
             if (aspect == FortAspect.EMITTER) {
                 if (place.wrecked()) {
-                    out.add(new Marker("EMITTER WRECKED", place.x(), place.y(), ASPECT_RING_CELLS, Kind.WRECKED,
+                    out.add(new Marker(Strings.get("battleFortEmitterWrecked"), place.x(), place.y(), ASPECT_RING_CELLS, Kind.WRECKED,
                             holder.hostileTo(player), 0f));
                 }
                 continue;
@@ -79,14 +79,14 @@ public final class FortMarkers {
             Faction owner = place.control().holder();
             boolean hostile = owner.hostileTo(player);
             if (place.wrecked()) {
-                out.add(new Marker(aspect.label() + " WRECKED", place.x(), place.y(), ASPECT_RING_CELLS, Kind.WRECKED, hostile, 0f));
+                out.add(new Marker(wrecked(aspect), place.x(), place.y(), ASPECT_RING_CELLS, Kind.WRECKED, hostile, 0f));
                 continue;
             }
-            String label = aspect.label();
+            String label = aspectName(aspect);
             if (place.control().contested()) {
-                label += String.format(Strings.locale(), " CONTESTED %d%%", Math.round(place.control().captureProgress() * 100f));
+                label = Strings.format("battleFortContested", label, Math.round(place.control().captureProgress() * 100f));
             } else if (!owner.friendlyTo(Faction.DEFENDER)) {
-                label += " TAKEN";
+                label = Strings.format("battleFortTaken", label);
             }
             out.add(new Marker(label, place.x(), place.y(), ASPECT_RING_CELLS, Kind.ASPECT, hostile,
                     place.control().captureProgress()));
@@ -100,9 +100,17 @@ public final class FortMarkers {
         }
     }
 
+    private static String aspectName(FortAspect aspect) {
+        return Strings.named("battleFortAspect", aspect.name());
+    }
+
+    private static String wrecked(FortAspect aspect) {
+        return Strings.format("battleFortWrecked", aspectName(aspect));
+    }
+
     /** Why a shield fort's dome is down, or an empty string when it is up. */
     static String shieldStatus(Fort fort, Faction holder) {
-        return fort.domePowered(holder) ? "" : "DOME UNPOWERED";
+        return fort.domePowered(holder) ? "" : Strings.get("battleFortDomeUnpowered");
     }
 
     private static Marker aspectMarker(Fort fort, FortressBattery battery, Fort.Place place, Faction player) {
@@ -111,15 +119,15 @@ public final class FortMarkers {
         Faction holder = fireControl ? battery.owner() : place.control().holder();
         boolean hostile = holder.hostileTo(player);
         if (place.wrecked()) {
-            return new Marker(aspect.label() + " WRECKED", place.x(), place.y(), ASPECT_RING_CELLS, Kind.WRECKED, hostile, 0f);
+            return new Marker(wrecked(aspect), place.x(), place.y(), ASPECT_RING_CELLS, Kind.WRECKED, hostile, 0f);
         }
         boolean contested = fireControl ? battery.fireControl().contested() : place.control().contested();
         float progress = fireControl ? battery.fireControl().captureProgress() : place.control().captureProgress();
-        String label = aspect.label();
+        String label = aspectName(aspect);
         if (contested) {
-            label += String.format(Strings.locale(), " CONTESTED %d%%", Math.round(progress * 100f));
+            label = Strings.format("battleFortContested", label, Math.round(progress * 100f));
         } else if (!holder.friendlyTo(battery.originalOwner())) {
-            label += " TAKEN";
+            label = Strings.format("battleFortTaken", label);
         }
         return new Marker(label, place.x(), place.y(), ASPECT_RING_CELLS, Kind.ASPECT, hostile, progress);
     }
@@ -129,13 +137,13 @@ public final class FortMarkers {
         List<String> parts = new ArrayList<>();
         Faction owner = battery.owner();
         if (!fort.fireControlIntact()) {
-            parts.add("NO FIRE CONTROL");
+            parts.add(Strings.get("battleFortNoFireControl"));
         } else if (!fort.magazineSupplies(owner)) {
             parts.add(fort.readyRounds() >= 1f
-                    ? String.format(Strings.locale(), "RATIONED %d", (int) Math.floor(fort.readyRounds()))
-                    : "OUT OF ROUNDS");
+                    ? Strings.format("battleFortRationed", (int) Math.floor(fort.readyRounds()))
+                    : Strings.get("battleFortOutOfRounds"));
         }
-        if (!fort.powered(owner)) parts.add("UNPOWERED");
-        return String.join(" / ", parts);
+        if (!fort.powered(owner)) parts.add(Strings.get("battleFortUnpowered"));
+        return Strings.join("separatorPath", parts.toArray(new String[0]));
     }
 }

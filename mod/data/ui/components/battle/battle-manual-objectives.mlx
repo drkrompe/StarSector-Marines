@@ -1,7 +1,7 @@
 <template props="cards,score">
   <div id="manual-objectives" class="manual-objectives" style="background-color: transparent; background-image: none; border-width: 0px;">
     <div id="manual-objective-heading" class="manual-heading">
-      <div id="manual-objective-title" class="manual-title">OBJECTIVES</div>
+      <div id="manual-objective-title" class="manual-title">{i18n.battleManualObjectivesTitle}</div>
       <div id="manual-objective-score" class="score">{score}</div>
     </div>
     <div id="manual-objective-rule" class="rule"></div>

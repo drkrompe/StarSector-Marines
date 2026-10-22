@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService;
@@ -82,7 +83,7 @@ public final class SquadOrderTargetingPanel implements HudPanel {
         if (!sim.getGrid().inBounds(cellX, cellY)) return;
         float centerX = camera.cellToScreenX(cellX + 0.5f);
         float centerY = camera.cellToScreenY(cellY + 0.5f);
-        var marker = BattlefieldMarkerPresentation.target("DEFEND AREA", true,
+        var marker = BattlefieldMarkerPresentation.target(Strings.get("battleOrderDefendArea"), true,
                 SquadMoveOrderService.DEFEND_AREA_RADIUS_CELLS);
         CommandPowerTargetingPanel.paintTargetingMarker(camera, marker,
                 centerX, centerY, alphaMult);

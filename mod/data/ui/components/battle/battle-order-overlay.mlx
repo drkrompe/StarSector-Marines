@@ -6,11 +6,11 @@
     </div>
     <div id="battle-order-cards" class="order-cards">
       <button id="battle-order-defend" class="{defendClasses}" onclick="{defend}">
-        <div id="battle-order-defend-name" class="order-name">[F] DEFEND AREA</div>
+        <div id="battle-order-defend-name" class="order-name">{i18n.battleOrderDefendAreaKey}</div>
         <div id="battle-order-defend-scope" class="order-detail">{defendScope}</div>
       </button>
       <button id="battle-order-garrison" class="{garrisonClasses}" onclick="{garrison}">
-        <div id="battle-order-garrison-name" class="order-name">[G] GARRISON</div>
+        <div id="battle-order-garrison-name" class="order-name">{i18n.battleOrderGarrisonKey}</div>
         <div id="battle-order-garrison-detail" class="order-detail">{garrisonDetail}</div>
       </button>
     </div>

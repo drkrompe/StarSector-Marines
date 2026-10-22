@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.power.HostileShipSupport;
 import java.util.List;
 
@@ -10,7 +11,7 @@ public final class HostileShipMarkers {
 
     public static List<Marker> forSupport(HostileShipSupport support) {
         if (support == null || !support.markerActive()) return List.of();
-        return List.of(new Marker("HOSTILE CAPITAL INBOUND", support.stationX(), support.stationY(),
+        return List.of(new Marker(Strings.get("battleHostileCapitalInbound"), support.stationX(), support.stationY(),
                 HostileShipSupport.MARKER_RADIUS_CELLS));
     }
 }
