@@ -59,10 +59,17 @@ it, and a wreck is an igniter (Starting fires).
 `WATER`, masonry rubble, rock, any wall heavier than a light one, anything of
 a fortified structure, and ground that has already burnt.
 
-**Creep over a road is fuel.** Paving stops a fire only while it is bare. In
-country the creep has overgrown, no road is a firebreak; the only break is
-one somebody clears or burns, which is what makes the burn line the way in
-(the `fire-line` scene's first draft lost its road to exactly this).
+**Creep over cleared ground is a film.** Creep is fuel where it has ground to
+feed it: over grass, brush or a crown it burns, living or dead. Over cleared
+ground with nothing else on the cell (bare `DIRT`, any paving, `STRIPED`) it
+is a thin film that does not burn, so a road, a ride or a bare yard keeps its
+firebreak after a bloom has grown over it, and a burn in creep country stops
+at each break until something relights it past (the owner's pick, "firebreaks
+hold"). `SAND` and `SNOW` keep creep fuel: they are a biome's open ground, not
+a cleared break. A break holds when it is wider than heat crosses: two cells
+against a grass, brush or creep fire, three against a crown fire, four
+against a crown fire in a strong wind (Wind).
+`-Dbattle.fire.creepFilm=false` is the control: creep burns over any ground.
 
 **Ignition.** A cell catches when its soaked-up heat passes its fuel's
 ignition. Heat comes from burning neighbours and from an **igniter**: an
