@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -47,8 +48,11 @@ public record RuralLayout(int width, int height, int edge, int depth, FieldOfFir
         }
     }
 
-    /** What a plot is used for, which decides how it is painted. */
-    public enum Use { ROW_CROP, GRAIN, PASTURE, FALLOW }
+    /**
+     * What a plot is used for, which decides how it is painted. {@link #WILD}
+     * is ground nobody works: it keeps the planet's own surface.
+     */
+    public enum Use { ROW_CROP, GRAIN, PASTURE, FALLOW, WILD }
 
     /**
      * One straight road as an inclusive rect, {@code alongX} when it runs along
@@ -104,6 +108,12 @@ public record RuralLayout(int width, int height, int edge, int depth, FieldOfFir
     static final int MIN_PLOT = 24;
     /** Plot frontage along the farm road is drawn from this range. */
     static final int PLOT_LO = 36, PLOT_HI = 56;
+    /**
+     * How far along the edge from the country road the fields thin out to
+     * nothing, as a share of the edge: on the town's side, and out by the map
+     * edge, where a plot is also worked less often to begin with.
+     */
+    static final double TOWN_SIDE_REACH = .5, FAR_SIDE_REACH = .3, FAR_SIDE_WORKED = .6;
     /** Share of crop plots with a hedge, in percent; pasture always has one. */
     static final int HEDGED_PERCENT = 50;
     /** A hedge leaves a gateway this wide in the middle of each side it runs along. */
@@ -216,58 +226,140 @@ public record RuralLayout(int width, int height, int edge, int depth, FieldOfFir
         roads.add(f.road(Grade.COUNTRY, mainMid - half, mainMid + half, 0, depth - 1, false));
         roads.add(f.road(Grade.FARM, 0, span - 1, farmLo, depth - 1, true));
 
-        // A cross track halves the fields' depth when they are deep enough to be two plots.
-        int fieldDepth = farmLo;
-        int crossLo = -1;
-        if (fieldDepth >= 2 * MIN_PLOT + Grade.TRACK.width) {
-            crossLo = fieldDepth / 2 - Grade.TRACK.width / 2;
-            roads.add(f.road(Grade.TRACK, 0, span - 1, crossLo, crossLo + Grade.TRACK.width - 1, true));
-        }
-
-        // Tracks on the plot boundaries, outward from the country road both ways.
-        List<int[]> columns = new ArrayList<>();
-        int edgeHi = mainMid + half + 1;
-        int lastTrack = edgeHi;
-        while (true) {
-            int start = lastTrack + PLOT_LO + rng.nextInt(PLOT_HI - PLOT_LO + 1);
-            if (start + Grade.TRACK.width - 1 > span - 1 - MIN_PLOT) break;
-            columns.add(new int[]{lastTrack, start - 1});
-            roads.add(f.road(Grade.TRACK, start, start + Grade.TRACK.width - 1, 0, farmLo - 1, false));
-            lastTrack = start + Grade.TRACK.width;
-        }
-        columns.add(new int[]{lastTrack, span - 1});
-        int edgeLo = mainMid - half - 1;
-        lastTrack = edgeLo;
-        while (true) {
-            int end = lastTrack - PLOT_LO - rng.nextInt(PLOT_HI - PLOT_LO + 1);
-            if (end - Grade.TRACK.width + 1 < MIN_PLOT) break;
-            columns.add(new int[]{end + 1, lastTrack});
-            roads.add(f.road(Grade.TRACK, end - Grade.TRACK.width + 1, end, 0, farmLo - 1, false));
-            lastTrack = end - Grade.TRACK.width;
-        }
-        columns.add(new int[]{0, lastTrack});
-
-        List<int[]> rows = new ArrayList<>();
-        if (crossLo < 0) {
-            rows.add(new int[]{0, farmLo - 1});
+        // Bands across the fields' depth, the town's side first: one band, or
+        // two with a cross-track band between when deep enough for two plots.
+        List<int[]> bands = new ArrayList<>();
+        if (farmLo >= 2 * MIN_PLOT + Grade.TRACK.width) {
+            int crossLo = farmLo / 2 - Grade.TRACK.width / 2;
+            bands.add(new int[]{crossLo + Grade.TRACK.width, farmLo - 1, PLOTS});
+            bands.add(new int[]{crossLo, crossLo + Grade.TRACK.width - 1, CROSSING});
+            bands.add(new int[]{0, crossLo - 1, PLOTS});
         } else {
-            rows.add(new int[]{0, crossLo - 1});
-            rows.add(new int[]{crossLo + Grade.TRACK.width, farmLo - 1});
+            bands.add(new int[]{0, farmLo - 1, PLOTS});
         }
 
-        Use[] uses = Use.values();
+        // Slices along the edge, outward from the country road both ways: plot
+        // columns, the track-wide boundaries between them, and the road itself.
+        // Each carries how far its near side lies from the country road.
+        List<int[]> slices = new ArrayList<>();
+        slices.add(new int[]{mainMid - half, mainMid + half, ROAD, 0});
+        int edgeHi = mainMid + half + 1;
+        int last = edgeHi;
+        while (true) {
+            int start = last + PLOT_LO + rng.nextInt(PLOT_HI - PLOT_LO + 1);
+            if (start + Grade.TRACK.width - 1 > span - 1 - MIN_PLOT) break;
+            slices.add(new int[]{last, start - 1, PLOTS, last - edgeHi});
+            slices.add(new int[]{start, start + Grade.TRACK.width - 1, CROSSING, start - edgeHi});
+            last = start + Grade.TRACK.width;
+        }
+        slices.add(new int[]{last, span - 1, PLOTS, last - edgeHi});
+        int edgeLo = mainMid - half - 1;
+        last = edgeLo;
+        while (true) {
+            int end = last - PLOT_LO - rng.nextInt(PLOT_HI - PLOT_LO + 1);
+            if (end - Grade.TRACK.width + 1 < MIN_PLOT) break;
+            slices.add(new int[]{end + 1, last, PLOTS, edgeLo - last});
+            slices.add(new int[]{end - Grade.TRACK.width + 1, end, CROSSING, edgeLo - end});
+            last = end - Grade.TRACK.width;
+        }
+        slices.add(new int[]{0, last, PLOTS, edgeLo - last});
+        slices.removeIf(slice -> slice[1] < slice[0]);
+        slices.sort(Comparator.comparingInt(slice -> slice[0]));
+        int n = slices.size(), b = bands.size(), road = 0;
+        for (int i = 0; i < n; i++) if (slices.get(i)[2] == ROAD) road = i;
+
+        // Which plots are worked. The fields are land in use, so they lie where
+        // a farm works from: against the town, beside the country road, and
+        // thinner the farther out along the edge. What nobody works stays the
+        // planet's own ground. The town-side plots beside the road always are.
+        boolean[][] worked = new boolean[n][b];
+        for (int i = 0; i < n; i++) {
+            if (slices.get(i)[2] != PLOTS) continue;
+            int gap = slices.get(i)[3];
+            for (int k = 0; k < b; k++) {
+                if (bands.get(k)[2] != PLOTS) continue;
+                boolean townSide = k == 0;
+                double reach = span * (townSide ? TOWN_SIDE_REACH : FAR_SIDE_REACH);
+                double chance = (townSide ? 1 : FAR_SIDE_WORKED) * Math.max(0, 1 - gap / reach);
+                worked[i][k] = !landUse() || (townSide && Math.abs(i - road) == 1) || rng.nextDouble() < chance;
+            }
+        }
+
+        // Tracks run only where they serve a worked plot: between plots where
+        // either is worked, along the cross band past a worked plot, and through
+        // a crossing where any of those meet.
+        boolean[][] track = new boolean[n][b];
+        for (int i = 0; i < n; i++) {
+            for (int k = 0; k < b; k++) {
+                int kind = slices.get(i)[2];
+                if (kind == CROSSING && bands.get(k)[2] == PLOTS) {
+                    track[i][k] = at(worked, i - 1, k) || at(worked, i + 1, k);
+                } else if (kind == PLOTS && bands.get(k)[2] == CROSSING) {
+                    track[i][k] = at(worked, i, k - 1) || at(worked, i, k + 1);
+                }
+            }
+        }
+        // A worked plot out by the map edge behind wild ground is reached down
+        // the boundary on its road side, from the farm road to the cross band.
+        for (int i = 0; i < n; i++) {
+            if (b < 3 || !worked[i][2] || worked[i][0]) continue;
+            int toward = i > road ? i - 1 : i + 1;
+            if (slices.get(toward)[2] == CROSSING) track[toward][0] = true;
+        }
+        for (int i = 0; i < n; i++) {
+            if (slices.get(i)[2] != CROSSING) continue;
+            for (int k = 0; k < b; k++) {
+                if (bands.get(k)[2] != CROSSING) continue;
+                track[i][k] = at(track, i - 1, k) || at(track, i + 1, k)
+                        || at(track, i, k - 1) || at(track, i, k + 1);
+            }
+        }
+
+        // Tracks as straight runs: down each boundary across the bands, and
+        // along the cross band past the plots.
+        for (int i = 0; i < n; i++) {
+            if (slices.get(i)[2] != CROSSING) continue;
+            for (int k = 0; k < b; ) {
+                if (!track[i][k]) { k++; continue; }
+                int end = k;
+                while (end + 1 < b && track[i][end + 1]) end++;
+                if (end > k || bands.get(k)[2] != CROSSING) {
+                    roads.add(f.road(Grade.TRACK, slices.get(i)[0], slices.get(i)[1],
+                            bands.get(end)[0], bands.get(k)[1], false));
+                }
+                k = end + 1;
+            }
+        }
+        for (int k = 0; k < b; k++) {
+            if (bands.get(k)[2] != CROSSING) continue;
+            for (int i = 0; i < n; ) {
+                if (!track[i][k]) { i++; continue; }
+                int end = i;
+                boolean pastPlot = false;
+                while (end < n && track[end][k]) pastPlot |= slices.get(end++)[2] == PLOTS;
+                if (pastPlot) {
+                    roads.add(f.road(Grade.TRACK, slices.get(i)[0], slices.get(end - 1)[1],
+                            bands.get(k)[0], bands.get(k)[1], true));
+                }
+                i = end;
+            }
+        }
+
+        Use[] crops = {Use.ROW_CROP, Use.GRAIN, Use.PASTURE, Use.FALLOW};
         int[] weights = {40, 25, 20, 15};
         List<Plot> plots = new ArrayList<>();
         List<int[]> plotsFrame = new ArrayList<>();
-        for (int[] column : columns) {
-            if (column[1] < column[0]) continue;
-            for (int[] row : rows) {
-                if (row[1] < row[0]) continue;
+        for (int i = 0; i < n; i++) {
+            int[] column = slices.get(i);
+            if (column[2] != PLOTS) continue;
+            for (int k = 0; k < b; k++) {
+                if (!worked[i][k]) continue;
+                int[] row = bands.get(k);
                 int pick = rng.nextInt(100);
-                Use use = uses[uses.length - 1];
-                for (int i = 0, sum = 0; i < uses.length; i++) {
-                    sum += weights[i];
-                    if (pick < sum) { use = uses[i]; break; }
+                Use use = crops[crops.length - 1];
+                for (int c = 0, sum = 0; c < crops.length; c++) {
+                    sum += weights[c];
+                    if (pick < sum) { use = crops[c]; break; }
                 }
                 // Rows run the plot's long way, as a drill would.
                 boolean rowsAlongEdge = column[1] - column[0] >= row[1] - row[0];
@@ -277,8 +369,39 @@ public record RuralLayout(int width, int height, int edge, int depth, FieldOfFir
                 plotsFrame.add(new int[]{column[0], column[1], row[0], row[1]});
             }
         }
-        List<Farmstead> farms = farmsteads(f, field, columns, rows, plotsFrame);
+        // The rest is wild: in each band, every run of ground that no road,
+        // track or worked plot holds.
+        for (int k = 0; k < b; k++) {
+            int[] row = bands.get(k);
+            for (int i = 0; i < n; ) {
+                if (!wild(slices, worked, track, i, k)) { i++; continue; }
+                int end = i;
+                while (end + 1 < n && wild(slices, worked, track, end + 1, k)) end++;
+                plots.add(f.plot(slices.get(i)[0], slices.get(end)[1], row[0], row[1], Use.WILD, true, false));
+                i = end + 1;
+            }
+        }
+        List<Farmstead> farms = farmsteads(f, field, plotsFrame);
         return new RuralLayout(width, height, f.edge, depth, field, List.copyOf(roads), List.copyOf(plots), farms);
+    }
+
+    /**
+     * Whether the country's plots are worked by land use.
+     * {@code -Dbattle.mapgen.ruralLandUse=false} is the control: every plot is a field.
+     */
+    static boolean landUse() {
+        return Boolean.parseBoolean(System.getProperty("battle.mapgen.ruralLandUse", "true"));
+    }
+
+    /** Kinds of slice and band in the survey's grid. */
+    private static final int PLOTS = 0, CROSSING = 1, ROAD = 2;
+
+    private static boolean at(boolean[][] grid, int i, int k) {
+        return i >= 0 && i < grid.length && k >= 0 && k < grid[i].length && grid[i][k];
+    }
+
+    private static boolean wild(List<int[]> slices, boolean[][] worked, boolean[][] track, int i, int k) {
+        return slices.get(i)[2] != ROAD && !worked[i][k] && !track[i][k];
     }
 
     /**
@@ -287,8 +410,7 @@ public record RuralLayout(int width, int height, int edge, int depth, FieldOfFir
      * farm's yard sits in the plot's corner on its town side, where a cross
      * track or the farm road runs past, and its doors face that road.
      */
-    private static List<Farmstead> farmsteads(Frame f, FieldOfFire field, List<int[]> columns,
-                                              List<int[]> rows, List<int[]> plotsFrame) {
+    private static List<Farmstead> farmsteads(Frame f, FieldOfFire field, List<int[]> plotsFrame) {
         int fa = f.alongOf(field.centerX(), field.centerY());
         int fd = f.depthOf(field.centerX(), field.centerY());
         long clear = field.radius() + FARM_CLEARANCE;

@@ -13,6 +13,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan.SubRect;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.NatureZoneFiller;
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralGround;
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 
 import java.util.List;
 
@@ -45,13 +47,29 @@ public final class HinterlandFillStage implements GenStage {
         int[][] road = ctx.get(BspKeys.PRECINCT_ROAD);
         if (claim != null && road != null) paintUnclaimedGround(ctx, claim, road);
         List<SubRect> hinterland = ctx.get(BspKeys.HINTERLAND);
-        if (hinterland == null || hinterland.isEmpty()) return;
-        for (int i = 0; i < hinterland.size(); i++) {
-            SubRect r = hinterland.get(i);
-            boolean touchesEdge = r.x0 <= 1 || r.y0 <= 1
-                    || r.x1 >= ctx.width - 2 || r.y1 >= ctx.height - 2;
-            grassland.fill(new BlockLeaf(r.x0, r.y0, r.x1, r.y1, touchesEdge), ctx);
+        if (hinterland != null) {
+            for (int i = 0; i < hinterland.size(); i++) {
+                SubRect r = hinterland.get(i);
+                boolean touchesEdge = r.x0 <= 1 || r.y0 <= 1
+                        || r.x1 >= ctx.width - 2 || r.y1 >= ctx.height - 2;
+                grassland.fill(new BlockLeaf(r.x0, r.y0, r.x1, r.y1, touchesEdge), ctx);
+            }
         }
+        // A colony works the open ground round it on every side, not only the
+        // country the company lands in.
+        RuralLayout rural = ctx.get(BspKeys.RURAL_LAYOUT);
+        if (rural != null && claim != null && road != null && townFields()) {
+            RuralGround.townFields(ctx, rural, claim, road);
+        }
+    }
+
+    /**
+     * Whether a colony farms the open ground round its other sides.
+     * {@code -Dbattle.mapgen.townFields=false} is the control: only the
+     * surveyed country is farmed.
+     */
+    static boolean townFields() {
+        return Boolean.parseBoolean(System.getProperty("battle.mapgen.townFields", "true"));
     }
 
     /** Seed thin scraps too; rectangular nature fills cannot cover every claim-edge cell. */
