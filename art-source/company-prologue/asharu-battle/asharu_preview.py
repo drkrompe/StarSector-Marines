@@ -461,7 +461,7 @@ def shot(L, kf):
                 u = min(1.0, (t - p0) / (p1 - p0))
                 mw = M(key, t)
                 return (mw @ Vector((ln_ * .55, 0, 0)), mw.to_3x3() @ Vector((-1, 0, 0)),
-                        ln_ * (.12 + .38 * u), ln_ * (.3 + 1.5 * u))
+                        ln_ * (.08 + .17 * u), ln_ * (.25 + .9 * u))
             mp.cone(name, sheath, 'fire')
         elif kind == 'flares':
             key = fx[1]

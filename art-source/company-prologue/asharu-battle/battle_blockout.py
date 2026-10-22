@@ -1000,8 +1000,7 @@ BLOCKED = {
                                    target=track(M11_COLOSSUS, _along(_m11, -40, 0, -75)), lens=38)], M11_T, shake=.3),
         ships={'colossus': M11_COLOSSUS, 'morrow': M11_MORROW},
         # entry plasma is new effects work: a proxy here (asharu_preview 'plasma'), building from 118 s to 124 s
-        fx=[('plasma', 'colossus', 118.0, 124.0), ('plasma', 'morrow', 118.5, 124.5),
-            ('fire_on', 'colossus', (-55, 36, 4)), ('smoke', 'colossus', (-60, 34, 0))],
+        fx=[('plasma', 'colossus', 118.0, 124.0), ('plasma', 'morrow', 118.5, 124.5)],
         labels=['colossus', 'morrow']),
 }
 SHOTS = {**KEYFRAMES, **BLOCKED}

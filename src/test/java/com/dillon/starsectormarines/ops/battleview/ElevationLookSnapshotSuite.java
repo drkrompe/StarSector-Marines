@@ -46,9 +46,10 @@ public final class ElevationLookSnapshotSuite implements SnapshotSuite {
         ElevationGradientLook look = new ElevationGradientLook(ElevationLayout.resolve(plan), FACE);
         int h = ElevationTestMaps.HEIGHT;
         List<SnapshotArtifact> out = new ArrayList<>();
-        // {cellPx, centre x, centre y, cells across, cells up}: the whole overlook, then the west ramp at 2x.
-        float[][] views = {{30, 32, 18, 64, 36}, {60, 22, 19, 32, 18}};
-        String[] viewNames = {"play-zoom", "close"};
+        // {cellPx, centre x, centre y, cells across, cells up}: the whole overlook, then the west ramp and a
+        // straight run of the north cliff at 2x.
+        float[][] views = {{30, 32, 18, 64, 36}, {60, 22, 19, 32, 18}, {60, 38, 26, 32, 18}};
+        String[] viewNames = {"play-zoom", "close", "close-cliff"};
         for (int v = 0; v < views.length; v++) {
             int px = (int) views[v][0];
             float cx = views[v][1], cy = views[v][2];
@@ -83,6 +84,20 @@ public final class ElevationLookSnapshotSuite implements SnapshotSuite {
                             "As A, with two ruts worn up the floor by boots and wheels, pointing the way up."},
                     {"STAIRS", "Ramp C. Cut stone steps",
                             "A shadowed riser and a lit tread every half cell: reads strongest, but says feet, not wheels."}};
+            String[][] edgeLooks = {
+                    {"LAYERED", "Edge A. Layered escarpment",
+                            "Strata ledges across the face; a broken turf lip over exposed soil; a gravel apron feathering into the grass."},
+                    {"BOULDER", "Edge B. Boulder scarp (recommended)",
+                            "Jointed rock blocks; rocks breaking through the turf at the rim; boulders and scree heaped at the foot."},
+                    {"ERODED", "Edge C. Eroded bank",
+                            "Gullies running down an earthy face; grass draping over the lip; scree fans spreading below."}};
+            for (String[] edgeLook : edgeLooks) {
+                BufferedImage edge = look.shadeEdges(meadow, left, top, px,
+                        ElevationGradientLook.EdgeStyle.valueOf(edgeLook[0]), ElevationGradientLook.RampStyle.STAIRS);
+                ElevationOptionsSnapshotSuite.caption(edge, edgeLook[1], edgeLook[2]);
+                out.add(new SnapshotArtifact(view + "/edge-" + edgeLook[0].toLowerCase() + ".png", edge));
+            }
+            if (v > 0) continue;
             for (String[] rampLook : rampLooks) {
                 // Over the shipped cliff tiles (A), the owner's pick for the cliffs.
                 BufferedImage ramp = look.paintRamps(ElevationSnapshotSuite.sunlit(tiled, tiles, left, top, px),
